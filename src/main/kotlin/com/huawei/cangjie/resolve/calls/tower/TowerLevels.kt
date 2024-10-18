@@ -9,7 +9,7 @@ import com.huawei.cangjie.resolve.DescriptorUtils
 import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import com.huawei.cangjie.resolve.hasClassValueDescriptor
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
+
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.huawei.cangjie.types.CangJieType
@@ -242,7 +242,7 @@ fun ResolutionScope.getContributedFunctionsAndConstructors(
 
 private fun getConstructorsOfClassifier(classifier: ClassifierDescriptor?): List<ConstructorDescriptor> {
     val callableConstructors = when (classifier) {
-        is LazyEnumEntryDescriptor -> classifier.constructors
+        is EnumEntryDescriptor -> listOf(classifier.unsubstitutedPrimaryConstructor)
         is TypeAliasDescriptor -> if (classifier.canHaveCallableConstructors) classifier.constructors else emptyList()
         is ClassDescriptor -> if (classifier.canHaveCallableConstructors) classifier.constructors else emptyList()
         else -> emptyList()
@@ -383,6 +383,9 @@ class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDes
         return false
     }
 
+    override val isStatic: Boolean
+        get() = type.isStatic
+
     override val original: CallableDescriptor
         get() = this
     override val containingDeclaration: DeclarationDescriptor
@@ -450,6 +453,8 @@ class ClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDescrip
         return false
     }
 
+    override val isStatic: Boolean
+        get() = type.isStatic
     override val original: CallableDescriptor
         get() = this
     override val containingDeclaration: DeclarationDescriptor

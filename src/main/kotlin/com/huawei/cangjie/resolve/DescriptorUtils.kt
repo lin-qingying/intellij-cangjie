@@ -21,7 +21,7 @@ import com.huawei.cangjie.resolve.DescriptorUtils.getContainingModule
 import com.huawei.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import com.huawei.cangjie.resolve.descriptorUtil.builtIns
 import com.huawei.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorImpl
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
+
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import com.huawei.cangjie.resolve.scopes.receivers.ExpressionReceiver
@@ -802,7 +802,7 @@ fun DeclarationDescriptor.isSealed(): Boolean {
 
 fun DeclarationDescriptor.isStatic(): Boolean {
     return when (this) {
-
+        is EnumClassCallableDescriptor -> isStatic
         is FunctionDescriptor -> isStatic
         is VariableDescriptor -> isStatic
 

@@ -16,7 +16,7 @@ import com.huawei.cangjie.psi.CjEnumEntry
 import com.huawei.cangjie.resolve.calls.components.InferenceSession
 import com.huawei.cangjie.resolve.lazy.LazyClassContext
 import com.huawei.cangjie.resolve.lazy.data.CjEnmuEntryInfo
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
+
 import com.huawei.cangjie.resolve.scopes.LexicalScope
 import com.huawei.cangjie.resolve.scopes.LexicalScopeKind
 import com.huawei.cangjie.resolve.scopes.LexicalWritableScope
@@ -85,31 +85,4 @@ class EnumDescriptorResolver(
         }
     }
 
-    fun resolveLazyEnumEntryDescriptor(
-        c: LazyClassContext,
-        thisDescriptor: DeclarationDescriptor,
-        name: Name,
-        list: List<CjEnmuEntryInfo>,
-        external: Boolean
-    ): LazyEnumEntryDescriptor {
-//        TODO 在这里校验还是在 LazyEnumEntryDescriptor的构造函数中校验？
-        return when (thisDescriptor) {
-            is PackageFragmentDescriptor -> {
-                val descriptor = (list[0].correspondingClass.parent?.parent as? CjEnum)?.nameAsSafeName?.let {
-                    thisDescriptor.getMemberScope().getContributedClassifier(
-                        it,
-                        NoLookupLocation.FROM_IDE
-                    )
-                }
-
-                LazyEnumEntryDescriptor(c, descriptor ?: thisDescriptor, name, list, external)
-
-            }
-
-            else -> {
-                LazyEnumEntryDescriptor(c, thisDescriptor, name, list, external)
-
-            }
-        }
-    }
 }

@@ -5,10 +5,12 @@ import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.descriptors.annotations.AnnotationsKt;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.psi.CjFunction;
+import com.huawei.cangjie.psi.CjFunctionImpl;
 import com.huawei.cangjie.resolve.DescriptorFactory;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.scopes.receivers.ExtensionReceiver;
 import com.huawei.cangjie.resolve.scopes.receivers.ImplicitContextReceiver;
+import com.huawei.cangjie.resolve.source.CangJieSourceElement;
 import com.huawei.cangjie.resolve.source.PsiSourceElementKt;
 import com.huawei.cangjie.types.*;
 import com.intellij.psi.PsiElement;
@@ -28,7 +30,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private List<ValueParameterDescriptor> unsubstitutedValueParameters = new ArrayList<>();
     private CangJieType unsubstitutedReturnType;
     private List<ReceiverParameterDescriptor> contextReceiverParameters;
-//    扩展接收器
+    //    扩展接收器
     private ReceiverParameterDescriptor extensionReceiverParameter;
     private ReceiverParameterDescriptor dispatchReceiverParameter;
     private Modality modality;
@@ -238,6 +240,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 
     /**
      * 重写规则  this 表示的该对象 (已经重写的对象，open修饰): 注意 这里的open
+     *
      * @param overriddenDescriptors 被重写方法，也就是抽象方法
      */
     @Override
@@ -344,6 +347,20 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         // Diagnostics for EA-141456
         if (parameters == null) {
             throw new IllegalStateException("typeParameters == null for " + this);
+        }
+        return parameters;
+    }
+
+    @Override
+    public @NotNull List<TypeParameterDescriptor> getTypeParametersNotExtend() {
+        List<TypeParameterDescriptor> parameters = typeParameters;
+        // Diagnostics for EA-141456
+        if (parameters == null) {
+            throw new IllegalStateException("typeParameters == null for " + this);
+        }
+
+        if (parameters.size() == 1 && getExtensionReceiverParameter() != null && ((CjFunctionImpl) ((CangJieSourceElement) getSource()).getPsi()).getOriginalTypeParameterList() == null) {
+            return Collections.emptyList();
         }
         return parameters;
     }

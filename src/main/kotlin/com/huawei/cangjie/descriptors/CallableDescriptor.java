@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public interface CallableDescriptor extends DeclarationDescriptorWithVisibility, DeclarationDescriptorNonRoot,
@@ -45,7 +46,11 @@ public interface CallableDescriptor extends DeclarationDescriptorWithVisibility,
     @NotNull
     @ReadOnly
     List<TypeParameterDescriptor> getTypeParameters();
-
+    @NotNull
+    @ReadOnly
+   default List<TypeParameterDescriptor> getTypeParametersNotExtend(){
+        return Collections.emptyList();
+    }
     @NotNull
 
     boolean hasStableParameterNames();

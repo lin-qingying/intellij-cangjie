@@ -107,18 +107,9 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
         boolean isLocal = typeStatement != null && CjPsiUtil.isLocal(typeStatement);
 //        默认为INTERNAL
         this.visibility = isLocal ? DescriptorVisibilities.LOCAL : resolveVisibilityFromModifiers(modifierList, DescriptorVisibilities.INTERNAL);
-//
-//        this.isInner = modifierList != null && modifierList.hasModifier(INNER_KEYWORD) && !isIllegalInner(this);
-//        this.isData = modifierList != null && modifierList.hasModifier(KtTokens.DATA_KEYWORD);
-//        this.isInline = modifierList != null && modifierList.hasModifier(KtTokens.INLINE_KEYWORD);
-//        this.isActual = modifierList != null && PsiUtilsKt.hasActualModifier(modifierList);
-//
-//        this.isExpect = modifierList != null && PsiUtilsKt.hasExpectModifier(modifierList) ||
-//                containingDeclaration instanceof ClassDescriptor && ((ClassDescriptor) containingDeclaration).isExpect();
-//
-//        this.isFun = modifierList != null && PsiUtilsKt.hasFunModifier(modifierList);
-//        this.isValue = modifierList != null && PsiUtilsKt.hasValueModifier(modifierList);
-//
+
+
+
 //        // Annotation entries are taken from both own annotations (if any) and object literal annotations (if any)
 //        List<KtAnnotationEntry> annotationEntries = new ArrayList<>();
 //        if (typeStatement != null && typeStatement.getParent() instanceof KtObjectLiteralExpression) {

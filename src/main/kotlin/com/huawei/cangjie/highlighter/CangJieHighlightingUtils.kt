@@ -1,6 +1,9 @@
 @file:JvmName("CangJieHighlightingUtils")
+
 package com.huawei.cangjie.highlighter
 
+import com.huawei.cangjie.configurable.services.CangJieLanguageServerServices
+import com.huawei.cangjie.configurable.services.Feature
 import com.huawei.cangjie.ide.base.projectStructure.RootKindFilter
 import com.huawei.cangjie.ide.base.projectStructure.matches
 import com.huawei.cangjie.psi.CjCodeFragment
@@ -23,8 +26,12 @@ fun CjFile.shouldHighlightErrors(): Boolean {
 //    if (!indexingInProgress && isScript()) { /* isScript() is based on stub index */
 //        return calculateShouldHighlightScript()
 //    }
+    if (CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.LIBRARY_DIAGNOSTICS)) {
+        return RootKindFilter.projectSources.copy(includeLibraryClassFiles = true).matches(this)
 
-    return RootKindFilter.projectSources.copy( ).matches(this)
+    }
+
+    return RootKindFilter.projectSources.copy().matches(this)
 }
 
 private fun isIndexingInProgress(project: Project) = runReadAction { DumbService.getInstance(project).isDumb }

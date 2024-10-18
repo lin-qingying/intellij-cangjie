@@ -74,8 +74,7 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
     override val typeConstraintList: CjTypeConstraintList? = null
     override val typeConstraints: List<CjTypeConstraint> = emptyList()
     override val typeParameters: List<CjTypeParameter> = emptyList()
-    override val initializer: CjExpression?
-        get() = TODO("Not yet implemented")
+    override val initializer: CjExpression? = null
 
     override fun hasInitializer(): Boolean {
         TODO("Not yet implemented")

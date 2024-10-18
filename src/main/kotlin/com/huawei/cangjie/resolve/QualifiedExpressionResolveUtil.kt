@@ -5,7 +5,7 @@ import com.huawei.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.resolve.descriptorUtil.classValueDescriptor
 import com.huawei.cangjie.resolve.descriptorUtil.classValueTypeDescriptor
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
+
 import com.huawei.cangjie.resolve.scopes.receivers.*
 import com.huawei.cangjie.types.expressions.ExpressionTypingContext
 

@@ -302,7 +302,7 @@ object ModifierCheckerCore {
 
     private fun checkSealed(list: CjModifierList, trace: BindingTrace) {
         if (list.hasModifier(CjTokens.SEALED_KEYWORD)) {
-            if (!list.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
+            if (!list.hasModifier(CjTokens.ABSTRACT_KEYWORD) && list.parent !is CjInterface) {
                 trace.report(Errors.SEALED_ABSTRACT.on(list))
 
 

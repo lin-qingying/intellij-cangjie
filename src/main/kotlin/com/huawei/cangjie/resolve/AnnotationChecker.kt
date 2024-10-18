@@ -149,7 +149,7 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
     LOCAL_FUNCTION("local function", false),
     TYPE_PARAMETER("type parameter", false),
     MEMBER_FUNCTION("member function", false),
-   STRUCT_MEMBER_FUNCTION("struct member function", false),
+    STRUCT_MEMBER_FUNCTION("struct member function", false),
     INTERFACE_MEMBER_FUNCTION("interface member function", false),
 
     TYPE("type usage", false),
@@ -233,7 +233,7 @@ object AnnotationTargetLists {
     val T_TOP_LEVEL_FUNCTION = targetList(TOP_LEVEL_FUNCTION, FUNCTION) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
-    val T_STRUCT_MEMBER_FUNCTION = targetList(STRUCT_MEMBER_FUNCTION, /*FUNCTION*/) {
+    val T_STRUCT_MEMBER_FUNCTION = targetList(STRUCT_MEMBER_FUNCTION /*FUNCTION*/) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
     val T_MEMBER_FUNCTION = targetList(MEMBER_FUNCTION, FUNCTION) {
@@ -242,9 +242,10 @@ object AnnotationTargetLists {
     val T_TYPE_REFERENCE = targetList(TYPE) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
-    val T_INTERFACE_MEMBER_FUNCTION = targetList(INTERFACE_MEMBER_FUNCTION, /*FUNCTION*/) {
+    val T_INTERFACE_MEMBER_FUNCTION = targetList(INTERFACE_MEMBER_FUNCTION /*FUNCTION*/) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
+
     private fun targetList(
         vararg target: CangJieTarget,
         otherTargets: TargetListBuilder.() -> Unit = {}

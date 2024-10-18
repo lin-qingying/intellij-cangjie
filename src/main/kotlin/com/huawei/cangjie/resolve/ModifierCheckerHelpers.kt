@@ -23,8 +23,9 @@ val defaultVisibilityTargets: EnumSet<CangJieTarget> = EnumSet.of(
     CangJieTarget.TOP_LEVEL_VARIABLE,
     CangJieTarget.CONSTRUCTOR,
     CangJieTarget.TYPEALIAS,
+    CangJieTarget.STRUCT_MEMBER_FUNCTION
 
-    )
+)
 
 val possibleTargetMap = mapOf(
 
@@ -32,6 +33,8 @@ val possibleTargetMap = mapOf(
         CangJieTarget.MEMBER_FUNCTION,
         CangJieTarget.MEMBER_PROPERTY,
         CangJieTarget.MEMBER_VARIABLE,
+        CangJieTarget.STRUCT_MEMBER_FUNCTION
+
     ),
 //    ENUM_KEYWORD to EnumSet.of(CangJieTarget.ENUM_CLASS),
     ABSTRACT_KEYWORD to EnumSet.of(
@@ -65,9 +68,10 @@ val possibleTargetMap = mapOf(
     SEALED_KEYWORD to EnumSet.of(CangJieTarget.CLASS_ONLY, CangJieTarget.INTERFACE),
 //    INNER_KEYWORD to EnumSet.of(CangJieTarget.CLASS_ONLY),
 
-    OVERRIDE_KEYWORD to EnumSet.of(CangJieTarget.MEMBER_PROPERTY, CangJieTarget.MEMBER_FUNCTION, CangJieTarget.INTERFACE_MEMBER_FUNCTION,
+    OVERRIDE_KEYWORD to EnumSet.of(
+        CangJieTarget.MEMBER_PROPERTY, CangJieTarget.MEMBER_FUNCTION, CangJieTarget.INTERFACE_MEMBER_FUNCTION,
         CangJieTarget.STRUCT_MEMBER_FUNCTION
-        ),
+    ),
     PRIVATE_KEYWORD to defaultVisibilityTargets + CangJieTarget.BACKING_FIELD,
     PUBLIC_KEYWORD to defaultVisibilityTargets,
     INTERNAL_KEYWORD to defaultVisibilityTargets + CangJieTarget.BACKING_FIELD,
@@ -125,9 +129,15 @@ val possibleTargetMap = mapOf(
 //    CROSSINLINE_KEYWORD to EnumSet.of(CangJieTarget.VALUE_PARAMETER),
     CONST_KEYWORD to EnumSet.of(
         CangJieTarget.FUNCTION,
+        CangJieTarget.STRUCT_MEMBER_FUNCTION
 
     ),
-    OPERATOR_KEYWORD to EnumSet.of(CangJieTarget.FUNCTION),
+    OPERATOR_KEYWORD to EnumSet.of(
+        CangJieTarget.MEMBER_FUNCTION,
+        CangJieTarget.INTERFACE_MEMBER_FUNCTION,
+
+        CangJieTarget.STRUCT_MEMBER_FUNCTION,
+    ),
 //    INFIX_KEYWORD to EnumSet.of(CangJieTarget.FUNCTION),
 //    HEADER_KEYWORD to EnumSet.of(
 //        CangJieTarget.TOP_LEVEL_FUNCTION,
@@ -211,7 +221,7 @@ val possibleParentTargetPredicateMap = mapOf(
         CangJieTarget.LOCAL_CLASS,
         CangJieTarget.ENUM,
 
-    ),
+        ),
     INTERNAL_KEYWORD to always(
         CangJieTarget.CLASS_ONLY,
         CangJieTarget.LOCAL_CLASS,

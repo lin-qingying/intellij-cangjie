@@ -7,6 +7,7 @@ import com.huawei.cangjie.builtins.StandardNames.ITERABLE
 import com.huawei.cangjie.builtins.isBuiltinTupleType
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
+import com.huawei.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.huawei.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import com.huawei.cangjie.diagnostics.Errors.*
 import com.huawei.cangjie.diagnostics.MatchMissingCase
@@ -33,7 +34,7 @@ import com.huawei.cangjie.resolve.calls.util.CallMaker
 import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import com.huawei.cangjie.resolve.descriptorUtil.classId
 import com.huawei.cangjie.resolve.descriptorUtil.classValueType
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
+
 import com.huawei.cangjie.resolve.scopes.*
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.huawei.cangjie.types.*
@@ -519,15 +520,15 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             }
 
 
-            fun ClassifierDescriptor?.findEnumEntryClassDescriptor(): LazyEnumEntryDescriptor? {
+            fun ClassifierDescriptor?.findEnumEntryClassDescriptor(): EnumEntryDescriptor? {
                 var descriptor: ClassifierDescriptor? = this
                 while (descriptor != null) {
-                    if (descriptor is LazyEnumEntryDescriptor) {
+                    if (descriptor is EnumEntryDescriptor) {
                         break
                     }
                     descriptor = descriptor.original
                 }
-                return descriptor as? LazyEnumEntryDescriptor
+                return descriptor as? EnumEntryDescriptor
             }
 
             //            绑定模式  生成变量  TODO 与枚举模式混淆
@@ -1389,8 +1390,10 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
             val _enumEntryList = mutableListOf<ClassAndEnumConstructorDescriptor>()
 
             enumEntryList.forEach {
-                it as LazyEnumEntryDescriptor
-                _enumEntryList.addAll(it.getEnumEntryConstructorDescriptors())
+                it as EnumEntryDescriptor
+                _enumEntryList.add (it.unsubstitutedPrimaryConstructor as ClassAndEnumConstructorDescriptor)
+
+//                _enumEntryList.addAll(it.getEnumEntryConstructorDescriptors())
             }
             return _enumEntryList.toSet()
         }

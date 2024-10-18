@@ -44,6 +44,12 @@ class CangJieAstAnalyzerConfigurable(override val project: Project) :
                                 setter = { astConfig.diagnostics = it })
                     }
                     indent {
+                        row {
+                            checkBox(CangJieUiBundle.message("cangJie.languageServer.ast.library.diagnostic.title"))
+                                .bindSelected(
+                                    getter = { astConfig.libraryDiagnostics },
+                                    setter = { astConfig.libraryDiagnostics = it })
+                        }
                         //                快速修复
                         row {
                             checkBox(CangJieUiBundle.message("cangJie.languageServer.ast.quickfix.title"))

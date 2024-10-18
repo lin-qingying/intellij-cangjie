@@ -11,6 +11,7 @@ import com.huawei.cangjie.descriptors.annotations.AnnotationSplitter;
 import com.huawei.cangjie.descriptors.annotations.AnnotationUseSiteTarget;
 import com.huawei.cangjie.descriptors.annotations.Annotations;
 import com.huawei.cangjie.descriptors.annotations.CompositeAnnotations;
+import com.huawei.cangjie.descriptors.enumd.EnumEntryDescriptor;
 import com.huawei.cangjie.descriptors.impl.*;
 import com.huawei.cangjie.diagnostics.Errors;
 import com.huawei.cangjie.incremental.components.NoLookupLocation;
@@ -26,7 +27,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.calls.util.CallResolverUtilKt;
 import com.huawei.cangjie.resolve.calls.util.UnderscoreUtilKt;
 import com.huawei.cangjie.resolve.lazy.ForceResolveUtil;
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor;
+
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyTypeAliasDescriptor;
 import com.huawei.cangjie.resolve.scopes.*;
@@ -169,7 +170,7 @@ public class DescriptorResolver {
     ) {
         ClassDescriptor classDescriptor = getContainingClass(scope);
 
-        if(classDescriptor instanceof LazyEnumEntryDescriptor){
+        if(classDescriptor instanceof EnumEntryDescriptor){
             return true;
         }
         if (!isInsideOuterClassOrItsSubclass(classDescriptor, target)) {

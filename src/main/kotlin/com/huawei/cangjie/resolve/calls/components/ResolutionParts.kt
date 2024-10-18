@@ -5,6 +5,8 @@ import com.huawei.cangjie.builtins.getReceiverTypeFromFunctionType
 import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.DescriptorVisibilities.PRIVATE
+import com.huawei.cangjie.descriptors.enumd.EnumEntryDescriptor
+import com.huawei.cangjie.descriptors.enumd.LazyEnumDescriptor
 import com.huawei.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.psi.CjNameReferenceExpression
@@ -23,6 +25,7 @@ import com.huawei.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import com.huawei.cangjie.resolve.isInsideInterface
 import com.huawei.cangjie.resolve.isStatic
 import com.huawei.cangjie.resolve.scopes.receivers.ClassQualifier
+import com.huawei.cangjie.resolve.scopes.receivers.EnumClassQualifier
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
 import com.huawei.cangjie.types.model.CangJieTypeMarker
@@ -116,9 +119,16 @@ internal object CheckEnumCall : ResolutionPart() {
 internal object CheckStaticCall : ResolutionPart() {
 
     private fun ResolvedCallAtom.isStaticContext(): Boolean {
+
+
         atom.explicitReceiver ?: return false
         return when (val value = atom.explicitReceiver!!.receiver) {
 
+            is EnumClassQualifier -> {
+                value.descriptor.kind == ClassKind.ENUM
+//                !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
+
+            }
             is ClassQualifier -> {
                 !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
 
@@ -883,6 +893,8 @@ enum class DescriptorKind(val kind: String) {
     PROPERTY("property"),
     VARIABLE("variable"),
     FUNCTION("method"),
+    ENUM("enum"),
+    ENUM_ENTRY("enum entry"),
     UNKNOWN("unknown")
 }
 
@@ -892,6 +904,9 @@ fun DeclarationDescriptor.getDescriptorKind(): DescriptorKind {
         is PropertyDescriptor -> DescriptorKind.PROPERTY
         is VariableDescriptor -> DescriptorKind.VARIABLE
         is FunctionDescriptor -> DescriptorKind.FUNCTION
+        is EnumEntryDescriptor -> DescriptorKind.ENUM_ENTRY
+        is LazyEnumDescriptor -> DescriptorKind.ENUM
+        is EnumClassCallableDescriptor ->  this.type.getDescriptorKind()
         else -> DescriptorKind.UNKNOWN
     }
 }

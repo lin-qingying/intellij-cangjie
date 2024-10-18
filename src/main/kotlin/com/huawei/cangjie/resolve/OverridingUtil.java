@@ -1,7 +1,10 @@
 package com.huawei.cangjie.resolve;
 
 import com.huawei.cangjie.descriptors.*;
-import com.huawei.cangjie.descriptors.impl.*;
+import com.huawei.cangjie.descriptors.impl.FunctionDescriptorImpl;
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor;
+import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptorImpl;
+import com.huawei.cangjie.descriptors.impl.PropertyDescriptorImpl;
 import com.huawei.cangjie.name.Name;
 import com.huawei.cangjie.resolve.calls.tower.EnumClassCallableDescriptor;
 import com.huawei.cangjie.types.*;
@@ -505,7 +508,7 @@ public class OverridingUtil {
             @NotNull CallableDescriptor superDescriptor,
             @NotNull CallableDescriptor subDescriptor
     ) {
-        if(subDescriptor instanceof EnumClassCallableDescriptor || superDescriptor instanceof  EnumClassCallableDescriptor){
+        if (subDescriptor instanceof EnumClassCallableDescriptor || superDescriptor instanceof EnumClassCallableDescriptor) {
             return OverrideCompatibilityInfo.incompatible("Enum member cannot override non-enum member");
         }
         if (superDescriptor instanceof FunctionDescriptor && !(subDescriptor instanceof FunctionDescriptor) ||
@@ -645,10 +648,9 @@ public class OverridingUtil {
         }/*else   if (memberDescriptor instanceof VariableDescriptorImpl) {
             ((VariableDescriptorImpl) memberDescriptor).setVisibility(visibilityToInherit);
 
-        } */else if (memberDescriptor instanceof FunctionDescriptorImpl) {
+        } */ else if (memberDescriptor instanceof FunctionDescriptorImpl) {
             ((FunctionDescriptorImpl) memberDescriptor).setVisibility(visibilityToInherit);
-        }
-        else {
+        } else {
             assert memberDescriptor instanceof PropertyAccessorDescriptorImpl;
             PropertyAccessorDescriptorImpl propertyAccessorDescriptor = (PropertyAccessorDescriptorImpl) memberDescriptor;
             propertyAccessorDescriptor.setVisibility(visibilityToInherit);
@@ -708,6 +710,28 @@ public class OverridingUtil {
         }
         return maxVisibility.normalize();
     }
+
+//    /**
+//     * 将sub 根据是否是扩展转换到super
+//     * @param superDescriptor
+//     * @param subDescriptor
+//     * @return
+//     */
+//    @NotNull
+//    static public CallableDescriptor conversion(
+//            @NotNull CallableDescriptor superDescriptor,
+//            @NotNull CallableDescriptor subDescriptor
+//
+//    ) {
+//        List<TypeParameterDescriptor> superTypeParameters = superDescriptor.getTypeParameters();
+//        List<TypeParameterDescriptor> subTypeParameters = subDescriptor.getTypeParameters();
+//
+//        if(subDescriptor.getExtensionReceiverParameter() != null &&  superTypeParameters.isEmpty()){
+//            return subDescriptor;
+//        }
+//
+//        return subDescriptor;
+//    }
 
     private Collection<CallableMemberDescriptor> extractAndBindOverridesForMember(
             @NotNull CallableMemberDescriptor fromCurrent,
@@ -807,6 +831,8 @@ public class OverridingUtil {
             @NotNull CallableDescriptor subDescriptor,
             boolean checkReturnType
     ) {
+
+
         OverrideCompatibilityInfo basicOverridability = getBasicOverridabilityProblem(superDescriptor, subDescriptor);
         if (basicOverridability != null) return basicOverridability;
 
@@ -814,7 +840,21 @@ public class OverridingUtil {
         List<CangJieType> subValueParameters = compiledValueParameters(subDescriptor);
 
         List<TypeParameterDescriptor> superTypeParameters = superDescriptor.getTypeParameters();
-        List<TypeParameterDescriptor> subTypeParameters = subDescriptor.getTypeParameters();
+
+//        当成员为扩展时，有且只有一个类型参数，并且为扩展类型中的泛型时，需特殊处理
+        List<TypeParameterDescriptor> subTypeParameters = subDescriptor.getTypeParametersNotExtend();
+
+//        if (subDescriptor.getExtensionReceiverParameter() != null) {
+//            if (superTypeParameters.isEmpty()) {
+//                if (subDescriptor.getExtensionReceiverParameter().getValue().getType().getArguments().size() == 1) {
+//                    if (subTypeParameters.size() == 1) {
+//                        subTypeParameters = Collections.emptyList();
+//                    }
+//                }
+//            }
+//
+//        }
+
 
         if (superTypeParameters.size() != subTypeParameters.size()) {
             for (int i = 0; i < superValueParameters.size(); ++i) {
@@ -981,9 +1021,27 @@ public class OverridingUtil {
             return overridable + ": " + debugMessage;
         }
 
+        /**
+         * 枚举类型Result用于表示不同结果状态
+         * 这些结果状态可能在某些方法或逻辑判断中被使用，以决定程序的行为
+         */
         public enum Result {
+            /**
+             * 可以被覆盖的结果状态
+             * 这通常意味着当前结果可以被后续的某个操作或值覆盖
+             */
             OVERRIDABLE,
+
+            /**
+             * 不兼容的结果状态
+             * 这表示当前结果与预期或某些条件不兼容，可能需要特殊处理
+             */
             INCOMPATIBLE,
+
+            /**
+             * 冲突的结果状态
+             * 这通常意味着当前操作或值与已存在的状态存在冲突，需要解决
+             */
             CONFLICT,
         }
     }

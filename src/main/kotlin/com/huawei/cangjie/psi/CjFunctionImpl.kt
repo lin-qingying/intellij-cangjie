@@ -54,6 +54,7 @@ abstract class CjFunctionImpl : CjTypeParameterListOwnerStub<CangJieFunctionStub
 //            return null
             return receiverTypeRefByTree
         }
+    val originalTypeParameterList: CjTypeParameterList? get() = super.typeParameterList
 
     override val typeParameterList: CjTypeParameterList?
         get() {

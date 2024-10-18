@@ -1074,7 +1074,7 @@ open class DescriptorRendererImpl(
 
     private fun renderAdditionalModifiers(functionDescriptor: FunctionDescriptor, builder: StringBuilder) {
         val isOperator =
-            functionDescriptor.isOperator && (functionDescriptor.overriddenDescriptors.none { it.isOperator } || alwaysRenderModifiers)
+            functionDescriptor.isOperator /*&& (functionDescriptor.overriddenDescriptors.none { it.isOperator } || alwaysRenderModifiers)*/
 
 
 
@@ -1151,9 +1151,9 @@ open class DescriptorRendererImpl(
             builder.append(lt())
             renderTypeParameterList(builder, typeParameters)
             builder.append(gt())
-            if (withSpace) {
-                builder.append(" ")
-            }
+//            if (withSpace) {
+//                builder.append(" ")
+//            }
         }
     }
 
@@ -1209,11 +1209,11 @@ open class DescriptorRendererImpl(
             }
 
             builder.append(renderKeyword("func")).append(" ")
-            renderTypeParameters(function.typeParameters, builder, true)
             renderReceiver(function, builder)
         }
 
         renderName(function, builder, true)
+        renderTypeParameters(function.typeParameters, builder, true)
 
         renderValueParameters(function.valueParameters, false/*function.hasSynthesizedParameterNames()*/, builder)
 

@@ -352,6 +352,8 @@ class ModifiersChecker(
             defaultVisibility: DescriptorVisibility
         ): DescriptorVisibility {
             if (modifierList == null) return defaultVisibility
+            if (modifierList.hasModifier(CjTokens.SEALED_KEYWORD)) return DescriptorVisibilities.PUBLIC
+
             if (modifierList.hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
             if (modifierList.hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
             if (modifierList.hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED

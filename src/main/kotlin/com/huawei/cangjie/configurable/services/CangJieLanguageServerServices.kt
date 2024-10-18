@@ -17,8 +17,9 @@ enum class Feature {
     DIAGNOSTICS,      // 诊断信息
     GO_TO_DECLARATION,// 转到声明
     REFERENCES,     // 引用解析，包含转到声明与查找用法
-    FIND_USAGES  ,     // 查找用法
+    FIND_USAGES,     // 查找用法
     QUICK_FIX, // 快速修复
+    LIBRARY_DIAGNOSTICS, // 库诊断信息
 }
 
 enum class LanugageServerType {
@@ -55,7 +56,8 @@ class CangJieLanguageServerServices : PersistentStateComponent<CangJieLanguageSe
         var formatting: Boolean = true, // 格式化
         var diagnostics: Boolean = true, // 诊断信息
         var references: Boolean = true, // 引用解析
-var quickFix: Boolean = true, // 快速修复
+        var quickFix: Boolean = true, // 快速修复
+        var libraryDiagnostics: Boolean = false, // 库诊断信息
 
     ) : Config {
         override fun setMainSwitch(enabled: Boolean) {
@@ -72,6 +74,7 @@ var quickFix: Boolean = true, // 快速修复
                 FORMATTING -> formatting = true
                 DIAGNOSTICS -> diagnostics = true
                 REFERENCES -> references = true
+                LIBRARY_DIAGNOSTICS -> libraryDiagnostics = true
 
                 else -> {}
             }
@@ -88,6 +91,7 @@ var quickFix: Boolean = true, // 快速修复
                 FORMATTING -> formatting = false
                 DIAGNOSTICS -> diagnostics = false
                 REFERENCES -> references = false
+                LIBRARY_DIAGNOSTICS -> libraryDiagnostics = false
                 else -> {}
             }
         }
@@ -104,6 +108,8 @@ var quickFix: Boolean = true, // 快速修复
                 DIAGNOSTICS -> diagnostics
                 REFERENCES -> references
                 QUICK_FIX -> quickFix
+
+                LIBRARY_DIAGNOSTICS -> libraryDiagnostics
                 else -> {
                     false
                 }

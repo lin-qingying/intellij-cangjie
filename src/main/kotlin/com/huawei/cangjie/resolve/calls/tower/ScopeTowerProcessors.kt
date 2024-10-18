@@ -1,13 +1,14 @@
 package com.huawei.cangjie.resolve.calls.tower
 
 import com.huawei.cangjie.descriptors.ClassKind
+import com.huawei.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.CjCallExpression
 import com.huawei.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.huawei.cangjie.resolve.calls.model.CangJieCall
 import com.huawei.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.huawei.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
-import com.huawei.cangjie.resolve.lazy.descriptors.LazyEnumEntryDescriptor
+
 import com.huawei.cangjie.resolve.scopes.receivers.DetailedReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.QualifierReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -349,7 +350,7 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
     private fun Candidate.isEnumEntryCandidateByClassType(): Boolean {
         if (this !is ResolutionCandidate) return false
         val callableDescriptor = resolvedCall.candidateDescriptor as? ClassCallableDescriptor ?: return false
-        return callableDescriptor.type is LazyEnumEntryDescriptor
+        return callableDescriptor.type is EnumEntryDescriptor
     }
 
     private fun Candidate.isEnumEntryCandidate(): Boolean {
