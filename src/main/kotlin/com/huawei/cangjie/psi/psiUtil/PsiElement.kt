@@ -71,7 +71,11 @@ inline fun <reified T : PsiElement> PsiElement.replaced(newElement: T): T {
 inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict)
 }
+inline val PsiElement.identifier get() = when(this){
+    is CjSimpleNameExpression -> this.getIdentifier()
 
+    else -> null
+}
 inline fun <reified T : PsiElement> T.prevSiblingOfSameType() = PsiTreeUtil.getPrevSiblingOfType(this, T::class.java)
 
 fun CjExpression.getBinaryWithTypeParent(): CjBinaryExpressionWithTypeRHS? {
@@ -224,6 +228,7 @@ inline fun <T : Any> T?.sure(message: () -> String): T = this ?: throw Assertion
 inline fun <reified T : PsiElement> PsiElement.getChildrenOfType(): Array<T> {
     return PsiTreeUtil.getChildrenOfType(this, T::class.java) ?: arrayOf()
 }
+
 
 inline fun <reified T : PsiElement> PsiElement.getChildOfType(): T? {
     return PsiTreeUtil.getChildOfType(this, T::class.java)

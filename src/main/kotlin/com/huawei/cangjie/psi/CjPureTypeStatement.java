@@ -44,6 +44,6 @@ public interface CjPureTypeStatement extends CjPureElement, CjDeclarationContain
     List<CjContextReceiver> getContextReceivers();
 
     @Nullable
-    CjClassBody getBody();
+    CjAbstractClassBody getBody();
 }
 

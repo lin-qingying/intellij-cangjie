@@ -35,9 +35,9 @@ import com.huawei.cangjie.resolve.controlFlow.variable.VariableInitReadOnlyContr
 import com.huawei.cangjie.resolve.descriptorUtil.isEffectivelyExternal
 import com.huawei.cangjie.resolve.descriptorUtil.module
 import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.expressions.MatchChecker
-import com.huawei.cangjie.types.expressions.checkTypePattern
-import com.huawei.cangjie.types.expressions.isBindingPattern
+import com.huawei.cangjie.types.expressions.match.MatchChecker
+import com.huawei.cangjie.types.expressions.match.checkTypePattern
+import com.huawei.cangjie.types.expressions.match.isBindingPattern
 import com.huawei.cangjie.types.isFlexible
 import com.huawei.cangjie.types.util.TypeUtils.DONT_CARE
 import com.huawei.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE

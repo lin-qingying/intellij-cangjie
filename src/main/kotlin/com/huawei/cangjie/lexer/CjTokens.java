@@ -10,7 +10,7 @@ import com.intellij.psi.tree.TokenSet;
 public interface CjTokens {
     int INVALID_Id = 0;
     int EOF_Id = 1;
-    int UNIT_LTIERAL_Id = 2;
+    int UNIT_LITERAL_Id = 2;
     int BLOCK_COMMENT_Id = 3;
     int EOL_COMMENT_Id = 4;
     int SHEBANG_COMMENT_Id = 5;
@@ -28,7 +28,7 @@ public interface CjTokens {
     int PACKAGE_KEYWORD_Id = 17;
     int AS_KEYWORD_Id = 18;
     int SHOP_STRING_Id = 19;
-    int TUPLE_LTIERAL_Id = 19;
+    int TUPLE_LITERAL_Id = 19;
     int CLASS_KEYWORD_Id = 20;
     int THIS_KEYWORD_Id = 21;
     int SUPER_KEYWORD_Id = 22;
@@ -258,9 +258,9 @@ public interface CjTokens {
     CjModifierKeywordToken VARARG_KEYWORD    = CjModifierKeywordToken.softKeywordModifier("vararg", VARARG_KEYWORD_Id);
 
     CjToken INTEGER_LITERAL = new CjToken("INTEGER_LITERAL", INTEGER_LITERAL_Id);
-    CjToken FLOAT_LITERAL = new CjToken("FLOAT_CONSTANT", FLOAT_LITERAL_Id);
-    CjToken UNIT_LTIERAL = new CjToken("UNIT_LTIERAL", UNIT_LTIERAL_Id);
-    CjToken TUPLE_LTIERAL = new CjToken("TUPLE_LTIERAL", TUPLE_LTIERAL_Id);
+    CjToken FLOAT_LITERAL = new CjToken("FLOAT_LITERAL", FLOAT_LITERAL_Id);
+    CjToken UNIT_LITERAL = new CjToken("UNIT_LITERAL", UNIT_LITERAL_Id);
+    CjToken TUPLE_LITERAL = new CjToken("TUPLE_LITERAL", TUPLE_LITERAL_Id);
     CjToken RUNE_LITERAL = new CjToken("RUNE_LITERAL", RUNE_LITERAL_Id);
     CjToken CHARACTER_BYTE_LITERAL = new CjToken("CHARACTER_BYTE_LITERAL", CHARACTER_BYTE_LITERAL_Id);
     CjToken SHOP_STRING = new CjToken("SHOP_STRING", SHOP_STRING_Id);

@@ -38,12 +38,12 @@ object DslStyleUtils {
     val DSL_MARKER_CLASS_ID = ClassId.topLevel(FqName("cangjie.DslMarker"))
 
     val descriptionsToStyles: Map<String, TextAttributesKey> = (1..STYLE_COUNT).associate { index ->
-       CangJieBaseHighlightingBundle.message("highlighter.name.dsl") + styleOptionDisplayName(index) to styleById(index)
+       CangJieHighlightingBundle.message("highlighter.name.dsl") + styleOptionDisplayName(index) to styleById(index)
     }
 
     private fun externalKeyName(index: Int) = "CANGJIE_DSL_STYLE$index"
 
-    fun styleOptionDisplayName(index: Int) = CangJieBaseHighlightingBundle.message("highlighter.name.style", index)
+    fun styleOptionDisplayName(index: Int) = CangJieHighlightingBundle.message("highlighter.name.style", index)
 
     fun styleIdByFQName(name: FqName): Int {
         return (name.asString().hashCode() % STYLE_COUNT).absoluteValue + 1

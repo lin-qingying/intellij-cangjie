@@ -384,7 +384,13 @@ fun CjElement.getQualifiedElementSelector(): CjElement? {
         else -> null
     }
 }
+val CjTypeElement.qualifier : CjTypeElement? get()   {
+    return when (this) {
+        is CjUserType -> this.qualifier
 
+        else -> null
+    }
+}
 fun CjElement.getQualifiedExpressionForSelector(): CjQualifiedExpression? {
     val parent = parent
     return if (parent is CjQualifiedExpression && parent.selectorExpression == this) parent else null
@@ -393,7 +399,7 @@ fun CjElement.getQualifiedExpressionForSelector(): CjQualifiedExpression? {
 val CjDeclaration.containingTypeStatement: CjTypeStatement?
     get() = parent.let {
         when (it) {
-            is CjClassBody -> it.parent as? CjTypeStatement
+            is CjAbstractClassBody -> it.parent as? CjTypeStatement
             is CjTypeStatement -> it
             is CjParameterList -> (it.parent as? CjPrimaryConstructor)?.getContainingTypeStatement()
             else -> null

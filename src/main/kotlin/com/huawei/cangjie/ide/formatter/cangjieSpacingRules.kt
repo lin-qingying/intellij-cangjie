@@ -142,7 +142,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                 if (right.requireNode().elementType == RBRACE) {
                     return@customRule createSpacing(0)
                 }
-                val classBody = parent.requireNode().psi as CjClassBody
+                val classBody = parent.requireNode().psi as CjAbstractClassBody
                 val parentPsi = classBody.parent as? CjTypeStatement ?: return@customRule null
                 if (cangjieCommonSettings.BLANK_LINES_AFTER_CLASS_HEADER == 0  ) {
                     null

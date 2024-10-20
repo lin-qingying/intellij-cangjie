@@ -2,7 +2,6 @@ package com.huawei.cangjie.psi
 
 import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.psi.CjVariable
 import com.huawei.cangjie.psi.stubs.CangJieVariableStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -104,7 +103,7 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub >, CjVariabl
     val isMember: Boolean
         get() {
             val parent = parent
-            return parent is CjTypeStatement || parent is CjClassBody
+            return parent is CjTypeStatement || parent is CjAbstractClassBody
         }
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {

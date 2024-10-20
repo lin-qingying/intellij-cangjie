@@ -12,7 +12,7 @@ import com.huawei.cangjie.resolve.scopes.MemberScope;
 import com.huawei.cangjie.types.SimpleType;
 import com.huawei.cangjie.types.TypeProjection;
 import com.huawei.cangjie.types.TypeSubstitution;
-import com.huawei.cangjie.types.expressions.ClassAndEnumConstructorDescriptor;
+import com.huawei.cangjie.types.expressions.match.ClassAndEnumConstructorDescriptor;
 import com.huawei.cangjie.utils.ReadOnly;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

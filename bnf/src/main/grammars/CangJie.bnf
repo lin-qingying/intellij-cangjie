@@ -1,0 +1,21 @@
+{
+    parserClass='com.huawei.cangjie.parser.CangJieParserByBnf'
+   parserImports=[
+      'static com.huawei.cangjie.CjNodeTypes.*'
+      'static com.huawei.cangjie.lexer.CjTokens.*'
+    ]
+
+
+
+}
+
+
+CJ_FILE ::= MAIN_FUNC*
+
+
+MAIN_FUNC ::= MAIN_KEYWORD VALUE_PARAMETER_LIST
+
+VALUE_PARAMETER_LIST ::= LPAR  VALUE_PARAMETER (COMMA VALUE_PARAMETER)* RPAR
+
+
+VALUE_PARAMETER ::= IDENTIFIER

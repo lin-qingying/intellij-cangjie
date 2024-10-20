@@ -261,6 +261,24 @@ class LazyImportScope(
         return importResolver.getClassifier(name, location) ?: secondaryImportResolver?.getClassifier(name, location)
     }
 
+    override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+        return importResolver.getClassifiers(name, location)
+
+    }
+
+    private fun LazyImportResolver<*>.getClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
+        components.storageManager.compute {
+            val imports = indexedImports.importsForName(name)
+
+            val target: MutableList<ClassifierDescriptor> = mutableListOf()
+            for (directive in imports) {
+                val descriptors = getImportScope(directive).getContributedClassifiers(name, location)
+                target.addAll(descriptors)
+            }
+
+            target
+        }
+
     override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         return importResolver.getExtendClassifier(name) + (secondaryImportResolver?.getExtendClassifier(name)
             ?: emptySet())
@@ -318,7 +336,10 @@ class LazyImportScope(
 
     override fun getContributedPackage(name: Name): PackageViewDescriptor? = null
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> {
         if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
         return importResolver.collectFromImports(name) { scope -> scope.getContributedVariables(name, location) }
             .ifEmpty {

@@ -1,7 +1,6 @@
 package com.huawei.cangjie.psi.stubs.elements;
 
 import com.huawei.cangjie.psi.*;
-import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
 public interface CjStubElementTypes {
@@ -41,9 +40,12 @@ public interface CjStubElementTypes {
             new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
 
 //    CjAnnotationUseSiteTargetElementType ANNOTATION_TARGET = new CjAnnotationUseSiteTargetElementType("ANNOTATION_TARGET");
-
+CjPlaceHolderStubElementType<CjEnumBody> ENUM_BODY =
+        new CjPlaceHolderStubElementType<>("ENUM_BODY", CjEnumBody.class);
     CjPlaceHolderStubElementType<CjClassBody> CLASS_BODY =
             new CjPlaceHolderStubElementType<>("CLASS_BODY", CjClassBody.class);
+    CjPlaceHolderStubElementType<CjInterfaceBody> INTERFACE_BODY =
+            new CjPlaceHolderStubElementType<>("INTERFACE_BODY", CjInterfaceBody.class);
 
     CjPlaceHolderStubElementType<CjImportList> IMPORT_LIST =
             new CjPlaceHolderStubElementType<>("IMPORT_LIST", CjImportList.class);
@@ -208,8 +210,6 @@ CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementT
     CjPlaceHolderStubElementType<CjParenthesizedType> PARENTHESIZED_TYPE = new CjPlaceHolderStubElementType<>("PARENTHESIZED_TYPE", CjParenthesizedType.class);
 
 
-    CjPlaceHolderStubElementType<CjEnumBody> ENUM_BODY =
-            new CjPlaceHolderStubElementType<>("ENUM_BODY", CjEnumBody.class);
 
     CjPlaceHolderStubElementType<CjPropertyBody> PROPERTY_BODY =
             new CjPlaceHolderStubElementType<>("PROPERTY_BODY", CjPropertyBody.class);

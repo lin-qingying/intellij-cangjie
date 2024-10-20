@@ -7,7 +7,7 @@ import org.jetbrains.annotations.PropertyKey
 
 
 @NonNls
-private const val BUNDLE = "messages.CangJieBaseAnalysisBundle"
+private const val BUNDLE = "messages.CangJieAnalysisBundle"
 
 object CangJieBaseAnalysisBundle : AbstractCangJieBundle(BUNDLE) {
     @Nls

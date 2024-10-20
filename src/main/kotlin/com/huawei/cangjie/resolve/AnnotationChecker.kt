@@ -71,7 +71,7 @@ class AnnotationChecker {
                         annotated.parent is CjStruct || annotated.parent.parent is CjStruct -> TargetLists.T_STRUCT_MEMBER_FUNCTION
                         annotated.parent is CjInterface || annotated.parent.parent is CjInterface -> TargetLists.T_INTERFACE_MEMBER_FUNCTION
 
-                        annotated.parent is CjTypeStatement || annotated.parent is CjClassBody -> TargetLists.T_MEMBER_FUNCTION
+                        annotated.parent is CjTypeStatement || annotated.parent is CjAbstractClassBody -> TargetLists.T_MEMBER_FUNCTION
                         else -> TargetLists.T_TOP_LEVEL_FUNCTION
                     }
                 }

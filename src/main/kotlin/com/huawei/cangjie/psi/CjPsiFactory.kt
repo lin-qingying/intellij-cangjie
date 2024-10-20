@@ -45,7 +45,7 @@ class CjPsiFactory private constructor(
     @JvmOverloads
         constructor(element: CjElement, markGenerated: Boolean = true) : this(element.project, markGenerated, context = null, eventSystemEnabled = false)
 
-    fun createEmptyClassBody(): CjClassBody {
+    fun createEmptyClassBody(): CjAbstractClassBody {
         return createClass("class A{}").getBody()!!
     }
     fun createTypeArguments(@NonNls text: String): CjTypeArgumentList {

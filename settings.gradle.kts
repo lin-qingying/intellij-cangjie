@@ -45,6 +45,7 @@ enum class BuildType {
 //构建方式
 val buildType = BuildType.fromString(build_type)
 
+include("bnf")
 
 
 include("plugin")

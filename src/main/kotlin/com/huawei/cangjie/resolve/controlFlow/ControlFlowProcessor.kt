@@ -26,7 +26,7 @@ import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.Acces
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.InstructionWithValue
 import com.huawei.cangjie.resolve.controlFlow.pseudocode.instructions.eval.MagicKind
 import com.huawei.cangjie.resolve.scopes.receivers.*
-import com.huawei.cangjie.types.expressions.MatchChecker
+import com.huawei.cangjie.types.expressions.match.MatchChecker
 import com.huawei.cangjie.utils.exceptions.OperatorConventions
 import com.huawei.cangjie.utils.slicedMap.ReadOnlySlice
 import com.intellij.psi.PsiElement

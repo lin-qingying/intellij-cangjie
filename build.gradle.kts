@@ -276,8 +276,7 @@ val cangjie_plugin_project = project(":plugin") {
 //        implementation(project(":debugger1"))
     }
 
-    // Collects all jars produced by compilation of project modules and merges them into singe one.
-    // We need to put all plugin manifest files into single jar to make new plugin model work
+
     val mergePluginJarTask = task<Jar>("mergePluginJars") {
         dependsOn
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE // 避免重复文件错误
@@ -430,7 +429,16 @@ val cangjie_src_project = project(":") {
         }
     }
 }
-//
+
+project(":bnf") {
+    dependencies {
+
+        implementation(project(":"))
+
+//        implementation(project(":"))
+    }
+}
+
 project(":lsp") {
     dependencies {
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")

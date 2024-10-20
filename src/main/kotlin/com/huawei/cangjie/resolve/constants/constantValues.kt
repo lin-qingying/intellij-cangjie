@@ -7,9 +7,7 @@ import com.huawei.cangjie.descriptors.annotations.AnnotationArgumentVisitor
 import com.huawei.cangjie.descriptors.findClassAcrossModuleDependencies
 import com.huawei.cangjie.name.ClassId
 import com.huawei.cangjie.types.CangJieType
-import com.huawei.cangjie.types.CangJieTypeFactory
 import com.huawei.cangjie.types.ErrorUtils
-import com.huawei.cangjie.types.TypeAttributes
 import com.huawei.cangjie.types.error.ErrorTypeKind
 
 
@@ -42,7 +40,8 @@ open class ArrayValue(
 
     override fun <R, D> accept(visitor: AnnotationArgumentVisitor<R, D>, data: D) = visitor.visitArrayValue(this, data)
 }
-object UnitValue  : ConstantValue<Unit>(Unit) {
+
+object UnitValue : ConstantValue<Unit>(Unit) {
     //    override fun getType(module: ModuleDescriptor) = module.builtIns.stringType
     override fun getType(module: ModuleDescriptor) = module.builtIns.unitType
 
@@ -50,6 +49,7 @@ object UnitValue  : ConstantValue<Unit>(Unit) {
 
     override fun toString() = "\"$value\""
 }
+
 class StringValue(value: String) : ConstantValue<String>(value) {
     //    override fun getType(module: ModuleDescriptor) = module.builtIns.stringType
     override fun getType(module: ModuleDescriptor) = module.builtIns.stringType

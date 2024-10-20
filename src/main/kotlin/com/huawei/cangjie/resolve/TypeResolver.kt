@@ -300,28 +300,11 @@ class TypeResolver(
                     result = type(unresolvedType)
                     return
                 }
-                //                获取扩展
-//                val extendSuper = if (isgetExtend) {
-//                    type.referenceExpression?.let {
-//                        c.scope.getExtendClasss(it.getReferencedNameAsName(), NoLookupLocation.FROM_BUILTINS)
-//                    } ?: emptyList()
-//                } else {
-//                    emptyList()
-//                }.toSet()
-//                if (classifier is LazyClassDescriptor) {
-//                    classifier.extendClassDescriptor.addAll(extendSuper)
-//
-//                } else if (classifier is BasicTypeDescriptor) {
-//                    classifier.extendClassDescriptor.addAll(extendSuper)
-//
-//                }
+
 
 
                 val referenceExpression = type.referenceExpression ?: return
 
-//                if (!languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
-//                    checkReservedYield(referenceExpression, c.trace)
-//                }
                 c.trace.record(BindingContext.REFERENCE_TARGET, referenceExpression, classifier)
 
                 result = resolveTypeForClassifier(c, classifier, qualifierResolutionResult, type, annotations)
@@ -646,7 +629,7 @@ class TypeResolver(
         val classifierDescriptorChain = classifierDescriptor.classifierDescriptorsFromInnerToOuter()
         val reversedQualifierParts = qualifierParts.asReversed()
 
-        var wasStatic = false
+        val wasStatic = false
         val result = SmartList<CjTypeProjection>()
 
         val classifierChainLastIndex = min(classifierDescriptorChain.size, reversedQualifierParts.size) - 1
@@ -1107,7 +1090,27 @@ class TypeResolver(
 
         return resolvePossiblyBareType(c, typeReference, isgetExtend).actualType
     }
+    fun resolveEnumType(
+        scope: LexicalScope,
+        typeReference: CjTypeReference,
+        trace: BindingTrace,
+        checkBounds: Boolean,
 
+        ): CangJieType {
+        // bare types are not allowed
+        return resolveType(
+            TypeResolutionContext(
+                scope,
+                trace,
+                checkBounds,
+                false,
+                typeReference.suppressDiagnosticsInDebugMode(),
+                false
+            ),
+            typeReference,
+            true
+        )
+    }
     fun resolveType(
         scope: LexicalScope,
         typeReference: CjTypeReference,

@@ -1,7 +1,7 @@
 package com.huawei.cangjie.ide.projectView
 
 import com.huawei.cangjie.ide.AbstractCangJieIconProvider
-import com.huawei.cangjie.psi.CjClassBody
+import com.huawei.cangjie.psi.CjAbstractClassBody
 import com.huawei.cangjie.psi.CjDeclaration
 import com.huawei.cangjie.psi.CjFile
 import com.huawei.cangjie.psi.CjTypeStatement
@@ -68,7 +68,7 @@ class CangJieSelectInProjectViewProvider(private val project: Project) : Selecta
 
     private fun PsiElement.isSelectable(): Boolean = when (this) {
         is CjFile -> true
-        is CjDeclaration -> parent is CjFile || ((parent as? CjClassBody)?.parent as? CjTypeStatement)?.isSelectable() ?: false
+        is CjDeclaration -> parent is CjFile || ((parent as? CjAbstractClassBody)?.parent as? CjTypeStatement)?.isSelectable() ?: false
         else -> false
     }
 

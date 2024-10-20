@@ -7,6 +7,7 @@ import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.FqNameUnsafe
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.*
+import com.huawei.cangjie.psi.psiUtil.identifier
 import com.huawei.cangjie.renderer.ClassifierNamePolicy
 import com.huawei.cangjie.renderer.DescriptorRenderer
 import com.huawei.cangjie.resolve.DescriptorUtils
@@ -199,6 +200,10 @@ object Renderers {
     @JvmField
     val ELEMENT_TEXT = renderer<PsiElement> {
         it.text
+    }
+    @JvmField
+    val ELEMENT_IDENTIFIER_TEXT  = renderer<PsiElement> {
+        it.identifier?.text ?: ""
     }
 
     @JvmField

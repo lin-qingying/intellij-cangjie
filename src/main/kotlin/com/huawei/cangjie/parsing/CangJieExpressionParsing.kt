@@ -9,6 +9,7 @@ import com.huawei.cangjie.lexer.CjTokens.*
 import com.huawei.cangjie.parsing.CangJieParsing.DeclarationParsingMode
 import com.huawei.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
 import com.intellij.lang.PsiBuilder
+import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Pair
 import com.intellij.psi.tree.IElementType
@@ -167,11 +168,7 @@ open class CangJieExpressionParsing(
 
     }
 
-    private fun parseTest() {
-        val ma = mark()
-        advance()
-        ma.done(REFERENCE_EXPRESSION)
-    }
+
 
     private fun parseRangeExpression() {
         parseExpression()
@@ -326,33 +323,47 @@ open class CangJieExpressionParsing(
         list.done(VALUE_ARGUMENT_LIST)
     }
 
-    /*
+
+    /**
+     * 解析调用后缀（callSuffix）
+     * 该函数尝试解析紧跟在函数调用之前的类型参数列表（可选）、值参数列表或带有注释的Lambda表达式
      * callSuffix
      *   : typeArguments? valueArguments annotatedLambda
      *   : typeArguments annotatedLambda
      *   ;
+     * @return Boolean 表示是否成功解析了调用后缀
      */
     private fun parseCallSuffix(): Boolean {
+        // 获取当前安全的token类型，用于后续的解析判断
         val tokenType = safeTokenType
 
+        // 尝试解析带有闭包的调用，如果成功，则什么都不做
         if (parseCallWithClosure()) {
             // do nothing
         } else if (at(LPAR) || tokenType == SAFE_CALL) {
+            // 如果当前token是左圆括号或安全调用符号，解析值参数列表
             parseValueArgumentList()
 
-        } else if (at(LT)) {
+        } /*else if (at(LT)) {
+            // 如果当前token是左尖括号，尝试解析类型参数列表
             val typeArgumentList = mark()
             if (cangJieParsing.tryParseTypeArgumentList(TYPE_ARGUMENT_LIST_STOPPERS)) {
+                // 成功解析类型参数列表后，标记为完成
                 typeArgumentList.done(TYPE_ARGUMENT_LIST)
+                // 如果当前token不是左圆括号或没有换行，尝试解析值参数列表
                 if (!myBuilder.newlineBeforeCurrentToken() && at(LPAR)) parseValueArgumentList()
+                // 尝试解析带有闭包的调用
                 parseCallWithClosure()
             } else {
+                // 如果解析类型参数列表失败，回滚到标记位置，并返回false
                 typeArgumentList.rollbackTo()
                 return false
             }
-        } else {
+        } */else {
+            // 如果以上条件都不满足，返回false
             return false
         }
+        // 如果成功解析了调用后缀，返回true
         return true
     }
 
@@ -449,15 +460,25 @@ open class CangJieExpressionParsing(
         expression.drop()
     }
 
-    /*
+
+    /**
+     * 解析选择器调用表达式
      * atomicExpression typeParameters? valueParameters? functionLiteral*
+     * 选择器调用表达式是编程语言中的一种表达式，它通常紧跟在原子表达式之后
+     * 可能包含类型参数、值参数和函数字面量此函数尝试解析这样的表达式，并根据解析结果
+     * 标记为调用表达式或放弃标记
      */
     private fun parseSelectorCallExpression() {
+        // 设置标记，以便在解析过程中决定是否应用更改
         val mark = mark()
+        // 解析原子表达式，这是选择器调用表达式的起始部分
         parseAtomicExpression()
+        // 如果当前标记之前没有换行，并且成功解析了调用后缀，则认为解析成功
         if (!myBuilder.newlineBeforeCurrentToken() && parseCallSuffix()) {
+            // 成功解析后，将标记范围内的内容标记为调用表达式
             mark.done(CALL_EXPRESSION)
         } else {
+            // 如果解析失败或不满足条件，则放弃之前设置的标记
             mark.drop()
         }
     }
@@ -564,7 +585,7 @@ open class CangJieExpressionParsing(
     }
 
     fun parseTupleLiteralExpression() {
-        assert(_at(TUPLE_LTIERAL))
+        assert(_at(TUPLE_LITERAL))
         val tuple = mark()
         advance() // TUPLE_LTIERAL
         if (at(RPAR)) {
@@ -737,60 +758,6 @@ open class CangJieExpressionParsing(
         }
         reference.drop()
 
-//    var reference = mark()
-////a .a
-//    var type = REFERENCE_EXPRESSION
-//    if (at(IDENTIFIER)) {
-//        advance() // IDENTIFIER
-//
-//    }else{
-//        error("Expecting identifier")
-//
-//    }
-
-//        if (at(IDENTIFIER) && lookahead(1) == DOT) {
-//            val dot = mark()
-//            val reference = mark()
-//            if (at(IDENTIFIER)) {
-//                advance() // IDENTIFIER
-//
-//            } else {
-//                error("Expecting identifier")
-//
-//            }
-//            reference.done(REFERENCE_EXPRESSION)
-//            advance() // DOT
-//            parseReferenceExpression()
-//
-//            dot.done(DOT_QUALIFIED_EXPRESSION)
-//
-//        } else {
-//            val reference = mark()
-//            if (at(IDENTIFIER)) {
-//                advance() // IDENTIFIER
-//
-//            } else {
-//                error("Expecting identifier")
-//
-//            }
-//            reference.done(REFERENCE_EXPRESSION)
-//        }
-
-//    if (at(DOT)) {
-//        reference .rollbackTo()
-//        reference = mark()
-//        parseReferenceExpression()
-////        reference.done(REFERENCE_EXPRESSION)
-////        reference = mark()
-//
-//        advance() // DOT
-//        parseReferenceExpression()
-//        reference.done(DOT_QUALIFIED_EXPRESSION)
-//    }
-//
-//
-//
-//    reference.done(type)
     }
 
     inner class CasePattern {
@@ -802,9 +769,9 @@ open class CangJieExpressionParsing(
             var mark = mark()
             var type = 1
 
-            if (lookahead(1) == DOT) {
-                parseReferenceExpression()
-
+            if (lookahead(1) == DOT || lookahead(1) == LT) {
+//                parseReferenceExpression()
+                cangJieParsing.parseTypeRef()
                 type = 3
 
                 if (at(LPAR)) {
@@ -835,8 +802,8 @@ open class CangJieExpressionParsing(
                 } else if (at(LPAR)) {
                     mark.rollbackTo()
                     mark = mark()
-
-                    parseReferenceExpression()
+                    cangJieParsing.parseTypeRef()
+//                    parseReferenceExpression()
 
                     //枚举模式
                     advance() // LPAR
@@ -1006,6 +973,19 @@ open class CangJieExpressionParsing(
 
     }
 
+    private fun callBnf(call: (PsiBuilder) -> Boolean) {
+        val bnfBuilder = GeneratedParserUtilBase.adapt_builder_(BLOCK, myBuilder, CangJieParserByBnf())
+        val m = GeneratedParserUtilBase.enter_section_(bnfBuilder, 0, 1, null, null)
+        val r = call(bnfBuilder)
+        GeneratedParserUtilBase.exit_section_(bnfBuilder, m, null, r)
+
+
+    }
+
+    private fun parseCasePattern() {
+
+    }
+
     /**
      * case condition
      * (常量 | 通配符(_)
@@ -1020,8 +1000,20 @@ open class CangJieExpressionParsing(
     private fun parseCasePattern(isExpression: Boolean = false) {
 //        val condition = mark()
 
-
+//        callBnf {
+//            val r = CangJieParserByBnf.pattern(it, 0)
+//            if (at(WHERE_KEYWORD)) {
+//                val caseWhere = mark()
+//                advance()
+//
+//                parseExpression()
+//                caseWhere.done(CASE_WHERE)
+//            }
+//            r
+//        }
+//        return
         val casePattern = CasePattern()
+
         if (isExpression) {
             if (at(UNDERLINE)) {
                 casePattern.parseUnderline()
@@ -1797,7 +1789,7 @@ open class CangJieExpressionParsing(
      *   : OPEN_QUOTE stringTemplateElement* CLOSING_QUOTE
      *   ;
      */
-    private fun parseStringTemplate() {
+    fun parseStringTemplate() {
         assert(_at(OPEN_QUOTE))
         val template = mark()
         advance() // OPEN_QUOTE
@@ -1924,10 +1916,25 @@ open class CangJieExpressionParsing(
 
     /*
      * SimpleName
+     * 简单名称表达式附带类型参数
      */
     fun parseSimpleNameExpression() {
         val simpleName = mark()
         expect(IDENTIFIER, "Expecting an identifier")
+
+
+          if (at(LT)) {
+            // 如果当前token是左尖括号，尝试解析类型参数列表
+            val typeArgumentList = mark()
+            if (cangJieParsing.tryParseTypeArgumentList(TYPE_ARGUMENT_LIST_STOPPERS)) {
+                // 成功解析类型参数列表后，标记为完成
+                typeArgumentList.done(TYPE_ARGUMENT_LIST)
+            } else {
+                // 如果解析类型参数列表失败，回滚到标记位置，并返回false
+                typeArgumentList.rollbackTo()
+            }
+        }
+
         simpleName.done(REFERENCE_EXPRESSION)
     }
 

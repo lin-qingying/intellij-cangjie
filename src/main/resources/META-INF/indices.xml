@@ -58,7 +58,7 @@
         <notificationGroup
                 id="Recover CangJie Indices"
                 displayType="STICKY_BALLOON"
-                bundle="messages.CangJieBaseAnalysisBundle"
+                bundle="messages.CangJieAnalysisBundle"
                 key="cangjie.repair.indices.group.name"
         />
         <projectService

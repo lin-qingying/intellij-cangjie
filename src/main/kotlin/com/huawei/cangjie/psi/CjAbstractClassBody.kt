@@ -3,21 +3,45 @@ package com.huawei.cangjie.psi
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.stubs.CangJiePlaceHolderStub
 import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_BODY
+import com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes.*
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 
 
-class CjClassBody : CjElementImplStub<CangJiePlaceHolderStub<CjClassBody>>, CjDeclarationContainer {
+class CjInterfaceBody : CjAbstractClassBody{
+    constructor(node: ASTNode) : super(node)
+
+
+    constructor(stub: CangJiePlaceHolderStub<CjInterfaceBody>) : super(stub, INTERFACE_BODY)
+
+}
+class CjEnumBody : CjAbstractClassBody{
+    constructor(node: ASTNode) : super(node)
+
+
+    constructor(stub: CangJiePlaceHolderStub<CjEnumBody>) : super(stub, ENUM_BODY)
+
+}
+class CjClassBody : CjAbstractClassBody{
+    constructor(node: ASTNode) : super(node)
+
+
+    constructor(stub: CangJiePlaceHolderStub<CjEnumBody>) : super(stub, CLASS_BODY)
+
+}
+abstract class CjAbstractClassBody : CjElementImplStub<CangJiePlaceHolderStub<out CjAbstractClassBody>>, CjDeclarationContainer {
     private val lBraceTokenSet = TokenSet.create(CjTokens.LBRACE)
     private val rBraceTokenSet = TokenSet.create(CjTokens.RBRACE)
 
     constructor(node: ASTNode) : super(node)
 
+    constructor(stub: CangJiePlaceHolderStub<out CjAbstractClassBody>,nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-    constructor(stub: CangJiePlaceHolderStub<CjClassBody>) : super(stub, CLASS_BODY)
+
+    constructor(stub: CangJiePlaceHolderStub<CjAbstractClassBody>) : super(stub, CLASS_BODY)
 
     override fun getParent() = parentByStub
     internal val secondaryConstructors: List<CjSecondaryConstructor>

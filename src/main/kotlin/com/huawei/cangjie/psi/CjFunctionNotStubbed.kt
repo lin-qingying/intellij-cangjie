@@ -45,6 +45,6 @@ abstract class CjFunctionNotStubbed(node: ASTNode) : CjTypeParameterListOwnerNot
     override val isLocal: Boolean
         get() {
             val parent = parent
-            return !(parent is CjFile || parent is CjClassBody)
+            return !(parent is CjFile || parent is CjAbstractClassBody)
         }
 }

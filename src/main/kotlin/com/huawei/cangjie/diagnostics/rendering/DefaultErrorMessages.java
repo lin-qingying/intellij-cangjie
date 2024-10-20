@@ -53,7 +53,7 @@ public class DefaultErrorMessages {
         MAP.put(NO_VALUE_FOR_PARAMETER, "No value passed for parameter ''{0}''", NAMED);
 
 //        MAP.put(UNRESOLVED_REFERENCE, "Unresolved reference: {0}", ELEMENT_TEXT);
-        MAP.put(UNRESOLVED_REFERENCE, "Reference not found: {0}", ELEMENT_TEXT);
+        MAP.put(UNRESOLVED_REFERENCE, "Reference not found: {0}", ELEMENT_IDENTIFIER_TEXT);
 
 //函数
         MAP.put(OVERLOAD_RESOLUTION_AMBIGUITY, "Overload resolution ambiguity: {0}", AMBIGUOUS_CALLS);
@@ -129,7 +129,7 @@ public class DefaultErrorMessages {
         MAP.put(STRUCT_WITH_SUPERCLASS, "An struct can only inherit from a interface");
         MAP.put(EXTEND_WITH_SUPERCLASS, "An extend can only inherit from a interface");
         MAP.put(CYCLIC_INHERITANCE_HIERARCHY, "There's a cycle in the inheritance hierarchy for this type");
-        MAP.put(OBJECT_IN_SUPERTYPE, "Cannot inherit from a struct");
+        MAP.put(STRUCT_IN_SUPERTYPE, "Cannot inherit from a struct");
         MAP.put(ENUM_IN_SUPERTYPE, "Cannot inherit from a enum");
         MAP.put(FINAL_SUPERTYPE, "super class ''{0}'' is not inheritable", RENDER_TYPE);
         MAP.put(MANY_CLASSES_IN_SUPERTYPE_LIST, "Only one class may appear in a supertype list");
@@ -301,7 +301,7 @@ public class DefaultErrorMessages {
                 FQ_NAMES_IN_TYPES);
         MAP.put(ABSTRACT_FUNCTION_WITH_BODY, "A function ''{0}'' with body cannot be abstract", NAMED);
 
-
+        MAP.put(ABSTRACT_FUNCTION_WITHOUT_RETURN_TYPE, "abstract function must have return type" );
         MAP.put(RETURN_TYPE_NOT_SPECIFIED_ERROR, "For technical reasons, please display the return type of the specified method");
         MAP.put(ABSTRACT_MEMBER_VISIBILITY_ERROR, "The visibility of an ''{0}'' {1} must be {2}", MODALITY_NAME, DESCRIPTOR_KIND_NAME, VISIBLITYS_NAMES);
         MAP.put(NO_CONSTRUCTOR, "This class does not have a constructor");

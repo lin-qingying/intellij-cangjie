@@ -253,10 +253,10 @@ public class BodyResolver {
 //                }
 
                 if (classDescriptor.getKind() != ClassKind.INTERFACE) {
-                    if (supertypeOwner.getKind() == ClassKind.ENUM) {
+                    /*if (supertypeOwner.getKind() == ClassKind.ENUM) {
                         trace.report(CLASS_IN_SUPERTYPE_FOR_ENUM.on(typeReference));
                         addSupertype = false;
-                    } else if (supertypeOwner.getKind() == ClassKind.INTERFACE &&
+                    } else*/ if (supertypeOwner.getKind() == ClassKind.INTERFACE &&
                             !classAppeared && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
                         trace.report(INTERFACE_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
@@ -302,7 +302,7 @@ public class BodyResolver {
                 }
             } else if (classDescriptor.getKind().isObject()) {
                 if (!DescriptorUtils.isEnumEntry(classDescriptor)) {
-                    trace.report(OBJECT_IN_SUPERTYPE.on(typeReference));
+                    trace.report(STRUCT_IN_SUPERTYPE.on(typeReference));
                 }
             } else if (!allowedFinalSupertypes.contains(constructor)) {
                 if (DescriptorUtils.isSealedClass(classDescriptor)) {

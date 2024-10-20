@@ -8,7 +8,6 @@ import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.BindingContext
-import com.huawei.cangjie.resolve.OverridingUtil
 import com.huawei.cangjie.resolve.caches.resolveToDescriptorIfAny
 import com.huawei.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
 import com.huawei.cangjie.resolve.lazy.BodyResolveMode
@@ -65,7 +64,7 @@ fun CjDeclaration.implicitVisibility(): CjModifierKeywordToken? {
 fun CjDeclaration.isOverridable(): Boolean =
     !hasModifier(CjTokens.PRIVATE_KEYWORD) &&  // 'private' is incompatible with 'open'
             (parents.match(CjParameterList::class, CjPrimaryConstructor::class, last = CjTypeStatement::class)
-                ?: parents.match(CjClassBody::class, last = CjTypeStatement::class))
+                ?: parents.match(CjAbstractClassBody::class, last = CjTypeStatement::class))
                 ?.let { it.isInheritable() || it.isEnum() } == true &&
             getModalityFromDescriptor() in setOf(CjTokens.ABSTRACT_KEYWORD, CjTokens.OPEN_KEYWORD)
 

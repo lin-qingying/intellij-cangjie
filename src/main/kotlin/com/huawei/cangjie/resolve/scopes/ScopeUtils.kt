@@ -1,6 +1,5 @@
 package com.huawei.cangjie.resolve.scopes
 
-import com.huawei.cangjie.analyzer.CangJieModuleInfo
 import com.huawei.cangjie.analyzer.ModuleSourceInfo
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.ide.FrontendInternals
@@ -11,7 +10,7 @@ import com.huawei.cangjie.incremental.components.LookupLocation
 import com.huawei.cangjie.incremental.components.NoLookupLocation
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.name.Name
-import com.huawei.cangjie.psi.CjClassBody
+import com.huawei.cangjie.psi.CjAbstractClassBody
 import com.huawei.cangjie.psi.CjCodeFragment
 import com.huawei.cangjie.psi.CjElement
 import com.huawei.cangjie.psi.CjFile
@@ -267,7 +266,7 @@ fun PsiElement.getResolutionScope(bindingContext: BindingContext): LexicalScope?
             if (scope != null) return scope
         }
 
-        if (parent is CjClassBody) {
+        if (parent is CjAbstractClassBody) {
             val classDescriptor =
                 bindingContext[BindingContext.CLASS, parent.getParent()] as? ClassDescriptorWithResolutionScopes
             if (classDescriptor != null) {

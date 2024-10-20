@@ -77,7 +77,7 @@ enum class ItemPriority {
 var LookupElement.priority by UserDataProperty(Key<ItemPriority>("ITEM_PRIORITY_KEY"))
 fun referenceScope(declaration: CjNamedDeclaration): CjElement? = when (val parent = declaration.parent) {
     is CjParameterList -> parent.parent as CjElement
-    is CjClassBody -> {
+    is CjAbstractClassBody -> {
         val classOrObject = parent.parent as CjTypeStatement
 
         classOrObject

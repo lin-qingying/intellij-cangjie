@@ -2,7 +2,7 @@ package com.huawei.cangjie.ide.editor
 
 import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.lexer.CjTokens
-import com.huawei.cangjie.psi.CjClassBody
+import com.huawei.cangjie.psi.CjAbstractClassBody
 import com.intellij.codeInsight.hint.DeclarationRangeUtil
 import com.intellij.lang.BracePair
 import com.intellij.lang.PairedBraceMatcher
@@ -56,7 +56,7 @@ class CangJiePairedBraceMatcher: PairedBraceMatcher {
         if (element == null || element is PsiFile) return openingBraceOffset
         val parent = element.parent
         return when  {
-            parent is CjClassBody || parent.elementType == CjNodeTypes.BLOCK ->
+            parent is CjAbstractClassBody || parent.elementType == CjNodeTypes.BLOCK ->
                 DeclarationRangeUtil.getPossibleDeclarationAtRange(parent.parent)?.startOffset ?: openingBraceOffset
 
             else -> openingBraceOffset

@@ -92,7 +92,7 @@ abstract class CjTypeStatement :
     override fun getContextReceivers(): List<CjContextReceiver> =
         getContextReceiverList()?.let { return it.contextReceivers() } ?: emptyList()
 
-    override fun getBody(): CjClassBody? = getStubOrPsiChild(CjStubElementTypes.CLASS_BODY)
+    override fun getBody(): CjAbstractClassBody? = getStubOrPsiChild(CjStubElementTypes.CLASS_BODY)
 
     override fun getClassId(): ClassId? {
         stub?.let { return it.getClassId() }

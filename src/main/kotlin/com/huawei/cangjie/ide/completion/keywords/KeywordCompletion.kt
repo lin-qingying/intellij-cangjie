@@ -575,7 +575,7 @@ class KeywordCompletion(private val languageVersionSettingProvider: LanguageVers
 
                         is CjEnumEntry -> listOf(ENUM_ENTRY)
 
-                        is CjClassBody -> listOf(
+                        is CjAbstractClassBody -> listOf(
                             CLASS_ONLY,
                             INTERFACE,
                             STRUCT,
@@ -736,7 +736,7 @@ class KeywordCompletion(private val languageVersionSettingProvider: LanguageVers
         } else {
             while (child != null) {
                 when (child) {
-                    is CjBlockExpression, is CjClassBody -> append("{}")
+                    is CjBlockExpression, is CjAbstractClassBody -> append("{}")
                     else -> appendReducedText(child)
                 }
 

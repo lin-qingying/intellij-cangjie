@@ -17,7 +17,7 @@ interface CjElement : NavigatablePsiElement, CjPureElement {
 
     fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D)
 
-    fun <R, D> accept(visitor: CjVisitor<R, D>, data: D? ): R
+    fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R
 
     @Deprecated("Don't use getReference() on CjElement for the choice is unpredictable")
     override fun getReference(): PsiReference?
@@ -43,7 +43,7 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
         }
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D? ): R  = visitor.visitCjElement(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R = visitor.visitCjElement(this, data)
 
     override fun getPsiOrParent(): CjElement = this
     override fun getContainingCjFile(): CjFile {
@@ -57,7 +57,6 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
         }
         return file
     }
-
 
 
     override fun delete() {
@@ -82,7 +81,7 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
         return substitute ?: super.getParent()
     }
 
-    override fun getLanguage(): Language  = CangJieLanguage
+    override fun getLanguage(): Language = CangJieLanguage
 }
 
 

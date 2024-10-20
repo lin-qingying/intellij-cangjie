@@ -70,9 +70,9 @@
 //
 //    //    CjAnnotationUseSiteTargetElementType ANNOTATION_TARGET = new CjAnnotationUseSiteTargetElementType("ANNOTATION_TARGET");
 //    @JvmField
-//    val CLASS_BODY: CjPlaceHolderStubElementType<CjClassBody> = CjPlaceHolderStubElementType(
+//    val CLASS_BODY: CjPlaceHolderStubElementType<CjAbstractClassBody> = CjPlaceHolderStubElementType(
 //        "CLASS_BODY",
-//        CjClassBody::class.java
+//        CjAbstractClassBody::class.java
 //    )
 //
 //    @JvmField

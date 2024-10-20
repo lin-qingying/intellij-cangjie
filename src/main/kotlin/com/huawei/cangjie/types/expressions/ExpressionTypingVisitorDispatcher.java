@@ -17,6 +17,7 @@ import com.huawei.cangjie.types.CangJieType;
 import com.huawei.cangjie.types.DeferredType;
 import com.huawei.cangjie.types.ErrorUtils;
 import com.huawei.cangjie.types.error.ErrorTypeKind;
+import com.huawei.cangjie.types.expressions.match.PatternMatchingTypingVisitor;
 import com.huawei.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.huawei.cangjie.utils.CangJieExceptionWithAttachments;
 import com.huawei.cangjie.utils.CangJieFrontEndException;

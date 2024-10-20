@@ -492,11 +492,11 @@ public class OverridingUtil {
     }
 
     private static List<CangJieType> compiledValueParameters(CallableDescriptor callableDescriptor) {
-        ReceiverParameterDescriptor receiverParameter = callableDescriptor.getExtensionReceiverParameter();
+//        ReceiverParameterDescriptor receiverParameter = callableDescriptor.getExtensionReceiverParameter();
         List<CangJieType> parameters = new ArrayList<>();
-        if (receiverParameter != null) {
-            parameters.add(receiverParameter.getType());
-        }
+//        if (receiverParameter != null) {
+//            parameters.add(receiverParameter.getType());
+//        }
         for (ValueParameterDescriptor valueParameterDescriptor : callableDescriptor.getValueParameters()) {
             parameters.add(valueParameterDescriptor.getType());
         }

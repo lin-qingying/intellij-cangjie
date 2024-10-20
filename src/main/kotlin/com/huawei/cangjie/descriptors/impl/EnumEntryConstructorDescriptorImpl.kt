@@ -6,7 +6,7 @@ import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.huawei.cangjie.types.CangJieType
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
-import com.huawei.cangjie.types.expressions.ClassAndEnumConstructorDescriptor
+import com.huawei.cangjie.types.expressions.match.ClassAndEnumConstructorDescriptor
 
 
 val String.name get() = Name.identifier(this)

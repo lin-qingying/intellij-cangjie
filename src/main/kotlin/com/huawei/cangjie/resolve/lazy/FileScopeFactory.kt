@@ -275,6 +275,23 @@ class FileScopeFactory(
 
             }
 
+            override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+                val element = file.declarations.filter {
+                    it.name === name.asString()
+                }
+                if (element.isEmpty()) return emptyList()
+                var i = 0
+                var _parent = parent
+                while (_parent !is CurrentPackageScope && i < 15) {
+                    _parent = _parent?.parent
+                    i++
+                }
+//                if (_parent !is CurrentPackageScope) {
+//                    return null
+//                }
+                return _parent?.getContributedClassifiers(name, location) ?: emptyList()
+
+            }
             override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
 
 

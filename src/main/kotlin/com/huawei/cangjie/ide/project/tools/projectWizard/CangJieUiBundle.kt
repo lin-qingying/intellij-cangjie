@@ -1,5 +1,6 @@
 package com.huawei.cangjie.ide.project.tools.projectWizard
 
+import com.huawei.cangjie.AbstractCangJieBundle
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
@@ -9,7 +10,7 @@ import java.util.function.Supplier
 @NonNls
 private const val BUNDLE: String = "messages.CangJieUiBundle"
 
-object CangJieUiBundle : DynamicBundle(  BUNDLE) {
+object CangJieUiBundle : AbstractCangJieBundle(  BUNDLE) {
 
 
     fun message(key: @PropertyKey(resourceBundle = BUNDLE) String, vararg params: String): @Nls String {

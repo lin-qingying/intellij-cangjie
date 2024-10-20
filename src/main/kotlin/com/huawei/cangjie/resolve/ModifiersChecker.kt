@@ -250,7 +250,7 @@ class ModifiersChecker(
             val modifierList = if ((modifierListOwner != null)) modifierListOwner.modifierList else null
 
 
-            if (modifierList?.owner is CjNamedFunction || modifierList?.owner is CjProperty) {
+            if (modifierListOwner is CjNamedFunction || modifierListOwner is CjProperty) {
                 if (containingDescriptor is MemberDescriptor && containingDescriptor is ClassDescriptor) {
 
                     if (containingDescriptor.modality == Modality.ABSTRACT && containingDescriptor.kind == ClassKind.CLASS) {
@@ -258,7 +258,7 @@ class ModifiersChecker(
 
                             return Modality.ABSTRACT
 
-                        } else if (modifierListOwner is CjNamedFunction) {
+                        } else if (modifierListOwner is CjNamedFunction && !modifierListOwner.hasBody()) {
                             return Modality.ABSTRACT
 
                         }

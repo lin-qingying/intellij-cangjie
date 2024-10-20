@@ -153,7 +153,7 @@ class CangJieIndicesHelper(
 
     fun getMemberOperatorsByName(name: String): Collection<FunctionDescriptor> {
         return CangJieFunctionShortNameIndex.getAllElements(name, project, scope) {
-            it.parent is CjClassBody && it.receiverTypeReference == null && it.hasModifier(CjTokens.OPERATOR_KEYWORD)
+            it.parent is CjAbstractClassBody && it.receiverTypeReference == null && it.hasModifier(CjTokens.OPERATOR_KEYWORD)
         }
             .flatMap {
                 ProgressManager.checkCanceled()

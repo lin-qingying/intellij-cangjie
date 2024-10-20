@@ -1,5 +1,6 @@
 package com.huawei.cangjie.psi
 
+import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.lexer.CjTokens.*
 import com.huawei.cangjie.name.Name
 import com.huawei.cangjie.psi.stubs.CangJieNameReferenceExpressionStub
@@ -31,6 +32,16 @@ class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpre
     override fun getReferencedNameElement(): PsiElement {
         return findChildByType(NAME_REFERENCE_EXPRESSIONS) ?: this
     }
+      val typeArguments: List<CjTypeProjection>
+        get() {
+
+            return typeArgumentList?.arguments ?: emptyList()
+        }
+      val typeArgumentList: CjTypeArgumentList?
+        get() {
+
+            return findChildByType<PsiElement>(CjNodeTypes.TYPE_ARGUMENT_LIST) as CjTypeArgumentList?
+        }
 
     override fun getIdentifier(): PsiElement? {
         return findChildByType(IDENTIFIER)

@@ -176,7 +176,7 @@ object CangJiePositionContextDetector {
 //                }
 //            }
 //
-//            parent is PsiErrorElement && grandparent is CjClassBody -> {
+//            parent is PsiErrorElement && grandparent is CjAbstractClassBody -> {
 //                CangJieMemberDeclarationExpectedPositionContext(position, grandparent)
 //            }
 

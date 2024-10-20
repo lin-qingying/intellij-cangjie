@@ -1,5 +1,6 @@
 package com.huawei.cangjie.resolve.scopes
 
+import com.huawei.cangjie.descriptors.ClassifierDescriptor
 import com.huawei.cangjie.descriptors.DeclarationDescriptor
 import com.huawei.cangjie.descriptors.Substitutable
 import com.huawei.cangjie.descriptors.VariableDescriptor
@@ -70,6 +71,8 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
 
     override fun getContributedPropertys(name: Name, location: LookupLocation) =
         substitute(workerScope.getContributedPropertys(name, location))
+    override fun getContributedClassifiers( name: Name, location: LookupLocation): List<ClassifierDescriptor> =
+        workerScope.getContributedClassifiers(name, location) .map { substitute(it) }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         workerScope.getContributedClassifier(name, location)?.let { substitute(it) }
@@ -85,7 +88,11 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
-    ) = _allDescriptors
+    ): Collection<DeclarationDescriptor> {
+        return _allDescriptors.filter {
+            nameFilter.invoke(it.name)
+        }
+    }
 
 //    override fun getFunctionNames() = workerScope.getFunctionNames()
 //    override fun getVariableNames() = workerScope.getVariableNames()

@@ -4,7 +4,6 @@ import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.diagnostics.Errors
 import com.huawei.cangjie.lexer.CjKeywordToken
-import com.huawei.cangjie.lexer.CjModifierKeywordToken
 import com.huawei.cangjie.lexer.CjTokens
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.resolve.calls.components.getDescriptorKind
@@ -323,7 +322,7 @@ fun DeclarationDescriptor?.isMemberFunOrProperty(): Boolean {
 
     if (source is CjNamedFunction) {
         if (source.isTopLevel) return false
-        if (source.parent !is CjClassBody) return false
+        if (source.parent !is CjAbstractClassBody) return false
     }
 
 

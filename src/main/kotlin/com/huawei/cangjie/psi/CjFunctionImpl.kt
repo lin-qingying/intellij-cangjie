@@ -172,7 +172,7 @@ abstract class CjFunctionImpl : CjTypeParameterListOwnerStub<CangJieFunctionStub
     override val isLocal: Boolean
         get() {
             val parent = parent
-            return !(parent is CjFile || parent is CjClassBody)
+            return !(parent is CjFile || parent is CjAbstractClassBody)
         }
     override val isStatic: Boolean
         get() = hasModifier(CjTokens.STATIC_KEYWORD)

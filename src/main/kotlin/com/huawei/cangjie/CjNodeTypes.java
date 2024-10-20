@@ -81,6 +81,8 @@ public interface CjNodeTypes {
 
     IElementType LABEL = new CjNodeType("LABEL", CjLabelReferenceExpression.class);
     IElementType CLASS_BODY = CjStubElementTypes.CLASS_BODY;
+    IElementType INTERFACE_BODY = CjStubElementTypes.INTERFACE_BODY;
+
     IElementType TUPLE_EXPRESSION =new CjNodeType("TUPLE_EXPRESSION", CjTupleExpression.class);
 
     IElementType FUNCTION_LITERAL = new CjNodeType("FUNCTION_LITERAL", CjFunctionLiteral.class);

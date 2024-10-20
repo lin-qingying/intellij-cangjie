@@ -19,7 +19,7 @@ object CjNamedDeclarationUtil {
 
     fun getParentFqName(namedDeclaration: CjNamedDeclaration): FqName? {
         var parent = namedDeclaration.parent
-        if (parent is CjClassBody) {
+        if (parent is CjAbstractClassBody) {
             parent = parent.getParent()
         }
 

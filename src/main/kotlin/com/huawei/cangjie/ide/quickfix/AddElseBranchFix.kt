@@ -5,13 +5,12 @@ import com.huawei.cangjie.descriptors.ClassDescriptor
 import com.huawei.cangjie.descriptors.ClassKind
 import com.huawei.cangjie.diagnostics.Diagnostic
 import com.huawei.cangjie.diagnostics.MatchMissingCase
-import com.huawei.cangjie.ide.ShortenReferences
 import com.huawei.cangjie.psi.*
 import com.huawei.cangjie.psi.psiUtil.endOffset
 import com.huawei.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.huawei.cangjie.resolve.caches.analyze
 import com.huawei.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
-import com.huawei.cangjie.types.expressions.MatchChecker
+import com.huawei.cangjie.types.expressions.match.MatchChecker
 import com.intellij.codeInsight.CodeInsightUtilCore
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.LowPriorityAction

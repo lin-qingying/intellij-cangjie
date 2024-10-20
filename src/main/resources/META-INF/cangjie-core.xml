@@ -1,7 +1,7 @@
 <idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
 
 
-    <resource-bundle>messages.CangJieBaseHighlightingBundle</resource-bundle>
+    <resource-bundle>messages.CangJieHighlightingBundle</resource-bundle>
     <resource-bundle>messages.CangJieBundle</resource-bundle>
 
 
@@ -63,6 +63,7 @@
                   implementationClass="com.huawei.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
+
 
 
         <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cjd"
@@ -133,7 +134,7 @@
 
         <directoryProjectGenerator implementation="com.huawei.cangjie.ide.newProject.CjDirectoryProjectGenerator"/>
 
-        <projectConfigurable instance="com.huawei.cangjie.cjpm.project.configurable.CjProjectConfigurable"
+        <projectConfigurable instance="com.huawei.cangjie.configurable.CangJieConfigurable"
                              groupId="language"
                              id="language.cangjie"
                              bundle="messages.CangJieBundle" key="CangJie"/>

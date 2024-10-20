@@ -61,6 +61,13 @@ class AllUnderImportScope private constructor(
         }
     }
 
+    override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+        if (name in excludedNames) return emptyList()
+        val classifier1 = scope1.getContributedClassifiers(name, location)
+        val classifier2 = scope2?.getContributedClassifiers(name, location)
+        return classifier1 + (classifier2 ?: emptyList())
+    }
+
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         if (name in excludedNames) return null
         val classifier1 = scope1.getContributedClassifier(name, location)
@@ -75,7 +82,10 @@ class AllUnderImportScope private constructor(
         return classifier1 + (classifier2 ?: emptyList())
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> {
         if (name in excludedNames) return emptyList()
         return flatMapScopes(scope1, scope2) { it.getContributedVariables(name, location) }
     }

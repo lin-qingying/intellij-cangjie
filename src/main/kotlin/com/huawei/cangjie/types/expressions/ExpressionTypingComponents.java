@@ -17,6 +17,7 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
 import com.huawei.cangjie.resolve.deprecation.DeprecationResolver;
 import com.huawei.cangjie.types.checker.NewCangJieTypeChecker;
+
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 

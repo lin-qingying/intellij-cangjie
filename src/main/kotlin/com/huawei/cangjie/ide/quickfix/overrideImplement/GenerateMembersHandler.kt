@@ -275,7 +275,7 @@ fun Editor.moveCaret(offset: Int, scrollType: ScrollType = ScrollType.RELATIVE) 
     scrollingModel.scrollToCaret(scrollType)
 }
 
-private fun findInsertAfterAnchor(editor: Editor?, body: CjClassBody): PsiElement? {
+private fun findInsertAfterAnchor(editor: Editor?, body: CjAbstractClassBody): PsiElement? {
     val lBrace = body.lBrace ?: return null
 
     val offset = editor?.caretModel?.offset ?: body.startOffset
@@ -322,10 +322,10 @@ private fun removeAfterOffset(offset: Int, whiteSpace: PsiWhiteSpace): PsiElemen
     return whiteSpace
 }
 
-fun CjTypeStatement.getOrCreateBody(): CjClassBody {
+fun CjTypeStatement.getOrCreateBody(): CjAbstractClassBody {
     getBody()?.let { return it }
 
     val newBody = CjPsiFactory(project).createEmptyClassBody()
-//    if (this is CjEnumEntry) return addAfter(newBody, initializerList ?: nameIdentifier) as CjClassBody
-    return add(newBody) as CjClassBody
+//    if (this is CjEnumEntry) return addAfter(newBody, initializerList ?: nameIdentifier) as CjAbstractClassBody
+    return add(newBody) as CjAbstractClassBody
 }

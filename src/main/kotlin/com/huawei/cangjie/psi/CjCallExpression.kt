@@ -3,7 +3,6 @@ package com.huawei.cangjie.psi
 import com.google.common.collect.Lists
 import com.huawei.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
 
 
 open class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallElement, CjReferenceExpression {
@@ -15,18 +14,19 @@ open class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallEleme
         get() {
             return findChildrenByType<CjLambdaArgument>(CjNodeTypes.LAMBDA_ARGUMENT)
         }
+    val referenceExpression: CjNameReferenceExpression? get() = calleeExpression as? CjNameReferenceExpression
 
     override val typeArguments: List<CjTypeProjection>
         get() {
+            return referenceExpression?.typeArguments ?: emptyList()
 
-            return typeArgumentList?.arguments ?: emptyList()
         }
 
 
     override val typeArgumentList: CjTypeArgumentList?
         get() {
+            return referenceExpression?.typeArgumentList
 
-            return findChildByType<PsiElement>(CjNodeTypes.TYPE_ARGUMENT_LIST) as CjTypeArgumentList?
         }
 
     fun getBasicTypeExpr(): CjExpression? {

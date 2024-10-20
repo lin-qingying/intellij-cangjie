@@ -1,6 +1,6 @@
 package com.huawei.cangjie.cjpm.project.settings
 
-import com.huawei.cangjie.cjpm.project.configurable.CjProjectConfigurable
+import com.huawei.cangjie.configurable.CangJieConfigurable
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainBase
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainProvider
 import com.huawei.cangjie.cjpm.toolchain.CjToolchainServices
@@ -94,7 +94,7 @@ class CangJieProjectSettingsService(
     ): SettingsChangedEvent = SettingsChangedEvent(oldEvent, newEvent)
 
     fun configureToolchain() {
-        project.showSettingsDialog<CjProjectConfigurable>()
+        project.showSettingsDialog<CangJieConfigurable>()
     }
 
 }

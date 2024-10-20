@@ -4,6 +4,7 @@ import com.huawei.cangjie.CjNodeTypes
 import com.huawei.cangjie.cjpm.project.model.CjpmProject
 import com.huawei.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.huawei.cangjie.lang.CangJieFileType
+
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.name.FqName
 import com.huawei.cangjie.psi.stubs.CangJieFileStub
@@ -73,6 +74,9 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
         }
     }
 
+    override fun getParent(): PsiDirectory? {
+        return super.getParent()
+    }
     protected open val importLists: List<CjImportList>
         get() = findChildrenByTypeOrClass(CjStubElementTypes.IMPORT_LIST, CjImportList::class.java).asList()
 //    val importListsField: List<CangJieImportField> = importDirectives.flatMap {

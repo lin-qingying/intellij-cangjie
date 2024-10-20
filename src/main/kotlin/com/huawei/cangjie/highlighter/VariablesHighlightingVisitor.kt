@@ -33,7 +33,7 @@ internal class VariablesHighlightingVisitor(holder: HighlightInfoHolder, binding
             highlightName(
                 expression,
                 CangJieHighlightInfoTypeSemanticNames.FUNCTION_LITERAL_DEFAULT_PARAMETER,
-                CangJieBaseHighlightingBundle.message("automatically.declared.based.on.the.expected.type")
+                CangJieHighlightingBundle.message("automatically.declared.based.on.the.expected.type")
             )
         } else if (expression.parent !is CjValueArgumentName) { // highlighted separately
             highlightVariable(expression, target)
@@ -115,7 +115,7 @@ internal class VariablesHighlightingVisitor(holder: HighlightInfoHolder, binding
                 highlightName(
                     getSmartCastTarget(expression),
                     CangJieHighlightInfoTypeSemanticNames.SMART_CAST_VALUE,
-                    CangJieBaseHighlightingBundle.message(
+                    CangJieHighlightingBundle.message(
                         "smart.cast.to.0",
                         DescriptorRenderer.FQ_NAMES_IN_TYPES.renderType(defaultType)
                     )

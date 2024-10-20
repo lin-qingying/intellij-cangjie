@@ -6,7 +6,6 @@ import com.huawei.cangjie.doc.parser.CDocElementType
 import com.huawei.cangjie.doc.psi.impl.CDocLink
 import com.huawei.cangjie.lang.CangJieLanguage
 import com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType
-import com.huawei.cangjie.lang.declarations.CangJieFileViewProvider
 import com.huawei.cangjie.lang.declarations.CjDeclarationsFile
 import com.huawei.cangjie.lexer.CangJieLexer
 import com.huawei.cangjie.lexer.CjToken
@@ -27,6 +26,69 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 
+class CangJieParserDefinitionByBnf : ParserDefinition {
+    override fun createLexer(project: Project?): Lexer = CangJieLexer()
+
+    override fun createParser(project: Project?): PsiParser {
+        return CangJieParserByBnf()
+    }
+
+
+    override fun getFileNodeType(): IFileElementType = CjFileElementType.INSTANCE
+
+
+    val EOL_COMMENT = CjToken("EOL_COMMENT", 4)
+    val BLOCK_COMMENT = CjToken("BLOCK_COMMENT", 3)
+    val DOC_COMMENT: IElementType = CDocTokens.CDOC
+
+    val SHEBANG_COMMENT = CjToken("SHEBANG_COMMENT", 5)
+    val COMMENTS = TokenSet.create(
+        EOL_COMMENT,
+        BLOCK_COMMENT,
+        DOC_COMMENT,
+        SHEBANG_COMMENT
+    )
+
+    override fun getCommentTokens(): TokenSet = CjTokens.COMMENTS
+
+
+    override fun getWhitespaceTokens(): TokenSet = CjTokens.WHITESPACES
+
+    override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
+
+
+    override fun createElement(node: ASTNode): PsiElement {
+        return when (val elementType = node.elementType) {
+            is CjStubElementType<*, *> ->
+                elementType.createPsiFromAst(node)
+
+
+            is CDocElementType -> elementType.createPsi(node)
+            CDocTokens.MARKDOWN_LINK -> CDocLink(node)
+            else -> (elementType as CjNodeType).createPsi(node)
+        }
+    }
+
+
+    override fun createFile(viewProvider: FileViewProvider): PsiFile {
+
+
+
+
+        return CjFile(viewProvider, false)
+    }
+
+
+    object Util {
+        @JvmField
+        val STD_SCRIPT_SUFFIX = "cj1"
+
+        @JvmField
+        val STD_SCRIPT_EXT = ".$STD_SCRIPT_SUFFIX"
+        val instance: CangJieParserDefinition
+            get() = LanguageParserDefinitions.INSTANCE.forLanguage(CangJieLanguage) as CangJieParserDefinition
+    }
+}
 
 class CangJieParserDefinition : ParserDefinition {
     override fun createLexer(project: Project?): Lexer = CangJieLexer()

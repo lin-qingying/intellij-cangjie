@@ -138,7 +138,7 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         super.visitImportList(importList, null)
     }
 
-    open fun visitClassBody(classBody: CjClassBody) {
+    open fun visitClassBody(classBody: CjAbstractClassBody) {
         super.visitClassBody(classBody, null)
     }
 
@@ -514,7 +514,7 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         return null
     }
 
-    override fun visitClassBody(classBody: CjClassBody, data: Void?): Void? {
+    override fun visitClassBody(classBody: CjAbstractClassBody, data: Void?): Void? {
         visitClassBody(classBody)
         return null
     }

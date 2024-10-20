@@ -1,6 +1,5 @@
 package com.huawei.cangjie.resolve
 
-import com.huawei.cangjie.config.LanguageFeature
 import com.huawei.cangjie.config.LanguageVersionSettings
 import com.huawei.cangjie.descriptors.*
 import com.huawei.cangjie.descriptors.impl.PropertyAccessorDescriptor
@@ -32,8 +31,8 @@ class DeclarationsChecker(
 //    private val diagnosticSuppressor: PlatformDiagnosticSuppressor,
     private val upperBoundChecker: UpperBoundChecker
 ) {
-//    private val exposedChecker = ExposedVisibilityChecker(languageVersionSettings, trace)
-private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityComparator, trace)
+    //    private val exposedChecker = ExposedVisibilityChecker(languageVersionSettings, trace)
+    private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityComparator, trace)
 
     private val modifiersChecker = modifiersChecker.withTrace(trace)
     private fun checkClass(classDescriptor: ClassDescriptorWithResolutionScopes, typeStatement: CjTypeStatement) {
@@ -200,6 +199,12 @@ private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityC
         }
     }
 
+    private fun checkAbstractFunctionReturnType(function: CjNamedFunction, descriptor: FunctionDescriptor) {
+        if (!function.hasBody() && function.typeReference == null && (descriptor.modality == Modality.ABSTRACT || descriptor.modality == Modality.OPEN)) {
+            trace.report(ABSTRACT_FUNCTION_WITHOUT_RETURN_TYPE.on(function))
+        }
+    }
+
     private fun checkTypeParameterConstraints(typeParameterListOwner: CjTypeParameterListOwner) {
         val constraints = typeParameterListOwner.typeConstraints
         if (constraints.isEmpty()) return
@@ -256,6 +261,8 @@ private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityC
 //        ) {
 //            trace.report(DEPRECATED_TYPE_PARAMETER_SYNTAX.on(typeParameterList))
 //        }
+
+        checkAbstractFunctionReturnType(function, functionDescriptor)
         checkTypeParameterConstraints(function)
         checkImplicitCallableType(function, functionDescriptor)
 //        exposedChecker.checkFunction(function, functionDescriptor)
@@ -551,7 +558,7 @@ private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityC
             else -> MUST_BE_INITIALIZED
         }
         trace.report(
-            when ( isOpenValDeferredInitDeprecationWarning) {
+            when (isOpenValDeferredInitDeprecationWarning) {
                 true -> factory.deprecationWarning
                 false -> factory
             }.on(variable)

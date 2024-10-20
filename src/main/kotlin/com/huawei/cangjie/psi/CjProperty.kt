@@ -26,7 +26,7 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     val isMember: Boolean
         get() {
             val parent = parent
-            return parent is CjTypeStatement || parent is CjClassBody
+            return parent is CjTypeStatement || parent is CjAbstractClassBody
         }
     override val isStatic: Boolean
         get() = hasModifier(CjTokens.STATIC_KEYWORD)

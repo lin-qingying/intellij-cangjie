@@ -39,7 +39,9 @@ class QuickFixRegistrar : QuickFixContributor {
 //        添加 ABSTRACT_KEYWORD
         val addAbstractModifierFactory = AddModifierFix.createFactory(ABSTRACT_KEYWORD)
         ABSTRACT_MEMBER_NOT_IMPLEMENTED.registerFactory(addAbstractModifierFactory)
-
+//        添加 OVERRIDE_KEYWORD
+        val addOverrideModifierFactory = AddModifierFix.createFactory(OVERRIDE_KEYWORD)
+        VIRTUAL_MEMBER_HIDDEN.registerFactory(addOverrideModifierFactory)
 
 //生成成员函数
         val implementMembersHandler = ImplementMembersHandler()

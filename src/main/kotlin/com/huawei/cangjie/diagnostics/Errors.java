@@ -234,6 +234,8 @@ public interface Errors {
             DiagnosticFactory2.create(ERROR, ABSTRACT_MODIFIER);
     DiagnosticFactory0<PsiElement> RETURN_TYPE_NOT_SPECIFIED_ERROR =
             DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> ABSTRACT_FUNCTION_WITHOUT_RETURN_TYPE =
+            DiagnosticFactory0.create(ERROR);
     DiagnosticFactory3<PsiElement, Modality, DescriptorKind, List<DescriptorVisibility>> ABSTRACT_MEMBER_VISIBILITY_ERROR =
             DiagnosticFactory3.create(ERROR);
     DiagnosticFactory1<CjFunction, SimpleFunctionDescriptor> ABSTRACT_FUNCTION_WITH_BODY =
@@ -354,7 +356,7 @@ public interface Errors {
     DiagnosticFactory0<CjTypeReference> SUPERTYPE_APPEARS_TWICE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjTypeReference> SUPERTYPE_NOT_A_CLASS_OR_INTERFACE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjTypeReference> MANY_CLASSES_IN_SUPERTYPE_LIST = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory0<CjTypeReference> OBJECT_IN_SUPERTYPE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjTypeReference> STRUCT_IN_SUPERTYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjTypeReference> ENUM_IN_SUPERTYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> CLASS_IN_SUPERTYPE_FOR_ENUM = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> INTERFACE_WITH_SUPERCLASS = DiagnosticFactory0.create(ERROR);

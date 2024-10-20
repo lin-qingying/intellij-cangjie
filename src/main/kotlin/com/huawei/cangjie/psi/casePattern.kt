@@ -139,7 +139,8 @@ class CjEnumPattern(node: ASTNode) : CjCasePattern(node),CjEnumAndTuplePattern {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPatternByEnum(this, data)
     }
-
+    val type:CjTypeReference?
+        get() = findChildByType(CjNodeTypes.TYPE_REFERENCE)
     val expression:CjExpression?
         get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION) ?: findChildByType (
             CjNodeTypes.DOT_QUALIFIED_EXPRESSION

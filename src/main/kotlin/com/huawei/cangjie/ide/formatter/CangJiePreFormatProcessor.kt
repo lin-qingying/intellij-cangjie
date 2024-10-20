@@ -18,7 +18,7 @@ private class Visitor(var range: TextRange) : CjTreeVisitorVoid() {
 
         if (!range.contains(declaration.textRange)) return
 
-        val classBody = declaration.parent as? CjClassBody ?: return
+        val classBody = declaration.parent as? CjAbstractClassBody ?: return
         val cjlass = classBody.parent as? CjClass ?: return
 
 

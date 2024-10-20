@@ -274,7 +274,7 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return visitCjElement(expression, data);
     }
 
-    public R visitClassBody(@NotNull CjClassBody classBody, D data) {
+    public R visitClassBody(@NotNull CjAbstractClassBody classBody, D data) {
         return visitCjElement(classBody, data);
     }
 

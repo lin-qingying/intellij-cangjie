@@ -346,34 +346,20 @@ class CallExpressionResolver(
     ): DeclarationDescriptor? {
 
 
-        val temporaryForVariable = TemporaryTraceAndCache.create(
-            context, "trace to resolve as variable", nameExpression
-        )
-        val (notNothing, type) = getEnumEntryDescriptor(
-            nameExpression, receiver, callOperationNode,
-            context.replaceTraceAndCache(temporaryForVariable)
-        )
 
-        if (notNothing) {
-            temporaryForVariable.commit()
-            return type
-        }
 
         val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
-        val temporaryForFunction = TemporaryTraceAndCache.create(
-            context, "trace to resolve as function", nameExpression
+        val temporaryForEnum = TemporaryTraceAndCache.create(
+            context, "trace to resolve as enum", nameExpression
         )
-        val newContext = context.replaceTraceAndCache(temporaryForFunction)
-        val (resolveResult, resolvedCall) = getResolvedCallForFunction(
-            call, newContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
+        val newContext = context.replaceTraceAndCache(temporaryForEnum)
+        val (resolveResult, resolvedCall) = getResolvedCallForEnum(
+            call,temporaryForEnum, newContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
         )
         if (resolveResult) {
-            val functionDescriptor = resolvedCall?.resultingDescriptor
-            if (functionDescriptor is ConstructorDescriptor) {
-                temporaryForFunction.commit()
-                return functionDescriptor.constructedClass
-
-            }
+//            temporaryForEnum.commit()
+            return   resolvedCall?.resultingDescriptor
+         
         }
 
 

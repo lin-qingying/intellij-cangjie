@@ -15,7 +15,7 @@ abstract class CjTypeStatementInfo<E : CjTypeStatement>(
 
     override val danglingAnnotations: List<CjAnnotationEntry>
         get() {
-//            val body: CjClassBody? = element.body
+//            val body: CjAbstractClassBody? = element.body
 //            return if (body == null) emptyList() else body.danglingAnnotations
             return emptyList()
         }

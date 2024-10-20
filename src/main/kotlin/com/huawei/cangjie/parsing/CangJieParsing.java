@@ -103,6 +103,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 }
             });
 
+    public CangJieExpressionParsing getExpressionParsing() {
+        return myExpressionParsing;
+    }
+
     //    如果是声明文件，则不需要函数体
 
     private CangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isTopLevel, boolean isLazy) {
@@ -515,32 +519,25 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (closeImportWithErrorIfNewline(importDirective, null, "Expecting qualified name")) {
             return;
         }
-//        do {
-//            if (at(COMMA)) {
+
+//        if (at(LBRACE)) {
+//            advance();
+//            parseImportDirectiveItem(false, true);
+//
+////                多个导入语句
+//
+//
+//            while (at(COMMA)) {
 //                advance();
+//                parseImportDirectiveItem(false, true);
 //            }
-
-        if (at(LBRACE)) {
-            advance();
-            parseImportDirectiveItem(false, true);
-
-//                多个导入语句
-
-
-            while (at(COMMA)) {
-                advance();
-                parseImportDirectiveItem(false, true);
-            }
-
-            expect(RBRACE, "Expecting '}'");
-            doneType = MULIT_IMPORT_DIRECTIVE1;
-
-        } else {
-            doneType = parseImportDirectiveItem(true, false);
-        }
-
-
-//        } while (at(COMMA));
+//
+//            expect(RBRACE, "Expecting '}'");
+//            doneType = MULIT_IMPORT_DIRECTIVE1;
+//
+//        } else {
+        doneType = parseImportDirectiveItem(true, false);
+//        }
 
 
         consumeIf(SEMICOLON);
@@ -1398,7 +1395,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
         get.done(PROPERTY_ACCESSOR);
-//        get.done(PROPERTY_GET);
+
     }
 
     /**
@@ -1463,33 +1460,51 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         PsiBuilder.Marker body = mark();
         advance(); // LBRACE
-        boolean isGet = false;
-        boolean isSet = false;
+//        boolean isGet = false;
+//        boolean isSet = false;
+//        while (at(GET_KEYWORD) || at(SET_KEYWORD)) {
+//            if (at(GET_KEYWORD) && !isGet) {
+//                isGet = true;
+//                parsePropertyGet();
+//            }
+//
+//            if (at(SET_KEYWORD) && !isSet) {
+//                isSet = true;
+//                parsePropertySet(detector);
+//            }
+//
+//        }
+//
+//        if (!isGet) {
+//            error("Get accessor should be implemented");
+//        }
+//
+//        if (!isSet && detector != null && detector.isMutDetected()) {
+//            error("Set accessor should be implemented");
+//        }
         while (at(GET_KEYWORD) || at(SET_KEYWORD)) {
-            if (at(GET_KEYWORD) && !isGet) {
-                isGet = true;
-                parsePropertyGet();
-            }
-
-            if (at(SET_KEYWORD) && !isSet) {
-                isSet = true;
-                parsePropertySet(detector);
-            }
+            parsePropertyAccessor();
 
         }
-
-        if (!isGet) {
-            error("Get accessor should be implemented");
-        }
-
-        if (!isSet && detector != null && detector.isMutDetected()) {
-            error("Set accessor should be implemented");
-        }
-
 
         expect(RBRACE, "Expecting '}'");
 
         body.done(PROPERTY_BODY);
+
+    }
+
+    private void parsePropertyAccessor() {
+
+        if (at(GET_KEYWORD)) {
+
+            parsePropertyGet();
+        }
+
+        if (at(SET_KEYWORD)) {
+
+            parsePropertySet(null);
+        }
+
 
     }
 
@@ -2439,7 +2454,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
         parseTypeConstraintsGuarded(typeParameterListOccurred);
 
 
-
         if (isDeclarationsFile) {
 
             if (at(LBRACE)) {
@@ -2452,7 +2466,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             }
 
-            return MACRO  ;
+            return MACRO;
         }
 
         //函数体
@@ -2493,7 +2507,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             }
 
-            return  ;
+            return;
         }
         if (at(LBRACE)) {
             parseInitFunctionBlock();
@@ -3013,8 +3027,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance(); // LT
 
 
-        do{
-            if (at(COMMA)){
+        do {
+            if (at(COMMA)) {
                 advance();
             }
 
@@ -3026,7 +3040,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             if (at(GT)) {
                 break;
             }
-        }while (at(COMMA));
+        } while (at(COMMA));
 //        while (true) {
 //            PsiBuilder.Marker projection = mark();
 //
