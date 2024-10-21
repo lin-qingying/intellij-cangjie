@@ -25,6 +25,7 @@ import com.huawei.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import com.huawei.cangjie.resolve.isInsideInterface
 import com.huawei.cangjie.resolve.isStatic
 import com.huawei.cangjie.resolve.scopes.receivers.ClassQualifier
+import com.huawei.cangjie.resolve.scopes.receivers.ClassValueReceiver
 import com.huawei.cangjie.resolve.scopes.receivers.EnumClassQualifier
 import com.huawei.cangjie.types.*
 import com.huawei.cangjie.types.checker.CangJieTypeChecker
@@ -107,7 +108,7 @@ internal object CheckEnumCall : ResolutionPart() {
         if (DescriptorUtils.isEnumEntry(descriptor)) {
             if (descriptor.hashUnsubstitutedPrimaryConstructor() && isCall) {
                 addDiagnostic(EmptyDiagnostic)
-            }else if(!descriptor.hashUnsubstitutedPrimaryConstructor() && !isCall){
+            } else if (!descriptor.hashUnsubstitutedPrimaryConstructor() && !isCall) {
                 addDiagnostic(EmptyDiagnostic)
             }
         }
@@ -129,6 +130,7 @@ internal object CheckStaticCall : ResolutionPart() {
 //                !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
 
             }
+
             is ClassQualifier -> {
                 !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
 
@@ -479,9 +481,9 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
     fun createToFreshVariableSubstitutorAndAddInitialConstraints(
         candidateDescriptor: CallableDescriptor,
         cangjieCall: CangJieCall,
-        csBuilder: ConstraintSystemOperation
+        csBuilder: ConstraintSystemOperation,
+        typeParameters: List<TypeParameterDescriptor> = candidateDescriptor.typeParameters
     ): FreshVariableNewTypeSubstitutor {
-        val typeParameters = candidateDescriptor.typeParameters
 
         val freshTypeVariables = typeParameters.map { TypeVariableFromCallableDescriptor(it) }
 
@@ -580,16 +582,40 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         )
     }
 
+    /**
+     *
+     */
+    fun ResolutionCandidate.getTypeParameters(): List<TypeParameterDescriptor> {
+//        如果接收器是DISPATCH_RECEIVER ，并且它是一个静态调用，可能要分析上一层的类型参数
+        if (resolvedCall.dispatchReceiverArgument != null && resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue is ClassValueReceiver) {
+
+            return (resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver).classQualifier.descriptor.declaredTypeParameters + candidateDescriptor.typeParameters
+        }
+
+        return candidateDescriptor.typeParameters
+
+    }
+
     override fun ResolutionCandidate.process(workIndex: Int) {
         val csBuilder = getSystem().getBuilder()
+//        val toFreshVariables =
+//            if (candidateDescriptor.typeParameters.isEmpty())
+//                FreshVariableNewTypeSubstitutor.Empty
+//            else
+//                createToFreshVariableSubstitutorAndAddInitialConstraints(
+//                    candidateDescriptor,
+//                    resolvedCall.atom,
+//                    csBuilder
+//                )
         val toFreshVariables =
-            if (candidateDescriptor.typeParameters.isEmpty())
+            if (getTypeParameters().isEmpty())
                 FreshVariableNewTypeSubstitutor.Empty
             else
                 createToFreshVariableSubstitutorAndAddInitialConstraints(
                     candidateDescriptor,
                     resolvedCall.atom,
-                    csBuilder
+                    csBuilder,
+                    getTypeParameters()
                 )
 
         val knownTypeParametersSubstitutor = knownTypeParametersResultingSubstitutor?.let {
@@ -598,8 +624,10 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
         resolvedCall.freshVariablesSubstitutor = toFreshVariables
         resolvedCall.knownParametersSubstitutor = knownTypeParametersSubstitutor
-
-        if (candidateDescriptor.typeParameters.isEmpty()) {
+//        if (candidateDescriptor.typeParameters.isEmpty()) {
+//            return
+//        }
+        if (getTypeParameters().isEmpty()) {
             return
         }
 
@@ -906,7 +934,7 @@ fun DeclarationDescriptor.getDescriptorKind(): DescriptorKind {
         is FunctionDescriptor -> DescriptorKind.FUNCTION
         is EnumEntryDescriptor -> DescriptorKind.ENUM_ENTRY
         is LazyEnumDescriptor -> DescriptorKind.ENUM
-        is EnumClassCallableDescriptor ->  this.type.getDescriptorKind()
+        is EnumClassCallableDescriptor -> this.type.getDescriptorKind()
         else -> DescriptorKind.UNKNOWN
     }
 }

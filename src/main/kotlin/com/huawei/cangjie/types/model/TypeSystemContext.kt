@@ -285,23 +285,47 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
 
     fun StubTypeMarker.getOriginalTypeVariable(): TypeVariableTypeConstructorMarker
 
+    /**
+     * 从当前类型标记中提取特定类型的参数，并将其添加到指定的集合中。
+     *
+     * @param T 泛型参数，表示要提取的类型。
+     * @param to 一个可变集合，用于存储提取的类型。
+     * @param getIfApplicable 一个函数，用于根据类型构造器标记获取相应类型的实例。
+     *
+     * 此函数遍历当前类型标记的所有参数，尝试提取与[TypeConstructorMarker]匹配的类型实例。
+     * 如果当前参数直接匹配，则将其转换为指定类型并添加到集合中。
+     * 如果当前参数不直接匹配，但包含子参数，则递归调用自身以尝试从子参数中提取匹配的类型。
+     */
     private fun <T> CangJieTypeMarker.extractTypeOf(to: MutableSet<T>, getIfApplicable: (TypeConstructorMarker) -> T?) {
+        // 遍历当前类型标记的所有参数。
         for (i in 0 until argumentsCount()) {
             val argument = getArgument(i)
 
-
+            // 获取当前参数的类型和类型构造器。
             val argumentType = argument.getType()
             val argumentTypeConstructor = argumentType.typeConstructor()
+
+            // 尝试使用提供的函数从类型构造器中获取指定类型的实例。
             val argumentToAdd = getIfApplicable(argumentTypeConstructor)
 
+            // 如果成功获取到实例，则添加到指定的集合中。
             if (argumentToAdd != null) {
                 to.add(argumentToAdd)
             } else if (argumentType.argumentsCount() != 0) {
+                // 如果当前参数不匹配，且包含子参数，则递归调用自身尝试提取子参数中的匹配类型。
                 argumentType.extractTypeOf(to, getIfApplicable)
             }
         }
     }
 
+    /**
+     * 从当前类型标记中提取类型变量集合
+     *
+     * 此函数通过遍历当前类型标记中的所有类型，并筛选出其中的类型变量构造器，
+     * 最终返回一个包含这些类型变量构造器的集合
+     *
+     * @return 返回一个集合，包含当前类型标记中所有类型变量类型的构造器
+     */
     fun CangJieTypeMarker.extractTypeVariables(): Set<TypeVariableTypeConstructorMarker> =
         buildSet {
             extractTypeOf(this) { it as? TypeVariableTypeConstructorMarker }

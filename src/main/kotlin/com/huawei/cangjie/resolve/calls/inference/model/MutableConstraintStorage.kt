@@ -131,70 +131,82 @@ class MutableVariableWithConstraints private constructor(
             ConstraintKind.UPPER -> new.kind.isUpper()
         }
     }
-    fun addConstraint(constraint: Constraint): Pair<Constraint, Boolean> {
-        val isLowerAndFlexibleTypeWithDefNotNullLowerBound = constraint.isLowerAndFlexibleTypeWithDefNotNullLowerBound()
 
-        for (previousConstraint in constraints) {
-            if (previousConstraint.typeHashCode == constraint.typeHashCode
-                && previousConstraint.type == constraint.type
-                && previousConstraint.isNullabilityConstraint == constraint.isNullabilityConstraint
+    /**
+     * 添加一个新的约束到现有的约束集合中。
+     * 该函数旨在通过将新约束与现有约束合并来简化现有约束，或直接添加新约束。
+     * 简化在特定条件下发生，例如当新约束与现有约束类型相同且具有相同的可空性约束时。
+     *
+     * @param constraint 要添加的新约束。
+     * @return 一个包含两个元素的Pair对象：
+     *         - 第一个元素是最终添加或更新的约束。
+     *         - 第二个元素是一个布尔值，表示是否添加了新的约束（true）或只是保留了现有约束（false）。
+     */
+    fun addConstraint(constraint: Constraint): Pair<Constraint, Boolean> {
+        val isLowerAndFlexibleTypeWithDefNotNullLowerBound =
+            constraint.isLowerAndFlexibleTypeWithDefNotNullLowerBound() // 检查新约束是否为具有默认非空下界的灵活类型
+
+        for (previousConstraint in constraints) { // 遍历现有的约束集合
+            if (previousConstraint.typeHashCode == constraint.typeHashCode // 检查类型哈希码是否相同
+                && previousConstraint.type == constraint.type // 检查类型是否相同
+                && previousConstraint.isNullabilityConstraint == constraint.isNullabilityConstraint // 检查可空性约束是否相同
             ) {
-                val noNewCustomAttributes = with(context) {
+                val noNewCustomAttributes = with(context) { // 检查新约束和现有约束是否有相同的自定义属性
                     val previousType = previousConstraint.type
                     val type = constraint.type
-                    (!previousType.hasCustomAttributes() && !type.hasCustomAttributes()) ||
-                            (previousType.getCustomAttributes() == type.getCustomAttributes())
+                    (!previousType.hasCustomAttributes() && !type.hasCustomAttributes()) || // 两者都没有自定义属性
+                            (previousType.getCustomAttributes() == type.getCustomAttributes()) // 两者的自定义属性相同
                 }
 
-                if (newConstraintIsUseless(previousConstraint, constraint)) {
-                    // Preserve constraints with different custom type attributes.
-                    // This allows us to union type attributes in NewCommonSuperTypeCalculator.cj
-                    if (noNewCustomAttributes) {
-                        return previousConstraint to false
+                if (newConstraintIsUseless(previousConstraint, constraint)) { // 检查新约束是否无用
+                    // 保留具有不同自定义类型属性的约束，以便在 NewCommonSuperTypeCalculator 中联合类型属性。
+                    if (noNewCustomAttributes) { // 如果没有新的自定义属性
+                        return previousConstraint to false // 返回现有约束，并标记为未添加新约束
                     }
                 }
 
-                val isMatchingForSimplification = when (previousConstraint.kind) {
-                    ConstraintKind.LOWER -> constraint.kind.isUpper()
-                    ConstraintKind.UPPER -> constraint.kind.isLower()
-                    ConstraintKind.EQUALITY -> true
+                val isMatchingForSimplification = when (previousConstraint.kind) { // 检查是否可以简化约束
+                    ConstraintKind.LOWER -> constraint.kind.isUpper() // 现有约束为下界，新约束为上界
+                    ConstraintKind.UPPER -> constraint.kind.isLower() // 现有约束为上界，新约束为下界
+                    ConstraintKind.EQUALITY -> true // 现有约束为等式约束
                 }
-                if (isMatchingForSimplification && noNewCustomAttributes) {
-                    val actualConstraint = if (constraint.kind != ConstraintKind.EQUALITY) {
+                if (isMatchingForSimplification && noNewCustomAttributes) { // 如果可以简化且没有新的自定义属性
+                    val actualConstraint = if (constraint.kind != ConstraintKind.EQUALITY) { // 如果新约束不是等式约束
                         Constraint(
-                            ConstraintKind.EQUALITY,
+                            ConstraintKind.EQUALITY, // 创建一个新的等式约束
                             constraint.type,
-                            constraint.position.takeIf { it.from !is DeclaredUpperBoundConstraintPosition<*> }
-                                ?: previousConstraint.position,
+                            constraint.position.takeIf { it.from !is DeclaredUpperBoundConstraintPosition<*> } // 使用新约束的位置，除非它是声明的上界位置
+                                ?: previousConstraint.position, // 否则使用现有约束的位置
                             constraint.typeHashCode,
                             derivedFrom = constraint.derivedFrom,
                             isNullabilityConstraint = false
                         )
-                    } else constraint
-                    mutableConstraints.add(actualConstraint)
-                    simplifiedConstraints = null
-                    return actualConstraint to true
+                    } else constraint // 如果新约束已经是等式约束，直接使用新约束
+                    mutableConstraints.add(actualConstraint) // 将新的等式约束添加到可变约束集合中
+                    simplifiedConstraints = null // 重置简化约束集合
+                    return actualConstraint to true // 返回新的等式约束，并标记为已添加新约束
                 }
             }
 
-            if (isLowerAndFlexibleTypeWithDefNotNullLowerBound &&
-                previousConstraint.isStrongerThanLowerAndFlexibleTypeWithDefNotNullLowerBound(constraint)
+            if (isLowerAndFlexibleTypeWithDefNotNullLowerBound && // 如果新约束是具有默认非空下界的灵活类型
+                previousConstraint.isStrongerThanLowerAndFlexibleTypeWithDefNotNullLowerBound(constraint) // 且现有约束更强
             ) {
-                return previousConstraint to false
+                return previousConstraint to false // 返回现有约束，并标记为未添加新约束
             }
         }
 
-        mutableConstraints.add(constraint)
-        if (simplifiedConstraints != null && simplifiedConstraints !== mutableConstraints) {
-            simplifiedConstraints!!.add(constraint)
+        mutableConstraints.add(constraint) // 将新约束添加到可变约束集合中
+        if (simplifiedConstraints != null && simplifiedConstraints !== mutableConstraints) { // 如果简化约束集合存在且不等于可变约束集合
+            simplifiedConstraints!!.add(constraint) // 将新约束添加到简化约束集合中
         }
 
-        if (simplifiedConstraints != null && isLowerAndFlexibleTypeWithDefNotNullLowerBound) {
-            simplifiedConstraints = null
+        if (simplifiedConstraints != null && isLowerAndFlexibleTypeWithDefNotNullLowerBound) { // 如果简化约束集合存在且新约束是具有默认非空下界的灵活类型
+            simplifiedConstraints = null // 重置简化约束集合
         }
 
-        return constraint to true
+        return constraint to true // 返回新约束，并标记为已添加新约束
     }
+
 
     private fun Constraint.isStrongerThanLowerAndFlexibleTypeWithDefNotNullLowerBound(other: Constraint): Boolean {
         if (this === other) return false

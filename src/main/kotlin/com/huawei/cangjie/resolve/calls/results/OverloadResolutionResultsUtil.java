@@ -3,6 +3,7 @@ package com.huawei.cangjie.resolve.calls.results;
 
 import com.google.common.collect.Lists;
 import com.huawei.cangjie.descriptors.CallableDescriptor;
+import com.huawei.cangjie.descriptors.ClassConstructorDescriptor;
 import com.huawei.cangjie.resolve.calls.context.ContextDependency;
 import com.huawei.cangjie.resolve.calls.context.ResolutionContext;
 import com.huawei.cangjie.resolve.calls.model.MutableResolvedCall;
@@ -52,7 +53,7 @@ public class OverloadResolutionResultsUtil {
                 newResolvedCall = null;
             }
             if (newResolvedCall != null) {
-                if (!ResolvedCallUtilKt.hasInferredReturnType(newResolvedCall)) {
+                if (!ResolvedCallUtilKt.hasInferredReturnType(newResolvedCall) /*&& !(resultingCall.getResultingDescriptor() instanceof ClassConstructorDescriptor)*/) {
                     return null;
                 }
             } else if (!((MutableResolvedCall<D>) resultingCall).hasInferredReturnType()) {

@@ -126,62 +126,62 @@ class CallExpressionResolver(
         }
 
 
-        val temporaryForEnum = TemporaryTraceAndCache.create(
-            context, "trace to resolve as enum call", callExpression
-        )
-        val (resolveByEnumResult, resolvedByEnumCall) = getResolvedCallForEnum(
-            call,
-            temporaryForEnum,
-            context.replaceTraceAndCache(temporaryForEnum),
-            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
-            initialDataFlowInfoForArguments
-        )
-
-
-        if (resolveByEnumResult) {
-            temporaryForEnum.commit()
-            val enumDescriptor = resolvedByEnumCall?.resultingDescriptor ?: return noTypeInfo(context)
-            val isEnumClass = when (enumDescriptor) {
-                is EnumClassCallableDescriptor -> !enumDescriptor.isEnumEntry
-                else -> false
-            }
-
-            val type = enumDescriptor.returnType
-            val resultFlowInfo = resolvedByEnumCall.dataFlowInfoForArguments.resultInfo
-
-            if (callExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
-                    enumDescriptor.type
-                )
-            ) {
-                context.trace.report(
-                    EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
-                        callExpression,
-                        enumDescriptor.type as? ClassifierDescriptor
-                    )
-                )
-
-            }
-
-            if (isEnumClass) {
-                val enumClass:ClassDescriptor? = when(enumDescriptor){
-                    is EnumClassCallableDescriptor -> enumDescriptor.type as ClassDescriptor
-
-                    else -> null
-                }
-                context.trace.record(
-                    BindingContext.QUALIFIER, callExpression,
-                    enumClass?.let {
-                        EnumClassQualifier(
-                            callExpression,
-                            it,
-                            (resolvedByEnumCall as? NewAbstractResolvedCall)?.cangjieCall
-                        )
-                    }
-
-                )
-            }
-            return createTypeInfo(type, resultFlowInfo)
-        }
+//        val temporaryForEnum = TemporaryTraceAndCache.create(
+//            context, "trace to resolve as enum call", callExpression
+//        )
+//        val (resolveByEnumResult, resolvedByEnumCall) = getResolvedCallForEnum(
+//            call,
+//            temporaryForEnum,
+//            context.replaceTraceAndCache(temporaryForEnum),
+//            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+//            initialDataFlowInfoForArguments
+//        )
+//
+//
+//        if (resolveByEnumResult) {
+//            temporaryForEnum.commit()
+//            val enumDescriptor = resolvedByEnumCall?.resultingDescriptor ?: return noTypeInfo(context)
+//            val isEnumClass = when (enumDescriptor) {
+//                is EnumClassCallableDescriptor -> !enumDescriptor.isEnumEntry
+//                else -> false
+//            }
+//
+//            val type = enumDescriptor.returnType
+//            val resultFlowInfo = resolvedByEnumCall.dataFlowInfoForArguments.resultInfo
+//
+//            if (callExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
+//                    enumDescriptor.type
+//                )
+//            ) {
+//                context.trace.report(
+//                    EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
+//                        callExpression,
+//                        enumDescriptor.type as? ClassifierDescriptor
+//                    )
+//                )
+//
+//            }
+//
+//            if (isEnumClass) {
+//                val enumClass:ClassDescriptor? = when(enumDescriptor){
+//                    is EnumClassCallableDescriptor -> enumDescriptor.type as ClassDescriptor
+//
+//                    else -> null
+//                }
+//                context.trace.record(
+//                    BindingContext.QUALIFIER, callExpression,
+//                    enumClass?.let {
+//                        EnumClassQualifier(
+//                            callExpression,
+//                            it,
+//                            (resolvedByEnumCall as? NewAbstractResolvedCall)?.cangjieCall
+//                        )
+//                    }
+//
+//                )
+//            }
+//            return createTypeInfo(type, resultFlowInfo)
+//        }
 
         val calleeExpression = callExpression.calleeExpression
         if (calleeExpression is CjSimpleNameExpression && callExpression.typeArgumentList == null) {
@@ -359,7 +359,7 @@ class CallExpressionResolver(
         if (resolveResult) {
 //            temporaryForEnum.commit()
             return   resolvedCall?.resultingDescriptor
-         
+
         }
 
 
@@ -406,32 +406,32 @@ class CallExpressionResolver(
             }
         }
 
-        val temporaryForEnum = TemporaryTraceAndCache.create(
-            context, "trace to resolve as enum", nameExpression
-        )
-        val newEnumContext = context.replaceTraceAndCache(temporaryForEnum)
-
-        val (resolveEnumResult, resolvedEnumCall) = getResolvedCallForEnum(
-            call,temporaryForEnum, newEnumContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
-        )
-        if (resolveEnumResult) {
-            temporaryForEnum.commit()
-            val enumDescriptor = resolvedEnumCall?.resultingDescriptor
-            if (nameExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
-                    enumDescriptor.type
-                )
-            ) {
-                context.trace.report(
-                    EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
-                        nameExpression,
-                        enumDescriptor.type as? ClassifierDescriptor
-                    )
-                )
-
-            }
-            return createTypeInfo(enumDescriptor?.returnType, context)
-
-        }
+//        val temporaryForEnum = TemporaryTraceAndCache.create(
+//            context, "trace to resolve as enum", nameExpression
+//        )
+//        val newEnumContext = context.replaceTraceAndCache(temporaryForEnum)
+//
+//        val (resolveEnumResult, resolvedEnumCall) = getResolvedCallForEnum(
+//            call,temporaryForEnum, newEnumContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
+//        )
+//        if (resolveEnumResult) {
+//            temporaryForEnum.commit()
+//            val enumDescriptor = resolvedEnumCall?.resultingDescriptor
+//            if (nameExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
+//                    enumDescriptor.type
+//                )
+//            ) {
+//                context.trace.report(
+//                    EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
+//                        nameExpression,
+//                        enumDescriptor.type as? ClassifierDescriptor
+//                    )
+//                )
+//
+//            }
+//            return createTypeInfo(enumDescriptor?.returnType, context)
+//
+//        }
 
         val temporaryForQualifier =
             TemporaryTraceAndCache.create(context, "trace to resolve as qualifier", nameExpression)

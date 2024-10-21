@@ -528,14 +528,13 @@ class ResultTypeResolver(
     private fun findResultIfThereIsEqualsConstraint(
         c: Context,
         variableWithConstraints: VariableWithConstraints
-    ): CangJieTypeMarker? =
-        with(c) {
-            val properEqualityConstraints = variableWithConstraints.constraints.filter {
-                it.kind == ConstraintKind.EQUALITY && c.isProperTypeForFixation(it.type)
-            }
-
-            return c.representativeFromEqualityConstraints(properEqualityConstraints)
+    ): CangJieTypeMarker? {
+        val properEqualityConstraints = variableWithConstraints.constraints.filter {
+            it.kind == ConstraintKind.EQUALITY && c.isProperTypeForFixation(it.type)
         }
+
+        return c.representativeFromEqualityConstraints(properEqualityConstraints)
+    }
 
     // Discriminate integer literal types as they are less specific than separate integer types (Int, Short...)
     private fun Context.representativeFromEqualityConstraints(constraints: List<Constraint>): CangJieTypeMarker? {

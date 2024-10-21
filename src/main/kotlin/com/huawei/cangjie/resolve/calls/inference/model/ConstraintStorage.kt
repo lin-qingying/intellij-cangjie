@@ -72,9 +72,12 @@ interface ConstraintStorage {
         override val hasContradiction: Boolean get() = false
         override val fixedTypeVariables: Map<TypeConstructorMarker, CangJieTypeMarker> get() = emptyMap()
         override val postponedTypeVariables: List<TypeVariableMarker> get() = emptyList()
-        override val builtFunctionalTypesForPostponedArgumentsByTopLevelTypeVariables: Map<Pair<TypeConstructorMarker, List<Pair<TypeConstructorMarker, Int>>>, CangJieTypeMarker> = emptyMap()
-        override val builtFunctionalTypesForPostponedArgumentsByExpectedTypeVariables: Map<TypeConstructorMarker, CangJieTypeMarker> = emptyMap()
-        override val constraintsFromAllForkPoints: List<Pair<IncorporationConstraintPosition, ForkPointData>> = emptyList()
+        override val builtFunctionalTypesForPostponedArgumentsByTopLevelTypeVariables: Map<Pair<TypeConstructorMarker, List<Pair<TypeConstructorMarker, Int>>>, CangJieTypeMarker> =
+            emptyMap()
+        override val builtFunctionalTypesForPostponedArgumentsByExpectedTypeVariables: Map<TypeConstructorMarker, CangJieTypeMarker> =
+            emptyMap()
+        override val constraintsFromAllForkPoints: List<Pair<IncorporationConstraintPosition, ForkPointData>> =
+            emptyList()
 
         override val outerSystemVariablesPrefixSize: Int get() = 0
 
@@ -82,21 +85,62 @@ interface ConstraintStorage {
     }
 }
 
+/**
+ * 定义约束类型的枚举类，包括三种约束类型：下界（LOWER）、上界（UPPER）和相等（EQUALITY）
+ */
 enum class ConstraintKind {
+    /**
+     * 下界约束类型
+     */
     LOWER,
+
+    /**
+     * 上界约束类型
+     */
     UPPER,
+
+    /**
+     * 相等约束类型
+     */
     EQUALITY;
 
+    /**
+     * 检查当前约束类型是否为下界约束
+     *
+     * @return 布尔值，如果当前约束类型是下界，则返回true，否则返回false
+     */
     fun isLower(): Boolean = this == LOWER
+
+    /**
+     * 检查当前约束类型是否为上界约束
+     *
+     * @return 布尔值，如果当前约束类型是上界，则返回true，否则返回false
+     */
     fun isUpper(): Boolean = this == UPPER
+
+    /**
+     * 检查当前约束类型是否为相等约束
+     *
+     * @return 布尔值，如果当前约束类型是相等约束，则返回true，否则返回false
+     */
     fun isEqual(): Boolean = this == EQUALITY
 
+    /**
+     * 获取当前约束类型的相反类型
+     *
+     * - 下界约束的相反类型是上界约束
+     * - 上界约束的相反类型是下界约束
+     * - 相等约束的相反类型仍然是相等约束
+     *
+     * @return 当前约束类型的相反类型
+     */
     fun opposite() = when (this) {
         LOWER -> UPPER
         UPPER -> LOWER
         EQUALITY -> EQUALITY
     }
 }
+
 
 class Constraint(
     val kind: ConstraintKind,
@@ -177,4 +221,12 @@ fun checkConstraint(
 }
 
 fun Constraint.replaceType(newType: CangJieTypeMarker) =
-    Constraint(kind, newType, position, typeHashCode, derivedFrom, isNullabilityConstraint, inputTypePositionBeforeIncorporation)
+    Constraint(
+        kind,
+        newType,
+        position,
+        typeHashCode,
+        derivedFrom,
+        isNullabilityConstraint,
+        inputTypePositionBeforeIncorporation
+    )

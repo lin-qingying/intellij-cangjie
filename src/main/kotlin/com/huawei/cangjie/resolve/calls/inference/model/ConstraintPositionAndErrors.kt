@@ -54,7 +54,13 @@ class NoSuccessfulFork(val position: IncorporationConstraintPosition) :
 object SimpleConstraintSystemConstraintPosition : ConstraintPosition()
 
 sealed class ConstraintSystemError(val applicability: CandidateApplicability)
+/**
+ * 密封类ConstraintPosition表示约束位置的类型
+ * 密封类用于限制类的子类，使得子类只能在本文件内定义，从而更好地控制类的继承结构
+ * 这里使用密封类是为了定义一组受限的约束位置类型，以便在类型检查时能够更精确地知道对象的类型
+ */
 sealed class ConstraintPosition
+
 data class IncorporationConstraintPosition(
     val initialConstraint: InitialConstraint,
     var isFromDeclaredUpperBound: Boolean = false

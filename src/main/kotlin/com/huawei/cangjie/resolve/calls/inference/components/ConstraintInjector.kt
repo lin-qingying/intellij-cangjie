@@ -158,6 +158,15 @@ class ConstraintInjector(
     }
 
 
+    /**
+     * 处理给定的类型约束。
+     *
+     * 该函数遍历类型约束集合，根据条件决定是否跳过每个约束。对于未被跳过的约束，将其添加到相应的类型变量约束集中，并在必要时将其合并到类型检查器状态中。
+     *
+     * @param c 上下文对象，用于提供类型检查所需的信息和操作。
+     * @param typeCheckerState 类型检查器的状态，用于存储和管理类型变量及其约束。
+     * @param constraintsToProcess 需要处理的类型约束集合，每个约束包含一个类型变量和一个约束。
+     */
     private fun processGivenConstraints(
         c: Context,
         typeCheckerState: TypeCheckerStateForConstraintInjector,
@@ -171,7 +180,7 @@ class ConstraintInjector(
                     typeVariable
                 )
 
-            // it is important, that we add constraint here(not inside TypeCheckerContext), because inside incorporation we read constraints
+            // 在此处添加约束，因为合并过程中会读取这些约束
             val (addedOrNonRedundantExistedConstraint, wasAdded) = constraints.addConstraint(constraint)
             val positionFrom = constraint.position.from
             val constraintToIncorporate = when {
@@ -188,24 +197,38 @@ class ConstraintInjector(
         }
     }
 
+
+    /**
+     * 处理类型约束，忽略来自分支的约束数据。
+     *
+     * 该函数旨在处理类型约束，同时忽略那些从分支生成的约束，以避免不正确的优化。
+     *
+     * @param typeCheckerState 类型检查器状态对象，用于约束注入。
+     * @param c 上下文对象，用于约束系统操作。
+     * @param skipProperEqualityConstraints 是否跳过正确的相等性约束。
+     * @return 处理后的约束列表，如果没有任何约束需要处理则返回null。
+     */
     private fun processConstraintsIgnoringForksData(
         typeCheckerState: TypeCheckerStateForConstraintInjector,
         c: Context,
         skipProperEqualityConstraints: Boolean
     ): MutableList<Pair<TypeVariableMarker, Constraint>>? {
+        // 检查语言版本是否支持正确的类型推断约束处理
         val properConstraintsProcessingEnabled =
             languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing)
 
         while (typeCheckerState.hasConstraintsToProcess()) {
+            // 处理当前的所有约束
             processGivenConstraints(c, typeCheckerState, typeCheckerState.extractAllConstraints()!!)
 
             val contextOps = c as? ConstraintSystemOperation
 
+            // 判断是否使用不正确的优化
             val useIncorrectOptimization = skipProperEqualityConstraints && !properConstraintsProcessingEnabled
 
             if (!useIncorrectOptimization) continue
 
-            // Optimization below is wrong and it's going to be removed after finished the corresponding deprecation cycle
+            // 检查每个类型变量是否有正确的相等性约束
             val hasProperEqualityConstraintForEachVariable =
                 contextOps != null && c.notFixedTypeVariables.all { typeVariable ->
                     typeVariable.value.constraints.any { constraint ->
@@ -213,10 +236,13 @@ class ConstraintInjector(
                     }
                 }
 
+            // 如果每个类型变量都有正确的相等性约束，则返回所有约束
             if (hasProperEqualityConstraintForEachVariable) return typeCheckerState.extractAllConstraints()
         }
+        // 如果没有需要处理的约束，返回null
         return null
     }
+
 
     private fun addSubTypeConstraintAndIncorporateIt(
         c: Context,
@@ -323,6 +349,8 @@ class ConstraintInjector(
             if (possibleNewConstraints == null) {
                 possibleNewConstraints = SmartList()
             }
+//            TODO 排除掉来自扩展的约束，因为那并不一定来字扩展
+            if(constraint.position.from is ReceiverConstraintPosition<*>) return
             possibleNewConstraints!!.add(variable to constraint)
         }
 
@@ -427,7 +455,7 @@ class ConstraintInjector(
                     isFromNullabilityConstraint
                 )
 
-           if (!isSubtypeOf(upperType)) {
+            if (!isSubtypeOf(upperType)) {
                 // todo improve error reporting -- add information about base types
                 if (shouldTryUseDifferentFlexibilityForUpperType && upperType.isSimpleType()) {
                     /*
@@ -599,6 +627,7 @@ class ConstraintInjector(
         type.typeDepth() <= maxTypeDepthFromInitialConstraints + ALLOWED_DEPTH_DELTA_FOR_INCORPORATION
 
 }
+
 private typealias Stack<E> = MutableList<E>
 
 data class ConstraintContext(

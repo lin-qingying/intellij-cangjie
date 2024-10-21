@@ -57,6 +57,18 @@ class CangJieConstraintSystemCompleter(
         )
     }
 
+    /**
+     * 执行约束系统完成过程。
+     *
+     * 该函数驱动整个约束系统完成过程，包括分析延迟参数、固定类型变量以及在必要时尝试使用构建器推断完成调用。
+     *
+     * @param completionMode 约束系统完成模式，决定完成过程应进行到什么程度。
+     * @param topLevelAtoms 顶级解析原子，表示主要分析元素。
+     * @param topLevelType 顶级类型，即整个分析的目标类型。
+     * @param diagnosticsHolder 诊断持有者，用于收集分析诊断。
+     * @param collectVariablesFromContext 标志，指示是否从上下文中收集类型变量。
+     * @param analyze 用于分析延迟解析原子的回调函数。
+     */
     private fun ConstraintSystemCompletionContext.runCompletion(
         completionMode: ConstraintSystemCompletionMode,
         topLevelAtoms: List<ResolvedAtom>,
@@ -68,19 +80,20 @@ class CangJieConstraintSystemCompleter(
         val topLevelTypeVariables = topLevelType.extractTypeVariables()
 
         completion@ while (true) {
-            // TODO: This is very slow
+            // 获取未分析的延迟参数
             val postponedArguments = getOrderedNotAnalyzedPostponedArguments(topLevelAtoms)
 
+            // 如果完成模式为 UNTIL_FIRST_LAMBDA 且存在需要分析的 lambda，则返回
             if (completionMode == ConstraintSystemCompletionMode.UNTIL_FIRST_LAMBDA && hasLambdaToAnalyze(
-//                    languageVersionSettings,
                     postponedArguments
                 )
             ) return
 
-            // Stage 1: analyze postponed arguments with fixed parameter types
-            if (analyzeArgumentWithFixedParameterTypes(/*languageVersionSettings,*/ postponedArguments, analyze))
+            // 阶段 1: 分析具有固定参数类型的延迟参数
+            if (analyzeArgumentWithFixedParameterTypes(postponedArguments, analyze))
                 continue
 
+            // 检查是否有准备好固定的变量
             val isThereAnyReadyForFixationVariable = variableFixationFinder.findFirstVariableForFixation(
                 this,
                 getOrderedAllTypeVariables(collectVariablesFromContext, topLevelAtoms),
@@ -89,16 +102,19 @@ class CangJieConstraintSystemCompleter(
                 topLevelType
             ) != null
 
-            // If there aren't any postponed arguments and ready for fixation variables, then completion isn't needed: nothing to do
-                if (postponedArguments.isEmpty() && !isThereAnyReadyForFixationVariable)
+            // 如果没有未分析的延迟参数且没有准备好固定的变量，则完成过程不需要继续
+            if (postponedArguments.isEmpty() && !isThereAnyReadyForFixationVariable)
                 break
 
+            // 过滤出具有可修订预期类型的延迟参数
             val postponedArgumentsWithRevisableType = postponedArguments
                 .filterIsInstance<PostponedAtomWithRevisableExpectedType>()
+
+            // 创建依赖关系提供者
             val dependencyProvider =
                 TypeVariableDependencyInformationProvider(notFixedTypeVariables, postponedArguments, topLevelType, this)
 
-            // Stage 2: collect parameter types for postponed arguments
+            // 阶段 2: 收集延迟参数的参数类型并构建新的预期类型
             val wasBuiltNewExpectedTypeForSomeArgument =
                 postponedArgumentsInputTypesResolver.collectParameterTypesAndBuildNewExpectedTypes(
                     this,
@@ -112,7 +128,7 @@ class CangJieConstraintSystemCompleter(
                 continue
 
             if (completionMode == ConstraintSystemCompletionMode.FULL) {
-                // Stage 3: fix variables for parameter types of all postponed arguments
+                // 阶段 3: 固定所有延迟参数的参数类型变量
                 for (argument in postponedArguments) {
                     val variableWasFixed =
                         postponedArgumentsInputTypesResolver.fixNextReadyVariableForParameterTypeIfNeeded(
@@ -129,7 +145,7 @@ class CangJieConstraintSystemCompleter(
                         continue@completion
                 }
 
-                // Stage 4: create atoms with revised expected types if needed
+                // 阶段 4: 如有必要，创建具有新功能预期类型的原子
                 for (argument in postponedArgumentsWithRevisableType) {
                     val argumentWasTransformed = transformToAtomWithNewFunctionalExpectedType(
                         this, argument, diagnosticsHolder
@@ -140,15 +156,16 @@ class CangJieConstraintSystemCompleter(
                 }
             }
 
-            // Stage 5: analyze the next ready postponed argument
-            if (analyzeNextReadyPostponedArgument(/*languageVersionSettings,*/ postponedArguments,
+            // 阶段 5: 分析下一个准备好的延迟参数
+            if (analyzeNextReadyPostponedArgument(
+                    postponedArguments,
                     completionMode,
                     analyze
                 )
             )
                 continue
 
-            // Stage 6: fix next ready type variable with proper constraints
+            // 阶段 6: 使用适当的约束固定下一个准备好的类型变量
             if (
                 fixNextReadyVariable(
                     completionMode,
@@ -160,7 +177,7 @@ class CangJieConstraintSystemCompleter(
                 )
             ) continue
 
-            // Stage 7: try to complete call with the builder inference if there are uninferred type variables
+            // 阶段 7: 尝试使用构建器推断完成调用，如果存在未推断的类型变量
             val areThereAppearedProperConstraintsForSomeVariable = tryToCompleteWithBuilderInference(
                 completionMode,
                 topLevelAtoms,
@@ -174,7 +191,7 @@ class CangJieConstraintSystemCompleter(
             if (areThereAppearedProperConstraintsForSomeVariable)
                 continue
 
-            // Stage 8: report "not enough information" for uninferred type variables
+            // 阶段 8: 对未推断的类型变量报告“信息不足”
             reportNotEnoughTypeInformation(
                 completionMode,
                 topLevelAtoms,
@@ -184,7 +201,7 @@ class CangJieConstraintSystemCompleter(
                 diagnosticsHolder
             )
 
-            // Stage 9: force analysis of remaining not analyzed postponed arguments and rerun stages if there are
+            // 阶段 9: 强制分析剩余未分析的延迟参数并在必要时重新运行阶段
             if (completionMode == ConstraintSystemCompletionMode.FULL) {
                 if (analyzeRemainingNotAnalyzedPostponedArgument(postponedArguments, analyze))
                     continue
@@ -193,6 +210,7 @@ class CangJieConstraintSystemCompleter(
             break
         }
     }
+
 
     private fun ConstraintSystemCompletionContext.tryToCompleteWithBuilderInference(
         completionMode: ConstraintSystemCompletionMode,
@@ -436,20 +454,45 @@ class CangJieConstraintSystemCompleter(
 
     }
 
+    /**
+     * 获取所有类型的变量列表
+     *
+     * 该函数根据给定的参数和上下文，收集并返回所有类型的变量列表
+     * 主要用于约束系统中，为了完成某些逻辑而需要获取所有类型的变量
+     *
+     * @param collectVariablesFromContext 是否从上下文中收集变量
+     * @param topLevelAtoms 顶层原子列表，用于收集类型变量
+     * @return 返回一个包含所有类型变量的列表
+     */
     private fun ConstraintSystemCompletionContext.getOrderedAllTypeVariables(
         collectVariablesFromContext: Boolean,
         topLevelAtoms: List<ResolvedAtom>
     ): List<TypeConstructorMarker> {
+        // 如果需要从上下文中收集变量，则直接返回未固定类型的变量列表
         if (collectVariablesFromContext)
             return notFixedTypeVariables.keys.toList()
 
+        /**
+         * 从修正的期望类型中获取变量
+         *
+         * 此辅助函数用于从给定的修正期望类型中提取类型变量
+         *
+         * @param revisedExpectedType 修正后的期望类型
+         * @return 返回从期望类型中提取的类型变量列表，如果没有则返回空列表
+         */
         fun getVariablesFromRevisedExpectedType(revisedExpectedType: CangJieType?) =
             revisedExpectedType?.arguments?.map { it.type.constructor }?.filterIsInstance<TypeVariableTypeConstructor>()
 
-        // Note that it's important to use Set here, because several atoms can share the same type variable
+        // 使用Set来存储结果，因为不同的原子可能共享相同的类型变量
         val result = linkedSetOf<TypeConstructor>()
 
+        /**
+         * 收集所有类型变量
+         *
+         * 此扩展函数用于遍历解析原子并收集其中的所有类型变量
+         */
         fun ResolvedAtom.collectAllTypeVariables() {
+            // 根据不同的解析原子类型，收集类型变量
             val typeVariables = when (this) {
                 is ResolvedLambdaAtom -> {
                     listOfNotNull(typeVariableForLambdaReturnType?.freshTypeConstructor)
@@ -472,9 +515,8 @@ class CangJieConstraintSystemCompleter(
                 else -> emptyList()
             }
 
-
+            // 将收集到的类型变量添加到结果集中，前提是它们是未固定的类型变量
             typeVariables.mapNotNullTo(result) {
-
                 it.takeIf { notFixedTypeVariables.containsKey(it) }
             }
 
@@ -485,20 +527,24 @@ class CangJieConstraintSystemCompleter(
                 result += typeVariable
             }
 
+            // 如果当前解析原子已被分析，则递归地收集其子解析原子中的类型变量
             if (analyzed) {
                 subResolvedAtoms?.forEach { it.collectAllTypeVariables() }
             }
         }
 
+        // 遍历顶层解析原子，收集它们的所有类型变量
         for (topLevelAtom in topLevelAtoms) {
             topLevelAtom.collectAllTypeVariables()
         }
 
+        // 确保收集到的类型变量数量与未固定的类型变量数量一致
         require(result.size == notFixedTypeVariables.size) {
             val notFoundTypeVariables = notFixedTypeVariables.keys.toMutableSet().apply { removeAll(result) }
             "Not all type variables found: $notFoundTypeVariables"
         }
 
+        // 将结果转换为列表并返回
         return result.toList()
     }
 

@@ -49,9 +49,11 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
         resultingDescriptor: CallableDescriptor,
         valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>,
     ): Map<ValueArgument, ArgumentMatchImpl>
+
     protected fun updateArgumentsMapping(newMapping: Map<ValueArgument, ArgumentMatchImpl>?) {
         argumentToParameterMap = newMapping
     }
+
     override fun getCall(): Call = psiCangJieCall.psiCall
     override fun getArgumentMapping(valueArgument: ValueArgument): ArgumentMapping {
         if (argumentToParameterMap == null) {
@@ -59,6 +61,7 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
         }
         return argumentToParameterMap!![valueArgument] ?: ArgumentUnmapped
     }
+
     override fun getDataFlowInfoForArguments() = object : DataFlowInfoForArguments {
         override fun getResultInfo(): DataFlowInfo = nonTrivialUpdatedResultInfo ?: psiCangJieCall.resultDataFlowInfo
 
@@ -70,20 +73,37 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
             return psiCangJieCall.dataFlowInfoForArguments.getInfo(valueArgument)
         }
     }
+
     fun updateValueArguments(newValueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>?) {
         valueArguments = newValueArguments
     }
+
+    /**
+     * 使用推断的类型变量替换并近似处理可调用描述符
+     *
+     * 此函数的目的是在给定的类型替换器基础上，对可调用描述符中包含的类型变量进行替换，
+     * 并根据需求进行类型近似处理。这在类型推断和处理泛型调用时极为重要
+     *
+     * @param substitutor 新类型替换器，用于替换类型变量。如果为null，则不进行替换
+     * @param shouldApproximate 是否应该进行类型近似处理。默认为true，表示进行近似处理
+     * @return 返回经过类型变量替换和近似处理后的可调用描述符
+     */
     private fun CallableDescriptor.substituteInferredVariablesAndApproximate(
         substitutor: NewTypeSubstitutor?,
         shouldApproximate: Boolean = true
     ): CallableDescriptor {
+        // 如果传入的替换器为null，则使用空替换器，不对类型变量进行替换
         val inferredTypeVariablesSubstitutor = substitutor ?: FreshVariableNewTypeSubstitutor.Empty
 
+        // 使用新鲜变量替换器进行替换，如果新鲜变量替换器为null，则不进行替换
         val freshVariablesSubstituted = freshSubstitutor?.let(::substitute) ?: this
+        // 使用已知类型参数的替换器进行替换，如果不存在已知类型参数的替换器，则不进行替换
         val knownTypeParameterSubstituted =
             resolvedCallAtom?.knownParametersSubstitutor?.let(freshVariablesSubstituted::substitute)
                 ?: freshVariablesSubstituted
 
+        // 最后一步，使用推断的类型变量替换器和是否近似的标志进行类型替换和近似处理
+        // 如果shouldApproximate为false，则不进行类型近似处理
         return knownTypeParameterSubstituted.substituteAndApproximateTypes(
             inferredTypeVariablesSubstitutor,
             typeApproximator = if (shouldApproximate) typeApproximator else null,
@@ -122,12 +142,14 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
                                 continue
                             }
                         } else {
-                        ExpressionValueArgument(valueArgument)
+                            ExpressionValueArgument(valueArgument)
                         }
                     }
+
                     is ResolvedCallArgument.VarargArgument ->
                         VarargValueArgument().apply {
-                            resolvedCallArgument.arguments.map { it.psiCallArgument.valueArgument }.forEach { addArgument(it) }
+                            resolvedCallArgument.arguments.map { it.psiCallArgument.valueArgument }
+                                .forEach { addArgument(it) }
                         }
                 }
             }
@@ -202,7 +224,7 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
     protected fun substitutedResultingDescriptor(substitutor: NewTypeSubstitutor?) =
         when (val candidateDescriptor = candidateDescriptor) {
 
-            is EnumClassCallableDescriptor ->{
+            is EnumClassCallableDescriptor -> {
                 val explicitTypeArguments =
                     resolvedCallAtom?.atom?.typeArguments?.filterIsInstance<SimpleTypeArgument>() ?: emptyList()
 
@@ -210,6 +232,7 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
                     getSubstitutorWithoutFlexibleTypes(substitutor, explicitTypeArguments),
                 )
             }
+
             is ClassConstructorDescriptor, is SyntheticMemberDescriptor<*> -> {
                 val explicitTypeArguments =
                     resolvedCallAtom?.atom?.typeArguments?.filterIsInstance<SimpleTypeArgument>() ?: emptyList()
@@ -233,6 +256,7 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
                     candidateDescriptor
                 }
             }
+
             is VariableDescriptor -> {
                 if (candidateDescriptor.isNotSimpleCall()) {
                     candidateDescriptor.substituteInferredVariablesAndApproximate(substitutor)
