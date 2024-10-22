@@ -502,7 +502,7 @@ open class DescriptorRendererImpl(
     }
 
     /* FORMATTING */
-    private fun renderKeyword(keyword: String): String = when (textFormat) {
+      fun renderKeyword(keyword: String): String = when (textFormat) {
         RenderingFormat.PLAIN -> keyword
         RenderingFormat.HTML -> if (boldOnlyForNamesInHtml) keyword else "<b>$keyword</b>"
     }

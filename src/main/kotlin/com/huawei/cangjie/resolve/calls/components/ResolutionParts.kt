@@ -710,7 +710,7 @@ internal object MapArguments : ResolutionPart() {
 
 class ReceiverInfo(
     val isReceiver: Boolean,
-    val shouldReportUnsafeCall: Boolean, // should not report if unsafe implicit invoke has been reported already
+    val shouldReportUnsafeCall: Boolean, // 如果已报告不安全的隐式调用，则不应报告
     val reportUnsafeCallAsUnsafeImplicitInvoke: Boolean,
     val selectorCall: CangJieCall? = null,
 ) {
@@ -861,10 +861,20 @@ private fun ResolutionCandidate.shouldRunConversionForConstants(expectedType: Un
     return false
 }
 
+/**
+ * 根据预期类型准备实际类型
+ * 此函数通过应用当前解析上下文中的变量替换和参数替换，来调整预期类型
+ *
+ * @param expectedType 预期的类型，即函数调用或表达式期望返回的类型
+ * @return 调整后的类型，即经过变量和参数替换后，预期类型在当前上下文中的实际表示
+ */
 private fun ResolutionCandidate.prepareExpectedType(expectedType: UnwrappedType): UnwrappedType {
+    // 使用当前解析调用的变量替换器，安全地替换预期类型中的泛型变量
     val resultType = resolvedCall.freshVariablesSubstitutor.safeSubstitute(expectedType)
+    // 使用当前解析调用的已知参数替换器，安全地替换resultType中的参数类型
     return resolvedCall.knownParametersSubstitutor.safeSubstitute(resultType)
 }
+
 
 internal object ErrorDescriptorResolutionPart : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {

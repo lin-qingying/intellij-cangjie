@@ -1,6 +1,5 @@
 package com.huawei.cangjie.resolve.calls.inference.components
 
-import com.huawei.cangjie.descriptors.TypeParameterDescriptor
 import com.huawei.cangjie.resolve.calls.inference.isCaptured
 import com.huawei.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import com.huawei.cangjie.resolve.calls.inference.substitute
@@ -237,11 +236,16 @@ class NewTypeSubstitutorByConstructorMap(val map: Map<TypeConstructor, Unwrapped
 
 class FreshVariableNewTypeSubstitutor(val freshVariables: List<TypeVariableFromCallableDescriptor>) :
     NewTypeSubstitutor {
-    override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
-        val indexProposal = (constructor.declarationDescriptor as? TypeParameterDescriptor)?.index ?: return null
-        val typeVariable = freshVariables.getOrNull(indexProposal) ?: return null
-        if (typeVariable.originalTypeParameter.typeConstructor != constructor) return null
 
+    val freshVariablesByMap = freshVariables.associateBy { it.originalTypeParameter.typeConstructor }
+    override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
+//        val indexProposal = (constructor.declarationDescriptor as? TypeParameterDescriptor)?.index ?: return null
+//        val typeVariable = freshVariables.getOrNull(indexProposal) ?: return null
+//        if (typeVariable.originalTypeParameter.typeConstructor != constructor) return null
+//
+//        return typeVariable.defaultType
+
+        val typeVariable = freshVariablesByMap[constructor] ?: return null
         return typeVariable.defaultType
     }
 

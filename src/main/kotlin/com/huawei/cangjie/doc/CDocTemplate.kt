@@ -57,7 +57,7 @@ open class CDocTemplate : Template<StringBuilder> {
         val error = Placeholder<StringBuilder>()
 
         override fun StringBuilder.apply() {
-            insert(error)
+            insert(error  )
         }
     }
 }

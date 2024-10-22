@@ -70,6 +70,7 @@ data class IncorporationConstraintPosition(
     override fun toString(): String = "Incorporate $initialConstraint from position $from"
 }
 
+
 abstract class ArgumentConstraintPosition<out T>(val argument: T) : ConstraintPosition(),
     OnlyInputTypeConstraintPosition {
     override fun toString(): String = "Argument $argument"
@@ -95,6 +96,7 @@ sealed interface NewConstraintMismatch {
     val upperType: CangJieTypeMarker
     val position: IncorporationConstraintPosition
 }
+
 
 class NewConstraintError(
     override val lowerType: CangJieTypeMarker,

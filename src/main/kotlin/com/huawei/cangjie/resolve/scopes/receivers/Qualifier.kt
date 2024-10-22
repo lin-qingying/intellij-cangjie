@@ -360,9 +360,13 @@ class EnumClassQualifier(
 
 class ClassQualifier(
     override val referenceExpression: CjSimpleNameExpression,
-    override val descriptor: ClassDescriptor
+    override val descriptor: ClassDescriptor,
+    _cangjieType: CangJieType? = null
 ) : ClassifierQualifier {
-    override val classValueReceiver: ClassValueReceiver? = descriptor.classValueType?.let {
+    override val classValueReceiver: ClassValueReceiver? = _cangjieType?.let {
+        ClassValueReceiver(this, it)
+
+    } ?: descriptor.classValueType?.let {
         ClassValueReceiver(this, it)
     }
 

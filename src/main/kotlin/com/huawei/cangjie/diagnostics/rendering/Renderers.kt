@@ -20,6 +20,23 @@ import com.huawei.cangjie.types.util.contains
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 
+
+/**
+ * 获取声明对应的字符串
+ */
+fun getDescriptorName(descriptor: DeclarationDescriptor): String {
+    return when (descriptor) {
+        is ClassDescriptor -> descriptor.kind.codeRepresentation ?: ""
+
+        is FunctionDescriptor -> "Function"
+        is PropertyDescriptor -> "Property"
+        is VariableDescriptor -> "Variable"
+
+
+        else -> descriptor.toString()
+    }
+}
+
 fun DescriptorRenderer.asRenderer() = SmartDescriptorRenderer(this)
 
 
@@ -47,6 +64,12 @@ object Renderers {
 
             else -> ""
         }
+    }
+
+    @JvmField
+    val TYPE_AND_NAMED = renderer<DeclarationDescriptor> {
+
+        getDescriptorName(it) + ":" + NAME.render(it.name)
     }
 
     @JvmField
@@ -95,15 +118,15 @@ object Renderers {
         }
 
     }
+
     @JvmField
     val VISIBLITYS_NAMES = renderer {
 
-        visiblitys :List<DescriptorVisibility> ->
+            visiblitys: List<DescriptorVisibility> ->
         visiblitys.joinToString(" or ") {
 
             "'${it.name}'"
         }
-
 
 
     }
@@ -136,6 +159,7 @@ object Renderers {
 
     @JvmField
     val COMPACT_WITH_MODIFIERS = DescriptorRenderer.COMPACT_WITH_MODIFIERS.asRenderer()
+
     @JvmField
     val DESCRIPTOR_KIND_NAME = renderer { kind: DescriptorKind ->
         kind.kind
@@ -201,8 +225,9 @@ object Renderers {
     val ELEMENT_TEXT = renderer<PsiElement> {
         it.text
     }
+
     @JvmField
-    val ELEMENT_IDENTIFIER_TEXT  = renderer<PsiElement> {
+    val ELEMENT_IDENTIFIER_TEXT = renderer<PsiElement> {
         it.identifier?.text ?: ""
     }
 
@@ -236,7 +261,6 @@ private val ADAPTIVE_CLASSIFIER_POLICY_KEY =
             return AdaptiveClassifierNamePolicy(ambiguousNames)
         }
     }
-
 
 
 private class AdaptiveClassifierNamePolicy(private val ambiguousNames: List<Name>) : ClassifierNamePolicy {

@@ -249,8 +249,7 @@ class TypeResolver(
 
                 if (parent.kind == LexicalScopeKind.CLASS_MEMBER_SCOPE) {
 
-                            return ThisType((parent.ownerDescriptor as ClassDescriptor).defaultType)
-
+                    return ThisType((parent.ownerDescriptor as ClassDescriptor).defaultType)
 
 
                 }
@@ -300,7 +299,6 @@ class TypeResolver(
                     result = type(unresolvedType)
                     return
                 }
-
 
 
                 val referenceExpression = type.referenceExpression ?: return
@@ -616,11 +614,12 @@ class TypeResolver(
         ).toList()
 
     /**
-     * @return yet unresolved CjTypeProjection arguments and already resolved ones relevant to an outer class
-     * @return null if error was reported
+     * @return 未解决的 CjTypeProjection 参数和与外部类相关的已解决参数
+     * @return 如果发生错误则返回 null
      *
-     * If second component is null then rest of the arguments should be appended using default types of relevant parameters
+     * 如果第二个组件为 null，则其余参数应使用相关参数的默认类型进行补充
      */
+
     private fun collectArgumentsForClassifierTypeConstructor(
         c: TypeResolutionContext,
         classifierDescriptor: ClassifierDescriptorWithTypeParameters,
@@ -680,7 +679,7 @@ class TypeResolver(
 //                // If next parameter is captured from the enclosing function, default arguments must be used
 //                // (see appendDefaultArgumentsForLocalClassifier)
 //                    ?: return Pair(result, null)
-
+////
 //            val restArguments = c.scope.findImplicitOuterClassArguments(nextParameterOwner)
 //            val restParameters = parameters.subList(result.size, parameters.size)
 //
@@ -909,7 +908,64 @@ class TypeResolver(
         return true
     }
 
-    private fun resolveTypeForClass(
+    /**
+     * 接受一个名称原子表达式
+     * @return 返回一个类型，该类型带有类型参数，并检查边界
+     */
+    fun resolveTypeForClass(
+        expression:CjSimpleNameExpression,
+        scope: LexicalScope,
+        trace: BindingTrace,
+        classDescriptor: ClassDescriptor,
+    ):CangJieType? {
+        if (expression !is CjNameReferenceExpression) return null
+        val c = TypeResolutionContext(scope, trace, true, false, false)
+        val typeConstructor = classDescriptor.typeConstructor
+        val parameters = typeConstructor.parameters
+
+
+        val typeArguments = expression .typeArguments
+
+
+//        val (collectedArgumentAsTypeProjections, argumentsForOuterClass) =
+//            collectArgumentsForClassifierTypeConstructor(c, classDescriptor, qualifierResolutionResult.qualifierParts)
+//                ?: return createErrorTypeForTypeConstructor(c, projectionFromAllQualifierParts, typeConstructor)
+//
+        val argumentsFromUserType = resolveTypeProjections(c, typeConstructor, typeArguments)
+        val arguments = buildFinalArgumentList(argumentsFromUserType, null, parameters)
+
+        val resultingType =
+            CangJieTypeFactory.simpleNotNullType(
+                typeAttributeTranslators.toAttributes(
+                    Annotations.EMPTY,
+                    classDescriptor.typeConstructor,
+                    c.scope.ownerDescriptor
+                ),
+                classDescriptor,
+                arguments
+            )
+
+        if (shouldCheckBounds(c, resultingType)) {
+            val substitutor = TypeSubstitutor.create(resultingType)
+            for (i in parameters.indices) {
+                val parameter = parameters[i]
+                val argument = arguments[i].type
+
+                val typeReference = typeArguments.getOrNull(i)?.typeReference
+
+                if (typeReference != null) {
+                    upperBoundChecker.checkBounds(typeReference, argument, parameter, substitutor, c.trace)
+                }
+            }
+        }
+
+
+        return resultingType
+
+
+    }
+
+    fun resolveTypeForClass(
         c: TypeResolutionContext, annotations: Annotations,
         classDescriptor: ClassDescriptor, element: CjElement,
         qualifierResolutionResult: QualifiedExpressionResolver.TypeQualifierResolutionResult
@@ -1090,6 +1146,7 @@ class TypeResolver(
 
         return resolvePossiblyBareType(c, typeReference, isgetExtend).actualType
     }
+
     fun resolveEnumType(
         scope: LexicalScope,
         typeReference: CjTypeReference,
@@ -1111,6 +1168,7 @@ class TypeResolver(
             true
         )
     }
+
     fun resolveType(
         scope: LexicalScope,
         typeReference: CjTypeReference,

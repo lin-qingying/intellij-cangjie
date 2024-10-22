@@ -31,9 +31,20 @@ import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.openapi.util.Key
 import com.intellij.psi.impl.source.DummyHolder
 import com.intellij.util.SmartList
+import jakarta.inject.Inject
 
 
-class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSettings) {
+class QualifiedExpressionResolver(
+    val languageVersionSettings: LanguageVersionSettings
+
+) {
+    private lateinit var typeResolver: TypeResolver
+
+    @Inject
+    fun setTypeResolver(typeResolver: TypeResolver) {
+        this.typeResolver = typeResolver
+    }
+
     companion object {
         /**
          *  Shouldn't be visible to users.
@@ -176,8 +187,9 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             shouldBeVisibleFrom = context.scope.ownerDescriptor,
             scopeForFirstPart = context.scope,
             position = EXPRESSION,
-            isValue = isValue
-        ).second
+            isValue = isValue,
+
+            ).second
 
         val nextExpressionIndexAfterQualifier =
             if (nextIndexAfterPrefix == 0) 0 else nextIndexAfterPrefix - 1
@@ -229,6 +241,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                 checkNotEnumEntry(classifier, trace, expression)
                 storeResult(
                     trace,
+
                     expression,
                     classifier,
                     ownerDescriptor,
@@ -320,6 +333,7 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
         storeResult(
             trace,
+
             lastPart.expression,
             classifier,
             ownerDescriptor,
@@ -685,7 +699,11 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
         val classifierDescriptor = scopeForFirstPart?.findClassifier(firstPart.name, firstPart.location)
 
         if (classifierDescriptor != null) {
-            storeResult(trace, firstPart.expression, classifierDescriptor, shouldBeVisibleFrom, position)
+//            typeResolver.resolveTypeForClass()
+            storeResult(
+                trace, firstPart.expression, classifierDescriptor, shouldBeVisibleFrom, position,
+                scope = scopeForFirstPart
+            )
             return Pair(classifierDescriptor, 1)
         }
 //        if (classifierDescriptor != null)
@@ -878,13 +896,15 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
 
     private fun storeResult(
         trace: BindingTrace,
+
         referenceExpression: CjSimpleNameExpression?,
         descriptor: DeclarationDescriptor?,
         shouldBeVisibleFrom: DeclarationDescriptor?,
         position: QualifierPosition,
         isQualifier: Boolean = true,
         packageView: DeclarationDescriptor? = null,
-        reportReexportError: Boolean = true
+        reportReexportError: Boolean = true,
+        scope: LexicalScope? = null,
     ): QualifierReceiver? {
         referenceExpression ?: return null
         if (descriptor == null) {
@@ -1018,14 +1038,16 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
             }
         }
 //        }
-        return if (isQualifier) storeQualifier(trace, referenceExpression, descriptor) else null
+        return if (isQualifier) storeQualifier(trace, referenceExpression, descriptor, scope) else null
     }
 
     private fun storeQualifier(
         trace: BindingTrace,
         referenceExpression: CjSimpleNameExpression,
-        descriptor: DeclarationDescriptor
-    ): QualifierReceiver? {
+        descriptor: DeclarationDescriptor,
+        scope: LexicalScope? = null,
+
+        ): QualifierReceiver? {
         val qualifier =
             when (descriptor) {
                 is PackageViewDescriptor -> PackageQualifier(referenceExpression, descriptor)
@@ -1033,7 +1055,12 @@ class QualifiedExpressionResolver(val languageVersionSettings: LanguageVersionSe
                     if (descriptor.kind == ClassKind.ENUM) {
                         EnumClassQualifier(referenceExpression, descriptor)
                     } else {
-                        ClassQualifier(referenceExpression, descriptor)
+
+
+                        ClassQualifier(referenceExpression, descriptor, scope?.let {
+
+                            typeResolver.resolveTypeForClass(referenceExpression, it, trace, descriptor)
+                        })
 
                     }
 

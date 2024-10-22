@@ -873,7 +873,7 @@ class DiagnosticReporterByTrackingStrategy(
 
                 trace.reportDiagnosticOnce(
                     NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER.on(
-                        argumentsExpression, " for subcalls of ${specialFunctionName.name} expression"
+                        argumentsExpression, " for subcalls of ${specialFunctionName.name} expression", null
                     )
                 )
             }
@@ -981,21 +981,22 @@ class DiagnosticReporterByTrackingStrategy(
                     // We locally report errors on some arguments of special calls, on which the error may not be reported directly
                     reportNotEnoughInformationForTypeParameterForSpecialCall(resolvedAtom, error)
                 } else {
-                    val typeVariableName = when (val typeVariable = error.typeVariable) {
-                        is TypeVariableFromCallableDescriptor -> typeVariable.originalTypeParameter.name.asString()
-                        is TypeVariableForLambdaReturnType -> "return type of lambda"
+
+                    val (typeVariable, typeVariableName) = when (val typeVariable = error.typeVariable) {
+                        is TypeVariableFromCallableDescriptor -> typeVariable.originalTypeParameter to typeVariable.originalTypeParameter.name.asString()
+                        is TypeVariableForLambdaReturnType -> null to "return type of lambda"
                         else -> error("Unsupported type variable: $typeVariable")
                     }
                     val unwrappedExpression = if (expression is CjBlockExpression) {
                         expression.statements.lastOrNull() ?: expression
                     } else expression
 
-                    val diagnostic = if (error.couldBeResolvedWithUnrestrictedBuilderInference) {
-                        COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE
-                    } else {
-                        NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER
-                    }
-
+//                    val diagnostic = if (error.couldBeResolvedWithUnrestrictedBuilderInference) {
+//                        COULD_BE_INFERRED_ONLY_WITH_UNRESTRICTED_BUILDER_INFERENCE
+//                    } else {
+//                        NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER
+//                    }
+                    val diagnostic = NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER
                     if (unwrappedExpression is CjCollectionLiteralExpression && diagnostic == NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER) {
 //                        数组字面量 替换为ARRAY_LITERAL_TYPE_INFERENCE_FAILED
                         trace.reportDiagnosticOnce(
@@ -1004,7 +1005,8 @@ class DiagnosticReporterByTrackingStrategy(
                             )
                         )
                     } else {
-                        trace.reportDiagnosticOnce(diagnostic.on(unwrappedExpression, typeVariableName))
+
+                        trace.reportDiagnosticOnce(diagnostic.on(unwrappedExpression, typeVariableName,typeVariable?.containingDeclaration))
 
                     }
                 }

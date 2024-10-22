@@ -161,9 +161,11 @@ public class DefaultErrorMessages {
         MAP.put(TOO_MANY_ARGUMENTS, "Too many arguments for {0}", FQ_NAMES_IN_TYPES);
 
 //        表达式
+        MAP.put(ILLEGAL_SELECTOR, "The expression cannot be a selector (occur after a dot)");
+
         MAP.put(NEW_INFERENCE_UNKNOWN_ERROR, "Unknown error in new inference with applicability ''{0}'' and target ''{1}''", TO_STRING, STRING);
         MAP.put(AMBIGUOUS_ANONYMOUS_TYPE_INFERRED, "Right-hand side has anonymous type. Please specify type explicitly", TO_STRING);
-        MAP.put(NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER, "Not enough information to infer type variable {0}", STRING);
+        MAP.put(NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER, "Not enough information to infer type variable {0} from {1}", STRING,TYPE_AND_NAMED);
         MAP.put(ARRAY_LITERAL_TYPE_INFERENCE_FAILED, "array literal type cannot be inferred");
         MAP.put(UPPER_BOUND_VIOLATION_IN_CONSTRAINT, "Upper bound violation for generic parameter `{0}` of `{1}`: {3} is not a subtype of {2}", TO_STRING, TO_STRING, RENDER_TYPE, RENDER_TYPE);
 
