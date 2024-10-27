@@ -46,49 +46,57 @@ class TypeArgumentsToParametersMapper {
          *   type arguments cannot appear after 'enum entry' when enum type 'enum' is given
          *   如果枚举类语句类型参数，则不允许枚举项使用类型参数
          */
-        if (descriptor is EnumClassCallableDescriptor) {
-            if (call.explicitReceiver != null && call.explicitReceiver!!.receiver is EnumClassQualifier) {
-                val enumClassQualifier = call.explicitReceiver!!.receiver as EnumClassQualifier
-                if (enumClassQualifier.referenceExpression.typeArguments.isNotEmpty() && call.psiCangJieCall.psiCall.typeArgumentList != null ) {
-                    (descriptor.type as? ClassDescriptor)?.let {
-                        return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+//        if (descriptor is EnumClassCallableDescriptor) {
+//            if (call.explicitReceiver != null && call.explicitReceiver!!.receiver is EnumClassQualifier) {
+//                val enumClassQualifier = call.explicitReceiver!!.receiver as EnumClassQualifier
+//                if (enumClassQualifier.referenceExpression.typeArguments.isNotEmpty() && call.psiCangJieCall.psiCall.typeArgumentList != null ) {
+//                    (descriptor.type as? ClassDescriptor)?.let {
+//                        return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+//
+//                            listOf(TypeArgumentsAfterEnumEntry(it, enumClassQualifier.descriptor)),
+//                            emptyMap()
+//                        )
+//                    }
+//
+//
+//                } else if (call.typeArguments.isEmpty() && enumClassQualifier.referenceExpression.typeArguments.isNotEmpty()) {
+////将类型参数传递
+//                    enumClassQualifier.call?.typeArguments?.let { (call.typeArguments as ArrayList).addAll(it) }
+//                } /*else if (call.typeArguments.isNotEmpty() && enumClassQualifier.referenceExpression.typeArguments.isEmpty()) {
+//                    return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+//                        listOf(TypeArgumentsCompilerError),
+//                        emptyMap()
+//                    )
+//                }*/
+//            }/* else if (call.typeArguments.isNotEmpty() && call.explicitReceiver?.receiver is ClassQualifier &&
+//                (call.explicitReceiver!!.receiver as ClassQualifier).descriptor.kind == ClassKind.ENUM
+//            ) {
+//                return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+//                    listOf(TypeArgumentsCompilerError),
+//                    emptyMap()
+//                )
+//            }*/
+//        }
 
-                            listOf(TypeArgumentsAfterEnumEntry(it, enumClassQualifier.descriptor)),
-                            emptyMap()
-                        )
-                    }
-
-
-                } else if (call.typeArguments.isEmpty() && enumClassQualifier.referenceExpression.typeArguments.isNotEmpty()) {
-//将类型参数传递
-                    enumClassQualifier.call?.typeArguments?.let { (call.typeArguments as ArrayList).addAll(it) }
-                } /*else if (call.typeArguments.isNotEmpty() && enumClassQualifier.referenceExpression.typeArguments.isEmpty()) {
-                    return TypeArgumentsMapping.TypeArgumentsMappingImpl(
-                        listOf(TypeArgumentsCompilerError),
-                        emptyMap()
-                    )
-                }*/
-            }/* else if (call.typeArguments.isNotEmpty() && call.explicitReceiver?.receiver is ClassQualifier &&
-                (call.explicitReceiver!!.receiver as ClassQualifier).descriptor.kind == ClassKind.ENUM
-            ) {
-                return TypeArgumentsMapping.TypeArgumentsMappingImpl(
-                    listOf(TypeArgumentsCompilerError),
-                    emptyMap()
-                )
-            }*/
-        }
-
-        if (call.typeArguments.isEmpty()) {
+        if (call.typeArguments.isEmpty() && call.topTypeArguments.isEmpty()) {
             return TypeArgumentsMapping.NoExplicitArguments
         }
 
-
+//上层原子声明
+        val topDescriptor = descriptor.containingDeclaration as? ClassDescriptor
         if (call.typeArguments.size != descriptor.typeParameters.size) {
             return TypeArgumentsMapping.TypeArgumentsMappingImpl(
                 listOf(WrongCountOfTypeArguments(descriptor, call.typeArguments.size)), emptyMap()
             )
-        } else {
-            val typeParameterToArgumentMap = descriptor.typeParameters.zip(call.typeArguments).associate { it }
+        }
+//        if( topDescriptor != null &&  call.topTypeArguments.size != topDescriptor .declaredTypeParameters?.size){
+//            return TypeArgumentsMapping.TypeArgumentsMappingImpl(
+//                listOf(WrongCountOfTypeArguments(topDescriptor, call.typeArguments.size)), emptyMap()
+//            )
+//        }
+        else {
+            val topTypeParameterToArgumentMap = topDescriptor?.declaredTypeParameters?.zip(call.topTypeArguments)?.associate { it } ?: emptyMap()
+            val typeParameterToArgumentMap =  descriptor.typeParameters .zip(call.typeArguments).associate { it } + topTypeParameterToArgumentMap
             return TypeArgumentsMapping.TypeArgumentsMappingImpl(listOf(), typeParameterToArgumentMap)
         }
     }

@@ -716,7 +716,31 @@ class PSICallResolver(
         )
         val dispatchReceiverForInvoke = resolveDispatchReceiverForInvoke(context, cangjieCallKind, oldCall)
 
-        val resolvedTypeArguments = resolveTypeArguments(context, oldCall.typeArguments)
+        val resolvedTypeArguments = resolveTypeArguments(context, oldCall.typeArguments).toMutableList()
+        val topTypeArguments = if (resolvedExplicitReceiver?.receiver is ClassQualifier) {
+            resolveTypeArguments(
+                context,
+                (resolvedExplicitReceiver.receiver as? ClassQualifier)?.referenceExpression?.getTypeArguments()
+                    ?: emptyList()
+            )
+        } else {
+            emptyList()
+        }
+//            .apply {
+//                //        如果存在静态访问行为
+////        上一层原子
+////        val topTypeArguments = resolvedExplicitReceiver?.receiver
+//                if (resolvedExplicitReceiver?.receiver is ClassQualifier) {
+////
+//
+//                    addAll(
+//                        resolveTypeArguments(context,
+//                            (resolvedExplicitReceiver.receiver as? ClassQualifier)?.referenceExpression?.getTypeArguments()
+//                                ?: emptyList()
+//                        )
+//                    )
+//                }
+//            }
 
         val lambdasOutsideParenthesis = oldCall.functionLiteralArguments.size
         val extraArgumentsNumber =
@@ -787,6 +811,7 @@ class PSICallResolver(
             dispatchReceiverForInvoke,
             name,
             resolvedTypeArguments,
+            topTypeArguments,
             resolvedArgumentsInParenthesis,
             resolvedExternalArgument,
             context.dataFlowInfo,

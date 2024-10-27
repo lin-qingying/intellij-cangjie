@@ -638,10 +638,11 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         if (resolvedCall.typeArgumentMappingByOriginal == TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments && knownTypeParametersResultingSubstitutor == null) {
             return
         }
-
-        val typeParameters = candidateDescriptor.original.typeParameters
+        val typeParameters = getTypeParameters()
+//        val typeParameters = candidateDescriptor.original.typeParameters
         for (index in typeParameters.indices) {
             val typeParameter = typeParameters[index]
+//            TODO 会不会出现通过索引获取错误的情况，有待验证
             val freshVariable = toFreshVariables.freshVariables[index]
 
             val knownTypeArgument = knownTypeParametersResultingSubstitutor?.substitute(typeParameter.defaultType)

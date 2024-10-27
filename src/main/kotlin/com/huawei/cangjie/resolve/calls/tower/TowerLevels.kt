@@ -267,7 +267,7 @@ fun getFakeDescriptorForObject(classifier: ClassifierDescriptor?): FakeCallableD
 //                    null
 //            }
         is ClassDescriptor ->
-            if (classifier.hasClassValueDescriptor && classifier !is EnumEntryDescriptor)
+            if (classifier.hasClassValueDescriptor )
                 FakeCallableDescriptorForObject(classifier)
             else
                 null

@@ -12,7 +12,8 @@ interface CangJieCall : ResolutionAtom {
     val dispatchReceiverForInvokeExtension: ReceiverCangJieCallArgument? get() = null
 
     val name: Name
-
+//    上层原子的类型参数
+    val topTypeArguments: List<TypeArgument>
     val typeArguments: List<TypeArgument>
 
     val argumentsInParenthesis: List<CangJieCallArgument>

@@ -144,7 +144,7 @@ open class VariableDescriptorImpl(
 
 
     override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor? {
-        return null
+        return this
     }
 
 

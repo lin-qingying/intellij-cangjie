@@ -20,7 +20,6 @@ import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValue
 import com.huawei.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.huawei.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
-import com.huawei.cangjie.resolve.calls.tower.NewAbstractResolvedCall
 import com.huawei.cangjie.resolve.calls.util.*
 import com.huawei.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.huawei.cangjie.resolve.scopes.receivers.*
@@ -305,13 +304,14 @@ class CallExpressionResolver(
 
     private fun getResolvedCallForEnum(
         call: Call,
-       tcache: TemporaryTraceAndCache,
+        tcache: TemporaryTraceAndCache,
         context: ResolutionContext<*>,
         checkArguments: CheckArgumentTypesMode,
         initialDataFlowInfoForArguments: DataFlowInfo
     ): Pair<Boolean, ResolvedCall<out CallableDescriptor>?> {
 
-        val results = callResolver.resolveEnumCall(tcache,
+        val results = callResolver.resolveEnumCall(
+            tcache,
             BasicCallResolutionContext.create(
                 context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
             )
@@ -346,19 +346,21 @@ class CallExpressionResolver(
     ): DeclarationDescriptor? {
 
 
-
-
         val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
         val temporaryForEnum = TemporaryTraceAndCache.create(
             context, "trace to resolve as enum", nameExpression
         )
         val newContext = context.replaceTraceAndCache(temporaryForEnum)
         val (resolveResult, resolvedCall) = getResolvedCallForEnum(
-            call,temporaryForEnum, newContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
+            call,
+            temporaryForEnum,
+            newContext,
+            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+            initialDataFlowInfoForArguments
         )
         if (resolveResult) {
 //            temporaryForEnum.commit()
-            return   resolvedCall?.resultingDescriptor
+            return resolvedCall?.resultingDescriptor
 
         }
 
@@ -406,32 +408,32 @@ class CallExpressionResolver(
             }
         }
 
-//        val temporaryForEnum = TemporaryTraceAndCache.create(
-//            context, "trace to resolve as enum", nameExpression
-//        )
-//        val newEnumContext = context.replaceTraceAndCache(temporaryForEnum)
-//
-//        val (resolveEnumResult, resolvedEnumCall) = getResolvedCallForEnum(
-//            call,temporaryForEnum, newEnumContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
-//        )
-//        if (resolveEnumResult) {
-//            temporaryForEnum.commit()
-//            val enumDescriptor = resolvedEnumCall?.resultingDescriptor
-//            if (nameExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
-//                    enumDescriptor.type
-//                )
-//            ) {
-//                context.trace.report(
-//                    EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
-//                        nameExpression,
-//                        enumDescriptor.type as? ClassifierDescriptor
-//                    )
-//                )
-//
-//            }
-//            return createTypeInfo(enumDescriptor?.returnType, context)
-//
-//        }
+        val temporaryForEnum = TemporaryTraceAndCache.create(
+            context, "trace to resolve as enum", nameExpression
+        )
+        val newEnumContext = context.replaceTraceAndCache(temporaryForEnum)
+
+        val (resolveEnumResult, resolvedEnumCall) = getResolvedCallForEnum(
+            call,temporaryForEnum, newEnumContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
+        )
+        if (resolveEnumResult) {
+            temporaryForEnum.commit()
+            val enumDescriptor = resolvedEnumCall?.resultingDescriptor
+            if (nameExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
+                    enumDescriptor.type
+                )
+            ) {
+                context.trace.report(
+                    EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
+                        nameExpression,
+                        enumDescriptor.type as? ClassifierDescriptor
+                    )
+                )
+
+            }
+            return createTypeInfo(enumDescriptor?.returnType, context)
+
+        }
 
         val temporaryForQualifier =
             TemporaryTraceAndCache.create(context, "trace to resolve as qualifier", nameExpression)

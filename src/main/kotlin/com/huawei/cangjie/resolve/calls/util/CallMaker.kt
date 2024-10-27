@@ -330,11 +330,21 @@ object CallMaker {
 
 
         override val typeArguments: List<CjTypeProjection>
-            get() = emptyList()
+            get() {
+                if(callElement is CjNameReferenceExpression){
+                    return callElement.typeArguments
+                }
+                return emptyList()
+            }
 
-        override var typeArgumentList: CjTypeArgumentList?
-            get() = null
-            set(_) {}
+        override val typeArgumentList: CjTypeArgumentList?
+            get() {
+                if(callElement is CjNameReferenceExpression){
+                    return callElement.typeArgumentList
+                }
+                return null
+            }
+
 
         override fun toString(): String {
             return callElement.text

@@ -53,7 +53,12 @@ public class OverloadResolutionResultsUtil {
                 newResolvedCall = null;
             }
             if (newResolvedCall != null) {
-                if (!ResolvedCallUtilKt.hasInferredReturnType(newResolvedCall) /*&& !(resultingCall.getResultingDescriptor() instanceof ClassConstructorDescriptor)*/) {
+                if (!ResolvedCallUtilKt.hasInferredReturnType(newResolvedCall)
+
+//                    TODO 这里排除构造函数，是为了对class<T>进行诊断报告
+                    && !(resultingCall.getResultingDescriptor() instanceof ClassConstructorDescriptor)
+
+                ) {
                     return null;
                 }
             } else if (!((MutableResolvedCall<D>) resultingCall).hasInferredReturnType()) {

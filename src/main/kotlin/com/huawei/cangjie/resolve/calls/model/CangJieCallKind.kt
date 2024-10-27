@@ -15,17 +15,19 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
         CheckExtensionPrivateVisibility,
         CheckSuperExpressionCallPart,
         NoTypeArguments,
+        MapTypeArguments,
         NoArguments,
         CreateFreshVariablesSubstitutor,
 //        CollectionTypeVariableUsagesInfo,
 //        CheckExplicitReceiverKindConsistency,
         CheckReceivers,
+
         PostponedVariablesInitializerResolutionPart,
 //        CheckContextReceiversResolutionPart,
         CheckIncompatibleTypeVariableUpperBounds
     ),
     FUNCTION(
-        CheckStaticCall,
+
         CheckExtensionPrivateVisibility,
         CheckOperatorCallPart,
         CheckVisibility,
@@ -45,10 +47,19 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CompatibilityOfPartiallyApplicableSamConversion,
         PostponedVariablesInitializerResolutionPart,
 //        CheckContextReceiversResolutionPart,
-        CheckIncompatibleTypeVariableUpperBounds
+        CheckIncompatibleTypeVariableUpperBounds,
+        CheckStaticCall,
     ),
     INVOKE(*FUNCTION.resolutionSequence.toTypedArray()),
-    ENUM(*FUNCTION.resolutionSequence.toTypedArray(),CheckEnumCall ),
+    ENUM(/**FUNCTION.resolutionSequence.toTypedArray(),CheckEnumCall */
+        MapTypeArguments,
+        MapArguments,
+        ArgumentsToCandidateParameterDescriptor,
+        CreateFreshVariablesSubstitutor,
+
+
+
+    ),
     CALLABLE_REFERENCE(
         CheckVisibility,
         NoTypeArguments,

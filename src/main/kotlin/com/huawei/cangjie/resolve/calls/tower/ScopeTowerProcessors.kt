@@ -259,11 +259,12 @@ fun <C : Candidate> createEnumProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) {
-    getEnumTypeByKind(
-        name,
-        ClassKind.ENUM,
-        it
-    )
+//    getEnumTypeByKind(
+//        name,
+//        ClassKind.ENUM,
+//        it
+//    )
+    emptyList()
 }
 
 fun <C : Candidate> createVariableProcessor(

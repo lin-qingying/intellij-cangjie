@@ -19,6 +19,12 @@ interface CjSimpleNameExpression : CjReferenceExpression {
 
     fun getReferencedNameElementType(): IElementType
 }
+fun CjSimpleNameExpression.getTypeArguments(): List<CjTypeProjection>{
+    return when(this){
+        is CjNameReferenceExpression ->  typeArguments
+        else -> emptyList ()
+    }
+}
 
 abstract class CjSimpleNameExpressionImpl(node: ASTNode) : CjExpressionImpl(node), CjSimpleNameExpression {
     override fun getIdentifier(): PsiElement? = findChildByType(CjTokens.IDENTIFIER)

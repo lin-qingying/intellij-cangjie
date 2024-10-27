@@ -48,6 +48,7 @@ class PSICangJieCallForInvoke(
     override val callKind: CangJieCallKind get() = CangJieCallKind.FUNCTION
     override val name: Name get() = OperatorNameConventions.INVOKE
     override val typeArguments: List<TypeArgument> get() = baseCall.typeArguments
+    override val topTypeArguments: List<TypeArgument> = baseCall.topTypeArguments
     override val argumentsInParenthesis: List<CangJieCallArgument> get() = baseCall.argumentsInParenthesis
     override val externalArgument: CangJieCallArgument? get() = baseCall.externalArgument
 
@@ -90,6 +91,7 @@ class PSICangJieCallForVariable(
 ) : PSICangJieCall() {
     override val callKind: CangJieCallKind get() = CangJieCallKind.VARIABLE
     override val typeArguments: List<TypeArgument> get() = emptyList()
+    override val topTypeArguments: List<TypeArgument> = emptyList()
     override val argumentsInParenthesis: List<CangJieCallArgument> get() = emptyList()
     override val externalArgument: CangJieCallArgument? get() = null
 
@@ -112,6 +114,7 @@ class PSICangJieCallImpl(
     override val dispatchReceiverForInvokeExtension: ReceiverCangJieCallArgument?,
     override val name: Name,
     override val typeArguments: List<TypeArgument>,
+    override val topTypeArguments: List<TypeArgument>,
     override val argumentsInParenthesis: List<CangJieCallArgument>,
     override val externalArgument: CangJieCallArgument?,
     override val startingDataFlowInfo: DataFlowInfo,

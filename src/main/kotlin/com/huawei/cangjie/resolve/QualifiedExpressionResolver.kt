@@ -414,6 +414,7 @@ class QualifiedExpressionResolver(
         }
 
         if (qualifierDescriptor != null) {
+            typeResolver.resolveTypeForClass(expression,context.scope,context.trace,qualifierDescriptor)
             return storeResult(
                 context.trace,
                 expression,
@@ -1052,9 +1053,9 @@ class QualifiedExpressionResolver(
             when (descriptor) {
                 is PackageViewDescriptor -> PackageQualifier(referenceExpression, descriptor)
                 is ClassDescriptor -> {
-                    if (descriptor.kind == ClassKind.ENUM) {
-                        EnumClassQualifier(referenceExpression, descriptor)
-                    } else {
+//                    if (descriptor.kind == ClassKind.ENUM) {
+//                        EnumClassQualifier(referenceExpression, descriptor)
+//                    } else {
 
 
                         ClassQualifier(referenceExpression, descriptor, scope?.let {
@@ -1062,7 +1063,7 @@ class QualifiedExpressionResolver(
                             typeResolver.resolveTypeForClass(referenceExpression, it, trace, descriptor)
                         })
 
-                    }
+//                    }
 
 
                 }

@@ -916,8 +916,9 @@ class TypeResolver(
         expression:CjSimpleNameExpression,
         scope: LexicalScope,
         trace: BindingTrace,
-        classDescriptor: ClassDescriptor,
+        classDescriptor: DeclarationDescriptor,
     ):CangJieType? {
+        if (classDescriptor !is ClassDescriptor) return null
         if (expression !is CjNameReferenceExpression) return null
         val c = TypeResolutionContext(scope, trace, true, false, false)
         val typeConstructor = classDescriptor.typeConstructor
@@ -928,10 +929,20 @@ class TypeResolver(
 
 
 //        val (collectedArgumentAsTypeProjections, argumentsForOuterClass) =
-//            collectArgumentsForClassifierTypeConstructor(c, classDescriptor, qualifierResolutionResult.qualifierParts)
-//                ?: return createErrorTypeForTypeConstructor(c, projectionFromAllQualifierParts, typeConstructor)
-//
+//            collectArgumentsForClassifierTypeConstructor(c, classDescriptor, emptyList())
+//                ?:  return null
+
         val argumentsFromUserType = resolveTypeProjections(c, typeConstructor, typeArguments)
+
+        if(argumentsFromUserType .isNotEmpty() && argumentsFromUserType.size != parameters.size){
+            c.trace.report(
+                WRONG_NUMBER_OF_TYPE_ARGUMENTS.on(
+                    expression.typeArgumentList ?:  expression,
+                    argumentsFromUserType.size, classDescriptor
+                )
+            )
+            return null
+        }
         val arguments = buildFinalArgumentList(argumentsFromUserType, null, parameters)
 
         val resultingType =

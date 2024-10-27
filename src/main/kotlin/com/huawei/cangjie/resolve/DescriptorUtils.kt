@@ -117,13 +117,13 @@ val ClassDescriptor.isEnumEntry:Boolean get() = when(this){
     else -> false
 }
 val ClassDescriptor.classValueDescriptor: ClassDescriptor?
-    get() =
-        if(kind.isSingleton && isEnumEntry){
-            this
-        }else{
-            null
-        }
-//        if (kind.isSingleton && ((this is LazyEnumEntryDescriptor && this.hasUnsubstitutedPrimaryConstructor()) || (this is LazySubstitutingClassDescriptor && original is LazyEnumEntryDescriptor && original.hasUnsubstitutedPrimaryConstructor())))
+    get() =  null
+//        if(kind.isSingleton && isEnumEntry){
+//            this
+//        }else{
+//            null
+//        }
+//        if (kind.isSingleton && ((this is EnumEntryDescriptor && this.hasUnsubstitutedPrimaryConstructor())  ))
 //            this
 //        else
 //            null
