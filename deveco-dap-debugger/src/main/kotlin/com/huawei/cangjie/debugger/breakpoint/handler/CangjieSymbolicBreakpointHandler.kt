@@ -1,4 +1,4 @@
-package com.huawei.cangjie.debugger.breakpoint.handler
+package com.linqingying.cangjie.debugger.breakpoint.handler
 
 
 import com.huawei.bitfun.DapFromServerService
@@ -11,7 +11,7 @@ import com.huawei.bitfun.intellij.utils.IntellijThreadUtils
 import com.huawei.bitfun.protocol.extend.FunctionBreakpoint
 import com.huawei.bitfun.protocol.extend.SetFunctionBreakpointsArguments
 import com.huawei.bitfun.utils.ExceptionUtils
-import com.huawei.cangjie.debugger.breakpoint.properties.CangjieSymbolicBreakpointProperties
+import com.linqingying.cangjie.debugger.breakpoint.properties.CangjieSymbolicBreakpointProperties
 
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.XExpression

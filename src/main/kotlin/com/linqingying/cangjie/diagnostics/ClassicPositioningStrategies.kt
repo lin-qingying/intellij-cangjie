@@ -1,0 +1,18 @@
+package com.linqingying.cangjie.diagnostics
+
+import com.linqingying.cangjie.resolve.controlFlow.UnreachableCode
+import com.linqingying.cangjie.psi.CjElement
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiElement
+
+object ClassicPositioningStrategies {
+
+    @JvmField
+    val UNREACHABLE_CODE: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
+        override fun markDiagnostic(diagnostic: DiagnosticMarker): List<TextRange> {
+            @Suppress("UNCHECKED_CAST")
+            val unreachableCode = diagnostic as DiagnosticWithParameters2Marker<Set<CjElement>, Set<CjElement>>
+            return UnreachableCode.getUnreachableTextRanges(unreachableCode.psiElement as CjElement, unreachableCode.a, unreachableCode.b)
+        }
+    }
+}

@@ -1,15 +1,15 @@
-package com.huawei.cangjie.dapDebugger.protocol.type.adapter
+package com.linqingying.cangjie.dapDebugger.protocol.type.adapter
 
 import com.squareup.moshi.*
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import com.huawei.cangjie.dapDebugger.protocol.ProtocolMessage
-import com.huawei.cangjie.dapDebugger.protocol.event.*
-import com.huawei.cangjie.dapDebugger.protocol.request.Request
-import com.huawei.cangjie.dapDebugger.protocol.request.RunInTerminalRequest
-import com.huawei.cangjie.dapDebugger.protocol.response.*
-import com.huawei.cangjie.dapDebugger.protocol.type.*
-import com.huawei.cangjie.dapDebugger.protocol.type.body.*
+import com.linqingying.cangjie.dapDebugger.protocol.ProtocolMessage
+import com.linqingying.cangjie.dapDebugger.protocol.event.*
+import com.linqingying.cangjie.dapDebugger.protocol.request.Request
+import com.linqingying.cangjie.dapDebugger.protocol.request.RunInTerminalRequest
+import com.linqingying.cangjie.dapDebugger.protocol.response.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.body.*
 
 
 val protocolMessageFactory: PolymorphicJsonAdapterFactory<ProtocolMessage> =

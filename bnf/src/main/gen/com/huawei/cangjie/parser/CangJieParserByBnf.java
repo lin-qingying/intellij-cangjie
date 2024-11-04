@@ -1,5 +1,5 @@
 // This is a generated file. Not intended for manual editing.
-package com.huawei.cangjie.parser;
+package com.linqingying.cangjie.parser;
 
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilder.Marker;
@@ -10,8 +10,8 @@ import com.intellij.lang.ASTNode;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.lang.PsiParser;
 import com.intellij.lang.LightPsiParser;
-import static com.huawei.cangjie.CjNodeTypes.*;
-import static com.huawei.cangjie.lexer.CjTokens.*;
+import static com.linqingying.cangjie.CjNodeTypes.*;
+import static com.linqingying.cangjie.lexer.CjTokens.*;
 
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
 public class CangJieParserByBnf implements PsiParser, LightPsiParser {

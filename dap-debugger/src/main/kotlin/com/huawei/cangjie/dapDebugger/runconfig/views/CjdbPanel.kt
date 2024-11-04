@@ -1,6 +1,6 @@
-package com.huawei.cangjie.dapDebugger.runconfig.views
+package com.linqingying.cangjie.dapDebugger.runconfig.views
 
-import com.huawei.cangjie.lang.CangJieLanguage
+import com.linqingying.cangjie.lang.CangJieLanguage
 import com.intellij.execution.console.LanguageConsoleImpl
 import com.intellij.execution.console.LanguageConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType

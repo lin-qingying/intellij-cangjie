@@ -1,4 +1,4 @@
-package com.huawei.cangjie.parsing;
+package com.linqingying.cangjie.parsing;
 
 import junit.framework.TestCase;
 

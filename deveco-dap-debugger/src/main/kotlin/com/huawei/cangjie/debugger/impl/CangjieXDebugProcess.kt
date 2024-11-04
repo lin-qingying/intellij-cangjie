@@ -1,4 +1,4 @@
-package com.huawei.cangjie.debugger.impl
+package com.linqingying.cangjie.debugger.impl
 
 import com.huawei.bitfun.DapFromServerService
 import com.huawei.bitfun.connect.DapConnectionLauncher

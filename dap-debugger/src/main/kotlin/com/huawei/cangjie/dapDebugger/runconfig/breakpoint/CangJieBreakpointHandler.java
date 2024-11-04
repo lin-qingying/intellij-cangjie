@@ -1,7 +1,7 @@
-package com.huawei.cangjie.dapDebugger.runconfig.breakpoint;
+package com.linqingying.cangjie.dapDebugger.runconfig.breakpoint;
 
-import com.huawei.cangjie.dapDebugger.backend.CjBreakpoint;
-import com.huawei.cangjie.dapDebugger.runconfig.CangJieDebugProcess;
+import com.linqingying.cangjie.dapDebugger.backend.CjBreakpoint;
+import com.linqingying.cangjie.dapDebugger.runconfig.CangJieDebugProcess;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.util.PathUtil;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;

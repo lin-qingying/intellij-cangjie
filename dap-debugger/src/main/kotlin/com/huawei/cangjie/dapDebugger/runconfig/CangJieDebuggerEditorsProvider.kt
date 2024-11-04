@@ -1,6 +1,6 @@
-package com.huawei.cangjie.dapDebugger.runconfig
+package com.linqingying.cangjie.dapDebugger.runconfig
 
-import com.huawei.cangjie.lang.CangJieFileType
+import com.linqingying.cangjie.lang.CangJieFileType
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.PlainTextLanguage

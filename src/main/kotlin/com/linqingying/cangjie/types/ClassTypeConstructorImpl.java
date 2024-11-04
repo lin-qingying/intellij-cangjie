@@ -1,0 +1,76 @@
+package com.linqingying.cangjie.types;
+
+import com.linqingying.cangjie.descriptors.ClassDescriptor;
+import com.linqingying.cangjie.descriptors.ClassifierDescriptor;
+import com.linqingying.cangjie.descriptors.SupertypeLoopChecker;
+import com.linqingying.cangjie.descriptors.TypeParameterDescriptor;
+import com.linqingying.cangjie.resolve.DescriptorUtils;
+import com.linqingying.cangjie.storage.StorageManager;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+public class ClassTypeConstructorImpl extends AbstractClassTypeConstructor implements TypeConstructor{
+    private final ClassDescriptor classDescriptor;
+    private final List<TypeParameterDescriptor> parameters;
+    private final Collection<CangJieType> supertypes;
+
+    public ClassTypeConstructorImpl(
+            @NotNull ClassDescriptor classDescriptor,
+            @NotNull List<? extends TypeParameterDescriptor> parameters,
+            @NotNull Collection<CangJieType> supertypes,
+            @NotNull StorageManager storageManager
+    ) {
+        super(storageManager);
+        this.classDescriptor = classDescriptor;
+        this.parameters = List.copyOf(parameters);
+        this.supertypes = Collections.unmodifiableCollection(supertypes);
+    }
+
+    @Override
+    public boolean isDenotable() {
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return DescriptorUtils.getFqName(classDescriptor).asString();
+    }
+
+
+    @Override
+    public @NotNull ClassDescriptor getDeclarationDescriptor() {
+        return classDescriptor;
+
+    }
+
+    @Override
+    public @NotNull List<TypeParameterDescriptor> getParameters() {
+        return parameters;
+
+    }
+
+    @NotNull
+    @Override
+    protected Collection<CangJieType> computeSupertypes() {
+        return supertypes;
+    }
+
+    @Override
+    protected @NotNull Collection<CangJieType> computeExtendSuperTypes(@Nullable String extendId) {
+        return List.of();
+    }
+
+    @NotNull
+    @Override
+    protected SupertypeLoopChecker getSupertypeLoopChecker() {
+        return SupertypeLoopChecker.EMPTY.INSTANCE;
+
+    }
+
+
+}

@@ -4,7 +4,7 @@
 
     <extensions defaultExtensionNs="com.linqingying.lsp">
         <!-- LSP -->
-        <serverSupportProvider implementation="com.huawei.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
+        <serverSupportProvider implementation="com.linqingying.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
     </extensions>
 
 </idea-plugin>

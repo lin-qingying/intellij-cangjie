@@ -1,0 +1,32 @@
+package com.linqingying.cangjie.ide.projectStructure
+
+import com.linqingying.cangjie.analyzer.CangJieModuleInfo
+import com.linqingying.cangjie.analyzer.LanguageSettingsProvider
+import com.linqingying.cangjie.analyzer.ModuleInfo
+import com.linqingying.cangjie.config.LanguageVersionSettings
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.Project
+
+
+
+internal class IDELanguageSettingsProvider : LanguageSettingsProvider {
+    override fun getLanguageVersionSettings(moduleInfo: ModuleInfo, project: Project): LanguageVersionSettings {
+        return when (moduleInfo) {
+            is CangJieModuleInfo -> moduleInfo.module.languageVersionSettings
+//            is LanguageSettingsOwner -> moduleInfo.languageVersionSettings
+//            is CjpmLibraryInfo -> LanguageVersionSettingsProvider.getInstance(project).librarySettings
+//            is PlatformModuleInfo -> moduleInfo.platformModule.module.languageVersionSettings
+            else -> project.languageVersionSettings
+        }
+    }
+
+//    override fun getTargetPlatform(moduleInfo: ModuleInfo, project: Project): TargetPlatformVersion {
+//        return when (moduleInfo) {
+//            is ModuleSourceInfo -> {
+//                val jdkPlatform = moduleInfo.module.platform.subplatformsOfType<JdkPlatform>().firstOrNull()
+//                jdkPlatform?.targetVersion ?: TargetPlatformVersion.NoVersion
+//            }
+//            is LanguageSettingsOwner -> moduleInfo.targetPlatformVersion
+//            else -> TargetPlatformVersion.NoVersion
+//        }
+    }

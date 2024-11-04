@@ -1,8 +1,8 @@
 {
-    parserClass='com.huawei.cangjie.parser.CangJieParserByBnf'
+    parserClass='com.linqingying.cangjie.parser.CangJieParserByBnf'
    parserImports=[
-      'static com.huawei.cangjie.CjNodeTypes.*'
-      'static com.huawei.cangjie.lexer.CjTokens.*'
+      'static com.linqingying.cangjie.CjNodeTypes.*'
+      'static com.linqingying.cangjie.lexer.CjTokens.*'
     ]
 
 

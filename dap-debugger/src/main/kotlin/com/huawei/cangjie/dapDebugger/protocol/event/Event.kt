@@ -1,11 +1,11 @@
-package com.huawei.cangjie.dapDebugger.protocol.event
+package com.linqingying.cangjie.dapDebugger.protocol.event
 
 
 
-import com.huawei.cangjie.dapDebugger.protocol.ProtocolMessage
-import com.huawei.cangjie.dapDebugger.protocol.type.EventType
-import com.huawei.cangjie.dapDebugger.protocol.type.MessageType
-import com.huawei.cangjie.dapDebugger.protocol.type.body.*
+import com.linqingying.cangjie.dapDebugger.protocol.ProtocolMessage
+import com.linqingying.cangjie.dapDebugger.protocol.type.EventType
+import com.linqingying.cangjie.dapDebugger.protocol.type.MessageType
+import com.linqingying.cangjie.dapDebugger.protocol.type.body.*
 
 
 import kotlinx.serialization.Polymorphic

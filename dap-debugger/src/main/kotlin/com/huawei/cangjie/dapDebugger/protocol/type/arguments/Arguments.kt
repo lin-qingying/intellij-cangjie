@@ -1,6 +1,6 @@
-package com.huawei.cangjie.dapDebugger.protocol.type.arguments
+package com.linqingying.cangjie.dapDebugger.protocol.type.arguments
 
-import com.huawei.cangjie.dapDebugger.protocol.type.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.*
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.Serializable
 

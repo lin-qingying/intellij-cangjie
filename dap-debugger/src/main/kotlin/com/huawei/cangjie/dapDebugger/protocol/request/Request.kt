@@ -1,10 +1,10 @@
-package com.huawei.cangjie.dapDebugger.protocol.request
+package com.linqingying.cangjie.dapDebugger.protocol.request
 
 
-import com.huawei.cangjie.dapDebugger.protocol.ProtocolMessage
-import com.huawei.cangjie.dapDebugger.protocol.type.MessageCommand
-import com.huawei.cangjie.dapDebugger.protocol.type.MessageType
-import com.huawei.cangjie.dapDebugger.protocol.type.arguments.*
+import com.linqingying.cangjie.dapDebugger.protocol.ProtocolMessage
+import com.linqingying.cangjie.dapDebugger.protocol.type.MessageCommand
+import com.linqingying.cangjie.dapDebugger.protocol.type.MessageType
+import com.linqingying.cangjie.dapDebugger.protocol.type.arguments.*
 import kotlinx.serialization.Serializable
 
 interface Request : ProtocolMessage {

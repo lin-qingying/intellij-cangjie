@@ -3,57 +3,62 @@
     <extensions defaultExtensionNs="com.intellij">
 
         <stubElementTypeHolder externalIdPrefix="cangjie."
-                               class="com.huawei.cangjie.psi.stubs.elements.CjStubElementTypes"/>
+                               class="com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes"/>
 
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelTypeAliasByPackageIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelVariableByPackageIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelTypeAliasByPackageIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelVariableByPackageIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex"/>
 
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieMacroByPackageIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieMacroFqnNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMacroByPackageIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMacroFqnNameIndex"/>
 
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieMacroFunctionShortNameIndex"/>
-
-
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieFunctionShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieProbablyNothingFunctionShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJiePrimeSymbolNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieExactPackagesIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieClassShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieEnumEntryShortNameIndex"/>
-
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieSuperClassIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelTypeAliasFqNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelPropertyFqnNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelPropertyByPackageIndex"/>
-
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelVariableFqnNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelClassByPackageIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieFullClassNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJiePropertyShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieVariableShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTopLevelExtensionsByReceiverTypeIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieProbablyNothingPropertyShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieVariableNothingVariableShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTypeAliasShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieTypeAliasByExpansionShortNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex"/>
-        <stubIndex implementation="com.huawei.cangjie.ide.stubindex.CangJieExtendClassNameIndex"/>
-
-        <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJiePackageSourcesMemberNamesIndex"/>
-        <!--        <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJieFIleIndexTest"/>-->
-
-        <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJiePartialPackageNamesIndex"/>
-        <fileBasedIndex implementation="com.huawei.cangjie.ide.vfilefinder.CangJieShortClassNameFileIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMacroFunctionShortNameIndex"/>
 
 
-        <idIndexer filetype="CangJie" implementationClass="com.huawei.cangjie.ide.search.CangJieIdIndexer"/>
-        <todoIndexer filetype="CangJie" implementationClass="com.huawei.cangjie.ide.search.CangJieTodoIndexer"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieFunctionShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieProbablyNothingFunctionShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJiePrimeSymbolNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieExactPackagesIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieClassShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieEnumEntryShortNameIndex"/>
 
-        <indexPatternBuilder implementation="com.huawei.cangjie.ide.search.CangJieIndexPatternBuilder"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieSuperClassIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelTypeAliasFqNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelPropertyFqnNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelPropertyByPackageIndex"/>
+
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelVariableFqnNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelClassByPackageIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieFullClassNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJiePropertyShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieVariableShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelExtensionsByReceiverTypeIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieProbablyNothingPropertyShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieVariableNothingVariableShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTypeAliasShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTypeAliasByExpansionShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieExtendClassNameIndex"/>
+
+        <fileBasedIndex implementation="com.linqingying.cangjie.ide.vfilefinder.CangJieMetadataFileIndex"/>
+        <fileBasedIndex implementation="com.linqingying.cangjie.ide.vfilefinder.CangJieMetadataFilePackageIndex"/>
+        <fileBasedIndex implementation="com.linqingying.cangjie.ide.vfilefinder.CangJieBuiltInsMetadataIndex"/>
+
+
+        <fileBasedIndex implementation="com.linqingying.cangjie.ide.vfilefinder.CangJiePackageSourcesMemberNamesIndex"/>
+        <!--        <fileBasedIndex implementation="com.linqingying.cangjie.ide.vfilefinder.CangJieFIleIndexTest"/>-->
+
+        <fileBasedIndex implementation="com.linqingying.cangjie.ide.vfilefinder.CangJiePartialPackageNamesIndex"/>
+        <fileBasedIndex implementation="com.linqingying.cangjie.ide.vfilefinder.CangJieShortClassNameFileIndex"/>
+
+
+        <idIndexer filetype="CangJie" implementationClass="com.linqingying.cangjie.ide.search.CangJieIdIndexer"/>
+        <todoIndexer filetype="CangJie" implementationClass="com.linqingying.cangjie.ide.search.CangJieTodoIndexer"/>
+
+        <indexPatternBuilder implementation="com.linqingying.cangjie.ide.search.CangJieIndexPatternBuilder"/>
 
         <notificationGroup
                 id="Recover CangJie Indices"
@@ -62,14 +67,14 @@
                 key="cangjie.repair.indices.group.name"
         />
         <projectService
-                serviceInterface="com.huawei.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"
-                serviceImplementation="com.huawei.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactoryService"/>
+                serviceInterface="com.linqingying.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService"
+                serviceImplementation="com.linqingying.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactoryService"/>
 
         <applicationService
-                serviceInterface="com.huawei.cangjie.references.CjReferenceResolutionHelper"
-                serviceImplementation="com.huawei.cangjie.references.CjReferenceResolutionHelperImpl"/>
+                serviceInterface="com.linqingying.cangjie.references.CjReferenceResolutionHelper"
+                serviceImplementation="com.linqingying.cangjie.references.CjReferenceResolutionHelperImpl"/>
         <registryKey key="cangjie.indices.short.names.filtering.enabled" defaultValue="true"
-                     description="Filter irrelevant Kotlin FQNames by short name index"
+                     description="Filter irrelevant CangJie FQNames by short name index"
                      restartRequired="true"/>
 
         <registryKey key="cangjie.indices.nested.access.enabled"
@@ -86,26 +91,26 @@
                      description="Allows indices access time tracking"/>
 
 
-        <definitionsScopedSearch implementation="com.huawei.cangjie.ide.search.CangJieDefinitionsSearcher"/>
+        <definitionsScopedSearch implementation="com.linqingying.cangjie.ide.search.CangJieDefinitionsSearcher"/>
 
     </extensions>
-    <extensions defaultExtensionNs="com.huawei.cangjie.ide.search">
-        <directClassInheritorsSearch implementation="com.huawei.cangjie.ide.search.CangJieDirectInheritorsSearcher"/>
-        <classInheritorsSearch implementation="com.huawei.cangjie.ide.search.CangJieInnerClassInheritorsSearcher"/>
-        <classInheritorsSearch implementation="com.huawei.cangjie.ide.search.CangJieClassInheritorsSearcher"/>
+    <extensions defaultExtensionNs="com.linqingying.cangjie.ide.search">
+        <directClassInheritorsSearch implementation="com.linqingying.cangjie.ide.search.CangJieDirectInheritorsSearcher"/>
+        <classInheritorsSearch implementation="com.linqingying.cangjie.ide.search.CangJieInnerClassInheritorsSearcher"/>
+        <classInheritorsSearch implementation="com.linqingying.cangjie.ide.search.CangJieClassInheritorsSearcher"/>
 
     </extensions>
     <extensionPoints>
-        <extensionPoint qualifiedName="com.huawei.cangjie.ide.search.classInheritorsSearch"
+        <extensionPoint qualifiedName="com.linqingying.cangjie.ide.search.classInheritorsSearch"
                         interface="com.intellij.util.QueryExecutor" dynamic="true"/>
-        <extensionPoint qualifiedName="com.huawei.cangjie.ide.search.directClassInheritorsSearch"
+        <extensionPoint qualifiedName="com.linqingying.cangjie.ide.search.directClassInheritorsSearch"
                         interface="com.intellij.util.QueryExecutor" dynamic="true"/>
 
     </extensionPoints>
 
     <projectListeners>
-        <listener class="com.huawei.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"
-                  topic="com.huawei.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"
+        <listener class="com.linqingying.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"
+                  topic="com.linqingying.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"
                   activeInHeadlessMode="false"
                   activeInTestMode="false"/>
 

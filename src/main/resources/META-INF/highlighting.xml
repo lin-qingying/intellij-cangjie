@@ -2,18 +2,18 @@
 
     <extensionPoints>
         <extensionPoint
-                qualifiedName="com.huawei.cangjie.highlighterExtension"
-                interface="com.huawei.cangjie.highlighter.CangJieHighlightingVisitorExtension"
+                qualifiedName="com.linqingying.cangjie.highlighterExtension"
+                interface="com.linqingying.cangjie.highlighter.CangJieHighlightingVisitorExtension"
                 dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.lineMarkerProvider language="CangJie"
-                                        implementationClass="com.huawei.cangjie.ide.lineMarkers.CangJieLineMarkerProvider"/>
+                                        implementationClass="com.linqingying.cangjie.ide.lineMarkers.CangJieLineMarkerProvider"/>
 
         <additionalTextAttributes scheme="Default" file="colorScheme/Default_CangJie.xml"/>
         <additionalTextAttributes scheme="Darcula" file="colorScheme/Darcula_CangJie.xml"/>
-        <highlightVisitor implementation="com.huawei.cangjie.highlighter.CangJieHighlightVisitor"/>
+        <highlightVisitor implementation="com.linqingying.cangjie.highlighter.CangJieHighlightVisitor"/>
         <registryKey key="cangjie.highlighting.suspended.timeout"
                      description="Timeout (in seconds) when highlighting is temporarily turned off in case of unexpected errors."
                      defaultValue="10"
@@ -23,11 +23,11 @@
                      description="Suppress cangjie.Deprecated warning"
                      defaultValue="false"/>
         <projectService
-                serviceInterface="com.huawei.cangjie.highlighter.CangJieQuickFixProvider"
-                serviceImplementation="com.huawei.cangjie.ide.codeinsight.CangJieQuickFixProviderImpl"/>
+                serviceInterface="com.linqingying.cangjie.highlighter.CangJieQuickFixProvider"
+                serviceImplementation="com.linqingying.cangjie.ide.codeinsight.CangJieQuickFixProviderImpl"/>
         <applicationService
-                serviceInterface="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicy"
-                serviceImplementation="com.huawei.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>
+                serviceInterface="com.linqingying.cangjie.psi.CangJieDeclarationNavigationPolicy"
+                serviceImplementation="com.linqingying.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>
 
         <registryKey
                 key="cangjie.resolve.force.full.resolve.on.highlighting"
@@ -35,7 +35,7 @@
                 defaultValue="true"
                 restartRequired="false"/>
         <projectService
-                serviceInterface="com.huawei.cangjie.ide.base.projectStructure.RootKindMatcher"
-                serviceImplementation="com.huawei.cangjie.ide.base.analysis.RootKindMatcherImpl"/>
+                serviceInterface="com.linqingying.cangjie.ide.base.projectStructure.RootKindMatcher"
+                serviceImplementation="com.linqingying.cangjie.ide.base.analysis.RootKindMatcherImpl"/>
     </extensions>
 </idea-plugin>

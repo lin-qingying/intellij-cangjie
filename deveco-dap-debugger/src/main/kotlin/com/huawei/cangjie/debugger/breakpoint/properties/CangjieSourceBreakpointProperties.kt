@@ -1,3 +1,3 @@
-package com.huawei.cangjie.debugger.breakpoint.properties
+package com.linqingying.cangjie.debugger.breakpoint.properties
 
 class CangjieSourceBreakpointProperties : CangjieBreakpointFiltersProperties<CangjieSourceBreakpointProperties>()

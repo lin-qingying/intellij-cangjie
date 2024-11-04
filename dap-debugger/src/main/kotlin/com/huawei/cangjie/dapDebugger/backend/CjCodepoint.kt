@@ -1,4 +1,4 @@
-package com.huawei.cangjie.dapDebugger.backend
+package com.linqingying.cangjie.dapDebugger.backend
 
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint
 import java.util.concurrent.atomic.AtomicBoolean

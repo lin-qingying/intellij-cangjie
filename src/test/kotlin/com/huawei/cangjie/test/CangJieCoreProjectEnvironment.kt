@@ -1,4 +1,4 @@
-package com.huawei.cangjie.test
+package com.linqingying.cangjie.test
 
 import com.intellij.core.CoreProjectEnvironment
 import com.intellij.openapi.Disposable

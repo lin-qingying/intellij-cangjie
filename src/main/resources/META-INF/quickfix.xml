@@ -2,8 +2,8 @@
     <xi:include href="/META-INF/intentions.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
-    <extensions defaultExtensionNs="com.huawei.cangjie">
-        <quickFixContributor implementation="com.huawei.cangjie.ide.quickfix.QuickFixRegistrar"/>
+    <extensions defaultExtensionNs="com.linqingying.cangjie">
+        <quickFixContributor implementation="com.linqingying.cangjie.ide.quickfix.QuickFixRegistrar"/>
 
 
     </extensions>
@@ -12,8 +12,8 @@
     <extensionPoints>
 
         <extensionPoint
-                qualifiedName="com.huawei.cangjie.quickFixContributor"
-                interface="com.huawei.cangjie.ide.quickfix.QuickFixContributor"
+                qualifiedName="com.linqingying.cangjie.quickFixContributor"
+                interface="com.linqingying.cangjie.ide.quickfix.QuickFixContributor"
                 dynamic="true"/>
     </extensionPoints>
 </idea-plugin>

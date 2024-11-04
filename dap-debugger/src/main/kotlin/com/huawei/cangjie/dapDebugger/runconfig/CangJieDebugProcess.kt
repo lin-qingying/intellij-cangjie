@@ -1,17 +1,17 @@
-package com.huawei.cangjie.dapDebugger.runconfig
+package com.linqingying.cangjie.dapDebugger.runconfig
 
 
-import com.huawei.cangjie.dapDebugger.backend.CjBreakpoint
-import com.huawei.cangjie.dapDebugger.protocol.ProtocolMessage
-import com.huawei.cangjie.dapDebugger.protocol.event.*
-import com.huawei.cangjie.dapDebugger.protocol.request.*
-import com.huawei.cangjie.dapDebugger.protocol.response.*
-import com.huawei.cangjie.dapDebugger.protocol.type.*
-import com.huawei.cangjie.dapDebugger.protocol.type.arguments.*
-import com.huawei.cangjie.dapDebugger.protocol.type.body.RunInTerminalResponseBody
-import com.huawei.cangjie.dapDebugger.runconfig.breakpoint.CangJieBreakpointHandler
-import com.huawei.cangjie.dapDebugger.runconfig.message.MessageHandler
-import com.huawei.cangjie.dapDebugger.runconfig.views.CjdbPanel
+import com.linqingying.cangjie.dapDebugger.backend.CjBreakpoint
+import com.linqingying.cangjie.dapDebugger.protocol.ProtocolMessage
+import com.linqingying.cangjie.dapDebugger.protocol.event.*
+import com.linqingying.cangjie.dapDebugger.protocol.request.*
+import com.linqingying.cangjie.dapDebugger.protocol.response.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.arguments.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.body.RunInTerminalResponseBody
+import com.linqingying.cangjie.dapDebugger.runconfig.breakpoint.CangJieBreakpointHandler
+import com.linqingying.cangjie.dapDebugger.runconfig.message.MessageHandler
+import com.linqingying.cangjie.dapDebugger.runconfig.views.CjdbPanel
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfileState

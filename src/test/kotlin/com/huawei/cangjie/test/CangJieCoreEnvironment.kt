@@ -1,4 +1,4 @@
-package com.huawei.cangjie.test
+package com.linqingying.cangjie.test
 
 class CangJieCoreEnvironment {
 

@@ -2,10 +2,27 @@
 
     <extensions defaultExtensionNs="com.intellij">
 
+        <fileType name="cangjie_builtins" fieldName="INSTANCE" extensions="cangjie_builtins"
+                  implementationClass="com.linqingying.cangjie.lang.declarations.CangJieBuiltInFileType"/>
 
 
-        <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cangjie_declarations"
-                  implementationClass="com.huawei.cangjie.lang.declarations.CangJieBuiltInFileType"/>
+        <fileType.fileViewProviderFactory filetype="cangjie_builtins" implementationClass="com.linqingying.cangjie.metadata.ClassFileViewProviderFactory"/>
+        <filetype.decompiler filetype="cangjie_builtins" implementationClass="com.linqingying.cangjie.psi.compiled.ClassFileDecompiler"/>
+
+<!--        <fileType name="cangjie_declarations" fieldName="INSTANCE" extensions="cangjie_declarations"-->
+<!--                  implementationClass="com.linqingying.cangjie.lang.declarations.CangJieDeclarationsFileType"/>-->
+<!--        -->
+
+        <fileType name="cjd" fieldName="INSTANCE" extensions="cjd"
+                  language="CangJie"
+                  implementationClass="com.linqingying.cangjie.lang.declarations.CangJieDeclarationsFileType"/>
 
     </extensions>
+
+    <extensions defaultExtensionNs="com.linqingying.cangjie">
+
+        <classFileDecompiler implementation="com.linqingying.cangjie.metadata.CangJieBuiltInDecompiler"/>
+
+    </extensions>
+
 </idea-plugin>

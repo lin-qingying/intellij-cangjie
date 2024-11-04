@@ -5,18 +5,18 @@
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.unresolvedReferenceQuickFixProvider
                 id="cangjieUnresolvedReferenceQuickFixProvider"
-                implementation="com.huawei.cangjie.ide.codeinsight.CangJieUnresolvedReferenceQuickFixProvider"/>
+                implementation="com.linqingying.cangjie.ide.codeinsight.CangJieUnresolvedReferenceQuickFixProvider"/>
                 <codeInsight.lineMarkerProvider language="CangJie"
-                                                implementationClass="com.huawei.cangjie.ide.codeinsight.CangJieIconLineMarkerProvider"/>
+                                                implementationClass="com.linqingying.cangjie.ide.codeinsight.CangJieIconLineMarkerProvider"/>
 
 
-        <lang.documentationProvider language="CangJie" implementationClass="com.huawei.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieDocumentationProvider" order="first"/>
+        <lang.documentationProvider language="CangJie" implementationClass="com.linqingying.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieDocumentationProvider" order="first"/>
 
 <!--        <platform.backend.documentation.targetProvider id="CangJieDocumentationTargetProvider"-->
-<!--                                                       implementation="com.huawei.cangjie.ide.codeinsight.quickDoc.CangJieDocumentationTargetProvider"/>-->
+<!--                                                       implementation="com.linqingying.cangjie.ide.codeinsight.quickDoc.CangJieDocumentationTargetProvider"/>-->
 
 <!--        <platform.backend.documentation.psiTargetProvider id="CangJieDocumentationTargetProvider"-->
-<!--                                                          implementation="com.huawei.cangjie.ide.codeinsight.quickDoc.CangJiePsiDocumentationTargetProvider"/>-->
+<!--                                                          implementation="com.linqingying.cangjie.ide.codeinsight.quickDoc.CangJiePsiDocumentationTargetProvider"/>-->
 
     </extensions>
 </idea-plugin>

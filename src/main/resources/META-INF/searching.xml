@@ -1,31 +1,31 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
-        <!--        <fileStructureGroupRuleProvider implementation="com.huawei.cangjie.ide.searching.usages.CangJieDeclarationGroupRuleProvider"/>-->
+        <!--        <fileStructureGroupRuleProvider implementation="com.linqingying.cangjie.ide.searching.usages.CangJieDeclarationGroupRuleProvider"/>-->
         <!--        <fileStructureGroupRuleProvider-->
-        <!--                implementation="com.huawei.cangjie.ide.searching.usages.CangJieDeclarationSecondLevelGroupRuleProvider"/>-->
+        <!--                implementation="com.linqingying.cangjie.ide.searching.usages.CangJieDeclarationSecondLevelGroupRuleProvider"/>-->
 
-                <findUsagesHandlerFactory implementation="com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory"
+                <findUsagesHandlerFactory implementation="com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory"
                                           id="cangjieFindUsagesHandlerFactory"/>
 
-        <!--        <importFilteringRule implementation="com.huawei.cangjie.ide.searching.usages.CangJieImportFilteringRule"/>-->
+        <!--        <importFilteringRule implementation="com.linqingying.cangjie.ide.searching.usages.CangJieImportFilteringRule"/>-->
         <!--        <elementDescriptionProvider-->
-        <!--                implementation="com.huawei.cangjie.ide.searching.usages.CangJieNonCodeSearchElementDescriptionProvider"/>-->
+        <!--                implementation="com.linqingying.cangjie.ide.searching.usages.CangJieNonCodeSearchElementDescriptionProvider"/>-->
 
-        <!--        <annotatedElementsSearch implementation="com.huawei.cangjie.ide.searching.CangJieAnnotatedElementsSearcher" />-->
-        <referencesSearch implementation="com.huawei.cangjie.ide.search.CangJieReferencesSearcher"/>
+        <!--        <annotatedElementsSearch implementation="com.linqingying.cangjie.ide.searching.CangJieAnnotatedElementsSearcher" />-->
+        <referencesSearch implementation="com.linqingying.cangjie.ide.search.CangJieReferencesSearcher"/>
 
 
-        <elementDescriptionProvider order="first" implementation="com.huawei.cangjie.ide.searching.usages.CangJieElementDescriptionProvider"/>
-
-        <lang.findUsagesProvider language="CangJie"
-                                 implementationClass="com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesProviderBase"/>
+        <elementDescriptionProvider order="first" implementation="com.linqingying.cangjie.ide.searching.usages.CangJieElementDescriptionProvider"/>
 
         <lang.findUsagesProvider language="CangJie"
-                                 implementationClass="com.huawei.cangjie.ide.searching.usages.CangJieFindUsagesProvider"/>
-        <projectService serviceInterface="com.huawei.cangjie.ide.search.CangJieSearchUsagesSupport"
-                        serviceImplementation="com.huawei.cangjie.ide.search.CangJieSearchUsagesSupportImpl"/>
-        <projectService serviceInterface="com.huawei.cangjie.ide.searching.findUsages.CangJieFindUsagesSupport"
-                        serviceImplementation="com.huawei.cangjie.ide.searching.findUsages.CangJieFindUsagesSupportImpl"/>
+                                 implementationClass="com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesProviderBase"/>
+
+        <lang.findUsagesProvider language="CangJie"
+                                 implementationClass="com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesProvider"/>
+        <projectService serviceInterface="com.linqingying.cangjie.ide.search.CangJieSearchUsagesSupport"
+                        serviceImplementation="com.linqingying.cangjie.ide.search.CangJieSearchUsagesSupportImpl"/>
+        <projectService serviceInterface="com.linqingying.cangjie.ide.searching.findUsages.CangJieFindUsagesSupport"
+                        serviceImplementation="com.linqingying.cangjie.ide.searching.findUsages.CangJieFindUsagesSupportImpl"/>
 
     </extensions>
 </idea-plugin>

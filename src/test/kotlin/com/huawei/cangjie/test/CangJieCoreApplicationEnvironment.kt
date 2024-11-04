@@ -1,4 +1,4 @@
-package com.huawei.cangjie.test
+package com.linqingying.cangjie.test
 
 import com.intellij.DynamicBundle
 import com.intellij.codeInsight.ContainerProvider

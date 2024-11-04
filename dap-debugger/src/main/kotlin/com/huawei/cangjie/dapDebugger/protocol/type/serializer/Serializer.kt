@@ -1,9 +1,9 @@
-package com.huawei.cangjie.dapDebugger.protocol.type.serializer
+package com.linqingying.cangjie.dapDebugger.protocol.type.serializer
 
-import com.huawei.cangjie.dapDebugger.protocol.ProtocolMessage
-import com.huawei.cangjie.dapDebugger.protocol.request.*
-import com.huawei.cangjie.dapDebugger.protocol.response.RunInTerminalResponse
-import com.huawei.cangjie.dapDebugger.protocol.type.*
+import com.linqingying.cangjie.dapDebugger.protocol.ProtocolMessage
+import com.linqingying.cangjie.dapDebugger.protocol.request.*
+import com.linqingying.cangjie.dapDebugger.protocol.response.RunInTerminalResponse
+import com.linqingying.cangjie.dapDebugger.protocol.type.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.SerialDescriptor

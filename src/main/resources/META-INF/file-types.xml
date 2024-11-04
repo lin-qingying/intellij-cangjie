@@ -1,8 +1,8 @@
 <idea-plugin>
     <extensionPoints>
         <extensionPoint
-                qualifiedName="com.huawei.cangjie.binaryExtension"
-                interface="com.huawei.cangjie.ide.projectStructure.CangJieBinaryExtension"
+                qualifiedName="com.linqingying.cangjie.binaryExtension"
+                interface="com.linqingying.cangjie.ide.projectStructure.CangJieBinaryExtension"
                 dynamic="true"/>
     </extensionPoints>
 

@@ -1,6 +1,6 @@
-package com.huawei.cangjie.dapDebugger.runconfig
+package com.linqingying.cangjie.dapDebugger.runconfig
 
-import com.huawei.cangjie.AbstractCangJieBundle
+import com.linqingying.cangjie.AbstractCangJieBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey

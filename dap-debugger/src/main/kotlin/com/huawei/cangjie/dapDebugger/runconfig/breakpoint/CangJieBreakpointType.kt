@@ -1,5 +1,5 @@
-package com.huawei.cangjie.dapDebugger.runconfig.breakpoint
+package com.linqingying.cangjie.dapDebugger.runconfig.breakpoint
 
-//package com.huawei.cangjie.ide.debugger
+//package com.linqingying.cangjie.ide.debugger
 //
 interface CangJieBreakpointType

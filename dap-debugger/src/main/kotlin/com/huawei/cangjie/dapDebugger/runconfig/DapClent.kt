@@ -1,4 +1,4 @@
-package com.huawei.cangjie.dapDebugger.runconfig
+package com.linqingying.cangjie.dapDebugger.runconfig
 
 
 import com.google.protobuf.Message
@@ -9,11 +9,11 @@ import com.intellij.openapi.util.Pair
 import com.intellij.util.Consumer
 import com.intellij.util.concurrency.QueueProcessor
 
-import com.huawei.cangjie.dapDebugger.protocol.ProtocolMessage
-import com.huawei.cangjie.dapDebugger.protocol.request.InitializeRequest
-import com.huawei.cangjie.dapDebugger.protocol.response.InitializeResponse
-import com.huawei.cangjie.dapDebugger.protocol.type.adapter.moshi
-import com.huawei.cangjie.dapDebugger.protocol.type.serializer.format
+import com.linqingying.cangjie.dapDebugger.protocol.ProtocolMessage
+import com.linqingying.cangjie.dapDebugger.protocol.request.InitializeRequest
+import com.linqingying.cangjie.dapDebugger.protocol.response.InitializeResponse
+import com.linqingying.cangjie.dapDebugger.protocol.type.adapter.moshi
+import com.linqingying.cangjie.dapDebugger.protocol.type.serializer.format
 import kotlinx.serialization.encodeToString
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException

@@ -1,15 +1,15 @@
-package com.huawei.cangjie.dapDebugger.runconfig.message
+package com.linqingying.cangjie.dapDebugger.runconfig.message
 
 
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.util.concurrency.QueueProcessor
-import com.huawei.cangjie.dapDebugger.protocol.event.*
-import com.huawei.cangjie.dapDebugger.protocol.ProtocolMessage
-import com.huawei.cangjie.dapDebugger.protocol.request.Request
-import com.huawei.cangjie.dapDebugger.protocol.request.RunInTerminalRequest
-import com.huawei.cangjie.dapDebugger.protocol.response.*
+import com.linqingying.cangjie.dapDebugger.protocol.event.*
+import com.linqingying.cangjie.dapDebugger.protocol.ProtocolMessage
+import com.linqingying.cangjie.dapDebugger.protocol.request.Request
+import com.linqingying.cangjie.dapDebugger.protocol.request.RunInTerminalRequest
+import com.linqingying.cangjie.dapDebugger.protocol.response.*
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Proxy

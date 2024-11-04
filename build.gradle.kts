@@ -1,5 +1,6 @@
 import Build_gradle.BuildType.*
 import groovy.xml.XmlParser
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
 import org.jetbrains.intellij.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.tasks.PublishPluginTask
 import org.jetbrains.intellij.tasks.RunIdeTask
@@ -85,6 +86,33 @@ val pluginDescriptors = arrayOf<String>(
 //    "toml4j-${toml4jVersion}.jar",
 //    "utils.jar"
 )
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.28.3"
+    }
+// 手动设置源集
+    sourceSets {
+        main {
+            proto {
+                srcDir("src/main/kotlin/com/linqingying/cangjie/metadata/proto") // 指定 Protobuf 文件目录
+            }
+        }
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                // 配置生成选项
+
+                java {
+
+
+                }
+            }
+            // 可选：设置输出目录
+            task.outputs.upToDateWhen { false } // 始终生成新的输出
+        }
+    }
+}
 
 plugins {
     idea
@@ -94,7 +122,7 @@ plugins {
     id("org.jetbrains.grammarkit") version "2022.3.2"
     kotlin("plugin.serialization") version "1.9.21"
     id("org.gradle.test-retry") version "1.5.3"
-
+id("com.google.protobuf") version "0.9.3"
 //    id("antlr")
 
 }
@@ -237,7 +265,10 @@ allprojects {
     dependencies {
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+        implementation("com.google.protobuf:protobuf-java:4.28.3")
 
+        // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-javalite
+//        implementation("com.google.protobuf:protobuf-javalite:3.24.4-jb.2")
 
         // https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api
         implementation("jakarta.inject:jakarta.inject-api:2.0.1")
@@ -258,7 +289,7 @@ val cangjie_plugin_project = project(":plugin") {
         )
 
     }
-//    group = "com.huawei.cangjie"
+//    group = "com.linqingying.cangjie"
     version = cangjiePluginVersion
     dependencies {
         implementation(project(":"))
@@ -378,7 +409,7 @@ val cangjie_plugin_project = project(":plugin") {
         args(
             "buildEventsScheme",
             "--outputFile=${buildDir.resolve("eventScheme.json").absolutePath}",
-            "--pluginId=com.huawei.cangjie"
+            "--pluginId=com.linqingying.cangjie"
         )
         // BACKCOMPAT: 2023.1. Update value to 232 and this comment
         // `IDEA_BUILD_NUMBER` variable is used by `buildEventsScheme` task to write `buildNumber` to output json.
@@ -396,9 +427,14 @@ val cangjie_src_project = project(":") {
         implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
         implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-
+        implementation("com.google.protobuf:protobuf-java:4.28.3")
+//        implementation("com.google.protobuf:protobuf-java:3.24.4-jb.2")
+// https://mvnrepository.com/artifact/com.google.protobuf/protobuf-javalite
+//        implementation("com.google.protobuf:protobuf-javalite:3.24.4-jb.2")
 
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
+// https://mvnrepository.com/artifact/org.fusesource.jansi/jansi
+        implementation("org.fusesource.jansi:jansi:2.4.1")
 
         implementation("io.hotmoka:toml4j:0.7.3")
 
@@ -598,9 +634,9 @@ fun updatePluginXmlFile() {
 //        需要删除节点属性的值
         val attsStrs = listOf(
 
-            "com.huawei.cangjie.nativeDebug",
-            "com.huawei.cangjie.debugger",
-            "com.huawei.cangjie.dapDebugger"
+            "com.linqingying.cangjie.nativeDebug",
+            "com.linqingying.cangjie.debugger",
+            "com.linqingying.cangjie.dapDebugger"
         )
 
 
@@ -622,13 +658,13 @@ fun updatePluginXmlFile() {
             IU_NATIVE_DEBUG -> {
                 var node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
-                    nodeValue = "com.huawei.cangjie.nativeDebug"
+                    nodeValue = "com.linqingying.cangjie.nativeDebug"
                 })
                 content.appendChild(node)
 
                 node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
-                    nodeValue = "com.huawei.cangjie.debugger"
+                    nodeValue = "com.linqingying.cangjie.debugger"
                 })
 
                 content.appendChild(node)
@@ -639,7 +675,7 @@ fun updatePluginXmlFile() {
 
                 val node = xmlDoc.createElement("module")
                 node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
-                    nodeValue = "com.huawei.cangjie.dapDebugger"
+                    nodeValue = "com.linqingying.cangjie.dapDebugger"
                 })
                 content.appendChild(node)
             }

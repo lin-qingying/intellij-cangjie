@@ -1,4 +1,4 @@
-package com.huawei.cangjie.debugger.breakpoint.types
+package com.linqingying.cangjie.debugger.breakpoint.types
 
 import com.huawei.bitfun.intellij.breakpoint.type.DataBreakpointTypeBase
 import com.huawei.bitfun.utils.CodeCheckByPassUtils
@@ -9,14 +9,14 @@ import com.huawei.bitfun.intellij.breakpoint.type.InstructionBreakpointTypeBase
 import com.huawei.bitfun.intellij.breakpoint.type.SourceBreakpointTypeBase
 import com.huawei.bitfun.intellij.disassembly.DisassemblyVirtualFile
 
-import com.huawei.cangjie.debugger.impl.CangjieXDebugProcess
+import com.linqingying.cangjie.debugger.impl.CangjieXDebugProcess
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 import com.huawei.bitfun.intellij.breakpoint.properties.SourceXBreakpointProperties
-import com.huawei.cangjie.debugger.breakpoint.properties.CangjieSymbolicBreakpointProperties
+import com.linqingying.cangjie.debugger.breakpoint.properties.CangjieSymbolicBreakpointProperties
 
-import com.huawei.cangjie.debugger.deveco.lsp.LspUtils
+import com.linqingying.cangjie.debugger.deveco.lsp.LspUtils
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.WriteAction
 import com.intellij.xdebugger.XDebuggerManager

@@ -1,6 +1,6 @@
-package com.huawei.cangjie.psi
+package com.linqingying.cangjie.psi
 
-import com.huawei.cangjie.test.CangJieTestWithEnvironment
+import com.linqingying.cangjie.test.CangJieTestWithEnvironment
 
 
 class CjPsiFactoryTest : CangJieTestWithEnvironment() {

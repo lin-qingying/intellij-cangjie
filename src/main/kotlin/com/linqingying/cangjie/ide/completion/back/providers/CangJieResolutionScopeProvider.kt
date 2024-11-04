@@ -1,0 +1,25 @@
+package com.linqingying.cangjie.ide.completion.back.providers
+
+import com.linqingying.cangjie.analyzer.CjModule
+import com.linqingying.cangjie.psi.CjFile
+import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
+
+
+abstract class CangJieResolutionScopeProvider {
+    abstract fun getResolutionScope( module: CjModule): GlobalSearchScope
+//    public abstract fun getResolutionScope(file:CjFile): GlobalSearchScope
+
+    companion object {
+        fun getInstance(project: Project): CangJieResolutionScopeProvider =
+            project.getService(CangJieResolutionScopeProvider::class.java)
+    }
+}
+internal class IdeCangJieByModulesResolutionScopeProvider : CangJieResolutionScopeProvider() {
+
+    override fun getResolutionScope(module: CjModule): GlobalSearchScope {
+        return GlobalSearchScope.allScope(module.project)
+
+    }
+
+}

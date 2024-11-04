@@ -1,16 +1,16 @@
-<idea-plugin package="com.huawei.cangjie.ide.liveTemplates">
+<idea-plugin package="com.linqingying.cangjie.ide.liveTemplates">
   <extensions defaultExtensionNs="com.intellij">
     <defaultLiveTemplates file="liveTemplates/CangJie.xml"/>
 
 
 
-    <liveTemplateContext contextId="CANGJIE" implementation="com.huawei.cangjie.ide.liveTemplates.CangJieTemplateContextType$Generic"/>
-    <liveTemplateContext contextId="CANGJIE_TOPLEVEL" baseContextId="CANGJIE" implementation="com.huawei.cangjie.ide.liveTemplates.CangJieTemplateContextType$TopLevel"/>
-    <liveTemplateContext contextId="CANGJIE_STATEMENT" baseContextId="CANGJIE" implementation="com.huawei.cangjie.ide.liveTemplates.CangJieTemplateContextType$Statement"/>
-    <liveTemplateContext contextId="CANGJIE_CLASS" baseContextId="CANGJIE" implementation="com.huawei.cangjie.ide.liveTemplates.CangJieTemplateContextType$Class"/>
-    <liveTemplateContext contextId="CANGJIE_EXPRESSION" baseContextId="CANGJIE" implementation="com.huawei.cangjie.ide.liveTemplates.CangJieTemplateContextType$Expression"/>
-    <liveTemplateContext contextId="CANGJIE_COMMENT" baseContextId="CANGJIE" implementation="com.huawei.cangjie.ide.liveTemplates.CangJieTemplateContextType$Comment"/>
+    <liveTemplateContext contextId="CANGJIE" implementation="com.linqingying.cangjie.ide.liveTemplates.CangJieTemplateContextType$Generic"/>
+    <liveTemplateContext contextId="CANGJIE_TOPLEVEL" baseContextId="CANGJIE" implementation="com.linqingying.cangjie.ide.liveTemplates.CangJieTemplateContextType$TopLevel"/>
+    <liveTemplateContext contextId="CANGJIE_STATEMENT" baseContextId="CANGJIE" implementation="com.linqingying.cangjie.ide.liveTemplates.CangJieTemplateContextType$Statement"/>
+    <liveTemplateContext contextId="CANGJIE_CLASS" baseContextId="CANGJIE" implementation="com.linqingying.cangjie.ide.liveTemplates.CangJieTemplateContextType$Class"/>
+    <liveTemplateContext contextId="CANGJIE_EXPRESSION" baseContextId="CANGJIE" implementation="com.linqingying.cangjie.ide.liveTemplates.CangJieTemplateContextType$Expression"/>
+    <liveTemplateContext contextId="CANGJIE_COMMENT" baseContextId="CANGJIE" implementation="com.linqingying.cangjie.ide.liveTemplates.CangJieTemplateContextType$Comment"/>
 
-<!--    <liveTemplateOptionalProcessor implementation="com.huawei.cangjie.ide.liveTemplates.CangJieShortenFQNamesProcessor"/>-->
+<!--    <liveTemplateOptionalProcessor implementation="com.linqingying.cangjie.ide.liveTemplates.CangJieShortenFQNamesProcessor"/>-->
   </extensions>
 </idea-plugin>

@@ -1,4 +1,4 @@
-package com.huawei.cangjie.dapDebugger
+package com.linqingying.cangjie.dapDebugger
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service

@@ -1,6 +1,6 @@
-package com.huawei.cangjie.dapDebugger.protocol.type
+package com.linqingying.cangjie.dapDebugger.protocol.type
 
-import com.huawei.cangjie.dapDebugger.protocol.type.serializer.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.serializer.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -1,8 +1,8 @@
-package com.huawei.cangjie.dapDebugger.runconfig
+package com.linqingying.cangjie.dapDebugger.runconfig
 
-import com.huawei.cangjie.cjpm.project.settings.cangjieSettings
-import com.huawei.cangjie.utils.getSavePluginVersion
-import com.huawei.cangjie.utils.savePluginVersion
+import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
+import com.linqingying.cangjie.utils.getSavePluginVersion
+import com.linqingying.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
@@ -51,7 +51,7 @@ object CangJieDebuggerServerManager {
 
 //        如果插件版本更新，则复制一份新的
         // 获取当前插件的版本
-        val currentVersion = PluginManagerCore.getPlugin(PluginId.getId("com.huawei.cangjie"))?.version
+        val currentVersion = PluginManagerCore.getPlugin(PluginId.getId("com.linqingying.cangjie"))?.version
         // 获取保存的插件版本
         val savedVersion = getSavePluginVersion()
         // 如果当前版本和保存的版本不一致，则重新复制一份

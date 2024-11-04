@@ -1,7 +1,7 @@
-package com.huawei.cangjie.dapDebugger.runconfig
+package com.linqingying.cangjie.dapDebugger.runconfig
 
-import com.huawei.cangjie.dapDebugger.protocol.type.EvaluateArgumentsContext
-import com.huawei.cangjie.psi.psiUtil.toPsiFile
+import com.linqingying.cangjie.dapDebugger.protocol.type.EvaluateArgumentsContext
+import com.linqingying.cangjie.psi.psiUtil.toPsiFile
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project

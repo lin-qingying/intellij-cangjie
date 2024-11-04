@@ -3,12 +3,12 @@
 
         <!--        <intentionAction>-->
         <!--            <language>CangJie</language>-->
-        <!--            <className>com.huawei.cangjie.ide.intentions.ReplaceExplicitFunctionLiteralParamWithItIntention</className>-->
+        <!--            <className>com.linqingying.cangjie.ide.intentions.ReplaceExplicitFunctionLiteralParamWithItIntention</className>-->
         <!--            <bundleName>messages.CangJieBundle</bundleName>-->
         <!--            <categoryKey>group.names.cangjie</categoryKey>-->
         <!--        </intentionAction>-->
         <localInspection
-                implementationClass="com.huawei.cangjie.ide.refactoring.move.changePackage.CangJiePackageDirectoryMismatchInspection"
+                implementationClass="com.linqingying.cangjie.ide.refactoring.move.changePackage.CangJiePackageDirectoryMismatchInspection"
                 groupPath="CangJie"
                 groupBundle="messages.CangJieBundle" groupKey="group.names.cangjie.interop.issues"
                 enabledByDefault="true"
@@ -18,14 +18,14 @@
 
         <intentionAction>
             <language>CangJie</language>
-            <className>com.huawei.cangjie.ide.intentions.CangJieInsertExplicitTypeArgumentsIntention</className>
+            <className>com.linqingying.cangjie.ide.intentions.CangJieInsertExplicitTypeArgumentsIntention</className>
             <bundleName>messages.CangJieBundle</bundleName>
             <categoryKey>group.names.cangjie</categoryKey>
         </intentionAction>
 
 
         <localInspection
-                implementationClass="com.huawei.cangjie.ide.inspections.cdoc.CDocMissingDocumentationInspection"
+                implementationClass="com.linqingying.cangjie.ide.inspections.cdoc.CDocMissingDocumentationInspection"
                 groupPath="CangJie"
                 groupBundle="messages.CangJieBundle" groupKey="group.names.other.problems"
                 enabledByDefault="false"
@@ -36,7 +36,7 @@
 
 
         <localInspection
-                implementationClass="com.huawei.cangjie.ide.inspections.CangJieRedundantVisibilityModifierInspection"
+                implementationClass="com.linqingying.cangjie.ide.inspections.CangJieRedundantVisibilityModifierInspection"
                 groupPath="CangJie"
                 groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"
                 enabledByDefault="true"

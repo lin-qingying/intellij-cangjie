@@ -1,7 +1,7 @@
-package com.huawei.cangjie.dapDebugger.runconfig.breakpoint//package com.huawei.cangjie.ide.debugger
+package com.linqingying.cangjie.dapDebugger.runconfig.breakpoint//package com.linqingying.cangjie.ide.debugger
 
-import com.huawei.cangjie.dapDebugger.runconfig.CangJieDebuggerCoreBundle
-import com.huawei.cangjie.lang.CangJieFileType
+import com.linqingying.cangjie.dapDebugger.runconfig.CangJieDebuggerCoreBundle
+import com.linqingying.cangjie.lang.CangJieFileType
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties

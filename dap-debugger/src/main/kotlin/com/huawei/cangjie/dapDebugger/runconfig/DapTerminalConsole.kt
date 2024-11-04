@@ -1,4 +1,4 @@
-package com.huawei.cangjie.dapDebugger.runconfig
+package com.linqingying.cangjie.dapDebugger.runconfig
 
 import com.google.common.base.Ascii
 import com.intellij.execution.ExecutionBundle
