@@ -247,6 +247,8 @@ allprojects {
                     maxFailures.set(5)
                 }
             }
+
+            useJUnitPlatform()
         }
 //        signPlugin {
 //            certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
@@ -261,6 +263,7 @@ allprojects {
 //        publishPlugin {
 //            token.set(System.getenv("PUBLISH_TOKEN"))
 //        }
+
     }
     dependencies {
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
@@ -272,6 +275,8 @@ allprojects {
 
         // https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api
         implementation("jakarta.inject:jakarta.inject-api:2.0.1")
+
+        testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
         compileOnly(kotlin("stdlib-jdk8"))
     }
 }

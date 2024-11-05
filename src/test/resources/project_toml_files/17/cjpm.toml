@@ -1,0 +1,14 @@
+[dependencies]
+
+[package]
+cjc-version = "0.55.3"
+compile-option = "-O2"
+description = "nothing here"
+link-option = ""
+name = "jwt4cj"
+output-type = "dynamic"
+src-dir = "src"
+target-dir = ""
+version = "0.0.1"
+package-configuration = {}
+scripts = {}

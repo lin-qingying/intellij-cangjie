@@ -1,0 +1,13 @@
+[dependencies]
+
+[package]
+cjc-version = "0.54.3"
+compile-option = ""
+description = "nothing here"
+link-option = "-rpath=lib:runtime"
+name = "shadowsocks_cj"
+output-type = "executable"
+src-dir = ""
+target-dir = ""
+version = "1.0.0"
+package-configuration = { "shadowsocks_cj.sirnple.shadowsocks.local" = { output-type = "executable" }, "shadowsocks_cj.sirnple.shadowsocks.remote" = { output-type = "executable" } }

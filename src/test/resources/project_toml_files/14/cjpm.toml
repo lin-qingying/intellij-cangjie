@@ -1,0 +1,14 @@
+[dependencies]
+
+[package]
+cjc-version = "0.56.4"
+compile-option = "-O2"
+description = "YAML解析工具"
+link-option = ""
+name = "yaml4cj"
+output-type = "dynamic"
+src-dir = "src"
+target-dir = ""
+version = "0.0.1"
+package-configuration = {}
+scripts = {}

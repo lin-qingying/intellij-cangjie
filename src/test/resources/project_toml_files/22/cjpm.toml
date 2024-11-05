@@ -1,0 +1,20 @@
+[dependencies]
+
+[package]
+vendor = "Primeton Information Technologies, Inc."
+cjc-version = "0.53.4"
+name = "s3client"
+version = "0.2.0"
+output-type = "dynamic"
+description = "Amazon S3 Client SDK implemented using Cangjie"
+src-dir = "src"
+target-dir = ""
+link-option = ""
+compile-option = "-O2"
+package-configuration = {}
+scripts = {}
+
+[profile]
+build = {incremental = false, lto = ""}
+customized-option = {cfg1 = "--profile-compile-time"}
+test = {}

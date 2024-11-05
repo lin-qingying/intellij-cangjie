@@ -278,11 +278,32 @@ data class CjpmProjectInfo(
         }
     }
 }
-
+data class PackageConfigurationInfo(
+    @JsonProperty("cjc-version")
+    val cjcVersion: String?,
+    @JsonProperty("name")
+    val name: String?,
+    @JsonProperty("description")
+    val description: String?,
+    @JsonProperty("version")
+    val version: String?,
+    @JsonProperty("compile-option")
+    val compileOption: String?,
+    @JsonProperty("override-compile-option")
+    val overrideCompileOption: String?,
+    @JsonProperty("link-option")
+    val linkOption: String?,
+    @JsonProperty("output-type")
+    val outputType: String?,
+    @JsonProperty("src-dir")
+    val srcDir: String?,
+    @JsonProperty("target-dir")
+    val targetDir: String?,
+)
 
 data class PackageConfiguration(
     val packageName: String,
-    val configuration: CjpmProjectInfo
+    val configuration: PackageConfigurationInfo
 ) {
     class ListDeserializer : StdDeserializer<List<PackageConfiguration>>(List::class.java) {
         override fun deserialize(p0: JsonParser?, p1: DeserializationContext?): List<PackageConfiguration> {
@@ -292,7 +313,8 @@ data class PackageConfiguration(
                 val packageNode = value as JsonNode
                 val packageObject = PackageConfiguration(
                     packageName = key,
-                    configuration = Cjpm.JSON_MAPPER.readValue(packageNode.asText(), CjpmProjectInfo::class.java)
+                    configuration = Cjpm.JSON_MAPPER.convertValue(packageNode, PackageConfigurationInfo::class.java)
+
                 )
                 packageConfiguration.add(packageObject)
             }
@@ -369,8 +391,8 @@ data class ForeignRequires(
                 val packageNode = value as JsonNode
                 val packageObject = ForeignRequires(
                     key,
-                    path = packageNode.get("path").asText(),
-                    export = packageNode.get("export").asText().split(",").map { it.trim() }.toList()
+                    path = packageNode.get("path")?.asText() ?: "",
+                    export = packageNode.get("export")?.asText()?.split(",")?.map { it.trim() }?.toList() ?: emptyList()
                 )
                 foreignRequires.add(packageObject)
             }

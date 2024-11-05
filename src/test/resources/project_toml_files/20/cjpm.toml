@@ -1,0 +1,13 @@
+[dependencies]
+
+[package]
+cjc-version = "0.53.4"
+compile-option = "-Woff=all -O2"
+description = "nothing here"
+link-option = ""
+name = "xmlstream"
+output-type = "dynamic"
+src-dir = ""
+target-dir = ""
+version = "1.0.0"
+package-configuration = {}
