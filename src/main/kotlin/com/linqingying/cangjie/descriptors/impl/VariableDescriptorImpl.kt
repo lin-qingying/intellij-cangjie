@@ -3,9 +3,10 @@ package com.linqingying.cangjie.descriptors.impl
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.name.Name
-import com.linqingying.cangjie.types.CangJieType
-import com.linqingying.cangjie.types.TypeSubstitution
-import com.linqingying.cangjie.types.TypeSubstitutor
+import com.linqingying.cangjie.resolve.scopes.receivers.ContextReceiver
+import com.linqingying.cangjie.resolve.scopes.receivers.ExtensionReceiver
+import com.linqingying.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
+import com.linqingying.cangjie.types.*
 
 
 open class VariableDescriptorImpl(
@@ -22,6 +23,39 @@ open class VariableDescriptorImpl(
     private var _visibility: DescriptorVisibility = visibility
 
     companion object {
+        private fun substituteContextParameterDescriptor(
+            substitutor: TypeSubstitutor,
+            substitutedPropertyDescriptor: VariableDescriptorImpl,
+            receiverParameterDescriptor: ReceiverParameterDescriptor
+        ): ReceiverParameterDescriptor? {
+            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT)
+                ?: return null
+            return ReceiverParameterDescriptorImpl(
+                substitutedPropertyDescriptor,
+                ContextReceiver(
+                    substitutedPropertyDescriptor,
+                    substitutedType,
+                    (receiverParameterDescriptor.value as ImplicitContextReceiver).customLabelName,
+                    receiverParameterDescriptor.value
+                ),
+                receiverParameterDescriptor.annotations
+            )
+        }
+
+        private fun substituteParameterDescriptor(
+            substitutor: TypeSubstitutor,
+            substitutedPropertyDescriptor: VariableDescriptor,
+            receiverParameterDescriptor: ReceiverParameterDescriptor
+        ): ReceiverParameterDescriptor? {
+            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT)
+                ?: return null
+            return ReceiverParameterDescriptorImpl(
+                substitutedPropertyDescriptor,
+                ExtensionReceiver(substitutedPropertyDescriptor, substitutedType, receiverParameterDescriptor.value),
+                receiverParameterDescriptor.annotations
+            )
+        }
+
         @JvmStatic
         fun create(
             containingDeclaration: DeclarationDescriptor,
@@ -44,10 +78,11 @@ open class VariableDescriptorImpl(
         source: SourceElement
     ): VariableDescriptorImpl {
         return VariableDescriptorImpl(
-            newOwner,newName,null,isVar,  source ,newVisibility
+            newOwner, newName, null, isVar, source, newVisibility
 
         )
     }
+
     private var overriddenProperties: Collection<VariableDescriptorImpl>? = null
 
     override fun getOverriddenDescriptors(): Collection<VariableDescriptorImpl> {
@@ -80,72 +115,72 @@ open class VariableDescriptorImpl(
         return this
     }
 
-    override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out CallableMemberDescriptor> {
-        return object : CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-            override fun setOwner(owner: DeclarationDescriptor): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-            }
+    override fun newCopyBuilder(): CopyConfiguration {
+//        return object : CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//            override fun setOwner(owner: DeclarationDescriptor): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//            }
+//
+//            override fun setModality(modality: Modality): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setVisibility(visibility: DescriptorVisibility): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setKind(kind: CallableMemberDescriptor.Kind): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setTypeParameters(parameters: MutableList<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setSubstitution(substitution: TypeSubstitution): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setCopyOverrides(copyOverrides: Boolean): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setName(name: Name): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setOriginal(original: CallableMemberDescriptor?): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setPreserveSourceElement(): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun setReturnType(type: CangJieType): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
+//                return this
+//
+//            }
+//
+//            override fun build(): CallableMemberDescriptor {
+//                return this@VariableDescriptorImpl
+//            }
+        return CopyConfiguration()
 
-            override fun setModality(modality: Modality): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setVisibility(visibility: DescriptorVisibility): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setKind(kind: CallableMemberDescriptor.Kind): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setTypeParameters(parameters: MutableList<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setSubstitution(substitution: TypeSubstitution): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setCopyOverrides(copyOverrides: Boolean): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setName(name: Name): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setOriginal(original: CallableMemberDescriptor?): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setPreserveSourceElement(): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun setReturnType(type: CangJieType): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-
-            }
-
-            override fun build(): CallableMemberDescriptor {
-                return this@VariableDescriptorImpl
-            }
-
-        }
     }
 
 
@@ -156,9 +191,159 @@ open class VariableDescriptorImpl(
 
     override var visibility: DescriptorVisibility = _visibility
 
+    inner class CopyConfiguration : CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl?> {
+        var _owner: DeclarationDescriptor = containingDeclaration
+        var _modality: Modality = modality
+        var _visibility = this@VariableDescriptorImpl.visibility
+        var _original: VariableDescriptorImpl? = null
+        var _preserveSourceElement = true
+        var _kind: CallableMemberDescriptor.Kind = kind
+        var _substitution = TypeSubstitution.EMPTY
+        var _copyOverrides = true
+        var _dispatchReceiverParameter: ReceiverParameterDescriptor? =
+            this@VariableDescriptorImpl.getDispatchReceiverParameter()
+        var _newTypeParameters: List<TypeParameterDescriptor>? = null
+        var _name = this@VariableDescriptorImpl.name
+        var _returnType: CangJieType = type
 
-    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor? {
-        return this
+        override fun setOwner(owner: DeclarationDescriptor): CopyConfiguration {
+            this._owner = owner
+            return this
+        }
+
+        override fun setOriginal(original: CallableMemberDescriptor?): CopyConfiguration {
+            this._original = original as VariableDescriptorImpl?
+            return this
+        }
+
+        override fun setPreserveSourceElement(): CopyConfiguration {
+            _preserveSourceElement = true
+            return this
+        }
+
+        override fun setReturnType(type: CangJieType): CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl?> {
+            _returnType = type
+            return this
+        }
+
+        override fun setModality(modality: Modality): CopyConfiguration {
+            this._modality = modality
+            return this
+        }
+
+        override fun setVisibility(visibility: DescriptorVisibility): CopyConfiguration {
+            this._visibility = visibility
+            return this
+        }
+
+        override fun setKind(kind: CallableMemberDescriptor.Kind): CopyConfiguration {
+            this._kind = kind
+            return this
+        }
+
+        override fun setTypeParameters(typeParameters: List<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl?> {
+            this._newTypeParameters = typeParameters
+            return this
+        }
+
+        override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CopyConfiguration {
+            this._dispatchReceiverParameter = dispatchReceiverParameter
+            return this
+        }
+
+        override fun setSubstitution(substitution: TypeSubstitution): CopyConfiguration {
+            this._substitution = substitution
+            return this
+        }
+
+        override fun setCopyOverrides(copyOverrides: Boolean): CopyConfiguration {
+            this._copyOverrides = copyOverrides
+            return this
+        }
+
+        override fun setName(name: Name): CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl?> {
+            this._name = name
+            return this
+        }
+
+        override fun build(): VariableDescriptorImpl? {
+            return doSubstitute(this)
+        }
+
+
+    }
+
+    private fun getSourceToUseForCopy(preserveSource: Boolean, original: VariableDescriptorImpl?): SourceElement {
+        return if (preserveSource)
+            (original ?: original)!!.source
+        else
+            SourceElement.NO_SOURCE
+    }
+
+    protected fun doSubstitute(copyConfiguration: CopyConfiguration): VariableDescriptorImpl? {
+        val substitutedDescriptor = createSubstitutedCopy(
+            copyConfiguration._owner, copyConfiguration._modality, copyConfiguration._visibility,
+            copyConfiguration._original, copyConfiguration._kind, copyConfiguration._name,
+            getSourceToUseForCopy(copyConfiguration._preserveSourceElement, copyConfiguration._original)
+        )
+        val originalTypeParameters =
+            if (copyConfiguration._newTypeParameters == null) typeParameters else copyConfiguration._newTypeParameters
+                ?: emptyList()
+        val substitutedTypeParameters: List<TypeParameterDescriptor> = ArrayList(originalTypeParameters.size)
+        val substitutor = DescriptorSubstitutor.substituteTypeParameters(
+            originalTypeParameters, copyConfiguration._substitution, substitutedDescriptor, substitutedTypeParameters
+        )
+
+        val originalOutType: CangJieType = copyConfiguration._returnType
+        val outType = substitutor.substitute(originalOutType, Variance.INVARIANT)
+            ?: return null // TODO : tell the user that the property was projected out
+
+        val substitutedDispatchReceiver: ReceiverParameterDescriptor?
+        val dispatchReceiver = copyConfiguration._dispatchReceiverParameter
+        if (dispatchReceiver != null) {
+            substitutedDispatchReceiver = dispatchReceiver.substitute(substitutor)
+            if (substitutedDispatchReceiver == null) return null
+        } else {
+            substitutedDispatchReceiver = null
+        }
+        val substitutedExtensionReceiver = if (extensionReceiverParameter != null) {
+            substituteParameterDescriptor(
+                substitutor, substitutedDescriptor,
+                extensionReceiverParameter!!
+            )
+        } else {
+            null
+        }
+
+        val substitutedContextReceivers: MutableList<ReceiverParameterDescriptor> = ArrayList()
+        for (contextReceiverParameter in contextReceiverParameters) {
+            val substitutedContextReceiver = substituteContextParameterDescriptor(
+                substitutor, substitutedDescriptor,
+                contextReceiverParameter
+            )
+            if (substitutedContextReceiver != null) {
+                substitutedContextReceivers.add(substitutedContextReceiver)
+            }
+        }
+
+        substitutedDescriptor.setType(
+            outType, substitutedTypeParameters, substitutedDispatchReceiver, substitutedExtensionReceiver,
+            substitutedContextReceivers
+        )
+        return substitutedDescriptor
+
+    }
+
+    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptorImpl? {
+        if (substitutor.isEmpty) {
+            return this
+        }
+
+        return newCopyBuilder()
+            .setSubstitution(substitutor.substitution)
+            .setOriginal(original)
+            .build()
+
     }
 
 

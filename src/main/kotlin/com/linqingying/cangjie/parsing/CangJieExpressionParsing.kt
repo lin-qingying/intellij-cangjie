@@ -770,8 +770,8 @@ open class CangJieExpressionParsing(
             var type = 1
 
             if (lookahead(1) == DOT || lookahead(1) == LT) {
-//                parseReferenceExpression()
-                cangJieParsing.parseTypeRef()
+                parseReferenceExpression()
+//                cangJieParsing.parseTypeRef()
                 type = 3
 
                 if (at(LPAR)) {
@@ -802,8 +802,8 @@ open class CangJieExpressionParsing(
                 } else if (at(LPAR)) {
                     mark.rollbackTo()
                     mark = mark()
-                    cangJieParsing.parseTypeRef()
-//                    parseReferenceExpression()
+//                    cangJieParsing.parseTypeRef()
+                    parseReferenceExpression()
 
                     //枚举模式
                     advance() // LPAR

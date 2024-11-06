@@ -1,5 +1,8 @@
 package com.linqingying.cangjie.resolve.calls
 
+import com.intellij.lang.ASTNode
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.util.AstLoadingFilter
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.toFunctionType
 import com.linqingying.cangjie.config.LanguageFeature
@@ -37,9 +40,6 @@ import com.linqingying.cangjie.types.isError
 import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
-import com.intellij.lang.ASTNode
-import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.util.AstLoadingFilter
 import jakarta.inject.Inject
 
 class CallExpressionResolver(
@@ -125,28 +125,28 @@ class CallExpressionResolver(
         }
 
 
-//        val temporaryForEnum = TemporaryTraceAndCache.create(
-//            context, "trace to resolve as enum call", callExpression
-//        )
-//        val (resolveByEnumResult, resolvedByEnumCall) = getResolvedCallForEnum(
-//            call,
-//            temporaryForEnum,
-//            context.replaceTraceAndCache(temporaryForEnum),
-//            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
-//            initialDataFlowInfoForArguments
-//        )
-//
-//
-//        if (resolveByEnumResult) {
-//            temporaryForEnum.commit()
-//            val enumDescriptor = resolvedByEnumCall?.resultingDescriptor ?: return noTypeInfo(context)
+        val temporaryForEnum = TemporaryTraceAndCache.create(
+            context, "trace to resolve as enum call", callExpression
+        )
+        val (resolveByEnumResult, resolvedByEnumCall) = getResolvedCallForEnum(
+            call,
+            temporaryForEnum,
+            context.replaceTraceAndCache(temporaryForEnum),
+            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+            initialDataFlowInfoForArguments
+        )
+
+
+        if (resolveByEnumResult) {
+            temporaryForEnum.commit()
+            val enumDescriptor = resolvedByEnumCall?.resultingDescriptor ?: return noTypeInfo(context)
 //            val isEnumClass = when (enumDescriptor) {
 //                is EnumClassCallableDescriptor -> !enumDescriptor.isEnumEntry
 //                else -> false
 //            }
-//
-//            val type = enumDescriptor.returnType
-//            val resultFlowInfo = resolvedByEnumCall.dataFlowInfoForArguments.resultInfo
+
+            val type = enumDescriptor.returnType
+            val resultFlowInfo = resolvedByEnumCall.dataFlowInfoForArguments.resultInfo
 //
 //            if (callExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
 //                    enumDescriptor.type
@@ -179,8 +179,8 @@ class CallExpressionResolver(
 //
 //                )
 //            }
-//            return createTypeInfo(type, resultFlowInfo)
-//        }
+            return createTypeInfo(type, resultFlowInfo)
+        }
 
         val calleeExpression = callExpression.calleeExpression
         if (calleeExpression is CjSimpleNameExpression && callExpression.typeArgumentList == null) {
@@ -414,7 +414,11 @@ class CallExpressionResolver(
         val newEnumContext = context.replaceTraceAndCache(temporaryForEnum)
 
         val (resolveEnumResult, resolvedEnumCall) = getResolvedCallForEnum(
-            call,temporaryForEnum, newEnumContext, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, initialDataFlowInfoForArguments
+            call,
+            temporaryForEnum,
+            newEnumContext,
+            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+            initialDataFlowInfoForArguments
         )
         if (resolveEnumResult) {
             temporaryForEnum.commit()

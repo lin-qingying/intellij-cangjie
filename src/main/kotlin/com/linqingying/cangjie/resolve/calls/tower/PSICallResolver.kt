@@ -23,6 +23,7 @@ import com.linqingying.cangjie.resolve.calls.components.PostponedArgumentsAnalyz
 import com.linqingying.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.linqingying.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.linqingying.cangjie.resolve.calls.context.ContextDependency
+import com.linqingying.cangjie.resolve.calls.inference.buildResultingSubstitutor
 import com.linqingying.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
 import com.linqingying.cangjie.resolve.calls.inference.components.ResultTypeResolver
 import com.linqingying.cangjie.resolve.calls.model.*
@@ -47,6 +48,7 @@ import com.linqingying.cangjie.types.UnwrappedType
 
 import com.linqingying.cangjie.types.expressions.ExpressionTypingServices
 import com.linqingying.cangjie.types.isError
+import com.linqingying.cangjie.types.model.TypeSystemInferenceExtensionContext
 import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.utils.CangJieExceptionWithAttachments
 import com.linqingying.cangjie.utils.compactIfPossible
@@ -242,19 +244,19 @@ class PSICallResolver(
         tracingStrategy: TracingStrategy
     ): OverloadResolutionResults<D> {
         // 如果结果是所有候选者的解析结果，则将每个候选者转换为 resolved call，并返回所有候选者的过载解析结果.
-        // if (result is AllCandidatesResolutionResult) {
-        //     val resolvedCalls = result.allCandidates.map { (candidate, diagnostics) ->
-        //         val system = candidate.getSystem()
-        //         val resultingSubstitutor =
-        //             system.asReadOnlyStorage().buildResultingSubstitutor(system as TypeSystemInferenceExtensionContext)
-        //
-        //         cangjieToResolvedCallTransformer.transformToResolvedCall<D>(
-        //             candidate.resolvedCall, null, resultingSubstitutor, diagnostics
-        //         )
-        //     }
-        //
-        //     return AllCandidates(resolvedCalls)
-        // }
+         if (result is AllCandidatesResolutionResult) {
+             val resolvedCalls = result.allCandidates.map { (candidate, diagnostics) ->
+                 val system = candidate.getSystem()
+                 val resultingSubstitutor =
+                     system.asReadOnlyStorage().buildResultingSubstitutor(system as TypeSystemInferenceExtensionContext)
+
+                 cangjieToResolvedCallTransformer.transformToResolvedCall<D>(
+                     candidate.resolvedCall, null, resultingSubstitutor, diagnostics
+                 )
+             }
+
+             return AllCandidates(resolvedCalls)
+         }
 
         // 处理错误解析结果，如果结果是错误，则记录错误信息并返回错误结果.
         val trace = context.trace

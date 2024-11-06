@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.types.expressions.match
 
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.CjNodeTypes.BOOLEAN_CONSTANT
 import com.linqingying.cangjie.CjNodeTypes.UNIT_CONSTANT
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
@@ -50,7 +51,6 @@ import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.utils.addIfNotNull
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 import com.linqingying.cangjie.utils.runIf
-import com.intellij.psi.PsiElement
 import java.util.*
 
 abstract class Subject(
@@ -1090,6 +1090,9 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         }
 
         override fun visitPatternByEnum(element: CjEnumPattern, data: PatternContext): Pattern {
+components.callExpressionResolver.getSimpleNameExpressionTypeInfo
+
+            val expression = element.expression
 
             val typeReference = element.type
             val typeElement = typeReference?.typeElement
@@ -1152,13 +1155,13 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                         return Pattern(data.subject.type, PatternKind.Error)
                     }
                     data.subject.type.arguments.forEachIndexed { index, typeProjection ->
-                       val tpType = components.typeResolver.resolveType(
+                        val tpType = components.typeResolver.resolveType(
                             data.context.scope,
                             typeQualifier.typeArgumentsAsTypes[index],
                             data.context.trace,
                             false
                         )
-                        if(!CangJieTypeChecker.DEFAULT.isSubtypeOf(typeProjection.type, tpType)){
+                        if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(typeProjection.type, tpType)) {
                             data.context.trace.report(NOT_ENUM_MATCH.on(element.type))
                             return Pattern(data.subject.type, PatternKind.Error)
                         }

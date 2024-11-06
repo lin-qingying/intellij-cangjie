@@ -3,121 +3,120 @@ package com.linqingying.cangjie.resolve.calls.tower
 
 enum class CandidateApplicability {
     /**
-     * Special applicability for migration warning up to 1.5.
-     * Used when resolved to function with SAM conversion and array without spread as vararg.
+     * 当解析为带有SAM转换的函数且数组没有作为vararg展开时使用。
      */
-     RESOLVED_TO_SAM_WITH_VARARG,
+    RESOLVED_TO_SAM_WITH_VARARG,
 
     /**
-     * Candidate is removed from resolve due to SinceCangJie with later version or Deprecation with hidden level.
-     * Note that SinceCangJie does not filter out classifier symbols and property accessors. Those
-     * should lead to API_NOT_AVAILABLE.
-     * Provokes UNRESOLVED_REFERENCE.
+     * 候选者因SinceCangJie版本较新或Deprecation级别为隐藏而从解析中移除。
+     * 注意，SinceCangJie不会过滤出分类符符号和属性访问器。这些应导致API_NOT_AVAILABLE。
+     * 引发UNRESOLVED_REFERENCE。
      */
     HIDDEN,
 
     /**
-     * Candidate could be successful but requires an unsupported feature.
-     * Reported for references to local .
-     * Provokes UNSUPPORTED.
+     * 候选者可能成功，但需要不支持的功能。
+     * 对于引用本地变量的情况报告此错误。
+     * 引发UNSUPPORTED。
      */
-     UNSUPPORTED,
+    UNSUPPORTED,
 
     /**
-     * Candidate could be successful but receiver isn't matched
+     * 候选者可能成功，但接收者不匹配。
      */
     INAPPLICABLE_WRONG_RECEIVER,
 
     /**
-     * Candidate could be successful but arguments not mapped to parameters (i.e. different size of arguments and parameters)
+     * 候选者可能成功，但参数映射错误（即参数和实参数量不同）。
      */
     INAPPLICABLE_ARGUMENTS_MAPPING_ERROR,
 
     /**
-     * Candidate could be successful but arguments have wrong types (or other general inapplicability)
+     * 候选者可能成功，但参数类型错误（或其他一般不适用性）。
      */
     INAPPLICABLE,
 
     /**
-     * Candidate could be successful but uses some non-object classifier without companion object as a variable.
+     * 候选者可能成功，但使用了没有伴生对象的非对象分类符作为变量。
      */
-     NO_COMPANION_OBJECT,
+    NO_COMPANION_OBJECT,
 
     /**
-     * Candidate could be successful but requires access to outer class from nested (non-inner)
+     * 候选者可能成功，但需要从嵌套（非内部）类访问外部类。
      */
-     IMPOSSIBLE_TO_GENERATE,
+    IMPOSSIBLE_TO_GENERATE,
 
-    // TODO: Consider re-assigning this diagnostics ( RUNTIME_ERROR)
+    // TODO: 考虑重新分配此诊断 (RUNTIME_ERROR)
 
     /**
-     * This applicability is used in K1 as a catch-all for all other errors.
+     * 适用所有其他错误的捕获。
      */
-     RUNTIME_ERROR,
+    RUNTIME_ERROR,
 
     /**
-     * Candidate isn't visible. Provokes INVISIBLE_REFERENCE.
+     * 候选者不可见。引发INVISIBLE_REFERENCE。
      */
-     VISIBILITY_ERROR,
+    VISIBILITY_ERROR,
 
     /**
-     * Candidate could be successful but receiver (or argument?) nullability doesn't match
+     * 候选者可能成功，但接收者（或参数？）的可空性不匹配。
      */
     UNSAFE_CALL,
 
     /**
-     * Candidate could be successful but requires unstable smart cast.
+     * 候选者可能成功，但需要不稳定的智能类型转换。
      */
     UNSTABLE_SMARTCAST,
 
     /**
-     * Candidate could be successful but does not obey conventions.
-     * E.g. infix / operator / etc are missed (= no expected modifier).
+     * 候选者可能成功，但不符合约定。
+     * 例如，缺少中缀/操作符/等（= 没有预期的修饰符）。
      */
     CONVENTION_ERROR,
 
-    // Everything below has isSuccess = true (RESOLVED_WITH_ERROR is an exception)
+    // 以下的所有适用性都有 isSuccess = true (RESOLVED_WITH_ERROR 是例外)
 
     /**
-     * Candidate is successful but has low priority.
-     * Tower resolve proceeds to next levels.
+     * 候选者成功，但优先级较低。
+     * 解析塔继续进行到下一层。
      */
     RESOLVED_LOW_PRIORITY,
 
     /**
-     * Candidate is successful but uses property of functional type as an operator.
-     * Tower resolve proceeds to next levels.
+     * 候选者成功，但将函数类型的属性用作操作符。
+     * 解析塔继续进行到下一层。
      */
-     PROPERTY_AS_OPERATOR,
+    PROPERTY_AS_OPERATOR,
 
     /**
-     * Candidate is successful but uses new features that change resolve.
-     * Tower resolve proceeds to next levels.
+     * 候选者成功，但使用了改变解析的新功能。
+     * 解析塔继续进行到下一层。
      */
     RESOLVED_NEED_PRESERVE_COMPATIBILITY,
 
-    // Everything below has shouldStopResolve = true
-    // (Tower resolve does not go to further scopes if candidate with applicability below is found)
+    // 以下的所有适用性都有 shouldStopResolve = true
+    // （如果找到具有以下适用性的候选者，解析塔不会进一步进入作用域）
 
     /**
-     * Successful but synthetic candidate.
-     * Used in K2 for (Java) synthetic discrimination at the same level.
+     * 成功但为合成候选者。
+     * 在K2中用于（Java）合成区分在同一层级。
      */
-     SYNTHETIC_RESOLVED,
+    SYNTHETIC_RESOLVED,
 
     /**
-     * Candidate has some error, but it is still successful from resolution perspective.
-     * This means that tower resolve stops with this applicability.
-     * However, error will be reported.
-     * This is the only applicability that stops resolve but provokes an error.
+     * 候选者有一些错误，但从解析角度来看仍然是成功的。
+     * 这意味着解析塔在此适用性处停止。
+     * 但是，错误将被报告。
+     * 这是唯一一个停止解析但引发错误的适用性。
      */
     RESOLVED_WITH_ERROR,
 
     /**
-     * Candidate is successful or has uncompleted inference (so possibly successful).
+     * 候选者成功或推断未完成（因此可能是成功的）。
      */
     RESOLVED,
 }
+
 /**
  * This property determines that tower resolve should stop on the candidate/group with this applicability
  * and should not go to further scope levels. Note that candidate can still have error(s).

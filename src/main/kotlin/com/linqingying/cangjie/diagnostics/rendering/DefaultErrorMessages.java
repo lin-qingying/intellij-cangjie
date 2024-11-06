@@ -104,6 +104,7 @@ public class DefaultErrorMessages {
 
         MAP.put(STATIC_CONTEXT_REFERENCE_ERROR, "Non-static {0} ''{1}'' cannot be referenced from a static context", DESCRIPTOR_KIND_NAME, NAMED_ADN_PARAMETER);
         MAP.put(INSTANCE_ACCESS_STATIC_MEMBER_ERROR, "Static {0} ''{1}'' accessed via instance reference", DESCRIPTOR_KIND_NAME, NAMED_ADN_PARAMETER);
+        MAP.put(STATIC_INSTANCE_ACCESS, "''{0}'' cannot be referenced from a static context", EXPRESSION_TYPE_TEXT  );
 
 //        类型检查
 

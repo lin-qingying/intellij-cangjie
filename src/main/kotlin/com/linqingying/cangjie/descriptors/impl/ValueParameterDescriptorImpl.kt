@@ -93,6 +93,9 @@ open class ValueParameterDescriptorImpl(
 
     override val varargElementType: CangJieType?
         get() {
+
+//            TODO 这里有问题
+//           这里应该是当形参最够一个类型是Array时，并且不为命名参数，才是vararg
             return if (CangJieBuiltIns.isArray(this.type)) {
                 type.arguments[0].type
             } else {

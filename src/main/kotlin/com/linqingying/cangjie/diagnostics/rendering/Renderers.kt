@@ -1,5 +1,7 @@
 package com.linqingying.cangjie.diagnostics.rendering
 
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.builtins.fqNameUnsafe
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.diagnostics.MatchMissingCase
@@ -17,8 +19,6 @@ import com.linqingying.cangjie.resolve.calls.model.ResolvedCall
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.getAbbreviation
 import com.linqingying.cangjie.types.util.contains
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.psi.PsiElement
 
 
 /**
@@ -163,6 +163,17 @@ object Renderers {
     @JvmField
     val DESCRIPTOR_KIND_NAME = renderer { kind: DescriptorKind ->
         kind.kind
+    }
+
+    //根据表达式类型显示
+    @JvmField
+    val EXPRESSION_TYPE_TEXT = renderer<PsiElement> {
+
+        when (it) {
+            is CjThisExpression -> "this"
+            is CjSuperExpression -> "super"
+            else -> ""
+        }
     }
 
     @JvmField

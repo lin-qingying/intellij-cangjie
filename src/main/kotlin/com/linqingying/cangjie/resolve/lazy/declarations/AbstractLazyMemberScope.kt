@@ -106,11 +106,10 @@ protected constructor(
     private fun getDeclaredVariables(
         name: Name
     ): Collection<VariableDescriptor> {
-        if (mainScope != null) return mainScope.declaredVariableDescriptors(name).map {
-//            it.newCopyBuilder().setPreserveSourceElement().build()!!
-            it
-        }
 
+        if (mainScope != null) return mainScope.declaredPropertyDescriptors(name).map {
+            it.newCopyBuilder().setPreserveSourceElement().build()!!
+        }
         val result = LinkedHashSet<VariableDescriptor>()
 
         val declarations = declarationProvider.getVariableDeclarations(name)

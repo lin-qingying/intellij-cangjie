@@ -389,7 +389,7 @@ class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDes
     override val original: CallableDescriptor
         get() = this
     override val containingDeclaration: DeclarationDescriptor
-        get() = type
+        get() = type.containingDeclaration ?: type
     override val visibility: DescriptorVisibility
         get() = type.visibility
     override val name: Name

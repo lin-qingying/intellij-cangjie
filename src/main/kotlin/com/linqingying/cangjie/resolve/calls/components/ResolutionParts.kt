@@ -24,6 +24,7 @@ import com.linqingying.cangjie.resolve.calls.tower.*
 import com.linqingying.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import com.linqingying.cangjie.resolve.isInsideInterface
 import com.linqingying.cangjie.resolve.isStatic
+import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.resolve.scopes.receivers.ClassQualifier
 import com.linqingying.cangjie.resolve.scopes.receivers.ClassValueReceiver
 import com.linqingying.cangjie.resolve.scopes.receivers.EnumClassQualifier
@@ -117,37 +118,47 @@ internal object CheckEnumCall : ResolutionPart() {
     }
 }
 
-internal object CheckStaticCall : ResolutionPart() {
+fun LexicalScope.isStaticContext(): Boolean {
+    return ownerDescriptor.isStatic
+}
 
-    private fun ResolvedCallAtom.isStaticContext(): Boolean {
+fun ResolutionCandidate.isStaticContext(): Boolean {
+    //    调用上下文的Scope是否输入静态声明
+    fun isStaticContext(): Boolean {
+        return scopeTower.lexicalScope.isStaticContext()
+    }
 
 
-        atom.explicitReceiver ?: return false
-        return when (val value = atom.explicitReceiver!!.receiver) {
+    resolvedCall.atom.explicitReceiver ?: return isStaticContext()
+    return when (val value = resolvedCall.atom.explicitReceiver!!.receiver) {
 
-            is EnumClassQualifier -> {
-                value.descriptor.kind == ClassKind.ENUM
+        is EnumClassQualifier -> {
+            value.descriptor.kind == ClassKind.ENUM
 //                !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
 
-            }
-
-            is ClassQualifier -> {
-                !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
-
-            }
-
-            else -> false
         }
 
+        is ClassQualifier -> {
+            !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
 
+        }
+
+        else -> false
     }
+
+
+}
+
+
+internal object CheckStaticCall : ResolutionPart() {
+
 
     override fun ResolutionCandidate.process(workIndex: Int) {
         val descriptor = this.descriptor
 
 
 //        是否为static上下文
-        val isStaticContext = this.resolvedCall.isStaticContext()
+        val isStaticContext = isStaticContext()
 
         val kind = descriptor.getDescriptorKind()
         val memberStatic = descriptor.isStatic()
@@ -589,10 +600,10 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //        如果接收器是DISPATCH_RECEIVER ，并且它是一个静态调用，可能要分析上一层的类型参数
         if (resolvedCall.dispatchReceiverArgument != null && resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue is ClassValueReceiver) {
 
-            return (resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver).classQualifier.descriptor.declaredTypeParameters + candidateDescriptor.typeParameters
+            return (resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver).classQualifier.descriptor.declaredTypeParameters + candidateDescriptor.original.typeParameters
         }
 
-        return candidateDescriptor.typeParameters
+        return candidateDescriptor.original.typeParameters
 
     }
 
@@ -607,8 +618,10 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //                    resolvedCall.atom,
 //                    csBuilder
 //                )
+
+        val typeParameters = getTypeParameters()
         val toFreshVariables =
-            if (getTypeParameters().isEmpty())
+            if (typeParameters.isEmpty())
                 FreshVariableNewTypeSubstitutor.Empty
             else
                 createToFreshVariableSubstitutorAndAddInitialConstraints(
@@ -627,7 +640,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 //        if (candidateDescriptor.typeParameters.isEmpty()) {
 //            return
 //        }
-        if (getTypeParameters().isEmpty()) {
+        if (typeParameters.isEmpty()) {
             return
         }
 
@@ -638,7 +651,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         if (resolvedCall.typeArgumentMappingByOriginal == TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments && knownTypeParametersResultingSubstitutor == null) {
             return
         }
-        val typeParameters = getTypeParameters()
+
 //        val typeParameters = candidateDescriptor.original.typeParameters
         for (index in typeParameters.indices) {
             val typeParameter = typeParameters[index]

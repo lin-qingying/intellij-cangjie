@@ -435,6 +435,8 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_WARNING = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_INFO = DiagnosticFactory1.create(INFO);
     DiagnosticFactory1<CjCallExpression,  DeclarationDescriptor> NO_CALL_OPERATOR = DiagnosticFactory1.create(ERROR);
+
+    DiagnosticFactory1<PsiElement,PsiElement> STATIC_INSTANCE_ACCESS = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<PsiElement, DescriptorKind, DeclarationDescriptor> STATIC_CONTEXT_REFERENCE_ERROR = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<PsiElement, DescriptorKind, DeclarationDescriptor> INSTANCE_ACCESS_STATIC_MEMBER_ERROR = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> WRONG_GETTER_RETURN_TYPE = DiagnosticFactory2.create(ERROR);
