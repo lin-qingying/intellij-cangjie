@@ -72,11 +72,22 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
      * 这些解析部分是处理枚举调用时需要执行的步骤。
      */
     ENUM(/**FUNCTION.resolutionSequence.toTypedArray(),CheckEnumCall */
+        CheckDesiredEnumType,
         MapTypeArguments,
         MapArguments,
         ArgumentsToCandidateParameterDescriptor,
         CreateFreshVariablesSubstitutor,
         CheckArgumentsInParenthesis
+    ),
+    CASE_ENUM(
+        CheckDesiredEnumType,
+        MapTypeArguments,
+        MapArguments,
+        ArgumentsToCandidateParameterDescriptor,
+        CreateFreshVariablesSubstitutor,
+        CheckCaseEnumArgumentSize,
+
+//        CheckArgumentsInParenthesis
     ),
     /**
      * 可调用引用调用类型，关联一系列解析部分，如检查可见性、检查接收者等。

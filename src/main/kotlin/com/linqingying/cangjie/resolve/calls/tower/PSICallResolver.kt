@@ -87,7 +87,7 @@ class PSICallResolver(
         NewResolutionOldInference.ResolutionKind.Variable,
         NewResolutionOldInference.ResolutionKind.Invoke,
         NewResolutionOldInference.ResolutionKind.Enum,
-
+        NewResolutionOldInference.ResolutionKind.CaseEnum,
 //        NewResolutionOldInference.ResolutionKind.CallableReference
     )
 
@@ -244,19 +244,19 @@ class PSICallResolver(
         tracingStrategy: TracingStrategy
     ): OverloadResolutionResults<D> {
         // 如果结果是所有候选者的解析结果，则将每个候选者转换为 resolved call，并返回所有候选者的过载解析结果.
-         if (result is AllCandidatesResolutionResult) {
-             val resolvedCalls = result.allCandidates.map { (candidate, diagnostics) ->
-                 val system = candidate.getSystem()
-                 val resultingSubstitutor =
-                     system.asReadOnlyStorage().buildResultingSubstitutor(system as TypeSystemInferenceExtensionContext)
+        if (result is AllCandidatesResolutionResult) {
+            val resolvedCalls = result.allCandidates.map { (candidate, diagnostics) ->
+                val system = candidate.getSystem()
+                val resultingSubstitutor =
+                    system.asReadOnlyStorage().buildResultingSubstitutor(system as TypeSystemInferenceExtensionContext)
 
-                 cangjieToResolvedCallTransformer.transformToResolvedCall<D>(
-                     candidate.resolvedCall, null, resultingSubstitutor, diagnostics
-                 )
-             }
+                cangjieToResolvedCallTransformer.transformToResolvedCall<D>(
+                    candidate.resolvedCall, null, resultingSubstitutor, diagnostics
+                )
+            }
 
-             return AllCandidates(resolvedCalls)
-         }
+            return AllCandidates(resolvedCalls)
+        }
 
         // 处理错误解析结果，如果结果是错误，则记录错误信息并返回错误结果.
         val trace = context.trace
@@ -472,7 +472,7 @@ class PSICallResolver(
 //        recordResultInfo(trace, moduleDescriptor)
     }
 
-    private inner class ASTScopeTower(
+      inner class ASTScopeTower(
         val context: BasicCallResolutionContext,
         cjExpression: CjExpression? = null
     ) : ImplicitScopeTower {
@@ -869,7 +869,11 @@ class PSICallResolver(
         )?.let {
             return it
         }
-
+        if (cjExpression is CjCasePattern) {
+            return CasePatternCangJieCallArgumentImpl(
+                valueArgument, argumentName, startDataFlowInfo, startDataFlowInfo, cjExpression, outerCallContext
+            )
+        }
         if (cjExpression is CjCollectionLiteralExpression) {
             return CollectionLiteralCangJieCallArgumentImpl(
                 valueArgument, argumentName, startDataFlowInfo, startDataFlowInfo, cjExpression, outerCallContext
@@ -895,6 +899,7 @@ class PSICallResolver(
             )
         }
 
+
         // argumentExpression instead of cjExpression is hack -- type info should be stored also for parenthesized expression
         val typeInfo = expressionTypingServices.getTypeInfo(argumentExpression, context)
 
@@ -914,9 +919,10 @@ class PSICallResolver(
             is NewResolutionOldInference.ResolutionKind.Variable -> CangJieCallKind.VARIABLE
             is NewResolutionOldInference.ResolutionKind.Invoke -> CangJieCallKind.INVOKE
             is NewResolutionOldInference.ResolutionKind.Enum -> CangJieCallKind.ENUM
+            is NewResolutionOldInference.ResolutionKind.CaseEnum -> CangJieCallKind.CASE_ENUM
+
 //            is NewResolutionOldInference.ResolutionKind.CallableReference -> CangJieCallKind.CALLABLE_REFERENCE
             is NewResolutionOldInference.ResolutionKind.GivenCandidates -> CangJieCallKind.UNSUPPORTED
-
         }
 
     private fun refineNameForRemOperator(isBinaryRemOperator: Boolean, name: Name): Name {

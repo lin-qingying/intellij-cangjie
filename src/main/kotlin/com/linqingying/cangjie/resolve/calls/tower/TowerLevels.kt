@@ -127,12 +127,9 @@ internal open class ScopeBasedTowerLevel protected constructor(
         }
             .map {
                 createCandidateDescriptor(
-                    /*   if(it is ClassDescriptor && it.kind == ClassKind.ENUM){
-                           it.unsubstitutedPrimaryConstructor!!
 
-                       }else{*/
                     EnumClassCallableDescriptor(it)
-//                    }
+
                     ,
                     dispatchReceiver = null,
                     specialError = ResolvedUsingDeprecatedVisibility(
@@ -312,7 +309,7 @@ class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDes
         is LazyClassMemberScope -> memberScope.getConstructors()
         else -> emptyList()
     }
-    private var constructor = constructors.firstOrNull()
+      var constructor = constructors.firstOrNull()
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
         return visitor.visitEnumClassCallDescriptor(this, data)
     }

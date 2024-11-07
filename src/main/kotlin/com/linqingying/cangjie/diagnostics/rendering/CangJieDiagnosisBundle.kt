@@ -21,10 +21,10 @@ object CangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE) {
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: DiagnosticFactoryWithPsiElement<*,*>): String =
         getMessage(key.name) // 不传递任何参数
     // 新增的方法来获取原始内容
-    @Nls
-    @JvmStatic
-    fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String): String =
-        getMessage(key) // 不传递任何参数
+//    @Nls
+//    @JvmStatic
+//    fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String): String =
+//        getMessage(key) // 不传递任何参数
     @Nls
     @JvmStatic
     fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =

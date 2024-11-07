@@ -104,6 +104,21 @@ object Enum : ResolutionKind() {
 //                )
 //            }
 }
+        object CaseEnum : ResolutionKind() {
+//            override fun createTowerProcessor(
+//                outer: NewResolutionOldInference, name: Name, tracing: TracingStrategy,
+//                scopeTower: ImplicitScopeTower, explicitReceiver: DetailedReceiver?, context: BasicCallResolutionContext
+//            ): ScopeTowerProcessor<MyCandidate> {
+//                val functionFactory = outer.CandidateFactoryImpl(name, context, tracing)
+//                return createFunctionProcessor(
+//                    scopeTower,
+//                    name,
+//                    functionFactory,
+//                    outer.CandidateFactoryProviderForInvokeImpl(functionFactory),
+//                    explicitReceiver
+//                )
+//            }
+        }
         object Function : ResolutionKind() {
 //            override fun createTowerProcessor(
 //                outer: NewResolutionOldInference, name: Name, tracing: TracingStrategy,

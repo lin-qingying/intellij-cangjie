@@ -143,6 +143,15 @@ class CangJieCallResolver(
 
                 )
             }
+            CASE_ENUM ->{
+                createEnumAndEntryProcessor(
+                    cangjieCall,
+                    scopeTower,
+
+                    candidateFactory,
+
+                    )
+            }
 
             VARIABLE -> {
                 createVariableAndObjectProcessor(

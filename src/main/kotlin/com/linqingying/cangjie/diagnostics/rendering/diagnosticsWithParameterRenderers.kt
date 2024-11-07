@@ -1,10 +1,11 @@
 package com.linqingying.cangjie.diagnostics.rendering
 
+import com.linqingying.cangjie.AbstractCangJieBundle
 import com.linqingying.cangjie.diagnostics.DiagnosticWithParameters1
 import com.linqingying.cangjie.diagnostics.DiagnosticWithParameters4
 
 class DiagnosticWithParametersMultiRenderer<A:Any>(
-    message: String,
+    message: () -> String ,
     private val renderer: MultiRenderer<A>
 ) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters1<*, A>>(message) {
 
@@ -13,7 +14,7 @@ class DiagnosticWithParametersMultiRenderer<A:Any>(
     }
 }
 class DiagnosticWithParameters4Renderer<A :Any , B :Any , C :Any, D :Any>(
-    message: String,
+    message: () -> String ,
     private val rendererForA: DiagnosticParameterRenderer<A> ?,
     private val rendererForB: DiagnosticParameterRenderer<B> ?,
     private val rendererForC: DiagnosticParameterRenderer<C> ?,

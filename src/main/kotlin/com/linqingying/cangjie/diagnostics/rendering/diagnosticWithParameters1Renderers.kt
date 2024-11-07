@@ -1,9 +1,10 @@
 package com.linqingying.cangjie.diagnostics.rendering
 
-import com.linqingying.cangjie.diagnostics.UnboundDiagnostic
+import com.linqingying.cangjie.AbstractCangJieBundle
 import com.linqingying.cangjie.diagnostics.DiagnosticWithParameters1
 import com.linqingying.cangjie.diagnostics.DiagnosticWithParameters2
 import com.linqingying.cangjie.diagnostics.DiagnosticWithParameters3
+import com.linqingying.cangjie.diagnostics.UnboundDiagnostic
 import java.text.MessageFormat
 
 
@@ -19,17 +20,22 @@ fun <P> renderParameter(parameter: P, renderer: DiagnosticParameterRenderer<P>?,
 fun <O> renderer(block: (O) -> String) = object : ContextIndependentParameterRenderer<O> {
     override fun render(obj: O): String = block(obj)
 }
-abstract class AbstractDiagnosticWithParametersRenderer<in D : UnboundDiagnostic> protected constructor(message: String) :
+
+abstract class AbstractDiagnosticWithParametersRenderer<in D : UnboundDiagnostic> protected constructor(
+   val message: () -> String
+) :
     DiagnosticRenderer<D> {
-    private val messageFormat = MessageFormat(message)
+    private val messageFormat = MessageFormat(message())
 
     override fun render(diagnostic: D): String {
-        val str = CangJieDiagnosisBundle.rawMessage(diagnostic.factory.name)
-        if(str == "!${diagnostic.factory.name}!"){
-            return messageFormat.format(renderParameters(diagnostic))
-        }
-        val messageFormat = MessageFormat(str)
-        return messageFormat.format(renderParameters(diagnostic))
+//        val str = bundle.rawMessage(diagnostic.factory.name)
+//        if (str == "!${diagnostic.factory.name}!") {
+//            return messageFormat.format(renderParameters(diagnostic))
+//        }
+//
+        val messageFormat = MessageFormat(message())
+        return  messageFormat.format(renderParameters(diagnostic))
+
     }
 
     override fun renderParameters(diagnostic: D): Array<out Any?> {
@@ -37,8 +43,8 @@ abstract class AbstractDiagnosticWithParametersRenderer<in D : UnboundDiagnostic
     }
 }
 
-class DiagnosticWithParameters1Renderer<A:Any>(
-    message: String,
+class DiagnosticWithParameters1Renderer<A : Any>(
+    message: () -> String ,
     private val rendererForA: DiagnosticParameterRenderer<A>?
 ) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters1<*, A>>(message) {
 
@@ -47,9 +53,10 @@ class DiagnosticWithParameters1Renderer<A:Any>(
         return arrayOf(renderParameter(diagnostic.a, rendererForA, context))
     }
 }
-class DiagnosticWithParameters2Renderer<A:Any, B:Any>(
-    message: String,
-    private val rendererForA: DiagnosticParameterRenderer<A>? ,
+
+class DiagnosticWithParameters2Renderer<A : Any, B : Any>(
+    message: () -> String ,
+    private val rendererForA: DiagnosticParameterRenderer<A>?,
     private val rendererForB: DiagnosticParameterRenderer<B>?
 ) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters2<*, A, B>>(message) {
 
@@ -62,12 +69,11 @@ class DiagnosticWithParameters2Renderer<A:Any, B:Any>(
     }
 }
 
-class DiagnosticWithParameters3Renderer<A:Any, B:Any, C:Any>(
-    message: String,
-    private val rendererForA: DiagnosticParameterRenderer<A> ?,
-    private val rendererForB: DiagnosticParameterRenderer<B>? ,
-    private val rendererForC: DiagnosticParameterRenderer<C>?
-) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters3<*, A, B, C>>(message) {
+class DiagnosticWithParameters3Renderer<A : Any, B : Any, C : Any>(
+    message: () -> String ,
+    private val rendererForA: DiagnosticParameterRenderer<A>?,
+    private val rendererForB: DiagnosticParameterRenderer<B>?,
+    private val rendererForC: DiagnosticParameterRenderer<C>? ) : AbstractDiagnosticWithParametersRenderer<DiagnosticWithParameters3<*, A, B, C>>(message) {
 
     override fun renderParameters(diagnostic: DiagnosticWithParameters3<*, A, B, C>): Array<out Any?> {
         val context = RenderingContext.of(diagnostic.a, diagnostic.b, diagnostic.c)

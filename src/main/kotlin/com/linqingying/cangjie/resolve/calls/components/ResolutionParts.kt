@@ -8,6 +8,7 @@ import com.linqingying.cangjie.descriptors.DescriptorVisibilities.PRIVATE
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.descriptors.enumd.LazyEnumDescriptor
 import com.linqingying.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
+import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.CjCallExpression
 import com.linqingying.cangjie.psi.CjNameReferenceExpression
 import com.linqingying.cangjie.resolve.DescriptorUtils
@@ -31,6 +32,7 @@ import com.linqingying.cangjie.resolve.scopes.receivers.EnumClassQualifier
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.model.CangJieTypeMarker
+import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.contains
 import com.linqingying.cangjie.types.util.makeNotNullable
 import com.linqingying.cangjie.types.util.makeOptional
@@ -739,6 +741,58 @@ class ReceiverInfo(
             reportUnsafeCallAsUnsafeImplicitInvoke = false
         )
     }
+}
+
+object CaseEnumArgument : CangJieCallArgument {
+    override val isSpread: Boolean = false
+    override val argumentName: Name? = null
+
+}
+
+//当具有期望类型时
+internal object CheckDesiredEnumType : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+
+        if (scopeTower is PSICallResolver.ASTScopeTower) {
+            val expectedType = (scopeTower as PSICallResolver.ASTScopeTower).context.expectedType
+
+            val type = descriptor.returnType
+
+            if (expectedType != NO_EXPECTED_TYPE && type?.let { CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(expectedType, it) } != true  ) {
+                addDiagnostic(EmptyDiagnostic)
+            }
+        }
+
+
+    }
+
+}
+
+internal object CheckCaseEnumArgumentSize : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+
+        val dASize = candidateDescriptor.valueParameters.size
+        val argSize = cangjieCall.argumentsInParenthesis.size
+        if (argSize > dASize) {
+//          参数过多
+
+            addDiagnostic(TooManyArguments(CaseEnumArgument, candidateDescriptor))
+        } else if (argSize < dASize) {
+//          确实参数
+//         未传递参数
+            val args = candidateDescriptor.valueParameters.dropLast(dASize - argSize)
+            args.forEach {
+                addDiagnostic(NoValueForParameter(it, candidateDescriptor))
+
+            }
+
+
+        }
+
+
+    }
+
+    override fun ResolutionCandidate.workCount() = cangjieCall.argumentsInParenthesis.size
 }
 
 internal object CheckArgumentsInParenthesis : ResolutionPart() {

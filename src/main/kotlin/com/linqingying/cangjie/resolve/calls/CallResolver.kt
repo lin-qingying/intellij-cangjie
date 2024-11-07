@@ -390,7 +390,8 @@ class CallResolver(
 
         tcache: TemporaryTraceAndCache,
 
-        context: BasicCallResolutionContext
+        context: BasicCallResolutionContext,
+        kind: NewResolutionOldInference.ResolutionKind  =  NewResolutionOldInference.ResolutionKind.Enum
     ): OverloadResolutionResults<out CallableDescriptor> {
         checkCanceled()
 
@@ -410,7 +411,7 @@ class CallResolver(
 
                 result = computeTasksAndResolveCall<CallableDescriptor>(
                     context, calleeExpression.getReferencedNameAsName(), calleeExpression,
-                    NewResolutionOldInference.ResolutionKind.Enum
+                    kind
                 )
 //                if (isCall) {
 //                    context.call.noValueArgument = false
@@ -437,6 +438,9 @@ class CallResolver(
             resultDescriptor = result!!.resultingDescriptor as EnumClassCallableDescriptor
         }
 
+        if(kind == NewResolutionOldInference.ResolutionKind.CaseEnum){
+            return result!!
+        }
 
         //        判断结果是否有无参构造，如果没有则调用 resolveCallForInvoke
         if (resultDescriptor.hashUnsubstitutedPrimaryConstructor() && !isCall) {

@@ -23,6 +23,7 @@ import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValue
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.linqingying.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
+import com.linqingying.cangjie.resolve.calls.tower.NewResolutionOldInference
 import com.linqingying.cangjie.resolve.calls.util.*
 import com.linqingying.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.linqingying.cangjie.resolve.scopes.receivers.*
@@ -232,6 +233,27 @@ class CallExpressionResolver(
         }
         return typeInfo
     }
+    fun getSimpleNameExpressionTypeInfoByCaseEnum(
+        nameExpression: CjSimpleNameExpression, receiver: Receiver?,
+        callOperationNode: ASTNode?, context: ExpressionTypingContext,  argument :List<ValueArgument>,
+    ) = getSimpleNameExpressionTypeInfoByCaseEnum(
+        nameExpression,
+        receiver,
+        callOperationNode,
+        context,
+        context.dataFlowInfo,
+        argument
+    )
+    fun getSimpleNameExpressionTypeInfoByEnum(
+        nameExpression: CjSimpleNameExpression, receiver: Receiver?,
+        callOperationNode: ASTNode?, context: ExpressionTypingContext
+    ) = getSimpleNameExpressionTypeInfoByEnum(
+        nameExpression,
+        receiver,
+        callOperationNode,
+        context,
+        context.dataFlowInfo
+    )
 
     fun getSimpleNameExpressionTypeInfo(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
@@ -307,14 +329,17 @@ class CallExpressionResolver(
         tcache: TemporaryTraceAndCache,
         context: ResolutionContext<*>,
         checkArguments: CheckArgumentTypesMode,
-        initialDataFlowInfoForArguments: DataFlowInfo
+        initialDataFlowInfoForArguments: DataFlowInfo,
+        kind: NewResolutionOldInference.ResolutionKind = NewResolutionOldInference.ResolutionKind.Enum
+
     ): Pair<Boolean, ResolvedCall<out CallableDescriptor>?> {
 
         val results = callResolver.resolveEnumCall(
             tcache,
             BasicCallResolutionContext.create(
                 context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
-            )
+            ),
+            kind
         )
         return if (!results.isNothing)
             Pair(true, OverloadResolutionResultsUtil.getResultingCall(results, context))
@@ -367,6 +392,96 @@ class CallExpressionResolver(
 
         return null
 
+    }
+
+    private fun getSimpleNameExpressionTypeInfoByEnum(
+        nameExpression: CjSimpleNameExpression, receiver: Receiver?,
+        callOperationNode: ASTNode?, context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo
+    ): CangJieTypeInfo {
+        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression, emptyList())
+
+        val temporaryForEnum = TemporaryTraceAndCache.create(
+            context, "trace to resolve as enum", nameExpression
+        )
+        val newEnumContext = context.replaceTraceAndCache(temporaryForEnum)
+
+        val (resolveEnumResult, resolvedEnumCall) = getResolvedCallForEnum(
+            call,
+            temporaryForEnum,
+            newEnumContext,
+            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+            initialDataFlowInfoForArguments
+        )
+        temporaryForEnum.commit()
+        if (resolveEnumResult) {
+
+            val enumDescriptor = resolvedEnumCall?.resultingDescriptor
+            if (nameExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
+                    enumDescriptor.type
+                )
+            ) {
+                context.trace.report(
+                    EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
+                        nameExpression,
+                        enumDescriptor.type as? ClassifierDescriptor
+                    )
+                )
+
+            }
+            return createTypeInfo(enumDescriptor?.returnType, context)
+
+        }
+        return noTypeInfo(context)
+    }
+
+    private fun getSimpleNameExpressionTypeInfoByCaseEnum(
+        nameExpression: CjSimpleNameExpression,
+        receiver: Receiver?,
+        callOperationNode: ASTNode?,
+        context: ExpressionTypingContext,
+        initialDataFlowInfoForArguments: DataFlowInfo,
+        argument :List<ValueArgument>,
+    ): CangJieTypeInfo {
+        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression,
+
+            argument
+
+        )
+
+        val temporaryForEnum = TemporaryTraceAndCache.create(
+            context, "trace to resolve as enum", nameExpression
+        )
+        val newEnumContext = context.replaceTraceAndCache(temporaryForEnum)
+
+        val (resolveEnumResult, resolvedEnumCall) = getResolvedCallForEnum(
+            call,
+            temporaryForEnum,
+            newEnumContext,
+            CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+            initialDataFlowInfoForArguments,
+            NewResolutionOldInference.ResolutionKind.CaseEnum
+        )
+        temporaryForEnum.commit()
+        if (resolveEnumResult) {
+
+            val enumDescriptor = resolvedEnumCall?.resultingDescriptor
+            if (nameExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
+                    enumDescriptor.type
+                )
+            ) {
+                context.trace.report(
+                    EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
+                        nameExpression,
+                        enumDescriptor.type as? ClassifierDescriptor
+                    )
+                )
+
+            }
+            return createTypeInfo(enumDescriptor?.returnType, context)
+
+        }
+        return noTypeInfo(context)
     }
 
     private fun getSimpleNameExpressionTypeInfo(
@@ -485,11 +600,10 @@ class CallExpressionResolver(
             }
         }
 
-    fun getQualifiedExpressionEnumEntryType(
+    fun getQualifiedExpressionTypeInfoByEnum(
         expression: CjQualifiedExpression,
         context: ExpressionTypingContext
-    ): DeclarationDescriptor? {
-
+    ): CangJieTypeInfo {
         val currentContext =
             context.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(ContextDependency.INDEPENDENT)
         val trace = currentContext.trace
@@ -497,14 +611,30 @@ class CallExpressionResolver(
         val elementChain = expression.elementChain(currentContext)
         val firstReceiver = elementChain.first().receiver
 
-        val receiverTypeInfo = when (trace[BindingContext.QUALIFIER, firstReceiver]) {
+        var receiverTypeInfo = when (val qualifier = trace[BindingContext.QUALIFIER, firstReceiver]) {
+            is EnumClassQualifier -> {
+                if (qualifier.call == null) {
+                    currentContext.config.isDotEnumGetType = true
+                    expressionTypingServices.getTypeInfo(firstReceiver, currentContext)
+                    currentContext.config.isDotEnumGetType = false
+
+                    CangJieTypeInfo(null, currentContext.dataFlowInfo)
+
+                } else {
+                    CangJieTypeInfo(null, currentContext.dataFlowInfo)
+                }
+            }
+
             null -> expressionTypingServices.getTypeInfo(firstReceiver, currentContext)
             else -> CangJieTypeInfo(null, currentContext.dataFlowInfo)
         }
 
+        var resultTypeInfo = receiverTypeInfo
+
+        var allUnsafe = true
         // Branch point: right before first safe call
-        val branchPointDataFlowInfo = receiverTypeInfo.dataFlowInfo
-        var resultTypeInfo: DeclarationDescriptor? = null
+        var branchPointDataFlowInfo = receiverTypeInfo.dataFlowInfo
+
         for (element in elementChain) {
             val receiverType = receiverTypeInfo.type
                 ?: ErrorUtils.createErrorType(
@@ -531,16 +661,95 @@ class CallExpressionResolver(
                 }
             )
 
-            val selectorTypeInfo = getSafeOrUnsafeSelectorEnumEntryType(receiver, element, contextForSelector)
+            val selectorTypeInfo = getSafeOrUnsafeSelectorTypeInfoByEnum(receiver, element, contextForSelector)
             // if we have only dots and not ?. move branch point further
+            allUnsafe = allUnsafe && !element.safe
+            if (allUnsafe) {
+                branchPointDataFlowInfo = selectorTypeInfo.dataFlowInfo
+            }
 
-
+            resultTypeInfo =
+                checkSelectorTypeInfo(qualifiedExpression, selectorTypeInfo, contextForSelector).replaceDataFlowInfo(
+                    branchPointDataFlowInfo
+                )
+            if (!lastStage) {
+                recordResultTypeInfo(qualifiedExpression, resultTypeInfo, contextForSelector)
+            }
             // For the next stage, if any, current stage selector is the receiver!
-            resultTypeInfo = selectorTypeInfo
+            receiverTypeInfo = selectorTypeInfo
+        }
+        return resultTypeInfo
+    }
+
+    fun getQualifiedExpressionTypeInfoByCaseEnum(
+        expression: CjQualifiedExpression,
+        argument :List<ValueArgument>,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        val currentContext =
+            context.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(ContextDependency.INDEPENDENT)
+        val trace = currentContext.trace
+
+        val elementChain = expression.elementChain(currentContext)
+        val firstReceiver = elementChain.first().receiver
+
+        var receiverTypeInfo = when (trace[BindingContext.QUALIFIER, firstReceiver]) {
+
+            null -> expressionTypingServices.getTypeInfo(firstReceiver, currentContext)
+            else -> CangJieTypeInfo(null, currentContext.dataFlowInfo)
         }
 
-        return resultTypeInfo
+        var resultTypeInfo = receiverTypeInfo
 
+        var allUnsafe = true
+        // Branch point: right before first safe call
+        var branchPointDataFlowInfo = receiverTypeInfo.dataFlowInfo
+
+        for (element in elementChain) {
+            val receiverType = receiverTypeInfo.type
+                ?: ErrorUtils.createErrorType(
+                    ErrorTypeKind.ERROR_RECEIVER_TYPE,
+                    when (val receiver = element.receiver) {
+                        is CjNameReferenceExpression -> receiver.getReferencedName()
+                        else -> receiver.text
+                    }
+                )
+
+            val receiver = trace[BindingContext.QUALIFIER, element.receiver]
+                ?: ExpressionReceiver.create(element.receiver, receiverType, trace.bindingContext)
+
+            val qualifiedExpression = element.qualified
+            val lastStage = qualifiedExpression === expression
+            // Drop NO_EXPECTED_TYPE / INDEPENDENT at last stage
+            val contextForSelector = (if (lastStage) context else currentContext).replaceDataFlowInfo(
+                if (receiver is ReceiverValue && TypeUtils.isNullableType(receiver.type) && !element.safe) {
+                    // Call with nullable receiver: take data flow info from branch point
+                    branchPointDataFlowInfo
+                } else {
+                    // Take data flow info from the current receiver
+                    receiverTypeInfo.dataFlowInfo
+                }
+            )
+
+            val selectorTypeInfo =
+                getSafeOrUnsafeSelectorTypeInfoByCaseEnum(receiver, element, argument, contextForSelector)
+            // if we have only dots and not ?. move branch point further
+            allUnsafe = allUnsafe && !element.safe
+            if (allUnsafe) {
+                branchPointDataFlowInfo = selectorTypeInfo.dataFlowInfo
+            }
+
+            resultTypeInfo =
+                checkSelectorTypeInfo(qualifiedExpression, selectorTypeInfo, contextForSelector).replaceDataFlowInfo(
+                    branchPointDataFlowInfo
+                )
+            if (!lastStage) {
+                recordResultTypeInfo(qualifiedExpression, resultTypeInfo, contextForSelector)
+            }
+            // For the next stage, if any, current stage selector is the receiver!
+            receiverTypeInfo = selectorTypeInfo
+        }
+        return resultTypeInfo
     }
 
     /**
@@ -629,21 +838,58 @@ class CallExpressionResolver(
         return resultTypeInfo
     }
 
-    private fun getUnsafeSelectorEnumEntryType(
+    private fun getUnsafeSelectorTypeInfoByEnum(
         receiver: Receiver,
         callOperationNode: ASTNode?,
         selectorExpression: CjExpression?,
         context: ExpressionTypingContext,
-        initialDataFlowInfoForArguments: DataFlowInfo
-    ): DeclarationDescriptor? = when (selectorExpression) {
+        initialDataFlowInfoForArguments: DataFlowInfo,
+        isCaseEnum: Boolean = false,
+        argument :List<ValueArgument> = emptyList(),
+    ): CangJieTypeInfo {
+        if (isCaseEnum) {
+            return when (selectorExpression) {
+//        is CjCallExpression -> getCallExpressionTypeInfoWithoutFinalTypeCheck(
+//            selectorExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+//        )
+
+                is CjSimpleNameExpression -> getSimpleNameExpressionTypeInfoByCaseEnum(
+                    selectorExpression,
+                    receiver,
+                    callOperationNode,
+                    context,
+                    initialDataFlowInfoForArguments,
+                    argument
+                )
+
+//        is CjExpression -> {
+//            expressionTypingServices.getTypeInfo(selectorExpression, context)
+//            context.trace.report(ILLEGAL_SELECTOR.on(selectorExpression))
+//            noTypeInfo(context)
+//        }
+
+                else /*null*/ -> noTypeInfo(context)
+            }
+        }
 
 
-        is CjSimpleNameExpression -> getSimpleNameExpressionEnumEntryType(
-            selectorExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
-        )
+        return when (selectorExpression) {
+//        is CjCallExpression -> getCallExpressionTypeInfoWithoutFinalTypeCheck(
+//            selectorExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+//        )
 
+            is CjSimpleNameExpression -> getSimpleNameExpressionTypeInfoByEnum(
+                selectorExpression, receiver, callOperationNode, context, initialDataFlowInfoForArguments
+            )
 
-        else /*null*/ -> null
+//        is CjExpression -> {
+//            expressionTypingServices.getTypeInfo(selectorExpression, context)
+//            context.trace.report(ILLEGAL_SELECTOR.on(selectorExpression))
+//            noTypeInfo(context)
+//        }
+
+            else /*null*/ -> noTypeInfo(context)
+        }
     }
 
     private fun getUnsafeSelectorTypeInfo(
@@ -670,12 +916,12 @@ class CallExpressionResolver(
         else /*null*/ -> noTypeInfo(context)
     }
 
-    private fun getSafeOrUnsafeSelectorEnumEntryType(
+    private fun getUnsafeSelectorTypeInfoByEnum(
         receiver: Receiver,
         element: CallExpressionElement,
         context: ExpressionTypingContext
     ):
-            DeclarationDescriptor? {
+            CangJieTypeInfo {
         var initialDataFlowInfoForArguments = context.dataFlowInfo
         val receiverDataFlowValue =
             (receiver as? ReceiverValue)?.let { dataFlowValueFactory.createDataFlowValue(it, context) }
@@ -714,7 +960,7 @@ class CallExpressionResolver(
 
         @OptIn(TypeRefinement::class)
         val selectorTypeInfo =
-            getUnsafeSelectorEnumEntryType(
+            getUnsafeSelectorTypeInfoByEnum(
                 receiver,
                 callOperationNode,
                 selector,
@@ -771,6 +1017,155 @@ class CallExpressionResolver(
         @OptIn(TypeRefinement::class)
         var selectorTypeInfo =
             getUnsafeSelectorTypeInfo(receiver, callOperationNode, selector, context, initialDataFlowInfoForArguments)
+                .run {
+                    val type = type ?: return@run this
+                    replaceType(cangjieTypeRefiner.refineType(type))
+                }
+
+        if (receiver is Qualifier) {
+            resolveDeferredReceiverInQualifiedExpression(receiver, selector, context)
+        }
+
+        val selectorType = selectorTypeInfo.type
+        if (selectorType != null) {
+            if (element.safe && shouldNullifySafeCallType) {
+                selectorTypeInfo = selectorTypeInfo.replaceType(TypeUtils.makeOptional(selectorType))
+            }
+            // TODO : this is suspicious: remove this code?
+            if (selector != null) {
+                context.trace.recordType(selector, selectorTypeInfo.type)
+            }
+        }
+        return selectorTypeInfo
+    }
+
+    private fun getSafeOrUnsafeSelectorTypeInfoByCaseEnum(
+        receiver: Receiver,
+        element: CallExpressionElement,
+        argument :List<ValueArgument>,
+        context: ExpressionTypingContext
+    ):
+            CangJieTypeInfo {
+        var initialDataFlowInfoForArguments = context.dataFlowInfo
+        val receiverDataFlowValue =
+            (receiver as? ReceiverValue)?.let { dataFlowValueFactory.createDataFlowValue(it, context) }
+
+        val receiverCanBeNull =
+            receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue)
+                .canBeNull()
+        val shouldNullifySafeCallType =
+            receiverCanBeNull || context.languageVersionSettings.supportsFeature(LanguageFeature.SafeCallsAreAlwaysNullable)
+
+        val callOperationNode =
+            AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
+                element.node
+            })
+
+        if (receiverDataFlowValue != null && element.safe) {
+            // Additional "receiver != null" information should be applied if we consider a safe call
+            if (shouldNullifySafeCallType) {
+                initialDataFlowInfoForArguments = initialDataFlowInfoForArguments.disequate(
+                    receiverDataFlowValue, DataFlowValue.nullValue(builtIns), languageVersionSettings
+                )
+            }
+            if (!receiverCanBeNull) {
+                reportUnnecessarySafeCall(
+                    context.trace,
+                    receiver.type,
+                    element.qualified,
+                    callOperationNode,
+                    receiver,
+                    context.languageVersionSettings
+                )
+            }
+        }
+
+        val selector = element.selector
+
+        @OptIn(TypeRefinement::class)
+        var selectorTypeInfo =
+            getUnsafeSelectorTypeInfoByEnum(
+                receiver,
+                callOperationNode,
+                selector,
+                context,
+                initialDataFlowInfoForArguments,
+                isCaseEnum = true,
+                argument
+            )
+                .run {
+                    val type = type ?: return@run this
+                    replaceType(cangjieTypeRefiner.refineType(type))
+                }
+
+        if (receiver is Qualifier) {
+            resolveDeferredReceiverInQualifiedExpression(receiver, selector, context)
+        }
+
+        val selectorType = selectorTypeInfo.type
+        if (selectorType != null) {
+            if (element.safe && shouldNullifySafeCallType) {
+                selectorTypeInfo = selectorTypeInfo.replaceType(TypeUtils.makeOptional(selectorType))
+            }
+            // TODO : this is suspicious: remove this code?
+            if (selector != null) {
+                context.trace.recordType(selector, selectorTypeInfo.type)
+            }
+        }
+        return selectorTypeInfo
+    }
+
+    private fun getSafeOrUnsafeSelectorTypeInfoByEnum(
+        receiver: Receiver,
+        element: CallExpressionElement,
+        context: ExpressionTypingContext
+    ):
+            CangJieTypeInfo {
+        var initialDataFlowInfoForArguments = context.dataFlowInfo
+        val receiverDataFlowValue =
+            (receiver as? ReceiverValue)?.let { dataFlowValueFactory.createDataFlowValue(it, context) }
+
+        val receiverCanBeNull =
+            receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue)
+                .canBeNull()
+        val shouldNullifySafeCallType =
+            receiverCanBeNull || context.languageVersionSettings.supportsFeature(LanguageFeature.SafeCallsAreAlwaysNullable)
+
+        val callOperationNode =
+            AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
+                element.node
+            })
+
+        if (receiverDataFlowValue != null && element.safe) {
+            // Additional "receiver != null" information should be applied if we consider a safe call
+            if (shouldNullifySafeCallType) {
+                initialDataFlowInfoForArguments = initialDataFlowInfoForArguments.disequate(
+                    receiverDataFlowValue, DataFlowValue.nullValue(builtIns), languageVersionSettings
+                )
+            }
+            if (!receiverCanBeNull) {
+                reportUnnecessarySafeCall(
+                    context.trace,
+                    receiver.type,
+                    element.qualified,
+                    callOperationNode,
+                    receiver,
+                    context.languageVersionSettings
+                )
+            }
+        }
+
+        val selector = element.selector
+
+        @OptIn(TypeRefinement::class)
+        var selectorTypeInfo =
+            getUnsafeSelectorTypeInfoByEnum(
+                receiver,
+                callOperationNode,
+                selector,
+                context,
+                initialDataFlowInfoForArguments
+            )
                 .run {
                     val type = type ?: return@run this
                     replaceType(cangjieTypeRefiner.refineType(type))

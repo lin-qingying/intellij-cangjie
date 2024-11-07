@@ -1,10 +1,14 @@
 package com.linqingying.cangjie.diagnostics.rendering
 
-import com.linqingying.cangjie.diagnostics.*
 import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.AbstractCangJieBundle
+import com.linqingying.cangjie.diagnostics.*
 
 
-class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name: String = "<unnamed>") {
+class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
+    private val name: String = "<unnamed>"
+
+) {
     private val map: MutableMap<DiagnosticFactory<*>, DiagnosticRenderer<*>> = HashMap()
 
     private var immutable = false
@@ -17,10 +21,6 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name:
         check(!immutable) { "factory to renderer map is already immutable" }
     }
 
-    fun <E : PsiElement> put(factory: DiagnosticFactory0<E>, message: String) {
-        checkMutability()
-        map[factory] = SimpleDiagnosticRenderer(message)
-    }
 
     fun <E : PsiElement> put(factory: DiagnosticFactory0<E>, message: () -> String) {
         checkMutability()
@@ -32,26 +32,27 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name:
         map[factory] = SimpleDiagnosticRendererByAstMsgData(message)
     }
 
-    fun <E : PsiElement, A:Any> put(
+    fun <E : PsiElement, A : Any> put(
         factory: DiagnosticFactory1<E, A>,
-        message: String,
+        message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?
     ) {
         checkMutability()
-        map[factory] = DiagnosticWithParameters1Renderer(message, rendererA)
+        map[factory] = DiagnosticWithParameters1Renderer(message, rendererA )
     }
 
-    fun <E : PsiElement, A:Any> put(factory: DiagnosticFactory1<E, A>, message: String, rendererA: MultiRenderer<A>) {
+    fun <E : PsiElement, A : Any> put(factory: DiagnosticFactory1<E, A>, message: () -> String, rendererA: MultiRenderer<A>) {
         checkMutability()
         map[factory] =
-            DiagnosticWithParametersMultiRenderer(message, rendererA)
+            DiagnosticWithParametersMultiRenderer(message, rendererA )
     }
 
-    fun <E : PsiElement, A:Any, B:Any> put(
+    fun <E : PsiElement, A : Any, B : Any> put(
         factory: DiagnosticFactory2<E, A, B>,
-        message: String,
-        rendererA: DiagnosticParameterRenderer<A>? ,
+        message: () -> String,
+        rendererA: DiagnosticParameterRenderer<A>?,
         rendererB: DiagnosticParameterRenderer<B>?
+
     ) {
         checkMutability()
         map[factory] =
@@ -59,15 +60,16 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name:
                 message,
                 rendererA,
                 rendererB
+
             )
     }
 
-    fun <E : PsiElement, A:Any, B:Any, C:Any> put(
+    fun <E : PsiElement, A : Any, B : Any, C : Any> put(
         factory: DiagnosticFactory3<E, A, B, C>,
-        message: String,
-        rendererA: DiagnosticParameterRenderer<A> ?,
-        rendererB: DiagnosticParameterRenderer<B> ?,
-        rendererC: DiagnosticParameterRenderer<C>?
+        message: () -> String,
+        rendererA: DiagnosticParameterRenderer<A>?,
+        rendererB: DiagnosticParameterRenderer<B>?,
+        rendererC: DiagnosticParameterRenderer<C>?,
     ) {
         checkMutability()
         map[factory] = DiagnosticWithParameters3Renderer(
@@ -78,13 +80,13 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name:
         )
     }
 
-    fun <E : PsiElement, A:Any, B:Any, C:Any, D:Any> put(
+    fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> put(
         factory: DiagnosticFactory4<E, A, B, C, D>,
-        message: String,
-        rendererA: DiagnosticParameterRenderer<A> ?,
-        rendererB: DiagnosticParameterRenderer<B> ?,
-        rendererC: DiagnosticParameterRenderer<C> ?,
-        rendererD: DiagnosticParameterRenderer<D>?
+        message: () -> String,
+        rendererA: DiagnosticParameterRenderer<A>?,
+        rendererB: DiagnosticParameterRenderer<B>?,
+        rendererC: DiagnosticParameterRenderer<C>?,
+        rendererD: DiagnosticParameterRenderer<D>?,
     ) {
         checkMutability()
         map[factory] = DiagnosticWithParameters4Renderer(
@@ -101,53 +103,59 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name:
         map[factory] = renderer
     }
 
-    fun <E : PsiElement> put(factory: DiagnosticFactoryForDeprecation0<E>, message: String) {
+    fun <E : PsiElement> put(factory: DiagnosticFactoryForDeprecation0<E>, message: () -> String) {
         checkMutability()
         map[factory.errorFactory] = SimpleDiagnosticRenderer(message)
         map[factory.warningFactory] = SimpleDiagnosticRenderer(
-            deprecationMessage(
-                factory,
-                message
-            )
+            {
+                deprecationMessage(
+                    factory,
+                    message()
+                )
+            }
         )
     }
 
-    fun <E : PsiElement, A:Any> put(
+    fun <E : PsiElement, A : Any> put(
         factory: DiagnosticFactoryForDeprecation1<E, A>,
-        message: String,
+        message: () -> String,
         rendererA: DiagnosticParameterRenderer<A>?
     ) {
         checkMutability()
         map[factory.errorFactory] =
             DiagnosticWithParameters1Renderer(message, rendererA)
         map[factory.warningFactory] = DiagnosticWithParameters1Renderer(
-            deprecationMessage(
-                factory,
-                message
-            ), rendererA
+            {
+                deprecationMessage(
+                    factory,
+                    message()
+                )
+            }, rendererA
         )
     }
 
-    fun <E : PsiElement, A:Any> put(
+    fun <E : PsiElement, A : Any> put(
         factory: DiagnosticFactoryForDeprecation1<E, A>,
-        message: String,
+        message: () -> String,
         rendererA: MultiRenderer<A>
     ) {
         checkMutability()
         map[factory.errorFactory] =
             DiagnosticWithParametersMultiRenderer(message, rendererA)
         map[factory.warningFactory] = DiagnosticWithParametersMultiRenderer(
-            deprecationMessage(
-                factory,
-                message
-            ), rendererA
+            {
+                deprecationMessage(
+                    factory,
+                    message()
+                )
+            }, rendererA
         )
     }
 
-    fun <E : PsiElement, A:Any, B:Any> put(
+    fun <E : PsiElement, A : Any, B : Any> put(
         factory: DiagnosticFactoryForDeprecation2<E, A, B>,
-        message: String,
-        rendererA: DiagnosticParameterRenderer<A>? ,
+        message: () -> String,
+        rendererA: DiagnosticParameterRenderer<A>?,
         rendererB: DiagnosticParameterRenderer<B>?
     ) {
         checkMutability()
@@ -158,19 +166,22 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name:
                 rendererB
             )
         map[factory.warningFactory] = DiagnosticWithParameters2Renderer(
-            deprecationMessage(
-                factory,
-                message
-            ), rendererA, rendererB
+            {
+                deprecationMessage(
+                    factory,
+                    message()
+                )
+            }, rendererA, rendererB
         )
     }
 
-    fun <E : PsiElement, A:Any, B:Any, C:Any> put(
+    fun <E : PsiElement, A : Any, B : Any, C : Any> put(
         factory: DiagnosticFactoryForDeprecation3<E, A, B, C>,
-        message: String,
-        rendererA: DiagnosticParameterRenderer<A> ?,
-        rendererB: DiagnosticParameterRenderer<B>? ,
-        rendererC: DiagnosticParameterRenderer<C>?
+        message: () -> String,
+        rendererA: DiagnosticParameterRenderer<A>?,
+        rendererB: DiagnosticParameterRenderer<B>?,
+        rendererC: DiagnosticParameterRenderer<C>?,
+        bundle: AbstractCangJieBundle = CangJieDiagnosisBundle
     ) {
         checkMutability()
         map[factory.errorFactory] = DiagnosticWithParameters3Renderer(
@@ -181,19 +192,21 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name:
         )
         map[factory.warningFactory] =
             DiagnosticWithParameters3Renderer(
-                deprecationMessage(
-                    factory,
-                    message
-                ), rendererA, rendererB, rendererC
+                {
+                    deprecationMessage(
+                        factory,
+                        message()
+                    )
+                }, rendererA, rendererB, rendererC
             )
     }
 
-    fun <E : PsiElement, A:Any, B : Any, C:Any, D:Any> put(
+    fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> put(
         factory: DiagnosticFactoryForDeprecation4<E, A, B, C, D>,
-        message: String,
-        rendererA: DiagnosticParameterRenderer<A> ?,
-        rendererB: DiagnosticParameterRenderer<B> ?,
-        rendererC: DiagnosticParameterRenderer<C>? ,
+        message: () -> String,
+        rendererA: DiagnosticParameterRenderer<A>?,
+        rendererB: DiagnosticParameterRenderer<B>?,
+        rendererC: DiagnosticParameterRenderer<C>?,
         rendererD: DiagnosticParameterRenderer<D>?
     ) {
         checkMutability()
@@ -207,10 +220,12 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name:
             )
         map[factory.warningFactory] =
             DiagnosticWithParameters4Renderer(
-                deprecationMessage(
-                    factory,
-                    message
-                ), rendererA, rendererB, rendererC, rendererD
+                {
+                    deprecationMessage(
+                        factory,
+                        message()
+                    )
+                }, rendererA, rendererB, rendererC, rendererD
             )
     }
 
@@ -221,8 +236,6 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(private val name:
     fun setImmutable() {
         immutable = false
     }
-
-
 
 
     companion object {

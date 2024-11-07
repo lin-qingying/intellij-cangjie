@@ -3,16 +3,16 @@ package com.linqingying.cangjie.diagnostics.rendering
 import com.linqingying.cangjie.diagnostics.Diagnostic
 import java.text.MessageFormat
 
-class SimpleDiagnosticRenderer(private val message: String) :
+class SimpleDiagnosticRenderer(private val message: () -> String ) :
     DiagnosticRenderer<Diagnostic > {
     override fun render(diagnostic: Diagnostic): String {
 
-        val str = CangJieDiagnosisBundle.rawMessage(diagnostic.factory.name)
-        if(str == "!${diagnostic.factory.name}!"){
-            return message
-        }
+//        val str = CangJieDiagnosisBundle.rawMessage(diagnostic.factory.name)
+//        if(str == "!${diagnostic.factory.name}!"){
+//            return message
+//        }
 
-        return str
+        return message()
     }
 
     override fun renderParameters(diagnostic: Diagnostic): Array<Any?> {

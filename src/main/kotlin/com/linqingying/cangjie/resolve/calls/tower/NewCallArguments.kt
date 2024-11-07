@@ -12,6 +12,8 @@ import com.linqingying.cangjie.resolve.BindingContext
 import com.linqingying.cangjie.resolve.StatementFilter
 import com.linqingying.cangjie.resolve.TypeResolver
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver
+import com.linqingying.cangjie.resolve.calls.components.CaseEnumArgument
+
 import com.linqingying.cangjie.resolve.calls.components.InferenceSession
 import com.linqingying.cangjie.resolve.calls.context.BasicCallResolutionContext
 import com.linqingying.cangjie.resolve.calls.model.*
@@ -56,6 +58,17 @@ class CallableReferenceCangJieCallArgumentImpl(
     override val rhsName: Name,
     override val call: CangJieCall
 ) : CallableReferenceCangJieCallArgument, PSICangJieCallArgument()
+
+class CasePatternCangJieCallArgumentImpl(
+    override val valueArgument: ValueArgument,
+    override val argumentName: Name?,
+    override val dataFlowInfoBeforeThisArgument: DataFlowInfo,
+    override val dataFlowInfoAfterThisArgument: DataFlowInfo,
+    val collectionLiteralExpression: CjCasePattern,
+    val outerCallContext: BasicCallResolutionContext
+) : CollectionLiteralCangJieCallArgument, PSICangJieCallArgument() {
+    override val isSpread: Boolean get() = valueArgument.getSpreadElement() != null
+}
 
 class CollectionLiteralCangJieCallArgumentImpl(
     override val valueArgument: ValueArgument,
@@ -211,6 +224,7 @@ class EmptyLabeledReturn(
 val CangJieCallArgument.psiExpression: CjExpression?
     get() {
         return when (this) {
+            is CaseEnumArgument -> null
             is ReceiverExpressionCangJieCallArgument -> (receiver.receiverValue as? ExpressionReceiver)?.expression
             is QualifierReceiverCangJieCallArgument -> (receiver as? Qualifier)?.expression
             is EmptyLabeledReturn -> returnExpression
@@ -254,7 +268,12 @@ fun processFunctionalExpression(
     val lambdaArgument: PSICangJieCallArgument = when (postponedExpression) {
         is CjLambdaExpression ->
             LambdaCangJieCallArgumentImpl(
-                outerCallContext, valueArgument, startDataFlowInfo, argumentName, postponedExpression, argumentExpression,
+                outerCallContext,
+                valueArgument,
+                startDataFlowInfo,
+                argumentName,
+                postponedExpression,
+                argumentExpression,
                 resolveParametersTypes(outerCallContext, postponedExpression.functionLiteral, typeResolver)
             )
 
@@ -328,7 +347,7 @@ private fun resolveParametersTypes(
     val parameterList = cjFunction.valueParameterList ?: return null
 
     return Array(parameterList.parameters.size) {
-        parameterList.parameters[it]?.typeReference?.let { resolveType(context, it, typeResolver) }
+        parameterList.parameters[it].typeReference?.let { resolveType(context, it, typeResolver) }
     }
 }
 
@@ -340,7 +359,7 @@ private fun resolveContextReceiversTypes(
     val contextReceivers = cjFunction.contextReceivers
 
     return Array(contextReceivers.size) {
-        contextReceivers[it]?.typeReference()?.let { typeRef -> resolveType(context, typeRef, typeResolver) }
+        contextReceivers[it].typeReference()?.let { typeRef -> resolveType(context, typeRef, typeResolver) }
     }
 }
 
@@ -349,6 +368,7 @@ fun checkNoSpread(context: BasicCallResolutionContext, valueArgument: ValueArgum
         context.trace.report(Errors.SPREAD_OF_LAMBDA_OR_CALLABLE_REFERENCE.on(it))
     }
 }
+
 class LambdaCangJieCallArgumentImpl(
     outerCallContext: BasicCallResolutionContext,
     valueArgument: ValueArgument,

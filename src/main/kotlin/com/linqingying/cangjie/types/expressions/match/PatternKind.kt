@@ -15,12 +15,17 @@ sealed class PatternKind {
      * let x:type
      */
     data class Binding(val type: CangJieType, val name: String) : PatternKind()
+    data class Type(val type: CangJieType, val name: String) : PatternKind()
 
     /**
      * 常量模式
      */
     data class Const(val value: ConstantValue<*>) : PatternKind()
 
+    /**
+     * 元组模式
+     */
+    data class Tuple(  val subPatterns: List<Pattern>) : PatternKind()
 
     /**
      * 枚举模式

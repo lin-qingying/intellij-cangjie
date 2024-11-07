@@ -30,7 +30,10 @@ import com.intellij.openapi.project.IndexNotReadyException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import static com.linqingying.cangjie.types.util.TypeUtils.EXPRESSION_TYPE;
+import static com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 
 public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJieTypeInfo, ExpressionTypingContext>
         implements ExpressionTypingInternals {
@@ -110,6 +113,30 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     }
 
     @Override
+    public @NotNull CangJieTypeInfo getTypeInfoByEnum(@NotNull CjExpression expression, ExpressionTypingContext context) {
+        if (context.expectedType == EXPRESSION_TYPE) {
+//            context = context.replaceExpectedType(components.builtIns.getAnyType());
+            context  = context.replaceExpectedType(NO_EXPECTED_TYPE);
+        }
+
+        CangJieTypeInfo result = getTypeInfo (expression, context, new ForGetEnum(components,annotationChecker));
+//        annotationChecker.checkExpression(expression, context.trace);
+        return result;
+    }
+
+    @Override
+    public @NotNull CangJieTypeInfo getTypeInfoByCaseEnum(@NotNull CjExpression expression, List<ValueArgument> argument, ExpressionTypingContext context) {
+        if (context.expectedType == EXPRESSION_TYPE) {
+//            context = context.replaceExpectedType(components.builtIns.getAnyType());
+            context  = context.replaceExpectedType(NO_EXPECTED_TYPE);
+        }
+
+        CangJieTypeInfo result = getTypeInfo (expression, context, new ForCaseEnum(components,annotationChecker,argument));
+//        annotationChecker.checkExpression(expression, context.trace);
+        return result;
+    }
+
+    @Override
     public @NotNull CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context) {
 
 
@@ -127,7 +154,80 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     public CangJieTypeInfo visitVariable(@NotNull CjVariable variable, ExpressionTypingContext data) {
         return basic.visitVariable(variable, data);
     }
+    @NotNull
+    private CangJieTypeInfo getTypeInfoByEnum(@NotNull CjExpression expression, ExpressionTypingContext context, CjVisitor<CangJieTypeInfo, ExpressionTypingContext> visitor){
+        ProgressManager.checkCanceled();
+        return typeInfoPerfCounter.time(() -> {
 
+            try {
+                CangJieTypeInfo recordedTypeInfo = BindingContextUtils.getRecordedTypeInfo(expression, context.trace.getBindingContext());
+                if (recordedTypeInfo != null) {
+                    return recordedTypeInfo;
+                }
+
+                context.trace.record(BindingContext.DATA_FLOW_INFO_BEFORE, expression, context.dataFlowInfo);
+
+                CangJieTypeInfo result;
+                try {
+                    result = expression.accept(visitor, context);
+
+                    if (context.trace.get(BindingContext.PROCESSED, expression) == Boolean.TRUE) {
+                        CangJieType type = context.trace.getBindingContext().getType(expression);
+                        return result.replaceType(type);
+                    }
+//
+                    if (result.getType() instanceof DeferredType) {
+                        result = result.replaceType(((DeferredType) result.getType()).getDelegate());
+                    }
+
+
+                    CangJieType refinedType = result.getType() != null
+                            ? components.cangjieTypeChecker.getCangjieTypeRefiner().refineType(result.getType())
+                            : null;
+
+                    if (refinedType != result.getType()) {
+                        result = result.replaceType(refinedType);
+                    }
+
+                    context.trace.record(BindingContext.EXPRESSION_TYPE_INFO, expression, result);
+
+                } catch (ReenteringLazyValueComputationException e) {
+//                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression));
+                    result = TypeInfoFactoryKt.noTypeInfo(context);
+                }
+                if (context.isSaveTypeInfo) {
+
+                    context.trace.record(BindingContext.PROCESSED, expression);
+                }
+                BindingContextUtilsKt.recordScope(context.trace, context.scope, expression);
+//                if (context.isSaveTypeInfo) {
+                BindingContextUtilsKt.recordDataFlowInfo(context.replaceDataFlowInfo(result.getDataFlowInfo()), expression);
+
+//                }
+//                try {
+//                    // Here we have to resolve some types, so the following exception is possible
+//                    // Example: val a = ::a, fun foo() = ::foo
+//                    recordTypeInfo(expression, result);
+//                }
+//                catch (ReenteringLazyValueComputationException e) {
+//                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression));
+//                    return TypeInfoFactoryKt.noTypeInfo(context);
+//                }
+                return result;
+
+            } catch (ProcessCanceledException | CangJieFrontEndException | IndexNotReadyException e) {
+                throw e;
+            } catch (Throwable e) {
+                context.trace.report(Errors.EXCEPTION_FROM_ANALYZER.on(expression, e));
+                logOrThrowException(expression, e);
+                return TypeInfoFactoryKt.createTypeInfo(
+                        ErrorUtils.createErrorType(ErrorTypeKind.TYPE_FOR_COMPILER_EXCEPTION, e.getClass().getSimpleName()),
+                        context
+                );
+            }
+        });
+
+    }
     @NotNull
     private CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context, CjVisitor<CangJieTypeInfo, ExpressionTypingContext> visitor) {
         ProgressManager.checkCanceled();
@@ -381,21 +481,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     public CangJieTypeInfo visitCallExpression(@NotNull CjCallExpression expression, ExpressionTypingContext data) {
         return basic.visitCallExpression(expression, data);
     }
-//
-//    @Override
-//    public CangJieTypeInfo visitClassLiteralExpression(@NotNull CjClassLiteralExpression expression, ExpressionTypingContext data) {
-//        return basic.visitClassLiteralExpression(expression, data);
-//    }
-//
-//    @Override
-//    public CangJieTypeInfo visitCallableReferenceExpression(@NotNull CjCallableReferenceExpression expression, ExpressionTypingContext data) {
-//        return basic.visitCallableReferenceExpression(expression, data);
-//    }
-//
-//    @Override
-//    public CangJieTypeInfo visitObjectLiteralExpression(@NotNull CjObjectLiteralExpression expression, ExpressionTypingContext data) {
-//        return basic.visitObjectLiteralExpression(expression, data);
-//    }
+
 
     @Override
     public CangJieTypeInfo visitUnaryExpression(@NotNull CjUnaryExpression expression, ExpressionTypingContext data) {
@@ -417,10 +503,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
         return basic.visitArrayAccessExpression(expression, data);
     }
 
-//    @Override
-//    public CangJieTypeInfo visitLabeledExpression(@NotNull CjLabeledExpression expression, ExpressionTypingContext data) {
-//        return basic.visitLabeledExpression(expression, data);
-//    }
+
 
     @Override
     public CangJieTypeInfo visitDeclaration(@NotNull CjDeclaration dcl, ExpressionTypingContext data) {
@@ -437,21 +520,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
         return element.accept(basic, data);
     }
 
-//    @Override
-//    public CangJieTypeInfo visitClass(@NotNull CjClass klass, ExpressionTypingContext data) {
-//        return basic.visitClass(klass, data);
-//    }
-//
-//    @Override
-//    public CangJieTypeInfo visitProperty(@NotNull CjProperty property, ExpressionTypingContext data) {
-//        return basic.visitProperty(property, data);
-//    }
 
-    //    protected final BasicExpressionTypingVisitor basic;
-//    protected final FunctionsTypingVisitor functions;
-//    protected final ControlStructureTypingVisitor controlStructures;
-//    protected final PatternMatchingTypingVisitor patterns;
-//    protected final DeclarationsCheckerBuilder declarationsCheckerBuilder;
     public static class ForBlock extends ExpressionTypingVisitorDispatcher {
 
         private final ExpressionTypingVisitorForStatements visitorForBlock;
@@ -474,11 +543,53 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
             return visitorForBlock;
         }
     }
+    public static class ForGetEnum extends ExpressionTypingVisitorDispatcher {
+        public ForGetEnum(@NotNull ExpressionTypingComponents components, @NotNull AnnotationChecker annotationChecker) {
+            super(components, annotationChecker);
+        }
 
-//    @Override
-//    public CangJieTypeInfo visitAnnotatedExpression(@NotNull CjAnnotatedExpression expression, ExpressionTypingContext data) {
-//        return basic.visitAnnotatedExpression(expression, data);
-//    }
+        @Override
+        public CangJieTypeInfo visitSimpleNameExpression(@NotNull CjSimpleNameExpression expression, ExpressionTypingContext data) {
+
+            return  basic.visitSimpleNameExpressionByEnum(expression, data);
+        }
+
+        @Override
+        public CangJieTypeInfo visitDotQualifiedExpression(@NotNull CjDotQualifiedExpression expression, ExpressionTypingContext data) {
+
+            return   basic.visitQualifiedExpressionByEnum(expression, data);
+        }
+
+        @Override
+        protected ExpressionTypingVisitorForStatements getStatementVisitor(@NotNull ExpressionTypingContext context) {
+            return createStatementVisitor(context);
+        }
+    }
+    public static class ForCaseEnum extends ExpressionTypingVisitorDispatcher {
+        List<ValueArgument> argument;
+        public ForCaseEnum(@NotNull ExpressionTypingComponents components, @NotNull AnnotationChecker annotationChecker,List<ValueArgument> argument) {
+            super(components, annotationChecker);
+            this.argument = argument;
+        }
+
+        @Override
+        public CangJieTypeInfo visitSimpleNameExpression(@NotNull CjSimpleNameExpression expression, ExpressionTypingContext data) {
+
+            return  basic.visitSimpleNameExpressionByCaseEnum(expression, argument, data);
+        }
+
+        @Override
+        public CangJieTypeInfo visitDotQualifiedExpression(@NotNull CjDotQualifiedExpression expression, ExpressionTypingContext data) {
+
+            return   basic.visitQualifiedExpressionByCaseEnum(expression, argument,data);
+        }
+
+        @Override
+        protected ExpressionTypingVisitorForStatements getStatementVisitor(@NotNull ExpressionTypingContext context) {
+            return createStatementVisitor(context);
+        }
+    }
+
 
     public static class ForDeclarations extends ExpressionTypingVisitorDispatcher {
         public ForDeclarations(@NotNull ExpressionTypingComponents components, @NotNull AnnotationChecker annotationChecker) {

@@ -9,16 +9,19 @@ import com.linqingying.cangjie.builtins.isBuiltinTupleType
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
-import com.linqingying.cangjie.descriptors.enumd.LazyEnumDescriptor
 import com.linqingying.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import com.linqingying.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.diagnostics.MatchMissingCase
+import com.linqingying.cangjie.ide.codeinsight.toSourceElement
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.*
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.psi.psiUtil.*
+import com.linqingying.cangjie.psi.psiUtil.elementType
+import com.linqingying.cangjie.psi.psiUtil.findParentOfType
+import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
+import com.linqingying.cangjie.psi.psiUtil.referenceExpression
 import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.BindingContext.*
 import com.linqingying.cangjie.resolve.DescriptorUtils.isEnum
@@ -31,12 +34,14 @@ import com.linqingying.cangjie.resolve.calls.smartcasts.ConditionalDataFlowInfo
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValue
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+import com.linqingying.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import com.linqingying.cangjie.resolve.calls.util.CallMaker
 import com.linqingying.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import com.linqingying.cangjie.resolve.descriptorUtil.classId
 import com.linqingying.cangjie.resolve.descriptorUtil.classValueType
 import com.linqingying.cangjie.resolve.scopes.*
 import com.linqingying.cangjie.resolve.scopes.receivers.ReceiverValue
+import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
@@ -478,10 +483,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     listOf(
                         when (val it = element.expression?.let {
                             when (it) {
-                                is CjQualifiedExpression -> components.callExpressionResolver.getQualifiedExpressionEnumEntryType(
-                                    it,
-                                    context
-                                )
+
 
                                 is CjSimpleNameExpression -> components.callExpressionResolver.getSimpleNameExpressionEnumEntryType(
                                     it,
@@ -1090,101 +1092,181 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         }
 
         override fun visitPatternByEnum(element: CjEnumPattern, data: PatternContext): Pattern {
-components.callExpressionResolver.getSimpleNameExpressionTypeInfo
+//components.callExpressionResolver.getSimpleNameExpressionTypeInfo
 
             val expression = element.expression
 
-            val typeReference = element.type
-            val typeElement = typeReference?.typeElement
-            val typeQualifier = typeReference?.typeElement?.qualifier
-            if ((typeElement as? CjUserType)?.typeArgumentList != null && typeQualifier != null) {
-//               不能在没有前置类型的情况下使用类型参数
-            }
-            if (typeElement !is CjUserType) {
-//                不是Cjuser一定不是枚举类型
-
-            }
-
-            val enumEntrys: List<EnumEntryDescriptor> = if (data.subject.type.isEnum() && typeQualifier == null) {
-//            枚举具有重载性
-                data.subject.type.memberScope.getContributedDescriptors {
-                    it.asString() == typeElement?.text
-                }.mapNotNull {
-                    if (it is LazySubstitutingClassDescriptor) {
-                        it.original as? EnumEntryDescriptor
-                    } else
-                        it as? EnumEntryDescriptor
-                }.filter { !it.hasUnsubstitutedPrimaryConstructor() }
+            val typeInfo = if (data.subject.type.isEnum()) {
+                expression?.let {
+                    facade.getTypeInfoByCaseEnum(
+                        it,
+                        element.patterns,
+                        data.context.replaceExpectedType(data.subject.type)
+                    )
+                }
             } else {
-
-                val newContext = data.context.replaceExpectedType(data.subject.type)
-                val enumEntryDescriptor = element.type?.let {
-                    (it.typeElement as? CjUserType)?.let { it1 ->
-                        components.typeResolver.resolveClass(
-                            newContext.scope,
-                            it1,
-                            newContext.trace,
-                            false
-                        )
-                    }
-                }
-                if (enumEntryDescriptor == null) {
-                    data.context.trace.report(NOT_ENUM_MATCH.on(element.type))
-                    return Pattern(data.subject.type, PatternKind.Error)
-
-                }
-//                if (type is EnumEntryDescriptor) {
-//                    data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
-//                    data.context.trace.record(REFERENCE_TARGET, element.expression?.referenceExpression(), type)
-//
-//                    return Pattern(data.subject.type, PatternKind.Error)
-//                }
-                val entryByEnumType = (enumEntryDescriptor.containingDeclaration as? LazyEnumDescriptor)?.defaultType
-                if (entryByEnumType == null) {
-                    data.context.trace.report(NOT_ENUM_MATCH.on(element.type))
-                    return Pattern(data.subject.type, PatternKind.Error)
-                }
-                if (!CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(data.subject.type, entryByEnumType)) {
-                    data.context.trace.report(NOT_ENUM_MATCH.on(element.type))
-                    return Pattern(data.subject.type, PatternKind.Error)
-                }
-//                检查类型参数
-                if (typeQualifier?.typeArgumentsAsTypes?.isNotEmpty() == true) {
-                    if (typeQualifier.typeArgumentsAsTypes.size != entryByEnumType.arguments.size) {
-                        data.context.trace.report(NOT_ENUM_MATCH.on(element.type))
-                        return Pattern(data.subject.type, PatternKind.Error)
-                    }
-                    data.subject.type.arguments.forEachIndexed { index, typeProjection ->
-                        val tpType = components.typeResolver.resolveType(
-                            data.context.scope,
-                            typeQualifier.typeArgumentsAsTypes[index],
-                            data.context.trace,
-                            false
-                        )
-                        if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(typeProjection.type, tpType)) {
-                            data.context.trace.report(NOT_ENUM_MATCH.on(element.type))
-                            return Pattern(data.subject.type, PatternKind.Error)
-                        }
-                    }
-                }
-
-                emptyList()
+                expression?.let { facade.getTypeInfoByCaseEnum(it, element.patterns, data.context) }
             }
-//            val type = element.type?.let {
-//                components.typeResolver.resolveType(
-//                    data.context.scope,
-//                    it,
-//                    data.context.trace,
-//                    false
-//                )
-//            }
-//            if (type?.isEnumEntry() == false) {
-//                data.context.trace.report(NOT_ENUM_MATCH.on(element))
-//                return Pattern(data.subject.type, PatternKind.Error)
-//            }
-//            val entryByEnumType = type?.constructor?.declarationDescriptor
+            if (typeInfo?.type == null) {
+//               如果type未空，一定不匹配
+                data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
+            } else if (!CangJieTypeChecker.DEFAULT.equalTypes(typeInfo.type, data.subject.type)) {
+                data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
+            }
 
-            return super.visitPatternByEnum(element, data)
+            typeInfo?.type ?: return Pattern(typeInfo?.type, PatternKind.Error)
+
+            val enumSource = typeInfo.type.deccriptorClass?.source?.getPsi() as? CjEnum ?: return Pattern(
+                typeInfo.type,
+                PatternKind.Error
+            )
+
+            val enumEntry =
+                data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()] as? EnumClassCallableDescriptor
+            val enumEntrySource =
+                enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
+                    ?: return Pattern(typeInfo.type, PatternKind.Error)
+
+            val valueParameters = enumEntry.valueParameters
+            return Pattern(
+                typeInfo.type, PatternKind.Enum(
+                    enumSource, enumEntrySource,
+
+                    valueParameters.mapIndexed { index, it ->
+
+
+//                        期望类型
+                        val expectedType = it.type
+
+
+                        element.patterns[index].accept(
+                            this, PatternContext(
+                                Subject.Expression(
+                                    element.patterns[index],
+                                    createTypeInfo(expectedType),
+                                    components.dataFlowValueFactory
+                                ),
+                                data.context
+                            )
+                        )
+
+                    }
+
+                ))
+
+        }
+
+        //            类型模式
+        override fun visitPatternByType(element: CjTypePattern, data: PatternContext): Pattern {
+            val type =
+                element.typeReference?.let {
+                    components.typeResolver.resolveType(
+                        data.context.scope,
+                        it, data.context.trace, false
+                    )
+                } ?: ErrorUtils.errorVariableType
+
+            val redeclarationChecker =
+                TraceBasedLocalRedeclarationChecker(
+                    data.context.trace,
+                    this@PatternMatchingTypingVisitor.components.overloadChecker
+                )
+            val scope = LexicalWritableScope(
+                data.context.scope, data.context.scope.ownerDescriptor, false, redeclarationChecker,
+                LexicalScopeKind.CODE_BLOCK
+            )
+            val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
+                scope, element, type, data.context.trace
+            )
+//                if (context.scope is LexicalWritableScope) {
+//                    (context.scope as LexicalWritableScope).addVariableDescriptor(variable)
+//                }
+            element.parent?.let {
+                element.findParentOfType<CjPatternEntryBlock>()?.let {
+                    if (data.context.config.addVariableDescriptor[it] == null) {
+                        data.context.config.addVariableDescriptor[it] = mutableListOf()
+                    }
+                    data.context.config.addVariableDescriptor[it]?.add { scope ->
+                        scope as LexicalWritableScope
+                        scope.addVariableDescriptor(variable)
+                    }
+
+                }
+
+            }
+            return Pattern(type, PatternKind.Type(type, element.text))
+        }
+
+        override fun visitPatternByTuple(element: CjTuplePattern, data: PatternContext): Pattern {
+
+
+            val patterns = element.patterns
+            val patternSize = patterns.size
+
+            if (!data.subject.type.isBuiltinTupleType) {
+                data.context.trace.report(TUPLE_PATTERN_TYPE_MISMATCH.on(element, data.subject.type))
+                return Pattern(
+                    null,
+                    PatternKind.Error
+                )
+            }
+
+            if (patternSize < 1) {
+                data.context.trace.report(TUPLE_ARGS_TOO_FEW.on(element))
+                return Pattern(
+                    null,
+                    PatternKind.Error
+                )
+            }
+            if (patternSize != data.subject.type.arguments.size) {
+                data.context.trace.report(
+                    TUPLE_ARGS_MISMATCH.on(
+                        element,
+                        data.subject.type.arguments.size,
+                        patternSize
+                    )
+                )
+                return Pattern(
+                    null,
+                    PatternKind.Error
+                )
+            }
+            data.subject.type.arguments.forEachIndexed { index, argumentType ->
+                checkCasePattern(
+                    Subject.Type(
+
+                        createTypeInfo(argumentType.type, data.context),
+                        data.subject.dataFlowValue
+                    ),
+                    patterns[index],
+                    data.context
+                )
+
+            }
+
+            return Pattern(data.subject.type,
+                PatternKind.Tuple(
+
+
+                    element.patterns.mapIndexed { index, it ->
+
+//
+//                        期望类型
+                        val expectedType = data.subject.type.arguments[index].type
+
+
+                        it.accept(
+                            this, PatternContext(
+                                Subject.Expression(it, createTypeInfo(expectedType), components.dataFlowValueFactory),
+                                data.context
+                            )
+                        )
+
+                    }
+
+                ))
+
+
         }
 
         override fun visitPatternByBinding(element: CjBindingPattern, data: PatternContext): Pattern {

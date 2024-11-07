@@ -1142,3 +1142,9 @@ val CangJieType.classKind: ClassKind
     }
 
 fun CangJieType.immediateSupertypes(): Collection<CangJieType> = TypeUtils.getImmediateSupertypes(this)
+
+
+val CangJieType.deccriptorClass :ClassDescriptor? get()   {
+
+    return constructor.declarationDescriptor as? ClassDescriptor
+}

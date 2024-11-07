@@ -712,6 +712,24 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return components.collectionLiteralResolver.resolveCollectionLiteral(expression, context)
     }
 
+    fun visitQualifiedExpressionByCaseEnum(
+        expression: CjQualifiedExpression,
+
+        argument :List<ValueArgument>,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        val callExpressionResolver = components.callExpressionResolver
+        return callExpressionResolver.getQualifiedExpressionTypeInfoByCaseEnum(expression, argument,context)
+    }
+
+    fun visitQualifiedExpressionByEnum(
+        expression: CjQualifiedExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        val callExpressionResolver = components.callExpressionResolver
+        return callExpressionResolver.getQualifiedExpressionTypeInfoByEnum(expression, context)
+    }
+
     override fun visitQualifiedExpression(
         expression: CjQualifiedExpression,
         context: ExpressionTypingContext
@@ -742,6 +760,44 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             )
         }
         return result
+    }
+    fun visitSimpleNameExpressionByCaseEnum(
+        expression: CjSimpleNameExpression,
+        argument :List<ValueArgument>,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+
+        val callExpressionResolver = components.callExpressionResolver
+        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfoByCaseEnum(expression, null, null, context,argument)
+
+
+        checkNull(expression, context, typeInfo.type)
+
+        components.constantExpressionEvaluator.evaluateExpression(
+            expression, context.trace, context.expectedType
+        )
+        return components.dataFlowAnalyzer.checkType(typeInfo, expression, context) // TODO : Extensions to this
+    }
+    fun visitSimpleNameExpressionByEnum(
+        expression: CjSimpleNameExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+//        if (!components.languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
+//            ReservedCheckingKt.checkReservedYield(expression, context.trace);
+//        }
+//
+//        // TODO : other members
+//        // TODO : type substitutions???
+        val callExpressionResolver = components.callExpressionResolver
+        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfoByEnum(expression, null, null, context)
+
+
+        checkNull(expression, context, typeInfo.type)
+
+        components.constantExpressionEvaluator.evaluateExpression(
+            expression, context.trace, context.expectedType
+        )
+        return components.dataFlowAnalyzer.checkType(typeInfo, expression, context) // TODO : Extensions to this
     }
 
     override fun visitSimpleNameExpression(

@@ -4,6 +4,8 @@ import com.linqingying.cangjie.configurable.LanguageOption
 import com.linqingying.cangjie.configurable.state.PluginLanguageState
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.Nls
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.PropertyKey
 import java.util.*
 
 
@@ -31,7 +33,11 @@ abstract class AbstractCangJieBundle protected constructor(val pathToBundle: Str
 
         }
     }
+    // 新增的方法来获取原始内容
+    @Nls
 
+    fun rawMessage(  key: String): String =
+        getMessage(key) // 不传递任何参数
     // 动态加载资源文件
     @Nls
     override fun getMessage(key: String, vararg params: Any): String {
