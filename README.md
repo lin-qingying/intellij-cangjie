@@ -1,4 +1,4 @@
-# 如果有人愿意接手此项目，请联系我，我可以提供帮助
+
 # Cangjie language plugin for intellij platform
 ## 适用于intellij平台的仓颉语言插件
 
