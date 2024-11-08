@@ -7,10 +7,7 @@ import com.linqingying.cangjie.resolve.caches.type
 import com.linqingying.cangjie.resolve.constants.*
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.CangJieType
-import com.linqingying.cangjie.types.util.deccriptorClass
-import com.linqingying.cangjie.types.util.isBoolean
-import com.linqingying.cangjie.types.util.isEnum
-import com.linqingying.cangjie.types.util.substitute
+import com.linqingying.cangjie.types.util.*
 import com.linqingying.cangjie.resolve.constants.ConstantValue as CV
 
 fun List<CjTypeReference>.types(): List<CangJieType> {
@@ -76,7 +73,7 @@ sealed class Constructor {
         private fun allConstructorsLazy(ty: CangJieType): Sequence<Constructor> =
             when {
                 ty.isBoolean() -> sequenceOf(true, false).map { ConstantValue(BoolValue(it)) }
-
+                ty.isUnit() -> sequenceOf(true, false).map { ConstantValue(UnitValue) }
                 ty.isEnum() ->
                     (ty.deccriptorClass?.source?.getPsi() as? CjEnum)?.entry?.asSequence()?.map { Enum(it) }
                         ?: emptySequence()
@@ -91,6 +88,7 @@ sealed class Constructor {
 
 private operator fun CV<*>.compareTo(other: CV<*>): Int {
     return when {
+        this is UnitValue && other is UnitValue -> 0
         this is BoolValue && other is BoolValue -> value.compareTo(other.value)
         this is Int64Value && other is Int64Value -> value.compareTo(other.value)
         this is Int32Value && other is Int32Value -> value.compareTo(other.value)
