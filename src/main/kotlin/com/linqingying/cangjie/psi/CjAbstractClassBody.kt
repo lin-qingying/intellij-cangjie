@@ -1,55 +1,65 @@
 package com.linqingying.cangjie.psi
 
-import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.psi.stubs.CangJiePlaceHolderStub
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes.*
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
+import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes.*
 
 
-class CjInterfaceBody : CjAbstractClassBody{
+class CjInterfaceBody : CjAbstractClassBody {
     constructor(node: ASTNode) : super(node)
 
 
     constructor(stub: CangJiePlaceHolderStub<CjInterfaceBody>) : super(stub, INTERFACE_BODY)
 
 }
-class CjEnumBody : CjAbstractClassBody{
+
+class CjEnumBody : CjAbstractClassBody {
     constructor(node: ASTNode) : super(node)
 
 
     constructor(stub: CangJiePlaceHolderStub<CjEnumBody>) : super(stub, ENUM_BODY)
 
+
+    val entrys get() = getStubOrPsiChildrenAsList(ENUM_ENTRY)
+
 }
-class CjClassBody : CjAbstractClassBody{
+
+class CjClassBody : CjAbstractClassBody {
     constructor(node: ASTNode) : super(node)
 
 
     constructor(stub: CangJiePlaceHolderStub<CjEnumBody>) : super(stub, CLASS_BODY)
 
 }
-abstract class CjAbstractClassBody : CjElementImplStub<CangJiePlaceHolderStub<out CjAbstractClassBody>>, CjDeclarationContainer {
+
+abstract class CjAbstractClassBody : CjElementImplStub<CangJiePlaceHolderStub<out CjAbstractClassBody>>,
+    CjDeclarationContainer {
     private val lBraceTokenSet = TokenSet.create(CjTokens.LBRACE)
     private val rBraceTokenSet = TokenSet.create(CjTokens.RBRACE)
 
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<out CjAbstractClassBody>,nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+    constructor(stub: CangJiePlaceHolderStub<out CjAbstractClassBody>, nodeType: IStubElementType<*, *>) : super(
+        stub,
+        nodeType
+    )
 
 
     constructor(stub: CangJiePlaceHolderStub<CjAbstractClassBody>) : super(stub, CLASS_BODY)
 
     override fun getParent() = parentByStub
     internal val secondaryConstructors: List<CjSecondaryConstructor>
-        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.SECONDARY_CONSTRUCTOR)
+        get() = getStubOrPsiChildrenAsList(SECONDARY_CONSTRUCTOR)
     internal val primaryConstructors: List<CjPrimaryConstructor>
-        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.PRIMARY_CONSTRUCTOR)
+        get() = getStubOrPsiChildrenAsList(PRIMARY_CONSTRUCTOR)
     internal val endSecondaryConstructors: List<CjEndSecondaryConstructor>
-        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.END_SECONDARY_CONSTRUCTOR)
+        get() = getStubOrPsiChildrenAsList(END_SECONDARY_CONSTRUCTOR)
+
     /**
      * @return annotations that do not belong to any declaration due to incomplete code or syntax errors
      */
@@ -61,9 +71,9 @@ abstract class CjAbstractClassBody : CjElementImplStub<CangJiePlaceHolderStub<ou
     }
 
     val properties: List<CjProperty>
-        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.PROPERTY)
+        get() = getStubOrPsiChildrenAsList(PROPERTY)
     val variables: List<CjVariable>
-        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.VARIABLE)
+        get() = getStubOrPsiChildrenAsList(VARIABLE)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?) = visitor.visitClassBody(this, data)
     override val declarations: List<CjDeclaration>

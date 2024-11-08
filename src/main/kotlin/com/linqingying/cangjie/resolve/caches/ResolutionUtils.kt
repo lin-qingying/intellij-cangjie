@@ -15,6 +15,7 @@ import com.linqingying.cangjie.resolve.calls.util.getResolvedCall
 import com.linqingying.cangjie.resolve.calls.util.safeAnalyze
 import com.linqingying.cangjie.resolve.lazy.BodyResolveMode
 import com.linqingying.cangjie.resolve.lazy.NoDescriptorForDeclarationException
+import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.utils.actionUnderSafeAnalyzeBlock
 import com.linqingying.cangjie.utils.returnIfNoDescriptorForDeclarationException
 
@@ -29,6 +30,7 @@ fun CjFile.resolveImportReference(fqName: FqName): Collection<DeclarationDescrip
     val facade = getResolutionFacade()
     return facade.resolveImportReference(facade.moduleDescriptor, fqName)
 }
+
 fun CjElement.safeAnalyze(
     resolutionFacade: ResolutionFacade,
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
@@ -37,6 +39,7 @@ fun CjElement.safeAnalyze(
 } catch (e: Exception) {
     e.returnIfNoDescriptorForDeclarationException { BindingContext.EMPTY }
 }
+
 // this method don't check visibility and collect all descriptors with given fqName
 @OptIn(FrontendInternals::class)
 fun ResolutionFacade.resolveImportReference(
@@ -111,6 +114,15 @@ fun CjDeclaration.resolveToDescriptorIfAny(
 fun CjNamedFunction.resolveToDescriptorIfAny(bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL) =
     resolveToDescriptorIfAny(getResolutionFacade(), bodyResolveMode)
 
+val CjTypeReference.type: CangJieType?
+    get() {
+
+        val result = this.safeAnalyze()
+
+        return this.getType(result)
+
+
+    }
 val CjDeclaration.descriptor: DeclarationDescriptor?
     get() = if (this is CjParameter) this.descriptor else this.resolveToDescriptorIfAny(BodyResolveMode.FULL)
 val CjParameter.descriptor: ValueParameterDescriptor?

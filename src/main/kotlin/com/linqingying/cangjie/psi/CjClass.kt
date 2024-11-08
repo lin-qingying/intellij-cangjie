@@ -6,6 +6,7 @@ import com.linqingying.cangjie.psi.stubs.CangJieClassStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_BODY
 
 open class CjClass : CjTypeStatement {
 //    fun isInterface(): Boolean =
@@ -33,7 +34,7 @@ open class CjClass : CjTypeStatement {
 
 
 
-    override fun getBody(): CjAbstractClassBody?  = getStubOrPsiChild(CjStubElementTypes.CLASS_BODY)
+    override fun getBody(): CjAbstractClassBody?  =  getStubOrPsiChild( CLASS_BODY)
 
     override fun getClassId(): ClassId?  {
         stub?.let { return it.getClassId() }

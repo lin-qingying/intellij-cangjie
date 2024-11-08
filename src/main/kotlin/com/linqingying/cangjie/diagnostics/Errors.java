@@ -21,6 +21,7 @@ import com.linqingying.cangjie.resolve.calls.tower.WrongResolutionToClassifier;
 import com.linqingying.cangjie.types.CangJieType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.linqingying.cangjie.types.expressions.match.Pattern;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 
@@ -112,6 +113,9 @@ public interface Errors {
     DiagnosticFactory2<CjElement, CangJieType, CangJieType> INCOMPATIBLE_TYPES = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<CjExpression, CangJieType, CangJieType> IMPLICIT_CAST_TO_ANY = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory1<CjMatchExpression, List<MatchMissingCase>> NO_ELSE_IN_MATCH = DiagnosticFactory1.create(ERROR, MATCH_EXPRESSION);
+
+    DiagnosticFactory1<CjMatchExpression, List<Pattern>> NO_ELSE_IN_MATCH_BY_PATTERN = DiagnosticFactory1.create(ERROR, MATCH_EXPRESSION);
+
     DiagnosticFactory1<CjMatchExpression, String> EXPECT_TYPE_IN_MATCH_WITHOUT_ELSE = DiagnosticFactory1.create(ERROR, MATCH_EXPRESSION);
     DiagnosticFactory0<CjMatchEntry> REDUNDANT_ELSE_IN_MATCH = DiagnosticFactory0.create(WARNING, ELSE_ENTRY);
     DiagnosticFactory0<PsiElement> DUPLICATE_LABEL_IN_MATCH = DiagnosticFactory0.create(WARNING);

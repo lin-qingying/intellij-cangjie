@@ -300,6 +300,10 @@ open class CangJieBuiltIns(
         fun isFloat64(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, float64UFqName)
         }
+        fun isIntegral(type:CangJieType):Boolean{
+            return isInt8(type) || isInt16(type) || isInt32(type) || isInt64(type)
+                    || isUInt8(type) || isUInt16(type) || isUInt32(type) || isUInt64(type)
+        }
 
         fun isInt16(type: CangJieType): Boolean {
             return isConstructedFromGivenClass(type, int16UFqName)

@@ -1545,7 +1545,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         } else {
             error("Expecting '{'");
         }
-        body.done(CLASS_BODY);
+        body.done(ENUM_BODY);
     }
 
     private void parseEnumList() {

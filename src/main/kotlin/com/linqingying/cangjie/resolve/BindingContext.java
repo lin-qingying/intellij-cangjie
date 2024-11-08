@@ -27,6 +27,7 @@ import com.linqingying.cangjie.types.CangJieType;
 import com.linqingying.cangjie.types.DeferredType;
 import com.linqingying.cangjie.types.expressions.CaptureKind;
 import com.linqingying.cangjie.types.expressions.PreliminaryDeclarationVisitor;
+import com.linqingying.cangjie.types.expressions.match.Pattern;
 import com.linqingying.cangjie.utils.Box;
 import com.linqingying.cangjie.utils.ReadOnly;
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo;
@@ -160,6 +161,9 @@ WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWr
     WritableSlice<VariableDescriptor, DataFlowValue> BOUND_INITIALIZER_VALUE = Slices.createSimpleSlice();
     WritableSlice<PsiElement, ConstructorDescriptor> CONSTRUCTOR = Slices.createSimpleSlice();
     WritableSlice<PsiElement, ConstructorDescriptor> END_CONSTRUCTOR = Slices.createSimpleSlice();
+
+    WritableSlice<CjCasePattern, Pattern> PATTERN = Slices.createSimpleSlice();
+
 
     WritableSlice<CjFunction, CangJieResolutionCallbacksImpl.LambdaInfo> NEW_INFERENCE_LAMBDA_INFO = new BasicWritableSlice<>(DO_NOTHING);
 

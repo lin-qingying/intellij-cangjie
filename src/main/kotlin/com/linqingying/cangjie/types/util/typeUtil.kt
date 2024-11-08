@@ -9,11 +9,13 @@ import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.FqNameUnsafe
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.CjBlockExpression
+import com.linqingying.cangjie.psi.CjElement
 import com.linqingying.cangjie.resolve.DescriptorUtils
 import com.linqingying.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.linqingying.cangjie.resolve.constants.IntegerValueTypeConstructor
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.linqingying.cangjie.resolve.scopes.MemberScope
+import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.*
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker.DEFAULT
@@ -143,6 +145,7 @@ fun CangJieType.makeNotNullable() = TypeUtils.makeNotNullable(this)
 
 fun CangJieType.isInterface(): Boolean =
     (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.INTERFACE
+fun CangJieType.isStruct(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.STRUCT
 
 fun CangJieType.isEnum(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.ENUM
 fun CangJieType.isEnumEntry(): Boolean =
@@ -432,7 +435,7 @@ fun CangJieType.extractTypeParametersFromUpperBounds(visitedTypeParameters: Set<
  * 根据Name获取指定父类型 ，如果获取不到，则返回第一个父类型
  * @param name Name
  */
-fun CangJieType.extractSuperType(name: Name): CangJieType  {
+fun CangJieType.extractSuperType(name: Name): CangJieType {
     val superTypes = this.supertypes()
     for (superType in superTypes) {
         if (superType.constructor.declarationDescriptor?.name == name) {
@@ -442,11 +445,22 @@ fun CangJieType.extractSuperType(name: Name): CangJieType  {
     return superTypes.first()
 
 }
-fun CangJieType.isAnyOrNullableAny(): Boolean =CangJieBuiltIns.isAnyOrNullableAny(this)
+
+fun CangJieType.isAnyOrNullableAny(): Boolean = CangJieBuiltIns.isAnyOrNullableAny(this)
 fun CangJieType.isNothing(): Boolean = CangJieBuiltIns.isNothing(this)
 
-fun createProjection(type: CangJieType, projectionKind: Variance, typeParameterDescriptor: TypeParameterDescriptor?): TypeProjection =
-    TypeProjectionImpl(if (typeParameterDescriptor?.variance == projectionKind) Variance.INVARIANT else projectionKind, type)
+fun createProjection(
+    type: CangJieType,
+    projectionKind: Variance,
+    typeParameterDescriptor: TypeParameterDescriptor?
+): TypeProjection =
+    TypeProjectionImpl(
+        if (typeParameterDescriptor?.variance == projectionKind) Variance.INVARIANT else projectionKind,
+        type
+    )
+
+
+val CangJieType.source: CjElement? get() = constructor.declarationDescriptor?.source?.getPsi() as? CjElement
 
 object TypeUtils {
 
@@ -466,15 +480,16 @@ object TypeUtils {
     }
 
     fun makeProjection(
-        parameterDescriptor:  TypeParameterDescriptor,
-        attr:  ErasureTypeAttributes
-    ):  TypeProjection {
+        parameterDescriptor: TypeParameterDescriptor,
+        attr: ErasureTypeAttributes
+    ): TypeProjection {
 //        return if (attr.howThisTypeIsUsed ==  TypeUsage.SUPERTYPE) {
-          return   TypeProjectionImpl(parameterDescriptor.projectionType())
+        return TypeProjectionImpl(parameterDescriptor.projectionType())
 //        } else {
 //           StarProjectionImpl(parameterDescriptor)
 //        }
     }
+
     /**
      * Differs from `isNullableType` only by treating type parameters: acceptsNullable(T) <=> T has nullable lower bound
      * Semantics should be the same as `isSubtype(Nothing?, T)`
@@ -1141,10 +1156,46 @@ val CangJieType.classKind: ClassKind
 
     }
 
+/**
+ * 封装了一个类型替换的过程，其中一个 <code>CangJieType</code> 类型被另一个 <code>CangJieType</code> 类型替代。
+ * 该类表示一个映射关系，将特定类型（forType）替换为新的类型（byType）。
+ *
+ * @property forType 被替换的原始类型。
+ * @property byType 用来替代的新的类型。
+ */
+internal class CangJieTypeSubstitution(val forType: CangJieType, val byType: CangJieType)
+
+internal fun CangJieType.substitute(byType: CangJieType): CangJieType {
+    return substitute(CangJieTypeSubstitution(this, byType))
+}
+
+internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): CangJieType {
+    val nullable = isMarkedOption
+    val currentType = makeNotNullable()
+
+    return if (DEFAULT.equalTypes(currentType, substitution.forType)
+    ) {
+        TypeUtils.makeOptionalAsSpecified(substitution.byType, nullable)
+    } else {
+        val newArguments = arguments.zip(constructor.parameters).map { pair ->
+            val (projection, typeParameter) = pair
+            TypeProjectionImpl(Variance.INVARIANT, projection.type.substitute(substitution))
+        }
+        CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
+            annotations.toDefaultAttributes(),
+            constructor,
+            newArguments,
+            isMarkedOption,
+            memberScope
+        )
+    }
+}
+
 fun CangJieType.immediateSupertypes(): Collection<CangJieType> = TypeUtils.getImmediateSupertypes(this)
 
 
-val CangJieType.deccriptorClass :ClassDescriptor? get()   {
+val CangJieType.deccriptorClass: ClassDescriptor?
+    get() {
 
-    return constructor.declarationDescriptor as? ClassDescriptor
-}
+        return constructor.declarationDescriptor as? ClassDescriptor
+    }

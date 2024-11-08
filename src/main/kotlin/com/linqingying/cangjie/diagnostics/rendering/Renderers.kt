@@ -17,6 +17,8 @@ import com.linqingying.cangjie.resolve.MemberComparator
 import com.linqingying.cangjie.resolve.calls.components.DescriptorKind
 import com.linqingying.cangjie.resolve.calls.model.ResolvedCall
 import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.types.expressions.match.Pattern
+import com.linqingying.cangjie.types.expressions.match.PatternKind
 import com.linqingying.cangjie.types.getAbbreviation
 import com.linqingying.cangjie.types.util.contains
 
@@ -90,7 +92,25 @@ object Renderers {
 
     private val List<MatchMissingCase>.assumesElseBranchOnly: Boolean
         get() = any { it == MatchMissingCase.Unknown || it is MatchMissingCase.ConditionTypeIsExpect }
+
+
+    private val List<Pattern>.assumesElseBranchOnlyByPattern: Boolean
+        get() = any { it.kind is PatternKind.Enum }
     private val MATCH_MISSING_LIMIT = 7
+
+    @JvmField
+    val RENDER_MATCH_MISSING_CASES_PATTERN = renderer<List<Pattern>> {
+
+
+        if (it.assumesElseBranchOnlyByPattern) {
+            val list = it.joinToString(", ", limit = MATCH_MISSING_LIMIT) { "'${it.kind.showString()}'" }
+            val branches = if (it.size > 1) "branches" else "branch"
+            "$list $branches or 'else' branch instead"
+        } else {
+            "'else' branch"
+        }
+
+    }
 
     @JvmField
     val RENDER_MATCH_MISSING_CASES = renderer<List<MatchMissingCase>> {

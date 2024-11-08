@@ -7,7 +7,6 @@ import com.linqingying.cangjie.builtins.StandardNames
 import com.linqingying.cangjie.builtins.isNumberedFunctionClassFqName
 import com.linqingying.cangjie.descriptors.SourceElement
 import com.linqingying.cangjie.lexer.CjModifierKeywordToken
-import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.metadata.INTERFACE_MODALITY
 import com.linqingying.cangjie.metadata.MODALITY
 import com.linqingying.cangjie.metadata.ProtoBuf
@@ -15,7 +14,7 @@ import com.linqingying.cangjie.metadata.ProtoBuf.Class.Kind.*
 import com.linqingying.cangjie.metadata.VISIBILITY
 import com.linqingying.cangjie.metadata.deserialization.*
 import com.linqingying.cangjie.name.ClassId
-import com.linqingying.cangjie.psi.CjClassBody
+import com.linqingying.cangjie.psi.CjAbstractClassBody
 import com.linqingying.cangjie.psi.CjSuperTypeEntry
 import com.linqingying.cangjie.psi.CjSuperTypeList
 import com.linqingying.cangjie.psi.stubs.elements.*
@@ -233,7 +232,8 @@ private class ClassClsStubBuilder(
     }
 
     private fun createClassBodyAndMemberStubs() {
-        val classBody = CangJiePlaceHolderStubImpl<CjClassBody>(classOrObjectStub, CjStubElementTypes.CLASS_BODY)
+        val classBody =
+            CangJiePlaceHolderStubImpl<CjAbstractClassBody>(classOrObjectStub, CjStubElementTypes.CLASS_BODY)
         createEnumEntryStubs(classBody)
         createCompanionObjectStub(classBody)
         createCallableMemberStubs(classBody)
@@ -241,7 +241,7 @@ private class ClassClsStubBuilder(
         createTypeAliasesStubs(classBody)
     }
 
-    private fun createCompanionObjectStub(classBody: CangJiePlaceHolderStubImpl<CjClassBody>) {
+    private fun createCompanionObjectStub(classBody: CangJiePlaceHolderStubImpl<CjAbstractClassBody>) {
         if (companionObjectName == null) {
             return
         }
@@ -250,7 +250,7 @@ private class ClassClsStubBuilder(
         createNestedClassStub(classBody, companionObjectId)
     }
 
-    private fun createEnumEntryStubs(classBody: CangJiePlaceHolderStubImpl<CjClassBody>) {
+    private fun createEnumEntryStubs(classBody: CangJiePlaceHolderStubImpl<CjAbstractClassBody>) {
         if (classKind != ENUM) return
 
         classProto.enumEntryList.forEach { entry ->
@@ -274,7 +274,7 @@ private class ClassClsStubBuilder(
         }
     }
 
-    private fun createCallableMemberStubs(classBody: CangJiePlaceHolderStubImpl<CjClassBody>) {
+    private fun createCallableMemberStubs(classBody: CangJiePlaceHolderStubImpl<CjAbstractClassBody>) {
         for (secondaryConstructorProto in classProto.constructorList) {
             if (Flags.IS_SECONDARY.get(secondaryConstructorProto.flags)) {
                 createConstructorStub(classBody, secondaryConstructorProto, c, thisAsProtoContainer)
@@ -294,7 +294,7 @@ private class ClassClsStubBuilder(
         return classKind == INTERFACE
     }
 
-    private fun createInnerAndNestedClasses(classBody: CangJiePlaceHolderStubImpl<CjClassBody>) {
+    private fun createInnerAndNestedClasses(classBody: CangJiePlaceHolderStubImpl<CjAbstractClassBody>) {
         classProto.nestedClassNameList.forEach { id ->
             val nestedClassName = c.nameResolver.getName(id)
             if (nestedClassName != companionObjectName) {
@@ -304,7 +304,7 @@ private class ClassClsStubBuilder(
         }
     }
 
-    private fun createTypeAliasesStubs(classBody: CangJiePlaceHolderStubImpl<CjClassBody>) {
+    private fun createTypeAliasesStubs(classBody: CangJiePlaceHolderStubImpl<CjAbstractClassBody>) {
         createTypeAliasesStubs(classBody, c, thisAsProtoContainer, classProto.typeAliasList)
     }
 

@@ -30,13 +30,15 @@ class EnumEntryConstructorDescriptor(
     source
 
 ), ClassAndEnumConstructorDescriptor {
-    private var values: MutableList<ValueParameterDescriptor>? = null
+    private lateinit var values: MutableList<ValueParameterDescriptor>
 
-    private fun fillValues() {
-        values = mutableListOf()
+    init {
+values = mutableListOf()
         val types = types()
+
+
         for (index in types.indices) {
-            values!!.add(
+            values.add(
                 ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                     this,
                     null,
@@ -51,6 +53,36 @@ class EnumEntryConstructorDescriptor(
                 )
             )
         }
+    }
+
+    private fun fillValues() {
+        values = mutableListOf()
+        val types = types()
+
+
+        for (index in types.indices) {
+            values.add(
+                ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                    this,
+                    null,
+                    index,
+                    Annotations.EMPTY,
+                    "e$index".name,
+                    false,
+                    types[index],
+                    false,
+                    SourceElement.NO_SOURCE,
+                    null
+                )
+            )
+        }
+    }
+
+    override fun getValueParameters(): List<ValueParameterDescriptor> {
+        if (!::values.isInitialized) {
+            fillValues()
+        }
+        return values
     }
 
 
@@ -94,13 +126,13 @@ class EnumEntryConstructorDescriptor(
         if (this === other) return true
         if (other !is EnumEntryConstructorDescriptor) return false
         if (this.containingDeclaration != other.containingDeclaration) return false
-        if (this.values?.size != other.values?.size) return false
+        if (this.values.size != other.values.size) return false
 
-        if (this.values?.any {
-                other.values?.any { value2 ->
+        if (!this.values.any {
+                other.values.any { value2 ->
                     CangJieTypeChecker.DEFAULT.equalTypes(it.type, value2.type)
-                } == true
-            } == false) {
+                }
+            }) {
             return false
         }
 
@@ -114,13 +146,6 @@ class EnumEntryConstructorDescriptor(
     }
 
 
-    override fun getValueParameters(): List<ValueParameterDescriptor> {
-        if (values == null) {
-            fillValues()
-        }
-        return values!!
-    }
-
     fun getConstructorTypes(): List<CangJieType> {
         return getValueParameters().map {
             it.type
@@ -129,7 +154,7 @@ class EnumEntryConstructorDescriptor(
 
     override fun hashCode(): Int {
         var result = types.hashCode()
-        result = 31 * result + (values?.hashCode() ?: 0)
+        result = 31 * result + values.hashCode()
         return result
     }
 }

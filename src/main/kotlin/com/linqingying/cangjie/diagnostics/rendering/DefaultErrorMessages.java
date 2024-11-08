@@ -713,6 +713,10 @@ public class DefaultErrorMessages {
             // "Cannot infer a type for this parameter. Please specify it explicitly."
             return CangJieDiagnosisBundle.rawMessage(CANNOT_INFER_PARAMETER_TYPE);
         });
+        MAP.put(NO_ELSE_IN_MATCH_BY_PATTERN, ()->{
+            // "''match'' expression must be exhaustive, add necessary {0}"
+            return CangJieDiagnosisBundle.rawMessage(NO_ELSE_IN_MATCH_BY_PATTERN);
+        }, RENDER_MATCH_MISSING_CASES_PATTERN);
 
         MAP.put(NO_ELSE_IN_MATCH, ()->{
             // "''match'' expression must be exhaustive, add necessary {0}"

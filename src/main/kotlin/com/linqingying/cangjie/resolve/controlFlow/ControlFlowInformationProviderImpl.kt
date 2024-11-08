@@ -1,6 +1,8 @@
 package com.linqingying.cangjie.resolve.controlFlow
 
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.cfg.pseudocodeTraverser.Edges
 import com.linqingying.cangjie.cfg.pseudocodeTraverser.TraversalOrder
@@ -36,6 +38,7 @@ import com.linqingying.cangjie.resolve.descriptorUtil.isEffectivelyExternal
 import com.linqingying.cangjie.resolve.descriptorUtil.module
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.expressions.match.MatchChecker
+import com.linqingying.cangjie.types.expressions.match.checkExhaustive
 import com.linqingying.cangjie.types.expressions.match.checkTypePattern
 import com.linqingying.cangjie.types.expressions.match.isBindingPattern
 import com.linqingying.cangjie.types.isFlexible
@@ -43,8 +46,6 @@ import com.linqingying.cangjie.types.util.TypeUtils.DONT_CARE
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.noExpectedType
 import com.linqingying.cangjie.types.util.isBooleanOrNullableBoolean
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 
 interface ControlFlowInformationProvider {
     fun checkForLocalClassOrObjectMode()
@@ -409,90 +410,87 @@ class ControlFlowInformationProviderImpl private constructor(
                 }
 
                 val context = trace.bindingContext
-                val missingCases = MatchChecker.getMissingCases(element, context)
-//                检查连接符
-                MatchChecker.checkConnector(element, trace)
 
                 val elseEntry = element.entries.find { it.isElse }
                 val subjectExpression = element.subjectExpression
-
-//                val isEnum = missingCases.first() is MatchMissingCase.EnumCheckIsMissing
-                if (usedAsExpression && /* !isEnum &&*/ missingCases.isNotEmpty()) {
-                    if (elseEntry != null) continue
-                    if (element.entries.any { it.conditions.first() is CjBindingPattern }) {
-                        continue
-                    }
-                    trace.report(NO_ELSE_IN_MATCH.on(element, missingCases))
-                    missingCases.firstOrNull { it is MatchMissingCase.ConditionTypeIsExpect }?.let {
-                        require(it is MatchMissingCase.ConditionTypeIsExpect)
-                        trace.report(EXPECT_TYPE_IN_MATCH_WITHOUT_ELSE.on(element, it.typeOfDeclaration))
-                    }
-                } else if (subjectExpression != null) {
-                    val subjectType = MatchChecker.matchSubjectType(element, trace.bindingContext)
+//                检查连接符
+                MatchChecker.checkConnector(element, trace)
 
 
-                    if (elseEntry != null) {
-                        if (missingCases.isEmpty() && subjectType != null && !subjectType.isFlexible()) {
-                            val subjectClass = subjectType.constructor.declarationDescriptor as? ClassDescriptor
-                            val pseudocodeElement = instruction.owner.correspondingElement
-                            val pseudocodeDescriptor = trace[DECLARATION_TO_DESCRIPTOR, pseudocodeElement]
-                            if (subjectClass == null ||
-                                CangJieBuiltIns.isBooleanOrNullableBoolean(subjectType) ||
-                                subjectClass.module == pseudocodeDescriptor?.module
-                            ) {
-                                trace.report(REDUNDANT_ELSE_IN_MATCH.on(elseEntry))
-                            }
+                if (subjectExpression != null) {
+                    if (elseEntry != null) return@traverse
+//新方法
+//                    直接对Patter对象进行检查
+                    val patterns = element.checkExhaustive(context) ?: return@traverse
+                    trace.report(NO_ELSE_IN_MATCH_BY_PATTERN.on(element, patterns))
+
+
+//对未覆盖的模式进行错误报告
+
+                } else {
+//                    老方法
+                    val missingCases = MatchChecker.getMissingCases(element, context)
+
+                    if (usedAsExpression && /* !isEnum &&*/ missingCases.isNotEmpty()) {
+                        if (elseEntry != null) continue
+                        if (element.entries.any { it.conditions.first() is CjBindingPattern }) {
+                            continue
                         }
-                        continue
-                    }
+                        trace.report(NO_ELSE_IN_MATCH.on(element, missingCases))
+                        missingCases.firstOrNull { it is MatchMissingCase.ConditionTypeIsExpect }?.let {
+                            require(it is MatchMissingCase.ConditionTypeIsExpect)
+                            trace.report(EXPECT_TYPE_IN_MATCH_WITHOUT_ELSE.on(element, it.typeOfDeclaration))
+                        }
+                    } else if (subjectExpression != null) {
+                        val subjectType = MatchChecker.matchSubjectType(element, trace.bindingContext)
+
+
+                        if (elseEntry != null) {
+                            if (missingCases.isEmpty() && subjectType != null && !subjectType.isFlexible()) {
+                                val subjectClass = subjectType.constructor.declarationDescriptor as? ClassDescriptor
+                                val pseudocodeElement = instruction.owner.correspondingElement
+                                val pseudocodeDescriptor = trace[DECLARATION_TO_DESCRIPTOR, pseudocodeElement]
+                                if (subjectClass == null ||
+                                    CangJieBuiltIns.isBooleanOrNullableBoolean(subjectType) ||
+                                    subjectClass.module == pseudocodeDescriptor?.module
+                                ) {
+                                    trace.report(REDUNDANT_ELSE_IN_MATCH.on(elseEntry))
+                                }
+                            }
+                            continue
+                        }
 
 //                    检查一些类型字面量数据固定或比较少的模式 例如 ()    true false
-                    if (MatchChecker.checkLiteralPattern(element, subjectType, context)) {
-                        continue
-                    }
+                        if (MatchChecker.checkLiteralPattern(element, subjectType, context)) {
+                            continue
+                        }
 
-                    if (element.entries.any {
-                            it.conditions.isNotEmpty() && it.conditions.first() is CjBindingPattern && isBindingPattern(
-                                it.conditions.first() as CjBindingPattern,
-                                context
-                            )
-                        }) {
-                        continue
-                    }
-                    if (element.entries.any {
-                            it.conditions.isNotEmpty() && it.conditions.first() is CjTypePattern && checkTypePattern(
-                                it.conditions.first() as CjTypePattern,
-                                subjectType,
-                                context
-                            )
-                        }) {
-                        continue
-                    }
-//                    enumMatchTracker?.record(subjectType, subjectExpression, elseEntry)
+                        if (element.entries.any {
+                                it.conditions.isNotEmpty() && it.conditions.first() is CjBindingPattern && isBindingPattern(
+                                    it.conditions.first() as CjBindingPattern,
+                                    context
+                                )
+                            }) {
+                            continue
+                        }
+                        if (element.entries.any {
+                                it.conditions.isNotEmpty() && it.conditions.first() is CjTypePattern && checkTypePattern(
+                                    it.conditions.first() as CjTypePattern,
+                                    subjectType,
+                                    context
+                                )
+                            }) {
+                            continue
+                        }
 
-                    if (!usedAsExpression) {
-//                        if (languageVersionSettings.supportsFeature(LanguageFeature.WarnAboutNonExhaustiveMatchOnAlgebraicTypes)) {
-                        // report warnings on all non-exhaustive when's with algebraic subject
-                        checkExhaustiveMatchStatement(subjectType, element, missingCases)
-//                        } else {
-//                             report info if subject is sealed class and warning if it is enum
-//                            checkMatchStatement(subjectType, element, context)
-//                        }
+                        if (!usedAsExpression) {
+
+                            checkExhaustiveMatchStatement(subjectType, element, missingCases)
+
+                        }
                     }
                 }
-//                if (
-//                    !usedAsExpression &&
-//                    missingCases.isNotEmpty() &&
-//                    elseEntry == null &&
-//                    !languageVersionSettings.supportsFeature(LanguageFeature.ProhibitNonExhaustiveIfInRhsOfElvis)
-//                ) {
-//                    val parent = element.deparenthesizedParent
-//                    if (parent is CjBinaryExpression) {
-//                        if (parent.operationToken === CjTokens.ELVIS) {
-//                            trace.report(NO_ELSE_IN_MATCH_WARNING.on(element, missingCases))
-//                        }
-//                    }
-//                }
+
             }
         }
     }

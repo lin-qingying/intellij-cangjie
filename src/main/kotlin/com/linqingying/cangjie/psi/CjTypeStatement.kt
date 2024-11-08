@@ -91,9 +91,21 @@ abstract class CjTypeStatement :
 
     override fun getContextReceivers(): List<CjContextReceiver> =
         getContextReceiverList()?.let { return it.contextReceivers() } ?: emptyList()
+    private val BODY_TYPE  = listOf(
+        CjStubElementTypes.CLASS_BODY,
+        CjStubElementTypes.INTERFACE_BODY,
+        CjStubElementTypes.ENUM_BODY
+    )
 
-    override fun getBody(): CjAbstractClassBody? = getStubOrPsiChild(CjStubElementTypes.CLASS_BODY)
-
+    override fun getBody(): CjAbstractClassBody? {
+        for (type in BODY_TYPE) {
+            val body = getStubOrPsiChild(type)
+            if (body != null) {
+                return body // 找到匹配的子节点并返回
+            }
+        }
+        return null // 如果没有找到匹配的类型，则返回 null
+    }
     override fun getClassId(): ClassId? {
         stub?.let { return it.getClassId() }
         return ClassIdCalculator.calculateClassId(this)

@@ -10,11 +10,9 @@ import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
-import com.linqingying.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.diagnostics.MatchMissingCase
 import com.linqingying.cangjie.ide.codeinsight.toSourceElement
-import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.*
 import com.linqingying.cangjie.psi.*
@@ -37,8 +35,9 @@ import com.linqingying.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import com.linqingying.cangjie.resolve.calls.util.CallMaker
 import com.linqingying.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import com.linqingying.cangjie.resolve.descriptorUtil.classId
-import com.linqingying.cangjie.resolve.descriptorUtil.classValueType
-import com.linqingying.cangjie.resolve.scopes.*
+import com.linqingying.cangjie.resolve.scopes.LexicalScope
+import com.linqingying.cangjie.resolve.scopes.LexicalScopeKind
+import com.linqingying.cangjie.resolve.scopes.LexicalWritableScope
 import com.linqingying.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.*
@@ -254,12 +253,12 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 Subject.None()
         }
 
-        val contextAfterSubject = run {
-            var result = contextBeforeSubject
-            subject.scopeWithSubject?.let { result = result.replaceScope(it) }
-            subject.dataFlowInfo?.let { result = result.replaceDataFlowInfo(it) }
-            result
-        }
+//        val contextAfterSubject = run {
+//            var result = contextBeforeSubject
+//            subject.scopeWithSubject?.let { result = result.replaceScope(it) }
+//            subject.dataFlowInfo?.let { result = result.replaceDataFlowInfo(it) }
+//            result
+//        }
 
 
         val matchScope =
@@ -269,7 +268,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 components.overloadChecker
             )
         val matchContext = contextWithExpectedType.replaceScope(matchScope)
-        subject.initDataFlowValue(contextAfterSubject, components.builtIns)
+        subject.initDataFlowValue(matchContext, components.builtIns)
         val possibleTypesForSubject =
             subject.typeInfo?.dataFlowInfo?.getStableTypes(subject.dataFlowValue, components.languageVersionSettings)
                 ?: emptySet()
@@ -277,16 +276,16 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 //        checkSmartCastsInSubjectIfRequired(expression, contextBeforeSubject, subject.type, possibleTypesForSubject)
 
 
-        if (subject is Subject.Expression) {
-            checkExhaustive(subject, expression, matchContext)
-        }
+//        if (subject is Subject.Expression) {
+//            checkExhaustive(subject, expression, matchContext)
+//        }
 
-        val dataFlowInfoForEntries = analyzeConditionsInMatchEntries(expression, contextAfterSubject, subject)
+        val dataFlowInfoForEntries = analyzeConditionsInMatchEntries(expression, matchContext, subject)
         val matchReturnType = inferTypeForMatchExpression(
             expression,
             subject,
             matchContext,
-            contextAfterSubject,
+            matchContext,
             dataFlowInfoForEntries
         )
         val matchResultValue =
@@ -294,14 +293,14 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 facade.components.dataFlowValueFactory.createDataFlowValue(
                     expression,
                     it,
-                    contextAfterSubject
+                    matchContext
                 )
             }
 
         val branchesTypeInfo =
             joinMatchExpressionBranches(
                 expression,
-                contextAfterSubject,
+                matchContext,
                 matchReturnType,
                 subject.jumpOutPossible,
                 matchResultValue
@@ -313,7 +312,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         val resultDataFlowInfo = if (expression.elseExpression == null && !isExhaustive) {
             // Without else expression in non-exhaustive when, we *must* take initial data flow info into account,
             // because data flow can bypass all when branches in this case
-            branchesDataFlowInfo.or(contextAfterSubject.dataFlowInfo)
+            branchesDataFlowInfo.or(matchContext.dataFlowInfo)
         } else {
             branchesDataFlowInfo
         }
@@ -452,6 +451,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         var newDataFlowInfo = noChange(context)
 
         val patternVisitor = object : CjVisitorVoid() {
+            val pattern = PatternVisitor()
 
             override fun visitMatchConditionWithExpression(element: CjMatchConditionWithExpression) {
                 val expression = element.expression ?: return
@@ -469,286 +469,28 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 newDataFlowInfo = basicDataFlowInfo.and(dataFlowInfoFromES)
             }
 
-            //            枚举模式
             override fun visitPatternByEnum(element: CjEnumPattern) {
-                context.config.getEnumEntryType = true
-
-
-                val descriptors: List<EnumEntryDescriptor> = if (subject.type.isEnumEntry() || subject.type.isEnum()) {
-                    subject.type.memberScope.getContributedClassifiers(
-                        Name.identifier(element.expression?.text ?: ""),
-                        NoLookupLocation.FROM_PACKAGE
-                    ).mapNotNull {
-                        if (it is LazySubstitutingClassDescriptor) {
-                            it.original as? EnumEntryDescriptor
-                        } else
-                            it as? EnumEntryDescriptor
-                    }
-
-                } else {
-                    listOf(
-                        when (val it = element.expression?.let {
-                            when (it) {
-
-
-                                is CjSimpleNameExpression -> components.callExpressionResolver.getSimpleNameExpressionEnumEntryType(
-                                    it,
-                                    null,
-                                    null,
-                                    context
-                                )
-
-                                else -> {}
-                            }
-                        }) {
-                            is EnumEntryDescriptor -> it
-
-                            else -> {
-                                context.trace.report(NOT_ENUM_ENTRY_VALUE.on(element.expression))
-                                return
-                            }
-                        }
-                    )
-                }
-
-
-                if (descriptors.isEmpty()) return
-
-
-                val type = descriptors.first().defaultType
-                if (!type.isEnumEntry()) {
-                    context.trace.report(NOT_ENUM_ENTRY_VALUE.on(element.expression))
-                    return
-                }
-                val enumType1 = subject.type
-                val enumType2 = descriptors.first().classValueType ?: return
-                if (!CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(enumType1, enumType2)) {
-                    context.trace.report(NOT_ENUM_MATCH.on(element.expression))
-                    return
-                }
-
-
-//                检查参数数量
-                val patterns = element.patterns
-                val patternSize = patterns.size
-
-                val constructor = descriptors.map { it.unsubstitutedPrimaryConstructor }.filter {
-                    patternSize == it.valueParameters.size
-                }
-                if (constructor.isEmpty() && (patternSize != 0)) {
-                    context.trace.report(ENUM_CONSTRUCTOR_MISMATCH.on(element.expression, patternSize))
-                    return
-                }
-                constructor.forEach {
-                    it as EnumEntryConstructorDescriptor
-
-//                    TODO 将使用构建器的枚举项的引用替换为构造器
-                    context.trace.record(REFERENCE_TARGET, element.expression!!.referenceExpression(), it)
-
-                    it.valueParameters.forEachIndexed { index, value ->
-
-
-                        checkCasePattern(
-                            Subject.Type(
-
-                                createTypeInfo(value.type, context),
-                                subject.dataFlowValue
-                            ),
-                            patterns[index],
-                            context
-                        )
-                    }
-                }
-
+                pattern.visitPatternByEnum(element, PatternContext(subject, context))
             }
 
-
-            //            类型模式
             override fun visitPatternByType(element: CjTypePattern) {
-                val type =
-                    element.typeReference?.let {
-                        components.typeResolver.resolveType(
-                            context.scope,
-                            it, context.trace, false
-                        )
-                    }
-
-                val redeclarationChecker =
-                    TraceBasedLocalRedeclarationChecker(
-                        context.trace,
-                        this@PatternMatchingTypingVisitor.components.overloadChecker
-                    )
-                val scope = LexicalWritableScope(
-                    context.scope, context.scope.ownerDescriptor, false, redeclarationChecker,
-                    LexicalScopeKind.CODE_BLOCK
-                )
-                val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
-                    scope, element, type, context.trace
-                )
-//                if (context.scope is LexicalWritableScope) {
-//                    (context.scope as LexicalWritableScope).addVariableDescriptor(variable)
-//                }
-                element.parent?.let {
-                    element.findParentOfType<CjPatternEntryBlock>()?.let {
-                        if (context.config.addVariableDescriptor[it] == null) {
-                            context.config.addVariableDescriptor[it] = mutableListOf()
-                        }
-                        context.config.addVariableDescriptor[it]?.add { scope ->
-                            scope as LexicalWritableScope
-                            scope.addVariableDescriptor(variable)
-                        }
-
-                    }
-
-                }
+                pattern.visitPatternByType(element, PatternContext(subject, context))
             }
 
-
-            fun ClassifierDescriptor?.findEnumEntryClassDescriptor(): EnumEntryDescriptor? {
-                var descriptor: ClassifierDescriptor? = this
-                while (descriptor != null) {
-                    if (descriptor is EnumEntryDescriptor) {
-                        break
-                    }
-                    descriptor = descriptor.original
-                }
-                return descriptor as? EnumEntryDescriptor
-            }
-
-            //            绑定模式  生成变量  TODO 与枚举模式混淆
-            override fun visitPatternByBinding(element: CjBindingPattern) {
-
-//                由于仓颉的枚举默认展开，所以会出现查找到多个枚举项的情况，而这种情况下条件值与模式值会出现不同一枚举类型下
-//                如果条件值是枚举类型，则直接在条件值的枚举类型中查找
-//                否则在scope中查找一个!枚举值
-
-                val classDescriptor =
-                    (if (subject.type.isEnumEntry() || subject.type.isEnum()) {
-                        subject.type.memberScope.getContributedClassifier(
-                            Name.identifier(element.text),
-                            NoLookupLocation.FROM_PACKAGE
-                        )
-                    } else {
-                        context.scope.findClassifier(Name.identifier(element.text), NoLookupLocation.FROM_PACKAGE)
-                    } ?: context.scope.findClassifier(
-                        Name.identifier(element.text),
-                        NoLookupLocation.FROM_PACKAGE
-                    )).findEnumEntryClassDescriptor()
-//                context.scope.findClassifiers(Name.identifier(element.text), NoLookupLocation.FROM_PACKAGE)
-
-
-//                if (  enumTypeInfo?.type ?.isEnum() == true) {
-//             如具有无参构造器 使用枚举覆盖psi
-                if (config.bindEnumType && classDescriptor != null && classDescriptor.kind == ClassKind.ENUM_ENTRY /*&& classDescriptor.hasUnsubstitutedPrimaryConstructor()*/) {
-//                        优先使用enum枚举覆盖
-
-                    if (!classDescriptor.hasUnsubstitutedPrimaryConstructor()) {
-                        context.trace.report(NOT_ENUM_PARAMETER_CONSTRUCTOR.on(element))
-                        return
-                    }
-
-                    val enumType1 = subject.type
-
-                    val enumType2 = classDescriptor.classValueType
-
-                    if (enumType2 != null && !CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(enumType1, enumType2)) {
-                        context.trace.report(NOT_ENUM_MATCH.on(element.expression))
-
-                    } else {
-                        val enumTypeInfo = createTypeInfo(classDescriptor.defaultType)
-
-//                        val enumTypeInfo = element.expression?.let { facade.getTypeInfo(it, context) }
-                        context.trace.record(REFERENCE_TARGET, element.expression, classDescriptor)
-                        context.trace.record(EXPRESSION_TYPE_INFO, subject.valueExpression, enumTypeInfo)
-                    }
-                } else {
-                    val redeclarationChecker =
-                        TraceBasedLocalRedeclarationChecker(
-                            context.trace,
-                            this@PatternMatchingTypingVisitor.components.overloadChecker
-                        )
-                    val scope = LexicalWritableScope(
-                        context.scope, context.scope.ownerDescriptor, false, redeclarationChecker,
-                        LexicalScopeKind.CODE_BLOCK
-                    )
-                    val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
-                        scope, element, subject.type, context.trace
-                    )
-
-                    element.findParentOfType<CjPatternEntryBlock>()?.let {
-                        if (context.config.addVariableDescriptor[it] == null) {
-                            context.config.addVariableDescriptor[it] = mutableListOf()
-                        }
-                        context.config.addVariableDescriptor[it]?.add { scope ->
-                            scope as LexicalWritableScope
-                            scope.addVariableDescriptor(variable)
-                        }
-
-                    }
-                }
-            }
-
-            //元组模式
-//            需要sub expr类型为 tupleN (需类型一致）
-//            每个元组项的类型需一致
-//            元组个数需要大于1
             override fun visitPatternByTuple(element: CjTuplePattern) {
+                pattern.visitPatternByTuple(element, PatternContext(subject, context))
+            }
 
-
-                val patterns = element.patterns
-                val patternSize = patterns.size
-
-                if (!subject.type.isBuiltinTupleType) {
-                    context.trace.report(TUPLE_PATTERN_TYPE_MISMATCH.on(element, subject.type))
-                    return
-                }
-
-                if (patternSize < 1) {
-                    context.trace.report(TUPLE_ARGS_TOO_FEW.on(element))
-                    return
-                }
-                if (patternSize != subject.type.arguments.size) {
-                    context.trace.report(TUPLE_ARGS_MISMATCH.on(element, subject.type.arguments.size, patternSize))
-                    return
-                }
-                subject.type.arguments.forEachIndexed { index, argumentType ->
-                    checkCasePattern(
-                        Subject.Type(
-
-                            createTypeInfo(argumentType.type, context),
-                            subject.dataFlowValue
-                        ),
-                        patterns[index],
-                        context
-                    )
-
-                }
-
+            override fun visitPatternByBinding(element: CjBindingPattern) {
+                pattern.visitPatternByBinding(element, PatternContext(subject, context))
             }
 
             override fun visitPatternByConstant(element: CjConstantPattern) {
-
-//                常量模式，当作表达式检查
-
-                val expression = element.expression ?: return
-
-                val basicDataFlowInfo =
-                    checkTypeForExpressionCondition(context, expression, subject)
-                val moduleDescriptor = DescriptorUtils.getContainingModule(context.scope.ownerDescriptor)
-                val dataFlowInfoFromES =
-                    components.effectSystem.getDataFlowInfoMatchEquals(
-                        subject.valueExpression,
-                        expression,
-                        context.trace,
-                        moduleDescriptor
-                    )
-                newDataFlowInfo = basicDataFlowInfo.and(dataFlowInfoFromES)
-
+                pattern.visitPatternByConstant(element, PatternContext(subject, context))
             }
-
         }
 
-//        condition.accept(patternVisitor)
+        condition.accept(patternVisitor)
         return newDataFlowInfo
 
     }
@@ -1082,18 +824,30 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
 
     inner class PatternVisitor : CjVisitor<Pattern, PatternContext>() {
+
+        private fun returnResult(element: CjCasePattern, data: PatternContext, result: Pattern): Pattern {
+
+
+            data.context.trace.record(PATTERN, element, result)
+
+            return result
+        }
+
         override fun visitPatternByConstant(element: CjConstantPattern, data: PatternContext): Pattern {
             val expression = element.expression!!
             val newContext = data.context
             val typeInfo = facade.getTypeInfo(expression, newContext)
             checkTypeCompatibility(newContext, typeInfo.type!!, data.subject.type, expression, true)
 
-            return Pattern(
-                data.subject.type,
-                PatternKind.Const(
-                    newContext.trace[COMPILE_TIME_VALUE, expression]!!.toConstantValue(typeInfo.type)
+            return returnResult(
+                element, data, Pattern(
+                    data.subject.type,
+                    PatternKind.Const(
+                        newContext.trace[COMPILE_TIME_VALUE, expression]!!.toConstantValue(typeInfo.type)
+                    )
                 )
             )
+
 
         }
 
@@ -1120,45 +874,48 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
             }
 
-            typeInfo?.type ?: return Pattern(typeInfo?.type, PatternKind.Error)
-
-            val enumSource = typeInfo.type.deccriptorClass?.source?.getPsi() as? CjEnum ?: return Pattern(
-                typeInfo.type,
-                PatternKind.Error
+            typeInfo?.type ?: return returnResult(element, data, Pattern.Error)
+            val enumSource = typeInfo.type.deccriptorClass?.source?.getPsi() as? CjEnum ?: return returnResult(
+                element, data, Pattern(
+                    typeInfo.type,
+                    PatternKind.Error
+                )
             )
 
             val enumEntry =
                 data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()] as? EnumClassCallableDescriptor
             val enumEntrySource =
                 enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
-                    ?: return Pattern(typeInfo.type, PatternKind.Error)
+                    ?: return returnResult(
+                        element, data, Pattern(typeInfo.type, PatternKind.Error)
+                    )
 
             val valueParameters = enumEntry.valueParameters
-            return Pattern(
-                typeInfo.type, PatternKind.Enum(
-                    enumSource, enumEntrySource,
 
-                    valueParameters.mapIndexed { index, it ->
-
-
+            return  try {
+                 returnResult(
+                    element, data, Pattern(
+                        typeInfo.type, PatternKind.Enum(
+                            enumSource, enumEntrySource,
+                            valueParameters.mapIndexed { index, it ->
 //                        期望类型
-                        val expectedType = it.type
-
-
-                        element.patterns[index].accept(
-                            this, PatternContext(
-                                Subject.Expression(
-                                    element.patterns[index],
-                                    createTypeInfo(expectedType),
-                                    components.dataFlowValueFactory
-                                ),
-                                data.context
-                            )
-                        )
-
-                    }
-
-                ))
+                                val expectedType = it.type
+                                element.patterns[index].accept(
+                                    this, PatternContext(
+                                        Subject.Expression(
+                                            element.patterns[index],
+                                            createTypeInfo(expectedType),
+                                            components.dataFlowValueFactory
+                                        ),
+                                        data.context
+                                    )
+                                )
+                            }
+                        ))
+                )
+            } catch (e: IndexOutOfBoundsException) {
+                  returnResult(element, data, Pattern.Error)
+            }
 
         }
 
@@ -1189,7 +946,9 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 }
 
             }
-            return Pattern(type, PatternKind.Type(type, element.text))
+            return returnResult(
+                element, data, Pattern(type, PatternKind.Type(type, element.text))
+            )
         }
 
         override fun visitPatternByTuple(element: CjTuplePattern, data: PatternContext): Pattern {
@@ -1200,17 +959,15 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
             if (!data.subject.type.isBuiltinTupleType) {
                 data.context.trace.report(TUPLE_PATTERN_TYPE_MISMATCH.on(element, data.subject.type))
-                return Pattern(
-                    null,
-                    PatternKind.Error
+                return returnResult(
+                    element, data, Pattern.Error
                 )
             }
 
             if (patternSize < 1) {
                 data.context.trace.report(TUPLE_ARGS_TOO_FEW.on(element))
-                return Pattern(
-                    null,
-                    PatternKind.Error
+                return returnResult(
+                    element, data, Pattern.Error
                 )
             }
             if (patternSize != data.subject.type.arguments.size) {
@@ -1221,9 +978,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                         patternSize
                     )
                 )
-                return Pattern(
-                    null,
-                    PatternKind.Error
+                return returnResult(
+                    element, data, Pattern.Error
                 )
             }
             data.subject.type.arguments.forEachIndexed { index, argumentType ->
@@ -1239,81 +995,31 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
             }
 
-            return Pattern(data.subject.type,
-                PatternKind.Tuple(
-
-
-                    element.patterns.mapIndexed { index, it ->
-
-//
+            return returnResult(
+                element, data, Pattern(data.subject.type,
+                    PatternKind.Tuple(
+                        element.patterns.mapIndexed { index, it ->
 //                        期望类型
-                        val expectedType = data.subject.type.arguments[index].type
-
-
-                        it.accept(
-                            this, PatternContext(
-                                Subject.Expression(it, createTypeInfo(expectedType), components.dataFlowValueFactory),
-                                data.context
+                            val expectedType = data.subject.type.arguments[index].type
+                            it.accept(
+                                this, PatternContext(
+                                    Subject.Expression(
+                                        it,
+                                        createTypeInfo(expectedType),
+                                        components.dataFlowValueFactory
+                                    ),
+                                    data.context
+                                )
                             )
-                        )
-
-                    }
-
-                ))
+                        }
+                    ))
+            )
 
 
         }
 
         override fun visitPatternByBinding(element: CjBindingPattern, data: PatternContext): Pattern {
-//            val enumEntrys: List<EnumEntryDescriptor> = if (data.subject.type.isEnum()) {
-////            枚举具有重载性
-//                data.subject.type.memberScope.getContributedDescriptors {
-//                    it.asString() == element.expression?.text
-//                }.mapNotNull {
-//                    if (it is LazySubstitutingClassDescriptor) {
-//                        it.original as? EnumEntryDescriptor
-//                    } else
-//                        it as? EnumEntryDescriptor
-//                }
-//            } else {
-//                val type =
-//                    data.context.scope.findClassifier(Name.identifier(element.text), NoLookupLocation.FROM_PACKAGE)
-//                if (type is EnumEntryDescriptor) {
-//                    data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
-//                    data.context.trace.record(REFERENCE_TARGET, element.expression, type)
-//
-//                    return Pattern(data.subject.type, PatternKind.Error)
-//                }
-//
-//                emptyList()
-//            }
-//            if (enumEntrys.isNotEmpty()) {
-//                enumEntrys.firstOrNull { it.hasUnsubstitutedPrimaryConstructor() }?.let {
-//                    data.context.trace.record(REFERENCE_TARGET, element.expression, it)
-//
-//                    return Pattern(
-//                        data.subject.type,
-//                        PatternKind.Enum(
-//                            it.classLikeInfo.elementByE.getStrictParentOfType<CjEnum>()!!,
-//                            it.classLikeInfo.elementByE,
-//                            emptyList()
-//                        )
-//                    )
-//                }
-//
-//                data.context.trace.report(NOT_ENUM_PARAMETER_CONSTRUCTOR.on(element))
-//
-//                return Pattern(
-//                    data.subject.type,
-//                    PatternKind.Enum(
-//                        enumEntrys.first().classLikeInfo.elementByE.getStrictParentOfType<CjEnum>()!!,
-//                        enumEntrys.first().classLikeInfo.elementByE,
-//                        emptyList()
-//                    )
-//                )
-//
-//
-//            }
+
             val expression = element.expression
 
             val typeInfo = if (data.subject.type.isEnum()) {
@@ -1321,35 +1027,42 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     facade.getTypeInfoByCaseEnum(
                         it,
                         emptyList(),
-                        data.context.replaceExpectedType(data.subject.type),false
+                        data.context.replaceExpectedType(data.subject.type), false
                     )
                 }
             } else {
-                expression?.let { facade.getTypeInfoByCaseEnum(it, emptyList(), data.context,false) }
+                expression?.let { facade.getTypeInfoByCaseEnum(it, emptyList(), data.context, false) }
             }
             if (typeInfo?.type != null) {
                 if (!CangJieTypeChecker.DEFAULT.equalTypes(typeInfo.type, data.subject.type)) {
                     data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
                 }
-                val enumSource = typeInfo.type.deccriptorClass?.source?.getPsi() as? CjEnum ?: return Pattern(
-                    typeInfo.type,
-                    PatternKind.Error
+                val enumSource = typeInfo.type.deccriptorClass?.source?.getPsi() as? CjEnum ?: return returnResult(
+                    element, data, Pattern(
+                        typeInfo.type,
+                        PatternKind.Error
+                    )
                 )
 
                 val enumEntry =
                     data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()] as? EnumClassCallableDescriptor
                 val enumEntrySource =
                     enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
-                        ?: return Pattern(typeInfo.type, PatternKind.Error)
+                        ?: return returnResult(
+                            element, data, Pattern(typeInfo.type, PatternKind.Error)
+                        )
 
 
-                return Pattern(
-                    typeInfo.type, PatternKind.Enum(
-                        enumSource, enumEntrySource,
+                return returnResult(
+                    element, data, Pattern(
+                        typeInfo.type, PatternKind.Enum(
+                            enumSource, enumEntrySource,
 
-                   emptyList()
+                            emptyList()
 
-                    ))
+                        )
+                    )
+                )
 
             }
 
@@ -1386,7 +1099,9 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
             }
 
-            return Pattern(data.subject.type, PatternKind.Binding(data.subject.type, element.text))
+            return returnResult(
+                element, data, Pattern(data.subject.type, PatternKind.Binding(data.subject.type, element.text))
+            )
         }
     }
 
@@ -1419,6 +1134,31 @@ private interface MatchExhaustivenessChecker {
         ): Boolean
 
     fun isApplicable(subjectType: CangJieType): Boolean = false
+}
+
+
+private fun doCheckExhaustive(match: CjMatchExpression, context: BindingContext): List<Pattern>? {
+    val matchedExprType = context[EXPRESSION_TYPE_INFO, match.subjectExpression]?.type ?: return null
+
+
+    val matrix = match.entries
+        .calculateMatrix(context)
+        .takeIf { it.isWellTyped() }
+        ?: return null
+
+    val wild = Pattern.wild(matchedExprType)
+    val useful = isUseful(matrix, listOf(wild), true, match.containingCjFile, isTopLevel = true)
+//
+//    /** If `_` pattern is useful, the match is not exhaustive */
+    if (useful is Usefulness.UsefulWithWitness) {
+        return useful.witnesses.mapNotNull { it.patterns.singleOrNull() }
+    }
+    return null
+}
+
+fun CjMatchExpression.checkExhaustive(context: BindingContext): List<Pattern>? {
+
+    return doCheckExhaustive(this, context)
 }
 
 object MatchChecker {
@@ -1698,7 +1438,7 @@ object MatchChecker {
                         condition is CjConstantPattern && condition.expression is CjConstantExpression && condition.expression?.elementType == BOOLEAN_CONSTANT
 
 
-                    }.map { it.text }
+                    }.map { pattern -> pattern.text }
                 }
                 booleanValues.contains("true") && booleanValues.contains("false")
             }
@@ -2008,7 +1748,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
                 }
                 val types = when (checkedDescriptor) {
                     is EnumEntryConstructorDescriptor -> checkedDescriptor.getConstructorTypes()
-                    else -> emptyList<CangJieType>()
+                    else -> emptyList()
                 }
 
                 // Checks are important only for nested subclasses of the sealed class
