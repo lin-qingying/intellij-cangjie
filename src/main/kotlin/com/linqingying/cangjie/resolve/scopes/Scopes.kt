@@ -47,11 +47,12 @@ enum class LexicalScopeKind(val withLocalDescriptors: Boolean) {
     CATCH(true),
     FOR(true),
     WHILE_BODY(true),
-    WHEN(true),
+    MATCH(true),
+    MATCH_CASE(true),
 
     CALLABLE_REFERENCE(false),
 
-    // for tests, KDoc & IDE
+    // for tests, CDoc & IDE
     SYNTHETIC(false)
 }
 

@@ -125,13 +125,14 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     }
 
     @Override
-    public @NotNull CangJieTypeInfo getTypeInfoByCaseEnum(@NotNull CjExpression expression, List<ValueArgument> argument, ExpressionTypingContext context) {
+    public @NotNull CangJieTypeInfo getTypeInfoByCaseEnum(@NotNull CjExpression expression, List<ValueArgument> argument, ExpressionTypingContext context,
+                                                          boolean isReportError) {
         if (context.expectedType == EXPRESSION_TYPE) {
 //            context = context.replaceExpectedType(components.builtIns.getAnyType());
             context  = context.replaceExpectedType(NO_EXPECTED_TYPE);
         }
 
-        CangJieTypeInfo result = getTypeInfo (expression, context, new ForCaseEnum(components,annotationChecker,argument));
+        CangJieTypeInfo result = getTypeInfo (expression, context, new ForCaseEnum(components,annotationChecker,argument,isReportError));
 //        annotationChecker.checkExpression(expression, context.trace);
         return result;
     }
@@ -567,15 +568,19 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
     }
     public static class ForCaseEnum extends ExpressionTypingVisitorDispatcher {
         List<ValueArgument> argument;
-        public ForCaseEnum(@NotNull ExpressionTypingComponents components, @NotNull AnnotationChecker annotationChecker,List<ValueArgument> argument) {
+        boolean isReportError = true;
+        public ForCaseEnum(@NotNull ExpressionTypingComponents components, @NotNull AnnotationChecker annotationChecker,List<ValueArgument> argument,
+        boolean isReportError
+        ) {
             super(components, annotationChecker);
             this.argument = argument;
+            this .isReportError = isReportError;
         }
 
         @Override
         public CangJieTypeInfo visitSimpleNameExpression(@NotNull CjSimpleNameExpression expression, ExpressionTypingContext data) {
 
-            return  basic.visitSimpleNameExpressionByCaseEnum(expression, argument, data);
+            return  basic.visitSimpleNameExpressionByCaseEnum(expression, argument, data,isReportError);
         }
 
         @Override

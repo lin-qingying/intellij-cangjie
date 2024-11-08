@@ -31,8 +31,15 @@ public interface ExpressionTypingFacade {
      * @return
      */
     @NotNull
-    CangJieTypeInfo getTypeInfoByCaseEnum(@NotNull CjExpression expression, List<ValueArgument> argument , ExpressionTypingContext context);
+    CangJieTypeInfo getTypeInfoByCaseEnum(@NotNull CjExpression expression, List<ValueArgument> argument , ExpressionTypingContext context,
+                                          boolean isReportError
+    );
+    @NotNull
+   default CangJieTypeInfo getTypeInfoByCaseEnum(@NotNull CjExpression expression, List<ValueArgument> argument , ExpressionTypingContext context
 
+    ){
+        return getTypeInfoByCaseEnum(expression,argument,context,true);
+    }
     @NotNull
     CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context, boolean isStatement);
 }

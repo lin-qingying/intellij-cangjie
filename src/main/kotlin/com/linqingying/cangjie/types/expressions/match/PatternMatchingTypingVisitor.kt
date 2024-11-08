@@ -20,7 +20,6 @@ import com.linqingying.cangjie.name.*
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.elementType
 import com.linqingying.cangjie.psi.psiUtil.findParentOfType
-import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
 import com.linqingying.cangjie.psi.psiUtil.referenceExpression
 import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.BindingContext.*
@@ -261,8 +260,15 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             subject.dataFlowInfo?.let { result = result.replaceDataFlowInfo(it) }
             result
         }
-        val contextWithExpectedTypeAndSubjectVariable =
-            subject.scopeWithSubject?.let { contextWithExpectedType.replaceScope(it) } ?: contextWithExpectedType
+
+
+        val matchScope =
+            ExpressionTypingUtils.newWritableScopeImpl(
+                contextWithExpectedType,
+                LexicalScopeKind.MATCH,
+                components.overloadChecker
+            )
+        val matchContext = contextWithExpectedType.replaceScope(matchScope)
         subject.initDataFlowValue(contextAfterSubject, components.builtIns)
         val possibleTypesForSubject =
             subject.typeInfo?.dataFlowInfo?.getStableTypes(subject.dataFlowValue, components.languageVersionSettings)
@@ -272,14 +278,14 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
 
         if (subject is Subject.Expression) {
-            checkExhaustive(subject, expression, contextAfterSubject)
+            checkExhaustive(subject, expression, matchContext)
         }
 
         val dataFlowInfoForEntries = analyzeConditionsInMatchEntries(expression, contextAfterSubject, subject)
         val matchReturnType = inferTypeForMatchExpression(
             expression,
             subject,
-            contextWithExpectedTypeAndSubjectVariable,
+            matchContext,
             contextAfterSubject,
             dataFlowInfoForEntries
         )
@@ -1166,21 +1172,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     )
                 } ?: ErrorUtils.errorVariableType
 
-            val redeclarationChecker =
-                TraceBasedLocalRedeclarationChecker(
-                    data.context.trace,
-                    this@PatternMatchingTypingVisitor.components.overloadChecker
-                )
-            val scope = LexicalWritableScope(
-                data.context.scope, data.context.scope.ownerDescriptor, false, redeclarationChecker,
-                LexicalScopeKind.CODE_BLOCK
-            )
-            val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
-                scope, element, type, data.context.trace
-            )
-//                if (context.scope is LexicalWritableScope) {
-//                    (context.scope as LexicalWritableScope).addVariableDescriptor(variable)
-//                }
+
             element.parent?.let {
                 element.findParentOfType<CjPatternEntryBlock>()?.let {
                     if (data.context.config.addVariableDescriptor[it] == null) {
@@ -1188,6 +1180,9 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     }
                     data.context.config.addVariableDescriptor[it]?.add { scope ->
                         scope as LexicalWritableScope
+                        val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
+                            scope, element, type, data.context.trace
+                        )
                         scope.addVariableDescriptor(variable)
                     }
 
@@ -1270,56 +1265,126 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         }
 
         override fun visitPatternByBinding(element: CjBindingPattern, data: PatternContext): Pattern {
-            val enumEntrys: List<EnumEntryDescriptor> = if (data.subject.type.isEnum()) {
-//            枚举具有重载性
-                data.subject.type.memberScope.getContributedDescriptors {
-                    it.asString() == element.expression?.text
-                }.mapNotNull {
-                    if (it is LazySubstitutingClassDescriptor) {
-                        it.original as? EnumEntryDescriptor
-                    } else
-                        it as? EnumEntryDescriptor
+//            val enumEntrys: List<EnumEntryDescriptor> = if (data.subject.type.isEnum()) {
+////            枚举具有重载性
+//                data.subject.type.memberScope.getContributedDescriptors {
+//                    it.asString() == element.expression?.text
+//                }.mapNotNull {
+//                    if (it is LazySubstitutingClassDescriptor) {
+//                        it.original as? EnumEntryDescriptor
+//                    } else
+//                        it as? EnumEntryDescriptor
+//                }
+//            } else {
+//                val type =
+//                    data.context.scope.findClassifier(Name.identifier(element.text), NoLookupLocation.FROM_PACKAGE)
+//                if (type is EnumEntryDescriptor) {
+//                    data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
+//                    data.context.trace.record(REFERENCE_TARGET, element.expression, type)
+//
+//                    return Pattern(data.subject.type, PatternKind.Error)
+//                }
+//
+//                emptyList()
+//            }
+//            if (enumEntrys.isNotEmpty()) {
+//                enumEntrys.firstOrNull { it.hasUnsubstitutedPrimaryConstructor() }?.let {
+//                    data.context.trace.record(REFERENCE_TARGET, element.expression, it)
+//
+//                    return Pattern(
+//                        data.subject.type,
+//                        PatternKind.Enum(
+//                            it.classLikeInfo.elementByE.getStrictParentOfType<CjEnum>()!!,
+//                            it.classLikeInfo.elementByE,
+//                            emptyList()
+//                        )
+//                    )
+//                }
+//
+//                data.context.trace.report(NOT_ENUM_PARAMETER_CONSTRUCTOR.on(element))
+//
+//                return Pattern(
+//                    data.subject.type,
+//                    PatternKind.Enum(
+//                        enumEntrys.first().classLikeInfo.elementByE.getStrictParentOfType<CjEnum>()!!,
+//                        enumEntrys.first().classLikeInfo.elementByE,
+//                        emptyList()
+//                    )
+//                )
+//
+//
+//            }
+            val expression = element.expression
+
+            val typeInfo = if (data.subject.type.isEnum()) {
+                expression?.let {
+                    facade.getTypeInfoByCaseEnum(
+                        it,
+                        emptyList(),
+                        data.context.replaceExpectedType(data.subject.type),false
+                    )
                 }
             } else {
-                val type =
-                    data.context.scope.findClassifier(Name.identifier(element.text), NoLookupLocation.FROM_PACKAGE)
-                if (type is EnumEntryDescriptor) {
-                    data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
-                    data.context.trace.record(REFERENCE_TARGET, element.expression, type)
-
-                    return Pattern(data.subject.type, PatternKind.Error)
-                }
-
-                emptyList()
+                expression?.let { facade.getTypeInfoByCaseEnum(it, emptyList(), data.context,false) }
             }
-            if (enumEntrys.isNotEmpty()) {
-                enumEntrys.firstOrNull { it.hasUnsubstitutedPrimaryConstructor() }?.let {
-                    data.context.trace.record(REFERENCE_TARGET, element.expression, it)
-
-                    return Pattern(
-                        data.subject.type,
-                        PatternKind.Enum(
-                            it.classLikeInfo.elementByE.getStrictParentOfType<CjEnum>()!!,
-                            it.classLikeInfo.elementByE,
-                            emptyList()
-                        )
-                    )
+            if (typeInfo?.type != null) {
+                if (!CangJieTypeChecker.DEFAULT.equalTypes(typeInfo.type, data.subject.type)) {
+                    data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
                 }
-
-                data.context.trace.report(NOT_ENUM_PARAMETER_CONSTRUCTOR.on(element))
-
-                return Pattern(
-                    data.subject.type,
-                    PatternKind.Enum(
-                        enumEntrys.first().classLikeInfo.elementByE.getStrictParentOfType<CjEnum>()!!,
-                        enumEntrys.first().classLikeInfo.elementByE,
-                        emptyList()
-                    )
+                val enumSource = typeInfo.type.deccriptorClass?.source?.getPsi() as? CjEnum ?: return Pattern(
+                    typeInfo.type,
+                    PatternKind.Error
                 )
 
+                val enumEntry =
+                    data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()] as? EnumClassCallableDescriptor
+                val enumEntrySource =
+                    enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
+                        ?: return Pattern(typeInfo.type, PatternKind.Error)
+
+
+                return Pattern(
+                    typeInfo.type, PatternKind.Enum(
+                        enumSource, enumEntrySource,
+
+                   emptyList()
+
+                    ))
 
             }
 
+
+// TODO 将变量添加到作用域  这里需要架构重构，目前这个写的并不理想
+
+
+//            val scopeWithSubjectVariableByCase =
+//                ExpressionTypingUtils.newWritableScopeImpl(
+//                    data.context,
+//                    LexicalScopeKind.MATCH_CASE,
+//                    components.overloadChecker
+//                )
+
+
+//       (     data.context.scope as LexicalWritableScope).addVariableDescriptor(variable)
+//            scopeWithSubjectVariableByCase.addVariableDescriptor(variable)
+            element.parent?.let {
+                element.findParentOfType<CjPatternEntryBlock>()?.let {
+                    if (data.context.config.addVariableDescriptor[it] == null) {
+                        data.context.config.addVariableDescriptor[it] = mutableListOf()
+                    }
+                    data.context.config.addVariableDescriptor[it]?.add { scope ->
+                        scope as LexicalWritableScope
+
+                        val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
+                            scope, element, data.subject.type, data.context.trace
+                        )
+
+                        scope.addVariableDescriptor(variable)
+                    }
+
+                }
+
+            }
 
             return Pattern(data.subject.type, PatternKind.Binding(data.subject.type, element.text))
         }

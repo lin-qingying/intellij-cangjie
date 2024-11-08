@@ -764,11 +764,12 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
     fun visitSimpleNameExpressionByCaseEnum(
         expression: CjSimpleNameExpression,
         argument :List<ValueArgument>,
-        context: ExpressionTypingContext
+        context: ExpressionTypingContext,
+        isReportError :Boolean = true
     ): CangJieTypeInfo {
 
         val callExpressionResolver = components.callExpressionResolver
-        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfoByCaseEnum(expression, null, null, context,argument)
+        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfoByCaseEnum(expression, null, null, context,argument,isReportError)
 
 
         checkNull(expression, context, typeInfo.type)

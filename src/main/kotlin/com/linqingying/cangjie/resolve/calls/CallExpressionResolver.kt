@@ -233,17 +233,20 @@ class CallExpressionResolver(
         }
         return typeInfo
     }
+
     fun getSimpleNameExpressionTypeInfoByCaseEnum(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
-        callOperationNode: ASTNode?, context: ExpressionTypingContext,  argument :List<ValueArgument>,
+        callOperationNode: ASTNode?, context: ExpressionTypingContext, argument: List<ValueArgument>,
+        isReportError :Boolean  = true
     ) = getSimpleNameExpressionTypeInfoByCaseEnum(
         nameExpression,
         receiver,
         callOperationNode,
         context,
         context.dataFlowInfo,
-        argument
+        argument,isReportError
     )
+
     fun getSimpleNameExpressionTypeInfoByEnum(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
         callOperationNode: ASTNode?, context: ExpressionTypingContext
@@ -441,9 +444,11 @@ class CallExpressionResolver(
         callOperationNode: ASTNode?,
         context: ExpressionTypingContext,
         initialDataFlowInfoForArguments: DataFlowInfo,
-        argument :List<ValueArgument>,
+        argument: List<ValueArgument>,
+        isReportError: Boolean = true
     ): CangJieTypeInfo {
-        val call = CallMaker.makeCall(nameExpression, receiver, callOperationNode, nameExpression,
+        val call = CallMaker.makeCall(
+            nameExpression, receiver, callOperationNode, nameExpression,
 
             argument
 
@@ -462,8 +467,13 @@ class CallExpressionResolver(
             initialDataFlowInfoForArguments,
             NewResolutionOldInference.ResolutionKind.CaseEnum
         )
-        temporaryForEnum.commit()
+        if (isReportError) {
+            temporaryForEnum.commit()
+        }
+
+
         if (resolveEnumResult) {
+            temporaryForEnum.commit()
 
             val enumDescriptor = resolvedEnumCall?.resultingDescriptor
             if (nameExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
@@ -683,7 +693,7 @@ class CallExpressionResolver(
 
     fun getQualifiedExpressionTypeInfoByCaseEnum(
         expression: CjQualifiedExpression,
-        argument :List<ValueArgument>,
+        argument: List<ValueArgument>,
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
         val currentContext =
@@ -845,7 +855,7 @@ class CallExpressionResolver(
         context: ExpressionTypingContext,
         initialDataFlowInfoForArguments: DataFlowInfo,
         isCaseEnum: Boolean = false,
-        argument :List<ValueArgument> = emptyList(),
+        argument: List<ValueArgument> = emptyList(),
     ): CangJieTypeInfo {
         if (isCaseEnum) {
             return when (selectorExpression) {
@@ -1042,7 +1052,7 @@ class CallExpressionResolver(
     private fun getSafeOrUnsafeSelectorTypeInfoByCaseEnum(
         receiver: Receiver,
         element: CallExpressionElement,
-        argument :List<ValueArgument>,
+        argument: List<ValueArgument>,
         context: ExpressionTypingContext
     ):
             CangJieTypeInfo {
