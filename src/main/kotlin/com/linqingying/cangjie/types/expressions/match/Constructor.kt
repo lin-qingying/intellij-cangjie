@@ -8,8 +8,8 @@ import com.linqingying.cangjie.resolve.constants.*
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.util.deccriptorClass
+import com.linqingying.cangjie.types.util.isBoolean
 import com.linqingying.cangjie.types.util.isEnum
-import com.linqingying.cangjie.types.util.isStruct
 import com.linqingying.cangjie.types.util.substitute
 import com.linqingying.cangjie.resolve.constants.ConstantValue as CV
 
@@ -22,12 +22,13 @@ fun List<CjTypeReference>.types(): List<CangJieType> {
 
 sealed class Constructor {
 
-    fun arity(type: CangJieType): Int  {
+    fun arity(type: CangJieType): Int {
 
         return when {
-            type.isEnum() && this is Enum ->{
+            type.isEnum() && this is Enum -> {
                 entry.typeReferences.size
             }
+
             else -> 0
         }
 
@@ -74,7 +75,7 @@ sealed class Constructor {
 
         private fun allConstructorsLazy(ty: CangJieType): Sequence<Constructor> =
             when {
-
+                ty.isBoolean() -> sequenceOf(true, false).map { ConstantValue(BoolValue(it)) }
 
                 ty.isEnum() ->
                     (ty.deccriptorClass?.source?.getPsi() as? CjEnum)?.entry?.asSequence()?.map { Enum(it) }
