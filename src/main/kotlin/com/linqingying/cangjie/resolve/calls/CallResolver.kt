@@ -395,6 +395,39 @@ class CallResolver(
     ): OverloadResolutionResults<out CallableDescriptor> {
         checkCanceled()
 
+
+        when (val calleeExpression = context.call.calleeExpression){
+            is CjSimpleNameExpression -> {
+                computeTasksAndResolveCall<CallableDescriptor>(
+                    context, calleeExpression.getReferencedNameAsName(), calleeExpression,
+                    kind
+                )
+            }
+            null -> {
+                return checkArgumentTypesAndFail(context)
+            }
+            else->{
+                var expectedType: CangJieType = NO_EXPECTED_TYPE
+
+                val calleeType = expressionTypingServices.safeGetType(
+                    context.scope,
+                    calleeExpression,
+                    expectedType,
+                    context.dataFlowInfo,
+                    context.inferenceSession,
+                    context.trace
+                )
+                val expressionReceiver = create(calleeExpression, calleeType, context.trace.bindingContext)
+
+                val call: Call = CallTransformer.CallForImplicitInvoke(
+                    context.call.explicitReceiver, expressionReceiver, context.call,
+                    false
+                )
+                val tracingForInvoke = TracingStrategyForInvoke(calleeExpression, call, calleeType)
+                return resolveCallForInvoke(context.replaceCall(call), tracingForInvoke)
+            }
+        }
+
         val calleeExpression = context.call.calleeExpression
 
         val callExpression = context.call.callElement
@@ -405,17 +438,12 @@ class CallResolver(
         fun getResult() {
             //        TODO    a.b<Int> 这种情况不做处理了，只报错无法推断
             if (calleeExpression is CjSimpleNameExpression) {
-//                if (isCall) {
-//                    context.call.noValueArgument = true
-//                }
 
                 result = computeTasksAndResolveCall<CallableDescriptor>(
                     context, calleeExpression.getReferencedNameAsName(), calleeExpression,
                     kind
                 )
-//                if (isCall) {
-//                    context.call.noValueArgument = false
-//                }
+
             }
         }
 
@@ -447,45 +475,10 @@ class CallResolver(
 //            有无参构造，并且不是call
             return result!!
         } else if (!resultDescriptor.hashUnsubstitutedPrimaryConstructor() && isCall) {
-//            没有无参构造，并且是call
-            //           单一候选者参数不匹配 返回
-//            if (result!!.isSingleResult) {
-////                tcache.clear()
-////                isCall = false
-////
-////                getResult()
-//                return result!!
-//            }
+
             return result!!
 
-        } /*else if (!resultDescriptor.hashUnsubstitutedPrimaryConstructor() && !isCall) {
-//            没有无参构造，并且不是call
-
-            if (result!!.isSuccess) {
-                context.trace.report(Errors.ENUM_ENTRY_CONSTRUCTOR_REQUIER.on(calleeExpression!!))
-                return result!!
-            }
-            //           单一候选者参数不匹配 返回
-            if (result!!.isSingleResult) {
-                return result!!
-            }
-
-        } else if (resultDescriptor.hashUnsubstitutedPrimaryConstructor() && isCall) {
-
-        }*/
-
-
-        //        CangJieType expectedType = NO_EXPECTED_TYPE;
-//        if (calleeExpression instanceof CjLambdaExpression) {
-//            int parameterNumber = ((CjLambdaExpression) calleeExpression).getValueParameters().size();
-//            List<CangJieType> parameterTypes = new ArrayList<>(parameterNumber);
-//            for (int i = 0; i < parameterNumber; i++) {
-//                parameterTypes.add(NO_EXPECTED_TYPE);
-//            }
-//            expectedType = FunctionTypesKt.createFunctionType(
-//                    builtIns, Annotations.EMPTY, null, Collections.emptyList(), parameterTypes, null, context.expectedType
-//            );
-//        }
+        }
         val calleeType = resultDescriptor.returnType
 
         val expressionReceiver = create(

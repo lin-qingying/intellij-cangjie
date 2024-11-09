@@ -16,12 +16,12 @@
                 language="CangJie"
                 key="inspection.package.directory.mismatch.display.name" bundle="messages.CangJieBundle"/>
 
-        <intentionAction>
-            <language>CangJie</language>
-            <className>com.linqingying.cangjie.ide.intentions.CangJieInsertExplicitTypeArgumentsIntention</className>
-            <bundleName>messages.CangJieBundle</bundleName>
-            <categoryKey>group.names.cangjie</categoryKey>
-        </intentionAction>
+<!--        <intentionAction>-->
+<!--            <language>CangJie</language>-->
+<!--            <className>com.linqingying.cangjie.ide.intentions.CangJieInsertExplicitTypeArgumentsIntention</className>-->
+<!--            <bundleName>messages.CangJieBundle</bundleName>-->
+<!--            <categoryKey>group.names.cangjie</categoryKey>-->
+<!--        </intentionAction>-->
 
 
         <localInspection

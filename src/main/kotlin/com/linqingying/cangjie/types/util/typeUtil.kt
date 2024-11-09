@@ -1165,7 +1165,7 @@ val CangJieType.classKind: ClassKind
  */
 internal class CangJieTypeSubstitution(val forType: CangJieType, val byType: CangJieType)
 
-internal fun CangJieType.substitute(byType: CangJieType): CangJieType {
+  fun CangJieType.substitute(byType: CangJieType): CangJieType {
     return substitute(CangJieTypeSubstitution(this, byType))
 }
 

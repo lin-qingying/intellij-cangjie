@@ -4,6 +4,8 @@ import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.isBuiltinTupleType
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.BindingContext
+import com.linqingying.cangjie.resolve.BindingContext.EXPRESSION_TYPE_INFO
+import com.linqingying.cangjie.resolve.calls.util.getType
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
@@ -117,8 +119,8 @@ sealed class Usefulness {
         }
     }
 
-    object Useful : Usefulness()
-    object Useless : Usefulness()
+    data object Useful : Usefulness()
+    data object Useless : Usefulness()
 
     val isUseful: Boolean get() = this !== Useless
 }
@@ -132,7 +134,7 @@ sealed class Usefulness {
  * @param constructor 构造函数，用于构建 `type` 类型的新模式。
  * @param type 构造函数应用的类型。
  * @param withWitness 是否需要生成非穷尽性证据，用于标记未被覆盖的情况。
- * @param crateRoot 模式的根模块（`RsMod`），用于访问模块级的上下文信息。
+ * @param crateRoot 模式的根模块，用于访问模块级的上下文信息。
  * @return 返回 `Usefulness` 类型，表示新模式是否有用，并可能包含非穷尽性证据。
  */
 private fun isUsefulSpecialized(
@@ -160,6 +162,15 @@ private fun isUsefulSpecialized(
 
 fun CangJieType.isTyAdt(): Boolean {
     return isEnum() || isStruct()
+}
+
+/**
+ * 预留方法，检查属性
+ * 目前无作用，用来消除警告
+ */
+fun hasAtomAttribute(attr: String): Boolean {
+
+    return false
 }
 
 /**
@@ -207,7 +218,10 @@ fun isUseful(
 
     val isPrivatelyEmpty = allConstructors.isEmpty()
     val isInDifferentCrate = type.isTyAdt() && type.source?.containingFile != crateRoot
-    val isNonExhaustive = isPrivatelyEmpty || isInDifferentCrate
+
+    val isDeclaredNonExhaustive = type.isTyAdt() && hasAtomAttribute("non_exhaustive")
+    val isNonExhaustive = isPrivatelyEmpty || (isDeclaredNonExhaustive && isInDifferentCrate)
+
     if (missingConstructors.isEmpty() && !isNonExhaustive) {
         /**
          * If all possible constructors are present, we must check whether the wildcard `pattern` covers any unmatched value.
@@ -225,8 +239,11 @@ fun isUseful(
      * usefulness of the remaining patterns in a submatrix containing all rows starting with a wildcard.
      */
     val wildcardRows = matrix.filter { row ->
-        when (row.firstOrNull()?.kind) {
+        when (val kind = row.firstOrNull()?.kind) {
             PatternKind.Wild, is PatternKind.Binding -> true
+            is PatternKind.Type ->
+                CangJieTypeChecker.DEFAULT.equalTypes(type, kind.type)
+
             else -> false
         }
     }
@@ -256,10 +273,10 @@ fun isUseful(
 val Matrix.firstColumn: List<Pattern> get() = mapNotNull { row -> row.firstOrNull() }
 
 /**
- * The type of the first column of the matrix
+ * 矩阵第一列的类型
  *
- * @return `null` in case of empty matrix
- * @throws [CheckMatchException] if the patterns in the first column have different types
+ * @return 如果矩阵为空，则返回 `null`
+ * @throws [CheckMatchException] 如果第一列中的模式类型不一致
  */
 val Matrix.firstColumnType: CangJieType?
     get() {
@@ -320,7 +337,14 @@ private fun specializeRow(row: List<Pattern>, constructor: Constructor, type: Ca
                 else -> null
             }
 
-        is PatternKind.Type -> TODO()
+        is PatternKind.Type -> {
+
+            if (CangJieTypeChecker.DEFAULT.equalTypes(kind.type, type)) {
+                wildPatterns
+            } else {
+                null
+            }
+        }
 
         PatternKind.Wild, is PatternKind.Binding ->
             // 如果是通配模式或绑定模式，直接返回 `wildPatterns`
@@ -340,4 +364,22 @@ private fun MutableList<Pattern>.fillWithSubPatterns(subPatterns: List<Pattern>)
         while (size <= index) add(Pattern.wild()) // TODO: maybe it's better to throw an exception?
         this[index] = pattern
     }
+}
+fun doCheckExhaustive(match: CjMatchExpression, context: BindingContext): List<Pattern>? {
+    val matchedExprType =    match.subjectExpression?.let { context.getType(it) } ?: return null
+
+
+    val matrix = match.entries
+        .calculateMatrix(context)
+        .takeIf { it.isWellTyped() }
+        ?: return null
+
+    val wild = Pattern.wild(matchedExprType)
+    val useful = isUseful(matrix, listOf(wild), true, match.containingCjFile, isTopLevel = true)
+//
+//    /** If `_` pattern is useful, the match is not exhaustive */
+    if (useful is Usefulness.UsefulWithWitness) {
+        return useful.witnesses.mapNotNull { it.patterns.singleOrNull() }
+    }
+    return null
 }

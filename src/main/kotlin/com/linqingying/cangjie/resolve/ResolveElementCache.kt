@@ -1,5 +1,16 @@
 package com.linqingying.cangjie.resolve
 
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootModificationTracker
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.findParentOfType
+import com.intellij.util.containers.CollectionFactory
+import com.intellij.util.containers.SLRUCache
 import com.linqingying.cangjie.analyzer.CjpmLibraryInfo
 import com.linqingying.cangjie.analyzer.DaemonCodeAnalyzerStatusService
 import com.linqingying.cangjie.analyzer.ModuleInfo
@@ -14,9 +25,7 @@ import com.linqingying.cangjie.ide.projectStructure.languageVersionSettings
 import com.linqingying.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.psi.psiUtil.forEachDescendantOfType
-import com.linqingying.cangjie.psi.psiUtil.getElementTextWithContext
-import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
+import com.linqingying.cangjie.psi.psiUtil.*
 import com.linqingying.cangjie.resolve.caches.CodeFragmentAnalyzer
 import com.linqingying.cangjie.resolve.caches.analyzeControlFlow
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -26,14 +35,6 @@ import com.linqingying.cangjie.resolve.lazy.BodyResolveMode.*
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyClassDescriptorBase
 import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.types.expressions.ExpressionTypingContext
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootModificationTracker
-import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.registry.Registry
-import com.intellij.psi.util.*
-import com.intellij.util.containers.CollectionFactory
-import com.intellij.util.containers.SLRUCache
 import org.jetbrains.annotations.TestOnly
 import java.util.concurrent.ConcurrentMap
 
@@ -186,53 +187,7 @@ class ResolveElementCache(
         if (element is CjAnnotationEntry && bodyResolveMode == PARTIAL_NO_ADDITIONAL)
             return element
 
-        val elementOfAdditionalResolve = element.findTopmostParentInFile {
-            it is CjFunction ||
-                    it is CjAnonymousInitializer ||
-//                    it is CjPrimaryConstructor ||
-//                    it is CjSecondaryConstructor ||
-                    it is CjProperty ||
-                    it is CjVariable ||
-                    it is CjSuperTypeList ||
-
-                    it is CjImportList ||
-                    it is CjAnnotationEntry ||
-                    it is CjTypeParameter ||
-                    it is CjTypeConstraint ||
-                    it is CjPackageDirective ||
-                    it is CjCodeFragment ||
-                    it is CjTypeAlias ||
-                    it is CjDestructuringDeclaration
-        } as CjElement?
-
-        when (elementOfAdditionalResolve) {
-            null -> {
-                // Case of JetAnnotationEntry on top level class
-                if (element is CjAnnotationEntry) {
-                    return element
-                }
-
-//                if (element is CjFileAnnotationList) {
-//                    return element
-//                }
-
-                // Case of pure script element, like val (x, y) = ... on top of the script
-//                return element.findParentOfType<CjScript>(strict = false)
-                return null
-            }
-
-            is CjPackageDirective -> return element
-
-            is CjDeclaration -> {
-                if (element is CjParameter && !CjPsiUtil.isLocal(element)) {
-                    return null
-                }
-
-                return elementOfAdditionalResolve
-            }
-
-            else -> return elementOfAdditionalResolve
-        }
+        return element.findElementOfAdditionalResolve()
     }
 
     private fun ensureFileAnnotationsResolved(elements: Collection<CjElement>) {

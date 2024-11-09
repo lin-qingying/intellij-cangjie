@@ -140,7 +140,7 @@ class StubBasedPackageMemberDeclarationProvider(
     override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> {
 
         return runReadAction {
-            CangJieEnumEntryShortNameIndex[name.asString(), project, searchScope]
+            CangJieEnumEntryShortNameIndex[name.asString(), project ]
         }
 
     }

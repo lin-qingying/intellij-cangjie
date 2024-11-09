@@ -35,13 +35,9 @@ import com.linqingying.cangjie.resolve.controlFlow.variable.PseudocodeVariablesD
 import com.linqingying.cangjie.resolve.controlFlow.variable.VariableControlFlowState
 import com.linqingying.cangjie.resolve.controlFlow.variable.VariableInitReadOnlyControlFlowInfo
 import com.linqingying.cangjie.resolve.descriptorUtil.isEffectivelyExternal
-import com.linqingying.cangjie.resolve.descriptorUtil.module
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.expressions.match.MatchChecker
 import com.linqingying.cangjie.types.expressions.match.checkExhaustive
-import com.linqingying.cangjie.types.expressions.match.checkTypePattern
-import com.linqingying.cangjie.types.expressions.match.isBindingPattern
-import com.linqingying.cangjie.types.isFlexible
 import com.linqingying.cangjie.types.util.TypeUtils.DONT_CARE
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.noExpectedType
@@ -419,7 +415,7 @@ class ControlFlowInformationProviderImpl private constructor(
 
                 if (subjectExpression != null) {
                     if (elseEntry != null) return@traverse
-//新方法
+//模式匹配 match表达式
 //                    直接对Patter对象进行检查
                     val patterns = element.checkExhaustive(context) ?: return@traverse
                     trace.report(NO_ELSE_IN_MATCH_BY_PATTERN.on(element, patterns))
@@ -428,10 +424,10 @@ class ControlFlowInformationProviderImpl private constructor(
 //对未覆盖的模式进行错误报告
 
                 } else {
-//                    老方法
+//                    非模式匹配 match表达式  when
                     val missingCases = MatchChecker.getMissingCases(element, context)
 
-                    if (usedAsExpression && /* !isEnum &&*/ missingCases.isNotEmpty()) {
+                    if (/*usedAsExpression && */ missingCases.isNotEmpty()) {
                         if (elseEntry != null) continue
                         if (element.entries.any { it.conditions.first() is CjBindingPattern }) {
                             continue
@@ -440,53 +436,6 @@ class ControlFlowInformationProviderImpl private constructor(
                         missingCases.firstOrNull { it is MatchMissingCase.ConditionTypeIsExpect }?.let {
                             require(it is MatchMissingCase.ConditionTypeIsExpect)
                             trace.report(EXPECT_TYPE_IN_MATCH_WITHOUT_ELSE.on(element, it.typeOfDeclaration))
-                        }
-                    } else if (subjectExpression != null) {
-                        val subjectType = MatchChecker.matchSubjectType(element, trace.bindingContext)
-
-
-                        if (elseEntry != null) {
-                            if (missingCases.isEmpty() && subjectType != null && !subjectType.isFlexible()) {
-                                val subjectClass = subjectType.constructor.declarationDescriptor as? ClassDescriptor
-                                val pseudocodeElement = instruction.owner.correspondingElement
-                                val pseudocodeDescriptor = trace[DECLARATION_TO_DESCRIPTOR, pseudocodeElement]
-                                if (subjectClass == null ||
-                                    CangJieBuiltIns.isBooleanOrNullableBoolean(subjectType) ||
-                                    subjectClass.module == pseudocodeDescriptor?.module
-                                ) {
-                                    trace.report(REDUNDANT_ELSE_IN_MATCH.on(elseEntry))
-                                }
-                            }
-                            continue
-                        }
-
-//                    检查一些类型字面量数据固定或比较少的模式 例如 ()    true false
-                        if (MatchChecker.checkLiteralPattern(element, subjectType, context)) {
-                            continue
-                        }
-
-                        if (element.entries.any {
-                                it.conditions.isNotEmpty() && it.conditions.first() is CjBindingPattern && isBindingPattern(
-                                    it.conditions.first() as CjBindingPattern,
-                                    context
-                                )
-                            }) {
-                            continue
-                        }
-                        if (element.entries.any {
-                                it.conditions.isNotEmpty() && it.conditions.first() is CjTypePattern && checkTypePattern(
-                                    it.conditions.first() as CjTypePattern,
-                                    subjectType,
-                                    context
-                                )
-                            }) {
-                            continue
-                        }
-
-                        if (!usedAsExpression) {
-
-                            checkExhaustiveMatchStatement(subjectType, element, missingCases)
-
                         }
                     }
                 }

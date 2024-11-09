@@ -50,13 +50,14 @@ import com.linqingying.cangjie.types.expressions.ControlStructureTypingUtils.Com
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.linqingying.cangjie.types.util.*
+import com.linqingying.cangjie.types.util.TypeUtils.EXPRESSION_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.utils.addIfNotNull
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 import com.linqingying.cangjie.utils.runIf
 import java.util.*
 
-abstract class Subject(
+sealed class Subject(
     val element: CjElement?,
     val typeInfo: CangJieTypeInfo?,
     val scopeWithSubject: LexicalScope?,
@@ -267,7 +268,10 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 LexicalScopeKind.MATCH,
                 components.overloadChecker
             )
-        val matchContext = contextWithExpectedType.replaceScope(matchScope)
+        var matchContext = contextWithExpectedType.replaceScope(matchScope)
+        if(matchContext.expectedType == NO_EXPECTED_TYPE){
+            matchContext = matchContext.replaceExpectedType(components.builtIns.anyType)
+        }
         subject.initDataFlowValue(matchContext, components.builtIns)
         val possibleTypesForSubject =
             subject.typeInfo?.dataFlowInfo?.getStableTypes(subject.dataFlowValue, components.languageVersionSettings)
@@ -947,7 +951,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
             }
             return returnResult(
-                element, data, Pattern(type, PatternKind.Type(type, element.text))
+                element, data, Pattern(data.subject.type, PatternKind.Type(type, element.text))
             )
         }
 
@@ -1018,6 +1022,14 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
         }
 
+        override fun visitPatternByWildcard(element: CjWildcardPattern, data: PatternContext ): Pattern {
+            return returnResult(
+                element,data,Pattern(
+                    data.subject.type,
+                    PatternKind.Wild
+                )
+            )
+        }
         override fun visitPatternByBinding(element: CjBindingPattern, data: PatternContext): Pattern {
 
             val expression = element.expression
@@ -1064,22 +1076,17 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     )
                 )
 
+            }else if( expression?.getReferenceTarget(data.context.trace.bindingContext) is EnumClassCallableDescriptor){
+                data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
+                return returnResult(
+                    element, data, Pattern.Error
+                )
             }
 
 
 // TODO 将变量添加到作用域  这里需要架构重构，目前这个写的并不理想
 
 
-//            val scopeWithSubjectVariableByCase =
-//                ExpressionTypingUtils.newWritableScopeImpl(
-//                    data.context,
-//                    LexicalScopeKind.MATCH_CASE,
-//                    components.overloadChecker
-//                )
-
-
-//       (     data.context.scope as LexicalWritableScope).addVariableDescriptor(variable)
-//            scopeWithSubjectVariableByCase.addVariableDescriptor(variable)
             element.parent?.let {
                 element.findParentOfType<CjPatternEntryBlock>()?.let {
                     if (data.context.config.addVariableDescriptor[it] == null) {
@@ -1137,24 +1144,6 @@ private interface MatchExhaustivenessChecker {
 }
 
 
-private fun doCheckExhaustive(match: CjMatchExpression, context: BindingContext): List<Pattern>? {
-    val matchedExprType = context[EXPRESSION_TYPE_INFO, match.subjectExpression]?.type ?: return null
-
-
-    val matrix = match.entries
-        .calculateMatrix(context)
-        .takeIf { it.isWellTyped() }
-        ?: return null
-
-    val wild = Pattern.wild(matchedExprType)
-    val useful = isUseful(matrix, listOf(wild), true, match.containingCjFile, isTopLevel = true)
-//
-//    /** If `_` pattern is useful, the match is not exhaustive */
-    if (useful is Usefulness.UsefulWithWitness) {
-        return useful.witnesses.mapNotNull { it.patterns.singleOrNull() }
-    }
-    return null
-}
 
 fun CjMatchExpression.checkExhaustive(context: BindingContext): List<Pattern>? {
 

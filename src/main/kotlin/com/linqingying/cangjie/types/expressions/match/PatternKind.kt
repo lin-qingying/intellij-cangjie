@@ -26,7 +26,11 @@ sealed class PatternKind {
     /**
      * 常量模式
      */
-    data class Const(val value: ConstantValue<*>) : PatternKind()
+    data class Const(val value: ConstantValue<*>) : PatternKind(){
+        override fun showString(): String {
+            return value.toString()
+        }
+    }
 
     /**
      * 元组模式

@@ -35,6 +35,9 @@ class QuickFixRegistrar : QuickFixContributor {
 
         NO_ELSE_IN_MATCH.registerFactory(AddMatchElseBranchFix, AddMatchRemainingBranchesFix)
         NO_ELSE_IN_MATCH_WARNING.registerFactory(AddMatchElseBranchFix, AddMatchRemainingBranchesFix)
+        NO_ELSE_IN_MATCH_BY_PATTERN.registerFactory(AddMatchElseBranchFix, AddMatchPatternRemainingBranchesFix)
+
+
 
 //        添加 ABSTRACT_KEYWORD
         val addAbstractModifierFactory = AddModifierFix.createFactory(ABSTRACT_KEYWORD)

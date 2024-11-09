@@ -1,22 +1,30 @@
 package com.linqingying.cangjie.ide.quickfix
 
-import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.descriptors.ClassDescriptor
-import com.linqingying.cangjie.descriptors.ClassKind
-import com.linqingying.cangjie.diagnostics.Diagnostic
-import com.linqingying.cangjie.diagnostics.MatchMissingCase
-import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.psi.psiUtil.endOffset
-import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
-import com.linqingying.cangjie.resolve.caches.analyze
-import com.linqingying.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
-import com.linqingying.cangjie.types.expressions.match.MatchChecker
 import com.intellij.codeInsight.CodeInsightUtilCore
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.LowPriorityAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.CangJieBundle
+import com.linqingying.cangjie.descriptors.ClassDescriptor
+import com.linqingying.cangjie.descriptors.ClassKind
+import com.linqingying.cangjie.diagnostics.Diagnostic
+import com.linqingying.cangjie.diagnostics.MatchMissingCase
+import com.linqingying.cangjie.ide.ShortenReferences
+import com.linqingying.cangjie.ide.quickfix.match.AddRemainingMatchBranchesUtils.generateMatchPatternBranches
+import com.linqingying.cangjie.psi.CjExpression
+import com.linqingying.cangjie.psi.CjFile
+import com.linqingying.cangjie.psi.CjMatchExpression
+import com.linqingying.cangjie.psi.CjPsiFactory
+import com.linqingying.cangjie.psi.psiUtil.endOffset
+import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
+import com.linqingying.cangjie.resolve.caches.analyze
+import com.linqingying.cangjie.resolve.caches.safeAnalyze
+import com.linqingying.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
+import com.linqingying.cangjie.resolve.lazy.BodyResolveMode
+import com.linqingying.cangjie.types.expressions.match.MatchChecker
+import com.linqingying.cangjie.types.expressions.match.doCheckExhaustive
 
 sealed class AddElseBranchFix<T : CjExpression>(element: T) : CangJiePsiOnlyQuickFixAction<T>(element) {
     override fun getFamilyName() = CangJieBundle.message("fix.add.else.branch.when")
@@ -54,6 +62,44 @@ class AddMatchElseBranchFix(element: CjMatchExpression) : AddElseBranchFix<CjMat
     }
 }
 
+class AddMatchPatternRemainingBranchesFix(
+    expression: CjMatchExpression
+) : CangJieQuickFixAction<CjMatchExpression>(expression) {
+    override fun invoke(project: Project, editor: Editor?, file: CjFile) {
+
+        element?.let { addRemainingBranches(it) }
+    }
+
+    override fun getFamilyName() = text
+
+    override fun getText(): String {
+        return CangJieBundle.message("fix.add.remaining.branches")
+    }
+
+    companion object : CangJieIntentionActionsFactory() {
+        fun addRemainingBranches(element: CjMatchExpression) {
+
+            val context = element.safeAnalyze(bodyResolveMode = BodyResolveMode.PARTIAL )
+
+            val patterns = doCheckExhaustive(element,context)
+                ?: emptyList()
+            generateMatchPatternBranches(element, patterns)
+            ShortenReferences.DEFAULT.process(element)
+
+        }
+
+        override fun doCreateActions(diagnostic: Diagnostic): List<IntentionAction> {
+            val matchExpression =
+                diagnostic.psiElement.getNonStrictParentOfType<CjMatchExpression>() ?: return emptyList()
+            val actions = mutableListOf(AddMatchPatternRemainingBranchesFix(matchExpression))
+//            if (matchExpression.hasEnumSubject()) {
+//                actions += AddMatchPatternRemainingBranchesFix(matchExpression )
+//            }
+            return actions
+        }
+    }
+}
+
 class AddMatchRemainingBranchesFix(
     expression: CjMatchExpression,
     val withImport: Boolean = false
@@ -62,10 +108,10 @@ class AddMatchRemainingBranchesFix(
     override fun getFamilyName() = text
 
     override fun getText(): String {
-        if (withImport) {
-            return CangJieBundle.message("fix.add.remaining.branches.with.star.import")
+        return if (withImport) {
+            CangJieBundle.message("fix.add.remaining.branches.with.star.import")
         } else {
-            return CangJieBundle.message("fix.add.remaining.branches")
+            CangJieBundle.message("fix.add.remaining.branches")
         }
     }
 
@@ -85,10 +131,11 @@ class AddMatchRemainingBranchesFix(
         }
 
         override fun doCreateActions(diagnostic: Diagnostic): List<IntentionAction> {
-            val whenExpression = diagnostic.psiElement.getNonStrictParentOfType<CjMatchExpression>() ?: return emptyList()
-            val actions = mutableListOf(AddMatchRemainingBranchesFix(whenExpression))
-            if (whenExpression.hasEnumSubject()) {
-                actions += AddMatchRemainingBranchesFix(whenExpression, withImport = true)
+            val matchExpression =
+                diagnostic.psiElement.getNonStrictParentOfType<CjMatchExpression>() ?: return emptyList()
+            val actions = mutableListOf(AddMatchRemainingBranchesFix(matchExpression))
+            if (matchExpression.hasEnumSubject()) {
+                actions += AddMatchRemainingBranchesFix(matchExpression, withImport = true)
             }
             return actions
         }
@@ -96,7 +143,12 @@ class AddMatchRemainingBranchesFix(
         fun isAvailable(element: CjMatchExpression?): Boolean {
             if (element == null) return false
             return element.closeBrace != null &&
-                    with(MatchChecker.getMissingCases(element, element.safeAnalyzeNonSourceRootCode())) { isNotEmpty() && !hasUnknown }
+                    with(
+                        MatchChecker.getMissingCases(
+                            element,
+                            element.safeAnalyzeNonSourceRootCode()
+                        )
+                    ) { isNotEmpty() && !hasUnknown }
         }
 
         fun addRemainingBranches(element: CjMatchExpression?, withImport: Boolean = false) {
@@ -122,5 +174,6 @@ class AddMatchRemainingBranchesFix(
 //        }
     }
 }
+
 val List<MatchMissingCase>.hasUnknown: Boolean
     get() = firstOrNull() == MatchMissingCase.Unknown

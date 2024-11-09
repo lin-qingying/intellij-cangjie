@@ -7,14 +7,35 @@ import com.linqingying.cangjie.resolve.caches.type
 import com.linqingying.cangjie.resolve.constants.*
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.CangJieType
-import com.linqingying.cangjie.types.util.*
+import com.linqingying.cangjie.types.util.deccriptorClass
+import com.linqingying.cangjie.types.util.isBoolean
+import com.linqingying.cangjie.types.util.isEnum
+import com.linqingying.cangjie.types.util.isUnit
 import com.linqingying.cangjie.resolve.constants.ConstantValue as CV
+import  com.linqingying.cangjie.types.util.substitute as Usubstitute
 
 fun List<CjTypeReference>.types(): List<CangJieType> {
     return mapNotNull {
         it.type
     }
 
+}
+
+//this 是 类型参数中的类型 type的上层类型
+private fun CangJieType.substitute(type: CangJieType): CangJieType {
+    val thisName = this.constructor.declarationDescriptor?.name ?: return this
+
+//查找泛型参数的index
+    var index: Int? = null
+    type.deccriptorClass?.declaredTypeParameters?.forEachIndexed { index1, typeParameterDescriptor ->
+        if (typeParameterDescriptor.name == thisName) {
+            index = index1
+        }
+    }
+    if (index != null) {
+        return this.Usubstitute(type.arguments[index!!].type)
+    }
+    return this
 }
 
 sealed class Constructor {
@@ -34,24 +55,23 @@ sealed class Constructor {
     fun subTypes(type: CangJieType): List<CangJieType> {
 
         return when {
-//            this is Single && type.source is RsFieldsOwner -> {
-//                type.item.fieldTypes.map { it.substitute(type.typeParameterValues) }
-//            }
+
             this is Enum -> {
-                entry.typeReferences.types().mapIndexed { index, it ->
-                    it.substitute(type.arguments[index].type)
+                entry.typeReferences.types().map {
+                    it.substitute(type)
                 }
             }
 
             else -> emptyList()
         }
-        return emptyList()
+
     }
 
     open fun coveredByRange(from: CV<*>, to: CV<*>, included: Boolean): Boolean = false
 
     /** Enum variants */
     data class Enum(val entry: CjEnumEntry) : Constructor()
+    data class Type(val type: CangJieType) : Constructor()
 
     /** The constructor of all patterns that don't vary by constructor, e.g. struct patterns and fixed-length arrays */
     object Single : Constructor() {

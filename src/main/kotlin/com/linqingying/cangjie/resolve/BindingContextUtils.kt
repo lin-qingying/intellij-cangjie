@@ -1,34 +1,39 @@
 package com.linqingying.cangjie.resolve
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.descriptors.BindingTrace
 import com.linqingying.cangjie.descriptors.ClassDescriptor
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.descriptors.FunctionDescriptor
 import com.linqingying.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.psi.CjPsiUtil.deparenthesizeOnce
 import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.linqingying.cangjie.psi.psiUtil.parentsWithSelf
 import com.linqingying.cangjie.resolve.BindingContext.*
 import com.linqingying.cangjie.resolve.calls.context.ResolutionContext
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
-import com.linqingying.cangjie.resolve.calls.util.getResolvedCall
 import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.resolve.scopes.takeSnapshot
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.linqingying.cangjie.utils.CangJieExceptionWithAttachments
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
+
 fun CjReturnExpression.getTargetFunctionDescriptor(context: BindingContext): FunctionDescriptor? {
     val targetLabel = getTargetLabel()
     if (targetLabel != null) return context[LABEL_TARGET, targetLabel]?.let { context[FUNCTION, it] }
 
     val declarationDescriptor = context[DECLARATION_TO_DESCRIPTOR, getNonStrictParentOfType<CjDeclarationWithBody>()]
-    val containingFunctionDescriptor = DescriptorUtils.getParentOfType(declarationDescriptor, FunctionDescriptor::class.java, false)
-        ?: return null
+    val containingFunctionDescriptor =
+        DescriptorUtils.getParentOfType(declarationDescriptor, FunctionDescriptor::class.java, false)
+            ?: return null
 
-    return generateSequence(containingFunctionDescriptor) { DescriptorUtils.getParentOfType(it, FunctionDescriptor::class.java) }
+    return generateSequence(containingFunctionDescriptor) {
+        DescriptorUtils.getParentOfType(
+            it,
+            FunctionDescriptor::class.java
+        )
+    }
         .dropWhile { it is AnonymousFunctionDescriptor }
         .firstOrNull()
 }
@@ -39,6 +44,7 @@ fun BindingTrace.recordScope(scope: LexicalScope, element: CjElement?) {
         record(LEXICAL_SCOPE, element, scope.takeSnapshot() as LexicalScope)
     }
 }
+
 fun getEnclosingDescriptor(context: BindingContext, element: CjElement): DeclarationDescriptor {
     val declaration =
         element.getParentOfTypeCodeFragmentAware(CjNamedDeclaration::class.java)
@@ -66,14 +72,20 @@ fun BindingContext.getDataFlowInfoAfter(position: PsiElement): DataFlowInfo {
 }
 
 fun CjExpression.isUsedAsResultOfLambda(context: BindingContext): Boolean = context[USED_AS_RESULT_OF_LAMBDA, this]!!
-fun CjTypeReference.getType(context: BindingContext): CangJieType?{
+fun CjTypeReference.getType(context: BindingContext): CangJieType? {
 
     return context[TYPE, this]
 }
+
+fun CjExpression.getReferenceTarget(context: BindingContext): DeclarationDescriptor? {
+    return getReferenceTargets(context).firstOrNull()
+}
+
 fun CjExpression.getReferenceTargets(context: BindingContext): Collection<DeclarationDescriptor> {
     val targetDescriptor = if (this is CjReferenceExpression) context[REFERENCE_TARGET, this] else null
     return targetDescriptor?.let { listOf(it) } ?: context[AMBIGUOUS_REFERENCE_TARGET, this].orEmpty()
 }
+
 fun <C : ResolutionContext<C>> ResolutionContext<C>.recordDataFlowInfo(expression: CjExpression?) {
     if (expression == null) return
 
@@ -85,6 +97,7 @@ fun <C : ResolutionContext<C>> ResolutionContext<C>.recordDataFlowInfo(expressio
         trace.record(EXPRESSION_TYPE_INFO, expression, noTypeInfo(dataFlowInfo))
     }
 }
+
 fun BindingContext.getDataFlowInfoBefore(position: PsiElement): DataFlowInfo {
     for (element in position.parentsWithSelf) {
         (element as? CjExpression)
@@ -104,6 +117,7 @@ fun CjPureElement.findClassDescriptor(bindingContext: BindingContext): ClassDesc
 //    is SyntheticClassOrObjectDescriptor.SyntheticDeclaration -> descriptor()
     else -> throw IllegalArgumentException("$this shall be PsiElement or SyntheticClassOrObjectDescriptor.SyntheticDeclaration")
 }
+
 fun CjElement.recordUsedAsExpression(trace: BindingTrace, value: Boolean) {
     if (isUsedAsExpression(trace.bindingContext)) return
     trace.record(USED_AS_EXPRESSION, this, value)
@@ -123,14 +137,19 @@ fun <T : PsiElement> CjElement.getParentOfTypeCodeFragmentAware(vararg parentCla
     return null
 }
 
-fun getEnclosingFunctionDescriptor(context: BindingContext, element: CjElement, skipInlineFunctionLiterals: Boolean): FunctionDescriptor? {
+fun getEnclosingFunctionDescriptor(
+    context: BindingContext,
+    element: CjElement,
+    skipInlineFunctionLiterals: Boolean
+): FunctionDescriptor? {
     var current = element
     while (true) {
-        val functionOrClass = current.getParentOfTypeCodeFragmentAware(CjFunction::class.java, CjTypeStatement::class.java)
+        val functionOrClass =
+            current.getParentOfTypeCodeFragmentAware(CjFunction::class.java, CjTypeStatement::class.java)
         val descriptor = context.get(DECLARATION_TO_DESCRIPTOR, functionOrClass)
         if (functionOrClass is CjFunction) {
             if (descriptor is FunctionDescriptor) {
-                if (skipInlineFunctionLiterals  ) {
+                if (skipInlineFunctionLiterals) {
                     current = functionOrClass
                 } else {
                     return descriptor

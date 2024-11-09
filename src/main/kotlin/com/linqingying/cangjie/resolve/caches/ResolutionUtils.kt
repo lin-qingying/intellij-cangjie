@@ -5,10 +5,13 @@ package com.linqingying.cangjie.resolve.caches
 import com.linqingying.cangjie.analyzer.AnalysisResult
 import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.diagnostics.Diagnostic
 import com.linqingying.cangjie.ide.FrontendInternals
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.psi.*
+
+import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.calls.model.ResolvedCall
 import com.linqingying.cangjie.resolve.calls.util.getResolvedCall
@@ -117,7 +120,21 @@ fun CjNamedFunction.resolveToDescriptorIfAny(bodyResolveMode: BodyResolveMode = 
 val CjTypeReference.type: CangJieType?
     get() {
 
-        val result = this.safeAnalyze()
+
+val descriptorPsi =  getNonStrictParentOfType<CjDeclaration>()
+        val result =  this .safeAnalyze(bodyResolveMode = BodyResolveMode.PARTIAL)
+     val descriptor=   descriptorPsi?.descriptor
+
+
+        when(descriptorPsi){
+            is CjEnumEntry ->{
+                when(descriptor ){
+                    is EnumEntryDescriptor ->{
+                        descriptor.unsubstitutedPrimaryConstructor
+                    }
+                }
+            }
+        }
 
         return this.getType(result)
 

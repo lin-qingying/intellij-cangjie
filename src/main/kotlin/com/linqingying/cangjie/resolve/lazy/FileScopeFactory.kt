@@ -1,6 +1,9 @@
 package com.linqingying.cangjie.resolve.lazy
 
 
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
@@ -8,6 +11,7 @@ import com.linqingying.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIn
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.psi.CjEnum
 import com.linqingying.cangjie.psi.CjFile
 import com.linqingying.cangjie.psi.CjImportDirective
 import com.linqingying.cangjie.psi.CjImportInfo
@@ -20,9 +24,6 @@ import com.linqingying.cangjie.resolve.scopes.*
 import com.linqingying.cangjie.resolve.source.CangJieSourceElement
 import com.linqingying.cangjie.storage.getValue
 import com.linqingying.cangjie.utils.Printer
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.project.Project
-import com.intellij.psi.search.GlobalSearchScope
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 
 data class FileScopes(
@@ -132,7 +133,7 @@ class FileScopeFactory(
     }
 
     private val defaultImportResolvers by components.storageManager.createLazyValue {
-        createDefaultImportResolvers(emptyList(), emptyList() )
+        createDefaultImportResolvers(emptyList(), emptyList())
     }
 
     private fun createDefaultImportResolver(
@@ -237,7 +238,7 @@ class FileScopeFactory(
                 return defaultImportResolvers
             }
 
-            return createDefaultImportResolvers(extraImports, aliasImportNames )
+            return createDefaultImportResolvers(extraImports, aliasImportNames)
         }
 
         fun findEnumImports(): List<EnumDefualtImportImpl> {
@@ -276,10 +277,19 @@ class FileScopeFactory(
             }
 
             override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-                val element = file.declarations.filter {
-                    it.name === name.asString()
-                }
-                if (element.isEmpty()) return emptyList()
+
+//                val elements = file.declarations.flatMap {
+//                    when(it){
+//                        is CjEnum ->{
+//                            it.entry + listOf(it)
+//                        }
+//                        else -> listOf(it)
+//                    }
+//                }.filter {
+//
+//                    it.name === name.asString()
+//                }
+//                if (elements.isEmpty()) return emptyList()
                 var i = 0
                 var _parent = parent
                 while (_parent !is CurrentPackageScope && i < 15) {
@@ -292,23 +302,34 @@ class FileScopeFactory(
                 return _parent?.getContributedClassifiers(name, location) ?: emptyList()
 
             }
+
             override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
 
 
-                val element = file.declarations.filter {
-                    it.name === name.asString()
-                }
-                if (element.isEmpty()) return null
-                var i = 0
-                var _parent = parent
-                while (_parent !is CurrentPackageScope && i < 15) {
-                    _parent = _parent?.parent
-                    i++
-                }
+//
+//                val elements = file.declarations.flatMap {
+//                    when(it){
+//                        is CjEnum ->{
+//                            it.entry + listOf(it)
+//                        }
+//                        else -> listOf(it)
+//                    }
+//                }.filter {
+//
+//                    it.name === name.asString()
+//                }
+//                    if (elements.isEmpty()) return null
+                    var i = 0
+                    var _parent = parent
+                    while (_parent !is CurrentPackageScope && i < 15) {
+                        _parent = _parent?.parent
+                        i++
+                    }
 //                if (_parent !is CurrentPackageScope) {
 //                    return null
 //                }
-                return _parent?.getContributedClassifier(name, location)
+                    return _parent?.getContributedClassifier(name, location)
+
 
 
             }
@@ -495,11 +516,12 @@ class FileScopeFactory(
 
         private fun getClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
 
-            return explicitImportResolver.getClassifiers(name, location)  + allUnderImportResolver.getClassifiers(
+            return explicitImportResolver.getClassifiers(name, location) + allUnderImportResolver.getClassifiers(
                 name,
                 location
             )
         }
+
         private fun getClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
 
             return explicitImportResolver.getClassifier(name, location) ?: allUnderImportResolver.getClassifier(
@@ -507,13 +529,17 @@ class FileScopeFactory(
                 location
             )
         }
-        private fun LazyImportResolver<*>.getClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor>  =
+
+        private fun LazyImportResolver<*>.getClassifiers(
+            name: Name,
+            location: LookupLocation
+        ): List<ClassifierDescriptor> =
             components.storageManager.compute {
                 val imports = indexedImports.importsForName(name)
 
                 val targetList = mutableListOf<ClassifierDescriptor>()
                 for (directive in imports) {
-                    targetList .addAll(getImportScope(directive).getContributedClassifiers(name, location))
+                    targetList.addAll(getImportScope(directive).getContributedClassifiers(name, location))
 
                 }
 
@@ -571,15 +597,16 @@ class FileScopeFactory(
         }
 
         override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-          val list =   scope.getContributedClassifiers(name, location)
+            val list = scope.getContributedClassifiers(name, location)
             /*   如在当前包查找不到，在重导出语句中查找 (重导出语句不管什么访问修饰，都可以在本包访问)*/
-          val list2 =  getClassifiers(
+            val list2 = getClassifiers(
                 name,
                 location
             )
 
             return list + list2
         }
+
         override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
             return scope.getExtendClass(name)
         }

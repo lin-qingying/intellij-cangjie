@@ -90,9 +90,8 @@ class ControlStructureTypingUtils(
             entryDataFlowInfos: List<DataFlowInfo>
         ): MutableDataFlowInfoForArguments {
             val dataFlowInfoForArgumentsMap = mutableMapOf<ValueArgument, DataFlowInfo>()
-            var i = 0
-            for (argument in callForWhen.valueArguments) {
-                val entryDataFlowInfo = entryDataFlowInfos[i++]
+            for ((i, argument) in callForWhen.valueArguments.withIndex()) {
+                val entryDataFlowInfo = entryDataFlowInfos[i]
                 dataFlowInfoForArgumentsMap[argument] = entryDataFlowInfo
             }
             return createIndependentDataFlowInfoForArgumentsForCall(subjectDataFlowInfo, dataFlowInfoForArgumentsMap)
@@ -175,11 +174,11 @@ class ControlStructureTypingUtils(
             }
 
             val typeParameterConstructor: TypeConstructor =
-                function.getTypeParameters().get(0).getTypeConstructor()
+                function.getTypeParameters()[0].getTypeConstructor()
             val typeProjection: TypeProjection =
                 TypeProjectionImpl(expectedType)
             return TypeSubstitutor.create(
-                ImmutableMap.of<TypeConstructor, TypeProjection>(
+                ImmutableMap.of(
                     typeParameterConstructor,
                     typeProjection
                 )
@@ -368,7 +367,7 @@ class ControlStructureTypingUtils(
                     c: CheckTypeContext?
                 ): Boolean {
                     if (expression == null) return false
-                    return expression.accept<Boolean, CheckTypeContext>(this, c)
+                    return expression.accept(this, c)
                 }
 
                 fun checkSubExpressions(
@@ -545,7 +544,7 @@ class ControlStructureTypingUtils(
                 trace: BindingTrace,
                 expectedType: CangJieType
             ): Boolean {
-                return java.lang.Boolean.TRUE !== expression.accept<Boolean, CheckTypeContext>(
+                return java.lang.Boolean.TRUE !== expression.accept(
                     checkTypeVisitor,
                     CheckTypeContext(trace, expectedType)
                 )

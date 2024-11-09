@@ -1,5 +1,14 @@
 package com.linqingying.cangjie.psi.psiUtil
 
+import com.intellij.extapi.psi.StubBasedPsiElementBase
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiComment
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.findTopmostParentInFile
+import com.intellij.util.codeInsight.CommentUtilCore
 import com.linqingying.cangjie.CjNodeTypes
 import com.linqingying.cangjie.lexer.CangJieLexer
 import com.linqingying.cangjie.lexer.CjModifierKeywordToken
@@ -9,14 +18,6 @@ import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.name.SpecialNames
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.stubs.CangJieTypeStatementStub
-import com.intellij.extapi.psi.StubBasedPsiElementBase
-import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiComment
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.tree.TokenSet
-import com.intellij.util.codeInsight.CommentUtilCore
 import java.util.*
 
 //fun CjDeclaration.isExpectDeclaration(): Boolean =
@@ -398,13 +399,16 @@ fun CjElement.getQualifiedElementSelector(): CjElement? {
         else -> null
     }
 }
-val CjTypeElement.qualifier : CjTypeElement? get()   {
-    return when (this) {
-        is CjUserType -> this.qualifier
 
-        else -> null
+val CjTypeElement.qualifier: CjTypeElement?
+    get() {
+        return when (this) {
+            is CjUserType -> this.qualifier
+
+            else -> null
+        }
     }
-}
+
 fun CjElement.getQualifiedExpressionForSelector(): CjQualifiedExpression? {
     val parent = parent
     return if (parent is CjQualifiedExpression && parent.selectorExpression == this) parent else null
@@ -448,3 +452,47 @@ fun List<CangJieImportField>.addIf(element: CangJieImportField) {
 
 fun CjDeclaration.modalityModifier() = modifierFromTokenSet(CjTokens.MODALITY_MODIFIERS)
 private fun CjModifierListOwner.modifierFromTokenSet(set: TokenSet) = modifierList?.modifierFromTokenSet(set)
+
+
+fun CjElement.findElementOfAdditionalResolve(): CjElement? {
+
+    val elementOfAdditionalResolve = findTopmostParentInFile {
+        it is CjFunction ||
+                it is CjAnonymousInitializer ||
+//                    it is CjPrimaryConstructor ||
+//                    it is CjSecondaryConstructor ||
+                it is CjProperty ||
+                it is CjVariable ||
+                it is CjSuperTypeList ||
+
+                it is CjImportList ||
+                it is CjAnnotationEntry ||
+                it is CjTypeParameter ||
+                it is CjTypeConstraint ||
+                it is CjPackageDirective ||
+                it is CjCodeFragment ||
+                it is CjTypeAlias ||
+                it is CjDestructuringDeclaration
+    } as CjElement?
+
+    when (elementOfAdditionalResolve) {
+        null -> {
+
+            if (this is CjAnnotationEntry) {
+                return this
+            }
+
+            return null
+        }
+
+        is CjPackageDirective -> return this
+        is CjDeclaration -> {
+            if (this is CjParameter && !CjPsiUtil.isLocal(this)) {
+                return null
+            }
+            return elementOfAdditionalResolve
+        }
+
+        else -> return elementOfAdditionalResolve
+    }
+}

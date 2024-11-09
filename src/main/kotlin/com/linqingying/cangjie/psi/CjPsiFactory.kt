@@ -1,11 +1,5 @@
 package com.linqingying.cangjie.psi
 
-import com.linqingying.cangjie.analyzer.ModuleInfo
-import com.linqingying.cangjie.lang.CangJieFileType
-import com.linqingying.cangjie.lexer.CjModifierKeywordToken
-import com.linqingying.cangjie.name.FqName
-import com.linqingying.cangjie.resolve.ImportPath
-import com.linqingying.cangjie.utils.checkWithAttachment
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiComment
@@ -14,7 +8,14 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.LocalTimeCounter
+import com.linqingying.cangjie.analyzer.ModuleInfo
+import com.linqingying.cangjie.lang.CangJieFileType
 import com.linqingying.cangjie.lexer.CjKeywordToken
+import com.linqingying.cangjie.lexer.CjModifierKeywordToken
+import com.linqingying.cangjie.name.FqName
+import com.linqingying.cangjie.resolve.ImportPath
+import com.linqingying.cangjie.types.expressions.match.Pattern
+import com.linqingying.cangjie.utils.checkWithAttachment
 import org.jetbrains.annotations.NonNls
 
 
@@ -44,15 +45,22 @@ class CjPsiFactory private constructor(
             this(project, markGenerated, context = null, eventSystemEnabled = eventSystemEnabled)
 
     @JvmOverloads
-        constructor(element: CjElement, markGenerated: Boolean = true) : this(element.project, markGenerated, context = null, eventSystemEnabled = false)
+    constructor(element: CjElement, markGenerated: Boolean = true) : this(
+        element.project,
+        markGenerated,
+        context = null,
+        eventSystemEnabled = false
+    )
 
     fun createEmptyClassBody(): CjAbstractClassBody {
         return createClass("class A{}").getBody()!!
     }
+
     fun createTypeArguments(@NonNls text: String): CjTypeArgumentList {
         val property = createVariable("let x = foo$text()")
         return (property.initializer as CjCallExpression).typeArgumentList!!
     }
+
     companion object {
         @JvmStatic
         @JvmOverloads
@@ -60,6 +68,7 @@ class CjPsiFactory private constructor(
             return CjPsiFactory(context.project, markGenerated, context, eventSystemEnabled = false)
         }
     }
+
     // special hack used in ControlStructureTypingVisitor
     // TODO: get rid of it
     fun wrapInABlockWrapper(expression: CjExpression): CjBlockExpression {
@@ -70,6 +79,7 @@ class CjPsiFactory private constructor(
         val block = function.bodyExpression as CjBlockExpression
         return BlockWrapper(block, expression)
     }
+
     fun createProperty(
         @NonNls name: String,
         @NonNls type: String?,
@@ -78,6 +88,7 @@ class CjPsiFactory private constructor(
     ): CjProperty {
         return createProperty(null, name, type, isMut, initializer)
     }
+
     fun createMatchEntry(@NonNls entryText: String): CjMatchEntry {
         val function = createFunction("func foo() { match(12) { $entryText } }")
         val matchEntry = PsiTreeUtil.findChildOfType(function, CjMatchEntry::class.java)
@@ -87,12 +98,15 @@ class CjPsiFactory private constructor(
 
         return matchEntry
     }
+
     fun createProperty(@NonNls name: String, @NonNls type: String?, isMut: Boolean): CjProperty {
         return createProperty(name, type, isMut, null)
     }
-    fun createEnumPattern(text: String):CjEnumPattern{
+
+    fun createEnumPattern(text: String): CjEnumPattern {
         TODO()
     }
+
     fun createProperty(
         @NonNls modifiers: String?,
         @NonNls name: String,
@@ -113,7 +127,7 @@ class CjPsiFactory private constructor(
 
     fun createProperty(@NonNls text: String): CjProperty {
 
-     return   createClass(
+        return createClass(
             "class A { $text }"
         ).properties.first()
 
@@ -124,9 +138,19 @@ class CjPsiFactory private constructor(
 
     }
 
+    private inline fun <reified E : CjExpression> createExpressionOfType(text: String): E =
+        createExpression(text) as? E
+            ?: error("Failed to create ${E::class.simpleName} from `$text`")
+
     fun createSimpleNameStringTemplateEntry(@NonNls name: String): CjSimpleNameStringTemplateEntry {
         val stringTemplateExpression = createExpression("\"\$$name\"") as CjStringTemplateExpression
         return stringTemplateExpression.entries[0] as CjSimpleNameStringTemplateEntry
+    }
+
+    fun createMatch(patterns: List<Pattern>, ctx: CjElement? = null): CjMatchExpression {
+        val entrys = patterns.joinToString("\n") { " case ${it.text(ctx)} => throw Exception(\"An operation is not implemented\")" }
+        return createExpressionOfType<CjMatchExpression>("match (x) { $entrys }")
+
     }
 
     fun createColon(): PsiElement {
@@ -136,6 +160,7 @@ class CjPsiFactory private constructor(
     fun createPrimaryConstructor(@NonNls text: String = ""): CjPrimaryConstructor {
         return createClass(if (text.isNotEmpty()) "class A { public A$text{} }" else "class A { public A(){} } ").primaryConstructor!!
     }
+
     private class BlockWrapper(fakeBlockExpression: CjBlockExpression, private val expression: CjExpression) :
         CjBlockExpression(fakeBlockExpression.text), CjPsiUtil.CjExpressionWrapper {
 
@@ -155,6 +180,7 @@ class CjPsiFactory private constructor(
 
         override fun getContainingFile(): PsiFile = expression.containingFile
     }
+
     fun createCallArguments(@NonNls text: String): CjValueArgumentList {
         val property = createVariable("let x = foo $text")
         return (property.initializer as CjCallExpression).valueArgumentList!!
@@ -345,6 +371,7 @@ class CjPsiFactory private constructor(
         }
         return if (expression.text == text) expression else null
     }
+
     fun createModifierList(modifier: CjKeywordToken): CjModifierList {
         return createModifierList(modifier.value)
     }
@@ -395,12 +422,15 @@ class CjPsiFactory private constructor(
     fun createNewLine(lineBreaks: Int): PsiElement {
         return createWhiteSpace("\n".repeat(lineBreaks))
     }
+
     fun createIndent(): PsiElement {
         return createWhiteSpace("    ")
     }
-    fun createNewLineAndIndent(length:Int = 4): PsiElement {
+
+    fun createNewLineAndIndent(length: Int = 4): PsiElement {
         return createWhiteSpace("\n" + " ".repeat(length))
     }
+
     fun createNewLine(): PsiElement {
         return createWhiteSpace("\n ")
     }

@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.resolve.calls.tower
 
 import com.linqingying.cangjie.descriptors.CallableDescriptor
+import com.linqingying.cangjie.descriptors.ClassKind
 import com.linqingying.cangjie.descriptors.FunctionDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
@@ -45,7 +46,7 @@ interface CandidateFactory<out C : Candidate> {
 }
 
 sealed class TowerData {
-    object Empty : TowerData()
+    data object Empty : TowerData()
     class OnlyImplicitReceiver(val implicitReceiver: ReceiverValueWithSmartCastInfo) : TowerData()
     class TowerLevel(val level: ScopeTowerLevel) : TowerData()
     class BothTowerLevelAndImplicitReceiver(
@@ -162,6 +163,7 @@ internal class ContextReceiversGroupScopeTowerLevel(
             collectMembers { getContributedVariablesAndIntercept(name, location, contextReceiver, extensionReceiver, scopeTower) }
         }.flatten()
     }
+
 
     override fun getClassType(
         name: Name,
@@ -475,8 +477,49 @@ class TowerResolver {
         }
 
         val syntheticLevel = SyntheticScopeBasedTowerLevel(implicitScopeTower, implicitScopeTower.syntheticScopes)
+        fun processImportingScope(scope: ImportingScope): Collection<C>? {
+            TowerData.TowerLevel(ImportingScopeBasedTowerLevel(implicitScopeTower, scope))
+                .process(scope.mayFitForName(name))?.let { return it }
+            return null
+        }
+        fun processLexicalScope(
+            scope: LexicalScope,
+            resolveExtensionsForImplicitReceiver: Boolean
+        ): Collection<C>? {
+//                if (implicitScopeTower.areContextReceiversEnabled) {
+//                    val contextReceiversGroup = implicitScopeTower.getContextReceivers(scope)
+//                    if (contextReceiversGroup.isNotEmpty()) {
+//                        contextReceiversGroups.add(contextReceiversGroup)
+//                    }
+//                }
+
+            if (!scope.kind.withLocalDescriptors) {
+                TowerData.TowerLevel(ScopeBasedTowerLevel(implicitScopeTower, scope))
+                    .process(scope.mayFitForName(name))?.let { return it }
+            }
+            implicitScopeTower.getImplicitReceiver(scope)
+                ?.let { processImplicitReceiver(it, resolveExtensionsForImplicitReceiver) }
+                ?.let { return it }
+            return null
+        }
+        fun processContextReceiverGroup(contextReceiversGroup: List<ReceiverValueWithSmartCastInfo>): Collection<C>? {
+            TowerData.TowerLevel(ContextReceiversGroupScopeTowerLevel(implicitScopeTower, contextReceiversGroup))
+                .process()?.let { return it }
+            TowerData.BothTowerLevelAndContextReceiversGroup(syntheticLevel, contextReceiversGroup).process()
+                ?.let { return it }
+            for (nonLocalLevel in nonLocalLevels) {
+                TowerData.BothTowerLevelAndContextReceiversGroup(nonLocalLevel, contextReceiversGroup).process()
+                    ?.let { return it }
+            }
+            return null
+        }
+
 
         fun run(): Collection<C> {
+
+
+
+
 //            if (isNameForHidesMember) {
 //                // hides members extensions for explicit receiver
 //                TowerData.TowerLevel(hidesMembersLevel).process()?.let { return it }
@@ -494,51 +537,12 @@ class TowerResolver {
 
             val contextReceiversGroups = mutableListOf<List<ReceiverValueWithSmartCastInfo>>()
 
-            fun processLexicalScope(
-                scope: LexicalScope,
-                resolveExtensionsForImplicitReceiver: Boolean
-            ): Collection<C>? {
-//                if (implicitScopeTower.areContextReceiversEnabled) {
-//                    val contextReceiversGroup = implicitScopeTower.getContextReceivers(scope)
-//                    if (contextReceiversGroup.isNotEmpty()) {
-//                        contextReceiversGroups.add(contextReceiversGroup)
-//                    }
-//                }
-
-                if (!scope.kind.withLocalDescriptors) {
-                    TowerData.TowerLevel(ScopeBasedTowerLevel(implicitScopeTower, scope))
-                        .process(scope.mayFitForName(name))?.let { return it }
-                }
-                implicitScopeTower.getImplicitReceiver(scope)
-                    ?.let { processImplicitReceiver(it, resolveExtensionsForImplicitReceiver) }
-                    ?.let { return it }
-                return null
-            }
-
-            fun processContextReceiverGroup(contextReceiversGroup: List<ReceiverValueWithSmartCastInfo>): Collection<C>? {
-                TowerData.TowerLevel(ContextReceiversGroupScopeTowerLevel(implicitScopeTower, contextReceiversGroup))
-                    .process()?.let { return it }
-                TowerData.BothTowerLevelAndContextReceiversGroup(syntheticLevel, contextReceiversGroup).process()
-                    ?.let { return it }
-                for (nonLocalLevel in nonLocalLevels) {
-                    TowerData.BothTowerLevelAndContextReceiversGroup(nonLocalLevel, contextReceiversGroup).process()
-                        ?.let { return it }
-                }
-                return null
-            }
-
-            fun processImportingScope(scope: ImportingScope): Collection<C>? {
-               TowerData.TowerLevel(ImportingScopeBasedTowerLevel(implicitScopeTower, scope))
-                    .process(scope.mayFitForName(name))?.let { return it }
-                return null
-            }
-
             fun processScopes(
                 scopes: Sequence<HierarchicalScope>,
                 resolveExtensionsForImplicitReceiver: (HierarchicalScope) -> Boolean
             ): Collection<C>? {
                 if (!implicitScopeTower.areContextReceiversEnabled) {
-                    scopes.forEach { scope ->
+                    scopes .forEach { scope ->
                         if (scope is LexicalScope) {
                             processLexicalScope(scope, resolveExtensionsForImplicitReceiver(scope))?.let { return it }
                         } else {
@@ -563,7 +567,6 @@ class TowerResolver {
                 }
                 return null
             }
-
             if (implicitScopeTower.implicitsResolutionFilter === ImplicitsExtensionsResolutionFilter.Default) {
                 processScopes(implicitScopeTower.lexicalScope.parentsWithSelf) { true }
             } else {

@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.resolve.calls
 
 import com.intellij.lang.ASTNode
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.util.AstLoadingFilter
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
@@ -337,17 +338,19 @@ class CallExpressionResolver(
 
     ): Pair<Boolean, ResolvedCall<out CallableDescriptor>?> {
 
-        val results = callResolver.resolveEnumCall(
-            tcache,
-            BasicCallResolutionContext.create(
-                context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
-            ),
-            kind
-        )
-        return if (!results.isNothing)
-            Pair(true, OverloadResolutionResultsUtil.getResultingCall(results, context))
-        else
-            Pair(false, null)
+       return runReadAction {
+           val results = callResolver.resolveEnumCall(
+               tcache,
+               BasicCallResolutionContext.create(
+                   context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
+               ),
+               kind
+           )
+             if (!results.isNothing)
+               Pair(true, OverloadResolutionResultsUtil.getResultingCall(results, context))
+           else
+               Pair(false, null)
+       }
     }
 
     private fun getResolvedCallForFunction(

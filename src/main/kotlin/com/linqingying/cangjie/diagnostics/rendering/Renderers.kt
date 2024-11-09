@@ -102,13 +102,13 @@ object Renderers {
     val RENDER_MATCH_MISSING_CASES_PATTERN = renderer<List<Pattern>> {
 
 
-        if (it.assumesElseBranchOnlyByPattern) {
+//        if (it.assumesElseBranchOnlyByPattern) {
             val list = it.joinToString(", ", limit = MATCH_MISSING_LIMIT) { "'${it.kind.showString()}'" }
             val branches = if (it.size > 1) "branches" else "branch"
-            "$list $branches or 'else' branch instead"
-        } else {
-            "'else' branch"
-        }
+            "($list) $branches or 'else' branch instead"
+//        } else {
+//            "'else' branch"
+//        }
 
     }
 
