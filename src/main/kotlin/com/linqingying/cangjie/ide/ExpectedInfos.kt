@@ -602,8 +602,8 @@ class ExpectedInfos(
         val forExpression = (expressionWithType.parent as? CjContainerNode)?.parent as? CjForExpression ?: return null
         if (expressionWithType != forExpression.loopRange) return null
 
-        val loopVar = forExpression.loopParameter
-        val loopVarType = if (loopVar?.typeReference != null)
+        val loopVar = forExpression.pattern
+        val loopVarType = if (loopVar  != null)
             (bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, loopVar] as VariableDescriptor).type.takeUnless { it.isError }
         else
             null

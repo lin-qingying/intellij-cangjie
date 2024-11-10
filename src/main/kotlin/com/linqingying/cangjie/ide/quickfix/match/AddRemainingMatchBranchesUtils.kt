@@ -19,12 +19,12 @@ object AddRemainingMatchBranchesUtils {
 
     fun generateMatchPatternBranches(element: CjMatchExpression, patterns: List<Pattern>) {
         val psiFactory = CjPsiFactory(element.project)
-        val entrys = createNewMatchEntry(psiFactory, element,patterns)
+        val entrys = createNewMatchEntry(psiFactory, element, patterns)
 
         val matchCloseBrace = element.closeBrace
-    entrys.forEach {
-        element.addBefore(it, matchCloseBrace)
-    }
+        entrys.forEach {
+            element.addBefore(it, matchCloseBrace)
+        }
 
     }
 

@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.resolve.calls.inference.components
 
+import com.intellij.util.SmartList
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.resolve.calls.inference.ConstraintSystemOperation
@@ -13,7 +14,6 @@ import com.linqingying.cangjie.types.TypeCheckerState
 import com.linqingying.cangjie.types.model.*
 import com.linqingying.cangjie.utils.addIfNotNull
 import com.linqingying.cangjie.utils.popLast
-import com.intellij.util.SmartList
 import kotlin.math.max
 
 fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
@@ -350,7 +350,7 @@ class ConstraintInjector(
                 possibleNewConstraints = SmartList()
             }
 //            TODO 排除掉来自扩展的约束，因为那并不一定来字扩展
-            if(constraint.position.from is ReceiverConstraintPosition<*>) return
+            if (constraint.position.from is ReceiverConstraintPosition<*>) return
             possibleNewConstraints!!.add(variable to constraint)
         }
 
@@ -456,12 +456,12 @@ class ConstraintInjector(
                 )
 
             if (!isSubtypeOf(upperType)) {
-                // todo improve error reporting -- add information about base types
+                // todo 改进错误报告--添加有关基本类型的信息
                 if (shouldTryUseDifferentFlexibilityForUpperType && upperType.isSimpleType()) {
-                    /*
-                     * Please don't reuse this logic.
-                     * It's necessary to solve constraint systems when flexibility isn't propagated through a type variable.
-                     * It's OK in the old inference because it uses already substituted types, that are with the correct flexibility.
+                    /**
+                     * 请不要重复使用此逻辑。
+                     * 当灵活性没有通过类型变量传播时，这对于解决约束系统是必要的。
+                     * 在旧的推断系统中这样做是可以的，因为它使用了已替换的类型，具备正确的灵活性。
                      */
                     require(upperType is SimpleTypeMarker)
                     val flexibleUpperType = createFlexibleType(upperType, upperType.withNullability(true))

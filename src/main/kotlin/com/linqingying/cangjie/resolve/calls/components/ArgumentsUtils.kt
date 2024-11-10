@@ -42,7 +42,7 @@ internal fun CangJieCallArgument.getExpectedType(
             varargType?: parameter.type.unwrap()
 
         }
-//        if(verargType != null && this is ReceiverCangJieCallArgument && receiver.)
+
     }
 
 /**

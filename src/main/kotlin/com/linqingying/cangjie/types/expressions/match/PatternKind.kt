@@ -26,7 +26,7 @@ sealed class PatternKind {
     /**
      * 常量模式
      */
-    data class Const(val value: ConstantValue<*>) : PatternKind(){
+    data class Const(val value: ConstantValue<*>) : PatternKind() {
         override fun showString(): String {
             return value.toString()
         }
@@ -35,7 +35,21 @@ sealed class PatternKind {
     /**
      * 元组模式
      */
-    data class Tuple(val subPatterns: List<Pattern>) : PatternKind()
+    data class Tuple(val subPatterns: List<Pattern>) : PatternKind() {
+        override fun showString(): String {
+            val str = StringBuilder()
+
+            str.append("(")
+            str.append(
+                subPatterns.joinToString(",") {
+                    it.text(null)
+                }
+            )
+            str.append(")")
+            return str.toString()
+
+        }
+    }
 
     /**
      * 枚举模式
@@ -46,14 +60,26 @@ sealed class PatternKind {
             val str = StringBuilder()
 
             str.append(entry.name ?: "")
-
-            if (entry.typeReferences.isNotEmpty()) {
+            if (subPatterns.isNotEmpty()) {
+                str.append("(")
                 str.append(
-                    entry.typeReferences.joinToString(",") {
-                        it.text
+                    subPatterns.joinToString(",") {
+                        it.text(null)
                     }
                 )
+                str.append(")")
+
             }
+//            if (entry.typeReferences.isNotEmpty()) {
+//                str.append("(")
+//                str.append(
+//                    entry.typeReferences.joinToString(",") {
+//                        it.text
+//                    }
+//                )
+//                str.append(")")
+//
+//            }
 
             return str.toString()
 

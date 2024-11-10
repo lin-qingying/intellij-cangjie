@@ -103,9 +103,13 @@ object Renderers {
 
 
 //        if (it.assumesElseBranchOnlyByPattern) {
-            val list = it.joinToString(", ", limit = MATCH_MISSING_LIMIT) { "'${it.kind.showString()}'" }
-            val branches = if (it.size > 1) "branches" else "branch"
-            "($list) $branches or 'else' branch instead"
+        val list = it.joinToString(", ", limit = MATCH_MISSING_LIMIT) {
+//            "'${it.kind.showString()}'"
+            "'${it.text(null)}'"
+
+        }
+        val branches = if (it.size > 1) "branches" else "branch"
+        "$list $branches or 'else' branch instead"
 //        } else {
 //            "'else' branch"
 //        }

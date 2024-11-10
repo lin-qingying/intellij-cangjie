@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.types.expressions
 
 import com.google.common.collect.Lists
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.descriptors.ConstructorDescriptor
@@ -38,7 +39,6 @@ import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
-import com.intellij.psi.PsiElement
 
 class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
 
@@ -854,7 +854,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             contextWithExpectedType,
             facade
         )
-//
+
         var context = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(
             ContextDependency.INDEPENDENT
         )
@@ -865,7 +865,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 components.languageVersionSettings
             )
         )
-//
+
         val loopRange = expression.loopRange
         var expectedParameterType: CangJieType? = null
         val loopRangeInfo: CangJieTypeInfo
@@ -882,47 +882,18 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 
         val loopScope = newWritableScopeImpl(context, LexicalScopeKind.FOR, components.overloadChecker)
 
-        val loopParameter = expression.loopParameter
-        if (loopParameter != null) {
-            val variableDescriptor = createLoopParameterDescriptor(loopParameter, expectedParameterType, context)
-            val modifiersCheckingProcedure = components.modifiersChecker.withTrace(context.trace)
-            modifiersCheckingProcedure.checkModifiersForLocalDeclaration(loopParameter, variableDescriptor)
-            components.identifierChecker.checkDeclaration(loopParameter, context.trace)
-            loopScope.addVariableDescriptor(variableDescriptor)
-            val multiParameter = loopParameter.destructuringDeclaration
-            if (multiParameter != null) {
-                val elementType =
-                    expectedParameterType ?: createErrorType(ErrorTypeKind.NO_TYPE_FOR_LOOP_RANGE)
-//                val iteratorNextAsReceiver = TransientReceiver(elementType)
-//                components.annotationResolver.resolveAnnotationsWithArguments(loopScope, loopParameter.modifierList, context.trace)
-//                components.destructuringDeclarationResolver.defineLocalVariablesFromDestructuringDeclaration(
-//                    loopScope, multiParameter, iteratorNextAsReceiver, loopRange, context
-//                )
-                modifiersCheckingProcedure.checkModifiersForDestructuringDeclaration(multiParameter)
-                components.identifierChecker.checkDeclaration(multiParameter, context.trace)
-            }
-            val pattern = loopParameter.pattern
-            pattern?.let {
-//                facade.checkCasePattern(it,context)
-                val elementType = expectedParameterType ?: createErrorType(ErrorTypeKind.NO_TYPE_FOR_LOOP_RANGE)
-                val iteratorNextAsReceiver = TransientReceiver(elementType)
-//                components.annotationResolver.resolveAnnotationsWithArguments(loopScope, loopParameter.modifierList, context.trace)
-//                components.destructuringDeclarationResolver.defineLocalVariablesFromDestructuringDeclaration(
-//                    loopScope, multiParameter, iteratorNextAsReceiver, loopRange, context
-//                )
-//                modifiersCheckingProcedure.checkModifiersForDestructuringDeclaration(multiParameter)
-//                components.identifierChecker.checkDeclaration(it, context.trace)
+//        for in 表达式 模式匹配
+        expression.pattern?.let {
+            val elementType = expectedParameterType ?: createErrorType(ErrorTypeKind.NO_TYPE_FOR_LOOP_RANGE)
+            val iteratorNextAsReceiver = TransientReceiver(elementType)
+            facade.defineLocalVariablesFromPattern(
+                loopScope,
+                it,
+                iteratorNextAsReceiver,
+                loopRange,
+                context
+            )
 
-
-                facade.defineLocalVariablesFromPattern(
-                    loopScope,
-                    it,
-                    iteratorNextAsReceiver,
-                    loopRange,
-                    context
-                )
-
-            }
         }
 
         val body = expression.body

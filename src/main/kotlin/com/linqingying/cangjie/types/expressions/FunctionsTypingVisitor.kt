@@ -27,8 +27,10 @@ import com.linqingying.cangjie.resolve.scopes.LexicalWritableScope
 import com.linqingying.cangjie.resolve.source.toSourceElement
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.CommonSupertypes
+import com.linqingying.cangjie.types.ErrorUtils
 import com.linqingying.cangjie.types.checker.TrailingCommaChecker
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
+import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.types.util.TypeUtils.CANNOT_INFER_FUNCTION_PARAM_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
@@ -181,6 +183,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         expression: CjLambdaExpression,
         context: ExpressionTypingContext
     ): CangJieTypeInfo? {
+        if(context.expectedType == NO_EXPECTED_TYPE) return noTypeInfo(context.dataFlowInfo)
 //        if (!components.languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
 //            checkReservedYieldBeforeLambda(expression, context.trace)
 //        }

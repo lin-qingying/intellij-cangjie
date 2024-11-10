@@ -74,6 +74,10 @@ abstract class ControlFlowBuilderAdapter : ControlFlowBuilder {
         delegateBuilder.write(assignment, lValue, rValue, target, receiverValues)
     }
 
+    override fun declarePattern(parameter: CjCasePattern) {
+        delegateBuilder.declarePattern(parameter)
+
+    }
     override fun declareParameter(parameter: CjParameter) {
         delegateBuilder.declareParameter(parameter)
     }

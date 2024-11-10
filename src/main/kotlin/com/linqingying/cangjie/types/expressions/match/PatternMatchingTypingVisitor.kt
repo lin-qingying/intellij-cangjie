@@ -183,9 +183,10 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         writableScope: LexicalWritableScope,
         casePattern: CjCasePattern,
         receiver: ReceiverValue,
-        initializer: CjExpression,
+        initializer: CjExpression?,
         context: ExpressionTypingContext
     ) {
+        initializer?: return
 //        获取原始迭代器对象
         val iterator = receiver.type.extractSuperType(ITERABLE)
 //        被迭代对象

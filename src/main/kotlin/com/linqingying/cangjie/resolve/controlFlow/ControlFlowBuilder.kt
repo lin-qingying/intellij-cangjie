@@ -51,7 +51,7 @@ interface ControlFlowBuilder {
 
     // Declarations
     fun declareParameter(parameter: CjParameter)
-
+    fun declarePattern(parameter: CjCasePattern)
     fun declareVariable(property: CjVariableDeclaration)
     fun declareFunction(subroutine: CjElement, pseudocode: Pseudocode)
 

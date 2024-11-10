@@ -19,7 +19,7 @@ fun checkEnumsForCompatibility(context: ResolutionContext<*>, reportOn: CjElemen
 //        } else {
 //            Errors.INCOMPATIBLE_ENUM_COMPARISON
 //        }
-        val diagnostic  = Errors.INCOMPATIBLE_ENUM_COMPARISON
+        val diagnostic  = Errors.INCOMPATIBLE_ENUM_COMPARISON_ERROR
         context.trace.report(diagnostic.on(reportOn, typeA, typeB))
     }
 }

@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.types.expressions.match
 
+import com.linqingying.cangjie.builtins.isBuiltinTupleType
 import com.linqingying.cangjie.psi.CjEnum
 import com.linqingying.cangjie.psi.CjEnumEntry
 import com.linqingying.cangjie.psi.CjTypeReference
@@ -46,6 +47,9 @@ sealed class Constructor {
             type.isEnum() && this is Enum -> {
                 entry.typeReferences.size
             }
+            type.isBuiltinTupleType && this is Single ->{
+                type.arguments.size
+            }
 
             else -> 0
         }
@@ -62,6 +66,14 @@ sealed class Constructor {
                 }
             }
 
+            this is Single -> {
+                if (type.isBuiltinTupleType) {
+                    type.arguments.map { it.type }
+                } else {
+                    emptyList()
+                }
+            }
+
             else -> emptyList()
         }
 
@@ -73,8 +85,8 @@ sealed class Constructor {
     data class Enum(val entry: CjEnumEntry) : Constructor()
     data class Type(val type: CangJieType) : Constructor()
 
-    /** The constructor of all patterns that don't vary by constructor, e.g. struct patterns and fixed-length arrays */
-    object Single : Constructor() {
+    /** 不因构造函数而变化的所有模式的构造函数，例如结构模式和固定长度数组 */
+    data object Single : Constructor() {
         override fun coveredByRange(from: CV<*>, to: CV<*>, included: Boolean): Boolean = true
     }
 

@@ -17,6 +17,7 @@ import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescripto
 import com.linqingying.cangjie.resolve.scopes.MemberScope
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.*
+import com.linqingying.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import com.linqingying.cangjie.types.checker.*
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker.DEFAULT
 import com.linqingying.cangjie.types.error.ErrorScopeKind
@@ -1168,7 +1169,19 @@ internal class CangJieTypeSubstitution(val forType: CangJieType, val byType: Can
   fun CangJieType.substitute(byType: CangJieType): CangJieType {
     return substitute(CangJieTypeSubstitution(this, byType))
 }
+fun CangJieType.replaceArgument( vararg   newType:CangJieType): CangJieType {
 
+    val arguments = newType.map {
+        TypeProjectionImpl(it)
+    }
+    return simpleTypeWithNonTrivialMemberScope(
+        attributes,
+        constructor,
+        arguments,
+        isMarkedOption,
+        memberScope
+    )
+}
 internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): CangJieType {
     val nullable = isMarkedOption
     val currentType = makeNotNullable()

@@ -14,6 +14,13 @@ import com.linqingying.cangjie.lexer.CjKeywordToken
 
 
 abstract class CjCasePattern(node: ASTNode) : CjElementImpl(node),ValueArgument,CjExpression{
+
+    val destructuringDeclaration: CjDestructuringDeclaration?
+        get() {
+
+            return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION)
+        }
+
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitCasePattern(this, data)
     }

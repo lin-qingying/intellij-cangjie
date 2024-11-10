@@ -34,12 +34,7 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDecl
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
         return setTypeReference(this, nameIdentifier, typeRef)
     }
-    val pattern: CjCasePattern?
-        get() {
-            if (stub != null) return null
 
-            return findChildByClass(CjCasePattern::class.java)
-        }
     val destructuringDeclaration: CjDestructuringDeclaration?
         get() {
             if (stub != null) return null

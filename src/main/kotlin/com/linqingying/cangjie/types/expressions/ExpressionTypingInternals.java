@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
             LexicalWritableScope writableScope,
             CjCasePattern casePattern,
             ReceiverValue receiver,
-            CjExpression initializer,
+          @Nullable  CjExpression initializer,
             ExpressionTypingContext context);
 
     void checkLetExpression(@NotNull CjLetExpression pattern, ExpressionTypingContext context);

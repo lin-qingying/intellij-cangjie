@@ -122,7 +122,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
             return updateNullability(intersectTypes(newTypes))
         }
 
-        // simple classifier type
+        // 简单分类器类型
         var replacement = substituteNotNullTypeWithConstructor(typeConstructor) ?: return null
         if (keepAnnotation) {
             replacement = replacement.replaceAttributes(

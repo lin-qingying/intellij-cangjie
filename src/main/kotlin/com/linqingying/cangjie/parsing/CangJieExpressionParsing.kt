@@ -982,9 +982,7 @@ open class CangJieExpressionParsing(
 
     }
 
-    private fun parseCasePattern() {
 
-    }
 
     /**
      * case condition
@@ -1091,7 +1089,7 @@ open class CangJieExpressionParsing(
             if (!at(RPAR)) {
 
 
-                val parameter = mark()
+//                val parameter = mark()
                 if (!at(IN_KEYWORD)) {
                     cangJieParsing.parseModifierList(IN_KEYWORD_R_PAR_COLON_SET)
                 }
@@ -1115,7 +1113,7 @@ open class CangJieExpressionParsing(
 //                }
 
                 CasePattern().parseExpression()
-                parameter.done(VALUE_PARAMETER)
+//                parameter.done(VALUE_PARAMETER)
 
 
                 if (expect(IN_KEYWORD, "Expecting 'in'", L_PAR_L_BRACE_R_PAR_SET)) {

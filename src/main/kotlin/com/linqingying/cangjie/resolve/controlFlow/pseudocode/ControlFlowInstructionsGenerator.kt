@@ -240,6 +240,10 @@ class ControlFlowInstructionsGenerator : ControlFlowBuilderAdapter() {
 
         }
 
+        override fun declarePattern(parameter: CjCasePattern) {
+
+        }
+
         override fun declareVariable(property: CjVariableDeclaration) {
             add(VariableDeclarationInstruction(property, currentScope))
 

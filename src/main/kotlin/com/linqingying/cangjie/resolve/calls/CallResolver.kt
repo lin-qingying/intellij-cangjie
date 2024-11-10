@@ -407,7 +407,7 @@ class CallResolver(
                 return checkArgumentTypesAndFail(context)
             }
             else->{
-                var expectedType: CangJieType = NO_EXPECTED_TYPE
+                val expectedType: CangJieType = NO_EXPECTED_TYPE
 
                 val calleeType = expressionTypingServices.safeGetType(
                     context.scope,
