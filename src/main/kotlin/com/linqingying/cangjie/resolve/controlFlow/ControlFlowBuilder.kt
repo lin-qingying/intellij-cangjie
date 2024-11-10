@@ -50,7 +50,7 @@ interface ControlFlowBuilder {
     fun getLoopExitPoint(loop: CjLoopExpression): Label?
 
     // Declarations
-    fun declareParameter(parameter: CjParameter)
+    fun declareParameter(parameter: CjParameterBase)
     fun declarePattern(parameter: CjCasePattern)
     fun declareVariable(property: CjVariableDeclaration)
     fun declareFunction(subroutine: CjElement, pseudocode: Pseudocode)

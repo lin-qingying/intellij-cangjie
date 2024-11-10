@@ -366,7 +366,25 @@ public class CjPsiUtil {
             declaration = PsiTreeUtil.getParentOfType(declaration, CjNamedDeclaration.class);
         }
 
+        else if (declaration instanceof CjParameterBase) {
+            CjFunctionType functionType = PsiTreeUtil.getParentOfType(declaration, CjFunctionType.class);
+            if (functionType != null) {
+                return functionType;
+            }
 
+            PsiElement parent = declaration.getParent();
+
+            // let/var parameter of primary constructor should be considered as local according to containing class
+            if (((CjParameterBase) declaration).hasLetOrVar() && parent != null && parent.getParent() instanceof CjPrimaryConstructor) {
+                return getEnclosingElementForLocalDeclaration(((CjPrimaryConstructor) parent.getParent()).getContainingTypeStatement(), skipParameters);
+            }
+            else if (skipParameters && parent != null &&
+                    !(parent instanceof CjForExpression) &&
+                    !(parent instanceof CjTryResource)&&
+                    parent.getParent() instanceof CjNamedFunction) {
+                declaration = (CjNamedFunction) parent.getParent();
+            }
+        }
         if (declaration instanceof PsiFile) {
             return declaration;
         }
@@ -387,7 +405,18 @@ public class CjPsiUtil {
                 }
             }
 
-
+            if (current instanceof CjBlockExpression) {
+                // For members also not applicable if has function literal parent
+                if (!isNonLocalCallable || !(current.getParent() instanceof CjFunctionLiteral)) {
+                    return (CjElement) current;
+                }
+            }
+            if ( current instanceof CjSuperTypeCallEntry) {
+                PsiElement grandParent = current.getParent().getParent();
+                if (grandParent instanceof CjTypeStatement ) {
+                    return (CjElement) grandParent;
+                }
+            }
 
             current = parent;
         }

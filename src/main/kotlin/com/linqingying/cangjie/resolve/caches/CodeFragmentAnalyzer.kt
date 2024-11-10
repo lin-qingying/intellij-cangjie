@@ -1,5 +1,7 @@
 package com.linqingying.cangjie.resolve.caches
 
+import com.intellij.openapi.util.Key
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.analyzer.analyzeInContext
 import com.linqingying.cangjie.descriptors.BindingTrace
 import com.linqingying.cangjie.descriptors.ClassDescriptor
@@ -20,8 +22,6 @@ import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.expressions.ExpressionTypingServices
 import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.utils.externalDescriptors
-import com.intellij.openapi.util.Key
-import com.intellij.psi.PsiElement
 
 class CodeFragmentAnalyzer(
     private val resolveSession: ResolveSession,
@@ -52,8 +52,9 @@ class CodeFragmentAnalyzer(
                     expressionTypingServices = expressionTypingServices
                 )
 
-                // mark the fragment expression (or the last expression in the fragment's body) as used,
-                // so it's not reported as unused by CFG analysis
+                // 将片段表达式（或片段主体中的最后一个表达式）标记为已使用，
+// 这样它就不会在控制流图（CFG）分析中被报告为未使用
+
                 bindingTrace.record(USED_AS_EXPRESSION, contentElement.lastBlockStatementOrThis())
 
                 analyzeControlFlow(resolveSession, contentElement, bindingTrace)
@@ -72,9 +73,16 @@ class CodeFragmentAnalyzer(
         return bindingTrace
     }
 
-    private data class ContextInfo(val bindingContext: BindingContext, val scope: LexicalScope, val dataFlowInfo: DataFlowInfo)
+    private data class ContextInfo(
+        val bindingContext: BindingContext,
+        val scope: LexicalScope,
+        val dataFlowInfo: DataFlowInfo
+    )
 
-    private fun analyzeCodeFragmentContext(codeFragment: CjCodeFragment, bodyResolveMode: BodyResolveMode): ContextInfo {
+    private fun analyzeCodeFragmentContext(
+        codeFragment: CjCodeFragment,
+        bodyResolveMode: BodyResolveMode
+    ): ContextInfo {
         fun resolutionFactory(element: CjElement): BindingContext {
             return resolveElementCache.resolveToElement(element, bodyResolveMode)
         }
@@ -84,7 +92,10 @@ class CodeFragmentAnalyzer(
         return info.copy(scope = enrichScopeWithImports(info.scope, codeFragment))
     }
 
-    private tailrec fun getContextInfo(context: PsiElement?, resolutionFactory: (CjElement) -> BindingContext): ContextInfo {
+    private tailrec fun getContextInfo(
+        context: PsiElement?,
+        resolutionFactory: (CjElement) -> BindingContext
+    ): ContextInfo {
         var bindingContext: BindingContext = BindingContext.EMPTY
         var dataFlowInfo: DataFlowInfo = DataFlowInfo.EMPTY
         var scope: LexicalScope? = null
@@ -98,6 +109,7 @@ class CodeFragmentAnalyzer(
                     scope = resolutionResult.descriptor.scopeForInitializerResolution
                 }
             }
+
             is CjSecondaryConstructor -> {
                 val expression = context.bodyExpression ?: context.getDelegationCallOrNull()
                 if (expression != null) {
@@ -105,6 +117,7 @@ class CodeFragmentAnalyzer(
                     scope = bindingContext[BindingContext.LEXICAL_SCOPE, expression]
                 }
             }
+
             is CjTypeStatement -> {
                 val resolutionResult = getClassDescriptor(context, resolutionFactory)
                 if (resolutionResult != null) {
@@ -112,6 +125,7 @@ class CodeFragmentAnalyzer(
                     scope = resolutionResult.descriptor.scopeForMemberDeclarationResolution
                 }
             }
+
             is CjFunction -> {
                 val bindingContextForFunction = resolutionFactory(context)
                 val functionDescriptor = bindingContextForFunction[BindingContext.FUNCTION, context]
@@ -119,16 +133,23 @@ class CodeFragmentAnalyzer(
                     bindingContext = bindingContextForFunction
 
                     @Suppress("NON_TAIL_RECURSIVE_CALL")
-                    val outerScope = getContextInfo(context.getParentOfType<CjDeclaration>(true), resolutionFactory).scope
+                    val outerScope =
+                        getContextInfo(context.getParentOfType<CjDeclaration>(true), resolutionFactory).scope
 
                     val localRedeclarationChecker = LocalRedeclarationChecker.DO_NOTHING
-                    scope = FunctionDescriptorUtil.getFunctionInnerScope(outerScope, functionDescriptor, localRedeclarationChecker)
+                    scope = FunctionDescriptorUtil.getFunctionInnerScope(
+                        outerScope,
+                        functionDescriptor,
+                        localRedeclarationChecker
+                    )
                 }
             }
+
             is CjFile -> {
                 bindingContext = resolveSession.bindingContext
                 scope = resolveSession.fileScopeProvider.getFileResolutionScope(context)
             }
+
             is CjElement -> {
                 bindingContext = resolutionFactory(context)
                 scope = context.getResolutionScope(bindingContext)
@@ -146,7 +167,10 @@ class CodeFragmentAnalyzer(
         return ContextInfo(bindingContext, scope ?: createEmptyScope(resolveSession.moduleDescriptor), dataFlowInfo)
     }
 
-    private data class ClassResolutionResult(val bindingContext: BindingContext, val descriptor: ClassDescriptorWithResolutionScopes)
+    private data class ClassResolutionResult(
+        val bindingContext: BindingContext,
+        val descriptor: ClassDescriptorWithResolutionScopes
+    )
 
     private fun getClassDescriptor(
         classOrObject: CjTypeStatement,
@@ -160,10 +184,16 @@ class CodeFragmentAnalyzer(
             classDescriptor = resolveSession.getClassDescriptor(classOrObject, NoLookupLocation.FROM_IDE)
         } else {
             bindingContext = resolutionFactory(classOrObject)
-            classDescriptor = bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, classOrObject] as ClassDescriptor?
+            classDescriptor =
+                bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, classOrObject] as ClassDescriptor?
         }
 
-        return (classDescriptor as? ClassDescriptorWithResolutionScopes)?.let { ClassResolutionResult(bindingContext, it) }
+        return (classDescriptor as? ClassDescriptorWithResolutionScopes)?.let {
+            ClassResolutionResult(
+                bindingContext,
+                it
+            )
+        }
     }
 
     private fun refineContextElement(context: PsiElement?): CjElement? {

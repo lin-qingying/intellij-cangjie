@@ -36,6 +36,7 @@ import com.linqingying.cangjie.resolve.controlFlow.variable.VariableControlFlowS
 import com.linqingying.cangjie.resolve.controlFlow.variable.VariableInitReadOnlyControlFlowInfo
 import com.linqingying.cangjie.resolve.descriptorUtil.isEffectivelyExternal
 import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
 import com.linqingying.cangjie.types.expressions.match.MatchChecker
 import com.linqingying.cangjie.types.expressions.match.checkExhaustive
 import com.linqingying.cangjie.types.util.TypeUtils.DONT_CARE
@@ -329,7 +330,7 @@ class ControlFlowInformationProviderImpl private constructor(
 //        }
 //
         checkMatchExpressions()
-//
+        checkMultipleSupertypeType()
 //        checkConstructorConsistency()
 
     }
@@ -373,8 +374,33 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
+    //    检查多个共同父类
+    private fun checkMultipleSupertypeType() {
+//        val initializers = pseudocodeVariablesData.variableInitializers
+        pseudocode.traverse(TraversalOrder.FORWARD) { instruction ->
+            val value = (instruction as? InstructionWithValue)?.outputValue
+            for (element in instruction.owner.getValueElements(value)) {
+                if (element !is CjExpression) continue
+                val context = trace.bindingContext
+                val usedAsExpression = element.isUsedAsExpression(context)
+
+                val type = context.getType(element) ?: continue
+
+                if (usedAsExpression && type is MultipleSupertypeTypeInferenceFailure) {
+                    trace.report(
+                        TYPE_MISMATCH_MULTIPLE_SUPERTYPES.on(
+                            element, type.intersectedTypes
+                        )
+                    )
+                }
+
+            }
+        }
+    }
+
+
     ////////////////////////////////////////////////////////////////////////////////
-    //  Uninitialized variables analysis
+//  Uninitialized variables analysis
     private fun checkMatchExpressions() {
         val initializers = pseudocodeVariablesData.variableInitializers
         pseudocode.traverse(TraversalOrder.FORWARD) { instruction ->
@@ -1001,8 +1027,8 @@ class ControlFlowInformationProviderImpl private constructor(
         markAndCheckTailCalls()
     }
 
-    ////////////////////////////////////////////////////////////////////////////////
-    // Tail calls
+////////////////////////////////////////////////////////////////////////////////
+// Tail calls
 
     private fun markAndCheckTailCalls() {
         val subroutineDescriptor = trace[DECLARATION_TO_DESCRIPTOR, subroutine] as? FunctionDescriptor ?: return

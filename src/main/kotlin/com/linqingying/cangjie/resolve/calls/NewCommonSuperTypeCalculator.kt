@@ -1,39 +1,36 @@
 package com.linqingying.cangjie.resolve.calls
 
 
-
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.AbstractFlexibilityChecker.hasDifferentFlexibilityAtDepth
 import com.linqingying.cangjie.types.AbstractTypeChecker.hasPathByNotMarkedNullableNodes
-import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
-
 import com.linqingying.cangjie.types.model.*
 
 /**
  * 检索最小公共父类
  */
 object NewCommonSuperTypeCalculator {
-//    fun commonSuperType(types: List<CangJieTypeMarker>): CangJieTypeMarker{
+    //    fun commonSuperType(types: List<CangJieTypeMarker>): CangJieTypeMarker{
 //        return commonSuperType(types)
 //    }
     fun TypeSystemCommonSuperTypesContext.commonSuperType(types: List<CangJieTypeMarker>): CangJieTypeMarker {
 
         val type = commonSuperType(types, true)
 
-        if( type is CangJieType  && type .constructor is IntersectionTypeConstructor){
-            return MultipleSupertypeTypeInferenceFailure (type)
+        if (type is CangJieType && type.constructor is IntersectionTypeConstructor) {
+            return MultipleSupertypeTypeInferenceFailure(type)
         }
         return type.replaceCustomAttributes(unionTypeAttributes(types))
     }
 
     private fun TypeSystemCommonSuperTypesContext.commonSuperType(
         types: List<CangJieTypeMarker>,
-
         isTopLevelType: Boolean = false
     ): CangJieTypeMarker {
         if (types.isEmpty()) {
-            throw IllegalStateException("Empty collection for input")
+//            throw IllegalStateException("Empty collection for input")
+            return ErrorUtils.invalidType
         }
 
         types.singleOrNull()?.let { return it }
@@ -399,7 +396,7 @@ object NewCommonSuperTypeCalculator {
      * From point of view of this function we have here something like `Some<CapturedType>` in [originalTypesForCst],
      * and the captured type in argument has the same `Some<CapturedType>` as its constructor supertype.
      *
-          * for single super type constructor create star projection argument when types for that argument are equal to the original types.
+     * for single super type constructor create star projection argument when types for that argument are equal to the original types.
      * Captured star projections are replaced with their corresponding supertypes during this check.
      * The check is skipped for contravariant parameters, for which recursive cst calculation never happens.
      */

@@ -45,6 +45,8 @@ enum class LexicalScopeKind(val withLocalDescriptors: Boolean) {
     ELSE(true),
     DO_WHILE_BODY(true),
     CATCH(true),
+    TRY(true),
+
     FOR(true),
     WHILE_BODY(true),
     MATCH(true),

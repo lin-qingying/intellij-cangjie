@@ -13,9 +13,12 @@ import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
+interface CjParameterBase  :  CjCallableDeclaration, CjLetVarKeywordOwner{
+    fun hasLetOrVar(): Boolean
+    fun hasDefaultValue(): Boolean
+}
 
-
-class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDeclaration, CjLetVarKeywordOwner {
+class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieParameterStub) : super(stub, CjStubElementTypes.VALUE_PARAMETER)
@@ -68,7 +71,7 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDecl
     val equalsToken: PsiElement?
         get() = findChildByType(CjTokens.EQ)
 
-    fun hasDefaultValue(): Boolean {
+    override fun hasDefaultValue(): Boolean {
         val stub = stub
         if (stub != null) {
             return stub.hasDefaultValue()
@@ -117,7 +120,7 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjCallableDecl
             return findChildByType<PsiElement?>(CjTokens.VAR_KEYWORD) != null
         }
 
-    fun hasLetOrVar(): Boolean {
+    override fun hasLetOrVar(): Boolean {
         val stub = stub
         if (stub != null) {
             return stub.hasValOrVar()

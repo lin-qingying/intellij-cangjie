@@ -2,18 +2,18 @@ package com.linqingying.cangjie.parsing
 
 
 import com.google.common.collect.ImmutableMap
-import com.linqingying.cangjie.CjNodeTypes.*
-import com.linqingying.cangjie.lexer.CjToken
-import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.lexer.CjTokens.*
-import com.linqingying.cangjie.parsing.CangJieParsing.DeclarationParsingMode
-import com.linqingying.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Pair
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
+import com.linqingying.cangjie.CjNodeTypes.*
+import com.linqingying.cangjie.lexer.CjToken
+import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.lexer.CjTokens.*
+import com.linqingying.cangjie.parsing.CangJieParsing.DeclarationParsingMode
+import com.linqingying.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
 
 open class CangJieExpressionParsing(
     builder: SemanticWhitespaceAwarePsiBuilder, private val cangJieParsing: CangJieParsing, isLazy: Boolean
@@ -167,7 +167,6 @@ open class CangJieExpressionParsing(
         }
 
     }
-
 
 
     private fun parseRangeExpression() {
@@ -359,7 +358,7 @@ open class CangJieExpressionParsing(
                 typeArgumentList.rollbackTo()
                 return false
             }
-        } */else {
+        } */ else {
             // 如果以上条件都不满足，返回false
             return false
         }
@@ -983,7 +982,6 @@ open class CangJieExpressionParsing(
     }
 
 
-
     /**
      * case condition
      * (常量 | 通配符(_)
@@ -1199,31 +1197,31 @@ open class CangJieExpressionParsing(
         val tryExpression = mark()
         advance() // TRY_KEYWORD
 
+//是否是Try-with-resources表达式
+        var isTryWithResources = false
         if (at(LPAR)) {
+            isTryWithResources = true
             advance()
+
+//            每次循环代表一个resource
+            val resourceList = mark()
             do {
                 if (at(COMMA)) advance()
+                val resource = mark()
 
-                if (expect(IDENTIFIER, "Expecting resource name")) {
-//                    advance()
-                    if (expect(EQ, "Expecting '='", TRY_CATCH_RECOVERY_TOKEN_SET)) {
-                        parseExpression()
+                val valueParameter = mark()
+                expect(IDENTIFIER, "Expecting resource name")
+                valueParameter.done(VALUE_PARAMETER)
 
-                    }
-
+                if (expect(EQ, "Expecting '='", TRY_CATCH_RECOVERY_TOKEN_SET)) {
+                    parseExpression()
 
                 }
-//
-//                expect(IDENTIFIER, "Expecting resource name")
-//
-//                expect(EQ, "Expecting '='", TRY_CATCH_RECOVERY_TOKEN_SET)
-//
-//                parseExpression()
 
-
+                resource.done(TRY_RESOURCE)
             } while (at(COMMA))
 
-
+            resourceList.done(TRY_RESOURCE_LIST)
             expect(RPAR, "Expecting ')'")
 
         }
@@ -1239,26 +1237,41 @@ open class CangJieExpressionParsing(
             if (atSet(TRY_CATCH_RECOVERY_TOKEN_SET)) {
                 error("Expecting exception variable declaration")
             } else {
-                val parameters = mark()
+                val parameter = mark()
                 expect(LPAR, "Expecting '('", TRY_CATCH_RECOVERY_TOKEN_SET)
                 if (!atSet(TRY_CATCH_RECOVERY_TOKEN_SET)) {
+
 
                     if (at(UNDERLINE)) {
 //                        所有匹配项
                         advance()
+                        if (at(COLON)) {
+                            advance()
+                            parseTypeReferencesByOr()
+
+                        }
                     } else {
-                        cangJieParsing.parseValueParameter( /*typeRequired = */true)
-                        if (at(COMMA)) {
-                            advance() // trailing comma
+                        expect(IDENTIFIER, "Expecting exception variable name")
+
+                        if (expect(COLON, "Expecting ':'")) {
+                            parseTypeReferencesByOr()
                         }
                     }
-
+//                 else {
+//                        cangJieParsing.parseValueParameter( /*typeRequired = */true)
+//                        if (at(COMMA)) {
+//                            advance() // trailing comma
+//                        }
+//                    }
+//
 
                     expect(RPAR, "Expecting ')'", TRY_CATCH_RECOVERY_TOKEN_SET)
                 } else {
                     error("Expecting exception variable declaration")
                 }
-                parameters.done(VALUE_PARAMETER_LIST)
+
+                parameter.done(CATCH_PARAMETER)
+
             }
             if (at(LBRACE)) {
                 cangJieParsing.parseBlock()
@@ -1274,10 +1287,23 @@ open class CangJieExpressionParsing(
             cangJieParsing.parseBlock()
             finallyBlock.done(FINALLY)
         }
-        if (!catchOrFinally) {
+        if (!catchOrFinally && !isTryWithResources) {
             error("Expecting 'catch' or 'finally'")
         }
         tryExpression.done(TRY)
+    }
+
+    /**
+     * 处理以 | 连接的多个类型
+     */
+    private fun parseTypeReferencesByOr() {
+
+//        必须最少具有一个
+        do {
+            if (at(OR)) advance()
+            cangJieParsing.parseTypeRef()
+        } while (at(OR))
+
     }
 
     /*
@@ -1921,7 +1947,7 @@ open class CangJieExpressionParsing(
         expect(IDENTIFIER, "Expecting an identifier")
 
 
-          if (at(LT)) {
+        if (at(LT)) {
             // 如果当前token是左尖括号，尝试解析类型参数列表
             val typeArgumentList = mark()
             if (cangJieParsing.tryParseTypeArgumentList(TYPE_ARGUMENT_LIST_STOPPERS)) {

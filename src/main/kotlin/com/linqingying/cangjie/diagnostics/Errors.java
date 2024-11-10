@@ -65,7 +65,7 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, String> INFERRED_INTO_DECLARED_UPPER_BOUNDS = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory0<CjReturnExpression> RETURN_NOT_ALLOWED = DiagnosticFactory0.create(ERROR, PositioningStrategies.RETURN_WITH_LABEL);
     DiagnosticFactory0<CjExpression> SIGNED_CONSTANT_CONVERTED_TO_UNSIGNED = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory0<CjParameter> TYPE_PARAMETER_IN_CATCH_CLAUSE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjParameterBase> TYPE_PARAMETER_IN_CATCH_CLAUSE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<PsiElement, CjKeywordToken> LET_OR_VAR_ON_CATCH_PARAMETER = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> TYPE_MISMATCH_IN_FOR_LOOP = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<PsiElement, CjKeywordToken> LET_OR_VAR_ON_LOOP_PARAMETER = DiagnosticFactory1.create(ERROR);
@@ -158,7 +158,7 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, CangJieType> UNSAFE_IMPLICIT_INVOKE_CALL = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, InvalidBinaryData> INLETID_BINARY_OPERATOR = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjExpression, CjExpression> EXPRESSION_EXPECTED = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory0<CjParameter> CATCH_PARAMETER_WITH_DEFAULT_VALUE = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjParameterBase> CATCH_PARAMETER_WITH_DEFAULT_VALUE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjElement, Set<Name>> NAMED_PARAMETER_PREFIX_MISSING =
             DiagnosticFactory1.create(ERROR);
 

@@ -29,7 +29,6 @@ import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.CommonSupertypes
 import com.linqingying.cangjie.types.ErrorUtils.createErrorType
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
-import com.linqingying.cangjie.types.checker.TrailingCommaChecker
 import com.linqingying.cangjie.types.error.ErrorTypeKind
 import com.linqingying.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createCallForSpecialConstruction
 import com.linqingying.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createDataFlowInfoForArgumentsOfTryCall
@@ -73,7 +72,26 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         tryExpression: CjTryExpression,
         tryInputContext: ExpressionTypingContext
     ): CangJieTypeInfo {
+
+
         val tryBlock = tryExpression.tryBlock
+
+
+        val tryResourceParameters = mutableListOf<Pair<CjExpression, VariableDescriptor>>()
+        if (tryExpression.tryResourceList != null) {
+            val resources = tryExpression.tryResourceList!!.resources
+
+            resources.forEach {
+                val variableDescriptor =
+                    it.parameter?.let { it1 -> resolveAndCheckTryResourceParameter(it1,it.expression ,tryInputContext) }
+                if (variableDescriptor != null) {
+                    tryResourceParameters.add(Pair(tryBlock, variableDescriptor))
+                }
+            }
+
+
+        }
+
         val catchClauses = tryExpression.catchClauses
         val finallySection = tryExpression.finallyBlock
 
@@ -115,6 +133,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 
         val resolvedCall = components.controlStructureTypingUtils.resolveTryAsCall(
             callForTry,
+            tryResourceParameters,
             catchClausesBlocksAndParameters,
             tryInputContext,
             dataFlowInfoForArguments
@@ -172,16 +191,18 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         expression: CjTryExpression,
         typingContext: ExpressionTypingContext
     ): CangJieTypeInfo {
-        expression.catchClauses.forEach { catchClause ->
-            val parameters = catchClause.parameterList
-            if (parameters != null && parameters.stub == null) {
-                TrailingCommaChecker.check(
-                    parameters.trailingComma,
-                    typingContext.trace,
-                    typingContext.languageVersionSettings
-                )
-            }
-        }
+//        expression.catchClauses.forEach { catchClause ->
+//            val parameters = catchClause.parameterList
+//            if (parameters != null && parameters.stub == null) {
+//                TrailingCommaChecker.check(
+//                    parameters.trailingComma,
+//                    typingContext.trace,
+//                    typingContext.languageVersionSettings
+//                )
+//            }
+//        }
+
+//
 
         if (typingContext.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)) {
             return resolveTryExpressionWithNewInference(expression, typingContext)
@@ -239,7 +260,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
     }
 
     private fun checkCatchParameterDeclaration(
-        catchParameter: CjParameter,
+        catchParameter: CjParameterBase,
         context: ExpressionTypingContext
     ) {
         components.identifierChecker.checkDeclaration(catchParameter, context.trace)
@@ -264,9 +285,27 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             )
         }
     }
+    private fun resolveAndCheckTryResourceParameter(
+        parameter: CjParameterBase,
+        expression: CjExpression?,
+        context: ExpressionTypingContext
+    ): VariableDescriptor {
+        checkCatchParameterDeclaration(parameter, context)
 
+        val variableDescriptor = components.descriptorResolver
+            .resolveLocalVariableDescriptor(context.scope, parameter,expression, context.trace)
+        val parameterType = variableDescriptor.type
+        checkTrySourceParameterType(parameter, parameterType, context)
+        val resourceType = components.builtIns.resource.defaultType
+        components.dataFlowAnalyzer.checkType(
+            parameterType,
+            parameter,
+            context.replaceExpectedType(resourceType)
+        )
+        return variableDescriptor
+    }
     private fun resolveAndCheckCatchParameter(
-        catchParameter: CjParameter,
+        catchParameter: CjParameterBase,
         context: ExpressionTypingContext
     ): VariableDescriptor {
         checkCatchParameterDeclaration(catchParameter, context)
@@ -979,9 +1018,26 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         private fun isClassInitializer(containingFunInfo: com.intellij.openapi.util.Pair<FunctionDescriptor, PsiElement>): Boolean {
             return containingFunInfo.getFirst() is ConstructorDescriptor && containingFunInfo.getSecond() !is CjSecondaryConstructor
         }
+        private fun checkTrySourceParameterType(
+            catchParameter: CjParameterBase,
+            catchParameterType: CangJieType,
+            context: ExpressionTypingContext
+        ) {
+//            val typeParameterDescriptor =
+//                TypeUtils.getTypeParameterDescriptorOrNull(catchParameterType)
+//            if (typeParameterDescriptor != null) {
+//
+//                context.trace.report(
+//                    TYPE_PARAMETER_IN_CATCH_CLAUSE.on(
+//                        catchParameter
+//                    )
+//                )
+//
+//            }
+        }
 
         private fun checkCatchParameterType(
-            catchParameter: CjParameter,
+            catchParameter: CjParameterBase,
             catchParameterType: CangJieType,
             context: ExpressionTypingContext
         ) {

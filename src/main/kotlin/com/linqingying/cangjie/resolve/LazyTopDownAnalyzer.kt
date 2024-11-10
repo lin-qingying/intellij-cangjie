@@ -57,7 +57,7 @@ class LazyTopDownAnalyzer(
         val functions = mutableListOf<CjNamedFunction>()
         val mainFunctions = mutableListOf<CjMainFunction>()
         val typeAliases = mutableListOf<CjTypeAlias>()
-        val destructuringDeclarations = mutableListOf<CjDestructuringDeclaration>()
+//        val destructuringDeclarations = mutableListOf<CjDestructuringDeclaration>()
 
         val reexports = mutableListOf<CjImportDirective>()
 

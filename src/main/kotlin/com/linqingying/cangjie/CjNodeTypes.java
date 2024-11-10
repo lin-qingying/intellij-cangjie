@@ -11,6 +11,7 @@ public interface CjNodeTypes {
 
 
 //    IElementType NULL = CjStubElementTypes.NULL;
+IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
 
     IElementType TYPE_REFERENCE = CjStubElementTypes.TYPE_REFERENCE;
     IElementType VALUE_PARAMETER_LIST = CjStubElementTypes.VALUE_PARAMETER_LIST;
@@ -174,6 +175,8 @@ public interface CjNodeTypes {
 
     IElementType LET_EXPRESSION = new CjNodeType("LET_EXPRESSION", CjLetExpression.class);
     IElementType TRY = new CjNodeType("TRY", CjTryExpression.class);
+    IElementType TRY_RESOURCE = new CjNodeType("TRY_RESOURCE", CjTryResource.class);
+    IElementType TRY_RESOURCE_LIST = new CjNodeType("TRY_RESOURCE_LIST", CjTryResourceList.class);
 
     IElementType CATCH = new CjNodeType("CATCH", CjCatchClause.class);
     IElementType FINALLY = new CjNodeType("FINALLY", CjFinallySection.class);

@@ -182,7 +182,7 @@ fun <TElement : CjElement> createByPattern(
     for ((n, placeholders) in allPlaceholders) {
         val arg = args[n]
         if (arg is String) continue // already in the text
-        val expectedElementType = (argumentTypes[n] as PsiElementPlaceholderArgumentType<*, *>).placeholderClass
+        val expectedElementType = (argumentTypes[n] as? PsiElementPlaceholderArgumentType<*, *>)?.placeholderClass ?: continue
 
         for ((range, _) in placeholders) {
             val token = resultElement.findElementAt(range.startOffset)!!

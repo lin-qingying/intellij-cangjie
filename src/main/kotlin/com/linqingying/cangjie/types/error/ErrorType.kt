@@ -48,6 +48,8 @@ import com.linqingying.cangjie.types.util.supertypes
 //        return type.hashCode()
 //    }
 //}
+
+val CangJieType.isMultipleSupertypeType get() =  this is MultipleSupertypeTypeInferenceFailure
 //当具有多个超类型时，推导类型失败使用该类
 class MultipleSupertypeTypeInferenceFailure(
     private val type: CangJieType

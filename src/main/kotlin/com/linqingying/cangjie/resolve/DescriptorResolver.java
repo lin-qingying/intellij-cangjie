@@ -3,6 +3,8 @@ package com.linqingying.cangjie.resolve;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
 import com.linqingying.cangjie.builtins.CangJieBuiltIns;
 import com.linqingying.cangjie.config.LanguageFeature;
 import com.linqingying.cangjie.config.LanguageVersionSettings;
@@ -27,7 +29,6 @@ import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.linqingying.cangjie.resolve.calls.util.CallResolverUtilKt;
 import com.linqingying.cangjie.resolve.calls.util.UnderscoreUtilKt;
 import com.linqingying.cangjie.resolve.lazy.ForceResolveUtil;
-
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor;
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyTypeAliasDescriptor;
 import com.linqingying.cangjie.resolve.scopes.*;
@@ -35,11 +36,10 @@ import com.linqingying.cangjie.resolve.source.CangJieSourceElementKt;
 import com.linqingying.cangjie.storage.StorageManager;
 import com.linqingying.cangjie.types.*;
 import com.linqingying.cangjie.types.error.ErrorTypeKind;
+import com.linqingying.cangjie.types.error.MultipleSupertypeTypeInferenceFailure;
 import com.linqingying.cangjie.types.expressions.ExpressionTypingServices;
 import com.linqingying.cangjie.types.util.TypeUtilKt;
 import com.linqingying.cangjie.types.util.TypeUtils;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
 import kotlin.Pair;
 import kotlin.TuplesKt;
 import kotlin.collections.CollectionsKt;
@@ -170,7 +170,7 @@ public class DescriptorResolver {
     ) {
         ClassDescriptor classDescriptor = getContainingClass(scope);
 
-        if(classDescriptor instanceof EnumEntryDescriptor){
+        if (classDescriptor instanceof EnumEntryDescriptor) {
             return true;
         }
         if (!isInsideOuterClassOrItsSubclass(classDescriptor, target)) {
@@ -196,61 +196,6 @@ public class DescriptorResolver {
     public static ClassDescriptor getContainingClass(@NotNull LexicalScope scope) {
         return getParentOfType(scope.getOwnerDescriptor(), ClassDescriptor.class, false);
     }
-    public VariableDescriptor resolvePrimaryConstructorParameterToAVariable(
-            @NotNull ClassDescriptor classDescriptor,
-            @NotNull ValueParameterDescriptor valueParameter,
-            @NotNull LexicalScope scope,
-            @NotNull CjParameter parameter,
-            BindingTrace trace
-    ) {
-        CangJieType type = resolveParameterType(scope, parameter, trace);
-        Name name = parameter.getNameAsSafeName();
-        boolean isMutable = parameter.isMutable();
-        CjModifierList modifierList = parameter.getModifierList();
-
-        if (modifierList != null) {
-            if (modifierList.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
-                trace.report(ABSTRACT_PROPERTY_IN_PRIMARY_CONSTRUCTOR_PARAMETERS.on(parameter));
-            }
-        }
-
-        Annotations allAnnotations = annotationResolver.resolveAnnotationsWithoutArguments(scope, parameter.getModifierList(), trace);
-        Set<AnnotationUseSiteTarget> targetSet = EnumSet.of(PROPERTY, PROPERTY_GETTER, FIELD, CONSTRUCTOR_PARAMETER, PROPERTY_SETTER);
-        if (isMutable) {
-            targetSet.add(PROPERTY_SETTER);
-            targetSet.add(SETTER_PARAMETER);
-        }
-        AnnotationSplitter annotationSplitter = new AnnotationSplitter(storageManager, allAnnotations, targetSet);
-
-//        Annotations propertyAnnotations = new CompositeAnnotations(
-//                annotationSplitter.getAnnotationsForTarget(PROPERTY),
-//                annotationSplitter.getOtherAnnotations()
-//        );
-
-        VariableDescriptorImpl variableDescriptor = VariableDescriptorImpl.create(
-
-                classDescriptor,     name, resolveVisibilityFromModifiers(parameter, getDefaultVisibility(parameter, classDescriptor)),
-                isMutable,
-
-
-                CangJieSourceElementKt.toSourceElement(parameter)
-
-
-        );
-        variableDescriptor.setType(type, Collections.emptyList(), getDispatchReceiverParameterIfNeeded(classDescriptor), null,
-                CollectionsKt.emptyList());
-//
-//        Annotations setterAnnotations = annotationSplitter.getAnnotationsForTarget(PROPERTY_SETTER);
-//        Annotations getterAnnotations = new CompositeAnnotations(CollectionsKt.listOf(
-//                annotationSplitter.getAnnotationsForTarget(PROPERTY_GETTER)));
-//
-
-
-
-        trace.record(BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, parameter, variableDescriptor);
-        trace.record(BindingContext.VALUE_PARAMETER_AS_VARIABLE, valueParameter, variableDescriptor);
-        return variableDescriptor;
-    }
 
     /**
      * @return true if descriptor is a class inside another class and does not have access to the outer class
@@ -258,7 +203,7 @@ public class DescriptorResolver {
     public static boolean isStaticNestedClass(@NotNull DeclarationDescriptor descriptor) {
         DeclarationDescriptor containing = descriptor.getContainingDeclaration();
         return descriptor instanceof ClassDescriptor &&
-                containing instanceof ClassDescriptor&& !DescriptorUtils.isEnumEntry(descriptor);
+                containing instanceof ClassDescriptor && !DescriptorUtils.isEnumEntry(descriptor);
     }
 
     public static DescriptorVisibility getDefaultVisibility(CjModifierListOwner modifierListOwner, DeclarationDescriptor containingDescriptor) {
@@ -569,8 +514,63 @@ public class DescriptorResolver {
         return type;
     }
 
-    public VariableDescriptor resolveLocalVariableDescriptor(
+    public VariableDescriptor resolvePrimaryConstructorParameterToAVariable(
+            @NotNull ClassDescriptor classDescriptor,
+            @NotNull ValueParameterDescriptor valueParameter,
+            @NotNull LexicalScope scope,
             @NotNull CjParameter parameter,
+            BindingTrace trace
+    ) {
+        CangJieType type = resolveParameterType(scope, parameter, trace);
+        Name name = parameter.getNameAsSafeName();
+        boolean isMutable = parameter.isMutable();
+        CjModifierList modifierList = parameter.getModifierList();
+
+        if (modifierList != null) {
+            if (modifierList.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
+                trace.report(ABSTRACT_PROPERTY_IN_PRIMARY_CONSTRUCTOR_PARAMETERS.on(parameter));
+            }
+        }
+
+        Annotations allAnnotations = annotationResolver.resolveAnnotationsWithoutArguments(scope, parameter.getModifierList(), trace);
+        Set<AnnotationUseSiteTarget> targetSet = EnumSet.of(PROPERTY, PROPERTY_GETTER, FIELD, CONSTRUCTOR_PARAMETER, PROPERTY_SETTER);
+        if (isMutable) {
+            targetSet.add(PROPERTY_SETTER);
+            targetSet.add(SETTER_PARAMETER);
+        }
+        AnnotationSplitter annotationSplitter = new AnnotationSplitter(storageManager, allAnnotations, targetSet);
+
+//        Annotations propertyAnnotations = new CompositeAnnotations(
+//                annotationSplitter.getAnnotationsForTarget(PROPERTY),
+//                annotationSplitter.getOtherAnnotations()
+//        );
+
+        VariableDescriptorImpl variableDescriptor = VariableDescriptorImpl.create(
+
+                classDescriptor, name, resolveVisibilityFromModifiers(parameter, getDefaultVisibility(parameter, classDescriptor)),
+                isMutable,
+
+
+                CangJieSourceElementKt.toSourceElement(parameter)
+
+
+        );
+        variableDescriptor.setType(type, Collections.emptyList(), getDispatchReceiverParameterIfNeeded(classDescriptor), null,
+                CollectionsKt.emptyList());
+//
+//        Annotations setterAnnotations = annotationSplitter.getAnnotationsForTarget(PROPERTY_SETTER);
+//        Annotations getterAnnotations = new CompositeAnnotations(CollectionsKt.listOf(
+//                annotationSplitter.getAnnotationsForTarget(PROPERTY_GETTER)));
+//
+
+
+        trace.record(BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, parameter, variableDescriptor);
+        trace.record(BindingContext.VALUE_PARAMETER_AS_VARIABLE, valueParameter, variableDescriptor);
+        return variableDescriptor;
+    }
+
+    public VariableDescriptor resolveLocalVariableDescriptor(
+            @NotNull CjParameterBase parameter,
             @NotNull CangJieType type,
             BindingTrace trace,
             @NotNull LexicalScope scope
@@ -593,25 +593,52 @@ public class DescriptorResolver {
     @NotNull
     public VariableDescriptor resolveLocalVariableDescriptor(
             @NotNull LexicalScope scope,
-            @NotNull CjParameter parameter,
+            @NotNull CjParameterBase parameter,
+            @Nullable CjExpression expression,
+            BindingTrace trace
+    ) {
+
+        CangJieType type = null;
+        if (expression != null) {
+            type = expressionTypingServices.getTypeInfo(
+                    scope, expression, trace
+            ).getType();
+        }
+        if (type == null) {
+            type = ErrorUtils.getInvalidType();
+        }
+        return resolveLocalVariableDescriptor(parameter, type, trace, scope);
+    }
+
+    @NotNull
+    public VariableDescriptor resolveLocalVariableDescriptor(
+            @NotNull LexicalScope scope,
+            @NotNull CjParameterBase parameter,
             BindingTrace trace
     ) {
         CangJieType type = resolveParameterType(scope, parameter, trace);
         return resolveLocalVariableDescriptor(parameter, type, trace, scope);
     }
 
-    private CangJieType resolveParameterType(LexicalScope scope, CjParameter parameter, BindingTrace trace) {
+    private CangJieType resolveParameterType(LexicalScope scope, CjParameterBase parameter, BindingTrace trace) {
         CjTypeReference typeReference = parameter.getTypeReference();
         CangJieType type;
         if (typeReference != null) {
             type = typeResolver.resolveType(scope, typeReference, trace, true);
+        } else if (parameter instanceof CjCatchParameter && !((CjCatchParameter) parameter).getTypeReferences().isEmpty()) {
+            type = typeResolver.resolveType(scope, ((CjCatchParameter) parameter).getTypeReferences(), trace, true);
+
+
         } else {
             // Error is reported by the parser
             type = ErrorUtils.createErrorType(ErrorTypeKind.NO_TYPE_SPECIFIED, parameter.getText());
         }
-//        if (parameter.hasModifier(VARARG_KEYWORD)) {
-//            return getVarargParameterType(type);
-//        }
+        if (type instanceof MultipleSupertypeTypeInferenceFailure) {
+            trace.report(TYPE_MISMATCH_MULTIPLE_SUPERTYPES.on(
+                    parameter,
+                    ((MultipleSupertypeTypeInferenceFailure) type).getIntersectedTypes()
+            ));
+        }
         return type;
     }
 
@@ -935,7 +962,7 @@ public class DescriptorResolver {
         } else if (property.isVar()) {
             setterDescriptor = DescriptorFactory.createSetter(
                     propertyDescriptor, setterTargetedAnnotations, parameterTargetedAnnotations,
-                     setterTargetedAnnotations.isEmpty() && parameterTargetedAnnotations.isEmpty(),
+                    setterTargetedAnnotations.isEmpty() && parameterTargetedAnnotations.isEmpty(),
 
                     propertyDescriptor.getSource()
             );
@@ -985,7 +1012,7 @@ public class DescriptorResolver {
         } else {
             getterDescriptor = DescriptorFactory.createGetter(
                     propertyDescriptor, getterTargetedAnnotations,
-                     getterTargetedAnnotations.isEmpty()
+                    getterTargetedAnnotations.isEmpty()
 
             );
             getterType = propertyTypeIfKnown;
@@ -1082,7 +1109,6 @@ public class DescriptorResolver {
             }
             Name referencedName = subjectTypeParameterName.getReferencedNameAsName();
             TypeParameterDescriptorImpl typeParameterDescriptor = parameterByName.get(referencedName);
-
 
 
             List<CjTypeReference> boundTypeReferences = constraint.getBoundTypeReferences();
@@ -1548,7 +1574,7 @@ public class DescriptorResolver {
         trace.record(BindingContext.VARIABLE, variableDeclaration, variableDescriptor);
 
 
-        if(container instanceof  ClassDescriptor && ((ClassDescriptor) container).getKind() == ClassKind.INTERFACE){
+        if (container instanceof ClassDescriptor && ((ClassDescriptor) container).getKind() == ClassKind.INTERFACE) {
             trace.report(INTERFACE_BODY_NO_VARIABLES.on(variableDeclaration));
         }
 

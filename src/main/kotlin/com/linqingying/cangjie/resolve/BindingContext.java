@@ -40,6 +40,7 @@ import org.jetbrains.annotations.TestOnly;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.linqingying.cangjie.utils.slicedMap.RewritePolicy.DO_NOTHING;
 import static com.linqingying.cangjie.utils.slicedMap.Slices.COMPILE_TIME_VALUE_REWRITE_POLICY;
@@ -193,6 +194,10 @@ WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWr
             new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<Call, ResolvedCall<?>> RESOLVED_CALL = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjExpression, Ref<VariableDescriptor>> NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
+
+    WritableSlice<CjExpression, Ref<List<VariableDescriptor>>> NEW_INFERENCE_TRY_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
+
+
     WritableSlice<CjReferenceExpression, PsiElement> LABEL_TARGET = Slices.createSimpleSlice();
     WritableSlice<CjReferenceExpression, Collection<? extends PsiElement>> AMBIGUOUS_LABEL_TARGET = Slices.createSimpleSlice();
 
@@ -202,7 +207,7 @@ WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWr
     WritableSlice<CjTypeParameter, TypeParameterDescriptor> TYPE_PARAMETER = Slices.createSimpleSlice();
     WritableSlice<PsiElement, VariableDescriptor> VARIABLE = Slices.createSimpleSlice();
 
-    WritableSlice<CjParameter, VariableDescriptor> VALUE_PARAMETER = Slices.createSimpleSlice();
+    WritableSlice<CjParameterBase, VariableDescriptor> VALUE_PARAMETER = Slices.createSimpleSlice();
     WritableSlice<PsiElement, TypeAliasDescriptor> TYPE_ALIAS = Slices.createSimpleSlice();
     WritableSlice[] DECLARATIONS_TO_DESCRIPTORS = new WritableSlice[]{
             CLASS

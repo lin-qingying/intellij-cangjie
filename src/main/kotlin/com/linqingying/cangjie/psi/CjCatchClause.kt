@@ -8,20 +8,16 @@ class CjCatchClause(node: ASTNode) : CjElementImpl(node) {
         return visitor.visitCatchSection(this, data)
     }
 
-    @get:IfNotParsed
-    val parameterList: CjParameterList?
-        get() = findChildByType(CjNodeTypes.VALUE_PARAMETER_LIST)
 
     @get:IfNotParsed
-    val catchParameter: CjParameter?
+    val catchParameter: CjCatchParameter?
         get() {
-            val list = parameterList ?: return null
-            val parameters = list.parameters
-            return if (parameters.size == 1) parameters[0] else null
+
+            return findChildByType(CjNodeTypes.CATCH_PARAMETER)
         }
 
 
     @get:IfNotParsed
     val catchBody: CjExpression?
-        get() = findChildByClass(CjExpression::class.java)
+        get() = findChildByClass(CjBlockExpression::class.java)
 }

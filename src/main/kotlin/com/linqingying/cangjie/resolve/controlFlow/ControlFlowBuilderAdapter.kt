@@ -78,7 +78,7 @@ abstract class ControlFlowBuilderAdapter : ControlFlowBuilder {
         delegateBuilder.declarePattern(parameter)
 
     }
-    override fun declareParameter(parameter: CjParameter) {
+    override fun declareParameter(parameter: CjParameterBase) {
         delegateBuilder.declareParameter(parameter)
     }
     override fun returnNoValue(returnExpression: CjReturnExpression, subroutine: CjElement) {

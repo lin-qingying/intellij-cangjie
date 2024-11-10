@@ -125,7 +125,7 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
     (unwrap() as? AbbreviatedType)?.let {
         return AbbreviatedType(it.expandedType, it.abbreviation.approximateNonDynamicFlexibleTypes(preferNotNull))
     }
-    return CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
+    return simpleTypeWithNonTrivialMemberScope(
         annotations.toDefaultAttributes(),
         constructor,
         arguments.map { it.substitute { type -> type.approximateFlexibleTypes(preferNotNull = true) } },
@@ -146,6 +146,7 @@ fun CangJieType.makeNotNullable() = TypeUtils.makeNotNullable(this)
 
 fun CangJieType.isInterface(): Boolean =
     (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.INTERFACE
+
 fun CangJieType.isStruct(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.STRUCT
 
 fun CangJieType.isEnum(): Boolean = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.ENUM
@@ -863,7 +864,7 @@ object TypeUtils {
     ): SimpleType {
         val arguments: List<TypeProjection> =
             getDefaultTypeProjections(typeConstructor.getParameters())
-        return CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
+        return simpleTypeWithNonTrivialMemberScope(
             TypeAttributes.Empty,
             typeConstructor,
             arguments,
@@ -1013,11 +1014,10 @@ object TypeUtils {
     fun checkConstructorsNotParameter(classDescriptor: ClassDescriptor): Boolean {
         val constructors = classDescriptor.constructors
 
-
-        for (constructor in constructors) {
-            if (constructor.valueParameters.isNotEmpty()) return true
+        return !constructors.any {
+            it.valueParameters.isEmpty()
         }
-        return false
+
     }
 
     open class SpecialType(private val name: String) : DelegatingSimpleType() {
@@ -1166,10 +1166,11 @@ val CangJieType.classKind: ClassKind
  */
 internal class CangJieTypeSubstitution(val forType: CangJieType, val byType: CangJieType)
 
-  fun CangJieType.substitute(byType: CangJieType): CangJieType {
+fun CangJieType.substitute(byType: CangJieType): CangJieType {
     return substitute(CangJieTypeSubstitution(this, byType))
 }
-fun CangJieType.replaceArgument( vararg   newType:CangJieType): CangJieType {
+
+fun CangJieType.replaceArgument(vararg newType: CangJieType): CangJieType {
 
     val arguments = newType.map {
         TypeProjectionImpl(it)
@@ -1182,6 +1183,7 @@ fun CangJieType.replaceArgument( vararg   newType:CangJieType): CangJieType {
         memberScope
     )
 }
+
 internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): CangJieType {
     val nullable = isMarkedOption
     val currentType = makeNotNullable()
@@ -1194,7 +1196,7 @@ internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): Cang
             val (projection, typeParameter) = pair
             TypeProjectionImpl(Variance.INVARIANT, projection.type.substitute(substitution))
         }
-        CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
+        simpleTypeWithNonTrivialMemberScope(
             annotations.toDefaultAttributes(),
             constructor,
             newArguments,

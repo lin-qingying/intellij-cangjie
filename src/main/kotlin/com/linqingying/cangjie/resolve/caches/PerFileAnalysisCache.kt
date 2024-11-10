@@ -1,6 +1,18 @@
 package com.linqingying.cangjie.resolve.caches
 
 import com.google.common.collect.ImmutableMap
+import com.intellij.openapi.diagnostic.ControlFlowException
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressIndicatorProvider
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.findParentInFile
+import com.intellij.psi.util.findTopmostParentInFile
+import com.intellij.psi.util.findTopmostParentOfType
+import com.intellij.psi.util.parents
 import com.linqingying.cangjie.analyzer.AnalysisResult
 import com.linqingying.cangjie.container.ComponentProvider
 import com.linqingying.cangjie.container.get
@@ -18,7 +30,6 @@ import com.linqingying.cangjie.ide.cache.trackers.clearInBlockModifications
 import com.linqingying.cangjie.ide.cache.trackers.inBlockModifications
 import com.linqingying.cangjie.ide.cache.trackers.removeInBlockModifications
 import com.linqingying.cangjie.ide.projectStructure.languageVersionSettings
-import com.linqingying.cangjie.ide.projectStructure.moduleInfo
 import com.linqingying.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactory
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.parentsWithSelf
@@ -36,18 +47,6 @@ import com.linqingying.cangjie.utils.checkWithAttachment
 import com.linqingying.cangjie.utils.safeAs
 import com.linqingying.cangjie.utils.slicedMap.ReadOnlySlice
 import com.linqingying.cangjie.utils.slicedMap.WritableSlice
-import com.intellij.openapi.diagnostic.ControlFlowException
-import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.progress.ProgressIndicatorProvider
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.IndexNotReadyException
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.ModificationTracker
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.findParentInFile
-import com.intellij.psi.util.findTopmostParentInFile
-import com.intellij.psi.util.findTopmostParentOfType
-import com.intellij.psi.util.parents
 import java.util.concurrent.locks.ReentrantLock
 
 private inline fun Throwable.throwAsInvalidModuleException(crossinline action: (InvalidModuleException) -> Throwable = { it }) {
@@ -126,43 +125,58 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
         return result
     }
 
+    /**
+     * 获取给定元素的分析结果。
+     *
+     * 该函数负责分析提供的 [element] 并返回分析结果。
+     * 如果提供了 [callback]，则会将诊断信息通过回调传递。
+     *
+     * @param element 需要分析的代码元素。
+     * @param callback 可选的诊断信息回调函数，用于处理分析过程中产生的诊断信息。
+     * @return 分析结果，包含绑定上下文和诊断信息。
+     */
     internal fun getAnalysisResults(
         element: CjElement,
         callback: DiagnosticSink.DiagnosticsCallback? = null
     ): AnalysisResult {
         check(element)
         val analyzableParent = CangJieResolveDataProvider.findAnalyzableParent(element) ?: return AnalysisResult.EMPTY
+
+        /**
+         * 处理分析结果并调用回调函数。
+         *
+         * @param result 分析结果。
+         * @param callback 诊断信息回调函数。
+         * @return 处理后的分析结果。
+         */
         fun handleResult(result: AnalysisResult, callback: DiagnosticSink.DiagnosticsCallback?): AnalysisResult {
             callback?.let { result.bindingContext.diagnostics.forEach(it::callback) }
             return result
         }
+
         return guardLock.guarded {
-            // It is necessary to ignore the codeFragment used in the evaluator for compilation
-            // because caching can lead to data consistency bugs (see KTIJ-22496). However, the code fragments that come from the evaluator,
-            // which are not intended for compilation (e.g., for highlighting), should be cached in order to maintain the current performance of the evaluator.
+            // 忽略评估器中用于编译的代码片段，因为缓存可能导致数据一致性问题（见 KTIJ-22496）。
+            // 但是，来自评估器的不用于编译的代码片段（例如，用于高亮显示）应该缓存以保持评估器的当前性能。
             if (analyzableParent.isUsedForCompilationInEvaluator()) return@guarded performAnalyze(element, callback)
 
-            // step 1: perform incremental analysis IF it is applicable
+            // 第一步：如果适用，执行增量分析
             getIncrementalAnalysisResult(callback)?.let {
                 return@guarded handleResult(it, callback)
             }
 
-
-            // step 2: return result if it is cached
+            // 第二步：如果结果已缓存，直接返回缓存结果
             lookUp(analyzableParent)?.let {
                 return@guarded handleResult(it, callback)
             }
 
-            // step 3: perform analyze of analyzableParent as nothing has been cached yet
-
+            // 第三步：如果没有任何缓存结果，执行分析并缓存结果
             val result = performAnalyze(analyzableParent, callback)
             cache[analyzableParent] = result
 
             return@guarded result
-
         }
-
     }
+
 
     private fun CjElement.isUsedForCompilationInEvaluator(): Boolean =
         containingFile is CjCodeFragment && containingFile.getCopyableUserData(CodeFragmentUtils.USED_FOR_COMPILATION_IN_IR_EVALUATOR) ?: false
@@ -297,7 +311,7 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
 
         val result = try {
 
-            analyze(element, null,  localCallback)
+            analyze(element, null, localCallback)
 
         } catch (e: Throwable) {
             e.throwAsInvalidModuleException {
@@ -395,6 +409,21 @@ object CangJieResolveDataProvider {
             ?: element.containingFile as? CjFile
     }
 
+    /**
+     * 分析给定的可分析元素。
+     *
+     * @param project 项目实例，表示当前分析的项目。
+     * @param projectContext 模块上下文，包含模块的相关信息。
+     * @param moduleDescriptor 模块描述符，用于描述模块的结构。
+     * @param resolveSession 解析会话，用于解析过程中的上下文管理。
+     * @param codeFragmentAnalyzer 代码片段分析器，用于分析代码片段。
+     * @param pluginDeclarationProviderFactory 插件声明提供者工厂，用于生成插件声明提供者。
+     * @param bodyResolveCache 体解析缓存，用于缓存解析结果。
+     * @param analyzableElement 可分析元素，可以是代码片段或其他可分析的元素。
+     * @param bindingTrace 绑定跟踪，用于记录解析过程中的绑定信息。
+     * @param callback 诊断回调，用于处理诊断信息。
+     * @return 返回分析结果，包含绑定上下文和模块描述符。
+     */
     fun analyze(
         project: Project,
         projectContext: ModuleContext,
@@ -408,6 +437,7 @@ object CangJieResolveDataProvider {
         callback: DiagnosticSink.DiagnosticsCallback?
     ): AnalysisResult {
         try {
+            // 如果可分析元素是代码片段，则使用部分解析模式进行分析
             if (analyzableElement is CjCodeFragment) {
                 val bodyResolveMode = BodyResolveMode.PARTIAL_FOR_COMPLETION
                 val trace: BindingTrace = codeFragmentAnalyzer.analyzeCodeFragment(analyzableElement, bodyResolveMode)
@@ -415,50 +445,42 @@ object CangJieResolveDataProvider {
                 return AnalysisResult.success(bindingContext, moduleDescriptor)
             }
 
+            // 如果没有提供绑定跟踪，则创建一个新的绑定跟踪
             val trace = bindingTrace ?: BindingTraceForBodyResolve(
                 resolveSession.bindingContext,
                 "Trace for resolution of $analyzableElement"
             )
 
-//            val moduleInfo = analyzableElement.containingCjFile.moduleInfo
-
-
-
             var callbackSet = false
             try {
+                // 设置诊断回调
                 callbackSet = callback?.let(trace::setCallbackIfNotSet) ?: false
-                /*
-                Note that currently we *have* to re-create LazyTopDownAnalyzer with custom trace in order to disallow resolution of
-                bodies in top-level trace (trace from DI-container).
-                Resolving bodies in top-level trace may lead to memory leaks and incorrect resolution, because top-level
-                trace isn't invalidated on in-block modifications (while body resolution surely does)
 
-                Also note that for function bodies, we'll create DelegatingBindingTrace in ResolveElementCache anyways
-                (see 'functionAdditionalResolve'). However, this trace is still needed, because we have other
-                codepaths for other KtDeclarationWithBodies (like property accessors/secondary constructors/class initializers)
-                 */
+                // 创建懒惰的自上而下分析器，用于分析声明
                 val lazyTopDownAnalyzer = createContainerForLazyBodyResolve(
-                    //TODO: should get ModuleContext
                     projectContext,
                     resolveSession,
                     trace,
-
                     bodyResolveCache,
                     PlatformDependentAnalyzerServicesImpl,
                     analyzableElement.languageVersionSettings,
-
                     ControlFlowInformationProviderImpl.Factory,
-                    absentDescriptorHandler = IdeaAbsentDescriptorHandler(pluginDeclarationProviderFactory),
-
+                    absentDescriptorHandler = IdeaAbsentDescriptorHandler(pluginDeclarationProviderFactory)
                 ).get<LazyTopDownAnalyzer>()
 
-                lazyTopDownAnalyzer.analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, listOf(analyzableElement))
+                // 分析声明
+                lazyTopDownAnalyzer.analyzeDeclarations(
+                    TopDownAnalysisMode.TopLevelDeclarations,
+                    listOf(analyzableElement)
+                )
             } finally {
+                // 重置诊断回调
                 if (callbackSet) {
                     trace.resetCallback()
                 }
             }
 
+            // 返回分析结果
             return AnalysisResult.success(trace.bindingContext, moduleDescriptor)
         } catch (e: ProcessCanceledException) {
             throw e
@@ -466,50 +488,12 @@ object CangJieResolveDataProvider {
             throw e
         } catch (e: Throwable) {
             e.throwAsInvalidModuleException()
-
             DiagnosticUtils.throwIfRunningOnServer(e)
             LOG.warn(e)
-
             return AnalysisResult.internalError(BindingContext.EMPTY, e)
         }
-
-
-//        var callbackSet = false
-//        val trace = bindingTrace ?: BindingTraceForBodyResolve(
-//            resolveSession.bindingContext,
-//            "Trace for resolution of $analyzableElement"
-//        )
-//        try {
-//            val lazyTopDownAnalyzer = createContainerForLazyBodyResolve(
-//                //TODO: should get ModuleContext
-//                projectContext,
-//                resolveSession,
-//                trace,
-////                targetPlatform,
-//                bodyResolveCache,
-////                targetPlatform.findAnalyzerServices(project),
-//                PlatformDependentAnalyzerServicesImpl,
-////                pluginDeclarationProviderFactory,
-//                analyzableElement.languageVersionSettings,
-////                IdeaModuleStructureOracle(),
-////                IdeMainFunctionDetectorFactory(),
-////                IdeSealedClassInheritorsProvider,
-//                ControlFlowInformationProviderImpl.Factory,
-//                absentDescriptorHandler = IdeaAbsentDescriptorHandler(pluginDeclarationProviderFactory),
-////                optimizingOptions = null
-//            ).get<LazyTopDownAnalyzer>()
-////            val lazyTopDownAnalyzer = LazyTopDownAnalyzer()
-//            lazyTopDownAnalyzer.analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, listOf(analyzableElement))
-//
-//        } finally {
-//            if (callbackSet) {
-//                trace.resetCallback()
-//            }
-//        }
-//        return AnalysisResult.success(trace.bindingContext, moduleDescriptor)
-
-
     }
+
 
 }
 
@@ -546,7 +530,7 @@ private class StackedCompositeBindingContextTrace(
     val stackedContext = StackedCompositeBindingContext()
 
     /**
-     * All diagnostics from parentContext apart this diagnostics this belongs to the element or its descendants
+     *来自 parentContext 的所有诊断，除了属于该元素或其后代的诊断
      */
     val parentDiagnosticsApartElement: Collection<Diagnostic> =
         (resolveContext.diagnostics.all() + parentContext.diagnostics.all()).filterApartElement()

@@ -134,27 +134,41 @@ public class BindingContextUtils {
         return result != null ? result : TypeInfoFactoryKt.noTypeInfo(DataFlowInfoFactory.EMPTY);
     }
 
+    /**
+     * 将自定义数据添加到给定的trace对象中
+     * 此方法遍历一个映射，根据条件将数据记录到trace中，并可选择性地提交诊断信息
+     *
+     * @param trace BindingTrace对象，用于记录数据和诊断信息
+     * @param filter TraceEntryFilter对象，用于过滤哪些数据应被记录如果为null，则不进行过滤
+     * @param commitDiagnostics 指示是否应提交诊断信息的布尔值
+     * @param map MutableSlicedMap对象，包含要添加到trace的数据
+     * @param diagnostics MutableDiagnosticsWithSuppression对象，包含可能要提交的诊断信息
+     */
     @SuppressWarnings("unchecked")
     static void addOwnDataTo(
             @NotNull BindingTrace trace, @Nullable TraceEntryFilter filter, boolean commitDiagnostics,
             @NotNull MutableSlicedMap map, MutableDiagnosticsWithSuppression diagnostics
     ) {
+        // 遍历map中的每个条目，根据filter的条件将数据记录到trace中
         map.forEach((slice, key, value) -> {
+            // 如果filter为null或当前条目通过filter的检验，则记录该条目
             if (filter == null || filter.accept(slice, key)) {
                 trace.record(slice, key, value);
             }
-
+    
             return null;
         });
 
+        // 如果不提交诊断信息，则直接返回
         if (!commitDiagnostics) return;
 
+        // 遍历诊断信息，根据filter的条件将诊断信息提交到trace中
         for (Diagnostic diagnostic : diagnostics.getOwnDiagnostics()) {
+            // 如果filter为null或当前诊断信息通过filter的检验，则提交该诊断信息
             if (filter == null || filter.accept(null, diagnostic.getPsiElement())) {
                 trace.report(diagnostic);
             }
         }
-
     }
 
     public static void recordFunctionDeclarationToDescriptor(@NotNull BindingTrace trace,

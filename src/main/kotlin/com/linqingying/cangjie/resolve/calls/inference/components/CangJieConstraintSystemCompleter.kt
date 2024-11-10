@@ -354,17 +354,18 @@ class CangJieConstraintSystemCompleter(
                 false
             }
         }
-        if (resultType is MultipleSupertypeTypeInferenceFailure) {
-            diagnosticsHolder.addDiagnostic(
-                CangJieConstraintSystemDiagnostic(
-                    MultipleMinimalCommonSupertypes(
-                        variableWithConstraints.typeVariable,
-                        resultType.intersectedTypes
-                    )
-                )
-            )
 
-        }
+//        具有多个最下公共父类时，报错，该错误转移到流程控制 @see [ControlFlowInformationProviderImpl.kt]
+//        if (resultType is MultipleSupertypeTypeInferenceFailure) {
+//            diagnosticsHolder.addDiagnostic(
+//                CangJieConstraintSystemDiagnostic(
+//                    MultipleMinimalCommonSupertypes(
+//                        variableWithConstraints.typeVariable,
+//                        resultType.intersectedTypes
+//                    )
+//                )
+//            )
+//        }
         if (constraintFromDeclaredUpperBoundExists && upperBoundType == resultType) {
             diagnosticsHolder.addDiagnostic(
                 CangJieConstraintSystemDiagnostic(InferredIntoDeclaredUpperBounds(variableWithConstraints.typeVariable))

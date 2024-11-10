@@ -1,5 +1,8 @@
 package com.linqingying.cangjie.types.expressions;
 
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.linqingying.cangjie.builtins.CangJieBuiltIns;
 import com.linqingying.cangjie.config.LanguageVersionSettings;
 import com.linqingying.cangjie.descriptors.BindingTrace;
@@ -24,9 +27,6 @@ import com.linqingying.cangjie.types.expressions.typeInfoFactory.TypeInfoFactory
 import com.linqingying.cangjie.types.util.TypeUtilKt;
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.linqingying.cangjie.utils.slicedMap.WritableSlice;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,6 +68,66 @@ public class ExpressionTypingServices {
         return null;
     }
 
+    @NotNull
+    public CangJieTypeInfo getTypeInfo(
+            @NotNull LexicalScope scope,
+            @NotNull CjExpression expression,
+
+            @NotNull DataFlowInfo dataFlowInfo,
+            @NotNull InferenceSession inferenceSession,
+            @NotNull BindingTrace trace,
+            boolean isStatement
+    ) {
+        return getTypeInfo(
+                scope, expression, NO_EXPECTED_TYPE, dataFlowInfo, inferenceSession,
+                trace, isStatement, expression, ContextDependency.INDEPENDENT
+        );
+    }
+    @NotNull
+    public CangJieTypeInfo getTypeInfo(
+            @NotNull LexicalScope scope,
+            @NotNull CjExpression expression,
+
+
+
+            @NotNull BindingTrace trace
+
+    ) {
+        return getTypeInfo(
+                scope, expression, NO_EXPECTED_TYPE, DataFlowInfo.Companion.getEMPTY(), InferenceSession.Companion.getDefault(),
+                trace, false, expression, ContextDependency.INDEPENDENT
+        );
+    }
+    @NotNull
+    public CangJieTypeInfo getTypeInfo(
+            @NotNull LexicalScope scope,
+            @NotNull CjExpression expression,
+
+            @NotNull DataFlowInfo dataFlowInfo,
+
+            @NotNull BindingTrace trace
+
+    ) {
+        return getTypeInfo(
+                scope, expression, NO_EXPECTED_TYPE, dataFlowInfo, InferenceSession.Companion.getDefault(),
+                trace, false, expression, ContextDependency.INDEPENDENT
+        );
+    }
+    @NotNull
+    public CangJieTypeInfo getTypeInfo(
+            @NotNull LexicalScope scope,
+            @NotNull CjExpression expression,
+
+            @NotNull DataFlowInfo dataFlowInfo,
+            @NotNull InferenceSession inferenceSession,
+            @NotNull BindingTrace trace
+
+    ) {
+        return getTypeInfo(
+                scope, expression, NO_EXPECTED_TYPE, dataFlowInfo, inferenceSession,
+                trace, false, expression, ContextDependency.INDEPENDENT
+        );
+    }
     @NotNull
     public CangJieTypeInfo getTypeInfo(
             @NotNull LexicalScope scope,
@@ -192,7 +252,7 @@ public class ExpressionTypingServices {
             if (parentDeclaration instanceof PropertyAccessorDescriptorImpl) {
                 type = ((PropertyAccessorDescriptorImpl) parentDeclaration).getReturnType();
             }
-            if (parentDeclaration instanceof FunctionDescriptorImpl && (statementExpression.getParent() instanceof  CjFunction || statementExpression.getParent() instanceof CjPropertyAccessor)) {
+            if (parentDeclaration instanceof FunctionDescriptorImpl && (statementExpression.getParent() instanceof CjFunction || statementExpression.getParent() instanceof CjPropertyAccessor)) {
                 if (((FunctionDescriptorImpl) parentDeclaration).getReturnType() != null && !CangJieBuiltIns.isUnit(((FunctionDescriptorImpl) parentDeclaration).getReturnType())) {
 //                    context = context.replaceExpectedType(parentDeclaration.getReturnType());
 //fix 修复对于该语句执行时，方法返回值还为推断时出现的类型一致

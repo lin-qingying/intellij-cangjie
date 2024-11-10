@@ -487,7 +487,7 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
 
         is CjPackageDirective -> return this
         is CjDeclaration -> {
-            if (this is CjParameter && !CjPsiUtil.isLocal(this)) {
+            if (this is CjParameterBase && !CjPsiUtil.isLocal(this)) {
                 return null
             }
             return elementOfAdditionalResolve

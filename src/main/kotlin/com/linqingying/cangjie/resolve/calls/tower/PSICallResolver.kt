@@ -10,6 +10,7 @@ import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER
+import com.linqingying.cangjie.resolve.BindingContext.NEW_INFERENCE_TRY_EXCEPTION_PARAMETER
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver
 import com.linqingying.cangjie.resolve.calls.CallTransformer
 import com.linqingying.cangjie.resolve.calls.CangJieCallResolver
@@ -472,7 +473,7 @@ class PSICallResolver(
 //        recordResultInfo(trace, moduleDescriptor)
     }
 
-      inner class ASTScopeTower(
+    inner class ASTScopeTower(
         val context: BasicCallResolutionContext,
         cjExpression: CjExpression? = null
     ) : ImplicitScopeTower {
@@ -826,22 +827,43 @@ class PSICallResolver(
     private fun BasicCallResolutionContext.expandContextForCatchClause(cjExpression: Any): BasicCallResolutionContext {
         if (cjExpression !is CjExpression) return this
 
+        val redeclarationChecker = expressionTypingServices.createLocalRedeclarationChecker(trace)
+
+        var tryOrCatchScope = with(scope) {
+            LexicalWritableScope(this, ownerDescriptor, false, redeclarationChecker, LexicalScopeKind.CATCH)
+        }
+        val tryVariableDescriptorHolder = trace.bindingContext[NEW_INFERENCE_TRY_EXCEPTION_PARAMETER, cjExpression]
+
+        if (tryVariableDescriptorHolder != null) {
+            tryOrCatchScope = with(scope) {
+                LexicalWritableScope(this, ownerDescriptor, false, redeclarationChecker, LexicalScopeKind.TRY)
+            }
+            val variableDescriptors = tryVariableDescriptorHolder.get()
+            tryVariableDescriptorHolder.set(null)
+            variableDescriptors.forEach {
+                if (!it.isUnderscoreNamed /*|| !isReferencingToUnderscoreNamedParameterForbidden*/) {
+                    tryOrCatchScope.addVariableDescriptor(it)
+                }
+            }
+            return replaceScope(tryOrCatchScope)
+        }
+
         val variableDescriptorHolder =
             trace.bindingContext[NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER, cjExpression] ?: return this
         val variableDescriptor = variableDescriptorHolder.get() ?: return this
         variableDescriptorHolder.set(null)
 
-        val redeclarationChecker = expressionTypingServices.createLocalRedeclarationChecker(trace)
 
-        val catchScope = with(scope) {
-            LexicalWritableScope(this, ownerDescriptor, false, redeclarationChecker, LexicalScopeKind.CATCH)
-        }
 //        val isReferencingToUnderscoreNamedParameterForbidden =
 //            languageVersionSettings.getFeatureSupport(LanguageFeature.ForbidReferencingToUnderscoreNamedParameterOfCatchBlock) == LanguageFeature.State.ENABLED
         if (!variableDescriptor.isUnderscoreNamed /*|| !isReferencingToUnderscoreNamedParameterForbidden*/) {
-            catchScope.addVariableDescriptor(variableDescriptor)
+            tryOrCatchScope.addVariableDescriptor(variableDescriptor)
         }
-        return replaceScope(catchScope)
+
+
+
+
+        return replaceScope(tryOrCatchScope)
     }
 
     private fun resolveValueArgument(

@@ -1,6 +1,9 @@
 package com.linqingying.cangjie.resolve;
 
 import com.google.common.collect.Maps;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiElement;
 import com.linqingying.cangjie.builtins.CangJieBuiltIns;
 import com.linqingying.cangjie.config.LanguageVersionSettings;
 import com.linqingying.cangjie.descriptors.*;
@@ -25,9 +28,6 @@ import com.linqingying.cangjie.types.expressions.ExpressionTypingServices;
 import com.linqingying.cangjie.types.expressions.PreliminaryDeclarationVisitor;
 import com.linqingying.cangjie.types.expressions.ValueParameterResolver;
 import com.linqingying.cangjie.types.util.TypeUtils;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
@@ -256,7 +256,8 @@ public class BodyResolver {
                     /*if (supertypeOwner.getKind() == ClassKind.ENUM) {
                         trace.report(CLASS_IN_SUPERTYPE_FOR_ENUM.on(typeReference));
                         addSupertype = false;
-                    } else*/ if (supertypeOwner.getKind() == ClassKind.INTERFACE &&
+                    } else*/
+                    if (supertypeOwner.getKind() == ClassKind.INTERFACE &&
                             !classAppeared && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
                         trace.report(INTERFACE_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
@@ -266,7 +267,7 @@ public class BodyResolver {
                         addSupertype = false;
                         return;
                     } else if (supertypeOwner.getKind() == ClassKind.STRUCT &&
-                            !classAppeared   && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
+                            !classAppeared && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
                         trace.report(STRUCT_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
                         return;
@@ -1015,7 +1016,9 @@ public class BodyResolver {
 
     private boolean checkPrimaryConstructor(@Nullable ClassConstructorDescriptor unsubstitutedPrimaryConstructor) {
 
-        return unsubstitutedPrimaryConstructor != null && PsiSourceElementKt.getPsi(unsubstitutedPrimaryConstructor.getSource()) != null && !(PsiSourceElementKt.getPsi(unsubstitutedPrimaryConstructor.getSource()) instanceof CjPrimaryConstructor);
+        return unsubstitutedPrimaryConstructor != null &&
+                PsiSourceElementKt.getPsi(unsubstitutedPrimaryConstructor.getSource()) != null &&
+                !(PsiSourceElementKt.getPsi(unsubstitutedPrimaryConstructor.getSource()) instanceof CjPrimaryConstructor);
     }
 
     public void resolveSuperTypeEntryList(

@@ -11,7 +11,7 @@ class CjTryExpression(node: ASTNode) : CjExpressionImpl(node) {
         return visitor.visitTryExpression(this, data)
     }
 
-
+    val tryResourceList:CjTryResourceList ? get() = findChildByClass(CjTryResourceList::class.java)
     val catchBody: CjExpression?
         get() = findChildByClass(CjExpression::class.java)
     val tryBlock: CjBlockExpression

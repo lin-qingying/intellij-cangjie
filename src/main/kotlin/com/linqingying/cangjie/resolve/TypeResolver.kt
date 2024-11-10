@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.resolve
 
+import com.intellij.util.SmartList
 import com.linqingying.cangjie.builtins.createFunctionType
 import com.linqingying.cangjie.builtins.createTupleType
 import com.linqingying.cangjie.config.LanguageFeature
@@ -21,12 +22,14 @@ import com.linqingying.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndCo
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.linqingying.cangjie.resolve.PossiblyBareType.bare
 import com.linqingying.cangjie.resolve.PossiblyBareType.type
+import com.linqingying.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
 import com.linqingying.cangjie.resolve.scopes.*
 import com.linqingying.cangjie.resolve.source.CangJieSourceElement
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.resolve.source.toSourceElement
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.ErrorUtils.invalidType
+import com.linqingying.cangjie.types.checker.SimpleClassicTypeSystemContext
 import com.linqingying.cangjie.types.checker.TrailingCommaChecker
 import com.linqingying.cangjie.types.error.ErrorScope
 import com.linqingying.cangjie.types.error.ErrorTypeKind
@@ -37,7 +40,6 @@ import com.linqingying.cangjie.types.util.TypeUtils.addTypeParameterToStub
 import com.linqingying.cangjie.types.util.containsTypeAliasParameters
 import com.linqingying.cangjie.types.util.containsTypeAliases
 import com.linqingying.cangjie.types.util.createBasicType
-import com.intellij.util.SmartList
 import kotlin.math.min
 
 class TypeResolver(
@@ -913,11 +915,11 @@ class TypeResolver(
      * @return 返回一个类型，该类型带有类型参数，并检查边界
      */
     fun resolveTypeForClass(
-        expression:CjSimpleNameExpression,
+        expression: CjSimpleNameExpression,
         scope: LexicalScope,
         trace: BindingTrace,
         classDescriptor: DeclarationDescriptor,
-    ):CangJieType? {
+    ): CangJieType? {
         if (classDescriptor !is ClassDescriptor) return null
         if (expression !is CjNameReferenceExpression) return null
         val c = TypeResolutionContext(scope, trace, true, false, false)
@@ -925,7 +927,7 @@ class TypeResolver(
         val parameters = typeConstructor.parameters
 
 
-        val typeArguments = expression .typeArguments
+        val typeArguments = expression.typeArguments
 
 
 //        val (collectedArgumentAsTypeProjections, argumentsForOuterClass) =
@@ -934,10 +936,10 @@ class TypeResolver(
 
         val argumentsFromUserType = resolveTypeProjections(c, typeConstructor, typeArguments)
 
-        if(argumentsFromUserType .isNotEmpty() && argumentsFromUserType.size != parameters.size){
+        if (argumentsFromUserType.isNotEmpty() && argumentsFromUserType.size != parameters.size) {
             c.trace.report(
                 WRONG_NUMBER_OF_TYPE_ARGUMENTS.on(
-                    expression.typeArgumentList ?:  expression,
+                    expression.typeArgumentList ?: expression,
                     argumentsFromUserType.size, classDescriptor
                 )
             )
@@ -1178,6 +1180,22 @@ class TypeResolver(
             typeReference,
             true
         )
+    }
+
+    fun resolveType(
+        scope: LexicalScope,
+        typeReference: List<CjTypeReference>,
+        trace: BindingTrace,
+        checkBounds: Boolean,
+        ): CangJieType {
+        val types = typeReference.map {
+            resolveType(scope, it, trace, checkBounds)
+        }
+
+        val resultType = SimpleClassicTypeSystemContext.commonSuperType(
+            types
+        )
+        return resultType as CangJieType
     }
 
     fun resolveType(

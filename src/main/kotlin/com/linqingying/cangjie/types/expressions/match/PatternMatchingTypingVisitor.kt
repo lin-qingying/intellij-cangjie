@@ -270,9 +270,12 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 components.overloadChecker
             )
         var matchContext = contextWithExpectedType.replaceScope(matchScope)
-        if(matchContext.expectedType == NO_EXPECTED_TYPE){
-            matchContext = matchContext.replaceExpectedType(components.builtIns.anyType)
-        }
+
+        val usedAsExpression = expression.isUsedAsExpression(trace.bindingContext)
+
+//        if(matchContext.expectedType == NO_EXPECTED_TYPE){
+//            matchContext = matchContext.replaceExpectedType(components.builtIns.anyType)
+//        }
         subject.initDataFlowValue(matchContext, components.builtIns)
         val possibleTypesForSubject =
             subject.typeInfo?.dataFlowInfo?.getStableTypes(subject.dataFlowValue, components.languageVersionSettings)

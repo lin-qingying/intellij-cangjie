@@ -1,9 +1,6 @@
 package com.linqingying.cangjie.resolve.controlFlow.pseudocode.instructions.special
 
-import com.linqingying.cangjie.psi.CjDeclaration
-import com.linqingying.cangjie.psi.CjEnumEntry
-import com.linqingying.cangjie.psi.CjParameter
-import com.linqingying.cangjie.psi.CjVariableDeclaration
+import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.controlFlow.pseudocode.instructions.*
 
 class VariableDeclarationInstruction(
@@ -11,7 +8,7 @@ class VariableDeclarationInstruction(
     blockScope: BlockScope
 ) : InstructionWithNext(element, blockScope) {
     init {
-        assert(element is CjVariableDeclaration || element is CjParameter || element is CjEnumEntry ) {
+        assert(element is CjVariableDeclaration || element is CjParameterBase || element is CjEnumEntry ) {
             "Invalid element: ${render(element)}}"
         }
     }

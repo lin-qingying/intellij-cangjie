@@ -82,6 +82,14 @@ class ControlFlowAnalyzer(
         function: CjDeclarationWithBody,
         functionDescriptor: SimpleFunctionDescriptor
     ) {
+
+        val controlFlowInformationProvider: ControlFlowInformationProvider =
+            controlFlowInformationProviderFactory.createControlFlowInformationProvider(
+                function, trace, languageVersionSettings, /*diagnosticSuppressor, enumWhenTracker*/
+            )
+        controlFlowInformationProvider.checkDeclaration()
+
+
         functionDescriptor.returnType?.let {
 //            检查类型
             if (!(CangJieBuiltIns.isInt64(it) || CangJieBuiltIns.isUnit(it))) {

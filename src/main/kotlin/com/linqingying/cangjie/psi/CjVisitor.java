@@ -92,7 +92,12 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitTupleExpression(@NotNull CjTupleExpression expression, D data) {
         return visitExpression(expression, data);
     }
-
+    public R visitTryResourceList(@NotNull CjTryResourceList resource, D data) {
+        return visitCjElement(resource, data);
+    }
+    public R visitTryResource(@NotNull CjTryResource resource, D data) {
+        return visitCjElement(resource, data);
+    }
     public R visitTryExpression(@NotNull CjTryExpression expression, D data) {
         return visitExpression(expression, data);
     }

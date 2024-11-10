@@ -26,7 +26,7 @@ public interface CjStubElementTypes {
             new CjSecondaryConstructorElementType("SECONDARY_CONSTRUCTOR");
     CjPrimaryConstructorElementType PRIMARY_CONSTRUCTOR =
             new CjPrimaryConstructorElementType("PRIMARY_CONSTRUCTOR");
-
+    CjCatchParameterElementType CATCH_PARAMETER = new CjCatchParameterElementType("CATCH_PARAMETER");
     CjParameterElementType VALUE_PARAMETER = new CjParameterElementType("VALUE_PARAMETER");
     CjPlaceHolderStubElementType<CjParameterList> VALUE_PARAMETER_LIST =
             new CjPlaceHolderStubElementType<>("VALUE_PARAMETER_LIST", CjParameterList.class);

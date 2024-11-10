@@ -2,6 +2,9 @@ package com.linqingying.cangjie.types.expressions
 
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.Lists
+import com.intellij.lang.ASTNode
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Ref
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
@@ -28,9 +31,6 @@ import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.types.util.replaceAnnotations
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
-import com.intellij.lang.ASTNode
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.Ref
 import java.util.*
 
 class ControlStructureTypingUtils(
@@ -83,6 +83,7 @@ class ControlStructureTypingUtils(
             dataFlowInfoForArgumentsMap[callForIf.valueArguments[1]] = elseInfo
             return createIndependentDataFlowInfoForArgumentsForCall(conditionInfo, dataFlowInfoForArgumentsMap)
         }
+
         @JvmStatic
         fun createDataFlowInfoForArgumentsOfMatchCall(
             callForWhen: Call,
@@ -129,7 +130,7 @@ class ControlStructureTypingUtils(
                 valueArguments.add(CallMaker.makeValueArgument(argument))
             }
             return object : Call {
-                override var noValueArgument: Boolean  = false
+                override var noValueArgument: Boolean = false
                 override var noTypeParameter: Boolean = false
 
                 override val callOperationNode: ASTNode?
@@ -281,12 +282,26 @@ class ControlStructureTypingUtils(
 
     internal fun resolveTryAsCall(
         call: Call,
+        tryResourceExceptions: List<Pair<CjExpression, VariableDescriptor>>,
+
         catchedExceptions: List<Pair<CjExpression, VariableDescriptor>>,
         context: ExpressionTypingContext,
         dataFlowInfoForArguments: MutableDataFlowInfoForArguments?
     ): ResolvedCall<FunctionDescriptor> {
         val argumentNames = mutableListOf("tryBlock")
         val argumentsNullability = mutableListOf(false)
+
+        val tryResourceExceptionsByGroup = tryResourceExceptions.groupBy { it.first }
+        for (tryBlock in tryResourceExceptionsByGroup.keys) {
+            context.trace.record(
+                BindingContext.NEW_INFERENCE_TRY_EXCEPTION_PARAMETER,
+                tryBlock,
+                Ref.create(tryResourceExceptionsByGroup[tryBlock]?.map { it.second })
+            )
+
+
+        }
+
 
         var counter = 0
         for ((catchBlock, catchedExceptionDescriptor) in catchedExceptions) {

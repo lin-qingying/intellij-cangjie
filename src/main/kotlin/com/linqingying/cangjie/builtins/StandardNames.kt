@@ -127,6 +127,8 @@ val MAIN = Name.identifier("main")
     val BOOL = Name.identifier("Bool")
     @JvmField
     val EXCEPTION = Name.identifier("Exception")
+    @JvmField
+    val RESOURCE = Name.identifier("Resource")
 
     @JvmField
     val ITERABLE = Name.identifier("Iterable")
@@ -221,7 +223,8 @@ val MAIN = Name.identifier("main")
         val anyUFqName: FqNameUnsafe = anyFqName.toUnsafe()
         @JvmField
         val exceptionFqName: FqName = core.child(  EXCEPTION)
-
+        @JvmField
+        val resourceFqName: FqName = core.child(   RESOURCE  )
         @JvmField
         val objectFqName: FqName = core.child(OBJECT)
 

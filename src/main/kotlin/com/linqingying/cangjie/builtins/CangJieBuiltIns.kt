@@ -28,6 +28,7 @@ import com.linqingying.cangjie.builtins.StandardNames.FqNames.objectFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.optionUFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.primitiveArrayTypeShortNames
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.rangeFqName
+import com.linqingying.cangjie.builtins.StandardNames.FqNames.resourceFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.runeUFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.stringFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.stringUFqName
@@ -668,9 +669,23 @@ open class CangJieBuiltIns(
     val unitType: BasicType get() = unit.defaultType
     val nothing: ClassDescriptor get() = getBuiltInClassByName("Nothing")
 
+    val resource: ClassDescriptor
+        get() {
 
+            return try{
+                getStdCoreClassByName("Resource")
+            }catch (e:AssertionError){
+                findClassDescriptorByFqName( project ?:storageManager.project  , resourceFqName)!!
+            }
+        }
     val throwable: ClassDescriptor
-        get() = findClassDescriptorByFqName(project ?:storageManager.project, exceptionFqName)!!
+        get() {
+            return try{
+                getStdCoreClassByName("Exception")
+            }catch (e:AssertionError){
+                findClassDescriptorByFqName( project ?:storageManager.project  , exceptionFqName)!!
+            }
+        }
     val throwableType: CangJieType
         get() = throwable.defaultType
     val `object`: ClassDescriptor

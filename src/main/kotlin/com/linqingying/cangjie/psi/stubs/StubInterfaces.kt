@@ -116,7 +116,12 @@ interface CangJieNameReferenceExpressionStub : StubElement<CjNameReferenceExpres
     fun getReferencedName(): String
 }
 
-interface CangJieParameterStub : CangJieStubWithFqName<CjParameter> {
+interface CangJieParameterStubBase<T : PsiNamedElement>  :  CangJieStubWithFqName<T>
+interface CangJieCatchParameterStub : CangJieParameterStubBase<CjCatchParameter> {
+
+}
+
+interface CangJieParameterStub : CangJieParameterStubBase<CjParameter> {
     fun isMutable(): Boolean
     fun hasValOrVar(): Boolean
     fun hasDefaultValue(): Boolean

@@ -235,7 +235,7 @@ class ControlFlowInstructionsGenerator : ControlFlowBuilderAdapter() {
             return elementToLoopInfo[loop]?.exitPoint
         }
 
-        override fun declareParameter(parameter: CjParameter) {
+        override fun declareParameter(parameter: CjParameterBase) {
             add(VariableDeclarationInstruction(parameter, currentScope))
 
         }
