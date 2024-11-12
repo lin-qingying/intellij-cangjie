@@ -10,10 +10,7 @@ import com.linqingying.cangjie.descriptors.FunctionDescriptor
 import com.linqingying.cangjie.descriptors.VariableDescriptor
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.resolve.BindingContext
-import com.linqingying.cangjie.resolve.BindingContextUtils
-import com.linqingying.cangjie.resolve.ModifierCheckerCore
-import com.linqingying.cangjie.resolve.ModifiersChecker
+import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver
 import com.linqingying.cangjie.resolve.calls.context.ContextDependency
 import com.linqingying.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments
@@ -21,7 +18,9 @@ import com.linqingying.cangjie.resolve.calls.model.ResolvedCall
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl
 import com.linqingying.cangjie.resolve.calls.tower.LambdaContextInfo
+import com.linqingying.cangjie.resolve.calls.tower.getScope
 import com.linqingying.cangjie.resolve.descriptorUtil.builtIns
+import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.resolve.scopes.LexicalScopeKind
 import com.linqingying.cangjie.resolve.scopes.LexicalWritableScope
 import com.linqingying.cangjie.resolve.scopes.receivers.TransientReceiver
@@ -83,7 +82,13 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 
             resources.forEach {
                 val variableDescriptor =
-                    it.parameter?.let { it1 -> resolveAndCheckTryResourceParameter(it1,it.expression ,tryInputContext) }
+                    it.parameter?.let { it1 ->
+                        resolveAndCheckTryResourceParameter(
+                            it1,
+                            it.expression,
+                            tryInputContext
+                        )
+                    }
                 if (variableDescriptor != null) {
                     tryResourceParameters.add(Pair(tryBlock, variableDescriptor))
                 }
@@ -285,6 +290,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             )
         }
     }
+
     private fun resolveAndCheckTryResourceParameter(
         parameter: CjParameterBase,
         expression: CjExpression?,
@@ -293,7 +299,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         checkCatchParameterDeclaration(parameter, context)
 
         val variableDescriptor = components.descriptorResolver
-            .resolveLocalVariableDescriptor(context.scope, parameter,expression, context.trace)
+            .resolveLocalVariableDescriptor(context.scope, parameter, expression, context.trace)
         val parameterType = variableDescriptor.type
         checkTrySourceParameterType(parameter, parameterType, context)
         val resourceType = components.builtIns.resource.defaultType
@@ -304,6 +310,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         )
         return variableDescriptor
     }
+
     private fun resolveAndCheckCatchParameter(
         catchParameter: CjParameterBase,
         context: ExpressionTypingContext
@@ -367,12 +374,6 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
     override fun visitIfExpression(expression: CjIfExpression, context: ExpressionTypingContext): CangJieTypeInfo {
         val condition = expression.condition
         val letExpression = expression.letExpression
-        val conditionDataFlowInfo: DataFlowInfo = if (condition == null && letExpression != null) {
-            checkLetExpression(letExpression, context)
-        } else {
-            checkCondition(condition, context)
-        }
-        val loopBreakContinuePossibleInCondition = condition != null && containsJumpOutOfLoop(condition, context)
 
         val elseBranch = expression.`else`
         val thenBranch = expression.then
@@ -389,6 +390,15 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 LexicalScopeKind.ELSE,
                 components.overloadChecker
             )
+
+        val conditionDataFlowInfo: DataFlowInfo = if (condition == null && letExpression != null) {
+            checkLetExpression(letExpression, context.replaceScope(thenScope))
+        } else {
+            checkCondition(condition, context)
+        }
+        val loopBreakContinuePossibleInCondition = condition != null && containsJumpOutOfLoop(condition, context)
+
+
         val thenInfo =
             components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(condition, true, context)
                 .and(conditionDataFlowInfo)
@@ -430,6 +440,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 thenInfo,
                 elseInfo
             )
+        context.trace.recordScope(thenScope, thenBlock)
         val resolvedCall: ResolvedCall<FunctionDescriptor> =
             components.controlStructureTypingUtils.resolveSpecialConstructionAsCall(
                 callForIf,
@@ -440,9 +451,10 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 dataFlowInfoForArguments
             )
 
+
         return processIfBranches(
             expression, context, conditionDataFlowInfo,
-            loopBreakContinuePossibleInCondition, elseBranch, thenBranch, resolvedCall
+            loopBreakContinuePossibleInCondition, elseBranch, thenBranch, (thenScope to elseScope), resolvedCall
         )
     }
 
@@ -549,11 +561,12 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 components.languageVersionSettings
             )
         )
+        val scopeToExtend = newWritableScopeImpl(context, LexicalScopeKind.WHILE_BODY, components.overloadChecker)
 
         val condition = expression.condition
         val letExpression = expression.letExpression
         var dataFlowInfo = if (condition == null && letExpression != null) {
-            checkLetExpression(letExpression, context)
+            checkLetExpression(letExpression, context.replaceScope(scopeToExtend))
         } else {
             checkCondition(condition, context)
         }
@@ -562,7 +575,6 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         val conditionInfo =
             components.dataFlowAnalyzer.extractDataFlowInfoFromCondition(condition, true, context).and(dataFlowInfo)
         val bodyTypeInfo: CangJieTypeInfo = if (body != null) {
-            val scopeToExtend = newWritableScopeImpl(context, LexicalScopeKind.WHILE_BODY, components.overloadChecker)
             components.expressionTypingServices.getBlockReturnedTypeWithWritableScope(
                 scopeToExtend, listOf(body),
                 CoercionStrategy.NO_COERCION, context.replaceDataFlowInfo(conditionInfo)
@@ -597,11 +609,15 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         loopBreakContinuePossibleInCondition: Boolean,
         elseBranch: CjExpression,
         thenBranch: CjExpression,
+        scope: Pair<LexicalScope, LexicalScope>,
         resolvedCall: ResolvedCall<FunctionDescriptor>
     ): CangJieTypeInfo {
+
+        val (thenScope, elseScope) = scope
         val bindingContext = context.trace.bindingContext
         val thenTypeInfo = BindingContextUtils.getRecordedTypeInfo(thenBranch, bindingContext)
         val elseTypeInfo = BindingContextUtils.getRecordedTypeInfo(elseBranch, bindingContext)
+
 
         val isThenPostponed = ArgumentTypeResolver.isFunctionLiteralOrCallableReference(thenBranch, context)
         val isElsePostponed = ArgumentTypeResolver.isFunctionLiteralOrCallableReference(thenBranch, context)
@@ -1018,6 +1034,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         private fun isClassInitializer(containingFunInfo: com.intellij.openapi.util.Pair<FunctionDescriptor, PsiElement>): Boolean {
             return containingFunInfo.getFirst() is ConstructorDescriptor && containingFunInfo.getSecond() !is CjSecondaryConstructor
         }
+
         private fun checkTrySourceParameterType(
             catchParameter: CjParameterBase,
             catchParameterType: CangJieType,

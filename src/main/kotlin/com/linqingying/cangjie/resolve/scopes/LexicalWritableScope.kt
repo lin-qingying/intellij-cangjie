@@ -26,16 +26,43 @@ class LexicalWritableScope(
         canWrite = false
     }
 
+    /**
+     * 内部类 [Snapshot] 用于捕获当前词法作用域的一个快照，并限制描述符的数量。
+     * 它主要用于控制词法作用域的暴露程度，特别是在某些场景下需要限制可见的描述符数量。
+     *
+     * @param descriptorLimit 描述符的数量限制。
+     */
     private inner class Snapshot(val descriptorLimit: Int) : LexicalScope by this {
+
+        /**
+         * 获取符合过滤条件的贡献描述符。
+         *
+         * @param kindFilter 描述符种类过滤器。
+         * @param nameFilter 名称过滤器。
+         * @return 符合条件的描述符列表。
+         */
         override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean) =
             addedDescriptors.subList(0, descriptorLimit)
 
+        /**
+         * 获取指定名称的分类器描述符。
+         *
+         * @param name 分类器名称。
+         * @param location 查找位置。
+         * @return 符合条件的分类器描述符。
+         */
         override fun getContributedClassifier(name: Name, location: LookupLocation) =
             variableOrClassDescriptorByName(name, descriptorLimit) as? ClassifierDescriptor
 
-        // NB. This is important to have this explicit override, otherwise calls will be delegated to `this`-delegate,
-        // which will use default implementation from `ResolutionScope`, which will call `getContributedClassifier` on
-        // the `LexicalWritableScope` instead of calling it on this snapshot
+        /**
+         * 获取包括已弃用的分类器描述符。
+         * 这个方法的显式重写非常重要，否则调用将委托给 `this` 代理，这将使用 `ResolutionScope` 的默认实现，
+         * 而不是在这个快照上调用 `getContributedClassifier`。
+         *
+         * @param name 分类器名称。
+         * @param location 查找位置。
+         * @return 包括已弃用的分类器描述符。
+         */
         override fun getContributedClassifierIncludeDeprecated(
             name: Name,
             location: LookupLocation
@@ -44,20 +71,47 @@ class LexicalWritableScope(
                 ?.let { DescriptorWithDeprecation.createNonDeprecated(it) }
         }
 
-        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
+        /**
+         * 获取指定名称的变量描述符。
+         *
+         * @param name 变量名称。
+         * @param location 查找位置。
+         * @return 符合条件的变量描述符集合。
+         */
+        override fun getContributedVariables(
+            name: Name,
+            location: LookupLocation
+        ): Collection<@JvmWildcard VariableDescriptor> =
             listOfNotNull(variableOrClassDescriptorByName(name, descriptorLimit) as? VariableDescriptor)
 
+        /**
+         * 获取指定名称的函数描述符。
+         *
+         * @param name 函数名称。
+         * @param location 查找位置。
+         * @return 符合条件的函数描述符。
+         */
         override fun getContributedFunctions(name: Name, location: LookupLocation) =
             functionsByName(name, descriptorLimit)
 
-
+        /**
+         * 返回快照的字符串表示形式。
+         *
+         * @return 快照的字符串表示形式。
+         */
         override fun toString(): String = "Snapshot($descriptorLimit) for $kind"
 
+        /**
+         * 打印快照的结构信息。
+         *
+         * @param p 打印器对象。
+         */
         override fun printStructure(p: Printer) {
             p.println("Snapshot with descriptorLimit = $descriptorLimit for scope:")
             this@LexicalWritableScope.printStructure(p)
         }
     }
+
 
     fun takeSnapshot(): LexicalScope {
         if (lastSnapshot == null || lastSnapshot!!.descriptorLimit != addedDescriptors.size) {
@@ -66,7 +120,7 @@ class LexicalWritableScope(
         return lastSnapshot!!
     }
 
-    fun addVariableDescriptor(variableDescriptor: VariableDescriptor) {
+    override fun addVariableDescriptor(variableDescriptor: VariableDescriptor) {
         checkMayWrite()
         addVariableOrClassDescriptor(variableDescriptor)
     }

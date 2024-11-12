@@ -18,7 +18,7 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub >, CjVariabl
     override val valueParameterList: CjParameterList?
         //    @Override
         get() = null
-
+    val pattern :CjCasePattern? get() = findChildByClass(CjCasePattern::class.java)
 
     override fun toString(): String {
         return super.toString() + ": " + name

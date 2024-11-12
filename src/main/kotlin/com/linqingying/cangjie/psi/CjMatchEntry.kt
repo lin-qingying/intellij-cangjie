@@ -18,9 +18,10 @@ class CjMatchEntry(node: ASTNode) : CjElementImpl(node),CjPatternEntryBlock {
         get() {
             return findChildByType(CjNodeTypes.WILDCARD_PATTERN)
         }
-
+    val body :CjBlockExpression ? get() = findChildByClass(CjBlockExpression::class.java)
     val expression: CjCaseBlockExpression?
         get() = findChildByClass(CjCaseBlockExpression::class.java)
+
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitMatchEntry(this, data)

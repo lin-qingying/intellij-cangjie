@@ -2,7 +2,6 @@ package com.linqingying.cangjie.types.expressions;
 
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.linqingying.cangjie.builtins.CangJieBuiltIns;
 import com.linqingying.cangjie.config.LanguageVersionSettings;
 import com.linqingying.cangjie.descriptors.BindingTrace;
@@ -83,11 +82,11 @@ public class ExpressionTypingServices {
                 trace, isStatement, expression, ContextDependency.INDEPENDENT
         );
     }
+
     @NotNull
     public CangJieTypeInfo getTypeInfo(
             @NotNull LexicalScope scope,
             @NotNull CjExpression expression,
-
 
 
             @NotNull BindingTrace trace
@@ -98,6 +97,7 @@ public class ExpressionTypingServices {
                 trace, false, expression, ContextDependency.INDEPENDENT
         );
     }
+
     @NotNull
     public CangJieTypeInfo getTypeInfo(
             @NotNull LexicalScope scope,
@@ -113,6 +113,7 @@ public class ExpressionTypingServices {
                 trace, false, expression, ContextDependency.INDEPENDENT
         );
     }
+
     @NotNull
     public CangJieTypeInfo getTypeInfo(
             @NotNull LexicalScope scope,
@@ -128,6 +129,7 @@ public class ExpressionTypingServices {
                 trace, false, expression, ContextDependency.INDEPENDENT
         );
     }
+
     @NotNull
     public CangJieTypeInfo getTypeInfo(
             @NotNull LexicalScope scope,
@@ -411,17 +413,6 @@ public class ExpressionTypingServices {
         LexicalWritableScope scope = new LexicalWritableScope(context.scope, containingDescriptor, false, redeclarationChecker,
                 LexicalScopeKind.CODE_BLOCK);
 
-        try {
-
-            context.config.getAddVariableDescriptor().get(PsiTreeUtil.getParentOfType(expression, CjPatternEntryBlock.class)).forEach(
-                    it -> it.invoke(scope)
-            );
-//            清空
-            context.config.getAddVariableDescriptor().put(PsiTreeUtil.getParentOfType(expression, CjPatternEntryBlock.class), null);
-
-        } catch (NullPointerException ignored) {
-
-        }
 
         CangJieTypeInfo r;
         if (block.isEmpty()) {

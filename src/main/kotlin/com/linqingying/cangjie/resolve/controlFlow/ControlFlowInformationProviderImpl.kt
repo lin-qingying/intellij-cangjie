@@ -374,7 +374,14 @@ class ControlFlowInformationProviderImpl private constructor(
         }
     }
 
-    //    检查多个共同父类
+
+    /**
+     *   检查多个共同父类
+     *   @see [com.linqingying.cangjie.resolve.calls.DiagnosticReporterByTrackingStrategy]
+     *   @see constraintError
+     *   @see MultipleMinimalCommonSupertypes分支
+     */
+
     private fun checkMultipleSupertypeType() {
 //        val initializers = pseudocodeVariablesData.variableInitializers
         pseudocode.traverse(TraversalOrder.FORWARD) { instruction ->
@@ -1123,3 +1130,12 @@ fun CjDeclaration?.getDeclarationDescriptorIncludingConstructors(context: Bindin
 fun isBackingFieldReference(descriptor: DeclarationDescriptor?): Boolean {
     return descriptor is SyntheticFieldDescriptor
 }
+
+
+// TODO 可以直接报告多父类的表达式
+val multiParentElementReports = listOf (
+
+    CjCollectionLiteralExpression::class
+
+
+)

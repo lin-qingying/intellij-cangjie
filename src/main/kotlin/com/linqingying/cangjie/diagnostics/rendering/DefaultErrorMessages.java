@@ -917,11 +917,26 @@ public class DefaultErrorMessages {
             return CangJieDiagnosisBundle.rawMessage(NO_SET_METHOD);
         });
 
+        MAP.put(NO_GET_FOR_TUPLE_METHOD, () -> {
+            // "No get method providing array access"
+            return CangJieDiagnosisBundle.rawMessage(NO_GET_FOR_TUPLE_METHOD);
+        });
+        MAP.put(NON_INTEGER_TUPLE_INDEX, () -> {
+            // "No set method providing array access"
+            return CangJieDiagnosisBundle.rawMessage(NON_INTEGER_TUPLE_INDEX);
+        });
+        MAP.put(NO_SET_FOR_TUPLE_METHOD, () -> {
+            // "No set method providing array access"
+            return CangJieDiagnosisBundle.rawMessage(NO_SET_FOR_TUPLE_METHOD);
+        });
         MAP.put(DEPRECATED_TYPE_PARAMETER_SYNTAX, () -> {
             // "Type parameters must be placed before the name of the function"
             return CangJieDiagnosisBundle.rawMessage(DEPRECATED_TYPE_PARAMETER_SYNTAX);
         });
-
+        MAP.put(TUPLE_INDEX_OUT_OF_RANGE, () -> {
+            // "Type parameters must be placed before the name of the function"
+            return CangJieDiagnosisBundle.rawMessage(TUPLE_INDEX_OUT_OF_RANGE);
+        });
         MAP.put(
                 RECEIVER_TYPE_MISMATCH, () -> {
 //                                    "Constraint error in receiver type argument: inferred type is {1} but {0} was expected"

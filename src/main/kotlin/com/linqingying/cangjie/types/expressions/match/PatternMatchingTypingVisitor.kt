@@ -17,7 +17,6 @@ import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.*
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.elementType
-import com.linqingying.cangjie.psi.psiUtil.findParentOfType
 import com.linqingying.cangjie.psi.psiUtil.referenceExpression
 import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.BindingContext.*
@@ -50,7 +49,6 @@ import com.linqingying.cangjie.types.expressions.ControlStructureTypingUtils.Com
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.linqingying.cangjie.types.util.*
-import com.linqingying.cangjie.types.util.TypeUtils.EXPRESSION_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.utils.addIfNotNull
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
@@ -139,6 +137,119 @@ class TupleConstructor(val types: List<CangJieType>) : ClassAndEnumConstructorDe
 class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTypingInternals) :
     ExpressionTypingVisitor(facade) {
 
+    override fun visitVariable(variable: CjVariable, typingContext: ExpressionTypingContext): CangJieTypeInfo {
+        // 更新上下文依赖关系和作用域
+        val context = typingContext.replaceContextDependency(ContextDependency.INDEPENDENT)
+
+        // 检查接收器类型引用并报告诊断信息
+        val receiverTypeRef = variable.receiverTypeReference
+        if (receiverTypeRef != null) {
+            context.trace.report(LOCAL_EXTENSION_VARIABLE.on(receiverTypeRef))
+        }
+//
+//        // 解析局部变量描述符
+//        val variableDescriptor =
+//            resolveLocalVariableDescriptor(
+//                scope,
+//                variable,
+//                context.dataFlowInfo,
+//                context.inferenceSession,
+//                context.trace
+//            )
+//
+//        // 处理变量初始化
+//        val initializer = variable.initializer
+//        var typeInfo: CangJieTypeInfo
+//        if (initializer != null) {
+//            val outType = variableDescriptor.type
+//            typeInfo = facade.getTypeInfo(initializer, context.replaceExpectedType(outType))
+//            val dataFlowInfo = typeInfo.dataFlowInfo
+//            val type = typeInfo.type
+//            if (type != null) {
+//                val initializerDataFlowValue = dataFlowValueFactory.createDataFlowValue(initializer, type, context)
+//                if (!variableDescriptor.isVar && initializerDataFlowValue.canBeBound) {
+//                    context.trace.record(
+//                        BindingContext.BOUND_INITIALIZER_VALUE,
+//                        variableDescriptor,
+//                        initializerDataFlowValue
+//                    )
+//                }
+//                // 当变量有显式类型时，不考虑初始化值的影响
+//                if (variable.typeReference == null) {
+//                    val variableDataFlowValue = dataFlowValueFactory.createDataFlowValueForVariable(
+//                        variable, variableDescriptor, context.trace.bindingContext,
+//                        DescriptorUtils.getContainingModuleOrNull(scope.ownerDescriptor)
+//                    )
+//                    typeInfo = typeInfo.replaceDataFlowInfo(
+//                        dataFlowInfo.assign(
+//                            variableDataFlowValue, initializerDataFlowValue,
+////                        languageVersionSettings
+//                        )
+//                    )
+//                }
+//            }
+//        } else {
+//            typeInfo = noTypeInfo(context)
+//        }
+//
+//        // 检查局部变量声明
+//        checkLocalVariableDeclaration(context, variableDescriptor, variable)
+//
+//        // 返回类型信息和变量描述符
+//        return Pair(typeInfo.replaceType(dataFlowAnalyzer.checkStatementType(variable, context)), variableDescriptor)
+
+//        模式
+        val pattern = variable.pattern
+
+//        预期的类型
+        val typeReference = variable.typeReference
+        val expectedType = typeReference?.let {
+            facade.components.typeResolver.resolveType(
+                context.scope,
+                it,
+                context.trace,
+                true
+            )
+        } ?: NO_EXPECTED_TYPE
+
+        // 处理变量初始化
+        val initializer = variable.initializer
+//表达式类型
+        val initializerTypeInfo =
+            initializer?.let { facade.getTypeInfo(it, context.replaceExpectedType(expectedType)) } ?: noTypeInfo(
+                typingContext
+            )
+        val subject = when {
+
+            initializer != null ->
+                Subject.Expression(
+                    initializer,
+                    initializerTypeInfo,
+                    components.dataFlowValueFactory
+                )
+
+            else ->
+                Subject.None()
+        }
+        val contextAfterSubject = run {
+            var result = context
+            subject.scopeWithSubject?.let { result = result.replaceScope(it) }
+            subject.dataFlowInfo?.let { result = result.replaceDataFlowInfo(it) }
+            result
+        }
+
+        subject.initDataFlowValue(contextAfterSubject, components.builtIns)
+
+        pattern?.let {
+            resoleCasePattern(
+                subject,
+                it,
+                context,
+
+                )
+        }
+        return noTypeInfo(typingContext)
+    }
 
     override fun visitLetExpression(
         expression: CjLetExpression,
@@ -175,7 +286,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
         subject.initDataFlowValue(contextAfterSubject, components.builtIns)
 
-        expression.pattern?.let { checkCasePattern(subject, it, contextAfterSubject) }
+        expression.pattern?.let { resoleCasePattern(subject, it, contextAfterSubject) }
         return noTypeInfo(context)
     }
 
@@ -186,7 +297,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         initializer: CjExpression?,
         context: ExpressionTypingContext
     ) {
-        initializer?: return
+
+        initializer ?: return
 //        获取原始迭代器对象
         val iterator = receiver.type.extractSuperType(ITERABLE)
 //        被迭代对象
@@ -198,19 +310,10 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 initDataFlowValue(context, components.builtIns)
             }
 
-        checkCasePattern(
-            subject, casePattern, context, Config(false)
+        resoleCasePattern(
+            subject, casePattern, context.replaceScope(writableScope), Config(false)
         )
-        initializer.findParentOfType<CjPatternEntryBlock>()?.let {
-            context.config.addVariableDescriptor[it]?.let { variables ->
-                variables.forEach { variable ->
-                    variable(writableScope)
-                }
 
-
-            }
-            context.config.addVariableDescriptor.remove(it)
-        }
         val isOverwrite = MatchChecker.isOverwrite(casePattern, iteratedType, context.trace.bindingContext)
         if (!isOverwrite) {
             context.trace.report(IRREFUTABLE_PATTERN_ERROR.on(casePattern))
@@ -449,7 +552,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         val bindEnumType: Boolean = true,
     )
 
-    private fun checkCasePattern(
+    private fun resoleCasePattern(
         subject: Subject,
         condition: CjCasePattern,
         context: ExpressionTypingContext,
@@ -538,15 +641,25 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         }
 
         var entryInfo: ConditionalDataFlowInfo? = null
-        var contextForCondition = context
+
+        val caseScope =
+            ExpressionTypingUtils.newWritableScopeImpl(
+                context,
+                LexicalScopeKind.MATCH_CASE,
+                components.overloadChecker
+            )
+        var contextForCondition = context.replaceScope(caseScope)
+
+
         for (condition in matchEntry.conditions) {
-            val conditionInfo = checkCasePattern(subject, condition, contextForCondition)
+            val conditionInfo = resoleCasePattern(subject, condition, contextForCondition)
             entryInfo = entryInfo?.let {
                 ConditionalDataFlowInfo(it.thenInfo.or(conditionInfo.thenInfo), it.elseInfo.and(conditionInfo.elseInfo))
             } ?: conditionInfo
 
             contextForCondition = contextForCondition.replaceDataFlowInfo(conditionInfo.elseInfo)
         }
+        context.trace.recordScope(caseScope, matchEntry.body)
 
         return entryInfo ?: ConditionalDataFlowInfo(context.dataFlowInfo)
     }
@@ -900,8 +1013,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
             val valueParameters = enumEntry.valueParameters
 
-            return  try {
-                 returnResult(
+            return try {
+                returnResult(
                     element, data, Pattern(
                         typeInfo.type, PatternKind.Enum(
                             enumSource, enumEntrySource,
@@ -922,7 +1035,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                         ))
                 )
             } catch (e: IndexOutOfBoundsException) {
-                  returnResult(element, data, Pattern.Error)
+                returnResult(element, data, Pattern.Error)
             }
 
         }
@@ -937,23 +1050,12 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     )
                 } ?: ErrorUtils.errorVariableType
 
+            val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
+                data.context.scope, element, type, data.context.trace
+            )
+            data.context.scope.addVariableDescriptor(variable)
 
-            element.parent?.let {
-                element.findParentOfType<CjPatternEntryBlock>()?.let {
-                    if (data.context.config.addVariableDescriptor[it] == null) {
-                        data.context.config.addVariableDescriptor[it] = mutableListOf()
-                    }
-                    data.context.config.addVariableDescriptor[it]?.add { scope ->
-                        scope as LexicalWritableScope
-                        val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
-                            scope, element, type, data.context.trace
-                        )
-                        scope.addVariableDescriptor(variable)
-                    }
 
-                }
-
-            }
             return returnResult(
                 element, data, Pattern(data.subject.type, PatternKind.Type(type, element.text))
             )
@@ -991,7 +1093,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 )
             }
             data.subject.type.arguments.forEachIndexed { index, argumentType ->
-                checkCasePattern(
+                resoleCasePattern(
                     Subject.Type(
 
                         createTypeInfo(argumentType.type, data.context),
@@ -1026,14 +1128,15 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
         }
 
-        override fun visitPatternByWildcard(element: CjWildcardPattern, data: PatternContext ): Pattern {
+        override fun visitPatternByWildcard(element: CjWildcardPattern, data: PatternContext): Pattern {
             return returnResult(
-                element,data,Pattern(
+                element, data, Pattern(
                     data.subject.type,
                     PatternKind.Wild
                 )
             )
         }
+
         override fun visitPatternByBinding(element: CjBindingPattern, data: PatternContext): Pattern {
 
             val expression = element.expression
@@ -1080,7 +1183,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     )
                 )
 
-            }else if( expression?.getReferenceTarget(data.context.trace.bindingContext) is EnumClassCallableDescriptor){
+            } else if (expression?.getReferenceTarget(data.context.trace.bindingContext) is EnumClassCallableDescriptor) {
                 data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
                 return returnResult(
                     element, data, Pattern.Error
@@ -1089,26 +1192,13 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
 
 // TODO 将变量添加到作用域  这里需要架构重构，目前这个写的并不理想
+            val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
+                data.context.scope, element, data.subject.type, data.context.trace
+            )
+
+            data.context.scope.addVariableDescriptor(variable)
 
 
-            element.parent?.let {
-                element.findParentOfType<CjPatternEntryBlock>()?.let {
-                    if (data.context.config.addVariableDescriptor[it] == null) {
-                        data.context.config.addVariableDescriptor[it] = mutableListOf()
-                    }
-                    data.context.config.addVariableDescriptor[it]?.add { scope ->
-                        scope as LexicalWritableScope
-
-                        val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
-                            scope, element, data.subject.type, data.context.trace
-                        )
-
-                        scope.addVariableDescriptor(variable)
-                    }
-
-                }
-
-            }
 
             return returnResult(
                 element, data, Pattern(data.subject.type, PatternKind.Binding(data.subject.type, element.text))
@@ -1146,7 +1236,6 @@ private interface MatchExhaustivenessChecker {
 
     fun isApplicable(subjectType: CangJieType): Boolean = false
 }
-
 
 
 fun CjMatchExpression.checkExhaustive(context: BindingContext): List<Pattern>? {

@@ -1,25 +1,26 @@
 package com.linqingying.cangjie.resolve;
 
-import com.linqingying.cangjie.contracts.description.EventOccurrencesRange;
-import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor;
-import com.linqingying.cangjie.diagnostics.Diagnostics;
-import com.linqingying.cangjie.name.FqNameUnsafe;
-import com.linqingying.cangjie.resolve.caches.PrimitiveNumericComparisonInfo;
-import com.linqingying.cangjie.resolve.calls.smartcasts.ExplicitSmartCasts;
-import com.linqingying.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import com.intellij.openapi.util.Ref;
+import com.intellij.psi.PsiElement;
+import com.linqingying.cangjie.contracts.description.EventOccurrencesRange;
 import com.linqingying.cangjie.contracts.model.Computation;
 import com.linqingying.cangjie.descriptors.*;
 import com.linqingying.cangjie.descriptors.annotations.AnnotationDescriptor;
+import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor;
+import com.linqingying.cangjie.diagnostics.Diagnostics;
 import com.linqingying.cangjie.name.FqName;
+import com.linqingying.cangjie.name.FqNameUnsafe;
 import com.linqingying.cangjie.psi.*;
+import com.linqingying.cangjie.resolve.caches.PrimitiveNumericComparisonInfo;
 import com.linqingying.cangjie.resolve.calls.context.BasicCallResolutionContext;
 import com.linqingying.cangjie.resolve.calls.model.PartialCallContainer;
 import com.linqingying.cangjie.resolve.calls.model.ResolvedCall;
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValue;
+import com.linqingying.cangjie.resolve.calls.smartcasts.ExplicitSmartCasts;
+import com.linqingying.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl;
 import com.linqingying.cangjie.resolve.constants.CompileTimeConstant;
 import com.linqingying.cangjie.resolve.scopes.LexicalScope;
 import com.linqingying.cangjie.resolve.scopes.receivers.QualifierReceiver;
@@ -32,8 +33,6 @@ import com.linqingying.cangjie.utils.Box;
 import com.linqingying.cangjie.utils.ReadOnly;
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.linqingying.cangjie.utils.slicedMap.*;
-import com.intellij.openapi.util.Ref;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -87,9 +86,9 @@ public interface BindingContext {
     WritableSlice<CjRangeExpression, ResolvedCall<FunctionDescriptor>> RANGE_LITERAL_CALL = Slices.createSimpleSlice();
     WritableSlice<VariableDescriptor, Boolean> IS_UNINITIALIZED = Slices.createSimpleSetSlice();
 
-    WritableSlice<CjExpression, ExplicitSmartCasts> UNSTABLE_SMARTCAST = new BasicWritableSlice<>( DO_NOTHING);
+    WritableSlice<CjExpression, ExplicitSmartCasts> UNSTABLE_SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjExpression, DataFlowInfo> DATAFLOW_INFO_AFTER_CONDITION = Slices.createSimpleSlice();
-    WritableSlice<CjExpression, Boolean> VARIABLE_REASSIGNMENT =  new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjExpression, Boolean> VARIABLE_REASSIGNMENT = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_ITERATOR_RESOLVED_CALL = Slices.createSimpleSlice();
     WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_HAS_NEXT_RESOLVED_CALL = Slices.createSimpleSlice();
     WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_NEXT_RESOLVED_CALL = Slices.createSimpleSlice();
@@ -100,12 +99,12 @@ public interface BindingContext {
     WritableSlice<CjMatchExpression, Boolean> IMPLICIT_EXHAUSTIVE_WHEN = Slices.createSimpleSlice();
     WritableSlice<CjPropertyAccessor, PropertyAccessorDescriptor> PROPERTY_ACCESSOR = Slices.createSimpleSlice();
     WritableSlice<CjExpression, Boolean> SMARTCAST_NULL = Slices.createSimpleSlice();
-//    WritableSlice<CjExpression, ImplicitSmartCasts> IMPLICIT_RECEIVER_SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
-WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWritableSlice<>(DO_NOTHING);
+    //    WritableSlice<CjExpression, ImplicitSmartCasts> IMPLICIT_RECEIVER_SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWritableSlice<>(DO_NOTHING);
 
     WritableSlice<CjTypeReference, CangJieType> TYPE = Slices.createSimpleSlice();
     WritableSlice<DeclarationDescriptor, Multimap<String, ReceiverParameterDescriptor>> DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP = Slices.createSimpleSlice();
-    WritableSlice<CjTypeReference,CangJieType> ABBREVIATED_TYPE = Slices.createSimpleSlice();
+    WritableSlice<CjTypeReference, CangJieType> ABBREVIATED_TYPE = Slices.createSimpleSlice();
     WritableSlice<Call, BasicCallResolutionContext> PARTIAL_CALL_RESOLUTION_CONTEXT = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjExpression, Call> DELEGATE_EXPRESSION_TO_PROVIDE_DELEGATE_CALL = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjDeclaration, PreliminaryDeclarationVisitor> PRELIMINARY_VISITOR = new BasicWritableSlice<>(DO_NOTHING);
@@ -115,7 +114,7 @@ WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWr
     WritableSlice<CjReferenceExpression, ClassifierDescriptorWithTypeParameters> SHORT_REFERENCE_TO_COMPANION_OBJECT =
             new BasicWritableSlice<>(DO_NOTHING);
 
-//    表示形参转变量声明
+    //    表示形参转变量声明
     WritableSlice<ValueParameterDescriptor, VariableDescriptor> VALUE_PARAMETER_AS_VARIABLE = Slices.createSimpleSlice();
     WritableSlice<ValueParameterDescriptor, Boolean> AUTO_CREATED_IT = Slices.createSimpleSetSlice();
 
@@ -197,6 +196,8 @@ WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWr
 
     WritableSlice<CjExpression, Ref<List<VariableDescriptor>>> NEW_INFERENCE_TRY_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
 
+    //    像块插入局部变量
+    WritableSlice<CjExpression, Ref<List<VariableDescriptor>>> NEW_INFENCE_BLOCK_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
 
     WritableSlice<CjReferenceExpression, PsiElement> LABEL_TARGET = Slices.createSimpleSlice();
     WritableSlice<CjReferenceExpression, Collection<? extends PsiElement>> AMBIGUOUS_LABEL_TARGET = Slices.createSimpleSlice();
@@ -211,7 +212,7 @@ WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWr
     WritableSlice<PsiElement, TypeAliasDescriptor> TYPE_ALIAS = Slices.createSimpleSlice();
     WritableSlice[] DECLARATIONS_TO_DESCRIPTORS = new WritableSlice[]{
             CLASS
-            , TYPE_PARAMETER, FUNCTION,  CONSTRUCTOR,  VARIABLE, VALUE_PARAMETER, PROPERTY_ACCESSOR, PRIMARY_CONSTRUCTOR_PARAMETER,
+            , TYPE_PARAMETER, FUNCTION, CONSTRUCTOR, VARIABLE, VALUE_PARAMETER, PROPERTY_ACCESSOR, PRIMARY_CONSTRUCTOR_PARAMETER,
             TYPE_ALIAS
     };
 
@@ -221,9 +222,6 @@ WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWr
             Slices.<PsiElement, DeclarationDescriptor>sliceBuilder()
                     .setFurtherLookupSlices(DECLARATIONS_TO_DESCRIPTORS)
                     .build();
-
-
-
 
 
     @SuppressWarnings("UnusedDeclaration")

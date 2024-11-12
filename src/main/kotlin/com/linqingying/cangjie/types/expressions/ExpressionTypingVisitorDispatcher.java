@@ -98,7 +98,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
                 ExpressionTypingUtils.newWritableScopeImpl(context, LexicalScopeKind.CODE_BLOCK, components.overloadChecker)
                 ,
                 basic
-                , controlStructures, /*patterns,*/ functions);
+                , controlStructures,  patterns,  functions);
     }
 
     @Override
@@ -535,7 +535,7 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
             this.visitorForBlock = new ExpressionTypingVisitorForStatements(
                     this, writableScope
                     , basic
-                    , controlStructures,/* patterns,*/ functions
+                    , controlStructures,  patterns,  functions
             );
         }
 

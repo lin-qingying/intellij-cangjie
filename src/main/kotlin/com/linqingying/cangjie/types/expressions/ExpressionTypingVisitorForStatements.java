@@ -1,5 +1,7 @@
 package com.linqingying.cangjie.types.expressions;
 
+import com.intellij.openapi.util.Ref;
+import com.intellij.psi.tree.IElementType;
 import com.linqingying.cangjie.builtins.CangJieBuiltIns;
 import com.linqingying.cangjie.config.LanguageFeature;
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor;
@@ -33,13 +35,12 @@ import com.linqingying.cangjie.resolve.scopes.receivers.ExpressionReceiver;
 import com.linqingying.cangjie.types.CangJieType;
 import com.linqingying.cangjie.types.CangJieTypeKt;
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker;
+import com.linqingying.cangjie.types.expressions.match.PatternMatchingTypingVisitor;
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
 import com.linqingying.cangjie.types.util.TypeUtils;
 import com.linqingying.cangjie.utils.OperatorNameConventions;
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.linqingying.cangjie.utils.exceptions.OperatorConventions;
-import com.intellij.openapi.util.Ref;
-import com.intellij.psi.tree.IElementType;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +52,8 @@ import java.util.Objects;
 
 import static com.linqingying.cangjie.diagnostics.Errors.*;
 import static com.linqingying.cangjie.psi.CjPsiUtil.deparenthesize;
-import static com.linqingying.cangjie.resolve.BindingContext.*;
+import static com.linqingying.cangjie.resolve.BindingContext.AMBIGUOUS_REFERENCE_TARGET;
+import static com.linqingying.cangjie.resolve.BindingContext.VARIABLE_REASSIGNMENT;
 import static com.linqingying.cangjie.resolve.calls.context.ContextDependency.INDEPENDENT;
 import static com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE;
 import static com.linqingying.cangjie.types.util.TypeUtils.noExpectedType;
@@ -62,7 +64,7 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
     private final LexicalWritableScope scope;
     private final BasicExpressionTypingVisitor basic;
     private final ControlStructureTypingVisitor controlStructures;
-    //    private final PatternMatchingTypingVisitor patterns;
+    private final PatternMatchingTypingVisitor patterns;
     private final FunctionsTypingVisitor functions;
 
     public ExpressionTypingVisitorForStatements(
@@ -70,14 +72,14 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
             @NotNull LexicalWritableScope scope,
             @NotNull BasicExpressionTypingVisitor basic,
             @NotNull ControlStructureTypingVisitor controlStructures,
-//            @NotNull PatternMatchingTypingVisitor patterns,
+            @NotNull PatternMatchingTypingVisitor patterns,
             @NotNull FunctionsTypingVisitor functions
     ) {
         super(facade);
         this.scope = scope;
         this.basic = basic;
         this.controlStructures = controlStructures;
-//        this.patterns = patterns;
+        this.patterns = patterns;
         this.functions = functions;
     }
 
@@ -496,28 +498,52 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
 
     @Override
     public CangJieTypeInfo visitVariable(@NotNull CjVariable variable, ExpressionTypingContext data) {
-        Pair<CangJieTypeInfo, VariableDescriptor> typeInfoAndVariableDescriptor = components.localVariableResolver.process(variable, data, scope, facade);
-        scope.addVariableDescriptor(typeInfoAndVariableDescriptor.getSecond());
-        return typeInfoAndVariableDescriptor.getFirst();
+
+        if (variable.getPattern() == null) {
+            Pair<CangJieTypeInfo, VariableDescriptor> typeInfoAndVariableDescriptor = components.localVariableResolver.process(variable, data, scope, facade);
+            scope.addVariableDescriptor(typeInfoAndVariableDescriptor.getSecond());
+            return typeInfoAndVariableDescriptor.getFirst();
+
+        } else {
+
+
+            return patterns.visitVariable(variable, data.replaceScope(scope));
+
+
+        }
+
     }
 
+    /**
+     * 解构声明
+     * @param multiDeclaration
+     * @param context
+     * @return
+     */
 //    @Override
-//    public CangJieTypeInfo visitPatternByBinding(@NotNull CjBindingPattern element, ExpressionTypingContext data) {
-////        Pair<CangJieTypeInfo, VariableDescriptor> typeInfoAndVariableDescriptor = components.localVariableResolver.process(element, data, scope, facade);
-////        scope.addVariableDescriptor(typeInfoAndVariableDescriptor.getSecond());
-////        return typeInfoAndVariableDescriptor.getFirst();
+//    public CangJieTypeInfo visitDestructuringDeclaration(@NotNull CjDestructuringDeclaration multiDeclaration, ExpressionTypingContext context) {
+////        components.annotationResolver.resolveAnnotationsWithArguments(scope, multiDeclaration.getModifierList(), context.trace);
 //
-//        VariableDescriptor variableDescriptor = data.trace.get(VARIABLE, element);
-//
-//
-//        if (variableDescriptor == null) {
-//            return TypeInfoFactoryKt.noTypeInfo(data);
-//        } else {
-//            scope.addVariableDescriptor(variableDescriptor);
-//            return TypeInfoFactoryKt.createTypeInfo(variableDescriptor.getType());
+//        CjExpression initializer = multiDeclaration.getInitializer();
+//        if (initializer == null) {
+//            context.trace.report(INITIALIZER_REQUIRED_FOR_DESTRUCTURING_DECLARATION.on(multiDeclaration));
 //        }
 //
+//        ExpressionReceiver expressionReceiver = initializer != null ? ExpressionTypingUtils.getExpressionReceiver(
+//                facade, initializer, context.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(INDEPENDENT)) : null;
+//
+//        components.destructuringDeclarationResolver
+//                .defineLocalVariablesFromDestructuringDeclaration(scope, multiDeclaration, expressionReceiver, initializer, context);
+//        components.modifiersChecker.withTrace(context.trace).checkModifiersForDestructuringDeclaration(multiDeclaration);
+//        components.identifierChecker.checkDeclaration(multiDeclaration, context.trace);
+//
+//        if (expressionReceiver == null) {
+//            return TypeInfoFactoryKt.noTypeInfo(context);
+//        }
+//        else {
+//            return facade.getTypeInfo(initializer, context)
+//                    .replaceType(components.dataFlowAnalyzer.checkStatementType(multiDeclaration, context));
+//        }
 //    }
-
 
 }

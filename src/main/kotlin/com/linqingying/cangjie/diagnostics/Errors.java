@@ -24,6 +24,7 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.linqingying.cangjie.types.expressions.match.Pattern;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -214,7 +215,7 @@ public interface Errors {
             DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
     DiagnosticFactory1<CjElement, CangJieType> TYPE_MISMATCH_DUE_TO_EQUALS_LAMBDA_IN_FUN = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, String> MISSING_STDLIB = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory2<PsiElement, String,DeclarationDescriptor> NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<PsiElement, String,@Nullable DeclarationDescriptor> NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<PsiElement> ARRAY_LITERAL_TYPE_INFERENCE_FAILED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjParameter> NON_NAMED_PARAMETER_AFTER_NAMED_PARAMETER = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjElement> POSITIONAL_ARGUMENT_AFTER_NAMED_ARGUMENT = DiagnosticFactory0.create(ERROR);
@@ -327,6 +328,10 @@ public interface Errors {
     DiagnosticFactory0<CjArrayAccessExpression> NO_GET_METHOD = DiagnosticFactory0.create(ERROR, ARRAY_ACCESS);
     DiagnosticFactory0<CjArrayAccessExpression> NO_SET_METHOD = DiagnosticFactory0.create(ERROR, ARRAY_ACCESS);
 
+    DiagnosticFactory0<CjArrayAccessExpression> NO_GET_FOR_TUPLE_METHOD = DiagnosticFactory0.create(ERROR, ARRAY_ACCESS);
+    DiagnosticFactory0<CjArrayAccessExpression> NO_SET_FOR_TUPLE_METHOD = DiagnosticFactory0.create(ERROR, ARRAY_ACCESS);
+    DiagnosticFactory0<PsiElement> NON_INTEGER_TUPLE_INDEX = DiagnosticFactory0.create(ERROR );
+    DiagnosticFactory0<PsiElement> TUPLE_INDEX_OUT_OF_RANGE = DiagnosticFactory0.create(ERROR );
 
     DiagnosticFactory2<CjSimpleNameExpression, DeclarationDescriptor, CjSimpleNameExpression> ASSIGNMENT_OPERATOR_SHOULD_RETURN_UNIT =
             DiagnosticFactory2.create(ERROR);

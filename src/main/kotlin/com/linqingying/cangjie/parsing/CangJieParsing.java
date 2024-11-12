@@ -103,12 +103,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 }
             });
 
-    public CangJieExpressionParsing getExpressionParsing() {
-        return myExpressionParsing;
-    }
-
-    //    如果是声明文件，则不需要函数体
-
     private CangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isTopLevel, boolean isLazy) {
         super(builder, isLazy);
 
@@ -125,6 +119,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
+    //    如果是声明文件，则不需要函数体
+
     private static CangJieParsing createForByClause(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
         return new CangJieParsing(new SemanticWhitespaceAwarePsiBuilderForByClause(builder), false, isLazy);
     }
@@ -135,6 +131,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     static CangJieParsing createForTopLevelNonLazy(SemanticWhitespaceAwarePsiBuilder builder) {
         return new CangJieParsing(builder, true, false);
+    }
+
+    public CangJieExpressionParsing getExpressionParsing() {
+        return myExpressionParsing;
     }
 
     void parseTypeRef() {
@@ -1043,43 +1043,31 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance();
 
 
-//        myBuilder.disableJoiningComplexTokens();
-
-//        bool receiverTypeDeclared = parseReceiverType("property", PROPERTY_NAME_FOLLOW_SET);
-
-//        bool isNameOnTheNextLine = eol();
-//        PsiBuilder.Marker beforeName = mark();
-
-
-        if (at(LPAR)) {
-            //(标识符 ',' 标识符 {',' 标识符})
-//            PsiBuilder.Marker tuple = mark();
-            advance();
-
-            expect(IDENTIFIER, "Expecting identifier");
-
-            expect(COMMA, "1-element tuple pattern is not allowed,Expecting ','");
-
-            expect(IDENTIFIER, "Expecting identifier");
-
-            while (at(COMMA)) {
-                advance(); // COMMA
-                expect(IDENTIFIER, "Expecting identifier");
-            }
-
-
-            expect(RPAR, "Expecting ')'");
-
-//            if(classdetector != null){
-//tuple.error("tuple patterns cannot be used in class or interface  body");
-//            }else {
-//                tuple.done(TUPLE_TYPE);
+//        if (at(LPAR)) {
+//            //(标识符 ',' 标识符 {',' 标识符})
+////            PsiBuilder.Marker tuple = mark();
+//            advance();
+//
+//            expect(IDENTIFIER, "Expecting identifier");
+//
+//            expect(COMMA, "1-element tuple pattern is not allowed,Expecting ','");
+//
+//            expect(IDENTIFIER, "Expecting identifier");
+//            while (at(COMMA)) {
+//                advance(); // COMMA
+//                expect(IDENTIFIER, "Expecting identifier");
 //            }
+//
+//
+//            expect(RPAR, "Expecting ')'");
+//
+//        } else {
+//            parseIdentifierByTitle("property", PROPERTY_NAME_FOLLOW_SET, true);
+//
+//        }
 
-        } else {
-            parseIdentifierByTitle("property", PROPERTY_NAME_FOLLOW_SET, true);
+        myExpressionParsing.parsePattern(new PatternConfig(true), Pattern.Wildcard.INSTANCE, Pattern.Binding.INSTANCE, Pattern.Tuple.INSTANCE, Pattern.Enum.INSTANCE);
 
-        }
         boolean noTypeReference = true;
 
         //类型 (:type)可以没有，但是默认值必须有
@@ -1764,15 +1752,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
 
 
-            if (atSet(BASICTYPES) || at(IDENTIFIER)) {
-                parseTypeRef();
+//            if (atSet(BASICTYPES) || at(IDENTIFIER)) {
+            parseTypeRef();
 
-            }/* else if (at(IDENTIFIER)) {
-                typeParametersDeclared = parseUserType();
-            } */ else {
-
-                error("Expecting a type");
-            }
+//            }  else {
+//
+//                error("Expecting a type");
+//            }
         } else {
             parseIdentifier(); //类名
             typeParametersDeclared = parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
@@ -3144,20 +3130,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         PsiBuilder.Marker typeRefMarker = mark();
         //先解析基本类型，如果不是基本类型，则解析类型引用
-
-//        if (!isConstraint) {
-//            expect(QUEST);
-//        }
-
-
-//        if (at(QUEST)) {
-//
-//            if (!isConstraint) {
-//                advance();
-//            } else {
-//                error("Expecting a generic type name after '<' in generic, found '?'");
-//            }
-//        }
 
 
         if (!isConstraint) {

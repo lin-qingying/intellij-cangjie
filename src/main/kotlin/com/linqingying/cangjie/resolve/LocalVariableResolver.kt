@@ -2,12 +2,11 @@ package com.linqingying.cangjie.resolve
 
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.BindingTrace
-import com.linqingying.cangjie.diagnostics.Errors.LOCAL_EXTENSION_VARIABLE
 import com.linqingying.cangjie.descriptors.VariableDescriptor
-
 import com.linqingying.cangjie.descriptors.impl.LocalVariableDescriptor
 import com.linqingying.cangjie.descriptors.impl.VariableDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.VariableDescriptorWithInitializerImpl
+import com.linqingying.cangjie.diagnostics.Errors.LOCAL_EXTENSION_VARIABLE
 import com.linqingying.cangjie.psi.CjPsiUtil
 import com.linqingying.cangjie.psi.CjVariable
 import com.linqingying.cangjie.psi.CjVariableDeclaration
@@ -36,29 +35,43 @@ class LocalVariableResolver(
     private val languageVersionSettings: LanguageVersionSettings,
     private val dataFlowValueFactory: DataFlowValueFactory
 ) {
+    fun processForPattern(
+        variable: CjVariable,
+        typingContext: ExpressionTypingContext,
+        scope: LexicalScope,
+        facade: ExpressionTypingFacade
+    ): Pair<CangJieTypeInfo, List<VariableDescriptor>>{
 
+         TODO()
+    }
+    /**
+     * 处理局部变量声明，解析其描述符和类型信息。
+     *
+     * 该函数负责处理局部变量声明，包括解析变量描述符、确定类型信息以及处理初始化值的绑定。它会报告局部扩展变量的诊断信息，
+     * 并在处理过程中管理上下文依赖关系。
+     *
+     * @param variable 要处理的局部变量声明。
+     * @param typingContext 表达式类型的上下文，用于在处理过程中管理类型状态。
+     * @param scope 变量声明所在的词法作用域，用于解析变量描述符。
+     * @param facade 表达式类型的外观，提供类型信息和推断功能的访问。
+     * @return 一个包含变量类型信息和描述符的Pair对象。
+     */
     fun process(
         variable: CjVariable,
         typingContext: ExpressionTypingContext,
         scope: LexicalScope,
         facade: ExpressionTypingFacade
     ): Pair<CangJieTypeInfo, VariableDescriptor> {
+        // 更新上下文依赖关系和作用域
         val context = typingContext.replaceContextDependency(ContextDependency.INDEPENDENT).replaceScope(scope)
+
+        // 检查接收器类型引用并报告诊断信息
         val receiverTypeRef = variable.receiverTypeReference
         if (receiverTypeRef != null) {
             context.trace.report(LOCAL_EXTENSION_VARIABLE.on(receiverTypeRef))
         }
 
-//        val getter = variable.getter
-//        if (getter != null) {
-//            context.trace.report(LOCAL_VARIABLE_WITH_GETTER.on(getter))
-//        }
-//
-//        val setter = variable.setter
-//        if (setter != null) {
-//            context.trace.report(LOCAL_VARIABLE_WITH_SETTER.on(setter))
-//        }
-
+        // 解析局部变量描述符
         val variableDescriptor =
             resolveLocalVariableDescriptor(
                 scope,
@@ -68,32 +81,7 @@ class LocalVariableResolver(
                 context.trace
             )
 
-//        val delegateExpression = variable.delegateExpression
-//        if (delegateExpression != null) {
-//            if (!languageVersionSettings.supportsFeature(LanguageFeature.LocalDelegatedProperties)) {
-//                context.trace.report(
-//                    UNSUPPORTED_FEATURE.on(
-//                        variable.delegate!!,
-//                        LanguageFeature.LocalDelegatedProperties to languageVersionSettings
-//                    )
-//                )
-//            }
-
-//            if (variableDescriptor is PropertyDescriptorWithAccessors) {
-//                delegatedVariableResolver.resolveVariableDelegate(
-//                    typingContext.dataFlowInfo,
-//                    variable,
-//                    variableDescriptor,
-//                    delegateExpression,
-//                    typingContext.scope,
-//                    typingContext.inferenceSession,
-//                    typingContext.trace
-//                )
-//                variableDescriptor.getter?.updateAccessorFlagsFromResolvedCallForDelegatedVariable(typingContext.trace)
-//                variableDescriptor.setter?.updateAccessorFlagsFromResolvedCallForDelegatedVariable(typingContext.trace)
-//            }
-//        }
-
+        // 处理变量初始化
         val initializer = variable.initializer
         var typeInfo: CangJieTypeInfo
         if (initializer != null) {
@@ -110,20 +98,16 @@ class LocalVariableResolver(
                         initializerDataFlowValue
                     )
                 }
-                // At this moment we do not take initializer value into account if type is given for a variable
-                // We can comment this condition to take them into account, like here: var s: String? = "xyz"
-                // In this case s will be not-nullable until it is changed
+                // 当变量有显式类型时，不考虑初始化值的影响
                 if (variable.typeReference == null) {
                     val variableDataFlowValue = dataFlowValueFactory.createDataFlowValueForVariable(
                         variable, variableDescriptor, context.trace.bindingContext,
                         DescriptorUtils.getContainingModuleOrNull(scope.ownerDescriptor)
                     )
-                    // We cannot say here anything new about initializerDataFlowValue
-                    // except it has the same value as variableDataFlowValue
                     typeInfo = typeInfo.replaceDataFlowInfo(
                         dataFlowInfo.assign(
                             variableDataFlowValue, initializerDataFlowValue,
-//                            languageVersionSettings
+//                        languageVersionSettings
                         )
                     )
                 }
@@ -132,10 +116,13 @@ class LocalVariableResolver(
             typeInfo = noTypeInfo(context)
         }
 
+        // 检查局部变量声明
         checkLocalVariableDeclaration(context, variableDescriptor, variable)
 
+        // 返回类型信息和变量描述符
         return Pair(typeInfo.replaceType(dataFlowAnalyzer.checkStatementType(variable, context)), variableDescriptor)
     }
+
 
     private fun checkLocalVariableDeclaration(
         context: ExpressionTypingContext,
@@ -155,34 +142,48 @@ class LocalVariableResolver(
 //        )
     }
 
-    private fun resolveLocalVariableDescriptor(
-        scope: LexicalScope,
-        variable: CjVariableDeclaration,
-        dataFlowInfo: DataFlowInfo,
-        inferenceSession: InferenceSession,
-        trace: BindingTrace
-    ): VariableDescriptor {
-        val containingDeclaration = scope.ownerDescriptor
-        val result: VariableDescriptorWithInitializerImpl
-        val type: CangJieType
+    /**
+ * 解析局部变量的描述符。
+ *
+ * 该函数负责在给定的作用域内解析局部变量的描述符，并设置其类型和其他相关信息。
+ *
+ * @param scope 词法作用域，用于解析变量的上下文
+ * @param variable 局部变量声明对象
+ * @param dataFlowInfo 数据流信息，用于类型推断
+ * @param inferenceSession 推断会话，用于类型推断
+ * @param trace 绑定跟踪，用于记录解析过程中的绑定信息
+ * @return 解析后的变量描述符
+ */
+private fun resolveLocalVariableDescriptor(
+    scope: LexicalScope,
+    variable: CjVariableDeclaration,
+    dataFlowInfo: DataFlowInfo,
+    inferenceSession: InferenceSession,
+    trace: BindingTrace
+): VariableDescriptor {
+    val containingDeclaration = scope.ownerDescriptor
+    val result: VariableDescriptorWithInitializerImpl
+    val type: CangJieType
 
-        val variableDescriptor = resolveLocalVariableDescriptorWithType(scope, variable, null, trace)
-        // For a local variable the type must not be deferred
-        type = variableTypeAndInitializerResolver.resolveType(
-            variableDescriptor, scope, variable, dataFlowInfo, inferenceSession, trace, local = true
-        )
-        variableDescriptor.setOutType(type)
-        result = variableDescriptor
+    val variableDescriptor = resolveLocalVariableDescriptorWithType(scope, variable, null, trace)
+    // 解析变量类型
+    type = variableTypeAndInitializerResolver.resolveType(
+        variableDescriptor, scope, variable, dataFlowInfo, inferenceSession, trace, local = true
+    )
+    variableDescriptor.setOutType(type)
+    result = variableDescriptor
 
-//        if (inferenceSession is BuilderInferenceSession) {
-//            inferenceSession.addExpression(variable)
-//        }
-        variableTypeAndInitializerResolver
-            .setConstantForVariableIfNeeded(result, scope, variable, dataFlowInfo, type, inferenceSession, trace)
-        // Type annotations also should be resolved
-        ForceResolveUtil.forceResolveAllContents(type.annotations)
-        return result
-    }
+//    if (inferenceSession is BuilderInferenceSession) {
+//        inferenceSession.addExpression(variable)
+//    }
+    // 设置变量的常量值（如果需要）
+    variableTypeAndInitializerResolver
+        .setConstantForVariableIfNeeded(result, scope, variable, dataFlowInfo, type, inferenceSession, trace)
+    // 强制解析类型注解
+    ForceResolveUtil.forceResolveAllContents(type.annotations)
+    return result
+}
+
 
     private fun initializeWithDefaultGetterSetter(variableDescriptor: VariableDescriptorImpl) {
 //        var getter = variableDescriptor.getter
@@ -198,27 +199,21 @@ class LocalVariableResolver(
 //        variableDescriptor.initialize(getter, setter)
     }
 
-      fun resolveLocalVariableDescriptorWithType(
+    fun resolveLocalVariableDescriptorWithType(
         scope: LexicalScope,
         variable: CjVariableDeclaration,
         type: CangJieType?,
         trace: BindingTrace
     ): LocalVariableDescriptor {
-//        val hasDelegate = variable is CjVariable && variable.hasDelegate()
-//        val hasLateinit = variable.hasModifier(CjTokens.LATEINIT_KEYWORD)
+
         val variableDescriptor = LocalVariableDescriptor(
             scope.ownerDescriptor,
             annotationResolver.resolveAnnotationsWithArguments(scope, variable.modifierList, trace),
-            // Note, that the same code works both for common local vars and for destructuring declarations,
-            // but since the first case is illegal error must be reported somewhere else
-//            if (variable.isSingleUnderscore)
-//                Name.special("<underscore local var>")
-//            else
+
             CjPsiUtil.safeName(variable.name),
             type,
             variable.isVar,
-//            hasDelegate,
-//            hasLateinit,
+
             variable.toSourceElement()
         )
         trace.record(BindingContext.VARIABLE, variable, variableDescriptor)

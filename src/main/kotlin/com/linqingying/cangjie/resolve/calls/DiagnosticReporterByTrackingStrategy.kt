@@ -25,6 +25,7 @@ import com.linqingying.cangjie.resolve.calls.util.reportTrailingLambdaErrorOr
 import com.linqingying.cangjie.resolve.constants.CompileTimeConstantChecker
 import com.linqingying.cangjie.resolve.constants.TypedCompileTimeConstant
 import com.linqingying.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
+import com.linqingying.cangjie.resolve.controlFlow.multiParentElementReports
 import com.linqingying.cangjie.resolve.descriptorUtil.module
 import com.linqingying.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import com.linqingying.cangjie.types.AbstractTypeChecker
@@ -921,13 +922,15 @@ class DiagnosticReporterByTrackingStrategy(
                 } else {
                     psiCall.calleeExpression?.takeIf { it.isPhysical } ?: psiCall.callElement
                 } ?: return
-
-                trace.reportDiagnosticOnce(
-                    TYPE_MISMATCH_MULTIPLE_SUPERTYPES.on(
-                        expression,
-                        error.candidates
+                if (multiParentElementReports.contains(expression::class)) {
+                    trace.reportDiagnosticOnce(
+                        TYPE_MISMATCH_MULTIPLE_SUPERTYPES.on(
+                            expression,
+                            error.candidates
+                        )
                     )
-                )
+                }
+
             }
 
             is InferredIntoDeclaredUpperBounds -> {
@@ -1006,7 +1009,13 @@ class DiagnosticReporterByTrackingStrategy(
                         )
                     } else {
 
-                        trace.reportDiagnosticOnce(diagnostic.on(unwrappedExpression, typeVariableName,typeVariable?.containingDeclaration))
+                        trace.reportDiagnosticOnce(
+                            diagnostic.on(
+                                unwrappedExpression,
+                                typeVariableName,
+                                typeVariable?.containingDeclaration
+                            )
+                        )
 
                     }
                 }

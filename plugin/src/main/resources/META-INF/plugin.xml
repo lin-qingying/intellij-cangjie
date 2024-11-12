@@ -52,7 +52,7 @@
 
 
     
-        <module name="com.linqingying.cangjie.nativeDebug"/><module name="com.linqingying.cangjie.debugger"/></content>
+        <module name="com.linqingying.cangjie.dapDebugger"/></content>
 
 
 

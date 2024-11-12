@@ -1,18 +1,23 @@
 package com.linqingying.cangjie.types.expressions
 
 import com.google.common.collect.Lists
+import com.intellij.psi.PsiElement
+import com.intellij.psi.StubBasedPsiElement
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.elementType
 import com.linqingying.cangjie.CjNodeTypes
+import com.linqingying.cangjie.CjNodeTypes.INTEGER_CONSTANT
 import com.linqingying.cangjie.builtins.BinaryOperatorRuleResultType
 import com.linqingying.cangjie.builtins.CangJieBuiltIns.Companion.isFloat
 import com.linqingying.cangjie.builtins.CangJieBuiltIns.Companion.isNothing
 import com.linqingying.cangjie.builtins.CangJieBuiltIns.Companion.isNumber
 import com.linqingying.cangjie.builtins.CangJieBuiltIns.Companion.isUnit
 import com.linqingying.cangjie.builtins.StandardNames
+import com.linqingying.cangjie.builtins.isBuiltinTupleType
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.descriptors.*
-import com.linqingying.cangjie.diagnostics.Errors
-import com.linqingying.cangjie.diagnostics.Errors.NO_GET_METHOD
-import com.linqingying.cangjie.diagnostics.Errors.NO_SET_METHOD
+import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.diagnostics.InvalidBinaryData
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.lexer.CjKeywordToken
@@ -22,9 +27,7 @@ import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.parsing.hasIllegalUnderscore
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.resolve.BindingContext
-import com.linqingying.cangjie.resolve.BindingContext.INDEXED_LVALUE_GET
-import com.linqingying.cangjie.resolve.BindingContext.INDEXED_LVALUE_SET
+import com.linqingying.cangjie.resolve.BindingContext.*
 import com.linqingying.cangjie.resolve.BindingContextUtils
 import com.linqingying.cangjie.resolve.DescriptorUtils.isClass
 import com.linqingying.cangjie.resolve.DescriptorUtils.isInterface
@@ -82,10 +85,6 @@ import com.linqingying.cangjie.utils.OperatorNameConventions
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 import com.linqingying.cangjie.utils.exceptions.OperatorConventions
 import com.linqingying.cangjie.utils.exceptions.OperatorConventions.isConventionType
-import com.intellij.psi.PsiElement
-import com.intellij.psi.StubBasedPsiElement
-import com.intellij.psi.tree.IElementType
-import com.intellij.psi.util.PsiTreeUtil
 import java.util.*
 
 class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
@@ -189,7 +188,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
     ): CangJieTypeInfo {
         facade.checkStatementType(expression, context)
         if (!context.isDebuggerContext && context.isSaveTypeInfo) {
-            context.trace.report(Errors.ASSIGNMENT_IN_EXPRESSION_CONTEXT.on(expression))
+            context.trace.report(ASSIGNMENT_IN_EXPRESSION_CONTEXT.on(expression))
         }
         return noTypeInfo(context)
     }
@@ -205,6 +204,85 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         )
     }
 
+    private fun resolveArrayAccessForTuple(
+        type: CangJieType,
+        expression: CjArrayAccessExpression,
+        oldContext: ExpressionTypingContext,
+        traceForResolveResult: BindingTrace,
+        isGet: Boolean,
+        isImplicit: Boolean
+    ): CangJieTypeInfo {
+//        检查index元素数量，如果不是1，那么是扩展方法，直接报错
+//        检查psi元素类型，必须是integer 字面量
+//        检查越界情况
+//        返回值：元组对应的元素类型
+
+        val indexElements = expression.indexExpressions
+        val indices = indexElements.map {
+            facade.getTypeInfo(it, oldContext.replaceExpectedType(components.builtIns.int64Type)).type
+        }
+        if (indexElements.size > 1) {
+            traceForResolveResult.report(
+                if (isGet) NO_GET_FOR_TUPLE_METHOD.on(expression) else NO_SET_FOR_TUPLE_METHOD.on(
+                    expression
+                )
+            )
+            return noTypeInfo(oldContext)
+        }
+        val indexElement = indexElements.singleOrNull() ?: return noTypeInfo(oldContext)
+        val indexType = indices.firstOrNull() ?: return noTypeInfo(oldContext)
+
+
+        val elementType = indexElement.elementType
+
+        if (elementType != INTEGER_CONSTANT) {
+            traceForResolveResult.report(
+                NON_INTEGER_TUPLE_INDEX.on(
+                    indexElement
+                )
+            )
+            return noTypeInfo(oldContext)
+        }
+//        检查越界情况
+        val compileValue = traceForResolveResult[COMPILE_TIME_VALUE, indexElement]
+        if (compileValue == null) {
+            traceForResolveResult.report(
+                NON_INTEGER_TUPLE_INDEX.on(
+                    indexElement
+                )
+            )
+            return noTypeInfo(oldContext)
+        }
+        val index = compileValue.getValue(indexType) as? Long
+        if (index == null) {
+            traceForResolveResult.report(
+                NON_INTEGER_TUPLE_INDEX.on(
+                    indexElement
+                )
+            )
+            return noTypeInfo(oldContext)
+        }
+        val indexByInt =index.toInt()
+        if (indexByInt >= type.arguments.size   || indexByInt < 0) {
+            traceForResolveResult.report(
+                TUPLE_INDEX_OUT_OF_RANGE.on(
+                    indexElement,
+                    /*    index,
+                        type.arguments.size*/
+                )
+            )
+            return noTypeInfo(oldContext)
+
+        }
+        return if (isGet) {
+            createTypeInfo(type.arguments[indexByInt].type)
+        } else {
+            noTypeInfo(oldContext)
+        }
+
+
+    }
+
     private fun resolveArrayAccessSpecialMethod(
         arrayAccessExpression: CjArrayAccessExpression,
         rightHandSide: CjExpression?, // only for 'set' method
@@ -213,6 +291,8 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         isGet: Boolean,
         isImplicit: Boolean
     ): CangJieTypeInfo {
+
+
         val arrayExpression = arrayAccessExpression.arrayExpression ?: return noTypeInfo(oldContext)
 
         val arrayTypeInfo = facade.safeGetTypeInfo(
@@ -220,6 +300,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             oldContext.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(ContextDependency.INDEPENDENT)
         )
         val arrayType = ExpressionTypingUtils.safeGetType(arrayTypeInfo)
+
 
         val context = oldContext.replaceDataFlowInfo(arrayTypeInfo.dataFlowInfo)
         val receiver = create(arrayExpression, arrayType, context.trace.bindingContext)
@@ -230,9 +311,10 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         } else {
             CallMaker.makeArraySetCall(receiver, arrayAccessExpression, rightHandSide!!, Call.CallType.ARRAY_SET_METHOD)
         }
-
+        val ftrace = TemporaryBindingTrace.create(oldContext.trace, "resolve array access special method")
+        val functionContext = context.replaceBindingTrace(ftrace)
         val functionResults = components.callResolver.resolveCallWithGivenName(
-            context,
+            functionContext,
             call,
             arrayAccessExpression,
 
@@ -252,13 +334,26 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         )
 
         if ((isImplicit && !functionResults.isSuccess) || !functionResults.isSingleResult) {
+
+            if (arrayType.isBuiltinTupleType) {
+                return resolveArrayAccessForTuple(
+                    arrayType,
+                    arrayAccessExpression,
+                    oldContext,
+                    traceForResolveResult,
+                    isGet,
+                    isImplicit
+                )
+            }
             traceForResolveResult.report(
                 if (isGet) NO_GET_METHOD.on(arrayAccessExpression) else NO_SET_METHOD.on(
                     arrayAccessExpression
                 )
             )
+            ftrace.commit()
             return resultTypeInfo.clearType()
         }
+        ftrace.commit()
 
         if (isGet) {
             traceForResolveResult.record(INDEXED_LVALUE_GET, arrayAccessExpression, functionResults.resultingCall)
@@ -473,7 +568,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         } else if (OperatorConventions.BOOLEAN_OPERATIONS_NAMES.containsKey(operationType)) {
             result = visitBooleanOperationExpression(operationType, left, right, context)
         } else {
-            context.trace.report(Errors.UNSUPPORTED.on(operationSign, "Unknown operation"))
+            context.trace.report(UNSUPPORTED.on(operationSign, "Unknown operation"))
             result = noTypeInfo(context)
         }
 
@@ -523,7 +618,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             BinaryOperatorRuleResultType.ERROR -> {
                 if (isConventionType(operationType)) {
                     context.trace.report(
-                        Errors.INVALID_BINARY_OPERATOR.on(
+                        INVALID_BINARY_OPERATOR.on(
                             operationSign, InvalidBinaryData(
                                 (operationType as CjSingleValueToken).value, leftTypeInfo.type!!, rightTypeInfo.type!!
                             )
@@ -564,7 +659,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
     fun getDefaultType(constantType: IElementType): CangJieType {
         val builtIns = components.builtIns
-        return if (constantType === CjNodeTypes.INTEGER_CONSTANT) {
+        return if (constantType === INTEGER_CONSTANT) {
             builtIns.int64Type
         } else if (constantType === CjNodeTypes.FLOAT_CONSTANT) {
             builtIns.float64Type
@@ -597,7 +692,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 //            return;
 //        }
         if (hasIllegalUnderscore(expression.text, elementType)) {
-            context.trace.report(Errors.ILLEGAL_UNDERSCORE.on(expression))
+            context.trace.report(ILLEGAL_UNDERSCORE.on(expression))
         }
     }
 
@@ -668,12 +763,12 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
         val elementType = expression.node.elementType
-        if (elementType === CjNodeTypes.RUNE_CONSTANT || elementType === CjNodeTypes.INTEGER_CONSTANT || elementType === CjNodeTypes.FLOAT_CONSTANT) {
+        if (elementType === CjNodeTypes.RUNE_CONSTANT || elementType === INTEGER_CONSTANT || elementType === CjNodeTypes.FLOAT_CONSTANT) {
             checkLiteralPrefixAndSuffix(expression, context)
         }
 
 
-        if (elementType === CjNodeTypes.INTEGER_CONSTANT || elementType === CjNodeTypes.FLOAT_CONSTANT) {
+        if (elementType === INTEGER_CONSTANT || elementType === CjNodeTypes.FLOAT_CONSTANT) {
             checkUnderscores(expression, elementType, context)
         }
 
@@ -683,7 +778,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         if (compileTimeConstant is UnsignedErrorValueTypeConstant) {
             val value = compileTimeConstant.errorValue
-            context.trace.report(Errors.UNSIGNED_LITERAL_WITHOUT_DECLARATIONS_ON_CLASSPATH.on(expression))
+            context.trace.report(UNSIGNED_LITERAL_WITHOUT_DECLARATIONS_ON_CLASSPATH.on(expression))
 
             return createTypeInfo(value.getType(components.moduleDescriptor), context)
         } else if (compileTimeConstant !is IntegerValueTypeConstant) {
@@ -715,11 +810,11 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
     fun visitQualifiedExpressionByCaseEnum(
         expression: CjQualifiedExpression,
 
-        argument :List<ValueArgument>,
+        argument: List<ValueArgument>,
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
         val callExpressionResolver = components.callExpressionResolver
-        return callExpressionResolver.getQualifiedExpressionTypeInfoByCaseEnum(expression, argument,context)
+        return callExpressionResolver.getQualifiedExpressionTypeInfoByCaseEnum(expression, argument, context)
     }
 
     fun visitQualifiedExpressionByEnum(
@@ -761,15 +856,23 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
         return result
     }
+
     fun visitSimpleNameExpressionByCaseEnum(
         expression: CjSimpleNameExpression,
-        argument :List<ValueArgument>,
+        argument: List<ValueArgument>,
         context: ExpressionTypingContext,
-        isReportError :Boolean = true
+        isReportError: Boolean = true
     ): CangJieTypeInfo {
 
         val callExpressionResolver = components.callExpressionResolver
-        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfoByCaseEnum(expression, null, null, context,argument,isReportError)
+        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfoByCaseEnum(
+            expression,
+            null,
+            null,
+            context,
+            argument,
+            isReportError
+        )
 
 
         checkNull(expression, context, typeInfo.type)
@@ -779,6 +882,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         )
         return components.dataFlowAnalyzer.checkType(typeInfo, expression, context) // TODO : Extensions to this
     }
+
     fun visitSimpleNameExpressionByEnum(
         expression: CjSimpleNameExpression,
         context: ExpressionTypingContext
@@ -847,7 +951,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         // Conventions for unary operations
         val name = OperatorConventions.UNARY_OPERATION_NAMES[operationType]
         if (name == null) {
-            context.trace.report(Errors.UNSUPPORTED.on(operationSign, "visitUnaryExpression"))
+            context.trace.report(UNSUPPORTED.on(operationSign, "visitUnaryExpression"))
             return typeInfo.clearType()
         }
 
@@ -885,12 +989,12 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             checkNotNull(returnType) { "returnType is null for " + resolutionResults.resultingDescriptor }
             if (isUnit(returnType)) {
                 result = createErrorType(ErrorTypeKind.UNIT_RETURN_TYPE_FOR_INC_DEC)
-                context.trace.report(Errors.INC_DEC_SHOULD_NOT_RETURN_UNIT.on(operationSign))
+                context.trace.report(INC_DEC_SHOULD_NOT_RETURN_UNIT.on(operationSign))
             } else {
                 val receiverType = receiver.type
                 if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(returnType, receiverType)) {
                     context.trace.report(
-                        Errors.RESULT_TYPE_MISMATCH.on(
+                        RESULT_TYPE_MISMATCH.on(
                             operationSign,
                             name.asString(),
                             receiverType,
@@ -898,7 +1002,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                         )
                     )
                 } else {
-                    context.trace.record(BindingContext.VARIABLE_REASSIGNMENT, expression)
+                    context.trace.record(VARIABLE_REASSIGNMENT, expression)
                     val stubExpression = ExpressionTypingUtils.createFakeExpressionOfType(
                         baseExpression.project, context.trace, "e", type
                     )
@@ -1032,7 +1136,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 //            }
 //        }
         if (variable == null) {
-            trace.report(Errors.VARIABLE_EXPECTED.on(reportOn))
+            trace.report(VARIABLE_EXPECTED.on(reportOn))
             result = false
         } else if (!variable.isVar) {
             result = false
@@ -1062,8 +1166,8 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             )
         resolvedCall.markCallAsCompleted()
 
-        trace.record(BindingContext.RESOLVED_CALL, call, resolvedCall)
-        trace.record(BindingContext.CALL, expression, call)
+        trace.record(RESOLVED_CALL, call, resolvedCall)
+        trace.record(CALL, expression, call)
 
         if (context.trace.wantsDiagnostics()) {
             val callCheckerContext =
@@ -1126,7 +1230,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             }
             if (result != null) {
                 context.trace.record(
-                    BindingContext.REFERENCE_TARGET,
+                    REFERENCE_TARGET,
                     expression.instanceReference,
                     result.containingDeclaration
                 )
@@ -1191,9 +1295,9 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             val validClassifier = classifierCandidate != null && !isError(classifierCandidate)
             val validType = supertype != null && !supertype.isError
             if (result == null && (validClassifier || validType)) {
-                context.trace.report(Errors.NOT_A_SUPERTYPE.on(superTypeQualifier))
+                context.trace.report(NOT_A_SUPERTYPE.on(superTypeQualifier))
             } else if (redundantTypeArguments != null) {
-                context.trace.report(Errors.TYPE_ARGUMENTS_REDUNDANT_IN_SUPER_QUALIFIER.on(redundantTypeArguments))
+                context.trace.report(TYPE_ARGUMENTS_REDUNDANT_IN_SUPER_QUALIFIER.on(redundantTypeArguments))
             }
 
             //            if (!components.languageVersionSettings.supportsFeature(LanguageFeature.QualifiedSupertypeMayBeExtendedByOtherSupertype) &&
@@ -1210,7 +1314,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                     )
                 val supertypesResolvedFromContext = supertypesResolvedFromContextWithEqualsMigration.first
                 if (supertypesResolvedFromContextWithEqualsMigration.second) {
-                    context.trace.record(BindingContext.SUPER_EXPRESSION_FROM_ANY_MIGRATION, expression, true)
+                    context.trace.record(SUPER_EXPRESSION_FROM_ANY_MIGRATION, expression, true)
                 }
                 if (supertypesResolvedFromContext.size == 1) {
                     val singleResolvedType = supertypesResolvedFromContext.iterator().next()
@@ -1220,7 +1324,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                     // Resolve to 'Any' (this will cause diagnostics for unresolved member reference).
                     result = components.builtIns.anyType
                 } else {
-                    context.trace.report(Errors.AMBIGUOUS_SUPER.on(expression))
+                    context.trace.report(AMBIGUOUS_SUPER.on(expression))
                 }
             } else {
                 // supertypes may be empty when all the supertypes are error types (are not resolved, for example)
@@ -1234,15 +1338,15 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         if (result != null) {
             if (isInterface(thisType.constructor.declarationDescriptor)) {
                 if (isClass(result.constructor.declarationDescriptor)) {
-                    context.trace.report(Errors.SUPERCLASS_NOT_ACCESSIBLE_FROM_INTERFACE.on(expression))
+                    context.trace.report(SUPERCLASS_NOT_ACCESSIBLE_FROM_INTERFACE.on(expression))
                 }
             }
             context.trace.recordType(expression.instanceReference, result)
             context.trace.record(
-                BindingContext.REFERENCE_TARGET, expression.instanceReference,
+                REFERENCE_TARGET, expression.instanceReference,
                 result.constructor.declarationDescriptor
             )
-            context.trace.record(BindingContext.THIS_TYPE_FOR_SUPER_EXPRESSION, expression, thisType)
+            context.trace.record(THIS_TYPE_FOR_SUPER_EXPRESSION, expression, thisType)
         }
 
         context.trace.recordScope(context.scope, superTypeQualifier)
@@ -1256,14 +1360,14 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         when (resolutionResult.code) {
             LabelResolver.LabeledReceiverResolutionResult.Code.LABEL_RESOLUTION_ERROR -> {}
             LabelResolver.LabeledReceiverResolutionResult.Code.NO_THIS -> context.trace.report(
-                Errors.NO_THIS.on(
+                NO_THIS.on(
                     expression
                 )
             )
 
             LabelResolver.LabeledReceiverResolutionResult.Code.SUCCESS -> {
                 val descriptor = resolutionResult.getReceiverParameterDescriptor()
-                context.trace.record(BindingContext.THIS_REFERENCE_TARGET, expression.instanceReference, descriptor)
+                context.trace.record(THIS_REFERENCE_TARGET, expression.instanceReference, descriptor)
                 result = descriptor!!.type
                 context.trace.recordType(expression.instanceReference, result)
             }
@@ -1278,7 +1382,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         val resolutionResult = resolveToReceiver(expression, context, true)
 
         if (!CjPsiUtil.isLHSOfDot(expression)) {
-            context.trace.report(Errors.SUPER_IS_NOT_AN_EXPRESSION.on(expression, expression.text))
+            context.trace.report(SUPER_IS_NOT_AN_EXPRESSION.on(expression, expression.text))
             return errorInSuper(expression, context)
         }
 
@@ -1287,7 +1391,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                 return errorInSuper(expression, context)
 
             LabelResolver.LabeledReceiverResolutionResult.Code.NO_THIS -> {
-                context.trace.report(Errors.SUPER_NOT_AVAILABLE.on(expression))
+                context.trace.report(SUPER_NOT_AVAILABLE.on(expression))
                 return errorInSuper(expression, context)
             }
 
@@ -1449,7 +1553,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         //    前缀或后缀
         private fun checkLiteralPrefixOrSuffix(prefixOrSuffix: PsiElement?, context: ExpressionTypingContext) {
             if (illegalLiteralPrefixOrSuffix(prefixOrSuffix)) {
-                context.trace.report(Errors.UNSUPPORTED.on(prefixOrSuffix, "literal prefixes and suffixes"))
+                context.trace.report(UNSUPPORTED.on(prefixOrSuffix, "literal prefixes and suffixes"))
             }
         }
 
@@ -1465,7 +1569,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             declaration: CjDeclaration,
             context: ExpressionTypingContext
         ): CangJieTypeInfo {
-            context.trace.report(Errors.DECLARATION_IN_ILLEGAL_CONTEXT.on(declaration))
+            context.trace.report(DECLARATION_IN_ILLEGAL_CONTEXT.on(declaration))
             return noTypeInfo(context)
         }
 
@@ -1488,7 +1592,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                     }
                     if (CangJieTypeChecker.DEFAULT.isSubtypeOf(otherSupertype, result)) {
                         trace.report(
-                            Errors.QUALIFIED_SUPERTYPE_EXTENDED_BY_OTHER_SUPERTYPE.on(
+                            QUALIFIED_SUPERTYPE_EXTENDED_BY_OTHER_SUPERTYPE.on(
                                 superTypeQualifier,
                                 otherSupertype
                             )

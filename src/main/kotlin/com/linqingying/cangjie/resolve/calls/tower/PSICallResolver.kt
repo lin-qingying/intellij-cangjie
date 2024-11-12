@@ -617,6 +617,7 @@ class PSICallResolver(
         }
     }
 
+
     private fun resolveArgumentsInParenthesis(
         context: BasicCallResolutionContext,
         arguments: List<ValueArgument>,
@@ -626,7 +627,8 @@ class PSICallResolver(
         val dataFlowInfoForArguments = context.dataFlowInfoForArguments
         return arguments.map { argument ->
             resolveValueArgument(
-                context,
+                argument.getArgumentExpression()?.getScope(context.trace.bindingContext)
+                    ?.let { context.replaceScope(it) } ?: context,
                 dataFlowInfoForArguments.getInfo(argument),
                 argument,
                 isSpecialFunction,
@@ -1086,4 +1088,12 @@ class PSICallResolver(
 //        // so it's quite useless to preserve cache for longer time
 //        typeApproximator.clearCache()
 //    }
+}
+
+
+fun CjElement.getScope(context: BindingContext): LexicalScope? {
+return context[BindingContext.LEXICAL_SCOPE,this]
+
+
+
 }

@@ -759,7 +759,10 @@ open class CangJieExpressionParsing(
 
     }
 
-    inner class CasePattern {
+    inner class CasePattern(
+        val config: PatternConfig = PatternConfig(),
+        vararg val patternType: Pattern = Pattern.ALL.toTypedArray()
+    ) {
         /**
          * 绑定模式(id) | 类型模式(id:type) | 枚举模式(id(expression{,})?)
          */
@@ -793,7 +796,7 @@ open class CangJieExpressionParsing(
                 //1.绑定模式
                 //2.类型模式
                 //3.枚举模式
-                if (at(COLON)) {
+                if (at(COLON) && !config.isVariable) {
                     advance() // COLON
                     type = 2
                     cangJieParsing.parseTypeRef()
@@ -818,10 +821,25 @@ open class CangJieExpressionParsing(
 
 
             when (type) {
-                1 -> mark.done(BINDING_PATTERN)
+                1 -> {
+                    if (patternType.contains(Pattern.Binding)) {
+                        mark.done(BINDING_PATTERN)
+                    } else {
+                        mark.error("Binding patterns are not supported here")
+                    }
+                }
 //                1 -> mark.done(REFERENCE_EXPRESSION)
-                2 -> mark.done(TYPE_PATTERN)
-                3 -> mark.done(ENUM_PATTERN)
+                2 -> if (patternType.contains(Pattern.Type)) {
+                    mark.done(TYPE_PATTERN)
+                } else {
+                    mark.error("Type patterns are not supported here")
+                }
+
+                3 -> if (patternType.contains(Pattern.Enum)) {
+                    mark.done(ENUM_PATTERN)
+                } else {
+                    mark.error("Enum patterns are not supported here")
+                }
             }
 
 
@@ -834,13 +852,23 @@ open class CangJieExpressionParsing(
             assert(_at(UNDERLINE))
             advance()
 
-            if (at(COLON)) {
+            if (at(COLON) && !config.isVariable  ) {
                 advance() // COLON
                 //处理类型
                 cangJieParsing.parseTypeRef()
-                pattern.done(TYPE_PATTERN)
+                if (patternType.contains(Pattern.Type)) {
+                    pattern.done(TYPE_PATTERN)
+                } else {
+                    pattern.error("Type patterns are not supported here")
+
+                }
             } else {
-                pattern.done(WILDCARD_PATTERN)
+                if (patternType.contains(Pattern.Wildcard)) {
+                    pattern.done(WILDCARD_PATTERN)
+                } else {
+                    pattern.error("Wildcard patterns are not supported here")
+                }
+
             }
 
 
@@ -864,37 +892,60 @@ open class CangJieExpressionParsing(
 
                 INTEGER_LITERAL_Id -> {
                     parseOneTokenExpression(INTEGER_CONSTANT)
-                    constantPattern.done(CONSTANT_PATTERN)
+                    if (patternType.contains(Pattern.Constant)) {
+                        constantPattern.done(CONSTANT_PATTERN)
+                    } else {
+                        constantPattern.error("Constant templates are not supported here")
+                    }
                 }
 
                 RUNE_LITERAL_Id -> {
                     parseOneTokenExpression(RUNE_CONSTANT)
-                    constantPattern.done(CONSTANT_PATTERN)
+                    if (patternType.contains(Pattern.Constant)) {
+                        constantPattern.done(CONSTANT_PATTERN)
+                    } else {
+                        constantPattern.error("Constant templates are not supported here")
+                    }
 
                 }
 
                 CHARACTER_BYTE_LITERAL_Id -> {
                     parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
-                    constantPattern.done(CONSTANT_PATTERN)
+                    if (patternType.contains(Pattern.Constant)) {
+                        constantPattern.done(CONSTANT_PATTERN)
+                    } else {
+                        constantPattern.error("Constant templates are not supported here")
+                    }
 
                 }
 
                 TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> {
                     parseOneTokenExpression(BOOLEAN_CONSTANT)
-                    constantPattern.done(CONSTANT_PATTERN)
+                    if (patternType.contains(Pattern.Constant)) {
+                        constantPattern.done(CONSTANT_PATTERN)
+                    } else {
+                        constantPattern.error("Constant templates are not supported here")
+                    }
 
                 }
 
                 FLOAT_LITERAL_Id -> {
                     parseOneTokenExpression(FLOAT_CONSTANT)
-                    constantPattern.done(CONSTANT_PATTERN)
 
+                    if (patternType.contains(Pattern.Constant)) {
+                        constantPattern.done(CONSTANT_PATTERN)
+                    } else {
+                        constantPattern.error("Constant templates are not supported here")
+                    }
                 }
 
                 OPEN_QUOTE_Id -> {
                     parseStringTemplate()
-                    constantPattern.done(CONSTANT_PATTERN)
-
+                    if (patternType.contains(Pattern.Constant)) {
+                        constantPattern.done(CONSTANT_PATTERN)
+                    } else {
+                        constantPattern.error("Constant templates are not supported here")
+                    }
                 }
 
                 IDENTIFIER_Id -> {
@@ -957,10 +1008,20 @@ open class CangJieExpressionParsing(
             when {
                 isUnit -> {
                     mark().done(UNIT_CONSTANT)
-                    mark.done(CONSTANT_PATTERN)
+                    if (patternType.contains(Pattern.Constant)) {
+                        mark.done(CONSTANT_PATTERN)
+                    } else {
+                        mark.error("Constant patterns are not supported here")
+                    }
                 }
 
-                isTuple -> mark.done(TUPLE_PATTERN)
+                isTuple -> {
+                    if (patternType.contains(Pattern.Tuple)) {
+                        mark.done(TUPLE_PATTERN)
+                    } else {
+                        mark.error("Tuple patterns are not supported here")
+                    }
+                }
 
                 else -> mark.drop()
             }
@@ -977,6 +1038,14 @@ open class CangJieExpressionParsing(
         val m = GeneratedParserUtilBase.enter_section_(bnfBuilder, 0, 1, null, null)
         val r = call(bnfBuilder)
         GeneratedParserUtilBase.exit_section_(bnfBuilder, m, null, r)
+
+
+    }
+
+    fun parsePattern(config: PatternConfig, vararg patternType: Pattern) {
+        val casePattern = CasePattern(config, *patternType)
+
+        casePattern.parseExpression()
 
 
     }
@@ -3006,3 +3075,33 @@ private fun IElementType.equal(tokenSet: TokenSet): Boolean {
     return tokenSet.contains(this)
 
 }
+
+//模式类型
+sealed interface Pattern {
+    //    通配符模式
+
+    data object Wildcard : Pattern
+
+    //    枚举模式
+    data object Enum : Pattern
+
+    //    类型模式
+    data object Type : Pattern
+
+    //    元组模式
+    data object Tuple : Pattern
+
+    //    绑定模式
+    data object Binding : Pattern
+
+    //    常量模式
+    data object Constant : Pattern
+
+    companion object {
+        val ALL = listOf(Wildcard, Enum, Type, Tuple, Binding, Constant)
+    }
+}
+
+data class PatternConfig(
+    val isVariable: Boolean = false
+)

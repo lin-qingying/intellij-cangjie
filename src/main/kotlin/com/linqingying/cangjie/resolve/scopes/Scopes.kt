@@ -40,12 +40,14 @@ enum class LexicalScopeKind(val withLocalDescriptors: Boolean) {
 
     LEFT_BOOLEAN_EXPRESSION(true),
     RIGHT_BOOLEAN_EXPRESSION(true),
+    WHILE(true),
 
     THEN(true),
     ELSE(true),
     DO_WHILE_BODY(true),
     CATCH(true),
     TRY(true),
+    IF(true),
 
     FOR(true),
     WHILE_BODY(true),
@@ -64,7 +66,7 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> = emptyList()
 
-//    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor? {
+    //    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor? {
 //        return null
 //    }
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
@@ -75,7 +77,10 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
         return emptyList()
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> =
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> =
         emptyList()
 
     override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
@@ -95,7 +100,9 @@ interface LexicalScope : HierarchicalScope {
     val contextReceiversGroup: List<ReceiverParameterDescriptor>
 
     val kind: LexicalScopeKind
+    fun addVariableDescriptor(variableDescriptor: VariableDescriptor) {
 
+    }
 
     class Base(
         parent: HierarchicalScope,
@@ -216,7 +223,8 @@ class CompositePrioritizedImportingScope(
     override fun getContributedPackage(name: Name): PackageViewDescriptor? {
         return primaryScope.getContributedPackage(name) ?: secondaryScope.getContributedPackage(name)
     }
-//
+
+    //
 //    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor? {
 //return null
 //    }
@@ -254,7 +262,10 @@ class CompositePrioritizedImportingScope(
         )
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> {
         return primaryScope.getContributedVariables(name, location).union(
             secondaryScope.getContributedVariables(name, location)
         )

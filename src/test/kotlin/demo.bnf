@@ -1,0 +1,20 @@
+
+
+
+//变量声明
+
+variable ::=   variable1  | variable2
+
+
+//声明前缀 let var const
+prefix ::= let | var | const
+//普通声明模式
+variable1  ::=  variable1_1 | variable1_2
+
+variable1_1 ::= prefix (identifier | '_')  (':' Type) ? '=' expression
+variable1_2 ::= prefix (identifier | '_')  (':' Type)
+
+//解构 模式 声明
+variable2 ::=  prefix pattern '=' expression
+
+pattern ::= 通配符 | 元组 | 枚举
