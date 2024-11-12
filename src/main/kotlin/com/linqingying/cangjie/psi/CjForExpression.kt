@@ -25,7 +25,12 @@ class CjForExpression(node: ASTNode) : CjLoopExpression(node), CjPatternEntryBlo
 
             return findChildByClass(CjCasePattern::class.java)
         }
+    val patternGuard: CjPatternGuard?
+        get() {
 
+
+            return findChildByClass(CjPatternGuard::class.java)
+        }
     @get: IfNotParsed
     val loopRange: CjExpression?
         get() = findExpressionUnder(CjNodeTypes.LOOP_RANGE)

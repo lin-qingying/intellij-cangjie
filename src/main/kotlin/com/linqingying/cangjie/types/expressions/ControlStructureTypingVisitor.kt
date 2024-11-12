@@ -18,7 +18,6 @@ import com.linqingying.cangjie.resolve.calls.model.ResolvedCall
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl
 import com.linqingying.cangjie.resolve.calls.tower.LambdaContextInfo
-import com.linqingying.cangjie.resolve.calls.tower.getScope
 import com.linqingying.cangjie.resolve.descriptorUtil.builtIns
 import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.resolve.scopes.LexicalScopeKind
@@ -948,7 +947,12 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 loopRange,
                 context
             )
-
+        }
+        expression.patternGuard?.expression?.let {
+            facade.getTypeInfo(
+                it,
+                context.replaceExpectedType(components.builtIns.boolType)
+            )
         }
 
         val body = expression.body

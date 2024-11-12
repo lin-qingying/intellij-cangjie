@@ -852,7 +852,7 @@ open class CangJieExpressionParsing(
             assert(_at(UNDERLINE))
             advance()
 
-            if (at(COLON) && !config.isVariable  ) {
+            if (at(COLON) && !config.isVariable) {
                 advance() // COLON
                 //处理类型
                 cangJieParsing.parseTypeRef()
@@ -1129,14 +1129,25 @@ open class CangJieExpressionParsing(
 
 
         if (at(WHERE_KEYWORD)) {
-            val caseWhere = mark()
-            advance()
-
-            parseExpression()
-            caseWhere.done(CASE_WHERE)
+            parsePatternGuard()
         }
 
 //        condition.done(CASE_PATTERN)
+    }
+
+    /**
+     * patternGuard
+     * 'where' expression
+     */
+    fun parsePatternGuard() {
+        assert(_at(WHERE_KEYWORD))
+        val marker = mark()
+
+        advance() // WHERE_KEYWORD
+
+        parseExpression()
+
+        marker.done(PATTERN_GUARD)
     }
 
     /*
@@ -1161,32 +1172,17 @@ open class CangJieExpressionParsing(
                     cangJieParsing.parseModifierList(IN_KEYWORD_R_PAR_COLON_SET)
                 }
 
-//                if (at(LPAR)) {
-//                    val destructuringDeclaration = mark()
-//                    cangJieParsing.parseMultiDeclarationName(
-//                        IN_KEYWORD_L_BRACE_SET,
-//                        IN_KEYWORD_L_BRACE_RECOVERY_SET
-//                    )
-//                    destructuringDeclaration.done(DESTRUCTURING_DECLARATION)
-//                } else {
-//                    expect(
-//                        IDENTIFIER_RECOVERY_SET,
-//                        "Expecting a variable name",
-//                        COLON_IN_KEYWORD_SET
-//                    )
-//                    if (at(COLON)) {
-//                        errorAndAdvance("the pattern in for-in expression must be irrefutable")
-//                    }
-//                }
 
                 CasePattern().parseExpression()
-//                parameter.done(VALUE_PARAMETER)
-
 
                 if (expect(IN_KEYWORD, "Expecting 'in'", L_PAR_L_BRACE_R_PAR_SET)) {
                     val range = mark()
                     parseExpression()
                     range.done(LOOP_RANGE)
+                }
+
+                if (at(WHERE_KEYWORD)) {
+                    parsePatternGuard()
                 }
             } else {
                 error("Expecting a variable name")

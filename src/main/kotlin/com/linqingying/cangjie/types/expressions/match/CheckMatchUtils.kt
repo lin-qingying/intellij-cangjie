@@ -4,10 +4,9 @@ import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.isBuiltinTupleType
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.BindingContext
-import com.linqingying.cangjie.resolve.BindingContext.EXPRESSION_TYPE_INFO
-import com.linqingying.cangjie.resolve.calls.util.getType
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.types.ErrorUtils
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.util.deccriptorClass
 import com.linqingying.cangjie.types.util.isEnum
@@ -24,6 +23,9 @@ typealias Matrix = List<List<Pattern>>
 fun List<CjMatchEntry>.calculateMatrix(context: BindingContext): Matrix =
     flatMap { arm -> arm.conditions.map { listOf(getPattern(context, it)) } }
 
+fun CjCasePattern.calculateMatrix(context: BindingContext): Matrix = listOf(
+    listOf(getPattern(context, this))
+)
 
 fun getPattern(context: BindingContext, element: CjCasePattern): Pattern {
     return context[BindingContext.PATTERN, element] ?: Pattern.Error
@@ -365,21 +367,68 @@ private fun MutableList<Pattern>.fillWithSubPatterns(subPatterns: List<Pattern>)
         this[index] = pattern
     }
 }
+
+/**
+ * 执行匹配表达式的穷尽性检查。
+ * 该函数旨在确定给定的匹配表达式是否覆盖了所有可能的情况，即是否为穷尽的。
+ *
+ * @param match 匹配表达式对象，包含匹配的主体表达式和条目列表。
+ * @param context 绑定上下文，用于获取类型信息。
+ * @return 如果匹配表达式不是穷尽的，则返回一个模式列表；否则返回 null。
+ */
 fun doCheckExhaustive(match: CjMatchExpression, context: BindingContext): List<Pattern>? {
-    val matchedExprType =    match.subjectExpression?.let { context.getType(it) } ?: return null
+    // 获取匹配表达式的主体表达式的类型，如果主体表达式不存在则返回 null
+    val matchedExprType = match.subjectExpression?.let { context.getType(it) } ?: return null
 
-
+    // 计算匹配矩阵并检查其类型是否正确，如果类型不正确则返回 null
     val matrix = match.entries
         .calculateMatrix(context)
         .takeIf { it.isWellTyped() }
         ?: return null
 
+    // 创建一个通配符模式，用于表示所有可能的值
     val wild = Pattern.wild(matchedExprType)
+
+    // 检查通配符模式是否在当前矩阵中是有用的
     val useful = isUseful(matrix, listOf(wild), true, match.containingCjFile, isTopLevel = true)
+
+    // 如果通配符模式是有用的，说明匹配表达式不是穷尽的
+    if (useful is Usefulness.UsefulWithWitness) {
+        return useful.witnesses.mapNotNull { it.patterns.singleOrNull() }
+    }
+
+    // 匹配表达式是穷尽的，返回 null
+    return null
+}
+
+
+/**
+ * 根据单个模式获取穷尽情况
+ * @param expression 模式表达式
+ * @param context 上下文
+ * @return  如果匹配表达式不是穷尽的，则返回一个模式列表；否则返回 null。
+ */
+fun CjCasePattern.getExhaustive(expression: CjExpression?, context: BindingContext): List<Pattern>? {
+
+    val type = expression?.let { context.getType(it) } ?: ErrorUtils.invalidType
+
+
+    val matrix = calculateMatrix(context)
+        .takeIf { it.isWellTyped() }
+        ?: return null
+
+    val wild = Pattern.wild(type)
+    val useful = isUseful(matrix, listOf(wild), true, this.containingCjFile, isTopLevel = true)
 //
 //    /** If `_` pattern is useful, the match is not exhaustive */
     if (useful is Usefulness.UsefulWithWitness) {
         return useful.witnesses.mapNotNull { it.patterns.singleOrNull() }
     }
+
+
     return null
 }
+
+//fun isOverwriteForForInExpr(pattern: CjCasePattern, context: BindingContext):Boolean {
+//    doCheckExhaustive()
+//}

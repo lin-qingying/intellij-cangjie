@@ -186,13 +186,12 @@ IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
     IElementType BODY = new CjNodeType("BODY", CjContainerNodeForControlStructureBody.class);
 
     IElementType DO_WHILE = new CjNodeType("DO_WHILE", CjDoWhileExpression.class);
-
+    IElementType PATTERN_GUARD = new CjNodeType("PATTERN_GUARD", CjPatternGuard.class);
     IElementType LOOP_RANGE = new CjNodeType("LOOP_RANGE", CjContainerNode.class);
     IElementType FOR = new CjNodeType("FOR", CjForExpression.class);
 
     IElementType MATCH = new CjNodeType("MATCH", CjMatchExpression.class);
     IElementType MATCH_ENTRY = new CjNodeType("MATCH_ENTRY", CjMatchEntry.class);
-    IElementType CASE_WHERE = new CjNodeType("CASE_WHERE", CjCaseWhere.class);
 
 
 //    IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);

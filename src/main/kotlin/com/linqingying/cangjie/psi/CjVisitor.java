@@ -10,6 +10,10 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return null;
     }
 
+    public R visitPatternGuard(@NotNull CjPatternGuard expression, D data) {
+        return visitCjElement(expression, data);
+    }
+
     public R visitSafeQualifiedExpression(@NotNull CjSafeQualifiedExpression expression, D data) {
         return visitQualifiedExpression(expression, data);
     }
@@ -29,9 +33,11 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitPatternByBinding(@NotNull CjBindingPattern element, D data) {
         return visitCasePattern(element, data);
     }
+
     public R visitMatchConditionWithExpression(@NotNull CjMatchConditionWithExpression condition, D data) {
         return visitCasePattern(condition, data);
     }
+
     public R visitPatternByType(@NotNull CjTypePattern element, D data) {
         return visitCasePattern(element, data);
     }
@@ -92,12 +98,15 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitTupleExpression(@NotNull CjTupleExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitTryResourceList(@NotNull CjTryResourceList resource, D data) {
         return visitCjElement(resource, data);
     }
+
     public R visitTryResource(@NotNull CjTryResource resource, D data) {
         return visitCjElement(resource, data);
     }
+
     public R visitTryExpression(@NotNull CjTryExpression expression, D data) {
         return visitExpression(expression, data);
     }
@@ -114,6 +123,7 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitMatchExpression(@NotNull CjMatchExpression expression, D data) {
         return visitExpression(expression, data);
     }
+
     public R visitLetExpression(@NotNull CjLetExpression expression, D data) {
         return visitCjElement(expression, data);
     }
@@ -358,9 +368,11 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitCallExpression(CjCallExpression cjCallExpression, D data) {
         return visitReferenceExpression(cjCallExpression, data);
     }
+
     public R visitEndSecondaryConstructor(@NotNull CjEndSecondaryConstructor constructor, D data) {
         return visitNamedDeclaration(constructor, data);
     }
+
     public R visitSecondaryConstructor(@NotNull CjSecondaryConstructor constructor, D data) {
         return visitNamedDeclaration(constructor, data);
     }

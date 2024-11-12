@@ -1,14 +1,14 @@
 package com.linqingying.cangjie.psi
 
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.CjNodeTypes
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
 
-interface CjPatternEntryBlock:PsiElement
+interface CjPatternEntryBlock : PsiElement
 
-class CjMatchEntry(node: ASTNode) : CjElementImpl(node),CjPatternEntryBlock {
+class CjMatchEntry(node: ASTNode) : CjElementImpl(node), CjPatternEntryBlock {
     val isElse: Boolean
         get() {
             return elseKeyword != null
@@ -18,7 +18,7 @@ class CjMatchEntry(node: ASTNode) : CjElementImpl(node),CjPatternEntryBlock {
         get() {
             return findChildByType(CjNodeTypes.WILDCARD_PATTERN)
         }
-    val body :CjBlockExpression ? get() = findChildByClass(CjBlockExpression::class.java)
+    val body: CjBlockExpression? get() = findChildByClass(CjBlockExpression::class.java)
     val expression: CjCaseBlockExpression?
         get() = findChildByClass(CjCaseBlockExpression::class.java)
 
@@ -35,4 +35,7 @@ class CjMatchEntry(node: ASTNode) : CjElementImpl(node),CjPatternEntryBlock {
 
     val arrow: PsiElement?
         get() = findChildByType(CjTokens.DOUBLE_ARROW)
+
+
+    val patternGuard: CjPatternGuard? get() = findChildByClass(CjPatternGuard::class.java)
 }

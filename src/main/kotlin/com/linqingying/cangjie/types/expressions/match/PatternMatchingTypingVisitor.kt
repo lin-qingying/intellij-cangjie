@@ -314,11 +314,8 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             subject, casePattern, context.replaceScope(writableScope), Config(false)
         )
 
-        val isOverwrite = MatchChecker.isOverwrite(casePattern, iteratedType, context.trace.bindingContext)
-        if (!isOverwrite) {
-            context.trace.report(IRREFUTABLE_PATTERN_ERROR.on(casePattern))
-        }
 
+        isOverwriteForForInExpr(casePattern, initializer, context.trace)
 
     }
 
@@ -599,6 +596,11 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             override fun visitPatternByConstant(element: CjConstantPattern) {
                 pattern.visitPatternByConstant(element, PatternContext(subject, context))
             }
+
+            override fun visitPatternByWildcard(element: CjWildcardPattern) {
+                pattern.visitPatternByWildcard(element, PatternContext(subject, context))
+
+            }
         }
 
         condition.accept(patternVisitor)
@@ -682,6 +684,14 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             if (matchEntry.expression != null) {
                 argumentDataFlowInfos.add(conditionsInfo.thenInfo)
             }
+
+            matchEntry.patternGuard?.expression?.let {
+                facade.getTypeInfo(
+                    it,
+                    contextAfterSubject.replaceExpectedType(components.builtIns.boolType)
+                )
+            }
+
         }
         return argumentDataFlowInfos
     }
@@ -1291,9 +1301,8 @@ object MatchChecker {
 //        MatchOnSealedExhaustivenessChecker
     )
 
+    @Deprecated("use isOverwriteForForInExpr")
     fun isOverwrite(pattern: CjCasePattern, type: CangJieType, context: BindingContext): Boolean {
-
-
         val checkers = exhaustivenessCheckers.filter { it.isApplicable(type) }
         if (checkers.isEmpty()) return false
         return checkers.all {
@@ -1304,9 +1313,8 @@ object MatchChecker {
                 TypeUtils.getClassDescriptor(type)
             )
         }
-
-
     }
+
 
     fun getMissingCases(expression: CjMatchExpression, context: BindingContext): List<MatchMissingCase> {
         val type = MatchSubjectType(expression, context) ?: return listOf(MatchMissingCase.Unknown)
@@ -2065,4 +2073,21 @@ fun isBindingPattern(pattern: CjBindingPattern, context: BindingContext): Boolea
         VARIABLE,
         pattern
     ) != null
+}
+
+
+fun isOverwriteForForInExpr(pattern: CjCasePattern, expression: CjExpression?, trace: BindingTrace) {
+    val isOverwrite = isOverwrite(pattern, expression, trace.bindingContext)
+    if (!isOverwrite || pattern is CjTypePattern) {
+        trace.report(IRREFUTABLE_PATTERN_ERROR.on(pattern))
+    }
+
+}
+
+fun isOverwrite(pattern: CjCasePattern, expression: CjExpression?, context: BindingContext): Boolean {
+
+
+    return pattern.getExhaustive(
+        expression, context
+    ) == null
 }
