@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.resolve.scopes
 
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.CjFile
@@ -42,6 +43,9 @@ class InstanceMemberScope(private val memberScope: MemberScope) : MemberScope {
         return memberScope.getContributedPropertys(name, location).filter { !it.isStatic }
     }
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        return emptyList()
+    }
     override fun getFunctionNames(): Set<Name> {
         return memberScope.getFunctionNames() // 返回所有函数名称
 
@@ -122,6 +126,10 @@ class StaticMemberScope(val memberScope: MemberScope) : MemberScope {
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         return memberScope.getContributedFunctions(name, location).filter { it.isStatic } // 过滤非静态函数
+    }
+
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+   return emptyList()
     }
 
     override fun printScopeStructure(p: Printer) {
@@ -382,60 +390,4 @@ class DescriptorKindFilter(
     }
 
 
-}
-
-fun CjFile.getScope(): FileScope {
-    return FileScope(this)
-}
-
-class FileScope(val file: CjFile) : MemberScope {
-    override fun getContributedVariables(
-        name: Name,
-        location: LookupLocation
-    ): Collection<@JvmWildcard VariableDescriptor> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getFunctionNames(): Set<Name> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getVariableNames(): Set<Name> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getClassifierNames(): Set<Name>? {
-        TODO("Not yet implemented")
-    }
-
-    override fun getPropertyNames(): Set<Name> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
-        TODO("Not yet implemented")
-    }
-
-    override fun printScopeStructure(p: Printer) {
-        TODO("Not yet implemented")
-    }
-
-    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        TODO("Not yet implemented")
-    }
-
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-        TODO("Not yet implemented")
-    }
-
-    override fun getContributedDescriptors(
-        kindFilter: DescriptorKindFilter,
-        nameFilter: (Name) -> Boolean
-    ): Collection<DeclarationDescriptor> {
-        TODO("Not yet implemented")
-    }
 }

@@ -3,6 +3,8 @@ package com.linqingying.cangjie.descriptors
 import com.linqingying.cangjie.descriptors.Visibilities.Inherited.customEffectiveVisibility
 import  com.linqingying.cangjie.types.checker.SimpleClassicTypeSystemContext
 import  com.linqingying.cangjie.resolve.isPublishedApi
+import com.linqingying.cangjie.types.CangJieType
+
 fun DeclarationDescriptorWithVisibility.effectiveVisibility(
     visibility: DescriptorVisibility = this.visibility,
     checkPublishedApi: Boolean = false
@@ -14,6 +16,12 @@ fun DeclarationDescriptorWithVisibility.effectiveVisibility(
     )
 
 
+data class DescriptorWithRelation(val descriptor: ClassifierDescriptor, private val relation: RelationToType) {
+    fun effectiveVisibility() =
+        (descriptor as? ClassDescriptor)?.visibility?.effectiveVisibility(descriptor, false) ?: EffectiveVisibility.Public
+
+    override fun toString() = "$relation ${descriptor.name}"
+}
 
 private fun ClassDescriptor.effectiveVisibility(classes: Set<ClassDescriptor>, checkPublishedApi: Boolean): EffectiveVisibility =
     if (this in classes) EffectiveVisibility.Public
@@ -60,3 +68,28 @@ private fun DescriptorVisibility.forVisibility(
         // NB: visibility must be already normalized here, so e.g. no JavaVisibilities are possible at this point
         else -> throw AssertionError("Visibility $name is not allowed in forVisibility")
     }
+fun CangJieType.leastPermissiveDescriptor(base: EffectiveVisibility) = dependentDescriptors().leastPermissive(base)
+// Should collect all dependent classifier descriptors, to get verbose diagnostic
+private fun CangJieType.dependentDescriptors() = dependentDescriptors(emptySet(), RelationToType.CONSTRUCTOR)
+private fun CangJieType.dependentDescriptors(types: Set<CangJieType>, ownRelation: RelationToType): Set<DescriptorWithRelation> {
+    if (this in types) return emptySet()
+    val ownDependent = constructor.declarationDescriptor?.dependentDescriptors(ownRelation) ?: emptySet()
+    val argumentDependent = arguments.map { it.type.dependentDescriptors(types + this, RelationToType.ARGUMENT) }.flatten()
+    return ownDependent + argumentDependent
+}
+private fun ClassifierDescriptor.dependentDescriptors(ownRelation: RelationToType): Set<DescriptorWithRelation> =
+    setOf(DescriptorWithRelation(this, ownRelation)) +
+            ((this.containingDeclaration as? ClassifierDescriptor)?.dependentDescriptors(ownRelation.containerRelation()) ?: emptySet())
+private fun Set<DescriptorWithRelation>.leastPermissive(base: EffectiveVisibility): DescriptorWithRelation? {
+    for (descriptorWithRelation in this) {
+        val currentVisibility = descriptorWithRelation.effectiveVisibility()
+        when (currentVisibility.relation(base, SimpleClassicTypeSystemContext)) {
+            EffectiveVisibility.Permissiveness.LESS, EffectiveVisibility.Permissiveness.UNKNOWN -> {
+                return descriptorWithRelation
+            }
+            else -> {
+            }
+        }
+    }
+    return null
+}

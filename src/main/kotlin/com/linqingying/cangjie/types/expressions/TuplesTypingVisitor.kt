@@ -22,8 +22,7 @@ class TuplesTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingV
         val expressions = expression.expressions
         for (i in expressions.indices) {
 
-            val expectedType =
-                if (!noExpectedType(data.expectedType) && CangJieBuiltIns.isTuple(data.expectedType) && i < data.expectedType.arguments.size) {
+            val expectedType =    if (!noExpectedType(data.expectedType) && CangJieBuiltIns.isTuple(data.expectedType) && i < data.expectedType.arguments.size) {
                     data.expectedType.arguments[i].type
 
                 } else {
@@ -37,8 +36,9 @@ class TuplesTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingV
 
                 )
             ).type?.let {
+                // 如果存在预期类型且实际类型是其子类型，则使用预期类型；否则使用实际类型
 
-                if (!noExpectedType(data.expectedType) && components.cangjieTypeChecker.isSubtypeOf(it,expectedType  )) {
+                if (!noExpectedType(expectedType) && components.cangjieTypeChecker.isSubtypeOf(it,expectedType  )) {
 //        为Option装箱 为Tuple特殊处理
                     types.add(expectedType)
                 } else {

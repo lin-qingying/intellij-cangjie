@@ -1,9 +1,15 @@
 package com.linqingying.cangjie.resolve;
 
 import com.google.common.collect.Lists;
+import com.intellij.openapi.util.Pair;
+import com.intellij.psi.PsiElement;
 import com.linqingying.cangjie.descriptors.*;
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor;
 import com.linqingying.cangjie.diagnostics.Diagnostic;
-import com.linqingying.cangjie.psi.*;
+import com.linqingying.cangjie.psi.CjElement;
+import com.linqingying.cangjie.psi.CjExpression;
+import com.linqingying.cangjie.psi.CjQualifiedExpression;
+import com.linqingying.cangjie.psi.CjSimpleNameExpression;
 import com.linqingying.cangjie.resolve.calls.model.ResolvedCall;
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfoFactory;
 import com.linqingying.cangjie.resolve.calls.util.CallUtilKt;
@@ -13,8 +19,6 @@ import com.linqingying.cangjie.types.util.TypeUtils;
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.linqingying.cangjie.utils.slicedMap.MutableSlicedMap;
 import com.linqingying.cangjie.utils.slicedMap.ReadOnlySlice;
-import com.intellij.openapi.util.Pair;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,12 +35,12 @@ public class BindingContextUtils {
     ) {
         if (element instanceof CjSimpleNameExpression) {
             return variableDescriptorForDeclaration(bindingContext.get(BindingContext.REFERENCE_TARGET, (CjSimpleNameExpression) element));
-        }
-        else if (element instanceof CjQualifiedExpression) {
+        } else if (element instanceof CjQualifiedExpression) {
             return extractVariableDescriptorFromReference(bindingContext, ((CjQualifiedExpression) element).getSelectorExpression());
         }
         return null;
     }
+
     public static void reportAmbiguousLabel(
             @NotNull BindingTrace trace,
             @NotNull CjSimpleNameExpression targetLabel,
@@ -53,6 +57,7 @@ public class BindingContextUtils {
         }
         trace.report(AMBIGUOUS_LABEL.on(targetLabel));
     }
+
     @Nullable
     public static VariableDescriptor variableDescriptorForDeclaration(@Nullable DeclarationDescriptor descriptor) {
         if (descriptor instanceof VariableDescriptor)
@@ -62,6 +67,7 @@ public class BindingContextUtils {
 //        }
         return null;
     }
+
     @Nullable
     public static VariableDescriptor extractVariableFromResolvedCall(
             @NotNull BindingContext bindingContext,
@@ -71,6 +77,7 @@ public class BindingContextUtils {
         if (resolvedCall == null || !(resolvedCall.getResultingDescriptor() instanceof VariableDescriptor)) return null;
         return (VariableDescriptor) resolvedCall.getResultingDescriptor();
     }
+
     @Nullable
     public static CangJieType updateRecordedType(
             @Nullable CangJieType type,
@@ -86,6 +93,7 @@ public class BindingContextUtils {
         trace.recordType(expression, type);
         return type;
     }
+
     @NotNull
     public static Pair<FunctionDescriptor, PsiElement> getContainingFunctionSkipFunctionLiterals(
             @Nullable DeclarationDescriptor startDescriptor,
@@ -138,11 +146,11 @@ public class BindingContextUtils {
      * 将自定义数据添加到给定的trace对象中
      * 此方法遍历一个映射，根据条件将数据记录到trace中，并可选择性地提交诊断信息
      *
-     * @param trace BindingTrace对象，用于记录数据和诊断信息
-     * @param filter TraceEntryFilter对象，用于过滤哪些数据应被记录如果为null，则不进行过滤
+     * @param trace             BindingTrace对象，用于记录数据和诊断信息
+     * @param filter            TraceEntryFilter对象，用于过滤哪些数据应被记录如果为null，则不进行过滤
      * @param commitDiagnostics 指示是否应提交诊断信息的布尔值
-     * @param map MutableSlicedMap对象，包含要添加到trace的数据
-     * @param diagnostics MutableDiagnosticsWithSuppression对象，包含可能要提交的诊断信息
+     * @param map               MutableSlicedMap对象，包含要添加到trace的数据
+     * @param diagnostics       MutableDiagnosticsWithSuppression对象，包含可能要提交的诊断信息
      */
     @SuppressWarnings("unchecked")
     static void addOwnDataTo(
@@ -155,7 +163,7 @@ public class BindingContextUtils {
             if (filter == null || filter.accept(slice, key)) {
                 trace.record(slice, key, value);
             }
-    
+
             return null;
         });
 
@@ -170,20 +178,24 @@ public class BindingContextUtils {
             }
         }
     }
-
+    public static void recordMacroDeclarationToDescriptor(@NotNull BindingTrace trace,
+                                                             @NotNull PsiElement psiElement, @NotNull MacroDescriptor macroDescriptor) {
+        trace.record(BindingContext.MACRO, psiElement, macroDescriptor);
+    }
     public static void recordFunctionDeclarationToDescriptor(@NotNull BindingTrace trace,
                                                              @NotNull PsiElement psiElement, @NotNull SimpleFunctionDescriptor function) {
         trace.record(BindingContext.FUNCTION, psiElement, function);
     }
-    public static <K,V> void removeBySlice( ReadOnlySlice<K,V> slice,K key,  @NotNull BindingTrace trace) {
-        if(trace instanceof DelegatingBindingTrace){
-            ((DelegatingBindingTrace) trace).removeBySlice(slice,key);
+
+    public static <K, V> void removeBySlice(ReadOnlySlice<K, V> slice, K key, @NotNull BindingTrace trace) {
+        if (trace instanceof DelegatingBindingTrace) {
+            ((DelegatingBindingTrace) trace).removeBySlice(slice, key);
         }
     }
 
-    public static void remove(CjElement key,@NotNull BindingTrace trace){
-        if(trace instanceof DelegatingBindingTrace){
-           ((DelegatingBindingTrace) trace).remove(key);
+    public static void remove(CjElement key, @NotNull BindingTrace trace) {
+        if (trace instanceof DelegatingBindingTrace) {
+            ((DelegatingBindingTrace) trace).remove(key);
         }
     }
 }

@@ -118,6 +118,18 @@ open class LazyDeclarationResolver(
                 scopeForDeclaration.getContributedFunctions(function.nameAsSafeName, location)
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
             }
+
+            override fun visitMacroDeclaration(
+                macroDeclaration: CjMacroDeclaration ,
+                data: Nothing?
+            ): DeclarationDescriptor? {
+                val location = lookupLocationFor(macroDeclaration, macroDeclaration.isTopLevel)
+                val scopeForDeclaration = getMemberScopeDeclaredIn(macroDeclaration, location)
+                scopeForDeclaration.getContributedMacros(macroDeclaration.nameAsSafeName, location)
+
+                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, macroDeclaration)
+
+            }
             override fun visitTypeParameter(parameter: CjTypeParameter, data: Nothing?): DeclarationDescriptor? {
                 val ownerElement = PsiTreeUtil.getParentOfType(parameter, CjTypeParameterListOwner::class.java)
                     ?: error("Owner not found for type parameter: " + parameter.text)
@@ -165,6 +177,13 @@ open class LazyDeclarationResolver(
                     is CjMainFunction -> {
 
                         val function = visitMainFunction(grandFather, data) as? FunctionDescriptor
+                        function?.valueParameters
+                        return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
+
+                    }
+                    is CjMacroDeclaration -> {
+
+                        val function = visitMacroDeclaration(grandFather, data) as? FunctionDescriptor
                         function?.valueParameters
                         return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
 

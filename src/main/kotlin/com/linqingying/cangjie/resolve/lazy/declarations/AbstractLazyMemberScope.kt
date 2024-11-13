@@ -5,6 +5,7 @@ import com.linqingying.cangjie.builtins.StandardNames.FqNames.core
 import com.linqingying.cangjie.builtins.StandardNames.MAIN
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.enumd.LazyEnumDescriptor
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.name.Name
@@ -40,7 +41,8 @@ protected constructor(
         storageManager.createMemoizedFunction { doGetMainFunctions() }
     private val classDescriptors: MemoizedFunctionToNotNull<Name, List<ClassDescriptor>> =
         storageManager.createMemoizedFunction { doGetClasses(it) }
-
+    private val macroDescriptors: MemoizedFunctionToNotNull<Name, Collection<MacroDescriptor>> =
+        storageManager.createMemoizedFunction { doGetMacros(it) }
     private val extendclassDescriptors: MemoizedFunctionToNotNull<Name, List<LazyExtendClassDescriptor>> =
         storageManager.createMemoizedFunction { doGetExtendClasses(it) }
 
@@ -54,6 +56,9 @@ protected constructor(
         storageManager.createMemoizedFunction { getMainDeclaredFunctions() }
     private val declaredFunctionDescriptors: MemoizedFunctionToNotNull<Name, Collection<SimpleFunctionDescriptor>> =
         storageManager.createMemoizedFunction { getDeclaredFunctions(it) }
+    private val declaredMacroDescriptors: MemoizedFunctionToNotNull<Name, Collection<MacroDescriptor>> =
+        storageManager.createMemoizedFunction { getDeclaredMacros(it) }
+
     private val typeAliasDescriptors: MemoizedFunctionToNotNull<Name, Collection<TypeAliasDescriptor>> =
         storageManager.createMemoizedFunction({ doGetTypeAliases(it) }, onRecursiveCall = { _, _ -> emptyList() })
     private val declaredPropertyDescriptors: MemoizedFunctionToNotNull<Name, Collection<PropertyDescriptor>> =
@@ -332,6 +337,30 @@ protected constructor(
         return result
     }
 
+    private fun getDeclaredMacros(
+        name: Name
+    ): Collection<MacroDescriptor> {
+        // TODO: do we really need to copy descriptors?
+        if (mainScope != null) return mainScope.declaredMacroDescriptors(name).map {
+            it.newCopyBuilder().setPreserveSourceElement().build()!!
+        }
+        val result = linkedSetOf<MacroDescriptor>()
+        val declarations = declarationProvider.getMacroDeclarations(name)
+        for (marcoDeclaration in declarations) {
+            result.add(
+                c.functionDescriptorResolver.resolveMacroDescriptor(
+                    thisDescriptor,
+                    getScopeForMemberDeclarationResolution(marcoDeclaration),
+                    marcoDeclaration,
+                    trace,
+                    c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(marcoDeclaration),
+                    c.inferenceSession
+                )
+            )
+        }
+       return result
+    }
+
     private fun getDeclaredFunctions(
         name: Name
     ): Collection<SimpleFunctionDescriptor> {
@@ -369,6 +398,14 @@ protected constructor(
         return LinkedHashSet(declaredMainFunctionDescriptors.invoke(MAIN))
     }
 
+    private fun doGetMacros(name: Name): Collection<MacroDescriptor> {
+        val result = LinkedHashSet(declaredMacroDescriptors.invoke(name))
+
+        getNonDeclaredMacros(name, result)
+
+        return result.toList()
+    }
+
     private fun doGetFunctions(name: Name): Collection<SimpleFunctionDescriptor> {
         val result = LinkedHashSet(declaredFunctionDescriptors.invoke(name))
 
@@ -376,6 +413,8 @@ protected constructor(
 
         return result.toList()
     }
+
+    protected abstract fun getNonDeclaredMacros(name: Name, result: MutableSet<MacroDescriptor>)
 
     protected abstract fun getNonDeclaredFunctions(name: Name, result: MutableSet<SimpleFunctionDescriptor>)
 
@@ -495,6 +534,12 @@ protected constructor(
         }
 
         return result.toList()
+    }
+
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+
+        recordLookup(name, location)
+        return macroDescriptors(name)
     }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {

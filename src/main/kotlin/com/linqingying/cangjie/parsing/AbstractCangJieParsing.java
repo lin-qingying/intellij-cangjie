@@ -1,27 +1,42 @@
 package com.linqingying.cangjie.parsing;
 
+import com.intellij.analysis.AnalysisBundle;
+import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
+import com.intellij.lang.*;
+import com.intellij.lang.impl.PsiBuilderAdapter;
+import com.intellij.lang.impl.PsiBuilderImpl;
+import com.intellij.lang.parser.GeneratedParserUtilBase;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringHash;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.source.resolve.FileContextUtil;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.tree.TokenSet;
+import com.intellij.util.Function;
+import com.intellij.util.PairProcessor;
+import com.intellij.util.containers.LimitedPool;
+import com.intellij.util.containers.Stack;
 import com.linqingying.cangjie.lexer.CjKeywordToken;
 import com.linqingying.cangjie.lexer.CjToken;
 import com.linqingying.cangjie.lexer.CjTokens;
 import com.linqingying.cangjie.utils.StringsKt;
-import com.intellij.lang.LighterASTNode;
-import com.intellij.lang.PsiBuilder;
-import com.intellij.lang.PsiBuilderUtil;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
-import com.intellij.util.containers.Stack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
+import org.jetbrains.annotations.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
+import static com.intellij.openapi.util.text.StringUtil.*;
+import static com.intellij.openapi.util.text.StringUtil.startsWithIgnoreCase;
 import static com.linqingying.cangjie.lexer.CjTokens.*;
 
 
 public abstract class AbstractCangJieParsing {
     private static final Map<String, CjKeywordToken> SOFT_KEYWORD_TEXTS = new HashMap<>();
+    private static final int MAX_VARIANTS_SIZE = 10000;
+    private static final int MAX_VARIANTS_TO_DISPLAY = 50;
+    private static final int MAX_ERROR_TOKEN_TEXT = 20;
+    private static final int INITIAL_VARIANTS_SIZE = 1000;
+    private static final int VARIANTS_POOL_SIZE = 10000;
+    private static final int FRAMES_POOL_SIZE = 500;
 
     static {
         for (IElementType type : CjTokens.SOFT_KEYWORDS.getTypes()) {
@@ -41,6 +56,7 @@ public abstract class AbstractCangJieParsing {
     protected final SemanticWhitespaceAwarePsiBuilder myBuilder;
     protected final boolean isLazy;
     protected boolean isDeclarationsFile = false;
+    public final  ErrorState state = new ErrorState();
 
     public AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder) {
         this(builder, true);
@@ -49,6 +65,8 @@ public abstract class AbstractCangJieParsing {
     public AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
         this.myBuilder = builder;
         this.isLazy = isLazy;
+
+
     }
 
     /**
@@ -77,6 +95,12 @@ public abstract class AbstractCangJieParsing {
         marker.done(elementType);
         marker.setCustomEdgeTokenBinders(precedingNonDocComments ? PrecedingCommentsBinder.INSTANCE : PrecedingDocCommentsBinder.INSTANCE,
                 TrailingCommentsBinder.INSTANCE);
+    }
+
+
+    protected List<PsiBuilderImpl.ProductionMarker> getProductions() {
+
+        return ((PsiBuilderImpl) ((PsiBuilderAdapter) myBuilder).getDelegate()).getProductions();
     }
 
     public void setDeclarationsFile(boolean isDeclarationsFile) {
@@ -745,6 +769,284 @@ public abstract class AbstractCangJieParsing {
         return StringsKt.substringWithContext(myBuilder.getOriginalText(), myBuilder.getCurrentOffset(), myBuilder.getCurrentOffset(), 20);
     }
 
+    private static class MyList<E> extends ArrayList<E> {
+        MyList(int initialCapacity) {
+            super(initialCapacity);
+        }
+
+        protected void setSize(int fromIndex) {
+            removeRange(fromIndex, size());
+        }
+
+        @Override
+        public boolean add(E e) {
+            int size = size();
+            if (size >= MAX_VARIANTS_SIZE) {
+                removeRange(MAX_VARIANTS_SIZE / 4, size - MAX_VARIANTS_SIZE / 4);
+            }
+            return super.add(e);
+        }
+    }
+
+    private static class Variant {
+        int position;
+        Object object;
+
+        public Variant init(int pos, Object o) {
+            position = pos;
+            object = o;
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "<" + position + ", " + object + ">";
+        }
+    }
+
+    public static class CompletionState implements Function<Object, String> {
+        public final int offset;
+        public final Collection<String> items = new HashSet<>();
+
+        public CompletionState(int offset_) {
+            offset = offset_;
+        }
+
+        public @Nullable String convertItem(Object o) {
+            return o instanceof Object[] ? join((Object[]) o, this, " ") : o.toString();
+        }
+
+        @Override
+        public String fun(Object o) {
+            return convertItem(o);
+        }
+
+        public void addItem(@NotNull PsiBuilder builder, @NotNull String text) {
+            items.add(text);
+        }
+
+        public boolean prefixMatches(@NotNull PsiBuilder builder, @NotNull String text) {
+            int builderOffset = builder.getCurrentOffset();
+            int diff = offset - builderOffset;
+            int length = text.length();
+            if (diff == 0) {
+                return true;
+            } else if (diff > 0 && diff <= length) {
+                CharSequence fragment = builder.getOriginalText().subSequence(builderOffset, offset);
+                return prefixMatches(fragment.toString(), text);
+            } else if (diff < 0) {
+                for (int i = -1; ; i--) {
+                    IElementType type = builder.rawLookup(i);
+                    int tokenStart = builder.rawTokenTypeStart(i);
+                    if (isWhitespaceOrComment(builder, type)) {
+                        diff = offset - tokenStart;
+                    } else if (type != null && tokenStart < offset) {
+                        CharSequence fragment = builder.getOriginalText().subSequence(tokenStart, offset);
+                        if (prefixMatches(fragment.toString(), text)) {
+                            diff = offset - tokenStart;
+                        }
+                        break;
+                    } else break;
+                }
+                return diff >= 0 && diff < length;
+            }
+            return false;
+        }
+
+        public boolean prefixMatches(@NotNull String prefix, @NotNull String variant) {
+            boolean matches = new CamelHumpMatcher(prefix, false).prefixMatches(variant.replace(' ', '_'));
+            if (matches && isWhiteSpace(prefix.charAt(prefix.length() - 1))) {
+                return startsWithIgnoreCase(variant, prefix);
+            }
+            return matches;
+        }
+    }
+
+    public interface Parser {
+        boolean parse(PsiBuilder builder, int level);
+    }
+    public static class Frame {
+        public  Frame parentFrame;
+        public IElementType elementType;
+
+        public int offset;
+        public int position;
+        public int level;
+        public int modifiers;
+        public @NonNls String name;
+        public int variantCount;
+        public int errorReportedAt;
+        public int lastVariantAt;
+        public PsiBuilder.Marker leftMarker;
+
+        public Frame() {
+        }
+
+        public  Frame init(PsiBuilder builder,
+                                                   ErrorState state,
+                                                  int level_,
+                                                  int modifiers_,
+                                                  IElementType elementType_,
+                                                  String name_) {
+            parentFrame = state.currentFrame;
+            elementType = elementType_;
+
+            offset = builder.getCurrentOffset();
+            position = builder.rawTokenIndex();
+            level = level_;
+            modifiers = modifiers_;
+            name = name_;
+            variantCount = state.variants.size();
+            errorReportedAt = -1;
+            lastVariantAt = -1;
+
+            leftMarker = null;
+            return this;
+        }
+
+        @Override
+        public @NonNls String toString() {
+            String mod = modifiers == _NONE_ ? "_NONE_, " :
+                    ((modifiers & _COLLAPSE_) != 0? "_CAN_COLLAPSE_, ": "") +
+                            ((modifiers & _LEFT_) != 0? "_LEFT_, ": "") +
+                            ((modifiers & _LEFT_INNER_) != 0? "_LEFT_INNER_, ": "") +
+                            ((modifiers & _AND_) != 0? "_AND_, ": "") +
+                            ((modifiers & _NOT_) != 0? "_NOT_, ": "") +
+                            ((modifiers & _UPPER_) != 0 ? "_UPPER_, " : "");
+            return String.format("{%s:%s:%d, %d, %s%s, %s}", offset, position, level, errorReportedAt, mod, elementType, name);
+        }
+    }
+    // here's the new section API for compact parsers & less IntelliJ platform API exposure
+    public static final int _NONE_       = 0x0;
+    public static final int _COLLAPSE_   = 0x1;
+    public static final int _LEFT_       = 0x2;
+    public static final int _LEFT_INNER_ = 0x4;
+    public static final int _AND_        = 0x8;
+    public static final int _NOT_        = 0x10;
+    public static final int _UPPER_      = 0x20;
+
+
+
+
+    public interface Hook<T> {
+
+        @Contract("_,null,_->null")
+        PsiBuilder.Marker run(PsiBuilder builder, PsiBuilder.Marker marker, T param);
+
+    }
+    private record Hooks<T>( Hook<T> hook, T param, int level,  Hooks next) {
+        static <E>  Hooks<E> concat( Hook<E> hook, E param, int level,  Hooks<?> hooks) {
+            return new  Hooks<>(hook, param, level, hooks);
+        }
+    }
+    public static final  Parser TOKEN_ADVANCER = (builder, level) -> {
+        if (builder.eof()) return false;
+        builder.advanceLexer();
+        return true;
+    };
+    public static final Key< CompletionState> COMPLETION_STATE_KEY = Key.create("COMPLETION_STATE_KEY");
+
+    public static class ErrorState {
+
+        final MyList<Variant> variants = new MyList<>(INITIAL_VARIANTS_SIZE);
+        final MyList<Variant> unexpected = new MyList<>(INITIAL_VARIANTS_SIZE / 10);
+        final LimitedPool<Variant> VARIANTS = new LimitedPool<>(VARIANTS_POOL_SIZE, Variant::new);
+        final LimitedPool<Frame> FRAMES = new LimitedPool<>(FRAMES_POOL_SIZE, Frame::new);
+        public Frame currentFrame;
+        public CompletionState completionState;
+        public PairProcessor<IElementType, IElementType> altExtendsChecker;
+        public BracePair[] braces;
+        public Parser tokenAdvancer = TOKEN_ADVANCER;
+        public boolean altMode;
+        int predicateCount;
+        int level;
+        boolean predicateSign = true;
+        boolean suppressErrors;
+        Hooks<?> hooks;
+        TokenSet[] extendsSets;
+        private boolean caseSensitive;
+
+
+
+        public static void initState(ErrorState state, PsiBuilder builder, IElementType root, TokenSet[] extendsSets) {
+            state.extendsSets = extendsSets;
+            PsiFile file = builder.getUserData(FileContextUtil.CONTAINING_FILE_KEY);
+            state.completionState = file == null ? null : file.getUserData(COMPLETION_STATE_KEY);
+            Language language = file == null ? root.getLanguage() : file.getLanguage();
+            state.caseSensitive = language.isCaseSensitive();
+            PairedBraceMatcher matcher = LanguageBraceMatching.INSTANCE.forLanguage(language);
+            state.braces = matcher == null ? null : matcher.getPairs();
+            if (state.braces != null && state.braces.length == 0) state.braces = null;
+        }
+
+        public @NotNull String getExpected(int position, boolean expected) {
+            StringBuilder sb = new StringBuilder();
+            MyList<Variant> list = expected ? variants : unexpected;
+            String[] strings = new String[list.size()];
+            long[] hashes = new long[strings.length];
+            Arrays.fill(strings, "");
+            int count = 0;
+            loop:
+            for (Variant variant : list) {
+                if (position == variant.position) {
+                    String text = String.valueOf(variant.object);
+                    long hash = StringHash.calc(text);
+                    for (int i = 0; i < count; i++) {
+                        if (hashes[i] == hash) continue loop;
+                    }
+                    hashes[count] = hash;
+                    strings[count] = text;
+                    count++;
+                }
+            }
+            Arrays.sort(strings);
+            count = 0;
+            for (String s : strings) {
+                if (s.length() == 0) continue;
+                if (count++ > 0) {
+                    if (count > MAX_VARIANTS_TO_DISPLAY) {
+                        sb.append(" ").append(AnalysisBundle.message("parsing.error.and.ellipsis"));
+                        break;
+                    } else {
+                        sb.append(", ");
+                    }
+                }
+                char c = s.charAt(0);
+                String displayText = c == '<' || isJavaIdentifierStart(c) ? s : '\'' + s + '\'';
+                sb.append(displayText);
+            }
+            if (count > 1 && count < MAX_VARIANTS_TO_DISPLAY) {
+                int idx = sb.lastIndexOf(", ");
+                sb.replace(idx, idx + 1, " " + AnalysisBundle.message("parsing.error.or"));
+            }
+            return sb.toString();
+        }
+
+        public void clearVariants(Frame frame) {
+            clearVariants(true, frame == null ? 0 : frame.variantCount);
+            if (frame != null) frame.lastVariantAt = -1;
+        }
+
+        void clearVariants(boolean expected, int start) {
+            MyList<Variant> list = expected ? variants : unexpected;
+            if (start < 0 || start >= list.size()) return;
+            for (int i = start, len = list.size(); i < len; i++) {
+                VARIANTS.recycle(list.get(i));
+            }
+            list.setSize(start);
+        }
+
+        public boolean typeExtends(IElementType child, IElementType parent) {
+            if (child == parent) return true;
+            if (extendsSets != null) {
+                for (TokenSet set : extendsSets) {
+                    if (set.contains(child) && set.contains(parent)) return true;
+                }
+            }
+            return altExtendsChecker != null && altExtendsChecker.process(child, parent);
+        }
+    }
+
     /**
      * 表示一个可选的标记
      */
@@ -794,6 +1096,9 @@ public abstract class AbstractCangJieParsing {
             marker.drop();
         }
     }
+    public static boolean isWhitespaceOrComment(@NotNull PsiBuilder builder, @Nullable IElementType type) {
+        return ((PsiBuilderImpl) builder).whitespaceOrComment(type);
+    }
 
     protected class At extends AbstractTokenStreamPredicate {
 
@@ -834,4 +1139,5 @@ public abstract class AbstractCangJieParsing {
             return (topLevel || !atSet(topLevelOnly)) && atSet(lookFor);
         }
     }
+
 }

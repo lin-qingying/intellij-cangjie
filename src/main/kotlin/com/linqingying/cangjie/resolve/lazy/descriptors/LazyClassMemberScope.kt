@@ -4,6 +4,7 @@ import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.impl.AbstractClassDescriptor
 import com.linqingying.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.FunctionDescriptorImpl
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.diagnostics.Errors
 import com.linqingying.cangjie.diagnostics.reportOnDeclarationOrFail
 import com.linqingying.cangjie.incremental.components.LookupLocation
@@ -254,6 +255,9 @@ open class LazyClassMemberScope(
         generateFakeOverrides(name, fromSupertypes, result, SimpleFunctionDescriptor::class.java)
     }
 
+    override fun getNonDeclaredMacros(name: Name, result: MutableSet<MacroDescriptor>) {
+
+    }
     //重写
     private fun <D : CallableMemberDescriptor> generateFakeOverrides(
         name: Name,

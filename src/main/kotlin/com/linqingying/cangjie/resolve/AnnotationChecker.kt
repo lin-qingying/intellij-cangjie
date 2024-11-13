@@ -63,6 +63,7 @@ class AnnotationChecker {
                 }
 
                 is CjConstructor<*> -> TargetLists.T_CONSTRUCTOR
+                is CjMacroDeclaration-> TargetLists.T_MACRO
                 is CjFunction -> {
                     when {
                         ExpressionTypingUtils.isFunctionExpression(descriptor) -> TargetLists.T_FUNCTION_EXPRESSION
@@ -132,7 +133,7 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
     VALUE_PARAMETER("value parameter"),
     MEMBER_VARIABLE("member variable", false),
     MEMBER_PROPERTY("member property", false),
-
+    MACRO("macro"),
     // includes PROPERTY_PARAMETER, with and without field/delegate
     CONSTRUCTOR("constructor"),
     PROPERTY_GETTER("getter"),
@@ -220,6 +221,7 @@ object AnnotationTargetLists {
 //        onlyWithUseSiteTarget(PROPERTY_GETTER, PROPERTY_SETTER)
     }
     val T_CONSTRUCTOR = targetList(CONSTRUCTOR)
+    val T_MACRO = targetList(MACRO)
 
     val T_EXPRESSION = targetList(EXPRESSION)
     val T_FUNCTION_LITERAL = targetList(LAMBDA_EXPRESSION, FUNCTION, EXPRESSION)

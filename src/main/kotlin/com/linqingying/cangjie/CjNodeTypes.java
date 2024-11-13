@@ -85,6 +85,7 @@ IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
     IElementType INTERFACE_BODY = CjStubElementTypes.INTERFACE_BODY;
 
     IElementType TUPLE_EXPRESSION =new CjNodeType("TUPLE_EXPRESSION", CjTupleExpression.class);
+    IElementType QUOTE_INTERPOLATE = new CjNodeType("QUOTE_INTERPOLATE", CjQuoteInterpolate.class);
 
     IElementType FUNCTION_LITERAL = new CjNodeType("FUNCTION_LITERAL", CjFunctionLiteral.class);
     IElementType LABEL_QUALIFIER = new CjNodeType("LABEL_QUALIFIER", CjContainerNode.class);

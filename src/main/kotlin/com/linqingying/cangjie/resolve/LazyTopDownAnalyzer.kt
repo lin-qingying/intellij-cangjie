@@ -2,11 +2,15 @@ package com.linqingying.cangjie.resolve
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.progress.util.BackgroundTaskUtil.executeOnPooledThread
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import com.linqingying.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
-import com.linqingying.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex
 import com.linqingying.cangjie.incremental.CangJieLookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.psi.*
@@ -15,10 +19,6 @@ import com.linqingying.cangjie.resolve.lazy.*
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.linqingying.cangjie.types.expressions.ExpressionTypingContext
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.progress.util.BackgroundTaskUtil.executeOnPooledThread
-import com.intellij.psi.PsiElement
 
 class LazyTopDownAnalyzer(
     private val trace: BindingTrace,
@@ -55,6 +55,7 @@ class LazyTopDownAnalyzer(
         val properties = mutableListOf<CjProperty>()
         val variables = mutableListOf<CjVariable>()
         val functions = mutableListOf<CjNamedFunction>()
+        val macroDeclarations = mutableListOf<CjMacroDeclaration>()
         val mainFunctions = mutableListOf<CjMainFunction>()
         val typeAliases = mutableListOf<CjTypeAlias>()
 //        val destructuringDeclarations = mutableListOf<CjDestructuringDeclaration>()
@@ -190,8 +191,10 @@ class LazyTopDownAnalyzer(
 
                 override fun visitNamedFunction(function: CjNamedFunction) {
                     functions.add(function)
+                }
 
-
+                override fun visitMacroDeclaration(function: CjMacroDeclaration) {
+                    macroDeclarations.add(function)
                 }
 
                 override fun visitMainFunction(cjMainFunction: CjMainFunction) {
@@ -215,7 +218,7 @@ class LazyTopDownAnalyzer(
         }
         createFunctionDescriptors(c, functions)
         createMainFunctionDescriptors(c, mainFunctions)
-
+        createMacroDescriptors(c, macroDeclarations)
         createPropertyDescriptors(c, topLevelFqNames, properties)
 
         createVariableDescriptors(c, topLevelFqNames, variables)
@@ -427,6 +430,18 @@ class LazyTopDownAnalyzer(
             c.mainFunctions[function] = simpleFunctionDescriptor
             ForceResolveUtil.forceResolveAllContents(simpleFunctionDescriptor.annotations)
             for (parameterDescriptor in simpleFunctionDescriptor.valueParameters) {
+                ForceResolveUtil.forceResolveAllContents(parameterDescriptor.annotations)
+            }
+        }
+    }
+
+    private fun createMacroDescriptors(c: TopDownAnalysisContext, macros: List<CjMacroDeclaration>) {
+         for (macro in macros) {
+            val macroDescriptor =
+                lazyDeclarationResolver.resolveToDescriptor(macro) as MacroDescriptor
+            c.macros[macro] = macroDescriptor
+            ForceResolveUtil.forceResolveAllContents(macroDescriptor.annotations)
+            for (parameterDescriptor in macroDescriptor.valueParameters) {
                 ForceResolveUtil.forceResolveAllContents(parameterDescriptor.annotations)
             }
         }

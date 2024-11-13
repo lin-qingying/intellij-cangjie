@@ -6,6 +6,7 @@ import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.linqingying.cangjie.utils.Printer
 import com.intellij.util.SmartList
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 
 
 class ChainedMemberScope private constructor(
@@ -33,6 +34,8 @@ class ChainedMemberScope private constructor(
     override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
         getFromAllScopes(scopes) { it.getContributedPropertys(name, location) }
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
+        getFromAllScopes(scopes) { it.getContributedMacros(name, location) }
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
         getFromAllScopes(scopes) { it.getContributedFunctions(name, location) }
 

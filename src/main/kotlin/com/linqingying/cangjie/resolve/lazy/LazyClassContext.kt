@@ -34,6 +34,7 @@ interface LazyClassContext {
 
     val storageManager: StorageManager
     val functionDescriptorResolver: FunctionDescriptorResolver
+
     val enumDescriptorResolver: EnumDescriptorResolver
     val declarationScopeProvider: DeclarationScopeProvider
     val cangjieTypeCheckerOfOwnerModule: NewCangJieTypeChecker

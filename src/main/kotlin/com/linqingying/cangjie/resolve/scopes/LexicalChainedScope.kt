@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.resolve.scopes
 
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -68,6 +69,9 @@ class LexicalChainedScope private constructor(
 
     override fun getContributedFunctions(name: Name, location: LookupLocation) =
         getFromAllScopes(memberScopes) { it.getContributedFunctions(name, location) }
+
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
+        getFromAllScopes(memberScopes) { it.getContributedMacros(name, location) }
 
     override fun toString(): String = kind.toString()
 

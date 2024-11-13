@@ -9,6 +9,7 @@ import com.linqingying.cangjie.contracts.model.Computation;
 import com.linqingying.cangjie.descriptors.*;
 import com.linqingying.cangjie.descriptors.annotations.AnnotationDescriptor;
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor;
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor;
 import com.linqingying.cangjie.diagnostics.Diagnostics;
 import com.linqingying.cangjie.name.FqName;
 import com.linqingying.cangjie.name.FqNameUnsafe;
@@ -181,6 +182,8 @@ public interface BindingContext {
     WritableSlice<CjAnnotationEntry, AnnotationDescriptor> ANNOTATION = Slices.createSimpleSlice();
     WritableSlice<FqName, Collection<CjFile>> PACKAGE_TO_FILES = Slices.createSimpleSlice();
     WritableSlice<PsiElement, SimpleFunctionDescriptor> FUNCTION = Slices.createSimpleSlice();
+    WritableSlice<PsiElement, MacroDescriptor> MACRO = Slices.createSimpleSlice();
+
     WritableSlice<CjExpression, QualifierReceiver> QUALIFIER = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjElement, Boolean> USED_AS_EXPRESSION = new BasicWritableSlice<>(DO_NOTHING);
 
@@ -212,7 +215,7 @@ public interface BindingContext {
     WritableSlice<PsiElement, TypeAliasDescriptor> TYPE_ALIAS = Slices.createSimpleSlice();
     WritableSlice[] DECLARATIONS_TO_DESCRIPTORS = new WritableSlice[]{
             CLASS
-            , TYPE_PARAMETER, FUNCTION, CONSTRUCTOR, VARIABLE, VALUE_PARAMETER, PROPERTY_ACCESSOR, PRIMARY_CONSTRUCTOR_PARAMETER,
+            , TYPE_PARAMETER, MACRO,FUNCTION, CONSTRUCTOR, VARIABLE, VALUE_PARAMETER, PROPERTY_ACCESSOR, PRIMARY_CONSTRUCTOR_PARAMETER,
             TYPE_ALIAS
     };
 

@@ -62,6 +62,11 @@ class StubBasedPackageMemberDeclarationProvider(
         CangJieTopLevelFunctionFqnNameIndex[childName(name), project, searchScope]
     }
 
+    override fun getMacroDeclarations(name: Name): Collection<CjMacroDeclaration> = runReadAction {
+
+        CangJieMacroDeclarationFqnNameIndex[childName(name), project, searchScope]
+    }
+
     override fun getMainFunctionDeclarations(): Collection<CjMainFunction> = runReadAction {
         CangJieMainFunctionFqnNameIndex[moduleChildName(MAIN), project, searchScope]
 
@@ -82,7 +87,7 @@ class StubBasedPackageMemberDeclarationProvider(
 
     override fun getPropertyDeclarations(name: Name): Collection<CjProperty> = runReadAction {
 
-            CangJieTopLevelPropertyFqnNameIndex[childName(name), project, searchScope]
+        CangJieTopLevelPropertyFqnNameIndex[childName(name), project, searchScope]
 
     }
 
@@ -140,7 +145,7 @@ class StubBasedPackageMemberDeclarationProvider(
     override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> {
 
         return runReadAction {
-            CangJieEnumEntryShortNameIndex[name.asString(), project ]
+            CangJieEnumEntryShortNameIndex[name.asString(), project]
         }
 
     }

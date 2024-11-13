@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.resolve.lazy.declarations
 
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.incremental.record
@@ -45,6 +46,9 @@ class LazyPackageMemberScope(
 
     }
 
+    override fun getNonDeclaredMacros(name: Name, result: MutableSet<MacroDescriptor>) {
+
+    }
     override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope=
         getScopeForMemberDeclarationResolution(declaration)
 

@@ -9,6 +9,7 @@ import com.linqingying.cangjie.config.LanguageVersionSettings;
 import com.linqingying.cangjie.descriptors.*;
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor;
 import com.linqingying.cangjie.descriptors.impl.SyntheticFieldDescriptor;
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor;
 import com.linqingying.cangjie.diagnostics.Errors;
 import com.linqingying.cangjie.psi.*;
 import com.linqingying.cangjie.psi.psiUtil.PsiUtilsKt;
@@ -824,7 +825,7 @@ public class BodyResolver {
 
 
         resolveFunctionBodies(c);
-
+        resolveMacroBodies(c);
 
     }
 
@@ -875,33 +876,22 @@ public class BodyResolver {
         }
     }
 
-    //    private void resolvePropertyDeclarationBodies(@NotNull BodiesResolveContext c) {
-//
-//        // Member   veraible
-//        Set<CjProperty> processed = new HashSet<>();
-//        for (Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes> entry : c.getDeclaredClasses().entrySet()) {
-////            if (!(entry.getKey() instanceof CjClass cjClass)) continue;
-//            ClassDescriptorWithResolutionScopes classDescriptor = entry.getValue();
-//
-//            for (CjProperty property : entry.getKey().getProperties()) {
-//                PropertyDescriptor propertyDescriptor = c.getProperties().get(property);
-//                assert propertyDescriptor != null;
-//
-//                resolveProperty(c, property, propertyDescriptor);
-//                processed.add(property);
-//            }
-//        }
-////        for (Map.Entry<CjProperty, PropertyDescriptor> entry : c.getProperties().entrySet()) {
-////            CjProperty property = entry.getKey();
-////
-////            LexicalScope scope = c.getDeclaringScope(property);
-////            assert scope != null : "Scope is null: " + PsiUtilsKt.getElementTextWithContext(property);
-////
-////            resolveProperty(c, property, entry.getValue());
-////            processed.add(property);
-////        }
-//
-//    }
+    private void resolveMacroBodies(BodiesResolveContext c) {
+
+        for (Map.Entry<CjMacroDeclaration, MacroDescriptor> entry : c.getMacros().entrySet()) {
+            CjMacroDeclaration declaration = entry.getKey();
+
+            LexicalScope scope = c.getDeclaringScope(declaration);
+            assert scope != null : "Scope is null: " + PsiUtilsKt.getElementTextWithContext(declaration);
+
+            if (!c.getTopDownAnalysisMode().isLocalDeclarations() && !(bodyResolveCache instanceof BodyResolveCache.ThrowException) &&
+                    expressionTypingServices.getStatementFilter() != StatementFilter.NONE) {
+                bodyResolveCache.resolveMacroBody(declaration).addOwnDataTo(trace, true);
+            } else {
+                resolveFunctionBody(c.getOuterDataFlowInfo(), trace, declaration, entry.getValue(), scope, c.getLocalContext());
+            }
+        }
+    }
     private void resolveFunctionBodies(BodiesResolveContext c) {
 
         for (Map.Entry<CjNamedFunction, SimpleFunctionDescriptor> entry : c.getFunctions().entrySet()) {
@@ -928,7 +918,6 @@ public class BodyResolver {
             ,
             @Nullable ExpressionTypingContext localContext
     ) {
-//        computeDeferredType(functionDescriptor.getReturnType());
 
         resolveFunctionBody(outerDataFlowInfo, trace, function, functionDescriptor, declaringScope, null, null, localContext);
 //TODO 检查返回值

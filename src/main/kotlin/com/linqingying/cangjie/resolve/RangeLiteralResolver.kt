@@ -43,7 +43,7 @@ class RangeLiteralResolver(
 
 //        val factory= CjPsiFactory(rangeExpression.project)
 //
-//      val function =  factory.createFunction("public func rangeOf<T>(start:T,end:T,step :Int64 ):Range<T> where  T <:   Countable<T> & Comparable<T> & Equatable<T> {}  ")
+//      val function =  factory.createFunction("public func rangeOf<T>(start:T,end:T,layer :Int64 ):Range<T> where  T <:   Countable<T> & Comparable<T> & Equatable<T> {}  ")
 //
 //      val  functionDescriptor = functionDescriptorResolver.resolveFunctionDescriptor(module.builtIns.builtInsModule,context.scope,function,context.trace,context.dataFlowInfo,null)
 
@@ -74,7 +74,7 @@ class RangeLiteralResolver(
         CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
     ) {
         init {
-//            fo <T> rangeOf(start:T,end:T,step :Int64 )
+//            fo <T> rangeOf(start:T,end:T,layer :Int64 )
 
             val t = RangeOfTypeParameterDescriptor(
                 this,
@@ -124,7 +124,7 @@ class RangeLiteralResolver(
                             null,
                             2,
                             Annotations.EMPTY,
-                            Name.identifier("step"),
+                            Name.identifier("layer"),
                             true,
                             module.builtIns.int64Type,
                             false,

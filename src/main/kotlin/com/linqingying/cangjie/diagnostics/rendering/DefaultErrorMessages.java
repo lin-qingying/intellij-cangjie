@@ -245,8 +245,17 @@ public class DefaultErrorMessages {
             // "''{0}'' cannot be referenced from a static context"
             return CangJieDiagnosisBundle.rawMessage(STATIC_INSTANCE_ACCESS);
         }, EXPRESSION_TYPE_TEXT);
-
+//宏声明检查
+        MAP.put(INVALID_MACRO_TYPE, () -> {
+            // "Cannot weaken access privilege ''{0}'' for ''{1}'' in ''{2}''"
+            return CangJieDiagnosisBundle.rawMessage(INVALID_MACRO_TYPE);
+        },TO_STRING, RENDER_TYPE);
+        MAP.put(EXCESSIVE_MACRO_PARAMS, () -> {
+            // "Cannot weaken access privilege ''{0}'' for ''{1}'' in ''{2}''"
+            return CangJieDiagnosisBundle.rawMessage(EXCESSIVE_MACRO_PARAMS);
+        });
 //        类型检查
+
 
         MAP.put(CANNOT_WEAKEN_ACCESS_PRIVILEGE, () -> {
             // "Cannot weaken access privilege ''{0}'' for ''{1}'' in ''{2}''"
@@ -272,6 +281,13 @@ public class DefaultErrorMessages {
             // "Return type of ''{0}'' is not a subtype of the return type of the overridden member ''{1}''"
             return CangJieDiagnosisBundle.rawMessage(RETURN_TYPE_MISMATCH_ON_OVERRIDE);
         }, NAMED, FQ_NAMES_IN_TYPES_ANNOTATIONS_WHITELIST);
+        MAP.put(RETURN_TYPE_MISMATCH,
+                ()->{
+
+//                    "This function must return a value of type {0}"
+            return CangJieDiagnosisBundle.rawMessage(RETURN_TYPE_MISMATCH);
+                }
+                , RENDER_TYPE);
 
         String wrongNumberOfTypeArguments = "{0,choice,0#No type arguments|1#One type argument|1<{0,number,integer} type arguments} expected";
         MAP.put(TYPE_ARGUMENTS_NOT_AFTER_ENUMENTRY, () -> {
@@ -901,7 +917,10 @@ public class DefaultErrorMessages {
             // "'Nothing' return type needs to be specified explicitly"
             return CangJieDiagnosisBundle.rawMessage(IMPLICIT_NOTHING_RETURN_TYPE);
         });
-
+        MAP.put(IRREFUTABLE_PATTERN_FOR_IN_ERROR, () -> {
+            // "The pattern in for-in expression must be irrefutable"
+            return CangJieDiagnosisBundle.rawMessage(IRREFUTABLE_PATTERN_FOR_IN_ERROR);
+        });
         MAP.put(IRREFUTABLE_PATTERN_ERROR, () -> {
             // "The pattern in for-in expression must be irrefutable"
             return CangJieDiagnosisBundle.rawMessage(IRREFUTABLE_PATTERN_ERROR);

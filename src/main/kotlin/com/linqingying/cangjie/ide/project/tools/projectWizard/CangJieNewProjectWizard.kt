@@ -601,7 +601,7 @@ private fun validateAndGetSdkValidationMessage(
 //    try {
 //        sdkModel.apply(null, true)
 //    } catch (e: ConfigurationException) {
-//        //IDEA-98382 We should allow Next step if user has wrong SDK
+//        //IDEA-98382 We should allow Next layer if user has wrong SDK
 //        if (Messages.showDialog(
 //                e.message?.let { CangJieUiBundle.message("dialog.message.0.do.you.want.to.proceed", it) },
 //                e.title, arrayOf(CommonBundle.getYesButtonText(), CommonBundle.getNoButtonText()), 1,

@@ -4,6 +4,7 @@ import com.linqingying.cangjie.descriptors.ClassifierDescriptor
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.descriptors.Substitutable
 import com.linqingying.cangjie.descriptors.VariableDescriptor
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.psiUtil.sure
@@ -81,6 +82,8 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
         return substitute(workerScope.getExtendClass(name)).toList()
     }
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
+        substitute(workerScope.getContributedMacros(name, location))
     override fun getContributedFunctions(name: Name, location: LookupLocation) =
         substitute(workerScope.getContributedFunctions(name, location))
 

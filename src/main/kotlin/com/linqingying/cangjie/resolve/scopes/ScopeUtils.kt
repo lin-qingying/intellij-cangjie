@@ -33,6 +33,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SmartList
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 
 @JvmOverloads
 fun MemberScope.memberScopeAsImportingScope(parentScope: ImportingScope? = null): ImportingScope =
@@ -63,7 +64,8 @@ fun HierarchicalScope.collectFunctions(name: Name, location: LookupLocation): Co
     collectAllFromMeAndParent { it.getContributedFunctions(name, location) }
 fun HierarchicalScope.collectVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
     collectAllFromMeAndParent { it.getContributedVariables(name, location) }
-
+fun HierarchicalScope.collectMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
+    collectAllFromMeAndParent { it.getContributedMacros(name, location) }
 fun CjElement.getResolutionScope(): LexicalScope {
     val resolutionFacade = getResolutionFacade()
     val context = resolutionFacade.analyze(this, BodyResolveMode.FULL)
@@ -143,6 +145,10 @@ private class MemberScopeToImportingScopeAdapter(override val parent: ImportingS
     override fun getContributedFunctions(name: Name, location: LookupLocation) =
         memberScope.getContributedFunctions(name, location)
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        return         memberScope.getContributedMacros(name, location)
+
+    }
     override fun equals(other: Any?) = other is MemberScopeToImportingScopeAdapter && other.memberScope == memberScope
 
     override fun hashCode() = memberScope.hashCode()
@@ -546,6 +552,9 @@ class ErrorLexicalScope : LexicalScope {
         override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
             emptySet()
 
+        override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+            return emptyList()
+        }
         override fun getContributedDescriptors(
             kindFilter: DescriptorKindFilter,
             nameFilter: (Name) -> Boolean
@@ -583,6 +592,9 @@ class ErrorLexicalScope : LexicalScope {
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
         emptySet()
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        return emptyList()
+    }
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean

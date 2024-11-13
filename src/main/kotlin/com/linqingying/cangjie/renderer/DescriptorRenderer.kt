@@ -9,6 +9,7 @@ import com.linqingying.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.linqingying.cangjie.descriptors.annotations.AnnotationUseSiteTarget
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.FqNameUnsafe
 import com.linqingying.cangjie.name.Name
@@ -1210,8 +1211,11 @@ open class DescriptorRendererImpl(
                     }
                 }
             }
-
-            builder.append(renderKeyword("func")).append(" ")
+            if (function is MacroDescriptor) {
+                builder.append(renderKeyword("macro"))
+            } else {
+                builder.append(renderKeyword("func"))
+            }.append(" ")
             renderReceiver(function, builder)
         }
 

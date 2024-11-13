@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.resolve.scopes
 
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -86,6 +87,9 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
     override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
         emptyList()
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        return emptyList()
+    }
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
         emptyList()
 }
@@ -277,6 +281,11 @@ class CompositePrioritizedImportingScope(
         )
     }
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        return primaryScope.getContributedMacros(name, location).union(
+            secondaryScope.getContributedMacros(name, location)
+        )
+    }
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
         return primaryScope.getContributedFunctions(name, location).union(
             secondaryScope.getContributedFunctions(name, location)

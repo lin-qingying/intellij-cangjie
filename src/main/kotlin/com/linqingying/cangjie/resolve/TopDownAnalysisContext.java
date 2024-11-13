@@ -2,6 +2,7 @@ package com.linqingying.cangjie.resolve;
 
 import com.google.common.collect.Maps;
 import com.linqingying.cangjie.descriptors.*;
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor;
 import com.linqingying.cangjie.psi.*;
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.linqingying.cangjie.resolve.lazy.DeclarationScopeProvider;
@@ -10,17 +11,21 @@ import com.linqingying.cangjie.types.expressions.ExpressionTypingContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class TopDownAnalysisContext implements BodiesResolveContext {
     private final Set<CjFile> files = new LinkedHashSet<>();
     private final Map<CjMainFunction, SimpleFunctionDescriptor> mainFunctions = Maps.newLinkedHashMap();
+    private final Map<CjMacroDeclaration, MacroDescriptor> macros = Maps.newLinkedHashMap();
 
     private final Map<CjNamedFunction, SimpleFunctionDescriptor> functions = Maps.newLinkedHashMap();
     private final Map<CjVariable, VariableDescriptor> variables = Maps.newLinkedHashMap();
 
     private final Map<CjProperty, PropertyDescriptor> properties = Maps.newLinkedHashMap();
-//    private final Map<CjParameter, PropertyDescriptor> primaryConstructorParameterProperties = new HashMap<>();
+    //    private final Map<CjParameter, PropertyDescriptor> primaryConstructorParameterProperties = new HashMap<>();
     private final Map<CjTypeAlias, TypeAliasDescriptor> typeAliases = Maps.newLinkedHashMap();
     private final DataFlowInfo outerDataFlowInfo;
     private final Map<CjTypeStatement, ClassDescriptorWithResolutionScopes> classes = Maps.newLinkedHashMap();
@@ -86,10 +91,12 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
         return files;
 
     }
+
     @Override
     public @NotNull Map<CjPrimaryConstructor, ClassConstructorDescriptor> getPrimaryConstructors() {
         return primaryConstructor;
     }
+
     @Override
     public @NotNull Map<CjSecondaryConstructor, ClassConstructorDescriptor> getSecondaryConstructors() {
         return secondaryConstructors;
@@ -108,9 +115,16 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
 
     @NotNull
     @Override
+    public Map<CjMacroDeclaration, MacroDescriptor> getMacros() {
+        return macros;
+    }
+
+    @NotNull
+    @Override
     public Map<CjNamedFunction, SimpleFunctionDescriptor> getFunctions() {
         return functions;
     }
+
     @NotNull
     @Override
     public Map<CjMainFunction, SimpleFunctionDescriptor> getMainFunctions() {

@@ -5,6 +5,7 @@ import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.intellij.util.SmartList
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 
 interface LocalRedeclarationChecker {
     fun checkBeforeAddingToScope(scope: LexicalScope, newDescriptor: DeclarationDescriptor)
@@ -46,7 +47,7 @@ abstract class LexicalScopeStorage(
         listOfNotNull(variableOrClassDescriptorByName(name) as? PropertyDescriptor)
 
     override fun getContributedFunctions(name: Name, location: LookupLocation) = functionsByName(name)
-
+    override fun getContributedMacros(name: Name, location: LookupLocation) = macrosByName(name)
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean) =
         addedDescriptors
 
@@ -89,14 +90,25 @@ abstract class LexicalScopeStorage(
         }
         return null
     }
+    protected fun macrosByName(name: Name, descriptorLimit: Int = addedDescriptors.size): List<MacroDescriptor> {
+        if (descriptorLimit == 0) return emptyList()
 
+        var list = functionsByName?.get(name)
+        while (list != null) {
+            if (list.last < descriptorLimit) {
+                return list.toDescriptors()
+            }
+            list = list.prev
+        }
+        return emptyList()
+    }
     protected fun functionsByName(name: Name, descriptorLimit: Int = addedDescriptors.size): List<FunctionDescriptor> {
         if (descriptorLimit == 0) return emptyList()
 
         var list = functionsByName?.get(name)
         while (list != null) {
             if (list.last < descriptorLimit) {
-                return list.toDescriptors<FunctionDescriptor>()
+                return list.toDescriptors()
             }
             list = list.prev
         }

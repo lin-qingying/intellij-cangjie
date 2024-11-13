@@ -6,6 +6,7 @@ import com.linqingying.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.linqingying.cangjie.descriptors.annotations.AnnotationUseSiteTarget
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.FqNameUnsafe
 import com.linqingying.cangjie.name.Name
@@ -879,7 +880,12 @@ open class CangJieIdeDescriptorRenderer(
                 }
             }
 
-            append(renderKeyword("func"))
+
+            if(function is MacroDescriptor){
+                append(renderKeyword("macro"))
+            }else{
+                append(renderKeyword("func"))
+            }
             append(" ")
 
             appendReceiver(function)

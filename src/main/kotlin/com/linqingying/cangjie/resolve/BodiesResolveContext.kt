@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.resolve
 
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.scopes.LexicalScope
@@ -32,7 +33,7 @@ interface BodiesResolveContext {
 
     val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor>
 
-
+    val macros: MutableMap<CjMacroDeclaration, MacroDescriptor>
     val typeAliases: MutableMap<CjTypeAlias, TypeAliasDescriptor>
 
     //

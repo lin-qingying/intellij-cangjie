@@ -107,6 +107,9 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitPrimaryConstructor(constructor: CjPrimaryConstructor) {
         super.visitPrimaryConstructor(constructor, null)
     }
+    open fun visitMacroDeclaration(function: CjMacroDeclaration) {
+        super.visitMacroDeclaration(function, null)
+    }
 
     open fun visitNamedFunction(function: CjNamedFunction) {
         super.visitNamedFunction(function, null)
@@ -469,6 +472,11 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
 
     override fun visitPrimaryConstructor(constructor: CjPrimaryConstructor, data: Void?): Void? {
         visitPrimaryConstructor(constructor)
+        return null
+    }
+
+    override fun visitMacroDeclaration(macroDeclaration: CjMacroDeclaration , data: Void?)   : Void? {
+        visitMacroDeclaration(macroDeclaration)
         return null
     }
 

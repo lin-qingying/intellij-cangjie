@@ -11,10 +11,10 @@
         <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
         <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex"/>
 
-        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMacroByPackageIndex"/>
-        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMacroFqnNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMacroDeclarationByPackageIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMacroDeclarationFqnNameIndex"/>
 
-        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMacroFunctionShortNameIndex"/>
+        <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieMacroDeclarationShortNameIndex"/>
 
 
         <stubIndex implementation="com.linqingying.cangjie.ide.stubindex.CangJieFunctionShortNameIndex"/>

@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.resolve.scopes
 
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -22,6 +23,10 @@ class ExplicitImportsScope(private val descriptors: Collection<DeclarationDescri
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): List<FunctionDescriptor> {
         return descriptors.filter { it.name == name }.filterIsInstance<FunctionDescriptor>()
+    }
+
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        return descriptors.filter { it.name == name }.filterIsInstance<MacroDescriptor>()
     }
     override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
         return descriptors.filter { it.name == name }.filterIsInstance<LazyExtendClassDescriptor>()

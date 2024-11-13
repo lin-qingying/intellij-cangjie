@@ -24,6 +24,7 @@ import com.linqingying.cangjie.resolve.scopes.MemberScope
 import com.linqingying.cangjie.utils.Printer
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 
 interface CDocLinkResolutionService {
     fun resolveCDocLink(
@@ -96,7 +97,7 @@ private class GlobalSyntheticPackageViewDescriptor(
             location: LookupLocation
         ): Collection<SimpleFunctionDescriptor> =
             shouldNotBeCalled()
-
+        override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor>  = shouldNotBeCalled()
         override fun getFunctionNames(): Set<Name> = shouldNotBeCalled()
         override fun getVariableNames(): Set<Name> = shouldNotBeCalled()
         override fun getClassifierNames(): Set<Name> = shouldNotBeCalled()
@@ -105,6 +106,7 @@ private class GlobalSyntheticPackageViewDescriptor(
             shouldNotBeCalled()
 
         override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor>  = shouldNotBeCalled()
+
 
         override fun printScopeStructure(p: Printer) {
             p.printIndent()

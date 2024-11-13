@@ -6,6 +6,7 @@ import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Pair
+import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 import com.linqingying.cangjie.CjNodeTypes.*
@@ -180,7 +181,7 @@ open class CangJieExpressionParsing(
 //                advance()
 //            } else {
 //
-//                error("Lack of step frequency")
+//                error("Lack of layer frequency")
 ////                errorAndAdvance("Expecting an integer literal")
 //            }
         }
@@ -763,6 +764,9 @@ open class CangJieExpressionParsing(
         val config: PatternConfig = PatternConfig(),
         vararg val patternType: Pattern = Pattern.ALL.toTypedArray()
     ) {
+
+        var layer: Int = 0
+
         /**
          * 绑定模式(id) | 类型模式(id:type) | 枚举模式(id(expression{,})?)
          */
@@ -777,6 +781,7 @@ open class CangJieExpressionParsing(
                 type = 3
 
                 if (at(LPAR)) {
+                    layer++
                     //枚举模式
                     advance() // LPAR
                     type = 3
@@ -796,7 +801,7 @@ open class CangJieExpressionParsing(
                 //1.绑定模式
                 //2.类型模式
                 //3.枚举模式
-                if (at(COLON) && !config.isVariable) {
+                if (at(COLON) && (!config.isVariable || layer > 0)) {
                     advance() // COLON
                     type = 2
                     cangJieParsing.parseTypeRef()
@@ -874,6 +879,14 @@ open class CangJieExpressionParsing(
 
         }
 
+        private fun doneConstantPattern(constantPattern: PsiBuilder.Marker) {
+            if (patternType.contains(Pattern.Constant) || layer > 0) {
+                constantPattern.done(CONSTANT_PATTERN)
+            } else {
+                constantPattern.error("Constant templates are not supported here")
+            }
+        }
+
         fun parseExpression() {
             val constantPattern = mark()
 
@@ -892,60 +905,36 @@ open class CangJieExpressionParsing(
 
                 INTEGER_LITERAL_Id -> {
                     parseOneTokenExpression(INTEGER_CONSTANT)
-                    if (patternType.contains(Pattern.Constant)) {
-                        constantPattern.done(CONSTANT_PATTERN)
-                    } else {
-                        constantPattern.error("Constant templates are not supported here")
-                    }
+
+                    doneConstantPattern(constantPattern)
                 }
 
                 RUNE_LITERAL_Id -> {
                     parseOneTokenExpression(RUNE_CONSTANT)
-                    if (patternType.contains(Pattern.Constant)) {
-                        constantPattern.done(CONSTANT_PATTERN)
-                    } else {
-                        constantPattern.error("Constant templates are not supported here")
-                    }
-
+                    doneConstantPattern(constantPattern)
                 }
 
                 CHARACTER_BYTE_LITERAL_Id -> {
                     parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
-                    if (patternType.contains(Pattern.Constant)) {
-                        constantPattern.done(CONSTANT_PATTERN)
-                    } else {
-                        constantPattern.error("Constant templates are not supported here")
-                    }
+                    doneConstantPattern(constantPattern)
 
                 }
 
                 TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> {
                     parseOneTokenExpression(BOOLEAN_CONSTANT)
-                    if (patternType.contains(Pattern.Constant)) {
-                        constantPattern.done(CONSTANT_PATTERN)
-                    } else {
-                        constantPattern.error("Constant templates are not supported here")
-                    }
+                    doneConstantPattern(constantPattern)
 
                 }
 
                 FLOAT_LITERAL_Id -> {
                     parseOneTokenExpression(FLOAT_CONSTANT)
 
-                    if (patternType.contains(Pattern.Constant)) {
-                        constantPattern.done(CONSTANT_PATTERN)
-                    } else {
-                        constantPattern.error("Constant templates are not supported here")
-                    }
+                    doneConstantPattern(constantPattern)
                 }
 
                 OPEN_QUOTE_Id -> {
                     parseStringTemplate()
-                    if (patternType.contains(Pattern.Constant)) {
-                        constantPattern.done(CONSTANT_PATTERN)
-                    } else {
-                        constantPattern.error("Constant templates are not supported here")
-                    }
+                    doneConstantPattern(constantPattern)
                 }
 
                 IDENTIFIER_Id -> {
@@ -961,6 +950,7 @@ open class CangJieExpressionParsing(
                 }
 
             }
+
         }
 
         fun parseTupleExpression() {
@@ -996,8 +986,10 @@ open class CangJieExpressionParsing(
 //                    mark.done(UNIT_CONSTANT)
 //                    return
             } else {
+                layer++
 //                    元组
                 isTuple = true
+
                 parseTupleExpression()
 
             }
@@ -1008,14 +1000,11 @@ open class CangJieExpressionParsing(
             when {
                 isUnit -> {
                     mark().done(UNIT_CONSTANT)
-                    if (patternType.contains(Pattern.Constant)) {
-                        mark.done(CONSTANT_PATTERN)
-                    } else {
-                        mark.error("Constant patterns are not supported here")
-                    }
+                    doneConstantPattern(mark)
                 }
 
                 isTuple -> {
+
                     if (patternType.contains(Pattern.Tuple)) {
                         mark.done(TUPLE_PATTERN)
                     } else {
@@ -2288,7 +2277,13 @@ open class CangJieExpressionParsing(
             ESCAPE_RPAR,
             ESCAPE_DOLLAR,
             ESCAPE_LBRACKET,
-            ESCAPE_RBRACKET
+            ESCAPE_RBRACKET,
+            CjTokens.INTEGER_LITERAL,
+            CjTokens.FLOAT_LITERAL,
+
+            CjTokens.RUNE_LITERAL,
+            CjTokens.LONG_TEMPLATE_ENTRY_START,
+
         ), LITERAL_CONSTANT
     )
 
@@ -2326,6 +2321,7 @@ open class CangJieExpressionParsing(
      */
     private fun parseQuoteInterpolate() {
         assert(_at(DOLLAR) && lookahead(1) == LPAR)
+        val mark = mark()
 
         advance()
         advance()
@@ -2338,6 +2334,8 @@ open class CangJieExpressionParsing(
             error("expected ')' after '$'")
         }
 
+        mark.done(QUOTE_INTERPOLATE)
+
     }
 
 
@@ -2348,10 +2346,6 @@ open class CangJieExpressionParsing(
      *     ;
      */
     private fun parseQuoteParameters() {
-//TODO 在没有参数的情况下是否报告错误
-//        if (at(RPAR)){
-//            error("expected quote token ")
-//        }
 
 
 //        解析中出现的 ( 标记数量
@@ -2364,7 +2358,7 @@ open class CangJieExpressionParsing(
             if (at(DOLLAR) && lookahead(1) == LPAR) {
                 parseQuoteInterpolate()
             } else if (at(AT) && lookahead(1) == IDENTIFIER) {
-                parseMacroExpression()
+                parseMacroExpressionByQuoteParameters()
             } else if (atSet(QUOTE_TOKENS)) {
                 if (at(LPAR)) {
                     lparCount++
@@ -2382,6 +2376,72 @@ open class CangJieExpressionParsing(
                 advance()
             }
         } while (atSet(QUOTE_TOKENS))
+
+    }
+
+
+    /**
+     * 可以回滚
+     * 有错误不会报告
+     */
+    fun parseMacroExpressionByQuoteParameters() {
+        assert(_at(AT))
+
+        val macroExpression = mark()
+        advance()
+
+        if (at(IDENTIFIER)) {
+            advance()
+        } else {
+
+            macroExpression.drop()
+
+        }
+
+
+//        带属性的宏
+        if (at(LBRACKET)) {
+            parseMacroAttrExpression()
+        }
+
+//        宏的输入
+        if (at(LPAR)) {
+            parseMacroInputExprWithParens()
+
+
+        } else {
+
+            val decl = mark()
+
+            val productionsSize = productions.size
+            val modifiterDetector = CangJieParsing.ModifierDetector()
+
+            cangJieParsing.parseModifierList(modifiterDetector, TokenSet.EMPTY)
+
+            val declType = parseMacroInputExprWithoutParens(modifiterDetector)
+            productions.subList(
+                productionsSize, productions.size
+            ).any {
+             it.   tokenType == TokenType.ERROR_ELEMENT
+            }
+            if (declType == null ||   productions.subList(
+                    productionsSize, productions.size
+                ).any {
+                    it.   tokenType == TokenType.ERROR_ELEMENT
+                }) {
+
+
+                decl.drop()
+                macroExpression.rollbackTo()
+                advance()
+                return
+            } else {
+                closeDeclarationWithCommentBinders(decl, declType, true)
+
+            }
+        }
+
+        macroExpression.done(MACRO_EXPRESSION)
 
     }
 
@@ -2442,6 +2502,27 @@ open class CangJieExpressionParsing(
 
     }
 
+    /**
+     * macroInputExprWithoutParens
+     * : functionDefinition
+     * | operatorFunctionDefinition
+     * | staticInit
+     * | structDefinition
+     * | structPrimaryInit
+     * | structInit
+     * | enumDefinition
+     * | caseBody
+     * | classDefinition
+     * | classPrimaryInit
+     * | classInit
+     * | interfaceDefinition
+     * | variableDeclaration
+     * | propertyDefinition
+     * | extendDefinition
+     * | macroExpression
+     * ;
+     *
+     */
     private fun parseMacroInputExprWithoutParens(modifiterDetector: CangJieParsing.ModifierDetector): IElementType? {
 
         var declType = parseMacroInputExprWithoutParensDeclaration(modifiterDetector)
@@ -2450,11 +2531,6 @@ open class CangJieExpressionParsing(
 
 
             if (at(IDENTIFIER) && modifiterDetector.size <= 0) {
-//                尝试解析为enum entry
-//                val mark  = mark()
-//                if (cangJieParsing.parseEnumEntry(false)) {
-//
-//                }
 
                 advance()
                 if (at(LPAR)) {
@@ -2472,33 +2548,18 @@ open class CangJieExpressionParsing(
 
                         declType = CLASS_MAIN_INIT
 
-                    } else if ((lookahead(1) == IDENTIFIER && lookahead(2) === COMMA) || (lookahead(1) == IDENTIFIER && lookahead(
-                            2
-                        ) === LT) || (lookahead(1) == IDENTIFIER && lookahead(2) === RPAR)
-                    ) {
-                        advance() // LPAR
-                        cangJieParsing.parseTypeList()
-
-                        expect(RPAR, "Expecting ')'")
-                        declType = ENUM_ENTRY
-
                     }
-
-                } else {
-                    declType = ENUM_ENTRY
-
 
                 }
 
 
-            } else
-                if (at(IDENTIFIER) && lookahead(1) === LPAR) {
+            } else if (at(IDENTIFIER) && lookahead(1) === LPAR) {
 
 
 //                主构造函数
-                    cangJieParsing.parseMainInitFunc()
-                    declType = CLASS_MAIN_INIT
-                }
+                cangJieParsing.parseMainInitFunc()
+                declType = CLASS_MAIN_INIT
+            }
 
         }
 
@@ -2604,15 +2665,7 @@ open class CangJieExpressionParsing(
     fun parseExpression() {
 
         if (at(AT)) {
-//            val macroMark = mark()
-//            val type = cangJieParsing.parseAnnotation(null)
-//            if (type == ANNOTATION_ENTRY) {
-//                error("Should call (..) for macros")
-//
-//
-//            }
-//
-//            macroMark.done(MACRO_EXPRESSION)
+
             parseMacroExpression()
             return
 
@@ -2907,7 +2960,13 @@ open class CangJieExpressionParsing(
 
                 //线程
                 SPAWN_KEYWORD,
-                SYNCHRONIZED_KEYWORD
+                SYNCHRONIZED_KEYWORD,
+
+
+//                macro
+
+                QUOTE_KEYWORD
+
             ),
             BASICTYPES,
         )

@@ -1,8 +1,12 @@
 package com.linqingying.cangjie.resolve
 
+import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.diagnostics.DiagnosticFactory0
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.lexer.CjTokens
@@ -11,16 +15,17 @@ import com.linqingying.cangjie.resolve.BindingContext.*
 import com.linqingying.cangjie.resolve.DescriptorUtils.classCanHaveAbstractDeclaration
 import com.linqingying.cangjie.resolve.calls.results.TypeSpecificityComparator
 import com.linqingying.cangjie.resolve.descriptorUtil.isEffectivelyExternal
-import com.linqingying.cangjie.types.AbbreviatedType
-import com.linqingying.cangjie.types.CangJieType
-import com.linqingying.cangjie.types.IntersectionTypeConstructor
-import com.linqingying.cangjie.types.SubstitutionUtils
+import com.linqingying.cangjie.resolve.source.CangJieSourceElement
+import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.checker.SimpleClassicTypeSystemContext.isNothing
+import com.linqingying.cangjie.types.util.TypeUtils
+import com.linqingying.cangjie.types.util.constituentTypes
 import com.linqingying.cangjie.types.util.contains
-import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.types.util.isArrayOfNothing
 
 class DeclarationsChecker(
+    private val builtins: CangJieBuiltIns,
     private val descriptorResolver: DescriptorResolver,
     modifiersChecker: ModifiersChecker,
     private val annotationChecker: AnnotationChecker,
@@ -31,7 +36,7 @@ class DeclarationsChecker(
 //    private val diagnosticSuppressor: PlatformDiagnosticSuppressor,
     private val upperBoundChecker: UpperBoundChecker
 ) {
-    //    private val exposedChecker = ExposedVisibilityChecker(languageVersionSettings, trace)
+    private val exposedChecker = ExposedVisibilityChecker(languageVersionSettings, trace)
     private val shadowedExtensionChecker = ShadowedExtensionChecker(typeSpecificityComparator, trace)
 
     private val modifiersChecker = modifiersChecker.withTrace(trace)
@@ -250,6 +255,44 @@ class DeclarationsChecker(
     }
 
     private fun checkVarargParameters(trace: BindingTrace, callableDescriptor: CallableDescriptor) {
+
+    }
+
+    fun checkMacro(macro: CjMacroDeclaration, macroDeclaration: MacroDescriptor) {
+//检查返回值类型，检查参数数量，检查参数类型
+
+        val returnType = macroDeclaration.returnType
+        if (returnType == null || !CangJieTypeChecker.DEFAULT.equalTypes(returnType, builtins.tokensType)) {
+            trace.report(
+                INVALID_MACRO_TYPE.on(
+                    macro.typeReference ?: macro.colon ?: macro,
+                    "return",
+                    builtins.tokensType
+                )
+            )
+        }
+//        参数数量
+        val valueParameters = macroDeclaration.valueParameters
+        if (valueParameters.size > 2) {
+            trace.report(EXCESSIVE_MACRO_PARAMS.on(macro.valueParameterList))
+        }
+//        检查参数类型
+
+
+        macro.valueParameters.forEachIndexed { index, valueParameter ->
+            if (index < valueParameters.size) {
+                if (!CangJieTypeChecker.DEFAULT.equalTypes(valueParameters[index].type, builtins.tokensType)) {
+                    trace.report(
+                        INVALID_MACRO_TYPE.on(
+                            valueParameter,
+                            "parameter",
+                            builtins.tokensType
+                        )
+                    )
+                }
+            }
+        }
+
 
     }
 
@@ -626,7 +669,11 @@ class DeclarationsChecker(
             modifiersChecker.checkModifiersForDeclaration(function, functionDescriptor)
             identifierChecker.checkDeclaration(function, trace)
         }
-
+        for ((function, macroDescriptor) in bodiesResolveContext.macros.entries) {
+            checkMacro(function, macroDescriptor)
+            modifiersChecker.checkModifiersForDeclaration(function, macroDescriptor)
+            identifierChecker.checkDeclaration(function, trace)
+        }
         for ((variable, variableDescriptor) in bodiesResolveContext.variables.entries) {
             checkVariable(variable, variableDescriptor)
             modifiersChecker.checkModifiersForDeclaration(variable, variableDescriptor)
@@ -654,12 +701,106 @@ class DeclarationsChecker(
 //            exposedChecker.checkFunction(declaration, constructorDescriptor)
 //        }
 //
-//        for ((declaration, typeAliasDescriptor) in bodiesResolveContext.typeAliases.entries) {
-//            checkTypeAliasDeclaration(declaration, typeAliasDescriptor)
-//            modifiersChecker.checkModifiersForDeclaration(declaration, typeAliasDescriptor)
-//            exposedChecker.checkTypeAlias(declaration, typeAliasDescriptor)
-//        }
+        for ((declaration, typeAliasDescriptor) in bodiesResolveContext.typeAliases.entries) {
+            checkTypeAliasDeclaration(declaration, typeAliasDescriptor)
+            modifiersChecker.checkModifiersForDeclaration(declaration, typeAliasDescriptor)
+            exposedChecker.checkTypeAlias(declaration, typeAliasDescriptor)
+        }
     }
+
+    private class TypeAliasDeclarationCheckingReportStrategy(
+        private val trace: BindingTrace,
+        typeAliasDescriptor: TypeAliasDescriptor,
+        declaration: CjTypeAlias,
+        val upperBoundChecker: UpperBoundChecker
+    ) : TypeAliasExpansionReportStrategy {
+        private val typeReference = declaration.getTypeReference()
+            ?: throw AssertionError("Incorrect type alias declaration for $typeAliasDescriptor")
+
+        override fun wrongNumberOfTypeArguments(typeAlias: TypeAliasDescriptor, numberOfParameters: Int) {
+            // Do nothing: this should've been reported during type resolution.
+        }
+
+        override fun conflictingProjection(
+            typeAlias: TypeAliasDescriptor,
+            typeParameter: TypeParameterDescriptor?,
+            substitutedArgument: CangJieType
+        ) {
+            trace.report(CONFLICTING_PROJECTION_IN_TYPEALIAS_EXPANSION.on(typeReference, substitutedArgument))
+        }
+
+        override fun recursiveTypeAlias(typeAlias: TypeAliasDescriptor) {
+            trace.report(RECURSIVE_TYPEALIAS_EXPANSION.on(typeReference, typeAlias))
+        }
+
+        override fun boundsViolationInSubstitution(
+            substitutor: TypeSubstitutor,
+            unsubstitutedArgument: CangJieType,
+            argument: CangJieType,
+            typeParameter: TypeParameterDescriptor
+        ) {
+            upperBoundChecker.checkBounds(null, argument, typeParameter, substitutor, trace, typeReference)
+        }
+
+        override fun repeatedAnnotation(annotation: AnnotationDescriptor) {
+            val annotationEntry = (annotation.source as? CangJieSourceElement)?.psi as? CjAnnotationEntry ?: return
+            trace.report(REPEATED_ANNOTATION.on(annotationEntry))
+        }
+    }
+
+    private fun checkTypeAliasExpansion(declaration: CjTypeAlias, typeAliasDescriptor: TypeAliasDescriptor) {
+        val typeAliasExpansion = TypeAliasExpansion.createWithFormalArguments(typeAliasDescriptor)
+        val reportStrategy =
+            TypeAliasDeclarationCheckingReportStrategy(trace, typeAliasDescriptor, declaration, upperBoundChecker)
+        TypeAliasExpander(reportStrategy, true).expandWithoutAbbreviation(typeAliasExpansion, TypeAttributes.Empty)
+    }
+
+    private fun checkTypeAliasDeclaration(declaration: CjTypeAlias, typeAliasDescriptor: TypeAliasDescriptor) {
+        val typeReference = declaration.getTypeReference() ?: return
+
+        checkTypeAliasExpansion(declaration, typeAliasDescriptor)
+
+        val expandedType = typeAliasDescriptor.expandedType
+        if (expandedType.isError) return
+
+        val expandedClassifier = expandedType.constructor.declarationDescriptor
+
+        if (expandedType.isDynamic() || expandedClassifier is TypeParameterDescriptor) {
+            trace.report(TYPEALIAS_SHOULD_EXPAND_TO_CLASS.on(typeReference, expandedType))
+        }
+
+        if (TypeUtils.contains(expandedType) { it.isArrayOfNothing() }) {
+            trace.report(
+                TYPEALIAS_EXPANDED_TO_MALFORMED_TYPE.on(
+                    typeReference,
+                    expandedType,
+                    "Array<Nothing> is illegal"
+                )
+            )
+        }
+
+        val usedTypeAliasParameters: Set<TypeParameterDescriptor> =
+            getUsedTypeAliasParameters(expandedType, typeAliasDescriptor)
+        for (typeParameter in typeAliasDescriptor.declaredTypeParameters) {
+            if (typeParameter !in usedTypeAliasParameters) {
+                val source = DescriptorToSourceUtils.descriptorToDeclaration(typeParameter) as? CjTypeParameter
+                    ?: throw AssertionError("No source element for type parameter $typeParameter of $typeAliasDescriptor")
+                trace.report(UNUSED_TYPEALIAS_PARAMETER.on(source, typeParameter, expandedType))
+            }
+        }
+
+
+    }
+
+
+    private fun getUsedTypeAliasParameters(
+        type: CangJieType,
+        typeAlias: TypeAliasDescriptor
+    ): Set<TypeParameterDescriptor> =
+        type.constituentTypes().mapNotNullTo(HashSet()) { cangJieType ->
+            val descriptor = cangJieType.constructor.declarationDescriptor as? TypeParameterDescriptor
+            descriptor?.takeIf { it.containingDeclaration == typeAlias }
+        }
 
     companion object {
         private fun removeDuplicateTypes(conflictingTypes: MutableSet<CangJieType>) {

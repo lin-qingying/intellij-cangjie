@@ -60,6 +60,7 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER),
     RequiredPrimaryConstructorDelegationCallInEnums(CANGJIE_0_53_4, kind = BUG_FIX),
 
     UseCorrectExecutionOrderForVarargArguments(CANGJIE_0_53_4, kind = BUG_FIX),
+    PrivateInFileEffectiveVisibility(CANGJIE_0_53_4, kind = BUG_FIX),
 
     AllowSealedInheritorsInDifferentFilesOfSamePackage(CANGJIE_0_53_4),
 

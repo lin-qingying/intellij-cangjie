@@ -42,7 +42,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
         val mainFunctions = ArrayListMultimap.create<Name, CjMainFunction>()
         val properties = ArrayListMultimap.create<Name, CjProperty>()
         val variables = ArrayListMultimap.create<Name, CjVariable>()
-
+        val macros = ArrayListMultimap.create<Name, CjMacroDeclaration>()
         val classesAndObjects = ArrayListMultimap.create<Name, CjTypeStatementInfo<*>>() // order matters here
         val extends = ArrayListMultimap.create<Name, CjTypeStatementInfo<CjExtend>>()
 
@@ -64,6 +64,8 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
                 is CjMainFunction ->
                     mainFunctions.put(MAIN, declaration)
 
+
+                is CjMacroDeclaration -> macros.put(declaration.safeNameForLazyResolve(), declaration)
                 is CjProperty ->
                     properties.put(declaration.safeNameForLazyResolve(), declaration)
 
@@ -132,6 +134,9 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
 
     override fun getMainFunctionDeclarations(): Collection<CjMainFunction> =
         index().mainFunctions[MAIN].toList()
+
+    override fun getMacroDeclarations(name: Name): Collection<CjMacroDeclaration> =
+        index().macros[name.safeNameForLazyResolve()].toList()
 
     override fun getPropertyDeclarations(name: Name): List<CjProperty> =
         index().properties[name.safeNameForLazyResolve()].toList()

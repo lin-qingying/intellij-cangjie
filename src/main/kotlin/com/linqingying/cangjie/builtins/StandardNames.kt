@@ -34,6 +34,7 @@ object StandardNames {
 
     val STD_PACKAGE_NAME = Name.identifier("std")
     val CORE_PACKAGE_NAME = Name.identifier("core")
+    val AST_PACKAGE_NAME = Name.identifier("ast")
 
 
     val COMPRESS_PACKAGE_NAME = Name.identifier("compress")
@@ -72,8 +73,13 @@ val MAIN = Name.identifier("main")
 
 
     @JvmField
+    val STD_AST_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("ast"))
+
+    @JvmField
     val STD_CORE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("core"))
 
+    @JvmField
+    val STD_COLLECTION_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("collection"))
 
     @JvmField
     val NOTHING = Name.identifier("Nothing")
@@ -129,6 +135,8 @@ val MAIN = Name.identifier("main")
     val EXCEPTION = Name.identifier("Exception")
     @JvmField
     val RESOURCE = Name.identifier("Resource")
+    @JvmField
+    val TOKENS = Name.identifier("Tokens")
 
     @JvmField
     val ITERABLE = Name.identifier("Iterable")
@@ -215,6 +223,8 @@ val MAIN = Name.identifier("main")
 
         @JvmField
         val core: FqName = FqName.topLevel(STD_PACKAGE_NAME).child(CORE_PACKAGE_NAME)
+        @JvmField
+        val ast: FqName = FqName.topLevel(STD_PACKAGE_NAME).child(AST_PACKAGE_NAME)
 
         @JvmField
         val anyFqName: FqName = core.child(ANY)
@@ -245,6 +255,8 @@ val MAIN = Name.identifier("main")
         val equatableFqName: FqName = core.child(EQUATABLE)
         @JvmField
         val iterableFqName: FqName = core.child(ITERABLE)
+        @JvmField
+        val tokensFqName: FqName = ast.child(TOKENS)
 
         @JvmField
         val comparableFqName: FqName = core.child(COMPARABLE)
@@ -511,6 +523,7 @@ val MAIN = Name.identifier("main")
 
         set.add(BUILT_INS_PACKAGE_FQ_NAME)
         set.add(STD_CORE_PACKAGE_FQ_NAME)
+        set.add(STD_COLLECTION_PACKAGE_FQ_NAME)
 //        set.add(STD_CORE_PACKAGE_FQ_NAME)
 
 

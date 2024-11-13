@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.resolve
 
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.builtins.*
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.config.LanguageVersionSettings
@@ -10,11 +11,12 @@ import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.FunctionExpressionDescriptor
 import com.linqingying.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptorImpl
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.psi.psiUtil.isEmptyBody
 import com.linqingying.cangjie.resolve.DescriptorResolver.getDefaultModality
 import com.linqingying.cangjie.resolve.DescriptorResolver.getDefaultVisibility
 import com.linqingying.cangjie.resolve.DescriptorUtils.getDispatchReceiverParameterIfNeeded
@@ -39,7 +41,6 @@ import com.linqingying.cangjie.types.isError
 import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.replaceAnnotations
-import com.intellij.psi.PsiElement
 import java.util.*
 
 
@@ -271,7 +272,7 @@ class FunctionDescriptorResolver(
 
     private fun createValueParameterDescriptors(
         function: CjFunction,
-        functionDescriptor: SimpleFunctionDescriptorImpl,
+        functionDescriptor: FunctionDescriptor,
         innerScope: LexicalWritableScope,
         trace: BindingTrace,
         expectedFunctionType: CangJieType,
@@ -321,6 +322,20 @@ class FunctionDescriptorResolver(
             emptyList()
         }
 
+    fun resolveMacroReturnType(
+        function: CjMacroDeclaration,
+        context: ExpressionTypingContext,
+    ): CangJieType {
+//        显示指定的类型
+        return if (function.typeReference != null) {
+            typeResolver.resolveType(context.scope, function.typeReference!!, context.trace, true)
+
+        } else {
+            builtIns.tokensType
+
+        }
+
+    }
 
     /**
      * 方法返回值类型推断
@@ -357,6 +372,108 @@ class FunctionDescriptorResolver(
             builtIns.unitType
 
         }
+
+    }
+
+    fun initializeMacroDescriptorAndExplicitReturnType(
+        container: DeclarationDescriptor,
+        scope: LexicalScope,
+        macro: CjMacroDeclaration,
+        functionDescriptor: MacroDescriptor ,
+        trace: BindingTrace,
+        expectedFunctionType: CangJieType,
+        dataFlowInfo: DataFlowInfo,
+        inferenceSession: InferenceSession?
+    ) {
+        val headerScope = LexicalWritableScope(
+            scope, functionDescriptor, true,
+            TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.FUNCTION_HEADER
+        )
+//         宏声明没有类型参数
+//        val typeParameterDescriptors =
+//            descriptorResolver.resolveTypeParametersForDescriptor(
+//                functionDescriptor,
+//                headerScope,
+//                scope,
+//                function.typeParameters,
+//                trace
+//            )
+//        descriptorResolver.resolveGenericBounds(
+//            function,
+//            functionDescriptor,
+//            headerScope,
+//            typeParameterDescriptors,
+//            trace
+//        )
+        val contextReceivers = macro.contextReceivers
+        val contextReceiverTypes = contextReceivers
+            .mapNotNull {
+                val typeReference = it.typeReference() ?: return@mapNotNull null
+                val type = typeResolver.resolveType(headerScope, typeReference, trace, true)
+                ContextReceiverTypeWithLabel(type, it.labelNameAsName())
+            }
+
+
+        val valueParameterDescriptors =
+            createValueParameterDescriptors(
+                macro,
+                functionDescriptor,
+                headerScope,
+                trace,
+                expectedFunctionType,
+                inferenceSession
+            )
+
+        headerScope.freeze()
+
+        val innerScope: LexicalScope =
+            FunctionDescriptorUtil.getFunctionInnerScope(
+                headerScope,
+                functionDescriptor,
+                trace,
+                overloadChecker
+            )
+        val context = expressionTypingServices.createContext(
+            headerScope,
+            dataFlowInfo, NO_EXPECTED_TYPE,
+            trace
+        )
+        val returnType = resolveMacroReturnType(macro, context)
+
+        val visibility = resolveVisibilityFromModifiers(macro, getDefaultVisibility(macro, container))
+        val modality = resolveMemberModalityFromModifiers(
+            macro, getDefaultModality(container, visibility, macro.hasBody()),
+            trace.bindingContext, container
+        )
+
+        val contextReceiverDescriptors = contextReceiverTypes.mapIndexedNotNull { index, contextReceiver ->
+            val splitter = AnnotationSplitter(
+                storageManager,
+                contextReceiver.type.annotations,
+                EnumSet.of(AnnotationUseSiteTarget.RECEIVER)
+            )
+            DescriptorFactory.createContextReceiverParameterForCallable(
+                functionDescriptor,
+                contextReceiver.type,
+                contextReceiver.label,
+                splitter.getAnnotationsForTarget(AnnotationUseSiteTarget.RECEIVER),
+                index
+            )
+        }
+
+
+        functionDescriptor.initialize(
+
+            getDispatchReceiverParameterIfNeeded(container),
+            contextReceiverDescriptors,
+
+            valueParameterDescriptors,
+            returnType,
+            modality,
+            visibility,
+
+        )
+
 
     }
 
@@ -451,18 +568,14 @@ class FunctionDescriptorResolver(
             trace.bindingContext, container
         )
 
-//        val contractProvider =
-//            getContractProvider(functionDescriptor, trace, scope, dataFlowInfo, function, inferenceSession)
         val userData = mutableMapOf<CallableDescriptor.UserDataKey<*>, Any>().apply {
-//            if (contractProvider != null) {
-//                put(ContractProviderKey, contractProvider)
-//            }
+
 
             if (receiverType != null && expectedFunctionType.functionTypeExpected() && !expectedFunctionType.annotations.isEmpty()) {
                 put(DslMarkerUtils.FunctionTypeAnnotationsKey, expectedFunctionType.annotations)
             }
         }
-//
+
         val extensionReceiver = receiverType?.let {
             val splitter =
                 AnnotationSplitter(storageManager, it.annotations, EnumSet.of(AnnotationUseSiteTarget.RECEIVER))
@@ -498,18 +611,9 @@ class FunctionDescriptorResolver(
             visibility,
             userData.takeIf { it.isNotEmpty() }
         )
-//
+
         functionDescriptor.setIsOperator(function.hasModifier(CjTokens.OPERATOR_KEYWORD))
 
-
-//        functionDescriptor.isExpect = container is PackageFragmentDescriptor && function.hasExpectModifier() ||
-//                container is ClassDescriptor && container.isExpect
-//        functionDescriptor.isActual = function.hasActualModifier()
-//
-//        receiverType?.let { ForceResolveUtil.forceResolveAllContents(it.annotations) }
-//        for (valueParameterDescriptor in valueParameterDescriptors) {
-//            ForceResolveUtil.forceResolveAllContents(valueParameterDescriptor.type.annotations)
-//        }
 
     }
 
@@ -542,6 +646,42 @@ class FunctionDescriptorResolver(
                 ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE, functionDescriptor.name.asString())
         }
         functionDescriptor.setReturnType(inferredReturnType)
+    }
+
+    private fun resolveMacroDescriptor(
+
+        macroConstructor: (DeclarationDescriptor, Name, SourceElement) -> MacroDescriptor,
+        containingDescriptor: DeclarationDescriptor,
+        scope: LexicalScope,
+        macro: CjMacroDeclaration,
+        trace: BindingTrace,
+        dataFlowInfo: DataFlowInfo,
+        expectedFunctionType: CangJieType,
+        inferenceSession: InferenceSession?
+    ): MacroDescriptor {
+        val macroDescriptor = macroConstructor(
+            containingDescriptor,
+
+            macro.nameAsSafeName,
+
+            macro.toSourceElement()
+        )
+
+        initializeMacroDescriptorAndExplicitReturnType(
+            containingDescriptor,
+            scope,
+            macro,
+            macroDescriptor,
+            trace,
+            expectedFunctionType,
+            dataFlowInfo,
+            inferenceSession
+        )
+
+        BindingContextUtils.recordMacroDeclarationToDescriptor(trace, macro, macroDescriptor)
+
+
+        return macroDescriptor
     }
 
     private fun resolveFunctionDescriptor(
@@ -585,6 +725,23 @@ class FunctionDescriptorResolver(
     }
 
     private data class ContextReceiverTypeWithLabel(val type: CangJieType, val label: Name?)
+
+    fun resolveMacroDescriptor(
+
+        containingDescriptor: DeclarationDescriptor,
+        scope: LexicalScope,
+        function: CjMacroDeclaration,
+        trace: BindingTrace,
+        dataFlowInfo: DataFlowInfo,
+        inferenceSession: InferenceSession?
+    ): MacroDescriptor {
+        if (function.name == null) trace.report(FUNCTION_DECLARATION_WITH_NO_NAME.on(function))
+
+        return resolveMacroDescriptor(
+            MacroDescriptorImpl::create, containingDescriptor, scope,
+            function, trace, dataFlowInfo, NO_EXPECTED_TYPE, inferenceSession
+        )
+    }
 
     fun resolveFunctionDescriptor(
 

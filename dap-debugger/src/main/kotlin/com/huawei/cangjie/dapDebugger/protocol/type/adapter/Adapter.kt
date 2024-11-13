@@ -554,7 +554,7 @@ object StoppedEventReasonAdapter {
     @ToJson
     fun toJson(writer: JsonWriter, stoppedEventReason: StoppedEventReason) {
         when (stoppedEventReason) {
-            is StoppedEventReason.Step -> writer.value("step")
+            is StoppedEventReason.Step -> writer.value("layer")
             is StoppedEventReason.Breakpoint -> writer.value("breakpoint")
             is StoppedEventReason.Exception -> writer.value("exception")
             is StoppedEventReason.Pause -> writer.value("pause")
@@ -570,7 +570,7 @@ object StoppedEventReasonAdapter {
     @FromJson
     fun fromJson(reader: JsonReader): StoppedEventReason {
         return when (val value = reader.nextString()) {
-            "step" -> StoppedEventReason.Step
+            "layer" -> StoppedEventReason.Step
             "breakpoint" -> StoppedEventReason.Breakpoint
             "exception" -> StoppedEventReason.Exception
             "pause" -> StoppedEventReason.Pause

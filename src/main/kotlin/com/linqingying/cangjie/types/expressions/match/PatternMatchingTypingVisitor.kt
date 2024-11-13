@@ -89,20 +89,26 @@ sealed class Subject(
         override val valueExpression: CjExpression? get() = null
     }
 
-    class Type(typeInfo: CangJieTypeInfo, _dataFlowValue: DataFlowValue) : Subject(null, typeInfo, null) {
+    class Type(typeInfo: CangJieTypeInfo, _dataFlowValue: DataFlowValue?, context: ExpressionTypingContext) :
+        Subject(null, typeInfo, null) {
 
 
         init {
-
-            dataFlowValue = _dataFlowValue
-
+            if (_dataFlowValue != null) {
+                dataFlowValue = _dataFlowValue
+            }
         }
 
         override fun createDataFlowValue(
             contextAfterSubject: ExpressionTypingContext,
             builtIns: CangJieBuiltIns
         ): DataFlowValue {
-            return dataFlowValue
+            return if (::dataFlowValue.isInitialized) {
+                dataFlowValue
+            } else {
+                DataFlowValue.nullValue(builtIns)
+
+            }
         }
 
         override fun makeValueArgument(): ValueArgument? {
@@ -146,57 +152,6 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         if (receiverTypeRef != null) {
             context.trace.report(LOCAL_EXTENSION_VARIABLE.on(receiverTypeRef))
         }
-//
-//        // 解析局部变量描述符
-//        val variableDescriptor =
-//            resolveLocalVariableDescriptor(
-//                scope,
-//                variable,
-//                context.dataFlowInfo,
-//                context.inferenceSession,
-//                context.trace
-//            )
-//
-//        // 处理变量初始化
-//        val initializer = variable.initializer
-//        var typeInfo: CangJieTypeInfo
-//        if (initializer != null) {
-//            val outType = variableDescriptor.type
-//            typeInfo = facade.getTypeInfo(initializer, context.replaceExpectedType(outType))
-//            val dataFlowInfo = typeInfo.dataFlowInfo
-//            val type = typeInfo.type
-//            if (type != null) {
-//                val initializerDataFlowValue = dataFlowValueFactory.createDataFlowValue(initializer, type, context)
-//                if (!variableDescriptor.isVar && initializerDataFlowValue.canBeBound) {
-//                    context.trace.record(
-//                        BindingContext.BOUND_INITIALIZER_VALUE,
-//                        variableDescriptor,
-//                        initializerDataFlowValue
-//                    )
-//                }
-//                // 当变量有显式类型时，不考虑初始化值的影响
-//                if (variable.typeReference == null) {
-//                    val variableDataFlowValue = dataFlowValueFactory.createDataFlowValueForVariable(
-//                        variable, variableDescriptor, context.trace.bindingContext,
-//                        DescriptorUtils.getContainingModuleOrNull(scope.ownerDescriptor)
-//                    )
-//                    typeInfo = typeInfo.replaceDataFlowInfo(
-//                        dataFlowInfo.assign(
-//                            variableDataFlowValue, initializerDataFlowValue,
-////                        languageVersionSettings
-//                        )
-//                    )
-//                }
-//            }
-//        } else {
-//            typeInfo = noTypeInfo(context)
-//        }
-//
-//        // 检查局部变量声明
-//        checkLocalVariableDeclaration(context, variableDescriptor, variable)
-//
-//        // 返回类型信息和变量描述符
-//        return Pair(typeInfo.replaceType(dataFlowAnalyzer.checkStatementType(variable, context)), variableDescriptor)
 
 //        模式
         val pattern = variable.pattern
@@ -210,7 +165,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 context.trace,
                 true
             )
-        } ?: NO_EXPECTED_TYPE
+        }
 
         // 处理变量初始化
         val initializer = variable.initializer
@@ -224,9 +179,16 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             initializer != null ->
                 Subject.Expression(
                     initializer,
-                    initializerTypeInfo,
+                    expectedType?.let { createTypeInfo(it) } ?: initializerTypeInfo,
                     components.dataFlowValueFactory
                 )
+
+            expectedType != null -> {
+                Subject.Type(
+                    createTypeInfo(expectedType),
+                    null, context
+                )
+            }
 
             else ->
                 Subject.None()
@@ -245,10 +207,17 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 subject,
                 it,
                 context,
-
+                Config(
+                    isVar = variable.isVar,
                 )
+
+            )
+
+            isOverwriteForVariableDeclaration(pattern, initializer, context.trace)
         }
-        return noTypeInfo(typingContext)
+
+
+        return createTypeInfo(components.builtIns.unitType)
     }
 
     override fun visitLetExpression(
@@ -547,6 +516,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     data class Config(
         val bindEnumType: Boolean = true,
+        val isVar: Boolean = false
     )
 
     private fun resoleCasePattern(
@@ -559,7 +529,9 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         var newDataFlowInfo = noChange(context)
 
         val patternVisitor = object : CjVisitorVoid() {
-            val pattern = PatternVisitor()
+            val pattern = PatternVisitor(
+                config
+            )
 
             override fun visitMatchConditionWithExpression(element: CjMatchConditionWithExpression) {
                 val expression = element.expression ?: return
@@ -954,7 +926,10 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
     }
 
 
-    inner class PatternVisitor : CjVisitor<Pattern, PatternContext>() {
+    inner class PatternVisitor(
+      val  config: Config = Config()
+
+    ) : CjVisitor<Pattern, PatternContext>() {
 
         private fun returnResult(element: CjCasePattern, data: PatternContext, result: Pattern): Pattern {
 
@@ -1061,7 +1036,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 } ?: ErrorUtils.errorVariableType
 
             val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
-                data.context.scope, element, type, data.context.trace
+                data.context.scope, element, type, data.context.trace, config.isVar
             )
             data.context.scope.addVariableDescriptor(variable)
 
@@ -1102,18 +1077,18 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     element, data, Pattern.Error
                 )
             }
-            data.subject.type.arguments.forEachIndexed { index, argumentType ->
-                resoleCasePattern(
-                    Subject.Type(
-
-                        createTypeInfo(argumentType.type, data.context),
-                        data.subject.dataFlowValue
-                    ),
-                    patterns[index],
-                    data.context
-                )
-
-            }
+//            data.subject.type.arguments.forEachIndexed { index, argumentType ->
+//                resoleCasePattern(
+//                    Subject.Type(
+//
+//                        createTypeInfo(argumentType.type, data.context),
+//                        data.subject.dataFlowValue, data.context
+//                    ),
+//                    patterns[index],
+//                    data.context
+//                )
+//
+//            }
 
             return returnResult(
                 element, data, Pattern(data.subject.type,
@@ -1203,7 +1178,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
 // TODO 将变量添加到作用域  这里需要架构重构，目前这个写的并不理想
             val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
-                data.context.scope, element, data.subject.type, data.context.trace
+                data.context.scope, element, data.subject.type, data.context.trace,config.isVar
             )
 
             data.context.scope.addVariableDescriptor(variable)
@@ -2077,6 +2052,14 @@ fun isBindingPattern(pattern: CjBindingPattern, context: BindingContext): Boolea
 
 
 fun isOverwriteForForInExpr(pattern: CjCasePattern, expression: CjExpression?, trace: BindingTrace) {
+    val isOverwrite = isOverwrite(pattern, expression, trace.bindingContext)
+    if (!isOverwrite || pattern is CjTypePattern) {
+        trace.report(IRREFUTABLE_PATTERN_FOR_IN_ERROR.on(pattern))
+    }
+
+}
+
+fun isOverwriteForVariableDeclaration(pattern: CjCasePattern, expression: CjExpression?, trace: BindingTrace) {
     val isOverwrite = isOverwrite(pattern, expression, trace.bindingContext)
     if (!isOverwrite || pattern is CjTypePattern) {
         trace.report(IRREFUTABLE_PATTERN_ERROR.on(pattern))

@@ -8,6 +8,7 @@ import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescripto
 import com.linqingying.cangjie.resolve.scopes.*
 import com.linqingying.cangjie.utils.Printer
 import com.intellij.util.SmartList
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 
 class AllUnderImportScope private constructor(
     descriptor: DeclarationDescriptor,
@@ -95,6 +96,13 @@ class AllUnderImportScope private constructor(
         return flatMapScopes(scope1, scope2) { it.getContributedFunctions(name, location) }
     }
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        if (name in excludedNames) return emptyList()
+
+        return flatMapScopes(scope1, scope2) { it.getContributedMacros(name, location) }
+
+
+    }
     override fun recordLookup(name: Name, location: LookupLocation) {
         scope1.recordLookup(name, location)
         scope2?.recordLookup(name, location)

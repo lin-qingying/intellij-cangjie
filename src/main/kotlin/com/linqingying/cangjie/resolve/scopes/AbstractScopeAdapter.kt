@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.resolve.scopes
 
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -24,6 +25,11 @@ abstract class AbstractScopeAdapter : MemberScope {
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         return workerScope.getContributedFunctions(name, location)
+    }
+
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        return workerScope.getContributedMacros(name, location)
+
     }
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
         return workerScope.getContributedClassifiers(name, location)

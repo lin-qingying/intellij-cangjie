@@ -27,6 +27,7 @@ import com.intellij.openapi.components.serviceOrNull
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.util.SmartList
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 
 
 abstract class CDocReference(element: CDocName) : CjMultiReference<CDocName>(element) {
@@ -264,7 +265,9 @@ private class ExtensionsScope(
     private val contextScope: LexicalScope
 ) : MemberScope {
     private val receiverTypes = listOf(receiverClass.defaultType)
-
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+     return emptyList()
+    }
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         return contextScope.collectFunctions(name, location).flatMap {
             if (it is SimpleFunctionDescriptor && it.isExtension) {

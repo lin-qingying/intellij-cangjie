@@ -79,7 +79,7 @@
 //    private fun chooseClassAndImport() {
 //        CodeInsightUtil.sortIdenticalShortNamedMembers(myTargetClasses, myReference)
 //
-//        val step: BaseListPopupStep<PsiClass> =
+//        val layer: BaseListPopupStep<PsiClass> =
 //            object : BaseListPopupStep<Any?>(QuickFixBundle.message("class.to.import.chooser.title"), myTargetClasses) {
 //                private val names: Map<PsiClass, String> = Arrays.stream(myTargetClasses)
 //                    .collect(
@@ -127,7 +127,7 @@
 //                }
 //            }
 //        val popup: JBPopup = JBPopupFactory.getInstance().createListPopup(
-//            myProject, step
+//            myProject, layer
 //        ) { superRenderer: ListCellRenderer<*> ->
 //            val baseRenderer = superRenderer as GroupedItemsListRenderer<Any>
 //            val psiRenderer: ListCellRenderer<Any> = DefaultPsiElementCellRenderer()

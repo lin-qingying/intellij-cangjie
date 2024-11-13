@@ -7,6 +7,7 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.linqingying.cangjie.builtins.StandardNames.ALL_NAMES
 import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
 import com.linqingying.cangjie.cjpm.toolchain.cjc
 import com.linqingying.cangjie.ide.run.cjpm.toolchain
@@ -54,7 +55,7 @@ abstract class BuiltInsVirtualFileProviderBaseImpl(project: Project) : BuiltInsV
 
     private val builtInUrls: Set<URL> by lazy {
         val classLoader = this::class.java.classLoader
-        StandardClassIds.builtInsPackages.mapTo(mutableSetOf()) { builtInPackageFqName ->
+        ALL_NAMES.mapTo(mutableSetOf()) { builtInPackageFqName ->
             val resourcePath = BuiltInSerializerProtocol.getBuiltInsFilePath(builtInPackageFqName)
 
 //            getURL(resourcePath)

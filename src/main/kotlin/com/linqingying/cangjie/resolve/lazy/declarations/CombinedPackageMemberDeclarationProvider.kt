@@ -15,7 +15,7 @@ class CombinedPackageMemberDeclarationProvider(
     override fun getFunctionDeclarations(name: Name) = providers.flatMap { it.getFunctionDeclarations(name) }
     override fun getMainFunctionDeclarations(): Collection<CjMainFunction> = providers.flatMap { it.getMainFunctionDeclarations( ) }
 
-
+    override fun getMacroDeclarations(name: Name): Collection<CjMacroDeclaration> = providers.flatMap { it.getMacroDeclarations(name ) }
     override fun getVariableDeclarations(name: Name) = providers.flatMap { it.getVariableDeclarations(name) }
     override fun getPropertyDeclarations(name: Name) = providers.flatMap { it.getPropertyDeclarations(name) }
 

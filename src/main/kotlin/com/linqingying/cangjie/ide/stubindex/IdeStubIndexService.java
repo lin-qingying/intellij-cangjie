@@ -256,14 +256,14 @@ public class IdeStubIndexService extends StubIndexService {
     public void indexMacroFunction(@NotNull CangJieFunctionStub stub, @NotNull IndexSink sink) {
         String name = stub.getName();
         if (name != null) {
-            sink.occurrence(CangJieMacroFunctionShortNameIndex.Helper.getIndexKey(), name);
+            sink.occurrence(CangJieMacroDeclarationShortNameIndex.Helper.getIndexKey(), name);
 
             indexPrime(stub, sink);
         }
         FqName fqName = stub.getFqName();
         if (fqName != null) {
-            sink.occurrence(CangJieMacroFqnNameIndex.Helper.getIndexKey(), fqName.asString());
-            sink.occurrence(CangJieMacroByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
+            sink.occurrence(CangJieMacroDeclarationFqnNameIndex.Helper.getIndexKey(), fqName.asString());
+            sink.occurrence(CangJieMacroDeclarationByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
             IndexUtilsKt.indexTopLevelExtension(stub, sink);
         }
     }

@@ -7,6 +7,7 @@ import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.DescriptorVisibilityUtils.isVisibleIgnoringReceiver
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.CangJieLookupLocation
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
@@ -379,6 +380,18 @@ class LazyImportScope(
             }
     }
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
+        return importResolver.collectFromImports(name) { scope -> scope.getContributedMacros(name, location) }
+            .ifEmpty {
+                secondaryImportResolver?.collectFromImports(name) { scope ->
+                    scope.getContributedMacros(
+                        name,
+                        location
+                    )
+                }.orEmpty()
+            }
+    }
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean,

@@ -2,8 +2,7 @@ package com.linqingying.cangjie.psi.stubs.elements;
 
 import com.linqingying.cangjie.name.FqName;
 import com.linqingying.cangjie.psi.CjFile;
-import com.linqingying.cangjie.psi.CjMacroFunction;
-import com.linqingying.cangjie.psi.CjNamedFunction;
+import com.linqingying.cangjie.psi.CjMacroDeclaration;
 import com.linqingying.cangjie.psi.psiUtil.CjPsiUtilKt;
 import com.linqingying.cangjie.psi.stubs.CangJieFunctionStub;
 import com.linqingying.cangjie.psi.stubs.impl.CangJieFunctionStubImpl;
@@ -19,13 +18,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
-public class CjMacroElementType extends CjStubElementType<CangJieFunctionStub, CjMacroFunction>{
+public class CjMacroElementType extends CjStubElementType<CangJieFunctionStub, CjMacroDeclaration>{
 
     public CjMacroElementType(@NotNull @NonNls String debugName) {
-        super(debugName, CjMacroFunction.class, CangJieFunctionStub.class);
+        super(debugName, CjMacroDeclaration.class, CangJieFunctionStub.class);
     }
     @Override
-    public @NotNull CangJieFunctionStub createStub(@NotNull CjMacroFunction psi, StubElement<? extends PsiElement> parentStub) {
+    public @NotNull CangJieFunctionStub createStub(@NotNull CjMacroDeclaration psi, StubElement<? extends PsiElement> parentStub) {
         boolean isTopLevel = psi.getParent() instanceof CjFile;
         boolean isExtension = psi.getReceiverTypeReference() != null;
         FqName fqName = CjPsiUtilKt.safeFqNameForLazyResolve(psi);

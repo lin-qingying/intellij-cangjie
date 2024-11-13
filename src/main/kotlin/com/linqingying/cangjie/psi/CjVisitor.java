@@ -9,6 +9,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         visitElement(element);
         return null;
     }
+    public R visitQuoteInterpolate(@NotNull CjQuoteInterpolate expression, D data) {
+        return visitCjElement(expression, data);
+    }
 
     public R visitPatternGuard(@NotNull CjPatternGuard expression, D data) {
         return visitCjElement(expression, data);
@@ -359,6 +362,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
 
     public R visitPrimaryConstructor(@NotNull CjPrimaryConstructor constructor, D data) {
         return visitNamedDeclaration(constructor, data);
+    }
+    public R visitMacroDeclaration(CjMacroDeclaration macroDeclaration, D data) {
+        return visitNamedDeclaration(macroDeclaration, data);
     }
 
     public R visitNamedFunction(CjNamedFunction cjNamedFunction, D data) {

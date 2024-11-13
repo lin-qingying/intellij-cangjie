@@ -3,8 +3,8 @@ package com.linqingying.cangjie.resolve
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
-import com.linqingying.cangjie.descriptors.impl.FunctionDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.diagnostics.Errors
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -122,6 +122,30 @@ class ControlFlowAnalyzer(
 
     }
 
+    private fun checkMacroDeclaration(
+        c: BodiesResolveContext,
+        macro: CjDeclarationWithBody,
+        macroDeclaration: MacroDescriptor
+    ) {
+        val controlFlowInformationProvider: ControlFlowInformationProvider =
+            controlFlowInformationProviderFactory.createControlFlowInformationProvider(
+                macro, trace, languageVersionSettings, /*diagnosticSuppressor, enumWhenTracker*/
+            )
+
+
+
+//        if (c.getTopDownAnalysisMode().isLocalDeclarations) {
+//            controlFlowInformationProvider.checkForLocalClassOrObjectMode()
+//            return
+//        }
+        controlFlowInformationProvider.checkDeclaration()
+
+
+        val expectedReturnType =   macroDeclaration.returnType
+
+        controlFlowInformationProvider.checkFunction(expectedReturnType)
+    }
+
     private fun checkFunction(
         c: BodiesResolveContext,
         function: CjDeclarationWithBody,
@@ -171,12 +195,13 @@ class ControlFlowAnalyzer(
 
         controlFlowInformationProvider.checkFunction(expectedReturnType)
     }
+
     private fun checkFunction(
         c: BodiesResolveContext,
         function: CjDeclarationWithBody,
         expectedReturnType: CangJieType?
     ) {
-        val controlFlowInformationProvider:  ControlFlowInformationProvider =
+        val controlFlowInformationProvider: ControlFlowInformationProvider =
             controlFlowInformationProviderFactory.createControlFlowInformationProvider(
                 function, trace, languageVersionSettings,/* diagnosticSuppressor, enumWhenTracker*/
             )
@@ -187,8 +212,9 @@ class ControlFlowAnalyzer(
         controlFlowInformationProvider.checkDeclaration()
         controlFlowInformationProvider.checkFunction(expectedReturnType)
     }
+
     private fun checkProperty(
-        c:  BodiesResolveContext,
+        c: BodiesResolveContext,
         property: CjProperty,
         propertyDescriptor: PropertyDescriptor
     ) {
@@ -199,10 +225,11 @@ class ControlFlowAnalyzer(
                 else
                     propertyDescriptor.setter
             ) { "no property accessor descriptor " + accessor.text }
-            val returnType :CangJieType?  = accessorDescriptor.returnType
+            val returnType: CangJieType? = accessorDescriptor.returnType
             checkFunction(c, accessor, returnType)
         }
     }
+
     fun inferredFunctionReturnType(
         scope: LexicalScope,
         function: CjDeclarationWithBody,
@@ -253,6 +280,7 @@ class ControlFlowAnalyzer(
         }
         controlFlowInformationProvider.checkDeclaration()
     }
+
     // SomeFile.kt
     private fun checkSecondaryConstructor(constructor: CjSecondaryConstructor) {
         val controlFlowInformationProvider = controlFlowInformationProviderFactory.createControlFlowInformationProvider(
@@ -261,6 +289,7 @@ class ControlFlowAnalyzer(
         controlFlowInformationProvider.checkDeclaration()
         controlFlowInformationProvider.checkFunction(builtIns.unitType)
     }
+
     fun process(c: BodiesResolveContext) {
 
         for (file in c.files) {
@@ -280,6 +309,12 @@ class ControlFlowAnalyzer(
             checkFunction(c, function, functionDescriptor)
         }
 
+        for ((function, macroDescriptor) in c.macros.entries) {
+            inferredFunctionReturnType(c, function, macroDescriptor)
+
+
+            checkMacroDeclaration(c, function, macroDescriptor)
+        }
 
 
         for ((function, functionDescriptor) in c.mainFunctions.entries) {

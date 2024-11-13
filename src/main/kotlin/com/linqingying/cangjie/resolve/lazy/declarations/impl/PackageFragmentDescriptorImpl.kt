@@ -13,6 +13,7 @@ import com.linqingying.cangjie.descriptors.impl.DeclarationDescriptorNonRootImpl
 import com.linqingying.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.linqingying.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.FqNameUnsafe
@@ -208,6 +209,10 @@ class PackageFragmentDescriptorBasicImpl(
         }
 
         override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
+            return emptyList()
+        }
+
+        override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
             return emptyList()
         }
 

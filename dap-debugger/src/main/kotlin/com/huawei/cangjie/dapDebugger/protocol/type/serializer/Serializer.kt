@@ -338,7 +338,7 @@ object StoppedEventReasonSerializer : KSerializer<StoppedEventReason> {
 
     override fun serialize(encoder: Encoder, value: StoppedEventReason) {
         when (value) {
-            is StoppedEventReason.Step -> encoder.encodeString("step")
+            is StoppedEventReason.Step -> encoder.encodeString("layer")
             is StoppedEventReason.Breakpoint -> encoder.encodeString("breakpoint")
             is StoppedEventReason.Exception -> encoder.encodeString("exception")
             is StoppedEventReason.Pause -> encoder.encodeString("pause")
@@ -356,7 +356,7 @@ object StoppedEventReasonSerializer : KSerializer<StoppedEventReason> {
     override fun deserialize(decoder: Decoder): StoppedEventReason {
         val value = decoder.decodeString()
         return when (value) {
-            "step" -> StoppedEventReason.Step
+            "layer" -> StoppedEventReason.Step
             "breakpoint" -> StoppedEventReason.Breakpoint
             "exception" -> StoppedEventReason.Exception
             "pause" -> StoppedEventReason.Pause

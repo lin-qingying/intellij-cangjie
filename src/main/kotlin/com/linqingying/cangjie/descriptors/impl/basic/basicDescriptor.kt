@@ -7,6 +7,7 @@ import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.DescriptorVisibilities.PUBLIC
 import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.descriptors.impl.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.name.Name
@@ -179,6 +180,10 @@ open class BasicTypeDescriptor(
             return emptyList()
         }
 
+        override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+            return emptyList()
+
+        }
         override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
             return emptyList()
 

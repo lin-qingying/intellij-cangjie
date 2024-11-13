@@ -14,6 +14,7 @@ import com.linqingying.cangjie.utils.CallOnceFunction
 import com.linqingying.cangjie.utils.Printer
 import com.linqingying.cangjie.utils.addIfNotNull
 import com.intellij.util.SmartList
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 
 class LazyExplicitImportScope(
     private val languageVersionSettings: LanguageVersionSettings,
@@ -59,6 +60,11 @@ class LazyExplicitImportScope(
         return collectCallableMemberDescriptors(location, MemberScope::getContributedFunctions)
     }
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        if (name != aliasName) return emptyList()
+
+        return collectCallableMemberDescriptors(location, MemberScope::getContributedMacros)
+    }
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
         if (name != aliasName) return emptyList()
 

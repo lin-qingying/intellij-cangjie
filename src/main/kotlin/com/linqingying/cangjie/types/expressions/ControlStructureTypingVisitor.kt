@@ -752,6 +752,21 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             .replaceJumpOutPossible(true)
     }
 
+    override fun visitQuoteExpression(element: CjQuoteExpression, data: ExpressionTypingContext ): CangJieTypeInfo {
+        element.quoteInterpolates.forEach {
+
+            it.expression?.let { it1 ->
+                facade.getTypeInfo(
+                    it1, data.replaceExpectedType(NO_EXPECTED_TYPE)
+                )
+            }
+        }
+
+        return createTypeInfo(
+            facade.components.builtIns.tokensType
+        )
+    }
+
     override fun visitReturnExpression(
         expression: CjReturnExpression,
         context: ExpressionTypingContext

@@ -19,6 +19,7 @@ import com.linqingying.cangjie.context.SimpleGlobalContext
 import com.linqingying.cangjie.context.withModule
 import com.linqingying.cangjie.context.withProject
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.frontend.createContainerForBodyResolve
 import com.linqingying.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import com.linqingying.cangjie.ide.projectStructure.languageVersionSettings
@@ -51,7 +52,7 @@ private val EXCLUDED_TYPES = setOf(
     CjTypePattern::class,
     CjPackageDirective::class,
 
-    CjMacroFunction::class,
+//    CjMacroDeclaration::class,
 )
 
 class ResolveElementCache(
@@ -460,6 +461,13 @@ class ResolveElementCache(
                 createStatementFilter(),
                 bodyResolveMode.bindingTraceFilter
             )
+            is CjMacroDeclaration -> functionAdditionalResolve(
+                resolveSession,
+                resolveElement,
+                file,
+                createStatementFilter(),
+                bodyResolveMode.bindingTraceFilter
+            )
 
             is CjNamedFunction -> functionAdditionalResolve(
                 resolveSession,
@@ -801,6 +809,11 @@ class ResolveElementCache(
         return getElementsAdditionalResolve(function, null, FULL)
     }
 
+    override fun resolveMacroBody(macro: CjMacroDeclaration): BindingContext {
+        return getElementsAdditionalResolve(macro, null, FULL)
+
+    }
+
     override fun resolveFunctionBody(function: CjNamedFunction): BindingContext {
         return getElementsAdditionalResolve(function, null, FULL)
     }
@@ -827,6 +840,7 @@ class ResolveElementCache(
         override val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor> = hashMapOf()
         override val mainFunctions: MutableMap<CjMainFunction, SimpleFunctionDescriptor> = hashMapOf()
         override val typeAliases: MutableMap<CjTypeAlias, TypeAliasDescriptor> = hashMapOf()
+        override val macros: MutableMap<CjMacroDeclaration, MacroDescriptor> = hashMapOf()
 
 
         override fun getDeclaringScope(declaration: CjDeclaration): LexicalScope? = declaringScopes(declaration)

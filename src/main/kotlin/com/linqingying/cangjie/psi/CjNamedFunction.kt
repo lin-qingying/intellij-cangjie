@@ -171,8 +171,5 @@ class CjNamedFunction : CjFunctionImpl {
         get() = hasModifier(CjTokens.MUT_KEYWORD)
     override val isConst: Boolean
         get() = hasModifier(CjTokens.MUT_KEYWORD)
-    override val isTopLevel: Boolean
-        get() {
-            return super.isTopLevel
-        }
+
 }

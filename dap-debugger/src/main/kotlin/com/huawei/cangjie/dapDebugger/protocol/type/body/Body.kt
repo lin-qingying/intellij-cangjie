@@ -347,7 +347,7 @@ data class StoppedEventBody(
     /**
      * 事件的原因。
      * 为了向后兼容，如果缺少 `description` 属性，此字符串将在 UI 中显示（但不必翻译）。
-     * 值：'step', 'breakpoint', 'exception', 'pause', 'entry', 'goto',
+     * 值：'layer', 'breakpoint', 'exception', 'pause', 'entry', 'goto',
      * 'function breakpoint', 'data breakpoint', 'instruction breakpoint'等。
      */
     val reason: StoppedEventReason,

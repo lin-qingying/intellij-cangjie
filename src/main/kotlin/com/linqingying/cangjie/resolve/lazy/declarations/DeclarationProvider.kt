@@ -11,6 +11,7 @@ interface DeclarationProvider {
 
     fun getFunctionDeclarations(name: Name): Collection<CjNamedFunction>
     fun getMainFunctionDeclarations( ): Collection<CjMainFunction>
+    fun getMacroDeclarations(name: Name): Collection<CjMacroDeclaration>
 
     fun getVariableDeclarations(name: Name): Collection<CjVariable>
     fun getPropertyDeclarations(name: Name): Collection<CjProperty>

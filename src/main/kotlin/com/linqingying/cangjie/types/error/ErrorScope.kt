@@ -1,6 +1,8 @@
 package com.linqingying.cangjie.types.error
 
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.ErrorMacroDescriptor
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -33,6 +35,8 @@ open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : M
     override fun getContributedFunctions(name: Name, location: LookupLocation): Set<SimpleFunctionDescriptor> =
         setOf(ErrorFunctionDescriptor(ErrorUtils.errorClass))
 
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
+    setOf( ErrorMacroDescriptor(ErrorUtils.errorClass))
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter, nameFilter: Function1<Name, Boolean>
     ): Collection<DeclarationDescriptor> = emptyList()

@@ -461,6 +461,31 @@ fun createProjection(
         type
     )
 
+fun CangJieType?.isArrayOfNothing(): Boolean {
+    if (this == null || !CangJieBuiltIns.isArray(this)) return false
+    val typeArg = arguments.firstOrNull()?.type
+    return typeArg != null && CangJieBuiltIns.isNothingOrNullableNothing(typeArg)
+}
+
+fun CangJieType.constituentTypes(): Collection<CangJieType> =
+    constituentTypes(listOf(this))
+
+private fun constituentTypes(result: MutableSet<CangJieType>, types: Collection<CangJieType>) {
+    result.addAll(types)
+    for (type in types) {
+        if (type.isFlexible()) {
+            with(type.asFlexibleType()) { constituentTypes(result, setOf(lowerBound, upperBound)) }
+        } else {
+            constituentTypes(result, type.arguments.map { it.type })
+        }
+    }
+}
+
+fun constituentTypes(types: Collection<CangJieType>): Collection<CangJieType> {
+    val result = hashSetOf<CangJieType>()
+    constituentTypes(result, types)
+    return result
+}
 
 val CangJieType.source: CjElement? get() = constructor.declarationDescriptor?.source?.getPsi() as? CjElement
 

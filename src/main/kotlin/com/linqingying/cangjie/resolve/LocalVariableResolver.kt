@@ -203,7 +203,8 @@ private fun resolveLocalVariableDescriptor(
         scope: LexicalScope,
         variable: CjVariableDeclaration,
         type: CangJieType?,
-        trace: BindingTrace
+        trace: BindingTrace,
+        isVar:Boolean? = null
     ): LocalVariableDescriptor {
 
         val variableDescriptor = LocalVariableDescriptor(
@@ -212,7 +213,7 @@ private fun resolveLocalVariableDescriptor(
 
             CjPsiUtil.safeName(variable.name),
             type,
-            variable.isVar,
+            isVar ?:   variable.isVar,
 
             variable.toSourceElement()
         )

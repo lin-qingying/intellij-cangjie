@@ -73,7 +73,7 @@ val possibleTargetMap = mapOf(
         CangJieTarget.STRUCT_MEMBER_FUNCTION
     ),
     PRIVATE_KEYWORD to defaultVisibilityTargets + CangJieTarget.BACKING_FIELD,
-    PUBLIC_KEYWORD to defaultVisibilityTargets,
+    PUBLIC_KEYWORD to defaultVisibilityTargets + CangJieTarget.MACRO ,
     INTERNAL_KEYWORD to defaultVisibilityTargets + CangJieTarget.BACKING_FIELD,
     PROTECTED_KEYWORD to EnumSet.of(
         CangJieTarget.FUNCTION,

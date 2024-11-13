@@ -7,6 +7,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
@@ -351,6 +352,9 @@ class FileScopeFactory(
 
             }
 
+            override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+                return emptyList()
+            }
             override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
 
                 return emptyList()
@@ -632,6 +636,11 @@ class FileScopeFactory(
             return scope.getContributedFunctions(name, location)
         }
 
+        override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+            if (filteringKind == FilteringKind.INVISIBLE_CLASSES) return listOf()
+            if (name in excludedNames) return emptyList()
+            return scope.getContributedMacros(name, location)
+        }
         override fun getContributedDescriptors(
             kindFilter: DescriptorKindFilter,
             nameFilter: (Name) -> Boolean,

@@ -430,7 +430,7 @@ public class ExpressionTypingServices {
         return r;
     }
 
-    /*package*/ void checkFunctionReturnType(CjDeclarationWithBody function, ExpressionTypingContext context) {
+    /*package*/ void checkFunctionReturnType(@NotNull CjDeclarationWithBody function, ExpressionTypingContext context) {
         CjExpression bodyExpression = function.getBodyExpression();
         if (bodyExpression == null) return;
 

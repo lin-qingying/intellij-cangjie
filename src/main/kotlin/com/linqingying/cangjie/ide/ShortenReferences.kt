@@ -272,7 +272,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 )
             }
 
-            // step 1: collect qualified elements to analyze (no resolve at this step)
+            // layer 1: collect qualified elements to analyze (no resolve at this layer)
             val visitors = processors.map { it.collectElementsVisitor }
             runReadAction {
                 for (visitor in visitors) {
@@ -283,7 +283,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 }
 
 
-                // step 2:分析收集的元素,决定哪些可以立即缩短，哪些需要在缩短之前导入描述符
+                // layer 2:分析收集的元素,决定哪些可以立即缩短，哪些需要在缩短之前导入描述符
                 val allElementsToAnalyze =
                     visitors.flatMap { visitor -> visitor.getElementsToAnalyze().map { it.element } }.toSet()
                 val bindingContext = allowResolveInDispatchThread {
@@ -293,12 +293,12 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 processors.forEach { it.analyzeCollectedElements(bindingContext) }
             }
 
-            // step 3: 缩短现在可以缩短的元素
+            // layer 3: 缩短现在可以缩短的元素
             runAction(runImmediately) {
                 processors.forEach { it.shortenElements(elementSetToUpdate = elementsToUse, options = options) }
             }
             var anyChange = false
-            // step 4: 尝试导入缩短其他元素所需的描述符
+            // layer 4: 尝试导入缩短其他元素所需的描述符
             val descriptorsToImport = runReadAction {
                 processors.flatMap { it.getDescriptorsToImport() }.toSet()
             }

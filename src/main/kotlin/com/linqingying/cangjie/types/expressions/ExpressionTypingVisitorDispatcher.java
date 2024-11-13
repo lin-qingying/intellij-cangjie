@@ -398,6 +398,11 @@ public abstract class ExpressionTypingVisitorDispatcher extends CjVisitor<CangJi
         return controlStructures.visitReturnExpression(expression, data);
     }
 
+    @Override
+    public CangJieTypeInfo visitQuoteExpression(@NotNull CjQuoteExpression element, ExpressionTypingContext data) {
+        return controlStructures.visitQuoteExpression(element, data);
+
+    }
 
     @Override
     public CangJieTypeInfo visitContinueExpression(@NotNull CjContinueExpression expression, ExpressionTypingContext data) {
