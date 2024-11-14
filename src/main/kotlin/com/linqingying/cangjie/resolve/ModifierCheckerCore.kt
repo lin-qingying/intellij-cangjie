@@ -16,36 +16,7 @@ import com.intellij.psi.tree.TokenSet
  * 检查修饰符
  */
 object ModifierCheckerCore {
-    //    private fun checkModifierList(
-//        list: CjModifierList,
-//        trace: BindingTrace,
-//        parentDescriptor: DeclarationDescriptor?,
-//        actualTargets: List<CangJieTarget>,
-//
-//        ) {
-//        if (list.stub != null) return
-//
-//        // It's a list of all nodes with error already reported
-//        // General strategy: report no more than one error but any number of warnings
-//        val incorrectNodes = hashSetOf<ASTNode>()
-//
-//        val children = list.node.getChildren(MODIFIER_KEYWORD_SET)
-//        for (second in children) {
-//            for (first in children) {
-//                if (first == second) {
-//                    break
-//                }
-//                checkCompatibility(trace, first, second, list.owner, incorrectNodes)
-//            }
-//            if (second !in incorrectNodes) {
-//                when {
-//                    !checkTarget(trace, second, actualTargets) -> incorrectNodes += second
-//                    !checkParent(trace, second, parentDescriptor, languageVersionSettings) -> incorrectNodes += second
-//                    !checkLanguageLevelSupport(trace, second, languageVersionSettings, actualTargets) -> incorrectNodes += second
-//                }
-//            }
-//        }
-//    }
+
     fun check(
         listOwner: CjModifierListOwner,
         trace: BindingTrace,

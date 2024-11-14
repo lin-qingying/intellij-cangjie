@@ -1077,7 +1077,71 @@ public class DescriptorResolver {
                 inferenceSession,
                 VariableAsPropertyInfo.Companion.createFromProperty(property));
     }
+    public void resolveGenericBoundsBorExtend(
+            @NotNull CjTypeParameterListOwnerForExtend declaration,
+            @NotNull DeclarationDescriptor descriptor,
+            LexicalScope scope,
+            List<TypeParameterDescriptorImpl> parameters,
+            BindingTrace trace
+    ) {
+        List<UpperBoundCheckRequest> upperBoundCheckRequests = Lists.newArrayList();
 
+        List<CjTypeParameter> typeParameters = declaration.getExtendTypeParameters();
+        Map<Name, TypeParameterDescriptorImpl> parameterByName = new HashMap<>();
+        for (int i = 0; i < typeParameters.size(); i++) {
+            CjTypeParameter cjTypeParameter = typeParameters.get(i);
+            TypeParameterDescriptorImpl typeParameterDescriptor = parameters.get(i);
+
+            parameterByName.put(typeParameterDescriptor.getName(), typeParameterDescriptor);
+
+            CjTypeReference extendsBound = cjTypeParameter.getExtendsBound();
+            if (extendsBound != null) {
+                CangJieType type = typeResolver.resolveType(scope, extendsBound, trace, false);
+                typeParameterDescriptor.addUpperBound(type);
+                upperBoundCheckRequests.add(new UpperBoundCheckRequest(cjTypeParameter.getNameAsName(), extendsBound, type));
+            }
+        }
+        for (CjTypeConstraint constraint : declaration.getTypeConstraints()) {
+            CjSimpleNameExpression subjectTypeParameterName = constraint.getSubjectTypeParameterName();
+            if (subjectTypeParameterName == null) {
+                continue;
+            }
+            Name referencedName = subjectTypeParameterName.getReferencedNameAsName();
+            TypeParameterDescriptorImpl typeParameterDescriptor = parameterByName.get(referencedName);
+
+
+            List<CjTypeReference> boundTypeReferences = constraint.getBoundTypeReferences();
+            for (CjTypeReference boundTypeReference : boundTypeReferences) {
+                CangJieType bound = null;
+                if (boundTypeReference != null) {
+                    bound = typeResolver.resolveType(scope, boundTypeReference, trace, false);
+                    upperBoundCheckRequests.add(new UpperBoundCheckRequest(referencedName, boundTypeReference, bound));
+                }
+
+                if (typeParameterDescriptor != null) {
+                    trace.record(BindingContext.REFERENCE_TARGET, subjectTypeParameterName, typeParameterDescriptor);
+                    if (bound != null) {
+                        typeParameterDescriptor.addUpperBound(bound);
+                    }
+                }
+            }
+
+        }
+
+        for (TypeParameterDescriptorImpl parameter : parameters) {
+            parameter.addDefaultUpperBound();
+            parameter.setInitialized();
+        }
+
+        for (TypeParameterDescriptorImpl parameter : parameters) {
+            checkConflictingUpperBounds(trace, parameter, typeParameters.get(parameter.getIndex()));
+        }
+
+        if (!(declaration instanceof CjClass)) {
+            checkUpperBoundTypes(trace, upperBoundCheckRequests, declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD));
+            checkNamesInConstraints(declaration, descriptor, scope, trace);
+        }
+    }
     public void resolveGenericBounds(
             @NotNull CjTypeParameterListOwner declaration,
             @NotNull DeclarationDescriptor descriptor,

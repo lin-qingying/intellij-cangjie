@@ -1,32 +1,34 @@
 package com.linqingying.cangjie.psi
 
-import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
-import com.linqingying.cangjie.psi.stubs.CangJieFunctionStub
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.ItemPresentationProviders
 import com.intellij.psi.PsiElement
-import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
+import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
+import com.linqingying.cangjie.psi.stubs.CangJieFunctionStub
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
-class CjNamedFunction : CjFunctionImpl {
+/**
+ * 来自扩展的方法
+ * 携带扩展的类型参数，与本方法类型参数分开
+ */
+class CjNamedFunctionForExtend : CjNamedFunction,CjTypeParameterListOwnerForExtend {
+    constructor(node: ASTNode) : super(node)
+
+    constructor(stub: CangJieFunctionStub) : super(stub)
+
+    val extendTypeParameterList get() = this.getStrictParentOfType<CjExtend>()?.typeParameterList
+    override val extendTypeParameters: List<CjTypeParameter>
+        get() = extendTypeParameterList?.parameters ?: emptyList()
+}
+
+open class CjNamedFunction : CjFunctionImpl {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.FUNCTION)
 
-    //    public bool mayHaveContract() {
-    //        return mayHaveContract(true);
-    //    }
-    //    public bool mayHaveContract(bool isAllowedOnMembers) {
-    //        CangJieFunctionStub stub = getStub();
-    //        if (stub != null) {
-    //            return stub.mayHaveContract();
-    //        }
-    //
-    //        return CjPsiUtilKt.isContractPresentPsiCheck(this, isAllowedOnMembers);
-    //    }
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitNamedFunction(this, data)
     }
@@ -107,33 +109,6 @@ class CjNamedFunction : CjFunctionImpl {
         return typeReference != null
     }
 
-//    override val receiverTypeReference: CjTypeReference?
-//        get() {
-//            val stub: CangJieFunctionStub? = stub
-//            if (stub != null) {
-//                if (!stub.isExtension()) {
-//                    return null
-//                }
-//                val childTypeReferences: List<CjTypeReference> =
-//                    getStubOrPsiChildrenAsList(
-//                        CjStubElementTypes.TYPE_REFERENCE
-//                    )
-//                return if (childTypeReferences.isNotEmpty()) {
-//                    childTypeReferences[0]
-//                } else {
-//                    null
-//                }
-//            }
-//            return receiverTypeRefByTree
-//        }
-//
-//    private val receiverTypeRefByTree: CjTypeReference?
-//        get() {
-//            val parent = this.getStrictParentOfType<CjExtend>()
-//
-//            return parent?.receiverTypeReceiver
-//
-//        }
 
     override fun toString(): String {
 //        return getNode().getElementType().toString();

@@ -979,7 +979,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             case AT_Id -> myExpressionParsing.parseMacroExpression(true);
 //                    parseAnnotation(null);
             case FUNC_KEYWORD_Id ->
-                    tokenId != null ? tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true, classdetector, detector) : parseFunction(classdetector, detector) : parseFunction(detector);
+                    tokenId != null ? tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true, classdetector, detector, tokenId) : parseFunction(classdetector, detector, tokenId) : parseFunction(detector, tokenId);
 
 
 //                    tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ?  parseFunction(true,classdetector, detector):parseFunction( ) ;
@@ -2085,32 +2085,44 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     @NotNull
     IElementType parseFunction() {
-        return parseFunction(false, null, null, false);
+        return parseFunction(false, null, null, false, 0);
     }
 
     @NotNull
-    IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector) {
-        return parseFunction(isInterfaceMethod, classdetector, detector, false);
+    IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector, Integer topTokenId) {
+        return parseFunction(isInterfaceMethod, classdetector, detector, false, topTokenId);
     }
 
     @NotNull
-    IElementType parseFunction(boolean isInterfaceMethod) {
-        return parseFunction(isInterfaceMethod, null, null, false);
+    IElementType parseFunction(boolean isInterfaceMethod, Integer topTokenId) {
+        return parseFunction(isInterfaceMethod, null, null, false, topTokenId);
     }
 
     @NotNull
-    IElementType parseFunction(ModifierDetector detector) {
-        return parseFunction(false, null, detector, false);
+    IElementType parseFunction(ModifierDetector detector
+    ) {
+        return parseFunction(detector, 0);
+    }
+
+    @NotNull
+    IElementType parseFunction(ModifierDetector detector, Integer topTokenId
+    ) {
+        return parseFunction(false, null, detector, false, topTokenId);
     }
 
     @NotNull
     IElementType parseForeignFunction(ModifierDetector detector) {
-        return parseFunction(false, null, detector, true);
+        return parseForeignFunction(detector, 0);
     }
 
     @NotNull
-    IElementType parseFunction(ModifierDetector classdetector, ModifierDetector detector) {
-        return parseFunction(false, classdetector, detector, false);
+    IElementType parseForeignFunction(ModifierDetector detector, Integer topTokenId) {
+        return parseFunction(false, null, detector, true, topTokenId);
+    }
+
+    @NotNull
+    IElementType parseFunction(ModifierDetector classdetector, ModifierDetector detector, Integer topTokenId) {
+        return parseFunction(false, classdetector, detector, false, topTokenId);
     }
 
     /*
@@ -2163,7 +2175,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     @Contract("false -> !null")
-    IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector, boolean isForeign) {
+    IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector, boolean isForeign, Integer topTokenId) {
 
 
 //        if (detector != null) {
@@ -2174,11 +2186,14 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        }
         assert _at(FUNC_KEYWORD);
         advance();
-
+        IElementType type = FUNC;
+        if (topTokenId != null && EXTEND_KEYWORD_Id == topTokenId) {
+            type = FUNC_EXTEND;
+        }
 
         if (at(RBRACE)) {
             error("Function body expected");  //应该为函数体
-            return FUNC;
+            return type;
         }
 
 
@@ -2283,7 +2298,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
 //            else body.drop();
 
-            return FUNC;
+            return type;
         }
 
         if (at(LBRACE)) {
@@ -2297,7 +2312,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
             error("Expecting '{' ");  //应该为'{'
         }
 
-        return FUNC;
+        return type;
     }
 
     public void parseSynchronizedExpression() {
@@ -2412,7 +2427,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         if (at(RBRACE)) {
             error("Function body expected");  //应该为函数体
-            return FUNC;
+            return MACRO;
         }
 
 

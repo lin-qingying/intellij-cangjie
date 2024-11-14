@@ -30,6 +30,7 @@ enum class LexicalScopeKind(val withLocalDescriptors: Boolean) {
     VARIABLE_INITIALIZER_OR_DELEGATE(true),
     PROPERTY_ACCESSOR_BODY(true),
     PROPERTY_DELEGATE_METHOD(false),
+    EXTEND_HEADER(false),
 
     FUNCTION_HEADER(false),
     FUNCTION_HEADER_FOR_DESTRUCTURING(false),

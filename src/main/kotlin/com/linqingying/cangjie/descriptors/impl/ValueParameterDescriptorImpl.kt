@@ -17,8 +17,6 @@ open class ValueParameterDescriptorImpl(
     override val isNamed: Boolean,
     outType: CangJieType,
     private val declaresDefaultValue: Boolean,
-//    override val isCrossinline: Boolean,
-//    override val isNoinline: Boolean,
 
     source: SourceElement,
 
@@ -36,9 +34,7 @@ open class ValueParameterDescriptorImpl(
             isNamed: Boolean,
             outType: CangJieType,
             declaresDefaultValue: Boolean,
-//            isCrossinline: Boolean,
-//            isNoinline: Boolean,
-//            varargElementType: CangJieType?,
+
             source: SourceElement,
             destructuringVariables: (() -> List<VariableDescriptor>)?
         ): ValueParameterDescriptorImpl = if (destructuringVariables == null) ValueParameterDescriptorImpl(
@@ -49,7 +45,7 @@ open class ValueParameterDescriptorImpl(
             name,
             isNamed,
             outType,
-            declaresDefaultValue, /*isCrossinline, isNoinline, varargElementType,*/
+            declaresDefaultValue,
             source
         )
         else WithDestructuringDeclaration(
@@ -60,7 +56,7 @@ open class ValueParameterDescriptorImpl(
             name,
             isNamed,
             outType,
-            declaresDefaultValue,/* isCrossinline, isNoinline, varargElementType,*/
+            declaresDefaultValue,
             source,
             destructuringVariables
         )
@@ -70,20 +66,14 @@ open class ValueParameterDescriptorImpl(
         containingDeclaration: CallableDescriptor, original: ValueParameterDescriptor?, index: Int,
 
         annotations: Annotations, name: Name, isNamed: Boolean, outType: CangJieType, declaresDefaultValue: Boolean,
-//        isCrossinline: Boolean,
-//        isNoinline: Boolean,
-//       varargElementType: CangJieType?,
+
         source: SourceElement, destructuringVariables: () -> List<VariableDescriptor>
     ) : ValueParameterDescriptorImpl(
         containingDeclaration, original, index, annotations, name, isNamed, outType, declaresDefaultValue,
-//        isCrossinline,
-//        isNoinline,
-//        varargElementType,
+
         source
     ) {
-        // It's forced to be lazy because its resolution depends on receiver of relevant lambda, that is being created at the same moment
-        // as value parameters.
-        // Must be forced via ForceResolveUtil.forceResolveAllContents()
+
         val destructuringVariables by lazy(destructuringVariables)
 
         override fun copy(newOwner: CallableDescriptor, newName: Name, newIndex: Int): ValueParameterDescriptor {
@@ -95,7 +85,7 @@ open class ValueParameterDescriptorImpl(
                 newName,
                 isNamed,
                 type,
-                declaresDefaultValue(),/*       isCrossinline, isNoinline,  varargElementType,*/
+                declaresDefaultValue(),
                 SourceElement.NO_SOURCE
             ) { destructuringVariables }
         }
@@ -134,7 +124,7 @@ open class ValueParameterDescriptorImpl(
             newName,
             isNamed,
             type,
-            declaresDefaultValue(),/*isCrossinline, isNoinline, varargElementType, */
+            declaresDefaultValue(),
             SourceElement.NO_SOURCE
         )
     }

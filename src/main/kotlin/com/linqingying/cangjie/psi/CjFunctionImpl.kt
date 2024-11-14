@@ -63,9 +63,7 @@ abstract class CjFunctionImpl : CjTypeParameterListOwnerStub<CangJieFunctionStub
 
             if (superTypeParameterList != null) return superTypeParameterList
 
-            if (receiverTypeReference != null) {
-                return this.getStrictParentOfType<CjExtend>()?.typeParameterList
-            }
+
             return null
         }
     private val receiverTypeRefByTree: CjTypeReference?

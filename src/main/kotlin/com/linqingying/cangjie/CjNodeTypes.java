@@ -73,6 +73,7 @@ IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
 
     IElementType FOREIGN_BODY = CjStubElementTypes.FOREIGN_BODY;
     IElementType FUNC = CjStubElementTypes.FUNCTION;
+    IElementType FUNC_EXTEND = CjStubElementTypes.FUNCTION_EXTEND;
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
     IElementType BLOCK = new BlockExpressionElementType();
     IElementType CASE_BLOCK = new CaseBlockExpressionElementType();

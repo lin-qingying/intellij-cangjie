@@ -9,6 +9,7 @@ import com.linqingying.cangjie.descriptors.annotations.AnnotationDescriptor
 import com.linqingying.cangjie.descriptors.annotations.AnnotationUseSiteTarget
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor
+import com.linqingying.cangjie.descriptors.impl.SimpleFunctionDescriptorForExtendImpl
 import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.FqNameUnsafe
@@ -1210,6 +1211,12 @@ open class DescriptorRendererImpl(
                         builder.append("/*isHiddenForResolutionEverywhereBesideSupercalls*/ ")
                     }
                 }
+            }
+            if(function is SimpleFunctionDescriptorForExtendImpl){
+
+                renderTypeParameters(function.typeParametersForExtend, builder, true)
+                renderWhereSuffix(function.typeParametersForExtend, builder)
+
             }
             if (function is MacroDescriptor) {
                 builder.append(renderKeyword("macro"))

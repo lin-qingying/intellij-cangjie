@@ -172,20 +172,20 @@ interface CangJieImportAliasStub : StubElement<CjImportAlias> {
 //    fun mayHaveContract(): Boolean
 //}
 
+interface CangJieFunctionForExtendStub : CangJieFunctionStub  {
 
+
+}
 interface CangJieFunctionStub : CangJieCallableStubBase<CjFunctionImpl> {
     fun hasBlockBody(): Boolean
     fun hasBody(): Boolean
     fun hasTypeParameterListBeforeFunctionName(): Boolean
-//    fun mayHaveContract(): Boolean
+
 }
 
 interface CangJieForeignDirectiveStub : StubElement<CjForeignDirective>
 
-//interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
-////    fun isAllUnder(): Boolean
-////    fun get_importedFqName(): FqName?
-////    fun isValid(): Boolean
+
 //}
 interface CangJiePackageDirectiveStub : StubElement<CjPackageDirective> {
     fun getModifierVisibility(): DescriptorVisibility

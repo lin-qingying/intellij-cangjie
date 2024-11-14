@@ -1,15 +1,18 @@
 package com.linqingying.cangjie.resolve
 
 import com.google.common.collect.Maps
+import com.intellij.util.SmartList
+import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.containers.SmartHashSet
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.CallableMemberDescriptor.Kind.DELEGATION
 import com.linqingying.cangjie.descriptors.CallableMemberDescriptor.Kind.FAKE_OVERRIDE
 import com.linqingying.cangjie.descriptors.DescriptorVisibilityUtils.useSpecialRulesForPrivateSealedConstructors
-import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.diagnostics.DiagnosticFactory2
 import com.linqingying.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
+import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.diagnostics.rendering.DeclarationWithDiagnosticComponents
 import com.linqingying.cangjie.diagnostics.rendering.PlatformSpecificDiagnosticComponents
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
@@ -20,9 +23,6 @@ import com.linqingying.cangjie.resolve.calls.util.isOrOverridesSynthesized
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
 import com.linqingying.cangjie.types.checker.NewCangJieTypeCheckerImpl
-import com.intellij.util.SmartList
-import com.intellij.util.containers.ContainerUtil
-import com.intellij.util.containers.SmartHashSet
 import java.util.*
 
 //覆盖检查分析
@@ -44,7 +44,7 @@ class OverrideResolver(
     private fun checkOverrides(c: TopDownAnalysisContext) {
         var index = 0
         for ((key, value) in c.declaredClasses) {
-            index ++
+            index++
             checkOverridesInAClass(value, key)
         }
     }
@@ -260,6 +260,7 @@ class OverrideResolver(
             reportDelegationProblemIfRequired(VAR_OVERRIDDEN_BY_LET_BY_DELEGATION, null, overriding, overridden)
 
         }
+
         override fun varOverriddenByLet(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor) {
             reportDelegationProblemIfRequired(VAR_OVERRIDDEN_BY_LET_BY_DELEGATION, null, overriding, overridden)
         }
@@ -362,7 +363,7 @@ class OverrideResolver(
         val hasOverrideNode = modifierList != null && modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)
         val overriddenDescriptors = declared.overriddenDescriptors
 
-        val reportError =  object : CheckOverrideReportForDeclaredMemberStrategy {
+        val reportError = object : CheckOverrideReportForDeclaredMemberStrategy {
             private var finalOverriddenError = false
             private var typeMismatchError = false
             private var kindMismatchError = false
@@ -425,6 +426,7 @@ class OverrideResolver(
                     )
                 }
             }
+
             override fun varOverriddenByLet(
                 overriding: CallableMemberDescriptor,
                 overridden: CallableMemberDescriptor
@@ -462,17 +464,25 @@ class OverrideResolver(
             if (!hasOverrideNode) {
                 //            override 关键字警告
                 val overridden = overriddenDescriptors.first()
-                trace.report(VIRTUAL_MEMBER_HIDDEN.on(member, declared, overridden, overridden.containingDeclaration))
+                if (!declared.isExtension)
+                    trace.report(
+                        VIRTUAL_MEMBER_HIDDEN.on(
+                            member,
+                            declared,
+                            overridden,
+                            overridden.containingDeclaration
+                        )
+                    )
             } else {
                 declared.modality = Modality.OPEN
             }
 
             checkOverridesForMemberMarkedOverride(
-                declared, cangjieTypeRefiner,reportError, languageVersionSettings
+                declared, cangjieTypeRefiner, reportError, languageVersionSettings
             )
-        }else if(hasOverrideNode){
+        } else if (hasOverrideNode) {
             checkOverridesForMemberMarkedOverride(
-                declared, cangjieTypeRefiner,reportError, languageVersionSettings
+                declared, cangjieTypeRefiner, reportError, languageVersionSettings
             )
         }
     }

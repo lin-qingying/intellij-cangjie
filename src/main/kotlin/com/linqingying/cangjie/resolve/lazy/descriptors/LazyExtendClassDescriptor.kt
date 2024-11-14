@@ -27,6 +27,7 @@ import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
 import com.linqingying.cangjie.types.util.TypeUtils.getClassDescriptor
 import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.storage.NullableLazyValue
 
 abstract class LazyClassDescriptorBase
     (
@@ -64,10 +65,11 @@ class LazyExtendClassDescriptor(
     }
 
     private val typeParameterDescriptors: List<TypeParameterDescriptor>
-    val classDescriptor: ClassDescriptor
+    var classDescriptor: ClassDescriptor  = ErrorUtils.errorClass
+    var type: CangJieType  = ErrorUtils.invalidType
 
     //    val typeParameters: List<TypeParameterDescriptor>
-    private var parameters: NotNullLazyValue<List<TypeParameterDescriptor>>
+    private var parameters: NullableLazyValue<List<TypeParameterDescriptor>>
 
     private val storageManager: StorageManager = c.storageManager
     private val typeConstructor = ExtendTypeConstructor()
@@ -98,7 +100,6 @@ class LazyExtendClassDescriptor(
 
 
         val typeReceiver = typeStatement.receiverTypeReceiver
-        assert(typeReceiver != null) { "type receiver is not supported for class: $name" }
 
         val headerScope = LexicalWritableScope(
             searchscope, this, true,
@@ -116,16 +117,16 @@ class LazyExtendClassDescriptor(
             }
         }
 
-        this.parameters = c.storageManager.createLazyValue {
+        this.parameters = c.storageManager.createNullableLazyValue {
             val classInfo = declarationProvider.ownerInfo
             var typeParameterList: CjTypeParameterList? = null
             if (classInfo != null) {
                 typeParameterList = classInfo.typeParameterList
             }
-            if (typeParameterList == null) return@createLazyValue emptyList<TypeParameterDescriptor>()
+            if (typeParameterList == null) return@createNullableLazyValue emptyList<TypeParameterDescriptor>()
 
             val typeParameters = typeParameterList.parameters
-            if (typeParameters.isEmpty()) return@createLazyValue emptyList<TypeParameterDescriptor>()
+            if (typeParameters.isEmpty()) return@createNullableLazyValue emptyList<TypeParameterDescriptor>()
 //
 //            boolean supportClassTypeParameterAnnotations = c.getLanguageVersionSettings().supportsFeature(LanguageFeature.ClassTypeParameterAnnotations);
             val parameters: MutableList<TypeParameterDescriptor> = ArrayList(typeParameters.size)
@@ -162,9 +163,11 @@ class LazyExtendClassDescriptor(
             parameters
         }
 
-        val type = c.typeResolver.resolveType(headerScope, typeReceiver!!, c.trace, false, isgetExtend)
-
-        this.classDescriptor = type.constructor.declarationDescriptor as ClassDescriptor
+        val type = typeReceiver?.let { c.typeResolver.resolveType(headerScope, it, c.trace, false, isgetExtend) }
+if(type != null){
+    this.type = type
+}
+        this.classDescriptor =  this.type.constructor .declarationDescriptor as? ClassDescriptor ?: ErrorUtils.errorClass
 
 
     }
@@ -275,7 +278,7 @@ class LazyExtendClassDescriptor(
     }
 
     override fun getDeclaredTypeParameters(): List<TypeParameterDescriptor> {
-        return parameters()
+        return parameters() ?: emptyList()
     }
 
     override fun getStaticScope(): MemberScope {
