@@ -79,7 +79,10 @@ public class DefaultErrorMessages {
             // "Conflicting declarations: {0}"
             return CangJieDiagnosisBundle.rawMessage(REDECLARATION);
         }, CommonRenderers.commaSeparated(COMPACT_WITH_MODIFIERS));
-
+        MAP.put(INCONSISTENT_MACRO_PACKAGE_NAME, () -> {
+            // "Enumeration constructor parameters are the same: {0}"
+            return CangJieDiagnosisBundle.rawMessage(INCONSISTENT_MACRO_PACKAGE_NAME);
+        });
         MAP.put(ENUM_REDECLARATION, () -> {
             // "Enumeration constructor parameters are the same: {0}"
             return CangJieDiagnosisBundle.rawMessage(ENUM_REDECLARATION);
@@ -249,7 +252,7 @@ public class DefaultErrorMessages {
         MAP.put(INVALID_MACRO_TYPE, () -> {
             // "Cannot weaken access privilege ''{0}'' for ''{1}'' in ''{2}''"
             return CangJieDiagnosisBundle.rawMessage(INVALID_MACRO_TYPE);
-        },TO_STRING, RENDER_TYPE);
+        }, TO_STRING, RENDER_TYPE);
         MAP.put(EXCESSIVE_MACRO_PARAMS, () -> {
             // "Cannot weaken access privilege ''{0}'' for ''{1}'' in ''{2}''"
             return CangJieDiagnosisBundle.rawMessage(EXCESSIVE_MACRO_PARAMS);
@@ -282,10 +285,10 @@ public class DefaultErrorMessages {
             return CangJieDiagnosisBundle.rawMessage(RETURN_TYPE_MISMATCH_ON_OVERRIDE);
         }, NAMED, FQ_NAMES_IN_TYPES_ANNOTATIONS_WHITELIST);
         MAP.put(RETURN_TYPE_MISMATCH,
-                ()->{
+                () -> {
 
 //                    "This function must return a value of type {0}"
-            return CangJieDiagnosisBundle.rawMessage(RETURN_TYPE_MISMATCH);
+                    return CangJieDiagnosisBundle.rawMessage(RETURN_TYPE_MISMATCH);
                 }
                 , RENDER_TYPE);
 

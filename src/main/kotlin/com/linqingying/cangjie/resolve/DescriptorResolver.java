@@ -1471,6 +1471,10 @@ public class DescriptorResolver {
                                                         @NotNull BindingTrace trace,
                                                         @NotNull DataFlowInfo dataFlowInfo,
                                                         @NotNull InferenceSession inferenceSession) {
+
+
+
+
         VariableAsPropertyInfo variableInfo = VariableAsPropertyInfo.createFromProperty(variableDeclaration);
 
         CjModifierList modifierList = variableDeclaration.getModifierList();

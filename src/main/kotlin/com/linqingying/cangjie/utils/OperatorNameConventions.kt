@@ -4,7 +4,8 @@ import com.linqingying.cangjie.name.Name
 
 
 object OperatorNameConventions {
-    @JvmField val CONTAINS = Name.identifier("contains")
+    @JvmField
+    val CONTAINS = Name.identifier("contains")
 
     @JvmField
     val INVOKE = Name.identifier("*operator_invoke")
@@ -12,8 +13,9 @@ object OperatorNameConventions {
     @JvmField
 
     val GET = Name.identifier("*operator_get")
-@JvmField
-   val SET = Name.identifier("*operator_set")
+
+    @JvmField
+    val SET = Name.identifier("*operator_set")
 
     @JvmField
     val NOT = Name.identifier("*operator_not") //!
@@ -88,8 +90,10 @@ object OperatorNameConventions {
     //    不可被重载  只用于检查
     @JvmField
     val TIMES_ASSIGN = Name.identifier("*operator_timesAssign") //-=
+
     @JvmField
     val DIV_ASSIGN = Name.identifier("*operator_divAssign") // /=
+
     @JvmField
     val EXPONENTIATION_ASSIGN = Name.identifier("*operator_exponentiationAssign") // /=
 
@@ -98,43 +102,62 @@ object OperatorNameConventions {
 
     @JvmField
     val ANDANDEQ_ASSIGN = Name.identifier("*operator_and2Assign") // /=
+
     @JvmField
     val OREQ_ASSIGN = Name.identifier("*operator_orAssign") // /=
+
     @JvmField
     val ANDEQ_ASSIGN = Name.identifier("*operator_andAssign") // /=
+
     @JvmField
     val XOREQ_ASSIGN = Name.identifier("*operator_xorAssign") // /=
+
     @JvmField
     val GTGTEQ_ASSIGN = Name.identifier("*operator_rightShiftAssign") // /=
+
     @JvmField
     val LTLTEQ_ASSIGN = Name.identifier("*operator_leftShiftAssign") // /=
 
 
+    @JvmField
 
+    val PIPELINE = Name.identifier("*operator_pipeline")//*
 
+    @JvmField
+
+    val COMPOSITION = Name.identifier("*operator_composition")//*
 
 
     @JvmField
     val REM_ASSIGN = Name.identifier("*operator_remAssign")
+
     @JvmField
     val PLUS_ASSIGN = Name.identifier("*operator_plusAssign")
+
     @JvmField
     val MINUS_ASSIGN = Name.identifier("*operator_minusAssign")
 
     @JvmField
     val ANDAND = Name.identifier("*operator_and2")
+
     @JvmField
     val OROR = Name.identifier("*operator_or2")
 
 
-    @JvmField val INC = Name.identifier("*operator_inc")
-    @JvmField val DEC = Name.identifier("*operator_dec")
-    @JvmField val UNARY_MINUS = Name.identifier("*operator_unaryMinus")
-    @JvmField val UNARY_PLUS = Name.identifier("*operator_unaryPlus")
+    @JvmField
+    val INC = Name.identifier("*operator_inc")
+
+    @JvmField
+    val DEC = Name.identifier("*operator_dec")
+
+    @JvmField
+    val UNARY_MINUS = Name.identifier("*operator_unaryMinus")
+
+    @JvmField
+    val UNARY_PLUS = Name.identifier("*operator_unaryPlus")
 
 
-
-//迭代器对象中的方法
+    //迭代器对象中的方法
     @JvmField
     val ITERATOR = Name.identifier("iterator")
 
@@ -169,7 +192,8 @@ object OperatorNameConventions {
             MINUS_ASSIGN -> "-="
             ANDAND -> "&&"
             OROR -> "||"
-
+            PIPELINE -> "|>"
+            COMPOSITION -> "~>"
             else -> this.asString()
         }
     }
@@ -199,12 +223,15 @@ object OperatorNameConventions {
 
             "*=" -> TIMES_ASSIGN
             "/=" -> DIV_ASSIGN
-  "**=" -> EXPONENTIATION_ASSIGN
+            "**=" -> EXPONENTIATION_ASSIGN
             "%=" -> REM_ASSIGN
             "+=" -> PLUS_ASSIGN
             "-=" -> MINUS_ASSIGN
             "&&" -> ANDAND
             "||" -> OROR
+
+            "|>" -> PIPELINE
+            "~>" -> COMPOSITION
 
             else -> Name.identifier(this)
         }

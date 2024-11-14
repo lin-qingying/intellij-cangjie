@@ -29,6 +29,7 @@ import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.resolve.scopes.receivers.ClassQualifier
 import com.linqingying.cangjie.resolve.scopes.receivers.ClassValueReceiver
 import com.linqingying.cangjie.resolve.scopes.receivers.EnumClassQualifier
+import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.model.CangJieTypeMarker
@@ -168,8 +169,11 @@ internal object CheckStaticCall : ResolutionPart() {
         if (memberStatic && (!isStaticContext && (resolvedCall.explicitReceiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER || resolvedCall.explicitReceiverKind == ExplicitReceiverKind.EXTENSION_RECEIVER))) {
             addDiagnostic(NonStaticContextAccessStaticMemberDiagnostic(kind, descriptor))
         }
+
 //静态上下文访问非静成员
-        if (!memberStatic && isStaticContext) {
+        if (!memberStatic && isStaticContext && ! descriptor.isLocal && !descriptor.isTopLevel
+
+            ) {
             addDiagnostic(StaticContextAccessNonStaticMemberDiagnostic(kind, descriptor))
         }
 

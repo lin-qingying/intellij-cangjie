@@ -16,11 +16,11 @@ interface DeclarationDescriptor : Annotated,
     val containingDeclaration: DeclarationDescriptor?
 
     val visibility: DescriptorVisibility get() = DescriptorVisibilities.PUBLIC
-    //    fun getCorrespondingProperty():  PropertyDescriptor
-
+    val isTopLevel: Boolean get() = false
+    val isLocal get() = visibility == DescriptorVisibilities.LOCAL
     fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R?
 
-    val isStatic:Boolean get() = false
+    val isStatic: Boolean get() = false
 
     fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>)
 }

@@ -353,6 +353,8 @@ public interface CjTokens {
     CjSingleValueToken LTCOLON = new CjSingleValueToken("LT_COLON", "<:", LTCOLON_Id);
     CjSingleValueToken ARROW = new CjSingleValueToken("ARROW", "->", ARROW_Id);
     CjSingleValueToken COMPOSITION = new CjSingleValueToken("COMPOSITION", "~>", COMPOSITION_Id);
+    CjSingleValueToken PIPELINE = new CjSingleValueToken("PIPELINE", "|>", PIPELINE_Id);
+
     //反向箭头composition
     CjSingleValueToken SAFE_ACCESS = new CjSingleValueToken("SAFE_ACCESS", "?.", SAFE_ACCESS_Id);
     CjSingleValueToken SAFE_INDEXEX = new CjSingleValueToken("SAFE_INDEXEX", "?[", SAFE_INDEXEX_Id);
@@ -366,7 +368,7 @@ public interface CjTokens {
     CjSingleValueToken ANDAND = new CjSingleValueToken("ANDAND", "&&", ANDAND_Id);
     CjSingleValueToken AND = new CjSingleValueToken("AND", "&", AND_Id);
     CjSingleValueToken TILDE = new CjSingleValueToken("TILDE", "~", TILED_Id);
-    CjSingleValueToken PIPELINE = new CjSingleValueToken("PIPELINE", "|>", PIPELINE_Id);
+
     CjSingleValueToken XOR = new CjSingleValueToken("XOR", "^", XOR_Id);
     CjSingleValueToken OROR = new CjSingleValueToken("OROR", "||", OROR_Id);
     CjSingleValueToken OR = new CjSingleValueToken("OR", "|", OR_Id);

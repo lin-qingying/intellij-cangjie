@@ -262,8 +262,8 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             )
             return noTypeInfo(oldContext)
         }
-        val indexByInt =index.toInt()
-        if (indexByInt >= type.arguments.size   || indexByInt < 0) {
+        val indexByInt = index.toInt()
+        if (indexByInt >= type.arguments.size || indexByInt < 0) {
             traceForResolveResult.report(
                 TUPLE_INDEX_OUT_OF_RANGE.on(
                     indexElement,
@@ -497,6 +497,24 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return getTypeInfoForBinaryCall(referencedName!!, context, expression)
     }
 
+    fun visitFlowOperationExpression(
+        operationType: IElementType?,
+        left: CjExpression?,
+        right: CjExpression?,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+
+//        流入 和 组合
+
+        val leftTypeInfo =
+            ExpressionTypingUtils.getTypeInfoOrNullType(left, context, facade)
+
+
+
+
+        TODO()
+    }
+
     fun visitBooleanOperationExpression(
         operationType: IElementType?,
         left: CjExpression?,
@@ -567,6 +585,11 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             result = visitAssignmentOperation(expression, context)
         } else if (OperatorConventions.BOOLEAN_OPERATIONS_NAMES.containsKey(operationType)) {
             result = visitBooleanOperationExpression(operationType, left, right, context)
+        } else if (OperatorConventions.FLOW_OPERATION_NAMES.containsKey(operationType)) {
+            val referencedName = OperatorConventions.FLOW_OPERATION_NAMES[operationType]
+            result = getTypeInfoForBinaryCall(referencedName!!, context, expression)
+//            result = visitFlowOperationExpression(operationType, left, right, context)
+
         } else {
             context.trace.report(UNSUPPORTED.on(operationSign, "Unknown operation"))
             result = noTypeInfo(context)

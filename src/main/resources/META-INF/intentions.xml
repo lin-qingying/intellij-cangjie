@@ -34,6 +34,16 @@
                 runForWholeFile="true"
                 key="inspection.c.doc.missing.documentation.display.name" bundle="messages.CangJieBundle"/>
 
+        <localInspection
+                implementationClass="com.linqingying.cangjie.ide.inspections.CangJiePackageCheckInspection"
+                groupPath="CangJie"
+                groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"
+                enabledByDefault="true"
+
+                level="ERROR"
+                language="CangJie"
+                key="inspection.redundant.visibility.modifier.display.name" bundle="messages.CangJieBundle"/>
+
 
         <localInspection
                 implementationClass="com.linqingying.cangjie.ide.inspections.CangJieRedundantVisibilityModifierInspection"

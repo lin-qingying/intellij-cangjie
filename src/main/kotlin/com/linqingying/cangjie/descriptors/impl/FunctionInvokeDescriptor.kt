@@ -90,12 +90,12 @@ class FunctionInvokeDescriptor private constructor(
                 null,
                 functionClass.thisAsReceiverParameter,
                 listOf(), listOf(),
-                listOf(),
-//                typeParameters.takeWhile { it.variance == Variance.IN_VARIANCE }
-//                    .withIndex()
-//                    .map { createValueParameter(result, it.index, it.value) },
+
+                typeParameters .subList(0, typeParameters.size - 1)
+                    .withIndex()
+                    .map { createValueParameter(result, it.index, it.value) },
                 typeParameters.last().defaultType,
-                Modality.ABSTRACT,
+                Modality.FINAL,
                 DescriptorVisibilities.PUBLIC
             )
             result.setHasSynthesizedParameterNames(true)

@@ -613,6 +613,7 @@ LONELY_BACKTICK=`
 "-="         { return CjTokens.MINUSEQ   ; }
 "->"         { return CjTokens.ARROW     ; }
 "~>"         { return CjTokens.COMPOSITION     ; }
+"|>"         { return CjTokens.PIPELINE     ; }
 "=>"         { return CjTokens.DOUBLE_ARROW; }
 "<-"     { return CjTokens.LEFT_ARROW; }
 ".."         { return CjTokens.RANGE     ; }

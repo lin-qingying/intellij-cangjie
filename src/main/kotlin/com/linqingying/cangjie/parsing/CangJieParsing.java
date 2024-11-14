@@ -1029,6 +1029,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return true;
     }
 
+    public IElementType parseVariable(ModifierDetector classdetector) {
+        return parseVariable(classdetector, null);
+    }
+
     /*
      * variableDeclarationEntry
      *   : SimpleName (":" ('?')?type)?
@@ -1038,7 +1042,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : modifiers ("let" | "var" | "const")
      *   ;
      */
-    public IElementType parseVariable(ModifierDetector classdetector) {
+    public IElementType parseVariable(ModifierDetector classdetector, @Nullable DeclarationParsingMode declarationParsingMode) {
         assert (at(LET_KEYWORD) || at(VAR_KEYWORD) || at(CONST_KEYWORD));
         advance();
 
@@ -1065,8 +1069,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            parseIdentifierByTitle("property", PROPERTY_NAME_FOLLOW_SET, true);
 //
 //        }
+        if (declarationParsingMode == DeclarationParsingMode.TOPLEVEL) {
+            parseIdentifierByTitle("variable", PROPERTY_NAME_FOLLOW_SET, true);
+        } else {
+            myExpressionParsing.parsePattern(new PatternConfig(true), Pattern.Wildcard.INSTANCE, Pattern.Binding.INSTANCE, Pattern.Tuple.INSTANCE, Pattern.Enum.INSTANCE);
 
-        myExpressionParsing.parsePattern(new PatternConfig(true), Pattern.Wildcard.INSTANCE, Pattern.Binding.INSTANCE, Pattern.Tuple.INSTANCE, Pattern.Enum.INSTANCE);
+        }
 
         boolean noTypeReference = true;
 
@@ -1230,7 +1238,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                     };
 
 
-            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(detector);
+            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(detector, declarationParsingMode);
 //            case UNSAFE_KEYWORD_Id -> parseUnsafeExpression();
             default -> null;
         };

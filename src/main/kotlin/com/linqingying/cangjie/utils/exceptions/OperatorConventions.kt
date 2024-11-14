@@ -45,6 +45,8 @@ import com.linqingying.cangjie.utils.OperatorNameConventions.UNARY_MINUS
 import com.linqingying.cangjie.utils.OperatorNameConventions.XOR
 import com.linqingying.cangjie.utils.OperatorNameConventions.XOREQ_ASSIGN
 import com.intellij.psi.tree.IElementType
+import com.linqingying.cangjie.utils.OperatorNameConventions.COMPOSITION
+import com.linqingying.cangjie.utils.OperatorNameConventions.PIPELINE
 
 
 object OperatorConventions {
@@ -116,7 +118,7 @@ object OperatorConventions {
     fun isConventionType(type: IElementType): Boolean {
         return COMPARISON_OPERATIONS_NAMES.containsKey(type) ||
                 UNARY_OPERATION_NAMES.containsKey(type) ||
-                BINARY_OPERATION_NAMES.containsKey(type) ||
+                BINARY_OPERATION_NAMES.containsKey(type) ||FLOW_OPERATION_NAMES.containsKey(type) ||
                 COMPARISON_OPERATIONS_NAMES.containsKey(
                     type
                 )
@@ -159,7 +161,10 @@ object OperatorConventions {
             name = BINARY_OPERATION_NAMES[token]
             if (name != null) return name
         }
-
+        if (binaryOperations) {
+            name = FLOW_OPERATION_NAMES[token]
+            if (name != null) return name
+        }
         if (unaryOperations) {
             name = UNARY_OPERATION_NAMES[token]
             if (name != null) return name
@@ -207,7 +212,15 @@ object OperatorConventions {
 
             .build()
 
+    @JvmField
+    val FLOW_OPERATION_NAMES: ImmutableBiMap<CjSingleValueToken, Name> =
+        ImmutableBiMap.builder<CjSingleValueToken, Name>()
+            .put(CjTokens.PIPELINE, PIPELINE)
+            .put(CjTokens.COMPOSITION, COMPOSITION)
 
+
+
+            .build()
     @JvmField
     val BINARY_OPERATION_NAMES: ImmutableBiMap<CjSingleValueToken, Name> =
         ImmutableBiMap.builder<CjSingleValueToken, Name>()
@@ -225,8 +238,6 @@ object OperatorConventions {
             .put(CjTokens.XOR, XOR)
             .put(CjTokens.OR, OR)
 
-
-//            .put(CjTokens.RANGE, RANGE_TO)
 
             .build()
     // If you add new unary, binary or assignment operators, add it to OperatorConventionNames as well

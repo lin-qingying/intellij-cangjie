@@ -3,9 +3,11 @@ package com.linqingying.cangjie.descriptors.impl
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.psi.CjVariable
 import com.linqingying.cangjie.resolve.scopes.receivers.ContextReceiver
 import com.linqingying.cangjie.resolve.scopes.receivers.ExtensionReceiver
 import com.linqingying.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
+import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.*
 
 
@@ -93,6 +95,8 @@ open class VariableDescriptorImpl(
         return Modality.FINAL
     }
 
+    override val isTopLevel: Boolean
+        get() = (source.getPsi() as? CjVariable)?.isTopLevel == true
     override fun getKind(): CallableMemberDescriptor.Kind {
         return CallableMemberDescriptor.Kind.DECLARATION
     }

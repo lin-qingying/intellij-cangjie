@@ -208,7 +208,7 @@ class LazyTopDownAnalyzer(
 
 
 
-                    checkPackagelevel(directive)
+//                    checkPackagelevel(directive)
                 }
 
 
