@@ -1130,9 +1130,13 @@ class TypeResolver(
         c: TypeResolutionContext,
         typeReference: CjTypeReference,
         isgetExtend: Boolean = true
+
     ): PossiblyBareType {
-        val cachedType = c.trace.bindingContext.get(BindingContext.TYPE, typeReference)
-        if (cachedType != null) return type(cachedType)
+        if(c.useCache){
+            val cachedType = c.trace.bindingContext.get(BindingContext.TYPE, typeReference)
+            if (cachedType != null) return type(cachedType)
+        }
+
 
         val resolvedTypeSlice = if (c.abbreviated) BindingContext.ABBREVIATED_TYPE else BindingContext.TYPE
 
@@ -1198,34 +1202,15 @@ class TypeResolver(
         return resultType as CangJieType
     }
 
+
+@JvmOverloads
     fun resolveType(
         scope: LexicalScope,
         typeReference: CjTypeReference,
         trace: BindingTrace,
         checkBounds: Boolean,
-
-        ): CangJieType {
-        // bare types are not allowed
-        return resolveType(
-            TypeResolutionContext(
-                scope,
-                trace,
-                checkBounds,
-                false,
-                typeReference.suppressDiagnosticsInDebugMode(),
-                false
-            ),
-            typeReference,
-            true
-        )
-    }
-
-    fun resolveType(
-        scope: LexicalScope,
-        typeReference: CjTypeReference,
-        trace: BindingTrace,
-        checkBounds: Boolean,
-        isgetExtend: Boolean = true
+        isgetExtend: Boolean = true,
+        useCache:Boolean = true
     ): CangJieType {
         // bare types are not allowed
         return resolveType(
@@ -1235,7 +1220,8 @@ class TypeResolver(
                 checkBounds,
                 false,
                 typeReference.suppressDiagnosticsInDebugMode(),
-                false
+                false,
+                useCache
             ),
             typeReference,
             isgetExtend

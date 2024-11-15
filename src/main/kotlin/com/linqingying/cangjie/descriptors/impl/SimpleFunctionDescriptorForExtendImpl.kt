@@ -5,6 +5,11 @@ import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.types.CangJieType
 
+interface CallableDescriptorForExtend{
+    var typeParametersForExtend :List<TypeParameterDescriptor>
+
+}
+
 class SimpleFunctionDescriptorForExtendImpl(
 
 
@@ -16,8 +21,8 @@ class SimpleFunctionDescriptorForExtendImpl(
     source: SourceElement
 ) : SimpleFunctionDescriptorImpl(
     containingDeclaration, original, annotations, name, kind, source
-){
-    var typeParametersForExtend :List<TypeParameterDescriptor>  = emptyList()
+),CallableDescriptorForExtend{
+    override var typeParametersForExtend :List<TypeParameterDescriptor>  = emptyList()
     override fun initialize(
         extensionReceiverParameter: ReceiverParameterDescriptor?,
         dispatchReceiverParameter: ReceiverParameterDescriptor?,

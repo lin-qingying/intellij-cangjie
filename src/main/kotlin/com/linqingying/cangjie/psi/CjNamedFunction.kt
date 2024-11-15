@@ -27,7 +27,7 @@ class CjNamedFunctionForExtend : CjNamedFunction, CjTypeParameterListOwnerForExt
     override val extendTypeConstraintList: CjTypeConstraintList? get() = this.getStrictParentOfType<CjExtend>()?.typeConstraintList
     override val extendTypeConstraints: List<CjTypeConstraint>
         get() {
-            val typeConstraintList = typeConstraintList ?: return emptyList()
+            val typeConstraintList = extendTypeConstraintList ?: return emptyList()
             return typeConstraintList.constraints
         }
 }

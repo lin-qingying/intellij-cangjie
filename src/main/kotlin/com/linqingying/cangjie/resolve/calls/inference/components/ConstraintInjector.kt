@@ -256,7 +256,7 @@ class ConstraintInjector(
         // Missed constraints are constraints which we skipped in the constraints processor by mistake (incorrect optimization)
         val missedConstraints = processConstraints(c, typeCheckerState)
 
-        if (missedConstraints != null) {
+            if (missedConstraints != null) {
             c.addMissedConstraints(typeCheckerState.position, missedConstraints)
         }
     }
@@ -350,7 +350,7 @@ class ConstraintInjector(
                 possibleNewConstraints = SmartList()
             }
 //            TODO 排除掉来自扩展的约束，因为那并不一定来字扩展
-            if (constraint.position.from is ReceiverConstraintPosition<*>) return
+//            if (constraint.position.from is ReceiverConstraintPosition<*>) return
             possibleNewConstraints!!.add(variable to constraint)
         }
 

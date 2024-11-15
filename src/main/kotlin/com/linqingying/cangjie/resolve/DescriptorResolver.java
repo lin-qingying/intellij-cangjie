@@ -1363,7 +1363,7 @@ public class DescriptorResolver {
         Name parameterName;
 
         if (destructuringDeclaration == null) {
-            // NB: val/var for parameter is only allowed in primary constructors where single underscore names are still prohibited.
+            // NB: let/var for parameter is only allowed in primary constructors where single underscore names are still prohibited.
             // The problem with val/var is that when lazy resolve try to find their descriptor, it searches through the member scope
             // of containing class where, it can not find a descriptor with special name.
             // Thus, to preserve behavior, we don't use a special name for val/var.
@@ -1383,8 +1383,7 @@ public class DescriptorResolver {
                 valueParameter.isNamed(),
                 variableType,
                 valueParameter.hasDefaultValue(),
-//                valueParameter.hasModifier(CROSSINLINE_KEYWORD),
-//                valueParameter.hasModifier(NOINLINE_KEYWORD),
+
 //                varargElementType,
                 CangJieSourceElementKt.toSourceElement(valueParameter),
                 destructuringVariables

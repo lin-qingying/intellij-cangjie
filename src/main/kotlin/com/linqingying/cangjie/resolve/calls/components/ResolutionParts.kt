@@ -7,6 +7,7 @@ import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.DescriptorVisibilities.PRIVATE
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.descriptors.enumd.LazyEnumDescriptor
+import com.linqingying.cangjie.descriptors.impl.CallableDescriptorForExtend
 import com.linqingying.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.CjCallExpression
@@ -23,13 +24,13 @@ import com.linqingying.cangjie.resolve.calls.model.*
 import com.linqingying.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.linqingying.cangjie.resolve.calls.tower.*
 import com.linqingying.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
+import com.linqingying.cangjie.resolve.isExtension
 import com.linqingying.cangjie.resolve.isInsideInterface
 import com.linqingying.cangjie.resolve.isStatic
 import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.resolve.scopes.receivers.ClassQualifier
 import com.linqingying.cangjie.resolve.scopes.receivers.ClassValueReceiver
 import com.linqingying.cangjie.resolve.scopes.receivers.EnumClassQualifier
-import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.model.CangJieTypeMarker
@@ -171,9 +172,9 @@ internal object CheckStaticCall : ResolutionPart() {
         }
 
 //静态上下文访问非静成员
-        if (!memberStatic && isStaticContext && ! descriptor.isLocal && !descriptor.isTopLevel
+        if (!memberStatic && isStaticContext && !descriptor.isLocal && !descriptor.isTopLevel
 
-            ) {
+        ) {
             addDiagnostic(StaticContextAccessNonStaticMemberDiagnostic(kind, descriptor))
         }
 
@@ -603,13 +604,23 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
      *
      */
     fun ResolutionCandidate.getTypeParameters(): List<TypeParameterDescriptor> {
+
+//        来自扩展
+        val receiverTypeParameters = if (candidateDescriptor.isExtension) {
+            if (candidateDescriptor is CallableDescriptorForExtend)
+                (candidateDescriptor as CallableDescriptorForExtend).typeParametersForExtend
+            else emptyList()
+        } else {
+            emptyList()
+        }
+
 //        如果接收器是DISPATCH_RECEIVER ，并且它是一个静态调用，可能要分析上一层的类型参数
         if (resolvedCall.dispatchReceiverArgument != null && resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue is ClassValueReceiver) {
 
-            return (resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver).classQualifier.descriptor.declaredTypeParameters + candidateDescriptor.original.typeParameters
+            return (resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver).classQualifier.descriptor.declaredTypeParameters + candidateDescriptor.original.typeParameters + receiverTypeParameters
         }
 
-        return candidateDescriptor.original.typeParameters
+        return candidateDescriptor.original.typeParameters + receiverTypeParameters
 
     }
 
@@ -762,7 +773,12 @@ internal object CheckDesiredEnumType : ResolutionPart() {
 
             val type = descriptor.returnType
 
-            if (expectedType != NO_EXPECTED_TYPE && type?.let { CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(expectedType, it) } != true  ) {
+            if (expectedType != NO_EXPECTED_TYPE && type?.let {
+                    CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(
+                        expectedType,
+                        it
+                    )
+                } != true) {
                 addDiagnostic(EmptyDiagnostic)
             }
         }

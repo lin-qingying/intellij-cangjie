@@ -112,7 +112,8 @@ class FunctionDescriptorResolver(
         valueParameters: List<CjParameter>,
         trace: BindingTrace,
         expectedParameterTypes: List<CangJieType>?,
-        inferenceSession: InferenceSession?
+        inferenceSession: InferenceSession?,
+        useCache: Boolean = true
     ): List<ValueParameterDescriptor> {
         val result = ArrayList<ValueParameterDescriptor>()
 
@@ -134,7 +135,11 @@ class FunctionDescriptorResolver(
 
             val type: CangJieType
             if (typeReference != null) {
-                type = typeResolver.resolveType(parameterScope, typeReference, trace, true)
+                type = typeResolver.resolveType(
+                    parameterScope, typeReference, trace, true,
+
+                    useCache = useCache
+                )
                 if (expectedType != null) {
                     if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(expectedType, type)) {
                         trace.report(EXPECTED_PARAMETER_TYPE_MISMATCH.on(valueParameter, expectedType))
@@ -282,7 +287,8 @@ class FunctionDescriptorResolver(
         innerScope: LexicalWritableScope,
         trace: BindingTrace,
         expectedFunctionType: CangJieType,
-        inferenceSession: InferenceSession?
+        inferenceSession: InferenceSession?,
+        useCache: Boolean = true
     ): List<ValueParameterDescriptor> {
 
         val expectedValueParameters = expectedFunctionType.getValueParameters(functionDescriptor)
@@ -306,14 +312,15 @@ class FunctionDescriptorResolver(
 //        }
 
         trace.recordScope(innerScope, function.valueParameterList)
-//
+
         return resolveValueParameters(
             functionDescriptor,
             innerScope,
             function.valueParameters,
             trace,
             expectedParameterTypes,
-            inferenceSession
+            inferenceSession,
+            useCache = useCache
         )
 
     }
@@ -350,10 +357,14 @@ class FunctionDescriptorResolver(
     fun resolveFunctionReturnType(
         function: CjFunction,
         context: ExpressionTypingContext,
+        useCache: Boolean = true
     ): CangJieType {
 //        显示指定的类型
         return if (function.typeReference != null) {
-            typeResolver.resolveType(context.scope, function.typeReference!!, context.trace, true)
+            typeResolver.resolveType(
+                context.scope, function.typeReference!!, context.trace, true,
+                useCache = useCache
+            )
 
         } else if (function.hasBody()) {
 //            val block = function.bodyBlockExpression
@@ -498,24 +509,8 @@ class FunctionDescriptorResolver(
             scope, functionDescriptor, true,
             TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.EXTEND_HEADER
         )
-        val headerScope = LexicalWritableScope(
-            if (isExtend) extendScope else scope, functionDescriptor, true,
-            TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.FUNCTION_HEADER
-        )
-//这是扩展方法
-        val receiverTypeRef = function.receiverTypeReference
-        val receiverType =
-            if (receiverTypeRef != null) {
-                if (container is LazyExtendClassDescriptor) {
-                    container.type
-                } else {
-                    typeResolver.resolveType(if (isExtend) extendScope else scope, receiverTypeRef, trace, true)
 
-                }
-            } else {
-                if (function is CjFunctionLiteral) expectedFunctionType.getReceiverType() else null
-            }
-//        来自扩展
+        //        来自扩展
         if (function is CjNamedFunctionForExtend) {
             functionDescriptor as SimpleFunctionDescriptorForExtendImpl
 
@@ -542,7 +537,24 @@ class FunctionDescriptorResolver(
                 functionDescriptor.typeParametersForExtend = typeParametersForExtend
             }
         }
+//这是扩展方法
+        val receiverTypeRef = function.receiverTypeReference
+        val receiverType =
+            if (receiverTypeRef != null) {
+                if (container is LazyExtendClassDescriptor) {
+                    container.type
+                } else {
+                    typeResolver.resolveType(if (isExtend) extendScope else scope, receiverTypeRef, trace, true, useCache = !isExtend)
 
+                }
+            } else {
+                if (function is CjFunctionLiteral) expectedFunctionType.getReceiverType() else null
+            }
+
+        val headerScope = LexicalWritableScope(
+            if (isExtend) extendScope else scope, functionDescriptor, true,
+            TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.FUNCTION_HEADER
+        )
         val typeParameterDescriptors =
             descriptorResolver.resolveTypeParametersForDescriptor(
                 functionDescriptor,
@@ -581,7 +593,10 @@ class FunctionDescriptorResolver(
                 headerScope,
                 trace,
                 expectedFunctionType,
-                inferenceSession
+                inferenceSession,
+//为什么不使用缓存 ，因为扩展方法会解析多次，使用缓存会导致结果不一致
+                useCache = function !is CjNamedFunctionForExtend
+
             )
 
         headerScope.freeze()
@@ -593,7 +608,11 @@ class FunctionDescriptorResolver(
             trace
         )
 //val returnType = expressionTypingServices.resolveFunctionReturnType(headerScope,function,functionDescriptor,dataFlowInfo,null,trace,null).type
-        val returnType = resolveFunctionReturnType(function, context)
+        val returnType = resolveFunctionReturnType(
+            function, context,
+
+            useCache = function !is CjNamedFunctionForExtend
+        )
 
 
         val visibility = resolveVisibilityFromModifiers(function, getDefaultVisibility(function, container))

@@ -13,11 +13,15 @@ public class TypeResolutionContext {
     public final boolean allowIntersectionTypes;
     public final boolean isDebuggerContext;
     public final boolean abbreviated;
+    public final boolean useCache;
 
-    public TypeResolutionContext(@NotNull LexicalScope scope, @NotNull BindingTrace trace, boolean checkBounds, boolean allowBareTypes, boolean isDebuggerContext) {
-        this(scope, trace, checkBounds, allowBareTypes, isDebuggerContext, false, false);
+
+
+    public TypeResolutionContext(@NotNull LexicalScope scope, @NotNull BindingTrace trace, boolean checkBounds, boolean allowBareTypes, boolean isDebuggerContext
+
+    ) {
+        this(scope, trace, checkBounds, allowBareTypes, isDebuggerContext, false, false, true);
     }
-
     public TypeResolutionContext(
             @NotNull LexicalScope scope,
             @NotNull BindingTrace trace,
@@ -26,7 +30,18 @@ public class TypeResolutionContext {
             boolean isDebuggerContext,
             boolean abbreviated
     ) {
-        this(scope, trace, checkBounds, allowBareTypes, isDebuggerContext, abbreviated, false);
+        this(scope, trace, checkBounds, allowBareTypes, isDebuggerContext, abbreviated, false, true);
+    }
+    public TypeResolutionContext(
+            @NotNull LexicalScope scope,
+            @NotNull BindingTrace trace,
+            boolean checkBounds,
+            boolean allowBareTypes,
+            boolean isDebuggerContext,
+            boolean abbreviated,
+            boolean useCache
+    ) {
+        this(scope, trace, checkBounds, allowBareTypes, isDebuggerContext, abbreviated, false, useCache);
     }
 
     public TypeResolutionContext(
@@ -36,7 +51,8 @@ public class TypeResolutionContext {
             boolean allowBareTypes,
             boolean isDebuggerContext,
             boolean abbreviated,
-            boolean allowIntersectionTypes
+            boolean allowIntersectionTypes,
+            boolean useCache
     ) {
         this.scope = scope;
         this.trace = trace;
@@ -45,6 +61,7 @@ public class TypeResolutionContext {
         this.isDebuggerContext = isDebuggerContext;
         this.abbreviated = abbreviated;
         this.allowIntersectionTypes = allowIntersectionTypes;
+        this.useCache = useCache;
     }
 
     @NotNull
