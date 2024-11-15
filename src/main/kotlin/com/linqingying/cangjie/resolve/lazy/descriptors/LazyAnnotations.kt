@@ -38,7 +38,7 @@ class LazyAnnotations(
     val annotationEntries: List<CjAnnotationEntry>
 ) : Annotations, LazyEntity {
     private val annotation = c.storageManager.createMemoizedFunction { entry: CjAnnotationEntry ->
-        c.trace.get(BindingContext.ANNOTATION, entry) ?: LazyAnnotationDescriptor(c, entry)
+        c.trace[BindingContext.ANNOTATION, entry] ?: LazyAnnotationDescriptor(c, entry)
     }
     override fun iterator(): Iterator<AnnotationDescriptor> = annotationEntries.asSequence().map(annotation).iterator()
 
@@ -53,16 +53,15 @@ class LazyAnnotations(
 
 class LazyAnnotationDescriptor(
     val c: LazyAnnotationsContext,
-    val annotationEntry: CjAnnotationEntry
+    private val annotationEntry: CjAnnotationEntry
 ) : AnnotationDescriptor, LazyEntity, ValidateableDescriptor {
     private class FileDescriptorForVisibilityChecks(
-        private val source: SourceElement,
+        override val source: SourceElement,
         private     val _containingDeclaration: PackageFragmentDescriptor
     ) : DeclarationDescriptorWithSource, PackageFragmentDescriptor by _containingDeclaration     {
 
 
         override val annotations: Annotations get() = Annotations.EMPTY
-        override fun getSource() = source
 
         override val original: DeclarationDescriptorWithSource
             get() = this

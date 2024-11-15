@@ -14,7 +14,7 @@ import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
  * 来自扩展的方法
  * 携带扩展的类型参数，与本方法类型参数分开
  */
-class CjNamedFunctionForExtend : CjNamedFunction,CjTypeParameterListOwnerForExtend {
+class CjNamedFunctionForExtend : CjNamedFunction, CjTypeParameterListOwnerForExtend {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieFunctionStub) : super(stub)
@@ -22,6 +22,14 @@ class CjNamedFunctionForExtend : CjNamedFunction,CjTypeParameterListOwnerForExte
     val extendTypeParameterList get() = this.getStrictParentOfType<CjExtend>()?.typeParameterList
     override val extendTypeParameters: List<CjTypeParameter>
         get() = extendTypeParameterList?.parameters ?: emptyList()
+
+
+    override val extendTypeConstraintList: CjTypeConstraintList? get() = this.getStrictParentOfType<CjExtend>()?.typeConstraintList
+    override val extendTypeConstraints: List<CjTypeConstraint>
+        get() {
+            val typeConstraintList = typeConstraintList ?: return emptyList()
+            return typeConstraintList.constraints
+        }
 }
 
 open class CjNamedFunction : CjFunctionImpl {

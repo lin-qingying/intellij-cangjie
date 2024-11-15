@@ -9,7 +9,6 @@ import com.linqingying.cangjie.resolve.caches.resolveToDescriptorIfAny
 import com.linqingying.cangjie.resolve.getDirectlyOverriddenDeclarations
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.intellij.psi.PsiElement
-import com.intellij.util.Query
 
 
 fun findSuperMethodsNoWrapping(method: PsiElement, deepest: Boolean): List<PsiElement> {

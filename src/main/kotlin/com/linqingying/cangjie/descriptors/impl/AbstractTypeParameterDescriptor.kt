@@ -1,227 +1,160 @@
-package com.linqingying.cangjie.descriptors.impl;
+package com.linqingying.cangjie.descriptors.impl
+
+import com.linqingying.cangjie.builtins.CangJieBuiltIns
+import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.annotations.Annotations
+import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.resolve.descriptorUtil.builtIns
+import com.linqingying.cangjie.resolve.scopes.LazyScopeAdapter
+import com.linqingying.cangjie.resolve.scopes.TypeIntersectionScope.Companion.create
+import com.linqingying.cangjie.storage.NotNullLazyValue
+import com.linqingying.cangjie.storage.StorageManager
+import com.linqingying.cangjie.types.*
+import com.linqingying.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
+import com.linqingying.cangjie.types.ErrorUtils.createErrorType
+import com.linqingying.cangjie.types.TypeAttributes.Companion.Empty
+import com.linqingying.cangjie.types.error.ErrorTypeKind
 
 
-import com.linqingying.cangjie.builtins.CangJieBuiltIns;
-import com.linqingying.cangjie.descriptors.*;
-import com.linqingying.cangjie.descriptors.annotations.Annotations;
-import com.linqingying.cangjie.name.Name;
-import com.linqingying.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
-import com.linqingying.cangjie.resolve.scopes.LazyScopeAdapter;
-import com.linqingying.cangjie.resolve.scopes.MemberScope;
-import com.linqingying.cangjie.resolve.scopes.TypeIntersectionScope;
-import com.linqingying.cangjie.storage.NotNullLazyValue;
-import com.linqingying.cangjie.storage.StorageManager;
-import com.linqingying.cangjie.types.*;
-import com.linqingying.cangjie.types.error.ErrorTypeKind;
-import kotlin.jvm.functions.Function0;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+abstract class AbstractTypeParameterDescriptor protected constructor(
+    private val storageManager: StorageManager,
+    containingDeclaration: DeclarationDescriptor,
+    annotations: Annotations,
+    name: Name,
+    private val variance: Variance,
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+    private val index: Int,
+    source: SourceElement,
+    supertypeLoopChecker: SupertypeLoopChecker
+) : DeclarationDescriptorNonRootImpl(containingDeclaration, annotations, name, source),
+    TypeParameterDescriptor {
 
-public abstract class AbstractTypeParameterDescriptor extends DeclarationDescriptorNonRootImpl implements TypeParameterDescriptor {
-    private final Variance variance;
-//    private final boolean reified;
-    private final int index;
-    private final NotNullLazyValue<TypeConstructor> typeConstructor;
-    private final NotNullLazyValue<SimpleType> defaultType;
-    private final StorageManager storageManager;
+    private val typeConstructor: NotNullLazyValue<TypeConstructor> = storageManager.createLazyValue<TypeConstructor> {
+        TypeParameterTypeConstructor(
+            storageManager, supertypeLoopChecker
+        )
+    }
+    private val defaultType: NotNullLazyValue<SimpleType>
 
-    protected AbstractTypeParameterDescriptor(
-            @NotNull final StorageManager storageManager,
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @NotNull Annotations annotations,
-            @NotNull final Name name,
-            @NotNull Variance variance,
-//            boolean isReified,
-            int index,
-            @NotNull SourceElement source,
-            @NotNull final SupertypeLoopChecker supertypeLoopChecker
-    ) {
-        super(containingDeclaration, annotations, name, source);
-        this.variance = variance;
-//        this.reified = isReified;
-        this.index = index;
-
-        this.typeConstructor = storageManager.createLazyValue(() -> new TypeParameterTypeConstructor(storageManager, supertypeLoopChecker));
-        this.defaultType = storageManager.createLazyValue(new Function0<SimpleType>() {
-            @Override
-            public SimpleType invoke() {
-                return CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
-                        TypeAttributes.Companion.getEmpty(),
-                        getTypeConstructor(), Collections.emptyList(), false,
-                        new LazyScopeAdapter(
-                                new Function0<MemberScope>() {
-                                    @Override
-                                    public MemberScope invoke() {
-                                        return TypeIntersectionScope.create("Scope for type parameter " + name.asString(), getUpperBounds());
-                                    }
-                                }
-                        )
-                );
-            }
-        });
-        this.storageManager = storageManager;
+    init {
+        this.defaultType = storageManager.createLazyValue {
+            simpleTypeWithNonTrivialMemberScope(
+                Empty,
+                getTypeConstructor(), emptyList(), false,
+                LazyScopeAdapter {
+                    create(
+                        "Scope for type parameter " + name.asString(),
+                        upperBounds
+                    )
+                }
+            )
+        }
     }
 
-    @NotNull
-    @Override
-    public TypeParameterDescriptor getOriginal() {
-        return (TypeParameterDescriptor) super.getOriginal();
+    override val original: TypeParameterDescriptor
+        get() = super.original as TypeParameterDescriptor
+
+    override fun getDefaultType(): SimpleType {
+        return defaultType.invoke()
     }
 
-    @Override
-    public @NotNull SimpleType getDefaultType() {
-        return defaultType.invoke();
+    override fun getVariance(): Variance {
+        return variance
     }
 
-    @NotNull
-    @Override
-    public Variance getVariance() {
-        return variance;
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+        return visitor.visitTypeParameterDescriptor(this, data)
     }
 
-    @Override
-    public <R, D> R accept(@NotNull DeclarationDescriptorVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitTypeParameterDescriptor(this, data);
 
+    override fun getUpperBounds(): List<CangJieType> {
+        return (getTypeConstructor() as TypeParameterTypeConstructor).supertypes
     }
 
-//    @Override
-//    public boolean isReified() {
-//        return false;
-//    }
-
-    @Override
-    public @NotNull List<CangJieType> getUpperBounds() {
-        return ((TypeParameterTypeConstructor) getTypeConstructor()).getSupertypes();
-
+    override fun getTypeConstructor(): TypeConstructor {
+        return typeConstructor.invoke()
     }
 
-    @Override
-    public @NotNull TypeConstructor getTypeConstructor() {
-        return typeConstructor.invoke();
+    override fun getIndex(): Int {
+        return index
     }
 
-    @Override
-    public int getIndex() {
-        return index;
+    override fun isCapturedFromOuterDeclaration(): Boolean {
+        return false
     }
 
-    @Override
-    public boolean isCapturedFromOuterDeclaration() {
-        return false;
+    override fun getStorageManager(): StorageManager {
+        return storageManager
     }
 
-    @NotNull
-    @Override
-    public StorageManager getStorageManager() {
-        return storageManager;
+    protected abstract fun reportSupertypeLoopError(type: CangJieType)
+
+    protected fun processBoundsWithoutCycles(bounds: List<CangJieType>): List<CangJieType> {
+        return bounds
     }
 
-    protected abstract void reportSupertypeLoopError(@NotNull CangJieType type);
-
-    @NotNull
-    protected List<CangJieType> processBoundsWithoutCycles(@NotNull List<CangJieType> bounds) {
-        return bounds;
+    override fun validate() {
+        super<DeclarationDescriptorNonRootImpl>.validate()
     }
 
-    @Override
-    public void validate() {
-        super.validate();
-    }
+    protected abstract fun resolveUpperBounds(): List<CangJieType>
 
-    @NotNull
-    protected abstract List<CangJieType> resolveUpperBounds();
-
-    private class TypeParameterTypeConstructor extends AbstractTypeConstructor {
-
-        private final SupertypeLoopChecker supertypeLoopChecker;
-
-        public TypeParameterTypeConstructor(@NotNull StorageManager storageManager, SupertypeLoopChecker supertypeLoopChecker) {
-            super(storageManager);
-            this.supertypeLoopChecker = supertypeLoopChecker;
+    private inner class TypeParameterTypeConstructor(
+        storageManager: StorageManager,
+        override val supertypeLoopChecker: SupertypeLoopChecker
+    ) :
+        AbstractTypeConstructor(storageManager) {
+        override fun computeSupertypes(): Collection<CangJieType> {
+            return resolveUpperBounds()
         }
 
-        @NotNull
-        @Override
-        protected Collection<CangJieType> computeSupertypes() {
-            return resolveUpperBounds();
-        }
-        @Override
-        protected @NotNull Collection<CangJieType> computeExtendSuperTypes(@Nullable String extendId) {
-            return List.of();
-        }
-        @NotNull
-        @Override
-        public List<TypeParameterDescriptor> getParameters() {
-            return Collections.emptyList();
+        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
+            return listOf()
         }
 
-        @Override
-        public boolean isFinal() {
-            return false;
+        override fun getParameters(): List<TypeParameterDescriptor> {
+            return emptyList()
         }
 
-        @Override
-        public boolean isDenotable() {
-            return true;
+        override fun isFinal(): Boolean {
+            return false
         }
 
-        @NotNull
-        @Override
-        public ClassifierDescriptor getDeclarationDescriptor() {
-            return AbstractTypeParameterDescriptor.this;
+        override fun isDenotable(): Boolean {
+            return true
         }
 
-        @NotNull
-        @Override
-        public CangJieBuiltIns getBuiltIns() {
-            return DescriptorUtilsKt.getBuiltIns(AbstractTypeParameterDescriptor.this);
+        override fun getDeclarationDescriptor(): ClassifierDescriptor {
+            return this@AbstractTypeParameterDescriptor
         }
 
-        @Override
-        public String toString() {
-            return getName().toString();
+        override fun getBuiltIns(): CangJieBuiltIns {
+            return this@AbstractTypeParameterDescriptor.builtIns
         }
 
-        @NotNull
-        @Override
-        protected SupertypeLoopChecker getSupertypeLoopChecker() {
-            return supertypeLoopChecker;
+        override fun toString(): String {
+            return name.toString()
         }
 
-        @Override
-        protected void reportSupertypeLoopError(@NotNull CangJieType type) {
-            AbstractTypeParameterDescriptor.this.reportSupertypeLoopError(type);
+        override fun reportSupertypeLoopError(type: CangJieType) {
+            this@AbstractTypeParameterDescriptor.reportSupertypeLoopError(type)
         }
 
-        @NotNull
-        @Override
-        protected List<CangJieType> processSupertypesWithoutCycles(@NotNull List<CangJieType> supertypes) {
-            return processBoundsWithoutCycles(supertypes);
+        override fun processSupertypesWithoutCycles(supertypes: List<CangJieType>): List<CangJieType> {
+            return processBoundsWithoutCycles(supertypes)
         }
 
-        @Nullable
-        @Override
-        protected CangJieType defaultSupertypeIfEmpty() {
-            return ErrorUtils.createErrorType(ErrorTypeKind.CYCLIC_UPPER_BOUNDS);
+        override fun defaultSupertypeIfEmpty(): CangJieType {
+            return createErrorType(ErrorTypeKind.CYCLIC_UPPER_BOUNDS)
         }
 
-        @Override
-        protected boolean isSameClassifier(@NotNull ClassifierDescriptor classifier) {
-            return classifier instanceof TypeParameterDescriptor /*&&
+        override fun isSameClassifier(classifier: ClassifierDescriptor): Boolean {
+            return classifier is TypeParameterDescriptor /*&&
                     DescriptorEquivalenceForOverrides.INSTANCE.areTypeParametersEquivalent(
                             AbstractTypeParameterDescriptor.this,
                             (TypeParameterDescriptor) classifier,
                             true
-                    )*/;
+                    )*/
         }
-
-
     }
-
-
 }

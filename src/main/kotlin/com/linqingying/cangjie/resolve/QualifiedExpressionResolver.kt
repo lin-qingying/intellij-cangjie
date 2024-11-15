@@ -1164,10 +1164,10 @@ fun CjElement.suppressDiagnosticsInDebugMode(): Boolean {
  */
 private class PackageFragmentWithCustomSource(
     override val original: PackageFragmentDescriptor,
-    private val source: SourceElement
+    override val source: SourceElement
 ) :
     PackageFragmentDescriptor by original {
-    override fun getSource(): SourceElement = source
+
 }
 
 internal fun isVisible(

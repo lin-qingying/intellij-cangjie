@@ -27,8 +27,12 @@ import com.linqingying.cangjie.resolve.calls.DslMarkerUtils
 import com.linqingying.cangjie.resolve.calls.components.InferenceSession
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.util.createValueParametersForInvokeInFunctionType
+import com.linqingying.cangjie.resolve.lazy.ForceResolveUtil
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
-import com.linqingying.cangjie.resolve.scopes.*
+import com.linqingying.cangjie.resolve.scopes.LexicalScope
+import com.linqingying.cangjie.resolve.scopes.LexicalScopeKind
+import com.linqingying.cangjie.resolve.scopes.LexicalWritableScope
+import com.linqingying.cangjie.resolve.scopes.TraceBasedLocalRedeclarationChecker
 import com.linqingying.cangjie.resolve.source.toSourceElement
 import com.linqingying.cangjie.storage.StorageManager
 import com.linqingying.cangjie.types.CangJieType
@@ -284,13 +288,13 @@ class FunctionDescriptorResolver(
         val expectedValueParameters = expectedFunctionType.getValueParameters(functionDescriptor)
         val expectedParameterTypes = expectedValueParameters?.map { it.type.removeParameterNameAnnotation() }
 //        if (expectedValueParameters != null) {
-//            if (expectedValueParameters.size == 1 && function is CjFunctionLiteral && function.getValueParameterList() == null) {
+//            if (expectedValueParameters.size == 1 && function is CjFunctionLiteral && function.valueParameterList == null) {
 //                // it parameter for lambda
 //                val valueParameterDescriptor = expectedValueParameters.single()
 //                val it = ValueParameterDescriptorImpl(
 //                    functionDescriptor, null, 0, Annotations.EMPTY, StandardNames.IMPLICIT_LAMBDA_PARAMETER_NAME,
 //                    expectedParameterTypes!!.single(), valueParameterDescriptor.declaresDefaultValue(),
-//                    valueParameterDescriptor.isCrossinline, valueParameterDescriptor.isNoinline,
+//
 //                    valueParameterDescriptor.varargElementType, SourceElement.NO_SOURCE
 //                )
 //                trace.record(BindingContext.AUTO_CREATED_IT, it)
@@ -300,7 +304,7 @@ class FunctionDescriptorResolver(
 //                trace.report(EXPECTED_PARAMETERS_NUMBER_MISMATCH.on(function, expectedParameterTypes!!.size, expectedParameterTypes))
 //            }
 //        }
-//
+
         trace.recordScope(innerScope, function.valueParameterList)
 //
         return resolveValueParameters(
@@ -490,12 +494,12 @@ class FunctionDescriptorResolver(
         inferenceSession: InferenceSession?
     ) {
         val isExtend = function is CjNamedFunctionForExtend
-//        val extendScope = LexicalWritableScope(
-//            scope, functionDescriptor, true,
-//            TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.EXTEND_HEADER
-//        )
+        val extendScope = LexicalWritableScope(
+            scope, functionDescriptor, true,
+            TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.EXTEND_HEADER
+        )
         val headerScope = LexicalWritableScope(
-            /*if (isExtend) extendScope else*/ scope, functionDescriptor, true,
+            if (isExtend) extendScope else scope, functionDescriptor, true,
             TraceBasedLocalRedeclarationChecker(trace, overloadChecker), LexicalScopeKind.FUNCTION_HEADER
         )
 //这是扩展方法
@@ -505,7 +509,7 @@ class FunctionDescriptorResolver(
                 if (container is LazyExtendClassDescriptor) {
                     container.type
                 } else {
-                    typeResolver.resolveType(scope, receiverTypeRef, trace, true)
+                    typeResolver.resolveType(if (isExtend) extendScope else scope, receiverTypeRef, trace, true)
 
                 }
             } else {
@@ -514,27 +518,28 @@ class FunctionDescriptorResolver(
 //        来自扩展
         if (function is CjNamedFunctionForExtend) {
             functionDescriptor as SimpleFunctionDescriptorForExtendImpl
-//            val typeParametersForExtend =
-//                descriptorResolver.resolveTypeParametersForDescriptor(
-//                    functionDescriptor,
-//                    extendScope,
-//                    scope,
-//                    function.extendTypeParameters,
-//                    trace
-//                )
-//
-//            descriptorResolver.resolveGenericBoundsBorExtend(
-//                function,
-//                functionDescriptor,
-//                scope,
-//                typeParametersForExtend,
-//                trace
-//            )
 
-//            functionDescriptor.typeParametersForExtend = typeParametersForExtend
             if (container is LazyExtendClassDescriptor) {
                 functionDescriptor.typeParametersForExtend = container.declaredTypeParameters
+            } else {
+                val typeParametersForExtend =
+                    descriptorResolver.resolveTypeParametersForDescriptor(
+                        functionDescriptor,
+                        extendScope,
+                        scope,
+                        function.extendTypeParameters,
+                        trace
+                    )
 
+                descriptorResolver.resolveGenericBoundsBorExtend(
+                    function,
+                    functionDescriptor,
+                    extendScope,
+                    typeParametersForExtend,
+                    trace
+                )
+
+                functionDescriptor.typeParametersForExtend = typeParametersForExtend
             }
         }
 
@@ -582,19 +587,6 @@ class FunctionDescriptorResolver(
         headerScope.freeze()
 
 
-        val innerScope: LexicalScope =
-            FunctionDescriptorUtil.getFunctionInnerScope(
-                headerScope,
-                functionDescriptor,
-                trace,
-                overloadChecker
-            )
-        val codeBlockscope =
-            LexicalWritableScope(
-                innerScope, functionDescriptor, false, LocalRedeclarationChecker.DO_NOTHING,
-                LexicalScopeKind.CODE_BLOCK
-            )
-
         val context = expressionTypingServices.createContext(
             headerScope,
             dataFlowInfo, NO_EXPECTED_TYPE,
@@ -611,8 +603,6 @@ class FunctionDescriptorResolver(
         )
 
         val userData = mutableMapOf<CallableDescriptor.UserDataKey<*>, Any>().apply {
-
-
             if (receiverType != null && expectedFunctionType.functionTypeExpected() && !expectedFunctionType.annotations.isEmpty()) {
                 put(DslMarkerUtils.FunctionTypeAnnotationsKey, expectedFunctionType.annotations)
             }
@@ -640,8 +630,6 @@ class FunctionDescriptorResolver(
             )
         }
 
-
-//
         functionDescriptor.initialize(
             extensionReceiver,
             getDispatchReceiverParameterIfNeeded(container),
@@ -656,7 +644,10 @@ class FunctionDescriptorResolver(
 
         functionDescriptor.setIsOperator(function.hasModifier(CjTokens.OPERATOR_KEYWORD))
 
-
+        receiverType?.let { ForceResolveUtil.forceResolveAllContents(it.annotations) }
+        for (valueParameterDescriptor in valueParameterDescriptors) {
+            ForceResolveUtil.forceResolveAllContents(valueParameterDescriptor.type.annotations)
+        }
     }
 
     private fun CangJieType.functionTypeExpected() = !TypeUtils.noExpectedType(this) && isBuiltinFunctionalType

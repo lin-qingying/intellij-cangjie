@@ -46,7 +46,7 @@ public class CangJieTypeHierarchyTreeStructure extends CangJieSubTypesHierarchyT
 
 
             }
-            
+
         }
         final CangJieHierarchyNodeDescriptor newDescriptor = new CangJieHierarchyNodeDescriptor(descriptor, cl, true);
         if (descriptor != null) {

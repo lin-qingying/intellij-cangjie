@@ -28,7 +28,7 @@ class DeserializedClassDescriptor(
     val classProto: ProtoBuf.Class,
     nameResolver: NameResolver,
     val metadataVersion: BinaryVersion,
-    private val sourceElement: SourceElement
+    override val source: SourceElement
 ) : AbstractClassDescriptor(
     outerContext.storageManager,
     nameResolver.getClassId(classProto.fqName).shortClassName
@@ -75,7 +75,7 @@ class DeserializedClassDescriptor(
 //    private val valueClassRepresentation = c.storageManager.createNullableLazyValue { computeValueClassRepresentation() }
 
     internal val thisAsProtoContainer: ProtoContainer.Class = ProtoContainer.Class(
-        classProto, c.nameResolver, c.typeTable, sourceElement,
+        classProto, c.nameResolver, c.typeTable, source,
         (containingDeclaration as? DeserializedClassDescriptor)?.thisAsProtoContainer
     )
 
@@ -213,7 +213,6 @@ class DeserializedClassDescriptor(
     override fun toString() =
         "deserialized ${if (isExpect) "expect " else ""}class $name" // not using descriptor renderer to preserve laziness
 
-    override fun getSource() = sourceElement
 
     override fun getDeclaredTypeParameters() = c.typeDeserializer.ownTypeParameters
 

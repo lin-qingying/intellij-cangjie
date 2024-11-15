@@ -58,10 +58,8 @@ abstract class PackageFragmentDescriptorImpl(
 
     }
 
-    override fun getSource(): SourceElement {
-        return SourceElement.NO_SOURCE
-    }
 
+    override val source: SourceElement = SourceElement.NO_SOURCE
     override fun toString(): String = debugString
 }
 

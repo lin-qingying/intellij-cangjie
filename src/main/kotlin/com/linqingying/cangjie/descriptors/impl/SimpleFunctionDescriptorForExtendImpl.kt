@@ -1,11 +1,9 @@
 package com.linqingying.cangjie.descriptors.impl
 
-import com.linqingying.cangjie.descriptors.CallableMemberDescriptor
-import com.linqingying.cangjie.descriptors.DeclarationDescriptor
-import com.linqingying.cangjie.descriptors.SourceElement
-import com.linqingying.cangjie.descriptors.TypeParameterDescriptor
+import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.types.CangJieType
 
 class SimpleFunctionDescriptorForExtendImpl(
 
@@ -20,8 +18,50 @@ class SimpleFunctionDescriptorForExtendImpl(
     containingDeclaration, original, annotations, name, kind, source
 ){
     var typeParametersForExtend :List<TypeParameterDescriptor>  = emptyList()
-
-
+    override fun initialize(
+        extensionReceiverParameter: ReceiverParameterDescriptor?,
+        dispatchReceiverParameter: ReceiverParameterDescriptor?,
+        contextReceiverParameters: MutableList<ReceiverParameterDescriptor>,
+        typeParameters: MutableList<out TypeParameterDescriptor>,
+        unsubstitutedValueParameters: MutableList<ValueParameterDescriptor>,
+        unsubstitutedReturnType: CangJieType?,
+        modality: Modality?,
+        visibility: DescriptorVisibility,
+        userData: MutableMap<out CallableDescriptor.UserDataKey<*>, *>?
+    ): SimpleFunctionDescriptorImpl {
+        return super.initialize(
+            extensionReceiverParameter,
+            dispatchReceiverParameter,
+            contextReceiverParameters,
+            typeParameters,
+            unsubstitutedValueParameters,
+            unsubstitutedReturnType,
+            modality,
+            visibility,
+            userData
+        )
+    }
+    override fun initialize(
+        extensionReceiverParameter: ReceiverParameterDescriptor?,
+        dispatchReceiverParameter: ReceiverParameterDescriptor?,
+        contextReceiverParameters: MutableList<ReceiverParameterDescriptor>,
+        typeParameters: MutableList<out TypeParameterDescriptor>,
+        unsubstitutedValueParameters: MutableList<ValueParameterDescriptor>,
+        unsubstitutedReturnType: CangJieType?,
+        modality: Modality?,
+        visibility: DescriptorVisibility
+    ): SimpleFunctionDescriptorImpl {
+        return super.initialize(
+            extensionReceiverParameter,
+            dispatchReceiverParameter,
+            contextReceiverParameters,
+            typeParameters,
+            unsubstitutedValueParameters,
+            unsubstitutedReturnType,
+            modality,
+            visibility
+        )
+    }
     companion object{
 
         fun create(

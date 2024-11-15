@@ -364,6 +364,7 @@ protected constructor(
     private fun getDeclaredFunctions(
         name: Name
     ): Collection<SimpleFunctionDescriptor> {
+
         // TODO: do we really need to copy descriptors?
         if (mainScope != null) return mainScope.declaredFunctionDescriptors(name).map {
             it.newCopyBuilder().setPreserveSourceElement().build()!!
@@ -553,12 +554,6 @@ protected constructor(
         }
 
     }
-//    override fun getExtendContributedClassifier(element: CjExtend, location: LookupLocation) {
-//     c.extendDescriptorResolver
-//
-//
-//        TODO()
-//    }
 
     protected abstract fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>)
 

@@ -487,7 +487,7 @@ object DescriptorUtils {
 //        }
 
         if (descriptor is DeclarationDescriptorWithSource) {
-            return descriptor.getSource()
+            return descriptor.source
                 .getContainingFile()
         }
 

@@ -11,7 +11,6 @@ import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.name.Name
-import com.linqingying.cangjie.psi.CjPsiFactory
 import com.linqingying.cangjie.psi.CjSuperTypeListEntry
 import com.linqingying.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -698,11 +697,8 @@ open class BasicTypeDescriptor(
         return basicTypeMemberScope
     }
 
-    override fun getSource(): SourceElement {
+    override val source: SourceElement = SourceElement.NO_SOURCE
 
-
-        return SourceElement.NO_SOURCE
-    }
     override fun getDefaultType(): BasicType {
         return BasicType(typeConstructor, basicTypeMemberScope)
     }

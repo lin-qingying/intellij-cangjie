@@ -12,7 +12,6 @@ import com.linqingying.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIn
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.Name
-import com.linqingying.cangjie.psi.CjEnum
 import com.linqingying.cangjie.psi.CjFile
 import com.linqingying.cangjie.psi.CjImportDirective
 import com.linqingying.cangjie.psi.CjImportInfo
@@ -675,7 +674,8 @@ class FileScopeFactory(
 
 
         override val containingDeclaration: DeclarationDescriptor = packageFragment
-        override fun getSource() = sourceElement
+
+        override val source: SourceElement = sourceElement
 
         override val original = this
         override val annotations: Annotations get() = Annotations.EMPTY

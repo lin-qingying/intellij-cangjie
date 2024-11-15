@@ -278,6 +278,7 @@ if(type != null){
     }
 
     override fun getDeclaredTypeParameters(): List<TypeParameterDescriptor> {
+
         return parameters() ?: emptyList()
     }
 

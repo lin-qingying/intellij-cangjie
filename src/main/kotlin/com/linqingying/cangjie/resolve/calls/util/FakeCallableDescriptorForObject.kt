@@ -58,7 +58,8 @@ open class FakeCallableDescriptorForObject(
 
     override fun cleanCompileTimeInitializerCache() {}
 
-    override fun getSource(): SourceElement = classDescriptor.source
+    override val source: SourceElement
+        get() = classDescriptor.source
     override val isConst: Boolean = false
     override val isVar: Boolean = false
 

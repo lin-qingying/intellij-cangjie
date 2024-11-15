@@ -101,6 +101,8 @@ open class ClassConstructorDescriptorImpl protected constructor(
         return visitor.visitConstructorDescriptor(this, data)
     }
 
+
+
     override fun isEnd(): Boolean {
         return isEnd
     }

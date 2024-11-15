@@ -1,47 +1,24 @@
-package com.linqingying.cangjie.descriptors.impl;
+package com.linqingying.cangjie.descriptors.impl
 
-import com.linqingying.cangjie.descriptors.DeclarationDescriptor;
-import com.linqingying.cangjie.descriptors.DeclarationDescriptorNonRoot;
-import com.linqingying.cangjie.descriptors.DeclarationDescriptorWithSource;
-import com.linqingying.cangjie.descriptors.SourceElement;
-import com.linqingying.cangjie.descriptors.annotations.Annotations;
-import com.linqingying.cangjie.name.Name;
-import org.jetbrains.annotations.NotNull;
+import com.linqingying.cangjie.descriptors.DeclarationDescriptor
+import com.linqingying.cangjie.descriptors.DeclarationDescriptorNonRoot
+import com.linqingying.cangjie.descriptors.DeclarationDescriptorWithSource
+import com.linqingying.cangjie.descriptors.SourceElement
+import com.linqingying.cangjie.descriptors.annotations.Annotations
+import com.linqingying.cangjie.name.Name
 
-public abstract class DeclarationDescriptorNonRootImpl extends DeclarationDescriptorImpl
-        implements DeclarationDescriptorNonRoot {
-    @NotNull
-    private final DeclarationDescriptor containingDeclaration;
-    @Override
-    @NotNull
-    public DeclarationDescriptor getContainingDeclaration() {
-        return containingDeclaration;
-    }
-    @NotNull
-    private final SourceElement source;
-    protected DeclarationDescriptorNonRootImpl(
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @NotNull Annotations annotations,
-            @NotNull Name name,
-            @NotNull SourceElement source
-    ) {
-        super(annotations, name);
+abstract class DeclarationDescriptorNonRootImpl protected constructor(
+    override val containingDeclaration: DeclarationDescriptor,
+    annotations: Annotations,
+    name: Name,
+    override val source: SourceElement
+) : DeclarationDescriptorImpl(annotations, name), DeclarationDescriptorNonRoot {
+    override val original: DeclarationDescriptorWithSource
+        get() = super.original as DeclarationDescriptorWithSource
 
-        this.containingDeclaration = containingDeclaration;
-        this.source = source;
+    override fun validate() {
+        containingDeclaration.validate()
     }
-    @NotNull
-    @Override
-    public DeclarationDescriptorWithSource getOriginal() {
-        return (DeclarationDescriptorWithSource) super.getOriginal();
-    }
-    @Override
-    public void validate() {
-        containingDeclaration.validate();
-    }
-    @Override
-    @NotNull
-    public SourceElement getSource() {
-        return source;
-    }
+
+
 }

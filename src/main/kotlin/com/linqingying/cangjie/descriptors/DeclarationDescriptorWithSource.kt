@@ -1,15 +1,8 @@
-package com.linqingying.cangjie.descriptors;
+package com.linqingying.cangjie.descriptors
 
-import org.jetbrains.annotations.NotNull;
+interface DeclarationDescriptorWithSource : DeclarationDescriptor {
 
-public interface DeclarationDescriptorWithSource extends DeclarationDescriptor {
-    //    @NotNull
-//    default SourceElement getSource() {
-//        return SourceElement.NO_SOURCE;
-//    }
-    SourceElement getSource();
+    val source: SourceElement
 
-    @Override
-    @NotNull
-    DeclarationDescriptorWithSource getOriginal();
+    override val original: DeclarationDescriptorWithSource
 }

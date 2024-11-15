@@ -335,11 +335,10 @@ class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDes
 
     }
 
-    override fun getSource(): SourceElement {
-        return type.toSourceElement
 
-    }
 
+    override val source: SourceElement
+        get() = type.toSourceElement
     override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
 
         constructor = constructor?.substitute(substitutor)
@@ -409,9 +408,8 @@ class ClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDescrip
 
     }
 
-    override fun getSource(): SourceElement {
-        return type.toSourceElement
-    }
+    override val source: SourceElement
+        get() = type.toSourceElement
 
     override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
         return this

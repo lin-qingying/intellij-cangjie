@@ -1077,6 +1077,7 @@ public class DescriptorResolver {
                 inferenceSession,
                 VariableAsPropertyInfo.Companion.createFromProperty(property));
     }
+
     public void resolveGenericBoundsBorExtend(
             @NotNull CjTypeParameterListOwnerForExtend declaration,
             @NotNull DeclarationDescriptor descriptor,
@@ -1101,7 +1102,7 @@ public class DescriptorResolver {
                 upperBoundCheckRequests.add(new UpperBoundCheckRequest(cjTypeParameter.getNameAsName(), extendsBound, type));
             }
         }
-        for (CjTypeConstraint constraint : declaration.getTypeConstraints()) {
+        for (CjTypeConstraint constraint : declaration.getExtendTypeConstraints()) {
             CjSimpleNameExpression subjectTypeParameterName = constraint.getSubjectTypeParameterName();
             if (subjectTypeParameterName == null) {
                 continue;
@@ -1139,9 +1140,10 @@ public class DescriptorResolver {
 
         if (!(declaration instanceof CjClass)) {
             checkUpperBoundTypes(trace, upperBoundCheckRequests, declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD));
-            checkNamesInConstraints(declaration, descriptor, scope, trace);
+            checkNamesInConstraintsByExtend(declaration, descriptor, scope, trace);
         }
     }
+
     public void resolveGenericBounds(
             @NotNull CjTypeParameterListOwner declaration,
             @NotNull DeclarationDescriptor descriptor,
@@ -1205,6 +1207,37 @@ public class DescriptorResolver {
         if (!(declaration instanceof CjClass)) {
             checkUpperBoundTypes(trace, upperBoundCheckRequests, declaration.hasModifier(CjTokens.OVERRIDE_KEYWORD));
             checkNamesInConstraints(declaration, descriptor, scope, trace);
+        }
+    }
+
+    public void checkNamesInConstraintsByExtend(
+            @NotNull CjTypeParameterListOwnerForExtend declaration,
+            @NotNull DeclarationDescriptor descriptor,
+            @NotNull LexicalScope scope,
+            @NotNull BindingTrace trace
+    ) {
+        for (CjTypeConstraint constraint : declaration.getExtendTypeConstraints()) {
+            CjSimpleNameExpression nameExpression = constraint.getSubjectTypeParameterName();
+            if (nameExpression == null) continue;
+
+            Name name = nameExpression.getReferencedNameAsName();
+
+            ClassifierDescriptor classifier = ScopeUtilsKt.findClassifier(scope, name, NoLookupLocation.FOR_NON_TRACKED_SCOPE);
+            if (classifier instanceof TypeParameterDescriptor && classifier.getContainingDeclaration() == descriptor)
+                continue;
+
+            if (classifier != null) {
+                // To tell the user that we look only for locally defined type parameters
+                trace.report(NAME_IN_CONSTRAINT_IS_NOT_A_TYPE_PARAMETER.on(nameExpression, constraint, declaration));
+                trace.record(BindingContext.REFERENCE_TARGET, nameExpression, classifier);
+            } else {
+                trace.report(UNRESOLVED_REFERENCE.on(nameExpression, nameExpression));
+            }
+
+            CjTypeReference boundTypeReference = constraint.getBoundTypeReference();
+            if (boundTypeReference != null) {
+                typeResolver.resolveType(scope, boundTypeReference, trace, true);
+            }
         }
     }
 
@@ -1443,7 +1476,8 @@ public class DescriptorResolver {
                         trace.report(Errors.CYCLIC_GENERIC_UPPER_BOUND.on(typeParameter));
                     }
                     return null;
-                },
+                }
+                ,
                 supertypeLoopsResolver,
                 storageManager
         );
@@ -1535,8 +1569,6 @@ public class DescriptorResolver {
                                                         @NotNull BindingTrace trace,
                                                         @NotNull DataFlowInfo dataFlowInfo,
                                                         @NotNull InferenceSession inferenceSession) {
-
-
 
 
         VariableAsPropertyInfo variableInfo = VariableAsPropertyInfo.createFromProperty(variableDeclaration);

@@ -120,10 +120,8 @@ class LazySubstitutingClassDescriptor(
         TODO("Not yet implemented")
     }
 
-    override fun getSource(): SourceElement {
-        return SourceElement.NO_SOURCE
+    override val source: SourceElement  = SourceElement.NO_SOURCE
 
-    }
 
     override fun getTypeConstructor(): TypeConstructor {
         val originalTypeConstructor: TypeConstructor = original.typeConstructor

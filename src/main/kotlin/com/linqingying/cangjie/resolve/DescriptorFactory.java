@@ -23,7 +23,7 @@ public class DescriptorFactory {
             @NotNull Annotations annotations,
             @NotNull Annotations parameterAnnotations
     ) {
-        return createSetter(propertyDescriptor, annotations, parameterAnnotations, true,   propertyDescriptor.getSource());
+        return createSetter(propertyDescriptor, annotations, parameterAnnotations, true, propertyDescriptor.getSource());
     }
 
     @NotNull

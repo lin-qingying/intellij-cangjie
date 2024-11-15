@@ -113,7 +113,7 @@ class TupleClassDescriptor(
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner) = memberScope
 
 
-    override fun getSource(): SourceElement = SourceElement.NO_SOURCE
+    override val source: SourceElement = SourceElement.NO_SOURCE
 
 
     override fun getConstructors() = emptyList<ClassConstructorDescriptor>()
