@@ -36,7 +36,7 @@ open class ValueParameterDescriptorImpl(
             declaresDefaultValue: Boolean,
 
             source: SourceElement,
-            destructuringVariables: (() -> List<VariableDescriptor>)?
+            destructuringVariables: (() -> List<VariableDescriptor>)? = null
         ): ValueParameterDescriptorImpl = if (destructuringVariables == null) ValueParameterDescriptorImpl(
             containingDeclaration,
             original,

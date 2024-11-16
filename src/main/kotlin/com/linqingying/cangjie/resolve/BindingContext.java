@@ -165,6 +165,7 @@ public interface BindingContext {
 
     WritableSlice<CjCasePattern, Pattern> PATTERN = Slices.createSimpleSlice();
 
+    WritableSlice<CjCallableReference, Boolean> IS_FUNC = Slices.createSimpleSlice();
 
     WritableSlice<CjFunction, CangJieResolutionCallbacksImpl.LambdaInfo> NEW_INFERENCE_LAMBDA_INFO = new BasicWritableSlice<>(DO_NOTHING);
 

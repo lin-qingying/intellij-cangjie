@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.resolve.calls.tower
 
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
@@ -46,18 +47,6 @@ val CangJieCallArgument.psiCallArgument: PSICangJieCallArgument
         }
         return this as PSICangJieCallArgument
     }
-
-class CallableReferenceCangJieCallArgumentImpl(
-    val scopeTowerForResolution: ImplicitScopeTower,
-    override val valueArgument: ValueArgument,
-    override val dataFlowInfoBeforeThisArgument: DataFlowInfo,
-    override val dataFlowInfoAfterThisArgument: DataFlowInfo,
-    val cjCallableReferenceExpression: CjCallableReferenceExpression,
-    override val argumentName: Name?,
-    override val lhsResult: LHSResult,
-    override val rhsName: Name,
-    override val call: CangJieCall
-) : CallableReferenceCangJieCallArgument, PSICangJieCallArgument()
 
 class CasePatternCangJieCallArgumentImpl(
     override val valueArgument: ValueArgument,
@@ -126,7 +115,17 @@ internal fun CangJieCallArgument.setResultDataFlowInfoIfRelevant(resultDataFlowI
 
 abstract class SimplePSICangJieCallArgument : PSICangJieCallArgument(), SimpleCangJieCallArgument
 
-// context here is context for value argument analysis
+/**
+ * 创建一个简单的 PSI 调用参数对象
+ *
+ * 此函数负责根据给定的上下文和参数信息，构建一个简单的 PSI 调用参数对象
+ * 它主要用于在解析调用过程中，为每个值参数创建相应的 PSI 节点
+ *
+ * @param contextForArgument 调用解析的上下文，包含跟踪信息、语句过滤器、作用域等
+ * @param valueArgument 值参数，表示在调用中传递的实际参数
+ * @param typeInfoForArgument 参数的类型信息，用于在创建 PSI 时确定参数的类型
+ * @return 返回创建的简单 PSI 调用参数对象
+ */
 internal fun createSimplePSICallArgument(
     contextForArgument: BasicCallResolutionContext,
     valueArgument: ValueArgument,
@@ -139,7 +138,74 @@ internal fun createSimplePSICallArgument(
     contextForArgument.dataFlowValueFactory,
     contextForArgument.call,
 )
+interface FakePositionalValueArgumentForCallableReference : ValueArgument {
+    val index: Int
+}
+class FakePositionalValueArgumentForCallableReferenceImpl(
+    private val callElement: CjElement,
+    override val index: Int
+) : FakePositionalValueArgumentForCallableReference {
+    override fun getArgumentExpression(): CjExpression? = null
+    override fun getArgumentName(): ValueArgumentName? = null
+    override fun isNamed(): Boolean = false
+    override fun asElement(): CjElement = callElement
+    override fun getSpreadElement(): LeafPsiElement? = null
+    override fun isExternal(): Boolean = false
+}
 
+interface FakeImplicitSpreadValueArgumentForCallableReference : ValueArgument {
+    val expression: ValueArgument
+}
+class FakeImplicitSpreadValueArgumentForCallableReferenceImpl(
+    private val callElement: CjElement,
+    override val expression: ValueArgument
+) : FakeImplicitSpreadValueArgumentForCallableReference {
+    override fun getArgumentExpression(): CjExpression? = null
+    override fun getArgumentName(): ValueArgumentName? = null
+    override fun isNamed(): Boolean = false
+    override fun asElement(): CjElement = callElement
+    override fun getSpreadElement(): LeafPsiElement? = null // TODO callElement?
+    override fun isExternal(): Boolean = false
+}
+class CallableReferenceCangJieCallArgumentImpl(
+    val scopeTowerForResolution: ImplicitScopeTower,
+    override val valueArgument: ValueArgument,
+    override val dataFlowInfoBeforeThisArgument: DataFlowInfo,
+    override val dataFlowInfoAfterThisArgument: DataFlowInfo,
+    val cjCallableReferenceExpression: CjCallableReference,//CjCallableReferenceExpression
+    override val argumentName: Name?,
+    override val lhsResult: LHSResult,
+    override val rhsName: Name,
+    override val call: CangJieCall
+) : CallableReferenceCangJieCallArgument, PSICangJieCallArgument()
+
+class FakeValueArgumentForLeftCallableReference(val cjExpression: CjCallableReference) : ValueArgument {
+    override fun getArgumentExpression() = cjExpression.receiverExpression
+
+    override fun getArgumentName(): ValueArgumentName? = null
+    override fun isNamed(): Boolean = false
+    override fun asElement(): CjElement = getArgumentExpression() ?: cjExpression
+    override fun getSpreadElement(): LeafPsiElement? = null
+    override fun isExternal(): Boolean = false
+}
+
+/**
+ * 创建一个简单的 PSI 调用参数对象
+ *
+ * 此函数负责根据给定的参数和上下文信息，构建一个代表调用参数的 SimplePSICangJieCallArgument 实例
+ * 它处理参数表达式的解析，类型信息的获取，以及根据条件构建相应的调用参数实现
+ *
+ * @param bindingContext 绑定上下文，用于获取解析信息
+ * @param statementFilter 语句过滤器，用于筛选和处理表达式
+ * @param ownerDescriptor 所有者描述符，表示参数所属的声明
+ * @param valueArgument 值参数，表示调用中的实际参数
+ * @param dataFlowInfoBeforeThisArgument 此参数之前的数据流信息
+ * @param typeInfoForArgument 参数的类型信息
+ * @param languageVersionSettings 语言版本设置，用于处理不同版本的 CangJie 语言特性
+ * @param dataFlowValueFactory 数据流值工厂，用于创建数据流值
+ * @param call 调用信息，表示参数所属的调用
+ * @return 返回构建的 SimplePSICangJieCallArgument 实例，如果无法构建则返回 null
+ */
 internal fun createSimplePSICallArgument(
     bindingContext: BindingContext,
     statementFilter: StatementFilter,
@@ -151,23 +217,32 @@ internal fun createSimplePSICallArgument(
     dataFlowValueFactory: DataFlowValueFactory,
     call: Call
 ): SimplePSICangJieCallArgument? {
+    // 获取去除括号后的参数表达式，如果获取失败则返回 null
     val cjExpression =
         CjPsiUtil.getLastElementDeparenthesized(valueArgument.getArgumentExpression(), statementFilter) ?: return null
+
+    // 确定用于提取解析调用的表达式
     val cjExpressionToExtractResolvedCall =
         if (cjExpression is CjCallableReferenceExpression) cjExpression.callableReference else cjExpression
 
+    // 尝试获取部分解析的调用信息
     val partiallyResolvedCall = cjExpressionToExtractResolvedCall.getCall(bindingContext)?.let {
         bindingContext.get(BindingContext.ONLY_RESOLVED_CALL, it)?.result
     }
-    // todo hack for if expression: sometimes we not write properly type information for branches
+    // todo 对 if 表达式的 hack：有时我们没有正确地为分支编写类型信息
+    // 获取基础类型信息，如果获取失败则返回 null
     val baseType =
         typeInfoForArgument.type?.unwrap() ?: partiallyResolvedCall?.resultCallAtom?.freshReturnType ?: return null
 
+    // 创建表达式接收器
     val expressionReceiver = ExpressionReceiver.create(cjExpression, baseType, bindingContext)
+
+    // 根据条件处理接收器的智能类型转换信息
     val argumentWithSmartCastInfo =
         if (cjExpression is CjCallExpression || partiallyResolvedCall != null) {
-            // For a sub-call (partially or fully resolved), there can't be any smartcast
-            // so we use a fast-path here to avoid calling transformToReceiverWithSmartCastInfo function
+            // 对于子调用（部分或完全解析的），不会有任何智能类型转换
+// 因此我们在这里使用快速路径以避免调用 transformToReceiverWithSmartCastInfo 函数
+
             ReceiverValueWithSmartCastInfo(expressionReceiver, emptySet(), isStable = true)
         } else {
             val useDataFlowInfoBeforeArgument = call.callType == Call.CallType.CONTAINS
@@ -175,13 +250,15 @@ internal fun createSimplePSICallArgument(
                 ownerDescriptor, bindingContext,
                 if (useDataFlowInfoBeforeArgument) dataFlowInfoBeforeThisArgument else typeInfoForArgument.dataFlowInfo,
                 expressionReceiver,
-//                languageVersionSettings,
+                languageVersionSettings,
                 dataFlowValueFactory
             )
         }
 
+    // 准备接收器以处理捕获类型
     val capturedArgument = argumentWithSmartCastInfo.prepareReceiverRegardingCaptureTypes()
 
+    // 根据是否解析了部分调用来决定返回的 SimplePSICangJieCallArgument 实现类型
     return if (partiallyResolvedCall != null) {
         SubCangJieCallArgumentImpl(
             valueArgument,
@@ -199,6 +276,7 @@ internal fun createSimplePSICallArgument(
         )
     }
 }
+
 
 class ExpressionCangJieCallArgumentImpl(
     override val valueArgument: ValueArgument,

@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.resolve.calls.tower
 
+import com.linqingying.cangjie.builtins.isFunctionType
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
@@ -9,8 +10,7 @@ import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.*
-import com.linqingying.cangjie.resolve.BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER
-import com.linqingying.cangjie.resolve.BindingContext.NEW_INFERENCE_TRY_EXCEPTION_PARAMETER
+import com.linqingying.cangjie.resolve.BindingContext.*
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver
 import com.linqingying.cangjie.resolve.calls.CallTransformer
 import com.linqingying.cangjie.resolve.calls.CangJieCallResolver
@@ -46,6 +46,7 @@ import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.DeferredType
 import com.linqingying.cangjie.types.TypeApproximator
 import com.linqingying.cangjie.types.UnwrappedType
+import com.linqingying.cangjie.types.expressions.ExpressionTypingContext
 
 import com.linqingying.cangjie.types.expressions.ExpressionTypingServices
 import com.linqingying.cangjie.types.isError
@@ -58,6 +59,8 @@ import com.linqingying.cangjie.utils.firstIsInstanceOrNull
 class PSICallResolver(
     private val typeResolver: TypeResolver,
     private val expressionTypingServices: ExpressionTypingServices,
+    private val qualifiedExpressionResolver: QualifiedExpressionResolver,
+    private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
 
     private val languageVersionSettings: LanguageVersionSettings,
     private val dynamicCallableDescriptors: DynamicCallableDescriptors,
@@ -89,26 +92,33 @@ class PSICallResolver(
         NewResolutionOldInference.ResolutionKind.Invoke,
         NewResolutionOldInference.ResolutionKind.Enum,
         NewResolutionOldInference.ResolutionKind.CaseEnum,
-//        NewResolutionOldInference.ResolutionKind.CallableReference
+        NewResolutionOldInference.ResolutionKind.CallableReference
     )
 
     fun createCallableReferenceCangJieCallArgument(
         context: BasicCallResolutionContext,
-        cjExpression: CjCallableReferenceExpression,
+        cjExpression: CjCallableReference,
         startDataFlowInfo: DataFlowInfo,
         valueArgument: ValueArgument,
         argumentName: Name?,
         outerCallContext: BasicCallResolutionContext,
         tracingStrategy: TracingStrategy
     ): CallableReferenceCangJieCallArgumentImpl {
+
         checkNoSpread(outerCallContext, valueArgument)
 
         val lhsResult = getLhsResult(context, cjExpression)
         val newDataFlowInfo =/* (doubleColonLhs as? DoubleColonLHS.Expression)?.dataFlowInfo ?: */startDataFlowInfo
         val rhsExpression = cjExpression.callableReference
         val rhsName = rhsExpression.getReferencedNameAsName()
-        val call = outerCallContext.trace[BindingContext.CALL, rhsExpression]
-            ?: CallMaker.makeCall(rhsExpression, null, null, rhsExpression, emptyList())
+        val call = outerCallContext.trace[CALL, rhsExpression]
+            ?: CallMaker.makeCall(
+                rhsExpression,
+                if (lhsResult is LHSResult.Type) lhsResult.qualifier else null,
+                null,
+                rhsExpression,
+                emptyList()
+            )
         val cangjieCall = toCangJieCall(
             context,
             CangJieCallKind.CALLABLE_REFERENCE,
@@ -207,7 +217,7 @@ class PSICallResolver(
             val variableReceiver = ExpressionReceiver.create(calleeExpression, type, temporaryTrace.bindingContext)
 
             temporaryTrace.record(
-                BindingContext.REFERENCE_TARGET,
+                REFERENCE_TARGET,
                 calleeExpression,
                 variable.resolvedCall.candidateDescriptor as DeclarationDescriptor
             )
@@ -565,11 +575,26 @@ class PSICallResolver(
         context: BasicCallResolutionContext
     ) =
         CangJieResolutionCallbacksImpl(
-            trace, expressionTypingServices, typeApproximator,
-            argumentTypeResolver, languageVersionSettings, cangjieToResolvedCallTransformer,
-            dataFlowValueFactory, inferenceSession, constantExpressionEvaluator, typeResolver,
-            this, postponedArgumentsAnalyzer, cangjieConstraintSystemCompleter, callComponents,
-            deprecationResolver, moduleDescriptor, context, missingSupertypesResolver, cangjieCallResolver,
+            trace,
+            expressionTypingServices,
+            typeApproximator,
+            argumentTypeResolver,
+            languageVersionSettings,
+            cangjieToResolvedCallTransformer,
+            dataFlowValueFactory,
+            inferenceSession,
+            constantExpressionEvaluator,
+            typeResolver,
+            this,
+            postponedArgumentsAnalyzer,
+            cangjieConstraintSystemCompleter,
+            callComponents,
+            doubleColonExpressionResolver,
+            deprecationResolver,
+            moduleDescriptor,
+            context,
+            missingSupertypesResolver,
+            cangjieCallResolver,
             resultTypeResolver
         )
 
@@ -591,11 +616,11 @@ class PSICallResolver(
 
                     val bindingContext = context.trace.bindingContext
                     val call =
-                        bindingContext[BindingContext.DELEGATE_EXPRESSION_TO_PROVIDE_DELEGATE_CALL, cjExpression]
+                        bindingContext[DELEGATE_EXPRESSION_TO_PROVIDE_DELEGATE_CALL, cjExpression]
                             ?: cjExpression?.getCall(bindingContext)
 
                     val partiallyResolvedCall =
-                        call?.let { bindingContext.get(BindingContext.ONLY_RESOLVED_CALL, it)?.result }
+                        call?.let { bindingContext.get(ONLY_RESOLVED_CALL, it)?.result }
 
                     if (partiallyResolvedCall != null) {
                         val receiver = ReceiverValueWithSmartCastInfo(oldReceiver, emptySet(), isStable = true)
@@ -917,23 +942,110 @@ class PSICallResolver(
                 }
             }
 
-        if (cjExpression is CjCallableReferenceExpression) {
-            return createCallableReferenceCangJieCallArgument(
-                context, cjExpression, startDataFlowInfo, valueArgument, argumentName, outerCallContext, tracingStrategy
-            )
-        }
+//        if (cjExpression is CjCallableReferenceExpression) {
+//            return createCallableReferenceCangJieCallArgument(
+//                context, cjExpression, startDataFlowInfo, valueArgument, argumentName, outerCallContext, tracingStrategy
+//            )
+//        }
 
 
         // argumentExpression instead of cjExpression is hack -- type info should be stored also for parenthesized expression
-        val typeInfo = expressionTypingServices.getTypeInfo(argumentExpression, context)
+        val tempTrace = TemporaryBindingTrace.create(
+            context.trace, "trace for resolving argument expression"
+        )
+        val typeInfo = expressionTypingServices.getTypeInfo(argumentExpression, context.replaceBindingTrace(tempTrace))
+        if (typeInfo.type == null) {
 
+            if (argumentExpression is CjNameReferenceExpression) {
+                if (tempTrace[IS_FUNC, argumentExpression] == true) {
+                    return createCallableReferenceCangJieCallArgument(
+                        context,
+                        argumentExpression,
+                        startDataFlowInfo,
+                        valueArgument,
+                        argumentName,
+                        outerCallContext,
+                        tracingStrategy
+                    )
+
+                }
+            } else if (argumentExpression is CjDotQualifiedExpression && argumentExpression.selectorExpression is CjNameReferenceExpression) {
+                if (tempTrace[IS_FUNC, argumentExpression.selectorExpression as CjNameReferenceExpression] == true) {
+                    return createCallableReferenceCangJieCallArgument(
+                        context,
+                        argumentExpression,
+                        startDataFlowInfo,
+                        valueArgument,
+                        argumentName,
+                        outerCallContext,
+                        tracingStrategy
+                    )
+
+                }
+            }
+
+        } else if (typeInfo.type.isFunctionType) {
+            if (argumentExpression is CjNameReferenceExpression) {
+                if (tempTrace[IS_FUNC, argumentExpression] == true) {
+                    return createCallableReferenceCangJieCallArgument(
+                        context,
+                        argumentExpression,
+                        startDataFlowInfo,
+                        valueArgument,
+                        argumentName,
+                        outerCallContext,
+                        tracingStrategy
+                    )
+
+                }
+            } else if (argumentExpression is CjDotQualifiedExpression && argumentExpression.selectorExpression is CjNameReferenceExpression) {
+                if (tempTrace[IS_FUNC, argumentExpression.selectorExpression as CjNameReferenceExpression] == true) {
+                    return createCallableReferenceCangJieCallArgument(
+                        context,
+                        argumentExpression,
+                        startDataFlowInfo,
+                        valueArgument,
+                        argumentName,
+                        outerCallContext,
+                        tracingStrategy
+                    )
+
+                }
+            }
+        }
+        tempTrace.commit()
         return createSimplePSICallArgument(context, valueArgument, typeInfo) ?: createParseErrorElement()
     }
 
-    fun getLhsResult(context: BasicCallResolutionContext, cjExpression: CjCallableReferenceExpression): LHSResult {
+    fun getLhsResult(context: BasicCallResolutionContext, cjExpression: CjCallableReference): LHSResult {
+        val expressionTypingContext = ExpressionTypingContext.newContext(context)
+        val doubleColonLhs = doubleColonExpressionResolver.resolveDoubleColonLHS(cjExpression, expressionTypingContext)
+            ?: return LHSResult.Empty
+        return when (doubleColonLhs) {
+            is DoubleColonLHS.Expression -> {
+
+                val fakeArgument = FakeValueArgumentForLeftCallableReference(cjExpression)
+
+                val cangjieCallArgument = createSimplePSICallArgument(context, fakeArgument, doubleColonLhs.typeInfo)
+                cangjieCallArgument?.let { LHSResult.Expression(it as SimpleCangJieCallArgument) } ?: LHSResult.Error
+            }
+
+            is DoubleColonLHS.Type -> {
+                val qualifiedExpression = cjExpression.receiverExpression!!
+                val qualifier = expressionTypingContext.trace.get(QUALIFIER, qualifiedExpression)
+                val classifier = doubleColonLhs.type.constructor.declarationDescriptor
+                if (classifier !is ClassDescriptor) {
+                    expressionTypingContext.trace.report(Errors.CALLABLE_REFERENCE_LHS_NOT_A_CLASS.on(cjExpression))
+                    LHSResult.Error
+                } else {
+                    LHSResult.Type(qualifier, doubleColonLhs.type.unwrap())
+                }
+            }
 
 
-        return LHSResult.Empty
+        }
+
+
     }
 
 
@@ -945,7 +1057,7 @@ class PSICallResolver(
             is NewResolutionOldInference.ResolutionKind.Enum -> CangJieCallKind.ENUM
             is NewResolutionOldInference.ResolutionKind.CaseEnum -> CangJieCallKind.CASE_ENUM
 
-//            is NewResolutionOldInference.ResolutionKind.CallableReference -> CangJieCallKind.CALLABLE_REFERENCE
+            is NewResolutionOldInference.ResolutionKind.CallableReference -> CangJieCallKind.CALLABLE_REFERENCE
             is NewResolutionOldInference.ResolutionKind.GivenCandidates -> CangJieCallKind.UNSUPPORTED
         }
 
@@ -976,6 +1088,9 @@ class PSICallResolver(
         val refinedName = refineNameForRemOperator(isBinaryRemOperator, name)
 //
         val cangjieCallKind = resolutionKind.toCangJieCallKind()
+//        if (cangjieCallKind == CangJieCallKind.FUNCTION && context.call is CallMaker.CallImpl) {
+//            cangjieCallKind = CangJieCallKind.CALLABLE_REFERENCE
+//        }
         val cangjieCall = toCangJieCall(
             context,
             cangjieCallKind,
@@ -1051,7 +1166,7 @@ class PSICallResolver(
 
         for (candidate in errorCandidates) {
             if (candidate is ErrorCandidate.Classifier) {
-                context.trace.record(BindingContext.REFERENCE_TARGET, reference, candidate.descriptor)
+                context.trace.record(REFERENCE_TARGET, reference, candidate.descriptor)
                 context.trace.report(
                     Errors.RESOLUTION_TO_CLASSIFIER.on(
                         reference,
@@ -1092,8 +1207,7 @@ class PSICallResolver(
 
 
 fun CjElement.getScope(context: BindingContext): LexicalScope? {
-return context[BindingContext.LEXICAL_SCOPE,this]
-
+    return context[LEXICAL_SCOPE, this]
 
 
 }

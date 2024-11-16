@@ -1,5 +1,7 @@
 package com.linqingying.cangjie.builtins
 
+import com.intellij.util.containers.addIfNotNull
+import com.linqingying.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
 import com.linqingying.cangjie.builtins.functions.AllowedToUsedOnlyInK1
 import com.linqingying.cangjie.builtins.functions.FunctionTypeKind
 import com.linqingying.cangjie.builtins.functions.FunctionTypeKindExtractor
@@ -7,6 +9,7 @@ import com.linqingying.cangjie.descriptors.ClassDescriptor
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.descriptors.FunctionDescriptor
 import com.linqingying.cangjie.descriptors.annotations.Annotations
+import com.linqingying.cangjie.name.ClassId
 import com.linqingying.cangjie.name.FqNameUnsafe
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.DescriptorUtils
@@ -18,9 +21,6 @@ import com.linqingying.cangjie.types.util.asTypeProjection
 import com.linqingying.cangjie.types.util.replaceAnnotations
 import com.linqingying.cangjie.types.util.supertypes
 import com.linqingying.cangjie.utils.DFS
-import com.intellij.util.containers.addIfNotNull
-import com.linqingying.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
-import com.linqingying.cangjie.name.ClassId
 
 
 /**
@@ -74,10 +74,22 @@ fun getFunctionTypeArgumentProjections(
     return arguments
 }
 
+/**
+ * 创建一个函数类型的简单类型。
+ *
+ * 该函数根据给定的参数构建一个函数类型，包括注解、接收者类型、参数类型、参数名称和返回类型。它使用内置类型系统获取相应的函数描述符和类型参数，最终创建一个简单的、非空的函数类型。
+ *
+ * @param builtIns 内置类型系统，提供基本类型信息的访问。
+ * @param annotations 函数类型的注解，用于向类型添加元数据。
+ * @param receiverType 函数的接收者类型，如果没有接收者则可以为 null。
+ * @param contextReceiverTypes 上下文接收者类型的列表，支持多个接收者。
+ * @param parameterTypes 函数的参数类型列表，确定参数的数量和类型。
+ * @param parameterNames 参数名称的列表，可以为 null。
+ * @param returnType 函数的返回类型。
+ * @return 返回一个简单的、非空的函数类型。
+ */
 @JvmOverloads
 fun createFunctionType(
-//    memberScope: MemberScope,
-
     builtIns: CangJieBuiltIns,
     annotations: Annotations,
     receiverType: CangJieType?,
@@ -85,8 +97,8 @@ fun createFunctionType(
     parameterTypes: List<CangJieType>,
     parameterNames: List<Name>?,
     returnType: CangJieType,
-
-    ): SimpleType {
+): SimpleType {
+    // 获取函数类型的参数投影
     val arguments =
         getFunctionTypeArgumentProjections(
             receiverType,
@@ -96,19 +108,23 @@ fun createFunctionType(
             returnType,
             builtIns
         )
+
+    // 计算参数总数，包括上下文接收者和普通接收者
     val parameterCount = parameterTypes.size + contextReceiverTypes.size + if (receiverType == null) 0 else 1
+
+    // 获取函数描述符
     val classDescriptor = getFunctionDescriptor(builtIns, parameterCount)
-//    val classDescriptor = c.scope.getFunctionClassDescriptor(parameterCount)!!
 
-
-    // TODO: preserve laziness of given annotations
+    // 处理注解，添加扩展函数和上下文接收者的注解
     var typeAnnotations = annotations
     if (receiverType != null) typeAnnotations = typeAnnotations.withExtensionFunctionAnnotation(builtIns)
     if (contextReceiverTypes.isNotEmpty()) typeAnnotations =
         typeAnnotations.withContextReceiversFunctionAnnotation(builtIns, contextReceiverTypes.size)
 
+    // 创建并返回简单的、非空的函数类型
     return CangJieTypeFactory.simpleNotNullType(typeAnnotations.toDefaultAttributes(), classDescriptor, arguments)
 }
+
 
 fun Annotations.withContextReceiversFunctionAnnotation(builtIns: CangJieBuiltIns, contextReceiversCount: Int) =
     if (hasAnnotation(StandardNames.FqNames.contextFunctionTypeParams)) {
@@ -277,7 +293,8 @@ fun isNumberedFunctionClassFqName(fqName: FqNameUnsafe): Boolean {
     return fqName.startsWith(BUILT_INS_PACKAGE_NAME) &&
             fqName.getFunctionTypeKind() == FunctionTypeKind.Function
 }
-fun FunctionDescriptor.toFunctionType(): CangJieType  {
+
+fun FunctionDescriptor.toFunctionType(): CangJieType {
     this.returnType ?: this
 
     val valueTypes = this.valueParameters
@@ -294,7 +311,7 @@ fun FunctionDescriptor.toFunctionType(): CangJieType  {
 
 
 fun isBuiltinFunctionClass(classId: ClassId): Boolean {
-    if (!classId.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)) return false
+    if (!classId.startsWith(BUILT_INS_PACKAGE_NAME)) return false
 
     val kind = classId.asSingleFqName().toUnsafe().getFunctionTypeKind()
     return kind == FunctionTypeKind.Function

@@ -32,6 +32,9 @@ class VisibilityError(val invisibleMember: DeclarationDescriptorWithVisibility) 
         reporter.onCall(this)
     }
 }
+object HiddenExtensionRelatedToDynamicTypes : ResolutionDiagnostic(CandidateApplicability.HIDDEN)
+object DeprecatedUnaryPlusAsPlus : ResolutionDiagnostic(CandidateApplicability.CONVENTION_ERROR)
+object InvokeConventionCallNoOperatorModifier : ResolutionDiagnostic(CandidateApplicability.CONVENTION_ERROR)
 
 class ContextReceiverAmbiguity : ResolutionDiagnostic(CandidateApplicability.RESOLVED_WITH_ERROR) {
     override fun report(reporter: DiagnosticReporter) {

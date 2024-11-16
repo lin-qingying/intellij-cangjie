@@ -6,6 +6,7 @@ import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.FunctionDescriptor
 import com.linqingying.cangjie.incremental.components.LookupTracker
 import com.linqingying.cangjie.resolve.calls.components.ArgumentsToParametersMapper
+import com.linqingying.cangjie.resolve.calls.components.CallableReferenceArgumentResolver
 import com.linqingying.cangjie.resolve.calls.components.CangJieResolutionStatelessCallbacks
 import com.linqingying.cangjie.resolve.calls.components.TypeArgumentsToParametersMapper
 import com.linqingying.cangjie.resolve.calls.inference.components.ConstraintInjector
@@ -29,7 +30,7 @@ class CangJieCallComponents(
     val cangjieTypeChecker: NewCangJieTypeChecker,
     val lookupTracker: LookupTracker,
     val cangjieTypeRefiner: CangJieTypeRefiner,
-//    val callableReferenceArgumentResolver: CallableReferenceArgumentResolver
+    val callableReferenceArgumentResolver: CallableReferenceArgumentResolver
 )
 
 class GivenCandidate(

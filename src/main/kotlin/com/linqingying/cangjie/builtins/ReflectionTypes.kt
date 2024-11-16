@@ -13,6 +13,22 @@ class ReflectionTypes(module: ModuleDescriptor, private val notFoundClasses: Not
 {
 
   companion object{
+    fun isNumberedTypeWithOneOrMoreNumber(type: CangJieType): Boolean {
+      val descriptor = type.constructor.declarationDescriptor as? ClassDescriptor ?: return false
+      val fqName = DescriptorUtils.getFqName(descriptor)
+      if (fqName.isRoot) return false
+
+//      if (fqName.parent().toSafe() != CANGJIE_REFLECT_FQ_NAME) return false
+      val shortName = descriptor.name.asString()
+
+//      for (prefix in PREFIXES) {
+//        if (shortName.startsWith(prefix)) {
+//          val number = shortName.removePrefix(prefix)
+//          return number.isNotEmpty() && number != "0"
+//        }
+//      }
+      return false
+    }
     fun isPossibleExpectedCallableType(typeConstructor: TypeConstructor): Boolean {
       val descriptor = typeConstructor.declarationDescriptor as? ClassDescriptor ?: return false
       if (CangJieBuiltIns.isAny(descriptor)) return true

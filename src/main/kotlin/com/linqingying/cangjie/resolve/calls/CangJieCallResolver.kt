@@ -1,5 +1,7 @@
 package com.linqingying.cangjie.resolve.calls
 
+
+import  com.linqingying.cangjie.resolve.calls.components.createCallableReferenceProcessor
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.descriptors.ClassKind
 import com.linqingying.cangjie.descriptors.PropertyDescriptor
@@ -112,12 +114,12 @@ class CangJieCallResolver(
         expectedType: UnwrappedType?
     ): CandidateFactory<ResolutionCandidate> =
         when (cangjieCall.callKind) {
-//            CALLABLE_REFERENCE -> createCallableReferenceCallFactory(
-//                scopeTower,
-//                cangjieCall,
-//                resolutionCallbacks,
-//                expectedType
-//            )
+            CALLABLE_REFERENCE -> createCallableReferenceCallFactory(
+                scopeTower,
+                cangjieCall,
+                resolutionCallbacks,
+                expectedType
+            )
 
             else -> createSimpleCallFactory(scopeTower, cangjieCall, resolutionCallbacks)
         }
@@ -173,9 +175,9 @@ class CangJieCallResolver(
             }
 
             CALLABLE_REFERENCE -> {
-                TODO()
 
-//                createCallableReferenceProcessor(candidateFactory as CallableReferencesCandidateFactory) as ScopeTowerProcessor<C>
+
+                createCallableReferenceProcessor(candidateFactory as CallableReferencesCandidateFactory) as ScopeTowerProcessor<C>
             }
 
             INVOKE -> {

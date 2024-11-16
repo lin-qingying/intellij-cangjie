@@ -52,6 +52,10 @@ class SmartCastDiagnostic(
 ) : CangJieCallDiagnostic(CandidateApplicability.RESOLVED) {
     override fun report(reporter: DiagnosticReporter) = reporter.onCallArgument(argument, this)
 }
+class NotCallableMemberReference(
+    val argument: CallableReferenceResolutionAtom,
+    val candidate: CallableDescriptor
+) : CallableReferenceInapplicableDiagnostic(argument)
 
 class NotCallableExpectedType(
     val argument: CallableReferenceCangJieCallArgument,

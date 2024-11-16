@@ -13,6 +13,7 @@ import com.linqingying.cangjie.psi.CjExpression
 import com.linqingying.cangjie.psi.CjLambdaExpression
 import com.linqingying.cangjie.psi.CjVariableDeclaration
 import com.linqingying.cangjie.psi.psiUtil.anyDescendantOfType
+import com.linqingying.cangjie.resolve.DoubleColonExpressionResolver
 import com.linqingying.cangjie.resolve.MissingSupertypesResolver
 import com.linqingying.cangjie.resolve.TemporaryBindingTrace
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver
@@ -48,7 +49,7 @@ class BuilderInferenceSession(
     private val cangjieToResolvedCallTransformer: CangJieToResolvedCallTransformer,
     private val expressionTypingServices: ExpressionTypingServices,
     private val argumentTypeResolver: ArgumentTypeResolver,
-
+    private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
     private val typeApproximator: TypeApproximator,
@@ -381,7 +382,7 @@ class BuilderInferenceSession(
     ): ResolvedAtomCompleter {
         return ResolvedAtomCompleter(
             resultSubstitutor, context, cangjieToResolvedCallTransformer,
-            expressionTypingServices, argumentTypeResolver,/* doubleColonExpressionResolver,*/ builtIns,
+            expressionTypingServices, argumentTypeResolver, doubleColonExpressionResolver,  builtIns,
             deprecationResolver, moduleDescriptor, context.dataFlowValueFactory, typeApproximator, missingSupertypesResolver,
             callComponents,
         )

@@ -81,9 +81,9 @@ fun CangJieCall.checkCallInvariants() {
             assert(argumentsInParenthesis.isEmpty()) {
                 "Callable references can't have value arguments"
             }
-            assert(typeArguments.isEmpty()) {
-                "Callable references can't have explicit type arguments"
-            }
+//            assert(typeArguments.isEmpty()) {
+//                "Callable references can't have explicit type arguments"
+//            }
             assert(externalArgument == null) {
                 "External argument is not allowed not for function call: $externalArgument."
             }

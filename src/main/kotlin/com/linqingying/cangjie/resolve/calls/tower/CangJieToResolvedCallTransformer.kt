@@ -8,10 +8,8 @@ import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.diagnostics.Errors
 import com.linqingying.cangjie.extensions.internal.CandidateInterceptor
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.resolve.BindingContext
+import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.BindingContextUtils.updateRecordedType
-import com.linqingying.cangjie.resolve.MissingSupertypesResolver
-import com.linqingying.cangjie.resolve.StatementFilter
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver
 import com.linqingying.cangjie.resolve.calls.DiagnosticReporterByTrackingStrategy
 import com.linqingying.cangjie.resolve.calls.checkers.AdditionalTypeChecker
@@ -35,7 +33,6 @@ import com.linqingying.cangjie.resolve.constants.CompileTimeConstant
 import com.linqingying.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.linqingying.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import com.linqingying.cangjie.resolve.deprecation.DeprecationResolver
-import com.linqingying.cangjie.resolve.getLastStatementInABlock
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.error.ErrorScopeKind
 import com.linqingying.cangjie.types.expressions.DataFlowAnalyzer
@@ -55,7 +52,7 @@ class CangJieToResolvedCallTransformer(
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
     private val deprecationResolver: DeprecationResolver,
     private val expressionTypingServices: ExpressionTypingServices,
-
+private val doubleColonExpressionResolver:DoubleColonExpressionResolver,
     private val additionalDiagnosticReporter: AdditionalDiagnosticReporter,
     private val moduleDescriptor: ModuleDescriptor,
     private val dataFlowValueFactory: DataFlowValueFactory,
@@ -583,7 +580,7 @@ class CangJieToResolvedCallTransformer(
                     this,
                     expressionTypingServices,
                     argumentTypeResolver,
-
+doubleColonExpressionResolver  ,
                     builtIns,
                     deprecationResolver,
                     moduleDescriptor,

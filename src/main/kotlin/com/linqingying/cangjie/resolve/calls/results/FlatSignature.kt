@@ -84,6 +84,7 @@ interface SimpleConstraintSystem {
 
     val context: TypeSystemInferenceExtensionContext
 }
+
 fun <D : CallableDescriptor> FlatSignature.Companion.createForPossiblyShadowedExtension(descriptor: D): FlatSignature<D> =
     FlatSignature(
         descriptor,
@@ -96,6 +97,7 @@ fun <D : CallableDescriptor> FlatSignature.Companion.createForPossiblyShadowedEx
         isExpect = descriptor is MemberDescriptor && descriptor.isExpect,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
     )
+
 fun <D : CallableDescriptor> FlatSignature.Companion.createFromCallableDescriptor(descriptor: D): FlatSignature<D> =
     FlatSignature(
         descriptor,
@@ -195,20 +197,34 @@ private fun <T> SimpleConstraintSystem.isValueParameterTypeNotLessSpecific(
     return true
 }
 
+/**
+ * 从反射类型信息创建一个 [FlatSignature] 实例。
+ * 此函数专为处理可调用引用而设计，处理反射类型中的接收者类型、上下文接收者类型、参数类型等信息。
+ *
+ * @param origin 原始对象，可以是任何类型的对象。
+ * @param descriptor 可调用描述符，描述了方法或属性的元数据。
+ * @param numDefaults 默认参数的数量。
+ * @param hasBoundExtensionReceiver 是否有绑定的扩展接收者。
+ * @param reflectionType 反射类型，用于获取可调用引用的类型信息。
+ * @return 创建的 [FlatSignature] 实例。
+ */
 fun <T> FlatSignature.Companion.createFromReflectionType(
     origin: T,
     descriptor: CallableDescriptor,
     numDefaults: Int,
-    // Reflection type for callable references with bound receiver doesn't contain receiver type
+    // 可调用引用的反射类型不包含接收者类型
     hasBoundExtensionReceiver: Boolean,
     reflectionType: UnwrappedType
 ): FlatSignature<T> {
-    // Note that receiver is taking over descriptor, not reflection type
-    // This is correct as extension receiver can't have any defaults/varargs/coercions, so there is no need to use reflection type
-    // Plus, currently, receiver for reflection type is taking from *candidate*, see buildReflectionType, this candidate can
-    // have transient receiver which is not the same in its signature
+    // 接收者类型从描述符中获取，而不是反射类型
+    // 这是因为扩展接收者不能有默认值、变长参数或强制转换，因此不需要使用反射类型
+    // 此外，当前反射类型的接收者是从 *候选* 中获取的，这个候选可能有临时接收者，这与签名中的接收者不同
     val receiver = descriptor.extensionReceiverParameter?.type
+
+    // 获取上下文接收者类型
     val contextReceiversTypes = descriptor.contextReceiverParameters.mapNotNull { it.type }
+
+    // 根据描述符类型确定参数列表
     val parameters = if (descriptor is VariableDescriptor) {
         emptyList()
     } else {
@@ -217,6 +233,7 @@ fun <T> FlatSignature.Companion.createFromReflectionType(
         ).map { it.type }
     }
 
+    // 返回构建的 FlatSignature 实例
     return FlatSignature(
         origin,
         descriptor.typeParameters,
@@ -229,6 +246,7 @@ fun <T> FlatSignature.Companion.createFromReflectionType(
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
     )
 }
+
 
 object OverloadabilitySpecificityCallbacks : SpecificityComparisonCallbacks {
     override fun isNonSubtypeNotLessSpecific(specific: CangJieTypeMarker, general: CangJieTypeMarker): Boolean =

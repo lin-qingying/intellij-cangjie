@@ -45,6 +45,7 @@ public class ExpressionTypingComponents {
     public ControlStructureTypingUtils controlStructureTypingUtils;
     public ForLoopConventionsChecker forLoopConventionsChecker;
     public DescriptorResolver descriptorResolver;
+    public FlowOperatorResolver flowOperatorResolver;
 
     public LocalVariableResolver localVariableResolver;
     public TypeResolutionInterceptor typeResolutionInterceptor;
@@ -67,7 +68,10 @@ public class ExpressionTypingComponents {
     public void setEffectSystem(@NotNull EffectSystem effectSystem) {
         this.effectSystem = effectSystem;
     }
-
+    @Inject
+    public void setFlowOperatorResolver(@NotNull FlowOperatorResolver flowOperatorResolver) {
+        this.flowOperatorResolver = flowOperatorResolver;
+    }
     @Inject
     public void setPlatformToCangJieClassMap(@NotNull PlatformToCangJieClassMapper platformToCangJieClassMapper) {
         this.platformToCangJieClassMapper = platformToCangJieClassMapper;

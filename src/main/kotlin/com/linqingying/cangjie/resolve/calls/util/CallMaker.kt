@@ -1,12 +1,12 @@
 package com.linqingying.cangjie.resolve.calls.util
 
 import com.google.common.collect.Lists
+import com.intellij.lang.ASTNode
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.debugtext.getDebugText
 import com.linqingying.cangjie.resolve.scopes.receivers.Receiver
 import com.linqingying.cangjie.resolve.scopes.receivers.ReceiverValue
-import com.intellij.lang.ASTNode
-import com.intellij.psi.impl.source.tree.LeafPsiElement
 
 object CallMaker {
     fun makeExternalValueArgument(expression: CjExpression): ValueArgument {
@@ -53,6 +53,17 @@ object CallMaker {
             null,
             callExpression,
             listOf(callExpression.lambdaExpression),
+            Call.CallType.DEFAULT
+        )
+    }
+
+    fun makeCallForBinaryExpression(binaryExpression: CjBinaryExpression): Call {
+        return makeCallWithExpressions(
+            binaryExpression,
+            null,
+            null,
+            binaryExpression,
+            listOf(binaryExpression.left, binaryExpression.right),
             Call.CallType.DEFAULT
         )
     }
@@ -285,7 +296,7 @@ object CallMaker {
         }
     }
 
-    private class CallImpl(
+      class CallImpl(
         override val callElement: CjElement,
         override val explicitReceiver: Receiver?,
         override val callOperationNode: ASTNode?,
@@ -331,7 +342,7 @@ object CallMaker {
 
         override val typeArguments: List<CjTypeProjection>
             get() {
-                if(callElement is CjNameReferenceExpression){
+                if (callElement is CjNameReferenceExpression) {
                     return callElement.typeArguments
                 }
                 return emptyList()
@@ -339,7 +350,7 @@ object CallMaker {
 
         override val typeArgumentList: CjTypeArgumentList?
             get() {
-                if(callElement is CjNameReferenceExpression){
+                if (callElement is CjNameReferenceExpression) {
                     return callElement.typeArgumentList
                 }
                 return null

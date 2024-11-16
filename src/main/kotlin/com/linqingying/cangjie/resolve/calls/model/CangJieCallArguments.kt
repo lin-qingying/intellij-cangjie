@@ -32,22 +32,17 @@ interface CallableReferenceCangJieCallArgument : PostponableCangJieCallArgument,
     override val isSpread: Boolean
         get() = false
 
-    override val lhsResult: LHSResult
+
 
     override val call: CangJieCall
 }
 
 interface ExpressionCangJieCallArgument : SimpleCangJieCallArgument, ResolutionAtom
 
-/**
- * cases: class A {}, class B { companion object }, object C, enum class D { E }
- * A::foo <-> Type
- * a::foo <-> Expression
- * B::foo <-> Type
- * C::foo <-> Object
- * D.E::foo <-> Expression
- */
+
 sealed class LHSResult {
+
+
     class Type(val qualifier: QualifierReceiver?, resolvedType: UnwrappedType) : LHSResult() {
         val unboundDetailedReceiver: ReceiverValueWithSmartCastInfo
 
@@ -60,18 +55,6 @@ sealed class LHSResult {
 
             val unboundReceiver = TransientReceiver(resolvedType)
             unboundDetailedReceiver = ReceiverValueWithSmartCastInfo(unboundReceiver, emptySet(), isStable = true)
-        }
-    }
-
-    class Object(val qualifier: QualifierReceiver) : LHSResult() {
-        val objectValueReceiver: ReceiverValueWithSmartCastInfo
-
-        init {
-//            assert(DescriptorUtils.isObject(qualifier.descriptor)) {
-//                "Should be object descriptor: ${qualifier.descriptor}"
-//            }
-            objectValueReceiver =
-                qualifier.classValueReceiverWithSmartCastInfo ?: error("class value should be not null for $qualifier")
         }
     }
 

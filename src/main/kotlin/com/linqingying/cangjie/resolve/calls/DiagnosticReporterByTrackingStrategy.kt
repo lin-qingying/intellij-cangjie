@@ -442,7 +442,7 @@ class DiagnosticReporterByTrackingStrategy(
                 val argument = diagnostic.argument
                 val expression = (argument as? CallableReferenceCangJieCallArgumentImpl)?.cjCallableReferenceExpression
                 if (expression != null) {
-                    trace.report(UNRESOLVED_REFERENCE.on(expression.callableReference, expression.callableReference))
+                    trace.report(UNRESOLVED_REFERENCE.on(expression, expression))
                 }
             }
 
@@ -450,17 +450,17 @@ class DiagnosticReporterByTrackingStrategy(
                 val expression = when (val psiExpression = diagnostic.argument.psiExpression) {
                     is CjPsiUtil.CjExpressionWrapper -> psiExpression.baseExpression
                     else -> psiExpression
-                } as? CjCallableReferenceExpression
+                }
 
                 val candidates = diagnostic.candidates.map { it.candidate }
                 if (expression != null) {
                     trace.reportDiagnosticOnce(
                         CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY.on(
-                            expression.callableReference,
+                            expression,
                             candidates
                         )
                     )
-                    trace.record(BindingContext.AMBIGUOUS_REFERENCE_TARGET, expression.callableReference, candidates)
+                    trace.record(BindingContext.AMBIGUOUS_REFERENCE_TARGET, expression, candidates)
                 }
             }
 
@@ -535,11 +535,11 @@ class DiagnosticReporterByTrackingStrategy(
 //                )
 //            }
 //
-//            is NotCallableMemberReference, is NotCallableExpectedType -> {
-//                // NotCallableMemberReference -> UNSUPPORTED is reported in DoubleColonExpressionResolver
-//                // NotCallableExpectedType -> TYPE_MISMATCH is reported in reportConstraintErrorByPosition
-//                return
-//            }
+            is NotCallableMemberReference, is NotCallableExpectedType -> {
+                // NotCallableMemberReference -> UNSUPPORTED is reported in DoubleColonExpressionResolver
+                // NotCallableExpectedType -> TYPE_MISMATCH is reported in reportConstraintErrorByPosition
+                return
+            }
 
             else -> {
                 unknownError(diagnostic, "onCallArgument")

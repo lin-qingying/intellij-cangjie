@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.resolve.calls.components
 
+import com.intellij.util.SmartList
 import com.linqingying.cangjie.builtins.UnsignedTypes
 import com.linqingying.cangjie.builtins.getReceiverTypeFromFunctionType
 import com.linqingying.cangjie.config.LanguageFeature
@@ -13,13 +14,11 @@ import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.CjCallExpression
 import com.linqingying.cangjie.psi.CjNameReferenceExpression
 import com.linqingying.cangjie.resolve.DescriptorUtils
+import com.linqingying.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import com.linqingying.cangjie.resolve.calls.components.candidate.ResolutionCandidate
-import com.linqingying.cangjie.resolve.calls.inference.ConstraintSystemOperation
+import com.linqingying.cangjie.resolve.calls.inference.*
 import com.linqingying.cangjie.resolve.calls.inference.components.*
-import com.linqingying.cangjie.resolve.calls.inference.isSubtypeConstraintCompatible
 import com.linqingying.cangjie.resolve.calls.inference.model.*
-import com.linqingying.cangjie.resolve.calls.inference.runTransaction
-import com.linqingying.cangjie.resolve.calls.inference.substitute
 import com.linqingying.cangjie.resolve.calls.model.*
 import com.linqingying.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.linqingying.cangjie.resolve.calls.tower.*
@@ -31,9 +30,11 @@ import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.resolve.scopes.receivers.ClassQualifier
 import com.linqingying.cangjie.resolve.scopes.receivers.ClassValueReceiver
 import com.linqingying.cangjie.resolve.scopes.receivers.EnumClassQualifier
+import com.linqingying.cangjie.resolve.scopes.receivers.TypeAliasQualifier
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.model.CangJieTypeMarker
+import com.linqingying.cangjie.types.model.TypeConstructorMarker
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.contains
 import com.linqingying.cangjie.types.util.makeNotNullable
@@ -140,6 +141,10 @@ fun ResolutionCandidate.isStaticContext(): Boolean {
             value.descriptor.kind == ClassKind.ENUM
 //                !(value.descriptor.kind == ClassKind.ENUM || value.descriptor.kind == ClassKind.ENUM_ENTRY)
 
+        }
+
+        is TypeAliasQualifier -> {
+            true
         }
 
         is ClassQualifier -> {
@@ -390,6 +395,17 @@ internal object CheckExtensionPrivateVisibility : ResolutionPart() {
     }
 
 }
+internal object EagerResolveOfCallableReferences : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        getSubResolvedAtoms()
+            .filterIsInstance<EagerCallableReferenceAtom>()
+            .forEach {
+                callComponents.callableReferenceArgumentResolver.processCallableReferenceArgument(
+                    getSystem().getBuilder(), it, this, resolutionCallbacks
+                )
+            }
+    }
+}
 
 internal object CheckVisibility : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
@@ -485,6 +501,161 @@ internal object MapTypeArguments : ResolutionPart() {
                 .also {
                     it.diagnostics.forEach(this@process::addDiagnostic)
                 }
+    }
+}
+
+internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
+    private val CangJieType.isComputed get() = this !is WrappedType || isComputed()
+
+    private fun NewConstraintSystem.isContainedInInvariantOrContravariantPositions(
+        variableTypeConstructor: TypeConstructorMarker,
+        baseType: CangJieTypeMarker,
+        wasOutVariance: Boolean = true
+    ): Boolean {
+        if (baseType !is CangJieType) return false
+
+        val dependentTypeParameter = getTypeParameterByVariable(variableTypeConstructor) ?: return false
+        val declaredTypeParameters = baseType.constructor.parameters
+
+        if (declaredTypeParameters.size < baseType.arguments.size) return false
+
+        for ((argumentsIndex, argument) in baseType.arguments.withIndex()) {
+//            if ( argument.type.isMarkedOption) continue
+
+            val currentEffectiveVariance = false
+//                declaredTypeParameters[argumentsIndex].variance == Variance.OUT_VARIANCE || argument.projectionKind == Variance.OUT_VARIANCE
+            val effectiveVarianceFromTopLevel = wasOutVariance && currentEffectiveVariance
+
+            if ((argument.type.constructor == dependentTypeParameter || argument.type.constructor == variableTypeConstructor) && !effectiveVarianceFromTopLevel)
+                return true
+
+            if (isContainedInInvariantOrContravariantPositions(
+                    variableTypeConstructor,
+                    argument.type,
+                    effectiveVarianceFromTopLevel
+                )
+            )
+                return true
+        }
+
+        return false
+    }
+
+    private fun isContainedInInvariantOrContravariantPositionsAmongTypeParameters(
+        checkingType: TypeVariableFromCallableDescriptor,
+        typeParameters: List<TypeParameterDescriptor>
+    ) = typeParameters.any {
+        it.typeConstructor == checkingType.originalTypeParameter.typeConstructor
+    }
+
+    private fun NewConstraintSystem.getDependentTypeParameters(
+        variable: TypeConstructorMarker,
+        dependentTypeParametersSeen: List<Pair<TypeConstructorMarker, CangJieTypeMarker?>> = listOf()
+    ): List<Pair<TypeConstructorMarker, CangJieTypeMarker?>> {
+        val context = asConstraintSystemCompleterContext()
+        val dependentTypeParameters = getBuilder().currentStorage().notFixedTypeVariables.asSequence()
+            .flatMap { (typeConstructor, constraints) ->
+                val upperBounds = constraints.constraints.filter {
+                    it.position.from is DeclaredUpperBoundConstraintPositionImpl && it.kind == ConstraintKind.UPPER
+                }
+
+                upperBounds.mapNotNull { constraint ->
+                    if (constraint.type.typeConstructor(context) != variable) {
+                        val suitableUpperBound = upperBounds.find { upperBound ->
+                            with(context) { upperBound.type.contains { it.typeConstructor() == variable } }
+                        }?.type
+
+                        if (suitableUpperBound != null) typeConstructor to suitableUpperBound else null
+                    } else typeConstructor to null
+                }
+            }.filter { it !in dependentTypeParametersSeen && it.first != variable }.toList()
+
+        return dependentTypeParameters + dependentTypeParameters.flatMapTo(SmartList()) { (typeConstructor, _) ->
+            if (typeConstructor != variable) {
+                getDependentTypeParameters(typeConstructor, dependentTypeParameters + dependentTypeParametersSeen)
+            } else emptyList()
+        }
+    }
+
+    private fun NewConstraintSystem.isContainedInInvariantOrContravariantPositionsAmongUpperBound(
+        checkingType: TypeConstructorMarker,
+        dependentTypeParameters: List<Pair<TypeConstructorMarker, CangJieTypeMarker?>>
+    ): Boolean {
+        var currentTypeParameterConstructor = checkingType
+
+        return dependentTypeParameters.any { (typeConstructor, upperBound) ->
+            val isContainedOrNoUpperBound =
+                upperBound == null || isContainedInInvariantOrContravariantPositions(
+                    currentTypeParameterConstructor,
+                    upperBound
+                )
+            currentTypeParameterConstructor = typeConstructor
+            isContainedOrNoUpperBound
+        }
+    }
+
+    private fun NewConstraintSystem.getTypeParameterByVariable(typeConstructor: TypeConstructorMarker) =
+        (getBuilder().currentStorage().allTypeVariables[typeConstructor] as? TypeVariableFromCallableDescriptor)?.originalTypeParameter?.typeConstructor
+
+    private fun NewConstraintSystem.getDependingOnTypeParameter(variable: TypeConstructor) =
+        getBuilder().currentStorage().notFixedTypeVariables[variable]?.constraints?.mapNotNull {
+            if (it.position.from is DeclaredUpperBoundConstraintPositionImpl && it.kind == ConstraintKind.UPPER) {
+                it.type.typeConstructor(asConstraintSystemCompleterContext())
+            } else null
+        } ?: emptyList()
+
+    private fun NewConstraintSystem.isContainedInInvariantOrContravariantPositionsWithDependencies(
+        variable: TypeVariableFromCallableDescriptor,
+        declarationDescriptor: DeclarationDescriptor?
+    ): Boolean {
+        if (declarationDescriptor !is CallableDescriptor) return false
+
+        val returnType = declarationDescriptor.returnType ?: return false
+
+        if (!returnType.isComputed) return false
+
+        val typeVariableConstructor = variable.freshTypeConstructor
+        val dependentTypeParameters = getDependentTypeParameters(typeVariableConstructor)
+        val dependingOnTypeParameter = getDependingOnTypeParameter(typeVariableConstructor)
+
+        val isContainedInUpperBounds =
+            isContainedInInvariantOrContravariantPositionsAmongUpperBound(
+                typeVariableConstructor,
+                dependentTypeParameters
+            )
+        val isContainedAnyDependentTypeInReturnType = dependentTypeParameters.any { (typeParameter, _) ->
+            returnType.contains {
+                it.typeConstructor(asConstraintSystemCompleterContext()) == getTypeParameterByVariable(typeParameter) && !it.isMarkedOption
+            }
+        }
+
+        return isContainedInInvariantOrContravariantPositions(typeVariableConstructor, returnType)
+                || dependingOnTypeParameter.any { isContainedInInvariantOrContravariantPositions(it, returnType) }
+                || dependentTypeParameters.any { isContainedInInvariantOrContravariantPositions(it.first, returnType) }
+                || (isContainedAnyDependentTypeInReturnType && isContainedInUpperBounds)
+    }
+
+    private fun TypeVariableFromCallableDescriptor.recordInfoAboutTypeVariableUsagesAsInvariantOrContravariantParameter() {
+        freshTypeConstructor.isContainedInInvariantOrContravariantPositions = true
+    }
+
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        for (variable in resolvedCall.freshVariablesSubstitutor.freshVariables) {
+            val candidateDescriptor = resolvedCall.candidateDescriptor
+            if (candidateDescriptor is ClassConstructorDescriptor) {
+                val typeParameters = candidateDescriptor.containingDeclaration.declaredTypeParameters
+
+                if (isContainedInInvariantOrContravariantPositionsAmongTypeParameters(variable, typeParameters)) {
+                    variable.recordInfoAboutTypeVariableUsagesAsInvariantOrContravariantParameter()
+                }
+            } else if (getSystem().isContainedInInvariantOrContravariantPositionsWithDependencies(
+                    variable,
+                    this.candidateDescriptor
+                )
+            ) {
+                variable.recordInfoAboutTypeVariableUsagesAsInvariantOrContravariantParameter()
+            }
+        }
     }
 }
 
@@ -720,22 +891,25 @@ internal object NoArguments : ResolutionPart() {
 
 internal object MapArguments : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
-
-
-//        TODO 当没有使用()调用时，它是一个函数类型，不检查参数
-        if (/*cangjieCall.psiCangJieCall.psiCall.callElement !is CjCallExpression
-            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjBinaryExpression
-            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression*/
-            cangjieCall.psiCangJieCall.psiCall.callElement is CjNameReferenceExpression
-            && !DescriptorUtils.isEnumEntry(this.candidateDescriptor)
-        ) {
-            resolvedCall.argumentMappingByOriginal = emptyMap()
-            return
-        }
         val mapping = callComponents.argumentsToParametersMapper.mapArguments(cangjieCall, candidateDescriptor)
         mapping.diagnostics.forEach(this::addDiagnostic)
 
         resolvedCall.argumentMappingByOriginal = mapping.parameterToCallArgumentMap
+
+////        TODO 当没有使用()调用时，它是一个函数类型，不检查参数
+//        if (/*cangjieCall.psiCangJieCall.psiCall.callElement !is CjCallExpression
+//            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjBinaryExpression
+//            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression*/
+//            cangjieCall.psiCangJieCall.psiCall.callElement is CjNameReferenceExpression
+//            && !DescriptorUtils.isEnumEntry(this.candidateDescriptor)
+//        ) {
+//            resolvedCall.argumentMappingByOriginal = emptyMap()
+//            return
+//        }
+//        val mapping = callComponents.argumentsToParametersMapper.mapArguments(cangjieCall, candidateDescriptor)
+//        mapping.diagnostics.forEach(this::addDiagnostic)
+//
+//        resolvedCall.argumentMappingByOriginal = mapping.parameterToCallArgumentMap
     }
 }
 
@@ -1089,4 +1263,16 @@ internal object CheckIncompatibleTypeVariableUpperBounds : ResolutionPart() {
                 }
             }
         }
+}
+
+internal object CheckCallableReference : ResolutionPart() {
+    override fun ResolutionCandidate.process(workIndex: Int) {
+        if (this !is CallableReferenceResolutionCandidate) {
+            error("`CheckCallableReferences` resolution part is applicable only to callable reference calls")
+        }
+
+        val constraintSystem = getSystem().takeIf { !it.hasContradiction } ?: return
+
+        addConstraints(constraintSystem.getBuilder(), resolvedCall.freshVariablesSubstitutor, cangjieCall)
+    }
 }

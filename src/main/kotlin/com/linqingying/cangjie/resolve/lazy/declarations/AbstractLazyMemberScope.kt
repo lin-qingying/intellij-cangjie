@@ -358,7 +358,7 @@ protected constructor(
                 )
             )
         }
-       return result
+        return result
     }
 
     private fun getDeclaredFunctions(
@@ -371,14 +371,7 @@ protected constructor(
         }
 
         val result = linkedSetOf<SimpleFunctionDescriptor>()
-        val declarations = declarationProvider.getFunctionDeclarations(name).toMutableList().apply {
-//            搜索扩展
-//            if (this@AbstractLazyMemberScope is LazyClassMemberScope) {
-//                extendDeclarationProvider.forEach {
-//                    addAll(it.getFunctionDeclarations(name))
-//                }
-//            }
-        }
+        val declarations = declarationProvider.getFunctionDeclarations(name)
         for (functionDeclaration in declarations) {
             result.add(
                 c.functionDescriptorResolver.resolveFunctionDescriptor(
@@ -412,8 +405,15 @@ protected constructor(
 
         getNonDeclaredFunctions(name, result)
 
+
+
+
+
+
         return result.toList()
     }
+
+
 
     protected abstract fun getNonDeclaredMacros(name: Name, result: MutableSet<MacroDescriptor>)
 

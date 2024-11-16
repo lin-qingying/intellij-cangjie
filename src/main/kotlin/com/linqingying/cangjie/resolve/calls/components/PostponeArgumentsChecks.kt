@@ -11,7 +11,6 @@ import com.linqingying.cangjie.types.ErrorUtils
 import com.linqingying.cangjie.types.UnwrappedType
 import com.linqingying.cangjie.types.error.ErrorTypeKind
 import com.linqingying.cangjie.types.util.builtIns
-import com.intellij.testFramework.requireIs
 
 fun LambdaWithTypeVariableAsExpectedTypeAtom.transformToResolvedLambda(
     csBuilder: ConstraintSystemBuilder,
@@ -263,3 +262,17 @@ private fun preprocessCollectionLiteralArgument(
     // todo add some checks about expected type
     return ResolvedCollectionLiteralAtom(collectionLiteralArgument, expectedType)
 }
+/**
+ * 确保当前对象是特定类型，并返回该对象的类型
+ *
+ * 该函数使用reified类型参数，以允许在运行时检查对象是否为指定类型如果对象不是指定类型，
+ * 则抛出异常，否则返回该对象的指定类型版本
+ *
+ * @throws IllegalArgumentException 如果当前对象不是指定类型
+ * @return T 当前对象的指定类型版本
+ */
+internal inline fun <reified T : Any> Any.requireIs(): T {
+    require(this is T)
+    return this
+}
+

@@ -14,13 +14,7 @@ import com.linqingying.cangjie.resolve.calls.tower.ImplicitScopeTower
 import com.linqingying.cangjie.types.TypeSubstitutor
 import com.linqingying.cangjie.types.UnwrappedType
 
-/**
- * Suppose we have class A with staticM, memberM, memberExtM.
- * For A::staticM both receivers will be null
- * For A::memberM dispatchReceiver = UnboundReceiver, extensionReceiver = null
- * For a::memberExtM dispatchReceiver = ExplicitValueReceiver, extensionReceiver = ExplicitValueReceiver
- *
- */
+
 class CallableReferenceResolutionCandidate(
     val candidate: CallableDescriptor,
     val dispatchReceiver: CallableReceiver?,

@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.resolve
 
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.StandardNames
 import com.linqingying.cangjie.config.LanguageVersionSettings
@@ -18,16 +19,16 @@ import com.linqingying.cangjie.resolve.calls.CallResolver
 import com.linqingying.cangjie.resolve.calls.util.CallMaker
 import com.linqingying.cangjie.resolve.descriptorUtil.builtIns
 import com.linqingying.cangjie.storage.StorageManager
+import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.types.TypeConstructor
+import com.linqingying.cangjie.types.TypeRefinement
+import com.linqingying.cangjie.types.Variance
 import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
 import com.linqingying.cangjie.types.expressions.ExpressionTypingContext
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
-import com.intellij.psi.PsiElement
-import com.linqingying.cangjie.types.*
-import com.linqingying.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import com.linqingying.cangjie.types.util.replaceArgument
-import com.linqingying.cangjie.types.util.substitute
+import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 
 class CollectionLiteralResolver(
     val module: ModuleDescriptor,
@@ -111,52 +112,53 @@ class CollectionLiteralResolver(
         private val upperBounds: List<CangJieType> = ArrayList<CangJieType>(1).apply {
             add(containingDeclaration.builtIns.defaultBound)
         }
-    private val constructor = object : TypeConstructor {
-        override fun getSupertypes(): List<CangJieType> {
-            return emptyList()
-        }
+        private val constructor = object : TypeConstructor {
+            override fun getSupertypes(): List<CangJieType> {
+                return emptyList()
+            }
 
-        override fun equals(other: Any?): Boolean {
-            return this.hashCode() == other.hashCode()
-        }
-        override fun hashCode(): Int {
-            return -728150917
-        }
+            override fun equals(other: Any?): Boolean {
+                return this.hashCode() == other.hashCode()
+            }
 
-        override fun getBuiltIns(): CangJieBuiltIns {
-            return containingDeclaration.builtIns
-        }
+            override fun hashCode(): Int {
+                return -728150917
+            }
 
-        override fun isDenotable(): Boolean {
-            return false
-        }
+            override fun getBuiltIns(): CangJieBuiltIns {
+                return containingDeclaration.builtIns
+            }
 
-        override fun toString(): String {
-            return "arrayOf"
-        }
+            override fun isDenotable(): Boolean {
+                return false
+            }
 
-        override fun getDeclarationDescriptor(): ClassifierDescriptor? {
-            return null
-        }
+            override fun toString(): String {
+                return "arrayOf"
+            }
+
+            override fun getDeclarationDescriptor(): ClassifierDescriptor? {
+                return null
+            }
 
 //                override fun isSameClassifier(classifier: ClassifierDescriptor): Boolean {
 //                    return false
 //                }
 
-        @TypeRefinement
-        override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
-            return this
-        }
+            @TypeRefinement
+            override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
+                return this
+            }
 
-        override fun isFinal(): Boolean {
-            return true
-        }
+            override fun isFinal(): Boolean {
+                return true
+            }
 
-        override fun getParameters(): List<TypeParameterDescriptor> {
-            return emptyList()
-        }
+            override fun getParameters(): List<TypeParameterDescriptor> {
+                return emptyList()
+            }
 
-    }
+        }
 
         override fun reportSupertypeLoopError(type: CangJieType) {
 
@@ -209,7 +211,7 @@ class CollectionLiteralResolver(
         CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
     ) {
         init {
-            val t =            ArrayOfTypeParameterDescriptor.createWithDefaultBound(
+            val t = ArrayOfTypeParameterDescriptor.createWithDefaultBound(
                 this,
                 Annotations.EMPTY,
                 Variance.INVARIANT,

@@ -660,7 +660,33 @@ class QualifiedExpressionResolver(
 
     private fun resolveInIDEMode(path: List<QualifierPart>): Boolean =
         path.size > 1 && path.first().name.asString() == ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
+    fun resolveDescriptorForDoubleColonLHS(
+        expression: CjExpression,
+        scope: LexicalScope,
+        trace: BindingTrace,
+        isDebuggerContext: Boolean
+    ): TypeQualifierResolutionResult {
+        val ownerDescriptor = if (!isDebuggerContext) scope.ownerDescriptor else null
 
+        val qualifierPartList = expression.asQualifierPartList(doubleColonLHS = true)
+        if (qualifierPartList.isEmpty()) {
+            return TypeQualifierResolutionResult(qualifierPartList, null)
+        }
+
+        if (qualifierPartList.size == 1) {
+            val (name, simpleNameExpression) = qualifierPartList.single()
+            val descriptor = scope.findClassifierAndReportDeprecationIfNeeded(
+                name,
+                CangJieLookupLocation(simpleNameExpression),
+                simpleNameExpression,
+                trace
+            )
+            storeResult(trace, simpleNameExpression, descriptor, ownerDescriptor, position = QualifierPosition.TYPE, isQualifier = true)
+            return TypeQualifierResolutionResult(qualifierPartList, descriptor)
+        }
+
+        return resolveQualifierPartListForType(qualifierPartList, ownerDescriptor, scope, trace, isQualifier = true)
+    }
     private fun resolveToPackageOrClassPrefix(
         path: List<QualifierPart>,
         moduleDescriptor: ModuleDescriptor,

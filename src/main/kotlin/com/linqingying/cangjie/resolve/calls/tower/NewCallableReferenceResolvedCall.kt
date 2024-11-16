@@ -15,6 +15,7 @@ import com.linqingying.cangjie.resolve.calls.util.toResolutionStatus
 import com.linqingying.cangjie.resolve.scopes.receivers.ReceiverValue
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.TypeApproximator
+import com.linqingying.cangjie.types.TypeApproximatorConfiguration
 import com.linqingying.cangjie.types.UnwrappedType
 
 
@@ -114,18 +115,18 @@ class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
     }
 
     override fun setResultingSubstitutor(substitutor: NewTypeSubstitutor?) {
-//        substituteReceivers(substitutor)
-//
-//        @Suppress("UNCHECKED_CAST")
-//        resultingDescriptor = substitutedResultingDescriptor(substitutor) as D
-//
-//        freshSubstitutor?.let { freshSubstitutor ->
-//            typeArguments = freshSubstitutor.freshVariables.map {
-//                val substituted = (substitutor ?: FreshVariableNewTypeSubstitutor.Empty).safeSubstitute(it.defaultType)
-//                typeApproximator.approximateToSuperType(substituted, TypeApproximatorConfiguration.IntegerLiteralsTypesApproximation)
-//                    ?: substituted
-//            }
-//        }
+        substituteReceivers(substitutor)
+
+        @Suppress("UNCHECKED_CAST")
+        resultingDescriptor = substitutedResultingDescriptor(substitutor) as D
+
+        freshSubstitutor?.let { freshSubstitutor ->
+            typeArguments = freshSubstitutor.freshVariables.map {
+                val substituted = (substitutor ?: FreshVariableNewTypeSubstitutor.Empty).safeSubstitute(it.defaultType)
+                typeApproximator.approximateToSuperType(substituted, TypeApproximatorConfiguration.IntegerLiteralsTypesApproximation)
+                    ?: substituted
+            }
+        }
     }
 
     override fun updateDispatchReceiverType(newType: CangJieType) {

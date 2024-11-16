@@ -587,9 +587,9 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             result = visitBooleanOperationExpression(operationType, left, right, context)
         } else if (OperatorConventions.FLOW_OPERATION_NAMES.containsKey(operationType)) {
             val referencedName = OperatorConventions.FLOW_OPERATION_NAMES[operationType]
-            result = getTypeInfoForBinaryCall(referencedName!!, context, expression)
+//            result = getTypeInfoForBinaryCall(referencedName!!, context, expression)
 //            result = visitFlowOperationExpression(operationType, left, right, context)
-
+            result = components.flowOperatorResolver.resolveFlowOperator(referencedName!!,  expression, context)
         } else {
             context.trace.report(UNSUPPORTED.on(operationSign, "Unknown operation"))
             result = noTypeInfo(context)

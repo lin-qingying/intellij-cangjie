@@ -586,7 +586,7 @@ class ConstraintInjector(
                 if (isIncorporatingConstraintFromDeclaredUpperBound) position.copy(isFromDeclaredUpperBound = true) else position
 
             val newConstraint = Constraint(
-                if (position.from is ExpectedTypeConstraintPosition<*>) ConstraintKind.EQUALITY else kind,
+             /*   if (position.from is ExpectedTypeConstraintPosition<*>) ConstraintKind.EQUALITY else*/ kind,
                 targetType,
                 position,
                 derivedFrom = derivedFrom,

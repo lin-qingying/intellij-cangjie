@@ -8,16 +8,13 @@ import com.linqingying.cangjie.descriptors.FunctionDescriptor
 import com.linqingying.cangjie.descriptors.ModuleDescriptor
 import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.psi.CjCallableReferenceExpression
+import com.linqingying.cangjie.psi.CjCallableReference
 import com.linqingying.cangjie.psi.CjExpression
 import com.linqingying.cangjie.psi.CjPsiUtil
 import com.linqingying.cangjie.psi.CjReturnExpression
 import com.linqingying.cangjie.psi.psiUtil.getBinaryWithTypeParent
 import com.linqingying.cangjie.psi.psiUtil.lastBlockStatementOrThis
-import com.linqingying.cangjie.resolve.BindingContext
-import com.linqingying.cangjie.resolve.MissingSupertypesResolver
-import com.linqingying.cangjie.resolve.TemporaryBindingTrace
-import com.linqingying.cangjie.resolve.TypeResolver
+import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver
 import com.linqingying.cangjie.resolve.calls.CangJieCallResolver
 import com.linqingying.cangjie.resolve.calls.components.*
@@ -35,7 +32,6 @@ import com.linqingying.cangjie.resolve.calls.inference.model.TypeVariableTypeCon
 import com.linqingying.cangjie.resolve.calls.model.*
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
-import com.linqingying.cangjie.resolve.calls.tasks.TracingStrategyImpl
 import com.linqingying.cangjie.resolve.calls.util.CallMaker
 import com.linqingying.cangjie.resolve.constants.CompileTimeConstant
 import com.linqingying.cangjie.resolve.constants.IntegerValueTypeConstant
@@ -44,9 +40,9 @@ import com.linqingying.cangjie.resolve.deprecation.DeprecationResolver
 import com.linqingying.cangjie.resolve.descriptorUtil.builtIns
 import com.linqingying.cangjie.resolve.descriptorUtil.isFunctionForExpectTypeFromCastFeature
 import com.linqingying.cangjie.resolve.scopes.LexicalScope
+import com.linqingying.cangjie.resolve.scopes.receivers.QualifierReceiver
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
-
 import com.linqingying.cangjie.types.expressions.ExpressionTypingServices
 import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
@@ -73,7 +69,7 @@ class CangJieResolutionCallbacksImpl(
     private val postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
     private val cangjieConstraintSystemCompleter: CangJieConstraintSystemCompleter,
     private val callComponents: CangJieCallComponents,
-
+    private val doubleColonExpressionResolver: DoubleColonExpressionResolver,
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
     private val topLevelCallContext: BasicCallResolutionContext,
@@ -87,6 +83,7 @@ class CangJieResolutionCallbacksImpl(
         baseSystem: ConstraintStorage
     ): Collection<CallableReferenceResolutionCandidate> =
         cangjieCallResolver.resolveCallableReferenceArgument(argument, expectedType, baseSystem, this)
+
     class LambdaInfo(val expectedType: UnwrappedType, val contextDependency: ContextDependency) {
         val returnStatements = ArrayList<Pair<CjReturnExpression, LambdaContextInfo?>>()
         val lastExpressionInfo = LambdaContextInfo()
@@ -128,21 +125,33 @@ class CangJieResolutionCallbacksImpl(
 
             val deparenthesizedExpression = CjPsiUtil.deparenthesize(cjExpression) ?: cjExpression
 
-            return if (deparenthesizedExpression is CjCallableReferenceExpression) {
-                psiCallResolver.createCallableReferenceCangJieCallArgument(
-                    newContext, deparenthesizedExpression, DataFlowInfo.EMPTY,
-                    CallMaker.makeExternalValueArgument(deparenthesizedExpression),
-                    argumentName = null,
-                    outerCallContext,
-                    tracingStrategy = TracingStrategyImpl.create(deparenthesizedExpression.callableReference, newContext.call)
-                )
-            } else {
-                createSimplePSICallArgument(
-                    trace.bindingContext, outerCallContext.statementFilter, outerCallContext.scope.ownerDescriptor,
-                    CallMaker.makeExternalValueArgument(cjExpression), DataFlowInfo.EMPTY, typeInfo, languageVersionSettings,
-                    dataFlowValueFactory, outerCallContext.call
-                )
-            }
+            return createSimplePSICallArgument(
+                trace.bindingContext,
+                outerCallContext.statementFilter,
+                outerCallContext.scope.ownerDescriptor,
+                CallMaker.makeExternalValueArgument(cjExpression),
+                DataFlowInfo.EMPTY,
+                typeInfo,
+                languageVersionSettings,
+                dataFlowValueFactory,
+                outerCallContext.call
+            )
+//
+//            return if (deparenthesizedExpression is CjCallableReferenceExpression) {
+//                psiCallResolver.createCallableReferenceCangJieCallArgument(
+//                    newContext, deparenthesizedExpression, DataFlowInfo.EMPTY,
+//                    CallMaker.makeExternalValueArgument(deparenthesizedExpression),
+//                    argumentName = null,
+//                    outerCallContext,
+//                    tracingStrategy = TracingStrategyImpl.create(deparenthesizedExpression.callableReference, newContext.call)
+//                )
+//            } else {
+//                createSimplePSICallArgument(
+//                    trace.bindingContext, outerCallContext.statementFilter, outerCallContext.scope.ownerDescriptor,
+//                    CallMaker.makeExternalValueArgument(cjExpression), DataFlowInfo.EMPTY, typeInfo, languageVersionSettings,
+//                    dataFlowValueFactory, outerCallContext.call
+//                )
+//            }
         }
 
         val lambdaInfo = LambdaInfo(
@@ -174,16 +183,29 @@ class CangJieResolutionCallbacksImpl(
         )
 
         val approximatesExpectedType =
-            typeApproximator.approximateToSubType(expectedType, TypeApproximatorConfiguration.LocalDeclaration) ?: expectedType
+            typeApproximator.approximateToSubType(expectedType, TypeApproximatorConfiguration.LocalDeclaration)
+                ?: expectedType
 
         val builderInferenceSession =
             if (stubsForPostponedVariables.isNotEmpty()) {
                 BuilderInferenceSession(
-                    psiCallResolver, postponedArgumentsAnalyzer, cangjieConstraintSystemCompleter,
-                    callComponents, builtIns, topLevelCallContext, stubsForPostponedVariables, trace,
-                    cangjieToResolvedCallTransformer, expressionTypingServices, argumentTypeResolver,
-                  deprecationResolver, moduleDescriptor, typeApproximator,
-                    missingSupertypesResolver, lambdaArgument
+                    psiCallResolver,
+                    postponedArgumentsAnalyzer,
+                    cangjieConstraintSystemCompleter,
+                    callComponents,
+                    builtIns,
+                    topLevelCallContext,
+                    stubsForPostponedVariables,
+                    trace,
+                    cangjieToResolvedCallTransformer,
+                    expressionTypingServices,
+                    argumentTypeResolver,
+                    doubleColonExpressionResolver,
+                    deprecationResolver,
+                    moduleDescriptor,
+                    typeApproximator,
+                    missingSupertypesResolver,
+                    lambdaArgument
                 ).apply { lambdaArgument.builderInferenceSession = this }
             } else {
                 null
@@ -194,18 +216,26 @@ class CangJieResolutionCallbacksImpl(
         else
             null
 
-        (temporaryTrace ?: trace).record(BindingContext.NEW_INFERENCE_LAMBDA_INFO, psiCallArgument.cjFunction, lambdaInfo)
+        (temporaryTrace ?: trace).record(
+            BindingContext.NEW_INFERENCE_LAMBDA_INFO,
+            psiCallArgument.cjFunction,
+            lambdaInfo
+        )
 
         val actualContext = outerCallContext
             .replaceBindingTrace(temporaryTrace ?: trace)
             .replaceContextDependency(lambdaInfo.contextDependency)
             .replaceExpectedType(approximatesExpectedType)
             .replaceDataFlowInfo(psiCallArgument.dataFlowInfoBeforeThisArgument).let {
-          if (builderInferenceSession != null) it.replaceInferenceSession(builderInferenceSession) else  it
+                if (builderInferenceSession != null) it.replaceInferenceSession(builderInferenceSession) else it
             }
 
         val functionTypeInfo = expressionTypingServices.getTypeInfo(psiCallArgument.expression, actualContext)
-        (temporaryTrace ?: trace).record(BindingContext.NEW_INFERENCE_LAMBDA_INFO, psiCallArgument.cjFunction, LambdaInfo.STUB_EMPTY)
+        (temporaryTrace ?: trace).record(
+            BindingContext.NEW_INFERENCE_LAMBDA_INFO,
+            psiCallArgument.cjFunction,
+            LambdaInfo.STUB_EMPTY
+        )
 
         if (builderInferenceSession?.hasInapplicableCall() == true) {
             return ReturnArgumentsAnalysisResult(
@@ -223,7 +253,8 @@ class CangJieResolutionCallbacksImpl(
             if (returnedExpression != null) {
                 createCallArgument(
                     returnedExpression,
-                    contextInfo?.typeInfo ?: throw AssertionError("typeInfo should be non-null for return with expression"),
+                    contextInfo?.typeInfo
+                        ?: throw AssertionError("typeInfo should be non-null for return with expression"),
                     contextInfo.lexicalScope,
                     contextInfo.trace
                 )
@@ -240,7 +271,8 @@ class CangJieResolutionCallbacksImpl(
 
             val lastExpressionType = trace.getType(lastExpression)
             val contextInfo = lambdaInfo.lastExpressionInfo
-            val lastExpressionTypeInfo = CangJieTypeInfo(lastExpressionType, contextInfo.dataFlowInfoAfter ?: functionTypeInfo.dataFlowInfo)
+            val lastExpressionTypeInfo =
+                CangJieTypeInfo(lastExpressionType, contextInfo.dataFlowInfoAfter ?: functionTypeInfo.dataFlowInfo)
             createCallArgument(lastExpression, lastExpressionTypeInfo, contextInfo.lexicalScope, contextInfo.trace)
         }
 
@@ -260,6 +292,7 @@ class CangJieResolutionCallbacksImpl(
             builderInferenceSession,
         )
     }
+
     private fun getLastDeparentesizedExpression(psiCallArgument: PSICangJieCallArgument): CjExpression? {
         val lastExpression = if (psiCallArgument is LambdaCangJieCallArgumentImpl) {
             psiCallArgument.cjLambdaExpression.bodyExpression?.statements?.lastOrNull()
@@ -306,9 +339,11 @@ class CangJieResolutionCallbacksImpl(
         val argumentExpression = argument.psiExpression ?: return null
         return convertSignedConstantToUnsigned(argumentExpression)
     }
+
     private fun constantCanBeConvertedToUnsigned(constant: CompileTimeConstant<*>): Boolean {
         return !constant.isError && constant.parameters.isPure
     }
+
     private fun convertSignedConstantToUnsigned(expression: CjExpression): IntegerValueTypeConstant? {
         val constant = trace[BindingContext.COMPILE_TIME_VALUE, expression]
         if (constant !is IntegerValueTypeConstant || !constantCanBeConvertedToUnsigned(constant)) return null
@@ -345,10 +380,20 @@ class CangJieResolutionCallbacksImpl(
     }
 
     override fun getLhsResult(call: CangJieCall): LHSResult {
-        return LHSResult.Empty
-//        val callableReferenceExpression = call.extractCallableReferenceExpression()
-//            ?: throw IllegalStateException("Not a callable reference")
-//        val (_, lhsResult) = psiCallResolver.getLhsResult(topLevelCallContext, callableReferenceExpression)
-//        return lhsResult
+        return if (call.explicitReceiver?.receiver != null) {
+
+            return ((call.explicitReceiver?.receiver as? QualifierReceiver)?.classValueReceiver?.type as? UnwrappedType)?.let {
+                LHSResult.Type(
+                    call.explicitReceiver?.receiver as? QualifierReceiver, it
+                )
+            } ?: LHSResult.Error
+        } else {
+            val callableReferenceExpression = call.psiCangJieCall.psiCall.calleeExpression as? CjCallableReference
+                ?: throw IllegalStateException("Not a callable reference")
+            val lhsResult = psiCallResolver.getLhsResult(topLevelCallContext, callableReferenceExpression)
+            return lhsResult
+        }
+
+
     }
 }

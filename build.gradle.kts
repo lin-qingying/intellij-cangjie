@@ -266,6 +266,9 @@ allprojects {
 
     }
     dependencies {
+// https://mvnrepository.com/artifact/com.jetbrains.intellij.platform/test-framework-core
+//        implementation("com.jetbrains.intellij.platform:test-framework-core:242.23726.103")
+
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
         implementation("com.google.protobuf:protobuf-java:4.28.3")

@@ -161,6 +161,8 @@ public interface Errors {
     DiagnosticFactory3<CjExpression, CangJieType, String, String> SMARTCAST_IMPOSSIBLE = DiagnosticFactory3.create(ERROR);
     DiagnosticFactory1<PsiElement, Collection<? extends CallableDescriptor>> CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY =
             DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory0<CjExpression> CALLABLE_REFERENCE_LHS_NOT_A_CLASS = DiagnosticFactory0.create(ERROR);
+
     DiagnosticFactory1<CjElement, CallableDescriptor> COMPATIBILITY_WARNING = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory1<PsiElement, CangJieType> UNSAFE_CALL = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, CangJieType> UNSAFE_IMPLICIT_INVOKE_CALL = DiagnosticFactory1.create(ERROR);

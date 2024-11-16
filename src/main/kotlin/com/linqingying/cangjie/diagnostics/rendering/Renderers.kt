@@ -52,6 +52,10 @@ object Renderers {
     val INT = renderer<Int> {
         it.toString()
     }
+    @JvmField
+    val AMBIGUOUS_CALLABLE_REFERENCES = renderer { references: Collection<CallableDescriptor> ->
+        renderAmbiguousDescriptors(references)
+    }
 
     @JvmField
     val NAMED_ADN_PARAMETER = renderer { d: DeclarationDescriptor ->

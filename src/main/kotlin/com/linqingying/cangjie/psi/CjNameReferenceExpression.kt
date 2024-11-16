@@ -10,9 +10,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
+interface CjCallableReference:CjReferenceExpression{
+    val callableReference: CjNameReferenceExpression
+    val receiverExpression: CjExpression? get() = null
+}
 
-
-class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpressionStub>, CjSimpleNameExpression {
+class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpressionStub>, CjSimpleNameExpression,CjCallableReference {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieNameReferenceExpressionStub) : super(stub, CjStubElementTypes.REFERENCE_EXPRESSION)
@@ -61,4 +64,7 @@ class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpre
     companion object {
         private val NAME_REFERENCE_EXPRESSIONS = TokenSet.create(IDENTIFIER, THIS_KEYWORD, SUPER_KEYWORD)
     }
+
+    override val callableReference: CjNameReferenceExpression
+        get() = this
 }

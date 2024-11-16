@@ -178,7 +178,29 @@ class CallResolver(
             name
         )
     }
+    fun resolveBinaryCall(
+        context: ExpressionTypingContext,
+        call: Call ,
+        binaryExpression: CjBinaryExpression,
+        functionDescriptors: Collection<FunctionDescriptor>
+    ): OverloadResolutionResults<FunctionDescriptor> {
 
+        val callResolutionContext =
+            BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS)
+        val candidates = functionDescriptors.map { descriptor: FunctionDescriptor ->
+            OldResolutionCandidate.create(
+                call,
+                descriptor,
+                null,
+                ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+                null
+            )
+        }
+
+        return computeTasksFromCandidatesAndResolvedCall(
+            callResolutionContext, candidates, create(binaryExpression.operationReference, call)
+        )
+    }
     fun resolveBinaryCall(
         context: ExpressionTypingContext,
         receiver: ExpressionReceiver,
@@ -522,6 +544,12 @@ class CallResolver(
 //        }
         when (val calleeExpression = context.call.calleeExpression) {
             is CjSimpleNameExpression -> {
+                if(context.call is CallMaker.CallImpl){
+                    return computeTasksAndResolveCall(
+                        context, calleeExpression.getReferencedNameAsName(), calleeExpression,
+                        NewResolutionOldInference.ResolutionKind.CallableReference
+                    )
+                }
                 return computeTasksAndResolveCall(
                     context, calleeExpression.getReferencedNameAsName(), calleeExpression,
                     NewResolutionOldInference.ResolutionKind.Function

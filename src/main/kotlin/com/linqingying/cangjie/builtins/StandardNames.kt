@@ -519,9 +519,10 @@ val MAIN = Name.identifier("main")
 
 
         val set = mutableSetOf<FqName>()
-
-
         set.add(BUILT_INS_PACKAGE_FQ_NAME)
+
+
+
         set.add(STD_CORE_PACKAGE_FQ_NAME)
         set.add(STD_COLLECTION_PACKAGE_FQ_NAME)
 //        set.add(STD_CORE_PACKAGE_FQ_NAME)

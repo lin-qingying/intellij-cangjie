@@ -1,11 +1,6 @@
 package com.linqingying.cangjie.resolve.calls.model
 
 import com.linqingying.cangjie.resolve.calls.components.*
-import com.linqingying.cangjie.resolve.calls.components.ArgumentsToCandidateParameterDescriptor
-import com.linqingying.cangjie.resolve.calls.components.CheckArgumentsInParenthesis
-import com.linqingying.cangjie.resolve.calls.components.CreateFreshVariablesSubstitutor
-import com.linqingying.cangjie.resolve.calls.components.MapArguments
-import com.linqingying.cangjie.resolve.calls.components.NoArguments
 
 
 /**
@@ -36,6 +31,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 //        CheckContextReceiversResolutionPart,
         CheckIncompatibleTypeVariableUpperBounds
     ),
+
     /**
      * 函数调用类型，关联一系列解析部分，如检查扩展私有可见性、检查操作符调用部分等。
      * 这些解析部分是处理函数调用时需要执行的步骤。
@@ -56,22 +52,25 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
         CheckReceivers,
         CheckArgumentsInParenthesis,
         CheckExternalArgument,
-//        EagerResolveOfCallableReferences,
+        EagerResolveOfCallableReferences,
 //        CompatibilityOfPartiallyApplicableSamConversion,
         PostponedVariablesInitializerResolutionPart,
 //        CheckContextReceiversResolutionPart,
         CheckIncompatibleTypeVariableUpperBounds,
         CheckStaticCall,
     ),
+
     /**
      * 调用调用类型，继承自函数调用类型，但可能有额外的解析需求。
      */
     INVOKE(*FUNCTION.resolutionSequence.toTypedArray()),
+
     /**
      * 枚举调用类型，关联一系列特定的解析部分，如映射类型参数、映射参数等。
      * 这些解析部分是处理枚举调用时需要执行的步骤。
      */
-    ENUM(/**FUNCTION.resolutionSequence.toTypedArray(),CheckEnumCall */
+    ENUM(
+        /**FUNCTION.resolutionSequence.toTypedArray(),CheckEnumCall */
         CheckDesiredEnumType,
         MapTypeArguments,
         MapArguments,
@@ -89,24 +88,29 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 
 //        CheckArgumentsInParenthesis
     ),
+
     /**
      * 可调用引用调用类型，关联一系列解析部分，如检查可见性、检查接收者等。
      * 这些解析部分是处理可调用引用调用时需要执行的步骤。
      */
     CALLABLE_REFERENCE(
         CheckVisibility,
-        NoTypeArguments,
+        MapTypeArguments,
+
         NoArguments,
         CreateFreshVariablesSubstitutor,
-//        CollectionTypeVariableUsagesInfo,
+        CollectionTypeVariableUsagesInfo,
         CheckReceivers,
-//        CheckCallableReference,
-        CheckIncompatibleTypeVariableUpperBounds
+        CheckCallableReference,
+        CheckIncompatibleTypeVariableUpperBounds,
+        CheckStaticCall,
+
     ),
+
     /**
      * 不支持的调用类型，用于标识尚未支持或未定义解析步骤的调用类型。
      */
-    UNSUPPORTED();
+    UNSUPPORTED;
 
     /**
      * 解析序列属性，存储该调用类型关联的解析部分列表。

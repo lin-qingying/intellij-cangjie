@@ -232,6 +232,10 @@ public class DefaultErrorMessages {
             // "Calls are not allowed {0}"
             return CangJieDiagnosisBundle.rawMessage(NO_CALL_OPERATOR);
         }, NAMED_ADN_PARAMETER);
+        MAP.put(CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY, ()->{
+//            "Callable reference resolution ambiguity: {0}"
+            return CangJieDiagnosisBundle.rawMessage(CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY);
+        }, AMBIGUOUS_CALLABLE_REFERENCES);
 
 
         MAP.put(STATIC_CONTEXT_REFERENCE_ERROR, () -> {

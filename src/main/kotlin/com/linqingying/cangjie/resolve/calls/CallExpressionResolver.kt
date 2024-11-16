@@ -13,6 +13,7 @@ import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
 import com.linqingying.cangjie.resolve.*
+import com.linqingying.cangjie.resolve.BindingContext.IS_FUNC
 import com.linqingying.cangjie.resolve.calls.context.*
 import com.linqingying.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl
 import com.linqingying.cangjie.resolve.calls.model.ResolvedCall
@@ -238,14 +239,14 @@ class CallExpressionResolver(
     fun getSimpleNameExpressionTypeInfoByCaseEnum(
         nameExpression: CjSimpleNameExpression, receiver: Receiver?,
         callOperationNode: ASTNode?, context: ExpressionTypingContext, argument: List<ValueArgument>,
-        isReportError :Boolean  = true
+        isReportError: Boolean = true
     ) = getSimpleNameExpressionTypeInfoByCaseEnum(
         nameExpression,
         receiver,
         callOperationNode,
         context,
         context.dataFlowInfo,
-        argument,isReportError
+        argument, isReportError
     )
 
     fun getSimpleNameExpressionTypeInfoByEnum(
@@ -338,19 +339,19 @@ class CallExpressionResolver(
 
     ): Pair<Boolean, ResolvedCall<out CallableDescriptor>?> {
 
-       return runReadAction {
-           val results = callResolver.resolveEnumCall(
-               tcache,
-               BasicCallResolutionContext.create(
-                   context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
-               ),
-               kind
-           )
-             if (!results.isNothing)
-               Pair(true, OverloadResolutionResultsUtil.getResultingCall(results, context))
-           else
-               Pair(false, null)
-       }
+        return runReadAction {
+            val results = callResolver.resolveEnumCall(
+                tcache,
+                BasicCallResolutionContext.create(
+                    context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
+                ),
+                kind
+            )
+            if (!results.isNothing)
+                Pair(true, OverloadResolutionResultsUtil.getResultingCall(results, context))
+            else
+                Pair(false, null)
+        }
     }
 
     private fun getResolvedCallForFunction(
@@ -364,9 +365,14 @@ class CallExpressionResolver(
                 context, call, checkArguments, DataFlowInfoForArgumentsImpl(initialDataFlowInfoForArguments, call)
             )
         )
-        return if (!results.isNothing)
+
+        return if (!results.isNothing) {
+            if (call.callElement is CjCallableReference) {
+                context.trace.record(IS_FUNC, call.callElement as CjNameReferenceExpression, true)
+            }
+
             Pair(true, OverloadResolutionResultsUtil.getResultingCall(results, context))
-        else
+        } else
             Pair(false, null)
     }
 

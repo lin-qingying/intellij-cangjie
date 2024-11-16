@@ -417,20 +417,22 @@ fun CjCallExpression.singleLambdaArgumentExpression(): CjLambdaExpression? {
 }
 
 fun PsiElement.isCallableReference(): Boolean =
-    this is CjNameReferenceExpression && (parent as? CjCallableReferenceExpression)?.callableReference == this
+    this is CjNameReferenceExpression && (parent as? CjCallableReference)?.callableReference == this
 
-fun PsiElement.asCallableReferenceExpression(): CjCallableReferenceExpression? =
+fun PsiElement.asCallableReferenceExpression(): CjCallableReference? =
     when {
-        isCallableReference() -> parent as CjCallableReferenceExpression
-        this is CjCallableReferenceExpression -> this
+        isCallableReference() -> parent as CjCallableReference
+        this is CjCallableReference -> this
         else -> null
     }
 
-fun Call.extractCallableReferenceExpression(): CjCallableReferenceExpression? =
+fun Call.extractCallableReferenceExpression(): CjCallableReference? =
     callElement.asCallableReferenceExpression()
-
-fun CangJieCall.extractCallableReferenceExpression(): CjCallableReferenceExpression? =
+fun CangJieCall.extractCallableReferenceExpression(): CjCallableReference? =
     psiCangJieCall.psiCall.extractCallableReferenceExpression()
+
+//fun CangJieCall.extractCallableReferenceExpression(): CjCallableReferenceExpression? =
+//    psiCangJieCall.psiCall.extractCallableReferenceExpression()
 
 fun CjExpression.createLookupLocation(): CangJieLookupLocation? =
     if (!isFakeElement) CangJieLookupLocation(this) else null

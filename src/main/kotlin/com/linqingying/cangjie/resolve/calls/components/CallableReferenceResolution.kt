@@ -1,9 +1,6 @@
 package com.linqingying.cangjie.resolve.calls.components
 
-import com.linqingying.cangjie.builtins.getReceiverTypeFromFunctionType
-import com.linqingying.cangjie.builtins.getReturnTypeFromFunctionType
-import com.linqingying.cangjie.builtins.getValueParameterTypesFromFunctionType
-import com.linqingying.cangjie.builtins.isFunctionType
+import com.linqingying.cangjie.builtins.*
 import com.linqingying.cangjie.descriptors.ReceiverParameterDescriptor
 import com.linqingying.cangjie.descriptors.ValueParameterDescriptor
 import com.linqingying.cangjie.resolve.DescriptorUtils
@@ -14,12 +11,18 @@ import com.linqingying.cangjie.resolve.calls.inference.model.ArgumentConstraintP
 import com.linqingying.cangjie.resolve.calls.inference.model.CallableReferenceConstraintPositionImpl
 import com.linqingying.cangjie.resolve.calls.inference.model.ConstraintPosition
 import com.linqingying.cangjie.resolve.calls.model.*
+import com.linqingying.cangjie.resolve.calls.tower.PrioritizedCompositeScopeTowerProcessor
+import com.linqingying.cangjie.resolve.calls.tower.SamePriorityCompositeScopeTowerProcessor
+import com.linqingying.cangjie.resolve.calls.tower.ScopeTowerProcessor
 import com.linqingying.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import com.linqingying.cangjie.types.AbstractTypeChecker
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.ErrorUtils
 import com.linqingying.cangjie.types.UnwrappedType
 import com.linqingying.cangjie.types.checker.captureFromExpression
 import com.linqingying.cangjie.types.expressions.CoercionStrategy
+import com.linqingying.cangjie.types.model.TypeVariance
+import com.linqingying.cangjie.types.model.convertVariance
 import com.linqingying.cangjie.types.util.TypeUtils
 
 
@@ -29,6 +32,28 @@ sealed class CallableReceiver(val receiver: ReceiverValueWithSmartCastInfo) {
     class ScopeReceiver(receiver: ReceiverValueWithSmartCastInfo) : CallableReceiver(receiver)
     class ExplicitValueReceiver(receiver: ReceiverValueWithSmartCastInfo) : CallableReceiver(receiver)
 }
+private fun ConstraintSystemOperation.addLhsTypeConstraint(
+    lhsType: CangJieType,
+    expectedType: UnwrappedType,
+    position: ConstraintPosition
+) {
+        if (!ReflectionTypes.isNumberedTypeWithOneOrMoreNumber(expectedType)) return
+
+    val expectedTypeProjectionForLHS = expectedType.arguments.first()
+    val expectedTypeForLHS = expectedTypeProjectionForLHS.type
+    val expectedTypeVariance = expectedTypeProjectionForLHS.projectionKind.convertVariance()
+    val effectiveVariance = AbstractTypeChecker.effectiveVariance(
+        expectedType.constructor.parameters.first().variance.convertVariance(),
+        expectedTypeVariance
+    ) ?: expectedTypeVariance
+
+    when (effectiveVariance) {
+        TypeVariance.INV -> addEqualityConstraint(lhsType, expectedTypeForLHS, position)
+//        TypeVariance.IN -> addSubtypeConstraint(expectedTypeForLHS, lhsType, position)
+//        TypeVariance.OUT -> addSubtypeConstraint(lhsType, expectedTypeForLHS, position)
+    }
+}
+
 class CallableReferenceAdaptation(
     val argumentTypes: Array<CangJieType>,
     val coercionStrategy: CoercionStrategy,
@@ -46,26 +71,42 @@ fun CallableReferenceResolutionCandidate.addConstraints(
     val position = when (callableReference) {
         is CallableReferenceCangJieCallArgument -> ArgumentConstraintPositionImpl(callableReference)
         is CallableReferenceCangJieCall -> CallableReferenceConstraintPositionImpl(callableReference)
+
     }
 
-//    if (lhsResult is LHSResult.Type && expectedType != null && !TypeUtils.noExpectedType(expectedType)) {
-//        // NB: regular objects have lhsResult of `LHSResult.Object` type and won't be proceeded here
-//        val isStaticOrCompanionMember =
-//            DescriptorUtils.isStaticDeclaration(candidate) || candidate.containingDeclaration.isCompanionObject()
-//        if (!isStaticOrCompanionMember) {
-//            constraintSystem.addLhsTypeConstraint(lhsResult.unboundDetailedReceiver.stableType, expectedType, position)
-//        }
-//    }
+    if (lhsResult is LHSResult.Type && expectedType != null && !TypeUtils.noExpectedType(expectedType)) {
+        // NB: regular objects have lhsResult of `LHSResult.Object` type and won't be proceeded here
+        val isStaticOrCompanionMember =
+            DescriptorUtils.isStaticDeclaration(candidate)
+        if (!isStaticOrCompanionMember) {
+            constraintSystem.addLhsTypeConstraint(lhsResult.unboundDetailedReceiver.stableType, expectedType, position)
+        }
+    }
 
     if (!ErrorUtils.isError(candidate)) {
-        constraintSystem.addReceiverConstraint(substitutor, dispatchReceiver, candidate.dispatchReceiverParameter, position)
-        constraintSystem.addReceiverConstraint(substitutor, extensionReceiver, candidate.extensionReceiverParameter, position)
+        constraintSystem.addReceiverConstraint(
+            substitutor,
+            dispatchReceiver,
+            candidate.dispatchReceiverParameter,
+            position
+        )
+        constraintSystem.addReceiverConstraint(
+            substitutor,
+            extensionReceiver,
+            candidate.extensionReceiverParameter,
+            position
+        )
     }
 
     if (expectedType != null && !TypeUtils.noExpectedType(expectedType) && !constraintSystem.hasContradiction) {
-        constraintSystem.addSubtypeConstraint(substitutor.safeSubstitute(reflectionCandidateType), expectedType, position)
+        constraintSystem.addSubtypeConstraint(
+            substitutor.safeSubstitute(reflectionCandidateType),
+            expectedType,
+            position
+        )
     }
 }
+
 private fun ConstraintSystemOperation.addReceiverConstraint(
     toFreshSubstitutor: FreshVariableNewTypeSubstitutor,
     receiverArgument: CallableReceiver?,
@@ -83,13 +124,14 @@ private fun ConstraintSystemOperation.addReceiverConstraint(
 
     addSubtypeConstraint(receiverType, expectedType, position)
 }
+
 data class InputOutputTypes(val inputTypes: List<UnwrappedType>, val outputType: UnwrappedType)
 
 fun extractInputOutputTypesFromCallableReferenceExpectedType(expectedType: UnwrappedType?): InputOutputTypes? {
     if (expectedType == null) return null
 
     return when {
-        expectedType.isFunctionType  ->
+        expectedType.isFunctionType ->
             extractInputOutputTypesFromFunctionType(expectedType)
 
 //        ReflectionTypes.isBaseTypeForNumberedReferenceTypes(expectedType) ->
@@ -122,4 +164,32 @@ private fun extractInputOutputTypesFromFunctionType(functionType: UnwrappedType)
     val outputType = functionType.getReturnTypeFromFunctionType().unwrap()
 
     return InputOutputTypes(inputTypes, outputType)
+}
+
+
+fun createCallableReferenceProcessor(factory: CallableReferencesCandidateFactory): ScopeTowerProcessor<CallableReferenceResolutionCandidate> {
+    when (val lhsResult = factory.cangjieCall.lhsResult) {
+        LHSResult.Empty, LHSResult.Error, is LHSResult.Expression -> {
+            val explicitReceiver = (lhsResult as? LHSResult.Expression)?.lshCallArgument?.receiver
+            return factory.createCallableProcessor(explicitReceiver)
+        }
+        is LHSResult.Type -> {
+            val static = lhsResult.qualifier?.let(factory::createCallableProcessor)
+            val unbound = factory.createCallableProcessor(lhsResult.unboundDetailedReceiver)
+
+            // note that if we use PrioritizedCompositeScopeTowerProcessor then static will win over unbound members
+            val staticOrUnbound =
+                if (static != null)
+                    SamePriorityCompositeScopeTowerProcessor(static, unbound)
+                else
+                    unbound
+
+            val asValue = lhsResult.qualifier?.classValueReceiverWithSmartCastInfo ?: return staticOrUnbound
+            return PrioritizedCompositeScopeTowerProcessor(staticOrUnbound, factory.createCallableProcessor(asValue))
+        }
+
+
+    }
+//    return factory.createCallableProcessor(factory.cangjieCall.call.explicitReceiver?.receiver)
+
 }

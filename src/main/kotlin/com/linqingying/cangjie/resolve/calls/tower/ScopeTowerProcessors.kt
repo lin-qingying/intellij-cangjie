@@ -3,12 +3,10 @@ package com.linqingying.cangjie.resolve.calls.tower
 import com.linqingying.cangjie.descriptors.ClassKind
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.name.Name
-import com.linqingying.cangjie.psi.CjCallExpression
 import com.linqingying.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import com.linqingying.cangjie.resolve.calls.model.CangJieCall
 import com.linqingying.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.linqingying.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
-
 import com.linqingying.cangjie.resolve.scopes.receivers.DetailedReceiver
 import com.linqingying.cangjie.resolve.scopes.receivers.QualifierReceiver
 import com.linqingying.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -191,9 +189,23 @@ private fun <C : Candidate> createSimpleProcessor(
     return withoutClassValueProcessor
 }
 
+fun <C : Candidate> createCallableReferenceProcessor(
+    scopeTower: ImplicitScopeTower,
+    name: Name, context: CandidateFactory<C>,
+    explicitReceiver: DetailedReceiver?
+): SimpleScopeTowerProcessor<C> {
+//    return createSimpleFunctionProcessor(scopeTower, name, context, explicitReceiver)
+//    val variable = createSimpleProcessorWithoutClassValueReceiver(scopeTower, context, explicitReceiver) { getVariables(name, it) }
+    val function =
+        createSimpleProcessorWithoutClassValueReceiver(scopeTower, context, explicitReceiver) { getFunctions(name, it) }
+    return SamePriorityCompositeScopeTowerProcessor(/*variable,*/ function)
+}
+
 fun <C : Candidate> createSimpleFunctionProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
-    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
+    context: CandidateFactory<C>,
+    explicitReceiver: DetailedReceiver?,
+    classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getFunctions(name, it) }
 
 fun <C : Candidate> createProcessorWithReceiverValueOrEmpty(
@@ -367,7 +379,7 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
 }
 
 class EnumAndEntryTowerProcessor<out C : Candidate>(
-   val cangjieCall: CangJieCall,
+    val cangjieCall: CangJieCall,
 
     private val enumProcessor: ScopeTowerProcessor<C>,
     private val entryProcessor: ScopeTowerProcessor<C>,
@@ -394,7 +406,6 @@ class EnumAndEntryTowerProcessor<out C : Candidate>(
 //
 //
 //        }
-
 
 
         return result
@@ -425,4 +436,16 @@ interface SimpleScopeTowerProcessor<out C> : ScopeTowerProcessor<C> {
 
     override fun process(data: TowerData): List<Collection<C>> =
         listOfNotNull(simpleProcess(data).takeIf { it.isNotEmpty() })
+}
+
+
+// use this if all processors has same priority
+class SamePriorityCompositeScopeTowerProcessor<out C>(
+    private vararg val processors: SimpleScopeTowerProcessor<C>
+) : SimpleScopeTowerProcessor<C> {
+    override fun simpleProcess(data: TowerData): Collection<C> = processors.flatMap { it.simpleProcess(data) }
+    override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
+        processors.forEach { it.recordLookups(skippedData, name) }
+    }
+
 }

@@ -7,10 +7,11 @@ import com.linqingying.cangjie.utils.exceptions.logErrorWithAttachment
 import com.linqingying.cangjie.utils.exceptions.withPsiEntry
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.diagnostic.Logger
+import com.linqingying.cangjie.psi.psiUtil.referenceExpression
 
 
 class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjDotQualifiedExpression>>,
-    CjQualifiedExpression {
+    CjQualifiedExpression,CjCallableReference {
 
 
     constructor(node: ASTNode) : super(node)
@@ -35,7 +36,7 @@ class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjD
                     return childExpressionsByStub[0]!!
                 }
             }
-            return super.receiverExpression
+            return super<CjQualifiedExpression>.receiverExpression
         }
 
     override val selectorExpression: CjExpression?
@@ -74,4 +75,7 @@ class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjD
     companion object {
         private val LOG = Logger.getInstance(CjDotQualifiedExpression::class.java)
     }
+
+    override val callableReference: CjNameReferenceExpression
+        get() = selectorExpression as CjNameReferenceExpression
 }

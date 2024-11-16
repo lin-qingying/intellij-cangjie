@@ -874,3 +874,4 @@ private fun compareDescriptorsText(project: Project, d1: DeclarationDescriptor, 
     val declarations2 = DescriptorToSourceUtilsIde.getAllDeclarations(project, d2)
     return declarations1 == declarations2 && declarations1.isNotEmpty()
 }
+fun CallableDescriptor.hasDynamicExtensionAnnotation(): Boolean = false
