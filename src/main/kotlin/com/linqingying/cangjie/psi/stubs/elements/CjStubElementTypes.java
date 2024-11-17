@@ -177,7 +177,7 @@ CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementT
 
 
 
-    CjAnnotationEntryElementType MACRO_EXPRESSION = new CjAnnotationEntryElementType("MACRO_EXPRESSION");
+    CjMacroExpressionElementType MACRO_EXPRESSION = new CjMacroExpressionElementType("MACRO_EXPRESSION");
 
 
     //    CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =

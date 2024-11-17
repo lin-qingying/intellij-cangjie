@@ -38,7 +38,6 @@ open class CangJieElementDescriptionProviderBase : ElementDescriptionProvider {
         }
 
         val internalSegments = generateSequence(this) { it.parentForFqName() }
-            .filterIsInstance<CjNamedDeclaration>()
             .map { it.name ?: "<no name provided>" }
             .toList()
             .asReversed()

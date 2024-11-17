@@ -1,15 +1,14 @@
 package com.linqingying.cangjie.psi.stubs
 
+import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.stubs.*
+import com.intellij.util.io.StringRef
 import com.linqingying.cangjie.descriptors.DescriptorVisibility
-import com.linqingying.cangjie.lexer.CjModifierKeywordToken
+import com.linqingying.cangjie.lexer.CjKeywordToken
 import com.linqingying.cangjie.name.ClassId
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.psi.*
-import com.intellij.psi.PsiNamedElement
-import com.intellij.psi.stubs.NamedStub
-import com.intellij.psi.stubs.PsiFileStub
-import com.intellij.psi.stubs.StubElement
-import com.linqingying.cangjie.lexer.CjKeywordToken
+import java.io.IOException
 
 enum class ConstantValueKind {
 
@@ -57,6 +56,11 @@ interface CangJieAnnotationEntryStub : StubElement<CjAnnotationEntry> {
     fun hasValueArguments(): Boolean
 }
 
+interface CangJieMacroExpressionStub : StubElement<CjMacroExpression> {
+    fun getShortName(): String?
+    fun hasValueArguments(): Boolean
+}
+
 interface CangJieModifierListStub : StubElement<CjDeclarationModifierList> {
     fun hasModifier(modifierToken: CjKeywordToken): Boolean
 }
@@ -68,9 +72,11 @@ interface CangJieContextReceiverStub : StubElement<CjContextReceiver> {
 interface CangJieValueArgumentStub<T : CjValueArgument> : CangJiePlaceHolderStub<T> {
     fun isSpread(): Boolean
 }
-interface CangJieBasicTypeStub : StubElement<CjBasicType>{
-    val basicType : String
+
+interface CangJieBasicTypeStub : StubElement<CjBasicType> {
+    val basicType: String
 }
+
 interface CangJieUserTypeStub : StubElement<CjUserType>
 interface CangJieTupleTypeStub : StubElement<CjTupleType>
 //interface CangJieBasicTypeStub : StubElement<CjBasicType>
@@ -89,6 +95,34 @@ interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
 
     fun hasInitializer(): Boolean
     fun hasReturnTypeRef(): Boolean
+
+    data class ChildInfo(
+        val name: StringRef?, val fqName: FqName?
+    ) {
+
+        fun serialize(dataStream: StubOutputStream) {
+            dataStream.writeName(name?.string)
+
+            dataStream.writeName(fqName?.asString())
+
+        }
+
+        companion object {
+            @Throws(IOException::class)
+            fun deserialize(dataStream: StubInputStream): ChildInfo {
+
+                val name = dataStream.readName()
+                val fqNameAsString = dataStream.readName()
+                val fqName = if (fqNameAsString != null) FqName(fqNameAsString.toString()) else null
+
+                return ChildInfo(name, fqName)
+
+            }
+        }
+    }
+
+    //    处于模式匹配的子模块
+    val childNamesByPattern: List<ChildInfo> get() = emptyList()
 }
 
 interface CangJiePropertyStub : CangJieCallableStubBase<CjProperty> {
@@ -116,10 +150,8 @@ interface CangJieNameReferenceExpressionStub : StubElement<CjNameReferenceExpres
     fun getReferencedName(): String
 }
 
-interface CangJieParameterStubBase<T : PsiNamedElement>  :  CangJieStubWithFqName<T>
-interface CangJieCatchParameterStub : CangJieParameterStubBase<CjCatchParameter> {
-
-}
+interface CangJieParameterStubBase<T : PsiNamedElement> : CangJieStubWithFqName<T>
+interface CangJieCatchParameterStub : CangJieParameterStubBase<CjCatchParameter>
 
 interface CangJieParameterStub : CangJieParameterStubBase<CjParameter> {
     fun isMutable(): Boolean
@@ -137,9 +169,10 @@ interface CangJieStructStub : CangJieTypeStatementStub<CjStruct>
 interface CangJieInterfaceStub : CangJieTypeStatementStub<CjInterface>
 
 interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
-interface CangJieEnumEntryStub : CangJieTypeStatementStub<CjEnumEntry>{
-    val fqNameByPackage:FqName?
+interface CangJieEnumEntryStub : CangJieTypeStatementStub<CjEnumEntry> {
+    val fqNameByPackage: FqName?
 }
+
 interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend> {
 
 //    fun getClassId(): ClassId?
@@ -172,10 +205,8 @@ interface CangJieImportAliasStub : StubElement<CjImportAlias> {
 //    fun mayHaveContract(): Boolean
 //}
 
-interface CangJieFunctionForExtendStub : CangJieFunctionStub  {
+interface CangJieFunctionForExtendStub : CangJieFunctionStub
 
-
-}
 interface CangJieFunctionStub : CangJieCallableStubBase<CjFunctionImpl> {
     fun hasBlockBody(): Boolean
     fun hasBody(): Boolean
@@ -213,4 +244,5 @@ interface CangJieTypeProjectionStub : StubElement<CjTypeProjection> {
 interface CangJiePlaceHolderWithTextStub<T : CjElement> : CangJiePlaceHolderStub<T> {
     fun text(): String
 }
+
 interface CangJieFunctionTypeStub : StubElement<CjFunctionType>

@@ -1,6 +1,9 @@
 package com.linqingying.cangjie.ide.stubindex;
 
 
+import com.intellij.psi.stubs.IndexSink;
+import com.intellij.psi.stubs.StubInputStream;
+import com.intellij.psi.stubs.StubOutputStream;
 import com.linqingying.cangjie.lexer.CjTokens;
 import com.linqingying.cangjie.name.FqName;
 import com.linqingying.cangjie.psi.CangJiePsiHeuristics;
@@ -11,9 +14,6 @@ import com.linqingying.cangjie.psi.stubs.*;
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.linqingying.cangjie.psi.stubs.elements.StubIndexService;
 import com.linqingying.cangjie.psi.stubs.impl.CangJieFileStubImpl;
-import com.intellij.psi.stubs.IndexSink;
-import com.intellij.psi.stubs.StubInputStream;
-import com.intellij.psi.stubs.StubOutputStream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,32 +64,28 @@ public class IdeStubIndexService extends StubIndexService {
             }
         }
     }
+/**
+ * 索引非私有的顶级符号或顶级对象及其伴生对象的成员。
+ *
+ * @param stub 包含完全限定名称的 CangJieStub 对象
+ * @param sink 用于记录索引的 IndexSink 对象
+ */
+private static void indexPrime(CangJieStubWithFqName<?> stub, IndexSink sink) {
+    String name = stub.getName();
+    if (name == null) return;
 
-    /**
-     * Indexes non-private top-level symbols or members of top-level objects and companion objects subject to this object serving as namespaces.
-     */
-    private static void indexPrime(CangJieStubWithFqName<?> stub, IndexSink sink) {
-        String name = stub.getName();
-        if (name == null) return;
+    CangJieModifierListStub modifierList = getModifierListStub(stub);
+    if (modifierList != null && modifierList.hasModifier(CjTokens.PRIVATE_KEYWORD)) return;
+    if (modifierList != null && modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)) return;
 
-        CangJieModifierListStub modifierList = getModifierListStub(stub);
-        if (modifierList != null && modifierList.hasModifier(CjTokens.PRIVATE_KEYWORD)) return;
-        if (modifierList != null && modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)) return;
+    var parent = stub.getParentStub();
+    boolean prime = parent instanceof CangJieFileStub;
 
-        var parent = stub.getParentStub();
-        boolean prime = parent instanceof CangJieFileStub;
-        //        else if (parent instanceof CangJieStructStub) {
-//            var grand = parent.getParentStub();
-//            bool primeGrand = grand instanceof CangJieClassStub && ((CangJieClassStub) grand).isTopLevel();
-//
-//            prime = ((CangJieStructStub) parent).isTopLevel() ||
-//                    primeGrand && ((CangJieStructStub) parent).isCompanion();
-//        }
-
-        if (prime) {
-            sink.occurrence(CangJiePrimeSymbolNameIndex.Helper.getIndexKey(), name);
-        }
+    if (prime) {
+        sink.occurrence(CangJiePrimeSymbolNameIndex.Helper.getIndexKey(), name);
     }
+}
+
 
     @Override
     public void indexVariable(@NotNull CangJieVariableStub stub, @NotNull IndexSink sink) {
@@ -97,9 +93,6 @@ public class IdeStubIndexService extends StubIndexService {
         if (name != null) {
             sink.occurrence(CangJieVariableShortNameIndex.Helper.getIndexKey(), name);
 
-//            if (IndexUtilsKt.isDeclaredInObject(stub)) {
-//                IndexUtilsKt.indexExtensionInObject(stub, sink);
-//            }
 
             CjTypeReference typeReference = stub.getPsi().getTypeReference();
             if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
@@ -107,13 +100,40 @@ public class IdeStubIndexService extends StubIndexService {
             }
             indexPrime(stub, sink);
         }
+        if (!stub.getChildNamesByPattern().isEmpty()) {
+            for (CangJieVariableStub.ChildInfo childInfo : stub.getChildNamesByPattern()) {
+                if (childInfo.getName() != null) {
+                    sink.occurrence(CangJieVariableShortNameIndex.Helper.getIndexKey(), childInfo.getName().getString());
+
+
+                    CjTypeReference typeReference = stub.getPsi().getTypeReference();
+                    if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
+                        sink.occurrence(CangJieVariableNothingVariableShortNameIndex.Helper.getIndexKey(), childInfo.getName().getString());
+                    }
+                }
+
+            }
+            indexPrime(stub, sink);
+
+        }
 
         if (stub.isTopLevel()) {
             FqName fqName = stub.getFqName();
-            // can have special fq name in case of syntactically incorrect property with no name
+
             if (fqName != null) {
                 sink.occurrence(CangJieTopLevelVariableFqnNameIndex.Helper.getIndexKey(), fqName.asString());
                 sink.occurrence(CangJieTopLevelVariableByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
+                IndexUtilsKt.indexTopLevelExtension(stub, sink);
+            }
+
+            if (!stub.getChildNamesByPattern().isEmpty()) {
+                for (CangJieVariableStub.ChildInfo childInfo : stub.getChildNamesByPattern()) {
+                    if ( childInfo.getFqName() != null) {
+                        sink.occurrence(CangJieTopLevelVariableFqnNameIndex.Helper.getIndexKey(), childInfo.getFqName().asString());
+                        sink.occurrence(CangJieTopLevelVariableByPackageIndex.Helper.getIndexKey(), childInfo.getFqName().parent().asString());
+                        IndexUtilsKt.indexTopLevelExtension(stub, sink);
+                    }
+                                }
                 IndexUtilsKt.indexTopLevelExtension(stub, sink);
             }
         }

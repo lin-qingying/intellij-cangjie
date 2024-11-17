@@ -344,7 +344,6 @@ public class BodyResolver {
         // Member   veraible
         Set<CjVariable> processed = new HashSet<>();
         for (Map.Entry<CjTypeStatement, ClassDescriptorWithResolutionScopes> entry : c.getDeclaredClasses().entrySet()) {
-//            if (!(entry.getKey() instanceof CjClass cjClass)) continue;
 
             ClassDescriptorWithResolutionScopes classDescriptor = entry.getValue();
 
@@ -365,6 +364,18 @@ public class BodyResolver {
             VariableDescriptor variableDescriptor = entry.getValue();
 
             resolveVariable(c, variable, variableDescriptor);
+        }
+
+        for (Map.Entry<CjVariable, List<VariableDescriptor>> entry : c.getVariablesByPattern().entrySet()) {
+            CjVariable variable = entry.getKey();
+            if (processed.contains(variable)) continue;
+
+            List<VariableDescriptor> variableDescriptors = entry.getValue();
+
+            variableDescriptors.forEach(
+                    variableDescriptor -> resolveVariable(c, variable, variableDescriptor)
+            );
+
         }
     }
 
@@ -838,7 +849,7 @@ public class BodyResolver {
             assert scope != null : "Scope is null: " + PsiUtilsKt.getElementTextWithContext(declaration);
 
             if (!c.getTopDownAnalysisMode().isLocalDeclarations() && !(bodyResolveCache instanceof BodyResolveCache.ThrowException) &&
-                    expressionTypingServices.getStatementFilter() != StatementFilter.NONE) {
+                    expressionTypingServices.statementFilter != StatementFilter.NONE) {
                 bodyResolveCache.resolveMainFunctionBody(declaration).addOwnDataTo(trace, true);
             } else {
                 resolveFunctionBody(c.getOuterDataFlowInfo(), trace, declaration, entry.getValue(), scope, c.getLocalContext());
@@ -885,13 +896,14 @@ public class BodyResolver {
             assert scope != null : "Scope is null: " + PsiUtilsKt.getElementTextWithContext(declaration);
 
             if (!c.getTopDownAnalysisMode().isLocalDeclarations() && !(bodyResolveCache instanceof BodyResolveCache.ThrowException) &&
-                    expressionTypingServices.getStatementFilter() != StatementFilter.NONE) {
+                    expressionTypingServices.statementFilter != StatementFilter.NONE) {
                 bodyResolveCache.resolveMacroBody(declaration).addOwnDataTo(trace, true);
             } else {
                 resolveFunctionBody(c.getOuterDataFlowInfo(), trace, declaration, entry.getValue(), scope, c.getLocalContext());
             }
         }
     }
+
     private void resolveFunctionBodies(BodiesResolveContext c) {
 
         for (Map.Entry<CjNamedFunction, SimpleFunctionDescriptor> entry : c.getFunctions().entrySet()) {
@@ -901,7 +913,7 @@ public class BodyResolver {
             assert scope != null : "Scope is null: " + PsiUtilsKt.getElementTextWithContext(declaration);
 
             if (!c.getTopDownAnalysisMode().isLocalDeclarations() && !(bodyResolveCache instanceof BodyResolveCache.ThrowException) &&
-                    expressionTypingServices.getStatementFilter() != StatementFilter.NONE) {
+                    expressionTypingServices.statementFilter != StatementFilter.NONE) {
                 bodyResolveCache.resolveFunctionBody(declaration).addOwnDataTo(trace, true);
             } else {
                 resolveFunctionBody(c.getOuterDataFlowInfo(), trace, declaration, entry.getValue(), scope, c.getLocalContext());

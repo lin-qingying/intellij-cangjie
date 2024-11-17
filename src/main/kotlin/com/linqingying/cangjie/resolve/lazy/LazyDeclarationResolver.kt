@@ -1,5 +1,6 @@
 package com.linqingying.cangjie.resolve.lazy
 
+import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.context.GlobalContext
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.incremental.CangJieLookupLocation
@@ -8,11 +9,11 @@ import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import com.linqingying.cangjie.psi.psiUtil.getElementTextWithContext
+import com.linqingying.cangjie.psi.stubs.elements.getAllBindings
 import com.linqingying.cangjie.resolve.BindingContext
 import com.linqingying.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.linqingying.cangjie.resolve.scopes.MemberScope
 import com.linqingying.cangjie.storage.LockBasedLazyResolveStorageManager
-import com.intellij.psi.util.PsiTreeUtil
 import jakarta.inject.Inject
 
 open class LazyDeclarationResolver(
@@ -26,10 +27,12 @@ open class LazyDeclarationResolver(
     private val bindingContext: BindingContext
         get() = trace.bindingContext
     protected lateinit var scopeProvider: DeclarationScopeProvider
+
     @Inject
     fun setDeclarationScopeProvider(scopeProvider: DeclarationScopeProviderImpl) {
         this.scopeProvider = scopeProvider
     }
+
     init {
         val lockBasedLazyResolveStorageManager = LockBasedLazyResolveStorageManager(globalContext.storageManager)
 
@@ -105,12 +108,26 @@ open class LazyDeclarationResolver(
     open fun getClassDescriptorIfAny(typeStatement: CjTypeStatement, location: LookupLocation): ClassDescriptor? =
         findClassDescriptorIfAny(typeStatement, location)
 
+    fun resolveToVariableByPattern(variable: CjVariable): List<VariableDescriptor> {
+        val location = lookupLocationFor(variable, variable.isTopLevel)
+        val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
+        val result = (variable.pattern?.getAllBindings() ?: listOf()).flatMap {
+            scopeForDeclaration.getContributedVariables(it.nameAsSafeName, location)
+
+        }
+
+
+        return result
+    }
+
+    fun lookupLocationFor(declaration: CjDeclaration, isTopLevel: Boolean, track: Boolean = true): LookupLocation =
+        if (isTopLevel && track) CangJieLookupLocation(declaration)
+        else NoLookupLocation.MATCH_RESOLVE_DECLARATION
 
     private fun resolveToDescriptor(declaration: CjDeclaration, track: Boolean): DeclarationDescriptor? {
         return declaration.accept(object : CjVisitor<DeclarationDescriptor?, Nothing?>() {
-            private fun lookupLocationFor(declaration: CjDeclaration, isTopLevel: Boolean): LookupLocation =
-                if (isTopLevel && track) CangJieLookupLocation(declaration)
-                else NoLookupLocation.MATCH_RESOLVE_DECLARATION
+            fun lookupLocationFor(declaration: CjDeclaration, isTopLevel: Boolean): LookupLocation =
+                lookupLocationFor(declaration, isTopLevel, track)
 
             override fun visitNamedFunction(function: CjNamedFunction, data: Nothing?): DeclarationDescriptor? {
                 val location = lookupLocationFor(function, function.isTopLevel)
@@ -120,7 +137,7 @@ open class LazyDeclarationResolver(
             }
 
             override fun visitMacroDeclaration(
-                macroDeclaration: CjMacroDeclaration ,
+                macroDeclaration: CjMacroDeclaration,
                 data: Nothing?
             ): DeclarationDescriptor? {
                 val location = lookupLocationFor(macroDeclaration, macroDeclaration.isTopLevel)
@@ -130,6 +147,7 @@ open class LazyDeclarationResolver(
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, macroDeclaration)
 
             }
+
             override fun visitTypeParameter(parameter: CjTypeParameter, data: Nothing?): DeclarationDescriptor? {
                 val ownerElement = PsiTreeUtil.getParentOfType(parameter, CjTypeParameterListOwner::class.java)
                     ?: error("Owner not found for type parameter: " + parameter.text)
@@ -144,6 +162,7 @@ open class LazyDeclarationResolver(
                 return typeParameters.firstOrNull { it.name == name }
                     ?: throw IllegalStateException("Type parameter $name not found for $ownerDescriptor")
             }
+
             override fun visitPatternByBinding(element: CjBindingPattern, data: Nothing?): DeclarationDescriptor? {
 
                 return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, element)
@@ -181,6 +200,7 @@ open class LazyDeclarationResolver(
                         return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
 
                     }
+
                     is CjMacroDeclaration -> {
 
                         val function = visitMacroDeclaration(grandFather, data) as? FunctionDescriptor
@@ -194,6 +214,7 @@ open class LazyDeclarationResolver(
                         function?.valueParameters
                         return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
                     }
+
                     is CjEndSecondaryConstructor -> {
                         val constructorDescriptor = visitEndSecondaryConstructor(
                             grandFather, data
@@ -201,6 +222,7 @@ open class LazyDeclarationResolver(
                         constructorDescriptor?.valueParameters
                         return bindingContext.get(BindingContext.VALUE_PARAMETER, parameter)
                     }
+
                     is CjSecondaryConstructor -> {
                         val constructorDescriptor = visitSecondaryConstructor(
                             grandFather, data
@@ -239,6 +261,7 @@ open class LazyDeclarationResolver(
                 )?.endConstructors
                 return bindingContext.get(BindingContext.END_CONSTRUCTOR, constructor)
             }
+
             override fun visitSecondaryConstructor(
                 constructor: CjSecondaryConstructor,
                 data: Nothing?
@@ -268,10 +291,11 @@ open class LazyDeclarationResolver(
                 return visitTypeStatement(cclass, data)
             }
 
-            override fun visitEnumEntry(cjEnumEntry: CjEnumEntry , data: Nothing?): DeclarationDescriptor? {
+            override fun visitEnumEntry(cjEnumEntry: CjEnumEntry, data: Nothing?): DeclarationDescriptor? {
                 return visitTypeStatement(cjEnumEntry, data)
 
             }
+
             override fun visitInterface(cinterface: CjInterface, data: Nothing?): DeclarationDescriptor? {
                 return visitTypeStatement(cinterface, data)
             }
@@ -294,6 +318,9 @@ open class LazyDeclarationResolver(
             }
 
             override fun visitVariable(variable: CjVariable, data: Nothing?): DeclarationDescriptor? {
+                if (variable.isPattern) {
+                    return resolveToVariableByPattern(variable).firstOrNull()
+                }
                 val location = lookupLocationFor(variable, variable.isTopLevel)
                 val scopeForDeclaration = getMemberScopeDeclaredIn(variable, location)
                 scopeForDeclaration.getContributedVariables(variable.nameAsSafeName, location)

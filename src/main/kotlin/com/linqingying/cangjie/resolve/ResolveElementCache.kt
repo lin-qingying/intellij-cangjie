@@ -837,6 +837,7 @@ class ResolveElementCache(
         override val declaredClasses: MutableMap<CjTypeStatement, ClassDescriptorWithResolutionScopes> = hashMapOf()
         override val properties: MutableMap<CjProperty, PropertyDescriptor> = hashMapOf()
         override val variables: MutableMap<CjVariable, VariableDescriptor> = hashMapOf()
+        override val variablesByPattern: MutableMap<CjVariable, List<VariableDescriptor>>  = hashMapOf()
         override val functions: MutableMap<CjNamedFunction, SimpleFunctionDescriptor> = hashMapOf()
         override val mainFunctions: MutableMap<CjMainFunction, SimpleFunctionDescriptor> = hashMapOf()
         override val typeAliases: MutableMap<CjTypeAlias, TypeAliasDescriptor> = hashMapOf()

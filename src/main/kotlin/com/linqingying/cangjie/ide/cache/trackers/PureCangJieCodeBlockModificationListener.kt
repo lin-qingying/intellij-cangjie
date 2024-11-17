@@ -1,7 +1,5 @@
 package com.linqingying.cangjie.ide.cache.trackers
 
-import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.psi.psiUtil.anyDescendantOfType
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -26,6 +24,8 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.findTopmostParentInFile
 import com.intellij.psi.util.findTopmostParentOfType
 import com.intellij.psi.util.isAncestor
+import com.linqingying.cangjie.psi.*
+import com.linqingying.cangjie.psi.psiUtil.anyDescendantOfType
 
 private val FILE_IN_BLOCK_MODIFICATION_COUNT = Key<Long>("FILE_IN_BLOCK_MODIFICATION_COUNT")
 
@@ -93,17 +93,26 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
             tracker.incModificationCount()
         }
 
+        /**
+         * 处理代码块内的修改。
+         * 该函数用于处理特定代码块内元素的修改，主要用于结构化文本环境中的解析和修改。
+         * 首先检查传入的元素是否有效，如果任何一个元素无效，则直接返回空列表。
+         *
+         * @param elements 要处理的 AST 节点数组
+         * @return 包含修改后的 CjElement 列表
+         */
         private fun inBlockModifications(elements: Array<ASTNode>): List<CjElement> {
             if (elements.any { !it.psi.isValid }) return emptyList()
 
-            // When a code fragment is reparsed, Intellij doesn't do an AST diff and considers the entire
-            // contents to be replaced, which is represented in a POM event as an empty list of changed elements
+            // 当代码片段重新解析时，IntelliJ 不会进行 AST 差异比较，而是认为整个内容都被替换，
+            // 这在 POM 事件中表示为一个空的更改元素列表。
 
             return elements.map { element ->
                 val modificationScope = getInsideCodeBlockModificationScope(element.psi) ?: return emptyList()
                 modificationScope.blockDeclaration
             }
         }
+
 
         private fun isSpecificChange(changeSet: TreeChangeEvent, precondition: (ASTNode?) -> Boolean): Boolean =
             changeSet.changedElements.all { changedElement ->
@@ -170,6 +179,22 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
 //                } ?: directParentClassOrObject
 
             when (blockDeclaration) {
+
+                is CjSecondaryConstructor -> {
+                    blockDeclaration.takeIf {
+                        it.bodyExpression?.isAncestor(element) ?: false || it.getDelegationCallOrNull()
+                            ?.isAncestor(element) ?: false
+                    }?.let { cjConstructor ->
+                        parentClassOrObject?.let {
+                            return if (parentClassOrObject == directParentClassOrObject) {
+                                BlockModificationScopeElement(it, cjConstructor)
+                            } else {
+                                BlockModificationScopeElement(parentClassOrObject, cjConstructor)
+                            }
+                        }
+                    }
+                }
+
                 is CjFunction -> {
                     //                    if (blockDeclaration.visibilityModifierType()?.toVisibility() == Visibilities.PRIVATE) {
                     //                        topClassLikeDeclaration(blockDeclaration)?.let {
@@ -187,18 +212,11 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
                                     BlockModificationScopeElement(parentClassOrObject, it)
                                 } else null
                             }
-                    } /*else if (blockDeclaration.hasDeclaredReturnType()) {
-                        // case like `fun foo(): String = b<caret>labla`
-                        return blockDeclaration.initializer
-                            ?.takeIf { it.isAncestor(element) }
-                            ?.let {
-                                if (parentClassOrObject == directParentClassOrObject) {
-                                    BlockModificationScopeElement(blockDeclaration, it)
-                                } else if (parentClassOrObject != null) {
-                                    BlockModificationScopeElement(parentClassOrObject, it)
-                                } else null
-                            }
-                    }*/
+                    }
+                }
+
+                is CjVariable -> {
+
                 }
 
                 is CjProperty -> {
@@ -255,20 +273,7 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
                         }
                 }
 
-                is CjSecondaryConstructor -> {
-                    blockDeclaration.takeIf {
-                        it.bodyExpression?.isAncestor(element) ?: false || it.getDelegationCallOrNull()
-                            ?.isAncestor(element) ?: false
-                    }?.let { cjConstructor ->
-                        parentClassOrObject?.let {
-                            return if (parentClassOrObject == directParentClassOrObject) {
-                                BlockModificationScopeElement(it, cjConstructor)
-                            } else {
-                                BlockModificationScopeElement(parentClassOrObject, cjConstructor)
-                            }
-                        }
-                    }
-                }
+
                 //                is CjClassOrObject -> {
                 //                    return when (element) {
                 //                        is CjProperty, is CjNamedFunction -> {

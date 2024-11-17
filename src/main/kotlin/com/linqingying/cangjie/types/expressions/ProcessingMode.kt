@@ -12,6 +12,7 @@ enum class ProcessingMode {
 data class ContextConfig(
     val processingMode: ProcessingMode = ProcessingMode.DEFAULT,
 
+
     ) {
     var addVariableDescriptor: MutableMap<PsiElement,MutableList< (context: Any) -> Unit>> = mutableMapOf()
     var getEnumEntryType = false

@@ -27,7 +27,6 @@ import com.linqingying.cangjie.resolve.scopes.LexicalWritableScope
 import com.linqingying.cangjie.resolve.source.toSourceElement
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.CommonSupertypes
-import com.linqingying.cangjie.types.ErrorUtils
 import com.linqingying.cangjie.types.checker.TrailingCommaChecker
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
@@ -38,7 +37,7 @@ import com.linqingying.cangjie.types.util.contains
 import com.linqingying.cangjie.utils.addIfNotNull
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 
-internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
+class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
 
     fun visitNamedFunction(
         function: CjNamedFunction,
@@ -313,7 +312,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         return result.filter {
             // No label => non-local return
             // Either a local return of inner lambda/function or a non-local return
-            it.getTargetLabel()?.let { trace.get(BindingContext.LABEL_TARGET, it) } == functionLiteral
+            it.getTargetLabel()?.let { simpleNameExpression -> trace[BindingContext.LABEL_TARGET, simpleNameExpression] } == functionLiteral
         }
     }
 
@@ -351,7 +350,7 @@ internal class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : Expre
         returnedExpressionTypes.addIfNotNull(typeOfBodyExpression)
 
         if (returnedExpressionTypes.isEmpty()) return null
-        if (returnedExpressionTypes.any { it.contains { it.constructor is TypeVariableTypeConstructor } }) return null
+        if (returnedExpressionTypes.any { cangJieType -> cangJieType.contains { it.constructor is TypeVariableTypeConstructor } }) return null
         return CommonSupertypes.commonSupertype(returnedExpressionTypes)
     }
 }

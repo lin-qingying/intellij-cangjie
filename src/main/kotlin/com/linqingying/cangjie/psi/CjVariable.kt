@@ -1,16 +1,16 @@
 package com.linqingying.cangjie.psi
 
-import com.linqingying.cangjie.CjNodeTypes
-import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.psi.stubs.CangJieVariableStub
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
+import com.linqingying.cangjie.CjNodeTypes
+import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.psi.stubs.CangJieVariableStub
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
-class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub >, CjVariableDeclaration {
+class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariableDeclaration {
     constructor(stub: CangJieVariableStub) : super(stub, CjStubElementTypes.VARIABLE)
     constructor(node: ASTNode) : super(node)
 
@@ -18,12 +18,13 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub >, CjVariabl
     override val valueParameterList: CjParameterList?
         //    @Override
         get() = null
-    val pattern :CjCasePattern? get() = findChildByClass(CjCasePattern::class.java)
+    val pattern: CjCasePattern? get() = findChildByClass(CjCasePattern::class.java)
 
     override fun toString(): String {
         return super.toString() + ": " + name
     }
 
+    val isPattern get() = pattern != null && name == null
     override val valueParameters: List<CjParameter>
         get() = emptyList()
 
@@ -123,7 +124,7 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub >, CjVariabl
             return node.findChildByType(CjTokens.VAR_KEYWORD) != null
         }
     override val isStatic: Boolean
-        get() =  hasModifier(CjTokens.STATIC_KEYWORD)
+        get() = hasModifier(CjTokens.STATIC_KEYWORD)
     override val letOrVarKeyword: PsiElement
         get() {
             val element =

@@ -119,16 +119,32 @@ protected constructor(
 
         val declarations = declarationProvider.getVariableDeclarations(name)
         for (variableDeclaration in declarations) {
-            val variableDescriptor = c.descriptorResolver.resolveVariableDescriptor(
-                thisDescriptor,
-                getScopeForMemberDeclarationResolution(variableDeclaration),
-                getScopeForInitializerResolution(variableDeclaration),
-                variableDeclaration,
-                trace,
-                c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
-                c.inferenceSession ?: InferenceSession.default
-            )
-            result.add(variableDescriptor)
+            if (variableDeclaration.isPattern) {
+                val variableDescriptor = c.descriptorResolver.resolveVariableDescriptorByPattern(
+                    name,
+                    thisDescriptor,
+                    getScopeForMemberDeclarationResolution(variableDeclaration),
+//                    getScopeForInitializerResolution(variableDeclaration),
+                    variableDeclaration,
+                    trace,
+                    c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
+                    c.inferenceSession ?: InferenceSession.default
+                )
+                result.addAll(variableDescriptor)
+            } else {
+                val variableDescriptor = c.descriptorResolver.resolveVariableDescriptor(
+
+                    thisDescriptor,
+                    getScopeForMemberDeclarationResolution(variableDeclaration),
+                    getScopeForInitializerResolution(variableDeclaration),
+                    variableDeclaration,
+                    trace,
+                    c.declarationScopeProvider.getOuterDataFlowInfoForDeclaration(variableDeclaration),
+                    c.inferenceSession ?: InferenceSession.default
+                )
+                result.add(variableDescriptor)
+            }
+
         }
         return result
 
@@ -412,7 +428,6 @@ protected constructor(
 
         return result.toList()
     }
-
 
 
     protected abstract fun getNonDeclaredMacros(name: Name, result: MutableSet<MacroDescriptor>)

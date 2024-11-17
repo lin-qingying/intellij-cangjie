@@ -1,15 +1,15 @@
 package com.linqingying.cangjie.psi.stubs.impl
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
+import com.intellij.util.io.StringRef
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.psi.CjVariable
 import com.linqingying.cangjie.psi.stubs.CangJieVariableStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.StubElement
-import com.intellij.util.io.StringRef
 
 
-class CangJieVariableStubImpl(
+class CangJieVariableStubImpl @JvmOverloads constructor(
     parent: StubElement<out PsiElement>?,
     private val name: StringRef?,
     private val isVar: Boolean,
@@ -19,9 +19,10 @@ class CangJieVariableStubImpl(
     private val isExtension: Boolean,
     private val hasReturnTypeRef: Boolean,
     private val fqName: FqName?,
+    override val childNamesByPattern: List<CangJieVariableStub.ChildInfo> = emptyList(),
 
-    val origin: CangJieStubOrigin?
-) : CangJieStubBaseImpl<CjVariable>(parent, CjStubElementTypes.VARIABLE), CangJieVariableStub {
+    val origin: CangJieStubOrigin?,
+    ) : CangJieStubBaseImpl<CjVariable>(parent, CjStubElementTypes.VARIABLE), CangJieVariableStub {
 
     init {
         if (isTopLevel && fqName == null) {

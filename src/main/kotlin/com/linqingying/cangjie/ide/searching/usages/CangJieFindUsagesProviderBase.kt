@@ -39,6 +39,7 @@ open class CangJieFindUsagesProviderBase : FindUsagesProvider {
 
     override fun getType(element: PsiElement): String {
         return when (element) {
+            is CjBindingPattern ->  CangJieBundle.message("find.usages.variable")
             is CjNamedFunction -> CangJieBundle.message("find.usages.function")
             is CjClass -> CangJieBundle.message("find.usages.class")
             is CjParameter -> CangJieBundle.message("find.usages.parameter")

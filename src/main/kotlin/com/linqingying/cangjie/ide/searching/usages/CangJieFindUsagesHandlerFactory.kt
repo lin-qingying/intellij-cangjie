@@ -1,25 +1,25 @@
 package com.linqingying.cangjie.ide.searching.usages
 
-import com.linqingying.cangjie.highlighter.unwrapped
-import com.linqingying.cangjie.ide.searching.usages.handlers.CangJieFindClassUsagesHandler
-import com.linqingying.cangjie.psi.*
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.find.findUsages.FindUsagesHandler.NULL_HANDLER
 import com.intellij.find.findUsages.FindUsagesHandlerFactory
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.linqingying.cangjie.psi.psiUtil.getQualifiedElementSelector
-import com.linqingying.cangjie.references.mainReference
+import com.linqingying.cangjie.highlighter.unwrapped
+import com.linqingying.cangjie.ide.searching.usages.handlers.CangJieFindClassUsagesHandler
 import com.linqingying.cangjie.ide.searching.usages.handlers.CangJieFindMemberUsagesHandler
 import com.linqingying.cangjie.ide.searching.usages.handlers.CangJieTypeParameterFindUsagesHandler
 import com.linqingying.cangjie.ide.searching.usages.handlers.DelegatingFindMemberUsagesHandler
+import com.linqingying.cangjie.psi.*
+import com.linqingying.cangjie.psi.psiUtil.getQualifiedElementSelector
+import com.linqingying.cangjie.references.mainReference
 
 class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFactory() {
 
     val findFunctionOptions: CangJieFunctionFindUsagesOptions = CangJieFunctionFindUsagesOptions(project)
 
-        val findPropertyOptions = CangJiePropertyFindUsagesOptions(project)
+    val findPropertyOptions = CangJiePropertyFindUsagesOptions(project)
     val findClassOptions = CangJieClassFindUsagesOptions(project)
     val defaultOptions = FindUsagesOptions(project)
 
@@ -87,7 +87,7 @@ class CangJieFindUsagesHandlerFactory(project: Project) : FindUsagesHandlerFacto
 
                 if (target is CjNamedDeclaration) {
                     CangJieFindMemberUsagesHandler.getInstance(target, factory = this)
-                }else{
+                } else {
                     null
                 }
             }

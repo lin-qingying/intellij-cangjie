@@ -1,45 +1,86 @@
-package com.linqingying.cangjie.types.expressions;
+package com.linqingying.cangjie.types.expressions
 
-import com.linqingying.cangjie.psi.CjExpression;
-import com.linqingying.cangjie.psi.ValueArgument;
-import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-public interface ExpressionTypingFacade {
-    @NotNull
-    CangJieTypeInfo safeGetTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context);
-
-    @NotNull
-    CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context);
+import com.linqingying.cangjie.descriptors.BindingTrace
+import com.linqingying.cangjie.descriptors.FunctionDescriptor
+import com.linqingying.cangjie.psi.CjDeclarationWithBody
+import com.linqingying.cangjie.psi.CjExpression
+import com.linqingying.cangjie.psi.ValueArgument
+import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
+import com.linqingying.cangjie.resolve.scopes.LexicalScope
+import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
+/**
+ * 表达式类型检查接口，提供多种类型信息获取方法
+ */
+interface ExpressionTypingFacade {
+    /**
+     * 安全获取表达式的类型信息，适用于任何情况
+     * @param expression 待检查的表达式
+     * @param context 表达式类型检查上下文，可能为空
+     * @return 表达式的类型信息
+     */
+    fun safeGetTypeInfo(expression: CjExpression, context: ExpressionTypingContext): CangJieTypeInfo
 
     /**
-     * 该方法只会解析枚举类型
-     * @param expression
-     * @param context
-     * @return
+     * 获取表达式的类型信息，不保证安全性，使用时需注意上下文
+     * @param expression 待检查的表达式
+     * @param context 表达式类型检查上下文，可能为空
+     * @return 表达式的类型信息
      */
-    @NotNull
-    CangJieTypeInfo getTypeInfoByEnum(@NotNull CjExpression expression, ExpressionTypingContext context);
+    fun getTypeInfo(expression: CjExpression, context: ExpressionTypingContext): CangJieTypeInfo
 
     /**
-     * 该方法只会解析case枚举类型
-     * @param expression
-     * @param context
-     * @param argument 枚举参数 ，用于多枚举情况
-     * @return
+     * 该方法只会解析枚举类型的表达式类型信息
+     * @param expression 待检查的表达式，应为枚举类型
+     * @param context 表达式类型检查上下文，可能为空
+     * @return 表达式的类型信息
      */
-    @NotNull
-    CangJieTypeInfo getTypeInfoByCaseEnum(@NotNull CjExpression expression, List<ValueArgument> argument , ExpressionTypingContext context,
-                                          boolean isReportError
-    );
-    @NotNull
-   default CangJieTypeInfo getTypeInfoByCaseEnum(@NotNull CjExpression expression, List<ValueArgument> argument , ExpressionTypingContext context
+    fun getTypeInfoByEnum(expression: CjExpression, context: ExpressionTypingContext): CangJieTypeInfo
 
-    ){
-        return getTypeInfoByCaseEnum(expression,argument,context,true);
+    /**
+     * 该方法只会解析case枚举类型的表达式类型信息
+     * @param expression 待检查的表达式，应为case枚举类型
+     * @param context 表达式类型检查上下文，可能为空
+     * @param argument 枚举参数，用于处理多枚举情况
+     * @param isReportError 是否报告错误，用于控制错误处理逻辑
+     * @return 表达式的类型信息
+     */
+
+    fun getTypeInfoByCaseEnum(
+        expression: CjExpression, argument: List<  ValueArgument>, context: ExpressionTypingContext,
+        isReportError: Boolean
+    ): CangJieTypeInfo
+
+    /**
+     * 重载方法，简化调用过程
+     * @param expression 待检查的表达式，应为case枚举类型
+     * @param argument 枚举参数，用于处理多枚举情况
+     * @param context 表达式类型检查上下文，可能为空
+     * @return 表达式的类型信息
+     */
+    fun getTypeInfoByCaseEnum(
+        expression: CjExpression, argument: List<ValueArgument>, context: ExpressionTypingContext
+
+    ): CangJieTypeInfo {
+        return getTypeInfoByCaseEnum(expression, argument, context, true)
     }
-    @NotNull
-    CangJieTypeInfo getTypeInfo(@NotNull CjExpression expression, ExpressionTypingContext context, boolean isStatement);
+
+    /**
+     * 获取表达式的类型信息，根据是否为声明语句调整类型检查逻辑
+     * @param expression 待检查的表达式
+     * @param context 表达式类型检查上下文，可能为空
+     * @param isStatement 表达式是否为声明语句
+     * @return 表达式的类型信息
+     */
+    fun getTypeInfo(expression: CjExpression, context: ExpressionTypingContext, isStatement: Boolean): CangJieTypeInfo
+    fun getTypeInfo(
+        scope: LexicalScope,
+        function: CjExpression,
+
+        dataFlowInfo: DataFlowInfo,
+        expectedReturnType: CangJieType?,
+        trace: BindingTrace,
+        localContext: ExpressionTypingContext?
+    ):CangJieTypeInfo
+
 }

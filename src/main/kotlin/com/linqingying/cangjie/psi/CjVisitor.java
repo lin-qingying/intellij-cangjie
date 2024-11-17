@@ -20,6 +20,9 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitSafeQualifiedExpression(@NotNull CjSafeQualifiedExpression expression, D data) {
         return visitQualifiedExpression(expression, data);
     }
+    public R visitMacroExpression(@NotNull CjMacroExpression expression, D data) {
+        return visitCjElement(expression, data);
+    }
 
     public R visitQuoteExpression(@NotNull CjQuoteExpression element, D data) {
         return visitExpression(element, data);

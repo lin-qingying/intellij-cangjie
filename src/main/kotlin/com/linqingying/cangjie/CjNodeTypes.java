@@ -1,23 +1,23 @@
 package com.linqingying.cangjie;
 
-import com.linqingying.cangjie.lang.CangJieLanguage;
-import com.linqingying.cangjie.psi.*;
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
+import com.linqingying.cangjie.lang.CangJieLanguage;
+import com.linqingying.cangjie.psi.*;
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes;
 
 public interface CjNodeTypes {
 
 
-//    IElementType NULL = CjStubElementTypes.NULL;
-IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
+    //    IElementType NULL = CjStubElementTypes.NULL;
+    IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
 
     IElementType TYPE_REFERENCE = CjStubElementTypes.TYPE_REFERENCE;
     IElementType VALUE_PARAMETER_LIST = CjStubElementTypes.VALUE_PARAMETER_LIST;
     IElementType VALUE_PARAMETER = CjStubElementTypes.VALUE_PARAMETER;
     IElementType CLASS = CjStubElementTypes.CLASS;
-    IElementType OPTIONAL_TYPE            = CjStubElementTypes.OPTIONAL_TYPE;
+    IElementType OPTIONAL_TYPE = CjStubElementTypes.OPTIONAL_TYPE;
 
 
     IElementType INVALID_DECLARATION = new IElementType("INVALID_DECLARATION", CangJieLanguage.INSTANCE);
@@ -85,14 +85,14 @@ IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
     IElementType CLASS_BODY = CjStubElementTypes.CLASS_BODY;
     IElementType INTERFACE_BODY = CjStubElementTypes.INTERFACE_BODY;
 
-    IElementType TUPLE_EXPRESSION =new CjNodeType("TUPLE_EXPRESSION", CjTupleExpression.class);
+    IElementType TUPLE_EXPRESSION = new CjNodeType("TUPLE_EXPRESSION", CjTupleExpression.class);
     IElementType QUOTE_INTERPOLATE = new CjNodeType("QUOTE_INTERPOLATE", CjQuoteInterpolate.class);
 
     IElementType FUNCTION_LITERAL = new CjNodeType("FUNCTION_LITERAL", CjFunctionLiteral.class);
     IElementType LABEL_QUALIFIER = new CjNodeType("LABEL_QUALIFIER", CjContainerNode.class);
     IElementType PACKAGE_DIRECTIVE = CjStubElementTypes.PACKAGE_DIRECTIVE;
 
-    IElementType SAFE_ACCESS_EXPRESSION    = new CjNodeType("SAFE_ACCESS_EXPRESSION", CjSafeQualifiedExpression.class);
+    IElementType SAFE_ACCESS_EXPRESSION = new CjNodeType("SAFE_ACCESS_EXPRESSION", CjSafeQualifiedExpression.class);
 
     IElementType SUPER_TYPE_ENTRY = CjStubElementTypes.SUPER_TYPE_ENTRY;
     IElementType MODIFIER_LIST = CjStubElementTypes.MODIFIER_LIST;
@@ -111,9 +111,9 @@ IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
 
     IElementType PARENTHESIZED_TYPE = CjStubElementTypes.PARENTHESIZED_TYPE;
     IElementType TUPLE_TYPE = CjStubElementTypes.TUPLE_TYPE;
-        IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
-        IElementType THIS_TYPE = CjStubElementTypes.THIS_TYPE;
-//    IElementType BASIC_TYPE = new CjNodeType("BASIC_TYPE", CjBasicType.class);
+    IElementType BASIC_TYPE = CjStubElementTypes.BASIC_TYPE;
+    IElementType THIS_TYPE = CjStubElementTypes.THIS_TYPE;
+    //    IElementType BASIC_TYPE = new CjNodeType("BASIC_TYPE", CjBasicType.class);
     IElementType TYPE_PARAMETER = CjStubElementTypes.TYPE_PARAMETER;
 
     IElementType ENUM = CjStubElementTypes.ENUM;
@@ -134,9 +134,13 @@ IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
 
     IElementType IMPORT_DIRECTIVE = CjStubElementTypes.IMPORT_DIRECTIVE;
 
-//    IElementType IMPORT_DIRECTIVE_ITEM = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
+    //    IElementType IMPORT_DIRECTIVE_ITEM = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
     IElementType ANNOTATION_ENTRY = CjStubElementTypes.ANNOTATION_ENTRY;
     IElementType MACRO_EXPRESSION = CjStubElementTypes.MACRO_EXPRESSION;
+    IElementType MACRO_INPUT = new CjNodeType("MACRO_INPUT", CjMacroInput.class);
+    IElementType MACRO_ATTR = new CjNodeType("MACRO_ATTR", CjMacroAttr.class);
+    IElementType QUOTE_TOKENS = new CjNodeType("QUOTE_TOKENS", CjQuoteTokens.class);
+    IElementType QUOTE_PARAMETERS = new CjNodeType("QUOTE_PARAMETERS", CjQuoteParameters.class);
 
     IElementType LONG_STRING_TEMPLATE_ENTRY = CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY;
     IElementType SHORT_STRING_TEMPLATE_ENTRY = CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY;
@@ -198,8 +202,8 @@ IElementType CATCH_PARAMETER = CjStubElementTypes.CATCH_PARAMETER;
 
 //    IElementType CASE_PATTERN = new CjNodeType("CASE_PATTERN", CjCasePattern.class);
 
-//    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
-IElementType WILDCARD_PATTERN = new CjNodeType("WILDCARD_PATTERN", CjWildcardPattern.class);
+    //    IElementType CHARACTER_CONSTANT = CjStubElementTypes.CHARACTER_CONSTANT;
+    IElementType WILDCARD_PATTERN = new CjNodeType("WILDCARD_PATTERN", CjWildcardPattern.class);
     IElementType TYPE_PATTERN = new CjNodeType("TYPE_PATTERN", CjTypePattern.class);
     IElementType ENUM_PATTERN = new CjNodeType("ENUM_PATTERN", CjEnumPattern.class);
     IElementType BINDING_PATTERN = new CjNodeType("BINDING_PATTERN", CjBindingPattern.class);
@@ -236,7 +240,6 @@ IElementType WILDCARD_PATTERN = new CjNodeType("WILDCARD_PATTERN", CjWildcardPat
             DOT_QUALIFIED_EXPRESSION,
 
             STRING_TEMPLATE,
-
 
 
             COLLECTION_LITERAL_EXPRESSION

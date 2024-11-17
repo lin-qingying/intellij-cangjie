@@ -13,6 +13,9 @@ class CangJieTopLevelVariableFqnNameIndex internal constructor() : StringStubInd
             StubIndexKey.createIndexKey("com.linqingying.cangjie.ide.stubindex.CangJieTopLevelVariableFqnNameIndex")
     }
 
+    override fun getVersion(): Int {
+        return 4
+    }
     override fun getKey(): StubIndexKey<String, CjVariable> = indexKey
 
     @Deprecated("Base method is deprecated", ReplaceWith("CangJieTopLevelVariableFqnNameIndex[key, project, scope]"))

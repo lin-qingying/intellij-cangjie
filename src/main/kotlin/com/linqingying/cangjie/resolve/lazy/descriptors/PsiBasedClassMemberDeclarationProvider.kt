@@ -5,6 +5,7 @@ import com.linqingying.cangjie.builtins.StandardNames.MAIN
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.safeNameForLazyResolve
+import com.linqingying.cangjie.psi.stubs.elements.getAllBindings
 import com.linqingying.cangjie.resolve.lazy.data.CjClassInfoUtil
 import com.linqingying.cangjie.resolve.lazy.data.CjClassLikeInfo
 import com.linqingying.cangjie.resolve.lazy.data.CjTypeStatementInfo
@@ -70,7 +71,15 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
                     properties.put(declaration.safeNameForLazyResolve(), declaration)
 
                 is CjVariable ->
-                    variables.put(declaration.safeNameForLazyResolve(), declaration)
+                    if (declaration.isPattern) {
+                        declaration.pattern.getAllBindings().forEach {
+                            variables.put(it.safeNameForLazyResolve(), declaration)
+
+                        }
+                    } else {
+                        variables.put(declaration.safeNameForLazyResolve(), declaration)
+
+                    }
 
 //
                 is CjTypeAlias ->

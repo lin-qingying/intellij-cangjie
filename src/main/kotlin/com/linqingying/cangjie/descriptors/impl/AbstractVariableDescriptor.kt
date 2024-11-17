@@ -10,7 +10,7 @@ import com.linqingying.cangjie.types.util.shouldBeUpdated
 import com.linqingying.cangjie.utils.ReadOnly
 
 
-abstract class AbstractVariableDescriptor(
+    abstract class AbstractVariableDescriptor(
     containingDeclaration: DeclarationDescriptor,
     annotations: Annotations,
     name: Name,

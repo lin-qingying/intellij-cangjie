@@ -18,8 +18,9 @@ import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.resolve.DescriptorResolver.getDefaultModality
-import com.linqingying.cangjie.resolve.DescriptorResolver.getDefaultVisibility
+import com.linqingying.cangjie.resolve.DescriptorResolver.Companion.getDefaultModality
+import com.linqingying.cangjie.resolve.DescriptorResolver.Companion.getDefaultVisibility
+
 import com.linqingying.cangjie.resolve.DescriptorUtils.getDispatchReceiverParameterIfNeeded
 import com.linqingying.cangjie.resolve.ModifiersChecker.Companion.resolveMemberModalityFromModifiers
 import com.linqingying.cangjie.resolve.ModifiersChecker.Companion.resolveVisibilityFromModifiers

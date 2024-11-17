@@ -7,7 +7,3 @@ import com.intellij.openapi.util.Computable
 import org.jetbrains.annotations.ApiStatus
 
 
-fun <T> Project.runReadActionInSmartMode(action: () -> T): T {
-    if (ApplicationManager.getApplication().isReadAccessAllowed) return action()
-    return DumbService.getInstance(this).runReadActionInSmartMode(Computable(action))
-}

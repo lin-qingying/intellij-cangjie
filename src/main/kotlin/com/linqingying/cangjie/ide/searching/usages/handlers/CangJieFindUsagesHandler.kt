@@ -1,9 +1,5 @@
 package com.linqingying.cangjie.ide.searching.usages.handlers
 
-import com.linqingying.cangjie.ide.runReadActionInSmartMode
-import com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory
-import com.linqingying.cangjie.ide.searching.usages.CangJieReferencePreservingUsageInfo
-import com.linqingying.cangjie.ide.searching.usages.CangJieReferenceUsageInfo
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
@@ -16,8 +12,10 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.CommonProcessors
 import com.intellij.util.Processor
+import com.linqingying.cangjie.ide.runReadActionInSmartMode
+import com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory
+import com.linqingying.cangjie.ide.searching.usages.CangJieReferenceUsageInfo
 import java.util.*
-
 
 
 abstract class CangJieFindUsagesHandler<T : PsiElement>(
@@ -65,7 +63,11 @@ abstract class CangJieFindUsagesHandler<T : PsiElement>(
         processor: Processor<in UsageInfo>,
         options: FindUsagesOptions
     ): Boolean {
-        return searchReferences(element, processor, options, forHighlight = false) && searchTextOccurrences(element, processor, options)
+        return searchReferences(element, processor, options, forHighlight = false) && searchTextOccurrences(
+            element,
+            processor,
+            options
+        )
     }
 
     private fun searchReferences(
@@ -75,7 +77,13 @@ abstract class CangJieFindUsagesHandler<T : PsiElement>(
         forHighlight: Boolean
     ): Boolean {
         val searcher = createSearcher(element, processor, options)
-        if (!runReadAction { project }.runReadActionInSmartMode { searcher.buildTaskList(forHighlight) }) return false
+        if (!runReadAction {
+                project
+            }.runReadActionInSmartMode {
+                searcher.buildTaskList(forHighlight)
+
+            }
+        ) return false
         return searcher.executeTasks()
     }
 

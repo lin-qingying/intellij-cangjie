@@ -207,7 +207,6 @@ class LazyTopDownAnalyzer(
                     qualifiedExpressionResolver.resolvePackageHeader(directive, moduleDescriptor, trace)
 
 
-
 //                    checkPackagelevel(directive)
                 }
 
@@ -403,10 +402,21 @@ class LazyTopDownAnalyzer(
         variables: MutableList<CjVariable>
     ) {
         for (variable in variables) {
-            val descriptor = lazyDeclarationResolver.resolveToDescriptor(variable) as VariableDescriptor
+            if (variable.pattern != null) {
+                val descriptor = lazyDeclarationResolver.resolveToVariableByPattern(variable )
 
-            c.variables[variable] = descriptor
-            registerTopLevelFqName(topLevelFqNames, variable, descriptor)
+                c.variablesByPattern[variable] = descriptor
+//                registerTopLevelFqName(topLevelFqNames, variable, descriptor)
+
+            } else {
+                val descriptor = lazyDeclarationResolver.resolveToDescriptor(variable) as VariableDescriptor
+
+                c.variables[variable] = descriptor
+                registerTopLevelFqName(topLevelFqNames, variable, descriptor)
+
+            }
+
+
         }
     }
 
@@ -436,7 +446,7 @@ class LazyTopDownAnalyzer(
     }
 
     private fun createMacroDescriptors(c: TopDownAnalysisContext, macros: List<CjMacroDeclaration>) {
-         for (macro in macros) {
+        for (macro in macros) {
             val macroDescriptor =
                 lazyDeclarationResolver.resolveToDescriptor(macro) as MacroDescriptor
             c.macros[macro] = macroDescriptor

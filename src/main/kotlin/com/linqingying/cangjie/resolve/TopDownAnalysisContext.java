@@ -11,10 +11,7 @@ import com.linqingying.cangjie.types.expressions.ExpressionTypingContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TopDownAnalysisContext implements BodiesResolveContext {
     private final Set<CjFile> files = new LinkedHashSet<>();
@@ -23,6 +20,7 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
 
     private final Map<CjNamedFunction, SimpleFunctionDescriptor> functions = Maps.newLinkedHashMap();
     private final Map<CjVariable, VariableDescriptor> variables = Maps.newLinkedHashMap();
+    private final Map<CjVariable, List<VariableDescriptor>> variablesByPattern = Maps.newLinkedHashMap();
 
     private final Map<CjProperty, PropertyDescriptor> properties = Maps.newLinkedHashMap();
     //    private final Map<CjParameter, PropertyDescriptor> primaryConstructorParameterProperties = new HashMap<>();
@@ -106,6 +104,11 @@ public class TopDownAnalysisContext implements BodiesResolveContext {
     @NotNull
     public Map<CjEndSecondaryConstructor, ClassConstructorDescriptor> getEndSecondaryConstructors() {
         return endSecondaryConstructors;
+    }
+
+    @Override
+    public @NotNull Map<CjVariable, List<VariableDescriptor>> getVariablesByPattern() {
+        return variablesByPattern;
     }
 
     @Override

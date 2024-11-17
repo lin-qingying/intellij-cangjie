@@ -17,19 +17,30 @@ fun indexTypeAliasExpansion(stub: CangJieTypeAliasStub, sink: IndexSink) {
     }
 }
 
+/**
+ * 索引内部成员的函数
+ * 此函数用于处理给定的stub对象，并根据条件向sink中添加索引信息
+ * 主要关注是否为顶层元素，以及是否具有开放或抽象修饰符
+ *
+ * @param stub 一个CangJieCallableStubBase的实例，代表一个可调用的stub对象
+ * @param sink 一个IndexSink实例，用于接收索引信息
+ */
 fun indexInternals(stub: CangJieCallableStubBase<*>, sink: IndexSink) {
+    // 获取stub的名称，如果名称为空，则直接返回
     val name = stub.name ?: return
 
+    // 获取stub的修饰符列表，如果不存在，则直接返回
     val modifierListStub = stub.modifierList ?: return
 
-
-
+    // 如果stub是顶层元素，则直接返回，因为不处理顶层元素
     if (stub.isTopLevel()) return
 
+    // 如果修饰符列表中包含开放或抽象修饰符，则向sink中添加相应的索引信息
     if (modifierListStub.hasModifier(CjTokens.OPEN_KEYWORD) || modifierListStub.hasModifier(CjTokens.ABSTRACT_KEYWORD)) {
         sink.occurrence(CangJieOverridableInternalMembersShortNameIndex.indexKey, name)
     }
 }
+
 
 private fun <TDeclaration : CjCallableDeclaration> CangJieExtensionsByReceiverTypeStubIndexHelper.indexExtension(
     stub: CangJieCallableStubBase<TDeclaration>,
@@ -45,12 +56,23 @@ private fun <TDeclaration : CjCallableDeclaration> CangJieExtensionsByReceiverTy
     }
 }
 
+/**
+ * 索引顶级扩展函数或属性
+ * 本函数专注于处理那些定义在模块顶层，用于扩展其他类型的函数或属性
+ * 它通过分析给定的声明存根，来构建与接收者类型相关的索引
+ *
+ * @param stub CangJieCallableStubBase的实例，代表了一个函数或属性的存根
+ *             这个存根包含了构建索引所需的信息，比如函数或属性的接收者类型
+ * @param sink IndexSink的实例，用于接收索引过程中的输出
+ *             它是一个索引数据的消费者，可以帮助建立或更新索引
+ */
 fun <TDeclaration : CjCallableDeclaration> indexTopLevelExtension(
     stub: CangJieCallableStubBase<TDeclaration>,
     sink: IndexSink
 ) {
     CangJieTopLevelExtensionsByReceiverTypeIndex.indexExtension(stub, sink)
 }
+
 
 private fun CjTypeElement.index(
     declaration: CjTypeParameterListOwner,

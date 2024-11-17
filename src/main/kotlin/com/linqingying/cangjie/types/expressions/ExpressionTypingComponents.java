@@ -18,6 +18,7 @@ import com.linqingying.cangjie.resolve.constants.evaluate.ConstantExpressionEval
 import com.linqingying.cangjie.resolve.deprecation.DeprecationResolver;
 import com.linqingying.cangjie.types.checker.NewCangJieTypeChecker;
 
+import com.linqingying.cangjie.types.expressions.match.PatternMatchingTypingVisitor;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +32,7 @@ public class ExpressionTypingComponents {
     public PlatformToCangJieClassMapper platformToCangJieClassMapper;
     public Iterable<CallChecker> callCheckers;
     public DestructuringDeclarationResolver destructuringDeclarationResolver;
+    public PatternMatchingTypingVisitor patternMatchingTypingVisitor;
 
     public RangeLiteralResolver rangeLiteralResolver;
     public SpawnExpressionResolver spawnExpressionResolver;
@@ -73,6 +75,10 @@ public class ExpressionTypingComponents {
         this.flowOperatorResolver = flowOperatorResolver;
     }
     @Inject
+    public void setPatternMatchingTypingVisitor(@NotNull PatternMatchingTypingVisitor patternMatchingTypingVisitor) {
+        this.patternMatchingTypingVisitor = patternMatchingTypingVisitor;
+    }
+    @Inject
     public void setPlatformToCangJieClassMap(@NotNull PlatformToCangJieClassMapper platformToCangJieClassMapper) {
         this.platformToCangJieClassMapper = platformToCangJieClassMapper;
     }
@@ -109,10 +115,7 @@ public class ExpressionTypingComponents {
         this.missingSupertypesResolver = missingSupertypesResolver;
     }
 
-    //    @Inject
-//    public void setDeclarationsCheckerBuilder(@NotNull DeclarationsCheckerBuilder declarationsCheckerBuilder) {
-//        this.declarationsCheckerBuilder = declarationsCheckerBuilder;
-//    }
+ 
     @Inject
     public void setForLoopConventionsChecker(@NotNull ForLoopConventionsChecker forLoopConventionsChecker) {
         this.forLoopConventionsChecker = forLoopConventionsChecker;
@@ -124,7 +127,7 @@ public class ExpressionTypingComponents {
     }
 
     @Inject
-    public void setTypeResolver(TypeResolver typeResolver) {
+    public void setTypeResolver(@NotNull TypeResolver typeResolver) {
         this.typeResolver = typeResolver;
     }
 
@@ -139,7 +142,7 @@ public class ExpressionTypingComponents {
     }
 
     @Inject
-    public void setDeprecationResolver(DeprecationResolver deprecationResolver) {
+    public void setDeprecationResolver(@NotNull DeprecationResolver deprecationResolver) {
         this.deprecationResolver = deprecationResolver;
     }
 
@@ -159,7 +162,7 @@ public class ExpressionTypingComponents {
     }
 
     @Inject
-    public void setCollectionLiteralResolver(CollectionLiteralResolver collectionLiteralResolver) {
+    public void setCollectionLiteralResolver(@NotNull CollectionLiteralResolver collectionLiteralResolver) {
         this.collectionLiteralResolver = collectionLiteralResolver;
     }
 

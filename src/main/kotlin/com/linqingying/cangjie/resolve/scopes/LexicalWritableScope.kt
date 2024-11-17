@@ -22,6 +22,12 @@ class LexicalWritableScope(
     private var canWrite: Boolean = true
     private var lastSnapshot: Snapshot? = null
 
+    /**
+     * 将当前对象置于冻结状态
+     *
+     * 冻结状态下，对象的canWrite属性被设置为false，表示不能再对该对象进行写操作
+     * 这个方法通常用于在某些情况下需要禁止对对象的修改，比如在多线程环境下防止并发修改
+     */
     fun freeze() {
         canWrite = false
     }

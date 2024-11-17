@@ -1,22 +1,5 @@
 package com.linqingying.cangjie.ide
 
-import com.linqingying.cangjie.lexer.CjToken
-import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.psi.CjFunctionLiteral
-import com.linqingying.cangjie.psi.CjPsiFactory
-import com.linqingying.cangjie.psi.psiUtil.*
-
-import com.linqingying.cangjie.renderer.*
-import com.linqingying.cangjie.types.CangJieType
-import com.linqingying.cangjie.types.checker.NewCapturedTypeConstructor
-import com.linqingying.cangjie.types.isDynamic
-import com.linqingying.cangjie.types.util.approximateFlexibleTypes
-import com.linqingying.cangjie.types.util.builtIns
-import com.linqingying.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespace
-import com.linqingying.cangjie.psi.psiUtil.getStartOffsetIn
-import com.linqingying.cangjie.psi.psiUtil.parentsWithSelf
-import com.linqingying.cangjie.psi.psiUtil.textRange
-import com.linqingying.cangjie.renderer.DescriptorRenderer.Companion.FQ_NAMES_IN_TYPES
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -25,15 +8,59 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.CodeStyleManager
+import com.linqingying.cangjie.lexer.CjToken
+import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.psi.CjFunctionLiteral
+import com.linqingying.cangjie.psi.CjPsiFactory
+import com.linqingying.cangjie.psi.psiUtil.*
+import com.linqingying.cangjie.renderer.*
+import com.linqingying.cangjie.renderer.DescriptorRenderer.Companion.FQ_NAMES_IN_TYPES
+import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.types.checker.NewCapturedTypeConstructor
+import com.linqingying.cangjie.types.isDynamic
+import com.linqingying.cangjie.types.util.approximateFlexibleTypes
+import com.linqingying.cangjie.types.util.builtIns
+import java.util.concurrent.CompletableFuture
 import kotlin.properties.Delegates
 
 val Project.isInDumbMode: Boolean
-      get() = DumbService.getInstance(this).isDumb
+    get() = DumbService.getInstance(this).isDumb
 
 
+/**
+ * 在智能模式下执行读操作
+ *
+ * 该函数确保在项目中执行的读操作符合智能模式的要求，以避免在读操作期间对项目文件进行修改
+ * 如果当前应用已经允许读访问，则直接执行提供的操作；否则，通过DumbService在智能模式下执行
+ *
+ * @param action 要执行的读操作，以lambda表达式形式提供
+ * @return 执行操作的结果，类型为泛型T
+ */
 fun <T> Project.runReadActionInSmartMode(action: () -> T): T {
+    // 检查当前应用是否已经允许读访问
     if (ApplicationManager.getApplication().isReadAccessAllowed) return action()
-    return DumbService.getInstance(this).runReadActionInSmartMode(Computable(action))
+
+    // 使用DumbService在智能模式下执行读操作
+
+
+    return DumbService.getInstance(this).runReadActionInSmartMode(
+        Computable(
+            action
+        )
+    )
+//    return DumbService.getInstance(this).runReadActionInSmartMode(Computable {
+//        action()
+//    })
+//    val future = CompletableFuture<T>()
+//    DumbService.getInstance(this).runWhenSmart {
+//        try {
+//            // 执行你想要的操作并获取返回值
+//            future.complete(action())
+//        } catch (e: Exception) {
+//            future.completeExceptionally(e)
+//        }
+//    }
+//    return future.get()
 }
 
 
@@ -62,6 +89,7 @@ object IdeDescriptorRenderers {
         annotationArgumentsRenderingPolicy = AnnotationArgumentsRenderingPolicy.UNLESS_EMPTY
         annotationFilter = { false }
     }
+
     private fun unwrapAnonymousType(type: CangJieType): CangJieType {
         if (type.isDynamic()) return type
         if (type.constructor is NewCapturedTypeConstructor) return type
@@ -75,18 +103,21 @@ object IdeDescriptorRenderers {
 
         return builtIns.anyType
     }
+
     @JvmField
     val SOURCE_CODE_SHORT_NAMES_NO_ANNOTATIONS: DescriptorRenderer = BASE.withOptions {
         classifierNamePolicy = ClassifierNamePolicy.SHORT
         typeNormalizer = { APPROXIMATE_FLEXIBLE_TYPES(unwrapAnonymousType(it)) }
         modifiers = modifiers - DescriptorRendererModifier.ANNOTATIONS
     }
+
     @JvmField
     val SOURCE_CODE: DescriptorRenderer = BASE.withOptions {
         classifierNamePolicy = ClassifierNamePolicy.SOURCE_CODE_QUALIFIED
         typeNormalizer = { APPROXIMATE_FLEXIBLE_TYPES(unwrapAnonymousType(it)) }
     }
 }
+
 class CommentSaver(originalElements: PsiChildRange, private val saveLineBreaks: Boolean = false/*TODO?*/) {
     constructor(originalElement: PsiElement, saveLineBreaks: Boolean = false/*TODO?*/) : this(
         PsiChildRange.singleElement(originalElement),
@@ -269,7 +300,8 @@ class CommentSaver(originalElements: PsiChildRange, private val saveLineBreaks: 
             override fun visitElement(element: PsiElement) {
                 if (element is PsiWhiteSpace) return
 
-                val token = original.findElementAt(element.getStartOffsetIn(createdElement) + rangeInOriginal.startOffset)
+                val token =
+                    original.findElementAt(element.getStartOffsetIn(createdElement) + rangeInOriginal.startOffset)
                 if (token != null) {
                     val elementLength = element.textLength
                     for (originalElement in token.parentsWithSelf) {
@@ -302,7 +334,12 @@ class CommentSaver(originalElements: PsiChildRange, private val saveLineBreaks: 
         isCommentInside: Boolean,
         forceAdjustIndent: Boolean
     ) {
-        restore(PsiChildRange.singleElement(resultElement), forceAdjustIndent, isCommentBeneathSingleLine, isCommentInside)
+        restore(
+            PsiChildRange.singleElement(resultElement),
+            forceAdjustIndent,
+            isCommentBeneathSingleLine,
+            isCommentInside
+        )
     }
 
     fun restore(resultElement: PsiElement, forceAdjustIndent: Boolean = false) {
@@ -507,7 +544,8 @@ class CommentSaver(originalElements: PsiChildRange, private val saveLineBreaks: 
         for (treeElement in sequence) {
             val newPsiElements = toNewPsiElementMap[treeElement]
             if (newPsiElements != null) {
-                val psiElement = newPsiElements.first().anchorToAddCommentOrSpace(!before) //TODO: should we restore multiple?
+                val psiElement =
+                    newPsiElements.first().anchorToAddCommentOrSpace(!before) //TODO: should we restore multiple?
                 return Anchor(psiElement, treeElementsBetween, before)
             }
             if (treeElement.firstChild == null) { // we put only leafs into treeElementsBetween
@@ -567,7 +605,8 @@ class CommentSaver(originalElements: PsiChildRange, private val saveLineBreaks: 
         return if (next?.tokenType == CjTokens.COMMA) next!! else putAfter
     }
 
-    private val nonSpaceAndNonEmptyFilter = { element: PsiElement -> element !is PsiWhiteSpace && element.textLength > 0 }
+    private val nonSpaceAndNonEmptyFilter =
+        { element: PsiElement -> element !is PsiWhiteSpace && element.textLength > 0 }
 
     companion object {
 

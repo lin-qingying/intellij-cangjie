@@ -9,6 +9,7 @@ import com.intellij.openapi.util.Pair
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
+import com.linqingying.cangjie.CjNodeTypes
 import com.linqingying.cangjie.CjNodeTypes.*
 import com.linqingying.cangjie.lexer.CjToken
 import com.linqingying.cangjie.lexer.CjTokens
@@ -1996,9 +1997,10 @@ open class CangJieExpressionParsing(
      * SimpleName
      * 简单名称表达式附带类型参数
      */
-    fun parseSimpleNameExpression() {
+    fun parseSimpleNameExpression(parseTypeArguments: Boolean = true) {
         val simpleName = mark()
         expect(IDENTIFIER, "Expecting an identifier")
+
 
 
         if (at(LT)) {
@@ -2014,6 +2016,7 @@ open class CangJieExpressionParsing(
         }
 
         simpleName.done(REFERENCE_EXPRESSION)
+
     }
 
     private fun parseAsCollectionLiteralExpression(
@@ -2140,154 +2143,6 @@ open class CangJieExpressionParsing(
     }
 
 
-    private val QUOTE_TOKENS = TokenSet.orSet(
-        TokenSet.create(
-            DOT,
-            COMMA,
-            LPAR,
-            RPAR,
-            LBRACKET,
-            RBRACKET,
-            LBRACE,
-            RBRACE,
-            MULMUL,
-            MUL,
-            PERC,
-            DIV,
-            PLUS,
-            MINUS,
-            PIPELINE,
-            COMPOSITION,
-            PLUSPLUS,
-            MINUSMINUS,
-            AND,
-            OR,
-            EXCL,
-            AND,
-            OR,
-            XOREQ,
-            LTLTEQ,
-            GTGTEQ,
-            COLON,
-            SEMICOLON,
-            EQ,
-            PLUSEQ,
-            MINUSEQ,
-            MULTEQ,
-            PLUS,
-            MINUSEQ,
-            PERCEQ,
-            ANDEQ,
-            OROREQ,
-            ANDEQ,
-            OREQ,
-            XOREQ,
-            LTLTEQ,
-            GTGTEQ,
-            ARROW,
-            LEFT_ARROW,
-            DOUBLE_ARROW,
-            ELLIPSIS,
-            RANGEEQ,
-            RANGE,
-            HASH,
-            AT,
-            QUEST,
-            LTCOLON,
-            LT,
-            GT,
-            LTEQ,
-            GTEQ,
-            EXCLEQ,
-            EQEQ,
-            UNDERLINE,
-            BACKSLASH,
-            QUOTESYMBOL,
-            DOLLAR,
-            INT8_KEYWORD,
-            INT16_KEYWORD,
-            INT32_KEYWORD,
-            INT64_KEYWORD,
-            INTNATIVE_KEYWORD,
-            UINT8_KEYWORD,
-            UINT16_KEYWORD,
-            UINT32_KEYWORD,
-            UINT64_KEYWORD,
-            UINTNATIVE_KEYWORD,
-            FLOAT16_KEYWORD,
-            FLOAT32_KEYWORD,
-            FLOAT64_KEYWORD,
-            RUNE_KEYWORD,
-            BOOL_KEYWORD,
-            UNIT_KEYWORD,
-            NOTHING_KEYWORD,
-            STRUCT_KEYWORD,
-            ENUM_KEYWORD,
-            THIS_KEYWORD,
-            PACKAGE_KEYWORD,
-            IMPORT_KEYWORD,
-            CLASS_KEYWORD,
-            INTERFACE_KEYWORD,
-            FUNC_KEYWORD,
-            LET_KEYWORD,
-            VAR_KEYWORD,
-            CONST_KEYWORD,
-
-            INIT_KEYWORD,
-
-            SUPER_KEYWORD,
-            IF_KEYWORD,
-            ELSE_KEYWORD,
-            CASE_KEYWORD,
-            TRY_KEYWORD,
-            CATCH_KEYWORD,
-            FINALLY_KEYWORD,
-            FOR_KEYWORD,
-            DO_KEYWORD,
-            WHILE_KEYWORD,
-            THROW_KEYWORD,
-            RETURN_KEYWORD,
-            CONTINUE_KEYWORD,
-            BREAK_KEYWORD,
-            AS_KEYWORD,
-            IN_KEYWORD,
-            MATCH_KEYWORD,
-
-            WHERE_KEYWORD,
-            EXTEND_KEYWORD,
-            SPAWN_KEYWORD,
-            SYNCHRONIZED_KEYWORD,
-            MACRO_KEYWORD,
-            QUOTE_KEYWORD,
-            TRUE_KEYWORD,
-            FALSE_KEYWORD,
-            STATIC_KEYWORD,
-            PUBLIC_KEYWORD,
-            PRIVATE_KEYWORD,
-            PROTECTED_KEYWORD,
-            OVERRIDE_KEYWORD,
-            ABSTRACT_KEYWORD,
-            OPEN_KEYWORD,
-            OPERATOR_KEYWORD,
-            FOREIGN_KEYWORD,
-            USER_TYPE,
-            IDENTIFIER,
-            FIELD_IDENTIFIER,
-            ESCAPE_LPAR,
-            ESCAPE_RPAR,
-            ESCAPE_DOLLAR,
-            ESCAPE_LBRACKET,
-            ESCAPE_RBRACKET,
-            CjTokens.INTEGER_LITERAL,
-            CjTokens.FLOAT_LITERAL,
-
-            CjTokens.RUNE_LITERAL,
-            CjTokens.LONG_TEMPLATE_ENTRY_START,
-
-        ), LITERAL_CONSTANT
-    )
-
-
     /**
      *     quoteExpr
      *     : LPAREN NL* quoteParameters NL* RPAREN
@@ -2346,7 +2201,7 @@ open class CangJieExpressionParsing(
      *     ;
      */
     private fun parseQuoteParameters() {
-
+val quoteParameters = mark()
 
 //        解析中出现的 ( 标记数量
         var lparCount = 0
@@ -2376,7 +2231,7 @@ open class CangJieExpressionParsing(
                 advance()
             }
         } while (atSet(QUOTE_TOKENS))
-
+        quoteParameters.done(QUOTE_PARAMETERS)
     }
 
 
@@ -2390,20 +2245,22 @@ open class CangJieExpressionParsing(
         val macroExpression = mark()
         advance()
 
+        val simpleName = mark()
         if (at(IDENTIFIER)) {
             advance()
+            simpleName.done(REFERENCE_EXPRESSION)
         } else {
+            simpleName.drop()
 
             macroExpression.drop()
 
         }
 
-
 //        带属性的宏
         if (at(LBRACKET)) {
             parseMacroAttrExpression()
         }
-
+val input = mark()
 //        宏的输入
         if (at(LPAR)) {
             parseMacroInputExprWithParens()
@@ -2422,16 +2279,18 @@ open class CangJieExpressionParsing(
             productions.subList(
                 productionsSize, productions.size
             ).any {
-             it.   tokenType == TokenType.ERROR_ELEMENT
+                it.tokenType == TokenType.ERROR_ELEMENT
             }
-            if (declType == null ||   productions.subList(
+            if (declType == null || productions.subList(
                     productionsSize, productions.size
                 ).any {
-                    it.   tokenType == TokenType.ERROR_ELEMENT
-                }) {
+                    it.tokenType == TokenType.ERROR_ELEMENT
+                }
+            ) {
 
 
                 decl.drop()
+                input.drop()
                 macroExpression.rollbackTo()
                 advance()
                 return
@@ -2440,6 +2299,7 @@ open class CangJieExpressionParsing(
 
             }
         }
+        input.done(MACRO_INPUT)
 
         macroExpression.done(MACRO_EXPRESSION)
 
@@ -2451,21 +2311,27 @@ open class CangJieExpressionParsing(
         val macroExpression = mark()
         advance()
 
+//        parseSimpleNameExpression(false)
+        val simpleName = mark()
         if (at(IDENTIFIER)) {
             advance()
+            simpleName.done(REFERENCE_EXPRESSION)
         } else {
+            simpleName.drop()
             error("expected identifier after '@'")
             macroExpression.drop()
+
             return null
         }
 
 
 //        带属性的宏
         if (at(LBRACKET)) {
+
             parseMacroAttrExpression()
         }
 
-
+        val input = mark()
 //        宏的输入
         if (at(LPAR)) {
             parseMacroInputExprWithParens()
@@ -2492,6 +2358,7 @@ open class CangJieExpressionParsing(
 
             }
         }
+        input.done(MACRO_INPUT)
         if (backToken) {
             macroExpression.drop()
             return MACRO_EXPRESSION
@@ -2598,7 +2465,7 @@ open class CangJieExpressionParsing(
         advance()
 
         var lparCount = 0
-
+        val tokens = mark()
         while (atSet(QUOTE_TOKENS)) {
 
             if (at(AT) && lookahead(1) == IDENTIFIER) {
@@ -2621,6 +2488,8 @@ open class CangJieExpressionParsing(
             }
 
         }
+        tokens.done(CjNodeTypes.QUOTE_TOKENS)
+
         expect(RPAR, "expected ')'")
 
     }
@@ -2634,9 +2503,10 @@ open class CangJieExpressionParsing(
      */
 
     private fun parseMacroAttrExpression() {
-
+        val attr = mark()
         if (at(LBRACKET)) {
             advance()
+            val tokens = mark()
             var lparCount = 0
             while (atSet(QUOTE_TOKENS)) {
                 if (at(LBRACKET)) {
@@ -2655,10 +2525,12 @@ open class CangJieExpressionParsing(
                 }
                 advance()
             }
+            tokens.done(CjNodeTypes.QUOTE_TOKENS)
             expect(RBRACKET, "expected ']'")
         } else {
             error("expected '['")
         }
+        attr.done(MACRO_ATTR)
 
     }
 
@@ -2915,6 +2787,152 @@ open class CangJieExpressionParsing(
 
         val ALLOW_NEWLINE_OPERATIONS = TokenSet.create(
             DOT, COLON, AS_KEYWORD, ANDAND, OROR, ELVIS, SAFE_ACCESS
+        )
+        val QUOTE_TOKENS = TokenSet.orSet(
+            TokenSet.create(
+                DOT,
+                COMMA,
+                LPAR,
+                RPAR,
+                LBRACKET,
+                RBRACKET,
+                LBRACE,
+                RBRACE,
+                MULMUL,
+                MUL,
+                PERC,
+                DIV,
+                PLUS,
+                MINUS,
+                PIPELINE,
+                COMPOSITION,
+                PLUSPLUS,
+                MINUSMINUS,
+                AND,
+                OR,
+                EXCL,
+                AND,
+                OR,
+                XOREQ,
+                LTLTEQ,
+                GTGTEQ,
+                COLON,
+                SEMICOLON,
+                EQ,
+                PLUSEQ,
+                MINUSEQ,
+                MULTEQ,
+                PLUS,
+                MINUSEQ,
+                PERCEQ,
+                ANDEQ,
+                OROREQ,
+                ANDEQ,
+                OREQ,
+                XOREQ,
+                LTLTEQ,
+                GTGTEQ,
+                ARROW,
+                LEFT_ARROW,
+                DOUBLE_ARROW,
+                ELLIPSIS,
+                RANGEEQ,
+                RANGE,
+                HASH,
+                AT,
+                QUEST,
+                LTCOLON,
+                LT,
+                GT,
+                LTEQ,
+                GTEQ,
+                EXCLEQ,
+                EQEQ,
+                UNDERLINE,
+                BACKSLASH,
+                QUOTESYMBOL,
+                DOLLAR,
+                INT8_KEYWORD,
+                INT16_KEYWORD,
+                INT32_KEYWORD,
+                INT64_KEYWORD,
+                INTNATIVE_KEYWORD,
+                UINT8_KEYWORD,
+                UINT16_KEYWORD,
+                UINT32_KEYWORD,
+                UINT64_KEYWORD,
+                UINTNATIVE_KEYWORD,
+                FLOAT16_KEYWORD,
+                FLOAT32_KEYWORD,
+                FLOAT64_KEYWORD,
+                RUNE_KEYWORD,
+                BOOL_KEYWORD,
+                UNIT_KEYWORD,
+                NOTHING_KEYWORD,
+                STRUCT_KEYWORD,
+                ENUM_KEYWORD,
+                THIS_KEYWORD,
+                PACKAGE_KEYWORD,
+                IMPORT_KEYWORD,
+                CLASS_KEYWORD,
+                INTERFACE_KEYWORD,
+                FUNC_KEYWORD,
+                LET_KEYWORD,
+                VAR_KEYWORD,
+                CONST_KEYWORD,
+
+                INIT_KEYWORD,
+
+                SUPER_KEYWORD,
+                IF_KEYWORD,
+                ELSE_KEYWORD,
+                CASE_KEYWORD,
+                TRY_KEYWORD,
+                CATCH_KEYWORD,
+                FINALLY_KEYWORD,
+                FOR_KEYWORD,
+                DO_KEYWORD,
+                WHILE_KEYWORD,
+                THROW_KEYWORD,
+                RETURN_KEYWORD,
+                CONTINUE_KEYWORD,
+                BREAK_KEYWORD,
+                AS_KEYWORD,
+                IN_KEYWORD,
+                MATCH_KEYWORD,
+
+                WHERE_KEYWORD,
+                EXTEND_KEYWORD,
+                SPAWN_KEYWORD,
+                SYNCHRONIZED_KEYWORD,
+                MACRO_KEYWORD,
+                QUOTE_KEYWORD,
+                TRUE_KEYWORD,
+                FALSE_KEYWORD,
+                STATIC_KEYWORD,
+                PUBLIC_KEYWORD,
+                PRIVATE_KEYWORD,
+                PROTECTED_KEYWORD,
+                OVERRIDE_KEYWORD,
+                ABSTRACT_KEYWORD,
+                OPEN_KEYWORD,
+                OPERATOR_KEYWORD,
+                FOREIGN_KEYWORD,
+                USER_TYPE,
+                IDENTIFIER,
+                FIELD_IDENTIFIER,
+                ESCAPE_LPAR,
+                ESCAPE_RPAR,
+                ESCAPE_DOLLAR,
+                ESCAPE_LBRACKET,
+                ESCAPE_RBRACKET,
+                INTEGER_LITERAL,
+                FLOAT_LITERAL,
+
+                RUNE_LITERAL,
+                LONG_TEMPLATE_ENTRY_START,
+
+                ), LITERAL_CONSTANT
         )
 
         @JvmStatic

@@ -28,6 +28,7 @@ interface BodiesResolveContext {
 
     val properties: MutableMap<CjProperty, PropertyDescriptor>
     val variables: MutableMap<CjVariable, VariableDescriptor>
+    val variablesByPattern: MutableMap<CjVariable, List<VariableDescriptor>> get() = hashMapOf()
 
     val mainFunctions: MutableMap<CjMainFunction, SimpleFunctionDescriptor>
 

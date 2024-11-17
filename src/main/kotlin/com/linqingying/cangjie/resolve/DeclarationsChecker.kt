@@ -679,7 +679,14 @@ class DeclarationsChecker(
             modifiersChecker.checkModifiersForDeclaration(variable, variableDescriptor)
             identifierChecker.checkDeclaration(variable, trace)
         }
-//
+        for ((variable, variableDescriptors) in bodiesResolveContext.variablesByPattern.entries) {
+            variableDescriptors.forEach {
+                checkVariable(variable, it)
+                modifiersChecker.checkModifiersForDeclaration(variable, it)
+                identifierChecker.checkDeclaration(variable, trace)
+            }
+
+        }
         for ((property, propertyDescriptor) in bodiesResolveContext.properties.entries) {
             checkProperty(property, propertyDescriptor)
             modifiersChecker.checkModifiersForDeclaration(property, propertyDescriptor)

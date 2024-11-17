@@ -323,7 +323,16 @@ fun CjEnumEntry.safeFqNameForLazyResolve(): FqName? {
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this.parent?.parent as CjEnum)
     return parentFqName?.child(safeNameForLazyResolve())
 }
-
+fun CjNamedDeclaration.safeFqNameForLazyResolve(name:Name): FqName? {
+    //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
+    val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)
+    return parentFqName?.child(name)
+}
+fun CjNamedDeclaration.safeFqNameForLazyResolve(name:String?): FqName? {
+    //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
+    val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)
+    return parentFqName?.child(Name.identifier(name ?: ""))
+}
 fun CjNamedDeclaration.safeFqNameForLazyResolve(): FqName? {
     //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)

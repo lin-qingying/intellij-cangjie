@@ -1,93 +1,147 @@
-package com.linqingying.cangjie.psi.stubs.elements;
+package com.linqingying.cangjie.psi.stubs.elements
 
-import com.linqingying.cangjie.name.FqName;
-import com.linqingying.cangjie.psi.CjVariable;
-import com.linqingying.cangjie.psi.psiUtil.CjPsiUtilKt;
-import com.linqingying.cangjie.psi.stubs.CangJieVariableStub;
-import com.linqingying.cangjie.psi.stubs.impl.CangJieVariableStubImpl;
-import com.linqingying.cangjie.psi.stubs.impl.CangJieStubOrigin;
-import com.intellij.psi.stubs.IndexSink;
-import com.intellij.psi.stubs.StubElement;
-import com.intellij.psi.stubs.StubInputStream;
-import com.intellij.psi.stubs.StubOutputStream;
-import com.intellij.util.io.StringRef;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.psi.stubs.IndexSink
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+import com.intellij.util.io.StringRef
+import com.linqingying.cangjie.name.FqName
+import com.linqingying.cangjie.psi.*
+import com.linqingying.cangjie.psi.psiUtil.safeFqNameForLazyResolve
+import com.linqingying.cangjie.psi.stubs.CangJieVariableStub
+import com.linqingying.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
+import com.linqingying.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.deserialize
+import com.linqingying.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.serialize
+import com.linqingying.cangjie.psi.stubs.impl.CangJieVariableStubImpl
+import org.jetbrains.annotations.NonNls
+import java.io.IOException
 
-import java.io.IOException;
-
-
-
-public class CjVariableElementType extends CjStubElementType<CangJieVariableStub, CjVariable> {
-    public CjVariableElementType(@NotNull @NonNls String debugName) {
-        super(debugName, CjVariable.class, CangJieVariableStub.class);
+//        根据单一模式返回所有绑定模式
+fun CjCasePattern?.getAllBindings(): List<CjBindingPattern> {
+    this ?: return emptyList()
+    return when (this) {
+        is CjBindingPattern -> listOf(this)
+        is CjEnumPattern -> this.patterns.flatMap { it.getAllBindings() }
+        is CjTuplePattern -> this.patterns.flatMap { it.getAllBindings() }
+        else -> emptyList()
     }
+}
 
-    @Override
-    public @NotNull CjVariable createPsi(@NotNull CangJieVariableStub stub) {
-        return super.createPsi(stub);
-    }
+class CjVariableElementType(debugName: @NonNls String) :
+    CjStubElementType<CangJieVariableStub, CjVariable>(
+        debugName,
+        CjVariable::class.java,
+        CangJieVariableStub::class.java
+    ) {
 
-    @NotNull
-    @Override
-    public CangJieVariableStub createStub(@NotNull CjVariable psi, StubElement parentStub) {
+
+    override fun createStub(psi: CjVariable, parentStub: StubElement<*>?): CangJieVariableStub {
 //        assert !psi.isLocal() :
 //                String.format("Should not store local property: %s, parent %s",
 //                        psi.getText(), psi.getParent() != null ? psi.getParent().getText() : "<no parent>");
 
-        return new CangJieVariableStubImpl(
-                (StubElement<?>) parentStub, StringRef.fromString(psi.getName()),
-                psi.isVar(), psi.isTopLevel(),
-              psi.hasInitializer(),
-                psi.getReceiverTypeReference() != null, psi.getTypeReference() != null,
-                CjPsiUtilKt.safeFqNameForLazyResolve(psi),
 
-              null
-        );
+        val childPattern = psi.pattern?.getAllBindings()?.map {
+//            CangJieVariableStubImpl(
+//                parentStub, StringRef.fromString(it.name),
+//                psi.isVar, psi.isTopLevel,
+//                psi.hasInitializer(),
+//                psi.receiverTypeReference != null, psi.typeReference != null,
+//                psi.safeFqNameForLazyResolve(it.name),
+//                emptyList(),
+//                null
+//            )
+
+            CangJieVariableStub.ChildInfo(StringRef.fromString(it.name),   psi.safeFqNameForLazyResolve(it.name))
+
+        } ?: emptyList()
+
+        return CangJieVariableStubImpl(
+            parentStub, StringRef.fromString(psi.name),
+            psi.isVar, psi.isTopLevel,
+            psi.hasInitializer(),
+            psi.receiverTypeReference != null, psi.typeReference != null,
+            psi.safeFqNameForLazyResolve(),
+            childPattern,
+            null,
+
+
+            )
     }
 
-    @Override
-    public void serialize(@NotNull CangJieVariableStub stub, @NotNull StubOutputStream dataStream) throws IOException {
-        dataStream.writeName(stub.getName());
-        dataStream.writeBoolean(stub.isVar());
-        dataStream.writeBoolean(stub.isTopLevel());
+    companion object {
+        @Throws(IOException::class)
+        fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieVariableStub {
+            val name = dataStream.readName()
+            val isVar = dataStream.readBoolean()
+            val isTopLevel = dataStream.readBoolean()
+            val hasInitializer = dataStream.readBoolean()
+            val hasReceiverTypeRef = dataStream.readBoolean()
+            val hasReturnTypeRef = dataStream.readBoolean()
 
-        dataStream.writeBoolean(stub.hasInitializer());
-        dataStream.writeBoolean(stub.isExtension());
-        dataStream.writeBoolean(stub.hasReturnTypeRef());
+            val fqNameAsString = dataStream.readName()
+            val fqName = if (fqNameAsString != null) FqName(fqNameAsString.toString()) else null
 
-        FqName fqName = stub.getFqName();
-        dataStream.writeName(fqName != null ? fqName.asString() : null);
+            val childSize = dataStream.readInt()
+            val childVariableByPattern = mutableListOf<CangJieVariableStub.ChildInfo>()
+            for (i in 0 until childSize) {
+                childVariableByPattern.add(CangJieVariableStub.ChildInfo.deserialize(dataStream))
+            }
 
-        if (stub instanceof CangJieVariableStubImpl stubImpl) {
+            return CangJieVariableStubImpl(
+                parentStub, name, isVar, isTopLevel, hasInitializer,
+                hasReceiverTypeRef, hasReturnTypeRef, fqName,
+                childVariableByPattern,
+                deserialize(dataStream)
+            )
+        }
+
+        fun serialize(stub: CangJieVariableStub, dataStream: StubOutputStream) {
+            dataStream.writeName(stub.name)
+            dataStream.writeBoolean(stub.isVar())
+            dataStream.writeBoolean(stub.isTopLevel())
+
+            dataStream.writeBoolean(stub.hasInitializer())
+            dataStream.writeBoolean(stub.isExtension())
+            dataStream.writeBoolean(stub.hasReturnTypeRef())
+
+            val fqName = stub.getFqName()
+            dataStream.writeName(fqName?.asString())
+
+            dataStream.writeInt(stub.childNamesByPattern.size)
 
 
-            CangJieStubOrigin.serialize(stubImpl.getOrigin(), dataStream);
+
+            stub.childNamesByPattern.forEach {
+                it.serialize(dataStream)
+
+            }
+
+
+
+            if (stub is CangJieVariableStubImpl) {
+                serialize(stub.origin, dataStream)
+            }
         }
     }
 
-    @NotNull
-    @Override
-    public CangJieVariableStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        StringRef name = dataStream.readName();
-        boolean isVar = dataStream.readBoolean();
-        boolean isTopLevel = dataStream.readBoolean();
-        boolean hasInitializer = dataStream.readBoolean();
-        boolean hasReceiverTypeRef = dataStream.readBoolean();
-        boolean hasReturnTypeRef = dataStream.readBoolean();
+    @Throws(IOException::class)
+    override fun serialize(stub: CangJieVariableStub, dataStream: StubOutputStream) {
+        Companion.serialize(stub, dataStream)
 
-        StringRef fqNameAsString = dataStream.readName();
-        FqName fqName = fqNameAsString != null ? new FqName(fqNameAsString.toString()) : null;
-
-        return new CangJieVariableStubImpl(
-                (StubElement<?>) parentStub, name, isVar, isTopLevel,   hasInitializer,
-                hasReceiverTypeRef, hasReturnTypeRef, fqName,
-                CangJieStubOrigin.deserialize(dataStream)
-        );
     }
 
-    @Override
-    public void indexStub(@NotNull CangJieVariableStub stub, @NotNull IndexSink sink) {
-        StubIndexService.getInstance().indexVariable(stub, sink);
+    @Throws(IOException::class)
+    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieVariableStub {
+
+        val stub = Companion.deserialize(dataStream, parentStub)
+
+
+
+        return stub
+    }
+
+    override fun indexStub(stub: CangJieVariableStub, sink: IndexSink) {
+        getInstance().indexVariable(stub, sink)
     }
 }

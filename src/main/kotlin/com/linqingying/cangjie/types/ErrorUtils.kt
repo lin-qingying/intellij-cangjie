@@ -10,7 +10,7 @@ object ErrorUtils {
     private val errorProperty: PropertyDescriptor = ErrorPropertyDescriptor()
     val errorPropertyGroup: Set<PropertyDescriptor> = setOf(errorProperty)
 
-    private val errorVariable: VariableDescriptor = ErrorVariableDescriptor()
+      val errorVariable: VariableDescriptor = ErrorVariableDescriptor()
     val errorVariableGroup: Set<VariableDescriptor> = setOf(errorVariable)
 
     val errorModule: ModuleDescriptor = ErrorModuleDescriptor

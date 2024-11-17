@@ -1,19 +1,5 @@
 package com.linqingying.cangjie.ide.searching.usages.handlers
 
-import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.ide.search.CangJieSearchUsagesSupport
-import com.linqingying.cangjie.ide.search.declarationsSearch.HierarchySearchRequest
-import com.linqingying.cangjie.ide.search.ideExtensions.CangJieReferencesSearchOptions
-import com.linqingying.cangjie.ide.search.ideExtensions.CangJieReferencesSearchParameters
-import com.linqingying.cangjie.ide.search.isImportUsage
-import com.linqingying.cangjie.ide.searching.findUsages.CangJieFindUsagesSupport
-import com.linqingying.cangjie.ide.searching.usages.CangJieCallableFindUsagesOptions
-import com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory
-import com.linqingying.cangjie.ide.searching.usages.CangJieFunctionFindUsagesOptions
-import com.linqingying.cangjie.ide.searching.usages.CangJiePropertyFindUsagesOptions
-import com.linqingying.cangjie.ide.stubindex.resolve.isUnitTestMode
-import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.utils.runReadActionInSmartMode
 import com.intellij.find.FindManager
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.find.impl.FindManagerImpl
@@ -27,8 +13,20 @@ import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.*
+import com.linqingying.cangjie.CangJieBundle
+import com.linqingying.cangjie.ide.runReadActionInSmartMode
+import com.linqingying.cangjie.ide.search.CangJieSearchUsagesSupport
+import com.linqingying.cangjie.ide.search.ideExtensions.CangJieReferencesSearchOptions
+import com.linqingying.cangjie.ide.search.ideExtensions.CangJieReferencesSearchParameters
+import com.linqingying.cangjie.ide.search.isImportUsage
+import com.linqingying.cangjie.ide.searching.findUsages.CangJieFindUsagesSupport
+import com.linqingying.cangjie.ide.searching.usages.CangJieCallableFindUsagesOptions
+import com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory
+import com.linqingying.cangjie.ide.searching.usages.CangJieFunctionFindUsagesOptions
+import com.linqingying.cangjie.ide.searching.usages.CangJiePropertyFindUsagesOptions
+import com.linqingying.cangjie.ide.stubindex.resolve.isUnitTestMode
+import com.linqingying.cangjie.psi.*
 import org.jetbrains.annotations.TestOnly
-import java.util.*
 
 
 abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected constructor(
@@ -43,6 +41,7 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
     ): Searcher {
         return MySearcher(element, processor, options)
     }
+
     private fun searchReferences(
         element: PsiElement,
         processor: Processor<in UsageInfo>,
@@ -50,16 +49,26 @@ abstract class CangJieFindMemberUsagesHandler<T : CjNamedDeclaration> protected 
         forHighlight: Boolean
     ): Boolean {
         val searcher = createSearcher(element, processor, options)
-        if (!runReadAction { project }.runReadActionInSmartMode { searcher.buildTaskList(forHighlight) }) return false
+        if (!runReadAction {
+                project
+            }.runReadActionInSmartMode {
+                searcher.buildTaskList(forHighlight)
+            }
+        ) return false
         return searcher.executeTasks()
     }
+
     override fun findReferencesToHighlight(target: PsiElement, searchScope: SearchScope): Collection<PsiReference> {
 
         val baseDeclarations = CangJieSearchUsagesSupport.SearchUtils.findDeepestSuperMethodsNoWrapping(target)
 
         return if (baseDeclarations.isNotEmpty()) {
             baseDeclarations.flatMap {
-                val handler = (FindManager.getInstance(project) as FindManagerImpl).findUsagesManager.getFindUsagesHandler(it, true)
+                val handler =
+                    (FindManager.getInstance(project) as FindManagerImpl).findUsagesManager.getFindUsagesHandler(
+                        it,
+                        true
+                    )
                 handler?.findReferencesToHighlight(it, searchScope) ?: emptyList()
             }
         } else {

@@ -9,6 +9,7 @@ import com.linqingying.cangjie.diagnostics.DiagnosticUtilsKt;
 import com.linqingying.cangjie.lexer.CjTokens;
 import com.linqingying.cangjie.psi.*;
 import com.linqingying.cangjie.resolve.BindingContext;
+import com.linqingying.cangjie.resolve.DescriptorUtils;
 import com.linqingying.cangjie.resolve.calls.checkers.AdditionalTypeChecker;
 import com.linqingying.cangjie.resolve.calls.checkers.NewSchemeOfIntegerOperatorResolutionChecker;
 
@@ -284,14 +285,14 @@ public class DataFlowAnalyzer {
                 }
             }
         });
-
+        DataFlowInfo infoFromEffectSystem =DataFlowInfo.Companion.getEMPTY();
 //        DataFlowInfo infoFromEffectSystem = effectSystem.extractDataFlowInfoFromCondition(
 //                condition, conditionValue, context.trace, DescriptorUtils.getContainingModule(context.scope.getOwnerDescriptor())
 //        );
-//
-//        if (result.get() == null) {
-//            return context.dataFlowInfo.and(infoFromEffectSystem);
-//        }
+
+        if (result.get() == null) {
+            return context.dataFlowInfo.and(infoFromEffectSystem);
+        }
 
         return context.dataFlowInfo.and(result.get())/*.and(infoFromEffectSystem)*/;
     }

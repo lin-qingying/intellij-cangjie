@@ -2,6 +2,7 @@ package com.linqingying.cangjie.resolve
 
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.BindingTrace
+import com.linqingying.cangjie.descriptors.DescriptorVisibility
 import com.linqingying.cangjie.descriptors.VariableDescriptor
 import com.linqingying.cangjie.descriptors.impl.LocalVariableDescriptor
 import com.linqingying.cangjie.descriptors.impl.VariableDescriptorImpl
@@ -10,6 +11,8 @@ import com.linqingying.cangjie.diagnostics.Errors.LOCAL_EXTENSION_VARIABLE
 import com.linqingying.cangjie.psi.CjPsiUtil
 import com.linqingying.cangjie.psi.CjVariable
 import com.linqingying.cangjie.psi.CjVariableDeclaration
+import com.linqingying.cangjie.resolve.DescriptorResolver.Companion.getDefaultVisibility
+import com.linqingying.cangjie.resolve.ModifiersChecker.Companion.resolveVisibilityFromModifiers
 import com.linqingying.cangjie.resolve.calls.components.InferenceSession
 import com.linqingying.cangjie.resolve.calls.context.ContextDependency
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
@@ -40,10 +43,11 @@ class LocalVariableResolver(
         typingContext: ExpressionTypingContext,
         scope: LexicalScope,
         facade: ExpressionTypingFacade
-    ): Pair<CangJieTypeInfo, List<VariableDescriptor>>{
+    ): Pair<CangJieTypeInfo, List<VariableDescriptor>> {
 
-         TODO()
+        TODO()
     }
+
     /**
      * 处理局部变量声明，解析其描述符和类型信息。
      *
@@ -143,46 +147,46 @@ class LocalVariableResolver(
     }
 
     /**
- * 解析局部变量的描述符。
- *
- * 该函数负责在给定的作用域内解析局部变量的描述符，并设置其类型和其他相关信息。
- *
- * @param scope 词法作用域，用于解析变量的上下文
- * @param variable 局部变量声明对象
- * @param dataFlowInfo 数据流信息，用于类型推断
- * @param inferenceSession 推断会话，用于类型推断
- * @param trace 绑定跟踪，用于记录解析过程中的绑定信息
- * @return 解析后的变量描述符
- */
-private fun resolveLocalVariableDescriptor(
-    scope: LexicalScope,
-    variable: CjVariableDeclaration,
-    dataFlowInfo: DataFlowInfo,
-    inferenceSession: InferenceSession,
-    trace: BindingTrace
-): VariableDescriptor {
-    val containingDeclaration = scope.ownerDescriptor
-    val result: VariableDescriptorWithInitializerImpl
-    val type: CangJieType
+     * 解析局部变量的描述符。
+     *
+     * 该函数负责在给定的作用域内解析局部变量的描述符，并设置其类型和其他相关信息。
+     *
+     * @param scope 词法作用域，用于解析变量的上下文
+     * @param variable 局部变量声明对象
+     * @param dataFlowInfo 数据流信息，用于类型推断
+     * @param inferenceSession 推断会话，用于类型推断
+     * @param trace 绑定跟踪，用于记录解析过程中的绑定信息
+     * @return 解析后的变量描述符
+     */
+    private fun resolveLocalVariableDescriptor(
+        scope: LexicalScope,
+        variable: CjVariableDeclaration,
+        dataFlowInfo: DataFlowInfo,
+        inferenceSession: InferenceSession,
+        trace: BindingTrace
+    ): VariableDescriptor {
+        val containingDeclaration = scope.ownerDescriptor
+        val result: VariableDescriptorWithInitializerImpl
+        val type: CangJieType
 
-    val variableDescriptor = resolveLocalVariableDescriptorWithType(scope, variable, null, trace)
-    // 解析变量类型
-    type = variableTypeAndInitializerResolver.resolveType(
-        variableDescriptor, scope, variable, dataFlowInfo, inferenceSession, trace, local = true
-    )
-    variableDescriptor.setOutType(type)
-    result = variableDescriptor
+        val variableDescriptor = resolveLocalVariableDescriptorWithType(scope, variable, null, trace)
+        // 解析变量类型
+        type = variableTypeAndInitializerResolver.resolveType(
+            variableDescriptor, scope, variable, dataFlowInfo, inferenceSession, trace, local = true
+        )
+        variableDescriptor.setOutType(type)
+        result = variableDescriptor
 
 //    if (inferenceSession is BuilderInferenceSession) {
 //        inferenceSession.addExpression(variable)
 //    }
-    // 设置变量的常量值（如果需要）
-    variableTypeAndInitializerResolver
-        .setConstantForVariableIfNeeded(result, scope, variable, dataFlowInfo, type, inferenceSession, trace)
-    // 强制解析类型注解
-    ForceResolveUtil.forceResolveAllContents(type.annotations)
-    return result
-}
+        // 设置变量的常量值（如果需要）
+        variableTypeAndInitializerResolver
+            .setConstantForVariableIfNeeded(result, scope, variable, dataFlowInfo, type, inferenceSession, trace)
+        // 强制解析类型注解
+        ForceResolveUtil.forceResolveAllContents(type.annotations)
+        return result
+    }
 
 
     private fun initializeWithDefaultGetterSetter(variableDescriptor: VariableDescriptorImpl) {
@@ -199,12 +203,39 @@ private fun resolveLocalVariableDescriptor(
 //        variableDescriptor.initialize(getter, setter)
     }
 
+    fun resolveVariableDescriptorWithType(
+        scope: LexicalScope,
+        variable: CjVariableDeclaration,
+        type: CangJieType?,
+        trace: BindingTrace,
+        isVar: Boolean? = null,
+
+        visibility: DescriptorVisibility?
+    ): VariableDescriptor {
+
+        val variableDescriptor = VariableDescriptorImpl(
+            scope.ownerDescriptor,
+
+            CjPsiUtil.safeName(variable.name),
+            type,
+            isVar ?: variable.isVar,
+
+            variable.toSourceElement(),
+            visibility ?: resolveVisibilityFromModifiers(
+                variable,
+                getDefaultVisibility(variable, scope.ownerDescriptor)
+            ),
+        )
+        trace.record(BindingContext.VARIABLE, variable, variableDescriptor)
+        return variableDescriptor
+    }
+
     fun resolveLocalVariableDescriptorWithType(
         scope: LexicalScope,
         variable: CjVariableDeclaration,
         type: CangJieType?,
         trace: BindingTrace,
-        isVar:Boolean? = null
+        isVar: Boolean? = null
     ): LocalVariableDescriptor {
 
         val variableDescriptor = LocalVariableDescriptor(
@@ -213,7 +244,7 @@ private fun resolveLocalVariableDescriptor(
 
             CjPsiUtil.safeName(variable.name),
             type,
-            isVar ?:   variable.isVar,
+            isVar ?: variable.isVar,
 
             variable.toSourceElement()
         )

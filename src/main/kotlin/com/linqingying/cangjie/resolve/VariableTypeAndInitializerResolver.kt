@@ -7,7 +7,8 @@ import com.linqingying.cangjie.diagnostics.Errors.VARIABLE_WITH_NO_TYPE_NO_INITI
 import com.linqingying.cangjie.descriptors.impl.VariableDescriptorWithInitializerImpl
 import com.linqingying.cangjie.psi.CjExpression
 import com.linqingying.cangjie.psi.CjVariableDeclaration
-import com.linqingying.cangjie.resolve.DescriptorResolver.transformAnonymousTypeIfNeeded
+import com.linqingying.cangjie.resolve.DescriptorResolver.Companion.transformAnonymousTypeIfNeeded
+
 import com.linqingying.cangjie.resolve.calls.components.InferenceSession
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator

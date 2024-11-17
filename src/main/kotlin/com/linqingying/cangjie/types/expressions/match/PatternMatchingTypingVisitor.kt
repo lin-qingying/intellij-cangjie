@@ -20,7 +20,9 @@ import com.linqingying.cangjie.psi.psiUtil.elementType
 import com.linqingying.cangjie.psi.psiUtil.referenceExpression
 import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.BindingContext.*
+import com.linqingying.cangjie.resolve.DescriptorResolver.Companion.getDefaultVisibility
 import com.linqingying.cangjie.resolve.DescriptorUtils.isEnum
+import com.linqingying.cangjie.resolve.ModifiersChecker.Companion.resolveVisibilityFromModifiers
 import com.linqingying.cangjie.resolve.caches.ConfusingMatchBranchSyntaxChecker
 import com.linqingying.cangjie.resolve.caches.PrimitiveNumericComparisonCallChecker
 import com.linqingying.cangjie.resolve.calls.checkers.RttiExpressionInformation
@@ -143,9 +145,15 @@ class TupleConstructor(val types: List<CangJieType>) : ClassAndEnumConstructorDe
 class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTypingInternals) :
     ExpressionTypingVisitor(facade) {
 
+
     override fun visitVariable(variable: CjVariable, typingContext: ExpressionTypingContext): CangJieTypeInfo {
         // 更新上下文依赖关系和作用域
         val context = typingContext.replaceContextDependency(ContextDependency.INDEPENDENT)
+        val visibility =
+            resolveVisibilityFromModifiers(
+                variable,
+                getDefaultVisibility(variable, typingContext.scope.ownerDescriptor)
+            )
 
         // 检查接收器类型引用并报告诊断信息
         val receiverTypeRef = variable.receiverTypeReference
@@ -209,6 +217,9 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                 context,
                 Config(
                     isVar = variable.isVar,
+                    bindEnumEntry = false,
+                    isLocal = variable.isLocal,
+                    visibility = visibility
                 )
 
             )
@@ -516,7 +527,12 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     data class Config(
         val bindEnumType: Boolean = true,
-        val isVar: Boolean = false
+        val isVar: Boolean = false,
+        val isLocal: Boolean = true,
+//        绑定模式解析枚举
+        val bindEnumEntry: Boolean = true,
+        val visibility: DescriptorVisibility? = null
+
     )
 
     private fun resoleCasePattern(
@@ -927,7 +943,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
 
     inner class PatternVisitor(
-      val  config: Config = Config()
+        val config: Config = Config()
 
     ) : CjVisitor<Pattern, PatternContext>() {
 
@@ -1035,9 +1051,17 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     )
                 } ?: ErrorUtils.errorVariableType
 
-            val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
-                data.context.scope, element, type, data.context.trace, config.isVar
-            )
+
+            val variable = if (config.isLocal) {
+                components.localVariableResolver.resolveLocalVariableDescriptorWithType(
+                    data.context.scope, element, type, data.context.trace, config.isVar
+                )
+            } else {
+                components.localVariableResolver.resolveVariableDescriptorWithType(
+                    data.context.scope, element, data.subject.type, data.context.trace, config.isVar,config.visibility
+                )
+            }
+
             data.context.scope.addVariableDescriptor(variable)
 
 
@@ -1126,60 +1150,68 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
             val expression = element.expression
 
-            val typeInfo = if (data.subject.type.isEnum()) {
-                expression?.let {
-                    facade.getTypeInfoByCaseEnum(
-                        it,
-                        emptyList(),
-                        data.context.replaceExpectedType(data.subject.type), false
-                    )
+            if (config.bindEnumEntry) {
+                val typeInfo = if (data.subject.type.isEnum()) {
+                    expression?.let {
+                        facade.getTypeInfoByCaseEnum(
+                            it,
+                            emptyList(),
+                            data.context.replaceExpectedType(data.subject.type), false
+                        )
+                    }
+                } else {
+                    expression?.let { facade.getTypeInfoByCaseEnum(it, emptyList(), data.context, false) }
                 }
-            } else {
-                expression?.let { facade.getTypeInfoByCaseEnum(it, emptyList(), data.context, false) }
-            }
-            if (typeInfo?.type != null) {
-                if (!CangJieTypeChecker.DEFAULT.equalTypes(typeInfo.type, data.subject.type)) {
+                if (typeInfo?.type != null) {
+                    if (!CangJieTypeChecker.DEFAULT.equalTypes(typeInfo.type, data.subject.type)) {
+                        data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
+                    }
+                    val enumSource = typeInfo.type.deccriptorClass?.source?.getPsi() as? CjEnum ?: return returnResult(
+                        element, data, Pattern(
+                            typeInfo.type,
+                            PatternKind.Error
+                        )
+                    )
+
+                    val enumEntry =
+                        data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()] as? EnumClassCallableDescriptor
+                    val enumEntrySource =
+                        enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
+                            ?: return returnResult(
+                                element, data, Pattern(typeInfo.type, PatternKind.Error)
+                            )
+
+
+                    return returnResult(
+                        element, data, Pattern(
+                            typeInfo.type, PatternKind.Enum(
+                                enumSource, enumEntrySource,
+
+                                emptyList()
+
+                            )
+                        )
+                    )
+
+                } else if (expression?.getReferenceTarget(data.context.trace.bindingContext) is EnumClassCallableDescriptor) {
                     data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
+                    return returnResult(
+                        element, data, Pattern.Error
+                    )
                 }
-                val enumSource = typeInfo.type.deccriptorClass?.source?.getPsi() as? CjEnum ?: return returnResult(
-                    element, data, Pattern(
-                        typeInfo.type,
-                        PatternKind.Error
-                    )
-                )
 
-                val enumEntry =
-                    data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()] as? EnumClassCallableDescriptor
-                val enumEntrySource =
-                    enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
-                        ?: return returnResult(
-                            element, data, Pattern(typeInfo.type, PatternKind.Error)
-                        )
-
-
-                return returnResult(
-                    element, data, Pattern(
-                        typeInfo.type, PatternKind.Enum(
-                            enumSource, enumEntrySource,
-
-                            emptyList()
-
-                        )
-                    )
-                )
-
-            } else if (expression?.getReferenceTarget(data.context.trace.bindingContext) is EnumClassCallableDescriptor) {
-                data.context.trace.report(NOT_ENUM_MATCH.on(element.expression))
-                return returnResult(
-                    element, data, Pattern.Error
-                )
             }
-
 
 // TODO 将变量添加到作用域  这里需要架构重构，目前这个写的并不理想
-            val variable = components.localVariableResolver.resolveLocalVariableDescriptorWithType(
-                data.context.scope, element, data.subject.type, data.context.trace,config.isVar
-            )
+            val variable = if (config.isLocal) {
+                components.localVariableResolver.resolveLocalVariableDescriptorWithType(
+                    data.context.scope, element, data.subject.type, data.context.trace, config.isVar
+                )
+            } else {
+                components.localVariableResolver.resolveVariableDescriptorWithType(
+                    data.context.scope, element, data.subject.type, data.context.trace, config.isVar,config.visibility
+                )
+            }
 
             data.context.scope.addVariableDescriptor(variable)
 
