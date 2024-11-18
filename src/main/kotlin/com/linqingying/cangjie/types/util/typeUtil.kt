@@ -26,9 +26,13 @@ package com.linqingying.cangjie.types.util
 
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.optionUFqName
+import com.linqingying.cangjie.builtins.getReturnTypeFromFunctionType
+import com.linqingying.cangjie.builtins.isBuiltinFunctionalType
 
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
+import com.linqingying.cangjie.ide.imports.canBeReferencedViaImport
+import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.FqNameUnsafe
 import com.linqingying.cangjie.name.Name
@@ -38,7 +42,9 @@ import com.linqingying.cangjie.resolve.DescriptorUtils
 import com.linqingying.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.linqingying.cangjie.resolve.constants.IntegerValueTypeConstructor
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
+import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.resolve.scopes.MemberScope
+import com.linqingying.cangjie.resolve.scopes.findClassifier
 import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
@@ -512,6 +518,69 @@ fun constituentTypes(types: Collection<CangJieType>): Collection<CangJieType> {
 }
 
 val CangJieType.source: CjElement? get() = constructor.declarationDescriptor?.source?.getPsi() as? CjElement
+fun CangJieType.getResolvableApproximations(
+    scope: LexicalScope?,
+    checkTypeParameters: Boolean,
+    allowIntersections: Boolean = false
+): Sequence<CangJieType> {
+    return (listOf(this) + TypeUtils.getAllSupertypes(this))
+        .asSequence()
+        .mapNotNull {
+            it.asTypeProjection()
+                .fixTypeProjection(scope, checkTypeParameters, allowIntersections )
+                ?.type
+        }
+}
+
+fun CangJieType.isResolvableInScope(scope: LexicalScope?, checkTypeParameters: Boolean, allowIntersections: Boolean = false): Boolean {
+    if (constructor is IntersectionTypeConstructor) {
+        if (!allowIntersections) {
+            return false
+        }
+        return constructor.supertypes.all { it.isResolvableInScope(scope, checkTypeParameters, allowIntersections = true) }
+    }
+
+    if (canBeReferencedViaImport()) return true
+
+    val descriptor = constructor.declarationDescriptor
+    if (descriptor == null || descriptor.name.isSpecial) return false
+    if (!checkTypeParameters && descriptor is TypeParameterDescriptor) return true
+
+    return scope != null && scope.findClassifier(descriptor.name, NoLookupLocation.FROM_IDE) == descriptor
+}
+
+private fun TypeProjection.fixTypeProjection(
+    scope: LexicalScope?,
+    checkTypeParameters: Boolean,
+    allowIntersections: Boolean,
+
+): TypeProjection? {
+    if (!type.isResolvableInScope(scope, checkTypeParameters, allowIntersections)) return null
+    if (type.arguments.isEmpty()) return this
+
+    val resolvableArgs = type.arguments.filterTo(SmartSet.create()) { typeProjection ->
+        typeProjection.type.isResolvableInScope(scope, checkTypeParameters, allowIntersections)
+    }
+
+    if (resolvableArgs.containsAll(type.arguments)) {
+
+    type .asTypeProjection()
+    }
+
+
+
+    val newArguments = (type.arguments zip type.constructor.parameters).map { (arg, param) ->
+        when {
+            arg in resolvableArgs -> arg
+
+
+
+            else -> return type .asTypeProjection()
+        }
+    }
+
+    return type.replace(newArguments).asTypeProjection()
+}
 
 object TypeUtils {
 

@@ -24,9 +24,12 @@
 
 package com.linqingying.cangjie.psi.psiUtil
 
+import com.intellij.psi.tree.IElementType
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.extensions.DeclarationAttributeAltererExtension
+import com.linqingying.cangjie.ide.IdeDescriptorRenderers
+import com.linqingying.cangjie.ide.ShortenReferences
 import com.linqingying.cangjie.ide.projectStructure.languageVersionSettings
 import com.linqingying.cangjie.lexer.CjModifierKeywordToken
 import com.linqingying.cangjie.lexer.CjTokens
@@ -36,9 +39,23 @@ import com.linqingying.cangjie.resolve.caches.resolveToDescriptorIfAny
 import com.linqingying.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
 import com.linqingying.cangjie.resolve.lazy.BodyResolveMode
 import com.linqingying.cangjie.resolve.toKeywordToken
+import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.types.isError
 import com.linqingying.cangjie.utils.match
 import com.linqingying.cangjie.utils.safeAs
-import com.intellij.psi.tree.IElementType
+
+fun CjCallableDeclaration.setType(type: CangJieType, shortenReferences: Boolean = true) {
+    if (type.isError) return
+    setType(IdeDescriptorRenderers.SOURCE_CODE.renderType(type), shortenReferences)
+}
+
+fun CjCallableDeclaration.setType(typeString: String, shortenReferences: Boolean = true) {
+    val typeReference = CjPsiFactory(project).createType(typeString)
+    setTypeReference(typeReference)
+    if (shortenReferences) {
+        ShortenReferences.DEFAULT.process(typeReference)
+    }
+}
 
 fun CjDeclaration.getModalityFromDescriptor(descriptor: DeclarationDescriptor? = resolveToDescriptorIfAny()): CjModifierKeywordToken? {
     if (descriptor is MemberDescriptor) {
@@ -85,6 +102,7 @@ fun CjDeclaration.implicitVisibility(): CjModifierKeywordToken? {
         else -> CjTokens.DEFAULT_VISIBILITY_KEYWORD
     }
 }
+
 fun CjDeclaration.isOverridable(): Boolean =
     !hasModifier(CjTokens.PRIVATE_KEYWORD) &&  // 'private' is incompatible with 'open'
             (parents.match(CjParameterList::class, CjPrimaryConstructor::class, last = CjTypeStatement::class)
@@ -98,6 +116,7 @@ fun CjTypeStatement.isInheritable(): Boolean {
         else -> false
     }
 }
+
 private fun CjDeclaration.predictImplicitModality(): CjModifierKeywordToken? {
     if (this is CjTypeStatement) {
         if (this is CjInterface) return CjTokens.ABSTRACT_KEYWORD

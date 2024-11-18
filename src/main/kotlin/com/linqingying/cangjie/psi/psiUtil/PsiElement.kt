@@ -39,6 +39,7 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.psi.util.parentOfType
+import com.linqingying.cangjie.resolve.BindingContext
 import java.util.ArrayList
 
 fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEntry {

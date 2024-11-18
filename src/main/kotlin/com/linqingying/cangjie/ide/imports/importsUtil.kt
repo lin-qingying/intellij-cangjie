@@ -39,10 +39,17 @@ import com.linqingying.cangjie.resolve.descriptorUtil.getImportableDescriptor
 import com.linqingying.cangjie.resolve.getReferenceTargets
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiWhiteSpace
+import com.linqingying.cangjie.types.CangJieType
+
 fun ClassifierDescriptor.getConstructors(): Collection<ConstructorDescriptor> = when (this) {
     is ClassDescriptor -> constructors
     is TypeAliasDescriptor -> constructors
     else -> emptyList()
+}
+
+fun CangJieType.canBeReferencedViaImport(): Boolean {
+    val descriptor = constructor.declarationDescriptor
+    return descriptor != null && descriptor.canBeReferencedViaImport()
 }
 
 val DeclarationDescriptor.importableFqName: FqName?

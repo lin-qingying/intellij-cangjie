@@ -42,6 +42,7 @@ import com.linqingying.cangjie.renderer.DescriptorRenderer.Companion.FQ_NAMES_IN
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.checker.NewCapturedTypeConstructor
 import com.linqingying.cangjie.types.isDynamic
+import com.linqingying.cangjie.types.isFlexible
 import com.linqingying.cangjie.types.util.approximateFlexibleTypes
 import com.linqingying.cangjie.types.util.builtIns
 import java.util.concurrent.CompletableFuture
@@ -50,6 +51,10 @@ import kotlin.properties.Delegates
 val Project.isInDumbMode: Boolean
     get() = DumbService.getInstance(this).isDumb
 
+internal fun CangJieType.isFlexibleRecursive(): Boolean {
+    if (isFlexible()) return true
+    return arguments.any {  it.type.isFlexibleRecursive() }
+}
 
 /**
  * 在智能模式下执行读操作

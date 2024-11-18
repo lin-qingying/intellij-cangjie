@@ -324,7 +324,11 @@ enum class DescriptorRendererModifier(val includeByDefault: Boolean) {
         val ALL = entries.toSet()
     }
 }
+object ExcludedTypeAnnotations {
+    val internalAnnotationsForResolve:Set<FqName> = setOf(
 
+    )
+}
 interface DescriptorRendererOptions {
     var classifierNamePolicy: ClassifierNamePolicy
     var withDefinedIn: Boolean
@@ -351,7 +355,7 @@ interface DescriptorRendererOptions {
     var textFormat: RenderingFormat
     var excludedAnnotationClasses: Set<FqName>
 
-    //    var excludedTypeAnnotationClasses: Set<FqName>
+        var excludedTypeAnnotationClasses: Set<FqName>
     var annotationFilter: ((AnnotationDescriptor) -> Boolean)?
     var eachAnnotationOnNewLine: Boolean
 
@@ -472,7 +476,7 @@ open class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
 
     override var excludedAnnotationClasses by property(emptySet<FqName>())
 
-//    override var excludedTypeAnnotationClasses by property(ExcludedTypeAnnotations.internalAnnotationsForResolve)
+    override var excludedTypeAnnotationClasses by property(ExcludedTypeAnnotations.internalAnnotationsForResolve)
 
     override var annotationFilter: ((AnnotationDescriptor) -> Boolean)? by property(null)
 

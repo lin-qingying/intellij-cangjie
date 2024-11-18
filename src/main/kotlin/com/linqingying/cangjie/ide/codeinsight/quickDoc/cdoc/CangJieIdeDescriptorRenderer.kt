@@ -115,7 +115,6 @@ open class CangJieIdeDescriptorOptions : DescriptorRendererOptions {
             true
         }
     }
-
     fun copy(): CangJieIdeDescriptorOptions {
         val copy = CangJieIdeDescriptorOptions()
 
@@ -183,6 +182,7 @@ open class CangJieIdeDescriptorOptions : DescriptorRendererOptions {
     override var renderDefaultAnnotationArguments by property(false)
     override var eachAnnotationOnNewLine by property(false)
     override var excludedAnnotationClasses by property(emptySet<FqName>())
+    override var excludedTypeAnnotationClasses by property(ExcludedTypeAnnotations.internalAnnotationsForResolve)
 
     override var annotationFilter: ((AnnotationDescriptor) -> Boolean)? by property(null)
     override var annotationArgumentsRenderingPolicy by property(AnnotationArgumentsRenderingPolicy.NO_ARGUMENTS)
@@ -200,9 +200,17 @@ open class CangJieIdeDescriptorOptions : DescriptorRendererOptions {
 }
 
 open class CangJieIdeDescriptorRenderer(
-    val options: CangJieIdeDescriptorOptions
+    open val options: CangJieIdeDescriptorOptions
 ) : DescriptorRenderer(), DescriptorRendererOptions by options {
+    protected fun AnnotationDescriptor.isParameterName(): Boolean {
+        return fqName == StandardNames.FqNames.parameterName
+    }
+    protected fun CangJieType.hasModifiersOrAnnotations() =
+        !annotations.isEmpty()
 
+    protected fun arrow(): String {
+        return highlight(escape("->")) { asArrow }
+    }
 
     fun withIdeOptions(changeOptions: CangJieIdeDescriptorOptions.() -> Unit): CangJieIdeDescriptorRenderer {
         val options = this.options.copy()
@@ -397,9 +405,6 @@ open class CangJieIdeDescriptorRenderer(
 //        appendPossiblyInnerType(possiblyInnerType)
 //    }
 
-    protected fun arrow(): String {
-        return highlight(escape("->")) { asArrow }
-    }
 
     private fun StringBuilder.appendTypeConstructorAndArguments(
         type: CangJieType,
@@ -905,16 +910,16 @@ open class CangJieIdeDescriptorRenderer(
                 }
             }
 
-            if(function is SimpleFunctionDescriptorForExtendImpl){
+            if (function is SimpleFunctionDescriptorForExtendImpl) {
                 appendTypeParameters(function.typeParametersForExtend, true)
                 appendWhereSuffix(function.typeParametersForExtend)
 
             }
 
 
-            if(function is MacroDescriptor){
+            if (function is MacroDescriptor) {
                 append(renderKeyword("macro"))
-            }else{
+            } else {
                 append(renderKeyword("func"))
             }
             append(" ")

@@ -34,8 +34,18 @@ import com.intellij.openapi.progress.impl.CancellationCheck
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.psi.PsiElement
 import org.jetbrains.annotations.Nls
-
+fun <T> runWriteActionIfPhysical(e: PsiElement, action: () -> T): T = runWriteActionIfNeeded(e.isPhysical, action)
+/**
+ * Run [action] under a write action if needed, and run outside an action otherwise.
+ */
+fun <T> runWriteActionIfNeeded(isNeeded: Boolean, action: () -> T): T {
+    if (isNeeded) {
+        return ApplicationManager.getApplication().runWriteAction<T>(action)
+    }
+    return action()
+}
 fun <T> runWithCancellationCheck(block: () -> T): T = CancellationCheck.runWithCancellationCheck(block)
 @Suppress("NOTHING_TO_INLINE")
 inline fun isDispatchThread(): Boolean = ApplicationManager.getApplication().isDispatchThread

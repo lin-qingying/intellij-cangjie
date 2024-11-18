@@ -278,6 +278,9 @@ val AnnotationDescriptor.isSourceAnnotation: Boolean
         val classDescriptor = annotationClass
         return classDescriptor == null /*|| classDescriptor.getAnnotationRetention() == KotlinRetention.SOURCE*/
     }
+fun DeclarationDescriptor.isAnnotationConstructor(): Boolean =
+    this is ConstructorDescriptor && DescriptorUtils.isAnnotationClass(this.constructedClass)
+
 object DescriptorUtils {
     fun getFqNameFromTopLevelClass(descriptor: DeclarationDescriptor): FqName {
         val containingDeclaration =

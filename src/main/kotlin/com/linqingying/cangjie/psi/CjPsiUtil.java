@@ -69,6 +69,10 @@ public class CjPsiUtil {
         return false;
     }
 
+    public static boolean isStatement(@NotNull PsiElement element) {
+        return isStatementContainer(element.getParent());
+    }
+
     @NotNull
     public static CjExpression safeDeparenthesize(@NotNull CjExpression expression) {
         return safeDeparenthesize(expression, false);

@@ -24,10 +24,13 @@
 
 package com.linqingying.cangjie.references
 
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
-import com.linqingying.cangjie.psi.CjElement
-import com.linqingying.cangjie.psi.CjReferenceExpression
-import com.linqingying.cangjie.psi.CjSimpleNameExpression
+import com.linqingying.cangjie.ide.stubindex.CangJieFullClassNameIndex
+import com.linqingying.cangjie.ide.stubindex.CangJieTopLevelTypeAliasFqNameIndex
+import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.caches.safeAnalyzeNonSourceRootCode
 import com.linqingying.cangjie.resolve.lazy.BodyResolveMode
 import com.linqingying.cangjie.utils.firstIsInstanceOrNull
@@ -51,3 +54,21 @@ val CjReferenceExpression.mainReference: CjReference
     get() = if (this is CjSimpleNameExpression) mainReference else references.firstIsInstance()
 val CjSimpleNameExpression.mainReference: CjSimpleNameReference
     get() = references.firstIsInstance()
+internal fun Project.resolveClass(fqNameString: String, scope: GlobalSearchScope = GlobalSearchScope.allScope(this)): PsiElement? =
+    resolveFqNameOfCjClassByIndex(fqNameString, scope)
+private fun Project.resolveFqNameOfCjClassByIndex(fqNameString: String, scope: GlobalSearchScope): CjDeclaration? {
+    val classesPsi = CangJieFullClassNameIndex.get(fqNameString, this, scope)
+    val typeAliasesPsi = CangJieTopLevelTypeAliasFqNameIndex.get(fqNameString, this, scope)
+
+    return scope.selectNearest(classesPsi, typeAliasesPsi)
+}
+private fun GlobalSearchScope.selectNearest(classesPsi: Collection<CjDeclaration>, typeAliasesPsi: Collection<CjTypeAlias>): CjDeclaration? {
+    val scope = this
+    return when {
+        typeAliasesPsi.isEmpty() -> classesPsi.firstOrNull()
+        classesPsi.isEmpty() -> typeAliasesPsi.firstOrNull()
+        else -> (classesPsi.asSequence() + typeAliasesPsi.asSequence()).minWithOrNull(Comparator { o1, o2 ->
+            scope.compare(o1.containingFile.virtualFile, o2.containingFile.virtualFile)
+        })
+    }
+}

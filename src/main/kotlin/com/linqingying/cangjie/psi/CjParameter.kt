@@ -54,7 +54,7 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase
 
         return modifierList != null && modifierList!!.hasModifier(CjTokens.VARARG_KEYWORD)
     }
-
+    val isLoopParameter get() = parent is CjForExpression
     override val typeReference: CjTypeReference?
         get() =  getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
 

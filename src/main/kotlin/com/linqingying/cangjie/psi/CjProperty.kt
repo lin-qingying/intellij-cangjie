@@ -54,23 +54,8 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
         }
     override val isStatic: Boolean
         get() = hasModifier(CjTokens.STATIC_KEYWORD)
-//
-//    fun getDelegateExpression():CjExpression? {
-//        val stub: CangJiePropertyStub? = stub
-//        if (stub != null && !stub.hasDelegateExpression()) {
-//            return null
-//        }
-//
-//        val delegate: CjPropertyDelegate = getDelegate()
-//        if (delegate != null) {
-//            return delegate.getExpression()
-//        }
-//
-//        return null
-//    }
-//    fun hasDelegateExpressionOrInitializer(): Boolean {
-//        return hasDelegateExpression() || hasInitializer()
-//    }
+
+    val equalsToken:PsiElement? get() =  findChildByType(CjTokens.EQ);
 
     override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitProperty(this, data)

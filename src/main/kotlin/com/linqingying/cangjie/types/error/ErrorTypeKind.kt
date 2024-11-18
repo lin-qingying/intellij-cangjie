@@ -34,6 +34,7 @@ enum class ErrorTypeKind(val debugMessage: String, val isUnresolved: Boolean = f
     UNRESOLVED_DECLARATION("Unresolved declaration %s", true),
     UNRESOLVED_KCLASS_CONSTANT_VALUE("Unresolved type for %s (arrayDimensions=%s)", true),
     UNRESOLVED_TYPE_ALIAS("Unresolved type alias %s"),
+    NOT_FOUND_DESCRIPTOR_FOR_FUNCTION("Descriptor not found for function %s"),
 
     /* Return types */
     RETURN_TYPE("Return type for %s cannot be resolved"),
