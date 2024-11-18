@@ -35,10 +35,7 @@ import kotlin.enums.EnumEntries
 import com.intellij.codeInsight.hints.InlayInfo
 import com.intellij.codeInsight.hints.Option
 import com.intellij.openapi.util.registry.Registry
-import com.linqingying.cangjie.ide.codeinsight.hints.declarative.SHOW_FUNCTION_PARAMETER_TYPES
-import com.linqingying.cangjie.ide.codeinsight.hints.declarative.SHOW_FUNCTION_RETURN_TYPES
-import com.linqingying.cangjie.ide.codeinsight.hints.declarative.SHOW_LOCAL_VARIABLE_TYPES
-import com.linqingying.cangjie.ide.codeinsight.hints.declarative.SHOW_PROPERTY_TYPES
+import com.linqingying.cangjie.ide.codeinsight.hints.declarative.*
 import com.linqingying.cangjie.ide.parameterInfo.*
 import com.linqingying.cangjie.ide.quickfix.createFromUsage.callableBuilder.getReturnTypeReference
 import com.linqingying.cangjie.ide.stubindex.resolve.isApplicationInternalMode
@@ -46,12 +43,10 @@ import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.endOffset
 import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
 import com.linqingying.cangjie.psi.psiUtil.startOffset
-import com.linqingying.cangjie.resolve.caches.resolveToCall
 import com.linqingying.cangjie.resolve.caches.safeAnalyze
 import com.linqingying.cangjie.resolve.lazy.BodyResolveMode
 import com.linqingying.cangjie.utils.*
 import com.linqingying.cangjie.utils.getRangeBinaryExpressionType
-import com.linqingying.cangjie.utils.isComparable
 import com.linqingying.cangjie.utils.isRangeExpression
 
 enum class HintType(
@@ -61,31 +56,43 @@ enum class HintType(
     defaultEnabled: Boolean
 ) {
 
-    PROPERTY_HINT(
-        CangJieBundle.message("hints.settings.types.property"),
-        CangJieBundle.message("hints.settings.show.types.property"),
-        CangJieBundle.message("hints.settings.dont.show.types.property"),
-        false
-    ) {
-        override fun provideHintDetails(e: PsiElement): List<InlayInfoDetails> {
-            return providePropertyTypeHint(e, SHOW_PROPERTY_TYPES)
-        }
-
-        override fun isApplicable(e: PsiElement): Boolean = e is CjProperty && e.getReturnTypeReference() == null && !e.isLocal
-    },
-
-    LOCAL_VARIABLE_HINT(
+    VARIABLE_HINT(
         CangJieBundle.message("hints.settings.types.variable"),
         CangJieBundle.message("hints.settings.show.types.variable"),
         CangJieBundle.message("hints.settings.dont.show.types.variable"),
         false
     ) {
         override fun provideHintDetails(e: PsiElement): List<InlayInfoDetails> {
-            return providePropertyTypeHint(e, SHOW_LOCAL_VARIABLE_TYPES)
+            return provideVariableTypeHint(e, SHOW_VARIABLE_TYPES)
+        }
+
+        override fun isApplicable(e: PsiElement): Boolean = e is CjVariable && e.getReturnTypeReference() == null && !e.isLocal
+    },
+    PATTERN_VARIABLE_HINT(
+        CangJieBundle.message("hints.settings.types.pattern.variable"),
+        CangJieBundle.message("hints.settings.show.types.pattern.variable"),
+        CangJieBundle.message("hints.settings.dont.show.types.pattern.variable"),
+        false
+    ) {
+        override fun provideHintDetails(e: PsiElement): List<InlayInfoDetails> {
+            return provideVariableTypeHint(e, SHOW_PATTERN_VARIABLE_TYPES)
         }
 
         override fun isApplicable(e: PsiElement): Boolean =
-            (e is CjProperty && e.getReturnTypeReference() == null && e.isLocal) ||
+            (  e is CjBindingPattern && e.variable == null  )
+    },
+    LOCAL_VARIABLE_HINT(
+        CangJieBundle.message("hints.settings.types.local.variable"),
+        CangJieBundle.message("hints.settings.show.types.local.variable"),
+        CangJieBundle.message("hints.settings.dont.show.types.local.variable"),
+        false
+    ) {
+        override fun provideHintDetails(e: PsiElement): List<InlayInfoDetails> {
+            return provideVariableTypeHint(e, SHOW_LOCAL_VARIABLE_TYPES)
+        }
+
+        override fun isApplicable(e: PsiElement): Boolean =
+            (e is CjVariable && e.getReturnTypeReference() == null && e.isLocal) ||
                     (e is CjParameter && e.isLoopParameter && e.typeReference == null) ||
                     (e is CjDestructuringDeclarationEntry && e.getReturnTypeReference() == null && e.name != "_")
     },

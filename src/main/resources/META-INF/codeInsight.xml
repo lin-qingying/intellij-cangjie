@@ -25,85 +25,99 @@
 <idea-plugin>
 
 
-
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.unresolvedReferenceQuickFixProvider
                 id="cangjieUnresolvedReferenceQuickFixProvider"
                 implementation="com.linqingying.cangjie.ide.codeinsight.CangJieUnresolvedReferenceQuickFixProvider"/>
-                <codeInsight.lineMarkerProvider language="CangJie"
-                                                implementationClass="com.linqingying.cangjie.ide.codeinsight.CangJieIconLineMarkerProvider"/>
- <codeInsight.declarativeInlayProvider
-            language="CangJie"
-            implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieLambdasHintsProvider"
-            isEnabledByDefault="false"
-            group="LAMBDAS_GROUP"
-            providerId="cangjie.lambdas.hints"
-            bundle="messages.CangJieBundle"
-            nameKey="hints.settings.lambdas"
-            descriptionKey="inlay.cangjie.lambdas.hints">
-      <option bundle="messages.CangJieBundle"
-              optionId="hints.lambda.return"
-              enabledByDefault="true"
-              nameKey="hints.settings.lambda.return"
-              descriptionKey="inlay.cangjie.lambdas.hints.hints.lambda.return"/>
-      <option bundle="messages.CangJieBundle"
-              optionId="hints.lambda.receivers.parameters"
-              enabledByDefault="true"
-              nameKey="hints.settings.lambda.receivers.parameters"
-              descriptionKey="inlay.cangjie.lambdas.hints.hints.lambda.receivers.parameters"/>
-    </codeInsight.declarativeInlayProvider>
-    <codeInsight.parameterNameHints language="CangJie"
-                                    implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.CangJieInlayParameterHintsProvider"/>
+        <codeInsight.lineMarkerProvider language="CangJie"
+                                        implementationClass="com.linqingying.cangjie.ide.codeinsight.CangJieIconLineMarkerProvider"/>
 
-    <codeInsight.inlayActionHandler implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieFqnDeclarativeInlayActionHandler"
-                                    handlerId="cangjie.fqn.class"/>
-    <codeInsight.declarativeInlayProvider
-            language="CangJie"
-            implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieValuesHintsProvider"
-            isEnabledByDefault="true"
-            group="VALUES_GROUP"
-            providerId="cangjie.values.hints"
-            bundle="messages.CangJieBundle"
-            nameKey="hints.settings.values.ranges"
-            descriptionKey="inlay.cangjie.values.hints"/>
-    <codeInsight.declarativeInlayProvider
-            language="CangJie"
-            implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieReferencesTypeHintsProvider"
-            isEnabledByDefault="false"
-            group="TYPES_GROUP"
-            providerId="cangjie.references.types.hints"
-            bundle="messages.CangJieBundle"
-            nameKey="hints.settings.types"
-            descriptionKey="inlay.cangjie.references.types.hints">
-      <option bundle="messages.CangJieBundle"
-              optionId="hints.type.property"
-              enabledByDefault="false"
-              nameKey="hints.settings.types.property"
-              descriptionKey="inlay.cangjie.references.types.hints.hints.type.property"/>
-      <option bundle="messages.CangJieBundle"
-              optionId="hints.type.variable"
-              enabledByDefault="false"
-              nameKey="hints.settings.types.variable"
-              descriptionKey="inlay.cangjie.references.types.hints.hints.type.variable"/>
-      <option bundle="messages.CangJieBundle"
-              optionId="hints.type.function.return"
-              enabledByDefault="false"
-              nameKey="hints.settings.types.return"
-              descriptionKey="inlay.cangjie.references.types.hints.hints.type.function.return"/>
-      <option bundle="messages.CangJieBundle"
-              optionId="hints.type.function.parameter"
-              enabledByDefault="false"
-              nameKey="hints.settings.types.parameter"
-              descriptionKey="inlay.cangjie.references.types.hints.hints.type.function.parameter"/>
-    </codeInsight.declarativeInlayProvider>
+        <!--      lambda 表达式-->
+        <codeInsight.declarativeInlayProvider
+                language="CangJie"
+                implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieLambdasHintsProvider"
+                isEnabledByDefault="false"
+                group="LAMBDAS_GROUP"
+                providerId="cangjie.lambdas.hints"
+                bundle="messages.CangJieBundle"
+                nameKey="hints.settings.lambdas"
+                descriptionKey="inlay.cangjie.lambdas.hints">
+            <option bundle="messages.CangJieBundle"
+                    optionId="hints.lambda.return"
+                    enabledByDefault="true"
+                    nameKey="hints.settings.lambda.return"
+                    descriptionKey="inlay.cangjie.lambdas.hints.hints.lambda.return"/>
+<!--            <option bundle="messages.CangJieBundle"-->
+<!--                    optionId="hints.lambda.receivers.parameters"-->
+<!--                    enabledByDefault="true"-->
+<!--                    nameKey="hints.settings.lambda.receivers.parameters"-->
+<!--                    descriptionKey="inlay.cangjie.lambdas.hints.hints.lambda.receivers.parameters"/>-->
+        </codeInsight.declarativeInlayProvider>
+        <codeInsight.parameterNameHints language="CangJie"
+                                        implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.CangJieInlayParameterHintsProvider"/>
 
-        <lang.documentationProvider language="CangJie" implementationClass="com.linqingying.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieDocumentationProvider" order="first"/>
+        <codeInsight.inlayActionHandler
+                implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieFqnDeclarativeInlayActionHandler"
+                handlerId="cangjie.fqn.class"/>
 
-<!--        <platform.backend.documentation.targetProvider id="CangJieDocumentationTargetProvider"-->
-<!--                                                       implementation="com.linqingying.cangjie.ide.codeinsight.quickDoc.CangJieDocumentationTargetProvider"/>-->
+        <!--        值的嵌入提示-->
+        <codeInsight.declarativeInlayProvider
+                language="CangJie"
+                implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieValuesHintsProvider"
+                isEnabledByDefault="true"
+                group="VALUES_GROUP"
+                providerId="cangjie.values.hints"
+                bundle="messages.CangJieBundle"
+                nameKey="hints.settings.values.ranges"
+                descriptionKey="inlay.cangjie.values.hints"/>
 
-<!--        <platform.backend.documentation.psiTargetProvider id="CangJieDocumentationTargetProvider"-->
-<!--                                                          implementation="com.linqingying.cangjie.ide.codeinsight.quickDoc.CangJiePsiDocumentationTargetProvider"/>-->
+        <!--        类型的嵌入提示-->
+        <codeInsight.declarativeInlayProvider
+                language="CangJie"
+                implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieReferencesTypeHintsProvider"
+                isEnabledByDefault="false"
+                group="TYPES_GROUP"
+                providerId="cangjie.references.types.hints"
+                bundle="messages.CangJieBundle"
+                nameKey="hints.settings.types"
+                descriptionKey="inlay.cangjie.references.types.hints">
+            <option bundle="messages.CangJieBundle"
+                    optionId="hints.type.variable"
+                    enabledByDefault="false"
+                    nameKey="hints.settings.types.variable"
+                    descriptionKey="inlay.cangjie.references.types.hints.hints.type.variable"/>
+            <option bundle="messages.CangJieBundle"
+                    optionId="hints.type.local.variable"
+                    enabledByDefault="false"
+                    nameKey="hints.settings.types.local.variable"
+                    descriptionKey="inlay.cangjie.references.types.hints.hints.type.local.variable"/>
+
+            <option bundle="messages.CangJieBundle"
+                    optionId="hints.type.pattern.variable"
+                    enabledByDefault="false"
+                    nameKey="hints.settings.types.pattern.variable"
+                    descriptionKey="inlay.cangjie.references.types.hints.hints.type.pattern.variable"/>
+            <option bundle="messages.CangJieBundle"
+                    optionId="hints.type.function.return"
+                    enabledByDefault="false"
+                    nameKey="hints.settings.types.return"
+                    descriptionKey="inlay.cangjie.references.types.hints.hints.type.function.return"/>
+            <option bundle="messages.CangJieBundle"
+                    optionId="hints.type.function.parameter"
+                    enabledByDefault="false"
+                    nameKey="hints.settings.types.parameter"
+                    descriptionKey="inlay.cangjie.references.types.hints.hints.type.function.parameter"/>
+        </codeInsight.declarativeInlayProvider>
+
+        <lang.documentationProvider language="CangJie"
+                                    implementationClass="com.linqingying.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieDocumentationProvider"
+                                    order="first"/>
+
+        <!--        <platform.backend.documentation.targetProvider id="CangJieDocumentationTargetProvider"-->
+        <!--                                                       implementation="com.linqingying.cangjie.ide.codeinsight.quickDoc.CangJieDocumentationTargetProvider"/>-->
+
+        <!--        <platform.backend.documentation.psiTargetProvider id="CangJieDocumentationTargetProvider"-->
+        <!--                                                          implementation="com.linqingying.cangjie.ide.codeinsight.quickDoc.CangJiePsiDocumentationTargetProvider"/>-->
 
     </extensions>
 </idea-plugin>

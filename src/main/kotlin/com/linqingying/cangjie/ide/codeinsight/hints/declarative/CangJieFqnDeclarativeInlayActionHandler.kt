@@ -31,14 +31,28 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.pom.Navigatable
 import com.linqingying.cangjie.references.resolveClass
 
+/**
+ * 创建一个处理全限定名（FQN）声明性内嵌动作的处理器类。
+ * 这个类继承自 InlayActionHandler，并专注于处理与类的全限定名相关的内嵌动作。
+ */
 class CangJieFqnDeclarativeInlayActionHandler : InlayActionHandler {
+    // 伴生对象中定义处理程序的名称常量
     companion object {
         const val HANDLER_NAME: String = "cangjie.fqn.class"
     }
 
+    /**
+     * 处理内嵌动作的点击事件。
+     *
+     * @param editor 编辑器实例，用于访问编辑器的功能。
+     * @param payload 内嵌动作的有效载荷，包含触发动作时的相关信息。
+     */
     override fun handleClick(editor: Editor, payload: InlayActionPayload) {
+        // 获取项目实例，如果获取失败则直接返回
         val project = editor.project ?: return
+        // 尝试将有效载荷转换为字符串类型，如果转换失败则直接返回
         val fqName = (payload as? StringInlayActionPayload)?.text ?: return
+        // 尝试解析并导航到指定全限定名的类
         (project.resolveClass(fqName)?.navigationElement as? Navigatable)?.let {
             it.navigate(true)
         }

@@ -41,6 +41,7 @@ import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.endOffset
 import com.linqingying.cangjie.psi.psiUtil.getLineNumber
 import com.linqingying.cangjie.psi.psiUtil.isMultiLine
+import com.linqingying.cangjie.psi.stubs.elements.getAllBindings
 import com.linqingying.cangjie.references.resolveMainReferenceToDescriptors
 import com.linqingying.cangjie.resolve.DescriptorUtils
 import com.linqingying.cangjie.resolve.caches.resolveToCall
@@ -54,13 +55,38 @@ import com.linqingying.cangjie.types.util.isEnum
 import com.linqingying.cangjie.types.util.isUnit
 
 
-fun providePropertyTypeHint(elem: PsiElement, inlayInfoOption: InlayInfoOption): List<InlayInfoDetails> {
-    (elem as? CjCallableDeclaration)?.let { property ->
-        property.nameIdentifier?.let { ident ->
-            provideTypeHint(property, ident.endOffset, inlayInfoOption)?.let { return listOf(it) }
+fun provideVariableTypeHint(elem: PsiElement, inlayInfoOption: InlayInfoOption): List<InlayInfoDetails> {
+    (elem as? CjVariable)?.let { variable ->
+        variable.nameIdentifier?.let { ident ->
+            provideTypeHint(variable, ident.endOffset, inlayInfoOption)?.let { return listOf(it) }
+        }
+
+        variable.pattern.getAllBindings().mapNotNull {
+            provideTypeHint(it, it.endOffset, inlayInfoOption)
+        }.let {
+            if (it.isNotEmpty()) return it
         }
     }
-    return emptyList()
+    return when (elem) {
+        is CjVariable -> {
+            elem.nameIdentifier?.let { ident ->
+                provideTypeHint(elem, ident.endOffset, inlayInfoOption)?.let { listOf(it) }
+            } ?: elem.pattern.getAllBindings().mapNotNull {
+                provideTypeHint(it, it.endOffset, inlayInfoOption)
+            }.let {
+                if (it.isNotEmpty()) it else emptyList()
+            } ?: emptyList()
+
+        }
+
+        is CjBindingPattern -> {
+            provideTypeHint(elem, elem.endOffset, inlayInfoOption)?.let { listOf(it) } ?: emptyList()
+
+        }
+
+        else -> emptyList()
+    }
+
 }
 
 fun provideTypeHint(element: CjCallableDeclaration, offset: Int, inlayInfoOption: InlayInfoOption): InlayInfoDetails? {
@@ -69,7 +95,7 @@ fun provideTypeHint(element: CjCallableDeclaration, offset: Int, inlayInfoOption
     val declarationDescriptor = type.constructor.declarationDescriptor
     val name = declarationDescriptor?.name
     if (name == SpecialNames.NO_NAME_PROVIDED) {
-        if (element is CjProperty && element.isLocal) {
+        if (element is CjVariable && element.isLocal) {
             // for local variables, an anonymous object type is not collapsed to its supertype,
             // so showing the supertype will be misleading
             return null
@@ -79,13 +105,14 @@ fun provideTypeHint(element: CjCallableDeclaration, offset: Int, inlayInfoOption
         return null
     }
 
-    if (element is CjProperty && element.isLocal && type.isUnit() && element.isMultiLine()) {
+    if (element is CjVariable && element.isLocal && type.isUnit() && element.isMultiLine()) {
         val propertyLine = element.getLineNumber()
         val equalsTokenLine = element.equalsToken?.getLineNumber() ?: -1
         val initializerLine = element.initializer?.getLineNumber() ?: -1
         if (propertyLine == equalsTokenLine && propertyLine != initializerLine) {
             val indentBeforeProperty = (element.prevSibling as? PsiWhiteSpace)?.text?.substringAfterLast('\n')
-            val indentBeforeInitializer = (element.initializer?.prevSibling as? PsiWhiteSpace)?.text?.substringAfterLast('\n')
+            val indentBeforeInitializer =
+                (element.initializer?.prevSibling as? PsiWhiteSpace)?.text?.substringAfterLast('\n')
             if (indentBeforeProperty == indentBeforeInitializer) {
                 return null
             }
@@ -94,7 +121,8 @@ fun provideTypeHint(element: CjCallableDeclaration, offset: Int, inlayInfoOption
 
     return if (isUnclearType(type, element)) {
         val settings = element.containingCjFile.cangjieCustomSettings
-        val renderedType = HintsTypeRenderer.getInlayHintsTypeRenderer(element.safeAnalyzeNonSourceRootCode(), element).renderTypeIntoInlayInfo(type)
+        val renderedType = HintsTypeRenderer.getInlayHintsTypeRenderer(element.safeAnalyzeNonSourceRootCode(), element)
+            .renderTypeIntoInlayInfo(type)
         val prefix = buildString {
             if (settings.SPACE_BEFORE_TYPE_COLON) {
                 append(" ")
@@ -131,7 +159,8 @@ private fun isUnclearType(type: CangJieType, element: CjCallableDeclaration): Bo
         val selectorExpression = initializer.selectorExpression
         if (type.isEnum()) {
             // Do not show type for enums if initializer has enum entry with explicit enum name: val p = Enum.ENTRY
-            val enumEntryDescriptor: DeclarationDescriptor? = selectorExpression?.resolveMainReferenceToDescriptors()?.singleOrNull()
+            val enumEntryDescriptor: DeclarationDescriptor? =
+                selectorExpression?.resolveMainReferenceToDescriptors()?.singleOrNull()
 
             if (enumEntryDescriptor != null && DescriptorUtils.isEnumEntry(enumEntryDescriptor)) {
                 return false
@@ -168,6 +197,7 @@ private fun CjExpression.isClassOrPackageReference(): Boolean =
     when (this) {
         is CjNameReferenceExpression -> this.resolveMainReferenceToDescriptors().singleOrNull()
             .let { it is ClassDescriptor || it is PackageViewDescriptor }
+
         is CjDotQualifiedExpression -> this.selectorExpression?.isClassOrPackageReference() ?: false
         else -> false
     }

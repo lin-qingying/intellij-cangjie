@@ -55,8 +55,6 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     override val isStatic: Boolean
         get() = hasModifier(CjTokens.STATIC_KEYWORD)
 
-    val equalsToken:PsiElement? get() =  findChildByType(CjTokens.EQ);
-
     override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitProperty(this, data)
 

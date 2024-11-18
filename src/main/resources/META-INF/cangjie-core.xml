@@ -29,16 +29,6 @@
     <resource-bundle>messages.CangJieBundle</resource-bundle>
 
 
-    <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/searching.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/quickfix.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/refactoring.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/navigation.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/completion.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <!--    <xi:include href="/META-INF/diagrams.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
-    <xi:include href="/META-INF/intellij.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/file-types.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/cangjie-filetype.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <extensions defaultExtensionNs="com.intellij">
 
@@ -366,6 +356,16 @@
                 serviceInterface="com.linqingying.cangjie.NotPropertiesService"
                 serviceImplementation="com.linqingying.cangjie.ide.intentions.NotPropertiesServiceImpl"/>
     </extensions>
+    <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/searching.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/quickfix.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/refactoring.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/navigation.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/completion.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <!--    <xi:include href="/META-INF/diagrams.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+    <xi:include href="/META-INF/intellij.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/file-types.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/cangjie-filetype.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <!--        监听-->
     <applicationListeners>

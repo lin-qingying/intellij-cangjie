@@ -22,18 +22,6 @@
  *
  */
 
-package com.linqingying.cangjie.ide.codeinsight.hints.declarative
-
-import com.linqingying.cangjie.ide.codeinsight.hints.HintType
-import com.linqingying.cangjie.ide.codeinsight.hints.NamedInlayInfoOption
-
-class CangJieReferencesTypeHintsProvider : AbstractCangJieInlayHintsProvider(
-    HintType.VARIABLE_HINT, HintType.LOCAL_VARIABLE_HINT, HintType.FUNCTION_HINT, HintType.PARAMETER_TYPE_HINT
- ,HintType.PATTERN_VARIABLE_HINT,
-)
-
-val SHOW_VARIABLE_TYPES = NamedInlayInfoOption("hints.type.variable")
-val SHOW_LOCAL_VARIABLE_TYPES = NamedInlayInfoOption("hints.type.local.variable")
-val SHOW_FUNCTION_RETURN_TYPES = NamedInlayInfoOption("hints.type.function.return")
-val SHOW_FUNCTION_PARAMETER_TYPES = NamedInlayInfoOption("hints.type.function.parameter")
-val SHOW_PATTERN_VARIABLE_TYPES = NamedInlayInfoOption("hints.type.pattern.variable")
+class Button {
+    fun actionPerformed() {}
+}

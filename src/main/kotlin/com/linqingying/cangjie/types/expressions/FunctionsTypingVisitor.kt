@@ -57,6 +57,7 @@ import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.types.util.TypeUtils.CANNOT_INFER_FUNCTION_PARAM_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
+import com.linqingying.cangjie.types.util.TypeUtils.noExpectedType
 import com.linqingying.cangjie.types.util.contains
 import com.linqingying.cangjie.utils.addIfNotNull
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
@@ -200,20 +201,21 @@ class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypi
         return functionDescriptor
     }
 
-
+  private fun CangJieType.isBuiltinFunctionalType() =
+        !noExpectedType(this) && isBuiltinFunctionalType
 
     override fun visitLambdaExpression(
         expression: CjLambdaExpression,
         context: ExpressionTypingContext
     ): CangJieTypeInfo? {
-        if(context.expectedType == NO_EXPECTED_TYPE) return noTypeInfo(context.dataFlowInfo)
+
 //        if (!components.languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
 //            checkReservedYieldBeforeLambda(expression, context.trace)
 //        }
         if (!expression.functionLiteral.hasBody()) return null
 
         val expectedType = context.expectedType
-        val functionTypeExpected = expectedType.isBuiltinFunctionalType
+        val functionTypeExpected = expectedType.isBuiltinFunctionalType()
 
         val functionDescriptor = createFunctionLiteralDescriptor(expression, context)
         expression.valueParameters.forEach {

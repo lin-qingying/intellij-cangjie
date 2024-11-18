@@ -152,9 +152,34 @@ class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node), CjSimp
         return Name.identifier(getReferencedName())
     }
 
-//    //    modifierList
-//    override val modifierList: CjModifierList?
-//        get() = getStrictParentOfType<CjVariable>()?.modifierList
+    val isLocal: Boolean
+        get() = !isTopLevel
+    val isTopLevel: Boolean
+        get() {
+
+
+            return parent is CjFile
+        }
+
+    private fun getParentVariable(): CjVariable? {
+        var parent = parent
+
+//       如果parent是 CjCasePattern，则继续向上寻找
+        while (parent is CjCasePattern) {
+            parent = parent.parent
+        }
+        return parent as? CjVariable
+
+
+    }
+
+    //    绑定模式隶属的变量声明
+    val variable: CjVariable?
+        get() {
+
+
+            return getParentVariable()
+        }
 
     override fun getReferencedNameElement(): PsiElement {
         return expression ?: this

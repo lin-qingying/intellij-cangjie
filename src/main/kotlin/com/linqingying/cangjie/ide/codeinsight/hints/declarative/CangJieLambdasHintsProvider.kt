@@ -31,5 +31,5 @@ val SHOW_RETURN_EXPRESSIONS = NamedInlayInfoOption("hints.lambda.return")
 val SHOW_IMPLICIT_RECEIVERS_AND_PARAMS = NamedInlayInfoOption("hints.lambda.receivers.parameters")
 
 class CangJieLambdasHintsProvider : AbstractCangJieInlayHintsProvider(HintType.LAMBDA_RETURN_EXPRESSION,
-    HintType.LAMBDA_IMPLICIT_PARAMETER_RECEIVER
+//    HintType.LAMBDA_IMPLICIT_PARAMETER_RECEIVER
 )

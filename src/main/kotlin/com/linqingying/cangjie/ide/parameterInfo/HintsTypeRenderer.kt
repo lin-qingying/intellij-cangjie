@@ -242,10 +242,10 @@ class HintsTypeRenderer private constructor(override val options: HintsDescripto
         list.append(text, this.declarationDescriptor)
     }
 
-    override fun renderClassifierName(klass: ClassifierDescriptor): String = if (ErrorUtils.isError(klass)) {
-        klass.typeConstructor.toString()
+    override fun renderClassifierName(cclass: ClassifierDescriptor): String = if (ErrorUtils.isError(cclass)) {
+        cclass.typeConstructor.toString()
     } else
-        options.hintsClassifierNamePolicy.renderClassifier(klass, this)
+        options.hintsClassifierNamePolicy.renderClassifier(cclass, this)
 
     private fun CangJieType.renderFunctionTypeTo(list: MutableList<InlayInfoDetail>) {
         val type = this
@@ -406,7 +406,7 @@ class HintsTypeRenderer private constructor(override val options: HintsDescripto
 
             val qualifiedNameParts = classifier.parentsWithSelf
                 .takeWhile { it is ClassifierDescriptor }
-                .filter { it.name == SpecialNames.DEFAULT_NAME_FOR_COMPANION_OBJECT }
+                .filter { it.name != SpecialNames.DEFAULT_NAME_FOR_COMPANION_OBJECT }
                 .mapTo(ArrayList()) { it.name }
                 .reversed()
 
