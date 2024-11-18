@@ -26,11 +26,9 @@ package com.linqingying.cangjie.types.util
 
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.optionUFqName
-import com.linqingying.cangjie.builtins.getReturnTypeFromFunctionType
-import com.linqingying.cangjie.builtins.isBuiltinFunctionalType
-
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
+import com.linqingying.cangjie.descriptors.impl.basic.VArrayTypeDescriptor
 import com.linqingying.cangjie.ide.imports.canBeReferencedViaImport
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.name.FqName
@@ -323,6 +321,20 @@ inline fun SimpleType.replaceArgumentsByExistingArgumentsWith(replacement: (Type
     return replace(newArguments = arguments.map { replacement(it) as TypeProjection })
 }
 
+fun createVArrayType(
+    builtIns: CangJieBuiltIns,
+    argument: CangJieType,
+    size: Int
+): VArrayType {
+    val descriptor = VArrayTypeDescriptor(
+        argument, size,
+        builtIns.builtInsModule, builtIns, builtIns.storageManager
+    )
+
+    return descriptor.defaultType
+
+}
+
 
 fun createBasicType(
     builtIns: CangJieBuiltIns,
@@ -527,17 +539,27 @@ fun CangJieType.getResolvableApproximations(
         .asSequence()
         .mapNotNull {
             it.asTypeProjection()
-                .fixTypeProjection(scope, checkTypeParameters, allowIntersections )
+                .fixTypeProjection(scope, checkTypeParameters, allowIntersections)
                 ?.type
         }
 }
 
-fun CangJieType.isResolvableInScope(scope: LexicalScope?, checkTypeParameters: Boolean, allowIntersections: Boolean = false): Boolean {
+fun CangJieType.isResolvableInScope(
+    scope: LexicalScope?,
+    checkTypeParameters: Boolean,
+    allowIntersections: Boolean = false
+): Boolean {
     if (constructor is IntersectionTypeConstructor) {
         if (!allowIntersections) {
             return false
         }
-        return constructor.supertypes.all { it.isResolvableInScope(scope, checkTypeParameters, allowIntersections = true) }
+        return constructor.supertypes.all {
+            it.isResolvableInScope(
+                scope,
+                checkTypeParameters,
+                allowIntersections = true
+            )
+        }
     }
 
     if (canBeReferencedViaImport()) return true
@@ -554,7 +576,7 @@ private fun TypeProjection.fixTypeProjection(
     checkTypeParameters: Boolean,
     allowIntersections: Boolean,
 
-): TypeProjection? {
+    ): TypeProjection? {
     if (!type.isResolvableInScope(scope, checkTypeParameters, allowIntersections)) return null
     if (type.arguments.isEmpty()) return this
 
@@ -564,9 +586,8 @@ private fun TypeProjection.fixTypeProjection(
 
     if (resolvableArgs.containsAll(type.arguments)) {
 
-    type .asTypeProjection()
+        type.asTypeProjection()
     }
-
 
 
     val newArguments = (type.arguments zip type.constructor.parameters).map { (arg, param) ->
@@ -574,8 +595,7 @@ private fun TypeProjection.fixTypeProjection(
             arg in resolvableArgs -> arg
 
 
-
-            else -> return type .asTypeProjection()
+            else -> return type.asTypeProjection()
         }
     }
 
@@ -1190,6 +1210,11 @@ object TypeUtils {
         SpecialType("NO_EXPECTED_TYPE")
 
 }
+
+val CangJieType.isVArray: Boolean
+    get() {
+        return this is VArrayType
+    }
 
 fun CangJieType.getSupertypeRepresentative(): CangJieType =
     (unwrap() as? SubtypingRepresentatives)?.superTypeRepresentative ?: this

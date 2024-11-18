@@ -395,7 +395,10 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitUserType(type: CjUserType) {
         super.visitUserType(type, null)
     }
+    open fun visitVArrayType(type: CjVArrayType) {
+        super.visitVArrayType(type, null)
 
+    }
     open fun visitThisType(type: CjThisType) {
         super.visitThisType(type, null)
 
@@ -828,6 +831,11 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
 
     override fun visitUserType(type: CjUserType, data: Void?): Void? {
         visitUserType(type)
+        return null
+    }
+
+    override fun visitVArrayType(optionType: CjVArrayType, data: Void?): Void? {
+        visitVArrayType(optionType)
         return null
     }
 

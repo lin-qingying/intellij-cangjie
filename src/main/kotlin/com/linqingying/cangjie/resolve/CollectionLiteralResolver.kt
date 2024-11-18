@@ -43,26 +43,36 @@ import com.linqingying.cangjie.resolve.calls.CallResolver
 import com.linqingying.cangjie.resolve.calls.util.CallMaker
 import com.linqingying.cangjie.resolve.descriptorUtil.builtIns
 import com.linqingying.cangjie.storage.StorageManager
-import com.linqingying.cangjie.types.CangJieType
-import com.linqingying.cangjie.types.TypeConstructor
-import com.linqingying.cangjie.types.TypeRefinement
-import com.linqingying.cangjie.types.Variance
+import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
 import com.linqingying.cangjie.types.expressions.ExpressionTypingContext
+import com.linqingying.cangjie.types.expressions.ExpressionTypingServices
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
+import com.linqingying.cangjie.types.util.isVArray
 import com.linqingying.cangjie.types.util.replaceArgument
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
+import jakarta.inject.Inject
 
 class CollectionLiteralResolver(
     val module: ModuleDescriptor,
     val callResolver: CallResolver,
-    val languageVersionSettings: LanguageVersionSettings
-) {
+    val languageVersionSettings: LanguageVersionSettings,
+
+    ) {
+    private lateinit var expressionTypingServices: ExpressionTypingServices
+
+    // component dependency cycle
+    @Inject
+    fun setExpressionTypingServices(expressionTypingServices: ExpressionTypingServices) {
+        this.expressionTypingServices = expressionTypingServices
+    }
     fun resolveCollectionLiteral(
         collectionLiteralExpression: CjCollectionLiteralExpression,
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
+
+        if (context.expectedType.isVArray) return resolveCollectionLiteralByVArray(collectionLiteralExpression, context)
 //        when (computeKindOfContainer(collectionLiteralExpression)) {
 //            AnnotationOrAnnotationClass -> {}
 //            CompanionOfAnnotation -> {
@@ -76,6 +86,30 @@ class CollectionLiteralResolver(
 //        }
 
         return resolveCollectionLiteralSpecialMethod(collectionLiteralExpression, context)
+    }
+
+    fun resolveCollectionLiteralByVArray(
+        collectionLiteralExpression: CjCollectionLiteralExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        context.expectedType as VArrayType
+        val expressionSize = collectionLiteralExpression.innerExpressions.size
+
+        if (expressionSize != context.expectedType.size) {
+//            报错长度不符
+        }
+
+//        校验类型
+        val eContext = context.replaceExpectedType(context.expectedType.arguments[0].type)
+        collectionLiteralExpression.innerExpressions.forEach {
+           expressionTypingServices.expressionTypingFacade.getTypeInfo(
+                it, eContext
+            )
+        }
+
+
+        return createTypeInfo(context.expectedType)
+
     }
 
     private fun reportUnsupportedLiteral(
@@ -119,7 +153,8 @@ class CollectionLiteralResolver(
 
         name: Name,
         index: Int,
-        storageManager: StorageManager
+        storageManager: StorageManager,
+        upperBound: List<CangJieType> = listOf(containingDeclaration.builtIns.defaultBound)
     ) : AbstractTypeParameterDescriptor(
         storageManager,
         containingDeclaration,
@@ -208,7 +243,8 @@ class CollectionLiteralResolver(
                 variance: Variance,
                 name: Name,
                 index: Int,
-                storageManager: StorageManager
+                storageManager: StorageManager,
+                upperBound: List<CangJieType> = listOf(containingDeclaration.builtIns.defaultBound)
             ): TypeParameterDescriptor {
                 val typeParameterDescriptor = ArrayOfTypeParameterDescriptor(
                     containingDeclaration,
@@ -217,7 +253,8 @@ class CollectionLiteralResolver(
                     name,
                     index,
 
-                    storageManager
+                    storageManager,
+                    upperBound
                 )
 //                typeParameterDescriptor.addUpperBound(containingDeclaration.builtIns.defaultBound)
 //                typeParameterDescriptor.setInitialized()
@@ -229,7 +266,43 @@ class CollectionLiteralResolver(
 
 
     //        使用调用函数的方式解析数组字面量
-//        func arrayOf<T>(elements:Array<T>):Array<T>
+//        func arrayOf<T>(elements:Array<T>):VArray<T>
+    private inner class VArrayOfFunctionDescriptor(
+        val returnType: VArrayType
+    ) : SimpleFunctionDescriptorImpl(
+        module, null, Annotations.EMPTY, StandardNames.arrayOfName,
+        CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
+    ) {
+        init {
+
+            val arrayType = module.builtIns.arrayType.replaceArgument(
+                returnType.arguments[0].type
+            )
+
+//            arrayType.arguments
+            initialize(
+                null, null, listOf(), listOf(
+
+                ), listOf(ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                    this,
+                    null,
+                    0,
+                    Annotations.EMPTY,
+                    Name.identifier("elements"),
+                    false,
+                    arrayType,
+                    false,
+                    SourceElement.NO_SOURCE,
+                    { emptyList() }
+                )), returnType,
+                Modality.FINAL,
+                PUBLIC
+
+            )
+        }
+
+    }
+
     private inner class ArrayOfFunctionDescriptor : SimpleFunctionDescriptorImpl(
         module, null, Annotations.EMPTY, StandardNames.arrayOfName,
         CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
@@ -271,6 +344,7 @@ class CollectionLiteralResolver(
         }
 
     }
+
 
     private fun getArrayOfFunctionDescriptors(): Collection<SimpleFunctionDescriptor> {
         return listOf(ArrayOfFunctionDescriptor())

@@ -107,6 +107,8 @@ CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
     CjPlaceHolderStubElementType<CjTypeReference> TYPE_REFERENCE =
             new CjPlaceHolderStubElementType<>("TYPE_REFERENCE", CjTypeReference.class);
     CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
+    CjPlaceHolderStubElementType<CjVArrayType> VARRAY_TYPE =
+            new CjPlaceHolderStubElementType<>("VARRAY_TYPE", CjVArrayType.class);
 
     CjPlaceHolderStubElementType<CjThisType> THIS_TYPE =
             new CjPlaceHolderStubElementType<>("THIS_TYPE", CjThisType.class);

@@ -165,6 +165,7 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
     }
 }
 
+
 class ThisType(private val otype: SimpleType) : SimpleType() {
     override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
         return otype.makeOptionalAsSpecified(newNullability)

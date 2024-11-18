@@ -48,12 +48,10 @@ object CangJieTypeFactory {
     ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments, option = false)
 
     @JvmStatic
-
     fun basicType(descriptor: BasicTypeDescriptor): BasicType {
         return BasicType(
             descriptor.typeConstructor,
             descriptor.basicTypeMemberScope
-
         )
     }
 
@@ -248,13 +246,35 @@ private class SimpleTypeWithAttributes(
 
 }
 
+class VArrayType(
+    val size : Int,
+    argument : TypeProjection ,
 
-private class SimpleTypeImpl(
+    constructor: TypeConstructor,
+    isMarkedOption: Boolean,
+    memberScope: MemberScope,
+    refinedTypeFactory: RefinedTypeFactory
+) : SimpleTypeImpl(
+
+    constructor, listOf(argument), isMarkedOption, memberScope, refinedTypeFactory
+) {
+
+
+    @TypeRefinement
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType {
+        return refinedTypeFactory(cangjieTypeRefiner) ?: this
+
+    }
+
+
+}
+
+open class SimpleTypeImpl(
     override val constructor: TypeConstructor,
     override val arguments: List<TypeProjection>,
     override val isMarkedOption: Boolean,
     override val memberScope: MemberScope,
-    private val refinedTypeFactory: RefinedTypeFactory
+    protected val refinedTypeFactory: RefinedTypeFactory
 ) : SimpleType() {
     override fun makeOptionalAsSpecified(newNullability: Boolean) = when {
         newNullability == isMarkedOption -> this

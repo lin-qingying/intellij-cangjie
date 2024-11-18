@@ -156,7 +156,6 @@ class TypeParameterDescriptorImpl private constructor(
         fun createForFurtherModification(
             containingDeclaration: DeclarationDescriptor,
             annotations: Annotations,
-
             variance: Variance,
             name: Name,
             index: Int,

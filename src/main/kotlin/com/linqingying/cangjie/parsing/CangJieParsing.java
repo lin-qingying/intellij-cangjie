@@ -1009,7 +1009,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //                    tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ?  parseFunction(true,classdetector, detector):parseFunction( ) ;
             case PROP_KEYWORD_Id ->
                     tokenId != null && (tokenId == INTERFACE_KEYWORD_Id /*|| tokenId == EXTEND_KEYWORD_Id*/) ? parseProperty(true, classdetector, detector) : parseProperty(classdetector, detector);
-            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(classdetector,DeclarationParsingMode.MEMBER);
+            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id ->
+                    parseVariable(classdetector, DeclarationParsingMode.MEMBER);
             default -> null;
         };
     }
@@ -2909,6 +2910,48 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return count;
     }
 
+    /**
+     * 解析VArray类型
+     */
+    private boolean parseVArrayType() {
+
+
+        if (at(VARRAY_KEYWORD)) {
+            PsiBuilder.Marker typeRefMarker = mark();
+            advance();
+
+            if (at(LT)) {
+                advance();
+                PsiBuilder.Marker list = mark();
+                PsiBuilder.Marker projection = mark();
+
+                parseTypeRef(TokenSet.EMPTY);
+
+                projection.done(TYPE_PROJECTION);
+
+                expect(COMMA, "Should be ','");
+                expect(DOLLAR, "Should be '$'");
+
+                list.done(TYPE_ARGUMENT_LIST);
+
+                expect(INTEGER_LITERAL, "Should be integer literal");
+
+                expect(GT, "Should be '>");
+
+            } else {
+                error("expected type parameters after 'VArray' keyword");
+            }
+
+            typeRefMarker.done(VARRAY_TYPE);
+            return true;
+        }
+
+
+        return false;
+
+
+    }
+
     /*
      * userType
      *   : simpleUserType{"."}
@@ -2970,6 +3013,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         return typeRefMarker;
     }
+
 
     /**
      * 解析This类型
@@ -3217,6 +3261,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseTypeRefContents() {
+        if (parseVArrayType()) return;
         if (parseThisType()) return;
         if (parseBasicType()) return;
         if (at(IDENTIFIER)) {

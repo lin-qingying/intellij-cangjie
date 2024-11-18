@@ -65,7 +65,7 @@ class FqName {
             return parent!!
         }
 
-        check(!isRoot) { "root" }
+        check(!isRoot) { "this is root:${this.asString()}" }
 
         parent = FqName(fqName.parent())
 

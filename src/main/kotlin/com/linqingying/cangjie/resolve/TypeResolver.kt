@@ -59,11 +59,8 @@ import com.linqingying.cangjie.types.error.ErrorScope
 import com.linqingying.cangjie.types.error.ErrorTypeKind
 import com.linqingying.cangjie.types.error.ThrowingScope
 import com.linqingying.cangjie.types.expressions.TypeAttributeTranslators
-import com.linqingying.cangjie.types.util.TypeUtils
+import com.linqingying.cangjie.types.util.*
 import com.linqingying.cangjie.types.util.TypeUtils.addTypeParameterToStub
-import com.linqingying.cangjie.types.util.containsTypeAliasParameters
-import com.linqingying.cangjie.types.util.containsTypeAliases
-import com.linqingying.cangjie.types.util.createBasicType
 import kotlin.math.min
 
 class TypeResolver(
@@ -263,8 +260,8 @@ class TypeResolver(
                 NoLookupLocation.FROM_BUILTINS
             ) ?: throw IllegalStateException("Option type not found")
             return classifier.descriptor.defaultType
-
         }
+
 
         var result: PossiblyBareType? = null
 
@@ -291,7 +288,24 @@ class TypeResolver(
                 checkThisTypeForClass().let {
                     result = type(it)
                 }
+            }
 
+            fun resolveVArrayType(type: CjVArrayType): CangJieType {
+                val argumentType = resolveTypeElement(
+                    c,
+                    annotations,
+                    outerModifierList,
+                    type.typeElement
+                ).actualType
+
+                val size = type.literal?.text?.toInt() ?: -1
+
+                return createVArrayType(moduleDescriptor.builtIns, argumentType, size)
+
+            }
+
+            override fun visitVArrayType(type: CjVArrayType) {
+                result = type(resolveVArrayType(type))
             }
 
             override fun visitBasicType(type: CjBasicType) {
@@ -302,9 +316,8 @@ class TypeResolver(
 //                    emptyList()
 //                }.toSet()
                 result = type(createBasicType(moduleDescriptor.builtIns, type.text /*extendSuper*/))
-
-
             }
+
 
             override fun visitUserType(type: CjUserType) {
                 val qualifierResolutionResult = resolveDescriptorForType(c.scope, type, c.trace, c.isDebuggerContext)
@@ -1156,7 +1169,7 @@ class TypeResolver(
         isgetExtend: Boolean = true
 
     ): PossiblyBareType {
-        if(c.useCache){
+        if (c.useCache) {
             val cachedType = c.trace.bindingContext.get(BindingContext.TYPE, typeReference)
             if (cachedType != null) return type(cachedType)
         }
@@ -1215,7 +1228,7 @@ class TypeResolver(
         typeReference: List<CjTypeReference>,
         trace: BindingTrace,
         checkBounds: Boolean,
-        ): CangJieType {
+    ): CangJieType {
         val types = typeReference.map {
             resolveType(scope, it, trace, checkBounds)
         }
@@ -1227,14 +1240,14 @@ class TypeResolver(
     }
 
 
-@JvmOverloads
+    @JvmOverloads
     fun resolveType(
         scope: LexicalScope,
         typeReference: CjTypeReference,
         trace: BindingTrace,
         checkBounds: Boolean,
         isgetExtend: Boolean = true,
-        useCache:Boolean = true
+        useCache: Boolean = true
     ): CangJieType {
         // bare types are not allowed
         return resolveType(

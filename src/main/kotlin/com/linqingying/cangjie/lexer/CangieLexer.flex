@@ -544,6 +544,7 @@ LONELY_BACKTICK=`
 "true"       { return CjTokens.TRUE_KEYWORD ;}
 "this"       { return CjTokens.THIS_KEYWORD ;}
 "enum"       { return CjTokens.ENUM_KEYWORD ;}
+ "VArray"   { return CjTokens.VARRAY_KEYWORD ;}
 
 "else"       { return CjTokens.ELSE_KEYWORD ;}
 "try"        { return CjTokens.TRY_KEYWORD ;}

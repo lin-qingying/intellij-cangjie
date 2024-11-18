@@ -147,6 +147,160 @@ class EmptyDeclarationDescriptor(val getContainingDeclaration: (() -> Declaratio
 
 }
 
+////不能扩展，暂时也不考虑扩展
+//class VArrayTypeDescriptor(
+//    override val containingDeclaration: DeclarationDescriptor,
+//    val argument:TypeParameterDescriptor,
+//    val size:Int,
+//    val storageManager: StorageManager,
+//): AbstractClassDescriptor(
+//    storageManager, Name.identifier("VArray")
+//), ClassDescriptorWithResolutionScopes {
+//        inner class VArrayTypeMemberScope : MemberScope {
+//        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+//            return emptyList()
+//        }
+//
+//        override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+//            return emptyList()
+//
+//        }
+//        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+//            return emptyList()
+//
+//        }
+//
+//        override fun getFunctionNames(): Set<Name> {
+//            return emptySet()
+//
+//        }
+//
+//        override fun getVariableNames(): Set<Name> {
+//            return emptySet()
+//
+//        }
+//
+//        override fun getClassifierNames(): Set<Name>? {
+//            return null
+//
+//        }
+//
+//        override fun getPropertyNames(): Set<Name> {
+//            return emptySet()
+//        }
+//
+//
+//        override fun getContributedFunctions(
+//            name: Name,
+//            location: LookupLocation
+//        ): Collection<SimpleFunctionDescriptor> {
+//            val result = mutableListOf<SimpleFunctionDescriptor>()
+//
+//
+//            return result
+//
+//        }
+//
+//        override fun printScopeStructure(p: Printer) {
+//
+//        }
+//
+//        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
+//            return null
+//        }
+//
+//        override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
+//            return emptyList()
+//        }
+//
+//        override fun getContributedDescriptors(
+//            kindFilter: DescriptorKindFilter,
+//            nameFilter: (Name) -> Boolean
+//        ): Collection<DeclarationDescriptor> {
+//            return emptyList()
+//
+//        }
+//
+//    }
+//    val varryTypeMemberScope = VArrayTypeMemberScope()
+//
+//    override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
+//               return varryTypeMemberScope
+//
+//    }
+//
+//      val typeConstructor = VArrayTypeConstructor(this, storageManager)
+//    override fun getTypeConstructor(): TypeConstructor = typeConstructor
+//
+//
+//    override fun getModality(): Modality {
+//      return Modality.FINAL
+//    }
+//
+//    override fun getDeclaredTypeParameters(): List<TypeParameterDescriptor> {
+//    return listOf(argument)
+//    }
+//
+//    override fun getStaticScope(): MemberScope {
+//         return varryTypeMemberScope
+//
+//    }
+//
+//    override fun getConstructors(): List<ClassConstructorDescriptor> {
+//
+////        构造函数
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun getEndConstructors(): List<ClassConstructorDescriptor> {
+//      return emptyList()
+//    }
+//
+//    override fun getKind(): ClassKind {
+//    return ClassKind.CLASS
+//    }
+//
+//    override fun isFun(): Boolean {
+//       return false
+//    }
+//
+//    override fun isValue(): Boolean {
+//       return false
+//
+//    }
+//
+//    override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? {
+//     return null
+//    }
+//
+//    override fun getSealedSubclasses(): List<ClassDescriptor> {
+//        return emptyList()
+//    }
+//
+//    override val source: SourceElement = SourceElement.NO_SOURCE
+//
+//    override fun getScopeForMemberDeclarationResolution(): LexicalScope {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun getDeclaredCallableMembers(): List<CallableMemberDescriptor> {
+//           return emptyList()
+//
+//    }
+//
+//    override fun getScopeForInitializerResolution(): LexicalScope {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun getScopeForClassHeaderResolution(): LexicalScope {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun getScopeForConstructorHeaderResolution(): LexicalScope {
+//
+//    }
+//}
+
 open class BasicTypeDescriptor(
     val basicMemberScope: PackageFragmentDescriptorBasicImpl.BasicMemberScope,
     val storageManager: StorageManager,
