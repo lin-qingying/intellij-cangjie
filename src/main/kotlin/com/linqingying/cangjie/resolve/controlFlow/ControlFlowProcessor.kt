@@ -361,7 +361,7 @@ class ControlFlowProcessor(
 
         override fun visitBinaryExpression(expression: CjBinaryExpression) {
             val operationReference = expression.operationReference
-            val operationType = operationReference.getReferencedNameElementType()
+            val operationType = operationReference.referencedNameElementType
 
             val left = expression.left
             val right = expression.right
@@ -404,7 +404,7 @@ class ControlFlowProcessor(
         }
 
         private fun generateBooleanOperation(expression: CjBinaryExpression) {
-            val operationType = expression.operationReference.getReferencedNameElementType()
+            val operationType = expression.operationReference.referencedNameElementType
             val left = expression.left
             val right = expression.right
 
@@ -497,7 +497,7 @@ class ControlFlowProcessor(
             }
 
             // In case of simple ('=') array assignment mark instruction is not generated yet, so we put it before generating "set" call
-            if ((parentExpression as CjOperationExpression).operationReference.getReferencedNameElementType() === EQ) {
+            if ((parentExpression as CjOperationExpression).operationReference.referencedNameElementType === EQ) {
                 mark(lhs)
             }
 
@@ -578,7 +578,7 @@ class ControlFlowProcessor(
 
         override fun visitUnaryExpression(expression: CjUnaryExpression) {
             val operationSign = expression.operationReference
-            val operationType = operationSign.getReferencedNameElementType()
+            val operationType = operationSign.referencedNameElementType
             val baseExpression = expression.baseExpression ?: return
 
 
@@ -1268,7 +1268,7 @@ class ControlFlowProcessor(
         override fun visitBinaryWithTypeRHSExpression(expression: CjBinaryExpressionWithTypeRHS) {
             mark(expression)
 
-            val operationType = expression.operationReference.getReferencedNameElementType()
+            val operationType = expression.operationReference.referencedNameElementType
             val left = expression.left
             if (operationType === AS_KEYWORD) {
                 generateInstructions(left)

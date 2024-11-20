@@ -29,12 +29,16 @@ import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.PositioningStrategies
 import com.intellij.psi.PsiElement
 
-sealed class DiagnosticFactoryForDeprecation<E : PsiElement, D : Diagnostic, F : DiagnosticFactoryWithPsiElement<E, D>>(
+sealed class DiagnosticFactoryForDeprecation<E : PsiElement,
+        D : Diagnostic,
+        F : DiagnosticFactoryWithPsiElement<E, D>>(
+
+
     val deprecatingFeature: LanguageFeature,
     val warningFactory: F,
     val errorFactory: F
-)
-{
+) {
+
     fun LanguageVersionSettings.chooseFactory(): F {
         return if (supportsFeature(deprecatingFeature)) errorFactory else warningFactory
     }
@@ -44,7 +48,11 @@ class DiagnosticFactoryForDeprecation0<E : PsiElement>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory0<E>,
     errorFactory: DiagnosticFactory0<E>
-) : DiagnosticFactoryForDeprecation<E, SimpleDiagnostic<E>, DiagnosticFactory0<E>>(featureForError, warningFactory, errorFactory) {
+) : DiagnosticFactoryForDeprecation<E, SimpleDiagnostic<E>, DiagnosticFactory0<E>>(
+    featureForError,
+    warningFactory,
+    errorFactory
+) {
     companion object {
         @JvmStatic
         @JvmOverloads
@@ -66,15 +74,20 @@ class DiagnosticFactoryForDeprecation0<E : PsiElement>(
 
     fun onError(element: E): SimpleDiagnostic<E> = errorFactory.on(element)
 }
-class DiagnosticFactoryForDeprecation2<E : PsiElement, A:Any  , B:Any  >(
+
+class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory2<E, A, B>,
     errorFactory: DiagnosticFactory2<E, A, B>
-) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters2<E, A, B>, DiagnosticFactory2<E, A, B>>(featureForError, warningFactory, errorFactory) {
+) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters2<E, A, B>, DiagnosticFactory2<E, A, B>>(
+    featureForError,
+    warningFactory,
+    errorFactory
+) {
     companion object {
         @JvmStatic
         @JvmOverloads
-        fun <E : PsiElement, A  :Any, B:Any  > create(
+        fun <E : PsiElement, A : Any, B : Any> create(
             featureForError: LanguageFeature,
             positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
         ): DiagnosticFactoryForDeprecation2<E, A, B> {
@@ -91,15 +104,19 @@ class DiagnosticFactoryForDeprecation2<E : PsiElement, A:Any  , B:Any  >(
     }
 }
 
-class DiagnosticFactoryForDeprecation1<E : PsiElement, A:Any >(
+class DiagnosticFactoryForDeprecation1<E : PsiElement, A : Any>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory1<E, A>,
     errorFactory: DiagnosticFactory1<E, A>
-) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters1<E, A>, DiagnosticFactory1<E, A>>(featureForError, warningFactory, errorFactory) {
+) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters1<E, A>, DiagnosticFactory1<E, A>>(
+    featureForError,
+    warningFactory,
+    errorFactory
+) {
     companion object {
         @JvmStatic
         @JvmOverloads
-        fun <E : PsiElement, A :Any > create(
+        fun <E : PsiElement, A : Any> create(
             featureForError: LanguageFeature,
             positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
         ): DiagnosticFactoryForDeprecation1<E, A> {
@@ -116,15 +133,19 @@ class DiagnosticFactoryForDeprecation1<E : PsiElement, A:Any >(
     }
 }
 
-class DiagnosticFactoryForDeprecation3<E : PsiElement, A:Any  , B :Any , C:Any  >(
+class DiagnosticFactoryForDeprecation3<E : PsiElement, A : Any, B : Any, C : Any>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory3<E, A, B, C>,
     errorFactory: DiagnosticFactory3<E, A, B, C>
-) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters3<E, A, B, C>, DiagnosticFactory3<E, A, B, C>>(featureForError, warningFactory, errorFactory) {
+) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters3<E, A, B, C>, DiagnosticFactory3<E, A, B, C>>(
+    featureForError,
+    warningFactory,
+    errorFactory
+) {
     companion object {
         @JvmStatic
         @JvmOverloads
-        fun <E : PsiElement, A  :Any, B:Any  , C :Any > create(
+        fun <E : PsiElement, A : Any, B : Any, C : Any> create(
             featureForError: LanguageFeature,
             positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
         ): DiagnosticFactoryForDeprecation3<E, A, B, C> {
@@ -140,15 +161,20 @@ class DiagnosticFactoryForDeprecation3<E : PsiElement, A:Any  , B :Any , C:Any  
         return languageVersionSettings.chooseFactory().on(element, a, b, c)
     }
 }
-class DiagnosticFactoryForDeprecation4<E : PsiElement, A  :Any, B :Any , C:Any  , D:Any  >(
+
+class DiagnosticFactoryForDeprecation4<E : PsiElement, A : Any, B : Any, C : Any, D : Any>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory4<E, A, B, C, D>,
     errorFactory: DiagnosticFactory4<E, A, B, C, D>
-) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters4<E, A, B, C, D>, DiagnosticFactory4<E, A, B, C, D>>(featureForError, warningFactory, errorFactory) {
+) : DiagnosticFactoryForDeprecation<E, DiagnosticWithParameters4<E, A, B, C, D>, DiagnosticFactory4<E, A, B, C, D>>(
+    featureForError,
+    warningFactory,
+    errorFactory
+) {
     companion object {
         @JvmStatic
         @JvmOverloads
-        fun <E : PsiElement, A  :Any, B:Any  , C:Any  , D :Any > create(
+        fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> create(
             featureForError: LanguageFeature,
             positioningStrategy: PositioningStrategy<E> = PositioningStrategies.DEFAULT
         ): DiagnosticFactoryForDeprecation4<E, A, B, C, D> {
@@ -160,7 +186,14 @@ class DiagnosticFactoryForDeprecation4<E : PsiElement, A  :Any, B :Any , C:Any  
         }
     }
 
-    fun on(languageVersionSettings: LanguageVersionSettings, element: E, a: A, b: B, c: C, d: D): ParametrizedDiagnostic<E> {
+    fun on(
+        languageVersionSettings: LanguageVersionSettings,
+        element: E,
+        a: A,
+        b: B,
+        c: C,
+        d: D
+    ): ParametrizedDiagnostic<E> {
         return languageVersionSettings.chooseFactory().on(element, a, b, c, d)
     }
 }

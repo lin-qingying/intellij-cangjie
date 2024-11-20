@@ -42,23 +42,23 @@ class CjBasicType : CjElementImplStub<CangJieBasicTypeStub>, CjTypeElement, CjSi
         return elementType.toString()
     }
 
-    override fun getReferencedName(): String {
+    override val referencedName : String get() {
         return text
     }
 
-    override fun getReferencedNameAsName(): Name {
+    override val referencedNameAsName : Name get()   {
         return Name.identifier(this.text)
     }
 
-    override fun getReferencedNameElement(): PsiElement {
+    override val referencedNameElement : PsiElement get()  {
         return this
     }
 
-    override fun getIdentifier(): PsiElement {
+    override val identifier : PsiElement get() {
         return this
     }
 
-    override fun getReferencedNameElementType(): IElementType {
+    override val referencedNameElementType : IElementType get()   {
         return this.elementType
     }
 

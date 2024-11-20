@@ -44,7 +44,7 @@ internal fun CjExpression.isComparable(context: BindingContext): Boolean {
 }
 
 internal fun CjExpression.getRangeBinaryExpressionType(context: Lazy<BindingContext>? = null): RangeCjExpressionType? {
-    val binaryExprName = asSafely<CjBinaryExpression>()?.operationReference?.getReferencedNameAsName()?.asString()
+    val binaryExprName = asSafely<CjBinaryExpression>()?.operationReference?.referencedNameAsName?.asString()
     val dotQualifiedName = asSafely<CjDotQualifiedExpression>()?.callExpression?.calleeExpression?.text
     val name = binaryExprName ?: dotQualifiedName
     return when {

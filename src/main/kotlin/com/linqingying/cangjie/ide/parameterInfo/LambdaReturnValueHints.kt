@@ -49,7 +49,7 @@ private fun CjLambdaExpression.getNameOfFunctionThatTakesLambda(): String? {
     return if (callExpression.lambdaArguments.any { it.getLambdaExpression() == lambda }) {
         val parent = lambda.parent
 
-        callExpression.calleeExpression.safeAs<CjNameReferenceExpression>()?.getReferencedName()
+        callExpression.calleeExpression.safeAs<CjNameReferenceExpression>()?.referencedName
 
     } else null
 }

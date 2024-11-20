@@ -41,5 +41,5 @@ class CjValueArgumentName : CjElementImplStub<CangJiePlaceHolderStub<CjValueArgu
         get() = getStubOrPsiChild(CjStubElementTypes.REFERENCE_EXPRESSION)!!
 
     override val asName: Name
-        get() = referenceExpression.getReferencedNameAsName()
+        get() = referenceExpression.referencedNameAsName
 }

@@ -1015,6 +1015,8 @@ public class BodyResolver {
             expressionTypingServices.checkFunctionReturnType(
                     innerScope, function, functionDescriptor, dataFlowInfo != null ? dataFlowInfo : outerDataFlowInfo, null, trace, localContext
             );
+        } else {
+            functionDescriptor.getReturnType();
         }
 //TODO 检查返回值
         assert functionDescriptor.getReturnType() != null;

@@ -134,7 +134,7 @@ class PSICallResolver(
         val lhsResult = getLhsResult(context, cjExpression)
         val newDataFlowInfo =/* (doubleColonLhs as? DoubleColonLHS.Expression)?.dataFlowInfo ?: */startDataFlowInfo
         val rhsExpression = cjExpression.callableReference
-        val rhsName = rhsExpression.getReferencedNameAsName()
+        val rhsName = rhsExpression.referencedNameAsName
         val call = outerCallContext.trace[CALL, rhsExpression]
             ?: CallMaker.makeCall(
                 rhsExpression,

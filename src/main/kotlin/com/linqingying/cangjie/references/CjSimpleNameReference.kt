@@ -62,7 +62,7 @@ class CjSimpleNameReference(expression: CjSimpleNameExpression) : CjSimpleRefere
 
 
 
-            return listOf(element.getReferencedNameAsName())
+            return listOf(element.referencedNameAsName)
 
         }
     // It's a copy of function in BindingContextUtils supporting some special cases (labels, this)
@@ -110,7 +110,7 @@ class CjSimpleNameReference(expression: CjSimpleNameExpression) : CjSimpleRefere
 
 
     override fun getRangeInElement(): TextRange {
-        val element = element.getReferencedNameElement()
+        val element = element.referencedNameElement
         val startOffset = getElement().startOffset
         return element.textRange.shiftRight(-startOffset)
     }

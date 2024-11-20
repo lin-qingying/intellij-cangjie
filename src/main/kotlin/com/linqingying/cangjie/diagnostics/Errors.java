@@ -63,6 +63,10 @@ import static com.linqingying.cangjie.diagnostics.Severity.*;
  * For error messages, see DefaultErrorMessages and IdeErrorMessages.
  */
 public interface Errors {
+    DiagnosticFactoryForDeprecation0<CjExpression> TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM =
+            DiagnosticFactoryForDeprecation0.create(LanguageFeature.ForbidRecursiveDelegateExpressions);
+    DiagnosticFactoryForDeprecation0<CjExpression> TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM_IN_AUGMENTED_ASSIGNMENT =
+            DiagnosticFactoryForDeprecation0.create(LanguageFeature.ReportErrorsOnRecursiveTypeInsidePlusAssignment);
 
     DiagnosticFactory0<CjExpression> INTEGER_OVERFLOW = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<CjExpression> DIVISION_BY_ZERO = DiagnosticFactory0.create(WARNING);
@@ -206,8 +210,7 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, String> NEW_INFERENCE_DIAGNOSTIC = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory2<PsiElement, CandidateApplicability, String> NEW_INFERENCE_UNKNOWN_ERROR = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory2<PsiElement, PropertyDescriptor, ClassDescriptor> DEPRECATED_RESOLVE_WITH_AMBIGUOUS_ENUM_ENTRY = DiagnosticFactory2.create(WARNING);
-    //    DiagnosticFactoryForDeprecation0<LeafPsiElement> NON_VARARG_SPREAD =
-//            DiagnosticFactoryForDeprecation0.create(LanguageFeature.ReportNonVarargSpreadOnGenericCalls);
+
     DiagnosticFactory0<CjConstructorDelegationReferenceExpression> DELEGATION_SUPER_CALL_IN_ENUM_CONSTRUCTOR =
             DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<LeafPsiElement> SPREAD_OF_LAMBDA_OR_CALLABLE_REFERENCE = DiagnosticFactory0.create(ERROR);
@@ -253,6 +256,7 @@ public interface Errors {
     DiagnosticFactory0<CjElement> POSITIONAL_ARGUMENT_AFTER_NAMED_ARGUMENT = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjElement> TUPLE_ARGS_TOO_FEW = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjElement, Integer, Integer> TUPLE_ARGS_MISMATCH = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory0<PsiElement> VARRAY_SIZE_MISMATCH = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactoryForDeprecation1<PsiElement, TypeParameterDescriptor> TYPE_INFERENCE_ONLY_INPUT_TYPES =
             DiagnosticFactoryForDeprecation1.create(LanguageFeature.StrictOnlyInputTypesChecks);
@@ -360,6 +364,7 @@ public interface Errors {
             DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjArrayAccessExpression> NO_GET_METHOD = DiagnosticFactory0.create(ERROR, ARRAY_ACCESS);
     DiagnosticFactory0<CjArrayAccessExpression> NO_SET_METHOD = DiagnosticFactory0.create(ERROR, ARRAY_ACCESS);
+    DiagnosticFactory1<PsiElement, String> INAPPLICABLE_OPERATOR_MODIFIER = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory0<CjArrayAccessExpression> NO_GET_FOR_TUPLE_METHOD = DiagnosticFactory0.create(ERROR, ARRAY_ACCESS);
     DiagnosticFactory0<CjArrayAccessExpression> NO_SET_FOR_TUPLE_METHOD = DiagnosticFactory0.create(ERROR, ARRAY_ACCESS);
@@ -477,7 +482,7 @@ public interface Errors {
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_WARNING = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory1<PsiElement, RenderedDiagnostic<?>> PLUGIN_INFO = DiagnosticFactory1.create(INFO);
     DiagnosticFactory1<CjCallExpression, DeclarationDescriptor> NO_CALL_OPERATOR = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory2<PsiElement,String, CangJieType> INVALID_MACRO_TYPE = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<PsiElement, String, CangJieType> INVALID_MACRO_TYPE = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<PsiElement> EXCESSIVE_MACRO_PARAMS = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory1<PsiElement, PsiElement> STATIC_INSTANCE_ACCESS = DiagnosticFactory1.create(ERROR);

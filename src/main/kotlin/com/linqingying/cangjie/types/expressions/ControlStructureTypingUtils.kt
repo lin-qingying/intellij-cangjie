@@ -477,7 +477,7 @@ class ControlStructureTypingUtils(
                     c: CheckTypeContext
                 ): Boolean {
                     if (expression.operationReference
-                            .getReferencedNameElementType() === CjTokens.ELVIS
+                            .referencedNameElementType === CjTokens.ELVIS
                     ) {
                         return checkSubExpressions(
                             expression.left,

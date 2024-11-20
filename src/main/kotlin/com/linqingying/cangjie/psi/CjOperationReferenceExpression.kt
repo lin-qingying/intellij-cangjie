@@ -34,7 +34,7 @@ import com.intellij.psi.impl.source.tree.TreeElement
 
 class CjOperationReferenceExpression(node: ASTNode) : CjSimpleNameExpressionImpl(node) {
 
-    override fun getReferencedNameElement() = findChildByType<PsiElement?>(CangJieExpressionParsing.ALL_OPERATIONS) ?: this
+    override val referencedNameElement get() = findChildByType<PsiElement >(CangJieExpressionParsing.ALL_OPERATIONS) ?: this
 
     fun isConventionOperator(): Boolean {
         val tokenType = operationSignTokenType ?: return false

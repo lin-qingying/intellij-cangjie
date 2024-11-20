@@ -46,7 +46,7 @@ class CangJieReferenceContributor : CangJieReferenceProviderContributor {
 //
             registerMultiProvider<CjNameReferenceExpression> { nameReferenceExpression ->
 
-                if (nameReferenceExpression.getReferencedNameElementType() != CjTokens.IDENTIFIER) {
+                if (nameReferenceExpression.referencedNameElementType != CjTokens.IDENTIFIER) {
                     return@registerMultiProvider PsiReference.EMPTY_ARRAY
                 }
                 if (nameReferenceExpression.parents.any { it is CjImportDirective || it is CjPackageDirective || it is CjUserType }) {

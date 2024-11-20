@@ -48,6 +48,8 @@ abstract class CjFunctionImpl : CjTypeParameterListOwnerStub<CangJieFunctionStub
         return node.elementType.toString()
     }
 
+//    是否需要推断返回值类型
+open val isInferReturnType: Boolean get() =  typeReference == null
     open fun hasTypeParameterListBeforeFunctionName(): Boolean {
         val stub = stub
         if (stub != null) {

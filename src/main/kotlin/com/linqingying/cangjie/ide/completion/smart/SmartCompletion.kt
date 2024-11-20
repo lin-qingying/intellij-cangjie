@@ -224,7 +224,7 @@ class SmartCompletion(
     private fun buildForAsTypePosition(lookupElementFactory: BasicLookupElementFactory): Collection<LookupElement>? {
         val binaryExpression =
             ((expression.parent as? CjUserType)?.parent as? CjTypeReference)?.parent as? CjBinaryExpressionWithTypeRHS ?: return null
-        val elementType = binaryExpression.operationReference.getReferencedNameElementType()
+        val elementType = binaryExpression.operationReference.referencedNameElementType
         if (elementType != CjTokens.AS_KEYWORD ) return null
         val expectedInfos = calcExpectedInfos(binaryExpression)
 

@@ -24,7 +24,6 @@
 
 package com.linqingying.cangjie.ide.cache.trackers
 
-import com.linqingying.cangjie.lang.CangJieLanguage
 import com.intellij.ide.plugins.DynamicPluginListener
 import com.intellij.ide.plugins.IdeaPluginDescriptor
 import com.intellij.openapi.Disposable
@@ -42,6 +41,7 @@ import com.intellij.psi.impl.PsiModificationTrackerImpl
 import com.intellij.psi.impl.PsiTreeChangeEventImpl
 import com.intellij.psi.impl.PsiTreeChangePreprocessor
 import com.intellij.psi.util.PsiModificationTracker
+import com.linqingying.cangjie.lang.CangJieLanguage
 
 val CANGJIE_CONSOLE_KEY = Key.create<Boolean>("cangjie.console")
 

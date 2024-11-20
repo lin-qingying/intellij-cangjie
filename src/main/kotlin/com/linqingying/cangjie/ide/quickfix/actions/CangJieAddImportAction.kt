@@ -220,7 +220,7 @@ class CangJieAddImportAction internal constructor(
                 ) {
                     if (element is CjSimpleNameExpression) {
                         if (importAlias != null) {
-                            importAlias.nameIdentifier?.copy()?.let { element.getIdentifier()?.replace(it) }
+                            importAlias.nameIdentifier?.copy()?.let { element.identifier?.replace(it) }
                             val resultDescriptor = element.resolveMainReferenceToDescriptors().firstOrNull()
                             if (importableFqName == resultDescriptor?.importableFqName) {
                                 return@forEach

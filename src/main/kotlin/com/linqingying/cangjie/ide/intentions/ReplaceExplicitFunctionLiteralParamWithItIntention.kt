@@ -101,7 +101,7 @@ class ReplaceExplicitFunctionLiteralParamWithItIntention : PsiElementBaseIntenti
 
     private fun CjFunctionLiteral.usesName(name: String): Boolean =
         anyDescendantOfType<CjSimpleNameExpression> { nameExpr ->
-            nameExpr.getReferencedName() == name
+            nameExpr.referencedName == name
         }
 
     override fun startInWriteAction(): Boolean = false

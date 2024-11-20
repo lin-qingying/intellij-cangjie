@@ -471,8 +471,8 @@ abstract class AbstractImportFix(expression: CjSimpleNameExpression, factory: Fa
     private fun importNamesForMembers(): Collection<Name> {
         val element = element ?: return emptyList()
 
-        if (element.getIdentifier() != null) {
-            val name = element.getReferencedName()
+        if (element.identifier != null) {
+            val name = element.referencedName
             if (Name.isValidIdentifier(name)) {
                 return listOf(Name.identifier(name))
             }

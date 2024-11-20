@@ -144,12 +144,12 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
 }
 
 class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node), CjSimpleNameExpression {
-    override fun getReferencedName(): String {
+    override val referencedName : String get(){
         return expression?.name ?: ""
     }
 
-    override fun getReferencedNameAsName(): Name {
-        return Name.identifier(getReferencedName())
+    override val referencedNameAsName : Name  get(){
+        return Name.identifier(referencedName)
     }
 
     val isLocal: Boolean
@@ -181,15 +181,15 @@ class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node), CjSimp
             return getParentVariable()
         }
 
-    override fun getReferencedNameElement(): PsiElement {
+    override val referencedNameElement : PsiElement  get(){
         return expression ?: this
     }
 
-    override fun getIdentifier(): PsiElement? {
+    override val identifier : PsiElement?  get(){
         return findChildByType(CjTokens.IDENTIFIER)
     }
 
-    override fun getReferencedNameElementType(): IElementType {
+    override val referencedNameElementType : IElementType  get(){
         return CjSimpleNameExpressionImpl.getReferencedNameElementTypeImpl(this)
 
     }

@@ -67,7 +67,7 @@ fun getImportedSimpleNameByImportAlias(file: CjFile, aliasName: String): String?
         reference = reference.selectorExpression
     }
     if (reference is CjSimpleNameExpression) {
-        return reference.getReferencedName()
+        return reference.referencedName
     }
 
     return null
@@ -92,7 +92,7 @@ fun CjFunctionLiteral.findLabelAndCall(): Pair<Name?, CjCallExpression?> {
 
         is CjValueArgument -> {
             val callExpression = literalParent.callExpression()
-            val label = (callExpression?.calleeExpression as? CjSimpleNameExpression)?.getReferencedNameAsName()
+            val label = (callExpression?.calleeExpression as? CjSimpleNameExpression)?.referencedNameAsName
             return Pair(label, callExpression)
         }
 
@@ -302,7 +302,7 @@ fun StubBasedPsiElementBase<out CangJieTypeStatementStub<out CjTypeStatement>>.g
                     reference = reference.selectorExpression
                 }
                 if (reference is CjSimpleNameExpression) {
-                    result.add(reference.getReferencedName())
+                    result.add(reference.referencedName)
                 }
             }
         }

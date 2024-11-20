@@ -668,7 +668,7 @@ class ExpectedInfos(
 
     private fun expectedNameFromExpression(expression: CjExpression?): String? {
         return when (expression) {
-            is CjSimpleNameExpression -> expression.getReferencedName()
+            is CjSimpleNameExpression -> expression.referencedName
             is CjQualifiedExpression -> expectedNameFromExpression(expression.selectorExpression)
             is CjCallExpression -> expectedNameFromExpression(expression.calleeExpression)
             is CjArrayAccessExpression -> expectedNameFromExpression(expression.arrayExpression)?.unpluralize()

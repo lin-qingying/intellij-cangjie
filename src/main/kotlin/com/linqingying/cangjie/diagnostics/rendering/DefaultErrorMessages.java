@@ -167,10 +167,26 @@ public class DefaultErrorMessages {
             // "The value is out of range"
             return CangJieDiagnosisBundle.rawMessage(INT_LITERAL_OUT_OF_RANGE);
         });
+        MAP.put(CANNOT_CHECK_FOR_ERASED, () -> {
+
+//"Cannot check for instance of erased type: {0}"
+
+
+            return CangJieDiagnosisBundle.rawMessage(CANNOT_CHECK_FOR_ERASED);
+        }, RENDER_TYPE);
+        MAP.put(INAPPLICABLE_OPERATOR_MODIFIER, () -> {
+
+//            "''operator'' modifier is inapplicable on this function: {0}"
+            return CangJieDiagnosisBundle.rawMessage(INAPPLICABLE_OPERATOR_MODIFIER);
+        }, STRING);
 
         MAP.put(FLOAT_LITERAL_OUT_OF_RANGE, () -> {
             // "The value is out of range"
             return CangJieDiagnosisBundle.rawMessage(FLOAT_LITERAL_OUT_OF_RANGE);
+        });
+        MAP.put(VARRAY_SIZE_MISMATCH, () -> {
+            // "mismatch 'VArray' type's size"
+            return CangJieDiagnosisBundle.rawMessage(VARRAY_SIZE_MISMATCH);
         });
 
         MAP.put(INCORRECT_CHARACTER_LITERAL, () -> {
@@ -256,7 +272,7 @@ public class DefaultErrorMessages {
             // "Calls are not allowed {0}"
             return CangJieDiagnosisBundle.rawMessage(NO_CALL_OPERATOR);
         }, NAMED_ADN_PARAMETER);
-        MAP.put(CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY, ()->{
+        MAP.put(CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY, () -> {
 //            "Callable reference resolution ambiguity: {0}"
             return CangJieDiagnosisBundle.rawMessage(CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY);
         }, AMBIGUOUS_CALLABLE_REFERENCES);
@@ -287,6 +303,21 @@ public class DefaultErrorMessages {
         });
 //        类型检查
 
+        MAP.put(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM,
+
+                () -> {
+//     "Type checking has run into a recursive problem. Easiest workaround: specify types of your declarations explicitly"
+                    return CangJieDiagnosisBundle.rawMessage("TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM" );
+                }
+        );
+        MAP.put(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM_IN_AUGMENTED_ASSIGNMENT,
+                () -> {
+//            "Type checking has run into a recursive problem. Easiest workaround: specify types of your declarations explicitly"
+                    return CangJieDiagnosisBundle.rawMessage("TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM_IN_AUGMENTED_ASSIGNMENT");
+
+                }
+
+        );
 
         MAP.put(CANNOT_WEAKEN_ACCESS_PRIVILEGE, () -> {
             // "Cannot weaken access privilege ''{0}'' for ''{1}'' in ''{2}''"

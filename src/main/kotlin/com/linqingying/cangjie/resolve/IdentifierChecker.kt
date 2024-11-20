@@ -49,7 +49,7 @@ object CangJieSimpleNameBacktickChecker : IdentifierChecker {
     private val DANGEROUS_CHARS = setOf('?', '*', '"', '|', '%')
 
     override fun checkIdentifier(simpleNameExpression: CjSimpleNameExpression, diagnosticHolder: DiagnosticSink) {
-        reportIfNeeded(simpleNameExpression.getReferencedName(), { simpleNameExpression.getIdentifier() }, diagnosticHolder)
+        reportIfNeeded(simpleNameExpression.referencedName, { simpleNameExpression.identifier }, diagnosticHolder)
     }
 
     override fun checkDeclaration(declaration: CjDeclaration, diagnosticHolder: DiagnosticSink) {

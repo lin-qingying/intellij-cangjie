@@ -24,6 +24,8 @@
 
 package com.linqingying.cangjie.resolve
 
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.diagnostics.DiagnosticFactory1
@@ -31,12 +33,18 @@ import com.linqingying.cangjie.extensions.DeclarationAttributeAltererExtension
 import com.linqingying.cangjie.lexer.CjKeywordToken
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.*
+import com.linqingying.cangjie.resolve.caches.DeclarationChecker
+import com.linqingying.cangjie.resolve.caches.DeclarationCheckerContext
 import com.linqingying.cangjie.resolve.check.UnderscoreChecker
-import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.resolve.deprecation.DeprecationResolver
 
 class ModifiersChecker(
+    val declarationCheckers:Iterable<DeclarationChecker>,
+    val moduleDescriptor: ModuleDescriptor,
+    val deprecationResolver: DeprecationResolver,
 
-
+//val expectActualTracker:ExpectActualTracker,
+    val missingSupertypesResolver: MissingSupertypesResolver,
     val languageVersionSettings: LanguageVersionSettings
 ) {
 
@@ -148,15 +156,15 @@ class ModifiersChecker(
             declaration: CjDeclaration,
             descriptor: DeclarationDescriptor
         ) {
-//          val context: DeclarationCheckerContext = DeclarationCheckerContext(
-//              trace, languageVersionSettings, deprecationResolver, moduleDescriptor, expectActualTracker,
-//              missingSupertypesResolver
-//          )
-//          for (checker in declarationCheckers) {
-//              ProgressManager.checkCanceled()
-//              checker.check(declaration, descriptor, context)
-//          }
-//          OperatorModifierChecker.check(declaration, descriptor, trace, languageVersionSettings)
+            val context: DeclarationCheckerContext = DeclarationCheckerContext(
+                trace, languageVersionSettings, deprecationResolver, moduleDescriptor, /*expectActualTracker,*/
+                missingSupertypesResolver
+            )
+            for (checker in declarationCheckers) {
+                ProgressManager.checkCanceled()
+                checker.check(declaration, descriptor, context)
+            }
+            OperatorModifierChecker.check(declaration, descriptor, trace, languageVersionSettings)
 //          PublishedApiUsageChecker.check(declaration, descriptor, trace)
 //          OptionalExpectationChecker.check(declaration, descriptor, trace)
         }
@@ -245,7 +253,7 @@ class ModifiersChecker(
             modifierListOwner: CjModifierListOwner,
             defaultVisibility: DescriptorVisibility
         ): DescriptorVisibility {
-            if(modifierListOwner is CjMainFunction) return DescriptorVisibilities.PUBLIC
+            if (modifierListOwner is CjMainFunction) return DescriptorVisibilities.PUBLIC
             return resolveVisibilityFromModifiers(
                 modifierListOwner.modifierList,
                 defaultVisibility

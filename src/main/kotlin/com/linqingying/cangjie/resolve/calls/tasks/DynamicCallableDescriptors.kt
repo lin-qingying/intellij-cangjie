@@ -81,7 +81,7 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
         private fun isAugmentedAssignmentConvention(name: Name): Boolean {
             val callee = call.calleeExpression
             if (callee is CjOperationReferenceExpression) {
-                val token = callee.getReferencedNameElementType()
+                val token = callee.referencedNameElementType
                 if (token in CjTokens.AUGMENTED_ASSIGNMENTS && OperatorConventions.ASSIGNMENT_OPERATIONS[token] != name) {
                     return true
                 }

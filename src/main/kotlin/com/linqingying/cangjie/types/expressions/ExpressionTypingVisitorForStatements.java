@@ -200,13 +200,13 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
 //        }
         CjExpression left = deparenthesize(leftOperand);
         CjExpression right = expression.getRight();
-//        if (left instanceof CjArrayAccessExpression) {
-//            CjArrayAccessExpression arrayAccessExpression = (CjArrayAccessExpression) left;
-//            if (right == null) return TypeInfoFactoryKt.noTypeInfo(context);
-//            CangJieTypeInfo typeInfo = basic.resolveArrayAccessSetMethod(arrayAccessExpression, right, context, context.trace);
-//            basic.checkLValue(context.trace, context, arrayAccessExpression, right, expression, true);
-//            return typeInfo.replaceType(checkAssignmentType(typeInfo.getType(), expression, contextWithExpectedType));
-//        }
+        if (left instanceof CjArrayAccessExpression) {
+            CjArrayAccessExpression arrayAccessExpression = (CjArrayAccessExpression) left;
+            if (right == null) return TypeInfoFactoryKt.noTypeInfo(context);
+            CangJieTypeInfo typeInfo = basic.resolveArrayAccessSetMethod(arrayAccessExpression, right, context, context.trace);
+            basic.checkLValue(context.trace, context, arrayAccessExpression, right, expression, true);
+            return typeInfo.replaceType(checkAssignmentType(typeInfo.getType(), expression, contextWithExpectedType));
+        }
         CangJieTypeInfo leftInfo = ExpressionTypingUtils.getTypeInfoOrNullType(
                 left,
                 context.replaceCallPosition(new CallPosition.VariableAssignment(left, true)),

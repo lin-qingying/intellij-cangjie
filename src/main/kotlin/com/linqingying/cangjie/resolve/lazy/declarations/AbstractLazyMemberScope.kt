@@ -585,13 +585,17 @@ protected constructor(
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         recordLookup(name, location)
 
-        return if (name == MAIN) {
+        val d = if (name == MAIN) {
             mainFunctionDescriptors(MAIN)
         } else {
 // TODO 如果在推断方法返回值类型时，方法返回了自己，那么这里会报出递归错误
-            functionDescriptors(name)
+            functionDescriptors(name).apply {
+
+            }
         }
 
+
+        return d
     }
 
     protected abstract fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>)

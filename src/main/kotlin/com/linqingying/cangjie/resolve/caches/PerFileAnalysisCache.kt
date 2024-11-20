@@ -38,6 +38,7 @@ import com.intellij.psi.util.findTopmostParentInFile
 import com.intellij.psi.util.findTopmostParentOfType
 import com.intellij.psi.util.parents
 import com.linqingying.cangjie.analyzer.AnalysisResult
+import com.linqingying.cangjie.analyzer.DelegateAnalysisResult
 import com.linqingying.cangjie.container.ComponentProvider
 import com.linqingying.cangjie.container.get
 import com.linqingying.cangjie.context.GlobalContext
@@ -48,6 +49,7 @@ import com.linqingying.cangjie.descriptors.BindingTrace
 import com.linqingying.cangjie.descriptors.DeclarationDescriptorWithSource
 import com.linqingying.cangjie.descriptors.InvalidModuleException
 import com.linqingying.cangjie.descriptors.ModuleDescriptor
+import com.linqingying.cangjie.descriptors.PositioningStrategies.DECLARATION_WITH_BODY
 import com.linqingying.cangjie.diagnostics.*
 import com.linqingying.cangjie.frontend.createContainerForLazyBodyResolve
 import com.linqingying.cangjie.ide.cache.trackers.clearInBlockModifications
@@ -126,28 +128,41 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
         return null
     }
 
+    /**
+     * 查找并返回给定可分析元素的分析结果。
+     *
+     * @param analyzableElement 需要查找分析结果的元素。
+     * @return 如果找到分析结果则返回 [AnalysisResult]，否则返回 null。
+     */
     private fun lookUp(analyzableElement: CjElement): AnalysisResult? {
-        // Looking for parent elements that are already analyzed
-        // Also removing all elements whose parents are already analyzed, to guarantee consistency
+        // 初始化当前元素的后代集合和需要移除的元素集合
         val descendantsOfCurrent = arrayListOf<PsiElement>()
         val toRemove = hashSetOf<PsiElement>()
 
         var result: AnalysisResult? = null
+
+        // 遍历当前元素及其所有父元素
         for (current in analyzableElement.parentsWithSelf) {
             val cached = cache[current]
             if (cached != null) {
+                // 如果在缓存中找到了分析结果
                 result = cached
+                // 将当前元素的所有后代加入到需要移除的集合中
                 toRemove.addAll(descendantsOfCurrent)
+                // 清空当前元素的后代集合
                 descendantsOfCurrent.clear()
             }
 
+            // 将当前元素加入到后代集合中
             descendantsOfCurrent.add(current)
         }
 
+        // 从缓存中移除所有需要移除的元素
         cache.keys.removeAll(toRemove)
 
         return result
     }
+
 
     /**
      * 获取给定元素的分析结果。
@@ -179,12 +194,17 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
         }
 
         return guardLock.guarded {
-            // 忽略评估器中用于编译的代码片段，因为缓存可能导致数据一致性问题（见 KTIJ-22496）。
+            // 忽略评估器中用于编译的代码片段，因为缓存可能导致数据一致性问题
             // 但是，来自评估器的不用于编译的代码片段（例如，用于高亮显示）应该缓存以保持评估器的当前性能。
             if (analyzableParent.isUsedForCompilationInEvaluator()) return@guarded performAnalyze(element, callback)
 
             // 第一步：如果适用，执行增量分析
             getIncrementalAnalysisResult(callback)?.let {
+
+                if (it is DelegateAnalysisResult) {
+                    cache[analyzableParent] = it
+                    return@guarded it
+                }
                 return@guarded handleResult(it, callback)
             }
 
@@ -218,32 +238,54 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
     }
 
 
+    /**
+     * 获取增量分析结果。
+     *
+     * @param callback 诊断回调，用于处理分析过程中产生的诊断信息。
+     * @return 分析结果，如果发生错误或没有增量修改则可能返回 null。
+     */
     private fun getIncrementalAnalysisResult(callback: DiagnosticSink.DiagnosticsCallback?): AnalysisResult? {
+        // 从缓存中更新文件结果
         updateFileResultFromCache()
+
+        // 获取文件中的增量修改部分
         val inBlockModifications = file.inBlockModifications
 
+        // 如果存在增量修改部分
         if (inBlockModifications.isNotEmpty()) {
             try {
                 fileResult = fileResult?.let { result ->
                     var analysisResult = result
-                    // Force full analysis when existed is erroneous
+
+                    // 如果当前结果有错误，则强制进行全量分析
                     if (analysisResult.isError()) return@let null
+
+                    // 遍历每个增量修改部分
                     for (inBlockModification in inBlockModifications) {
+
+//                        对于需要推断的方法，进行全量分析
+                        if (inBlockModification is CjFunctionImpl && inBlockModification.isInferReturnType) {
+                            return DelegateAnalysisResult(performAnalyze(inBlockModification, callback))
+//                            return null
+                        }
+
                         val resultCtx = analysisResult.bindingContext
 
+                        // 检查绑定上下文是否支持增量分析
                         val stackedCtx =
                             if (resultCtx is StackedCompositeBindingContextTrace.StackedCompositeBindingContext) resultCtx else null
 
-                        // no incremental analysis IF it is not applicable
+                        // 如果不支持增量分析，则返回 null
                         if (stackedCtx?.isIncrementalAnalysisApplicable() == false) return@let null
 
+                        // 创建新的跟踪上下文
                         val trace: StackedCompositeBindingContextTrace =
                             if (stackedCtx != null && stackedCtx.element() == inBlockModification) {
                                 val trace = stackedCtx.bindingTrace()
                                 trace.clear()
                                 trace
                             } else {
-                                // to reflect a depth of stacked binding context
+                                // 反映堆叠绑定上下文的深度
                                 val depth = (stackedCtx?.depth() ?: 0) + 1
 
                                 StackedCompositeBindingContextTrace(
@@ -254,16 +296,21 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
                                 )
                             }
 
+                        // 调用回调处理父诊断信息
                         callback?.let { trace.parentDiagnosticsApartElement.forEach(it::callback) }
 
+                        // 分析增量修改部分
                         val newResult = analyze(inBlockModification, trace, callback)
                         analysisResult = wrapResult(result, newResult, trace)
                     }
+
+                    // 移除已处理的增量修改部分
                     file.removeInBlockModifications(inBlockModifications)
 
                     analysisResult
                 }
             } catch (e: Throwable) {
+                // 处理异常情况
                 e.throwAsInvalidModuleException {
                     clearFileResultCache()
                     ProcessCanceledException(it)
@@ -275,11 +322,13 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
             }
         }
 
+        // 如果文件结果为空，清除增量修改部分
         if (fileResult == null) {
             file.clearInBlockModifications()
         }
         return fileResult
     }
+
 
     private fun clearFileResultCache() {
         file.clearInBlockModifications()
@@ -577,13 +626,18 @@ private class StackedCompositeBindingContextTrace(
 
         fun depth(): Int = this@StackedCompositeBindingContextTrace.depth
 
-        // to prevent too deep stacked binding context
+        /**
+         * 判断是否可以应用增量分析。
+         * 为了防止绑定上下文堆栈过深，当当前深度小于16时，增量分析适用。
+         *
+         * @return 如果当前深度小于16，则返回true，否则返回false。
+         */
         fun isIncrementalAnalysisApplicable(): Boolean = this@StackedCompositeBindingContextTrace.depth < 16
 
-        // Predicate to check if the receiver is a PsiElement that was reanalyzed and therefore should
-        // have a result in the reanalysis context. We should not look such elements up in the
-        // parent context when there is no information for it in the current context. Because of mutations
-        // to PsiElements, that could result in incorrect information
+
+        // 用于检查接收者是否是一个被重新分析的PsiElement，因此应该在重新分析的上下文中有一个结果。
+        // 当当前上下文中没有该元素的信息时，我们不应该在父上下文中查找这些元素。
+        // 由于PsiElement的变更，这可能会导致错误的信息。
 
         private fun <K : Any?> K.containedInReanalyzedElement(): Boolean {
             return when (element) {
@@ -682,11 +736,11 @@ private class StackedCompositeBindingContextTrace(
     companion object {
         private fun selfDiagnosticToHold(d: Diagnostic): Boolean {
             val positioningStrategy = d.factory.safeAs<DiagnosticFactoryWithPsiElement<*, *>>()?.positioningStrategy
-//            return when (positioningStrategy) {
-//                DECLARATION_WITH_BODY -> false
-//                else -> true
-//            }
-            return true
+            return when (positioningStrategy) {
+                DECLARATION_WITH_BODY -> false
+                else -> true
+            }
+
         }
     }
 }

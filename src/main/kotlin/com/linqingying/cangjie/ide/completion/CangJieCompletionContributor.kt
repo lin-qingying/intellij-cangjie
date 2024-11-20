@@ -111,7 +111,7 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
             val expression = position.getNonStrictParentOfType<CjNameReferenceExpression>()
 
             if (expression != null && originalExpression != null &&
-                !expression.getReferencedName().startsWith(originalExpression.getReferencedName())
+                !expression.referencedName.startsWith(originalExpression.referencedName)
             ) {
                 return true
             }

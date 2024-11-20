@@ -78,7 +78,7 @@ class LazyTypeParameterDescriptor(
             for (typeConstraint in typeStatement.typeConstraints) {
                 val constrainedParameterName = typeConstraint.subjectTypeParameterName
                 if (constrainedParameterName != null) {
-                    if (name == constrainedParameterName.getReferencedNameAsName()) {
+                    if (name == constrainedParameterName.referencedNameAsName) {
                         c.trace.record<CjReferenceExpression, DeclarationDescriptor>(
                             BindingContext.REFERENCE_TARGET, constrainedParameterName,
                             this

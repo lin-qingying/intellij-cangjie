@@ -445,7 +445,7 @@ class CallResolver(
         when (val calleeExpression = context.call.calleeExpression){
             is CjSimpleNameExpression -> {
                 computeTasksAndResolveCall<CallableDescriptor>(
-                    context, calleeExpression.getReferencedNameAsName(), calleeExpression,
+                    context, calleeExpression.referencedNameAsName, calleeExpression,
                     kind
                 )
             }
@@ -486,7 +486,7 @@ class CallResolver(
             if (calleeExpression is CjSimpleNameExpression) {
 
                 result = computeTasksAndResolveCall<CallableDescriptor>(
-                    context, calleeExpression.getReferencedNameAsName(), calleeExpression,
+                    context, calleeExpression.referencedNameAsName, calleeExpression,
                     kind
                 )
 
@@ -570,12 +570,12 @@ class CallResolver(
             is CjSimpleNameExpression -> {
                 if(context.call is CallMaker.CallImpl){
                     return computeTasksAndResolveCall(
-                        context, calleeExpression.getReferencedNameAsName(), calleeExpression,
+                        context, calleeExpression.referencedNameAsName, calleeExpression,
                         NewResolutionOldInference.ResolutionKind.CallableReference
                     )
                 }
                 return computeTasksAndResolveCall(
-                    context, calleeExpression.getReferencedNameAsName(), calleeExpression,
+                    context, calleeExpression.referencedNameAsName, calleeExpression,
                     NewResolutionOldInference.ResolutionKind.Function
                 )
             }
@@ -910,7 +910,7 @@ class CallResolver(
         val calleeExpression = context.call.calleeExpression
         assert(calleeExpression is CjSimpleNameExpression)
         val nameExpression = calleeExpression as CjSimpleNameExpression
-        val referencedName = nameExpression.getReferencedNameAsName()
+        val referencedName = nameExpression.referencedNameAsName
         return computeTasksAndResolveCall(
             context, referencedName, nameExpression,
             NewResolutionOldInference.ResolutionKind.Variable

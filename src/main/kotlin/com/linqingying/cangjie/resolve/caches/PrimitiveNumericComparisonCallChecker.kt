@@ -119,7 +119,7 @@ object PrimitiveNumericComparisonCallChecker  : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         // Primitive number comparisons only take part in binary operator convention resolution
         val binaryExpression = resolvedCall.call.callElement as? CjBinaryExpression ?: return
-        if (!comparisonOperatorTokens.contains(binaryExpression.operationReference.getReferencedNameElementType())) return
+        if (!comparisonOperatorTokens.contains(binaryExpression.operationReference.referencedNameElementType)) return
 
         if (!resolvedCall.isStandardComparison()) return
 

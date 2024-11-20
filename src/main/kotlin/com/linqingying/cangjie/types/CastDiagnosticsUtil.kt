@@ -172,7 +172,7 @@ object CastDiagnosticsUtil {
         val isNonReifiedTypeParameter = TypeUtils.isNonReifiedTypeParameter(subtype)
         val isUpcast = typeChecker.isSubtypeOf(supertype, subtype)
 
-        // 这里我们希望限制类似 `x is T` 的情况，其中 x = T?，而 T 可能有可空的上界
+        // 这里我们希望限制类似 `x is T` 的情况，其中 x = ?T，而 T 可能有可空的上界
         if (isNonReifiedTypeParameter && !isUpcast) {
             val nullableToDefinitelyNotNull =
                 !TypeUtils.isNullableType(subtype) && supertype.makeNotNullable() == subtype

@@ -51,7 +51,7 @@ sealed class CangJieSimpleNameReferencePositionContext : CangJieNameReferencePos
     abstract override val nameExpression: CjSimpleNameExpression
     abstract override val explicitReceiver: CjExpression?
 
-    override fun getName(): Name = nameExpression.getReferencedNameAsName()
+    override fun getName(): Name = nameExpression.referencedNameAsName
 }
 
 class CangJiePackageDirectivePositionContext(

@@ -84,7 +84,8 @@ import com.linqingying.cangjie.types.ErrorUtils.invalidType
 import com.linqingying.cangjie.types.error.ErrorTypeKind
 import com.linqingying.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
 import com.linqingying.cangjie.types.expressions.ExpressionTypingServices
-import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
+import com.linqingying.cangjie.types.expressions.FunctionsTypingVisitor
+import com.linqingying.cangjie.types.expressions.PreliminaryDeclarationVisitor
 import com.linqingying.cangjie.types.util.TypeUtils.equalTypes
 import com.linqingying.cangjie.types.util.TypeUtils.getClassDescriptor
 import com.linqingying.cangjie.types.util.classKind
@@ -99,17 +100,19 @@ class DescriptorResolver(
     private val variableTypeAndInitializerResolver: VariableTypeAndInitializerResolver,
     private val expressionTypingServices: ExpressionTypingServices,
     private val overloadChecker: OverloadChecker,
-    private val languageVersionSettings: LanguageVersionSettings,  //            @NotNull FunctionsTypingVisitor functionsTypingVisitor,
-    //            @NotNull DestructuringDeclarationResolver destructuringDeclarationResolver,
-    //    private final FunctionsTypingVisitor functionsTypingVisitor;
-    //    private final DestructuringDeclarationResolver destructuringDeclarationResolver;
-    private val modifiersChecker: ModifiersChecker,  //            @NotNull WrappedTypeFactory wrappedTypeFactory,
+    private val languageVersionSettings: LanguageVersionSettings,
+
+    private val functionsTypingVisitor: FunctionsTypingVisitor,
+
+    private val modifiersChecker: ModifiersChecker,
+    private val wrappedTypeFactory: WrappedTypeFactory,
     project: Project,
-    private val typeApproximator: TypeApproximator,  //            @NotNull DeclarationReturnTypeSanitizer declarationReturnTypeSanitizer,
-    private val dataFlowValueFactory: DataFlowValueFactory //            ,
-    //            @NotNull Iterable<DeclarationSignatureAnonymousTypeTransformer> anonymousTypeTransformers,
-    //            @NotNull AdditionalClassPartsProvider additionalClassPartsProvider
-) {
+    private val typeApproximator: TypeApproximator,
+    private val declarationReturnTypeSanitizer: DeclarationReturnTypeSanitizer,
+    private val dataFlowValueFactory: DataFlowValueFactory,
+    private val anonymousTypeTransformers: Iterable<DeclarationSignatureAnonymousTypeTransformer>,
+
+    ) {
 
 
     init {
@@ -798,7 +801,7 @@ class DescriptorResolver(
         }
         for (constraint in declaration.extendTypeConstraints) {
             val subjectTypeParameterName = constraint.subjectTypeParameterName ?: continue
-            val referencedName = subjectTypeParameterName.getReferencedNameAsName()
+            val referencedName = subjectTypeParameterName.referencedNameAsName
             val typeParameterDescriptor = parameterByName[referencedName]
 
 
@@ -863,7 +866,7 @@ class DescriptorResolver(
         }
         for (constraint in declaration.typeConstraints) {
             val subjectTypeParameterName = constraint.subjectTypeParameterName ?: continue
-            val referencedName = subjectTypeParameterName.getReferencedNameAsName()
+            val referencedName = subjectTypeParameterName.referencedNameAsName
             val typeParameterDescriptor = parameterByName[referencedName]
 
 
@@ -911,7 +914,7 @@ class DescriptorResolver(
         for (constraint in declaration.extendTypeConstraints) {
             val nameExpression = constraint.subjectTypeParameterName ?: continue
 
-            val name = nameExpression.getReferencedNameAsName()
+            val name = nameExpression.referencedNameAsName
 
             val classifier = scope.findClassifier(name, NoLookupLocation.FOR_NON_TRACKED_SCOPE)
             if (classifier is TypeParameterDescriptor && classifier.containingDeclaration === descriptor) continue
@@ -946,7 +949,7 @@ class DescriptorResolver(
         for (constraint in declaration.typeConstraints) {
             val nameExpression = constraint.subjectTypeParameterName ?: continue
 
-            val name = nameExpression.getReferencedNameAsName()
+            val name = nameExpression.referencedNameAsName
 
             val classifier = scope.findClassifier(name, NoLookupLocation.FOR_NON_TRACKED_SCOPE)
             if (classifier is TypeParameterDescriptor && classifier.containingDeclaration === descriptor) continue
@@ -980,22 +983,30 @@ class DescriptorResolver(
         functionDescriptor: FunctionDescriptor,
         inferenceSession: InferenceSession?
     ): CangJieType {
-        //        TODO 推断返回值类型
 
-        return builtIns.unitType
-        //    return wrappedTypeFactory.createRecursionIntolerantDeferredType(trace, () -> {
-//        PreliminaryDeclarationVisitor.Companion.createForDeclaration(function, trace, languageVersionSettings);
-//        CangJieType type = expressionTypingServices.getBodyExpressionType(
-//                trace, scope, dataFlowInfo, function, functionDescriptor, inferenceSession
-//        );
-//        CangJieType publicType = transformAnonymousTypeIfNeeded(
-//                functionDescriptor, function, type, trace, anonymousTypeTransformers, languageVersionSettings
-//        );
-//        UnwrappedType approximatedType = typeApproximator.approximateDeclarationType(publicType, false);
-//        CangJieType sanitizedType = declarationReturnTypeSanitizer.sanitizeReturnType(approximatedType, wrappedTypeFactory, trace, languageVersionSettings);
-//        functionsTypingVisitor.checCjypesForReturnStatements(function, trace, sanitizedType);
-//        return sanitizedType;
-//    });
+
+        return wrappedTypeFactory.createRecursionIntolerantDeferredType(trace) {
+            PreliminaryDeclarationVisitor.createForDeclaration(function, trace, languageVersionSettings)
+
+            val type = expressionTypingServices.getBodyExpressionType(
+                trace, scope, dataFlowInfo, function, functionDescriptor, inferenceSession
+            )
+
+            val publicType = transformAnonymousTypeIfNeeded(
+                functionDescriptor, function, type, trace, anonymousTypeTransformers, languageVersionSettings
+            )
+
+            val approximatedType = typeApproximator.approximateDeclarationType(publicType, false)
+
+            val sanitizedType = declarationReturnTypeSanitizer.sanitizeReturnType(
+                approximatedType, wrappedTypeFactory, trace, languageVersionSettings
+            )
+
+            functionsTypingVisitor.checkTypesForReturnStatements(function, trace, sanitizedType)
+
+            sanitizedType
+        }
+
     }
 
 
@@ -1288,7 +1299,8 @@ class DescriptorResolver(
         dataFlowInfo: DataFlowInfo,
         inferenceSession: InferenceSession
     ): List<VariableDescriptor> {
-        val context = expressionTypingServices.getNewContext(scopeForDeclarationResolution, trace,dataFlowInfo,inferenceSession)
+        val context =
+            expressionTypingServices.getNewContext(scopeForDeclarationResolution, trace, dataFlowInfo, inferenceSession)
 
 
 

@@ -188,7 +188,7 @@ object OperatorNameConventions {
     fun Name.asOperatorString(): String {
         return when (this) {
             INVOKE -> "()"
-            GET -> "[]"
+            GET , SET -> "[]"
             NOT -> "!"
             NOT_EQUALS -> "!="
             EXPONENTIATION -> "**"

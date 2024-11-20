@@ -68,7 +68,7 @@ class FromUnresolvedNamesCompletion(
                     }
                 }
 
-                val name = refExpr.getReferencedName()
+                val name = refExpr.referencedName
                 if (!prefixMatcher.prefixMatches(name)) return@forEachDescendantOfType
 
                 if (afterOffset != null && refExpr.startOffset < afterOffset) return@forEachDescendantOfType

@@ -63,7 +63,7 @@ class UnaryOperatorReferenceSearcher(
         if (ref !is CjSimpleNameReference) return false
         val element = ref.element
         if (element.parent !is CjUnaryExpression) return false
-        return element.getReferencedNameElementType() == operationToken
+        return element.referencedNameElementType == operationToken
     }
 
     override fun extractReference(element: CjElement): PsiReference? {

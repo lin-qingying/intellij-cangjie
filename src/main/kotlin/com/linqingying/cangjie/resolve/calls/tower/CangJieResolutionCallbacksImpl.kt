@@ -386,7 +386,7 @@ class CangJieResolutionCallbacksImpl(
 
         if (call.typeArgumentList != null || !candidateDescriptor.isFunctionForExpectTypeFromCastFeature()) return null
         val binaryParent = call.calleeExpression?.getBinaryWithTypeParent() ?: return null
-        val operationType = binaryParent.operationReference.getReferencedNameElementType().takeIf {
+        val operationType = binaryParent.operationReference.referencedNameElementType.takeIf {
             it == CjTokens.AS_KEYWORD
         } ?: return null
 

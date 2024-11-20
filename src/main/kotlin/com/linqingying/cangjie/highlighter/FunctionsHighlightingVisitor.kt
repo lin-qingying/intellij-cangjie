@@ -45,7 +45,7 @@ internal class FunctionsHighlightingVisitor(holder: HighlightInfoHolder, binding
     AfterAnalysisHighlightingVisitor(holder, bindingContext) {
 
     override fun visitBinaryExpression(expression: CjBinaryExpression) {
-        if (expression.operationReference.getIdentifier() != null) {
+        if (expression.operationReference.identifier != null) {
             expression.getResolvedCall(bindingContext)?.let { resolvedCall ->
                 highlightCall(expression.operationReference, resolvedCall)
             }

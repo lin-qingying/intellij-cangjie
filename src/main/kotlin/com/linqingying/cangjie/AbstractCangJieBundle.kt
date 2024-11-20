@@ -45,6 +45,7 @@ abstract class AbstractCangJieBundle protected constructor(val pathToBundle: Str
             CustomControl
         )
 
+
     //     自定义的 ResourceBundle Control，用来控制资源加载
     private object CustomControl : ResourceBundle.Control() {
         override fun getFallbackLocale(baseName: String?, locale: Locale?): Locale? {
@@ -57,11 +58,7 @@ abstract class AbstractCangJieBundle protected constructor(val pathToBundle: Str
 
         }
     }
-    // 新增的方法来获取原始内容
-    @Nls
 
-    fun rawMessage(  key: String): String =
-        getMessage(key) // 不传递任何参数
     // 动态加载资源文件
     @Nls
     override fun getMessage(key: String, vararg params: Any): String {

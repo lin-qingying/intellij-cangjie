@@ -97,7 +97,7 @@ private fun addParamTypes(position: PsiElement): PsiElement {
         originalNestedDotExpr.replace(dotExprWithoutCaretCopy) // smth.call() -> smth.call<TypeA, TYpeB>
 
         // IntellijIdeaRulezzz as before
-        val newPosition = (originalDotExpr.selectorExpression as? CjNameReferenceExpression)?.getReferencedNameElement() ?: return null
+        val newPosition = (originalDotExpr.selectorExpression as? CjNameReferenceExpression)?.referencedNameElement ?: return null
         val typeArguments = CangJieInsertExplicitTypeArgumentsIntention.createTypeArguments(callExpression, bindingContext) ?: return null
 
         return typeArguments to newPosition

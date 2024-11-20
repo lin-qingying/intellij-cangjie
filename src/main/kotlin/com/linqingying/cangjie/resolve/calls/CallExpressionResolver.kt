@@ -683,7 +683,7 @@ class CallExpressionResolver(
                 ?: ErrorUtils.createErrorType(
                     ErrorTypeKind.ERROR_RECEIVER_TYPE,
                     when (val receiver = element.receiver) {
-                        is CjNameReferenceExpression -> receiver.getReferencedName()
+                        is CjNameReferenceExpression -> receiver.referencedName
                         else -> receiver.text
                     }
                 )
@@ -753,7 +753,7 @@ class CallExpressionResolver(
                 ?: ErrorUtils.createErrorType(
                     ErrorTypeKind.ERROR_RECEIVER_TYPE,
                     when (val receiver = element.receiver) {
-                        is CjNameReferenceExpression -> receiver.getReferencedName()
+                        is CjNameReferenceExpression -> receiver.referencedName
                         else -> receiver.text
                     }
                 )
@@ -840,7 +840,7 @@ class CallExpressionResolver(
                 ?: ErrorUtils.createErrorType(
                     ErrorTypeKind.ERROR_RECEIVER_TYPE,
                     when (val receiver = element.receiver) {
-                        is CjNameReferenceExpression -> receiver.getReferencedName()
+                        is CjNameReferenceExpression -> receiver.referencedName
                         else -> receiver.text
                     }
                 )

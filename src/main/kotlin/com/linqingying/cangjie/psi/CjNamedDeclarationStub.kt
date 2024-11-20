@@ -62,12 +62,7 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
             if (identifier != null) {
 
                 val text = identifier.text
-//                val text = if(identifier is CjOperationName){
-//                    identifier.name
-//
-//                }else{
-//                    identifier.text
-//                }
+
                 return@runReadAction if (text != null) CjPsiUtil.unquoteIdentifier(text) else null
             }
 
@@ -77,9 +72,9 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
 
     override val nameAsName: Name?
         get() {
-            val name = name
-            return if (name != null) name.asOperatorName() else null
+            return this.name?.asOperatorName()
         }
+
 
     override val nameAsSafeName: Name
         get() = CjPsiUtil.safeName(name)

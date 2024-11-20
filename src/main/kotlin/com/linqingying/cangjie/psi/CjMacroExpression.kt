@@ -53,7 +53,7 @@ class CjMacroExpression : CjElementImplStub<CangJieMacroExpressionStub>, CjCallE
                 return null
             }
             if (referenceExpression != null) {
-                return referenceExpression!!.getReferencedNameAsName()
+                return referenceExpression!!.referencedNameAsName
             }
 
             return null

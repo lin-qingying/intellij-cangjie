@@ -27,6 +27,7 @@ package com.linqingying.cangjie.resolve.lazy
 import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.context.GlobalContext
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.ide.codeinsight.toSourceElement
 import com.linqingying.cangjie.incremental.CangJieLookupLocation
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
@@ -35,14 +36,17 @@ import com.linqingying.cangjie.psi.psiUtil.CjStubbedPsiUtil
 import com.linqingying.cangjie.psi.psiUtil.getElementTextWithContext
 import com.linqingying.cangjie.psi.stubs.elements.getAllBindings
 import com.linqingying.cangjie.resolve.BindingContext
+import com.linqingying.cangjie.resolve.FunctionDescriptorResolver
 import com.linqingying.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.linqingying.cangjie.resolve.scopes.MemberScope
+import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.storage.LockBasedLazyResolveStorageManager
 import jakarta.inject.Inject
 
 open class LazyDeclarationResolver(
     globalContext: GlobalContext,
     delegationTrace: BindingTrace,
+
     private val topLevelDescriptorProvider: TopLevelDescriptorProvider,
     private val absentDescriptorHandler: AbsentDescriptorHandler
 ) {
@@ -51,12 +55,15 @@ open class LazyDeclarationResolver(
     private val bindingContext: BindingContext
         get() = trace.bindingContext
     protected lateinit var scopeProvider: DeclarationScopeProvider
-
+private lateinit var functionDescriptorResolver : FunctionDescriptorResolver
     @Inject
     fun setDeclarationScopeProvider(scopeProvider: DeclarationScopeProviderImpl) {
         this.scopeProvider = scopeProvider
     }
-
+    @Inject
+    fun setFunctionDescriptorResolver(functionDescriptorResolver: FunctionDescriptorResolver) {
+        this.functionDescriptorResolver = functionDescriptorResolver
+    }
     init {
         val lockBasedLazyResolveStorageManager = LockBasedLazyResolveStorageManager(globalContext.storageManager)
 
@@ -157,7 +164,10 @@ open class LazyDeclarationResolver(
                 val location = lookupLocationFor(function, function.isTopLevel)
                 val scopeForDeclaration = getMemberScopeDeclaredIn(function, location)
                 scopeForDeclaration.getContributedFunctions(function.nameAsSafeName, location)
-                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
+              return   bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
+
+
+
             }
 
             override fun visitMacroDeclaration(
@@ -369,17 +379,31 @@ open class LazyDeclarationResolver(
     }
 
 
+    /**
+     * 获取声明所在成员范围
+     *
+     * 此函数旨在确定给定声明所属的成员范围这在处理可能与导入项存在冲突的顶级声明时尤为重要
+     * 它通过检查声明的父声明来决定是直接在包中搜索成员范围，还是根据父声明的类型来获取成员范围
+     *
+     * @param declaration 需要查找成员范围的声明
+     * @param location 查找位置，用于调试信息
+     * @return 成员范围，表示声明所属的范围
+     */
     internal fun getMemberScopeDeclaredIn(declaration: CjDeclaration, location: LookupLocation):
             /*package*/ MemberScope {
+        // 获取包含当前声明的父声明
         val parentDeclaration = CjStubbedPsiUtil.getContainingDeclaration(declaration)
+        // 判断当前声明是否为顶级声明
         val isTopLevel = parentDeclaration == null
         if (isTopLevel) { // for top level declarations we search directly in package because of possible conflicts with imports
+            // 对于顶级声明，直接在包中搜索成员范围
             val cjFile = declaration.containingFile as CjFile
             val fqName = cjFile.packageFqName
             topLevelDescriptorProvider.assertValid()
             val packageDescriptor = topLevelDescriptorProvider.getPackageFragmentOrDiagnoseFailure(fqName, cjFile)
             return packageDescriptor.getMemberScope()
         } else {
+            // 根据父声明的类型返回相应的成员范围
             return when (parentDeclaration) {
                 is CjTypeStatement -> getClassDescriptor(parentDeclaration, location).unsubstitutedMemberScope
 

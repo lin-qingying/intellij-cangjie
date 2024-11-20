@@ -79,7 +79,11 @@ class CjPsiFactory private constructor(
     fun createEmptyClassBody(): CjAbstractClassBody {
         return createClass("class A{}").getBody()!!
     }
-
+  //the pair contains the first and the last elements of a range
+    fun createWhitespaceAndArrow(): Pair<PsiElement, PsiElement> {
+        val functionType = createType("() -> Int").typeElement as CjFunctionType
+        return Pair(functionType.findElementAt(2)!!, functionType.findElementAt(3)!!)
+    }
     fun createTypeArguments(@NonNls text: String): CjTypeArgumentList {
         val property = createVariable("let x = foo$text()")
         return (property.initializer as CjCallExpression).typeArgumentList!!

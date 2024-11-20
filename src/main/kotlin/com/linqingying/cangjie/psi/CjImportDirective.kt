@@ -192,7 +192,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CjImpor
                 }
 
                 is CjSimpleNameExpression -> {
-                    return topLevel(expression.getReferencedNameAsName())
+                    return topLevel(expression.referencedNameAsName)
                 }
 
                 else -> {
@@ -207,7 +207,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CjImpor
             }
 
             if (expression is CjSimpleNameExpression) {
-                return expression.getReferencedNameAsName()
+                return expression.referencedNameAsName
             } else {
                 throw IllegalArgumentException("Can't construct name for: " + expression.javaClass)
             }

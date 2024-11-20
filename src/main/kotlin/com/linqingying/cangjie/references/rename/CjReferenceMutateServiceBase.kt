@@ -101,7 +101,7 @@ abstract class CjReferenceMutateServiceBase : CjReferenceMutateService {
 
         val project = expression.project
         val psiFactory = CjPsiFactory(project)
-        val nameElement = expression.getReferencedNameElement()
+        val nameElement = expression.referencedNameElement
 //        val elementType = nameElement.node.elementType
 //        val opExpression = if (elementType is CjToken && OperatorConventions.getNameForOperationSymbol(elementType) != null) {
 //            expression.parent as? CjOperationExpression

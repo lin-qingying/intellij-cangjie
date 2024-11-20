@@ -765,9 +765,9 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 //            components.annotationChecker.check(typeReferenceAfterIs, context.trace)
 //        }
 
-        if (CastDiagnosticsUtil.isCastErased(subjectType, targetType, CangJieTypeChecker.DEFAULT)) {
-            context.trace.report(CANNOT_CHECK_FOR_ERASED.on(typeReferenceAfterIs, targetType))
-        }
+//        if (CastDiagnosticsUtil.isCastErased(subjectType, targetType, CangJieTypeChecker.DEFAULT)) {
+//            context.trace.report(CANNOT_CHECK_FOR_ERASED.on(typeReferenceAfterIs, targetType))
+//        }
         return context.dataFlowInfo.let {
             ConditionalDataFlowInfo(
                 it.establishSubtyping(

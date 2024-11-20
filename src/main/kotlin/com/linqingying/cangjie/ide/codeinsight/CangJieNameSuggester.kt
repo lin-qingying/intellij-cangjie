@@ -43,7 +43,7 @@ class CangJieNameSuggester {
         private fun getSimpleExpressionName(expression: CjExpression?): String? {
             if (expression == null) return null
             return when (val deparenthesized = CjPsiUtil.safeDeparenthesize(expression)) {
-                is CjSimpleNameExpression -> return deparenthesized.getReferencedName()
+                is CjSimpleNameExpression -> return deparenthesized.referencedName
                 is CjQualifiedExpression -> getSimpleExpressionName(deparenthesized.selectorExpression)
                 is CjCallExpression -> getSimpleExpressionName(deparenthesized.calleeExpression)
                 is CjPostfixExpression -> getSimpleExpressionName(deparenthesized.baseExpression)

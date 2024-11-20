@@ -64,7 +64,7 @@ class BinaryOperatorReferenceSearcher(
         if (ref !is CjSimpleNameReference) return false
         val element = ref.element
         if (element.parent !is CjBinaryExpression) return false
-        return element.getReferencedNameElementType() in operationTokens
+        return element.referencedNameElementType in operationTokens
     }
 
     override fun extractReference(element: CjElement): PsiReference? {

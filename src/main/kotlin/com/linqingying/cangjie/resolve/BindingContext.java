@@ -51,6 +51,7 @@ import com.linqingying.cangjie.resolve.scopes.LexicalScope;
 import com.linqingying.cangjie.resolve.scopes.receivers.QualifierReceiver;
 import com.linqingying.cangjie.types.CangJieType;
 import com.linqingying.cangjie.types.DeferredType;
+import com.linqingying.cangjie.types.DeferredTypeNoCache;
 import com.linqingying.cangjie.types.expressions.CaptureKind;
 import com.linqingying.cangjie.types.expressions.PreliminaryDeclarationVisitor;
 import com.linqingying.cangjie.types.expressions.match.Pattern;
@@ -106,6 +107,8 @@ public interface BindingContext {
             // Do nothing
         }
     };
+    WritableSlice<Box<DeferredTypeNoCache>, Boolean> DEFERRED_TYPE_NO_CACHE = Slices.createCollectiveSetSlice();
+
     WritableSlice<Box<DeferredType>, Boolean> DEFERRED_TYPE = Slices.createCollectiveSetSlice();
     WritableSlice<CjCollectionLiteralExpression, ResolvedCall<FunctionDescriptor>> COLLECTION_LITERAL_CALL = Slices.createSimpleSlice();
     WritableSlice<CjRangeExpression, ResolvedCall<FunctionDescriptor>> RANGE_LITERAL_CALL = Slices.createSimpleSlice();

@@ -24,6 +24,7 @@
 
 package com.linqingying.cangjie.storage
 
+import com.intellij.util.containers.ContainerUtil
 import com.linqingying.cangjie.descriptors.BindingTrace
 import com.linqingying.cangjie.diagnostics.Diagnostic
 import com.linqingying.cangjie.diagnostics.Diagnostics
@@ -32,22 +33,42 @@ import com.linqingying.cangjie.resolve.BindingContext
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.utils.slicedMap.ReadOnlySlice
 import com.linqingying.cangjie.utils.slicedMap.WritableSlice
-import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.annotations.TestOnly
 
-
+/**
+ * 使用锁机制来管理懒解析存储的类。它包装了另一个StorageManager，并提供线程安全的操作。
+ *
+ * @param storageManager 被包装的存储管理器，负责实际的数据存储。
+ */
 class LockBasedLazyResolveStorageManager(private val storageManager: StorageManager) : StorageManager by storageManager,
     LazyResolveStorageManager {
+    /**
+     * 创建一个软引用保留的备忘函数。
+     *
+     * @param compute 计算函数，用于生成备忘录中的值。
+     * @return 备忘函数，其值被软引用保留。
+     */
     override fun <K : Any, V : Any> createSoftlyRetainedMemoizedFunction(compute: Function1<K, V>) =
-        storageManager.createMemoizedFunction<K, V>(compute, ContainerUtil.createConcurrentSoftValueMap<K, Any>())
+        storageManager.createMemoizedFunction(compute, ContainerUtil.createConcurrentSoftValueMap<K, Any>())
 
+    /**
+     * 创建一个软引用保留的备忘函数，允许值为null。
+     *
+     * @param compute 计算函数，用于生成备忘录中的值。
+     * @return 备忘函数，其值被软引用保留，允许null值。
+     */
     override fun <K : Any, V : Any> createSoftlyRetainedMemoizedFunctionWithNullableValues(compute: Function1<K, V>) =
-        storageManager.createMemoizedFunctionWithNullableValues<K, V>(
+        storageManager.createMemoizedFunctionWithNullableValues(
             compute,
             ContainerUtil.createConcurrentSoftValueMap<K, Any>()
         )
 
-
+    /**
+     * 使用锁保护的上下文类。所有对上下文的操作都在存储管理器的计算中进行，以确保线程安全。
+     *
+     * @param storageManager 被包装的存储管理器。
+     * @param context 实际的绑定上下文。
+     */
     private class LockProtectedContext(
         private val storageManager: StorageManager,
         private val context: BindingContext
@@ -58,10 +79,10 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
         override fun getDiagnostics(): Diagnostics = storageManager.compute { context.diagnostics }
 
         override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K) =
-            storageManager.compute { context.get<K, V>(slice, key) }
+            storageManager.compute { context.get(slice, key) }
 
-        override fun <K, V> getKeys(slice: WritableSlice<K, V>) =
-            storageManager.compute { context.getKeys<K, V>(slice) }
+        override fun <K, V> getKeys(slice: WritableSlice<K, V>): MutableCollection<K> =
+            storageManager.compute { context.getKeys(slice) }
 
         override fun addOwnDataTo(trace: BindingTrace, commitDiagnostics: Boolean) {
             storageManager.compute { context.addOwnDataTo(trace, commitDiagnostics) }
@@ -69,9 +90,15 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
 
         @TestOnly
         override fun <K, V> getSliceContents(slice: ReadOnlySlice<K, V>) =
-            storageManager.compute { context.getSliceContents<K, V>(slice) }
+            storageManager.compute { context.getSliceContents(slice) }
     }
 
+    /**
+     * 使用锁保护的追踪类。所有对追踪的操作都在存储管理器的计算中进行，以确保线程安全。
+     *
+     * @param storageManager 被包装的存储管理器。
+     * @param trace 实际的绑定追踪。
+     */
     private class LockProtectedTrace(private val storageManager: StorageManager, private val trace: BindingTrace) :
         BindingTrace {
 
@@ -82,27 +109,28 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
 
         override val size: Int
             get() = trace.size
+
         override fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K> =
-            storageManager.compute { trace.getKeys<K, V>(slice) }
+            storageManager.compute { trace.getKeys(slice) }
 
         override fun getType(expression: CjExpression): CangJieType? =
             storageManager.compute { context.getType(expression) }
 
 
         override fun <K, V> record(slice: WritableSlice<K, V>, key: K, value: V) {
-            storageManager.compute { trace.record<K, V>(slice, key, value) }
+            storageManager.compute { trace.record(slice, key, value) }
         }
 
         override fun <K> record(slice: WritableSlice<K, Boolean>, key: K) {
-            storageManager.compute { trace.record<K>(slice, key) }
+            storageManager.compute { trace.record(slice, key) }
         }
 
-        override fun recordType(expression:CjExpression, type: CangJieType?) {
+        override fun recordType(expression: CjExpression, type: CangJieType?) {
             storageManager.compute { trace.recordType(expression, type) }
         }
 
         override fun <K, V> get(slice: ReadOnlySlice<K, V>, key: K): V? =
-            storageManager.compute { trace.get<K, V>(slice, key) }
+            storageManager.compute { trace[slice, key] }
 
 
         override fun report(diagnostic: Diagnostic) {
@@ -116,6 +144,12 @@ class LockBasedLazyResolveStorageManager(private val storageManager: StorageMana
         }
     }
 
+    /**
+     * 创建一个安全的追踪对象，该对象的所有操作都在存储管理器的计算中进行，以确保线程安全。
+     *
+     * @param originalTrace 原始的绑定追踪。
+     * @return 使用锁保护的绑定追踪。
+     */
     override fun createSafeTrace(originalTrace: BindingTrace): BindingTrace =
         LockProtectedTrace(storageManager, originalTrace)
 

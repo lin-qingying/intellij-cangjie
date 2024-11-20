@@ -46,7 +46,7 @@ object LabelResolver {
     private fun getLabelForFunctionalExpression(element: CjExpression): Name? {
         return when (val parent = element.parent) {
 //            is CjLabeledExpression -> getLabelNamesIfAny(parent, false).singleOrNull()
-            is CjBinaryExpression -> parent.operationReference.getReferencedNameAsName()
+            is CjBinaryExpression -> parent.operationReference.referencedNameAsName
             else -> getCallerName(element)
         }
     }
@@ -75,7 +75,7 @@ object LabelResolver {
     private fun getCallerName(expression: CjExpression): Name? {
         val callExpression = getContainingCallExpression(expression) ?: return null
         val calleeExpression = callExpression.calleeExpression as? CjSimpleNameExpression
-        return calleeExpression?.getReferencedNameAsName()
+        return calleeExpression?.referencedNameAsName
 
     }
 

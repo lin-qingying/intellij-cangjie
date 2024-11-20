@@ -45,7 +45,7 @@ import java.util.ArrayList
 fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEntry {
     val name = when (expression) {
         is CjThisExpression -> CjTokens.THIS_KEYWORD.value
-        else -> (expression as CjNameReferenceExpression).getReferencedNameElement().text
+        else -> (expression as CjNameReferenceExpression).referencedNameElement.text
     }
 
     val newEntry = CjPsiFactory(project).createSimpleNameStringTemplateEntry(name)
@@ -97,7 +97,7 @@ inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean):
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict)
 }
 inline val PsiElement.identifier get() = when(this){
-    is CjSimpleNameExpression -> this.getIdentifier()
+    is CjSimpleNameExpression -> this.identifier
 
     else -> null
 }

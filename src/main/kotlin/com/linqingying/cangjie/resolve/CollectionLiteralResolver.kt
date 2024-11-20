@@ -35,6 +35,7 @@ import com.linqingying.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
 import com.linqingying.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import com.linqingying.cangjie.diagnostics.DiagnosticFactory1
+import com.linqingying.cangjie.diagnostics.Errors.VARRAY_SIZE_MISMATCH
 import com.linqingying.cangjie.incremental.CangJieLookupLocation
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.CjCollectionLiteralExpression
@@ -96,6 +97,12 @@ class CollectionLiteralResolver(
         val expressionSize = collectionLiteralExpression.innerExpressions.size
 
         if (expressionSize != context.expectedType.size) {
+
+            context.trace.report(
+                VARRAY_SIZE_MISMATCH.on(
+                    collectionLiteralExpression
+                )
+            )
 //            报错长度不符
         }
 

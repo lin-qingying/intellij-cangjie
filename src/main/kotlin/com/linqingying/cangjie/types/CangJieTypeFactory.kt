@@ -120,6 +120,14 @@ object CangJieTypeFactory {
     ): SimpleType {
         return OptionType(type)
     }
+  @JvmStatic
+    fun simpleType(
+        baseType: SimpleType,
+        annotations: TypeAttributes = baseType.attributes,
+        constructor: TypeConstructor = baseType.constructor,
+        arguments: List<TypeProjection> = baseType.arguments,
+        nullable: Boolean = baseType.isMarkedOption
+    ): SimpleType = simpleType(annotations, constructor, arguments, nullable)
 
     @JvmStatic
     @JvmOverloads

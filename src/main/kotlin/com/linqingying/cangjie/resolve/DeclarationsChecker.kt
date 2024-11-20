@@ -151,7 +151,7 @@ class DeclarationsChecker(
         for (constraint in classOrObject.typeConstraints) {
             val typeReference = constraint.boundTypeReference ?: continue
             val type = typeReference.type() ?: continue
-            val name = constraint.subjectTypeParameterName?.getReferencedNameAsName() ?: continue
+            val name = constraint.subjectTypeParameterName?.referencedNameAsName  ?: continue
             upperBoundCheckRequests.add(DescriptorResolver.UpperBoundCheckRequest(name, typeReference, type))
         }
 
@@ -210,7 +210,7 @@ class DeclarationsChecker(
                 val allBounds: List<Pair<CjTypeReference, CangJieType?>> =
                     owner.typeConstraints
                         .filter { constraint ->
-                            constraint.subjectTypeParameterName?.getReferencedNameAsName() == declaration.nameAsName
+                            constraint.subjectTypeParameterName?.referencedNameAsName == declaration.nameAsName
                         }
                         .mapNotNull { constraint -> constraint.boundTypeReference }
                         .map { typeReference -> typeReference to trace.bindingContext.get(TYPE, typeReference) }

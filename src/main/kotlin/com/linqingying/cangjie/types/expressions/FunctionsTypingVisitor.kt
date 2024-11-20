@@ -37,6 +37,7 @@ import com.linqingying.cangjie.descriptors.SimpleFunctionDescriptor
 import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import com.linqingying.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
+import com.linqingying.cangjie.diagnostics.Errors
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.BindingContext
@@ -51,6 +52,7 @@ import com.linqingying.cangjie.resolve.scopes.LexicalWritableScope
 import com.linqingying.cangjie.resolve.source.toSourceElement
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.CommonSupertypes
+import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.checker.TrailingCommaChecker
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
@@ -59,11 +61,31 @@ import com.linqingying.cangjie.types.util.TypeUtils.CANNOT_INFER_FUNCTION_PARAM_
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.noExpectedType
 import com.linqingying.cangjie.types.util.contains
+import com.linqingying.cangjie.types.util.isUnit
 import com.linqingying.cangjie.utils.addIfNotNull
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 
 class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
+fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: BindingTrace, actualReturnType: CangJieType) {
+        if (function.hasBlockBody()) return
+        if ((function !is CjNamedFunction || function.typeReference != null)
+            && (function !is CjPropertyAccessor || function.returnTypeReference == null)) return
 
+        for (returnForCheck in collectReturns(function, trace)) {
+            val expression = returnForCheck.returnedExpression
+            if (expression == null) {
+                if (!actualReturnType.isUnit()) {
+                    trace.report(Errors.RETURN_TYPE_MISMATCH.on(returnForCheck, actualReturnType))
+                }
+                continue
+            }
+
+            val expressionType = trace.getType(expression) ?: continue
+            if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(expressionType, actualReturnType)) {
+                trace.report(Errors.TYPE_MISMATCH.on(expression, expressionType, actualReturnType))
+            }
+        }
+    }
     fun visitNamedFunction(
         function: CjNamedFunction,
         context: ExpressionTypingContext,
@@ -320,6 +342,35 @@ class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypi
         return computeReturnTypeBasedOnReturnExpressions(functionLiteral, context, typeOfBodyExpression)
     }
 
+    private fun collectReturns(function: CjDeclarationWithBody, trace: BindingTrace): List<CjReturnExpression> {
+        val bodyExpression = function.bodyExpression ?: return emptyList()
+        val returns = ArrayList<CjReturnExpression>()
+
+        bodyExpression.accept(object : CjTreeVisitor<Boolean>() {
+            override fun visitReturnExpression(expression: CjReturnExpression, insideActualFunction: Boolean): Void? {
+                val labelTarget = expression.getTargetLabel()?.let { trace[BindingContext.LABEL_TARGET, it] }
+                if (labelTarget == function || (labelTarget == null && insideActualFunction)) {
+                    returns.add(expression)
+                }
+
+                return super.visitReturnExpression(expression, insideActualFunction)
+            }
+
+            override fun visitNamedFunction(function: CjNamedFunction, data: Boolean): Void? {
+                return super.visitNamedFunction(function, false)
+            }
+
+            override fun visitPropertyAccessor(accessor: CjPropertyAccessor, data: Boolean): Void? {
+                return super.visitPropertyAccessor(accessor, false)
+            }
+
+            override fun visitAnonymousInitializer(initializer: CjAnonymousInitializer, data: Boolean): Void? {
+                return super.visitAnonymousInitializer(initializer, false)
+            }
+        }, true)
+
+        return returns
+    }
     private fun collectReturns(
         functionLiteral: CjFunctionLiteral,
         trace: BindingTrace

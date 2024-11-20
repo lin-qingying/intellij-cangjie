@@ -95,7 +95,7 @@ internal fun getIdForStableIdentifier(
         is CjBinaryExpressionWithTypeRHS -> {
             val subjectExpression = expression.left
             val targetTypeReference = expression.right
-            val operationToken = expression.operationReference.getReferencedNameElementType()
+            val operationToken = expression.operationReference.referencedNameElementType
             if (operationToken == CjTokens.IS_KEYWORD || operationToken == CjTokens.AS_KEYWORD) {
                 IdentifierInfo.NO
             } else {
@@ -130,7 +130,7 @@ internal fun getIdForStableIdentifier(
         }
 
         is CjPostfixExpression -> {
-            val operationType = expression.operationReference.getReferencedNameElementType()
+            val operationType = expression.operationReference.referencedNameElementType
             if (operationType === CjTokens.PLUSPLUS || operationType === CjTokens.MINUSMINUS)
                 postfix(
                     getIdForStableIdentifier(

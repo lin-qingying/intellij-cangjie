@@ -412,7 +412,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 override fun visitImportList(importList: CjImportList) {}
                 override fun visitPackageDirective(directive: CjPackageDirective) {}
                 override fun visitSimpleNameExpression(expression: CjSimpleNameExpression) {
-                    val refName = expression.getReferencedNameAsName()
+                    val refName = expression.referencedNameAsName
                     if (allNamesToImport.contains(refName)) {
                         val target = targetFqNameAndType(expression)
                         if (target != null) {
@@ -538,7 +538,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 override fun visitSimpleNameExpression(expression: CjSimpleNameExpression) {
                     if (CjPsiUtil.isSelectorInQualified(expression)) return
 
-                    val refName = expression.getReferencedNameAsName()
+                    val refName = expression.referencedNameAsName
                     val descriptor = classesToCheck[refName]
                     if (descriptor != null) {
                         val targetFqName = targetFqName(expression)

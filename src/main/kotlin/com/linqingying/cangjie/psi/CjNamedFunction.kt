@@ -30,9 +30,12 @@ import com.intellij.navigation.ItemPresentationProviders
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.name.FqName
+import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
 import com.linqingying.cangjie.psi.stubs.CangJieFunctionStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.linqingying.cangjie.utils.OperatorNameConventions
 
 /**
  * 来自扩展的方法
@@ -78,6 +81,35 @@ open class CjNamedFunction : CjFunctionImpl {
         val nameIdentifier: PsiElement = nameIdentifier ?: return true
         return nameIdentifier.textOffset > typeParameterList.textOffset
     }
+
+    //    当前方法是否是operator set方法
+//    set方法规则，最后一个参数是命名参数，并且参数名称是value
+    val isSetFunc: Boolean
+        get() {
+            if (!isOperator) return false
+            return valueParameters.lastOrNull()?.isNamed == true && valueParameters.last().nameAsName?.asString() == "value"
+
+        }
+
+    override fun getName(): String? {
+        return super.getName()
+    }
+
+    override val nameAsName: Name?
+        get() {
+            if (isSetFunc) return OperatorNameConventions.SET
+            return super.nameAsName
+
+        }
+    override val fqName: FqName?
+        get() = super.fqName
+
+    override val nameAsSafeName: Name
+        get() {
+
+            if (isSetFunc) return OperatorNameConventions.SET
+            return super.nameAsSafeName
+        }
 
     override fun hasBlockBody(): Boolean {
         val stub: CangJieFunctionStub? = stub

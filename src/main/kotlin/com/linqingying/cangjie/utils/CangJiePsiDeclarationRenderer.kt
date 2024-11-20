@@ -57,7 +57,7 @@ object CangJiePsiDeclarationRenderer {
                     val superTypeListEntries = declaration.superTypeListEntries
                     val superClass = superTypeListEntries.filterIsInstance<CjSuperTypeCallEntry>().firstOrNull()
                     if (superClass != null) {
-                        superClass.calleeExpression.constructorReferenceExpression?.getReferencedName()?.let {
+                        superClass.calleeExpression.constructorReferenceExpression?.referencedName?.let {
                             append(" : ")
                             append(it)
                         }

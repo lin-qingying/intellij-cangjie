@@ -55,7 +55,7 @@ fun resolveUnqualifiedSuperFromExpressionContext(
                 // super.foo(...): foo can be a function or a property of a callable type
                 val calleeExpression = selectorExpression.calleeExpression
                 if (calleeExpression is CjSimpleNameExpression) {
-                    val calleeName = calleeExpression.getReferencedNameAsName()
+                    val calleeName = calleeExpression.referencedNameAsName
                     return if (isCallingMethodOfAny(selectorExpression, calleeName)) {
                         resolveSupertypesForMethodOfAny(supertypes, calleeName, anyType)
                     } else {
@@ -66,7 +66,7 @@ fun resolveUnqualifiedSuperFromExpressionContext(
             is CjSimpleNameExpression -> {
                 // super.x: x can be a property only
                 // NB there are no properties in kotlin.Any
-                return resolveSupertypesByPropertyName(supertypes, selectorExpression.getReferencedNameAsName()) to false
+                return resolveSupertypesByPropertyName(supertypes, selectorExpression.referencedNameAsName) to false
             }
         }
     }
@@ -83,7 +83,7 @@ private fun isCallingMethodOfAnyWithSuper(superExpression: CjSuperExpression): B
         if (selectorExpression is CjCallExpression) {
             val calleeExpression = selectorExpression.calleeExpression
             if (calleeExpression is CjSimpleNameExpression) {
-                val calleeName = calleeExpression.getReferencedNameAsName()
+                val calleeName = calleeExpression.referencedNameAsName
                 return isCallingMethodOfAny(selectorExpression, calleeName)
             }
         }

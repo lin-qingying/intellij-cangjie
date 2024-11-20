@@ -116,7 +116,7 @@ enum class HintType(
         }
 
         override fun isApplicable(e: PsiElement): Boolean {
-            return e is CjNamedFunction && !(e.hasBlockBody() || e.hasDeclaredReturnType()) ||
+            return e is CjNamedFunction && !(/*e.hasBlockBody() || */e.hasDeclaredReturnType()) ||
                     Registry.`is`("cangjie.enable.inlay.hint.for.lambda.return.type") && e is CjExpression && e !is CjFunctionLiteral && !e.isNameReferenceInCall() && e.isLambdaReturnValueHintsApplicable(allowOneLiner = true)
         }
     },

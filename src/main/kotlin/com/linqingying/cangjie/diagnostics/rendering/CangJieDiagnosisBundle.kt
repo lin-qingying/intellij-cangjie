@@ -25,8 +25,8 @@
 package com.linqingying.cangjie.diagnostics.rendering
 
 import com.linqingying.cangjie.AbstractCangJieBundle
-import com.linqingying.cangjie.diagnostics.DiagnosticFactoryWithPsiElement
-import com.linqingying.cangjie.highlighter.CangJieHighlightingBundle.withHtml
+import com.linqingying.cangjie.diagnostics.DiagnosticFactory
+import com.linqingying.cangjie.diagnostics.DiagnosticFactoryForDeprecation
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
@@ -40,10 +40,17 @@ object CangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE) {
     @JvmStatic
     fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
         getMessage(key, *params)
+
+    @Nls
+        @JvmStatic
+    fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String): String =
+        getMessage(key) // 不传递任何参数
+
     @Nls
     @JvmStatic
-    fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: DiagnosticFactoryWithPsiElement<*,*>): String =
+    fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: DiagnosticFactory<*>): String =
         getMessage(key.name) // 不传递任何参数
+
     // 新增的方法来获取原始内容
 //    @Nls
 //    @JvmStatic

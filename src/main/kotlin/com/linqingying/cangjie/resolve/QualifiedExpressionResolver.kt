@@ -102,7 +102,7 @@ class QualifiedExpressionResolver(
         override val expression: CjSimpleNameExpression,
         typeArguments: CjTypeArgumentList? = null
     ) : QualifierPart(name, typeArguments, CangJieLookupLocation(expression)) {
-        constructor(expression: CjSimpleNameExpression) : this(expression.getReferencedNameAsName(), expression)
+        constructor(expression: CjSimpleNameExpression) : this(expression.referencedNameAsName, expression)
 
         override fun component2() = expression
     }
@@ -232,7 +232,7 @@ class QualifiedExpressionResolver(
             if (referenceExpression != null) {
                 result.add(
                     ExpressionQualifierPart(
-                        referenceExpression.getReferencedNameAsName(),
+                        referenceExpression.referencedNameAsName,
                         referenceExpression,
                         userType.typeArgumentList
                     )
@@ -256,7 +256,7 @@ class QualifiedExpressionResolver(
 //      如果没有使用限定名称
             val descriptor = userType.referenceExpression?.let { expression ->
                 val classifier = scope.findClassifierAndReportDeprecationIfNeeded(
-                    expression.getReferencedNameAsName(),
+                    expression.referencedNameAsName,
                     CangJieLookupLocation(expression),
                     expression,
                     trace
@@ -279,7 +279,7 @@ class QualifiedExpressionResolver(
         }
 //        val a = userType.referenceExpression?.let { expression ->
 //            val classifier = scope.findClassifierAndReportDeprecationIfNeeded(
-//                expression.getReferencedNameAsName(),
+//                expression.referencedNameAsName,
 //                CangJieLookupLocation(expression),
 //                expression,
 //                trace
@@ -413,7 +413,7 @@ class QualifiedExpressionResolver(
         context: ExpressionTypingContext
     ): QualifierReceiver? {
 
-        val name = expression.getReferencedNameAsName()
+        val name = expression.referencedNameAsName
         if (!expression.isPhysical && !name.isSpecial && name.asString()
                 .endsWith(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
         ) {
@@ -705,7 +705,7 @@ class QualifiedExpressionResolver(
                 simpleNameExpression,
                 trace
             )
-            storeResult(trace, simpleNameExpression, descriptor, ownerDescriptor, position = QualifierPosition.TYPE, isQualifier = true)
+            storeResult(trace, simpleNameExpression, descriptor, ownerDescriptor, position = TYPE, isQualifier = true)
             return TypeQualifierResolutionResult(qualifierPartList, descriptor)
         }
 
@@ -1216,9 +1216,7 @@ private class PackageFragmentWithCustomSource(
     override val original: PackageFragmentDescriptor,
     override val source: SourceElement
 ) :
-    PackageFragmentDescriptor by original {
-
-}
+    PackageFragmentDescriptor by original
 
 internal fun isVisible(
     descriptor: DeclarationDescriptor,

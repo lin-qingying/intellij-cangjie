@@ -52,7 +52,7 @@ fun CjExpression.asQualifierPartList(doubleColonLHS: Boolean = false): List<Expr
             if (simpleName is CjSimpleNameExpression) {
                 result.add(
                     ExpressionQualifierPart(
-                        simpleName.getReferencedNameAsName(),
+                        simpleName.referencedNameAsName,
                         simpleName,
                         expression.typeArgumentList
                     )
@@ -103,7 +103,7 @@ interface CjImportInfo {
         aliasName?.let { return it }
         return when (val importContent = importContent) {
             is ImportContent.ExpressionBased -> CjPsiUtil.getLastReference(importContent.expression)
-                ?.getReferencedName()
+                ?.referencedName
 
             is ImportContent.FqNameBased -> importContent.fqName.takeUnless(FqName::isRoot)?.shortName()?.asString()
             null -> null

@@ -85,10 +85,16 @@ fun ResolutionFacade.resolveImportReference(
 }
 
 /**
- * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
+ * 将当前元素解析为调用，使用给定的解析器和解析模式。
+ *
+ * @param bodyResolveMode 解析模式，默认为 BodyResolveMode.PARTIAL。
+ * @return 解析后的调用结果。
+ *
+ * 注意：为了获得后续调用的稳定结果，请使用带有提供 resolutionFacade 的重载方法。
  */
 fun CjElement.resolveToCall(bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL) =
     resolveToCall(getResolutionFacade(), bodyResolveMode)
+
 
 fun CjElement.resolveToCall(
     resolutionFacade: ResolutionFacade,
@@ -96,7 +102,6 @@ fun CjElement.resolveToCall(
 ): ResolvedCall<out CallableDescriptor>? = getResolvedCall(safeAnalyze(resolutionFacade, bodyResolveMode))
 
 
-//fun CjElement.getResolutionFacade(): ResolutionFacade =CangJieCacheService.getInstance(project).getResolutionFacade(this)
 fun CjFile.analyzeWithAllCompilerChecks(vararg extraFiles: CjFile): AnalysisResult =
     this.analyzeWithAllCompilerChecks(null, *extraFiles)
 
@@ -111,10 +116,14 @@ fun CjFile.analyzeWithAllCompilerChecks(callback: ((Diagnostic) -> Unit)?, varar
 }
 
 /**
- * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
+ * **请使用带有提供 resolutionFacade 的重载方法以获得后续调用的稳定结果**
+ *
+ * @param bodyResolveMode 解析模式，默认为 BodyResolveMode.PARTIAL。
+ * @return 返回解析到的描述符，如果不存在则返回 null。
  */
 fun CjTypeStatement.resolveToDescriptorIfAny(bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL) =
     resolveToDescriptorIfAny(getResolutionFacade(), bodyResolveMode)
+
 
 fun CjTypeStatement.resolveToDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
@@ -124,36 +133,46 @@ fun CjTypeStatement.resolveToDescriptorIfAny(
 }
 
 /**
- * This function first uses declaration resolvers to resolve this declaration and/or additional declarations (e.g. its parent),
- * and then takes the relevant descriptor from binding context.
- * The exact set of declarations to resolve depends on bodyResolveMode
+ * 该函数首先使用声明解析器来解析此声明及其附加声明（例如其父声明），
+ * 然后从绑定上下文中获取相关的描述符。
+ * 需要解析的具体声明集取决于 bodyResolveMode。
  *
- * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
+ * **请注意，为了获得后续调用的稳定结果，请使用提供 resolutionFacade 的重载方法**
+ *
+ * @param bodyResolveMode 解析模式，默认为 BodyResolveMode.PARTIAL
+ * @return 解析到的描述符，如果未解析到则返回 null
  */
 fun CjDeclaration.resolveToDescriptorIfAny(
     bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
 ): DeclarationDescriptor? =
     resolveToDescriptorIfAny(getResolutionFacade(), bodyResolveMode)
 
+
 /**
- * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
+ * 解析当前命名函数的描述符，如果可能的话。
+ *
+ * @param bodyResolveMode 解析模式，默认为 BodyResolveMode.PARTIAL。
+ * @return 解析后的函数描述符，如果无法解析则返回 null。
+ *
+ * 注意：为了获得后续调用的稳定结果，请使用提供 resolutionFacade 的重载方法。
  */
 fun CjNamedFunction.resolveToDescriptorIfAny(bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL) =
     resolveToDescriptorIfAny(getResolutionFacade(), bodyResolveMode)
+
 
 val CjTypeReference.type: CangJieType?
     get() {
 
 
-val descriptorPsi =  getNonStrictParentOfType<CjDeclaration>()
-        val result =  this .safeAnalyze(bodyResolveMode = BodyResolveMode.PARTIAL)
-     val descriptor=   descriptorPsi?.descriptor
+        val descriptorPsi = getNonStrictParentOfType<CjDeclaration>()
+        val result = this.safeAnalyze(bodyResolveMode = BodyResolveMode.PARTIAL)
+        val descriptor = descriptorPsi?.descriptor
 
 
-        when(descriptorPsi){
-            is CjEnumEntry ->{
-                when(descriptor ){
-                    is EnumEntryDescriptor ->{
+        when (descriptorPsi) {
+            is CjEnumEntry -> {
+                when (descriptor) {
+                    is EnumEntryDescriptor -> {
                         descriptor.unsubstitutedPrimaryConstructor
                     }
                 }
@@ -184,25 +203,32 @@ fun CjParameter.resolveToParameterDescriptorIfAny(
 }
 
 /**
- * This function first uses declaration resolvers to resolve this declaration and/or additional declarations (e.g. its parent),
- * and then takes the relevant descriptor from binding context.
- * The exact set of declarations to resolve depends on bodyResolveMode
+ * 解析当前声明及其父声明，并从绑定上下文中获取相关描述符。
+ * 具体解析哪些声明取决于 `bodyResolveMode`。
+ *
+ * @param resolutionFacade 用于解析声明的解析器 facade。
+ * @param bodyResolveMode 指定解析模式，默认为 `BodyResolveMode.PARTIAL`。
+ * @return 返回解析到的描述符，如果未解析到则返回 null。
  */
 fun CjDeclaration.resolveToDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
     bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
 ): DeclarationDescriptor? {
-    //TODO: BodyResolveMode.PARTIAL is not quite safe!
+    // 使用指定的解析模式进行安全分析
     val context = safeAnalyze(resolutionFacade, bodyResolveMode)
+
+    // 如果当前声明是参数且有 `let` 或 `var` 关键字
     return if (this is CjParameter && hasLetOrVar()) {
+        // 尝试从主构造函数参数中获取描述符
         context.get(BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, this)
-        // It is incorrect to have `val/var` parameters outside the primary constructor (e.g., `fun foo(val x: Int)`)
-        // but we still want to try to resolve in such cases.
+        // 如果在主构造函数参数中未找到，则尝试从声明到描述符映射中获取
             ?: context.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
     } else {
+        // 直接从声明到描述符映射中获取描述符
         context.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
     }
 }
+
 
 fun CjNamedFunction.resolveToDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
@@ -241,21 +267,30 @@ fun CjElement.safeAnalyzeNonSourceRootCode(
 }
 
 /**
- * This function throws exception when resolveToDescriptorIfAny returns null, otherwise works equivalently.
+ * 当 resolveToDescriptorIfAny 返回 null 时，此函数会抛出异常，否则其行为与 resolveToDescriptorIfAny 相同。
  *
- * **Please, use overload with providing resolutionFacade for stable results of subsequent calls**
+ * **请注意，为了后续调用的稳定性，请使用提供 resolutionFacade 的重载方法**
+ *
+ * @param bodyResolveMode 解析模式，默认为 BodyResolveMode.FULL
+ * @return 解析后的声明描述符 [DeclarationDescriptor]
  */
 fun CjDeclaration.unsafeResolveToDescriptor(
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
 ): DeclarationDescriptor =
     unsafeResolveToDescriptor(getResolutionFacade(), bodyResolveMode)
 
+
 /**
- * This function throws exception when resolveToDescriptorIfAny returns null, otherwise works equivalently.
+ * 当 [resolveToDescriptorIfAny] 返回 null 时，此函数抛出异常；否则，其行为与 [resolveToDescriptorIfAny] 相同。
+ *
+ * @param resolutionFacade 用于解析声明的上下文对象。
+ * @param bodyResolveMode 指定解析模式，默认为 [BodyResolveMode.FULL]。
+ * @return 解析后的 [DeclarationDescriptor]。
  */
 fun CjDeclaration.unsafeResolveToDescriptor(
     resolutionFacade: ResolutionFacade,
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
 ): DeclarationDescriptor =
     resolveToDescriptorIfAny(resolutionFacade, bodyResolveMode) ?: throw NoDescriptorForDeclarationException(this)
+
 

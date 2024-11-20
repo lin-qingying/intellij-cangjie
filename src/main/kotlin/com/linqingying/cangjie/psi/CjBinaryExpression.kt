@@ -72,5 +72,5 @@ open class CjBinaryExpression(node: ASTNode) : CjExpressionImpl(node), CjOperati
     }
 
     val operationToken: IElementType
-        get() = operationReference.getReferencedNameElementType()
+        get() = operationReference.referencedNameElementType
 }

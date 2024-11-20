@@ -95,6 +95,6 @@ class CjUserType : CjElementImplStub<CangJieUserTypeStub >, CjTypeElement {
     val referencedName: String?
         get() {
             val referenceExpression = referenceExpression
-            return referenceExpression?.getReferencedName()
+            return referenceExpression?.referencedName
         }
 }

@@ -67,7 +67,7 @@ fun removeRedundantBracesInStringTemplate(context: InsertionContext) {
             val nameExpression = entry.expression as? CjNameReferenceExpression ?: return
             if (canPlaceAfterSimpleNameEntry(entry.nextSibling)) {
                 context.tailOffset++ // place after '}' otherwise it gets invalidated
-                val name = nameExpression.getReferencedName()
+                val name = nameExpression.referencedName
                 val newEntry = CjPsiFactory(context.project).createSimpleNameStringTemplateEntry(name)
                 entry.replace(newEntry)
             }

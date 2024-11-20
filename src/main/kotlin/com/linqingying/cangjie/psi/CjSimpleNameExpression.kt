@@ -24,58 +24,59 @@
 
 package com.linqingying.cangjie.psi
 
-import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.name.Name
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
+import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.name.Name
 
 
 interface CjSimpleNameExpression : CjReferenceExpression {
 
-    fun getReferencedName(): String
+    val referencedName: String
 
-    fun getReferencedNameAsName(): Name
+    val referencedNameAsName: Name
 
-    fun getReferencedNameElement(): PsiElement
+    val referencedNameElement: PsiElement
 
-    fun getIdentifier(): PsiElement?
+    val identifier: PsiElement?
 
-    fun getReferencedNameElementType(): IElementType
+    val referencedNameElementType: IElementType
 }
-fun CjSimpleNameExpression.getTypeArguments(): List<CjTypeProjection>{
-    return when(this){
-        is CjNameReferenceExpression ->  typeArguments
-        else -> emptyList ()
+
+fun CjSimpleNameExpression.getTypeArguments(): List<CjTypeProjection> {
+    return when (this) {
+        is CjNameReferenceExpression -> typeArguments
+        else -> emptyList()
     }
 }
 
 abstract class CjSimpleNameExpressionImpl(node: ASTNode) : CjExpressionImpl(node), CjSimpleNameExpression {
-    override fun getIdentifier(): PsiElement? = findChildByType(CjTokens.IDENTIFIER)
+    override val identifier get(): PsiElement? = findChildByType(CjTokens.IDENTIFIER)
 
-    override fun getReferencedNameElementType() = getReferencedNameElementTypeImpl(this)
+    override val referencedNameElementType get() = getReferencedNameElementTypeImpl(this)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitSimpleNameExpression(this, data)
     }
 
-    override fun getReferencedNameAsName() = getReferencedNameAsNameImpl(this)
+    override val referencedNameAsName get() = getReferencedNameAsNameImpl(this)
 
-    override fun getReferencedName() = getReferencedNameImpl(this)
+    override val referencedName get() = getReferencedNameImpl(this)
 
 
     companion object {
         fun getReferencedNameElementTypeImpl(expression: CjSimpleNameExpression): IElementType {
-            return expression.getReferencedNameElement().node!!.elementType
+            return expression.referencedNameElement.node!!.elementType
         }
 
         fun getReferencedNameAsNameImpl(expresssion: CjSimpleNameExpression): Name {
-            val name = expresssion.getReferencedName()
+            val name = expresssion.referencedName
             return Name.identifier(name)
         }
 
         fun getReferencedNameImpl(expression: CjSimpleNameExpression): String {
-            val text = expression.getReferencedNameElement().node!!.text
+            val text = expression.referencedNameElement.node!!.text
             return CjPsiUtil.unquoteIdentifierOrFieldReference(text)
         }
     }

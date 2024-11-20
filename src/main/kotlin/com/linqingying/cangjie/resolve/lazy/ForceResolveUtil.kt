@@ -36,6 +36,7 @@ import com.linqingying.cangjie.types.TypeConstructor
 import com.linqingying.cangjie.types.asFlexibleType
 import com.linqingying.cangjie.types.isFlexible
 import com.intellij.openapi.progress.ProgressManager
+import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 
 object ForceResolveUtil {
 
@@ -105,7 +106,7 @@ object ForceResolveUtil {
     }
 @JvmStatic
     fun forceResolveAllContents(type: CangJieType?): CangJieType? {
-        if (type == null) return null
+        if (type == null || type == NO_EXPECTED_TYPE) return null
 
         forceResolveAllContents(type.annotations)
         if (type.isFlexible()) {

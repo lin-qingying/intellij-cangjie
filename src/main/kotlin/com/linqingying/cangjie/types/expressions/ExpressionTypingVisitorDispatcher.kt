@@ -31,6 +31,7 @@ import com.intellij.openapi.project.IndexNotReadyException
 import com.linqingying.cangjie.descriptors.BindingTrace
 import com.linqingying.cangjie.descriptors.PsiDiagnosticUtils.Companion.atLocation
 import com.linqingying.cangjie.diagnostics.Errors
+import com.linqingying.cangjie.diagnostics.Errors.TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
 import com.linqingying.cangjie.resolve.*
@@ -50,7 +51,7 @@ import com.linqingying.cangjie.types.error.ErrorTypeKind
 import com.linqingying.cangjie.types.expressions.match.PatternMatchingTypingVisitor
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import com.linqingying.cangjie.types.util.TypeUtils.EXPRESSION_TYPE
+
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.utils.CangJieExceptionWithAttachments
 import com.linqingying.cangjie.utils.CangJieFrontEndException
@@ -148,10 +149,6 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
     override fun getTypeInfoByEnum(expression: CjExpression, context: ExpressionTypingContext): CangJieTypeInfo {
         var context = context
-        if (context.expectedType === EXPRESSION_TYPE) {
-//            context = context.replaceExpectedType(components.builtIns.getAnyType());
-            context = context.replaceExpectedType(NO_EXPECTED_TYPE)
-        }
 
         val result: CangJieTypeInfo = getTypeInfo(expression, context, ForGetEnum(components, annotationChecker))
         //        annotationChecker.checkExpression(expression, context.trace);
@@ -164,10 +161,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
         isReportError: Boolean
     ): CangJieTypeInfo {
         var context = context
-        if (context.expectedType === EXPRESSION_TYPE) {
-//            context = context.replaceExpectedType(components.builtIns.getAnyType());
-            context = context.replaceExpectedType(NO_EXPECTED_TYPE)
-        }
+
 
         val result: CangJieTypeInfo = getTypeInfo(
             expression, context, ForCaseEnum(
@@ -181,9 +175,9 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
     override fun getTypeInfo(expression: CjExpression, context: ExpressionTypingContext): CangJieTypeInfo {
         var context = context
-        if (context.expectedType === EXPRESSION_TYPE) {
-            context = context.replaceExpectedType(components.builtIns.anyType)
-        }
+//        if (context.expectedType === EXPRESSION_TYPE) {
+//            context = context.replaceExpectedType(components.builtIns.anyType)
+//        }
         val result: CangJieTypeInfo = getTypeInfo(expression, context, this)
         annotationChecker.checkExpression(expression, context.trace)
         return result
@@ -323,7 +317,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
                     context.trace.record(BindingContext.EXPRESSION_TYPE_INFO, expression, result)
                 } catch (e: ReenteringLazyValueComputationException) {
-//                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression));
+                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression));
                     result = noTypeInfo(context)
                 }
                 if (context.isSaveTypeInfo) {

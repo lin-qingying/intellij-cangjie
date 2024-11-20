@@ -395,6 +395,22 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return resolveArrayAccessSpecialMethod(arrayAccessExpression, null, context, context.trace, true, false)
     }
 
+    fun resolveArrayAccessSetMethod(
+        arrayAccessExpression: CjArrayAccessExpression,
+        rightHandSide: CjExpression,
+        context: ExpressionTypingContext,
+        traceForResolveResult: BindingTrace
+    ): CangJieTypeInfo {
+        return resolveArrayAccessSpecialMethod(
+            arrayAccessExpression,
+            rightHandSide,
+            context,
+            traceForResolveResult,
+            isGet = false,
+            isImplicit = false
+        )
+    }
+
     override fun visitBlockExpression(
         expression: CjBlockExpression,
         context: ExpressionTypingContext
@@ -414,9 +430,6 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         val result: CangJieTypeInfo? = null
 
 
-        //        if (result != null && result.getType() instanceof ErrorType && ((ErrorType) result.getType()).getKind() == ErrorTypeKind.RETURN_TYPE_FOR_FUNCTION) {
-//            return null;
-//        }
         return result
     }
 
@@ -514,7 +527,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         context: ExpressionTypingContext,
         operationSign: CjSimpleNameExpression
     ): CangJieTypeInfo {
-        val operationType = operationSign.getReferencedNameElementType()
+        val operationType = operationSign.referencedNameElementType
 
         val referencedName = OperatorConventions.COMPARISON_OPERATIONS_NAMES[operationType]
 
@@ -591,7 +604,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         val operationSign: CjSimpleNameExpression = expression.operationReference
         val left = expression.left
         val right = expression.right
-        val operationType = operationSign.getReferencedNameElementType()
+        val operationType = operationSign.referencedNameElementType
 
         val result: CangJieTypeInfo
 
@@ -613,7 +626,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             val referencedName = OperatorConventions.FLOW_OPERATION_NAMES[operationType]
 //            result = getTypeInfoForBinaryCall(referencedName!!, context, expression)
 //            result = visitFlowOperationExpression(operationType, left, right, context)
-            result = components.flowOperatorResolver.resolveFlowOperator(referencedName!!,  expression, context)
+            result = components.flowOperatorResolver.resolveFlowOperator(referencedName!!, expression, context)
         } else {
             context.trace.report(UNSUPPORTED.on(operationSign, "Unknown operation"))
             result = noTypeInfo(context)
@@ -643,7 +656,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         leftTypeInfo: CangJieTypeInfo, rightTypeInfo: CangJieTypeInfo,
         operationSign: CjSimpleNameExpression, context: ExpressionTypingContext
     ): CangJieTypeInfo {
-        val operationType = operationSign.getReferencedNameElementType()
+        val operationType = operationSign.referencedNameElementType
 
 
         if (leftTypeInfo.type is ErrorType) {
@@ -681,7 +694,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
     }
 
     private fun checkOperatorByType(operationSign: CjSimpleNameExpression, type: CangJieType): Boolean {
-        val operationType = operationSign.getReferencedNameElementType()
+        val operationType = operationSign.referencedNameElementType
 
         //        int类型
         return if (isNumber(type) && CjTokens.INT_SUPPORT_OPERATOR.contains(operationType)) {
@@ -735,7 +748,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         //        if (!components.languageVersionSettings.supportsFeature(LanguageFeature.UnderscoresInNumericLiterals)) {
 //            context.trace.report(Errors.UNSUPPORTED_FEATURE.on(expression,
-//                    TuplesKt.to(LanguageFeature.UnderscoresInNumericLiterals, components.languageVersionSettings)));
+//                    TuplesCj.to(LanguageFeature.UnderscoresInNumericLiterals, components.languageVersionSettings)));
 //            return;
 //        }
         if (hasIllegalUnderscore(expression.text, elementType)) {
@@ -935,7 +948,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
 //        if (!components.languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
-//            ReservedCheckingKt.checkReservedYield(expression, context.trace);
+//            ReservedCheckingCj.checkReservedYield(expression, context.trace);
 //        }
 //
 //        // TODO : other members
@@ -957,7 +970,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
 //        if (!components.languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
-//            ReservedCheckingKt.checkReservedYield(expression, context.trace);
+//            ReservedCheckingCj.checkReservedYield(expression, context.trace);
 //        }
 //
 //        // TODO : other members
@@ -985,7 +998,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         val operationSign = expression.operationReference
 
-        val operationType = operationSign.getReferencedNameElementType()
+        val operationType = operationSign.referencedNameElementType
 
 
         // Type check the base expression
@@ -1004,21 +1017,6 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         val deparenthesizedBaseExpression = CjPsiUtil.deparenthesize(baseExpression)
 
-        // a[i]++/-- takes special treatment because it is actually let j = i, arr = a in arr.set(j, a.get(j).inc())
-//        if ((operationType == CjTokens.PLUSPLUS || operationType == CjTokens.MINUSMINUS) &&
-//                deparenthesizedBaseExpression instanceof CjArrayAccessExpression) {
-//            CjExpression stubExpression = ExpressionTypingUtils.createFakeExpressionOfType(
-//                    baseExpression.getProject(), context.trace, "e", type);
-//            TemporaryBindingTrace temporaryBindingTrace = TemporaryBindingTrace.create(
-//                    context.trace, "trace to resolve array access set method for unary expression", expression);
-//            ExpressionTypingContext newContext = context.replaceBindingTrace(temporaryBindingTrace);
-//            resolveImplicitArrayAccessSetMethod(
-//                    (CjArrayAccessExpression) deparenthesizedBaseExpression,
-//                    stubExpression,
-//                    newContext,
-//                    context.trace
-//            );
-//        }
 
         // Resolve the operation reference
         val resolutionResults = components.callResolver.resolveCallWithGivenName(
@@ -1100,7 +1098,15 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
     }
 
     /**
-     * @return `true` iff expression can be assigned to
+     * 检查给定的表达式是否可以作为赋值操作的左值（LValue）。
+     *
+     * @param trace 绑定跟踪对象，用于记录类型检查过程中的绑定信息。
+     * @param context 表达式类型检查的上下文。
+     * @param expressionWithParenthesis 带有括号的表达式。
+     * @param rightHandSide 赋值操作的右值表达式。
+     * @param operationExpression 操作表达式，通常是一个赋值或复合赋值操作。
+     * @param arraySetMethodAlreadyResolved 数组设置方法是否已解析。
+     * @return 如果表达式可以被赋值，则返回 `true`；否则返回 `false`。
      */
     fun checkLValue(
         trace: BindingTrace,
@@ -1110,87 +1116,78 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         operationExpression: CjOperationExpression,
         arraySetMethodAlreadyResolved: Boolean
     ): Boolean {
+        // 去除表达式的括号
         val expression = CjPsiUtil.deparenthesize(expressionWithParenthesis)
 
-        //        if (expression instanceof CjArrayAccessExpression) {
-//            CjArrayAccessExpression arrayAccessExpression = (CjArrayAccessExpression) expression;
-//            CjExpression arrayExpression = arrayAccessExpression.getArrayExpression();
-//            if (arrayExpression == null || rightHandSide == null) return false;
-//
-//            BindingTrace traceWithIndexedLValue;
-//            boolean methodSetIsResolved;
-//            if (!arraySetMethodAlreadyResolved) {
-//                TemporaryBindingTrace ignoreReportsTrace = TemporaryBindingTrace.create(trace, "Trace for checking set function");
-//                ExpressionTypingContext findSetterContext = context.replaceBindingTrace(ignoreReportsTrace);
-//                CangJieTypeInfo info = resolveArrayAccessSetMethod(arrayAccessExpression, rightHandSide, findSetterContext, ignoreReportsTrace);
-//
-//                traceWithIndexedLValue = ignoreReportsTrace;
-//                methodSetIsResolved = info.getType() != null;
-//            } else {
-//                traceWithIndexedLValue = trace;
-//                methodSetIsResolved = true;
-//            }
-//
-//            IElementType operationType = operationExpression.getOperationReference().getReferencedNameElementType();
-//            if (CjTokens.AUGMENTED_ASSIGNMENTS.contains(operationType)
-//                    || operationType == CjTokens.PLUSPLUS || operationType == CjTokens.MINUSMINUS) {
-//                ResolvedCall<FunctionDescriptor> resolvedCall = traceWithIndexedLValue.get(INDEXED_LVALUE_SET, expression);
-//                if (resolvedCall != null && trace.wantsDiagnostics()) {
-//                    // Call must be validated with the actual, not temporary trace in order to report operator diagnostic
-//                    // Only unary assignment expressions (++, --) and +=/... must be checked, normal assignments have the proper trace
-//                    CallCheckerContext callCheckerContext =
-//                            new CallCheckerContext(
-//                                    context,
-//                                    components.deprecationResolver,
-//                                    components.moduleDescriptor,
-//                                    components.missingSupertypesResolver,
-//                                    components.callComponents,
-//                                    trace
-//                            );
-//                    for (CallChecker checker : components.callCheckers) {
-//                        checker.check(resolvedCall, expression, callCheckerContext);
-//                    }
-//                    // Should make sure resolved call for 'set' operator is recorded,
-//                    if (trace.get(INDEXED_LVALUE_SET, expression) == null) {
-//                        trace.record(INDEXED_LVALUE_SET, expression, resolvedCall);
-//                    }
-//                }
-//            }
-//
-//            return methodSetIsResolved;
-//        }
+        if (expression is CjArrayAccessExpression) {
+        val arrayExpression = expression.arrayExpression ?: return false
+        if (rightHandSide == null) return false
+
+        val traceWithIndexedLValue: BindingTrace
+        val methodSetIsResolved: Boolean
+
+        if (!arraySetMethodAlreadyResolved) {
+            val ignoreReportsTrace = TemporaryBindingTrace.create(trace, "Trace for checking set function")
+            val findSetterContext = context.replaceBindingTrace(ignoreReportsTrace)
+            val info = resolveArrayAccessSetMethod(expression, rightHandSide, findSetterContext, ignoreReportsTrace)
+
+            traceWithIndexedLValue = ignoreReportsTrace
+            methodSetIsResolved = info.type != null
+        } else {
+            traceWithIndexedLValue = trace
+            methodSetIsResolved = true
+        }
+
+        val operationType = operationExpression.operationReference.referencedNameElementType
+        if (operationType in CjTokens.AUGMENTED_ASSIGNMENTS ||
+            operationType == CjTokens.PLUSPLUS ||
+            operationType == CjTokens.MINUSMINUS) {
+            val resolvedCall = traceWithIndexedLValue.get(INDEXED_LVALUE_SET, expression)
+            if (resolvedCall != null && trace.wantsDiagnostics()) {
+                val callCheckerContext = CallCheckerContext(
+                    context,
+                    components.deprecationResolver,
+                    components.moduleDescriptor,
+                    components.missingSupertypesResolver,
+                    components.callComponents,
+                    trace
+                )
+                components.callCheckers.forEach { it.check(resolvedCall, expression, callCheckerContext) }
+
+                // Ensure the resolved call for 'set' operator is recorded (see KT-36956)
+                if (trace.get(INDEXED_LVALUE_SET, expression) == null) {
+                    trace.record(INDEXED_LVALUE_SET, expression, resolvedCall)
+                }
+            }
+        }
+
+        return methodSetIsResolved
+    }
+
+        // 从绑定上下文中提取变量描述符
         val variable = BindingContextUtils.extractVariableDescriptorFromReference(trace.bindingContext, expression)
 
         var result = true
         var reportOn = expression ?: expressionWithParenthesis
+
+        // 如果报告对象是限定表达式，则使用其选择器表达式
         if (reportOn is CjQualifiedExpression) {
             val selector = reportOn.selectorExpression
             if (selector != null) reportOn = selector
         }
 
-        //        if (variable instanceof PropertyDescriptor) {
-//            PropertyDescriptor propertyDescriptor = (PropertyDescriptor) variable;
-//            PropertySetterDescriptor setter = propertyDescriptor.getSetter();
-//            if (propertyDescriptor.isSetterProjectedOut()) {
-//                trace.report(SETTER_PROJECTED_OUT.on(reportOn, propertyDescriptor));
-//                result = false;
-//            }
-//            else if (setter != null) {
-//                ResolvedCall<?> resolvedCall = CallUtilKt.getResolvedCall(expressionWithParenthesis, context.trace.getBindingContext());
-//                assert resolvedCall != null
-//                        : "Call is not resolved for property setter: " + PsiUtilsKt.getElementTextWithContext(expressionWithParenthesis);
-//                checkPropertySetterCall(context.replaceBindingTrace(trace), setter, resolvedCall, reportOn);
-//            }
-//        }
+        // 如果变量描述符为空，报告错误并设置结果为 false
         if (variable == null) {
             trace.report(VARIABLE_EXPECTED.on(reportOn))
             result = false
         } else if (!variable.isVar) {
+            // 如果变量不是可变的（即不是 `var` 类型），设置结果为 false
             result = false
         }
 
         return result
     }
+
 
     private fun recordThisOrSuperCallInTraceAndCallExtension(
         context: ExpressionTypingContext,
@@ -1347,12 +1344,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                 context.trace.report(TYPE_ARGUMENTS_REDUNDANT_IN_SUPER_QUALIFIER.on(redundantTypeArguments))
             }
 
-            //            if (!components.languageVersionSettings.supportsFeature(LanguageFeature.QualifiedSupertypeMayBeExtendedByOtherSupertype) &&
-//                    result != null &&
-//                    (validClassifier || validType)
-//            ) {
-//                checkResolvedExplicitlyQualifiedSupertype(context.trace, result, supertypes, superTypeQualifier);
-//            }
+
         } else {
             if (isPossiblyAmbiguousUnqualifiedSuper(expression, supertypes)) {
                 val supertypesResolvedFromContextWithEqualsMigration =
@@ -1466,63 +1458,8 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
     override fun visitDeclaration(dcl: CjDeclaration, context: ExpressionTypingContext): CangJieTypeInfo {
         return declarationInIllegalContext(dcl, context)
-    } //
+    }
 
-    //        /*package*/ CangJieTypeInfo resolveImplicitArrayAccessSetMethod(
-    //             CjArrayAccessExpression arrayAccessExpression,
-    //             CjExpression rightHandSide,
-    //             ExpressionTypingContext context,
-    //             BindingTrace traceForResolveResult
-    //    ) {
-    //        return resolveArrayAccessSpecialMethod(arrayAccessExpression, rightHandSide, context, traceForResolveResult, false, true);
-    //    }
-    //
-    //
-    //
-    //    private CangJieTypeInfo resolveArrayAccessSpecialMethod(
-    //             CjArrayAccessExpression arrayAccessExpression,
-    //              CjExpression rightHandSide, //only for 'set' method
-    //             ExpressionTypingContext oldContext,
-    //             BindingTrace traceForResolveResult,
-    //            boolean isGet,
-    //            boolean isImplicit
-    //    ) {
-    //       CjExpression arrayExpression = arrayAccessExpression.getArrayExpression();
-    //        if (arrayExpression == null) return TypeInfoFactoryKt.noTypeInfo(oldContext);
-    //
-    //
-    //        CangJieTypeInfo arrayTypeInfo = facade.safeGetTypeInfo(arrayExpression, oldContext.replaceExpectedType(NO_EXPECTED_TYPE)
-    //                .replaceContextDependency(ContextDependency.INDEPENDENT));
-    //        CangJieType arrayType = ExpressionTypingUtils.safeGetType(arrayTypeInfo);
-    //
-    //        ExpressionTypingContext context = oldContext.replaceDataFlowInfo(arrayTypeInfo.getDataFlowInfo());
-    //        ExpressionReceiver receiver = ExpressionReceiver.Companion.create(arrayExpression, arrayType, context.trace.getBindingContext());
-    //        if (!isGet) assert rightHandSide != null;
-    //
-    //        Call call = isGet
-    //                ? CallMaker.makeArrayGetCall(receiver, arrayAccessExpression, Call.CallType.ARRAY_GET_METHOD)
-    //                : CallMaker.makeArraySetCall(receiver, arrayAccessExpression, rightHandSide, Call.CallType.ARRAY_SET_METHOD);
-    //        OverloadResolutionResults<FunctionDescriptor> functionResults = components.callResolver.resolveCallWithGivenName(
-    //                context, call, arrayAccessExpression, isGet ? OperatorNameConventions.GET : OperatorNameConventions.SET);
-    //
-    //        List<CjExpression> indices = arrayAccessExpression.getIndexExpressions();
-    //
-    //      CangJieTypeInfo resultTypeInfo =
-    //                computeAccumulatedInfoForArrayAccessExpression(arrayTypeInfo, indices, rightHandSide, isGet, context, facade);
-    //
-    //        if ((isImplicit && !functionResults.isSuccess()) || !functionResults.isSingleResult()) {
-    //            traceForResolveResult.report(isGet ? NO_GET_METHOD.on(arrayAccessExpression) : NO_SET_METHOD.on(arrayAccessExpression));
-    //            return resultTypeInfo.clearType();
-    //        }
-    //
-    //        if (isGet) {
-    //            traceForResolveResult.record(INDEXED_LVALUE_GET, arrayAccessExpression, functionResults.getResultingCall());
-    //        } else {
-    //            traceForResolveResult.record(INDEXED_LVALUE_SET, arrayAccessExpression, functionResults.getResultingCall());
-    //        }
-    //
-    //        return resultTypeInfo.replaceType(functionResults.getResultingDescriptor().getReturnType());
-    //    }
     companion object {
         fun isLValue(expression: CjSimpleNameExpression, parent: PsiElement?): Boolean {
             if (parent !is CjBinaryExpression) {

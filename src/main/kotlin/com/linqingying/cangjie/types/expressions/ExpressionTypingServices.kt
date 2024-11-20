@@ -28,6 +28,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.linqingying.cangjie.builtins.CangJieBuiltIns.Companion.isUnit
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.BindingTrace
+import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.descriptors.FunctionDescriptor
 import com.linqingying.cangjie.descriptors.impl.FunctionDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptorImpl
@@ -41,16 +42,15 @@ import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo.Companion.EMPTY
 import com.linqingying.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl
 import com.linqingying.cangjie.resolve.scopes.*
-import com.linqingying.cangjie.resolve.source.PsiSourceElement
+import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.types.ErrorUtils
 import com.linqingying.cangjie.types.ErrorUtils.createErrorType
 import com.linqingying.cangjie.types.error.ErrorTypeKind
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import com.linqingying.cangjie.types.util.TypeUtils.EXPRESSION_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.UNIT_EXPECTED_TYPE
-import com.linqingying.cangjie.types.util.isUnit
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 import com.linqingying.cangjie.utils.slicedMap.WritableSlice
 
@@ -160,7 +160,7 @@ class ExpressionTypingServices(
         scope: LexicalScope,
         trace: BindingTrace,
         dataFlowInfo: DataFlowInfo,
-        inferenceSession: InferenceSession
+        inferenceSession: InferenceSession?
     ): ExpressionTypingContext {
         return ExpressionTypingContext.newContext(
             trace,
@@ -171,7 +171,7 @@ class ExpressionTypingServices(
             statementFilter,
             languageVersionSettings,
             expressionTypingComponents.dataFlowValueFactory,
-            inferenceSession
+            inferenceSession ?: default
         )
     }
 
@@ -249,7 +249,7 @@ class ExpressionTypingServices(
                         )
 
 
-        if (context.expectedType !== NO_EXPECTED_TYPE && context.expectedType !== EXPRESSION_TYPE) {
+        if (context.expectedType !== NO_EXPECTED_TYPE) {
             val expectedType: CangJieType
             if (isUnitExpectedType) {
                 expectedType = UNIT_EXPECTED_TYPE
@@ -267,37 +267,37 @@ class ExpressionTypingServices(
 //        }
         context = context.replaceExpectedType(NO_EXPECTED_TYPE)
 
-        if (statementExpression !is CjReturnExpression) {
-            val parentDeclaration =
-                context.trace.bindingContext.get(
-                    BindingContext.DECLARATION_TO_DESCRIPTOR, context.getContextParentOfType(
-                        statementExpression,
-                        CjDeclaration::class.java
-                    )
-                )
-
-            var type: CangJieType? = null
-            if (parentDeclaration is PropertyAccessorDescriptorImpl) {
-                type = parentDeclaration.returnType
-            }
-            if (parentDeclaration is FunctionDescriptorImpl && (statementExpression.parent is CjFunction || statementExpression.parent is CjPropertyAccessor)) {
-                if (parentDeclaration.returnType != null && !isUnit(
-                        parentDeclaration.returnType!!
-                    )
-                ) {
-//                    context = context.replaceExpectedType(parentDeclaration.getReturnType());
-//fix 修复对于该语句执行时，方法返回值还为推断时出现的类型一致
-                    if (parentDeclaration.source is PsiSourceElement && (parentDeclaration.source as PsiSourceElement).psi is CjFunction) {
-                        if (((parentDeclaration.source as PsiSourceElement).psi as CjFunction).typeReference != null) {
-                            type = parentDeclaration.returnType
-                        }
-                    }
-                }
-            }
-            if (type != null && !type.isUnit()) {
-                context = context.replaceExpectedType(type)
-            }
-        }
+//        if (statementExpression !is CjReturnExpression) {
+//            val parentDeclaration =
+//                context.trace.bindingContext.get(
+//                    BindingContext.DECLARATION_TO_DESCRIPTOR, context.getContextParentOfType(
+//                        statementExpression,
+//                        CjDeclaration::class.java
+//                    )
+//                )
+//
+//            var type: CangJieType? = null
+//            if (parentDeclaration is PropertyAccessorDescriptorImpl) {
+//                type = parentDeclaration.returnType
+//            }
+//            if (parentDeclaration is FunctionDescriptorImpl/* && (statementExpression.parent is CjFunction || statementExpression.parent is CjPropertyAccessor)*/) {
+//                if (parentDeclaration.returnType != null && parentDeclaration.returnType !is DeferredType && !isUnit(
+//                        parentDeclaration.returnType!!
+//                    )
+//                ) {
+////                    context = context.replaceExpectedType(parentDeclaration.getReturnType());
+////fix 修复对于该语句执行时，方法返回值还为推断时出现的类型一致
+//                    if (parentDeclaration.source is PsiSourceElement && (parentDeclaration.source as PsiSourceElement).psi is CjFunction) {
+//                        if (((parentDeclaration.source as PsiSourceElement).psi as CjFunction).typeReference != null) {
+//                            type = parentDeclaration.returnType
+//                        }
+//                    }
+//                }
+//            }
+//            if (type != null && !type.isUnit()) {
+//                context = context.replaceExpectedType(type)
+//            }
+//        }
         var result = blockLevelVisitor.getTypeInfo(statementExpression, context, true)
         if (coercionStrategyForLastExpression == CoercionStrategy.COERCION_TO_UNIT) {
             var mightBeUnit = false
@@ -324,9 +324,14 @@ class ExpressionTypingServices(
     }
 
     /**
-     * Visits block statements propagating data flow information from the first to the last.
-     * Determines block returned type and data flow information at the end of the block AND
-     * at the nearest jump point from the block beginning.
+     * 访问块语句，从第一个到最后一个传播数据流信息。
+     * 确定块的返回类型以及块结束时和从块开始最近的跳转点的数据流信息。
+     *
+     * @param scope 词法可写作用域
+     * @param block 块中的元素列表
+     * @param coercionStrategyForLastExpression 最后一个表达式的强制策略
+     * @param context 表达式类型检查上下文
+     * @return 包含块返回类型和数据流信息的 [CangJieTypeInfo]
      */
     /*package*/
     fun getBlockReturnedTypeWithWritableScope(
@@ -335,37 +340,62 @@ class ExpressionTypingServices(
         coercionStrategyForLastExpression: CoercionStrategy,
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
+
         if (block.isEmpty()) {
             return createTypeInfo(expressionTypingComponents.builtIns.unitType, context)
         }
 
+
         var blockLevelVisitor: ExpressionTypingInternals = ExpressionTypingVisitorDispatcher.ForBlock(
             expressionTypingComponents, annotationChecker, scope
         )
-        //        ExpressionTypingContext newContext = context.replaceScope(scope).replaceExpectedType(NO_EXPECTED_TYPE);
-        var newContext = context.replaceScope(scope).replaceExpectedType(EXPRESSION_TYPE)
-
+        var newContext = context.replaceScope(scope).replaceExpectedType(NO_EXPECTED_TYPE)
 
         var result = noTypeInfo(context)
-
         var beforeJumpInfo = newContext.dataFlowInfo
         var jumpOutPossible = false
 
         var isFirstStatement = true
         val iterator = block.iterator()
+        var parentDeclaration: DeclarationDescriptor? = null
         while (iterator.hasNext()) {
             ProgressManager.checkCanceled()
-            // Use filtering trace to keep effect system cache only for one statement
-            val traceForSingleStatement: AbstractFilteringTrace = EffectsFilteringTrace(context.trace)
 
+            // 使用过滤跟踪以仅保留一个语句的效果系统缓存
+            val traceForSingleStatement: AbstractFilteringTrace = EffectsFilteringTrace(context.trace)
             newContext = newContext.replaceBindingTrace(traceForSingleStatement)
 
-
             val statement = iterator.next() as? CjExpression ?: continue
+
+            if (parentDeclaration == null) {
+                parentDeclaration =
+                    context.trace.bindingContext.get(
+                        BindingContext.DECLARATION_TO_DESCRIPTOR, context.getContextParentOfType(
+                            statement,
+                            CjDeclaration::class.java
+                        )
+                    )
+            }
             if (!iterator.hasNext()) {
-//                最后一条语句也需要检查类型，虽然在前面如果有return语句而无法到达，但是检查类型是必要的  该分支一定会执行
+
+                newContext = newContext.replaceExpectedType(context.expectedType)
+
+                if (statement !is CjReturnExpression) {
+                    if (parentDeclaration is PropertyAccessorDescriptorImpl) {
+                        newContext = newContext.replaceExpectedType(parentDeclaration.returnType)
+                    }
+
+                    if (parentDeclaration is FunctionDescriptorImpl) {
+                        if (parentDeclaration.returnType != null && (parentDeclaration.source.getPsi() as? CjFunctionImpl)?.isInferReturnType != true) {
+                            newContext = newContext.replaceExpectedType(parentDeclaration.returnType)
+                        }
+
+                    }
+                }
+
+                // 最后一条语句也需要检查类型，即使前面有 return 语句而无法到达，检查类型也是必要的
                 result = getTypeOfLastExpressionInBlock(
-                    statement, newContext.replaceExpectedType(context.expectedType), coercionStrategyForLastExpression,
+                    statement, newContext, coercionStrategyForLastExpression,
                     blockLevelVisitor
                 )
                 if (result.type != null && statement.parent is CjBlockExpression) {
@@ -377,25 +407,26 @@ class ExpressionTypingServices(
                     )
                     result = result.replaceDataFlowInfo(
                         result.dataFlowInfo.assign(
-                            blockExpressionValue, lastExpressionValue /*,
-                            expressionTypingComponents.languageVersionSettings*/
+                            blockExpressionValue, lastExpressionValue
                         )
                     )
                 }
             } else {
-                result = blockLevelVisitor
-                    .getTypeInfo(statement, newContext.replaceContextDependency(ContextDependency.INDEPENDENT), true)
+                result = blockLevelVisitor.getTypeInfo(
+                    statement,
+                    newContext.replaceContextDependency(ContextDependency.INDEPENDENT),
+                    true
+                )
             }
 
             val newDataFlowInfo = result.dataFlowInfo
-            // If jump is not possible, we take new data flow info before jump
+            // 如果没有可能跳转，我们获取跳转前的新数据流信息
             if (!jumpOutPossible) {
                 beforeJumpInfo = result.jumpFlowInfo
                 jumpOutPossible = result.jumpOutPossible
             }
             if (newDataFlowInfo !== newContext.dataFlowInfo) {
                 newContext = newContext.replaceDataFlowInfo(newDataFlowInfo)
-                // We take current data flow info if jump there is not possible
             }
             blockLevelVisitor = ExpressionTypingVisitorDispatcher.ForBlock(
                 expressionTypingComponents,
@@ -403,15 +434,46 @@ class ExpressionTypingServices(
             )
 
             val ownerDescriptor = scope.ownerDescriptor
-
             if (isFirstStatement && ownerDescriptor is FunctionDescriptor) {
-//                expressionTypingComponents.contractParsingServices.checkContractAndRecordIfPresent(
-//                        statementExpression, context.trace, (FunctionDescriptor) ownerDescriptor
-//                );
                 isFirstStatement = false
             }
         }
+//        if (parentDeclaration is FunctionDescriptorImpl) {
+//            parentDeclaration.setReturnType(
+//                result.type ?: ErrorUtils.invalidType
+//            )
+//        }
         return result.replaceJumpOutPossible(jumpOutPossible).replaceJumpFlowInfo(beforeJumpInfo)
+    }
+
+
+    fun getBodyExpressionType(
+        trace: BindingTrace,
+        outerScope: LexicalScope,
+        dataFlowInfo: DataFlowInfo,
+        function: CjDeclarationWithBody,
+        functionDescriptor: FunctionDescriptor,
+        inferenceSession: InferenceSession?
+    ): CangJieType {
+        val bodyExpression = function.bodyBlockExpression ?: error("Body expression cannot be null")
+        val functionInnerScope = FunctionDescriptorUtil.getFunctionInnerScope(
+            outerScope, functionDescriptor, trace, expressionTypingComponents.overloadChecker
+        )
+
+        val context = ExpressionTypingContext.newContext(
+            trace,
+            functionInnerScope,
+            dataFlowInfo,
+            NO_EXPECTED_TYPE,
+            languageVersionSettings,
+            expressionTypingComponents.dataFlowValueFactory,
+            inferenceSession
+        )
+
+
+        val typeInfo = expressionTypingFacade.getTypeInfo(bodyExpression, context, function.hasBlockBody())
+
+        return typeInfo.type ?: createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_FUNCTION)
     }
 
     fun getBlockReturnedType(
@@ -419,18 +481,7 @@ class ExpressionTypingServices(
         context: ExpressionTypingContext,
         isStatement: Boolean
     ): CangJieTypeInfo {
-//如方法没有显示指定返回值，推断返回值并更改
-//        PsiElement blockParent = expression.getParent();
-//        if (blockParent instanceof CjFunction && ((CjFunction) blockParent).getTypeReference() == null) {
-//            CangJieType returnType = expressionTypingComponents.functionReturnResolver.resolveFunctionReturn(expression, context);
-//            FunctionDescriptor functionDescriptor = context.trace.getBindingContext().get(BindingContext.FUNCTION, blockParent);
-//            if (functionDescriptor instanceof FunctionDescriptorImpl) {
-//                if (returnType != null) {
-//                    ((FunctionDescriptorImpl) functionDescriptor).setReturnType(returnType);
-//                    return TypeInfoFactoryKt.createTypeInfo(returnType);
-//                }
-//            }
-//        }
+
 
         return getBlockReturnedType(
             expression,
@@ -476,7 +527,7 @@ class ExpressionTypingServices(
         val newContext =
             if (blockBody //                        ? context.replaceExpectedType(NO_EXPECTED_TYPE)
             )
-                context.replaceExpectedType(EXPRESSION_TYPE)
+                context.replaceExpectedType(NO_EXPECTED_TYPE)
             else
                 context
 

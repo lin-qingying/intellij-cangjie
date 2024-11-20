@@ -459,7 +459,7 @@ class BasicCompletionSession(
                 if (qualifier != null) return
                 val receiver = callTypeAndReceiver.receiver as? CjSimpleNameExpression ?: return
                 val descriptors = mutableListOf<ClassifierDescriptorWithTypeParameters>()
-                val fullTextPrefixMatcher = object : PrefixMatcher(receiver.getReferencedName()) {
+                val fullTextPrefixMatcher = object : PrefixMatcher(receiver.referencedName) {
                     override fun prefixMatches(name: String): Boolean = name == prefix
                     override fun cloneWithPrefix(prefix: String): PrefixMatcher =
                         throw UnsupportedOperationException("Not implemented")

@@ -987,7 +987,7 @@ object TypeUtils {
 
     @JvmStatic
     fun noExpectedType(type: CangJieType): Boolean {
-        return type === NO_EXPECTED_TYPE || type === UNIT_EXPECTED_TYPE || type === EXPRESSION_TYPE
+        return type === NO_EXPECTED_TYPE || type === UNIT_EXPECTED_TYPE
     }
 
     //    fun makeStarProjection(parameterDescriptor:  TypeParameterDescriptor):  TypeProjection {
@@ -1200,9 +1200,9 @@ object TypeUtils {
     }
 
     //    表示不需要返回值的地方，一般用于if  try 之类的多结果表达式
-    @JvmField
-    val EXPRESSION_TYPE: SimpleType =
-        SpecialType("EXPRESSION_TYPE")
+//    @JvmField
+//    val EXPRESSION_TYPE: SimpleType =
+//        SpecialType("EXPRESSION_TYPE")
 
     //    表示没有指定类型，需要推断，用于需要返回值的地方
     @JvmField

@@ -44,7 +44,7 @@ class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpre
 
     constructor(stub: CangJieNameReferenceExpressionStub) : super(stub, CjStubElementTypes.REFERENCE_EXPRESSION)
 
-    override fun getReferencedName(): String {
+    override val referencedName : String get()  {
         val stub = stub
         if (stub != null) {
             return stub.getReferencedName()
@@ -52,11 +52,11 @@ class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpre
         return CjSimpleNameExpressionImpl.getReferencedNameImpl(this)
     }
 
-    override fun getReferencedNameAsName(): Name {
+    override val referencedNameAsName : Name  get(){
         return CjSimpleNameExpressionImpl.getReferencedNameAsNameImpl(this)
     }
 
-    override fun getReferencedNameElement(): PsiElement {
+    override val referencedNameElement : PsiElement  get(){
         return findChildByType(NAME_REFERENCE_EXPRESSIONS) ?: this
     }
       val typeArguments: List<CjTypeProjection>
@@ -70,11 +70,11 @@ class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpre
             return findChildByType<PsiElement>(CjNodeTypes.TYPE_ARGUMENT_LIST) as CjTypeArgumentList?
         }
 
-    override fun getIdentifier(): PsiElement? {
+    override val identifier : PsiElement?  get(){
         return findChildByType(IDENTIFIER)
     }
 
-    override fun getReferencedNameElementType(): IElementType {
+    override val referencedNameElementType : IElementType  get(){
         return CjSimpleNameExpressionImpl.getReferencedNameElementTypeImpl(this)
     }
 
@@ -83,7 +83,7 @@ class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpre
     }
 
     val isPlaceholder: Boolean
-        get() = getIdentifier()?.text?.equals("_") == true
+        get() = identifier?.text?.equals("_") == true
 
     companion object {
         private val NAME_REFERENCE_EXPRESSIONS = TokenSet.create(IDENTIFIER, THIS_KEYWORD, SUPER_KEYWORD)

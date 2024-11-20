@@ -42,6 +42,7 @@ import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.*
+import com.linqingying.cangjie.psi.psiUtil.isEmptyBody
 import com.linqingying.cangjie.resolve.DescriptorResolver.Companion.getDefaultModality
 import com.linqingying.cangjie.resolve.DescriptorResolver.Companion.getDefaultVisibility
 
@@ -569,7 +570,13 @@ class FunctionDescriptorResolver(
                 if (container is LazyExtendClassDescriptor) {
                     container.type
                 } else {
-                    typeResolver.resolveType(if (isExtend) extendScope else scope, receiverTypeRef, trace, true, useCache = !isExtend)
+                    typeResolver.resolveType(
+                        if (isExtend) extendScope else scope,
+                        receiverTypeRef,
+                        trace,
+                        true,
+                        useCache = !isExtend
+                    )
 
                 }
             } else {
@@ -633,11 +640,12 @@ class FunctionDescriptorResolver(
             trace
         )
 //val returnType = expressionTypingServices.resolveFunctionReturnType(headerScope,function,functionDescriptor,dataFlowInfo,null,trace,null).type
-        val returnType = resolveFunctionReturnType(
-            function, context,
-
-            useCache = function !is CjNamedFunctionForExtend
-        )
+//        val returnType = resolveFunctionReturnType(
+//            function, context,
+//
+//            useCache = function !is CjNamedFunctionForExtend
+//        )
+        val returnType = function.typeReference?.let { typeResolver.resolveType(headerScope, it, trace, true) }
 
 
         val visibility = resolveVisibilityFromModifiers(function, getDefaultVisibility(function, container))
@@ -696,6 +704,19 @@ class FunctionDescriptorResolver(
 
     private fun CangJieType.functionTypeExpected() = !TypeUtils.noExpectedType(this) && isBuiltinFunctionalType
 
+    /**
+     * 根据函数体初始化函数的返回类型
+     *
+     * 此函数负责在函数体的基础上确定函数的返回类型这对于未明确指定返回类型的函数尤为重要
+     * 它确保了类型系统的完整性和一致性
+     *
+     * @param scope 词法作用域，用于解析函数体中的名称和类型
+     * @param function 当前正在处理的函数对象
+     * @param functionDescriptor 函数描述符，用于记录函数的类型信息包括返回类型
+     * @param trace 绑定跟踪对象，用于记录类型推断过程中的绑定信息
+     * @param dataFlowInfo 数据流信息，用于类型推断时考虑数据流分析的结果
+     * @param inferenceSession 推断会话，可能为空，用于处理类型推断过程中的会话相关操作
+     */
     private fun initializeFunctionReturnTypeBasedOnFunctionBody(
         scope: LexicalScope,
         function: CjFunction,
@@ -704,23 +725,56 @@ class FunctionDescriptorResolver(
         dataFlowInfo: DataFlowInfo,
         inferenceSession: InferenceSession?
     ) {
+        // 如果函数描述符已经具有返回类型，则无需进一步处理，直接返回
         if (functionDescriptor.returnType != null) return
+
+        // 确保函数的类型引用尚未被初始化，以防止重复或冲突的类型初始化
+        assert(function.typeReference == null) {
+            "Return type must be initialized early for function: " + function.text + ", at: " + PsiDiagnosticUtils.atLocation(
+                function
+            )
+        }
+
+        // 根据函数体的内容推断函数的返回类型
+        val inferredReturnType = when {
+            // 如果函数体为空，则默认返回Unit类型
+            function.isEmptyBody() ->
+                builtIns.unitType
+
+            // 否则，尝试从表达式体中推断返回类型
+            else ->
+                descriptorResolver.inferReturnTypeFromExpressionBody(
+                    trace, scope, dataFlowInfo, function, functionDescriptor, inferenceSession
+                )
+        }
+
+        // 设置函数描述符的返回类型为推断出的类型
+        functionDescriptor.setReturnType(inferredReturnType)
+    }
+
+    fun setFunctionReturnTypeBasedOnFunctionBody(
+        scope: LexicalScope,
+        function: CjFunction,
+        functionDescriptor: SimpleFunctionDescriptorImpl,
+        trace: BindingTrace,
+        dataFlowInfo: DataFlowInfo,
+        inferenceSession: InferenceSession?
+    ) {
+        if (function.typeReference != null) return
         assert(function.typeReference == null) {
             "Return type must be initialized early for function: " + function.text + ", at: " + PsiDiagnosticUtils.atLocation(
                 function
             )
         }
         val inferredReturnType = when {
-            function.hasBlockBody() ->
+            function.isEmptyBody() ->
                 builtIns.unitType
 
-            function.hasBody() ->
+
+            else ->
                 descriptorResolver.inferReturnTypeFromExpressionBody(
                     trace, scope, dataFlowInfo, function, functionDescriptor, inferenceSession
                 )
-
-            else ->
-                ErrorUtils.createErrorType(ErrorTypeKind.RETURN_TYPE, functionDescriptor.name.asString())
         }
         functionDescriptor.setReturnType(inferredReturnType)
     }

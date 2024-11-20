@@ -271,7 +271,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
     final override fun resolverForModuleDescriptor(descriptor: ModuleDescriptor): ResolverForModule {
         val moduleResolver = resolverForModuleDescriptorImpl(descriptor)
 
-        // Please, attach exceptions from here to EA-214260 (see `resolverForModuleDescriptorImpl` comment)
+
         checkWithAttachment(
             moduleResolver != null,
             lazyMessage = { "$descriptor is not contained in resolver $name" },

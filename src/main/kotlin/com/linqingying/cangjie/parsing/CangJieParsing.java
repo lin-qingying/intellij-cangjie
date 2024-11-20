@@ -2203,12 +2203,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector, boolean isForeign, Integer topTokenId) {
 
 
-//        if (detector != null) {
-//            if (detector.isOperatorDetected() && classdetector == null) {
-////              detector.OPERATOR_MARK.error("unexpected modifier 'operator' on function declaration in 'top-level' scope");
-//
-//            }
-//        }
+
         assert _at(FUNC_KEYWORD);
         advance();
         IElementType type = FUNC;
@@ -2227,9 +2222,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         if (detector != null && detector.isOperatorDetected()) {
 
-//            if (classdetector == null) {
-//                error("unexpected modifier 'operator' on function declaration in 'top-level' scope");
-//            } else
 
             //运算符重载
 
@@ -2248,33 +2240,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 advance();
                 mark.error("Should be an overloaded operator");
 
-//              return FUNC;
+
 
             }
-        } /*else if (atSet(OPERATIONS_CAN_BE_OVERLOADED) && detector != null && !detector.isOperatorDetected()) {
-
-//            PsiBuilder.Marker mark = mark();
-//            mark.error("Missing modifier as 'operator'");
-//            if(at(LPAR) || at(LBRACKET)){
-//                error("Missing modifier as 'operator'");
-//            }
-            if (at(LPAR) || at(LBRACKET)) {
-                errorAndAdvance("Missing modifier as 'operator'", 2);
-            } else {
-                errorAndAdvance("Missing modifier as 'operator'");
-
-            }
-
-
-//            return FUNC;
-        } */ else {
+        }  else {
             //函数名
             myBuilder.getTokenType();
             parseIdentifier();
         }
 
 
-//        expect(EXCL);
 
         boolean typeParameterListOccurred = false;
         if (at(LT)) {
@@ -2298,9 +2273,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
         parseTypeConstraintsGuarded(typeParameterListOccurred);
         //函数体
-//        if (at(SEMICOLON)) {
-//            advance(); // SEMICOLON
-//        } else
 
         if (isDeclarationsFile) {
 
@@ -2310,23 +2282,20 @@ public class CangJieParsing extends AbstractCangJieParsing {
                     advance();
                 }
 
-//                if (!(MODIFIER_KEYWORDS.contains(lookahead(1)) || lookahead(1) == FUNC)) {
-//                    parseFunctionBody();
-//
-//                }else {
-//                    advance();
-//                }
 
 
                 body.error("Method bodies are not allowed in declaration files");
 
             }
-//            else body.drop();
+
 
             return type;
         }
+      /*  if (at(EQ)) {
+            advance();
+            myExpressionParsing.parseExpression();
 
-        if (at(LBRACE)) {
+        } else*/ if (at(LBRACE)) {
 
             parseFunctionBody();
             if (isForeign) {

@@ -427,7 +427,7 @@ class LazyTopDownAnalyzer(
     ) {
         for (variable in variables) {
             if (variable.pattern != null) {
-                val descriptor = lazyDeclarationResolver.resolveToVariableByPattern(variable )
+                val descriptor = lazyDeclarationResolver.resolveToVariableByPattern(variable)
 
                 c.variablesByPattern[variable] = descriptor
 //                registerTopLevelFqName(topLevelFqNames, variable, descriptor)
@@ -483,8 +483,8 @@ class LazyTopDownAnalyzer(
 
     private fun createFunctionDescriptors(c: TopDownAnalysisContext, functions: List<CjNamedFunction>) {
         for (function in functions) {
-            val simpleFunctionDescriptor =
-                lazyDeclarationResolver.resolveToDescriptor(function) as SimpleFunctionDescriptor
+            val simpleFunctionDescriptor = lazyDeclarationResolver.resolveToDescriptor(function)
+                    as SimpleFunctionDescriptor
             c.functions[function] = simpleFunctionDescriptor
             ForceResolveUtil.forceResolveAllContents(simpleFunctionDescriptor.annotations)
             for (parameterDescriptor in simpleFunctionDescriptor.valueParameters) {

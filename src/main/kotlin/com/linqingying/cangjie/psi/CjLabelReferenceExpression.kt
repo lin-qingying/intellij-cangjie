@@ -28,5 +28,5 @@ import com.intellij.lang.ASTNode
 
 
 class CjLabelReferenceExpression(node: ASTNode) : CjSimpleNameExpressionImpl(node) {
-    override fun getReferencedNameElement() = getIdentifier() ?: this
+    override val referencedNameElement get() = identifier ?: this
 }

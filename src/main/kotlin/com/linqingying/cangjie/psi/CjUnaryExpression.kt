@@ -40,5 +40,5 @@ abstract class CjUnaryExpression(node: ASTNode) : CjExpressionImpl(node), CjOper
     override val operationReference: CjSimpleNameExpression
         get() = findChildByType(CjNodeTypes.OPERATION_REFERENCE)!!
     val operationToken: IElementType
-        get() = operationReference.getReferencedNameElementType()
+        get() = operationReference.referencedNameElementType
 }

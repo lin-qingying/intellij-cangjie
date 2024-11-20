@@ -89,6 +89,15 @@ interface ResolutionScope {
 
     fun definitelyDoesNotContainName(name: Name): Boolean = false
 
+    /**
+     * 记录指定名称的查找操作
+     *
+     * 该函数旨在记录在特定位置对指定名称进行的查找操作它通过调用[getContributedFunctions]
+     * 来获取与该名称相关的函数信息
+     *
+     * @param name 要查找的名称，通常是一个函数或变量名
+     * @param location 查找操作发生的地点，用于提供上下文信息
+     */
     fun recordLookup(name: Name, location: LookupLocation) {
         getContributedFunctions(name, location)
     }

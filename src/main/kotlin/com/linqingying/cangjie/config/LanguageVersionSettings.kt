@@ -116,7 +116,9 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER),
     AbstractClassMemberNotImplementedWithIntermediateAbstractClass(CANGJIE_0_53_4, kind = BUG_FIX),
 
     ReportMissingUpperBoundsViolatedErrorOnAbbreviationAtSupertypes(CANGJIE_0_53_4, kind = BUG_FIX),
+    ForbidRecursiveDelegateExpressions(CANGJIE_0_53_4, kind = BUG_FIX),
 
+    ReportErrorsOnRecursiveTypeInsidePlusAssignment(CANGJIE_0_53_5, kind = BUG_FIX), // KT-48546
 
     AllowEmptyIntersectionsInResultTypeResolver(CANGJIE_0_53_4, kind = OTHER),
 
@@ -177,6 +179,9 @@ ImprovedCapturedTypeApproximationInInference(CANGJIE_0_53_4, kind = OTHER),
 enum class LanguageVersion(val major: Int, val minor: Int, val patch: Int) : DescriptionAware, LanguageOrApiVersion {
 
     CANGJIE_0_53_4(0, 53, 4),
+        CANGJIE_0_53_5(0, 53, 4),
+    ;
+
     ;
 
     override val isStable: Boolean

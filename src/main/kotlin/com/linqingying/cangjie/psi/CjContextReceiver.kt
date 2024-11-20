@@ -41,12 +41,12 @@ class CjContextReceiver : CjElementImplStub<CangJieContextReceiverStub> {
 
     fun labelName(): String? {
         stub?.let { return it.getLabel() }
-        return targetLabel()?.getReferencedName()
+        return targetLabel()?.referencedName
     }
 
     fun labelNameAsName(): Name? {
         stub?.let { stub -> return stub.getLabel()?.let { Name.identifier(it) } }
-        return targetLabel()?.getReferencedNameAsName()
+        return targetLabel()?.referencedNameAsName
     }
 
     fun typeReference(): CjTypeReference? = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)

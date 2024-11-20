@@ -822,11 +822,11 @@ private fun createCompileTimeConstantForEquals(result: Any?, operationReference:
     if (result is Boolean) {
         assert(operationReference is CjSimpleNameExpression) { "This method should be called only for equals operations" }
         val value: Boolean =
-            when (val operationToken = (operationReference as CjSimpleNameExpression).getReferencedNameElementType()) {
+            when (val operationToken = (operationReference as CjSimpleNameExpression).referencedNameElementType) {
                 CjTokens.EQEQ -> result
                 CjTokens.EXCLEQ -> !result
                 CjTokens.IDENTIFIER -> {
-                    assert(operationReference.getReferencedNameAsName() == OperatorNameConventions.EQUALS) { "This method should be called only for equals operations" }
+                    assert(operationReference.referencedNameAsName  == OperatorNameConventions.EQUALS) { "This method should be called only for equals operations" }
                     result
                 }
 
@@ -841,7 +841,7 @@ private fun createCompileTimeConstantForCompareTo(result: Any?, operationReferen
     if (result is Int) {
         assert(operationReference is CjSimpleNameExpression) { "This method should be called only for compareTo operations" }
         return when (val operationToken =
-            (operationReference as CjSimpleNameExpression).getReferencedNameElementType()) {
+            (operationReference as CjSimpleNameExpression).referencedNameElementType) {
             CjTokens.LT -> BoolValue(result < 0)
             CjTokens.LTEQ -> BoolValue(result <= 0)
             CjTokens.GT -> BoolValue(result > 0)

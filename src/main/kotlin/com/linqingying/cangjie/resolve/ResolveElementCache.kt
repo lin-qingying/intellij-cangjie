@@ -292,7 +292,7 @@ class ResolveElementCache(
         when (bodyResolveMode) {
             FULL -> {
                 val bindingContext = performElementAdditionalResolve(resolveElement, null, FULL).first
-//                fullResolveMap[resolveElement] = CachedFullResolve(bindingContext, resolveElement)
+                fullResolveMap[resolveElement] = CachedFullResolve(bindingContext, resolveElement)
                 return bindingContext
             }
 
@@ -756,7 +756,7 @@ class ResolveElementCache(
         val bodyResolver = createBodyResolver(resolveSession, trace, file, statementFilter)
         bodyResolver.resolveFunctionBody(DataFlowInfo.EMPTY, trace, namedFunction, functionDescriptor, scope, null)
 
-//        forceResolveAnnotationsInside(namedFunction)
+        forceResolveAnnotationsInside(namedFunction)
 
         return trace
     }
@@ -811,7 +811,7 @@ class ResolveElementCache(
         if (cjElement is CjSimpleNameExpression) {
             val header = cjElement.findParentOfType<CjPackageDirective>(true)!!
 
-            if (Name.isValidIdentifier(cjElement.getReferencedName())) {
+            if (Name.isValidIdentifier(cjElement.referencedName)) {
 //                if (trace.bindingContext[BindingContext.REFERENCE_TARGET, cjElement] == null) {
 //                    val fqName = header.getFqName(cjElement)
 //                    val packageDescriptor = resolveSession.moduleDescriptor.getPackage(fqName)

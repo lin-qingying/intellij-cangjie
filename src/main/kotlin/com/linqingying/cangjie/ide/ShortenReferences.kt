@@ -980,16 +980,16 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 
             return when (receiver) {
                 is CjSimpleNameExpression -> {
-                    val identifier = receiver.getIdentifier() ?: return element
-                    (selector.getCalleeExpressionIfAny() as? CjSimpleNameExpression)?.getIdentifier()
+                    val identifier = receiver.identifier ?: return element
+                    (selector.getCalleeExpressionIfAny() as? CjSimpleNameExpression)?.identifier
                         ?.replace(identifier)
                     element.replace(selector) as CjExpression
                 }
 
                 is CjQualifiedExpression -> {
                     val identifier =
-                        (receiver.selectorExpression as? CjSimpleNameExpression)?.getIdentifier() ?: return element
-                    (selector.getCalleeExpressionIfAny() as? CjSimpleNameExpression)?.getIdentifier()
+                        (receiver.selectorExpression as? CjSimpleNameExpression)?.identifier ?: return element
+                    (selector.getCalleeExpressionIfAny() as? CjSimpleNameExpression)?.identifier
                         ?.replace(identifier)
                     receiver.selectorExpression?.replace(selector)
                     element.replace(receiver) as CjExpression

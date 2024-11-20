@@ -33,7 +33,13 @@ class CompilationErrorException : RuntimeException {
     constructor() : super()
     constructor(message: String) : super(message)
 }
-
+class DelegateAnalysisResult(
+      result: AnalysisResult
+):AnalysisResult(
+  result.  bindingContext,
+  result.  moduleDescriptor,
+ result.   shouldGenerateCode
+)
 open class AnalysisResult protected constructor(
     val bindingContext: BindingContext,
     val moduleDescriptor: ModuleDescriptor,

@@ -54,5 +54,5 @@ abstract class SyntheticPropertyAccessorReference(
     override fun canRename() = true
 
     override val resolvesByNames: Collection<Name>
-        get() = listOf(element.getReferencedNameAsName())
+        get() = listOf(element.referencedNameAsName)
 }
