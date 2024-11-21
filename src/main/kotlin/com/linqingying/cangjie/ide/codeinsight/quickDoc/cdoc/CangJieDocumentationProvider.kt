@@ -519,7 +519,9 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 return getTextImpl(it, originalElement, quickNavigation)
             }
 
-
+            if(element is CjVArrayType){
+                return "值数组"
+            }
             if (element is CjBasicType) {
                 return "基本类型"
             }

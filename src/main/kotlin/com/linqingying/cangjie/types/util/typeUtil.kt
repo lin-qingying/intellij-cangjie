@@ -327,10 +327,10 @@ fun createVArrayType(
     size: Int
 ): VArrayType {
     val descriptor = VArrayTypeDescriptor(
-        argument, size,
+
         builtIns.builtInsModule, builtIns, builtIns.storageManager
     )
-
+    descriptor.init(argument, size)
     return descriptor.defaultType
 
 }

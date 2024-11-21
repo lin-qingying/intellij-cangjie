@@ -25,10 +25,13 @@
 package com.linqingying.cangjie.descriptors.impl.basic
 
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
+import com.linqingying.cangjie.builtins.createFunctionType
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
+import com.linqingying.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.ClassDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.TypeParameterDescriptorImpl
+import com.linqingying.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.scopes.GivenFunctionsMemberScope
 import com.linqingying.cangjie.storage.NotNullLazyValue
@@ -40,11 +43,10 @@ import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
 import com.linqingying.cangjie.types.util.asTypeProjection
 
 class VArrayTypeDescriptor(
-    val argumentType: CangJieType,
-    val size: Int,
+
     containingDeclaration: DeclarationDescriptor,
     val builtIns: CangJieBuiltIns,
-    storageManager: StorageManager
+    val storageManager: StorageManager
 ) : ClassDescriptorImpl(
     containingDeclaration,
     Name.identifier("VArray"),
@@ -52,9 +54,26 @@ class VArrayTypeDescriptor(
 ) {
     private val memberScope = VArrayClassScope(storageManager, this)
 
-    val typeParameter: TypeParameterDescriptorImpl
+    lateinit var typeParameter: TypeParameterDescriptorImpl
 
-    init {
+    var size: Int = -1
+
+    private var isInitialized: Boolean = false
+
+    lateinit var argumentType: CangJieType
+
+    private fun checkInitialized() {
+        require(isInitialized) { "VArrayTypeDescriptor is not initialized" }
+    }
+
+    var _constructors: MutableList<ClassConstructorDescriptor> = mutableListOf()
+    fun init(
+        argumentType: CangJieType,
+        size: Int,
+    ) {
+        isInitialized = true
+        this.argumentType = argumentType
+        this.size = size
         typeParameter = TypeParameterDescriptorImpl.createWithDefaultBound(
             this, Annotations.EMPTY, Variance.INVARIANT,
             argumentType.constructor.declarationDescriptor?.name ?: Name.identifier("T"), 0, storageManager
@@ -63,20 +82,60 @@ class VArrayTypeDescriptor(
             typeParameter.addUpperBound(it.type)
 
         }
+        typeParameters = listOf(
+            typeParameter
+        )
+
+        _constructors.add(
+            ClassConstructorDescriptorImpl.create(
+                this, Annotations.EMPTY, false, SourceElement.NO_SOURCE, false
+            ).apply {
+                initialize(
+                    listOf(
+                        ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                            this, null, 0, Annotations.EMPTY, Name.identifier("initElement"),
+                            false, createFunctionType(
+                                builtIns, Annotations.EMPTY, null, emptyList(), listOf(argumentType), null, argumentType
+                            ), false, SourceElement.NO_SOURCE
+                        )
+                    ),
+                    this@VArrayTypeDescriptor.getDefaultType()
+
+                )
+
+            }
+
+        )
+        _constructors.add(
+            ClassConstructorDescriptorImpl.create(
+                this, Annotations.EMPTY, false, SourceElement.NO_SOURCE, false
+            ).apply {
+                initialize(
+                    listOf(
+                        ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                            this, null, 0, Annotations.EMPTY, Name.identifier("repeat"),
+                            true, argumentType, false, SourceElement.NO_SOURCE
+                        )
+                    ),
+                     this@VArrayTypeDescriptor.getDefaultType()
+                )
+            }
+        )
 
     }
 
-    private val typeParameters = listOf(
-        typeParameter
-    )
+    lateinit var typeParameters: List<TypeParameterDescriptor>
 
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner) = memberScope
 
     override fun getDeclaredTypeParameters(): List<TypeParameterDescriptor> {
+
+        checkInitialized()
         return typeParameters
     }
 
     private val defaultTypeVarrayType: NotNullLazyValue<VArrayType> = storageManager.createLazyValue {
+        checkInitialized()
         VArrayType(
             size, argumentType.asTypeProjection(), typeConstructor, false, memberScope
         ) {
@@ -85,7 +144,12 @@ class VArrayTypeDescriptor(
     }
 
     override fun getDefaultType(): VArrayType {
+        checkInitialized()
         return this.defaultTypeVarrayType.invoke()
+    }
+
+    override fun getConstructors(): List<ClassConstructorDescriptor> {
+        return _constructors
     }
 
 }

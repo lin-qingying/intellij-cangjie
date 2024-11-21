@@ -352,7 +352,13 @@ private fun ResolutionCandidate.checkUnsafeImplicitInvokeAfterSafeCall(argument:
 
     return ImplicitInvokeCheckStatus.INVOKE_ON_NOT_NULL_VARIABLE
 }
+internal object InitVArray : ResolutionPart(){
+    override fun ResolutionCandidate.process(workIndex: Int) {
+//        初始化VArray类型
+        TODO("Not yet implemented")
+    }
 
+}
 //检查扩展之间的private修饰符访问
 internal object CheckExtensionPrivateVisibility : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {

@@ -267,7 +267,7 @@ class VArrayType(
     constructor, listOf(argument), isMarkedOption, memberScope, refinedTypeFactory
 ) {
 
-
+val typeName = "VArray"
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType {
         return refinedTypeFactory(cangjieTypeRefiner) ?: this

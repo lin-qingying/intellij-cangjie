@@ -115,6 +115,7 @@ open class CangJieIdeDescriptorOptions : DescriptorRendererOptions {
             true
         }
     }
+
     fun copy(): CangJieIdeDescriptorOptions {
         val copy = CangJieIdeDescriptorOptions()
 
@@ -205,6 +206,7 @@ open class CangJieIdeDescriptorRenderer(
     protected fun AnnotationDescriptor.isParameterName(): Boolean {
         return fqName == StandardNames.FqNames.parameterName
     }
+
     protected fun CangJieType.hasModifiersOrAnnotations() =
         !annotations.isEmpty()
 
@@ -258,6 +260,7 @@ open class CangJieIdeDescriptorRenderer(
             return
         }
         when (val unwrappedType = type.unwrap()) {
+            is VArrayType -> appendVArrayType(unwrappedType)
             is BasicType -> appendHighlighted(unwrappedType.typeName.toString()) { asKeyword }
 
             is FlexibleType -> append(
@@ -269,6 +272,17 @@ open class CangJieIdeDescriptorRenderer(
 
             is SimpleType -> appendSimpleType(unwrappedType)
         }
+    }
+
+    private fun StringBuilder.appendVArrayType(vArrayType: VArrayType) {
+        appendHighlighted(vArrayType.typeName) { asKeyword }
+        appendHighlighted(renderTypeArguments(vArrayType.arguments) {
+            it.append(",")
+
+            it.append(vArrayType.size)
+        }) { asError }
+
+
     }
 
     protected fun shouldRenderAsPrettyFunctionType(type: CangJieType): Boolean {
@@ -528,11 +542,16 @@ open class CangJieIdeDescriptorRenderer(
         }
     }
 
-    override fun renderTypeArguments(typeArguments: List<TypeProjection>): String = if (typeArguments.isEmpty()) ""
-    else buildString {
-        append(lt())
-        appendTypeProjections(typeArguments)
-        append(gt())
+    override fun renderTypeArguments(typeArguments: List<TypeProjection>, other: (StringBuilder) -> Unit): String {
+        return if (typeArguments.isEmpty()) ""
+        else buildString {
+            append(lt())
+            appendTypeProjections(typeArguments)
+
+
+            other(this)
+            append(gt())
+        }
     }
 
     override fun renderTypeProjection(typeProjection: TypeProjection): String = buildString {

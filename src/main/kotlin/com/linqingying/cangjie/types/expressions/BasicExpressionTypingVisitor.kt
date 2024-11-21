@@ -706,6 +706,9 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         cjCallExpression: CjCallExpression,
         data: ExpressionTypingContext
     ): CangJieTypeInfo {
+        if (cjCallExpression.referenceExpression?.referencedName == "VArray") {
+            return facade.components.vArrayResolver.resolve(cjCallExpression, data)
+        }
         val callExpressionResolver = components.callExpressionResolver
         return callExpressionResolver.getCallExpressionTypeInfo(cjCallExpression, data)
     }
@@ -969,6 +972,10 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         expression: CjSimpleNameExpression,
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
+        if (expression.referencedName == "VArray") {
+            return facade.components.vArrayResolver.resolve(expression, context)
+        }
+
 //        if (!components.languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
 //            ReservedCheckingCj.checkReservedYield(expression, context.trace);
 //        }
@@ -1120,49 +1127,50 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         val expression = CjPsiUtil.deparenthesize(expressionWithParenthesis)
 
         if (expression is CjArrayAccessExpression) {
-        val arrayExpression = expression.arrayExpression ?: return false
-        if (rightHandSide == null) return false
+            val arrayExpression = expression.arrayExpression ?: return false
+            if (rightHandSide == null) return false
 
-        val traceWithIndexedLValue: BindingTrace
-        val methodSetIsResolved: Boolean
+            val traceWithIndexedLValue: BindingTrace
+            val methodSetIsResolved: Boolean
 
-        if (!arraySetMethodAlreadyResolved) {
-            val ignoreReportsTrace = TemporaryBindingTrace.create(trace, "Trace for checking set function")
-            val findSetterContext = context.replaceBindingTrace(ignoreReportsTrace)
-            val info = resolveArrayAccessSetMethod(expression, rightHandSide, findSetterContext, ignoreReportsTrace)
+            if (!arraySetMethodAlreadyResolved) {
+                val ignoreReportsTrace = TemporaryBindingTrace.create(trace, "Trace for checking set function")
+                val findSetterContext = context.replaceBindingTrace(ignoreReportsTrace)
+                val info = resolveArrayAccessSetMethod(expression, rightHandSide, findSetterContext, ignoreReportsTrace)
 
-            traceWithIndexedLValue = ignoreReportsTrace
-            methodSetIsResolved = info.type != null
-        } else {
-            traceWithIndexedLValue = trace
-            methodSetIsResolved = true
-        }
+                traceWithIndexedLValue = ignoreReportsTrace
+                methodSetIsResolved = info.type != null
+            } else {
+                traceWithIndexedLValue = trace
+                methodSetIsResolved = true
+            }
 
-        val operationType = operationExpression.operationReference.referencedNameElementType
-        if (operationType in CjTokens.AUGMENTED_ASSIGNMENTS ||
-            operationType == CjTokens.PLUSPLUS ||
-            operationType == CjTokens.MINUSMINUS) {
-            val resolvedCall = traceWithIndexedLValue.get(INDEXED_LVALUE_SET, expression)
-            if (resolvedCall != null && trace.wantsDiagnostics()) {
-                val callCheckerContext = CallCheckerContext(
-                    context,
-                    components.deprecationResolver,
-                    components.moduleDescriptor,
-                    components.missingSupertypesResolver,
-                    components.callComponents,
-                    trace
-                )
-                components.callCheckers.forEach { it.check(resolvedCall, expression, callCheckerContext) }
+            val operationType = operationExpression.operationReference.referencedNameElementType
+            if (operationType in CjTokens.AUGMENTED_ASSIGNMENTS ||
+                operationType == CjTokens.PLUSPLUS ||
+                operationType == CjTokens.MINUSMINUS
+            ) {
+                val resolvedCall = traceWithIndexedLValue.get(INDEXED_LVALUE_SET, expression)
+                if (resolvedCall != null && trace.wantsDiagnostics()) {
+                    val callCheckerContext = CallCheckerContext(
+                        context,
+                        components.deprecationResolver,
+                        components.moduleDescriptor,
+                        components.missingSupertypesResolver,
+                        components.callComponents,
+                        trace
+                    )
+                    components.callCheckers.forEach { it.check(resolvedCall, expression, callCheckerContext) }
 
-                // Ensure the resolved call for 'set' operator is recorded (see KT-36956)
-                if (trace.get(INDEXED_LVALUE_SET, expression) == null) {
-                    trace.record(INDEXED_LVALUE_SET, expression, resolvedCall)
+                    // Ensure the resolved call for 'set' operator is recorded (see KT-36956)
+                    if (trace.get(INDEXED_LVALUE_SET, expression) == null) {
+                        trace.record(INDEXED_LVALUE_SET, expression, resolvedCall)
+                    }
                 }
             }
-        }
 
-        return methodSetIsResolved
-    }
+            return methodSetIsResolved
+        }
 
         // 从绑定上下文中提取变量描述符
         val variable = BindingContextUtils.extractVariableDescriptorFromReference(trace.bindingContext, expression)

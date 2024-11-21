@@ -28,7 +28,7 @@ import com.linqingying.cangjie.ide.codeinsight.hints.HintType
 import com.linqingying.cangjie.ide.codeinsight.hints.NamedInlayInfoOption
 
 class CangJieReferencesTypeHintsProvider : AbstractCangJieInlayHintsProvider(
-    HintType.VARIABLE_HINT, HintType.LOCAL_VARIABLE_HINT, HintType.FUNCTION_HINT, HintType.PARAMETER_TYPE_HINT
+    HintType.VARIABLE_HINT, HintType.LOCAL_VARIABLE_HINT, HintType.MAIN_FUNCTION_HINT, HintType.FUNCTION_HINT, HintType.PARAMETER_TYPE_HINT
  ,HintType.PATTERN_VARIABLE_HINT,
 )
 
@@ -37,3 +37,4 @@ val SHOW_LOCAL_VARIABLE_TYPES = NamedInlayInfoOption("hints.type.local.variable"
 val SHOW_FUNCTION_RETURN_TYPES = NamedInlayInfoOption("hints.type.function.return")
 val SHOW_FUNCTION_PARAMETER_TYPES = NamedInlayInfoOption("hints.type.function.parameter")
 val SHOW_PATTERN_VARIABLE_TYPES = NamedInlayInfoOption("hints.type.pattern.variable")
+val SHOW_MAIN_FUNCTION_RETURN_TYPES = NamedInlayInfoOption("hints.type.main.function.return")

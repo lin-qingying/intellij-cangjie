@@ -57,6 +57,7 @@ public class ExpressionTypingComponents {
     public Iterable<CallChecker> callCheckers;
     public DestructuringDeclarationResolver destructuringDeclarationResolver;
     public PatternMatchingTypingVisitor patternMatchingTypingVisitor;
+    public VArrayResolver vArrayResolver;
 
     public RangeLiteralResolver rangeLiteralResolver;
     public SpawnExpressionResolver spawnExpressionResolver;
@@ -101,6 +102,10 @@ public class ExpressionTypingComponents {
     @Inject
     public void setPatternMatchingTypingVisitor(@NotNull PatternMatchingTypingVisitor patternMatchingTypingVisitor) {
         this.patternMatchingTypingVisitor = patternMatchingTypingVisitor;
+    }
+    @Inject
+    public void setVArrayResolver(@NotNull VArrayResolver vArrayResolver) {
+        this.vArrayResolver = vArrayResolver;
     }
     @Inject
     public void setPlatformToCangJieClassMap(@NotNull PlatformToCangJieClassMapper platformToCangJieClassMapper) {

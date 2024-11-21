@@ -37,6 +37,9 @@ class CjMainFunction : CjFunctionImpl {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitMainFunction(this, data)
     }
+    override fun hasDeclaredReturnType(): Boolean {
+        return typeReference != null
+    }
 
     override fun getName(): String {
         return "main"

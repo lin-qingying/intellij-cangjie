@@ -174,38 +174,8 @@ class CallExpressionResolver(
 
             val type = enumDescriptor.returnType
             val resultFlowInfo = resolvedByEnumCall.dataFlowInfoForArguments.resultInfo
-//
-//            if (callExpression.getStrictParentOfType<CjDotQualifiedExpression>() == null && enumDescriptor is EnumClassCallableDescriptor && DescriptorUtils.isEnum(
-//                    enumDescriptor.type
-//                )
-//            ) {
-//                context.trace.report(
-//                    EXPECTED_MEMBER_OR_CONSTRUCTOR_AFTER_TYPE.on(
-//                        callExpression,
-//                        enumDescriptor.type as? ClassifierDescriptor
-//                    )
-//                )
-//
-//            }
-//
-//            if (isEnumClass) {
-//                val enumClass:ClassDescriptor? = when(enumDescriptor){
-//                    is EnumClassCallableDescriptor -> enumDescriptor.type as ClassDescriptor
-//
-//                    else -> null
-//                }
-//                context.trace.record(
-//                    BindingContext.QUALIFIER, callExpression,
-//                    enumClass?.let {
-//                        EnumClassQualifier(
-//                            callExpression,
-//                            it,
-//                            (resolvedByEnumCall as? NewAbstractResolvedCall)?.cangjieCall
-//                        )
-//                    }
-//
-//                )
-//            }
+
+
             return createTypeInfo(type, resultFlowInfo)
         }
 

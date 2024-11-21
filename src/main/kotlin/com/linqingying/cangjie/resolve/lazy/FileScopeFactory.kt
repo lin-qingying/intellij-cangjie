@@ -330,28 +330,13 @@ class FileScopeFactory(
             override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
 
 
-//
-//                val elements = file.declarations.flatMap {
-//                    when(it){
-//                        is CjEnum ->{
-//                            it.entry + listOf(it)
-//                        }
-//                        else -> listOf(it)
-//                    }
-//                }.filter {
-//
-//                    it.name === name.asString()
-//                }
-//                    if (elements.isEmpty()) return null
                     var i = 0
                     var _parent = parent
                     while (_parent !is CurrentPackageScope && i < 15) {
                         _parent = _parent?.parent
                         i++
                     }
-//                if (_parent !is CurrentPackageScope) {
-//                    return null
-//                }
+
                     return _parent?.getContributedClassifier(name, location)
 
 

@@ -44,6 +44,7 @@ class CjTypeArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeArgume
     val arguments: List<CjTypeProjection>
         get() = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_PROJECTION)
 
+val varrayLiteral: PsiElement? get() = findChildByType(CjTokens.INTEGER_LITERAL)
     fun addArgument(typeArgument: CjTypeProjection): CjTypeProjection {
         return addItem(
             this,

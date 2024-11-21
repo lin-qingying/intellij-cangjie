@@ -102,6 +102,11 @@
                     enabledByDefault="false"
                     nameKey="hints.settings.types.return"
                     descriptionKey="inlay.cangjie.references.types.hints.hints.type.function.return"/>
+                <option bundle="messages.CangJieBundle"
+                    optionId="hints.type.main.function.return"
+                    enabledByDefault="false"
+                    nameKey="hints.settings.types.main.return"
+                    descriptionKey="inlay.cangjie.references.types.hints.hints.type.main.function.return"/>
             <option bundle="messages.CangJieBundle"
                     optionId="hints.type.function.parameter"
                     enabledByDefault="false"

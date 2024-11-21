@@ -89,22 +89,41 @@ fun provideVariableTypeHint(elem: PsiElement, inlayInfoOption: InlayInfoOption):
 
 }
 
+/**
+ * 提供类型提示信息
+ *
+ * 此函数负责分析给定的代码元素，以生成适当的类型提示信息它首先尝试获取元素的类型信息，
+ * 如果类型中包含错误，则不提供提示如果类型是特殊的或匿名的，则尝试获取其直接超类型的类型
+ * 对于局部变量，如果是单元类型且多行定义，则根据代码格式决定是否提供提示最后，如果类型不明确，
+ * 则根据设置渲染类型信息到提示详情对象中
+ *
+ * @param element 代码元素，用于类型分析和提示信息的源
+ * @param offset 提示信息插入的偏移量
+ * @param inlayInfoOption 提示信息的选项，用于定制提示的行为
+ * @return 如果成功生成类型提示信息，则返回提示详情对象，否则返回null
+ */
 fun provideTypeHint(element: CjCallableDeclaration, offset: Int, inlayInfoOption: InlayInfoOption): InlayInfoDetails? {
+    // 尝试获取代码元素的类型信息
     var type: CangJieType = SpecifyTypeExplicitlyIntention.getTypeForDeclaration(element).unwrap()
+    // 如果类型信息中包含错误，则不提供提示
     if (type.containsError()) return null
+    // 获取类型的声明描述符，用于进一步的类型分析
     val declarationDescriptor = type.constructor.declarationDescriptor
     val name = declarationDescriptor?.name
+    // 如果类型名称是默认的无名称提供，则尝试获取其直接超类型
     if (name == SpecialNames.NO_NAME_PROVIDED) {
         if (element is CjVariable && element.isLocal) {
-            // for local variables, an anonymous object type is not collapsed to its supertype,
-            // so showing the supertype will be misleading
+            // 对于局部变量，匿名对象类型不会被合并到其超类型中，
+            // 所以显示超类型会误导
             return null
         }
         type = type.immediateSupertypes().singleOrNull() ?: return null
     } else if (name?.isSpecial == true) {
+        // 如果类型名称是特殊名称，则不提供提示
         return null
     }
 
+    // 对于局部变量，如果是单元类型且多行定义，则根据代码格式决定是否提供提示
     if (element is CjVariable && element.isLocal && type.isUnit() && element.isMultiLine()) {
         val propertyLine = element.getLineNumber()
         val equalsTokenLine = element.equalsToken?.getLineNumber() ?: -1
@@ -114,15 +133,20 @@ fun provideTypeHint(element: CjCallableDeclaration, offset: Int, inlayInfoOption
             val indentBeforeInitializer =
                 (element.initializer?.prevSibling as? PsiWhiteSpace)?.text?.substringAfterLast('\n')
             if (indentBeforeProperty == indentBeforeInitializer) {
+                // 如果属性和初始化器的缩进相同，则不提供提示
                 return null
             }
         }
     }
 
+    // 根据类型是否清晰来决定是否提供提示
     return if (isUnclearType(type, element)) {
+        // 获取元素所属文件的自定义设置
         val settings = element.containingCjFile.cangjieCustomSettings
+        // 渲染类型信息到提示内容
         val renderedType = HintsTypeRenderer.getInlayHintsTypeRenderer(element.safeAnalyzeNonSourceRootCode(), element)
             .renderTypeIntoInlayInfo(type)
+        // 构建类型提示前缀，根据设置决定是否在类型冒号前后添加空格
         val prefix = buildString {
             if (settings.SPACE_BEFORE_TYPE_COLON) {
                 append(" ")
@@ -134,15 +158,19 @@ fun provideTypeHint(element: CjCallableDeclaration, offset: Int, inlayInfoOption
             }
         }
 
+        // 创建基础的提示信息对象
         val inlayInfo = InlayInfo(
             text = "", offset = offset,
             isShowOnlyIfExistedBefore = false, isFilterByBlacklist = true, relatesToPrecedingText = true
         )
+        // 返回包含提示详情的对象
         return InlayInfoDetails(inlayInfo, listOf(TextInlayInfoDetail(prefix)) + renderedType, inlayInfoOption)
     } else {
+        // 如果类型清晰，则不提供提示
         null
     }
 }
+
 
 private fun isUnclearType(type: CangJieType, element: CjCallableDeclaration): Boolean {
     if (element !is CjProperty) return true

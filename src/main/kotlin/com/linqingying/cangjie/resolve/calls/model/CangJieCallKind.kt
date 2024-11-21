@@ -61,6 +61,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
      * 这些解析部分是处理函数调用时需要执行的步骤。
      */
     FUNCTION(
+
         CheckExtensionPrivateVisibility,
         CheckOperatorCallPart,
         CheckVisibility,

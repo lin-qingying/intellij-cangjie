@@ -60,19 +60,18 @@ data class Name(private val name: String, val isSpecial: Boolean) : Comparable<N
     }
 
 
-//    override fun equals(other: Any?): Boolean {
-//        if (this === other) return true
-//        if (other !is Name) return false
-//        val name1 = other
-//        if (isSpecial != name1.isSpecial) return false
-//        return name == name1.name
-//    }
-//
-//    override fun hashCode(): Int {
-//        var result = name.hashCode()
-//        result = 31 * result + if (isSpecial) 1 else 0
-//        return result
-//    }
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Name) return false
+        if (isSpecial != other.isSpecial) return false
+        return name == other.name
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + if (isSpecial) 1 else 0
+        return result
+    }
 
     companion object {
         @JvmStatic
@@ -83,9 +82,8 @@ data class Name(private val name: String, val isSpecial: Boolean) : Comparable<N
         @JvmStatic
         fun isValidIdentifier(name: String): Boolean {
             if (name.isEmpty() || name.startsWith("<")) return false
-            for (i in 0 until name.length) {
-                val ch = name[i]
-                if (ch == '.' || ch == '/' || ch == '\\') {
+            for (element in name) {
+                if (element == '.' || element == '/' || element == '\\') {
                     return false
                 }
             }

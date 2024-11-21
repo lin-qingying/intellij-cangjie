@@ -24,30 +24,31 @@
 
 package com.linqingying.cangjie.ide.codeinsight.hints
 
+import com.intellij.codeInsight.hints.InlayInfo
+import com.intellij.codeInsight.hints.Option
 import com.intellij.codeInspection.util.IntentionName
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.lexer.CjKeywordToken
-import com.linqingying.cangjie.lexer.CjTokens
-import org.jetbrains.annotations.Nls
-import kotlin.enums.EnumEntries
-import com.intellij.codeInsight.hints.InlayInfo
-import com.intellij.codeInsight.hints.Option
-import com.intellij.openapi.util.registry.Registry
 import com.linqingying.cangjie.ide.codeinsight.hints.declarative.*
 import com.linqingying.cangjie.ide.parameterInfo.*
 import com.linqingying.cangjie.ide.quickfix.createFromUsage.callableBuilder.getReturnTypeReference
 import com.linqingying.cangjie.ide.stubindex.resolve.isApplicationInternalMode
+import com.linqingying.cangjie.lexer.CjKeywordToken
+import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.endOffset
 import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
 import com.linqingying.cangjie.psi.psiUtil.startOffset
 import com.linqingying.cangjie.resolve.caches.safeAnalyze
 import com.linqingying.cangjie.resolve.lazy.BodyResolveMode
-import com.linqingying.cangjie.utils.*
+import com.linqingying.cangjie.utils.RangeCjExpressionType
 import com.linqingying.cangjie.utils.getRangeBinaryExpressionType
 import com.linqingying.cangjie.utils.isRangeExpression
+import com.linqingying.cangjie.utils.safeAs
+import org.jetbrains.annotations.Nls
+import kotlin.enums.EnumEntries
 
 enum class HintType(
     @Nls private val description: String,
@@ -66,7 +67,8 @@ enum class HintType(
             return provideVariableTypeHint(e, SHOW_VARIABLE_TYPES)
         }
 
-        override fun isApplicable(e: PsiElement): Boolean = e is CjVariable && e.getReturnTypeReference() == null && !e.isLocal
+        override fun isApplicable(e: PsiElement): Boolean =
+            e is CjVariable && e.getReturnTypeReference() == null && !e.isLocal
     },
     PATTERN_VARIABLE_HINT(
         CangJieBundle.message("hints.settings.types.pattern.variable"),
@@ -79,7 +81,7 @@ enum class HintType(
         }
 
         override fun isApplicable(e: PsiElement): Boolean =
-            (  e is CjBindingPattern && e.variable == null  )
+            (e is CjBindingPattern && e.variable == null)
     },
     LOCAL_VARIABLE_HINT(
         CangJieBundle.message("hints.settings.types.local.variable"),
@@ -96,6 +98,33 @@ enum class HintType(
                     (e is CjParameter && e.isLoopParameter && e.typeReference == null) ||
                     (e is CjDestructuringDeclarationEntry && e.getReturnTypeReference() == null && e.name != "_")
     },
+    MAIN_FUNCTION_HINT(
+        CangJieBundle.message("hints.settings.types.main.return"),
+        CangJieBundle.message("hints.settings.show.types.main.return"),
+        CangJieBundle.message("hints.settings.dont.show.types.main.return"),
+        false
+    ) {
+        override fun provideHintDetails(e: PsiElement): List<InlayInfoDetails> {
+            e.safeAs<CjMainFunction>()?.let { mainFunction ->
+                mainFunction.valueParameterList?.let { paramList ->
+                    provideTypeHint(
+                        mainFunction,
+                        paramList.endOffset,
+                        SHOW_MAIN_FUNCTION_RETURN_TYPES
+                    )?.let { return listOf(it) }
+                }
+            }
+            e.safeAs<CjExpression>()?.let { expression ->
+                provideLambdaReturnTypeHints(expression)?.let { return listOf(it) }
+            }
+            return emptyList()
+        }
+
+        override fun isApplicable(e: PsiElement): Boolean {
+            return e is CjMainFunction && !(e.hasDeclaredReturnType())
+
+        }
+    },
 
     FUNCTION_HINT(
         CangJieBundle.message("hints.settings.types.return"),
@@ -106,7 +135,11 @@ enum class HintType(
         override fun provideHintDetails(e: PsiElement): List<InlayInfoDetails> {
             e.safeAs<CjNamedFunction>()?.let { namedFunction ->
                 namedFunction.valueParameterList?.let { paramList ->
-                    provideTypeHint(namedFunction, paramList.endOffset, SHOW_FUNCTION_RETURN_TYPES)?.let { return listOf(it) }
+                    provideTypeHint(
+                        namedFunction,
+                        paramList.endOffset,
+                        SHOW_FUNCTION_RETURN_TYPES
+                    )?.let { return listOf(it) }
                 }
             }
             e.safeAs<CjExpression>()?.let { expression ->
@@ -117,7 +150,9 @@ enum class HintType(
 
         override fun isApplicable(e: PsiElement): Boolean {
             return e is CjNamedFunction && !(/*e.hasBlockBody() || */e.hasDeclaredReturnType()) ||
-                    Registry.`is`("cangjie.enable.inlay.hint.for.lambda.return.type") && e is CjExpression && e !is CjFunctionLiteral && !e.isNameReferenceInCall() && e.isLambdaReturnValueHintsApplicable(allowOneLiner = true)
+                    Registry.`is`("cangjie.enable.inlay.hint.for.lambda.return.type") && e is CjExpression && e !is CjFunctionLiteral && !e.isNameReferenceInCall() && e.isLambdaReturnValueHintsApplicable(
+                allowOneLiner = true
+            )
         }
     },
 
@@ -136,7 +171,8 @@ enum class HintType(
             return emptyList()
         }
 
-        override fun isApplicable(e: PsiElement): Boolean = e is CjParameter && e.typeReference == null && !e.isLoopParameter
+        override fun isApplicable(e: PsiElement): Boolean =
+            e is CjParameter && e.typeReference == null && !e.isLoopParameter
     },
 
     PARAMETER_HINT(
@@ -202,7 +238,7 @@ enum class HintType(
 
         override fun provideHints(e: PsiElement): List<InlayInfo> {
             val callExpression = e.parent as? CjCallExpression ?: return emptyList()
-            return   emptyList()
+            return emptyList()
         }
     },
 
@@ -243,7 +279,7 @@ enum class HintType(
 //                }
             }
             val leftInfo = InlayInfo(text = leftText, offset = leftExp.endOffset)
-            val rightInfo = rightText?.let { InlayInfo(text = it, offset = rightExp.startOffset) }
+            val rightInfo = rightText.let { InlayInfo(text = it, offset = rightExp.startOffset) }
             return listOfNotNull(
                 InlayInfoDetails(leftInfo, listOf(TextInlayInfoDetail(leftText, smallText = false))),
                 rightInfo?.let { InlayInfoDetails(it, listOf(TextInlayInfoDetail(rightText, smallText = false))) }
@@ -262,6 +298,7 @@ enum class HintType(
             val nextLeaf = PsiTreeUtil.nextLeaf(this)
             return prevLeaf?.illegalLiteralPrefixOrSuffix() == true || nextLeaf?.illegalLiteralPrefixOrSuffix() == true
         }
+
         private fun PsiElement.illegalLiteralPrefixOrSuffix(): Boolean {
             val elementType = this.node.elementType
             return (elementType === CjTokens.IDENTIFIER) ||
@@ -282,23 +319,29 @@ enum class HintType(
         get() = option.get()
 }
 
-data class InlayInfoDetails(val inlayInfo: InlayInfo, val details: List<InlayInfoDetail>, val option: InlayInfoOption? = NoInlayInfoOption)
+data class InlayInfoDetails(
+    val inlayInfo: InlayInfo,
+    val details: List<InlayInfoDetail>,
+    val option: InlayInfoOption? = NoInlayInfoOption
+)
 
 sealed class InlayInfoOption
 
-object NoInlayInfoOption: InlayInfoOption()
+object NoInlayInfoOption : InlayInfoOption()
 
-class NamedInlayInfoOption(val name: String): InlayInfoOption()
+class NamedInlayInfoOption(val name: String) : InlayInfoOption()
 
 sealed class InlayInfoDetail(val text: String)
 
-class TextInlayInfoDetail(text: String, val smallText: Boolean = true): InlayInfoDetail(text) {
+class TextInlayInfoDetail(text: String, val smallText: Boolean = true) : InlayInfoDetail(text) {
     override fun toString(): String = "[$text]"
 }
-class TypeInlayInfoDetail(text: String, val fqName: String?): InlayInfoDetail(text) {
+
+class TypeInlayInfoDetail(text: String, val fqName: String?) : InlayInfoDetail(text) {
     override fun toString(): String = "[$text :$fqName]"
 }
-class PsiInlayInfoDetail(text: String, val element: PsiElement): InlayInfoDetail(text) {
+
+class PsiInlayInfoDetail(text: String, val element: PsiElement) : InlayInfoDetail(text) {
     override fun toString(): String = "[$text @ $element]"
 }
 

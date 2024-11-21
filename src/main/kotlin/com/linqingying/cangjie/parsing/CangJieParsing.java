@@ -2897,11 +2897,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 parseTypeRef(TokenSet.EMPTY);
 
                 projection.done(TYPE_PROJECTION);
+                list.done(TYPE_ARGUMENT_LIST);
 
                 expect(COMMA, "Should be ','");
                 expect(DOLLAR, "Should be '$'");
 
-                list.done(TYPE_ARGUMENT_LIST);
 
                 expect(INTEGER_LITERAL, "Should be integer literal");
 

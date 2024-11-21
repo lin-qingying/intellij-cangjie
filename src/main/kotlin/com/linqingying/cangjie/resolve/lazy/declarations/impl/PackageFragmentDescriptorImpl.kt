@@ -28,15 +28,16 @@ import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.StandardNames
 import com.linqingying.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.cpointerUFqName
-import com.linqingying.cangjie.builtins.StandardNames.FqNames.unitUFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.int8UFqName
-
+import com.linqingying.cangjie.builtins.StandardNames.FqNames.unitUFqName
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
+import com.linqingying.cangjie.descriptors.impl.AbstractClassDescriptor
 import com.linqingying.cangjie.descriptors.impl.DeclarationDescriptorNonRootImpl
 import com.linqingying.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.linqingying.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
+import com.linqingying.cangjie.descriptors.impl.basic.VArrayTypeDescriptor
 import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
@@ -70,13 +71,14 @@ abstract class PackageFragmentDescriptorImpl(
     // Not inlined in order to not capture ref on 'module'
     private val debugString: String = "package $fqName of $module"
 
-//    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R =
+    //    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R =
 //
 //    override fun getContainingDeclaration(): ModuleDescriptor {
 //        return super.getContainingDeclaration() as ModuleDescriptor
 //    }
     override val containingDeclaration: ModuleDescriptor
-        get() = super.containingDeclaration  as ModuleDescriptor
+        get() = super.containingDeclaration as ModuleDescriptor
+
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
         return visitor.visitPackageFragmentDescriptor(this, data!!)
 
@@ -94,7 +96,6 @@ fun craeteBasicTypePackageFragmentDescriptor(
     ): PackageFragmentDescriptorBasicImpl {
     return PackageFragmentDescriptorBasicImpl(storageManager, module, BUILT_INS_PACKAGE_FQ_NAME)
 }
-
 
 
 abstract class AbstractPackageFragmentDescriptorBuiltlnImpl(
@@ -125,7 +126,7 @@ class PackageFragmentDescriptorBasicImpl(
 
     //    Int
     val INT8_DESCRIPTOR = createBasicTypeDescriptor(int8UFqName)
-    val INT16_DESCRIPTOR = createBasicTypeDescriptor( StandardNames.FqNames.int16UFqName)
+    val INT16_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.int16UFqName)
     val INT32_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.int32UFqName)
     val INT64_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.int64UFqName)
     val INTNATIVE_DESCRIPTOR = createBasicTypeDescriptor(StandardNames.FqNames.int_nativeUFqName)
@@ -192,9 +193,10 @@ class PackageFragmentDescriptorBasicImpl(
 
     inner class BasicMemberScope : MemberScope {
 
-        fun getBuiltIns():CangJieBuiltIns{
+        fun getBuiltIns(): CangJieBuiltIns {
             return module.builtIns
         }
+
         override fun getContributedVariables(
             name: Name,
             location: LookupLocation
@@ -218,14 +220,21 @@ class PackageFragmentDescriptorBasicImpl(
             location: LookupLocation
         ): Collection<SimpleFunctionDescriptor> {
 
-            return   emptyList()
+            return emptyList()
         }
 
         override fun printScopeStructure(p: Printer) {
             p.println("Basic member scope")
         }
 
-        override fun getContributedClassifier(name: Name, location: LookupLocation): BasicTypeDescriptor? {
+        override fun getContributedClassifier(name: Name, location: LookupLocation): AbstractClassDescriptor? {
+
+//            if (name.asString() == "VArray")  {
+//                return VArrayTypeDescriptor(
+//
+//                    module.builtIns.builtInsModule, module.builtIns, storageManager
+//                )
+//            }
 
             return DESCRIPTOR_MAP[name]
         }

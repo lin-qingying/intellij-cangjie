@@ -24,6 +24,7 @@
 
 package com.linqingying.cangjie.resolve.calls
 
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.createFunctionType
 import com.linqingying.cangjie.config.LanguageFeature
@@ -53,9 +54,7 @@ import com.linqingying.cangjie.resolve.calls.tasks.*
 import com.linqingying.cangjie.resolve.calls.tasks.TracingStrategyImpl.Companion.create
 import com.linqingying.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import com.linqingying.cangjie.resolve.calls.tower.NewResolutionOldInference
-
 import com.linqingying.cangjie.resolve.calls.tower.PSICallResolver
-
 import com.linqingying.cangjie.resolve.calls.util.*
 import com.linqingying.cangjie.resolve.calls.util.CallMaker.makeCall
 import com.linqingying.cangjie.resolve.descriptorUtil.getSuperClassOrAny
@@ -73,7 +72,6 @@ import com.linqingying.cangjie.types.isError
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.utils.OperatorNameConventions
 import com.linqingying.cangjie.utils.PerformanceCounter.Companion.create
-import com.intellij.psi.PsiElement
 import jakarta.inject.Inject
 
 class CallResolver(
@@ -189,6 +187,28 @@ class CallResolver(
         }
     }
 
+    fun resolveCall(
+        context: ExpressionTypingContext,
+        expression: CjCallExpression,
+        call: Call,
+        functionDescriptors: Collection<FunctionDescriptor>
+    ): OverloadResolutionResults<FunctionDescriptor> {
+        val callResolutionContext =
+            BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS)
+        val candidates = functionDescriptors.map { descriptor: FunctionDescriptor ->
+            OldResolutionCandidate.create(
+                call,
+                descriptor,
+                null,
+                ExplicitReceiverKind.NO_EXPLICIT_RECEIVER,
+                null
+            )
+        }
+        return computeTasksFromCandidatesAndResolvedCall(
+            callResolutionContext, candidates, create(expression, call)
+        )
+    }
+
     fun resolveBinaryCall(
         context: ExpressionTypingContext,
         receiver: ExpressionReceiver,
@@ -202,9 +222,10 @@ class CallResolver(
             name
         )
     }
+
     fun resolveBinaryCall(
         context: ExpressionTypingContext,
-        call: Call ,
+        call: Call,
         binaryExpression: CjBinaryExpression,
         functionDescriptors: Collection<FunctionDescriptor>
     ): OverloadResolutionResults<FunctionDescriptor> {
@@ -225,6 +246,7 @@ class CallResolver(
             callResolutionContext, candidates, create(binaryExpression.operationReference, call)
         )
     }
+
     fun resolveBinaryCall(
         context: ExpressionTypingContext,
         receiver: ExpressionReceiver,
@@ -437,22 +459,24 @@ class CallResolver(
         tcache: TemporaryTraceAndCache,
 
         context: BasicCallResolutionContext,
-        kind: NewResolutionOldInference.ResolutionKind  =  NewResolutionOldInference.ResolutionKind.Enum
+        kind: NewResolutionOldInference.ResolutionKind = NewResolutionOldInference.ResolutionKind.Enum
     ): OverloadResolutionResults<out CallableDescriptor> {
         checkCanceled()
 
 
-        when (val calleeExpression = context.call.calleeExpression){
+        when (val calleeExpression = context.call.calleeExpression) {
             is CjSimpleNameExpression -> {
                 computeTasksAndResolveCall<CallableDescriptor>(
                     context, calleeExpression.referencedNameAsName, calleeExpression,
                     kind
                 )
             }
+
             null -> {
                 return checkArgumentTypesAndFail(context)
             }
-            else->{
+
+            else -> {
                 val expectedType: CangJieType = NO_EXPECTED_TYPE
 
                 val calleeType = expressionTypingServices.safeGetType(
@@ -512,7 +536,7 @@ class CallResolver(
             resultDescriptor = result!!.resultingDescriptor as EnumClassCallableDescriptor
         }
 
-        if(kind == NewResolutionOldInference.ResolutionKind.CaseEnum){
+        if (kind == NewResolutionOldInference.ResolutionKind.CaseEnum) {
             return result!!
         }
 
@@ -568,7 +592,7 @@ class CallResolver(
 //        }
         when (val calleeExpression = context.call.calleeExpression) {
             is CjSimpleNameExpression -> {
-                if(context.call is CallMaker.CallImpl){
+                if (context.call is CallMaker.CallImpl) {
                     return computeTasksAndResolveCall(
                         context, calleeExpression.referencedNameAsName, calleeExpression,
                         NewResolutionOldInference.ResolutionKind.CallableReference

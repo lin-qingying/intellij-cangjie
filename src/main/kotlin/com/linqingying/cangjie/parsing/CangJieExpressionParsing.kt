@@ -419,6 +419,38 @@ open class CangJieExpressionParsing(
             ) {
                 cangJieParsing.parseTypeRef()
                 true
+            } else if (at(VARRAY_KEYWORD)) {
+//                这里必须处理为名称原子表达式
+                val mark = mark()
+                advance()
+
+
+                val typeArgumentList = mark()
+                expect(LT, "Should be '<'")
+                val projection = mark()
+
+                cangJieParsing.parseTypeRef(TYPE_ARGUMENT_LIST_STOPPERS)
+
+                projection.done(TYPE_PROJECTION)
+
+
+
+                expect(COMMA, "Should be ','")
+                expect(DOLLAR, "Should be '$'")
+
+                expect(INTEGER_LITERAL, "Should be integer literal")
+                expect(GT, "Should be '>'")
+
+                typeArgumentList.done(TYPE_ARGUMENT_LIST)
+
+
+                mark.done(REFERENCE_EXPRESSION)
+                if (!at(LPAR)) {
+                    error("Should be '('")
+                }
+
+
+                false
             } else if (atSet(BASICTYPES)) {
 
 
@@ -2225,7 +2257,7 @@ open class CangJieExpressionParsing(
      *     ;
      */
     private fun parseQuoteParameters() {
-val quoteParameters = mark()
+        val quoteParameters = mark()
 
 //        解析中出现的 ( 标记数量
         var lparCount = 0
@@ -2284,7 +2316,7 @@ val quoteParameters = mark()
         if (at(LBRACKET)) {
             parseMacroAttrExpression()
         }
-val input = mark()
+        val input = mark()
 //        宏的输入
         if (at(LPAR)) {
             parseMacroInputExprWithParens()

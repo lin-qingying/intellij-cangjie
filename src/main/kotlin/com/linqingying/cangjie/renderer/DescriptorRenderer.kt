@@ -105,7 +105,7 @@ abstract class DescriptorRenderer {
 
     abstract fun renderFlexibleType(lowerRendered: String, upperRendered: String, builtIns: CangJieBuiltIns): String
 
-    abstract fun renderTypeArguments(typeArguments: List<TypeProjection>): String
+    abstract fun renderTypeArguments(typeArguments: List<TypeProjection>,other:(StringBuilder) -> Unit = {}): String
 
     abstract fun renderTypeProjection(typeProjection: TypeProjection): String
 
@@ -753,11 +753,12 @@ open class DescriptorRendererImpl(
         return "($lowerRendered..$upperRendered)"
     }
 
-    override fun renderTypeArguments(typeArguments: List<TypeProjection>): String =
+    override fun renderTypeArguments(typeArguments: List<TypeProjection>, other: (StringBuilder) -> Unit): String =
         if (typeArguments.isEmpty()) ""
         else buildString {
             append(lt())
             this.appendTypeProjections(typeArguments)
+            other(this)
             append(gt())
         }
 

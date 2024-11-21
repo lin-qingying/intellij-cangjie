@@ -65,17 +65,32 @@ open class ClassConstructorDescriptorImpl protected constructor(
     fun initialize(
         unsubstitutedValueParameters: List<ValueParameterDescriptor>,
         visibility: DescriptorVisibility,
-        typeParameterDescriptors: List<TypeParameterDescriptor?>
+        typeParameterDescriptors: List<TypeParameterDescriptor?>,
+        returnType: CangJieType? = null
+
     ): ClassConstructorDescriptorImpl {
         super.initialize(
-            null, calculateDispatchReceiverParameter(), calculateContextReceiverParameters(),
+            null,
+            calculateDispatchReceiverParameter(),
+            calculateContextReceiverParameters(),
             typeParameterDescriptors,
-            unsubstitutedValueParameters, null,
+            unsubstitutedValueParameters, returnType,
             Modality.FINAL, visibility
         )
         return this
     }
-
+    fun initialize(
+        unsubstitutedValueParameters: List<ValueParameterDescriptor>,
+        returnType: CangJieType
+    ): ClassConstructorDescriptorImpl {
+        initialize(
+            unsubstitutedValueParameters,
+            DescriptorVisibilities.PUBLIC,
+            containingDeclaration.declaredTypeParameters,
+            returnType
+        )
+        return this
+    }
     fun initialize(
         unsubstitutedValueParameters: List<ValueParameterDescriptor>
     ): ClassConstructorDescriptorImpl {
