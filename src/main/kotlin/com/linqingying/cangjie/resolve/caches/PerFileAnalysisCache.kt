@@ -75,44 +75,99 @@ import com.linqingying.cangjie.utils.slicedMap.ReadOnlySlice
 import com.linqingying.cangjie.utils.slicedMap.WritableSlice
 import java.util.concurrent.locks.ReentrantLock
 
+/**
+ * 将当前异常转换为InvalidModuleException并抛出
+ *
+ * 此函数用于将当前异常实例转换为InvalidModuleException类型，并执行抛出操作
+ * 如果转换成功，则执行给定的操作并抛出新的异常；如果转换失败，则什么都不做
+ *
+ * @param action 一个高阶函数，接受一个InvalidModuleException参数，并返回一个Throwable实例
+ *               此函数允许调用者在抛出异常前对异常进行处理或转换，默认实现是直接返回传入的异常
+ *
+ * 注意：此函数使用inline修饰，以减少额外的栈帧开销，提高性能
+ */
 private inline fun Throwable.throwAsInvalidModuleException(crossinline action: (InvalidModuleException) -> Throwable = { it }) {
     asInvalidModuleException()?.let {
         throw action(it)
     }
 }
 
+
+/**
+ * 将当前异常转换为InvalidModuleException实例，如果可能的话。
+ *
+ * 此函数旨在处理与模块验证相关的异常，将其包装或转换为InvalidModuleException类型。
+ * 它特别关注于处理InvalidModuleException和AssertionError类型的异常，
+ * 以及递归地处理异常链以查找或创建InvalidModuleException实例。
+ *
+ * @return 当前异常作为InvalidModuleException实例，如果适用的话；否则返回null。
+ */
 private fun Throwable.asInvalidModuleException(): InvalidModuleException? {
     return when (this) {
+        // 如果当前异常已经是InvalidModuleException类型，则直接返回。
         is InvalidModuleException -> this
+        // 如果当前异常是AssertionError类型，并且消息表明存在依赖配置错误，则将其转换为InvalidModuleException。
         is AssertionError ->
 
             if (message?.contains("contained in his own dependencies, this is probably a misconfiguration") == true)
                 InvalidModuleException(message!!)
             else null
 
+        // 对于其他类型的异常，检查异常链的下一个异常，确保没有循环引用，并尝试将其转换为InvalidModuleException。
         else -> cause?.takeIf { it != this }?.asInvalidModuleException()
     }
 }
 
+/**
+ * 每个文件的分析缓存类，用于在分析过程中缓存和管理文件的分析结果。
+ *
+ * @param file 当前分析的文件
+ * @param componentProvider 提供组件实例的提供者
+ */
 internal class PerFileAnalysisCache(val file: CjFile, componentProvider: ComponentProvider) {
+    // 全局上下文
     private val globalContext = componentProvider.get<GlobalContext>()
+
+    // 当前文件的分析结果
     private var fileResult: AnalysisResult? = null
+
+    // 模块描述符
     private val moduleDescriptor = componentProvider.get<ModuleDescriptor>()
+
+    // 方法体解析缓存
     private val bodyResolveCache = componentProvider.get<BodyResolveCache>()
+
+    // 代码片段分析器
     private val codeFragmentAnalyzer = componentProvider.get<CodeFragmentAnalyzer>()
 
+    // 解析会话
     private val resolveSession = componentProvider.get<ResolveSession>()
+
+    // 线程安全锁
     private val lock = ReentrantLock()
+
+    // 缓存，用于存储元素的分析结果
     private val cache = HashMap<PsiElement, AnalysisResult>()
+
+    // 插件声明提供工厂
     private val pluginDeclarationProviderFactory = componentProvider.get<PluginDeclarationProviderFactory>()
 
-    private val guardLock = CancellableSimpleLock(lock,
-        checkCancelled = {
-            ProgressIndicatorProvider.checkCanceled()
-        },
-        interruptedExceptionHandler = { throw ProcessCanceledException(it) })
+    // 可取消的简单锁，用于防止取消的情况下操作失败
+    private val guardLock = CancellableSimpleLock(
+        lock,
+        checkCancelled = { ProgressIndicatorProvider.checkCanceled() },
+        interruptedExceptionHandler = { throw ProcessCanceledException(it) }
+    )
+
+    // 检查缓存是否有效
     internal val isValid: Boolean get() = true
 
+    /**
+     * 获取指定元素的分析结果，如果存在缓存，则直接返回缓存的结果。
+     *
+     * @param element 需要获取分析结果的代码元素
+     * @return 分析结果，如果未找到结果则返回 null
+     */
     internal fun fetchAnalysisResults(element: CjElement): AnalysisResult? {
         check(element)
 
@@ -202,8 +257,8 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
             getIncrementalAnalysisResult(callback)?.let {
 
                 if (it is DelegateAnalysisResult) {
-                    cache[analyzableParent] = it
-                    return@guarded it
+                    cache[analyzableParent] = it.result
+                    return@guarded it.result
                 }
                 return@guarded handleResult(it, callback)
             }
@@ -221,20 +276,26 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
         }
     }
 
-
+    /**
+     * 判断是否为评估器中用于编译的代码片段。
+     */
     private fun CjElement.isUsedForCompilationInEvaluator(): Boolean =
         containingFile is CjCodeFragment && containingFile.getCopyableUserData(CodeFragmentUtils.USED_FOR_COMPILATION_IN_IR_EVALUATOR) ?: false
 
+    /**
+     * 更新文件的缓存结果。
+     */
     private fun updateFileResultFromCache() {
-        // move fileResult from cache if it is stored there
+        // 如果文件结果不在缓存中，则从缓存中移动文件结果
         if (fileResult == null && cache.containsKey(file)) {
             fileResult = cache[file]
 
-            // drop existed results for entire cache:
-            // if incremental analysis is applicable it will produce a single value for file
-            // otherwise those results are potentially stale
+            // 清除整个缓存中的现有结果：
+            // 如果增量分析适用，它将为文件生成单个值
+            // 否则这些结果可能是过期的
             cache.clear()
         }
+
     }
 
 
@@ -329,12 +390,17 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
         return fileResult
     }
 
-
+    /**
+     * 清理文件的结果缓存。
+     */
     private fun clearFileResultCache() {
         file.clearInBlockModifications()
         fileResult = null
     }
 
+    /**
+     * 包装分析结果。
+     */
     private fun wrapResult(
         oldResult: AnalysisResult,
         newResult: AnalysisResult,
@@ -362,6 +428,9 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
         }
     }
 
+    /**
+     * 校验元素是否属于当前文件。
+     */
     private fun check(element: CjElement) {
         checkWithAttachment(element.containingFile == file, {
             "Expected $file, but was ${element.containingFile} for ${if (element.isValid) "valid" else "invalid"} $element "
@@ -372,6 +441,9 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
         }
     }
 
+    /**
+     * 执行元素分析。
+     */
     private fun performAnalyze(
         element: CjElement,
         callback: DiagnosticSink.DiagnosticsCallback? = null
@@ -400,6 +472,9 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
         return result
     }
 
+    /**
+     * 分析元素并返回结果。
+     */
     private fun analyze(
         analyzableElement: CjElement,
         bindingTrace: BindingTrace?,
@@ -436,6 +511,17 @@ internal class PerFileAnalysisCache(val file: CjFile, componentProvider: Compone
             return AnalysisResult.internalError(BindingContext.EMPTY, e)
         }
 
+    }
+
+    /**
+     * 处理异常。
+     */
+    private fun handleException(e: Throwable) {
+        e.throwAsInvalidModuleException()
+        if (e !is ControlFlowException) {
+            clearFileResultCache()
+        }
+        throw e
     }
 }
 
@@ -570,60 +656,75 @@ object CangJieResolveDataProvider {
 
 }
 
-
 /**
- * Keep in mind: trace fallbacks to [resolveContext] (is used during resolve) that does not have any
- * traces of earlier resolve for this [element]
+ * 请注意：`trace` 回退到 [resolveContext]（在解析过程中使用），该上下文中不包含该 [element] 的早期解析痕迹。
  *
- * When trace turned into [BindingContext] it fallbacks to [parentContext]:
- * It is expected that all slices specific to [element] (and its descendants) are stored in this binding context
- * and for the rest elements it falls back to [parentContext].
+ * 当 trace 转化为 [BindingContext] 时，它会回退到 [parentContext]:
+ * 预期所有特定于 [element]（及其子元素）的切片都存储在此绑定上下文中，
+ * 对于其他元素，它会回退到 [parentContext]。
  */
 private class StackedCompositeBindingContextTrace(
-    val depth: Int, // depth of stack over original cjFile bindingContext
-    val element: CjElement,
-    val resolveContext: BindingContext,
-    val parentContext: BindingContext
+    val depth: Int, // 原始 cjFile bindingContext 上的堆栈深度
+    val element: CjElement, // 绑定上下文追踪的目标元素
+    val resolveContext: BindingContext, // 解析上下文
+    val parentContext: BindingContext // 父级上下文，用于回退
 ) : DelegatingBindingTrace(
     resolveContext,
     "Stacked trace for resolution of $element",
     allowSliceRewrite = true
 ) {
     /**
-     * Effectively StackedCompositeBindingContext holds up-to-date and partially outdated contexts (parentContext)
+     * 实际上 StackedCompositeBindingContext 包含最新的和部分过时的上下文（parentContext）。
      *
-     * The most up-to-date results for element are stored here (in a DelegatingBindingTrace#map)
+     * 与 [DelegatingBindingTrace#bindingContext] 不同：
+     * - 如果结果在当前上下文中不存在，它会回退到 [parentContext] 而不是 [resolveContext]。
+     * - 诊断信息会从当前上下文和 [parentContext] 聚合。
      *
-     * Note: It does not delete outdated results rather hide it therefore there is some extra memory footprint.
-     *
-     * Note: stackedContext differs from DelegatingBindingTrace#bindingContext:
-     *      if result is not present in this context it goes to parentContext rather to resolveContext
-     *      diagnostics are aggregated from this context and parentContext
+     * 注意：最新的结果存储在当前上下文（[DelegatingBindingTrace#map]）中。
+     * 注意：它不会删除过时的结果，只是隐藏，因此会有一些额外的内存占用。
      */
     val stackedContext = StackedCompositeBindingContext()
 
     /**
-     *来自 parentContext 的所有诊断，除了属于该元素或其后代的诊断
+     * 来自 [parentContext] 的所有诊断，排除属于 [element] 或其子元素的诊断。
      */
     val parentDiagnosticsApartElement: Collection<Diagnostic> =
         (resolveContext.diagnostics.all() + parentContext.diagnostics.all()).filterApartElement()
 
+    /**
+     * 来自 [parentContext] 的所有诊断（不受抑制），排除属于 [element] 或其子元素的诊断。
+     */
     val parentDiagnosticsNoSuppressionApartElement: Collection<Diagnostic> =
         (resolveContext.diagnostics.noSuppression() + parentContext.diagnostics.noSuppression()).filterApartElement()
 
+    /**
+     * 过滤诊断信息，排除属于 [element] 或其子元素的内容。
+     */
     private fun Collection<Diagnostic>.filterApartElement() =
         toSet().let { s ->
             s.filter { it.psiElement == element && selfDiagnosticToHold(it) } +
                     s.filter { it.psiElement.parentsWithSelf.none { e -> e == element } }
         }
 
+    /**
+     * 绑定上下文的内部实现，用于在上下文中存储和访问诊断和绑定信息。
+     */
     inner class StackedCompositeBindingContext : BindingContext {
-        var cachedDiagnostics: Diagnostics? = null
+        var cachedDiagnostics: Diagnostics? = null // 缓存的诊断信息
 
+        /**
+         * 获取绑定追踪实例。
+         */
         fun bindingTrace(): StackedCompositeBindingContextTrace = this@StackedCompositeBindingContextTrace
 
+        /**
+         * 获取当前追踪的目标元素。
+         */
         fun element(): CjElement = this@StackedCompositeBindingContextTrace.element
 
+        /**
+         * 获取绑定堆栈的深度。
+         */
         fun depth(): Int = this@StackedCompositeBindingContextTrace.depth
 
         /**
@@ -634,23 +735,21 @@ private class StackedCompositeBindingContextTrace(
          */
         fun isIncrementalAnalysisApplicable(): Boolean = this@StackedCompositeBindingContextTrace.depth < 16
 
-
-        // 用于检查接收者是否是一个被重新分析的PsiElement，因此应该在重新分析的上下文中有一个结果。
-        // 当当前上下文中没有该元素的信息时，我们不应该在父上下文中查找这些元素。
-        // 由于PsiElement的变更，这可能会导致错误的信息。
-
+        /**
+         * 检查接收者是否是一个被重新分析的 PsiElement，因此应该在重新分析的上下文中有一个结果。
+         * 当当前上下文中没有该元素的信息时，我们不应该在父上下文中查找这些元素。
+         * 由于 PsiElement 的变更，这可能会导致错误的信息。
+         */
         private fun <K : Any?> K.containedInReanalyzedElement(): Boolean {
             return when (element) {
                 is CjDeclarationWithBody -> {
-                    // Psi elements within the body of a reanalyzed function should have
-                    // information only in reanalysis context.
+                    // 在重新分析函数体内的 Psi 元素应该只存在于重新分析上下文中。
                     val body = element.bodyExpression ?: return false
                     (this as? PsiElement)?.parentsWithSelf?.contains(body) == true
                 }
 
                 is CjTypeStatement -> {
-                    // Psi elements within anonymous initializers and secondary constructors should have information
-                    // only in the reanalysis context.
+                    // 匿名初始化器和次级构造函数内的 Psi 元素应仅在重新分析上下文中有信息。
                     (this as? PsiElement)?.parents(withSelf = false)?.any {
                         /*it in element.getAnonymousInitializers() ||*/ it in element.secondaryConstructors
                     } == true
@@ -660,6 +759,9 @@ private class StackedCompositeBindingContextTrace(
             }
         }
 
+        /**
+         * 获取诊断信息，若缓存不存在则合并生成。
+         */
         override fun getDiagnostics(): Diagnostics {
             if (cachedDiagnostics == null) {
                 val mergedDiagnostics = mutableSetOf<Diagnostic>()
@@ -683,6 +785,9 @@ private class StackedCompositeBindingContextTrace(
             return cachedDiagnostics!!
         }
 
+        /**
+         * 获取绑定切片中的值。
+         */
         override fun <K : Any?, V : Any?> get(slice: ReadOnlySlice<K, V>, key: K): V? {
             selfGet(slice, key)?.let { return it }
             if (!key.containedInReanalyzedElement()) {
@@ -693,11 +798,17 @@ private class StackedCompositeBindingContextTrace(
             return null
         }
 
+        /**
+         * 获取表达式的类型信息。
+         */
         override fun getType(expression: CjExpression): CangJieType? {
             val typeInfo = get(BindingContext.EXPRESSION_TYPE_INFO, expression)
             return typeInfo?.type
         }
 
+        /**
+         * 获取切片的所有键。
+         */
         override fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
             val keys = map.getKeys(slice)
             val fromParent = parentContext.getKeys(slice).filter {
@@ -709,6 +820,9 @@ private class StackedCompositeBindingContextTrace(
             return keys + fromParent
         }
 
+        /**
+         * 获取切片的内容。
+         */
         override fun <K : Any?, V : Any?> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
             val parentSliceContents = parentContext.getSliceContents(slice).filter {
                 !it.key.containedInReanalyzedElement()
@@ -717,10 +831,16 @@ private class StackedCompositeBindingContextTrace(
             return ImmutableMap.copyOf(parentSliceContents + mapSliceContents)
         }
 
+        /**
+         * 将自身数据添加到目标追踪中。
+         */
         override fun addOwnDataTo(trace: BindingTrace, commitDiagnostics: Boolean) =
             throw UnsupportedOperationException()
     }
 
+    /**
+     * 从当前上下文或父上下文中获取绑定数据。
+     */
     override fun <K : Any?, V : Any?> get(slice: ReadOnlySlice<K, V>, key: K): V? =
         if (slice == BindingContext.ANNOTATION) {
             selfGet(slice, key) ?: parentContext.get(slice, key)
@@ -728,41 +848,73 @@ private class StackedCompositeBindingContextTrace(
             super.get(slice, key)
         }
 
+    /**
+     * 清除当前追踪数据。
+     */
     override fun clear() {
         super.clear()
         stackedContext.cachedDiagnostics = null
     }
 
     companion object {
+        /**
+         * 检查诊断是否需要保留。
+         */
         private fun selfDiagnosticToHold(d: Diagnostic): Boolean {
             val positioningStrategy = d.factory.safeAs<DiagnosticFactoryWithPsiElement<*, *>>()?.positioningStrategy
             return when (positioningStrategy) {
                 DECLARATION_WITH_BODY -> false
                 else -> true
             }
-
         }
     }
 }
 
+/**
+ * [MergedDiagnostics] 类合并了多个诊断集合，并提供了对这些诊断的查询方法。
+ * 它实现了 [Diagnostics] 接口，允许通过 PSI 元素获取诊断信息。
+ *
+ * @param diagnostics 所有诊断的集合，可能包括被抑制的诊断。
+ * @param noSuppressionDiagnostics 未被抑制的诊断集合，即需要特别注意的诊断。
+ * @param modificationTracker 用于跟踪自上次检查以来，源代码是否已被修改的跟踪器。
+ */
 private class MergedDiagnostics(
     val diagnostics: Collection<Diagnostic>,
     val noSuppressionDiagnostics: Collection<Diagnostic>,
     override val modificationTracker: ModificationTracker
 ) : Diagnostics {
+    /**
+     * [elementsCache] 用于缓存诊断元素，以提高查询效率。
+     * 它是一个诊断元素缓存，根据给定的 PSI 元素返回相关的诊断信息。
+     */
     private val elementsCache = DiagnosticsElementsCache(this) { true }
 
+    /**
+     * 返回所有诊断的集合。
+     *
+     * @return 所有诊断的集合，包括被抑制的诊断。
+     */
     override fun all() = diagnostics
 
+    /**
+     * 根据给定的 PSI 元素返回相关的可变诊断集合。
+     *
+     * @param psiElement 要查询诊断信息的 PSI 元素。
+     * @return 与给定 PSI 元素相关的诊断集合。
+     */
     override fun forElement(psiElement: PsiElement): MutableCollection<Diagnostic> =
         elementsCache.getDiagnostics(psiElement)
 
+    /**
+     * 返回一个没有被抑制的诊断的 [MergedDiagnostics] 实例。
+     * 如果当前实例中的未被抑制的诊断集合为空，则返回当前实例；
+     * 否则，创建并返回一个新的 [MergedDiagnostics] 实例，其中只包含未被抑制的诊断。
+     *
+     * @return 一个没有被抑制的诊断的 [MergedDiagnostics] 实例。
+     */
     override fun noSuppression() = if (noSuppressionDiagnostics.isEmpty()) {
         this
     } else {
         MergedDiagnostics(noSuppressionDiagnostics, emptyList(), modificationTracker)
     }
-
-
 }
-

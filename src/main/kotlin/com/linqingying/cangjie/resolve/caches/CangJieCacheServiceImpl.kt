@@ -137,7 +137,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         private val librariesContext = context.contextWithCompositeExceptionTracker(project, resolverForLibrariesName)
 
         val facadeForLibraries = ProjectResolutionFacade(
-            "facadeForLibraries", "",
+            "facadeForLibraries", "$resolverForLibrariesName  ",
             project, context,
             reuseDataFrom = null,
             moduleFilter = { true },
@@ -151,7 +151,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             librariesContext.contextWithCompositeExceptionTracker(project, resolverForModulesName)
 
         val facadeForModules = ProjectResolutionFacade(
-            "facadeForModules", /*"sdk with settings=$settings"*/"",
+            "facadeForModules", resolverForModulesName,
             project, modulesContext,
             reuseDataFrom = facadeForLibraries,
 //            moduleFilter = moduleFilters::sdkFacadeFilter,

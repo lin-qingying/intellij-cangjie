@@ -34,7 +34,7 @@ class CompilationErrorException : RuntimeException {
     constructor(message: String) : super(message)
 }
 class DelegateAnalysisResult(
-      result: AnalysisResult
+    val  result: AnalysisResult
 ):AnalysisResult(
   result.  bindingContext,
   result.  moduleDescriptor,

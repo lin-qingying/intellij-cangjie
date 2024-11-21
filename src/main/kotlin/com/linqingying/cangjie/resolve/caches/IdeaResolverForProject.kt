@@ -40,6 +40,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.search.GlobalSearchScope
+import java.util.*
 
 data class ModuleContent<out M : ModuleInfo>(
     val moduleInfo: M,
@@ -68,6 +69,7 @@ class IdeaResolverForProject(
 
     private val builtInsCache: BuiltInsCache =
         (delegateResolver as? IdeaResolverForProject)?.builtInsCache ?: BuiltInsCache(projectContext, this)
+    private val created = Date().toString()
 
 
     private fun getResolverForModuleFactory(moduleInfo: ModuleInfo): ResolverForModuleFactory {
@@ -108,8 +110,6 @@ class IdeaResolverForProject(
 
         return builtInsCache.getOrCreateIfNeeded(module)
     }
-    // Important: ProjectContext must be from SDK to be sure that we won't run into deadlocks
-
 
     class BuiltInsCache(private val projectContext: ProjectContext, private val resolver: IdeaResolverForProject) {
         private val cache = mutableMapOf<BuiltInsCacheKey, CangJieBuiltIns>()
@@ -132,18 +132,7 @@ class IdeaResolverForProject(
                 }
         }
 
-//        private fun findStdlibForModulesBuiltins(module: ModuleInfo): CjpmLibraryInfo? {
-//            return when (IdeBuiltInsLoadingState.state) {
-//                IdeBuiltInsLoadingState.IdeBuiltInsLoading.FROM_CLASSLOADER -> null
-//                IdeBuiltInsLoadingState.IdeBuiltInsLoading.FROM_DEPENDENCIES_JVM -> {
-//                    if (module.platform.isJvm()) {
-//                        module.findJvmStdlibAcrossDependencies()
-//                    } else {
-//                        null
-//                    }
-//                }
-//            }
-//        }
+
     }
 
 

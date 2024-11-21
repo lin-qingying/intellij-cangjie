@@ -64,18 +64,25 @@ class ProjectResolutionFacade(
     dependencies: List<Any>,
     private val invalidateOnOOCB: Boolean,
     val syntheticFiles: Collection<CjFile> = listOf(),
-    val allModules: Collection<ModuleInfo>? = null // null means create resolvers for modules from idea model
+    val allModules: Collection<ModuleInfo>? = null//空意味着从想法模型为模块创建解析器
 ) {
 
-
+    // 创建并缓存一个值，该值用于存储项目解析器提供者
+    // 此缓存值将在项目解析过程中被使用，以提高解析效率
     private val cachedValue = CachedValuesManager.getManager(project).createCachedValue(
         {
+            // 计算并获取模块解析器提供者
             val resolverProvider = computeModuleResolverProvider()
+
+            // 根据invalidateOnOOCB标志决定是否添加超出代码块的依赖
+            // 如果需要，将项目依赖解析器和超出代码块的跟踪器合并
             val allDependencies = if (invalidateOnOOCB) {
                 resolverForProjectDependencies + CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
             } else {
                 resolverForProjectDependencies
             }
+
+            // 创建并返回缓存值结果，包含解析器提供者和所有依赖
             CachedValueProvider.Result.create(resolverProvider, allDependencies)
         },
         /* trackValue = */ false
