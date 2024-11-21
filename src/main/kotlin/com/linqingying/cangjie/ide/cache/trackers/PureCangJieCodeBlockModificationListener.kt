@@ -329,6 +329,9 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
                 is CjFunction -> {
                     // 对于函数，如果其有块体，则进一步检查元素是否在块体中
                     if (blockDeclaration.hasBlockBody()) {
+                        if(blockDeclaration is CjFunctionImpl){
+                            if(blockDeclaration.isInferReturnType) return null
+                        }
                         return blockDeclaration.bodyExpression
                             ?.takeIf { it.isAncestor(element) }
                             ?.let {
@@ -480,10 +483,10 @@ class PureCangJieCodeBlockModificationListener(val project: Project) : Disposabl
         project.messageBus.connect(this).subscribe(FileDocumentManagerListener.TOPIC, object :
             FileDocumentManagerListener {
             override fun fileWithNoDocumentChanged(file: VirtualFile) {
-                //no document means no pomModel change
-                //if psi was not loaded, then the count would be modified by PsiTreeChangeEvent.PROP_UNLOADED_PSI
-                //if psi was loaded, then [FileManagerImpl.reloadPsiAfterTextChange] is fired which doesn't provide any explicit change anyway,
-                //so one need to inc the tracker to ensure that nothing significant was changed externally
+      //没有文档意味着没有 pomModel 的变化
+//如果 psi 没有加载，那么计数会通过 PsiTreeChangeEvent.PROP_UNLOADED_PSI 进行修改
+//如果 psi 已经加载，那么会触发 [FileManagerImpl.reloadPsiAfterTextChange]，但它并不会提供任何明确的变化，
+//因此需要增加跟踪器，确保外部没有发生任何显著变化
                 CangJieCodeBlockModificationListener.getInstance(project).incModificationCount()
             }
         })
