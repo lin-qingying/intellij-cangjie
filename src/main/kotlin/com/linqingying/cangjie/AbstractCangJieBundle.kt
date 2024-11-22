@@ -61,7 +61,7 @@ abstract class AbstractCangJieBundle protected constructor(val pathToBundle: Str
 
     // 动态加载资源文件
     @Nls
-    override fun getMessage(key: String, vararg params: Any): String {
+    override fun getMessage(key: @NonNls String, vararg params: Any?): @Nls String {
         return message(currentBundle, key, *params)
     }
 

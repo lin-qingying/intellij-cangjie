@@ -78,7 +78,7 @@ object CjpmMetadata {
         ): CjpmWorkspaceData {
         val fs = LocalFileSystem.getInstance()
         val workspaceRoot = project.workspace_root?.let { fs.refreshAndFindFileByPath(it) }
-        requireNotNull(workspaceRoot) { "`cjpm metadata` reported a workspace path which does not exist at `${project.workspace_root}`" }
+
         val packages = project.packages.map { pkg ->
             pkg.clean(fs, false)
 
@@ -87,7 +87,7 @@ object CjpmMetadata {
             packages,
 
 
-            workspaceRoot.url
+            workspaceRoot?.url
         )
 
     }
@@ -102,9 +102,10 @@ object CjpmMetadata {
 
         @SerialName("version")
         @JsonProperty("version")
-        val version: Int,
+        val version: Int = 0,
 
-
+       @SerialName("workspace_root")
+        @JsonProperty("workspace_root")
         val workspace_root: String? = null
 
     ) {
@@ -133,22 +134,8 @@ object CjpmMetadata {
                     return Cjpm.JSON_MAPPER.readValue(data, Project::class.java)
 
                 }
+ 
 
-
-//                val version = toolchain.cjc?.version
-//
-//                if (version != null && version.semver < "0.49.2".parseSemVer()) {
-
-
-//                }
-
-
-//             val toml = Toml.decodeFromString<Project>(data)
-
-//                val toml = TomlFileReader.decodeFromFile(serializer() , filePath.systemIndependentPath)
-
-
-                TODO()
             }
         }
 

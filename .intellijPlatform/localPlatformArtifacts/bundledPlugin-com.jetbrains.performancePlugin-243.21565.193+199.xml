@@ -1,0 +1,13 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.jetbrains.performancePlugin" revision="243.21565.193+199"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="/Users/27439/.gradle/caches/transforms-3/ab1fdc31a3a71e28d019b1c67dd96bff/transformed/ideaIC-2024.3-win/plugins/performanceTesting" type="directory" conf="default"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.vcs.impl" rev="243.21565.193+135"/>
+    <dependency org="bundledModule" name="intellij.platform.vcs.log.impl" rev="243.21565.193+135"/>
+  </dependencies>
+</ivy-module>

@@ -26,29 +26,29 @@ package com.linqingying.cangjie.types.expressions
 
 import com.intellij.openapi.progress.ProgressManager
 import com.linqingying.cangjie.builtins.CangJieBuiltIns.Companion.isUnit
+import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.BindingTrace
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.descriptors.FunctionDescriptor
-import com.linqingying.cangjie.descriptors.impl.FunctionDescriptorImpl
-import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptorImpl
 import com.linqingying.cangjie.psi.*
+import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.calls.components.InferenceSession
 import com.linqingying.cangjie.resolve.calls.components.InferenceSession.Companion.default
 import com.linqingying.cangjie.resolve.calls.context.ContextDependency
 import com.linqingying.cangjie.resolve.calls.context.ResolutionContext
+import com.linqingying.cangjie.resolve.calls.inference.BuilderInferenceSession
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo.Companion.EMPTY
 import com.linqingying.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl
 import com.linqingying.cangjie.resolve.scopes.*
-import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.CangJieType
-import com.linqingying.cangjie.types.ErrorUtils
 import com.linqingying.cangjie.types.ErrorUtils.createErrorType
 import com.linqingying.cangjie.types.error.ErrorTypeKind
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
+import com.linqingying.cangjie.types.util.TypeUtils.DONT_CARE
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.UNIT_EXPECTED_TYPE
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
@@ -261,43 +261,12 @@ class ExpressionTypingServices(
         }
 
 
-        //        if (CjPsiUtil.deparenthesize(statementExpression) instanceof CjLambdaExpression && context.contextDependency == ContextDependency.DEPENDENT) {
-//            CangJieTypeInfo typeInfo = createDontCareTypeInfoForNILambda(statementExpression, context);
-//            if (typeInfo != null) return typeInfo;
-//        }
-        context = context.replaceExpectedType(NO_EXPECTED_TYPE)
+        if (CjPsiUtil.deparenthesize(statementExpression) is CjLambdaExpression && context.contextDependency == ContextDependency.DEPENDENT) {
+            val typeInfo = createDontCareTypeInfoForNILambda(statementExpression, context)
+            if (typeInfo != null) return typeInfo
+        }
 
-//        if (statementExpression !is CjReturnExpression) {
-//            val parentDeclaration =
-//                context.trace.bindingContext.get(
-//                    BindingContext.DECLARATION_TO_DESCRIPTOR, context.getContextParentOfType(
-//                        statementExpression,
-//                        CjDeclaration::class.java
-//                    )
-//                )
-//
-//            var type: CangJieType? = null
-//            if (parentDeclaration is PropertyAccessorDescriptorImpl) {
-//                type = parentDeclaration.returnType
-//            }
-//            if (parentDeclaration is FunctionDescriptorImpl/* && (statementExpression.parent is CjFunction || statementExpression.parent is CjPropertyAccessor)*/) {
-//                if (parentDeclaration.returnType != null && parentDeclaration.returnType !is DeferredType && !isUnit(
-//                        parentDeclaration.returnType!!
-//                    )
-//                ) {
-////                    context = context.replaceExpectedType(parentDeclaration.getReturnType());
-////fix 修复对于该语句执行时，方法返回值还为推断时出现的类型一致
-//                    if (parentDeclaration.source is PsiSourceElement && (parentDeclaration.source as PsiSourceElement).psi is CjFunction) {
-//                        if (((parentDeclaration.source as PsiSourceElement).psi as CjFunction).typeReference != null) {
-//                            type = parentDeclaration.returnType
-//                        }
-//                    }
-//                }
-//            }
-//            if (type != null && !type.isUnit()) {
-//                context = context.replaceExpectedType(type)
-//            }
-//        }
+
         var result = blockLevelVisitor.getTypeInfo(statementExpression, context, true)
         if (coercionStrategyForLastExpression == CoercionStrategy.COERCION_TO_UNIT) {
             var mightBeUnit = false
@@ -321,6 +290,27 @@ class ExpressionTypingServices(
             }
         }
         return result
+    }
+
+    private fun createDontCareTypeInfoForNILambda(
+        statementExpression: CjExpression,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo? {
+        if (!context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference) || context.inferenceSession is BuilderInferenceSession) {
+            return null
+        }
+
+        val functionLiteral = statementExpression.getNonStrictParentOfType<CjFunctionLiteral>()
+        if (functionLiteral != null) {
+            val info = context.trace.bindingContext[BindingContext.NEW_INFERENCE_LAMBDA_INFO, functionLiteral]
+            if (info != null) {
+                info.lastExpressionInfo.lexicalScope = context.scope
+                info.lastExpressionInfo.trace = context.trace
+                return CangJieTypeInfo(DONT_CARE, context.dataFlowInfo)
+            }
+        }
+
+        return null
     }
 
     /**
@@ -378,24 +368,10 @@ class ExpressionTypingServices(
             }
             if (!iterator.hasNext()) {
 
-                newContext = newContext.replaceExpectedType(context.expectedType)
-
-                if (statement !is CjReturnExpression) {
-                    if (parentDeclaration is PropertyAccessorDescriptorImpl) {
-                        newContext = newContext.replaceExpectedType(parentDeclaration.returnType)
-                    }
-
-                    if (parentDeclaration is FunctionDescriptorImpl) {
-                        if (parentDeclaration.returnType != null && (parentDeclaration.source.getPsi() as? CjFunctionImpl)?.isInferReturnType != true) {
-                            newContext = newContext.replaceExpectedType(parentDeclaration.returnType)
-                        }
-
-                    }
-                }
 
                 // 最后一条语句也需要检查类型，即使前面有 return 语句而无法到达，检查类型也是必要的
                 result = getTypeOfLastExpressionInBlock(
-                    statement, newContext, coercionStrategyForLastExpression,
+                    statement, newContext.replaceExpectedType(context.expectedType), coercionStrategyForLastExpression,
                     blockLevelVisitor
                 )
                 if (result.type != null && statement.parent is CjBlockExpression) {
@@ -455,7 +431,7 @@ class ExpressionTypingServices(
         functionDescriptor: FunctionDescriptor,
         inferenceSession: InferenceSession?
     ): CangJieType {
-        val bodyExpression = function.bodyBlockExpression ?: error("Body expression cannot be null")
+        val bodyExpression = function.bodyBlockExpression
         val functionInnerScope = FunctionDescriptorUtil.getFunctionInnerScope(
             outerScope, functionDescriptor, trace, expressionTypingComponents.overloadChecker
         )
@@ -471,9 +447,9 @@ class ExpressionTypingServices(
         )
 
 
-        val typeInfo = expressionTypingFacade.getTypeInfo(bodyExpression, context, function.hasBlockBody())
+        val typeInfo = bodyExpression?.let { expressionTypingFacade.getTypeInfo(it, context, function.hasBlockBody()) }
 
-        return typeInfo.type ?: createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_FUNCTION)
+        return typeInfo?.type ?: createErrorType(ErrorTypeKind.RETURN_TYPE_FOR_FUNCTION)
     }
 
     fun getBlockReturnedType(

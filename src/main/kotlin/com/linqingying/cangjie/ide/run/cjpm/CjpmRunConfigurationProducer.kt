@@ -25,14 +25,14 @@
 package com.linqingying.cangjie.ide.run.cjpm
 
 
-import com.linqingying.cangjie.cjpm.project.model.currentCjpmProject
-import com.linqingying.cangjie.lang.CangJieFileType
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.json.JsonFileType
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.cjpm.project.model.currentCjpmProject
+import com.linqingying.cangjie.lang.CangJieFileType
 import org.toml.lang.psi.TomlFileType
 
 class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandConfiguration>() {
@@ -46,7 +46,6 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandCon
 //如果该项目有运行配置中command为run的运行配置，就使用这个运行配置，否则就创建一个run的运行配置
 
 
-
         val file = context.location?.virtualFile
         val fileName = file?.name
         val fileType = file?.fileType
@@ -56,12 +55,12 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandCon
 
         if (fileType !is CangJieFileType) {
 
-            if((fileType is JsonFileType && fileName?.startsWith("module") == true) || fileType is TomlFileType){
-                if(configuration.project.currentCjpmProject == null){
+            if (fileType is TomlFileType) {
+                if (configuration.project.currentCjpmProject == null) {
                     return false
 
                 }
-            }else{
+            } else {
                 return false
 
             }
@@ -102,7 +101,7 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandCon
 
 
         return if (isInSrc) {
-            fileType is CangJieFileType && configuration.command ==  "run"
+            fileType is CangJieFileType && configuration.command == "run"
         } else {
             //    判断是否是module.json文件
             fileType is JsonFileType && fileName?.startsWith("module") == true && configuration.command == "run"

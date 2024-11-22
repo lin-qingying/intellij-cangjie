@@ -29,6 +29,24 @@ import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.intellij.execution.configuration.EnvironmentVariablesData
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.process.CapturingProcessHandler
+import com.intellij.execution.process.ProcessListener
+import com.intellij.execution.process.ProcessOutput
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.util.registry.RegistryValue
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.net.HttpConfigurable
+import com.intellij.util.text.SemVer
 import com.linqingying.cangjie.cjpm.CjpmConstants
 import com.linqingying.cangjie.cjpm.findChild
 import com.linqingying.cangjie.cjpm.project.pathAsPath
@@ -45,21 +63,6 @@ import com.linqingying.cangjie.ide.run.isFeatureEnabled
 import com.linqingying.cangjie.lang.CjConstants.LIB_CJ_FILE
 import com.linqingying.cangjie.lang.CjConstants.MAIN_CJ_FILE
 import com.linqingying.cangjie.utils.buildList
-import com.intellij.execution.configuration.EnvironmentVariablesData
-import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.CapturingProcessHandler
-import com.intellij.execution.process.ProcessListener
-import com.intellij.execution.process.ProcessOutput
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.registry.Registry
-import com.intellij.openapi.util.registry.RegistryValue
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.net.HttpConfigurable
-import com.intellij.util.text.SemVer
 import java.io.IOException
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -123,30 +126,29 @@ class Cjpm(
         projectType: String? = null,
 //        cjcVersion: CjcVersion? = null,
     ): CjProcessResult<GeneratedFilesHolder> {
+
+
         val path = directory.pathAsPath
         val crateType = "--type=$projectType"
         val args = mutableListOf<String>()
-//        val args = mutableListOf<String>(crateType,"--name=$moduleName")
+
         args.add(crateType)
 
-//        val cjcVersion = toolchain.cjc().version
-//
-//        if (cjcVersion?.semver != null) {
-//            if (cjcVersion.semver < SemVer.parseFromText("0.49.2")) {
-//                args.add(moduleName)
-//                args.add(moduleName)
-//            } else {
-//
-//            }
-//        } else {
-//            args.add(moduleName)
-//            args.add(moduleName)
-//
-//        }
         args.add("--name=$moduleName")
 
-
-        CjpmCommandLine("init", path, args).execute(project, owner).unwrapOrElse { return CjResult.Err(it) }
+        var result: CjProcessResult<ProcessOutput>? = null
+        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Initializing cjpm project") {
+            override fun run(indicator: ProgressIndicator) {
+                try {
+                    result = CjpmCommandLine("init", path, args).execute(project, owner)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                }
+            }
+        })
+        result?.unwrapOrElse { return CjResult.Err(it) }
         fullyRefreshDirectory(directory)
 
         val manifest =
@@ -155,7 +157,9 @@ class Cjpm(
 
 //        val manifest = checkNotNull(directory.findChild(CjpmConstants.MANIFEST_FILE)) { "Can't find the manifest file" }
         val fileName = MAIN_CJ_FILE
-        val sourceFiles = listOfNotNull(directory.findFileByRelativePath("src/$fileName"))
+        val sourceFiles =
+            listOfNotNull(directory.findFileByRelativePath("src/$fileName"))
+
         return CjResult.Ok(GeneratedFilesHolder(manifest, sourceFiles))
     }
 

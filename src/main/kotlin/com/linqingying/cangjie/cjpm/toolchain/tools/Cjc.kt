@@ -126,6 +126,7 @@ private val LOG: Logger = Logger.getInstance("CommandLineExt")
 
 fun CapturingProcessHandler.runProcessWithGlobalProgress(timeoutInMilliseconds: Int? = null): ProcessOutput {
     return runProcess(ProgressManager.getGlobalProgressIndicator(), timeoutInMilliseconds)
+
 }
 
 fun CapturingProcessHandler.runProcess(

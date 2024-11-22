@@ -291,7 +291,7 @@ fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: Bindin
         val returnType = computeUnsafeReturnType(expression, context, functionDescriptor, expectedReturnType)
 
         if (!expression.functionLiteral.hasDeclaredReturnType() && functionTypeExpected) {
-            if (!TypeUtils.noExpectedType(expectedReturnType!!) && CangJieBuiltIns.isUnit(expectedReturnType)) {
+            if (!noExpectedType(expectedReturnType!!) && CangJieBuiltIns.isUnit(expectedReturnType)) {
                 return components.builtIns.unitType
             }
         }

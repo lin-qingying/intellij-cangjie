@@ -335,6 +335,7 @@ class ControlFlowInformationProviderImpl private constructor(
         recordInitializedVariables()
 
         checkLocalFunctions()
+
         checkMainFunction()
         markUninitializedVariables()
 

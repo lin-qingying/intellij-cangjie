@@ -30,19 +30,19 @@ import com.linqingying.cangjie.name.FqNameUnsafe
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.utils.newHashMapWithExpectedSize
 import com.linqingying.cangjie.utils.newHashSetWithExpectedSize
-import com.squareup.wire.internal.JvmField
+
 
 @Suppress("Reformat")
 object StandardNames {
-    @kotlin.jvm.JvmField
+    @JvmField
     val DEFAULT_VALUE_PARAMETER = Name.identifier("value")
 
-    @kotlin.jvm.JvmField
+    @JvmField
     val CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME = Name.identifier("count")
-    @kotlin.jvm.JvmField
+    @JvmField
     val BUILT_INS_PACKAGE_NAME = Name.identifier("cangjie")
 
-    @kotlin.jvm.JvmField
+    @JvmField
     val NAME = Name.identifier("name")
 
     val rangeOfName = Name.identifier("rangeOf")
@@ -207,13 +207,13 @@ val MAIN = Name.identifier("main")
     val BUILT_INS_PACKAGE_FQ_NAME = FqName("")
 
     object FqNames {
-        @kotlin.jvm.JvmField
+        @JvmField
         val deprecated: FqName = fqName("Deprecated")
-        @kotlin.jvm.JvmField
+        @JvmField
         val publishedApi: FqName = fqName("PublishedApi")
-        @kotlin.jvm.JvmField
+        @JvmField
         val cloneable: FqNameUnsafe = fqNameUnsafe("Cloneable")
-        @kotlin.jvm.JvmField
+        @JvmField
         val platformDependent: FqName = FqName("cangjie.internal.PlatformDependent")
 
         @JvmField
@@ -223,7 +223,7 @@ val MAIN = Name.identifier("main")
                     this[fqNameUnsafe(primitiveType.typeName.asString())] = primitiveType
                 }
             }
-        @kotlin.jvm.JvmField
+        @JvmField
         val deprecatedSinceCangJie: FqName = fqName("DeprecatedSinceCangJie")
 
         @JvmField

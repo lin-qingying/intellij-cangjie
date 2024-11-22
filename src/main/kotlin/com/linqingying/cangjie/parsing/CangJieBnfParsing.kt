@@ -179,7 +179,7 @@ abstract class BnfParsing(
         }
 
 
-        fun getProductions(): List<PsiBuilderImpl.ProductionMarker> {
+        override fun getProductions(): List<PsiBuilderImpl.ProductionMarker> {
             return (myDelegate as PsiBuilderImpl).productions
         }
     }

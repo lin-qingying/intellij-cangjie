@@ -24,7 +24,7 @@
 
 package com.linqingying.cangjie.serialization.deserialization
 
-import com.jetbrains.jsonSchema.impl.nestedCompletions.letIf
+
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.AnnotationDescriptor

@@ -111,9 +111,6 @@ class CangJieModuleBuilder : ModuleBuilder() {
 
     override fun isAvailable(): Boolean = false
 
-    override fun isSuitableSdkType(sdkType: SdkTypeId?): Boolean {
-        return true
-    }
 
     override fun getModuleType(): ModuleType<*> {
         return CangJieModuleType()
