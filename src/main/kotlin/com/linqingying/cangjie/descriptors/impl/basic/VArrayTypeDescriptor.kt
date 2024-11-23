@@ -33,6 +33,7 @@ import com.linqingying.cangjie.descriptors.impl.ClassDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import com.linqingying.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.resolve.descriptorUtil.module
 import com.linqingying.cangjie.resolve.scopes.GivenFunctionsMemberScope
 import com.linqingying.cangjie.storage.NotNullLazyValue
 import com.linqingying.cangjie.storage.StorageManager
@@ -41,6 +42,7 @@ import com.linqingying.cangjie.types.VArrayType
 import com.linqingying.cangjie.types.Variance
 import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
 import com.linqingying.cangjie.types.util.asTypeProjection
+import com.linqingying.cangjie.utils.OperatorNameConventions
 
 class VArrayTypeDescriptor(
 
@@ -117,7 +119,7 @@ class VArrayTypeDescriptor(
                             true, argumentType, false, SourceElement.NO_SOURCE
                         )
                     ),
-                     this@VArrayTypeDescriptor.getDefaultType()
+                    this@VArrayTypeDescriptor.getDefaultType()
                 )
             }
         )
@@ -158,6 +160,44 @@ class VArrayClassScope(
     storageManager: StorageManager,
     containingClass: VArrayTypeDescriptor
 ) : GivenFunctionsMemberScope(storageManager, containingClass) {
-    override fun computeDeclaredFunctions(): List<FunctionDescriptor> = emptyList()
+
+    val func = storageManager.createLazyValue {
+
+        val result = mutableListOf<OperatorFunctionDescriptor>()
+
+        result.add(
+            OperatorFunctionDescriptor(
+                containingClass, OperatorNameConventions.GET,
+                listOf(
+                    ValueNameAndType(
+                        "index",
+                        containingClass.module.builtIns.int64Type
+                    )
+                ), containingClass.defaultType
+            )
+        )
+        result.add(
+            OperatorFunctionDescriptor(
+                containingClass, OperatorNameConventions.SET,
+                listOf(
+                    ValueNameAndType(
+                        "index",
+                        containingClass.module.builtIns.int64Type
+                    ),
+                    ValueNameAndType(
+                        "value",
+                        containingClass.argumentType,
+                        isNamed = true
+                    )
+                ), containingClass.defaultType
+            )
+        )
+        result
+    }
+
+    override fun computeDeclaredFunctions(): List<FunctionDescriptor> {
+
+        return func()
+    }
 }
 

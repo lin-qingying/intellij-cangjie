@@ -45,6 +45,7 @@ import com.linqingying.cangjie.resolve.BindingContext.EXPECTED_RETURN_TYPE
 import com.linqingying.cangjie.resolve.BindingContextUtils
 import com.linqingying.cangjie.resolve.FunctionDescriptorUtil
 import com.linqingying.cangjie.resolve.calls.context.ContextDependency
+import com.linqingying.cangjie.resolve.calls.inference.BuilderInferenceSession
 import com.linqingying.cangjie.resolve.calls.inference.model.TypeVariableTypeConstructor
 import com.linqingying.cangjie.resolve.check.UnderscoreChecker
 import com.linqingying.cangjie.resolve.lazy.ForceResolveUtil
@@ -268,9 +269,9 @@ fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: Bindin
             functionDescriptor.createFunctionType(components.builtIns)!!
         )
 
-//        if (context.inferenceSession is BuilderInferenceSession) {
-//            context.inferenceSession.addExpression(expression)
-//        }
+        if (context.inferenceSession is BuilderInferenceSession) {
+            context.inferenceSession.addExpression(expression)
+        }
 
         if (functionTypeExpected) {
             // all checks were done before

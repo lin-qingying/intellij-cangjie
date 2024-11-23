@@ -38,19 +38,44 @@ import com.linqingying.cangjie.utils.compact
 import com.linqingying.cangjie.utils.filterIsInstanceAnd
 
 /**
- * A scope that may contain some declared functions + fake-overridden functions/properties from supertypes.
+ * 一个可能包含一些声明函数以及来自超类型的伪重写函数/属性的作用域。
+ *
+ * 此类为抽象类，负责定义一个作用域（Scope），
+ * 该作用域既包括当前类声明的函数，还可以通过继承机制合成伪重写的成员。
+ *
+ * @constructor
+ * @param storageManager 用于延迟计算和缓存的存储管理器。
+ * @param containingClass 当前作用域所关联的类描述符（ClassDescriptor）。
  */
 abstract class GivenFunctionsMemberScope(
     storageManager: StorageManager,
     protected val containingClass: ClassDescriptor
 ) : MemberScopeImpl() {
+
+    /**
+     * 所有成员描述符的集合，通过延迟计算和缓存实现。
+     * 包含当前类的声明函数以及伪重写的成员。
+     */
     private val allDescriptors by storageManager.createLazyValue {
-        val fromCurrent = computeDeclaredFunctions()
-        fromCurrent + createFakeOverrides(fromCurrent)
+        val fromCurrent = computeDeclaredFunctions() // 获取当前类声明的函数
+        fromCurrent + createFakeOverrides(fromCurrent) // 合并伪重写的成员
     }
 
+    /**
+     * 抽象方法，用于计算当前类中声明的所有函数。
+     * 子类需要实现此方法。
+     *
+     * @return 当前类中声明的函数列表。
+     */
     protected abstract fun computeDeclaredFunctions(): List<FunctionDescriptor>
 
+    /**
+     * 获取作用域中贡献的描述符（成员），根据指定的过滤器和名称过滤器。
+     *
+     * @param kindFilter 描述符的种类过滤器（函数或变量等）。
+     * @param nameFilter 名称过滤器，用于筛选目标成员。
+     * @return 满足条件的成员描述符集合。
+     */
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
@@ -59,30 +84,56 @@ abstract class GivenFunctionsMemberScope(
         return allDescriptors
     }
 
+    /**
+     * 根据名称和查找位置获取作用域中的函数。
+     *
+     * @param name 函数名称。
+     * @param location 查找位置。
+     * @return 满足条件的函数描述符集合。
+     */
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         return allDescriptors.filterIsInstanceAnd { it.name == name }
     }
 
-    override fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor> {
+    /**
+     * 根据名称和查找位置获取作用域中的变量。
+     *
+     * @param name 变量名称。
+     * @param location 查找位置。
+     * @return 满足条件的变量描述符集合。
+     */
+    override fun getContributedVariables(
+        name: Name,
+        location: LookupLocation
+    ): Collection<@JvmWildcard VariableDescriptor> {
         return allDescriptors.filterIsInstanceAnd { it.name == name }
     }
 
+    /**
+     * 创建伪重写成员（Fake Overrides）。
+     *
+     * @param functionsFromCurrent 当前类中声明的函数。
+     * @return 包含伪重写成员的描述符集合。
+     */
     private fun createFakeOverrides(functionsFromCurrent: List<FunctionDescriptor>): List<DeclarationDescriptor> {
         val result = ArrayList<DeclarationDescriptor>(3)
+
+        // 获取所有超类型的成员
         val allSuperDescriptors = containingClass.typeConstructor.supertypes
             .flatMap { it.memberScope.getContributedDescriptors() }
             .filterIsInstance<CallableMemberDescriptor>()
+
+        // 按名称分组处理重写逻辑
         for ((name, group) in allSuperDescriptors.groupBy { it.name }) {
             for ((isFunction, descriptors) in group.groupBy { it is FunctionDescriptor }) {
                 OverridingUtil.DEFAULT.generateOverridesInFunctionGroup(
                     name,
-                    /* membersFromSupertypes = */
-                    descriptors,
-                    /* membersFromCurrent = */
-                    if (isFunction) functionsFromCurrent.filter { it.name == name } else listOf(),
-                    containingClass,
+                    descriptors, // 超类型中的成员
+                    if (isFunction) functionsFromCurrent.filter { it.name == name } else listOf(), // 当前类的函数
+                    containingClass, // 当前类
                     object : NonReportingOverrideStrategy() {
                         override fun addFakeOverride(fakeOverride: CallableMemberDescriptor) {
+                            // 为生成的伪重写成员解析未知可见性
                             OverridingUtil.resolveUnknownVisibilityForMember(fakeOverride, null)
                             result.add(fakeOverride)
                         }
@@ -98,10 +149,15 @@ abstract class GivenFunctionsMemberScope(
             }
         }
 
-        return result.compact()
+        return result.compact() // 压缩结果集合
     }
 
+    /**
+     * 打印作用域的结构，用于调试和日志记录。
+     *
+     * @param p 打印器对象。
+     */
     override fun printScopeStructure(p: Printer) {
-        p.println("Scope of class: $containingClass")
+        p.println("类的作用域: $containingClass")
     }
 }

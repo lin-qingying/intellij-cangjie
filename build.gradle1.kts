@@ -22,10 +22,12 @@
  *
  */
 
+import Build_gradle.BuildType.*
 import groovy.xml.XmlParser
-import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
-import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
-import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
+import org.gradle.internal.impldep.org.junit.experimental.categories.Categories.CategoryFilter.include
+import org.jetbrains.intellij.tasks.PatchPluginXmlTask
+import org.jetbrains.intellij.tasks.PublishPluginTask
+import org.jetbrains.intellij.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -38,19 +40,39 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
-plugins {
-    idea
-//    id("org.jetbrains.kotlin.jvm") version "1.9.21"
-    kotlin("jvm") version "1.9.21"
-    id("org.jetbrains.intellij.platform") version "2.1.0"
-//    id("org.jetbrains.intellij.platform.migration") version "2.1.0"
-    id("org.jetbrains.grammarkit") version "2022.3.2"
-    kotlin("plugin.serialization") version "1.9.21"
-    id("org.gradle.test-retry") version "1.5.3"
-    id("com.google.protobuf") version "0.9.3"
-//    id("antlr")
 
+val build_type: String by project
+
+enum class BuildType {
+
+
+    //   IDEA Ultimate Edition + nativeDebug本地调试插件  LLDB
+    IU_NATIVE_DEBUG,
+
+    // IDEA Community Edition + DAP调试插件
+    IC_DAP,
+
+    //    IDEA Community Edition + cidr本地代码调试   LLDB
+    IC_CIDR_NATIVE_DEBUG;
+
+
+    companion object {
+
+        fun fromString(str: String): BuildType {
+            return when (str) {
+                "IU_NATIVE_DEBUG" -> IU_NATIVE_DEBUG
+                "IC_DAP" -> IC_DAP
+                "IC_CIDR_NATIVE_DEBUG" -> IC_CIDR_NATIVE_DEBUG
+                else -> IC_DAP
+            }
+        }
+    }
 }
+
+
+//构建方式
+val buildType = BuildType.fromString(build_type)
+
 //IDEA版本
 val ideaVersion = "2024.3"
 //插件版本
@@ -63,7 +85,7 @@ val terminalPlugin = "org.jetbrains.plugins.terminal"
 val nativeDebugPlugin: String = "com.intellij.nativeDebug"
 val psiViewerPlugin: String = "PsiViewer:243.7768"
 val indexViewPlugin = "com.jetbrains.hackathon.indices.viewer:1.29"
-val chinesePlugin = "com.intellij.zh:233.407"
+val chinesePlugin = "com.intellij.zh"
 val diagramPlugin = "com.intellij.diagram"
 val basePluginArchiveName = "intellij-cangjie-analyzer"
 
@@ -81,30 +103,13 @@ val okioVersion = "2.10.0"
 val toml4jVersion = "0.7.3"
 //插件需要的依赖列表
 val pluginDescriptors = arrayOf<String>(
-
+//    "moshi-$moshiVersion.jar",
+//    "moshi-adapters-${moshiVersion}.jar",
+//    "moshi-kotlin-${moshiVersion}.jar",
+//    "okio-jvm-${okioVersion}.jar",
+//    "toml4j-${toml4jVersion}.jar",
+//    "utils.jar"
 )
-
-
-val Project.dependencyCachePath
-    get(): String {
-        val cachePath = file("${rootProject.projectDir}/deps")
-        // If cache path doesn't exist, we need to create it manually
-        // because otherwise gradle-intellij-plugin will ignore it
-        if (!cachePath.exists()) {
-            cachePath.mkdirs()
-        }
-        return cachePath.absolutePath
-    }
-
-idea {
-    module {
-        // https://github.com/gradle/kotlin-dsl/issues/537/
-        excludeDirs = excludeDirs + file("testData") + file("deps") + file("bin") +
-                file("$grammarKitFakePsiDeps/src/main/kotlin")
-    }
-}
-
-val ideaType = "IU"
 protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc:4.28.3"
@@ -133,6 +138,43 @@ protobuf {
     }
 }
 
+plugins {
+    idea
+//    id("org.jetbrains.kotlin.jvm") version "1.9.21"
+    kotlin("jvm") version "1.9.21"
+    id("org.jetbrains.intellij") version "1.17.4"
+    id("org.jetbrains.grammarkit") version "2022.3.2"
+    kotlin("plugin.serialization") version "1.9.21"
+    id("org.gradle.test-retry") version "1.5.3"
+id("com.google.protobuf") version "0.9.3"
+//    id("antlr")
+
+}
+val Project.dependencyCachePath
+    get(): String {
+        val cachePath = file("${rootProject.projectDir}/deps")
+        // If cache path doesn't exist, we need to create it manually
+        // because otherwise gradle-intellij-plugin will ignore it
+        if (!cachePath.exists()) {
+            cachePath.mkdirs()
+        }
+        return cachePath.absolutePath
+    }
+
+idea {
+    module {
+        // https://github.com/gradle/kotlin-dsl/issues/537/
+        excludeDirs = excludeDirs + file("testData") + file("deps") + file("bin") +
+                file("$grammarKitFakePsiDeps/src/main/kotlin")
+    }
+}
+
+val ideaType = // Target IDE Platform
+    when (buildType) {
+        IU_NATIVE_DEBUG -> "IU"
+        IC_DAP, IC_CIDR_NATIVE_DEBUG -> "IC"
+
+    }
 
 val isCI = System.getenv("CI") != null
 allprojects {
@@ -140,16 +182,13 @@ allprojects {
         plugin("idea")
         plugin("kotlin")
         plugin("org.jetbrains.grammarkit")
-        plugin("org.jetbrains.intellij.platform")
+        plugin("org.jetbrains.intellij")
 //        plugin("plugin.serialization")
         plugin("org.gradle.test-retry")
     }
-    intellijPlatform {
 
-    }
     repositories {
         maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
-
 
         maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
         mavenCentral()
@@ -160,53 +199,44 @@ allprojects {
 //
 //        }
         }
-
-        intellijPlatform {
-            intellijDependencies()
-            defaultRepositories()
-        }
     }
-    dependencies {
+    intellij {
+        version.set(ideaVersion)
+        type.set(ideaType)
 
-        intellijPlatform {
-
-            create(IntelliJPlatformType.IntellijIdeaUltimate, ideaVersion)
-            instrumentationTools()
-
-//            local(dependencyCachePath)
-        }
-
-
-// https://mvnrepository.com/artifact/com.jetbrains.intellij.platform/test-framework-core
-//        implementation("com.jetbrains.intellij.platform:test-framework-core:242.23726.103")
-
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
-        implementation("com.google.protobuf:protobuf-java:4.28.3")
-
-        // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-javalite
-//        implementation("com.google.protobuf:protobuf-javalite:3.24.4-jb.2")
-
-        // https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api
-        implementation("jakarta.inject:jakarta.inject-api:2.0.1")
-
-        testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-        compileOnly(kotlin("stdlib-jdk8"))
+        downloadSources.set(/*!isCI*/true)
+        updateSinceUntilBuild.set(false)
+        instrumentCode.set(false)
+        ideaDependencyCachePath.set(dependencyCachePath)
+//        sandboxDir.set("$buildDir/$ideaVersion-sandbox")
     }
 
-
+//    sourceSets {
+//        main {
+//            java {
+//
+//                srcDirs("src/main/gen")
+//                srcDirs("src/main/kotlin")
+//            }
+//        }
+//    }
     sourceSets {
 
         main {
             java.srcDirs("src/gen")
             java.srcDirs("src/main/kotlin")
-
+//            resources.srcDirs("src/$platformVersion/main/resources")
         }
-
+        test {
+//            resources.srcDirs("src/$platformVersion/test/resources")
+        }
     }
 
     tasks {
-
+//        withType<JavaCompile> {
+//            sourceCompatibility = "17"
+//            targetCompatibility = "17"
+//        }
         withType<KotlinCompile> {
             kotlinOptions.jvmTarget = "17"
             kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all", "-Xcontext-receivers")
@@ -244,42 +274,58 @@ allprojects {
 
             useJUnitPlatform()
         }
+//        signPlugin {
+//            certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
+//            privateKey.set(System.getenv("PRIVATE_KEY"))
+//            password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
+//        }
+//        grammarKit {
+//            jflexRelease.set("1.7.0-1")
+//            grammarKitRelease.set("2021.1.2")
+//            intellijRelease.set("203.7717.81")
+//        }
+//        publishPlugin {
+//            token.set(System.getenv("PUBLISH_TOKEN"))
+//        }
 
     }
+    dependencies {
+// https://mvnrepository.com/artifact/com.jetbrains.intellij.platform/test-framework-core
+//        implementation("com.jetbrains.intellij.platform:test-framework-core:242.23726.103")
 
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+        implementation("com.google.protobuf:protobuf-java:4.28.3")
+
+        // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-javalite
+//        implementation("com.google.protobuf:protobuf-javalite:3.24.4-jb.2")
+
+        // https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api
+        implementation("jakarta.inject:jakarta.inject-api:2.0.1")
+
+        testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+        compileOnly(kotlin("stdlib-jdk8"))
+    }
 }
 
 
 val cangjie_plugin_project = project(":plugin") {
-    intellijPlatform {
+    intellij {
+        pluginName.set("intellij-cangjie")
+        plugins.set(
+            if (isBuildPlugin()) {
+                listOf()
+            } else {
+                listOf(psiViewerPlugin, indexViewPlugin, chinesePlugin)
+            }
+        )
 
-        pluginConfiguration {
-            name = "intellij-cangjie"
-
-        }
-        publishing {
-            token.set(token)
-            channels.set(listOf("dev"))
-        }
     }
-
 //    group = "com.linqingying.cangjie"
     version = cangjiePluginVersion
     dependencies {
-
-        intellijPlatform {
-
-
-            if (!isBuildPlugin()) {
-                plugins(
-                    psiViewerPlugin, indexViewPlugin, chinesePlugin
-                )
-                bundledPlugins(tomlPlugin)
-            }
-
-        }
         implementation(project(":"))
-        implementation(project(":dap-debugger"))
+
 
 //        implementation(project(":inspections"))
 //        implementation(project(":highlighter"))
@@ -384,10 +430,10 @@ val cangjie_plugin_project = project(":plugin") {
             pluginDescription.set(provider { file("description.html").readText() })
         }
 
-//        withType<PublishPluginTask> {
-//            token.set(token)
-//            channels.set(listOf("dev"))
-//        }
+        withType<PublishPluginTask> {
+            token.set(token)
+            channels.set(listOf("dev"))
+        }
     }
 
     task<RunIdeTask>("buildEventsScheme") {
@@ -404,18 +450,19 @@ val cangjie_plugin_project = project(":plugin") {
     }
 }
 
-project(":") {
-
+val cangjie_src_project = project(":") {
+    intellij {
+        plugins.set(listOf(tomlPlugin/*,diagramPlugin*/))
+    }
     dependencies {
-        intellijPlatform {
-                bundledPlugins(tomlPlugin)
-
-        }
         implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
         implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
         implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
         implementation("com.google.protobuf:protobuf-java:4.28.3")
+//        implementation("com.google.protobuf:protobuf-java:3.24.4-jb.2")
+// https://mvnrepository.com/artifact/com.google.protobuf/protobuf-javalite
+//        implementation("com.google.protobuf:protobuf-javalite:3.24.4-jb.2")
 
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
 // https://mvnrepository.com/artifact/org.fusesource.jansi/jansi
@@ -424,7 +471,9 @@ project(":") {
         implementation("io.hotmoka:toml4j:0.7.3")
 
         implementation(project(":lsp"))
+//        implementation(project(":lsp1"))
 
+//        implementation(files("lib/lsp.jar"))
         implementation(project(":utils"))
         implementation("io.javaslang:javaslang:2.1.0-alpha")
 
@@ -479,40 +528,72 @@ project(":lsp") {
 project(":utils") {
     dependencies {
 
-
+//        implementation("org.yaml:snakeyaml:2.2")
     }
 }
-
-//  project(":native-debugger") {
+//project(":deveco-dap-debugger") {
+//    intellij {
+//        plugins.set(listOf( ))
+//    }
 //
-//            dependencies {
-//                intellijPlatform{
-//                    plugin(nativeDebugPlugin)
-//                }
-//                implementation(project(":"))
-//            }
-//        }
-project(":dap-debugger") {
+//    dependencies {
+//        implementation(project(":"))
+//// https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.debug
+//        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.23.1")
+//        implementation(files("lib/intellij-dap.jar","lib/dap4j.jar"))
+//
+//    }
+//}
 
-    apply {
 
-        plugin("org.jetbrains.kotlin.plugin.serialization")
-    }
-    dependencies {
-
-        intellijPlatform {
-            bundledPlugins(
-                terminalPlugin
-            )
+when (buildType) {
+    IU_NATIVE_DEBUG -> {
+        project(":native-debugger") {
+            intellij {
+                plugins.set(listOf(nativeDebugPlugin))
+            }
+            dependencies {
+                implementation(project(":"))
+            }
         }
-        implementation(project(":"))
+
+        cangjie_plugin_project.intellij.plugins.add(nativeDebugPlugin)
+        cangjie_plugin_project.dependencies {
+            implementation(project(":native-debugger"))
+
+        }
 
 
-        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
-        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
-        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     }
+
+    IC_DAP -> {
+
+        val dap = project(":dap-debugger") {
+            intellij {
+                plugins.set(listOf(terminalPlugin))
+            }
+            apply {
+                plugin("org.jetbrains.kotlin.plugin.serialization")
+            }
+            dependencies {
+                implementation(project(":"))
+
+
+                implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
+                implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
+                implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+            }
+        }
+        cangjie_plugin_project.dependencies {
+            implementation(dap)
+        }
+        cangjie_plugin_project.intellij.plugins.add(terminalPlugin)
+
+
+    }
+
+    IC_CIDR_NATIVE_DEBUG -> TODO()
 }
 
 
@@ -605,11 +686,36 @@ fun updatePluginXmlFile() {
         }
 
 
-        val node = xmlDoc.createElement("module")
-        node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
-            nodeValue = "com.linqingying.cangjie.dapDebugger"
-        })
-        content.appendChild(node)
+        when (buildType) {
+            IU_NATIVE_DEBUG -> {
+                var node = xmlDoc.createElement("module")
+                node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
+                    nodeValue = "com.linqingying.cangjie.nativeDebug"
+                })
+                content.appendChild(node)
+
+                node = xmlDoc.createElement("module")
+                node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
+                    nodeValue = "com.linqingying.cangjie.debugger"
+                })
+
+                content.appendChild(node)
+
+            }
+
+            IC_DAP -> {
+
+                val node = xmlDoc.createElement("module")
+                node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
+                    nodeValue = "com.linqingying.cangjie.dapDebugger"
+                })
+                content.appendChild(node)
+            }
+
+            IC_CIDR_NATIVE_DEBUG -> {
+
+            }
+        }
 
 
 

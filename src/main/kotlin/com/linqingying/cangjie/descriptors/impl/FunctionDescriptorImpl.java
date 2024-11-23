@@ -57,7 +57,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     //    扩展接收器
     private ReceiverParameterDescriptor extensionReceiverParameter;
     private ReceiverParameterDescriptor dispatchReceiverParameter;
-    private Modality modality;
+    private Modality modality = Modality.FINAL;
     private DescriptorVisibility visibility = DescriptorVisibilities.INTERNAL;
     private boolean isOperator = false;
     private boolean isStatic = false;
@@ -105,7 +105,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             boolean preserveSourceElement,
             @Nullable boolean[] wereChanges
     ) {
-        List<ValueParameterDescriptor> result = new ArrayList<ValueParameterDescriptor>(unsubstitutedValueParameters.size());
+        List<ValueParameterDescriptor> result = new ArrayList<>(unsubstitutedValueParameters.size());
         for (ValueParameterDescriptor unsubstitutedValueParameter : unsubstitutedValueParameters) {
             // TODO : Lazy?
             CangJieType substitutedType = substitutor.substitute(unsubstitutedValueParameter.getType(), Variance.INVARIANT);
@@ -237,10 +237,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     @NotNull
     @Override
     public List<ReceiverParameterDescriptor> getContextReceiverParameters() {
-        if (contextReceiverParameters == null) {
-            return Collections.emptyList();
-        }
-        return contextReceiverParameters;
+        return Objects.requireNonNullElse(contextReceiverParameters, Collections.emptyList());
     }
 
 
@@ -504,7 +501,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         );
         if (substitutor == null) return null;
 
-        List<ReceiverParameterDescriptor> substitutedContextReceiverParameters = new ArrayList<ReceiverParameterDescriptor>();
+        List<ReceiverParameterDescriptor> substitutedContextReceiverParameters = new ArrayList<>();
         if (!configuration.newContextReceiverParameters.isEmpty()) {
             int index = 0;
             for (ReceiverParameterDescriptor newContextReceiverParameter : configuration.newContextReceiverParameters) {
@@ -640,15 +637,12 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
                     substitutedDescriptor.setOverriddenDescriptors(getOverriddenDescriptors());
                 }
             } else {
-                substitutedDescriptor.lazyOverriddenFunctionsTask = new Function0<Collection<FunctionDescriptor>>() {
-                    @Override
-                    public Collection<FunctionDescriptor> invoke() {
-                        Collection<FunctionDescriptor> result = new SmartList<FunctionDescriptor>();
-                        for (FunctionDescriptor overriddenFunction : getOverriddenDescriptors()) {
-                            result.add(overriddenFunction.substitute(substitutor));
-                        }
-                        return result;
+                substitutedDescriptor.lazyOverriddenFunctionsTask = () -> {
+                    Collection<FunctionDescriptor> result = new SmartList<>();
+                    for (FunctionDescriptor overriddenFunction : getOverriddenDescriptors()) {
+                        result.add(overriddenFunction.substitute(substitutor));
                     }
+                    return result;
                 };
             }
         }
@@ -713,13 +707,13 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     // Don't use on published descriptors
     public <V> void putInUserDataMap(UserDataKey<V> key, Object value) {
         if (userDataMap == null) {
-            userDataMap = new LinkedHashMap<UserDataKey<?>, Object>();
+            userDataMap = new LinkedHashMap<>();
         }
         userDataMap.put(key, value);
     }
 
     public class CopyConfiguration implements SimpleFunctionDescriptor.CopyBuilder<FunctionDescriptor> {
-        private final Map<UserDataKey<?>, Object> userDataMap = new LinkedHashMap<UserDataKey<?>, Object>();
+        private final Map<UserDataKey<?>, Object> userDataMap = new LinkedHashMap<>();
         protected @NotNull TypeSubstitution substitution;
         protected @NotNull DeclarationDescriptor newOwner;
         protected @NotNull Modality newModality;

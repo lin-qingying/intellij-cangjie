@@ -36,9 +36,7 @@ import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutput
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
@@ -122,10 +120,10 @@ class Cjpm(
         directory: VirtualFile,
         name: String,
         moduleName: String = name,
-//        organizationName: String = name,
+
         projectType: String? = null,
-//        cjcVersion: CjcVersion? = null,
-    ): CjProcessResult<GeneratedFilesHolder> {
+
+    ): CjProcessResult<GeneratedFilesHolder> = runWriteAction {
 
 
         val path = directory.pathAsPath
@@ -136,19 +134,9 @@ class Cjpm(
 
         args.add("--name=$moduleName")
 
-        var result: CjProcessResult<ProcessOutput>? = null
-        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Initializing cjpm project") {
-            override fun run(indicator: ProgressIndicator) {
-                try {
-                    result = CjpmCommandLine("init", path, args).execute(project, owner)
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
-                }
-            }
-        })
-        result?.unwrapOrElse { return CjResult.Err(it) }
+
+        CjpmCommandLine("init", path, args).execute(project, owner)
+            .unwrapOrElse { return@runWriteAction CjResult.Err(it) }
         fullyRefreshDirectory(directory)
 
         val manifest =
@@ -160,7 +148,8 @@ class Cjpm(
         val sourceFiles =
             listOfNotNull(directory.findFileByRelativePath("src/$fileName"))
 
-        return CjResult.Ok(GeneratedFilesHolder(manifest, sourceFiles))
+        CjResult.Ok(GeneratedFilesHolder(manifest, sourceFiles))
+
     }
 
     fun init(

@@ -82,7 +82,11 @@ class BuiltInTypeDescriptor(
             it.apply {
                 this as TypeParameterDescriptorImpl
                 if (!isInitialized) {
-                    findCangJieTypeByFqName(storageManager.project, ctypeFqName)?.let { addUpperBound(it) }
+                    findCangJieTypeByFqName(storageManager.project, ctypeFqName)?.let { cangJieType ->
+                        addUpperBound(
+                            cangJieType
+                        )
+                    }
                     setInitialized()
                 }
 
@@ -310,45 +314,6 @@ open class BasicTypeDescriptor(
 ), ClassDescriptorWithResolutionScopes {
     override fun getEndConstructors(): Collection<ClassConstructorDescriptor> = emptySet()
 
-    private inner class OperatorFunctionDescriptor(
-        functionName: Name,
-        rightType: CangJieType?,
-        returnType: CangJieType?
-    ) : SimpleFunctionDescriptorImpl(
-        this, null, Annotations.EMPTY, functionName,
-        CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
-    ) {
-        init {
-
-            initialize(
-                null, null, listOf(), listOf(
-
-                ), listOfNotNull(
-                    rightType?.let {
-                        ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
-                            this,
-                            null,
-                            0,
-                            Annotations.EMPTY,
-                            Name.identifier("right"),
-                            false,
-                            rightType,
-                            false,
-                            SourceElement.NO_SOURCE,
-                            { emptyList() }
-                        )
-                    }
-                ), returnType,
-                Modality.FINAL,
-                PUBLIC
-
-            )
-        }
-
-        override fun isOperator(): Boolean {
-            return true
-        }
-    }
 
     private val operatorFunctions = mutableMapOf<Name, Collection<OperatorFunctionDescriptor>>()
 
@@ -361,6 +326,7 @@ open class BasicTypeDescriptor(
             return emptyList()
 
         }
+
         override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
             return emptyList()
 
@@ -392,15 +358,22 @@ open class BasicTypeDescriptor(
                 returnType: Name? = null
             ): OperatorFunctionDescriptor {
                 return OperatorFunctionDescriptor(
-                    name, rightType?.let {
+                    this@BasicTypeDescriptor,
+                    name,
 
-                        basicMemberScope.getContributedClassifier(
-                            rightType, NoLookupLocation.FROM_BUILTINS
-                        )!!.getDefaultType()
-                    }, returnType?.let {
+                    listOfNotNull(
+                        rightType?.let {
+                            ValueNameAndType(
+                                "right", basicMemberScope.getContributedClassifier(
+                                    rightType, NoLookupLocation.FROM_BUILTINS
+                                )!!.defaultType
+                            )
+
+                        }
+                    ), returnType?.let {
                         basicMemberScope.getContributedClassifier(
                             it, NoLookupLocation.FROM_BUILTINS
-                        )!!.getDefaultType()
+                        )!!.defaultType
                     }
                 )
             }
@@ -940,7 +913,7 @@ open class BasicTypeDescriptor(
         TODO("Not yet implemented")
     }
 
-//    override val containingDeclaration: DeclarationDescriptor
+    //    override val containingDeclaration: DeclarationDescriptor
 //        get() = EmptyDeclarationDescriptor(null)
     override val containingDeclaration: DeclarationDescriptor
         get() = basicMemberScope.getBuiltIns().builtInsModule
@@ -963,7 +936,7 @@ open class BasicTypeDescriptor(
                         this@apply, null, index, Annotations.EMPTY, Name.identifier("e$index"),
                         false, basicMemberScope.getContributedClassifier(
                             value, NoLookupLocation.FROM_BUILTINS
-                        )!!.getDefaultType(), false, SourceElement.NO_SOURCE, null
+                        )!!.defaultType, false, SourceElement.NO_SOURCE, null
                     )
                 }
                 initialize(values)
@@ -985,6 +958,7 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.UINT16)
                 createValueParameterByConstructor(StandardNames.UINT8)
             }
+
             "UInt64" -> {
                 createValueParameterByConstructor(StandardNames.FLOAT16)
                 createValueParameterByConstructor(StandardNames.FLOAT32)
@@ -1159,6 +1133,7 @@ open class BasicTypeDescriptor(
                 createValueParameterByConstructor(StandardNames.INT_NATIVE)
 
             }
+
             "Float64" -> {
 
                 createValueParameterByConstructor(StandardNames.FLOAT16)
@@ -1243,4 +1218,67 @@ open class BasicTypeDescriptor(
     }
 }
 
+data class ValueNameAndType(
+    val name: String,
+    val type: CangJieType,
+    val isNamed: Boolean = false
+)
 
+class OperatorFunctionDescriptor(
+    containingDescriptor: DeclarationDescriptor,
+    functionName: Name,
+    values: List<ValueNameAndType>,
+//    rightType: CangJieType?,
+    returnType: CangJieType?
+) : SimpleFunctionDescriptorImpl(
+    containingDescriptor, null, Annotations.EMPTY, functionName,
+    CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
+) {
+    init {
+
+        initialize(
+            null, null, listOf(), listOf(
+
+            ),
+            values.mapIndexed {
+
+                    index, it ->
+                ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                    this,
+                    null,
+                    index,
+                    Annotations.EMPTY,
+                    Name.identifier(it.name),
+                    it.isNamed,
+                    it.type,
+                    false,
+                    SourceElement.NO_SOURCE
+                ) { emptyList() }
+            }
+            /*
+                        listOfNotNull(
+                            rightType?.let {
+                                ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                                    this,
+                                    null,
+                                    0,
+                                    Annotations.EMPTY,
+                                    Name.identifier("right"),
+                                    false,
+                                    rightType,
+                                    false,
+                                    SourceElement.NO_SOURCE
+                                ) { emptyList() }
+                            }
+                        )*/,
+            returnType,
+            Modality.FINAL,
+            PUBLIC
+
+        )
+    }
+
+    override fun isOperator(): Boolean {
+        return true
+    }
+}

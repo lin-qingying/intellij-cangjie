@@ -97,7 +97,9 @@ class BuilderInferenceSession(
 
 
     private fun isTopLevelBuilderInferenceCall() = findParentBuildInferenceSession() == null
-
+    fun addExpression(expression: CjExpression) {
+        commonExpressions.add(expression)
+    }
     override fun inferPostponedVariables(
         lambda: ResolvedLambdaAtom,
         constraintSystemBuilder: ConstraintSystemBuilder,

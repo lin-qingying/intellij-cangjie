@@ -24,7 +24,19 @@
 
 package com.linqingying.cangjie.resolve.calls.context
 
+/**
+ * 定义代码上下文依赖性的枚举类
+ * 用于指示某个代码元素是否依赖于特定的上下文环境
+ */
 enum class ContextDependency {
+    /**
+     * 表示代码元素是独立的，不依赖任何特定上下文
+     */
     INDEPENDENT,
+
+    /**
+     * 表示代码元素是依赖特定上下文环境的
+     */
     DEPENDENT
 }
+

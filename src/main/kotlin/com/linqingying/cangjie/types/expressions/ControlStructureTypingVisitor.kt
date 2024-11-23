@@ -776,7 +776,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
             .replaceJumpOutPossible(true)
     }
 
-    override fun visitQuoteExpression(element: CjQuoteExpression, data: ExpressionTypingContext ): CangJieTypeInfo {
+    override fun visitQuoteExpression(element: CjQuoteExpression, data: ExpressionTypingContext): CangJieTypeInfo {
         element.quoteInterpolates.forEach {
 
             it.expression?.let { it1 ->
@@ -791,80 +791,62 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         )
     }
 
+    /**
+     * 访问返回表达式以确定其类型信息。
+     *
+     * @param expression 返回表达式对象，表示代码中的 `return` 语句。
+     * @param context 表达式类型检查上下文，包含类型推断所需的各种信息。
+     * @return 返回表达式的类型信息。
+     */
     override fun visitReturnExpression(
         expression: CjReturnExpression,
         context: ExpressionTypingContext
     ): CangJieTypeInfo {
 
-
         val returnedExpression = expression.returnedExpression
 
         var newInferenceLambdaInfo: CangJieResolutionCallbacksImpl.LambdaInfo? = null
 
-        var expectedType: CangJieType =
-            NO_EXPECTED_TYPE
+        var expectedType: CangJieType = NO_EXPECTED_TYPE
         var resultType: CangJieType? = components.builtIns.nothingType
-        var parentDeclaration =
-            context.getContextParentOfType(
-                expression,
-                CjDeclaration::class.java
-            )
+        var parentDeclaration = context.getContextParentOfType(expression, CjDeclaration::class.java)
 
         if (parentDeclaration is CjParameter) {
-            // In a default value for parameter
+            // 在参数的默认值中不允许使用 `return` 语句
             context.trace.report(RETURN_NOT_ALLOWED.on(expression))
         }
 
         if (expression.getTargetLabel() == null) {
             while (parentDeclaration is CjDestructuringDeclaration) {
-                parentDeclaration = context.getContextParentOfType(
-                    parentDeclaration,
-                    CjDeclaration::class.java
-                )
+                parentDeclaration = context.getContextParentOfType(parentDeclaration, CjDeclaration::class.java)
             }
 
-            // Parent declaration can be null in code fragments or in some bad error expressions
-            val declarationDescriptor =
+            // 获取父声明的描述符
+            val declarationDescriptor = parentDeclaration?.let {
 
-                parentDeclaration?.let {
-                    context.trace.get<PsiElement, DeclarationDescriptor>(
-                        BindingContext.DECLARATION_TO_DESCRIPTOR,
-                        it
-                    )
-                }
+                context.trace.get<PsiElement, DeclarationDescriptor>(BindingContext.DECLARATION_TO_DESCRIPTOR, it)
+            }
 
             val containingFunInfo: com.intellij.openapi.util.Pair<FunctionDescriptor, PsiElement> =
-                BindingContextUtils.getContainingFunctionSkipFunctionLiterals(
-                    declarationDescriptor,
-                    false
-                )
-            val containingFunctionDescriptor =
-                containingFunInfo.first
+                BindingContextUtils.getContainingFunctionSkipFunctionLiterals(declarationDescriptor, false)
+            val containingFunctionDescriptor = containingFunInfo.first
 
             if (containingFunctionDescriptor != null) {
-                if (
-                    isClassInitializer(
-                        containingFunInfo
-                    )
-                ) {
-                    // Unqualified, in a function literal
+                if (isClassInitializer(containingFunInfo)) {
+                    // 在类初始化器中不允许使用未限定的 `return` 语句
                     context.trace.report(RETURN_NOT_ALLOWED.on(expression))
                     resultType = createErrorType(ErrorTypeKind.RETURN_NOT_ALLOWED)
                 }
 
-                expectedType =
-                    getFunctionExpectedReturnType(
-                        containingFunctionDescriptor,
-                        containingFunInfo.getSecond() as CjElement,
-                        context
-                    )
+                expectedType = getFunctionExpectedReturnType(
+                    containingFunctionDescriptor,
+                    containingFunInfo.second as CjElement,
+                    context
+                )
                 newInferenceLambdaInfo =
-                    ExpressionTypingServices.getNewInferenceLambdaInfo(
-                        context,
-                        containingFunInfo.getSecond() as CjElement
-                    )
+                    ExpressionTypingServices.getNewInferenceLambdaInfo(context, containingFunInfo.second as CjElement)
             } else {
-                // Outside a function
+                // 在函数外部不允许使用 `return` 语句
                 context.trace.report(RETURN_NOT_ALLOWED.on(expression))
                 resultType = createErrorType(ErrorTypeKind.RETURN_NOT_ALLOWED)
             }
@@ -873,11 +855,8 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         if (returnedExpression != null) {
             if (newInferenceLambdaInfo != null) {
                 val contextInfo: LambdaContextInfo
-                val deparenthesizedReturnExpression =
-                    CjPsiUtil.deparenthesize(returnedExpression)
-                if (deparenthesizedReturnExpression is CjLambdaExpression ||
-                    deparenthesizedReturnExpression is CjCallableReferenceExpression
-                ) {
+                val deparenthesizedReturnExpression = CjPsiUtil.deparenthesize(returnedExpression)
+                if (deparenthesizedReturnExpression is CjLambdaExpression || deparenthesizedReturnExpression is CjCallableReferenceExpression) {
                     contextInfo = LambdaContextInfo(
                         CangJieTypeInfo(TypeUtils.DONT_CARE, context.dataFlowInfo),
                         null,
@@ -885,51 +864,31 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                         context.trace
                     )
                 } else {
-                    val result: CangJieTypeInfo = facade
-                        .getTypeInfo(
-                            returnedExpression, context.replaceExpectedType(newInferenceLambdaInfo.expectedType)
-                                .replaceContextDependency(newInferenceLambdaInfo.contextDependency)
-                        )
-                    contextInfo = LambdaContextInfo(
-                        result,
-                        null,
-                        context.scope,
-                        context.trace
+                    val result: CangJieTypeInfo = facade.getTypeInfo(
+                        returnedExpression,
+                        context.replaceExpectedType(newInferenceLambdaInfo.expectedType)
+                            .replaceContextDependency(newInferenceLambdaInfo.contextDependency)
                     )
+                    contextInfo = LambdaContextInfo(result, null, context.scope, context.trace)
                 }
-                newInferenceLambdaInfo.returnStatements.add(
-                    Pair(
-                        expression,
-                        contextInfo
-                    )
-                )
+                newInferenceLambdaInfo.returnStatements.add(Pair(expression, contextInfo))
             } else {
                 facade.getTypeInfo(
                     returnedExpression,
-                    context.replaceExpectedType(expectedType)
-                        .replaceContextDependency(ContextDependency.INDEPENDENT)
+                    context.replaceExpectedType(expectedType).replaceContextDependency(ContextDependency.INDEPENDENT)
                 )
             }
         } else {
-            // for lambda with implicit return type Unit
-            if (!TypeUtils.noExpectedType(expectedType) && !CangJieBuiltIns.isUnit(
+            // 对于隐式返回类型为 Unit 的 lambda 表达式
+            if (!TypeUtils.noExpectedType(expectedType) && !CangJieBuiltIns.isUnit(expectedType) && !TypeUtils.isDontCarePlaceholder(
                     expectedType
-                ) && !TypeUtils.isDontCarePlaceholder(expectedType)
+                )
             ) {
-                context.trace.report(
-                    RETURN_TYPE_MISMATCH.on(
-                        expression,
-                        expectedType
-                    )
-                )
+                context.trace.report(RETURN_TYPE_MISMATCH.on(expression, expectedType))
             }
-            newInferenceLambdaInfo?.returnStatements?.add(
-                Pair<CjReturnExpression, LambdaContextInfo?>(
-                    expression,
-                    null
-                )
-            )
+            newInferenceLambdaInfo?.returnStatements?.add(Pair(expression, null))
         }
+
         return components.dataFlowAnalyzer.createCheckedTypeInfo(resultType, context, expression)
     }
 

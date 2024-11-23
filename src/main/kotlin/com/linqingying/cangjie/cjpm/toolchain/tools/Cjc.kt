@@ -40,6 +40,7 @@ import com.intellij.execution.process.ProcessOutput
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -132,7 +133,7 @@ fun CapturingProcessHandler.runProcessWithGlobalProgress(timeoutInMilliseconds: 
 fun CapturingProcessHandler.runProcess(
     indicator: ProgressIndicator?, timeoutInMilliseconds: Int? = null
 ): ProcessOutput {
-    return when {
+    return  when {
         indicator != null && timeoutInMilliseconds != null -> runProcessWithProgressIndicator(
             indicator,
             timeoutInMilliseconds
@@ -142,6 +143,7 @@ fun CapturingProcessHandler.runProcess(
         timeoutInMilliseconds != null -> runProcess(timeoutInMilliseconds)
         else -> runProcess()
     }
+
 }
 
 val ProcessOutput.isSuccess: Boolean get() = !isTimeout && !isCancelled && exitCode == 0

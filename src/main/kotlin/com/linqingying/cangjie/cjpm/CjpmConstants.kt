@@ -25,6 +25,8 @@
 package com.linqingying.cangjie.cjpm
 
 
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.vfs.VirtualFile
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -116,12 +118,9 @@ object CjpmConstants {
 }
 
 
-fun VirtualFile.findChild(names: List<String>): VirtualFile? {
+fun VirtualFile.findChild(names: List<String>): VirtualFile? =
+    names.map { findChild(it) }.firstOrNull { it != null }
 
-//    return names.map { findChild(it) }.firstOrNull { it != null } ?: this
-//    return names.map { findChild(it) }.firstOrNull { it != null } ?: this
-    return names.map { findChild(it) }.firstOrNull { it != null }
-}
 
   fun Path.resolve(lockFile: List<String>): Path {
     return lockFile.map { resolve(it) }.firstOrNull { it.exists() } ?: this

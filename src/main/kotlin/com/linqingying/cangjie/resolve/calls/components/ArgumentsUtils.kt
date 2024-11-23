@@ -37,7 +37,7 @@ import com.linqingying.cangjie.types.checker.prepareArgumentTypeRegardingCapture
 import com.linqingying.cangjie.utils.DFS
 
 val ValueParameterDescriptor.isVararg: Boolean get() = varargElementType != null
-  fun CangJieCallArgument.isArrayType(): Boolean {
+fun CangJieCallArgument.isArrayType(): Boolean {
     if (this !is ReceiverCangJieCallArgument) return false
 
     if (receiver !is ReceiverValueWithSmartCastInfo) return false
@@ -63,7 +63,7 @@ internal fun CangJieCallArgument.getExpectedType(
             parameter.type.unwrap()
 
         } else {
-            varargType?: parameter.type.unwrap()
+            varargType ?: parameter.type.unwrap()
 
         }
 
@@ -96,35 +96,37 @@ private fun ValueParameterDescriptor.checkExpectedParameter(checker: (ValueParam
     return false
 }
 
-// with all smart casts if stable
+/**
+ * 获取一个稳定类型的属性，该属性考虑了所有可能的智能转换。
+ *
+ * @return 返回一个解包后的类型 [UnwrappedType]，该类型被认为是稳定的，可以用于进一步的类型检查或转换。
+ */
 val ReceiverValueWithSmartCastInfo.stableType: UnwrappedType
     get() {
+        // 如果当前接收者值不稳定或没有从智能转换中获取类型，则直接返回原始类型
         if (!isStable || !hasTypesFromSmartCasts())
             return receiverValue.type.unwrap()
 
         /*
-         * We have to intersect types first as after capturing, subtyping relation may change and some type won't be excluded from intersection type.
+         * 必须首先进行类型交集操作，因为在捕获后，子类型关系可能会发生变化，某些类型不会被排除在交集类型之外。
          *
-         * Example:
+         * 示例：
          *      allOriginalTypes = [Inv<out CharSequence>, Inv<String>]
          *      intersect(Inv<out CharSequence>, Inv<String>) = Inv<String>
          *      capture(Inv<String>) = Inv<String>
-         * But with capturing first:
+         * 但如果先进行捕获：
          *      capture(Inv<out CharSequence>) = Inv<CapturedType(out CharSequence)>
          *      capture(Inv<String>) = Inv<String>
          *      intersect(Inv<CapturedType(out CharSequence)>, Inv<String>) = Inv<CapturedType(out CharSequence)> & Inv<String>
          *
-         * Such redundant type with captured argument may further lead to contradiction in constraint system or less exact solution.
+         * 这样的冗余类型可能会导致约束系统中的矛盾或不精确的解决方案。
          */
         val intersectionType = intersectWrappedTypes(allOriginalTypes)
 
-
-//        if (intersectionType.isNullableNothing() && !intersectionType.isMarkedOption) {
-//            return intersectionType.makeNullable().unwrap()
-//        }
-
+        // 准备并返回考虑捕获类型的参数类型，如果没有则返回交集类型
         return prepareArgumentTypeRegardingCaptureTypes(intersectionType) ?: intersectionType
     }
+
 
 internal fun unexpectedArgument(argument: CangJieCallArgument): Nothing =
     error("Unexpected argument type: $argument, ${argument.javaClass.canonicalName}.")

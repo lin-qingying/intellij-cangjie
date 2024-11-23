@@ -36,7 +36,12 @@ import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiElement
 import org.jetbrains.annotations.Nls
+import java.util.concurrent.Callable
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
+
 fun <T> runWriteActionIfPhysical(e: PsiElement, action: () -> T): T = runWriteActionIfNeeded(e.isPhysical, action)
+
 /**
  * Run [action] under a write action if needed, and run outside an action otherwise.
  */
@@ -46,7 +51,9 @@ fun <T> runWriteActionIfNeeded(isNeeded: Boolean, action: () -> T): T {
     }
     return action()
 }
+
 fun <T> runWithCancellationCheck(block: () -> T): T = CancellationCheck.runWithCancellationCheck(block)
+
 @Suppress("NOTHING_TO_INLINE")
 inline fun isDispatchThread(): Boolean = ApplicationManager.getApplication().isDispatchThread
 inline fun <T> runAction(runImmediately: Boolean, crossinline action: () -> T): T {
@@ -62,12 +69,14 @@ inline fun <T> runAction(runImmediately: Boolean, crossinline action: () -> T): 
     }
     return result!!
 }
+
 fun <T> Project.executeCommand(@NlsContexts.Command name: String, groupId: Any? = null, command: () -> T): T {
     @Suppress("UNCHECKED_CAST") var result: T = null as T
     CommandProcessor.getInstance().executeCommand(this, { result = command() }, name, groupId)
     @Suppress("USELESS_CAST")
     return result as T
 }
+
 fun Project.executeWriteCommand(@NlsContexts.Command name: String, command: () -> Unit) {
     CommandProcessor.getInstance().executeCommand(this, { runWriteAction(command) }, name, null)
 }
@@ -75,7 +84,8 @@ fun Project.executeWriteCommand(@NlsContexts.Command name: String, command: () -
 fun <T> Project.executeWriteCommand(@NlsContexts.Command name: String, groupId: Any? = null, command: () -> T): T {
     return executeCommand(name, groupId) { runWriteAction(command) }
 }
-fun <T: Any> underModalProgressOrUnderWriteActionWithNonCancellableProgressInDispatchThread(
+
+fun <T : Any> underModalProgressOrUnderWriteActionWithNonCancellableProgressInDispatchThread(
     project: Project,
     @Nls progressTitle: String,
     computable: () -> T
@@ -91,11 +101,29 @@ fun <T: Any> underModalProgressOrUnderWriteActionWithNonCancellableProgressInDis
         ActionUtil.underModalProgress(project, progressTitle, computable)
     }
 }
-fun <T> executeInBackgroundWithProgress(project: Project? = null, @NlsContexts.ProgressTitle title: String, block: () -> T): T {
+
+fun <T> executeInBackgroundWithProgress(
+    project: Project? = null,
+    @NlsContexts.ProgressTitle title: String,
+    block: () -> T
+): T {
     assert(!ApplicationManager.getApplication().isWriteAccessAllowed) {
         "Rescheduling computation into the background is impossible under the write lock"
     }
     return ProgressManager.getInstance().runProcessWithProgressSynchronously(
         ThrowableComputable { block() }, title, true, project
     )
+}
+
+
+fun <T> executeOnPooledThreadSync(task: () -> T): T {
+    val application = ApplicationManager.getApplication()
+    val future: Future<T> = application.executeOnPooledThread(Callable {
+        task()
+    })
+    return try {
+        future.get() // 阻塞当前线程直到结果返回
+    } catch (e: Exception) {
+        throw RuntimeException("Task execution failed", e)
+    }
 }

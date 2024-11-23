@@ -339,6 +339,8 @@ class ExpressionTypingServices(
         var blockLevelVisitor: ExpressionTypingInternals = ExpressionTypingVisitorDispatcher.ForBlock(
             expressionTypingComponents, annotationChecker, scope
         )
+
+//        去除期望类型
         var newContext = context.replaceScope(scope).replaceExpectedType(NO_EXPECTED_TYPE)
 
         var result = noTypeInfo(context)
@@ -371,7 +373,7 @@ class ExpressionTypingServices(
 
                 // 最后一条语句也需要检查类型，即使前面有 return 语句而无法到达，检查类型也是必要的
                 result = getTypeOfLastExpressionInBlock(
-                    statement, newContext.replaceExpectedType(context.expectedType), coercionStrategyForLastExpression,
+                    statement, newContext.replaceExpectedType(context.expectedType) /*重新添加期望类型*/, coercionStrategyForLastExpression,
                     blockLevelVisitor
                 )
                 if (result.type != null && statement.parent is CjBlockExpression) {
@@ -390,6 +392,7 @@ class ExpressionTypingServices(
             } else {
                 result = blockLevelVisitor.getTypeInfo(
                     statement,
+//                    始终以去除的期望类型为参数
                     newContext.replaceContextDependency(ContextDependency.INDEPENDENT),
                     true
                 )
@@ -500,12 +503,12 @@ class ExpressionTypingServices(
         val bodyExpression = function.bodyExpression ?: return
 
         val blockBody = function.hasBlockBody()
-        val newContext =
-            if (blockBody //                        ? context.replaceExpectedType(NO_EXPECTED_TYPE)
-            )
-                context.replaceExpectedType(NO_EXPECTED_TYPE)
-            else
-                context
+        val newContext =context
+//            if (blockBody //                        ? context.replaceExpectedType(NO_EXPECTED_TYPE)
+//            )
+//                context.replaceExpectedType(NO_EXPECTED_TYPE)
+//            else
+//                context
 
         expressionTypingFacade.getTypeInfo(bodyExpression, newContext, blockBody)
     }

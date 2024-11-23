@@ -31,13 +31,15 @@ import com.linqingying.cangjie.types.util.contains
 import com.linqingying.cangjie.types.util.isUnresolvedType
 
 object ErrorUtils {
+
+    val errorModule: ModuleDescriptor = ErrorModuleDescriptor
+
     private val errorProperty: PropertyDescriptor = ErrorPropertyDescriptor()
     val errorPropertyGroup: Set<PropertyDescriptor> = setOf(errorProperty)
 
       val errorVariable: VariableDescriptor = ErrorVariableDescriptor()
     val errorVariableGroup: Set<VariableDescriptor> = setOf(errorVariable)
 
-    val errorModule: ModuleDescriptor = ErrorModuleDescriptor
     val errorPropertyType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_PROPERTY_TYPE)
     val errorVariableType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_VARIABLE_TYPE)
 
