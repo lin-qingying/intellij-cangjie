@@ -47,6 +47,7 @@
 | [@daitougege](https://gitee.com/daitougege)  | 101 |
 | [@laditor](https://gitee.com/laditor)  | 10 |
  |[@brack_45](https://gitee.com/brack_45) | 50|
- |[ ](https://gitee.com/brack_45) | 50|
+ |[支付宝 ]**亮 | 50|
+ |[ 支付宝] *锡  | 50|
 <br>
 感谢您的支持
