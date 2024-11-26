@@ -136,7 +136,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
                     @Override
                     protected @NotNull CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder) {
-                        return createForByClause(builder, isLazy);
+                        return createForByClause(builder, this.isLazy);
                     }
                 };
 
@@ -145,117 +145,117 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     //    如果是声明文件，则不需要函数体
 
-    private static CangJieParsing createForByClause(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
+    private static CangJieParsing createForByClause(final SemanticWhitespaceAwarePsiBuilder builder, final boolean isLazy) {
         return new CangJieParsing(new SemanticWhitespaceAwarePsiBuilderForByClause(builder), false, isLazy);
     }
 
-    static CangJieParsing createForTopLevel(SemanticWhitespaceAwarePsiBuilder builder) {
+    static CangJieParsing createForTopLevel(final SemanticWhitespaceAwarePsiBuilder builder) {
         return new CangJieParsing(builder, true, true);
     }
 
-    static CangJieParsing createForTopLevelNonLazy(SemanticWhitespaceAwarePsiBuilder builder) {
+    static CangJieParsing createForTopLevelNonLazy(final SemanticWhitespaceAwarePsiBuilder builder) {
         return new CangJieParsing(builder, true, false);
     }
 
     public CangJieExpressionParsing getExpressionParsing() {
-        return myExpressionParsing;
+        return this.myExpressionParsing;
     }
 
     void parseTypeRef() {
-        parseTypeRef(TokenSet.EMPTY, false);
+        this.parseTypeRef(TokenSet.EMPTY, false);
     }
 
     void parseTypeRefWithoutIntersections() {
-        parseTypeRef(TokenSet.EMPTY);
+        this.parseTypeRef(TokenSet.EMPTY);
     }
 
     void parseTest() {
 //        SyntaxTreeBuilder.Marker a = mark();
-        advance();
+        this.advance();
 //        a.done(IMPORT_LIST);
     }
 
     @Override
-    protected CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder) {
-        return createForTopLevel(builder);
+    protected CangJieParsing create(final SemanticWhitespaceAwarePsiBuilder builder) {
+        return CangJieParsing.createForTopLevel(builder);
     }
 
     public void advanceBalancedBlock() {
 
         int braceCount = 1;
-        while (!eof()) {
-            if (_at(LBRACE)) {
+        while (!this.eof()) {
+            if (this._at(LBRACE)) {
                 braceCount++;
-            } else if (_at(RBRACE)) {
+            } else if (this._at(RBRACE)) {
                 braceCount--;
             }
 
-            advance();
+            this.advance();
 
-            if (braceCount == 0) {
+            if (0 == braceCount) {
                 break;
             }
         }
     }
 
     private void parseThisOrSuper() {
-        assert _at(THIS_KEYWORD) || _at(SUPER_KEYWORD);
-        PsiBuilder.Marker mark = mark();
+        assert this._at(THIS_KEYWORD) || this._at(SUPER_KEYWORD);
+        final PsiBuilder.Marker mark = this.mark();
 
-        advance(); // THIS_KEYWORD | SUPER_KEYWORD
+        this.advance(); // THIS_KEYWORD | SUPER_KEYWORD
 
         mark.done(CONSTRUCTOR_DELEGATION_REFERENCE);
     }
 
     private void parseInitFunctionBlock() {
-        PsiBuilder.Marker lazyBlock = mark();
+        final PsiBuilder.Marker lazyBlock = this.mark();
 
-        myBuilder.enableNewlines();
+        this.myBuilder.enableNewlines();
 
 //        恢复  init() xxxxxxx {}
 
-        expect(LBRACE, "Expecting '{'  ");
+        this.expect(LBRACE, "Expecting '{'  ");
 
-        PsiBuilder.Marker delegationCall = mark();
-        if ((at(THIS_KEYWORD) || at(SUPER_KEYWORD)) && rawLookup(1) == LPAR) {
-            parseThisOrSuper();
-            myExpressionParsing.parseValueArgumentList();
+        final PsiBuilder.Marker delegationCall = this.mark();
+        if ((this.at(THIS_KEYWORD) || this.at(SUPER_KEYWORD)) && this.rawLookup(1) == LPAR) {
+            this.parseThisOrSuper();
+            this.myExpressionParsing.parseValueArgumentList();
             delegationCall.done(CONSTRUCTOR_DELEGATION_CALL);
 
         } else {
-            mark().done(CONSTRUCTOR_DELEGATION_REFERENCE);
+            this.mark().done(CONSTRUCTOR_DELEGATION_REFERENCE);
             delegationCall.done(CONSTRUCTOR_DELEGATION_CALL);
         }
 
 
-        myExpressionParsing.parseStatements();
-        expect(RBRACE, "Expecting '}'");
+        this.myExpressionParsing.parseStatements();
+        this.expect(RBRACE, "Expecting '}'");
 
 
-        myBuilder.restoreNewlinesState();
+        this.myBuilder.restoreNewlinesState();
 
 
         lazyBlock.done(INIT_BLOCK);
 
     }
 
-    private void parseBlock(boolean collapse) {
-        PsiBuilder.Marker lazyBlock = mark();
+    private void parseBlock(final boolean collapse) {
+        final PsiBuilder.Marker lazyBlock = this.mark();
 
-        myBuilder.enableNewlines();
+        this.myBuilder.enableNewlines();
 
-        boolean hasOpeningBrace = expect(LBRACE, "Expecting '{'  ");
-        boolean canCollapse = collapse && hasOpeningBrace && isLazy;
+        final boolean hasOpeningBrace = this.expect(LBRACE, "Expecting '{'  ");
+        final boolean canCollapse = collapse && hasOpeningBrace && this.isLazy;
 
 
         if (canCollapse) {
-            advanceBalancedBlock();
+            this.advanceBalancedBlock();
         } else {
-            myExpressionParsing.parseStatements();
-            expect(RBRACE, "Expecting '}'");
+            this.myExpressionParsing.parseStatements();
+            this.expect(RBRACE, "Expecting '}'");
         }
 
-        myBuilder.restoreNewlinesState();
+        this.myBuilder.restoreNewlinesState();
 
         if (canCollapse) {
             lazyBlock.collapse(BLOCK);
@@ -271,11 +271,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     void parseBlock() {
-        parseBlock(true);
+        this.parseBlock(true);
     }
 
     void parseBlockExpression() {
-        parseBlock(false);
+        this.parseBlock(false);
     }
 
     /*
@@ -284,7 +284,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *  ;
      */
     private void parsePreamble() {
-        PsiBuilder.Marker firstEntry = mark();
+        final PsiBuilder.Marker firstEntry = this.mark();
 
         /*
          * TODO fileAnnotationList  Ko
@@ -300,37 +300,37 @@ public class CangJieParsing extends AbstractCangJieParsing {
          *   : modifiers "package" SimpleName{"."} SEMI?
          *   ;
          */
-        PsiBuilder.Marker packageDirective = mark();
+        PsiBuilder.Marker packageDirective = this.mark();
 
 
 //        是否有修饰符
         boolean istPackageAccessModifier = false;
-        if (atSet(PACKAGE_ACCESS_MODIFIER_SET) && (lookahead(1) == MACRO_KEYWORD || lookahead(1) == PACKAGE_KEYWORD)) {
-            advance(); //修饰符
+        if (this.atSet(CangJieParsing.PACKAGE_ACCESS_MODIFIER_SET) && (this.lookahead(1) == MACRO_KEYWORD || this.lookahead(1) == PACKAGE_KEYWORD)) {
+            this.advance(); //修饰符
             istPackageAccessModifier = true;
         }
-        if (at(MACRO_KEYWORD)) {
-            advance(); // MARCO_KEYWORD 宏声明
+        if (this.at(MACRO_KEYWORD)) {
+            this.advance(); // MARCO_KEYWORD 宏声明
             istPackageAccessModifier = true;
 
         }
 
-        if (at(PACKAGE_KEYWORD)) {
+        if (this.at(PACKAGE_KEYWORD)) {
 
 
-            if (at(PACKAGE_KEYWORD)) {
-                advance(); // PACKAGE_KEYWORD
+            if (this.at(PACKAGE_KEYWORD)) {
+                this.advance(); // PACKAGE_KEYWORD
             } else if (istPackageAccessModifier) {
-                error("Expecting package keyword");
+                this.error("Expecting package keyword");
             }
 
 
             //TODO 处理包名
-            parsePackageName();
+            this.parsePackageName();
 
             firstEntry.drop();
 
-            consumeIf(SEMICOLON);
+            this.consumeIf(SEMICOLON);
 
             packageDirective.done(PACKAGE_DIRECTIVE);
         } else {
@@ -340,7 +340,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             //TODO 解析文件注解列表
 //            parseFileAnnotationList(FILE_ANNOTATIONS_WHEN_PACKAGE_OMITTED);
-            packageDirective = mark();
+            packageDirective = this.mark();
             packageDirective.done(PACKAGE_DIRECTIVE);
             //需要跳过除Shebang注释之外的所有内容，以允许将文件开头的注释绑定到第一个声明。
             packageDirective.setCustomEdgeTokenBinders(BindFirstShebangWithWhitespaceOnly.INSTANCE, null);
@@ -351,31 +351,31 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         }
 
-        parseImportDirectives();
+        this.parseImportDirectives();
     }
 
     private void parseImportDirectives() {
-        PsiBuilder.Marker importList = mark();
+        final PsiBuilder.Marker importList = this.mark();
 
-        if (!(at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && (lookahead(1) == IMPORT_KEYWORD))) {
+        if (!(this.at(IMPORT_KEYWORD) || this.atSet(CangJieParsing.IMPORT_ACCESS_MODIFIER_SET) && (this.lookahead(1) == IMPORT_KEYWORD))) {
             // this is necessary to allow comments at the start of the file to be bound to the first declaration
             importList.setCustomEdgeTokenBinders(DoNotBindAnything.INSTANCE, null);
         }
-        while (at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && (lookahead(1) == IMPORT_KEYWORD)) {
-            parseImportDirective();
+        while (this.at(IMPORT_KEYWORD) || this.atSet(CangJieParsing.IMPORT_ACCESS_MODIFIER_SET) && (this.lookahead(1) == IMPORT_KEYWORD)) {
+            this.parseImportDirective();
         }
         importList.done(IMPORT_LIST);
     }
 
     private boolean closeImportWithErrorIfNewline(
-            @Nullable PsiBuilder.Marker importDirective, @Nullable PsiBuilder.Marker importAlias, String errorMessage
+            @Nullable final PsiBuilder.Marker importDirective, @Nullable final PsiBuilder.Marker importAlias, final String errorMessage
     ) {
-        if (myBuilder.newlineBeforeCurrentToken()) {
-            if (importAlias != null) {
+        if (this.myBuilder.newlineBeforeCurrentToken()) {
+            if (null != importAlias) {
                 importAlias.done(IMPORT_ALIAS);
             }
-            error(errorMessage);
-            if (importDirective != null) {
+            this.error(errorMessage);
+            if (null != importDirective) {
                 importDirective.done(IMPORT_DIRECTIVE);
             }
             return true;
@@ -389,68 +389,68 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * : "import"
      * : SimpleName{"."} ("." "*" )? | ("as" SimpleName{"."} ("." "*"))? SEMI?
      */
-    private IElementType parseImportDirectiveItem(boolean isTopLevel, boolean isCreateMark) {
+    private IElementType parseImportDirectiveItem(final boolean isTopLevel, final boolean isCreateMark) {
 
 
         PsiBuilder.Marker importDirectiveItem = null;
         if (isCreateMark) {
-            importDirectiveItem = mark();
+            importDirectiveItem = this.mark();
         }
 
 
-        if (!at(IDENTIFIER)) {
+        if (!this.at(IDENTIFIER)) {
 
-            error("expected a package name after '.' in qualified name, found '" + myBuilder.getTokenText() + "'");
+            this.error("expected a package name after '.' in qualified name, found '" + this.myBuilder.getTokenText() + "'");
 
-            if (importDirectiveItem != null) {
+            if (null != importDirectiveItem) {
                 importDirectiveItem.done(IMPORT_DIRECTIVE);
             }
 
-            consumeIf(SEMICOLON);
+            this.consumeIf(SEMICOLON);
             return IMPORT_DIRECTIVE;
         }
 
-        PsiBuilder.Marker qualifiedName = mark();
-        PsiBuilder.Marker reference = mark();
-        advance(); // IDENTIFIER
+        PsiBuilder.Marker qualifiedName = this.mark();
+        PsiBuilder.Marker reference = this.mark();
+        this.advance(); // IDENTIFIER
         reference.done(REFERENCE_EXPRESSION);
 
         boolean isMulitImport = false;
         boolean isParseDot = false;
 
-        while (at(DOT) && lookahead(1) != MUL) {
-            advance(); // DOT
+        while (this.at(DOT) && this.lookahead(1) != MUL) {
+            this.advance(); // DOT
 
 //            同一个包多个导入项
-            if (at(LBRACE) && isTopLevel) {
+            if (this.at(LBRACE) && isTopLevel) {
                 isMulitImport = true;
-                advance();
+                this.advance();
                 do {
-                    expect(COMMA);
-                    parseImportDirectiveItem(false, true);
+                    this.expect(COMMA);
+                    this.parseImportDirectiveItem(false, true);
 
-                } while (at(COMMA));
+                } while (this.at(COMMA));
 
-                expect(RBRACE, "Expecting '}'");
+                this.expect(RBRACE, "Expecting '}'");
 
 
             } else {
 
 
                 isParseDot = true;
-                if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Import must be placed on a single line")) {
+                if (this.closeImportWithErrorIfNewline(importDirectiveItem, null, "Import must be placed on a single line")) {
                     qualifiedName.drop();
                     return IMPORT_DIRECTIVE;
                 }
 
-                reference = mark();
-                if (expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET)) {
+                reference = this.mark();
+                if (this.expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", CangJieParsing.IMPORT_RECOVERY_SET)) {
                     reference.done(REFERENCE_EXPRESSION);
                 } else {
                     reference.drop();
                 }
 
-                PsiBuilder.Marker precede = qualifiedName.precede();
+                final PsiBuilder.Marker precede = qualifiedName.precede();
                 qualifiedName.done(DOT_QUALIFIED_EXPRESSION);
                 qualifiedName = precede;
             }
@@ -461,12 +461,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 //        if (isTopLevel || !isParseDot) {
 
-        if (at(DOT)) {
-            advance(); // DOT
-            assert _at(MUL);
-            advance(); // MUL
-            if (at(AS_KEYWORD)) {
-                errorAndAdvance("Aliases are not allowed for all imports");
+        if (this.at(DOT)) {
+            this.advance(); // DOT
+            assert this._at(MUL);
+            this.advance(); // MUL
+            if (this.at(AS_KEYWORD)) {
+                this.errorAndAdvance("Aliases are not allowed for all imports");
 //                    PsiBuilder.Marker as = mark();
 //                    advance(); // AS_KEYWORD
 //                    if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Expecting identifier")) {
@@ -488,17 +488,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
 ////                }
 //
             }
-        } else if (at(AS_KEYWORD)) {
-            PsiBuilder.Marker alias = mark();
-            advance(); // AS_KEYWORD
-            if (closeImportWithErrorIfNewline(importDirectiveItem, alias, "Expecting identifier")) {
+        } else if (this.at(AS_KEYWORD)) {
+            final PsiBuilder.Marker alias = this.mark();
+            this.advance(); // AS_KEYWORD
+            if (this.closeImportWithErrorIfNewline(importDirectiveItem, alias, "Expecting identifier")) {
                 return IMPORT_DIRECTIVE;
             }
-            expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET);
+            this.expect(IDENTIFIER, "Expecting identifier", CangJieParsing.SEMICOLON_SET);
             alias.done(IMPORT_ALIAS);
         }
 
-        if (importDirectiveItem != null) {
+        if (null != importDirectiveItem) {
             importDirectiveItem.done(IMPORT_DIRECTIVE);
         }
 
@@ -518,29 +518,29 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private void parseImportDirective() {
 
 
-        assert _at(IMPORT_KEYWORD) || _atSet(IMPORT_ACCESS_MODIFIER_SET);
+        assert this._at(IMPORT_KEYWORD) || this._atSet(CangJieParsing.IMPORT_ACCESS_MODIFIER_SET);
 
         IElementType doneType = IMPORT_DIRECTIVE;
 
-        PsiBuilder.Marker importDirective = mark();
+        final PsiBuilder.Marker importDirective = this.mark();
 
 
-        if (_atSet(IMPORT_ACCESS_MODIFIER_SET)) {
-            advance(); //PUBLIC_KEYWORD
+        if (this._atSet(CangJieParsing.IMPORT_ACCESS_MODIFIER_SET)) {
+            this.advance(); //PUBLIC_KEYWORD
         }
 
 
-        if (!at(IMPORT_KEYWORD)) {
+        if (!this.at(IMPORT_KEYWORD)) {
 
-            error("Expecting 'import' keyword");
+            this.error("Expecting 'import' keyword");
             importDirective.done(doneType);
             return;
         }
 
 
-        advance(); // IMPORT_KEYWORD
+        this.advance(); // IMPORT_KEYWORD
 
-        if (closeImportWithErrorIfNewline(importDirective, null, "Expecting qualified name")) {
+        if (this.closeImportWithErrorIfNewline(importDirective, null, "Expecting qualified name")) {
             return;
         }
 
@@ -560,11 +560,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            doneType = MULIT_IMPORT_DIRECTIVE1;
 //
 //        } else {
-        doneType = parseImportDirectiveItem(true, false);
+        doneType = this.parseImportDirectiveItem(true, false);
 //        }
 
 
-        consumeIf(SEMICOLON);
+        this.consumeIf(SEMICOLON);
         importDirective.done(doneType);
         importDirective.setCustomEdgeTokenBinders(null, TrailingCommentsBinder.INSTANCE);
 
@@ -573,24 +573,24 @@ public class CangJieParsing extends AbstractCangJieParsing {
     /* SimpleName{"."} */
     private void parsePackageName() {
 
-        PsiBuilder.Marker qualifiedExpression = mark();
+        PsiBuilder.Marker qualifiedExpression = this.mark();
         boolean simpleName = true;
         while (true) {
-            if (myBuilder.newlineBeforeCurrentToken()) {
-                errorWithRecovery("Package name must be a '.'-separated identifier list placed on a single line",
-                        PACKAGE_NAME_RECOVERY_SET);
+            if (this.myBuilder.newlineBeforeCurrentToken()) {
+                this.errorWithRecovery("Package name must be a '.'-separated identifier list placed on a single line",
+                        CangJieParsing.PACKAGE_NAME_RECOVERY_SET);
                 break;
             }
 
-            if (at(DOT)) {
-                advance(); // DOT
+            if (this.at(DOT)) {
+                this.advance(); // DOT
                 qualifiedExpression.error("Package name must be a '.'-separated identifier list");
-                qualifiedExpression = mark();
+                qualifiedExpression = this.mark();
                 continue;
             }
 
-            PsiBuilder.Marker nsName = mark();
-            boolean simpleNameFound = expect(IDENTIFIER, "Package name must be a '.'-separated identifier list", PACKAGE_NAME_RECOVERY_SET);
+            final PsiBuilder.Marker nsName = this.mark();
+            final boolean simpleNameFound = this.expect(IDENTIFIER, "Package name must be a '.'-separated identifier list", CangJieParsing.PACKAGE_NAME_RECOVERY_SET);
             if (simpleNameFound) {
                 nsName.done(REFERENCE_EXPRESSION);
             } else {
@@ -598,17 +598,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
 
             if (!simpleName) {
-                PsiBuilder.Marker precedingMarker = qualifiedExpression.precede();
+                final PsiBuilder.Marker precedingMarker = qualifiedExpression.precede();
                 qualifiedExpression.done(DOT_QUALIFIED_EXPRESSION);
                 qualifiedExpression = precedingMarker;
             }
 
-            if (at(DOT)) {
-                advance(); // DOT
+            if (this.at(DOT)) {
+                this.advance(); // DOT
 
                 if (simpleName && !simpleNameFound) {
                     qualifiedExpression.drop();
-                    qualifiedExpression = mark();
+                    qualifiedExpression = this.mark();
                 } else {
                     simpleName = false;
                 }
@@ -620,7 +620,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     void parseScript() {
-        PsiBuilder.Marker fileMarker = mark();
+        final PsiBuilder.Marker fileMarker = this.mark();
         fileMarker.done(CJ_FILE);
 
     }
@@ -638,25 +638,25 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     //入口
     void parseFile() {
-        PsiBuilder.Marker fileMarker = mark();
+        final PsiBuilder.Marker fileMarker = this.mark();
 
         //处理开头  package
-        parsePreamble();
+        this.parsePreamble();
 
 //        处理声明式语句
-        while (!eof()) {
-            parseTopLevelDeclaration();
+        while (!this.eof()) {
+            this.parseTopLevelDeclaration();
         }
-        checkUnclosedBlockComment();
+        this.checkUnclosedBlockComment();
 
         fileMarker.done(CJ_FILE);
     }
 
     void parseLspFile() {
-        PsiBuilder.Marker fileMarker = mark();
+        final PsiBuilder.Marker fileMarker = this.mark();
 //        将所有节点全都读取
-        while (!eof()) {
-            advance();
+        while (!this.eof()) {
+            this.advance();
         }
 
         fileMarker.done(CJ_FILE);
@@ -665,12 +665,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void checkUnclosedBlockComment() {
-        if (BLOCK_DOC_COMMENT_SET.contains(myBuilder.rawLookup(-1))) {
-            int startOffset = myBuilder.rawTokenTypeStart(-1);
-            int endOffset = myBuilder.rawTokenTypeStart(0);
-            CharSequence tokenChars = myBuilder.getOriginalText().subSequence(startOffset, endOffset);
-            if (!(tokenChars.length() > 2 && tokenChars.subSequence(tokenChars.length() - 2, tokenChars.length()).toString().equals("*/"))) {
-                PsiBuilder.Marker marker = myBuilder.mark();
+        if (CangJieParsing.BLOCK_DOC_COMMENT_SET.contains(this.myBuilder.rawLookup(-1))) {
+            final int startOffset = this.myBuilder.rawTokenTypeStart(-1);
+            final int endOffset = this.myBuilder.rawTokenTypeStart(0);
+            final CharSequence tokenChars = this.myBuilder.getOriginalText().subSequence(startOffset, endOffset);
+            if (!(2 < tokenChars.length() && "*/".equals(tokenChars.subSequence(tokenChars.length() - 2, tokenChars.length()).toString()))) {
+                final PsiBuilder.Marker marker = this.myBuilder.mark();
                 marker.error("Unclosed comment");
                 marker.setCustomEdgeTokenBinders(WhitespacesBinders.GREEDY_RIGHT_BINDER, null);
             }
@@ -678,7 +678,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseTopLevelDeclaration() {
-        parseTopLevelDeclaration(false);
+        this.parseTopLevelDeclaration(false);
     }
 
     /*
@@ -686,30 +686,30 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : function
      *   : class enum interface struct
      */
-    private void parseTopLevelDeclaration(boolean parseMacro) {
-        if (at(SEMICOLON)) {
-            advance(); // SEMICOLON
+    private void parseTopLevelDeclaration(final boolean parseMacro) {
+        if (this.at(SEMICOLON)) {
+            this.advance(); // SEMICOLON
             return;
         }
 
 
-        PsiBuilder.Marker decl = mark();
+        final PsiBuilder.Marker decl = this.mark();
 
 //如果有导入语句
 
-        if ((at(PUBLIC_KEYWORD) && lookahead(1) == IMPORT_KEYWORD)) {
+        if ((this.at(PUBLIC_KEYWORD) && this.lookahead(1) == IMPORT_KEYWORD)) {
 //            error("imports are only allowed in the beginning of file");
-            parseImportDirectives();
+            this.parseImportDirectives();
             decl.drop();
 
             return;
         }
 
 
-        ModifierDetector detector = new ModifierDetector();
+        final ModifierDetector detector = new ModifierDetector();
 
-        parseModifierList(detector, TokenSet.EMPTY, parseMacro);
-        IElementType declType = parseCommonDeclaration(detector, NameParsingMode.REQUIRED, DeclarationParsingMode.TOPLEVEL);
+        this.parseModifierList(detector, TokenSet.EMPTY, parseMacro);
+        final IElementType declType = this.parseCommonDeclaration(detector, NameParsingMode.REQUIRED, DeclarationParsingMode.TOPLEVEL);
 
  /*       if (declType == ANNOTATION_ENTRY) {
 
@@ -720,64 +720,64 @@ public class CangJieParsing extends AbstractCangJieParsing {
             parseTopLevelDeclaration(true);
 
         } else*/
-        if (declType == null) {
+        if (null == declType) {
 
-            errorAndAdvance("Expecting a top level declaration"); //期待一个顶层声明语句
+            this.errorAndAdvance("Expecting a top level declaration"); //期待一个顶层声明语句
 //            decl.error("Expecting a top level declaration");
             decl.drop();
         } else {
-            closeDeclarationWithCommentBinders(decl, declType, true);
+            AbstractCangJieParsing.closeDeclarationWithCommentBinders(decl, declType, true);
         }
 
 
     }
 
     private boolean tryParseModifier(
-            @Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore, @NotNull TokenSet modifierKeywords
+            @Nullable final Consumer<IElementType> tokenConsumer, @NotNull final TokenSet noModifiersBefore, @NotNull final TokenSet modifierKeywords
     ) {
-        PsiBuilder.Marker marker = mark();
+        final PsiBuilder.Marker marker = this.mark();
 
-        if (atSet(modifierKeywords)) {
-            IElementType lookahead = lookahead(1);
+        if (this.atSet(modifierKeywords)) {
+            final IElementType lookahead = this.lookahead(1);
 
-            if (at(FUNC_KEYWORD) && lookahead != INTERFACE_KEYWORD) {
+            if (this.at(FUNC_KEYWORD) && lookahead != INTERFACE_KEYWORD) {
                 marker.rollbackTo();
                 return false;
             }
 
-            if (lookahead != null && !noModifiersBefore.contains(lookahead)) {
-                IElementType tt = tt();
-                if (tokenConsumer != null) {
+            if (null != lookahead && !noModifiersBefore.contains(lookahead)) {
+                final IElementType tt = this.tt();
+                if (null != tokenConsumer) {
                     tokenConsumer.consume(tt);
                 }
-                advance(); // MODIFIER
+                this.advance(); // MODIFIER
                 marker.collapse(tt);
                 return true;
             }
-        } else if (at(CONST_KEYWORD) && /* lookahead(1) != IDENTIFIER && */lookahead(2) != EQ && lookahead(2) != COLON /* && (lookahead(2) == FUNC_KEYWORD || lookahead(3) == FUNC_KEYWORD || lookahead(4) == FUNC_KEYWORD)*/) {
+        } else if (this.at(CONST_KEYWORD) && /* lookahead(1) != IDENTIFIER && */this.lookahead(2) != EQ && this.lookahead(2) != COLON /* && (lookahead(2) == FUNC_KEYWORD || lookahead(3) == FUNC_KEYWORD || lookahead(4) == FUNC_KEYWORD)*/) {
 
 
 //            处理特殊的const修饰的
-            advance(); // MODIFIER
-            if (tokenConsumer != null) {
+            this.advance(); // MODIFIER
+            if (null != tokenConsumer) {
                 tokenConsumer.consume(CONST_KEYWORD);
             }
             marker.collapse(CONST_KEYWORD);
             return true;
 
-        } else if (at(UNSAFE_KEYWORD) && lookahead(1) != LBRACE) {
-            advance();
+        } else if (this.at(UNSAFE_KEYWORD) && this.lookahead(1) != LBRACE) {
+            this.advance();
 
-            if (tokenConsumer != null) {
+            if (null != tokenConsumer) {
                 tokenConsumer.consume(UNSAFE_KEYWORD);
             }
             marker.collapse(UNSAFE_KEYWORD);
 
             return true;
 
-        } else if (at(FOREIGN_KEYWORD) && lookahead(1) != LBRACE) {
-            advance();
-            if (tokenConsumer != null) {
+        } else if (this.at(FOREIGN_KEYWORD) && this.lookahead(1) != LBRACE) {
+            this.advance();
+            if (null != tokenConsumer) {
                 tokenConsumer.consume(FOREIGN_KEYWORD);
             }
             marker.collapse(FOREIGN_KEYWORD);
@@ -790,27 +790,27 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private boolean doParseModifierListBody(
-            @Nullable Consumer<IElementType> tokenConsumer,
-            @NotNull TokenSet modifierKeywords,
+            @Nullable final Consumer<IElementType> tokenConsumer,
+            @NotNull final TokenSet modifierKeywords,
 
-            @NotNull TokenSet noModifiersBefore
+            @NotNull final TokenSet noModifiersBefore
 
     ) {
-        return doParseModifierListBody(tokenConsumer, modifierKeywords, noModifiersBefore, false);
+        return this.doParseModifierListBody(tokenConsumer, modifierKeywords, noModifiersBefore, false);
     }
 
     private boolean doParseModifierListBody(
-            @Nullable Consumer<IElementType> tokenConsumer,
-            @NotNull TokenSet modifierKeywords,
+            @Nullable final Consumer<IElementType> tokenConsumer,
+            @NotNull final TokenSet modifierKeywords,
 
-            @NotNull TokenSet noModifiersBefore,
-            boolean isParseMacro
+            @NotNull final TokenSet noModifiersBefore,
+            final boolean isParseMacro
     ) {
 
         boolean empty = true;
         PsiBuilder.Marker beforeAnnotationMarker;
 
-        while (!eof()) {
+        while (!this.eof()) {
 
      /*       if (at(AT) && isParseMacro) {
 
@@ -828,7 +828,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
             } else */
-            if (!tryParseModifier(tokenConsumer, noModifiersBefore, modifierKeywords)) {
+            if (!this.tryParseModifier(tokenConsumer, noModifiersBefore, modifierKeywords)) {
                 // modifier advanced
                 break;
             }
@@ -845,7 +845,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //    }
 
     void parseLambdaExpression() {
-        myExpressionParsing.parseFunctionLiteral(/* preferBlock = */ false, /* collapse = */false, false);
+        this.myExpressionParsing.parseFunctionLiteral(/* preferBlock = */ false, /* collapse = */false, false);
     }
 
 
@@ -859,34 +859,34 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : SimpleName{"."} typeArguments? valueArguments?
      *   ;
      */
-    public IElementType parseAnnotation(ModifierDetector detector) {
+    public IElementType parseAnnotation(final ModifierDetector detector) {
 //        detector们没有修饰符
 //        该宏调用没有括号     解析为注解
 
 //        如果没有修饰符,根据是否有括号判断
 
-        assert _at(AT);
-        IElementType nextRawToken = lookahead(1);
+        assert this._at(AT);
+        final IElementType nextRawToken = this.lookahead(1);
 
 
         int modifierSize = 0;
-        if (detector != null) {
+        if (null != detector) {
             modifierSize = detector.getSize();
         }
 //        PsiBuilder.Marker annotation = mark();
         if (nextRawToken == IDENTIFIER) {
-            advance(); // AT
-            PsiBuilder.Marker reference = mark();
-            PsiBuilder.Marker typeReference = mark();
-            parseUserType();
+            this.advance(); // AT
+            final PsiBuilder.Marker reference = this.mark();
+            final PsiBuilder.Marker typeReference = this.mark();
+            this.parseUserType();
             typeReference.done(TYPE_REFERENCE);
             reference.done(CONSTRUCTOR_CALLEE);
 //            宏属性
-            if (at(LBRACKET)) {
-                myExpressionParsing.parseValueArgumentList(LBRACKET, RBRACKET);
+            if (this.at(LBRACKET)) {
+                this.myExpressionParsing.parseValueArgumentList(LBRACKET, RBRACKET);
             }
         } else {
-            errorAndAdvance("Expected annotation identifier after '@'", 1); // AT @
+            this.errorAndAdvance("Expected annotation identifier after '@'", 1); // AT @
 //            annotation.drop();
             return null;
         }
@@ -896,21 +896,21 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        }else {
 //            return ANNOTATION_ENTRY;
 //        }
-        if (at(LPAR)) {
+        if (this.at(LPAR)) {
             //            TODO 处理宏调用
-            advance();
+            this.advance();
 //          该语句应该是宏调用表达式，而非注解
-            if (at(RPAR)) {
+            if (this.at(RPAR)) {
 //                直接返回
-                advance();
+                this.advance();
             } else {
-                while (!eof()) {
-                    if (at(COMMA)) {
-                        advance();
+                while (!this.eof()) {
+                    if (this.at(COMMA)) {
+                        this.advance();
                     }
 //                    parseTopLevelDeclaration();
-                    myExpressionParsing.parseStatementByScope(DeclarationParsingMode.ALL);
-                    if (at(RPAR)) {
+                    this.myExpressionParsing.parseStatementByScope(DeclarationParsingMode.ALL);
+                    if (this.at(RPAR)) {
                         break;
                     }
 //                if (at(AT)) {
@@ -927,14 +927,14 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //                    }
 //                }
                 }
-                expect(RPAR, "expected ')'");
+                this.expect(RPAR, "expected ')'");
             }
 //            parseMacroInputExprWithParens();
             return MACRO_EXPRESSION;
         } else {
 //            return ANNOTATION_ENTRY;
-            if (modifierSize > 0) {
-                error("Should call (..) for macros");
+            if (0 < modifierSize) {
+                this.error("Should call (..) for macros");
 
                 return MACRO_EXPRESSION;
             } else {
@@ -948,8 +948,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
 
-    boolean parseModifierList(@Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore) {
-        return parseModifierList(tokenConsumer, noModifiersBefore, false);
+    boolean parseModifierList(@Nullable final Consumer<IElementType> tokenConsumer, @NotNull final TokenSet noModifiersBefore) {
+        return this.parseModifierList(tokenConsumer, noModifiersBefore, false);
 
     }
 
@@ -961,31 +961,31 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * @param noModifiersBefore 是一个令牌集，其中包含指示何时满足这些元素的元素。
      *                          必须将前一个令牌解析为标识符，而不是修饰符
      */
-    boolean parseModifierList(@Nullable Consumer<IElementType> tokenConsumer, @NotNull TokenSet noModifiersBefore, boolean isParseMacro) {
+    boolean parseModifierList(@Nullable final Consumer<IElementType> tokenConsumer, @NotNull final TokenSet noModifiersBefore, final boolean isParseMacro) {
 
 
-        return doParseModifierList(tokenConsumer, MODIFIER_KEYWORDS, noModifiersBefore, isParseMacro);
+        return this.doParseModifierList(tokenConsumer, MODIFIER_KEYWORDS, noModifiersBefore, isParseMacro);
     }
 
     private boolean doParseModifierList(
-            @Nullable Consumer<IElementType> tokenConsumer,
-            @NotNull TokenSet modifierKeywords,
+            @Nullable final Consumer<IElementType> tokenConsumer,
+            @NotNull final TokenSet modifierKeywords,
 
-            @NotNull TokenSet noModifiersBefore
+            @NotNull final TokenSet noModifiersBefore
     ) {
-        return doParseModifierList(tokenConsumer, modifierKeywords, noModifiersBefore, false);
+        return this.doParseModifierList(tokenConsumer, modifierKeywords, noModifiersBefore, false);
     }
 
     private boolean doParseModifierList(
-            @Nullable Consumer<IElementType> tokenConsumer,
-            @NotNull TokenSet modifierKeywords,
+            @Nullable final Consumer<IElementType> tokenConsumer,
+            @NotNull final TokenSet modifierKeywords,
 
-            @NotNull TokenSet noModifiersBefore,
-            boolean isParseMacro
+            @NotNull final TokenSet noModifiersBefore,
+            final boolean isParseMacro
     ) {
-        PsiBuilder.Marker list = mark();
+        final PsiBuilder.Marker list = this.mark();
 
-        boolean empty = doParseModifierListBody(tokenConsumer, modifierKeywords, noModifiersBefore, isParseMacro);
+        final boolean empty = this.doParseModifierListBody(tokenConsumer, modifierKeywords, noModifiersBefore, isParseMacro);
 
         if (empty) {
             list.drop();
@@ -995,22 +995,19 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return !empty;
     }
 
-    private IElementType parseClassCommonDeclaration(Integer tokenId, ModifierDetector classdetector, ModifierDetector detector) {
+    private IElementType parseClassCommonDeclaration(final Integer tokenId, final ModifierDetector classdetector, final ModifierDetector detector) {
         //init func let|var prop
 
 
-        return switch (getTokenId()) {
-            case AT_Id -> myExpressionParsing.parseMacroExpression(true);
+        return switch (this.getTokenId()) {
+            case AT_Id -> this.myExpressionParsing.parseMacroExpression(true);
 //                    parseAnnotation(null);
-            case FUNC_KEYWORD_Id ->
-                    tokenId != null ? tokenId == INTERFACE_KEYWORD_Id ? parseFunction(true, classdetector, detector, tokenId) : parseFunction(classdetector, detector, tokenId) : parseFunction(detector, tokenId);
+            case FUNC_KEYWORD_Id -> null != tokenId ? INTERFACE_KEYWORD_Id == tokenId ? this.parseFunction(true, classdetector, detector, tokenId) : this.parseFunction(classdetector, detector, tokenId) : this.parseFunction(detector, tokenId);
 
 
 //                    tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ?  parseFunction(true,classdetector, detector):parseFunction( ) ;
-            case PROP_KEYWORD_Id ->
-                    tokenId != null && (tokenId == INTERFACE_KEYWORD_Id /*|| tokenId == EXTEND_KEYWORD_Id*/) ? parseProperty(true, classdetector, detector) : parseProperty(classdetector, detector);
-            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id ->
-                    parseVariable(classdetector, DeclarationParsingMode.MEMBER);
+            case PROP_KEYWORD_Id -> null != tokenId && (INTERFACE_KEYWORD_Id == tokenId /*|| tokenId == EXTEND_KEYWORD_Id*/) ? this.parseProperty(true, classdetector, detector) : this.parseProperty(classdetector, detector);
+            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> this.parseVariable(classdetector, DeclarationParsingMode.MEMBER);
             default -> null;
         };
     }
@@ -1021,9 +1018,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private boolean parsePropertyDelegateOrAssignment() {
-        if (at(EQ)) {
-            advance(); // EQ
-            myExpressionParsing.parseExpression();
+        if (this.at(EQ)) {
+            this.advance(); // EQ
+            this.myExpressionParsing.parseExpression();
             return true;
         }
 
@@ -1031,31 +1028,31 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private int lastDotAfterReceiver() {
-        AbstractTokenStreamPattern pattern = at(LPAR) ? lastDotAfterReceiverLParPattern : lastDotAfterReceiverNotLParPattern;
+        final AbstractTokenStreamPattern pattern = this.at(LPAR) ? this.lastDotAfterReceiverLParPattern : this.lastDotAfterReceiverNotLParPattern;
         pattern.reset();
-        return matchTokenStreamPredicate(pattern);
+        return this.matchTokenStreamPredicate(pattern);
     }
 
-    private boolean parseReceiverType(String title, TokenSet nameFollow) {
+    private boolean parseReceiverType(final String title, final TokenSet nameFollow) {
 
-        int lastDot = lastDotAfterReceiver();
-        boolean receiverPresent = lastDot != -1;
+        final int lastDot = this.lastDotAfterReceiver();
+        final boolean receiverPresent = -1 != lastDot;
 
 
         if (!receiverPresent) return false;
 
-        createTruncatedBuilder(lastDot).parseTypeRef();
+        this.createTruncatedBuilder(lastDot).parseTypeRef();
 
-        if (atSet(RECEIVER_TYPE_TERMINATORS)) {
-            advance(); // expectation
+        if (this.atSet(CangJieParsing.RECEIVER_TYPE_TERMINATORS)) {
+            this.advance(); // expectation
         } else {
-            errorWithRecovery("Expecting '.' before a " + title + " name", nameFollow);
+            this.errorWithRecovery("Expecting '.' before a " + title + " name", nameFollow);
         }
         return true;
     }
 
-    public IElementType parseVariable(ModifierDetector classdetector) {
-        return parseVariable(classdetector, null);
+    public IElementType parseVariable(final ModifierDetector classdetector) {
+        return this.parseVariable(classdetector, null);
     }
 
     /*
@@ -1067,9 +1064,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : modifiers ("let" | "var" | "const")
      *   ;
      */
-    public IElementType parseVariable(ModifierDetector classdetector, @Nullable DeclarationParsingMode declarationParsingMode) {
-        assert (at(LET_KEYWORD) || at(VAR_KEYWORD) || at(CONST_KEYWORD));
-        advance();
+    public IElementType parseVariable(final ModifierDetector classdetector, @Nullable final DeclarationParsingMode declarationParsingMode) {
+        assert (this.at(LET_KEYWORD) || this.at(VAR_KEYWORD) || this.at(CONST_KEYWORD));
+        this.advance();
 
 
 //        if (at(LPAR)) {
@@ -1094,10 +1091,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            parseIdentifierByTitle("property", PROPERTY_NAME_FOLLOW_SET, true);
 //
 //        }
-        if (/*declarationParsingMode == DeclarationParsingMode.TOPLEVEL ||*/ declarationParsingMode == DeclarationParsingMode.MEMBER) {
-            parseIdentifierByTitle("variable", PROPERTY_NAME_FOLLOW_SET, true);
+        if (/*declarationParsingMode == DeclarationParsingMode.TOPLEVEL ||*/ DeclarationParsingMode.MEMBER == declarationParsingMode) {
+            this.parseIdentifierByTitle("variable", CangJieParsing.PROPERTY_NAME_FOLLOW_SET, true);
         } else {
-            myExpressionParsing.parsePattern(new PatternConfig(true), Pattern.Wildcard.INSTANCE, Pattern.Binding.INSTANCE, Pattern.Tuple.INSTANCE, Pattern.Enum.INSTANCE);
+            this.myExpressionParsing.parsePattern(new PatternConfig(true), Pattern.Wildcard.INSTANCE, Pattern.Binding.INSTANCE, Pattern.Tuple.INSTANCE, Pattern.Enum.INSTANCE);
 
         }
 
@@ -1105,23 +1102,23 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         //类型 (:type)可以没有，但是默认值必须有
 
-        if (at(COLON)) {
-            advance(); // COLON
+        if (this.at(COLON)) {
+            this.advance(); // COLON
             noTypeReference = false;
 
-            parseTypeRef();
+            this.parseTypeRef();
 
         }
 
 
-        if (at(EQ)) {
-            advance(); // COLON
+        if (this.at(EQ)) {
+            this.advance(); // COLON
 
             //处理表达式
 //myExpressionParsing.test();
-            myExpressionParsing.parseExpression();
+            this.myExpressionParsing.parseExpression();
         } else if (noTypeReference) {
-            errorAndAdvance("variable in top-level scope must be initialized");
+            this.errorAndAdvance("variable in top-level scope must be initialized");
         }
 
 //        if (!parsePropertyDelegateOrAssignment() && isNameOnTheNextLine && noTypeReference && !receiverTypeDeclared) {
@@ -1138,41 +1135,41 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     void parseExpressionCodeFragment() {
-        PsiBuilder.Marker marker = mark();
-        myExpressionParsing.parseExpression();
+        final PsiBuilder.Marker marker = this.mark();
+        this.myExpressionParsing.parseExpression();
 
-        checkForUnexpectedSymbols();
+        this.checkForUnexpectedSymbols();
 
         marker.done(EXPRESSION_CODE_FRAGMENT);
     }
 
     void parseBlockCodeFragment() {
-        PsiBuilder.Marker marker = mark();
-        PsiBuilder.Marker blockMarker = mark();
+        final PsiBuilder.Marker marker = this.mark();
+        final PsiBuilder.Marker blockMarker = this.mark();
 
-        if (at(PACKAGE_KEYWORD) || at(IMPORT_KEYWORD)) {
-            PsiBuilder.Marker err = mark();
-            parsePreamble();
+        if (this.at(PACKAGE_KEYWORD) || this.at(IMPORT_KEYWORD)) {
+            final PsiBuilder.Marker err = this.mark();
+            this.parsePreamble();
             err.error("Package directive and imports are forbidden in code fragments");
         }
 
-        myExpressionParsing.parseStatements();
+        this.myExpressionParsing.parseStatements();
 
-        checkForUnexpectedSymbols();
+        this.checkForUnexpectedSymbols();
 
         blockMarker.done(BLOCK);
         marker.done(BLOCK_CODE_FRAGMENT);
     }
 
     public IElementType parseCommonDeclaration(
-            @NotNull ModifierDetector detector,
-            @NotNull NameParsingMode nameParsingMode,
-            @NotNull DeclarationParsingMode declarationParsingMode
+            @NotNull final ModifierDetector detector,
+            @NotNull final NameParsingMode nameParsingMode,
+            @NotNull final DeclarationParsingMode declarationParsingMode
     ) {
 
 //       TODO 声明作用域判断
 
-        return switch (getTokenId()) {
+        return switch (this.getTokenId()) {
 
             case TYPE_KEYWORD_Id ->
 //                if (declarationParsingMode == DeclarationParsingMode.LOCAL) {
@@ -1183,16 +1180,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
                     switch (declarationParsingMode) {
                         case LOCAL, MEMBER, MEMBER_OR_TOPLEVEL -> {
-                            parseTypeAlias();
+                            this.parseTypeAlias();
                             yield INVALID_DECLARATION;
                         }
-                        case ALL, TOPLEVEL -> parseTypeAlias();
+                        case ALL, TOPLEVEL -> this.parseTypeAlias();
 
 
                     };
 
 
-            case AT_Id -> myExpressionParsing.parseMacroExpression(true);
+            case AT_Id -> this.myExpressionParsing.parseMacroExpression(true);
 //                    parseAnnotation(detector);
 
 
@@ -1205,20 +1202,20 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
                     switch (declarationParsingMode) {
 
-                        case ALL, TOPLEVEL -> parseForeign();
+                        case ALL, TOPLEVEL -> this.parseForeign();
 
                         case MEMBER, MEMBER_OR_TOPLEVEL, LOCAL -> {
-                            parseForeign();
+                            this.parseForeign();
                             yield INVALID_DECLARATION;
                         }
 
                     };
 
-            case MACRO_KEYWORD_Id -> parseMacro();
+            case MACRO_KEYWORD_Id -> this.parseMacro();
 
 //            case ABC_KEYWORD_Id:
 //                return parseAbc();
-            case FUNC_KEYWORD_Id -> parseFunction(detector);
+            case FUNC_KEYWORD_Id -> this.parseFunction(detector);
             case MAIN_KEYWORD_Id ->
 //                if (declarationParsingMode == DeclarationParsingMode.LOCAL) {
 //                    yield null;
@@ -1228,10 +1225,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
                     switch (declarationParsingMode) {
 
-                        case ALL, TOPLEVEL -> parseMainFunc();
+                        case ALL, TOPLEVEL -> this.parseMainFunc();
 
                         case MEMBER, MEMBER_OR_TOPLEVEL, LOCAL -> {
-                            parseMainFunc();
+                            this.parseMainFunc();
                             yield INVALID_DECLARATION;
                         }
 
@@ -1253,17 +1250,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
             case EXTEND_KEYWORD_Id, ENUM_KEYWORD_Id, STRUCT_KEYWORD_Id, INTERFACE_KEYWORD_Id, CLASS_KEYWORD_Id ->
                     switch (declarationParsingMode) {
 
-                        case ALL, TOPLEVEL -> parseClass(detector);
+                        case ALL, TOPLEVEL -> this.parseClass(detector);
 
                         case MEMBER, MEMBER_OR_TOPLEVEL, LOCAL -> {
-                            parseClass(detector);
+                            this.parseClass(detector);
                             yield INVALID_DECLARATION;
                         }
 
                     };
 
 
-            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(detector, declarationParsingMode);
+            case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> this.parseVariable(detector, declarationParsingMode);
 //            case UNSAFE_KEYWORD_Id -> parseUnsafeExpression();
             default -> null;
         };
@@ -1276,35 +1273,35 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     private IElementType parseTypeAlias() {
-        assert _at(TYPE_KEYWORD);
+        assert this._at(TYPE_KEYWORD);
 
-        advance(); // TYPE_KEYWORD
+        this.advance(); // TYPE_KEYWORD
 
-        expect(IDENTIFIER, "Type name expected", LT_EQ_SEMICOLON_TOP_LEVEL_DECLARATION_FIRST_SET);
+        this.expect(IDENTIFIER, "Type name expected", CangJieParsing.LT_EQ_SEMICOLON_TOP_LEVEL_DECLARATION_FIRST_SET);
 
-        parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
+        this.parseTypeParameterList(CangJieParsing.TYPE_PARAMETER_GT_RECOVERY_SET);
 
-        if (at(WHERE_KEYWORD)) {
-            PsiBuilder.Marker error = mark();
-            parseTypeConstraints();
+        if (this.at(WHERE_KEYWORD)) {
+            final PsiBuilder.Marker error = this.mark();
+            this.parseTypeConstraints();
             error.error("Type alias parameters can't have bounds");
         }
 
-        expect(EQ, "Expecting '='", TOP_LEVEL_DECLARATION_FIRST_SEMICOLON_SET);
+        this.expect(EQ, "Expecting '='", CangJieParsing.TOP_LEVEL_DECLARATION_FIRST_SEMICOLON_SET);
 
-        parseTypeRef();
+        this.parseTypeRef();
 
-        consumeIf(SEMICOLON);
+        this.consumeIf(SEMICOLON);
 
         return TYPEALIAS;
     }
 
-    IElementType parseProperty(boolean isInterface) {
-        return parseProperty(isInterface, null, null);
+    IElementType parseProperty(final boolean isInterface) {
+        return this.parseProperty(isInterface, null, null);
     }
 
     private IElementType parseProperty() {
-        return parseProperty(false);
+        return this.parseProperty(false);
     }
 
 
@@ -1314,8 +1311,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        return null;
 //    }
 
-    IElementType parseProperty(ModifierDetector classdetector, ModifierDetector detector) {
-        return parseProperty(false, classdetector, detector);
+    IElementType parseProperty(final ModifierDetector classdetector, final ModifierDetector detector) {
+        return this.parseProperty(false, classdetector, detector);
     }
 
     /*
@@ -1323,8 +1320,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   :  "mnt"? prop Identifier :Type propBody
      *   ;
      */
-    private IElementType parseProperty(boolean isInterface, ModifierDetector classdetector, ModifierDetector detector) {
-        assert _at(PROP_KEYWORD);
+    private IElementType parseProperty(final boolean isInterface, final ModifierDetector classdetector, final ModifierDetector detector) {
+        assert this._at(PROP_KEYWORD);
 
 
 //        bool isMut = false;
@@ -1336,28 +1333,28 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            errorAndAdvance("Expecting 'prop'");
 //
 //        }
-        advance();
+        this.advance();
 
-        parseIdentifierByTitle(" prop ");
+        this.parseIdentifierByTitle(" prop ");
 
 //        if(at(COLON)){
-        parseByType();
+        this.parseByType();
 //        }else {
 //            error("Expecting ':'");
 //        }
 
-        if (isDeclarationsFile) {
+        if (this.isDeclarationsFile) {
 
-            if (at(LBRACE)) {
-                PsiBuilder.Marker body = mark();
+            if (this.at(LBRACE)) {
+                final PsiBuilder.Marker body = this.mark();
 
-                TokenSet tokenSet = TokenSet.orSet(
+                final TokenSet tokenSet = TokenSet.orSet(
                         KEYWORDS, TokenSet.create(OPEN_KEYWORD,
                                 ABSTRACT_KEYWORD,
                                 SEALED_KEYWORD)
                 );
-                while (!atSet(tokenSet) && !eof()) {
-                    advance();
+                while (!this.atSet(tokenSet) && !this.eof()) {
+                    this.advance();
                 }
                 body.error("Property body is not allowed in declarations file");
 
@@ -1365,12 +1362,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
             return PROPERTY;
         }
 
-        if (at(LBRACE)) {
-            parsePropertyBody(detector);
+        if (this.at(LBRACE)) {
+            this.parsePropertyBody(detector);
         } else if (!isInterface) {
-            if (classdetector != null && !classdetector.isAbstractDetected()) {
-                error("unimplemented abstract property");
-                error("Missing prop body Expecting '{'");
+            if (null != classdetector && !classdetector.isAbstractDetected()) {
+                this.error("unimplemented abstract property");
+                this.error("Missing prop body Expecting '{'");
             }
 
         }
@@ -1386,11 +1383,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
      */
     private void parseByType() {
 //        assert  _at(COLON);
-        if (at(COLON)) {
-            advance(); // COLON
-            parseTypeRef();
+        if (this.at(COLON)) {
+            this.advance(); // COLON
+            this.parseTypeRef();
         } else {
-            error("Missing type Expecting ':' type");
+            this.error("Missing type Expecting ':' type");
         }
     }
 
@@ -1399,18 +1396,18 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * :  "get" "(" ")" block
      */
     private void parsePropertyGet() {
-        assert _at(GET_KEYWORD);
+        assert this._at(GET_KEYWORD);
 
-        PsiBuilder.Marker get = mark();
-        advance(); // GET_KEYWORD
+        final PsiBuilder.Marker get = this.mark();
+        this.advance(); // GET_KEYWORD
 
-        if (expect(LPAR, "Expecting '('")) {
+        if (this.expect(LPAR, "Expecting '('")) {
 
-            if (expect(RPAR, "Expecting ')'")) {
-                if (at(LBRACE)) {
-                    parseBlock();
+            if (this.expect(RPAR, "Expecting ')'")) {
+                if (this.at(LBRACE)) {
+                    this.parseBlock();
                 } else {
-                    error("Expecting '{'");
+                    this.error("Expecting '{'");
                 }
             }
         }
@@ -1423,26 +1420,26 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * prop set
      * :  "set" "(" Identifier ")" block
      */
-    private void parsePropertySet(ModifierDetector detector) {
-        assert _at(SET_KEYWORD);
-        PsiBuilder.Marker set = mark();
+    private void parsePropertySet(final ModifierDetector detector) {
+        assert this._at(SET_KEYWORD);
+        final PsiBuilder.Marker set = this.mark();
 
 //        if(detector.isMutDetected()){
-        advance(); // SET_KEYWORD
+        this.advance(); // SET_KEYWORD
 
 
-        if (expect(LPAR, "Expecting '('")) {
-            SyntaxTreeBuilder.Marker plist = mark();
-            SyntaxTreeBuilder.Marker value = mark();
+        if (this.expect(LPAR, "Expecting '('")) {
+            final SyntaxTreeBuilder.Marker plist = this.mark();
+            final SyntaxTreeBuilder.Marker value = this.mark();
 
-            expect(IDENTIFIER, "Expecting identifier");
+            this.expect(IDENTIFIER, "Expecting identifier");
             value.done(VALUE_PARAMETER);
             plist.done(VALUE_PARAMETER_LIST);
-            if (expect(RPAR, "Expecting ')'")) {
-                if (at(LBRACE)) {
-                    parseBlock();
+            if (this.expect(RPAR, "Expecting ')'")) {
+                if (this.at(LBRACE)) {
+                    this.parseBlock();
                 } else {
-                    error("Expecting '{'");
+                    this.error("Expecting '{'");
                 }
             }
         }
@@ -1475,12 +1472,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;      }
      *   ;   }
      */
-    private void parsePropertyBody(ModifierDetector detector) {
-        assert _at(LBRACE);
+    private void parsePropertyBody(final ModifierDetector detector) {
+        assert this._at(LBRACE);
 
 
-        PsiBuilder.Marker body = mark();
-        advance(); // LBRACE
+        final PsiBuilder.Marker body = this.mark();
+        this.advance(); // LBRACE
 //        boolean isGet = false;
 //        boolean isSet = false;
 //        while (at(GET_KEYWORD) || at(SET_KEYWORD)) {
@@ -1503,12 +1500,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        if (!isSet && detector != null && detector.isMutDetected()) {
 //            error("Set accessor should be implemented");
 //        }
-        while (at(GET_KEYWORD) || at(SET_KEYWORD)) {
-            parsePropertyAccessor();
+        while (this.at(GET_KEYWORD) || this.at(SET_KEYWORD)) {
+            this.parsePropertyAccessor();
 
         }
 
-        expect(RBRACE, "Expecting '}'");
+        this.expect(RBRACE, "Expecting '}'");
 
         body.done(PROPERTY_BODY);
 
@@ -1516,14 +1513,14 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     private void parsePropertyAccessor() {
 
-        if (at(GET_KEYWORD)) {
+        if (this.at(GET_KEYWORD)) {
 
-            parsePropertyGet();
+            this.parsePropertyGet();
         }
 
-        if (at(SET_KEYWORD)) {
+        if (this.at(SET_KEYWORD)) {
 
-            parsePropertySet(null);
+            this.parsePropertySet(null);
         }
 
 
@@ -1535,36 +1532,36 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     private IElementType parseEnum() {
-        assert _at(ENUM_KEYWORD);
-        advance();
+        assert this._at(ENUM_KEYWORD);
+        this.advance();
 
-        parseIdentifierByTitle("enum", IDENTIFIER_RBRACKET_LBRACKET_SET, false);
+        this.parseIdentifierByTitle("enum", CangJieParsing.IDENTIFIER_RBRACKET_LBRACKET_SET, false);
 
 
-        parseEnumBody();
+        this.parseEnumBody();
 
         return ENUM;
     }
 
     private void parseEnumBody() {
-        PsiBuilder.Marker body = mark();
-        if (at(LBRACE)) {
-            advance(); // LBRACE
+        final PsiBuilder.Marker body = this.mark();
+        if (this.at(LBRACE)) {
+            this.advance(); // LBRACE
 
-            expect(OR);
+            this.expect(OR);
 
-            if (at(IDENTIFIER)) {
-                parseEnumList();
+            if (this.at(IDENTIFIER)) {
+                this.parseEnumList();
             } else {
-                error("Expecting enum entry");
+                this.error("Expecting enum entry");
             }
 
-            parseMembers(null, null);
+            this.parseMembers(null, null);
 
 
-            expect(RBRACE, "Expecting '}'");
+            this.expect(RBRACE, "Expecting '}'");
         } else {
-            error("Expecting '{'");
+            this.error("Expecting '{'");
         }
         body.done(ENUM_BODY);
     }
@@ -1574,12 +1571,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         while (true) {
 
-            parseEnumEntry();
-            if (at(RBRACE)) {
+            this.parseEnumEntry();
+            if (this.at(RBRACE)) {
                 break;
             }
-            if (at(OR)) {
-                advance();
+            if (this.at(OR)) {
+                this.advance();
             } else {
                 break;
             }
@@ -1590,32 +1587,32 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     void parseTypeCodeFragment() {
-        PsiBuilder.Marker marker = mark();
-        parseTypeRef();
+        final PsiBuilder.Marker marker = this.mark();
+        this.parseTypeRef();
 
-        checkForUnexpectedSymbols();
+        this.checkForUnexpectedSymbols();
 
         marker.done(TYPE_CODE_FRAGMENT);
     }
 
     private void checkForUnexpectedSymbols() {
-        while (!eof()) {
-            errorAndAdvance("Unexpected symbol");
+        while (!this.eof()) {
+            this.errorAndAdvance("Unexpected symbol");
         }
     }
 
     boolean parseEnumEntry() {
-        return parseEnumEntry(true);
+        return this.parseEnumEntry(true);
     }
 
-    boolean parseEnumEntry(boolean isCreateMark) {
+    boolean parseEnumEntry(final boolean isCreateMark) {
         PsiBuilder.Marker entry = null;
         if (isCreateMark) {
-            entry = mark();
+            entry = this.mark();
 
         }
 
-        if (!expect(IDENTIFIER, "Expecting enum entry name")) {
+        if (!this.expect(IDENTIFIER, "Expecting enum entry name")) {
             if (isCreateMark) {
                 entry.drop();
             }
@@ -1630,11 +1627,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        parseTypeArgumentList();
 
 
-        if (at(LPAR)) {
-            advance(); // LPAR
-            parseTypeList();
+        if (this.at(LPAR)) {
+            this.advance(); // LPAR
+            this.parseTypeList();
 
-            expect(RPAR, "Expecting ')'");
+            this.expect(RPAR, "Expecting ')'");
         }
 
 
@@ -1649,12 +1646,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * : type{","}
      */
     void parseTypeList() {
-        PsiBuilder.Marker list = mark();
+        final PsiBuilder.Marker list = this.mark();
 
         while (true) {
-            parseTypeRef();
-            if (!at(COMMA)) break;
-            advance(); // COMMA
+            this.parseTypeRef();
+            if (!this.at(COMMA)) break;
+            this.advance(); // COMMA
         }
 
         list.done(TYPE_LIST);
@@ -1665,29 +1662,29 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : ("<" typeParameter{","} ">"
      *   ;
      */
-    private boolean parseTypeParameterList(TokenSet recoverySet) {
+    private boolean parseTypeParameterList(final TokenSet recoverySet) {
 
         boolean result = false;
-        if (at(LT)) {
-            PsiBuilder.Marker list = mark();
+        if (this.at(LT)) {
+            final PsiBuilder.Marker list = this.mark();
 
-            myBuilder.disableNewlines();
-            advance(); // LT
+            this.myBuilder.disableNewlines();
+            this.advance(); // LT
 
             while (true) {
-                if (at(COMMA)) errorAndAdvance("Expecting type parameter declaration");
-                parseTypeParameter();
+                if (this.at(COMMA)) this.errorAndAdvance("Expecting type parameter declaration");
+                this.parseTypeParameter();
 //                parseTypeRef(true);
 
-                if (!at(COMMA)) break;
-                advance(); // COMMA
-                if (at(GT)) {
+                if (!this.at(COMMA)) break;
+                this.advance(); // COMMA
+                if (this.at(GT)) {
                     break;
                 }
             }
 
-            expect(GT, "Missing '>'", recoverySet);
-            myBuilder.restoreNewlinesState();
+            this.expect(GT, "Missing '>'", recoverySet);
+            this.myBuilder.restoreNewlinesState();
             result = true;
 
             list.done(TYPE_PARAMETER_LIST);
@@ -1701,16 +1698,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     private void parseTypeParameter() {
-        if (atSet(TYPE_PARAMETER_GT_RECOVERY_SET)) {
-            error("Type parameter declaration expected");
+        if (this.atSet(CangJieParsing.TYPE_PARAMETER_GT_RECOVERY_SET)) {
+            this.error("Type parameter declaration expected");
             return;
         }
 
-        PsiBuilder.Marker mark = mark();
+        final PsiBuilder.Marker mark = this.mark();
 
 //        parseModifierList(GT_COMMA_COLON_SET);
 
-        expect(IDENTIFIER, "Type parameter name expected", TokenSet.EMPTY);
+        this.expect(IDENTIFIER, "Type parameter name expected", TokenSet.EMPTY);
 
 //        if (at(COLON)) {
 //            advance(); // COLON
@@ -1721,9 +1718,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseDelegationSpecifier() {
-        PsiBuilder.Marker delegator = mark();
-        PsiBuilder.Marker reference = mark();
-        parseTypeRef();
+        final PsiBuilder.Marker delegator = this.mark();
+        final PsiBuilder.Marker reference = this.mark();
+        this.parseTypeRef();
 
 
         reference.drop();
@@ -1735,16 +1732,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * delegationSpecifier{"&"}
      */
     private void parseDelegationSpecifierList() {
-        PsiBuilder.Marker list = mark();
+        final PsiBuilder.Marker list = this.mark();
 
         while (true) {
-            if (at(AND)) {
-                errorAndAdvance("Expecting a delegation specifier");
+            if (this.at(AND)) {
+                this.errorAndAdvance("Expecting a delegation specifier");
                 continue;
             }
-            parseDelegationSpecifier();
-            if (!at(AND)) break;
-            advance(); // COMMA
+            this.parseDelegationSpecifier();
+            if (!this.at(AND)) break;
+            this.advance(); // COMMA
         }
 
         list.done(SUPER_TYPE_LIST);
@@ -1753,8 +1750,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
     /*
      * (modifier)*
      */
-    boolean parseModifierList(@NotNull TokenSet noModifiersBefore) {
-        return parseModifierList(null, noModifiersBefore);
+    boolean parseModifierList(@NotNull final TokenSet noModifiersBefore) {
+        return this.parseModifierList(null, noModifiersBefore);
     }
 
 
@@ -1763,73 +1760,73 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : "class" SimpleName (<: delegationSpecifier{"&"}) classBody
      *   ;
      */
-    IElementType parseClass(@NotNull ModifierDetector detector) {
+    IElementType parseClass(@NotNull final ModifierDetector detector) {
 
-        int tokenid = getTokenId();
+        final int tokenid = this.getTokenId();
 
-        IElementType token = myBuilder.getTokenType();
+        final IElementType token = this.myBuilder.getTokenType();
 
 
 //        assert _at(CLASS_KEYWORD);
-        assert _atSet(CLASS_INTERFACE_STRUCT_ENUM_EXTEND_SET);
-        advance();
+        assert this._atSet(CangJieParsing.CLASS_INTERFACE_STRUCT_ENUM_EXTEND_SET);
+        this.advance();
 
 
         boolean typeParametersDeclared = false;
 
         if (token == EXTEND_KEYWORD) {
 
-            if (at(LT)) {
-                parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
+            if (this.at(LT)) {
+                this.parseTypeParameterList(CangJieParsing.TYPE_PARAMETER_GT_RECOVERY_SET);
                 typeParametersDeclared = true;
             }
 
 
 //            if (atSet(BASICTYPES) || at(IDENTIFIER)) {
-            parseTypeRef();
+            this.parseTypeRef();
 
 //            }  else {
 //
 //                error("Expecting a type");
 //            }
         } else {
-            parseIdentifier(); //类名
-            typeParametersDeclared = parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET);
+            this.parseIdentifier(); //类名
+            typeParametersDeclared = this.parseTypeParameterList(CangJieParsing.TYPE_PARAMETER_GT_RECOVERY_SET);
         }
 
 
         // TODO 继承
-        if (at(LTCOLON)) {
-            advance(); // COLON
-            parseDelegationSpecifierList();
+        if (this.at(LTCOLON)) {
+            this.advance(); // COLON
+            this.parseDelegationSpecifierList();
         }
 
 
-        OptionalMarker whereMarker = new OptionalMarker(false);
-        parseTypeConstraintsGuarded(typeParametersDeclared);
+        final OptionalMarker whereMarker = new OptionalMarker(false);
+        this.parseTypeConstraintsGuarded(typeParametersDeclared);
         whereMarker.error("Where clause is not allowed");
 
 
-        if (at(LBRACE)) {
+        if (this.at(LBRACE)) {
             switch (tokenid) {
                 case ENUM_KEYWORD_Id:
-                    parseEnumBody();
+                    this.parseEnumBody();
                     break;
                 case EXTEND_KEYWORD_Id:
                 case STRUCT_KEYWORD_Id:
                 case INTERFACE_KEYWORD_Id:
                 case CLASS_KEYWORD_Id:
-                    parseClassBody(tokenid, detector);
+                    this.parseClassBody(tokenid, detector);
                     break;
 
                 default:
-                    parseClassBody(tokenid, detector);
+                    this.parseClassBody(tokenid, detector);
 
 
             }
 
         } else {
-            error("Expecting '{' or Inherit");  //应该为'{' 或者继承
+            this.error("Expecting '{' or Inherit");  //应该为'{' 或者继承
         }
 
 
@@ -1850,15 +1847,15 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : ("where" typeConstraint{","})?
      *   ;
      */
-    private void parseTypeConstraintsGuarded(boolean typeParameterListOccurred) {
-        PsiBuilder.Marker error = mark();
-        boolean constraints = parseTypeConstraints();
-        errorIf(error, constraints && !typeParameterListOccurred, "Type constraints are not allowed when no type parameters declared");
+    private void parseTypeConstraintsGuarded(final boolean typeParameterListOccurred) {
+        final PsiBuilder.Marker error = this.mark();
+        final boolean constraints = this.parseTypeConstraints();
+        AbstractCangJieParsing.errorIf(error, constraints && !typeParameterListOccurred, "Type constraints are not allowed when no type parameters declared");
     }
 
     private boolean parseTypeConstraints() {
-        if (at(WHERE_KEYWORD)) {
-            parseTypeConstraintList();
+        if (this.at(WHERE_KEYWORD)) {
+            this.parseTypeConstraintList();
             return true;
         }
         return false;
@@ -1868,17 +1865,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * typeConstraint{","}
      */
     private void parseTypeConstraintList() {
-        assert _at(WHERE_KEYWORD);
+        assert this._at(WHERE_KEYWORD);
 
-        advance(); // WHERE_KEYWORD
+        this.advance(); // WHERE_KEYWORD
 
-        PsiBuilder.Marker list = mark();
+        final PsiBuilder.Marker list = this.mark();
 
         while (true) {
-            if (at(COMMA)) errorAndAdvance("Type constraint expected");
-            parseTypeConstraint();
-            if (!at(COMMA)) break;
-            advance(); // COMMA
+            if (this.at(COMMA)) this.errorAndAdvance("Type constraint expected");
+            this.parseTypeConstraint();
+            if (!this.at(COMMA)) break;
+            this.advance(); // COMMA
         }
 
         list.done(TYPE_CONSTRAINT_LIST);
@@ -1890,82 +1887,82 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     private void parseTypeConstraint() {
-        PsiBuilder.Marker constraint = mark();
+        final PsiBuilder.Marker constraint = this.mark();
 
 
-        PsiBuilder.Marker reference = mark();
-        if (expect(IDENTIFIER, "Expecting type parameter name", LTCOLON_COMMA_LBRACE_RBRACE_TYPE_REF_FIRST_SET)) {
+        final PsiBuilder.Marker reference = this.mark();
+        if (this.expect(IDENTIFIER, "Expecting type parameter name", CangJieParsing.LTCOLON_COMMA_LBRACE_RBRACE_TYPE_REF_FIRST_SET)) {
             reference.done(REFERENCE_EXPRESSION);
         } else {
             reference.drop();
         }
 
-        expect(LTCOLON, "Expecting '<:' before the upper bound", LBRACE_RBRACE_TYPE_REF_FIRST_SET);
+        this.expect(LTCOLON, "Expecting '<:' before the upper bound", CangJieParsing.LBRACE_RBRACE_TYPE_REF_FIRST_SET);
 
 
         do {
-            if (at(AND)) advance();
-            parseTypeRef();
+            if (this.at(AND)) this.advance();
+            this.parseTypeRef();
 
-        } while (at(AND));
+        } while (this.at(AND));
 
 
         constraint.done(TYPE_CONSTRAINT);
     }
 
-    private void parseMemberDeclaration(Integer tokenId, ModifierDetector classdetector) {
-        parseMemberDeclaration(tokenId, classdetector, false);
+    private void parseMemberDeclaration(final Integer tokenId, final ModifierDetector classdetector) {
+        this.parseMemberDeclaration(tokenId, classdetector, false);
     }
 
-    private void parseMemberDeclaration(Integer tokenId, ModifierDetector classdetector, boolean rollbackMacro) {
-        if (at(SEMICOLON)) {
-            advance(); // SEMICOLON
+    private void parseMemberDeclaration(final Integer tokenId, final ModifierDetector classdetector, final boolean rollbackMacro) {
+        if (this.at(SEMICOLON)) {
+            this.advance(); // SEMICOLON
             return;
         }
-        PsiBuilder.Marker decl = mark();
+        final PsiBuilder.Marker decl = this.mark();
 
 
-        ModifierDetector detector = new ModifierDetector();
-        parseModifierList(detector, TokenSet.EMPTY, rollbackMacro);
+        final ModifierDetector detector = new ModifierDetector();
+        this.parseModifierList(detector, TokenSet.EMPTY, rollbackMacro);
 
 
-        IElementType declType = parseMemberDeclarationRest(tokenId, classdetector, detector);
+        final IElementType declType = this.parseMemberDeclarationRest(tokenId, classdetector, detector);
 
       /*  if (declType == ANNOTATION_ENTRY) {
             decl.rollbackTo();
             parseMemberDeclaration(tokenId, classdetector, true);
         } else*/
-        if (declType == null) {
-            errorWithRecovery("Expecting member declaration", TokenSet.EMPTY);
+        if (null == declType) {
+            this.errorWithRecovery("Expecting member declaration", TokenSet.EMPTY);
             decl.drop();
         } else {
-            closeDeclarationWithCommentBinders(decl, declType, true);
+            AbstractCangJieParsing.closeDeclarationWithCommentBinders(decl, declType, true);
         }
     }
 
-    private IElementType parseMemberDeclarationRest(Integer tokenId, ModifierDetector classdetector, ModifierDetector detector) {
-        IElementType declType = parseClassCommonDeclaration(tokenId, classdetector, detector);
+    private IElementType parseMemberDeclarationRest(final Integer tokenId, final ModifierDetector classdetector, final ModifierDetector detector) {
+        IElementType declType = this.parseClassCommonDeclaration(tokenId, classdetector, detector);
 
-        if (declType != null) return declType;
+        if (null != declType) return declType;
 
-        if (tokenId != null && tokenId != INTERFACE_KEYWORD_Id) {
+        if (null != tokenId && INTERFACE_KEYWORD_Id != tokenId) {
 
-            parseModifierList(TokenSet.EMPTY);
+            this.parseModifierList(TokenSet.EMPTY);
 
-            if (at(INIT_KEYWORD)) {
-                parseInitFunc();
+            if (this.at(INIT_KEYWORD)) {
+                this.parseInitFunc();
                 declType = SECONDARY_CONSTRUCTOR;
-            } else if (at(LBRACE)) {
-                error("Expecting member declaration");
-                parseBlock();
+            } else if (this.at(LBRACE)) {
+                this.error("Expecting member declaration");
+                this.parseBlock();
                 declType = FUNC;
-            } else if (at(IDENTIFIER) && lookahead(1) == LPAR) {
+            } else if (this.at(IDENTIFIER) && this.lookahead(1) == LPAR) {
 //                主构造函数
-                parseMainInitFunc();
+                this.parseMainInitFunc();
                 declType = PRIMARY_CONSTRUCTOR;
-            } else if (at(TILDE) && lookahead(1) == INIT_KEYWORD) {
-                advance(); // TILDE ~
-                parseInitFunc();
+            } else if (this.at(TILDE) && this.lookahead(1) == INIT_KEYWORD) {
+                this.advance(); // TILDE ~
+                this.parseInitFunc();
 //                析构函数
                 declType = END_SECONDARY_CONSTRUCTOR;
 
@@ -1978,57 +1975,57 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     void parseMainInitFunc() {
-        assert _at(IDENTIFIER);
-        advance(); // IDENTIFIER
+        assert this._at(IDENTIFIER);
+        this.advance(); // IDENTIFIER
 
 
-        if (at(RBRACE)) {
-            error("Function body expected");  //应该为函数体
+        if (this.at(RBRACE)) {
+            this.error("Function body expected");  //应该为函数体
             return;
         }
 
-        myBuilder.disableJoiningComplexTokens();
+        this.myBuilder.disableJoiningComplexTokens();
         //类型参数
-        if (at(LPAR)) {
-            parseInitFuncValueParameterList();
+        if (this.at(LPAR)) {
+            this.parseInitFuncValueParameterList();
         } else {
 //            error("Expecting '(' ");  //应该为'('
-            errorAndAdvance("Expecting '('  but available" + myBuilder.getTokenText());
+            this.errorAndAdvance("Expecting '('  but available" + this.myBuilder.getTokenText());
 
         }
 
 
 //        if (at(LBRACE)) {
-        parseInitFunctionBody();
+        this.parseInitFunctionBody();
 //        } else {
 //            error("Expecting '{' ");  //应该为'{'
 //        }
     }
 
     void parseInitFunc() {
-        assert _at(INIT_KEYWORD);
-        advance(); // INIT_KEYWORD
+        assert this._at(INIT_KEYWORD);
+        this.advance(); // INIT_KEYWORD
 
 
-        if (at(RBRACE)) {
-            error("Function body expected");  //应该为函数体
+        if (this.at(RBRACE)) {
+            this.error("Function body expected");  //应该为函数体
             return;
         }
 
-        myBuilder.disableJoiningComplexTokens();
+        this.myBuilder.disableJoiningComplexTokens();
         //类型参数
-        if (at(LPAR)) {
-            parseInitFuncValueParameterList();
+        if (this.at(LPAR)) {
+            this.parseInitFuncValueParameterList();
         } else {
 //            error("Expecting '(' ");  //应该为'('
-            errorAndAdvance("Expecting '('  but available" + myBuilder.getTokenText());
+            this.errorAndAdvance("Expecting '('  but available" + this.myBuilder.getTokenText());
         }
 
-        if (isDeclarationsFile) {
-            if (at(LBRACE)) {
-                PsiBuilder.Marker body = mark();
-                while (!atSet(KEYWORDALL) && !eof()) {
-                    advance();
+        if (this.isDeclarationsFile) {
+            if (this.at(LBRACE)) {
+                final PsiBuilder.Marker body = this.mark();
+                while (!this.atSet(KEYWORDALL) && !this.eof()) {
+                    this.advance();
                 }
 
 //                parseFunctionBody();
@@ -2042,7 +2039,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
 //        if (at(LBRACE)) {
-        parseInitFunctionBody();
+        this.parseInitFunctionBody();
 //        } else {
 //            error("Expecting '{' ");  //应该为'{'
 //        }
@@ -2053,119 +2050,119 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * : memberDeclaration*
      * ;
      */
-    private void parseMembers(Integer tokenId, ModifierDetector detector) {
-        while (!eof() && !at(RBRACE)) {
-            parseMemberDeclaration(tokenId, detector);
+    private void parseMembers(final Integer tokenId, final ModifierDetector detector) {
+        while (!this.eof() && !this.at(RBRACE)) {
+            this.parseMemberDeclaration(tokenId, detector);
         }
     }
 
-    private void parseClassBody(Integer tokenId, @NotNull ModifierDetector detector) {
-        PsiBuilder.Marker body = mark();
+    private void parseClassBody(final Integer tokenId, @NotNull final ModifierDetector detector) {
+        final PsiBuilder.Marker body = this.mark();
 
-        myBuilder.enableNewlines();
+        this.myBuilder.enableNewlines();
 
-        if (expect(LBRACE, "Expecting a class body")) {
-            parseMembers(tokenId, detector);
-            expect(RBRACE, "Missing '}");
+        if (this.expect(LBRACE, "Expecting a class body")) {
+            this.parseMembers(tokenId, detector);
+            this.expect(RBRACE, "Missing '}");
         }
 
-        myBuilder.restoreNewlinesState();
+        this.myBuilder.restoreNewlinesState();
 
         body.done(CLASS_BODY);
     }
 
     private IElementType parseMainFunc() {
-        assert _at(MAIN_KEYWORD);
-        advance();
-        if (at(RBRACE)) {
-            error("Function body expected");  //应该为函数体
+        assert this._at(MAIN_KEYWORD);
+        this.advance();
+        if (this.at(RBRACE)) {
+            this.error("Function body expected");  //应该为函数体
             return MAIN_FUNC;
         }
-        myBuilder.disableJoiningComplexTokens();
+        this.myBuilder.disableJoiningComplexTokens();
         //类型参数
-        if (at(LPAR)) {
-            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
+        if (this.at(LPAR)) {
+            this.parseValueParameterList(false, false, CangJieParsing.VALUE_PARAMETERS_FOLLOW_SET);
 
         } else {
-            error("Expecting '(' ");  //应该为'('
+            this.error("Expecting '(' ");  //应该为'('
         }
 
         //返回值类型
-        if (at(COLON)) {
-            advance(); // COLON
-            parseTypeRef();
+        if (this.at(COLON)) {
+            this.advance(); // COLON
+            this.parseTypeRef();
         }
 
         //函数体
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON
 //        } else
-        if (at(LBRACE)) {
-            parseFunctionBody();
+        if (this.at(LBRACE)) {
+            this.parseFunctionBody();
         } else {
-            error("Expecting '{' ");  //应该为'{'
+            this.error("Expecting '{' ");  //应该为'{'
         }
         return MAIN_FUNC;
     }
 
     @NotNull
     IElementType parseFunction() {
-        return parseFunction(false, null, null, false, 0);
+        return this.parseFunction(false, null, null, false, 0);
     }
 
     @NotNull
-    IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector, Integer topTokenId) {
-        return parseFunction(isInterfaceMethod, classdetector, detector, false, topTokenId);
+    IElementType parseFunction(final boolean isInterfaceMethod, final ModifierDetector classdetector, final ModifierDetector detector, final Integer topTokenId) {
+        return this.parseFunction(isInterfaceMethod, classdetector, detector, false, topTokenId);
     }
 
     @NotNull
-    IElementType parseFunction(boolean isInterfaceMethod, Integer topTokenId) {
-        return parseFunction(isInterfaceMethod, null, null, false, topTokenId);
+    IElementType parseFunction(final boolean isInterfaceMethod, final Integer topTokenId) {
+        return this.parseFunction(isInterfaceMethod, null, null, false, topTokenId);
     }
 
     @NotNull
-    IElementType parseFunction(ModifierDetector detector
+    IElementType parseFunction(final ModifierDetector detector
     ) {
-        return parseFunction(detector, 0);
+        return this.parseFunction(detector, 0);
     }
 
     @NotNull
-    IElementType parseFunction(ModifierDetector detector, Integer topTokenId
+    IElementType parseFunction(final ModifierDetector detector, final Integer topTokenId
     ) {
-        return parseFunction(false, null, detector, false, topTokenId);
+        return this.parseFunction(false, null, detector, false, topTokenId);
     }
 
     @NotNull
-    IElementType parseForeignFunction(ModifierDetector detector) {
-        return parseForeignFunction(detector, 0);
+    IElementType parseForeignFunction(final ModifierDetector detector) {
+        return this.parseForeignFunction(detector, 0);
     }
 
     @NotNull
-    IElementType parseForeignFunction(ModifierDetector detector, Integer topTokenId) {
-        return parseFunction(false, null, detector, true, topTokenId);
+    IElementType parseForeignFunction(final ModifierDetector detector, final Integer topTokenId) {
+        return this.parseFunction(false, null, detector, true, topTokenId);
     }
 
     @NotNull
-    IElementType parseFunction(ModifierDetector classdetector, ModifierDetector detector, Integer topTokenId) {
-        return parseFunction(false, classdetector, detector, false, topTokenId);
+    IElementType parseFunction(final ModifierDetector classdetector, final ModifierDetector detector, final Integer topTokenId) {
+        return this.parseFunction(false, classdetector, detector, false, topTokenId);
     }
 
     /*
      * IDENTIFIER 标识符
      */
     private void parseIdentifier() {
-        if (expect(IDENTIFIER)) return;
+        if (this.expect(IDENTIFIER)) return;
 
-        if (atSet(KEYWORDS)) {
-            error("Keywords cannot be used"); //关键字不能使用
+        if (this.atSet(KEYWORDS)) {
+            this.error("Keywords cannot be used"); //关键字不能使用
         }
 
-        if (!at(LPAR)) {
-            errorAndAdvance("Expecting an CangJie identifier");
+        if (!this.at(LPAR)) {
+            this.errorAndAdvance("Expecting an CangJie identifier");
             return;
         }
 
-        error("Expecting an CangJie identifier"); //应该为标识符
+        this.error("Expecting an CangJie identifier"); //应该为标识符
 
     }
 
@@ -2173,22 +2170,22 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * IDENTIFIER
      */
     private void parseIdentifierByTitle(
-            String title, TokenSet recoverySet, boolean isUnderline
+            final String title, final TokenSet recoverySet, final boolean isUnderline
     ) {
 
-        if (isUnderline && expect(CangJieExpressionParsing.IDENTIFIER_RECOVERY_SET)) {
+        if (isUnderline && this.expect(CangJieExpressionParsing.IDENTIFIER_RECOVERY_SET)) {
             return;
         }
 
-        if (expect(IDENTIFIER)) {
+        if (this.expect(IDENTIFIER)) {
             return;
         }
 
-        errorWithRecovery("Expecting " + title + " name", recoverySet);
+        this.errorWithRecovery("Expecting " + title + " name", recoverySet);
     }
 
-    private void parseIdentifierByTitle(String title) {
-        parseIdentifierByTitle(title, TokenSet.EMPTY, false);
+    private void parseIdentifierByTitle(final String title) {
+        this.parseIdentifierByTitle(title, TokenSet.EMPTY, false);
     }
 
     /*
@@ -2200,44 +2197,44 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     @Contract("false -> !null")
-    IElementType parseFunction(boolean isInterfaceMethod, ModifierDetector classdetector, ModifierDetector detector, boolean isForeign, Integer topTokenId) {
+    IElementType parseFunction(final boolean isInterfaceMethod, final ModifierDetector classdetector, final ModifierDetector detector, final boolean isForeign, final Integer topTokenId) {
 
 
 
-        assert _at(FUNC_KEYWORD);
-        advance();
+        assert this._at(FUNC_KEYWORD);
+        this.advance();
         IElementType type = FUNC;
-        if (topTokenId != null && EXTEND_KEYWORD_Id == topTokenId) {
+        if (null != topTokenId && EXTEND_KEYWORD_Id == topTokenId) {
             type = FUNC_EXTEND;
         }
 
-        if (at(RBRACE)) {
-            error("Function body expected");  //应该为函数体
+        if (this.at(RBRACE)) {
+            this.error("Function body expected");  //应该为函数体
             return type;
         }
 
 
-        myBuilder.disableJoiningComplexTokens();
+        this.myBuilder.disableJoiningComplexTokens();
 
 
-        if (detector != null && detector.isOperatorDetected()) {
+        if (null != detector && detector.isOperatorDetected()) {
 
 
             //运算符重载
 
-            IElementType operatorToken = getOperationTokenType();
+            final IElementType operatorToken = this.getOperationTokenType();
 
             if (OPERATIONS_CAN_BE_OVERLOADED.contains(operatorToken)) {
-                PsiBuilder.Marker operator = mark();
+                final PsiBuilder.Marker operator = this.mark();
 
 
-                advanceOperationToken(operatorToken);
+                this.advanceOperationToken(operatorToken);
 
                 operator.done(OPERATION_NAME);
             } else {
 
-                PsiBuilder.Marker mark = mark();
-                advance();
+                final PsiBuilder.Marker mark = this.mark();
+                this.advance();
                 mark.error("Should be an overloaded operator");
 
 
@@ -2245,41 +2242,41 @@ public class CangJieParsing extends AbstractCangJieParsing {
             }
         }  else {
             //函数名
-            myBuilder.getTokenType();
-            parseIdentifier();
+            this.myBuilder.getTokenType();
+            this.parseIdentifier();
         }
 
 
 
         boolean typeParameterListOccurred = false;
-        if (at(LT)) {
-            parseTypeParameterList(LBRACKET_LBRACE_RBRACE_LPAR_SET);
+        if (this.at(LT)) {
+            this.parseTypeParameterList(CangJieParsing.LBRACKET_LBRACE_RBRACE_LPAR_SET);
             typeParameterListOccurred = true;
         }
 
 
         //类型参数
-        if (at(LPAR)) {
-            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
+        if (this.at(LPAR)) {
+            this.parseValueParameterList(false, false, CangJieParsing.VALUE_PARAMETERS_FOLLOW_SET);
 
         } else {
-            error("Expecting '(' ");  //应该为'('
+            this.error("Expecting '(' ");  //应该为'('
         }
 
         //返回值类型
-        if (at(COLON)) {
-            advance(); // COLON
-            parseTypeRef();
+        if (this.at(COLON)) {
+            this.advance(); // COLON
+            this.parseTypeRef();
         }
-        parseTypeConstraintsGuarded(typeParameterListOccurred);
+        this.parseTypeConstraintsGuarded(typeParameterListOccurred);
         //函数体
 
-        if (isDeclarationsFile) {
+        if (this.isDeclarationsFile) {
 
-            if (at(LBRACE)) {
-                PsiBuilder.Marker body = mark();
-                while (!atSet(KEYWORDALL) && !eof()) {
-                    advance();
+            if (this.at(LBRACE)) {
+                final PsiBuilder.Marker body = this.mark();
+                while (!this.atSet(KEYWORDALL) && !this.eof()) {
+                    this.advance();
                 }
 
 
@@ -2295,41 +2292,41 @@ public class CangJieParsing extends AbstractCangJieParsing {
             advance();
             myExpressionParsing.parseExpression();
 
-        } else*/ if (at(LBRACE)) {
+        } else*/ if (this.at(LBRACE)) {
 
-            parseFunctionBody();
+            this.parseFunctionBody();
             if (isForeign) {
-                error("foreign function can not have body");  //应该为'{'
+                this.error("foreign function can not have body");  //应该为'{'
             }
 
-        } else if (!(isInterfaceMethod || (classdetector != null && classdetector.isAbstractDetected())) && (detector != null && !detector.isForeignDetected())) {
-            error("Expecting '{' ");  //应该为'{'
+        } else if (!(isInterfaceMethod || (null != classdetector && classdetector.isAbstractDetected())) && (null != detector && !detector.isForeignDetected())) {
+            this.error("Expecting '{' ");  //应该为'{'
         }
 
         return type;
     }
 
     public void parseSynchronizedExpression() {
-        assert _at(SYNCHRONIZED_KEYWORD);
-        SyntaxTreeBuilder.Marker synchronizedMarker = mark();
-        advance();
+        assert this._at(SYNCHRONIZED_KEYWORD);
+        final SyntaxTreeBuilder.Marker synchronizedMarker = this.mark();
+        this.advance();
 
 
-        if (at(LPAR)) {
-            advance();
-            myExpressionParsing.parseExpression();
+        if (this.at(LPAR)) {
+            this.advance();
+            this.myExpressionParsing.parseExpression();
 
-            expect(RPAR, "Expecting '('");
+            this.expect(RPAR, "Expecting '('");
 
 
         } else {
-            error("Expecting '(' ");
+            this.error("Expecting '(' ");
         }
 
-        if (at(LBRACE)) {
-            parseBlock();
+        if (this.at(LBRACE)) {
+            this.parseBlock();
         } else {
-            error("Expecting '{' ");  //应该为'{'
+            this.error("Expecting '{' ");  //应该为'{'
         }
 
         synchronizedMarker.done(SYNCHRONIZED_EXPRESSION);
@@ -2356,15 +2353,15 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * 外部函数声明块
      */
     private IElementType parseForeign() {
-        assert _at(FOREIGN_KEYWORD);
-        advance();
+        assert this._at(FOREIGN_KEYWORD);
+        this.advance();
 
 //        处理声明块
-        if (at(LBRACE)) {
-            parseForeignBody();
+        if (this.at(LBRACE)) {
+            this.parseForeignBody();
 
         } else {
-            error("Expecting '{' ");
+            this.error("Expecting '{' ");
 
         }
 
@@ -2376,30 +2373,30 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * 外部函数声明块
      */
     private void parseForeignBody() {
-        assert _at(LBRACE);
+        assert this._at(LBRACE);
 
-        PsiBuilder.Marker mark = mark();
-        advance(); // LBRACE
+        final PsiBuilder.Marker mark = this.mark();
+        this.advance(); // LBRACE
 
-        while (!at(RBRACE) && !eof()) {
-            ModifierDetector detector = new ModifierDetector();
+        while (!this.at(RBRACE) && !this.eof()) {
+            final ModifierDetector detector = new ModifierDetector();
 
-            parseModifierList(detector, TokenSet.EMPTY);
+            this.parseModifierList(detector, TokenSet.EMPTY);
 
 
-            if (at(FUNC_KEYWORD)) {
+            if (this.at(FUNC_KEYWORD)) {
                 detector.consume(FOREIGN_KEYWORD);
 
-                parseForeignFunction(detector);
+                this.parseForeignFunction(detector);
             } else {
-                errorWithRecovery("Expecting function declaration", TokenSet.create(FUNC_KEYWORD));
+                this.errorWithRecovery("Expecting function declaration", TokenSet.create(FUNC_KEYWORD));
             }
 
 
 //            advance();
 
         }
-        expect(RBRACE, "Missing '}");
+        this.expect(RBRACE, "Missing '}");
 //        if (at(RBRACE)) {
 //            advance();
 //
@@ -2416,53 +2413,53 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * @return
      */
     private IElementType parseMacro() {
-        assert _at(MACRO_KEYWORD);
-        advance();
+        assert this._at(MACRO_KEYWORD);
+        this.advance();
 
-        if (at(RBRACE)) {
-            error("Function body expected");  //应该为函数体
+        if (this.at(RBRACE)) {
+            this.error("Function body expected");  //应该为函数体
             return MACRO;
         }
 
 
-        myBuilder.disableJoiningComplexTokens();
+        this.myBuilder.disableJoiningComplexTokens();
 
 
         //函数名
-        parseIdentifier();
+        this.parseIdentifier();
 
 
 //        expect(EXCL);
 
         boolean typeParameterListOccurred = false;
-        if (at(LT)) {
-            parseTypeParameterList(LBRACKET_LBRACE_RBRACE_LPAR_SET);
+        if (this.at(LT)) {
+            this.parseTypeParameterList(CangJieParsing.LBRACKET_LBRACE_RBRACE_LPAR_SET);
             typeParameterListOccurred = true;
         }
 
 
         //类型参数
-        if (at(LPAR)) {
-            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET);
+        if (this.at(LPAR)) {
+            this.parseValueParameterList(false, false, CangJieParsing.VALUE_PARAMETERS_FOLLOW_SET);
 
         } else {
-            error("Expecting '(' ");  //应该为'('
+            this.error("Expecting '(' ");  //应该为'('
         }
 
         //返回值类型
-        if (at(COLON)) {
-            advance(); // COLON
-            parseTypeRef();
+        if (this.at(COLON)) {
+            this.advance(); // COLON
+            this.parseTypeRef();
         }
-        parseTypeConstraintsGuarded(typeParameterListOccurred);
+        this.parseTypeConstraintsGuarded(typeParameterListOccurred);
 
 
-        if (isDeclarationsFile) {
+        if (this.isDeclarationsFile) {
 
-            if (at(LBRACE)) {
-                PsiBuilder.Marker body = mark();
-                while (!atSet(KEYWORDALL) && !eof()) {
-                    advance();
+            if (this.at(LBRACE)) {
+                final PsiBuilder.Marker body = this.mark();
+                while (!this.atSet(KEYWORDALL) && !this.eof()) {
+                    this.advance();
                 }
 
                 body.error("Method bodies are not allowed in declaration files");
@@ -2476,10 +2473,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        if (at(SEMICOLON)) {
 //            advance(); // SEMICOLON
 //        } else
-        if (at(LBRACE)) {
-            parseFunctionBody();
+        if (this.at(LBRACE)) {
+            this.parseFunctionBody();
         } else {
-            error("Expecting '{' ");  //应该为'{'
+            this.error("Expecting '{' ");  //应该为'{'
         }
         return MACRO;
     }
@@ -2492,18 +2489,18 @@ public class CangJieParsing extends AbstractCangJieParsing {
      */
     void parseInitFunctionBody() {
         //        恢复  init() : xxxx {}
-        if (at(COLON)) {
-            PsiBuilder.Marker error = mark();
-            while (!at(LBRACE)) advance();
+        if (this.at(COLON)) {
+            final PsiBuilder.Marker error = this.mark();
+            while (!this.at(LBRACE)) this.advance();
 
             error.error("Expecting '{' ");
         }
-        if (isDeclarationsFile) {
+        if (this.isDeclarationsFile) {
 
-            if (at(LBRACE)) {
-                PsiBuilder.Marker body = mark();
-                while (!atSet(KEYWORDALL) && !eof()) {
-                    advance();
+            if (this.at(LBRACE)) {
+                final PsiBuilder.Marker body = this.mark();
+                while (!this.atSet(KEYWORDALL) && !this.eof()) {
+                    this.advance();
                 }
 
                 body.error("Method bodies are not allowed in declaration files");
@@ -2512,10 +2509,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
             return;
         }
-        if (at(LBRACE)) {
-            parseInitFunctionBlock();
+        if (this.at(LBRACE)) {
+            this.parseInitFunctionBlock();
         } else {
-            error("Expecting function body"); //应该为函数体
+            this.error("Expecting function body"); //应该为函数体
         }
     }
 
@@ -2526,10 +2523,10 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ;
      */
     void parseFunctionBody() {
-        if (at(LBRACE)) {
-            parseBlock();
+        if (this.at(LBRACE)) {
+            this.parseBlock();
         } else {
-            error("Expecting function body"); //应该为函数体
+            this.error("Expecting function body"); //应该为函数体
         }
     }
 
@@ -2539,8 +2536,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : modifiers ("val" | "var")? parameter ("=" element)?
      *   ;
      */
-    private boolean tryParseValueParameter(boolean typeRequired) {
-        return parseValueParameter(true, typeRequired);
+    private boolean tryParseValueParameter(final boolean typeRequired) {
+        return this.parseValueParameter(true, typeRequired);
     }
 
     //    private void parseFunctionTypeValueParameterModifierList() {
@@ -2549,12 +2546,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
     void parseInitFuncValueParameterList() {
-        parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET, true);
+        this.parseValueParameterList(false, false, CangJieParsing.VALUE_PARAMETERS_FOLLOW_SET, true);
     }
 
 
-    private void parseValueParameterList(boolean isFunctionTypeContents, boolean typeRequired, TokenSet recoverySet) {
-        parseValueParameterList(isFunctionTypeContents, typeRequired, recoverySet, false);
+    private void parseValueParameterList(final boolean isFunctionTypeContents, final boolean typeRequired, final TokenSet recoverySet) {
+        this.parseValueParameterList(isFunctionTypeContents, typeRequired, recoverySet, false);
 
     }
 
@@ -2571,29 +2568,29 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : parameter ("=" element)?
      *   ;
      */
-    private void parseValueParameterList(boolean isFunctionTypeContents, boolean typeRequired, TokenSet recoverySet, boolean isInitFunc) {
-        assert at(LPAR);
-        PsiBuilder.Marker parameters = mark();
+    private void parseValueParameterList(final boolean isFunctionTypeContents, final boolean typeRequired, final TokenSet recoverySet, final boolean isInitFunc) {
+        assert this.at(LPAR);
+        final PsiBuilder.Marker parameters = this.mark();
 
 
-        myBuilder.disableNewlines();
-        advance(); // (
+        this.myBuilder.disableNewlines();
+        this.advance(); // (
 
 
 //        用于报告错误   要么全为命名参数，要么全不为命名参数
 //        bool isNamedParameter = false;
-        List<Boolean> isNamedParameters = new ArrayList<>();
+        final List<Boolean> isNamedParameters = new ArrayList<>();
 
-        while (!at(RPAR) && !atSet(recoverySet) && !eof()) {
-            if (at(COMMA)) {
-                errorAndAdvance("Expecting a parameter declaration");  //应该为参数声明
+        while (!this.at(RPAR) && !this.atSet(recoverySet) && !this.eof()) {
+            if (this.at(COMMA)) {
+                this.errorAndAdvance("Expecting a parameter declaration");  //应该为参数声明
             }
             if (isFunctionTypeContents) {
-                if (!tryParseValueParameter(typeRequired)) {
-                    PsiBuilder.Marker valueParameter = mark();
+                if (!this.tryParseValueParameter(typeRequired)) {
+                    final PsiBuilder.Marker valueParameter = this.mark();
 //                    parseFunctionTypeValueParameterModifierList();
-                    parseTypeRef();
-                    closeDeclarationWithCommentBinders(valueParameter, VALUE_PARAMETER, false);
+                    this.parseTypeRef();
+                    AbstractCangJieParsing.closeDeclarationWithCommentBinders(valueParameter, VALUE_PARAMETER, false);
                     isNamedParameters.add(false);
 
                 } else {
@@ -2601,19 +2598,19 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
                 }
             } else {
-                parseValueParameter(false, typeRequired, isInitFunc);
+                this.parseValueParameter(false, typeRequired, isInitFunc);
             }
 //            parseValueParameter(typeRequired);
-            if (at(COMMA)) {
-                advance(); // COMMA
+            if (this.at(COMMA)) {
+                this.advance(); // COMMA
 
-                if (at(RPAR)) {
-                    error("Expecting a parameter declaration");  //应该为参数声明
+                if (this.at(RPAR)) {
+                    this.error("Expecting a parameter declaration");  //应该为参数声明
                 }
 
             } else {
-                if (!at(RPAR)) {
-                    errorAndAdvance("Expecting ',' or ')',found '" + myBuilder.getTokenText() + "'");  //应该为参数声明
+                if (!this.at(RPAR)) {
+                    this.errorAndAdvance("Expecting ',' or ')',found '" + this.myBuilder.getTokenText() + "'");  //应该为参数声明
                 }
 //                if (!atSet(isFunctionTypeContents ? LAMBDA_VALUE_PARAMETER_FIRST : VALUE_PARAMETER_FIRST)) break;
 
@@ -2652,8 +2649,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //
 //            }
 //        }
-        expect(RPAR, "Expecting ')'", recoverySet);
-        myBuilder.restoreNewlinesState();
+        this.expect(RPAR, "Expecting ')'", recoverySet);
+        this.myBuilder.restoreNewlinesState();
 
 
         if (isNamedParameters.contains(true) && isNamedParameters.contains(false)) {
@@ -2666,17 +2663,17 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     }
 
-    public void parseValueParameter(boolean typeRequired) {
-        parseValueParameter(false, typeRequired);
+    public void parseValueParameter(final boolean typeRequired) {
+        this.parseValueParameter(false, typeRequired);
     }
 
-    private boolean parseValueParameter(boolean rollbackOnFailure, boolean typeRequired) {
-        return parseValueParameter(rollbackOnFailure, typeRequired, false);
+    private boolean parseValueParameter(final boolean rollbackOnFailure, final boolean typeRequired) {
+        return this.parseValueParameter(rollbackOnFailure, typeRequired, false);
 
     }
 
-    private boolean parseValueParameter(boolean rollbackOnFailure, boolean typeRequired, boolean isInitFunc) {
-        PsiBuilder.Marker parameter = mark();
+    private boolean parseValueParameter(final boolean rollbackOnFailure, final boolean typeRequired, final boolean isInitFunc) {
+        final PsiBuilder.Marker parameter = this.mark();
 
 //
 //        if (at(VAR_KEYWORD) || at(LET_KEYWORD)) {
@@ -2687,24 +2684,24 @@ public class CangJieParsing extends AbstractCangJieParsing {
         if (isInitFunc) {
 
 
-            ModifierDetector detector = new ModifierDetector();
+            final ModifierDetector detector = new ModifierDetector();
 
-            parseModifierList(detector, TokenSet.EMPTY, true);
-            if ((at(LET_KEYWORD) || at(VAR_KEYWORD))) {
-                advance();
-            } else if (detector.getSize() > 0) {
+            this.parseModifierList(detector, TokenSet.EMPTY, true);
+            if ((this.at(LET_KEYWORD) || this.at(VAR_KEYWORD))) {
+                this.advance();
+            } else if (0 < detector.getSize()) {
 
-                error("Missing variable declaration symbol let or var after modifier");  //应该为参数声明
+                this.error("Missing variable declaration symbol let or var after modifier");  //应该为参数声明
             }
         }
 
 
-        if (!parseFunctionParameterRest(typeRequired) && rollbackOnFailure) {
+        if (!this.parseFunctionParameterRest(typeRequired) && rollbackOnFailure) {
             parameter.rollbackTo();
             return false;
         }
 
-        closeDeclarationWithCommentBinders(parameter, VALUE_PARAMETER, false);
+        AbstractCangJieParsing.closeDeclarationWithCommentBinders(parameter, VALUE_PARAMETER, false);
         return true;
     }
 
@@ -2716,86 +2713,86 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   ; identifier ':' ('?')?type   可以为Option.Nono
      *   ;
      */
-    private boolean parseFunctionParameterRest(boolean typeRequired) {
+    private boolean parseFunctionParameterRest(final boolean typeRequired) {
         boolean noErrors = true;
         boolean isDefault = false;
 
 
         // 恢复 'func foo(Array<String>) {}'
         // 恢复 'func foo(: Int) {}'
-        if ((at(IDENTIFIER) && lookahead(1) == LT) || at(COLON)) {
-            error("Missing parameter name");  //缺少参数名称
-            if (at(COLON)) {
+        if ((this.at(IDENTIFIER) && this.lookahead(1) == LT) || this.at(COLON)) {
+            this.error("Missing parameter name");  //缺少参数名称
+            if (this.at(COLON)) {
                 // 保留noErrors==true，这样在函数类型的解析过程中不会回滚以“：”开头的未命名参数
-                advance(); // :
+                this.advance(); // :
 
 
             } else {
                 noErrors = false;
             }
-            parseTypeRef();
+            this.parseTypeRef();
         } else {
-            expect(CangJieExpressionParsing.IDENTIFIER_RECOVERY_SET, "Missing parameter name", PARAMETER_NAME_RECOVERY_SET);
+            this.expect(CangJieExpressionParsing.IDENTIFIER_RECOVERY_SET, "Missing parameter name", CangJieParsing.PARAMETER_NAME_RECOVERY_SET);
 
-            if (expect(EXCL)) {
+            if (this.expect(EXCL)) {
 //              可以有默认值
                 isDefault = true;
             }
 
-            if (at(COLON)) {
-                advance(); // :
+            if (this.at(COLON)) {
+                this.advance(); // :
 
-                if (at(IDENTIFIER) && lookahead(1) == COLON) {
+                if (this.at(IDENTIFIER) && this.lookahead(1) == COLON) {
                     // 恢复 "func foo(x: y: Int)" 处理 'y:' 时，可能是下一个参数的名称
-                    error("Type reference expected");
+                    this.error("Type reference expected");
                     return false;
                 }
 
-                parseTypeRef();
+                this.parseTypeRef();
             } else if (typeRequired) {
-                errorWithRecovery("Parameters must have type annotation", PARAMETER_NAME_RECOVERY_SET);
+                this.errorWithRecovery("Parameters must have type annotation", CangJieParsing.PARAMETER_NAME_RECOVERY_SET);
                 noErrors = false;
             } else {
-                errorWithoutAdvancing("Expecting ':' Missing type declaration");  //应该为':'
+                this.errorWithoutAdvancing("Expecting ':' Missing type declaration");  //应该为':'
                 noErrors = false;
             }
 
 
         }
-        if (at(EQ)) {
+        if (this.at(EQ)) {
             if (isDefault) {
-                advance();
+                this.advance();
             } else {
-                error("The default value cannot be set for non-named parameters");
-                errorAndAdvance("Expecting ',' or ')', found '='");
+                this.error("The default value cannot be set for non-named parameters");
+                this.errorAndAdvance("Expecting ',' or ')', found '='");
                 noErrors = false;
 
             }
 
 
-            myExpressionParsing.parseExpression();
+            this.myExpressionParsing.parseExpression();
         }
         return noErrors;
     }
 
-    private boolean recoverOnParenthesizedWordForPlatformTypes(int offset, String word, boolean consume) {
+    private boolean recoverOnParenthesizedWordForPlatformTypes(final int offset, final String word, final boolean consume) {
         // Array<(out) Foo>! or (Mutable)List<Bar>!
-        if (lookahead(offset) == LPAR &&
-                lookahead(offset + 1) == IDENTIFIER &&
-                lookahead(offset + 2) == RPAR &&
-                lookahead(offset + 3) == IDENTIFIER) {
-            PsiBuilder.Marker error = mark();
+        if (this.lookahead(offset) == LPAR &&
+                this.lookahead(offset + 1) == IDENTIFIER &&
+                this.lookahead(offset + 2) == RPAR &&
+                this.lookahead(offset + 3) == IDENTIFIER) {
+            final PsiBuilder.Marker error = this.mark();
 
-            advance(offset);
+            this.advance(offset);
 
-            advance(); // LPAR
-            if (!word.equals(myBuilder.getTokenText())) {
+            this.advance(); // LPAR
+            if (!word.equals(this.myBuilder.getTokenText())) {
                 // something other than "out" / "Mutable"
                 error.rollbackTo();
                 return false;
             } else {
-                advance(); // IDENTIFIER('out')
-                advance(); // RPAR
+                this.advance(); // IDENTIFIER('out')
+                this.advance(); // RPAR
 
                 if (consume) {
                     error.error("Unexpected tokens");
@@ -2813,11 +2810,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *  (optionalProjection type){","}
      */
     private boolean parseTypeArgumentList() {
-        if (!at(LT)) return false;
+        if (!this.at(LT)) return false;
 
-        PsiBuilder.Marker list = mark();
+        final PsiBuilder.Marker list = this.mark();
 
-        tryParseTypeArgumentList(TokenSet.EMPTY);
+        this.tryParseTypeArgumentList(TokenSet.EMPTY);
 
         list.done(TYPE_ARGUMENT_LIST);
 
@@ -2826,9 +2823,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     private void recoverOnPlatformTypeSuffix() {
         // 平台类型的恢复
-        if (at(EXCL)) {
-            PsiBuilder.Marker error = mark();
-            advance(); // EXCL
+        if (this.at(EXCL)) {
+            final PsiBuilder.Marker error = this.mark();
+            this.advance(); // EXCL
             error.error("Unexpected token");
         }
     }
@@ -2838,43 +2835,43 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *   : (type ".")? "(" parameter{","}? ")" "->" type?
      *   ;
      */
-    private void parseFunctionType(PsiBuilder.Marker functionType) {
-        parseFunctionTypeContents(functionType).done(FUNCTION_TYPE);
+    private void parseFunctionType(final PsiBuilder.Marker functionType) {
+        this.parseFunctionTypeContents(functionType).done(FUNCTION_TYPE);
     }
 
-    private PsiBuilder.Marker parseFunctionTypeContents(PsiBuilder.Marker functionType) {
-        assert _at(LPAR) : tt();
+    private PsiBuilder.Marker parseFunctionTypeContents(final PsiBuilder.Marker functionType) {
+        assert this._at(LPAR) : this.tt();
 
-        parseValueParameterList(true, /* typeRequired  = */ true, TokenSet.EMPTY);
+        this.parseValueParameterList(true, /* typeRequired  = */ true, TokenSet.EMPTY);
 
-        expect(ARROW, "Expecting '->' to specify return type of a function type", TYPE_REF_FIRST);
-        parseTypeRef();
+        this.expect(ARROW, "Expecting '->' to specify return type of a function type", CangJieParsing.TYPE_REF_FIRST);
+        this.parseTypeRef();
 
         return functionType;
     }
 
     //返回元组的类型数量
     private int parseTupleType() {
-        assert _at(LPAR);
+        assert this._at(LPAR);
         int count = 0;
 
 
-        advance(); // LPAR
+        this.advance(); // LPAR
 
-        if (!at(RPAR)) {
+        if (!this.at(RPAR)) {
             while (true) {
 
-                parseTypeRef();
+                this.parseTypeRef();
                 count++;
-                if (!at(COMMA)) break;
-                advance(); // COMMA
+                if (!this.at(COMMA)) break;
+                this.advance(); // COMMA
 
             }
         } else {
-            error("Expecting type");
+            this.error("Expecting type");
         }
 
-        expect(RPAR, "Expecting ')'");
+        this.expect(RPAR, "Expecting ')'");
 
         return count;
     }
@@ -2885,30 +2882,30 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private boolean parseVArrayType() {
 
 
-        if (at(VARRAY_KEYWORD)) {
-            PsiBuilder.Marker typeRefMarker = mark();
-            advance();
+        if (this.at(VARRAY_KEYWORD)) {
+            final PsiBuilder.Marker typeRefMarker = this.mark();
+            this.advance();
 
-            if (at(LT)) {
-                advance();
-                PsiBuilder.Marker list = mark();
-                PsiBuilder.Marker projection = mark();
+            if (this.at(LT)) {
+                this.advance();
+                final PsiBuilder.Marker list = this.mark();
+                final PsiBuilder.Marker projection = this.mark();
 
-                parseTypeRef(TokenSet.EMPTY);
+                this.parseTypeRef(TokenSet.EMPTY);
 
                 projection.done(TYPE_PROJECTION);
                 list.done(TYPE_ARGUMENT_LIST);
 
-                expect(COMMA, "Should be ','");
-                expect(DOLLAR, "Should be '$'");
+                this.expect(COMMA, "Should be ','");
+                this.expect(DOLLAR, "Should be '$'");
 
 
-                expect(INTEGER_LITERAL, "Should be integer literal");
+                this.expect(INTEGER_LITERAL, "Should be integer literal");
 
-                expect(GT, "Should be '>");
+                this.expect(GT, "Should be '>");
 
             } else {
-                error("expected type parameters after 'VArray' keyword");
+                this.error("expected type parameters after 'VArray' keyword");
             }
 
             typeRefMarker.done(VARRAY_TYPE);
@@ -2935,36 +2932,36 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        是否具有泛型
         boolean isTypeArgumentList = false;
 
-        PsiBuilder.Marker userType = mark();
+        PsiBuilder.Marker userType = this.mark();
 
 
-        PsiBuilder.Marker reference = mark();
+        PsiBuilder.Marker reference = this.mark();
 
         while (true) {
-            recoverOnParenthesizedWordForPlatformTypes(0, "Mutable", true);
-            if (expect(IDENTIFIER, "Expecting type name",
+            this.recoverOnParenthesizedWordForPlatformTypes(0, "Mutable", true);
+            if (this.expect(IDENTIFIER, "Expecting type name",
                     TokenSet.orSet(CangJieExpressionParsing.Companion.getEXPRESSION_FIRST(), CangJieExpressionParsing.Companion.getEXPRESSION_FOLLOW(),
-                            DECLARATION_FIRST))) {
+                            CangJieParsing.DECLARATION_FIRST))) {
                 reference.done(REFERENCE_EXPRESSION);
             } else {
                 reference.drop();
                 break;
             }
 
-            isTypeArgumentList = parseTypeArgumentList();
+            isTypeArgumentList = this.parseTypeArgumentList();
 
 //            recoverOnPlatformTypeSuffix();
 
-            if (!at(DOT)) {
+            if (!this.at(DOT)) {
                 break;
             }
 
-            PsiBuilder.Marker precede = userType.precede();
+            final PsiBuilder.Marker precede = userType.precede();
             userType.done(USER_TYPE);
             userType = precede;
 
-            advance(); // DOT
-            reference = mark();
+            this.advance(); // DOT
+            reference = this.mark();
         }
 
         userType.done(USER_TYPE);
@@ -2977,8 +2974,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
      *
      * @return
      */
-    private PsiBuilder.Marker parseTypeRefContents(TokenSet extraRecoverySet) {
-        PsiBuilder.Marker typeRefMarker = mark();
+    private PsiBuilder.Marker parseTypeRefContents(final TokenSet extraRecoverySet) {
+        final PsiBuilder.Marker typeRefMarker = this.mark();
 
         return typeRefMarker;
     }
@@ -2990,9 +2987,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private boolean parseThisType() {
 
 
-        if (at(THIS_KEYWORD_UPPER)) {
-            PsiBuilder.Marker typeRefMarker = mark();
-            advance();
+        if (this.at(THIS_KEYWORD_UPPER)) {
+            final PsiBuilder.Marker typeRefMarker = this.mark();
+            this.advance();
             typeRefMarker.done(THIS_TYPE);
             return true;
         }
@@ -3009,9 +3006,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private boolean parseBasicType() {
 
 
-        if (atSet(BASICTYPES)) {
-            PsiBuilder.Marker typeRefMarker = mark();
-            advance();
+        if (this.atSet(BASICTYPES)) {
+            final PsiBuilder.Marker typeRefMarker = this.mark();
+            this.advance();
             typeRefMarker.done(BASIC_TYPE);
             return true;
         }
@@ -3025,27 +3022,27 @@ public class CangJieParsing extends AbstractCangJieParsing {
     /*
      * (SimpleName  {","})
      */
-    public void parseMultiDeclarationName(TokenSet follow, TokenSet recoverySet) {
+    public void parseMultiDeclarationName(final TokenSet follow, final TokenSet recoverySet) {
 
 
         // Parsing multi-name, e.g.
         //   val (a, b) = foo()
-        myBuilder.disableNewlines();
-        advance(); // LPAR
+        this.myBuilder.disableNewlines();
+        this.advance(); // LPAR
 
-        if (!atSet(follow)) {
+        if (!this.atSet(follow)) {
             while (true) {
-                if (at(COMMA)) {
-                    errorAndAdvance("Expecting a name");
-                } else if (at(RPAR)) { // For declaration similar to `val () = somethingCall()`
-                    error("Expecting a name");
+                if (this.at(COMMA)) {
+                    this.errorAndAdvance("Expecting a name");
+                } else if (this.at(RPAR)) { // For declaration similar to `val () = somethingCall()`
+                    this.error("Expecting a name");
                     break;
                 }
-                PsiBuilder.Marker property = mark();
+                final PsiBuilder.Marker property = this.mark();
 
-                parseModifierList(COMMA_RPAR_COLON_EQ_SET);
+                this.parseModifierList(CangJieParsing.COMMA_RPAR_COLON_EQ_SET);
 
-                expect(IDENTIFIER, "Expecting a name", recoverySet);
+                this.expect(IDENTIFIER, "Expecting a name", recoverySet);
 
 //                if (at(COLON)) {
 //
@@ -3054,39 +3051,39 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //                }
                 property.done(DESTRUCTURING_DECLARATION_ENTRY);
 
-                if (!at(COMMA)) break;
-                advance(); // COMMA
-                if (at(RPAR)) break;
+                if (!this.at(COMMA)) break;
+                this.advance(); // COMMA
+                if (this.at(RPAR)) break;
             }
         }
 
-        expect(RPAR, "Expecting ')'", follow);
-        myBuilder.restoreNewlinesState();
+        this.expect(RPAR, "Expecting ')'", follow);
+        this.myBuilder.restoreNewlinesState();
     }
 
     /**
      * 解析类型参数列表
      */
-    boolean tryParseTypeArgumentList(TokenSet extraRecoverySet) {
+    boolean tryParseTypeArgumentList(final TokenSet extraRecoverySet) {
 
-        myBuilder.disableNewlines();
-        advance(); // LT
+        this.myBuilder.disableNewlines();
+        this.advance(); // LT
 
 
         do {
-            if (at(COMMA)) {
-                advance();
+            if (this.at(COMMA)) {
+                this.advance();
             }
 
-            PsiBuilder.Marker projection = mark();
+            final PsiBuilder.Marker projection = this.mark();
 
-            parseTypeRef(extraRecoverySet);
+            this.parseTypeRef(extraRecoverySet);
 
             projection.done(TYPE_PROJECTION);
-            if (at(GT)) {
+            if (this.at(GT)) {
                 break;
             }
-        } while (at(COMMA));
+        } while (this.at(COMMA));
 //        while (true) {
 //            PsiBuilder.Marker projection = mark();
 //
@@ -3111,13 +3108,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            }
 //        }
 
-        boolean atGT = at(GT);
+        final boolean atGT = this.at(GT);
         if (!atGT) {
-            error("Expecting a '>'");
+            this.error("Expecting a '>'");
         } else {
-            advance(); // GT
+            this.advance(); // GT
         }
-        myBuilder.restoreNewlinesState();
+        this.myBuilder.restoreNewlinesState();
         return atGT;
 
     }
@@ -3136,20 +3133,20 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //        return false;
 //    }
 
-    void parseTypeRef(boolean isConstraint) {
-        parseTypeRef(TokenSet.EMPTY, isConstraint);
+    void parseTypeRef(final boolean isConstraint) {
+        this.parseTypeRef(TokenSet.EMPTY, isConstraint);
     }
 
-    void parseTypeRef(TokenSet extraRecoverySet) {
-        parseTypeRef(extraRecoverySet, false);
+    void parseTypeRef(final TokenSet extraRecoverySet) {
+        this.parseTypeRef(extraRecoverySet, false);
     }
 
 
     void parseOptionType() {
-        assert _at(QUEST);
+        assert this._at(QUEST);
 
 
-        PsiBuilder.Marker optionTypeMarker = mark();
+        final PsiBuilder.Marker optionTypeMarker = this.mark();
 
 //        if (at(SAFE_CALL)) {
 //            // 重新映射为QUEST
@@ -3173,9 +3170,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            return;
 //        }
 
-        advance();
+        this.advance();
 
-        parseTypeRefContents();
+        this.parseTypeRefContents();
 
 
         optionTypeMarker.done(OPTIONAL_TYPE);
@@ -3186,16 +3183,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * @param extraRecoverySet
      * @param isConstraint     是否为约束，约束没有问号,不解析userType
      */
-    void parseTypeRef(TokenSet extraRecoverySet, boolean isConstraint) {
+    void parseTypeRef(final TokenSet extraRecoverySet, final boolean isConstraint) {
 
-        PsiBuilder.Marker typeRefMarker = mark();
+        final PsiBuilder.Marker typeRefMarker = this.mark();
         //先解析基本类型，如果不是基本类型，则解析类型引用
 
 
         if (!isConstraint) {
-            parseTypeRefContents();
+            this.parseTypeRefContents();
         } else {
-            parseIdentifier();
+            this.parseIdentifier();
         }
 
 
@@ -3204,21 +3201,21 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseTupleOrFunctionType() {
-        PsiBuilder.Marker oType = mark();
+        PsiBuilder.Marker oType = this.mark();
 
 
-        int count = parseTupleType();
+        final int count = this.parseTupleType();
 
 
-        if (at(ARROW) || at(COLON)) {
+        if (this.at(ARROW) || this.at(COLON)) {
 
             oType.rollbackTo();
-            oType = mark();
-            parseFunctionType(oType);
+            oType = this.mark();
+            this.parseFunctionType(oType);
 
 
         } else {
-            if (count <= 1) {
+            if (1 >= count) {
                 oType.done(PARENTHESIZED_TYPE);
 
             } else {
@@ -3230,21 +3227,21 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     private void parseTypeRefContents() {
-        if (parseVArrayType()) return;
-        if (parseThisType()) return;
-        if (parseBasicType()) return;
-        if (at(IDENTIFIER)) {
-            parseUserType();
-        } else if (at(LPAR)) {
+        if (this.parseVArrayType()) return;
+        if (this.parseThisType()) return;
+        if (this.parseBasicType()) return;
+        if (this.at(IDENTIFIER)) {
+            this.parseUserType();
+        } else if (this.at(LPAR)) {
 //            元组，方法或括号类型
-            parseTupleOrFunctionType();
+            this.parseTupleOrFunctionType();
 
-        } else if (at(QUEST) || at(SAFE_CALL)) {
+        } else if (this.at(QUEST) || this.at(SAFE_CALL)) {
 //            OPTION类型可嵌套
-            parseOptionType();
+            this.parseOptionType();
 
         } else {
-            error("Expecting a type name, found '" + myBuilder.getTokenText() + "'");
+            this.error("Expecting a type name, found '" + this.myBuilder.getTokenText() + "'");
         }
 
     }
@@ -3269,7 +3266,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         public final boolean accessorsAllowed;
         public final boolean canBeEnumUsedAsSoftKeyword;
 
-        DeclarationParsingMode(boolean destructuringAllowed, boolean accessorsAllowed, boolean canBeEnumUsedAsSoftKeyword) {
+        DeclarationParsingMode(final boolean destructuringAllowed, final boolean accessorsAllowed, final boolean canBeEnumUsedAsSoftKeyword) {
             this.destructuringAllowed = destructuringAllowed;
             this.accessorsAllowed = accessorsAllowed;
             this.canBeEnumUsedAsSoftKeyword = canBeEnumUsedAsSoftKeyword;
@@ -3282,19 +3279,19 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     static class ModifierDetector implements Consumer<IElementType> {
 
-        private boolean abstractDetected = false;
-        private boolean mutDetected = false;
-        private boolean publicDetected = false;
-        private boolean privateDetected = false;
-        private boolean protectedDetected = false;
-        private boolean operatorDetected = false;
-        private boolean foreignDetected = false;
-        private boolean constDetected = false;
-        private boolean unsafeDetected = false;
-        private boolean sealedDetected = false;
-        private boolean redefDetected = false;
-        private boolean openDetected = false;
-        private boolean staticDetected = false;
+        private boolean abstractDetected;
+        private boolean mutDetected;
+        private boolean publicDetected;
+        private boolean privateDetected;
+        private boolean protectedDetected;
+        private boolean operatorDetected;
+        private boolean foreignDetected;
+        private boolean constDetected;
+        private boolean unsafeDetected;
+        private boolean sealedDetected;
+        private boolean redefDetected;
+        private boolean openDetected;
+        private boolean staticDetected;
         //注解数量
 //        private int annotationCount = 0;
 
@@ -3314,12 +3311,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
 
 //            this.getClass().getDeclaredFields()
-            for (Field field : this.getClass().getDeclaredFields()) {
+            for (final Field field : getClass().getDeclaredFields()) {
                 try {
                     if (field.get(this).equals(true)) {
                         size++;
                     }
-                } catch (IllegalAccessException e) {
+                } catch (final IllegalAccessException e) {
 //                    throw new RuntimeException(e);
                 }
             }
@@ -3328,7 +3325,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
 
         @Override
-        public void consume(IElementType item) {
+        public void consume(final IElementType item) {
 //            if (item == ABSTRACT_KEYWORD) {
 //                abstractDetected = true;
 //            } else if (item == MUT_KEYWORD) {
@@ -3336,91 +3333,91 @@ public class CangJieParsing extends AbstractCangJieParsing {
 //            }
 
             if (item.equals(PUBLIC_KEYWORD)) {
-                publicDetected = true;
+                this.publicDetected = true;
             } else if (item.equals(PRIVATE_KEYWORD)) {
-                privateDetected = true;
+                this.privateDetected = true;
             } else if (item.equals(PROTECTED_KEYWORD)) {
-                protectedDetected = true;
+                this.protectedDetected = true;
             } else if (item.equals(ABSTRACT_KEYWORD)) {
-                abstractDetected = true;
+                this.abstractDetected = true;
             } else if (item.equals(MUT_KEYWORD)) {
-                mutDetected = true;
+                this.mutDetected = true;
             } else if (item.equals(OPERATOR_KEYWORD)) {
-                operatorDetected = true;
+                this.operatorDetected = true;
 //
             } else if (item.equals(FOREIGN_KEYWORD)) {
-                foreignDetected = true;
+                this.foreignDetected = true;
             } else if (item.equals(CONST_KEYWORD)) {
-                constDetected = true;
+                this.constDetected = true;
             } else if (item.equals(UNSAFE_KEYWORD)) {
-                unsafeDetected = true;
+                this.unsafeDetected = true;
             } else if (item.equals(OPEN_KEYWORD)) {
-                openDetected = true;
+                this.openDetected = true;
             } else if (item.equals(STATIC_KEYWORD)) {
-                staticDetected = true;
+                this.staticDetected = true;
             } else if (item.equals(SEALED_KEYWORD)) {
-                sealedDetected = true;
+                this.sealedDetected = true;
             } else if (item.equals(REDEF_KEYWORD)) {
-                redefDetected = true;
+                this.redefDetected = true;
             }/* else if (item.equals(ANNOTATION_ENTRY)) {
                 annotationCount++;
             }*/
         }
 
         public boolean isOperatorDetected() {
-            return operatorDetected;
+            return this.operatorDetected;
         }
 
         public boolean isAbstractDetected() {
-            return abstractDetected;
+            return this.abstractDetected;
         }
 
         public boolean isMutDetected() {
-            return mutDetected;
+            return this.mutDetected;
         }
 
         public boolean isPublicDetected() {
-            return publicDetected;
+            return this.publicDetected;
         }
 
         public boolean isPrivateDetected() {
-            return privateDetected;
+            return this.privateDetected;
         }
 
         public boolean isProtectedDetected() {
-            return protectedDetected;
+            return this.protectedDetected;
         }
 
         public boolean isVisibilityDetected() {
-            return publicDetected || privateDetected || protectedDetected;
+            return this.publicDetected || this.privateDetected || this.protectedDetected;
         }
 
         public boolean isPublicOrProtectedDetected() {
-            return publicDetected || protectedDetected;
+            return this.publicDetected || this.protectedDetected;
         }
 
         public boolean isForeignDetected() {
-            return foreignDetected;
+            return this.foreignDetected;
         }
 
         public boolean isStaticDetected() {
-            return staticDetected;
+            return this.staticDetected;
         }
 
         public boolean isUnsafeDetected() {
-            return unsafeDetected;
+            return this.unsafeDetected;
         }
 
         public boolean isSealedDetected() {
-            return sealedDetected;
+            return this.sealedDetected;
         }
 
         public boolean isRedefDetected() {
-            return redefDetected;
+            return this.redefDetected;
         }
 
         public boolean isOpenDetected() {
-            return openDetected;
+            return this.openDetected;
         }
 
     }

@@ -62,7 +62,7 @@ class SpecifyTypeExplicitlyFix(private val convertToNullable: Boolean = false) :
     }
 
     private fun declarationByElement(element: PsiElement): CjCallableDeclaration? {
-        return PsiTreeUtil.getParentOfType(element, CjProperty::class.java, CjNamedFunction::class.java) as CjCallableDeclaration?
+        return PsiTreeUtil.getParentOfType(element, CjProperty::class.java, CjNamedFunction::class.java)
     }
 }
 
