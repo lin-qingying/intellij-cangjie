@@ -37,7 +37,6 @@ import com.linqingying.cangjie.descriptors.SimpleFunctionDescriptor
 import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import com.linqingying.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
-import com.linqingying.cangjie.diagnostics.Errors
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.BindingContext
@@ -56,8 +55,6 @@ import com.linqingying.cangjie.types.CommonSupertypes
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.checker.TrailingCommaChecker
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
-import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.types.util.TypeUtils.CANNOT_INFER_FUNCTION_PARAM_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.noExpectedType
@@ -67,26 +64,32 @@ import com.linqingying.cangjie.utils.addIfNotNull
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 
 class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
-fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: BindingTrace, actualReturnType: CangJieType) {
+    fun checkTypesForReturnStatements(
+        function: CjDeclarationWithBody,
+        trace: BindingTrace,
+        actualReturnType: CangJieType
+    ) {
         if (function.hasBlockBody()) return
         if ((function !is CjNamedFunction || function.typeReference != null)
-            && (function !is CjPropertyAccessor || function.returnTypeReference == null)) return
+            && (function !is CjPropertyAccessor || function.returnTypeReference == null)
+        ) return
 
         for (returnForCheck in collectReturns(function, trace)) {
             val expression = returnForCheck.returnedExpression
             if (expression == null) {
                 if (!actualReturnType.isUnit()) {
-                    trace.report(Errors.RETURN_TYPE_MISMATCH.on(returnForCheck, actualReturnType))
+                    trace.report(RETURN_TYPE_MISMATCH.on(returnForCheck, actualReturnType))
                 }
                 continue
             }
 
             val expressionType = trace.getType(expression) ?: continue
             if (!CangJieTypeChecker.DEFAULT.isSubtypeOf(expressionType, actualReturnType)) {
-                trace.report(Errors.TYPE_MISMATCH.on(expression, expressionType, actualReturnType))
+                trace.report(TYPE_MISMATCH.on(expression, expressionType, actualReturnType))
             }
         }
     }
+
     fun visitNamedFunction(
         function: CjNamedFunction,
         context: ExpressionTypingContext,
@@ -224,7 +227,7 @@ fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: Bindin
         return functionDescriptor
     }
 
-  private fun CangJieType.isBuiltinFunctionalType() =
+    private fun CangJieType.isBuiltinFunctionalType() =
         !noExpectedType(this) && isBuiltinFunctionalType
 
     override fun visitLambdaExpression(
@@ -299,6 +302,15 @@ fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: Bindin
         return returnType ?: CANNOT_INFER_FUNCTION_PARAM_TYPE
     }
 
+    /**
+     * 计算lambda表达式的不安全返回类型。
+     *
+     * @param expression lambda表达式
+     * @param context 表达式类型检查上下文
+     * @param functionDescriptor 函数描述符
+     * @param expectedReturnType 预期的返回类型，可选
+     * @return 计算得到的返回类型，可能为null
+     */
     private fun computeUnsafeReturnType(
         expression: CjLambdaExpression,
         context: ExpressionTypingContext,
@@ -307,7 +319,10 @@ fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: Bindin
     ): CangJieType? {
         val functionLiteral = expression.functionLiteral
 
+        // 获取预期的返回类型，如果没有则使用默认值NO_EXPECTED_TYPE
         val expectedType = expectedReturnType ?: NO_EXPECTED_TYPE
+
+        // 获取函数内部作用域
         val functionInnerScope =
             FunctionDescriptorUtil.getFunctionInnerScope(
                 context.scope,
@@ -315,19 +330,22 @@ fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: Bindin
                 context.trace,
                 components.overloadChecker
             )
+
+        // 替换上下文的作用域和预期类型
         var newContext = context.replaceScope(functionInnerScope).replaceExpectedType(expectedType)
 
-        // This is needed for ControlStructureTypingVisitor#visitReturnExpression() to properly type-check returned expressions
+        // 记录预期返回类型，以便于ControlStructureTypingVisitor#visitReturnExpression()正确类型检查返回表达式
         context.trace.record(EXPECTED_RETURN_TYPE, functionLiteral, expectedType)
 
+        // 获取新的推断lambda信息
         val newInferenceLambdaInfo = context.trace[BindingContext.NEW_INFERENCE_LAMBDA_INFO, expression.functionLiteral]
 
-        // i.e. this lambda isn't call arguments
+        // 如果lambda不是调用参数，并且支持新推断功能，则更新上下文依赖关系
         if (newInferenceLambdaInfo == null && context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)) {
             newContext = newContext.replaceContextDependency(ContextDependency.INDEPENDENT)
         }
 
-        // Type-check the body
+        // 类型检查函数体
         val blockReturnedType =
             components.expressionTypingServices.getBlockReturnedType(
                 functionLiteral.bodyExpression!!,
@@ -336,12 +354,15 @@ fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: Bindin
             )
         val typeOfBodyExpression = blockReturnedType.type
 
+        // 更新新的推断lambda信息的数据流信息
         newInferenceLambdaInfo?.let {
             it.lastExpressionInfo.dataFlowInfoAfter = blockReturnedType.dataFlowInfo
         }
 
+        // 根据返回表达式计算最终的返回类型
         return computeReturnTypeBasedOnReturnExpressions(functionLiteral, context, typeOfBodyExpression)
     }
+
 
     private fun collectReturns(function: CjDeclarationWithBody, trace: BindingTrace): List<CjReturnExpression> {
         val bodyExpression = function.bodyExpression ?: return emptyList()
@@ -372,6 +393,7 @@ fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: Bindin
 
         return returns
     }
+
     private fun collectReturns(
         functionLiteral: CjFunctionLiteral,
         trace: BindingTrace
@@ -390,7 +412,8 @@ fun checkTypesForReturnStatements(function: CjDeclarationWithBody, trace: Bindin
         return result.filter {
             // No label => non-local return
             // Either a local return of inner lambda/function or a non-local return
-            it.getTargetLabel()?.let { simpleNameExpression -> trace[BindingContext.LABEL_TARGET, simpleNameExpression] } == functionLiteral
+            it.getTargetLabel()
+                ?.let { simpleNameExpression -> trace[BindingContext.LABEL_TARGET, simpleNameExpression] } == functionLiteral
         }
     }
 

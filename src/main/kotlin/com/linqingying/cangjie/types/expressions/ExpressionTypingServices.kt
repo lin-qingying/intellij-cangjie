@@ -33,7 +33,9 @@ import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.descriptors.FunctionDescriptor
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
+import com.linqingying.cangjie.psi.psiUtil.returnTarget
 import com.linqingying.cangjie.resolve.*
+import com.linqingying.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
 import com.linqingying.cangjie.resolve.calls.components.InferenceSession
 import com.linqingying.cangjie.resolve.calls.components.InferenceSession.Companion.default
 import com.linqingying.cangjie.resolve.calls.context.ContextDependency
@@ -45,6 +47,7 @@ import com.linqingying.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImp
 import com.linqingying.cangjie.resolve.scopes.*
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.ErrorUtils.createErrorType
+import com.linqingying.cangjie.types.checker.SimpleClassicTypeSystemContext
 import com.linqingying.cangjie.types.error.ErrorTypeKind
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
@@ -349,7 +352,7 @@ class ExpressionTypingServices(
 
         var isFirstStatement = true
         val iterator = block.iterator()
-        var parentDeclaration: DeclarationDescriptor? = null
+//        var parentDeclaration: DeclarationDescriptor? = null
         while (iterator.hasNext()) {
             ProgressManager.checkCanceled()
 
@@ -359,21 +362,23 @@ class ExpressionTypingServices(
 
             val statement = iterator.next() as? CjExpression ?: continue
 
-            if (parentDeclaration == null) {
-                parentDeclaration =
-                    context.trace.bindingContext.get(
-                        BindingContext.DECLARATION_TO_DESCRIPTOR, context.getContextParentOfType(
-                            statement,
-                            CjDeclaration::class.java
-                        )
-                    )
-            }
+//            if (parentDeclaration == null) {
+//                parentDeclaration =
+//                    context.trace.bindingContext.get(
+//                        BindingContext.DECLARATION_TO_DESCRIPTOR, context.getContextParentOfType(
+//                            statement,
+//                            CjDeclaration::class.java
+//                        )
+//                    )
+//            }
             if (!iterator.hasNext()) {
 
 
                 // 最后一条语句也需要检查类型，即使前面有 return 语句而无法到达，检查类型也是必要的
                 result = getTypeOfLastExpressionInBlock(
-                    statement, newContext.replaceExpectedType(context.expectedType) /*重新添加期望类型*/, coercionStrategyForLastExpression,
+                    statement,
+                    newContext.replaceExpectedType(context.expectedType) /*重新添加期望类型*/,
+                    coercionStrategyForLastExpression,
                     blockLevelVisitor
                 )
                 if (result.type != null && statement.parent is CjBlockExpression) {
@@ -494,7 +499,23 @@ class ExpressionTypingServices(
         }
         scope.freeze()
 
+        val target = expression.returnTarget
 
+        if ( expression.parent is CjFunction &&  target is CjFunctionImpl && target.isInferReturnType) {
+            val returns = context.trace[BindingContext.RETURN_TARGET, target]
+
+            val types = returns?.mapNotNull {
+                getTypeInfo(it, context).type
+            }?.toMutableList()?.apply {
+                r.type?.let { add(it) }
+            } ?: return r
+
+            val type = SimpleClassicTypeSystemContext.commonSuperType(types)
+
+         return   createTypeInfo(type as? CangJieType)
+
+
+        }
         return r
     }
 
@@ -503,7 +524,7 @@ class ExpressionTypingServices(
         val bodyExpression = function.bodyExpression ?: return
 
         val blockBody = function.hasBlockBody()
-        val newContext =context
+        val newContext = context
 //            if (blockBody //                        ? context.replaceExpectedType(NO_EXPECTED_TYPE)
 //            )
 //                context.replaceExpectedType(NO_EXPECTED_TYPE)

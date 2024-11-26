@@ -28,12 +28,10 @@ import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.config.LanguageFeature
-import com.linqingying.cangjie.descriptors.ConstructorDescriptor
-import com.linqingying.cangjie.descriptors.DeclarationDescriptor
-import com.linqingying.cangjie.descriptors.FunctionDescriptor
-import com.linqingying.cangjie.descriptors.VariableDescriptor
+import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.psi.*
+import com.linqingying.cangjie.psi.psiUtil.returnTarget
 import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver
 import com.linqingying.cangjie.resolve.calls.context.ContextDependency
@@ -447,7 +445,7 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 elseBranch, elseScope, elseInfo, thenInfo, context, expression
             )
         }
-        val psiFactory = CjPsiFactory(expression.getProject(), false)
+        val psiFactory = CjPsiFactory(expression.project, false)
         val thenBlock: CjBlockExpression = psiFactory.wrapInABlockWrapper(thenBranch)
         val elseBlock: CjBlockExpression = psiFactory.wrapInABlockWrapper(elseBranch)
         val callForIf: Call =
@@ -809,7 +807,8 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 
         var expectedType: CangJieType = NO_EXPECTED_TYPE
         var resultType: CangJieType? = components.builtIns.nothingType
-        var parentDeclaration = context.getContextParentOfType(expression, CjDeclaration::class.java)
+        var parentDeclaration =
+            expression.returnTarget ?: context.getContextParentOfType(expression, CjDeclaration::class.java)
 
         if (parentDeclaration is CjParameter) {
             // 在参数的默认值中不允许使用 `return` 语句
@@ -827,28 +826,36 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                 context.trace.get<PsiElement, DeclarationDescriptor>(BindingContext.DECLARATION_TO_DESCRIPTOR, it)
             }
 
-            val containingFunInfo: com.intellij.openapi.util.Pair<FunctionDescriptor, PsiElement> =
+            val containingFunInfo: Pair<FunctionDescriptor?, PsiElement?> =
                 BindingContextUtils.getContainingFunctionSkipFunctionLiterals(declarationDescriptor, false)
             val containingFunctionDescriptor = containingFunInfo.first
 
             if (containingFunctionDescriptor != null) {
+                if (containingFunInfo.second is CjFunctionLiteral || containingFunInfo.second is CjFunction) {
+                    expression.addExpression(context.trace, containingFunInfo.second as CjDeclaration)
+                }
+
                 if (isClassInitializer(containingFunInfo)) {
                     // 在类初始化器中不允许使用未限定的 `return` 语句
                     context.trace.report(RETURN_NOT_ALLOWED.on(expression))
                     resultType = createErrorType(ErrorTypeKind.RETURN_NOT_ALLOWED)
                 }
+                if ((containingFunInfo.second as? CjFunctionImpl)?.isInferReturnType != true) {
 
-                expectedType = getFunctionExpectedReturnType(
-                    containingFunctionDescriptor,
-                    containingFunInfo.second as CjElement,
-                    context
-                )
+                    expectedType = getFunctionExpectedReturnType(
+                        containingFunctionDescriptor,
+                        containingFunInfo.second as CjElement,
+                        context
+                    )
+
+                }
+
                 newInferenceLambdaInfo =
                     ExpressionTypingServices.getNewInferenceLambdaInfo(context, containingFunInfo.second as CjElement)
             } else {
                 // 在函数外部不允许使用 `return` 语句
                 context.trace.report(RETURN_NOT_ALLOWED.on(expression))
-                resultType = createErrorType(ErrorTypeKind.RETURN_NOT_ALLOWED)
+//                resultType = createErrorType(ErrorTypeKind.RETURN_NOT_ALLOWED)
             }
         }
 
@@ -1033,8 +1040,8 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 
     companion object {
 
-        private fun isClassInitializer(containingFunInfo: com.intellij.openapi.util.Pair<FunctionDescriptor, PsiElement>): Boolean {
-            return containingFunInfo.getFirst() is ConstructorDescriptor && containingFunInfo.getSecond() !is CjSecondaryConstructor
+        private fun isClassInitializer(containingFunInfo: Pair<FunctionDescriptor?, PsiElement?>): Boolean {
+            return containingFunInfo.first is ConstructorDescriptor && containingFunInfo.second !is CjSecondaryConstructor
         }
 
         private fun checkTrySourceParameterType(
@@ -1120,3 +1127,18 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
     }
 }
 
+fun CjReturnExpression.addExpression(bindingContext: BindingTrace, target: CjDeclaration) {
+    if (returnedExpression == null) return
+    val returnsByTarget = bindingContext[BindingContext.RETURN_TARGET, target]
+
+    val expressions = returnsByTarget ?: mutableSetOf()
+
+    expressions.add(returnedExpression)
+
+    bindingContext.record(BindingContext.RETURN_TARGET, target, expressions)
+
+
+
+
+
+}

@@ -25,7 +25,7 @@
 package com.linqingying.cangjie.resolve;
 
 import com.google.common.collect.Lists;
-import com.intellij.openapi.util.Pair;
+
 import com.intellij.psi.PsiElement;
 import com.linqingying.cangjie.descriptors.*;
 import com.linqingying.cangjie.descriptors.macro.MacroDescriptor;
@@ -43,6 +43,7 @@ import com.linqingying.cangjie.types.util.TypeUtils;
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.linqingying.cangjie.utils.slicedMap.MutableSlicedMap;
 import com.linqingying.cangjie.utils.slicedMap.ReadOnlySlice;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

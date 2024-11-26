@@ -24,8 +24,6 @@
 
 package com.linqingying.cangjie.psi.psiUtil
 
-import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.psi.*
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
@@ -39,8 +37,8 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.psi.util.parentOfType
-import com.linqingying.cangjie.resolve.BindingContext
-import java.util.ArrayList
+import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.psi.*
 
 fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEntry {
     val name = when (expression) {
@@ -51,16 +49,20 @@ fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEn
     val newEntry = CjPsiFactory(project).createSimpleNameStringTemplateEntry(name)
     return replaced(newEntry)
 }
-fun PsiElement.isInsideAnnotationEntryArgumentList(): Boolean = parentOfType<CjValueArgumentList>()?.parent is CjAnnotationEntry
+
+fun PsiElement.isInsideAnnotationEntryArgumentList(): Boolean =
+    parentOfType<CjValueArgumentList>()?.parent is CjAnnotationEntry
 
 fun CjBlockStringTemplateEntry.canDropCurlyBrackets(): Boolean {
     val expression = this.expression
     return (expression is CjNameReferenceExpression || (expression is CjThisExpression && expression.labelQualifier == null))
             && canPlaceAfterSimpleNameEntry(nextSibling)
 }
+
 inline fun <reified T : PsiElement, reified V : PsiElement> PsiElement.getParentOfTypes2(): PsiElement? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, V::class.java)
 }
+
 inline fun <reified T : PsiElement> PsiElement.collectDescendantsOfType(noinline predicate: (T) -> Boolean = { true }): List<T> {
     return collectDescendantsOfType({ true }, predicate)
 }
@@ -69,6 +71,7 @@ inline fun <reified T : PsiElement> PsiElement.collectDescendantsOfType(
     crossinline canGoInside: (PsiElement) -> Boolean,
     noinline predicate: (T) -> Boolean = { true }
 ): List<T> = collectDescendantsOfTypeTo(ArrayList(), canGoInside, predicate)
+
 inline fun <reified T : PsiElement, C : MutableCollection<T>> PsiElement.collectDescendantsOfTypeTo(
     to: C,
     crossinline canGoInside: (PsiElement) -> Boolean,
@@ -96,11 +99,14 @@ inline fun <reified T : PsiElement> PsiElement.replaced(newElement: T): T {
 inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict)
 }
-inline val PsiElement.identifier get() = when(this){
-    is CjSimpleNameExpression -> this.identifier
 
-    else -> null
-}
+inline val PsiElement.identifier
+    get() = when (this) {
+        is CjSimpleNameExpression -> this.identifier
+
+        else -> null
+    }
+
 inline fun <reified T : PsiElement> T.prevSiblingOfSameType() = PsiTreeUtil.getPrevSiblingOfType(this, T::class.java)
 
 fun CjExpression.getBinaryWithTypeParent(): CjBinaryExpressionWithTypeRHS? {
@@ -128,7 +134,6 @@ fun PsiElement?.unwrapParenthesesLabelsAndAnnotations(): PsiElement? {
         }
     }
 }
-
 
 
 inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(noinline predicate: (T) -> Boolean = { true }): T? {
@@ -341,3 +346,15 @@ inline fun <reified T : PsiElement> PsiElement.ancestorOrSelf(): T? =
 
 
 fun CjExpression.isEmptyBody(): Boolean = this is CjBlockExpression && statements.isEmpty()
+
+
+/**
+ * 获取return语句的上层元素
+ * 可能是方法，也可能是lambda表达式
+ */
+val CjReturnExpression.returnTarget: CjDeclaration?
+    get() {
+        return parentOfType<CjFunctionLiteral>() ?: parentOfType<CjFunction>()
+    }
+
+val CjBlockExpression.returnTarget get() = parentOfType<CjFunctionLiteral>() ?: parentOfType<CjFunction>()

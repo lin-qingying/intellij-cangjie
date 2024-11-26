@@ -91,7 +91,7 @@ public interface Errors {
     DiagnosticFactory0<PsiElement> UNDERSCORE_IS_RESERVED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> UPPER_BOUND_VIOLATED_WARNING = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory1<PsiElement, String> INFERRED_INTO_DECLARED_UPPER_BOUNDS = DiagnosticFactory1.create(WARNING);
-    DiagnosticFactory0<CjReturnExpression> RETURN_NOT_ALLOWED = DiagnosticFactory0.create(ERROR, PositioningStrategies.RETURN_WITH_LABEL);
+    DiagnosticFactory0<CjReturnExpression> RETURN_NOT_ALLOWED = DiagnosticFactory0.create(WARNING, PositioningStrategies.RETURN_WITH_LABEL);
     DiagnosticFactory0<CjExpression> SIGNED_CONSTANT_CONVERTED_TO_UNSIGNED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjParameterBase> TYPE_PARAMETER_IN_CATCH_CLAUSE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<PsiElement, CjKeywordToken> LET_OR_VAR_ON_CATCH_PARAMETER = DiagnosticFactory1.create(ERROR);

@@ -66,6 +66,7 @@ import org.jetbrains.annotations.TestOnly;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.linqingying.cangjie.utils.slicedMap.RewritePolicy.DO_NOTHING;
 import static com.linqingying.cangjie.utils.slicedMap.Slices.COMPILE_TIME_VALUE_REWRITE_POLICY;
@@ -238,6 +239,11 @@ public interface BindingContext {
     WritableSlice<CjExpression, CangJieTypeInfo> EXPRESSION_TYPE_INFO = new BasicWritableSlice<>(DO_NOTHING);
     WritableSlice<CjTypeParameter, TypeParameterDescriptor> TYPE_PARAMETER = Slices.createSimpleSlice();
     WritableSlice<PsiElement, VariableDescriptor> VARIABLE = Slices.createSimpleSlice();
+
+    /**
+     * return语句的目标，可能是方法，lambda表达式
+     */
+    WritableSlice<CjDeclaration, Set<CjExpression>> RETURN_TARGET = Slices.createSimpleSlice();
 
     WritableSlice<CjParameterBase, VariableDescriptor> VALUE_PARAMETER = Slices.createSimpleSlice();
     WritableSlice<PsiElement, TypeAliasDescriptor> TYPE_ALIAS = Slices.createSimpleSlice();

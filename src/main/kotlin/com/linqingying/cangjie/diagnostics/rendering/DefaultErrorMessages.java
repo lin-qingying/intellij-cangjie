@@ -510,6 +510,11 @@ public class DefaultErrorMessages {
             // "'return' is not allowed here"
             return CangJieDiagnosisBundle.rawMessage(RETURN_NOT_ALLOWED);
         });
+        MAP.put(IMPLICIT_INTERSECTION_TYPE, ()->{
+
+//            "Inferred type {0} is an intersection, please specify the required type explicitly"
+            return CangJieDiagnosisBundle.rawMessage(IMPLICIT_INTERSECTION_TYPE);
+        }, RENDER_TYPE);
 
         MAP.put(NONE_APPLICABLE, () -> {
             // "None of the following functions can be called with the arguments supplied: {0}"
