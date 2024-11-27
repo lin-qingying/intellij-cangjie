@@ -48,13 +48,11 @@ abstract class AfterAnalysisHighlightingVisitor protected constructor(
         expression: CjSimpleNameExpression,
         resolvedCall: ResolvedCall<out CallableDescriptor>
     ): HighlightInfoType? {
-        @Suppress("DEPRECATION")
         return CangJieHighlightingVisitorExtension.EP_NAME.extensionList.firstNotNullOfOrNull { extension ->
             extension.highlightCall(expression, resolvedCall)
         }
     }
     protected fun attributeKeyForDeclarationFromExtensions(element: PsiElement, descriptor: DeclarationDescriptor): HighlightInfoType? {
-        @Suppress("DEPRECATION")
         return CangJieHighlightingVisitorExtension.EP_NAME.extensionList.firstNotNullOfOrNull { extension ->
             extension.highlightDeclaration(element, descriptor)
         }

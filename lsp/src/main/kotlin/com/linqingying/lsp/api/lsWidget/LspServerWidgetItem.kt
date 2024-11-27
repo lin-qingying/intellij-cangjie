@@ -22,7 +22,6 @@
  *
  */
 
-
 package com.linqingying.lsp.api.lsWidget
 
 import com.intellij.icons.AllIcons
@@ -49,110 +48,113 @@ import org.jetbrains.annotations.ApiStatus
 import javax.swing.Icon
 
 /**
- * @param icon used in the Language Services popup and also in the status bar,
- * but in the latter case the Platform will colorize the icon to be status-bar-friendly in the current UI theme.
- * Implementations may override [statusBarIcon] if they want to provide different icons for the status bar and for the popup item.
+ * @param icon 用于语言服务弹出窗口和状态栏，
+ * 但在后者的情况下，平台会根据当前 UI 主题对图标进行颜色调整，以适应状态栏。
+ * 如果实现希望为状态栏和弹出项提供不同的图标，可以重写 [statusBarIcon]。
  */
 
 open class LspServerWidgetItem(
-  protected val lspServer: LspServer,
-  currentFile: VirtualFile?,
-  private val icon: Icon = AllIcons.Json.Object,
-  private val settingsPageClass: Class<out Configurable>? = null,
+    protected val lspServer: LspServer,
+    currentFile: VirtualFile?,
+    private val icon: Icon = AllIcons.Json.Object,
+    private val settingsPageClass: Class<out Configurable>? = null,
 ) : LanguageServiceWidgetItem() {
 
-  override val statusBarIcon: Icon = icon
+    override val statusBarIcon: Icon = icon
 
-  override val statusBarTooltip: String
-    get() = lspServer.descriptor.presentableName + versionPostfix
+    override val statusBarTooltip: String
+        get() = lspServer.descriptor.presentableName + versionPostfix
 
-  override val isError: Boolean = lspServer.state == ShutdownUnexpectedly
+    override val isError: Boolean = lspServer.state == ShutdownUnexpectedly
 
-  override val widgetActionLocation: LanguageServicePopupSection by lazy {
-
-    if (  currentFile != null &&
-        currentFile.isInLocalFileSystem &&
-        lspServer.descriptor.isSupportedFile(currentFile) &&
-        lspServer.descriptor.roots.any { root -> VfsUtil.isAncestor(root, currentFile, true) } &&
-        ProjectFileIndex.getInstance(lspServer.project).isInContent(currentFile)) {
-      ForCurrentFile
-    }
-    else Other
-  }
-
-  protected open val widgetActionText: @NlsActions.ActionText String
-    get() = when (lspServer.state) {
-      Initializing -> LangBundle.message("language.services.widget.item.initializing", serverLabel)
-      Running -> serverLabel
-      ShutdownNormally -> LangBundle.message("language.services.widget.item.shutdown.normally", serverLabel)
-      ShutdownUnexpectedly -> LangBundle.message("language.services.widget.item.shutdown.unexpectedly", serverLabel)
+    override val widgetActionLocation: LanguageServicePopupSection by lazy {
+        if (currentFile != null &&
+            currentFile.isInLocalFileSystem &&
+            lspServer.descriptor.isSupportedFile(currentFile) &&
+            lspServer.descriptor.roots.any { root -> VfsUtil.isAncestor(root, currentFile, true) } &&
+            ProjectFileIndex.getInstance(lspServer.project).isInContent(currentFile)
+        ) {
+            ForCurrentFile
+        } else Other
     }
 
-  protected open val serverLabel: @NlsSafe String
-    get() = lspServer.descriptor.presentableName + versionPostfix + rootPostfix
+    protected open val widgetActionText: @NlsActions.ActionText String
+        get() = when (lspServer.state) {
+            Initializing -> LangBundle.message("language.services.widget.item.initializing", serverLabel)
+            Running -> serverLabel
+            ShutdownNormally -> LangBundle.message("language.services.widget.item.shutdown.normally", serverLabel)
+            ShutdownUnexpectedly -> LangBundle.message(
+                "language.services.widget.item.shutdown.unexpectedly",
+                serverLabel
+            )
+        }
 
-  protected open val versionPostfix: @NlsSafe String
-    // Maybe try shortening long version strings automatically? Example `1.36.4 (release, aarch64-apple-darwin)` -> `1.36.4…`
-    get() = lspServer.initializeResult?.serverInfo?.version?.let { " $it" } ?: ""
+    protected open val serverLabel: @NlsSafe String
+        get() = lspServer.descriptor.presentableName + versionPostfix + rootPostfix
 
-  protected open val rootPostfix: @NlsSafe String
-    get() {
-      val roots = lspServer.descriptor.roots
-      val lspServers = LspServerManager.getInstance(lspServer.project).getServersForProvider(lspServer.providerClass)
-      return if (lspServers.size >= 2 && roots.size == 1) " …/${roots[0].name}" else ""
+    protected open val versionPostfix: @NlsSafe String
+        // 也许可以尝试自动缩短长版本字符串？例如 `1.36.4 (release, aarch64-apple-darwin)` -> `1.36.4…`
+        get() = lspServer.initializeResult?.serverInfo?.version?.let { " $it" } ?: ""
+
+    protected open val rootPostfix: @NlsSafe String
+        get() {
+            val roots = lspServer.descriptor.roots
+            val lspServers =
+                LspServerManager.getInstance(lspServer.project).getServersForProvider(lspServer.providerClass)
+            return if (lspServers.size >= 2 && roots.size == 1) " …/${roots[0].name}" else ""
+        }
+
+    override fun createWidgetMainAction(): AnAction =
+        settingsPageClass?.let {
+            OpenSettingsAction(it, widgetActionText, icon)
+        }
+            ?: object : AnAction(widgetActionText, null, icon) {
+                override fun actionPerformed(e: AnActionEvent) {
+                    // 对于每个基于 LSP API 的插件，没有单一的合理操作。
+                    // 强烈建议插件重写 `LspServerSupportProvider.getLspServerWidgetItem()`。
+                    // 典型实现：
+                    //     override fun getLspServerWidgetItem(...) = LspServerWidgetItem(context, lspServer, fooIcon, FooConfigurable::class.java)
+                }
+            }
+
+    override fun createWidgetInlineActions(): List<AnAction> {
+        val actions = mutableListOf<AnAction>()
+
+        actions.addAll(createAdditionalInlineActions())
+
+        if (widgetActionLocation == ForCurrentFile) {
+            actions.add(RestartLspServerAction(lspServer))
+        } else {
+            when (lspServer.state) {
+                Initializing, Running -> actions.add(StopLspServerAction(lspServer))
+                ShutdownNormally -> Unit // 什么都不做
+                ShutdownUnexpectedly -> actions.add(RestartLspServerAction(lspServer))
+            }
+        }
+
+        settingsPageClass?.let { actions.add(OpenSettingsAction(it)) }
+
+        return actions
     }
 
-  override fun createWidgetMainAction(): AnAction =
-    settingsPageClass?.let {
-      OpenSettingsAction(it, widgetActionText, icon)
+    open fun createAdditionalInlineActions(): List<AnAction> {
+        if (lspServer.state != ShutdownUnexpectedly) return emptyList()
+        val stderrAction = LspWidgetInternalService.getInstance().createShowErrorOutputAction(lspServer)
+        return if (stderrAction != null) listOf(stderrAction) else emptyList()
     }
-    ?: object : AnAction(widgetActionText, null, icon) {
-      override fun actionPerformed(e: AnActionEvent) {
-        // There's no single reasonable action that would work for each LSP API-based plugin.
-        // The plugins are strongly recommended to override `LspServerSupportProvider.getLspServerWidgetItem()`.
-        // Typical implementation:
-        //     override fun getLspServerWidgetItem(...) = LspServerWidgetItem(context, lspServer, fooIcon, FooConfigurable::class.java)
-      }
-    }
-
-  override fun createWidgetInlineActions(): List<AnAction> {
-    val actions = mutableListOf<AnAction>()
-
-    actions.addAll(createAdditionalInlineActions())
-
-    if (widgetActionLocation == ForCurrentFile) {
-      actions.add(RestartLspServerAction(lspServer))
-    }
-    else {
-      when (lspServer.state) {
-        Initializing, Running -> actions.add(StopLspServerAction(lspServer))
-        ShutdownNormally -> Unit // do nothing
-        ShutdownUnexpectedly -> actions.add(RestartLspServerAction(lspServer))
-      }
-    }
-
-    settingsPageClass?.let { actions.add(OpenSettingsAction(it)) }
-
-    return actions
-  }
-
-  open fun createAdditionalInlineActions(): List<AnAction> {
-    if (lspServer.state != ShutdownUnexpectedly) return emptyList()
-    val stderrAction = LspWidgetInternalService.getInstance().createShowErrorOutputAction(lspServer)
-    return if (stderrAction != null) listOf(stderrAction) else emptyList()
-  }
 }
 
 
 private class RestartLspServerAction(
-  private val lspServer: LspServer,
-) : AnAction(LspBundle.message("action.RestartLspServerAction.text"), null, AllIcons.Javaee.UpdateRunningApplication /*AllIcons.Actions.StopAndRestart*/), DumbAware {
-  override fun actionPerformed(e: AnActionEvent) = LspWidgetInternalService.getInstance().restartLspServer(lspServer)
+    private val lspServer: LspServer,
+) : AnAction(LspBundle.message("action.RestartLspServerAction.text"), null, AllIcons.Actions.StopAndRestart),
+    DumbAware {
+    override fun actionPerformed(e: AnActionEvent) = LspWidgetInternalService.getInstance().restartLspServer(lspServer)
 }
 
 
 private class StopLspServerAction(
-  private val lspServer: LspServer,
-) : AnAction(LspBundle.message("action.StopLspServerAction.text"), null,/* AllIcons.Actions.StopAndRestart*/ AllIcons.Actions.Suspend), DumbAware {
-  override fun actionPerformed(e: AnActionEvent) = LspWidgetInternalService.getInstance().stopLspServer(lspServer)
+    private val lspServer: LspServer,
+) : AnAction(LspBundle.message("action.StopLspServerAction.text"), null, AllIcons.Actions.StopAndRestart), DumbAware {
+    override fun actionPerformed(e: AnActionEvent) = LspWidgetInternalService.getInstance().stopLspServer(lspServer)
 }

@@ -36,11 +36,11 @@ interface DeclarationLookupObject : Iconable {
     val psiElement: PsiElement?
     val name: Name?
 
-    @Deprecated("Use 'descriptor' available in 'DescriptorBasedDeclarationLookupObject' instead")
+
     val descriptor: DeclarationDescriptor?
 }
 interface DescriptorBasedDeclarationLookupObject : DeclarationLookupObject {
-    @Deprecated("Use 'descriptor' available in 'DescriptorBasedDeclarationLookupObject' instead")
+
     override val descriptor: DeclarationDescriptor?
     val importableFqName: FqName?
     val isDeprecated: Boolean
@@ -48,7 +48,7 @@ interface DescriptorBasedDeclarationLookupObject : DeclarationLookupObject {
 
 data class PackageLookupObject(val fqName: FqName) : DescriptorBasedDeclarationLookupObject {
     override val psiElement: PsiElement? get() = null
-    @Deprecated("Use 'descriptor' available in 'DescriptorBasedDeclarationLookupObject' instead")
+    @Deprecated("Use 'descriptor' available in 'DescriptorBasedDeclarationLookupObject' instead", ReplaceWith("null"))
     override val descriptor: DeclarationDescriptor? get() = null
     override val name: Name get() = fqName.shortName()
     override val importableFqName: FqName get() = fqName

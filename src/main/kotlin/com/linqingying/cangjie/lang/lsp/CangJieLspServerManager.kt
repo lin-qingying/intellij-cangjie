@@ -99,18 +99,18 @@ object CangJieLspServerManager {
      */
     fun restartLspServer(project: Project) {
 
-        LspServerManagerImpl.getInstanceImpl(project)
-            .stopAndRestartIfNeeded(CangJieLspServerSupportProvider::class.java)
+//        LspServerManagerImpl.getInstanceImpl(project)
+//            .stopAndRestartIfNeeded(CangJieLspServerSupportProvider::class.java)
     }
 
 
-    /**
-     * 关闭所有的LSP服务
-     */
-    fun shutdownAllServers(project: Project) {
-
-        LspServerManagerImpl.getInstanceImpl(project).stopServers(CangJieLspServerSupportProvider::class.java)
-    }
+//    /**
+//     * 关闭所有的LSP服务
+//     */
+//    fun shutdownAllServers(project: Project) {
+//
+//        LspServerManagerImpl.getInstanceImpl(project).stopServers(CangJieLspServerSupportProvider::class.java)
+//    }
 
 
     fun getCommandLine(project: Project): GeneralCommandLine {

@@ -111,7 +111,7 @@ fun pathTextField(
 ): TextFieldWithBrowseButton {
     val component = TextFieldWithBrowseButton(null, disposable)
     component.addBrowseFolderListener(
-        title, null, null,
+     null,
         fileChooserDescriptor,
         TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
     )

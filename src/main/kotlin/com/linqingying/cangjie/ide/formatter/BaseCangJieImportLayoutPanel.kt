@@ -26,12 +26,9 @@
 
 package com.linqingying.cangjie.ide.formatter
 
+import com.intellij.openapi.actionSystem.*
 import com.linqingying.cangjie.CangJieBundle
 
-import com.intellij.openapi.actionSystem.ActionUpdateThread
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.CommonShortcuts
-import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.*
 import com.intellij.ui.components.JBCheckBox
@@ -215,18 +212,16 @@ class CangJieImportOrderLayoutPanel : BaseCangJieImportLayoutPanel(CangJieBundle
 
         val importLayoutPanel = ToolbarDecorator.createDecorator(layoutTable)
             .addExtraAction(
-                object : DumbAwareActionButton(CangJieBundle.message("button.add.package"), IconUtil.addPackageIcon) {
-                    override fun actionPerformed(event: AnActionEvent) {
+                object: AnAction(CangJieBundle.message("button.add.package"),null, IconUtil.addPackageIcon){
+                    override fun actionPerformed(e: AnActionEvent) {
                         addPackage()
                     }
 
-                    override fun getShortcut(): ShortcutSet {
-                        return CommonShortcuts.getNewForDialogs()
-                    }
-
                     override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
                 }
             )
+
             .setRemoveAction { removePackage() }
             .setMoveUpAction { movePackageUp() }
             .setMoveDownAction { movePackageDown() }

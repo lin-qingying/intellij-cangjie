@@ -33,7 +33,6 @@ import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.tree.TokenSet
 
-@Suppress("deprecation")
 class CjDestructuringDeclarationEntry(node: ASTNode) : CjNamedDeclarationNotStubbed(node), CjVariableDeclaration {
 
 

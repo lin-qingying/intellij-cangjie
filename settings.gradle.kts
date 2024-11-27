@@ -1,4 +1,28 @@
-import Settings_gradle.BuildType.*
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+
 pluginManagement {
 //    includeBuild("gradle-util")
 
@@ -17,33 +41,8 @@ plugins {
 
 rootProject.name = "intellij-cangjie"
 
-val build_type: String by settings
-
-enum class BuildType {
 
 
-    //    IU + nativeDebug
-    IU_NATIVE_DEBUG,
-    IC_DAP,
-    IC_CIDR_NATIVE_DEBUG;
-
-
-    companion object {
-
-        fun fromString(str: String): BuildType {
-            return when (str) {
-                "IU_NATIVE_DEBUG" -> IU_NATIVE_DEBUG
-                "IC_DAP" -> IC_DAP
-                "IC_CIDR_NATIVE_DEBUG" -> IC_CIDR_NATIVE_DEBUG
-                else -> IC_DAP
-            }
-        }
-    }
-}
-
-
-//构建方式
-val buildType = BuildType.fromString(build_type)
 
 include("bnf")
 
@@ -64,19 +63,6 @@ include("idea")
 
 include("clion")
 
+//include("native-debugger")
 
-
-when (buildType) {
-    IU_NATIVE_DEBUG -> {
-        include("native-debugger")
-
-    }
-
-    IC_DAP -> {
-        include("dap-debugger")
-//        include("deveco-dap-debugger")
-
-    }
-
-    IC_CIDR_NATIVE_DEBUG -> TODO()
-}
+include("dap-debugger")

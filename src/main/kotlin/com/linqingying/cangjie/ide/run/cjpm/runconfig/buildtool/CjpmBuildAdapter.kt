@@ -35,6 +35,7 @@ import com.intellij.build.BuildProgressListener
 import com.intellij.build.DefaultBuildDescriptor
 import com.intellij.build.events.impl.*
 import com.intellij.build.output.BuildOutputInstantReaderImpl
+import com.intellij.execution.ExecutionManager
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.actions.StopProcessAction
 import com.intellij.execution.filters.Filter
@@ -158,7 +159,7 @@ class  CjpmBuildAdapter(
                     val project = environment.project
                     val settings = environment.runnerAndConfigurationSettings
                     return (!DumbService.isDumb(project) || settings == null || settings.type.isDumbAware) &&
-                            !ExecutorRegistry.getInstance().isStarting(environment) &&
+                            !ExecutionManager.getInstance(project).isStarting(environment) &&
                             !processHandler.isProcessTerminating
                 }
 

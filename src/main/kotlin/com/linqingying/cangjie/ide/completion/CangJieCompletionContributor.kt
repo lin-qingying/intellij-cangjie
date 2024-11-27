@@ -45,6 +45,8 @@ import com.intellij.platform.ml.impl.turboComplete.*
 import com.intellij.platform.ml.impl.turboComplete.SmartPipelineRunner
 import com.intellij.psi.PsiComment
 import com.intellij.util.indexing.DumbModeAccessType
+import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
+import com.linqingying.cangjie.configurable.services.Feature
 import kotlin.math.max
 
 
@@ -88,6 +90,9 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
     }
 
     override fun shouldBeCalled(parameters: CompletionParameters): Boolean {
+        if (CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.SEMANTIC_TOKENS))
+            return false
+
         val position = parameters.position
         val parametersOriginFile = parameters.originalFile
         return position.containingFile is CjFile && parametersOriginFile is CjFile

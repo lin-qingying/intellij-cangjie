@@ -53,11 +53,11 @@ private class LspWidgetInternalServiceImpl :
     }
 
     override fun restartLspServer(lspServer: LspServer) {
-        LanguageServiceWidgetUsagesCollector.actionInvoked(
-            lspServer.project,
-            LanguageServiceWidgetActionKind.RestartService,
-            lspServer.descriptor::class.java
-        )
+//        LanguageServiceWidgetUsagesCollector.actionInvoked(
+//            lspServer.project,
+//            LanguageServiceWidgetActionKind.RestartService,
+//            lspServer.descriptor::class.java
+//        )
 
         val serverManager = LspServerManagerImpl.getInstanceImpl(lspServer.project)
 
@@ -74,11 +74,11 @@ private class LspWidgetInternalServiceImpl :
     }
 
     override fun stopLspServer(lspServer: LspServer) {
-        LanguageServiceWidgetUsagesCollector.actionInvoked(
-            lspServer.project,
-            LanguageServiceWidgetActionKind.StopService,
-            lspServer.descriptor::class.java
-        )
+//        LanguageServiceWidgetUsagesCollector.actionInvoked(
+//            lspServer.project,
+//            LanguageServiceWidgetActionKind.StopService,
+//            lspServer.descriptor::class.java
+//        )
 
         LspServerManagerImpl.getInstanceImpl(lspServer.project).stopRunningServer(lspServer as LspServerImpl)
 

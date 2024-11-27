@@ -28,14 +28,14 @@ import com.intellij.codeInsight.hint.HintManager
 import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.template.*
 import com.intellij.openapi.editor.Editor
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.refactoring.suggested.createSmartPointer
-import com.linqingying.cangjie.builtins.StandardNames
 import com.intellij.openapi.editor.impl.ImaginaryEditor
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiComment
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.refactoring.suggested.createSmartPointer
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
+import com.linqingying.cangjie.builtins.StandardNames
 import com.linqingying.cangjie.descriptors.CallableDescriptor
 import com.linqingying.cangjie.descriptors.PropertyDescriptor
 import com.linqingying.cangjie.descriptors.annotations.fqNameOrNull
@@ -99,7 +99,8 @@ class SpecifyTypeExplicitlyIntention : SelfTargetingRangeIntention<CjCallableDec
         val type = getTypeForDeclaration(element)
         if (type.isError) {
             if (editor != null && editor !is ImaginaryEditor) {
-                HintManager.getInstance().showErrorHint(editor, CangJieBundle.message("cannot.infer.type.for.this.declaration"))
+                HintManager.getInstance()
+                    .showErrorHint(editor, CangJieBundle.message("cannot.infer.type.for.this.declaration"))
             }
             return
         }
@@ -135,19 +136,34 @@ class SpecifyTypeExplicitlyIntention : SelfTargetingRangeIntention<CjCallableDec
             return type
         }
 
+        /**
+         * 根据声明获取类型
+         * 该函数旨在解析给定声明的返回类型，特别是针对可调用声明（如函数或属性）
+         * 它通过检查声明的描述符来确定最准确的返回类型，考虑了覆盖描述符和错误处理
+         *
+         * @param declaration 可调用声明的实例，如函数或属性声明
+         * @return 返回解析得到的类型，如果没有找到合适的描述符则返回错误类型
+         */
         fun getTypeForDeclaration(declaration: CjCallableDeclaration): CangJieType {
+            // 尝试解析声明对应的描述符，如果有的话
             val descriptor = declaration.resolveToDescriptorIfAny()
+
+            // 尝试将描述符转换为可调用描述符，并据此获取返回类型
             val type = (descriptor as? CallableDescriptor)?.let {
+                // 如果覆盖的描述符中第一个返回类型不是可选类型，则当前返回类型也变为非可选类型
                 if (it.overriddenDescriptors.firstOrNull()?.returnType?.isMarkedOption == false)
                     it.returnType?.makeNotNullable()
                 else
                     it.returnType
             }
 
+            // 如果类型解析失败且描述符是属性描述符，则尝试获取setter的类型
             if (type != null && type.isError && descriptor is PropertyDescriptor) {
-                return descriptor.setterType ?: ErrorUtils.createErrorType(ErrorTypeKind.NOT_FOUND_DESCRIPTOR_FOR_FUNCTION, declaration.text)
+                return descriptor.setterType
+                    ?: ErrorUtils.createErrorType(ErrorTypeKind.NOT_FOUND_DESCRIPTOR_FOR_FUNCTION, declaration.text)
             }
 
+            // 如果之前步骤未能解析出类型，则返回错误类型
             return type ?: ErrorUtils.createErrorType(ErrorTypeKind.NOT_FOUND_DESCRIPTOR_FOR_FUNCTION, declaration.text)
         }
 
@@ -166,6 +182,7 @@ class SpecifyTypeExplicitlyIntention : SelfTargetingRangeIntention<CjCallableDec
                         exprType.isNullabilityFlexible() -> flatMap {
                             listOf(TypeUtils.makeNotNullable(it), TypeUtils.makeOptional(it))
                         }
+
                         else -> this
                     }
                 }
@@ -194,7 +211,8 @@ class SpecifyTypeExplicitlyIntention : SelfTargetingRangeIntention<CjCallableDec
                         it.text == "// DO_NOT_CHOOSE_NOTHING"
                     } != null
                 ) {
-                    val targetType = types.firstOrNull { !CangJieBuiltIns.isNothingOrNullableNothing(it) } ?: types.first()
+                    val targetType =
+                        types.firstOrNull { !CangJieBuiltIns.isNothingOrNullableNothing(it) } ?: types.first()
                     return TypeChooseValueExpression(listOf(targetType), targetType)
                 }
             }
@@ -213,7 +231,8 @@ class SpecifyTypeExplicitlyIntention : SelfTargetingRangeIntention<CjCallableDec
                 val renderType = IdeDescriptorRenderers.FQ_NAMES_IN_TYPES_WITH_NORMALIZER.renderType(element)
                 val descriptor = element.constructor.declarationDescriptor
                 if (descriptor?.fqNameOrNull()?.asString() == renderType) {
-                    val className = (DescriptorToSourceUtils.descriptorToDeclaration(descriptor) as? CjClass)?.nameIdentifier?.text
+                    val className =
+                        (DescriptorToSourceUtils.descriptorToDeclaration(descriptor) as? CjClass)?.nameIdentifier?.text
                     if (className != null && className != className.unquoteCangJieIdentifier()) {
                         return className
                     }
@@ -262,7 +281,8 @@ class SpecifyTypeExplicitlyIntention : SelfTargetingRangeIntention<CjCallableDec
             assert(!exprType.isError) { "Unexpected error type, should have been checked before: " + declaration.getElementTextWithContext() + ", type = " + exprType }
 
             val project = declaration.project
-            val expression = createTypeExpressionForTemplate(exprType, declaration, useTypesFromOverridden = true) ?: return
+            val expression =
+                createTypeExpressionForTemplate(exprType, declaration, useTypesFromOverridden = true) ?: return
 
             declaration.setType(StandardNames.FqNames.anyUFqName.asString())
             val declarationPointer = declaration.createSmartPointer()

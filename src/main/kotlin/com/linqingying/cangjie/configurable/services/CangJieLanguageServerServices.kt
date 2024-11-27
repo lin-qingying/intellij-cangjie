@@ -233,7 +233,7 @@ class CangJieLanguageServerServices : PersistentStateComponent<CangJieLanguageSe
     fun getConfig(type: LanugageServerType): Config {
         return when (type) {
             LanugageServerType.LSP_SERVER -> lspConfig
-            LanugageServerType.AST_ANALYZER -> TODO()
+            LanugageServerType.AST_ANALYZER -> astConfig
         }
     }
 

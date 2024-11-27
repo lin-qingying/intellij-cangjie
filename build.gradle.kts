@@ -170,7 +170,7 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaUltimate, ideaVersion)
+            create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
             instrumentationTools()
 
 //            local(dependencyCachePath)

@@ -83,13 +83,26 @@ class CangJieAstAnalyzerConfigurable(override val project: Project) :
                         }
                     }.enabledIf(diagnostics.selected)
                 }
-
+                //              悬浮信息
+                row {
+                    checkBox(CangJieUiBundle.message("cangJie.languageServer.lsp.hoverinfo.title"))
+                        .bindSelected(
+                            getter = { astConfig.hoverInfo },
+                            setter = { astConfig.hoverInfo = it })
+                }
 //                引用解析
                 row {
                     checkBox(CangJieUiBundle.message("cangJie.languageServer.ast.reference.title"))
                         .bindSelected(
                             getter = { astConfig.references },
                             setter = { astConfig.references = it })
+                }
+//               补全触发
+                row {
+                    checkBox(CangJieUiBundle.message("cangJie.languageServer.lsp.autoComplete.title"))
+                        .bindSelected(
+                            getter = { astConfig.autoComplete },
+                            setter = { astConfig.autoComplete = it })
                 }
 
 

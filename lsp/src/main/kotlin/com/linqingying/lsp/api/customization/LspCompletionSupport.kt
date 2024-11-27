@@ -1,3 +1,26 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
 
 package com.linqingying.lsp.api.customization
 
@@ -15,106 +38,117 @@ import org.jetbrains.annotations.ApiStatus
 import javax.swing.Icon
 
 /**
- * Handles [CompletionItem](https://microsoft.github.io/language-server-protocol/specification#initialCompletionItem) objects
- * received from the LSP server.
- * Implementations may fine-tune the code completion behavior.
- * For example, they may filter out unneeded completion items or tweak completion item decoration.
+ * 处理从 LSP 服务器接收的 [CompletionItem](https://microsoft.github.io/language-server-protocol/specification#completionItem) 对象。
+ * 实现类可以对代码补全行为进行细化调整。
+ * 例如，可以过滤掉不需要的补全项或调整补全项的显示装饰。
  */
 
 open class LspCompletionSupport {
-  /**
-   * Called when the IDE is going to run a code completion session.
-   * It might be triggered, for example, by pressing a shortcut or by typing an identifier.
-   * Implementations may return `false` if they don't want to have LSP-based code completion at the given location.
-   */
-  open fun shouldRunCodeCompletion(parameters: CompletionParameters): Boolean = true
+    /**
+     * 在 IDE 准备启动代码补全会话时调用。
+     * 例如，可以通过按快捷键或键入标识符触发。
+     * 实现类可以返回 `false`，以表示不希望在当前位置使用基于 LSP 的代码补全。
+     */
+    open fun shouldRunCodeCompletion(parameters: CompletionParameters): Boolean = true
 
-  /**
-   * Converts [CompletionItem](https://microsoft.github.io/language-server-protocol/specification#initialCompletionItem) object
-   * received from the LSP server into [LookupElement] object.
-   *
-   * Note that implementations shouldn't manipulate the completion item presentation in this function.
-   * To tune the presentation, override functions like [getIcon], [isBold], [isStrikeout], [getTypeText], or [getTailText].
-   * In advanced use cases, plugins can override [renderLookupElement].
-   *
-   * Some ideas that the overriding functions can implement:
-   * - return `null` if they want to ignore this [item]
-   * - tune completion item priority:
-   *   ```
-   *   PrioritizedLookupElement.withPriority(super.createLookupElement(parameters, item), priority)
-   *   ```
-   * - use [parameters] if they need to check the context, in which this code completion session has started.
-   *   Note that [parameters.originalFile][CompletionParameters.getOriginalFile] might be an
-   *   [injected](https://plugins.jetbrains.com/docs/intellij/language-injection.html) file,
-   *   while all `lsp4j` entities (including [item]) always deal with the host file (also known as top-level file).
-   *   [InjectedLanguageManager] helps to map offsets between an injected and a host file.
-   */
-  open fun createLookupElement(parameters: CompletionParameters, item: CompletionItem): LookupElement? {
-    val toUseForPrefixMatching = item.filterText?.let { StringUtilRt.convertLineSeparators(it) }
-                                 ?: item.label
-    val toInsertRaw = item.textEdit?.let { if (it.isLeft) it.left.newText else it.right.newText }
-                      ?: item.insertText
-                      ?: item.label
-    val toInsert = StringUtilRt.convertLineSeparators(toInsertRaw)
+    /**
+     * 将从 LSP 服务器接收到的 [CompletionItem](https://microsoft.github.io/language-server-protocol/specification#completionItem)
+     * 对象转换为 [LookupElement] 对象。
+     *
+     * 注意，实现此函数时不应在此处操作补全项的展示方式。
+     * 若需调整展示，可重写 [getIcon]、[isBold]、[isStrikeout]、[getTypeText] 或 [getTailText] 等函数。
+     * 在高级用例中，插件可以重写 [renderLookupElement]。
+     *
+     * 一些实现的示例：
+     * - 返回 `null`，以忽略此 [item]
+     * - 调整补全项的优先级：
+     *   ```kotlin
+     *   PrioritizedLookupElement.withPriority(super.createLookupElement(parameters, item), priority)
+     *   ```
+     * - 使用 [parameters] 检查补全会话启动的上下文。
+     *   注意 [parameters.originalFile][CompletionParameters.getOriginalFile] 可能是一个
+     *   [注入](https://plugins.jetbrains.com/docs/intellij/language-injection.html)文件，
+     *   而所有 `lsp4j` 实体（包括 [item]）始终处理宿主文件（也称顶层文件）。
+     *   [InjectedLanguageManager] 有助于在注入文件和宿主文件之间映射偏移量。
+     */
+    open fun createLookupElement(parameters: CompletionParameters, item: CompletionItem): LookupElement? {
+        val toUseForPrefixMatching = item.filterText?.let { StringUtilRt.convertLineSeparators(it) }
+            ?: item.label
+        val toInsertRaw = item.textEdit?.let { if (it.isLeft) it.left.newText else it.right.newText }
+            ?: item.insertText
+            ?: item.label
+        val toInsert = StringUtilRt.convertLineSeparators(toInsertRaw)
 
-    return LookupElementBuilder.create(item, toInsert)
-      .let { if (toInsert == toUseForPrefixMatching) it else it.withLookupString(toUseForPrefixMatching) }
-  }
+        return LookupElementBuilder.create(item, toInsert)
+            .let { if (toInsert == toUseForPrefixMatching) it else it.withLookupString(toUseForPrefixMatching) }
+    }
 
-  /**
-   * Typically, plugins don't need to override this function as they can tune the completion item presentation
-   * by overriding [getIcon], [isBold], [isStrikeout], [getTypeText], or [getTailText].
-   *
-   * This function is usually called twice: first, for the initial [CompletionItem][item],
-   * and later for the [resolved](https://microsoft.github.io/language-server-protocol/specification/#completionItem_resolve) one.
-   */
-  open fun renderLookupElement(item: CompletionItem, presentation: LookupElementPresentation) {
-    presentation.itemText = item.label
-    presentation.icon = getIcon(item)
-    presentation.isItemTextBold = isBold(item)
-    presentation.isStrikeout = isStrikeout(item)
-    presentation.setTailText(getTailText(item), true)
-    presentation.typeText = getTypeText(item)
-    presentation.isTypeGrayed = true
-  }
+    /**
+     * 通常插件无需重写此函数，因为可以通过重写 [getIcon]、[isBold]、[isStrikeout]、[getTypeText] 或 [getTailText] 调整补全项的展示。
+     *
+     * 此函数通常被调用两次：一次用于初始 [CompletionItem][item]，另一次用于
+     * [已解析](https://microsoft.github.io/language-server-protocol/specification/#completionItem_resolve)的 CompletionItem。
+     */
+    open fun renderLookupElement(item: CompletionItem, presentation: LookupElementPresentation) {
+        presentation.itemText = item.label
+        presentation.icon = getIcon(item)
+        presentation.isItemTextBold = isBold(item)
+        presentation.isStrikeout = isStrikeout(item)
+        presentation.setTailText(getTailText(item), true)
+        presentation.typeText = getTypeText(item)
+        presentation.isTypeGrayed = true
+    }
 
-  protected open fun getIcon(item: CompletionItem): Icon? = when (item.kind) {
-    CompletionItemKind.Text -> AllIcons.Nodes.Word
-    CompletionItemKind.Method -> AllIcons.Nodes.Method
-    CompletionItemKind.Function -> AllIcons.Nodes.Function
-    CompletionItemKind.Constructor -> AllIcons.Nodes.Class // no special icon
-    CompletionItemKind.Field -> AllIcons.Nodes.Field
-    CompletionItemKind.Variable -> AllIcons.Nodes.Variable
-    CompletionItemKind.Class -> AllIcons.Nodes.Class
-    CompletionItemKind.Interface -> AllIcons.Nodes.Interface
-    CompletionItemKind.Module -> null // 'module' may mean different things
-    CompletionItemKind.Property -> AllIcons.Nodes.Property
-    CompletionItemKind.Unit -> null // no standard icon
-    CompletionItemKind.Value -> null // no standard icon
-    CompletionItemKind.Enum -> AllIcons.Nodes.Enum
-    CompletionItemKind.Keyword -> null // icon not needed
-    CompletionItemKind.Snippet -> AllIcons.Nodes.Template
-    CompletionItemKind.Color -> AllIcons.Actions.Colors
-    CompletionItemKind.File -> AllIcons.FileTypes.Any_type
-    CompletionItemKind.Reference -> null // no standard icon
-    CompletionItemKind.Folder -> AllIcons.Nodes.Folder
-    CompletionItemKind.EnumMember -> AllIcons.Nodes.Enum // the same as for Enum
-    CompletionItemKind.Constant -> AllIcons.Nodes.Constant
-    CompletionItemKind.Struct -> AllIcons.Json.Object // looks like `{}`
-    CompletionItemKind.Event -> null // no standard icon
-    CompletionItemKind.Operator -> null // no standard icon
-    CompletionItemKind.TypeParameter -> AllIcons.Nodes.Type
-    else -> null
-  }
+    protected open fun getIcon(item: CompletionItem): Icon? = when (item.kind) {
+        CompletionItemKind.Text -> AllIcons.Nodes.Word
+        CompletionItemKind.Method -> AllIcons.Nodes.Method
+        CompletionItemKind.Function -> AllIcons.Nodes.Function
+        CompletionItemKind.Constructor -> AllIcons.Nodes.Class // no special icon
+        CompletionItemKind.Field -> AllIcons.Nodes.Field
+        CompletionItemKind.Variable -> AllIcons.Nodes.Variable
+        CompletionItemKind.Class -> AllIcons.Nodes.Class
+        CompletionItemKind.Interface -> AllIcons.Nodes.Interface
+        CompletionItemKind.Module -> null // 'module' may mean different things
+        CompletionItemKind.Property -> AllIcons.Nodes.Property
+        CompletionItemKind.Unit -> null // no standard icon
+        CompletionItemKind.Value -> null // no standard icon
+        CompletionItemKind.Enum -> AllIcons.Nodes.Enum
+        CompletionItemKind.Keyword -> null // icon not needed
+        CompletionItemKind.Snippet -> AllIcons.Nodes.Template
+        CompletionItemKind.Color -> AllIcons.Actions.Colors
+        CompletionItemKind.File -> AllIcons.FileTypes.Any_type
+        CompletionItemKind.Reference -> null // no standard icon
+        CompletionItemKind.Folder -> AllIcons.Nodes.Folder
+        CompletionItemKind.EnumMember -> AllIcons.Nodes.Enum // the same as for Enum
+        CompletionItemKind.Constant -> AllIcons.Nodes.Constant
+        CompletionItemKind.Struct -> AllIcons.Json.Object // looks like `{}`
+        CompletionItemKind.Event -> null // no standard icon
+        CompletionItemKind.Operator -> null // no standard icon
+        CompletionItemKind.TypeParameter -> AllIcons.Nodes.Type
+        null -> null
+    }
 
-  protected open fun isBold(item: CompletionItem): Boolean = item.kind == CompletionItemKind.Keyword
+    /**
+     * 判断补全项是否需要加粗显示。
+     */
+    protected open fun isBold(item: CompletionItem): Boolean = item.kind == CompletionItemKind.Keyword
 
-  protected open fun isStrikeout(item: CompletionItem): Boolean {
-    @Suppress("DEPRECATION") // old LSP server implementations may use deprecated property `item.deprecated`
-    return item.deprecated == true || item.tags?.contains(CompletionItemTag.Deprecated) ?: false
-  }
+    /**
+     * 判断补全项是否需要使用删除线。
+     * 注意旧的 LSP 服务器实现可能仍然使用已废弃的 `item.deprecated` 属性。
+     */
+    protected open fun isStrikeout(item: CompletionItem): Boolean {
+        @Suppress("DEPRECATION") // old LSP server implementations may use deprecated property `item.deprecated`
+        return item.deprecated == true || item.tags?.contains(CompletionItemTag.Deprecated) ?: false
+    }
 
-  protected open fun getTailText(item: CompletionItem): String? = item.labelDetails?.detail
+    /**
+     * 获取补全项的尾部文本。
+     */
+    protected open fun getTailText(item: CompletionItem): String? = item.labelDetails?.detail
 
-  protected open fun getTypeText(item: CompletionItem): String? = item.detail
+    /**
+     * 获取补全项的类型文本。
+     */
+    protected open fun getTypeText(item: CompletionItem): String? = item.detail
 }

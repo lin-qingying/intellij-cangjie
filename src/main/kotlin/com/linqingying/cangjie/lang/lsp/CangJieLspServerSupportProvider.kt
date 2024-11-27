@@ -25,6 +25,22 @@
 package com.linqingying.cangjie.lang.lsp
 
 
+import com.linqingying.lsp.api.LspServer
+import com.linqingying.lsp.api.LspServerSupportProvider
+import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
+
+import com.linqingying.lsp.api.customization.LspCompletionSupport
+import com.linqingying.lsp.api.customization.LspDiagnosticsSupport
+import com.linqingying.lsp.api.customization.LspSemanticTokensSupport
+import com.linqingying.lsp.api.lsWidget.LspServerWidgetItem
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.lang.lsWidget.LanguageServiceWidgetItem
+
+import com.intellij.util.io.systemIndependentPath
 import com.linqingying.cangjie.cjpm.project.model.Require
 import com.linqingying.cangjie.cjpm.project.model.cjpmProjects
 import com.linqingying.cangjie.cjpm.project.model.currentCjpmProject
@@ -34,22 +50,9 @@ import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServic
 import com.linqingying.cangjie.configurable.services.Feature
 import com.linqingying.cangjie.lang.CangJieFileType
 import com.linqingying.cangjie.lang.lsp.CangJieLspServerManager.getCommandLine
-import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.lang.lsWidget.LanguageServiceWidgetItem
-import com.intellij.util.io.systemIndependentPath
-import com.linqingying.lsp.api.LspServer
-import com.linqingying.lsp.api.LspServerSupportProvider
-import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
-import com.linqingying.lsp.api.customization.FindReferencesSupport
-import com.linqingying.lsp.api.customization.LspCompletionSupport
-import com.linqingying.lsp.api.customization.LspDiagnosticsSupport
-import com.linqingying.lsp.api.customization.LspSemanticTokensSupport
-import com.linqingying.lsp.api.lsWidget.LspServerWidgetItem
+import com.linqingying.lsp.api.customization.LspFindReferencesSupport
 import org.eclipse.lsp4j.*
+
 
 fun checkCangJieFIle(file: VirtualFile): Boolean {
 //    return false
@@ -110,8 +113,6 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
     }
 
 
-//    override val lsp4jServerClass: Class<out LanguageServer>
-//        get() = CangJieLangServer::class.java
 
     override fun createCommandLine(): GeneralCommandLine {
         return getCommandLine(project)
@@ -134,11 +135,12 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
         }
 
     //语义标记
-    override val lspSemanticTokensSupport: LspSemanticTokensSupport? get() {
-        if (CangJieLanguageServerServices.getInstance().lspConfig.isFeatureEnabled(Feature.SEMANTIC_TOKENS))
-            return LspSemanticTokensSupport()
-        return null
-    }
+    override val lspSemanticTokensSupport: LspSemanticTokensSupport?
+        get() {
+            if (CangJieLanguageServerServices.getInstance().lspConfig.isFeatureEnabled(Feature.SEMANTIC_TOKENS))
+                return LspSemanticTokensSupport()
+            return null
+        }
 
     //诊断信息
     override val lspDiagnosticsSupport: LspDiagnosticsSupport?
@@ -150,7 +152,7 @@ private class CangJieLspServerDescriptor(project: Project) : ProjectWideLspServe
 
 
     //查找用法
-    override val lspFindReferencesSupport: FindReferencesSupport?
+    override val lspFindReferencesSupport: LspFindReferencesSupport?
         get() {
 
             if (CangJieLanguageServerServices.getInstance().lspConfig.isFeatureEnabled(Feature.FIND_USAGES)) {

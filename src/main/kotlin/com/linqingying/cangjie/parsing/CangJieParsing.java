@@ -48,16 +48,16 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet GT_COMMA_COLON_SET = TokenSet.create(GT, COMMA, COLON);
     private static final Logger LOG = Logger.getInstance(CangJieParsing.class);
     private static final TokenSet TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(INTERFACE_KEYWORD, CLASS_KEYWORD, FUNC_KEYWORD, LET_KEYWORD, VAR_KEYWORD, CONST_KEYWORD, PACKAGE_KEYWORD);
-    private static final TokenSet TOP_LEVEL_DECLARATION_FIRST_SEMICOLON_SET = TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(SEMICOLON));
-    private static final TokenSet LT_EQ_SEMICOLON_TOP_LEVEL_DECLARATION_FIRST_SET = TokenSet.orSet(TokenSet.create(LT, EQ, SEMICOLON), TOP_LEVEL_DECLARATION_FIRST);
+    private static final TokenSet TOP_LEVEL_DECLARATION_FIRST_SEMICOLON_SET = TokenSet.orSet(CangJieParsing.TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(SEMICOLON));
+    private static final TokenSet LT_EQ_SEMICOLON_TOP_LEVEL_DECLARATION_FIRST_SET = TokenSet.orSet(TokenSet.create(LT, EQ, SEMICOLON), CangJieParsing.TOP_LEVEL_DECLARATION_FIRST);
 
-    private static final TokenSet CLASS_NAME_RECOVERY_SET = TokenSet.orSet(TokenSet.create(LT, LPAR, COLON, LBRACE), TOP_LEVEL_DECLARATION_FIRST);
+    private static final TokenSet CLASS_NAME_RECOVERY_SET = TokenSet.orSet(TokenSet.create(LT, LPAR, COLON, LBRACE), CangJieParsing.TOP_LEVEL_DECLARATION_FIRST);
     private static final TokenSet TYPE_PARAMETER_GT_RECOVERY_SET = TokenSet.create(WHERE_KEYWORD, LPAR, COLON, LBRACE, GT);
     private static final TokenSet PACKAGE_NAME_RECOVERY_SET = TokenSet.create(DOT, EOL_OR_SEMICOLON);
     private static final TokenSet IMPORT_RECOVERY_SET = TokenSet.create(AS_KEYWORD, DOT, EOL_OR_SEMICOLON);
     private static final TokenSet TYPE_REF_FIRST = TokenSet.create(LBRACKET, IDENTIFIER, LPAR, HASH);
-    private static final TokenSet LBRACE_RBRACE_TYPE_REF_FIRST_SET = TokenSet.orSet(TokenSet.create(LBRACE, RBRACE), TYPE_REF_FIRST);
-    private static final TokenSet LTCOLON_COMMA_LBRACE_RBRACE_TYPE_REF_FIRST_SET = TokenSet.orSet(TokenSet.create(LTCOLON, COMMA, LBRACE, RBRACE), TYPE_REF_FIRST);
+    private static final TokenSet LBRACE_RBRACE_TYPE_REF_FIRST_SET = TokenSet.orSet(TokenSet.create(LBRACE, RBRACE), CangJieParsing.TYPE_REF_FIRST);
+    private static final TokenSet LTCOLON_COMMA_LBRACE_RBRACE_TYPE_REF_FIRST_SET = TokenSet.orSet(TokenSet.create(LTCOLON, COMMA, LBRACE, RBRACE), CangJieParsing.TYPE_REF_FIRST);
     private static final TokenSet RECEIVER_TYPE_TERMINATORS = TokenSet.create(DOT);
     private static final TokenSet VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET, LET_KEYWORD, CONST_KEYWORD, VAR_KEYWORD), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
     private static final TokenSet LAMBDA_VALUE_PARAMETER_FIRST = TokenSet.orSet(TokenSet.create(IDENTIFIER, LBRACKET), TokenSet.andNot(MODIFIER_KEYWORDS, TokenSet.create(FUNC_KEYWORD)));
@@ -70,8 +70,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet COMMA_SEMICOLON_RBRACE_SET = TokenSet.create(COMMA, SEMICOLON, RBRACE);
     private static final TokenSet VALUE_ARGS_RECOVERY_SET = TokenSet.create(LBRACE, SEMICOLON, RPAR, EOL_OR_SEMICOLON, RBRACE);
     private static final TokenSet PROPERTY_NAME_FOLLOW_SET = TokenSet.create(COLON, EQ, LBRACE, RBRACE, SEMICOLON, LET_KEYWORD, VAR_KEYWORD, FUNC_KEYWORD, CLASS_KEYWORD);
-    private static final TokenSet PROPERTY_NAME_FOLLOW_MULTI_DECLARATION_RECOVERY_SET = TokenSet.orSet(PROPERTY_NAME_FOLLOW_SET, PARAMETER_NAME_RECOVERY_SET);
-    private static final TokenSet PROPERTY_NAME_FOLLOW_FUNCTION_OR_PROPERTY_RECOVERY_SET = TokenSet.orSet(PROPERTY_NAME_FOLLOW_SET, LBRACE_RBRACE_SET, TOP_LEVEL_DECLARATION_FIRST);
+    private static final TokenSet PROPERTY_NAME_FOLLOW_MULTI_DECLARATION_RECOVERY_SET = TokenSet.orSet(CangJieParsing.PROPERTY_NAME_FOLLOW_SET, CangJieParsing.PARAMETER_NAME_RECOVERY_SET);
+    private static final TokenSet PROPERTY_NAME_FOLLOW_FUNCTION_OR_PROPERTY_RECOVERY_SET = TokenSet.orSet(CangJieParsing.PROPERTY_NAME_FOLLOW_SET, CangJieParsing.LBRACE_RBRACE_SET, CangJieParsing.TOP_LEVEL_DECLARATION_FIRST);
     private static final TokenSet IDENTIFIER_EQ_COLON_SEMICOLON_SET = TokenSet.create(IDENTIFIER, EQ, COLON, SEMICOLON);
     private static final TokenSet COMMA_RPAR_COLON_EQ_SET = TokenSet.create(COMMA, RPAR, COLON, EQ);
     private static final TokenSet ACCESSOR_FIRST_OR_PROPERTY_END = TokenSet.orSet(MODIFIER_KEYWORDS, TokenSet.create(GET_KEYWORD, SET_KEYWORD, EOL_OR_SEMICOLON, RBRACE));
@@ -80,11 +80,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
     private static final TokenSet RPAR_COLON_LBRACE_EQ_SET = TokenSet.create(RPAR, COLON, LBRACE, EQ);
     private static final TokenSet LBRACKET_LBRACE_RBRACE_LPAR_SET = TokenSet.create(LBRACKET, LBRACE, RBRACE, LPAR);
     private static final TokenSet FUNCTION_NAME_FOLLOW_SET = TokenSet.create(LT, LPAR, RPAR, COLON, EQ);
-    private static final TokenSet FUNCTION_NAME_RECOVERY_SET = TokenSet.orSet(TokenSet.create(LT, LPAR, RPAR, COLON, EQ), LBRACE_RBRACE_SET, TOP_LEVEL_DECLARATION_FIRST);
+    private static final TokenSet FUNCTION_NAME_RECOVERY_SET = TokenSet.orSet(TokenSet.create(LT, LPAR, RPAR, COLON, EQ), CangJieParsing.LBRACE_RBRACE_SET, CangJieParsing.TOP_LEVEL_DECLARATION_FIRST);
     private static final TokenSet VALUE_PARAMETERS_FOLLOW_SET = TokenSet.create(EQ, LBRACE, RBRACE, SEMICOLON, RPAR);
-    private static final TokenSet LPAR_VALUE_PARAMETERS_FOLLOW_SET = TokenSet.orSet(TokenSet.create(LPAR), VALUE_PARAMETERS_FOLLOW_SET);
+    private static final TokenSet LPAR_VALUE_PARAMETERS_FOLLOW_SET = TokenSet.orSet(TokenSet.create(LPAR), CangJieParsing.VALUE_PARAMETERS_FOLLOW_SET);
     private static final TokenSet LPAR_LBRACE_COLON_CONSTRUCTOR_KEYWORD_SET = TokenSet.create(LPAR, LBRACE, COLON, INIT_KEYWORD);
-    private static final TokenSet definitelyOutOfReceiverSet = TokenSet.orSet(TokenSet.create(EQ, COLON, LBRACE, RBRACE), TOP_LEVEL_DECLARATION_FIRST);
+    private static final TokenSet definitelyOutOfReceiverSet = TokenSet.orSet(TokenSet.create(EQ, COLON, LBRACE, RBRACE), CangJieParsing.TOP_LEVEL_DECLARATION_FIRST);
     private final static TokenSet EOL_OR_SEMICOLON_RBRACE_SET = TokenSet.create(EOL_OR_SEMICOLON, RBRACE);
     private final static TokenSet CLASS_INTERFACE_SET = TokenSet.create(CLASS_KEYWORD, INTERFACE_KEYWORD);
     private final static TokenSet CLASS_INTERFACE_STRUCT_ENUM_EXTEND_SET = TokenSet.create(CLASS_KEYWORD, INTERFACE_KEYWORD, STRUCT_KEYWORD, ENUM_KEYWORD, EXTEND_KEYWORD);
@@ -100,43 +100,43 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     private final static TokenSet DOT_MUL_SET = TokenSet.create(DOT, MUL);
     private static final TokenSet DECLARATION_FIRST =
-            TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(INIT_KEYWORD, GET_KEYWORD, SET_KEYWORD));
+            TokenSet.orSet(CangJieParsing.TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(INIT_KEYWORD, GET_KEYWORD, SET_KEYWORD));
 
     private final static TokenSet MUT_PROP_SET = TokenSet.create(MUT_KEYWORD, PROP_KEYWORD);
     private final CangJieExpressionParsing myExpressionParsing;
     private final LastBefore lastDotAfterReceiverNotLParPattern =
-            new LastBefore(new AtSet(RECEIVER_TYPE_TERMINATORS), new AbstractTokenStreamPredicate() {
+            new LastBefore(new AtSet(CangJieParsing.RECEIVER_TYPE_TERMINATORS), new AbstractTokenStreamPredicate() {
                 @Override
-                public boolean matching(boolean topLevel) {
-                    if (topLevel && (atSet(definitelyOutOfReceiverSet) || at(LPAR))) return true;
-                    if (topLevel && at(IDENTIFIER)) {
-                        IElementType lookahead = lookahead(1);
+                public boolean matching(final boolean topLevel) {
+                    if (topLevel && (CangJieParsing.this.atSet(CangJieParsing.definitelyOutOfReceiverSet) || CangJieParsing.this.at(LPAR))) return true;
+                    if (topLevel && CangJieParsing.this.at(IDENTIFIER)) {
+                        final IElementType lookahead = CangJieParsing.this.lookahead(1);
                         return lookahead != LT && lookahead != DOT && lookahead != QUEST;
                     }
                     return false;
                 }
             });
     private final FirstBefore lastDotAfterReceiverLParPattern =
-            new FirstBefore(new AtSet(RECEIVER_TYPE_TERMINATORS), new AbstractTokenStreamPredicate() {
+            new FirstBefore(new AtSet(CangJieParsing.RECEIVER_TYPE_TERMINATORS), new AbstractTokenStreamPredicate() {
                 @Override
-                public boolean matching(boolean topLevel) {
-                    if (topLevel && atSet(definitelyOutOfReceiverSet)) {
+                public boolean matching(final boolean topLevel) {
+                    if (topLevel && CangJieParsing.this.atSet(CangJieParsing.definitelyOutOfReceiverSet)) {
                         return true;
                     }
-                    return topLevel && !at(QUEST) && !at(LPAR) && !at(RPAR);
+                    return topLevel && !CangJieParsing.this.at(QUEST) && !CangJieParsing.this.at(LPAR) && !CangJieParsing.this.at(RPAR);
                 }
             });
 
-    private CangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isTopLevel, boolean isLazy) {
+    private CangJieParsing(final SemanticWhitespaceAwarePsiBuilder builder, final boolean isTopLevel, final boolean isLazy) {
         super(builder, isLazy);
 
-        myExpressionParsing =
+        this.myExpressionParsing =
                 isTopLevel ? new CangJieExpressionParsing(builder, this, isLazy) : new CangJieExpressionParsing(builder, this, isLazy) {
 
 
                     @Override
-                    protected @NotNull CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder) {
-                        return createForByClause(builder, this.isLazy);
+                    protected @NotNull CangJieParsing create(final SemanticWhitespaceAwarePsiBuilder builder) {
+                        return CangJieParsing.createForByClause(builder, this.isLazy);
                     }
                 };
 
@@ -1002,11 +1002,13 @@ public class CangJieParsing extends AbstractCangJieParsing {
         return switch (this.getTokenId()) {
             case AT_Id -> this.myExpressionParsing.parseMacroExpression(true);
 //                    parseAnnotation(null);
-            case FUNC_KEYWORD_Id -> null != tokenId ? INTERFACE_KEYWORD_Id == tokenId ? this.parseFunction(true, classdetector, detector, tokenId) : this.parseFunction(classdetector, detector, tokenId) : this.parseFunction(detector, tokenId);
+            case FUNC_KEYWORD_Id ->
+                    null != tokenId ? INTERFACE_KEYWORD_Id == tokenId ? this.parseFunction(true, classdetector, detector, tokenId) : this.parseFunction(classdetector, detector, tokenId) : this.parseFunction(detector, tokenId);
 
 
 //                    tokenId != null && (tokenId == INTERFACE_KEYWORD_Id || tokenId == EXTEND_KEYWORD_Id) ?  parseFunction(true,classdetector, detector):parseFunction( ) ;
-            case PROP_KEYWORD_Id -> null != tokenId && (INTERFACE_KEYWORD_Id == tokenId /*|| tokenId == EXTEND_KEYWORD_Id*/) ? this.parseProperty(true, classdetector, detector) : this.parseProperty(classdetector, detector);
+            case PROP_KEYWORD_Id ->
+                    null != tokenId && (INTERFACE_KEYWORD_Id == tokenId /*|| tokenId == EXTEND_KEYWORD_Id*/) ? this.parseProperty(true, classdetector, detector) : this.parseProperty(classdetector, detector);
             case LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> this.parseVariable(classdetector, DeclarationParsingMode.MEMBER);
             default -> null;
         };
@@ -2200,7 +2202,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
     IElementType parseFunction(final boolean isInterfaceMethod, final ModifierDetector classdetector, final ModifierDetector detector, final boolean isForeign, final Integer topTokenId) {
 
 
-
         assert this._at(FUNC_KEYWORD);
         this.advance();
         IElementType type = FUNC;
@@ -2238,14 +2239,12 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 mark.error("Should be an overloaded operator");
 
 
-
             }
-        }  else {
+        } else {
             //函数名
             this.myBuilder.getTokenType();
             this.parseIdentifier();
         }
-
 
 
         boolean typeParameterListOccurred = false;
@@ -2280,7 +2279,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 }
 
 
-
                 body.error("Method bodies are not allowed in declaration files");
 
             }
@@ -2292,7 +2290,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
             advance();
             myExpressionParsing.parseExpression();
 
-        } else*/ if (this.at(LBRACE)) {
+        } else*/
+        if (this.at(LBRACE)) {
 
             this.parseFunctionBody();
             if (isForeign) {

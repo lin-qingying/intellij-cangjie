@@ -1,3 +1,26 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
 
 package com.linqingying.lsp.api
 
@@ -7,23 +30,22 @@ import org.jetbrains.annotations.ApiStatus
 import java.util.concurrent.CompletableFuture
 
 /**
- * Implementation of the [org.eclipse.lsp4j.services.LanguageClient] interface.
- * It handles all standard requests and notifications that the LSP server sends to the IDE.
- * 'Standard' requests and notifications are the ones that are documented
- * in the official [LSP specification](https://microsoft.github.io/language-server-protocol/specification).
+ * [org.eclipse.lsp4j.services.LanguageClient] 接口的实现。
+ * 它处理 LSP 服务器发送给 IDE 的所有标准请求和通知。
+ * "标准" 请求和通知是指在官方 [LSP 规范](https://microsoft.github.io/language-server-protocol/specification) 中记录的那些。
  *
- * To handle custom undocumented requests/notifications from the server, plugins need to override [LspServerDescriptor.createLsp4jClient]
- * and return their subclass of this [Lsp4jClient]. This subclass should contain specially annotated functions, which will be called
- * via reflection by the `lsp4j` library once the corresponding request/notification arrives from the LSP server.
+ * 如果需要处理服务器的自定义未文档化请求/通知，插件需要重写 [LspServerDescriptor.createLsp4jClient]，
+ * 并返回此 [Lsp4jClient] 的子类。这个子类应该包含特别注解的方法，
+ * 当 LSP 服务器发送相应的请求/通知时，`lsp4j` 库将通过反射调用这些方法。
  *
- * Example:
+ * 示例：
  *
  *    @JsonNotification("@/foo/bar")
  *    fun fooBar(fooBar: FooBarNotification) { ... }
  *
  * @see LspServerDescriptor.createLsp4jClient
  */
-@ApiStatus.OverrideOnly
+
 open class Lsp4jClient(private val serverNotificationsHandler: LspServerNotificationsHandler) : LanguageClient {
   final override fun applyEdit(params: ApplyWorkspaceEditParams) = serverNotificationsHandler.applyEdit(params)
   final override fun registerCapability(params: RegistrationParams) = serverNotificationsHandler.registerCapability(params)
@@ -46,12 +68,11 @@ open class Lsp4jClient(private val serverNotificationsHandler: LspServerNotifica
   final override fun refreshDiagnostics() = serverNotificationsHandler.refreshDiagnostics()
 }
 
-
 /**
- * Plugins don't need to use this interface.
+ * 插件不需要使用此接口。
  *
- * Its internal implementation handles all standard (documented in the official LSP specification) requests and notifications
- * that the LSP server sends to the IDE.
+ * 它的内部实现处理 LSP 服务器发送给 IDE 的所有标准请求和通知
+ * （记录在官方 LSP 规范中）。
  */
 interface LspServerNotificationsHandler {
   fun applyEdit(params: ApplyWorkspaceEditParams): CompletableFuture<ApplyWorkspaceEditResponse>

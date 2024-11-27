@@ -330,9 +330,8 @@ public class ResolvedCallImpl<D extends CallableDescriptor> implements MutableRe
             }
         }
 
-        for (int i = 0; i < arguments.size(); i++) {
-            Object o = arguments.get(i);
-            if (o == null) {
+        for (Object o : arguments) {
+            if (null == o) {
                 return null;
             }
         }

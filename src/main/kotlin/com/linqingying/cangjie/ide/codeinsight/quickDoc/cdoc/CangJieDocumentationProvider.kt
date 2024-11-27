@@ -25,9 +25,28 @@
 package com.linqingying.cangjie.ide.codeinsight.quickDoc.cdoc
 
 import com.google.common.html.HtmlEscapers
+import com.intellij.codeInsight.documentation.DocumentationManagerUtil
+import com.intellij.lang.documentation.AbstractDocumentationProvider
+import com.intellij.lang.documentation.CompositeDocumentationProvider
+import com.intellij.lang.documentation.DocumentationMarkup.*
+import com.intellij.lang.documentation.DocumentationSettings
+import com.intellij.lang.documentation.ExternalDocumentationProvider
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.NlsSafe
+import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.psi.PsiDocCommentBase
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.builtins.StandardNames
 import com.linqingying.cangjie.builtins.fqNameUnsafe
+import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
+import com.linqingying.cangjie.configurable.services.Feature
+import com.linqingying.cangjie.configurable.services.LanugageServerType
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.doc.CDocTemplate
 import com.linqingying.cangjie.doc.insert
@@ -60,22 +79,6 @@ import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.isDefinitelyNotNullType
 import com.linqingying.cangjie.utils.safeAs
-import com.intellij.codeInsight.documentation.DocumentationManagerUtil
-import com.intellij.lang.documentation.AbstractDocumentationProvider
-import com.intellij.lang.documentation.CompositeDocumentationProvider
-import com.intellij.lang.documentation.DocumentationMarkup.*
-import com.intellij.lang.documentation.DocumentationSettings
-import com.intellij.lang.documentation.ExternalDocumentationProvider
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.NlsSafe
-import com.intellij.openapi.util.text.HtmlChunk
-import com.intellij.psi.PsiDocCommentBase
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.annotations.Nls
 import java.util.function.Consumer
 
@@ -102,7 +105,7 @@ class HtmlClassifierNamePolicy(val base: ClassifierNamePolicy) : ClassifierNameP
             return name
         return buildString {
             val ref = classifier.fqNameUnsafe.toString()
-            DocumentationManagerUtil.createHyperlink(this, ref, name, true, false)
+            DocumentationManagerUtil.createHyperlink(this, ref, name, true)
         }
     }
 }
@@ -164,7 +167,12 @@ class WrapValueParameterHandler(val base: DescriptorRenderer.ValueParametersHand
 }
 
 class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDocumentationProvider {
-    @Deprecated("Deprecated in Java")
+    @Deprecated(
+        "Deprecated in Java", ReplaceWith(
+            "CompositeDocumentationProvider.hasUrlsFor(this, element, originalElement)",
+            "com.intellij.lang.documentation.CompositeDocumentationProvider"
+        )
+    )
     override fun hasDocumentationFor(element: PsiElement?, originalElement: PsiElement?): Boolean {
         return CompositeDocumentationProvider.hasUrlsFor(this, element, originalElement)
 
@@ -172,6 +180,11 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
 
     @Nls
     override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
+        if (!CangJieLanguageServerServices.getInstance()
+                .isFeatureEnabled(LanugageServerType.AST_ANALYZER, Feature.HOVER_INFO)
+        ) {
+            return null
+        }
         return getText(element, originalElement, false)
     }
 
@@ -198,6 +211,11 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
     }
 
     override fun collectDocComments(file: PsiFile, sink: Consumer<in PsiDocCommentBase>) {
+        if (!CangJieLanguageServerServices.getInstance()
+                .isFeatureEnabled(LanugageServerType.AST_ANALYZER, Feature.HOVER_INFO)
+        ) {
+            return
+        }
         if (file !is CjFile) return
 
         PsiTreeUtil.processElements(file) {
@@ -286,7 +304,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
             functionDescriptor: FunctionDescriptor,
             quickNavigation: Boolean
         ): String {
-            val kdoc = run {
+            val cdoc = run {
                 val declarationDescriptor = element.resolveToDescriptorIfAny()
                 val enumDescriptor = declarationDescriptor?.getSuperClassNotAny() ?: return@run null
 
@@ -308,9 +326,9 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                             .withIdeOptions { highlightingManager = createHighlightingManager(element.project) }
                         )
                     }
-                    if (!quickNavigation && kdoc != null) {
+                    if (!quickNavigation && cdoc != null) {
                         description {
-                            renderCDoc(kdoc.getDefaultSection())
+                            renderCDoc(cdoc.getDefaultSection())
                         }
                     }
                 }
@@ -357,6 +375,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
 
             return buildCangJie(context, declarationDescriptor, quickNavigation, declaration, resolutionFacade)
         }
+
         private inline fun StringBuilder.wrapTag(tag: String, crossinline body: () -> Unit) {
             wrap("<$tag>", "</$tag>", body)
         }
@@ -366,6 +385,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
             body()
             this.append(postfix)
         }
+
         private fun String.htmlEscape(): String = HtmlEscapers.htmlEscaper().escape(this)
 
         private fun CDocTemplate.insertDeprecationInfo(
@@ -519,7 +539,7 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
                 return getTextImpl(it, originalElement, quickNavigation)
             }
 
-            if(element is CjVArrayType){
+            if (element is CjVArrayType) {
                 return "值数组"
             }
             if (element is CjBasicType) {

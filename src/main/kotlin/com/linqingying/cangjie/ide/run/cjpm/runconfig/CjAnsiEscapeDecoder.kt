@@ -27,12 +27,14 @@ package com.linqingying.cangjie.ide.run.cjpm.runconfig
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.ide.ui.LafManager
-import com.intellij.ide.ui.laf.UIThemeBasedLookAndFeelInfo
+
+import com.intellij.ide.ui.laf.UIThemeLookAndFeelInfoImpl
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.Gray
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import kotlin.math.roundToInt
@@ -191,6 +193,6 @@ fun <T : Any> Iterator<T>.nextOrNull(): T? =
     if (hasNext()) next() else null
 val isUnderDarkTheme: Boolean
     get() {
-        val lookAndFeel = LafManager.getInstance().currentLookAndFeel as? UIThemeBasedLookAndFeelInfo
-        return lookAndFeel?.theme?.isDark == true || UIUtil.isUnderDarcula()
+        val lookAndFeel = LafManager.getInstance().currentUIThemeLookAndFeel as? UIThemeLookAndFeelInfoImpl
+        return lookAndFeel?.theme?.isDark == true || JBColor.isBright()
     }

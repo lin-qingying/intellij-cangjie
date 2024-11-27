@@ -28,6 +28,8 @@ package com.linqingying.cangjie.resolve.caches
 
 import com.linqingying.cangjie.analyzer.AnalysisResult
 import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
+import com.linqingying.cangjie.configurable.services.Feature
+import com.linqingying.cangjie.configurable.services.LanugageServerType
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.diagnostics.Diagnostic
@@ -241,7 +243,13 @@ fun CjNamedFunction.resolveToDescriptorIfAny(
 fun CjElement.analyze(
     resolutionFacade: ResolutionFacade,
     bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
-): BindingContext = resolutionFacade.analyze(this, bodyResolveMode)
+): BindingContext {
+
+    if(!CangJieLanguageServerServices.getInstance().isFeatureEnabled(LanugageServerType.AST_ANALYZER,Feature.REFERENCES)){
+        return BindingContext.EMPTY
+    }
+    return resolutionFacade.analyze(this, bodyResolveMode)
+}
 
 @JvmOverloads
 fun CjElement.analyze(
