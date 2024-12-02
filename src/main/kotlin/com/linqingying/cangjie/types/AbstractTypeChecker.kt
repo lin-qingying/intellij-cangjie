@@ -24,11 +24,11 @@
 
 package com.linqingying.cangjie.types
 
+import com.intellij.util.SmartList
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.types.checker.AbstractTypePreparator
 import com.linqingying.cangjie.types.model.*
 import com.linqingying.cangjie.utils.SmartSet
-import com.intellij.util.SmartList
 import java.util.*
 
 object AbstractTypeChecker {
@@ -83,6 +83,7 @@ object AbstractTypeChecker {
         }
         return false
     }
+
     private fun collectAndFilter(
         state: TypeCheckerState,
         classType: SimpleTypeMarker,
@@ -242,18 +243,6 @@ object AbstractTypeChecker {
     fun equalTypes(state: TypeCheckerState, a: CangJieTypeMarker, b: CangJieTypeMarker): Boolean =
         with(state.typeSystemContext) {
             if (a === b) return true
-//
-//            if (isCommonDenotableType(a) && isCommonDenotableType(b)) {
-//                val refinedA = state.prepareType(state.refineType(a))
-//                val refinedB = state.prepareType(state.refineType(b))
-//                val simpleA = refinedA.lowerBoundIfFlexible()
-//                if (!areEqualTypeConstructors(refinedA.typeConstructor(), refinedB.typeConstructor())) return false
-//                if (simpleA.argumentsCount() == 0) {
-//                    if (refinedA.hasFlexibleNullability() || refinedB.hasFlexibleNullability()) return true
-//
-//                    return simpleA.isMarkedOption() == refinedB.lowerBoundIfFlexible().isMarkedOption()
-//                }
-//            }
 
             return isSubtypeOf(state, a, b) && isSubtypeOf(state, b, a)
         }
@@ -754,6 +743,17 @@ object AbstractNullabilityChecker {
     fun isPossibleSubtype(state: TypeCheckerState, subType: SimpleTypeMarker, superType: SimpleTypeMarker): Boolean =
         runIsPossibleSubtype(state, subType, superType)
 
+    /**
+     * 检查子类型关系是否可能。
+     *
+     * 此函数用于确定 [subType] 是否可能是 [superType] 的子类型，基于 [state] 提供的类型信息和状态。
+     * 函数执行一系列检查，以确保子类型关系的有效性。
+     *
+     * @param state 类型检查器的状态，包含类型系统上下文和其他相关信息。
+     * @param subType 被检查的子类型。
+     * @param superType 被检查的超类型。
+     * @return 如果 [subType] 可能是 [superType] 的子类型，则返回 `true`，否则返回 `false`。
+     */
     private fun runIsPossibleSubtype(
         state: TypeCheckerState,
         subType: SimpleTypeMarker,
@@ -761,59 +761,59 @@ object AbstractNullabilityChecker {
     ): Boolean =
         with(state.typeSystemContext) {
             if (AbstractTypeChecker.RUN_SLOW_ASSERTIONS) {
-                // it makes for case String? & Any <: String
+                // 断言子类型是单分类类型、交集类型或允许的类型变量
                 assert(
                     subType.isSingleClassifierType() || subType.typeConstructor()
-                        .isIntersection() || state.isAllowedTypeVariable(
-                        subType
-                    )
+                        .isIntersection() || state.isAllowedTypeVariable(subType)
                 ) {
                     "Not singleClassifierType and not intersection subType: $subType"
                 }
+                // 断言超类型是单分类类型或允许的类型变量
                 assert(superType.isSingleClassifierType() || state.isAllowedTypeVariable(superType)) {
                     "Not singleClassifierType superType: $superType"
                 }
             }
-//            subType is OptionType without examination
+
+            // 如果子类型是 OptionType，直接返回 true
             if (subType is OptionType) return true
 
-
-            // superType is actually nullable
+            // 如果超类型是可空的，直接返回 true
             if (superType.isMarkedNullable()) return true
 
-
-            // i.e. subType is definitely not null
+            // 如果子类型肯定是非空的，直接返回 true
             @OptIn(ObsoleteTypeKind::class)
             if (subType.isDefinitelyNotNullType() || subType.isNotNullTypeParameter()) return true
 
-            // i.e. subType is captured type, projection of which is marked not-null
+            // 如果子类型是捕获类型且投影是非空的，直接返回 true
             if (subType is CapturedTypeMarker && subType.isProjectionNotNull()) return true
 
-            // i.e. subType is not-nullable
+            // 如果子类型有非空的超类型，直接返回 true
             if (state.hasNotNullSupertype(subType, TypeCheckerState.SupertypesPolicy.LowerIfFlexible)) return true
 
-            // i.e. subType hasn't not-null supertype and isn't definitely not-null, but superType is definitely not-null
+            // 如果子类型没有非空的超类型且不是肯定非空的，但超类型肯定是非空的，直接返回 false
             if (superType.isDefinitelyNotNullType()) return false
 
-            // i.e subType hasn't not-null supertype, but superType has
+            // 如果子类型没有非空的超类型，但超类型有非空的超类型，直接返回 false
             if (state.hasNotNullSupertype(superType, TypeCheckerState.SupertypesPolicy.UpperIfFlexible)) return false
 
-            // both superType and subType hasn't not-null supertype and are not definitely not null.
+            // 如果子类型和超类型都没有非空的超类型且都不是肯定非空的
 
             /**
-             * If we still don't know, it means, that superType is not classType, for example -- type parameter.
+             * 如果我们仍然不确定，这意味着超类型不是类类型，例如——类型参数。
              *
-             * For captured types with lower bound this function can give to you false result. Example:
+             * 对于带有下界捕获类型，此函数可能会返回错误结果。例如：
              *  class A<T>, A<in Number> => \exist Q : Number <: Q. A<Q>
-             *      isPossibleSubtype(Number, Q) = false.
-             *      Such cases should be taken in to account in [NewCangJieTypeChecker.isSubtypeOf] (same for intersection types)
+             *      isPossibleSubtype(Number, Q) = false。
+             *      这样的情况应在 [NewCangJieTypeChecker.isSubtypeOf] 中考虑（交集类型同理）。
              */
 
-            // classType cannot has special type in supertype list
+            // 类类型不能在其超类型列表中包含特殊类型
             if (subType.isClassType()) return false
 
+            // 最后检查是否存在一条路径，使得子类型和超类型之间的关系成立
             return hasPathByNotMarkedNullableNodes(state, subType, superType.typeConstructor())
         }
+
 
     fun isSubtypeOfAny(state: TypeCheckerState, type: CangJieTypeMarker): Boolean =
         with(state.typeSystemContext) {

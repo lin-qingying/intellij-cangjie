@@ -334,27 +334,27 @@ class LazyTopDownAnalyzer(
 //            1 获取该包所有导入语句
 //            2 获取被导入语句的包的导入语句
 //            3 检查是否包含该包名称
-        runReadAction {
-            val packageFqname = file.packageFqName
-
-            for (importDirective in file.importDirectives) {
-                val result =
-                    importDirective.importedFqName
-                        ?.let { CangJieImportFqNameForPackageNameIndex.contains(packageFqname, it, file.project) }
-
-
-                if (result != null) {
-                    if (result.first) {
-
-                        trace.report(CYCLIC_IMPORT.on(importDirective, packageFqname, result.second))
-
-
-                    }
-                }
-
-
-            }
-        }
+//        runReadAction {
+//            val packageFqname = file.packageFqName
+//
+//            for (importDirective in file.importDirectives) {
+//                val result =
+//                    importDirective.importedFqName
+//                        ?.let { CangJieImportFqNameForPackageNameIndex.contains(packageFqname, it, file.project) }
+//
+//
+//                if (result != null) {
+//                    if (result.first) {
+//
+//                        trace.report(CYCLIC_IMPORT.on(importDirective, packageFqname, result.second))
+//
+//
+//                    }
+//                }
+//
+//
+//            }
+//        }
 
 
 //        }

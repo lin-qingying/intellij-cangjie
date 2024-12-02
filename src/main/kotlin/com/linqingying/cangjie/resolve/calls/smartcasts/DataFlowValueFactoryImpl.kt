@@ -85,7 +85,7 @@ class DataFlowValueFactoryImpl (/*private val languageVersionSettings: LanguageV
     private fun isComplexExpression(expression: CjExpression): Boolean = when (expression) {
         is CjBlockExpression, is CjIfExpression, is CjMatchExpression -> true
 
-        is CjBinaryExpression -> expression.operationToken === CjTokens.ELVIS
+        is CjBinaryExpression -> expression.operationToken === CjTokens.COALESCING
 
         is CjParenthesizedExpression -> {
             val deparenthesized = CjPsiUtil.deparenthesize(expression)

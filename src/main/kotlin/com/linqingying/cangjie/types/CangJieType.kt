@@ -38,6 +38,7 @@ import com.linqingying.cangjie.types.model.FlexibleTypeMarker
 import com.linqingying.cangjie.types.model.SimpleTypeMarker
 import com.linqingying.cangjie.types.model.TypeArgumentListMarker
 import com.linqingying.cangjie.types.util.TypeUtils
+import com.linqingying.cangjie.types.util.toOptionalType
 
 fun CangJieType.isNullable(): Boolean = TypeUtils.isNullableType(this)
 
@@ -138,8 +139,11 @@ class BasicType(
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType = this
 
-    override fun makeOptionalAsSpecified(newNullability: Boolean) = this
-
+    override fun makeOptionalAsSpecified(newNullability: Boolean) = when {
+        newNullability == isMarkedOption -> this
+        newNullability -> OptionalSimpleType(this.toOptionalType() as SimpleType)
+        else -> NotNullSimpleType(this)
+    }
     override fun replaceAttributes(newAttributes: TypeAttributes) = this
     override fun hashCode(): Int {
         var result = constructor.hashCode()
@@ -199,7 +203,10 @@ class ThisType(private val otype: SimpleType) : SimpleType() {
 }
 
 
-class OptionType(private val otype: SimpleType) : SimpleType() {
+//使用语法糖声明的Option类型   表现为  ?Int  只在声明时才会实例化此类型
+
+//使用语法糖声明的Option类型   表现为  ?Int  只在声明时才会实例化此类型
+class OptionType(  val otype: SimpleType) : SimpleType() {
     override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
         return otype.makeOptionalAsSpecified(newNullability)
 
@@ -210,7 +217,7 @@ class OptionType(private val otype: SimpleType) : SimpleType() {
     }
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType {
-        return otype.replaceAttributes(newAttributes)
+        return OptionType(otype.replaceAttributes(newAttributes))
 
     }
 
@@ -231,6 +238,7 @@ class OptionType(private val otype: SimpleType) : SimpleType() {
         get() = otype.memberScope
 
 }
+
 
 // lowerBound is a subtype of upperBound
 abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleType) :

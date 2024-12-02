@@ -40,13 +40,11 @@ import com.linqingying.cangjie.resolve.calls.CallTransformer
 import com.linqingying.cangjie.resolve.calls.components.hasDefaultValue
 import com.linqingying.cangjie.resolve.calls.model.ResolvedCall
 import com.linqingying.cangjie.resolve.calls.util.*
-import com.linqingying.cangjie.resolve.descriptorUtil.builtIns
 import com.linqingying.cangjie.resolve.getTargetFunctionDescriptor
 import com.linqingying.cangjie.resolve.ideService
 import com.linqingying.cangjie.resolve.scopes.getResolutionScope
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.SimpleClassicTypeSystemContext.isNullableNothing
-import com.linqingying.cangjie.types.checker.SimpleClassicTypeSystemContext.makeNullable
 import com.linqingying.cangjie.types.util.*
 import com.intellij.openapi.util.text.StringUtil
 import java.util.ArrayList
@@ -509,7 +507,7 @@ class ExpectedInfos(
         val binaryExpression = expressionWithType.parent as? CjBinaryExpression
         if (binaryExpression != null) {
             val operationToken = binaryExpression.operationToken
-            if (operationToken == CjTokens.ELVIS && expressionWithType == binaryExpression.right) {
+            if (operationToken == CjTokens.COALESCING && expressionWithType == binaryExpression.right) {
                 val leftExpression = binaryExpression.left ?: return null
                 val leftType = bindingContext.getType(leftExpression)
                 val leftTypeNotNullable = leftType?.makeNotNullable()

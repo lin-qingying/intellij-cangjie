@@ -419,25 +419,46 @@ open class CangJieIdeDescriptorRenderer(
 //        appendPossiblyInnerType(possiblyInnerType)
 //    }
 
+    private fun StringBuilder.appendPossiblyInnerType(possiblyInnerType: PossiblyInnerType) {
+        possiblyInnerType.outerType?.let {
+            appendPossiblyInnerType(it)
+            appendHighlighted(".") { asDot }
+            appendHighlighted(renderName(possiblyInnerType.classifierDescriptor.name, false)) { asClassName }
+        } ?: append(renderTypeConstructor(possiblyInnerType.classifierDescriptor.typeConstructor))
+
+        append(renderTypeArguments(possiblyInnerType.arguments))
+    }
 
     private fun StringBuilder.appendTypeConstructorAndArguments(
         type: CangJieType,
         typeConstructor: TypeConstructor = type.constructor
     ) {
+//        if (type is OptionType) {
+//            append(renderTypeConstructorOfType(type.getType().constructor, type.getType()))
+//            append(renderTypeArguments(type.getType().arguments))
+//        } else {
+//            append(renderTypeConstructorOfType(typeConstructor, type))
+//            append(renderTypeArguments(type.arguments))
+//
+//        }
+        val possiblyInnerType = type.buildPossiblyInnerType()
+        if (possiblyInnerType == null) {
+            append(renderTypeConstructorOfType(typeConstructor, type))
+            append(renderTypeArguments(type.arguments))
+            return
+        }
 
-        append(renderTypeConstructorOfType(typeConstructor, type))
-        append(renderTypeArguments(type.arguments))
-
+        appendPossiblyInnerType(possiblyInnerType)
 
     }
 
     private fun StringBuilder.appendDefaultType(type: CangJieType) {
-//        appendAnnotations(type)
 
-        if (type.isMarkedOption) {
+        if (type is OptionType) {
             appendHighlighted("?") { asNullityMarker }
-        }
-        if (type.isError) {
+            appendTypeConstructorAndArguments(type.getType())
+
+        }else    if (type.isError) {
             if (isUnresolvedType(type) && presentableUnresolvedTypes) {
                 appendHighlighted(ErrorUtils.unresolvedTypeAsItIs(type)) { asError }
             } else {

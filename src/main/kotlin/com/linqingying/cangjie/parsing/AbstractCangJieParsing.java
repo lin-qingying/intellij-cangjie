@@ -29,7 +29,6 @@ import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.lang.*;
 import com.intellij.lang.impl.PsiBuilderAdapter;
 import com.intellij.lang.impl.PsiBuilderImpl;
-import com.intellij.lang.parser.GeneratedParserUtilBase;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringHash;
 import com.intellij.psi.PsiFile;
@@ -152,7 +151,7 @@ public abstract class AbstractCangJieParsing {
         if (tokenType != QUEST) return tokenType;
         if (rawLookup(1) == QUEST) {
 
-            tokenType = ELVIS;
+            tokenType = COALESCING;
 
         } else if (rawLookup(1) == LPAR) {
             tokenType = SAFE_CALL;
@@ -162,7 +161,7 @@ public abstract class AbstractCangJieParsing {
 
     protected void advanceSafeToken(IElementType type) {
         PsiBuilder.Marker safeToken = mark();
-        if (type == ELVIS || type == SAFE_CALL) {
+        if (type == COALESCING || type == SAFE_CALL) {
             PsiBuilderUtil.advance(myBuilder, 2);
         } else {
             safeToken.drop();
@@ -175,7 +174,7 @@ public abstract class AbstractCangJieParsing {
     protected IElementType getGtTokenType() {
         IElementType tokenType = tt();
 
-        if (tokenType == QUEST && rawLookup(1) == QUEST) return ELVIS;
+        if (tokenType == QUEST && rawLookup(1) == QUEST) return COALESCING;
 
         if (tokenType != GT) return tokenType;
         if (rawLookup(1) == GT) {
@@ -282,7 +281,7 @@ public abstract class AbstractCangJieParsing {
     protected void advanceGtToken(IElementType type) {
         PsiBuilder.Marker gtToken = mark();
 
-        if (type == ELVIS) {
+        if (type == COALESCING) {
             PsiBuilderUtil.advance(myBuilder, 2);
 
         } else if (type == GTGTEQ) {

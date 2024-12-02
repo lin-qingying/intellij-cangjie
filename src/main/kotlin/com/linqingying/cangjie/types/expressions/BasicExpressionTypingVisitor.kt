@@ -28,6 +28,7 @@ import com.google.common.collect.Lists
 import com.intellij.psi.PsiElement
 import com.intellij.psi.StubBasedPsiElement
 import com.intellij.psi.tree.IElementType
+import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.linqingying.cangjie.CjNodeTypes
@@ -40,6 +41,7 @@ import com.linqingying.cangjie.builtins.CangJieBuiltIns.Companion.isUnit
 import com.linqingying.cangjie.builtins.StandardNames
 import com.linqingying.cangjie.builtins.isBuiltinTupleType
 import com.linqingying.cangjie.config.LanguageFeature
+import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.diagnostics.InvalidBinaryData
@@ -48,25 +50,28 @@ import com.linqingying.cangjie.lexer.CjKeywordToken
 import com.linqingying.cangjie.lexer.CjSingleValueToken
 import com.linqingying.cangjie.lexer.CjToken
 import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.lexer.CjTokens.AS_KEYWORD
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.parsing.hasIllegalUnderscore
 import com.linqingying.cangjie.psi.*
+import com.linqingying.cangjie.resolve.*
 import com.linqingying.cangjie.resolve.BindingContext.*
-import com.linqingying.cangjie.resolve.BindingContextUtils
 import com.linqingying.cangjie.resolve.DescriptorUtils.isClass
 import com.linqingying.cangjie.resolve.DescriptorUtils.isInterface
-import com.linqingying.cangjie.resolve.TemporaryBindingTrace
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver.Companion.isCallableReferenceArgument
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver.Companion.isCollectionLiteralArgument
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver.Companion.isFunctionLiteralArgument
 import com.linqingying.cangjie.resolve.calls.ArgumentTypeResolver.Companion.isFunctionLiteralOrCallableReference
 import com.linqingying.cangjie.resolve.calls.checkers.CallCheckerContext
+import com.linqingying.cangjie.resolve.calls.checkers.RttiExpressionInformation
+import com.linqingying.cangjie.resolve.calls.checkers.RttiOperation
 import com.linqingying.cangjie.resolve.calls.context.ContextDependency
 import com.linqingying.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl
 import com.linqingying.cangjie.resolve.calls.model.ResolvedCallImpl
 import com.linqingying.cangjie.resolve.calls.results.OverloadResolutionResults
 import com.linqingying.cangjie.resolve.calls.results.OverloadResolutionResultsImpl
 import com.linqingying.cangjie.resolve.calls.results.OverloadResolutionResultsUtil
+import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValue.Companion.nullValue
 import com.linqingying.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import com.linqingying.cangjie.resolve.calls.tasks.OldResolutionCandidate
@@ -77,7 +82,6 @@ import com.linqingying.cangjie.resolve.constants.CompileTimeConstantChecker
 import com.linqingying.cangjie.resolve.constants.IntegerValueTypeConstant
 import com.linqingying.cangjie.resolve.constants.TypedCompileTimeConstant
 import com.linqingying.cangjie.resolve.constants.UnsignedErrorValueTypeConstant
-import com.linqingying.cangjie.resolve.recordScope
 import com.linqingying.cangjie.resolve.scopes.LexicalScopeKind
 import com.linqingying.cangjie.resolve.scopes.findFirstClassifierWithDeprecationStatus
 import com.linqingying.cangjie.resolve.scopes.getImplicitReceiversHierarchy
@@ -101,10 +105,13 @@ import com.linqingying.cangjie.types.expressions.typeInfoFactory.errorTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import com.linqingying.cangjie.types.expressions.unqualifiedSuper.isPossiblyAmbiguousUnqualifiedSuper
 import com.linqingying.cangjie.types.expressions.unqualifiedSuper.resolveUnqualifiedSuperFromExpressionContext
+import com.linqingying.cangjie.types.isDynamic
 import com.linqingying.cangjie.types.isError
+import com.linqingying.cangjie.types.util.TypeUtils
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.types.util.TypeUtils.isNullableType
 import com.linqingying.cangjie.types.util.TypeUtils.makeNotNullable
+import com.linqingying.cangjie.types.util.TypeUtils.noExpectedType
 import com.linqingying.cangjie.utils.OperatorNameConventions
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 import com.linqingying.cangjie.utils.exceptions.OperatorConventions
@@ -388,6 +395,142 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return resultTypeInfo.replaceType(functionResults.resultingDescriptor.returnType)
     }
 
+    private fun checkForCastImpossibilityOrRedundancy(
+        expression: CjBinaryExpressionWithTypeRHS,
+        actualType: CangJieType?,
+        targetType: CangJieType,
+        context: ExpressionTypingContext
+    ) {
+        if (actualType == null || noExpectedType(targetType) || targetType.isError) return
+
+        if (context.trace[CAST_TYPE_USED_AS_EXPECTED_TYPE, expression] == true) return
+
+        if (targetType.isDynamic()) {
+            val right = expression.right
+            requireNotNull(right) { "We know target is dynamic, but RHS is missing" }
+            context.trace.report(DYNAMIC_NOT_ALLOWED.on(right))
+            return
+        }
+
+//        if (!actualType.isStubType() &&
+//            !CastDiagnosticsUtil.isCastPossible(
+//                actualType,
+//                targetType,
+//                components.platformToCangJieClassMapper,
+////                components.platformSpecificCastChecker
+//            )
+//        ) {
+//            context.trace.report(CAST_NEVER_SUCCEEDS.on(expression.operationReference))
+//            return
+//        }
+//
+//        if (CastDiagnosticsUtil.castIsUseless(expression, context, targetType, actualType)) {
+//            context.trace.report(USELESS_CAST.on(expression))
+//            return
+//        }
+//
+//        if (CastDiagnosticsUtil.isCastErased(actualType, targetType, CangJieTypeChecker.DEFAULT)) {
+//            context.trace.report(UNCHECKED_CAST.on(expression, actualType, targetType))
+//        }
+    }
+
+    private fun checkBinaryWithTypeRHS(
+        expression: CjBinaryExpressionWithTypeRHS,
+        context: ExpressionTypingContext,
+        targetType: CangJieType,
+        actualType: CangJieType?
+    ) {
+        if (actualType == null) return
+        val operationSign = expression.operationReference
+        val operationType = operationSign.referencedNameElementType
+        if (operationType != AS_KEYWORD) {
+            context.trace.report(UNSUPPORTED.on(operationSign, "binary operation with type RHS"))
+            return
+        }
+        checkForCastImpossibilityOrRedundancy(expression, actualType, targetType, context)
+//        if (context.languageVersionSettings.supportsFeature(LanguageFeature.ProperCheckAnnotationsTargetInTypeUsePositions)) {
+//            components.annotationChecker.check(expression.right, context.trace, null)
+//        }
+    }
+
+    override fun visitBinaryWithTypeRHSExpression(
+        expression: CjBinaryExpressionWithTypeRHS,
+        context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        val contextWithNoExpectedType: ExpressionTypingContext =
+            context.replaceExpectedType(NO_EXPECTED_TYPE)
+                .replaceContextDependency(ContextDependency.INDEPENDENT)
+        val left: CjExpression = expression.left
+        val right: CjTypeReference = expression.right
+            ?: return facade.getTypeInfo(left, contextWithNoExpectedType).clearType()
+
+        expression.reportDeprecatedDefinitelyNotNullSyntax(right, context)
+
+        val operationType: IElementType = expression.operationReference.referencedNameElementType
+
+        val allowBareTypes: Boolean =
+            BARE_TYPES_ALLOWED.contains(
+                operationType
+            )
+        val typeResolutionContext =
+            TypeResolutionContext(
+                context.scope,
+                context.trace,
+                true,
+                allowBareTypes,
+                context.isDebuggerContext
+            )
+        val possiblyBareTarget: PossiblyBareType =
+            components.typeResolver.resolvePossiblyBareType(typeResolutionContext, right)
+
+        var typeInfo: CangJieTypeInfo = facade.getTypeInfo(left, contextWithNoExpectedType)
+
+        val subjectType = typeInfo.type
+        val targetType: CangJieType =
+            TypeReconstructionUtil.reconstructBareType(
+                right,
+                possiblyBareTarget,
+                subjectType,
+                context.trace,
+                components.builtIns
+            )
+
+        if (subjectType != null) {
+            checkBinaryWithTypeRHS(expression, context, targetType, subjectType)
+            val dataFlowInfo = typeInfo.dataFlowInfo
+            if (operationType === AS_KEYWORD) {
+                val value =
+                    components.dataFlowValueFactory.createDataFlowValue(left, subjectType, context)
+                typeInfo = typeInfo.replaceDataFlowInfo(
+                    dataFlowInfo.establishSubtyping(
+                        value, targetType,
+                        components.languageVersionSettings
+                    )
+                )
+            }
+        }
+
+        val result =
+            TypeUtils.makeOptional(
+                targetType
+            )
+        val resultTypeInfo: CangJieTypeInfo =
+            components.dataFlowAnalyzer.checkType(typeInfo.replaceType(result), expression, context)
+
+        val rttiInformation =
+            RttiExpressionInformation(
+                expression.left,
+                subjectType,
+                result,
+                RttiOperation.AS
+            )
+        for (checker in components.rttiExpressionCheckers) {
+            checker.check(rttiInformation, expression, context.trace)
+        }
+
+        return resultTypeInfo
+    }
+
     fun resolveArrayAccessGetMethod(
         arrayAccessExpression: CjArrayAccessExpression,
         context: ExpressionTypingContext
@@ -419,7 +562,11 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
     }
 
     private fun visitAssignment(expression: CjBinaryExpression, context: ExpressionTypingContext): CangJieTypeInfo {
-        return assignmentIsNotAnExpressionError(expression, context)
+//        return assignmentIsNotAnExpressionError(expression, context)
+
+        return facade.getTypeInfo(expression, context, true)
+
+        return createTypeInfo(components.builtIns.unitType)
     }
 
     fun operatorOverloading(
@@ -433,93 +580,261 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return result
     }
 
-    private fun visitElvisExpression(
+    private fun visitCoalescingExpression(
         expression: CjBinaryExpression,
         contextWithExpectedType: ExpressionTypingContext
     ): CangJieTypeInfo {
+//        return visitElvisExpression(expression,contextWithExpectedType)
+        // 替换上下文中的预期类型为 "无预期类型"
         val context = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE)
         val left = expression.left
         val right = expression.right
 
+        // 如果左操作数或右操作数为空，返回空类型信息
         if (left == null || right == null) {
             ExpressionTypingUtils.getTypeInfoOrNullType(left, context, facade)
             return noTypeInfo(context)
         }
 
-        val call =
-            createCallForSpecialConstruction(expression, expression.operationReference, Lists.newArrayList(left, right))
+        // 为 Elvis 表达式创建特殊的调用结构
+        val call = createCallForSpecialConstruction(
+            expression,
+            expression.operationReference,
+            Lists.newArrayList(left, right)
+        )
+        // 解析特殊构造（Elvis 操作符）的调用
         val resolvedCall = components.controlStructureTypingUtils.resolveSpecialConstructionAsCall(
-            call, ControlStructureTypingUtils.ResolveConstruct.ELVIS, Lists.newArrayList("left", "right"),
-            Lists.newArrayList(true, false), contextWithExpectedType, null
+            call,
+            ControlStructureTypingUtils.ResolveConstruct.COALESCING,
+            Lists.newArrayList("left", "right"),
+            Lists.newArrayList(true, false),
+            contextWithExpectedType,
+            null
         )
         val leftTypeInfo = BindingContextUtils.getRecordedTypeInfo(left, context.trace.bindingContext)
         val isLeftFunctionLiteral = isFunctionLiteralArgument(left, context)
         val isLeftCallableReference = isCallableReferenceArgument(left, context)
         val isLeftCollectionLiteral = isCollectionLiteralArgument(left)
+
+        // 如果左侧表达式的类型信息为空且是某些特殊类型的表达式（如函数字面值、可调用引用或集合字面值），则返回空类型信息
         if (leftTypeInfo == null && (isLeftFunctionLiteral || isLeftCallableReference || isLeftCollectionLiteral)) {
             return noTypeInfo(context)
         }
+
+        // 确保左侧表达式的类型信息不为空
         checkNotNull(leftTypeInfo) { "Left expression was not processed: $expression" }
+
         val leftType = leftTypeInfo.type
         val rightTypeInfo = BindingContextUtils.getRecordedTypeInfo(right, context.trace.bindingContext)
+
+        // 如果右侧是函数字面值或可调用引用，但类型信息为空，延后处理
         if (rightTypeInfo == null && isFunctionLiteralOrCallableReference(right, context)) {
-            // the type is computed later in call completer according to the '?:' semantics as a function
             return noTypeInfo(context)
         }
+
+        // 确保右侧表达式的类型信息不为空
         checkNotNull(rightTypeInfo) { "Right expression was not processed: $expression" }
+
         val loopBreakContinuePossible = leftTypeInfo.jumpOutPossible || rightTypeInfo.jumpOutPossible
         val rightType = rightTypeInfo.type
 
-        // Only left argument DFA is taken into account here: we cannot be sure that right argument is joined
-        // (we merge it with right DFA if right argument contains no jump outside)
+        // 仅考虑左操作数的数据流分析，因为不能确定右操作数是否已合并
         var dataFlowInfo = resolvedCall.dataFlowInfoForArguments.getInfo(call.valueArguments[1])
 
         var type = resolvedCall.resultingDescriptor.returnType
-        if (type == null || rightType == null || leftType == null && isNothing(rightType)) return noTypeInfo(
-            dataFlowInfo
-        )
+        // 如果返回类型、右侧类型或左侧类型为空且右侧类型为 `Nothing`，则返回空类型信息
+        if (type == null || rightType == null || leftType == null && isNothing(rightType)) {
+            return noTypeInfo(dataFlowInfo)
+        }
 
         if (leftType != null) {
             val leftValue = components.dataFlowValueFactory.createDataFlowValue(left, leftType, context)
             var rightDataFlowInfo = resolvedCall.dataFlowInfoForArguments.resultInfo
             val jumpInRight = isNothing(rightType)
             val nullValue = nullValue(components.builtIns)
-            // left argument is considered not-null if it's not-null also in right part or if we have jump in right part
-//            if (jumpInRight || !rightDataFlowInfo.getStableNullability(leftValue).canBeNull()) {
-//                dataFlowInfo = dataFlowInfo.disequate(leftValue, nullValue, components.languageVersionSettings);
-//                if (left instanceof CjBinaryExpressionWithTypeRHS) {
-//                    dataFlowInfo = establishSubtypingForTypeRHS((CjBinaryExpressionWithTypeRHS) left, dataFlowInfo, context,
-//                            components.languageVersionSettings);
-//                }
-//            }
+
+            // 如果右侧为空或在右侧数据流中左值不能为 null，则更新数据流信息
+            if (jumpInRight || !rightDataFlowInfo.getStableNullability(leftValue).canBeNull()) {
+                dataFlowInfo = dataFlowInfo.disequate(leftValue, nullValue, components.languageVersionSettings)
+                // 如果左操作数是带有类型 RHS 的二元表达式，进一步建立子类型关系
+                if (left is CjBinaryExpressionWithTypeRHS) {
+                    dataFlowInfo = establishSubtypingForTypeRHS(
+                        left,
+                        dataFlowInfo,
+                        context,
+                        components.languageVersionSettings
+                    )
+                }
+            }
             val resultValue = components.dataFlowValueFactory.createDataFlowValue(expression, type, context)
-            dataFlowInfo =
-                dataFlowInfo.assign(resultValue, leftValue /*, components.languageVersionSettings*/)
-                    .disequate(resultValue, nullValue, components.languageVersionSettings)
+            dataFlowInfo = dataFlowInfo
+                .assign(resultValue, leftValue)
+                .disequate(resultValue, nullValue, components.languageVersionSettings)
+
+            // 如果右侧没有跳转，将右侧值合并到数据流
             if (!jumpInRight) {
                 val rightValue = components.dataFlowValueFactory.createDataFlowValue(right, rightType, context)
-                rightDataFlowInfo =
-                    rightDataFlowInfo.assign(resultValue, rightValue /*, components.languageVersionSettings*/)
+                rightDataFlowInfo = rightDataFlowInfo.assign(resultValue, rightValue)
                 dataFlowInfo = dataFlowInfo.or(rightDataFlowInfo)
             }
         }
 
-        // Sometimes return type for special call for elvis operator might be nullable,
-        // but result is not nullable if the right type is not nullable
+        // 如果右侧类型不可空，但结果类型可空，强制将结果类型设为不可空
         if (!isNullableType(rightType) && isNullableType(type)) {
             type = makeNotNullable(type)
         }
+
+        // 如果上下文依赖是 "依赖上下文"，返回类型信息
         if (context.contextDependency == ContextDependency.DEPENDENT) {
             return createTypeInfo(type, dataFlowInfo)
         }
 
-        // If break or continue was possible, take condition check info as the jump info
+        // 如果可能存在跳转，则使用条件检查信息作为跳转信息
         return createTypeInfo(
             components.dataFlowAnalyzer.checkType(type, expression, contextWithExpectedType),
             dataFlowInfo,
             loopBreakContinuePossible,
             context.dataFlowInfo
         )
+    }
+
+
+    private fun visitElvisExpression(
+        expression: CjBinaryExpression,
+        contextWithExpectedType: ExpressionTypingContext
+    ): CangJieTypeInfo {
+        // 替换上下文中的预期类型为 "无预期类型"
+        val context = contextWithExpectedType.replaceExpectedType(NO_EXPECTED_TYPE)
+        val left = expression.left
+        val right = expression.right
+
+        // 如果左操作数或右操作数为空，返回空类型信息
+        if (left == null || right == null) {
+            ExpressionTypingUtils.getTypeInfoOrNullType(left, context, facade)
+            return noTypeInfo(context)
+        }
+
+        // 为 Elvis 表达式创建特殊的调用结构
+        val call = createCallForSpecialConstruction(
+            expression,
+            expression.operationReference,
+            Lists.newArrayList(left, right)
+        )
+        // 解析特殊构造（Elvis 操作符）的调用
+        val resolvedCall = components.controlStructureTypingUtils.resolveSpecialConstructionAsCall(
+            call,
+            ControlStructureTypingUtils.ResolveConstruct.ELVIS,
+            Lists.newArrayList("left", "right"),
+            Lists.newArrayList(true, false),
+            contextWithExpectedType,
+            null
+        )
+        val leftTypeInfo = BindingContextUtils.getRecordedTypeInfo(left, context.trace.bindingContext)
+        val isLeftFunctionLiteral = isFunctionLiteralArgument(left, context)
+        val isLeftCallableReference = isCallableReferenceArgument(left, context)
+        val isLeftCollectionLiteral = isCollectionLiteralArgument(left)
+
+        // 如果左侧表达式的类型信息为空且是某些特殊类型的表达式（如函数字面值、可调用引用或集合字面值），则返回空类型信息
+        if (leftTypeInfo == null && (isLeftFunctionLiteral || isLeftCallableReference || isLeftCollectionLiteral)) {
+            return noTypeInfo(context)
+        }
+
+        // 确保左侧表达式的类型信息不为空
+        checkNotNull(leftTypeInfo) { "Left expression was not processed: $expression" }
+
+        val leftType = leftTypeInfo.type
+        val rightTypeInfo = BindingContextUtils.getRecordedTypeInfo(right, context.trace.bindingContext)
+
+        // 如果右侧是函数字面值或可调用引用，但类型信息为空，延后处理
+        if (rightTypeInfo == null && isFunctionLiteralOrCallableReference(right, context)) {
+            return noTypeInfo(context)
+        }
+
+        // 确保右侧表达式的类型信息不为空
+        checkNotNull(rightTypeInfo) { "Right expression was not processed: $expression" }
+
+        val loopBreakContinuePossible = leftTypeInfo.jumpOutPossible || rightTypeInfo.jumpOutPossible
+        val rightType = rightTypeInfo.type
+
+        // 仅考虑左操作数的数据流分析，因为不能确定右操作数是否已合并
+        var dataFlowInfo = resolvedCall.dataFlowInfoForArguments.getInfo(call.valueArguments[1])
+
+        var type = resolvedCall.resultingDescriptor.returnType
+        // 如果返回类型、右侧类型或左侧类型为空且右侧类型为 `Nothing`，则返回空类型信息
+        if (type == null || rightType == null || leftType == null && isNothing(rightType)) {
+            return noTypeInfo(dataFlowInfo)
+        }
+
+        if (leftType != null) {
+            val leftValue = components.dataFlowValueFactory.createDataFlowValue(left, leftType, context)
+            var rightDataFlowInfo = resolvedCall.dataFlowInfoForArguments.resultInfo
+            val jumpInRight = isNothing(rightType)
+            val nullValue = nullValue(components.builtIns)
+
+            // 如果右侧为空或在右侧数据流中左值不能为 null，则更新数据流信息
+            if (jumpInRight || !rightDataFlowInfo.getStableNullability(leftValue).canBeNull()) {
+                dataFlowInfo = dataFlowInfo.disequate(leftValue, nullValue, components.languageVersionSettings)
+                // 如果左操作数是带有类型 RHS 的二元表达式，进一步建立子类型关系
+                if (left is CjBinaryExpressionWithTypeRHS) {
+                    dataFlowInfo = establishSubtypingForTypeRHS(
+                        left,
+                        dataFlowInfo,
+                        context,
+                        components.languageVersionSettings
+                    )
+                }
+            }
+            val resultValue = components.dataFlowValueFactory.createDataFlowValue(expression, type, context)
+            dataFlowInfo = dataFlowInfo
+                .assign(resultValue, leftValue)
+                .disequate(resultValue, nullValue, components.languageVersionSettings)
+
+            // 如果右侧没有跳转，将右侧值合并到数据流
+            if (!jumpInRight) {
+                val rightValue = components.dataFlowValueFactory.createDataFlowValue(right, rightType, context)
+                rightDataFlowInfo = rightDataFlowInfo.assign(resultValue, rightValue)
+                dataFlowInfo = dataFlowInfo.or(rightDataFlowInfo)
+            }
+        }
+
+        // 如果右侧类型不可空，但结果类型可空，强制将结果类型设为不可空
+        if (!isNullableType(rightType) && isNullableType(type)) {
+            type = makeNotNullable(type)
+        }
+
+        // 如果上下文依赖是 "依赖上下文"，返回类型信息
+        if (context.contextDependency == ContextDependency.DEPENDENT) {
+            return createTypeInfo(type, dataFlowInfo)
+        }
+
+        // 如果可能存在跳转，则使用条件检查信息作为跳转信息
+        return createTypeInfo(
+            components.dataFlowAnalyzer.checkType(type, expression, contextWithExpectedType),
+            dataFlowInfo,
+            loopBreakContinuePossible,
+            context.dataFlowInfo
+        )
+    }
+
+    private fun establishSubtypingForTypeRHS(
+        left: CjBinaryExpressionWithTypeRHS,
+        dataFlowInfo: DataFlowInfo,
+        context: ExpressionTypingContext,
+        languageVersionSettings: LanguageVersionSettings
+    ): DataFlowInfo {
+        val operationType = left.operationReference.referencedNameElementType
+//        if (operationType == AS_SAFE) {
+//            val underSafeAs = left.left
+//            val underSafeAsType = context.trace.getType(underSafeAs)
+//            if (underSafeAsType != null) {
+//                val underSafeAsValue = components.dataFlowValueFactory.createDataFlowValue(underSafeAs, underSafeAsType, context)
+//                val targetType = context.trace.get(BindingContext.TYPE, left.right)
+//                if (targetType != null) {
+//                    return dataFlowInfo.establishSubtyping(underSafeAsValue, targetType, languageVersionSettings)
+//                }
+//            }
+//        }
+        return dataFlowInfo
     }
 
     private fun visitComparison(
@@ -611,9 +926,9 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         if (OperatorConventions.BINARY_OPERATION_NAMES.containsKey(operationType)) {
             val referencedName = OperatorConventions.BINARY_OPERATION_NAMES[operationType]
             result = getTypeInfoForBinaryCall(referencedName!!, context, expression)
-        } else if (operationType === CjTokens.ELVIS) {
+        } else if (operationType === CjTokens.COALESCING) {
             //base expression of elvis operator is checked for 'type mismatch', so the whole expression shouldn't be checked
-            return visitElvisExpression(expression, context)
+            return visitCoalescingExpression(expression, context)
         } else if (OperatorConventions.COMPARISON_OPERATIONS_NAMES.containsKey(operationType)) {
             result = visitComparison(expression, context, operationSign)
         } else if (operationType === CjTokens.EQ) {
@@ -1150,7 +1465,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                 operationType == CjTokens.PLUSPLUS ||
                 operationType == CjTokens.MINUSMINUS
             ) {
-                val resolvedCall = traceWithIndexedLValue.get(INDEXED_LVALUE_SET, expression)
+                val resolvedCall = traceWithIndexedLValue[INDEXED_LVALUE_SET, expression]
                 if (resolvedCall != null && trace.wantsDiagnostics()) {
                     val callCheckerContext = CallCheckerContext(
                         context,
@@ -1163,7 +1478,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                     components.callCheckers.forEach { it.check(resolvedCall, expression, callCheckerContext) }
 
                     // Ensure the resolved call for 'set' operator is recorded (see KT-36956)
-                    if (trace.get(INDEXED_LVALUE_SET, expression) == null) {
+                    if (trace[INDEXED_LVALUE_SET, expression] == null) {
                         trace.record(INDEXED_LVALUE_SET, expression, resolvedCall)
                     }
                 }
@@ -1400,6 +1715,23 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return result
     }
 
+    override fun visitSynchronizedExpression(
+        expression: CjSynchronizedExpression,
+        data: ExpressionTypingContext
+    ): CangJieTypeInfo {
+
+        val blockExpression = expression.blockExpression ?: return noTypeInfo(data.dataFlowInfo)
+
+
+        val newContext = data.replaceExpectedType(facade.components.builtIns.reentrantMutexType)
+
+        expression.expression?.let { facade.getTypeInfo(it, newContext) }
+
+        return facade.getTypeInfo(blockExpression, data)
+
+
+    }
+
     override fun visitThisExpression(expression: CjThisExpression, context: ExpressionTypingContext): CangJieTypeInfo {
         var result: CangJieType? = null
         val resolutionResult = resolveToReceiver(expression, context, false)
@@ -1469,6 +1801,12 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
     }
 
     companion object {
+
+        val BARE_TYPES_ALLOWED: TokenSet = TokenSet.create(
+            AS_KEYWORD,
+
+            )
+
         fun isLValue(expression: CjSimpleNameExpression, parent: PsiElement?): Boolean {
             if (parent !is CjBinaryExpression) {
                 return false

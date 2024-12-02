@@ -28,7 +28,7 @@ import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.Name
 import com.intellij.psi.PsiNameIdentifierOwner
 
-
+interface CjLocalNamedDeclaration :CjDeclaration
 
 interface CjNamedDeclaration : CjDeclaration, PsiNameIdentifierOwner, CjStatementExpression,
     CjNamed {

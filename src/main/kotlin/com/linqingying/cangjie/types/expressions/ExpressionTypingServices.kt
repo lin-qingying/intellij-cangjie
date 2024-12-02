@@ -29,7 +29,6 @@ import com.linqingying.cangjie.builtins.CangJieBuiltIns.Companion.isUnit
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.BindingTrace
-import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.descriptors.FunctionDescriptor
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
@@ -259,8 +258,17 @@ class ExpressionTypingServices(
             } else {
                 expectedType = context.expectedType
             }
+            return if (statementExpression is CjLocalNamedDeclaration) {
+//                一定是Unit
+                expressionTypingComponents.dataFlowAnalyzer.checkType(
+                    expressionTypingComponents.builtIns.unitType, statementExpression, context
+                )?.let {
+                    createTypeInfo(it)
+                } ?: blockLevelVisitor.getTypeInfo(statementExpression, context.replaceExpectedType(expectedType), true)
+            } else {
+                blockLevelVisitor.getTypeInfo(statementExpression, context.replaceExpectedType(expectedType), true)
+            }
 
-            return blockLevelVisitor.getTypeInfo(statementExpression, context.replaceExpectedType(expectedType), true)
         }
 
 
@@ -501,7 +509,7 @@ class ExpressionTypingServices(
 
         val target = expression.returnTarget
 
-        if ( expression.parent is CjFunction &&  target is CjFunctionImpl && target.isInferReturnType) {
+        if (expression.parent is CjFunction && target is CjFunctionImpl && target.isInferReturnType) {
             val returns = context.trace[BindingContext.RETURN_TARGET, target]
 
             val types = returns?.mapNotNull {
@@ -512,7 +520,7 @@ class ExpressionTypingServices(
 
             val type = SimpleClassicTypeSystemContext.commonSuperType(types)
 
-         return   createTypeInfo(type as? CangJieType)
+            return createTypeInfo(type as? CangJieType)
 
 
         }
@@ -524,7 +532,11 @@ class ExpressionTypingServices(
         val bodyExpression = function.bodyExpression ?: return
 
         val blockBody = function.hasBlockBody()
-        val newContext = context
+        val newContext = if (function is CjSecondaryConstructor || function is CjPrimaryConstructor) {
+            context.replaceExpectedType(NO_EXPECTED_TYPE)
+        } else {
+            context
+        }
 //            if (blockBody //                        ? context.replaceExpectedType(NO_EXPECTED_TYPE)
 //            )
 //                context.replaceExpectedType(NO_EXPECTED_TYPE)

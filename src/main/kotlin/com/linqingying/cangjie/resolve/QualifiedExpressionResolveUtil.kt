@@ -80,9 +80,9 @@ private fun resolveQualifierReferenceTarget(
     selector: DeclarationDescriptor?,
     context: ExpressionTypingContext
 ): DeclarationDescriptor {
-//    if (qualifier is TypeParameterQualifier) {
-//        return qualifier.descriptor
-//    }
+    if (qualifier is TypeParameterQualifier) {
+        return qualifier.descriptor
+    }
 
     val selectorContainer = when (selector) {
         is ConstructorDescriptor ->
@@ -91,12 +91,12 @@ private fun resolveQualifierReferenceTarget(
             selector?.containingDeclaration
     }
 
-//    if (qualifier is PackageQualifier &&
-//        (selectorContainer is PackageFragmentDescriptor || selectorContainer is PackageViewDescriptor) &&
-//        DescriptorUtils.getFqName(qualifier.descriptor) == DescriptorUtils.getFqName(selectorContainer)
-//    ) {
-//        return qualifier.descriptor
-//    }
+    if (qualifier is PackageQualifier &&
+        (selectorContainer is PackageFragmentDescriptor || selectorContainer is PackageViewDescriptor) &&
+        DescriptorUtils.getFqName(qualifier.descriptor) == DescriptorUtils.getFqName(selectorContainer)
+    ) {
+        return qualifier.descriptor
+    }
 
     // TODO make decisions about short reference to companion object somewhere else
     if (qualifier is ClassifierQualifier) {

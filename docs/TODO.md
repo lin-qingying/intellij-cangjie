@@ -1,48 +1,8 @@
-
-
-
-
-[//]: # (Try-with-resources表达式 )
-
-[//]: # (```text)
-
-[//]: # (try &#40;Resource res = ...&#41; {)
-
-[//]: # (    // Use res)
-
-[//]: # (})
-
-[//]: # (//可以没有catch和finally)
-
-[//]: # (```)
-
-[//]: # ()
-[//]: # ()
-[//]: # (元组访问)
-
-[//]: # (```text)
-
-[//]: # (    let a = &#40;1, 2, 3&#41;)
-
-[//]: # (    a[0] // 1)
-
-[//]: # (    )
-[//]: # (    a[4] //error )
-
-[//]: # (```)
-
-元组赋值  //使用for表达式的模式进行实现
-```text
-    let a = (1, 2, 3)
-    let (x, y, z) = a
-    
-```
-
+ 初始化语句中不能使用赋值表达式 但是可以用括号包裹
  
-
-
- 
-com.linqingying.lsp.api.lsWidget.LspServerWidgetItem 在 2024.2.3中有一些方法没有实现导致报错
+将模块名验证与import语句修饰符验证移动到Inspection
+包导入自身
+循环导入还存在问题
 
 扩展中重写的成员不能使用override
 
@@ -50,3 +10,11 @@ com.linqingying.lsp.api.lsWidget.LspServerWidgetItem 在 2024.2.3中有一些方
 
 
 静态声明无法查找用法
+
+
+
+cjpm包管理工具 
+   在有库的情况下，在toml文件中删除库无法删除
+
+lsp 
+   lsp目前没有发送依赖的库路径

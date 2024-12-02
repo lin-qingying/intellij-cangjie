@@ -33,8 +33,7 @@ data class CjcVersion(
     val host: String,
     val type: String?
 
-//    val commitHash: String? = null,
-//    val commitDate: LocalDate? = null
+
 )
 
 @VisibleForTesting

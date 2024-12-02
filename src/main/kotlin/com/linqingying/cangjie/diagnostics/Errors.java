@@ -397,6 +397,7 @@ public interface Errors {
     DiagnosticFactory0<CjVariable> MUST_BE_INITIALIZED_OR_BE_ABSTRACT = DiagnosticFactory0.create(ERROR, DECLARATION_SIGNATURE);
     DiagnosticFactory0<CjVariable> MUST_BE_INITIALIZED_OR_BE_FINAL = DiagnosticFactory0.create(ERROR, DECLARATION_SIGNATURE);
     DiagnosticFactory0<CjVariable> MUST_BE_INITIALIZED_OR_FINAL_OR_ABSTRACT = DiagnosticFactory0.create(ERROR, DECLARATION_SIGNATURE);
+    DiagnosticFactory0<CjPostfixExpression> DEPRECATED_SYNTAX_WITH_DEFINITELY_NOT_NULL = DiagnosticFactory0.create(WARNING);
 
     DiagnosticFactory3<CjElement, CangJieType, CangJieType, ClassifierDescriptor> UPPER_BOUND_VIOLATED_IN_TYPEALIAS_EXPANSION_WARNING =
             DiagnosticFactory3.create(WARNING);

@@ -25,13 +25,13 @@
 package com.linqingying.cangjie.resolve.calls.inference.components
 
 
+import com.intellij.util.SmartList
 import com.linqingying.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.linqingying.cangjie.resolve.calls.inference.model.*
 import com.linqingying.cangjie.types.AbstractTypeApproximator
 import com.linqingying.cangjie.types.TypeApproximatorConfiguration
 import com.linqingying.cangjie.types.model.*
 import com.linqingying.cangjie.utils.SmartSet
-import com.intellij.util.SmartList
 
 // todo problem: intersection types in constrains: A <: Number, B <: Inv<A & Any> =>? B <: Inv<out Number & Any>
 class ConstraintIncorporator(
@@ -220,7 +220,8 @@ class ConstraintIncorporator(
         otherConstraint: Constraint
     ): Boolean {
         return getNestedArguments(newConstraint).any {
-            it.getType().typeConstructor() == otherConstraint.type.typeConstructor() && it.getVariance() == TypeVariance.INV
+            it.getType()
+                .typeConstructor() == otherConstraint.type.typeConstructor() && it.getVariance() == TypeVariance.INV
         }
     }
 
@@ -314,15 +315,25 @@ class ConstraintIncorporator(
         else typeApproximator.approximateToSubType(type, TypeApproximatorConfiguration.IncorporationConfiguration)
             ?: type
 
+    /**
+     * 遍历指定类型变量的所有约束，并对每个约束执行给定的操作。
+     *
+     * 此函数设计为内联函数，以避免额外的函数调用栈创建，从而提高性能，
+     * 尤其是在循环或频繁调用的情况下。
+     *
+     * @param typeVariable 需要遍历约束的类型变量标记。
+     * @param action 对每个约束执行的操作。
+     */
     private inline fun Context.forEachConstraint(typeVariable: TypeVariableMarker, action: (Constraint) -> Unit) {
-        // We use an indexed loop because the collection might be modified during the iteration.
-        // However, the only modification is appending, so we should be fine.
+        // 使用索引循环是因为在迭代过程中集合可能会被修改。
+        // 然而，唯一可能的修改是追加元素，因此这样做应该是安全的。
         val constraints = getConstraintsForVariable(typeVariable)
         var i = 0
         while (i < constraints.size) {
             action(constraints[i++])
         }
     }
+
 
     interface Context : TypeSystemInferenceExtensionContext {
         val allTypeVariablesWithConstraints: Collection<VariableWithConstraints>

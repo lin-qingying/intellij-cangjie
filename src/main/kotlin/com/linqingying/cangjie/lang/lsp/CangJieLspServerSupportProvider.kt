@@ -36,6 +36,7 @@ import com.linqingying.lsp.api.lsWidget.LspServerWidgetItem
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.util.text.StringUtilRt
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lang.lsWidget.LanguageServiceWidgetItem
@@ -48,9 +49,15 @@ import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
 import com.linqingying.cangjie.cjpm.project.workspace.PackageOrigin
 import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
 import com.linqingying.cangjie.configurable.services.Feature
+import com.linqingying.cangjie.icon.CangJieIcons
+import com.linqingying.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieIdeDescriptorOptions
+import com.linqingying.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieIdeDescriptorRenderer
 import com.linqingying.cangjie.lang.CangJieFileType
 import com.linqingying.cangjie.lang.lsp.CangJieLspServerManager.getCommandLine
 import com.linqingying.lsp.api.customization.LspFindReferencesSupport
+import com.linqingying.lsp.impl.documentation.DescriptionMarkup
+import com.linqingying.lsp.impl.documentation.LspDocumentationData
+import com.linqingying.lsp.impl.documentation.LspMarkDownFormat
 import org.eclipse.lsp4j.*
 
 
@@ -63,7 +70,27 @@ fun checkCangJieFIle(file: VirtualFile): Boolean {
     return false
 
 }
+class CangJieLspMarkDownFormat : LspMarkDownFormat{
+    override fun formatMarkdown(markupContent: MarkupContent): LspDocumentationData {
+        val value = StringUtilRt.convertLineSeparators(markupContent.value)
+        val indexOfCodeBlock = value.indexOf("```", 3)
 
+        if (value.startsWith("```") && value.indexOf("\n") > 0 && indexOfCodeBlock >= 0) {
+            val trimmedHeader = value.takeWhile { !it.isWhitespace() }
+            val content = value.substring(3).trimStart()
+            val description = content.ifEmpty { null }
+            val codeBlock = value.substringAfter("\n", "").substringBefore("```").trimEnd()
+            val remaining = value.substring(indexOfCodeBlock + 3).trimStart()
+
+            return LspDocumentationData(codeBlock, description, remaining, DescriptionMarkup.MARKDOWN)
+        } else {
+//       val descriptorRenderer = CangJieIdeDescriptorRenderer.withOptions { }
+            return LspDocumentationData(null, null, value, DescriptionMarkup.MARKDOWN)
+        }
+
+    }
+
+}
 
 class CangJieLspServerSupportProvider : LspServerSupportProvider {
     override fun fileOpened(
@@ -91,7 +118,7 @@ class CangJieLspServerSupportProvider : LspServerSupportProvider {
 
     override fun createLspServerWidgetItem(lspServer: LspServer, currentFile: VirtualFile?): LspServerWidgetItem? {
         if (!CangJieLanguageServerServices.getInstance().lspConfig.enabled) return null
-        return super.createLspServerWidgetItem(lspServer, currentFile)
+        return LspServerWidgetItem(lspServer, currentFile, CangJieIcons.CANGJIE)
     }
 
 }

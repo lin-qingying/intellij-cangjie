@@ -54,85 +54,101 @@ open class CangJieExpressionParsing(
     @SuppressWarnings("UnusedDeclaration")
 
     enum class Precedence(vararg operations: IElementType) {
+        // 后缀操作符，例如自增（++）、自减（--）、成员访问（.）、安全访问（?.）
         POSTFIX(
             PLUSPLUS, MINUSMINUS, DOT, SAFE_ACCESS,
         ),
 
-
+        // 前缀操作符，例如负号（-）、正号（+）、逻辑非（!）
         PREFIX(MINUS, PLUS, EXCL) {
-
+            // 覆盖了`parseHigherPrecedence`方法，防止调用此方法并抛出异常
             override fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
                 throw IllegalStateException("Don't call this method")
             }
-
         },
 
+        // `as` 操作符用于类型转换
         AS(AS_KEYWORD) {
-
+            // 解析右侧表达式的方法
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
-                parser.mark().drop()
+                parser.mark().drop()  // 标记并丢弃当前解析状态
 
+                // 解析类型引用
                 parser.cangJieParsing.parseTypeRefWithoutIntersections()
-                return BINARY_WITH_TYPE
+                return BINARY_WITH_TYPE  // 返回与类型相关的二元表达式类型
             }
 
+            // 解析更高优先级的方法
             override fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
-
                 parser.parsePrefixExpression()
             }
         },
 
+        // 乘法、除法及取余操作符
         MULTIPLICATIVE(MUL, DIV, PERC, MULMUL),
+
+        // 加法和减法操作符
         ADDITIVE(PLUS, MINUS),
 
-
+        // 范围操作符，例如 `..` 和 `..=`
         RANGE(CjTokens.RANGE, RANGEEQ) {
-
+            // 解析右侧表达式的方法
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
                 if (operation == CjTokens.RANGE || operation == RANGEEQ) {
+                    // 解析范围表达式并返回表达式类型
                     parser.parseRangeExpression()
                     return RANGE_EXPRESSION
                 }
+                // 默认调用父类的方法
                 return super.parseRightHandSide(operation, parser)
-
-
             }
-
         },
-        ELVIS(CjTokens.ELVIS),
 
-        IS(IS_KEYWORD) {
+        // 合并操作符，如 Elvis 运算符（`?:`）
+        COALESCING(CjTokens.COALESCING) {
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
-                if (operation === IS_KEYWORD) {
-//                    TODO Marker already done.  未知原因，只能先这样解决，包括as 也有这个问题
-                    parser.mark().drop()
-
-
-//parser.advance()
-//              parser. parseTest()
-//mark.done(IS_EXPRESSION)
-                    parser.cangJieParsing.parseTypeRefWithoutIntersections()
-
-//                    parser.parseStatement()
-//                    parser.advance()
-                    return IS_EXPRESSION
+                if (operation == CjTokens.COALESCING) {
+//                    右结合可以这样写
+                    parser.parseExpression()
+                    return BINARY_EXPRESSION
                 }
                 return super.parseRightHandSide(operation, parser)
             }
         },
 
-        COMPARISON(LT, GT, LTEQ, GTEQ),
-        EQUALITY(EQEQ, EXCLEQ),
-        CONJUNCTION(ANDAND),
-        DISJUNCTION(OROR),
-//        COMPOSITION(CjTokens.COMPOSITION),
+        // `is` 操作符用于类型检查
+        IS(IS_KEYWORD) {
+            override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
+                if (operation === IS_KEYWORD) {
+                    // 标记并丢弃当前解析状态
+                    parser.mark().drop()
+                    // 解析类型引用
+                    parser.cangJieParsing.parseTypeRefWithoutIntersections()
+                    return IS_EXPRESSION  // 返回 `IS` 表达式类型
+                }
+                return super.parseRightHandSide(operation, parser)
+            }
+        },
 
-        //位运算
+        // 比较操作符，例如小于、大于等
+        COMPARISON(LT, GT, LTEQ, GTEQ),
+
+        // 等于和不等于操作符
+        EQUALITY(EQEQ, EXCLEQ),
+
+        // 逻辑与操作符
+        CONJUNCTION(ANDAND),
+
+        // 逻辑或操作符
+        DISJUNCTION(OROR),
+
+        // 位运算操作符，例如按位与、或、异或等
         BITWISE(AND, OR, XOR, LTLT, GTGT, LTLTEQ, GTGTEQ),
 
-        //flow
+        // 流程控制操作符，例如管道和组合
         FLOW(PIPELINE, COMPOSITION),
 
+        // 赋值操作符，例如简单赋值和复合赋值
         ASSIGNMENT(
             EQ,
             PLUSEQ,
@@ -150,14 +166,15 @@ open class CangJieExpressionParsing(
             MULMULEQ
         );
 
+        // 存储上一级优先级
         private var higher: Precedence? = null
+
+        // 存储当前优先级下的操作符集合
         private val operations: TokenSet
 
+        // 伴生对象，用于初始化枚举类时设置每个优先级的 `higher` 字段
         @OptIn(ExperimentalStdlibApi::class)
         companion object {
-            //        标识符，通配符
-
-
             init {
                 val values: Array<Precedence> = entries.toTypedArray()
                 for (precedence in values) {
@@ -167,31 +184,35 @@ open class CangJieExpressionParsing(
             }
         }
 
+        // 初始化操作符集合
         init {
             this.operations = TokenSet.create(*operations)
         }
 
-
+        // 返回当前优先级的操作符集合
         fun getOperations(): TokenSet {
             return operations
         }
 
         /**
-         * @param operation  操作操作符号(例如+)
-         * @param parser   解析器对象
+         * 解析右侧表达式的方法，接受操作符和解析器对象。
+         * @param operation 操作符
+         * @param parser 解析器对象
          * @return 结果的节点类型
          */
         open fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
             parseHigherPrecedence(parser)
-            return BINARY_EXPRESSION
+            return BINARY_EXPRESSION  // 默认返回二元表达式类型
         }
 
+        /**
+         * 解析更高优先级的方法，调用解析器解析当前优先级的二元表达式。
+         * @param parser 解析器对象
+         */
         open fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
-            assert(higher != null)
-
+            assert(higher != null)  // 确保 `higher` 不为 null
             higher?.let { parser.parseBinaryExpression(it) }
         }
-
     }
 
 
@@ -413,53 +434,61 @@ open class CangJieExpressionParsing(
 
         var firstExpressionParsed =
 //            TODO 是否应该处理安全访问 ?.
-            if ((atSet(BASICTYPES) && lookahead(1) === LPAR) || (atSet(BASICTYPES) && (lookahead(1) === DOT || lookahead(
-                    1
-                ) === SAFE_ACCESS))
-            ) {
-                cangJieParsing.parseTypeRef()
-                true
-            } else if (at(VARRAY_KEYWORD)) {
+            /*   if ((atSet(BASICTYPES) && lookahead(1) === LPAR) || (atSet(BASICTYPES) && (lookahead(1) === DOT || lookahead(
+                       1
+                   ) === SAFE_ACCESS))
+               ) {
+                   cangJieParsing.parseTypeRef()
+                   true
+               } else*/
+            if (atSet(BASICTYPES)) {
+
+                cangJieParsing.parseBasicType()
+
+true
+            } else
+
+                if (at(VARRAY_KEYWORD)) {
 //                这里必须处理为名称原子表达式
-                val mark = mark()
-                advance()
+                    val mark = mark()
+                    advance()
 
 
-                val typeArgumentList = mark()
-                expect(LT, "Should be '<'")
-                val projection = mark()
+                    val typeArgumentList = mark()
+                    expect(LT, "Should be '<'")
+                    val projection = mark()
 
-                cangJieParsing.parseTypeRef(TYPE_ARGUMENT_LIST_STOPPERS)
+                    cangJieParsing.parseTypeRef(TYPE_ARGUMENT_LIST_STOPPERS)
 
-                projection.done(TYPE_PROJECTION)
-
-
-
-                expect(COMMA, "Should be ','")
-                expect(DOLLAR, "Should be '$'")
-
-                expect(INTEGER_LITERAL, "Should be integer literal")
-                expect(GT, "Should be '>'")
-
-                typeArgumentList.done(TYPE_ARGUMENT_LIST)
+                    projection.done(TYPE_PROJECTION)
 
 
-                mark.done(REFERENCE_EXPRESSION)
-                if (!at(LPAR)) {
-                    error("Should be '('")
+
+                    expect(COMMA, "Should be ','")
+                    expect(DOLLAR, "Should be '$'")
+
+                    expect(INTEGER_LITERAL, "Should be integer literal")
+                    expect(GT, "Should be '>'")
+
+                    typeArgumentList.done(TYPE_ARGUMENT_LIST)
+
+
+                    mark.done(REFERENCE_EXPRESSION)
+                    if (!at(LPAR)) {
+                        error("Should be '('")
+                    }
+
+
+                    false
+                } else if (atSet(BASICTYPES)) {
+
+
+                    errorAndAdvance("expected expression or declaration, found keyword ${myBuilder.tokenText}")
+                    false
+                } else {
+                    parseAtomicExpression()
+
                 }
-
-
-                false
-            } else if (atSet(BASICTYPES)) {
-
-
-                errorAndAdvance("expected expression or declaration, found keyword ${myBuilder.tokenText}")
-                false
-            } else {
-                parseAtomicExpression()
-
-            }
 
 
         while (true) {
@@ -2842,7 +2871,7 @@ open class CangJieExpressionParsing(
         )
 
         val ALLOW_NEWLINE_OPERATIONS = TokenSet.create(
-            DOT, COLON, AS_KEYWORD, ANDAND, OROR, ELVIS, SAFE_ACCESS
+            DOT, COLON, AS_KEYWORD, ANDAND, OROR, COALESCING, SAFE_ACCESS
         )
         val QUOTE_TOKENS = TokenSet.orSet(
             TokenSet.create(
@@ -3052,7 +3081,7 @@ open class CangJieExpressionParsing(
             OPEN_QUOTE,
             PACKAGE_KEYWORD,
             AS_KEYWORD,
-            ELVIS, SAFE_ACCESS,
+            COALESCING, SAFE_ACCESS,
             INTERFACE_KEYWORD,
             CLASS_KEYWORD,
             THIS_KEYWORD,

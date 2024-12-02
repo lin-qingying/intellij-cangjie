@@ -103,9 +103,9 @@ public class OverridingUtil {
     }
 
     private static boolean allHasSameContainingDeclaration(@NotNull Collection<CallableMemberDescriptor> notOverridden) {
-        if (notOverridden.size() < 2) return true;
+        if (2 > notOverridden.size()) return true;
 
-        final DeclarationDescriptor containingDeclaration = notOverridden.iterator().next().getContainingDeclaration();
+        DeclarationDescriptor containingDeclaration = notOverridden.iterator().next().getContainingDeclaration();
         return CollectionsKt.all(notOverridden, descriptor -> descriptor.getContainingDeclaration() == containingDeclaration);
     }
 
@@ -114,13 +114,21 @@ public class OverridingUtil {
         return new OverridingUtil(DEFAULT_TYPE_CONSTRUCTOR_EQUALITY, cangjieTypeRefiner, CangJieTypePreparator.Default.INSTANCE, null);
     }
 
+    /**
+     * 创建并绑定未被覆盖的可调用成员的假覆盖。
+     * 此方法用于处理未被覆盖的成员描述符的假覆盖创建，允许它们在当前类描述符中正确匹配。
+     *
+     * @param current       当前类描述符
+     * @param notOverridden 未被覆盖的可调用成员描述符集合
+     * @param strategy      覆盖策略
+     */
     private static void createAndBindFakeOverrides(
             @NotNull ClassDescriptor current,
             @NotNull Collection<CallableMemberDescriptor> notOverridden,
             @NotNull OverridingStrategy strategy
     ) {
-        // Optimization: If all notOverridden descriptors have the same containing declaration,
-        // then we can just create fake overrides for them, because they should be matched correctly in their containing declaration
+        // 优化：如果所有未被覆盖的描述符具有相同的包含声明，
+        // 则可以直接为它们创建假覆盖，因为它们在其包含声明中应该能够正确匹配
         if (allHasSameContainingDeclaration(notOverridden)) {
             for (CallableMemberDescriptor descriptor : notOverridden) {
                 createAndBindFakeOverride(Collections.singleton(descriptor), current, strategy);
@@ -128,20 +136,25 @@ public class OverridingUtil {
             return;
         }
 
+        // 使用队列处理未被覆盖的成员描述符
         Queue<CallableMemberDescriptor> fromSuperQueue = new LinkedList<>(notOverridden);
         while (!fromSuperQueue.isEmpty()) {
+            // 查找具有最大可见性的未被覆盖成员
             CallableMemberDescriptor notOverriddenFromSuper = VisibilityUtilKt.findMemberWithMaxVisibility(fromSuperQueue);
+            // 提取可以在两个方向上覆盖的成员
             Collection<CallableMemberDescriptor> overridables =
                     extractMembersOverridableInBothWays(notOverriddenFromSuper, fromSuperQueue, strategy);
+            // 创建并绑定假覆盖
             createAndBindFakeOverride(overridables, current, strategy);
         }
     }
 
+
     @NotNull
     private static Collection<CallableMemberDescriptor> extractMembersOverridableInBothWays(
-            @NotNull final CallableMemberDescriptor overrider,
+            @NotNull CallableMemberDescriptor overrider,
             @NotNull Queue<CallableMemberDescriptor> extractFrom,
-            @NotNull final OverridingStrategy strategy
+            @NotNull OverridingStrategy strategy
     ) {
         return extractMembersOverridableInBothWays(overrider, extractFrom,
                 // ID
@@ -180,7 +193,7 @@ public class OverridingUtil {
         // We're making their modality that of the containing class, because this is the least confusing behavior for the users.
         // However, it may cause problems if we reuse resolution results of common code when compiling platform code
         boolean transformAbstractToClassModality =
-                current.isExpect() && (current.getModality() != Modality.ABSTRACT && current.getModality() != Modality.SEALED);
+                current.isExpect() && (Modality.ABSTRACT != current.getModality() && Modality.SEALED != current.getModality());
 
         if (hasOpen && !hasAbstract) {
             return Modality.OPEN;
@@ -205,10 +218,10 @@ public class OverridingUtil {
         Modality result = Modality.ABSTRACT;
         for (CallableMemberDescriptor descriptor : descriptors) {
             Modality effectiveModality =
-                    transformAbstractToClassModality && descriptor.getModality() == Modality.ABSTRACT
+                    transformAbstractToClassModality && Modality.ABSTRACT == descriptor.getModality()
                             ? classModality
                             : descriptor.getModality();
-            if (effectiveModality.compareTo(result) < 0) {
+            if (0 > effectiveModality.compareTo(result)) {
                 result = effectiveModality;
             }
         }
@@ -217,7 +230,7 @@ public class OverridingUtil {
 
     @NotNull
     public static Collection<CallableMemberDescriptor> filterVisibleFakeOverrides(
-            @NotNull final ClassDescriptor current,
+            @NotNull ClassDescriptor current,
             @NotNull Collection<CallableMemberDescriptor> toFilter
     ) {
         return CollectionsKt.filter(toFilter, descriptor -> {
@@ -335,12 +348,12 @@ public class OverridingUtil {
             @Nullable Function0<?> cancellationCallback,
             @NotNull Function2<? super D, ? super D, Pair<CallableDescriptor, CallableDescriptor>> transformFirst
     ) {
-        if (candidateSet.size() <= 1) return candidateSet;
+        if (1 >= candidateSet.size()) return candidateSet;
 
         Set<D> result = new LinkedHashSet<>();
         outerLoop:
         for (D meD : candidateSet) {
-            if (cancellationCallback != null) {
+            if (null != cancellationCallback) {
                 cancellationCallback.invoke();
             }
             for (Iterator<D> iterator = result.iterator(); iterator.hasNext(); ) {
@@ -367,7 +380,7 @@ public class OverridingUtil {
             @NotNull DeclarationDescriptorWithVisibility b
     ) {
         Integer result = DescriptorVisibilities.compare(a.getVisibility(), b.getVisibility());
-        return result == null || result >= 0;
+        return null == result || 0 <= result;
     }
 
     private static boolean isReturnTypeMoreSpecific(
@@ -384,8 +397,8 @@ public class OverridingUtil {
         CangJieType aReturnType = a.getReturnType();
         CangJieType bReturnType = b.getReturnType();
 
-        assert aReturnType != null : "Return type of " + a + " is null";
-        assert bReturnType != null : "Return type of " + b + " is null";
+        assert null != aReturnType : "Return type of " + a + " is null";
+        assert null != bReturnType : "Return type of " + b + " is null";
 
         if (!isVisibilityMoreSpecific(a, b)) return false;
 
@@ -438,7 +451,7 @@ public class OverridingUtil {
     ) {
         assert !overridables.isEmpty() : "Should have at least one overridable descriptor";
 
-        if (overridables.size() == 1) {
+        if (1 == overridables.size()) {
             return CollectionsKt.first(overridables);
         }
 
@@ -461,7 +474,7 @@ public class OverridingUtil {
 
         if (candidates.isEmpty()) {
             return transitivelyMostSpecific;
-        } else if (candidates.size() == 1) {
+        } else if (1 == candidates.size()) {
             return CollectionsKt.first(candidates);
         }
 
@@ -473,7 +486,7 @@ public class OverridingUtil {
                 break;
             }
         }
-        if (firstNonFlexible != null) {
+        if (null != firstNonFlexible) {
             return firstNonFlexible;
         }
 
@@ -504,10 +517,10 @@ public class OverridingUtil {
 
             OverrideCompatibilityInfo.Result finalResult = getBothWaysOverridability(overriderDescriptor, candidateDescriptor);
 
-            if (finalResult == OVERRIDABLE) {
+            if (OVERRIDABLE == finalResult) {
                 overridable.add(candidate);
                 iterator.remove();
-            } else if (finalResult == CONFLICT) {
+            } else if (CONFLICT == finalResult) {
                 onConflict.invoke(candidate);
                 iterator.remove();
             }
@@ -553,30 +566,57 @@ public class OverridingUtil {
         return checkReceiverAndParameterCount(superDescriptor, subDescriptor);
     }
 
+    /**
+     * 检查接收器和参数数量的兼容性
+     * <p>
+     * 此方法用于检查超类和子类的 CallableDescriptor 对象的接收器和参数数量是否兼容。
+     * 如果接收器存在性不匹配或参数数量不匹配，则返回一个 OverrideCompatibilityInfo 对象，表明存在兼容性问题。
+     *
+     * @param superDescriptor 超类的 CallableDescriptor 对象
+     * @param subDescriptor   子类的 CallableDescriptor 对象
+     * @return 如果存在兼容性问题，返回相应的 OverrideCompatibilityInfo 对象；如果没有问题，返回 null
+     */
     @Nullable
     private static OverrideCompatibilityInfo checkReceiverAndParameterCount(
             CallableDescriptor superDescriptor,
             CallableDescriptor subDescriptor
     ) {
-//        TODO 如果使用扩展接收器，那么这里就要注释掉
-//        if ((superDescriptor.getExtensionReceiverParameter() == null) != (subDescriptor.getExtensionReceiverParameter() == null)) {
+        //        TODO 如果使用扩展接收器，那么这里就要注释掉
+        // 检查接收器是否存在，如果存在性不匹配，则返回一个 OverrideCompatibilityInfo 对象
+//        if ((superDescriptor.getExtensionReceiverParameter() == null)!= (subDescriptor.getExtensionReceiverParameter() == null)) {
 //            return OverrideCompatibilityInfo.incompatible("Receiver presence mismatch");
 //        }
 
+        // 检查参数数量是否匹配，如果不匹配，则返回一个 OverrideCompatibilityInfo 对象
         if (superDescriptor.getValueParameters().size() != subDescriptor.getValueParameters().size()) {
             return OverrideCompatibilityInfo.incompatible("Value parameter number mismatch");
         }
 
+        // 如果没有发现兼容性问题，则返回 null
         return null;
     }
 
+
+    /**
+     * 检查两种类型是否等价
+     * 此方法用于比较在超类和子类中使用的两种类型是否等价，以支持类型检查和推断
+     * 它首先检查两种类型是否都为错误类型，如果是，则认为它们等价
+     * 如果两种类型都不是错误类型，则委托给AbstractTypeChecker进行类型等价性比较
+     *
+     * @param typeInSuper      超类中的类型
+     * @param typeInSub        子类中的类型
+     * @param typeCheckerState 类型检查器的状态，用于跟踪类型检查过程中的信息
+     * @return 如果两种类型等价则返回true，否则返回false
+     */
     private static boolean areTypesEquivalent(
             @NotNull CangJieType typeInSuper,
             @NotNull CangJieType typeInSub,
             @NotNull TypeCheckerState typeCheckerState
     ) {
+        // 检查两种类型是否都为错误类型，如果是，则认为它们等价
         boolean bothErrors = CangJieTypeKt.isError(typeInSuper) && CangJieTypeKt.isError(typeInSub);
         if (bothErrors) return true;
+        // 如果两种类型都不是错误类型，则委托给AbstractTypeChecker进行类型等价性比较
         return AbstractTypeChecker.INSTANCE.equalTypes(typeCheckerState, typeInSuper.unwrap(), typeInSub.unwrap());
     }
 
@@ -614,9 +654,9 @@ public class OverridingUtil {
         OverrideCompatibilityInfo.Result result1 = DEFAULT.isOverridableBy(candidateDescriptor, overriderDescriptor, null).getResult();
         OverrideCompatibilityInfo.Result result2 = DEFAULT.isOverridableBy(overriderDescriptor, candidateDescriptor, null).getResult();
 
-        return result1 == OVERRIDABLE && result2 == OVERRIDABLE
+        return OVERRIDABLE == result1 && OVERRIDABLE == result2
                 ? OVERRIDABLE
-                : ((result1 == CONFLICT || result2 == CONFLICT) ? CONFLICT : INCOMPATIBLE);
+                : ((CONFLICT == result1 || CONFLICT == result2) ? CONFLICT : INCOMPATIBLE);
     }
 
     /**
@@ -654,8 +694,8 @@ public class OverridingUtil {
 
         DescriptorVisibility maxVisibility = computeVisibilityToInherit(memberDescriptor);
         DescriptorVisibility visibilityToInherit;
-        if (maxVisibility == null) {
-            if (cannotInferVisibility != null) {
+        if (null == maxVisibility) {
+            if (null != cannotInferVisibility) {
                 cannotInferVisibility.invoke(memberDescriptor);
             }
             visibilityToInherit = DescriptorVisibilities.PUBLIC;
@@ -667,7 +707,7 @@ public class OverridingUtil {
             ((PropertyDescriptorImpl) memberDescriptor).setVisibility(visibilityToInherit);
             for (PropertyAccessorDescriptor accessor : ((PropertyDescriptor) memberDescriptor).getAccessors()) {
                 // If we couldn't infer visibility for property, the diagnostic is already reported, no need to report it again on accessors
-                resolveUnknownVisibilityForMember(accessor, maxVisibility == null ? null : cannotInferVisibility);
+                resolveUnknownVisibilityForMember(accessor, null == maxVisibility ? null : cannotInferVisibility);
             }
         }/*else   if (memberDescriptor instanceof VariableDescriptorImpl) {
             ((VariableDescriptorImpl) memberDescriptor).setVisibility(visibilityToInherit);
@@ -693,23 +733,23 @@ public class OverridingUtil {
         for (CallableMemberDescriptor descriptor : descriptors) {
             DescriptorVisibility visibility = descriptor.getVisibility();
             assert visibility != DescriptorVisibilities.INHERITED : "Visibility should have been computed for " + descriptor;
-            if (maxVisibility == null) {
+            if (null == maxVisibility) {
                 maxVisibility = visibility;
                 continue;
             }
             Integer compareResult = DescriptorVisibilities.compare(visibility, maxVisibility);
-            if (compareResult == null) {
+            if (null == compareResult) {
                 maxVisibility = null;
-            } else if (compareResult > 0) {
+            } else if (0 < compareResult) {
                 maxVisibility = visibility;
             }
         }
-        if (maxVisibility == null) {
+        if (null == maxVisibility) {
             return null;
         }
         for (CallableMemberDescriptor descriptor : descriptors) {
             Integer compareResult = DescriptorVisibilities.compare(maxVisibility, descriptor.getVisibility());
-            if (compareResult == null || compareResult < 0) {
+            if (null == compareResult || 0 > compareResult) {
                 return null;
             }
         }
@@ -720,13 +760,13 @@ public class OverridingUtil {
     private static DescriptorVisibility computeVisibilityToInherit(@NotNull CallableMemberDescriptor memberDescriptor) {
         Collection<? extends CallableMemberDescriptor> overriddenDescriptors = memberDescriptor.getOverriddenDescriptors();
         DescriptorVisibility maxVisibility = findMaxVisibility(overriddenDescriptors);
-        if (maxVisibility == null) {
+        if (null == maxVisibility) {
             return null;
         }
-        if (memberDescriptor.getKind() == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
+        if (CallableMemberDescriptor.Kind.FAKE_OVERRIDE == memberDescriptor.getKind()) {
             for (CallableMemberDescriptor overridden : overriddenDescriptors) {
                 // An implementation (a non-abstract overridden member) of a fake override should have the maximum possible visibility
-                if (overridden.getModality() != Modality.ABSTRACT && !overridden.getVisibility().equals(maxVisibility)) {
+                if (Modality.ABSTRACT != overridden.getModality() && !overridden.getVisibility().equals(maxVisibility)) {
                     return null;
                 }
             }
@@ -757,39 +797,59 @@ public class OverridingUtil {
 //        return subDescriptor;
 //    }
 
+    /**
+     * 提取并绑定成员的覆盖信息
+     * 该方法用于处理当前类成员描述符与超类成员描述符之间的关系，根据可覆盖性将合适的超类成员绑定到当前类成员
+     *
+     * @param fromCurrent          当前类的成员描述符，用于检查与超类成员的覆盖关系
+     * @param descriptorsFromSuper 超类的成员描述符集合，作为潜在被覆盖的成员
+     * @param current              当前类的描述符，用于获取类上下文信息
+     * @param strategy             覆盖策略接口，用于处理覆盖冲突等情况
+     * @return 返回绑定后的成员描述符集合，包括了当前类成员覆盖的超类成员
+     */
     private Collection<CallableMemberDescriptor> extractAndBindOverridesForMember(
             @NotNull CallableMemberDescriptor fromCurrent,
             @NotNull Collection<? extends CallableMemberDescriptor> descriptorsFromSuper,
             @NotNull ClassDescriptor current,
             @NotNull OverridingStrategy strategy
     ) {
+        // 初始化用于存储绑定后的成员描述符的集合
         Collection<CallableMemberDescriptor> bound = new ArrayList<>(descriptorsFromSuper.size());
+        // 初始化用于存储被当前类成员覆盖的超类成员描述符的集合
         Collection<CallableMemberDescriptor> overridden = SmartSet.create();
-        for (CallableMemberDescriptor fromSupertype : descriptorsFromSuper) {
-            OverrideCompatibilityInfo.Result result = isOverridableBy(fromSupertype, fromCurrent, current).getResult();
 
+        // 遍历超类成员描述符集合，检查每个成员是否被当前类成员覆盖
+        for (CallableMemberDescriptor fromSupertype : descriptorsFromSuper) {
+            // 检查超类成员是否可被当前类成员覆盖，以及覆盖的可见性
+            OverrideCompatibilityInfo.Result result = isOverridableBy(fromSupertype, fromCurrent, current).getResult();
             boolean isVisibleForOverride = isVisibleForOverride(fromCurrent, fromSupertype, false);
 
+            // 根据覆盖检查结果，决定如何处理当前超类成员
             switch (result) {
                 case OVERRIDABLE:
+                    // 如果超类成员可被覆盖且可见，则将其添加到被覆盖成员集合中，并将其绑定到当前类成员
                     if (isVisibleForOverride) {
                         overridden.add(fromSupertype);
                     }
                     bound.add(fromSupertype);
                     break;
                 case CONFLICT:
+                    // 如果存在覆盖冲突且可见，则调用覆盖策略处理冲突，并将其绑定到当前类成员
                     if (isVisibleForOverride) {
                         strategy.overrideConflict(fromSupertype, fromCurrent);
                     }
                     bound.add(fromSupertype);
                     break;
                 case INCOMPATIBLE:
+                    // 如果不可覆盖，则不进行任何操作
                     break;
             }
         }
 
+        // 设置当前类成员所覆盖的超类成员描述符集合
         strategy.setOverriddenDescriptors(fromCurrent, overridden);
 
+        // 返回绑定后的成员描述符集合
         return bound;
     }
 
@@ -849,37 +909,37 @@ public class OverridingUtil {
         ).newTypeCheckerState(true, true);
     }
 
+    /**
+     * 检查一个描述符是否可以在不考虑外部条件的情况下覆盖另一个描述符
+     * 此方法主要用于检查继承结构中方法的覆盖是否存在问题
+     * 它通过比较超类和子类中的方法参数类型和返回类型来确定是否可以进行覆盖
+     *
+     * @param superDescriptor 超类的方法描述符
+     * @param subDescriptor   子类的方法描述符
+     * @param checkReturnType 是否检查返回类型
+     * @return 返回一个OverrideCompatibilityInfo对象，包含覆盖是否成功或失败的原因
+     */
     @NotNull
     public OverrideCompatibilityInfo isOverridableByWithoutExternalConditions(
             @NotNull CallableDescriptor superDescriptor,
             @NotNull CallableDescriptor subDescriptor,
             boolean checkReturnType
     ) {
-
-
+        // 检查基本的覆盖问题，如抽象方法是否可以覆盖具体方法等
         OverrideCompatibilityInfo basicOverridability = getBasicOverridabilityProblem(superDescriptor, subDescriptor);
-        if (basicOverridability != null) return basicOverridability;
+        if (null != basicOverridability) return basicOverridability;
 
+        // 获取超类和子类方法的参数类型列表
         List<CangJieType> superValueParameters = compiledValueParameters(superDescriptor);
         List<CangJieType> subValueParameters = compiledValueParameters(subDescriptor);
 
+        // 获取超类方法的类型参数列表
         List<TypeParameterDescriptor> superTypeParameters = superDescriptor.getTypeParameters();
 
-//        当成员为扩展时，有且只有一个类型参数，并且为扩展类型中的泛型时，需特殊处理
+        // 当成员为扩展时，有且只有一个类型参数，并且为扩展类型中的泛型时，需特殊处理
         List<TypeParameterDescriptor> subTypeParameters = subDescriptor.getTypeParametersNotExtend();
 
-//        if (subDescriptor.getExtensionReceiverParameter() != null) {
-//            if (superTypeParameters.isEmpty()) {
-//                if (subDescriptor.getExtensionReceiverParameter().getValue().getType().getArguments().size() == 1) {
-//                    if (subTypeParameters.size() == 1) {
-//                        subTypeParameters = Collections.emptyList();
-//                    }
-//                }
-//            }
-//
-//        }
-
-
+        // 如果类型参数数量不匹配，则进一步检查参数类型是否兼容
         if (superTypeParameters.size() != subTypeParameters.size()) {
             for (int i = 0; i < superValueParameters.size(); ++i) {
                 // TODO: compare erasure
@@ -890,9 +950,10 @@ public class OverridingUtil {
             return OverrideCompatibilityInfo.conflict("Type parameter number mismatch");
         }
 
-
+        // 创建类型检查状态对象，用于后续的类型参数和值参数的比较
         TypeCheckerState typeCheckerState = createTypeCheckerState(superTypeParameters, subTypeParameters);
 
+        // 检查类型参数是否等价
         for (int i = 0; i < superTypeParameters.size(); i++) {
             if (!areTypeParametersEquivalent(
                     superTypeParameters.get(i),
@@ -903,6 +964,7 @@ public class OverridingUtil {
             }
         }
 
+        // 检查值参数类型是否等价
         for (int i = 0; i < superValueParameters.size(); i++) {
             if (!areTypesEquivalent(
                     superValueParameters.get(i),
@@ -913,16 +975,18 @@ public class OverridingUtil {
             }
         }
 
-//        if (superDescriptor instanceof FunctionDescriptor && subDescriptor instanceof FunctionDescriptor &&
-//                ((FunctionDescriptor) superDescriptor).isSuspend() != ((FunctionDescriptor) subDescriptor).isSuspend()) {
-//            return OverrideCompatibilityInfo.conflict("Incompatible suspendability");
-//        }
+        // 检查挂起属性是否兼容
+        //        if (superDescriptor instanceof FunctionDescriptor && subDescriptor instanceof FunctionDescriptor &&
+        //                ((FunctionDescriptor) superDescriptor).isSuspend() != ((FunctionDescriptor) subDescriptor).isSuspend()) {
+        //            return OverrideCompatibilityInfo.conflict("Incompatible suspendability");
+        //        }
 
+        // 检查返回类型是否兼容，如果需要检查返回类型的话
         if (checkReturnType) {
             CangJieType superReturnType = superDescriptor.getReturnType();
             CangJieType subReturnType = subDescriptor.getReturnType();
 
-            if (superReturnType != null && subReturnType != null) {
+            if (null != superReturnType && null != subReturnType) {
                 boolean bothErrors = CangJieTypeKt.isError(subReturnType) && CangJieTypeKt.isError(superReturnType);
                 if (!bothErrors &&
                         !AbstractTypeChecker.INSTANCE.isSubtypeOf(
@@ -936,9 +1000,37 @@ public class OverridingUtil {
             }
         }
 
+        // 如果所有检查都通过，则表示可以成功覆盖
         return OverrideCompatibilityInfo.success();
     }
 
+    /**
+     * 判断一个方法是否可以被重写。
+     *
+     * @param superDescriptor    父类的方法描述符。
+     * @param subDescriptor      子类的方法描述符。
+     * @param subClassDescriptor 子类的类描述符，可以为 null。
+     * @param checkReturnType    是否检查返回类型。
+     * @return 返回一个 {@link OverrideCompatibilityInfo} 对象，表示是否可以重写以及相关信息。
+     * <p>
+     * 方法执行流程如下：
+     * 1. 首先调用 `isOverridableByWithoutExternalConditions` 方法进行基础的可重写性检查，
+     * 判断是否可以在不考虑外部条件的情况下重写方法。
+     * 2. 遍历所有外部的可重写性条件 {@link ExternalOverridabilityCondition}，根据其契约（`Contract`）：
+     * - 如果契约是 `SUCCESS_ONLY`，则只在基本检查成功时执行。
+     * - 如果契约是 `CONFLICTS_ONLY`，则跳过本次检查。
+     * 3. 如果某个外部条件返回 `OVERRIDABLE`，则标记检查成功。
+     * - 如果返回 `INCOMPATIBLE`，立即返回一个表示不兼容的结果。
+     * - 如果返回 `UNKNOWN`，继续下一个条件检查。
+     * 4. 如果基础检查失败且没有其他条件声明成功，直接返回基础检查的结果。
+     * 5. 再次遍历所有外部条件，但这次仅运行契约为 `CONFLICTS_ONLY` 的条件，
+     * 用于检测潜在的冲突：
+     * - 如果条件返回 `INCOMPATIBLE`，返回不兼容结果。
+     * - 如果条件返回 `OVERRIDABLE`，抛出异常，因为这违反了契约约定。
+     * - 如果条件返回 `UNKNOWN`，继续下一个条件检查。
+     * 6. 如果没有冲突且至少一个检查成功，则返回成功的结果。
+     * @throws IllegalStateException 如果某个契约为 `CONFLICTS_ONLY` 的条件返回成功，违反契约。
+     */
     @NotNull
     public OverrideCompatibilityInfo isOverridableBy(
             @NotNull CallableDescriptor superDescriptor,
@@ -947,12 +1039,12 @@ public class OverridingUtil {
             boolean checkReturnType
     ) {
         OverrideCompatibilityInfo basicResult = isOverridableByWithoutExternalConditions(superDescriptor, subDescriptor, checkReturnType);
-        boolean wasSuccess = basicResult.getResult() == OVERRIDABLE;
+        boolean wasSuccess = OVERRIDABLE == basicResult.getResult();
 
         for (ExternalOverridabilityCondition externalCondition : EXTERNAL_CONDITIONS) {
             // Do not run CONFLICTS_ONLY while there was no success
-            if (externalCondition.getContract() == ExternalOverridabilityCondition.Contract.CONFLICTS_ONLY) continue;
-            if (wasSuccess && externalCondition.getContract() == ExternalOverridabilityCondition.Contract.SUCCESS_ONLY)
+            if (ExternalOverridabilityCondition.Contract.CONFLICTS_ONLY == externalCondition.getContract()) continue;
+            if (wasSuccess && ExternalOverridabilityCondition.Contract.SUCCESS_ONLY == externalCondition.getContract())
                 continue;
 
             ExternalOverridabilityCondition.Result result =
@@ -977,7 +1069,7 @@ public class OverridingUtil {
         // Search for conflicts from external conditions
         for (ExternalOverridabilityCondition externalCondition : EXTERNAL_CONDITIONS) {
             // Run all conditions that was not run before (i.e. CONFLICTS_ONLY)
-            if (externalCondition.getContract() != ExternalOverridabilityCondition.Contract.CONFLICTS_ONLY) continue;
+            if (ExternalOverridabilityCondition.Contract.CONFLICTS_ONLY != externalCondition.getContract()) continue;
 
             ExternalOverridabilityCondition.Result result =
                     externalCondition.isOverridable(superDescriptor, subDescriptor, subClassDescriptor);
@@ -1011,7 +1103,7 @@ public class OverridingUtil {
         private final String debugMessage;
 
         public OverrideCompatibilityInfo(@NotNull Result success, @NotNull String debugMessage) {
-            this.overridable = success;
+            overridable = success;
             this.debugMessage = debugMessage;
         }
 

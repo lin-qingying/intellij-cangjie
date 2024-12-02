@@ -113,7 +113,7 @@ public class ExpressionTypingUtils {
     public static boolean isBinaryExpressionDependentOnExpectedType(@NotNull CjBinaryExpression expression) {
         IElementType operationType = expression.getOperationReference().getReferencedNameElementType();
         return (operationType == CjTokens.IDENTIFIER || OperatorConventions.BINARY_OPERATION_NAMES.containsKey(operationType)
-                || operationType == CjTokens.ELVIS);
+                || operationType == CjTokens.COALESCING);
     }
     @NotNull
     public static CangJieType safeGetType(@NotNull CangJieTypeInfo typeInfo) {

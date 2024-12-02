@@ -641,7 +641,7 @@ LONELY_BACKTICK=`
 "$"          { return CjTokens.DOLLAR        ; }
 
 "@"          { return CjTokens.AT; }
-//"??"          { return CjTokens.ELVIS     ; }
+//"??"          { return CjTokens.COALESCING     ; }
 "?"           { return CjTokens.QUEST     ; }
 "?."          { return CjTokens.SAFE_ACCESS     ; }
 "?["          { return CjTokens.SAFE_INDEXEX     ; }

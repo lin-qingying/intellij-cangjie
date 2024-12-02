@@ -26,6 +26,7 @@ package com.linqingying.lsp.impl
 
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.notebook.editor.BackedVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
 import com.intellij.openapi.application.ReadAction.nonBlocking
@@ -79,6 +80,23 @@ class LspServerManagerImpl internal constructor(
             }
         }
 
+        internal suspend fun restartCodeHighlighting(
+            project: Project,
+            file: VirtualFile
+        ) = // 执行 UI 线程相关的操作
+            // 在这里我们调用 readAction 来确保操作在 UI 线程上执行
+            readAction {
+                val originFile = BackedVirtualFile.getOriginFileIfBacked(file)
+
+                // 检查文件是否已经打开
+                if (FileEditorManager.getInstance(project).isFileOpen(originFile)) {
+                    val psiFile = PsiManager.getInstance(project).findFile(file)
+                    psiFile?.let {
+                        DaemonCodeAnalyzer.getInstance(project).restart(it)  // 重启代码高亮
+                    }
+                }
+            }
+
         fun getInstanceImpl(project: Project): LspServerManagerImpl {
             return LspServerManager.getInstance(project) as LspServerManagerImpl
         }
@@ -101,6 +119,10 @@ class LspServerManagerImpl internal constructor(
     private val CLOSE_FILES_COALESCE_OBJECT: Any = Any()
 
     private val START_SERVER_COALESCE_OBJECT: Any = Any()
+    private val eventBroadcaster: LspServerManagerListener
+    private val eventDispatcher: EventDispatcher<LspServerManagerListener> = EventDispatcher.create(
+        LspServerManagerListener::class.java
+    )
 
     init {
         if (project.isDefault) {
@@ -109,27 +131,25 @@ class LspServerManagerImpl internal constructor(
         } else {
             registerExtensionListener()
             startCoroutine()
+
+            this.eventBroadcaster = object : LspServerManagerListener {
+                override fun serverStateChanged(lspServer: LspServer) {
+                    eventDispatcher.multicaster.serverStateChanged(lspServer)
+                }
+
+                override fun diagnosticsReceived(lspServer: LspServer, file: VirtualFile) {
+                    eventDispatcher.multicaster.diagnosticsReceived(lspServer, file)
+                }
+
+                override fun fileOpened(lspServer: LspServer, file: VirtualFile) {
+                    eventDispatcher.multicaster.fileOpened(lspServer, file)
+                }
+            }
+
         }
 
     }
 
-    private val eventBroadcaster: LspServerManagerListener = object : LspServerManagerListener {
-        override fun serverStateChanged(lspServer: LspServer) {
-            eventDispatcher.multicaster.serverStateChanged(lspServer)
-        }
-
-        override fun diagnosticsReceived(lspServer: LspServer, file: VirtualFile) {
-            eventDispatcher.multicaster.diagnosticsReceived(lspServer, file)
-        }
-
-        override fun fileOpened(lspServer: LspServer, file: VirtualFile) {
-            eventDispatcher.multicaster.fileOpened(lspServer, file)
-        }
-    }
-
-    private val eventDispatcher: EventDispatcher<LspServerManagerListener> = EventDispatcher.create(
-        LspServerManagerListener::class.java
-    )
 
     private val highlightingQueue: MergingUpdateQueue = MergingUpdateQueue(
         "LSP highlighting queue", 100, true, null,
@@ -166,7 +186,7 @@ class LspServerManagerImpl internal constructor(
 
         this.cs.launch {
             try {
-                val eventLog =   WorkspaceModel.getInstance(project).eventLog
+                val eventLog = WorkspaceModel.getInstance(project).eventLog
 
                 eventLog.collect { value ->
                     if (value.getChanges(ContentRootEntity::class.java).isNotEmpty()) {
@@ -190,22 +210,32 @@ class LspServerManagerImpl internal constructor(
     }
 
     @RequiresEdt
-    internal fun ensureServerStarted(
+    override fun ensureServerStarted(
         providerClass: Class<out LspServerSupportProvider>,
         descriptor: LspServerDescriptor
     ) {
-        if (lspServers.any {
-                it.providerClass == providerClass && it.descriptor.roots.contentEquals(descriptor.roots)
-            }) {
-            return
-        }
+        cs.launch {
+            readAction {
+                val lspServer = LspServerImpl(providerClass, descriptor, eventBroadcaster)
+                lspServer.start()
+                lspServers.add(lspServer)
 
-        if (lspServers.size >= 10) {
 
-            logger.error("${lspServers.size} LSP servers are already running and one more wants to start. To save system resources, this request will be ignored: $descriptor")
-        } else {
-            WriteAction.run<Throwable> { startCoroutine() }
+            }
         }
+//
+//        if (lspServers.any {
+//                it.providerClass == providerClass && it.descriptor.roots.contentEquals(descriptor.roots)
+//            }) {
+//            return
+//        }
+//
+//        if (lspServers.size >= 10) {
+//
+//            logger.error("${lspServers.size} LSP servers are already running and one more wants to start. To save system resources, this request will be ignored: $descriptor")
+//        } else {
+//            WriteAction.run<Throwable> { startCoroutine() }
+//        }
     }
 
     internal inline fun findRunningServer(condition: (LspServerImpl) -> Boolean): LspServerImpl? {
@@ -232,6 +262,7 @@ class LspServerManagerImpl internal constructor(
         serverOutput: String
     ) {
         lspServer.ensureServerStopped(false) {
+
             if (lspServer.state != LspServerState.ShutdownNormally) {
                 lspServer.appendServerErrorOutput(serverOutput)
             }
@@ -250,29 +281,33 @@ class LspServerManagerImpl internal constructor(
         if (shouldRemove) {
             lspServers.remove(server)
         }
-        if (listOf(LspServerState.ShutdownNormally, LspServerState.ShutdownUnexpectedly).contains(server.state)) {
-            if (server.state == LspServerState.Running) {
-                highlightingQueue.queue(Update.create(this) {
 
-                    DaemonCodeAnalyzer.getInstance(project).restart()
-
-                })
-            }
-            server.cleanupShutdownAndExit(shouldRemove)
-
+        if (server.state === LspServerState.Running) {
+            DaemonCodeAnalyzer.getInstance(this.project).restart()
         }
-        if (server.state == LspServerState.Running) {
-            highlightingQueue.queue(Update.create(this) {
-                cs.launch {
-                    val flow = WorkspaceModel.getInstance(project).eventLog
-                    flow.collect { event ->
-                        if (event.getChanges(ContentRootEntity::class.java).isNotEmpty()) {
-                            onProjectRootsChanged()
-                        }
-                    }
-                }
-            })
-        }
+//        if (listOf(LspServerState.ShutdownNormally, LspServerState.ShutdownUnexpectedly).contains(server.state)) {
+//            if (server.state == LspServerState.Running) {
+//                highlightingQueue.queue(Update.create(this) {
+//
+//                    DaemonCodeAnalyzer.getInstance(project).restart()
+//
+//                })
+//            }
+//            server.cleanupShutdownAndExit(shouldRemove)
+//
+//        }
+//        if (server.state == LspServerState.Running) {
+//            highlightingQueue.queue(Update.create(this) {
+//                cs.launch {
+//                    val flow = getInstance(project).eventLog
+//                    flow.collect { event ->
+//                        if (event.getChanges(ContentRootEntity::class.java).isNotEmpty()) {
+//                            onProjectRootsChanged()
+//                        }
+//                    }
+//                }
+//            })
+//        }
     }
 
     internal fun onDiagnosticsReceived(
@@ -280,36 +315,13 @@ class LspServerManagerImpl internal constructor(
         virtualFile: VirtualFile
     ) {
 
-        runReadAction {
-            cs.launch {
-                val flow = WorkspaceModel.getInstance(project).eventLog
-                flow.collect { event ->
-                    if (event.getChanges(ContentRootEntity::class.java).isNotEmpty()) {
-                        onProjectRootsChanged()
-                    }
-                }
-            }
+        cs.launch {
+            restartCodeHighlighting(project, virtualFile)
+
+            eventBroadcaster.diagnosticsReceived(lspServer, virtualFile)
+
         }
 
-       runReadAction {
-            if (project.isDisposed) {
-                logger.debug("Project disposed ", project)
-            } else if (FileEditorManager.getInstance(project).isFileOpen(virtualFile)) {
-                highlightingQueue.queue(Update.create(virtualFile) {
-                    if (!virtualFile.isValid) {
-                        logger.debug("Virtual file was invalidated: ", virtualFile)
-                    } else if (FileEditorManager.getInstance(project).isFileOpen(virtualFile)) {
-                        val psiFile = PsiManager.getInstance(project).findFile(virtualFile)
-                        if (psiFile == null) {
-                            logger.debug("Unable to find a PsiFile for ", virtualFile)
-                        } else {
-                            DaemonCodeAnalyzer.getInstance(project).restart(psiFile)
-                            eventBroadcaster.diagnosticsReceived(lspServer, virtualFile)
-                        }
-                    }
-                })
-            }
-        }
     }
 
 
@@ -364,49 +376,84 @@ class LspServerManagerImpl internal constructor(
         return multiMap
     }
 
-    override fun startServersIfNeeded(providerClass: Class<out LspServerSupportProvider>) {
+    override fun startServersIfNeeded(providerClass: Class<out LspServerSupportProvider>): Unit {
         val serverSupportProvider = LspServerSupportProvider.EP_NAME.findExtension(providerClass)
 
         if (serverSupportProvider == null) {
             logger.error("${providerClass.name} is not loaded")
         } else {
-            nonBlocking<SmartList<LspServerDescriptor>> {
-                val servers = getServersForProvider(providerClass)
-                val result = SmartList<LspServerDescriptor>()
-                val openFiles = FileEditorManager.getInstance(project).openFiles
+            cs.launch {
+                val list = readAction {
+                    val servers = getServersForProvider(providerClass)
+                    val result = SmartList<LspServerDescriptor>()
+                    val openFiles = FileEditorManager.getInstance(project).openFiles
 
-                openFiles.forEach { file ->
-                    ProgressManager.checkCanceled()
-                    if (file.isInLocalFileSystem && ProjectFileIndex.getInstance(project).isInContent(file)) {
-                        val isAssociatedWithServer = servers.any { server ->
-                            server.descriptor.roots.any { VfsUtilCore.isAncestor(it, file, true) }
-                        }
-
-                        if (!isAssociatedWithServer) {
-                            val isAssociatedWithDescriptor = result.any { descriptor ->
-                                descriptor.roots.any { VfsUtilCore.isAncestor(it, file, true) }
+                    openFiles.forEach { file ->
+                        ProgressManager.checkCanceled()
+                        if (file.isInLocalFileSystem && ProjectFileIndex.getInstance(project).isInContent(file)) {
+                            val isAssociatedWithServer = servers.any { server ->
+                                server.descriptor.roots.any { VfsUtilCore.isAncestor(it, file, true) }
                             }
 
-                            if (!isAssociatedWithDescriptor) {
-                                val starter = LspServerStarterImpl()
-                                serverSupportProvider.fileOpened(project, file, starter)
-                                starter.descriptor?.let { result.add(it) }
+                            if (!isAssociatedWithServer) {
+                                val isAssociatedWithDescriptor = result.any { descriptor ->
+                                    descriptor.roots.any { VfsUtilCore.isAncestor(it, file, true) }
+                                }
+
+                                if (!isAssociatedWithDescriptor) {
+                                    val starter = LspServerStarterImpl()
+                                    serverSupportProvider.fileOpened(project, file, starter)
+                                    starter.descriptor?.let { result.add(it) }
+                                }
                             }
                         }
                     }
+
+                    result
                 }
 
-                result
+                list.forEach {
+                    ensureServerStarted(providerClass, it)
+                }
             }
-                .expireWith(this)
-                .coalesceBy(providerClass, START_SERVER_COALESCE_OBJECT)
-                .finishOnUiThread(ModalityState.nonModal()) { descriptors ->
-                    descriptors.forEach { descriptor ->
-                        startNewServer(providerClass, descriptor)
-                    }
 
-                }
-                .submit(AppExecutorUtil.getAppExecutorService())
+//            nonBlocking<SmartList<LspServerDescriptor>> {
+//                val servers = getServersForProvider(providerClass)
+//                val result = SmartList<LspServerDescriptor>()
+//                val openFiles = FileEditorManager.getInstance(project).openFiles
+//
+//                openFiles.forEach { file ->
+//                    ProgressManager.checkCanceled()
+//                    if (file.isInLocalFileSystem && ProjectFileIndex.getInstance(project).isInContent(file)) {
+//                        val isAssociatedWithServer = servers.any { server ->
+//                            server.descriptor.roots.any { VfsUtilCore.isAncestor(it, file, true) }
+//                        }
+//
+//                        if (!isAssociatedWithServer) {
+//                            val isAssociatedWithDescriptor = result.any { descriptor ->
+//                                descriptor.roots.any { VfsUtilCore.isAncestor(it, file, true) }
+//                            }
+//
+//                            if (!isAssociatedWithDescriptor) {
+//                                val starter = LspServerStarterImpl()
+//                                serverSupportProvider.fileOpened(project, file, starter)
+//                                starter.descriptor?.let { result.add(it) }
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                result
+//            }
+//                .expireWith(this)
+//                .coalesceBy(providerClass, START_SERVER_COALESCE_OBJECT)
+//                .finishOnUiThread(ModalityState.nonModal()) { descriptors ->
+//                    descriptors.forEach { descriptor ->
+//                        startNewServer(providerClass, descriptor)
+//                    }
+//
+//                }
+//                .submit(AppExecutorUtil.getAppExecutorService())
         }
     }
 
@@ -431,11 +478,13 @@ class LspServerManagerImpl internal constructor(
                 startServersIfNeeded(extension::class.java)
             }
 
+
             override fun extensionRemoved(extension: LspServerSupportProvider, pluginDescriptor: PluginDescriptor) {
 
                 stopServers(extension::class.java)
             }
         }, false, this)
+
     }
 
     @RequiresEdt
@@ -448,7 +497,7 @@ class LspServerManagerImpl internal constructor(
             if (lspServers.size >= 10) {
                 logger.error("${lspServers.size} LSP servers already running and one more wants to start.\nTo save system resources, this request will be ignored: $descriptor")
             } else {
-               runWriteAction {
+                runWriteAction {
                     val server = LspServerImpl(providerClass, descriptor, eventBroadcaster)
                     server.start()
                     lspServers.add(server)

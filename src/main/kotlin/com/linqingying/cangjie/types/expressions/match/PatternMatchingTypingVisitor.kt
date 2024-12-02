@@ -303,6 +303,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
     ) {
 
         initializer ?: return
+        if(receiver.type.isError) return
 //        获取原始迭代器对象
         val iterator = receiver.type.extractSuperType(ITERABLE)
 //        被迭代对象

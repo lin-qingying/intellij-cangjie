@@ -24,19 +24,24 @@
 
 package com.linqingying.cangjie.psi
 
+import com.intellij.lang.ASTNode
 import com.linqingying.cangjie.lexer.CjSingleValueToken
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.psiUtil.getElementTextWithContext
 import com.linqingying.cangjie.psi.psiUtil.siblings
 import com.linqingying.cangjie.utils.firstIsInstanceOrNull
-import com.intellij.lang.ASTNode
 import java.util.*
-
 
 
 interface CjQualifiedExpression : CjExpression {
     val receiverExpression: CjExpression
-        get() = getExpression(false) ?: throw AssertionError("No receiver found: ${getElementTextWithContext()}")
+        get() {
+            val expression = getExpression(false)
+            if (expression == null) {
+                throw AssertionError("No receiver found: ${getElementTextWithContext()}")
+            }
+            return expression
+        }
 
     val selectorExpression: CjExpression?
         get() = getExpression(true)

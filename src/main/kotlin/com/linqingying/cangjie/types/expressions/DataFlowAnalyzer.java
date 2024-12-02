@@ -25,6 +25,8 @@
 package com.linqingying.cangjie.types.expressions;
 
 import com.google.common.collect.Sets;
+import com.intellij.openapi.util.Ref;
+import com.intellij.psi.tree.IElementType;
 import com.linqingying.cangjie.builtins.CangJieBuiltIns;
 import com.linqingying.cangjie.config.LanguageVersionSettings;
 import com.linqingying.cangjie.descriptors.BindingTrace;
@@ -33,12 +35,8 @@ import com.linqingying.cangjie.diagnostics.DiagnosticUtilsKt;
 import com.linqingying.cangjie.lexer.CjTokens;
 import com.linqingying.cangjie.psi.*;
 import com.linqingying.cangjie.resolve.BindingContext;
-import com.linqingying.cangjie.resolve.DescriptorUtils;
 import com.linqingying.cangjie.resolve.calls.checkers.AdditionalTypeChecker;
 import com.linqingying.cangjie.resolve.calls.checkers.NewSchemeOfIntegerOperatorResolutionChecker;
-
-import static com.linqingying.cangjie.diagnostics.Errors.*;
-import static com.linqingying.cangjie.resolve.calls.context.ContextDependency.INDEPENDENT;
 import com.linqingying.cangjie.resolve.calls.context.ResolutionContext;
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValue;
@@ -55,19 +53,19 @@ import com.linqingying.cangjie.types.expressions.typeInfoFactory.TypeInfoFactory
 import com.linqingying.cangjie.types.util.TypeUtils;
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo;
 import com.linqingying.cangjie.utils.exceptions.OperatorConventions;
-import com.intellij.openapi.util.Ref;
-import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
+import static com.linqingying.cangjie.diagnostics.Errors.*;
+import static com.linqingying.cangjie.resolve.calls.context.ContextDependency.INDEPENDENT;
 import static com.linqingying.cangjie.types.util.TypeUtils.*;
 
 public class DataFlowAnalyzer {
 
 
-        private final Iterable<AdditionalTypeChecker> additionalTypeCheckers;
+    private final Iterable<AdditionalTypeChecker> additionalTypeCheckers;
     private final ConstantExpressionEvaluator constantExpressionEvaluator;
     private final ModuleDescriptor module;
     private final CangJieBuiltIns builtIns;
@@ -100,10 +98,11 @@ public class DataFlowAnalyzer {
         this.languageVersionSettings = languageVersionSettings;
 
 //        this.effectSystem = effectSystem;
-        this.dataFlowValueFactory = factory;
+        dataFlowValueFactory = factory;
 //        this.smartCastManager = smartCastManager;
         this.cangjieTypeChecker = cangjieTypeChecker;
     }
+
     @NotNull
     public static Collection<CangJieType> getAllPossibleTypes(
             @NotNull CangJieType type,
@@ -115,14 +114,16 @@ public class DataFlowAnalyzer {
         possibleTypes.addAll(c.dataFlowInfo.getStableTypes(dataFlowValue, languageVersionSettings));
         return possibleTypes;
     }
+
     @NotNull
     public CangJieTypeInfo checkType(@NotNull CangJieTypeInfo typeInfo, @NotNull CjExpression expression, @NotNull ResolutionContext context) {
         return typeInfo.replaceType(checkType(typeInfo.getType(), expression, context));
     }
+
     @NotNull
     public CangJieTypeInfo illegalStatementType(@NotNull CjExpression expression, @NotNull ExpressionTypingContext context, @NotNull ExpressionTypingInternals facade) {
         facade.checkStatementType(
-                expression, context.replaceExpectedType(TypeUtils.NO_EXPECTED_TYPE).replaceContextDependency( INDEPENDENT));
+                expression, context.replaceExpectedType(NO_EXPECTED_TYPE).replaceContextDependency(INDEPENDENT));
         if (!context.isDebuggerContext) {
             context.trace.report(EXPRESSION_EXPECTED.on(expression, expression));
         }
@@ -187,7 +188,7 @@ public class DataFlowAnalyzer {
             @Nullable Ref<Boolean> hasError,
             boolean reportErrorForTypeMismatch
     ) {
-        if (hasError == null) {
+        if (null == hasError) {
             hasError = Ref.create(false);
         } else {
             hasError.set(false);
@@ -196,7 +197,7 @@ public class DataFlowAnalyzer {
         CjExpression expression = CjPsiUtil.safeDeparenthesize(expressionToCheck);
         recordExpectedType(c.trace, expression, c.expectedType);
 
-        if (expressionType == null) return null;
+        if (null == expressionType) return null;
 
         CangJieType result = checkTypeInternal(expressionType, expression, c, hasError, reportErrorForTypeMismatch);
         if (Boolean.FALSE.equals(hasError.get())) {
@@ -214,7 +215,7 @@ public class DataFlowAnalyzer {
             boolean conditionValue,
             ExpressionTypingContext context
     ) {
-        if (condition == null) return context.dataFlowInfo;
+        if (null == condition) return context.dataFlowInfo;
         Ref<DataFlowInfo> result = new Ref<>(null);
         condition.accept(new CjVisitorVoid() {
             @Override
@@ -230,7 +231,7 @@ public class DataFlowAnalyzer {
                 if (OperatorConventions.BOOLEAN_OPERATIONS_NAMES.containsKey(operationToken)) {
                     DataFlowInfo dataFlowInfo = extractDataFlowInfoFromCondition(expression.getLeft(), conditionValue, context);
                     CjExpression expressionRight = expression.getRight();
-                    if (expressionRight != null) {
+                    if (null != expressionRight) {
                         boolean and = operationToken == CjTokens.ANDAND;
                         DataFlowInfo rightInfo = extractDataFlowInfoFromCondition(
                                 expressionRight, conditionValue,
@@ -246,14 +247,14 @@ public class DataFlowAnalyzer {
                 } else {
                     DataFlowInfo expressionFlowInfo = facade.getTypeInfo(expression, context).getDataFlowInfo();
                     CjExpression left = expression.getLeft();
-                    if (left == null) return;
+                    if (null == left) return;
                     CjExpression right = expression.getRight();
-                    if (right == null) return;
+                    if (null == right) return;
 
                     CangJieType lhsType = context.trace.getBindingContext().getType(left);
-                    if (lhsType == null) return;
+                    if (null == lhsType) return;
                     CangJieType rhsType = context.trace.getBindingContext().getType(right);
-                    if (rhsType == null) return;
+                    if (null == rhsType) return;
 
                     DataFlowValue leftValue = dataFlowValueFactory.createDataFlowValue(left, lhsType, context);
                     DataFlowValue rightValue = dataFlowValueFactory.createDataFlowValue(right, rhsType, context);
@@ -264,7 +265,7 @@ public class DataFlowAnalyzer {
                     } else if (operationToken == CjTokens.EXCLEQ) {
                         equals = false;
                     }
-                    if (equals != null) {
+                    if (null != equals) {
                         if (equals == conditionValue) { // this means: equals && conditionValue || !equals && !conditionValue
                             boolean identityEquals =
                                     typeHasEqualsFromAny(lhsType, condition);
@@ -287,7 +288,7 @@ public class DataFlowAnalyzer {
                 IElementType operationTokenType = expression.getOperationReference().getReferencedNameElementType();
                 if (operationTokenType == CjTokens.EXCL) {
                     CjExpression baseExpression = expression.getBaseExpression();
-                    if (baseExpression != null) {
+                    if (null != baseExpression) {
                         result.set(extractDataFlowInfoFromCondition(baseExpression, !conditionValue, context));
                     }
                 } else {
@@ -304,17 +305,17 @@ public class DataFlowAnalyzer {
             @Override
             public void visitParenthesizedExpression(@NotNull CjParenthesizedExpression expression) {
                 CjExpression body = expression.getExpression();
-                if (body != null) {
+                if (null != body) {
                     body.accept(this);
                 }
             }
         });
-        DataFlowInfo infoFromEffectSystem =DataFlowInfo.Companion.getEMPTY();
+        DataFlowInfo infoFromEffectSystem = DataFlowInfo.Companion.getEMPTY();
 //        DataFlowInfo infoFromEffectSystem = effectSystem.extractDataFlowInfoFromCondition(
 //                condition, conditionValue, context.trace, DescriptorUtils.getContainingModule(context.scope.getOwnerDescriptor())
 //        );
 
-        if (result.get() == null) {
+        if (null == result.get()) {
             return context.dataFlowInfo.and(infoFromEffectSystem);
         }
 
@@ -369,6 +370,16 @@ public class DataFlowAnalyzer {
         return expressionType;
     }
 
+    /**
+     * 检查并确定表达式的类型
+     * 此方法主要用于对给定的表达式进行类型检查和验证，判断其是否符合某种特定的类型
+     * 它是类型检查过程中的一个重要方法，帮助确保表达式的正确性和一致性
+     *
+     * @param expressionType 表达式类型，被检查的类型，可能为null，表示尚未确定或不需要特定类型
+     * @param expression     需要进行类型检查的表达式对象，不能为空
+     * @param context        解析上下文，包含了类型检查时需要的各种环境信息，不能为空
+     * @return 返回实际确定的表达式类型，如果无法确定或表达式不符合预期类型，则可能返回null
+     */
     @Nullable
     public CangJieType checkType(@Nullable CangJieType expressionType, @NotNull CjExpression expression, @NotNull ResolutionContext context) {
         return checkType(expressionType, expression, context, null, true);
@@ -401,7 +412,7 @@ public class DataFlowAnalyzer {
     ) {
         CangJieType expressionType;
         if (value instanceof IntegerValueTypeConstant integerValueTypeConstant) {
-            if (context.contextDependency ==  INDEPENDENT) {
+            if (INDEPENDENT == context.contextDependency) {
                 expressionType = integerValueTypeConstant.getType(context.expectedType);
                 constantExpressionEvaluator.updateNumberType(expressionType, expression, context.statementFilter, context.trace);
             } else {

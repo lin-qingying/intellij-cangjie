@@ -60,6 +60,8 @@ object StandardNames {
     val CORE_PACKAGE_NAME = Name.identifier("core")
     val AST_PACKAGE_NAME = Name.identifier("ast")
 
+    val SYNC_PACKAGE_NAME = Name.identifier("sync")
+
 
     val COMPRESS_PACKAGE_NAME = Name.identifier("compress")
 
@@ -94,6 +96,8 @@ val MAIN = Name.identifier("main")
 
     @JvmField
     val SERIALIZATION_PACKAGE_FQ_NAME = FqName.topLevel(SERIALIZATION_PACKAGE_NAME)
+    @JvmField
+    val STD_SYNC_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("sync"))
 
 
     @JvmField
@@ -161,6 +165,8 @@ val MAIN = Name.identifier("main")
     val RESOURCE = Name.identifier("Resource")
     @JvmField
     val TOKENS = Name.identifier("Tokens")
+    @JvmField
+    val REENTRANT_MUTEX = Name.identifier("ReentrantMutex")
 
     @JvmField
     val ITERABLE = Name.identifier("Iterable")
@@ -249,6 +255,8 @@ val MAIN = Name.identifier("main")
         val core: FqName = FqName.topLevel(STD_PACKAGE_NAME).child(CORE_PACKAGE_NAME)
         @JvmField
         val ast: FqName = FqName.topLevel(STD_PACKAGE_NAME).child(AST_PACKAGE_NAME)
+        @JvmField
+        val sync: FqName = FqName.topLevel(STD_PACKAGE_NAME).child(SYNC_PACKAGE_NAME)
 
         @JvmField
         val anyFqName: FqName = core.child(ANY)
@@ -280,8 +288,9 @@ val MAIN = Name.identifier("main")
         @JvmField
         val iterableFqName: FqName = core.child(ITERABLE)
         @JvmField
+        val reentrantMutexFqName: FqName = sync.child(REENTRANT_MUTEX)
+        @JvmField
         val tokensFqName: FqName = ast.child(TOKENS)
-
         @JvmField
         val comparableFqName: FqName = core.child(COMPARABLE)
         @JvmField

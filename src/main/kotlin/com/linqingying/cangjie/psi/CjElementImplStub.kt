@@ -61,6 +61,8 @@ open class CjElementImplStub<T : StubElement<*>> :
     }
 
     override fun getReferences(): Array<PsiReference> {
+
+        if(this is CjBasicType) return emptyArray()
         return getReferencesFromProviders(this)
     }
 

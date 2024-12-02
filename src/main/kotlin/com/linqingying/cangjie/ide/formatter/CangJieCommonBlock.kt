@@ -726,7 +726,7 @@ abstract class CangJieCommonBlock(
 
 //                if (  nodePsi.getStrictParentOfType<CjStringTemplateExpression>() == null) {
 //                    return { childElement ->
-//                        if (childElement.elementType == OPERATION_REFERENCE && (childElement.psi as? CjOperationReferenceExpression)?.operationSignTokenType == ELVIS) {
+//                        if (childElement.elementType == OPERATION_REFERENCE && (childElement.psi as? CjOperationReferenceExpression)?.operationSignTokenType == COALESCING) {
 //                            Wrap.createWrap(settings.cangjieCustomSettings.WRAP_ELVIS_EXPRESSIONS, true)
 //                        } else {
 //                            null

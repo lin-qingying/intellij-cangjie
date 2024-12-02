@@ -49,9 +49,11 @@ import com.linqingying.cangjie.builtins.StandardNames.FqNames.int8UFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.iterableFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.nothingUFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.objectFqName
+import com.linqingying.cangjie.builtins.StandardNames.FqNames.optionFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.optionUFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.primitiveArrayTypeShortNames
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.rangeFqName
+import com.linqingying.cangjie.builtins.StandardNames.FqNames.reentrantMutexFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.resourceFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.runeUFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.stringFqName
@@ -63,6 +65,7 @@ import com.linqingying.cangjie.builtins.StandardNames.FqNames.uint8UFqName
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.unitUFqName
 import com.linqingying.cangjie.builtins.StandardNames.STD_AST_PACKAGE_FQ_NAME
 import com.linqingying.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
+import com.linqingying.cangjie.builtins.StandardNames.STD_SYNC_PACKAGE_FQ_NAME
 import com.linqingying.cangjie.builtins.functions.FunctionTypeKind
 import com.linqingying.cangjie.context.ProjectContext
 import com.linqingying.cangjie.descriptors.*
@@ -543,6 +546,19 @@ open class CangJieBuiltIns(
             builtInsModule, storageManager
         )
     }
+    private val myStdSyncBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
+        val classifier = getStdSyncBuiltInsPackageScope().getContributedClassifier(
+            name,
+            NoLookupLocation.FROM_BUILTINS
+        )
+        if (classifier == null) {
+            throw AssertionError("Built-in class " + BUILT_INS_PACKAGE_FQ_NAME.child(name) + " is not found")
+        }
+        if (classifier !is ClassDescriptor) {
+            throw AssertionError("Must be a class descriptor $name, but was $classifier")
+        }
+        classifier
+    }
     private val myStdAstBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
         val classifier = getStdAstBuiltInsPackageScope().getContributedClassifier(
             name,
@@ -679,11 +695,13 @@ open class CangJieBuiltIns(
 //            )
 //        )
 //    }
+fun getStdSyncBuiltInsPackageScope(): MemberScope {
+    return builtInsModule.getPackage(STD_SYNC_PACKAGE_FQ_NAME).memberScope
 
+}
     fun getStdAstBuiltInsPackageScope(): MemberScope {
         return builtInsModule.getPackage(STD_AST_PACKAGE_FQ_NAME).memberScope
 
-//        return getBuiltInsStdCoreScope()
     }
 
     fun getStdCoreBuiltInsPackageScope(): MemberScope {
@@ -708,6 +726,9 @@ open class CangJieBuiltIns(
 
     private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
         return myStdCoreBuiltInClassesByName.invoke(Name.identifier(simpleName))
+    }
+    private fun getStdSyncClassByName(simpleName: String): ClassDescriptor {
+        return myStdSyncBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
 
     private fun getStdAstClassByName(simpleName: String): ClassDescriptor {
@@ -857,6 +878,36 @@ open class CangJieBuiltIns(
     val stringType: SimpleType
         get() {
             return string.getDefaultType()
+        }
+    val option: ClassDescriptor
+        get() {
+            return try {
+                getStdCoreClassByName("Option")
+            } catch (e: AssertionError) {
+                findClassDescriptorByFqName(project ?: storageManager.project, optionFqName)!!
+            }
+
+        }
+    val optionType: SimpleType
+        get() {
+            return option.defaultType
+
+        }
+
+    //sync
+    val reentrantMutex: ClassDescriptor
+        get() {
+            return try {
+                getStdSyncClassByName("ReentrantMutex")
+            } catch (e: AssertionError) {
+                findClassDescriptorByFqName(project ?: storageManager.project, reentrantMutexFqName)!!
+            }
+
+        }
+    val reentrantMutexType: SimpleType
+        get() {
+            return reentrantMutex.defaultType
+
         }
 
     //ast

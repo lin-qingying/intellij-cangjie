@@ -64,6 +64,8 @@ public class ExpressionTypingComponents {
     public TypeResolver typeResolver;
     public Iterable<RttiExpressionChecker> rttiExpressionCheckers;
     public UnsafeExpressionResolver unsafeExpressionResolver;
+    public SyncExpressionResolver syncExpressionResolver;
+
     public FunctionReturnResolver functionReturnResolver;
     public CallResolver callResolver;
     public Iterable<AssignmentChecker> assignmentCheckers;
@@ -110,6 +112,10 @@ public class ExpressionTypingComponents {
     @Inject
     public void setPlatformToCangJieClassMap(@NotNull PlatformToCangJieClassMapper platformToCangJieClassMapper) {
         this.platformToCangJieClassMapper = platformToCangJieClassMapper;
+    }
+    @Inject
+    public void setSyncExpressionResolver(@NotNull SyncExpressionResolver syncExpressionResolver) {
+        this.syncExpressionResolver = syncExpressionResolver;
     }
     @Inject
     public void setUnsafeExpressionResolver(@NotNull UnsafeExpressionResolver unsafeExpressionResolver) {

@@ -36,6 +36,7 @@ import com.linqingying.cangjie.resolve.descriptorUtil.module
 import com.linqingying.cangjie.resolve.scopes.MemberScope
 import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
 import com.linqingying.cangjie.types.error.ErrorScopeKind
+import com.linqingying.cangjie.types.util.toOptionalType
 
 private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, val refinedConstructor: TypeConstructor?)
 
@@ -286,7 +287,7 @@ open class SimpleTypeImpl(
 ) : SimpleType() {
     override fun makeOptionalAsSpecified(newNullability: Boolean) = when {
         newNullability == isMarkedOption -> this
-        newNullability -> OptionalSimpleType(this)
+        newNullability -> OptionalSimpleType(this.toOptionalType() as SimpleType)
         else -> NotNullSimpleType(this)
     }
 
@@ -305,7 +306,7 @@ open class SimpleTypeImpl(
 
 }
 
-private class OptionalSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
+class OptionalSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
     override val isMarkedOption: Boolean
         get() = true
 
@@ -313,7 +314,7 @@ private class OptionalSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImp
     override fun replaceDelegate(delegate: SimpleType) = OptionalSimpleType(delegate)
 }
 
-private class NotNullSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
+class NotNullSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
     override val isMarkedOption: Boolean
         get() = false
 

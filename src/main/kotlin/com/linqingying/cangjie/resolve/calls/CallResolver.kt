@@ -71,6 +71,8 @@ import com.linqingying.cangjie.types.expressions.ExpressionTypingVisitorDispatch
 import com.linqingying.cangjie.types.isError
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import com.linqingying.cangjie.utils.OperatorNameConventions
+import com.linqingying.cangjie.utils.OperatorNameConventions.GET
+import com.linqingying.cangjie.utils.OperatorNameConventions.SET
 import com.linqingying.cangjie.utils.PerformanceCounter.Companion.create
 import jakarta.inject.Inject
 
@@ -83,7 +85,7 @@ class CallResolver(
     private lateinit var syntheticScopes: SyntheticScopes
     private lateinit var argumentTypeResolver: ArgumentTypeResolver
     private lateinit var newResolutionOldInference: NewResolutionOldInference
-    private lateinit var psiCallResolver1: PSICallResolver
+    private lateinit var psiCallResolver: PSICallResolver
     private lateinit var typeResolver: TypeResolver
 
     @Inject
@@ -93,7 +95,7 @@ class CallResolver(
 
     @Inject
     fun setPSICallResolver(psiCallResolver: PSICallResolver) {
-        this.psiCallResolver1 = psiCallResolver
+        this.psiCallResolver = psiCallResolver
     }
 
     // component dependency cycle
@@ -466,7 +468,7 @@ class CallResolver(
 
         when (val calleeExpression = context.call.calleeExpression) {
             is CjSimpleNameExpression -> {
-                computeTasksAndResolveCall<CallableDescriptor>(
+                return computeTasksAndResolveCall(
                     context, calleeExpression.referencedNameAsName, calleeExpression,
                     kind
                 )
@@ -502,7 +504,7 @@ class CallResolver(
 
         val callExpression = context.call.callElement
         val dotParent = callExpression.getStrictParentOfType<CjDotQualifiedExpression>()
-        var isCall = callExpression is CjCallExpression && callExpression.valueArgumentList != null
+        val isCall = callExpression is CjCallExpression && callExpression.valueArgumentList != null
         var result: OverloadResolutionResults<*>? = null
 
         fun getResult() {
@@ -582,14 +584,17 @@ class CallResolver(
     fun resolveFunctionCall(context: BasicCallResolutionContext): OverloadResolutionResults<out FunctionDescriptor> {
         checkCanceled()
 
-        //        Call.CallType callType = context.call.getCallType();
-//        if (callType == Call.CallType.ARRAY_GET_METHOD || callType == Call.CallType.ARRAY_SET_METHOD) {
-//            Name name = callType == Call.CallType.ARRAY_GET_METHOD ? OperatorNameConventions.GET : OperatorNameConventions.SET;
-//            CjArrayAccessExpression arrayAccessExpression = (CjArrayAccessExpression) context.call.getCallElement();
-//            return computeTasksAndResolveCall(
-//                    context, name, arrayAccessExpression,
-//                    NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
-//        }
+        val callType = context.call.callType
+        if (callType == Call.CallType.ARRAY_GET_METHOD || callType == Call.CallType.ARRAY_SET_METHOD) {
+            val name =
+                if (callType == Call.CallType.ARRAY_GET_METHOD) GET else SET
+            val arrayAccessExpression =
+                context.call.callElement as CjArrayAccessExpression
+            return computeTasksAndResolveCall(
+                context, name, arrayAccessExpression,
+                NewResolutionOldInference.ResolutionKind.Function
+            )
+        }
         when (val calleeExpression = context.call.calleeExpression) {
             is CjSimpleNameExpression -> {
                 if (context.call is CallMaker.CallImpl) {
@@ -823,18 +828,18 @@ class CallResolver(
 
         // 如果启用新推断功能且解析种类在默认解析种类列表中，则执行新的解析和推断过程
         if (newInferenceEnabled &&
-            psiCallResolver1.defaultResolutionKinds.contains(resolutionKind)
+            psiCallResolver.defaultResolutionKinds.contains(resolutionKind)
         ) {
             checkNotNull(resolutionTask.name)
             context.trace.recordScope(context.scope, context.call.calleeExpression)
-            return psiCallResolver1.runResolutionAndInference(context, resolutionTask.name, resolutionKind, tracing)
+            return psiCallResolver.runResolutionAndInference(context, resolutionTask.name, resolutionKind, tracing)
         }
 
         // 如果启用新推断功能且解析种类为给定候选，则执行针对给定候选的解析和推断过程
         if (newInferenceEnabled && resolutionKind is NewResolutionOldInference.ResolutionKind.GivenCandidates) {
             checkNotNull(resolutionTask.givenCandidates)
             context.trace.recordScope(context.scope, context.call.calleeExpression)
-            return psiCallResolver1.runResolutionAndInferenceForGivenCandidates(
+            return psiCallResolver.runResolutionAndInferenceForGivenCandidates(
                 context,
                 resolutionTask.givenCandidates,
                 tracing

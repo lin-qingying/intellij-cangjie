@@ -22,15 +22,29 @@
  *
  */
 
-package com.linqingying.cangjie.psi
+package com.linqingying.cangjie.resolve
 
-import com.intellij.lang.ASTNode
+import com.linqingying.cangjie.config.LanguageVersionSettings
+import com.linqingying.cangjie.descriptors.ModuleDescriptor
+import com.linqingying.cangjie.psi.CjSynchronizedExpression
+import com.linqingying.cangjie.resolve.calls.CallResolver
+import com.linqingying.cangjie.types.expressions.ExpressionTypingContext
+import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
+import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 
-class CjSynchronizedExpression(node: ASTNode) : CjExpressionImpl(node)
-{
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
-        return visitor.visitSynchronizedExpression(this, data)
+class SyncExpressionResolver(
+    val module: ModuleDescriptor,
+    val callResolver: CallResolver,
+
+    val languageVersionSettings: LanguageVersionSettings
+) {
+
+    fun resolveSynchronizedExpression(
+        expression: CjSynchronizedExpression, context: ExpressionTypingContext
+    ): CangJieTypeInfo {
+
+//val blockTypeInfo = callResolver
+
+        return noTypeInfo(context.dataFlowInfo)
     }
-val expression:CjExpression? get() = findChildByClass(CjExpression::class.java)
-    val blockExpression:CjBlockExpression? get() = findChildByClass(CjBlockExpression::class.java)
 }

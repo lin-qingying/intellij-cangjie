@@ -261,6 +261,22 @@ class ControlStructureTypingUtils(
     }
 
 
+    /**
+     * 将特定构造作为函数调用进行解析
+     *
+     * 此函数用于解析一些特殊的构造语法，将其视为函数调用来处理这些构造通常具有特定的语法结构，
+     * 但为了类型检查和代码分析的目的，需要将其映射到函数调用上这样做可以让这些构造享受到
+     * 函数调用处理机制的好处，包括类型推断、参数名称和可空性检查等
+     *
+     * @param call 调用表达式，代表了需要解析的特殊构造
+     * @param construct 解析构造对象，描述了特
+     * 殊构造的类型和属性
+     * @param argumentNames 参数名称列表，用于构造函数描述符
+     * @param isArgumentNullable 布尔值列表，指示每个参数是否可为null
+     * @param context 表达式类型检查上下文，提供了类型检查所需的环境信息
+     * @param dataFlowInfoForArguments 参数的数据流信息，可选参数，提供了参数间的依赖和影响信息
+     * @return 解析后的函数调用描述符，代表了特殊构造作为函数调用的结果
+     */
     /*package*/
     fun resolveSpecialConstructionAsCall(
         call: Call,
@@ -270,10 +286,12 @@ class ControlStructureTypingUtils(
         context: ExpressionTypingContext,
         dataFlowInfoForArguments: MutableDataFlowInfoForArguments?
     ): ResolvedCall<FunctionDescriptor> {
+        // 创建特殊构造的函数描述符，这是解析过程的第一步
         val function: SimpleFunctionDescriptorImpl =
             createFunctionDescriptorForSpecialConstruction(
                 construct, argumentNames, isArgumentNullable
             )
+        // 调用解析函数，将特殊构造作为函数调用来解析
         return resolveSpecialConstructionAsCall(call, function, construct, context, dataFlowInfoForArguments)
     }
 
@@ -477,7 +495,7 @@ class ControlStructureTypingUtils(
                     c: CheckTypeContext
                 ): Boolean {
                     if (expression.operationReference
-                            .referencedNameElementType === CjTokens.ELVIS
+                            .referencedNameElementType === CjTokens.COALESCING
                     ) {
                         return checkSubExpressions(
                             expression.left,
@@ -592,7 +610,7 @@ class ControlStructureTypingUtils(
     }
 
     enum class ResolveConstruct(name: String) {
-        IF("if"), ELVIS("elvis"), EXCL_EXCL("ExclExcl"), MATCH("match"), TRY("try");
+        IF("if"), ELVIS("elvis"),   COALESCING("coalescing"), EXCL_EXCL("ExclExcl"), MATCH("match"), TRY("try");
 
         val specialFunctionName: Name = Name.identifier(
             "<SPECIAL-FUNCTION-FOR-" + name.uppercase(

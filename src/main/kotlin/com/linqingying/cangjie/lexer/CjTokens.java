@@ -146,7 +146,7 @@ public interface CjTokens {
     //    int BY_KEYWORD_Id = 107;
     int GET_KEYWORD_Id = 108;
     int SET_KEYWORD_Id = 109;
-
+int COALESCING_Id = 110;
     int INIT_KEYWORD_Id = 111;
     int SEALED_KEYWORD_Id = 112;
     int ABSTRACT_KEYWORD_Id = 113;
@@ -397,7 +397,9 @@ public interface CjTokens {
     CjSingleValueToken OROR = new CjSingleValueToken("OROR", "||", OROR_Id);
     CjSingleValueToken OR = new CjSingleValueToken("OR", "|", OR_Id);
     CjSingleValueToken QUEST = new CjSingleValueToken("QUEST", "?", QUEST_Id);
-    CjSingleValueToken ELVIS = new CjSingleValueToken("ELVIS", "??", ELVIS_Id);
+    CjSingleValueToken ELVIS = new CjSingleValueToken("ELVIS", "?:", ELVIS_Id);
+    CjSingleValueToken COALESCING = new CjSingleValueToken("COALESCING", "??", COALESCING_Id);
+
     CjSingleValueToken COLON = new CjSingleValueToken("COLON", ":", COLON_Id);
     CjSingleValueToken SEMICOLON = new CjSingleValueToken("SEMICOLON", ";", SEMICOLON_Id);
     CjSingleValueToken DOUBLE_SEMICOLON = new CjSingleValueToken("DOUBLE_SEMICOLON", ";;", DOUBLE_SEMICOLON_Id);
@@ -694,7 +696,7 @@ public interface CjTokens {
             MINUS, EXCL, DIV, PERC, LT, GT, LTEQ, GTEQ, EQEQ, EXCLEQ, ANDAND, OROR, MULMULEQ,
 
             RANGE, RANGEEQ, EQ, MULTEQ, DIVEQ, PERCEQ, PLUSEQ, MINUSEQ,
-            ELVIS, SAFE_ACCESS,
+            COALESCING, SAFE_ACCESS,
             AND, OR, XOR,
             ANDEQ, OREQ, XOREQ, ANDANDEQ,OROREQ,
             LTLT, GTGT, LTLTEQ, GTGTEQ,

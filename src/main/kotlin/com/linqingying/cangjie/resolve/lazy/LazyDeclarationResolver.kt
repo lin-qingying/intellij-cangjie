@@ -27,7 +27,6 @@ package com.linqingying.cangjie.resolve.lazy
 import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.context.GlobalContext
 import com.linqingying.cangjie.descriptors.*
-import com.linqingying.cangjie.ide.codeinsight.toSourceElement
 import com.linqingying.cangjie.incremental.CangJieLookupLocation
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
@@ -39,7 +38,6 @@ import com.linqingying.cangjie.resolve.BindingContext
 import com.linqingying.cangjie.resolve.FunctionDescriptorResolver
 import com.linqingying.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import com.linqingying.cangjie.resolve.scopes.MemberScope
-import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.storage.LockBasedLazyResolveStorageManager
 import jakarta.inject.Inject
 
@@ -55,15 +53,18 @@ open class LazyDeclarationResolver(
     private val bindingContext: BindingContext
         get() = trace.bindingContext
     protected lateinit var scopeProvider: DeclarationScopeProvider
-private lateinit var functionDescriptorResolver : FunctionDescriptorResolver
+    private lateinit var functionDescriptorResolver: FunctionDescriptorResolver
+
     @Inject
     fun setDeclarationScopeProvider(scopeProvider: DeclarationScopeProviderImpl) {
         this.scopeProvider = scopeProvider
     }
+
     @Inject
     fun setFunctionDescriptorResolver(functionDescriptorResolver: FunctionDescriptorResolver) {
         this.functionDescriptorResolver = functionDescriptorResolver
     }
+
     init {
         val lockBasedLazyResolveStorageManager = LockBasedLazyResolveStorageManager(globalContext.storageManager)
 
@@ -73,26 +74,34 @@ private lateinit var functionDescriptorResolver : FunctionDescriptorResolver
     open fun getClassDescriptor(classOrObject: CjTypeStatement, location: LookupLocation): ClassDescriptor =
         findClassDescriptor(classOrObject, location)
 
+    /**
+     * 尝试查找并返回给定命名声明的类描述符，如果存在的话。
+     *
+     * @param typeStatement 命名声明对象，可能是类声明或扩展声明。
+     * @param location 查找位置，用于定位作用域。
+     * @return 如果找到类描述符则返回，否则返回 null。
+     */
     private fun findClassDescriptorIfAny(
         typeStatement: CjNamedDeclaration,
         location: LookupLocation
     ): ClassDescriptor? {
 
         if (typeStatement is CjExtend) {
+            // 如果 typeStatement 是扩展声明，则直接获取其类描述符
             return getExtendClassDescriptor(typeStatement) as? ClassDescriptor
         }
 
         val scope = getMemberScopeDeclaredIn(typeStatement, location)
 
-        // Why not use the result here. Because it may be that there is a redeclaration:
-        //     class A {} class A { fun foo(): A<completion here>}
-        // and if we find the class by name only, we may b-not get the right one.
-        // This call is only needed to make sure the classes are written to trace
+        // 获取贡献的分类器，确保类被正确记录到跟踪中
+        // 注意：这里不使用结果，因为可能存在重声明的情况，仅通过名称查找可能会得到错误的类描述符
         scope.getContributedClassifier(typeStatement.nameAsSafeName, location)
+
         val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, typeStatement)
 
         return descriptor as? ClassDescriptor
     }
+
 
     private fun getExtendClassDescriptor(cjExtend: CjExtend): DeclarationDescriptor {
 
@@ -164,8 +173,7 @@ private lateinit var functionDescriptorResolver : FunctionDescriptorResolver
                 val location = lookupLocationFor(function, function.isTopLevel)
                 val scopeForDeclaration = getMemberScopeDeclaredIn(function, location)
                 scopeForDeclaration.getContributedFunctions(function.nameAsSafeName, location)
-              return   bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
-
+                return bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, function)
 
 
             }

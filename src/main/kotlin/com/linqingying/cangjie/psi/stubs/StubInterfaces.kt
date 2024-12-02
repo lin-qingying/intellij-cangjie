@@ -40,7 +40,7 @@ enum class ConstantValueKind {
     FLOAT_CONSTANT,
     RUNE_CONSTANT,
 
-    //    CHARACTER_BYTE_LITERAL,
+        CHARACTER_BYTE_CONSTANT,
     INTEGER_CONSTANT,
     UNIT_CONSTANT
 }

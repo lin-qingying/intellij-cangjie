@@ -27,7 +27,7 @@ package com.linqingying.cangjie.psi
 import com.intellij.psi.PsiElement
 
 
-interface CjFunction : CjDeclarationWithBody, CjCallableDeclaration {
+interface CjFunction : CjDeclarationWithBody, CjCallableDeclaration,CjLocalNamedDeclaration {
     val isLocal: Boolean
     val isStatic: Boolean
         get() = false

@@ -3002,7 +3002,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     /**
      * 解析基本类型
      */
-    private boolean parseBasicType() {
+      boolean parseBasicType() {
 
 
         if (this.atSet(BASICTYPES)) {

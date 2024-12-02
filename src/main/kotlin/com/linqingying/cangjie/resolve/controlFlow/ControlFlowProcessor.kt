@@ -385,7 +385,7 @@ class ControlFlowProcessor(
                 } else {
                     generateBothArgumentsAndMark(expression)
                 }
-            } else if (operationType === ELVIS) {
+            } else if (operationType === COALESCING) {
                 generateInstructions(left)
                 mark(expression)
                 val afterElvis = builder.createUnboundLabel("after elvis operator")

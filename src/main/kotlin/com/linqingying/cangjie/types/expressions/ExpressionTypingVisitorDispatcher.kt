@@ -59,7 +59,7 @@ import com.linqingying.cangjie.utils.PerformanceCounter
 import com.linqingying.cangjie.utils.PerformanceCounter.Companion.create
 import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 
-abstract class ExpressionTypingVisitorDispatcher private constructor(
+    abstract class ExpressionTypingVisitorDispatcher private constructor(
     private val components: ExpressionTypingComponents,
     private val annotationChecker: AnnotationChecker
 ) : CjVisitor<CangJieTypeInfo, ExpressionTypingContext>(), ExpressionTypingInternals {
@@ -317,7 +317,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
                     context.trace.record(BindingContext.EXPRESSION_TYPE_INFO, expression, result)
                 } catch (e: ReenteringLazyValueComputationException) {
-                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression));
+                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression))
                     result = noTypeInfo(context)
                 }
                 if (context.isSaveTypeInfo) {
@@ -564,6 +564,14 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
         data: ExpressionTypingContext
     ): CangJieTypeInfo {
         return basic.visitStringTemplateExpression(expression, data)
+    }
+
+    override fun visitSynchronizedExpression(
+        expression: CjSynchronizedExpression,
+        data: ExpressionTypingContext
+    ): CangJieTypeInfo {
+//        return components.syncExpressionResolver.resolveSynchronizedExpression(expression, data)
+        return basic.visitSynchronizedExpression(expression, data)
     }
 
     override fun visitCjElement(element: CjElement, data: ExpressionTypingContext): CangJieTypeInfo {

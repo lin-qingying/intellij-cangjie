@@ -53,6 +53,7 @@ import com.linqingying.cangjie.types.error.ErrorType
 import com.linqingying.cangjie.types.error.ErrorTypeKind
 import com.linqingying.cangjie.types.model.TypeArgumentMarker
 import com.linqingying.cangjie.types.model.TypeVariableTypeConstructorMarker
+import com.linqingying.cangjie.types.util.TypeUtils.addTypeParameterToStub
 import com.linqingying.cangjie.types.util.TypeUtils.isSpecialType
 import com.linqingying.cangjie.types.util.TypeUtils.makeProjection
 import com.linqingying.cangjie.utils.SmartSet
@@ -79,6 +80,7 @@ fun CangJieType.approximateFlexibleTypes(
     preferStarForRaw: Boolean = false,
     preferUpperBoundsForCollections: Boolean = false,
 ): CangJieType {
+    if (this is OptionType) return this
     if (isDynamic()) return this
     if (isDefinitelyNotNullType) return this
     return unwrapEnhancement().approximateNonDynamicFlexibleTypes(
@@ -115,13 +117,10 @@ private fun CangJieType.approximateNonDynamicFlexibleTypes(
         val upperBound = flexible.upperBound
         val lowerClass = lowerBound.constructor.declarationDescriptor as? ClassDescriptor?
         val isCollection = lowerClass != null
-        // (Mutable)Collection<T>! -> MutableCollection<T>?
-        // Foo<(Mutable)Collection<T>!>! -> Foo<Collection<T>>?
-        // Foo! -> Foo?
-        // Foo<Bar!>! -> Foo<Bar>?
+
         var approximation =
             if (isCollection) {
-                // (Mutable)Collection<T>!
+
                 val bound = if (preferUpperBoundsForCollections) upperBound else lowerBound
                 if (lowerBound.isMarkedOption != upperBound.isMarkedOption)
                     bound.makeOptionalAsSpecified(!preferNotNull)
@@ -486,7 +485,7 @@ fun CangJieType.extractSuperType(name: Name): CangJieType {
             return superType
         }
     }
-    return superTypes.first()
+    return superTypes.firstOrNull() ?: this
 
 }
 
@@ -680,22 +679,14 @@ object TypeUtils {
         other.forEach {
             arguments.add(TypeProjectionImpl(it))
         }
-        return CangJieTypeFactory.optionType(
-            CangJieTypeFactory.simpleType(
-                stub.attributes,
-                stub.constructor,
-                arguments,
-                true,
-                null
-            )
+
+        return CangJieTypeFactory.simpleType(
+            stub.attributes,
+            stub.constructor,
+            arguments,
+            true,
+            null
         )
-//        return CangJieTypeFactory.simpleType(
-//            stub.attributes,
-//            stub.constructor,
-//            arguments,
-//            true,
-//            null
-//        )
 
     }
 
@@ -1347,6 +1338,12 @@ internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): Cang
             memberScope
         )
     }
+}
+
+fun CangJieType.toOptionalType():CangJieType{
+
+    return addTypeParameterToStub(builtIns.optionType, this)
+
 }
 
 fun CangJieType.immediateSupertypes(): Collection<CangJieType> = TypeUtils.getImmediateSupertypes(this)

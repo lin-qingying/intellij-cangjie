@@ -767,13 +767,13 @@ open class DescriptorRendererImpl(
 
         val originalTypeOfDefNotNullType = (type as? DefinitelyNotNullType)?.original
 
-        if (type.isMarkedOption) {
+        if (type is OptionType) {
             append("?")
         }
 
         when {
             type is OptionType -> renderSimpleType(type.getType() as SimpleType)
-            type.isMarkedOption -> renderSimpleType(type.arguments[0].type as SimpleType)
+//            type.isMarkedOption -> renderSimpleType(type.arguments[0].type as SimpleType)
 
             type.isError -> {
                 if (isUnresolvedType(type) && presentableUnresolvedTypes) {

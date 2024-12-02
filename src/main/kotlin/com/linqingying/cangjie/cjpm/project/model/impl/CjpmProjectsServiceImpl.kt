@@ -532,9 +532,22 @@ private fun addDependencies(project: Project, cjpmProjects: List<CjpmProject>) {
 
 
 //                遍历文件夹下节点
-                it.contentRoot?.let { it1 -> modifiableModel.addRoot(it1, OrderRootType.CLASSES) }
+                it.contentRoot?.let { it1 ->
+
+                    modifiableModel.addRoot(it1, OrderRootType.CLASSES)
+                    modifiableModel.addRoot(it1, OrderRootType.SOURCES)
+
+
+
+                }
             } else {
-                it.contentRoot?.url?.let { it1 -> modifiableModel.addRoot(it1, OrderRootType.CLASSES) }
+                it.contentRoot?.url?.let { it1 ->
+
+                    modifiableModel.addRoot(it1, OrderRootType.CLASSES)
+                    modifiableModel.addRoot(it1, OrderRootType.SOURCES)
+
+
+                }
             }
             modifiableModel.commit()
 

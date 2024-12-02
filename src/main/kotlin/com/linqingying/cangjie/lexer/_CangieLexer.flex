@@ -1,6 +1,5 @@
 package com.linqingying.cangjie.lexer;
 import com.intellij.psi.*;
-import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
 %%
@@ -368,7 +367,7 @@ LONELY_BACKTICK=`
 <SHORT_TEMPLATE_ENTRY> {IDENTIFIER}    { popState(); return CjTokens.IDENTIFIER; }
 
 <STRING_DOUBLE,STRING_SINGLE, RAW_STRING_DOUBLE,RAW_STRING_SINGLE > {LONELY_DOLLAR}               {
-          System.out.println("LONELY_DOLLAR");
+
           return CjTokens.REGULAR_STRING_PART; }
 <STRING_DOUBLE,STRING_SINGLE, RAW_STRING_DOUBLE,RAW_STRING_SINGLE> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return CjTokens.LONG_TEMPLATE_ENTRY_START; }
 
@@ -600,7 +599,7 @@ LONELY_BACKTICK=`
 ">"          { return CjTokens.GT        ; }
 
 "@"          { return CjTokens.AT; }
-"??"          { return CjTokens.ELVIS     ; }
+"??"          { return CjTokens.COALESCING     ; }
 "?"           { return CjTokens.QUEST     ; }
 "?."          { return CjTokens.SAFE_ACCESS     ; }
 "?["          { return CjTokens.SAFE_INDEXEX     ; }

@@ -490,19 +490,19 @@ class QualifiedExpressionResolver(
 
 
 //报告不应该导入自己
-        if (packageFragmentForCheck != null) {
-            val packageFqname = importDirective.importedFqName
-
-            if (importDirective is CjImportDirective) {
-                if (packageFqname == packageFragmentForCheck.fqName) {
-
-                    trace.report(SELF_IMPORT_NOT_ALLOWED.on(importDirective, packageFqname))
-
-                    return null
-                }
-            }
-
-        }
+//        if (packageFragmentForCheck != null) {
+//            val packageFqname = importDirective.importedFqName
+//
+//            if (importDirective is CjImportDirective) {
+//                if (packageFqname == packageFragmentForCheck.fqName) {
+//
+//                    trace.report(SELF_IMPORT_NOT_ALLOWED.on(importDirective, packageFqname))
+//
+//                    return null
+//                }
+//            }
+//
+//        }
 
         if (importDirective.isAllUnder) {
             val packageOrClassDescriptor = resolveToPackageOrClass(
@@ -623,38 +623,37 @@ class QualifiedExpressionResolver(
 
         when (packageOrClassDescriptor) {
             is PackageViewDescriptor -> {
-                val packageDescriptor = moduleDescriptor.getPackage(packageOrClassDescriptor.fqName.child(lastName))
-                if (!packageDescriptor.isEmpty()) {
-//                    trace.report(PACKAGE_CANNOT_BE_IMPORTED.on(lastPartExpression))
-//                    descriptors.add(packageOrClassDescriptor)
+//                val packageDescriptor = moduleDescriptor.getPackage(packageOrClassDescriptor.fqName.child(lastName))
+//                if (!packageDescriptor.isEmpty()) {
 
 
 //                    TODO 这里有问题，有时候可能会出现导入的不是包，但是一样报错
-//                    不能使用 除private以外的修饰符修饰import语句
-                    val importDirective = lastPartExpression.getParentOfType<CjImportDirective>(true)
-                    if (importDirective != null) {
-                        if (importDirective.modifierVisibility != DescriptorVisibilities.PRIVATE) {
-                            importDirective.importedFqName?.let {
-                                trace.report(
-                                    IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED.on(
-                                        importDirective,
-                                        it,
-                                        importDirective.modifierVisibility
-                                    )
-                                )
-                            }
-                        }
-                    }
+//                  如歌导入的是一个包，那么它不能为导出  不能使用 除private以外的修饰符修饰import语句
+//                    val importDirective = lastPartExpression.getParentOfType<CjImportDirective>(true)
+//                    if (importDirective != null) {
+//                        if (importDirective.modifierVisibility != DescriptorVisibilities.PRIVATE) {
+//                            importDirective.importedFqName?.let {
+//                                trace.report(
+//                                    IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED.on(
+//                                        importDirective,
+//                                        it,
+//                                        importDirective.modifierVisibility
+//                                    )
+//                                )
+//                            }
+//                        }
+//                    }
 
 
 //                    不能导入模块名
-                    if (packageDescriptor.fqName.isModuleName) {
-                        trace.report(MODULE_PACKAGE_CANNOT_BE_IMPORTED.on(lastPartExpression))
-                        descriptors.add(packageOrClassDescriptor)
-                    }
-//                    return
+//                    if (packageDescriptor.fqName.isModuleName) {
+//                        trace.report(MODULE_PACKAGE_CANNOT_BE_IMPORTED.on(lastPartExpression))
+//                        descriptors.add(packageOrClassDescriptor)
+//                    }
 
-                }
+
+//                }
+                descriptors.add(packageOrClassDescriptor )
             }
 
             is ClassDescriptor -> {
@@ -1083,7 +1082,7 @@ class QualifiedExpressionResolver(
             }
 
 
-//            EXPRESSION -> TODO()
+
             else -> {
 
             }

@@ -136,17 +136,17 @@ class TypeResolver(
     ): Annotations {
 //        val modifierLists = modifierListsOwner.getAllModifierLists()
 
-        var result = Annotations.EMPTY
-        var isSplitModifierList = false
+        val result = Annotations.EMPTY
+//        var isSplitModifierList = false
 
 //        if (!isNonParenthesizedAnnotationsOnFunctionalTypesEnabled) {
 //            val targetType = when (modifierListsOwner) {
-////                is CjNullableType -> modifierListsOwner.innerType
+
 //                is CjTypeReference -> modifierListsOwner.typeElement
 //                else -> null
 //            }
 //            val annotationEntries = when (modifierListsOwner) {
-////                is CjNullableType -> modifierListsOwner.modifierList?.annotationEntries
+
 //                is CjTypeReference -> modifierListsOwner.annotationEntries
 //                else -> null
 //            }
@@ -519,7 +519,7 @@ class TypeResolver(
                     c.trace.report(NESTING_DOLL_OPTINOTYPE.on(optionType))
                 }
 
-                result = type(addTypeParameterToStub(resolveOptionType(), baseType.actualType))
+                result = type(CangJieTypeFactory.optionType(addTypeParameterToStub(resolveOptionType(), baseType.actualType) as SimpleType))
             }
 
             private fun createTypeFromInner(

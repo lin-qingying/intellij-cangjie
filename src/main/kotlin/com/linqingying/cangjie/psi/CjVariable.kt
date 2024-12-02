@@ -34,7 +34,7 @@ import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.stubs.CangJieVariableStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
-class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariableDeclaration {
+class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariableDeclaration,CjLocalNamedDeclaration {
     constructor(stub: CangJieVariableStub) : super(stub, CjStubElementTypes.VARIABLE)
     constructor(node: ASTNode) : super(node)
 

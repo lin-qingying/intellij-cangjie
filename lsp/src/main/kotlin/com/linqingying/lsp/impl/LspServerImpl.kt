@@ -145,9 +145,10 @@ class LspServerImpl(
         return checkDynamicCapabilities(file, LspDynamicCapabilities.references)
     }
 
-    private fun isRunning(): Boolean {
-        return state == LspServerState.Running
-    }
+
+    val isMalfunctioned: Boolean get() =state == LspServerState.ShutdownUnexpectedly
+
+    val isRunning: Boolean get() = state == LspServerState.Running
 
     internal fun sendOpenedFiles() {
         ReadAction.nonBlocking<Set<VirtualFile>> {
@@ -168,7 +169,7 @@ class LspServerImpl(
             newFiles
         }
             .expireWhen {
-                !isRunning()
+                !isRunning
             }
             .finishOnUiThread(ModalityState.nonModal()) { files ->
                 if (files.isNotEmpty()) {
@@ -266,10 +267,12 @@ class LspServerImpl(
             }
         }
     }
+
     private fun updateServerState(newState: LspServerState) {
         this.state = newState
         this.eventBroadcaster.serverStateChanged(this)
     }
+
     /**
      * 清理，关闭并退出
      */
@@ -294,6 +297,7 @@ class LspServerImpl(
             }
         }
     }
+
     internal fun diagnosticsReceived(params: PublishDiagnosticsParams) {
 
         val uri = params.uri
@@ -561,12 +565,6 @@ class LspServerImpl(
         executeTask()
     }
 
-    private fun createServerConnector(): Lsp4jServerConnector {
-        return when (  descriptor.lspCommunicationChannel) {
-            is LspCommunicationChannel.StdIO -> Lsp4jServerConnectorStdio(this)
-            is LspCommunicationChannel.Socket -> Lsp4jServerConnectorSocket(this)
-        }
-    }
 
     @RequiresBackgroundThread
     fun getDiagnosticsAndQuickFixes(file: VirtualFile): List<DiagnosticAndQuickFixes> {
@@ -665,11 +663,7 @@ class LspServerImpl(
     internal fun isSupportedFile(file: VirtualFile): Boolean {
         if (!file.isInLocalFileSystem) return false
         if (unsupportedFilePaths.contains(file.path)) return false
-
-
-
-            if (!ProjectFileIndex.getInstance(project).isInContent(file)) return false
-
+        if (!ProjectFileIndex.getInstance(project).isInContent(file)) return false
 
         val isSupported = descriptor.isSupportedFile(file)
         if (!isSupported) {
@@ -725,7 +719,9 @@ class LspServerImpl(
         }
     }
 
+    @Deprecated("使用 sendRequest, sendRequestSync, getDocumentIdentifier 和 getDocumentVersion")
     override val lsp4jServer: Lsp4jServer
         get() = lsp4jServerConnector.let { it?.lsp4jServer } ?: throw IllegalStateException("Server is not running")
+    @Deprecated("使用 sendRequest, sendRequestSync, getDocumentIdentifier 和 getDocumentVersion")
     override val requestExecutor: LspRequestExecutorImpl = LspRequestExecutorImpl(this)
 }
