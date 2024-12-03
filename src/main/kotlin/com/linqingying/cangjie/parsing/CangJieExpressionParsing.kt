@@ -40,6 +40,7 @@ import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.lexer.CjTokens.*
 import com.linqingying.cangjie.parsing.CangJieParsing.DeclarationParsingMode
 import com.linqingying.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes.BASIC_REFERENCE_EXPRESSION
 
 open class CangJieExpressionParsing(
     builder: SemanticWhitespaceAwarePsiBuilder, private val cangJieParsing: CangJieParsing, isLazy: Boolean
@@ -442,9 +443,10 @@ open class CangJieExpressionParsing(
                    true
                } else*/
             if (atSet(BASICTYPES)) {
-
-                cangJieParsing.parseBasicType()
-
+                val mark = mark()
+                advance()
+//                cangJieParsing.parseBasicType()
+                mark.done(BASIC_REFERENCE_EXPRESSION)
 true
             } else
 

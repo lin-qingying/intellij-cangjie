@@ -59,11 +59,12 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
     val typeElement: CjTypeElement?
         get() {
             return CjStubbedPsiUtil.getStubOrPsiChild(this, CjTokenSets.TYPE_ELEMENT_TYPES, CjTypeElement.ARRAY_FACTORY)
-                ?: if (children.isNotEmpty() && children[0].elementType == CjNodeTypes.BASIC_TYPE) {
+
+             /*   ?: if (children.isNotEmpty() && children[0].elementType == CjNodeTypes.BASIC_TYPE) {
                     children[0] as CjTypeElement
                 } else {
                     null
-                }
+                }*/
         }
 
 

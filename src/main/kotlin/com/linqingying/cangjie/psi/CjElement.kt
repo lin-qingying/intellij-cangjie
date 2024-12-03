@@ -95,6 +95,7 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
     }
 
     override fun getReferences(): Array<PsiReference> {
+        if(this is CjBasicType) return emptyArray()
 
 
         return CangJieReferenceProvidersService.getReferencesFromProviders(this)

@@ -28,6 +28,8 @@ import com.intellij.util.SmartList
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.types.checker.AbstractTypePreparator
 import com.linqingying.cangjie.types.model.*
+import com.linqingying.cangjie.types.util.isOptionType
+import com.linqingying.cangjie.types.util.optionOriginalType
 import com.linqingying.cangjie.utils.SmartSet
 import java.util.*
 
@@ -472,13 +474,32 @@ object AbstractTypeChecker {
         return true
     }
 
+    /**
+     * 检查整数字面量类型的子类型关系
+     * 此函数旨在确定一个类型是否为另一个类型的子类型，特别是当涉及到整数字面量类型时
+     * 整数字面量类型是表示具体整数值的类型，如`1`或`2`
+     *
+     * @param state 类型检查器状态，包含类型系统上下文
+     * @param subType 潜在的子类型
+     * @param superType 潜在的父类型
+     * @return 如果[subType]是[superType]的子类型，则返回true；否则返回false如果无法确定子类型关系，则返回null
+     */
     private fun checkSubtypeForIntegerLiteralType(
         state: TypeCheckerState,
         subType: SimpleTypeMarker,
         superType: SimpleTypeMarker
     ): Boolean? = with(state.typeSystemContext) {
+        // 如果两个类型都不是整数字面量类型，则无法进行特定的子类型检查，返回null
         if (!subType.isIntegerLiteralType() && !superType.isIntegerLiteralType()) return null
 
+        /**
+         * 检查一个类型是否在另一个整数字面量类型的可能整数类型中
+         *
+         * @param integerLiteralType 整数字面量类型
+         * @param type 要检查的类型
+         * @param checkSupertypes 是否检查父类型
+         * @return 如果[type]在[integerLiteralType]的可能整数类型中，则返回true；否则返回false
+         */
         fun isTypeInIntegerLiteralType(
             integerLiteralType: SimpleTypeMarker,
             type: SimpleTypeMarker,
@@ -492,6 +513,12 @@ object AbstractTypeChecker {
                 ))
             }
 
+        /**
+         * 检查一个类型是否包含在交集类型的组件中
+         *
+         * @param type 要检查的类型
+         * @return 如果[type]是交集类型且其组件类型中包含整数字面量类型，则返回true；否则返回false
+         */
         fun isIntegerLiteralTypeInIntersectionComponents(type: SimpleTypeMarker): Boolean {
             val typeConstructor = type.typeConstructor()
 
@@ -499,28 +526,55 @@ object AbstractTypeChecker {
                     && typeConstructor.supertypes().any { it.asSimpleType()?.isIntegerLiteralType() == true }
         }
 
+        /**
+         * 检查一个类型是否为捕获的整数字面量类型
+         *
+         * @param type 要检查的类型
+         * @return 如果[type]是捕获类型且其上界为整数字面量类型，则返回true；否则返回false
+         */
         fun isCapturedIntegerLiteralType(type: SimpleTypeMarker): Boolean {
             if (type !is CapturedTypeMarker) return false
             val projection = type.typeConstructor().projection()
             return projection.getType().upperBoundIfFlexible().isIntegerLiteralType()
         }
 
+        /**
+         * 检查一个类型是否为整数字面量类型或捕获的整数字面量类型
+         *
+         * @param type 要检查的类型
+         * @return 如果[type]是整数字面量类型或捕获的整数字面量类型，则返回true；否则返回false
+         */
         fun isIntegerLiteralTypeOrCapturedOne(type: SimpleTypeMarker) =
             type.isIntegerLiteralType() || isCapturedIntegerLiteralType(type)
 
+        // 根据子类型和父类型的性质进行不同的逻辑判断
         when {
+            // 如果子类型和父类型都是整数字面量类型或捕获的整数字面量类型，则子类型关系成立
             isIntegerLiteralTypeOrCapturedOne(subType) && isIntegerLiteralTypeOrCapturedOne(superType) -> {
                 return true
             }
+//如果父类型是Option包裹的类型
+            superType.isOptionType -> {
 
+                if ((superType.optionOriginalType as? SimpleTypeMarker)?.let {
+                        isTypeInIntegerLiteralType(subType,
+                            it, checkSupertypes = false)
+                    } == true) {
+                    return true
+                }
+            }
+            // 如果子类型是整数字面量类型，并且父类型在其可能的整数类型中，则子类型关系成立
             subType.isIntegerLiteralType() -> {
                 if (isTypeInIntegerLiteralType(subType, superType, checkSupertypes = false)) {
                     return true
                 }
             }
 
+
+
+            // 如果父类型是整数字面量类型，并且子类型包含在交集类型组件中或在父类型的可能整数类型中，则子类型关系成立
             superType.isIntegerLiteralType() -> {
-                // Here we also have to check supertypes for intersection types: { Int & String } <: IntegerLiteralTypes
+                // 这里也要检查交集类型的父类型：{ Int & String } <: IntegerLiteralTypes
                 if (isIntegerLiteralTypeInIntersectionComponents(subType)
                     || isTypeInIntegerLiteralType(superType, subType, checkSupertypes = true)
                 ) {
@@ -528,6 +582,7 @@ object AbstractTypeChecker {
                 }
             }
         }
+        // 如果以上条件都不满足，则无法确定子类型关系，返回null
         return null
     }
 

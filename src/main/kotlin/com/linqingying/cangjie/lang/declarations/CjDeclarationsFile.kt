@@ -24,12 +24,12 @@
 
 package com.linqingying.cangjie.lang.declarations
 
-import com.linqingying.cangjie.psi.CjFile
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import com.linqingying.cangjie.metadata.decompiler.CangJieDecompiledFileViewProvider
 import com.linqingying.cangjie.metadata.decompiler.DecompiledText
+import com.linqingying.cangjie.psi.CjFile
 import com.linqingying.cangjie.utils.LockedClearableLazyValue
 
 class CjDeclarationsFile(
@@ -42,6 +42,7 @@ class CjDeclarationsFile(
     override fun toString(): String {
         return "CangJieDeclaration File: $name"
     }
+
     override fun getFileType(): FileType {
         return CangJieDeclarationsFileType
     }

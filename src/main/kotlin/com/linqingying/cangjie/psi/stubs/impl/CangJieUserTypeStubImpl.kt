@@ -38,10 +38,10 @@ import com.linqingying.cangjie.types.model.FlexibleTypeMarker
 import com.linqingying.cangjie.types.model.SimpleTypeMarker
 import com.linqingying.cangjie.types.model.TypeArgumentMarker
 
-class CangJieBasicTypeStubImpl(
-    parent: StubElement<out PsiElement>?,
-    override val basicType: String
-) : CangJieStubBaseImpl<CjBasicType>(parent, CjStubElementTypes.BASIC_TYPE), CangJieBasicTypeStub
+//class CangJieBasicTypeStubImpl(
+//    parent: StubElement<out PsiElement>?,
+//    override val basicType: String
+//) : CangJieStubBaseImpl<CjBasicType>(parent, CjStubElementTypes.BASIC_TYPE), CangJieBasicTypeStub
 
 class CangJieUserTypeStubImpl(
 

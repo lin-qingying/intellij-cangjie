@@ -31,11 +31,12 @@ import com.intellij.psi.tree.TokenSet
 import com.linqingying.cangjie.CjNodeTypes
 import com.linqingying.cangjie.lexer.CjTokens.*
 import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.psi.stubs.CangJieNameBasicReferenceExpressionStub
 import com.linqingying.cangjie.psi.stubs.CangJieNameReferenceExpressionStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
 interface CjCallableReference : CjReferenceExpression {
-    val callableReference: CjNameReferenceExpression
+    val callableReference: CjSimpleNameExpression
     val receiverExpression: CjExpression? get() = null
 }
 
@@ -96,5 +97,65 @@ class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpre
     }
 
     override val callableReference: CjNameReferenceExpression
+        get() = this
+}
+
+class CjNameBasicReferenceExpression : CjExpressionImplStub<CangJieNameBasicReferenceExpressionStub>, CjSimpleNameExpression,
+    CjCallableReference {
+    constructor(node: ASTNode) : super(node)
+
+    constructor(stub: CangJieNameBasicReferenceExpressionStub) : super(stub, CjStubElementTypes.BASIC_REFERENCE_EXPRESSION)
+
+    override val referencedName: String
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.getReferencedName()
+            }
+            return CjSimpleNameExpressionImpl.getReferencedNameImpl(this)
+        }
+
+    override val referencedNameAsName: Name
+        get() {
+            return CjSimpleNameExpressionImpl.getReferencedNameAsNameImpl(this)
+        }
+
+    override val referencedNameElement: PsiElement
+        get() {
+            return findChildByType(NAME_REFERENCE_EXPRESSIONS) ?: this
+        }
+    val typeArguments: List<CjTypeProjection>
+        get() {
+
+            return typeArgumentList?.arguments ?: emptyList()
+        }
+    val typeArgumentList: CjTypeArgumentList?
+        get() {
+
+            return findChildByType<PsiElement>(CjNodeTypes.TYPE_ARGUMENT_LIST) as CjTypeArgumentList?
+        }
+
+    override val identifier: PsiElement?
+        get() {
+            return findChildByType(IDENTIFIER)
+        }
+
+    override val referencedNameElementType: IElementType
+        get() {
+            return CjSimpleNameExpressionImpl.getReferencedNameElementTypeImpl(this)
+        }
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitSimpleNameExpression(this, data)
+    }
+
+    val isPlaceholder: Boolean
+        get() = identifier?.text?.equals("_") == true
+
+    companion object {
+        private val NAME_REFERENCE_EXPRESSIONS = TokenSet.create(IDENTIFIER, THIS_KEYWORD, SUPER_KEYWORD, VARRAY_KEYWORD)
+    }
+
+    override val callableReference: CjNameBasicReferenceExpression
         get() = this
 }

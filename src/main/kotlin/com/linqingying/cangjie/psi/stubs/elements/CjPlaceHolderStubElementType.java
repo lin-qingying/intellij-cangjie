@@ -36,30 +36,61 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+/**
+ * 定义一个占位符Stub元素类型类，用于处理特定的编程结构，
+ * 该类继承自CjStubElementType，针对占位符类型提供具体实现。
+ *
+ * @param <T> 继承自CjElementImplStub的泛型类型，代表Psi元素类型。
+ */
 public class CjPlaceHolderStubElementType<T extends CjElementImplStub<? extends StubElement<?>>> extends
         CjStubElementType<CangJiePlaceHolderStub<T>, T> {
+
+    /**
+     * 构造函数，初始化占位符Stub元素类型。
+     *
+     * @param debugName 用于调试的名称，帮助开发者识别对象类型。
+     * @param psiClass 与Stub关联的Psi元素类，用于类型绑定。
+     */
     public CjPlaceHolderStubElementType(@NotNull @NonNls String debugName, @NotNull Class<T> psiClass) {
         super(debugName, psiClass, CangJiePlaceHolderStub.class);
     }
 
-
+    /**
+     * 创建占位符Stub对象。
+     *
+     * @param psi 用于创建Stub的Psi元素，提供必要的数据。
+     * @param parentStub 父Stub元素，表示Psi元素的树结构关系。
+     * @return 返回创建的CangJiePlaceHolderStub对象。
+     */
     @Override
     public @NotNull CangJiePlaceHolderStub<T> createStub(@NotNull T psi, StubElement<?> parentStub) {
         return new CangJiePlaceHolderStubImpl<>(parentStub, this);
     }
 
-
-
+    /**
+     * 序列化Stub到输出流中，对于占位符类型，不需要实际的序列化操作。
+     *
+     * @param stub 待序列化的Stub对象。
+     * @param dataStream 输出流，用于写入序列化数据。
+     * @throws IOException 当序列化过程中发生I/O错误时抛出。
+     */
     @Override
     public void serialize(@NotNull CangJiePlaceHolderStub<T> stub, @NotNull StubOutputStream dataStream) throws IOException {
         //do nothing
     }
 
+    /**
+     * 从输入流中反序列化Stub对象，对于占位符类型，直接创建新的Stub实例。
+     *
+     * @param dataStream 输入流，用于读取序列化数据。
+     * @param parentStub 父Stub元素，用于构建Psi树结构。
+     * @return 返回新创建的CangJiePlaceHolderStub对象。
+     * @throws IOException 当反序列化过程中发生I/O错误时抛出。
+     */
     @NotNull
     @Override
     public CangJiePlaceHolderStub<T> deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
         return new CangJiePlaceHolderStubImpl<>(parentStub, this);
     }
-
 
 }

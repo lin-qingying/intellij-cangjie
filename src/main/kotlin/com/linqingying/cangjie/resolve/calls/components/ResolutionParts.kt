@@ -187,25 +187,25 @@ internal object CheckStaticCall : ResolutionPart() {
 
 
     override fun ResolutionCandidate.process(workIndex: Int) {
-        val descriptor = this.descriptor
-
-
-//        是否为static上下文
-        val isStaticContext = isStaticContext()
-
-        val kind = descriptor.getDescriptorKind()
-        val memberStatic = descriptor.isStatic()
-//        非静态上下文访问静态成员
-        if (memberStatic && (!isStaticContext && (resolvedCall.explicitReceiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER || resolvedCall.explicitReceiverKind == ExplicitReceiverKind.EXTENSION_RECEIVER))) {
-            addDiagnostic(NonStaticContextAccessStaticMemberDiagnostic(kind, descriptor))
-        }
-
-//静态上下文访问非静成员
-        if (!memberStatic && isStaticContext && !descriptor.isLocal && !descriptor.isTopLevel
-
-        ) {
-            addDiagnostic(StaticContextAccessNonStaticMemberDiagnostic(kind, descriptor))
-        }
+//        val descriptor = this.descriptor
+//
+//
+////        是否为static上下文
+//        val isStaticContext = isStaticContext()
+//
+//        val kind = descriptor.getDescriptorKind()
+//        val memberStatic = descriptor.isStatic()
+////        非静态上下文访问静态成员
+//        if (memberStatic && (!isStaticContext && (resolvedCall.explicitReceiverKind == ExplicitReceiverKind.DISPATCH_RECEIVER || resolvedCall.explicitReceiverKind == ExplicitReceiverKind.EXTENSION_RECEIVER))) {
+//            addDiagnostic(NonStaticContextAccessStaticMemberDiagnostic(kind, descriptor))
+//        }
+//
+////静态上下文访问非静成员
+//        if (!memberStatic && isStaticContext && !descriptor.isLocal && !descriptor.isTopLevel
+//
+//        ) {
+//            addDiagnostic(StaticContextAccessNonStaticMemberDiagnostic(kind, descriptor))
+//        }
 
 
     }

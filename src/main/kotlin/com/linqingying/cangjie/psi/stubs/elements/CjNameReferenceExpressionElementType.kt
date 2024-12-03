@@ -21,45 +21,81 @@
  * any damages or issues arising from its use.
  *
  */
+package com.linqingying.cangjie.psi.stubs.elements
 
-package com.linqingying.cangjie.psi.stubs.elements;
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+import com.intellij.util.io.StringRef
+import com.linqingying.cangjie.psi.CjNameBasicReferenceExpression
+import com.linqingying.cangjie.psi.CjNameReferenceExpression
+import com.linqingying.cangjie.psi.stubs.CangJieNameBasicReferenceExpressionStub
+import com.linqingying.cangjie.psi.stubs.CangJieNameReferenceExpressionStub
+import com.linqingying.cangjie.psi.stubs.impl.CangJieNameBasicReferenceExpressionStubImpl
+import com.linqingying.cangjie.psi.stubs.impl.CangJieNameReferenceExpressionStubImpl
+import org.jetbrains.annotations.NonNls
+import java.io.IOException
 
-import com.linqingying.cangjie.psi.CjNameReferenceExpression;
-import com.linqingying.cangjie.psi.stubs.CangJieNameReferenceExpressionStub;
-import com.linqingying.cangjie.psi.stubs.impl.CangJieNameReferenceExpressionStubImpl;
-import com.intellij.psi.stubs.StubElement;
-import com.intellij.psi.stubs.StubInputStream;
-import com.intellij.psi.stubs.StubOutputStream;
-import com.intellij.util.io.StringRef;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-
-
-
-public class CjNameReferenceExpressionElementType extends CjStubElementType<CangJieNameReferenceExpressionStub, CjNameReferenceExpression> {
-    public CjNameReferenceExpressionElementType(@NotNull @NonNls String debugName) {
-        super(debugName, CjNameReferenceExpression.class, CangJieNameReferenceExpressionStub.class);
+class CjNameReferenceExpressionElementType(debugName: @NonNls String) :
+    CjStubElementType<CangJieNameReferenceExpressionStub, CjNameReferenceExpression>(
+        debugName,
+        CjNameReferenceExpression::class.java,
+        CangJieNameReferenceExpressionStub::class.java
+    ) {
+    override fun createStub(
+        psi: CjNameReferenceExpression,
+        parentStub: StubElement<*>?
+    ): CangJieNameReferenceExpressionStub {
+        return CangJieNameReferenceExpressionStubImpl(parentStub, StringRef.fromString(psi.referencedName))
     }
 
-    @Override
-    public CangJieNameReferenceExpressionStub createStub(@NotNull CjNameReferenceExpression psi, StubElement parentStub) {
-        return new CangJieNameReferenceExpressionStubImpl(parentStub, StringRef.fromString(psi.getReferencedName()));
-    }
-
-    @Override
-    public void serialize(@NotNull CangJieNameReferenceExpressionStub stub, @NotNull StubOutputStream dataStream) throws IOException {
-        dataStream.writeName(stub.getReferencedName());
+    @Throws(IOException::class)
+    override fun serialize(stub: CangJieNameReferenceExpressionStub, dataStream: StubOutputStream) {
+        dataStream.writeName(stub.getReferencedName())
         dataStream.writeBoolean(
-                stub instanceof CangJieNameReferenceExpressionStubImpl && ((CangJieNameReferenceExpressionStubImpl) stub).isClassRef());
+            stub is CangJieNameReferenceExpressionStubImpl && stub.isClassRef
+        )
     }
 
-    @NotNull
-    @Override
-    public CangJieNameReferenceExpressionStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        StringRef referencedName = dataStream.readName();
-        boolean isClassRef = dataStream.readBoolean();
-        return new CangJieNameReferenceExpressionStubImpl(parentStub, referencedName, isClassRef);
+    @Throws(IOException::class)
+    override fun deserialize(
+        dataStream: StubInputStream,
+        parentStub: StubElement<*>
+    ): CangJieNameReferenceExpressionStub {
+        val referencedName = dataStream.readName()
+        val isClassRef = dataStream.readBoolean()
+        return CangJieNameReferenceExpressionStubImpl(parentStub, referencedName!!, isClassRef)
+    }
+}
+
+class CjNameBasicReferenceExpressionElementType(debugName: @NonNls String) :
+    CjStubElementType<CangJieNameBasicReferenceExpressionStub, CjNameBasicReferenceExpression>(
+        debugName,
+        CjNameBasicReferenceExpression::class.java,
+        CangJieNameBasicReferenceExpressionStub::class.java
+    ) {
+    override fun createStub(
+        psi: CjNameBasicReferenceExpression,
+        parentStub: StubElement<*>?
+    ): CangJieNameBasicReferenceExpressionStub {
+        return CangJieNameBasicReferenceExpressionStubImpl(parentStub, StringRef.fromString(psi.referencedName))
+    }
+
+    @Throws(IOException::class)
+    override fun serialize(stub: CangJieNameBasicReferenceExpressionStub, dataStream: StubOutputStream) {
+        dataStream.writeName(stub.getReferencedName())
+        dataStream.writeBoolean(
+            stub is CangJieNameBasicReferenceExpressionStubImpl && stub.isClassRef
+        )
+    }
+
+    @Throws(IOException::class)
+    override fun deserialize(
+        dataStream: StubInputStream,
+        parentStub: StubElement<*>
+    ): CangJieNameBasicReferenceExpressionStub {
+        val referencedName = dataStream.readName()
+        val isClassRef = dataStream.readBoolean()
+        return CangJieNameBasicReferenceExpressionStubImpl(parentStub, referencedName!!, isClassRef)
     }
 }

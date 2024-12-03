@@ -65,6 +65,7 @@ data class ClassId(
 ) : IClassId {
     constructor(packageFqName: FqName, topLevelName: Name) : this(
         packageFqName,
+
         FqName.topLevel(topLevelName),
         isLocal = false
     )

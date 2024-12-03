@@ -51,6 +51,7 @@ import com.linqingying.cangjie.types.checker.CangJieTypeChecker.DEFAULT
 import com.linqingying.cangjie.types.error.ErrorScopeKind
 import com.linqingying.cangjie.types.error.ErrorType
 import com.linqingying.cangjie.types.error.ErrorTypeKind
+import com.linqingying.cangjie.types.model.CangJieTypeMarker
 import com.linqingying.cangjie.types.model.TypeArgumentMarker
 import com.linqingying.cangjie.types.model.TypeVariableTypeConstructorMarker
 import com.linqingying.cangjie.types.util.TypeUtils.addTypeParameterToStub
@@ -379,14 +380,24 @@ fun CangJieType.isGenericArrayOfTypeParameter(): Boolean {
 /**
  * 如果是Option类型，获取原类型
  */
-fun CangJieType.getOriginalType(): CangJieType {
+val CangJieType.optionOriginalType : CangJieType get()    {
 
-    if (CangJieBuiltIns.isOptionType(this)) {
-        return arguments[0].type
+    if (isOptionType) {
+        return arguments[0].type.optionOriginalType
 
     }
     return this
 }
+val CangJieTypeMarker.optionOriginalType : CangJieTypeMarker get()    {
+this as CangJieType
+    if (isOptionType) {
+        return arguments[0].type.optionOriginalType
+
+    }
+    return this
+}
+val CangJieType.isOptionType get() = CangJieBuiltIns.isOptionType(this)
+val CangJieTypeMarker.isOptionType get() = CangJieBuiltIns.isOptionType(this as CangJieType)
 
 fun CangJieTypeChecker.equalTypesOrNulls(type1: CangJieType?, type2: CangJieType?): Boolean {
     if (type1 === type2) return true

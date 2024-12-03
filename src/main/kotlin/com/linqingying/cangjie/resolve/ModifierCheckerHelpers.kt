@@ -59,7 +59,7 @@ val possibleTargetMap = mapOf(
         CangJieTarget.MEMBER_VARIABLE,
         CangJieTarget.STRUCT_MEMBER_FUNCTION,
                 CangJieTarget.EXTEND_MEMBER_FUNCTION,
-
+        CangJieTarget.INTERFACE_MEMBER_FUNCTION,
     ),
 //    ENUM_KEYWORD to EnumSet.of(CangJieTarget.ENUM_CLASS),
     ABSTRACT_KEYWORD to EnumSet.of(

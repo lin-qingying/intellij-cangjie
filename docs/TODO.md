@@ -8,11 +8,12 @@
 
 多导入语句还没有实现
 
-
+静态上下文检查还需要优化  STATIC_CONTEXT_REFERENCE_ERROR
 静态声明无法查找用法
 
 
-
+插件感觉明显卡顿
+float类型报错
 cjpm包管理工具 
    在有库的情况下，在toml文件中删除库无法删除
 

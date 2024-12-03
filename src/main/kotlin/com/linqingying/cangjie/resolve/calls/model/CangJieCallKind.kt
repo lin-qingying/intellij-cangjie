@@ -39,7 +39,7 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
      * 这些解析部分是处理变量调用时需要执行的步骤。
      */
     VARIABLE(
-        CheckStaticCall,
+
         CheckVisibility,
         CheckExtensionPrivateVisibility,
         CheckSuperExpressionCallPart,
@@ -53,7 +53,8 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
 
         PostponedVariablesInitializerResolutionPart,
 //        CheckContextReceiversResolutionPart,
-        CheckIncompatibleTypeVariableUpperBounds
+        CheckIncompatibleTypeVariableUpperBounds,
+        CheckStaticCall,
     ),
 
     /**

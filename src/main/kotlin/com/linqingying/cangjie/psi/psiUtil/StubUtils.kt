@@ -31,7 +31,10 @@ import com.linqingying.cangjie.psi.stubs.CangJieFileStub
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
-
+import com.linqingying.cangjie.psi.CjEnumEntry
+import com.linqingying.cangjie.psi.stubs.CangJieClassifierStub
+import com.linqingying.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
 
 object StubUtils {
@@ -50,14 +53,14 @@ object StubUtils {
     fun createNestedClassId(parentStub: StubElement<*>, currentDeclaration: CjClassLikeDeclaration): ClassId? = when {
         parentStub is CangJieFileStub -> ClassId(parentStub.getPackageFqName(), currentDeclaration.nameAsSafeName)
 
-//        parentStub is CangJiePlaceHolderStub<*> && parentStub.stubType == CjStubElementTypes.CLASS_BODY -> {
-//            val containingClassStub = parentStub.parentStub as? CangJieClassifierStub
-//            if (containingClassStub != null && currentDeclaration !is CjEnumEntry) {
-//                containingClassStub.getClassId()?.createNestedClassId(currentDeclaration.nameAsSafeName)
-//            } else {
-//                null
-//            }
-//        }
+        parentStub is CangJiePlaceHolderStub<*> && parentStub.stubType == CjStubElementTypes.CLASS_BODY -> {
+            val containingClassStub = parentStub.parentStub as? CangJieClassifierStub
+            if (containingClassStub != null && currentDeclaration !is CjEnumEntry) {
+                containingClassStub.getClassId()?.createNestedClassId(currentDeclaration.nameAsSafeName)
+            } else {
+                null
+            }
+        }
         else -> null
     }
 }

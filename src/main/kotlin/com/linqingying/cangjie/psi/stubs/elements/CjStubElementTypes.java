@@ -75,15 +75,12 @@ CjPlaceHolderStubElementType<CjEnumBody> ENUM_BODY =
     CjPlaceHolderStubElementType<CjImportList> IMPORT_LIST =
             new CjPlaceHolderStubElementType<>("IMPORT_LIST", CjImportList.class);
 
-//    CjPlaceHolderStubElementType<CjFileAnnotationList> FILE_ANNOTATION_LIST =
-//            new CjPlaceHolderStubElementType<>("FILE_ANNOTATION_LIST", CjFileAnnotationList.class);
 
     CjImportDirectiveElementType IMPORT_DIRECTIVE = new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
 
     CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
 
-//    CjPlaceHolderStubElementType<CjPackageDirective> PACKAGE_DIRECTIVE =
-//            new CjPlaceHolderStubElementType<>("PACKAGE_DIRECTIVE", CjPackageDirective.class);
+
 CjPackageDirectiveElementType  PACKAGE_DIRECTIVE =
         new CjPackageDirectiveElementType("PACKAGE_DIRECTIVE" );
 
@@ -96,26 +93,21 @@ CjPackageDirectiveElementType  PACKAGE_DIRECTIVE =
     CjPlaceHolderStubElementType<CjTypeConstraint> TYPE_CONSTRAINT =
             new CjPlaceHolderStubElementType<>("TYPE_CONSTRAINT", CjTypeConstraint.class);
 
-//    CjPlaceHolderStubElementType<CjNullableType> NULLABLE_TYPE =
-//            new CjPlaceHolderStubElementType<>("NULLABLE_TYPE", CjNullableType.class);
-
-//    CjPlaceHolderStubElementType<CjIntersectionType> INTERSECTION_TYPE =
-//            new CjPlaceHolderStubElementType<>("INTERSECTION_TYPE", CjIntersectionType.class);
 CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
         new CjPlaceHolderStubElementType<>("OPTIONAL_TYPE", CjOptionType.class);
 
     CjPlaceHolderStubElementType<CjTypeReference> TYPE_REFERENCE =
             new CjPlaceHolderStubElementType<>("TYPE_REFERENCE", CjTypeReference.class);
-    CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
+
     CjPlaceHolderStubElementType<CjVArrayType> VARRAY_TYPE =
             new CjPlaceHolderStubElementType<>("VARRAY_TYPE", CjVArrayType.class);
+//    CjPlaceHolderStubElementType<CjBasicType> BASIC_TYPE =
+//            new CjPlaceHolderStubElementType<>("BASIC_TYPE", CjBasicType.class);
 
     CjPlaceHolderStubElementType<CjThisType> THIS_TYPE =
             new CjPlaceHolderStubElementType<>("THIS_TYPE", CjThisType.class);
 
     CjUserTypeElementType USER_TYPE = new CjUserTypeElementType("USER_TYPE");
-//    CjPlaceHolderStubElementType<CjDynamicType> DYNAMIC_TYPE =
-//            new CjPlaceHolderStubElementType<>("DYNAMIC_TYPE", CjDynamicType.class);
 
     CjPlaceHolderStubElementType<CjFunctionType> FUNCTION_TYPE =
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE", CjFunctionType.class);
@@ -125,13 +117,11 @@ CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
 
     CjPlaceHolderStubElementType<CjFunctionTypeReceiver> FUNCTION_TYPE_RECEIVER =
             new CjPlaceHolderStubElementType<>("FUNCTION_TYPE_RECEIVER", CjFunctionTypeReceiver.class);
+    CjNameBasicReferenceExpressionElementType BASIC_REFERENCE_EXPRESSION = new CjNameBasicReferenceExpressionElementType("BASIC_REFERENCE_EXPRESSION");
 
     CjNameReferenceExpressionElementType REFERENCE_EXPRESSION = new CjNameReferenceExpressionElementType("REFERENCE_EXPRESSION");
     CjDotQualifiedExpressionElementType DOT_QUALIFIED_EXPRESSION = new CjDotQualifiedExpressionElementType("DOT_QUALIFIED_EXPRESSION");
-//    CjEnumEntrySuperClassReferenceExpressionElementType
-//            ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION =
-//            new CjEnumEntrySuperClassReferenceExpressionElementType("ENUM_ENTRY_SUPERCLASS_REFERENCE_EXPRESSION");
-    CjPlaceHolderStubElementType<CjTypeArgumentList> TYPE_ARGUMENT_LIST =
+     CjPlaceHolderStubElementType<CjTypeArgumentList> TYPE_ARGUMENT_LIST =
             new CjPlaceHolderStubElementType<>("TYPE_ARGUMENT_LIST", CjTypeArgumentList.class);
 
     CjPlaceHolderStubElementType<CjValueArgumentList> VALUE_ARGUMENT_LIST =
@@ -139,12 +129,6 @@ CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
 
     CjValueArgumentElementType<CjValueArgument> VALUE_ARGUMENT =
             new CjValueArgumentElementType<>("VALUE_ARGUMENT", CjValueArgument.class);
-
-//    CjPlaceHolderStubElementType<CjContractEffectList> CONTRACT_EFFECT_LIST =
-//            new CjContractEffectListElementType("CONTRACT_EFFECT_LIST");
-
-//    CjContractEffectElementType CONTRACT_EFFECT =
-//            new CjContractEffectElementType("CONTRACT_EFFECT", CjContractEffect.class);
 
     CjValueArgumentElementType<CjLambdaArgument> LAMBDA_ARGUMENT =
             new CjValueArgumentElementType<>("LAMBDA_ARGUMENT", CjLambdaArgument.class);
@@ -155,11 +139,6 @@ CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
     CjPlaceHolderStubElementType<CjSuperTypeList> SUPER_TYPE_LIST =
             new CjPlaceHolderStubElementType<>("SUPER_TYPE_LIST", CjSuperTypeList.class);
 
-//    CjPlaceHolderStubElementType<CjInitializerList> INITIALIZER_LIST =
-//            new CjPlaceHolderStubElementType<>("INITIALIZER_LIST", CjInitializerList.class);
-
-//    CjPlaceHolderStubElementType<CjDelegatedSuperTypeEntry> DELEGATED_SUPER_TYPE_ENTRY =
-//            new CjPlaceHolderStubElementType<>("DELEGATED_SUPER_TYPE_ENTRY", CjDelegatedSuperTypeEntry.class);
 
     CjPlaceHolderStubElementType<CjSuperTypeCallEntry> SUPER_TYPE_CALL_ENTRY =
             new CjPlaceHolderStubElementType<>("SUPER_TYPE_CALL_ENTRY", CjSuperTypeCallEntry.class);
@@ -171,14 +150,10 @@ CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
     CjContextReceiverElementType CONTEXT_RECEIVER = new CjContextReceiverElementType("CONTEXT_RECEIVER");
     CjPlaceHolderStubElementType<CjContextReceiverList> CONTEXT_RECEIVER_LIST =
             new CjPlaceHolderStubElementType<>("CONTEXT_RECEIVER_LIST", CjContextReceiverList.class);
-
-//    CjConstantExpressionElementType NULL                = new CjConstantExpressionElementType("NULL");
-    CjConstantExpressionElementType BOOLEAN_CONSTANT    = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
+     CjConstantExpressionElementType BOOLEAN_CONSTANT    = new CjConstantExpressionElementType("BOOLEAN_CONSTANT");
     CjConstantExpressionElementType FLOAT_CONSTANT      = new CjConstantExpressionElementType("FLOAT_CONSTANT");
-//    CjConstantExpressionElementType CHARACTER_CONSTANT  = new CjConstantExpressionElementType("CHARACTER_CONSTANT");
-    CjConstantExpressionElementType INTEGER_CONSTANT    = new CjConstantExpressionElementType("INTEGER_CONSTANT");
-//    CjClassLiteralExpressionElementType CLASS_LITERAL_EXPRESSION = new CjClassLiteralExpressionElementType("CLASS_LITERAL_EXPRESSION");
-CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementType("RUNE_CONSTANT");
+     CjConstantExpressionElementType INTEGER_CONSTANT    = new CjConstantExpressionElementType("INTEGER_CONSTANT");
+ CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementType("RUNE_CONSTANT");
     CjConstantExpressionElementType UNIT_CONSTANT = new CjConstantExpressionElementType("UNIT_CONSTANT");
 
 
@@ -206,8 +181,6 @@ CjConstantExpressionElementType RUNE_CONSTANT = new CjConstantExpressionElementT
     CjMacroExpressionElementType MACRO_EXPRESSION = new CjMacroExpressionElementType("MACRO_EXPRESSION");
 
 
-    //    CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
-//            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
 
     CjConstantExpressionElementType CHARACTER_BYTE_CONSTANT = new CjConstantExpressionElementType("CHARACTER_BYTE_CONSTANT");
 

@@ -48,25 +48,17 @@ interface CangJieFile
 
 open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = false) :
     PsiFileBase(viewProvider, CangJieLanguage),
-//    PsiClassOwner,
+
     PsiNamedElement,
-//    PsiModifiableCodeBlock,
+
     CjDeclarationContainer,
     CjElement, CangJieFile {
     override fun getFileType(): FileType = CangJieFileType.INSTANCE
-//    override fun getClasses(): Array<PsiClass> {
-//        val fileClassProvider = project.getService(CjFileClassProvider::class.java)
-//        return fileClassProvider?.getFileClasses(this) ?: PsiClass.EMPTY_ARRAY
-//    }
 
-    //    override fun getPackageName(): String    = packageFqName.asString()
-//    override fun setPackageName(packageName: String?) {
-////        TODO("更改包名  完全限定名")
-//    }
     @Volatile
     private var pathCached: String? = null
 
-    //    override fun shouldChangeModificationCount(place: PsiElement?): Boolean = false
+
     override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
         CjPsiUtil.visitChildren(this, visitor, data)
     }
@@ -140,30 +132,6 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 
     @Volatile
     private var forcedCachedData: (() -> CachedData)? = null
-//    private val cachedData: CachedData
-//        get() {
-//            forcedCachedData?.let { return it() }
-//
-//            val originalFile = originalFile
-//            if (originalFile != this) {
-//                return (originalFile as? CjFile)?.cachedData
-//                    ?: CachedData(crate = FakeInvalidCrate(project))
-//            }
-//
-//            val key = CACHED_DATA_KEY
-//            return CachedValuesManager.getCachedValue(this, key) {
-//                val value = doGetCachedData()
-//                // Note: if the cached result is invalidated, then the cached result from `memExpansionResult`
-//                // must also be invalidated, so keep them in sync
-//                val modificationTracker: Any = when {
-//                    /** See [rustStructureOrAnyPsiModificationTracker] */
-//                    virtualFile is VirtualFileWindow -> PsiModificationTracker.MODIFICATION_COUNT
-//                    value.crate.origin == PackageOrigin.WORKSPACE -> project.rustStructureModificationTracker
-//                    else -> project.rustPsiManager.rustStructureModificationTrackerInDependencies
-//                }
-//                CachedValueProvider.Result(value, modificationTracker)
-//            }
-//        }
 
     override fun getPsiOrParent(): CjElement = this
     open val importDirectives: List<CjImportDirective>

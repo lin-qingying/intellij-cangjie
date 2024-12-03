@@ -169,6 +169,9 @@ interface CangJieTypeParameterStub : CangJieStubWithFqName<CjTypeParameter> {
 //    fun isInVariance(): Boolean
 
 }
+interface CangJieNameBasicReferenceExpressionStub : StubElement<CjNameBasicReferenceExpression> {
+    fun getReferencedName(): String
+}
 
 interface CangJieNameReferenceExpressionStub : StubElement<CjNameReferenceExpression> {
     fun getReferencedName(): String

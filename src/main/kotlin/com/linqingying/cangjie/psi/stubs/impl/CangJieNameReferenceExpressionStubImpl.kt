@@ -21,48 +21,65 @@
  * any damages or issues arising from its use.
  *
  */
+package com.linqingying.cangjie.psi.stubs.impl
 
-package com.linqingying.cangjie.psi.stubs.impl;
+import com.intellij.psi.stubs.StubElement
+import com.intellij.util.io.StringRef
+import com.linqingying.cangjie.psi.CjNameBasicReferenceExpression
+import com.linqingying.cangjie.psi.CjNameReferenceExpression
+import com.linqingying.cangjie.psi.stubs.CangJieNameBasicReferenceExpressionStub
+import com.linqingying.cangjie.psi.stubs.CangJieNameReferenceExpressionStub
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
-import com.linqingying.cangjie.psi.CjNameReferenceExpression;
-import com.linqingying.cangjie.psi.stubs.CangJieNameReferenceExpressionStub;
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.intellij.psi.stubs.StubElement;
-import com.intellij.util.io.StringRef;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+class CangJieNameReferenceExpressionStubImpl : CangJieStubBaseImpl<CjNameReferenceExpression>,
+    CangJieNameReferenceExpressionStub {
+    private val referencedName: StringRef
+    val isClassRef: Boolean
 
-
-
-public class CangJieNameReferenceExpressionStubImpl extends CangJieStubBaseImpl<CjNameReferenceExpression> implements
-        CangJieNameReferenceExpressionStub {
-    @NotNull
-    private final StringRef referencedName;
-    private final boolean myClassRef;
-
-    public CangJieNameReferenceExpressionStubImpl(StubElement parent, @NotNull StringRef referencedName) {
-        super(parent, CjStubElementTypes.REFERENCE_EXPRESSION);
-        this.referencedName = referencedName;
-        myClassRef = false;
-    }
-
-    public CangJieNameReferenceExpressionStubImpl(
-            @Nullable StubElement<?> parent,
-            @NotNull StringRef referencedName,
-            boolean myClassRef
+    constructor(parent: StubElement<*>?, referencedName: StringRef) : super(
+        parent,
+        CjStubElementTypes.REFERENCE_EXPRESSION
     ) {
-        super(parent, CjStubElementTypes.REFERENCE_EXPRESSION);
-        this.referencedName = referencedName;
-        this.myClassRef = myClassRef;
+        this.referencedName = referencedName
+        isClassRef = false
     }
 
-    public boolean isClassRef() {
-        return myClassRef;
+    constructor(
+        parent: StubElement<*>?,
+        referencedName: StringRef,
+        myClassRef: Boolean
+    ) : super(parent, CjStubElementTypes.REFERENCE_EXPRESSION) {
+        this.referencedName = referencedName
+        this.isClassRef = myClassRef
     }
 
-    @NotNull
-    @Override
-    public String getReferencedName() {
-        return referencedName.getString();
+    override fun getReferencedName(): String {
+        return referencedName.string
+    }
+}
+class CangJieNameBasicReferenceExpressionStubImpl : CangJieStubBaseImpl<CjNameBasicReferenceExpression>,
+    CangJieNameBasicReferenceExpressionStub {
+    private val referencedName: StringRef
+    val isClassRef: Boolean
+
+    constructor(parent: StubElement<*>?, referencedName: StringRef) : super(
+        parent,
+        CjStubElementTypes.BASIC_REFERENCE_EXPRESSION
+    ) {
+        this.referencedName = referencedName
+        isClassRef = false
+    }
+
+    constructor(
+        parent: StubElement<*>?,
+        referencedName: StringRef,
+        myClassRef: Boolean
+    ) : super(parent, CjStubElementTypes.BASIC_REFERENCE_EXPRESSION) {
+        this.referencedName = referencedName
+        this.isClassRef = myClassRef
+    }
+
+    override fun getReferencedName(): String {
+        return referencedName.string
     }
 }
