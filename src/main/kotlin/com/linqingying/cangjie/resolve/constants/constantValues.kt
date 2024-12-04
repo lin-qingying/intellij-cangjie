@@ -30,6 +30,7 @@ import com.linqingying.cangjie.descriptors.ModuleDescriptor
 import com.linqingying.cangjie.descriptors.annotations.AnnotationArgumentVisitor
 import com.linqingying.cangjie.descriptors.findClassAcrossModuleDependencies
 import com.linqingying.cangjie.name.ClassId
+import com.linqingying.cangjie.parsing.Float16
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.ErrorUtils
 import com.linqingying.cangjie.types.error.ErrorTypeKind
@@ -163,7 +164,7 @@ class RuneValue(value: Rune) : IntegerValueConstant<Rune>(value) {
                 t != Character.SURROGATE
     }
 }
-class Float16Value(value: Float32) : ConstantValue<Float32>(value) {
+class Float16Value(value: Float16) : ConstantValue<Float16>(value) {
     override fun getType(module: ModuleDescriptor) = module.builtIns.float32Type
 
     override fun <R, D> accept(visitor: AnnotationArgumentVisitor<R, D>, data: D) =

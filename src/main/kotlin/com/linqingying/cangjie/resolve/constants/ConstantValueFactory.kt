@@ -26,6 +26,7 @@ package com.linqingying.cangjie.resolve.constants
 
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.descriptors.ModuleDescriptor
+import com.linqingying.cangjie.parsing.Float16
 import com.linqingying.cangjie.types.CangJieType
 
 typealias Float64 = Double
@@ -59,7 +60,8 @@ object ConstantValueFactory {
             is Rune -> RuneValue(value)
 
 
-//            FLoat16
+            is Float16 -> Float16Value(value )
+
             is Float32 -> Float32Value(value)
             is Float64 -> Float64Value(value)
             is Bool -> BoolValue(value)
@@ -114,6 +116,8 @@ object ConstantValueFactory {
         }
     }
 }
+
+
 
 fun Byte.fromUInt8ToLong(): Long = this.toLong() and 0xFF
 fun Short.fromUInt16ToLong(): Long = this.toLong() and 0xFFFF

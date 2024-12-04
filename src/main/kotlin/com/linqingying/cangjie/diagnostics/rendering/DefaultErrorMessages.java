@@ -1023,6 +1023,10 @@ public class DefaultErrorMessages {
             // "Type parameters must be placed before the name of the function"
             return CangJieDiagnosisBundle.rawMessage(TUPLE_INDEX_OUT_OF_RANGE);
         });
+        MAP.put(FLOAT_LITERAL_CONFORMS_INFINITY, () -> {
+            // "Floating point number conforms to infinity"
+            return CangJieDiagnosisBundle.rawMessage(FLOAT_LITERAL_CONFORMS_INFINITY);
+        });
         MAP.put(
                 RECEIVER_TYPE_MISMATCH, () -> {
 //                                    "Constraint error in receiver type argument: inferred type is {1} but {0} was expected"

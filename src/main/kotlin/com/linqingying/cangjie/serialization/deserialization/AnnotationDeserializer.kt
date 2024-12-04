@@ -39,6 +39,7 @@ import com.linqingying.cangjie.metadata.ProtoBuf.Annotation
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.metadata.ProtoBuf.Annotation.Argument.Value.Type
 import com.linqingying.cangjie.metadata.deserialization.Flags
+import com.linqingying.cangjie.parsing.Float16
 import com.linqingying.cangjie.resolve.constants.*
 
 class AnnotationDeserializer(private val module: ModuleDescriptor, private val notFoundClasses: NotFoundClasses)
@@ -61,7 +62,7 @@ class AnnotationDeserializer(private val module: ModuleDescriptor, private val n
             Type.INT16 -> value.intValue.toShort().letIf(isUnsigned, ::UInt16Value, ::Int16Value)
             Type.INT32 -> value.intValue.toInt().letIf(isUnsigned, ::UInt32Value, ::Int32Value)
             Type.INT64 -> value.intValue.letIf(isUnsigned, ::UInt64Value, ::Int64Value)
-            Type.FLOAT16 -> Float16Value(value.floatValue)
+            Type.FLOAT16 -> Float16Value(Float16.fromFloat(value.floatValue))
             Type.FLOAT32 -> Float32Value(value.floatValue)
             Type.FLOAT64 -> Float64Value(value.doubleValue)
 

@@ -52,9 +52,9 @@ object AbstractTypeChecker {
         if (supertypes.size < 2) return supertypes
 
         val allPureSupertypes = supertypes.filter {
-            it.asArgumentList().all(this) { it.getType().asFlexibleType() == null }
+            it.asArgumentList().all(this) { argumentMarker -> argumentMarker.getType().asFlexibleType() == null }
         }
-        return if (allPureSupertypes.isNotEmpty()) allPureSupertypes else supertypes
+        return allPureSupertypes.ifEmpty { supertypes }
     }
 
     /**
@@ -225,7 +225,7 @@ object AbstractTypeChecker {
         // both not INVARIANT
         if (declared == useSite) return declared
 
-        // composite In with Out
+
         return null
     }
 
@@ -288,7 +288,7 @@ object AbstractTypeChecker {
             }
         }
 
-    fun checkOptionType(
+    private fun checkOptionType(
         state: TypeCheckerState,
         subType: SimpleTypeMarker,
         superType: SimpleTypeMarker
@@ -388,7 +388,8 @@ object AbstractTypeChecker {
                 for (index in 0 until superConstructor.parametersCount()) {
 
                     val allProjections = supertypesWithSameConstructor.map {
-                        it.getArgumentOrNull(index)?.takeIf { it.getVariance() == TypeVariance.INV }?.getType()
+                        it.getArgumentOrNull(index)
+                            ?.takeIf { argumentMarker -> argumentMarker.getVariance() == TypeVariance.INV }?.getType()
                             ?: error("Incorrect type: $it, subType: $subType, superType: $superType")
                     }
 
@@ -409,7 +410,7 @@ object AbstractTypeChecker {
 
     }
 
-    fun TypeCheckerState.isSubtypeForSameConstructor(
+    private fun TypeCheckerState.isSubtypeForSameConstructor(
         capturedSubArguments: TypeArgumentListMarker,
         superType: SimpleTypeMarker
     ): Boolean = with(this.typeSystemContext) {
@@ -418,8 +419,8 @@ object AbstractTypeChecker {
 
         val superTypeConstructor = superType.typeConstructor()
 
-        // Sometimes we can get two classes from different modules with different counts of type parameters
-        // So for such situations we assume that those types are not sub type of each other
+        // 有时我们可能会从不同的模块中获取两个具有不同数量类型参数的类
+        // 因此在这样的情况下，我们假设这些类型彼此之间不是子类型
         val argumentsCount = capturedSubArguments.size()
         val parametersCount = superTypeConstructor.parametersCount()
         if (argumentsCount != parametersCount || argumentsCount != superType.argumentsCount()) {
@@ -454,11 +455,11 @@ object AbstractTypeChecker {
             } else false
 
             /*
-             * We don't check subtyping between types like CapturedType(*) and TypeVariable(E) if the corresponding type parameter forms self type, for instance, Enum<E: Enum<E>>.
-             * It can return false and produce unwanted constraints like UPPER(Nothing) (by CapturedType(*) <:> TypeVariable(E)) in the type inference context
-             * due to approximation captured types.
-             * Instead this type check we move on self-type level anyway: checking CapturedType(out Enum<*>) against TypeVariable(E).
-             * This subtyping can already be successful and not add unwanted constraints in the type inference context.
+             * 我们不检查像 CapturedType(*) 和 TypeVariable(E) 之间的子类型关系，如果相应的类型参数形成自类型，例如 Enum<E: Enum<E>>。
+             * 这种检查可能会返回 false 并在类型推断上下文中产生不必要的约束，例如 UPPER(Nothing)（由 CapturedType(*) <: TypeVariable(E) 引起），
+             * 这是由于捕获类型的近似导致的。
+             * 相反，我们无论如何都会移动到自类型级别：检查 CapturedType(out Enum<*>) 与 TypeVariable(E)。
+             * 这种子类型关系已经可以成功并且不会在类型推断上下文中添加不必要的约束。
              */
             if (isTypeVariableAgainstStarProjectionForSelfType)
                 continue
@@ -557,8 +558,10 @@ object AbstractTypeChecker {
             superType.isOptionType -> {
 
                 if ((superType.optionOriginalType as? SimpleTypeMarker)?.let {
-                        isTypeInIntegerLiteralType(subType,
-                            it, checkSupertypes = false)
+                        isTypeInIntegerLiteralType(
+                            subType,
+                            it, checkSupertypes = false
+                        )
                     } == true) {
                     return true
                 }
@@ -569,7 +572,6 @@ object AbstractTypeChecker {
                     return true
                 }
             }
-
 
 
             // 如果父类型是整数字面量类型，并且子类型包含在交集类型组件中或在父类型的可能整数类型中，则子类型关系成立
@@ -661,21 +663,24 @@ open class TypeCheckerState(
         return result
     }
 
-    // Handling cases like A<Int> & A<T> <: A<F_var>
-    // There are two possible solutions for F_var (Int and T) and both of them may work well or not with other constrains
-    // Effectively, we need to fork constraint system to two copies: one with F_var=Int and the other with F_var=T
-    // and then maintain them both until we find some contradiction with one of the versions.
-    //
-    // But that might lead to the exponential size of CS, thus we use the following heuristics:
-    // we accumulate forks data until the last stage of the candidate resolution and then try to apply back then
-    // until some of the constrains set has no contradiction.
-    //
-    // `atForkPoint` works trivially in non-inference context and for FE1.0: it just run basic subtyping mechanism for each subTypeArguments
-    // component until the first success
+    /**
+     * 处理类似 A<Int> & A<T> <: A<F_var> 的情况
+     * 对于 F_var 有两种可能的解决方案（Int 和 T），这两种方案都可能与其他约束一起有效或无效
+     * 实际上，我们需要将约束系统分成两个副本：一个设置 F_var=Int，另一个设置 F_var=T
+     * 然后同时维护这两个副本，直到发现其中一个版本存在矛盾。
+     *
+     * 但这可能导致约束系统的指数级增长，因此我们使用以下启发式方法：
+     * 我们累积分叉数据，直到候选解析的最后阶段，然后尝试回溯应用这些分叉
+     * 直到某个约束集没有矛盾为止。
+     *
+     * `atForkPoint` 在非推断上下文和 FE1.0 中工作简单：它只是为每个子类型参数组件运行基本的子类型机制
+     * 直到第一次成功
+     */
     open fun runForkingPoint(block: ForkPointContext.() -> Unit): Boolean = with(ForkPointContext.Default()) {
         block()
         result
     }
+
 
     interface ForkPointContext {
         fun fork(block: () -> Boolean)
@@ -692,17 +697,17 @@ open class TypeCheckerState(
     sealed class SupertypesPolicy {
         abstract fun transformType(state: TypeCheckerState, type: CangJieTypeMarker): SimpleTypeMarker
 
-        object None : SupertypesPolicy() {
+        data object None : SupertypesPolicy() {
             override fun transformType(state: TypeCheckerState, type: CangJieTypeMarker) =
                 throw UnsupportedOperationException("Should not be called")
         }
 
-        object UpperIfFlexible : SupertypesPolicy() {
+        data object UpperIfFlexible : SupertypesPolicy() {
             override fun transformType(state: TypeCheckerState, type: CangJieTypeMarker) =
                 with(state.typeSystemContext) { type.upperBoundIfFlexible() }
         }
 
-        object LowerIfFlexible : SupertypesPolicy() {
+        data object LowerIfFlexible : SupertypesPolicy() {
             override fun transformType(state: TypeCheckerState, type: CangJieTypeMarker) =
                 with(state.typeSystemContext) { type.lowerBoundIfFlexible() }
         }
@@ -842,16 +847,16 @@ object AbstractNullabilityChecker {
             // 如果子类型是捕获类型且投影是非空的，直接返回 true
             if (subType is CapturedTypeMarker && subType.isProjectionNotNull()) return true
 
-            // 如果子类型有非空的超类型，直接返回 true
+            // 如果子类型有非空地超类型，直接返回 true
             if (state.hasNotNullSupertype(subType, TypeCheckerState.SupertypesPolicy.LowerIfFlexible)) return true
 
-            // 如果子类型没有非空的超类型且不是肯定非空的，但超类型肯定是非空的，直接返回 false
+            // 如果子类型没有非空地超类型且不是肯定非空的，但超类型肯定是非空的，直接返回 false
             if (superType.isDefinitelyNotNullType()) return false
 
-            // 如果子类型没有非空的超类型，但超类型有非空的超类型，直接返回 false
+            // 如果子类型没有非空地超类型，但超类型有非空地超类型，直接返回 false
             if (state.hasNotNullSupertype(superType, TypeCheckerState.SupertypesPolicy.UpperIfFlexible)) return false
 
-            // 如果子类型和超类型都没有非空的超类型且都不是肯定非空的
+            // 如果子类型和超类型都没有非空地超类型且都不是肯定非空的
 
             /**
              * 如果我们仍然不确定，这意味着超类型不是类类型，例如——类型参数。
@@ -910,11 +915,29 @@ object AbstractNullabilityChecker {
             }
         }
 
-    fun hasPathByNotMarkedNullableNodes(state: TypeCheckerState, start: SimpleTypeMarker, end: TypeConstructorMarker) =
+    /**
+     * 检查是否存在一条通过未标记为可空的节点的路径
+     * 此函数用于在类型检查过程中，判断从一个简单类型到一个类型构造器是否存在一条路径，
+     * 该路径仅通过那些未被标记为可空的类型节点此方法主要用于避免在类型推断时，
+     * 通过可空类型的路径，以确保类型安全性
+     *
+     * @param state 类型检查的状态，包含类型检查过程中的上下文信息
+     * @param start 路径的起始点，表示一个简单类型
+     * @param end 路径的终点，表示一个类型构造器
+     * @return 如果存在一条通过未标记为可空的节点的路径，则返回true；否则返回false
+     */
+    private fun hasPathByNotMarkedNullableNodes(
+        state: TypeCheckerState,
+        start: SimpleTypeMarker,
+        end: TypeConstructorMarker
+    ) =
         with(state.typeSystemContext) {
+            // 遍历起始类型的所用超类型，寻找符合条件的路径
             state.anySupertype(
                 start,
+                // 判断当前超类型是否符合路径终点的条件
                 { isApplicableAsEndNode(state, it, end) },
+                // 确定处理超类型的策略：如果类型被标记为可空，则不进一步遍历其超类型
                 { if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
             )
         }

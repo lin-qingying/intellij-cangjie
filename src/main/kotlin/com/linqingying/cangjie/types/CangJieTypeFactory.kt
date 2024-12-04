@@ -30,6 +30,7 @@ import com.linqingying.cangjie.descriptors.TypeParameterDescriptor
 import com.linqingying.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.linqingying.cangjie.descriptors.impl.getRefinedMemberScopeIfPossible
 import com.linqingying.cangjie.descriptors.impl.getRefinedUnsubstitutedMemberScopeIfPossible
+import com.linqingying.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import com.linqingying.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.linqingying.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
 import com.linqingying.cangjie.resolve.descriptorUtil.module
@@ -55,6 +56,22 @@ object CangJieTypeFactory {
             descriptor.basicTypeMemberScope
         )
     }
+    @JvmStatic
+    fun floatLiteralType(
+        attributes: TypeAttributes,
+        constructor: FloatLiteralTypeConstructor,
+        nullable: Boolean
+    ): SimpleType = simpleTypeWithNonTrivialMemberScope(
+        attributes,
+        constructor,
+        emptyList(),
+        nullable,
+        ErrorUtils.createErrorScope(
+            ErrorScopeKind.FLOAT_LITERAL_TYPE_SCOPE,
+            throwExceptions = true,
+            "unknown float literal type"
+        )
+    )
 
     @JvmStatic
     fun integerLiteralType(

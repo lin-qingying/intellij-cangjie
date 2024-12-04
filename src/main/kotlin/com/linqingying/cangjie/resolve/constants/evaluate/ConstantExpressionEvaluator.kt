@@ -25,9 +25,10 @@
 package com.linqingying.cangjie.resolve.constants.evaluate
 
 
+import com.intellij.openapi.project.Project
+import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.CjNodeTypes
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
-import com.linqingying.cangjie.builtins.StandardNames
 import com.linqingying.cangjie.builtins.UnsignedTypes
 import com.linqingying.cangjie.config.LanguageFeature
 import com.linqingying.cangjie.config.LanguageVersionSettings
@@ -56,8 +57,6 @@ import com.linqingying.cangjie.types.util.isGenericArrayOfTypeParameter
 import com.linqingying.cangjie.types.util.isSubtypeOf
 import com.linqingying.cangjie.utils.OperatorNameConventions
 import com.linqingying.cangjie.utils.exceptions.OperatorConventions
-import com.intellij.openapi.project.Project
-import com.intellij.psi.util.PsiTreeUtil
 import java.math.BigInteger
 
 
@@ -208,8 +207,6 @@ private class ConstantExpressionEvaluatorVisitor(
         val text = expression.text ?: return null
         val nodeElementType = expression.node.elementType
 
-        //        if (nodeElementType == CjNodeTypes.NULL) return NullValue().wrap()
-//
         var result: Any = when (nodeElementType) {
             CjNodeTypes.INTEGER_CONSTANT, CjNodeTypes.FLOAT_CONSTANT -> parseNumericLiteral(text, nodeElementType)
             CjNodeTypes.BOOLEAN_CONSTANT -> parseBoolean(text)
@@ -223,7 +220,7 @@ private class ConstantExpressionEvaluatorVisitor(
                 when (expectedType.typeName.toString()) {
                     "Float64" -> result = result.toDouble()
                     "Float32" -> result = result.toFloat()
-//               "Float16" -> result = result.toFloat16()
+                    "Float16" -> result = result.toFloat()
                 }
             }
         }
@@ -258,22 +255,22 @@ private class ConstantExpressionEvaluatorVisitor(
                 trace.report(Errors.FLOAT_LITERAL_CONFORMS_ZERO.on(expression))
             }
         }
-//
-//        if (result is Float16) {
-//            if (result.isInfinite()) {
-//                trace.report(Errors.FLOAT_LITERAL_CONFORMS_INFINITY.on(expression))
-//            }
-//            if (result == 0.0f && !TypeConversionUtil.isFPZero(text)) {
-//                trace.report(Errors.FLOAT_LITERAL_CONFORMS_ZERO.on(expression))
-//            }
-//        }
-//
+
+        if (result is Float16) {
+            if (result.isInfinite()) {
+                trace.report(Errors.FLOAT_LITERAL_CONFORMS_INFINITY.on(expression))
+            }
+            if (result.toFloat() == 0.0f && !TypeConversionUtil.isFPZero(text)) {
+                trace.report(Errors.FLOAT_LITERAL_CONFORMS_ZERO.on(expression))
+            }
+        }
+
         val isIntegerConstant = nodeElementType == CjNodeTypes.INTEGER_CONSTANT
         val isUint64 =
             isIntegerConstant && hasUnsignedInt64Suffix(text) || expectedType?.let { CangJieBuiltIns.isUInt64(it) } == true
         val isUnsigned =
             isUint64 || hasUnsignedSuffix(text) || expectedType?.let { CangJieBuiltIns.isUnsignedNumber(it) } == true
-        val isTyped = isUnsigned || hasInt64Suffix(text)
+        val isTyped = isUnsigned || hasIntegerSuffix(text)
 //
         return createConstant(
             result,
@@ -685,7 +682,7 @@ private class ConstantExpressionEvaluatorVisitor(
 
         val sb = StringBuilder()
         var interupted = false
-        var canBeUsedInAnnotation = true
+        val canBeUsedInAnnotation = true
         var usesVariableAsConstant = false
         var usesNonConstantVariableAsConstant = false
         for (entry in expression.entries) {
@@ -760,7 +757,7 @@ private fun getReceiverExpressionType(resolvedCall: ResolvedCall<*>): CangJieTyp
         ExplicitReceiverKind.EXTENSION_RECEIVER -> resolvedCall.extensionReceiver!!.type
         ExplicitReceiverKind.NO_EXPLICIT_RECEIVER -> null
         ExplicitReceiverKind.BOTH_RECEIVERS -> null
-        else -> null
+         
     }
 }
 
@@ -771,7 +768,10 @@ private fun evaluateUnaryAndCheck(
     reportIntegerOverflow: () -> Unit
 ): Any? =
     evalUnaryOp(name, type, value).also { result ->
-        if (isIntegerType(value) && (name == "*operator_minus" || name == "*operator_unaryMinus") && value == result && !isZero(value)) {
+        if (isIntegerType(value) && (name == "*operator_minus" || name == "*operator_unaryMinus") && value == result && !isZero(
+                value
+            )
+        ) {
             reportIntegerOverflow()
         }
     }
@@ -826,7 +826,7 @@ private fun createCompileTimeConstantForEquals(result: Any?, operationReference:
                 CjTokens.EQEQ -> result
                 CjTokens.EXCLEQ -> !result
                 CjTokens.IDENTIFIER -> {
-                    assert(operationReference.referencedNameAsName  == OperatorNameConventions.EQUALS) { "This method should be called only for equals operations" }
+                    assert(operationReference.referencedNameAsName == OperatorNameConventions.EQUALS) { "This method should be called only for equals operations" }
                     result
                 }
 

@@ -28,6 +28,8 @@ enum class ErrorScopeKind(val debugMessage: String) {
     /* Special type scopes */
     CAPTURED_TYPE_SCOPE("No member resolution should be done on captured type, it used only during constraint system resolution"),
     INTEGER_LITERAL_TYPE_SCOPE("Scope for integer literal type (%s)"),
+   FLOAT_LITERAL_TYPE_SCOPE("Scope for float literal type (%s)"),
+
     ERASED_RECEIVER_TYPE_SCOPE("Error scope for erased receiver type"),
     SCOPE_FOR_ABBREVIATION_TYPE("Scope for abbreviation %s"),
     STUB_TYPE_SCOPE("Scope for stub type %s"),
