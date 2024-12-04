@@ -218,9 +218,9 @@ private class ConstantExpressionEvaluatorVisitor(
         if (!hasFloatSuffix(text) && nodeElementType == CjNodeTypes.FLOAT_CONSTANT) {
             if (expectedType is BasicType && result is Number) {
                 when (expectedType.typeName.toString()) {
-                    "Float64" -> result = result.toDouble()
-                    "Float32" -> result = result.toFloat()
-                    "Float16" -> result = result.toFloat()
+//                    "Float64" -> result = result.toDouble()
+//                    "Float32" -> result = result.toFloat()
+                    "Float16" -> result = result.toFloat16()
                 }
             }
         }
@@ -270,7 +270,7 @@ private class ConstantExpressionEvaluatorVisitor(
             isIntegerConstant && hasUnsignedInt64Suffix(text) || expectedType?.let { CangJieBuiltIns.isUInt64(it) } == true
         val isUnsigned =
             isUint64 || hasUnsignedSuffix(text) || expectedType?.let { CangJieBuiltIns.isUnsignedNumber(it) } == true
-        val isTyped = isUnsigned || hasIntegerSuffix(text)
+        val isTyped = isUnsigned || hasIntegerSuffix(text) || hasFloatSuffix(text)
 //
         return createConstant(
             result,
@@ -299,6 +299,32 @@ private class ConstantExpressionEvaluatorVisitor(
         } else {
             ConstantValueFactory.createConstantValue(value)?.wrap(parameters)
         }
+    }
+    private fun createFloatCompileTimeConstant(
+        value: Double,
+        parameters: CompileTimeConstant.Parameters,
+        expectedType: CangJieType
+    ): CompileTimeConstant<*> {
+
+
+
+
+        if (TypeUtils.noExpectedType(expectedType) || expectedType.isError) {
+            return createFloatValueTypeConstant(
+                value,
+                constantExpressionEvaluator.module,
+                parameters,
+                languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+            )
+        }
+        val floatValue = ConstantValueFactory.createFloatConstantValue(
+            value, expectedType
+        )
+        if (floatValue != null) {
+            return floatValue.wrap(parameters)
+        }
+
+        return value.createSimpleFloatCompileTimeConst(parameters)
     }
 
 
@@ -330,7 +356,20 @@ private class ConstantExpressionEvaluatorVisitor(
 
         return value.createSimpleIntCompileTimeConst(parameters)
     }
+    private fun Double.createSimpleFloatCompileTimeConst(parameters: CompileTimeConstant.Parameters): TypedCompileTimeConstant<*> {
+        val value = this
 
+         return   when (value) {
+                value -> Float64Value(value)
+//                value.toInt().toLong() -> Int32Value(value.toInt())
+//                value.toShort().toLong() -> Int16Value(value.toShort())
+//                value.toByte().toLong() -> Int8Value(value.toByte())
+
+                else -> Float64Value(value)
+            }
+        .wrap(parameters)
+
+    }
     private fun Long.createSimpleIntCompileTimeConst(parameters: CompileTimeConstant.Parameters): TypedCompileTimeConstant<*> {
         val value = this
         return if (parameters.isUnsignedNumberLiteral) {
@@ -578,6 +617,11 @@ private class ConstantExpressionEvaluatorVisitor(
                 parameters,
                 expectedType
             )
+            is Float16, is Float32, is Float64  -> createFloatCompileTimeConstant(
+                (value as Number).toDouble(),
+                parameters,
+                expectedType
+            )
 
             else -> ConstantValueFactory.createConstantValue(value)?.wrap(parameters)
         }
@@ -757,7 +801,7 @@ private fun getReceiverExpressionType(resolvedCall: ResolvedCall<*>): CangJieTyp
         ExplicitReceiverKind.EXTENSION_RECEIVER -> resolvedCall.extensionReceiver!!.type
         ExplicitReceiverKind.NO_EXPLICIT_RECEIVER -> null
         ExplicitReceiverKind.BOTH_RECEIVERS -> null
-         
+
     }
 }
 

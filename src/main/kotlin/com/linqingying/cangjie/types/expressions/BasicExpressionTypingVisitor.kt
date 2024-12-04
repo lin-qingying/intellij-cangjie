@@ -79,6 +79,7 @@ import com.linqingying.cangjie.resolve.calls.tasks.TracingStrategy
 import com.linqingying.cangjie.resolve.calls.util.CallMaker
 import com.linqingying.cangjie.resolve.calls.util.CallMaker.makeCall
 import com.linqingying.cangjie.resolve.constants.CompileTimeConstantChecker
+import com.linqingying.cangjie.resolve.constants.FloatValueTypeConstant
 import com.linqingying.cangjie.resolve.constants.IntegerValueTypeConstant
 import com.linqingying.cangjie.resolve.constants.TypedCompileTimeConstant
 import com.linqingying.cangjie.resolve.constants.UnsignedErrorValueTypeConstant
@@ -1159,7 +1160,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             context.trace.report(UNSIGNED_LITERAL_WITHOUT_DECLARATIONS_ON_CLASSPATH.on(expression))
 
             return createTypeInfo(value.getType(components.moduleDescriptor), context)
-        } else if (compileTimeConstant !is IntegerValueTypeConstant) {
+        } else if (compileTimeConstant !is IntegerValueTypeConstant && compileTimeConstant !is FloatValueTypeConstant) {
             val constantChecker = CompileTimeConstantChecker(context, components.moduleDescriptor, false)
             val constantValue =
                 if (compileTimeConstant != null) (compileTimeConstant as TypedCompileTimeConstant<*>).constantValue else null

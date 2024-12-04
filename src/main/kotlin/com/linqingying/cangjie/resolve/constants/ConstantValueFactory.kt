@@ -42,7 +42,9 @@ typealias UInt8 = UByte
 typealias Rune = Char
 
 typealias Bool = Boolean
-
+fun Number.toFloat16():Float16{
+return Float16.fromFloat( toFloat())
+}
 object ConstantValueFactory {
 
     fun createConstantValue(value: Any?, module: ModuleDescriptor? = null): ConstantValue<*>? {
@@ -60,7 +62,7 @@ object ConstantValueFactory {
             is Rune -> RuneValue(value)
 
 
-            is Float16 -> Float16Value(value )
+            is Float16 -> Float16Value(value)
 
             is Float32 -> Float32Value(value)
             is Float64 -> Float64Value(value)
@@ -68,17 +70,32 @@ object ConstantValueFactory {
             is String -> StringValue(value)
 
             is Unit -> UnitValue
-//            is ByteArray -> createArrayValue(value.toList(), module, PrimitiveType.BYTE)
-//            is ShortArray -> createArrayValue(value.toList(), module, PrimitiveType.SHORT)
-//            is IntArray -> createArrayValue(value.toList(), module, PrimitiveType.INT)
-//            is LongArray -> createArrayValue(value.toList(), module, PrimitiveType.LONG)
-//            is CharArray -> createArrayValue(value.toList(), module, PrimitiveType.CHAR)
-//            is FloatArray -> createArrayValue(value.toList(), module, PrimitiveType.FLOAT)
-//            is DoubleArray -> createArrayValue(value.toList(), module, PrimitiveType.DOUBLE)
-//            is BooleanArray -> createArrayValue(value.toList(), module, PrimitiveType.BOOLEAN)
-//            null -> NullValue()
+
             else -> null
         }
+    }
+
+    fun createFloatConstantValue(
+        value: Double,
+        expectedType: CangJieType,
+
+        ): ConstantValue<*>? {
+        fun  toFloat16(): Float16 {
+            return Float16.fromFloat(value.toFloat())
+        }
+
+        return when {
+            CangJieBuiltIns.isFloat64(expectedType) -> Float64Value(value)
+            CangJieBuiltIns.isFloat32(expectedType) && value == value.toFloat()
+                .toDouble() -> Float32Value(value.toFloat())
+
+            CangJieBuiltIns.isFloat16(expectedType) /*&& value == toFloat16().toDouble()*/
+                -> Float16Value(toFloat16())
+
+
+            else -> null
+        }
+
     }
 
     fun createIntegerConstantValue(
@@ -116,7 +133,6 @@ object ConstantValueFactory {
         }
     }
 }
-
 
 
 fun Byte.fromUInt8ToLong(): Long = this.toLong() and 0xFF

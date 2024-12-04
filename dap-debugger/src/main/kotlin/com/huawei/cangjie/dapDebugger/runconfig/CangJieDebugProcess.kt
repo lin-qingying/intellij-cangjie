@@ -62,6 +62,7 @@ import com.intellij.ui.content.Content
 import com.intellij.util.Consumer
 import com.intellij.util.ThreeState
 import com.intellij.util.concurrency.QueueProcessor
+
 import com.intellij.xdebugger.*
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
@@ -1399,6 +1400,7 @@ class CangJieSuspendContext(
 //        return executionStacks.toList().toArray { size ->
 //            arrayOfNulls(size)
 //        }
+
         return executionStacks.values.toArray { size ->
             arrayOfNulls(size)
         }
@@ -1409,6 +1411,8 @@ class CangJieSuspendContext(
     }
 
 }
+
+
 
 
 class CangJieValue(

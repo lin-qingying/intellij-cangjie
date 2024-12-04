@@ -37,6 +37,7 @@ import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.CjBlockExpression
 import com.linqingying.cangjie.psi.CjElement
 import com.linqingying.cangjie.resolve.DescriptorUtils
+import com.linqingying.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import com.linqingying.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import com.linqingying.cangjie.resolve.constants.IntegerValueTypeConstructor
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
@@ -887,7 +888,34 @@ object TypeUtils {
                 )
         return type
     }
+    @JvmStatic
 
+    fun getPrimitiveNumberType(
+        literalTypeConstructor: FloatLiteralTypeConstructor,
+        expectedType: CangJieType
+    ): CangJieType {
+        if (noExpectedType(expectedType) || expectedType.isError) {
+            return literalTypeConstructor.getApproximatedType()
+        }
+
+        // If approximated type does not match expected type then expected type is very
+        //  specific type (e.g. Comparable<Byte>), so only one of possible types could match it
+        val approximatedType: CangJieType = literalTypeConstructor.getApproximatedType()
+        if (DEFAULT.isSubtypeOf(approximatedType, expectedType)) {
+            return approximatedType
+        }
+
+        for (primitiveNumberType in literalTypeConstructor.possibleTypes) {
+            if (DEFAULT.isSubtypeOf(
+                    primitiveNumberType,
+                    expectedType
+                )
+            ) {
+                return primitiveNumberType
+            }
+        }
+        return literalTypeConstructor.getApproximatedType()
+    }
     @JvmStatic
 
     fun getPrimitiveNumberType(

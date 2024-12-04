@@ -40,7 +40,7 @@ import javax.xml.transform.stream.StreamResult
 
 plugins {
     idea
-//    id("org.jetbrains.kotlin.jvm") version "1.9.21"
+
     kotlin("jvm") version "1.9.21"
     id("org.jetbrains.intellij.platform") version "2.1.0"
 //    id("org.jetbrains.intellij.platform.migration") version "2.1.0"

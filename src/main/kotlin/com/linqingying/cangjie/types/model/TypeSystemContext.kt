@@ -490,6 +490,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeConstructorMarker.isIntersection(): Boolean
     fun TypeConstructorMarker.isClassTypeConstructor(): Boolean
     fun TypeConstructorMarker.isInterface(): Boolean
+    fun TypeConstructorMarker.isFloatLiteralTypeConstructor(): Boolean
     fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(): Boolean
     fun TypeConstructorMarker.isIntegerLiteralConstantTypeConstructor(): Boolean
     fun TypeConstructorMarker.isIntegerConstantOperatorTypeConstructor(): Boolean
@@ -552,8 +553,10 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun SimpleTypeMarker.isClassType(): Boolean = typeConstructor().isClassTypeConstructor()
 
     fun SimpleTypeMarker.fastCorrespondingSupertypes(constructor: TypeConstructorMarker): List<SimpleTypeMarker>? = null
+    fun SimpleTypeMarker.isFloatLiteralType(): Boolean = typeConstructor().isFloatLiteralTypeConstructor()
 
     fun SimpleTypeMarker.isIntegerLiteralType(): Boolean = typeConstructor().isIntegerLiteralTypeConstructor()
+    fun SimpleTypeMarker.possibleFloatTypes(): Collection<CangJieTypeMarker>
 
     fun SimpleTypeMarker.possibleIntegerTypes(): Collection<CangJieTypeMarker>
 

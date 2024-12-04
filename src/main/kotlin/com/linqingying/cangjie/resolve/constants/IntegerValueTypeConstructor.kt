@@ -32,6 +32,71 @@ import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.TypeConstructor
 import com.linqingying.cangjie.types.TypeRefinement
 import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
+class FloatValueTypeConstructor(
+    private val value: Double,
+    private val module: ModuleDescriptor,
+    parameters: CompileTimeConstant.Parameters
+) : TypeConstructor {
+    private val supertypes = ArrayList<CangJieType>(4)
+
+    init {
+
+        val isConvertable = parameters.isConvertableConstVal
+
+        if ( isConvertable) {
+            assert(hasUnsignedTypesInModuleDependencies(module)) {
+                "Unsigned types should be on classpath to create an unsigned type constructor"
+            }
+        }
+
+        when {
+            isConvertable -> {
+                addSignedSuperTypes()
+
+            }
+
+
+
+            else -> addSignedSuperTypes()
+        }
+    }
+
+    private fun addSignedSuperTypes() {
+        checkBoundsAndAddSuperType(value, builtIns.float16Type)
+        checkBoundsAndAddSuperType(value, builtIns.float32Type)
+
+        supertypes.add(builtIns.float64Type)
+    }
+
+
+    private fun checkBoundsAndAddSuperType(value: Double, cangjieType: CangJieType) {
+        if (value.toLong() in cangjieType.minValue()..cangjieType.maxValue()) {
+            supertypes.add(cangjieType)
+        }
+    }
+
+    override fun getSupertypes(): Collection<CangJieType> = supertypes
+
+    override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
+
+    override fun isFinal() = false
+
+    override fun isDenotable() = false
+
+    override fun getDeclarationDescriptor() = null
+
+    fun getValue(): Double = value
+
+    override fun getBuiltIns(): CangJieBuiltIns {
+        return module.builtIns
+    }
+
+    @TypeRefinement
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
+
+    override fun toString() = "IntegerValueType($value)"
+}
+
 
 class IntegerValueTypeConstructor(
     private val value: Long,

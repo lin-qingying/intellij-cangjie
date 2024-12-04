@@ -42,6 +42,7 @@ import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo;
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValue;
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import com.linqingying.cangjie.resolve.constants.CompileTimeConstant;
+import com.linqingying.cangjie.resolve.constants.FloatValueTypeConstant;
 import com.linqingying.cangjie.resolve.constants.IntegerValueTypeConstant;
 import com.linqingying.cangjie.resolve.constants.TypedCompileTimeConstant;
 import com.linqingying.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
@@ -418,7 +419,14 @@ public class DataFlowAnalyzer {
             } else {
                 expressionType = integerValueTypeConstant.getUnknownIntegerType();
             }
-        } else {
+        } else if(value instanceof FloatValueTypeConstant floatValueTypeConstant){
+            if (INDEPENDENT == context.contextDependency) {
+                expressionType = floatValueTypeConstant.getType(context.expectedType);
+                constantExpressionEvaluator.updateNumberType(expressionType, expression, context.statementFilter, context.trace);
+            } else {
+                expressionType = floatValueTypeConstant.getUnknownIntegerType();
+            }
+        }else {
             expressionType = ((TypedCompileTimeConstant<?>) value).getType();
         }
 

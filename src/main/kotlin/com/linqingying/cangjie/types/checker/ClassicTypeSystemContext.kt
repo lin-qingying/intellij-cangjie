@@ -46,6 +46,7 @@ import com.linqingying.cangjie.types.model.*
 import com.linqingying.cangjie.types.util.*
 import com.linqingying.cangjie.utils.firstIsInstanceOrNull
 import com.intellij.util.containers.addIfNotNull
+import com.linqingying.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import com.linqingying.cangjie.types.util.isSignedOrUnsignedNumberType as classicIsSignedOrUnsignedNumberType
 import com.linqingying.cangjie.types.util.isStubType as isSimpleTypeStubType
 import com.linqingying.cangjie.types.util.isStubTypeForBuilderInference as isSimpleTypeStubTypeForBuilderInference
@@ -71,7 +72,10 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is TypeConstructor, this::errorMessage)
         return this.isDenotable
     }
-
+    override fun TypeConstructorMarker.isFloatLiteralTypeConstructor(): Boolean {
+        require(this is TypeConstructor, this::errorMessage)
+        return this is FloatLiteralTypeConstructor
+    }
     override fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return this is IntegerLiteralTypeConstructor
@@ -130,6 +134,11 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             require(this is NewTypeVariableConstructor, this::errorMessage)
             return this.originalTypeParameter
         }
+    override fun SimpleTypeMarker.possibleFloatTypes(): Collection<CangJieTypeMarker> {
+        val typeConstructor = typeConstructor()
+        require(typeConstructor is FloatLiteralTypeConstructor, this::errorMessage)
+        return typeConstructor.possibleTypes
+    }
 
     override fun SimpleTypeMarker.possibleIntegerTypes(): Collection<CangJieTypeMarker> {
         val typeConstructor = typeConstructor()

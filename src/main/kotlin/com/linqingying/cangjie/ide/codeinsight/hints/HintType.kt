@@ -260,7 +260,7 @@ enum class HintType(
 
 //            if (!leftExp.isComparable(context.value) || !rightExp.isComparable(context.value)) return emptyList()
 
-            val (leftText: String, rightText: String?) = when (type) {
+            val (leftText: String, rightText: String? ) = when (type) {
                 RangeCjExpressionType.RANGE_TO -> {
                     CangJieBundle.message("hints.ranges.lessOrEqual") to CangJieBundle.message("hints.ranges.lessOrEqual")
                 }
@@ -279,7 +279,7 @@ enum class HintType(
 //                }
             }
             val leftInfo = InlayInfo(text = leftText, offset = leftExp.endOffset)
-            val rightInfo = rightText.let { InlayInfo(text = it, offset = rightExp.startOffset) }
+            val rightInfo = rightText?.let { InlayInfo(text = it, offset = rightExp.startOffset) }
             return listOfNotNull(
                 InlayInfoDetails(leftInfo, listOf(TextInlayInfoDetail(leftText, smallText = false))),
                 rightInfo?.let { InlayInfoDetails(it, listOf(TextInlayInfoDetail(rightText, smallText = false))) }

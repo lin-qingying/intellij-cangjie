@@ -24,6 +24,7 @@
 
 package com.linqingying.cangjie.resolve.constants.evaluate
 
+import com.linqingying.cangjie.parsing.Float16
 import java.math.BigInteger
 
 fun evalBinaryOp(name: String, leftType: CompileTimeType, left: Any, rightType: CompileTimeType, right: Any): Any? {
@@ -673,8 +674,8 @@ fun evalUnaryOp(name: String, type: CompileTimeType, value: Any): Any? {
 
         CompileTimeType.Flout16 -> when (name) {
 
-            "*operator_unaryMinus" -> return (value as Float).unaryMinus()
-            "*operator_unaryPlus" -> return (value as Float).unaryPlus()
+            "*operator_unaryMinus" -> return (value as Float16).unaryMinus()
+            "*operator_unaryPlus" -> return (value as Float16). unaryPlus()
         }
 
         CompileTimeType.Int32 -> when (name) {

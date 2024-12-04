@@ -499,86 +499,86 @@ class CallResolver(
                 return resolveCallForInvoke(context.replaceCall(call), tracingForInvoke)
             }
         }
-
-        val calleeExpression = context.call.calleeExpression
-
-        val callExpression = context.call.callElement
-        val dotParent = callExpression.getStrictParentOfType<CjDotQualifiedExpression>()
-        val isCall = callExpression is CjCallExpression && callExpression.valueArgumentList != null
-        var result: OverloadResolutionResults<*>? = null
-
-        fun getResult() {
-            //        TODO    a.b<Int> 这种情况不做处理了，只报错无法推断
-            if (calleeExpression is CjSimpleNameExpression) {
-
-                result = computeTasksAndResolveCall<CallableDescriptor>(
-                    context, calleeExpression.referencedNameAsName, calleeExpression,
-                    kind
-                )
-
-            }
-        }
-
-        getResult()
-
-        if (result is ManyCandidates) {
-            return result!!
-        }
-
-        if (result == null || result!!.isNothing) {
-            return OverloadResolutionResultsImpl.nameNotFound()
-        }
-
-
-        val resultDescriptor: EnumClassCallableDescriptor
-
-        if (result!!.resultingDescriptor == null) {
-            return result!!
-        } else {
-            resultDescriptor = result!!.resultingDescriptor as EnumClassCallableDescriptor
-        }
-
-        if (kind == NewResolutionOldInference.ResolutionKind.CaseEnum) {
-            return result!!
-        }
-
-        //        判断结果是否有无参构造，如果没有则调用 resolveCallForInvoke
-        if (resultDescriptor.hashUnsubstitutedPrimaryConstructor() && !isCall) {
-//            有无参构造，并且不是call
-            return result!!
-        } else if (!resultDescriptor.hashUnsubstitutedPrimaryConstructor() && isCall) {
-
-            return result!!
-
-        }
-        val calleeType = resultDescriptor.returnType
-
-        val expressionReceiver = create(
-            calleeExpression!!, calleeType!!, context.trace.bindingContext
-        )
-
-        val call: Call = CallTransformer.CallForImplicitInvoke(
-            context.call.explicitReceiver, expressionReceiver, context.call,
-            false
-        )
-        val tracingForInvoke = TracingStrategyForInvoke(
-            calleeExpression, call, calleeType
-        )
-        if (isCall) {
-            if (resultDescriptor.typeParameters.isNotEmpty()) {
-//                如果有类型参数，去掉表达式中的类型参数
-//                然而实际上，操作符函数不能有类型参数，可以直接设置为null
-                call.noTypeParameter = true
-            }
-            val temp =
-                resolveCallForInvoke(context.replaceCall(call), tracingForInvoke)
-            call.noTypeParameter = false
-
-
-            return temp.replaceCode(OverloadResolutionResults.Code.SUCCESS_NAME_NOT_FOUND)
-        }
-
-        return OverloadResolutionResultsImpl.nameNotFound()
+//
+//        val calleeExpression = context.call.calleeExpression
+//
+//        val callExpression = context.call.callElement
+//        val dotParent = callExpression.getStrictParentOfType<CjDotQualifiedExpression>()
+//        val isCall = callExpression is CjCallExpression && callExpression.valueArgumentList != null
+//        var result: OverloadResolutionResults<*>? = null
+//
+//        fun getResult() {
+//            //        TODO    a.b<Int> 这种情况不做处理了，只报错无法推断
+//            if (calleeExpression is CjSimpleNameExpression) {
+//
+//                result = computeTasksAndResolveCall<CallableDescriptor>(
+//                    context, calleeExpression.referencedNameAsName, calleeExpression,
+//                    kind
+//                )
+//
+//            }
+//        }
+//
+//        getResult()
+//
+//        if (result is ManyCandidates) {
+//            return result!!
+//        }
+//
+//        if (result == null || result!!.isNothing) {
+//            return OverloadResolutionResultsImpl.nameNotFound()
+//        }
+//
+//
+//        val resultDescriptor: EnumClassCallableDescriptor
+//
+//        if (result!!.resultingDescriptor == null) {
+//            return result!!
+//        } else {
+//            resultDescriptor = result!!.resultingDescriptor as EnumClassCallableDescriptor
+//        }
+//
+//        if (kind == NewResolutionOldInference.ResolutionKind.CaseEnum) {
+//            return result!!
+//        }
+//
+//        //        判断结果是否有无参构造，如果没有则调用 resolveCallForInvoke
+//        if (resultDescriptor.hashUnsubstitutedPrimaryConstructor() && !isCall) {
+////            有无参构造，并且不是call
+//            return result!!
+//        } else if (!resultDescriptor.hashUnsubstitutedPrimaryConstructor() && isCall) {
+//
+//            return result!!
+//
+//        }
+//        val calleeType = resultDescriptor.returnType
+//
+//        val expressionReceiver = create(
+//            calleeExpression!!, calleeType!!, context.trace.bindingContext
+//        )
+//
+//        val call: Call = CallTransformer.CallForImplicitInvoke(
+//            context.call.explicitReceiver, expressionReceiver, context.call,
+//            false
+//        )
+//        val tracingForInvoke = TracingStrategyForInvoke(
+//            calleeExpression, call, calleeType
+//        )
+//        if (isCall) {
+//            if (resultDescriptor.typeParameters.isNotEmpty()) {
+////                如果有类型参数，去掉表达式中的类型参数
+////                然而实际上，操作符函数不能有类型参数，可以直接设置为null
+//                call.noTypeParameter = true
+//            }
+//            val temp =
+//                resolveCallForInvoke(context.replaceCall(call), tracingForInvoke)
+//            call.noTypeParameter = false
+//
+//
+//            return temp.replaceCode(OverloadResolutionResults.Code.SUCCESS_NAME_NOT_FOUND)
+//        }
+//
+//        return OverloadResolutionResultsImpl.nameNotFound()
     }
 
     fun resolveFunctionCall(context: BasicCallResolutionContext): OverloadResolutionResults<out FunctionDescriptor> {

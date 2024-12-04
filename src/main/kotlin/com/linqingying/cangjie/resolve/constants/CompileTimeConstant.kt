@@ -31,13 +31,15 @@ import com.linqingying.cangjie.descriptors.findClassAcrossModuleDependencies
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.CangJieTypeFactory
 import com.linqingying.cangjie.types.ErrorUtils
+import com.linqingying.cangjie.types.TypeAttributes
 import com.linqingying.cangjie.types.error.ErrorScopeKind
 import com.linqingying.cangjie.types.util.TypeUtils
-import com.linqingying.cangjie.types.TypeAttributes
+
 fun hasUnsignedTypesInModuleDependencies(module: ModuleDescriptor): Boolean {
     return module.findClassAcrossModuleDependencies(StandardNames.FqNames.uInt32ClassId) != null
 }
-interface CompileTimeConstant<out T>{
+
+interface CompileTimeConstant<out T> {
     val isError: Boolean
         get() = false
     val parameters: Parameters
@@ -45,11 +47,13 @@ interface CompileTimeConstant<out T>{
     fun toConstantValue(expectedType: CangJieType): ConstantValue<T>
     val usesNonConstValAsConstant: Boolean get() = parameters.usesNonConstValAsConstant
     val canBeUsedInAnnotations: Boolean get() = parameters.canBeUsedInAnnotation
+    val hasFloatLiteralType: Boolean
 
     val hasIntegerLiteralType: Boolean
     val usesVariableAsConstant: Boolean get() = parameters.usesVariableAsConstant
     fun getValue(expectedType: CangJieType): T = toConstantValue(expectedType).value
     val isPure: Boolean get() = parameters.isPure
+
     data class Parameters(
         val canBeUsedInAnnotation: Boolean,
         val isPure: Boolean,
@@ -64,6 +68,7 @@ interface CompileTimeConstant<out T>{
         val isConvertableConstVal: Boolean
     )
 }
+
 class IntegerValueTypeConstant(
     private val value: Number,
     override val moduleDescriptor: ModuleDescriptor,
@@ -84,7 +89,13 @@ class IntegerValueTypeConstant(
                 isConvertableConstVal = parameters.isConvertableConstVal
             )
 
-            return IntegerValueTypeConstant(value, module, newParameters, newInferenceEnabled, convertedFromSigned = true)
+            return IntegerValueTypeConstant(
+                value,
+                module,
+                newParameters,
+                newInferenceEnabled,
+                convertedFromSigned = true
+            )
         }
 
         fun IntegerValueTypeConstant.convertToSignedConstant(module: ModuleDescriptor): IntegerValueTypeConstant {
@@ -98,9 +109,18 @@ class IntegerValueTypeConstant(
                 isConvertableConstVal = parameters.isConvertableConstVal
             )
 
-            return IntegerValueTypeConstant(value, module, newParameters, newInferenceEnabled, convertedFromSigned = true)
+            return IntegerValueTypeConstant(
+                value,
+                module,
+                newParameters,
+                newInferenceEnabled,
+                convertedFromSigned = true
+            )
         }
     }
+
+    override val hasFloatLiteralType: Boolean
+        get() = false
 
     override val hasIntegerLiteralType: Boolean
         get() = true
@@ -112,8 +132,13 @@ class IntegerValueTypeConstant(
         }
     val unknownIntegerType = CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
         TypeAttributes.Empty, typeConstructor, emptyList(), false,
-        ErrorUtils.createErrorScope(ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE, throwExceptions = true, typeConstructor.toString())
+        ErrorUtils.createErrorScope(
+            ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE,
+            throwExceptions = true,
+            typeConstructor.toString()
+        )
     )
+
     override fun toConstantValue(expectedType: CangJieType): ConstantValue<Number> {
         val type = getType(expectedType)
 //     TODO   转为常量
@@ -146,18 +171,22 @@ class IntegerValueTypeConstant(
 
     override fun toString() = typeConstructor.toString()
 
-    override fun equals(other: Any?) = other is IntegerValueTypeConstant && value == other.value && parameters == other.parameters
+    override fun equals(other: Any?) =
+        other is IntegerValueTypeConstant && value == other.value && parameters == other.parameters
 
     override fun hashCode() = 31 * value.hashCode() + parameters.hashCode()
 
 //    override val hasIntegerLiteralType: Boolean
 //        get() = true
 }
+
 class TypedCompileTimeConstant<out T>(
     val constantValue: ConstantValue<T>,
     override val moduleDescriptor: ModuleDescriptor,
     override val parameters: CompileTimeConstant.Parameters
 ) : CompileTimeConstant<T> {
+    override val hasFloatLiteralType: Boolean
+        get() = false
 
     override val hasIntegerLiteralType: Boolean
         get() = false
@@ -187,6 +216,101 @@ class TypedCompileTimeConstant<out T>(
 //        get() = false
 }
 
+class FloatValueTypeConstant(
+    private val value: Number,
+    override val moduleDescriptor: ModuleDescriptor,
+    override val parameters: CompileTimeConstant.Parameters,
+    private val newInferenceEnabled: Boolean,
+    val convertedFromSigned: Boolean = false
+) : CompileTimeConstant<Number> {
+    companion object {
+        @JvmStatic
+        fun FloatValueTypeConstant.convertToUnsignedConstant(module: ModuleDescriptor): FloatValueTypeConstant {
+            val newParameters = CompileTimeConstant.Parameters(
+                parameters.canBeUsedInAnnotation,
+                parameters.isPure,
+                isUnsignedNumberLiteral = true,
+                isUnsignedLongNumberLiteral = parameters.isUnsignedLongNumberLiteral,
+                usesVariableAsConstant = parameters.usesVariableAsConstant,
+                usesNonConstValAsConstant = parameters.usesNonConstValAsConstant,
+                isConvertableConstVal = parameters.isConvertableConstVal
+            )
+
+            return FloatValueTypeConstant(value, module, newParameters, newInferenceEnabled, convertedFromSigned = true)
+        }
+
+        fun FloatValueTypeConstant.convertToSignedConstant(module: ModuleDescriptor): FloatValueTypeConstant {
+            val newParameters = CompileTimeConstant.Parameters(
+                parameters.canBeUsedInAnnotation,
+                parameters.isPure,
+                isUnsignedNumberLiteral = false,
+                isUnsignedLongNumberLiteral = parameters.isUnsignedLongNumberLiteral,
+                usesVariableAsConstant = parameters.usesVariableAsConstant,
+                usesNonConstValAsConstant = parameters.usesNonConstValAsConstant,
+                isConvertableConstVal = parameters.isConvertableConstVal
+            )
+
+            return FloatValueTypeConstant(value, module, newParameters, newInferenceEnabled, convertedFromSigned = true)
+        }
+    }
+
+    override val hasFloatLiteralType: Boolean
+        get() = true
+
+    override val hasIntegerLiteralType: Boolean
+        get() = false
+    private val typeConstructor =
+        if (newInferenceEnabled) {
+            FloatLiteralTypeConstructor(value.toDouble(), moduleDescriptor, parameters)
+        } else {
+            FloatValueTypeConstructor(value.toDouble(), moduleDescriptor, parameters)
+        }
+
+    override fun toConstantValue(expectedType: CangJieType): ConstantValue<Number> {
+        val type = getType(expectedType)
+//     TODO   转为常量
+        return when {
+            CangJieBuiltIns.isFloat64(type) -> Float64Value(value.toDouble())
+            CangJieBuiltIns.isFloat32(type) -> Float32Value(value.toFloat())
+            CangJieBuiltIns.isFloat16(type) -> Float16Value(value.toFloat16())
+
+
+            else -> Float64Value(value.toDouble())
+        }
+    }
+    val unknownIntegerType = CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
+        TypeAttributes.Empty, typeConstructor, emptyList(), false,
+        ErrorUtils.createErrorScope(
+            ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE,
+            throwExceptions = true,
+            typeConstructor.toString()
+        )
+    )
+    fun getType(expectedType: CangJieType): CangJieType =
+        if (newInferenceEnabled) {
+            TypeUtils.getPrimitiveNumberType(typeConstructor as FloatLiteralTypeConstructor, expectedType)
+        } else {
+            TypeUtils.getPrimitiveNumberType(typeConstructor as FloatLiteralTypeConstructor, expectedType)
+        }
+
+    override fun toString() = typeConstructor.toString()
+
+    override fun equals(other: Any?) =
+        other is FloatValueTypeConstant && value == other.value && parameters == other.parameters
+
+    override fun hashCode() = 31 * value.hashCode() + parameters.hashCode()
+
+}
+
+fun createFloatValueTypeConstant(
+    value: Number,
+    module: ModuleDescriptor,
+    parameters: CompileTimeConstant.Parameters,
+    newInferenceEnabled: Boolean
+): CompileTimeConstant<*> {
+    return FloatValueTypeConstant(value, module, parameters, newInferenceEnabled)
+}
+
 fun createIntegerValueTypeConstant(
     value: Number,
     module: ModuleDescriptor,
@@ -212,6 +336,8 @@ class UnsignedErrorValueTypeConstant(
     override fun equals(other: Any?) = other is UnsignedErrorValueTypeConstant && value == other.value
 
     override fun hashCode() = value.hashCode()
+    override val hasFloatLiteralType: Boolean
+        get() = false
 
     override val hasIntegerLiteralType: Boolean
         get() = false

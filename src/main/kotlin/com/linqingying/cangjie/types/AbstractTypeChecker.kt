@@ -335,7 +335,14 @@ object AbstractTypeChecker {
         }
 
         if (!AbstractNullabilityChecker.isPossibleSubtype(state, subType, superType)) return false
-
+        checkSubtypeForFloatLiteralType(
+            state,
+            subType.lowerBoundIfFlexible(),
+            superType.upperBoundIfFlexible()
+        )?.let {
+            state.addSubtypeConstraint(subType, superType)
+            return it
+        }
         checkSubtypeForIntegerLiteralType(
             state,
             subType.lowerBoundIfFlexible(),
@@ -474,7 +481,108 @@ object AbstractTypeChecker {
         }
         return true
     }
+    private fun checkSubtypeForFloatLiteralType(
+        state: TypeCheckerState,
+        subType: SimpleTypeMarker,
+        superType: SimpleTypeMarker
+    ): Boolean? = with(state.typeSystemContext){
+        // 如果两个类型都不是整数字面量类型，则无法进行特定的子类型检查，返回null
+        if (!subType.isFloatLiteralType() && !superType.isFloatLiteralType()) return null
 
+        /**
+         * 检查一个类型是否在另一个整数字面量类型的可能整数类型中
+         *
+         * @param integerLiteralType 整数字面量类型
+         * @param type 要检查的类型
+         * @param checkSupertypes 是否检查父类型
+         * @return 如果[type]在[integerLiteralType]的可能整数类型中，则返回true；否则返回false
+         */
+        fun isTypeInFloatLiteralType(
+            integerLiteralType: SimpleTypeMarker,
+            type: SimpleTypeMarker,
+            checkSupertypes: Boolean
+        ): Boolean =
+            integerLiteralType.possibleFloatTypes().any { possibleType ->
+                (possibleType.typeConstructor() == type.typeConstructor()) || (checkSupertypes && isSubtypeOf(
+                    state,
+                    type,
+                    possibleType
+                ))
+            }
+
+        /**
+         * 检查一个类型是否包含在交集类型的组件中
+         *
+         * @param type 要检查的类型
+         * @return 如果[type]是交集类型且其组件类型中包含整数字面量类型，则返回true；否则返回false
+         */
+        fun isFloatLiteralTypeInIntersectionComponents(type: SimpleTypeMarker): Boolean {
+            val typeConstructor = type.typeConstructor()
+
+            return typeConstructor is IntersectionTypeConstructorMarker
+                    && typeConstructor.supertypes().any { it.asSimpleType()?.isFloatLiteralType() == true }
+        }
+
+        /**
+         * 检查一个类型是否为捕获的整数字面量类型
+         *
+         * @param type 要检查的类型
+         * @return 如果[type]是捕获类型且其上界为整数字面量类型，则返回true；否则返回false
+         */
+        fun isCapturedFloatLiteralType(type: SimpleTypeMarker): Boolean {
+            if (type !is CapturedTypeMarker) return false
+            val projection = type.typeConstructor().projection()
+            return projection.getType().upperBoundIfFlexible().isFloatLiteralType()
+        }
+
+        /**
+         * 检查一个类型是否为整数字面量类型或捕获的整数字面量类型
+         *
+         * @param type 要检查的类型
+         * @return 如果[type]是整数字面量类型或捕获的整数字面量类型，则返回true；否则返回false
+         */
+        fun isFloatLiteralTypeOrCapturedOne(type: SimpleTypeMarker) =
+            type.isFloatLiteralType() || isCapturedFloatLiteralType(type)
+
+        // 根据子类型和父类型的性质进行不同的逻辑判断
+        when {
+            // 如果子类型和父类型都是整数字面量类型或捕获的整数字面量类型，则子类型关系成立
+            isFloatLiteralTypeOrCapturedOne(subType) && isFloatLiteralTypeOrCapturedOne(superType) -> {
+                return true
+            }
+//如果父类型是Option包裹的类型
+            superType.isOptionType -> {
+
+                if ((superType.optionOriginalType as? SimpleTypeMarker)?.let {
+                        isTypeInFloatLiteralType(
+                            subType,
+                            it, checkSupertypes = false
+                        )
+                    } == true) {
+                    return true
+                }
+            }
+            // 如果子类型是整数字面量类型，并且父类型在其可能的整数类型中，则子类型关系成立
+            subType.isFloatLiteralType() -> {
+                if (isTypeInFloatLiteralType(subType, superType, checkSupertypes = false)) {
+                    return true
+                }
+            }
+
+
+            // 如果父类型是整数字面量类型，并且子类型包含在交集类型组件中或在父类型的可能整数类型中，则子类型关系成立
+            superType.isFloatLiteralType() -> {
+                // 这里也要检查交集类型的父类型：{ Int & String } <: IntegerLiteralTypes
+                if (isFloatLiteralTypeInIntersectionComponents(subType)
+                    || isTypeInFloatLiteralType(superType, subType, checkSupertypes = true)
+                ) {
+                    return true
+                }
+            }
+        }
+        // 如果以上条件都不满足，则无法确定子类型关系，返回null
+        return null
+    }
     /**
      * 检查整数字面量类型的子类型关系
      * 此函数旨在确定一个类型是否为另一个类型的子类型，特别是当涉及到整数字面量类型时

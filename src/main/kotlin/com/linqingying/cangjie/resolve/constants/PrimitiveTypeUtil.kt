@@ -41,6 +41,10 @@ internal fun CangJieType.minValue(): Long {
         CangJieBuiltIns.isInt32(this) -> Int.MIN_VALUE.toLong()
 //        CangJieBuiltIns.isInt64(this) -> Long.MIN_VALUE.toLong()
 
+        CangJieBuiltIns.isFloat16(this) -> -65535
+        CangJieBuiltIns.isFloat32(this) -> Float.MIN_VALUE.toLong()
+        CangJieBuiltIns.isFloat64(this) -> Double.MIN_VALUE.toLong()
+
         else -> error("Can't get min value for type: $this")
     }
 
@@ -56,7 +60,11 @@ internal fun CangJieType.maxValue(): Long{
         CangJieBuiltIns.isUInt8(this) ->255
         CangJieBuiltIns.isUInt16(this) -> 65535
         CangJieBuiltIns.isUInt32(this) -> 4294967295
-//        CangJieBuiltIns.isUInt64(this) -> 18446744073709551615
+
+
+        CangJieBuiltIns.isFloat16(this) -> 65535
+        CangJieBuiltIns.isFloat32(this) -> Float.MAX_VALUE.toLong()
+        CangJieBuiltIns.isFloat64(this) -> Double.MAX_VALUE.toLong()
 
         else -> error("Can't get max value for type: $this")
     }

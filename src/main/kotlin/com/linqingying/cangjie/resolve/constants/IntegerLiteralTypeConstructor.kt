@@ -31,10 +31,13 @@ import com.linqingying.cangjie.descriptors.TypeParameterDescriptor
 import com.linqingying.cangjie.types.*
 import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
 
+private val CangJieType.extendSupertypes: Collection<CangJieType>
+    get() = constructor.getExtendSupertypes(null)
+
 class FloatLiteralTypeConstructor : TypeConstructor {
 
 
-//
+    //
 //    private val supertypes: List<CangJieType> by lazy {
 ////        根据标准库std.core中声明的扩展，所以基本类型一定有Any类型
 ////        listOf(builtIns.anyType)
@@ -51,9 +54,9 @@ class FloatLiteralTypeConstructor : TypeConstructor {
         val possibleTypes = mutableSetOf<CangJieType>()
 
         fun checkBoundsAndAddPossibleType(value: Double, cangjieType: CangJieType) {
-//            if (value in cangjieType.minValue()..cangjieType.maxValue()) {
-//                possibleTypes.add(cangjieType)
-//            }
+            if (value.toLong() in cangjieType.minValue()..cangjieType.maxValue()) {
+                possibleTypes.add(cangjieType)
+            }
         }
 
         fun addSignedPossibleTypes() {
@@ -65,14 +68,9 @@ class FloatLiteralTypeConstructor : TypeConstructor {
 
 
 
-        val isUnsigned = parameters.isUnsignedNumberLiteral
         val isConvertable = parameters.isConvertableConstVal
 
-//        if (isUnsigned || isConvertable) {
-//            assert(hasUnsignedTypesInModuleDependencies(module)) {
-//                "Unsigned types should be on classpath to create an unsigned type constructor"
-//            }
-//        }
+
 
         when {
             isConvertable -> {
@@ -99,28 +97,28 @@ class FloatLiteralTypeConstructor : TypeConstructor {
 
     override fun getSupertypes(): List<CangJieType> = emptyList()
 
-    override fun getBuiltIns(): CangJieBuiltIns  =  module.builtIns
+    override fun getBuiltIns(): CangJieBuiltIns = module.builtIns
+    fun getApproximatedType(): CangJieType = when {
+        builtIns.float16Type in possibleTypes -> builtIns.float16Type
+        builtIns.float32Type in possibleTypes -> builtIns.float32Type
+        builtIns.float64Type in possibleTypes -> builtIns.float64Type
 
-    override fun isDenotable(): Boolean {
-        TODO("Not yet implemented")
+        else -> throw IllegalStateException()
     }
 
-    override fun getDeclarationDescriptor(): ClassifierDescriptor? {
-        TODO("Not yet implemented")
+    override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> {
+        return getApproximatedType().extendSupertypes
     }
+
+    override fun isDenotable(): Boolean = false
+    override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
 
     @TypeRefinement
-    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
-        TODO("Not yet implemented")
-    }
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 
-    override fun isFinal(): Boolean {
-        TODO("Not yet implemented")
-    }
+    override fun isFinal(): Boolean = true
 
-    override fun getParameters(): MutableList<TypeParameterDescriptor> {
-        TODO("Not yet implemented")
-    }
+    override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
 }
 
 
@@ -326,8 +324,7 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
         return getApproximatedType().extendSupertypes
     }
 
-    private val CangJieType.extendSupertypes: Collection<CangJieType>
-        get() = constructor.getExtendSupertypes(null)
+
     override fun isFinal(): Boolean = true
 
     override fun isDenotable(): Boolean = false

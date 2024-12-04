@@ -165,7 +165,7 @@ class RuneValue(value: Rune) : IntegerValueConstant<Rune>(value) {
     }
 }
 class Float16Value(value: Float16) : ConstantValue<Float16>(value) {
-    override fun getType(module: ModuleDescriptor) = module.builtIns.float32Type
+    override fun getType(module: ModuleDescriptor) = module.builtIns.float16Type
 
     override fun <R, D> accept(visitor: AnnotationArgumentVisitor<R, D>, data: D) =
         visitor.visitFloat16Value(this, data)
