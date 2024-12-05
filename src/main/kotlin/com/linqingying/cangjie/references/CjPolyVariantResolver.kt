@@ -95,12 +95,6 @@ object CjPolyVariantResolver : ResolveCache.PolyVariantResolver<CjReference> {
 
     private fun resolveToPsiElements(ref: CjReference): Collection<PsiElement> {
         require(ref is AbstractCjReference<*>) { "reference should be AbstractCjReference, but was ${ref::class}" }
-//        val bindingContext = try {
-//            CjReferenceResolutionHelper.getInstance().partialAnalyze(ref.expression)
-//        } catch (e: Exception) {
-////            这里有个异常被抛出，所以直接返回空集合
-//            return emptySet()
-//        }
 
         val bindingContext = CjReferenceResolutionHelper.getInstance().partialAnalyze(ref.expression)
         if (bindingContext == BindingContext.EMPTY) return emptySet()

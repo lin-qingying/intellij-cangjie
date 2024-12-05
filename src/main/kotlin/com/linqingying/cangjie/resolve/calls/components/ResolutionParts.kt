@@ -60,6 +60,7 @@ import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.model.CangJieTypeMarker
 import com.linqingying.cangjie.types.model.TypeConstructorMarker
 import com.linqingying.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
+import com.linqingying.cangjie.types.util.TypeUtils.noExpectedType
 import com.linqingying.cangjie.types.util.contains
 import com.linqingying.cangjie.types.util.makeNotNullable
 import com.linqingying.cangjie.types.util.makeOptional
@@ -977,7 +978,7 @@ internal object CheckDesiredEnumType : ResolutionPart() {
 
             val type = descriptor.returnType
 
-            if (expectedType != NO_EXPECTED_TYPE && type?.let {
+            if (!noExpectedType(expectedType) && type?.let {
                     CangJieTypeChecker.DEFAULT.equalsIgnoringGenerics(
                         expectedType,
                         it

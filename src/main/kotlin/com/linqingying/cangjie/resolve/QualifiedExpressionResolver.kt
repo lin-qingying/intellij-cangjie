@@ -667,7 +667,7 @@ class QualifiedExpressionResolver(
 //                        descriptors.add(packageOrClassDescriptor)
 //                    }
 
-                    descriptors.add(packageOrClassDescriptor)
+                    descriptors.add(packageDescriptor)
                 }
 
             }
@@ -1047,6 +1047,12 @@ class QualifiedExpressionResolver(
         if (descriptors.size > 1) {
             val visibleDescriptors =
                 descriptors.filter { isVisible(it, shouldBeVisibleFrom, position, languageVersionSettings) }
+
+                    .   distinctBy { descriptor ->
+                        descriptor.fqNameSafe
+                    }
+
+
             when {
                 visibleDescriptors.isEmpty() -> {
                     val descriptor = descriptors.first() as DeclarationDescriptorWithVisibility
