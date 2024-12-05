@@ -11,6 +11,6 @@ class PsiDirectoryOrFile(
 
 
     override fun isDirectory(): Boolean {
-        return psiFile?.isDirectory == true
+        return psiFile.isDirectory == true
     }
 }

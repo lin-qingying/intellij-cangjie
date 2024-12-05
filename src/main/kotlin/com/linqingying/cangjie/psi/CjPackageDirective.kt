@@ -21,245 +21,225 @@
  * any damages or issues arising from its use.
  *
  */
+package com.linqingying.cangjie.psi
 
-package com.linqingying.cangjie.psi;
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.descriptors.DescriptorVisibilities
+import com.linqingying.cangjie.descriptors.DescriptorVisibility
+import com.linqingying.cangjie.lexer.CjKeywordToken
+import com.linqingying.cangjie.lexer.CjModifierKeywordToken
+import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.name.FqName
+import com.linqingying.cangjie.name.FqName.Companion.fromString
+import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.name.Name.Companion.identifier
+import com.linqingying.cangjie.name.SpecialNames
+import com.linqingying.cangjie.psi.psiUtil.CjStubbedPsiUtil
+import com.linqingying.cangjie.psi.psiUtil.getQualifiedElementSelector
+import com.linqingying.cangjie.psi.stubs.CangJiePackageDirectiveStub
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.linqingying.cangjie.psi.stubs.elements.CjTokenSets
+import java.util.*
 
 
-import com.linqingying.cangjie.descriptors.DescriptorVisibilities;
-import com.linqingying.cangjie.descriptors.DescriptorVisibility;
-import com.linqingying.cangjie.lexer.CjKeywordToken;
-import com.linqingying.cangjie.lexer.CjModifierKeywordToken;
-import com.linqingying.cangjie.lexer.CjTokens;
-import com.linqingying.cangjie.name.FqName;
-import com.linqingying.cangjie.name.Name;
-import com.linqingying.cangjie.name.SpecialNames;
-import com.linqingying.cangjie.psi.psiUtil.CjPsiUtilKt;
-import com.linqingying.cangjie.psi.psiUtil.CjStubbedPsiUtil;
-import com.linqingying.cangjie.psi.stubs.CangJiePackageDirectiveStub;
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes;
-import com.linqingying.cangjie.psi.stubs.elements.CjTokenSets;
-import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
+    private var qualifiedNameCache: String? = null
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+    constructor(node: ASTNode) : super(node)
 
-import static com.linqingying.cangjie.name.FqName.fromString;
+    constructor(stub: CangJiePackageDirectiveStub) : super(stub, CjStubElementTypes.PACKAGE_DIRECTIVE)
 
-//public class CjPackageDirective extends CjModifierListOwnerStub<CangJiePlaceHolderStub<CjPackageDirective>>
-public class CjPackageDirective extends CjDeclarationStub<CangJiePackageDirectiveStub> {
-
-    private String qualifiedNameCache = null;
-
-    public CjPackageDirective(@NotNull ASTNode node) {
-        super(node);
+    override fun toString(): String {
+        return super.toString()
     }
 
-    public CjPackageDirective(@NotNull CangJiePackageDirectiveStub stub) {
-        super(stub, CjStubElementTypes.PACKAGE_DIRECTIVE);
-    }
+    val packageNameExpression: CjExpression?
+        get() = CjStubbedPsiUtil.getStubOrPsiChild<CjExpression>(
+            this,
+            CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS!!,
+            CjExpression.Companion.ARRAY_FACTORY
+        )
 
-    @Override
-    public String toString() {
-        return super.toString();
-    }
+    val packageNames: MutableList<CjSimpleNameExpression>
+        get() {
+            var nameExpression = this.packageNameExpression
+            if (nameExpression == null) return mutableListOf<CjSimpleNameExpression>()
 
-    @Nullable
-    public CjExpression getPackageNameExpression() {
-        return CjStubbedPsiUtil.getStubOrPsiChild(this, CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS, CjExpression.Companion.getARRAY_FACTORY());
-    }
+            val packageNames: MutableList<CjSimpleNameExpression> =
+                ArrayList<CjSimpleNameExpression>()
+            while (nameExpression is CjQualifiedExpression) {
+                val selector = nameExpression.selectorExpression
+                if (selector is CjSimpleNameExpression) {
+                    packageNames.add(selector)
+                }
 
-    @NotNull
-    public List<CjSimpleNameExpression> getPackageNames() {
-        CjExpression nameExpression = getPackageNameExpression();
-        if (nameExpression == null) return Collections.emptyList();
-
-        List<CjSimpleNameExpression> packageNames = new ArrayList<>();
-        while (nameExpression instanceof CjQualifiedExpression qualifiedExpression) {
-
-            CjExpression selector = qualifiedExpression.getSelectorExpression();
-            if (selector instanceof CjSimpleNameExpression) {
-                packageNames.add((CjSimpleNameExpression) selector);
+                nameExpression = nameExpression.receiverExpression
             }
 
-            nameExpression = qualifiedExpression.getReceiverExpression();
+            if (nameExpression is CjSimpleNameExpression) {
+                packageNames.add(nameExpression)
+            }
+
+            packageNames.reverse()
+
+            return packageNames
         }
 
-        if (nameExpression instanceof CjSimpleNameExpression) {
-            packageNames.add((CjSimpleNameExpression) nameExpression);
+    val lastReferenceExpression: CjSimpleNameExpression?
+        get() {
+            val nameExpression = this.packageNameExpression
+            if (nameExpression == null) return null
+
+            return nameExpression.getQualifiedElementSelector() as CjSimpleNameExpression?
         }
 
-        Collections.reverse(packageNames);
+    val nameIdentifier: PsiElement?
+        get() {
+            val lastPart = this.lastReferenceExpression
+            return lastPart?.identifier
+        }
 
-        return packageNames;
+    override fun getName(): String {
+        val nameIdentifier = this.nameIdentifier
+        return if (nameIdentifier == null) "" else nameIdentifier.text
     }
 
-    @Nullable
-    public CjSimpleNameExpression getLastReferenceExpression() {
-        CjExpression nameExpression = getPackageNameExpression();
-        if (nameExpression == null) return null;
-
-        return (CjSimpleNameExpression) CjPsiUtilKt.getQualifiedElementSelector(nameExpression);
+    override fun navigate(requestFocus: Boolean) {
+        super.navigate(requestFocus)
     }
 
-    @Nullable
-    public PsiElement getNameIdentifier() {
-        CjSimpleNameExpression lastPart = getLastReferenceExpression();
-        return lastPart != null ? lastPart.getIdentifier() : null;
+    override fun canNavigateToSource(): Boolean {
+        return super.canNavigateToSource()
     }
 
-    @Override
-    @NotNull
-    public String getName() {
-        PsiElement nameIdentifier = getNameIdentifier();
-        return nameIdentifier == null ? "" : nameIdentifier.getText();
+    override fun canNavigate(): Boolean {
+        return super.canNavigate()
     }
 
-    @Override
-    public void navigate(boolean requestFocus) {
-        super.navigate(requestFocus);
+    override fun getNavigationElement(): PsiElement {
+        return super.getNavigationElement()
     }
 
-    @Override
-    public boolean canNavigateToSource() {
-        return super.canNavigateToSource();
+    fun getModifier(tokenType: CjKeywordToken): PsiElement? {
+        return findChildByType<PsiElement>(tokenType)
     }
 
-    @Override
-    public boolean canNavigate() {
-        return super.canNavigate();
-    }
-
-    @Override
-    public @NotNull PsiElement getNavigationElement() {
-        return super.getNavigationElement();
-    }
-
-    @Nullable
-    public PsiElement getModifier(@NotNull CjKeywordToken tokenType) {
-        return findChildByType(tokenType);
-    }
-
-    public boolean hasModifier(@NotNull CjModifierKeywordToken tokenType) {
+    fun hasModifier(tokenType: CjModifierKeywordToken): Boolean {
 //        CangJieImportDirectiveStub stub = getStub();
 //        if (stub != null) {
 //            return stub.getModifierVisibility(tokenType);
 //        }
-        return getModifier(tokenType) != null;
+        return getModifier(tokenType) != null
     }
 
-    @NotNull
-    public DescriptorVisibility getModifierVisibility() {
-        CangJiePackageDirectiveStub stub = getStub();
-        if (stub != null) {
-            return stub.getModifierVisibility();
+    override val modifierVisibility: DescriptorVisibility
+        get() {
+            val stub = getStub()
+            if (stub != null) {
+                return stub.getModifierVisibility()
+            }
+
+            if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
+            if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
+            if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED
+            if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
+            return DescriptorVisibilities.PUBLIC
         }
 
-        if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE;
-        if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL;
-        if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED;
-        if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC;
-        return DescriptorVisibilities.PUBLIC;
-    }
 
+    val isMacroPackage: Boolean
+        get() =//        try {
 
-    public boolean isMacroPackage() {
-
-//        try {
-            return findChildByType(CjTokens.MACRO_KEYWORD) != null;
-//        } catch (Exception e) {
+            findChildByType<PsiElement>(CjTokens.MACRO_KEYWORD) != null
+    //        } catch (Exception e) {
 //            return false;
 //        }
-    }
 
-    @NotNull
-    public Name getNameAsName() {
-        PsiElement nameIdentifier = getNameIdentifier();
-        return nameIdentifier == null ? SpecialNames.ROOT_PACKAGE : Name.identifier(nameIdentifier.getText());
-    }
+    val nameAsName: Name
+        get() {
+            val nameIdentifier = this.nameIdentifier
+            return if (nameIdentifier == null) SpecialNames.ROOT_PACKAGE else identifier(
+                nameIdentifier.text
+            )
+        }
 
-    public boolean isRoot() {
-        return getName().isEmpty();
-    }
+    val isRoot: Boolean
+        get() = getName().isEmpty()
 
-    @NotNull
-    public FqName getFqName() {
-        String qualifiedName = getQualifiedName();
-        return qualifiedName.isEmpty() ? FqName.ROOT : fromString(qualifiedName);
-    }
-
-    public void setFqName(@NotNull FqName fqName) {
-        if (fqName.isRoot()) {
-            if (!getFqName().isRoot()) {
-
-                replace(Objects.requireNonNull(new CjPsiFactory(getProject()).createFile("").getPackageDirective()));
+    var fqName: FqName = FqName.ROOT
+        get() {
+            val qualifiedName = this.qualifiedName
+            return if (qualifiedName.isEmpty()) FqName.ROOT else fromString(
+                qualifiedName
+            )
+        }
+        set(fqName) {
+            if (fqName.isRoot) {
+                if (!field.isRoot) {
+                    replace(
+                        Objects.requireNonNull<CjPackageDirective>(
+                            CjPsiFactory(getProject()).createFile(
+                                ""
+                            ).packageDirective
+                        )
+                    )
+                }
+                return
             }
-            return;
+
+            val psiFactory = CjPsiFactory(getProject())
+            val newExpression: PsiElement = psiFactory.createExpression(fqName.asString())
+            val currentExpression = this.packageNameExpression
+            if (currentExpression != null) {
+                currentExpression.replace(newExpression)
+                return
+            }
+
+            val keyword = this.packageKeyword
+            if (keyword != null) {
+                addAfter(newExpression, keyword)
+                addAfter(psiFactory.createWhiteSpace(), keyword)
+                return
+            }
+
+            replace(psiFactory.createPackageDirective(fqName))
         }
 
-        CjPsiFactory psiFactory = new CjPsiFactory(getProject());
-        PsiElement newExpression = psiFactory.createExpression(fqName.asString());
-        CjExpression currentExpression = getPackageNameExpression();
-        if (currentExpression != null) {
-            currentExpression.replace(newExpression);
-            return;
-        }
-
-        PsiElement keyword = getPackageKeyword();
-        if (keyword != null) {
-            addAfter(newExpression, keyword);
-            addAfter(psiFactory.createWhiteSpace(), keyword);
-            return;
-        }
-
-        replace(psiFactory.createPackageDirective(fqName));
+    fun getFqName(nameExpression: CjSimpleNameExpression?): FqName {
+        return FqName(getQualifiedNameOf(nameExpression))
     }
 
-    @NotNull
-    public FqName getFqName(CjSimpleNameExpression nameExpression) {
-        return new FqName(getQualifiedNameOf(nameExpression));
-    }
+    val qualifiedName: String
+        get() {
+            if (qualifiedNameCache == null) {
+                qualifiedNameCache = getQualifiedNameOf(null)
+            }
 
-    @NotNull
-    public String getQualifiedName() {
-        if (qualifiedNameCache == null) {
-            qualifiedNameCache = getQualifiedNameOf(null);
+            return qualifiedNameCache!!
         }
 
-        return qualifiedNameCache;
-    }
-
-    @NotNull
-    private String getQualifiedNameOf(@Nullable CjSimpleNameExpression nameExpression) {
-        StringBuilder builder = new StringBuilder();
-        for (CjSimpleNameExpression e : getPackageNames()) {
+    private fun getQualifiedNameOf(nameExpression: CjSimpleNameExpression?): String {
+        val builder = StringBuilder()
+        for (e in this.packageNames) {
             if (!builder.isEmpty()) {
-                builder.append(".");
+                builder.append(".")
             }
-            builder.append(e.getReferencedName());
+            builder.append(e.referencedName)
 
-            if (e == nameExpression) break;
+            if (e === nameExpression) break
         }
-        return builder.toString();
+        return builder.toString()
     }
 
-    @Nullable
-    public PsiElement getPackageKeyword() {
-        return findChildByType(CjTokens.PACKAGE_KEYWORD);
+    val packageKeyword: PsiElement?
+        get() = findChildByType<PsiElement>(CjTokens.PACKAGE_KEYWORD)
+
+    override fun subtreeChanged() {
+        qualifiedNameCache = null
     }
 
-    @Override
-    public void subtreeChanged() {
-        qualifiedNameCache = null;
+    override fun <R, D> accept(visitor: CjVisitor<R , D>, data: D?): R  {
+        return visitor.visitPackageDirective(this, data)
     }
-
-    @Override
-    public <R, D> R accept(@NotNull CjVisitor<R, D> visitor, @Nullable D data) {
-        return visitor.visitPackageDirective(this, data);
-    }
-
 }

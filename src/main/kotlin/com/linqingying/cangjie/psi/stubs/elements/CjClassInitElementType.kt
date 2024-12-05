@@ -41,7 +41,6 @@ class CjClassInitElementType(debugName: String) :
     CjStubElementType<CangJieFunctionStub, CjClassInit>(debugName, CjClassInit::class.java,CangJieFunctionStub::class.java){
     override fun serialize(stub: CangJieFunctionStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
-        dataStream.writeBoolean(false)
 
         val fqName = stub.getFqName()
         dataStream.writeName(fqName?.asString())
@@ -50,10 +49,7 @@ class CjClassInitElementType(debugName: String) :
         dataStream.writeBoolean(stub.hasBlockBody())
         dataStream.writeBoolean(stub.hasBody())
         dataStream.writeBoolean(stub.hasTypeParameterListBeforeFunctionName())
-//        bool haveContract = stub.mayHaveContract();
-//        dataStream.writeBoolean(haveContract);
-        //        bool haveContract = stub.mayHaveContract();
-//        dataStream.writeBoolean(haveContract);
+
         if (stub is CangJieFunctionStubImpl) {
             serialize(stub.origin, dataStream)
         }
@@ -70,8 +66,7 @@ class CjClassInitElementType(debugName: String) :
         val hasBlockBody = dataStream.readBoolean()
         val hasBody = dataStream.readBoolean()
         val hasTypeParameterListBeforeFunctionName = dataStream.readBoolean()
-//        bool mayHaveContract = dataStream.readBoolean();
-        //        bool mayHaveContract = dataStream.readBoolean();
+
         return CangJieFunctionStubImpl(
             parentStub, CjStubElementTypes.CLASS_INIT, name, false, fqName, isExtension, hasBlockBody, hasBody,
             hasTypeParameterListBeforeFunctionName,

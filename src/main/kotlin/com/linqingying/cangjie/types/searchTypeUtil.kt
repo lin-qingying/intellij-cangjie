@@ -24,6 +24,8 @@
 
 package com.linqingying.cangjie.types
 
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.project.Project
 import com.linqingying.cangjie.descriptors.ClassDescriptor
 import com.linqingying.cangjie.descriptors.ModuleDescriptor
 import com.linqingying.cangjie.descriptors.PackageViewDescriptor
@@ -31,11 +33,12 @@ import com.linqingying.cangjie.ide.projectStructure.moduleInfo
 import com.linqingying.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
 import com.linqingying.cangjie.name.FqName
+import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.CjFile
 import com.linqingying.cangjie.resolve.caches.CangJieCacheService
+import com.linqingying.cangjie.resolve.descriptorUtil.module
+import com.linqingying.cangjie.resolve.scopes.LexicalScope
 import com.linqingying.cangjie.resolve.scopes.MemberScope
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.project.Project
 
 /**
  * 根据fqname获取类型
@@ -60,6 +63,8 @@ fun getMemberScope(module: ModuleDescriptor, fqName: FqName): MemberScope {
 
     return module.getPackage(fqName.parent()).memberScope
 }
+
+
 
 fun getPackageView(project: Project, fqName: FqName): PackageViewDescriptor? {
     return getModuleDescriptorByFqName(project, fqName, true)?.getPackage(fqName)

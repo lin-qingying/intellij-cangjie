@@ -24,17 +24,6 @@
 
 package com.linqingying.cangjie.psi
 
-import com.linqingying.cangjie.CjNodeTypes
-import com.linqingying.cangjie.cjpm.project.model.CjpmProject
-import com.linqingying.cangjie.cjpm.project.workspace.CjpmWorkspace
-import com.linqingying.cangjie.lang.CangJieFileType
-
-import com.linqingying.cangjie.lang.CangJieLanguage
-import com.linqingying.cangjie.name.FqName
-import com.linqingying.cangjie.psi.stubs.CangJieFileStub
-import com.linqingying.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.linqingying.cangjie.psi.stubs.elements.CjTokenSets
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.vfs.VirtualFileWithId
@@ -43,6 +32,16 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
+import com.linqingying.cangjie.CjNodeTypes
+import com.linqingying.cangjie.cjpm.project.model.CjpmProject
+import com.linqingying.cangjie.cjpm.project.workspace.CjpmWorkspace
+import com.linqingying.cangjie.lang.CangJieFileType
+import com.linqingying.cangjie.lang.CangJieLanguage
+import com.linqingying.cangjie.name.FqName
+import com.linqingying.cangjie.psi.stubs.CangJieFileStub
+import com.linqingying.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.linqingying.cangjie.psi.stubs.elements.CjTokenSets
 
 interface CangJieFile
 
@@ -62,6 +61,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
         CjPsiUtil.visitChildren(this, visitor, data)
     }
+
     @Volatile
     private var hasTopLevelCallables: Boolean? = null
 
@@ -78,6 +78,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
         hasTopLevelCallables = result
         return result
     }
+
     val virtualFilePath
         get(): String {
             pathCached?.let { return it }
@@ -86,6 +87,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
                 pathCached = it
             }
         }
+
     fun findAliasByFqName(fqName: FqName): CjImportAlias? {
         if (!hasImportAlias()) return null
 
@@ -93,7 +95,8 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
             it.alias != null && fqName == it.importedFqName
         }?.alias
     }
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R  =
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R =
         visitor.visitCjFile(this, data)
 
     override fun accept(visitor: PsiElementVisitor) {
@@ -106,8 +109,9 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     }
 
     override fun getParent(): PsiDirectory? {
-        return super.getParent()
+        return super .getParent()
     }
+
     protected open val importLists: List<CjImportList>
         get() = findChildrenByTypeOrClass(CjStubElementTypes.IMPORT_LIST, CjImportList::class.java).asList()
 //    val importListsField: List<CangJieImportField> = importDirectives.flatMap {
@@ -196,19 +200,28 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     private var hasImportAlias: Boolean? = null
 
 
+    //    override val declarations: List<CjDeclaration>
+//        get() {
+//            return stub?.getChildrenByType(FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
+//                ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java).apply {
+//                    if (size > 1) {
+//                        if (this[0] is CjPackageDirective) {
+//
+//                            remove(this[0])
+//                        }
+//                    }
+//                }
+//        }
     override val declarations: List<CjDeclaration>
         get() {
+            val stub = stub
             return stub?.getChildrenByType(FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
-                ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java).apply {
-                    if (size > 1) {
-                        if (this[0] is CjPackageDirective) {
+                ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java).toMutableList().apply {
+//                remove所有PACKAGE_DIRECTIVE
+                    removeAll { it is CjPackageDirective }
 
-                            remove(this[0])
-                        }
-                    }
                 }
         }
-
     var packageFqName: FqName
         get() = stub?.getPackageFqName() ?: packageFqNameByTree
         set(value) {
@@ -226,6 +239,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 
     companion object {
         val FILE_DECLARATION_TYPES = TokenSet.orSet(CjTokenSets.DECLARATION_TYPES)
+
     }
 }
 

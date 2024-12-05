@@ -1630,7 +1630,7 @@ class _JetLexer implements FlexLexer {
           // fall through
           case 211: break;
           case 38:
-            { System.out.println("LONELY_DOLLAR");
+            {
           return CjTokens.REGULAR_STRING_PART;
             }
           // fall through

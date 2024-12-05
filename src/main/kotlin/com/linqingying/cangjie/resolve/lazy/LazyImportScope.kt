@@ -90,7 +90,7 @@ class ExplicitImportsIndexed<I : CjImportInfo>(
         builder.build()
     }
 
-    override fun importsForName(name: Name) = nameToDirectives().get(name)
+    override fun importsForName(name: Name)  = nameToDirectives().get(name)
 }
 
 open class IndexedImports<I : CjImportInfo>(val imports: Array<I>) {

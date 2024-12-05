@@ -133,7 +133,9 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
                     // Do nothing, just put it into allDeclarations is enough
                 }
 
-                else -> throw IllegalArgumentException("Unknown declaration: " + declaration)
+
+
+                else -> throw IllegalArgumentException("Unknown declaration: $declaration")
             }
 
             when (declaration) {

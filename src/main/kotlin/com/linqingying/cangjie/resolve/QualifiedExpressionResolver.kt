@@ -25,6 +25,10 @@
 package com.linqingying.cangjie.resolve
 
 
+import com.intellij.codeInsight.completion.CompletionUtilCore
+import com.intellij.openapi.util.Key
+import com.intellij.psi.impl.source.DummyHolder
+import com.intellij.util.SmartList
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.impl.LazyPackageViewDescriptorImpl
@@ -38,7 +42,6 @@ import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.psi.psiUtil.getParentOfType
 import com.linqingying.cangjie.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
 import com.linqingying.cangjie.resolve.QualifierPosition.*
 import com.linqingying.cangjie.resolve.calls.CallExpressionElement
@@ -51,10 +54,6 @@ import com.linqingying.cangjie.resolve.scopes.receivers.*
 import com.linqingying.cangjie.resolve.source.CangJieSourceElement
 import com.linqingying.cangjie.types.expressions.ExpressionTypingContext
 import com.linqingying.cangjie.utils.CallOnceFunction
-import com.intellij.codeInsight.completion.CompletionUtilCore
-import com.intellij.openapi.util.Key
-import com.intellij.psi.impl.source.DummyHolder
-import com.intellij.util.SmartList
 import jakarta.inject.Inject
 
 
@@ -204,7 +203,7 @@ class QualifiedExpressionResolver(
         val qualifiedExpressions = unrollToLeftMostQualifiedExpression(expression)
         val maxPossibleQualifierPrefix = mapToQualifierParts(qualifiedExpressions, 1)
 
-        val nextIndexAfterPrefix = resolveToPackageOrClassPrefix(
+        var (declarationDescriptor, nextIndexAfterPrefix) = resolveToPackageOrClassPrefix(
             path = maxPossibleQualifierPrefix,
             moduleDescriptor = context.scope.ownerDescriptor.module,
             trace = context.trace,
@@ -213,7 +212,23 @@ class QualifiedExpressionResolver(
             position = EXPRESSION,
             isValue = isValue,
 
-            ).second
+            )
+        if (nextIndexAfterPrefix == 0) {
+            var (declarationDescriptor1, nextIndexAfterPrefix1) = resolveToPackageOrClassPrefixByImport(
+                path = maxPossibleQualifierPrefix,
+                moduleDescriptor = context.scope.ownerDescriptor.module,
+                trace = context.trace,
+                shouldBeVisibleFrom = context.scope.ownerDescriptor,
+                scopeForFirstPart = context.scope,
+                position = EXPRESSION,
+                isValue = isValue,
+
+                )
+            if (nextIndexAfterPrefix1 != 0) {
+                declarationDescriptor = declarationDescriptor1
+                nextIndexAfterPrefix = nextIndexAfterPrefix1
+            }
+        }
 
         val nextExpressionIndexAfterQualifier =
             if (nextIndexAfterPrefix == 0) 0 else nextIndexAfterPrefix - 1
@@ -430,15 +445,16 @@ class QualifiedExpressionResolver(
 
             is EnumClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
             is ClassQualifier -> receiver.staticScope.getContributedClassifier(name, location)
+//            无接收器时，直接获取
             null -> context.scope.findClassifier(name, location)
-                ?: context.scope.ownerDescriptor.module.getPackage(FqName.ROOT.child(name)).takeUnless { it.isEmpty() }
+                ?: context.scope.getPackageView(name, location)
 
             is ReceiverValue -> receiver.type.memberScope.memberScopeAsImportingScope().findClassifier(name, location)
             else -> null
         }
 
         if (qualifierDescriptor != null) {
-            typeResolver.resolveTypeForClass(expression,context.scope,context.trace,qualifierDescriptor)
+            typeResolver.resolveTypeForClass(expression, context.scope, context.trace, qualifierDescriptor)
             return storeResult(
                 context.trace,
                 expression,
@@ -623,8 +639,8 @@ class QualifiedExpressionResolver(
 
         when (packageOrClassDescriptor) {
             is PackageViewDescriptor -> {
-//                val packageDescriptor = moduleDescriptor.getPackage(packageOrClassDescriptor.fqName.child(lastName))
-//                if (!packageDescriptor.isEmpty()) {
+                val packageDescriptor = moduleDescriptor.getPackage(packageOrClassDescriptor.fqName.child(lastName))
+                if (!packageDescriptor.isEmpty()) {
 
 
 //                    TODO 这里有问题，有时候可能会出现导入的不是包，但是一样报错
@@ -651,9 +667,9 @@ class QualifiedExpressionResolver(
 //                        descriptors.add(packageOrClassDescriptor)
 //                    }
 
+                    descriptors.add(packageOrClassDescriptor)
+                }
 
-//                }
-                descriptors.add(packageOrClassDescriptor )
             }
 
             is ClassDescriptor -> {
@@ -683,6 +699,7 @@ class QualifiedExpressionResolver(
 
     private fun resolveInIDEMode(path: List<QualifierPart>): Boolean =
         path.size > 1 && path.first().name.asString() == ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
+
     fun resolveDescriptorForDoubleColonLHS(
         expression: CjExpression,
         scope: LexicalScope,
@@ -710,6 +727,115 @@ class QualifiedExpressionResolver(
 
         return resolveQualifierPartListForType(qualifierPartList, ownerDescriptor, scope, trace, isQualifier = true)
     }
+
+    private fun resolveToPackageOrClassPrefixByImport(
+        path: List<QualifierPart>,
+        moduleDescriptor: ModuleDescriptor,
+        trace: BindingTrace,
+        shouldBeVisibleFrom: DeclarationDescriptor?,
+        scopeForFirstPart: LexicalScope?,
+        position: QualifierPosition,
+        isValue: ((CjSimpleNameExpression) -> Boolean)? = null
+    ): Pair<DeclarationDescriptor?, Int> {
+        if (resolveInIDEMode(path)) {
+            return resolveToPackageOrClassPrefixByImport(
+                path.subList(1, path.size),
+                moduleDescriptor,
+                trace,
+                shouldBeVisibleFrom,
+                scopeForFirstPart = null,
+                position = position,
+                isValue = null
+            ).let { it.first to it.second + 1 }
+        }
+
+        if (path.isEmpty()) {
+            return Pair(moduleDescriptor.getPackage(FqName.ROOT), 0)
+        }
+
+        val firstPart = path.first()
+
+        if (position == EXPRESSION) {
+            // In expression position, value wins against classifier (and package).
+            // If we see a function or variable (possibly ambiguous),
+            // tell resolver we have no qualifier and let it perform the context-dependent resolution.
+            if (scopeForFirstPart != null && isValue != null && firstPart.expression != null && isValue(firstPart.expression!!)) {
+                return Pair(null, 0)
+            }
+        }
+
+        val classifierDescriptor = scopeForFirstPart?.findClassifier(firstPart.name, firstPart.location)
+
+        if (classifierDescriptor != null) {
+//            typeResolver.resolveTypeForClass()
+            storeResult(
+                trace, firstPart.expression, classifierDescriptor, shouldBeVisibleFrom, position,
+                scope = scopeForFirstPart
+            )
+            return Pair(classifierDescriptor, 1)
+        }
+
+
+        val (prefixDescriptor, nextIndexAfterPrefix) = moduleDescriptor.quickResolveToPackageByImport(
+            scopeForFirstPart,
+            shouldBeVisibleFrom,
+            path,
+            trace,
+            position
+        )
+
+        var currentDescriptor: DeclarationDescriptor? = prefixDescriptor
+        for (qualifierPartIndex in nextIndexAfterPrefix until path.size) {
+            val qualifierPart = path[qualifierPartIndex]
+
+            val nextPackageOrClassDescriptor =
+                when (currentDescriptor) {
+                    is TypeAliasDescriptor -> // TODO type aliases as qualifiers? (would break some assumptions in TypeResolver)
+                        null
+
+                    is ClassDescriptor ->
+                        currentDescriptor.getContributedClassifier(qualifierPart)
+
+                    is PackageViewDescriptor -> {
+                        val packageView =
+                            if (qualifierPart.typeArguments == null) {
+                                moduleDescriptor.getPackage(currentDescriptor.fqName.child(qualifierPart.name))
+                            } else null
+                        if (packageView != null && !packageView.isEmpty()) {
+                            packageView
+                        } else {
+                            currentDescriptor.memberScope.getContributedClassifier(
+                                qualifierPart.name,
+                                qualifierPart.location
+                            )
+                        }
+                    }
+
+                    else ->
+                        null
+                }
+
+            // If we are in expression, this name can denote a value (not a package or class).
+            if (!(position == EXPRESSION && nextPackageOrClassDescriptor == null)) {
+                storeResult(
+                    trace,
+                    qualifierPart.expression,
+                    nextPackageOrClassDescriptor,
+                    shouldBeVisibleFrom,
+                    position
+                )
+            }
+
+            if (nextPackageOrClassDescriptor == null) {
+                return Pair(currentDescriptor, qualifierPartIndex)
+            }
+
+            currentDescriptor = nextPackageOrClassDescriptor
+        }
+
+        return Pair(currentDescriptor, path.size)
+    }
+
     private fun resolveToPackageOrClassPrefix(
         path: List<QualifierPart>,
         moduleDescriptor: ModuleDescriptor,
@@ -756,46 +882,14 @@ class QualifiedExpressionResolver(
             )
             return Pair(classifierDescriptor, 1)
         }
-//        if (classifierDescriptor != null)
-
-//        第一位匹配最后一位
-        val qprts = scopeForFirstPart?.findPackageQualifierParts(path[0].name)
 
 
-        val (prefixDescriptor, nextIndexAfterPrefix) = if (!qprts.isNullOrEmpty()) {
-            var prefixDescriptor: PackageViewDescriptor? = null
-            var nextIndexAfterPrefix: Int? = null
-            for (qprt in qprts) {
-//                合并两个path
-//                去掉path的第一位，将path追加到qprt中
-                val modifiedPath = qprt + path.drop(1)
-                val (_prefixDescriptor, _nextIndexAfterPrefix) = moduleDescriptor.quickResolveToPackage(
-                    shouldBeVisibleFrom,
-                    modifiedPath,
-                    trace,
-                    position
-                )
-
-                prefixDescriptor = _prefixDescriptor
-                nextIndexAfterPrefix = _nextIndexAfterPrefix
-                if (!_prefixDescriptor.fqName.isRoot) {
-
-                    break
-                }
-            }
-
-            Pair(prefixDescriptor!!, nextIndexAfterPrefix!!)
-        } else {
-
-            moduleDescriptor.quickResolveToPackage(shouldBeVisibleFrom, path, trace, position)
-
-        }
-
-//        val (prefixDescriptor, nextIndexAfterPrefix) =
-//            if (classifierDescriptor != null)
-//                Pair(classifierDescriptor, 1)
-//            else
-//                moduleDescriptor.quickResolveToPackage(path, trace, position)
+        val (prefixDescriptor, nextIndexAfterPrefix) = moduleDescriptor.quickResolveToPackage(
+            shouldBeVisibleFrom,
+            path,
+            trace,
+            position
+        )
 
         var currentDescriptor: DeclarationDescriptor? = prefixDescriptor
         for (qualifierPartIndex in nextIndexAfterPrefix until path.size) {
@@ -851,6 +945,48 @@ class QualifiedExpressionResolver(
 
     fun ClassDescriptor.getContributedClassifier(qualifierPart: QualifierPart) =
         unsubstitutedInnerClassesScope.getContributedClassifier(qualifierPart.name, qualifierPart.location)
+
+    private fun ModuleDescriptor.quickResolveToPackageByImport(
+        scopeForFirstPart: LexicalScope?,
+        shouldBeVisibleFrom: DeclarationDescriptor?,
+        path: List<QualifierPart>,
+        trace: BindingTrace,
+        position: QualifierPosition
+    ): Pair<PackageViewDescriptor, Int> {
+        val possiblePackagePrefixSize =
+            path.indexOfFirst { it.typeArguments != null }.let { if (it == -1) path.size else it + 1 }
+        val firstName = path.first().name
+
+        val packageView = scopeForFirstPart?.getPackageView(firstName, NoLookupLocation.FROM_PACKAGE)
+
+
+        var fqName = if (packageView?.isEmpty() == false) {
+            packageView.fqName.child(
+                FqName.fromSegments(
+                    path.subList(1, possiblePackagePrefixSize).map { it.name.asString() })
+            )
+
+        } else {
+            FqName.fromSegments(path.subList(0, possiblePackagePrefixSize).map { it.name.asString() })
+
+        }
+        var prefixSize = possiblePackagePrefixSize
+//        if(packageView?.isEmpty() == false){
+//            recordPackageViews(shouldBeVisibleFrom, path.subList(0, prefixSize), packageDescriptor, trace, position)
+//            return Pair(packageView, prefixSize)
+//        }
+//
+        while (!fqName.isRoot) {
+            val packageDescriptor = getPackage(fqName)
+            if (!packageDescriptor.isEmpty()) {
+                recordPackageViews(shouldBeVisibleFrom, path.subList(0, prefixSize), packageDescriptor, trace, position)
+                return Pair(packageDescriptor, prefixSize)
+            }
+            fqName = fqName.parent()
+            prefixSize--
+        }
+        return Pair(getPackage(FqName.ROOT), 0)
+    }
 
     private fun ModuleDescriptor.quickResolveToPackage(
         shouldBeVisibleFrom: DeclarationDescriptor?,
@@ -1082,7 +1218,6 @@ class QualifiedExpressionResolver(
             }
 
 
-
             else -> {
 
             }
@@ -1107,10 +1242,10 @@ class QualifiedExpressionResolver(
 //                    } else {
 
 
-                        ClassQualifier(referenceExpression, descriptor, scope?.let {
+                    ClassQualifier(referenceExpression, descriptor, scope?.let {
 
-                            typeResolver.resolveTypeForClass(referenceExpression, it, trace, descriptor)
-                        })
+                        typeResolver.resolveTypeForClass(referenceExpression, it, trace, descriptor)
+                    })
 
 //                    }
 
@@ -1192,7 +1327,7 @@ val SUPPRESS_DIAGNOSTICS_IN_DEBUG_MODE = Key.create<Boolean>("SUPPRESS_DIAGNOSTI
 var CjFile.suppressDiagnosticsInDebugMode: Boolean
     get() = when (this) {
         is CjCodeFragment -> true
-        else -> getUserData(SUPPRESS_DIAGNOSTICS_IN_DEBUG_MODE) ?: false
+        else -> getUserData(SUPPRESS_DIAGNOSTICS_IN_DEBUG_MODE) == true
     }
     set(skip) {
         putUserData(SUPPRESS_DIAGNOSTICS_IN_DEBUG_MODE, skip)

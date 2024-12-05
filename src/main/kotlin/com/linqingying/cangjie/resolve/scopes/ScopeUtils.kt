@@ -24,8 +24,14 @@
 
 package com.linqingying.cangjie.resolve.scopes
 
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.SmartList
 import com.linqingying.cangjie.analyzer.ModuleSourceInfo
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.ide.FrontendInternals
 import com.linqingying.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
 import com.linqingying.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger
@@ -43,6 +49,7 @@ import com.linqingying.cangjie.resolve.BindingContext
 import com.linqingying.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import com.linqingying.cangjie.resolve.ResolutionFacade
 import com.linqingying.cangjie.resolve.caches.getResolutionFacade
+import com.linqingying.cangjie.resolve.descriptorUtil.module
 import com.linqingying.cangjie.resolve.frontendService
 import com.linqingying.cangjie.resolve.lazy.BodyResolveMode
 import com.linqingying.cangjie.resolve.lazy.FileScopeProvider
@@ -52,16 +59,11 @@ import com.linqingying.cangjie.types.error.ErrorClassDescriptor
 import com.linqingying.cangjie.types.error.ErrorEntity
 import com.linqingying.cangjie.utils.Printer
 import com.linqingying.cangjie.utils.getImplicitReceiversWithInstance
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.SmartList
-import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 
 @JvmOverloads
 fun MemberScope.memberScopeAsImportingScope(parentScope: ImportingScope? = null): ImportingScope =
     MemberScopeToImportingScopeAdapter(parentScope, this)
+
 // Result is guaranteed to be filtered by kind and name.
 fun HierarchicalScope.collectDescriptorsFiltered(
     kindFilter: DescriptorKindFilter = DescriptorKindFilter.ALL,
@@ -78,18 +80,20 @@ fun HierarchicalScope.collectDescriptorsFiltered(
     return result
 }
 
-fun HierarchicalScope.findPackage(name: Name): PackageViewDescriptor? =
-    findFirstFromImportingScopes { it.getContributedPackage(name) }
 
 inline fun <T : Any> HierarchicalScope.findFirstFromImportingScopes(fetch: (ImportingScope) -> T?): T? {
     return findFirstFromMeAndParent { if (it is ImportingScope) fetch(it) else null }
 }
+
 fun HierarchicalScope.collectFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> =
     collectAllFromMeAndParent { it.getContributedFunctions(name, location) }
+
 fun HierarchicalScope.collectVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
     collectAllFromMeAndParent { it.getContributedVariables(name, location) }
+
 fun HierarchicalScope.collectMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
     collectAllFromMeAndParent { it.getContributedMacros(name, location) }
+
 fun CjElement.getResolutionScope(): LexicalScope {
     val resolutionFacade = getResolutionFacade()
     val context = resolutionFacade.analyze(this, BodyResolveMode.FULL)
@@ -170,9 +174,10 @@ private class MemberScopeToImportingScopeAdapter(override val parent: ImportingS
         memberScope.getContributedFunctions(name, location)
 
     override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
-        return         memberScope.getContributedMacros(name, location)
+        return memberScope.getContributedMacros(name, location)
 
     }
+
     override fun equals(other: Any?) = other is MemberScopeToImportingScopeAdapter && other.memberScope == memberScope
 
     override fun hashCode() = memberScope.hashCode()
@@ -469,12 +474,14 @@ inline fun <T : Any> HierarchicalScope.collectAllFromMeAndParent(
     processForMeAndParent { result = result.concat(collect(it)) }
     return result ?: emptySet()
 }
+
 fun LexicalScope.getVariableFromImplicitReceivers(name: Name): VariableDescriptor? {
     getImplicitReceiversWithInstance().forEach {
         it.type.memberScope.getContributedVariables(name, NoLookupLocation.FROM_IDE).singleOrNull()?.let { return it }
     }
     return null
 }
+
 object ScopeUtils {
     @JvmStatic
     fun makeScopeForPropertyInitializer(
@@ -579,6 +586,7 @@ class ErrorLexicalScope : LexicalScope {
         override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
             return emptyList()
         }
+
         override fun getContributedDescriptors(
             kindFilter: DescriptorKindFilter,
             nameFilter: (Name) -> Boolean
@@ -619,6 +627,7 @@ class ErrorLexicalScope : LexicalScope {
     override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
         return emptyList()
     }
+
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
@@ -668,3 +677,18 @@ fun getResolveScope(file: CjFile): GlobalSearchScope {
         else -> GlobalSearchScope.EMPTY_SCOPE
     }
 }
+
+/**
+ * 获取包
+ * 优先从Root包获取
+ * 次从导入中获取
+ */
+fun LexicalScope.getPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? {
+
+    return ownerDescriptor.module.getPackage(FqName.ROOT.child(name)).takeUnless { it.isEmpty() }
+        ?: findPackage(name)
+
+}
+
+fun HierarchicalScope.findPackage(name: Name): PackageViewDescriptor? =
+    findFirstFromImportingScopes { it.getContributedPackage(name) }

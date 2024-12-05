@@ -254,9 +254,6 @@ class FileScopeFactory(
             val extraImports = ExtraImportsProviderExtension.getInstance(file.project).getExtraImports(file)
 
 
-//查找枚举
-//            enumDefualtImports = findEnumImports()
-
 
             if (extraImports.isEmpty() && aliasImportNames.isEmpty()) {
                 return defaultImportResolvers
@@ -265,11 +262,6 @@ class FileScopeFactory(
             return createDefaultImportResolvers(extraImports, aliasImportNames)
         }
 
-        fun findEnumImports(): List<EnumDefualtImportImpl> {
-
-
-            TODO()
-        }
 
         fun createCurrentFileScope(): ImportingScope {
             return CurrentFileScope(createImportingScope())
@@ -278,7 +270,15 @@ class FileScopeFactory(
         private inner class CurrentFileScope(override val parent: ImportingScope?) : ImportingScope {
 
             override fun getContributedPackage(name: Name): PackageViewDescriptor? {
-                return null
+                val importDirectives = explicitImportResolver.indexedImports.importsForName(name)
+
+                val packageViews = importDirectives.map {
+//                     explicitImportResolver.getImportScope(it)实际上附带了name名称
+                   val importScope = explicitImportResolver.getImportScope(it)
+
+                    importScope.getContributedPackage(name)
+                }
+                return packageViews.firstOrNull()?.takeIf { descriptor -> !descriptor.isEmpty() }
             }
 
             override fun getContributedDescriptors(
@@ -330,15 +330,14 @@ class FileScopeFactory(
             override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
 
 
-                    var i = 0
-                    var _parent = parent
-                    while (_parent !is CurrentPackageScope && i < 15) {
-                        _parent = _parent?.parent
-                        i++
-                    }
+                var i = 0
+                var _parent = parent
+                while (_parent !is CurrentPackageScope && i < 15) {
+                    _parent = _parent?.parent
+                    i++
+                }
 
-                    return _parent?.getContributedClassifier(name, location)
-
+                return _parent?.getContributedClassifier(name, location)
 
 
             }
@@ -363,6 +362,7 @@ class FileScopeFactory(
             override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
                 return emptyList()
             }
+
             override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
 
                 return emptyList()
@@ -649,6 +649,7 @@ class FileScopeFactory(
             if (name in excludedNames) return emptyList()
             return scope.getContributedMacros(name, location)
         }
+
         override fun getContributedDescriptors(
             kindFilter: DescriptorKindFilter,
             nameFilter: (Name) -> Boolean,

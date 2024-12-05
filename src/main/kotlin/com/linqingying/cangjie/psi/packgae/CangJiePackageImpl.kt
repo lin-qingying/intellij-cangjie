@@ -24,10 +24,6 @@
 
 package com.linqingying.cangjie.psi.packgae
 
-import com.linqingying.cangjie.ide.indices.CangJiePackageIndexUtils
-import com.linqingying.cangjie.lang.CangJieLanguage
-import com.linqingying.cangjie.name.FqName
-import com.linqingying.cangjie.psi.CangJiePsiFacade
 import com.intellij.lang.Language
 import com.intellij.openapi.ui.Queryable
 import com.intellij.psi.PsiDirectory
@@ -40,7 +36,10 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.Processors
 import com.intellij.util.containers.ContainerUtil
-import kotlin.concurrent.Volatile
+import com.linqingying.cangjie.ide.indices.CangJiePackageIndexUtils
+import com.linqingying.cangjie.lang.CangJieLanguage
+import com.linqingying.cangjie.name.FqName
+import com.linqingying.cangjie.psi.CangJiePsiFacade
 
 
 class CangJiePackageImpl(
@@ -64,7 +63,7 @@ class CangJiePackageImpl(
                 qualifiedName, it
 
             )
-        } ?: false
+        } == true
     }
 }
 
@@ -112,8 +111,8 @@ abstract class AbstractCangJiePackage(
 
     }
 
-    override fun getAllDirectories(scope: GlobalSearchScope?): MutableCollection<PsiDirectory> {
-        if (scope!!.isForceSearchingInLibrarySources) {
+    override fun getAllDirectories(scope: GlobalSearchScope ): MutableCollection<PsiDirectory> {
+        if (scope .isForceSearchingInLibrarySources) {
             if (!::myDirectoriesWithLibSources.isInitialized) {
                 myDirectoriesWithLibSources = createCachedDirectories(true)
             }
