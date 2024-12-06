@@ -461,7 +461,7 @@ class CallResolver(
         tcache: TemporaryTraceAndCache,
 
         context: BasicCallResolutionContext,
-        kind: NewResolutionOldInference.ResolutionKind = NewResolutionOldInference.ResolutionKind.Enum
+        kind: NewResolutionOldInference.ResolutionKind = NewResolutionOldInference.ResolutionKind.EnumEntry
     ): OverloadResolutionResults<out CallableDescriptor> {
         checkCanceled()
 

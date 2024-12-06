@@ -169,6 +169,14 @@ interface ImportingScope : HierarchicalScope {
 
     fun getContributedPackage(name: Name): PackageViewDescriptor?
 
+    /**
+     * 获取自身的声明
+     * 例如 import std.core.Option  对象为  std.core  name:Option
+     * import std.core   对象为  std   name:core
+     * 这种情况子类可能具有name属性，考虑这种情况，需要实现该方法
+     * 默认为null
+     */
+//    fun getThisDescriptor(): DeclarationDescriptor?  = null
 
     fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter = DescriptorKindFilter.ALL,

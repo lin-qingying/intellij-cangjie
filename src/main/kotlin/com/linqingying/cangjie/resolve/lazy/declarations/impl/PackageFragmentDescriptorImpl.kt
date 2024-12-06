@@ -43,6 +43,7 @@ import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.FqNameUnsafe
 import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.resolve.lazy.declarations.DeclarationProvider
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.linqingying.cangjie.resolve.scopes.DescriptorKindFilter
 import com.linqingying.cangjie.resolve.scopes.MemberScope
@@ -70,12 +71,8 @@ abstract class PackageFragmentDescriptorImpl(
     PackageFragmentDescriptor {
     // Not inlined in order to not capture ref on 'module'
     private val debugString: String = "package $fqName of $module"
+    override val declarationProvider: DeclarationProvider = DeclarationProvider.EMPTY
 
-    //    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R =
-//
-//    override fun getContainingDeclaration(): ModuleDescriptor {
-//        return super.getContainingDeclaration() as ModuleDescriptor
-//    }
     override val containingDeclaration: ModuleDescriptor
         get() = super.containingDeclaration as ModuleDescriptor
 

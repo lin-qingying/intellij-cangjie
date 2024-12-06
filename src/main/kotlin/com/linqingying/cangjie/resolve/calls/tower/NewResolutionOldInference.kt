@@ -115,8 +115,7 @@ class NewResolutionOldInference(
             explicitReceiver: DetailedReceiver?,
             context: BasicCallResolutionContext
         ): ScopeTowerProcessor<MyCandidate>
-
-        object Enum : ResolutionKind() {
+        object EnumEntry : ResolutionKind() {
             override fun createTowerProcessor(
                 outer: NewResolutionOldInference,
                 name: Name,
@@ -135,6 +134,25 @@ class NewResolutionOldInference(
                 )
             }
         }
+//        object Enum : ResolutionKind() {
+//            override fun createTowerProcessor(
+//                outer: NewResolutionOldInference,
+//                name: Name,
+//                tracing: TracingStrategy,
+//                scopeTower: ImplicitScopeTower,
+//                explicitReceiver: DetailedReceiver?,
+//                context: BasicCallResolutionContext
+//            ): ScopeTowerProcessor<MyCandidate> {
+//                val functionFactory = outer.CandidateFactoryImpl(name, context, tracing)
+//                return createFunctionProcessor(
+//                    scopeTower,
+//                    name,
+//                    functionFactory,
+//                    outer.CandidateFactoryProviderForInvokeImpl(functionFactory),
+//                    explicitReceiver
+//                )
+//            }
+//        }
 
         object CaseEnum : ResolutionKind() {
             override fun createTowerProcessor(

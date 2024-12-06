@@ -238,7 +238,7 @@ fun <C : Candidate> createProcessorWithReceiverValueOrEmpty(
 ): ScopeTowerProcessor<C> {
     return if (explicitReceiver is QualifierReceiver) {
         explicitReceiver.classValueReceiverWithSmartCastInfo?.let(create)
-            ?: KnownResultProcessor<C>(listOf())
+            ?: KnownResultProcessor(listOf())
     } else {
         create(explicitReceiver as ReceiverValueWithSmartCastInfo?)
     }
@@ -284,9 +284,9 @@ fun <C : Candidate> createEnumEntryProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) {
-    getEnumTypeByKind(
+    getEnumEntrys(
         name,
-        ClassKind.ENUM_ENTRY,
+
         it
     )
 }
@@ -307,6 +307,19 @@ fun <C : Candidate> createVariableProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
+
+
+fun <C : Candidate> createEnumEntryProcessor(
+    cangjieCall: CangJieCall,
+    scopeTower: ImplicitScopeTower,
+    context: CandidateFactory<C>, classValueReceiver: Boolean = true
+) = EnumEntryTowerProcessor(
+    cangjieCall,
+
+    createEnumEntryProcessor(scopeTower, cangjieCall.name, context, cangjieCall.explicitReceiver?.receiver),
+
+
+    )
 
 fun <C : Candidate> createEnumAndEntryProcessor(
     cangjieCall: CangJieCall,
@@ -402,6 +415,31 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
     }
 }
 
+class EnumEntryTowerProcessor<out C : Candidate>(
+    val cangjieCall: CangJieCall,
+
+    private val entryProcessor: ScopeTowerProcessor<C>,
+
+    ) : ScopeTowerProcessor<C> {
+    override fun recordLookups(skippedData: Collection<TowerData>, name: Name) {
+
+        entryProcessor.recordLookups(skippedData, name)
+
+    }
+    override fun process(data: TowerData): List<Collection<C>> {
+
+        val entryResult = entryProcessor.process(data)
+        val result = mutableListOf<List<C>>()
+
+        result.addAll(entryResult.map { it.toMutableList() })
+
+
+
+        return result
+    }
+}
+
+@Deprecated("use EnumEntryTowerProcessor")
 class EnumAndEntryTowerProcessor<out C : Candidate>(
     val cangjieCall: CangJieCall,
 

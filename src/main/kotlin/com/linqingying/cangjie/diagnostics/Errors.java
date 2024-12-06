@@ -67,6 +67,7 @@ public interface Errors {
             DiagnosticFactoryForDeprecation0.create(LanguageFeature.ForbidRecursiveDelegateExpressions);
     DiagnosticFactoryForDeprecation0<CjExpression> TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM_IN_AUGMENTED_ASSIGNMENT =
             DiagnosticFactoryForDeprecation0.create(LanguageFeature.ReportErrorsOnRecursiveTypeInsidePlusAssignment);
+    DiagnosticFactory0<CjSimpleNameExpression> OPERATOR_RENAMED_ON_IMPORT = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory0<CjExpression> INTEGER_OVERFLOW = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<CjExpression> DIVISION_BY_ZERO = DiagnosticFactory0.create(WARNING);

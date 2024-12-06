@@ -56,12 +56,12 @@ abstract class CangJieStringStubIndexHelper<Key : NavigatablePsiElement>(private
         scope: GlobalSearchScope = GlobalSearchScope.allScope(project)
     ): Collection<Key> {
         return getByKeyAndMeasure(indexKey, logger) {
-            try {
+//            try {
                 StubIndex.getElements(indexKey, fqName, project, scope, valueClass)
-            } catch (e: Exception) {
+//            } catch (e: Exception) {
 //                logger.error(e)
-                emptyList()
-            }
+//                emptyList()
+//            }
         }
     }
 

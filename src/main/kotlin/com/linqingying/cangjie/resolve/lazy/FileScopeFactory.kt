@@ -299,7 +299,32 @@ class FileScopeFactory(
                 p.println(this.toString())
 
             }
+            override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
 
+//                val elements = file.declarations.flatMap {
+//                    when(it){
+//                        is CjEnum ->{
+//                            it.entry + listOf(it)
+//                        }
+//                        else -> listOf(it)
+//                    }
+//                }.filter {
+//
+//                    it.name === name.asString()
+//                }
+//                if (elements.isEmpty()) return emptyList()
+                var i = 0
+                var _parent = parent
+                while (_parent !is CurrentPackageScope && i < 15) {
+                    _parent = _parent?.parent
+                    i++
+                }
+//                if (_parent !is CurrentPackageScope) {
+//                    return null
+//                }
+                return _parent?.getContributedClassifiers(name, location) ?: emptyList()
+
+            }
             override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
 
 //                val elements = file.declarations.flatMap {

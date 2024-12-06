@@ -45,18 +45,9 @@ class StaticScopeForCangJieEnum(
 
     override fun getContributedClassifier(name: Name, location: LookupLocation) = null // TODO
 
-    //    private val functions: List<SimpleFunctionDescriptor> by storageManager.createLazyValue {
-//        listOf(createEnumValueOfMethod(containingClass), createEnumValuesMethod(containingClass))
-//    }
-//
-//    private val properties: List<PropertyDescriptor> by storageManager.createLazyValue {
-//        if (enumEntriesCanBeUsed) {
-//            // It still might be filtered out later in tower resolve if feature disabled
-//            listOfNotNull(createEnumEntriesProperty(containingClass))
-//        } else {
-//            emptyList()
-//        }
-//    }
+    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+        return emptyList()
+    }
     private val functions: List<SimpleFunctionDescriptor> = emptyList()
     private val properties: List<PropertyDescriptor> = emptyList()
     private val variables: List<VariableDescriptor> = emptyList()

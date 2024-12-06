@@ -126,13 +126,13 @@ internal class SyntheticScopeBasedTowerLevel(
             }
     }
 
-
     override fun getClassType(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> {
         return emptyList()
     }
+
     override fun getObjects(
         name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> =
@@ -148,6 +148,7 @@ internal class SyntheticScopeBasedTowerLevel(
 
     }
 }
+
 internal class ContextReceiversGroupScopeTowerLevel(
     scopeTower: ImplicitScopeTower,
     val contextReceiversGroup: List<ReceiverValueWithSmartCastInfo>
@@ -184,7 +185,15 @@ internal class ContextReceiversGroupScopeTowerLevel(
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> {
         return contextReceiversGroup.map { contextReceiver ->
-            collectMembers { getContributedVariablesAndIntercept(name, location, contextReceiver, extensionReceiver, scopeTower) }
+            collectMembers {
+                getContributedVariablesAndIntercept(
+                    name,
+                    location,
+                    contextReceiver,
+                    extensionReceiver,
+                    scopeTower
+                )
+            }
         }.flatten()
     }
 
@@ -196,6 +205,7 @@ internal class ContextReceiversGroupScopeTowerLevel(
         return emptyList()
 
     }
+
     override fun getObjects(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
@@ -207,6 +217,7 @@ internal class ContextReceiversGroupScopeTowerLevel(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> {
+
         val collectMembers = { contextReceiver: ReceiverValueWithSmartCastInfo ->
             collectMembers {
                 getContributedFunctionsAndIntercept(
@@ -220,6 +231,7 @@ internal class ContextReceiversGroupScopeTowerLevel(
         }
         return contextReceiversGroup.map(collectMembers).flatten()
     }
+
 
     override fun recordLookup(name: Name) {
         for (type in contextReceiversGroup.map { it.allOriginalTypes }.flatten()) {
@@ -402,7 +414,7 @@ class TowerResolver {
         private val useOrder: Boolean,
         private val name: Name
     ) {
-//                private val isNameForHidesMember =
+        //                private val isNameForHidesMember =
 //            name in HIDES_MEMBERS_NAME_LIST ||
 //                    implicitScopeTower.getNameForGivenImportAlias(name) in HIDES_MEMBERS_NAME_LIST
         private val skippedDataForLookup = mutableListOf<TowerData>()
@@ -506,6 +518,7 @@ class TowerResolver {
                 .process(scope.mayFitForName(name))?.let { return it }
             return null
         }
+
         fun processLexicalScope(
             scope: LexicalScope,
             resolveExtensionsForImplicitReceiver: Boolean
@@ -526,6 +539,7 @@ class TowerResolver {
                 ?.let { return it }
             return null
         }
+
         fun processContextReceiverGroup(contextReceiversGroup: List<ReceiverValueWithSmartCastInfo>): Collection<C>? {
             TowerData.TowerLevel(ContextReceiversGroupScopeTowerLevel(implicitScopeTower, contextReceiversGroup))
                 .process()?.let { return it }
@@ -540,8 +554,6 @@ class TowerResolver {
 
 
         fun run(): Collection<C> {
-
-
 
 
 //            if (isNameForHidesMember) {
@@ -566,7 +578,7 @@ class TowerResolver {
                 resolveExtensionsForImplicitReceiver: (HierarchicalScope) -> Boolean
             ): Collection<C>? {
                 if (!implicitScopeTower.areContextReceiversEnabled) {
-                    scopes .forEach { scope ->
+                    scopes.forEach { scope ->
                         if (scope is LexicalScope) {
                             processLexicalScope(scope, resolveExtensionsForImplicitReceiver(scope))?.let { return it }
                         } else {
@@ -774,6 +786,7 @@ internal class MemberScopeTowerLevel(
             )
         }
     }
+
     override fun getObjects(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
@@ -786,13 +799,14 @@ internal class MemberScopeTowerLevel(
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> {
         return emptyList()
-
     }
+
 
     override fun getFunctions(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> {
+
         return collectMembers {
             getContributedFunctionsAndIntercept(
                 name,

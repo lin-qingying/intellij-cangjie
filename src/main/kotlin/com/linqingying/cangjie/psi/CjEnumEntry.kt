@@ -27,6 +27,9 @@ package com.linqingying.cangjie.psi
 import com.linqingying.cangjie.psi.stubs.CangJieEnumEntryStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
+import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.psi.psiUtil.getParentOfType
+import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
 
 class CjEnumEntry : CjTypeStatement {
     constructor(node: ASTNode) : super(node)
@@ -44,6 +47,14 @@ class CjEnumEntry : CjTypeStatement {
     override fun hasExplicitPrimaryConstructor(): Boolean {
         return typeReferences.isNotEmpty()
     }
+
+//    entry所属的enum类型名称
+val enumTypeName: Name get() {
+    val enum = getStrictParentOfType <CjEnum>()
+
+
+    return enum?.nameAsSafeName ?: Name.ERROR_NAME
+}
 
     override fun toString(): String {
         return node.elementType.toString()

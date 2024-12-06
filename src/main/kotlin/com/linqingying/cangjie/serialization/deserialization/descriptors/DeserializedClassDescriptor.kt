@@ -440,7 +440,11 @@ class DeserializedClassDescriptor(
                 it.memberScope.getClassifierNames()
             }
         }
-
+        override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+            recordLookup(name, location)
+            classDescriptor.enumEntries?.findEnumEntrys(name)?.let { return it.toList() }
+            return super.getContributedEnumEntrys(name, location)
+        }
         override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
             recordLookup(name, location)
             classDescriptor.enumEntries?.findEnumEntrys(name)?.let { return it.toList() }

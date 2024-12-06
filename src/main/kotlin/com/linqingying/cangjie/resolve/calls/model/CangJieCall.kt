@@ -97,7 +97,7 @@ fun CangJieCall.checkCallInvariants() {
 
         }
 
-        CangJieCallKind.ENUM -> {
+        /*CangJieCallKind.ENUM , */CangJieCallKind.ENUM_ENTRY -> {
 
         }
 

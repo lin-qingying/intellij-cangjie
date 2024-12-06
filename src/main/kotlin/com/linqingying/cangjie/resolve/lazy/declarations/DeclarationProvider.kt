@@ -64,4 +64,38 @@ interface DeclarationProvider {
 
 
     fun getDeclarationNames(): Set<Name>
+
+    companion object{
+        val EMPTY = object : DeclarationProvider{
+            override fun getDeclarations(
+                kindFilter: DescriptorKindFilter,
+                nameFilter: (Name) -> Boolean
+            ): List<CjDeclaration> = emptyList()
+
+            override fun getFunctionDeclarations(name: Name): Collection<CjNamedFunction>  = emptyList()
+
+            override fun getMainFunctionDeclarations(): Collection<CjMainFunction> = emptyList()
+
+            override fun getMacroDeclarations(name: Name): Collection<CjMacroDeclaration> = emptyList()
+
+            override fun getVariableDeclarations(name: Name): Collection<CjVariable> = emptyList()
+
+            override fun getPropertyDeclarations(name: Name): Collection<CjProperty> = emptyList()
+
+            override fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry> = emptyList()
+
+            override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> = emptyList()
+
+            override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> = emptyList()
+
+            override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> = emptyList()
+
+            override fun getAliasTypeStatementDeclarations(name: Name): Collection<CjTypeAlias> = emptyList()
+
+            override fun getTypeAliasDeclarations(name: Name): Collection<CjTypeAlias> = emptyList()
+
+            override fun getDeclarationNames(): Set<Name> = emptySet()
+
+        }
+    }
 }

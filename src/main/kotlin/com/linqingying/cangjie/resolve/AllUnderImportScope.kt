@@ -86,6 +86,12 @@ class AllUnderImportScope private constructor(
         }
     }
 
+    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+        if (name in excludedNames) return emptyList()
+        val classifier1 = scope1.getContributedEnumEntrys(name, location)
+        val classifier2 = scope2?.getContributedEnumEntrys(name, location)
+        return classifier1 + (classifier2 ?: emptyList())
+    }
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
         if (name in excludedNames) return emptyList()
         val classifier1 = scope1.getContributedClassifiers(name, location)

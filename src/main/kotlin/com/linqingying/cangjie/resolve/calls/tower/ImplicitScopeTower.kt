@@ -56,6 +56,7 @@ class VisibilityError(val invisibleMember: DeclarationDescriptorWithVisibility) 
         reporter.onCall(this)
     }
 }
+
 object HiddenExtensionRelatedToDynamicTypes : ResolutionDiagnostic(CandidateApplicability.HIDDEN)
 object DeprecatedUnaryPlusAsPlus : ResolutionDiagnostic(CandidateApplicability.CONVENTION_ERROR)
 object InvokeConventionCallNoOperatorModifier : ResolutionDiagnostic(CandidateApplicability.CONVENTION_ERROR)
@@ -74,35 +75,93 @@ class NoMatchingContextReceiver : ResolutionDiagnostic(CandidateApplicability.IN
 
 object HiddenDescriptor : ResolutionDiagnostic(CandidateApplicability.HIDDEN)
 
+/**
+ * 接口定义了在作用域塔中检索各种声明的函数
+ * 主要用于在给定的作用域内查找变量、枚举条目、类类型、对象和函数
+ */
 interface ScopeTowerLevel {
+    /**
+     * 根据名称和扩展接收器获取变量集合
+     *
+     * @param name 变量的名称
+     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
+     * @return 包含候选变量的集合，带有绑定的分发接收器
+     */
     fun getVariables(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver>
 
-    fun getEnumTypeByKind(
+    /**
+     * 根据名称和扩展接收器获取枚举条目集合默认为空列表
+     *
+     * @param name 枚举条目的名称
+     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
+     * @return 包含候选枚举条目的集合，带有绑定的分发接收器
+     */
+    fun getEnumEntrys(
         name: Name,
-        kind:ClassKind,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> = emptyList()
 
+    /**
+     * 根据名称、类型种类和扩展接收器获取枚举类型集合默认为空列表
+     *
+     * @param name 枚举类型的名称
+     * @param kind 枚举类型的种类
+     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
+     * @return 包含候选枚举类型的集合，带有绑定的分发接收器
+     */
+    fun getEnumTypeByKind(
+        name: Name,
+        kind: ClassKind,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> = emptyList()
+
+    /**
+     * 根据名称和扩展接收器获取类类型集合
+     *
+     * @param name 类类型的名称
+     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
+     * @return 包含候选类类型的集合，带有绑定的分发接收器
+     */
     fun getClassType(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver>
 
+    /**
+     * 根据名称和扩展接收器获取对象集合
+     *
+     * @param name 对象的名称
+     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
+     * @return 包含候选对象的集合，带有绑定的分发接收器
+     */
     fun getObjects(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver>
 
+    /**
+     * 根据名称和扩展接收器获取函数集合
+     *
+     * @param name 函数的名称
+     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
+     * @return 包含候选函数的集合，带有绑定的分发接收器
+     */
     fun getFunctions(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver>
 
+    /**
+     * 记录一次名称查找操作
+     *
+     * @param name 被查找的名称
+     */
     fun recordLookup(name: Name)
 }
+
 
 object UnstableSmartCastDiagnostic : ResolutionDiagnostic(CandidateApplicability.UNSTABLE_SMARTCAST)
 
@@ -151,15 +210,16 @@ abstract class ResolutionDiagnostic(candidateApplicability: CandidateApplicabili
     }
 }
 
-class  CandidateWithBoundDispatchReceiver(
-       val dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-      val descriptor: CallableDescriptor,
-        val diagnostics: List<ResolutionDiagnostic>
+class CandidateWithBoundDispatchReceiver(
+    val dispatchReceiver: ReceiverValueWithSmartCastInfo?,
+    val descriptor: CallableDescriptor,
+    val diagnostics: List<ResolutionDiagnostic>
 )
 
 object ErrorDescriptorDiagnostic :
     ResolutionDiagnostic(CandidateApplicability.RESOLVED) // todo discuss and change to INAPPLICABLE
-object EmptyDiagnostic: ResolutionDiagnostic(CandidateApplicability.INAPPLICABLE)
+
+object EmptyDiagnostic : ResolutionDiagnostic(CandidateApplicability.INAPPLICABLE)
 object DynamicDescriptorDiagnostic : ResolutionDiagnostic(CandidateApplicability.RESOLVED_LOW_PRIORITY)
 
 class ResolvedUsingDeprecatedVisibility(val baseSourceScope: ResolutionScope, val lookupLocation: LookupLocation) :

@@ -55,6 +55,9 @@ abstract class AbstractScopeAdapter : MemberScope {
         return workerScope.getContributedMacros(name, location)
 
     }
+    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+        return workerScope.getContributedEnumEntrys(name, location)
+    }
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
         return workerScope.getContributedClassifiers(name, location)
     }

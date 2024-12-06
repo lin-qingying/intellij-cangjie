@@ -50,59 +50,6 @@ val CallableDescriptor.isSynthesized: Boolean
 
 val CandidateWithBoundDispatchReceiver.requiresExtensionReceiver: Boolean
     get() = descriptor.extensionReceiverParameter != null
-//private fun ResolutionScope.getContributedFunctionsAndConstructors(
-//    name: Name,
-//    location: LookupLocation,
-//    dispatchReceiver: ReceiverValueWithSmartCastInfo?,
-//    extensionReceiver: ReceiverValueWithSmartCastInfo?,
-//    scopeTower: ImplicitScopeTower
-//): Collection<FunctionDescriptor> {
-//    val contributedFunctions = getContributedFunctions(name, location)
-//
-//    val result = ArrayList<FunctionDescriptor>(contributedFunctions)
-//
-//    getContributedClassifier(name, location)?.let {
-//        result.addAll(getConstructorsOfClassifier(it))
-//        result.addAll(scopeTower.syntheticScopes.collectSyntheticConstructors(it, location))
-//    }
-//
-//    if (contributedFunctions.isNotEmpty()) {
-//        result.addAll(scopeTower.syntheticScopes.collectSyntheticStaticFunctions(contributedFunctions, location))
-//    }
-//
-//    return scopeTower.interceptFunctionCandidates(this, name, result, location, dispatchReceiver, extensionReceiver)
-//}
-
-//对枚举进行展开
-//internal class EnumEntryScopeTowerLevel(scopeTower: ImplicitScopeTower):AbstractScopeTowerLevel(scopeTower) {
-//    override fun getVariables(
-//        name: Name,
-//        extensionReceiver: ReceiverValueWithSmartCastInfo?
-//    ): Collection<CandidateWithBoundDispatchReceiver> {
-//        return emptyList()
-//    }
-//
-//    override fun getObjects(
-//        name: Name,
-//        extensionReceiver: ReceiverValueWithSmartCastInfo?
-//    ): Collection<CandidateWithBoundDispatchReceiver> {
-//        return emptyList()
-//
-//    }
-//
-//    override fun getFunctions(
-//        name: Name,
-//        extensionReceiver: ReceiverValueWithSmartCastInfo?
-//    ): Collection<CandidateWithBoundDispatchReceiver> {
-//        return emptyList()
-//
-//    }
-//
-//    override fun recordLookup(name: Name) {
-//
-//
-//    }
-//}
 
 internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qualifier: QualifierReceiver) :
     AbstractScopeTowerLevel(scopeTower) {
@@ -123,7 +70,7 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
     override fun getFunctions(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver>  = qualifier.staticScope
+    ): Collection<CandidateWithBoundDispatchReceiver> = qualifier.staticScope
         .getContributedFunctionsAndConstructors(
             name,
             location,
@@ -133,6 +80,7 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
         ).map {
             createCandidateDescriptor(it, dispatchReceiver = null)
         }
+
     override fun getObjects(name: Name, extensionReceiver: ReceiverValueWithSmartCastInfo?) = qualifier.staticScope
         .getContributedObjectVariables(name, location).map {
             createCandidateDescriptor(it, dispatchReceiver = null)
@@ -145,13 +93,12 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
     ): Collection<CandidateWithBoundDispatchReceiver> {
         return qualifier.staticScope
             .getContributedClassifiers(name, location).filter {
-            (    it as? ClassDescriptor)?.kind == kind
+                (it as? ClassDescriptor)?.kind == kind
             }.map {
                 createCandidateDescriptor(
 
-                    EnumClassCallableDescriptor(it)
-
-                    , dispatchReceiver = null)
+                    EnumClassCallableDescriptor(it), dispatchReceiver = null
+                )
             }
     }
 
@@ -159,24 +106,37 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> {
-return qualifier.staticScope
-    .getContributedClassifiers(name, location).map {
-        createCandidateDescriptor(  /*if(it is ClassDescriptor && it.kind == ClassKind.ENUM){
-            it.unsubstitutedPrimaryConstructor!!
+        return qualifier.staticScope
+            .getContributedClassifiers(name, location).map {
+                createCandidateDescriptor(
+                    ClassCallableDescriptor(it), dispatchReceiver = null
+                )
+            }
 
-        }else{*/
-            ClassCallableDescriptor(it)
-//        }
-        , dispatchReceiver = null)
     }
 
+    override fun getEnumEntrys(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        return qualifier.staticScope
+            .getContributedEnumEntrys(name, location).map {
+                createCandidateDescriptor(
+
+                    EnumClassCallableDescriptor(it), dispatchReceiver = null
+                )
+            }
     }
 
     override fun recordLookup(name: Name) {
 
     }
 }
-private fun ResolutionScope.getContributedObjectVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
+
+private fun ResolutionScope.getContributedObjectVariables(
+    name: Name,
+    location: LookupLocation
+): Collection<VariableDescriptor> {
     val objectDescriptor = getFakeDescriptorForObject(getContributedClassifier(name, location))
     return listOfNotNull(objectDescriptor)
 }

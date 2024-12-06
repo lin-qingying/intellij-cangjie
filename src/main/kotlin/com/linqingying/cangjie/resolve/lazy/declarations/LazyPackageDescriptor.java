@@ -65,6 +65,7 @@ public class LazyPackageDescriptor extends PackageFragmentDescriptorImpl impleme
     }
 
     @NotNull
+    @Override
     public PackageMemberDeclarationProvider getDeclarationProvider() {
         return declarationProvider;
     }

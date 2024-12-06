@@ -114,7 +114,9 @@ class PSICallResolver(
         NewResolutionOldInference.ResolutionKind.Function,
         NewResolutionOldInference.ResolutionKind.Variable,
         NewResolutionOldInference.ResolutionKind.Invoke,
-        NewResolutionOldInference.ResolutionKind.Enum,
+//        NewResolutionOldInference.ResolutionKind.Enum,
+        NewResolutionOldInference.ResolutionKind.EnumEntry,
+
         NewResolutionOldInference.ResolutionKind.CaseEnum,
         NewResolutionOldInference.ResolutionKind.CallableReference
     )
@@ -1078,7 +1080,9 @@ class PSICallResolver(
             is NewResolutionOldInference.ResolutionKind.Function -> CangJieCallKind.FUNCTION
             is NewResolutionOldInference.ResolutionKind.Variable -> CangJieCallKind.VARIABLE
             is NewResolutionOldInference.ResolutionKind.Invoke -> CangJieCallKind.INVOKE
-            is NewResolutionOldInference.ResolutionKind.Enum -> CangJieCallKind.ENUM
+//            is NewResolutionOldInference.ResolutionKind.Enum -> CangJieCallKind.ENUM
+            is NewResolutionOldInference.ResolutionKind.EnumEntry -> CangJieCallKind.ENUM_ENTRY
+
             is NewResolutionOldInference.ResolutionKind.CaseEnum -> CangJieCallKind.CASE_ENUM
 
             is NewResolutionOldInference.ResolutionKind.CallableReference -> CangJieCallKind.CALLABLE_REFERENCE

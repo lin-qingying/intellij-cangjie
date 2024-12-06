@@ -45,6 +45,8 @@ class ChainedMemberScope private constructor(
         getFirstClassifierDiscriminateHeaders(scopes) { it.getContributedClassifier(name, location) }
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
         getListClassifierDiscriminateHeaders(scopes) { it.getContributedClassifiers(name, location) }
+    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
+        getListClassifierDiscriminateHeaders(scopes) { it.getContributedEnumEntrys(name, location) }
 
     override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> =
         getListClassifierDiscriminateHeaders(scopes) { it.getExtendClass(name ) }

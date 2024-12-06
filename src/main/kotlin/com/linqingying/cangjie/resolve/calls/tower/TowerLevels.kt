@@ -24,6 +24,8 @@
 
 package com.linqingying.cangjie.resolve.calls.tower
 
+import com.intellij.util.SmartList
+import com.intellij.util.containers.addIfNotNull
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.ide.codeinsight.toSourceElement
@@ -33,14 +35,11 @@ import com.linqingying.cangjie.resolve.DescriptorUtils
 import com.linqingying.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import com.linqingying.cangjie.resolve.hasClassValueDescriptor
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
-
 import com.linqingying.cangjie.resolve.scopes.*
 import com.linqingying.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.ErrorUtils
 import com.linqingying.cangjie.types.TypeSubstitutor
-import com.intellij.util.SmartList
-import com.intellij.util.containers.addIfNotNull
 
 internal class ImportingScopeBasedTowerLevel(
     scopeTower: ImplicitScopeTower,
@@ -87,27 +86,74 @@ internal abstract class AbstractScopeTowerLevel(
 
 }
 
+/**
+ * [ScopeBasedTowerLevel] 是一个开放类，提供了基于作用域的解析级别抽象。
+ * 主要封装了在给定解析作用域内解析不同类型的符号（如枚举、变量、对象、类类型和函数）的逻辑，
+ * 并能够处理弃用诊断信息。
+ *
+ * @param scopeTower 隐式作用域塔
+ * @param resolutionScope 解析作用域
+ */
 internal open class ScopeBasedTowerLevel protected constructor(
     scopeTower: ImplicitScopeTower,
     private val resolutionScope: ResolutionScope
 ) : AbstractScopeTowerLevel(scopeTower) {
 
+    /**
+     * 如果解析作用域是弃用词法作用域，则包含弃用可见性诊断信息，否则为 null。
+     */
     val deprecationDiagnosticOfThisScope: ResolutionDiagnostic? =
         if (resolutionScope is DeprecatedLexicalScope) ResolvedUsingDeprecatedVisibility(
             resolutionScope,
             location
         ) else null
 
+    /**
+     * 内部构造函数，接受隐式作用域塔和词法作用域，并将其转换为解析作用域。
+     *
+     * @param scopeTower 隐式作用域塔
+     * @param lexicalScope 词法作用域
+     */
     internal constructor(scopeTower: ImplicitScopeTower, lexicalScope: LexicalScope) : this(
         scopeTower,
         lexicalScope as ResolutionScope
     )
 
+    /**
+     * 获取指定名称的枚举条目。
+     *
+     * @param name 枚举名称
+     * @param extensionReceiver 扩展接收者值及其智能转换信息
+     * @return 包含候选描述符的集合
+     */
+    override fun getEnumEntrys(
+        name: Name,
+        extensionReceiver: ReceiverValueWithSmartCastInfo?
+    ): Collection<CandidateWithBoundDispatchReceiver> {
+        return resolutionScope.getContributedEnumEntrys(name, location)
+            .map {
+                createCandidateDescriptor(
+                    EnumClassCallableDescriptor(it),
+                    dispatchReceiver = null,
+                    specialError = ResolvedUsingDeprecatedVisibility(
+                        resolutionScope,
+                        location
+                    )
+                )
+            }
+    }
+
+    /**
+     * 获取指定名称的变量。
+     *
+     * @param name 变量名称
+     * @param extensionReceiver 扩展接收者值及其智能转换信息
+     * @return 包含候选描述符的集合
+     */
     override fun getVariables(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> {
-
         return resolutionScope.getContributedVariablesAndIntercept(
             name,
             location,
@@ -123,12 +169,17 @@ internal open class ScopeBasedTowerLevel protected constructor(
         }
     }
 
+    /**
+     * 获取指定名称的对象。
+     *
+     * @param name 对象名称
+     * @param extensionReceiver 扩展接收者值及其智能转换信息
+     * @return 包含候选描述符的集合
+     */
     override fun getObjects(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver> =
-//        resolutionScope.getContributedObjectVariablesIncludeDeprecated(name, location)
-
         resolutionScope.getContributedObjectVariablesIncludeDeprecateds(name, location)
             .map { (classifier, isDeprecated) ->
                 createCandidateDescriptor(
@@ -141,6 +192,14 @@ internal open class ScopeBasedTowerLevel protected constructor(
                 )
             }
 
+    /**
+     * 根据指定的名称和种类获取枚举类型。
+     *
+     * @param name 类型名称
+     * @param kind 类的种类
+     * @param extensionReceiver 扩展接收者值及其智能转换信息
+     * @return 包含候选描述符的集合
+     */
     override fun getEnumTypeByKind(
         name: Name,
         kind: ClassKind,
@@ -151,10 +210,7 @@ internal open class ScopeBasedTowerLevel protected constructor(
         }
             .map {
                 createCandidateDescriptor(
-
-                    EnumClassCallableDescriptor(it)
-
-                    ,
+                    EnumClassCallableDescriptor(it),
                     dispatchReceiver = null,
                     specialError = ResolvedUsingDeprecatedVisibility(
                         resolutionScope,
@@ -164,6 +220,13 @@ internal open class ScopeBasedTowerLevel protected constructor(
             }
     }
 
+    /**
+     * 根据指定的名称获取类类型。
+     *
+     * @param name 类型名称
+     * @param extensionReceiver 扩展接收者值及其智能转换信息
+     * @return 包含候选描述符的集合
+     */
     override fun getClassType(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
@@ -171,13 +234,7 @@ internal open class ScopeBasedTowerLevel protected constructor(
         return resolutionScope.getContributedClassifiers(name, location)
             .map {
                 createCandidateDescriptor(
-                    /*   if(it is ClassDescriptor && it.kind == ClassKind.ENUM){
-                           it.unsubstitutedPrimaryConstructor!!
-
-                       }else{*/
-                    ClassCallableDescriptor(it)
-//                    }
-                    ,
+                    ClassCallableDescriptor(it),
                     dispatchReceiver = null,
                     specialError = ResolvedUsingDeprecatedVisibility(
                         resolutionScope,
@@ -187,6 +244,13 @@ internal open class ScopeBasedTowerLevel protected constructor(
             }
     }
 
+    /**
+     * 获取指定名称的函数。
+     *
+     * @param name 函数名称
+     * @param extensionReceiver 扩展接收者值及其智能转换信息
+     * @return 包含候选描述符的集合
+     */
     override fun getFunctions(
         name: Name,
         extensionReceiver: ReceiverValueWithSmartCastInfo?
@@ -202,7 +266,7 @@ internal open class ScopeBasedTowerLevel protected constructor(
                 )
             }
 
-        // Add constructors of deprecated classifier with an additional diagnostic
+        // 添加弃用分类器的构造函数，并附加诊断信息
         val descriptorWithDeprecation = resolutionScope.getContributedClassifierIncludeDeprecated(name, location)
         if (descriptorWithDeprecation != null && descriptorWithDeprecation.isDeprecated) {
             getConstructorsOfClassifier(descriptorWithDeprecation.descriptor).mapTo(result) {
@@ -217,6 +281,11 @@ internal open class ScopeBasedTowerLevel protected constructor(
         return result
     }
 
+    /**
+     * 记录查找操作。
+     *
+     * @param name 查找的名称
+     */
     override fun recordLookup(name: Name) {
         resolutionScope.recordLookup(name, location)
     }
@@ -288,7 +357,7 @@ fun getFakeDescriptorForObject(classifier: ClassifierDescriptor?): FakeCallableD
 //                    null
 //            }
         is ClassDescriptor ->
-            if (classifier.hasClassValueDescriptor )
+            if (classifier.hasClassValueDescriptor)
                 FakeCallableDescriptorForObject(classifier)
             else
                 null
@@ -333,7 +402,7 @@ class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDes
         is LazyClassMemberScope -> memberScope.getConstructors()
         else -> emptyList()
     }
-      var constructor = constructors.firstOrNull()
+    var constructor = constructors.firstOrNull()
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
         return visitor.visitEnumClassCallDescriptor(this, data)
     }
@@ -360,9 +429,9 @@ class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDes
     }
 
 
-
     override val source: SourceElement
         get() = type.toSourceElement
+
     override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
 
         constructor = constructor?.substitute(substitutor)

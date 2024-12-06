@@ -95,7 +95,16 @@ enum class CangJieCallKind(vararg resolutionPart: ResolutionPart) {
      * 枚举调用类型，关联一系列特定的解析部分，如映射类型参数、映射参数等。
      * 这些解析部分是处理枚举调用时需要执行的步骤。
      */
-    ENUM(
+//    ENUM(
+//        /**FUNCTION.resolutionSequence.toTypedArray(),CheckEnumCall */
+//        CheckDesiredEnumType,
+//        MapTypeArguments,
+//        MapArguments,
+//        ArgumentsToCandidateParameterDescriptor,
+//        CreateFreshVariablesSubstitutor,
+//        CheckArgumentsInParenthesis
+//    ),
+    ENUM_ENTRY(
         /**FUNCTION.resolutionSequence.toTypedArray(),CheckEnumCall */
         CheckDesiredEnumType,
         MapTypeArguments,

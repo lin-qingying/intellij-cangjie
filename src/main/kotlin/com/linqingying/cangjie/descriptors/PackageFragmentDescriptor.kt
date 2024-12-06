@@ -24,6 +24,8 @@
 
 package com.linqingying.cangjie.descriptors
 
+import com.linqingying.cangjie.resolve.lazy.declarations.DeclarationProvider
+import com.linqingying.cangjie.resolve.lazy.declarations.PackageMemberDeclarationProvider
 import com.linqingying.cangjie.resolve.scopes.MemberScope
 
 
@@ -37,5 +39,5 @@ interface PackageFragmentDescriptor : PackageData, ClassOrPackageFragmentDescrip
 
     override val containingDeclaration: ModuleDescriptor
 
-
+    val declarationProvider: DeclarationProvider get() = DeclarationProvider.EMPTY
 }

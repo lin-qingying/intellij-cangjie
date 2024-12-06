@@ -36,6 +36,8 @@ class InnerClassesScopeWrapper(val workerScope: MemberScope) : MemberScopeImpl()
         workerScope.getContributedClassifier(name, location)?.let {
             it as? ClassDescriptor ?: it as? TypeAliasDescriptor
         }
+    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
+            workerScope.getContributedEnumEntrys(name, location)
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
         workerScope.getContributedClassifiers(name, location)
     override fun getContributedDescriptors(kindFilter: DescriptorKindFilter, nameFilter: (Name) -> Boolean): List<DeclarationDescriptor> {

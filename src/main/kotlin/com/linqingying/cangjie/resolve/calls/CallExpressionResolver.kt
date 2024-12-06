@@ -329,7 +329,8 @@ class CallExpressionResolver(
         context: ResolutionContext<*>,
         checkArguments: CheckArgumentTypesMode,
         initialDataFlowInfoForArguments: DataFlowInfo,
-        kind: NewResolutionOldInference.ResolutionKind = NewResolutionOldInference.ResolutionKind.Enum
+//        kind: NewResolutionOldInference.ResolutionKind = NewResolutionOldInference.ResolutionKind.Enum
+        kind: NewResolutionOldInference.ResolutionKind = NewResolutionOldInference.ResolutionKind.EnumEntry
 
     ): Pair<Boolean, ResolvedCall<out CallableDescriptor>?> {
 
