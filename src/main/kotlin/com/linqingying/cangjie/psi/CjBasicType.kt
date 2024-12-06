@@ -25,14 +25,14 @@
 package com.linqingying.cangjie.psi
 
 import com.intellij.lang.ASTNode
-import com.linqingying.cangjie.psi.psiUtil.elementType
 import com.linqingying.cangjie.psi.stubs.CangJiePlaceHolderStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
-class CjBasicType : CjElementImpl/*Stub<CangJiePlaceHolderStub<CjBasicType>>*/, CjTypeElement {
+class CjBasicType : CjElementImplStub<CangJiePlaceHolderStub<CjBasicType>>, CjTypeElement {
+
 
     constructor(node: ASTNode) : super(node)
-//    constructor(stub: CangJiePlaceHolderStub<CjBasicType>) : super(stub, CjStubElementTypes.BASIC_TYPE)
+    constructor(stub: CangJiePlaceHolderStub<CjBasicType>) : super(stub, CjStubElementTypes.BASIC_TYPE)
 
 
     override fun toString(): String {
@@ -43,11 +43,6 @@ class CjBasicType : CjElementImpl/*Stub<CangJiePlaceHolderStub<CjBasicType>>*/, 
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitBasicType(this, data)
-    }
-
-    override fun getText(): String {
-
-        return super.getText()
     }
 
 

@@ -21,40 +21,33 @@
  * any damages or issues arising from its use.
  *
  */
+package com.linqingying.cangjie.psi.stubs.elements
 
-package com.linqingying.cangjie.psi.stubs.elements;
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+import com.linqingying.cangjie.psi.CjElementImplStub
+import com.linqingying.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.linqingying.cangjie.psi.stubs.impl.CangJiePlaceHolderStubImpl
+import org.jetbrains.annotations.NonNls
+import java.io.IOException
 
-
-import com.linqingying.cangjie.psi.CjElementImplStub;
-import com.linqingying.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.linqingying.cangjie.psi.stubs.impl.CangJiePlaceHolderStubImpl;
-import com.intellij.psi.stubs.StubElement;
-import com.intellij.psi.stubs.StubInputStream;
-import com.intellij.psi.stubs.StubOutputStream;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
 
 /**
  * 定义一个占位符Stub元素类型类，用于处理特定的编程结构，
  * 该类继承自CjStubElementType，针对占位符类型提供具体实现。
  *
  * @param <T> 继承自CjElementImplStub的泛型类型，代表Psi元素类型。
+</T> */
+open class CjPlaceHolderStubElementType<T : CjElementImplStub<out StubElement<*>>>
+/**
+ * 构造函数，初始化占位符Stub元素类型。
+ *
+ * @param debugName 用于调试的名称，帮助开发者识别对象类型。
+ * @param psiClass 与Stub关联的Psi元素类，用于类型绑定。
  */
-public class CjPlaceHolderStubElementType<T extends CjElementImplStub<? extends StubElement<?>>> extends
-        CjStubElementType<CangJiePlaceHolderStub<T>, T> {
-
-    /**
-     * 构造函数，初始化占位符Stub元素类型。
-     *
-     * @param debugName 用于调试的名称，帮助开发者识别对象类型。
-     * @param psiClass 与Stub关联的Psi元素类，用于类型绑定。
-     */
-    public CjPlaceHolderStubElementType(@NotNull @NonNls String debugName, @NotNull Class<T> psiClass) {
-        super(debugName, psiClass, CangJiePlaceHolderStub.class);
-    }
-
+    (debugName: @NonNls String, psiClass: Class<T>) :
+    CjStubElementType<CangJiePlaceHolderStub<T>, T>(debugName, psiClass, CangJiePlaceHolderStub::class.java) {
     /**
      * 创建占位符Stub对象。
      *
@@ -62,9 +55,8 @@ public class CjPlaceHolderStubElementType<T extends CjElementImplStub<? extends 
      * @param parentStub 父Stub元素，表示Psi元素的树结构关系。
      * @return 返回创建的CangJiePlaceHolderStub对象。
      */
-    @Override
-    public @NotNull CangJiePlaceHolderStub<T> createStub(@NotNull T psi, StubElement<?> parentStub) {
-        return new CangJiePlaceHolderStubImpl<>(parentStub, this);
+    override fun createStub(psi: T, parentStub: StubElement<*>?): CangJiePlaceHolderStub<T> {
+        return CangJiePlaceHolderStubImpl(parentStub, this)
     }
 
     /**
@@ -74,8 +66,8 @@ public class CjPlaceHolderStubElementType<T extends CjElementImplStub<? extends 
      * @param dataStream 输出流，用于写入序列化数据。
      * @throws IOException 当序列化过程中发生I/O错误时抛出。
      */
-    @Override
-    public void serialize(@NotNull CangJiePlaceHolderStub<T> stub, @NotNull StubOutputStream dataStream) throws IOException {
+    @Throws(IOException::class)
+    override fun serialize(stub: CangJiePlaceHolderStub<T>, dataStream: StubOutputStream) {
         //do nothing
     }
 
@@ -87,10 +79,8 @@ public class CjPlaceHolderStubElementType<T extends CjElementImplStub<? extends 
      * @return 返回新创建的CangJiePlaceHolderStub对象。
      * @throws IOException 当反序列化过程中发生I/O错误时抛出。
      */
-    @NotNull
-    @Override
-    public CangJiePlaceHolderStub<T> deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        return new CangJiePlaceHolderStubImpl<>(parentStub, this);
+    @Throws(IOException::class)
+    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJiePlaceHolderStub<T> {
+        return CangJiePlaceHolderStubImpl(parentStub, this)
     }
-
 }

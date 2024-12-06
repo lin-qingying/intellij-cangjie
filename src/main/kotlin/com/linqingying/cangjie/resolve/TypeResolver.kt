@@ -268,7 +268,7 @@ class TypeResolver(
 
         typeElement?.accept(object : CjVisitorVoid() {
             fun checkThisTypeForClass(): CangJieType {
-                var parent: LexicalScope = c.scope.parent as? LexicalScope ?: return invalidType
+                val parent: LexicalScope = c.scope.parent as? LexicalScope ?: return invalidType
 
                 if (parent.kind == LexicalScopeKind.CLASS_MEMBER_SCOPE) {
 

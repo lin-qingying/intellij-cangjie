@@ -57,8 +57,6 @@ class CjExtend : CjTypeStatement {
         return name?.let { name.split('.').last().replace(Regex("<.*?>"), "") }
     }
 
-//    override val nameAsName: Name?
-//        get() = super.nameAsName
 
     //被扩展类型
     val receiverTypeReceiver: CjTypeReference?
@@ -76,14 +74,18 @@ class CjExtend : CjTypeStatement {
             return getReceiverTypeRefByTree()
         }
     override val nameAsSafeName: Name
-        get() = Name.identifier( receiverTypeReceiver?.text ?: "")
+        get() = receiverTypeReceiver?.text?.let { if(it.isEmpty()){
+            Name.ERROR_NAME
+        }else{
+            Name.identifier(it) }
+        } ?:Name.ERROR_NAME
     override val nameAsName: Name
-        get() =Name.identifier(name ?: "")
-    override fun getNameIdentifier(): PsiElement? {
-//        val psiFactory = CjPsiFactory.contextual(this)
-//        return psiFactory.createIdentifier(nameAsSafeName.toString())
-        return receiverTypeReceiver
-    }
+        get() = name?.let { Name.identifier(it) } ?:Name.ERROR_NAME
+//    override fun getNameIdentifier(): PsiElement? {
+////        val psiFactory = CjPsiFactory.contextual(this)
+////        return psiFactory.createIdentifier(nameAsSafeName.toString())
+//        return receiverTypeReceiver
+//    }
 
     //    扩展id ，需要具有唯一性  ，通过被扩展名，父类，包名，行号
     fun getExtendId(): String {

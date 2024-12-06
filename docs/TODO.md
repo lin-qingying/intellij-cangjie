@@ -11,7 +11,7 @@
 静态上下文检查还需要优化  STATIC_CONTEXT_REFERENCE_ERROR
 静态声明无法查找用法
 
-
+在导入枚举类的情况下无法使用枚举项
 插件感觉明显卡顿
 
 cjpm包管理工具 

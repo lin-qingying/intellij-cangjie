@@ -74,6 +74,8 @@ data class Name(private val name: String, val isSpecial: Boolean) : Comparable<N
     }
 
     companion object {
+        @JvmField
+        val ERROR_NAME = Name("<error>", true)
         @JvmStatic
         fun identifier(name: String): Name {
             return Name(name, false)

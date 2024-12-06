@@ -26,7 +26,7 @@ package com.linqingying.cangjie.psi.stubs.elements;
 
 import com.intellij.psi.tree.TokenSet;
 
-import static com.linqingying.cangjie.CjNodeTypes.BASIC_TYPE;
+
 import static com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes.*;
 
 public interface CjTokenSets {

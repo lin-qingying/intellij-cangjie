@@ -1048,7 +1048,7 @@ class QualifiedExpressionResolver(
             val visibleDescriptors =
                 descriptors.filter { isVisible(it, shouldBeVisibleFrom, position, languageVersionSettings) }
 
-                    .   distinctBy { descriptor ->
+                    .distinctBy { descriptor ->
                         descriptor.fqNameSafe
                     }
 

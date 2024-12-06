@@ -21,19 +21,15 @@
  * any damages or issues arising from its use.
  *
  */
+package com.linqingying.cangjie.psi.stubs.impl
 
-package com.linqingying.cangjie.psi.stubs.impl;
+import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.stubs.StubElement
+import com.linqingying.cangjie.psi.CjElementImplStub
+import com.linqingying.cangjie.psi.stubs.CangJiePlaceHolderStub
 
-import com.linqingying.cangjie.psi.CjElementImplStub;
-import com.linqingying.cangjie.psi.stubs.CangJiePlaceHolderStub;
-import com.intellij.psi.stubs.IStubElementType;
-import com.intellij.psi.stubs.StubElement;
-
-
-public class CangJiePlaceHolderStubImpl<T extends CjElementImplStub<? extends StubElement<?>>> extends CangJieStubBaseImpl<T>
-        implements CangJiePlaceHolderStub<T> {
-    public CangJiePlaceHolderStubImpl(StubElement parent, IStubElementType elementType) {
-        //noinspection unchecked
-        super(parent, elementType);
-    }
-}
+open class CangJiePlaceHolderStubImpl<T : CjElementImplStub<out StubElement<*>>>(
+    parent: StubElement<*>?,
+    elementType: IStubElementType<*, *>
+) :
+    CangJieStubBaseImpl<T>(parent, elementType), CangJiePlaceHolderStub<T>

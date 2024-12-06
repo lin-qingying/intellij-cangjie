@@ -101,8 +101,8 @@ CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
 
     CjPlaceHolderStubElementType<CjVArrayType> VARRAY_TYPE =
             new CjPlaceHolderStubElementType<>("VARRAY_TYPE", CjVArrayType.class);
-//    CjPlaceHolderStubElementType<CjBasicType> BASIC_TYPE =
-//            new CjPlaceHolderStubElementType<>("BASIC_TYPE", CjBasicType.class);
+    CjPlaceHolderStubElementType<CjBasicType> BASIC_TYPE =
+            new CjPlaceHolderStubElementType<>("BASIC_TYPE", CjBasicType.class);
 
     CjPlaceHolderStubElementType<CjThisType> THIS_TYPE =
             new CjPlaceHolderStubElementType<>("THIS_TYPE", CjThisType.class);
@@ -231,8 +231,6 @@ CjPlaceHolderStubElementType<CjOptionType> OPTIONAL_TYPE =
     CjClassInitElementType CLASS_INIT = new CjClassInitElementType("CLASS_INIT");
     CjClassInitElementType CLASS_MAIN_INIT = new CjClassInitElementType("CLASS_MAIN_INIT");
     CjClassInitElementType CLASS_TILDE_INIT = new CjClassInitElementType("CLASS_TILDE_INIT");
-
-//    CjBasicTypeElementType BASIC_TYPE = new CjBasicTypeElementType("BASIC_TYPE");
 
 
 

@@ -73,6 +73,13 @@ interface CangJieFileStub : PsiFileStub<CjFile>, CangJieFilesStub {
 //    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveStub>
 }
 
+/**
+ * CangJiePlaceHolderStub接口定义了一个通用的占位符 Stub 元素
+ * 它继承自StubElement，用于表示CangJie解析树中的占位符节点
+ * 这个接口是泛型的，允许它用于任何CjElement的子类
+ *
+ * @param T 表示泛型参数，限定了T必须是CjElement的子类
+ */
 interface CangJiePlaceHolderStub<T : CjElement> : StubElement<T>
 
 interface CangJieAnnotationEntryStub : StubElement<CjAnnotationEntry> {

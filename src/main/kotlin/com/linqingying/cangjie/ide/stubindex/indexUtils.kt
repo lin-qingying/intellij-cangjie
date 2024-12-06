@@ -103,62 +103,85 @@ private fun CjTypeElement.index(
     containingTypeReference: CjTypeReference,
     occurrence: (String) -> Unit
 ) {
+    /**
+     * 对当前类型元素进行索引，如果已经访问过则直接返回
+     * 此函数用于递归地索引类型元素及其嵌套的类型元素
+     *
+     * @param declaration 当前上下文的类型参数所有者，用于访问其类型参数
+     * @param containingTypeReference 包含当前类型元素的类型引用
+     * @param visited 一个集合，用于记录已经访问过的类型元素，以避免重复访问
+     * @param occurrence 一个消费型函数，用于处理每个类型元素的出现情况
+     */
     fun CjTypeElement.indexWithVisited(
         declaration: CjTypeParameterListOwner,
         containingTypeReference: CjTypeReference,
         visited: MutableSet<CjTypeElement>,
         occurrence: (String) -> Unit
     ) {
+        // 如果当前类型元素已经访问过，则直接返回，避免重复处理
         if (this in visited) return
 
+        if (this is CjBasicType) return
+        // 将当前类型元素标记为已访问
         visited.add(this)
 
+        // 根据当前类型元素的不同类型，执行相应的处理逻辑
         when (this) {
             is CjUserType -> {
+                // 获取当前用户定义类型的引用名称，如果为空则直接返回
                 val referenceName = referencedName ?: return
 
+                // 尝试在声明的类型参数中找到与引用名称匹配的类型参数
                 val typeParameter = declaration.typeParameters.firstOrNull { it.name == referenceName }
                 if (typeParameter != null) {
+                    // 如果找到了匹配的类型参数，并且它有上界，则递归索引上界类型
                     val bound = typeParameter.extendsBound
                     if (bound != null) {
                         bound.typeElement?.indexWithVisited(declaration, containingTypeReference, visited, occurrence)
                     } else {
+                        // 如果类型参数没有上界，则记录"Any"类型
                         occurrence("Any")
                     }
                     return
                 }
 
+                // 如果没有找到匹配的类型参数，则记录引用名称
                 occurrence(referenceName)
-
-
             }
 
-            is CjOptionType -> getInnerType()?.indexWithVisited(
-                declaration,
-                containingTypeReference,
-                visited,
-                occurrence
-            )
+            is CjOptionType -> {
+                // 对于可选类型，递归索引其内部类型
+                getInnerType()?.indexWithVisited(
+                    declaration,
+                    containingTypeReference,
+                    visited,
+                    occurrence
+                )
+            }
 
             is CjTupleType -> {
-
+                // 对于元组类型，根据其元素数量记录相应的元组类型名称
                 val arity = typeArgumentsAsTypes.size
 
                 occurrence("Tuple$arity")
             }
 
             is CjFunctionType -> {
+                // 对于函数类型，根据其参数数量（包括接收者类型）记录相应的函数类型名称
                 val arity = parameters.size + (if (receiverTypeReference != null) 1 else 0)
 
                 occurrence("Function$arity")
             }
 
-            is CjBasicType -> {
-                occurrence(this.name)
+//            is CjBasicType -> {
+//                // 对于基本类型，直接记录其名称
+//                occurrence(this.name)
+//            }
 
+            else -> {
+                // 如果遇到不支持的类型元素，抛出错误
+                error("Unsupported type: $this")
             }
-
-            else -> error("Unsupported type: $this")
         }
     }
 
