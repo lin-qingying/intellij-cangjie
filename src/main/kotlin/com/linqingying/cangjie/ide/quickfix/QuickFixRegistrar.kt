@@ -28,9 +28,8 @@ import com.linqingying.cangjie.diagnostics.DiagnosticFactory
 import com.linqingying.cangjie.diagnostics.DiagnosticFactoryForDeprecation
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.ide.quickfix.overrideImplement.ImplementMembersHandler
-import com.linqingying.cangjie.lexer.CjTokens.ABSTRACT_KEYWORD
-import com.linqingying.cangjie.lexer.CjTokens.OVERRIDE_KEYWORD
 import com.intellij.codeInsight.intention.IntentionAction
+import com.linqingying.cangjie.lexer.CjTokens.*
 
 
 class QuickFixRegistrar : QuickFixContributor {
@@ -68,7 +67,9 @@ class QuickFixRegistrar : QuickFixContributor {
         ABSTRACT_MEMBER_NOT_IMPLEMENTED.registerFactory(addAbstractModifierFactory)
 //        添加 OVERRIDE_KEYWORD
         val addOverrideModifierFactory = AddModifierFix.createFactory(OVERRIDE_KEYWORD)
-        VIRTUAL_MEMBER_HIDDEN.registerFactory(addOverrideModifierFactory)
+        val addRedefModifierFactory = AddModifierFix.createFactory(REDEF_KEYWORD)
+
+        VIRTUAL_MEMBER_HIDDEN.registerFactory(addOverrideModifierFactory,addRedefModifierFactory)
 
 //生成成员函数
         val implementMembersHandler = ImplementMembersHandler()
@@ -83,9 +84,19 @@ class QuickFixRegistrar : QuickFixContributor {
             AddFunctionToSupertypeFix,
 //            AddPropertyToSupertypeFix
         )
+        REDEF_NOTHING_TO_OVERRIDE.registerFactory(
+            RemoveModifierFixBase.createRemoveModifierFromListOwnerPsiBasedFactory(REDEF_KEYWORD),
+            ChangeMemberFunctionSignatureFix,
+            AddFunctionToSupertypeFix,
+//            AddPropertyToSupertypeFix
+        )
 
-
-
+        REDEF_INSTANCE_ERROR.registerFactory(
+            RemoveModifierFixBase.createRemoveModifierFromListOwnerPsiBasedFactory(REDEF_KEYWORD),
+        )
+        OVERRIDE_STATIC_ERROR.registerFactory(
+            RemoveModifierFixBase.createRemoveModifierFromListOwnerPsiBasedFactory(OVERRIDE_KEYWORD),
+        )
 
         REDUNDANT_OPTIONAL.registerFactory(RemoveOptionalFix.removeForRedundant)
         NESTING_DOLL_OPTINOTYPE.registerFactory(RemoveOptionalFix.removeForRedundantDoll)

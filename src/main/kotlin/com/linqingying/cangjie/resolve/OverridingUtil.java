@@ -29,6 +29,7 @@ import com.linqingying.cangjie.descriptors.impl.FunctionDescriptorImpl;
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor;
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptorImpl;
 import com.linqingying.cangjie.descriptors.impl.PropertyDescriptorImpl;
+import com.linqingying.cangjie.diagnostics.rendering.CangJieDiagnosisBundle;
 import com.linqingying.cangjie.name.Name;
 import com.linqingying.cangjie.resolve.calls.tower.EnumClassCallableDescriptor;
 import com.linqingying.cangjie.types.*;
@@ -540,29 +541,51 @@ public class OverridingUtil {
         return parameters;
     }
 
+    /**
+     * 检查两个描述符之间的基本覆盖（重写）兼容性问题
+     * 此方法主要用于识别在 attempting to override a member in a superclass or interface 时是否存在基本的不兼容问题
+     * 它不考虑更复杂的覆盖规则或条件，只提供初步的兼容性检查
+     *
+     * @param superDescriptor 超类或接口的描述符
+     * @param subDescriptor   子类的描述符
+     * @return 如果存在基本的覆盖兼容性问题，则返回问题的信息；否则返回 null
+     */
     @Nullable
     public static OverrideCompatibilityInfo getBasicOverridabilityProblem(
             @NotNull CallableDescriptor superDescriptor,
             @NotNull CallableDescriptor subDescriptor
     ) {
+        //        检查静态覆盖
+        if (superDescriptor.isStatic() != subDescriptor.isStatic()) {
+            if (subDescriptor.isStatic()) {
+
+                return OverrideCompatibilityInfo.staticConflict(CangJieDiagnosisBundle.message("CONFLICTING_STATIC_BY_STATIC_TO_NON_STATIC", subDescriptor.getName()));
+            }
+            return OverrideCompatibilityInfo.staticConflict(CangJieDiagnosisBundle.message("CONFLICTING_STATIC_BY_NON_STATIC_TO_STATIC", subDescriptor.getName()));
+        }
+        // 检查是否涉及枚举类描述符，因为枚举成员不能覆盖非枚举成员
         if (subDescriptor instanceof EnumClassCallableDescriptor || superDescriptor instanceof EnumClassCallableDescriptor) {
             return OverrideCompatibilityInfo.incompatible("Enum member cannot override non-enum member");
         }
+
+        // 检查成员种类是否匹配，即函数描述符只能被函数描述符覆盖，变量描述符只能被变量描述符覆盖
         if (superDescriptor instanceof FunctionDescriptor && !(subDescriptor instanceof FunctionDescriptor) ||
                 superDescriptor instanceof VariableDescriptor && !(subDescriptor instanceof VariableDescriptor)) {
             return OverrideCompatibilityInfo.incompatible("Member kind mismatch");
         }
 
-
+        // 确保超类描述符是可检查覆盖性的类型
         if (!(superDescriptor instanceof FunctionDescriptor) && !(superDescriptor instanceof VariableDescriptor)) {
             throw new IllegalArgumentException("This type of CallableDescriptor cannot be checked for overridability: " + superDescriptor);
         }
 
+        // 检查成员名称是否相同，名称不相同不能覆盖
         // TODO: check outside of this method
         if (!superDescriptor.getName().equals(subDescriptor.getName())) {
             return OverrideCompatibilityInfo.incompatible("Name mismatch");
         }
 
+        // 进一步检查接收者和参数数量的兼容性
         return checkReceiverAndParameterCount(superDescriptor, subDescriptor);
     }
 
@@ -821,7 +844,9 @@ public class OverridingUtil {
         // 遍历超类成员描述符集合，检查每个成员是否被当前类成员覆盖
         for (CallableMemberDescriptor fromSupertype : descriptorsFromSuper) {
             // 检查超类成员是否可被当前类成员覆盖，以及覆盖的可见性
-            OverrideCompatibilityInfo.Result result = isOverridableBy(fromSupertype, fromCurrent, current).getResult();
+            OverrideCompatibilityInfo resultInfo = isOverridableBy(fromSupertype, fromCurrent, current);
+
+            OverrideCompatibilityInfo.Result result = resultInfo.getResult();
             boolean isVisibleForOverride = isVisibleForOverride(fromCurrent, fromSupertype, false);
 
             // 根据覆盖检查结果，决定如何处理当前超类成员
@@ -830,6 +855,13 @@ public class OverridingUtil {
                     // 如果超类成员可被覆盖且可见，则将其添加到被覆盖成员集合中，并将其绑定到当前类成员
                     if (isVisibleForOverride) {
                         overridden.add(fromSupertype);
+                    }
+                    bound.add(fromSupertype);
+                    break;
+                case STATIC_CONFLICT:
+                    // 如果存在静态覆盖冲突且可见，则调用覆盖策略处理冲突，并将其绑定到当前类成员
+                    if (isVisibleForOverride) {
+                        strategy.staticConflict(fromSupertype, fromCurrent, resultInfo.debugMessage);
                     }
                     bound.add(fromSupertype);
                     break;
@@ -975,11 +1007,6 @@ public class OverridingUtil {
             }
         }
 
-        // 检查挂起属性是否兼容
-        //        if (superDescriptor instanceof FunctionDescriptor && subDescriptor instanceof FunctionDescriptor &&
-        //                ((FunctionDescriptor) superDescriptor).isSuspend() != ((FunctionDescriptor) subDescriptor).isSuspend()) {
-        //            return OverrideCompatibilityInfo.conflict("Incompatible suspendability");
-        //        }
 
         // 检查返回类型是否兼容，如果需要检查返回类型的话
         if (checkReturnType) {
@@ -999,6 +1026,7 @@ public class OverridingUtil {
                 }
             }
         }
+
 
         // 如果所有检查都通过，则表示可以成功覆盖
         return OverrideCompatibilityInfo.success();
@@ -1118,6 +1146,11 @@ public class OverridingUtil {
         }
 
         @NotNull
+        public static OverrideCompatibilityInfo staticConflict(@NotNull String debugMessage) {
+            return new OverrideCompatibilityInfo(STATIC_CONFLICT, debugMessage);
+        }
+
+        @NotNull
         public static OverrideCompatibilityInfo conflict(@NotNull String debugMessage) {
             return new OverrideCompatibilityInfo(CONFLICT, debugMessage);
         }
@@ -1159,6 +1192,10 @@ public class OverridingUtil {
              * 这通常意味着当前操作或值与已存在的状态存在冲突，需要解决
              */
             CONFLICT,
+            /**
+             * 静态冲突的结果状态
+             */
+            STATIC_CONFLICT
         }
     }
 }

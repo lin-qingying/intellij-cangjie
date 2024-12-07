@@ -104,6 +104,7 @@ open class LazyClassMemberScope(
         createPropertiesFromPrimaryConstructorParameters(name, result)
 
     }
+
     override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
 
 
@@ -282,7 +283,20 @@ open class LazyClassMemberScope(
     override fun getNonDeclaredMacros(name: Name, result: MutableSet<MacroDescriptor>) {
 
     }
-    //重写
+
+    /**
+     * 为可调用成员生成伪重写，通过处理超类描述符并处理冲突。
+     *
+     * 此函数是重写解析过程的一部分，它为需要重写但在当前类中未显式定义的方法生成伪重写。
+     * 该函数遍历提供的超类描述符，检查冲突并生成相应的重写。
+     *
+     * @param name 要重写的成员的名称。
+     * @param fromSupertypes 来自超类的可调用成员描述符集合。
+     * @param result 用于存储生成的伪重写的集合。
+     * @param exactDescriptorClass 预期的描述符类，指定 `fromSupertypes` 集合中的描述符类型。
+     *
+     * @throws AssertionError 如果伪重写的类型与预期的描述符类不匹配。
+     */
     private fun <D : CallableMemberDescriptor> generateFakeOverrides(
         name: Name,
         fromSupertypes: Collection<D>,
@@ -295,12 +309,34 @@ open class LazyClassMemberScope(
             ArrayList(result),
             thisDescriptor,
             object : OverridingStrategy() {
+                /**
+                 * 将伪重写添加到结果集合，确保类型与预期的类匹配。
+                 *
+                 * @param fakeOverride 伪重写的描述符。
+                 */
                 override fun addFakeOverride(fakeOverride: CallableMemberDescriptor) {
                     assert(exactDescriptorClass.isInstance(fakeOverride)) { "Wrong descriptor type in an override: " + fakeOverride + " while expecting " + exactDescriptorClass.simpleName }
                     @Suppress("UNCHECKED_CAST")
                     result.add(fakeOverride as D)
                 }
 
+                override fun staticConflict(
+                    fromSuper: CallableMemberDescriptor,
+                    fromCurrent: CallableMemberDescriptor,
+                    message: String
+                ) {
+                    reportOnDeclarationOrFail(
+                        trace,
+                        fromCurrent
+                    ) { Errors.CONFLICTING_STATIC.on(it, listOf(fromCurrent, fromSuper), message) }
+                }
+
+                /**
+                 * 处理重写冲突，报告冲突的重载。
+                 *
+                 * @param fromSuper 超类中的描述符。
+                 * @param fromCurrent 当前类中的描述符。
+                 */
                 override fun overrideConflict(
                     fromSuper: CallableMemberDescriptor,
                     fromCurrent: CallableMemberDescriptor
@@ -311,6 +347,12 @@ open class LazyClassMemberScope(
                     ) { Errors.CONFLICTING_OVERLOADS.on(it, listOf(fromCurrent, fromSuper)) }
                 }
 
+                /**
+                 * 处理继承冲突，报告冲突的成员。
+                 *
+                 * @param first 第一个冲突的描述符。
+                 * @param second 第二个冲突的描述符。
+                 */
                 override fun inheritanceConflict(
                     first: CallableMemberDescriptor,
                     second: CallableMemberDescriptor
@@ -349,26 +391,6 @@ open class LazyClassMemberScope(
         OverrideResolver.resolveUnknownVisibilities(result, trace)
     }
 
-//    private fun <T : CallableMemberDescriptor> generateDelegatingDescriptors(
-//        name: Name,
-//        extractor: MemberExtractor<T>,
-//        existingDescriptors: Collection<CallableDescriptor>
-//    ): Collection<T> {
-//        val classOrObject = declarationProvider.correspondingClassOrObject ?: return setOf()
-//
-//        val lazyTypeResolver = object : DelegationResolver.TypeResolver {
-//            override fun resolve(reference: CjTypeReference): CangJieType =
-//                c.typeResolver.resolveType(thisDescriptor.scopeForClassHeaderResolution, reference, trace, false)
-//        }
-//        val lazyMemberExtractor = object : DelegationResolver.MemberExtractor<T> {
-//            override fun getMembersByType(type: CangJieType): Collection<T> =
-//                extractor.extract(type, name)
-//        }
-//        return DelegationResolver.generateDelegatedMembers(
-//            classOrObject, thisDescriptor, existingDescriptors, trace, lazyMemberExtractor,
-//            lazyTypeResolver, c.delegationFilter, c.languageVersionSettings
-//        )
-//    }
 
     override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>) {
 //        generateSyntheticCompanionObject(name, result)
@@ -385,9 +407,9 @@ open class LazyClassMemberScope(
     protected fun resolveEnumEntryPrimaryConstructor(): ClassConstructorDescriptor {
         val enumEntry = declarationProvider.correspondingClassOrObject as CjEnumEntry
 
-        val descriptor =  c.enumDescriptorResolver.resolbeEnumEntryConstructorDescriptor(
+        val descriptor = c.enumDescriptorResolver.resolbeEnumEntryConstructorDescriptor(
             thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
-            enumEntry , trace, c.languageVersionSettings, c.inferenceSession
+            enumEntry, trace, c.languageVersionSettings, c.inferenceSession
         )
         setDeferredReturnType(descriptor)
         return descriptor
@@ -490,7 +512,7 @@ open class LazyClassMemberScope(
 
     //    主构造函数
     fun getPrimaryConstructor(): ClassConstructorDescriptor? {
-        if(DescriptorUtils.isEnumEntry(thisDescriptor)){
+        if (DescriptorUtils.isEnumEntry(thisDescriptor)) {
             return getEnumEntryPrimaryConstructor()
         }
 

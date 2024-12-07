@@ -43,7 +43,6 @@ import java.util.*;
 import static com.linqingying.cangjie.resolve.descriptorUtil.DescriptorUtilsKt.getBuiltIns;
 
 
-@SuppressWarnings("deprecation")
 public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImpl implements PropertyDescriptor {
     private final Modality modality;
     private final PropertyDescriptor original;
@@ -79,11 +78,6 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
         this.visibility = visibility;
         this.original = original == null ? this : original;
         this.kind = kind;
-//        this.lateInit = lateInit;
-//        this.isConst = isConst;
-//        this.isExpect = isExpect;
-//        this.isActual = isActual;
-//        this.isExternal = isExternal;
 
     }
 
@@ -102,17 +96,11 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             @NotNull Name name,
             @NotNull CallableMemberDescriptor.Kind kind,
             @NotNull SourceElement source
-//            bool lateInit,
-//            bool isConst,
-//            bool isExpect,
-//            bool isActual,
-//            bool isExternal,
-//            boolean isDelegated
+
     ) {
         return new PropertyDescriptorImpl(containingDeclaration, null, annotations,
                 modality, visibility, isVar, name, kind, source
-//                , lateInit, isConst,
-//                isExpect, isActual, isExternal
+ 
 
         );
     }
@@ -314,118 +302,128 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
                 : SourceElement.NO_SOURCE;
     }
 
-    @Nullable
-    protected PropertyDescriptor doSubstitute(@NotNull CopyConfiguration copyConfiguration) {
-        PropertyDescriptorImpl substitutedDescriptor = createSubstitutedCopy(
-                copyConfiguration.owner, copyConfiguration.modality, copyConfiguration.visibility,
-                copyConfiguration.original, copyConfiguration.kind, copyConfiguration.name,
-                getSourceToUseForCopy(copyConfiguration.preserveSourceElement, copyConfiguration.original));
+    /**
+ * 创建并返回一个属性描述符的替代副本，基于给定的复制配置。
+ *
+ * @param copyConfiguration 包含复制属性所需的各种配置信息的对象。
+ * @return 替代的属性描述符，如果无法创建则返回null。
+ */
+@Nullable
+protected PropertyDescriptor doSubstitute(@NotNull CopyConfiguration copyConfiguration) {
+    // 创建替代副本的基本属性
+    PropertyDescriptorImpl substitutedDescriptor = createSubstitutedCopy(
+            copyConfiguration.owner, copyConfiguration.modality, copyConfiguration.visibility,
+            copyConfiguration.original, copyConfiguration.kind, copyConfiguration.name,
+            getSourceToUseForCopy(copyConfiguration.preserveSourceElement, copyConfiguration.original));
 
-        List<TypeParameterDescriptor> originalTypeParameters =
-                copyConfiguration.newTypeParameters == null ? getTypeParameters() : copyConfiguration.newTypeParameters;
-        List<TypeParameterDescriptor> substitutedTypeParameters = new ArrayList<TypeParameterDescriptor>(originalTypeParameters.size());
-        TypeSubstitutor substitutor = DescriptorSubstitutor.substituteTypeParameters(
-                originalTypeParameters, copyConfiguration.substitution, substitutedDescriptor, substitutedTypeParameters
-        );
+    // 根据配置确定原始类型参数
+    List<TypeParameterDescriptor> originalTypeParameters =
+            copyConfiguration.newTypeParameters == null ? getTypeParameters() : copyConfiguration.newTypeParameters;
+    // 初始化替代类型参数列表
+    List<TypeParameterDescriptor> substitutedTypeParameters = new ArrayList<>(originalTypeParameters.size());
+    // 创建类型替换器并进行类型参数替换
+    TypeSubstitutor substitutor = DescriptorSubstitutor.substituteTypeParameters(
+            originalTypeParameters, copyConfiguration.substitution, substitutedDescriptor, substitutedTypeParameters
+    );
 
-        CangJieType originalOutType = copyConfiguration.returnType;
-        CangJieType outType = substitutor.substitute(originalOutType, Variance.INVARIANT);
-        if (outType == null) {
-            return null; // TODO : tell the user that the property was projected out
-        }
-
-        ReceiverParameterDescriptor substitutedDispatchReceiver;
-        ReceiverParameterDescriptor dispatchReceiver = copyConfiguration.dispatchReceiverParameter;
-        if (dispatchReceiver != null) {
-            substitutedDispatchReceiver = dispatchReceiver.substitute(substitutor);
-            if (substitutedDispatchReceiver == null) return null;
-        } else {
-            substitutedDispatchReceiver = null;
-        }
-
-        ReceiverParameterDescriptor substitutedExtensionReceiver;
-        if (getExtensionReceiverParameter() != null) {
-            substitutedExtensionReceiver = substituteParameterDescriptor(substitutor, substitutedDescriptor, getExtensionReceiverParameter());
-        } else {
-            substitutedExtensionReceiver = null;
-        }
-
-        List<ReceiverParameterDescriptor> substitutedContextReceivers = new ArrayList<ReceiverParameterDescriptor>();
-        for (ReceiverParameterDescriptor contextReceiverParameter : getContextReceiverParameters()) {
-            ReceiverParameterDescriptor substitutedContextReceiver = substituteContextParameterDescriptor(substitutor, substitutedDescriptor,
-                    contextReceiverParameter);
-            if (substitutedContextReceiver != null) {
-                substitutedContextReceivers.add(substitutedContextReceiver);
-            }
-        }
-
-        substitutedDescriptor.setType(outType, substitutedTypeParameters, substitutedDispatchReceiver, substitutedExtensionReceiver,
-                substitutedContextReceivers);
-//
-        PropertyGetterDescriptorImpl newGetter = getter == null ? null : new PropertyGetterDescriptorImpl(
-                substitutedDescriptor, getter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(getter.getVisibility(), copyConfiguration.kind),
-                getter.isDefault(),  copyConfiguration.kind,
-                copyConfiguration.getOriginalGetter(),
-                SourceElement.NO_SOURCE
-        );
-        if (newGetter != null) {
-            CangJieType returnType = getter.getReturnType();
-            newGetter.setInitialSignatureDescriptor(getSubstitutedInitialSignatureDescriptor(substitutor, getter));
-            newGetter.initialize(returnType != null ? substitutor.substitute(returnType, Variance. INVARIANT) : null);
-        }
-        PropertySetterDescriptorImpl newSetter = setter == null ? null : new PropertySetterDescriptorImpl(
-                substitutedDescriptor, setter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(setter.getVisibility(), copyConfiguration.kind),
-                setter.isDefault(),  copyConfiguration.kind,
-                copyConfiguration.getOriginalSetter(),
-                SourceElement.NO_SOURCE
-        );
-        if (newSetter != null) {
-            List<ValueParameterDescriptor> substitutedValueParameters = FunctionDescriptorImpl.getSubstitutedValueParameters(
-                    newSetter, setter.getValueParameters(), substitutor, /* dropOriginal = */ false,
-                    false, null
-            );
-            if (substitutedValueParameters == null) {
-                // The setter is projected out, e.g. in this case:
-                //     trait Tr<T> { var v: T }
-                //     fun test(tr: Tr<out Any?>) { ... }
-                // we want to tell the user that although the property is declared as a var,
-                // it can not be assigned to because of the projection
-                substitutedDescriptor.setSetterProjectedOut(true);
-                substitutedValueParameters = Collections.<ValueParameterDescriptor>singletonList(
-                         createSetterParameter(
-                                newSetter,
-                                getBuiltIns(copyConfiguration.owner).getNothingType(),
-                                setter.getValueParameters().get(0).getAnnotations()
-                        )
-                );
-            }
-            if (substitutedValueParameters.size() != 1) {
-                throw new IllegalStateException();
-            }
-            newSetter.setInitialSignatureDescriptor(getSubstitutedInitialSignatureDescriptor(substitutor, setter));
-            newSetter.initialize(substitutedValueParameters.get(0));
-        }
-
-        substitutedDescriptor.initialize(
-                newGetter,
-                newSetter
-
-        );
-
-        if (copyConfiguration.copyOverrides) {
-            Collection<CallableMemberDescriptor> overridden = SmartSet.create();
-            for (PropertyDescriptor propertyDescriptor : getOverriddenDescriptors()) {
-                overridden.add(propertyDescriptor.substitute(substitutor));
-            }
-            substitutedDescriptor.setOverriddenDescriptors(overridden);
-        }
-
-//        if (isConst() && compileTimeInitializerFactory != null) {
-//            substitutedDescriptor.setCompileTimeInitializer(compileTimeInitializer, compileTimeInitializerFactory);
-//        }
-
-        return substitutedDescriptor;
+    // 获取并替换输出类型
+    CangJieType originalOutType = copyConfiguration.returnType;
+    CangJieType outType = substitutor.substitute(originalOutType, Variance.INVARIANT);
+    if (outType == null) {
+        return null; // TODO : 告知用户该属性已被投影出去
     }
+
+    // 替换分派接收器
+    ReceiverParameterDescriptor substitutedDispatchReceiver;
+    ReceiverParameterDescriptor dispatchReceiver = copyConfiguration.dispatchReceiverParameter;
+    if (dispatchReceiver != null) {
+        substitutedDispatchReceiver = dispatchReceiver.substitute(substitutor);
+        if (substitutedDispatchReceiver == null) return null;
+    } else {
+        substitutedDispatchReceiver = null;
+    }
+
+    // 替换扩展接收器
+    ReceiverParameterDescriptor substitutedExtensionReceiver;
+    if (getExtensionReceiverParameter() != null) {
+        substitutedExtensionReceiver = substituteParameterDescriptor(substitutor, substitutedDescriptor, getExtensionReceiverParameter());
+    } else {
+        substitutedExtensionReceiver = null;
+    }
+
+    // 替换上下文接收器
+    List<ReceiverParameterDescriptor> substitutedContextReceivers = new ArrayList<>();
+    for (ReceiverParameterDescriptor contextReceiverParameter : getContextReceiverParameters()) {
+        ReceiverParameterDescriptor substitutedContextReceiver = substituteContextParameterDescriptor(substitutor, substitutedDescriptor,
+                contextReceiverParameter);
+        if (substitutedContextReceiver != null) {
+            substitutedContextReceivers.add(substitutedContextReceiver);
+        }
+    }
+
+    // 设置替代描述符的类型信息
+    substitutedDescriptor.setType(outType, substitutedTypeParameters, substitutedDispatchReceiver, substitutedExtensionReceiver,
+            substitutedContextReceivers);
+
+    // 创建并初始化替代的getter描述符
+    PropertyGetterDescriptorImpl newGetter = getter == null ? null : new PropertyGetterDescriptorImpl(
+            substitutedDescriptor, getter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(getter.getVisibility(), copyConfiguration.kind),
+            getter.isDefault(), copyConfiguration.kind,
+            copyConfiguration.getOriginalGetter(),
+            SourceElement.NO_SOURCE
+    );
+    if (newGetter != null) {
+        CangJieType returnType = getter.getReturnType();
+        newGetter.setInitialSignatureDescriptor(getSubstitutedInitialSignatureDescriptor(substitutor, getter));
+        newGetter.initialize(returnType != null ? substitutor.substitute(returnType, Variance.INVARIANT) : null);
+    }
+
+    // 创建并初始化替代的setter描述符
+    PropertySetterDescriptorImpl newSetter = setter == null ? null : new PropertySetterDescriptorImpl(
+            substitutedDescriptor, setter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(setter.getVisibility(), copyConfiguration.kind),
+            setter.isDefault(), copyConfiguration.kind,
+            copyConfiguration.getOriginalSetter(),
+            SourceElement.NO_SOURCE
+    );
+    if (newSetter != null) {
+        List<ValueParameterDescriptor> substitutedValueParameters = FunctionDescriptorImpl.getSubstitutedValueParameters(
+                newSetter, setter.getValueParameters(), substitutor, /* dropOriginal = */ false,
+                false, null
+        );
+        if (substitutedValueParameters == null) {
+            // 设置setter被投影出去，并创建一个虚拟的setter参数
+            substitutedDescriptor.setSetterProjectedOut(true);
+            substitutedValueParameters = Collections.singletonList(
+                    createSetterParameter(
+                            newSetter,
+                            getBuiltIns(copyConfiguration.owner).getNothingType(),
+                            setter.getValueParameters().get(0).getAnnotations()
+                    )
+            );
+        }
+        if (substitutedValueParameters.size() != 1) {
+            throw new IllegalStateException();
+        }
+        newSetter.setInitialSignatureDescriptor(getSubstitutedInitialSignatureDescriptor(substitutor, setter));
+        newSetter.initialize(substitutedValueParameters.get(0));
+    }
+
+    // 初始化替代描述符的getter和setter
+    substitutedDescriptor.initialize(newGetter, newSetter);
+
+    // 如果配置要求，复制重写的描述符
+    if (copyConfiguration.copyOverrides) {
+        Collection<CallableMemberDescriptor> overridden = SmartSet.create();
+        for (PropertyDescriptor propertyDescriptor : getOverriddenDescriptors()) {
+            overridden.add(propertyDescriptor.substitute(substitutor));
+        }
+        substitutedDescriptor.setOverriddenDescriptors(overridden);
+    }
+
+
+    return substitutedDescriptor;
+}
+
     public static ValueParameterDescriptorImpl createSetterParameter(
             @NotNull PropertySetterDescriptor setterDescriptor,
             @NotNull CangJieType type,

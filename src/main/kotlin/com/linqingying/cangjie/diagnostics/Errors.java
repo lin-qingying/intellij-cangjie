@@ -35,6 +35,7 @@ import com.linqingying.cangjie.diagnostics.rendering.DefaultErrorMessages;
 import com.linqingying.cangjie.diagnostics.rendering.DiagnosticFactoryToRendererMap;
 import com.linqingying.cangjie.diagnostics.rendering.DiagnosticRenderer;
 import com.linqingying.cangjie.lexer.CjKeywordToken;
+import com.linqingying.cangjie.lexer.CjToken;
 import com.linqingying.cangjie.name.FqName;
 import com.linqingying.cangjie.name.Name;
 import com.linqingying.cangjie.psi.*;
@@ -75,7 +76,7 @@ public interface Errors {
     DiagnosticFactory0<CjCallExpression> SEALED_CLASS_CONSTRUCTOR_CALL = DiagnosticFactory0.create(ERROR);
 
     DiagnosticFactory0<PsiElement> EXPLICIT_DELEGATION_CALL_REQUIRED =
-            DiagnosticFactory0.create(ERROR, PositioningStrategies.SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
+            DiagnosticFactory0.create(ERROR, SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
     DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>> NONE_APPLICABLE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>> CANNOT_COMPLETE_RESOLVE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<PsiElement, Collection<? extends ResolvedCall<?>>> OVERLOAD_RESOLUTION_AMBIGUITY = DiagnosticFactory1.create(ERROR);
@@ -92,7 +93,7 @@ public interface Errors {
     DiagnosticFactory0<PsiElement> UNDERSCORE_IS_RESERVED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory2<CjTypeReference, CangJieType, CangJieType> UPPER_BOUND_VIOLATED_WARNING = DiagnosticFactory2.create(WARNING);
     DiagnosticFactory1<PsiElement, String> INFERRED_INTO_DECLARED_UPPER_BOUNDS = DiagnosticFactory1.create(WARNING);
-    DiagnosticFactory0<CjReturnExpression> RETURN_NOT_ALLOWED = DiagnosticFactory0.create(WARNING, PositioningStrategies.RETURN_WITH_LABEL);
+    DiagnosticFactory0<CjReturnExpression> RETURN_NOT_ALLOWED = DiagnosticFactory0.create(WARNING, RETURN_WITH_LABEL);
     DiagnosticFactory0<CjExpression> SIGNED_CONSTANT_CONVERTED_TO_UNSIGNED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjParameterBase> TYPE_PARAMETER_IN_CATCH_CLAUSE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<PsiElement, CjKeywordToken> LET_OR_VAR_ON_CATCH_PARAMETER = DiagnosticFactory1.create(ERROR);
@@ -223,11 +224,13 @@ public interface Errors {
     DiagnosticFactory0<CjExpression> NOT_A_CLASS = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<PsiElement> NO_CONSTRUCTOR_WARNING = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<PsiElement> PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED =
-            DiagnosticFactory0.create(ERROR, PositioningStrategies.SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
+            DiagnosticFactory0.create(ERROR, SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
     DiagnosticFactory0<PsiElement> PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED_IN_ENUM =
-            DiagnosticFactory0.create(WARNING, PositioningStrategies.SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
+            DiagnosticFactory0.create(WARNING, SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
     DiagnosticFactory1<PsiElement, Collection<DeclarationDescriptor>> CONFLICTING_OVERLOADS =
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE_OR_DEFAULT);
+    DiagnosticFactory2<PsiElement, Collection<DeclarationDescriptor>,String> CONFLICTING_STATIC =
+            DiagnosticFactory2.create(ERROR, DECLARATION_SIGNATURE_OR_DEFAULT);
     DiagnosticFactory0<CjLambdaExpression> UNEXPECTED_TRAILING_LAMBDA_ON_A_NEW_LINE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjExpression> MANY_LAMBDA_EXPRESSION_ARGUMENTS = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjTypeProjection> PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT = DiagnosticFactory0.create(ERROR, VARIANCE_IN_PROJECTION);
@@ -323,7 +326,7 @@ public interface Errors {
     DiagnosticFactory0<CjVariableDeclaration> VARIABLE_WITH_NO_TYPE_NO_INITIALIZER = DiagnosticFactory0.create(ERROR, DECLARATION_NAME);
     DiagnosticFactory0<CjTypeReference> LOCAL_EXTENSION_VARIABLE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<CjExpression, CangJieType> EXPECTED_TYPE_MISMATCH = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory1<PsiElement, String> NAME_SHADOWING = DiagnosticFactory1.create(WARNING, PositioningStrategies.FOR_REDECLARATION);
+    DiagnosticFactory1<PsiElement, String> NAME_SHADOWING = DiagnosticFactory1.create(WARNING, FOR_REDECLARATION);
     DiagnosticFactory2<CjElement, CallableDescriptor, CangJieType> MEMBER_PROJECTED = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory1<CjElement, TypeMismatchDueToTypeProjectionsData> TYPE_MISMATCH_DUE_TO_TYPE_PROJECTIONS =
             DiagnosticFactory1.create(ERROR);
@@ -422,7 +425,7 @@ public interface Errors {
     DiagnosticFactory0<PsiElement> UNEXPECTED_SAFE_CALL = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<PsiElement, CangJieType> UNNECESSARY_SAFE_CALL = DiagnosticFactory1.create(WARNING);
     DiagnosticFactory0<CjExpression> ILLEGAL_SELECTOR = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory0<CjQualifiedExpression> SAFE_CALL_WILL_CHANGE_NULLABILITY = DiagnosticFactory0.create(WARNING, PositioningStrategies.CALL_ELEMENT_WITH_DOT);
+    DiagnosticFactory0<CjQualifiedExpression> SAFE_CALL_WILL_CHANGE_NULLABILITY = DiagnosticFactory0.create(WARNING, CALL_ELEMENT_WITH_DOT);
     DiagnosticFactory1<PsiElement, String> COMPILER_AFFECTED_SYNTAX_ERROR_BY_MESSAGE = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory0<PsiElement> COMPILER_AFFECTED_SYNTAX_ERROR = DiagnosticFactory0.create(ERROR);
@@ -455,7 +458,7 @@ public interface Errors {
 
 
     DiagnosticFactory0<CjReturnExpression> RETURN_IN_FUNCTION_WITH_EXPRESSION_BODY =
-            DiagnosticFactory0.create(ERROR, PositioningStrategies.RETURN_WITH_LABEL);
+            DiagnosticFactory0.create(ERROR, RETURN_WITH_LABEL);
     DiagnosticFactory2<CjConstantExpression, Long, CangJieType> INT_LITERAL_OUT_OF_RANGE_BY_TYPE = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjConstantExpression> FLOAT_LITERAL_OUT_OF_RANGE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjConstantExpression> INCORRECT_CHARACTER_LITERAL = DiagnosticFactory0.create(ERROR);
@@ -559,11 +562,17 @@ public interface Errors {
     DiagnosticFactory1<CjSimpleNameExpression, ClassDescriptor> UNINITIALIZED_ENUM_ENTRY = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjSimpleNameExpression, VariableDescriptor> UNINITIALIZED_VARIABLE = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory1<CjElement, VariableDescriptor> IMMUTABLE_FUNCTION_INSTANCE_MEMBER_MODIFICATION = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<PsiElement, CjNamedDeclaration>
+            OVERRIDE_STATIC_ERROR =
+            DiagnosticFactory1.create(ERROR);
 
+    DiagnosticFactory1<PsiElement, CjNamedDeclaration>
+            REDEF_INSTANCE_ERROR =
+            DiagnosticFactory1.create(ERROR);
 
-    DiagnosticFactory3<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor, DeclarationDescriptor>
+    DiagnosticFactory4<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor, DeclarationDescriptor, CjToken>
             VIRTUAL_MEMBER_HIDDEN =
-            DiagnosticFactory3.create(WARNING, DECLARATION_NAME);
+            DiagnosticFactory4.create(WARNING, DECLARATION_NAME);
 
     DiagnosticFactoryForDeprecation2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>>
             INVISIBLE_ABSTRACT_MEMBER_FROM_SUPER =
@@ -593,6 +602,8 @@ public interface Errors {
     DiagnosticFactory1<CjTypeStatement, ValueParameterDescriptor> MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_MATCH_NO_EXPLICIT_OVERRIDE =
             DiagnosticFactory1.create(ERROR, DECLARATION_NAME);
     DiagnosticFactory1<CjModifierListOwner, CallableMemberDescriptor> NOTHING_TO_OVERRIDE =
+            DiagnosticFactory1.create(ERROR, OVERRIDE_MODIFIER);
+    DiagnosticFactory1<CjModifierListOwner, CallableMemberDescriptor> REDEF_NOTHING_TO_OVERRIDE =
             DiagnosticFactory1.create(ERROR, OVERRIDE_MODIFIER);
     DiagnosticFactory2<CjModifierListOwner, CallableMemberDescriptor, CallableDescriptor> CANNOT_OVERRIDE_INVISIBLE_MEMBER =
             DiagnosticFactory2.create(ERROR, OVERRIDE_MODIFIER);
@@ -644,7 +655,7 @@ public interface Errors {
     DiagnosticFactory0<CjOptionType> NESTING_DOLL_OPTINOTYPE = DiagnosticFactory0.create(WARNING, OPTIONAL_TYPE);
     /************************************/
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     @SuppressWarnings("UnusedDeclaration")
     Initializer __initializer = Initializer.INSTANCE;
 

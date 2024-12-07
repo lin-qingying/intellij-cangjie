@@ -100,10 +100,7 @@ object ModifierCheckerCore {
                     psi.getNameElement()?.let {
                         trace.report(
                             Errors.ABSTRACT_MEMBER_VISIBILITY_ERROR.on(
-                                it,
-                                modality,
-                                descriptor.getDescriptorKind(),
-                                visibilitys
+                                it, modality, descriptor.getDescriptorKind(), visibilitys
                             )
                         )
 
@@ -125,8 +122,7 @@ object ModifierCheckerCore {
     }
 
     private val MODIFIER_KEYWORD_SET = TokenSet.create(
-        *CjTokens.MODIFIER_KEYWORDS_ARRAY,
-        CjTokens.CONST_KEYWORD
+        *CjTokens.MODIFIER_KEYWORDS_ARRAY, CjTokens.CONST_KEYWORD
     )
 
     private fun checkCompatibility(
@@ -146,11 +142,21 @@ object ModifierCheckerCore {
                 trace.report(Errors.REPEATED_MODIFIER.on(secondNode.psi, firstModifier))
             }
 
-            Compatibility.REDUNDANT ->
-                trace.report(Errors.REDUNDANT_MODIFIER.on(secondNode.psi, secondModifier, firstModifier))
+            Compatibility.REDUNDANT -> trace.report(
+                Errors.REDUNDANT_MODIFIER.on(
+                    secondNode.psi,
+                    secondModifier,
+                    firstModifier
+                )
+            )
 
-            Compatibility.REVERSE_REDUNDANT ->
-                trace.report(Errors.REDUNDANT_MODIFIER.on(firstNode.psi, firstModifier, secondModifier))
+            Compatibility.REVERSE_REDUNDANT -> trace.report(
+                Errors.REDUNDANT_MODIFIER.on(
+                    firstNode.psi,
+                    firstModifier,
+                    secondModifier
+                )
+            )
 
             Compatibility.DEPRECATED -> {
                 trace.report(Errors.DEPRECATED_MODIFIER_PAIR.on(firstNode.psi, firstModifier, secondModifier))
@@ -239,12 +245,9 @@ object ModifierCheckerCore {
      * @param languageVersionSettings 语言版本设置，表示当前Kotlin语言的版本配置
      */
     private fun checkModifierList(
-        list: CjModifierList,
-        trace: BindingTrace,
-        parentDescriptor: DeclarationDescriptor?,
+        list: CjModifierList, trace: BindingTrace, parentDescriptor: DeclarationDescriptor?,
 
-        actualTargets: List<CangJieTarget>,
-        languageVersionSettings: LanguageVersionSettings
+        actualTargets: List<CangJieTarget>, languageVersionSettings: LanguageVersionSettings
     ) {
         // 如果列表是存根，则直接返回，不进行检查
         if (list.stub != null) return
@@ -281,6 +284,12 @@ object ModifierCheckerCore {
                 }
             }
         }
+
+//        后置检查
+
+
+        //        检查redef和override
+        checkOverrideAndRedef(list, trace)
     }
 
 
@@ -303,9 +312,7 @@ object ModifierCheckerCore {
         if (!actualTargets.any { it in possibleTargets }) {
             trace.report(
                 Errors.WRONG_MODIFIER_TARGET.on(
-                    node.psi,
-                    modifier,
-                    actualTargets.firstOrNull()?.description ?: "this"
+                    node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"
                 )
             )
             return false
@@ -322,9 +329,7 @@ object ModifierCheckerCore {
             actualTargets.any { it in deprecatedTargets } -> {
                 trace.report(
                     Errors.DEPRECATED_MODIFIER_FOR_TARGET.on(
-                        node.psi,
-                        modifier,
-                        actualTargets.firstOrNull()?.description ?: "this"
+                        node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"
                     )
                 )
             }
@@ -332,9 +337,7 @@ object ModifierCheckerCore {
             actualTargets.any { it in redundantTargets } -> {
                 trace.report(
                     Errors.REDUNDANT_MODIFIER_FOR_TARGET.on(
-                        node.psi,
-                        modifier,
-                        actualTargets.firstOrNull()?.description ?: "this"
+                        node.psi, modifier, actualTargets.firstOrNull()?.description ?: "this"
                     )
                 )
             }
@@ -342,6 +345,36 @@ object ModifierCheckerCore {
         return true
     }
 
+    private fun checkOverrideAndRedef(list: CjModifierList, trace: BindingTrace) {
+        val parent = list.parent as? CjNamedDeclaration ?: return
+        val isRedef = list.hasModifier(CjTokens.REDEF_KEYWORD)
+        val isOverride = list.hasModifier(CjTokens.OVERRIDE_KEYWORD)
+        val isStatic = list.hasModifier(CjTokens.STATIC_KEYWORD)
+
+        val token =
+            if (isOverride) list.getModifier(CjTokens.OVERRIDE_KEYWORD) else list.getModifier(CjTokens.REDEF_KEYWORD)
+
+
+
+        if (isRedef && !isStatic) {
+//    不适用实例成员
+            trace.report(
+                Errors.REDEF_INSTANCE_ERROR.on(
+                    token, parent
+                )
+            )
+        }
+        if (isOverride && isStatic) {
+//    不适用静态成员
+            trace.report(
+                Errors.OVERRIDE_STATIC_ERROR.on(
+                    token, parent
+                )
+            )
+        }
+
+
+    }
 
     private fun checkSealed(list: CjModifierList, trace: BindingTrace) {
         if (list.hasModifier(CjTokens.SEALED_KEYWORD)) {

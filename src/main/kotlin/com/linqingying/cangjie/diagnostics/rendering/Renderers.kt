@@ -76,6 +76,7 @@ object Renderers {
     val INT = renderer<Int> {
         it.toString()
     }
+
     @JvmField
     val AMBIGUOUS_CALLABLE_REFERENCES = renderer { references: Collection<CallableDescriptor> ->
         renderAmbiguousDescriptors(references)
@@ -215,6 +216,18 @@ object Renderers {
     @JvmField
     val DESCRIPTOR_KIND_NAME = renderer { kind: DescriptorKind ->
         kind.kind
+    }
+
+    @JvmField
+
+    val PSI_NAMED_TYPE_NAM = renderer { declaration: CjDeclaration ->
+
+        when (declaration) {
+            is CjNamedFunction -> "function"
+            is CjProperty -> "property"
+            is CjVariable -> "variable"
+            else -> ""
+        }
     }
 
     //根据表达式类型显示

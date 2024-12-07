@@ -249,7 +249,7 @@ object PositioningStrategies {
 
     @JvmField
     val OVERRIDE_MODIFIER: PositioningStrategy<CjModifierListOwner> =
-        ModifierSetBasedPositioningStrategy(CjTokens.OVERRIDE_KEYWORD)
+        ModifierSetBasedPositioningStrategy(CjTokens.OVERRIDE_KEYWORD,CjTokens.REDEF_KEYWORD)
 
     @JvmField
     val DECLARATION_RETURN_TYPE: PositioningStrategy<CjDeclaration> = object : PositioningStrategy<CjDeclaration>() {

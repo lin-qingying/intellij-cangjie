@@ -1077,7 +1077,13 @@ open class DescriptorRendererImpl(
         if (DescriptorRendererModifier.OVERRIDE !in modifiers) return
         if (overridesSomething(callableMember)) {
             if (overrideRenderingPolicy != OverrideRenderingPolicy.RENDER_OPEN) {
-                renderModifier(builder, true, "override")
+                if(callableMember.isStatic){
+                    renderModifier(builder, true, "redef")
+
+                }else{
+                    renderModifier(builder, true, "override")
+
+                }
                 if (verbose) {
                     builder.append("/*").append(callableMember.overriddenDescriptors.size).append("*/ ")
                 }
@@ -1241,6 +1247,10 @@ open class DescriptorRendererImpl(
                     }
                 }
             }
+            if(function.isStatic){
+                builder.append("static ")
+            }
+
             if(function is SimpleFunctionDescriptorForExtendImpl){
 
                 renderTypeParameters(function.typeParametersForExtend, builder, true)

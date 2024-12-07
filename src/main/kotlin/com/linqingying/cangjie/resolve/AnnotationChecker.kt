@@ -212,7 +212,8 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
         "class member function",
         false
     ),
-    INTERFACE_MEMBER_FUNCTION("interface member function", false), EXTEND_MEMBER_FUNCTION(
+    INTERFACE_MEMBER_FUNCTION("interface member function", false),
+    EXTEND_MEMBER_FUNCTION(
         "extend member function",
         false
     ),

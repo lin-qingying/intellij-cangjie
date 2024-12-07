@@ -40,6 +40,7 @@ import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.diagnostics.rendering.DeclarationWithDiagnosticComponents
 import com.linqingying.cangjie.diagnostics.rendering.PlatformSpecificDiagnosticComponents
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
+import com.linqingying.cangjie.lexer.CjToken
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.DescriptorUtils.classCanHaveAbstractFakeOverride
@@ -73,29 +74,37 @@ class OverrideResolver(
         }
     }
 
+    /**
+     * 检查类中的方法重写问题。
+     *
+     * 此函数用于检测类中方法重写的内部一致性问题，确保类的成员正确地重写了或实现了超类型的方法。它有助于维护类层次结构的一致性和正确性。
+     *
+     * @param classDescriptor 类的描述符，包含类的解析范围信息。
+     * @param cclass 类型语句对象，表示当前类。
+     */
     private fun checkOverridesInAClass(classDescriptor: ClassDescriptorWithResolutionScopes, cclass: CjTypeStatement) {
-        // Check overrides for internal consistency
+        // 检查类中声明的可调用成员的重写一致性
         for (member in classDescriptor.declaredCallableMembers) {
             checkOverrideForMember(member)
         }
 
+        // 收集继承成员的错误信息
         val inheritedMemberErrors = CollectErrorInformationForInheritedMembersStrategy(cclass, classDescriptor)
 
+        // 检查继承和委托签名
         checkInheritedAndDelegatedSignatures(
-            classDescriptor,
-            inheritedMemberErrors,
-            inheritedMemberErrors,
-            cangjieTypeRefiner
+            classDescriptor, inheritedMemberErrors, inheritedMemberErrors, cangjieTypeRefiner
         )
+        // 报告收集到的错误信息
         inheritedMemberErrors.doReportErrors()
     }
+
 
     private interface CheckInheritedSignaturesReportStrategy {
         fun abstractMemberNotImplemented(descriptor: CallableMemberDescriptor)
         fun abstractBaseClassMemberNotImplemented(descriptor: CallableMemberDescriptor)
         fun abstractMemberWithMoreSpecificType(
-            abstractMember: CallableMemberDescriptor,
-            concreteMember: CallableMemberDescriptor
+            abstractMember: CallableMemberDescriptor, concreteMember: CallableMemberDescriptor
         )
 
         fun multipleImplementationsMemberNotImplemented(descriptor: CallableMemberDescriptor)
@@ -126,8 +135,7 @@ class OverrideResolver(
         }
 
         override fun typeMismatchOnInheritance(
-            descriptor1: CallableMemberDescriptor,
-            descriptor2: CallableMemberDescriptor
+            descriptor1: CallableMemberDescriptor, descriptor2: CallableMemberDescriptor
         ) {
             // don't care
         }
@@ -137,19 +145,19 @@ class OverrideResolver(
         }
 
         override fun abstractMemberWithMoreSpecificType(
-            abstractMember: CallableMemberDescriptor,
-            concreteMember: CallableMemberDescriptor
+            abstractMember: CallableMemberDescriptor, concreteMember: CallableMemberDescriptor
         ) {
             shouldImplement.add(abstractMember)
         }
     }
 
     private inner class CollectWarningInformationForInheritedMembersStrategy(
-        cclass: CjTypeStatement,
-        classDescriptor: ClassDescriptor
+        cclass: CjTypeStatement, classDescriptor: ClassDescriptor
     ) : CollectErrorInformationForInheritedMembersStrategy(cclass, classDescriptor) {
-        constructor(delegateStrategy: CollectErrorInformationForInheritedMembersStrategy) :
-                this(delegateStrategy.cclass, delegateStrategy.classDescriptor)
+        constructor(delegateStrategy: CollectErrorInformationForInheritedMembersStrategy) : this(
+            delegateStrategy.cclass,
+            delegateStrategy.classDescriptor
+        )
 
         override fun doReportErrors() {
             val canHaveAbstractMembers = classCanHaveAbstractFakeOverride(classDescriptor)
@@ -160,17 +168,13 @@ class OverrideResolver(
                 ) {
                     trace.report(
                         ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED.on(
-                            cclass,
-                            cclass,
-                            abstractInBaseClassNoImpl.first()
+                            cclass, cclass, abstractInBaseClassNoImpl.first()
                         )
                     )
                 } else {
                     trace.report(
                         ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED_WARNING.on(
-                            cclass,
-                            cclass,
-                            abstractInBaseClassNoImpl.first()
+                            cclass, cclass, abstractInBaseClassNoImpl.first()
                         )
                     )
                 }
@@ -190,8 +194,7 @@ class OverrideResolver(
     }
 
     private open inner class CollectErrorInformationForInheritedMembersStrategy(
-        val cclass: CjTypeStatement,
-        val classDescriptor: ClassDescriptor
+        val cclass: CjTypeStatement, val classDescriptor: ClassDescriptor
     ) : CheckInheritedSignaturesReportStrategy, CheckOverrideReportStrategy {
 
         private val abstractNoImpl = linkedSetOf<CallableMemberDescriptor>()
@@ -203,8 +206,7 @@ class OverrideResolver(
 
         private val onceErrorsReported = SmartHashSet<DiagnosticFactoryWithPsiElement<*, *>>()
 
-        fun toDeprecationStrategy() =
-            CollectWarningInformationForInheritedMembersStrategy(this)
+        fun toDeprecationStrategy() = CollectWarningInformationForInheritedMembersStrategy(this)
 
         override fun abstractMemberNotImplemented(descriptor: CallableMemberDescriptor) {
             abstractNoImpl.add(descriptor)
@@ -223,8 +225,7 @@ class OverrideResolver(
         }
 
         override fun typeMismatchOnInheritance(
-            descriptor1: CallableMemberDescriptor,
-            descriptor2: CallableMemberDescriptor
+            descriptor1: CallableMemberDescriptor, descriptor2: CallableMemberDescriptor
         ) {
             conflictingReturnTypes.add(descriptor1)
             conflictingReturnTypes.add(descriptor2)
@@ -245,8 +246,7 @@ class OverrideResolver(
         }
 
         override fun abstractMemberWithMoreSpecificType(
-            abstractMember: CallableMemberDescriptor,
-            concreteMember: CallableMemberDescriptor
+            abstractMember: CallableMemberDescriptor, concreteMember: CallableMemberDescriptor
         ) {
             typeMismatchOnInheritance(abstractMember, concreteMember)
         }
@@ -267,13 +267,10 @@ class OverrideResolver(
         }
 
         override fun returnTypeMismatchOnOverride(
-            overriding: CallableMemberDescriptor,
-            overridden: CallableMemberDescriptor
+            overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor
         ) {
-            val (diagnosticFactory, relevantDiagnosticFromInheritance) = if (overridden is PropertyDescriptor)
-                PROPERTY_TYPE_MISMATCH_BY_DELEGATION to PROPERTY_TYPE_MISMATCH_ON_INHERITANCE
-            else
-                RETURN_TYPE_MISMATCH_BY_DELEGATION to RETURN_TYPE_MISMATCH_ON_INHERITANCE
+            val (diagnosticFactory, relevantDiagnosticFromInheritance) = if (overridden is PropertyDescriptor) PROPERTY_TYPE_MISMATCH_BY_DELEGATION to PROPERTY_TYPE_MISMATCH_ON_INHERITANCE
+            else RETURN_TYPE_MISMATCH_BY_DELEGATION to RETURN_TYPE_MISMATCH_ON_INHERITANCE
 
             reportDelegationProblemIfRequired(
                 diagnosticFactory, relevantDiagnosticFromInheritance, overriding, overridden
@@ -282,8 +279,8 @@ class OverrideResolver(
 
         override fun letOverriddenByVar(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor) {
             reportDelegationProblemIfRequired(VAR_OVERRIDDEN_BY_LET_BY_DELEGATION, null, overriding, overridden)
-
         }
+
 
         override fun varOverriddenByLet(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor) {
             reportDelegationProblemIfRequired(VAR_OVERRIDDEN_BY_LET_BY_DELEGATION, null, overriding, overridden)
@@ -297,8 +294,7 @@ class OverrideResolver(
         ) {
 //            assert(delegate.kind == DELEGATION) { "Delegate expected, got " + delegate + " of kind " + delegate.kind }
 
-            if (!onceErrorsReported.contains(diagnosticFactory) &&
-                (relevantDiagnosticFromInheritance == null || !onceErrorsReported.contains(
+            if (!onceErrorsReported.contains(diagnosticFactory) && (relevantDiagnosticFromInheritance == null || !onceErrorsReported.contains(
                     relevantDiagnosticFromInheritance
                 ))
             ) {
@@ -312,9 +308,7 @@ class OverrideResolver(
             if (abstractInBaseClassNoImpl.isNotEmpty() && !canHaveAbstractMembers) {
                 trace.report(
                     ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED.on(
-                        cclass,
-                        cclass,
-                        abstractInBaseClassNoImpl.first()
+                        cclass, cclass, abstractInBaseClassNoImpl.first()
                     )
                 )
             } else if (abstractNoImpl.isNotEmpty() && !canHaveAbstractMembers) {
@@ -324,10 +318,7 @@ class OverrideResolver(
             if (abstractInvisibleSuper.isNotEmpty() && !canHaveAbstractMembers) {
                 trace.report(
                     INVISIBLE_ABSTRACT_MEMBER_FROM_SUPER.on(
-                        languageVersionSettings,
-                        cclass,
-                        classDescriptor,
-                        abstractInvisibleSuper
+                        languageVersionSettings, cclass, classDescriptor, abstractInvisibleSuper
                     )
                 )
             }
@@ -337,9 +328,7 @@ class OverrideResolver(
             if (conflictingInterfaceMembers.isNotEmpty()) {
                 trace.report(
                     MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED.on(
-                        cclass,
-                        cclass,
-                        conflictingInterfaceMembers.first()
+                        cclass, cclass, conflictingInterfaceMembers.first()
                     )
                 )
             } else if (multipleImplementations.isNotEmpty()) {
@@ -356,78 +345,113 @@ class OverrideResolver(
 
         fun letOverriddenByVar(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor)
 
+
+//        fun redefByNotStatic(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor)
+//        fun overriddenByStatic(overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor)
+
     }
 
     private interface CheckOverrideReportForDeclaredMemberStrategy : CheckOverrideReportStrategy {
-        fun nothingToOverride(overriding: CallableMemberDescriptor)
+        fun nothingToOverride(overriding: CallableMemberDescriptor, overrideToken: CjToken = CjTokens.OVERRIDE_KEYWORD)
         fun cannotOverrideInvisibleMember(
-            overriding: CallableMemberDescriptor,
-            invisibleOverridden: CallableMemberDescriptor
+            overriding: CallableMemberDescriptor, invisibleOverridden: CallableMemberDescriptor
         )
     }
 
-    private fun checkOverrideForMember(declared: CallableMemberDescriptor) {
-//        if (declared.kind == CallableMemberDescriptor.Kind.SYNTHESIZED) {
-//            if (DataClassDescriptorResolver.isComponentLike(declared.name)) {
-//                checkOverrideForComponentFunction(declared)
-//            } else if (declared.name == DataClassDescriptorResolver.COPY_METHOD_NAME) {
-//                checkOverrideForCopyFunction(declared)
-//            }
-//            return
+    private fun CjModifierList?.hasOverride(isStatic: Boolean = false): Pair<CjToken, Boolean> {
+        this ?: return Pair(CjTokens.OPEN_KEYWORD, false)
+        return if (hasModifier(CjTokens.OVERRIDE_KEYWORD)) {
+            Pair(CjTokens.OVERRIDE_KEYWORD, true)
+        } else if (hasModifier(CjTokens.REDEF_KEYWORD)) {
+            Pair(CjTokens.REDEF_KEYWORD, true)
+        } else {
+            //     随便返回一个
+            Pair(CjTokens.OPEN_KEYWORD, false)
+        }
+//        return if (isStatic) {
+//            hasModifier(CjTokens.REDEF_KEYWORD)
+//        } else {
+//            hasModifier(CjTokens.OVERRIDE_KEYWORD)
 //        }
+    }
 
+    /**
+     * 检查成员是否正确地重写了基类的成员
+     *
+     * 此函数旨在确保当前声明的成员如果重写了基类的成员，则必须正确地使用`override`关键字
+     * 它还会检查重写成员的类型是否匹配，并处理其他重写相关的错误情况
+     *
+     * @param declared 当前声明的成员描述符
+     */
+    private fun checkOverrideForMember(declared: CallableMemberDescriptor) {
+        // 忽略合成的成员，因为它们不由用户直接编写，不适用重写检查
+//    if (declared.kind == CallableMemberDescriptor.Kind.SYNTHESIZED) {
+//        if (DataClassDescriptorResolver.isComponentLike(declared.name)) {
+//            checkOverrideForComponentFunction(declared)
+//        } else if (declared.name == DataClassDescriptorResolver.COPY_METHOD_NAME) {
+//            checkOverrideForCopyFunction(declared)
+//        }
+//        return
+//    }
+
+        // 只处理声明类型的成员，其他类型不进行重写检查
         if (declared.kind != CallableMemberDescriptor.Kind.DECLARATION) {
             return
         }
 
+        // 将描述符转换为具体的声明节点，以便后续检查
         val member = DescriptorToSourceUtils.descriptorToDeclaration(declared) as CjNamedDeclaration?
             ?: throw IllegalStateException("declared descriptor is not resolved to declaration: $declared")
 
+        // 获取成员的修饰符列表，以检查是否包含`override`关键字
         val modifierList = member.modifierList
-        val hasOverrideNode = modifierList != null && modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)
+        val (overrideToken, hasOverride) = modifierList.hasOverride(declared.isStatic)
+        val hasOverrideNode = modifierList != null && hasOverride
         val overriddenDescriptors = declared.overriddenDescriptors
 
+
+
+
+        // 定义一个策略对象，用于报告各种重写错误
         val reportError = object : CheckOverrideReportForDeclaredMemberStrategy {
             private var finalOverriddenError = false
             private var typeMismatchError = false
             private var kindMismatchError = false
 
+            // 报告重写final成员的错误
             override fun overridingFinalMember(
-                overriding: CallableMemberDescriptor,
-                overridden: CallableMemberDescriptor
+                overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor
             ) {
                 if (!finalOverriddenError) {
                     finalOverriddenError = true
                     trace.report(
                         OVERRIDING_FINAL_MEMBER.on(
-                            member,
-                            overridden,
-                            overridden.containingDeclaration
+                            member, overridden, overridden.containingDeclaration
                         )
                     )
                 }
             }
 
+            // 报告重写成员返回类型不匹配的错误
             override fun returnTypeMismatchOnOverride(
-                overriding: CallableMemberDescriptor,
-                overridden: CallableMemberDescriptor
+                overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor
             ) {
                 if (!typeMismatchError) {
                     typeMismatchError = true
 
                     when {
-                        overridden is PropertyDescriptor && overridden.isVar ->
-                            trace.report(VAR_TYPE_MISMATCH_ON_OVERRIDE.on(member, declared, overridden))
+                        overridden is PropertyDescriptor && overridden.isVar -> trace.report(
+                            VAR_TYPE_MISMATCH_ON_OVERRIDE.on(member, declared, overridden)
+                        )
 
-                        overridden is PropertyDescriptor && !overridden.isVar ->
-                            trace.report(PROPERTY_TYPE_MISMATCH_ON_OVERRIDE.on(member, declared, overridden))
+                        overridden is PropertyDescriptor && !overridden.isVar -> trace.report(
+                            PROPERTY_TYPE_MISMATCH_ON_OVERRIDE.on(member, declared, overridden)
+                        )
 
                         else -> trace.report(
                             RETURN_TYPE_MISMATCH_ON_OVERRIDE.on(
-                                member, declared,
-                                DeclarationWithDiagnosticComponents(
-                                    overridden,
-                                    platformSpecificDiagnosticComponents
+                                member, declared, DeclarationWithDiagnosticComponents(
+                                    overridden, platformSpecificDiagnosticComponents
                                 )
                             )
                         )
@@ -435,149 +459,78 @@ class OverrideResolver(
                 }
             }
 
+            // 报告用let重写var成员的错误
             override fun letOverriddenByVar(
-                overriding: CallableMemberDescriptor,
-                overridden: CallableMemberDescriptor
+                overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor
             ) {
                 if (!kindMismatchError) {
                     kindMismatchError = true
                     trace.report(
                         LET_OVERRIDDEN_BY_VAR.on(
-                            member,
-                            declared as PropertyDescriptor,
-                            overridden as PropertyDescriptor
+                            member, declared as PropertyDescriptor, overridden as PropertyDescriptor
                         )
                     )
                 }
             }
 
+            // 报告用var重写let成员的错误
             override fun varOverriddenByLet(
-                overriding: CallableMemberDescriptor,
-                overridden: CallableMemberDescriptor
+                overriding: CallableMemberDescriptor, overridden: CallableMemberDescriptor
             ) {
                 if (!kindMismatchError) {
                     kindMismatchError = true
                     trace.report(
                         VAR_OVERRIDDEN_BY_LET.on(
-                            member,
-                            declared as PropertyDescriptor,
-                            overridden as PropertyDescriptor
+                            member, declared as PropertyDescriptor, overridden as PropertyDescriptor
                         )
                     )
                 }
             }
 
+            // 报告尝试重写不可见成员的错误
             override fun cannotOverrideInvisibleMember(
-                overriding: CallableMemberDescriptor,
-                invisibleOverridden: CallableMemberDescriptor
+                overriding: CallableMemberDescriptor, invisibleOverridden: CallableMemberDescriptor
             ) {
                 trace.report(CANNOT_OVERRIDE_INVISIBLE_MEMBER.on(member, declared, invisibleOverridden))
             }
 
-            override fun nothingToOverride(overriding: CallableMemberDescriptor) {
-                trace.report(NOTHING_TO_OVERRIDE.on(member, declared))
+            // 报告无成员可重写的情况
+            override fun nothingToOverride(overriding: CallableMemberDescriptor, overrideToken: CjToken) {
+                when (overrideToken) {
+                    CjTokens.OVERRIDE_KEYWORD -> trace.report(NOTHING_TO_OVERRIDE.on(member, declared))
+
+                    CjTokens.REDEF_KEYWORD -> trace.report(REDEF_NOTHING_TO_OVERRIDE.on(member, declared))
+                }
             }
         }
 
-//重写的方法
-        if (!overriddenDescriptors.isEmpty() &&
-            !overridesBackwardCompatibilityHelper.overrideCanBeOmitted(declared)
-        ) {
-
-
+        // 检查重写成员的正确性
+        if (!overriddenDescriptors.isEmpty() && !overridesBackwardCompatibilityHelper.overrideCanBeOmitted(declared)) {
+            // 如果成员没有使用`override`关键字，则报告错误
             if (!hasOverrideNode) {
                 //            override 关键字警告
                 val overridden = overriddenDescriptors.first()
-                if (!declared.isExtension)
-                    trace.report(
-                        VIRTUAL_MEMBER_HIDDEN.on(
-                            member,
-                            declared,
-                            overridden,
-                            overridden.containingDeclaration
-                        )
+                if (!declared.isExtension) trace.report(
+                    VIRTUAL_MEMBER_HIDDEN.on(
+                        member, declared, overridden, overridden.containingDeclaration, overrideToken
                     )
+                )
             } else {
-//                declared.modality = Modality.OPEN
+                //                declared.modality = Modality.OPEN
             }
 
+            // 进一步检查重写成员的其他问题
             checkOverridesForMemberMarkedOverride(
-                declared, cangjieTypeRefiner, reportError, languageVersionSettings
+                declared, cangjieTypeRefiner, reportError, languageVersionSettings, overrideToken
             )
         } else if (hasOverrideNode) {
+            // 如果成员错误地使用了`override`关键字，则进行检查
             checkOverridesForMemberMarkedOverride(
-                declared, cangjieTypeRefiner, reportError, languageVersionSettings
+                declared, cangjieTypeRefiner, reportError, languageVersionSettings, overrideToken
             )
         }
     }
 
-//    private fun checkOverrideForComponentFunction(componentFunction: CallableMemberDescriptor) {
-//        val dataModifier = findDataModifierForDataClass(componentFunction.containingDeclaration)
-//
-//        checkOverridesForMember(
-//            componentFunction,
-//            componentFunction.overriddenDescriptors,
-//            object : CheckOverrideReportStrategy {
-//                private var overrideConflict = false
-//
-//                override fun overridingFinalMember(
-//                    overriding: CallableMemberDescriptor,
-//                    overridden: CallableMemberDescriptor
-//                ) {
-//                    if (!overrideConflict) {
-//                        overrideConflict = true
-////                        trace.report(
-////                            DATA_CLASS_OVERRIDE_CONFLICT.on(
-////                                dataModifier,
-////                                componentFunction,
-////                                overridden.containingDeclaration
-////                            )
-////                        )
-//                    }
-//                }
-//
-//                override fun returnTypeMismatchOnOverride(
-//                    overriding: CallableMemberDescriptor,
-//                    overridden: CallableMemberDescriptor
-//                ) {
-//                    if (!overrideConflict) {
-//                        overrideConflict = true
-////                        trace.report(
-////                            DATA_CLASS_OVERRIDE_CONFLICT.on(
-////                                dataModifier,
-////                                componentFunction,
-////                                overridden.containingDeclaration
-////                            )
-////                        )
-//                    }
-//                }
-//
-//                override fun varOverriddenByVal(
-//                    overriding: CallableMemberDescriptor,
-//                    overridden: CallableMemberDescriptor
-//                ) {
-//                    throw IllegalStateException("Component functions are not properties")
-//                }
-//            },
-//            cangjieTypeRefiner
-//        )
-//    }
-
-//    private fun checkOverrideForCopyFunction(copyFunction: CallableMemberDescriptor) {
-//        val overridden = copyFunction.overriddenDescriptors.firstOrNull()
-//        if (overridden != null) {
-//            val baseClassifier = overridden.containingDeclaration
-//            val dataModifier = findDataModifierForDataClass(copyFunction.containingDeclaration)
-//            trace.report(
-//                DATA_CLASS_OVERRIDE_DEFAULT_VALUES.on(
-//                    languageVersionSettings,
-//                    dataModifier,
-//                    copyFunction,
-//                    baseClassifier
-//                )
-//            )
-//        }
-//    }
 
     private fun checkParameterOverridesForAllClasses(c: TopDownAnalysisContext) {
         for (classDescriptor in c.declaredClasses.values) {
@@ -622,8 +575,7 @@ class OverrideResolver(
     }
 
     private fun checkNameAndDefaultForDeclaredParameter(
-        descriptor: ValueParameterDescriptor,
-        multipleDefaultsInSuper: Boolean
+        descriptor: ValueParameterDescriptor, multipleDefaultsInSuper: Boolean
     ) {
         val parameter = DescriptorToSourceUtils.descriptorToDeclaration(descriptor) as? CjParameter
             ?: error("Declaration not found for parameter: $descriptor")
@@ -662,8 +614,7 @@ class OverrideResolver(
         if (multipleDefaultsInSuper) {
             trace.report(
                 MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_MATCH_NO_EXPLICIT_OVERRIDE.on(
-                    classElement,
-                    descriptor
+                    classElement, descriptor
                 )
             )
         }
@@ -672,9 +623,7 @@ class OverrideResolver(
             if (shouldReportParameterNameOverrideWarning(descriptor, parameterFromSuperclass)) {
                 trace.report(
                     DIFFERENT_NAMES_FOR_THE_SAME_PARAMETER_IN_SUPERTYPES.on(
-                        classElement,
-                        containingFunction.overriddenDescriptors,
-                        parameterFromSuperclass.index + 1
+                        classElement, containingFunction.overriddenDescriptors, parameterFromSuperclass.index + 1
                     )
                 )
             }
@@ -702,20 +651,14 @@ class OverrideResolver(
             if (compare == null) {
                 trace.report(
                     CANNOT_CHANGE_ACCESS_PRIVILEGE.on(
-                        declaration,
-                        descriptor.visibility,
-                        descriptor,
-                        descriptor.containingDeclaration
+                        declaration, descriptor.visibility, descriptor, descriptor.containingDeclaration
                     )
                 )
                 return
             } else if (compare < 0) {
                 trace.report(
                     CANNOT_WEAKEN_ACCESS_PRIVILEGE.on(
-                        declaration,
-                        descriptor.visibility,
-                        descriptor,
-                        descriptor.containingDeclaration
+                        declaration, descriptor.visibility, descriptor, descriptor.containingDeclaration
                     )
                 )
                 return
@@ -726,26 +669,24 @@ class OverrideResolver(
     companion object {
 
         fun resolveUnknownVisibilities(
-            descriptors: Collection<CallableMemberDescriptor>,
-            trace: BindingTrace
+            descriptors: Collection<CallableMemberDescriptor>, trace: BindingTrace
         ) {
             for (descriptor in descriptors) {
                 OverridingUtil.resolveUnknownVisibilityForMember(descriptor, createCannotInferVisibilityReporter(trace))
             }
         }
 
-        fun createCannotInferVisibilityReporter(trace: BindingTrace): Function1<CallableMemberDescriptor, Unit> {
+        private fun createCannotInferVisibilityReporter(trace: BindingTrace): Function1<CallableMemberDescriptor, Unit> {
             return fun(descriptor: CallableMemberDescriptor) {
                 val reportOn: DeclarationDescriptor = when {
-                    descriptor.kind == FAKE_OVERRIDE || descriptor.kind == DELEGATION ->
-                        DescriptorUtils.getContainingClass(descriptor)
-                            ?: throw AssertionError("Class member expected: $descriptor")
+                    descriptor.kind == FAKE_OVERRIDE || descriptor.kind == DELEGATION -> DescriptorUtils.getContainingClass(
+                        descriptor
+                    ) ?: throw AssertionError("Class member expected: $descriptor")
 
 //                    descriptor is PropertyAccessorDescriptor && descriptor.isDefault ->
 //                        descriptor.correspondingProperty
 
-                    else ->
-                        descriptor
+                    else -> descriptor
                 }
 
                 val element = DescriptorToSourceUtils.descriptorToDeclaration(reportOn)
@@ -756,15 +697,28 @@ class OverrideResolver(
             }
         }
 
+        /**
+         * 获取类描述符中缺失的实现方法或属性
+         *
+         * 此函数的目的是检查给定类描述符中哪些成员方法或属性需要实现但尚未实现
+         * 它通过分析类的继承结构和成员描述符来确定哪些成员在当前类中缺少实现
+         *
+         * @param classDescriptor 类描述符，表示需要检查的类的信息
+         * @return 返回一个包含缺失实现的成员描述符的集合
+         */
         fun getMissingImplementations(classDescriptor: ClassDescriptor): Set<CallableMemberDescriptor> {
+            // 创建一个收集缺失实现策略的实例
             val collector = CollectMissingImplementationsStrategy()
-            // Note that it is fine to pass default refiner here. Reason:
-            // 1. We bind overrides with proper refiners and [checkInheritedAndDelegatedSignatures] skips all properly-bound overrides,
-            //    so we would consider only unbound overrides
-            // 2. Using default refiner instead of proper one can only increase amount of type mismatches, not decrease it
-            // Putting 1 and 2 together means that using default refiner might make already unbound overrides even "more unbound", which
-            // isn't an issue for case of [getMissingImplementations]
+
+            // 检查继承和委托的签名，使用默认的类型细化器
+            // 注意：这里使用默认的类型细化器是可行的，原因如下：
+            // 1. 我们将重写方法与适当的细化器绑定，[checkInheritedAndDelegatedSignatures] 会跳过所有适当绑定的重写方法，
+            //    因此我们只会考虑未绑定的重写方法
+            // 2. 使用默认的细化器代替适当的细化器只能增加类型不匹配的数量，而不会减少它
+            // 将1和2结合起来意味着，在[getMissingImplementations]的情况下，使用默认的细化器可能会使已经未绑定的重写方法更加“未绑定”，但这并不是问题
             checkInheritedAndDelegatedSignatures(classDescriptor, collector, null, CangJieTypeRefiner.Default)
+
+            // 返回收集到的应当实现的成员描述符集合
             return collector.shouldImplement
         }
 
@@ -801,8 +755,7 @@ class OverrideResolver(
             val allFilteredOverriddenDeclarations = emptySet<CallableMemberDescriptor>()
 
             return getRelevantDirectlyOverridden(
-                overriddenDeclarationsByDirectParent,
-                allFilteredOverriddenDeclarations
+                overriddenDeclarationsByDirectParent, allFilteredOverriddenDeclarations
             )
         }
 
@@ -824,18 +777,12 @@ class OverrideResolver(
             }
 
             checkInheritedDescriptorsGroup(
-                descriptor,
-                relevantDirectlyOverridden,
-                reportingStrategy,
-                cangjieTypeRefiner
+                descriptor, relevantDirectlyOverridden, reportingStrategy, cangjieTypeRefiner
             )
 
             if (kind == DELEGATION && overrideReportStrategyForDelegates != null) {
                 checkOverridesForMember(
-                    descriptor,
-                    relevantDirectlyOverridden,
-                    overrideReportStrategyForDelegates,
-                    cangjieTypeRefiner
+                    descriptor, relevantDirectlyOverridden, overrideReportStrategyForDelegates, cangjieTypeRefiner
                 )
             }
 
@@ -843,34 +790,31 @@ class OverrideResolver(
                 checkMissingOverridesByJava8Restrictions(relevantDirectlyOverridden, reportingStrategy)
             }
 
-            val (concreteOverridden, abstractOverridden) = relevantDirectlyOverridden
-                .filter { !isOrOverridesSynthesized(it) }
-                .partition { it.modality != Modality.ABSTRACT }
+            val (concreteOverridden, abstractOverridden) = relevantDirectlyOverridden.filter {
+                !isOrOverridesSynthesized(
+                    it
+                )
+            }.partition { it.modality != Modality.ABSTRACT }
 
             when (concreteOverridden.size) {
-                0 ->
-                    if (kind != DELEGATION) {
-                        abstractOverridden.forEach {
-                            reportingStrategy.abstractMemberNotImplemented(it)
-                        }
+                0 -> if (kind != DELEGATION) {
+                    abstractOverridden.forEach {
+                        reportingStrategy.abstractMemberNotImplemented(it)
                     }
+                }
 
-                1 ->
-                    if (kind != DELEGATION) {
-                        val implementation = concreteOverridden.first()
-                        collectAbstractMethodsWithMoreSpecificReturnType(
-                            abstractOverridden,
-                            implementation,
-                            cangjieTypeRefiner
-                        ).forEach {
-                            reportingStrategy.abstractMemberWithMoreSpecificType(it, implementation)
-                        }
+                1 -> if (kind != DELEGATION) {
+                    val implementation = concreteOverridden.first()
+                    collectAbstractMethodsWithMoreSpecificReturnType(
+                        abstractOverridden, implementation, cangjieTypeRefiner
+                    ).forEach {
+                        reportingStrategy.abstractMemberWithMoreSpecificType(it, implementation)
                     }
+                }
 
-                else ->
-                    concreteOverridden.forEach {
-                        reportingStrategy.multipleImplementationsMemberNotImplemented(it)
-                    }
+                else -> concreteOverridden.forEach {
+                    reportingStrategy.multipleImplementationsMemberNotImplemented(it)
+                }
             }
         }
 
@@ -934,9 +878,7 @@ class OverrideResolver(
 
             if (overridesAbstractInBaseClass != null && overridesNonAbstractInBaseClass == null) {
                 reportingStrategy.abstractBaseClassMemberNotImplemented(overridesAbstractInBaseClass)
-            } else if (!onlyBaseClassMembers && !overridesClassMember &&
-                overridesNonAbstractInterfaceMember && overriddenInterfaceMembers.size > 1
-            ) {
+            } else if (!onlyBaseClassMembers && !overridesClassMember && overridesNonAbstractInterfaceMember && overriddenInterfaceMembers.size > 1) {
                 for (member in overriddenInterfaceMembers) {
                     reportingStrategy.conflictingInterfaceMemberNotImplemented(member)
                 }
@@ -964,20 +906,16 @@ class OverrideResolver(
             abstractOverridden: List<CallableMemberDescriptor>,
             implementation: CallableMemberDescriptor,
             cangjieTypeRefiner: CangJieTypeRefiner
-        ): List<CallableMemberDescriptor> =
-            abstractOverridden.filter { abstractMember ->
-                !isReturnTypeOkForOverride(
-                    abstractMember,
-                    implementation,
-                    cangjieTypeRefiner
-                )
-            }
+        ): List<CallableMemberDescriptor> = abstractOverridden.filter { abstractMember ->
+            !isReturnTypeOkForOverride(
+                abstractMember, implementation, cangjieTypeRefiner
+            )
+        }
 
         private fun getRelevantDirectlyOverridden(
             overriddenByParent: MutableMap<CallableMemberDescriptor, Set<CallableMemberDescriptor>>,
             allFilteredOverriddenDeclarations: Set<CallableMemberDescriptor>
-        ): Set<CallableMemberDescriptor> {
-            /* Let the following class hierarchy is declared:
+        ): Set<CallableMemberDescriptor> {/* Let the following class hierarchy is declared:
 
         trait A { fun foo() = 1 }
         trait B : A
@@ -1065,49 +1003,68 @@ class OverrideResolver(
             declared: CallableMemberDescriptor,
             cangjieTypeRefiner: CangJieTypeRefiner,
             reportError: CheckOverrideReportForDeclaredMemberStrategy,
-            languageVersionSettings: LanguageVersionSettings
+            languageVersionSettings: LanguageVersionSettings,
+            overrideToken: CjToken = CjTokens.OVERRIDE_KEYWORD
         ) {
             val overriddenDescriptors = declared.overriddenDescriptors
 
-            checkOverridesForMember(declared, overriddenDescriptors, reportError, cangjieTypeRefiner)
+            checkOverridesForMember(declared, overriddenDescriptors, reportError, cangjieTypeRefiner, overrideToken)
+
+
 
             if (overriddenDescriptors.isEmpty()) {
                 val containingDeclaration = declared.containingDeclaration
                 val declaringClass = containingDeclaration as? ClassDescriptor
                     ?: error("Overrides may only be resolved in a class, but $declared comes from $containingDeclaration")
 
-                val invisibleOverriddenDescriptor =
-                    findInvisibleOverriddenDescriptor(
-                        declared, declaringClass, cangjieTypeRefiner, languageVersionSettings
-                    )
+                val invisibleOverriddenDescriptor = findInvisibleOverriddenDescriptor(
+                    declared, declaringClass, cangjieTypeRefiner, languageVersionSettings
+                )
                 if (invisibleOverriddenDescriptor != null) {
                     reportError.cannotOverrideInvisibleMember(declared, invisibleOverriddenDescriptor)
                 } else {
-                    reportError.nothingToOverride(declared)
+                    reportError.nothingToOverride(declared, overrideToken)
                 }
             }
         }
 
+        /**
+         * 检查成员的覆盖是否合法
+         * 此函数用于检查一个成员是否正确地覆盖了其超类中的成员，主要关注于覆盖成员的模态性、返回类型以及属性类型是否匹配
+         *
+         * @param memberDescriptor 被检查的成员描述符
+         * @param overriddenDescriptors 被覆盖的成员描述符集合
+         * @param reportError 报告覆盖错误的策略
+         * @param cangjieTypeRefiner 用于精炼类型的工具
+         * @param overrideToken 覆盖的类型令牌，默认为CjTokens.OVERRIDE_KEYWORD
+         */
         private fun checkOverridesForMember(
             memberDescriptor: CallableMemberDescriptor,
             overriddenDescriptors: Collection<CallableMemberDescriptor>,
             reportError: CheckOverrideReportStrategy,
-            cangjieTypeRefiner: CangJieTypeRefiner
+            cangjieTypeRefine: CangJieTypeRefiner,
+            overrideToken: CjToken = CjTokens.OVERRIDE_KEYWORD
+
         ) {
             for (overridden in overriddenDescriptors) {
+
+                // 如果被覆盖的成员是final的，则报告错误
                 if (overridden.modality == Modality.FINAL) {
                     reportError.overridingFinalMember(memberDescriptor, overridden)
                 }
 
-                if (!isReturnTypeOkForOverride(overridden, memberDescriptor, cangjieTypeRefiner)) {
+                // 如果覆盖成员的返回类型不正确，则报告错误
+                if (!isReturnTypeOkForOverride(overridden, memberDescriptor, cangjieTypeRefine)) {
                     require(memberDescriptor !is PropertyDescriptor || overridden is PropertyDescriptor) {
                         "$overridden is overridden by property $memberDescriptor"
                     }
                     reportError.returnTypeMismatchOnOverride(memberDescriptor, overridden)
                 }
+                // 如果被覆盖成员是let，而覆盖成员是var，则报告错误
                 if (checkPropertyKind(overridden, false) && checkPropertyKind(memberDescriptor, true)) {
                     reportError.letOverriddenByVar(memberDescriptor, overridden)
                 }
+                // 如果被覆盖成员是var，而覆盖成员是let，则报告错误
                 if (checkPropertyKind(overridden, true) && checkPropertyKind(memberDescriptor, false)) {
                     reportError.varOverriddenByLet(memberDescriptor, overridden)
                 }
@@ -1128,15 +1085,15 @@ class OverrideResolver(
             val substitutedSuperReturnType = typeSubstitutor.substitute(superReturnType, Variance.INVARIANT)!!
 
             val typeChecker = NewCangJieTypeCheckerImpl(cangjieTypeRefiner)
-            return if (superDescriptor is PropertyDescriptor && superDescriptor.isVar)
-                typeChecker.equalTypes(subReturnType, substitutedSuperReturnType)
-            else
-                typeChecker.isSubtypeOf(subReturnType, substitutedSuperReturnType)
+            return if (superDescriptor is PropertyDescriptor && superDescriptor.isVar) typeChecker.equalTypes(
+                subReturnType,
+                substitutedSuperReturnType
+            )
+            else typeChecker.isSubtypeOf(subReturnType, substitutedSuperReturnType)
         }
 
         private fun prepareTypeSubstitutor(
-            superDescriptor: CallableDescriptor,
-            subDescriptor: CallableDescriptor
+            superDescriptor: CallableDescriptor, subDescriptor: CallableDescriptor
         ): TypeSubstitutor? {
             val superTypeParameters = superDescriptor.typeParameters
             val subTypeParameters = subDescriptor.typeParametersNotExtend
@@ -1169,13 +1126,11 @@ class OverrideResolver(
             cangjieTypeRefiner: CangJieTypeRefiner,
             languageVersionSettings: LanguageVersionSettings
         ): CallableMemberDescriptor? {
-            @OptIn(TypeRefinement::class)
-            for (supertype in cangjieTypeRefiner.refineSupertypes(declaringClass)) {
+            @OptIn(TypeRefinement::class) for (supertype in cangjieTypeRefiner.refineSupertypes(declaringClass)) {
                 val all = linkedSetOf<CallableMemberDescriptor>()
                 all.addAll(
                     supertype.memberScope.getContributedFunctions(
-                        declared.name,
-                        NoLookupLocation.MATCH_CHECK_OVERRIDES
+                        declared.name, NoLookupLocation.MATCH_CHECK_OVERRIDES
                     )
                 )
 //                不可以重写变量
@@ -1187,20 +1142,15 @@ class OverrideResolver(
 //                )
                 for (fromSuper in all) {
                     if (OverridingUtil.DEFAULT.isOverridableBy(
-                            fromSuper,
-                            declared,
-                            null
+                            fromSuper, declared, null
                         ).result == OverridingUtil.OverrideCompatibilityInfo.Result.OVERRIDABLE
                     ) {
                         if (OverridingUtil.isVisibleForOverride(
-                                declared,
-                                fromSuper,
-                                languageVersionSettings.useSpecialRulesForPrivateSealedConstructors
+                                declared, fromSuper, languageVersionSettings.useSpecialRulesForPrivateSealedConstructors
                             )
                         ) {
                             throw IllegalStateException(
-                                "Descriptor " + fromSuper + " is overridable by " + declared +
-                                        " and visible but does not appear in its getOverriddenDescriptors()"
+                                "Descriptor " + fromSuper + " is overridable by " + declared + " and visible but does not appear in its getOverriddenDescriptors()"
                             )
                         }
                         return fromSuper
@@ -1211,12 +1161,9 @@ class OverrideResolver(
         }
 
         fun shouldReportParameterNameOverrideWarning(
-            parameterFromSubclass: ValueParameterDescriptor,
-            parameterFromSuperclass: ValueParameterDescriptor
+            parameterFromSubclass: ValueParameterDescriptor, parameterFromSuperclass: ValueParameterDescriptor
         ): Boolean {
-            return parameterFromSubclass.containingDeclaration.hasStableParameterNames() &&
-                    parameterFromSuperclass.containingDeclaration.hasStableParameterNames() &&
-                    parameterFromSuperclass.name != parameterFromSubclass.name
+            return parameterFromSubclass.containingDeclaration.hasStableParameterNames() && parameterFromSuperclass.containingDeclaration.hasStableParameterNames() && parameterFromSuperclass.name != parameterFromSubclass.name
         }
 
         private fun checkPropertyKind(descriptor: CallableMemberDescriptor, isVar: Boolean): Boolean {

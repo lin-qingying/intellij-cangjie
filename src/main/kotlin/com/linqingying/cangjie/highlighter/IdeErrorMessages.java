@@ -96,7 +96,16 @@ public class IdeErrorMessages {
                 () ->   CangJieHighlightingBundle.htmlMessage("html.method.iterator.is.ambiguous.for.this.expression.ul.0.ul.html"),
                 HTML_AMBIGUOUS_CALLS
         );
-
+        MAP.put(
+                Errors.CONFLICTING_STATIC,
+                () ->   CangJieHighlightingBundle.htmlMessage("CONFLICTING_STATIC.html"),
+                HTML_AMBIGUOUS_DECLARATION,STRING
+        );
+        MAP.put(
+                Errors.CONFLICTING_OVERLOADS,
+                () ->   CangJieHighlightingBundle.htmlMessage("CONFLICTING_OVERLOADS.html"),
+                HTML_AMBIGUOUS_DECLARATION
+        );
         MAP.put(
                 Errors.UPPER_BOUND_VIOLATED,
                 () ->   CangJieHighlightingBundle.htmlMessage("html.type.argument.is.not.within.its.bounds.table.tr.td.expected.td.td.0.td.tr.tr.td.found.td.td.1.td.tr.table.html"),

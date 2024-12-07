@@ -93,6 +93,10 @@ public class DefaultErrorMessages {
             // "Conflicting overloads: {0}"
             return CangJieDiagnosisBundle.rawMessage(CONFLICTING_OVERLOADS);
         }, CommonRenderers.commaSeparated(FQ_NAMES_IN_TYPES));
+        MAP.put(CONFLICTING_STATIC, () -> {
+            // "Conflicting overloads: {0}"
+            return CangJieDiagnosisBundle.rawMessage(CONFLICTING_STATIC);
+        }, CommonRenderers.commaSeparated(FQ_NAMES_IN_TYPES) ,STRING);
 
         MAP.put(PACKAGE_OR_CLASSIFIER_REDECLARATION, () -> {
             // "Redeclaration: {0}"
@@ -332,13 +336,23 @@ public class DefaultErrorMessages {
         MAP.put(VIRTUAL_MEMBER_HIDDEN, () -> {
             // "''{0}'' hides member of supertype ''{2}'' and needs ''override'' modifier"
             return CangJieDiagnosisBundle.rawMessage(VIRTUAL_MEMBER_HIDDEN);
-        }, NAMED, NAMED, NAMED);
-
+        }, NAMED, NAMED, NAMED,TO_STRING);
+        MAP.put(REDEF_INSTANCE_ERROR, () -> {
+            // "''{0}'' hides member of supertype ''{2}'' and needs ''override'' modifier"
+            return CangJieDiagnosisBundle.rawMessage(REDEF_INSTANCE_ERROR);
+        },  PSI_NAMED_TYPE_NAM);
+        MAP.put(OVERRIDE_STATIC_ERROR, () -> {
+            // "''{0}'' hides member of supertype ''{2}'' and needs ''override'' modifier"
+            return CangJieDiagnosisBundle.rawMessage(OVERRIDE_STATIC_ERROR);
+        }, PSI_NAMED_TYPE_NAM);
         MAP.put(NOTHING_TO_OVERRIDE, () -> {
             // "''{0}'' overrides nothing"
             return CangJieDiagnosisBundle.rawMessage(NOTHING_TO_OVERRIDE);
         }, NAMED);
-
+        MAP.put(REDEF_NOTHING_TO_OVERRIDE, () -> {
+            // "''{0}'' overrides nothing"
+            return CangJieDiagnosisBundle.rawMessage(REDEF_NOTHING_TO_OVERRIDE);
+        }, NAMED);
         MAP.put(RETURN_TYPE_MISMATCH_ON_OVERRIDE, () -> {
             // "Return type of ''{0}'' is not a subtype of the return type of the overridden member ''{1}''"
             return CangJieDiagnosisBundle.rawMessage(RETURN_TYPE_MISMATCH_ON_OVERRIDE);

@@ -26,6 +26,7 @@ package com.linqingying.cangjie.highlighter
 
 import com.linqingying.cangjie.descriptors.CallableDescriptor
 import com.linqingying.cangjie.descriptors.CallableMemberDescriptor
+import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.diagnostics.rendering.*
 import com.linqingying.cangjie.highlighter.renderersUtil.renderResolvedCall
 import com.linqingying.cangjie.renderer.DescriptorRenderer
@@ -35,6 +36,7 @@ import com.linqingying.cangjie.resolve.calls.model.ResolvedCall
 
 
 object IdeRenderers {
+
 
     @JvmField
     val HTML_AMBIGUOUS_CALLS = renderer { calls: Collection<ResolvedCall<*>> ->
@@ -50,8 +52,12 @@ object IdeRenderers {
     val HTML_AMBIGUOUS_REFERENCES = renderer { descriptors: Collection<CallableDescriptor> ->
         renderAmbiguousDescriptors(descriptors)
     }
+    @JvmField
+    val HTML_AMBIGUOUS_DECLARATION = renderer { descriptors: Collection<DeclarationDescriptor> ->
+        renderAmbiguousDescriptors(descriptors)
+    }
 
-    private fun renderAmbiguousDescriptors(descriptors: Collection<CallableDescriptor>): String {
+    private fun renderAmbiguousDescriptors(descriptors: Collection<DeclarationDescriptor>): String {
         val sortedDescriptors = descriptors.sortedWith(MemberComparator)
         val context = RenderingContext.Impl(sortedDescriptors)
         return sortedDescriptors.joinToString("") { "<li>${HTML.render(it, context)}</li>" }
