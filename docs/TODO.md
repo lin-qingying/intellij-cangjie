@@ -15,7 +15,7 @@
 静态上下文检查还需要优化  STATIC_CONTEXT_REFERENCE_ERROR
 静态声明无法查找用法
 
-静态方法的重写要使用redef覆盖
+静态方法的重写要使用redef覆盖而不能使用override
 
 枚举项没有补全  应尽快修复
 

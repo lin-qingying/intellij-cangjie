@@ -534,7 +534,7 @@ LONELY_BACKTICK=`
 "protected"  { return CjTokens.PROTECTED_KEYWORD ;}
 "static"    { return CjTokens.STATIC_KEYWORD ;}
   "internal"    { return CjTokens.INTERNAL_KEYWORD ;}
-
+"redef"  { return CjTokens.REDEF_KEYWORD ;}
 /*"open"       { return CjTokens.OPEN_KEYWORD ;}*/
 "abstract"  { return CjTokens.ABSTRACT_KEYWORD ;}
 "override"  { return CjTokens.OVERRIDE_KEYWORD ;}

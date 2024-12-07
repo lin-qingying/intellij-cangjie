@@ -325,9 +325,9 @@ class ModifiersChecker(
                 return Modality.ABSTRACT
             }
 //            val hasFinalModifier = modifierList.hasModifier(CjTokens.FINAL_KEYWORD)
-            if (hasOverrideModifier /*&& !hasFinalModifier*/ && defaultModality != Modality.ABSTRACT) {
-                return Modality.OPEN
-            }
+//            if (hasOverrideModifier /*&& !hasFinalModifier*/ && defaultModality != Modality.ABSTRACT) {
+//                return Modality.OPEN
+//            }
 //            if (hasFinalModifier) {
 //                return Modality.FINAL
 //            }
@@ -359,7 +359,7 @@ class ModifiersChecker(
                     )
 
                 val descriptor =
-                    bindingContext.get<PsiElement, DeclarationDescriptor>(
+                    bindingContext.get(
                         BindingContext.DECLARATION_TO_DESCRIPTOR,
                         modifierListOwner
                     )

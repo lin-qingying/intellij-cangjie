@@ -29,7 +29,6 @@ import com.linqingying.cangjie.descriptors.ClassDescriptor
 import com.linqingying.cangjie.descriptors.ClassKind
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.psi.*
-import com.linqingying.cangjie.resolve.AnnotationTargetLists.T_MEMBER_PROPERTY
 import com.linqingying.cangjie.resolve.CangJieTarget.*
 import com.linqingying.cangjie.types.expressions.ExpressionTypingUtils
 
@@ -47,9 +46,7 @@ class AnnotationChecker {
     companion object {
 
         fun getActualTargetList(
-            annotated: CjElement,
-            descriptor: DeclarationDescriptor?,
-            context: BindingContext
+            annotated: CjElement, descriptor: DeclarationDescriptor?, context: BindingContext
         ): TargetList {
             return when (annotated) {
                 is CjTypeStatement -> {
@@ -66,7 +63,18 @@ class AnnotationChecker {
 
                 is CjDestructuringDeclarationEntry -> TargetLists.T_LOCAL_VARIABLE
                 is CjProperty -> {
-                    T_MEMBER_PROPERTY
+                    when {
+
+                        annotated.parent is CjStruct || annotated.parent?.parent is CjStruct -> TargetLists.T_STRUCT_MEMBER_PROPERTY
+                        annotated.parent is CjInterface || annotated.parent?.parent is CjInterface -> TargetLists.T_INTERFACE_MEMBER_PROPERTY
+                        annotated.parent is CjExtend || annotated.parent?.parent is CjExtend -> TargetLists.T_EXTEND_MEMBER_PROPERTY
+                        annotated.parent is CjClass || annotated.parent?.parent is CjClass -> TargetLists.T_CLASS_MEMBER_PROPERTY
+                        annotated.parent is CjEnum || annotated.parent?.parent is CjEnum -> TargetLists.T_ENUM_MEMBER_PROPERTY
+
+                        annotated.parent is CjTypeStatement || annotated.parent is CjAbstractClassBody -> TargetLists.T_MEMBER_PROPERTY
+                        else -> TargetLists.T_MEMBER_PROPERTY
+                    }
+
                 }
 
                 is CjVariable -> {
@@ -87,7 +95,7 @@ class AnnotationChecker {
                 }
 
                 is CjConstructor<*> -> TargetLists.T_CONSTRUCTOR
-                is CjMacroDeclaration-> TargetLists.T_MACRO
+                is CjMacroDeclaration -> TargetLists.T_MACRO
                 is CjFunction -> {
                     when {
                         ExpressionTypingUtils.isFunctionExpression(descriptor) -> TargetLists.T_FUNCTION_EXPRESSION
@@ -96,6 +104,8 @@ class AnnotationChecker {
                         annotated.parent is CjStruct || annotated.parent.parent is CjStruct -> TargetLists.T_STRUCT_MEMBER_FUNCTION
                         annotated.parent is CjInterface || annotated.parent.parent is CjInterface -> TargetLists.T_INTERFACE_MEMBER_FUNCTION
                         annotated.parent is CjExtend || annotated.parent.parent is CjExtend -> TargetLists.T_EXTEND_MEMBER_FUNCTION
+                        annotated.parent is CjClass || annotated.parent.parent is CjClass -> TargetLists.T_CLASS_MEMBER_FUNCTION
+                        annotated.parent is CjEnum || annotated.parent.parent is CjEnum -> TargetLists.T_ENUM_MEMBER_FUNCTION
 
                         annotated.parent is CjTypeStatement || annotated.parent is CjAbstractClassBody -> TargetLists.T_MEMBER_FUNCTION
                         else -> TargetLists.T_TOP_LEVEL_FUNCTION
@@ -107,8 +117,7 @@ class AnnotationChecker {
                 is CjTypeReference -> TargetLists.T_TYPE_REFERENCE
                 is CjFile -> TargetLists.T_FILE
                 is CjTypeParameter -> TargetLists.T_TYPE_PARAMETER
-                is CjTypeProjection ->
-                    TargetLists.T_TYPE_PROJECTION
+                is CjTypeProjection -> TargetLists.T_TYPE_PROJECTION
 
                 is CjAnonymousInitializer -> TargetLists.T_INITIALIZER
                 is CjDestructuringDeclaration -> TargetLists.T_DESTRUCTURING_DECLARATION
@@ -120,9 +129,7 @@ class AnnotationChecker {
         }
 
         fun getDeclarationSiteActualTargetList(
-            annotated: CjElement,
-            descriptor: ClassDescriptor?,
-            context: BindingContext
+            annotated: CjElement, descriptor: ClassDescriptor?, context: BindingContext
         ): List<CangJieTarget> {
             return getActualTargetList(annotated, descriptor, context).defaultTargets
         }
@@ -138,46 +145,78 @@ class AnnotationTargetList(
 )
 
 enum class CangJieTarget(val description: String, val isDefault: Boolean = true) {
-    LOCAL_CLASS("local class", false),
-    CLASS("class"),
-    EXTEND("extend"),
-    CLASS_ONLY("class", false),
-    STRUCT("struct", false),
-    ENUM("enum ", false),
-    INTERFACE("interface", false),
-    ENUM_ENTRY("enum entry", false),
+    LOCAL_CLASS("local class", false), CLASS("class"), EXTEND("extend"), CLASS_ONLY("class", false), STRUCT(
+        "struct",
+        false
+    ),
+    ENUM("enum ", false), INTERFACE("interface", false), ENUM_ENTRY(
+        "enum entry",
+        false
+    ),
     PROPERTY("property"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_ENTRY
     VARIABLE("variable"),                      // includes *_PROPERTY (with and without backing field), PROPERTY_PARAMETER, ENUM_ENTRY
-    TYPEALIAS("typealias", false),
-    DESTRUCTURING_DECLARATION("destructuring declaration", false),
+    TYPEALIAS("typealias", false), DESTRUCTURING_DECLARATION(
+        "destructuring declaration",
+        false
+    ),
     EXPRESSION("expression", false),           // includes FUNCTION_LITERAL, OBJECT_LITERAL
     FIELD("field"),
 
     LOCAL_VARIABLE("local variable"),// includes MEMBER_PROPERTY_WITH_FIELD, TOP_LEVEL_PROPERTY_WITH_FIELD, PROPERTY_PARAMETER, ENUM_ENTRY
-    INITIALIZER("initializer", false),
-    VALUE_PARAMETER("value parameter"),
-    MEMBER_VARIABLE("member variable", false),
-    MEMBER_PROPERTY("member property", false),
+    INITIALIZER("initializer", false), VALUE_PARAMETER("value parameter"), MEMBER_VARIABLE(
+        "member variable",
+        false
+    ),
+    MEMBER_PROPERTY("member property", false), CLASS_MEMBER_PROPERTY(
+        "class member property",
+        false
+    ),
+    STRUCT_MEMBER_PROPERTY("struct member property", false), EXTEND_MEMBER_PROPERTY(
+        "extend member property",
+        false
+    ),
+    INTERFACE_MEMBER_PROPERTY("interface member property", false),
+
+    ENUM_MEMBER_PROPERTY("enum member property", false),
+
+
     MACRO("macro"),
+
     // includes PROPERTY_PARAMETER, with and without field/delegate
-    CONSTRUCTOR("constructor"),
-    PROPERTY_GETTER("getter"),
-    PROPERTY_SETTER("setter"),
-    LAMBDA_EXPRESSION("lambda expression", false),
-    TOP_LEVEL_FUNCTION("top level function", false),
-    TOP_LEVEL_VARIABLE("top level variable", false), // with and without field/delegate
-    BACKING_FIELD("backing field"),
-    TOP_LEVEL_PROPERTY("top level property", false),
-    FILE("file", false),
-    TYPE_PROJECTION("type projection", false),
+    CONSTRUCTOR("constructor"), PROPERTY_GETTER("getter"), PROPERTY_SETTER("setter"), LAMBDA_EXPRESSION(
+        "lambda expression",
+        false
+    ),
+    TOP_LEVEL_FUNCTION("top level function", false), TOP_LEVEL_VARIABLE(
+        "top level variable",
+        false
+    ), // with and without field/delegate
+    BACKING_FIELD("backing field"), TOP_LEVEL_PROPERTY("top level property", false), FILE(
+        "file",
+        false
+    ),
+    TYPE_PROJECTION(
+        "type projection",
+        false
+    ),
     FUNCTION("function"),                      // includes *_FUNCTION and FUNCTION_LITERAL
-    ANONYMOUS_FUNCTION("anonymous function", false),
-    LOCAL_FUNCTION("local function", false),
-    TYPE_PARAMETER("type parameter", false),
-    MEMBER_FUNCTION("member function", false),
-    STRUCT_MEMBER_FUNCTION("struct member function", false),
-    INTERFACE_MEMBER_FUNCTION("interface member function", false),
-    EXTEND_MEMBER_FUNCTION("extend member function", false),
+    ANONYMOUS_FUNCTION("anonymous function", false), LOCAL_FUNCTION(
+        "local function",
+        false
+    ),
+    TYPE_PARAMETER("type parameter", false), MEMBER_FUNCTION(
+        "member function",
+        false
+    ),
+    STRUCT_MEMBER_FUNCTION("struct member function", false), CLASS_MEMBER_FUNCTION(
+        "class member function",
+        false
+    ),
+    INTERFACE_MEMBER_FUNCTION("interface member function", false), EXTEND_MEMBER_FUNCTION(
+        "extend member function",
+        false
+    ),
+    ENUM_MEMBER_FUNCTION("enum member function", false),
 
     TYPE("type usage", false),
 
@@ -216,12 +255,11 @@ enum class CangJieTarget(val description: String, val isDefault: Boolean = true)
                 STRUCT_LIST
 
             ClassKind.INTERFACE -> INTERFACE_LIST
-            ClassKind.ENUM ->
-                if (isLocalClass) {
-                    LOCAL_CLASS_LIST
-                } else {
-                    ENUM_LIST
-                }
+            ClassKind.ENUM -> if (isLocalClass) {
+                LOCAL_CLASS_LIST
+            } else {
+                ENUM_LIST
+            }
 
             ClassKind.ENUM_ENTRY -> ENUM_ENTRY_LIST
             else -> TODO()
@@ -238,6 +276,37 @@ object AnnotationTargetLists {
     val T_LOCAL_VARIABLE = targetList(LOCAL_VARIABLE)
     val T_MEMBER_VARIABLE = targetList(MEMBER_VARIABLE, VARIABLE)
     val T_MEMBER_PROPERTY = targetList(MEMBER_PROPERTY, PROPERTY)
+    val T_STRUCT_MEMBER_PROPERTY = targetList(
+        STRUCT_MEMBER_PROPERTY,
+
+
+        *T_MEMBER_PROPERTY.defaultTargets.toTypedArray()
+    )
+    val T_CLASS_MEMBER_PROPERTY = targetList(
+        CLASS_MEMBER_PROPERTY,
+
+
+        *T_MEMBER_PROPERTY.defaultTargets.toTypedArray()
+    )
+    val T_ENUM_MEMBER_PROPERTY = targetList(
+        ENUM_MEMBER_PROPERTY,
+
+
+        *T_MEMBER_PROPERTY.defaultTargets.toTypedArray()
+    )
+    val T_EXTEND_MEMBER_PROPERTY = targetList(
+        EXTEND_MEMBER_PROPERTY,
+
+
+        *T_MEMBER_PROPERTY.defaultTargets.toTypedArray()
+    )
+    val T_INTERFACE_MEMBER_PROPERTY = targetList(
+        INTERFACE_MEMBER_PROPERTY,
+
+
+        *T_MEMBER_PROPERTY.defaultTargets.toTypedArray()
+    )
+
     val T_TOP_LEVEL_PROPERTY = targetList(TOP_LEVEL_PROPERTY, PROPERTY)
     val T_TOP_LEVEL_VARIABLE = targetList(TOP_LEVEL_VARIABLE, VARIABLE)
 
@@ -258,27 +327,44 @@ object AnnotationTargetLists {
     val T_LOCAL_FUNCTION = targetList(LOCAL_FUNCTION, FUNCTION) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
-    val T_TOP_LEVEL_FUNCTION = targetList(TOP_LEVEL_FUNCTION, FUNCTION) {
-        onlyWithUseSiteTarget(VALUE_PARAMETER)
-    }
-    val T_STRUCT_MEMBER_FUNCTION = targetList(STRUCT_MEMBER_FUNCTION /*FUNCTION*/) {
-        onlyWithUseSiteTarget(VALUE_PARAMETER)
-    }
     val T_MEMBER_FUNCTION = targetList(MEMBER_FUNCTION, FUNCTION) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
+    val T_TOP_LEVEL_FUNCTION = targetList(TOP_LEVEL_FUNCTION, FUNCTION) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
+    val T_STRUCT_MEMBER_FUNCTION = targetList(
+        STRUCT_MEMBER_FUNCTION, * T_MEMBER_FUNCTION.defaultTargets.toTypedArray()
+    ) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
+    val T_CLASS_MEMBER_FUNCTION = targetList(
+        CLASS_MEMBER_FUNCTION, * T_MEMBER_FUNCTION.defaultTargets.toTypedArray()
+    ) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
+    val T_ENUM_MEMBER_FUNCTION = targetList(
+        ENUM_MEMBER_FUNCTION, * T_MEMBER_FUNCTION.defaultTargets.toTypedArray()
+    ) {
+        onlyWithUseSiteTarget(VALUE_PARAMETER)
+    }
+
     val T_TYPE_REFERENCE = targetList(TYPE) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
-    val T_INTERFACE_MEMBER_FUNCTION = targetList(INTERFACE_MEMBER_FUNCTION /*FUNCTION*/) {
+    val T_INTERFACE_MEMBER_FUNCTION = targetList(
+        INTERFACE_MEMBER_FUNCTION, * T_MEMBER_FUNCTION.defaultTargets.toTypedArray()
+    ) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
-    val T_EXTEND_MEMBER_FUNCTION = targetList(EXTEND_MEMBER_FUNCTION /*FUNCTION*/) {
+    val T_EXTEND_MEMBER_FUNCTION = targetList(
+        EXTEND_MEMBER_FUNCTION, * T_MEMBER_FUNCTION.defaultTargets.toTypedArray()
+    ) {
         onlyWithUseSiteTarget(VALUE_PARAMETER)
     }
+
     private fun targetList(
-        vararg target: CangJieTarget,
-        otherTargets: TargetListBuilder.() -> Unit = {}
+        vararg target: CangJieTarget, otherTargets: TargetListBuilder.() -> Unit = {}
     ): AnnotationTargetList {
         val builder = TargetListBuilder(*target)
         builder.otherTargets()

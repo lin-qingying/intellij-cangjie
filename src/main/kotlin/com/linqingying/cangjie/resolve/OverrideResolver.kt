@@ -498,7 +498,7 @@ class OverrideResolver(
                         )
                     )
             } else {
-                declared.modality = Modality.OPEN
+//                declared.modality = Modality.OPEN
             }
 
             checkOverridesForMemberMarkedOverride(
