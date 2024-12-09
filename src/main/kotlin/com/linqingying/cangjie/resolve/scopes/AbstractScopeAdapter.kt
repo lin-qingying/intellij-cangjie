@@ -61,6 +61,9 @@ abstract class AbstractScopeAdapter : MemberScope {
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
         return workerScope.getContributedClassifiers(name, location)
     }
+    override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? {
+        return workerScope.getContributedPackageView(name, location)
+    }
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         return workerScope.getContributedClassifier(name, location)
     }

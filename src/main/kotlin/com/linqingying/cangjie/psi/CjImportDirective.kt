@@ -24,6 +24,9 @@
 
 package com.linqingying.cangjie.psi
 
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.descriptors.DescriptorVisibilities
 import com.linqingying.cangjie.descriptors.DescriptorVisibility
 import com.linqingying.cangjie.lexer.CjKeywordToken
@@ -33,15 +36,50 @@ import com.linqingying.cangjie.name.FqName.Companion.topLevel
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.name.Name.Companion.identifier
 import com.linqingying.cangjie.psi.stubs.CangJieImportDirectiveStub
+import com.linqingying.cangjie.psi.stubs.CangJieMultiImportDirectiveStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.linqingying.cangjie.psi.stubs.elements.CjTokenSets
 import com.linqingying.cangjie.resolve.ImportPath
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import kotlin.concurrent.Volatile
 
-class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CjImportInfo {
+/**
+ * 接口定义了仓颉导入元素的结构和信息
+ * 它继承了CjElement和CjImportInfo接口，以提供更具体的导入信息表示
+ * 此接口主要用途是提供对导入语句的结构化访问，包括导入的引用、别名以及导入路径等信息
+ */
+interface CangJieImportElement : CjElement, CjImportInfo {
+    /**
+     * 获取导入引用的表达式
+     * 可能为空，表示没有具体的导入引用表达式
+     */
+    val importedReference: CjExpression? get() = null
+
+    /**
+     * 获取导入的别名
+     * 可能为空，表示没有为导入指定别名
+     */
+    val alias: CjImportAlias? get() = null
+
+    /**
+     * 获取导入的完全限定名
+     * 可能为空，表示没有对应的完全限定名
+     */
+    override val importedFqName: FqName? get() = null
+
+    /**
+     * 获取导入路径
+     * 可能为空，表示没有具体的导入路径
+     */
+    val importPath: ImportPath? get() = null
+
+    /**
+     * 获取导入别名的名称
+     * 可能为空，表示没有为导入指定别名名称
+     */
+    override val aliasName: String? get() = null
+}
+
+class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CangJieImportElement {
     @Volatile
     private var _importedFqName: FqName? = null
 
@@ -54,7 +92,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CjImpor
     }
 
     @get:IfNotParsed
-    val importedReference: CjExpression?
+    override val importedReference: CjExpression?
         get() {
             val references =
                 getStubOrPsiChildren(
@@ -67,7 +105,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CjImpor
             return null
         }
 
-    val alias: CjImportAlias?
+    override val alias: CjImportAlias?
         get() = getStubOrPsiChild(CjStubElementTypes.IMPORT_ALIAS)
 
     override val aliasName: String?
@@ -109,19 +147,19 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CjImpor
 
             importedFqName = fqNameFromExpression(importedReference)
 
-            if (parentStub is CjMultiImportDirective) {
-                val name = parentStub.fqName
-                if (name != null) {
-                    importedFqName = name.child(importedFqName!!)
-                }
-            }
+//            if (parentStub is CjMultiImportDirective) {
+//                val name = parentStub.fqName
+//                if (name != null) {
+//                    importedFqName = name.child(importedFqName!!)
+//                }
+//            }
 
             this._importedFqName = importedFqName
             return importedFqName
         }
 
     @get:IfNotParsed
-    val importPath: ImportPath?
+    override val importPath: ImportPath?
         get() {
             val importFqn = _importedFqName ?: return null
 
@@ -160,19 +198,20 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CjImpor
         return getModifier(modifier) != null
     }
 
-    override val modifierVisibility : DescriptorVisibility get()    {
-        val stub = stub
-        if (stub != null) {
-            return stub.getModifierVisibility()
-        }
+    override val modifierVisibility: DescriptorVisibility
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.getModifierVisibility()
+            }
 
-        if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
-        if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
-        if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED
-        if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
-        return DescriptorVisibilities.PRIVATE
-        //        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.PRIVATE);
-    }
+            if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
+            if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
+            if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED
+            if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
+            return DescriptorVisibilities.PRIVATE
+            //        return resolveVisibilityFromModifiers(this, DescriptorVisibilities.PRIVATE);
+        }
 
     companion object {
         fun fqNameFromExpression(expression: CjExpression?): FqName? {
@@ -213,4 +252,29 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub>, CjImpor
             }
         }
     }
+}
+
+class CjMultiImportDirective : CjDeclarationStub<CangJieMultiImportDirectiveStub>, CangJieImportElement {
+
+    constructor(node: ASTNode) : super(node)
+
+    constructor(stub: CangJieMultiImportDirectiveStub) : super(stub, CjStubElementTypes.MULTI_IMPORT_DIRECTIVE)
+
+    override val isAllUnder: Boolean = false
+    override val importContent: CjImportInfo.ImportContent
+        get() = TODO("Not yet implemented")
+    override val modifierVisibility: DescriptorVisibility
+        get() {
+            val stub = stub
+            if (stub != null) {
+                return stub.getModifierVisibility()
+            }
+
+            if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
+            if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
+            if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED
+            if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
+            return DescriptorVisibilities.PRIVATE
+
+        }
 }

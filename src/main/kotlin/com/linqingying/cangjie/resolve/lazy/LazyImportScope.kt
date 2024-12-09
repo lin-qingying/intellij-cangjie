@@ -33,14 +33,10 @@ import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.DescriptorVisibilityUtils.isVisibleIgnoringReceiver
 import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.diagnostics.Errors
-import com.linqingying.cangjie.incremental.CangJieLookupLocation
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.Name
-import com.linqingying.cangjie.psi.CjImportDirective
-import com.linqingying.cangjie.psi.CjImportInfo
-import com.linqingying.cangjie.psi.CjPsiUtil
-import com.linqingying.cangjie.psi.asQualifierPartList
+import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.resolve.BindingContext
 import com.linqingying.cangjie.resolve.LazyExplicitImportScope
 import com.linqingying.cangjie.resolve.QualifiedExpressionResolver
@@ -60,7 +56,7 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 
 interface ImportForceResolver {
     fun forceResolveNonDefaultImports()
-    fun forceResolveImport(importDirective: CjImportDirective)
+    fun forceResolveImport(importDirective: CangJieImportElement)
 }
 
 class ImportResolutionComponents(
@@ -182,11 +178,11 @@ open class LazyImportResolver<I : CjImportInfo>(
  */
 class LazyImportResolverForCjImportDirective(
     components: ImportResolutionComponents,
-    indexedImports: IndexedImports<CjImportDirective>,
+    indexedImports: IndexedImports<CangJieImportElement>,
     excludedImportNames: Collection<FqName>,
     traceForImportResolve: BindingTrace,
     packageFragment: PackageFragmentDescriptor?
-) : LazyImportResolver<CjImportDirective>(
+) : LazyImportResolver<CangJieImportElement>(
     components, indexedImports, excludedImportNames, traceForImportResolve, packageFragment
 ), ImportForceResolver {
     /**
@@ -222,7 +218,7 @@ class LazyImportResolverForCjImportDirective(
      * 这个值是懒加载的，以提高性能。
      */
     private val forceResolveNonDefaultImportsTask: NotNullLazyValue<Unit> = components.storageManager.createLazyValue {
-        val explicitClassImports = HashMultimap.create<String, CjImportDirective>()
+        val explicitClassImports = HashMultimap.create<String, CangJieImportElement>()
         for (importInfo in indexedImports.imports) {
             forceResolveImport(importInfo)
 
@@ -230,29 +226,35 @@ class LazyImportResolverForCjImportDirective(
 
             val alias = importInfo.importedName
             if (alias != null) {
-                val lookupLocation = CangJieLookupLocation(importInfo)
-                if (scope.getContributedClassifier(alias, lookupLocation) != null) {
+                if (scope.getContributedDescriptors {
+                        it == alias
+                    }.isNotEmpty()) {
                     explicitClassImports.put(alias.asString(), importInfo)
+
                 }
+//                val lookupLocation = CangJieLookupLocation(importInfo)
+//                if (scope.getContributedDescriptors(alias, lookupLocation) != null) {
+//                    explicitClassImports.put(alias.asString(), importInfo)
+//                }
             }
 
             checkResolvedImportDirective(importInfo)
         }
-//        for ((alias, import) in explicitClassImports.entries()) {
-//            if (alias.all { it == '_' }) {
-//                TODO()
-//                traceForImportResolve.report(Errors.UNDERSCORE_IS_RESERVED.on(import))
-//            }
-//        }
-//        for (alias in explicitClassImports.keySet()) {
-//            val imports = explicitClassImports.get(alias)
-//            if (imports.size > 1) {
-//                imports.forEach {
-//                    TODO()
-////                    traceForImportResolve.report(Errors.CONFLICTING_IMPORT.on(it, alias))
-//                }
-//            }
-//        }
+        for ((alias, import) in explicitClassImports.entries()) {
+            if (alias.all { it == '_' }) {
+
+                traceForImportResolve.report(Errors.UNDERSCORE_IS_RESERVED.on(import))
+            }
+        }
+        for (alias in explicitClassImports.keySet()) {
+            val imports = explicitClassImports.get(alias)
+            if (imports.size > 1) {
+                imports.forEach {
+
+                    traceForImportResolve.report(Errors.CONFLICTING_IMPORT.on(it, alias))
+                }
+            }
+        }
     }
 
     /**
@@ -260,7 +262,7 @@ class LazyImportResolverForCjImportDirective(
      * 它确保相同地导入指令不会被多次解析。
      */
     private val forceResolveImportDirective =
-        components.storageManager.createMemoizedFunction { directive: CjImportDirective ->
+        components.storageManager.createMemoizedFunction { directive: CangJieImportElement ->
             val scope = getImportScope(directive)
             if (scope is LazyExplicitImportScope) {
                 val allDescriptors = scope.storeReferencesToDescriptors()
@@ -277,8 +279,8 @@ class LazyImportResolverForCjImportDirective(
      *
      * @param importDirective 要解析的导入指令。
      */
-    override fun forceResolveImport(importDirective: CjImportDirective) {
-//        TODO()
+    override fun forceResolveImport(importDirective: CangJieImportElement) {
+
         forceResolveImportDirective(importDirective)
     }
 }

@@ -41,6 +41,8 @@ class ChainedMemberScope private constructor(
     override fun getVariableNames() = scopes.flatMapTo(mutableSetOf()) { it.getVariableNames() }
     override fun getPropertyNames()  = scopes.flatMapTo(mutableSetOf()) { it.getPropertyNames() }
     override fun getClassifierNames(): Set<Name>? = scopes.asIterable().flatMapClassifierNamesOrNull()
+    override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? =
+        getFirstFromAllScopes(scopes) { it.getContributedPackageView(name, location) }
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         getFirstClassifierDiscriminateHeaders(scopes) { it.getContributedClassifier(name, location) }
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =

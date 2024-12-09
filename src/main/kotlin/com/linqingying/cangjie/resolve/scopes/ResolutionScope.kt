@@ -39,6 +39,7 @@ interface ResolutionScope {
      * See [getContributedClassifierIncludeDeprecated] to get all classifiers.
      */
     fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor?
+    fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? = null
 
     fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> = emptyList()
     fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> = emptyList()

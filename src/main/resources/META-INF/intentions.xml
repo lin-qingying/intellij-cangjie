@@ -85,7 +85,26 @@
 
                 level="ERROR"
                 language="CangJie"
-                key="inspection.redundant.visibility.modifier.display.name" bundle="messages.CangJieBundle"/>
+                key="inspection.package.check.display.name" bundle="messages.CangJieBundle"/>
+        <localInspection
+                implementationClass="com.linqingying.cangjie.ide.inspections.CangJieImportCheckInspection"
+                groupPath="CangJie"
+                groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"
+                enabledByDefault="true"
+
+                level="ERROR"
+                language="CangJie"
+                key="inspection.import.check.display.name" bundle="messages.CangJieBundle"/>
+
+        <localInspection
+                implementationClass="com.linqingying.cangjie.ide.inspections.CangJieDotQualifiedExpressionInspection"
+                groupPath="CangJie"
+                groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"
+                enabledByDefault="true"
+
+                level="ERROR"
+                language="CangJie"
+                key="inspection.dot.qualified.check.display.name" bundle="messages.CangJieBundle"/>
 
 
         <localInspection

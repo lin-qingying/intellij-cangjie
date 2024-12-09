@@ -24,21 +24,21 @@
 
 package com.linqingying.cangjie.psi.stubs.impl
 
-import com.linqingying.cangjie.descriptors.DescriptorVisibility
-import com.linqingying.cangjie.lexer.CjModifierKeywordToken
-import com.linqingying.cangjie.name.FqName
-import com.linqingying.cangjie.psi.CjImportDirective
-import com.linqingying.cangjie.psi.stubs.CangJieImportDirectiveStub
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
-
+import com.linqingying.cangjie.descriptors.DescriptorVisibility
+import com.linqingying.cangjie.name.FqName
+import com.linqingying.cangjie.psi.CjImportDirective
+import com.linqingying.cangjie.psi.CjMultiImportDirective
+import com.linqingying.cangjie.psi.stubs.CangJieImportDirectiveStub
+import com.linqingying.cangjie.psi.stubs.CangJieMultiImportDirectiveStub
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
 class CangJieImportDirectiveStubImpl(
     parent: StubElement<*>,
     private val isAllUnder: Boolean,
     private val importedFqName: StringRef? = null,
-//    private val importedFqNames: List<StringRef> = emptyList(),
+
     private val isValid: Boolean,
     private val visibility: DescriptorVisibility
 
@@ -50,13 +50,31 @@ class CangJieImportDirectiveStubImpl(
         return if (fqNameString != null) FqName(fqNameString) else null
     }
 
-//    override fun getImportedFqNames(): List<FqName> {
-//     return   importedFqNames.map {
-//         StringRef.toString(it)?.let { FqName(it) }!!
-//        }
-//    }
+
 
     override fun isValid(): Boolean = isValid
+    override fun getModifierVisibility(): DescriptorVisibility {
+        return visibility
+    }
+
+    override fun getPackageFqName(): FqName {
+        return psi.getContainingCjFile().packageFqName
+
+    }
+
+}
+
+
+class CangJieMulitImportDirectiveStubImpl(
+    parent: StubElement<*>,
+
+
+    private val visibility: DescriptorVisibility
+
+) : CangJieStubBaseImpl<CjMultiImportDirective>(parent, CjStubElementTypes.MULTI_IMPORT_DIRECTIVE),
+    CangJieMultiImportDirectiveStub {
+
+
     override fun getModifierVisibility(): DescriptorVisibility {
         return visibility
     }

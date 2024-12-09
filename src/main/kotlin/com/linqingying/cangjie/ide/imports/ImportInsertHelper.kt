@@ -345,7 +345,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         private fun shouldTryStarImport(
             containerFqName: FqName,
             target: DeclarationDescriptor,
-            imports: Collection<CjImportDirective>,
+            imports: Collection<CangJieImportElement>,
         ): Boolean {
             if (!canImportWithStar(containerFqName, target)) return false
 

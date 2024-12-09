@@ -24,11 +24,11 @@
 
 package com.linqingying.cangjie.resolve.lazy.declarations
 
-import com.intellij.codeInsight.generation.ClassMember
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.StandardNames.FqNames.core
 import com.linqingying.cangjie.builtins.StandardNames.MAIN
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.descriptors.enumd.LazyEnumDescriptor
 import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
@@ -37,12 +37,14 @@ import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.findParentOfType
 import com.linqingying.cangjie.resolve.calls.components.InferenceSession
+import com.linqingying.cangjie.resolve.calls.components.getDescriptorKind
 import com.linqingying.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.linqingying.cangjie.resolve.lazy.LazyClassContext
 import com.linqingying.cangjie.resolve.lazy.data.CjClassInfoUtil
 import com.linqingying.cangjie.resolve.lazy.data.CjEnmuEntryInfo
 import com.linqingying.cangjie.resolve.lazy.data.CjTypeStatementInfo
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
+import com.linqingying.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.linqingying.cangjie.resolve.scopes.DescriptorKindFilter
 import com.linqingying.cangjie.resolve.scopes.LexicalScope
@@ -236,6 +238,9 @@ protected constructor(
         return entrys
     }
 
+    override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? {
+      return null
+    }
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         recordLookup(name, location)
         // NB we should resolve type alias descriptors even if a class descriptor with corresponding name is present
@@ -340,7 +345,7 @@ protected constructor(
                     collectDescriptorsFromDestructingDeclaration(result, declaration, nameFilter, location)
                 }
 
-                else -> throw IllegalArgumentException("Unsupported declaration kind: " + declaration)
+                else -> throw IllegalArgumentException("Unsupported declaration kind: $declaration")
             }
         }
         return result
@@ -423,7 +428,13 @@ protected constructor(
         }
 
         val result = linkedSetOf<SimpleFunctionDescriptor>()
-        val declarations = declarationProvider.getFunctionDeclarations(name)
+        val declarations = (declarationProvider.getFunctionDeclarations(name) + if (this is LazyClassMemberScope) {
+            extendClassDescriptors.flatMap {
+                it.declarationProvider.getFunctionDeclarations(name)
+            }
+        } else {
+            emptyList()
+        }).distinct()
         for (functionDeclaration in declarations) {
             result.add(
                 c.functionDescriptorResolver.resolveFunctionDescriptor(
@@ -473,7 +484,7 @@ protected constructor(
     private fun createClassDescriptor(name: Name, types: Collection<CjTypeStatementInfo<*>>): List<ClassDescriptor> {
         val result = mutableListOf<ClassDescriptor>()
 
-        val enumList = mutableListOf<CjEnmuEntryInfo>()
+
         val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
 
         types.forEach {
@@ -500,13 +511,6 @@ protected constructor(
 //            }
         }
 
-//        if (enumList.isNotEmpty()) {
-//            result.add(
-//                c.enumDescriptorResolver.resolveLazyEnumEntryDescriptor(
-//                    c, thisDescriptor, name, enumList, isExternal
-//                )
-//            )
-//        }
 
         return result.toList()
     }
@@ -515,31 +519,29 @@ protected constructor(
         mainScope?.enumEntryDescriptors?.invoke(name)?.let { return it }
         val result = linkedSetOf<ClassDescriptor>()
         result.addAll(
-            getContributedClassifiers(name,NoLookupLocation.FROM_IDE).mapNotNull {
-                it as? ClassDescriptor
-            }
+            getContributedClassifiers(name, NoLookupLocation.FROM_IDE).mapNotNull {
 
+                if(it !is EnumEntryDescriptor) return@mapNotNull null
+                it
+            }
         )
+
         declarationProvider.getEnumEntryDeclarations(name).groupBy {
             it.findParentOfType<CjEnum>()
         }.forEach { (cjenum, cjentry) ->
-
             val enumName = Name.identifier(cjenum?.name ?: "")
             createClassDescriptor(
                 enumName,
                 declarationProvider.getTypeStatementDeclarations(enumName)
             ).forEach { classDescriptor ->
                 result.addAll(
-                    classDescriptor.unsubstitutedMemberScope.getContributedClassifiers(
+                    classDescriptor.unsubstitutedMemberScope.getContributedEnumEntrys(
                         name,
                         NoLookupLocation.FROM_IDE
                     )
                         .mapNotNull {
                             (it as? ClassDescriptor)
                         })
-
-//                    .forEach { enumEntryClassDescriptor ->
-//                    (enumEntryClassDescriptor as? ClassDescriptor)?.let { it1 -> result.add(it1) }
             }
 
 
@@ -555,26 +557,6 @@ protected constructor(
 //        val result1 = linkedSetOf<ClassDescriptor>()
 
         result.addAll(createClassDescriptor(name, declarationProvider.getTypeStatementDeclarations(name)))
-
-//        declarationProvider.getEnumEntryDeclarations(name).groupBy {
-//            it.findParentOfType<CjEnum>()
-//        }.forEach { cjenum, cjentry ->
-//
-//            val entryName = Name.identifier(cjenum?.name + "")
-//            createClassDescriptor(
-//                entryName,
-//                declarationProvider.getTypeStatementDeclarations(entryName)
-//            ).forEach { classDescriptor ->
-//                classDescriptor.unsubstitutedMemberScope.getContributedClassifiers(
-//                    name,
-//                    NoLookupLocation.FROM_IDE
-//                ).forEach { enumEntryClassDescriptor ->
-//                    (enumEntryClassDescriptor as? ClassDescriptor)?.let { it1 -> result1.add(it1) }
-//                }
-//
-//
-//            }
-//        }
 
         getNonDeclaredClasses(name, result)
 
@@ -638,9 +620,7 @@ protected constructor(
             mainFunctionDescriptors(MAIN)
         } else {
 // TODO 如果在推断方法返回值类型时，方法返回了自己，那么这里会报出递归错误
-            functionDescriptors(name).apply {
-
-            }
+            functionDescriptors(name)
         }
 
 

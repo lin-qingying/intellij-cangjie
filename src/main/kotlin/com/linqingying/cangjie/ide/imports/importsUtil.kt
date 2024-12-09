@@ -158,7 +158,7 @@ fun CjFile.addImport(
                 directivePath != null && importPathComparator.compare(directivePath, importPath) <= 0
             }
 
-            if (insertAfter != null && newDirective.importPath == insertAfter.importPath) return insertAfter
+            if (insertAfter is CjImportDirective && newDirective.importPath == insertAfter.importPath) return insertAfter
 
             (importList.addAfter(newDirective, insertAfter) as CjImportDirective).also {
                 importList.addBefore(psiFactory.createNewLine(1), it)

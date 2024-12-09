@@ -138,7 +138,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     private var forcedCachedData: (() -> CachedData)? = null
 
     override fun getPsiOrParent(): CjElement = this
-    open val importDirectives: List<CjImportDirective>
+    open val importDirectives: List<CangJieImportElement>
         get() = importLists.flatMap { it.imports }
 
 
@@ -147,7 +147,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 
     override fun getContainingCjFile(): CjFile = this
 
-    fun findImportByAlias(name: String): CjImportDirective? {
+    fun findImportByAlias(name: String): CangJieImportElement? {
         if (!hasImportAlias()) return null
 
         return importDirectives.firstOrNull { name == it.aliasName }

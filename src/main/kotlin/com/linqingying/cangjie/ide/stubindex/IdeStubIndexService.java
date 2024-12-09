@@ -334,12 +334,20 @@ private static void indexPrime(CangJieStubWithFqName<?> stub, IndexSink sink) {
             indexPrime(stub, sink);
         }
 //如果该方法是顶层方法或有扩展接收器，则将其索引到顶层
-        if (stub.isTopLevel() || stub.isExtension()) {
+        if (stub.isTopLevel() /*|| stub.isExtension()*/) {
             // can have special fq name in case of syntactically incorrect function with no name
             FqName fqName = stub.getFqName();
             if (fqName != null) {
                 sink.occurrence(CangJieTopLevelFunctionFqnNameIndex.Helper.getIndexKey(), fqName.asString());
                 sink.occurrence(CangJieTopLevelFunctionByPackageIndex.Helper.getIndexKey(), fqName.parent().asString());
+                IndexUtilsKt.indexTopLevelExtension(stub, sink);
+            }
+        }
+        if(  stub.isExtension() ){
+            FqName fqName = stub.getFqName();
+            if (fqName != null) {
+                sink.occurrence(CangJieTopLevelFunctionFqnNameIndex.Helper.getIndexKey(), fqName.asString());
+
                 IndexUtilsKt.indexTopLevelExtension(stub, sink);
             }
         }
@@ -379,7 +387,7 @@ private static void indexPrime(CangJieStubWithFqName<?> stub, IndexSink sink) {
     }
 
     @Override
-    public void indexImports(@NotNull CangJieImportDirectiveStub stub, @NotNull IndexSink sink) {
+    public void indexImports(CangJieImportStub<?> stub, @NotNull IndexSink sink) {
 
 //        if (stub.getModifierVisibility() == DescriptorVisibilities.PRIVATE) {
 //            return;

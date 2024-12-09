@@ -27,6 +27,7 @@ package com.linqingying.cangjie.resolve
 import com.intellij.util.SmartList
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.impl.CallableDescriptorForExtend
 import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.incremental.components.NoLookupLocation
@@ -84,7 +85,11 @@ class LazyExplicitImportScope(
 
     override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
 
-        return collectEnumEntryDeclarationMemberDescriptors(name,location, MemberScope::getContributedEnumEntrys).toList()
+        return collectEnumEntryDeclarationMemberDescriptors(
+            name,
+            location,
+            MemberScope::getContributedEnumEntrys
+        ).toList()
     }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
@@ -109,25 +114,29 @@ class LazyExplicitImportScope(
     }
 
     override fun getContributedPackage(name: Name): PackageViewDescriptor? {
+//        if (name != aliasName) return null
 
         return when (packageOrClassDescriptor) {
             is LazyClassDescriptor -> {
-                packageOrClassDescriptor.containingDeclaration as? PackageViewDescriptor
+                null
+//                packageOrClassDescriptor.containingDeclaration as? PackageViewDescriptor
             }
 
             is PackageViewDescriptor -> {
-
-                val packageViewDescriptor = packageOrClassDescriptor.module.getPackage(
-                    packageOrClassDescriptor.fqName.child(
-                        aliasName
-                    )
+                packageOrClassDescriptor.memberScope.getContributedPackageView(
+                    declaredName,NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS
                 )
-                if (!packageViewDescriptor.isEmpty()) {
-                    packageViewDescriptor
-                } else {
-                    null
-                }
-
+//                val packageViewDescriptor = packageOrClassDescriptor.module.getPackage(
+//                    packageOrClassDescriptor.fqName.child(
+//                        declaredName
+//                    )
+//                )
+//                if (!packageViewDescriptor.isEmpty()) {
+//                    packageViewDescriptor
+//                } else {
+//                    null
+//                }
+//
 
             }
 
@@ -217,8 +226,15 @@ class LazyExplicitImportScope(
     }
 
 
-    // should be called only once
-    internal fun storeReferencesToDescriptors() = getContributedDescriptors().apply(storeReferences)
+    /**
+     * 存储对描述符的引用。
+     * 该函数设计为仅调用一次，因为它存储了对描述符的初始引用。
+     * 重复调用可能会覆盖现有的引用。
+     */
+// should be called only once
+    internal fun storeReferencesToDescriptors() = getContributedDescriptors().filter {
+        it !is CallableDescriptorForExtend
+    }.apply(storeReferences)
 
 
     /**
@@ -299,13 +315,13 @@ class LazyExplicitImportScope(
 
     private fun <D : /*CallableMemberDescriptor*/DeclarationDescriptor>
             collectEnumEntryDeclarationMemberDescriptors(
-        entryName:Name,
+        entryName: Name,
         location: LookupLocation,
         getDescriptors: MemberScope.(Name, LookupLocation) -> Collection<D>
     ): Collection<D> {
         val descriptors = SmartList<D>()
 
-        val enumClass =     when (packageOrClassDescriptor) {
+        val enumClass = when (packageOrClassDescriptor) {
             is PackageViewDescriptor -> {
                 // 如果是包描述符，使用成员作用域收集描述符
                 val packageScope = packageOrClassDescriptor.memberScope
@@ -314,7 +330,7 @@ class LazyExplicitImportScope(
 
             is ClassDescriptor -> {
                 // 如果是类描述符，使用静态作用域收集描述符
-           packageOrClassDescriptor
+                packageOrClassDescriptor
             }
 
             // 如果既不是包描述符也不是类描述符，则抛出异常
@@ -336,6 +352,7 @@ class LazyExplicitImportScope(
 
             }
 
+            null -> {}
             // 如果既不是包描述符也不是类描述符，则抛出异常
             else -> throw IllegalStateException("Should be class or package: $packageOrClassDescriptor")
         }

@@ -40,7 +40,8 @@ import static com.linqingying.cangjie.diagnostics.rendering.CommonRenderers.THRO
 import static com.linqingying.cangjie.diagnostics.rendering.Renderers.*;
 
 
-public class DefaultErrorMessages {
+public enum DefaultErrorMessages {
+    ;
     private static final List<DiagnosticFactoryToRendererMap> RENDERER_MAPS;
     private static final DiagnosticFactoryToRendererMap MAP = new DiagnosticFactoryToRendererMap("Default");
 
@@ -50,6 +51,9 @@ public class DefaultErrorMessages {
     }
 
     static {
+        MAP.put(RESOLUTION_TO_CLASSIFIER, () -> {
+            return "{2}";
+        }, NAMED, TO_STRING, STRING);
 
         MAP.put(MESSAGE_ERROR, () -> {
 //            "{0}"
@@ -96,7 +100,7 @@ public class DefaultErrorMessages {
         MAP.put(CONFLICTING_STATIC, () -> {
             // "Conflicting overloads: {0}"
             return CangJieDiagnosisBundle.rawMessage(CONFLICTING_STATIC);
-        }, CommonRenderers.commaSeparated(FQ_NAMES_IN_TYPES) ,STRING);
+        }, CommonRenderers.commaSeparated(FQ_NAMES_IN_TYPES), STRING);
 
         MAP.put(PACKAGE_OR_CLASSIFIER_REDECLARATION, () -> {
             // "Redeclaration: {0}"
@@ -311,7 +315,7 @@ public class DefaultErrorMessages {
 
                 () -> {
 //     "Type checking has run into a recursive problem. Easiest workaround: specify types of your declarations explicitly"
-                    return CangJieDiagnosisBundle.rawMessage("TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM" );
+                    return CangJieDiagnosisBundle.rawMessage("TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM");
                 }
         );
         MAP.put(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM_IN_AUGMENTED_ASSIGNMENT,
@@ -336,11 +340,11 @@ public class DefaultErrorMessages {
         MAP.put(VIRTUAL_MEMBER_HIDDEN, () -> {
             // "''{0}'' hides member of supertype ''{2}'' and needs ''override'' modifier"
             return CangJieDiagnosisBundle.rawMessage(VIRTUAL_MEMBER_HIDDEN);
-        }, NAMED, NAMED, NAMED,TO_STRING);
+        }, NAMED, NAMED, NAMED, TO_STRING);
         MAP.put(REDEF_INSTANCE_ERROR, () -> {
             // "''{0}'' hides member of supertype ''{2}'' and needs ''override'' modifier"
             return CangJieDiagnosisBundle.rawMessage(REDEF_INSTANCE_ERROR);
-        },  PSI_NAMED_TYPE_NAM);
+        }, PSI_NAMED_TYPE_NAM);
         MAP.put(OVERRIDE_STATIC_ERROR, () -> {
             // "''{0}'' hides member of supertype ''{2}'' and needs ''override'' modifier"
             return CangJieDiagnosisBundle.rawMessage(OVERRIDE_STATIC_ERROR);
@@ -515,6 +519,10 @@ public class DefaultErrorMessages {
             // "array literal type cannot be inferred"
             return CangJieDiagnosisBundle.rawMessage(ARRAY_LITERAL_TYPE_INFERENCE_FAILED);
         });
+        MAP.put(CONFLICTING_IMPORT, () -> {
+//            "Conflicting import, imported name ''{0}'' is ambiguous"
+            return CangJieDiagnosisBundle.rawMessage(CONFLICTING_IMPORT);
+        }, STRING);
 
         MAP.put(UPPER_BOUND_VIOLATION_IN_CONSTRAINT, () -> {
             // "Upper bound violation for generic parameter `{0}` of `{1}`: {3} is not a subtype of {2}"
@@ -524,7 +532,7 @@ public class DefaultErrorMessages {
             // "'return' is not allowed here"
             return CangJieDiagnosisBundle.rawMessage(RETURN_NOT_ALLOWED);
         });
-        MAP.put(IMPLICIT_INTERSECTION_TYPE, ()->{
+        MAP.put(IMPLICIT_INTERSECTION_TYPE, () -> {
 
 //            "Inferred type {0} is an intersection, please specify the required type explicitly"
             return CangJieDiagnosisBundle.rawMessage(IMPLICIT_INTERSECTION_TYPE);
@@ -1066,7 +1074,7 @@ public class DefaultErrorMessages {
     @SuppressWarnings("unchecked")
     public static String render(@NotNull UnboundDiagnostic diagnostic) {
         DiagnosticRenderer renderer = getRendererForDiagnostic(diagnostic);
-        if (renderer != null) {
+        if (null != renderer) {
             return renderer.render(diagnostic);
         }
         return diagnostic + " (error: could not render message)";
@@ -1076,7 +1084,7 @@ public class DefaultErrorMessages {
     public static DiagnosticRenderer getRendererForDiagnostic(@NotNull UnboundDiagnostic diagnostic) {
         // firstNotNullOfOrNull from stdlib can not be used here because it is InlineOnly function and can not be accessed from Java
         DiagnosticRenderer<?> renderer = AddToStdlibKt.firstNotNullResult(RENDERER_MAPS, map -> map.get(diagnostic.getFactory()));
-        if (renderer != null)
+        if (null != renderer)
             return renderer;
         else
             return diagnostic.getFactory().getDefaultRenderer();

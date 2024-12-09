@@ -24,6 +24,7 @@
 
 package com.linqingying.cangjie.psi
 
+import com.intellij.util.SmartList
 import com.linqingying.cangjie.descriptors.DescriptorVisibilities
 import com.linqingying.cangjie.descriptors.DescriptorVisibility
 import com.linqingying.cangjie.name.FqName
@@ -31,7 +32,6 @@ import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.QualifiedExpressionResolver.ExpressionQualifierPart
 import com.linqingying.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import com.linqingying.cangjie.types.expressions.isWithoutValueArguments
-import com.intellij.util.SmartList
 
 fun CjImportInfo.ImportContent.asQualifierPartList(): List<QualifierPart> =
     when (this) {
@@ -76,28 +76,68 @@ fun CjExpression.asQualifierPartList(doubleColonLHS: Boolean = false): List<Expr
     return result.asReversed()
 }
 
-
+/**
+ * CjImportInfo接口定义了导入信息的数据结构，用于在代码中表示和操作导入语句。
+ */
 interface CjImportInfo {
+    /**
+     * 导入内容的密封类，表示导入语句的两种不同形式。
+     */
     sealed class ImportContent {
+        /**
+         * 基于表达式的导入内容，用于表示使用表达式形式的导入。
+         *
+         * @property expression 表达式，用于定义导入的内容。
+         */
         class ExpressionBased(val expression: CjExpression) : ImportContent()
+
+        /**
+         * 基于全限定名的导入内容，用于表示使用全限定名形式的导入。
+         *
+         * @property fqName 全限定名，用于定义导入的内容。
+         */
         class FqNameBased(val fqName: FqName) : ImportContent()
     }
 
+    /**
+     * 表示是否为“全部导入”类型，即是否导入指定包下的所有内容。
+     */
     val isAllUnder: Boolean
+
+    /**
+     * 导入内容，可以是基于表达式的导入或基于全限定名的导入。
+     */
     val importContent: ImportContent?
+
+    /**
+     * 导入的全限定名，用于标识导入的具体类或包。
+     */
     val importedFqName: FqName?
 
     //    val importedFqNames: MutableList<FqName>?
+    /**
+     * 别名，用于在导入时给导入项指定一个不同的名称。
+     */
     val aliasName: String?
 
-    //    修饰符
+    /**
+     * 修饰符，表示导入语句的可见性。
+     */
     val modifierVisibility: DescriptorVisibility get() = DescriptorVisibilities.PRIVATE
 
+    /**
+     * 导入的名称，表示导入项在代码中使用的名称。
+     */
     val importedName: Name?
         get() {
             return computeNameAsString()?.takeIf(CharSequence::isNotEmpty)?.let(Name::identifier)
         }
 
+    /**
+     * 计算导入名称的字符串表示形式。
+     *
+     * @return 导入名称的字符串表示形式，如果无法计算则返回null。
+     */
     private fun computeNameAsString(): String? {
         if (isAllUnder) return null
         aliasName?.let { return it }
@@ -110,3 +150,4 @@ interface CjImportInfo {
         }
     }
 }
+

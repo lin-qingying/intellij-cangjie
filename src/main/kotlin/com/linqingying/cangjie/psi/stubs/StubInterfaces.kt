@@ -24,6 +24,7 @@
 
 package com.linqingying.cangjie.psi.stubs
 
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.stubs.*
 import com.intellij.util.io.StringRef
@@ -40,7 +41,7 @@ enum class ConstantValueKind {
     FLOAT_CONSTANT,
     RUNE_CONSTANT,
 
-        CHARACTER_BYTE_CONSTANT,
+    CHARACTER_BYTE_CONSTANT,
     INTEGER_CONSTANT,
     UNIT_CONSTANT
 }
@@ -176,6 +177,7 @@ interface CangJieTypeParameterStub : CangJieStubWithFqName<CjTypeParameter> {
 //    fun isInVariance(): Boolean
 
 }
+
 interface CangJieNameBasicReferenceExpressionStub : StubElement<CjNameBasicReferenceExpression> {
     fun getReferencedName(): String
 }
@@ -257,16 +259,22 @@ interface CangJiePackageDirectiveStub : StubElement<CjPackageDirective> {
 
 }
 
-interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
-    fun isAllUnder(): Boolean
-    fun getImportedFqName(): FqName?
-
-    //    fun getImportedFqNames(): List<FqName>
-    fun isValid(): Boolean
+interface CangJieImportStub<T : PsiElement> : StubElement<T> {
+    fun getPackageFqName(): FqName?
 
 
     fun getModifierVisibility(): DescriptorVisibility
-    fun getPackageFqName(): FqName?
+}
+
+interface CangJieMultiImportDirectiveStub : CangJieImportStub<CjMultiImportDirective>
+interface CangJieImportDirectiveStub : CangJieImportStub<CjImportDirective> {
+    fun isAllUnder(): Boolean
+    fun getImportedFqName(): FqName?
+    fun isValid(): Boolean
+
+
+    override fun getModifierVisibility(): DescriptorVisibility
+    override fun getPackageFqName(): FqName?
 
 }
 

@@ -44,23 +44,35 @@ interface QualifierReceiver : Receiver, DetailedReceiver {
 }
 
 
+/**
+ * 表示带有智能转换信息的接收者值。
+ * 该类用于跟踪接收者值及其智能转换类型信息。
+ *
+ * @param receiverValue 接收者值。
+ * @param typesFromSmartCasts 智能转换得到的类型集合，不包括 receiverValue.type，
+ *                            仅用于特殊标记这些类型（例如，IDE绿色高亮显示），但不用于构造最终类型。
+ * @param isStable 表示接收者值是否稳定。
+ * @param originalBaseType 原始基础类型，默认为 receiverValue.type。
+ */
 class ReceiverValueWithSmartCastInfo(
     val receiverValue: ReceiverValue,
-    /*
-     * It doesn't include receiver.type and is used only to special marking such types (e.g. for IDE green highlighting)
-     * but not to construct the resulting type
-     */
     val typesFromSmartCasts: Set<CangJieType>,
     val isStable: Boolean,
     originalBaseType: CangJieType = receiverValue.type
 ) : DetailedReceiver {
-    // It's used to construct the resulting type
+    // 用于构造最终类型
     val allOriginalTypes = typesFromSmartCasts + originalBaseType
 
+    /**
+     * 检查是否存在智能转换类型。
+     *
+     * @return 如果存在智能转换类型则返回 true，否则返回 false。
+     */
     fun hasTypesFromSmartCasts() = typesFromSmartCasts.isNotEmpty()
 
     override fun toString() = receiverValue.toString()
 }
+
 
 fun ReceiverValueWithSmartCastInfo.prepareReceiverRegardingCaptureTypes(): ReceiverValueWithSmartCastInfo {
     val preparedBaseType = prepareArgumentTypeRegardingCaptureTypes(receiverValue.type.unwrap()) ?: return this

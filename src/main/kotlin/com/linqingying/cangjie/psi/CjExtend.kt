@@ -25,14 +25,15 @@
 package com.linqingying.cangjie.psi
 
 
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.CjNodeTypes
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.psi.psiUtil.getChildrenOfType
+import com.linqingying.cangjie.psi.psiUtil.identifier
 import com.linqingying.cangjie.psi.stubs.CangJieExtendStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
 
 class CjExtend : CjTypeStatement {
     private val _stub: CangJieExtendStub?
@@ -41,8 +42,10 @@ class CjExtend : CjTypeStatement {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitExtend(this, data)
     }
+
     override val typeName: String
         get() = "extend"
+
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieExtendStub) : super(stub, CjStubElementTypes.EXTEND)
 
@@ -50,13 +53,33 @@ class CjExtend : CjTypeStatement {
 //        get() = super.fqName
 
     override fun getName(): String? {
-        val name = super.getName()
-
-
-
-        return name?.let { name.split('.').last().replace(Regex("<.*?>"), "") }
+        return getExtendName()
     }
 
+    private fun getExtendName(): String? {
+        return when (val type = receiverTypeReceiver?.typeElement) {
+            is CjUserType -> {
+                type.referencedName
+
+            }
+
+            is CjOptionType -> {
+                return "Option"
+            }
+
+            is CjBasicType -> {
+                type.name
+            }
+
+            else -> null
+        }
+
+
+    }
+
+    override fun getNameIdentifier(): PsiElement? {
+        return receiverTypeReceiver?.typeElement?.identifier
+    }
 
     //被扩展类型
     val receiverTypeReceiver: CjTypeReference?
@@ -74,18 +97,15 @@ class CjExtend : CjTypeStatement {
             return getReceiverTypeRefByTree()
         }
     override val nameAsSafeName: Name
-        get() = receiverTypeReceiver?.text?.let { if(it.isEmpty()){
-            Name.ERROR_NAME
-        }else{
-            Name.identifier(it) }
-        } ?:Name.ERROR_NAME
+        get() = receiverTypeReceiver?.text?.let {
+            if (it.isEmpty()) {
+                Name.ERROR_NAME
+            } else {
+                Name.identifier(it)
+            }
+        } ?: Name.ERROR_NAME
     override val nameAsName: Name
-        get() = name?.let { Name.identifier(it) } ?:Name.ERROR_NAME
-//    override fun getNameIdentifier(): PsiElement? {
-////        val psiFactory = CjPsiFactory.contextual(this)
-////        return psiFactory.createIdentifier(nameAsSafeName.toString())
-//        return receiverTypeReceiver
-//    }
+        get() = name?.let { Name.identifier(it) } ?: Name.ERROR_NAME
 
     //    扩展id ，需要具有唯一性  ，通过被扩展名，父类，包名，行号
     fun getExtendId(): String {

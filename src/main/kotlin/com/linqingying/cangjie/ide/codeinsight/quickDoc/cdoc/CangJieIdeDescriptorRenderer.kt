@@ -458,7 +458,7 @@ open class CangJieIdeDescriptorRenderer(
             appendHighlighted("?") { asNullityMarker }
             appendTypeConstructorAndArguments(type.getType())
 
-        }else    if (type.isError) {
+        } else if (type.isError) {
             if (isUnresolvedType(type) && presentableUnresolvedTypes) {
                 appendHighlighted(ErrorUtils.unresolvedTypeAsItIs(type)) { asError }
             } else {
@@ -646,9 +646,9 @@ open class CangJieIdeDescriptorRenderer(
     }
 
     private fun StringBuilder.appendTypeParameter(typeParameter: TypeParameterDescriptor, topLevel: Boolean) {
-        if (topLevel) {
-            append(lt())
-        }
+//        if (topLevel) {
+//            append(lt())
+//        }
 
         if (verbose) {
             appendHighlighted("/*${typeParameter.index}*/ ") { asInfo }
@@ -660,34 +660,34 @@ open class CangJieIdeDescriptorRenderer(
 //        appendAnnotations(typeParameter)
 
         appendName(typeParameter, topLevel) { asTypeParameterName }
-        val upperBoundsCount = typeParameter.upperBounds.size
-        if ((upperBoundsCount > 1 && !topLevel) || upperBoundsCount == 1) {
-            val upperBound = typeParameter.upperBounds.iterator().next()
-            if (!CangJieBuiltIns.isDefaultBound(upperBound)) {
-                appendHighlighted(" : ") { asColon }
-                append(renderType(upperBound))
-            }
-        } else if (topLevel) {
-            var first = true
-            for (upperBound in typeParameter.upperBounds) {
-                if (CangJieBuiltIns.isDefaultBound(upperBound)) {
-                    continue
-                }
-                if (first) {
-                    appendHighlighted(" : ") { asColon }
-                } else {
-                    appendHighlighted(" & ") { asOperationSign }
-                }
-                append(renderType(upperBound))
-                first = false
-            }
-        } else {
-            // rendered with "where"
-        }
+//        val upperBoundsCount = typeParameter.upperBounds.size
+//        if ((upperBoundsCount > 1 && !topLevel) || upperBoundsCount == 1) {
+//            val upperBound = typeParameter.upperBounds.iterator().next()
+//            if (!CangJieBuiltIns.isDefaultBound(upperBound)) {
+//                appendHighlighted(" : ") { asColon }
+//                append(renderType(upperBound))
+//            }
+//        } else if (topLevel) {
+//            var first = true
+//            for (upperBound in typeParameter.upperBounds) {
+//                if (CangJieBuiltIns.isDefaultBound(upperBound)) {
+//                    continue
+//                }
+//                if (first) {
+//                    appendHighlighted(" : ") { asColon }
+//                } else {
+//                    appendHighlighted(" & ") { asOperationSign }
+//                }
+//                append(renderType(upperBound))
+//                first = false
+//            }
+//        } else {
+//            // rendered with "where"
+//        }
 
-        if (topLevel) {
-            append(gt())
-        }
+//        if (topLevel) {
+//            append(gt())
+//        }
     }
 
     private fun StringBuilder.appendTypeParameterList(typeParameters: List<TypeParameterDescriptor>) {
@@ -989,11 +989,11 @@ open class CangJieIdeDescriptorRenderer(
 
         for (typeParameter in typeParameters) {
             typeParameter.upperBounds
-                .drop(1) // first parameter is rendered by renderTypeParameter
+
                 .mapTo(upperBoundStrings) {
                     buildString {
                         appendHighlighted(renderName(typeParameter.name, false)) { asTypeParameterName }
-                        appendHighlighted(" : ") { asColon }
+                        appendHighlighted(" <: ") { asColon }
                         append(renderType(it))
                     }
                 }
@@ -1065,7 +1065,8 @@ open class CangJieIdeDescriptorRenderer(
                 if (parametersWithoutDefault.isNotEmpty()) {
                     appendHighlighted(" : ") { asColon }
                     append(renderKeyword("this"))
-                    append(parametersWithoutDefault.joinToString(
+                    append(
+                        parametersWithoutDefault.joinToString(
                         prefix = highlight("(") { asParentheses },
                         separator = highlight(", ") { asComma },
                         postfix = highlight(")") { asParentheses }

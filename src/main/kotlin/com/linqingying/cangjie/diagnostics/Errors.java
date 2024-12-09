@@ -446,7 +446,7 @@ public interface Errors {
     DiagnosticFactory0<CjDeclaration> CONSTRUCTOR_IN_INTERFACE = DiagnosticFactory0.create(ERROR, DECLARATION_SIGNATURE);
     DiagnosticFactory0<CjTypeReference> DYNAMIC_SUPERTYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjSimpleNameExpression> PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory0<CjSimpleNameExpression> MODULE_PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<PsiElement> MODULE_PACKAGE_CANNOT_BE_IMPORTED = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjPackageDirective> INCONSISTENT_PACKAGE_MACOR = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjConstantExpression> INT_LITERAL_OUT_OF_RANGE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory1<PsiElement, String> PACKAGE_OR_CLASSIFIER_REDECLARATION =
@@ -508,6 +508,7 @@ public interface Errors {
     DiagnosticFactory0<CjParameter> MAIN_FUNCTION_PARAMETER_TYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjMainFunction> MAIN_FUNCTION_NUMBER_ERROR = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjVariableDeclaration> INTERFACE_BODY_NO_VARIABLES = DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory1<CangJieImportElement, String> CONFLICTING_IMPORT = DiagnosticFactory1.create(ERROR, PositioningStrategies.IMPORT_ALIAS);
 
     DiagnosticFactory2<PsiElement, FqName, FqName> MISSING_DEPENDENCY_SUPERCLASS = DiagnosticFactory2.create(ERROR);
 

@@ -27,6 +27,7 @@ package com.linqingying.cangjie.resolve.calls.tower
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.resolve.isExtension
 import com.linqingying.cangjie.resolve.scopes.ResolutionScope
 import com.linqingying.cangjie.resolve.scopes.receivers.QualifierReceiver
 import com.linqingying.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -48,8 +49,18 @@ val CandidateApplicability.isInapplicable: Boolean
 val CallableDescriptor.isSynthesized: Boolean
     get() = (this is CallableMemberDescriptor && kind == CallableMemberDescriptor.Kind.SYNTHESIZED)
 
+/**
+ * 判断候选函数是否需要扩展接收者
+ *
+ * 这个属性表示当前候选函数是否定义了扩展接收者参数
+ * 扩展接收者参数用于指定一个类型，该类型的成员可以通过扩展函数或扩展属性直接调用
+ *
+ * @return Boolean 如果候选函数有扩展接收者参数，则返回true；否则返回false
+ */
 val CandidateWithBoundDispatchReceiver.requiresExtensionReceiver: Boolean
-    get() = descriptor.extensionReceiverParameter != null
+    get() = descriptor.isExtension
+
+
 
 internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qualifier: QualifierReceiver) :
     AbstractScopeTowerLevel(scopeTower) {

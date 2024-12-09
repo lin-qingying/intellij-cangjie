@@ -36,6 +36,7 @@ import com.linqingying.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIn
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.Name
+import com.linqingying.cangjie.psi.CangJieImportElement
 import com.linqingying.cangjie.psi.CjFile
 import com.linqingying.cangjie.psi.CjImportDirective
 import com.linqingying.cangjie.psi.CjImportInfo
@@ -67,21 +68,8 @@ class FileScopeFactory(
             .map(::DefaultImportImpl)
 
 
-    private lateinit var enumDefualtImports: List<EnumDefualtImportImpl>
-
     private val defaultLowPriorityImports = analyzerServices.defaultLowPriorityImports.map(::DefaultImportImpl)
 
-    //    为enum进行展开
-    class EnumDefualtImportImpl(private val importPath: ImportPath) : CjImportInfo {
-        override val isAllUnder: Boolean
-            get() = true
-        override val importContent: CjImportInfo.ImportContent
-            get() = TODO("Not yet implemented")
-        override val importedFqName: FqName
-            get() = TODO("Not yet implemented")
-        override val aliasName: String
-            get() = TODO("Not yet implemented")
-    }
 
     private class DefaultImportImpl(private val importPath: ImportPath) : CjImportInfo {
         override val isAllUnder: Boolean get() = importPath.isAllUnder
@@ -171,7 +159,7 @@ class FileScopeFactory(
     )
 
     private fun createImportResolver(
-        indexedImports: IndexedImports<CjImportDirective>,
+        indexedImports: IndexedImports<CangJieImportElement>,
         trace: BindingTrace,
         aliasImportNames: Collection<FqName>,
         packageFragment: PackageFragmentDescriptor?,
@@ -238,7 +226,7 @@ class FileScopeFactory(
                 allUnderImportResolver.forceResolveNonDefaultImports()
             }
 
-            override fun forceResolveImport(importDirective: CjImportDirective) {
+            override fun forceResolveImport(importDirective: CangJieImportElement) {
                 if (importDirective.isAllUnder) {
                     allUnderImportResolver.forceResolveImport(importDirective)
                 } else {
@@ -274,7 +262,7 @@ class FileScopeFactory(
 
                 val packageViews = importDirectives.map {
 //                     explicitImportResolver.getImportScope(it)实际上附带了name名称
-                   val importScope = explicitImportResolver.getImportScope(it)
+                    val importScope = explicitImportResolver.getImportScope(it)
 
                     importScope.getContributedPackage(name)
                 }
@@ -299,6 +287,7 @@ class FileScopeFactory(
                 p.println(this.toString())
 
             }
+
             override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
 
 //                val elements = file.declarations.flatMap {
@@ -322,9 +311,10 @@ class FileScopeFactory(
 //                if (_parent !is CurrentPackageScope) {
 //                    return null
 //                }
-                return _parent?.getContributedClassifiers(name, location) ?: emptyList()
+                return _parent?.getContributedEnumEntrys(name, location) ?: emptyList()
 
             }
+
             override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
 
 //                val elements = file.declarations.flatMap {

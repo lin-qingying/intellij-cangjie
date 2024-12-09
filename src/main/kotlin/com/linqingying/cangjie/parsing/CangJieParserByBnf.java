@@ -736,7 +736,7 @@ public class CangJieParserByBnf implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // (MULIT_IMPORT_DIRECTIVE | IMPORT_DIRECTIVE)*
+  // (MULTI_IMPORT_DIRECTIVE | IMPORT_DIRECTIVE)*
   public static boolean IMPORT_LIST(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "IMPORT_LIST")) return false;
     Marker m = enter_section_(b, l, _NONE_, IMPORT_LIST, "<import list>");
@@ -749,7 +749,7 @@ public class CangJieParserByBnf implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // MULIT_IMPORT_DIRECTIVE | IMPORT_DIRECTIVE
+  // MULTI_IMPORT_DIRECTIVE | IMPORT_DIRECTIVE
   private static boolean IMPORT_LIST_0(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "IMPORT_LIST_0")) return false;
     boolean r;
@@ -923,7 +923,7 @@ public class CangJieParserByBnf implements PsiParser, LightPsiParser {
   /* ********************************************************** */
   // import_modifier? IMPORT_KEYWORD <<packageName>> DOT LBRACE <<packageName>> (COMMA <<packageName>>)* RBRACE
   public static boolean MULIT_IMPORT_DIRECTIVE(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "MULIT_IMPORT_DIRECTIVE")) return false;
+    if (!recursion_guard_(b, l, "MULTI_IMPORT_DIRECTIVE")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, MULIT_IMPORT_DIRECTIVE, "<mulit import directive>");
     r = MULIT_IMPORT_DIRECTIVE_0(b, l + 1);

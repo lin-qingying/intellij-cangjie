@@ -57,6 +57,7 @@ import com.linqingying.cangjie.resolve.calls.model.*
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import com.linqingying.cangjie.resolve.calls.util.CallMaker
+import com.linqingying.cangjie.resolve.calls.util.extractCallableReferenceExpression
 import com.linqingying.cangjie.resolve.constants.CompileTimeConstant
 import com.linqingying.cangjie.resolve.constants.IntegerValueTypeConstant
 import com.linqingying.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
@@ -404,19 +405,38 @@ class CangJieResolutionCallbacksImpl(
     }
 
     override fun getLhsResult(call: CangJieCall): LHSResult {
-        return if (call.explicitReceiver?.receiver != null) {
+        val callableReferenceExpression = call.extractCallableReferenceExpression()
+            ?: throw IllegalStateException("Not a callable reference")
+        val lhsResult  = psiCallResolver.getLhsResult(topLevelCallContext, callableReferenceExpression)
+        return lhsResult
+//        return if(call.psiCangJieCall.psiCall.calleeExpression is CjCallableReference ){
+//            val callableReferenceExpression = call.psiCangJieCall.psiCall.calleeExpression as? CjCallableReference
+//                ?: throw IllegalStateException("Not a callable reference")
+//            val lhsResult = psiCallResolver.getLhsResult(topLevelCallContext, callableReferenceExpression)
+//            lhsResult
+//        }else if(call.explicitReceiver?.receiver != null){
+//            ((call.explicitReceiver?.receiver as? QualifierReceiver)?.classValueReceiver?.type as? UnwrappedType)?.let {
+//                LHSResult.Type(
+//                    call.explicitReceiver?.receiver as? QualifierReceiver, it
+//                )
+//            } ?: LHSResult.Error
+//        }else {
+//            LHSResult.Error
+//        }
 
-            return ((call.explicitReceiver?.receiver as? QualifierReceiver)?.classValueReceiver?.type as? UnwrappedType)?.let {
-                LHSResult.Type(
-                    call.explicitReceiver?.receiver as? QualifierReceiver, it
-                )
-            } ?: LHSResult.Error
-        } else {
-            val callableReferenceExpression = call.psiCangJieCall.psiCall.calleeExpression as? CjCallableReference
-                ?: throw IllegalStateException("Not a callable reference")
-            val lhsResult = psiCallResolver.getLhsResult(topLevelCallContext, callableReferenceExpression)
-            return lhsResult
-        }
+//        return if (call.explicitReceiver?.receiver != null) {
+//
+//              ((call.explicitReceiver?.receiver as? QualifierReceiver)?.classValueReceiver?.type as? UnwrappedType)?.let {
+//                LHSResult.Type(
+//                    call.explicitReceiver?.receiver as? QualifierReceiver, it
+//                )
+//            } ?: LHSResult.Error
+//        } else {
+//            val callableReferenceExpression = call.psiCangJieCall.psiCall.calleeExpression as? CjCallableReference
+//                ?: throw IllegalStateException("Not a callable reference")
+//            val lhsResult = psiCallResolver.getLhsResult(topLevelCallContext, callableReferenceExpression)
+//              lhsResult
+//        }
 
 
     }

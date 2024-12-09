@@ -250,33 +250,7 @@ open class LazyClassMemberScope(
             fromSupertypes.addAll(supertype.memberScope.getContributedFunctions(name, location))
         }
 
-
-//        扩展
-
-//        if (thisDescriptor !is LazyExtendClassDescriptor) {
-//            for (extend in extendClassDescriptors) {
-//                result.addAll(extend.unsubstitutedMemberScope.getContributedFunctions(name, location))
-//            }
-//        }
-
-
-//
-//        result.addAll(generateDelegatingDescriptors(name, EXTRACT_FUNCTIONS, result))
-// //数据类
-//        generateDataClassMethods(result, name, location, fromSupertypes)
-
-//        值类的函数生成
-//        generateFunctionsFromAnyForValueClass(result, name, fromSupertypes)
-//        c.syntheticResolveExtension.generateSyntheticMethods(
-//            thisDescriptor,
-//            name,
-//            trace.bindingContext,
-//            fromSupertypes,
-//            result
-//        )
-
-//        c.additionalClassPartsProvider.generateAdditionalMethods(thisDescriptor, result, name, location, fromSupertypes)
-
+ extendClassDescriptors
         generateFakeOverrides(name, fromSupertypes, result, SimpleFunctionDescriptor::class.java)
     }
 

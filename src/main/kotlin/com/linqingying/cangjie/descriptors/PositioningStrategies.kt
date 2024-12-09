@@ -57,6 +57,19 @@ object PositioningStrategies {
             return super.isValid(element)
         }
     }
+    @JvmField
+    val IMPORT_ALIAS: PositioningStrategy<CangJieImportElement> = object : PositioningStrategy<CangJieImportElement>() {
+        override fun mark(element: CangJieImportElement): List<TextRange> {
+            element.alias?.nameIdentifier?.let { return markElement(it) }
+            element.importedReference?.let {
+                if (it is CjQualifiedExpression) {
+                    it.selectorExpression?.let { return markElement(it) }
+                }
+                return markElement(it)
+            }
+            return markElement(element)
+        }
+    }
 
     @JvmField
     val USELESS_ELVIS: PositioningStrategy<CjBinaryExpression> = object : PositioningStrategy<CjBinaryExpression>() {

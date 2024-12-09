@@ -21,72 +21,113 @@
  * any damages or issues arising from its use.
  *
  */
+package com.linqingying.cangjie.psi.stubs.elements
 
-package com.linqingying.cangjie.psi.stubs.elements;
-
-import com.linqingying.cangjie.descriptors.DescriptorVisibilities;
-import com.linqingying.cangjie.descriptors.DescriptorVisibility;
-import com.linqingying.cangjie.name.FqName;
-import com.linqingying.cangjie.psi.CjImportDirective;
-//import com.linqingying.cangjie.psi.CjImportDirectiveItem;
-import com.linqingying.cangjie.psi.stubs.CangJieClassStub;
-import com.linqingying.cangjie.psi.stubs.CangJieImportDirectiveStub;
-import com.linqingying.cangjie.psi.stubs.impl.CangJieImportDirectiveStubImpl;
-import com.intellij.psi.stubs.IndexSink;
-import com.intellij.psi.stubs.StubElement;
-import com.intellij.psi.stubs.StubInputStream;
-import com.intellij.psi.stubs.StubOutputStream;
-import com.intellij.util.io.StringRef;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import com.intellij.psi.stubs.IndexSink
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+import com.intellij.util.io.StringRef
+import com.linqingying.cangjie.descriptors.DescriptorVisibilities
+import com.linqingying.cangjie.descriptors.DescriptorVisibility
+import com.linqingying.cangjie.psi.CjImportDirective
+import com.linqingying.cangjie.psi.CjMultiImportDirective
+import com.linqingying.cangjie.psi.stubs.CangJieImportDirectiveStub
+import com.linqingying.cangjie.psi.stubs.CangJieMultiImportDirectiveStub
+import com.linqingying.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
+import com.linqingying.cangjie.psi.stubs.impl.CangJieImportDirectiveStubImpl
+import com.linqingying.cangjie.psi.stubs.impl.CangJieMulitImportDirectiveStubImpl
+import org.jetbrains.annotations.NonNls
+import java.io.IOException
 
 
-
-public class CjImportDirectiveElementType extends CjStubElementType<CangJieImportDirectiveStub, CjImportDirective> {
-    public CjImportDirectiveElementType(@NotNull @NonNls String debugName) {
-        super(debugName, CjImportDirective.class, CangJieImportDirectiveStub.class);
+class CjImportDirectiveElementType(debugName: @NonNls String) :
+    CjStubElementType<CangJieImportDirectiveStub, CjImportDirective>(
+        debugName,
+        CjImportDirective::class.java,
+        CangJieImportDirectiveStub::class.java
+    ) {
+    override fun createStub(psi: CjImportDirective, parentStub: StubElement<*>?): CangJieImportDirectiveStub {
+        val importedFqName = psi.importedFqName
+        val fqName = StringRef.fromString(importedFqName?.asString())
+        return CangJieImportDirectiveStubImpl(
+            parentStub!!,
+            psi.isAllUnder,
+            fqName,
+            psi.isValidImport,
+            psi.modifierVisibility
+        )
     }
 
-    @NotNull
-    @Override
-    public CangJieImportDirectiveStub createStub(@NotNull CjImportDirective psi, StubElement parentStub) {
-        FqName importedFqName = psi.getImportedFqName();
-        StringRef fqName = StringRef.fromString(importedFqName == null ? null : importedFqName.asString());
-        return new CangJieImportDirectiveStubImpl((StubElement<?>) parentStub, psi.isAllUnder(), fqName, psi.isValidImport(),psi.getModifierVisibility());
+    @Throws(IOException::class)
+    override fun serialize(stub: CangJieImportDirectiveStub, dataStream: StubOutputStream) {
+        dataStream.writeBoolean(stub.isAllUnder())
+        val importedFqName = stub.getImportedFqName()
+        dataStream.writeName(importedFqName?.asString())
+        dataStream.writeBoolean(stub.isValid())
+        dataStream.writeName(stub.getModifierVisibility().name)
     }
 
-    @Override
-    public void serialize(@NotNull CangJieImportDirectiveStub stub, @NotNull StubOutputStream dataStream) throws IOException {
-        dataStream.writeBoolean(stub.isAllUnder());
-        FqName importedFqName = stub.getImportedFqName();
-        dataStream.writeName(importedFqName != null ? importedFqName.asString() : null);
-        dataStream.writeBoolean(stub.isValid());
-        dataStream.writeName(stub.getModifierVisibility().getName());
+    override fun indexStub(stub: CangJieImportDirectiveStub, sink: IndexSink) {
+        getInstance().indexImports(stub, sink)
     }
 
-    @Override
-    public void indexStub(@NotNull CangJieImportDirectiveStub stub, @NotNull IndexSink sink) {
-        StubIndexService.getInstance().indexImports(stub, sink);
-    }
-
-    @NotNull
-    @Override
-    public CangJieImportDirectiveStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-        boolean isAllUnder = dataStream.readBoolean();
-        StringRef importedName = dataStream.readName();
-        boolean isValid = dataStream.readBoolean();
-        StringRef modifierVisibility = dataStream.readName();
-        DescriptorVisibility visibility  = null;
-        if (modifierVisibility != null) {
-            visibility = DescriptorVisibilities.formName(modifierVisibility.getString());
-        }else {
-            visibility = DescriptorVisibilities.PRIVATE;
+    @Throws(IOException::class)
+    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieImportDirectiveStub {
+        val isAllUnder = dataStream.readBoolean()
+        val importedName = dataStream.readName()
+        val isValid = dataStream.readBoolean()
+        val modifierVisibility = dataStream.readName()
+        val visibility: DescriptorVisibility? = if (modifierVisibility != null) {
+            DescriptorVisibilities.formName(modifierVisibility.string)
+        } else {
+            DescriptorVisibilities.PRIVATE
         }
-        return new CangJieImportDirectiveStubImpl((StubElement<?>) parentStub, isAllUnder, importedName,isValid,visibility);
+        return CangJieImportDirectiveStubImpl(
+            parentStub, isAllUnder, importedName, isValid,
+            visibility!!
+        )
+    }
+}
+
+class CjMultiImportDirectiveElementType(debugName: @NonNls String) :
+    CjStubElementType<CangJieMultiImportDirectiveStub, CjMultiImportDirective>(
+        debugName,
+        CjMultiImportDirective::class.java,
+        CangJieMultiImportDirectiveStub::class.java
+    ) {
+    override fun createStub(psi: CjMultiImportDirective, parentStub: StubElement<*>): CangJieMultiImportDirectiveStub {
+
+        return CangJieMulitImportDirectiveStubImpl(
+            parentStub,
+
+            psi.modifierVisibility
+        )
+    }
+
+    @Throws(IOException::class)
+    override fun serialize(stub: CangJieMultiImportDirectiveStub, dataStream: StubOutputStream) {
+
+
+        dataStream.writeName(stub.getModifierVisibility().name)
+    }
+
+    override fun indexStub(stub: CangJieMultiImportDirectiveStub, sink: IndexSink) {
+        getInstance().indexImports(stub, sink)
+    }
+
+    @Throws(IOException::class)
+    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieMultiImportDirectiveStub {
+
+        val modifierVisibility = dataStream.readName()
+        val visibility: DescriptorVisibility = if (modifierVisibility != null) {
+            DescriptorVisibilities.formName(modifierVisibility.string)
+        } else {
+            DescriptorVisibilities.PRIVATE
+        }
+        return CangJieMulitImportDirectiveStubImpl(
+            parentStub,
+            visibility
+        )
     }
 }

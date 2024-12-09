@@ -142,7 +142,7 @@ abstract class CjCodeFragment(
         return null
     }
 
-    override val importDirectives: List<CjImportDirective>
+    override val importDirectives: List<CangJieImportElement>
         get() = importsAsImportList()?.imports ?: emptyList()
 
 

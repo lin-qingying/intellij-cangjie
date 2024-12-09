@@ -23,8 +23,19 @@
  */
 
 package com.linqingying.cangjie.psi
+fun importDirectiveVisitor(block: (CjImportDirective) -> Unit) =
+    object : CjVisitorVoid() {
+        override fun visitImportDirective(importDirective: CjImportDirective) {
+            block(importDirective)
+        }
+    }
 
-
+fun visitDotQualifiedExpression(block: (CjDotQualifiedExpression) -> Unit) =
+    object : CjVisitorVoid() {
+        override fun visitDotQualifiedExpression(expression: CjDotQualifiedExpression) {
+            block(expression)
+        }
+    }
 
 fun packageDirectiveVisitor(block: (CjPackageDirective) -> Unit) =
     object : CjVisitorVoid() {

@@ -37,10 +37,7 @@ import com.linqingying.cangjie.diagnostics.Diagnostic
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.ClassId
 import com.linqingying.cangjie.name.FqName
-import com.linqingying.cangjie.psi.CjDeclaration
-import com.linqingying.cangjie.psi.CjImportDirective
-import com.linqingying.cangjie.psi.CjSimpleNameExpression
-import com.linqingying.cangjie.psi.doNotAnalyze
+import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.getQualifiedElementSelector
 import com.linqingying.cangjie.references.mainReference
 import com.linqingying.cangjie.resolve.DescriptorToSourceUtils
@@ -221,11 +218,11 @@ val DeclarationDescriptor.module: ModuleDescriptor
 val ClassifierDescriptor?.classId: ClassId?
     get() {
         if (this is BasicTypeDescriptor) {
-           return ClassId(FqName.ROOT, name)
-        }else if(this is FunctionClassDescriptor){
-            return ClassId(FqName.ROOT,name )
-        }else if(this is TupleClassDescriptor){
-            return ClassId(FqName.ROOT,name )
+            return ClassId(FqName.ROOT, name)
+        } else if (this is FunctionClassDescriptor) {
+            return ClassId(FqName.ROOT, name)
+        } else if (this is TupleClassDescriptor) {
+            return ClassId(FqName.ROOT, name)
 
         }
         return this?.containingDeclaration?.let { owner ->
@@ -297,14 +294,46 @@ fun ClassDescriptor.findCallableMemberBySignature(
         }
 }
 
+/**
+ * 获取导入指令的目标描述符集合
+ *
+ * 此函数旨在解析导入指令所指向的描述符集合，以支持代码分析和理解
+ * 它通过解析导入指令中的引用表达式来实现，如果当前文件不应进行分析或导入指令不包含有效引用，则返回空集合
+ *
+ * @param resolutionFacade 分析表达式所用的解析工具，如果未显式提供，则使用当前指令的解析工具
+ * @return 解析得到的描述符集合，如果解析失败或不应分析，则返回空集合
+ */
 fun CjImportDirective.targetDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): Collection<DeclarationDescriptor> {
     // For codeFragments imports are created in dummy file
+    // 如果当前文件不应进行分析（例如，代码片段），直接返回空集合，避免不必要的处理
     if (this.getContainingCjFile().doNotAnalyze != null) return emptyList()
+
+    // 尝试获取导入指令中的选择器表达式，如果获取失败或表达式类型不匹配，则返回空集合
+    // 这一步是为了确保我们能够正确解析导入指令的目标
     val nameExpression =
         importedReference?.getQualifiedElementSelector() as? CjSimpleNameExpression ?: return emptyList()
+
+    // 解析表达式，获取其对应的描述符集合
+    // 这是核心逻辑，通过解析表达式来确定导入指令实际指向的声明描述符
     return nameExpression.mainReference.resolveToDescriptors(resolutionFacade.analyze(nameExpression))
 }
 
+fun CangJieImportElement.targetDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): Collection<DeclarationDescriptor> {
+
+    if(this is CjImportDirective) return targetDescriptors(resolutionFacade)
+
+    // 如果当前文件不应进行分析（例如，代码片段），直接返回空集合，避免不必要的处理
+    if (this.getContainingCjFile().doNotAnalyze != null) return emptyList()
+
+    // 尝试获取导入指令中的选择器表达式，如果获取失败或表达式类型不匹配，则返回空集合
+    // 这一步是为了确保我们能够正确解析导入指令的目标
+    val nameExpression =
+        importedReference?.getQualifiedElementSelector() as? CjSimpleNameExpression ?: return emptyList()
+
+    // 解析表达式，获取其对应的描述符集合
+    // 这是核心逻辑，通过解析表达式来确定导入指令实际指向的声明描述符
+    return nameExpression.mainReference.resolveToDescriptors(resolutionFacade.analyze(nameExpression))
+}
 fun descriptorsEqualWithSubstitution(
     descriptor1: DeclarationDescriptor?,
     descriptor2: DeclarationDescriptor?,

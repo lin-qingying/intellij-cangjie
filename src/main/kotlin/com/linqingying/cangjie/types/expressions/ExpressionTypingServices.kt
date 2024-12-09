@@ -259,12 +259,13 @@ class ExpressionTypingServices(
                 expectedType = context.expectedType
             }
             return if (statementExpression is CjLocalNamedDeclaration) {
-//                一定是Unit
-                expressionTypingComponents.dataFlowAnalyzer.checkType(
-                    expressionTypingComponents.builtIns.unitType, statementExpression, context
-                )?.let {
-                    createTypeInfo(it)
-                } ?: blockLevelVisitor.getTypeInfo(statementExpression, context.replaceExpectedType(expectedType), true)
+//                一定是Unit  TODO 这里使用checkType会导致最后一条语句没有解析
+//                expressionTypingComponents.dataFlowAnalyzer.checkType(
+//                    expressionTypingComponents.builtIns.unitType, statementExpression, context
+//                )?.let {
+//                    createTypeInfo(it)
+//                } ?:
+                blockLevelVisitor.getTypeInfo(statementExpression, context.replaceExpectedType(expectedType), true)
             } else {
                 blockLevelVisitor.getTypeInfo(statementExpression, context.replaceExpectedType(expectedType), true)
             }

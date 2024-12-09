@@ -34,7 +34,6 @@ import com.linqingying.cangjie.psi.CjDeclaration
 import com.linqingying.cangjie.resolve.lazy.ResolveSession
 import com.linqingying.cangjie.resolve.scopes.DescriptorKindFilter
 import com.linqingying.cangjie.resolve.scopes.LexicalScope
-import com.linqingying.cangjie.utils.Printer
 
 
 class LazyPackageMemberScope(
@@ -62,18 +61,24 @@ class LazyPackageMemberScope(
     override fun recordLookup(name: Name, location: LookupLocation) {
         c.lookupTracker.record(location, thisDescriptor, name)
     }
+
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        return computeDescriptorsFromDeclaredElements(kindFilter, nameFilter, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS)
+        return computeDescriptorsFromDeclaredElements(
+            kindFilter,
+            nameFilter,
+            NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS
+        )
 
     }
 
     override fun getNonDeclaredMacros(name: Name, result: MutableSet<MacroDescriptor>) {
 
     }
-    override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope=
+
+    override fun getScopeForInitializerResolution(declaration: CjDeclaration): LexicalScope =
         getScopeForMemberDeclarationResolution(declaration)
 
 
@@ -84,38 +89,14 @@ class LazyPackageMemberScope(
     override fun getNonDeclaredVariables(name: Name, result: MutableSet<VariableDescriptor>) {
 
     }
-//    override fun getContributedDescriptors(
-//        kindFilter: DescriptorKindFilter,
-//        nameFilter: (Name) -> Boolean
-//    ): Collection<DeclarationDescriptor> {
-//        return computeDescriptorsFromDeclaredElements(kindFilter, nameFilter, NoLookupLocation.MATCH_GET_ALL_DESCRIPTORS)
-//    }
-//
-//    override fun getScopeForMemberDeclarationResolution(declaration: CjDeclaration) =
-//        resolveSession.fileScopeProvider.getFileResolutionScope(declaration.getContainingCjFile())
-//
-//    override fun getScopeForInitializerResolution(declaration: CjDeclaration) =
-//        getScopeForMemberDeclarationResolution(declaration)
-//
-//    override fun getNonDeclaredClasses(name: Name, result: MutableSet<ClassDescriptor>) {
-//        c.syntheticResolveExtension.generateSyntheticClasses(thisDescriptor, name, c, declarationProvider, result)
-//    }
-//
-//    override fun getNonDeclaredFunctions(name: Name, result: MutableSet<SimpleFunctionDescriptor>) {
-//        // No extra functions
-//    }
-//
-//    override fun getNonDeclaredProperties(name: Name, result: MutableSet<PropertyDescriptor>) {
-//        // No extra properties
-//    }
-//
-//    override fun recordLookup(name: Name, location: LookupLocation) {
-//        c.lookupTracker.record(location, thisDescriptor, name)
-//    }
-//
-//    override fun getClassifierNames(): Set<Name>? = declarationProvider.getDeclarationNames()
-//    override fun getFunctionNames() = declarationProvider.getDeclarationNames()
-//    override fun getVariableNames() = declarationProvider.getDeclarationNames()
+
+    override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? {
+
+
+        val packageView = thisDescriptor.containingDeclaration.getPackage(thisDescriptor.fqName.child(name))
+        return if (packageView.isEmpty()) null else packageView
+
+    }
 
     // Do not add details here, they may compromise the laziness during debugging
     override fun toString() = "lazy scope for package " + thisDescriptor.name

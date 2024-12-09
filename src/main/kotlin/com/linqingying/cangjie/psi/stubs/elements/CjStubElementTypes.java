@@ -77,6 +77,7 @@ CjPlaceHolderStubElementType<CjEnumBody> ENUM_BODY =
 
 
     CjImportDirectiveElementType IMPORT_DIRECTIVE = new CjImportDirectiveElementType("IMPORT_DIRECTIVE");
+    CjMultiImportDirectiveElementType MULTI_IMPORT_DIRECTIVE = new CjMultiImportDirectiveElementType("MULTI_IMPORT_DIRECTIVE" );
 
     CjImportAliasElementType IMPORT_ALIAS = new CjImportAliasElementType("IMPORT_ALIAS");
 

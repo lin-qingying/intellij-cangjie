@@ -34,7 +34,6 @@ import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.diagnostics.Errors.*
 import com.linqingying.cangjie.ide.stubindex.CangJieExactPackagesIndex
-import com.linqingying.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
 import com.linqingying.cangjie.incremental.CangJieLookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.psi.*

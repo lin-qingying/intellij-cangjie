@@ -236,7 +236,7 @@ class CjPsiFactory private constructor(
         }
 
         val file = createFile(buildString { appendImport(importPath) })
-        return file.importDirectives.first()
+        return file.importDirectives.first() as CjImportDirective
     }
 
     private fun StringBuilder.appendImport(importPath: ImportPath) {

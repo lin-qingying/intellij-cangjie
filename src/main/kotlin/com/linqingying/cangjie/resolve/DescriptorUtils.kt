@@ -40,10 +40,12 @@ import com.linqingying.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import com.linqingying.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import com.linqingying.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import com.linqingying.cangjie.ide.IdeDescriptorRenderers
+import com.linqingying.cangjie.ide.codeinsight.toSourceElement
 import com.linqingying.cangjie.lexer.CjModifierKeywordToken
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.*
 import com.linqingying.cangjie.psi.CjExpression
+import com.linqingying.cangjie.psi.CjNamedFunctionForExtend
 import com.linqingying.cangjie.references.util.DescriptorToSourceUtilsIde
 import com.linqingying.cangjie.resolve.DescriptorUtils.getContainingModule
 import com.linqingying.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
@@ -52,6 +54,7 @@ import com.linqingying.cangjie.resolve.lazy.declarations.impl.PackageFragmentDes
 import com.linqingying.cangjie.resolve.scopes.*
 import com.linqingying.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import com.linqingying.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import com.linqingying.cangjie.resolve.source.getPsi
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.ErrorUtils.isError
 import com.linqingying.cangjie.types.TypeConstructor
@@ -74,7 +77,9 @@ fun DeclarationDescriptor.isPublishedApi(): Boolean {
 }
 
 val DeclarationDescriptor.isExtension: Boolean
-    get() = this is CallableDescriptor && extensionReceiverParameter != null
+    get() =( this is CallableDescriptor && extensionReceiverParameter != null) || (
+            toSourceElement.getPsi()  is CjNamedFunctionForExtend
+            )
 
 fun <D : CallableMemberDescriptor> D.getDirectlyOverriddenDeclarations(): Collection<D> {
     val result = java.util.LinkedHashSet<D>()

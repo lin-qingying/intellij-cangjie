@@ -526,7 +526,7 @@ class QualifiedExpressionResolver(
                 scopeForFirstPart = null, position = IMPORT
             ).classDescriptorFromTypeAlias() ?: return null
 
-            if (packageOrClassDescriptor is ClassDescriptor && importDirective !is FileScopeFactory.EnumDefualtImportImpl/* && packageOrClassDescriptor.kind.isObject */ && lastPart.expression != null) {
+            if (packageOrClassDescriptor is ClassDescriptor  /* && packageOrClassDescriptor.kind.isObject */ && lastPart.expression != null) {
                 trace.report(
                     CANNOT_ALL_UNDER_IMPORT_FROM_SINGLETON.on(
                         lastPart.expression!!,
