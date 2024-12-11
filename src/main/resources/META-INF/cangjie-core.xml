@@ -297,6 +297,7 @@
         <statusBarWidgetFactory id="cangjieExternalLinterWidget"
                                 implementation="com.linqingying.cangjie.ide.status.CjExternalLinterWidgetFactory"
                                 order="first"/>
+        <psi.treeChangeListener  implementation="com.linqingying.cangjie.dag.DependencyGraphListener"/>
 
 
         <!--        引用搜索-->
@@ -375,6 +376,9 @@
     </applicationListeners>
 
     <projectListeners>
+
+
+
         <listener class="com.linqingying.cangjie.ide.status.CjExternalLinterWidgetUpdater"
                   topic="com.linqingying.cangjie.cjpm.project.model.CjpmProjectsService$CjpmProjectsListener"/>
     </projectListeners>

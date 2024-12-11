@@ -229,7 +229,7 @@ public interface Errors {
             DiagnosticFactory0.create(WARNING, SECONDARY_CONSTRUCTOR_DELEGATION_CALL);
     DiagnosticFactory1<PsiElement, Collection<DeclarationDescriptor>> CONFLICTING_OVERLOADS =
             DiagnosticFactory1.create(ERROR, DECLARATION_SIGNATURE_OR_DEFAULT);
-    DiagnosticFactory2<PsiElement, Collection<DeclarationDescriptor>,String> CONFLICTING_STATIC =
+    DiagnosticFactory2<PsiElement, Collection<DeclarationDescriptor>, String> CONFLICTING_STATIC =
             DiagnosticFactory2.create(ERROR, DECLARATION_SIGNATURE_OR_DEFAULT);
     DiagnosticFactory0<CjLambdaExpression> UNEXPECTED_TRAILING_LAMBDA_ON_A_NEW_LINE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjExpression> MANY_LAMBDA_EXPRESSION_ARGUMENTS = DiagnosticFactory0.create(ERROR);
@@ -499,8 +499,8 @@ public interface Errors {
     DiagnosticFactory0<CjExpression> SETTER_PARAMETER_WITH_DEFAULT_VALUE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjPropertyAccessor> LET_WITH_SETTER = DiagnosticFactory0.create(ERROR);
 
-    DiagnosticFactory1<CjImportDirective, FqName> SELF_IMPORT_NOT_ALLOWED = DiagnosticFactory1.create(ERROR);
-    DiagnosticFactory2<CjImportDirective, FqName, DescriptorVisibility> IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory1<CjImportDirectiveItem, FqName> SELF_IMPORT_NOT_ALLOWED = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory2<CjImportDirectiveItem, FqName, DescriptorVisibility> IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED = DiagnosticFactory2.create(ERROR);
     DiagnosticFactory0<CjConstantExpression> FLOAT_LITERAL_CONFORMS_INFINITY = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<CjConstantExpression> FLOAT_LITERAL_CONFORMS_ZERO = DiagnosticFactory0.create(WARNING);
     DiagnosticFactory0<PsiElement> MAIN_FUNCTION_RETURN_TYPE = DiagnosticFactory0.create(ERROR);
@@ -508,7 +508,7 @@ public interface Errors {
     DiagnosticFactory0<CjParameter> MAIN_FUNCTION_PARAMETER_TYPE = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjMainFunction> MAIN_FUNCTION_NUMBER_ERROR = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<CjVariableDeclaration> INTERFACE_BODY_NO_VARIABLES = DiagnosticFactory0.create(ERROR);
-    DiagnosticFactory1<CangJieImportElement, String> CONFLICTING_IMPORT = DiagnosticFactory1.create(ERROR, PositioningStrategies.IMPORT_ALIAS);
+    DiagnosticFactory1<CjImportDirectiveItem, String> CONFLICTING_IMPORT = DiagnosticFactory1.create(WARNING, IMPORT_ALIAS);
 
     DiagnosticFactory2<PsiElement, FqName, FqName> MISSING_DEPENDENCY_SUPERCLASS = DiagnosticFactory2.create(ERROR);
 
@@ -631,7 +631,7 @@ public interface Errors {
             CANNOT_WEAKEN_ACCESS_PRIVILEGE =
             DiagnosticFactory3.create(ERROR, VISIBILITY_MODIFIER);
     DiagnosticFactory0<CjParameter> DEFAULT_VALUE_NOT_ALLOWED_IN_OVERRIDE = DiagnosticFactory0.create(ERROR, PARAMETER_DEFAULT_VALUE);
-    DiagnosticFactory2<CjImportDirective, FqName, FqName> CYCLIC_IMPORT = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory2<CjImportDirectiveItem, FqName, FqName> CYCLIC_IMPORT = DiagnosticFactory2.create(ERROR);
 
     DiagnosticFactory2<CjParameter, ClassDescriptor, ValueParameterDescriptor> PARAMETER_NAME_CHANGED_ON_OVERRIDE =
             DiagnosticFactory2.create(WARNING, DECLARATION_NAME);

@@ -24,7 +24,6 @@
 
 package com.linqingying.cangjie.psi.stubs
 
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.stubs.*
 import com.intellij.util.io.StringRef
@@ -67,11 +66,11 @@ interface CangJieFilesStub {
 
 //interface CangJieDeclarationsFileStub : PsiFileStub<CjDeclarationsFile > ,CangJieFileStub{
 //
-////    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveStub>
+////    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveItemStub>
 //}
 interface CangJieFileStub : PsiFileStub<CjFile>, CangJieFilesStub {
 
-//    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveStub>
+//    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveItemStub>
 }
 
 /**
@@ -259,22 +258,26 @@ interface CangJiePackageDirectiveStub : StubElement<CjPackageDirective> {
 
 }
 
-interface CangJieImportStub<T : PsiElement> : StubElement<T> {
-    fun getPackageFqName(): FqName?
+//interface CangJieImportStub<T : PsiElement> : StubElement<T> {
+//    fun getPackageFqName(): FqName?
+//
+//
+//    fun getModifierVisibility(): DescriptorVisibility
+//}
 
+interface CangJieImportDirectiveStub : StubElement<CjImportDirective >{
 
     fun getModifierVisibility(): DescriptorVisibility
+    fun getPackageFqName(): FqName?
 }
-
-interface CangJieMultiImportDirectiveStub : CangJieImportStub<CjMultiImportDirective>
-interface CangJieImportDirectiveStub : CangJieImportStub<CjImportDirective> {
+interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
     fun isAllUnder(): Boolean
     fun getImportedFqName(): FqName?
     fun isValid(): Boolean
 
 
-    override fun getModifierVisibility(): DescriptorVisibility
-    override fun getPackageFqName(): FqName?
+      fun getModifierVisibility(): DescriptorVisibility
+      fun getPackageFqName(): FqName?
 
 }
 

@@ -41,18 +41,30 @@ import com.intellij.util.containers.LimitedPool;
 import com.intellij.util.containers.Stack;
 import com.linqingying.cangjie.lexer.CjKeywordToken;
 import com.linqingying.cangjie.lexer.CjToken;
-import com.linqingying.cangjie.lexer.CjTokens;
 import com.linqingying.cangjie.utils.StringsKt;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
 
 import static com.intellij.openapi.util.text.StringUtil.*;
-import static com.intellij.openapi.util.text.StringUtil.startsWithIgnoreCase;
 import static com.linqingying.cangjie.lexer.CjTokens.*;
 
 
 public abstract class AbstractCangJieParsing {
+    // here's the new section API for compact parsers & less IntelliJ platform API exposure
+    public static final int _NONE_ = 0x0;
+    public static final int _COLLAPSE_ = 0x1;
+    public static final int _LEFT_ = 0x2;
+    public static final int _LEFT_INNER_ = 0x4;
+    public static final int _AND_ = 0x8;
+    public static final int _NOT_ = 0x10;
+    public static final int _UPPER_ = 0x20;
+    public static final Parser TOKEN_ADVANCER = (builder, level) -> {
+        if (builder.eof()) return false;
+        builder.advanceLexer();
+        return true;
+    };
+    public static final Key<CompletionState> COMPLETION_STATE_KEY = Key.create("COMPLETION_STATE_KEY");
     private static final Map<String, CjKeywordToken> SOFT_KEYWORD_TEXTS = new HashMap<>();
     private static final int MAX_VARIANTS_SIZE = 10000;
     private static final int MAX_VARIANTS_TO_DISPLAY = 50;
@@ -62,7 +74,7 @@ public abstract class AbstractCangJieParsing {
     private static final int FRAMES_POOL_SIZE = 500;
 
     static {
-        for (IElementType type : CjTokens.SOFT_KEYWORDS.getTypes()) {
+        for (IElementType type : SOFT_KEYWORDS.getTypes()) {
             CjKeywordToken keywordToken = (CjKeywordToken) type;
             assert keywordToken.isSoft();
             SOFT_KEYWORD_TEXTS.put(keywordToken.getValue(), keywordToken);
@@ -70,23 +82,23 @@ public abstract class AbstractCangJieParsing {
     }
 
     static {
-        for (IElementType token : CjTokens.KEYWORDS.getTypes()) {
+        for (IElementType token : KEYWORDS.getTypes()) {
             assert token instanceof CjKeywordToken : "Must be CjKeywordToken: " + token;
             assert !((CjKeywordToken) token).isSoft() : "Must not be soft: " + token;
         }
     }
 
+    public final ErrorState state = new ErrorState();
     protected final SemanticWhitespaceAwarePsiBuilder myBuilder;
     protected final boolean isLazy;
-    protected boolean isDeclarationsFile = false;
-    public final  ErrorState state = new ErrorState();
+    protected boolean isDeclarationsFile;
 
-    public AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder) {
+    protected AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder) {
         this(builder, true);
     }
 
-    public AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
-        this.myBuilder = builder;
+    protected AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
+        myBuilder = builder;
         this.isLazy = isLazy;
 
 
@@ -120,6 +132,9 @@ public abstract class AbstractCangJieParsing {
                 TrailingCommentsBinder.INSTANCE);
     }
 
+    public static boolean isWhitespaceOrComment(@NotNull PsiBuilder builder, @Nullable IElementType type) {
+        return ((PsiBuilderImpl) builder).whitespaceOrComment(type);
+    }
 
     protected List<PsiBuilderImpl.ProductionMarker> getProductions() {
 
@@ -398,7 +413,7 @@ public abstract class AbstractCangJieParsing {
             return true;
         }
 
-        if (expectation == CjTokens.IDENTIFIER && "`".equals(myBuilder.getTokenText())) {
+        if (expectation == IDENTIFIER && "`".equals(myBuilder.getTokenText())) {
             advance();
         }
 
@@ -441,7 +456,7 @@ public abstract class AbstractCangJieParsing {
      */
     protected void errorWithRecovery(String message, TokenSet recoverySet) {
         IElementType tt = tt();
-        if (recoverySet == null ||
+        if (null == recoverySet ||
                 recoverySet.contains(tt) ||
 //                tt == LBRACE || tt == RBRACE ||
                 (recoverySet.contains(EOL_OR_SEMICOLON) && (eof() || tt == SEMICOLON || myBuilder.newlineBeforeCurrentToken()))) {
@@ -792,6 +807,17 @@ public abstract class AbstractCangJieParsing {
         return StringsKt.substringWithContext(myBuilder.getOriginalText(), myBuilder.getCurrentOffset(), myBuilder.getCurrentOffset(), 20);
     }
 
+    public interface Parser {
+        boolean parse(PsiBuilder builder, int level);
+    }
+
+    public interface Hook<T> {
+
+        @Contract("_,null,_->null")
+        PsiBuilder.Marker run(PsiBuilder builder, PsiBuilder.Marker marker, T param);
+
+    }
+
     private static class MyList<E> extends ArrayList<E> {
         MyList(int initialCapacity) {
             super(initialCapacity);
@@ -804,7 +830,7 @@ public abstract class AbstractCangJieParsing {
         @Override
         public boolean add(E e) {
             int size = size();
-            if (size >= MAX_VARIANTS_SIZE) {
+            if (MAX_VARIANTS_SIZE <= size) {
                 removeRange(MAX_VARIANTS_SIZE / 4, size - MAX_VARIANTS_SIZE / 4);
             }
             return super.add(e);
@@ -852,18 +878,18 @@ public abstract class AbstractCangJieParsing {
             int builderOffset = builder.getCurrentOffset();
             int diff = offset - builderOffset;
             int length = text.length();
-            if (diff == 0) {
+            if (0 == diff) {
                 return true;
-            } else if (diff > 0 && diff <= length) {
+            } else if (0 < diff && diff <= length) {
                 CharSequence fragment = builder.getOriginalText().subSequence(builderOffset, offset);
                 return prefixMatches(fragment.toString(), text);
-            } else if (diff < 0) {
+            } else if (0 > diff) {
                 for (int i = -1; ; i--) {
                     IElementType type = builder.rawLookup(i);
                     int tokenStart = builder.rawTokenTypeStart(i);
                     if (isWhitespaceOrComment(builder, type)) {
                         diff = offset - tokenStart;
-                    } else if (type != null && tokenStart < offset) {
+                    } else if (null != type && tokenStart < offset) {
                         CharSequence fragment = builder.getOriginalText().subSequence(tokenStart, offset);
                         if (prefixMatches(fragment.toString(), text)) {
                             diff = offset - tokenStart;
@@ -871,7 +897,7 @@ public abstract class AbstractCangJieParsing {
                         break;
                     } else break;
                 }
-                return diff >= 0 && diff < length;
+                return 0 <= diff && diff < length;
             }
             return false;
         }
@@ -885,11 +911,8 @@ public abstract class AbstractCangJieParsing {
         }
     }
 
-    public interface Parser {
-        boolean parse(PsiBuilder builder, int level);
-    }
     public static class Frame {
-        public  Frame parentFrame;
+        public Frame parentFrame;
         public IElementType elementType;
 
         public int offset;
@@ -905,12 +928,12 @@ public abstract class AbstractCangJieParsing {
         public Frame() {
         }
 
-        public  Frame init(PsiBuilder builder,
-                                                   ErrorState state,
-                                                  int level_,
-                                                  int modifiers_,
-                                                  IElementType elementType_,
-                                                  String name_) {
+        public Frame init(PsiBuilder builder,
+                          ErrorState state,
+                          int level_,
+                          int modifiers_,
+                          IElementType elementType_,
+                          String name_) {
             parentFrame = state.currentFrame;
             elementType = elementType_;
 
@@ -929,45 +952,22 @@ public abstract class AbstractCangJieParsing {
 
         @Override
         public @NonNls String toString() {
-            String mod = modifiers == _NONE_ ? "_NONE_, " :
-                    ((modifiers & _COLLAPSE_) != 0? "_CAN_COLLAPSE_, ": "") +
-                            ((modifiers & _LEFT_) != 0? "_LEFT_, ": "") +
-                            ((modifiers & _LEFT_INNER_) != 0? "_LEFT_INNER_, ": "") +
-                            ((modifiers & _AND_) != 0? "_AND_, ": "") +
-                            ((modifiers & _NOT_) != 0? "_NOT_, ": "") +
-                            ((modifiers & _UPPER_) != 0 ? "_UPPER_, " : "");
+            String mod = _NONE_ == modifiers ? "_NONE_, " :
+                    (0 != (modifiers & _COLLAPSE_) ? "_CAN_COLLAPSE_, " : "") +
+                            (0 != (modifiers & _LEFT_) ? "_LEFT_, " : "") +
+                            (0 != (modifiers & _LEFT_INNER_) ? "_LEFT_INNER_, " : "") +
+                            (0 != (modifiers & _AND_) ? "_AND_, " : "") +
+                            (0 != (modifiers & _NOT_) ? "_NOT_, " : "") +
+                            (0 != (modifiers & _UPPER_) ? "_UPPER_, " : "");
             return String.format("{%s:%s:%d, %d, %s%s, %s}", offset, position, level, errorReportedAt, mod, elementType, name);
         }
     }
-    // here's the new section API for compact parsers & less IntelliJ platform API exposure
-    public static final int _NONE_       = 0x0;
-    public static final int _COLLAPSE_   = 0x1;
-    public static final int _LEFT_       = 0x2;
-    public static final int _LEFT_INNER_ = 0x4;
-    public static final int _AND_        = 0x8;
-    public static final int _NOT_        = 0x10;
-    public static final int _UPPER_      = 0x20;
 
-
-
-
-    public interface Hook<T> {
-
-        @Contract("_,null,_->null")
-        PsiBuilder.Marker run(PsiBuilder builder, PsiBuilder.Marker marker, T param);
-
-    }
-    private record Hooks<T>( Hook<T> hook, T param, int level,  Hooks next) {
-        static <E>  Hooks<E> concat( Hook<E> hook, E param, int level,  Hooks<?> hooks) {
-            return new  Hooks<>(hook, param, level, hooks);
+    private record Hooks<T>(Hook<T> hook, T param, int level, Hooks next) {
+        static <E> Hooks<E> concat(Hook<E> hook, E param, int level, Hooks<?> hooks) {
+            return new Hooks<>(hook, param, level, hooks);
         }
     }
-    public static final  Parser TOKEN_ADVANCER = (builder, level) -> {
-        if (builder.eof()) return false;
-        builder.advanceLexer();
-        return true;
-    };
-    public static final Key< CompletionState> COMPLETION_STATE_KEY = Key.create("COMPLETION_STATE_KEY");
 
     public static class ErrorState {
 
@@ -990,16 +990,15 @@ public abstract class AbstractCangJieParsing {
         private boolean caseSensitive;
 
 
-
         public static void initState(ErrorState state, PsiBuilder builder, IElementType root, TokenSet[] extendsSets) {
             state.extendsSets = extendsSets;
             PsiFile file = builder.getUserData(FileContextUtil.CONTAINING_FILE_KEY);
-            state.completionState = file == null ? null : file.getUserData(COMPLETION_STATE_KEY);
-            Language language = file == null ? root.getLanguage() : file.getLanguage();
+            state.completionState = null == file ? null : file.getUserData(COMPLETION_STATE_KEY);
+            Language language = null == file ? root.getLanguage() : file.getLanguage();
             state.caseSensitive = language.isCaseSensitive();
             PairedBraceMatcher matcher = LanguageBraceMatching.INSTANCE.forLanguage(language);
-            state.braces = matcher == null ? null : matcher.getPairs();
-            if (state.braces != null && state.braces.length == 0) state.braces = null;
+            state.braces = null == matcher ? null : matcher.getPairs();
+            if (null != state.braces && 0 == state.braces.length) state.braces = null;
         }
 
         public @NotNull String getExpected(int position, boolean expected) {
@@ -1025,20 +1024,21 @@ public abstract class AbstractCangJieParsing {
             Arrays.sort(strings);
             count = 0;
             for (String s : strings) {
-                if (s.length() == 0) continue;
-                if (count++ > 0) {
-                    if (count > MAX_VARIANTS_TO_DISPLAY) {
+                if (0 == s.length()) continue;
+                if (0 < count) {
+                    if (MAX_VARIANTS_TO_DISPLAY < count) {
                         sb.append(" ").append(AnalysisBundle.message("parsing.error.and.ellipsis"));
                         break;
                     } else {
                         sb.append(", ");
                     }
                 }
+                count++;
                 char c = s.charAt(0);
-                String displayText = c == '<' || isJavaIdentifierStart(c) ? s : '\'' + s + '\'';
+                String displayText = '<' == c || isJavaIdentifierStart(c) ? s : '\'' + s + '\'';
                 sb.append(displayText);
             }
-            if (count > 1 && count < MAX_VARIANTS_TO_DISPLAY) {
+            if (1 < count && MAX_VARIANTS_TO_DISPLAY > count) {
                 int idx = sb.lastIndexOf(", ");
                 sb.replace(idx, idx + 1, " " + AnalysisBundle.message("parsing.error.or"));
             }
@@ -1046,13 +1046,13 @@ public abstract class AbstractCangJieParsing {
         }
 
         public void clearVariants(Frame frame) {
-            clearVariants(true, frame == null ? 0 : frame.variantCount);
-            if (frame != null) frame.lastVariantAt = -1;
+            clearVariants(true, null == frame ? 0 : frame.variantCount);
+            if (null != frame) frame.lastVariantAt = -1;
         }
 
         void clearVariants(boolean expected, int start) {
             MyList<Variant> list = expected ? variants : unexpected;
-            if (start < 0 || start >= list.size()) return;
+            if (0 > start || start >= list.size()) return;
             for (int i = start, len = list.size(); i < len; i++) {
                 VARIANTS.recycle(list.get(i));
             }
@@ -1061,12 +1061,12 @@ public abstract class AbstractCangJieParsing {
 
         public boolean typeExtends(IElementType child, IElementType parent) {
             if (child == parent) return true;
-            if (extendsSets != null) {
+            if (null != extendsSets) {
                 for (TokenSet set : extendsSets) {
                     if (set.contains(child) && set.contains(parent)) return true;
                 }
             }
-            return altExtendsChecker != null && altExtendsChecker.process(child, parent);
+            return null != altExtendsChecker && altExtendsChecker.process(child, parent);
         }
     }
 
@@ -1093,7 +1093,7 @@ public abstract class AbstractCangJieParsing {
          * @param elementType
          */
         public void done(IElementType elementType) {
-            if (marker == null) return;
+            if (null == marker) return;
             marker.done(elementType);
         }
 
@@ -1103,7 +1103,7 @@ public abstract class AbstractCangJieParsing {
          * @param message
          */
         public void error(String message) {
-            if (marker == null) return;
+            if (null == marker) return;
             if (offset == myBuilder.getCurrentOffset()) {
                 marker.drop(); // 没有空错误
             } else {
@@ -1115,12 +1115,9 @@ public abstract class AbstractCangJieParsing {
          * 用于删除当前位置的标记
          */
         public void drop() {
-            if (marker == null) return;
+            if (null == marker) return;
             marker.drop();
         }
-    }
-    public static boolean isWhitespaceOrComment(@NotNull PsiBuilder builder, @Nullable IElementType type) {
-        return ((PsiBuilderImpl) builder).whitespaceOrComment(type);
     }
 
     protected class At extends AbstractTokenStreamPredicate {

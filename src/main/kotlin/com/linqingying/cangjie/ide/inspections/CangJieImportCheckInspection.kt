@@ -24,26 +24,30 @@ class CangJieImportCheckInspection : AbstractCangJieInspection() {
 
 
     //    检查重导出语句 与 模块导入
-    fun checkRedundantImport(holder: ProblemsHolder, importDeclaration: CjImportDirective) {
-        val fqname = importDeclaration.importedFqName
-        if (fqname?.isModuleName == true) {
+    private fun checkRedundantImport(holder: ProblemsHolder, importDeclaration: CjImportDirective ) {
 
-            holder.report(MODULE_PACKAGE_CANNOT_BE_IMPORTED.on(importDeclaration.importedReference))
-            return
+        importDeclaration.items.forEach {
+            val fqname = it.importedFqName
+            if (fqname?.isModuleName == true) {
+
+                holder.report(MODULE_PACKAGE_CANNOT_BE_IMPORTED.on(it.importedReference))
+                return
+            }
+
+            val importForDirective = it.targetDescriptors()
+
+            val isRedundant = importDeclaration.hasModifier(CjTokens.PUBLIC_KEYWORD) ||
+                    importDeclaration.hasModifier(CjTokens.PROTECTED_KEYWORD) ||
+                    importDeclaration.hasModifier(CjTokens.INTERNAL_KEYWORD)
+
+            if (isRedundant && importForDirective.any { descriptor -> descriptor is PackageViewDescriptor }) {
+                val visibility = importForDirective.first().visibility
+                holder.report(
+                    IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED.on(it,it.importedFqName,visibility)
+                )
+            }
         }
 
-        val importForDirective = importDeclaration.targetDescriptors()
-
-        val isRedundant = importDeclaration.hasModifier(CjTokens.PUBLIC_KEYWORD) ||
-                importDeclaration.hasModifier(CjTokens.PROTECTED_KEYWORD) ||
-                importDeclaration.hasModifier(CjTokens.INTERNAL_KEYWORD)
-
-        if (isRedundant && importForDirective.any { it is PackageViewDescriptor }) {
-            val visibility = importForDirective.first().visibility
-        holder.report(
-            IMPORTED_PACKAGE_MODIFICATION_NOT_ALLOWED.on(importDeclaration,importDeclaration.importedFqName,visibility)
-        )
-        }
 
     }
 

@@ -303,7 +303,7 @@ fun ClassDescriptor.findCallableMemberBySignature(
  * @param resolutionFacade 分析表达式所用的解析工具，如果未显式提供，则使用当前指令的解析工具
  * @return 解析得到的描述符集合，如果解析失败或不应分析，则返回空集合
  */
-fun CjImportDirective.targetDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): Collection<DeclarationDescriptor> {
+fun CjImportDirectiveItem.targetDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): Collection<DeclarationDescriptor> {
     // For codeFragments imports are created in dummy file
     // 如果当前文件不应进行分析（例如，代码片段），直接返回空集合，避免不必要的处理
     if (this.getContainingCjFile().doNotAnalyze != null) return emptyList()
@@ -318,22 +318,39 @@ fun CjImportDirective.targetDescriptors(resolutionFacade: ResolutionFacade = thi
     return nameExpression.mainReference.resolveToDescriptors(resolutionFacade.analyze(nameExpression))
 }
 
-fun CangJieImportElement.targetDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): Collection<DeclarationDescriptor> {
+fun CjImportDirectiveItem.getPackageDatas(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): List<PackageData> {
+    val targets = targetDescriptors(resolutionFacade)
 
-    if(this is CjImportDirective) return targetDescriptors(resolutionFacade)
 
-    // 如果当前文件不应进行分析（例如，代码片段），直接返回空集合，避免不必要的处理
-    if (this.getContainingCjFile().doNotAnalyze != null) return emptyList()
+    return targets.mapNotNull {
+        var _target: DeclarationDescriptor? = it
+        while (_target !is PackageData && _target != null) {
+            _target = _target.containingDeclaration
+        }
+        _target as? PackageData
+    }
 
-    // 尝试获取导入指令中的选择器表达式，如果获取失败或表达式类型不匹配，则返回空集合
-    // 这一步是为了确保我们能够正确解析导入指令的目标
-    val nameExpression =
-        importedReference?.getQualifiedElementSelector() as? CjSimpleNameExpression ?: return emptyList()
 
-    // 解析表达式，获取其对应的描述符集合
-    // 这是核心逻辑，通过解析表达式来确定导入指令实际指向的声明描述符
-    return nameExpression.mainReference.resolveToDescriptors(resolutionFacade.analyze(nameExpression))
 }
+
+fun CjImportDirectiveItem.getPackageFragmentDescriptors(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): List<PackageFragmentDescriptor> {
+    val packageDatas = getPackageDatas(resolutionFacade)
+
+    return packageDatas.mapNotNull {
+        it as? PackageFragmentDescriptor
+    }
+
+}
+
+fun CjImportDirectiveItem.targetPackageView(resolutionFacade: ResolutionFacade = this.getResolutionFacade()): PackageViewDescriptor? {
+    return when (val packageData = getPackageDatas(resolutionFacade).firstOrNull()) {
+        is PackageViewDescriptor -> packageData
+        is PackageFragmentDescriptor -> packageData.getPackageViewDescriptor()
+        else -> null
+    }
+
+}
+
 fun descriptorsEqualWithSubstitution(
     descriptor1: DeclarationDescriptor?,
     descriptor2: DeclarationDescriptor?,

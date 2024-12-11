@@ -32,7 +32,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.*
 import com.intellij.psi.impl.PsiManagerEx
 import com.intellij.psi.impl.source.tree.FileElement
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.testFramework.LightVirtualFile
 import java.util.LinkedHashSet
@@ -142,8 +141,8 @@ abstract class CjCodeFragment(
         return null
     }
 
-    override val importDirectives: List<CangJieImportElement>
-        get() = importsAsImportList()?.imports ?: emptyList()
+    override val importDirectives: List<CjImportDirectiveItem>
+        get() = importsAsImportList()?.importItems ?: emptyList()
 
 
     fun getContextContainingFile(): CjFile? {

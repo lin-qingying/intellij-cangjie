@@ -155,7 +155,8 @@ public interface CjNodeTypes {
     IElementType DOT_QUALIFIED_EXPRESSION = CjStubElementTypes.DOT_QUALIFIED_EXPRESSION;
 
     IElementType IMPORT_ALIAS = CjStubElementTypes.IMPORT_ALIAS;
-    IElementType MULIT_IMPORT_DIRECTIVE = CjStubElementTypes.MULTI_IMPORT_DIRECTIVE;
+        IElementType MULIT_IMPORT_DIRECTIVE = new CjNodeType("MULIT_IMPORT_DIRECTIVE", CjMultiImportDirective.class);
+    IElementType IMPORT_DIRECTIVE_ITEM = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
 
     IElementType IMPORT_DIRECTIVE = CjStubElementTypes.IMPORT_DIRECTIVE;
 

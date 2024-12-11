@@ -52,7 +52,7 @@ fun getElementTextWithContext(psiElement: PsiElement): String {
 
     @Suppress("LocalVariableName") val ELEMENT_TAG = "ELEMENT"
     val containingFile = psiElement.containingFile
-    val context = psiElement.parentOfType("CjImportDirective")
+    val context = psiElement.parentOfType("CjImportDirectiveItem")
         ?: psiElement.parentOfType("CjPackageDirective")
         ?: psiElement.parentOfType("CjDeclarationWithBody"  )
         ?: psiElement.parentOfType("CjProperty")

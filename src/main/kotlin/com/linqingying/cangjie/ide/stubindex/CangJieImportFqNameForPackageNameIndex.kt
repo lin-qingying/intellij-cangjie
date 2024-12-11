@@ -26,23 +26,23 @@ package com.linqingying.cangjie.ide.stubindex
 
 import com.linqingying.cangjie.descriptors.DescriptorVisibilities
 import com.linqingying.cangjie.name.FqName
-import com.linqingying.cangjie.psi.CjImportDirective
+import com.linqingying.cangjie.psi.CjImportDirectiveItem
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
 
-class CangJieImportFqNameForPackageNameIndex internal constructor() : StringStubIndexExtension<CjImportDirective>() {
-    companion object Helper : CangJieStringStubIndexHelper<CjImportDirective>(CjImportDirective::class.java) {
-        override val indexKey: StubIndexKey<String, CjImportDirective> =
+class CangJieImportFqNameForPackageNameIndex internal constructor() : StringStubIndexExtension<CjImportDirectiveItem>() {
+    companion object Helper : CangJieStringStubIndexHelper<CjImportDirectiveItem>(CjImportDirectiveItem::class.java) {
+        override val indexKey: StubIndexKey<String, CjImportDirectiveItem> =
             StubIndexKey.createIndexKey("com.linqingying.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex")
 
         fun getReexport(
             key: String,
             project: Project,
             scope: GlobalSearchScope = GlobalSearchScope.allScope(project)
-        ): Collection<CjImportDirective> {
+        ): Collection<CjImportDirectiveItem> {
 
             return get(key, project, scope).filter {
                 it.modifierVisibility != DescriptorVisibilities.PRIVATE
@@ -97,10 +97,10 @@ class CangJieImportFqNameForPackageNameIndex internal constructor() : StringStub
         val INSTANCE: CangJieImportFqNameForPackageNameIndex = CangJieImportFqNameForPackageNameIndex()
     }
 
-    override fun getKey(): StubIndexKey<String, CjImportDirective> = indexKey
+    override fun getKey(): StubIndexKey<String, CjImportDirectiveItem> = indexKey
 
     @Deprecated("Base method is deprecated", ReplaceWith("CangJieImportFqNameForPackageNameIndex[key, project, scope]"))
-    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjImportDirective> {
+    override fun get(key: String, project: Project, scope: GlobalSearchScope): Collection<CjImportDirectiveItem> {
         return Helper[key, project, scope]
     }
 }

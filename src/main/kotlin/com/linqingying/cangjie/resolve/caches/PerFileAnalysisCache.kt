@@ -534,7 +534,7 @@ object CangJieResolveDataProvider {
             it is CjNamedFunction ||
                     it is CjAnonymousInitializer ||
                     it is CjProperty ||
-                    it is CjImportDirective ||
+                    it is CjImportDirectiveItem ||
                     it is CjPackageDirective ||
                     it is CjCodeFragment ||
                     // TODO: Non-analyzable so far, add more granular analysis

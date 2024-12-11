@@ -31,15 +31,17 @@ import com.intellij.util.io.StringRef
 import com.linqingying.cangjie.descriptors.DescriptorVisibilities
 import com.linqingying.cangjie.descriptors.DescriptorVisibility
 import com.linqingying.cangjie.psi.CjImportDirective
-import com.linqingying.cangjie.psi.CjMultiImportDirective
+import com.linqingying.cangjie.psi.CjImportDirectiveItem
+
+import com.linqingying.cangjie.psi.stubs.CangJieImportDirectiveItemStub
 import com.linqingying.cangjie.psi.stubs.CangJieImportDirectiveStub
-import com.linqingying.cangjie.psi.stubs.CangJieMultiImportDirectiveStub
+
 import com.linqingying.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
+import com.linqingying.cangjie.psi.stubs.impl.CangJieImportDirectiveItemStubImpl
 import com.linqingying.cangjie.psi.stubs.impl.CangJieImportDirectiveStubImpl
-import com.linqingying.cangjie.psi.stubs.impl.CangJieMulitImportDirectiveStubImpl
+
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
-
 
 class CjImportDirectiveElementType(debugName: @NonNls String) :
     CjStubElementType<CangJieImportDirectiveStub, CjImportDirective>(
@@ -48,23 +50,18 @@ class CjImportDirectiveElementType(debugName: @NonNls String) :
         CangJieImportDirectiveStub::class.java
     ) {
     override fun createStub(psi: CjImportDirective, parentStub: StubElement<*>?): CangJieImportDirectiveStub {
-        val importedFqName = psi.importedFqName
-        val fqName = StringRef.fromString(importedFqName?.asString())
+
+
         return CangJieImportDirectiveStubImpl(
             parentStub!!,
-            psi.isAllUnder,
-            fqName,
-            psi.isValidImport,
+
             psi.modifierVisibility
         )
     }
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieImportDirectiveStub, dataStream: StubOutputStream) {
-        dataStream.writeBoolean(stub.isAllUnder())
-        val importedFqName = stub.getImportedFqName()
-        dataStream.writeName(importedFqName?.asString())
-        dataStream.writeBoolean(stub.isValid())
+
         dataStream.writeName(stub.getModifierVisibility().name)
     }
 
@@ -74,6 +71,54 @@ class CjImportDirectiveElementType(debugName: @NonNls String) :
 
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieImportDirectiveStub {
+
+        val modifierVisibility = dataStream.readName()
+        val visibility: DescriptorVisibility? = if (modifierVisibility != null) {
+            DescriptorVisibilities.formName(modifierVisibility.string)
+        } else {
+            DescriptorVisibilities.PRIVATE
+        }
+        return CangJieImportDirectiveStubImpl(
+            parentStub,
+            visibility!!
+        )
+    }
+}
+
+
+class CjImportDirectiveItemElementType(debugName: @NonNls String) :
+    CjStubElementType<CangJieImportDirectiveItemStub, CjImportDirectiveItem>(
+        debugName,
+        CjImportDirectiveItem::class.java,
+        CangJieImportDirectiveItemStub::class.java
+    ) {
+    override fun createStub(psi: CjImportDirectiveItem, parentStub: StubElement<*>?): CangJieImportDirectiveItemStub {
+        val importedFqName = psi.importedFqName
+        val fqName = StringRef.fromString(importedFqName?.asString())
+        return CangJieImportDirectiveItemStubImpl(
+            parentStub!!,
+            psi.isAllUnder,
+            fqName,
+            psi.isValidImport,
+            psi.modifierVisibility
+        )
+    }
+
+    @Throws(IOException::class)
+    override fun serialize(stub: CangJieImportDirectiveItemStub, dataStream: StubOutputStream) {
+        dataStream.writeBoolean(stub.isAllUnder())
+        val importedFqName = stub.getImportedFqName()
+        dataStream.writeName(importedFqName?.asString())
+        dataStream.writeBoolean(stub.isValid())
+        dataStream.writeName(stub.getModifierVisibility().name)
+    }
+
+    override fun indexStub(stub: CangJieImportDirectiveItemStub, sink: IndexSink) {
+        getInstance().indexImports(stub, sink)
+    }
+
+    @Throws(IOException::class)
+    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieImportDirectiveItemStub {
         val isAllUnder = dataStream.readBoolean()
         val importedName = dataStream.readName()
         val isValid = dataStream.readBoolean()
@@ -83,51 +128,9 @@ class CjImportDirectiveElementType(debugName: @NonNls String) :
         } else {
             DescriptorVisibilities.PRIVATE
         }
-        return CangJieImportDirectiveStubImpl(
+        return CangJieImportDirectiveItemStubImpl(
             parentStub, isAllUnder, importedName, isValid,
             visibility!!
-        )
-    }
-}
-
-class CjMultiImportDirectiveElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieMultiImportDirectiveStub, CjMultiImportDirective>(
-        debugName,
-        CjMultiImportDirective::class.java,
-        CangJieMultiImportDirectiveStub::class.java
-    ) {
-    override fun createStub(psi: CjMultiImportDirective, parentStub: StubElement<*>): CangJieMultiImportDirectiveStub {
-
-        return CangJieMulitImportDirectiveStubImpl(
-            parentStub,
-
-            psi.modifierVisibility
-        )
-    }
-
-    @Throws(IOException::class)
-    override fun serialize(stub: CangJieMultiImportDirectiveStub, dataStream: StubOutputStream) {
-
-
-        dataStream.writeName(stub.getModifierVisibility().name)
-    }
-
-    override fun indexStub(stub: CangJieMultiImportDirectiveStub, sink: IndexSink) {
-        getInstance().indexImports(stub, sink)
-    }
-
-    @Throws(IOException::class)
-    override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieMultiImportDirectiveStub {
-
-        val modifierVisibility = dataStream.readName()
-        val visibility: DescriptorVisibility = if (modifierVisibility != null) {
-            DescriptorVisibilities.formName(modifierVisibility.string)
-        } else {
-            DescriptorVisibilities.PRIVATE
-        }
-        return CangJieMulitImportDirectiveStubImpl(
-            parentStub,
-            visibility
         )
     }
 }

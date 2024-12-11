@@ -45,7 +45,7 @@ import com.linqingying.cangjie.resolve.isExtension
 import com.linqingying.cangjie.types.fuzzyExtensionReceiverType
 
 fun PsiReference.isImportUsage(): Boolean =
-    element.getNonStrictParentOfType<CjImportDirective>() != null
+    element.getNonStrictParentOfType<CjImportDirectiveItem>() != null
 
 fun PsiElement.getReceiverTypeSearcherInfo(): ReceiverTypeSearcherInfo? {
     val receiverType = runReadAction { extractReceiverType() } ?: return null

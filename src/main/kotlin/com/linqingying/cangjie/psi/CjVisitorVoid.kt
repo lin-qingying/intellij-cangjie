@@ -120,6 +120,7 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitTypeAlias(typeAlias: CjTypeAlias) {
         super.visitTypeAlias(typeAlias, null)
     }
+
     open fun visitEndSecondaryConstructor(constructor: CjEndSecondaryConstructor) {
         super.visitEndSecondaryConstructor(constructor, null)
     }
@@ -131,6 +132,7 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitPrimaryConstructor(constructor: CjPrimaryConstructor) {
         super.visitPrimaryConstructor(constructor, null)
     }
+
     open fun visitMacroDeclaration(function: CjMacroDeclaration) {
         super.visitMacroDeclaration(function, null)
     }
@@ -159,6 +161,10 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
 
     open fun visitImportDirective(importDirective: CjImportDirective) {
         super.visitImportDirective(importDirective, null)
+    }
+
+    open fun visitImportDirectiveItem(importDirective: CjImportDirectiveItem) {
+        super.visitImportDirectiveItem(importDirective, null)
     }
 
     open fun visitImportList(importList: CjImportList) {
@@ -395,10 +401,12 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitUserType(type: CjUserType) {
         super.visitUserType(type, null)
     }
+
     open fun visitVArrayType(type: CjVArrayType) {
         super.visitVArrayType(type, null)
 
     }
+
     open fun visitThisType(type: CjThisType) {
         super.visitThisType(type, null)
 
@@ -487,7 +495,7 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         return null
     }
 
-    override fun visitEndSecondaryConstructor (constructor: CjEndSecondaryConstructor, data: Void?): Void? {
+    override fun visitEndSecondaryConstructor(constructor: CjEndSecondaryConstructor, data: Void?): Void? {
         visitEndSecondaryConstructor(constructor)
         return null
     }
@@ -502,7 +510,7 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         return null
     }
 
-    override fun visitMacroDeclaration(macroDeclaration: CjMacroDeclaration , data: Void?)   : Void? {
+    override fun visitMacroDeclaration(macroDeclaration: CjMacroDeclaration, data: Void?): Void? {
         visitMacroDeclaration(macroDeclaration)
         return null
     }
@@ -538,8 +546,11 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         return null
     }
 
-
-    override fun visitImportDirective(importDirective: CjImportDirective, data: Void?): Void? {
+    override fun visitImportDirectiveItem(importDirective: CjImportDirectiveItem, data: Void?): Void? {
+        visitImportDirectiveItem(importDirective)
+        return null
+    }
+    override fun visitImportDirective(importDirective: CjImportDirective , data: Void?): Void? {
         visitImportDirective(importDirective)
         return null
     }
@@ -1003,17 +1014,21 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
     open fun visitPatternByConstant(element: CjConstantPattern) {
         super.visitPatternByConstant(element, null)
     }
+
     override fun visitMatchConditionWithExpression(element: CjMatchConditionWithExpression, data: Void?): Void? {
         visitMatchConditionWithExpression(element)
         return null
     }
+
     override fun visitPatternByEnum(element: CjEnumPattern, data: Void?): Void? {
         visitPatternByEnum(element)
         return null
     }
+
     open fun visitMatchConditionWithExpression(element: CjMatchConditionWithExpression) {
         super.visitMatchConditionWithExpression(element, null)
     }
+
     open fun visitPatternByEnum(element: CjEnumPattern) {
         super.visitPatternByEnum(element, null)
     }

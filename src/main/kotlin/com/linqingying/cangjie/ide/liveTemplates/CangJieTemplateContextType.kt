@@ -68,7 +68,7 @@ abstract class CangJieTemplateContextType(@NlsContexts.Label presentableName: St
         ) {
             return isCommentInContext()
         } else if (PsiTreeUtil.getParentOfType(element, CjPackageDirective::class.java) != null
-            || PsiTreeUtil.getParentOfType(element, CjImportDirective::class.java) != null
+            || PsiTreeUtil.getParentOfType(element, CjImportDirectiveItem::class.java) != null
         ) {
             return false
         } else if (element is LeafPsiElement) {

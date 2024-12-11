@@ -147,7 +147,7 @@ sealed class CangJieMoveRenameUsage(
                 element, reference, referencedElement, containingFile, addImportToOriginalFile, isInternal
             )
 
-            if (isExtensionRef(element) && reference.element.getNonStrictParentOfType<CjImportDirective>() == null) return Unqualifiable(
+            if (isExtensionRef(element) && reference.element.getNonStrictParentOfType<CjImportDirectiveItem>() == null) return Unqualifiable(
                 element, reference, referencedElement, containingFile, addImportToOriginalFile, isInternal
             )
 

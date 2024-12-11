@@ -230,13 +230,13 @@ class CjPsiFactory private constructor(
         }
     }
 
-    fun createImportDirective(importPath: ImportPath): CjImportDirective {
+    fun createImportDirective(importPath: ImportPath): CjImportDirectiveItem {
         if (importPath.fqName.isRoot) {
             throw IllegalArgumentException("import path must not be empty")
         }
 
         val file = createFile(buildString { appendImport(importPath) })
-        return file.importDirectives.first() as CjImportDirective
+        return file.importDirectives.first() as CjImportDirectiveItem
     }
 
     private fun StringBuilder.appendImport(importPath: ImportPath) {

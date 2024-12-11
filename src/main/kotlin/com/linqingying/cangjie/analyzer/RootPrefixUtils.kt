@@ -27,7 +27,7 @@ package com.linqingying.cangjie.analyzer
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.parentOrNull
 import com.linqingying.cangjie.psi.CjElement
-import com.linqingying.cangjie.psi.CjImportDirective
+import com.linqingying.cangjie.psi.CjImportDirectiveItem
 import com.linqingying.cangjie.psi.CjPackageDirective
 import com.linqingying.cangjie.psi.psiUtil.getParentOfTypes2
 import com.linqingying.cangjie.resolve.QualifiedExpressionResolver
@@ -44,5 +44,5 @@ fun FqName.canAddRootPrefix(): Boolean {
             && parentOrNull()?.isRoot == false
 }
 fun CjElement.canAddRootPrefix(): Boolean {
-    return getParentOfTypes2<CjImportDirective, CjPackageDirective>() == null
+    return getParentOfTypes2<CjImportDirectiveItem, CjPackageDirective>() == null
 }

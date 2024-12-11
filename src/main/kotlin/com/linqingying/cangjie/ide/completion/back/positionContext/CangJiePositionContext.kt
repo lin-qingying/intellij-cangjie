@@ -301,7 +301,7 @@ object CangJiePositionContextDetector {
     }
 
     private tailrec fun CjExpression.isReferenceExpressionInImportDirective(): Boolean = when (val parent = parent) {
-        is CjImportDirective -> parent.importedReference == this
+        is CjImportDirectiveItem -> parent.importedReference == this
         is CjDotQualifiedExpression -> parent.isReferenceExpressionInImportDirective()
 
         else -> false

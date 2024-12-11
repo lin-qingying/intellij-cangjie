@@ -542,7 +542,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 ?: return AnalyzeQualifiedElementResult.Skip
 
 
-            val import = file.importList?.imports?.filter {
+            val import = file.importList?.importItems?.filter {
                 it.importedFqName == target.fqNameSafe.parent()
             }
 
@@ -708,7 +708,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
         ): AnalyzeQualifiedElementResult {
             if (PsiTreeUtil.getParentOfType(
                     element,
-                    CjImportDirective::class.java,
+                    CjImportDirectiveItem::class.java,
                     CjPackageDirective::class.java
                 ) != null ||
                 !canBePossibleToDropReceiver(element, bindingContext)
@@ -942,7 +942,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
 
             if (PsiTreeUtil.getParentOfType(
                     element,
-                    CjImportDirective::class.java,
+                    CjImportDirectiveItem::class.java,
                     CjPackageDirective::class.java
                 ) != null
             ) {

@@ -48,7 +48,6 @@ import com.linqingying.cangjie.resolve.calls.CallExpressionElement
 import com.linqingying.cangjie.resolve.calls.unrollToLeftMostQualifiedExpression
 import com.linqingying.cangjie.resolve.descriptorUtil.fqNameSafe
 import com.linqingying.cangjie.resolve.descriptorUtil.module
-import com.linqingying.cangjie.resolve.lazy.FileScopeFactory
 import com.linqingying.cangjie.resolve.scopes.*
 import com.linqingying.cangjie.resolve.scopes.receivers.*
 import com.linqingying.cangjie.resolve.source.CangJieSourceElement
@@ -499,7 +498,7 @@ class QualifiedExpressionResolver(
         val path = importedReference.asQualifierPartList()
         val lastPart = path.lastOrNull() ?: return null
         val packageFragmentForCheck =
-            if (importDirective is CjImportDirective)
+            if (importDirective is CjImportDirectiveItem)
                 computePackageFragmentToCheck(importDirective.getContainingCjFile(), packageFragmentForVisibilityCheck)
             else
                 null
@@ -509,7 +508,7 @@ class QualifiedExpressionResolver(
 //        if (packageFragmentForCheck != null) {
 //            val packageFqname = importDirective.importedFqName
 //
-//            if (importDirective is CjImportDirective) {
+//            if (importDirective is CjImportDirectiveItem) {
 //                if (packageFqname == packageFragmentForCheck.fqName) {
 //
 //                    trace.report(SELF_IMPORT_NOT_ALLOWED.on(importDirective, packageFqname))
@@ -645,7 +644,7 @@ class QualifiedExpressionResolver(
 
 //                    TODO 这里有问题，有时候可能会出现导入的不是包，但是一样报错
 //                  如歌导入的是一个包，那么它不能为导出  不能使用 除private以外的修饰符修饰import语句
-//                    val importDirective = lastPartExpression.getParentOfType<CjImportDirective>(true)
+//                    val importDirective = lastPartExpression.getParentOfType<CjImportDirectiveItem>(true)
 //                    if (importDirective != null) {
 //                        if (importDirective.modifierVisibility != DescriptorVisibilities.PRIVATE) {
 //                            importDirective.importedFqName?.let {
@@ -1157,7 +1156,7 @@ class QualifiedExpressionResolver(
             IMPORT, TYPE -> {
 
 //                //                不能使用 除private以外的修饰符修饰import语句
-//                val importDirective = referenceExpression.getParentOfType<CjImportDirective>(true)
+//                val importDirective = referenceExpression.getParentOfType<CjImportDirectiveItem>(true)
 //
 //                if (importDirective != null) {
 //                    if (importDirective.modifierVisibility != DescriptorVisibilities.PRIVATE) {

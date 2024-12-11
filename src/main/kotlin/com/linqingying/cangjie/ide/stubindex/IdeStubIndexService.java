@@ -387,7 +387,7 @@ private static void indexPrime(CangJieStubWithFqName<?> stub, IndexSink sink) {
     }
 
     @Override
-    public void indexImports(CangJieImportStub<?> stub, @NotNull IndexSink sink) {
+    public void indexImports(CangJieImportDirectiveItemStub stub, @NotNull IndexSink sink) {
 
 //        if (stub.getModifierVisibility() == DescriptorVisibilities.PRIVATE) {
 //            return;

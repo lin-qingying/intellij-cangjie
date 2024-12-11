@@ -30,14 +30,12 @@ import com.linqingying.cangjie.ide.ShortenReferences
 import com.linqingying.cangjie.ide.codeinsight.shorten.addDelayedImportRequest
 import com.linqingying.cangjie.ide.codeinsight.shorten.addToShorteningWaitSet
 import com.linqingying.cangjie.highlighter.unwrapped
-import com.linqingying.cangjie.ide.inspections.OperatorToFunctionConverter
 
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.name.*
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.*
 import com.linqingying.cangjie.references.*
-import com.linqingying.cangjie.utils.OperatorNameConventions
 import com.linqingying.cangjie.utils.isDispatchThread
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
@@ -251,7 +249,7 @@ class CangJieReferenceMutateService : CjReferenceMutateServiceBase() {
 
         if (shorteningMode == CjSimpleNameReference.ShorteningMode.NO_SHORTENING) return newExpression
 
-        val needToShorten = PsiTreeUtil.getParentOfType(expression, CjImportDirective::class.java, CjPackageDirective::class.java) == null
+        val needToShorten = PsiTreeUtil.getParentOfType(expression, CjImportDirectiveItem::class.java, CjPackageDirective::class.java) == null
         if (!needToShorten) {
             return newExpression
         }

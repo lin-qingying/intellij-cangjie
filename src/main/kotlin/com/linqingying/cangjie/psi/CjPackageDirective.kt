@@ -126,7 +126,7 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
     }
 
     fun hasModifier(tokenType: CjModifierKeywordToken): Boolean {
-//        CangJieImportDirectiveStub stub = getStub();
+//        CangJieImportDirectiveItemStub stub = getStub();
 //        if (stub != null) {
 //            return stub.getModifierVisibility(tokenType);
 //        }

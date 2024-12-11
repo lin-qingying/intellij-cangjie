@@ -31,7 +31,6 @@ import com.linqingying.cangjie.utils.exceptions.logErrorWithAttachment
 import com.linqingying.cangjie.utils.exceptions.withPsiEntry
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.diagnostic.Logger
-import com.linqingying.cangjie.psi.psiUtil.referenceExpression
 
 
 class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjDotQualifiedExpression>>,
@@ -76,7 +75,7 @@ class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjD
         }
 
     private fun getChildExpressionsByStub(stub: CangJiePlaceHolderStub<CjDotQualifiedExpression>): Array<out CjExpression?>? {
-        if (stub.getParentStubOfType(CjImportDirective::class.java) == null && stub.getParentStubOfType(
+        if (stub.getParentStubOfType(CjImportDirectiveItem::class.java) == null && stub.getParentStubOfType(
                 CjPackageDirective::class.java
             ) == null && stub.getParentStubOfType(CjValueArgument::class.java) == null
         ) {

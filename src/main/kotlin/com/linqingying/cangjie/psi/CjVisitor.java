@@ -429,9 +429,11 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitDotQualifiedExpression(@NotNull CjDotQualifiedExpression expression, D data) {
         return visitQualifiedExpression(expression, data);
     }
-
-    public R visitImportDirective(CjImportDirective cjImportDirective, D data) {
-        return visitCjElement(cjImportDirective, data);
+    public R visitImportDirectiveItem(CjImportDirectiveItem  importDirectiveItem , D data) {
+        return visitCjElement(importDirectiveItem , data);
+    }
+    public R visitImportDirective(CjImportDirective  cjImportDirective , D data) {
+        return visitCjElement(cjImportDirective , data);
     }
 
     public R visitUserType(CjUserType cjUserType, D data) {

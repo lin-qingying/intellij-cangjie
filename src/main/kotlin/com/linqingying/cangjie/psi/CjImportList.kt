@@ -37,14 +37,25 @@ class CjImportList : CjElementImplStub<CangJiePlaceHolderStub<CjImportList>> {
         return visitor.visitImportList(this, data)
     }
 
-    val imports: List<CangJieImportElement>
+    val importItems: List<CjImportDirectiveItem>
+        get() {
+
+            val importDirectives = mutableListOf<CjImportDirectiveItem>().apply {
+                addAll(
+                    imports.flatMap {
+                        it.items
+                    }
+                )
+            }
+            return importDirectives
+        }
+    val imports: List<CjImportDirective>
         get() {
             val importDirectives = mutableListOf<CjImportDirective>().apply {
                 addAll(
                     getStubOrPsiChildrenAsList(CjStubElementTypes.IMPORT_DIRECTIVE)
                 )
             }
-            val multiImportDirectives = getStubOrPsiChildrenAsList(CjStubElementTypes.MULTI_IMPORT_DIRECTIVE)
-            return importDirectives + multiImportDirectives
+            return importDirectives
         }
 }

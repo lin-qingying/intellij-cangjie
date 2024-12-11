@@ -108,6 +108,7 @@ private class GlobalSyntheticPackageViewDescriptor(
             project,
             scope
         )
+    override val visibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC
     override val memberScope: MemberScope = object : MemberScope {
 
         override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =

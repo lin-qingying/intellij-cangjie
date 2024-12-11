@@ -25,7 +25,7 @@
 package com.linqingying.cangjie.references
 
 import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.psi.CjImportDirective
+import com.linqingying.cangjie.psi.CjImportDirectiveItem
 import com.linqingying.cangjie.psi.CjNameReferenceExpression
 import com.linqingying.cangjie.psi.CjPackageDirective
 import com.linqingying.cangjie.psi.CjUserType
@@ -49,7 +49,7 @@ class CangJieReferenceContributor : CangJieReferenceProviderContributor {
                 if (nameReferenceExpression.referencedNameElementType != CjTokens.IDENTIFIER) {
                     return@registerMultiProvider PsiReference.EMPTY_ARRAY
                 }
-                if (nameReferenceExpression.parents.any { it is CjImportDirective || it is CjPackageDirective || it is CjUserType }) {
+                if (nameReferenceExpression.parents.any { it is CjImportDirectiveItem || it is CjPackageDirective || it is CjUserType }) {
                     return@registerMultiProvider PsiReference.EMPTY_ARRAY
                 }
                 when (nameReferenceExpression.readWriteAccess(useResolveForReadWrite = false)) {

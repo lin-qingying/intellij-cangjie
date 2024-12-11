@@ -92,7 +92,8 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
         if (!hasImportAlias()) return null
 
         return importDirectives.firstOrNull {
-            it.alias != null && fqName == it.importedFqName
+
+            it .alias != null && fqName == it.importedFqName
         }?.alias
     }
 
@@ -109,7 +110,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     }
 
     override fun getParent(): PsiDirectory? {
-        return super .getParent()
+        return super.getParent()
     }
 
     protected open val importLists: List<CjImportList>
@@ -138,8 +139,8 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     private var forcedCachedData: (() -> CachedData)? = null
 
     override fun getPsiOrParent(): CjElement = this
-    open val importDirectives: List<CangJieImportElement>
-        get() = importLists.flatMap { it.imports }
+    open val importDirectives: List<CjImportDirectiveItem>
+        get() = importLists.flatMap { it.importItems }
 
 
 //    val isDeeplyEnabledByCfg: Boolean get() = cachedData.isDeeplyEnabledByCfg
@@ -147,7 +148,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 
     override fun getContainingCjFile(): CjFile = this
 
-    fun findImportByAlias(name: String): CangJieImportElement? {
+    fun findImportByAlias(name: String): CjImportDirectiveItem? {
         if (!hasImportAlias()) return null
 
         return importDirectives.firstOrNull { name == it.aliasName }
@@ -246,7 +247,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 private fun CjImportList.computeHasImportAlias(): Boolean {
     var child: PsiElement? = firstChild
     while (child != null) {
-        if (child is CjImportDirective && child.alias != null) {
+        if (child is CjImportDirectiveItem && child.alias != null) {
             return true
         }
 

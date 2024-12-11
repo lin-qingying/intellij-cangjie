@@ -319,7 +319,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 
         private fun DeclarationDescriptor.explicitlyImported(
             name: Name,
-            imports: List<CjImportDirective>
+            imports: List<CjImportDirectiveItem>
         ) = imports.any {
             !it.isAllUnder && it.importPath?.fqName == importableFqName && it.importPath?.importedName == name
         }
@@ -345,7 +345,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         private fun shouldTryStarImport(
             containerFqName: FqName,
             target: DeclarationDescriptor,
-            imports: Collection<CangJieImportElement>,
+            imports: Collection<CjImportDirectiveItem>,
         ): Boolean {
             if (!canImportWithStar(containerFqName, target)) return false
 
@@ -563,7 +563,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             allUnder: Boolean,
             aliasName: Name? = null,
             isPackageSplit: Boolean = false
-        ): CjImportDirective {
+        ): CjImportDirectiveItem {
             return runAction(runImmediately) {
                 if (file.isPhysical) {
                     runWriteAction { addImport(project, file, fqName, allUnder, aliasName, isPackageSplit) }
@@ -592,7 +592,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             allUnder: Boolean = false,
             alias: Name? = null,
             isPackageSplit: Boolean = false
-        ): CjImportDirective {
+        ): CjImportDirectiveItem {
             return file.addImport(fqName, allUnder, alias, project, isPackageSplit)
         }
 

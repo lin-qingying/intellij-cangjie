@@ -110,7 +110,7 @@ fun CjFile.addImport(
     alias: Name? = null,
     project: Project = this.project,
     isPackageSplit: Boolean = false
-): CjImportDirective {
+): CjImportDirectiveItem {
     val importPath = ImportPath(if (isPackageSplit) fqName.parent() else fqName, allUnder, alias)
 
     val psiFactory = CjPsiFactory(project)
@@ -123,7 +123,7 @@ fun CjFile.addImport(
     val importList = importList
     if (importList != null) {
         val newDirective = psiFactory.createImportDirective(importPath)
-        val imports = importList.imports
+        val imports = importList.importItems
         return if (imports.isEmpty()) {
             val packageDirective = packageDirective?.takeIf { it.packageKeyword != null }
             packageDirective?.let {
@@ -133,7 +133,7 @@ fun CjFile.addImport(
                 if (missingLines > 0) addAfter(psiFactory.createNewLine(missingLines), it)
             }
 
-            (importList.add(newDirective) as CjImportDirective).also {
+            (importList.add(newDirective) as CjImportDirectiveItem).also {
                 if (packageDirective == null) {
                     val whiteSpace = importList.nextLeaf(true)
                     if (whiteSpace is PsiWhiteSpace) {
@@ -158,9 +158,9 @@ fun CjFile.addImport(
                 directivePath != null && importPathComparator.compare(directivePath, importPath) <= 0
             }
 
-            if (insertAfter is CjImportDirective && newDirective.importPath == insertAfter.importPath) return insertAfter
+            if (insertAfter is CjImportDirectiveItem && newDirective.importPath == insertAfter.importPath) return insertAfter
 
-            (importList.addAfter(newDirective, insertAfter) as CjImportDirective).also {
+            (importList.addAfter(newDirective, insertAfter) as CjImportDirectiveItem).also {
                 importList.addBefore(psiFactory.createNewLine(1), it)
             }
         }

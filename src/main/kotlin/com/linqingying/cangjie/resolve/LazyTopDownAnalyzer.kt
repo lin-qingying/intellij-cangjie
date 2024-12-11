@@ -26,13 +26,13 @@ package com.linqingying.cangjie.resolve
 
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.util.BackgroundTaskUtil.executeOnPooledThread
 import com.intellij.psi.PsiElement
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
-import com.linqingying.cangjie.diagnostics.Errors.*
+import com.linqingying.cangjie.diagnostics.Errors.CONSTRUCTOR_IN_INTERFACE
+import com.linqingying.cangjie.diagnostics.Errors.PACKAGE_ACCESS_VIOLATION
 import com.linqingying.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import com.linqingying.cangjie.incremental.CangJieLookupLocation
 import com.linqingying.cangjie.name.FqName
@@ -83,7 +83,7 @@ class LazyTopDownAnalyzer(
         val typeAliases = mutableListOf<CjTypeAlias>()
 //        val destructuringDeclarations = mutableListOf<CjDestructuringDeclaration>()
 
-        val reexports = mutableListOf<CjImportDirective>()
+        val reexports = mutableListOf<CjImportDirectiveItem>()
 
         val topLevelFqNames = HashMultimap.create<FqName, CjElement>()
 
@@ -116,7 +116,7 @@ class LazyTopDownAnalyzer(
                     throw IllegalArgumentException("Unsupported declaration: " + dcl + " " + dcl.text)
                 }
 
-                override fun visitImportDirective(importDirective: CjImportDirective) {
+                override fun visitImportDirectiveItem(importDirective: CjImportDirectiveItem) {
                     val importResolver = fileScopeProvider.getImportResolver(importDirective.getContainingCjFile())
 
 //                    xTODO 修改该语句，添加重导出回调，返回包名映射
@@ -277,12 +277,9 @@ class LazyTopDownAnalyzer(
     /**
      * 该方法检查包等级，耗时操作
      */
+    @Deprecated("")
     private fun checkPackagelevel(directive: CjPackageDirective) {
-        executeOnPooledThread(object : Disposable {
-            override fun dispose() {
-
-            }
-        }) {
+        executeOnPooledThread({ }) {
 
             runReadAction {
                 val currentLevel = toAccessControlLevel(directive.modifierVisibility)
@@ -381,7 +378,7 @@ class LazyTopDownAnalyzer(
     private fun createReexportsDescriptors(
         c: TopDownAnalysisContext,
         topLevelFqNames: Multimap<FqName, CjElement>,
-        reexports: List<CjImportDirective>
+        reexports: List<CjImportDirectiveItem>
     ) {
 //        for (reexport in reexports) {
 //            val descriptor = lazyDeclarationResolver.resolveToDescriptor(typeAlias) as TypeAliasDescriptor

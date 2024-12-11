@@ -67,7 +67,7 @@ object CangJiePsiHeuristics {
 
     private val CjFile.aliasImportMap by userDataCached("ALIAS_IMPORT_MAP_KEY") { file ->
         HashMultimap.create<String, String>().apply {
-            for (import in file.importList?.imports.orEmpty()) {
+            for (import in file.importList?.importItems.orEmpty()) {
                 val aliasName = import.aliasName ?: continue
                 val name = import.importPath?.fqName?.shortName()?.asString() ?: continue
                 put(aliasName, name)

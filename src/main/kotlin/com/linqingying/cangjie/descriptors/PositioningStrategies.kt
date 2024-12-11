@@ -58,8 +58,8 @@ object PositioningStrategies {
         }
     }
     @JvmField
-    val IMPORT_ALIAS: PositioningStrategy<CangJieImportElement> = object : PositioningStrategy<CangJieImportElement>() {
-        override fun mark(element: CangJieImportElement): List<TextRange> {
+    val IMPORT_ALIAS: PositioningStrategy<CjImportDirectiveItem> = object : PositioningStrategy<CjImportDirectiveItem>() {
+        override fun mark(element: CjImportDirectiveItem): List<TextRange> {
             element.alias?.nameIdentifier?.let { return markElement(it) }
             element.importedReference?.let {
                 if (it is CjQualifiedExpression) {
@@ -156,7 +156,7 @@ object PositioningStrategies {
                     is CjElement -> return mark(selectorExpression)
                 }
             }
-            if (element is CjImportDirective) {
+            if (element is CjImportDirectiveItem) {
                 element.alias?.nameIdentifier?.let { return mark(it) }
                 element.importedReference?.let { return mark(it) }
             }

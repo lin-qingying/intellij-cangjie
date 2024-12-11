@@ -34,18 +34,6 @@ import com.linqingying.cangjie.resolve.scopes.MemberScope
 
 interface ClassOrPackageFragmentDescriptor : DeclarationDescriptorNonRoot
 
-/**
- * 表示包的数据层
- */
-interface PackageFragmentDescriptor : PackageData, ClassOrPackageFragmentDescriptor {
-
-    fun getMemberScope(): MemberScope
-
-
-    override val containingDeclaration: ModuleDescriptor
-
-    val declarationProvider: DeclarationProvider get() = DeclarationProvider.EMPTY
-}
 
 interface PackageData : DeclarationDescriptor {
     val fqName: FqName
@@ -82,9 +70,26 @@ interface PackageData : DeclarationDescriptor {
 }
 
 /**
- * 表示包的视图层
+ * 表示 CangJie 包的全局视图，汇总了同一个包的所有片段。
+ * 包视图描述符用于表示整个包的逻辑视图，即使该包跨多个模块或源文件存在。
+ *
+ * `PackageViewDescriptor` 包含多个 `PackageFragmentDescriptor`，这些片段组成了包的完整内容。
+ * 此类在进行包级别分析时非常有用，例如分析包中的所有类和函数，检查包之间的依赖关系等。
+ *
+ * @property fragments 包视图中所有的包片段。
+ *
+ * 示例：
+ * ```kotlin
+ * // 假设已获取到一个 PackageViewDescriptor 实例
+ * val packageView: PackageViewDescriptor = ...
+ *
+ * // 遍历包视图中的所有包片段并输出
+ * for (fragment in packageView.getFragments()) {
+ *     println("包片段: ${fragment.getContainingDeclaration()}")
+ * }
+ * ```
  */
-interface PackageViewDescriptor : PackageData {
+interface PackageViewDescriptor : PackageData ,DeclarationDescriptorWithVisibility{
 
     fun getContributedDescriptorsByReexportDirective(
         languageVersionSettings: LanguageVersionSettings,
@@ -107,4 +112,48 @@ interface PackageViewDescriptor : PackageData {
     val fragments: List<PackageFragmentDescriptor>
 
     fun isEmpty(): Boolean = fragments.isEmpty()
+}
+/**
+ * 表示 CangJie 模块或源文件中的包片段。
+ * 包片段是包的一部分，可以存在于不同的模块或文件中。
+ *
+ * 每个 `PackageFragmentDescriptor` 包含该片段中的声明，例如类、函数、属性等，
+ * 这些声明属于包的特定部分。
+ *
+ * 此类用于分析和导航 CangJie 代码中的结构，尤其是在特定模块或文件内，
+ * 提供了有关包在不同片段中如何分布的洞察。
+ *
+ * @property containingDeclaration 包含此包片段的模块描述符（`ModuleDescriptor`）。
+ *
+ * 示例：
+ * ```kotlin
+ * // 假设已获取到一个 PackageFragmentDescriptor 实例
+ * val fragment: PackageFragmentDescriptor = ...
+ *
+ * // 获取该包片段所属的 ModuleDescriptor
+ * val module: ModuleDescriptor = fragment.getContainingDeclaration()
+ * println("该包片段所属的模块名称: ${module.name}")
+ * ```
+ * @see [getPackageViewDescriptor]
+ */
+interface PackageFragmentDescriptor : PackageData, ClassOrPackageFragmentDescriptor {
+
+    fun getMemberScope(): MemberScope
+
+
+    override val containingDeclaration: ModuleDescriptor
+
+    val declarationProvider: DeclarationProvider get() = DeclarationProvider.EMPTY
+}
+/**
+ * 通过 `PackageFragmentDescriptor` 获取对应的 `PackageViewDescriptor`。
+ *
+ * @receiver 包片段实例
+ * @return 对应的 `PackageViewDescriptor`
+ */
+
+fun PackageFragmentDescriptor.getPackageViewDescriptor(): PackageViewDescriptor {
+    val module = containingDeclaration
+    val fqName = this.fqName // 假设 PackageFragmentDescriptor 有一个 `fqName` 属性用于获取包的完全限定名
+    return module.getPackage(fqName)
 }

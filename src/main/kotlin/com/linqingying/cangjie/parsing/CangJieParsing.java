@@ -390,25 +390,21 @@ public class CangJieParsing extends AbstractCangJieParsing {
      * : "import"
      * : SimpleName{"."} ("." "*" )? | ("as" SimpleName{"."} ("." "*"))? SEMI?
      */
-    private IElementType parseImportDirectiveItem(boolean isTopLevel, boolean isCreateMark) {
+    private boolean parseImportDirectiveItem(boolean isTopLevel) {
 
 
-        PsiBuilder.Marker importDirectiveItem = null;
-        if (isCreateMark) {
-            importDirectiveItem = mark();
-        }
+        PsiBuilder.Marker importDirectiveItem = mark();
 
 
         if (!at(IDENTIFIER)) {
 
             error("expected a package name after '.' in qualified name, found '" + myBuilder.getTokenText() + "'");
 
-            if (null != importDirectiveItem) {
-                importDirectiveItem.done(IMPORT_DIRECTIVE);
-            }
+            importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
+
 
             consumeIf(SEMICOLON);
-            return IMPORT_DIRECTIVE;
+            return true;
         }
 
         PsiBuilder.Marker qualifiedName = mark();
@@ -416,34 +412,18 @@ public class CangJieParsing extends AbstractCangJieParsing {
         advance(); // IDENTIFIER
         reference.done(REFERENCE_EXPRESSION);
 
-        boolean isMulitImport = false;
-        boolean isParseDot = false;
 
         while (at(DOT) && lookahead(1) != MUL) {
             advance(); // DOT
 
 //            同一个包多个导入项
             if (at(LBRACE) && isTopLevel) {
-                isMulitImport = true;
-                advance();
-                do {
-                    expect(COMMA);
-                    parseImportDirectiveItem(false, true);
-
-                } while (at(COMMA));
-
-                expect(RBRACE, "Expecting '}'");
-
-
+                qualifiedName.rollbackTo();
+                importDirectiveItem.rollbackTo();
+//                importDirectiveItem = null;
+//                parseImportDirectiveItem2();
+              return false;
             } else {
-
-
-                isParseDot = true;
-                if (closeImportWithErrorIfNewline(importDirectiveItem, null, "Import must be placed on a single line")) {
-                    qualifiedName.drop();
-                    return IMPORT_DIRECTIVE;
-                }
-
                 reference = mark();
                 if (expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET)) {
                     reference.done(REFERENCE_EXPRESSION);
@@ -460,7 +440,6 @@ public class CangJieParsing extends AbstractCangJieParsing {
         }
         qualifiedName.drop();
 
-//        if (isTopLevel || !isParseDot) {
 
         if (at(DOT)) {
             advance(); // DOT
@@ -473,22 +452,64 @@ public class CangJieParsing extends AbstractCangJieParsing {
         } else if (at(AS_KEYWORD)) {
             PsiBuilder.Marker alias = mark();
             advance(); // AS_KEYWORD
-            if (closeImportWithErrorIfNewline(importDirectiveItem, alias, "Expecting identifier")) {
-                return IMPORT_DIRECTIVE;
-            }
+
             expect(IDENTIFIER, "Expecting identifier", SEMICOLON_SET);
             alias.done(IMPORT_ALIAS);
         }
-
         if (null != importDirectiveItem) {
-            importDirectiveItem.done(IMPORT_DIRECTIVE);
+            importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
+
+        }
+return true;
+
+    }
+
+    private void parseImportDirectiveItem2() {
+
+
+        if (!at(IDENTIFIER)) {
+
+            error("expected a package name after '.' in qualified name, found '" + myBuilder.getTokenText() + "'");
+
+
+            consumeIf(SEMICOLON);
+            return;
         }
 
-        if (isMulitImport) {
-            return MULIT_IMPORT_DIRECTIVE;
-        }
+        PsiBuilder.Marker qualifiedName = mark();
+        PsiBuilder.Marker reference = mark();
+        advance(); // IDENTIFIER
+        reference.done(REFERENCE_EXPRESSION);
 
-        return IMPORT_DIRECTIVE;
+
+        while (at(DOT) && lookahead(1) != MUL && lookahead(1) != LBRACE) {
+            advance();
+            reference = mark();
+            if (expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET)) {
+                reference.done(REFERENCE_EXPRESSION);
+            } else {
+                reference.drop();
+            }
+
+            PsiBuilder.Marker precede = qualifiedName.precede();
+            qualifiedName.done(DOT_QUALIFIED_EXPRESSION);
+            qualifiedName = precede;
+        }
+        qualifiedName.drop();
+
+        expect(DOT, "Expecting '.'");
+
+        expect(LBRACE, "Expecting '{'");
+
+        do {
+            expect(COMMA);
+            parseImportDirectiveItem(false);
+
+        } while (at(COMMA));
+
+        expect(RBRACE, "Expecting '}'");
+
+
     }
 
     /*
@@ -528,21 +549,23 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
         if (at(LBRACE)) {
             advance();
-            parseImportDirectiveItem(false, true);
+            parseImportDirectiveItem(false);
 
 //                多个导入语句
 
 
             while (at(COMMA)) {
                 advance();
-                parseImportDirectiveItem(false, true);
+                parseImportDirectiveItem(false);
             }
 
             expect(RBRACE, "Expecting '}'");
-            doneType = MULIT_IMPORT_DIRECTIVE;
+
 
         } else {
-            doneType = parseImportDirectiveItem(true, false);
+          if(  !parseImportDirectiveItem(true)){
+              parseImportDirectiveItem2();
+          }
         }
 
 

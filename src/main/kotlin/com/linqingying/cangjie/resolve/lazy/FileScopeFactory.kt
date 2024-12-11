@@ -36,9 +36,9 @@ import com.linqingying.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIn
 import com.linqingying.cangjie.incremental.components.LookupLocation
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.Name
-import com.linqingying.cangjie.psi.CangJieImportElement
+import com.linqingying.cangjie.psi.CjImportDirectiveItem
 import com.linqingying.cangjie.psi.CjFile
-import com.linqingying.cangjie.psi.CjImportDirective
+
 import com.linqingying.cangjie.psi.CjImportInfo
 import com.linqingying.cangjie.resolve.ImportPath
 import com.linqingying.cangjie.resolve.PlatformDependentAnalyzerServices
@@ -159,7 +159,7 @@ class FileScopeFactory(
     )
 
     private fun createImportResolver(
-        indexedImports: IndexedImports<CangJieImportElement>,
+        indexedImports: IndexedImports<CjImportDirectiveItem>,
         trace: BindingTrace,
         aliasImportNames: Collection<FqName>,
         packageFragment: PackageFragmentDescriptor?,
@@ -226,7 +226,7 @@ class FileScopeFactory(
                 allUnderImportResolver.forceResolveNonDefaultImports()
             }
 
-            override fun forceResolveImport(importDirective: CangJieImportElement) {
+            override fun forceResolveImport(importDirective: CjImportDirectiveItem) {
                 if (importDirective.isAllUnder) {
                     allUnderImportResolver.forceResolveImport(importDirective)
                 } else {
@@ -517,7 +517,7 @@ class FileScopeFactory(
 
 
         //        TODO 没有什么实现思路，导入树结构应该重构
-        private val imports: Collection<CjImportDirective> = runReadAction {
+        private val imports: Collection<CjImportDirectiveItem> = runReadAction {
             CangJieImportFqNameForPackageNameIndex.getReexport(
                 packageFragment.fqName.asString(),
                 project,

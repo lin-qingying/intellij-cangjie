@@ -133,7 +133,7 @@ fun CjSimpleNameExpression.isPackageDirectiveExpression(): Boolean {
 
 fun CjSimpleNameExpression.isImportDirectiveExpression(): Boolean {
     val parent = parent
-    return parent is CjImportDirective || parent!!.parent is CjImportDirective
+    return parent is CjImportDirectiveItem || parent!!.parent is CjImportDirectiveItem
 }
 
 fun CjSimpleNameExpression.getQualifiedElementOrCallableRef(): CjElement {

@@ -109,7 +109,7 @@
 //    //    CjPlaceHolderStubElementType<CjFileAnnotationList> FILE_ANNOTATION_LIST =
 //    //            new CjPlaceHolderStubElementType<>("FILE_ANNOTATION_LIST", CjFileAnnotationList.class);
 //    @JvmField
-//    val IMPORT_DIRECTIVE: CjImportDirectiveElementType = CjImportDirectiveElementType("IMPORT_DIRECTIVE")
+//    val IMPORT_DIRECTIVE: CjImportDirectiveItemElementType = CjImportDirectiveItemElementType("IMPORT_DIRECTIVE")
 //
 //    @JvmField
 //    val IMPORT_ALIAS: CjImportAliasElementType = CjImportAliasElementType("IMPORT_ALIAS")
