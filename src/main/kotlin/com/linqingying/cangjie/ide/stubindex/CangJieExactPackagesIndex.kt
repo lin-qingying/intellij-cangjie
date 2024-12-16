@@ -42,7 +42,7 @@ class CangJieExactPackagesIndex internal constructor() : StringStubIndexExtensio
 
         @JvmStatic
         @JvmName("getFiles")
-        fun get(fqName: String, project: Project, scope: GlobalSearchScope = GlobalSearchScope.allScope(project)): List<CjFile> {
+        operator fun get(fqName: String, project: Project, scope: GlobalSearchScope = GlobalSearchScope.allScope(project)): List<CjFile> {
             return getByKeyAndMeasure(NAME, LOG) { StubIndex.getElements (NAME, fqName, project, scope, CjFile::class.java) }.toList()
         }
 

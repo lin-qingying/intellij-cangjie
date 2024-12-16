@@ -306,7 +306,10 @@ object Renderers {
     val ELEMENT_IDENTIFIER_TEXT = renderer<PsiElement> {
         it.identifier?.text ?: ""
     }
-
+    @JvmField
+    val FQNAMES = renderer<List<FqName>> {
+        it.joinToString (" , "){ it.asString() }
+    }
     @JvmField
     val FQNAME = renderer<FqName> {
         it.asString()

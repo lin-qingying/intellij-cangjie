@@ -52,6 +52,7 @@ interface Diagnostics: GenericDiagnostics<Diagnostic> {
 
     companion object {
         val EMPTY: Diagnostics = object : Diagnostics {
+
             override fun noSuppression(): Diagnostics = this
             override val modificationTracker: ModificationTracker = ModificationTracker.NEVER_CHANGED
             override fun all() = listOf<Diagnostic>()

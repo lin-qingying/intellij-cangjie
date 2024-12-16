@@ -242,7 +242,7 @@ public enum DefaultErrorMessages {
         MAP.put(CYCLIC_IMPORT, () -> {
             // "packages ''{0}'' ''{1}'' are in circular dependencies."
             return CangJieDiagnosisBundle.rawMessage(CYCLIC_IMPORT);
-        }, FQNAME, FQNAME);
+        }, FQNAMES);
 
         MAP.put(PACKAGE_ACCESS_VIOLATION, () -> {
             // "The access level of child package ''{0}'' cannot be higher than that of parent package ''{1}''"

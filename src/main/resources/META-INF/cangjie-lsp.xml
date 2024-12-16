@@ -23,6 +23,13 @@
   -->
 
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+<!--        <xi:include href="intellij.platform.lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+
+<!--    <extensions defaultExtensionNs="com.intellij">-->
+
+<!--        <platform.lsp.serverSupportProvider implementation="com.linqingying.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
+<!--    </extensions>-->
+
     <xi:include href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 

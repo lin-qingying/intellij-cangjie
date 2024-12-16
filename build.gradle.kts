@@ -22,6 +22,8 @@
  *
  */
 
+import com.google.protobuf.gradle.GenerateProtoTask
+import com.google.protobuf.gradle.id
 import groovy.xml.XmlParser
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
@@ -170,7 +172,7 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
+            create(IntelliJPlatformType.PyCharmCommunity, ideaVersion)
             instrumentationTools()
 
 //            local(dependencyCachePath)
@@ -424,6 +426,8 @@ project(":") {
         implementation("io.hotmoka:toml4j:0.7.3")
 
         implementation(project(":lsp"))
+//        引入 lib目录下的jar包
+//        implementation (files("lib/plsp.jar"))
 
         implementation(project(":utils"))
         implementation("io.javaslang:javaslang:2.1.0-alpha")

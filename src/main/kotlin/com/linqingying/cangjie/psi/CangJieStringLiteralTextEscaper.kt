@@ -24,20 +24,50 @@
 
 package com.linqingying.cangjie.psi
 
-import com.linqingying.cangjie.psi.psiUtil.getContentRange
-import com.linqingying.cangjie.psi.psiUtil.isSingleQuoted
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.LiteralTextEscaper
-import gnu.trove.TIntArrayList
+import com.linqingying.cangjie.psi.psiUtil.getContentRange
+import com.linqingying.cangjie.psi.psiUtil.isSingleQuoted
 import kotlin.math.min
 
+fun List<Int>.toNativeArray(dest: IntArray, offset: Int, len: Int) {
+    require(len >= 0) { "Length cannot be negative." }
+    require(offset in 0 until this.size) { "Offset out of bounds: $offset" }
+
+    if (len > 0) {
+        // 确保不超出数组边界
+        if (offset + len > this.size) {
+            throw ArrayIndexOutOfBoundsException("Offset + len exceeds list size.")
+        }
+        // 执行数组拷贝
+        this.subList(offset, offset + len).toIntArray().copyInto(dest, 0, 0, len)
+    }
+}
+
+fun List<Int>.toNativeArray(): IntArray {
+    return this.toNativeArray(0, this.size)
+}
+
+fun List<Int>.toNativeArray(offset: Int, len: Int): IntArray {
+    require(len >= 0) { "Length cannot be negative." }
+    require(offset in 0..this.size) { "Offset out of bounds: $offset" }
+
+    if (offset + len > this.size) {
+        throw ArrayIndexOutOfBoundsException("Offset + len exceeds list size.")
+    }
+
+    return IntArray(len).also { dest ->
+        this.subList(offset, offset + len).toIntArray().copyInto(dest, 0, 0, len)
+    }
+}
 
 
-class CangJieStringLiteralTextEscaper(host: CjStringTemplateExpression) : LiteralTextEscaper<CjStringTemplateExpression>(host) {
+class CangJieStringLiteralTextEscaper(host: CjStringTemplateExpression) :
+    LiteralTextEscaper<CjStringTemplateExpression>(host) {
     private var sourceOffsets: IntArray? = null
 
     override fun decode(rangeInsideHost: TextRange, outChars: StringBuilder): Boolean {
-        val sourceOffsetsList = TIntArrayList()
+        val sourceOffsetsList = mutableListOf<Int>()
         var sourceOffset = 0
 
         for (child in myHost.entries) {
@@ -63,6 +93,7 @@ class CangJieStringLiteralTextEscaper(host: CjStringTemplateExpression) : Litera
                     }
                     sourceOffset += child.getTextLength()
                 }
+
                 else -> {
                     val textRange = rangeInsideHost.intersection(childRange)!!.shiftRight(-childRange.startOffset)
                     outChars.append(child.text, textRange.startOffset, textRange.endOffset)

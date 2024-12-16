@@ -24,6 +24,7 @@
 
 package com.linqingying.cangjie.descriptors.impl
 
+import com.intellij.openapi.application.runReadAction
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.annotations.Annotations
@@ -42,7 +43,6 @@ import com.linqingying.cangjie.resolve.scopes.MemberScope
 import com.linqingying.cangjie.storage.StorageManager
 import com.linqingying.cangjie.storage.getValue
 import com.linqingying.cangjie.utils.CallOnceFunction
-import com.intellij.openapi.application.runReadAction
 
 class LazyReexportAgent
     (
@@ -132,16 +132,17 @@ class LazyPackageViewDescriptorImpl(
     init {
         if (!isEmpty()) {
             initVisibility()
+            initReexport()
         }
 
     }
+
 
     //是否报告宏包声明不一致错误
     var isReportMacroPackage: Boolean = false
     var isMacroPackage: Boolean = false
 
-    private fun initVisibility() {
-
+    private fun initReexport() {
         reexportDirectives.forEach { cjImportDirective ->
 
 
@@ -161,6 +162,9 @@ class LazyPackageViewDescriptorImpl(
 
 
         }
+    }
+
+    private fun initVisibility() {
 
 
         if (module.project != null && !fqName.isRoot) {

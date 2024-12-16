@@ -83,7 +83,7 @@ class CangJiePackageCheckInspection : AbstractCangJieInspection() {
     private fun checkPackagelevel(directive: CjPackageDirective, holder: ProblemsHolder) {
 
         runReadAction {
-            val currentLevel = toAccessControlLevel(directive.modifierVisibility)
+            val currentLevel = directive.modifierVisibility.toAccessControlLevel()
             if (currentLevel == 0) {
                 return@runReadAction
             }
@@ -95,7 +95,7 @@ class CangJiePackageCheckInspection : AbstractCangJieInspection() {
             CangJieExactPackagesIndex.get(parentPackageFqName.asString(), directive.project).forEach { file ->
 
                 file.packageDirective?.modifierVisibility?.let {
-                    if (toAccessControlLevel(it) < currentLevel) {
+                    if (it.toAccessControlLevel() < currentLevel) {
 
                         holder.report(
                             PACKAGE_ACCESS_VIOLATION.on(

@@ -631,7 +631,7 @@ public interface Errors {
             CANNOT_WEAKEN_ACCESS_PRIVILEGE =
             DiagnosticFactory3.create(ERROR, VISIBILITY_MODIFIER);
     DiagnosticFactory0<CjParameter> DEFAULT_VALUE_NOT_ALLOWED_IN_OVERRIDE = DiagnosticFactory0.create(ERROR, PARAMETER_DEFAULT_VALUE);
-    DiagnosticFactory2<CjImportDirectiveItem, FqName, FqName> CYCLIC_IMPORT = DiagnosticFactory2.create(ERROR);
+    DiagnosticFactory1<CjPackageDirective,   List<FqName >> CYCLIC_IMPORT = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory2<CjParameter, ClassDescriptor, ValueParameterDescriptor> PARAMETER_NAME_CHANGED_ON_OVERRIDE =
             DiagnosticFactory2.create(WARNING, DECLARATION_NAME);

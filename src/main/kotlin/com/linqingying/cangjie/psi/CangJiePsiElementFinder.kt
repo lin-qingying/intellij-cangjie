@@ -109,7 +109,7 @@ class CjpmStdlibPsiElementFinder(val project: Project) : CangJiePsiElementFinder
 }
 
 /**
- * Cjpm 项目查找
+ * Cjpm 项目查找  a.b.c  查找a  模块查找
  */
 /**
  * CjpmProjectPsiElementFinder 类用于在 CangJie 项目中查找 PSI 元素。
@@ -204,7 +204,7 @@ class CjpmPackagePsiElementFinder(val project: Project) : CangJiePsiElementFinde
         val psiManager = PsiManager.getInstance(project)
         return psiPackage.qualifiedName?.let {
             // 处理包名，去除最外层的包名（模块名），并重新组合包名。
-            val packageName =  "src." + it.split('.').drop(1).let { sarr ->
+            val packageName =   it.split('.').drop(1).let { sarr ->
                 if (sarr.isEmpty()) {
                     // 如果包名为空，则直接返回 true，表示处理完成。
                     return true

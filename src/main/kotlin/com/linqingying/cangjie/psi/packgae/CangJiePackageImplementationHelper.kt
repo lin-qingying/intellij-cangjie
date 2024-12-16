@@ -54,7 +54,7 @@ object CangJiePackageImplementationHelper {
 
     /**
      * 根据当前编辑的文件，建议最合适的目录
-     * 该方法主要用于测试目的，通过分析当前编辑器状态，确定最合适的目录范围
+     * 通过分析当前编辑器状态，确定最合适的目录范围
      *
      * @param psiPackage CangJiePackage对象，代表一个 PSI 包
      * @return 返回一个PsiDirectory数组，表示建议的最合适的目录

@@ -24,17 +24,39 @@
 
 package com.linqingying.cangjie.highlighter
 
+import com.intellij.codeInsight.daemon.impl.HighlightInfoType
+import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
+import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.dag.CangJieDependencyGraph
 import com.linqingying.cangjie.descriptors.CallableDescriptor
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
+import com.linqingying.cangjie.diagnostics.Errors.CYCLIC_IMPORT
 import com.linqingying.cangjie.highlighter.visitor.AbstractHighlightingVisitor
+import com.linqingying.cangjie.psi.CjFile
 import com.linqingying.cangjie.psi.CjSimpleNameExpression
 import com.linqingying.cangjie.resolve.BindingContext
 import com.linqingying.cangjie.resolve.calls.model.ResolvedCall
-import com.intellij.codeInsight.daemon.impl.HighlightInfoType
-import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
-import com.intellij.openapi.extensions.Extensions
-import com.intellij.psi.PsiElement
 
+class AfterAnalysisVisitor(holder: HighlightInfoHolder, bindingContext: BindingContext) :
+    AfterAnalysisHighlightingVisitor(holder, bindingContext) {
+    private val dependencyGraph = CangJieDependencyGraph.getInstance(holder.project)
+    override fun visitCjFile(file: CjFile) {
+
+        dependencyGraph.updateDependenciesForFile(file)
+
+        val detectCycles = dependencyGraph.findCycleContaining(file.packageFqName)
+
+        if (detectCycles.isNotEmpty()) {
+            dependencyGraph.printGraph()
+            holder.report(
+                CYCLIC_IMPORT.on(file.packageDirective, detectCycles)
+            )
+
+        }
+
+    }
+
+}
 
 /**
  * 代码分析后的高亮逻辑
@@ -42,8 +64,7 @@ import com.intellij.psi.PsiElement
 abstract class AfterAnalysisHighlightingVisitor protected constructor(
     holder: HighlightInfoHolder,
     protected var bindingContext: BindingContext
-): AbstractHighlightingVisitor(holder)
-{
+) : AbstractHighlightingVisitor(holder) {
     protected fun attributeKeyForCallFromExtensions(
         expression: CjSimpleNameExpression,
         resolvedCall: ResolvedCall<out CallableDescriptor>
@@ -52,7 +73,11 @@ abstract class AfterAnalysisHighlightingVisitor protected constructor(
             extension.highlightCall(expression, resolvedCall)
         }
     }
-    protected fun attributeKeyForDeclarationFromExtensions(element: PsiElement, descriptor: DeclarationDescriptor): HighlightInfoType? {
+
+    protected fun attributeKeyForDeclarationFromExtensions(
+        element: PsiElement,
+        descriptor: DeclarationDescriptor
+    ): HighlightInfoType? {
         return CangJieHighlightingVisitorExtension.EP_NAME.extensionList.firstNotNullOfOrNull { extension ->
             extension.highlightDeclaration(element, descriptor)
         }

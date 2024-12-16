@@ -50,13 +50,19 @@ class DependencyDAG {
         while (queue.isNotEmpty()) {
             val current = queue.removeFirst()
             visitedCount++
+
+            // 遍历当前节点的所有邻接节点
             adjacencyList[current]?.forEach { neighbor ->
-                inDegreeCopy[neighbor] = inDegreeCopy[neighbor]?.minus(1)?.takeIf { it > 0 } ?: 0
+                // 减少邻接节点的入度
+                inDegreeCopy[neighbor] = (inDegreeCopy[neighbor] ?: 0) - 1
+
+                // 如果入度减为 0，则加入队列
                 if (inDegreeCopy[neighbor] == 0) {
                     queue.add(neighbor)
                 }
             }
         }
+
 
         // 如果有节点未访问，说明存在环
         return visitedCount != inDegree.size

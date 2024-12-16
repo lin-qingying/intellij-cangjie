@@ -59,6 +59,7 @@ class CompositeBindingContext private constructor(
             delegates.fold(0L) { r, t -> r + t.modificationTracker.modificationCount }
         }
 
+
         override fun all(): Collection<Diagnostic> {
             return delegates.flatMap { it.all() }
         }

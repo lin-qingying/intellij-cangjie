@@ -455,12 +455,18 @@
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>
         <action id="CjpmRunMain" class="com.linqingying.cangjie.ide.run.cjpm.RunMainAction"/>
+<!--        <action id="CangJieGeneratePackageDependencyGraph"-->
+<!--                class="com.linqingying.cangjie.dag.GenerateDependencyGraphAction"-->
+<!--                text="Generate Dependency Graph"-->
 
-        <action id="CjpmAction" class="com.linqingying.cangjie.ide.run.modulejson.CjpmUpdateAction"
-                text="Run Cjpm Update">
-            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
-        </action>
+<!--                description="Generate package dependency graph from the current file">-->
+<!--            <add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
+<!--        </action>-->
+<!--        <action id="CjpmAction" class="com.linqingying.cangjie.ide.run.modulejson.CjpmUpdateAction"-->
+<!--                text="Run Cjpm Update">-->
+<!--            <add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
+<!--            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>-->
+<!--        </action>-->
         <!--          icon="com.linqingying.cangjie.ide.icons.CangJieIcons.CANGJIE_FILE"    -->
         <action id="CangJie.NewFile" class="com.linqingying.cangjie.ide.actions.NewCangJieFileAction"
                 text="Add Cangjie File"

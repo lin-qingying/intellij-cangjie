@@ -91,10 +91,25 @@ object Visibilities {
         } else null
     }
 
+    /**
+     * 比较两个可见性对象
+     * 此函数旨在评估两个可见性对象是否相等，以及它们在预定顺序中的相对位置
+     * 它主要用于需要理解可见性层次结构的场景
+     *
+     * @param first 第一个可见性对象，用于比较
+     * @param second 第二个可见性对象，与第一个可见性对象进行比较
+     * @return 返回值表示两个可见性对象的相对顺序：
+     * - 如果两个可见性对象完全相同，返回0
+     * - 如果任何一个可见性对象不在预定的顺序列表中，或者它们的顺序相同，则返回null
+     * - 否则，返回它们在预定顺序中的相对差值，正值表示第一个可见性对象更可见，负值表示第二个可见性对象更可见
+     */
     internal fun compareLocal(first: Visibility, second: Visibility): Int? {
+        // 检查两个可见性对象是否完全相同
         if (first === second) return 0
+        // 获取两个可见性对象在预定顺序中的索引
         val firstIndex = ORDERED_VISIBILITIES[first]
         val secondIndex = ORDERED_VISIBILITIES[second]
+        // 如果任何一个索引为空，或者两个索引相同，则无法进行比较，返回null
         return if (firstIndex == null || secondIndex == null || firstIndex == secondIndex) {
             null
         } else firstIndex - secondIndex

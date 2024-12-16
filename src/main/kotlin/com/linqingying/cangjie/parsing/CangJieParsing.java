@@ -422,7 +422,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
                 importDirectiveItem.rollbackTo();
 //                importDirectiveItem = null;
 //                parseImportDirectiveItem2();
-              return false;
+                return false;
             } else {
                 reference = mark();
                 if (expect(IDENTIFIER, "Qualified name must be a '.'-separated identifier list", IMPORT_RECOVERY_SET)) {
@@ -460,7 +460,8 @@ public class CangJieParsing extends AbstractCangJieParsing {
             importDirectiveItem.done(IMPORT_DIRECTIVE_ITEM);
 
         }
-return true;
+
+        return true;
 
     }
 
@@ -563,9 +564,9 @@ return true;
 
 
         } else {
-          if(  !parseImportDirectiveItem(true)){
-              parseImportDirectiveItem2();
-          }
+            if (!parseImportDirectiveItem(true)) {
+                parseImportDirectiveItem2();
+            }
         }
 
 

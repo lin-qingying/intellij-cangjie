@@ -24,23 +24,6 @@
 
 package com.linqingying.cangjie.highlighter
 
-import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
-import com.linqingying.cangjie.configurable.services.Feature
-import com.linqingying.cangjie.descriptors.DeclarationDescriptor
-import com.linqingying.cangjie.diagnostics.Diagnostic
-import com.linqingying.cangjie.diagnostics.Errors
-import com.linqingying.cangjie.descriptors.InvalidModuleException
-import com.linqingying.cangjie.diagnostics.Severity
-import com.linqingying.cangjie.diagnostics.rendering.RenderingContext
-import com.linqingying.cangjie.diagnostics.rendering.parameters
-import com.linqingying.cangjie.highlighter.suspender.CangJieHighlightingSuspender
-import com.linqingying.cangjie.ide.statistics.compilationError.CangJieCompilationErrorFrequencyStatsCollector
-import com.linqingying.cangjie.psi.CjFile
-import com.linqingying.cangjie.psi.CjNameReferenceExpression
-import com.linqingying.cangjie.psi.CjParameter
-import com.linqingying.cangjie.resolve.BindingContext
-import com.linqingying.cangjie.resolve.caches.analyzeWithAllCompilerChecks
-import com.linqingying.cangjie.utils.actionUnderSafeAnalyzeBlock
 import com.intellij.codeInsight.daemon.impl.CollectHighlightsUtil
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.HighlightVisitor
@@ -54,6 +37,23 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.resolve.FileContextUtil
+import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
+import com.linqingying.cangjie.configurable.services.Feature
+import com.linqingying.cangjie.descriptors.DeclarationDescriptor
+import com.linqingying.cangjie.descriptors.InvalidModuleException
+import com.linqingying.cangjie.diagnostics.Diagnostic
+import com.linqingying.cangjie.diagnostics.Errors
+import com.linqingying.cangjie.diagnostics.Severity
+import com.linqingying.cangjie.diagnostics.rendering.RenderingContext
+import com.linqingying.cangjie.diagnostics.rendering.parameters
+import com.linqingying.cangjie.highlighter.suspender.CangJieHighlightingSuspender
+import com.linqingying.cangjie.ide.statistics.compilationError.CangJieCompilationErrorFrequencyStatsCollector
+import com.linqingying.cangjie.psi.CjFile
+import com.linqingying.cangjie.psi.CjNameReferenceExpression
+import com.linqingying.cangjie.psi.CjParameter
+import com.linqingying.cangjie.resolve.BindingContext
+import com.linqingying.cangjie.resolve.caches.analyzeWithAllCompilerChecks
+import com.linqingying.cangjie.utils.actionUnderSafeAnalyzeBlock
 
 abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
     private var afterAnalysisVisitor: Array<AfterAnalysisHighlightingVisitor>? = null
@@ -83,7 +83,7 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         try {
 
 //          TODO  静态分析
-            if(CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.DIAGNOSTICS)){
+            if (CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.DIAGNOSTICS)) {
                 analyze(file, holder)
 
             }
@@ -120,19 +120,6 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
 
 
     private fun analyze(file: CjFile, holder: HighlightInfoHolder) {
-//        val dividedElements: List<Divider.DividedElements> = ArrayList()
-//        Divider.divideInsideAndOutsideAllRoots(
-//            file, file.textRange, file.textRange, Predicates.alwaysTrue(),
-//            CommonProcessors.CollectProcessor(dividedElements)
-//        )
-
-//        if(file.fileType is CangJieDeclarationsFileType){
-//            return
-//        }
-//if (file.moduleInfo !is CangJieModuleInfo){
-//    return
-//}
-
         val elements =
             CollectHighlightsUtil.getElementsInRange(file, file.textRange.startOffset, file.textRange.endOffset)
 
@@ -155,8 +142,6 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         val analysisResult = if (shouldHighlightErrors) {
             file.analyzeWithAllCompilerChecks(
                 {
-
-
                     val element = it.psiElement
                     if (element in elements &&
                         it !in highlightInfoByDiagnostic &&
@@ -186,6 +171,7 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
             )
 
         afterAnalysisVisitor = getAfterAnalysisVisitor(holder, bindingContext)
+
         //cleanUpCalculatingAnnotations(highlightInfoByTextRange)
         if (!shouldHighlightErrors) return
         val diagnostics = bindingContext.diagnostics
@@ -286,11 +272,12 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
         fun wasUnresolved(element: CjNameReferenceExpression) = element.getUserData(UNRESOLVED_KEY) != null
 
         fun getAfterAnalysisVisitor(holder: HighlightInfoHolder, bindingContext: BindingContext) =
-            arrayOf<AfterAnalysisHighlightingVisitor>(
-            PropertiesHighlightingVisitor(holder, bindingContext),
-            FunctionsHighlightingVisitor(holder, bindingContext),
-            VariablesHighlightingVisitor(holder, bindingContext),
-            TypeKindHighlightingVisitor(holder, bindingContext)
+            arrayOf(
+                AfterAnalysisVisitor(holder, bindingContext),
+                PropertiesHighlightingVisitor(holder, bindingContext),
+                FunctionsHighlightingVisitor(holder, bindingContext),
+                VariablesHighlightingVisitor(holder, bindingContext),
+                TypeKindHighlightingVisitor(holder, bindingContext)
             )
 
         private const val ATTEMPT_THRESHOLD = 10

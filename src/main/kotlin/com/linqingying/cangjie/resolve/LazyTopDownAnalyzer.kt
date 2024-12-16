@@ -29,6 +29,7 @@ import com.google.common.collect.Multimap
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.progress.util.BackgroundTaskUtil.executeOnPooledThread
 import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.dag.CangJieDependencyGraph
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.macro.MacroDescriptor
 import com.linqingying.cangjie.diagnostics.Errors.CONSTRUCTOR_IN_INTERFACE
@@ -51,6 +52,7 @@ class LazyTopDownAnalyzer(
     private val overrideResolver: OverrideResolver,
     private val overloadResolver: OverloadResolver,
     private val fileScopeProvider: FileScopeProvider,
+    private  val packagerResolver:PackagerResolver,
     private val bodyResolver: BodyResolver,
     private val identifierChecker: IdentifierChecker,
     private val qualifiedExpressionResolver: QualifiedExpressionResolver,
@@ -61,6 +63,7 @@ class LazyTopDownAnalyzer(
     private val declarationScopeProvider: DeclarationScopeProvider,
     private val filePreprocessor: FilePreprocessor,
     private val extendDescriptorResolver: ExtendDescriptorResolver,
+    private val dependencyGraph: CangJieDependencyGraph,
 
     ) {
 
@@ -249,6 +252,9 @@ class LazyTopDownAnalyzer(
 
 
         resolveAllHeadersInClasses(c)
+
+        packagerResolver.check(c)
+
         declarationResolver.checkRedeclarationsInPackages(topLevelDescriptorProvider, topLevelFqNames)
         declarationResolver.checkRedeclarations(c)
 //        declarationResolver.resolveAnnotationsOnFiles(c, fileScopeProvider)
@@ -282,7 +288,7 @@ class LazyTopDownAnalyzer(
         executeOnPooledThread({ }) {
 
             runReadAction {
-                val currentLevel = toAccessControlLevel(directive.modifierVisibility)
+                val currentLevel = directive.modifierVisibility.toAccessControlLevel()
                 if (currentLevel == 0) {
                     return@runReadAction
                 }
@@ -294,7 +300,7 @@ class LazyTopDownAnalyzer(
                 CangJieExactPackagesIndex.get(parentPackageFqName.asString(), directive.project).forEach { file ->
 
                     file.packageDirective?.modifierVisibility?.let {
-                        if (toAccessControlLevel(it) < currentLevel) {
+                        if (it.toAccessControlLevel() < currentLevel) {
 
                             trace.report(
                                 PACKAGE_ACCESS_VIOLATION.on(
@@ -489,14 +495,12 @@ class LazyTopDownAnalyzer(
         }
     }
 }
-
-fun toAccessControlLevel(visiblity: DescriptorVisibility): Int {
-    return when (visiblity) {
+fun DescriptorVisibility.toAccessControlLevel():Int{
+    return when (this) {
         DescriptorVisibilities.PRIVATE, DescriptorVisibilities.INTERNAL -> 0
         DescriptorVisibilities.PROTECTED -> 1
         DescriptorVisibilities.PUBLIC -> 2
         else -> 0
 
     }
-
 }

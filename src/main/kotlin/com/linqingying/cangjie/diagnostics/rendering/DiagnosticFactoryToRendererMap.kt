@@ -51,10 +51,7 @@ class DiagnosticFactoryToRendererMap @JvmOverloads constructor(
         map[factory] = SimpleDiagnosticRendererByFunction(message)
     }
 
-    fun <E : PsiElement> put(factory: DiagnosticFactory0<E>, message: AstMsgData) {
-        checkMutability()
-        map[factory] = SimpleDiagnosticRendererByAstMsgData(message)
-    }
+
 
     fun <E : PsiElement, A : Any> put(
         factory: DiagnosticFactory1<E, A>,

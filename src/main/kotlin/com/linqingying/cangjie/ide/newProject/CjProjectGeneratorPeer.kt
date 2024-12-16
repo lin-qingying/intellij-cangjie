@@ -45,12 +45,17 @@ class CjProjectGeneratorPeer(cjpmProjectDir: Path = Paths.get(".")) : GeneratorP
 
     override fun getComponent(myLocationField: TextFieldWithBrowseButton, checkValid: Runnable): JComponent {
         this.checkValid = checkValid
-        return super.getComponent(myLocationField, checkValid)
+        return panel {
+            newProjectPanel.attachTo(this)
+        }
+
     }
 
+    @Deprecated("Deprecated in Java")
     override fun getComponent(): JComponent = panel {
         newProjectPanel.attachTo(this)
     }
+
 
     override fun validate(): ValidationInfo? = try {
         newProjectPanel.validateSettings()

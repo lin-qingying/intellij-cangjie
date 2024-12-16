@@ -24,16 +24,11 @@
 
 package com.linqingying.cangjie.highlighter
 
-import com.linqingying.cangjie.diagnostics.Diagnostic
-import com.linqingying.cangjie.diagnostics.Errors
-import com.linqingying.cangjie.diagnostics.Severity
-import com.linqingying.cangjie.psi.CjParameter
-import com.linqingying.cangjie.psi.CjReferenceExpression
-import com.linqingying.cangjie.references.mainReference
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.colors.CodeInsightColors
@@ -41,34 +36,64 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.MultiRangeReference
 import com.intellij.psi.PsiElement
 import com.intellij.util.containers.MultiMap
+import com.linqingying.cangjie.diagnostics.Diagnostic
+import com.linqingying.cangjie.diagnostics.Errors
+import com.linqingying.cangjie.diagnostics.Severity
+import com.linqingying.cangjie.diagnostics.rendering.DefaultErrorMessages
+import com.linqingying.cangjie.psi.CjParameter
+import com.linqingying.cangjie.psi.CjReferenceExpression
+import com.linqingying.cangjie.references.mainReference
 
+/**
+ * 用于为 PSI 元素注册诊断注解的类。
+ *
+ * @param element 目标 PSI 元素。
+ * @param shouldSuppressUnusedParameter 用于判断是否抑制未使用参数警告的函数，默认为 `false`。
+ */
 internal class ElementAnnotator(
     private val element: PsiElement,
-    private val shouldSuppressUnusedParameter: (CjParameter) -> Boolean
+    private val shouldSuppressUnusedParameter: (CjParameter) -> Boolean = { false }
 ) {
 
-
     companion object {
+        /**
+         * 日志工具，用于记录调试信息。
+         */
         val LOG = Logger.getInstance(ElementAnnotator::class.java)
 
+        /**
+         * 注册表键，用于决定是否抑制已废弃注解的高亮显示。
+         */
         val suppressDeprecatedAnnotationRegistryKey = Registry.get("cangjie.highlighting.suppress.deprecated")
+
+        /**
+         * 当前是否抑制已废弃注解的标志。
+         */
         var suppressDeprecatedAnnotation = suppressDeprecatedAnnotationRegistryKey.asBoolean()
 
+        /**
+         * 更新 `suppressDeprecatedAnnotation` 的值。
+         * 从注册表中读取最新配置。
+         */
         fun updateSuppressDeprecatedAnnotationValue() {
             suppressDeprecatedAnnotation = suppressDeprecatedAnnotationRegistryKey.asBoolean()
         }
     }
 
+    /**
+     * 生成与诊断相关的注解展示信息。
+     *
+     * @param diagnostics 诊断集合。
+     * @return 如果有有效的诊断，返回注解展示信息，否则返回 `null`。
+     */
     private fun presentationInfo(diagnostics: Collection<Diagnostic>): AnnotationPresentationInfo? {
         if (diagnostics.isEmpty() || !diagnostics.any { it.isValid }) return null
 
         val diagnostic = diagnostics.first()
 
-//        if (isUnstableAbiClassDiagnosticForModulesWithEnabledUnstableAbi(diagnostic)) return null
 
         val factory = diagnostic.factory
 
-//        if (suppressDeprecatedAnnotation && factory == Errors.DEPRECATION) return null
 
         assert(diagnostics.all { it.psiElement == element && it.factory == factory })
 
@@ -101,15 +126,15 @@ internal class ElementAnnotator(
                         AnnotationPresentationInfo(
                             ranges,
                             highlightType =
-                            when (factory) {
-                                Errors.INVISIBLE_REFERENCE, Errors.DELEGATE_SPECIAL_FUNCTION_MISSING, Errors.DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE, Errors.TOO_MANY_ARGUMENTS -> ProblemHighlightType.LIKE_UNKNOWN_SYMBOL
-                                else -> null
-                            },
+                                when (factory) {
+                                    Errors.INVISIBLE_REFERENCE, Errors.DELEGATE_SPECIAL_FUNCTION_MISSING, Errors.DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE, Errors.TOO_MANY_ARGUMENTS -> ProblemHighlightType.LIKE_UNKNOWN_SYMBOL
+                                    else -> null
+                                },
                             textAttributes =
-                            when (factory) {
-                                Errors.DELEGATE_SPECIAL_FUNCTION_MISSING, Errors.DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE, Errors.TOO_MANY_ARGUMENTS -> CodeInsightColors.ERRORS_ATTRIBUTES
-                                else -> null
-                            },
+                                when (factory) {
+                                    Errors.DELEGATE_SPECIAL_FUNCTION_MISSING, Errors.DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE, Errors.TOO_MANY_ARGUMENTS -> CodeInsightColors.ERRORS_ATTRIBUTES
+                                    else -> null
+                                },
                         )
                     }
                 }
@@ -145,10 +170,15 @@ internal class ElementAnnotator(
         return presentationInfo
     }
 
+    /**
+     * 创建诊断对应的修复操作映射。
+     *
+     * @param sameTypeDiagnostics 同类型的诊断集合。
+     * @return 一个包含诊断和对应修复操作的多映射集合。
+     */
     private fun createFixesMap(sameTypeDiagnostics: Collection<Diagnostic>): MultiMap<Diagnostic, IntentionAction> =
         try {
             CangJieQuickFixProvider.getInstance(element.project).createQuickFixes(sameTypeDiagnostics)
-
         } catch (e: Exception) {
             if (e is ControlFlowException) {
                 throw e
@@ -157,11 +187,19 @@ internal class ElementAnnotator(
             MultiMap()
         }
 
+    /**
+     * 注册诊断注解到高亮信息持有者。
+     *
+     * @param holder 高亮信息持有者。
+     * @param diagnostics 诊断集合。
+     * @param highlightInfoByDiagnostic 可选的诊断到高亮信息的映射。
+     * @param calculatingInProgress 是否处于计算中的标志。
+     */
     fun registerDiagnosticsAnnotations(
         holder: HighlightInfoHolder,
         diagnostics: Collection<Diagnostic>,
-        highlightInfoByDiagnostic: MutableMap<Diagnostic, HighlightInfo>?,
-        calculatingInProgress: Boolean
+        highlightInfoByDiagnostic: MutableMap<Diagnostic, HighlightInfo>? = null,
+        calculatingInProgress: Boolean = true
     ) = diagnostics.groupBy { it.factory }
         .forEach {
             val sameTypeDiagnostics = it.value
@@ -182,4 +220,13 @@ internal class ElementAnnotator(
                 )
             }
         }
+}
+
+
+fun HighlightInfoHolder.report(diagnostic: Diagnostic) {
+
+    ElementAnnotator(diagnostic.psiElement).registerDiagnosticsAnnotations(
+        this, listOf(diagnostic)
+    )
+
 }

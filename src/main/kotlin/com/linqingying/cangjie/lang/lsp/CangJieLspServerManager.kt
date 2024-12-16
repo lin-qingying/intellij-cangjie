@@ -35,7 +35,7 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
-import com.linqingying.lsp.impl.LspServerManagerImpl
+
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path

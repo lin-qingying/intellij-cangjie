@@ -308,7 +308,6 @@ class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>,
 
 
 
-
             this._importedFqName = importedFqName
             return importedFqName
         }

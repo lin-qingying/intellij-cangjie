@@ -25,14 +25,7 @@
 package com.linqingying.cangjie.lang.lsp
 
 
-import com.linqingying.lsp.api.LspServer
-import com.linqingying.lsp.api.LspServerSupportProvider
-import com.linqingying.lsp.api.ProjectWideLspServerDescriptor
 
-import com.linqingying.lsp.api.customization.LspCompletionSupport
-import com.linqingying.lsp.api.customization.LspDiagnosticsSupport
-import com.linqingying.lsp.api.customization.LspSemanticTokensSupport
-import com.linqingying.lsp.api.lsWidget.LspServerWidgetItem
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -54,11 +47,20 @@ import com.linqingying.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieIdeDescripto
 import com.linqingying.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieIdeDescriptorRenderer
 import com.linqingying.cangjie.lang.CangJieFileType
 import com.linqingying.cangjie.lang.lsp.CangJieLspServerManager.getCommandLine
-import com.linqingying.lsp.api.customization.LspFindReferencesSupport
-import com.linqingying.lsp.impl.documentation.DescriptionMarkup
-import com.linqingying.lsp.impl.documentation.LspDocumentationData
-import com.linqingying.lsp.impl.documentation.LspMarkDownFormat
+//import com.linqingying.lsp.api.customization.LspFindReferencesSupport
+//import com.linqingying.lsp.impl.documentation.DescriptionMarkup
+//import com.linqingying.lsp.impl.documentation.LspDocumentationData
+//import com.linqingying.lsp.impl.documentation.LspMarkDownFormat
 import org.eclipse.lsp4j.*
+//import com.intellij.platform.lsp.api.*
+//
+//import com.intellij.platform.lsp.api.customization.*
+//import com.intellij.platform.lsp.api.lsWidget.*
+
+import com.linqingying.lsp.api.*
+
+import com.linqingying.lsp.api.customization.*
+import com.linqingying.lsp.api.lsWidget.*
 
 
 fun checkCangJieFIle(file: VirtualFile): Boolean {
@@ -70,27 +72,27 @@ fun checkCangJieFIle(file: VirtualFile): Boolean {
     return false
 
 }
-class CangJieLspMarkDownFormat : LspMarkDownFormat{
-    override fun formatMarkdown(markupContent: MarkupContent): LspDocumentationData {
-        val value = StringUtilRt.convertLineSeparators(markupContent.value)
-        val indexOfCodeBlock = value.indexOf("```", 3)
-
-        if (value.startsWith("```") && value.indexOf("\n") > 0 && indexOfCodeBlock >= 0) {
-            val trimmedHeader = value.takeWhile { !it.isWhitespace() }
-            val content = value.substring(3).trimStart()
-            val description = content.ifEmpty { null }
-            val codeBlock = value.substringAfter("\n", "").substringBefore("```").trimEnd()
-            val remaining = value.substring(indexOfCodeBlock + 3).trimStart()
-
-            return LspDocumentationData(codeBlock, description, remaining, DescriptionMarkup.MARKDOWN)
-        } else {
-//       val descriptorRenderer = CangJieIdeDescriptorRenderer.withOptions { }
-            return LspDocumentationData(null, null, value, DescriptionMarkup.MARKDOWN)
-        }
-
-    }
-
-}
+//class CangJieLspMarkDownFormat : LspMarkDownFormat{
+//    override fun formatMarkdown(markupContent: MarkupContent): LspDocumentationData {
+//        val value = StringUtilRt.convertLineSeparators(markupContent.value)
+//        val indexOfCodeBlock = value.indexOf("```", 3)
+//
+//        if (value.startsWith("```") && value.indexOf("\n") > 0 && indexOfCodeBlock >= 0) {
+//            val trimmedHeader = value.takeWhile { !it.isWhitespace() }
+//            val content = value.substring(3).trimStart()
+//            val description = content.ifEmpty { null }
+//            val codeBlock = value.substringAfter("\n", "").substringBefore("```").trimEnd()
+//            val remaining = value.substring(indexOfCodeBlock + 3).trimStart()
+//
+//            return LspDocumentationData(codeBlock, description, remaining, DescriptionMarkup.MARKDOWN)
+//        } else {
+////       val descriptorRenderer = CangJieIdeDescriptorRenderer.withOptions { }
+//            return LspDocumentationData(null, null, value, DescriptionMarkup.MARKDOWN)
+//        }
+//
+//    }
+//
+//}
 
 class CangJieLspServerSupportProvider : LspServerSupportProvider {
     override fun fileOpened(

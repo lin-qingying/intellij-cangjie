@@ -64,7 +64,7 @@ open class CjProjectSettingsStep(generator: DirectoryProjectGenerator<Configurat
 class CjDirectoryProjectGenerator : DirectoryProjectGeneratorBase<ConfigurationData>(),
     CustomStepProjectGenerator<ConfigurationData> {
 
-    private var peer: CjProjectGeneratorPeer? = null
+    private var peer: CjProjectGeneratorPeer = CjProjectGeneratorPeer()
 
     override fun getName(): String = CangJieBundle.message("cangjie")
 
@@ -77,7 +77,8 @@ class CjDirectoryProjectGenerator : DirectoryProjectGeneratorBase<ConfigurationD
         val name = project.name.replace(' ', '_')
         val generatedFiles =
             project.computeWithCancelableProgress(CangJieBundle.message("progress.title.generating.cjpm.project")) {
-                cjpm.makeProject(project, module, baseDir, name, projectType =  projectType).unwrapOrThrow() // TODO throw? really??
+                cjpm.makeProject(project, module, baseDir, name, projectType = projectType)
+                    .unwrapOrThrow() // TODO throw? really??
             }
 
         project.cangjieSettings.modify {
@@ -89,14 +90,13 @@ class CjDirectoryProjectGenerator : DirectoryProjectGeneratorBase<ConfigurationD
         project.openFiles(generatedFiles)
     }
 
-    override fun createPeer(): ProjectGeneratorPeer<ConfigurationData> = CjProjectGeneratorPeer().also { peer = it }
+
+    override fun createPeer(): ProjectGeneratorPeer<ConfigurationData> {
+        return peer
+    }
 
     override fun validate(baseDirPath: String): ValidationResult {
-//        TODO()
-//        val crateName = PathUtil.getFileName(baseDirPath)
-//
-//
-//           return ValidationResult(message)
+
         return ValidationResult.OK
     }
 
