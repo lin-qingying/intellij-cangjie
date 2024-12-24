@@ -25,7 +25,7 @@
 package com.linqingying.cangjie.serialization
 
 import com.google.protobuf.GeneratedMessage
-import com.google.protobuf.GeneratedMessageLite
+import com.google.protobuf.GeneratedMessageV3
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.metadata.ProtoBuf
 import com.linqingying.cangjie.metadata.serialization.MutableVersionRequirementTable
@@ -34,7 +34,8 @@ import com.linqingying.cangjie.resolve.nonSourceAnnotations
 import com.linqingying.cangjie.types.CangJieType
 
 
-abstract class CangJieSerializerExtensionBase(private val protocol: SerializerExtensionProtocol) : SerializerExtension() {
+abstract class CangJieSerializerExtensionBase(private val protocol: SerializerExtensionProtocol) :
+    SerializerExtension() {
     override val stringTable = StringTableImpl()
 
     override fun serializeClass(
@@ -58,7 +59,10 @@ abstract class CangJieSerializerExtensionBase(private val protocol: SerializerEx
         childSerializer: DescriptorSerializer
     ) {
         for (annotation in descriptor.nonSourceAnnotations) {
-            proto.addExtensionOrNull(protocol.constructorAnnotation, annotationSerializer.serializeAnnotation(annotation))
+            proto.addExtensionOrNull(
+                protocol.constructorAnnotation,
+                annotationSerializer.serializeAnnotation(annotation)
+            )
         }
     }
 
@@ -88,10 +92,16 @@ abstract class CangJieSerializerExtensionBase(private val protocol: SerializerEx
             proto.addExtensionOrNull(protocol.propertyAnnotation, annotationSerializer.serializeAnnotation(annotation))
         }
         for (annotation in descriptor.getter?.nonSourceAnnotations.orEmpty()) {
-            proto.addExtensionOrNull(protocol.propertyGetterAnnotation, annotationSerializer.serializeAnnotation(annotation))
+            proto.addExtensionOrNull(
+                protocol.propertyGetterAnnotation,
+                annotationSerializer.serializeAnnotation(annotation)
+            )
         }
         for (annotation in descriptor.setter?.nonSourceAnnotations.orEmpty()) {
-            proto.addExtensionOrNull(protocol.propertySetterAnnotation, annotationSerializer.serializeAnnotation(annotation))
+            proto.addExtensionOrNull(
+                protocol.propertySetterAnnotation,
+                annotationSerializer.serializeAnnotation(annotation)
+            )
         }
         protocol.propertyExtensionReceiverAnnotation?.let { extension ->
             for (annotation in descriptor.extensionReceiverParameter?.nonSourceAnnotations.orEmpty()) {
@@ -134,7 +144,10 @@ abstract class CangJieSerializerExtensionBase(private val protocol: SerializerEx
 
     override fun serializeTypeParameter(typeParameter: TypeParameterDescriptor, proto: ProtoBuf.TypeParameter.Builder) {
         for (annotation in typeParameter.nonSourceAnnotations) {
-            proto.addExtensionOrNull(protocol.typeParameterAnnotation, annotationSerializer.serializeAnnotation(annotation))
+            proto.addExtensionOrNull(
+                protocol.typeParameterAnnotation,
+                annotationSerializer.serializeAnnotation(annotation)
+            )
         }
     }
 
@@ -145,10 +158,10 @@ abstract class CangJieSerializerExtensionBase(private val protocol: SerializerEx
 
     @Suppress("Reformat")
     private fun <
-            MessageType : GeneratedMessage.ExtendableMessage<MessageType>,
-            BuilderType : GeneratedMessage.ExtendableBuilder<MessageType, BuilderType>,
+            MessageType : GeneratedMessageV3.ExtendableMessage<MessageType>,
+            BuilderType : GeneratedMessageV3.ExtendableBuilder<MessageType, BuilderType>,
             Type
-            > GeneratedMessage.ExtendableBuilder<MessageType, BuilderType>.addExtensionOrNull(
+            > GeneratedMessageV3.ExtendableBuilder<MessageType, BuilderType>.addExtensionOrNull(
         extension: GeneratedMessage.GeneratedExtension<MessageType, List<Type>>,
         value: Type?
     ) {

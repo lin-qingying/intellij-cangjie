@@ -35,7 +35,7 @@ class ImportableFqNameClassifier(private val file: CjFile, private val isImporte
     private val excludedImports = HashSet<FqName>()
 
     init {
-        for (import in file.importDirectives) {
+        for (import in file.importDirectivesItem) {
             val importPath = import.importPath ?: continue
             val fqName = importPath.fqName
             when {

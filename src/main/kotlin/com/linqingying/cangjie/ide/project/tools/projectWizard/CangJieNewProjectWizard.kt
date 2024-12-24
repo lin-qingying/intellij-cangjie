@@ -24,11 +24,6 @@
 
 package com.linqingying.cangjie.ide.project.tools.projectWizard
 
-import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.cjpm.project.toPathOrNull
-import com.linqingying.cangjie.icon.CangJieIcons
-import com.linqingying.cangjie.ide.newProject.CjProjectGeneratorPeer
-import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder
 import com.intellij.CommonBundle
 import com.intellij.ide.wizard.*
 import com.intellij.ide.wizard.GitNewProjectWizardData.Companion.gitData
@@ -36,7 +31,6 @@ import com.intellij.ide.wizard.language.LanguageGeneratorNewProjectWizard
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
@@ -53,7 +47,12 @@ import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.layout.ValidationInfoBuilder
 import com.intellij.util.Consumer
-import com.jetbrains.rd.util.getThrowableText
+import com.intellij.util.ExceptionUtil.getThrowableText
+import com.linqingying.cangjie.CangJieBundle
+import com.linqingying.cangjie.cjpm.project.toPathOrNull
+import com.linqingying.cangjie.icon.CangJieIcons
+import com.linqingying.cangjie.ide.newProject.CjProjectGeneratorPeer
+import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
@@ -85,29 +84,29 @@ class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWizard {
     class Step(parent: NewProjectWizardLanguageStep) : AbstractNewProjectWizardStep(parent) {
 
 
-
         private val peer: CjProjectGeneratorPeer = CjProjectGeneratorPeer(parent.path.toPathOrNull() ?: Paths.get("."))
         override fun setupProject(project: Project) {
 
             val builder = CangJieModuleBuilder(
-//                moduleName = moduleNameTextField.text,
-//                organizationName = groupIdTextField.text,
-//                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
+                //                moduleName = moduleNameTextField.text,
+                //                organizationName = groupIdTextField.text,
+                //                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
             )
-            val module = builder.commit(project)?.firstOrNull() ?: return
-//
+            val module = builder.commit(project).firstOrNull() ?: return
+            //
             ModuleRootModificationUtil.updateModel(module) { rootModel ->
                 builder.configurationData = peer.settings
 
 
                 try {
                     builder.createProject(rootModel)
-                } catch (e: ConfigurationException) {
-//                    捕获cjpm执行错误
-//                    弹窗向用户报告错误
+                }
+                catch (e: ConfigurationException) {
+                    //                    捕获cjpm执行错误
+                    //                    弹窗向用户报告错误
 
                     var message =
-                        e.getThrowableText().replace("com.intellij.openapi.options.ConfigurationException: ", "")
+                        getThrowableText(e).replace("com.intellij.openapi.options.ConfigurationException: ", "")
                     message = message.substring(0, message.indexOf("stderr : "))
                     MessageDialogBuilder.yesNo(e.title, message)
 
@@ -136,27 +135,27 @@ class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWizard {
                         .validation(DialogValidation { peer.validate() })
 
                 }
-//                row(CangJieUiBundle.message("action.new.project.projecttype.title")) {
-//                    cell(projectTypeComboBox)
-//                        .columns(COLUMNS_MEDIUM)
-//                        .component
-//                }.bottomGap(BottomGap.SMALL)
-//                row(CangJieUiBundle.message("action.new.project.modulename.title")) {
-//                    cell(moduleNameTextField)
-//                        .columns(COLUMNS_MEDIUM)
-//                        //                        .validationOnApply {
-////                            validateModuleName(moduleNameTextField.text)
-////                        }
-//                        .component
-//                }.bottomGap(BottomGap.SMALL)
-//                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
-//                    cell(groupIdTextField)
-//                        .columns(COLUMNS_MEDIUM)
-////                        .validationOnApply {
-////                            validateGroupName(groupIdTextField.text)
-////                        }
-//                        .component
-//                }.bottomGap(BottomGap.SMALL)
+                //                row(CangJieUiBundle.message("action.new.project.projecttype.title")) {
+                //                    cell(projectTypeComboBox)
+                //                        .columns(COLUMNS_MEDIUM)
+                //                        .component
+                //                }.bottomGap(BottomGap.SMALL)
+                //                row(CangJieUiBundle.message("action.new.project.modulename.title")) {
+                //                    cell(moduleNameTextField)
+                //                        .columns(COLUMNS_MEDIUM)
+                //                        //                        .validationOnApply {
+                ////                            validateModuleName(moduleNameTextField.text)
+                ////                        }
+                //                        .component
+                //                }.bottomGap(BottomGap.SMALL)
+                //                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
+                //                    cell(groupIdTextField)
+                //                        .columns(COLUMNS_MEDIUM)
+                ////                        .validationOnApply {
+                ////                            validateGroupName(groupIdTextField.text)
+                ////                        }
+                //                        .component
+                //                }.bottomGap(BottomGap.SMALL)
             }
 
 
@@ -190,24 +189,25 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
         override fun setupProject(project: Project) {
 
             val builder = CangJieModuleBuilder(
-//                moduleName = moduleNameTextField.text,
-//                organizationName = groupIdTextField.text,
-//                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
+                //                moduleName = moduleNameTextField.text,
+                //                organizationName = groupIdTextField.text,
+                //                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
             )
-            val module = builder.commit(project)?.firstOrNull() ?: return
-//
+            val module = builder.commit(project).firstOrNull() ?: return
+            //
             ModuleRootModificationUtil.updateModel(module) { rootModel ->
                 builder.configurationData = peer.settings
 
 
                 try {
                     builder.createProject(rootModel)
-                } catch (e: ConfigurationException) {
-//                    捕获cjpm执行错误
-//                    弹窗向用户报告错误
+                }
+                catch (e: ConfigurationException) {
+                    //                    捕获cjpm执行错误
+                    //                    弹窗向用户报告错误
 
                     var message =
-                        e.getThrowableText().replace("com.intellij.openapi.options.ConfigurationException: ", "")
+                        getThrowableText(e).replace("com.intellij.openapi.options.ConfigurationException: ", "")
                     message = message.substring(0, message.indexOf("stderr : "))
                     MessageDialogBuilder.yesNo(e.title, message)
 
@@ -236,27 +236,27 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
                         .validation(DialogValidation { peer.validate() })
 
                 }
-//                row(CangJieUiBundle.message("action.new.project.projecttype.title")) {
-//                    cell(projectTypeComboBox)
-//                        .columns(COLUMNS_MEDIUM)
-//                        .component
-//                }.bottomGap(BottomGap.SMALL)
-//                row(CangJieUiBundle.message("action.new.project.modulename.title")) {
-//                    cell(moduleNameTextField)
-//                        .columns(COLUMNS_MEDIUM)
-//                        //                        .validationOnApply {
-////                            validateModuleName(moduleNameTextField.text)
-////                        }
-//                        .component
-//                }.bottomGap(BottomGap.SMALL)
-//                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
-//                    cell(groupIdTextField)
-//                        .columns(COLUMNS_MEDIUM)
-////                        .validationOnApply {
-////                            validateGroupName(groupIdTextField.text)
-////                        }
-//                        .component
-//                }.bottomGap(BottomGap.SMALL)
+                //                row(CangJieUiBundle.message("action.new.project.projecttype.title")) {
+                //                    cell(projectTypeComboBox)
+                //                        .columns(COLUMNS_MEDIUM)
+                //                        .component
+                //                }.bottomGap(BottomGap.SMALL)
+                //                row(CangJieUiBundle.message("action.new.project.modulename.title")) {
+                //                    cell(moduleNameTextField)
+                //                        .columns(COLUMNS_MEDIUM)
+                //                        //                        .validationOnApply {
+                ////                            validateModuleName(moduleNameTextField.text)
+                ////                        }
+                //                        .component
+                //                }.bottomGap(BottomGap.SMALL)
+                //                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
+                //                    cell(groupIdTextField)
+                //                        .columns(COLUMNS_MEDIUM)
+                ////                        .validationOnApply {
+                ////                            validateGroupName(groupIdTextField.text)
+                ////                        }
+                //                        .component
+                //                }.bottomGap(BottomGap.SMALL)
             }
 
 
@@ -274,7 +274,7 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
     constructor(
         project: Project,
         modelBuilder: SdkListModelBuilder,
-        onNewSdkAdded: Consumer<Sdk>?
+        onNewSdkAdded: Consumer<Sdk>?,
     ) : super(modelBuilder) {
         this.project = project
 
@@ -303,12 +303,12 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
 
         private fun wrapItem(item: SdkListItem): CangJieSdkItem {
             if (item is SdkItem) {
-//                val a = item.sdk
+                //                val a = item.sdk
                 ApplicationManager.getApplication().runWriteAction {
                     ProjectJdkTable.getInstance().addJdk(item.sdk)
                 }
-//                添加到sdk列表
-//                ProjectJdkTable.getInstance().addJdk(item.sdk)
+                //                添加到sdk列表
+                //                ProjectJdkTable.getInstance().addJdk(item.sdk)
                 return ActualSdkInnerItem(item)
             }
             if (item is NoneSdkItem) {
@@ -316,7 +316,8 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
             }
             return if (item is ProjectSdkItem) {
                 ProjectSdkComboBoxItem()
-            } else InnerSdkComboBoxItem(item)
+            }
+            else InnerSdkComboBoxItem(item)
         }
     }
 
@@ -342,24 +343,24 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
         }
     }
 
-//    private val myEditButton: JButton? = null
+    //    private val myEditButton: JButton? = null
 
     //    private fun updateEditButton() {
-//        if (myEditButton != null) {
-//            val selectedItem: CangJieSdkItem? = selectedItem as CangJieSdkItem?
-//            if (selectedItem is ProjectSdkComboBoxItem && project != null) {
-//                myEditButton.setEnabled(
-//                    ProjectStructureConfigurable.getInstance(project).getProjectsdksModel().getProjectSdk() != null
-//                )
-//            } else {
-//                myEditButton.setEnabled(selectedItem != null && selectedItem.sdk != null)
-//            }
-//        }
-//    }
+    //        if (myEditButton != null) {
+    //            val selectedItem: CangJieSdkItem? = selectedItem as CangJieSdkItem?
+    //            if (selectedItem is ProjectSdkComboBoxItem && project != null) {
+    //                myEditButton.setEnabled(
+    //                    ProjectStructureConfigurable.getInstance(project).getProjectsdksModel().getProjectSdk() != null
+    //                )
+    //            } else {
+    //                myEditButton.setEnabled(selectedItem != null && selectedItem.sdk != null)
+    //            }
+    //        }
+    //    }
     override fun setSelectedItem(anObject: Any?) {
         if (anObject is SdkListItem) {
             setSelectedItem((anObject as SdkListItem?)?.let { wrapItem(it) })
-//            updateEditButton()
+            //            updateEditButton()
 
             return
         }
@@ -390,8 +391,8 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
             if (myModel.executeAction(this, item) { newItem: SdkListItem? ->
                     setSelectedItem(newItem)
 
-//                    将新的sdk添加到sdk列表中
-//                    ProjectJdkTable.getInstance().addJdk(newItem!!.)
+                    //                    将新的sdk添加到sdk列表中
+                    //                    ProjectJdkTable.getInstance().addJdk(newItem!!.)
 
                     if (newItem is SdkItem) {
                         myOnNewSdkAdded!!.consume(newItem.sdk)
@@ -405,8 +406,8 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
     }
 
     //    override fun getSelectedItem(): CangJieSdkItem {
-//        return super.getSelectedItem() as CangJieSdkItem
-//    }
+    //        return super.getSelectedItem() as CangJieSdkItem
+    //    }
     override fun onModelUpdated(model: SdkListModel) {
         val previousSelection = selectedItem
         val newModel =
@@ -520,14 +521,16 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
                 }
                 return if (item is ProjectSdkItem) {
                     ProjectSdkComboBoxItem()
-                } else InnerSdkComboBoxItem(item)
+                }
+                else InnerSdkComboBoxItem(item)
             }
         }
 
         override fun onChosen(selectedValue: CangJieSdkItem?): ListModel<CangJieSdkItem>? {
             if (selectedValue is InnerComboBoxItem) {
                 val inner: SdkListModel? = innerModel.onChosen((selectedValue as InnerComboBoxItem).item)
-                return if (inner == null) null else CangJieSdkModel(
+                return if (inner == null) null
+                else CangJieSdkModel(
                     inner
                 )
             }
@@ -537,7 +540,8 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
         override fun hasSubstep(selectedValue: CangJieSdkItem?): Boolean {
             return if (selectedValue is InnerComboBoxItem) {
                 innerModel.hasSubstep((selectedValue as InnerComboBoxItem).item)
-            } else false
+            }
+            else false
         }
 
         private var mySelectedItem: CangJieSdkItem? = null
@@ -622,19 +626,19 @@ private fun validateAndGetSdkValidationMessage(
         }
     }
 
-//    try {
-//        sdkModel.apply(null, true)
-//    } catch (e: ConfigurationException) {
-//        //IDEA-98382 We should allow Next layer if user has wrong SDK
-//        if (Messages.showDialog(
-//                e.message?.let { CangJieUiBundle.message("dialog.message.0.do.you.want.to.proceed", it) },
-//                e.title, arrayOf(CommonBundle.getYesButtonText(), CommonBundle.getNoButtonText()), 1,
-//                Messages.getWarningIcon()
-//            ) != Messages.YES
-//        ) {
-//            return e.message ?: e.title
-//        }
-//    }
+    //    try {
+    //        sdkModel.apply(null, true)
+    //    } catch (e: ConfigurationException) {
+    //        //IDEA-98382 We should allow Next layer if user has wrong SDK
+    //        if (Messages.showDialog(
+    //                e.message?.let { CangJieUiBundle.message("dialog.message.0.do.you.want.to.proceed", it) },
+    //                e.title, arrayOf(CommonBundle.getYesButtonText(), CommonBundle.getNoButtonText()), 1,
+    //                Messages.getWarningIcon()
+    //            ) != Messages.YES
+    //        ) {
+    //            return e.message ?: e.title
+    //        }
+    //    }
     return null
 }
 

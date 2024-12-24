@@ -147,7 +147,7 @@ class CangJieLanguageServerServices : PersistentStateComponent<CangJieLanguageSe
     }
 
     data class LspConfig(
-        var enabled: Boolean = false, // 主开关
+        var enabled: Boolean = true, // 主开关
         var autoComplete: Boolean = true, // 自动补全
         var signatureHelp: Boolean = false, // 签名帮助
         var hoverInfo: Boolean = true, // 悬停信息
@@ -155,7 +155,7 @@ class CangJieLanguageServerServices : PersistentStateComponent<CangJieLanguageSe
         var diagnostics: Boolean = true, // 诊断信息
         var goToDeclaration: Boolean = true, // 转到声明
         var findUsages: Boolean = true, // 查找用法
-        var semanticTokens: Boolean = false, //语义标记
+        var semanticTokens: Boolean = true, //语义标记
     ) : Config {
         override fun setMainSwitch(enabled: Boolean) {
             this.enabled = enabled

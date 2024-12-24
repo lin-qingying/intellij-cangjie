@@ -26,13 +26,11 @@ package com.linqingying.cangjie.ide.completion
 
 import com.linqingying.cangjie.descriptors.CallableDescriptor
 import com.linqingying.cangjie.descriptors.ClassDescriptor
-import com.linqingying.cangjie.descriptors.ClassKind
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.ide.CangJieIndicesHelper
 import com.linqingying.cangjie.ide.codeinsight.collectSyntheticStaticMembersAndConstructors
 import com.linqingying.cangjie.psi.CjElement
 import com.linqingying.cangjie.psi.CjFile
-import com.linqingying.cangjie.psi.CjNamedDeclaration
 import com.linqingying.cangjie.resolve.ImportedFromObjectCallableDescriptor
 import com.linqingying.cangjie.resolve.ResolutionFacade
 import com.linqingying.cangjie.resolve.descriptorUtil.targetDescriptors
@@ -81,7 +79,7 @@ class StaticMembersCompletion(
         }
 
     fun membersFromImports(file: CjFile): Collection<DeclarationDescriptor> {
-        val containers = file.importDirectives.filter { !it.isAllUnder }.mapNotNull {
+        val containers = file.importDirectivesItem.filter { !it.isAllUnder }.mapNotNull {
             it.targetDescriptors(resolutionFacade).map { descriptor ->
                 descriptor.containingDeclaration
             }.distinct().singleOrNull() as? ClassDescriptor

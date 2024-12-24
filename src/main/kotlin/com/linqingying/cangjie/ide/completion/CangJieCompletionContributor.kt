@@ -24,6 +24,23 @@
 
 package com.linqingying.cangjie.ide.completion
 
+import com.intellij.codeInsight.completion.*
+import com.intellij.codeInsight.completion.addingPolicy.PolicyController
+import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
+import com.intellij.codeInsight.lookup.LookupElement
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.patterns.PlatformPatterns.elementType
+import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.platform.ml.impl.turboComplete.KindCollector
+import com.intellij.platform.ml.impl.turboComplete.KindVariety
+import com.intellij.platform.ml.impl.turboComplete.SmartPipelineRunner
+import com.intellij.platform.ml.impl.turboComplete.SuggestionGeneratorExecutor
+import com.intellij.psi.PsiComment
+import com.intellij.util.indexing.DumbModeAccessType
+import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
+import com.linqingying.cangjie.configurable.services.Feature
 import com.linqingying.cangjie.ide.completion.smart.SmartCompletion
 import com.linqingying.cangjie.ide.completion.stringTemplates.StringTemplateCompletion
 import com.linqingying.cangjie.ide.completion.stringTemplates.wrapLookupElementForStringTemplateAfterDotCompletion
@@ -31,26 +48,10 @@ import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.endOffset
 import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
-import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.completion.addingPolicy.PolicyController
-import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
-import com.intellij.codeInsight.lookup.LookupElement
-import com.intellij.openapi.editor.Document
-import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.util.ThrowableComputable
-import com.intellij.openapi.util.registry.Registry
-import com.intellij.patterns.PlatformPatterns.elementType
-import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.platform.ml.impl.turboComplete.*
-import com.intellij.platform.ml.impl.turboComplete.SmartPipelineRunner
-import com.intellij.psi.PsiComment
-import com.intellij.util.indexing.DumbModeAccessType
-import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
-import com.linqingying.cangjie.configurable.services.Feature
 import kotlin.math.max
 
 
-abstract class CangJieKindExecutingCompletionContributor : CompletionContributor(), KindCollector{
+abstract class CangJieKindExecutingCompletionContributor : CompletionContributor(), KindCollector {
     override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
         SmartPipelineRunner.getOneOrDefault().runPipeline(this, parameters, result)
     }
@@ -68,11 +69,23 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
         psiElement().withElementType(elementType().oneOf(CjTokens.INTEGER_LITERAL))
     )
 
+    /**
+     * 收集补全类型
+     *
+     * 该函数负责根据给定的参数收集补全类型，并将结果添加到指定的补全结果集中
+     * 它首先尝试处理字符串模板中的补全，如果适用，则使用修正后的参数进行补全
+     * 如果不适用于字符串模板补全，则在正常模式下进行补全
+     *
+     * @param parameters 补全参数，包含了补全所需的各种信息
+     * @param generatorExecutor 用于执行建议生成器的执行器
+     * @param result 用于存储补全结果的对象
+     */
     override fun collectKinds(
         parameters: CompletionParameters,
         generatorExecutor: SuggestionGeneratorExecutor,
-        result: CompletionResultSet
+        result: CompletionResultSet,
     ) {
+        // 尝试修正参数以适应字符串模板中的补全，如果成功，则使用修正后的参数进行补全
         StringTemplateCompletion.correctParametersForInStringTemplateCompletion(parameters)
             ?.let { correctedParameters ->
                 generateCompletionKinds(
@@ -84,37 +97,61 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
                 return
             }
 
+        // 如果上述尝试失败，则在正常模式下进行补全，确保只使用可靠的数据进行补全
         DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {
             generateCompletionKinds(parameters, generatorExecutor, result, null)
         })
     }
 
+    /**
+     * 判断是否应该调用补全功能。
+     *
+     * 该函数根据特定条件决定是否应调用补全功能。主要检查 SEMANTIC_TOKENS 功能是否启用，
+     * 以及当前文件和参数来源文件是否为 CjFile 类型。
+     *
+     * @param parameters 补全参数，包含位置和原始文件信息
+     * @return 如果 SEMANTIC_TOKENS 功能已启用或文件类型不符合要求，则返回 false；否则返回 true
+     */
     override fun shouldBeCalled(parameters: CompletionParameters): Boolean {
-        if (CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.SEMANTIC_TOKENS))
+        // 如果 SEMANTIC_TOKENS 功能已启用，则直接返回 false
+        if (!CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.SEMANTIC_TOKENS))
             return false
 
         val position = parameters.position
         val parametersOriginFile = parameters.originalFile
+
+        // 检查当前文件和参数来源文件是否为 CjFile 类型
         return position.containingFile is CjFile && parametersOriginFile is CjFile
     }
 
+
+    /**
+     * 判断是否应根据给定的参数和前缀匹配规则抑制代码补全。
+     *
+     * @param parameters 补全参数，包含当前补全上下文的信息。
+     * @param prefixMatcher 前缀匹配器，用于确定补全前缀是否匹配。
+     * @return 如果应抑制补全返回 true；否则返回 false。
+     */
     private fun shouldSuppressCompletion(parameters: CompletionParameters, prefixMatcher: PrefixMatcher): Boolean {
         val position = parameters.position
         val invocationCount = parameters.invocationCount
 
+        // 如果前缀匹配器是 CamelHumpMatcher 并且容忍拼写错误，则抑制补全
         if (prefixMatcher is CamelHumpMatcher && prefixMatcher.isTypoTolerant) return true
 
-        // no completion inside number literals
+        // 在数字字面量内部不提供补全
         if (AFTER_NUMBER_LITERAL.accepts(position)) return true
 
-        // no completion auto-popup after integer and dot
+        // 在整数字面量和小数点之后不自动弹出补全
         if (invocationCount == 0 && prefixMatcher.prefix.isEmpty() && AFTER_INTEGER_LITERAL_AND_DOT.accepts(position)) return true
 
+        // 检查是否在表达式内部禁用自动补全
         if (invocationCount == 0 && Registry.`is`("cangjie.disable.auto.completion.inside.expression", false)) {
             val originalPosition = parameters.originalPosition
             val originalExpression = originalPosition?.getNonStrictParentOfType<CjNameReferenceExpression>()
             val expression = position.getNonStrictParentOfType<CjNameReferenceExpression>()
 
+            // 如果当前表达式的引用名称不是原始表达式引用名称的前缀，则抑制补全
             if (expression != null && originalExpression != null &&
                 !expression.referencedName.startsWith(originalExpression.referencedName)
             ) {
@@ -124,6 +161,7 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
 
         return false
     }
+
 
     companion object {
         // add '$' to ignore context after the caret
@@ -220,7 +258,7 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
         parameters: CompletionParameters,
         suggestionGeneratorExecutor: SuggestionGeneratorExecutor,
         result: CompletionResultSet,
-        lookupElementPostProcessor: ((LookupElement) -> LookupElement)?
+        lookupElementPostProcessor: ((LookupElement) -> LookupElement)?,
     ) {
         val position = parameters.position
         if (position.getNonStrictParentOfType<PsiComment>() != null) {
@@ -269,8 +307,8 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
                     nonAccessibleDeclarations = false,
 
                     staticMembers = parameters.invocationCount > 0,
-//                    dataClassComponentFunctions = true,
-//                    excludeEnumEntries = configuration.excludeEnumEntries,
+                    //                    dataClassComponentFunctions = true,
+                    //                    excludeEnumEntries = configuration.excludeEnumEntries,
                 )
 
                 val newSession = BasicCompletionSession(
@@ -280,7 +318,8 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
                 addPostProcessor(newSession)
                 newSession.complete()
             }
-        } else {
+        }
+        else {
             val session = SmartCompletionSession(configuration, parameters, result)
             addPostProcessor(session)
             session.complete()

@@ -165,7 +165,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 return if (it.fqNameSafe == targetFqName) ImportDescriptorResult.ALREADY_IMPORTED else ImportDescriptorResult.FAIL
             }
 
-            val imports = file.importDirectives
+            val imports = file.importDirectivesItem
 
             if (imports.any { !it.isAllUnder && (it.importPath?.alias == name || it.importPath?.fqName == targetFqName) }) {
                 return ImportDescriptorResult.FAIL
@@ -195,7 +195,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                         }
                     }
 
-                            val nonAliasClassifiers =
+                    val nonAliasClassifiers =
                         classifiers.filter { it !is TypeAliasDescriptor || it.importableFqName == targetFqName }
                     // top-level classifiers could/should be resolved with imports
                     if (nonAliasClassifiers.size > 1 && nonAliasClassifiers.all { it.containingDeclaration is PackageFragmentDescriptor }) {
@@ -245,7 +245,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 //                return if (it.fqNameSafe == targetFqName) ImportDescriptorResult.ALREADY_IMPORTED else ImportDescriptorResult.FAIL
 //            }
 //
-//            val imports = file.importDirectives
+//            val imports = file.importDirectivesItem
 //
 //            if (imports.any { !it.isAllUnder && (it.importPath?.alias == name || it.importPath?.fqName == targetFqName) }) {
 //                return ImportDescriptorResult.FAIL
@@ -269,7 +269,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 
             alreadyImported(target, scope, targetFqName, name)?.let { return it }
 
-            val imports = file.importDirectives
+            val imports = file.importDirectivesItem
             for (import in imports) {
                 val importPath = import.importPath ?: continue
                 if (!importPath.isAllUnder && importPath.alias == aliasName && importPath.fqName == targetFqName) {
@@ -329,7 +329,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 
             val fqName = target.importableFqName ?: return ImportDescriptorResult.FAIL
             val containerFqName = fqName.parent()
-            val imports = file.importDirectives
+            val imports = file.importDirectivesItem
 
             val starImportPath = ImportPath(containerFqName, true)
             if (imports.any { it.importPath == starImportPath }) {
@@ -442,7 +442,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
                 .toSet()
 
             fun isNotImported(fqName: FqName): Boolean {
-                return file.importDirectives.none { directive ->
+                return file.importDirectivesItem.none { directive ->
                     !directive.isAllUnder && directive.alias == null && directive.importedFqName == fqName
                 }
             }
@@ -489,11 +489,11 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
 //            return if (isPackageSplit)
 //                ImportDescriptorResult.ALREADY_IMPORTED
 //            else
-              return  ImportDescriptorResult.IMPORT_ADDED
+            return  ImportDescriptorResult.IMPORT_ADDED
         }
 
         private fun dropRedundantExplicitImports(packageFqName: FqName) {
-            val dropCandidates = file.importDirectives.filter {
+            val dropCandidates = file.importDirectivesItem.filter {
                 !it.isAllUnder && it.aliasName == null && it.importPath?.fqName?.parent() == packageFqName
             }
 
@@ -563,7 +563,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             allUnder: Boolean,
             aliasName: Name? = null,
             isPackageSplit: Boolean = false
-        ): CjImportDirectiveItem {
+        ): CjImportDirective {
             return runAction(runImmediately) {
                 if (file.isPhysical) {
                     runWriteAction { addImport(project, file, fqName, allUnder, aliasName, isPackageSplit) }
@@ -592,7 +592,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             allUnder: Boolean = false,
             alias: Name? = null,
             isPackageSplit: Boolean = false
-        ): CjImportDirectiveItem {
+        ): CjImportDirective {
             return file.addImport(fqName, allUnder, alias, project, isPackageSplit)
         }
 

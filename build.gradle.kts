@@ -109,7 +109,9 @@ idea {
 val ideaType = "IU"
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.28.3"
+//        artifact = "com.google.protobuf:protoc:4.28.3"
+        artifact = "com.google.protobuf:protoc:3.24.4"
+
     }
 // 手动设置源集
     sourceSets {
@@ -172,7 +174,7 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.PyCharmCommunity, ideaVersion)
+            create(IntelliJPlatformType.IntellijIdeaUltimate, ideaVersion)
             instrumentationTools()
 
 //            local(dependencyCachePath)
@@ -184,7 +186,7 @@ allprojects {
 
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
-        implementation("com.google.protobuf:protobuf-java:4.28.3")
+        implementation("com.google.protobuf:protobuf-java:3.24.4-jb.2")
 
         // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-javalite
 //        implementation("com.google.protobuf:protobuf-javalite:3.24.4-jb.2")
@@ -417,7 +419,7 @@ project(":") {
         implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
         implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-        implementation("com.google.protobuf:protobuf-java:4.28.3")
+        implementation("com.google.protobuf:protobuf-java:3.24.4-jb.2")
 
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
 // https://mvnrepository.com/artifact/org.fusesource.jansi/jansi

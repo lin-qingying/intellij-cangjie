@@ -27,7 +27,7 @@
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>Cangjie-analyzer</name>
+    <name>Cangjie-Analyzer</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="lin17624294976@outlook.com" url="https://gitee.com/Lin_Qing_Ying">@Lin_Qing_Ying</vendor>
@@ -37,29 +37,24 @@
     ]]>
     </change-notes>
     <version>3.0.0-deta-8</version>
-    <!--    <depends>com.intellij.modules.platform</depends>-->
-    <depends>com.intellij.modules.lang</depends>
-    <!--suppress PluginXmlValidity -->
+
+    <module value="com.linqingying.cangjie"/>
+
 
     <dependencies>
+        <plugin id="com.intellij.modules.lang"/>
+        <!--<plugin id="com.intellij.modules.cangjie-core-capable"/>-->
+        <plugin id="com.intellij.modules.json"/>
         <plugin id="org.toml.lang"/>
 
     </dependencies>
 
-    <!--    <depends>com.jetbrains.performancePlugin</depends>-->
-    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-    <!--  <description> </description>-->
 
     <xi:include href="/META-INF/cangjie-all.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <content>
 
-
-
-        <module name="com.linqingying.cangjie.dapDebugger"/></content>
-
+     <module name="com.linqingying.cangjie.dapDebugger"/></content>
 
 
 </idea-plugin>

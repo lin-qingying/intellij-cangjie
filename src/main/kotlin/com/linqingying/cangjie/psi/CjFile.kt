@@ -91,7 +91,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     fun findAliasByFqName(fqName: FqName): CjImportAlias? {
         if (!hasImportAlias()) return null
 
-        return importDirectives.firstOrNull {
+        return importDirectivesItem.firstOrNull {
 
             it .alias != null && fqName == it.importedFqName
         }?.alias
@@ -115,7 +115,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 
     protected open val importLists: List<CjImportList>
         get() = findChildrenByTypeOrClass(CjStubElementTypes.IMPORT_LIST, CjImportList::class.java).asList()
-//    val importListsField: List<CangJieImportField> = importDirectives.flatMap {
+//    val importListsField: List<CangJieImportField> = importDirectivesItem.flatMap {
 ////        将多个cangJieImportFieldList合成一个
 //        it.cangJieImportFieldList
 //
@@ -139,8 +139,10 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     private var forcedCachedData: (() -> CachedData)? = null
 
     override fun getPsiOrParent(): CjElement = this
-    open val importDirectives: List<CjImportDirectiveItem>
+    open val importDirectivesItem: List<CjImportDirectiveItem>
         get() = importLists.flatMap { it.importItems }
+    open val importDirectives: List<CjImportDirective>
+        get() = importLists.flatMap { it.imports}
 
 
 //    val isDeeplyEnabledByCfg: Boolean get() = cachedData.isDeeplyEnabledByCfg
@@ -151,7 +153,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     fun findImportByAlias(name: String): CjImportDirectiveItem? {
         if (!hasImportAlias()) return null
 
-        return importDirectives.firstOrNull { name == it.aliasName }
+        return importDirectivesItem.firstOrNull { name == it.aliasName }
     }
 
     fun <T : CjElementImplStub<out StubElement<*>>> findChildrenByTypeOrClass(

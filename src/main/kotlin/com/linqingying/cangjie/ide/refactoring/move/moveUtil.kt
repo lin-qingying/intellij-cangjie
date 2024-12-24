@@ -53,8 +53,6 @@ import com.intellij.refactoring.util.NonCodeUsageInfo
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.IncorrectOperationException
 import java.util.*
-import kotlin.Comparator
-import kotlin.collections.ArrayList
 
 internal fun CjElement.getInternalReferencesToUpdateOnPackageNameChange(containerChangeInfo: MoveContainerChangeInfo): List<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
@@ -71,7 +69,7 @@ internal fun processInternalReferencesToUpdateOnPackageNameChange(
 ) {
     val file = element.containingFile as? CjFile ?: return
 
-    val importPaths = file.importDirectives.mapNotNull { it.importPath }
+    val importPaths = file.importDirectivesItem.mapNotNull { it.importPath }
 
     tailrec fun isImported(descriptor: DeclarationDescriptor): Boolean {
         val fqName =

@@ -339,7 +339,7 @@ class LazyTopDownAnalyzer(
 //        runReadAction {
 //            val packageFqname = file.packageFqName
 //
-//            for (importDirective in file.importDirectives) {
+//            for (importDirective in file.importDirectivesItem) {
 //                val result =
 //                    importDirective.importedFqName
 //                        ?.let { CangJieImportFqNameForPackageNameIndex.contains(packageFqname, it, file.project) }

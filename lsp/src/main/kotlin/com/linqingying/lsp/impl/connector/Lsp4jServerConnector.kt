@@ -28,19 +28,18 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 
-
-internal abstract class Lsp4jServerConnector protected constructor( val  lspServer: LspServerImpl) {
+internal abstract class Lsp4jServerConnector protected constructor(val lspServer: LspServerImpl) {
     companion object {
         val LOG = Logger.getInstance(Lsp4jServerConnector::class.java).apply {
 
         }
     }
 
-    private val descriptor: LspServerDescriptor  =   lspServer.descriptor
+    private val descriptor: LspServerDescriptor = lspServer.descriptor
 
     protected abstract val ideToServerStream: java.io.OutputStream
 
-    private val lsp4jClient: Lsp4jClient /*get() */=
+    private val lsp4jClient: Lsp4jClient /*get() */ =
         descriptor.createLsp4jClient(lspServer.serverNotificationsHandler)
 
     lateinit var lsp4jServer: LanguageServer
@@ -49,7 +48,7 @@ internal abstract class Lsp4jServerConnector protected constructor( val  lspServ
 
     protected abstract val serverToIdeStream: InputStream
 
-    fun messageDebug(message:String){
+    fun messageDebug(message: String) {
         LOG.debug(message)
 
         // 获取项目根目录并构造日志路径
@@ -182,7 +181,7 @@ internal abstract class Lsp4jServerConnector protected constructor( val  lspServ
     @RequiresReadLockAbsence
     private fun initialize(onComplete: (InitializeResult) -> Unit = {}) {
         ApplicationManager.getApplication().assertReadAccessNotAllowed()
-       LOG.debug("$descriptor: initializing LSP server")
+        LOG.debug("$descriptor: initializing LSP server")
         val initializeParams = descriptor.createInitializeParams()
         val exceptionRef = Ref.create<Throwable>()
         val latch = CountDownLatch(1)

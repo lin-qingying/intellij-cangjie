@@ -27,9 +27,11 @@
 package com.linqingying.cangjie.metadata.serialization
 
 import com.google.protobuf.GeneratedMessage
+import com.google.protobuf.GeneratedMessageLite
+import com.google.protobuf.GeneratedMessageV3
 import com.linqingying.cangjie.metadata.ProtoBuf
 
-private class TableElementWrapper<Element : GeneratedMessage.Builder<Element>>(val builder: Element) {
+private class TableElementWrapper<Element : GeneratedMessageV3.Builder<Element>>(val builder: Element) {
     // If you'll try to optimize it using structured equals/hashCode, pay attention to extensions present in proto messages
     private val bytes: ByteArray = builder.build().toByteArray()
     private val hashCode: Int = bytes.contentHashCode()
@@ -40,9 +42,9 @@ private class TableElementWrapper<Element : GeneratedMessage.Builder<Element>>(v
 }
 
 abstract class MutableTable<Element, Table, TableBuilder>
-        where Element : GeneratedMessage.Builder<Element>,
-              Table : GeneratedMessage,
-              TableBuilder : GeneratedMessage.Builder<TableBuilder> {
+        where Element : GeneratedMessageV3.Builder<  Element>,
+              Table : GeneratedMessageV3,
+              TableBuilder : GeneratedMessageV3.Builder<TableBuilder> {
 
     private val interner = Interner<TableElementWrapper<Element>>()
 

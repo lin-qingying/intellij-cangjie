@@ -52,7 +52,7 @@ fun CjElement.analyzeWithAllCompilerChecks(): AnalysisResult = getResolutionFaca
 
 @JvmOverloads
 fun CjElement.safeAnalyze(
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL,
 ): BindingContext = safeAnalyze(getResolutionFacade(), bodyResolveMode)
 
 fun CjFile.resolveImportReference(fqName: FqName): Collection<DeclarationDescriptor> {
@@ -62,10 +62,11 @@ fun CjFile.resolveImportReference(fqName: FqName): Collection<DeclarationDescrip
 
 fun CjElement.safeAnalyze(
     resolutionFacade: ResolutionFacade,
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL,
 ): BindingContext = try {
     analyze(resolutionFacade, bodyResolveMode)
-} catch (e: Exception) {
+}
+catch (e: Exception) {
     e.returnIfNoDescriptorForDeclarationException { BindingContext.EMPTY }
 }
 
@@ -73,17 +74,20 @@ fun CjElement.safeAnalyze(
 @OptIn(FrontendInternals::class)
 fun ResolutionFacade.resolveImportReference(
     moduleDescriptor: ModuleDescriptor,
-    fqName: FqName
+    fqName: FqName,
 ): Collection<DeclarationDescriptor> {
     val importDirective = CjPsiFactory(project).createImportDirective(ImportPath(fqName, false))
     val qualifiedExpressionResolver = this.getFrontendService(QualifiedExpressionResolver::class.java)
-    return qualifiedExpressionResolver.processImportReference(
-        importDirective,
-        moduleDescriptor,
-        BindingTraceContext(),
-        excludedImportNames = emptyList(),
-        packageFragmentForVisibilityCheck = null
-    )?.getContributedDescriptors() ?: emptyList()
+    return importDirective.items.flatMap {
+        qualifiedExpressionResolver.processImportReference(
+            it,
+            moduleDescriptor,
+            BindingTraceContext(),
+            excludedImportNames = emptyList(),
+            packageFragmentForVisibilityCheck = null
+        )?.getContributedDescriptors() ?: emptyList()
+    }
+
 }
 
 /**
@@ -100,7 +104,7 @@ fun CjElement.resolveToCall(bodyResolveMode: BodyResolveMode = BodyResolveMode.P
 
 fun CjElement.resolveToCall(
     resolutionFacade: ResolutionFacade,
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL,
 ): ResolvedCall<out CallableDescriptor>? = getResolvedCall(safeAnalyze(resolutionFacade, bodyResolveMode))
 
 
@@ -111,7 +115,8 @@ fun CjFile.analyzeWithAllCompilerChecks(callback: ((Diagnostic) -> Unit)?, varar
     return if (extraFiles.isEmpty()) {
         CangJieCacheService.getInstance(project).getResolutionFacade(this)
             .analyzeWithAllCompilerChecks(this, callback)
-    } else {
+    }
+    else {
         CangJieCacheService.getInstance(project).getResolutionFacade(listOf(this) + extraFiles.toList())
             .analyzeWithAllCompilerChecks(this, callback)
     }
@@ -129,7 +134,7 @@ fun CjTypeStatement.resolveToDescriptorIfAny(bodyResolveMode: BodyResolveMode = 
 
 fun CjTypeStatement.resolveToDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL,
 ): ClassDescriptor? {
     return (this as CjDeclaration).resolveToDescriptorIfAny(resolutionFacade, bodyResolveMode) as? ClassDescriptor
 }
@@ -145,7 +150,7 @@ fun CjTypeStatement.resolveToDescriptorIfAny(
  * @return 解析到的描述符，如果未解析到则返回 null
  */
 fun CjDeclaration.resolveToDescriptorIfAny(
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL,
 ): DeclarationDescriptor? =
     resolveToDescriptorIfAny(getResolutionFacade(), bodyResolveMode)
 
@@ -198,7 +203,7 @@ fun CjParameter.resolveToParameterDescriptorIfAny(bodyResolveMode: BodyResolveMo
 
 fun CjParameter.resolveToParameterDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL,
 ): ValueParameterDescriptor? {
     val context = safeAnalyze(resolutionFacade, bodyResolveMode)
     return context.get(BindingContext.VALUE_PARAMETER, this) as? ValueParameterDescriptor
@@ -214,7 +219,7 @@ fun CjParameter.resolveToParameterDescriptorIfAny(
  */
 fun CjDeclaration.resolveToDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL,
 ): DeclarationDescriptor? {
     // 使用指定的解析模式进行安全分析
     val context = safeAnalyze(resolutionFacade, bodyResolveMode)
@@ -225,7 +230,8 @@ fun CjDeclaration.resolveToDescriptorIfAny(
         context.get(BindingContext.PRIMARY_CONSTRUCTOR_PARAMETER, this)
         // 如果在主构造函数参数中未找到，则尝试从声明到描述符映射中获取
             ?: context.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
-    } else {
+    }
+    else {
         // 直接从声明到描述符映射中获取描述符
         context.get(BindingContext.DECLARATION_TO_DESCRIPTOR, this)
     }
@@ -234,7 +240,7 @@ fun CjDeclaration.resolveToDescriptorIfAny(
 
 fun CjNamedFunction.resolveToDescriptorIfAny(
     resolutionFacade: ResolutionFacade,
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.PARTIAL,
 ): FunctionDescriptor? {
     return (this as CjDeclaration).resolveToDescriptorIfAny(resolutionFacade, bodyResolveMode) as? FunctionDescriptor
 }
@@ -242,10 +248,10 @@ fun CjNamedFunction.resolveToDescriptorIfAny(
 @JvmOverloads
 fun CjElement.analyze(
     resolutionFacade: ResolutionFacade,
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL,
 ): BindingContext {
 
-    if(!CangJieLanguageServerServices.getInstance().isFeatureEnabled(LanugageServerType.AST_ANALYZER,Feature.REFERENCES)){
+    if (!CangJieLanguageServerServices.getInstance().isFeatureEnabled(LanugageServerType.AST_ANALYZER, Feature.REFERENCES)) {
         return BindingContext.EMPTY
     }
     return resolutionFacade.analyze(this, bodyResolveMode)
@@ -253,12 +259,12 @@ fun CjElement.analyze(
 
 @JvmOverloads
 fun CjElement.analyze(
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL,
 ): BindingContext = analyze(getResolutionFacade(), bodyResolveMode)
 
 fun CjElement.safeAnalyzeNonSourceRootCode(
     resolutionFacade: ResolutionFacade,
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL,
 ): BindingContext =
     actionUnderSafeAnalyzeBlock({ analyze(resolutionFacade, bodyResolveMode) }, { BindingContext.EMPTY })
 
@@ -267,7 +273,7 @@ fun CjElement.getResolutionFacade(): ResolutionFacade =
 
 @JvmOverloads
 fun CjElement.safeAnalyzeNonSourceRootCode(
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL,
 ): BindingContext {
     if (!CangJieLanguageServerServices.getInstance().astConfig.enabled) return BindingContext.EMPTY
 
@@ -283,7 +289,7 @@ fun CjElement.safeAnalyzeNonSourceRootCode(
  * @return 解析后的声明描述符 [DeclarationDescriptor]
  */
 fun CjDeclaration.unsafeResolveToDescriptor(
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL,
 ): DeclarationDescriptor =
     unsafeResolveToDescriptor(getResolutionFacade(), bodyResolveMode)
 
@@ -297,7 +303,7 @@ fun CjDeclaration.unsafeResolveToDescriptor(
  */
 fun CjDeclaration.unsafeResolveToDescriptor(
     resolutionFacade: ResolutionFacade,
-    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL
+    bodyResolveMode: BodyResolveMode = BodyResolveMode.FULL,
 ): DeclarationDescriptor =
     resolveToDescriptorIfAny(resolutionFacade, bodyResolveMode) ?: throw NoDescriptorForDeclarationException(this)
 

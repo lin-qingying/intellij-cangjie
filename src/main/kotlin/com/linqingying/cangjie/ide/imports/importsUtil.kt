@@ -110,7 +110,7 @@ fun CjFile.addImport(
     alias: Name? = null,
     project: Project = this.project,
     isPackageSplit: Boolean = false
-): CjImportDirectiveItem {
+): CjImportDirective {
     val importPath = ImportPath(if (isPackageSplit) fqName.parent() else fqName, allUnder, alias)
 
     val psiFactory = CjPsiFactory(project)
@@ -123,7 +123,7 @@ fun CjFile.addImport(
     val importList = importList
     if (importList != null) {
         val newDirective = psiFactory.createImportDirective(importPath)
-        val imports = importList.importItems
+        val imports = importList.imports
         return if (imports.isEmpty()) {
             val packageDirective = packageDirective?.takeIf { it.packageKeyword != null }
             packageDirective?.let {
@@ -133,7 +133,7 @@ fun CjFile.addImport(
                 if (missingLines > 0) addAfter(psiFactory.createNewLine(missingLines), it)
             }
 
-            (importList.add(newDirective) as CjImportDirectiveItem).also {
+            (importList.add(newDirective) as CjImportDirective).also {
                 if (packageDirective == null) {
                     val whiteSpace = importList.nextLeaf(true)
                     if (whiteSpace is PsiWhiteSpace) {
@@ -154,13 +154,13 @@ fun CjFile.addImport(
 
             val importPathComparator = CangJieImportPathComparator.create(this)
             val insertAfter = imports.lastOrNull {
-                val directivePath = it.importPath
+                val directivePath = it.firstImportPath
                 directivePath != null && importPathComparator.compare(directivePath, importPath) <= 0
             }
 
-            if (insertAfter is CjImportDirectiveItem && newDirective.importPath == insertAfter.importPath) return insertAfter
+            if (insertAfter is CjImportDirective && newDirective.firstImportPath == insertAfter.firstImportPath) return insertAfter
 
-            (importList.addAfter(newDirective, insertAfter) as CjImportDirectiveItem).also {
+            (importList.addAfter(newDirective, insertAfter) as CjImportDirective ).also {
                 importList.addBefore(psiFactory.createNewLine(1), it)
             }
         }

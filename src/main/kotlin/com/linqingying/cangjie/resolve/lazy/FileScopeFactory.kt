@@ -176,7 +176,7 @@ class FileScopeFactory(
         private val createDefaultImportingScopes: Boolean,
     ) {
 
-        val imports = file.importDirectives
+        val imports = file.importDirectivesItem
 
         //        val aliasImportNames = file.importListsField.mapNotNull {
 //

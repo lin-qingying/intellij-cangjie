@@ -113,8 +113,8 @@
         <!--                implementation="com.linqingying.cangjie.ide.project.tools.projectWizard.CangJieNewProjectWizard"/>-->
         <moduleBuilder
                 builderClass="com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder"/>
-        <moduleBuilder
-                builderClass="com.linqingying.cangjie.ide.project.moduletype.CangJieLibraryModuleBuilder"/>
+<!--        <moduleBuilder-->
+<!--                builderClass="com.linqingying.cangjie.ide.project.moduletype.CangJieLibraryModuleBuilder"/>-->
 
 
         <!--运行-->

@@ -208,7 +208,7 @@ class CangJieDependencyGraph(val project: Project) {
         val dependencies = mutableListOf<FqName>()
 
         val files = CangJieExactPackagesIndex[fqName.asString(), project]
-        val imports = files.flatMap { it.importDirectives }
+        val imports = files.flatMap { it.importDirectivesItem }
         imports.forEach {
 
 

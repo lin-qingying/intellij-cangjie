@@ -82,6 +82,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
             return a
         }
 
+    val firstImportPath get() = items.firstOrNull()?.importPath
 
     fun getModifier(tokenType: CjKeywordToken): PsiElement? {
         return findChildByType(tokenType)
@@ -140,7 +141,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
                 }
 
                 is CjSynthesisQualifiedExpression -> {
-                 return   fqNameFromExpression(expression.selectorExpression)?.let {
+                    return fqNameFromExpression(expression.selectorExpression)?.let {
                         fqNameFromExpression(expression.receiverExpression)?.child(
                             it
                         )
@@ -164,7 +165,8 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
 
             if (expression is CjSimpleNameExpression) {
                 return expression.referencedNameAsName
-            } else {
+            }
+            else {
                 throw IllegalArgumentException("Can't construct name for: " + expression.javaClass)
             }
         }
@@ -191,7 +193,7 @@ class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>,
     //    是否为多导入但是并非 *
     private val isMultiUnder: Boolean
         get() {
-//    判断父节点是否为 CjImportDirective
+            //    判断父节点是否为 CjImportDirective
             return parent is CjImportDirective && parentImportedReference != null
         }
 

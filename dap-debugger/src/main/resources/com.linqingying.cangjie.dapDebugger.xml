@@ -1,5 +1,6 @@
 <idea-plugin package="com.linqingying.cangjie.dapDebugger">
     <!--suppress PluginXmlValidity -->
+    <module value="com.linqingying.cangjie.dapDebugger"/>
     <dependencies>
 
         <plugin id="org.jetbrains.plugins.terminal"/>

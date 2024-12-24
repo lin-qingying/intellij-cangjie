@@ -456,7 +456,7 @@ abstract class OrdinaryImportFixBase<T : CjExpression>(expression: T, factory: F
     }
 
     private fun getImportedFqNamesAsAlias(cjFile: CjFile) =
-        cjFile.importDirectives
+        cjFile.importDirectivesItem
             .filter { it.alias != null }
             .mapNotNull { it.importedFqName }
 }

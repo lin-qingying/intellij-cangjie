@@ -127,7 +127,7 @@ abstract class CjCodeFragment(
     fun addImport(import: String) {
         val contextFile = getContextContainingFile()
         if (contextFile != null) {
-            if (contextFile.importDirectives.find { it.text == import } == null) {
+            if (contextFile.importDirectivesItem.find { it.text == import } == null) {
                 imports.add(import)
             }
         }
@@ -141,7 +141,7 @@ abstract class CjCodeFragment(
         return null
     }
 
-    override val importDirectives: List<CjImportDirectiveItem>
+    override val importDirectivesItem: List<CjImportDirectiveItem>
         get() = importsAsImportList()?.importItems ?: emptyList()
 
 

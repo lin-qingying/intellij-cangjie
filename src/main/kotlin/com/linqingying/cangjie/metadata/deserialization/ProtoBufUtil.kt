@@ -25,13 +25,13 @@
 package com.linqingying.cangjie.metadata.deserialization
 
 import com.google.protobuf.GeneratedMessage
+import com.google.protobuf.GeneratedMessageV3
 
 
-
-fun <M : GeneratedMessage.ExtendableMessage<M>, T> GeneratedMessage.ExtendableMessage<M>.getExtensionOrNull(
+fun <M : GeneratedMessageV3.ExtendableMessage<M>, T> GeneratedMessageV3.ExtendableMessage<M>.getExtensionOrNull(
     extension: GeneratedMessage.GeneratedExtension<M, T>
 ): T? = if (hasExtension(extension)) getExtension(extension) else null
 
-fun <M : GeneratedMessage.ExtendableMessage<M>, T> GeneratedMessage.ExtendableMessage<M>.getExtensionOrNull(
+fun <M : GeneratedMessageV3.ExtendableMessage<M>, T> GeneratedMessageV3.ExtendableMessage<M>.getExtensionOrNull(
     extension: GeneratedMessage.GeneratedExtension<M, List<T>>, index: Int
 ): T? = if (index < getExtensionCount(extension)) getExtension(extension, index) else null
