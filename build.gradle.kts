@@ -62,7 +62,7 @@ val cangjiePluginVersion = "3.0.0-beta-8"
 val kotlinVersion = "1.9.21"
 val tomlPlugin = "org.toml.lang"
 val terminalPlugin = "org.jetbrains.plugins.terminal"
-val nativeDebugPlugin: String = "com.intellij.nativeDebug"
+val nativeDebugPlugin: String = "com.intellij.nativeDebug:243.21565.23"
 val psiViewerPlugin: String = "PsiViewer:243.7768"
 val indexViewPlugin = "com.jetbrains.hackathon.indices.viewer:1.29"
 val chinesePlugin = "com.intellij.zh:233.407"
@@ -276,14 +276,16 @@ val cangjie_plugin_project = project(":plugin") {
 
             if (!isBuildPlugin()) {
                 plugins(
-                    psiViewerPlugin, indexViewPlugin, chinesePlugin
+
+                    psiViewerPlugin, indexViewPlugin, chinesePlugin,nativeDebugPlugin
                 )
                 bundledPlugins(tomlPlugin)
             }
 
         }
         implementation(project(":"))
-        implementation(project(":dap-debugger"))
+//        implementation(project(":dap-debugger"))
+        implementation(project(":native-debugger"))
 
 //        implementation(project(":inspections"))
 //        implementation(project(":highlighter"))
@@ -412,7 +414,7 @@ project(":") {
 
     dependencies {
         intellijPlatform {
-                bundledPlugins(tomlPlugin)
+            bundledPlugins(tomlPlugin)
 
         }
         implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
@@ -489,37 +491,37 @@ project(":utils") {
     }
 }
 
-//  project(":native-debugger") {
-//
-//            dependencies {
-//                intellijPlatform{
-//                    plugin(nativeDebugPlugin)
-//                }
-//                implementation(project(":"))
-//            }
-//        }
-project(":dap-debugger") {
+project(":native-debugger") {
 
-    apply {
-
-        plugin("org.jetbrains.kotlin.plugin.serialization")
-    }
     dependencies {
-
         intellijPlatform {
-            bundledPlugins(
-                terminalPlugin
-            )
+            plugin(nativeDebugPlugin)
         }
         implementation(project(":"))
-
-
-        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
-        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
-        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     }
 }
+//project(":dap-debugger") {
+//
+//    apply {
+//
+//        plugin("org.jetbrains.kotlin.plugin.serialization")
+//    }
+//    dependencies {
+//
+//        intellijPlatform {
+//            bundledPlugins(
+//                terminalPlugin
+//            )
+//        }
+//        implementation(project(":"))
+//
+//
+//        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
+//        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
+//        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+//        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+//    }
+//}
 
 
 fun isBuildPlugin(): Boolean {
@@ -566,9 +568,9 @@ fun prop(name: String): String =
     extra.properties[name] as? String
         ?: error("Property `$name` is not defined in gradle.properties")
 
-afterEvaluate {
-    updatePluginXmlFile()
-}
+//afterEvaluate {
+//    updatePluginXmlFile()
+//}
 
 /**
  * 修改plugin.xml文件

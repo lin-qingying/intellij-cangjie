@@ -1,8 +1,0 @@
-<idea-plugin package="com.linqingying.cangjie.nativeDebug" xmlns:xi="http://www.w3.org/2001/XInclude">
-    <!--suppress PluginXmlValidity -->
-    <dependencies>
-        <module name="com.linqingying.cangjie.debugger"/>
-
-        <plugin id="com.intellij.nativeDebug"/>
-    </dependencies>
-</idea-plugin>

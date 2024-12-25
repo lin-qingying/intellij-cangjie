@@ -54,7 +54,12 @@
 
     <content>
 
-     <module name="com.linqingying.cangjie.dapDebugger"/></content>
+<!--     <module name="com.linqingying.cangjie.dapDebugger"/>-->
+        <module name="com.linqingying.cangjie.debugger"/>
+
+        <module name="com.linqingying.cangjie.nativedebugger"/>
+
+    </content>
 
 
 </idea-plugin>

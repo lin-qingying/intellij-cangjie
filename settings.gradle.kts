@@ -63,6 +63,6 @@ include("idea")
 
 include("clion")
 
-//include("native-debugger")
+include("native-debugger")
 
-include("dap-debugger")
+//include("dap-debugger")

@@ -24,19 +24,18 @@
 
 package com.linqingying.cangjie.cjpm.toolchain
 
-import com.linqingying.cangjie.cjpm.project.toPath
-import com.linqingying.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
-import com.linqingying.cangjie.cjpm.toolchain.tools.*
-import com.linqingying.cangjie.cjpm.toolchain.wsl.getHomePathCandidates
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.PtyCommandLine
 import com.intellij.execution.wsl.WslPath
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.net.HttpConfigurable
 import com.intellij.util.text.SemVer
+import com.linqingying.cangjie.cjpm.project.toPath
+import com.linqingying.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
+import com.linqingying.cangjie.cjpm.toolchain.tools.*
+import com.linqingying.cangjie.cjpm.toolchain.wsl.getHomePathCandidates
 import java.io.File
 import java.net.URI
 import java.nio.file.Files
@@ -69,6 +68,335 @@ fun CjToolchainBase.cjfmt(): CjFmt {
 
     return this.cjfmt!!
 }
+
+
+sealed interface ScriptHandler {
+    fun parseEnvironmentVariables(scriptContent: String): Map<String, String>
+
+    fun executeScript(scriptPath: String): Result<String>
+
+
+    companion object {
+        object EMPTY : ScriptHandler {
+            override fun parseEnvironmentVariables(scriptContent: String): Map<String, String> {
+                TODO("Not yet implemented")
+            }
+
+            override fun executeScript(scriptPath: String): Result<String> {
+                TODO("Not yet implemented")
+            }
+
+        }
+
+        fun getEnvironmentVariables(scriptPath: String): Map<String, String> {
+            val handler = getScriptHandler()
+            val result = handler.executeScript(scriptPath)
+            return handler.parseEnvironmentVariables(result.getOrThrow())
+        }
+
+        fun getScriptHandler(): ScriptHandler {
+            return when (SystemInfo.OS_NAME) {
+
+                "Windows" -> WindowsScriptHandler
+
+                "Linux" -> UnixScriptHandler
+
+                "Mac" -> MacScriptHandler
+
+
+                else -> EMPTY
+
+            }
+        }
+    }
+
+    object WindowsScriptHandler : ScriptHandler {
+        override fun parseEnvironmentVariables(scriptContent: String): Map<String, String> {
+            val envVars = mutableMapOf<String, String>()
+            val lines = scriptContent.lines()
+            var scriptDir: String? = null
+
+            for (line in lines) {
+                val trimmedLine = line.trim()
+
+                // Skip comments and empty lines
+                if (trimmedLine.startsWith("REM", ignoreCase = true) || trimmedLine.startsWith(
+                        "@REM",
+                        ignoreCase = true
+                    ) || trimmedLine.isEmpty()
+                ) {
+                    continue
+                }
+
+                // Match "set" statements
+                if (trimmedLine.startsWith("set", ignoreCase = true)) {
+                    val match = Regex("""set\s+"?(\w+)"?\s*=\s*(.+)""").find(trimmedLine)
+                    if (match != null) {
+                        val key = match.groupValues[1]
+                        var value = match.groupValues[2]
+
+                        // Handle %~dp0 for script directory
+                        if (scriptDir == null && value.contains("%~dp0")) {
+                            scriptDir = "C:\\Path\\To\\Script\\" // Replace with actual script directory
+                        }
+
+                        // Replace %~dp0 with script directory
+                        value = value.replace("%~dp0", scriptDir ?: "")
+
+                        // Resolve variables like %VAR_NAME%
+                        value = value.replace(Regex("%(\\w+)%")) { matchResult ->
+                            val varName = matchResult.groupValues[1]
+                            envVars[varName] ?: ""
+                        }
+
+                        envVars[key] = value
+                    }
+                }
+            }
+
+            return envVars
+        }
+
+        override fun executeScript(scriptPath: String): Result<String> {
+            return try {
+                val process = ProcessBuilder("cmd.exe", "/c", scriptPath)
+                    .redirectErrorStream(true)
+                    .start()
+
+                val output = process.inputStream.bufferedReader().use { it.readText() }
+                process.waitFor()
+
+                if (process.exitValue() == 0) {
+                    Result.success(output)
+                } else {
+                    Result.failure(Exception("Script execution failed: $output"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    object UnixScriptHandler : ScriptHandler {
+        override fun parseEnvironmentVariables(scriptContent: String): Map<String, String> {
+            val envVars = mutableMapOf<String, String>()
+            val lines = scriptContent.lines()
+
+            for (line in lines) {
+                val trimmedLine = line.trim()
+
+                // Skip comments and empty lines
+                if (trimmedLine.startsWith("#") || trimmedLine.isEmpty()) {
+                    continue
+                }
+
+                // Match "export VAR=value" or "VAR=value"
+                val match = Regex("""(?:export\s+)?(\w+)\s*=\s*(.+)""").find(trimmedLine)
+                if (match != null) {
+                    val key = match.groupValues[1]
+                    var value = match.groupValues[2]
+
+                    // Resolve variables like $VAR_NAME
+                    value = value.replace(Regex("""\$(\w+)""")) { matchResult ->
+                        val varName = matchResult.groupValues[1]
+                        envVars[varName] ?: ""
+                    }
+
+                    envVars[key] = value
+                }
+            }
+
+            return envVars
+        }
+
+        override fun executeScript(scriptPath: String): Result<String> {
+            return try {
+                val process = ProcessBuilder("/bin/bash", scriptPath)
+                    .redirectErrorStream(true)
+                    .start()
+
+                val output = process.inputStream.bufferedReader().use { it.readText() }
+                process.waitFor()
+
+                if (process.exitValue() == 0) {
+                    Result.success(output)
+                } else {
+                    Result.failure(Exception("Script execution failed: $output"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+
+    object MacScriptHandler : ScriptHandler {
+        override fun parseEnvironmentVariables(scriptContent: String): Map<String, String> {
+            val envVars = mutableMapOf<String, String>()
+            val lines = scriptContent.lines()
+
+            for (line in lines) {
+                val trimmedLine = line.trim()
+
+                // Skip comments and empty lines
+                if (trimmedLine.startsWith("#") || trimmedLine.isEmpty()) {
+                    continue
+                }
+
+                // Match "export VAR=value" or "VAR=value"
+                val match = Regex("""(?:export\s+)?(\w+)\s*=\s*(.+)""").find(trimmedLine)
+                if (match != null) {
+                    val key = match.groupValues[1]
+                    var value = match.groupValues[2]
+
+                    // Resolve variables like $VAR_NAME
+                    value = value.replace(Regex("""\$(\w+)""")) { matchResult ->
+                        val varName = matchResult.groupValues[1]
+                        envVars[varName] ?: ""
+                    }
+
+                    envVars[key] = value
+                }
+            }
+
+            return envVars
+        }
+
+        override fun executeScript(scriptPath: String): Result<String> {
+            return try {
+                val process = ProcessBuilder("/bin/zsh", scriptPath) // macOS 默认支持 Zsh
+                    .redirectErrorStream(true)
+                    .start()
+
+                val output = process.inputStream.bufferedReader().use { it.readText() }
+                process.waitFor()
+
+                if (process.exitValue() == 0) {
+                    Result.success(output)
+                } else {
+                    Result.failure(Exception("Script execution failed: $output"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+}
+
+/**
+ * 仓颉运行环境
+ */
+sealed class CangJieEnv(val cangjieHome: Path) {
+    val ENV = mutableMapOf<String, String>().apply {
+        put("CANGJIE_HOME", cangjieHome.toString())
+    }
+
+    //        架构名称
+    val archName = getArchName()
+
+    val userHome = System.getProperty("user.home")
+
+    abstract fun getEnvVars(): Map<String, String>
+
+    companion object {
+        fun getInstance(cangjieHome: Path): CangJieEnv {
+            return when {
+                SystemInfo.isWindows -> WindowsCangJieEnv(cangjieHome)
+                SystemInfo.isMac -> MacCangJieEnv(cangjieHome)
+                SystemInfo.isUnix -> UnixCangJieEnv(cangjieHome)
+
+                else -> error("不支持的操作系统")
+            }
+        }
+
+
+    }
+
+    /**
+     * windows环境
+     */
+    class WindowsCangJieEnv(cangjieHome: Path) : CangJieEnv(cangjieHome) {
+        override fun getEnvVars(): Map<String, String> {
+            ENV["PATH"] = listOf(
+                "${cangjieHome}\\runtime\\lib\\windows_x86_64_llvm",
+                "${cangjieHome}\\bin",
+                "${cangjieHome}\\tools\\bin",
+                "${cangjieHome}\\tools\\lib",
+                "$userHome\\.cjpm\\bin",
+                System.getenv("PATH"),
+            ).joinToString(";") { it }
+            return ENV
+        }
+
+
+    }
+
+    class UnixCangJieEnv(cangjieHome: Path) : CangJieEnv(cangjieHome) {
+        override fun getEnvVars(): Map<String, String> {
+            ENV["PATH"] = listOf(
+                "$cangjieHome/bin",
+                "$cangjieHome/tools/bin",
+                "$userHome/.cjpm/bin",
+                System.getenv("PATH")
+            ).joinToString(":") { it }
+
+            ENV["LD_LIBRARY_PATH"] = listOfNotNull(
+                "${cangjieHome}/runtime/lib/linux_${archName}_llvm",
+                "${cangjieHome}/tools/lib",
+                System.getenv("LD_LIBRARY_PATH")
+
+            ).joinToString(":") { it }
+
+            return ENV
+        }
+
+
+    }
+
+    class MacCangJieEnv(cangjieHome: Path) : CangJieEnv(cangjieHome) {
+        override fun getEnvVars(): Map<String, String> {
+            ENV["PATH"] = listOf(
+                "$cangjieHome/bin",
+                "$cangjieHome/tools/bin",
+                "$userHome/.cjpm/bin",
+                System.getenv("PATH")
+            ).joinToString(":") { it }
+
+            ENV["DYLD_LIBRARY_PATH"] = listOfNotNull(
+                "${cangjieHome}/runtime/lib/darwin_${archName}_llvm",
+                "${cangjieHome}/tools/lib",
+                System.getenv("DYLD_LIBRARY_PATH")
+
+            ).joinToString(":") { it }
+
+            return ENV
+        }
+
+
+    }
+
+
+}
+
+/**
+ * 获取架构对应的名称
+ */
+fun getArchName(): String {
+    val arch = SystemInfo.OS_ARCH
+//    如果是amd64则返回x86_64
+//    如果是arm64则返回aarch64
+
+    if (arch == "amd64" || arch == "x86_64") {
+        return "x86_64"
+    }
+    if (arch == "arm64" || arch == "aarch64") {
+        return "aarch64"
+    }
+
+
+    throw UnsupportedOperationException("不支持的架构")
+}
+
 
 abstract class CjToolchainBase(var location: Path = "".toPath()) {
 
@@ -124,6 +452,9 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
     }
 
     fun getEnvironment(): Map<String, String> {
+
+        return CangJieEnv.getInstance(location).getEnvVars()
+
         val separator = if (SystemInfo.isWindows) ";" else ":"
 
         val runtimeLlvm = if (SystemInfo.isWindows) {
@@ -134,11 +465,34 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
         val map = mutableMapOf<String, String>()
 
         val sdkHome = this.location.systemIndependentPath
-        "${sdkHome}${buildPath("runtime","lib",runtimeLlvm)}"
+        "${sdkHome}${buildPath("runtime", "lib", runtimeLlvm)}"
         map["LD_LIBRARY_PATH"] =
-            "${sdkHome}${buildPath("runtime","lib",runtimeLlvm)}$separator${System.getenv("LD_LIBRARY_PATH") ?: ""}"
+            "${sdkHome}${
+                buildPath(
+                    "runtime",
+                    "lib",
+                    runtimeLlvm
+                )
+            }$separator${System.getenv("LD_LIBRARY_PATH") ?: ""}"
         map["PATH"] =
-            "${sdkHome}${buildPath("runtime","lib",runtimeLlvm)}$separator${sdkHome}${buildPath("bin")}$separator${sdkHome}${buildPath("tools","bin")}$separator${sdkHome}${buildPath("tools","lib")}$separator${sdkHome}${buildPath("runtime","lib",runtimeLlvm)}$separator${sdkHome}${buildPath("debugger","bin")} ${
+            "${sdkHome}${
+                buildPath(
+                    "runtime",
+                    "lib",
+                    runtimeLlvm
+                )
+            }$separator${sdkHome}${buildPath("bin")}$separator${sdkHome}${
+                buildPath(
+                    "tools",
+                    "bin"
+                )
+            }$separator${sdkHome}${buildPath("tools", "lib")}$separator${sdkHome}${
+                buildPath(
+                    "runtime",
+                    "lib",
+                    runtimeLlvm
+                )
+            }$separator${sdkHome}${buildPath("debugger", "bin")}$separator ${
                 System.getenv(
                     "PATH"
                 )
@@ -150,7 +504,7 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
     }
 
     fun buildPath(vararg paths: String): String {
-        return paths.joinToString(      File.separator ,   File.separator )
+        return paths.joinToString(File.separator, File.separator)
     }
 
     //    val presentableLocation: String get() = pathToExecutable(CJPM.NAMED).toString()
@@ -256,17 +610,19 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
         val STDLIB_DOWNLOAD_URL =
             "https://gitee.com/Lin_Qing_Ying/intellij-cangjie-stdlib/releases/download/0.53.4/intellij-cangjie-stdlib.zip"
 
-        fun getStdlibDowloadUrl(version:String): String {
+        fun getStdlibDowloadUrl(version: String): String {
 
-            return  "https://gitee.com/Lin_Qing_Ying/intellij-cangjie-stdlib/releases/download/$version/intellij-cangjie-stdlib.zip"
+            return "https://gitee.com/Lin_Qing_Ying/intellij-cangjie-stdlib/releases/download/$version/intellij-cangjie-stdlib.zip"
         }
 
         //        标准库位置
-        val stdlibPath = File(System.getProperty("user.home")).resolve(".cangjie").resolve("stdlib").toPath()
-        val stdlibPathByVersion  :Path get() {
+        val stdlibPath =
+            File(System.getProperty("user.home")).resolve(".cangjie").resolve("stdlib").toPath()
+        val stdlibPathByVersion: Path
+            get() {
 
-            return stdlibPath
-        }
+                return stdlibPath
+            }
 
         init {
             if (!stdlibPath.exists()) {
@@ -326,4 +682,5 @@ private val HttpConfigurable.proxyUri: URI
         return URI("http", userInfo, PROXY_HOST, PROXY_PORT, "/", null, null)
     }
 
-fun String.parseSemVer(): SemVer = checkNotNull(SemVer.parseFromText(this)) { "Invalid version value: $this" }
+fun String.parseSemVer(): SemVer =
+    checkNotNull(SemVer.parseFromText(this)) { "Invalid version value: $this" }

@@ -36,7 +36,7 @@
     <extensions defaultExtensionNs="com.linqingying.lsp">
         <!-- LSP -->
         <serverSupportProvider implementation="com.linqingying.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
-        <markdownFormat implementation="com.linqingying.cangjie.lang.lsp.CangJieLspMarkDownFormat"/>
+<!--        <markdownFormat implementation="com.linqingying.cangjie.lang.lsp.CangJieLspMarkDownFormat"/>-->
 
     </extensions>
 
