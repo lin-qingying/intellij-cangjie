@@ -44,7 +44,7 @@ rootProject.name = "intellij-cangjie"
 
 
 
-include("bnf")
+//include("bnf")
 
 
 include("plugin")
@@ -57,9 +57,9 @@ include("lsp")
 
 
 
-include("idea")
+//include("idea")
 
-include("clion")
+//include("clion")
 
 //include("native-debugger")
 

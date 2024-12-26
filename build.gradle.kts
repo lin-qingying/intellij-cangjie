@@ -24,6 +24,7 @@
 
 import groovy.xml.XmlParser
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.tasks.JarSearchableOptionsTask
 import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -41,8 +42,8 @@ import javax.xml.transform.stream.StreamResult
 plugins {
     idea
 
-    kotlin("jvm") version "1.9.21"
-    id("org.jetbrains.intellij.platform") version "2.1.0"
+    kotlin("jvm") version "2.1.0"
+    id("org.jetbrains.intellij.platform") version "2.2.0"
 //    id("org.jetbrains.intellij.platform.migration") version "2.1.0"
     id("org.jetbrains.grammarkit") version "2022.3.2"
     kotlin("plugin.serialization") version "1.9.21"
@@ -57,7 +58,7 @@ val ideaVersion = "2024.3"
 val cangjiePluginVersion = "3.0.0-beta-9"
 
 
-val kotlinVersion = "1.9.21"
+val kotlinVersion = "2.1.0"
 val tomlPlugin = "org.toml.lang"
 val terminalPlugin = "org.jetbrains.plugins.terminal"
 val nativeDebugPlugin: String = "com.intellij.nativeDebug:243.21565.23"
@@ -196,6 +197,9 @@ allprojects {
 
     tasks {
 
+withType<JarSearchableOptionsTask>{
+
+}
         withType<KotlinCompile> {
             kotlinOptions.jvmTarget = "17"
             kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all", "-Xcontext-receivers")
@@ -208,6 +212,7 @@ allprojects {
         runIde { enabled = false }
         prepareSandbox { enabled = false }
         buildSearchableOptions { enabled = false }
+        prepareJarSearchableOptions  { enabled = false }
 
 
         test {
@@ -372,12 +377,9 @@ val cangjie_plugin_project = project(":plugin") {
         args(
             "buildEventsScheme",
             "--outputFile=${buildDir.resolve("eventScheme.json").absolutePath}",
-            "--pluginId=com.linqingying.cangjie"
+            "--pluginId=linqingying.cangjie-analyzer"
         )
-        // BACKCOMPAT: 2023.1. Update value to 232 and this comment
-        // `IDEA_BUILD_NUMBER` variable is used by `buildEventsScheme` task to write `buildNumber` to output json.
-        // It will be used by TeamCity automation to set minimal IDE version for new events
-//        environment("IDEA_BUILD_NUMBER", "231")
+
     }
 }
 
@@ -428,14 +430,14 @@ project(":") {
     }
 }
 
-project(":bnf") {
-    dependencies {
-
-        implementation(project(":"))
-
+//project(":bnf") {
+//    dependencies {
+//
 //        implementation(project(":"))
-    }
-}
+//
+////        implementation(project(":"))
+//    }
+//}
 
 project(":lsp") {
     dependencies {
