@@ -22,7 +22,7 @@
  *
  */
 
-package com.huawei.cangjie.dapDebugger.runconfig.breakpoint;
+package com.linqingying.cangjie.dapDebugger.runconfig.breakpoint;
 
 import com.linqingying.cangjie.dapDebugger.backend.CjBreakpoint;
 import com.linqingying.cangjie.dapDebugger.backend.CjCodepoint;

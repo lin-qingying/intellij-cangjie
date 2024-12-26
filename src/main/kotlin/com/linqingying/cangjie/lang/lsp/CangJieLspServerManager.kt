@@ -25,17 +25,15 @@
 package com.linqingying.cangjie.lang.lsp
 
 
-import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
-
-import com.linqingying.cangjie.utils.getSavePluginVersion
-import com.linqingying.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
-
+import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
+import com.linqingying.cangjie.utils.getSavePluginVersion
+import com.linqingying.cangjie.utils.savePluginVersion
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path

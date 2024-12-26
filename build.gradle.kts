@@ -174,7 +174,7 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaUltimate, ideaVersion)
+            create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
             instrumentationTools()
 
 //            local(dependencyCachePath)
@@ -277,15 +277,15 @@ val cangjie_plugin_project = project(":plugin") {
             if (!isBuildPlugin()) {
                 plugins(
 
-                    psiViewerPlugin, indexViewPlugin, chinesePlugin,nativeDebugPlugin
+                    psiViewerPlugin, indexViewPlugin, chinesePlugin/*,nativeDebugPlugin*/
                 )
                 bundledPlugins(tomlPlugin)
             }
 
         }
         implementation(project(":"))
-//        implementation(project(":dap-debugger"))
-        implementation(project(":native-debugger"))
+        implementation(project(":dap-debugger"))
+//        implementation(project(":native-debugger"))
 
 //        implementation(project(":inspections"))
 //        implementation(project(":highlighter"))
@@ -491,37 +491,37 @@ project(":utils") {
     }
 }
 
-project(":native-debugger") {
-
-    dependencies {
-        intellijPlatform {
-            plugin(nativeDebugPlugin)
-        }
-        implementation(project(":"))
-    }
-}
-//project(":dap-debugger") {
+//project(":native-debugger") {
 //
-//    apply {
-//
-//        plugin("org.jetbrains.kotlin.plugin.serialization")
-//    }
 //    dependencies {
-//
 //        intellijPlatform {
-//            bundledPlugins(
-//                terminalPlugin
-//            )
+//            plugin(nativeDebugPlugin)
 //        }
 //        implementation(project(":"))
-//
-//
-//        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
-//        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
-//        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-//        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 //    }
 //}
+project(":dap-debugger") {
+
+    apply {
+
+        plugin("org.jetbrains.kotlin.plugin.serialization")
+    }
+    dependencies {
+
+        intellijPlatform {
+            bundledPlugins(
+                terminalPlugin
+            )
+        }
+        implementation(project(":"))
+
+
+        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
+        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    }
+}
 
 
 fun isBuildPlugin(): Boolean {

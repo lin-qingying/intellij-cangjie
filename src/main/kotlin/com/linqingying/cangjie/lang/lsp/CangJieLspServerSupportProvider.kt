@@ -93,13 +93,16 @@ fun checkCangJieFIle(file: VirtualFile): Boolean {
 //    }
 //
 //}
-
+//object aa
 class CangJieLspServerSupportProvider : LspServerSupportProvider {
     override fun fileOpened(
         project: Project,
         file: VirtualFile,
         serverStarter: LspServerSupportProvider.LspServerStarter
     ) {
+
+//        val a:Array<Any> = arrayOf(1,"11",Unit,aa)
+
         if (!CangJieLanguageServerServices.getInstance().lspConfig.enabled) return
 
         val cangjieSettings = project.cangjieSettings

@@ -25,18 +25,6 @@
 package com.linqingying.cangjie.dapDebugger.runconfig
 
 
-import com.huawei.cangjie.dapDebugger.runconfig.breakpoint.CangJieBreakpointHandler
-import com.linqingying.cangjie.dapDebugger.backend.CjBreakpoint
-import com.linqingying.cangjie.dapDebugger.protocol.ProtocolMessage
-import com.linqingying.cangjie.dapDebugger.protocol.event.*
-import com.linqingying.cangjie.dapDebugger.protocol.request.*
-import com.linqingying.cangjie.dapDebugger.protocol.response.*
-import com.linqingying.cangjie.dapDebugger.protocol.type.*
-import com.linqingying.cangjie.dapDebugger.protocol.type.arguments.*
-import com.linqingying.cangjie.dapDebugger.protocol.type.body.RunInTerminalResponseBody
-
-import com.linqingying.cangjie.dapDebugger.runconfig.message.MessageHandler
-import com.linqingying.cangjie.dapDebugger.runconfig.views.CjdbPanel
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfileState
@@ -62,7 +50,6 @@ import com.intellij.ui.content.Content
 import com.intellij.util.Consumer
 import com.intellij.util.ThreeState
 import com.intellij.util.concurrency.QueueProcessor
-
 import com.intellij.xdebugger.*
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
@@ -71,6 +58,17 @@ import com.intellij.xdebugger.frame.*
 import com.intellij.xdebugger.frame.presentation.XValuePresentation
 import com.intellij.xdebugger.impl.ui.ExecutionPointHighlighter
 import com.intellij.xdebugger.ui.XDebugTabLayouter
+import com.linqingying.cangjie.dapDebugger.backend.CjBreakpoint
+import com.linqingying.cangjie.dapDebugger.protocol.ProtocolMessage
+import com.linqingying.cangjie.dapDebugger.protocol.event.*
+import com.linqingying.cangjie.dapDebugger.protocol.request.*
+import com.linqingying.cangjie.dapDebugger.protocol.response.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.arguments.*
+import com.linqingying.cangjie.dapDebugger.protocol.type.body.RunInTerminalResponseBody
+import com.linqingying.cangjie.dapDebugger.runconfig.breakpoint.CangJieBreakpointHandler
+import com.linqingying.cangjie.dapDebugger.runconfig.message.MessageHandler
+import com.linqingying.cangjie.dapDebugger.runconfig.views.CjdbPanel
 import java.io.IOException
 import java.net.SocketException
 import java.nio.file.Paths
@@ -1411,8 +1409,6 @@ class CangJieSuspendContext(
     }
 
 }
-
-
 
 
 class CangJieValue(

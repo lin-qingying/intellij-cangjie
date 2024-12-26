@@ -1,8 +1,10 @@
 <idea-plugin package="com.linqingying.cangjie.debugger">
 
+    <module value="com.linqingying.cangjie.debugger"/>
     <dependencies>
 
         <plugin id="com.intellij.modules.cidr.debugger"/>
+        <plugin id="com.intellij.nativeDebug"/>
 
     </dependencies>
     <extensionPoints>

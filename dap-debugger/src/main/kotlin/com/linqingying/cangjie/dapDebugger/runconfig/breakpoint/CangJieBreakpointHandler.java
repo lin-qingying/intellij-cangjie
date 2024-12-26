@@ -22,7 +22,7 @@
  *
  */
 
-package com.huawei.cangjie.dapDebugger.runconfig.breakpoint;
+package com.linqingying.cangjie.dapDebugger.runconfig.breakpoint;
 
 import com.linqingying.cangjie.dapDebugger.backend.CjBreakpoint;
 import com.linqingying.cangjie.dapDebugger.runconfig.CangJieDebugProcess;
@@ -30,10 +30,8 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.util.PathUtil;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType;
-import com.linqingying.cangjie.dapDebugger.runconfig.breakpoint.CangJieLineBreakpointType;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 

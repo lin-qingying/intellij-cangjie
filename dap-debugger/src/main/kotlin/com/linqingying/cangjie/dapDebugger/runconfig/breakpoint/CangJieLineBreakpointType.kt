@@ -1,11 +1,12 @@
 package com.linqingying.cangjie.dapDebugger.runconfig.breakpoint//package com.linqingying.cangjie.ide.debugger
 
-import com.linqingying.cangjie.dapDebugger.runconfig.CangJieDebuggerCoreBundle
+
 import com.linqingying.cangjie.lang.CangJieFileType
 import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType
+import com.linqingying.cangjie.dapDebugger.runconfig.CangJieDebuggerCoreBundle
 
 //class CangJieLineBreakpointType : CangJieLineBreakpointTypeBase<CangJieLineBreakpointProperties>(
 //     ID,

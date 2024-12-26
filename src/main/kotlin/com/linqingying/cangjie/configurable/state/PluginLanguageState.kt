@@ -25,12 +25,12 @@
 package com.linqingying.cangjie.configurable.state
 
 
-import com.linqingying.cangjie.configurable.LanguageOption
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
+import com.linqingying.cangjie.configurable.LanguageOption
 
 @Service(Service.Level.APP)
 @State(name = "PluginLanguageState", storages = [Storage("PluginLanguageState.xml")])
@@ -47,7 +47,7 @@ class PluginLanguageState : PersistentStateComponent<PluginLanguageState> {
 
     companion object {
         val instance: PluginLanguageState
-            get() =  ApplicationManager.getApplication()
+            get() = ApplicationManager.getApplication()
                 .getService(PluginLanguageState::class.java)
     }
 }
