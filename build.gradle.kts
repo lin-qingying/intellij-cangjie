@@ -22,8 +22,6 @@
  *
  */
 
-import com.google.protobuf.gradle.GenerateProtoTask
-import com.google.protobuf.gradle.id
 import groovy.xml.XmlParser
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
@@ -56,7 +54,7 @@ plugins {
 //IDEA版本
 val ideaVersion = "2024.3"
 //插件版本
-val cangjiePluginVersion = "3.0.0-beta-8"
+val cangjiePluginVersion = "3.0.0-beta-9"
 
 
 val kotlinVersion = "1.9.21"
