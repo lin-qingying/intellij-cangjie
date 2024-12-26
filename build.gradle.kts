@@ -121,14 +121,7 @@ protobuf {
     }
     generateProtoTasks {
         all().forEach { task ->
-            task.builtins {
-                // 配置生成选项
 
-                java {
-
-
-                }
-            }
             // 可选：设置输出目录
             task.outputs.upToDateWhen { false } // 始终生成新的输出
         }
@@ -143,7 +136,7 @@ allprojects {
         plugin("kotlin")
         plugin("org.jetbrains.grammarkit")
         plugin("org.jetbrains.intellij.platform")
-//        plugin("plugin.serialization")
+
         plugin("org.gradle.test-retry")
     }
     intellijPlatform {
@@ -157,10 +150,7 @@ allprojects {
         mavenCentral()
         maven {
             setUrl("https://jitpack.io")
-//        credentials { username authToken }
-//        credentials {
-//
-//        }
+
         }
 
         intellijPlatform {
@@ -179,15 +169,12 @@ allprojects {
         }
 
 
-// https://mvnrepository.com/artifact/com.jetbrains.intellij.platform/test-framework-core
-//        implementation("com.jetbrains.intellij.platform:test-framework-core:242.23726.103")
 
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
         implementation("com.google.protobuf:protobuf-java:3.24.4-jb.2")
 
-        // https://mvnrepository.com/artifact/com.google.protobuf/protobuf-javalite
-//        implementation("com.google.protobuf:protobuf-javalite:3.24.4-jb.2")
+
 
         // https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api
         implementation("jakarta.inject:jakarta.inject-api:2.0.1")
@@ -268,33 +255,19 @@ val cangjie_plugin_project = project(":plugin") {
 //    group = "com.linqingying.cangjie"
     version = cangjiePluginVersion
     dependencies {
-
         intellijPlatform {
-
-
             if (!isBuildPlugin()) {
                 plugins(
-
                     psiViewerPlugin, indexViewPlugin, chinesePlugin/*,nativeDebugPlugin*/
                 )
                 bundledPlugins(tomlPlugin)
             }
-
         }
         implementation(project(":"))
         implementation(project(":dap-debugger"))
 //        implementation(project(":native-debugger"))
 
-//        implementation(project(":inspections"))
-//        implementation(project(":highlighter"))
-//        implementation(project(":descriptors"))
-//        implementation(project(":lsp"))
-//        implementation(project(":lsp4j"))
 
-//        api("com.squareup.moshi:moshi-adapters:1.15.0")
-//        api("com.squareup.moshi:moshi-kotlin:1.15.0")
-//        implementation(project(":debugger"))
-//        implementation(project(":debugger1"))
     }
 
 
@@ -566,9 +539,6 @@ fun prop(name: String): String =
     extra.properties[name] as? String
         ?: error("Property `$name` is not defined in gradle.properties")
 
-//afterEvaluate {
-//    updatePluginXmlFile()
-//}
 
 /**
  * 修改plugin.xml文件

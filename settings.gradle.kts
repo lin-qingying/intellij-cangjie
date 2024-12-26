@@ -49,13 +49,11 @@ include("bnf")
 
 include("plugin")
 include("utils")
-//include("gradle-util")
 
 
 
 //lsp支持
 include("lsp")
-//include("lsp1")
 
 
 
