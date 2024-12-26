@@ -1395,13 +1395,9 @@ class CangJieSuspendContext(
     }
 
     override fun getExecutionStacks(): Array<XExecutionStack> {
-//        return executionStacks.toList().toArray { size ->
-//            arrayOfNulls(size)
-//        }
 
-        return executionStacks.values.toArray { size ->
-            arrayOfNulls(size)
-        }
+
+        return executionStacks.values.toTypedArray()
     }
 
     override fun getActiveExecutionStack(): XExecutionStack? {

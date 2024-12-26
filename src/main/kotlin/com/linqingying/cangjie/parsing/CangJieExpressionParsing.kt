@@ -447,7 +447,7 @@ open class CangJieExpressionParsing(
                 advance()
 //                cangJieParsing.parseBasicType()
                 mark.done(BASIC_REFERENCE_EXPRESSION)
-true
+                true
             } else
 
                 if (at(VARRAY_KEYWORD)) {
@@ -2669,9 +2669,9 @@ true
 
         advance()
 
-        parseCallWithClosure()
+//        parseCallWithClosure()
 
-
+        cangJieParsing.parseBlock()
         unsafe.done(UNSAFE_EXPRESSION)
     }
 
@@ -3060,7 +3060,7 @@ true
                 IDENTIFIER,  // SimpleName
                 LBRACKET,// Collection literal expression
 //                UNSAFE_EXPRESSION
-//                UNSAFE_KEYWORD
+                UNSAFE_KEYWORD,
 
 
                 //线程

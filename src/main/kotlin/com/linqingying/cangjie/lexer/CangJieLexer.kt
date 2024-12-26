@@ -25,8 +25,6 @@
 package com.linqingying.cangjie.lexer
 
 import com.intellij.lexer.FlexAdapter
-import com.intellij.psi.tree.IElementType
-import java.util.*
 
 
 class CangJieLexer : FlexAdapter(_JetLexer()) {
