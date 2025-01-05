@@ -1,0 +1,9 @@
+
+<!--<idea-plugin package="com.linqingying.cangjie.nativeDebug" xmlns:xi="http://www.w3.org/2001/XInclude">-->
+<!--    &lt;!&ndash;suppress PluginXmlValidity &ndash;&gt;-->
+<!--    <dependencies>-->
+<!--        <module name="com.linqingying.cangjie.debugger"/>-->
+
+<!--        <plugin id="com.intellij.nativeDebug"/>-->
+<!--    </dependencies>-->
+<!--</idea-plugin>-->

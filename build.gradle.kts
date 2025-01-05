@@ -263,14 +263,15 @@ val cangjie_plugin_project = project(":plugin") {
         intellijPlatform {
             if (!isBuildPlugin()) {
                 plugins(
-                    psiViewerPlugin, indexViewPlugin, chinesePlugin/*,nativeDebugPlugin*/
+                    psiViewerPlugin, indexViewPlugin, chinesePlugin ,/*nativeDebugPlugin*/
                 )
                 bundledPlugins(tomlPlugin)
             }
         }
         implementation(project(":"))
-        implementation(project(":dap-debugger"))
+//        implementation(project(":dap-debugger"))
 //        implementation(project(":native-debugger"))
+        implementation(project(":dap-debugger1"))
 
 
     }
@@ -463,7 +464,7 @@ project(":utils") {
 
     }
 }
-
+//
 //project(":native-debugger") {
 //
 //    dependencies {
@@ -495,7 +496,25 @@ project(":dap-debugger") {
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     }
 }
+project(":dap-debugger1") {
 
+    apply {
+
+
+    }
+    dependencies {
+
+        intellijPlatform {
+
+        }
+        implementation(project(":"))
+
+        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.22.0")
+
+
+
+    }
+}
 
 fun isBuildPlugin(): Boolean {
     return "buildPlugin" in gradle.startParameter.taskNames
