@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.*
 import com.intellij.psi.impl.PsiManagerEx
 import com.intellij.psi.impl.source.tree.FileElement
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.testFramework.LightVirtualFile
 import java.util.LinkedHashSet
@@ -76,11 +77,15 @@ abstract class CjCodeFragment(
             initImports(imports)
         }
     }
+    private var forcedResolveScope: GlobalSearchScope? = null
+    override fun getForcedResolveScope(): GlobalSearchScope? = forcedResolveScope
 
     final override fun init(elementType: IElementType, contentElementType: IElementType?) {
         super.init(elementType, contentElementType)
     }
-
+    override fun forceResolveScope(scope: GlobalSearchScope?) {
+        forcedResolveScope = scope
+    }
 
     private var isPhysical = true
 

@@ -1,45 +1,34 @@
 package com.linqingying.cangjie.dapDebugger1.runconfig
 
-import com.linqingying.cangjie.lang.CangJieFileType
+import com.intellij.lang.Language
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.*
+import com.intellij.xdebugger.XExpression
 import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
+import com.intellij.xdebugger.evaluation.XDebuggerEditorsProviderBase
+import com.linqingying.cangjie.lang.CangJieFileType
+import com.linqingying.cangjie.lang.CangJieLanguage
+import com.linqingying.cangjie.psi.CjPsiFactory
 
-class CangJieDebuggerEditorsProvider : XDebuggerEditorsProvider() {
+class CangJieDebuggerEditorsProvider : XDebuggerEditorsProviderBase() {
     override fun getFileType(): FileType = CangJieFileType.INSTANCE
 
 
-    @Deprecated("Deprecated in Java")
-    override fun createDocument(
+    override fun createExpressionCodeFragment(
         project: Project,
         text: String,
-        sourcePosition: XSourcePosition?,
-        mode: EvaluationMode
-    ): Document {
-        return PsiDocumentManager.getInstance(project).getDocument(
-            PsiFileFactory.getInstance(project).createFileFromText(
-                PlainTextLanguage.INSTANCE, text
-            )
-        ) ?: error("Unable to create plain text document for expression")
+        context: PsiElement?,
+        isPhysical: Boolean
+    ): PsiFile {
+        val psiFactory = CjPsiFactory(project)
+        return psiFactory.createExpressionCodeFragment(text, context)
     }
 
 
-//    override fun createExpressionCodeFragment(
-//        project: Project,
-//        text: String,
-//        context: PsiElement?,
-//        isPhysical: Boolean
-//    ): PsiFile? {
-////        return null
-//        val psiFactory = CjPsiFactory(project)
-//        return psiFactory.createExpressionCodeFragment(text, context)
-////        return null
-//    }
 }
 

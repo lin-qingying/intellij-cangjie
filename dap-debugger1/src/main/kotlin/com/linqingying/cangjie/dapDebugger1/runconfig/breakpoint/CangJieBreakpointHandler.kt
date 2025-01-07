@@ -19,14 +19,14 @@ class CangJieBreakpointHandler(
     private val debugProcess: CangJieDebugProcess
 ) : XBreakpointHandler<XLineBreakpoint<CangJieLineBreakpointType.Properties>>(CangJieLineBreakpointType::class.java) {
 
-    private val activeBreakpoints = ConcurrentHashMap<String, MutableList<XLineBreakpoint<CangJieLineBreakpointType.Properties>>>()
+    private val activeBreakpoints = ConcurrentHashMap<String, MutableSet<XLineBreakpoint<CangJieLineBreakpointType.Properties>>>()
     private var breakpointsEnabled = true
 
     override fun registerBreakpoint(breakpoint: XLineBreakpoint<CangJieLineBreakpointType.Properties>) {
         val file = breakpoint.sourcePosition?.file ?: return
         val filePath = file.path
 
-        activeBreakpoints.computeIfAbsent(filePath) { mutableListOf() }.add(breakpoint)
+        activeBreakpoints.computeIfAbsent(filePath) { mutableSetOf() }.add(breakpoint)
 
         if (breakpoint.isEnabled) {
             updateBreakpoints(filePath)

@@ -45,7 +45,7 @@ import com.linqingying.cangjie.psi.stubs.elements.CjTokenSets
 
 interface CangJieFile
 
-open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = false) :
+open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = false,val isCodeFragment: Boolean = false) :
     PsiFileBase(viewProvider, CangJieLanguage),
 
     PsiNamedElement,

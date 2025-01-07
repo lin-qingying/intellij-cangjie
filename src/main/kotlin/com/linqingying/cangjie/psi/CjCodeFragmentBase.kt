@@ -24,4 +24,6 @@
 
 package com.linqingying.cangjie.psi
 
-interface CjCodeFragmentBase
+import com.intellij.psi.PsiCodeFragment
+
+interface CjCodeFragmentBase : PsiCodeFragment

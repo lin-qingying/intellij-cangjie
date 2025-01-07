@@ -26,10 +26,16 @@ package com.linqingying.cangjie.psi
 
 import com.linqingying.cangjie.CjNodeTypes
 import com.intellij.openapi.project.Project
+import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
+import com.intellij.psi.search.GlobalSearchScope
 
-
-class CjExpressionCodeFragment(
+/**
+ * 表达式代码片段
+ *
+ *
+ */
+open class CjExpressionCodeFragment(
     project: Project,
     name: String,
     text: CharSequence,
@@ -38,4 +44,7 @@ class CjExpressionCodeFragment(
 ) : CjCodeFragment(project, name, text, imports, CjNodeTypes.EXPRESSION_CODE_FRAGMENT, context) {
 
     override fun getContentElement() = findChildByClass(CjExpression::class.java)
+
+
 }
+

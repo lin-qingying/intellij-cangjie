@@ -1144,6 +1144,7 @@ public class CangJieParsing extends AbstractCangJieParsing {
     }
 
     void parseExpressionCodeFragment() {
+
         PsiBuilder.Marker marker = mark();
         myExpressionParsing.parseExpression();
 

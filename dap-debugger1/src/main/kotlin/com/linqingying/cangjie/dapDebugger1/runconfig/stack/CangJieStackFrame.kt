@@ -17,11 +17,13 @@ import org.eclipse.lsp4j.debug.StackFrame
 import org.eclipse.lsp4j.debug.ScopesArguments
 import org.eclipse.lsp4j.debug.VariablesArguments
 import java.util.concurrent.CompletableFuture
+import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
+import com.linqingying.cangjie.dapDebugger1.runconfig.evaluator.CangJieEvaluator
 
 class CangJieStackFrame(
-    private val debugProcess: CangJieDebugProcess,
-    private val threadId: Long,
-    private val stackFrame: StackFrame
+      val debugProcess: CangJieDebugProcess,
+      val threadId: Long,
+    val stackFrame: StackFrame
 ) : XStackFrame() {
 
     private var loadingVariables = false
@@ -99,6 +101,10 @@ class CangJieStackFrame(
     }
 
     override fun getEqualityObject(): Any = stackFrame.id ?: 0
+
+    override fun getEvaluator(): XDebuggerEvaluator? {
+        return CangJieEvaluator(this)
+    }
 
     companion object {
         fun create(debugProcess: CangJieDebugProcess, threadId: Long, stackFrame: StackFrame): CangJieStackFrame {

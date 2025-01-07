@@ -1,25 +1,21 @@
 package com.linqingying.cangjie.dapDebugger1.runconfig.variables
 
-import com.intellij.xdebugger.frame.*
+import com.intellij.xdebugger.frame.XCompositeNode
+import com.intellij.xdebugger.frame.XValue
+import com.intellij.xdebugger.frame.XValueNode
+import com.intellij.xdebugger.frame.XValuePlace
 import com.intellij.xdebugger.frame.presentation.XValuePresentation
+import com.intellij.xdebugger.frame.XValueChildrenList
 import com.linqingying.cangjie.dapDebugger1.runconfig.CangJieDebugProcess
 import org.eclipse.lsp4j.debug.Variable
 import org.eclipse.lsp4j.debug.VariablesArguments
 import javax.swing.Icon
 
-
-//abstract class AbstractCangJieVariable
-//{
-//    open fun computeChildren(node: XCompositeNode){
-//
-//    }
-//
-//}
-class CangJieVariable(
+class CangJieWatchExpression(
     private val debugProcess: CangJieDebugProcess,
-    private val name: String,
+    private val expression: String,
     private val variable: Variable
-) : XNamedValue(name) {
+) : XValue() {
 
     private var loadingChildren = false
 
@@ -42,9 +38,6 @@ class CangJieVariable(
     override fun computeChildren(node: XCompositeNode) {
         if (variable.variablesReference <= 0 || loadingChildren) return
         loadingChildren = true
-
-        // 显示加载中消息
-//        node.setErrorMessage("Loading...")
 
         debugProcess.getConnection().getServer().variables(VariablesArguments().apply {
             variablesReference = variable.variablesReference

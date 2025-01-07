@@ -35,6 +35,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
+import com.linqingying.cangjie.CjNodeTypes.CJ_FILE
 import org.jetbrains.annotations.NotNull
 
 
@@ -67,7 +68,7 @@ class CangJieParser(project: Project) : PsiParser {
         }
 
         @JvmStatic
-        fun parseExpressionCodeFragment(psiBuilder: PsiBuilder): ASTNode {
+        fun parseExpressionCodeFragment(psiBuilder: PsiBuilder): ASTNode  {
             val cjParsing: CangJieParsing =
                 createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder)
@@ -100,7 +101,12 @@ class CangJieParser(project: Project) : PsiParser {
 
             val extension = FileUtilRt.getExtension(psiFile.name)
             if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
-
+//                if (psiFile is CjFile) {
+//                    if (psiFile.isCodeFragment) {
+//                        psiBuilder.mark().done(CJ_FILE)
+//                        return psiBuilder.treeBuilt
+//                    }
+//                }
                 cjParsing.setDeclarationsFile(false)
                 cjParsing.parseFile()
 
