@@ -57,6 +57,7 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
 
     //    TODO 功能是否与父类一致？
 //   TODO  由于内部api，面板需要更改
+    @Deprecated("Deprecated in Java")
     override fun getDefaultCommonSettings(): CommonCodeStyleSettings = CangJieCommonCodeStyleSettings().apply {
         initIndentOptions()
     }

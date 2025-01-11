@@ -164,7 +164,7 @@ HEX_FLOATING_POINT_LITERAL3= 0[xX]({HEX_DIGIT_OR_UNDERSCORE})+ "p"({DIGIT})+
 EXPONENT_PART=[Ee]["-"]?({DIGIT_OR_UNDERSCORE})*
 
 // TODO: 引入符号(例如‘foo)作为编写字符串文字的另一种方式
-ESCAPE_SEQUENCE=\\u\{ {HEX_DIGIT}{1,8} \}
+ESCAPE_SEQUENCE=\\(u\{ {HEX_DIGIT}{1,8} \} | [^\n])  //\n 是特殊匹配
 
 
 
@@ -206,7 +206,7 @@ SINGLE_QUO = \'
 //双引号
 DOUBLE_QUO = \"
 
-REGULAR_STRING_PART=[^\\\"\n\$]+
+
 REGULAR_STRING_PART_DOUBLE=[^\\\"\n\$]+
 REGULAR_STRING_PART_SINGLE=[^\\\'\n\$]+
 INTERPOLATION = \$+

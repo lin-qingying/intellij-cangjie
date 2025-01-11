@@ -66,9 +66,11 @@ class UnsafeExpressionResolver(
 
     fun resolveUnsafeExpression(expression: CjUnsafeExpression, context: ExpressionTypingContext): CangJieTypeInfo {
 
+        val context = context.replaceProcessingMode(ProcessingMode.PARENT)
 
         val typeInfo = expression.block?.let { facade.getTypeInfo(it,context) } ?: noTypeInfo(context)
-        val context = context.replaceProcessingMode(ProcessingMode.PARENT)
+return typeInfo
+
 //        val callExpression = CjCallExpression(expression.node)
 //
 //        val call = CallMaker.makeCallForUnsafeExpression(expression)
@@ -82,7 +84,7 @@ class UnsafeExpressionResolver(
 //        }
 
 
-TODO()
+
 //        return createTypeInfo(resolutionResults.resultingDescriptor.returnType, context)
 
 

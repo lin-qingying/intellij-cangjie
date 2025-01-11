@@ -11,14 +11,14 @@ class PackagerResolver(
     private val moduleDescriptor: ModuleDescriptor
 ) {
     fun check(c: TopDownAnalysisContext) {
-//        val packageFqNames = c.files.map { it.packageFqName }
-//        val packageViews = packageFqNames.map { moduleDescriptor.getPackage(it) }
-//
-//       packageViews
-        val packageView = moduleDescriptor.getPackage(c.files.first().packageFqName)
+        c.files.firstOrNull()?.let {
+            val packageView = moduleDescriptor.getPackage(it.packageFqName)
 
-//
-        checkPackageLevel(c.files.first())
+
+            checkPackageLevel(it)
+        }
+//       packageViews
+
 
     }
 

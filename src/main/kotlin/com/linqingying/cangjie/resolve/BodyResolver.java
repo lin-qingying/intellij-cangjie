@@ -969,7 +969,7 @@ public class BodyResolver {
             @Nullable Function1<LexicalScope, DataFlowInfo> beforeBlockBody,
             // Creates wrapper scope for header resolution if necessary (see resolveSecondaryConstructorBody)
             @Nullable Function1<LexicalScope, LexicalScope> headerScopeFactory,
-//            ,
+
             @Nullable ExpressionTypingContext localContext
     ) {
         ProgressManager.checkCanceled();
@@ -978,14 +978,14 @@ public class BodyResolver {
         LexicalScope innerScope = FunctionDescriptorUtil.getFunctionInnerScope(scope, functionDescriptor, trace, overloadChecker);
         List<CjParameter> valueParameters = function.getValueParameters();
         List<ValueParameterDescriptor> valueParameterDescriptors = functionDescriptor.getValueParameters();
-//
+
         LexicalScope headerScope = headerScopeFactory != null ? headerScopeFactory.invoke(innerScope) : innerScope;
         valueParameterResolver.resolveValueParameters(
                 valueParameters, valueParameterDescriptors, headerScope, outerDataFlowInfo, trace,
                 localContext != null ? localContext.inferenceSession : null
         );
 
-//         Synthetic "field" creation
+
         if (functionDescriptor instanceof PropertyAccessorDescriptor accessorDescriptor && functionDescriptor.getExtensionReceiverParameter() == null
                 && functionDescriptor.getContextReceiverParameters().isEmpty()) {
             CjProperty property = (CjProperty) function.getParent().getParent();

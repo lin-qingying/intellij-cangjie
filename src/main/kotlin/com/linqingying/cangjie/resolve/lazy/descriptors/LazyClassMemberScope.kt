@@ -468,7 +468,7 @@ open class LazyClassMemberScope(
                 thisDescriptor.scopeForConstructorHeaderResolution, thisDescriptor,
                 constructor, trace, c.languageVersionSettings, c.inferenceSession, true
             )
-            setDeferredReturnType(descriptor)
+//            setDeferredReturnType(descriptor)
             descriptor
         }
     }

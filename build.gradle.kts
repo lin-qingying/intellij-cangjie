@@ -46,7 +46,7 @@ plugins {
 //IDEA版本
 val ideaVersion = "2024.3"
 //插件版本
-val cangjiePluginVersion = "3.0.0-beta-9"
+val cangjiePluginVersion = "3.0.1-beta-1"
 
 
 val kotlinVersion = "2.1.0"
@@ -154,8 +154,8 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaUltimate, ideaVersion)
-            instrumentationTools()
+            create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
+//            instrumentationTools()
 
 //            local(dependencyCachePath)
         }

@@ -240,7 +240,7 @@ public interface CjNodeTypes {
 
     IElementType PROPERTY_ACCESSOR = CjStubElementTypes.PROPERTY_ACCESSOR;
     IElementType ERROR_ELEMENT = new CjNodeType("ERROR_ELEMENT", CjErrorElement.class);
-
+    IElementType END_SECONDARY_CONSTRUCTOR = CjStubElementTypes.END_SECONDARY_CONSTRUCTOR;
     IElementType SECONDARY_CONSTRUCTOR = CjStubElementTypes.SECONDARY_CONSTRUCTOR;
     IElementType PRIMARY_CONSTRUCTOR = CjStubElementTypes.PRIMARY_CONSTRUCTOR;
     IElementType CONTEXT_RECEIVER_LIST = CjStubElementTypes.CONTEXT_RECEIVER_LIST;

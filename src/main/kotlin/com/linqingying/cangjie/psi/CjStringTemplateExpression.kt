@@ -34,12 +34,12 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.util.IncorrectOperationException
 import java.util.regex.Pattern
 
-class CjStringTemplateExpression : CjElementImplStub<CangJiePlaceHolderStub<CjStringTemplateExpression > >,
+class CjStringTemplateExpression : CjElementImplStub<CangJiePlaceHolderStub<CjStringTemplateExpression>>,
     CjExpression,
     PsiLanguageInjectionHost, ContributedReferenceHost {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjStringTemplateExpression >) : super(
+    constructor(stub: CangJiePlaceHolderStub<CjStringTemplateExpression>) : super(
         stub,
         CjStubElementTypes.STRING_TEMPLATE
     )
@@ -136,8 +136,10 @@ class CjStringTemplateExpression : CjElementImplStub<CangJiePlaceHolderStub<CjSt
     companion object {
         private val CLOSE_QUOTE_TOKEN_SET = TokenSet.create(CjTokens.CLOSING_QUOTE)
         private val STRING_ENTRIES_TYPES = TokenSet.create(
-            CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY
-
+            CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY,
+            CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY,
+            CjStubElementTypes.LITERAL_STRING_TEMPLATE_ENTRY,
+            CjStubElementTypes.ESCAPE_STRING_TEMPLATE_ENTRY
         )
     }
 }

@@ -602,7 +602,7 @@ open class CangJieExpressionParsing(
 
             //元组
 //            TUPLE_LTIERAL_Id -> parseTupleLiteralExpression()
-
+UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             //字面量
             LPAR_Id -> parseParenthesizedExpression()
 //            //索引

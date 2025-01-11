@@ -269,9 +269,6 @@ class FunctionDescriptorResolver(
             isEnd
         )
         constructorDescriptor.isExpect = classDescriptor.isExpect
-//        constructorDescriptor.isActual = modifierList?.hasActualModifier() == true ||
-//                // We don't require 'actual' for constructors of actual annotations
-//                classDescriptor.kind == ClassKind.ANNOTATION_CLASS && classDescriptor.isActual
         val parameterScope = LexicalWritableScope(
             scope,
             constructorDescriptor,
@@ -292,7 +289,13 @@ class FunctionDescriptorResolver(
                 )
             )
         )
-        constructor.returnType = classDescriptor.defaultType
+        if( isEnd){
+            constructor.returnType = builtIns.unitType
+
+        }else{
+            constructor.returnType = classDescriptor.defaultType
+
+        }
 //        if (DescriptorUtils.isAnnotationClass(classDescriptor)) {
 //            CompileTimeConstantUtils.checkConstructorParametersType(valueParameters, trace)
 //        }
