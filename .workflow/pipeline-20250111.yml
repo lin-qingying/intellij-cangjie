@@ -1,0 +1,34 @@
+version: '1.0'
+name: pipeline-20250111
+displayName: 构建插件
+triggers:
+  trigger: auto
+  push:
+    branches:
+      precise:
+        - analyze
+stages:
+  - name: stage-8f1827b7
+    displayName: 构建插件
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: build@gradle
+        name: build_gradle
+        displayName: Gradle 构建
+        jdkVersion: '17'
+        gradleVersion: '4.4'
+        commands:
+          - '# Gradle默认构建命令'
+          - chmod +x ./gradlew
+          - ./gradlew build
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./target
+        caches:
+          - ~/.gradle/caches
+        notify: []
+        strategy:
+          retry: '0'
