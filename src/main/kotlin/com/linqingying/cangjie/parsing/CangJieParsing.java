@@ -627,20 +627,11 @@ public class CangJieParsing extends AbstractCangJieParsing {
 
     void parseScript() {
         PsiBuilder.Marker fileMarker = mark();
-        fileMarker.done(CJ_FILE);
+        fileMarker.done(CJ_SCRIPT);
+
 
     }
 
-//    public void parseDeclarationsFile() {
-//        isDeclarationsFile = true;
-//        parseFile();
-//    }
-//
-//
-//    void parseCjFile() {
-//        isDeclarationsFile = false;
-//        parseFile();
-//    }
 
     //入口
     void parseFile() {

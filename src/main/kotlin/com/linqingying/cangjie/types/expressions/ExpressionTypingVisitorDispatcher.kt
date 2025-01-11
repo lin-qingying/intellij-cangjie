@@ -423,13 +423,9 @@ import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
     }
 
     override fun visitSpawnExpression(expression: CjSpawnExpression, data: ExpressionTypingContext): CangJieTypeInfo {
-//       if(data.config.getProcessingMode() == ProcessingMode.PARENT) {
-//           return super.visitSpawnExpression(expression, data);
-//       }else {
+
         return components.spawnExpressionResolver.resolveSpawnExpression(expression, data)
 
-
-        //       }
     }
 
     override fun visitUnsafeExpression(expression: CjUnsafeExpression, data: ExpressionTypingContext): CangJieTypeInfo {

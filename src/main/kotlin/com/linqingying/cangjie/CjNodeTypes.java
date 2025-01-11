@@ -98,6 +98,8 @@ public interface CjNodeTypes {
     IElementType FOREIGN_BODY = CjStubElementTypes.FOREIGN_BODY;
     IElementType FUNC = CjStubElementTypes.FUNCTION;
     IElementType FUNC_EXTEND = CjStubElementTypes.FUNCTION_EXTEND;
+    IElementType CJ_SCRIPT = CjStubElementTypes.CJ_SCRIPT;
+
     IFileElementType CJ_FILE = new IFileElementType(CangJieLanguage.INSTANCE);
     IElementType BLOCK = new BlockExpressionElementType();
     IElementType CASE_BLOCK = new CaseBlockExpressionElementType();

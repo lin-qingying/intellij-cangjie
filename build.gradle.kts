@@ -23,33 +23,24 @@
  */
 
 import groovy.xml.XmlParser
+import org.gradle.kotlin.dsl.KotlinClosure2
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.tasks.JarSearchableOptionsTask
 import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.w3c.dom.Document
-import org.w3c.dom.Element
-import java.io.ByteArrayOutputStream
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.OutputKeys
-import javax.xml.transform.TransformerConfigurationException
-import javax.xml.transform.TransformerException
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
 
 plugins {
     idea
 
     kotlin("jvm") version "2.1.0"
     id("org.jetbrains.intellij.platform") version "2.2.0"
-//    id("org.jetbrains.intellij.platform.migration") version "2.1.0"
+
     id("org.jetbrains.grammarkit") version "2022.3.2"
     kotlin("plugin.serialization") version "1.9.21"
     id("org.gradle.test-retry") version "1.5.3"
     id("com.google.protobuf") version "0.9.3"
-//    id("antlr")
+
 
 }
 //IDEA版本
@@ -163,7 +154,7 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
+            create(IntelliJPlatformType.IntellijIdeaUltimate, ideaVersion)
             instrumentationTools()
 
 //            local(dependencyCachePath)
@@ -174,7 +165,6 @@ allprojects {
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
         implementation("com.google.protobuf:protobuf-java:3.24.4-jb.2")
-
 
 
         // https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api
@@ -197,9 +187,9 @@ allprojects {
 
     tasks {
 
-withType<JarSearchableOptionsTask>{
+        withType<JarSearchableOptionsTask> {
 
-}
+        }
         withType<KotlinCompile> {
             kotlinOptions.jvmTarget = "17"
             kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all", "-Xcontext-receivers")
@@ -212,7 +202,7 @@ withType<JarSearchableOptionsTask>{
         runIde { enabled = false }
         prepareSandbox { enabled = false }
         buildSearchableOptions { enabled = false }
-        prepareJarSearchableOptions  { enabled = false }
+        prepareJarSearchableOptions { enabled = false }
 
 
         test {
@@ -244,7 +234,7 @@ withType<JarSearchableOptionsTask>{
 }
 
 
-val cangjie_plugin_project = project(":plugin") {
+project(":plugin") {
     intellijPlatform {
 
         pluginConfiguration {
@@ -263,7 +253,7 @@ val cangjie_plugin_project = project(":plugin") {
         intellijPlatform {
             if (!isBuildPlugin()) {
                 plugins(
-                    psiViewerPlugin, indexViewPlugin, chinesePlugin ,/*nativeDebugPlugin*/
+                    psiViewerPlugin, indexViewPlugin, chinesePlugin,/* nativeDebugPlugin*/
                 )
                 bundledPlugins(tomlPlugin)
             }
@@ -431,14 +421,6 @@ project(":") {
     }
 }
 
-//project(":bnf") {
-//    dependencies {
-//
-//        implementation(project(":"))
-//
-////        implementation(project(":"))
-//    }
-//}
 
 project(":lsp") {
     dependencies {
@@ -448,15 +430,6 @@ project(":lsp") {
 //        implementation(project(":"))
     }
 }
-//
-//project(":lsp1") {
-//    dependencies {
-//        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
-//        implementation(project(":utils"))
-//
-////        implementation(project(":"))
-//    }
-//}
 
 project(":utils") {
     dependencies {
@@ -464,16 +437,16 @@ project(":utils") {
 
     }
 }
-//
-//project(":native-debugger") {
-//
-//    dependencies {
-//        intellijPlatform {
-//            plugin(nativeDebugPlugin)
-//        }
-//        implementation(project(":"))
-//    }
-//}
+
+project(":native-debugger") {
+
+    dependencies {
+        intellijPlatform {
+            plugin(nativeDebugPlugin)
+        }
+        implementation(project(":"))
+    }
+}
 project(":dap-debugger") {
 
     apply {
@@ -510,7 +483,6 @@ project(":dap-debugger1") {
         implementation(project(":"))
 
         implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.22.0")
-
 
 
     }
@@ -559,114 +531,4 @@ fun <T : ModuleDependency> T.excludeKotlinDeps() {
 fun prop(name: String): String =
     extra.properties[name] as? String
         ?: error("Property `$name` is not defined in gradle.properties")
-
-
-/**
- * 修改plugin.xml文件
- */
-fun updatePluginXmlFile() {
-    // Instantiate the Factory
-    val dbf = DocumentBuilderFactory.newInstance()
-    try {
-
-        val pluginPath = this.cangjie_plugin_project.projectDir
-
-        val pluginXmlFile = pluginPath.resolve("src/main/resources/META-INF/plugin.xml")
-        val xmlDoc = dbf.newDocumentBuilder().parse(pluginXmlFile)
-        xmlDoc.documentElement.normalize()
-
-        val content = xmlDoc.getElementsByTagName("content").item(0) as Element
-        val moduleList = content.getElementsByTagName("module")
-
-
-//        需要删除节点属性的值
-        val attsStrs = listOf(
-
-            "com.linqingying.cangjie.nativeDebug",
-            "com.linqingying.cangjie.debugger",
-            "com.linqingying.cangjie.dapDebugger"
-        )
-
-
-        // 需要删除的节点
-        val removeNodeList = mutableListOf<Element>()
-        for (i in 0 until moduleList.length) {
-            val module = moduleList.item(i) as Element
-            val attrName = module.getAttribute("name")
-            if (attsStrs.contains(attrName)) {
-                removeNodeList.add(module)
-            }
-        }
-        removeNodeList.forEach {
-            content.removeChild(it)
-        }
-
-
-        val node = xmlDoc.createElement("module")
-        node.setAttributeNode(xmlDoc.createAttribute("name")?.apply {
-            nodeValue = "com.linqingying.cangjie.dapDebugger"
-        })
-        content.appendChild(node)
-
-
-
-        writeXmlToFile(xmlDoc, pluginXmlFile)
-
-    } catch (e: Throwable) {
-        e.printStackTrace()
-    }
-}
-
-/**
- * Document 转换为 String 并且进行了格式化缩进
- *
- * @param doc XML的Document对象
- * @return String
- */
-
-fun docToString(doc: Document?): String {
-    // XML转字符串
-    var xmlStr = ""
-    try {
-        val tf = TransformerFactory.newInstance()
-        val t = tf.newTransformer()
-        t.setOutputProperty("encoding", "UTF-8") // 解决中文问题，试过用GBK不行
-        val bos = ByteArrayOutputStream()
-        t.transform(DOMSource(doc), StreamResult(bos))
-        xmlStr = bos.toString()
-        xmlStr = xmlStr.replace("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>", "")
-
-    } catch (e: TransformerConfigurationException) {
-        // TODO Auto-generated catch block
-        e.printStackTrace()
-    } catch (e: TransformerException) {
-        // TODO Auto-generated catch block
-        e.printStackTrace()
-    }
-    return xmlStr
-}
-
-/**
- * 将xml重新写入文件
- */
-fun writeXmlToFile(doc: Document, file: File) {
-    val xmlstr = docToString(doc)
-//    清空文件
-    file.writeText("")
-    file.appendText(xmlstr)
-}
-
-
-fun generateXml(doc: Document, file: File) {
-    // Instantiate the Transformer
-    val transformerFactory = TransformerFactory.newInstance()
-    val transformer = transformerFactory.newTransformer()
-
-    // pretty print
-    transformer.setOutputProperty(OutputKeys.INDENT, "yes")
-    val source = DOMSource(doc)
-    val result = StreamResult(file)
-    transformer.transform(source, result)
-}
-
 

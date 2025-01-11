@@ -24,7 +24,7 @@
 
 
 pluginManagement {
-//    includeBuild("gradle-util")
+
 
     repositories {
 
@@ -44,12 +44,9 @@ rootProject.name = "intellij-cangjie"
 
 
 
-//include("bnf")
-
 
 include("plugin")
 include("utils")
-
 
 
 //lsp支持
@@ -57,11 +54,8 @@ include("lsp")
 
 
 
-//include("idea")
 
-//include("clion")
-
-//include("native-debugger")
+include("native-debugger")
 
 include("dap-debugger")
 

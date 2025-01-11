@@ -166,7 +166,7 @@ class CangJieParserDefinition : ParserDefinition {
     }
 
 
-    override fun createFile(viewProvider: FileViewProvider): PsiFile {
+        override fun createFile(viewProvider: FileViewProvider): PsiFile {
 
 //        if(viewProvider is CangJieFileViewProvider){
 //

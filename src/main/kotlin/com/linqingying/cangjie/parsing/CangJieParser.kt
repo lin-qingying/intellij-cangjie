@@ -117,10 +117,7 @@ class CangJieParser(project: Project) : PsiParser {
                 cjParsing.parseFile()
 
             }
-            /*if (psiFile.viewProvider is CangJieFileViewProvider) {
-                cjParsing.parseDeclarationsFile()
-
-            }*/ else {
+          else {
                 cjParsing.parseScript()
             }
 

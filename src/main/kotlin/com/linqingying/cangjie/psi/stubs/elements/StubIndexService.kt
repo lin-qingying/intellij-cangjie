@@ -41,7 +41,8 @@ open class StubIndexService protected constructor() {
     open fun indexEnumEntry(stub: CangJieEnumEntryStub, sink: IndexSink) {
 
     }
-
+    open fun indexScript(stub: CangJieScriptStub, sink: IndexSink) {
+    }
     open fun indexEnum(stub: CangJieEnumStub, sink: IndexSink) {
 
     }

@@ -36,6 +36,10 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitQuoteInterpolate(@NotNull CjQuoteInterpolate expression, D data) {
         return visitCjElement(expression, data);
     }
+    public R visitScript(@NotNull CjScript script, D data) {
+        return visitDeclaration(script, data);
+    }
+
     public R visitSynchronizedExpression(@NotNull CjSynchronizedExpression expression, D data) {
         return this.visitExpression(expression, data);
     }

@@ -207,6 +207,9 @@ interface CangJieEnumStub : CangJieTypeStatementStub<CjEnum>
 interface CangJieEnumEntryStub : CangJieTypeStatementStub<CjEnumEntry> {
     val fqNameByPackage: FqName?
 }
+interface CangJieScriptStub : CangJieStubWithFqName<CjScript> {
+    override fun getFqName(): FqName
+}
 
 interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend> {
 

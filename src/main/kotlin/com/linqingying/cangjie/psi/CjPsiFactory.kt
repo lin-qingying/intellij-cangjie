@@ -252,7 +252,9 @@ class CjPsiFactory private constructor(
             append(" as ").append(alias.asString())
         }
     }
-
+    fun createBlockCodeFragment(@NonNls text: String, context: PsiElement?): CjBlockCodeFragment {
+        return CjBlockCodeFragment(project, "fragment.cj", text, null, context)
+    }
     fun createComment(@NonNls text: String): PsiComment {
         val file = createFile(text)
         val comments = file.children.filterIsInstance<PsiComment>()

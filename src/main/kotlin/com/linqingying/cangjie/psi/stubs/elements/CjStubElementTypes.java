@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 public interface CjStubElementTypes {
 
+    CjScriptElementType CJ_SCRIPT = new CjScriptElementType("CJ_SCRIPT");
 
     CjEnumEntryElementType ENUM_ENTRY = new CjEnumEntryElementType("ENUM_ENTRY");
 

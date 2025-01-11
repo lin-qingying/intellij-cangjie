@@ -367,36 +367,5 @@ class CollectionLiteralResolver(
         return memberScopeOfCangJiePackage.getContributedFunctions(callName, CangJieLookupLocation(expression))
     }
 
-//    private enum class ContainerKind {
-//        AnnotationOrAnnotationClass,
-//        CompanionOfAnnotation,
-//        Other
-//    }
-
-//    private fun computeKindOfContainer(expression: CjCollectionLiteralExpression): ContainerKind {
-//
-//        return             ContainerKind.   Other
-//        val parent = PsiTreeUtil.getParentOfType(expression, CjAnnotationEntry::class.java, CjClass::class.java, CjEnum::class.java, CjStruct::class.java,CjInterface::class.java)
-
-//        return if (parent is CjAnnotationEntry || (parent is CjClass && parent.isAnnotation())) {
-//            ContainerKind. AnnotationOrAnnotationClass
-//        } else {
-//            ContainerKind.   Other
-//        }
-//    }
-
-//    private fun getArrayFunctionCallName(expectedType: CangJieType): Name {
-//        if (TypeUtils.noExpectedType(expectedType) ||
-//            !(CangJieBuiltIns.isPrimitiveArray(expectedType) /*|| CangJieBuiltIns.isUnsignedArrayType(expectedType)*/)
-//        ) {
-//            return ArrayFqNames.ARRAY_OF_FUNCTION
-//        }
-//
-//        val descriptor = expectedType.constructor.declarationDescriptor ?: return ArrayFqNames.ARRAY_OF_FUNCTION
-//
-//        return ArrayFqNames.PRIMITIVE_TYPE_TO_ARRAY[CangJieBuiltIns.getPrimitiveArrayType(descriptor)]
-//            ?: UnsignedTypes.unsignedArrayTypeToArrayCall[UnsignedTypes.toUnsignedArrayType(descriptor)]
-//            ?: ArrayFqNames.ARRAY_OF_FUNCTION
-//    }
 }
 

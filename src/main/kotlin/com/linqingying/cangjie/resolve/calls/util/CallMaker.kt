@@ -59,16 +59,7 @@ object CallMaker {
         )
     }
 
-    fun makeCallForUnsafeExpression(callExpression: CjUnsafeExpression): Call {
-        return makeCallWithExpressions(
-            callExpression,
-            null,
-            null,
-            callExpression,
-            listOf(callExpression.lambdaExpression),
-            Call.CallType.DEFAULT
-        )
-    }
+
 
     fun makeCallForSpawnExpression(callExpression: CjSpawnExpression): Call {
         return makeCallWithExpressions(

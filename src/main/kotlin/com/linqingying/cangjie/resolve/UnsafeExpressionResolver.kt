@@ -47,6 +47,7 @@ import com.linqingying.cangjie.types.TypeRefinement
 import com.linqingying.cangjie.types.Variance
 import com.linqingying.cangjie.types.checker.CangJieTypeRefiner
 import com.linqingying.cangjie.types.expressions.ExpressionTypingContext
+import com.linqingying.cangjie.types.expressions.ExpressionTypingInternals
 import com.linqingying.cangjie.types.expressions.ProcessingMode
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import com.linqingying.cangjie.types.expressions.typeInfoFactory.noTypeInfo
@@ -56,44 +57,40 @@ import com.linqingying.cangjie.utils.exceptions.CangJieTypeInfo
 class UnsafeExpressionResolver(
     val module: ModuleDescriptor,
     val callResolver: CallResolver,
-
+    val  facade: ExpressionTypingInternals,
     val languageVersionSettings: LanguageVersionSettings
 ) {
-    fun checkUnsafeExpression(expression: CjUnsafeExpression, context: ExpressionTypingContext) {
-//        由于 unsafe并不是lambda 但是使用了lambda实现，所以这里检查lambda参数和箭头
-        val lambda = expression.lambdaExpression ?: return
-        lambda.parameterList ?: return
-
-        context.trace.report(UNSAFE_EXPRESSION_ERROR.on(lambda.parameterList))
 
 
-    }
+
 
     fun resolveUnsafeExpression(expression: CjUnsafeExpression, context: ExpressionTypingContext): CangJieTypeInfo {
-        checkUnsafeExpression(expression, context)
+
+
+        val typeInfo = expression.block?.let { facade.getTypeInfo(it,context) } ?: noTypeInfo(context)
         val context = context.replaceProcessingMode(ProcessingMode.PARENT)
 //        val callExpression = CjCallExpression(expression.node)
+//
+//        val call = CallMaker.makeCallForUnsafeExpression(expression)
+//
+//        val functionDescriptors = listOf(UnsafeFunctionDescriptor(module))
+//
+//        val resolutionResults =
+//            callResolver.resolveCallExpressionWithGivenDescriptor(context, expression, call, functionDescriptors)
+//        if (!resolutionResults.isSingleResult) {
+//            return noTypeInfo(context)
+//        }
 
-        val call = CallMaker.makeCallForUnsafeExpression(expression)
 
-        val functionDescriptors = listOf(UnsafeFunctionDescriptor(module))
-
-        val resolutionResults =
-            callResolver.resolveCallExpressionWithGivenDescriptor(context, expression, call, functionDescriptors)
-        if (!resolutionResults.isSingleResult) {
-            return noTypeInfo(context)
-        }
-
-
-
-        return createTypeInfo(resolutionResults.resultingDescriptor.returnType, context)
+TODO()
+//        return createTypeInfo(resolutionResults.resultingDescriptor.returnType, context)
 
 
     }
 
     // func spawn<T>(element:() -> T):Future<T>
     private class UnsafeFunctionDescriptor(module: ModuleDescriptor) : SimpleFunctionDescriptorImpl(
-        module, null, Annotations.EMPTY, StandardNames.spawnName,
+        module, null, Annotations.EMPTY, StandardNames.unsafeName,
         CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
     ) {
 

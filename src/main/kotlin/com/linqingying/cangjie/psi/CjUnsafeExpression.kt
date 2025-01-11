@@ -25,14 +25,18 @@
 package com.linqingying.cangjie.psi
 
 import com.intellij.lang.ASTNode
+import com.linqingying.cangjie.CjNodeTypes
 
 class CjUnsafeExpression(node: ASTNode) : CjCallExpression(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitUnsafeExpression(this, data)
     }
 
-    val lambdaExpression: CjLambdaExpression?
-        get() = lambdaArgument?.getLambdaExpression()
-    val lambdaArgument: CjLambdaArgument?
-        get() = findChildByClass(CjLambdaArgument::class.java)
+    val block: CjExpression?
+        get() = findChildByType<CjBlockExpression>(CjNodeTypes.BLOCK)
+
+//    val lambdaExpression: CjLambdaExpression?
+//        get() = lambdaArgument?.getLambdaExpression()
+//    val lambdaArgument: CjLambdaArgument?
+//        get() = findChildByClass(CjLambdaArgument::class.java)
 }

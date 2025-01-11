@@ -48,3 +48,24 @@ open class CjExpressionCodeFragment(
 
 }
 
+class CjBlockCodeFragment(
+    viewProvider: FileViewProvider,
+    imports: String?, // Should be separated by CjCodeFragment.IMPORT_SEPARATOR
+    context: PsiElement?
+) : CjCodeFragment(viewProvider, imports, CjNodeTypes.BLOCK_CODE_FRAGMENT, context) {
+
+    constructor(
+        project: Project,
+        name: String,
+        text: CharSequence,
+        imports: String?,
+        context: PsiElement?
+    ) : this(
+        createFileViewProviderForLightFile(project, name, text),
+        imports,
+        context,
+    )
+
+    override fun getContentElement() = findChildByClass(CjBlockExpression::class.java)
+        ?: throw IllegalStateException("Block expression should be parsed for BlockCodeFragment")
+}

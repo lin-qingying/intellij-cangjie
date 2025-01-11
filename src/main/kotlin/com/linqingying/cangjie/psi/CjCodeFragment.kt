@@ -35,31 +35,68 @@ import com.intellij.psi.impl.source.tree.FileElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.testFramework.LightVirtualFile
+import com.linqingying.cangjie.lang.CangJieLanguage
 import java.util.LinkedHashSet
 
 
 abstract class CjCodeFragment(
-    private val myProject: Project,
-    name: String,
-    text: CharSequence,
-    imports: String?, // Should be separated by CjCodeFragment.IMPORT_SEPARATOR
+    viewProvider: FileViewProvider,
+    imports: String?, // Should be separated by KtCodeFragment.IMPORT_SEPARATOR
     elementType: IElementType,
     private val context: PsiElement?
 ) : CjFile(
-    run {
-        val psiManager = PsiManager.getInstance(myProject) as PsiManagerEx
-        psiManager.fileManager.createFileViewProvider(LightVirtualFile(name, CangJieFileType.INSTANCE, text), true)
-    }, false
+    viewProvider, false
 ), CjCodeFragmentBase {
     private var viewProvider = super.getViewProvider() as SingleRootFileViewProvider
-    private var imports = LinkedHashSet<String>()
 
     private val fakeContextForJavaFile: PsiElement? by lazy {
         this.getCopyableUserData(FAKE_CONTEXT_FOR_JAVA_FILE)?.invoke()
     }
 
-     fun addImportsFromString(imports: String?) {
-        if (imports == null || imports.isEmpty()) return
+    constructor(
+        project: Project,
+        name: String,
+        text: CharSequence,
+        imports: String?,
+        elementType: IElementType,
+        context: PsiElement?
+    ) : this(
+        createFileViewProviderForLightFile(project, name, text),
+        imports,
+        elementType,
+        context,
+    )
+
+    /**
+     * Parses raw [rawImports] and appends them to the list of code fragment imports.
+     *
+     * Import strings must be separated by the [IMPORT_SEPARATOR].
+     * Each import must be either a qualified name to import (e.g., 'foo.bar'), or a complete text representation of an import directive
+     * (e.g., 'import foo.bar as baz').
+     *
+     * Note that already present import directives will be ignored.
+     *
+     * @return `true` if new import directives were added.
+     */
+    private fun appendImports(rawImports: String): Boolean {
+        if (rawImports.isEmpty()) {
+            return false
+        }
+
+        var hasNewImports = false
+
+        for (rawImport in rawImports.split(IMPORT_SEPARATOR)) {
+            val importDirectiveString = if (rawImport.startsWith("import ")) rawImport else "import $rawImport"
+            if (importDirectiveStrings.add(importDirectiveString) && !hasNewImports) {
+                hasNewImports = true
+            }
+        }
+
+        return hasNewImports
+    }
+
+    fun addImportsFromString(imports: String?) {
+        if (imports.isNullOrEmpty()) return
 
         imports.split(IMPORT_SEPARATOR).forEach {
             addImport(it)
@@ -69,6 +106,7 @@ abstract class CjCodeFragment(
         val tempElement = CjPsiFactory(project).createColon()
         add(tempElement).delete()
     }
+
     init {
         @Suppress("LeakingThis")
         getViewProvider().forceCachedPsi(this)
@@ -77,12 +115,16 @@ abstract class CjCodeFragment(
             initImports(imports)
         }
     }
+
+    private var importDirectiveStrings = LinkedHashSet<String>()
+
     private var forcedResolveScope: GlobalSearchScope? = null
     override fun getForcedResolveScope(): GlobalSearchScope? = forcedResolveScope
 
     final override fun init(elementType: IElementType, contentElementType: IElementType?) {
         super.init(elementType, contentElementType)
     }
+
     override fun forceResolveScope(scope: GlobalSearchScope?) {
         forcedResolveScope = scope
     }
@@ -112,13 +154,24 @@ abstract class CjCodeFragment(
 
     override fun clone(): CjCodeFragment {
         val elementClone = calcTreeElement().clone() as FileElement
-
         return (cloneImpl(elementClone) as CjCodeFragment).apply {
             isPhysical = false
             myOriginalFile = this@CjCodeFragment
-            imports = this@CjCodeFragment.imports
+            importDirectiveStrings = LinkedHashSet(this@CjCodeFragment.importDirectiveStrings)
             viewProvider = SingleRootFileViewProvider(
-                PsiManager.getInstance(myProject),
+                PsiManager.getInstance(project),
+                LightVirtualFile(name, CangJieFileType.INSTANCE, text),
+                false
+            )
+            viewProvider.forceCachedPsi(this)
+        }
+        return (cloneImpl(elementClone) as CjCodeFragment).apply {
+            isPhysical = false
+            myOriginalFile = this@CjCodeFragment
+            importDirectiveStrings = LinkedHashSet(this@CjCodeFragment.importDirectiveStrings)
+
+            viewProvider = SingleRootFileViewProvider(
+                PsiManager.getInstance(project),
                 LightVirtualFile(name, CangJieFileType.INSTANCE, text),
                 false
             )
@@ -126,23 +179,30 @@ abstract class CjCodeFragment(
         }
     }
 
+    fun importsToString(): String {
+        return importDirectiveStrings.joinToString(IMPORT_SEPARATOR)
+    }
+
     final override fun getViewProvider() = viewProvider
 
 
+    @Deprecated(
+        "Use 'addImportsFromString()w' instead",
+        ReplaceWith("addImportsFromString(import)"),
+        level = DeprecationLevel.WARNING
+    )
     fun addImport(import: String) {
-        val contextFile = getContextContainingFile()
-        if (contextFile != null) {
-            if (contextFile.importDirectivesItem.find { it.text == import } == null) {
-                imports.add(import)
-            }
-        }
+        addImportsFromString(import)
     }
 
+
     fun importsAsImportList(): CjImportList? {
-        if (imports.isNotEmpty() && context != null) {
-            return CjPsiFactory.contextual(context)
-                .createFile("imports_for_codeFragment.cj", imports.joinToString("\n")).importList
+        if (importDirectiveStrings.isNotEmpty() && context != null) {
+            val ktPsiFactory = CjPsiFactory.contextual(context)
+            val fileText = importDirectiveStrings.joinToString("\n")
+            return ktPsiFactory.createFile("imports_for_codeFragment.kt", fileText).importList
         }
+
         return null
     }
 
@@ -179,5 +239,16 @@ abstract class CjCodeFragment(
         val FAKE_CONTEXT_FOR_JAVA_FILE: Key<Function0<CjElement>> = Key.create("FAKE_CONTEXT_FOR_JAVA_FILE")
 
         private val LOG = Logger.getInstance(CjCodeFragment::class.java)
+        fun createFileViewProviderForLightFile(
+            project: Project,
+            name: String,
+            text: CharSequence
+        ): FileViewProvider {
+            val psiManager = PsiManager.getInstance(project) as PsiManagerEx
+            return psiManager.fileManager.createFileViewProvider(
+                LightVirtualFile(name, CangJieFileType.INSTANCE, text),
+                /* eventSystemEnabled = */true
+            )
+        }
     }
 }
