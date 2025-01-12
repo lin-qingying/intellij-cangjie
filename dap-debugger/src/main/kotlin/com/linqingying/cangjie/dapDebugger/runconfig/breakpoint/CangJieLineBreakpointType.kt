@@ -6,6 +6,7 @@ import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType
+
 import com.linqingying.cangjie.dapDebugger.runconfig.CangJieDebuggerCoreBundle
 
 //class CangJieLineBreakpointType : CangJieLineBreakpointTypeBase<CangJieLineBreakpointProperties>(
@@ -35,7 +36,7 @@ class CangJieLineBreakpointType :
     }
 
     override fun canPutAt(file: VirtualFile, line: Int, project: com.intellij.openapi.project.Project): Boolean {
-        return file.extension == "cj" && file.fileType == CangJieFileType.INSTANCE
+        return file.extension == "cj" && file.fileType == CangJieFileType.INSTANCE 
     }
 
     companion object {

@@ -5,6 +5,8 @@
 
 package com.linqingying.cangjie.debugger.lang
 
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.CjResult
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.unwrapOrThrow
 import com.intellij.xdebugger.XExpression
@@ -13,24 +15,12 @@ import com.jetbrains.cidr.execution.debugger.CidrEvaluator
 import com.jetbrains.cidr.execution.debugger.CidrStackFrame
 import com.jetbrains.cidr.execution.debugger.backend.DebuggerDriver
 import com.jetbrains.cidr.execution.debugger.evaluation.CidrEvaluatedValue
+import com.linqingying.cangjie.psi.CjExpression
+import com.linqingying.cangjie.psi.psiUtil.ancestorOrSelf
 
 class CjEvaluator(frame: CidrStackFrame) : CidrEvaluator(frame) {
-//    override fun getExpressionRangeAtOffset(
-//        project: Project,
-//        document: Document,
-//        offset: Int,
-//        sideEffectsAllowed: Boolean
-//    ): TextRange? = runReadAction {
-//        document.toPsiFile(project)?.let { file ->
-//            findSuitableExpression(file, offset)?.textRange
-//        }
-//    }
 
-//    private fun findSuitableExpression(file: PsiFile, offset: Int): PsiElement? {
-//        val pathExpr = file.findElementAt(offset)?.ancestorOrSelf<RsPathExpr>() ?: return null
-//        val resolved = pathExpr.path.reference?.resolve()
-//        return if (resolved is CjPatBinding) pathExpr else null
-//    }
+
 
     override fun doEvaluate(driver: DebuggerDriver, position: XSourcePosition?, expr: XExpression): CidrEvaluatedValue {
         val project = myFrame.process.project

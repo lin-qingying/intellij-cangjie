@@ -49,6 +49,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.containers.SLRUCache
+import com.linqingying.cangjie.utils.firstIsInstanceOrNull
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 

@@ -53,11 +53,10 @@
     <xi:include href="/META-INF/cangjie-all.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <content>
-
+<!--        <module name="com.linqingying.cangjie.dapDebugger"/>-->
      <module name="com.linqingying.cangjie.dapDebugger1"/>
-<!--        <module name="com.linqingying.cangjie.debugger"/>-->
-<!--        <module name="com.linqingying.cangjie.nativeDebug"/>-->
 
+<!--        <module name="com.linqingying.cangjie.nativeDebug"/>-->
 
 
     </content>

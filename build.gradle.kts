@@ -43,6 +43,7 @@ plugins {
 
 
 }
+
 //IDEA版本
 val ideaVersion = "2024.3"
 //插件版本
@@ -154,7 +155,7 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
+            create(IntelliJPlatformType.IntellijIdeaUltimate, ideaVersion)
 //            instrumentationTools()
 
 //            local(dependencyCachePath)
@@ -253,14 +254,16 @@ project(":plugin") {
         intellijPlatform {
             if (!isBuildPlugin()) {
                 plugins(
-                    psiViewerPlugin, indexViewPlugin, chinesePlugin,/* nativeDebugPlugin*/
+                    psiViewerPlugin, indexViewPlugin, chinesePlugin, nativeDebugPlugin
                 )
                 bundledPlugins(tomlPlugin)
             }
         }
         implementation(project(":"))
-//        implementation(project(":dap-debugger"))
+
+
 //        implementation(project(":native-debugger"))
+//        implementation(project(":dap-debugger"))
         implementation(project(":dap-debugger1"))
 
 

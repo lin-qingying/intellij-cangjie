@@ -25,8 +25,13 @@
 package com.linqingying.cangjie.codegen.state
 
 
+import com.linqingying.cangjie.config.LanguageVersionSettings
+import com.linqingying.cangjie.config.LanguageVersionSettingsImpl
 import com.linqingying.cangjie.descriptors.ClassDescriptor
 import com.linqingying.cangjie.descriptors.ClassifierDescriptor
+import com.linqingying.cangjie.resolve.BindingContext
+import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.types.checker.SimpleClassicTypeSystemContext
 import com.linqingying.cangjie.types.checker.TypeSystemCommonBackendContext
 import com.linqingying.cangjie.types.model.CangJieTypeMarker
 import org.jetbrains.org.objectweb.asm.Type
@@ -34,10 +39,35 @@ import org.jetbrains.org.objectweb.asm.Type
 abstract class CangJieTypeMapperBase {
     abstract val typeSystem: TypeSystemCommonBackendContext
 
-    abstract fun mapClass(classifier: ClassifierDescriptor): Type
+//    abstract fun mapClass(classifier: ClassifierDescriptor): Type
+//
+////    abstract fun mapTypeCommon(type: CangJieTypeMarker, mode: TypeMappingMode): Type
+//
+//    fun mapDefaultImpls(descriptor: ClassDescriptor): Type =
+//        Type.getObjectType(mapClass(descriptor).internalName  )
+}
+class CangJieTypeMapper @JvmOverloads constructor(
+    val bindingContext: BindingContext,
+//    val classBuilderMode: ClassBuilderMode,
+    private val moduleName: String,
+    val languageVersionSettings: LanguageVersionSettings,
+    private val useOldInlineClassesManglingScheme: Boolean,
 
-//    abstract fun mapTypeCommon(type: CangJieTypeMarker, mode: TypeMappingMode): Type
+    private val isIrBackend: Boolean = false,
+    private val typePreprocessor: ((CangJieType) -> CangJieType?)? = null,
+    private val namePreprocessor: ((ClassDescriptor) -> String?)? = null
+) : CangJieTypeMapperBase() {
+    companion object{
+        val LANGUAGE_VERSION_SETTINGS_DEFAULT: LanguageVersionSettings = LanguageVersionSettingsImpl.DEFAULT
 
-    fun mapDefaultImpls(descriptor: ClassDescriptor): Type =
-        Type.getObjectType(mapClass(descriptor).internalName  )
+    }
+
+    override val typeSystem: TypeSystemCommonBackendContext
+        get() = SimpleClassicTypeSystemContext
+//    override fun mapClass(classifier: ClassifierDescriptor): Type {
+//        return mapType(classifier.defaultType, null, TypeMappingMode.CLASS_DECLARATION)
+//    }
+
+
+
 }

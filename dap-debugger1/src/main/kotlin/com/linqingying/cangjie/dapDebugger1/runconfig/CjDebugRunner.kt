@@ -5,6 +5,7 @@ import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
+
 import com.linqingying.cangjie.ide.run.cjpm.CjExecutableRunner
 import com.linqingying.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 import com.linqingying.cangjie.ide.run.cjpm.CjpmRunStateBase
@@ -16,7 +17,7 @@ class CjDebugRunner : CjExecutableRunner(DefaultDebugExecutor.EXECUTOR_ID,CjDebu
 
 
         return super.canRun(executorId, profile) &&
-                profile is CjpmCommandConfiguration
+                profile is CjpmCommandConfiguration 
     }
 
     override fun showRunContent(

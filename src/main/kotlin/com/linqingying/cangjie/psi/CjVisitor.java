@@ -39,6 +39,15 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
     public R visitScript(@NotNull CjScript script, D data) {
         return visitDeclaration(script, data);
     }
+    /**
+     * Required for {@link CjCommonFile} implementation.
+     * It is not expected to be used, because {@link CjCommonFile} should not be used directly.
+     */
+    @SuppressWarnings("deprecation")
+    public final R visitCjCommonFile(@NotNull CjCommonFile file) {
+        visitFile(file);
+        return null;
+    }
 
     public R visitSynchronizedExpression(@NotNull CjSynchronizedExpression expression, D data) {
         return this.visitExpression(expression, data);

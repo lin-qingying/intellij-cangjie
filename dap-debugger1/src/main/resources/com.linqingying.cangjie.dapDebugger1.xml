@@ -1,10 +1,7 @@
 <idea-plugin package="com.linqingying.cangjie.dapDebugger1">
     <!--suppress PluginXmlValidity -->
     <module value="com.linqingying.cangjie.dapDebugger1"/>
-    <dependencies>
 
-<!--        <plugin id="org.jetbrains.plugins.terminal"/>-->
-    </dependencies>
     <extensions defaultExtensionNs="com.intellij">
                 <programRunner id="CjDebugRunner"
                                implementation="com.linqingying.cangjie.dapDebugger1.runconfig.CjDebugRunner"/>

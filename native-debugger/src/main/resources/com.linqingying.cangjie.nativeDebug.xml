@@ -1,9 +1,56 @@
+<idea-plugin package="com.linqingying.cangjie.debugger">
 
-<!--<idea-plugin package="com.linqingying.cangjie.nativeDebug" xmlns:xi="http://www.w3.org/2001/XInclude">-->
-<!--    &lt;!&ndash;suppress PluginXmlValidity &ndash;&gt;-->
-<!--    <dependencies>-->
-<!--        <module name="com.linqingying.cangjie.debugger"/>-->
+    <module value="com.linqingying.cangjie.nativeDebug"/>
+    <dependencies>
 
-<!--        <plugin id="com.intellij.nativeDebug"/>-->
-<!--    </dependencies>-->
-<!--</idea-plugin>-->
+        <plugin id="com.intellij.modules.cidr.debugger"/>
+        <plugin id="com.intellij.nativeDebug"/>
+
+    </dependencies>
+    <extensionPoints>
+        <extensionPoint qualifiedName="com.linqingying.cangjie.debugger.driverConfigurationProvider"
+                        interface="com.linqingying.cangjie.debugger.CjDebuggerDriverConfigurationProvider"
+                        dynamic="true"/>
+
+    </extensionPoints>
+    <extensions defaultExtensionNs="cidr.debugger">
+        <editorsExtension language="CangJie" implementationClass="com.linqingying.cangjie.debugger.lang.CjDebuggerEditorsExtension"/>
+
+        <languageSupport language="CangJie"
+                         implementationClass="com.linqingying.cangjie.debugger.lang.CjDebuggerLanguageSupport"/>
+        <lineBreakpointFileTypesProvider
+                implementation="com.linqingying.cangjie.debugger.CjLineBreakpointFileTypesProvider"/>
+
+        <debugProcessConfigurator
+                implementation="com.linqingying.cangjie.debugger.runconfig.CjDebugProcessConfigurator"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+        <xdebugger.settings implementation="com.linqingying.cangjie.debugger.settings.CjDebuggerSettings"/>
+
+
+        <programRunner id="CjDebugRunner"
+                       implementation="com.linqingying.cangjie.debugger.runconfig.CjDebugRunner"/>
+
+        <programRunner id="CjDebugRunnerLegacy"
+                       implementation="com.linqingying.cangjie.debugger.runconfig.legacy.CjDebugRunnerLegacy"/>
+        <registryKey key="com.linqingying.cangjie.debugger.gdb.setup.v2"
+                     defaultValue="false"
+                     description="Enables new way how GDB is set up for CangJie"/>
+
+        <registryKey key="com.linqingying.cangjie.debugger.gdb.setup.v2"
+                     defaultValue="false"
+                     description="Enables new way how GDB is set up for CangJie"/>
+
+        <registryKey key="com.linqingying.cangjie.debugger.lldb.cangjie.msvc" defaultValue="true"
+                     restartRequired="false"
+                     description="Enable CangJie MSVC support in LLDB (Windows-only)"/>
+
+    </extensions>
+
+    <extensions defaultExtensionNs="com.linqingying.cangjie">
+        <debugger.driverConfigurationProvider
+                id="CjDefaultDebuggerDriverConfigurationProvider"
+                implementation="com.linqingying.cangjie.debugger.CjDefaultDebuggerDriverConfigurationProvider"
+                order="last"/>
+    </extensions>
+</idea-plugin>

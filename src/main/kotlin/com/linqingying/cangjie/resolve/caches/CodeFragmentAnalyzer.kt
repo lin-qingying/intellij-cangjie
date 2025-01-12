@@ -23,6 +23,7 @@
  */
 
 package com.linqingying.cangjie.resolve.caches
+import jakarta.inject.Inject
 
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
@@ -54,7 +55,12 @@ class CodeFragmentAnalyzer(
     private val expressionTypingServices: ExpressionTypingServices
 ) {
 
-    lateinit var resolveElementCache: ResolveElementCache
+   private lateinit var resolveElementCache: ResolveElementCache
+
+    @Inject
+    fun setResolveElementCache(resolveElementCache: ResolveElementCache) {
+        this.resolveElementCache = resolveElementCache
+    }
 
     fun analyzeCodeFragment(codeFragment: CjCodeFragment, bodyResolveMode: BodyResolveMode): BindingTrace {
         val contextAnalysisResult = analyzeCodeFragmentContext(codeFragment, bodyResolveMode)

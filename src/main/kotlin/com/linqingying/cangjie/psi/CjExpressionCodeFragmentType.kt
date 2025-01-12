@@ -43,7 +43,7 @@ import com.intellij.psi.impl.source.tree.ICodeFragmentElementType
         val languageForParser = getLanguageForParser(psi)
         val builder =
             PsiBuilderFactory.getInstance().createBuilder(project, chameleon, null, languageForParser, chameleon.chars)
-        return CangJieParser.parseExpressionCodeFragment(builder)?.firstChildNode
+        return CangJieParser.parseExpressionCodeFragment(builder).firstChildNode
     }
 
     companion object {

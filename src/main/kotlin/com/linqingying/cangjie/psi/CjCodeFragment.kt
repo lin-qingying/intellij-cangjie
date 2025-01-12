@@ -49,9 +49,7 @@ abstract class CjCodeFragment(
 ), CjCodeFragmentBase {
     private var viewProvider = super.getViewProvider() as SingleRootFileViewProvider
 
-    private val fakeContextForJavaFile: PsiElement? by lazy {
-        this.getCopyableUserData(FAKE_CONTEXT_FOR_JAVA_FILE)?.invoke()
-    }
+
 
     constructor(
         project: Project,
@@ -139,7 +137,7 @@ abstract class CjCodeFragment(
     override fun isValid() = true
 
     override fun getContext(): PsiElement? {
-        if (fakeContextForJavaFile != null) return fakeContextForJavaFile
+
         if (context != null && context !is CjElement) {
             val logInfoForContextElement =
                 (context as? PsiFile)?.virtualFile?.path ?: context.getElementTextWithContext()

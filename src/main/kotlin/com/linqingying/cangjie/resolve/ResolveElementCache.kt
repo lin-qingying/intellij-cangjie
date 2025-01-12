@@ -615,6 +615,7 @@ class ResolveElementCache(
                 createStatementFilter(),
                 bodyResolveMode.bindingTraceFilter
             )
+            is CjCodeFragment -> codeFragmentAdditionalResolve(resolveElement, bodyResolveMode)
 
             else -> {
                 if (resolveElement.findParentOfType<CjPackageDirective>(true) != null) {

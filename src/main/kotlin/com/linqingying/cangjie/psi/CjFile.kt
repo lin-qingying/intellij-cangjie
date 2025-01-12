@@ -38,29 +38,26 @@ import com.linqingying.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.linqingying.cangjie.lang.CangJieFileType
 import com.linqingying.cangjie.lang.CangJieLanguage
 import com.linqingying.cangjie.name.FqName
+import com.linqingying.cangjie.psi.CjFile.Companion.FILE_DECLARATION_TYPES
 import com.linqingying.cangjie.psi.stubs.CangJieFileStub
 import com.linqingying.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.linqingying.cangjie.psi.stubs.elements.CjTokenSets
 
 interface CangJieFile
-
-open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = false,val isCodeFragment: Boolean = false) :
-    PsiFileBase(viewProvider, CangJieLanguage),
+abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boolean): PsiFileBase(viewProvider, CangJieLanguage),
 
     PsiNamedElement,
 
     CjDeclarationContainer,
-    CjElement, CangJieFile {
+    CjElement, CangJieFile{
     override fun getFileType(): FileType = CangJieFileType.INSTANCE
 
     @Volatile
     private var pathCached: String? = null
 
 
-    override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
-        CjPsiUtil.visitChildren(this, visitor, data)
-    }
+
 
     @Volatile
     private var hasTopLevelCallables: Boolean? = null
@@ -96,10 +93,12 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
             it .alias != null && fqName == it.importedFqName
         }?.alias
     }
-
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R =
-        visitor.visitCjFile(this, data)
-
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        return visitor.visitCjCommonFile(this)
+    }
+    override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
+        CjPsiUtil.visitChildren(this, visitor, data)
+    }
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
             @Suppress("UNCHECKED_CAST")
@@ -115,11 +114,6 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
 
     protected open val importLists: List<CjImportList>
         get() = findChildrenByTypeOrClass(CjStubElementTypes.IMPORT_LIST, CjImportList::class.java).asList()
-//    val importListsField: List<CangJieImportField> = importDirectivesItem.flatMap {
-////        将多个cangJieImportFieldList合成一个
-//        it.cangJieImportFieldList
-//
-//    }
 
     fun hasImportAlias(): Boolean {
         val hasImportAlias = hasImportAlias
@@ -128,7 +122,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
         val newValue = importLists.any(CjImportList::computeHasImportAlias)
         this.hasImportAlias = newValue
         return newValue
-//        TODO()
+
     }
 
     override fun toString(): String {
@@ -145,10 +139,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
         get() = importLists.flatMap { it.imports}
 
 
-//    val isDeeplyEnabledByCfg: Boolean get() = cachedData.isDeeplyEnabledByCfg
-
-
-    override fun getContainingCjFile(): CjFile = this
+    override fun getContainingCjFile(): CjFile = this as CjFile
 
     fun findImportByAlias(name: String): CjImportDirectiveItem? {
         if (!hasImportAlias()) return null
@@ -185,7 +176,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
             return stub
         }
 
-        error("Illegal stub for CjFile: type=${this.javaClass}, stub=${stub?.javaClass} name=$name")
+        error("Illegal stub for CjFile: type=${this.javaClass}, stub=${stub.javaClass} name=$name")
     }
 
     val packageDirective: CjPackageDirective?
@@ -203,18 +194,7 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     private var hasImportAlias: Boolean? = null
 
 
-    //    override val declarations: List<CjDeclaration>
-//        get() {
-//            return stub?.getChildrenByType(FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
-//                ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java).apply {
-//                    if (size > 1) {
-//                        if (this[0] is CjPackageDirective) {
-//
-//                            remove(this[0])
-//                        }
-//                    }
-//                }
-//        }
+
     override val declarations: List<CjDeclaration>
         get() {
             val stub = stub
@@ -240,8 +220,16 @@ open class CjFile(viewProvider: FileViewProvider, val isCompiled: Boolean = fals
     val importList: CjImportList?
         get() = importLists.firstOrNull()
 
+    }
+open class CjFile(viewProvider: FileViewProvider,   isCompiled: Boolean = false,val isCodeFragment: Boolean = false) :
+    CjCommonFile(viewProvider, isCompiled) {
+
+
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R =
+        visitor.visitCjFile(this, data)
+
     companion object {
-        val FILE_DECLARATION_TYPES = TokenSet.orSet(CjTokenSets.DECLARATION_TYPES)
+        val FILE_DECLARATION_TYPES = TokenSet.orSet(CjTokenSets.DECLARATION_TYPES, TokenSet.create(CjStubElementTypes.CJ_SCRIPT))
 
     }
 }

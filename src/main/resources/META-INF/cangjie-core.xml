@@ -165,6 +165,11 @@
                              groupId="language.cangjie.languageServer"
                              id="language.cangjie.languageServer.ast"
                              bundle="messages.CangJieBundle" key="CangJie.languageServer.astanalyzer"/>
+<!--        <projectConfigurable instance="com.linqingying.cangjie.configurable.CangJieDebuggerTypeConfigurable"-->
+<!--                             parentId="language.cangjie"-->
+<!--                             groupId="language.cangjie"-->
+<!--                             id="language.cangjie.debugger"-->
+<!--                             bundle="messages.CangJieBundle" key="CangJie.debugger"/>-->
 
 
         <!--注释-->
@@ -181,6 +186,9 @@
         <applicationService
                 serviceImplementation="com.linqingying.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager"/>
 
+        <applicationService
+                serviceInterface="com.linqingying.cangjie.ide.debugger.CodeFragmentContextTuner"
+                serviceImplementation="com.linqingying.cangjie.ide.debugger.CangJieCodeFragmentContextTuner"/>
 
         <!--        <applicationService-->
         <!--                serviceImplementation="com.linqingying.cangjie.ide.completion.FirCompletionDummyIdentifierProviderService"-->

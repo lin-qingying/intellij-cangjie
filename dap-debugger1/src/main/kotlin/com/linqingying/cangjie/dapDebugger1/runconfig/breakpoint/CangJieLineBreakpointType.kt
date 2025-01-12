@@ -7,6 +7,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.linqingying.cangjie.dapDebugger1.runconfig.CangJieDebuggerCoreBundle
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.Tag
+ 
+import com.linqingying.cangjie.lang.CangJieFileType
 
 class CangJieLineBreakpointType : XLineBreakpointType<CangJieLineBreakpointType.Properties>(
     ID,
@@ -97,7 +99,7 @@ class CangJieLineBreakpointType : XLineBreakpointType<CangJieLineBreakpointType.
     }
 
     override fun canPutAt(file: VirtualFile, line: Int, project: Project): Boolean {
-        return file.extension == "cj"  // 假设只支持 .cj 文件
+        return file.fileType == CangJieFileType.INSTANCE 
     }
 
     companion object {

@@ -24,6 +24,7 @@
 
 package com.linqingying.cangjie.parsing
 
+import com.intellij.extapi.psi.ASTWrapperPsiElement
 import com.linqingying.cangjie.CjNodeType
 import com.linqingying.cangjie.doc.lexer.CDocTokens
 import com.linqingying.cangjie.doc.parser.CDocElementType
@@ -49,6 +50,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
+import com.linqingying.cangjie.CjNodeTypes
 
 class CangJieParserDefinitionByBnf : ParserDefinition {
     override fun createLexer(project: Project?): Lexer = CangJieLexer()
@@ -153,15 +155,17 @@ class CangJieParserDefinition : ParserDefinition {
     override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
 
 
-    override fun createElement(node: ASTNode): PsiElement {
-        return when (val elementType = node.elementType) {
-            is CjStubElementType<*, *> ->
-                elementType.createPsiFromAst(node)
+    override fun createElement(astNode: ASTNode): PsiElement {
+        return when (val elementType = astNode.elementType) {
 
+            is CjStubElementType<*, *> -> elementType.createPsiFromAst(astNode)
+            CjNodeTypes.TYPE_CODE_FRAGMENT, CjNodeTypes.EXPRESSION_CODE_FRAGMENT, CjNodeTypes.BLOCK_CODE_FRAGMENT -> ASTWrapperPsiElement(
+                astNode
+            )
 
-            is CDocElementType -> elementType.createPsi(node)
-            CDocTokens.MARKDOWN_LINK -> CDocLink(node)
-            else -> (elementType as CjNodeType).createPsi(node)
+            is CDocElementType -> elementType.createPsi(astNode)
+            CDocTokens.MARKDOWN_LINK -> CDocLink(astNode)
+            else -> (elementType as CjNodeType).createPsi(astNode)
         }
     }
 
