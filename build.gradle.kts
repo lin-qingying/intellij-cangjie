@@ -97,7 +97,7 @@ idea {
     }
 }
 
-val ideaType = "IU"
+
 protobuf {
     protoc {
 //        artifact = "com.google.protobuf:protoc:4.28.3"
