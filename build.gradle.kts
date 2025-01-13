@@ -262,9 +262,9 @@ project(":plugin") {
         implementation(project(":"))
 
 
-//        implementation(project(":native-debugger"))
+        implementation(project(":native-debugger"))
 //        implementation(project(":dap-debugger"))
-        implementation(project(":dap-debugger1"))
+//        implementation(project(":dap-debugger1"))
 
 
     }

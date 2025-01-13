@@ -132,6 +132,7 @@ class ResolveElementCache(
          * @return 文件的修改戳。
          */
         private fun modificationStamp(file: CjFile): Long {
+
             return if (!file.isPhysical)
                 file.modificationStamp // 对于非物理文件，直接使用文件的修改戳。
             else

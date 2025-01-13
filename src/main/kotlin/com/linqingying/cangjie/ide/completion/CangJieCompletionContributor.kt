@@ -113,8 +113,8 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
      * @return 如果 SEMANTIC_TOKENS 功能已启用或文件类型不符合要求，则返回 false；否则返回 true
      */
     override fun shouldBeCalled(parameters: CompletionParameters): Boolean {
-        // 如果 SEMANTIC_TOKENS 功能已启用，则直接返回 false
-        if (!CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.SEMANTIC_TOKENS))
+
+        if (!CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.AUTO_COMPLETE))
             return false
 
         val position = parameters.position
