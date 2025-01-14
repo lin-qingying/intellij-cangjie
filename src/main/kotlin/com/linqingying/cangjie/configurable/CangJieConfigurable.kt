@@ -47,7 +47,7 @@ class CangJieConfigurable(override val project: Project) : CjConfigurableBase(pr
     private val projectDir = project.cjpmProjects.allProjects.firstOrNull()?.rootDir?.pathAsPath ?: Paths.get(".")
 
 
-    private val cangjieProjectSettings by lazy { CangJieProjectSettingsPanel(projectDir) }
+    private val cangjieProjectSettings by lazy { CangJieProjectSettingsPanel( projectDir) }
     @Throws(ConfigurationException::class)
     override fun apply() {
         cangjieProjectSettings.validateSettings()

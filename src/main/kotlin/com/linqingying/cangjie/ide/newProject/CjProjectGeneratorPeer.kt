@@ -28,6 +28,7 @@ import com.linqingying.cangjie.ide.newProject.ui.CjNewProjectPanel
 import com.linqingying.cangjie.ide.newProject.ui.ConfigurationData
 
 import com.intellij.openapi.options.ConfigurationException
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.platform.GeneratorPeerImpl
@@ -36,9 +37,13 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import javax.swing.JComponent
 
-class CjProjectGeneratorPeer(cjpmProjectDir: Path = Paths.get(".")) : GeneratorPeerImpl<ConfigurationData>() {
+class CjProjectGeneratorPeer(
 
-    private val newProjectPanel = CjNewProjectPanel(showProjectTypeSelection = true, cjpmProjectDir) { checkValid?.run() }
+    cjpmProjectDir: Path = Paths.get(".")) : GeneratorPeerImpl<ConfigurationData>() {
+
+    private val newProjectPanel = CjNewProjectPanel(
+
+        showProjectTypeSelection = true, cjpmProjectDir) { checkValid?.run() }
     var checkValid: Runnable? = null
 
     override fun getSettings(): ConfigurationData = newProjectPanel.data

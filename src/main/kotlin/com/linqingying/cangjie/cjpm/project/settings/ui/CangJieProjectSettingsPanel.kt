@@ -40,18 +40,29 @@ import com.linqingying.cangjie.cjpm.toolchain.cjc
 import com.linqingying.cangjie.ide.project.settings.ui.UiDebouncer
 import com.linqingying.cangjie.ide.project.settings.ui.fullWidthCell
 import com.intellij.execution.wsl.WslPath
+import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ConfigurationException
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectBundle
 import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.projectRoots.impl.jdkDownloader.JdkListDownloader
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.Panel
+import com.linqingying.cangjie.ide.projectStructure.download.SdkDownloader
 import java.nio.file.Path
 import java.nio.file.Paths
+import javax.swing.JButton
 import javax.swing.JLabel
 
 class CangJieProjectSettingsPanel(
+
     private val cjpmProjectDir: Path = Paths.get("."), private val updateListener: (() -> Unit)? = null
 ) : Disposable {
     data class Data(
@@ -88,6 +99,7 @@ class CangJieProjectSettingsPanel(
 
     //    所有历史工具链路径
     private val toolchainsService = ApplicationManager.getApplication().getService(CjToolchainServices::class.java)
+
     //    private val toolchainPaths: List<CjToolchainBase> = toolchainsService.getToolchainPaths()
     private val toolchainPaths: List<String> = toolchainsService.getToolchainPaths()
 
@@ -118,6 +130,17 @@ class CangJieProjectSettingsPanel(
 
         row(CangJieBundle.message("settings.cangjie.sdk.home.label")) {
             fullWidthCell(pathToToolchainComboBox)
+
+
+//            显示下载按钮
+            if (toolchainPaths.isEmpty()) {
+                val downloadButton = JButton(CangJieBundle.message("settings.cangjie.download.toolchain.button"))
+                downloadButton.addActionListener {
+                    downloadSdk()
+                }
+                cell(downloadButton)
+            }
+
         }
         row(CangJieBundle.message("settings.cangjie.toolchain.version.label")) {
             cell(toolchainVersion)
@@ -141,6 +164,25 @@ class CangJieProjectSettingsPanel(
 
     }
 
+    private inline fun <T : Any?> computeInBackground(
+        project: Project?,
+        @NlsContexts.DialogTitle title: String,
+        crossinline action: (ProgressIndicator) -> T
+    ): T =
+        ProgressManager.getInstance().run(object : Task.WithResult<T, Exception>(project, title, true) {
+            override fun compute(indicator: ProgressIndicator) = action(indicator)
+        })
+
+    private fun downloadSdk() {
+        println("下载sdk")
+        computeInBackground(null, CangJieBundle.message("progress.title.downloading.sdk.list")) {
+//         休眠5秒
+
+            SdkDownloader.getInstance().downloadForUI(it)
+        }
+
+
+    }
 
     private fun update() {
         val pathToToolchain = pathToToolchainComboBox.selectedPath

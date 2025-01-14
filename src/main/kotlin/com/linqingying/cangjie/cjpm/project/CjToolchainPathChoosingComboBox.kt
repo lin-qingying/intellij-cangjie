@@ -97,29 +97,7 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
     }
 
 
-    /**。
-     *使用[toolchainObtainer]获取池上的工具链列表，然后填充组合框并在EDT上调用[callback]。
-     */
-//    @Suppress("MemberVisibilityCanBePrivate")
-//    fun addToolchainsAsync(toolchainObtainer: () -> List<Path>, callback: () -> Unit) {
-//        setBusy(true)
-//        ApplicationManager.getApplication().executeOnPooledThread {
-//            var toolchains = emptyList<Path>()
-//            try {
-//                toolchains = toolchainObtainer()
-//            } finally {
-//                val executor = AppUIExecutor.onUiThread(ModalityState.any()).expireWith(this)
-//                executor.execute {
-//                    setBusy(false)
-//                    val oldSelectedPath = selectedPath
-//                    childComponent.removeAllItems()
-//                    toolchains.forEach(childComponent::addItem)
-//                    selectedPath = oldSelectedPath
-//                    callback()
-//                }
-//            }
-//        }
-//    }
+
 
     @Suppress("MemberVisibilityCanBePrivate")
     fun <T> addToolchainsAsync(toolchainObtainer: () -> List<T>, callback: () -> Unit) {
@@ -155,9 +133,6 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
         addToolchainsAsync(toolchainObtainer) {}
     }
 
-//    fun addToolchainsAsync(toolchainObtainer: () -> List<Path>) {
-//        addToolchainsAsync(toolchainObtainer) {}
-//    }
 
 }
 

@@ -33,6 +33,7 @@ import com.linqingying.cangjie.ide.project.tools.projectWizard.CangJieProjectTyp
 import com.linqingying.cangjie.ide.project.tools.projectWizard.CangJieUiBundle
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.ConfigurationException
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.BottomGap
@@ -43,6 +44,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 class CjNewProjectPanel(
+
     private val showProjectTypeSelection: Boolean,
     cjpmProjectDir: Path = Paths.get("."),
     private val updateListener: (() -> Unit)? = null
@@ -57,7 +59,9 @@ class CjNewProjectPanel(
 
 
     }
-    private val cangjieProjectSettings = CangJieProjectSettingsPanel(cjpmProjectDir, updateListener)
+    private val cangjieProjectSettings = CangJieProjectSettingsPanel(
+
+        cjpmProjectDir, updateListener)
     private val cjpm: Cjpm?
         get() = cangjieProjectSettings.data.toolchain?.cjpm()
 

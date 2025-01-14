@@ -262,6 +262,7 @@
                      defaultValue="true"
                      description="Enable new Cjpm project model reloading"
                      restartRequired="true"/>
+        <registryKey key="sdk.downloader.url" description="Custom URL to download the list of available SDKs" defaultValue=""/>
 
         <registryKey key="cangjie.create.sealed.templates.enabled"
                      defaultValue="false"

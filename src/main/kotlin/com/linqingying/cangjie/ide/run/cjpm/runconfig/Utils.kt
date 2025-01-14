@@ -26,7 +26,7 @@
 package com.linqingying.cangjie.ide.run.cjpm.runconfig
 
 import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
+
 import com.linqingying.cangjie.ide.run.cjpm.isUnitTestMode
 import com.linqingying.cangjie.ide.run.cjpm.languageRuntime
 import com.intellij.execution.ExecutionException
@@ -84,7 +84,7 @@ fun GeneralCommandLine.startProcess(
     val process = environment.createProcess(targetCommandLine, progressIndicator)
 
     val commandRepresentation = targetCommandLine.getCommandPresentation(environment)
-    CjToolchainPathChoosingComboBox.LOG.debug("Executing command: `$commandRepresentation`")
+   LOG.debug("Executing command: `$commandRepresentation`")
 
     val handler = CjProcessHandler(process, commandRepresentation, targetCommandLine.charset, processColors)
     ProcessTerminatedListener.attach(handler)
