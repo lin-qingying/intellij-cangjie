@@ -34,7 +34,7 @@ plugins {
     idea
 
     kotlin("jvm") version "2.1.0"
-    id("org.jetbrains.intellij.platform") version "2.2.0"
+    id("org.jetbrains.intellij.platform") version "2.2.1"
 
     id("org.jetbrains.grammarkit") version "2022.3.2"
     kotlin("plugin.serialization") version "1.9.21"
