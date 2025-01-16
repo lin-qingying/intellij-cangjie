@@ -50,7 +50,7 @@ import kotlin.concurrent.write
 import kotlin.text.equals
 
 
-const val URL = "https://gitee.com/Lin_Qing_Ying/intellij-cangjie/raw/analyze/data/download_cangjie_index.json"
+const val URL = "https://gitee.com/Lin_Qing_Ying/intellij-cangjie-index/raw/master/download/download_cangjie_index.json"
 
 abstract class SdkListDownloaderBase {
     protected abstract val feedUrl: String
