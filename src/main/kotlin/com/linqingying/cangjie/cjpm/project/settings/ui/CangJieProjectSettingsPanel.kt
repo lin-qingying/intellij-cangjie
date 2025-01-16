@@ -29,6 +29,7 @@
 
 package com.linqingying.cangjie.cjpm.project.settings.ui
 
+import com.intellij.execution.wsl.WslDistributionManager
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
 import com.linqingying.cangjie.cjpm.project.settings.CangJieProjectSettingsService
@@ -40,9 +41,10 @@ import com.linqingying.cangjie.cjpm.toolchain.cjc
 import com.linqingying.cangjie.ide.project.settings.ui.UiDebouncer
 import com.linqingying.cangjie.ide.project.settings.ui.fullWidthCell
 import com.intellij.execution.wsl.WslPath
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.ControlFlowException
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -50,16 +52,34 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectBundle
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.projectRoots.impl.jdkDownloader.JdkListDownloader
+import com.intellij.openapi.projectRoots.Sdk
+import com.intellij.openapi.projectRoots.SdkModel
+import com.intellij.openapi.projectRoots.SdkTypeId
+
+import com.intellij.openapi.roots.ui.configuration.projectRoot.SdkDownload
+import com.intellij.openapi.roots.ui.configuration.projectRoot.SdkDownloadTask
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.Messages
+
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.Panel
-import com.linqingying.cangjie.ide.projectStructure.download.SdkDownloader
+import com.linqingying.cangjie.ide.projectStructure.download.SdkDownloadDialog
+import com.linqingying.cangjie.ide.projectStructure.download.SdkDownloadEp
+
+import com.linqingying.cangjie.ide.projectStructure.download.SdkDownloaderMergedModel
+import com.linqingying.cangjie.ide.projectStructure.download.SdkListDownloader
+import com.linqingying.cangjie.ide.projectStructure.download.addDownloadItem
+import com.linqingying.cangjie.ide.projectStructure.download.buildSdkDownloaderModel
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.function.Consumer
+import java.util.function.Predicate
 import javax.swing.JButton
+import javax.swing.JComponent
 import javax.swing.JLabel
+
 
 class CangJieProjectSettingsPanel(
 
@@ -90,7 +110,10 @@ class CangJieProjectSettingsPanel(
         }
     private val versionUpdateDebouncer = UiDebouncer(this)
 
-    private val pathToToolchainComboBox = CjToolchainPathChoosingComboBox { update() }
+    private val pathToToolchainComboBox = CjToolchainPathChoosingComboBox {
+
+        update()
+    }
 
 
     private val toolchainVersion = JLabel()
@@ -103,9 +126,12 @@ class CangJieProjectSettingsPanel(
     //    private val toolchainPaths: List<CjToolchainBase> = toolchainsService.getToolchainPaths()
     private val toolchainPaths: List<String> = toolchainsService.getToolchainPaths()
 
+    // 抛出ConfigurationException异常
     @Throws(ConfigurationException::class)
     fun validateSettings() {
+        // 获取data中的toolchain
         val toolchain = data.toolchain ?: return
+        // 如果toolchain不是有效的toolchain，则移除toolchain并抛出ConfigurationException异常
         if (!toolchain.looksLikeValidToolchain()) {
             toolchainsService.removeToolchain(toolchain.location.toString())
             throw ConfigurationException(
@@ -133,10 +159,17 @@ class CangJieProjectSettingsPanel(
 
 
 //            显示下载按钮
-            if (toolchainPaths.isEmpty()) {
+            val downloadEp = SdkDownloadEp.EP_NAME.findFirstSafe { it.supportsDownload() }
+
+            if (/*toolchainPaths.isEmpty() &&*/ downloadEp != null) {
                 val downloadButton = JButton(CangJieBundle.message("settings.cangjie.download.toolchain.button"))
                 downloadButton.addActionListener {
-                    downloadSdk()
+
+                    addDownloadItem(downloadEp, pathToToolchainComboBox) {
+
+//                        update()
+                    }
+
                 }
                 cell(downloadButton)
             }
@@ -148,14 +181,6 @@ class CangJieProjectSettingsPanel(
         row(CangJieBundle.message("settings.cangjie.toolchain.compiler.type.label")) {
             cell(compilerType)
         }
-//        pathToToolchainComboBox.addToolchainsAsync  {
-//            CjToolchainFlavor.getApplicableFlavors()
-//                .flatMap {
-//                    it.suggestHomePaths()
-//
-//                }.distinct()
-//        }
-//            TODO 修改为历史可用的工具链路径
 
         pathToToolchainComboBox.addToolchainsAsync {
             toolchainPaths
@@ -164,25 +189,6 @@ class CangJieProjectSettingsPanel(
 
     }
 
-    private inline fun <T : Any?> computeInBackground(
-        project: Project?,
-        @NlsContexts.DialogTitle title: String,
-        crossinline action: (ProgressIndicator) -> T
-    ): T =
-        ProgressManager.getInstance().run(object : Task.WithResult<T, Exception>(project, title, true) {
-            override fun compute(indicator: ProgressIndicator) = action(indicator)
-        })
-
-    private fun downloadSdk() {
-        println("下载sdk")
-        computeInBackground(null, CangJieBundle.message("progress.title.downloading.sdk.list")) {
-//         休眠5秒
-
-            SdkDownloader.getInstance().downloadForUI(it)
-        }
-
-
-    }
 
     private fun update() {
         val pathToToolchain = pathToToolchainComboBox.selectedPath
@@ -191,29 +197,14 @@ class CangJieProjectSettingsPanel(
             val toolchain = pathToToolchain?.let { CjToolchainProvider.getToolchain(it) }
             val cjc = toolchain?.cjc()
 
-//                TODO 版本管理工具
-//                val cangjieup = toolchain?.cangjieup
             val cjcVersion = cjc?.version
 
-//                val stdlibLocation = cjc?.getStdlibFromSysroot(cjpmProjectDir)?.presentableUrl
             Triple(cjcVersion?.semver, cjcVersion?.type, false)
         }, onUiThread = { (cjcVersion, type, hasCangJieup) ->
-//                downloadStdlibLink.isVisible = hasCangJieup && stdlibLocation == null
-
-//                pathToStdlibField.isEditable = !hasCangJieup
-//                pathToStdlibField.setButtonEnabled(!hasCangJieup)
-//                if (stdlibLocation != null && (pathToStdlibField.text.isBlank() || hasCangJieup) ||
-//                    !isStdlibLocationCompatible(pathToToolchain?.toString().orEmpty(), pathToStdlibField.text)
-//                ) {
-//                    pathToStdlibField.text = stdlibLocation.orEmpty()
-//                }
-//                fetchedSysroot = stdlibLocation
-
-
-//                pathToToolchainComboBox.selectedPath = data.toolchain?.location
 
             if (cjcVersion == null) {
-                toolchainVersion.text = CangJieBundle.message("settings.cangjie.toolchain.not.applicable.version.text")
+                toolchainVersion.text =
+                    CangJieBundle.message("settings.cangjie.toolchain.not.applicable.version.text")
                 toolchainVersion.foreground = JBColor.RED
                 compilerType.text = CangJieBundle.message("settings.cangjie.toolchain.not.applicable.version.text")
                 compilerType.foreground = JBColor.RED

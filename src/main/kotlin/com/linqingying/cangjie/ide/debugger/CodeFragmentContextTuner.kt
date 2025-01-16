@@ -1,10 +1,10 @@
 package com.linqingying.cangjie.ide.debugger
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.psi.PsiCodeBlock
+
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiJavaFile
+
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil

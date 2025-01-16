@@ -155,7 +155,7 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaUltimate, ideaVersion)
+            create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
 //            instrumentationTools()
 
 //            local(dependencyCachePath)
@@ -535,3 +535,8 @@ fun prop(name: String): String =
     extra.properties[name] as? String
         ?: error("Property `$name` is not defined in gradle.properties")
 
+
+
+project(":test") {
+
+}

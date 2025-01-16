@@ -645,6 +645,22 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
 //            }
         }
 
+        /**
+         * 检查给定路径是否是有效的 SDK。
+         *
+         * @param homePath SDK 的主路径
+         * @return 如果是有效的 SDK，则返回 true，否则返回 false
+         */
+        fun checkForSdk(homePath: Path): Boolean {
+            return (Files.exists(homePath.resolve("bin/cjc")) ||
+                    (SystemInfo.isWindows && Files.exists(homePath.resolve("bin/cjc.exe"))) && Files.exists(
+                homePath.resolve(
+                    "tools/bin/cjpm.exe"
+                )
+            ))
+
+        }
+
         @JvmOverloads
         fun suggest(projectDir: Path? = null): CjToolchainBase? {
             val distribution = projectDir?.let { WslPath.getDistributionByWindowsUncPath(it.toString()) }

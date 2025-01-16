@@ -53,8 +53,6 @@ class CjToolchainServices : PersistentStateComponent<CjToolchainServices.State> 
 
     var myState = State(mutableListOf())
 
-    var toolchains = mutableListOf<CjToolchainBase>()
-
 
     fun putToolchainPath(path: String) {
         state.toolchains.map {
@@ -81,50 +79,6 @@ class CjToolchainServices : PersistentStateComponent<CjToolchainServices.State> 
 
 
     }
-//
-//    var toolchains = mutableListOf<CjToolchainBase>()
-//
-//
-//    fun putToolchainPath(toolchain: CjToolchainBase) {
-//
-//
-//        toolchains.map {
-//            if (it.location == toolchain.location) {
-//                return
-//            }
-//        }
-//        toolchains.add(toolchain)
-//
-//        myState.toolchains.add(toolchain.toSerializedString())
-//    }
-//
-//    fun getToolchainPaths(): MutableList<CjToolchainBase> {
-//        return toolchains
-//    }
-//
-//    fun removeToolchain(toolchain: CjToolchainBase) {
-//
-//        toolchains.removeIf {
-//            it.location == toolchain.location
-//        }
-//
-//        myState.toolchains.removeIf {
-//            toolchain.toSerializedString() == it
-//        }
-//    }
-
-//    private fun onStateChanged() {
-//        try {
-//            toolchains = myState.toolchains.map {
-//                CjToolchainBase.fromSerializedString(it)!!
-//            }.toMutableList()
-//        } catch (e: Exception) {
-////            TODO 在重新序列化时捕获null错误是否需要处理
-//
-////            toolchains = mutableListOf()
-////            myState.toolchains = mutableListOf()
-//        }
-//    }
 
     override fun getState(): State {
         return myState
@@ -132,7 +86,7 @@ class CjToolchainServices : PersistentStateComponent<CjToolchainServices.State> 
 
     override fun loadState(state: State) {
         this.myState = state
-//        onStateChanged()
+
     }
 
 

@@ -29,7 +29,6 @@
     <resource-bundle>messages.CangJieBundle</resource-bundle>
 
 
-
     <extensions defaultExtensionNs="com.intellij">
 
         <!-- 编辑器执行配置 -->
@@ -80,8 +79,6 @@
                   fieldName="INSTANCE"/>
 
 
-
-
         <!--                <lang.fileViewProviderFactory language="CangJie"-->
         <!--                                              implementationClass="com.linqingying.cangjie.lang.declarations.CangJieFileViewProviderFactory"/>-->
         <!--        <fileType.fileViewProviderFactory filetype="cangjie_declarations"-->
@@ -113,8 +110,8 @@
         <!--                implementation="com.linqingying.cangjie.ide.project.tools.projectWizard.CangJieNewProjectWizard"/>-->
         <moduleBuilder
                 builderClass="com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder"/>
-<!--        <moduleBuilder-->
-<!--                builderClass="com.linqingying.cangjie.ide.project.moduletype.CangJieLibraryModuleBuilder"/>-->
+        <!--        <moduleBuilder-->
+        <!--                builderClass="com.linqingying.cangjie.ide.project.moduletype.CangJieLibraryModuleBuilder"/>-->
 
 
         <!--运行-->
@@ -136,7 +133,8 @@
         <!--        <analyzeStacktraceFilter implementation="com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjBacktraceFilter"/>-->
 
         <!--        构建-->
-        <projectTaskRunner implementation="com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskRunner"/>
+        <projectTaskRunner
+                implementation="com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskRunner"/>
 
         <!--        cjc-->
         <!--        <configurationType-->
@@ -165,11 +163,11 @@
                              groupId="language.cangjie.languageServer"
                              id="language.cangjie.languageServer.ast"
                              bundle="messages.CangJieBundle" key="CangJie.languageServer.astanalyzer"/>
-<!--        <projectConfigurable instance="com.linqingying.cangjie.configurable.CangJieDebuggerTypeConfigurable"-->
-<!--                             parentId="language.cangjie"-->
-<!--                             groupId="language.cangjie"-->
-<!--                             id="language.cangjie.debugger"-->
-<!--                             bundle="messages.CangJieBundle" key="CangJie.debugger"/>-->
+        <!--        <projectConfigurable instance="com.linqingying.cangjie.configurable.CangJieDebuggerTypeConfigurable"-->
+        <!--                             parentId="language.cangjie"-->
+        <!--                             groupId="language.cangjie"-->
+        <!--                             id="language.cangjie.debugger"-->
+        <!--                             bundle="messages.CangJieBundle" key="CangJie.debugger"/>-->
 
 
         <!--注释-->
@@ -226,12 +224,12 @@
                 serviceImplementation="com.linqingying.cangjie.metadata.IdeCangJieBuiltInStubVersionOffsetProvider"
         />
         <projectService serviceInterface="com.linqingying.cangjie.metadata.decompiler.BuiltInsVirtualFileProvider"
-                            serviceImplementation="com.linqingying.cangjie.metadata.decompiler.IdeBuiltInsVirtualFileProviderImpl"/>
-    <registryKey
-            key="cangjie.enable.inlay.hint.for.lambda.return.type"
-            description="Show inlay hint for lambda return type"
-            defaultValue="false"
-            restartRequired="false"/>
+                        serviceImplementation="com.linqingying.cangjie.metadata.decompiler.IdeBuiltInsVirtualFileProviderImpl"/>
+        <registryKey
+                key="cangjie.enable.inlay.hint.for.lambda.return.type"
+                description="Show inlay hint for lambda return type"
+                defaultValue="false"
+                restartRequired="false"/>
         <applicationService serviceImplementation="com.linqingying.cangjie.ide.newProject.state.CjUserTemplatesState"/>
 
         <!--        <projectService serviceImplementation="com.linqingying.cangjie.ide.run.cjpm.back.CangJieProjectSettingsService"/>-->
@@ -243,9 +241,12 @@
         <projectService serviceInterface="com.linqingying.cangjie.ide.vfilefinder.VirtualFileFinderFactory"
                         serviceImplementation="com.linqingying.cangjie.ide.vfilefinder.IdeVirtualFileFinderFactory"/>
         <iconProvider implementation="com.linqingying.cangjie.ide.CangJieIconProvider"/>
-        <treeStructureProvider implementation="com.linqingying.cangjie.ide.projectView.CangJieSelectInProjectViewProvider"/>
-        <treeStructureProvider implementation="com.linqingying.cangjie.ide.projectView.CangJieExpandNodeProjectViewProvider"
-                               order="last"/>
+        <treeStructureProvider
+                implementation="com.linqingying.cangjie.ide.projectView.CangJieSelectInProjectViewProvider"/>
+        <treeStructureProvider
+                implementation="com.linqingying.cangjie.ide.projectView.CangJieExpandNodeProjectViewProvider"
+                order="last"/>
+<!--        <statistics.counterUsagesCollector implementationClass="com.linqingying.cangjie.ide.projectStructure.download.SdkDownloaderLogger"/>-->
 
         <projectService
                 serviceInterface="com.linqingying.cangjie.ide.projectStructure.LibraryUsageIndex"
@@ -262,7 +263,12 @@
                      defaultValue="true"
                      description="Enable new Cjpm project model reloading"
                      restartRequired="true"/>
-        <registryKey key="sdk.downloader.url" description="Custom URL to download the list of available SDKs" defaultValue=""/>
+        <registryKey key="sdk.downloader.url" description="Custom URL to download the list of available SDKs"
+                     defaultValue=""/>
+        <registryKey key="sdk.downloader.reuse.installed" defaultValue="true"
+                     description="Allow to reuse locally installed with the SDK Downloader SDK instead of download it again"/>
+        <registryKey key="sdk.downloader.reuse.downloading" defaultValue="true"
+                     description="Allow to reuse currently downloading with the SDK Downloader SDK instead of downloading it again"/>
 
         <registryKey key="cangjie.create.sealed.templates.enabled"
                      defaultValue="false"
@@ -291,10 +297,11 @@
 
         />
 
-        <projectConfigurable provider="com.linqingying.cangjie.cjpm.project.configurable.CjpmBuildToolConfigurableProvider"
-                             parentId="build.tools"
-                             id="language.cangjie.build.tool.cjpm"
-                             bundle="messages.CangJieBundle" key="settings.cangjie.cjpm.name"/>
+        <projectConfigurable
+                provider="com.linqingying.cangjie.cjpm.project.configurable.CjpmBuildToolConfigurableProvider"
+                parentId="build.tools"
+                id="language.cangjie.build.tool.cjpm"
+                bundle="messages.CangJieBundle" key="settings.cangjie.cjpm.name"/>
         <!-- Notifications -->
 
         <editorNotificationProvider
@@ -306,7 +313,7 @@
         <statusBarWidgetFactory id="cangjieExternalLinterWidget"
                                 implementation="com.linqingying.cangjie.ide.status.CjExternalLinterWidgetFactory"
                                 order="first"/>
-        <psi.treeChangeListener  implementation="com.linqingying.cangjie.dag.DependencyGraphListener"/>
+        <psi.treeChangeListener implementation="com.linqingying.cangjie.dag.DependencyGraphListener"/>
 
 
         <!--        引用搜索-->
@@ -387,7 +394,6 @@
     <projectListeners>
 
 
-
         <listener class="com.linqingying.cangjie.ide.status.CjExternalLinterWidgetUpdater"
                   topic="com.linqingying.cangjie.cjpm.project.model.CjpmProjectsService$CjpmProjectsListener"/>
     </projectListeners>
@@ -452,30 +458,35 @@
                         area="IDEA_PROJECT" dynamic="true"/>
 
 
-        <extensionPoint qualifiedName="com.linqingying.cangjie.classFileDecompiler" interface="com.linqingying.cangjie.psi.compiled.ClassFileDecompilers$Decompiler" dynamic="true"/>
+        <extensionPoint qualifiedName="com.linqingying.cangjie.classFileDecompiler"
+                        interface="com.linqingying.cangjie.psi.compiled.ClassFileDecompilers$Decompiler"
+                        dynamic="true"/>
 
+        <extensionPoint qualifiedName="com.linqingying.cangjie.sdkDownload"
+                        interface="com.linqingying.cangjie.ide.projectStructure.download.SdkDownloadEp"/>
     </extensionPoints>
 
 
     <actions>
 
 
-        <action id="GeneratedBuiltins" class="com.linqingying.cangjie.ide.actions.GeneratedBuiltins" text="生成Builtins文件" description="GeneratedBuiltins">
+        <action id="GeneratedBuiltins" class="com.linqingying.cangjie.ide.actions.GeneratedBuiltins"
+                text="生成Builtins文件" description="GeneratedBuiltins">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>
         <action id="CjpmRunMain" class="com.linqingying.cangjie.ide.run.cjpm.RunMainAction"/>
-<!--        <action id="CangJieGeneratePackageDependencyGraph"-->
-<!--                class="com.linqingying.cangjie.dag.GenerateDependencyGraphAction"-->
-<!--                text="Generate Dependency Graph"-->
+        <!--        <action id="CangJieGeneratePackageDependencyGraph"-->
+        <!--                class="com.linqingying.cangjie.dag.GenerateDependencyGraphAction"-->
+        <!--                text="Generate Dependency Graph"-->
 
-<!--                description="Generate package dependency graph from the current file">-->
-<!--            <add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
-<!--        </action>-->
-<!--        <action id="CjpmAction" class="com.linqingying.cangjie.ide.run.modulejson.CjpmUpdateAction"-->
-<!--                text="Run Cjpm Update">-->
-<!--            <add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
-<!--            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>-->
-<!--        </action>-->
+        <!--                description="Generate package dependency graph from the current file">-->
+        <!--            <add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
+        <!--        </action>-->
+        <!--        <action id="CjpmAction" class="com.linqingying.cangjie.ide.run.modulejson.CjpmUpdateAction"-->
+        <!--                text="Run Cjpm Update">-->
+        <!--            <add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
+        <!--            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>-->
+        <!--        </action>-->
         <!--          icon="com.linqingying.cangjie.ide.icons.CangJieIcons.CANGJIE_FILE"    -->
         <action id="CangJie.NewFile" class="com.linqingying.cangjie.ide.actions.NewCangJieFileAction"
                 text="Add Cangjie File"
@@ -566,6 +577,10 @@
 
         <moduleinfo.moduleInfoProviderExtension
                 implementation="com.linqingying.cangjie.ide.projectStructure.DefaultModuleInfoProviderExtension"/>
+
+
+        <sdkDownload implementation="com.linqingying.cangjie.ide.projectStructure.download.SdkDownloader"/>
+
 
     </extensions>
 

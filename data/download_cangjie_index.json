@@ -42,7 +42,7 @@
       "ext": "tar.gz",
       "version": "0.53.13",
       "os": "darwin",
-      "arch": "aarch64",
+      "arch": "arch64",
       "sha256sum": "93D0CBFBE318F6A714A37BBCC3707E0070E830F35B85C228E92D358F68CA28C6"
     }
   ]

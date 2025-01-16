@@ -37,7 +37,7 @@ private const val BUNDLE: String = "messages.CangJieUiBundle"
 object CangJieUiBundle : AbstractCangJieBundle(  BUNDLE) {
 
 
-    fun message(key: @PropertyKey(resourceBundle = BUNDLE) String, vararg params: Any): @Nls String {
+    fun message(key: @PropertyKey(resourceBundle = BUNDLE) String, vararg params: Any?): @Nls String {
         return getMessage(key, *params)
     }
 

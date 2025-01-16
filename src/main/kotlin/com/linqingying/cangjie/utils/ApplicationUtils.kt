@@ -26,6 +26,8 @@ package com.linqingying.cangjie.utils
 
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ex.ApplicationEx
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.CommandProcessor
@@ -35,13 +37,23 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.psi.PsiElement
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.annotations.Nls
 import java.util.concurrent.Callable
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 
 fun <T> runWriteActionIfPhysical(e: PsiElement, action: () -> T): T = runWriteActionIfNeeded(e.isPhysical, action)
-
+fun runTaskOnEdt(modalityState: ModalityState, task: suspend () -> Unit) {
+    // 在事件分发线程上启动协程
+    ApplicationManager.getApplication().invokeLater({
+        CoroutineScope(Dispatchers.EDT).launch {
+            task() // 在协程中安全调用挂起函数
+        }
+    }, modalityState)
+}
 /**
  * Run [action] under a write action if needed, and run outside an action otherwise.
  */

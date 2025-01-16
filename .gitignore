@@ -69,3 +69,5 @@ bin/
 
 /lsp1/
 /.intellijPlatform/
+/.intellijPlatform/
+/.kotlin/

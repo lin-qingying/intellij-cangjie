@@ -1,6 +1,5 @@
 package com.linqingying.cangjie.utils
 
-import com.intellij.debugger.engine.evaluation.AbsentInformationEvaluateException
 import com.sun.jdi.AbsentInformationException
 import com.sun.jdi.InternalException
 import com.sun.jdi.LocalVariable
@@ -15,9 +14,9 @@ private inline fun <T> wrapAbsentInformationException(block: () -> T): T? {
         block()
     } catch (e: AbsentInformationException) {
         null
-    } catch (e: AbsentInformationEvaluateException) {
+    } /*catch (e: AbsentInformationEvaluateException) {
         null
-    } catch (e: InternalException) {
+    } */catch (e: InternalException) {
         null
     } catch (e: UnsupportedOperationException) {
         null

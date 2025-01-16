@@ -24,10 +24,11 @@
 
 package com.linqingying.cangjie.cjpm.project
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import com.linqingying.cangjie.cjpm.project.CjToolchainPathChoosingComboBox.Companion.LOG
 import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
 import com.linqingying.cangjie.ide.project.settings.ui.addTextChangeListener
-import com.intellij.openapi.application.AppUIExecutor
+
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
@@ -38,8 +39,10 @@ import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ComboboxSpeedSearch
+import com.intellij.ui.ComboboxSpeedSearch.installOn
 import com.intellij.ui.components.fields.ExtendableTextComponent
 import com.intellij.ui.components.fields.ExtendableTextField
+import com.linqingying.cangjie.utils.runTaskOnEdt
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -58,13 +61,20 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
         val LOG = Logger.getInstance(CjToolchainPathChoosingComboBox::class.java)
     }
 
+    // 创建一个BasicComboBoxEditor对象，用于编辑ComboBox中的文本
     private val editor: BasicComboBoxEditor = object : BasicComboBoxEditor() {
         override fun createEditorComponent(): ExtendableTextField = ExtendableTextField()
     }
+
+    // 获取ComboBox中的文本框
     private val pathTextField: ExtendableTextField
         get() = childComponent.editor.editorComponent as ExtendableTextField
+
+    // 创建一个ExtendableTextComponent.Extension对象，用于显示忙碌图标
     private val busyIconExtension: ExtendableTextComponent.Extension =
         ExtendableTextComponent.Extension { AnimatedIcon.Default.INSTANCE }
+
+    // 获取或设置ComboBox中选中的路径
     var selectedPath: Path?
         get() = pathTextField.text?.toPathOrNull()
         set(value) {
@@ -72,10 +82,14 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
         }
 
     init {
-        ComboboxSpeedSearch(childComponent)
+        // 创建一个ComboboxSpeedSearch对象，用于快速搜索ComboBox中的文本
+        installOn(childComponent)
+        // 设置ComboBox的编辑器为editor
         childComponent.editor = editor
+        // 设置ComboBox为可编辑
         childComponent.isEditable = true
 
+        // 添加一个ActionListener，用于打开文件选择器
         addActionListener {
 
             val descriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
@@ -84,22 +98,25 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
             }
         }
 
+        // 添加一个TextChangeListener，用于监听文本框中的文本变化
         pathTextField.addTextChangeListener { onTextChanged() }
     }
 
+    // 设置ComboBox的忙碌状态
     private fun setBusy(busy: Boolean) {
         if (busy) {
             pathTextField.addExtension(busyIconExtension)
         } else {
             pathTextField.removeExtension(busyIconExtension)
         }
+//        pathTextField.removeExtension(busyIconExtension)
+
         repaint()
     }
 
 
-
-
     @Suppress("MemberVisibilityCanBePrivate")
+    // 异步添加工具链
     fun <T> addToolchainsAsync(toolchainObtainer: () -> List<T>, callback: () -> Unit) {
         setBusy(true)
         ApplicationManager.getApplication().executeOnPooledThread {
@@ -107,38 +124,60 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
             try {
                 toolchains = toolchainObtainer()
             } finally {
-                val executor = AppUIExecutor.onUiThread(ModalityState.any()).expireWith(this)
-                executor.execute {
-                    setBusy(false)
-                    val oldSelectedPath = selectedPath
-                    childComponent.removeAllItems()
 
-                    toolchains.forEach {
 
-                        when (it) {
-                            is CjToolchainBase -> childComponent.addItem(it.location)
-                            is Path -> childComponent.addItem(it)
-                            is String -> childComponent.addItem(it.toPath())
-                        }
 
+                val oldSelectedPath = selectedPath
+                childComponent.removeAllItems()
+
+                toolchains.forEach {
+
+                    when (it) {
+                        is CjToolchainBase -> childComponent.addItem(it.location)
+                        is Path -> childComponent.addItem(it)
+                        is String -> childComponent.addItem(it.toPath())
                     }
-                    selectedPath = oldSelectedPath
-                    callback()
+
                 }
+                selectedPath = oldSelectedPath
+                callback()
+
+
             }
         }
+
     }
 
+    // 异步添加工具链，不执行回调函数
     fun <T> addToolchainsAsync(toolchainObtainer: () -> List<T>) {
         addToolchainsAsync(toolchainObtainer) {}
     }
 
+    // 添加单个工具链并更改选中的路径
+    fun addSingleToolchainAndSelect(toolchain: Any) {
+//        addToolchainsAsync({ listOf(toolchain) })
+        val pathToAdd = when (toolchain) {
+            is CjToolchainBase -> toolchain.location
+            is Path -> toolchain
+            is String -> toolchain.toPath()
+            else -> throw IllegalArgumentException("Unsupported toolchain type")
+        }
+
+        // 添加路径并选中它
+        childComponent.addItem(pathToAdd)
+        selectedPath = pathToAdd
+    }
 
 }
 
 
+// 将字符串转换为Path对象
 fun String.toPath(): Path = Paths.get(this)
+
+// 将字符串转换为Path对象，如果转换失败则返回null
 fun String.toPathOrNull(): Path? = pathOrNull(this::toPath)
+
+// 将字符串转换为Path对象，如果转换失败则记录日志并返回null
 private inline fun pathOrNull(block: () -> Path): Path? {
     return try {
         block()
@@ -148,4 +187,5 @@ private inline fun pathOrNull(block: () -> Path): Path? {
     }
 }
 
+// 获取VirtualFile对象的路径，并转换为Path对象
 val VirtualFile.pathAsPath: Path get() = Paths.get(path)
