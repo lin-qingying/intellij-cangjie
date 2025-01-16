@@ -253,19 +253,7 @@ interface SdkInstallRequest {
      */
     val cangjieHome: Path
 }
-//
-//interface SdkDownloadTask {
-//    val suggestedSdkName: String
-//
-//    val productName: String?
-//        get() = null
-//
-//    val plannedHomeDir: String
-//
-//    val plannedVersion: String
-//
-//    fun doDownload(indicator: ProgressIndicator)
-//}
+
 
 class CangJieSdkDownloadTask(
 
@@ -273,10 +261,7 @@ class CangJieSdkDownloadTask(
     val request: SdkInstallRequest,
     val project: Project?
 ) : SdkDownloadTask {
-    //    override val suggestedSdkName: String = request.item.suggestedSdkName
-//    override val productName: String = sdkItem.suggestedSdkName
-//    override val plannedHomeDir: String = request.cangjieHome.toString()
-//    override val plannedVersion: String = request.item.version
+
     override fun getSuggestedSdkName() = request.item.suggestedSdkName
     override fun getPlannedHomeDir() = request.cangjieHome.toString()
     override fun getPlannedVersion() = request.item.version
@@ -776,7 +761,7 @@ abstract class SdkInstallerBase {
         val item = request.item
         indicator?.text = CangJieUiBundle.message("progress.text.installing.sdk.1", item.suggestedSdkName)
         val urlString =
-            item.url ?: "https://gitee.com/Lin_Qing_Ying/intellij-cangjie-stdlib/raw/master/cangjie-0.53.13.zip"
+            item.url
         val targetDir = request.installDir
         val url = Urls.parse(urlString, false) ?: error("Cannot parse download URL: ${urlString}")
 

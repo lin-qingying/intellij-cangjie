@@ -22,6 +22,7 @@ import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.write
 import com.intellij.util.system.CpuArch
 import com.intellij.util.text.VersionComparatorUtil
+import com.linqingying.cangjie.download.sdk.CANGJIE_SDK_INDEX
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -50,7 +51,6 @@ import kotlin.concurrent.write
 import kotlin.text.equals
 
 
-const val URL = "https://gitee.com/Lin_Qing_Ying/intellij-cangjie-index/raw/master/download/download_cangjie_index.json"
 
 abstract class SdkListDownloaderBase {
     protected abstract val feedUrl: String
@@ -193,7 +193,7 @@ class SdkListDownloader : SdkListDownloaderBase() {
                     return registry
                 }
             }
-            return URL
+            return CANGJIE_SDK_INDEX
         }
 }
 

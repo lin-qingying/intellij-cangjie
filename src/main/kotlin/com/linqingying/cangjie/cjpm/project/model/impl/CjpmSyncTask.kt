@@ -65,6 +65,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
+import com.linqingying.cangjie.download.stdlib.downloadStdlib
 import org.jetbrains.annotations.Nls
 import java.io.File
 import java.io.FileInputStream
@@ -549,7 +550,7 @@ private fun unzip(zipFile: File, destDir: File) {
         var entry: ZipEntry?
         while (zip.nextEntry.also { entry = it } != null) {
             val newFile = File(destDir, entry!!.name)
-            if (entry!!.isDirectory) {
+            if (entry.isDirectory) {
                 newFile.mkdirs()
             } else {
                 newFile.parentFile.mkdirs()
@@ -562,23 +563,7 @@ private fun unzip(zipFile: File, destDir: File) {
     }
 }
 
-fun downloadStdlib(/*owner: Disposable? = null, listener: ProcessListener? = null*/version:String): DownloadResult<File> {
-    // 假设下载链接为 CjToolchainBase.STDLIB_DOWNLOAD_URL
-    val downloadUrl = CjToolchainBase.getStdlibDowloadUrl(version)
-    val targetFile = CjToolchainBase.stdlibPath.resolve("downloaded_stdlib.zip").toFile()
 
-    return try {
-        // 使用 URL 下载文件
-        URL(downloadUrl).openStream().use { input ->
-            FileOutputStream(targetFile).use { output ->
-                input.copyTo(output)
-            }
-        }
-        DownloadResult.Ok(targetFile) // 返回下载的文件
-    } catch (e: Exception) {
-        DownloadResult.Err("下载标准库失败: ${e.message}")
-    }
-}
 
 sealed class DownloadResult<out T> {
     class Ok<T>(val value: T) : DownloadResult<T>()
