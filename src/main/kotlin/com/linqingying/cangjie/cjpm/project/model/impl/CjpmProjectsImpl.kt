@@ -34,14 +34,17 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.linqingying.cangjie.cjpm.project.model.CjpmProject.UpdateStatus.NeedsUpdate
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KProperty
 
+// 获取是否启用新项目模型导入的值
 val isNewProjectModelImportEnabled: Boolean
     get() = Registry.`is`("com.linqingying.cangjie.cjpm.new.auto.import", false)
 
 
+// 定义CjpmProjectImpl类，实现CjpmProject接口
 data class CjpmProjectImpl(
     override val manifest: Path,
     private val projectService: CjpmProjectsServiceImpl,
@@ -56,17 +59,20 @@ data class CjpmProjectImpl(
     override val cjcInfoStatus: CjpmProject.UpdateStatus = CjpmProject.UpdateStatus.NeedsUpdate
 ) : UserDataHolderBase(), CjpmProject {
     //    override val workspaceRootDir: VirtualFile? = project.baseDir
+    // 获取工作区根目录
     override val workspaceRootDir: VirtualFile?
         get() = rawWorkspace?.workspaceRoot
 
     private val rootDirCache = AtomicReference<VirtualFile>()
 
 
+    // 判断是否是工作区
     override val isWorkspace: Boolean
         get() {
             return rawWorkspace != null
         }
 
+    // 获取根目录
     override val rootDir: VirtualFile?
         get() {
             val cached = rootDirCache.get()
@@ -75,8 +81,10 @@ data class CjpmProjectImpl(
             rootDirCache.set(file)
             return file
         }
+    // 获取项目
     override val project: Project
         get() = projectService.project
+    // 获取工作区
     override val workspace: CjpmWorkspace? by lazy(LazyThreadSafetyMode.PUBLICATION) {
 
 //        val rawWorkspace = rawWorkspace ?: return@lazy null
@@ -99,23 +107,22 @@ data class CjpmProjectImpl(
 
     }
 
+    // 设置标准库
     fun withStdlib(result: TaskResult<StandardLibrary>): CjpmProjectImpl = when (result) {
         is TaskResult.Ok -> copy(stdlib = result.value, stdlibStatus = CjpmProject.UpdateStatus.UpToDate)
         is TaskResult.Err -> copy(stdlibStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
     }
 
-    //    override val presentableName: String by lazy {
-//        workspace?.packages?.singleOrNull {
-//            it.origin == PackageOrigin.WORKSPACE && it.rootDirectory == workingDirectory
-//        }?.name ?: workingDirectory.fileName.toString()
-//    }
+
+    // 获取可呈现的名称
     override val presentableName: String
         get() {
             return workingDirectory.fileName.toString()
         }
 
+    // 设置工作区
     fun withWorkspace(result: TaskResult<CjpmWorkspace>): CjpmProjectImpl = when (result) {
-        is TaskResult.Ok -> copy(
+        is TaskResult.Ok -> copy(stdlib = null,
             rawWorkspace = result.value,
             workspaceStatus = CjpmProject.UpdateStatus.UpToDate,
 //            userDisabledFeatures = userDisabledFeatures.retain(result.value.packages)
@@ -125,8 +132,8 @@ data class CjpmProjectImpl(
     }
 
     fun withCjcInfo(result: TaskResult<CjcInfo>): CjpmProjectImpl = when (result) {
-        is TaskResult.Ok -> copy(cjcInfo = result.value, cjcInfoStatus = CjpmProject.UpdateStatus.UpToDate)
-        is TaskResult.Err -> copy(cjcInfoStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
+        is TaskResult.Ok -> copy(cjcInfo = result.value, stdlibStatus = NeedsUpdate, stdlib = null, cjcInfoStatus = CjpmProject.UpdateStatus.UpToDate)
+        is TaskResult.Err -> copy(stdlib = null, stdlibStatus = NeedsUpdate,cjcInfoStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
     }
 }
 
@@ -134,14 +141,22 @@ val CjpmProject.workingDirectory: Path get() = manifest.parent
 
 
 class CachedVirtualFile(private val url: String?) {
+    // 使用AtomicReference来缓存VirtualFile对象
     private val cache = AtomicReference<VirtualFile>()
 
+    // 通过操作符重载，实现属性的getter方法
     operator fun getValue(thisRef: Any?, property: KProperty<*>): VirtualFile? {
+        // 如果url为空，则返回null
         if (url == null) return null
+        // 获取缓存中的VirtualFile对象
         val cached = cache.get()
+        // 如果缓存中的对象不为空且有效，则返回缓存中的对象
         if (cached != null && cached.isValid) return cached
+        // 根据url查找VirtualFile对象
         val file = VirtualFileManager.getInstance().findFileByUrl(url)
+        // 将查找到的对象设置到缓存中
         cache.set(file)
+        // 返回查找到的对象
         return file
     }
 }

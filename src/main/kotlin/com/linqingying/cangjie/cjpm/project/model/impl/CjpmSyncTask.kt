@@ -65,7 +65,9 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
+import com.linqingying.cangjie.download.stdlib.STDLIB_PATH_LOCAL
 import com.linqingying.cangjie.download.stdlib.downloadStdlib
+import com.linqingying.cangjie.download.stdlib.fetchStdlib
 import org.jetbrains.annotations.Nls
 import java.io.File
 import java.io.FileInputStream
@@ -130,7 +132,6 @@ class CjpmSyncTask(
                                 cjpmProjectWithCjcInfoAndWorkspace,
                                 fetchStdlib(context, cjpmProjectWithCjcInfoAndWorkspace, cjcInfo)
 
-//                                null
                             )
 
                         }
@@ -213,39 +214,54 @@ class CjpmSyncTask(
         }
     }
 
+    // 重写run方法，传入一个ProgressIndicator参数
     override fun run(indicator: ProgressIndicator) {
+        // 记录日志，CjpmSyncTask开始
         LOG.info("CjpmSyncTask started")
+        // 设置ProgressIndicator为不确定状态
         indicator.isIndeterminate = true
+        // 获取当前时间
         val start = System.currentTimeMillis()
 
+        // 创建一个SyncViewManager，用于创建BuildProgress
         val syncProgress = SyncViewManager.createBuildProgress(project)
+        // 尝试执行doRun方法，获取刷新后的项目
         val refreshedProjects = try {
+            // 开始同步进度
             syncProgress.start(createSyncProgressDescriptor(indicator))
+            // 执行doRun方法
             val refreshedProjects = doRun(indicator, syncProgress)
 
-//            val refreshedProjects = cjpmProjects
+
+            // 判断是否有更新失败的项目
             val isUpdateFailed = refreshedProjects.any { it.mergedStatus is CjpmProject.UpdateStatus.UpdateFailed }
+            // 如果有更新失败的项目，则失败
             if (isUpdateFailed) {
                 syncProgress.fail()
             } else {
+                // 否则完成
                 syncProgress.finish()
             }
+            // 返回刷新后的项目
             refreshedProjects
         } catch (e: Throwable) {
+            // 如果是ProcessCanceledException，则取消
             if (e is ProcessCanceledException) {
                 syncProgress.cancel()
             } else {
+                // 否则失败
                 syncProgress.fail()
             }
+            // 将异常添加到result中
             result.completeExceptionally(e)
+            // 抛出异常
             throw e
         }
-
-
-
-
+        // 将刷新后的项目添加到result中
         result.complete(refreshedProjects)
+        // 计算耗时
         val elapsed = System.currentTimeMillis() - start
+        // 记录日志，Cjpm sync task完成
         LOG.debug("Finished Cjpm sync task in $elapsed ms")
     }
 
@@ -495,73 +511,6 @@ private class CjpmProjectWithExistingStdlib(
     val stdlib: StandardLibrary
 )
 
-private fun fetchStdlib(
-    context: CjpmSyncTask.SyncContext,
-    cjpmProject: CjpmProjectImpl,
-    rustcInfo: CjcInfo?
-): TaskResult<StandardLibrary> {
-    return context.runWithChildProgress(CangJieBundle.message("progress.text.getting.cangjie.stdlib")) { childContext ->
-
-        val workingDirectory = cjpmProject.workingDirectory
-        val toolchain = childContext.toolchain
-        val version = toolchain.cjc().version.semver.rawVersion
-        val stdlibPath = CjToolchainBase.stdlibPath.resolve(version)
-
-        // 验证
-        if (!stdlibPath.exists()) {
-            stdlibPath.toFile().mkdirs()
-
-            // 下载标准库到 stdlibPath
-            return@runWithChildProgress when (val downloadResult = downloadStdlib(toolchain.cjc().version.semver.rawVersion)) {
-                is DownloadResult.Ok -> {
-                    // 解压标准库到 stdlibPath.resolve(version)
-                    // 假设 downloadResult.value 是下载的文件
-                    val downloadedFile = downloadResult.value
-                    unzip(downloadedFile, stdlibPath.toFile())
-
-
-                    try {
-                        TaskResult.Ok(StandardLibrary.fromFileStdlib(stdlibPath, version))
-
-                    } catch (e: IllegalArgumentException) {
-                        TaskResult.Err(e.toString())
-                    }
-
-                }
-
-                is DownloadResult.Err -> {
-                    TaskResult.Err(downloadResult.error)
-                }
-            }
-        }
-        try {
-            TaskResult.Ok(StandardLibrary.fromFileStdlib(stdlibPath, version))
-
-        } catch (e: IllegalArgumentException) {
-            TaskResult.Err(e.toString())
-        }
-
-    }
-}
-
-// 解压缩文件的辅助方法
-private fun unzip(zipFile: File, destDir: File) {
-    ZipInputStream(FileInputStream(zipFile)).use { zip ->
-        var entry: ZipEntry?
-        while (zip.nextEntry.also { entry = it } != null) {
-            val newFile = File(destDir, entry!!.name)
-            if (entry.isDirectory) {
-                newFile.mkdirs()
-            } else {
-                newFile.parentFile.mkdirs()
-                FileOutputStream(newFile).use { output ->
-                    zip.copyTo(output)
-                }
-            }
-            zip.closeEntry()
-        }
-    }
-}
 
 
 

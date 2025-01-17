@@ -62,13 +62,19 @@ interface CjpmProject : UserDataHolderEx {
             .merge(stdlibStatus)
             .merge(cjcInfoStatus)
 
+    // 定义一个密封类UpdateStatus，用于表示更新状态
     sealed class UpdateStatus(private val priority: Int) {
+        // 表示更新状态为最新
         object UpToDate : UpdateStatus(0)
+        // 表示需要更新
         object NeedsUpdate : UpdateStatus(1)
+        // 表示更新失败，并包含失败原因
         class UpdateFailed(@Suppress("UnstableApiUsage") @NlsContexts.Tooltip val reason: String) : UpdateStatus(2) {
+            // 重写toString方法，返回失败原因
             override fun toString(): String = reason
         }
 
+        // 合并两个更新状态，返回优先级较高的状态
         fun merge(status: UpdateStatus): UpdateStatus = if (priority >= status.priority) this else status
     }
 }

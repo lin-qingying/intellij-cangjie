@@ -126,7 +126,6 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
             } finally {
 
 
-
                 val oldSelectedPath = selectedPath
                 childComponent.removeAllItems()
 
@@ -141,7 +140,7 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
                 }
                 selectedPath = oldSelectedPath
                 callback()
-
+                setBusy(false)
 
             }
         }

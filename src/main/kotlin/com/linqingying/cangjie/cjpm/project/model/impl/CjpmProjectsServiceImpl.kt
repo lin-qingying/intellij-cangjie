@@ -510,55 +510,39 @@ private val libraryTablesRegistrar = LibraryTablesRegistrar.getInstance()
  */
 private fun addDependencies(project: Project, cjpmProjects: List<CjpmProject>) {
     val libraryTable = libraryTablesRegistrar.getLibraryTable(project)
-
     val module = ModuleManager.getInstance(project).findModuleByName(project.name)
-    val moudleModel: ModifiableRootModel? = module?.let { ModuleRootManager.getInstance(it).modifiableModel }
+    val moduleModel: ModifiableRootModel? = module?.let { ModuleRootManager.getInstance(it).modifiableModel }
 
-//    删除所有库  TODO 会引发 disposed 异常
-//    libraryTable.libraries.forEach {
-//        libraryTable.removeLibrary(it)
-//    }
+    // Remove existing libraries
+    moduleModel?.let { model ->
+        val existingEntries = model.orderEntries.filterIsInstance<LibraryOrderEntry>()
+        existingEntries.forEach { model.removeOrderEntry(it) }
+    }
+
     cjpmProjects.forEach { cjpmProject ->
         cjpmProject.workspace?.packages?.forEach {
             if (it.origin == PackageOrigin.WORKSPACE) {
                 return@forEach
             }
-
-
             val library = it.getOrCreateLibrary(libraryTable)
             val modifiableModel = library.modifiableModel
-
             if (it.origin == PackageOrigin.STDLIB) {
-
-
 //                遍历文件夹下节点
                 it.contentRoot?.let { it1 ->
-
                     modifiableModel.addRoot(it1, OrderRootType.CLASSES)
                     modifiableModel.addRoot(it1, OrderRootType.SOURCES)
-
-
-
                 }
             } else {
                 it.contentRoot?.url?.let { it1 ->
-
                     modifiableModel.addRoot(it1, OrderRootType.CLASSES)
                     modifiableModel.addRoot(it1, OrderRootType.SOURCES)
-
-
                 }
             }
             modifiableModel.commit()
-
-            moudleModel?.addLibraryEntry(library)
-
+            moduleModel?.addLibraryEntry(library)
         }
-
     }
-    moudleModel?.commit()
-
-
+    moduleModel?.commit()
 }
 
 private fun CjpmWorkspace.Package.getOrCreateLibrary(libraryTable: LibraryTable): Library {
