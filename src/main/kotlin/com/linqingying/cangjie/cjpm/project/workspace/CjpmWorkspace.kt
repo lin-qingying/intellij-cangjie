@@ -43,19 +43,6 @@ import java.nio.file.Paths
 import kotlin.io.path.exists
 
 
-//class CachedVirtualFile(private val url: String?) {
-//    private val cache = AtomicReference<VirtualFile>()
-//
-//    operator fun getValue(thisRef: Any?, property: KProperty<*>): VirtualFile? {
-//        if (url == null) return null
-//        val cached = cache.get()
-//        if (cached != null && cached.isValid) return cached
-//        val file = VirtualFileManager.getInstance().findFileByUrl(url)
-//        cache.set(file)
-//        return file
-//    }
-//}
-
 /**
  * CjpmWorkspace接口定义了一个CJPM项目的workspace所需的基本结构和操作
  * 它提供了对项目manifest路径、内容根目录、workspace根目录的访问，
@@ -72,10 +59,8 @@ interface CjpmWorkspace {
      */
     val contentRoot: Path get() = manifestPath.parent
 
-    //
+
     val workspaceRoot: VirtualFile?
-//
-//    fun withDisabledFeatures(userDisabledFeatures: UserDisabledFeatures): CjpmWorkspace
 
 
     /**
@@ -265,24 +250,11 @@ class WorkspaceImpl(
 
 
     override val workspaceRoot: VirtualFile? by CachedVirtualFile(workspaceRootUrl)
-//    override fun withDisabledFeatures(userDisabledFeatures: UserDisabledFeatures): CjpmWorkspace {
-//        val featuresState = inferFeatureState(userDisabledFeatures).associateByPackageRoot()
-//
-//        return WorkspaceImpl(
-//            manifestPath,
-//            workspaceRootUrl,
-//            packages.map { it.asPackageData() },
-//
-//
-//            featuresState
-//        )
-//    }
 
 
     override val moduleData: CjpmProjectInfo? = if (manifestPath.exists()) {
 
         try {
-//            Cjpm.JSON_MAPPER.readValue(json, CjpmProjectInfo::class.java)
             CjpmProjectInfo.deserialize(manifestPath)
         } catch (e: JacksonException) {
             throw e
@@ -318,13 +290,6 @@ class WorkspaceImpl(
             )
         )
     }.distinctBy { it.name } // 根据name去重
-//    override val moduleData: CjpmProjectInfo? = ApplicationManager.getApplication().executeOnPooledThread<CjpmProjectInfo> {
-//
-//        manifestPath
-//        val json = manifestPath.toFile().readText()
-//
-//        null
-//    }.get()
 
 
     override fun withStdlib(stdlib: StandardLibrary, rustcInfo: CjcInfo?): CjpmWorkspace {
@@ -340,7 +305,7 @@ class WorkspaceImpl(
             workspaceRootUrl,
             newPackagesData,
 //            cfgOptions,
-//            cargoConfig,
+//            cjpmConfig,
 //            featuresState
         )
         return result
@@ -362,10 +327,6 @@ class WorkspaceImpl(
 
                 )
 
-//            run {
-//                val idToPackage = result.packages.associateBy { it.id }
-//                idToPackage.forEach { (_, pkg) -> pkg.addDependencies(data, idToPackage) }
-//            }
             return result
 
         }
@@ -384,26 +345,7 @@ private fun PackageImpl.asPackageData(): CjpmWorkspaceData.Package =
 
         )
 
-/**
- * A way to add additional (indexable) source roots for a package.
- * These hacks are needed for the stdlib that has a weird source structure.
- */
 fun CjpmWorkspace.Package.additionalRoots(): List<VirtualFile> {
     return emptyList()
-//    return if (origin == PackageOrigin.STDLIB) {
-//        when (name) {
-//            STD -> listOfNotNull(contentRoot?.parent?.findFileByRelativePath("backtrace"))
-//            CORE -> contentRoot?.parent?.let {
-//                listOfNotNull(
-//                    it.findFileByRelativePath("stdarch/crates/core_arch"),
-//                    it.findFileByRelativePath("stdarch/crates/std_detect"),
-//                    it.findFileByRelativePath("portable-simd/crates/core_simd"),
-//                    it.findFileByRelativePath("portable-simd/crates/std_float"),
-//                )
-//            } ?: emptyList()
-//            else -> emptyList()
-//        }
-//    } else {
-//        emptyList()
-//    }
+
 }

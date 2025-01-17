@@ -174,7 +174,7 @@ private fun discoverToolchain(project: Project) {
             project.cangjieSettings.modify { it.toolchain = toolchain }
         }
 
-//        val tool = if (toolchain.isRustupAvailable) CangJieBundle.message("notification.content.rustup") else RsBundle.message("notification.content.cargo.at", toolchain.presentableLocation)
+//        val tool = if (toolchain.isRustupAvailable) CangJieBundle.message("notification.content.rustup") else RsBundle.message("notification.content.cjpm.at", toolchain.presentableLocation)
 //        project.showBalloon(RsBundle.message("notification.content.using", tool), NotificationType.INFORMATION)
 //
 

@@ -28,6 +28,7 @@ import CjpmWorkspaceData
 import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.toml.TomlFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -358,6 +359,11 @@ class Cjpm(
         val JSON_MAPPER: ObjectMapper = ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .registerKotlinModule()
+
+        val TOML_MAPPER = ObjectMapper(TomlFactory()).apply {
+            registerKotlinModule()
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        }
 
         //        val TOML_MAPPER: ObjectMapper = TomlMapper().configure(TomlReadFeature.PARSE_JAVA_TIME, false)
 //            .registerCangJieModule()

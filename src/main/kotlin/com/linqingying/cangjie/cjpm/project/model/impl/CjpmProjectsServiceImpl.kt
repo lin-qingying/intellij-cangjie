@@ -118,11 +118,11 @@ class CjpmProjectsServiceImpl(
                 index.putInfo(this, cjpmProject)
             }
 
-            fun CjpmWorkspace.Package.put(cargoProject: CjpmProjectImpl) {
-                contentRoot?.put(cargoProject)
-                outDir?.put(cargoProject)
+            fun CjpmWorkspace.Package.put(cjpmProject: CjpmProjectImpl) {
+                contentRoot?.put(cjpmProject)
+                outDir?.put(cjpmProject)
                 for (additionalRoot in additionalRoots()) {
-                    additionalRoot.put(cargoProject)
+                    additionalRoot.put(cjpmProject)
                 }
 
             }
@@ -139,8 +139,8 @@ class CjpmProjectsServiceImpl(
                     }
                 }
             }
-            for ((pkg, cargoProject) in lowPriority) {
-                pkg.put(cargoProject)
+            for ((pkg, cjpmProject) in lowPriority) {
+                pkg.put(cjpmProject)
             }
         }
 
@@ -287,15 +287,21 @@ class CjpmProjectsServiceImpl(
     }
 
     /**
-     * All modifications to project model except for low-level `loadState` should
-     * go through this method: it makes sure that when we update various IDEA listeners,
-     * [allProjects] contains fresh projects.
+     * 除了低级别的 `loadState` 操作外，所有对项目模型的修改都应该通过此方法进行。
+     * 它确保在更新各种 IDEA 监听器时，[allProjects] 包含最新的项目。
+     *
+     * @param updater 一个函数，接收当前项目列表并返回一个 CompletableFuture，其中包含更新后的项目列表。
+     *                该函数负责执行具体的项目更新逻辑。
+     * @return 返回一个 CompletableFuture，表示异步更新操作的结果，结果为更新后的项目列表。
      */
     protected fun modifyProjects(
         updater: (List<CjpmProjectImpl>) -> CompletableFuture<List<CjpmProjectImpl>>
     ): CompletableFuture<List<CjpmProjectImpl>> {
+
+        // 发布刷新开始的通知
         val refreshStatusPublisher = project.messageBus.syncPublisher(CjpmProjectsService.CJPM_PROJECTS_REFRESH_TOPIC)
 
+        // 包装 updater 函数，在调用 updater 前发布刷新开始通知
         val wrappedUpdater = { projects: List<CjpmProjectImpl> ->
             refreshStatusPublisher.onRefreshStarted()
             updater(projects)
@@ -304,6 +310,7 @@ class CjpmProjectsServiceImpl(
         return projects.updateAsync(wrappedUpdater)
             .thenApply { projects ->
                 invokeAndWaitIfNeeded {
+                    // 获取文件类型管理器实例，并在写入操作中进行必要的文件类型关联和索引重置
                     val fileTypeManager = FileTypeManager.getInstance()
                     runWriteAction {
                         if (projects.isNotEmpty()) {
@@ -315,11 +322,12 @@ class CjpmProjectsServiceImpl(
                         }
 
                         directoryIndex.resetIndex()
-                        // In unit tests roots change is done by the test framework in most cases
+                        // 在非轻量级项目中，通过 ProjectRootManagerEx 更新项目根目录
                         runWithNonLightProject(project) {
                             ProjectRootManagerEx.getInstanceEx(project)
                                 .makeRootsChange(EmptyRunnable.getInstance(), false, true)
                         }
+                        // 发布项目更新通知
                         project.messageBus.syncPublisher(CjpmProjectsService.CJPM_PROJECTS_TOPIC)
                             .cjpmProjectsUpdated(this, projects)
                         initialized = true
@@ -327,6 +335,7 @@ class CjpmProjectsServiceImpl(
                 }
                 projects
             }.handle { projects, err ->
+                // 处理异常情况，发布刷新结束通知
                 val status = err?.toRefreshStatus() ?: CjpmProjectsService.CjpmRefreshStatus.SUCCESS
                 refreshStatusPublisher.onRefreshFinished(status)
                 projects

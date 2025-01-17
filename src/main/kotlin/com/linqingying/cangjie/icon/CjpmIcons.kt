@@ -31,8 +31,8 @@ object CjpmIcons {
     val ICON = CangJieIcons.TOML
     val LOCK_ICON = CangJieIcons.TOML
     val MANIFEST_ICON = CangJieIcons.TOML
-//    val ICON = load("/icons/cargo.svg")
-//    val LOCK_ICON = load("/icons/cargoLock.svg")
+//    val ICON = load("/icons/cjpm.svg")
+//    val LOCK_ICON = load("/icons/cjpmLock.svg")
 
     private fun load(path: String): Icon = IconLoader.getIcon(path, CjpmIcons::class.java)
 

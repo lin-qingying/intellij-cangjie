@@ -248,8 +248,8 @@ private fun CjImportList.computeHasImportAlias(): Boolean {
 }
 
 private data class CachedData(
-    val cargoProject: CjpmProject? = null,
-    val cargoWorkspace: CjpmWorkspace? = null,
+    val cjpmProject: CjpmProject? = null,
+    val cjpmWorkspace: CjpmWorkspace? = null,
     val crateRoot: CjFile? = null,
 
     val isDeeplyEnabledByCfg: Boolean = true,

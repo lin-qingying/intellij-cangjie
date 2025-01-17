@@ -121,7 +121,7 @@ enum class CjpmCommands(val description: String, val options: List<CjpmOption>) 
     ),
 
     INIT(
-        description = "Create a new Cargo package in an existing directory",
+        description = "Create a new Cjpm package in an existing directory",
         options = listOf(
             CjpmOption("help", """帮助"""),
 
@@ -147,7 +147,7 @@ enum class CjpmCommands(val description: String, val options: List<CjpmOption>) 
 
 
     HELP(
-        description = "Get help for a Cargo command",
+        description = "Get help for a Cjpm command",
         options = emptyList(
 
         )

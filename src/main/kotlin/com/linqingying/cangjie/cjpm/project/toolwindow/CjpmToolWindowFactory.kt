@@ -24,6 +24,7 @@
 
 package com.linqingying.cangjie.cjpm.project.toolwindow
 
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.linqingying.cangjie.cjpm.project.model.cjpmProjects
 import com.linqingying.cangjie.cjpm.project.model.guessAndSetupCangJieProject
 import com.intellij.openapi.project.DumbAware
@@ -49,12 +50,13 @@ class CjpmToolWindowFactory : ToolWindowFactory, DumbAware {
         private val CJPM_TOOL_WINDOW_APPLICABLE: Key<Boolean> = Key.create("CJPM_TOOL_WINDOW_APPLICABLE")
     }
 
+    @Deprecated("Use isApplicableAsync")
     override fun isApplicable(project: Project): Boolean {
         if (CjpmToolWindow.isRegistered(project)) return false
 
-        val cargoProjects = project.cjpmProjects
-        if (!cargoProjects.hasAtLeastOneValidProject
-            && cargoProjects.suggestManifests().none()
+        val cjpmProjects = project.cjpmProjects
+        if (!cjpmProjects.hasAtLeastOneValidProject
+            && cjpmProjects.suggestManifests().none()
         ) return false
 
         synchronized(lock) {
@@ -69,13 +71,22 @@ class CjpmToolWindowFactory : ToolWindowFactory, DumbAware {
 }
 
 
-private class CjpmToolWindowPanel(project: Project) : SimpleToolWindowPanel(true, false){
+private class CjpmToolWindowPanel(project: Project) : SimpleToolWindowPanel(true, false) {
 
 
     private val cjpmTab = CjpmToolWindow(project)
+
     init {
         toolbar = cjpmTab.toolbar.component
         cjpmTab.toolbar.targetComponent = this
         setContent(cjpmTab.content)
     }
+
+    @Deprecated("Migrate to [uiDataSnapshot] ASAP")
+    override fun getData(dataId: String): Any? =
+        when {
+            CjpmToolWindow.SELECTED_CJPM_PROJECT.`is`(dataId) -> cjpmTab.selectedProject
+            PlatformDataKeys.TREE_EXPANDER.`is`(dataId) -> cjpmTab.treeExpander
+            else -> super.getData(dataId)
+        }
 }

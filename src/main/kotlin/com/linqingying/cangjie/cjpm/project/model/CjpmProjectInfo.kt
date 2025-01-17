@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.TextNode
+import com.linqingying.cangjie.cjpm.project.model.toml.PackageConfigurationInfo
 import com.linqingying.cangjie.cjpm.toolchain.tools.Cjpm
 import com.moandjiezana.toml.Toml
 import java.nio.file.Path

@@ -138,7 +138,7 @@ object CjpmProjectChooserDescriptor : FileChooserDescriptor(true, true, false, f
         // The filter is not used for directories
         withFileFilter { it.isCjpmManifestFile }
         @Suppress("DialogTitleCapitalization")
-        withTitle(CangJieBundle.message("dialog.title.select.cjpm.json"))
+        withTitle(CangJieBundle.message("dialog.title.select.cjpm.toml"))
     }
 
     override fun isFileSelectable(file: VirtualFile?): Boolean {

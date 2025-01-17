@@ -33,7 +33,7 @@ import com.intellij.openapi.project.DumbAwareAction
 abstract class RunCjpmCommandActionBase : DumbAwareAction() {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
     override fun update(e: AnActionEvent) {
-        val hasCargoProject = e.project?.hasCjpmProject == true
-        e.presentation.isEnabledAndVisible = hasCargoProject
+        val hasCjpmProject = e.project?.hasCjpmProject == true
+        e.presentation.isEnabledAndVisible = hasCjpmProject
     }
 }

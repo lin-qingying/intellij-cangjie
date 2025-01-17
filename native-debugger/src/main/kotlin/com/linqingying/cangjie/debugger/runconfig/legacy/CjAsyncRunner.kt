@@ -184,7 +184,7 @@ abstract class CjAsyncRunner(
         } else {
             command.copy(additionalArguments = command.additionalArguments + "-g").toGeneralCommandLine()
         }
-        LOG.debug("Executing Cargo command: `${commandLine.commandLineString}`")
+        LOG.debug("Executing Cjpm command: `${commandLine.commandLineString}`")
         val processForUser = CjProcessHandler(commandLine)
         processForUser.addProcessListener(CapturingProcessAdapter(processForUserOutput))
 
