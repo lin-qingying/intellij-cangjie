@@ -9,10 +9,13 @@
 ### 仓库
 
 [码云](https://gitee.com/Lin_Qing_Ying/intellij-cangjie)
+[![star](https://gitee.com/Lin_Qing_Ying/intellij-cangjie/badge/star.svg?theme=dark)](https://gitee.com/Lin_Qing_Ying/intellij-cangjie/stargazers)
 
 [GitCode Cangjie-SIG](https://gitcode.com/Cangjie-SIG/intellij-cangjie)
+[![star](https://gitcode.com/Cangjie-SIG/intellij-cangjie/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
 
 [GitCode 开源仓颉第三方开发者社区](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
+[![star](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
 
 ### 安装和使用
 
