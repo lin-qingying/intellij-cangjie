@@ -127,7 +127,7 @@ class CjpmSyncTask(
                             val cjcInfoResult = fetchCjcInfo(context)
                             val cjcInfo = (cjcInfoResult as? TaskResult.Ok)?.value
                             val cjpmProjectWithCjcInfoAndWorkspace = cjpmProject.withCjcInfo(cjcInfoResult)
-                                .withWorkspace(fetchCjpmWorkspace(context, cjcInfo))
+                                .withWorkspace(fetchCjpmWorkspace(context, cjcInfo)).withStdlib(TaskResult.Err(""))
                             CjpmProjectWithStdlib(
                                 cjpmProjectWithCjcInfoAndWorkspace,
                                 fetchStdlib(context, cjpmProjectWithCjcInfoAndWorkspace, cjcInfo)
@@ -510,8 +510,6 @@ private class CjpmProjectWithExistingStdlib(
     val cjcVersion: CjcVersion,
     val stdlib: StandardLibrary
 )
-
-
 
 
 sealed class DownloadResult<out T> {

@@ -189,11 +189,9 @@ class Cjpm(
     fun fullProjectDescription(
         owner: Project,
         projectDirectory: Path,
-
-
         listenerProvider: (CjpmCallType) -> ProcessListener? = { null }
     ): CjResult<CjpmWorkspaceData, CjProcessExecutionOrDeserializationException> {
-        val rawData = fetchUpdate(owner, projectDirectory, listener = listenerProvider(CjpmCallType.METADATA))
+        val rawData = fetchMetadata(owner, projectDirectory, listener = listenerProvider(CjpmCallType.METADATA))
             .unwrapOrElse { return CjResult.Err(it) }
 //        return CjResult.Ok(ProjectDescription(workspaceData, status))
         val workspaceData = CjpmMetadata.clean(rawData)
@@ -211,9 +209,9 @@ class Cjpm(
         listener: ProcessListener?,
 
         ): CjResult<CjpmMetadata.Project, CjProcessExecutionOrDeserializationException> {
+        val rawData = fetchUpdate(owner, projectDirectory, listener = listener)
 
-
-        TODO()
+        return rawData
     }
 
     /**

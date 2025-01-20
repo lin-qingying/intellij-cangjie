@@ -28,6 +28,8 @@ import com.intellij.lang.ASTNode
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
+import com.intellij.patterns.PlatformPatterns
+import com.intellij.patterns.PsiElementPattern
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement
 import com.intellij.psi.impl.source.tree.TreeUtil
@@ -49,7 +51,9 @@ fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEn
     val newEntry = CjPsiFactory(project).createSimpleNameStringTemplateEntry(name)
     return replaced(newEntry)
 }
-
+inline fun <reified I : PsiElement> psiElement(): PsiElementPattern.Capture<I> {
+    return PlatformPatterns.psiElement(I::class.java)
+}
 fun PsiElement.isInsideAnnotationEntryArgumentList(): Boolean =
     parentOfType<CjValueArgumentList>()?.parent is CjAnnotationEntry
 
@@ -66,6 +70,9 @@ inline fun <reified T : PsiElement, reified V : PsiElement> PsiElement.getParent
 inline fun <reified T : PsiElement> PsiElement.collectDescendantsOfType(noinline predicate: (T) -> Boolean = { true }): List<T> {
     return collectDescendantsOfType({ true }, predicate)
 }
+
+inline fun <reified T : PsiElement> PsiElement.ancestorStrict(): T? =
+    PsiTreeUtil.getParentOfType(this, T::class.java, /* strict */ true)
 
 inline fun <reified T : PsiElement> PsiElement.collectDescendantsOfType(
     crossinline canGoInside: (PsiElement) -> Boolean,

@@ -100,15 +100,9 @@ object CjpmConstants {
     const val BUILD_FILE = "build.cj"
 
 
-    //
-    val MANIFEST_FILE = listOf("cjpm.toml", "module.json")
-//        get() {
-//
-//            return CjpmConstantsService.getInstance().MANIFEST_FILE
-//
-//        }
 
-//    const val MANIFEST_FILE = "module.json"
+    val MANIFEST_FILE = "cjpm.toml"
+
 
     object ProjectLayout {
         val sources = listOf("src", "examples")

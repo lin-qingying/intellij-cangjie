@@ -156,8 +156,7 @@ interface CjpmWorkspace {
         fun deserialize(
             manifestPath: Path,
             data: CjpmWorkspaceData,
-        ): CjpmWorkspace =
-            WorkspaceImpl.deserialize(manifestPath, data)
+        ): CjpmWorkspace = WorkspaceImpl.deserialize(manifestPath, data)
     }
 }
 
@@ -227,14 +226,13 @@ class PackageImpl(
      * @receiver Require 类型的对象，通常表示依赖项。
      * @return 如果路径存在，则返回对应的虚拟文件；否则在当前工作空间中查找同名包的内容根目录虚拟文件。
      */
-    fun Require.contentRoot(): VirtualFile? =
-        if (path != null) {
-            LocalFileSystem.getInstance().findFileByPath(path)
-        } else {
-            workspace.packages.find { `package` ->
-                name == `package`.name
-            }?.contentRoot
-        }
+    fun Require.contentRoot(): VirtualFile? = if (path != null) {
+        LocalFileSystem.getInstance().findFileByPath(path)
+    } else {
+        workspace.packages.find { `package` ->
+            name == `package`.name
+        }?.contentRoot
+    }
 
     /**
      * 获取包的根目录路径。
@@ -258,23 +256,7 @@ class WorkspaceImpl(
 
     override val workspaceRoot: VirtualFile? by CachedVirtualFile(workspaceRootUrl)
 
-
-//    override val moduleData: CjpmProjectInfo? = if (manifestPath.exists()) {
-//
-//        try {
-//            CjpmProjectInfo.deserialize(manifestPath)
-//        } catch (e: JacksonException) {
-//            throw e
-//            println(e)
-//            null
-//        }
-//    } else {
-//        null
-//    }
-
-
     override val metadata: CjpmTomlConfig? = if (manifestPath.exists()) {
-
         try {
             CjpmTomlParser.parse(manifestPath)
         } catch (e: JacksonException) {
@@ -302,14 +284,36 @@ class WorkspaceImpl(
                     this@WorkspaceImpl,
                     this@WorkspaceImpl.workspaceRootUrl ?: "",
                     it.name,
-
                     it.version,
-
-
                     PackageOrigin.WORKSPACE,
                     metadata = metadata,
                 )
             )
+        }
+
+        if (metadata?.workspace != null) {
+            metadata.workspace.members.forEach {
+//                构建配置文件路径
+                val path = manifestPath.resolve("..").resolve(it).resolve(CjpmConstants.MANIFEST_FILE)
+                if (!path.exists()) throw IllegalArgumentException("Package $it not found")
+                val packageData = CjpmTomlParser.parse(path)
+                assert(packageData.`package` != null) {
+                    "Package $it not found"
+                }
+
+                add(
+                    PackageImpl(
+                        this@WorkspaceImpl,
+                        this@WorkspaceImpl.workspaceRootUrl?.plus("/$it") ?: "",
+                        packageData.`package`?.name ?: error("Name not found"),
+                        packageData.`package`.version,
+                        PackageOrigin.WORKSPACE,
+                        metadata = packageData
+
+
+                    )
+                )
+            }
         }
 //        add(
 //            PackageImpl(
@@ -329,11 +333,8 @@ class WorkspaceImpl(
 
     override fun withStdlib(stdlib: StandardLibrary, rustcInfo: CjcInfo?): CjpmWorkspace {
 //        TODO 添加标准库
-        val (newPackagesData, @Suppress("NAME_SHADOWING") stdlib) =
-            Pair(
-                packages.map { it.asPackageData() } + stdlib.packages,
-                stdlib
-            )
+        val (newPackagesData, @Suppress("NAME_SHADOWING") stdlib) = Pair(packages.map { it.asPackageData() } + stdlib.packages,
+            stdlib)
 
         val result = WorkspaceImpl(
             manifestPath,
@@ -369,16 +370,15 @@ class WorkspaceImpl(
 }
 
 
-private fun PackageImpl.asPackageData(): CjpmWorkspaceData.Package =
-    CjpmWorkspaceData.Package(
+private fun PackageImpl.asPackageData(): CjpmWorkspaceData.Package = CjpmWorkspaceData.Package(
 
-        contentRootUrl = contentRootUrl,
-        name = name,
-        version = version,
-        origin = origin,
+    contentRootUrl = contentRootUrl,
+    name = name,
+    version = version,
+    origin = origin,
 
 
-        )
+    )
 
 fun CjpmWorkspace.Package.additionalRoots(): List<VirtualFile> {
     return emptyList()

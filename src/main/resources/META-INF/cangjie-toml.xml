@@ -11,6 +11,9 @@
                   language="TOML"
                   fileNames="cjpm.lock"
         />
+        <completion.contributor language="TOML"
+                                implementationClass="com.linqingying.cangjie.toml.completion.CjpmTomlCompletionContributor"/>
+
         <!--<filetype.decompiler filetype="TOML" implementationClass="com.linqingying.cangjie.toml.CangJieTomlDecompile"/>-->
         <!--<fileTypeRegistrar implementation="com.linqingying.cangjie.toml.CangJieTomlFileTypeRegistrar"/>-->
         <!--        <fileTypeFactory implementation="com.linqingying.cangjie.toml.CangJieTomlFileTypeFactory"/>-->

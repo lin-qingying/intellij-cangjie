@@ -45,7 +45,7 @@ data class CjpmTomlConfig(
         } else {
             if (`package`?.targetDir?.isNullOrEmpty() != false) "target" else `package`.targetDir
         }
-    val name get() = `package`?.name ?: workspace?.name ?: "unknown"
+    val name get() = `package`?.name ?: workspace?.name
 }
 
 /**

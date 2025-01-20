@@ -34,7 +34,9 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.linqingying.cangjie.cjpm.project.model.CjpmProject.UpdateStatus
 import com.linqingying.cangjie.cjpm.project.model.CjpmProject.UpdateStatus.NeedsUpdate
+import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KProperty
@@ -81,9 +83,11 @@ data class CjpmProjectImpl(
             rootDirCache.set(file)
             return file
         }
+
     // 获取项目
     override val project: Project
         get() = projectService.project
+
     // 获取工作区
     override val workspace: CjpmWorkspace? by lazy(LazyThreadSafetyMode.PUBLICATION) {
 
@@ -108,10 +112,15 @@ data class CjpmProjectImpl(
     }
 
     // 设置标准库
-    fun withStdlib(result: TaskResult<StandardLibrary>): CjpmProjectImpl = when (result) {
-        is TaskResult.Ok -> copy(stdlib = result.value, stdlibStatus = CjpmProject.UpdateStatus.UpToDate)
-        is TaskResult.Err -> copy(stdlibStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
-    }
+    fun withStdlib(result: TaskResult<StandardLibrary>): CjpmProjectImpl =
+        if (!CangJieLanguageServerServices.getInstance().astConfig.enabled) {
+            copy(stdlib = null, stdlibStatus = CjpmProject.UpdateStatus.UpToDate)
+        } else {
+            when (result) {
+                is TaskResult.Ok -> copy(stdlib = result.value, stdlibStatus = CjpmProject.UpdateStatus.UpToDate)
+                is TaskResult.Err -> copy(stdlibStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
+            }
+        }
 
 
     // 获取可呈现的名称
@@ -120,9 +129,8 @@ data class CjpmProjectImpl(
             return workingDirectory.fileName.toString()
         }
 
-    // 设置工作区
     fun withWorkspace(result: TaskResult<CjpmWorkspace>): CjpmProjectImpl = when (result) {
-        is TaskResult.Ok -> copy(stdlib = null,
+        is TaskResult.Ok -> copy(
             rawWorkspace = result.value,
             workspaceStatus = CjpmProject.UpdateStatus.UpToDate,
 //            userDisabledFeatures = userDisabledFeatures.retain(result.value.packages)
@@ -132,9 +140,24 @@ data class CjpmProjectImpl(
     }
 
     fun withCjcInfo(result: TaskResult<CjcInfo>): CjpmProjectImpl = when (result) {
-        is TaskResult.Ok -> copy(cjcInfo = result.value, stdlibStatus = NeedsUpdate, stdlib = null, cjcInfoStatus = CjpmProject.UpdateStatus.UpToDate)
-        is TaskResult.Err -> copy(stdlib = null, stdlibStatus = NeedsUpdate,cjcInfoStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
+        is TaskResult.Ok -> copy(cjcInfo = result.value, cjcInfoStatus = UpdateStatus.UpToDate)
+        is TaskResult.Err -> copy(cjcInfoStatus = UpdateStatus.UpdateFailed(result.reason))
     }
+    // 设置工作区
+//    fun withWorkspace(result: TaskResult<CjpmWorkspace>): CjpmProjectImpl = when (result) {
+//        is TaskResult.Ok -> copy(stdlib = null,
+//            rawWorkspace = result.value,
+//            workspaceStatus = CjpmProject.UpdateStatus.UpToDate,
+////            userDisabledFeatures = userDisabledFeatures.retain(result.value.packages)
+//        )
+//
+//        is TaskResult.Err -> copy(workspaceStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
+//    }
+//
+//    fun withCjcInfo(result: TaskResult<CjcInfo>): CjpmProjectImpl = when (result) {
+//        is TaskResult.Ok -> copy(cjcInfo = result.value, stdlibStatus = NeedsUpdate, stdlib = null, cjcInfoStatus = CjpmProject.UpdateStatus.UpToDate)
+//        is TaskResult.Err -> copy(stdlib = null, stdlibStatus = NeedsUpdate,cjcInfoStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
+//    }
 }
 
 val CjpmProject.workingDirectory: Path get() = manifest.parent

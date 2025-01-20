@@ -4,20 +4,15 @@
 
 [从 Jetbrains Marketplace 获取](https://plugins.jetbrains.com/plugin/24984-cangjie)
 
-[CangNova  基于Intellij集成的 IDE](https://gitcode.com/OpenCangjieCommunity/CangNova)
-[![star](https://gitcode.com/OpenCangjieCommunity/CangNova/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
-
-
 ### 仓库
 
-[码云](https://gitee.com/Lin_Qing_Ying/intellij-cangjie)
-[![star](https://gitee.com/Lin_Qing_Ying/intellij-cangjie/badge/star.svg?theme=dark)](https://gitee.com/Lin_Qing_Ying/intellij-cangjie/stargazers)
+[码云 ![star](https://gitee.com/Lin_Qing_Ying/intellij-cangjie/badge/star.svg?theme=dark)](https://gitee.com/Lin_Qing_Ying/intellij-cangjie)
 
-[GitCode Cangjie-SIG](https://gitcode.com/Cangjie-SIG/intellij-cangjie)
-[![star](https://gitcode.com/Cangjie-SIG/intellij-cangjie/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
+[GitCode Cangjie-SIG ![star](https://gitcode.com/Cangjie-SIG/intellij-cangjie/star/badge.svg)](https://gitcode.com/Cangjie-SIG/intellij-cangjie)
 
-[GitCode 开源仓颉第三方开发者社区](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
-[![star](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
+[GitCode 开源仓颉第三方开发者社区 ![star](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
+
+[CangNova  基于Intellij集成的 IDE ![star](https://gitcode.com/OpenCangjieCommunity/CangNova/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/CangNova)
 
 ### 安装和使用
 

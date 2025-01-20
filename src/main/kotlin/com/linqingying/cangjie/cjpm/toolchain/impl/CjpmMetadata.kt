@@ -74,22 +74,16 @@ object CjpmMetadata {
 
     fun clean(
         project: Project,
-
         ): CjpmWorkspaceData {
         val fs = LocalFileSystem.getInstance()
         val workspaceRoot = project.workspace_root?.let { fs.refreshAndFindFileByPath(it) }
-
         val packages = project.packages.map { pkg ->
             pkg.clean(fs, false)
-
         }
         return CjpmWorkspaceData(
             packages,
-
-
             workspaceRoot?.url
         )
-
     }
 
 
