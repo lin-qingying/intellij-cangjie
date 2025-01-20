@@ -5,6 +5,8 @@
 [从 Jetbrains Marketplace 获取](https://plugins.jetbrains.com/plugin/24984-cangjie)
 
 [CangNova  基于Intellij集成的 IDE](https://gitcode.com/OpenCangjieCommunity/CangNova)
+[![star](https://gitcode.com/OpenCangjieCommunity/CangNova/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
+
 
 ### 仓库
 
