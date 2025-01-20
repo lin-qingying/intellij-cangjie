@@ -1,11 +1,18 @@
-
 # Cangjie language plugin for intellij platform
-## 适用于intellij平台的仓颉语言插件
 
+## 适用于intellij平台的仓颉语言插件
 
 [从 Jetbrains Marketplace 获取](https://plugins.jetbrains.com/plugin/24984-cangjie)
 
 [CangNova  基于Intellij集成的 IDE](https://gitcode.com/OpenCangjieCommunity/CangNova)
+
+### 仓库
+
+[码云](https://gitee.com/Lin_Qing_Ying/intellij-cangjie)
+
+[GitCode Cangjie-SIG](https://gitcode.com/Cangjie-SIG/intellij-cangjie)
+
+[GitCode 开源仓颉第三方开发者社区](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
 
 ### 安装和使用
 
@@ -16,25 +23,24 @@
 ![img_2.png](img%2Fimg_2.png)
 要创建项目，请使用 **CangJie** 模板。
 
-
 ### 支持的功能
 
-
-|        |   |      
-|--------|---|
-| 语言支持   | + |
-| 代码覆盖  | - |
-| 检测重复项 | - |
-| 调试器   | + |
-| 运行目标  | - |
-| 分析器   | - |  
-|Valgrind内存检查 | - | 
+|              |   |      
+|--------------|---|
+| 语言支持         | + |
+| 代码覆盖         | - |
+| 检测重复项        | - |
+| 调试器          | + |
+| 运行目标         | - |
+| 分析器          | - |  
+| Valgrind内存检查 | - | 
 
 ### 贡献
 
 如果您发现任何问题或缺少功能，欢迎您为插件做出贡献。
 
 ### 打赏支持
+
 如果对您有帮助，请捐赠以表支持，谢谢,捐赠时请备注,并留下id或姓名，我会添加到下方捐赠列表中
 <br>
 <img alt="a9777a62426b943b1a810bf0468ac4d.jpg"   src="img%2Fa9777a62426b943b1a810bf0468ac4d.jpg" width="200"/>
@@ -43,31 +49,35 @@
 <br>
 <b>支持名单</b>
 <br>
- 
 
-|  ID   | 金额  |
-|  ----  |-----|
-| [@daitougege](https://gitee.com/daitougege)  | 101 |
-| [@laditor](https://gitee.com/laditor)  | 10 |
- |[@brack_45](https://gitee.com/brack_45) | 50|
- |[支付宝 ]**亮 | 50|
- |[@zx2289](https://gitee.com/zx2289)| 101|
+| ID                                          | 金额  |
+|---------------------------------------------|-----|
+| [@daitougege](https://gitee.com/daitougege) | 101 |
+| [@laditor](https://gitee.com/laditor)       | 10  |
+| [@brack_45](https://gitee.com/brack_45)     | 50  |
+| [支付宝 ]**亮                                   | 50  |
+| [@zx2289](https://gitee.com/zx2289)         | 101 |
+
 <br>
 感谢您的支持
 
-
 # 前端分析器
+
 **随时添加**
 
 ## 快速修复
+
 ### 已实现修复
+
 | 功能                     |
 |------------------------|
 | class类型添加 abstract 关键字 |
 | 类型声明快速生成成员抽象方法         |
 | 扩展类型快速生成成员抽象方法         |
 | 为解析引用的导入               |
+
 ### 未实现修复
+
 | 功能          |
 |-------------|
 | 创建class     |
@@ -75,12 +85,14 @@
 | 创建interface |
 | 创建顶层函数声明    |
 | 创建成员函数声明    |
-| 创建顶层变量声明        |
-| 创建成员变量声明        |
-| 修饰符快速添加      |
+| 创建顶层变量声明    |
+| 创建成员变量声明    |
+| 修饰符快速添加     |
 
 ## 分析器
+
 ### 已实现分析
+
 | 功能              | 
 |-----------------|  
 | 顶层重复声明          |
@@ -104,23 +116,25 @@
 | 字符串常量检查         |
 | 命名方法检查          |
 | 返回值检查           |
+
 ### 未实现分析
 
-| 功能                       |
-|--------------------------|
-| 宏的解析                     |
-| 被宏修饰的声明解析                |
-| 类型声明的作用域检查（部分）           |
-| 扩展类型的作用域检查（主要在于private）  |
-
+| 功能                      |
+|-------------------------|
+| 宏的解析                    |
+| 被宏修饰的声明解析               |
+| 类型声明的作用域检查（部分）          |
+| 扩展类型的作用域检查（主要在于private） |
 
 ## 引用与重构
+
 | 功能   | 
 |------|  
 | 转到声明 |
 | 查找用法 |
 
 ## IDE功能
+
 | 功能       |
 |----------|
 | 关键字补全触发  |
@@ -129,6 +143,7 @@
 | 代码折叠     |
 
 ## 编辑器配色
+
 | 功能   |
 |------|
 | 代码高亮 |
