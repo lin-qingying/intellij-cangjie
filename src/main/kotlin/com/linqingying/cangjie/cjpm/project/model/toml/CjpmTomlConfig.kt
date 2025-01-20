@@ -17,47 +17,53 @@ data class CjpmTomlConfig(
     val `package`: PackageConfig? = null,
 
     /** 工作空间管理字段，与 package 字段不能同时存在 */
-    @JsonDeserialize(using = EmptyStringToWorkspaceConfigDeserializer::class)
-    val workspace: WorkspaceConfig? = null,
+    @JsonDeserialize(using = EmptyStringToWorkspaceConfigDeserializer::class) val workspace: WorkspaceConfig? = null,
 
     /** 源码依赖配置项 */
     val dependencies: Map<String, DependencyConfig> = mapOf(),
 
     /** 测试阶段的依赖配置项 */
-    @JsonProperty("test-dependencies")
-    val testDependencies: Map<String, DependencyConfig> = mapOf(),
+    @JsonProperty("test-dependencies") val testDependencies: Map<String, DependencyConfig> = mapOf(),
 
     /** 构建脚本依赖配置项 */
-    @JsonProperty("script-dependencies")
-    val scriptDependencies: Map<String, DependencyConfig> = mapOf(),
+    @JsonProperty("script-dependencies") val scriptDependencies: Map<String, DependencyConfig> = mapOf(),
 
     /** FFI配置项 */
-    @JsonDeserialize(using = EmptyStringToFfiConfigDeserializer::class)
-    val ffi: FfiConfig? = null,
+    @JsonDeserialize(using = EmptyStringToFfiConfigDeserializer::class) val ffi: FfiConfig? = null,
 
     /** 命令剖面配置项 */
-    @JsonDeserialize(using = EmptyStringToProfileConfigDeserializer::class)
-    val profile: ProfileConfig? = null,
+    @JsonDeserialize(using = EmptyStringToProfileConfigDeserializer::class) val profile: ProfileConfig? = null,
 
     /** 后端和平台隔离配置项 */
     val target: Map<String, TargetConfig> = mapOf()
-)
+) {
+
+    val srcDir get() = if (`package`?.srcDir?.isNullOrEmpty() != false) "src" else `package`.srcDir
+    val targetDir
+        get() = if (workspace != null) {
+            workspace.targetDir ?: "target"
+        } else {
+            if (`package`?.targetDir?.isNullOrEmpty() != false) "target" else `package`.targetDir
+        }
+    val name get() = `package`?.name ?: workspace?.name ?: "unknown"
+}
 
 /**
  * 自定义反序列化器，将空字符串转换为 null (FFI配置)
  */
 class EmptyStringToFfiConfigDeserializer : com.fasterxml.jackson.databind.JsonDeserializer<FfiConfig?>() {
     override fun deserialize(
-        p: com.fasterxml.jackson.core.JsonParser,
-        ctxt: com.fasterxml.jackson.databind.DeserializationContext
+        p: com.fasterxml.jackson.core.JsonParser, ctxt: com.fasterxml.jackson.databind.DeserializationContext
     ): FfiConfig? {
         return when (p.currentToken) {
             com.fasterxml.jackson.core.JsonToken.VALUE_STRING -> {
                 if (p.valueAsString.isEmpty()) null else ctxt.readValue(p, FfiConfig::class.java)
             }
+
             com.fasterxml.jackson.core.JsonToken.START_OBJECT -> {
                 ctxt.readValue(p, FfiConfig::class.java)
             }
+
             com.fasterxml.jackson.core.JsonToken.VALUE_NULL -> null
             else -> ctxt.readValue(p, FfiConfig::class.java)
         }
@@ -70,8 +76,7 @@ class EmptyStringToFfiConfigDeserializer : com.fasterxml.jackson.databind.JsonDe
 @Serializable
 data class PackageConfig(
     /** 所需 cjc 的最低版本要求 */
-    @JsonProperty("cjc-version")
-    val cjcVersion: String,
+    @JsonProperty("cjc-version") val cjcVersion: String,
 
     /** 模块名及模块 root 包名 */
     val name: String,
@@ -83,33 +88,25 @@ data class PackageConfig(
     val version: String,
 
     /** 额外编译命令选项 */
-    @JsonProperty("compile-option")
-    val compileOption: String? = null,
+    @JsonProperty("compile-option") val compileOption: String? = null,
 
     /** 额外全局编译命令选项 */
-    @JsonProperty("override-compile-option")
-    val overrideCompileOption: String? = null,
+    @JsonProperty("override-compile-option") val overrideCompileOption: String? = null,
 
     /** 链接器透传选项 */
-    @JsonProperty("link-option")
-    val linkOption: String? = null,
+    @JsonProperty("link-option") val linkOption: String? = null,
 
     /** 编译输出产物类型 */
-    @JsonProperty("output-type")
-    val outputType: OutputType,
+    @JsonProperty("output-type") val outputType: OutputType,
 
     /** 指定源码存放路径 */
-    @JsonProperty("src-dir")
-    val srcDir: String? = null,
+    @JsonProperty("src-dir") val srcDir: String = "src",
 
     /** 指定产物存放路径 */
-    @JsonProperty("target-dir")
-    val targetDir: String? = null,
+    @JsonProperty("target-dir") val targetDir: String = "target",
 
     /** 单包配置选项 */
-    @JsonProperty("package-configuration")
-    @JsonDeserialize(using = EmptyStringToNullMapDeserializer::class)
-    val packageConfiguration: Map<String, PackageConfigurationInfo>? = null
+    @JsonProperty("package-configuration") @JsonDeserialize(using = EmptyStringToNullMapDeserializer::class) val packageConfiguration: Map<String, PackageConfigurationInfo>? = null
 )
 
 /**
@@ -135,16 +132,17 @@ enum class OutputType {
  */
 class EmptyStringToProfileConfigDeserializer : JsonDeserializer<ProfileConfig?>() {
     override fun deserialize(
-        p: com.fasterxml.jackson.core.JsonParser,
-        ctxt:  DeserializationContext
+        p: com.fasterxml.jackson.core.JsonParser, ctxt: DeserializationContext
     ): ProfileConfig? {
         return when (p.currentToken) {
             com.fasterxml.jackson.core.JsonToken.VALUE_STRING -> {
                 if (p.valueAsString.isEmpty()) null else ctxt.readValue(p, ProfileConfig::class.java)
             }
+
             com.fasterxml.jackson.core.JsonToken.START_OBJECT -> {
                 ctxt.readValue(p, ProfileConfig::class.java)
             }
+
             JsonToken.VALUE_NULL -> null
             else -> ctxt.readValue(p, ProfileConfig::class.java)
         }
@@ -154,21 +152,16 @@ class EmptyStringToProfileConfigDeserializer : JsonDeserializer<ProfileConfig?>(
 /**
  * 自定义反序列化器，将空字符串转换为 null
  */
-class EmptyStringToNullMapDeserializer :
-    JsonDeserializer<Map<String, PackageConfigurationInfo>?>() {
+class EmptyStringToNullMapDeserializer : JsonDeserializer<Map<String, PackageConfigurationInfo>?>() {
     override fun deserialize(
-        p: JsonParser,
-        ctxt: com.fasterxml.jackson.databind.DeserializationContext
+        p: JsonParser, ctxt: com.fasterxml.jackson.databind.DeserializationContext
     ): Map<String, PackageConfigurationInfo>? {
         val value = p.valueAsString
         return when {
             value.isNullOrEmpty() -> null
             else -> ctxt.readValue(
-                p,
-                ctxt.typeFactory.constructMapType(
-                    LinkedHashMap::class.java,
-                    String::class.java,
-                    PackageConfigurationInfo::class.java
+                p, ctxt.typeFactory.constructMapType(
+                    LinkedHashMap::class.java, String::class.java, PackageConfigurationInfo::class.java
                 )
             )
         }
@@ -183,29 +176,24 @@ data class WorkspaceConfig(
     /** 工作空间成员模块列表 */
     val members: List<String>,
 
+    val name: String? = null,
     /** 工作空间编译模块列表，需要是成员模块列表的子集 */
-    @JsonProperty("build-members")
-    val buildMembers: List<String>? = null,
+    @JsonProperty("build-members") val buildMembers: List<String>? = null,
 
     /** 工作空间测试模块列表，需要是编译模块列表的子集 */
-    @JsonProperty("test-members")
-    val testMembers: List<String>? = null,
+    @JsonProperty("test-members") val testMembers: List<String>? = null,
 
     /** 应用于所有工作空间成员模块的额外编译命令选项 */
-    @JsonProperty("compile-option")
-    val compileOption: String? = null,
+    @JsonProperty("compile-option") val compileOption: String? = null,
 
     /** 应用于所有工作空间成员模块的额外全局编译命令选项 */
-    @JsonProperty("override-compile-option")
-    val overrideCompileOption: String? = null,
+    @JsonProperty("override-compile-option") val overrideCompileOption: String? = null,
 
     /** 应用于所有工作空间成员模块的链接器透传选项 */
-    @JsonProperty("link-option")
-    val linkOption: String? = null,
+    @JsonProperty("link-option") val linkOption: String? = null,
 
     /** 指定产物存放路径 */
-    @JsonProperty("target-dir")
-    val targetDir: String? = null
+    @JsonProperty("target-dir") val targetDir: String? = null
 )
 
 /**
@@ -213,12 +201,18 @@ data class WorkspaceConfig(
  */
 class EmptyStringToWorkspaceConfigDeserializer : com.fasterxml.jackson.databind.JsonDeserializer<WorkspaceConfig?>() {
     override fun deserialize(
-        p: com.fasterxml.jackson.core.JsonParser,
-        ctxt: com.fasterxml.jackson.databind.DeserializationContext
+        p: com.fasterxml.jackson.core.JsonParser, ctxt: com.fasterxml.jackson.databind.DeserializationContext
     ): WorkspaceConfig? {
-        val value = p.valueAsString
-        return when {
-            value.isNullOrEmpty() -> null
+        return when (p.currentToken) {
+            com.fasterxml.jackson.core.JsonToken.VALUE_STRING -> {
+                if (p.valueAsString.isEmpty()) null else ctxt.readValue(p, WorkspaceConfig::class.java)
+            }
+
+            com.fasterxml.jackson.core.JsonToken.START_OBJECT -> {
+                ctxt.readValue(p, WorkspaceConfig::class.java)
+            }
+
+            com.fasterxml.jackson.core.JsonToken.VALUE_NULL -> null
             else -> ctxt.readValue(p, WorkspaceConfig::class.java)
         }
     }

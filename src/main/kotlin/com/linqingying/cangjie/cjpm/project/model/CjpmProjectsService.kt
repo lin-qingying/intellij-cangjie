@@ -44,6 +44,7 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
+import com.linqingying.cangjie.cjpm.project.model.toml.CjpmTomlConfig
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 
@@ -183,4 +184,5 @@ private fun discoverToolchain(project: Project) {
 }
 
 
-fun ContentEntry.setup(contentRoot: VirtualFile) = ContentEntryWrapper(this).setup(contentRoot)
+fun ContentEntry.setup(contentRoot: VirtualFile, metadata: CjpmTomlConfig?) =
+    ContentEntryWrapper(this).setup(contentRoot, metadata)

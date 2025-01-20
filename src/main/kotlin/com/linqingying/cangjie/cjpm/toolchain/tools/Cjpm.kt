@@ -124,7 +124,7 @@ class Cjpm(
 
         projectType: String? = null,
 
-    ): CjProcessResult<GeneratedFilesHolder> = runWriteAction {
+        ): CjProcessResult<GeneratedFilesHolder> = runWriteAction {
 
 
         val path = directory.pathAsPath
@@ -202,6 +202,20 @@ class Cjpm(
 
     }
 
+    fun fetchMetadata(
+        owner: Project,
+        projectDirectory: Path,
+
+        toolchainOverride: String? = null,
+        environmentVariables: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT,
+        listener: ProcessListener?,
+
+        ): CjResult<CjpmMetadata.Project, CjProcessExecutionOrDeserializationException> {
+
+
+        TODO()
+    }
+
     /**
      * 对cjpm项目进行更新
      */
@@ -236,7 +250,7 @@ class Cjpm(
         }
 
         return CjResult.Err(CjProcessExecutionException.Canceled(commandLine.command, output))
-//        return CjResult.Ok(CjpmMetadata.Project(1))
+
     }
 
 

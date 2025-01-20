@@ -38,6 +38,8 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.linqingying.cangjie.cjpm.project.model.toml.CjpmTomlConfig
+import com.linqingying.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
@@ -78,7 +80,10 @@ interface CjpmWorkspace {
 
 
     //    cjpm module.json数据
-    val moduleData: CjpmProjectInfo?
+//    val moduleData: CjpmProjectInfo?
+
+    //cjpm.toml元数据
+    val metadata: CjpmTomlConfig?
 
     /**
      * 该接口表示一个cjpm包  一个项目会有N个cjpm包
@@ -115,7 +120,8 @@ interface CjpmWorkspace {
         /**
          * moduleData属性返回包的CJPM项目信息
          */
-        val moduleData: CjpmProjectInfo?
+//        val moduleData: CjpmProjectInfo?
+        val metadata: CjpmTomlConfig?
 
         /**
          * version属性返回包的版本号
@@ -176,7 +182,8 @@ class PackageImpl(
     override var origin: PackageOrigin,
     val outDirUrl: String? = null,
 
-    override var moduleData: CjpmProjectInfo? = null
+//    override var moduleData: CjpmProjectInfo? = null,
+    override val metadata: CjpmTomlConfig? = null
 
 ) : UserDataHolderBase(), CjpmWorkspace.Package {
 
@@ -252,10 +259,24 @@ class WorkspaceImpl(
     override val workspaceRoot: VirtualFile? by CachedVirtualFile(workspaceRootUrl)
 
 
-    override val moduleData: CjpmProjectInfo? = if (manifestPath.exists()) {
+//    override val moduleData: CjpmProjectInfo? = if (manifestPath.exists()) {
+//
+//        try {
+//            CjpmProjectInfo.deserialize(manifestPath)
+//        } catch (e: JacksonException) {
+//            throw e
+//            println(e)
+//            null
+//        }
+//    } else {
+//        null
+//    }
+
+
+    override val metadata: CjpmTomlConfig? = if (manifestPath.exists()) {
 
         try {
-            CjpmProjectInfo.deserialize(manifestPath)
+            CjpmTomlParser.parse(manifestPath)
         } catch (e: JacksonException) {
             throw e
             println(e)
@@ -264,8 +285,6 @@ class WorkspaceImpl(
     } else {
         null
     }
-
-
     override val packages: Collection<PackageImpl> = packagesData.map {
 
         PackageImpl(
@@ -277,18 +296,34 @@ class WorkspaceImpl(
         )
 
     }.toMutableList().apply {
-        add(
-            PackageImpl(
-                this@WorkspaceImpl,
-                this@WorkspaceImpl.workspaceRootUrl ?: "",
-                moduleData?.name ?: "",
-                moduleData?.version ?: "",
-                PackageOrigin.WORKSPACE,
+        metadata?.`package`?.let {
+            add(
+                PackageImpl(
+                    this@WorkspaceImpl,
+                    this@WorkspaceImpl.workspaceRootUrl ?: "",
+                    it.name,
 
-                moduleData = moduleData
+                    it.version,
 
+
+                    PackageOrigin.WORKSPACE,
+                    metadata = metadata,
+                )
             )
-        )
+        }
+//        add(
+//            PackageImpl(
+//                this@WorkspaceImpl,
+//                this@WorkspaceImpl.workspaceRootUrl ?: "",
+//                moduleData?.name ?: "",
+//                moduleData?.version ?: "",
+//                PackageOrigin.WORKSPACE,
+//
+//                moduleData = moduleData
+//
+//            )
+//        )
+
     }.distinctBy { it.name } // 根据name去重
 
 

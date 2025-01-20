@@ -5,6 +5,7 @@ import org.junit.jupiter.api.assertThrows
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class CjpmTomlParserTest {
     
@@ -310,6 +311,63 @@ class CjpmTomlParserTest {
             // release 配置
             assertNotNull(release)
             assertEquals("-O3", release.compileOption)
+        }
+    }
+    
+    @Test
+    fun `test parse workspace config`() {
+        val content = """
+            [workspace]
+            members = [
+                "packages/*",
+                "tools/package1",
+                "tools/package2"
+            ]
+            build-members = [
+                "packages/core",
+                "tools/package1"
+            ]
+            test-members = [
+                "packages/core"
+            ]
+            compile-option = "-O2"
+            override-compile-option = "--fast-math"
+            link-option = "-static"
+            target-dir = "./target"
+            
+            [package]
+            name = "test"
+            cjc-version = "0.55.3"
+            version = "0.0.1"
+            output-type = "dynamic"
+        """.trimIndent()
+        
+        val config = CjpmTomlParser.parse(content)
+        
+        assertNotNull(config.workspace)
+        with(config.workspace) {
+            // 验证成员列表
+            assertEquals(3, members.size)
+            assertTrue(members.contains("packages/*"))
+            assertTrue(members.contains("tools/package1"))
+            assertTrue(members.contains("tools/package2"))
+            
+            // 验证构建成员列表
+            assertNotNull(buildMembers)
+            assertEquals(2, buildMembers.size)
+            assertTrue(buildMembers.contains("packages/core"))
+            assertTrue(buildMembers.contains("tools/package1"))
+            
+            // 验证测试成员列表
+            assertNotNull(testMembers)
+            assertEquals(1, testMembers.size)
+            assertTrue(testMembers.contains("packages/core"))
+            
+            // 验证编译选项
+            assertEquals("-O2", compileOption)
+            assertEquals("--fast-math", overrideCompileOption)
+            assertEquals("-static", linkOption)
+            assertEquals("./target", targetDir)
         }
     }
 } 

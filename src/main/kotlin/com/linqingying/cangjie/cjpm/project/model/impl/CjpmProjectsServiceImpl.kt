@@ -80,6 +80,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.indexing.LightDirectoryIndex
 import com.intellij.util.io.systemIndependentPath
+import com.linqingying.cangjie.cjpm.project.model.toml.CjpmTomlConfig
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -477,12 +478,14 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
 
             ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring {
                 for (cjpmProject in cjpmProjects) {
-                    cjpmProject as CjpmProjectImpl
+//                    if (cjpmProject !is CjpmProjectImpl) {
+//                        continue
+//                    }
 
 //保持与cjpm模块名称一致
-                    if (cjpmProject.project.name != cjpmProject.workspace?.moduleData?.name) {
-                        cjpmProject.workspace?.moduleData?.name?.let {
-                            (cjpmProject.project as ProjectEx).setProjectName(
+                    if (cjpmProject.project.name != cjpmProject.workspace?.metadata?.name) {
+                        cjpmProject.workspace?.metadata?.name?.let {
+                            (cjpmProject.project as? ProjectEx)?.setProjectName(
                                 it
                             )
                         }
@@ -490,25 +493,21 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
 
 
 // 设置生产文件夹
-                    cjpmProject.workspaceRootDir?.setupContentRoots(project) { contentRoot ->
-                        addExcludeFolder("${contentRoot.url}/${CjpmConstants.ProjectLayout.target}")
-                    }
+//                    cjpmProject.workspaceRootDir?.setupContentRoots(project) { contentRoot ->
+//                        addExcludeFolder("${contentRoot.url}/${CjpmConstants.ProjectLayout.target}")
+//                    }
 
-//                    cjpmProject.workspaceRootDir?.setupContentRoots(project, ContentEntryWrapper::setup)
                     val workspacePackages = cjpmProject.workspace?.packages
                         .orEmpty()
                         .filter { it.origin == PackageOrigin.WORKSPACE }
 
                     for (pkg in workspacePackages) {
-                        pkg.contentRoot?.setupContentRoots(project, ContentEntryWrapper::setup)
+                        pkg.contentRoot?.setupContentRoots(project, pkg.metadata, ContentEntryWrapper::setup)
                     }
-
-
                 }
             }
         }
         ProjectFileIndex.getInstance(project)
-
     }
 }
 
@@ -569,18 +568,24 @@ private fun isExistingProject(projects: Collection<CjpmProject>, manifest: Path)
         .any { it.parent == manifest.parent }
 }
 
-private fun VirtualFile.setupContentRoots(project: Project, setup: ContentEntryWrapper.(VirtualFile) -> Unit) {
+private fun VirtualFile.setupContentRoots(
+    project: Project,
+    metadata: CjpmTomlConfig?,
+    setup: ContentEntryWrapper.(VirtualFile, CjpmTomlConfig?) -> Unit
+) {
     val packageModule = ModuleUtilCore.findModuleForFile(this, project) ?: return
-    setupContentRoots(packageModule, setup)
+    setupContentRoots(packageModule, metadata, setup)
 }
 
-private fun VirtualFile.setupContentRoots(packageModule: Module, setup: ContentEntryWrapper.(VirtualFile) -> Unit) {
+private fun VirtualFile.setupContentRoots(
+    packageModule: Module,
+    metadata: CjpmTomlConfig?,
+    setup: ContentEntryWrapper.(VirtualFile, CjpmTomlConfig?) -> Unit
+) {
     ModuleRootModificationUtil.updateModel(packageModule) { rootModel ->
 
-//        rootModel.addInvalidLibrary("stdlib",LibraryTablesRegistrar.PROJECT_LEVEL)
-//        rootModel.commit()
         val contentEntry = rootModel.contentEntries.singleOrNull() ?: return@updateModel
-        ContentEntryWrapper(contentEntry).setup(this)
+        ContentEntryWrapper(contentEntry).setup(this, metadata)
     }
 }
 

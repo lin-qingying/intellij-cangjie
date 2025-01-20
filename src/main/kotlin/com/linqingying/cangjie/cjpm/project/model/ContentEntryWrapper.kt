@@ -28,7 +28,9 @@ import com.linqingying.cangjie.cjpm.CjpmConstants
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.OrderEntry
 import com.intellij.openapi.vfs.VirtualFile
-class OrderEntryWrapper(private val orderEntry: OrderEntry){
+import com.linqingying.cangjie.cjpm.project.model.toml.CjpmTomlConfig
+
+class OrderEntryWrapper(private val orderEntry: OrderEntry) {
 
 
 }
@@ -53,15 +55,27 @@ class ContentEntryWrapper(private val contentEntry: ContentEntry) {
         return knownRoots
     }
 }
-//添加源文件夹，打开文件
-fun ContentEntryWrapper.setup(contentRoot: VirtualFile) {
-    val makeVfsUrl = { dirName: String -> contentRoot.findChild(dirName)?.url }
-    CjpmConstants.ProjectLayout.sources.mapNotNull(makeVfsUrl).forEach {
 
-        addSourceFolder(it, isTestSource = false)
+//添加源文件夹，打开文件
+fun ContentEntryWrapper.setup(contentRoot: VirtualFile, metadata: CjpmTomlConfig?) {
+    val makeVfsUrl = { dirName: String -> contentRoot.findChild(dirName)?.url }
+
+    metadata?.srcDir?.let {
+        makeVfsUrl(it)?.let {
+            addSourceFolder(it, isTestSource = false)
+        }
+
+    } ?: run {
+        CjpmConstants.ProjectLayout.sources.mapNotNull(makeVfsUrl).forEach {
+
+            addSourceFolder(it, isTestSource = false)
+        }
     }
     CjpmConstants.ProjectLayout.tests.mapNotNull(makeVfsUrl).forEach {
         addSourceFolder(it, isTestSource = true)
     }
-    makeVfsUrl(CjpmConstants.ProjectLayout.target)?.let(::addExcludeFolder)
+
+
+    metadata?.targetDir?.let { makeVfsUrl(it) }?.let(::addExcludeFolder)
+        ?: makeVfsUrl(CjpmConstants.ProjectLayout.target)?.let(::addExcludeFolder)
 }
