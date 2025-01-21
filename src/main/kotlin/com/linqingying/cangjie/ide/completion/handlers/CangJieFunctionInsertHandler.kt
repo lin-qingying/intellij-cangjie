@@ -44,7 +44,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.refactoring.suggested.createSmartPointer
+import com.intellij.psi.createSmartPointer
 
 class GenerateLambdaInfo(val lambdaType: CangJieType, val explicitParameters: Boolean)
 
@@ -104,7 +104,7 @@ sealed class CangJieFunctionInsertHandler(callType: CallType<*>) : CangJieCallab
                 context.file
                     .findElementAt(elementOffset)
                     ?.parent?.getLastParentOfTypeInRow<CjDotQualifiedExpression>()
-                    ?.createSmartPointer()?.let {
+                    ?.createSmartPointer<CjDotQualifiedExpression>()?.let {
                         psiDocumentManager.commitDocument(document)
                         val dotQualifiedExpression = it.element ?: return@let
                         SHORTEN_REFERENCES.process(dotQualifiedExpression)

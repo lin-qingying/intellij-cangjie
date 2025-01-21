@@ -46,7 +46,7 @@ class CjConstructorDelegationReference(
     override val resolvesByNames: Collection<Name>
         get() = emptyList()
 
-    override fun handleElementRename(newElementName: String): PsiElement? {
+    override fun handleElementRename(newElementName: String): PsiElement {
         // Class rename never affects this reference, so there is no need to fail with exception
         return expression
     }

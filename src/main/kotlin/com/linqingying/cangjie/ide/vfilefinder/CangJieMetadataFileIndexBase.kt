@@ -32,6 +32,7 @@ import com.linqingying.cangjie.name.ClassId
 import com.linqingying.cangjie.name.FqName
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.serialization.deserialization.MetadataPackageFragment
+import com.linqingying.cangjie.serialization.deserialization.MetadataPackageFragment.Companion.DOT_METADATA_FILE_EXTENSION
 import com.linqingying.cangjie.serialization.deserialization.getClassId
 
 
@@ -56,6 +57,6 @@ internal fun FileContent.classIdFromCangJieMetadata(): ClassId? {
         return builtIns.nameResolver.getClassId(singleClass.fqName)
     }
 
-    val facadeName = this.fileName.substringBeforeLast(MetadataPackageFragment.DOT_METADATA_FILE_EXTENSION)
+    val facadeName = this.fileName.substringBeforeLast(DOT_METADATA_FILE_EXTENSION)
     return ClassId(builtIns.packageFqName, Name.identifier(facadeName))
 }

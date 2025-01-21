@@ -68,7 +68,7 @@ class ExtendDescriptorResolver(
 
     fun check(c: TopDownAnalysisContext, cjExtend: CjExtend) {
         val type = getExtendDescriptor(cjExtend)
-        type ?: return
+        type
         type as LazyExtendClassDescriptor
         if (type.getSourceClassKind() == ClassKind.INTERFACE) {
 

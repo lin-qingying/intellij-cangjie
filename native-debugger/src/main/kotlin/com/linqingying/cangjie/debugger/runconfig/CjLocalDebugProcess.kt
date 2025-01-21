@@ -26,8 +26,4 @@ class CjLocalDebugProcess(
 ){
     override fun isLibraryFrameFilterSupported() = false
 
-    override fun sessionInitialized() {
-        super.sessionInitialized()
-
-    }
 }

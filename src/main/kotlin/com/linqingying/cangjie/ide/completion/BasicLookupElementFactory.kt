@@ -56,7 +56,7 @@ class BasicLookupElementFactory(
             descriptor: DeclarationDescriptor,
             flags: Int
         ): Icon? {
-            // CangJieDescriptorIconProvider does not use declaration if it is KtElement,
+            // CangJieDescriptorIconProvider does not use declaration if it is CjElement,
             // so, do not try to look up psiElement for known CangJie descriptors as it could be a heavy deserialization (e.g. from kotlin libs)
             val declaration = when (descriptor) {
                 is ReceiverParameterDescriptor -> null

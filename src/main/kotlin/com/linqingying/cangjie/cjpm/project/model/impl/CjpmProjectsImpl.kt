@@ -56,9 +56,9 @@ data class CjpmProjectImpl(
     private val stdlib: StandardLibrary? = null,
 
     override val cjcInfo: CjcInfo? = null,
-    override val workspaceStatus: CjpmProject.UpdateStatus = CjpmProject.UpdateStatus.NeedsUpdate,
-    override val stdlibStatus: CjpmProject.UpdateStatus = CjpmProject.UpdateStatus.NeedsUpdate,
-    override val cjcInfoStatus: CjpmProject.UpdateStatus = CjpmProject.UpdateStatus.NeedsUpdate
+    override val workspaceStatus: UpdateStatus = NeedsUpdate,
+    override val stdlibStatus: UpdateStatus = NeedsUpdate,
+    override val cjcInfoStatus: UpdateStatus = NeedsUpdate
 ) : UserDataHolderBase(), CjpmProject {
     //    override val workspaceRootDir: VirtualFile? = project.baseDir
     // 获取工作区根目录
@@ -114,11 +114,11 @@ data class CjpmProjectImpl(
     // 设置标准库
     fun withStdlib(result: TaskResult<StandardLibrary>): CjpmProjectImpl =
         if (!CangJieLanguageServerServices.getInstance().astConfig.enabled) {
-            copy(stdlib = null, stdlibStatus = CjpmProject.UpdateStatus.UpToDate)
+            copy(stdlib = null, stdlibStatus = UpdateStatus.UpToDate)
         } else {
             when (result) {
-                is TaskResult.Ok -> copy(stdlib = result.value, stdlibStatus = CjpmProject.UpdateStatus.UpToDate)
-                is TaskResult.Err -> copy(stdlibStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
+                is TaskResult.Ok -> copy(stdlib = result.value, stdlibStatus = UpdateStatus.UpToDate)
+                is TaskResult.Err -> copy(stdlibStatus = UpdateStatus.UpdateFailed(result.reason))
             }
         }
 
@@ -132,11 +132,11 @@ data class CjpmProjectImpl(
     fun withWorkspace(result: TaskResult<CjpmWorkspace>): CjpmProjectImpl = when (result) {
         is TaskResult.Ok -> copy(
             rawWorkspace = result.value,
-            workspaceStatus = CjpmProject.UpdateStatus.UpToDate,
+            workspaceStatus = UpdateStatus.UpToDate,
 //            userDisabledFeatures = userDisabledFeatures.retain(result.value.packages)
         )
 
-        is TaskResult.Err -> copy(workspaceStatus = CjpmProject.UpdateStatus.UpdateFailed(result.reason))
+        is TaskResult.Err -> copy(workspaceStatus = UpdateStatus.UpdateFailed(result.reason))
     }
 
     fun withCjcInfo(result: TaskResult<CjcInfo>): CjpmProjectImpl = when (result) {

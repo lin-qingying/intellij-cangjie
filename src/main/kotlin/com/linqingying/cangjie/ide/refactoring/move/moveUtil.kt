@@ -220,7 +220,7 @@ internal fun postProcessMoveUsages(
         }
     )
 
-    val nonCodeUsages = java.util.ArrayList<NonCodeUsageInfo>()
+    val nonCodeUsages = ArrayList<NonCodeUsageInfo>()
 
     val progressStep = 1.0 / sortedUsages.size
     val progressIndicator = ProgressManager.getInstance().progressIndicator
@@ -256,7 +256,7 @@ private fun processReference(
 private fun postProcessMoveUsage(
     usage: UsageInfo,
     oldToNewElementsMapping: Map<PsiElement, PsiElement>,
-    nonCodeUsages: java.util.ArrayList<NonCodeUsageInfo>,
+    nonCodeUsages: ArrayList<NonCodeUsageInfo>,
     shorteningMode: CjSimpleNameReference.ShorteningMode
 ) {
     if (usage is NonCodeUsageInfo) {

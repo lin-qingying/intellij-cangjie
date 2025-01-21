@@ -43,7 +43,7 @@ sealed class ProtoContainer(
         nameResolver: NameResolver,
         typeTable: TypeTable,
         source: SourceElement?,
-        val outerClass: ProtoContainer.Class?
+        val outerClass: Class?
     ) : ProtoContainer(nameResolver, typeTable, source) {
         val classId: ClassId = nameResolver.getClassId(classProto.fqName)
 

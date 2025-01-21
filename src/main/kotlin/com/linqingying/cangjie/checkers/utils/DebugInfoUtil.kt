@@ -24,5 +24,4 @@
 
 package com.linqingying.cangjie.checkers.utils
 
-class DebugInfoUtil {
-}
+class DebugInfoUtil

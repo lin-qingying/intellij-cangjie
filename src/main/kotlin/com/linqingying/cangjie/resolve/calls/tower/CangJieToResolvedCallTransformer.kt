@@ -107,7 +107,7 @@ private val doubleColonExpressionResolver:DoubleColonExpressionResolver,
         if (resolvedCall !is NewResolvedCallImpl<*>) return
 
         for (valueArgument in resolvedCall.call.valueArguments) {
-            val argumentMapping = resolvedCall.getArgumentMapping(valueArgument!!)
+            val argumentMapping = resolvedCall.getArgumentMapping(valueArgument)
             val parameter: ValueParameterDescriptor?
             val (expectedType, callPosition) = when (argumentMapping) {
                 is ArgumentMatch -> {
@@ -452,7 +452,7 @@ private val doubleColonExpressionResolver:DoubleColonExpressionResolver,
 
         completedCallAtom.setCandidateDescriptor(
             candidateInterceptor.interceptResolvedCallAtomCandidate(
-                completedCallAtom.candidateDescriptor as CallableDescriptor,
+                completedCallAtom.candidateDescriptor,
                 completedCallAtom,
                 trace,
                 resultSubstitutor,

@@ -144,7 +144,7 @@ interface SdkDownloadEp {
 
     companion object {
 
-        val EP_NAME = ExtensionPointName.create<SdkDownloadEp>("com.linqingying.cangjie.sdkDownload");
+        val EP_NAME = ExtensionPointName.create<SdkDownloadEp>("com.linqingying.cangjie.sdkDownload")
     }
 }
 
@@ -1012,7 +1012,7 @@ fun addDownloadItem(
                         downloadTask.doDownload(indicator)
 //                        pathToToolchainComboBox.addSingleToolchainAndSelect( "C:\\Users\\27439\\.cangjie\\sdks\\cangjie-0.53.13-1")
 
-                        pathToToolchainComboBox.addSingleToolchainAndSelect(downloadTask.getPlannedHomeDir())
+                        pathToToolchainComboBox.addSingleToolchainAndSelect(downloadTask.plannedHomeDir)
                     }
                 } else {
                     Messages.showErrorDialog(

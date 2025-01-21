@@ -24,6 +24,15 @@
 
 package com.linqingying.cangjie.ide.quickfix
 
+import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.command.CommandProcessor
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.PopupStep
+import com.intellij.openapi.ui.popup.util.BaseListPopupStep
+import com.intellij.psi.PsiDocumentManager
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
@@ -43,15 +52,6 @@ import com.linqingying.cangjie.resolve.setSingleOverridden
 import com.linqingying.cangjie.types.checker.CangJieTypeChecker
 import com.linqingying.cangjie.types.util.supertypes
 import com.linqingying.cangjie.utils.executeWriteCommand
-import com.intellij.codeInsight.intention.IntentionAction
-import com.intellij.openapi.command.CommandProcessor
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.ui.popup.PopupStep
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.ui.IconManager
 import java.util.*
 
 class ChangeMemberFunctionSignatureFix private constructor(
@@ -329,13 +329,10 @@ class ChangeMemberFunctionSignatureFix private constructor(
                         if (finalChoice) {
                             changeSignature(selectedValue)
                         }
-                        return PopupStep.FINAL_CHOICE
+                        return FINAL_CHOICE
                     }
 
-                    override fun getIconFor(aValue: Signature) = IconManager.getInstance().getPlatformIcon(
-                        com.intellij.ui.PlatformIcons.Function
-                    )
-
+                    override fun getIconFor(aValue: Signature) = AllIcons.Nodes.Function
                     override fun getTextFor(aValue: Signature) = aValue.preview
                 }
             }

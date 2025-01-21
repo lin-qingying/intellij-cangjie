@@ -26,7 +26,7 @@ package com.linqingying.cangjie.ide.completion
 
 import com.linqingying.cangjie.lang.CangJieLanguage
 import com.intellij.codeInsight.completion.CompletionParameters
-import com.intellij.platform.ml.impl.turboComplete.KindVariety
+import com.linqingying.cangjie.ide.completion.turboComplete.KindVariety
 
 
 /**

@@ -71,3 +71,4 @@ bin/
 /.intellijPlatform/
 /.intellijPlatform/
 /.kotlin/
+/pluginVerification/

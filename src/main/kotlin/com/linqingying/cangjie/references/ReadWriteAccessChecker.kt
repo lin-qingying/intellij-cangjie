@@ -47,7 +47,7 @@ interface ReadWriteAccessChecker {
         var expression = targetExpression.getQualifiedExpressionForSelectorOrThis()
         loop@ while (true) {
             when (val parent = expression.parent) {
-                is CjParenthesizedExpression  -> expression = parent as CjExpression
+                is CjParenthesizedExpression  -> expression = parent
                 else -> break@loop
             }
         }

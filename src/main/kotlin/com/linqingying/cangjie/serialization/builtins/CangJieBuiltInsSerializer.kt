@@ -142,7 +142,7 @@ class CangJieBuiltInsSerializer(
         return factory.createClass(ClassId.topLevel(StandardNames.FqNames.cloneable.toSafe()))
             ?: error("Could not create kotlin.Cloneable in $module")
     }
-    override fun serialize(analysisResult: CommonAnalysisResult, destDir: File): OutputInfo? {
+    override fun serialize(analysisResult: CommonAnalysisResult, destDir: File): OutputInfo {
         val files = environment.getSourceFiles()
         val module = analysisResult.moduleDescriptor
 

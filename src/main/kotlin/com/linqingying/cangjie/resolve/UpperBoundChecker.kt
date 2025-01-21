@@ -114,7 +114,7 @@ open class UpperBoundChecker(
         val substitutor = TypeSubstitutor.create(type)
 
         for (i in cjTypeArguments.indices) {
-            val cjTypeArgument = cjTypeArguments[i] ?: continue
+            val cjTypeArgument = cjTypeArguments[i]
             checkBoundsInSupertype(cjTypeArgument, arguments[i].type, trace, languageVersionSettings)
             checkBounds(cjTypeArgument, arguments[i].type, parameters[i], substitutor, trace)
         }

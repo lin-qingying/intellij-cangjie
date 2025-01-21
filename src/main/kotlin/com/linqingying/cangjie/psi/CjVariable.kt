@@ -44,7 +44,7 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
         get() = null
     val pattern: CjCasePattern? get() = findChildByClass(CjCasePattern::class.java)
 
-    val equalsToken:PsiElement? get() =  findChildByType(CjTokens.EQ);
+    val equalsToken:PsiElement? get() =  findChildByType(CjTokens.EQ)
 
     override fun toString(): String {
         return super.toString() + ": " + name

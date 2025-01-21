@@ -25,7 +25,7 @@
 package com.linqingying.cangjie.ide.completion
 
 import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.completion.addingPolicy.PolicyController
+
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.openapi.editor.Document
@@ -33,17 +33,20 @@ import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.patterns.PlatformPatterns.elementType
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.platform.ml.impl.turboComplete.KindCollector
-import com.intellij.platform.ml.impl.turboComplete.KindVariety
-import com.intellij.platform.ml.impl.turboComplete.SmartPipelineRunner
-import com.intellij.platform.ml.impl.turboComplete.SuggestionGeneratorExecutor
+
+
 import com.intellij.psi.PsiComment
 import com.intellij.util.indexing.DumbModeAccessType
 import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
 import com.linqingying.cangjie.configurable.services.Feature
+import com.linqingying.cangjie.ide.completion.addingPolicy.PolicyController
 import com.linqingying.cangjie.ide.completion.smart.SmartCompletion
 import com.linqingying.cangjie.ide.completion.stringTemplates.StringTemplateCompletion
 import com.linqingying.cangjie.ide.completion.stringTemplates.wrapLookupElementForStringTemplateAfterDotCompletion
+import com.linqingying.cangjie.ide.completion.turboComplete.KindCollector
+import com.linqingying.cangjie.ide.completion.turboComplete.KindVariety
+import com.linqingying.cangjie.ide.completion.turboComplete.SmartPipelineRunner
+import com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGeneratorExecutor
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.endOffset
@@ -136,8 +139,8 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
         val position = parameters.position
         val invocationCount = parameters.invocationCount
 
-        // 如果前缀匹配器是 CamelHumpMatcher 并且容忍拼写错误，则抑制补全
-        if (prefixMatcher is CamelHumpMatcher && prefixMatcher.isTypoTolerant) return true
+        // 如果前缀匹配器是 CamelHumpMatcher 并且容忍拼写错误，则抑制补全 TODO 由于isTypoTolerant是内部API，后续寻找方法替代
+//        if (prefixMatcher is CamelHumpMatcher && prefixMatcher.isTypoTolerant) return true
 
         // 在数字字面量内部不提供补全
         if (AFTER_NUMBER_LITERAL.accepts(position)) return true
@@ -318,8 +321,7 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
                 addPostProcessor(newSession)
                 newSession.complete()
             }
-        }
-        else {
+        } else {
             val session = SmartCompletionSession(configuration, parameters, result)
             addPostProcessor(session)
             session.complete()
@@ -334,3 +336,5 @@ fun CompletionInitializationContext.markReplacementOffsetAsModified() {
     // set replacement offset explicitly to mark it as modified
     replacementOffset = replacementOffset
 }
+
+

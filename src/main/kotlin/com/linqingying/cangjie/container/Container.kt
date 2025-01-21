@@ -94,8 +94,7 @@ class StorageComponentContainer(
         if (rawType != Iterable::class.java) return null
         val typeArguments = request.actualTypeArguments
         if (typeArguments.size != 1) return null
-        val iterableTypeArgument = typeArguments[0]
-        val iterableType = when (iterableTypeArgument) {
+        val iterableType = when (val iterableTypeArgument = typeArguments[0]) {
             is WildcardType -> {
                 val upperBounds = iterableTypeArgument.upperBounds
                 if (upperBounds.size != 1) return null

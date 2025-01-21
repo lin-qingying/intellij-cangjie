@@ -24,23 +24,6 @@
 
 package com.linqingying.cangjie.resolve.caches
 
-import com.linqingying.cangjie.analyzer.*
-import com.linqingying.cangjie.container.ComponentProvider
-import com.linqingying.cangjie.context.GlobalContextImpl
-import com.linqingying.cangjie.context.withProject
-import com.linqingying.cangjie.diagnostics.DiagnosticSink
-import com.linqingying.cangjie.descriptors.ModuleDescriptor
-import com.linqingying.cangjie.ide.cache.project.getModuleInfosFromIdeaModel
-import com.linqingying.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
-import com.linqingying.cangjie.ide.projectStructure.ModuleInfoProvider
-import com.linqingying.cangjie.ide.projectStructure.moduleInfo
-
-import com.linqingying.cangjie.ide.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
-import com.linqingying.cangjie.psi.CjElement
-import com.linqingying.cangjie.psi.CjFile
-import com.linqingying.cangjie.resolve.CompositeBindingContext
-import com.linqingying.cangjie.storage.CancellableSimpleLock
-import com.linqingying.cangjie.storage.guarded
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
@@ -48,8 +31,21 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.containers.SLRUCache
-import com.linqingying.cangjie.utils.firstIsInstanceOrNull
+import com.linqingying.cangjie.analyzer.*
+import com.linqingying.cangjie.context.GlobalContextImpl
+import com.linqingying.cangjie.context.withProject
+import com.linqingying.cangjie.descriptors.ModuleDescriptor
+import com.linqingying.cangjie.diagnostics.DiagnosticSink
+import com.linqingying.cangjie.ide.cache.project.getModuleInfosFromIdeaModel
+import com.linqingying.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
+import com.linqingying.cangjie.ide.projectStructure.ModuleInfoProvider
+import com.linqingying.cangjie.ide.projectStructure.moduleInfo
+import com.linqingying.cangjie.ide.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
+import com.linqingying.cangjie.psi.CjElement
+import com.linqingying.cangjie.psi.CjFile
+import com.linqingying.cangjie.resolve.CompositeBindingContext
+import com.linqingying.cangjie.storage.CancellableSimpleLock
+import com.linqingying.cangjie.storage.guarded
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 
@@ -93,7 +89,8 @@ class ProjectResolutionFacade(
     private val cachedResolverForProject: ResolverForProject<ModuleInfo>
         get() = globalContext.storageManager.compute { cachedValue.value }
 
-    private val analysisResultsSimpleLock = CancellableSimpleLock(analysisResultsLock,
+    private val analysisResultsSimpleLock = CancellableSimpleLock(
+        analysisResultsLock,
         checkCancelled = {
             ProgressManager.checkCanceled()
         },
@@ -104,7 +101,8 @@ class ProjectResolutionFacade(
             reuseDataFrom?.cachedResolverForProject ?: EmptyResolverForProject()
 //        val allModuleInfos = allModules!!
 //            .toMutableSet()
-        val allModuleInfos = (allModules ?: getModuleInfosFromIdeaModel(project/*, (settings as? PlatformAnalysisSettingsImpl)?.platform*/))
+        val allModuleInfos = (allModules
+            ?: getModuleInfosFromIdeaModel(project/*, (settings as? PlatformAnalysisSettingsImpl)?.platform*/))
             .toMutableSet()
 //            .also {
 //                it.checkValidity {
@@ -127,16 +125,16 @@ class ProjectResolutionFacade(
             resolvedModulesWithDependencies,
             syntheticFilesByModule,
             delegateResolverForProject,
-      /*      if (invalidateOnOOCB)*/ CangJieModificationTrackerService.getInstance(project).outOfBlockModificationTracker /*else JavaLibraryModificationTracker.getInstance(
+            /*      if (invalidateOnOOCB)*/
+            CangJieModificationTrackerService.getInstance(project).outOfBlockModificationTracker /*else JavaLibraryModificationTracker.getInstance(
                 project
             ),*/
 //            settings
         )
     }
-    internal fun getResolverForProject(): ResolverForProject< ModuleInfo> = cachedResolverForProject
+
+    internal fun getResolverForProject(): ResolverForProject<ModuleInfo> = cachedResolverForProject
     internal fun resolverForModuleInfo(moduleInfo: ModuleInfo) = cachedResolverForProject.resolverForModule(moduleInfo)
-
-
 
 
     private val analysisResults = CachedValuesManager.getManager(project).createCachedValue(
@@ -154,7 +152,7 @@ class ProjectResolutionFacade(
 
                 }
 
-                override fun getIfCached(key: CjFile?): PerFileAnalysisCache? {
+                override fun getIfCached(key: CjFile): PerFileAnalysisCache? {
                     if (lock.tryLock()) {
                         try {
                             return super.getIfCached(key)
@@ -165,7 +163,7 @@ class ProjectResolutionFacade(
                     return null
                 }
 
-                override fun get(key: CjFile?): PerFileAnalysisCache {
+                override fun get(key: CjFile): PerFileAnalysisCache {
                     lock.lock()
                     try {
                         val cache = super.get(key)
@@ -187,9 +185,11 @@ class ProjectResolutionFacade(
             CachedValueProvider.Result.create(results, allDependencies)
         }, false
     )
+
     internal fun findModuleDescriptor(ideaModuleInfo: ModuleInfo): ModuleDescriptor {
         return cachedResolverForProject.descriptorForModule(ideaModuleInfo)
     }
+
     internal fun getAnalysisResultsForElements(
         elements: Collection<CjElement>,
         callback: DiagnosticSink.DiagnosticsCallback? = null

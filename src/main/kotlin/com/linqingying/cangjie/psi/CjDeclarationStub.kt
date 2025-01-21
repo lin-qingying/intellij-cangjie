@@ -65,7 +65,7 @@ abstract class CjDeclarationStub<T : StubElement<*>> : CjModifierListOwnerStub<T
     override fun getParent(): PsiElement? {
         val stub = stub
         // we build stubs for local classes/objects too but they have wrong parent
-        if (stub != null && !(stub is CangJieTypeStatementStub<*> && (stub as CangJieTypeStatementStub<*>).isLocal())) {
+        if (stub != null && !(stub is CangJieTypeStatementStub<*> && stub.isLocal())) {
             return stub.parentStub.psi
         }
         return super.getParent()

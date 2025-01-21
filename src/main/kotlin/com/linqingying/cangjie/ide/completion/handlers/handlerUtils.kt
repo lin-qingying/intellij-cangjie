@@ -53,7 +53,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.refactoring.suggested.createSmartPointer
+import com.intellij.psi.createSmartPointer
 
 fun removeRedundantBracesInStringTemplate(context: InsertionContext) {
     val document = context.document
@@ -318,7 +318,7 @@ fun createNormalFunctionInsertHandler(
                     forkedContext.file
                         .findElementAt(forkedContext.startOffset)
                         ?.parent?.getLastParentOfTypeInRow<CjDotQualifiedExpression>()
-                        ?.createSmartPointer()?.let {
+                        ?.createSmartPointer<CjDotQualifiedExpression>()?.let {
                             psiDocumentManager.commitDocument(forkedDocument)
                             val dotQualifiedExpression = it.element ?: return@let
                             CangJieCallableInsertHandler.SHORTEN_REFERENCES.process(dotQualifiedExpression)
@@ -389,7 +389,7 @@ fun surroundWithBracesIfInStringTemplate(context: InsertionContext): Boolean {
             psiDocumentManager.doPostponedOperationsAndUnblockDocument(document)
 
             document.insertString(startOffset, "{")
-            context.offsetMap.addOffset(CompletionInitializationContext.START_OFFSET, startOffset + 1)
+            context.offsetMap.addOffset(START_OFFSET, startOffset + 1)
 
             val tailOffset = context.tailOffset
             document.insertString(tailOffset, "}")

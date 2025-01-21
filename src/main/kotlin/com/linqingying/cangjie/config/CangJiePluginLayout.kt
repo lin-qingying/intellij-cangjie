@@ -24,6 +24,4 @@
 
 package com.linqingying.cangjie.config
 
-object CangJiePluginLayout {
-
-}
+object CangJiePluginLayout

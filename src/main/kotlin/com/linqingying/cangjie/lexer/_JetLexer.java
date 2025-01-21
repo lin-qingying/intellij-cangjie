@@ -38,7 +38,7 @@ class _JetLexer implements FlexLexer {
    *                  at the beginning of a line
    * l is of the form l = 2*k, k a non negative integer
    */
-  private static final int ZZ_LEXSTATE[] = {
+  private static final int[] ZZ_LEXSTATE = {
      0,  0,  1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7, 
      8,  8,  9,  9,  9,  9, 10, 10,  0, 0
   };
@@ -969,7 +969,7 @@ class _JetLexer implements FlexLexer {
   }
 
   /** the input device */
-  private java.io.Reader zzReader;
+  private final java.io.Reader zzReader;
 
   /** the current state of the DFA */
   private int zzState;
@@ -1018,7 +1018,7 @@ class _JetLexer implements FlexLexer {
 
   /* user code: */
  public _JetLexer() {
-    this((java.io.Reader)null);}
+    this(null);}
     private static final class State {
             final int lBraceCount;
             final int requiredInterpolationPrefix;
@@ -1085,7 +1085,7 @@ class _JetLexer implements FlexLexer {
                     throw new IllegalArgumentException("Unexpected state: " + state);
             }
         }
-    private boolean isGenerics = false;
+    private final boolean isGenerics = false;
 
 
   /**
@@ -1245,8 +1245,7 @@ class _JetLexer implements FlexLexer {
   private void zzDoEOF() {
     if (!zzEOFDone) {
       zzEOFDone = true;
-    
-  return;
+
     }
   }
 

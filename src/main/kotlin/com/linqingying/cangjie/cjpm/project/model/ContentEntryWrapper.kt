@@ -30,10 +30,7 @@ import com.intellij.openapi.roots.OrderEntry
 import com.intellij.openapi.vfs.VirtualFile
 import com.linqingying.cangjie.cjpm.project.model.toml.CjpmTomlConfig
 
-class OrderEntryWrapper(private val orderEntry: OrderEntry) {
-
-
-}
+class OrderEntryWrapper(private val orderEntry: OrderEntry)
 
 class ContentEntryWrapper(private val contentEntry: ContentEntry) {
     private val knownFolders: Set<String> = contentEntry.knownFolders()

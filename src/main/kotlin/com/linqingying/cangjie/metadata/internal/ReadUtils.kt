@@ -36,7 +36,7 @@ import com.linqingying.cangjie.metadata.deserialization.Flags
 import com.linqingying.cangjie.metadata.deserialization.NameResolver
 import com.linqingying.cangjie.metadata.node.ClassName
 
-public fun ProtoBuf.Annotation.readAnnotation(strings: NameResolver): CmAnnotation =
+fun ProtoBuf.Annotation.readAnnotation(strings: NameResolver): CmAnnotation =
     CmAnnotation(
         strings.getClassName(id),
         argumentList.mapNotNull { argument ->
@@ -46,7 +46,7 @@ public fun ProtoBuf.Annotation.readAnnotation(strings: NameResolver): CmAnnotati
         }.toMap()
     )
 
-public fun ProtoBuf.Annotation.Argument.Value.readAnnotationArgument(strings: NameResolver): CmAnnotationArgument? {
+fun ProtoBuf.Annotation.Argument.Value.readAnnotationArgument(strings: NameResolver): CmAnnotationArgument? {
     if (Flags.IS_UNSIGNED[flags]) {
         return when (type) {
             INT8 -> CmAnnotationArgument.UByteValue(intValue.toByte().toUByte())

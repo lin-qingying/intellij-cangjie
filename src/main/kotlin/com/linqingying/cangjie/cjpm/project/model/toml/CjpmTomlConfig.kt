@@ -51,20 +51,20 @@ data class CjpmTomlConfig(
 /**
  * 自定义反序列化器，将空字符串转换为 null (FFI配置)
  */
-class EmptyStringToFfiConfigDeserializer : com.fasterxml.jackson.databind.JsonDeserializer<FfiConfig?>() {
+class EmptyStringToFfiConfigDeserializer : JsonDeserializer<FfiConfig?>() {
     override fun deserialize(
-        p: com.fasterxml.jackson.core.JsonParser, ctxt: com.fasterxml.jackson.databind.DeserializationContext
+        p: JsonParser, ctxt: DeserializationContext
     ): FfiConfig? {
         return when (p.currentToken) {
-            com.fasterxml.jackson.core.JsonToken.VALUE_STRING -> {
+            JsonToken.VALUE_STRING -> {
                 if (p.valueAsString.isEmpty()) null else ctxt.readValue(p, FfiConfig::class.java)
             }
 
-            com.fasterxml.jackson.core.JsonToken.START_OBJECT -> {
+            JsonToken.START_OBJECT -> {
                 ctxt.readValue(p, FfiConfig::class.java)
             }
 
-            com.fasterxml.jackson.core.JsonToken.VALUE_NULL -> null
+            JsonToken.VALUE_NULL -> null
             else -> ctxt.readValue(p, FfiConfig::class.java)
         }
     }
@@ -132,14 +132,14 @@ enum class OutputType {
  */
 class EmptyStringToProfileConfigDeserializer : JsonDeserializer<ProfileConfig?>() {
     override fun deserialize(
-        p: com.fasterxml.jackson.core.JsonParser, ctxt: DeserializationContext
+        p: JsonParser, ctxt: DeserializationContext
     ): ProfileConfig? {
         return when (p.currentToken) {
-            com.fasterxml.jackson.core.JsonToken.VALUE_STRING -> {
+            JsonToken.VALUE_STRING -> {
                 if (p.valueAsString.isEmpty()) null else ctxt.readValue(p, ProfileConfig::class.java)
             }
 
-            com.fasterxml.jackson.core.JsonToken.START_OBJECT -> {
+            JsonToken.START_OBJECT -> {
                 ctxt.readValue(p, ProfileConfig::class.java)
             }
 
@@ -154,7 +154,7 @@ class EmptyStringToProfileConfigDeserializer : JsonDeserializer<ProfileConfig?>(
  */
 class EmptyStringToNullMapDeserializer : JsonDeserializer<Map<String, PackageConfigurationInfo>?>() {
     override fun deserialize(
-        p: JsonParser, ctxt: com.fasterxml.jackson.databind.DeserializationContext
+        p: JsonParser, ctxt: DeserializationContext
     ): Map<String, PackageConfigurationInfo>? {
         val value = p.valueAsString
         return when {
@@ -199,20 +199,20 @@ data class WorkspaceConfig(
 /**
  * 自定义反序列化器，将空字符串转换为 null
  */
-class EmptyStringToWorkspaceConfigDeserializer : com.fasterxml.jackson.databind.JsonDeserializer<WorkspaceConfig?>() {
+class EmptyStringToWorkspaceConfigDeserializer : JsonDeserializer<WorkspaceConfig?>() {
     override fun deserialize(
-        p: com.fasterxml.jackson.core.JsonParser, ctxt: com.fasterxml.jackson.databind.DeserializationContext
+        p: JsonParser, ctxt: DeserializationContext
     ): WorkspaceConfig? {
         return when (p.currentToken) {
-            com.fasterxml.jackson.core.JsonToken.VALUE_STRING -> {
+            JsonToken.VALUE_STRING -> {
                 if (p.valueAsString.isEmpty()) null else ctxt.readValue(p, WorkspaceConfig::class.java)
             }
 
-            com.fasterxml.jackson.core.JsonToken.START_OBJECT -> {
+            JsonToken.START_OBJECT -> {
                 ctxt.readValue(p, WorkspaceConfig::class.java)
             }
 
-            com.fasterxml.jackson.core.JsonToken.VALUE_NULL -> null
+            JsonToken.VALUE_NULL -> null
             else -> ctxt.readValue(p, WorkspaceConfig::class.java)
         }
     }

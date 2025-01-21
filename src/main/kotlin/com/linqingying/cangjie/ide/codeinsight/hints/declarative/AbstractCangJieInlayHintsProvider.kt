@@ -38,7 +38,7 @@ import com.intellij.codeInsight.hints.declarative.StringInlayActionPayload
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.refactoring.suggested.createSmartPointer
+import com.intellij.psi.createSmartPointer
 import com.linqingying.cangjie.ide.codeinsight.hints.*
 
 abstract class AbstractCangJieInlayHintsProvider(private vararg val hintTypes: HintType): InlayHintsProvider {
@@ -90,7 +90,7 @@ abstract class AbstractCangJieInlayHintsProvider(private vararg val hintTypes: H
 
                     is PsiInlayInfoDetail ->
                         text(detail.text,
-                             detail.element.createSmartPointer().let {
+                             detail.element.createSmartPointer<PsiElement>().let {
                                  InlayActionData(
                                      PsiPointerInlayActionPayload(it),
                                      PsiPointerInlayActionNavigationHandler.HANDLER_ID

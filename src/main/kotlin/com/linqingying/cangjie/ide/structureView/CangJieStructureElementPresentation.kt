@@ -24,6 +24,14 @@
 
 package com.linqingying.cangjie.ide.structureView
 
+import com.intellij.navigation.ColoredItemPresentation
+import com.intellij.navigation.LocationPresentation
+import com.intellij.openapi.editor.colors.CodeInsightColors
+import com.intellij.openapi.editor.colors.TextAttributesKey
+import com.intellij.openapi.util.Iconable
+import com.intellij.psi.NavigatablePsiElement
+import com.intellij.util.PsiIconUtil.getIconFromProviders
+import com.intellij.util.ui.StartupUiUtil
 import com.linqingying.cangjie.descriptors.CallableMemberDescriptor
 import com.linqingying.cangjie.descriptors.DeclarationDescriptor
 import com.linqingying.cangjie.ide.CangJieDescriptorIconProvider
@@ -34,14 +42,6 @@ import com.linqingying.cangjie.psi.CjPsiUtil
 import com.linqingying.cangjie.renderer.DescriptorRenderer.Companion.ONLY_NAMES_WITH_SHORT_TYPES
 import com.linqingying.cangjie.resolve.DescriptorUtils.getAllOverriddenDeclarations
 import com.linqingying.cangjie.resolve.OverridingUtil.filterOutOverridden
-import com.intellij.navigation.ColoredItemPresentation
-import com.intellij.navigation.LocationPresentation
-import com.intellij.openapi.editor.colors.CodeInsightColors
-import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.openapi.util.Iconable
-import com.intellij.psi.NavigatablePsiElement
-import com.intellij.util.PsiIconUtil
-import com.intellij.util.ui.StartupUiUtil
 import javax.swing.Icon
 
 internal class CangJieStructureElementPresentation(
@@ -70,7 +70,10 @@ internal class CangJieStructureElementPresentation(
         return if (isInherited) "" else LocationPresentation.DEFAULT_LOCATION_SUFFIX
     }
 
-    private fun getElementAttributesKey(isInherited: Boolean, navigatablePsiElement: NavigatablePsiElement): TextAttributesKey? {
+    private fun getElementAttributesKey(
+        isInherited: Boolean,
+        navigatablePsiElement: NavigatablePsiElement
+    ): TextAttributesKey? {
         if (isInherited) {
             return CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES
         }
@@ -82,19 +85,30 @@ internal class CangJieStructureElementPresentation(
         return null
     }
 
-    private fun getElementIcon(navigatablePsiElement: NavigatablePsiElement, descriptor: DeclarationDescriptor?): Icon? {
+    private fun getElementIcon(
+        navigatablePsiElement: NavigatablePsiElement,
+        descriptor: DeclarationDescriptor?
+    ): Icon? {
         if (descriptor != null) {
-            return CangJieDescriptorIconProvider.getIcon(descriptor, navigatablePsiElement, Iconable.ICON_FLAG_VISIBILITY)
+            return CangJieDescriptorIconProvider.getIcon(
+                descriptor,
+                navigatablePsiElement,
+                Iconable.ICON_FLAG_VISIBILITY
+            )
         }
 
         if (!navigatablePsiElement.isValid) {
             return null
         }
 
-        return PsiIconUtil.getProvidersIcon(navigatablePsiElement, Iconable.ICON_FLAG_VISIBILITY)
+        return getIconFromProviders(navigatablePsiElement, Iconable.ICON_FLAG_VISIBILITY)
+
     }
 
-    private fun getElementText(navigatablePsiElement: NavigatablePsiElement, descriptor: DeclarationDescriptor?): String? {
+    private fun getElementText(
+        navigatablePsiElement: NavigatablePsiElement,
+        descriptor: DeclarationDescriptor?
+    ): String? {
 
 
         if (descriptor != null) {

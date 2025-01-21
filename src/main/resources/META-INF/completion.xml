@@ -2,12 +2,13 @@
 
     <extensionPoints>
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.completionInformationProvider"
+                qualifiedName="com.linqingying.cangjie.ide.completionInformationProvider"
                 interface="com.linqingying.cangjie.ide.completion.CompletionInformationProvider"
                 dynamic="true"/>
-        <extensionPoint qualifiedName="com.linqingying.cangjie.turboComplete.smartPipelineRunner"
+        <extensionPoint qualifiedName="com.linqingying.cangjie.ide.completion.turboComplete.smartPipelineRunner"
                         interface="com.linqingying.cangjie.ide.completion.turboComplete.SmartPipelineRunner"
                         dynamic="true"/>
+
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">

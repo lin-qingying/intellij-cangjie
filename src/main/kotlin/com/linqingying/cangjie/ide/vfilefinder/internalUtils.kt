@@ -28,10 +28,11 @@ import com.intellij.util.indexing.FileContent
 import com.linqingying.cangjie.lang.declarations.CangJieBuiltInFileType
 import com.linqingying.cangjie.metadata.BuiltInDefinitionFile
 import com.linqingying.cangjie.serialization.deserialization.MetadataPackageFragment
+import com.linqingying.cangjie.serialization.deserialization.MetadataPackageFragment.Companion.DOT_METADATA_FILE_EXTENSION
 import com.linqingying.cangjie.metadata.CangJieMetadataStubBuilder.FileWithMetadata.Compatible as CompatibleMetadata
 
 private val ALLOWED_METADATA_EXTENSIONS = listOf(
-    MetadataPackageFragment.DOT_METADATA_FILE_EXTENSION
+    DOT_METADATA_FILE_EXTENSION
 )
 internal fun readCangJieMetadataDefinition(fileContent: FileContent): CompatibleMetadata ? {
     if (fileContent.fileType != CangJieBuiltInFileType) {

@@ -353,7 +353,7 @@ internal class DataFlowInfoImpl(
 
     }
 
-    override fun toString() = if (completeTypeInfo.isEmpty && completeNullabilityInfo.isEmpty()) "EMPTY" else "Non-trivial DataFlowInfo"
+    override fun toString() = if (completeTypeInfo.isEmpty && completeNullabilityInfo.isEmpty) "EMPTY" else "Non-trivial DataFlowInfo"
 
     companion object {
         private val EMPTY_NULLABILITY_INFO: ImmutableMap<DataFlowValue, Nullability> =

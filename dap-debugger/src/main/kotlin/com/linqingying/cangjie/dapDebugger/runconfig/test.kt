@@ -21,10 +21,10 @@ class MyToolWindowFactory : ToolWindowFactory {
         // TODO: 在这里添加你的自定义面板内容
 
 //        更改名称
-        toolWindow.setTitle("CangJie")
+        toolWindow.title = "CangJie"
 
         // 创建内容管理器
-        val contentManager: ContentManager = toolWindow.getContentManager()
+        val contentManager: ContentManager = toolWindow.contentManager
         val content = contentManager.factory.createContent(myPanel, "My Panel", false)
         contentManager.addContent(content)
     }

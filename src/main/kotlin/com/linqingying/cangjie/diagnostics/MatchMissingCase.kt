@@ -71,7 +71,7 @@ sealed class MatchMissingCase {
             return if (isSingleton) name else "is $name"
         }
     }
-    class OtherCheckIsMissing(): MatchMissingCase() {
+    class OtherCheckIsMissing : MatchMissingCase() {
         override val branchConditionText: String
             get() = "Other"
     }

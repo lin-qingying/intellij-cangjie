@@ -25,6 +25,7 @@
 import groovy.xml.XmlParser
 import org.gradle.kotlin.dsl.KotlinClosure2
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.JarSearchableOptionsTask
 import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
@@ -68,10 +69,7 @@ val pluginProjects: List<Project>
 
 //moshi版本
 val moshiVersion = "1.15.0"
-//okio版本
-val okioVersion = "2.10.0"
-//toml4j版本
-val toml4jVersion = "0.7.3"
+
 //插件需要的依赖列表
 val pluginDescriptors = arrayOf<String>(
 
@@ -132,12 +130,10 @@ allprojects {
 
         plugin("org.gradle.test-retry")
     }
-    intellijPlatform {
 
-    }
     repositories {
         maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
-
+        maven { url = uri("https://plugins.jetbrains.com/maven") }
 
         maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
         mavenCentral()
@@ -147,18 +143,18 @@ allprojects {
         }
 
         intellijPlatform {
+
             intellijDependencies()
             defaultRepositories()
         }
     }
+
     dependencies {
 
         intellijPlatform {
 
             create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
-//            instrumentationTools()
 
-//            local(dependencyCachePath)
         }
 
 
@@ -175,7 +171,23 @@ allprojects {
         compileOnly(kotlin("stdlib-jdk8"))
     }
 
+    intellijPlatform {
+        pluginVerification {
 
+
+            ides {
+//                ide(IntelliJPlatformType.IntellijIdeaCommunity, "2023.3")
+//                local(file("pluginVerification"))
+                recommended()
+                select {
+                    types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
+                    channels = listOf(ProductRelease.Channel.RELEASE)
+                    sinceBuild = "241"
+                    untilBuild = "243.*"
+                }
+            }
+        }
+    }
     sourceSets {
 
         main {
@@ -187,7 +199,14 @@ allprojects {
     }
 
     tasks {
+        verifyPlugin {
+            // 同时依赖 build 和 buildPlugin 任务
+//            dependsOn(":plugin:build", buildPlugin)
 
+            archiveFile.set(project(":plugin").layout.buildDirectory.file(
+                "distributions/${basePluginArchiveName}-$cangjiePluginVersion.zip"
+            ))
+        }
         withType<JarSearchableOptionsTask> {
 
         }
@@ -236,10 +255,14 @@ allprojects {
 
 
 project(":plugin") {
+
+
     intellijPlatform {
+        autoReload = true
+
 
         pluginConfiguration {
-            name = "intellij-cangjie"
+            name = "CangJie"
 
         }
         publishing {
@@ -254,7 +277,7 @@ project(":plugin") {
         intellijPlatform {
             if (!isBuildPlugin()) {
                 plugins(
-                    psiViewerPlugin, indexViewPlugin, chinesePlugin, nativeDebugPlugin
+                    psiViewerPlugin, indexViewPlugin, chinesePlugin/*, nativeDebugPlugin*/
                 )
                 bundledPlugins(tomlPlugin)
             }
@@ -262,9 +285,9 @@ project(":plugin") {
         implementation(project(":"))
 
 
-        implementation(project(":native-debugger"))
+//        implementation(project(":native-debugger"))
 //        implementation(project(":dap-debugger"))
-//        implementation(project(":dap-debugger1"))
+        implementation(project(":dap-debugger1"))
 
 
     }
@@ -539,6 +562,3 @@ fun prop(name: String): String =
 
 
 
-project(":test") {
-
-}

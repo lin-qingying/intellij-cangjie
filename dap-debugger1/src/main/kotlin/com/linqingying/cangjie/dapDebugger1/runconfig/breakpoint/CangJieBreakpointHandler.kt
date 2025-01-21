@@ -119,7 +119,7 @@ class CangJieBreakpointHandler(
 
     fun toggleBreakpoint(breakpoint: XLineBreakpoint<CangJieLineBreakpointType.Properties>) {
         val newState = !breakpoint.isEnabled
-        breakpoint.setEnabled(newState)
+        breakpoint.isEnabled = newState
         breakpoint.properties?.setEnabled(newState)
         val file = breakpoint.sourcePosition?.file ?: return
         updateBreakpoints(file.path)
@@ -128,7 +128,7 @@ class CangJieBreakpointHandler(
     fun disableAllBreakpoints() {
         breakpointsEnabled = false
         activeBreakpoints.values.flatten().forEach { breakpoint ->
-            breakpoint.setEnabled(false)
+            breakpoint.isEnabled = false
             breakpoint.properties?.setEnabled(false)
         }
         activeBreakpoints.keys.forEach { filePath ->
@@ -139,7 +139,7 @@ class CangJieBreakpointHandler(
     fun enableAllBreakpoints() {
         breakpointsEnabled = true
         activeBreakpoints.values.flatten().forEach { breakpoint ->
-            breakpoint.setEnabled(true)
+            breakpoint.isEnabled = true
             breakpoint.properties?.setEnabled(true)
         }
         activeBreakpoints.keys.forEach { filePath ->

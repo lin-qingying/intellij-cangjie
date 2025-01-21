@@ -104,7 +104,7 @@ object PseudocodeUtil {
         bindingContext: BindingContext
     ): VariableDescriptor? {
         if (instruction is AccessValueInstruction) {
-            val element: CjElement = (instruction as AccessValueInstruction).element
+            val element: CjElement = instruction.element
             if (element is CjDeclaration) return null
             val descriptor: VariableDescriptor? = extractVariableDescriptorIfAny(instruction, bindingContext)
 //            if (descriptor is PropertyImportedFromObject) {
@@ -122,7 +122,7 @@ object PseudocodeUtil {
     ): VariableDescriptor? {
         if (instruction is VariableDeclarationInstruction) {
             val declaration: CjDeclaration =
-                (instruction as VariableDeclarationInstruction).variableDeclarationElement
+                instruction.variableDeclarationElement
             return variableDescriptorForDeclaration(
                 bindingContext.get(
                     BindingContext.DECLARATION_TO_DESCRIPTOR,
@@ -130,12 +130,12 @@ object PseudocodeUtil {
                 )
             )
         } else if (instruction is AccessValueInstruction) {
-            val target: AccessTarget = (instruction as AccessValueInstruction).target
+            val target: AccessTarget = instruction.target
             if (target is AccessTarget.Declaration) {
-                return (target as AccessTarget.Declaration).descriptor
+                return target.descriptor
             } else if (target is AccessTarget.Call) {
                 return variableDescriptorForDeclaration(
-                    (target as AccessTarget.Call).resolvedCall.getResultingDescriptor()
+                    target.resolvedCall.getResultingDescriptor()
                 )
             }
         }

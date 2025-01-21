@@ -137,9 +137,7 @@ public class GroupingMessageCollector implements MessageCollector {
 
             if (!Objects.equals(location, other.location)) return false;
             if (!message.equals(other.message)) return false;
-            if (severity != other.severity) return false;
-
-            return true;
+            return severity == other.severity;
         }
 
         @Override

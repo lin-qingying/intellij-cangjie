@@ -37,7 +37,7 @@ internal abstract class Lsp4jServerConnector protected constructor(val lspServer
 
     private val descriptor: LspServerDescriptor = lspServer.descriptor
 
-    protected abstract val ideToServerStream: java.io.OutputStream
+    protected abstract val ideToServerStream: OutputStream
 
     private val lsp4jClient: Lsp4jClient /*get() */ =
         descriptor.createLsp4jClient(lspServer.serverNotificationsHandler)

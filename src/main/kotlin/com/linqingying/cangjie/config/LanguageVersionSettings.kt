@@ -182,8 +182,6 @@ enum class LanguageVersion(val major: Int, val minor: Int, val patch: Int) : Des
         CANGJIE_0_53_5(0, 53, 4),
     ;
 
-    ;
-
     override val isStable: Boolean
         get() = this <= LATEST_STABLE
 

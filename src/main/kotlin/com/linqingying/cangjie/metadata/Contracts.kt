@@ -34,11 +34,11 @@ import kotlin.contracts.ExperimentalContracts
  * may change in a subsequent release.
  */
 @ExperimentalContracts
-public class CmContract {
+class CmContract {
     /**
      * Effects of this contract.
      */
-    public val effects: MutableList<CmEffect> = ArrayList(1)
+    val effects: MutableList<CmEffect> = ArrayList(1)
 }
 
 /**
@@ -52,20 +52,20 @@ public class CmContract {
  *   specified further in the effect expression
  */
 @ExperimentalContracts
-public class CmEffect(
-    public var type: CmEffectType,
-    public var invocationKind: CmEffectInvocationKind?,
+class CmEffect(
+    var type: CmEffectType,
+    var invocationKind: CmEffectInvocationKind?,
 ) {
     /**
      * Arguments of the effect constructor, i.e., the constant value for the [CmEffectType.RETURNS_CONSTANT] effect,
      * or the parameter reference for the [CmEffectType.CALLS] effect.
      */
-    public val constructorArguments: MutableList<CmEffectExpression> = ArrayList(1)
+    val constructorArguments: MutableList<CmEffectExpression> = ArrayList(1)
 
     /**
      * Conclusion of the effect. If this value is set, the effect represents an implication with this value as the right-hand side.
      */
-    public var conclusion: CmEffectExpression? = null
+    var conclusion: CmEffectExpression? = null
 }
 
 /**
@@ -78,36 +78,36 @@ public class CmEffect(
  * such as [CmEffectExpression.isNegated].
  */
 @ExperimentalContracts
-public class CmEffectExpression {
+class CmEffectExpression {
     internal var flags: Int = 0
 
     /**
      * Optional 1-based index of the value parameter of the function, for effects which assert something about
      * the function parameters. Index 0 means the extension receiver parameter.
      */
-    public var parameterIndex: Int? = null
+    var parameterIndex: Int? = null
 
     /**
      * Constant value used in the effect expression.
      */
-    public var constantValue: CmConstantValue? = null
+    var constantValue: CmConstantValue? = null
 
     /**
      * Type used as the target of an `is`-expression in the effect expression.
      */
-    public var isInstanceType: CmType? = null
+    var isInstanceType: CmType? = null
 
     /**
      * Arguments of an `&&`-expression. If this list is non-empty, the resulting effect expression is a conjunction of this expression
      * and elements of the list.
      */
-    public val andArguments: MutableList<CmEffectExpression> = ArrayList(0)
+    val andArguments: MutableList<CmEffectExpression> = ArrayList(0)
 
     /**
      * Arguments of an `||`-expression. If this list is non-empty, the resulting effect expression is a disjunction of this expression
      * and elements of the list.
      */
-    public val orArguments: MutableList<CmEffectExpression> = ArrayList(0)
+    val orArguments: MutableList<CmEffectExpression> = ArrayList(0)
 }
 
 /**
@@ -119,7 +119,7 @@ public class CmEffectExpression {
  * @property value the constant value. May be `true`, `false` or `null`
  */
 @ExperimentalContracts
-public data class CmConstantValue(val value: Any?)
+data class CmConstantValue(val value: Any?)
 
 
 /**
@@ -129,7 +129,7 @@ public data class CmConstantValue(val value: Any?)
  * may change in a subsequent release.
  */
 @ExperimentalContracts
-public enum class CmEffectType {
+enum class CmEffectType {
     /**
      * Represents `returns(value)` contract effect:
      * a situation when a function returns normally with the specified return value.
@@ -160,7 +160,7 @@ public enum class CmEffectType {
  * may change in a subsequent release.
  */
 @ExperimentalContracts
-public enum class CmEffectInvocationKind {
+enum class CmEffectInvocationKind {
     /**
      * A function parameter will be invoked one time or not invoked at all.
      */

@@ -3,8 +3,7 @@ package com.linqingying.cangjie.dapDebugger.backend
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint
 import java.util.concurrent.atomic.AtomicBoolean
 
-open class CjCodepoint() {
-}
+open class CjCodepoint
 
 
 //class CjBreakpoint( val origFile:String,val origLine:Int,val condition:String) : CjCodepoint(id) {

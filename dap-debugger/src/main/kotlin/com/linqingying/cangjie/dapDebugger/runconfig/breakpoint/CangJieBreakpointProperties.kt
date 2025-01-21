@@ -15,8 +15,5 @@ open class CangJieBreakpointProperties<T : CangJieBreakpointProperties<T>> : XBr
 }
 
 open class CangJieLineBreakpointProperties :
-    CangJieBreakpointProperties<CangJieLineBreakpointProperties>() {
-
-
-}
+    CangJieBreakpointProperties<CangJieLineBreakpointProperties>()
 

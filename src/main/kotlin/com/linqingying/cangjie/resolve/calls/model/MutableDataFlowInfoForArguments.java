@@ -68,5 +68,5 @@ public abstract class MutableDataFlowInfoForArguments implements DataFlowInfoFor
         public DataFlowInfo getInfo(@NotNull ValueArgument valueArgument) {
             throw new IllegalStateException();
         }
-    };
+    }
 }

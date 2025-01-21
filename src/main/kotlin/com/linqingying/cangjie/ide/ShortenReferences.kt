@@ -68,9 +68,9 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.createSmartPointer
 import com.intellij.psi.impl.source.PostprocessReformattingAspect
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.refactoring.suggested.createSmartPointer
 
 // 元素缩短
 class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT }) {
@@ -424,7 +424,7 @@ class ShortenReferences(val options: (CjElement) -> Options = { Options.DEFAULT 
                 val toBeShortened: Boolean
                 when (result) {
                     AnalyzeQualifiedElementResult.ShortenNow -> {
-                        elementsToShorten.add(element.createSmartPointer())
+                        elementsToShorten.add(element.createSmartPointer<TElement>())
                         toBeShortened = true
                     }
 

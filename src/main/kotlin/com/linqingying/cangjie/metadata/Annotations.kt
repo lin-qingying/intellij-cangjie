@@ -38,7 +38,7 @@ import com.linqingying.cangjie.metadata.node.ClassName
  * @property arguments Explicitly specified arguments to the annotation; does not include default values for annotation parameters
  * (specified in the annotation class declaration)
  */
-public class CmAnnotation(public val className: ClassName, public val arguments: Map<String, CmAnnotationArgument>) {
+class CmAnnotation(val className: ClassName, val arguments: Map<String, CmAnnotationArgument>) {
 
     /**
      * Checks if this CmAnnotation is equal to the [other].
@@ -67,7 +67,7 @@ public class CmAnnotation(public val className: ClassName, public val arguments:
  * Represents an argument of the annotation.
  */
 @Suppress("IncorrectFormatting") // one-line KDoc
-public sealed class CmAnnotationArgument {
+sealed class CmAnnotationArgument {
 
     // Avoid triggering Dokka configured for failing on undocumented functions
     /** @suppress */
@@ -81,11 +81,11 @@ public sealed class CmAnnotationArgument {
      *
      * @param T the type of the value of this argument
      */
-    public sealed class LiteralValue<out T : Any> : CmAnnotationArgument() {
+    sealed class LiteralValue<out T : Any> : CmAnnotationArgument() {
         /**
          * The value of this argument.
          */
-        public abstract val value: T
+        abstract val value: T
 
         // the final modifier prevents generation of data class-like .toString() in inheritors
         // Java reflection instead of Kotlin reflection to avoid (probably small) overhead of mapping Kotlin/Java names
@@ -97,33 +97,33 @@ public sealed class CmAnnotationArgument {
     // to the overridden one. However, it does not do this with classes, and we do not have `@inheritdoc` :(
 
     /** An annotation argument with a [Byte] type. */
-    public data class ByteValue(override val value: Byte) : LiteralValue<Byte>()
+    data class ByteValue(override val value: Byte) : LiteralValue<Byte>()
     /** An annotation argument with a [Char] type. */
-    public data class CharValue(override val value: Char) : LiteralValue<Char>()
+    data class CharValue(override val value: Char) : LiteralValue<Char>()
     /** An annotation argument with a [Short] type. */
-    public data class ShortValue(override val value: Short) : LiteralValue<Short>()
+    data class ShortValue(override val value: Short) : LiteralValue<Short>()
     /** An annotation argument with a [Int] type. */
-    public data class IntValue(override val value: Int) : LiteralValue<Int>()
+    data class IntValue(override val value: Int) : LiteralValue<Int>()
     /** An annotation argument with a [Long] type. */
-    public data class LongValue(override val value: Long) : LiteralValue<Long>()
+    data class LongValue(override val value: Long) : LiteralValue<Long>()
     /** An annotation argument with a [Float] type. */
-    public data class FloatValue(override val value: Float) : LiteralValue<Float>()
+    data class FloatValue(override val value: Float) : LiteralValue<Float>()
     /** An annotation argument with a [Double] type. */
-    public data class DoubleValue(override val value: Double) : LiteralValue<Double>()
+    data class DoubleValue(override val value: Double) : LiteralValue<Double>()
     /** An annotation argument with a [Boolean] type. */
-    public data class BooleanValue(override val value: Boolean) : LiteralValue<Boolean>()
+    data class BooleanValue(override val value: Boolean) : LiteralValue<Boolean>()
 
     /** An annotation argument with a [UByte] type. */
-    public data class UByteValue(override val value: UByte) : LiteralValue<UByte>()
+    data class UByteValue(override val value: UByte) : LiteralValue<UByte>()
     /** An annotation argument with a [UShort] type. */
-    public data class UShortValue(override val value: UShort) : LiteralValue<UShort>()
+    data class UShortValue(override val value: UShort) : LiteralValue<UShort>()
     /** An annotation argument with a [UInt] type. */
-    public data class UIntValue(override val value: UInt) : LiteralValue<UInt>()
+    data class UIntValue(override val value: UInt) : LiteralValue<UInt>()
     /** An annotation argument with a [ULong] type. */
-    public data class ULongValue(override val value: ULong) : LiteralValue<ULong>()
+    data class ULongValue(override val value: ULong) : LiteralValue<ULong>()
 
     /** An annotation argument with a [String] type. */
-    public data class StringValue(override val value: String) : LiteralValue<String>()
+    data class StringValue(override val value: String) : LiteralValue<String>()
 
     /**
      * An annotation argument with an enumeration type.
@@ -134,7 +134,7 @@ public sealed class CmAnnotationArgument {
      * @property enumClassName FQ name of the enum class
      * @property enumEntryName Name of the enum entry
      */
-    public data class EnumValue(val enumClassName: ClassName, val enumEntryName: String) : CmAnnotationArgument() {
+    data class EnumValue(val enumClassName: ClassName, val enumEntryName: String) : CmAnnotationArgument() {
         override fun toString(): String = "EnumValue($enumClassName.$enumEntryName)"
     }
 
@@ -153,7 +153,7 @@ public sealed class CmAnnotationArgument {
      *
      * @property annotation Annotation instance with all its arguments.
      */
-    public data class AnnotationValue(val annotation: CmAnnotation) : CmAnnotationArgument() {
+    data class AnnotationValue(val annotation: CmAnnotation) : CmAnnotationArgument() {
         override fun toString(): String = "AnnotationValue($annotation)"
     }
 
@@ -167,7 +167,7 @@ public sealed class CmAnnotationArgument {
      *
      * @property elements Values of elements in the array.
      */
-    public data class ArrayValue(val elements: List<CmAnnotationArgument>) : CmAnnotationArgument() {
+    data class ArrayValue(val elements: List<CmAnnotationArgument>) : CmAnnotationArgument() {
         override fun toString(): String = "ArrayValue($elements)"
     }
 
@@ -181,7 +181,7 @@ public sealed class CmAnnotationArgument {
      *
      * @property className FQ name of the referenced class.
      */
-    public data class KClassValue(val className: ClassName) : CmAnnotationArgument() {
+    data class KClassValue(val className: ClassName) : CmAnnotationArgument() {
         override fun toString(): String = "KClassValue($className)"
     }
 
@@ -204,7 +204,7 @@ public sealed class CmAnnotationArgument {
      * @property className FQ name of the referenced array element type.
      * @property arrayDimensionCount Referenced array dimension.
      */
-    public data class ArrayKClassValue(val className: ClassName, val arrayDimensionCount: Int) : CmAnnotationArgument() {
+    data class ArrayKClassValue(val className: ClassName, val arrayDimensionCount: Int) : CmAnnotationArgument() {
         init {
             require(arrayDimensionCount > 0) { "ArrayKClassValue must have at least one dimension. For regular X::class argument, use KClassValue." }
         }

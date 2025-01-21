@@ -24,7 +24,6 @@
 
 package com.linqingying.cangjie.config
 
-import com.intellij.DynamicBundle
 import com.intellij.codeInsight.ContainerProvider
 import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.core.CoreProjectEnvironment
@@ -43,7 +42,6 @@ import com.intellij.openapi.vfs.PersistentFSConstants
 import com.intellij.openapi.vfs.impl.ZipHandler
 import com.intellij.psi.FileContextProvider
 import com.intellij.psi.impl.smartPointers.SmartPointerAnchorProvider
-import com.intellij.psi.meta.MetaDataContributor
 import com.intellij.psi.search.GlobalSearchScope
 import com.linqingying.cangjie.analyzer.CommonCompilerPerformanceManager
 import com.linqingying.cangjie.cli.messages.CompilerSystemProperties
@@ -186,12 +184,12 @@ class CangJieCoreApplicationEnvironment private constructor(
 
     companion object {
         private fun registerExtensionPoints() {
-            registerApplicationExtensionPoint(
-                DynamicBundle.LanguageBundleEP.EP_NAME,
-                DynamicBundle.LanguageBundleEP::class.java
-            )
+//            registerApplicationExtensionPoint(
+//                DynamicBundle.LanguageBundleEP.EP_NAME,
+//                DynamicBundle.LanguageBundleEP::class.java
+//            )
             registerApplicationExtensionPoint(FileContextProvider.EP_NAME, FileContextProvider::class.java)
-            registerApplicationExtensionPoint(MetaDataContributor.EP_NAME, MetaDataContributor::class.java)
+//            registerApplicationExtensionPoint(MetaDataContributor.EP_NAME, MetaDataContributor::class.java)
             registerApplicationExtensionPoint(ContainerProvider.EP_NAME, ContainerProvider::class.java)
             registerApplicationExtensionPoint(MetaLanguage.EP_NAME, MetaLanguage::class.java)
             registerApplicationExtensionPoint(
@@ -284,12 +282,7 @@ class CangJieCoreEnvironment private constructor(
             }
         }
 
-        /**
-         * Resets the application managed by [ApplicationManager] to `null`. If [applicationToReset] is specified, [resetApplicationManager]
-         * will only reset the application if it's the expected one. Otherwise, the application will already have been changed to another
-         * application. For example, application disposal can trigger one of the disposables registered via
-         * [ApplicationManager.setApplication], which reset the managed application to the previous application.
-         */
+
         @JvmStatic
         fun resetApplicationManager(applicationToReset: Application? = null) {
             val currentApplication = ApplicationManager.getApplication() ?: return
@@ -419,12 +412,11 @@ class CangJieCoreEnvironment private constructor(
 
     }
 
-    val project: Project
+    val project = _project ?: projectEnvironment?.project ?: error("Project and projectEnvironment cannot be all null")
 
     private val sourceFiles = mutableListOf<CjFile>()
 
     init {
-        project = _project ?: projectEnvironment?.project ?: error("Project and projectEnvironment cannot be all null")
 
         projectEnvironment?.configureProjectEnvironment(configuration, configFiles)
 

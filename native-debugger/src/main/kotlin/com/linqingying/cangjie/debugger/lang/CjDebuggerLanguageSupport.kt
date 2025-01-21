@@ -9,9 +9,7 @@ import com.jetbrains.cidr.execution.debugger.backend.DebuggerDriver.DebuggerLang
 import com.jetbrains.cidr.execution.debugger.evaluation.CidrDebuggerTypesHelperBase
 
 
-object CJ : DebuggerLanguage{
-
-}
+object CJ : DebuggerLanguage
 
 class CjDebuggerLanguageSupport: CidrDebuggerLanguageSupport() {
     override fun getSupportedDebuggerLanguages() =   setOf(CJ)

@@ -53,11 +53,11 @@ abstract class ProjectStructureProvider {
     abstract fun getModule(element: PsiElement, contextualModule: CjModule?): CjModule
 
     companion object{
-        public fun getInstance(project: Project): ProjectStructureProvider {
+        fun getInstance(project: Project): ProjectStructureProvider {
             return project.getService(ProjectStructureProvider::class.java)
         }
 
-        public fun getModule(project: Project, element: PsiElement, contextualModule: CjModule?): CjModule {
+        fun getModule(project: Project, element: PsiElement, contextualModule: CjModule?): CjModule {
             return getInstance(project).getModule(element, contextualModule)
         }
     }

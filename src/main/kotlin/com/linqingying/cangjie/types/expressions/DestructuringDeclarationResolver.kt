@@ -32,6 +32,4 @@ class DestructuringDeclarationResolver(
     private val fakeCallResolver: FakeCallResolver,
     private val localVariableResolver: LocalVariableResolver,
     private val typeResolver: TypeResolver
-) {
-
-}
+)

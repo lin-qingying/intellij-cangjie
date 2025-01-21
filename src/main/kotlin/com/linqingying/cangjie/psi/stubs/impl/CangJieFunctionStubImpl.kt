@@ -66,11 +66,9 @@ import java.io.IOException
     override fun hasBody() = hasBody
     override fun hasTypeParameterListBeforeFunctionName() = hasTypeParameterListBeforeFunctionName
 
-    companion object {
+    companion object
 
-    }
-
-}
+  }
 
 class CangJieFunctionForExtendStubImpl(
     parent: StubElement<out PsiElement>?,
@@ -100,8 +98,6 @@ class CangJieFunctionForExtendStubImpl(
     override fun hasBody() = hasBody
     override fun hasTypeParameterListBeforeFunctionName() = hasTypeParameterListBeforeFunctionName
 
-    companion object {
-
-    }
+    companion object
 
 }

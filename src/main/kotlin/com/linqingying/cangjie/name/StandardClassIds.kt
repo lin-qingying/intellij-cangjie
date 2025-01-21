@@ -64,18 +64,12 @@ object StandardClassIds {
 
     object Annotations {
 
-        object ParameterNames {
-
-        }
+        object ParameterNames
     }
 
-    object Callables {
+    object Callables
 
-    }
-
-    object Collections {
-
-    }
+    object Collections
 
 
 }

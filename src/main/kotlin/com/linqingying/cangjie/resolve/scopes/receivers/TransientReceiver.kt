@@ -38,10 +38,10 @@ class TransientReceiver private constructor(
     constructor(type:  CangJieType) : this(type, null)
 
     override fun toString(): String {
-        return "{Transient} : " + getType()
+        return "{Transient} : " + type
     }
 
     override fun replaceType(newType:  CangJieType):  ReceiverValue {
-        return TransientReceiver(newType, getOriginal())
+        return TransientReceiver(newType, original)
     }
 }

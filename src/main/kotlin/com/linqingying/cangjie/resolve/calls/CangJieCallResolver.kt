@@ -250,7 +250,7 @@ class CangJieCallResolver(
     ): Set<ResolutionCandidate> {
         var refinedCandidates = candidates
 
-        if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority) && cangjieCall.callKind != CangJieCallKind.CALLABLE_REFERENCE) {
+        if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority) && cangjieCall.callKind != CALLABLE_REFERENCE) {
             val nonSynthesized = candidates.filter { !it.resolvedCall.candidateDescriptor.isSynthesized }
             if (nonSynthesized.isNotEmpty()) {
                 refinedCandidates = nonSynthesized

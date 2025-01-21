@@ -24,8 +24,6 @@
 
 package com.linqingying.cangjie.ide.completion
 
-import com.linqingying.cangjie.ide.completion.back.or
-import com.linqingying.cangjie.ide.completion.back.singleCharPattern
 import com.linqingying.cangjie.ide.completion.handlers.WithTailInsertHandler
 import com.linqingying.cangjie.ide.completion.keywords.KeywordLookupObject
 import com.linqingying.cangjie.lexer.CjTokens
@@ -41,6 +39,9 @@ import com.intellij.ui.JBColor
 
 fun cangjieIdentifierStartPattern(): ElementPattern<Char> =
     StandardPatterns.character().javaIdentifierStart().andNot(singleCharPattern('$'))
+
+fun singleCharPattern(char: Char) = StandardPatterns.character().equalTo(char)
+infix fun <T> ElementPattern<T>.or(rhs: ElementPattern<T>) = StandardPatterns.or(this, rhs)
 
 fun cangjieIdentifierPartPattern(): ElementPattern<Char> =
     StandardPatterns.character().javaIdentifierPart().andNot(singleCharPattern('$')) or singleCharPattern('@')

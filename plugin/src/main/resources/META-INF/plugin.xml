@@ -54,8 +54,8 @@
 
     <content>
 <!--        <module name="com.linqingying.cangjie.dapDebugger"/>-->
-<!--     <module name="com.linqingying.cangjie.dapDebugger1"/>-->
-        <module name="com.linqingying.cangjie.nativeDebug"/>
+     <module name="com.linqingying.cangjie.dapDebugger1"/>
+<!--        <module name="com.linqingying.cangjie.nativeDebug"/>-->
 
 
     </content>

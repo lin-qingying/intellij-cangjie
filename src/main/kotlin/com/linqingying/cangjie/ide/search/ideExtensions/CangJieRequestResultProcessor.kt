@@ -46,7 +46,7 @@ class CangJieRequestResultProcessor(
     private val unwrappedElement: PsiElement,
     private val originalElement: PsiElement = unwrappedElement,
     private val filter: (PsiReference) -> Boolean = { true },
-    private val options: CangJieReferencesSearchOptions = CangJieReferencesSearchOptions.Empty
+    private val options: CangJieReferencesSearchOptions = Empty
 ) : RequestResultProcessor(unwrappedElement, originalElement, filter, options) {
     private val referenceService = PsiReferenceService.getService()
 

@@ -36,4 +36,4 @@ package com.linqingying.cangjie.metadata
     RequiresOptIn.Level.ERROR
 )
 @MustBeDocumented
-public annotation class ExperimentalContextReceivers
+annotation class ExperimentalContextReceivers

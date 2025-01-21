@@ -25,7 +25,7 @@ class CjScript : CjNamedDeclarationStub<CangJieScriptStub>, CjDeclarationContain
         }
 
 
-    override fun getName(): String? {
+    override fun getName(): String {
         return fqName.shortName().asString()
     }
     val blockExpression: CjBlockExpression

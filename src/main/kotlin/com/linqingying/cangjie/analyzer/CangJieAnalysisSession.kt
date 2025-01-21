@@ -39,9 +39,6 @@ import com.linqingying.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import com.linqingying.cangjie.ide.FrontendInternals
 import com.linqingying.cangjie.ide.base.projectStructure.RootKindFilter
 import com.linqingying.cangjie.ide.base.projectStructure.matches
-import com.linqingying.cangjie.ide.completion.back.CangJieOriginalPsiProvider
-import com.linqingying.cangjie.ide.completion.back.CangJieOriginalPsiProviderImpl
-import com.linqingying.cangjie.ide.completion.back.CjOriginalPsiProviderMixIn
 import com.linqingying.cangjie.ide.projectStructure.moduleInfo
 import com.linqingying.cangjie.psi.CjCodeFragment
 import com.linqingying.cangjie.psi.CjElement

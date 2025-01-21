@@ -42,7 +42,7 @@ import com.linqingying.cangjie.metadata.ProtoBuf.MemberKind as ProtoMemberKind
  * Represents visibility level (also known as access level) of the corresponding declaration.
  * Some of these visibilities may be non-denotable in Kotlin.
  */
-public enum class Visibility(kind: Int) {
+enum class Visibility(kind: Int) {
     /**
      * Signifies that the corresponding declaration is `internal`.
      */
@@ -100,7 +100,7 @@ public enum class Visibility(kind: Int) {
  *
  * Modality determines when and where it is possible to extend/override a class/member.
  */
-public enum class Modality(kind: Int) {
+enum class Modality(kind: Int) {
     /**
      * Signifies that the corresponding declaration is `final`.
      */
@@ -131,7 +131,7 @@ public enum class Modality(kind: Int) {
 /**
  * Represents the kind of the corresponding class, i.e., the way it is declared in the source code.
  */
-public enum class ClassKind(kind: Int) {
+enum class ClassKind(kind: Int) {
     /**
      * Signifies that the corresponding class is a usual or anonymous class.
      */
@@ -174,7 +174,7 @@ public enum class ClassKind(kind: Int) {
  * Kind indicates the origin of a declaration within a containing class.
  * It provides information about whether a function or property was defined, generated, or something else.
  */
-public enum class MemberKind(kind: Int) {
+enum class MemberKind(kind: Int) {
     /**
      * Signifies that the corresponding function or property is explicitly declared in the containing class.
      */

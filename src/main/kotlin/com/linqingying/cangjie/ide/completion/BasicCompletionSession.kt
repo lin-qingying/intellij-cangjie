@@ -62,7 +62,7 @@ import com.linqingying.cangjie.utils.CallTypeAndReceiver
 import com.linqingying.cangjie.utils.safeAs
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.completion.addingPolicy.PolicyController
+
 import com.intellij.codeInsight.completion.impl.BetterPrefixMatcher
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -71,14 +71,15 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInsight.template.TemplateManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
-import com.intellij.platform.ml.impl.turboComplete.CompletionKind
-import com.intellij.platform.ml.impl.turboComplete.SuggestionGeneratorConsumer
-import com.intellij.platform.ml.impl.turboComplete.SuggestionGeneratorWithArtifact
 
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.search.GlobalSearchScope
+import com.linqingying.cangjie.ide.completion.addingPolicy.PolicyController
+import com.linqingying.cangjie.ide.completion.turboComplete.CompletionKind
+import com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGeneratorConsumer
+import com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGeneratorWithArtifact
 
 class BasicCompletionSession(
     configuration: CompletionSessionConfiguration,
@@ -305,7 +306,11 @@ class BasicCompletionSession(
             withContextVariablesProvider(contextVariablesProvider) { lookupElementFactory ->
                 if (receiverTypes != null) {
                     addKind(CangJieCompletionKindName.EXTENSION_FUNCTION_TYPE_VALUE) {
-                        ExtensionFunctionTypeValueCompletion(receiverTypes, callTypeAndReceiver.callType, lookupElementFactory)
+                        ExtensionFunctionTypeValueCompletion(
+                            receiverTypes,
+                            callTypeAndReceiver.callType,
+                            lookupElementFactory
+                        )
                             .processVariables(contextVariablesProvider)
                             .forEach {
                                 val lookupElements = it.factory.createStandardLookupElementsForDescriptor(

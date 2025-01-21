@@ -24,9 +24,8 @@
 
 package com.linqingying.cangjie.config
 
-interface ContentRoot {
+interface ContentRoot
 
-}
 /**
  * @param isCommon whether this source root contains sources of a common module in a multi-platform project
  */

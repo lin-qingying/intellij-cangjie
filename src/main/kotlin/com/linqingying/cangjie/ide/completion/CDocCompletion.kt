@@ -26,8 +26,6 @@ package com.linqingying.cangjie.ide.completion
 
 import com.linqingying.cangjie.doc.parser.CDocKnownTag
 import com.linqingying.cangjie.doc.psi.CDoc
-import com.linqingying.cangjie.ide.completion.back.or
-import com.linqingying.cangjie.ide.completion.back.singleCharPattern
 import com.linqingying.cangjie.psi.CjDeclaration
 import com.linqingying.cangjie.psi.CjNamedFunction
 import com.linqingying.cangjie.psi.CjTypeStatement
@@ -58,7 +56,7 @@ object CDocTagCompletionProvider : CompletionProvider<CompletionParameters>() {
         }
         val kdocOwner = parameters.position.getNonStrictParentOfType<CDoc>()?.getOwner()
         val resultWithPrefix = result.withPrefixMatcher(prefix)
-        CDocKnownTag.values().forEach {
+        CDocKnownTag.entries.forEach {
             if (kdocOwner == null || it.isApplicable(kdocOwner)) {
                 resultWithPrefix.addElement(LookupElementBuilder.create("@" + it.name.lowercase(Locale.US)))
             }

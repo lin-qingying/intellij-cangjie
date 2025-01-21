@@ -34,7 +34,7 @@ object NameUtils{
     // "pkg/someScript.kts" -> "SomeScript"
     @JvmStatic
     fun getScriptNameForFile(filePath: String): Name =
-        Name.identifier(NameUtils.getPackagePartClassNamePrefix(filePath.substringAfterLast('/').substringBeforeLast('.')))
+        Name.identifier(getPackagePartClassNamePrefix(filePath.substringAfterLast('/').substringBeforeLast('.')))
 
 
     @JvmStatic

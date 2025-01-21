@@ -100,9 +100,9 @@ class CangJieStackFrame(
         }
     }
 
-    override fun getEqualityObject(): Any = stackFrame.id ?: 0
+    override fun getEqualityObject(): Any = stackFrame.id
 
-    override fun getEvaluator(): XDebuggerEvaluator? {
+    override fun getEvaluator(): XDebuggerEvaluator {
         return CangJieEvaluator(this)
     }
 

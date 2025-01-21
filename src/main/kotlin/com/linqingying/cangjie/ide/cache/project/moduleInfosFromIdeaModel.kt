@@ -57,7 +57,8 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.messages.MessageBusConnection
-import com.intellij.workspaceModel.ide.impl.legacyBridge.module.findModule
+import com.intellij.util.messages.Topic
+import com.intellij.workspaceModel.ide.legacyBridge.findModule
 
 /** null-platform means that we should get all modules */
 fun getModuleInfosFromIdeaModel(project: Project): List<ModuleInfo> {
@@ -125,6 +126,7 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
         Disposer.register(this, moduleCache)
 
     }
+
     private fun resetLibraries() {
 
         val cachedValuesManager = CachedValuesManager.getManager(project)
@@ -236,9 +238,12 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
             initialize()
         }
 
+        val CHANGED: Topic<WorkspaceModelChangeListener> =
+            Topic(WorkspaceModelChangeListener::class.java, Topic.BroadcastDirection.NONE, true)
+
         override fun subscribe() {
             val connection = project.messageBus.connect(this)
-            connection.subscribe(WorkspaceModelTopics.CHANGED, this)
+            connection.subscribe(CHANGED, this)
             subscribe(connection)
         }
 
@@ -284,7 +289,8 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
     }
 
     override fun getModuleInfosForModule(module: Module): Collection<ModuleInfo> = moduleCache[module]
-    override fun getLibraryInfosForLibrary(library: Library): Collection<LibraryInfo> = LibraryInfoCache.getInstance(project)[library]
+    override fun getLibraryInfosForLibrary(library: Library): Collection<LibraryInfo> =
+        LibraryInfoCache.getInstance(project)[library]
 
     private fun incModificationCount() {
         modificationTracker.incModificationCount()

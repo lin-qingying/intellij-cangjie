@@ -117,10 +117,6 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
         return super.canNavigate()
     }
 
-    override fun getNavigationElement(): PsiElement {
-        return super.getNavigationElement()
-    }
-
     fun getModifier(tokenType: CjKeywordToken): PsiElement? {
         return findChildByType<PsiElement>(tokenType)
     }

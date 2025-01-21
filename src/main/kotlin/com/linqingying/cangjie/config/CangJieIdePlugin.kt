@@ -29,9 +29,4 @@ import com.intellij.internal.statistic.utils.PluginInfo
 import com.intellij.internal.statistic.utils.getPluginInfoById
 import com.intellij.openapi.extensions.PluginId
 
-object CangJieIdePlugin {
-
-
-
-
-}
+object CangJieIdePlugin

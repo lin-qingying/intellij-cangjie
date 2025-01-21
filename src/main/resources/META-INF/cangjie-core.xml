@@ -246,7 +246,7 @@
         <treeStructureProvider
                 implementation="com.linqingying.cangjie.ide.projectView.CangJieExpandNodeProjectViewProvider"
                 order="last"/>
-<!--        <statistics.counterUsagesCollector implementationClass="com.linqingying.cangjie.ide.projectStructure.download.SdkDownloaderLogger"/>-->
+        <!--        <statistics.counterUsagesCollector implementationClass="com.linqingying.cangjie.ide.projectStructure.download.SdkDownloaderLogger"/>-->
 
         <projectService
                 serviceInterface="com.linqingying.cangjie.ide.projectStructure.LibraryUsageIndex"
@@ -464,6 +464,13 @@
 
         <extensionPoint qualifiedName="com.linqingying.cangjie.sdkDownload"
                         interface="com.linqingying.cangjie.ide.projectStructure.download.SdkDownloadEp"/>
+
+        <extensionPoint qualifiedName="com.linqingying.cangjie.ide.turboComplete.suggestionGeneratorExecutorProvider"
+                        interface="com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGeneratorExecutorProvider"
+                        dynamic="true"
+
+        />
+
     </extensionPoints>
 
 

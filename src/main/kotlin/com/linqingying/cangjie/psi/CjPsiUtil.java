@@ -102,8 +102,7 @@ public class CjPsiUtil {
     }
     public static boolean isLHSOfDot(@NotNull CjExpression expression) {
         PsiElement parent = expression.getParent();
-        if (!(parent instanceof CjQualifiedExpression)) return false;
-        CjQualifiedExpression qualifiedParent = (CjQualifiedExpression) parent;
+        if (!(parent instanceof CjQualifiedExpression qualifiedParent)) return false;
         return qualifiedParent.getReceiverExpression() == expression || isLHSOfDot(qualifiedParent);
     }
     @NotNull

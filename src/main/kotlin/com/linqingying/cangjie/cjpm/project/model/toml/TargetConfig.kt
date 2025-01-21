@@ -87,9 +87,7 @@ object CompileMacrosSerializer : KSerializer<CompileMacros> {
 
     override fun deserialize(decoder: Decoder): CompileMacros {
         val jsonDecoder = decoder as? JsonDecoder ?: throw IllegalStateException("Expected JSON decoder")
-        val element = jsonDecoder.decodeJsonElement()
-        
-        return when (element) {
+        return when (val element = jsonDecoder.decodeJsonElement()) {
             is JsonPrimitive -> CompileMacros.Single(element.content)
             is JsonArray -> CompileMacros.Multiple(element.map { (it as JsonPrimitive).content })
             else -> throw IllegalStateException("Unexpected JSON element type: ${element::class}")

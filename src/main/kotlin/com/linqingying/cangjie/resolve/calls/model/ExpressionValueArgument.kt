@@ -41,7 +41,7 @@ class ExpressionValueArgument(valueArgument:  ValueArgument?) :
 
     override fun toString(): String {
         val expression = valueArgument?.getArgumentExpression()
-        return if (expression == null) "no expression" else expression.getText()
+        return if (expression == null) "no expression" else expression.text
     }
 }
 

@@ -187,7 +187,7 @@ class SdkListDownloader : SdkListDownloaderBase() {
 
     override val feedUrl: String
         get() {
-            if (LoadingState.COMPONENTS_LOADED.isOccurred) {
+            if (ApplicationManager.getApplication().isUnitTestMode) {
                 val registry = runCatching { Registry.get("sdk.downloader.url").asString() }.getOrNull()
                 if (!registry.isNullOrBlank()) {
                     return registry

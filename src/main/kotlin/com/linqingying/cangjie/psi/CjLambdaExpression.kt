@@ -48,7 +48,7 @@ class CjLambdaExpression(text: CharSequence?) :
     val parameterList: CjParameterList?
         get() = functionLiteral.valueParameterList
     val bodyExpression: CjBlockExpression?
-        get() = functionLiteral.bodyExpression as?CjBlockExpression
+        get() = functionLiteral.bodyExpression
 
     fun hasDeclaredReturnType(): Boolean {
         return functionLiteral.typeReference != null

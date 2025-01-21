@@ -97,7 +97,7 @@ abstract class CjCodeFragment(
         if (imports.isNullOrEmpty()) return
 
         imports.split(IMPORT_SEPARATOR).forEach {
-            addImport(it)
+            addImportsFromString(it)
         }
 
         // we need this code to force re-highlighting, otherwise it does not work by some reason
@@ -226,7 +226,7 @@ abstract class CjCodeFragment(
             val importsWithPrefix =
                 imports.split(IMPORT_SEPARATOR).map { it.takeIf { it.startsWith("import ") } ?: "import ${it.trim()}" }
             importsWithPrefix.forEach {
-                addImport(it)
+                addImportsFromString(it)
             }
         }
     }

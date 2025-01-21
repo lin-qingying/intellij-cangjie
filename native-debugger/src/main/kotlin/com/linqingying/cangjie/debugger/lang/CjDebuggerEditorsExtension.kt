@@ -6,7 +6,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.jetbrains.cidr.execution.debugger.CidrDebuggerEditorsExtensionBase
-import com.linqingying.cangjie.psi.CjBlockCodeFragment
 import com.linqingying.cangjie.psi.CjElement
 import com.linqingying.cangjie.psi.CjPsiFactory
 import com.linqingying.cangjie.psi.psiUtil.ancestorOrSelf

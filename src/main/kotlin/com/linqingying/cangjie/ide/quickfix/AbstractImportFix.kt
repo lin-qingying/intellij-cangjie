@@ -77,8 +77,8 @@ import com.intellij.packageDependencies.DependencyValidationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.createSmartPointer
 import com.intellij.psi.util.PsiModificationTracker
-import com.intellij.refactoring.suggested.createSmartPointer
 import com.intellij.util.Processors
 import org.jetbrains.annotations.TestOnly
 
@@ -97,7 +97,7 @@ abstract class ImportFixBase<T : CjExpression> protected constructor(
             this(expression, null, factory)
 
     constructor(expression: T, expressionToAnalyze: CjExpression, factory: Factory) :
-            this(expression, expressionToAnalyze.createSmartPointer(), factory)
+            this(expression, expressionToAnalyze.createSmartPointer<CjExpression>(), factory)
 
     private val project = expression.project
 

@@ -39,8 +39,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.createSmartPointer
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.refactoring.suggested.createSmartPointer
 import com.intellij.util.ReflectionUtil
 
 abstract class QuickFixActionBase<out T : PsiElement>(element: T) : IntentionAction, Cloneable {
@@ -99,7 +99,7 @@ abstract class QuickFixActionBase<out T : PsiElement>(element: T) : IntentionAct
         }
         if (!ReflectionUtil.setField(
                 QuickFixActionBase::class.java, clone, SmartPsiElementPointer::class.java, "elementPointer",
-                newElement.createSmartPointer()
+                newElement.createSmartPointer<T>()
             )) {
             return null
         }

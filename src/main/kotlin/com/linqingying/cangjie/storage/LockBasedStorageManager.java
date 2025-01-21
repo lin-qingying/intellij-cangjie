@@ -323,7 +323,7 @@ public class LockBasedStorageManager implements StorageManager {
     @Override
     public @NotNull <K, V> CacheWithNullableValues<K, V> createCacheWithNullableValues() {
         return new CacheWithNullableValuesBasedOnMemoizedFunction<K, V>(
-                this, LockBasedStorageManager.<KeyWithComputation<K,V>>createConcurrentHashMap());
+                this, LockBasedStorageManager.createConcurrentHashMap());
     }
 
     private enum NotValue {

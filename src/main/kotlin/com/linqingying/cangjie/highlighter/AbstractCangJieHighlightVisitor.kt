@@ -47,7 +47,7 @@ import com.linqingying.cangjie.diagnostics.Severity
 import com.linqingying.cangjie.diagnostics.rendering.RenderingContext
 import com.linqingying.cangjie.diagnostics.rendering.parameters
 import com.linqingying.cangjie.highlighter.suspender.CangJieHighlightingSuspender
-import com.linqingying.cangjie.ide.statistics.compilationError.CangJieCompilationErrorFrequencyStatsCollector
+//import com.linqingying.cangjie.ide.statistics.compilationError.CangJieCompilationErrorFrequencyStatsCollector
 import com.linqingying.cangjie.psi.CjFile
 import com.linqingying.cangjie.psi.CjNameReferenceExpression
 import com.linqingying.cangjie.psi.CjParameter
@@ -208,10 +208,10 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
                     calculatingInProgress = false
                 )
             }
-        CangJieCompilationErrorFrequencyStatsCollector.recordCompilationErrorsHappened(
-            diagnostics.asSequence().filter { it.severity == Severity.ERROR }.map(Diagnostic::factoryName),
-            file
-        )
+//        CangJieCompilationErrorFrequencyStatsCollector.recordCompilationErrorsHappened(
+//            diagnostics.asSequence().filter { it.severity == Severity.ERROR }.map(Diagnostic::factoryName),
+//            file
+//        )
 
 
     }

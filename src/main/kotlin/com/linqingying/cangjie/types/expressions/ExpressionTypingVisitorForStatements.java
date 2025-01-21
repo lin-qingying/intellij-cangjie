@@ -200,8 +200,7 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
 //        }
         CjExpression left = deparenthesize(leftOperand);
         CjExpression right = expression.getRight();
-        if (left instanceof CjArrayAccessExpression) {
-            CjArrayAccessExpression arrayAccessExpression = (CjArrayAccessExpression) left;
+        if (left instanceof CjArrayAccessExpression arrayAccessExpression) {
             if (right == null) return TypeInfoFactoryKt.noTypeInfo(context);
             CangJieTypeInfo typeInfo = basic.resolveArrayAccessSetMethod(arrayAccessExpression, right, context, context.trace);
             basic.checkLValue(context.trace, context, arrayAccessExpression, right, expression, true);

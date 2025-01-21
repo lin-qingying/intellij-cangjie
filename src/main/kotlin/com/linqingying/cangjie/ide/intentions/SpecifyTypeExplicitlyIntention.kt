@@ -32,7 +32,7 @@ import com.intellij.openapi.editor.impl.ImaginaryEditor
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.refactoring.suggested.createSmartPointer
+import com.intellij.psi.createSmartPointer
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.builtins.CangJieBuiltIns
 import com.linqingying.cangjie.builtins.StandardNames
@@ -285,7 +285,7 @@ class SpecifyTypeExplicitlyIntention : SelfTargetingRangeIntention<CjCallableDec
                 createTypeExpressionForTemplate(exprType, declaration, useTypesFromOverridden = true) ?: return
 
             declaration.setType(StandardNames.FqNames.anyUFqName.asString())
-            val declarationPointer = declaration.createSmartPointer()
+            val declarationPointer = declaration.createSmartPointer<CjCallableDeclaration>()
 
             // May invalidate declaration
             PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(editor.document)

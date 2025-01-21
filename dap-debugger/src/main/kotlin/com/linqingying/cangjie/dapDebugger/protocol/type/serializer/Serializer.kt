@@ -76,8 +76,7 @@ object EventReasonSerializer : KSerializer<EventReason> {
     }
 
     override fun deserialize(decoder: Decoder): EventReason {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "changed" -> EventReason.changed
             "new" -> EventReason.new
             "removed" -> EventReason.removed
@@ -101,8 +100,7 @@ object PathFormatSerializer : KSerializer<PathFormat> {
     }
 
     override fun deserialize(decoder: Decoder): PathFormat {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "path" -> PathFormat.Path
             "uri" -> PathFormat.Uri
             else -> PathFormat.Other(value)
@@ -127,8 +125,7 @@ object ColumnDataTypeSerializer : KSerializer<ColumnDataType> {
     }
 
     override fun deserialize(decoder: Decoder): ColumnDataType {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "string" -> ColumnDataType.string
             "number" -> ColumnDataType.number
             "boolean" -> ColumnDataType.boolean
@@ -154,8 +151,7 @@ object MessageTypeSerializer : KSerializer<MessageType> {
     }
 
     override fun deserialize(decoder: Decoder): MessageType {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "request" -> MessageType.request
             "response" -> MessageType.response
             "event" -> MessageType.event
@@ -182,8 +178,7 @@ object CategorySerializer : KSerializer<Category> {
     }
 
     override fun deserialize(decoder: Decoder): Category {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "console" -> Category.console
             "important" -> Category.important
             "stdout" -> Category.stdout
@@ -210,8 +205,7 @@ object ThreadEventReasonSerializer : KSerializer<ThreadEventReason> {
     }
 
     override fun deserialize(decoder: Decoder): ThreadEventReason {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "started" -> ThreadEventReason.started
             "exited" -> ThreadEventReason.exited
 
@@ -244,8 +238,7 @@ object VariablePresentationHintKindSerializer : KSerializer<VariablePresentation
     }
 
     override fun deserialize(decoder: Decoder): VariablePresentationHintKind {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "property" -> VariablePresentationHintKind.Property
             "method" -> VariablePresentationHintKind.Method
             "class" -> VariablePresentationHintKind.Class
@@ -284,8 +277,7 @@ object VariablePresentationHintAttributesSerializer : KSerializer<VariablePresen
     }
 
     override fun deserialize(decoder: Decoder): VariablePresentationHintAttributes {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "static" -> VariablePresentationHintAttributes.Static
             "constant" -> VariablePresentationHintAttributes.Constant
             "readOnly" -> VariablePresentationHintAttributes.ReadOnly
@@ -317,8 +309,7 @@ object VariablePresentationHintVisibilitySerializer : KSerializer<VariablePresen
     }
 
     override fun deserialize(decoder: Decoder): VariablePresentationHintVisibility {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "public" -> VariablePresentationHintVisibility.Public
             "private" -> VariablePresentationHintVisibility.Private
             "protected" -> VariablePresentationHintVisibility.Protected
@@ -354,8 +345,7 @@ object StoppedEventReasonSerializer : KSerializer<StoppedEventReason> {
     }
 
     override fun deserialize(decoder: Decoder): StoppedEventReason {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "layer" -> StoppedEventReason.Step
             "breakpoint" -> StoppedEventReason.Breakpoint
             "exception" -> StoppedEventReason.Exception
@@ -392,8 +382,7 @@ object ScopePresentationHintSerializer : KSerializer<ScopePresentationHint> {
     }
 
     override fun deserialize(decoder: Decoder): ScopePresentationHint {
-        val value = decoder.decodeString()
-        return when (value) {
+        return when (val value = decoder.decodeString()) {
             "arguments" -> ScopePresentationHint.Arguments
             "locals" -> ScopePresentationHint.Locals
             "registers" -> ScopePresentationHint.Registers
@@ -414,8 +403,7 @@ object EvaluateArgumentsContextSerializer : KSerializer<EvaluateArgumentsContext
     }
 
     override fun deserialize(decoder: Decoder): EvaluateArgumentsContext {
-        val value = decoder.decodeString()
-        return when (value){
+        return when (val value = decoder.decodeString()){
             "watch" -> EvaluateArgumentsContext.Watch
             "hover" -> EvaluateArgumentsContext.Hover
             "repl" -> EvaluateArgumentsContext.Repl

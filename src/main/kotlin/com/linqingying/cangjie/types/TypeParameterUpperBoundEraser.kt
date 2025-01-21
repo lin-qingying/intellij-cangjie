@@ -200,7 +200,7 @@ private fun buildProjectionTypeByTypeParameters(
     object : TypeConstructorSubstitution() {
         override fun get(key: TypeConstructor) =
             if (key in typeParameters)
-                TypeUtils.makeProjection(key.declarationDescriptor as TypeParameterDescriptor)
+                makeProjection(key.declarationDescriptor as TypeParameterDescriptor)
 
             else null
 

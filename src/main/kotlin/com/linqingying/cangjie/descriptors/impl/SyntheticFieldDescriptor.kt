@@ -29,12 +29,12 @@ import com.linqingying.cangjie.descriptors.SourceElement
 import com.linqingying.cangjie.descriptors.annotations.Annotations
 import com.linqingying.cangjie.name.Name
 
-class SyntheticFieldDescriptor   constructor(
+class SyntheticFieldDescriptor(
     val propertyDescriptor: PropertyDescriptor,
     accessorDescriptor: PropertyAccessorDescriptor,
     sourceElement: SourceElement
 ) : LocalVariableDescriptor(
-    accessorDescriptor, Annotations.EMPTY, SyntheticFieldDescriptor.NAME,
+    accessorDescriptor, Annotations.EMPTY, NAME,
     propertyDescriptor.type, propertyDescriptor.isVar,
     sourceElement
 )  {

@@ -24,8 +24,6 @@
 
 package com.linqingying.cangjie.resolve.caches
 
-interface PlatformAnalysisSettings {
-
-}
+interface PlatformAnalysisSettings
 
 object DefaultPlatformAnalysisSettings : PlatformAnalysisSettings

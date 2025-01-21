@@ -63,11 +63,11 @@ public enum ResolutionStatus {
     private final boolean success;
     private int severityIndex = -1;
 
-    private ResolutionStatus(boolean success) {
+    ResolutionStatus(boolean success) {
         this.success = success;
     }
 
-    private ResolutionStatus() {
+    ResolutionStatus() {
         this(false);
     }
 

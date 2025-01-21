@@ -37,8 +37,8 @@ object CjpmTomlMerger {
             overrideCompileOption = other.overrideCompileOption ?: base.overrideCompileOption,
             linkOption = other.linkOption ?: base.linkOption,
             outputType = other.outputType,
-            srcDir = other.srcDir ?: base.srcDir,
-            targetDir = other.targetDir ?: base.targetDir,
+            srcDir = other.srcDir,
+            targetDir = other.targetDir,
             packageConfiguration = mergePackageConfigurations(base.packageConfiguration, other.packageConfiguration)
         )
     }

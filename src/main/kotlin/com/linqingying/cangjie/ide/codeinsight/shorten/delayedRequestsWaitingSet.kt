@@ -36,11 +36,7 @@ import com.linqingying.cangjie.resolve.lazy.BodyResolveMode
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.refactoring.suggested.createSmartPointer
+import com.intellij.psi.*
 import java.util.ArrayList
 import java.util.LinkedHashSet
 
@@ -58,7 +54,10 @@ private var Project.delayedRefactoringRequests: MutableSet<DelayedRefactoringReq
 
 fun addDelayedImportRequest(elementToImport: PsiElement, file: CjFile) {
     assert(ApplicationManager.getApplication()!!.isWriteAccessAllowed) { "Write access needed" }
-    file.project.getOrCreateRefactoringRequests() += ImportRequest(elementToImport.createSmartPointer(), file.createSmartPointer())
+    file.project.getOrCreateRefactoringRequests() += ImportRequest(
+        elementToImport.createSmartPointer(),
+        file.createSmartPointer()
+    )
 }
 
 fun CjElement.addToShorteningWaitSet(options: ShortenReferences.Options = ShortenReferences.Options.DEFAULT) {

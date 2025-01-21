@@ -74,8 +74,7 @@ val VISIBILITY: FlagsToModifiers = object : FlagsToModifiers() {
      * @return 根据可见性返回相应的关键字
      */
     override fun getModifiers(flags: Int): CjModifierKeywordToken? {
-        val visibility = Flags.VISIBILITY.get(flags)
-        return when (visibility) {
+        return when (val visibility = Flags.VISIBILITY.get(flags)) {
             ProtoBuf.Visibility.PRIVATE, ProtoBuf.Visibility.PRIVATE_TO_THIS -> CjTokens.PRIVATE_KEYWORD
             ProtoBuf.Visibility.INTERNAL -> CjTokens.INTERNAL_KEYWORD
             ProtoBuf.Visibility.PROTECTED -> CjTokens.PROTECTED_KEYWORD

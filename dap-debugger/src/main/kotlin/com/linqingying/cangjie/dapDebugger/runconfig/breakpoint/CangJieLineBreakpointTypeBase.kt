@@ -5,7 +5,4 @@ import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType
 
 abstract class CangJieLineBreakpointTypeBase<P : XBreakpointProperties<*>>(id: String, title: String) :
-    XLineBreakpointType<P>(id, title) {
-
-
-}
+    XLineBreakpointType<P>(id, title)

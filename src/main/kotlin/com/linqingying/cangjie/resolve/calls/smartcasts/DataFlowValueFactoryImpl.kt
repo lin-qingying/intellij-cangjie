@@ -44,7 +44,7 @@ import com.linqingying.cangjie.types.isError
 
 
 // Please, avoid using this implementation explicitly. If you need DataFlowValueFactory, use injection.
-class DataFlowValueFactoryImpl (/*private val languageVersionSettings: LanguageVersionSettings*/): DataFlowValueFactory {
+class DataFlowValueFactoryImpl : DataFlowValueFactory {
     override fun createDataFlowValue(
         expression: CjExpression,
         type: CangJieType,

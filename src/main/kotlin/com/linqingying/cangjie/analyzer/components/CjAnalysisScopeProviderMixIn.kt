@@ -28,7 +28,7 @@ import com.linqingying.cangjie.analyzer.CangJieAnalysisSession
 import com.linqingying.cangjie.analyzer.lifetime.CjLifetimeOwner
 import com.linqingying.cangjie.analyzer.lifetime.CjLifetimeToken
 import com.linqingying.cangjie.analyzer.lifetime.withValidityAssertion
-import com.linqingying.cangjie.ide.completion.back.providers.CangJieResolutionScopeProvider
+import com.linqingying.cangjie.ide.completion.providers.CangJieResolutionScopeProvider
 import com.linqingying.cangjie.psi.psiUtil.contains
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project

@@ -37,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 public class ReceiverParameterDescriptorImpl extends AbstractReceiverParameterDescriptor{
 
     private final DeclarationDescriptor containingDeclaration;
-    private ReceiverValue value;
+    private final ReceiverValue value;
     public ReceiverParameterDescriptorImpl(
             @NotNull DeclarationDescriptor containingDeclaration,
             @NotNull ReceiverValue value,
