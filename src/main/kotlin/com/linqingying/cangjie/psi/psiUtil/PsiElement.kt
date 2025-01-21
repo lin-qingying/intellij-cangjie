@@ -24,6 +24,7 @@
 
 package com.linqingying.cangjie.psi.psiUtil
 
+import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
@@ -62,7 +63,13 @@ fun CjBlockStringTemplateEntry.canDropCurlyBrackets(): Boolean {
     return (expression is CjNameReferenceExpression || (expression is CjThisExpression && expression.labelQualifier == null))
             && canPlaceAfterSimpleNameEntry(nextSibling)
 }
+fun PsiElement.isAncestorOf(child: PsiElement): Boolean =
+    child.ancestors.contains(this)
 
+val PsiElement.ancestors: Sequence<PsiElement>
+    get() = generateSequence(this) {
+        if (it is PsiFile) null else it.parent
+    }
 inline fun <reified T : PsiElement, reified V : PsiElement> PsiElement.getParentOfTypes2(): PsiElement? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, V::class.java)
 }

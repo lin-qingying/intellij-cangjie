@@ -124,7 +124,6 @@ BOOLEAN_LITERAL= true | false
 
 //TODO：这必须允许运行库接受的所有内容。
 //TODO：将反号替换为开头的一个反斜杠
-
 ESCAPED_IDENTIFIER = `[^`\n]+`
 IDENTIFIER  =    {ESCAPED_IDENTIFIER } |  {PLAIN_IDENTIFIER}
 

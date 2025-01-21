@@ -71,9 +71,11 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInsight.template.TemplateManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
-import com.linqingying.cangjie.ide.completion.turboComplete.CompletionKind
+import com.intellij.platform.ml.impl.turboComplete.CompletionKind
 import com.intellij.platform.ml.impl.turboComplete.SuggestionGeneratorConsumer
 import com.intellij.platform.ml.impl.turboComplete.SuggestionGeneratorWithArtifact
+
+
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.search.GlobalSearchScope
