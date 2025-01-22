@@ -57,7 +57,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.*
-import com.intellij.openapi.externalSystem.autoimport.AutoImportProjectTracker
+
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
 import com.intellij.openapi.fileTypes.FileTypeManager
 import com.intellij.openapi.module.Module
@@ -87,6 +87,7 @@ import java.nio.file.Paths
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
 import kotlin.io.path.exists
+import com.intellij.openapi.project.DumbService
 
 @State(
     name = "CjpmProjects", storages = [
@@ -183,14 +184,16 @@ class CjpmProjectsServiceImpl(
                     })
             }
 
-            subscribe(CjpmProjectsService.CJPM_PROJECTS_TOPIC, CjpmProjectsService.CjpmProjectsListener { _, _ ->
-                StartupManager.getInstance(project).runAfterOpened {
-
-                    ToolWindowManager.getInstance(project).invokeLater {
-                        CjpmToolWindow.initializeToolWindow(project)
-                    }
-                }
-            })
+//            subscribe(CjpmProjectsService.CJPM_PROJECTS_TOPIC, CjpmProjectsService.CjpmProjectsListener { _, _ ->
+//
+//                // 使用 DumbService 确保在索引就绪时执行
+//                DumbService.getInstance(project).smartInvokeLater {
+//                    if (!project.isDisposed) {
+//                        CjpmToolWindow.initializeToolWindow(project)
+//                    }
+//                }
+//
+//            })
         }
     }
 
@@ -214,7 +217,9 @@ class CjpmProjectsServiceImpl(
                 object : CjProjectSettingsServiceBase.CjSettingsListener {
                     override fun <T : CjProjectSettingsServiceBase.CjProjectSettingsBase<T>> settingsChanged(e: CjProjectSettingsServiceBase.SettingsChangedEventBase<T>) {
                         if (e.affectsCjpmMetadata) {
-                            val tracker = AutoImportProjectTracker.getInstance(project)
+                            val tracker = ExternalSystemProjectTracker.getInstance(project)
+
+
                             tracker.markDirty(cjpmProjectAware.projectId)
                             tracker.scheduleProjectRefresh()
                         }
@@ -483,13 +488,13 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
 //                    }
 
 //保持与cjpm模块名称一致
-                    if (cjpmProject.project.name != cjpmProject.workspace?.metadata?.name) {
-                        cjpmProject.workspace?.metadata?.name?.let {
-                            (cjpmProject.project as? ProjectEx)?.setProjectName(
-                                it
-                            )
-                        }
-                    }
+//                    if (cjpmProject.project.name != cjpmProject.workspace?.metadata?.name) {
+//                        cjpmProject.workspace?.metadata?.name?.let {
+//                            (cjpmProject.project as? ProjectEx)?.setProjectName(
+//                                it
+//                            )
+//                        }
+//                    }
 
 
 // 设置生产文件夹

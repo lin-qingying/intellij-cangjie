@@ -86,7 +86,7 @@ import org.jetbrains.annotations.TestOnly
 /**
  * Check possibility and perform fix for unresolved references.
  */
-@IntellijInternalApi
+
 abstract class ImportFixBase<T : CjExpression> protected constructor(
     expression: T,
     private val expressionToAnalyzePointer: SmartPsiElementPointer<CjExpression>?,
@@ -374,7 +374,7 @@ abstract class ImportFixBase<T : CjExpression> protected constructor(
 }
 
 
-@IntellijInternalApi
+
 abstract class OrdinaryImportFixBase<T : CjExpression>(expression: T, factory: Factory) :
     ImportFixBase<T>(expression, factory) {
     override fun fillCandidates(
@@ -462,7 +462,7 @@ abstract class OrdinaryImportFixBase<T : CjExpression>(expression: T, factory: F
 }
 
 // This is required to be abstract to reduce bunch file size
-@IntellijInternalApi
+
 abstract class AbstractImportFix(expression: CjSimpleNameExpression, factory: Factory) :
     OrdinaryImportFixBase<CjSimpleNameExpression>(expression, factory) {
 

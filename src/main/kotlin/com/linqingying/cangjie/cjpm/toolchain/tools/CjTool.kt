@@ -62,11 +62,11 @@ abstract class CjTool(toolName: String, val toolchain: CjToolchainBase) {
 @Suppress("FunctionName", "UnstableApiUsage")
 fun GeneralCommandLine(path: Path, withSudo: Boolean = false, vararg args: String) =
     object : GeneralCommandLine(path.systemIndependentPath, *args) {
-        override fun createProcess(): Process = if (withSudo) {
-            ElevationService.getInstance().createProcess(this)
-        } else {
-            super.createProcess()
-        }
+//        override fun createProcess(): Process = if (withSudo) {
+//            ElevationService.getInstance().createProcess(this)
+//        } else {
+//            super.createProcess()
+//        }
     }
 
 fun GeneralCommandLine.withWorkDirectory(path: Path?) = withWorkDirectory(path?.systemIndependentPath)

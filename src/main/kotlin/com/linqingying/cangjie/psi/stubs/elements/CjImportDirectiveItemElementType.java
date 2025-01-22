@@ -9,12 +9,12 @@
 //
 ////    public class CjImportDirectiveItemElementType extends CjStubElementType<CangJieImportDirectiveItemStub, CjImportDirectiveItem> {
 ////
-////    public CjImportDirectiveItemElementType(@NotNull @NonNls String debugName) {
-////        super(debugName, CjImportDirectiveItem.class, CangJieImportDirectiveItemStub.class);
+////    public CjImportDirectiveItemElementType(@NotNull @NonNls String name) {
+////        super(name, CjImportDirectiveItem.class, CangJieImportDirectiveItemStub.class);
 ////    }
 //
-//        public CjImportDirectiveItemElementType(@NotNull @NonNls String debugName) {
-//            super(debugName, CjImportDirectiveItem.class);
+//        public CjImportDirectiveItemElementType(@NotNull @NonNls String name) {
+//            super(name, CjImportDirectiveItem.class);
 //        }
 ////    @Override
 ////    public @NotNull CangJieImportDirectiveItemStub createStub(@NotNull CjImportDirectiveItem cjImportDirectiveItem, StubElement<? extends PsiElement> stubElement) {

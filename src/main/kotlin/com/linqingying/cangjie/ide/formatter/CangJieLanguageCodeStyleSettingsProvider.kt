@@ -350,9 +350,9 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
         }
     }
 
-    override fun usesCommonKeepLineBreaks(): Boolean {
-        return true
-    }
+//    override fun usesCommonKeepLineBreaks(): Boolean {
+//        return true
+//    }
 
     override fun getCodeSample(settingsType: SettingsType): String = when (settingsType) {
         SettingsType.WRAPPING_AND_BRACES_SETTINGS ->

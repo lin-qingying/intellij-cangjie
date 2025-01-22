@@ -50,6 +50,10 @@ import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
 import javax.swing.JEditorPane
 
+import com.intellij.openapi.wm.RegisterToolWindowTask
+import com.linqingying.cangjie.icon.CangJieIcons
+import com.linqingying.cangjie.ide.project.tools.projectWizard.CangJieUiBundle
+
 // 获取项目是否包含Cjpm项目的属性
 val Project.hasCjpmProject: Boolean get() = cjpmProjects.allProjects.isNotEmpty()
 
@@ -71,6 +75,7 @@ class CjpmToolWindow(
             true
         )
     }
+
     // 初始化Cjpm项目树组件
     private val projectTree = CjpmProjectsTree()
     private val projectStructure = CjpmProjectTreeStructure(projectTree, project)
@@ -79,13 +84,12 @@ class CjpmToolWindow(
         override fun isCollapseAllVisible(): Boolean = project.hasCjpmProject
         override fun isExpandAllVisible(): Boolean = project.hasCjpmProject
     }
+
     // 初始化并配置只读的HTML内容显示组件
     val note = JEditorPane("text/html", html("")).apply {
         background = UIUtil.getTreeBackground()
         isEditable = false
     }
-
-
 
     // 创建并配置工具窗口的内容区域，使用滚动面板包裹项目树组件
     val content: JComponent = ScrollPaneFactory.createScrollPane(projectTree, 0)
@@ -101,6 +105,19 @@ class CjpmToolWindow(
 
         invokeLater {
             projectStructure.updateCjpmProjects(project.cjpmProjects.allProjects.toList())
+        }
+
+        val manager = ToolWindowManager.getInstance(project)
+        val toolWindow = manager.getToolWindow(ID) ?: run {
+            manager.registerToolWindow(
+                RegisterToolWindowTask(
+                    id = ID,
+                    icon = CangJieIcons.CANGJIE,
+                    contentFactory = CjpmToolWindowFactory(),
+                    canCloseContent = true,
+//                    stripeTitle = { CangJieBundle.message("toolwindow.stripe.Cjpm") }
+                )
+            )
         }
     }
 
@@ -143,17 +160,20 @@ class CjpmToolWindow(
          * @param project 当前的项目实例
          */
         fun initializeToolWindow(project: Project) {
-            try {
-                @Suppress("UnstableApiUsage")
-                val manager = ToolWindowManager.getInstance(project) as? ToolWindowManagerImpl ?: return
-                val bean = ToolWindowEP.EP_NAME.extensionList.find { it.id == ID }
-                if (bean != null) {
-                    @Suppress("DEPRECATION", "UnstableApiUsage")
-                    manager.initToolWindow(bean)
-                }
-            } catch (e: Exception) {
-                LOG.error("Unable to initialize $ID tool window", e)
-            }
+//            try {
+//                val manager = ToolWindowManager.getInstance(project)
+//                if (!isRegistered(project)) {
+//                    manager.registerToolWindow(RegisterToolWindowTask(
+//                        id = ID,
+//                        icon = CangJieIcons.CANGJIE,
+//                        contentFactory = CjpmToolWindowFactory(),
+//                        canCloseContent = true,
+////                        stripeTitle = { CangJieBundle.message("toolwindow.stripe.Cjpm") }
+//                    ))
+//                }
+//            } catch (e: Exception) {
+//                LOG.error("Unable to initialize $ID tool window", e)
+//            }
         }
 
         /**

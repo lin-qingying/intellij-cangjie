@@ -28,7 +28,8 @@ import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.cjpm.project.configurable.CjConfigurableBase
 import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
 import com.linqingying.cangjie.ide.project.tools.projectWizard.CangJieUiBundle
-import com.intellij.ide.plugins.PluginManagerConfigurable.shutdownOrRestartApp
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
@@ -106,8 +107,9 @@ class CangJieLspConfigurable(override val project: Project) :
 
     override fun disposeUIResources() {
         if (otherMainSwitch != lspConfig.enabled) {
-            shutdownOrRestartApp()
-
+            invokeLater {
+                ApplicationManager.getApplication().restart()
+            }
         }
         super.disposeUIResources()
     }

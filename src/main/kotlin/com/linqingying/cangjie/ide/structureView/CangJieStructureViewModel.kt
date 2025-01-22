@@ -37,7 +37,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.ui.IconManager
-import com.intellij.ui.PlatformIcons
+
 
 
 open class CangJieStructureViewModel(cjFile: CjFile, editor: Editor?, rootElement : StructureViewTreeElement) :
@@ -93,7 +93,7 @@ object PublicElementsFilter : Filter {
         return ActionPresentationData(
             CangJieCodeInsightBundle.message("show.non.public"),
             null,
-            IconManager.getInstance().getPlatformIcon(PlatformIcons.Private)
+            AllIcons.Nodes.Private
         )
     }
 

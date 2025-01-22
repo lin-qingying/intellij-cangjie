@@ -44,6 +44,7 @@ import com.intellij.usageView.UsageInfo
 import com.intellij.usageView.UsageViewDescriptor
 import com.intellij.usageView.UsageViewUtil
 import com.intellij.util.containers.MultiMap
+import com.linqingying.cangjie.CangJieIdeBundle
 import kotlin.math.max
 import kotlin.math.min
 
@@ -72,13 +73,15 @@ open class MoveCangJieDeclarationsProcessor(
 
     override fun createUsageViewDescriptor(usages: Array<out UsageInfo>): UsageViewDescriptor {
         val targetContainerFqName = descriptor.moveTarget.targetContainerFqName?.let {
-            if (it.isRoot) IdeDeprecatedMessagesBundle.message("default.package.presentable.name") else it.asString()
-        } ?: IdeDeprecatedMessagesBundle.message("default.package.presentable.name")
+            if (it.isRoot) CangJieIdeBundle.message("default.package.presentable.name") else it.asString()
+        } ?: CangJieIdeBundle.message("default.package.presentable.name")
         return MoveMultipleElementsViewDescriptor(elementsToMove.toTypedArray(), targetContainerFqName)
     }
+
     fun execute(usages: List<UsageInfo>) {
         execute(usages.toTypedArray())
     }
+
     override fun getRefactoringId() = REFACTORING_ID
 
     public override fun findUsages(): Array<UsageInfo> {

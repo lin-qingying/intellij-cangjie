@@ -109,10 +109,11 @@
     </extensionPoints>
 
     <projectListeners>
-        <listener class="com.linqingying.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"
-                  topic="com.linqingying.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"
-                  activeInHeadlessMode="false"
-                  activeInTestMode="false"/>
+<!--        监听索引损坏-->
+<!--        <listener class="com.linqingying.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"-->
+<!--                  topic="com.linqingying.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"-->
+<!--                  activeInHeadlessMode="false"-->
+<!--                  activeInTestMode="false"/>-->
 
 
     </projectListeners>

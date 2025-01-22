@@ -68,7 +68,7 @@ class MissingToolchainNotificationProvider(project: Project) : CjNotificationPro
         project: Project
     ): CjEditorNotificationPanel? {
         if (isUnitTestMode) return null
-        if (!(file.isCangJieFile || file.isCjpmManifestFile) || isNotificationDisabled(file)) return null
+        if (!(file.isCangJieFile || file.isCjpmToml) || isNotificationDisabled(file)) return null
         @Suppress("UnstableApiUsage")
         if (!project.isTrusted()) return null
         if (guessAndSetupCangJieProject(project)) return null
@@ -107,7 +107,7 @@ class MissingToolchainNotificationProvider(project: Project) : CjNotificationPro
 }
 
 val VirtualFile.isCangJieFile: Boolean get() = fileType == CangJieFileType.INSTANCE
-val VirtualFile.isCjpmManifestFile: Boolean get() = name in CjpmConstants.MANIFEST_FILE
+val VirtualFile.isCjpmToml: Boolean get() = name == CjpmConstants.MANIFEST_FILE
 fun VirtualFile.isCangJieFileType(): Boolean {
     val nameSequence = nameSequence
     if (nameSequence.endsWith(CangJieFileType.DOT_DEFAULT_EXTENSION)) return true

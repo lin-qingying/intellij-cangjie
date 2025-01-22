@@ -99,7 +99,7 @@ private class CjAnalysisScopeProviderResolveScope(
 //    private val useSiteModule: CjModule,
     private val shadowed: GlobalSearchScope,
 ) : GlobalSearchScope() {
-    override fun getProject(): Project? = base.project
+//    override fun getProject(): Project? = base.project
     override fun isSearchInModuleContent(aModule: Module): Boolean = base.isSearchInModuleContent(aModule)
     override fun isSearchInLibraries(): Boolean = base.isSearchInLibraries
     override fun contains(file: VirtualFile): Boolean =

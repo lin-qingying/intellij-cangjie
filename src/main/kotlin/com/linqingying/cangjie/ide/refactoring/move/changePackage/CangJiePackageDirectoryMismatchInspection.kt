@@ -75,10 +75,6 @@ class CangJiePackageDirectoryMismatchInspection : AbstractCangJieInspection() {
                 fqNameByDirectory.hasIdentifiersOnly() ->
                     fixes += ChangePackageFix("'${fqNameByDirectory.asString()}'", fqNameByDirectory)
             }
-//        val fqNameWithImplicitPrefix = file.parent?.getFqNameWithImplicitPrefix()
-//        if (!isSingleFileSource && fqNameWithImplicitPrefix != null && fqNameWithImplicitPrefix != fqNameByDirectory) {
-//            fixes += ChangePackageFix("'${fqNameWithImplicitPrefix.asString()}'", fqNameWithImplicitPrefix)
-//        }
 
             val textRange =
                 if (directive.textLength != 0) directive.textRange else file.declarations.firstOrNull()?.let {

@@ -364,7 +364,7 @@ open class CangJieExpressionParsing(
                     }
                 }
             }
-            expect(sturctEnd, "Expecting '${sturctEnd.debugName}'", EXPRESSION_FOLLOW)
+            expect(sturctEnd, "Expecting '${sturctEnd.name}'", EXPRESSION_FOLLOW)
         }
         myBuilder.restoreNewlinesState()
         list.done(VALUE_ARGUMENT_LIST)

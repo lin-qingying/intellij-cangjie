@@ -34,13 +34,17 @@ import com.intellij.platform.backend.workspace.WorkspaceModelChangeListener
 import com.intellij.platform.backend.workspace.WorkspaceModelTopics
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.storage.VersionedStorageChange
+import com.intellij.util.messages.Topic
+
+val CHANGED: Topic<WorkspaceModelChangeListener> =
+    Topic(WorkspaceModelChangeListener::class.java, Topic.BroadcastDirection.NONE, true)
 
 @Service(Service.Level.PROJECT)
 class ModuleModificationTracker(project: Project) :
     SimpleModificationTracker(), WorkspaceModelChangeListener, Disposable {
 
     init {
-        project.messageBus.connect(this).subscribe(WorkspaceModelTopics.CHANGED, this)
+        project.messageBus.connect(this).subscribe( CHANGED, this)
     }
 
     override fun changed(event: VersionedStorageChange) {

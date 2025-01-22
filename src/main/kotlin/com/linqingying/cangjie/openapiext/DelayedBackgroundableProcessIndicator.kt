@@ -35,8 +35,9 @@ import com.intellij.openapi.progress.TaskInfo
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.progress.util.ProgressWindow
 import com.intellij.openapi.wm.IdeFrame
+import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.StatusBarEx
-import com.intellij.openapi.wm.ex.WindowManagerEx
+//import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.util.ui.TimerUtil
 
 /**
@@ -74,10 +75,13 @@ class DelayedBackgroundableProcessIndicator(val task: Task.Backgroundable, delay
         didInitializeOnEdt = true
         title = task.title
         if (statusBar == null) {
-            val nonDefaultProject = if (task.project == null || task.project.isDisposed || task.project.isDefault) null else task.project
-            @Suppress("UnstableApiUsage")
-            val frame: IdeFrame? = WindowManagerEx.getInstanceEx().findFrameHelper(nonDefaultProject)
-            statusBar = if (frame != null) frame.statusBar as StatusBarEx? else null
+            val nonDefaultProject =
+                if (task.project == null || task.project.isDisposed || task.project.isDefault) null else task.project
+
+            val frame = WindowManager.getInstance().getFrame(nonDefaultProject)
+            statusBar = if (frame != null) {
+                WindowManager.getInstance().getIdeFrame(nonDefaultProject)?.statusBar as StatusBarEx?
+            } else null
         }
     }
 

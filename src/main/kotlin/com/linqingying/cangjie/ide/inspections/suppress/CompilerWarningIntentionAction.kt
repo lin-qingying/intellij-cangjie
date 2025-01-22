@@ -54,5 +54,5 @@ class CompilerWarningIntentionAction(private val name: @IntentionFamilyName Stri
 
     override fun hashCode(): Int = name.hashCode()
 
-    override fun getIcon(@Iconable.IconFlags flags: Int): Icon? = if (ExperimentalUI.isNewUI()) null else AllIcons.Actions.RealIntentionBulb
+    override fun getIcon(@Iconable.IconFlags flags: Int): Icon? = AllIcons.Actions.RealIntentionBulb
 }

@@ -35,7 +35,7 @@ import com.linqingying.cangjie.context.GlobalContext
 import com.linqingying.cangjie.context.GlobalContextImpl
 import com.linqingying.cangjie.ide.base.projectStructure.RootKindFilter
 import com.linqingying.cangjie.ide.base.projectStructure.matches
-import com.linqingying.cangjie.ide.cache.SLRUCache
+
 import com.linqingying.cangjie.ide.cache.project.getDependentModules
 import com.linqingying.cangjie.ide.projectStructure.moduleInfo
 import com.linqingying.cangjie.ide.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
@@ -96,7 +96,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             synchronized(this) {
                 val cached = this.getIfCached(key)
                 cached ?: run {
-                    this.put(key, newValue)
+                    newValue?.let { this.put(key, it) }
                     newValue
                 }
             }
@@ -413,7 +413,7 @@ internal fun GlobalContextImpl.contextWithCompositeExceptionTracker(
     debugName: String
 ): GlobalContextImpl =
 //    if (project.useCompositeAnalysis || project.useLibraryToSourceAnalysis) {
-//        this.contextWithCompositeExceptionTracker(debugName)
+//        this.contextWithCompositeExceptionTracker(name)
 //    } else {
     this.contextWithNewLockAndCompositeExceptionTracker(debugName)
 //    }

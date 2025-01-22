@@ -33,11 +33,14 @@ import com.linqingying.cangjie.ide.inspections.suppress.CompilerWarningIntention
 import com.linqingying.cangjie.ide.stubindex.resolve.isApplicationInternalMode
 import com.linqingying.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
+import com.intellij.codeInsight.daemon.QuickFixActionRegistrar
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionWithOptions
+import com.intellij.codeInsight.intention.QuickFixFactory
+import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixUpdater
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.SuppressableProblemGroup
@@ -49,6 +52,8 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.util.containers.MultiMap
 import com.intellij.xml.util.XmlStringUtil
 import org.jetbrains.annotations.Nls
+
+
 
 class AnnotationPresentationInfo(
     val ranges: List<TextRange>,
@@ -79,7 +84,7 @@ class AnnotationPresentationInfo(
                     Severity.ERROR -> CodeInsightColors.ERRORS_ATTRIBUTES
                     Severity.WARNING -> CodeInsightColors.WARNINGS_ATTRIBUTES
                     Severity.INFO -> CodeInsightColors.WARNINGS_ATTRIBUTES
-                    else -> null
+
                 }
 
             ProblemHighlightType.GENERIC_ERROR -> CodeInsightColors.ERRORS_ATTRIBUTES
@@ -181,9 +186,24 @@ class AnnotationPresentationInfo(
 
             if (fix == RegisterQuickFixesLaterIntentionAction) {
                 if (builder != null) {
-                    element.reference?.let {
-                        UnresolvedReferenceQuickFixUpdater.getInstance(element.project)
-                            .registerQuickFixesLater(it, builder)
+                    element.reference?.let { reference ->
+                        // 使用静态方法注册所有可用的快速修复
+                        UnresolvedReferenceQuickFixProvider.registerReferenceFixes(
+                            reference,
+                            object : QuickFixActionRegistrar {
+                                override fun register(fix: IntentionAction) {
+                                    builder.registerFix(fix, null, null, range, null)
+                                }
+
+                                override fun register(
+                                    fixRange: TextRange,
+                                    action: IntentionAction,
+                                    key: HighlightDisplayKey?
+                                ) {
+                                    builder.registerFix(action, null, null, fixRange, key)
+                                }
+                            }
+                        )
                     }
                     continue
                 }
@@ -204,6 +224,7 @@ class AnnotationPresentationInfo(
                 CangJieHighlightingBundle.message(if (isError) "cangjie.compiler.error" else "cangjie.compiler.warning")
             builder?.registerFix(fix, options, message, range, keyForSuppressOptions)
             highlightInfo?.registerFix(fix, options, message, range, keyForSuppressOptions)
+
         }
     }
 

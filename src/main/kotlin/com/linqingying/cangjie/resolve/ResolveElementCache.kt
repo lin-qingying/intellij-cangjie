@@ -34,7 +34,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.findParentOfType
 import com.intellij.util.containers.CollectionFactory
-import com.intellij.util.containers.SLRUCache
+
 import com.linqingying.cangjie.analyzer.CjpmLibraryInfo
 import com.linqingying.cangjie.analyzer.DaemonCodeAnalyzerStatusService
 import com.linqingying.cangjie.analyzer.ModuleInfo
@@ -55,6 +55,7 @@ import com.linqingying.cangjie.psi.psiUtil.forEachDescendantOfType
 import com.linqingying.cangjie.psi.psiUtil.getElementTextWithContext
 import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
 import com.linqingying.cangjie.resolve.caches.CodeFragmentAnalyzer
+import com.linqingying.cangjie.resolve.caches.SLRUCache
 import com.linqingying.cangjie.resolve.caches.analyzeControlFlow
 import com.linqingying.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import com.linqingying.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl

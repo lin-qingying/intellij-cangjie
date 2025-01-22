@@ -48,6 +48,7 @@ import javax.swing.JTable
 import javax.swing.ListSelectionModel
 import javax.swing.table.AbstractTableModel
 
+fun  emptyInsets() = JBInsets(0, 0, 0, 0)
 open class BaseCangJieImportLayoutPanel(@Nls title: String) : JPanel(BorderLayout()) {
     val packageTable = CangJiePackageEntryTable()
     val layoutTable = createTableForPackageEntries(packageTable)
@@ -56,7 +57,7 @@ open class BaseCangJieImportLayoutPanel(@Nls title: String) : JPanel(BorderLayou
         border = IdeBorderFactory.createTitledBorder(
             title,
             false,
-            JBInsets.emptyInsets()
+            emptyInsets()
         )
         putClientProperty(DslComponentProperty.VISUAL_PADDINGS, UnscaledGaps.EMPTY)
     }

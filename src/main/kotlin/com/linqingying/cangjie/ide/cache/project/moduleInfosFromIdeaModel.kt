@@ -59,6 +59,7 @@ import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.messages.Topic
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
+import com.linqingying.cangjie.ide.cache.trackers.CHANGED
 
 /** null-platform means that we should get all modules */
 fun getModuleInfosFromIdeaModel(project: Project): List<ModuleInfo> {
@@ -238,8 +239,6 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
             initialize()
         }
 
-        val CHANGED: Topic<WorkspaceModelChangeListener> =
-            Topic(WorkspaceModelChangeListener::class.java, Topic.BroadcastDirection.NONE, true)
 
         override fun subscribe() {
             val connection = project.messageBus.connect(this)

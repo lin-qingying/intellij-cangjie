@@ -27,11 +27,10 @@ package com.linqingying.cangjie.cjpm.project.model
 import com.google.common.annotations.VisibleForTesting
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.cjpm.CjpmConstants
-import com.linqingying.cangjie.cjpm.findChild
 import com.linqingying.cangjie.cjpm.project.pathAsPath
 import com.linqingying.cangjie.cjpm.project.toolwindow.CjpmToolWindow
 import com.linqingying.cangjie.ide.notifications.CjEditorNotificationPanel
-import com.linqingying.cangjie.ide.notifications.isCjpmManifestFile
+import com.linqingying.cangjie.ide.notifications.isCjpmToml
 import com.linqingying.cangjie.ide.run.cjpm.isUnitTestMode
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.saveAllDocuments
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -46,6 +45,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
+import java.nio.file.Path
 
 abstract class CjpmProjectActionBase : DumbAwareAction() {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -65,8 +65,9 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
             CjpmToolWindow.CJPM_TOOLBAR_PLACE -> chooseFile(project, e)
             CjEditorNotificationPanel.NOTIFICATION_PANEL_PLACE -> {
                 val file = e.getData(PlatformDataKeys.VIRTUAL_FILE)
-                if (file?.isCjpmManifestFile == true) file else chooseFile(project, e)
+                if (file?.isCjpmToml == true) file else chooseFile(project, e)
             }
+
             else -> e.getData(PlatformDataKeys.VIRTUAL_FILE)
         } ?: return
 
@@ -85,7 +86,8 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
         return if (isUnitTestMode) {
             event.getData(MOCK_CHOSEN_FILE_KEY)
         } else {
-            val chooser = FileChooserFactory.getInstance().createFileChooser(CjpmProjectChooserDescriptor, project, null)
+            val chooser =
+                FileChooserFactory.getInstance().createFileChooser(CjpmProjectChooserDescriptor, project, null)
             return chooser.choose(project).singleOrNull()
         }
     }
@@ -111,7 +113,7 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
     }
 
     private fun VirtualFile.findCjpmToml(): VirtualFile? {
-        return if (isDirectory) findChild(CjpmConstants.MANIFEST_FILE) else takeIf { it.isCjpmManifestFile }
+        return if (isDirectory) findChild(CjpmConstants.MANIFEST_FILE) else takeIf { it.isCjpmToml }
     }
 
     companion object {
@@ -119,16 +121,23 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
         val MOCK_CHOSEN_FILE_KEY: DataKey<VirtualFile> = DataKey.create("MOCK_CHOSEN_FILE_KEY")
 
         fun canBeAttached(project: Project, cjpmToml: VirtualFile): Boolean {
-            require(cjpmToml.isCjpmManifestFile)
+            require(cjpmToml.isCjpmToml)
             if (!ProjectFileIndex.getInstance(project).isInContent(cjpmToml)) return false
 
             val path = cjpmToml.pathAsPath
 
+            // Project module already contains Cargo project with `cargoToml` as manifest file
+            if (project.cjpmProjects.allProjects.any { it.manifest == path }) return false
+            // Project module already contains a package with `cargoToml` as manifest file
+            if (project.cjpmProjects.allProjects.any { it.containsWorkspaceManifest(path) }) return false
+            return true
 
-            return !project.cjpmProjects.allProjects.any { it.manifest == path }
         }
 
-
+        private fun CjpmProject.containsWorkspaceManifest(path: Path): Boolean {
+            val rootDir = path.parent
+            return workspace?.packages.orEmpty().any { it.rootDirectory == rootDir }
+        }
     }
 }
 
@@ -136,7 +145,7 @@ object CjpmProjectChooserDescriptor : FileChooserDescriptor(true, true, false, f
 
     init {
         // The filter is not used for directories
-        withFileFilter { it.isCjpmManifestFile }
+        withFileFilter { it.isCjpmToml }
         @Suppress("DialogTitleCapitalization")
         withTitle(CangJieBundle.message("dialog.title.select.cjpm.toml"))
     }

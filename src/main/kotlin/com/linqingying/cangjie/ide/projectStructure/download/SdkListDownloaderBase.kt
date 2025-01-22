@@ -1,6 +1,7 @@
 package com.linqingying.cangjie.ide.projectStructure.download
 
 import com.intellij.diagnostic.LoadingState
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.impl.ApplicationInfoImpl
 import com.intellij.openapi.components.Service
@@ -326,12 +327,12 @@ data class SdkPredicate(
         fun none(): SdkPredicate = SdkPredicate(null, emptySet())
 
         fun default(): SdkPredicate = createInstance(forWsl = false)
-        fun forWSL(buildNumber: BuildNumber? = ApplicationInfoImpl.getShadowInstance().build): SdkPredicate =
+        fun forWSL(buildNumber: BuildNumber? = ApplicationInfo.getInstance().build): SdkPredicate =
             createInstance(forWsl = true, buildNumber)
 
         private fun createInstance(
             forWsl: Boolean = false,
-            buildNumber: BuildNumber? = ApplicationInfoImpl.getShadowInstance().build
+            buildNumber: BuildNumber? = ApplicationInfo.getInstance().build
         ): SdkPredicate {
             val x86_64 = "x86_64"
             val defaultPlatform = getCurrentSdkPlatform()

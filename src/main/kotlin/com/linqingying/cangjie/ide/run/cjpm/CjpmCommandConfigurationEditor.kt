@@ -322,30 +322,30 @@ private class ExpandableEditorSupportWithCustomPopup(
     field: EditorTextField,
     private val createPopup: (text: String) -> EditorTextField
 ) : ExpandableEditorSupport(field) {
-    @Suppress("UnstableApiUsage")
-    override fun prepare(field: EditorTextField, onShow: Function<in String, String>): Content {
-        val popup = createPopup(onShow.`fun`(field.text))
-        val background = field.background
-
-        popup.background = background
-        popup.setOneLineMode(false)
-        popup.preferredSize = Dimension(field.width, 5 * field.height)
-        popup.addSettingsProvider { editor ->
-            initPopupEditor(editor, background)
-            copyCaretPosition(editor, field.editor)
-        }
-
-        return object : Content {
-            override fun getContentComponent(): JComponent = popup
-            override fun getFocusableComponent(): JComponent = popup
-            override fun cancel(onHide: Function<in String, String>) {
-                field.text = onHide.`fun`(popup.text)
-                val editor = field.editor
-                if (editor != null) copyCaretPosition(editor, popup.editor)
-                if (editor is EditorEx) updateFieldFolding((editor as EditorEx?)!!)
-            }
-        }
-    }
+//    @Suppress("UnstableApiUsage")
+//    override fun prepare(field: EditorTextField, onShow: Function<in String, String>): Content {
+//        val popup = createPopup(onShow.`fun`(field.text))
+//        val background = field.background
+//
+//        popup.background = background
+//        popup.setOneLineMode(false)
+//        popup.preferredSize = Dimension(field.width, 5 * field.height)
+//        popup.addSettingsProvider { editor ->
+//            initPopupEditor(editor, background)
+//            copyCaretPosition(editor, field.editor)
+//        }
+//
+//        return object : Content {
+//            override fun getContentComponent(): JComponent = popup
+//            override fun getFocusableComponent(): JComponent = popup
+//            override fun cancel(onHide: Function<in String, String>) {
+//                field.text = onHide.`fun`(popup.text)
+//                val editor = field.editor
+//                if (editor != null) copyCaretPosition(editor, popup.editor)
+//                if (editor is EditorEx) updateFieldFolding((editor as EditorEx?)!!)
+//            }
+//        }
+//    }
 
     companion object {
         private fun copyCaretPosition(destination: Editor, source: Editor?) {

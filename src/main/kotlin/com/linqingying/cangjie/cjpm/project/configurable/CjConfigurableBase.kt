@@ -27,7 +27,7 @@ package com.linqingying.cangjie.cjpm.project.configurable
 import com.intellij.openapi.options.BoundConfigurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
-import com.intellij.util.PlatformUtils
+import com.intellij.openapi.application.ApplicationInfo
 
 @Suppress("UnstableApiUsage")
 abstract class CjConfigurableBase(
@@ -35,5 +35,8 @@ abstract class CjConfigurableBase(
     @NlsContexts.ConfigurableName displayName: String
 ) : BoundConfigurable(displayName) {
     // Currently, we have help page only for CLion
-    override fun getHelpTopic(): String? = if (PlatformUtils.isCLion()) "cangjiesupport" else null
+    override fun getHelpTopic(): String? {
+        val productName = ApplicationInfo.getInstance().build.productCode
+        return if (productName == "CL") "cangjiesupport" else null
+    }
 }

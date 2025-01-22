@@ -32,14 +32,17 @@ import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.components.service
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.IntellijInternalApi
+import com.intellij.util.indexing.FileBasedIndex
 import java.util.concurrent.atomic.AtomicBoolean
 
 
-
-@OptIn(IntellijInternalApi::class)
-internal class CangJieRepairIdeAfterCorruptionNotification(private val project: Project) : CangJieCorruptedIndexListener {
+// 监听索引损坏
+internal class CangJieRepairIdeAfterCorruptionNotification(private val project: Project) :
+    CangJieCorruptedIndexListener {
     private val pendingNotificationFlag = AtomicBoolean(false)
 
     override fun corruptionDetected() {
@@ -68,6 +71,8 @@ internal class CangJieRepairIdeAfterCorruptionNotification(private val project: 
 
 private class CangJieRepairIdeAction(private val project: Project) : Runnable {
     override fun run() {
-        service<Saul>().sortThingsOut(ProjectRecoveryScope(project))
+//        TODO 兼容性问题
+//        service<Saul>().sortThingsOut(ProjectRecoveryScope(project))
+
     }
 }
