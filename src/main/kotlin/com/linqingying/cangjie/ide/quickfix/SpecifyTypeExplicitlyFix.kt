@@ -46,7 +46,7 @@ import com.linqingying.cangjie.types.isError
  *
  * @param convertToNullable 一个布尔值，指示是否将类型转换为可空类型，默认为false
  */
-class SpecifyTypeExplicitlyFix(private val convertToNullable: Boolean = false) : PsiElementBaseIntentionAction() {
+class SpecifyTypeExplicitlyFix( ) : PsiElementBaseIntentionAction() {
     /**
      * 返回意图操作的家族名称，用于在IDE的意图操作列表中分类显示
      *
@@ -67,7 +67,7 @@ class SpecifyTypeExplicitlyFix(private val convertToNullable: Boolean = false) :
         val declaration = declarationByElement(element)!!
         // 根据声明获取适当的类型，并根据convertToNullable参数决定是否将其转换为可空类型
         val type = SpecifyTypeExplicitlyIntention.getTypeForDeclaration(declaration)
-            .let { if (convertToNullable) it.convertToNullable() else it }
+
         // 为声明添加类型注解
         SpecifyTypeExplicitlyIntention.addTypeAnnotation(editor, declaration, type)
     }
@@ -109,10 +109,3 @@ class SpecifyTypeExplicitlyFix(private val convertToNullable: Boolean = false) :
     }
 }
 
-/**
- * 将给定的类型转换为可空类型
- * 这个函数通过CangJieTypeFactory创建一个新的简单类型，其可空性设置为true
- *
- * @return 转换为可空类型的CangJieType实例
- */
-fun CangJieType.convertToNullable(): CangJieType = CangJieTypeFactory.simpleType(asSimpleType(), nullable = true)
