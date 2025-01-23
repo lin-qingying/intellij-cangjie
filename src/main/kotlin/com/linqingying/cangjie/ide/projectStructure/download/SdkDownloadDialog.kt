@@ -315,7 +315,9 @@ internal class SdkDownloadDialog(
         }
 
         row(CangJieBundle.message("dialog.row.sdk.location")) {
-            cell(setupContainer()).align(AlignX.FILL).apply { archiveSizeCell = comment("") }
+            cell(setupContainer()).align(AlignX.FILL).apply {
+                archiveSizeCell = comment("")
+            }
         }
     }
 
@@ -338,27 +340,42 @@ internal class SdkDownloadDialog(
                 isEditable = true
                 initBrowsableEditor(
                     BrowseFolderRunnable(
+                        CangJieBundle.message("dialog.title.select.path.to.install.sdk"),
+                        null,
                         project,
-                        FileChooserDescriptorFactory.createSingleFolderDescriptor()
-                            .withTitle(CangJieBundle.message("dialog.title.select.path.to.install.sdk")),
+                        FileChooserDescriptorFactory.createSingleFolderDescriptor(),
                         installDirCombo,
                         TextComponentAccessor.STRING_COMBOBOX_WHOLE_TEXT
-                    ), disposable
+                    )
+//                    BrowseFolderRunnable(
+//                        project,
+//                        FileChooserDescriptorFactory.createSingleFolderDescriptor()
+//                            .withTitle(CangJieBundle.message("dialog.title.select.path.to.install.sdk")),
+//                        installDirCombo,
+//                        TextComponentAccessor.STRING_COMBOBOX_WHOLE_TEXT
+//                    )
+                    , disposable
                 )
                 addActionListener { onTargetPathChanged(editor.item as String) }
                 installDirComponent = this
             }
             installDirTextField = null
         } else {
+//            installDirTextField = textFieldWithBrowseButton(
+//                project,
+//                FileChooserDescriptorFactory.createSingleFolderDescriptor()
+//                    .withTitle(CangJieBundle.message("dialog.title.select.path.to.install.sdk"))
+//            )
             installDirTextField = textFieldWithBrowseButton(
-                project,
-                FileChooserDescriptorFactory.createSingleFolderDescriptor()
-                    .withTitle(CangJieBundle.message("dialog.title.select.path.to.install.sdk"))
-            ).apply {
-                onTextChange { onTargetPathChanged(it) }
-                textField.columns = 36
-                installDirComponent = this
-            }
+                project = project,
+                browseDialogTitle = CangJieBundle.message("dialog.title.select.path.to.install.sdk"),
+                fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor()
+            )
+                .apply {
+                    onTextChange { onTargetPathChanged(it) }
+                    textField.columns = 36
+                    installDirComponent = this
+                }
             installDirCombo = null
         }
         return installDirComponent

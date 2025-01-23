@@ -31,9 +31,9 @@ import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider
 import com.intellij.injected.editor.VirtualFileWindow
 import com.intellij.psi.PsiReference
 
-class CangJieUnresolvedReferenceQuickFixProvider : UnresolvedReferenceQuickFixProvider<PsiReference>() {
-    override fun registerFixes(reference: PsiReference, registrar: QuickFixActionRegistrar) {
-        val element = reference.element as? CjElement ?: return
+class CangJieUnresolvedReferenceQuickFixProvider :  UnresolvedReferenceQuickFixProvider<PsiReference>() {
+    override fun registerFixes(ref: PsiReference, registrar: QuickFixActionRegistrar) {
+        val element = ref.element as? CjElement ?: return
 
         val quickFixProvider =  CangJieQuickFixProvider.getInstance(element.project)
         val documentWindow = (element.containingFile.virtualFile as? VirtualFileWindow)?.documentWindow

@@ -7,7 +7,7 @@ import com.linqingying.cangjie.ide.completion.addingPolicy.PassDirectlyPolicy
 
 import com.linqingying.cangjie.ide.completion.addingPolicy.PolicyController
 
-import org.jetbrains.annotations.ApiStatus
+
 
 
 class ImmediateExecutor(override val parameters: CompletionParameters,

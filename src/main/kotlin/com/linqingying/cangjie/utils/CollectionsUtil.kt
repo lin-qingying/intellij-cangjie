@@ -25,7 +25,7 @@
 package com.linqingying.cangjie.utils
 
 import com.intellij.util.SmartList
-import org.jetbrains.annotations.ApiStatus
+
 import java.util.ArrayList
 import kotlin.reflect.KClass
 import kotlin.reflect.cast

@@ -8,24 +8,19 @@ import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.Query;
-import org.jetbrains.annotations.ApiStatus;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
 
-/**
- * This is internal class providing implementation for {@link com.intellij.openapi.roots.ProjectFileIndex}.
- * It will be removed when all code switches to use the new implementation (IDEA-276394).
- * All plugins which still use this class must be updated to use {@link com.intellij.openapi.roots.ProjectFileIndex} and other APIs instead.
- */
 
-@ApiStatus.Obsolete
+
+
 public abstract class CangJieDirectoryIndex {
   public static CangJieDirectoryIndex getInstance(Project project) {
-    // todo enable later when all usages will be fixed
-    //assert !project.isDefault() : "Must not call CangJieDirectoryIndex for default project";
+
     return project.getService(CangJieDirectoryIndex.class);
   }
 
@@ -43,9 +38,7 @@ public abstract class CangJieDirectoryIndex {
   @NotNull
   public abstract List<OrderEntry> getOrderEntries(@NotNull VirtualFile fileOrDir);
 
-  /**
-   * @return names of unloaded modules which directly or transitively via exported dependencies depend on the specified module
-   */
+
   @NotNull
   public abstract Set<String> getDependentUnloadedModules(@NotNull Module module);
 }

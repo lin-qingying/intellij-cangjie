@@ -125,7 +125,7 @@ fun PsiDirectory.getCjpmProjectDirectory(): Pair<String, Path> {
 
     // 查找当前目录所属的项目
     return projectDirectories.find { (_, rootPath) ->
-        currentPath.startsWith(rootPath.toString())
+        currentPath.startsWith(rootPath.toString().replace("\\", "/"))
     } ?: ("" to Path(""))
 
 }

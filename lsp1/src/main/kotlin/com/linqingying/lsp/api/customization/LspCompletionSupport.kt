@@ -8,7 +8,7 @@ import com.intellij.lang.injection.InjectedLanguageManager
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.CompletionItemKind
 import org.eclipse.lsp4j.CompletionItemTag
-import org.jetbrains.annotations.ApiStatus
+
 import javax.swing.Icon
 
 /**
@@ -17,7 +17,7 @@ import javax.swing.Icon
  * Implementations may fine-tune the code completion behavior.
  * For example, they may filter out unneeded completion items or tweak completion item decoration.
  */
-@ApiStatus.Experimental
+
 open class LspCompletionSupport {
     /**
      * Called when the IDE is going to run a code completion session.

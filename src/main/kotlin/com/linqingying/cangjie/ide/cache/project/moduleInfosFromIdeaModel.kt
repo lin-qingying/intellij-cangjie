@@ -61,27 +61,65 @@ import com.intellij.util.messages.Topic
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import com.linqingying.cangjie.ide.cache.trackers.CHANGED
 
-/** null-platform means that we should get all modules */
+/**
+ * 从IntelliJ IDEA模型中获取指定项目的模块信息。
+ * 如果平台为null，则表示应获取所有模块。
+ * 该函数使用`runReadAction`以确保在读取操作中安全地访问项目和模块信息。
+ *
+ * @param project 从中获取模块信息的项目。
+ * @return 表示项目中模块的`ModuleInfo`对象列表。
+ */
 fun getModuleInfosFromIdeaModel(project: Project): List<ModuleInfo> {
     return runReadAction {
+        // 获取指定项目的IDEA模型信息缓存
         val ideaModelInfosCache = getIdeaModelInfosCache(project)
 
+        // 从缓存中获取所有模块信息
         ideaModelInfosCache.allModules()
-
     }
 }
 
-fun getIdeaModelInfosCache(project: Project): ModelInfosCache = project.service()
-interface ModelInfosCache {
-//    fun forPlatform(platform: TargetPlatform): List<IdeaModuleInfo>
 
+fun getIdeaModelInfosCache(project: Project): ModelInfosCache = project.service()
+
+/**
+ * ModelInfosCache 接口定义了一组方法，用于获取与平台、模块、库相关的模块信息缓存。
+ * 它的主要作用是提供一种统一的方式来访问不同来源的模块信息，以优化性能和一致性。
+ */
+interface ModelInfosCache {
+
+    /**
+     * 获取所有模块的列表。
+     *
+     * @return 包含所有模块信息的列表。
+     */
     fun allModules(): List<ModuleInfo>
+
+    /**
+     * 根据给定的模块获取其相关的模块信息集合。
+     *
+     * @param module 要查询的模块。
+     * @return 与给定模块相关的模块信息集合。
+     */
     fun getModuleInfosForModule(module: Module): Collection<ModuleInfo>
 
+    /**
+     * 根据给定的库获取其相关的库信息集合。
+     *
+     * @param library 要查询的库。
+     * @return 与给定库相关的库信息集合。
+     */
     fun getLibraryInfosForLibrary(library: Library): Collection<LibraryInfo>
-//    fun getSdkInfoForSdk(sdk: Sdk): SdkInfo?
 
+    /**
+     * 根据给定的SDK获取其相关的SDK信息。
+     *
+     * @param sdk 要查询的SDK。
+     * @return 与给定SDK相关的SDK信息，如果找不到则返回null。
+     */
+//    fun getSdkInfoForSdk(sdk: Sdk): SdkInfo?
 }
+
 
 class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosCache, Disposable {
 
@@ -272,20 +310,22 @@ class FineGrainedIdeaModelInfosCache(private val project: Project) : ModelInfosC
 
         abstract fun modelChanged(event: VersionedStorageChange)
     }
-
-    override fun allModules(): List<ModuleInfo> {
-        val list = /*try{*/
-            (modules.value + libraries.value).also {
-                it.checkValidity { "allModules" }
-            }
-//        }catch (e:CangJieExceptionWithAttachments){
+    override fun allModules(): List<ModuleInfo> = (modules.value + libraries.value).also {
+        it.checkValidity { "allModules" }
+    }
+//    override fun allModules(): List<ModuleInfo> {
+//        val list = try {
+//            (modules.value + libraries.value).also {
+//                it.checkValidity { "allModules" }
+//            }
+//        } catch (e: CangJieExceptionWithAttachments) {
 //            resetLibraries()
 //            return allModules()
-
+//
 //        }
-
-        return list
-    }
+//
+//        return list
+//    }
 
     override fun getModuleInfosForModule(module: Module): Collection<ModuleInfo> = moduleCache[module]
     override fun getLibraryInfosForLibrary(library: Library): Collection<LibraryInfo> =

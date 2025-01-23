@@ -3,7 +3,7 @@ package com.linqingying.lsp.api
 
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.services.LanguageClient
-import org.jetbrains.annotations.ApiStatus
+
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -18,7 +18,6 @@ import java.util.concurrent.CompletableFuture
  *    @JsonNotification("@/foo/bar")
  *    fun fooBar(fooBar: FooBarNotification) { ... }
  */
-@ApiStatus.OverrideOnly
 open class Lsp4jClient(private val serverNotificationsHandler: LspServerNotificationsHandler) : LanguageClient {
     final override fun applyEdit(params: ApplyWorkspaceEditParams) = serverNotificationsHandler.applyEdit(params)
     final override fun registerCapability(params: RegistrationParams) =

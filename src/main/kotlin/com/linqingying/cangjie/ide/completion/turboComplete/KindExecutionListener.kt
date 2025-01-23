@@ -2,7 +2,7 @@
 package com.linqingying.cangjie.ide.completion.turboComplete
 
 import com.intellij.codeInsight.completion.CompletionParameters
-import org.jetbrains.annotations.ApiStatus
+
 
 /**
  * Listens how [SuggestionGenerator]s are executed

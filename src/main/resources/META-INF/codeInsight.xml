@@ -24,7 +24,12 @@
 
 <idea-plugin>
 
+<extensions defaultExtensionNs="com.linqingying.cangjie.ide">
+<!--    <codeInsight.unresolvedReferenceQuickFixProvider-->
+<!--            id="cangjieUnresolvedReferenceQuickFixProvider"-->
+<!--            implementation="com.linqingying.cangjie.ide.codeinsight.CangJieUnresolvedReferenceQuickFixProvider"/>-->
 
+</extensions>
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.unresolvedReferenceQuickFixProvider
                 id="cangjieUnresolvedReferenceQuickFixProvider"

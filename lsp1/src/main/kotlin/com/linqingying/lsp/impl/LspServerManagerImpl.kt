@@ -37,7 +37,7 @@ import com.linqingying.lsp.api.*
 import com.linqingying.lsp.impl.requests.DidChangeNotification
 import com.linqingying.lsp.impl.requests.SemanticTokensFullNotification
 import org.eclipse.lsp4j.FileChangeType
-import org.jetbrains.annotations.ApiStatus
+
 import org.jetbrains.annotations.TestOnly
 import javax.swing.JComponent
 import com.linqingying.utils.Config

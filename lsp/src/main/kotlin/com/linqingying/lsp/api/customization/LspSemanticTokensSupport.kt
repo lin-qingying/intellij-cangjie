@@ -30,7 +30,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiFile
 import org.eclipse.lsp4j.SemanticTokenModifiers
 import org.eclipse.lsp4j.SemanticTokenTypes
-import org.jetbrains.annotations.ApiStatus
+
 
 /**
  * 参见 LSP 规范：[语义标记](https://microsoft.github.io/language-server-protocol/specification/#textDocument_semanticTokens)

@@ -1,7 +1,6 @@
 package com.linqingying.cangjie.ide.completion.addingPolicy
 
 import com.intellij.codeInsight.completion.CompletionResultSet
-import com.intellij.codeInsight.completion.PolicyDrivenResultSet
 import com.intellij.util.containers.Stack
 import com.linqingying.cangjie.ide.completion.turboComplete.ElementsAddingPolicy
 
@@ -37,7 +36,8 @@ class PolicyController(private val originalResult: CompletionResultSet) : () -> 
      * @return A result set, that will be obeying to this controller
      */
     fun getObeyingResultSet(): CompletionResultSet {
-        return PolicyDrivenResultSet(originalResult, this)
+//        return PolicyDrivenResultSet(originalResult, this)
+        return originalResult
     }
 
     /**

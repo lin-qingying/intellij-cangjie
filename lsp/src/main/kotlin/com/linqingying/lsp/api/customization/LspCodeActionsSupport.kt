@@ -27,7 +27,7 @@ package com.linqingying.lsp.api.customization
 import com.linqingying.lsp.api.LspServer
 import org.eclipse.lsp4j.CodeAction
 import org.eclipse.lsp4j.Diagnostic
-import org.jetbrains.annotations.ApiStatus
+
 
 /**
  * 处理从 LSP 服务器接收到的 [CodeAction](https://microsoft.github.io/language-server-protocol/specification#codeAction) 对象。

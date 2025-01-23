@@ -92,7 +92,7 @@ class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWizard {
                 //                organizationName = groupIdTextField.text,
                 //                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
             )
-            val module = builder.commit(project).firstOrNull() ?: return
+            val module = builder.commit(project)?.firstOrNull() ?: return
             //
             ModuleRootModificationUtil.updateModel(module) { rootModel ->
                 builder.configurationData = peer.settings
@@ -193,7 +193,7 @@ class CangJieNewProjectWizard : LanguageNewProjectWizard {
                 //                organizationName = groupIdTextField.text,
                 //                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
             )
-            val module = builder.commit(project).firstOrNull() ?: return
+            val module = builder.commit(project)?.firstOrNull() ?: return
             //
             ModuleRootModificationUtil.updateModel(module) { rootModel ->
                 builder.configurationData = peer.settings

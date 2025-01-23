@@ -364,7 +364,7 @@ private class WorkingDirectoryComponent : LabeledComponent<TextFieldWithBrowseBu
             val fileChooser = FileChooserDescriptorFactory.createSingleFolderDescriptor().apply {
                 title = ExecutionBundle.message("select.working.directory.message")
             }
-            addBrowseFolderListener(null, fileChooser)
+            addBrowseFolderListener(null, null, null,  fileChooser)
         }
         text = ExecutionBundle.message("run.configuration.working.directory.label")
     }

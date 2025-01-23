@@ -107,18 +107,18 @@ class CjpmToolWindow(
             projectStructure.updateCjpmProjects(project.cjpmProjects.allProjects.toList())
         }
 
-        val manager = ToolWindowManager.getInstance(project)
-        val toolWindow = manager.getToolWindow(ID) ?: run {
-            manager.registerToolWindow(
-                RegisterToolWindowTask(
-                    id = ID,
-                    icon = CangJieIcons.CANGJIE,
-                    contentFactory = CjpmToolWindowFactory(),
-                    canCloseContent = true,
-//                    stripeTitle = { CangJieBundle.message("toolwindow.stripe.Cjpm") }
-                )
-            )
-        }
+//        val manager = ToolWindowManager.getInstance(project)
+//        val toolWindow = manager.getToolWindow(ID) ?: run {
+//            manager.registerToolWindow(
+//                RegisterToolWindowTask(
+//                    id = ID,
+//                    icon = CangJieIcons.CANGJIE,
+//                    contentFactory = CjpmToolWindowFactory(),
+//                    canCloseContent = true,
+////                    stripeTitle = { CangJieBundle.message("toolwindow.stripe.Cjpm") }
+//                )
+//            )
+//        }
     }
 
     /**

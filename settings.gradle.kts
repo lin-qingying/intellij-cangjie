@@ -55,7 +55,7 @@ include("lsp")
 
 
 
-include("native-debugger")
+//include("native-debugger")
 
 include("dap-debugger")
 

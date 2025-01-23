@@ -34,7 +34,7 @@ import com.intellij.psi.search.searches.ExtensibleQueryFactory;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.Query;
 import com.intellij.util.QueryExecutor;
-import org.jetbrains.annotations.ApiStatus;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,7 +102,7 @@ public final class DirectClassInheritorsSearch extends ExtensibleQueryFactory<Cj
             return null;
         }
 
-        @ApiStatus.Experimental
+        
         public boolean shouldSearchInLanguage(@NotNull Language language) {
             return true;
         }

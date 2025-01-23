@@ -4,7 +4,7 @@ package com.linqingying.lsp.api
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.ApiStatus
+
 import org.jetbrains.annotations.TestOnly
 
 /**
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.TestOnly
  * Plugins may want to start an LSP server not on 'file opened in the editor' event but on some other event, for example, on enabling a
  * plugin-specific framework support in Settings. In this case plugins can use [LspServerManager.startServersIfNeeded].
  */
-@ApiStatus.Experimental
+
 interface LspServerManager {
     companion object {
         /**

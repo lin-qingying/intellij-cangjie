@@ -5,7 +5,7 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.linqingying.cangjie.ide.completion.addingPolicy.PolicyController
 
 
-import org.jetbrains.annotations.ApiStatus
+
 
 
 interface SuggestionGeneratorExecutor : SuggestionGeneratorConsumer {

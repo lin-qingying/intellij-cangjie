@@ -20,7 +20,7 @@ import com.linqingying.lsp.api.LspServer
 import com.linqingying.lsp.api.customization.requests.util.applyTextEdits
 import com.linqingying.lsp.api.customization.requests.util.getOffsetInDocument
 import org.eclipse.lsp4j.*
-import org.jetbrains.annotations.ApiStatus
+
 
 
 /**
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.ApiStatus
  * create [LspIntentionAction] objects. After that, those quick fix stubs delegate [getText], [isAvailable], and [invoke] calls to these
  * [LspIntentionAction] objects.
  */
-@ApiStatus.Experimental
+
 open class LspIntentionAction(
     protected val lspServer: LspServer, protected val codeAction: CodeAction
 ) : IntentionAction {

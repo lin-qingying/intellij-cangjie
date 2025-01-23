@@ -57,15 +57,46 @@ interface CangJieQuickFixProvider {
 
     fun createSuppressFix(element: CjElement, suppressionKey: String, hostKind: AnnotationHostKind): SuppressIntentionAction
 }
-
+/**
+ * 实现IntentionAction接口的单例对象，用于在稍后注册快速修复建议。
+ * 此类主要用于IDE中，为开发者提供代码问题的自动修复选项。
+ */
 object RegisterQuickFixesLaterIntentionAction : IntentionAction {
+    /**
+     * 获取此操作的文本描述，此处返回空字符串。
+     * @return 空字符串
+     */
     override fun getText(): String = ""
 
+    /**
+     * 获取此操作所属的家族名称，此处返回空字符串。
+     * 家族名称用于对相似的操作进行分组。
+     * @return 空字符串
+     */
     override fun getFamilyName(): String = ""
 
+    /**
+     * 检查此操作是否适用于给定的上下文。
+     * 此处始终返回false，表示此操作不适用于任何上下文。
+     * @param project 当前项目
+     * @param editor 编辑器实例，可能为null
+     * @param file 当前文件，可能为null
+     * @return 始终返回false
+     */
     override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean = false
 
+    /**
+     * 执行此操作，此处为空操作。
+     * @param project 当前项目
+     * @param editor 编辑器实例，可能为null
+     * @param file 当前文件，可能为null
+     */
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) = Unit
 
+    /**
+     * 表示此操作是否需要在写操作中启动。
+     * 此处返回false，表示不需要在写操作中启动。
+     * @return 始终返回false
+     */
     override fun startInWriteAction(): Boolean = false
 }

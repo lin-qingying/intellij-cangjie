@@ -35,7 +35,7 @@ import com.intellij.openapi.util.ScalableIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.util.ui.ColorsIcon
 import com.intellij.util.ui.JBUI
-import org.jetbrains.annotations.ApiStatus
+
 import javax.swing.Icon
 
 import kotlin.math.absoluteValue

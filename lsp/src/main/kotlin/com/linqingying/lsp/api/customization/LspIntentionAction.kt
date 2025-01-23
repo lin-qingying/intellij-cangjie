@@ -44,7 +44,7 @@ import com.intellij.util.concurrency.annotations.RequiresWriteLock
 import com.linqingying.lsp.api.LspServer
 import com.linqingying.lsp.util.applyTextEdits
 import org.eclipse.lsp4j.*
-import org.jetbrains.annotations.ApiStatus
+
 
 
 /**

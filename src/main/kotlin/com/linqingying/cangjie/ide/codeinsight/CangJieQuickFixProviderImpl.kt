@@ -63,6 +63,19 @@ class CangJieQuickFixProviderImpl : CangJieQuickFixProvider {
         }
     }
 
+    /**
+     * 创建快速修复项。
+     *
+     * 该函数根据诊断信息和意图操作工厂生成相应的快速修复项，并将它们添加到 [actions] 中。
+     *
+     * @param intentionActionsFactories 意图操作工厂的集合，用于生成快速修复项。
+     * @param diagnostics 诊断信息的集合，表示需要处理的问题。
+     * @param actions 存储诊断信息与快速修复项映射关系的多值映射表。
+     * @param firstDiagnostic 第一个诊断信息，用于某些全局修复操作。
+     * @param replaceUnresolvedReferenceQuickFix 是否替换未解析引用的快速修复项。
+     * @param unresolvedReferenceQuickFixOnly 是否仅处理未解析引用的快速修复项。
+     * @return 返回包含所有生成的快速修复项的多值映射表。
+     */
     private fun createQuickFixes(
         intentionActionsFactories: Collection<CangJieIntentionActionsFactory>,
         diagnostics: Collection<Diagnostic>,
@@ -71,32 +84,43 @@ class CangJieQuickFixProviderImpl : CangJieQuickFixProvider {
         replaceUnresolvedReferenceQuickFix: Boolean,
         unresolvedReferenceQuickFixOnly: Boolean
     ): MultiMap<Diagnostic, IntentionAction> {
+
+        // 获取第一个诊断信息，用于全局修复操作
         val first = diagnostics.first()
+
+        // 遍历每个意图操作工厂，生成对应的快速修复项
         for (intentionActionsFactory in intentionActionsFactories) {
-            if ((unresolvedReferenceQuickFixOnly || replaceUnresolvedReferenceQuickFix) && intentionActionsFactory is UnresolvedReferenceQuickFixFactory) {
-                if (
-                // UnresolvedReferenceQuickFixUpdater works only when reference is available
-                    first.psiElement.reference != null &&
-                    (unresolvedReferenceQuickFixOnly || intentionActionsFactory.areActionsAvailable(first))
-                ) {
-                    actions.putValue(first, RegisterQuickFixesLaterIntentionAction)
-                    if (unresolvedReferenceQuickFixOnly) break
-                    continue
-                }
-            }
-            if (unresolvedReferenceQuickFixOnly) {
-                continue
-            }
+            // 如果仅处理未解析引用的快速修复项或替换未解析引用的快速修复项，并且当前工厂是 UnresolvedReferenceQuickFixFactory 类型
+//            if ((unresolvedReferenceQuickFixOnly || replaceUnresolvedReferenceQuickFix) && intentionActionsFactory is UnresolvedReferenceQuickFixFactory) {
+//                // 只有当引用存在并且满足条件时才注册快速修复项
+//                if (first.psiElement.reference != null && (unresolvedReferenceQuickFixOnly || intentionActionsFactory.areActionsAvailable(
+//                        first
+//                    ))
+//                ) {
+//                    actions.putValue(first, RegisterQuickFixesLaterIntentionAction)
+//                    if (unresolvedReferenceQuickFixOnly) break
+//                    continue
+//                }
+//            }
+
+            // 如果仅处理未解析引用的快速修复项，则跳过其他类型的修复项
+//            if (unresolvedReferenceQuickFixOnly) {
+//                continue
+//            }
+
+            // 尝试为所有问题创建修复项
             val allProblemsActions = intentionActionsFactory.createActionsForAllProblems(diagnostics)
             if (allProblemsActions.isNotEmpty()) {
                 actions.putValues(firstDiagnostic, allProblemsActions)
             } else {
+                // 如果没有全局修复项，则逐个诊断信息创建修复项
                 for (diagnostic in diagnostics) {
                     actions.putValues(diagnostic, intentionActionsFactory.createActions(diagnostic))
                 }
             }
         }
 
+        // 从 QuickFixes 实例中获取额外的修复项并添加到 actions 中
         for (diagnostic in diagnostics) {
             val intentionActions = QuickFixes.getInstance().getActions(diagnostic.factory)
             if (intentionActions.isNotEmpty()) {
@@ -104,6 +128,7 @@ class CangJieQuickFixProviderImpl : CangJieQuickFixProvider {
             }
         }
 
+        // 对所有修复项进行检查
         actions.values().forEach { NoDeclarationDescriptorsChecker.check(it::class.java) }
 
         return actions

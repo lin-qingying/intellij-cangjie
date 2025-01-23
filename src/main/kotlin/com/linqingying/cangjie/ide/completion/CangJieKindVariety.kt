@@ -32,7 +32,7 @@ import com.linqingying.cangjie.ide.completion.turboComplete.KindVariety
 /**
  * Represents categories of completion variants in CangJie   code completion.
  *
- * The names are used later to create [com.intellij.platform.ml.impl.turboComplete.KindCollector]s,
+ * The names are used later to create [com.linqingying.cangjie.ide.completion.turboComplete.KindCollector]s,
  * which are later reordered via [com.intellij.turboComplete.SortingExecutor].
  */
 enum class CangJieCompletionKindName {

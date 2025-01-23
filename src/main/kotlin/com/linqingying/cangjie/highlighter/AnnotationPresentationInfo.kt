@@ -24,35 +24,47 @@
 
 package com.linqingying.cangjie.highlighter
 
-import com.linqingying.cangjie.diagnostics.Diagnostic
-import com.linqingying.cangjie.diagnostics.Severity
-import com.linqingying.cangjie.diagnostics.rendering.DefaultErrorMessages
+//import com.intellij.codeInsight.daemon.HighlightDisplayKey
+//import com.intellij.codeInsight.daemon.impl.HighlightInfo
+//
+//import com.intellij.codeInsight.daemon.impl.HighlightInfoType
+//import com.intellij.codeInsight.daemon.impl.UnresolveReferenceQuickFixUtil
+//import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
+//import com.intellij.codeInsight.daemon.impl.registerQuickFixesLater
 
-import com.linqingying.cangjie.ide.inspections.suppress.CangJieSuppressableWarningProblemGroup
-import com.linqingying.cangjie.ide.inspections.suppress.CompilerWarningIntentionAction
-import com.linqingying.cangjie.ide.stubindex.resolve.isApplicationInternalMode
-import com.linqingying.cangjie.ide.stubindex.resolve.isUnitTestMode
 import com.intellij.codeInsight.daemon.HighlightDisplayKey
-import com.intellij.codeInsight.daemon.QuickFixActionRegistrar
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionWithOptions
-import com.intellij.codeInsight.intention.QuickFixFactory
-import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixUpdater
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.SuppressableProblemGroup
+import com.intellij.codeInspection.util.IntentionFamilyName
+import com.intellij.codeInspection.util.IntentionName
 import com.intellij.lang.annotation.ProblemGroup
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiReference
 import com.intellij.util.containers.MultiMap
 import com.intellij.xml.util.XmlStringUtil
-import org.jetbrains.annotations.Nls
 
+import com.linqingying.cangjie.diagnostics.Diagnostic
+import com.linqingying.cangjie.diagnostics.Severity
+import com.linqingying.cangjie.diagnostics.rendering.DefaultErrorMessages
+import com.linqingying.cangjie.ide.inspections.suppress.CangJieSuppressableWarningProblemGroup
+import com.linqingying.cangjie.ide.inspections.suppress.CompilerWarningIntentionAction
+
+import com.linqingying.cangjie.ide.stubindex.resolve.isApplicationInternalMode
+import com.linqingying.cangjie.ide.stubindex.resolve.isUnitTestMode
+import org.jetbrains.annotations.Nls
 
 
 class AnnotationPresentationInfo(
@@ -90,6 +102,7 @@ class AnnotationPresentationInfo(
             ProblemHighlightType.GENERIC_ERROR -> CodeInsightColors.ERRORS_ATTRIBUTES
             else -> null
         }
+
     private fun convertSeverity(highlightType: ProblemHighlightType?, severity: Severity): HighlightInfoType =
         when (severity) {
             Severity.ERROR -> HighlightInfoType.ERROR
@@ -98,8 +111,9 @@ class AnnotationPresentationInfo(
                     HighlightInfoType.WEAK_WARNING
                 } else HighlightInfoType.WARNING
             }
+
             Severity.INFO -> HighlightInfoType.WEAK_WARNING
-            else -> HighlightInfoType.INFORMATION
+//            else -> HighlightInfoType.INFORMATION
         }
 
     private fun toHighlightInfoType(highlightType: ProblemHighlightType?, severity: Severity): HighlightInfoType =
@@ -116,7 +130,7 @@ class AnnotationPresentationInfo(
         range: TextRange,
         group: CangJieSuppressableWarningProblemGroup?
     ): HighlightInfo.Builder {
-        val message = if(nonDefaultMessage.isNullOrEmpty()) getDefaultMessage(diagnostic) else nonDefaultMessage
+        val message = if (nonDefaultMessage.isNullOrEmpty()) getDefaultMessage(diagnostic) else nonDefaultMessage
         val textAttributesToApply = if (textAttributes != null) {
             textAttributes
         } else {
@@ -179,36 +193,28 @@ class AnnotationPresentationInfo(
             )
         } else null
 
+
         for (fix in fixes) {
             if (fix !is IntentionAction) {
                 continue
             }
 
+
             if (fix == RegisterQuickFixesLaterIntentionAction) {
                 if (builder != null) {
-                    element.reference?.let { reference ->
-                        // 使用静态方法注册所有可用的快速修复
-                        UnresolvedReferenceQuickFixProvider.registerReferenceFixes(
-                            reference,
-                            object : QuickFixActionRegistrar {
-                                override fun register(fix: IntentionAction) {
-                                    builder.registerFix(fix, null, null, range, null)
-                                }
 
-                                override fun register(
-                                    fixRange: TextRange,
-                                    action: IntentionAction,
-                                    key: HighlightDisplayKey?
-                                ) {
-                                    builder.registerFix(action, null, null, fixRange, key)
-                                }
-                            }
-                        )
-                    }
+//                    element.reference?.let {
+
+                    //TODO 兼容性调整
+//                        UnresolvedReferenceQuickFixUpdater.getInstance(element.project)
+//                            .registerQuickFixesLater(it, builder)
+//
+//                        UnresolvedReferenceQuickFixProvider.registerReferenceFixes(it, builder)
+//                    }
+
                     continue
                 }
             }
-
             val options = mutableListOf<IntentionAction>()
 
             if (fix is IntentionActionWithOptions) {
@@ -223,11 +229,21 @@ class AnnotationPresentationInfo(
             val message =
                 CangJieHighlightingBundle.message(if (isError) "cangjie.compiler.error" else "cangjie.compiler.warning")
             builder?.registerFix(fix, options, message, range, keyForSuppressOptions)
-            highlightInfo?.registerFix(fix, options, message, range, keyForSuppressOptions)
+//            highlightInfo?.registerFix(fix, options, message, range, keyForSuppressOptions)
 
         }
+
     }
 
+    /**
+     * 处理诊断信息，将其转换为编辑器中的高亮信息
+     *
+     * @param holder HighlightInfoHolder对象，用于存储高亮信息
+     * @param diagnostics 一组诊断信息，用于识别和处理代码问题
+     * @param highlightInfoByDiagnostic 一个可变映射，将诊断信息映射到高亮信息
+     * @param fixesMap 多重映射，将诊断信息映射到多个快速修复动作
+     * @param calculatingInProgress 布尔值，指示是否正在计算诊断信息
+     */
     fun processDiagnostics(
         holder: HighlightInfoHolder,
         diagnostics: Collection<Diagnostic>,
@@ -235,15 +251,20 @@ class AnnotationPresentationInfo(
         fixesMap: MultiMap<Diagnostic, IntentionAction>,
         calculatingInProgress: Boolean
     ) {
+        // 遍历所有范围，对每个范围内的诊断信息进行处理
         for (range in ranges) {
+            // 对每个诊断信息进行处理
             for (diagnostic in diagnostics) {
+                // 根据诊断信息的严重性决定是否创建一个可抑制的警告问题组
                 val group = if (diagnostic.severity == Severity.WARNING) {
                     CangJieSuppressableWarningProblemGroup(diagnostic.factory.name)
                 } else {
                     null
                 }
+                // 检查是否已经存在与当前诊断信息关联的高亮信息
                 val existingInfo = highlightInfoByDiagnostic?.get(diagnostic)
                 if (existingInfo != null) {
+                    // 如果存在，并且不在计算诊断信息的过程中，则应用快速修复
                     if (!calculatingInProgress) {
                         applyFixes(
                             fixesMap,
@@ -255,7 +276,9 @@ class AnnotationPresentationInfo(
                         )
                     }
                 } else {
+                    // 如果不存在，则创建一个新的高亮信息构建器
                     val builder = create(diagnostic, range, group)
+                    // 如果不在计算诊断信息的过程中，或者有快速修复可以应用，则进行处理
                     if (!calculatingInProgress || !fixesMap.isEmpty) {
                         applyFixes(
                             fixesMap,
@@ -266,9 +289,14 @@ class AnnotationPresentationInfo(
                             problemGroup = group
                         )
                     }
+                    // 无条件创建高亮信息，并添加到持有者中
                     val highlightInfo = builder.createUnconditionally()
+
+
                     holder.add(highlightInfo)
+                    // 将诊断信息和对应的高亮信息添加到映射中
                     highlightInfoByDiagnostic?.put(diagnostic, highlightInfo)
+
                 }
             }
         }

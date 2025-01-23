@@ -5,12 +5,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.annotations.RequiresEdt
 import com.linqingying.lsp.api.LspServer
 import org.eclipse.lsp4j.Command
-import org.jetbrains.annotations.ApiStatus
+
 
 /**
  * Handles [Command](https://microsoft.github.io/language-server-protocol/specification#command) objects received from the LSP server.
  */
-@ApiStatus.Experimental
+
 open class LspCommandsSupport {
     /**
      * Handles [Command](https://microsoft.github.io/language-server-protocol/specification#command) objects received from the LSP server.

@@ -37,7 +37,6 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.DiagnosticSeverity
 import org.eclipse.lsp4j.DiagnosticTag
-import org.jetbrains.annotations.ApiStatus
 
 /**
  * 处理从 LSP 服务器接收到的 [Diagnostic](https://microsoft.github.io/language-server-protocol/specification#diagnostic) 对象。

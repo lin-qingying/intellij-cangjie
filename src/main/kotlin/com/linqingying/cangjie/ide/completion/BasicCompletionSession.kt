@@ -76,10 +76,12 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.ProcessingContext
 import com.linqingying.cangjie.ide.completion.addingPolicy.PolicyController
 import com.linqingying.cangjie.ide.completion.turboComplete.CompletionKind
 import com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGeneratorConsumer
 import com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGeneratorWithArtifact
+
 
 class BasicCompletionSession(
     configuration: CompletionSessionConfiguration,
@@ -1002,3 +1004,5 @@ private object NonSamConstructorFunctionExclude : DescriptorKindExclude() {
 
     override val fullyExcludedDescriptorKinds: Int get() = 0
 }
+
+

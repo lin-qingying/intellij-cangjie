@@ -96,29 +96,38 @@ class ProjectResolutionFacade(
         },
         interruptedExceptionHandler = { throw ProcessCanceledException(it) })
 
+    /**
+     * 计算模块解析器提供者
+     *
+     * 此函数负责构建一个解析器实例，用于解析项目中的模块信息它通过聚合所有模块信息，
+     * 过滤和解析这些模块，并考虑合成文件和模块依赖关系来完成这项任务
+     *
+     * @return ResolverForProject<ModuleInfo> 实例，用于解析模块信息
+     */
     private fun computeModuleResolverProvider(): ResolverForProject<ModuleInfo> {
+        // 初始化代理解析器，如果没有重用的数据，则使用空解析器
         val delegateResolverForProject: ResolverForProject<ModuleInfo> =
             reuseDataFrom?.cachedResolverForProject ?: EmptyResolverForProject()
-//        val allModuleInfos = allModules!!
-//            .toMutableSet()
+
+        // 获取所有模块信息，如果allModules为空，则从Idea模型中获取
         val allModuleInfos = (allModules
             ?: getModuleInfosFromIdeaModel(project/*, (settings as? PlatformAnalysisSettingsImpl)?.platform*/))
             .toMutableSet()
-//            .also {
-//                it.checkValidity {
-//                    ("allModules".takeIf { allModules != null }
-//                        ?: "getModuleInfosFromIdeaModel(${(settings as? PlatformAnalysisSettingsImpl)?.platform})") + toString()
-//                }
-//            }
 
+        // 将合成文件按模块信息分组，以便后续处理
         val syntheticFilesByModule = syntheticFiles.groupBy { it.moduleInfo }
+        // 获取合成文件对应的模块信息
         val syntheticFilesModules = syntheticFilesByModule.keys
+        // 将合成文件对应的模块信息添加到所有模块信息中
         allModuleInfos.addAll(syntheticFilesModules)
 
+        // 根据模块过滤条件过滤解析的模块
         val resolvedModules = allModuleInfos.filter(moduleFilter)
+        // 解析模块及其依赖关系
         val resolvedModulesWithDependencies = resolvedModules /*+
-                listOfNotNull(ScriptDependenciesInfo.ForProject.createIfRequired(project, resolvedModules))*/
+            listOfNotNull(ScriptDependenciesInfo.ForProject.createIfRequired(project, resolvedModules))*/
 
+        // 返回模块解析器实例
         return IdeaResolverForProject(
             resolverDebugName,
             globalContext.withProject(project),
@@ -127,11 +136,12 @@ class ProjectResolutionFacade(
             delegateResolverForProject,
             /*      if (invalidateOnOOCB)*/
             CangJieModificationTrackerService.getInstance(project).outOfBlockModificationTracker /*else JavaLibraryModificationTracker.getInstance(
-                project
-            ),*/
-//            settings
+            project
+        ),*/
+//        settings
         )
     }
+
 
     internal fun getResolverForProject(): ResolverForProject<ModuleInfo> = cachedResolverForProject
     internal fun resolverForModuleInfo(moduleInfo: ModuleInfo) = cachedResolverForProject.resolverForModule(moduleInfo)

@@ -26,7 +26,7 @@ package com.linqingying.lsp.api
 
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.services.LanguageClient
-import org.jetbrains.annotations.ApiStatus
+
 import java.util.concurrent.CompletableFuture
 
 /**

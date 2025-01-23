@@ -2,7 +2,7 @@
 package com.linqingying.cangjie.ide.completion.turboComplete.ranking
 
 import com.linqingying.cangjie.ide.completion.turboComplete.CompletionKind
-import org.jetbrains.annotations.ApiStatus
+
 
 
 data class RankedKind(

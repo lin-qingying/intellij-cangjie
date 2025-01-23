@@ -2,7 +2,7 @@
 package com.linqingying.cangjie.ide.completion.turboComplete.ranking
 
 import com.linqingying.cangjie.ide.completion.turboComplete.ranking.RankedKind
-import org.jetbrains.annotations.ApiStatus
+
 
 /**
  * Listens to the ranking process of [com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGenerator]

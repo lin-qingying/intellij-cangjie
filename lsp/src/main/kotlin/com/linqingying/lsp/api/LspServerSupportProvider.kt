@@ -31,7 +31,6 @@ import com.intellij.platform.lang.lsWidget.LanguageServiceWidgetItem
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.linqingying.lsp.api.lsWidget.LspServerWidgetItem
-import org.jetbrains.annotations.ApiStatus
 
 /**
  * 插件通过注册 `LspServerSupportProvider` 的实现来为某些编程语言或框架添加基于 LSP 服务器的支持。

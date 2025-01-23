@@ -30,7 +30,6 @@ import com.intellij.util.concurrency.annotations.RequiresEdt
 import com.linqingying.lsp.api.LspServer
 import org.eclipse.lsp4j.Command
 import org.eclipse.lsp4j.ExecuteCommandParams
-import org.jetbrains.annotations.ApiStatus
 
 
 /**

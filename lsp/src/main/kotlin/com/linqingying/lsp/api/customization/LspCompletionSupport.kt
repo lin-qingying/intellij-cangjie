@@ -34,7 +34,7 @@ import com.intellij.openapi.util.text.StringUtilRt
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.CompletionItemKind
 import org.eclipse.lsp4j.CompletionItemTag
-import org.jetbrains.annotations.ApiStatus
+
 import javax.swing.Icon
 
 /**

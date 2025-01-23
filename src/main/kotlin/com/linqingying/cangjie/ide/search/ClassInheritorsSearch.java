@@ -40,7 +40,7 @@ import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ExtensibleQueryFactory;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.*;
-import org.jetbrains.annotations.ApiStatus;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -129,7 +129,7 @@ public final class ClassInheritorsSearch extends ExtensibleQueryFactory<CjTypeSt
             return myIncludeAnonymous;
         }
 
-        @ApiStatus.Experimental
+        
         public boolean shouldSearchInLanguage(@NotNull Language language) {
             return true;
         }

@@ -24,7 +24,7 @@
 
 package com.linqingying.cangjie.utils
 
-import org.jetbrains.annotations.ApiStatus
+
 
 
 fun <T> seq(block: SeqScope<T>.() -> Unit): Sequence<T> = Sequence {

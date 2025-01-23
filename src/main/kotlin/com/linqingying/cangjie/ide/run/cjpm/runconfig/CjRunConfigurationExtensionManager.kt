@@ -64,6 +64,7 @@ class CjRunConfigurationExtensionManager :
         state: CommandLineState,
         context: ConfigurationExtensionContext
     ) {
+
         processEnabledExtensions(configuration, environment.runnerSettings) {
             it.patchCommandLineState(configuration, environment, state, context)
         }

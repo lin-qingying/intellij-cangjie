@@ -3,7 +3,7 @@ package com.linqingying.cangjie.ide.completion.turboComplete
 
 
 import com.linqingying.cangjie.ide.completion.turboComplete.KindVariety
-import org.jetbrains.annotations.ApiStatus
+
 
 /**
  * Data class representing a kind of [com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGenerator]'s suggestions.

@@ -1,7 +1,7 @@
 package com.linqingying.lsp.api
 
 import org.eclipse.lsp4j.*
-import org.jetbrains.annotations.ApiStatus
+
 import java.util.concurrent.CompletableFuture
 
 
@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture
  *其内部实现处理所有标准(记录在官方LSP规范中)请求和通知。
  *LSP服务器发送到IDE。
  */
-@ApiStatus.OverrideOnly
+
 interface LspServerNotificationsHandler {
     fun applyEdit(params: ApplyWorkspaceEditParams): CompletableFuture<ApplyWorkspaceEditResponse>
     fun registerCapability(params: RegistrationParams): CompletableFuture<Void>

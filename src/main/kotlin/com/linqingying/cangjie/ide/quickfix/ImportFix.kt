@@ -30,7 +30,6 @@ import com.linqingying.cangjie.psi.CjSimpleNameExpression
 import com.intellij.openapi.util.IntellijInternalApi
 import com.intellij.psi.PsiElement
 
-@OptIn(IntellijInternalApi::class)
 internal class ImportFix(expression: CjSimpleNameExpression) : AbstractImportFix(expression, MyFactory) {
     override fun elementsToCheckDiagnostics(): Collection<PsiElement> {
         val expression = element ?: return emptyList()

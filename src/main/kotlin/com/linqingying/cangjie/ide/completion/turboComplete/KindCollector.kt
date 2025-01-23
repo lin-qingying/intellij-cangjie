@@ -3,7 +3,7 @@ package com.linqingying.cangjie.ide.completion.turboComplete
 
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
-import org.jetbrains.annotations.ApiStatus
+
 
 /**
  * Collects all [SuggestionGenerator] of the same variety,

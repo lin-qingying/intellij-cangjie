@@ -46,7 +46,7 @@ import com.intellij.util.io.URLUtil
 import com.linqingying.lsp.api.customization.*
 import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.messages.Either
-import org.jetbrains.annotations.ApiStatus
+
 import java.net.URI
 import java.net.URISyntaxException
 

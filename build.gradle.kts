@@ -46,7 +46,7 @@ plugins {
 }
 
 //IDEA版本
-val ideaVersion = "2024.3"
+val ideaVersion = "2024.1"
 //插件版本
 val cangjiePluginVersion = "3.0.1-beta-1"
 
@@ -466,15 +466,15 @@ project(":utils") {
     }
 }
 
-project(":native-debugger") {
-
-    dependencies {
-        intellijPlatform {
-            plugin(nativeDebugPlugin)
-        }
-        implementation(project(":"))
-    }
-}
+//project(":native-debugger") {
+//
+//    dependencies {
+//        intellijPlatform {
+//            plugin(nativeDebugPlugin)
+//        }
+//        implementation(project(":"))
+//    }
+//}
 project(":dap-debugger") {
 
     apply {

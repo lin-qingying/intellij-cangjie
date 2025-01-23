@@ -54,9 +54,13 @@ interface AutoImportVariant {
 object ImportFixHelper {
     enum class ImportKind(private val key: String, val groupedByPackage: Boolean = false) {
         CLASS("text.class.0", true),
+        STRUCT("text.struct.0", true),
+        INTERFACE("text.interface.0", true),
+        ENUM("text.enum.0", true),
+
         TYPE_ALIAS("text.type.alias.0", true),
         PROPERTY("text.property.0"),
-        OBJECT("text.object.0", true),
+        VARIABLE("text.variable.0"),
         FUNCTION("text.function.0"),
         EXTENSION_PROPERTY("text.extension.property.0"),
         EXTENSION_FUNCTION("text.extension.function.0"),

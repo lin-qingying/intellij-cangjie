@@ -29,7 +29,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
-import org.jetbrains.annotations.ApiStatus
+
 
 
 class CangJieProbablyNothingFunctionShortNameIndex internal constructor() : StringStubIndexExtension<CjNamedFunction>() {

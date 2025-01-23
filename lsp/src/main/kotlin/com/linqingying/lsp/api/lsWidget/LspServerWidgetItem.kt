@@ -44,7 +44,7 @@ import com.linqingying.lsp.api.LspBundle
 import com.linqingying.lsp.api.LspServer
 import com.linqingying.lsp.api.LspServerManager
 import com.linqingying.lsp.api.LspServerState.*
-import org.jetbrains.annotations.ApiStatus
+
 import javax.swing.Icon
 
 /**

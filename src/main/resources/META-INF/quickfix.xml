@@ -10,7 +10,10 @@
 
 
     <extensionPoints>
-
+        <extensionPoint
+                qualifiedName="com.linqingying.cangjie.ide.codeInsight.unresolvedReferenceQuickFixProvider"
+                interface="com.linqingying.cangjie.ide.quickfix.UnresolvedReferenceQuickFixProvider"
+                dynamic="true"/>
         <extensionPoint
                 qualifiedName="com.linqingying.cangjie.quickFixContributor"
                 interface="com.linqingying.cangjie.ide.quickfix.QuickFixContributor"

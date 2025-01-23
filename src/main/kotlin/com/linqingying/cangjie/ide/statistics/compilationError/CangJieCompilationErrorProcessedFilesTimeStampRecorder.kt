@@ -34,7 +34,7 @@ import com.intellij.util.io.DigestUtil
 import com.intellij.util.io.hashToHexString
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.XMap
-import org.jetbrains.annotations.ApiStatus
+
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read

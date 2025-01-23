@@ -33,6 +33,10 @@ import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.patterns.PlatformPatterns.elementType
 import com.intellij.patterns.PlatformPatterns.psiElement
+import com.linqingying.cangjie.ide.completion.turboComplete.KindCollector
+import com.linqingying.cangjie.ide.completion.turboComplete.KindVariety
+import com.linqingying.cangjie.ide.completion.turboComplete.SmartPipelineRunner
+import com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGeneratorExecutor
 
 
 import com.intellij.psi.PsiComment
@@ -40,13 +44,11 @@ import com.intellij.util.indexing.DumbModeAccessType
 import com.linqingying.cangjie.configurable.services.CangJieLanguageServerServices
 import com.linqingying.cangjie.configurable.services.Feature
 import com.linqingying.cangjie.ide.completion.addingPolicy.PolicyController
+
 import com.linqingying.cangjie.ide.completion.smart.SmartCompletion
 import com.linqingying.cangjie.ide.completion.stringTemplates.StringTemplateCompletion
 import com.linqingying.cangjie.ide.completion.stringTemplates.wrapLookupElementForStringTemplateAfterDotCompletion
-import com.linqingying.cangjie.ide.completion.turboComplete.KindCollector
-import com.linqingying.cangjie.ide.completion.turboComplete.KindVariety
-import com.linqingying.cangjie.ide.completion.turboComplete.SmartPipelineRunner
-import com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGeneratorExecutor
+
 import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.*
 import com.linqingying.cangjie.psi.psiUtil.endOffset
@@ -54,19 +56,27 @@ import com.linqingying.cangjie.psi.psiUtil.getNonStrictParentOfType
 import kotlin.math.max
 
 
+// 定义一个抽象类，用于执行特定类型的补全操作
 abstract class CangJieKindExecutingCompletionContributor : CompletionContributor(), KindCollector {
+    // 重写fillCompletionVariants方法，使用智能管道运行器来执行补全操作
     override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
         SmartPipelineRunner.getOneOrDefault().runPipeline(this, parameters, result)
     }
 }
 
+// 具体的补全贡献者类，继承自CangJieKindExecutingCompletionContributor
 class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor() {
 
+    // 定义补全种类的多样性
     override val kindVariety: KindVariety = CangJieKindVariety
+
+    // 定义在数字字面量之后的 PSI 元素条件
     private val AFTER_NUMBER_LITERAL = psiElement().afterLeafSkipping(
         psiElement().withText(""),
         psiElement().withElementType(elementType().oneOf(CjTokens.FLOAT_LITERAL, CjTokens.INTEGER_LITERAL))
     )
+
+    // 定义在整数字面量和小数点之后的 PSI 元素条件
     private val AFTER_INTEGER_LITERAL_AND_DOT = psiElement().afterLeafSkipping(
         psiElement().withText("."),
         psiElement().withElementType(elementType().oneOf(CjTokens.INTEGER_LITERAL))
@@ -190,48 +200,59 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
         return expression.textRange!!.endOffset
     }
 
+    /**
+     * 在代码补全开始前进行预处理。
+     *
+     * 该方法负责设置补全过程所需的初始信息，包括调整替换偏移量、确定虚拟标识符以及处理表达式的替换位置。
+     *
+     * @param context 补全初始化的上下文环境，提供了文件、偏移量等信息
+     */
     override fun beforeCompletion(context: CompletionInitializationContext) {
         val offset = context.startOffset
         val psiFile = context.file
         val tokenBefore = psiFile.findElementAt(max(0, offset - 1))
 
-        // this code will make replacement offset "modified" and prevents altering it by the code in CompletionProgressIndicator
+        // 标记替换偏移量为已修改，防止后续代码改变它
         context.markReplacementOffsetAsModified()
 
+        // 校正字符串模板条目的位置，如果成功则直接返回
         val dummyIdentifierCorrected =
             CompletionDummyIdentifierProviderService.getInstance().correctPositionForStringTemplateEntry(context)
         if (dummyIdentifierCorrected) {
             return
         }
+
+        // 根据不同的条件设置虚拟标识符
         context.dummyIdentifier = when {
             context.completionType == CompletionType.SMART -> DEFAULT_DUMMY_IDENTIFIER
-
             PackageDirectiveCompletion.ACTIVATION_PATTERN.accepts(tokenBefore) -> PackageDirectiveCompletion.DUMMY_IDENTIFIER
-
             else -> CompletionDummyIdentifierProviderService.getInstance().provideDummyIdentifier(context)
         }
 
         val tokenAt = psiFile.findElementAt(max(0, offset))
         if (tokenAt != null) {
-            /* do not use parent expression if we are at the end of line - it's probably parsed incorrectly */
+            // 如果是智能补全且不在行尾，则查找父表达式并调整替换偏移量
             if (context.completionType == CompletionType.SMART && !isAtEndOfLine(offset, context.editor.document)) {
                 var parent = tokenAt.parent
                 if (parent is CjExpression && parent !is CjBlockExpression) {
-                    // search expression to be replaced - go up while we are the first child of parent expression
+                    // 查找要替换的表达式，沿父级向上遍历直到不再是第一个子节点
                     var expression: CjExpression = parent
                     parent = expression.parent
-                    while (parent is CjExpression && parent.getFirstChild() == expression) {
+                    while (parent is CjExpression && parent.firstChild == expression) {
                         expression = parent
                         parent = expression.parent
                     }
 
+                    // 更新替换偏移量为建议的值
                     val suggestedReplacementOffset = replacementOffsetByExpression(expression)
                     if (suggestedReplacementOffset > context.replacementOffset) {
                         context.replacementOffset = suggestedReplacementOffset
                     }
 
+                    // 添加旧参数的替换偏移量
                     context.offsetMap.addOffset(SmartCompletion.OLD_ARGUMENTS_REPLACEMENT_OFFSET, expression.endOffset)
 
+                    // 处理函数调用中的参数列表，添加多个参数的替换偏移量
                     val argumentList = (expression.parent as? CjValueArgument)?.parent as? CjValueArgumentList
                     if (argumentList != null) {
                         context.offsetMap.addOffset(
@@ -241,9 +262,12 @@ class CangJieCompletionContributor : CangJieKindExecutingCompletionContributor()
                     }
                 }
             }
+
+            // 校正参数的位置
             CompletionDummyIdentifierProviderService.getInstance().correctPositionForParameter(context)
         }
     }
+
 
     private fun isAtEndOfLine(offset: Int, document: Document): Boolean {
         var i = offset
@@ -336,5 +360,6 @@ fun CompletionInitializationContext.markReplacementOffsetAsModified() {
     // set replacement offset explicitly to mark it as modified
     replacementOffset = replacementOffset
 }
+
 
 

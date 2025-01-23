@@ -27,7 +27,6 @@ package com.linqingying.lsp.api
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import org.jetbrains.annotations.ApiStatus
 
 /**
  * 跟踪启动的 LSP 服务器，允许启动、重启和停止 LSP 服务器。

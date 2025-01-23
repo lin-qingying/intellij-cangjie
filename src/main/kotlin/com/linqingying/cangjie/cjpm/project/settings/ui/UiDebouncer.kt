@@ -76,48 +76,48 @@ class UiDebouncer(
     }
 }
 
-fun pathToDirectoryTextField(
-    disposable: Disposable,
-    @Suppress("UnstableApiUsage") @DialogTitle title: String,
-    onTextChanged: () -> Unit = {}
-): TextFieldWithBrowseButton =
-    pathTextField(
-        FileChooserDescriptorFactory.createSingleFolderDescriptor(),
-        disposable,
-        title,
-        onTextChanged
-    )
+//fun pathToDirectoryTextField(
+//    disposable: Disposable,
+//    @Suppress("UnstableApiUsage") @DialogTitle title: String,
+//    onTextChanged: () -> Unit = {}
+//): TextFieldWithBrowseButton =
+//    pathTextField(
+//        FileChooserDescriptorFactory.createSingleFolderDescriptor(),
+//        disposable,
+//        title,
+//        onTextChanged
+//    )
 
-fun pathToRsFileTextField(
-    disposable: Disposable,
-    @DialogTitle title: String,
-    project: Project,
-    onTextChanged: () -> Unit = {}
-): TextFieldWithBrowseButton =
-    pathTextField(
-        FileChooserDescriptorFactory
-            .createSingleFileDescriptor(CangJieFileType.INSTANCE )
-            .withRoots(project.guessProjectDir()),
-        disposable,
-        title,
-        onTextChanged
-    )
+//fun pathToCjFileTextField(
+//    disposable: Disposable,
+//    @DialogTitle title: String,
+//    project: Project,
+//    onTextChanged: () -> Unit = {}
+//): TextFieldWithBrowseButton =
+//    pathTextField(
+//        FileChooserDescriptorFactory
+//            .createSingleFileDescriptor(CangJieFileType.INSTANCE )
+//            .withRoots(project.guessProjectDir()),
+//        disposable,
+//        title,
+//        onTextChanged
+//    )
 
-fun pathTextField(
-    fileChooserDescriptor: FileChooserDescriptor,
-    disposable: Disposable,
-    @DialogTitle title: String,
-    onTextChanged: () -> Unit = {}
-): TextFieldWithBrowseButton {
-    val component = TextFieldWithBrowseButton(null, disposable)
-    component.addBrowseFolderListener(
-     null,
-        fileChooserDescriptor,
-        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
-    )
-    component.childComponent.addTextChangeListener { onTextChanged() }
-    return component
-}
+//fun pathTextField(
+//    fileChooserDescriptor: FileChooserDescriptor,
+//    disposable: Disposable,
+//    @DialogTitle title: String,
+//    onTextChanged: () -> Unit = {}
+//): TextFieldWithBrowseButton {
+//    val component = TextFieldWithBrowseButton(null, disposable)
+//    component.addBrowseFolderListener(
+//     null,
+//        fileChooserDescriptor,
+//        TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
+//    )
+//    component.childComponent.addTextChangeListener { onTextChanged() }
+//    return component
+//}
 
 fun JTextField.addTextChangeListener(listener: (DocumentEvent) -> Unit) {
     document.addDocumentListener(

@@ -11,13 +11,13 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.DiagnosticSeverity
 import org.eclipse.lsp4j.DiagnosticTag
-import org.jetbrains.annotations.ApiStatus
+
 
 
 /**
  * Handles [Diagnostic](https://microsoft.github.io/language-server-protocol/specification#diagnostic) objects received from the LSP server.
  */
-@ApiStatus.Experimental
+
 open class LspDiagnosticsSupport {
     @RequiresReadLock
     @RequiresBackgroundThread

@@ -27,7 +27,7 @@ package com.linqingying.cangjie.ide.stubindex
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.stubs.StubIndexKey
-import org.jetbrains.annotations.ApiStatus
+
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
