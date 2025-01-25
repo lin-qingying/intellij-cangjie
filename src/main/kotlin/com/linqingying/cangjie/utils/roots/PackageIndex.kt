@@ -44,15 +44,15 @@ abstract class PackageIndex {
      * @param includeLibrarySources if true, directories under library sources are included in the returned list.
      * @return the array of directories.
      */
-    abstract fun getDirectoriesByPackageName(packageName: String, includeLibrarySources: Boolean): Array<VirtualFile?>
+    abstract fun getDirectoriesByPackageName(packageName: String, includeLibrarySources: Boolean): Array<VirtualFile>
 
     /**
      * @return all directories in the given scope corresponding to the given package name.
      */
-    open fun getDirsByPackageName(packageName: String, scope: GlobalSearchScope): Query<VirtualFile?> {
-        return getDirsByPackageName(packageName, true).filtering { file: VirtualFile? ->
+    open fun getDirsByPackageName(packageName: String, scope: GlobalSearchScope): Query<VirtualFile > {
+        return getDirsByPackageName(packageName, true).filtering { file: VirtualFile  ->
             scope.contains(
-                file!!
+                file
             )
         }
     }
@@ -65,7 +65,7 @@ abstract class PackageIndex {
      * @param includeLibrarySources if true, directories under library sources are included in the returned list.
      * @return the query returning the list of directories.
      */
-    abstract fun getDirsByPackageName(packageName: String, includeLibrarySources: Boolean): Query<VirtualFile?>
+    abstract fun getDirsByPackageName(packageName: String, includeLibrarySources: Boolean): Query<VirtualFile>
 
     /**
      * Returns the name of the package corresponding to the specified directory.
@@ -80,3 +80,19 @@ abstract class PackageIndex {
         }
     }
 }
+
+//
+//class CangJiePakcageIndex : PackageIndex(){
+//    override fun getDirectoriesByPackageName(packageName: String, includeLibrarySources: Boolean): Array<VirtualFile> {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun getDirsByPackageName(packageName: String, includeLibrarySources: Boolean): Query<VirtualFile> {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun getPackageNameByDirectory(dir: VirtualFile): String? {
+//        TODO("Not yet implemented")
+//    }
+//
+//}

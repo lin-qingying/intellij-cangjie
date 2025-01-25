@@ -24,15 +24,14 @@
 
 package com.linqingying.cangjie.psi
 
-import com.linqingying.cangjie.lexer.CjTokens
-import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
-
-import com.linqingying.cangjie.psi.stubs.CangJiePropertyStub
-import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.TokenSet
+import com.linqingying.cangjie.lexer.CjTokens
+import com.linqingying.cangjie.psi.psiUtil.getStrictParentOfType
+import com.linqingying.cangjie.psi.stubs.CangJiePropertyStub
+import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
 open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVariableDeclaration {
     companion object {
@@ -100,7 +99,8 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
 
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
-        TODO("Not yet implemented")
+        return  setTypeReference(this, nameIdentifier, typeRef)
+
     }
 
     override val colon: PsiElement?

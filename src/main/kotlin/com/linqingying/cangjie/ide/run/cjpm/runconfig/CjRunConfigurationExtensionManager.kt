@@ -29,6 +29,7 @@ import com.linqingying.cangjie.ide.run.cjpm.ConfigurationExtensionContext
 import com.intellij.execution.configuration.RunConfigurationExtensionsManager
 import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.configurations.RunnerSettings
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.components.service
@@ -44,20 +45,23 @@ class CjRunConfigurationExtensionManager :
         cmdLine: GeneralCommandLine,
         context: ConfigurationExtensionContext
     ) {
-        processEnabledExtensions(configuration, environment.runnerSettings) {
+        processEnabledExtensions1(configuration, environment.runnerSettings) {
             it.patchCommandLine(configuration, environment, cmdLine, context)
         }
     }
+
     fun attachExtensionsToProcess(
         configuration: CjpmCommandConfiguration,
         handler: ProcessHandler,
         environment: ExecutionEnvironment,
         context: ConfigurationExtensionContext
     ) {
-        processEnabledExtensions(configuration, environment.runnerSettings) {
+        processEnabledExtensions1(configuration, environment.runnerSettings) {
             it.attachToProcess(configuration, handler, environment, context)
         }
     }
+
+
     fun patchCommandLineState(
         configuration: CjpmCommandConfiguration,
         environment: ExecutionEnvironment,
@@ -65,13 +69,26 @@ class CjRunConfigurationExtensionManager :
         context: ConfigurationExtensionContext
     ) {
 
-        processEnabledExtensions(configuration, environment.runnerSettings) {
+        processEnabledExtensions1(configuration, environment.runnerSettings) {
             it.patchCommandLineState(configuration, environment, state, context)
         }
     }
+
     companion object {
         @JvmStatic
         fun getInstance(): CjRunConfigurationExtensionManager = service()
 
+    }
+}
+
+private inline fun processEnabledExtensions1(
+    configuration: CjpmCommandConfiguration,
+    runnerSettings: RunnerSettings?,
+    handler: (CjpmCommandConfigurationExtension) -> Unit
+) {
+    for (extension in CjpmCommandConfigurationExtension.EP_NAME.extensionList.asSequence()) {
+        if (extension.isApplicableFor(configuration) && extension.isEnabledFor(configuration, runnerSettings)) {
+            handler(extension)
+        }
     }
 }

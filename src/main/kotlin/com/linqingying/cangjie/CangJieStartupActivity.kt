@@ -26,14 +26,28 @@ package com.linqingying.cangjie
 
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.serviceAsync
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.SdkType
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.startup.StartupActivity
 
-//class CangJieStartupActivity : StartupActivity {
-//    override fun runActivity(project: Project) {
+
+
+
+class CangJieStartupActivity : ProjectActivity {
+    companion object{
+        val LOG = Logger.getInstance(CangJieStartupActivity::class.java)
+    }
+    override suspend fun execute(project: Project) {
+        LOG.info("Cangjie plugin has been launched")
+//        try {
+//            (project.serviceAsync<WorkspaceFileIndex>() as WorkspaceFileIndexEx).initialize()
 //
-//    }
-//}
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//        }
+    }
+}

@@ -29,7 +29,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
 open class ProjectExtensionDescriptor<T : Any>(name: String, private val extensionClass: Class<T>) {
-    val extensionPointName: ExtensionPointName<T> = ExtensionPointName.create(name)
+    private val extensionPointName: ExtensionPointName<T> = ExtensionPointName.create(name)
 
     fun registerExtensionPoint(project: Project) {
         CoreApplicationEnvironment.registerExtensionPoint(
@@ -40,13 +40,31 @@ open class ProjectExtensionDescriptor<T : Any>(name: String, private val extensi
     }
 
     fun registerExtension(project: Project, extension: T) {
+
         project.extensionArea.getExtensionPoint(extensionPointName).registerExtension(extension, project)
+//        extensionPointName.point.registerExtension(extension, project)
     }
 
+    /**
+     * 获取项目中的扩展实例列表
+     *
+     * 此函数旨在从给定项目中获取特定扩展点的所有扩展实例列表
+     * 它首先检查项目中是否存在指定的扩展点，如果不存在，则返回一个空列表
+     * 如果存在，它将获取该扩展点下的所有扩展，并将其转换为列表返回
+     *
+     * @param project 项目实例，用于获取扩展信息
+     * @return 返回扩展实例的列表如果指定的扩展点不存在，则返回空列表
+     */
     fun getInstances(project: Project): List<T> {
+        // 获取项目的扩展区域
         val projectArea = project.extensionArea
+        // 检查项目中是否存在指定的扩展点
         if (!projectArea.hasExtensionPoint(extensionPointName.name)) return listOf()
 
+        // 获取指定扩展点下的所有扩展，并转换为列表返回
         return projectArea.getExtensionPoint(extensionPointName).extensions.toList()
+
+//     return   extensionPointName.extensionList
     }
+
 }

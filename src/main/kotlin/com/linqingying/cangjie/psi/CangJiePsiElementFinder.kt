@@ -30,6 +30,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.PossiblyDumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.psi.impl.file.PsiDirectoryOrFile
+
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
@@ -74,11 +75,8 @@ class CjpmStdlibPsiElementFinder(val project: Project) : CangJiePsiElementFinder
     ): Boolean {
         val psiManager = PsiManager.getInstance(project)
         return psiPackage.qualifiedName?.let {
-
             val packageNames = it.split('.')
             val stdlibName = packageNames[0]
-
-
             project.cjpmProjects.currentCjpmProject?.workspace?.packages?.find { `package` ->
                 `package`.name == stdlibName && `package`.origin == PackageOrigin.STDLIB
 
@@ -86,7 +84,6 @@ class CjpmStdlibPsiElementFinder(val project: Project) : CangJiePsiElementFinder
                 CangJiePackageIndexUtils.findFilesWithExactPackageByAllScope(
                     FqName(it), project
                 ).firstOrNull()?.let { cjfile ->
-
                     (psiManager.findDirectory(cjfile.virtualFile)
                         ?: psiManager.findFile(cjfile.virtualFile))?.let { psiFile ->
                         PsiDirectoryOrFile(
@@ -97,13 +94,8 @@ class CjpmStdlibPsiElementFinder(val project: Project) : CangJiePsiElementFinder
                             consumer.process(vfile)
                         }
                     }
-
-
                 }
-
-
             }
-
         } != false
     }
 }
@@ -204,7 +196,7 @@ class CjpmPackagePsiElementFinder(val project: Project) : CangJiePsiElementFinde
         val psiManager = PsiManager.getInstance(project)
         return psiPackage.qualifiedName?.let {
             // 处理包名，去除最外层的包名（模块名），并重新组合包名。
-            val packageName =   it.split('.').drop(1).let { sarr ->
+            val packageName = it.split('.').drop(1).let { sarr ->
                 if (sarr.isEmpty()) {
                     // 如果包名为空，则直接返回 true，表示处理完成。
                     return true

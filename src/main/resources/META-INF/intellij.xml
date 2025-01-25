@@ -3,8 +3,28 @@
     <extensions defaultExtensionNs="com.intellij">
         <projectService serviceInterface="com.linqingying.cangjie.utils.roots.PackageIndex"
                         serviceImplementation="com.linqingying.cangjie.utils.roots.impl.ProjectPackageIndexImpl"/>
-        <projectService serviceInterface="com.intellij.openapi.roots.impl.CangJieDirectoryIndex"
-                        serviceImplementation="com.intellij.openapi.roots.impl.CangJieDirectoryIndexImpl" />
+<!--        <projectService serviceInterface="com.linqingying.cangjie.utils.fileIndex.DirectoryIndex"-->
+<!--                        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.DirectoryIndexImpl"/>-->
+<!--        <projectService serviceInterface="com.linqingying.cangjie.utils.fileIndex.WorkspaceFileIndex"-->
+<!--                        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.impl.WorkspaceFileIndexImpl"/>-->
+        <!--        <projectService serviceInterface="com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndex"-->
+        <!--        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.impl.WorkspaceFileIndexImpl"/>-->
+<!--        <workspaceModel.fileIndexContributor-->
+<!--                implementation="com.linqingying.cangjie.utils.fileIndex.impl.SourceRootFileIndexContributor"/>-->
+        <projectService serviceInterface="com.linqingying.cangjie.utils.fileIndex.DirectoryIndex"
+                        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.DirectoryIndex.Companion.EmptyDirectoryIndexImpl"/>
 
     </extensions>
+<!--    <extensions defaultExtensionNs="com.linqingying.cangjie.util.fileIndex">-->
+
+<!--        <fileIndexContributor-->
+<!--                implementation="com.linqingying.cangjie.utils.fileIndex.impl.SourceRootFileIndexContributor"/>-->
+
+<!--    </extensions>-->
+<!--    <extensionPoints>-->
+
+<!--        <extensionPoint qualifiedName="com.linqingying.cangjie.util.fileIndex.fileIndexContributor"-->
+<!--                        interface="com.linqingying.cangjie.utils.fileIndex.WorkspaceFileIndexContributor"-->
+<!--                        dynamic="true"/>-->
+<!--    </extensionPoints>-->
 </idea-plugin>

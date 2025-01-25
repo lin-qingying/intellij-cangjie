@@ -62,6 +62,7 @@ import com.intellij.openapi.ui.InputValidatorEx
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
+import com.linqingying.cangjie.utils.getCjpmProjectDirectory
 import com.linqingying.utils.toCamelCase
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes
 import java.util.*
@@ -70,9 +71,16 @@ import java.util.*
 internal const val CANGJIE_WORKSHEET_TEMPLATE_NAME: String = "CangJie Worksheet"
 const val CANGJIE_WORKSHEET_EXTENSION: String = "ws.cj"
 
+/**
+ * 新建CangJie文件的操作类，继承自AbstractNewCangJieFileAction，并实现DumbAware接口
+ */
 class NewCangJieFileAction : AbstractNewCangJieFileAction(), DumbAware {
 
-
+    /**
+     * 检查操作是否可用
+     * @param dataContext 数据上下文，用于获取IDE视图和项目信息
+     * @return 如果操作可用返回true，否则返回false
+     */
     override fun isAvailable(dataContext: DataContext): Boolean {
         if (!super.isAvailable(dataContext)) return false
         val ideView = LangDataKeys.IDE_VIEW.getData(dataContext) ?: return false
@@ -84,6 +92,12 @@ class NewCangJieFileAction : AbstractNewCangJieFileAction(), DumbAware {
         }
     }
 
+    /**
+     * 构建创建文件对话框
+     * @param project 项目实例
+     * @param directory 目录实例
+     * @param builder 对话框构建器
+     */
     override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder) {
 //        val sealedTemplatesEnabled = RegistryManager.getInstance().`is`("cangjie.create.sealed.templates.enabled")
         builder.setTitle(CangJieBundle.message("action.new.file.dialog.title"))
@@ -125,20 +139,50 @@ class NewCangJieFileAction : AbstractNewCangJieFileAction(), DumbAware {
 
     }
 
+    /**
+     * 获取操作名称
+     * @param directory 目录实例，可能为null
+     * @param newName 新文件名
+     * @param templateName 模板名，可能为null
+     * @return 操作名称
+     */
     override fun getActionName(directory: PsiDirectory?, newName: String, templateName: String?): String =
         CangJieBundle.message("action.CangJie.NewFile.text")
 
+    /**
+     * 重写hashCode方法
+     * @return 哈希码，此处始终返回0
+     */
     override fun hashCode(): Int = 0
 
+    /**
+     * 重写equals方法
+     * @param other 另一个对象
+     * @return 如果other是NewCangJieFileAction的实例，返回true，否则返回false
+     */
     override fun equals(other: Any?): Boolean = other is NewCangJieFileAction
 }
 
 
+/**
+ * 抽象的创建CangJie文件操作类，继承自CreateFileFromTemplateAction
+ */
 abstract class AbstractNewCangJieFileAction : CreateFileFromTemplateAction() {
 
+    /**
+     * 获取CjFile的编辑器，如果当前选中的文本编辑器的文档与CjFile的文档相同，则返回该编辑器
+     * @param cjFile CjFile实例
+     * @return 编辑器实例，可能为null
+     */
     private fun CjFile.editor(): Editor? =
         FileEditorManager.getInstance(this.project).selectedTextEditor?.takeIf { it.document == this.viewProvider.document }
 
+    /**
+     * 后处理创建的元素，调用父类的postProcess方法，然后执行额外的处理逻辑
+     * @param createdElement 创建的PsiFile实例
+     * @param templateName 模板名，可能为null
+     * @param customProperties 自定义属性，可能为null
+     */
     override fun postProcess(
         createdElement: PsiFile,
         templateName: String?,
@@ -174,9 +218,18 @@ abstract class AbstractNewCangJieFileAction : CreateFileFromTemplateAction() {
         }
     }
 
-
+    /**
+     * 是否在写操作中启动，此处重写为false
+     */
     override fun startInWriteAction() = false
 
+    /**
+     * 从模板创建文件，如果模板名为CANGJIE_WORKSHEET_TEMPLATE_NAME，则使用特殊处理
+     * @param name 文件名
+     * @param template 文件模板
+     * @param dir 目录实例
+     * @return 创建的PsiFile实例，可能为null
+     */
     override fun createFileFromTemplate(name: String, template: FileTemplate, dir: PsiDirectory): PsiFile? {
         val targetTemplate = if (CANGJIE_WORKSHEET_TEMPLATE_NAME != template.name) {
             template
@@ -190,7 +243,15 @@ abstract class AbstractNewCangJieFileAction : CreateFileFromTemplateAction() {
 }
 
 
+/**
+ * 新建CangJie文件名验证器，实现InputValidatorEx接口
+ */
 object NewCangJieFileNameValidator : InputValidatorEx {
+    /**
+     * 获取错误信息
+     * @param inputString 输入的文件名
+     * @return 错误信息，如果没有错误返回null
+     */
     override fun getErrorText(inputString: String): String? {
         if (inputString.trim().isEmpty()) {
             return CangJieBundle.message("action.new.file.error.empty.name")
@@ -204,32 +265,69 @@ object NewCangJieFileNameValidator : InputValidatorEx {
         return null
     }
 
+    /**
+     * 检查输入是否有效，此处始终返回true
+     * @param inputString 输入的文件名
+     * @return 始终返回true
+     */
     override fun checkInput(inputString: String): Boolean = true
 
+    /**
+     * 是否可以关闭对话框
+     * @param inputString 输入的文件名
+     * @return 如果没有错误信息返回true，否则返回false
+     */
     override fun canClose(inputString: String): Boolean = getErrorText(inputString) == null
 }
+
 
 private val FQNAME_SEPARATORS: CharArray = charArrayOf('/', '\\', '.')
 private val FILE_SEPARATORS: CharArray = charArrayOf('/', '\\')
 
-
+/**
+ * 新仓颉文件钩子的抽象类，用于在文件创建后进行处理
+ */
 abstract class NewCangJieFileHook {
     companion object {
+        /**
+         * 扩展点名称，用于查找所有实现此接口的扩展
+         */
         val EP_NAME: ExtensionPointName<NewCangJieFileHook> =
             ExtensionPointName.create("com.linqingying.cangjie.newFileHook")
     }
 
+    /**
+     * 在创建文件后调用此方法进行处理
+     *
+     * @param createdElement 创建的文件元素
+     * @param module 文件所属的模块
+     */
     abstract fun postProcess(createdElement: CjFile, module: Module)
 }
 
 
+/**
+ * 根据模板和状态创建文件
+ *
+ * @param name 文件名
+ * @param template 文件模板
+ * @param dir 文件创建的目录
+ * @return 创建的PsiFile对象，如果失败则返回null
+ */
 internal fun createFileFromTemplateWithStat(name: String, template: FileTemplate, dir: PsiDirectory): PsiFile? {
-//    CangJieJ2KOnboardingFUSCollector.logFirstCjFileCreated(dir.project) // implementation checks if it is actually the first
-//    CangJieCreateFileFUSCollector.logFileTemplate(template.name)
     return createCangJieFileFromTemplate(name, template, dir)
 }
 
+/**
+ * 根据模板创建仓颉文件
+ *
+ * @param name 文件名
+ * @param template 文件模板
+ * @param dir 文件创建的目录
+ * @return 创建的PsiFile对象，如果失败则返回null
+ */
 internal fun createCangJieFileFromTemplate(name: String, template: FileTemplate, dir: PsiDirectory): PsiFile? {
+    // 根据模板名称选择合适的目录分隔符
     val directorySeparators = when (template.name) {
         "CangJie File" -> FILE_SEPARATORS
         "CangJie Worksheet" -> FILE_SEPARATORS
@@ -237,15 +335,19 @@ internal fun createCangJieFileFromTemplate(name: String, template: FileTemplate,
         else -> FQNAME_SEPARATORS
     }
 
+    // 查找或创建目标目录，并获取处理后的类名
     val (className, targetDir) = findOrCreateTarget(dir, name, directorySeparators)
 
-
+    // 设置模板的文件名
     template.fileName = name
 
+    // 获取项目的服务，并在禁用智能模式下执行操作
     val service = DumbService.getInstance(dir.project)
     return service.computeWithAlternativeResolveEnabled<PsiFile?, Throwable> {
+        // 调整目录并创建文件
         val adjustedDir = CreateTemplateInPackageAction.adjustDirectory(targetDir, JavaModuleSourceRootTypes.SOURCES)
         val psiFile = createCangJieFileFromTemplate(adjustedDir, className, template)
+        // 如果创建的是仓颉文件，并且包含单个类声明，则根据文件名添加抽象修饰符
         if (psiFile is CjFile) {
             val singleClass = psiFile.declarations.singleOrNull() as? CjClass
             if (singleClass != null && name.contains("Abstract")) {
@@ -254,20 +356,20 @@ internal fun createCangJieFileFromTemplate(name: String, template: FileTemplate,
                 }
             }
         }
-//        JavaCreateTemplateInPackageAction.setupJdk(adjustedDir, psiFile)
-        val module = ModuleUtil.findModuleForFile(psiFile)
-        val configurator = CangJieProjectConfigurator.EP_NAME.extensions.firstOrNull()
-//        if (module != null && configurator != null) {
-//            DumbService.getInstance(module.project).runWhenSmart {
-//                if (configurator.getStatus(module.toModuleGroup()) == ConfigureCangJieStatus.CAN_BE_CONFIGURED) {
-//                    configurator.configure(module.project, emptyList())
-//                }
-//            }
-//        }
+
+        // 返回创建的文件
         return@computeWithAlternativeResolveEnabled psiFile
     }
 }
 
+/**
+ * 查找或创建目标目录，并获取处理后的类名
+ *
+ * @param dir 初始目录
+ * @param name 文件名
+ * @param directorySeparators 目录分隔符数组
+ * @return 包含处理后的类名和目标目录的Pair对象
+ */
 private fun findOrCreateTarget(
     dir: PsiDirectory,
     name: String,
@@ -276,6 +378,7 @@ private fun findOrCreateTarget(
     var className = removeCangJieExtensionIfPresent(name).toCamelCase()
     var targetDir = dir
 
+    // 遍历目录分隔符，查找或创建目标目录
     for (splitChar in directorySeparators) {
         if (splitChar in className) {
             val names = className.trim().split(splitChar)
@@ -293,6 +396,12 @@ private fun findOrCreateTarget(
     return Pair(className, targetDir)
 }
 
+/**
+ * 如果文件名包含仓颉文件扩展名，则移除扩展名
+ *
+ * @param name 文件名
+ * @return 移除扩展名后的文件名
+ */
 private fun removeCangJieExtensionIfPresent(name: String): String = when {
     name.endsWith(".$CANGJIE_WORKSHEET_EXTENSION") -> name.removeSuffix(".$CANGJIE_WORKSHEET_EXTENSION")
     name.endsWith(".$STD_SCRIPT_SUFFIX") -> name.removeSuffix(".$STD_SCRIPT_SUFFIX")
@@ -300,18 +409,43 @@ private fun removeCangJieExtensionIfPresent(name: String): String = when {
     else -> name
 }
 
+/**
+ * 获取模板属性
+ *
+ */
+fun getTemplateProperties(project: Project, dir: PsiDirectory): Properties {
+    val defaultProperties = FileTemplateManager.getInstance(project).defaultProperties
+    val cjpmProjectDirectory = dir.getCjpmProjectDirectory()
+    // 设置模板属性
+    val properties = Properties(defaultProperties)
+    properties.setProperty("CANGJIE_MODULE_NAME", cjpmProjectDirectory.first)
+
+
+    return properties
+}
+
+/**
+ * 根据模板创建仓颉文件
+ *
+ * @param dir 文件创建的目录
+ * @param className 文件中的类名
+ * @param template 文件模板
+ * @return 创建的PsiFile对象，如果失败则返回null
+ */
 private fun createCangJieFileFromTemplate(dir: PsiDirectory, className: String, template: FileTemplate): PsiFile? {
     val project = dir.project
-    val defaultProperties = FileTemplateManager.getInstance(project).defaultProperties
+    val properties = getTemplateProperties(project, dir = dir)
 
-    val properties = Properties(defaultProperties)
-
+    // 创建文件元素
     val element = try {
-        CreateFromTemplateDialog(
+        val templateDialog = CreateFromTemplateDialog(
             project, dir, template,
             AttributesDefaults(className).withFixedName(true),
             properties
-        ).create()
+        )
+
+
+        templateDialog.create()
     } catch (e: IncorrectOperationException) {
         throw e
     } catch (e: Exception) {
@@ -319,5 +453,6 @@ private fun createCangJieFileFromTemplate(dir: PsiDirectory, className: String, 
         return null
     }
 
+    // 返回创建的文件
     return element?.containingFile
 }

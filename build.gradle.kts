@@ -44,19 +44,33 @@ plugins {
 
 
 }
+val pluginsVersionMap = mapOf(
+    "2024.3" to mapOf(
+        "psiViewerPlugin" to "PsiViewer:243.7768",
+        "indexViewPlugin" to "com.jetbrains.hackathon.indices.viewer:1.29",
+        "ideVersion" to "243"
+    ),
+    "2024.2" to mapOf(
+        "psiViewerPlugin" to "PsiViewer:242.4697",
+        "indexViewPlugin" to "com.jetbrains.hackathon.indices.viewer:1.28",
+        "ideVersion" to "242"
+    )
 
+)
 //IDEA版本
-val ideaVersion = "2024.1"
+val ideaVersion = "2024.2"
 //插件版本
-val cangjiePluginVersion = "3.0.1-beta-1"
+val pluginVersion = "3.0.1"
+val ideVersion = pluginsVersionMap[ideaVersion]!!["ideVersion"]!!
+val cangjiePluginVersion = "$pluginVersion-$ideVersion"
 
 
 val kotlinVersion = "2.1.0"
 val tomlPlugin = "org.toml.lang"
 val terminalPlugin = "org.jetbrains.plugins.terminal"
 val nativeDebugPlugin: String = "com.intellij.nativeDebug:243.21565.23"
-val psiViewerPlugin: String = "PsiViewer:243.7768"
-val indexViewPlugin = "com.jetbrains.hackathon.indices.viewer:1.29"
+//val psiViewerPlugin: String = "PsiViewer:243.7768"
+//val indexViewPlugin = "com.jetbrains.hackathon.indices.viewer:1.29"
 val chinesePlugin = "com.intellij.zh:233.407"
 val diagramPlugin = "com.intellij.diagram"
 val basePluginArchiveName = "intellij-cangjie-analyzer"
@@ -189,13 +203,30 @@ allprojects {
         }
     }
     sourceSets {
-
         main {
-            java.srcDirs("src/gen")
-            java.srcDirs("src/main/kotlin")
+            java{
+                srcDirs("src/main/kotlin")
+                srcDirs("src/main/${ideVersion}")  // 添加 IDE 版本特定的源码目录
 
+            }
+            kotlin {
+                srcDirs("src/main/kotlin")
+                srcDirs("src/main/${ideVersion}")  // 添加 IDE 版本特定的源码目录
+                srcDirs("src/gen")
+            }
+            resources {
+                srcDirs("src/main/resources")
+            }
         }
 
+        test {
+            java {
+                srcDirs("src/test/kotlin")
+            }
+            resources {
+                srcDirs("src/test/resources")
+            }
+        }
     }
 
     tasks {
@@ -203,9 +234,11 @@ allprojects {
             // 同时依赖 build 和 buildPlugin 任务
 //            dependsOn(":plugin:build", buildPlugin)
 
-            archiveFile.set(project(":plugin").layout.buildDirectory.file(
-                "distributions/${basePluginArchiveName}-$cangjiePluginVersion.zip"
-            ))
+            archiveFile.set(
+                project(":plugin").layout.buildDirectory.file(
+                    "distributions/${basePluginArchiveName}-$cangjiePluginVersion.zip"
+                )
+            )
         }
         withType<JarSearchableOptionsTask> {
 
@@ -216,8 +249,8 @@ allprojects {
         }
 
         withType<PatchPluginXmlTask> {
-            sinceBuild.set("241")
-            untilBuild.set("243.*")
+            sinceBuild.set(ideVersion)
+            untilBuild.set("$ideVersion.*")
         }
         runIde { enabled = false }
         prepareSandbox { enabled = false }
@@ -254,6 +287,8 @@ allprojects {
 }
 
 
+
+
 project(":plugin") {
 
 
@@ -277,7 +312,9 @@ project(":plugin") {
         intellijPlatform {
             if (!isBuildPlugin()) {
                 plugins(
-                    psiViewerPlugin, indexViewPlugin, chinesePlugin/*, nativeDebugPlugin*/
+                    pluginsVersionMap[ideaVersion]!!["psiViewerPlugin"]!!,
+                    pluginsVersionMap[ideaVersion]!!["indexViewPlugin"]!!,
+                    chinesePlugin/*, nativeDebugPlugin*/
                 )
                 bundledPlugins(tomlPlugin)
             }
@@ -475,28 +512,28 @@ project(":utils") {
 //        implementation(project(":"))
 //    }
 //}
-project(":dap-debugger") {
-
-    apply {
-
-        plugin("org.jetbrains.kotlin.plugin.serialization")
-    }
-    dependencies {
-
-        intellijPlatform {
-            bundledPlugins(
-                terminalPlugin
-            )
-        }
-        implementation(project(":"))
-
-
-        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
-        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
-        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-    }
-}
+//project(":dap-debugger") {
+//
+//    apply {
+//
+//        plugin("org.jetbrains.kotlin.plugin.serialization")
+//    }
+//    dependencies {
+//
+//        intellijPlatform {
+//            bundledPlugins(
+//                terminalPlugin
+//            )
+//        }
+//        implementation(project(":"))
+//
+//
+//        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
+//        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
+//        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
+//        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+//    }
+//}
 project(":dap-debugger1") {
 
     apply {
@@ -559,6 +596,17 @@ fun <T : ModuleDependency> T.excludeKotlinDeps() {
 fun prop(name: String): String =
     extra.properties[name] as? String
         ?: error("Property `$name` is not defined in gradle.properties")
+
+// 确保在编译前创建 IDE 版本特定的源码目录
+tasks.register("createIdeVersionSourceDir") {
+    doLast {
+        file("src/main/${ideVersion}").mkdirs()
+    }
+}
+
+tasks.compileKotlin {
+    dependsOn("createIdeVersionSourceDir")
+}
 
 
 

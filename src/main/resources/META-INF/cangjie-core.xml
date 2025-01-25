@@ -41,8 +41,9 @@
 
 
         <!--        插件启动初始化-->
-        <!--        <applicationService serviceImplementation="com.linqingying.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
-        <!--        <postStartupActivity implementation="com.linqingying.cangjie.ide.project.CangJieProjectActivity"/>-->
+
+        <!--                <applicationService serviceImplementation="com.linqingying.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
+                <postStartupActivity implementation="com.linqingying.cangjie.CangJieStartupActivity"/>
         <!--                <additionalLibraryRootsProvider-->
         <!--                        implementation="com.linqingying.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
 

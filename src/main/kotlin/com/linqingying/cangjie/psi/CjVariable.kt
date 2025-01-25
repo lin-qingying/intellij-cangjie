@@ -34,7 +34,7 @@ import com.linqingying.cangjie.lexer.CjTokens
 import com.linqingying.cangjie.psi.stubs.CangJieVariableStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 
-class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariableDeclaration,CjLocalNamedDeclaration {
+class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariableDeclaration, CjLocalNamedDeclaration {
     constructor(stub: CangJieVariableStub) : super(stub, CjStubElementTypes.VARIABLE)
     constructor(node: ASTNode) : super(node)
 
@@ -44,7 +44,7 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
         get() = null
     val pattern: CjCasePattern? get() = findChildByClass(CjCasePattern::class.java)
 
-    val equalsToken:PsiElement? get() =  findChildByType(CjTokens.EQ)
+    val equalsToken: PsiElement? get() = findChildByType(CjTokens.EQ)
 
     override fun toString(): String {
         return super.toString() + ": " + name
@@ -134,7 +134,8 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
         }
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
-        return null
+        return setTypeReference(this, nameIdentifier, typeRef)
+
     }
 
     override val colon: PsiElement?

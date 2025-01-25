@@ -27,6 +27,7 @@ package com.linqingying.cangjie.ide.cache
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.UserDataHolder
+import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 

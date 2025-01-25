@@ -231,10 +231,6 @@ data class CangJieModuleInfo(
             module,
             isTestScope = false
         )
-//override val contentScope: GlobalSearchScope
-//    get() = GlobalSearchScope.moduleScope(module)
-//    override val contentScope: GlobalSearchScope
-//        get() = GlobalSearchScope.allScope(project)
 
     override fun dependencies(): List<ModuleInfo> {
         return module.cacheByClassInvalidatingOnRootModifications(this::class.java) {
@@ -242,9 +238,6 @@ data class CangJieModuleInfo(
                 .collectModuleDependencies(module, includeExportedDependencies = true)
                 .toList()
         }
-
-//        TODO 暂时返回空
-//        return emptyList()
     }
 
     override val analyzerServices: PlatformDependentAnalyzerServices

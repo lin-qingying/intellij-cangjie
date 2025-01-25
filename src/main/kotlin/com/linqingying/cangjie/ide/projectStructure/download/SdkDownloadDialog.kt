@@ -277,7 +277,7 @@ class CangJieSdkDownloadTask(
 
 internal class SdkDownloadDialog(
     val project: Project?,
-    val parentComponent: Component?,
+    private val parentComponent: Component?,
 //    val sdkType: SdkTypeId,
     private val mergedModel: SdkDownloaderMergedModel,
     okActionText: @NlsContexts.Button String = CangJieBundle.message("dialog.button.download.sdk"),
@@ -506,7 +506,7 @@ class SdkVersionItem(
     //包含的项
     val includedItems: List<SdkVersionVendorItem>,
     //排除的项
-    val excludedItems: List<SdkVersionVendorItem>
+    private val excludedItems: List<SdkVersionVendorItem>
 ) {
     //we reuse model to keep selected element in-memory!
     //重用模型以保持内存中选定的元素
@@ -697,7 +697,7 @@ abstract class SdkInstallerBase {
      *
      * @see prepareSdkInstallation
      */
-    fun prepareSdkInstallationDirect(sdkItem: SdkItem, targetPath: Path): SdkInstallRequest =
+    private fun prepareSdkInstallationDirect(sdkItem: SdkItem, targetPath: Path): SdkInstallRequest =
         prepareSdkInstallationImpl(sdkItem, targetPath)
 
     private fun findSdkItemForInstalledSdk(sdkPath: Path?): SdkItem? {
@@ -782,14 +782,12 @@ abstract class SdkInstallerBase {
         val targetDir = request.installDir
         val url = Urls.parse(urlString, false) ?: error("Cannot parse download URL: ${urlString}")
 
-        var logFailed = false
+
         if (!url.scheme.equals("https", ignoreCase = true)) {
-            logFailed = true
             error("URL must use https:// protocol, but was: $url")
         }
         val wslDistribution = wslDistributionFromPath(targetDir)
         if (wslDistribution != null && item.os != "linux") {
-            logFailed = true
             error("Cannot install non-linux SDK into WSL environment to $targetDir from $item")
         }
         indicator?.text2 = CangJieUiBundle.message("progress.text2.downloading.sdk")
@@ -805,19 +803,17 @@ abstract class SdkInstallerBase {
                     .saveToFile(downloadFile.toFile(), indicator)
 
                 if (!downloadFile.isRegularFile()) {
-                    logFailed = true
                     throw RuntimeException("Downloaded file does not exist: $downloadFile")
                 }
             } catch (t: Throwable) {
                 if (t is ControlFlowException) throw t
-                logFailed = true
                 throw RuntimeException("Failed to download ${item.suggestedSdkName} from $url. ${t.message}", t)
             }
 
             val sizeDiff = runCatching { Files.size(downloadFile) }.getOrNull()
             if (sizeDiff == null || sizeDiff <= 0L) {
 
-                logFailed = true
+
                 throw RuntimeException(
                     "The downloaded ${item.suggestedSdkName} has incorrect file size,\n" +
                             "the difference is ${sizeDiff?.absoluteValue ?: "unknown"} bytes.\n" +
@@ -858,7 +854,6 @@ abstract class SdkInstallerBase {
                 runCatching { writeMarkerFile(request) }
             } catch (t: Throwable) {
                 if (t is ControlFlowException) throw t
-                logFailed = true
                 throw RuntimeException("Failed to extract ${item.suggestedSdkName}. ${t.message}", t)
             }
         } catch (t: Throwable) {
@@ -871,7 +866,7 @@ abstract class SdkInstallerBase {
 
     }
 
-    fun moveCangjieContents(targetDir: Path) {
+    private fun moveCangjieContents(targetDir: Path) {
         val cangjieDir = targetDir.resolve("cangjie")
         if (cangjieDir.isDirectory()) {
             Files.walk(cangjieDir).use { paths ->
@@ -977,7 +972,7 @@ private fun selectSdkAndPath(
             val buildModel = {
                 SdkListDownloader.getInstance().downloadForUI(progress = it)
 //                        .filter { extension.shouldIncludeItem(sdkTypeId, it) }
-                    .takeIf { it.isNotEmpty() }?.let { buildSdkDownloaderModel(it, { sdkFilter?.test(it) != false }) }
+                    .takeIf { it.isNotEmpty() }?.let { buildSdkDownloaderModel(it, { sdkItem -> sdkFilter?.test(sdkItem) != false }) }
             }
             val mainModel = buildModel() ?: return@computeInBackground null
 

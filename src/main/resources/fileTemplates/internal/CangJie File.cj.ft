@@ -1,3 +1,3 @@
-package #if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "") ${PROJECT_NAME}.${PACKAGE_NAME} #else ${PROJECT_NAME}
+package #if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "") ${CANGJIE_MODULE_NAME}.${PACKAGE_NAME} #else ${CANGJIE_MODULE_NAME}
 #end
 #parse("File Header.java")
