@@ -24,12 +24,16 @@
 
 package com.linqingying.cangjie.ide.quickfix
 
+import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.linqingying.cangjie.CangJieBundle
+import com.linqingying.cangjie.diagnostics.Diagnostic
+import com.linqingying.cangjie.diagnostics.DiagnosticWithParameters1
+import com.linqingying.cangjie.diagnostics.Errors.IMPLICIT_INTERSECTION_TYPE
 import com.linqingying.cangjie.ide.intentions.SpecifyTypeExplicitlyIntention
 import com.linqingying.cangjie.psi.CjCallableDeclaration
 import com.linqingying.cangjie.psi.CjNamedFunction
@@ -37,8 +41,13 @@ import com.linqingying.cangjie.psi.CjProperty
 import com.linqingying.cangjie.psi.CjVariable
 import com.linqingying.cangjie.types.CangJieType
 import com.linqingying.cangjie.types.CangJieTypeFactory
+import com.linqingying.cangjie.types.SimpleType
+import com.linqingying.cangjie.types.SimpleTypeImpl
 import com.linqingying.cangjie.types.asSimpleType
+import com.linqingying.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
+import com.linqingying.cangjie.types.error.isMultipleSupertypeType
 import com.linqingying.cangjie.types.isError
+import com.linqingying.cangjie.types.util.expandIntersectionTypeIfNecessary
 
 /**
  * 提供一个意图操作，用于在代码中明确指定类型
@@ -46,7 +55,7 @@ import com.linqingying.cangjie.types.isError
  *
  * @param convertToNullable 一个布尔值，指示是否将类型转换为可空类型，默认为false
  */
-class SpecifyTypeExplicitlyFix( ) : PsiElementBaseIntentionAction() {
+class SpecifyTypeExplicitlyFix(private var chooseType: CangJieType? = null) : PsiElementBaseIntentionAction() {
     /**
      * 返回意图操作的家族名称，用于在IDE的意图操作列表中分类显示
      *
@@ -66,10 +75,11 @@ class SpecifyTypeExplicitlyFix( ) : PsiElementBaseIntentionAction() {
         // 获取给定元素对应的声明
         val declaration = declarationByElement(element)!!
         // 根据声明获取适当的类型，并根据convertToNullable参数决定是否将其转换为可空类型
-        val type = SpecifyTypeExplicitlyIntention.getTypeForDeclaration(declaration)
-
+        if (chooseType == null) {
+            chooseType = SpecifyTypeExplicitlyIntention.getTypeForDeclaration(declaration)
+        }
         // 为声明添加类型注解
-        SpecifyTypeExplicitlyIntention.addTypeAnnotation(editor, declaration, type)
+        SpecifyTypeExplicitlyIntention.addTypeAnnotation(editor, declaration, chooseType!!)
     }
 
     /**
@@ -87,13 +97,13 @@ class SpecifyTypeExplicitlyFix( ) : PsiElementBaseIntentionAction() {
         if (declaration?.typeReference != null) return false
         text = when (declaration) {
 
-            is CjProperty,is CjVariable -> CangJieBundle.message("specify.type.explicitly")
+            is CjProperty,is CjVariable -> CangJieBundle.message("specify.type.explicitly") + " " + chooseType.toString()
 
-            is CjNamedFunction -> CangJieBundle.message("specify.return.type.explicitly")
+            is CjNamedFunction -> CangJieBundle.message("specify.return.type.explicitly") + " " + chooseType.toString()
             else -> return false
         }
         // 检查是否有错误类型
-        return !SpecifyTypeExplicitlyIntention.getTypeForDeclaration(declaration).isError
+        return SpecifyTypeExplicitlyIntention.getTypeForDeclaration(declaration).isError
     }
 
     /**
@@ -105,7 +115,25 @@ class SpecifyTypeExplicitlyFix( ) : PsiElementBaseIntentionAction() {
      */
     private fun declarationByElement(element: PsiElement): CjCallableDeclaration? {
         // 使用PsiTreeUtil工具类查找最近的父类型为CjProperty或CjNamedFunction的元素
-        return PsiTreeUtil.getParentOfType(element, CjProperty::class.java, CjNamedFunction::class.java)
+        return PsiTreeUtil.getParentOfType(element, CjProperty::class.java, CjVariable::class.java, CjNamedFunction::class.java)
     }
+
+    companion object SpecifyTypeExplicitlyFixFactory:CangJieIntentionActionsFactory(){
+        override fun doCreateActions(diagnostic: Diagnostic): List<IntentionAction> {
+            val diagnosticWithParameters1 = diagnostic as DiagnosticWithParameters1<*, *>
+            val typeList =  when (diagnosticWithParameters1.a){
+                is List<*> -> diagnosticWithParameters1.a
+                is CangJieType -> if (diagnosticWithParameters1.a.isMultipleSupertypeType) {
+                    (diagnosticWithParameters1.a as MultipleSupertypeTypeInferenceFailure).intersectedTypes
+                } else {
+                    listOf<CangJieType>()
+                }
+                else -> {listOf<CangJieType>()}
+            }
+            return typeList.map { SpecifyTypeExplicitlyFix(it as CangJieType) }
+        }
+
+    }
+
 }
 
