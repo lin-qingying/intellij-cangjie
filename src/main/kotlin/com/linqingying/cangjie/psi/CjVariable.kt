@@ -134,8 +134,11 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
         }
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
-        return setTypeReference(this, nameIdentifier, typeRef)
+        return setTypeReference(this, node.findChildByType(CjNodeTypes.BINDING_PATTERN)?.getPsi(), typeRef)
+    }
 
+    override fun getNameIdentifier(): PsiElement? {
+       return node.findChildByType(CjNodeTypes.BINDING_PATTERN)?.findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)?.findChildByType(CjTokens.IDENTIFIER)?.getPsi()
     }
 
     override val colon: PsiElement?

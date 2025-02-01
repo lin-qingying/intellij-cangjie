@@ -101,5 +101,8 @@ class QuickFixRegistrar : QuickFixContributor {
         REDUNDANT_OPTIONAL.registerFactory(RemoveOptionalFix.removeForRedundant)
         NESTING_DOLL_OPTINOTYPE.registerFactory(RemoveOptionalFix.removeForRedundantDoll)
 
+        TYPE_MISMATCH_MULTIPLE_SUPERTYPES.registerFactory(SpecifyTypeExplicitlyFix.SpecifyTypeExplicitlyFixFactory)
+        IMPLICIT_INTERSECTION_TYPE.registerFactory(SpecifyTypeExplicitlyFix.SpecifyTypeExplicitlyFixFactory)
+
     }
 }
