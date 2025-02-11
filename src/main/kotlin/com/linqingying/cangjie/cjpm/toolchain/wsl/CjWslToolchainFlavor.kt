@@ -24,20 +24,23 @@
 
 package com.linqingying.cangjie.cjpm.toolchain.wsl
 
+import com.intellij.execution.wsl.WSLDistribution
+import com.intellij.execution.wsl.WSLUtil
+import com.intellij.execution.wsl.WslDistributionManager
+import com.intellij.execution.wsl.WslPath.Companion.isWslUncPath
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.util.NlsContexts
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.computeWithCancelableProgress
-import com.intellij.execution.wsl.WSLDistribution
-import com.intellij.execution.wsl.WslDistributionManager
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.util.NlsContexts
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
+
+
+fun Path.hasExecutableOnWsl(toolName: String): Boolean = pathToExecutableOnWsl(toolName).toFile().isFile
+fun Path.pathToExecutableOnWsl(toolName: String): Path = resolve(toolName)
 
 class CjWslToolchainFlavor : CjToolchainFlavor() {
     override fun getHomePathCandidates(): Sequence<Path> = sequence {
@@ -49,6 +52,25 @@ class CjWslToolchainFlavor : CjToolchainFlavor() {
         }
     }
 
+    override fun pathToExecutable(path: Path, toolName: String): Path {
+        return path.pathToExecutableOnWsl(toolName)
+
+
+    }
+    override fun hasExecutable(path: Path, toolName: String): Boolean {
+        return path.hasExecutableOnWsl(toolName)
+
+    }
+
+    override fun isValidToolchainPath(path: Path): Boolean {
+        return isWslUncPath(path.toString()) && super.isValidToolchainPath(path)
+
+    }
+
+    override fun isApplicable(): Boolean {
+
+        return WSLUtil.isSystemCompatible()
+    }
 }
 
 fun WSLDistribution.getHomePathCandidates(): Sequence<Path> = sequence {

@@ -29,6 +29,7 @@ import com.linqingying.cangjie.cjpm.toolchain.flavors.isExecutable
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import com.linqingying.cangjie.cjpm.toolchain.flavors.pathToExecutable
 import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
@@ -74,7 +75,3 @@ open class CjLocalToolchain(location: Path) : CjToolchainBase(location) {
     override fun getExecutableName(toolName: String): String = if (SystemInfo.isWindows) "$toolName.exe" else toolName
 }
 
-fun Path.pathToExecutable(toolName: String): Path {
-    val exeName = if (SystemInfo.isWindows) "$toolName.exe" else toolName
-    return resolve(exeName).toAbsolutePath()
-}

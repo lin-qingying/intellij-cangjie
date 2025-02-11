@@ -24,13 +24,19 @@
 
 package com.linqingying.cangjie.cjpm.toolchain.flavors
 
-import com.linqingying.cangjie.cjpm.toolchain.pathToExecutable
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.util.SystemInfo
+import com.linqingying.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor.Companion.getApplicableFlavors
 import com.linqingying.cangjie.cjpm.toolchain.tools.Cjc
 import com.linqingying.cangjie.cjpm.toolchain.tools.Cjpm
-import com.intellij.openapi.extensions.ExtensionPointName
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
+
+fun Path.pathToExecutable(toolName: String): Path {
+    val exeName = if (SystemInfo.isWindows) "$toolName.exe" else toolName
+    return resolve(exeName).toAbsolutePath()
+}
 
 fun Path.hasExecutable(toolName: String): Boolean = pathToExecutable(toolName).isExecutable()
 fun Path.isExecutable(): Boolean = Files.isExecutable(this)
@@ -39,6 +45,13 @@ abstract class CjToolchainFlavor {
 
     fun suggestHomePaths(): Sequence<Path> = getHomePathCandidates().filter { isValidToolchainPath(it) }
     protected abstract fun getHomePathCandidates(): Sequence<Path>
+    protected open fun pathToExecutable(
+        path: Path,
+        toolName: String
+    ): Path {
+        return path.pathToExecutable(toolName)
+
+    }
 
 
     protected open fun isValidToolchainPath(path: Path): Boolean {
@@ -46,6 +59,7 @@ abstract class CjToolchainFlavor {
                 hasExecutable(path, Cjc.NAME) &&
                 hasExecutable(path, Cjpm.NAME)
     }
+
     protected open fun hasExecutable(path: Path, toolName: String): Boolean = path.hasExecutable(toolName)
 
     /**
