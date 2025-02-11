@@ -29,10 +29,12 @@ import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.JarSearchableOptionsTask
 import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     idea
+
 
     kotlin("jvm") version "2.1.0"
     id("org.jetbrains.intellij.platform") version "2.2.1"
@@ -58,7 +60,7 @@ val pluginsVersionMap = mapOf(
 
 )
 //IDEA版本
-val ideaVersion = "2024.2"
+val ideaVersion = "2024.3"
 //插件版本
 val pluginVersion = "3.0.1"
 val ideVersion = pluginsVersionMap[ideaVersion]!!["ideVersion"]!!
@@ -82,7 +84,7 @@ val pluginProjects: List<Project>
 
 
 //moshi版本
-val moshiVersion = "1.15.0"
+//val moshiVersion = "1.15.0"
 
 //插件需要的依赖列表
 val pluginDescriptors = arrayOf<String>(
@@ -167,8 +169,8 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
-
+            create(IntelliJPlatformType.IntellijIdeaCommunity,ideaVersion)
+//            local("C:\\Users\\27439\\AppData\\Local\\Programs\\RustRover")
         }
 
 
@@ -204,7 +206,7 @@ allprojects {
     }
     sourceSets {
         main {
-            java{
+            java {
                 srcDirs("src/main/kotlin")
                 srcDirs("src/main/${ideVersion}")  // 添加 IDE 版本特定的源码目录
 
@@ -244,8 +246,12 @@ allprojects {
 
         }
         withType<KotlinCompile> {
-            kotlinOptions.jvmTarget = "17"
-            kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all", "-Xcontext-receivers")
+
+            compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_17)
+                freeCompilerArgs.set(listOf("-Xjvm-default=all", "-Xcontext-receivers"))
+
+            }
         }
 
         withType<PatchPluginXmlTask> {
@@ -256,6 +262,10 @@ allprojects {
         prepareSandbox { enabled = false }
         buildSearchableOptions { enabled = false }
         prepareJarSearchableOptions { enabled = false }
+
+        processResources {
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE // 根据需要选择合适的策略
+        }
 
 
         test {
@@ -365,22 +375,23 @@ project(":plugin") {
         }
 
     }
-//    val createSourceJar = task<Jar>("createSourceJar") {
-//        duplicatesStrategy = DuplicatesStrategy.WARN
-//        for (prj in pluginProjects) {
-//            from(prj.kotlin.sourceSets.main.get().kotlin) {
-//                include("**/*.java")
-//                include("**/*.kt")
-//            }
-//        }
-//        destinationDirectory.set(layout.buildDirectory.dir("libs"))
-//        archiveBaseName.set(basePluginArchiveName)
-//        archiveClassifier.set("src")
-//    }
+    val createSourceJar = task<Jar>("createSourceJar") {
+        duplicatesStrategy = DuplicatesStrategy.WARN
+        for (prj in pluginProjects) {
+            from(prj.kotlin.sourceSets.main.get().kotlin) {
+                include("**/*.java")
+                include("**/*.kt")
+            }
+        }
+        destinationDirectory.set(layout.buildDirectory.dir("libs"))
+        archiveBaseName.set(basePluginArchiveName)
+        archiveClassifier.set("src")
+    }
     tasks {
+
         buildPlugin {
-//            dependsOn(createSourceJar)
-//            from(createSourceJar) { into("lib/src") }
+            dependsOn(createSourceJar)
+            from(createSourceJar) { into("lib/src") }
             // Set proper name for final plugin zip.
             // Otherwise, base name is the same as gradle module name
             archiveBaseName.set(basePluginArchiveName)
@@ -400,30 +411,18 @@ project(":plugin") {
 
         withType<RunIdeTask> {
             dependsOn(mergePluginJarTask)
-            // Default args for IDEA installation
             jvmArgs("-Xmx768m", "-XX:+UseG1GC", "-XX:SoftRefLRUPolicyMSPerMB=50")
-            // Disable plugin auto reloading. See `com.intellij.ide.plugins.DynamicPluginVfsListener`
             jvmArgs("-Didea.auto.reload.plugins=false")
-            // Don't show "Tip of the Day" at startup
+
             jvmArgs("-Dide.show.tips.on.startup.default.value=false")
-            // uncomment if `unexpected exception ProcessCanceledException` prevents you from debugging a running IDE
-            // jvmArgs("-Didea.ProcessCanceledException=disabled")
 
-            // Uncomment to enable FUS testing mode
-            // jvmArgs("-Dfus.internal.test.mode=true")
-
-            // Uncomment to enable localization testing mode
-            // jvmArgs("-Didea.l10n=true")
         }
 
         withType<PatchPluginXmlTask> {
             pluginDescription.set(provider { file("description.html").readText() })
         }
 
-//        withType<PublishPluginTask> {
-//            token.set(token)
-//            channels.set(listOf("dev"))
-//        }
+
     }
 
     task<RunIdeTask>("buildEventsScheme") {
@@ -444,8 +443,8 @@ project(":") {
             bundledPlugins(tomlPlugin)
 
         }
-        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
-        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
+//        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
+//        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
         implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
         implementation("com.google.protobuf:protobuf-java:3.24.4-jb.2")
@@ -457,8 +456,6 @@ project(":") {
         implementation("io.hotmoka:toml4j:0.7.3")
 
         implementation(project(":lsp"))
-//        引入 lib目录下的jar包
-//        implementation (files("lib/plsp.jar"))
 
         implementation(project(":utils"))
         implementation("io.javaslang:javaslang:2.1.0-alpha")

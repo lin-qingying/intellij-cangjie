@@ -24,7 +24,7 @@
 
 package com.linqingying.cangjie.ide.project.settings.ui
 
-import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleType
+import com.linqingying.cangjie.ide.module.CangJieModuleType
 import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext

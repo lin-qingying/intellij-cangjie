@@ -26,9 +26,9 @@ package com.linqingying.cangjie.cjpm.toolchain.tools
 
 
 import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
-import com.linqingying.cangjie.cjpm.toolchain.impl.CjcVersion
+import com.linqingying.cangjie.cjpm.toolchain.impl.CangJieVersion
 import com.linqingying.cangjie.cjpm.toolchain.impl.parseCjcVersion
-import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CjProcessResult
+import com.linqingying.cangjie.ide.module.CjProcessResult
 import com.linqingying.cangjie.ide.run.cjpm.isUnitTestMode
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.CjCapturingProcessHandler
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.CjProcessExecutionException
@@ -39,33 +39,23 @@ import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutput
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
+import com.linqingying.cangjie.cjpm.toolchain.impl.CangJieVersion.Companion.getInfo
 import java.nio.file.Path
 
-//fun CjToolchainBase.cjc(): Cjc = Cjc(this)
-//val CjToolchainBase.cjc :Cjc = toolchain::cjc
 
 class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
-    private var _version: CjcVersion? = null
-    val version: CjcVersion
-        get() {
-            if (_version == null) {
-                queryVersion()
 
-
-            }
-            return _version!!
-        }
+    val version: CangJieVersion?
+        get() = getInfo()
 
     init {
         toolchain.cjc = this
     }
 
-    fun queryVersion(workingDirectory: Path? = null): CjcVersion? {
+    fun queryVersion(workingDirectory: Path? = null): CangJieVersion? {
         try {
             if (!isUnitTestMode) {
                 checkIsBackgroundThread()
@@ -74,8 +64,8 @@ class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
                 "-v",
                 workingDirectory = workingDirectory
             ).execute(toolchain.executionTimeoutInMilliseconds)?.stdoutLines
-            _version = lines?.let { parseCjcVersion(it) }
-            return _version
+
+            return lines?.let { parseCjcVersion(it) }
         } catch (e: CjProcessExecutionException) {
 
             return null
@@ -84,7 +74,7 @@ class Cjc(toolchain: CjToolchainBase) : CangJieComponent(NAME, toolchain) {
 
     fun queryVersion(
         workingDirectory: Path, owner: Disposable, listener: ProcessListener
-    ): CjProcessResult<CjcVersion?> {
+    ): CjProcessResult<CangJieVersion?> {
         if (!isUnitTestMode) {
             checkIsBackgroundThread()
         }
@@ -133,7 +123,7 @@ fun CapturingProcessHandler.runProcessWithGlobalProgress(timeoutInMilliseconds: 
 fun CapturingProcessHandler.runProcess(
     indicator: ProgressIndicator?, timeoutInMilliseconds: Int? = null
 ): ProcessOutput {
-    return  when {
+    return when {
         indicator != null && timeoutInMilliseconds != null -> runProcessWithProgressIndicator(
             indicator,
             timeoutInMilliseconds

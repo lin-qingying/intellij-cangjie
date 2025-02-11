@@ -27,7 +27,7 @@ package com.linqingying.cangjie.ide.project.moduletype
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.icon.CangJieIcons
 
-import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder
+import com.linqingying.cangjie.ide.module.CangJieModuleBuilder
 import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.module.ModuleTypeManager

@@ -29,8 +29,8 @@ import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
 import com.linqingying.cangjie.cjpm.toolchain.cjpm
 import com.linqingying.cangjie.icon.CangJieIcons
 import com.linqingying.cangjie.ide.newProject.ui.ConfigurationData
-import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.makeProject
-import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.openFiles
+import com.linqingying.cangjie.ide.module.makeProject
+import com.linqingying.cangjie.ide.module.openFiles
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.computeWithCancelableProgress
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.unwrapOrThrow
 import com.intellij.facet.ui.ValidationResult

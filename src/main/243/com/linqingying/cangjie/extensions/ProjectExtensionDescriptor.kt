@@ -42,7 +42,6 @@ open class ProjectExtensionDescriptor<T : Any>(name: String, private val extensi
     fun registerExtension(project: Project, extension: T) {
 
         project.extensionArea.getExtensionPoint(extensionPointName).registerExtension(extension, project)
-//        extensionPointName.point.registerExtension(extension, project)
     }
 
     /**
@@ -64,7 +63,6 @@ open class ProjectExtensionDescriptor<T : Any>(name: String, private val extensi
         // 获取指定扩展点下的所有扩展，并转换为列表返回
         return projectArea.getExtensionPoint(extensionPointName).extensions.toList()
 
-//     return   extensionPointName.extensionList
     }
 
 }

@@ -41,7 +41,6 @@ open class ProjectExtensionDescriptor<T : Any>(name: String, private val extensi
 
     fun registerExtension(project: Project, extension: T) {
 
-//        project.extensionArea.getExtensionPoint(extensionPointName).registerExtension(extension, project)
         extensionPointName.point.registerExtension(extension, project)
     }
 
@@ -56,13 +55,6 @@ open class ProjectExtensionDescriptor<T : Any>(name: String, private val extensi
      * @return 返回扩展实例的列表如果指定的扩展点不存在，则返回空列表
      */
     fun getInstances(project: Project): List<T> {
-//        // 获取项目的扩展区域
-//        val projectArea = project.extensionArea
-//        // 检查项目中是否存在指定的扩展点
-//        if (!projectArea.hasExtensionPoint(extensionPointName.name)) return listOf()
-//
-//        // 获取指定扩展点下的所有扩展，并转换为列表返回
-//        return projectArea.getExtensionPoint(extensionPointName).extensions.toList()
 
      return   extensionPointName.extensionList
     }

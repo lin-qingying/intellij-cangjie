@@ -30,13 +30,16 @@ import com.linqingying.cangjie.ide.run.cjpm.runconfig.computeWithCancelableProgr
 import com.intellij.execution.wsl.WSLDistribution
 import com.intellij.execution.wsl.WslDistributionManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.NlsContexts
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 
-class CjWslToolchainFlavor : CjToolchainFlavor(){
+class CjWslToolchainFlavor : CjToolchainFlavor() {
     override fun getHomePathCandidates(): Sequence<Path> = sequence {
         val distributions = compute(CangJieBundle.message("progress.title.getting.installed.distributions")) {
             WslDistributionManager.getInstance().installedDistributions
@@ -75,7 +78,21 @@ fun WSLDistribution.getHomePathCandidates(): Sequence<Path> = sequence {
         yield(localPath)
     }
 }
+
 val isDispatchThread: Boolean get() = ApplicationManager.getApplication().isDispatchThread
+
+/**
+ * 在指定上下文中计算给定的任务，并根据当前线程决定是否显示进度对话框。
+ *
+ * @param title 进度对话框的标题，仅在UI线程执行时显示。
+ * @param getter 一个无参数的函数，用于执行计算任务。
+ * @return T 计算任务的结果，类型由调用者指定。
+ *
+ * 此函数根据当前线程是否是UI线程来决定是否显示进度对话框。
+ * 如果是UI线程，则通过ProjectManager获取默认项目，并使用该项目的实例
+ * 来显示一个可取消的进度对话框，在此对话框中执行给定的任务。
+ * 如果不是UI线程，则直接执行给定的任务，不显示进度对话框。
+ */
 private fun <T> compute(
     @Suppress("UnstableApiUsage") @NlsContexts.ProgressTitle title: String,
     getter: () -> T
@@ -85,6 +102,8 @@ private fun <T> compute(
 } else {
     getter()
 }
+
+
 fun Path.resolveOrNull(other: String): Path? = pathOrNull { resolve(other) }
 
 private inline fun pathOrNull(block: () -> Path): Path? {

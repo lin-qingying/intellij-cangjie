@@ -28,9 +28,12 @@ import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.PtyCommandLine
 import com.intellij.execution.wsl.WslPath
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
-import com.intellij.util.net.HttpConfigurable
+
+import com.intellij.util.net.ProxySettings
 import com.intellij.util.text.SemVer
 import com.linqingying.cangjie.cjpm.project.toPath
 import com.linqingying.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor
@@ -451,57 +454,7 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
 
     }
 
-    fun getEnvironment(): Map<String, String> {
-
-        return CangJieEnv.getInstance(location).getEnvVars()
-
-        val separator = if (SystemInfo.isWindows) ";" else ":"
-
-        val runtimeLlvm = if (SystemInfo.isWindows) {
-            "windows_x86_64_llvm"
-        } else {
-            "linux_x86_64_llvm"
-        }
-        val map = mutableMapOf<String, String>()
-
-        val sdkHome = this.location.systemIndependentPath
-        "${sdkHome}${buildPath("runtime", "lib", runtimeLlvm)}"
-        map["LD_LIBRARY_PATH"] =
-            "${sdkHome}${
-                buildPath(
-                    "runtime",
-                    "lib",
-                    runtimeLlvm
-                )
-            }$separator${System.getenv("LD_LIBRARY_PATH") ?: ""}"
-        map["PATH"] =
-            "${sdkHome}${
-                buildPath(
-                    "runtime",
-                    "lib",
-                    runtimeLlvm
-                )
-            }$separator${sdkHome}${buildPath("bin")}$separator${sdkHome}${
-                buildPath(
-                    "tools",
-                    "bin"
-                )
-            }$separator${sdkHome}${buildPath("tools", "lib")}$separator${sdkHome}${
-                buildPath(
-                    "runtime",
-                    "lib",
-                    runtimeLlvm
-                )
-            }$separator${sdkHome}${buildPath("debugger", "bin")}$separator ${
-                System.getenv(
-                    "PATH"
-                )
-            }"
-
-        map["CANGJIE_HOME"] = "$sdkHome${File.separator}"
-        map["cjcPath"] = "$sdkHome/bin"
-        return map
-    }
+    fun getEnvironment(): Map<String, String> = CangJieEnv.getInstance(location).getEnvVars()
 
     fun buildPath(vararg paths: String): String {
         return paths.joinToString(File.separator, File.separator)
@@ -561,8 +514,8 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
         emulateTerminal: Boolean,
         withSudo: Boolean,
         patchToRemote: Boolean = true,
-        http: HttpConfigurable = HttpConfigurable.getInstance()
-    ): GeneralCommandLine {
+
+        ): GeneralCommandLine {
 
         val env =
 
@@ -581,7 +534,7 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
             .withParameters(parameters)
             .withCharset(Charsets.UTF_8)
             .withRedirectErrorStream(true)
-        withProxyIfNeeded(commandLine, http)
+
         env.configureCommandLine(commandLine, true)
         if (emulateTerminal) {
             commandLine = PtyCommandLine(commandLine)
@@ -676,27 +629,11 @@ abstract class CjToolchainBase(var location: Path = "".toPath()) {
                 .flatMap { it.suggestHomePaths() }
                 .mapNotNull { CjToolchainProvider.getToolchain(it.toAbsolutePath()) }
                 .firstOrNull()
+
         }
     }
 }
 
-fun withProxyIfNeeded(cmdLine: GeneralCommandLine, http: HttpConfigurable) {
-    if (http.USE_HTTP_PROXY && http.PROXY_HOST.isNotEmpty()) {
-        cmdLine.withEnvironment("http_proxy", http.proxyUri.toString())
-    }
-}
-
-
-private val HttpConfigurable.proxyUri: URI
-    get() {
-        var userInfo: String? = null
-        if (PROXY_AUTHENTICATION && !proxyLogin.isNullOrEmpty() && plainProxyPassword != null) {
-            val login = proxyLogin
-            val password = plainProxyPassword!!
-            userInfo = if (password.isNotEmpty()) "$login:$password" else login
-        }
-        return URI("http", userInfo, PROXY_HOST, PROXY_PORT, "/", null, null)
-    }
 
 fun String.parseSemVer(): SemVer =
     checkNotNull(SemVer.parseFromText(this)) { "Invalid version value: $this" }

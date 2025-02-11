@@ -24,16 +24,13 @@
 
 package com.linqingying.cangjie.cjpm.project.model
 
-import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.cjpm.CjpmConstants
 import com.linqingying.cangjie.cjpm.project.pathAsPath
 import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
 import com.linqingying.cangjie.cjpm.project.workspace.CjpmWorkspace
-import com.linqingying.cangjie.cjpm.resolve
 import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
-import com.linqingying.cangjie.cjpm.toolchain.impl.CjcVersion
+import com.linqingying.cangjie.cjpm.toolchain.impl.CangJieVersion
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.service
@@ -124,7 +121,7 @@ val Project.cjpmProjects: CjpmProjectsService get() = service()
 
 data class CjcInfo(
 
-    val version: CjcVersion?,
+    val version: CangJieVersion?,
 
     val targets: List<String>? = null,
 
@@ -132,7 +129,7 @@ data class CjcInfo(
      * In production environments it is always equal to [version].
      * In unit tests it is real, non-mocked toolchain version
      */
-    val realVersion: CjcVersion? = version,
+    val realVersion: CangJieVersion? = version,
 )
 
 

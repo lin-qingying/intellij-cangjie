@@ -32,11 +32,10 @@ import com.linqingying.cangjie.cjpm.project.model.CjpmProject
 import com.linqingying.cangjie.cjpm.project.model.ProcessProgressListener
 import com.linqingying.cangjie.cjpm.project.workspace.CjpmWorkspace
 import com.linqingying.cangjie.cjpm.project.workspace.StandardLibrary
-import com.linqingying.cangjie.cjpm.resolve
 import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
 import com.linqingying.cangjie.cjpm.toolchain.cjc
 import com.linqingying.cangjie.cjpm.toolchain.cjpm
-import com.linqingying.cangjie.cjpm.toolchain.impl.CjcVersion
+import com.linqingying.cangjie.cjpm.toolchain.impl.CangJieVersion
 import com.linqingying.cangjie.cjpm.toolchain.tools.CjpmCallType
 import com.linqingying.cangjie.cjpm.toolchain.tools.unwrapOrElse
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildAdapterBase
@@ -65,17 +64,9 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
-import com.linqingying.cangjie.download.stdlib.STDLIB_PATH_LOCAL
-import com.linqingying.cangjie.download.stdlib.downloadStdlib
 import com.linqingying.cangjie.download.stdlib.fetchStdlib
 import org.jetbrains.annotations.Nls
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.net.URL
 import java.util.concurrent.CompletableFuture
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 import javax.swing.JComponent
 import kotlin.io.path.exists
 
@@ -494,7 +485,7 @@ private fun List<CjpmProjectWithStdlib>.chooseAndAttachStdlib(): List<CjpmProjec
     }
     val embeddedStdlib = projectsWithStdlib.find { it.stdlib.isPartOfCjpmProject }
     val theMostRecentStdlib = embeddedStdlib
-        ?: projectsWithStdlib.maxByOrNull { it.cjcVersion.semver }
+        ?: projectsWithStdlib.maxByOrNull { it.cangJieVersion.semver }
     return map {
         when {
             it.stdlib == null -> it.cjpmProject
@@ -507,7 +498,7 @@ private fun List<CjpmProjectWithStdlib>.chooseAndAttachStdlib(): List<CjpmProjec
 
 private class CjpmProjectWithExistingStdlib(
     @Suppress("unused") val cjpmProject: CjpmProjectImpl,
-    val cjcVersion: CjcVersion,
+    val cangJieVersion: CangJieVersion,
     val stdlib: StandardLibrary
 )
 

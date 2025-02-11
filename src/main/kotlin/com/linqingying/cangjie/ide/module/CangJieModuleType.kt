@@ -22,7 +22,7 @@
  *
  */
 
-package com.linqingying.cangjie.ide.project.tools.projectWizard.wizard
+package com.linqingying.cangjie.ide.module
 
 import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.icon.CangJieIcons

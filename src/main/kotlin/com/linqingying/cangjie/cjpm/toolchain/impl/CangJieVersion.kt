@@ -25,19 +25,35 @@
 package com.linqingying.cangjie.cjpm.toolchain.impl
 
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.projectRoots.impl.SdkVersionUtil
 import com.intellij.util.text.SemVer
+import com.linqingying.cangjie.cjpm.toolchain.tools.CangJieComponent
+import com.linqingying.cangjie.cjpm.toolchain.tools.Cjc
+import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 
 
-data class CjcVersion(
+data class CangJieVersion(
     val semver: SemVer,
     val host: String,
     val type: String?
+) {
+    companion object {
+        private val myCachedSdkHomeToInfo: MutableMap<Path, CangJieVersion?> =
+            ConcurrentHashMap<Path, CangJieVersion?>()
 
 
-)
+        fun Cjc.getInfo( ):CangJieVersion?{
+            return myCachedSdkHomeToInfo.computeIfAbsent(this.toolchain.location.toAbsolutePath()) {
+                queryVersion()
+            }
+
+        }
+    }
+}
 
 @VisibleForTesting
-fun parseCjcVersion(lines: List<String>): CjcVersion? {
+fun parseCjcVersion(lines: List<String>): CangJieVersion? {
 
     val cangjieComiler = """Cangjie Compiler: (\d+\.\d+\.\d+.*)""".toRegex()
 
@@ -61,7 +77,7 @@ fun parseCjcVersion(lines: List<String>): CjcVersion? {
         versionText = versionText.split(" ")[0]
 
         val semVer = SemVer.parseFromText(versionText) ?: return null
-        CjcVersion(semVer, hostText, type)
+        CangJieVersion(semVer, hostText, type)
 
     } catch (iex: IndexOutOfBoundsException) {
         null

@@ -22,11 +22,10 @@
  *
  */
 
-package com.linqingying.cangjie.ide.project.tools.projectWizard.wizard
+package com.linqingying.cangjie.ide.module
 
 
 import com.linqingying.cangjie.cjpm.CjpmConstants
-import com.linqingying.cangjie.cjpm.findChild
 import com.linqingying.cangjie.cjpm.project.settings.cangjieSettings
 import com.linqingying.cangjie.cjpm.toolchain.cjpm
 import com.linqingying.cangjie.cjpm.toolchain.tools.Cjpm
@@ -50,9 +49,9 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.SdkTypeId
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.vfs.VirtualFile
+import com.linqingying.cangjie.cjpm.toolchain.tools.Cjpm.GeneratedFilesHolder
 
 class CangJieModuleBuilder : ModuleBuilder() {
     companion object {
@@ -63,7 +62,8 @@ class CangJieModuleBuilder : ModuleBuilder() {
 
     override fun setupRootModel(modifiableRootModel: ModifiableRootModel) = createProject(modifiableRootModel)
 
-    fun createProject(modifiableRootModel: ModifiableRootModel, vcs: String? = null) {
+    fun createProject(modifiableRootModel: ModifiableRootModel, vcs: String = "git") {
+        // 添加内容入口
         val root = doAddContentEntry(modifiableRootModel)?.file ?: return
 //        继承sdk
         modifiableRootModel.inheritSdk()
@@ -71,41 +71,39 @@ class CangJieModuleBuilder : ModuleBuilder() {
 
         val projectType = configurationData?.projectType
         root.refresh(/* async = */ false, /* recursive = */ true)
-        // Just work if user "creates new project" over an existing one.
+        // 仅当用户在现有项目上“创建新项目”时才起作用。
         if (toolchain != null && root.findChild(CjpmConstants.MANIFEST_FILE) == null) {
-            // TODO: rewrite this somehow to fix `Synchronous execution on EDT` exception
-            // The problem is that `setupRootModel` is called on EDT under write action
-            // so `$ cjpm init` invocation blocks UI thread
+            // TODO: 以某种方式重写此代码以修复 `在EDT上的同步执行` 异常
+            // 问题在于 `setupRootModel` 在写操作下在EDT上被调用
+            // 所以 `$ cjpm init` 调用会阻塞UI线程
 
-//            val template = configurationData?.template ?: return
+
             val cjpm = toolchain.cjpm()
             val project = modifiableRootModel.project
             val name = project.name.replace(' ', '_')
 
-            val generatedFiles = cjpm.makeProject(
-                project,
-                modifiableRootModel.module,
-                root,
-                name,
-                name,
-//                if (moduleName.isNullOrEmpty()) name else moduleName!!,
-//                if (organizationName.isNullOrEmpty()) name else organizationName!!,
-                projectType ?: "executable",
-//                cjcVersion = toolchain.cjc().version
 
-            ).unwrapOrElse {
-                LOG.error(it)
-                throw ConfigurationException(it.message)
-            }
+                val generatedFiles = cjpm.makeProject(
+                    project,
+                    modifiableRootModel.module,
+                    root,
+                    name,
+                    name,
+                    projectType ?: "executable",
+
+                    ).unwrapOrElse {
+                    LOG.error(it)
+                    throw ConfigurationException(it.message)
+                }
 
 
 //            设置工具链
-            project.cangjieSettings.modify {
-                it.toolchain = toolchain
-            }
+                project.cangjieSettings.modify {
+                    it.toolchain = toolchain
+                }
 
-//            project.makeDefaultRunConfiguration(template)
-            project.openFiles(generatedFiles)
+                project.openFiles(generatedFiles)
+
         }
     }
 
@@ -124,20 +122,18 @@ inline fun <T, E> CjResult<T, E>.unwrapOrElse(op: (E) -> T): T = when (this) {
     is CjResult.Err -> op(err)
 }
 
+
 fun Cjpm.makeProject(
     project: Project,
     module: Module,
     baseDir: VirtualFile,
     name: String,
     moduleName: String = name,
-//    organizationName: String = name,
     projectType: String? = null,
-//    cjcVersion: CjcVersion? = null,
 ): CjProcessResult<Cjpm.GeneratedFilesHolder> {
     return init(project, module, baseDir, name, moduleName/*, organizationName*/, projectType)
 
 }
-
 
 
 typealias CjProcessResult<T> = CjResult<T, CjProcessExecutionException>

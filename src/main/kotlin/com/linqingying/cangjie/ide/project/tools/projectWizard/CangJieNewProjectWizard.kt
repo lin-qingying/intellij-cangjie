@@ -52,7 +52,7 @@ import com.linqingying.cangjie.CangJieBundle
 import com.linqingying.cangjie.cjpm.project.toPathOrNull
 import com.linqingying.cangjie.icon.CangJieIcons
 import com.linqingying.cangjie.ide.newProject.CjProjectGeneratorPeer
-import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder
+import com.linqingying.cangjie.ide.module.CangJieModuleBuilder
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*

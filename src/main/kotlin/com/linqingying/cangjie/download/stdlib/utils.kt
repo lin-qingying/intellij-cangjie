@@ -58,7 +58,7 @@ fun fetchStdlib(
 
             val workingDirectory = cjpmProject.workingDirectory
             val toolchain = childContext.toolchain
-            val version = toolchain.cjc().version.semver.rawVersion
+            val version = toolchain.cjc().version ?.semver ?.rawVersion ?: return@runWithChildProgress    TaskResult.Err("get sdk version error")
             val stdlibPath = STDLIB_PATH_LOCAL.resolve(version)
 
             val stdlibPathIndex = STDLIB_PATH_LOCAL.resolve("$version-intellij_cangjie_stdlib")
@@ -68,7 +68,7 @@ fun fetchStdlib(
                 stdlibPath.toFile().mkdirs()
                 // 下载标准库到 stdlibPath
                 return@runWithChildProgress when (val downloadResult =
-                    downloadStdlib(toolchain.cjc().version.semver.rawVersion)) {
+                    downloadStdlib(toolchain.cjc().version !!.semver.rawVersion)) {
                     is DownloadResult.Ok -> {
                         val downloadedFile = downloadResult.value
                         try {
@@ -76,7 +76,7 @@ fun fetchStdlib(
                             stdlibPathIndex.toFile().apply {
                                 createNewFile()
 //                                写入
-                                writeText(toolchain.cjc().version.semver.rawVersion)
+                                writeText(toolchain.cjc().version!!.semver.rawVersion)
                             }
                             TaskResult.Ok(StandardLibrary.fromFileStdlib(stdlibPath, version))
                         } catch (e: IllegalArgumentException) {

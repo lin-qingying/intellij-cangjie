@@ -44,17 +44,15 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.registry.RegistryValue
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.net.HttpConfigurable
 import com.intellij.util.text.SemVer
 import com.linqingying.cangjie.cjpm.CjpmConstants
-import com.linqingying.cangjie.cjpm.findChild
 import com.linqingying.cangjie.cjpm.project.pathAsPath
 import com.linqingying.cangjie.cjpm.resolve
 import com.linqingying.cangjie.cjpm.toolchain.CjToolchainBase
 import com.linqingying.cangjie.cjpm.toolchain.impl.CjpmMetadata
 import com.linqingying.cangjie.cjpm.toolchain.parseSemVer
 import com.linqingying.cangjie.ide.experiments.CjExperiments
-import com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CjProcessResult
+import com.linqingying.cangjie.ide.module.CjProcessResult
 import com.linqingying.cangjie.ide.run.cjpm.CjpmCommandLine
 import com.linqingying.cangjie.ide.run.cjpm.CjpmPatch
 import com.linqingying.cangjie.ide.run.cjpm.runconfig.*
@@ -334,16 +332,13 @@ class Cjpm(
                 emulateTerminal,
 
                 if (isFeatureEnabled(CjExperiments.BUILD_TOOL_WINDOW)) withSudo else false,
-                http = http
+
             )
 //                .withEnvironment("CJC", cjcExecutable)
 
         }
 
-    private var _http: HttpConfigurable? = null
 
-    private val http: HttpConfigurable
-        get() = _http ?: HttpConfigurable.getInstance()
 
     fun checkSupportForBuildCheckAllTargets(): Boolean {
         val lines = createBaseCommandLine("help", "check")

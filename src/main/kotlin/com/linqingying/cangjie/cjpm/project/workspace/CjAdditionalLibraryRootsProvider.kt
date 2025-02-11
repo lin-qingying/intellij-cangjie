@@ -27,7 +27,7 @@ package com.linqingying.cangjie.cjpm.project.workspace
 import com.linqingying.cangjie.cjpm.project.model.CjpmProject
 import com.linqingying.cangjie.cjpm.project.model.cjpmProjects
 import com.linqingying.cangjie.cjpm.project.workspace.PackageOrigin.*
-import com.linqingying.cangjie.cjpm.toolchain.impl.CjcVersion
+import com.linqingying.cangjie.cjpm.toolchain.impl.CangJieVersion
 import com.linqingying.cangjie.icon.CangJieIcons
 import com.linqingying.cangjie.ide.project.moduletype.CangJieLibraryModuleType
 import com.intellij.navigation.ItemPresentation
@@ -137,7 +137,7 @@ private val CjpmProject.ideaLibraries: Collection<SyntheticLibrary>
     }
 
 
-private fun makeStdlibLibrary(packages: List<CjpmWorkspace.Package>, rustcVersion: CjcVersion?): CjpmLibrary? {
+private fun makeStdlibLibrary(packages: List<CjpmWorkspace.Package>, rustcVersion: CangJieVersion?): CjpmLibrary? {
     if (packages.isEmpty()) return null
     val sourceRoots = mutableSetOf<VirtualFile>()
     val excludedRoots = mutableSetOf<VirtualFile>()

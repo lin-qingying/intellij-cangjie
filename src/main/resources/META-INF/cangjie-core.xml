@@ -110,7 +110,7 @@
         <!--        <newProjectWizard.language-->
         <!--                implementation="com.linqingying.cangjie.ide.project.tools.projectWizard.CangJieNewProjectWizard"/>-->
         <moduleBuilder
-                builderClass="com.linqingying.cangjie.ide.project.tools.projectWizard.wizard.CangJieModuleBuilder"/>
+                builderClass="com.linqingying.cangjie.ide.module.CangJieModuleBuilder"/>
         <!--        <moduleBuilder-->
         <!--                builderClass="com.linqingying.cangjie.ide.project.moduletype.CangJieLibraryModuleBuilder"/>-->
 
