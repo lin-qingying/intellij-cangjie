@@ -19,8 +19,9 @@
  *
  * The software is provided "as-is", and the authors are not responsible for
  * any damages or issues arising from its use.
- *
  */
+
+
 
 package com.linqingying.cangjie.resolve
 

@@ -148,3 +148,15 @@
 |------|
 | 代码高亮 |
 
+## 致谢
+ 
+- [Kotlin](https://github.com/JetBrains/kotlin) - Apache License 2.0
+  - Kotlin 编程语言为本插件提供了强大的语言支持和开发工具。
+  - 本项目的部分代码基于或改编自Kotlin源代码。
+  - Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.
+  - Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
+  - You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+  - 完整的许可证文本可在 [licenses/LICENSE-KOTLIN](licenses/LICENSE-KOTLIN) 中找到。
+ 
+- [intellij-kotlin](https://github.com/JetBrains/intellij-kotlin) - Apache License 2.0
+ 
