@@ -23,37 +23,37 @@ body:
         2. 第二步操作
         3. 其他操作...
     validations:
-      required: true
+      required: false
   - type: textarea
     id: expected-behavior
     attributes:
       label: 预期行为
       description: 请描述你期望发生的事情。
     validations:
-      required: true
+      required: false
   - type: textarea
     id: actual-behavior
     attributes:
       label: 实际行为
       description: 请描述实际发生的事情。
     validations:
-      required: true
+      required: false
   - type: textarea
     id: environment
     attributes:
       label: 环境信息
-      description: 请提供以下信息：
+      description: 请提供以下信息（选填）：
         - 操作系统（例如：Windows 10, macOS Big Sur, Ubuntu 20.04）
         - 浏览器（例如：Chrome 90, Firefox 88）
         - 版本（例如：v1.2.3）
         - 其他相关信息（例如：依赖库版本、硬件信息等）
     validations:
-      required: true
+      required: false
   - type: textarea
     id: additional-context
     attributes:
       label: 附加信息
-      description: 请提供任何其他可能有助于解决问题的信息，例如错误日志、截图等。
+      description: 请提供任何其他可能有助于解决问题的信息，例如错误日志、截图等（选填）。
     validations:
       required: false
   - type: checkboxes
