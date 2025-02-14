@@ -12,7 +12,7 @@
 <!--        <workspaceModel.fileIndexContributor-->
 <!--                implementation="com.linqingying.cangjie.utils.fileIndex.impl.SourceRootFileIndexContributor"/>-->
         <projectService serviceInterface="com.linqingying.cangjie.utils.fileIndex.DirectoryIndex"
-                        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.DirectoryIndex.Companion.EmptyDirectoryIndexImpl"/>
+                        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.EmptyDirectoryIndexImpl"/>
 
     </extensions>
 <!--    <extensions defaultExtensionNs="com.linqingying.cangjie.util.fileIndex">-->

@@ -42,4 +42,7 @@
     <xi:include href="/META-INF/caches.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/indices.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
+
+    <xi:include href="/META-INF/intellij.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
 </idea-plugin>

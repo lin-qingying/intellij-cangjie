@@ -74,7 +74,7 @@ private fun buildCompatibilityMap(): Map<Pair<CjKeywordToken, CjKeywordToken>, C
     // const 不兼容于 abstract, open, override
     result += incompatibilityRegister(CONST_KEYWORD, ABSTRACT_KEYWORD)
     result += incompatibilityRegister(CONST_KEYWORD, OPEN_KEYWORD)
-    result += incompatibilityRegister(CONST_KEYWORD, OVERRIDE_KEYWORD)
+//    result += incompatibilityRegister(CONST_KEYWORD, OVERRIDE_KEYWORD)
 
     // private 不兼容于 override
     result += incompatibilityRegister(PRIVATE_KEYWORD, OVERRIDE_KEYWORD)

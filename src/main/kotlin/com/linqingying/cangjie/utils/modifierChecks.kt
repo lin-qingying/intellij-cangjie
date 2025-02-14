@@ -34,10 +34,15 @@ import com.linqingying.cangjie.resolve.descriptorUtil.declaresOrInheritsDefaultV
 import com.linqingying.cangjie.resolve.descriptorUtil.module
 import com.linqingying.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
 import com.linqingying.cangjie.types.util.isSubtypeOf
+import com.linqingying.cangjie.utils.OperatorNameConventions.EQUALS
 import com.linqingying.cangjie.utils.OperatorNameConventions.GET
+import com.linqingying.cangjie.utils.OperatorNameConventions.NOT_EQUALS
 import com.linqingying.cangjie.utils.OperatorNameConventions.SET
 
 
+/**
+ * Check接口定义了检查函数描述符的结构
+ */
 interface Check {
     val description: String
     fun check(functionDescriptor: FunctionDescriptor): Boolean
@@ -45,13 +50,19 @@ interface Check {
         if (!check(functionDescriptor)) description else null
 }
 
+/**
+ * Checks类负责根据不同的条件检查函数描述符是否符合规范
+ */
 internal class Checks private constructor(
     val name: Name?,
     val regex: Regex?,
-    val nameList: Collection<Name>?,
+    private val nameList: Collection<Name>?,
     val additionalCheck: (FunctionDescriptor) -> String?,
     vararg val checks: Check
 ) {
+    /**
+     * 判断当前检查规则是否适用于给定的函数描述符
+     */
     fun isApplicable(functionDescriptor: FunctionDescriptor): Boolean {
         if (name != null && functionDescriptor.name != name) return false
         if (regex != null && !functionDescriptor.name.asString().matches(regex)) return false
@@ -59,6 +70,9 @@ internal class Checks private constructor(
         return true
     }
 
+    /**
+     * 执行所有检查规则，并返回检查结果
+     */
     fun checkAll(functionDescriptor: FunctionDescriptor): CheckResult {
         for (check in checks) {
             val checkResult = check(functionDescriptor)
@@ -75,6 +89,9 @@ internal class Checks private constructor(
         return CheckResult.SuccessCheck
     }
 
+    /**
+     * 构造函数，根据检查规则和额外的检查逻辑创建Checks实例
+     */
     constructor(vararg checks: Check, additionalChecks: FunctionDescriptor.() -> String? = { null })
             : this(null, null, null, additionalChecks, *checks)
 
@@ -92,6 +109,9 @@ internal class Checks private constructor(
             : this(null, null, nameList, additionalChecks, *checks)
 }
 
+/**
+ * AbstractModifierChecks类提供了检查函数描述符的抽象结构
+ */
 abstract class AbstractModifierChecks {
     internal abstract val checks: List<Checks>
 
@@ -107,28 +127,64 @@ abstract class AbstractModifierChecks {
      */
     inline fun ensure(cond: Boolean, msg: () -> String) = if (!cond) msg() else null
 
+    /**
+     * 检查给定的函数描述符是否符合任何预定义的检查规则
+     *
+     * @param functionDescriptor 函数描述符，包含函数的相关信息
+     * @return 返回检查结果，如果所有检查都通过，则返回对应的检查结果；如果函数名称不合法，则返回CheckResult.IllegalFunctionName
+     */
     fun check(functionDescriptor: FunctionDescriptor): CheckResult {
+        // 遍历所有预定义的检查规则
         for (check in checks) {
+            // 检查当前规则是否适用于给定的函数描述符
             if (!check.isApplicable(functionDescriptor)) continue
+            // 如果适用，则执行该规则的检查，并返回结果
             return check.checkAll(functionDescriptor)
         }
 
+        // 如果没有规则适用，则返回函数名称不合法的结果
         return CheckResult.IllegalFunctionName
     }
 }
 
+/**
+ * MemberKindCheck检查函数是否为成员函数或扩展函数
+ */
 sealed class MemberKindCheck(override val description: String) : Check {
+    /**
+     * 检查函数是否为成员函数或扩展函数的类
+     * 继承自 MemberKindCheck 类，实现了其检查逻辑
+     */
     data object MemberOrExtension : MemberKindCheck("must be a member or an extension function") {
+        /**
+         * 检查给定的函数描述符是否表示一个成员函数或扩展函数
+         *
+         * @param functionDescriptor 函数描述符，包含函数的反射信息
+         * @return Boolean 表示函数是否为成员函数或扩展函数
+         */
         override fun check(functionDescriptor: FunctionDescriptor) =
             functionDescriptor.dispatchReceiverParameter != null || functionDescriptor.extensionReceiverParameter != null
     }
 
+    /**
+     * 检查函数是否为成员函数的类
+     * 继承自 MemberKindCheck 类，实现了其检查逻辑
+     */
     data object Member : MemberKindCheck("must be a member function") {
+        /**
+         * 检查给定的函数描述符是否表示一个成员函数
+         *
+         * @param functionDescriptor 函数描述符，包含函数的反射信息
+         * @return Boolean 表示函数是否为成员函数
+         */
         override fun check(functionDescriptor: FunctionDescriptor) =
             functionDescriptor.dispatchReceiverParameter != null
     }
 }
 
+/**
+ * ValueParameterCountCheck检查函数的值参数数量
+ */
 sealed class ValueParameterCountCheck(override val description: String) : Check {
     data object NoValueParameters : ValueParameterCountCheck("must have no value parameters") {
         override fun check(functionDescriptor: FunctionDescriptor) = functionDescriptor.valueParameters.isEmpty()
@@ -138,7 +194,7 @@ sealed class ValueParameterCountCheck(override val description: String) : Check 
         override fun check(functionDescriptor: FunctionDescriptor) = functionDescriptor.valueParameters.size == 1
     }
 
-    object NamedAndValue : ValueParameterCountCheck("can only have one named parameter 'value'") {
+    data object NamedAndValue : ValueParameterCountCheck("can only have one named parameter 'value'") {
         override fun check(functionDescriptor: FunctionDescriptor): Boolean {
 
             val last = functionDescriptor.valueParameters.lastOrNull()
@@ -154,16 +210,43 @@ sealed class ValueParameterCountCheck(override val description: String) : Check 
 
     }
 
+    /**
+     * AtLeast类继承自ValueParameterCountCheck，用于检查函数至少应包含的值参数数量
+     * 它通过构造函数接收一个整数参数n，并确保被检查的函数至少有n个值参数
+     *
+     * @param n 函数至少应包含的值参数数量
+     */
     class AtLeast(val n: Int) :
         ValueParameterCountCheck("must have at least $n value parameter" + (if (n > 1) "s" else "")) {
+        /**
+         * 检查给定函数描述符的值参数数量是否符合要求
+         *
+         * @param functionDescriptor 函数描述符，包含函数的元数据信息
+         * @return 布尔值，指示函数的值参数数量是否至少为n
+         */
         override fun check(functionDescriptor: FunctionDescriptor) = functionDescriptor.valueParameters.size >= n
     }
 
+    /**
+     * 检查函数是否具有指定数量值参数的类
+     * 继承自ValueParameterCountCheck类，并实现其抽象方法check
+     *
+     * @param n 指定的值参数数量，函数必须具有确切的n个值参数
+     */
     class Equals(val n: Int) : ValueParameterCountCheck("must have exactly $n value parameters") {
+        /**
+         * 检查给定函数描述符的函数是否具有指定数量的值参数
+         *
+         * @param functionDescriptor 函数描述符，包含函数的相关信息
+         * @return 如果函数的值参数数量等于指定的数量n，则返回true，否则返回false
+         */
         override fun check(functionDescriptor: FunctionDescriptor) = functionDescriptor.valueParameters.size == n
     }
 }
 
+/**
+ * OperatorChecks对象提供了运算符重载函数的检查规则
+ */
 object OperatorChecks : AbstractModifierChecks() {
     override val checks by lazy {
         listOf(
@@ -184,7 +267,38 @@ object OperatorChecks : AbstractModifierChecks() {
                         ?.let { !it.declaresOrInheritsDefaultValue() && it.varargElementType == null } == true
                 ensure(lastIsOk) { "last parameter should not have a default value or be a vararg" }
 
-            }
+            },
+
+//            检查 ! 的重载
+            Checks(
+                OperatorNameConventions.NOT,
+                ValueParameterCountCheck.Equals(0),
+            ),
+            Checks(
+                nameList = listOf(
+                    OperatorNameConventions.INVOKE,
+                    NOT_EQUALS,
+                    EQUALS,
+
+                    OperatorNameConventions.ANDAND,
+                    OperatorNameConventions.OROR,
+                    OperatorNameConventions.PLUS,
+                    OperatorNameConventions.MINUS,
+                    OperatorNameConventions.TIMES,
+                    OperatorNameConventions.DIV,
+                    OperatorNameConventions.AND,
+                    OperatorNameConventions.OR,
+                    OperatorNameConventions.XOR,
+                    OperatorNameConventions.COMPARE_GT,
+                    OperatorNameConventions.COMPARE_LT,
+                    OperatorNameConventions.COMPARE_GTEQ,
+                    OperatorNameConventions.COMPARE_LTEQ,
+                    OperatorNameConventions.LEFT_SHIFT,
+                    OperatorNameConventions.RIGHT_SHIFT,
+                )
+
+
+            )
 
         )
 
