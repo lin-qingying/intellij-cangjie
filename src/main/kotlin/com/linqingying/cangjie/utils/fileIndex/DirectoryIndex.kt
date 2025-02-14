@@ -30,45 +30,45 @@ abstract class DirectoryIndex {
     abstract fun getDependentUnloadedModules(module: Module): Set<String>
 
     companion object {
-        object EmptyDirectoryIndexImpl : DirectoryIndex(),
-            Disposable {
-            override fun getDirectoriesByPackageName(
-                packageName: String,
-                includeLibrarySources: Boolean
-            ): Query<VirtualFile> =
-                object : Query<VirtualFile> {
-                    override fun forEach(consumer: Processor<in VirtualFile>): Boolean {
-                        return false
-                    }
-
-                    override fun findAll(): Collection<VirtualFile> {
-                        return emptyList()
-                    }
-
-                    override fun findFirst(): VirtualFile? {
-                        return null
-                    }
-
-                }
-
-            override fun getPackageName(dir: VirtualFile): String? = null
-
-            override fun getOrderEntries(fileOrDir: VirtualFile): List<OrderEntry> = emptyList()
-
-            override fun getDependentUnloadedModules(module: Module): Set<String> = emptySet()
-
-            override fun dispose() {
-            }
-
-            fun reset() {
-
-            }
-
-        }
 
         fun getInstance(project: Project): DirectoryIndex {
             return project.service<DirectoryIndex>()
 
         }
     }
+}
+object EmptyDirectoryIndexImpl : DirectoryIndex(),
+    Disposable {
+    override fun getDirectoriesByPackageName(
+        packageName: String,
+        includeLibrarySources: Boolean
+    ): Query<VirtualFile> =
+        object : Query<VirtualFile> {
+            override fun forEach(consumer: Processor<in VirtualFile>): Boolean {
+                return false
+            }
+
+            override fun findAll(): Collection<VirtualFile> {
+                return emptyList()
+            }
+
+            override fun findFirst(): VirtualFile? {
+                return null
+            }
+
+        }
+
+    override fun getPackageName(dir: VirtualFile): String? = null
+
+    override fun getOrderEntries(fileOrDir: VirtualFile): List<OrderEntry> = emptyList()
+
+    override fun getDependentUnloadedModules(module: Module): Set<String> = emptySet()
+
+    override fun dispose() {
+    }
+
+    fun reset() {
+
+    }
+
 }
