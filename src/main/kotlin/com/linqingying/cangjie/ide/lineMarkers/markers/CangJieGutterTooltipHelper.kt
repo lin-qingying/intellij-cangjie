@@ -36,7 +36,7 @@ import com.intellij.psi.util.PsiTreeUtil
 
 object CangJieGutterTooltipHelper : GutterTooltipBuilder() {
     override fun getLinkProtocol(): String {
-        return "kotlinClass"
+        return "cangjieClass"
     }
 
     override fun shouldSkipAsFirstElement(element: PsiElement): Boolean {

@@ -258,7 +258,7 @@ class ReferenceVariantsCollector(
             if (descriptor.isArtificialImportAliasedDescriptor) return false // do not exclude aliased descriptors - they cannot be completed via indices
             val containingPackage = descriptor.containingDeclaration as? PackageFragmentDescriptor ?: return false
             // TODO: temporary solution for Android synthetic extensions
-            return !containingPackage.fqName.asString().startsWith("kotlinx.android.synthetic.")
+            return false
         }
 
         override val fullyExcludedDescriptorKinds: Int get() = 0

@@ -237,7 +237,7 @@ class VariableOrParameterNameWithTypeCompletion(
         private val PRIORITY_KEY = Key<Int>("ParameterNameAndTypeCompletion.PRIORITY_KEY")
     }
 
-    object Weigher : LookupElementWeigher("kotlin.parameterNameAndTypePriority") {
+    object Weigher : LookupElementWeigher("cangjie.parameterNameAndTypePriority") {
         override fun weigh(element: LookupElement, context: WeighingContext): Int =
             element.getUserData(PRIORITY_KEY) ?: 0
     }

@@ -56,10 +56,10 @@ import com.linqingying.cangjie.utils.safeAs
 /**
  * copy-pasted and inspired by [DescriptorRendererImpl]
  *
- * To render any kotlin type into a sequence of short and human-readable kotlin types like
+ * To render any cangjie type into a sequence of short and human-readable cangjie types like
  * - Int
- * - Int?
- * - List<String?>?
+ * - ?Int
+ * - ?List<?String>
  *
  * For each type short name and fqName is provided (see [TypeInlayInfoDetail]).
  */

@@ -596,7 +596,6 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
             }
 
 
-            // This element was resolved to non-kotlin element, it will be rendered with own provider
             return null
         }
 

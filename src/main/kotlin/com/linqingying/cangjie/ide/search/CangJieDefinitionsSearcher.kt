@@ -110,68 +110,6 @@ class CangJieDefinitionsSearcher : QueryExecutor<PsiElement, DefinitionsScopedSe
             return runReadAction { ContainerUtil.process(ClassInheritorsSearch.search(cclass, true), consumer) }
         }
 
-//        private fun processLightClassLocalImplementations(
-//            psiClass: CjLightClass,
-//            searchScope: LocalSearchScope,
-//            consumer: Processor<PsiElement>
-//        ): Boolean {
-//            // workaround for IDEA optimization that uses Java PSI traversal to locate inheritors in local search scope
-//            val globalScope = runReadAction {
-//                val virtualFiles =searchScope.scope.mapTo(HashSet()) { it.containingFile.virtualFile }
-//                GlobalSearchScope.filesScope(psiClass.project, virtualFiles)
-//            }
-//            return ContainerUtil.process(ClassInheritorsSearch.search(psiClass, globalScope, true)) { candidate ->
-//                val candidateOrigin = candidate.unwrapped ?: candidate
-//                val inScope = runReadAction { candidateOrigin in searchScope }
-//                if (inScope) {
-//                    consumer.process(candidate)
-//                } else {
-//                    true
-//                }
-//            }
-//        }
-
-//        private fun processFunctionImplementations(
-//            function: CjFunction,
-//            scope: SearchScope,
-//            consumer: Processor<PsiElement>,
-//        ): Boolean =
-//            ReadAction.nonBlocking(Callable {
-//                function.toPossiblyFakeLightMethods().firstOrNull()?.forEachImplementation(scope, consumer::process) ?: true
-//            }).executeSynchronously()
-
-//        private fun processPropertyImplementations(
-//            declaration: CjNamedDeclaration,
-//            scope: SearchScope,
-//            consumer: Processor<PsiElement>
-//        ): Boolean = runReadAction {
-//            processPropertyImplementationsMethods(declaration , scope, consumer)
-//        }
-
-//        private fun processActualDeclarations(declaration: CjDeclaration, consumer: Processor<PsiElement>): Boolean = runReadAction {
-//            if (!declaration.isExpectDeclaration()) true
-//            else declaration.actualsForExpected().all(consumer::process)
-//        }
-//
-//        fun processPropertyImplementationsMethods(
-//            accessors: Iterable<PsiMethod>,
-//            scope: SearchScope,
-//            consumer: Processor<PsiElement>
-//        ): Boolean = accessors.all { method ->
-//            method.forEachOverridingMethod(scope) { implementation ->
-//                if (isDelegated(implementation)) return@forEachOverridingMethod true
-//
-//                val elementToProcess = runReadAction {
-//                    when (val mirrorElement = (implementation as? CjLightMethod)?.kotlinOrigin) {
-//                        is CjProperty, is CjParameter -> mirrorElement
-//                        is CjPropertyAccessor -> if (mirrorElement.parent is CjProperty) mirrorElement.parent else implementation
-//                        else -> implementation
-//                    }
-//                }
-//
-//                consumer.process(elementToProcess)
-//            }
-//        }
     }
 }
 

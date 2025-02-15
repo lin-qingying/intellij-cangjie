@@ -47,18 +47,18 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.util.proximity.PsiProximityComparator
 
-object PriorityWeigher : LookupElementWeigher("kotlin.priority") {
+object PriorityWeigher : LookupElementWeigher("cangjie.priority") {
     override fun weigh(element: LookupElement, context: WeighingContext) = element.priority ?: ItemPriority.DEFAULT
 }
 
 
 class NotImportedWeigher(private val classifier: ImportableFqNameClassifier) :
-    LookupElementWeigher("kotlin.notImported") {
+    LookupElementWeigher("cangjie.notImported") {
     private enum class Weight {
         default,
         siblingImported,
         notImported,
-        notToBeUsedInKotlin
+        notToBeUsedInCangJie
     }
 
     override fun weigh(element: LookupElement): Comparable<*> {
@@ -68,14 +68,14 @@ class NotImportedWeigher(private val classifier: ImportableFqNameClassifier) :
         return when (classifier.classify(fqName, o is PackageLookupObject)) {
             ImportableFqNameClassifier.Classification.siblingImported -> Weight.siblingImported
             ImportableFqNameClassifier.Classification.notImported -> Weight.notImported
-            ImportableFqNameClassifier.Classification.notToBeUsedInCangJie-> Weight.notToBeUsedInKotlin
+            ImportableFqNameClassifier.Classification.notToBeUsedInCangJie-> Weight.notToBeUsedInCangJie
             else -> Weight.default
         }
     }
 }
 
 class NotImportedStaticMemberWeigher(private val classifier: ImportableFqNameClassifier) :
-    LookupElementWeigher("kotlin.notImportedMember") {
+    LookupElementWeigher("cangjie.notImportedMember") {
     override fun weigh(element: LookupElement): Comparable<*>? {
         if (element.priority != ItemPriority.STATIC_MEMBER) return null
         val fqName = (element.`object` as DescriptorBasedDeclarationLookupObject).importableFqName ?: return null
@@ -160,7 +160,7 @@ object KindWeigher : LookupElementWeigher("kotlin.kind") {
     }
 }
 
-object CallableWeigher : LookupElementWeigher("kotlin.callableWeight") {
+object CallableWeigher : LookupElementWeigher("cangjie.callableWeight") {
     private enum class Weight1 {
         local,
         memberOrExtension,
