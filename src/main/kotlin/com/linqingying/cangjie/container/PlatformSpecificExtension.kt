@@ -48,7 +48,7 @@ interface PlatformSpecificExtension<S : PlatformSpecificExtension<S>>
  *
  * NB. YOU DON'T NEED this mechanism for the most popular case of "one or several default vs.
  * zero or one non-default". Just use [DefaultImplementation], and default instances will be automatically
- * discriminated (see respective KDoc).
+ * discriminated (see respective CDoc).
  * Use [PlatformExtensionsClashResolver] only for cases when you need more invloved logic.
  *
  * Example: [com.linqingying.cangjie.resolve.IdentifierChecker]. It is used in platform-agnostic code,

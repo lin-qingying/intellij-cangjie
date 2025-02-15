@@ -221,9 +221,9 @@ fun resolveCDocLink(
     }
     val isMarkdownLink = tag == null
     if (tag == CDocKnownTag.SAMPLE || tag == CDocKnownTag.SEE || isMarkdownLink) {
-        val kdocService = resolutionFacade.project.serviceOrNull<CDocLinkResolutionService>()
+        val cdocService = resolutionFacade.project.serviceOrNull<CDocLinkResolutionService>()
         val declarationDescriptors =
-            kdocService?.resolveCDocLink(context, fromDescriptor, resolutionFacade, qualifiedName) ?: emptyList()
+            cdocService?.resolveCDocLink(context, fromDescriptor, resolutionFacade, qualifiedName) ?: emptyList()
         if (declarationDescriptors.isNotEmpty()) {
             return declarationDescriptors
         }
@@ -271,7 +271,7 @@ fun getCDocLinkMemberScope(descriptor: DeclarationDescriptor, contextScope: Lexi
 
         is ClassDescriptor -> {
             ChainedMemberScope.create(
-                "Member scope for KDoc resolve", listOfNotNull(
+                "Member scope for CDoc resolve", listOfNotNull(
                     descriptor.unsubstitutedMemberScope,
                     descriptor.staticScope,
                     null,

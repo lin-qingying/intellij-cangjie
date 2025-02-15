@@ -54,10 +54,10 @@ object CDocTagCompletionProvider : CompletionProvider<CompletionParameters>() {
         if (prefix.isNotEmpty() && !prefix.startsWith('@')) {
             return
         }
-        val kdocOwner = parameters.position.getNonStrictParentOfType<CDoc>()?.getOwner()
+        val cdocOwner = parameters.position.getNonStrictParentOfType<CDoc>()?.getOwner()
         val resultWithPrefix = result.withPrefixMatcher(prefix)
         CDocKnownTag.entries.forEach {
-            if (kdocOwner == null || it.isApplicable(kdocOwner)) {
+            if (cdocOwner == null || it.isApplicable(cdocOwner)) {
                 resultWithPrefix.addElement(LookupElementBuilder.create("@" + it.name.lowercase(Locale.US)))
             }
         }

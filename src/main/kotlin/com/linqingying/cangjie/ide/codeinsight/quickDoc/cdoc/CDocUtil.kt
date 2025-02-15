@@ -45,21 +45,21 @@ private fun CjElement.lookupOwnedCDoc(): CDocContent? {
     }
 
     if (psiDeclaration is CjDeclaration) {
-        val kdoc = psiDeclaration.docComment
-        if (kdoc != null) {
+        val cdoc = psiDeclaration.docComment
+        if (cdoc != null) {
             if (this is CjConstructor<*>) {
                 // ConstructorDescriptor resolves to the same JetDeclaration
-                val constructorSection = kdoc.findSectionByTag(CDocKnownTag.CONSTRUCTOR)
+                val constructorSection = cdoc.findSectionByTag(CDocKnownTag.CONSTRUCTOR)
                 if (constructorSection != null) {
                     // if annotated with @constructor tag and the caret is on constructor definition,
                     // then show @constructor description as the main content, and additional sections
                     // that contain @param tags (if any), as the most relatable ones
                     // practical example: val foo = Fo<caret>o("argument") -- show @constructor and @param content
-                    val paramSections = kdoc.findSectionsContainingTag(CDocKnownTag.PARAM)
+                    val paramSections = cdoc.findSectionsContainingTag(CDocKnownTag.PARAM)
                     return CDocContent(constructorSection, paramSections)
                 }
             }
-            return CDocContent(kdoc.getDefaultSection(), kdoc.getAllSections())
+            return CDocContent(cdoc.getDefaultSection(), cdoc.getAllSections())
         }
     }
     return null

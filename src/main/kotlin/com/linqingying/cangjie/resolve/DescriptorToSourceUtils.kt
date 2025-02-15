@@ -53,7 +53,7 @@ object DescriptorToSourceUtils {
         return (descriptor as? DeclarationDescriptorWithSource)?.source?.getPsi()
     }
 
-    // NOTE this is also used by KDoc
+    // NOTE this is also used by CDoc
     // Returns PSI element for descriptor. If there are many relevant elements (e.g. it is fake override
     // with multiple declarations), returns null. It can't find declarations in builtins or decompiled code.
     // In IDE, use DescriptorToSourceUtilsIde instead.

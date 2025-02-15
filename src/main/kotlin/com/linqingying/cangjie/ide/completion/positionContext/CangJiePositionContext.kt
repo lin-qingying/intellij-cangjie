@@ -179,7 +179,7 @@ class CangJieAnnotationTypeNameReferencePositionContext(
 object CangJiePositionContextDetector {
     fun detect(position: PsiElement): CangJieRawPositionContext {
         return detectForPositionWithSimpleNameReference(position)
-//            ?: detectForPositionWithKDocReference(position)
+//            ?: detectForPositionWithCDocReference(position)
             ?: detectForPositionWithoutReference(position)
             ?: CangJieUnknownPositionContext(position)
     }
@@ -282,15 +282,15 @@ object CangJiePositionContextDetector {
         }
     }
 //
-//    private fun detectForPositionWithKDocReference(position: PsiElement): CangJieNameReferencePositionContext? {
-//        val kDocName = position.getStrictParentOfType<KDocName>() ?: return null
-//        val kDocLink = kDocName.getStrictParentOfType<KDocLink>() ?: return null
+//    private fun detectForPositionWithCDocReference(position: PsiElement): CangJieNameReferencePositionContext? {
+//        val kDocName = position.getStrictParentOfType<CDocName>() ?: return null
+//        val kDocLink = kDocName.getStrictParentOfType<CDocLink>() ?: return null
 //        val kDocReference = kDocName.mainReference
 //        val kDocNameQualifier = kDocName.getQualifier()
 //
 //        return when (kDocLink.getTagIfSubject()?.knownTag) {
-//            KDocKnownTag.PARAM -> KDocParameterNamePositionContext(position, kDocReference, kDocName, kDocNameQualifier)
-//            else -> KDocLinkNamePositionContext(position, kDocReference, kDocName, kDocNameQualifier)
+//            CDocKnownTag.PARAM -> CDocParameterNamePositionContext(position, kDocReference, kDocName, kDocNameQualifier)
+//            else -> CDocLinkNamePositionContext(position, kDocReference, kDocName, kDocNameQualifier)
 //        }
 //    }
 

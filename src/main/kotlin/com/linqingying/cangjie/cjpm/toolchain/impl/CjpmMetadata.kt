@@ -315,7 +315,7 @@ object CjpmMetadata {
 //            val name: String?,
 //
 //
-//            @Suppress("KDocUnresolvedReference")
+//            @Suppress("CDocUnresolvedReference")
 //            val dep_kinds: List<DepKindInfo>?
 //        )
 //

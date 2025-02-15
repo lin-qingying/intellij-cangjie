@@ -35,7 +35,7 @@ abstract class SimplePlatform(val platformName: String) {
     open val targetName: String
         get() = targetPlatformVersion.description
 
-    /** See KDoc for [TargetPlatform.oldFashionedDescription] */
+    /** See CDoc for [TargetPlatform.oldFashionedDescription] */
     abstract val oldFashionedDescription: String
 
     // FIXME(dsavvinov): hack to allow injection inject JvmTarget into container.

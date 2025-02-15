@@ -219,7 +219,7 @@
 //                        add(InfixCallableImportCandidatesProvider(positionContext, indexProvider))
 //                    }
 //
-//                    is KDocLinkNamePositionContext -> {
+//                    is CDocLinkNamePositionContext -> {
 //                        // TODO
 //                    }
 //
@@ -231,7 +231,7 @@
 //                    is CangJieImportDirectivePositionContext,
 //                    is CangJiePackageDirectivePositionContext,
 //                    is CangJieSuperReceiverNameReferencePositionContext,
-//                    is KDocParameterNamePositionContext -> {
+//                    is CDocParameterNamePositionContext -> {
 //                    }
 //                }
 //            }

@@ -44,7 +44,6 @@ class CangJieBlock(node: ASTNode,
                    overrideChildren: Sequence<ASTNode>? = null)
 
 : AbstractBlock(node, wrap, myAlignmentStrategy.getAlignment(node)) {
-
     private val cangjieDelegationBlock = object : CangJieCommonBlock(
         node, mySettings, mySpacingBuilder, myAlignmentStrategy, overrideChildren
     ) {

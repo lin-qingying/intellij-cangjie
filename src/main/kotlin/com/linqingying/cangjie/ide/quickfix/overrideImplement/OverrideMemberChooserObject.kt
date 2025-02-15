@@ -190,7 +190,7 @@ fun OverrideMemberChooserObject.generateMember(
                 findDocComment(superDeclaration)
 //            is PsiDocCommentOwner -> {
 //                val kDocText = superDeclaration.docComment?.let { IdeaDocCommentConverter.convertDocComment(it) }
-//                if (kDocText.isNullOrEmpty()) null else KDocElementFactory(project).createKDocFromText(kDocText)
+//                if (kDocText.isNullOrEmpty()) null else CDocElementFactory(project).createCDocFromText(kDocText)
 //            }
             else -> null
         }

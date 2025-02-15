@@ -66,7 +66,7 @@ class CmAnnotation(val className: ClassName, val arguments: Map<String, CmAnnota
 /**
  * Represents an argument of the annotation.
  */
-@Suppress("IncorrectFormatting") // one-line KDoc
+@Suppress("IncorrectFormatting") // one-line CDoc
 sealed class CmAnnotationArgument {
 
     // Avoid triggering Dokka configured for failing on undocumented functions
@@ -93,7 +93,7 @@ sealed class CmAnnotationArgument {
             "${this::class.java.simpleName}(${if (this is StringValue) "\"$value\"" else value.toString()})"
     }
 
-    // For all inheritors of LiteralValue: KDoc is automatically copied from base property `value`
+    // For all inheritors of LiteralValue: CDoc is automatically copied from base property `value`
     // to the overridden one. However, it does not do this with classes, and we do not have `@inheritdoc` :(
 
     /** An annotation argument with a [Byte] type. */

@@ -44,7 +44,7 @@ enum class LanguageFeature(
     val sinceApiVersion: ApiVersion = ApiVersion.CANGJIE_0_53_4,
     val hintUrl: String? = null,
     internal val isEnabledWithWarning: Boolean = false,
-    val kind: Kind = OTHER // NB: default value OTHER doesn't force pre-releaseness (see KDoc)
+    val kind: Kind = OTHER // NB: default value OTHER doesn't force pre-releaseness (see CDoc)
 ) {
 
 

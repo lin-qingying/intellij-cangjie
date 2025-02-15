@@ -34,18 +34,18 @@ import com.intellij.psi.util.PsiTreeUtil
 
 class CDocElementFactory(val project: Project) {
     fun createCDocFromText(text: String): CDoc {
-        val fileText = "$text fun foo { }"
+        val fileText = "$text func foo { }"
         val function = CjPsiFactory(project).createDeclaration<CjFunction>(fileText)
         return PsiTreeUtil.findChildOfType(function, CDoc::class.java)!!
     }
 
     fun createNameFromText(text: String): CDocName {
-        val kdocText = "/** @param $text foo*/"
-        val kdoc = createCDocFromText(kdocText)
-        val section = kdoc.getDefaultSection()
+        val cdocText = "/** @param $text foo*/"
+        val cdoc = createCDocFromText(cdocText)
+        val section = cdoc.getDefaultSection()
         val tag = section.findTagByName("param")
         val link = tag?.getSubjectLink()
-            ?: throw IllegalArgumentException("Cannot find subject link in doc comment '$kdocText'")
+            ?: throw IllegalArgumentException("Cannot find subject link in doc comment '$cdocText'")
         return link.getChildOfType()!!
     }
 }

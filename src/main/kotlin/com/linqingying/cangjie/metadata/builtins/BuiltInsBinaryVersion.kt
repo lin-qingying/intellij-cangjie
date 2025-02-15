@@ -35,7 +35,7 @@ import java.io.InputStream
  * - 在 `metadata.proto` 中进行了不兼容的更改
  * - 在内置序列化/反序列化逻辑中进行了不兼容的更改
  *
- * 版本提升必须遵守 [com.linqingying.cangjie.metadata.deserialization.BinaryVersion] 规则（参见 `BinaryVersion` KDoc）。
+ * 版本提升必须遵守 [com.linqingying.cangjie.metadata.deserialization.BinaryVersion] 规则（参见 `BinaryVersion` CDoc）。
  */
 class BuiltInsBinaryVersion(vararg numbers: Int) : BinaryVersion(*numbers) {
     override fun isCompatibleWithCurrentCompilerVersion(): Boolean =
