@@ -322,8 +322,9 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
             return buildString {
                 insert(CDocTemplate()) {
                     definition {
-                        renderDefinition(functionDescriptor, Lazy.DESCRIPTOR_RENDERER
-                            .withIdeOptions { highlightingManager = createHighlightingManager(element.project) }
+                        renderDefinition(
+                            functionDescriptor, Lazy.DESCRIPTOR_RENDERER
+                                .withIdeOptions { highlightingManager = createHighlightingManager(element.project) }
                         )
                     }
                     if (!quickNavigation && cdoc != null) {
@@ -362,7 +363,11 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
         private fun buildCangJieDeclaration(declaration: CjExpression, quickNavigation: Boolean): CDocTemplate {
             val resolutionFacade = declaration.getResolutionFacade()
             val context = declaration.safeAnalyzeNonSourceRootCode(resolutionFacade, BodyResolveMode.PARTIAL)
-            val declarationDescriptor = context[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
+            val declarationDescriptor = if (declaration is PatternVariableDeclaration) {
+                context[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration.variable]
+            } else {
+                context[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
+            }
 
             if (declarationDescriptor == null) {
                 LOG.info("Failed to find descriptor for declaration " + declaration.getElementTextWithContext())
@@ -437,8 +442,9 @@ class CangJieDocumentationProvider : AbstractDocumentationProvider(), ExternalDo
 
             return CDocTemplate().apply {
                 definition {
-                    renderDefinition(declarationDescriptor, Lazy.DESCRIPTOR_RENDERER
-                        .withIdeOptions { highlightingManager = createHighlightingManager(cjElement.project) }
+                    renderDefinition(
+                        declarationDescriptor, Lazy.DESCRIPTOR_RENDERER
+                            .withIdeOptions { highlightingManager = createHighlightingManager(cjElement.project) }
                     )
                 }
 

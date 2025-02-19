@@ -95,11 +95,29 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
     override val receiverTypeReference: CjTypeReference? = null
     override val typeReference: CjTypeReference? = null
 
+
+
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? = null
     override fun getName(): String? {
         return text
     }
+    private fun getParentVariable(): CjVariable? {
+        var parent = parent
 
+//       如果parent是 CjCasePattern，则继续向上寻找
+        while (parent is CjCasePattern) {
+            parent = parent.parent
+        }
+        return parent as? CjVariable
+
+
+    }
+
+    //    绑定模式隶属的变量声明
+    val variable: CjVariable?
+        get() {
+            return getParentVariable()
+        }
     override val colon: PsiElement? = null
     override val nameAsSafeName: Name
         get() = Name.identifier("")
@@ -161,25 +179,7 @@ class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node), CjSimp
             return parent is CjFile
         }
 
-    private fun getParentVariable(): CjVariable? {
-        var parent = parent
 
-//       如果parent是 CjCasePattern，则继续向上寻找
-        while (parent is CjCasePattern) {
-            parent = parent.parent
-        }
-        return parent as? CjVariable
-
-
-    }
-
-    //    绑定模式隶属的变量声明
-    val variable: CjVariable?
-        get() {
-
-
-            return getParentVariable()
-        }
 
     override val referencedNameElement : PsiElement  get(){
         return expression ?: this

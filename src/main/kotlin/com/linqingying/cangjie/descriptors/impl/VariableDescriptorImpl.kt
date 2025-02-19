@@ -48,51 +48,6 @@ open class VariableDescriptorImpl(
         get() = super.original as VariableDescriptorImpl
     private var _visibility: DescriptorVisibility = visibility
 
-    companion object {
-        private fun substituteContextParameterDescriptor(
-            substitutor: TypeSubstitutor,
-            substitutedPropertyDescriptor: VariableDescriptorImpl,
-            receiverParameterDescriptor: ReceiverParameterDescriptor
-        ): ReceiverParameterDescriptor? {
-            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT)
-                ?: return null
-            return ReceiverParameterDescriptorImpl(
-                substitutedPropertyDescriptor,
-                ContextReceiver(
-                    substitutedPropertyDescriptor,
-                    substitutedType,
-                    (receiverParameterDescriptor.value as ImplicitContextReceiver).customLabelName,
-                    receiverParameterDescriptor.value
-                ),
-                receiverParameterDescriptor.annotations
-            )
-        }
-
-        private fun substituteParameterDescriptor(
-            substitutor: TypeSubstitutor,
-            substitutedPropertyDescriptor: VariableDescriptor,
-            receiverParameterDescriptor: ReceiverParameterDescriptor
-        ): ReceiverParameterDescriptor? {
-            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT)
-                ?: return null
-            return ReceiverParameterDescriptorImpl(
-                substitutedPropertyDescriptor,
-                ExtensionReceiver(substitutedPropertyDescriptor, substitutedType, receiverParameterDescriptor.value),
-                receiverParameterDescriptor.annotations
-            )
-        }
-
-        @JvmStatic
-        fun create(
-            containingDeclaration: DeclarationDescriptor,
-            name: Name,
-            visibility: DescriptorVisibility,
-            isVar: Boolean,
-            source: SourceElement
-        ): VariableDescriptorImpl {
-            return VariableDescriptorImpl(containingDeclaration, name, null, isVar, source, visibility)
-        }
-    }
 
     protected open fun createSubstitutedCopy(
         newOwner: DeclarationDescriptor,
@@ -214,7 +169,6 @@ open class VariableDescriptorImpl(
 
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
         return visitor.visitVariableDescriptor(this, data)
-
     }
 
     override var visibility: DescriptorVisibility = _visibility
@@ -372,6 +326,51 @@ open class VariableDescriptorImpl(
             .setOriginal(original)
             .build()
 
+    }
+    companion object {
+        private fun substituteContextParameterDescriptor(
+            substitutor: TypeSubstitutor,
+            substitutedPropertyDescriptor: VariableDescriptorImpl,
+            receiverParameterDescriptor: ReceiverParameterDescriptor
+        ): ReceiverParameterDescriptor? {
+            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT)
+                ?: return null
+            return ReceiverParameterDescriptorImpl(
+                substitutedPropertyDescriptor,
+                ContextReceiver(
+                    substitutedPropertyDescriptor,
+                    substitutedType,
+                    (receiverParameterDescriptor.value as ImplicitContextReceiver).customLabelName,
+                    receiverParameterDescriptor.value
+                ),
+                receiverParameterDescriptor.annotations
+            )
+        }
+
+        private fun substituteParameterDescriptor(
+            substitutor: TypeSubstitutor,
+            substitutedPropertyDescriptor: VariableDescriptor,
+            receiverParameterDescriptor: ReceiverParameterDescriptor
+        ): ReceiverParameterDescriptor? {
+            val substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT)
+                ?: return null
+            return ReceiverParameterDescriptorImpl(
+                substitutedPropertyDescriptor,
+                ExtensionReceiver(substitutedPropertyDescriptor, substitutedType, receiverParameterDescriptor.value),
+                receiverParameterDescriptor.annotations
+            )
+        }
+
+        @JvmStatic
+        fun create(
+            containingDeclaration: DeclarationDescriptor,
+            name: Name,
+            visibility: DescriptorVisibility,
+            isVar: Boolean,
+            source: SourceElement
+        ): VariableDescriptorImpl {
+            return VariableDescriptorImpl(containingDeclaration, name, null, isVar, source, visibility)
+        }
     }
 
 
