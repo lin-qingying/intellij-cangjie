@@ -1158,9 +1158,13 @@ public class BodyResolver {
     }
 
     public void resolveBodies(@NotNull BodiesResolveContext c) {
+        // 解析行为声明体
         resolveBehaviorDeclarationBodies(c);
+        // 处理控制流分析
         controlFlowAnalyzer.process(c);
+        // 处理声明检查
         declarationsChecker.process(c);
+//        // 处理分析器扩展
 //        analyzerExtensions.process(c);
     }
 }

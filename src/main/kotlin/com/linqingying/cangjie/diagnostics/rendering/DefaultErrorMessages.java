@@ -977,6 +977,10 @@ public enum DefaultErrorMessages {
             // "For technical reasons, please display the return type of the specified method"
             return CangJieDiagnosisBundle.rawMessage(RETURN_TYPE_NOT_SPECIFIED_ERROR);
         });
+        MAP.put(CONST_MEMBER_FUNCTION_REQUIRES_CONST_CONSTRUCTOR, () -> {
+            // "The visibility of an ''{0}'' {1} must be {2}"
+            return CangJieDiagnosisBundle.rawMessage(CONST_MEMBER_FUNCTION_REQUIRES_CONST_CONSTRUCTOR);
+        });
 
         MAP.put(ABSTRACT_MEMBER_VISIBILITY_ERROR, () -> {
             // "The visibility of an ''{0}'' {1} must be {2}"

@@ -127,6 +127,14 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
         get() = !isTopLevel && !isMember
 
 
+    /**
+     * 判断当前对象是否为成员对象
+     *
+     * 该属性通过检查当前对象的父对象是否为CjTypeStatement类型或CjAbstractClassBody类型来确定当前对象是否为成员对象
+     * 这种实现方式用于在层次结构中快速判断对象的成员身份，而无需进行复杂的类型转换或搜索操作
+     *
+     * @return Boolean 表示当前对象是否为成员对象
+     */
     val isMember: Boolean
         get() {
             val parent = parent
@@ -138,7 +146,10 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
     }
 
     override fun getNameIdentifier(): PsiElement? {
-       return node.findChildByType(CjNodeTypes.BINDING_PATTERN)?.findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)?.findChildByType(CjTokens.IDENTIFIER)?.getPsi()
+        return node.findChildByType(CjNodeTypes.BINDING_PATTERN)?.findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)
+            ?.findChildByType(CjTokens.IDENTIFIER)?.getPsi() ?: if (isMember) {
+            super.getNameIdentifier()
+        } else null
     }
 
     override val colon: PsiElement?

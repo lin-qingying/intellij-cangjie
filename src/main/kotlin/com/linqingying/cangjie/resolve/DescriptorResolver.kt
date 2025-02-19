@@ -1362,7 +1362,7 @@ class DescriptorResolver(
         else
             Modality.FINAL
         //暂时使用EMPTY
-        val variableAnnotations = Annotations.EMPTY
+
         val variableDescriptor = create(
             container,
             CjPsiUtil.safeName(variableDeclaration.name),

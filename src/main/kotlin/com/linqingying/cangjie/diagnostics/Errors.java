@@ -279,6 +279,9 @@ public interface Errors {
             DiagnosticFactory2.create(ERROR, ABSTRACT_MODIFIER);
     DiagnosticFactory0<PsiElement> RETURN_TYPE_NOT_SPECIFIED_ERROR =
             DiagnosticFactory0.create(ERROR);
+    DiagnosticFactory0<CjFunction> CONST_MEMBER_FUNCTION_REQUIRES_CONST_CONSTRUCTOR =
+            DiagnosticFactory0.create(ERROR);
+
     DiagnosticFactory0<PsiElement> ABSTRACT_FUNCTION_WITHOUT_RETURN_TYPE =
             DiagnosticFactory0.create(ERROR);
     DiagnosticFactory3<PsiElement, Modality, DescriptorKind, List<DescriptorVisibility>> ABSTRACT_MEMBER_VISIBILITY_ERROR =
@@ -631,7 +634,7 @@ public interface Errors {
             CANNOT_WEAKEN_ACCESS_PRIVILEGE =
             DiagnosticFactory3.create(ERROR, VISIBILITY_MODIFIER);
     DiagnosticFactory0<CjParameter> DEFAULT_VALUE_NOT_ALLOWED_IN_OVERRIDE = DiagnosticFactory0.create(ERROR, PARAMETER_DEFAULT_VALUE);
-    DiagnosticFactory1<CjPackageDirective,   List<FqName >> CYCLIC_IMPORT = DiagnosticFactory1.create(ERROR);
+    DiagnosticFactory1<CjPackageDirective, List<FqName>> CYCLIC_IMPORT = DiagnosticFactory1.create(ERROR);
 
     DiagnosticFactory2<CjParameter, ClassDescriptor, ValueParameterDescriptor> PARAMETER_NAME_CHANGED_ON_OVERRIDE =
             DiagnosticFactory2.create(WARNING, DECLARATION_NAME);

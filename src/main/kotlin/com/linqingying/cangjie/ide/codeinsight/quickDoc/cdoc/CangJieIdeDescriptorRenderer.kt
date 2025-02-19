@@ -742,6 +742,12 @@ open class CangJieIdeDescriptorRenderer(
         appendWhereSuffix(property.typeParameters)
     }
 
+    private fun StringBuilder.appendConst(isConst: Boolean) {
+        if (isConst) {
+            appendHighlighted("const ") { asConst }
+        }
+    }
+
     private fun StringBuilder.appendStatic(isStatic: Boolean) {
         if (isStatic) {
             appendHighlighted("static ") { asStatic }
@@ -926,6 +932,7 @@ open class CangJieIdeDescriptorRenderer(
                 if (includeAdditionalModifiers) {
                     appendMemberModifiers(function)
                 }
+                appendConst(function.isConst)
                 appendStatic(function.isStatic)
 
 
@@ -1067,10 +1074,10 @@ open class CangJieIdeDescriptorRenderer(
                     append(renderKeyword("this"))
                     append(
                         parametersWithoutDefault.joinToString(
-                        prefix = highlight("(") { asParentheses },
-                        separator = highlight(", ") { asComma },
-                        postfix = highlight(")") { asParentheses }
-                    ) { "" }
+                            prefix = highlight("(") { asParentheses },
+                            separator = highlight(", ") { asComma },
+                            postfix = highlight(")") { asParentheses }
+                        ) { "" }
                     )
                 }
             }

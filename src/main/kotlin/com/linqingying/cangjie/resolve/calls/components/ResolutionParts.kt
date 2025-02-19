@@ -184,6 +184,8 @@ fun ResolutionCandidate.isStaticContext(): Boolean {
 }
 
 
+
+
 internal object CheckStaticCall : ResolutionPart() {
 
 

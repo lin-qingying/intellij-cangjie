@@ -209,6 +209,6 @@ open class CjNamedFunction : CjFunctionImpl {
     override val isMut: Boolean
         get() = hasModifier(CjTokens.MUT_KEYWORD)
     override val isConst: Boolean
-        get() = hasModifier(CjTokens.MUT_KEYWORD)
+        get() = hasModifier(CjTokens.CONST_KEYWORD)
 
 }

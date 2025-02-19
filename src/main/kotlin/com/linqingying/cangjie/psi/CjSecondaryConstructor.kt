@@ -28,6 +28,7 @@ import com.linqingying.cangjie.psi.stubs.CangJieConstructorStub
 import com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.lexer.CjTokens
 
 //从构造函数
 
@@ -44,6 +45,8 @@ class CjSecondaryConstructor : CjConstructor<CjSecondaryConstructor> {
 
     override fun getContainingTypeStatement() = parent?.parent as CjTypeStatement
 
+    override val isConst: Boolean
+        get() = hasModifier(CjTokens.CONST_KEYWORD)
 
 
     override fun getInitKeyword() = notNullChild<PsiElement>(super.getInitKeyword())

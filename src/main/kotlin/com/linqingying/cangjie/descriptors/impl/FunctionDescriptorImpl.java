@@ -60,6 +60,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     private Modality modality = Modality.FINAL;
     private DescriptorVisibility visibility = DescriptorVisibilities.INTERNAL;
     private boolean isOperator;
+    private boolean isConst;
     private boolean isStatic;
     private boolean isUnsafe;
 
@@ -174,6 +175,10 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 
     public void setIsStatic(boolean isStatic) {
         this.isStatic = isStatic;
+    }
+
+    public void setIsConst(boolean isConst) {
+        this.isConst = isConst;
     }
 
     public void setIsOperator(boolean isOperator) {
@@ -317,6 +322,16 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         this.visibility = visibility;
     }
 
+
+    @Override
+    public boolean isUnsafe() {
+        PsiElement element = PsiSourceElementKt.getPsi(getSource());
+        if (element instanceof CjFunction) {
+            isUnsafe = ((CjFunction) element).isUnsafe();
+        }
+        return isUnsafe;
+    }
+
     @Override
     public boolean isStatic() {
 
@@ -330,14 +345,13 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     }
 
     @Override
-    public boolean isUnsafe() {
+    public boolean isConst() {
         PsiElement element = PsiSourceElementKt.getPsi(getSource());
         if (element instanceof CjFunction) {
-            isUnsafe = ((CjFunction) element).isUnsafe();
+            isConst = ((CjFunction) element).isConst();
         }
-        return isUnsafe;
+        return isConst;
     }
-
 
     @Override
     public boolean isOperator() {
@@ -611,7 +625,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         substitutedDescriptor.isHiddenToOvercomeSignatureClash = configuration.isHiddenToOvercomeSignatureClash;
         substitutedDescriptor.isHiddenForResolutionEverywhereBesideSupercalls = configuration.isHiddenForResolutionEverywhereBesideSupercalls;
         substitutedDescriptor.isStatic = isStatic;
-
+        substitutedDescriptor.isConst = isConst;
         substitutedDescriptor.hasSynthesizedParameterNames = null != configuration.newHasSynthesizedParameterNames ? configuration.newHasSynthesizedParameterNames : hasSynthesizedParameterNames;
 
         // 处理用户数据映射

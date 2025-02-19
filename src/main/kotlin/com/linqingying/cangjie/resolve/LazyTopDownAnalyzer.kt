@@ -44,6 +44,30 @@ import com.linqingying.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.linqingying.cangjie.types.expressions.ExpressionTypingContext
 
+/**
+ * LazyTopDownAnalyzer类负责按需分析和解析Kotlin程序中的声明、表达式和语句
+ * 它采用惰性分析方式，即仅在需要时才进行相应的解析和分析，以提高性能和效率
+ *
+ * @param trace 用于记录绑定过程中的跟踪信息，帮助调试和验证分析过程
+ * @param lazyDeclarationResolver 用于惰性解析声明，仅在声明实际需要时才进行解析
+ * @param declarationResolver 负责解析声明，与lazyDeclarationResolver协同工作
+ *
+ * @param overrideResolver 用于解析和处理方法重写关系，确保正确处理继承结构
+ * @param overloadResolver 用于解析和处理函数和属性的重载情况
+ * @param fileScopeProvider 提供文件作用域，帮助解析文件内的声明和表达式
+ * @param packagerResolver 用于解析包结构，确保正确处理模块内的包和子包
+ * @param bodyResolver 负责解析函数体、属性体等，是分析过程中的关键组件
+ * @param identifierChecker 用于检查标识符的有效性，防止关键字冲突和非法字符使用
+ * @param qualifiedExpressionResolver 用于解析合格表达式，如成员访问和调用链
+ * @param moduleDescriptor 模块描述符，提供模块级别的信息和上下文
+ * @param topLevelDescriptorProvider 提供顶级声明的描述符，帮助解析模块顶层的声明
+ * @param mainFunctionResolver 用于解析主函数，确保程序的入口点被正确处理
+ *
+ * @param declarationScopeProvider 提供声明作用域，帮助解析声明在不同上下文中的可见性和有效性
+ * @param filePreprocessor 负责预处理文件，如解析文件注释和指令
+ * @param extendDescriptorResolver 用于解析扩展声明，如扩展函数和属性
+ * @param dependencyGraph 表示依赖关系的图结构，帮助管理和解析声明和模块之间的依赖关系
+ */
 class LazyTopDownAnalyzer(
     private val trace: BindingTrace,
     private val lazyDeclarationResolver: LazyDeclarationResolver,
@@ -52,7 +76,7 @@ class LazyTopDownAnalyzer(
     private val overrideResolver: OverrideResolver,
     private val overloadResolver: OverloadResolver,
     private val fileScopeProvider: FileScopeProvider,
-    private  val packagerResolver:PackagerResolver,
+    private val packagerResolver: PackagerResolver,
     private val bodyResolver: BodyResolver,
     private val identifierChecker: IdentifierChecker,
     private val qualifiedExpressionResolver: QualifiedExpressionResolver,
@@ -255,8 +279,10 @@ class LazyTopDownAnalyzer(
 
         packagerResolver.check(c)
 
+
         declarationResolver.checkRedeclarationsInPackages(topLevelDescriptorProvider, topLevelFqNames)
-        declarationResolver.checkRedeclarations(c)
+        declarationResolver.check(c)
+
 //        declarationResolver.resolveAnnotationsOnFiles(c, fileScopeProvider)
 
         overrideResolver.check(c)
@@ -495,7 +521,8 @@ class LazyTopDownAnalyzer(
         }
     }
 }
-fun DescriptorVisibility.toAccessControlLevel():Int{
+
+fun DescriptorVisibility.toAccessControlLevel(): Int {
     return when (this) {
         DescriptorVisibilities.PRIVATE, DescriptorVisibilities.INTERNAL -> 0
         DescriptorVisibilities.PROTECTED -> 1

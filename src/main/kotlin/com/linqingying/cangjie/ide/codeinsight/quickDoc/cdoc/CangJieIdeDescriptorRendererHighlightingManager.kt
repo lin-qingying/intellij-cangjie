@@ -36,7 +36,7 @@ interface CangJieIdeDescriptorRendererHighlightingManager<TAttributes : CangJieI
     val asInfo: TAttributes
 
     val asDot: TAttributes
-
+    val asConst: TAttributes
     val asComma: TAttributes
     val asStatic: TAttributes
     val asColon: TAttributes
@@ -118,6 +118,8 @@ interface CangJieIdeDescriptorRendererHighlightingManager<TAttributes : CangJieI
             override val asComma = EMPTY_ATTRIBUTES
             override val asColon = EMPTY_ATTRIBUTES
             override val asStatic = EMPTY_ATTRIBUTES
+            override val asConst = EMPTY_ATTRIBUTES
+
             override val asDoubleColon = EMPTY_ATTRIBUTES
             override val asParentheses = EMPTY_ATTRIBUTES
             override val asArrow = EMPTY_ATTRIBUTES

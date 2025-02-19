@@ -68,13 +68,16 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
     }
 
     @NotNull
+    // 获取静态作用域
     MemberScope getStaticScope();
 
     @NotNull
+    // 获取构造函数的集合
     @ReadOnly
     Collection<ClassConstructorDescriptor> getConstructors();
 
     @NotNull
+    // 获取结束构造函数的集合
     @ReadOnly
     Collection<ClassConstructorDescriptor> getEndConstructors();
 
@@ -156,6 +159,21 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
     default List<CjSuperTypeListEntry> getSuperTypeListEntries() {
 
         return Collections.emptyList();
+    }
+
+    /**
+     * 是否具有const 构造函数
+     */
+    default boolean hasConstConstructor() {
+        Collection<ClassConstructorDescriptor> constructors = getConstructors();
+        for (ClassConstructorDescriptor constructor : constructors) {
+            if (constructor.isConst()) {
+                return true;
+            }
+        }
+
+
+        return false;
     }
 
 }

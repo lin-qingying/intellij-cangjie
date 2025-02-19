@@ -105,7 +105,7 @@ abstract class DescriptorRenderer {
 
     abstract fun renderFlexibleType(lowerRendered: String, upperRendered: String, builtIns: CangJieBuiltIns): String
 
-    abstract fun renderTypeArguments(typeArguments: List<TypeProjection>,other:(StringBuilder) -> Unit = {}): String
+    abstract fun renderTypeArguments(typeArguments: List<TypeProjection>, other: (StringBuilder) -> Unit = {}): String
 
     abstract fun renderTypeProjection(typeProjection: TypeProjection): String
 
@@ -324,11 +324,13 @@ enum class DescriptorRendererModifier(val includeByDefault: Boolean) {
         val ALL = entries.toSet()
     }
 }
+
 object ExcludedTypeAnnotations {
-    val internalAnnotationsForResolve:Set<FqName> = setOf(
+    val internalAnnotationsForResolve: Set<FqName> = setOf(
 
     )
 }
+
 interface DescriptorRendererOptions {
     var classifierNamePolicy: ClassifierNamePolicy
     var withDefinedIn: Boolean
@@ -355,7 +357,7 @@ interface DescriptorRendererOptions {
     var textFormat: RenderingFormat
     var excludedAnnotationClasses: Set<FqName>
 
-        var excludedTypeAnnotationClasses: Set<FqName>
+    var excludedTypeAnnotationClasses: Set<FqName>
     var annotationFilter: ((AnnotationDescriptor) -> Boolean)?
     var eachAnnotationOnNewLine: Boolean
 
@@ -1077,10 +1079,10 @@ open class DescriptorRendererImpl(
         if (DescriptorRendererModifier.OVERRIDE !in modifiers) return
         if (overridesSomething(callableMember)) {
             if (overrideRenderingPolicy != OverrideRenderingPolicy.RENDER_OPEN) {
-                if(callableMember.isStatic){
+                if (callableMember.isStatic) {
                     renderModifier(builder, true, "redef")
 
-                }else{
+                } else {
                     renderModifier(builder, true, "override")
 
                 }
@@ -1247,11 +1249,15 @@ open class DescriptorRendererImpl(
                     }
                 }
             }
-            if(function.isStatic){
+            if (function.isConst) {
+                builder.append("const ")
+            }
+
+            if (function.isStatic) {
                 builder.append("static ")
             }
 
-            if(function is SimpleFunctionDescriptorForExtendImpl){
+            if (function is SimpleFunctionDescriptorForExtendImpl) {
 
                 renderTypeParameters(function.typeParametersForExtend, builder, true)
                 renderWhereSuffix(function.typeParametersForExtend, builder)

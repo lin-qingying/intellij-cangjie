@@ -25,6 +25,7 @@
 package com.linqingying.cangjie.psi
 
 import com.intellij.psi.PsiElement
+import com.linqingying.cangjie.lexer.CjTokens
 
 
 interface CjFunction : CjDeclarationWithBody, CjCallableDeclaration,CjLocalNamedDeclaration {

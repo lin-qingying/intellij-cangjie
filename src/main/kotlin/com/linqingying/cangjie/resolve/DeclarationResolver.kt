@@ -40,10 +40,21 @@ import com.linqingying.cangjie.psi.CjPackageDirective
 import com.linqingying.cangjie.resolve.lazy.TopLevelDescriptorProvider
 import com.linqingying.cangjie.utils.addIfNotNull
 
+// DeclarationResolver类负责解析声明相关的逻辑，包括检查重复声明等
 class DeclarationResolver(
     private val annotationResolver: AnnotationResolver,
     private val trace: BindingTrace
 ) {
+    /**
+     * 根据完全限定名获取顶级描述符
+     *
+     * 此函数通过完全限定名获取顶级包片段和顶级分类描述符，并将它们收集到一个集合中
+     *
+     * @param topLevelDescriptorProvider 顶级描述符提供者，用于获取包片段和分类描述符
+     * @param fqName 完全限定名，用于查找包片段和分类描述符
+     * @param location 查找位置，用于跟踪描述符的来源
+     * @return 包含包片段和分类描述符的集合
+     */
     private fun getTopLevelDescriptorsByFqName(
         topLevelDescriptorProvider: TopLevelDescriptorProvider,
         fqName: FqName,
@@ -76,6 +87,12 @@ class DeclarationResolver(
                 }
             }
         }
+    }
+
+    fun check(c: TopDownAnalysisContext) {
+        checkRedeclarations(c)
+
+
     }
 
     /**
