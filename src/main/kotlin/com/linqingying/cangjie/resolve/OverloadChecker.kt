@@ -25,6 +25,8 @@
 package com.linqingying.cangjie.resolve
 
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.enumd.EnumEntryCallableMemberDescriptor
+import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
 import com.linqingying.cangjie.resolve.calls.results.*
 import com.linqingying.cangjie.types.ErrorUtils
@@ -100,6 +102,8 @@ class OverloadChecker(val specificityComparator: TypeSpecificityComparator) {
             is ClassifierDescriptor ->
                 DeclarationCategory.TYPE_OR_VALUE
 
+            is EnumEntryDescriptor ,is EnumEntryCallableMemberDescriptor->
+                DeclarationCategory.TYPE_OR_VALUE
             else ->
                 error("Unexpected declaration kind: $a")
         }

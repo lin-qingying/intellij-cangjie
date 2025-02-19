@@ -24,15 +24,98 @@
 
 package com.linqingying.cangjie.descriptors.enumd
 
-import com.linqingying.cangjie.descriptors.ClassConstructorDescriptor
-import com.linqingying.cangjie.descriptors.DeclarationDescriptor
-import com.linqingying.cangjie.descriptors.DescriptorVisibility
+import com.linqingying.cangjie.descriptors.*
 import com.linqingying.cangjie.name.Name
 import com.linqingying.cangjie.resolve.BindingContext
 import com.linqingying.cangjie.resolve.lazy.LazyClassContext
 import com.linqingying.cangjie.resolve.lazy.data.CjEnmuEntryInfo
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import com.linqingying.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
+import com.linqingying.cangjie.types.CangJieType
+import com.linqingying.cangjie.types.TypeSubstitutor
+
+class EnumEntryCallableMemberDescriptor(
+    val entry: EnumEntryDescriptor
+) : CallableMemberDescriptor {
+    override fun getValueParameters(): List<ValueParameterDescriptor> = emptyList()
+
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+        return visitor.visitClassDescriptor(entry, data)
+    }
+
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+TODO()
+    }
+
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
+        return this
+    }
+
+    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> = emptyList()
+
+    override fun getReturnType(): CangJieType? = null
+
+    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? = null
+
+    override fun getOverriddenDescriptors(): List<CallableMemberDescriptor> = emptyList()
+
+    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
+        return null
+    }
+
+    override fun hasSynthesizedParameterNames(): Boolean {
+        return false
+    }
+
+    override fun getTypeParameters(): List<TypeParameterDescriptor> {
+        return emptyList()
+    }
+
+    override fun hasStableParameterNames(): Boolean {
+        return false
+    }
+
+    override fun getModality(): Modality {
+        return Modality.FINAL
+    }
+
+    override fun getKind(): CallableMemberDescriptor.Kind {
+        return CallableMemberDescriptor.Kind.DECLARATION
+    }
+
+    override fun setOverriddenDescriptors(overriddenDescriptors: MutableCollection<out CallableMemberDescriptor>) {
+
+    }
+
+    override fun <V : Any?> getUserData(key: CallableDescriptor.UserDataKey<V>?): V? {
+        return null
+    }
+
+    override fun copy(
+        newOwner: DeclarationDescriptor?,
+        modality: Modality?,
+        visibility: DescriptorVisibility?,
+        kind: CallableMemberDescriptor.Kind?,
+        copyOverrides: Boolean
+    ): CallableMemberDescriptor = this
+
+    override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out CallableMemberDescriptor> = TODO(
+        "Not yet implemented"
+    )
+
+    override val original: CallableMemberDescriptor = this
+    override val containingDeclaration: DeclarationDescriptor = this
+    override val visibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC
+    override val name: Name
+        get() = entry.name
+    override val source: SourceElement
+        get() = entry.source
+
+
+    override fun toString(): String {
+        return entry.toString()
+    }
+}
 
 class EnumEntryDescriptor(
     c: LazyClassContext,
@@ -54,6 +137,7 @@ class EnumEntryDescriptor(
 
     }
 
+
     override val isStatic: Boolean
         get() = true
     override val visibility: DescriptorVisibility = containingDeclaration.visibility
@@ -62,6 +146,10 @@ class EnumEntryDescriptor(
     override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor {
         return (unsubstitutedMemberScope as LazyClassMemberScope).getEnumEntryPrimaryConstructor()!!
 
+    }
+
+    fun toCallableMemberDescriptor(): EnumEntryCallableMemberDescriptor {
+        return EnumEntryCallableMemberDescriptor(this)
     }
 
     override fun getConstructors(): List<ClassConstructorDescriptor> {

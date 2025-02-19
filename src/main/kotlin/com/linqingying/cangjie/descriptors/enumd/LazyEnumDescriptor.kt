@@ -49,10 +49,11 @@ class LazyEnumDescriptor(
     classLikeInfo, false
 ) {
 
-init {
-    checkArgumentBySize()
-}
-//    不能在构造器中调用，会引发循环调用，因为只能自底向上解析
+    init {
+        checkArgumentBySize()
+    }
+
+    //    不能在构造器中调用，会引发循环调用，因为只能自底向上解析
     val entrys
         get() = unsubstitutedMemberScope.getContributedDescriptors { true }.filter { DescriptorUtils.isEnumEntry(it) }
 
@@ -61,15 +62,15 @@ init {
     val entrysByPsi get() = classLikeInfo.declarations.filterIsInstance<CjEnumEntry>()
     val entrysByPsiByNameGroup get() = entrysByPsi.groupBy { it.name }
     fun checkArgumentBySize() {
-        entrysByPsiByNameGroup .forEach { (name, entrys) ->
+        entrysByPsiByNameGroup.forEach { (name, entrys) ->
 
-            val map =      entrys.groupBy {  it.typeReferences.size}
+            val map = entrys.groupBy { it.typeReferences.size }
             map.values.forEach { values ->
                 if (values.size > 1)
 
-                  values.forEach {
-                      c.trace.report(ENUM_REDECLARATION.on(it, name) )
-                  }
+                    values.forEach {
+                        c.trace.report(ENUM_REDECLARATION.on(it, name))
+                    }
 
 
             }
@@ -87,6 +88,13 @@ init {
 //        }
 
 
+    }
+
+    override fun getDeclaredCallableMembers(): List<CallableMemberDescriptor> {
+        return super.getDeclaredCallableMembers() +
+                entrys.mapNotNull {
+                    (it as? EnumEntryDescriptor)?.toCallableMemberDescriptor()
+                }
     }
 
 }

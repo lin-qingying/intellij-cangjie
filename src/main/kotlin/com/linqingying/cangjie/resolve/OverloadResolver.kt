@@ -29,6 +29,8 @@ import com.intellij.util.containers.MultiMap
 import com.linqingying.cangjie.config.LanguageVersionSettings
 import com.linqingying.cangjie.container.DefaultImplementation
 import com.linqingying.cangjie.descriptors.*
+import com.linqingying.cangjie.descriptors.enumd.EnumEntryCallableMemberDescriptor
+import com.linqingying.cangjie.descriptors.enumd.EnumEntryDescriptor
 import com.linqingying.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import com.linqingying.cangjie.diagnostics.DiagnosticFactory1
 import com.linqingying.cangjie.diagnostics.Errors
@@ -461,6 +463,8 @@ class OverloadResolver(
                 }
 
                 // 对于属性、变量、分类器和函数描述符，报告重新声明的错误
+                is EnumEntryCallableMemberDescriptor,
+                is EnumEntryDescriptor,
                 is PropertyDescriptor,
                 is VariableDescriptor,
                 is ClassifierDescriptor,
@@ -497,26 +501,26 @@ class OverloadResolver(
         nestedClassConstructors: Collection<FunctionDescriptor>
     ) {
         // 创建一个多值映射，用于存储每个方法名对应的所有可调用成员描述符
-        val functionsByName = MultiMap.create<Name, CallableMemberDescriptor>()
+        val callableMembersByName = MultiMap.create<Name, CallableMemberDescriptor>()
 
         // 遍历类中声明的所有可调用成员，将它们按名称分组
-        for (function in classDescriptor.declaredCallableMembers) {
-            functionsByName.putValue(function.name, function)
+        for (callableMember in classDescriptor.declaredCallableMembers) {
+            callableMembersByName.putValue(callableMember.name, callableMember)
         }
 
         // 遍历类的所有构造函数，将它们按名称分组
         for (constructor in classDescriptor.endConstructors) {
-            functionsByName.putValue(constructor.name, constructor)
+            callableMembersByName.putValue(constructor.name, constructor)
         }
 
         // 遍历嵌套类的构造函数，将它们按嵌套类的名称分组
         for (nestedConstructor in nestedClassConstructors) {
             val name = nestedConstructor.containingDeclaration.name
-            functionsByName.putValue(name, nestedConstructor)
+            callableMembersByName.putValue(name, nestedConstructor)
         }
 
         // 遍历每个名称对应的可调用成员集合，检查重载的有效性
-        for (e in functionsByName.entrySet()) {
+        for (e in callableMembersByName.entrySet()) {
             checkOverloadsInClass(e.value)
         }
     }
