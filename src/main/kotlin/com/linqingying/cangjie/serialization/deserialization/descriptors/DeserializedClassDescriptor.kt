@@ -256,7 +256,7 @@ class DeserializedClassDescriptor(
         }
 
         override fun computeSupertypes(): Collection<CangJieType> {
-            val result = classProto.supertypes(c.typeTable).map { supertypeProto ->
+            val result = classProto.supertypes(c.typeTable).toSet().map { supertypeProto ->
                 c.typeDeserializer.type(supertypeProto)
             } + c.components.additionalClassPartsProvider.getSupertypes(this@DeserializedClassDescriptor)
 
@@ -440,11 +440,13 @@ class DeserializedClassDescriptor(
                 it.memberScope.getClassifierNames()
             }
         }
+
         override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
             recordLookup(name, location)
             classDescriptor.enumEntries?.findEnumEntrys(name)?.let { return it.toList() }
             return super.getContributedEnumEntrys(name, location)
         }
+
         override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
             recordLookup(name, location)
             classDescriptor.enumEntries?.findEnumEntrys(name)?.let { return it.toList() }
@@ -482,7 +484,7 @@ class DeserializedClassDescriptor(
 
                     protoList.map {
                         EnumEntrySyntheticClassDescriptor.create(
-                            it.typeList.map { ptype->
+                            it.typeList.map { ptype ->
                                 c.typeDeserializer.type(ptype)
                             },
 
@@ -525,6 +527,6 @@ class DeserializedClassDescriptor(
         }
 
         fun all(): Collection<ClassDescriptor> =
-            enumEntryProtos.keys.flatMap { name ->  findEnumEntrys(name)  }
+            enumEntryProtos.keys.flatMap { name -> findEnumEntrys(name) }
     }
 }
