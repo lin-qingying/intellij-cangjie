@@ -204,7 +204,11 @@ public class IdeErrorMessages {
                 HTML_RENDER_TYPE,
                 HTML_RENDER_TYPE
         );
-
+        MAP.put(
+                Errors.REDECLARATION,
+                () ->   CangJieHighlightingBundle.htmlMessage("REDECLARATION"),
+                HTML_AMBIGUOUS_DECLARATION
+        );
         MAP.put(
                 Errors.OVERLOAD_RESOLUTION_AMBIGUITY,
                 () ->   CangJieHighlightingBundle.htmlMessage("html.overload.resolution.ambiguity.all.these.functions.match.ul.0.ul.html"),
