@@ -41,6 +41,7 @@
     <module value="com.linqingying.cangjie"/>
 
     <depends>com.intellij.modules.platform</depends>
+
     <dependencies>
         <plugin id="com.intellij.modules.lang"/>
         <!--<plugin id="com.intellij.modules.cangjie-core-capable"/>-->

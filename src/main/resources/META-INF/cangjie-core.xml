@@ -291,10 +291,15 @@
         <runAnything.executionProvider order="after RunAnythingRunConfigurationProvider"
                                        implementation="com.linqingying.cangjie.ide.actions.runAnything.cjpm.CjpmRunAnythingProvider"/>
         <!--        工具栏-->
-
         <toolWindow id="Cjpm"
                     anchor="right"
                     factoryClass="com.linqingying.cangjie.cjpm.project.toolwindow.CjpmToolWindowFactory"
+
+        />
+<!--        文档-->
+        <toolWindow id="cangjie_doc"
+                    anchor="right"
+                    factoryClass="com.linqingying.cangjie.toolwindow.doc.CangJieDocWindowFactory"
 
         />
 
