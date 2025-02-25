@@ -1,0 +1,32 @@
+<idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <extensions defaultExtensionNs="com.intellij">
+
+<!--        插件启动-->
+        <postStartupActivity implementation="cn.cangnova.cangjie.CangJieStartupActivity"/>
+
+
+        <!--        文件类型-->
+        <fileType name="CangJie"
+                  language="CangJie"
+                  implementationClass="cn.cangnova.cangjie.lang.CangJieFileType"
+                  extensions="cj"
+                  fieldName="INSTANCE"/>
+
+        <!--      PSI解析-->
+        <lang.parserDefinition language="CangJie"
+                               implementationClass="cn.cangnova.cangjie.parsing.CangJieParserDefinition"/>
+
+        <!--        图标-->
+        <fileIconProvider implementation="cn.cangnova.cangjie.icon.CjpmIconProvider"/>
+        <!--语法高亮-->
+        <colorSettingsPage implementation="cn.cangnova.cangjie.highlighter.CangJieColorSettingsPage"/>
+        <lang.syntaxHighlighterFactory language="CangJie"
+                                       implementationClass="cn.cangnova.cangjie.highlighter.CangJieSyntaxHighlighterFactory"/>
+
+
+        <stubElementTypeHolder class="cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes"
+                               externalIdPrefix="cangjie."/>
+
+    </extensions>
+
+</idea-plugin>
