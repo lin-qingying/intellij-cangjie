@@ -70,7 +70,6 @@ interface CangJieFilesStub {
 //}
 interface CangJieFileStub : PsiFileStub<CjFile>, CangJieFilesStub {
 
-//    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveItemStub>
 }
 
 /**

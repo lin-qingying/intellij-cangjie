@@ -64,11 +64,6 @@ class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) : PsiBuilderAd
 
         for (i in 1..currentOffset) {
             val previousToken = rawLookup(-i)
-
-
-
-
-
             if (previousToken === CjTokens.BLOCK_COMMENT || previousToken === CjTokens.DOC_COMMENT || previousToken === CjTokens.EOL_COMMENT || previousToken === CjTokens.SHEBANG_COMMENT) {
                 continue
             }

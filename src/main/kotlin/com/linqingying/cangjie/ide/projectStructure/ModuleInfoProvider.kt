@@ -77,13 +77,7 @@ class ModuleInfoProvider(private val project: Project) {
         fun findAnchorElement(element: PsiElement): PsiElement? = when {
             element is PsiDirectory -> element
             element !is CjLightElement<*, *> -> element.containingFile
-            /**
-             * We shouldn't unwrap decompiled classes
-             * @see [ModuleInfoProvider.collectByLightElement]
-             */
-//            element.getNonStrictParentOfType<CjLightClassForDecompiledDeclaration>() != null -> null
-//            element is CjLightClassForFacade -> element.files.first()
-//            else -> element.cangjieOrigin?.let(::findAnchorElement)
+
             else -> {
                 element.cangjieOrigin?.let(::findAnchorElement)
 

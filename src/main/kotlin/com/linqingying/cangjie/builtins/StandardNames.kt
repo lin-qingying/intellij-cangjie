@@ -39,6 +39,7 @@ object StandardNames {
 
     @JvmField
     val CONTEXT_FUNCTION_TYPE_PARAMETER_COUNT_NAME = Name.identifier("count")
+
     @JvmField
     val BUILT_INS_PACKAGE_NAME = Name.identifier("cangjie")
 
@@ -75,8 +76,10 @@ object StandardNames {
     val NET_PACKAGE_NAME = Name.identifier("net")
 
     val SERIALIZATION_PACKAGE_NAME = Name.identifier("serialization")
-@JvmField
-val MAIN = Name.identifier("main")
+
+    @JvmField
+    val MAIN = Name.identifier("main")
+
     @JvmField
     val STD_PACKAGE_FQ_NAME = FqName.topLevel(STD_PACKAGE_NAME)
 
@@ -97,6 +100,7 @@ val MAIN = Name.identifier("main")
 
     @JvmField
     val SERIALIZATION_PACKAGE_FQ_NAME = FqName.topLevel(SERIALIZATION_PACKAGE_NAME)
+
     @JvmField
     val STD_SYNC_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("sync"))
 
@@ -160,12 +164,16 @@ val MAIN = Name.identifier("main")
 
     @JvmField
     val BOOL = Name.identifier("Bool")
+
     @JvmField
     val EXCEPTION = Name.identifier("Exception")
+
     @JvmField
     val RESOURCE = Name.identifier("Resource")
+
     @JvmField
     val TOKENS = Name.identifier("Tokens")
+
     @JvmField
     val REENTRANT_MUTEX = Name.identifier("ReentrantMutex")
 
@@ -180,14 +188,19 @@ val MAIN = Name.identifier("main")
 
     @JvmField
     val ARRAY = Name.identifier("Array")
+
     @JvmField
     val RANGE = Name.identifier("Range")
+
     @JvmField
     val COUNTABLE = Name.identifier("Countable")
+
     @JvmField
     val EQUATABLE = Name.identifier("Equatable")
+
     @JvmField
     val COMPARABLE = Name.identifier("Comparable")
+
     @JvmField
     val FUTURE = Name.identifier("Future")
 
@@ -216,10 +229,13 @@ val MAIN = Name.identifier("main")
     object FqNames {
         @JvmField
         val deprecated: FqName = fqName("Deprecated")
+
         @JvmField
         val publishedApi: FqName = fqName("PublishedApi")
+
         @JvmField
         val cloneable: FqNameUnsafe = fqNameUnsafe("Cloneable")
+
         @JvmField
         val platformDependent: FqName = FqName("cangjie.internal.PlatformDependent")
 
@@ -230,6 +246,7 @@ val MAIN = Name.identifier("main")
                     this[fqNameUnsafe(primitiveType.typeName.asString())] = primitiveType
                 }
             }
+
         @JvmField
         val deprecatedSinceCangJie: FqName = fqName("DeprecatedSinceCangJie")
 
@@ -254,8 +271,10 @@ val MAIN = Name.identifier("main")
 
         @JvmField
         val core: FqName = FqName.topLevel(STD_PACKAGE_NAME).child(CORE_PACKAGE_NAME)
+
         @JvmField
         val ast: FqName = FqName.topLevel(STD_PACKAGE_NAME).child(AST_PACKAGE_NAME)
+
         @JvmField
         val sync: FqName = FqName.topLevel(STD_PACKAGE_NAME).child(SYNC_PACKAGE_NAME)
 
@@ -264,10 +283,13 @@ val MAIN = Name.identifier("main")
 
         @JvmField
         val anyUFqName: FqNameUnsafe = anyFqName.toUnsafe()
+
         @JvmField
-        val exceptionFqName: FqName = core.child(  EXCEPTION)
+        val exceptionFqName: FqName = core.child(EXCEPTION)
+
         @JvmField
-        val resourceFqName: FqName = core.child(   RESOURCE  )
+        val resourceFqName: FqName = core.child(RESOURCE)
+
         @JvmField
         val objectFqName: FqName = core.child(OBJECT)
 
@@ -281,19 +303,24 @@ val MAIN = Name.identifier("main")
         val optionUFqName: FqNameUnsafe = optionFqName.toUnsafe()
 
 
-
         @JvmField
         val countableFqName: FqName = core.child(COUNTABLE)
+
         @JvmField
         val equatableFqName: FqName = core.child(EQUATABLE)
+
         @JvmField
         val iterableFqName: FqName = core.child(ITERABLE)
+
         @JvmField
         val reentrantMutexFqName: FqName = sync.child(REENTRANT_MUTEX)
+
         @JvmField
         val tokensFqName: FqName = ast.child(TOKENS)
+
         @JvmField
         val comparableFqName: FqName = core.child(COMPARABLE)
+
         @JvmField
         val futureFqName: FqName = core.child(FUTURE)
 
@@ -314,6 +341,7 @@ val MAIN = Name.identifier("main")
 
         @JvmField
         val nothingFqName: FqName = fqName(NOTHING)
+
         @JvmField
         val nothingUFqName: FqNameUnsafe = nothingFqName.toUnsafe()
 
@@ -522,8 +550,8 @@ val MAIN = Name.identifier("main")
                 UNIT -> unitFqName
 
 
-              CPOINTER -> cpointerFqName
-               CSTRING -> cstringFqName
+                CPOINTER -> cpointerFqName
+                CSTRING -> cstringFqName
 
                 else -> throw IllegalArgumentException("Unknown name: $name")
             }

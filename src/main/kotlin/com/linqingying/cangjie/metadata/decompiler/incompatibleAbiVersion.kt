@@ -30,7 +30,7 @@ private const val FILE_ABI_VERSION_MARKER: String = "FILE_ABI"
 private const val CURRENT_ABI_VERSION_MARKER: String = "CURRENT_ABI"
 
 const val INCOMPATIBLE_ABI_VERSION_GENERAL_COMMENT: String =
-    "// This class file was compiled with different version of Kotlin compiler and can't be decompiled."
+    "// This class file was compiled with different version of CangJie compiler and can't be decompiled."
 
 private const val INCOMPATIBLE_ABI_VERSION_COMMENT: String = "$INCOMPATIBLE_ABI_VERSION_GENERAL_COMMENT\n" +
         "//\n" +

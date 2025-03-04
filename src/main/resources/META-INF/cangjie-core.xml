@@ -43,7 +43,7 @@
         <!--        插件启动初始化-->
 
         <!--                <applicationService serviceImplementation="com.linqingying.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
-                <postStartupActivity implementation="com.linqingying.cangjie.CangJieStartupActivity"/>
+        <postStartupActivity implementation="com.linqingying.cangjie.CangJieStartupActivity"/>
         <!--                <additionalLibraryRootsProvider-->
         <!--                        implementation="com.linqingying.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
 
@@ -59,18 +59,7 @@
         <backspaceHandlerDelegate
                 implementation="com.linqingying.cangjie.ide.editor.CangJieStringTemplateBackspaceHandler"/>
 
-        <!--        <treeStructureProvider implementation="com.linqingying.cangjie.ide.projectView.CangJieExpandNodeProjectViewProvider" order="last"/>-->
 
-
-        <!-- PSI 管理器 -->
-
-
-        <!--        <annotator language="CangJie" implementationClass="com.linqingying.cangjie.ide.annotator.CjErrorAnnotator"/>-->
-        <!--        <highlightRangeExtension implementation="com.linqingying.cangjie.ide.annotator.CjErrorAnnotator"/>-->
-
-        <!--        <lang.documentationProvider language="CangJie"-->
-        <!--                                    implementationClass="com.linqingying.cangjie.ide.CangJieDocumentationProvider"-->
-        <!--                                    order="first"/>-->
 
         <!--        文件类型-->
         <fileType name="CangJie"
@@ -79,11 +68,6 @@
                   extensions="cj"
                   fieldName="INSTANCE"/>
 
-
-        <!--                <lang.fileViewProviderFactory language="CangJie"-->
-        <!--                                              implementationClass="com.linqingying.cangjie.lang.declarations.CangJieFileViewProviderFactory"/>-->
-        <!--        <fileType.fileViewProviderFactory filetype="cangjie_declarations"-->
-        <!--                                       implementationClass="com.linqingying.cangjie.lang.declarations.CangJieFileViewProviderFactory     <internalFileTemplate name="CangJie File"/>-->
 
 
         <!--      PSI解析-->
@@ -296,7 +280,7 @@
                     factoryClass="com.linqingying.cangjie.cjpm.project.toolwindow.CjpmToolWindowFactory"
 
         />
-<!--        文档-->
+        <!--        文档-->
         <toolWindow id="cangjie_doc"
                     anchor="right"
                     factoryClass="com.linqingying.cangjie.toolwindow.doc.CangJieDocWindowFactory"

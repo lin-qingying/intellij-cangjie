@@ -30,13 +30,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.linqingying.cangjie.metadata.decompiler.BuiltInsVirtualFileProvider
 
-/**
- * Application service that adds a constant offset to the stub version of .kotlin_builtins files.
- * The purpose of this offset is to rebuild the decompiled text and the stubs for .kotlin_builtins files after K1 <-> K2 IDE switches.
- * K1 and K2 provide different sets of declarations from .kotlin_builtins files under certain conditions,
- * see [com.linqingying.cangjie.analysis.decompiler.psi.BuiltInDefinitionFile].
- * Not forcing a rebuild for affected decompiled files and corresponding stubs leads to a stub error.
- */
+
 interface CangJieBuiltInStubVersionOffsetProvider {
     fun getVersionOffset(): Int
 
@@ -74,13 +68,7 @@ interface CangJieBuiltInDecompilationInterceptor {
     }
 }
 
-/**
- * Decompiles .kotlin_builtins files that belong to the kotlin-stdlib from the plugin classpath without class filtering.
- * The decompiled classes from these files are used in the symbol provider for built-ins in all modules, including non-JVM.
- * For common modules in particular, the lack of these classes leads to unresolved code, as the declarations are not published
- * in .kotlin_medata files of kotlin-stdlib-common.
- * See [com.linqingying.cangjie.analysis.decompiler.psi.BuiltInDefinitionFile].
- */
+
 internal class IdeCangJieBuiltInDecompilationInterceptor(val project: Project) :
     CangJieBuiltInDecompilationInterceptor {
     override fun readFile(bytes: ByteArray, file: VirtualFile): CangJieMetadataStubBuilder.FileWithMetadata? {

@@ -42,10 +42,7 @@ import org.jetbrains.annotations.TestOnly
 import java.io.ByteArrayInputStream
 
 
-/**
- * This version is used for .kotlin_builtins and is not used for .kotlin_metadata files:
- * K1 IDE and K2 IDE produce different decompiled files and stubs for .kotlin_builtins, but not for .kotlin_metadata
- */
+
 private val stubVersionForStubBuilderAndDecompiler: Int
     get() = CangJieStubVersions.BUILTIN_STUB_VERSION + CangJieBuiltInStubVersionOffsetProvider.getVersionOffset()
 

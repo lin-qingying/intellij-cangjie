@@ -32,23 +32,6 @@ object CangJieHighlightingColors {
     val KEYWORD: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
 
-    //    val KEYWORD = TextAttributesKey.createTextAttributesKey(
-//        "CANGJIE_KEYWORD",
-////        DefaultLanguageHighlighterColors.KEYWORD
-//        ).apply {
-//        defaultAttributes.setAttributes(
-//            JBColor(0xb40291, 0xb40291),
-//            null, null, null, null, Font.BOLD
-//        )
-//
-//    }
-//    val KEYWORD1 = TextAttributesKey.createTextAttributesKey(
-//        "CANGJIE_KEYWORD1",
-//        TextAttributes(
-//            JBColor(0xb40291, 0xb40291),
-//            null, null, null, Font.BOLD
-//        )
-//    )
     val BUILTIN_ANNOTATION: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_BUILTIN_ANNOTATION", KEYWORD)
     val LET_KEYWORD: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD_LET", KEYWORD)
