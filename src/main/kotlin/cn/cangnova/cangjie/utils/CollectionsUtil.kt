@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.utils
 
 import com.intellij.util.SmartList
-
 import java.util.ArrayList
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
@@ -45,7 +44,6 @@ inline fun <reified R, C : MutableCollection<in R>> Iterable<*>.filterIsInstance
     for (element in this) {
         if (element is R && predicate(element)) {
             destination.add(element)
-
         }
     }
     return destination
@@ -57,7 +55,6 @@ fun <T> ArrayList<T>.compact(): List<T> =
         1 -> listOf(first())
         else -> apply { trimToSize() }
     }
-
 
 fun <T : Any> Sequence<Any>.match(vararg expectedTypes: KClass<*>, last: KClass<T>): T? =
     (expectedTypes.asSequence() + last).zip(this + sequenceOf(null).cycle())

@@ -35,11 +35,10 @@ import cn.cangnova.cangjie.psi.psiUtil.getChildrenOfType
 import cn.cangnova.cangjie.psi.psiUtil.getParentOfType
 import cn.cangnova.cangjie.utils.toLowerCaseAsciiOnly
 import com.intellij.lang.Language
-
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement
 import com.intellij.psi.tree.IElementType
 
-class CDocImpl(buffer: CharSequence?):LazyParseablePsiElement(CDocTokens.CDOC, buffer),CDoc{
+class CDocImpl(buffer: CharSequence?) : LazyParseablePsiElement(CDocTokens.CDOC, buffer), CDoc {
 
     override fun getLanguage(): Language = CangJieLanguage
 

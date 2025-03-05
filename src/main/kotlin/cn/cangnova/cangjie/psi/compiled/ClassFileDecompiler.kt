@@ -30,12 +30,11 @@ import com.intellij.openapi.project.DefaultProjectFactory
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 
-
 class ClassFileDecompiler : BinaryFileDecompiler {
     override fun decompile(file: VirtualFile): CharSequence {
         val decompiler: ClassFileDecompilers.Decompiler = ClassFileDecompilers.instance.find(
             file,
-            ClassFileDecompilers.Decompiler::class.java
+            ClassFileDecompilers.Decompiler::class.java,
         )
 //        if (decompiler is ClsDecompilerImpl) {
 //            return ClsFileImpl.decompile(file)
@@ -57,16 +56,16 @@ class ClassFileDecompiler : BinaryFileDecompiler {
 
         throw IllegalStateException(
             decompiler::class.java.name +
-                    " should be on of " +
-                    ClassFileDecompilers.Full::class.java.name +
-                    " or " +
-                    ClassFileDecompilers.Light::class.java.name
+                " should be on of " +
+                ClassFileDecompilers.Full::class.java.name +
+                " or " +
+                ClassFileDecompilers.Light::class.java.name,
         )
     }
 
     companion object {
         private val LOG = Logger.getInstance(
-            ClassFileDecompiler::class.java
+            ClassFileDecompiler::class.java,
         )
     }
 }

@@ -31,9 +31,9 @@ import com.intellij.lang.ASTNode
 class CjSuperTypeEntry : CjSuperTypeListEntry {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<out CjSuperTypeListEntry >) : super(
+    constructor(stub: CangJiePlaceHolderStub<out CjSuperTypeListEntry>) : super(
         stub,
-        CjStubElementTypes.SUPER_TYPE_ENTRY
+        CjStubElementTypes.SUPER_TYPE_ENTRY,
     )
 
     override fun toString(): String {

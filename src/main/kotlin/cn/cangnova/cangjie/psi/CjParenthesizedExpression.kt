@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import com.intellij.lang.ASTNode
 
-
 class CjParenthesizedExpression(node: ASTNode) : CjExpressionImpl(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitParenthesizedExpression(this, data)
@@ -36,4 +35,3 @@ class CjParenthesizedExpression(node: ASTNode) : CjExpressionImpl(node) {
     val expression: CjExpression?
         get() = findChildByClass<CjExpression>(CjExpression::class.java)
 }
-

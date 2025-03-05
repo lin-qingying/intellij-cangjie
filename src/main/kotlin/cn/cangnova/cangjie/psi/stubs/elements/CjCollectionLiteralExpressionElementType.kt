@@ -32,12 +32,11 @@ import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import org.jetbrains.annotations.NonNls
 
-
 class CjCollectionLiteralExpressionElementType(@NonNls debugName: String) :
     CjStubElementType<CangJieCollectionLiteralExpressionStub, CjCollectionLiteralExpression>(
         debugName,
         CjCollectionLiteralExpression::class.java,
-        CangJieCollectionLiteralExpressionStub::class.java
+        CangJieCollectionLiteralExpressionStub::class.java,
     ) {
     override fun serialize(stub: CangJieCollectionLiteralExpressionStub, dataStream: StubOutputStream) {}
 

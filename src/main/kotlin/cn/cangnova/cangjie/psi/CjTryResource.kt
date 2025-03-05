@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.psi
 
 import com.intellij.lang.ASTNode
-import cn.cangnova.cangjie.CjNodeTypes
 
 class CjTryResource(node: ASTNode) : CjElementImpl(node) {
 
@@ -40,17 +39,14 @@ class CjTryResource(node: ASTNode) : CjElementImpl(node) {
             return findChildByType(CjNodeTypes.VALUE_PARAMETER)
         }
 
-    val expression :CjExpression? get() {
+    val expression: CjExpression? get() {
 
         children.forEach {
-            if (it is CjExpression && it !is CjParameter ) return it
+            if (it is CjExpression && it !is CjParameter) return it
         }
 
         return null
-
-
     }
-
 }
 
 class CjTryResourceList(node: ASTNode) : CjElementImpl(node) {

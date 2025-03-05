@@ -32,8 +32,6 @@ import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import org.jetbrains.annotations.NonNls
 
-
-
 class CjPlaceHolderWithTextStubElementType<T : CjElementImplStub<out StubElement<*>>>(@NonNls debugName: String, psiClass: Class<T>) :
     CjStubElementType<CangJiePlaceHolderWithTextStub<T>, T>(debugName, psiClass, CangJiePlaceHolderWithTextStub::class.java) {
 

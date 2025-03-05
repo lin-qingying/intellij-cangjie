@@ -34,8 +34,6 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 import java.util.ArrayList
 
-
-
 open class CangJieClassStubImpl(
     type: CjClassElementType,
     parent: StubElement<out PsiElement>?,

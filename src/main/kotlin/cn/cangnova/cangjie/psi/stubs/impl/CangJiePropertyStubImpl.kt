@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi.stubs.impl
 
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjProperty
-import cn.cangnova.cangjie.psi.CjVariable
 import cn.cangnova.cangjie.psi.stubs.CangJiePropertyStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.psi.PsiElement

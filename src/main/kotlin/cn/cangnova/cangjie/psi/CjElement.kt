@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.psi.psiUtil.deleteSemicolon
 import cn.cangnova.cangjie.psi.psiUtil.parentSubstitute
@@ -36,7 +35,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiReference
 
-
 interface CjElement : NavigatablePsiElement, CjPureElement {
 
     fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D)
@@ -45,19 +43,15 @@ interface CjElement : NavigatablePsiElement, CjPureElement {
 
     @Deprecated("Don't use getReference() on CjElement for the choice is unpredictable")
     override fun getReference(): PsiReference?
-
 }
 
-
 open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement {
-
 
     override fun toString(): String = node.elementType.toString()
 
     override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
         CjPsiUtil.visitChildren<D>(this, visitor, data)
     }
-
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
@@ -76,18 +70,16 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
             val fileString = if (file != null && file.isValid) " " + file.text else ""
             throw IllegalStateException(
                 "CjElement not inside CjFile: " + file + fileString +
-                        " for element " + this + " of type " + this.javaClass + " node = " + node
+                    " for element " + this + " of type " + this.javaClass + " node = " + node,
             )
         }
         return file
     }
 
-
     override fun delete() {
         this.deleteSemicolon()
         super.delete()
     }
-
 
     override fun getReference(): PsiReference? {
         val references = references
@@ -96,7 +88,6 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 
     override fun getReferences(): Array<PsiReference> {
 //        if(this is CjBasicType) return emptyArray()
-
 
         return CangJieReferenceProvidersService.getReferencesFromProviders(this)
     }
@@ -109,9 +100,8 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
     override fun getLanguage(): Language = CangJieLanguage
 }
 
-
-//fun CjElement.findInScope(name: String, ns: Set<Namespace>): PsiElement? {
+// fun CjElement.findInScope(name: String, ns: Set<Namespace>): PsiElement? {
 //    return pickFirstResolveVariant(name) {
 //        processNestedScopesUpwards(this, ns, it)
 //    }
-//}
+// }

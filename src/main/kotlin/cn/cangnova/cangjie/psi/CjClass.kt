@@ -28,9 +28,9 @@ import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.psi.psiUtil.ClassIdCalculator
 import cn.cangnova.cangjie.psi.stubs.CangJieClassStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_BODY
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_BODY
 
 open class CjClass : CjTypeStatement {
 //    fun isInterface(): Boolean =
@@ -51,19 +51,16 @@ open class CjClass : CjTypeStatement {
         return node.elementType.toString() + " : $name"
     }
 
-
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitClass(this, data)
     }
 
-
-    override val body : CjAbstractClassBody? get()= getStubOrPsiChild(CLASS_BODY)
+    override val body: CjAbstractClassBody? get() = getStubOrPsiChild(CLASS_BODY)
 
     override fun getClassId(): ClassId? {
         stub?.let { return it.getClassId() }
         return ClassIdCalculator.calculateClassId(this)
     }
-
 }
 
 fun CjClass.createPrimaryConstructorIfAbsent(): CjPrimaryConstructor {

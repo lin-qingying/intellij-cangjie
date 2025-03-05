@@ -23,21 +23,18 @@
  */
 package cn.cangnova.cangjie.psi.stubs.elements
 
+import cn.cangnova.cangjie.psi.CjImportDirective
+import cn.cangnova.cangjie.psi.CjImportDirectiveItem
+import cn.cangnova.cangjie.psi.stubs.CangJieImportDirectiveItemStub
+import cn.cangnova.cangjie.psi.stubs.CangJieImportDirectiveStub
+import cn.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
+import cn.cangnova.cangjie.psi.stubs.impl.CangJieImportDirectiveItemStubImpl
+import cn.cangnova.cangjie.psi.stubs.impl.CangJieImportDirectiveStubImpl
 import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
-import cn.cangnova.cangjie.psi.CjImportDirective
-import cn.cangnova.cangjie.psi.CjImportDirectiveItem
-
-import cn.cangnova.cangjie.psi.stubs.CangJieImportDirectiveItemStub
-import cn.cangnova.cangjie.psi.stubs.CangJieImportDirectiveStub
-
-import cn.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
-import cn.cangnova.cangjie.psi.stubs.impl.CangJieImportDirectiveItemStubImpl
-import cn.cangnova.cangjie.psi.stubs.impl.CangJieImportDirectiveStubImpl
-
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
@@ -45,11 +42,9 @@ class CjImportDirectiveElementType(debugName: @NonNls String) :
     CjStubElementType<CangJieImportDirectiveStub, CjImportDirective>(
         debugName,
         CjImportDirective::class.java,
-        CangJieImportDirectiveStub::class.java
+        CangJieImportDirectiveStub::class.java,
     ) {
     override fun createStub(psi: CjImportDirective, parentStub: StubElement<*>?): CangJieImportDirectiveStub {
-
-
         return CangJieImportDirectiveStubImpl(
             parentStub!!,
 
@@ -58,7 +53,6 @@ class CjImportDirectiveElementType(debugName: @NonNls String) :
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieImportDirectiveStub, dataStream: StubOutputStream) {
-
     }
 
     override fun indexStub(stub: CangJieImportDirectiveStub, sink: IndexSink) {
@@ -67,20 +61,17 @@ class CjImportDirectiveElementType(debugName: @NonNls String) :
 
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieImportDirectiveStub {
-
-
         return CangJieImportDirectiveStubImpl(
             parentStub,
         )
     }
 }
 
-
 class CjImportDirectiveItemElementType(debugName: @NonNls String) :
     CjStubElementType<CangJieImportDirectiveItemStub, CjImportDirectiveItem>(
         debugName,
         CjImportDirectiveItem::class.java,
-        CangJieImportDirectiveItemStub::class.java
+        CangJieImportDirectiveItemStub::class.java,
     ) {
     override fun createStub(psi: CjImportDirectiveItem, parentStub: StubElement<*>?): CangJieImportDirectiveItemStub {
         val importedFqName = psi.importedFqName
@@ -111,7 +102,10 @@ class CjImportDirectiveItemElementType(debugName: @NonNls String) :
         val importedName = dataStream.readName()
         val isValid = dataStream.readBoolean()
         return CangJieImportDirectiveItemStubImpl(
-            parentStub, isAllUnder, importedName, isValid,
+            parentStub,
+            isAllUnder,
+            importedName,
+            isValid,
         )
     }
 }

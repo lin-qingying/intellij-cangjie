@@ -32,23 +32,21 @@ import cn.cangnova.cangjie.utils.exceptions.withPsiEntry
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.diagnostic.Logger
 
-
-class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjDotQualifiedExpression>>,
-    CjQualifiedExpression,CjCallableReference {
-
+class CjDotQualifiedExpression :
+    CjExpressionImplStub<CangJiePlaceHolderStub<CjDotQualifiedExpression>>,
+    CjQualifiedExpression,
+    CjCallableReference {
 
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJiePlaceHolderStub<CjDotQualifiedExpression>) : super(
-        stub, CjStubElementTypes.DOT_QUALIFIED_EXPRESSION
+        stub,
+        CjStubElementTypes.DOT_QUALIFIED_EXPRESSION,
     )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitDotQualifiedExpression(this, data)
     }
-
-
-
 
     override val receiverExpression: CjExpression
         get() {
@@ -76,11 +74,11 @@ class CjDotQualifiedExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjD
 
     private fun getChildExpressionsByStub(stub: CangJiePlaceHolderStub<CjDotQualifiedExpression>): Array<out CjExpression?>? {
         if (stub.getParentStubOfType(CjImportDirectiveItem::class.java) == null && stub.getParentStubOfType(
-                CjPackageDirective::class.java
+                CjPackageDirective::class.java,
             ) == null && stub.getParentStubOfType(CjValueArgument::class.java) == null
         ) {
             LOG.error(
-                "CjDotQualifiedExpression should only have stubs inside import, argument or package directives.\n" + "Stubs were created for:\n$text\nFile text:\n${containingFile.text}"
+                "CjDotQualifiedExpression should only have stubs inside import, argument or package directives.\n" + "Stubs were created for:\n$text\nFile text:\n${containingFile.text}",
             )
             return null
         } else {

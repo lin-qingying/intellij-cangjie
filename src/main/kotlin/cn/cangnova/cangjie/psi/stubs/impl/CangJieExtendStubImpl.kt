@@ -26,17 +26,13 @@ package cn.cangnova.cangjie.psi.stubs.impl
 
 import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.psi.CjEnum
 import cn.cangnova.cangjie.psi.CjExtend
-import cn.cangnova.cangjie.psi.stubs.CangJieEnumStub
 import cn.cangnova.cangjie.psi.stubs.CangJieExtendStub
-import cn.cangnova.cangjie.psi.stubs.elements.CjEnumElementType
 import cn.cangnova.cangjie.psi.stubs.elements.CjExtendElementType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 import java.util.ArrayList
-
 
 open class CangJieExtendStubImpl(
     type: CjExtendElementType,
@@ -46,8 +42,6 @@ open class CangJieExtendStubImpl(
     private val name: StringRef?,
 
     private val superNames: Array<StringRef>,
-
-
 
 ) : CangJieStubBaseImpl<CjExtend>(parent, type), CangJieExtendStub {
 
@@ -60,7 +54,6 @@ open class CangJieExtendStubImpl(
 
     override fun isLocal(): Boolean = true
 
-
     override fun getSuperNames(): List<String> {
         val result = ArrayList<String>()
         for (ref in superNames) {
@@ -69,9 +62,5 @@ open class CangJieExtendStubImpl(
         return result
     }
 
-
-
     override fun getClassId(): ClassId? = classId
-
-
 }

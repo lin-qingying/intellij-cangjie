@@ -24,10 +24,10 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
 import cn.cangnova.cangjie.psi.stubs.CangJieEnumStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.ENUM_BODY
+import com.intellij.lang.ASTNode
 
 class CjEnum : CjTypeStatement {
     constructor(node: ASTNode) : super(node)
@@ -42,7 +42,7 @@ class CjEnum : CjTypeStatement {
         return visitor.visitEnum(this, data)
     }
 
-    override val body : CjEnumBody? get(){
+    override val body: CjEnumBody? get() {
         return getStubOrPsiChild(ENUM_BODY)
     }
 

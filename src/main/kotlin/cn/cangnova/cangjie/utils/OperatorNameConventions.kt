@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.utils
 
 import cn.cangnova.cangjie.name.Name
 
-
 object OperatorNameConventions {
     @JvmField
     val CONTAINS = Name.identifier("contains")
@@ -35,85 +34,68 @@ object OperatorNameConventions {
     val INVOKE = Name.identifier("*operator_invoke")
 
     @JvmField
-
     val GET = Name.identifier("*operator_get")
 
     @JvmField
     val SET = Name.identifier("*operator_set")
 
     @JvmField
-    val NOT = Name.identifier("*operator_not") //!
+    val NOT = Name.identifier("*operator_not") // !
 
     @JvmField
-
-    val NOT_EQUALS = Name.identifier("*operator_not_equals") //!=
-
-    @JvmField
-
-    val EXPONENTIATION = Name.identifier("*operator_exponentiation") //**
+    val NOT_EQUALS = Name.identifier("*operator_not_equals") // !=
 
     @JvmField
-
-    val EQUALS = Name.identifier("*operator_equals") //==
-
-    @JvmField
-
-    val TIMES = Name.identifier("*operator_times")//*
+    val EXPONENTIATION = Name.identifier("*operator_exponentiation") // **
 
     @JvmField
-
-    val DIV = Name.identifier("*operator_div")// /
-
-    @JvmField
-
-    val REM = Name.identifier("*operator_rem")//%
+    val EQUALS = Name.identifier("*operator_equals") // ==
 
     @JvmField
-
-    val MINUS = Name.identifier("*operator_minus")//-
-
-    @JvmField
-
-    val PLUS = Name.identifier("*operator_plus")//+
+    val TIMES = Name.identifier("*operator_times") // *
 
     @JvmField
-
-    val LEFT_SHIFT = Name.identifier("*operator_left_shift")//<<
-
-    @JvmField
-
-    val RIGHT_SHIFT = Name.identifier("*operator_right_shift")//>>
+    val DIV = Name.identifier("*operator_div") // /
 
     @JvmField
-
-    val COMPARE_GT = Name.identifier("*operator_compare_gt")//>
-
-    @JvmField
-
-    val COMPARE_LTEQ = Name.identifier("*operator_compare_lteq")//<=
+    val REM = Name.identifier("*operator_rem") // %
 
     @JvmField
-
-    val COMPARE_LT = Name.identifier("*operator_compare_lt")//<
-
-    @JvmField
-
-    val COMPARE_GTEQ = Name.identifier("*operator_compare_gteq")//>=
+    val MINUS = Name.identifier("*operator_minus") // -
 
     @JvmField
-
-    val AND = Name.identifier("*operator_and")//&
-
-    @JvmField
-    val XOR = Name.identifier("*operator_xor")//^
+    val PLUS = Name.identifier("*operator_plus") // +
 
     @JvmField
-    val OR = Name.identifier("*operator_or")//|
+    val LEFT_SHIFT = Name.identifier("*operator_left_shift") // <<
 
+    @JvmField
+    val RIGHT_SHIFT = Name.identifier("*operator_right_shift") // >>
+
+    @JvmField
+    val COMPARE_GT = Name.identifier("*operator_compare_gt") // >
+
+    @JvmField
+    val COMPARE_LTEQ = Name.identifier("*operator_compare_lteq") // <=
+
+    @JvmField
+    val COMPARE_LT = Name.identifier("*operator_compare_lt") // <
+
+    @JvmField
+    val COMPARE_GTEQ = Name.identifier("*operator_compare_gteq") // >=
+
+    @JvmField
+    val AND = Name.identifier("*operator_and") // &
+
+    @JvmField
+    val XOR = Name.identifier("*operator_xor") // ^
+
+    @JvmField
+    val OR = Name.identifier("*operator_or") // |
 
     //    不可被重载  只用于检查
     @JvmField
-    val TIMES_ASSIGN = Name.identifier("*operator_timesAssign") //-=
+    val TIMES_ASSIGN = Name.identifier("*operator_timesAssign") // -=
 
     @JvmField
     val DIV_ASSIGN = Name.identifier("*operator_divAssign") // /=
@@ -142,15 +124,11 @@ object OperatorNameConventions {
     @JvmField
     val LTLTEQ_ASSIGN = Name.identifier("*operator_leftShiftAssign") // /=
 
+    @JvmField
+    val PIPELINE = Name.identifier("*operator_pipeline") // *
 
     @JvmField
-
-    val PIPELINE = Name.identifier("*operator_pipeline")//*
-
-    @JvmField
-
-    val COMPOSITION = Name.identifier("*operator_composition")//*
-
+    val COMPOSITION = Name.identifier("*operator_composition") // *
 
     @JvmField
     val REM_ASSIGN = Name.identifier("*operator_remAssign")
@@ -167,7 +145,6 @@ object OperatorNameConventions {
     @JvmField
     val OROR = Name.identifier("*operator_or2")
 
-
     @JvmField
     val INC = Name.identifier("*operator_inc")
 
@@ -180,15 +157,14 @@ object OperatorNameConventions {
     @JvmField
     val UNARY_PLUS = Name.identifier("*operator_unaryPlus")
 
-
-    //迭代器对象中的方法
+    // 迭代器对象中的方法
     @JvmField
     val ITERATOR = Name.identifier("iterator")
 
     fun Name.asOperatorString(): String {
         return when (this) {
             INVOKE -> "()"
-            GET , SET -> "[]"
+            GET, SET -> "[]"
             NOT -> "!"
             NOT_EQUALS -> "!="
             EXPONENTIATION -> "**"
@@ -260,5 +236,4 @@ object OperatorNameConventions {
             else -> Name.identifier(this)
         }
     }
-
 }

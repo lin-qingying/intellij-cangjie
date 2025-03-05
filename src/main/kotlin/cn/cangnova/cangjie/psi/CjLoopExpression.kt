@@ -24,12 +24,9 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-
-
 
 abstract class CjLoopExpression(node: ASTNode) : CjExpressionImpl(node), CjStatementExpression {
     val body: CjExpression?
@@ -43,4 +40,3 @@ abstract class CjLoopExpression(node: ASTNode) : CjExpressionImpl(node), CjState
     val rightParenthesis: PsiElement?
         get() = findChildByType(CjTokens.RPAR)
 }
-

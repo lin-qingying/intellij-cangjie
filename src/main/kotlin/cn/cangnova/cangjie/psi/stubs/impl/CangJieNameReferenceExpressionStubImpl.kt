@@ -23,22 +23,23 @@
  */
 package cn.cangnova.cangjie.psi.stubs.impl
 
-import com.intellij.psi.stubs.StubElement
-import com.intellij.util.io.StringRef
 import cn.cangnova.cangjie.psi.CjNameBasicReferenceExpression
 import cn.cangnova.cangjie.psi.CjNameReferenceExpression
 import cn.cangnova.cangjie.psi.stubs.CangJieNameBasicReferenceExpressionStub
 import cn.cangnova.cangjie.psi.stubs.CangJieNameReferenceExpressionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.psi.stubs.StubElement
+import com.intellij.util.io.StringRef
 
-class CangJieNameReferenceExpressionStubImpl : CangJieStubBaseImpl<CjNameReferenceExpression>,
+class CangJieNameReferenceExpressionStubImpl :
+    CangJieStubBaseImpl<CjNameReferenceExpression>,
     CangJieNameReferenceExpressionStub {
     private val referencedName: StringRef
     val isClassRef: Boolean
 
     constructor(parent: StubElement<*>?, referencedName: StringRef) : super(
         parent,
-        CjStubElementTypes.REFERENCE_EXPRESSION
+        CjStubElementTypes.REFERENCE_EXPRESSION,
     ) {
         this.referencedName = referencedName
         isClassRef = false
@@ -47,7 +48,7 @@ class CangJieNameReferenceExpressionStubImpl : CangJieStubBaseImpl<CjNameReferen
     constructor(
         parent: StubElement<*>?,
         referencedName: StringRef,
-        myClassRef: Boolean
+        myClassRef: Boolean,
     ) : super(parent, CjStubElementTypes.REFERENCE_EXPRESSION) {
         this.referencedName = referencedName
         this.isClassRef = myClassRef
@@ -57,14 +58,15 @@ class CangJieNameReferenceExpressionStubImpl : CangJieStubBaseImpl<CjNameReferen
         return referencedName.string
     }
 }
-class CangJieNameBasicReferenceExpressionStubImpl : CangJieStubBaseImpl<CjNameBasicReferenceExpression>,
+class CangJieNameBasicReferenceExpressionStubImpl :
+    CangJieStubBaseImpl<CjNameBasicReferenceExpression>,
     CangJieNameBasicReferenceExpressionStub {
     private val referencedName: StringRef
     val isClassRef: Boolean
 
     constructor(parent: StubElement<*>?, referencedName: StringRef) : super(
         parent,
-        CjStubElementTypes.BASIC_REFERENCE_EXPRESSION
+        CjStubElementTypes.BASIC_REFERENCE_EXPRESSION,
     ) {
         this.referencedName = referencedName
         isClassRef = false
@@ -73,7 +75,7 @@ class CangJieNameBasicReferenceExpressionStubImpl : CangJieStubBaseImpl<CjNameBa
     constructor(
         parent: StubElement<*>?,
         referencedName: StringRef,
-        myClassRef: Boolean
+        myClassRef: Boolean,
     ) : super(parent, CjStubElementTypes.BASIC_REFERENCE_EXPRESSION) {
         this.referencedName = referencedName
         this.isClassRef = myClassRef

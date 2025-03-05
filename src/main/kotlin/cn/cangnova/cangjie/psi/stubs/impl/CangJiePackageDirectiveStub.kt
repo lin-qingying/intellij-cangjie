@@ -30,9 +30,7 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.psi.stubs.StubElement
 
 class CangJiePackageDirectiveStubImpl
-    (parent: StubElement<*> )
+(parent: StubElement<*>) :
 
-    : CangJieStubBaseImpl<CjPackageDirective>(parent, CjStubElementTypes.PACKAGE_DIRECTIVE),
-    CangJiePackageDirectiveStub {
-
-}
+    CangJieStubBaseImpl<CjPackageDirective>(parent, CjStubElementTypes.PACKAGE_DIRECTIVE),
+    CangJiePackageDirectiveStub

@@ -31,11 +31,11 @@ class CjLetExpression(node: ASTNode) : CjElementImpl(node) {
         return visitor.visitLetExpression(this, data)
     }
 
-    val pattern get() =   findChildByClass(CjCasePattern::class.java)
-    val expression:CjExpression? get() {
+    val pattern get() = findChildByClass(CjCasePattern::class.java)
+    val expression: CjExpression? get() {
         val list = findChildrenByClass(CjExpression::class.java)
         list.forEach {
-            if (it !is CjCasePattern){
+            if (it !is CjCasePattern) {
                 return it
             }
         }

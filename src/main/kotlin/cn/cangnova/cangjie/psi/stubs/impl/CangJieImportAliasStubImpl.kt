@@ -31,11 +31,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 
-
-
 class CangJieImportAliasStubImpl(
     parent: StubElement<out PsiElement>?,
-    private val name: StringRef?
+    private val name: StringRef?,
 ) : CangJieStubBaseImpl<CjImportAlias>(parent, CjStubElementTypes.IMPORT_ALIAS), CangJieImportAliasStub {
     override fun getName(): String? = StringRef.toString(name)
 }

@@ -32,9 +32,11 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.util.containers.Stack
 
-class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) : PsiBuilderAdapter(
-    delegate
-),  SemanticWhitespaceAwarePsiBuilder {
+class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) :
+    PsiBuilderAdapter(
+        delegate,
+    ),
+    SemanticWhitespaceAwarePsiBuilder {
 
     private val joinComplexTokens = Stack<Boolean>()
     private val newlinesEnabled = Stack<Boolean>()
@@ -53,14 +55,9 @@ class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) : PsiBuilderAd
     }
 
     override fun newlineBeforeCurrentToken(): Boolean {
-
-
-
-
         if (!newlinesEnabled.peek()) return false
 
         if (eof()) return true
-
 
         for (i in 1..currentOffset) {
             val previousToken = rawLookup(-i)
@@ -134,8 +131,7 @@ class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) : PsiBuilderAd
         }
         val tokenType = tokenType
 
-            super.advanceLexer()
-
+        super.advanceLexer()
     }
 
     override fun getTokenText(): String? {
@@ -146,12 +142,12 @@ class SemanticWhitespaceAwarePsiBuilderImpl(delegate: PsiBuilder) : PsiBuilderAd
 
     override fun lookAhead(steps: Int): IElementType? {
         if (!joinComplexTokens()) return super.lookAhead(steps)
-        return   getJoinedTokenType(super.lookAhead(steps), 2)
+        return getJoinedTokenType(super.lookAhead(steps), 2)
     }
 
     companion object {
         private fun findPsiBuilderImpl(builder: PsiBuilder): PsiBuilderImpl? {
-           var builder: PsiBuilder? = builder
+            var builder: PsiBuilder? = builder
             while (true) {
                 if (builder is PsiBuilderImpl) {
                     return builder

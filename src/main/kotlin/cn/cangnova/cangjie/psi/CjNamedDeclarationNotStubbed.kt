@@ -32,7 +32,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.annotations.NonNls
 
-abstract class CjNamedDeclarationNotStubbed(node: ASTNode) : CjDeclarationImpl(node),
+abstract class CjNamedDeclarationNotStubbed(node: ASTNode) :
+    CjDeclarationImpl(node),
     CjNamedDeclaration {
     override fun getName(): String? {
         val identifier = nameIdentifier

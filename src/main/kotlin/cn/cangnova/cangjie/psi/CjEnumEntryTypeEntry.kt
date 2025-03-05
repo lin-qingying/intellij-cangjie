@@ -33,7 +33,7 @@ class CjEnumEntryTypeEntry : CjElementImplStub<CangJiePlaceHolderStub<CjEnumEntr
 
     constructor(stub: CangJiePlaceHolderStub<CjEnumEntryTypeEntry>) : super(
         stub,
-        CjStubElementTypes.SUPER_TYPE_ENTRY
+        CjStubElementTypes.SUPER_TYPE_ENTRY,
     )
 
     override fun toString(): String {

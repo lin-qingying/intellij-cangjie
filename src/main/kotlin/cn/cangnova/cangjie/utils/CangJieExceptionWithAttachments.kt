@@ -33,7 +33,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import cn.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachments as CangJieExceptionWithAttachmentsBase
 @OptIn(ExperimentalContracts::class)
-inline fun checkWithAttachment(value: Boolean, lazyMessage: () -> String, attachments: ( CangJieExceptionWithAttachments) -> Unit = {}) {
+inline fun checkWithAttachment(value: Boolean, lazyMessage: () -> String, attachments: (CangJieExceptionWithAttachments) -> Unit = {}) {
     contract { returns() implies (value) }
 
     if (!value) {
@@ -61,4 +61,3 @@ open class CangJieExceptionWithAttachments : RuntimeException, CangJieExceptionW
         return this
     }
 }
-

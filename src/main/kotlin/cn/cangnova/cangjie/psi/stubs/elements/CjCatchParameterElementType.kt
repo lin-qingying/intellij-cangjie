@@ -24,21 +24,22 @@
 
 package cn.cangnova.cangjie.psi.stubs.elements
 
+import cn.cangnova.cangjie.psi.CjCatchParameter
+import cn.cangnova.cangjie.psi.stubs.CangJieCatchParameterStub
+import cn.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
+import cn.cangnova.cangjie.psi.stubs.impl.CangJieCatchParameterStubImpl
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
-import cn.cangnova.cangjie.psi.CjCatchParameter
-import cn.cangnova.cangjie.psi.stubs.CangJieCatchParameterStub
-import cn.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
-import cn.cangnova.cangjie.psi.stubs.impl.CangJieCatchParameterStubImpl
 
 class CjCatchParameterElementType(debugName: String) : CjStubElementType<CangJieCatchParameterStub, CjCatchParameter>(
 
-    debugName, CjCatchParameter::class.java,
-    CangJieCatchParameterStub::class.java
+    debugName,
+    CjCatchParameter::class.java,
+    CangJieCatchParameterStub::class.java,
 ) {
     override fun serialize(stub: CangJieCatchParameterStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
@@ -51,20 +52,17 @@ class CjCatchParameterElementType(debugName: String) : CjStubElementType<CangJie
 
         val fqName = dataStream.readName()
 
-        return CangJieCatchParameterStubImpl(fqName,name, parentStub )
-
+        return CangJieCatchParameterStubImpl(fqName, name, parentStub)
     }
 
     override fun indexStub(stub: CangJieCatchParameterStub, sink: IndexSink) {
         getInstance().indexParameter(stub, sink)
-
     }
 
     override fun createStub(
         psi: CjCatchParameter,
-        parentStub: StubElement<out PsiElement>?
+        parentStub: StubElement<out PsiElement>?,
     ): CangJieCatchParameterStub {
-
         val fqName = psi.fqName
         val fqNameRef = StringRef.fromString(fqName?.asString())
         return CangJieCatchParameterStubImpl(
@@ -74,5 +72,4 @@ class CjCatchParameterElementType(debugName: String) : CjStubElementType<CangJie
 
         )
     }
-
 }

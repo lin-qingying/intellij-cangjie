@@ -24,11 +24,6 @@
 
 package cn.cangnova.cangjie.psi.stubs.elements
 
-import com.intellij.psi.stubs.IndexSink
-import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.stubs.StubInputStream
-import com.intellij.psi.stubs.StubOutputStream
-import com.intellij.util.io.StringRef
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.CjNamedFunction
@@ -41,15 +36,19 @@ import cn.cangnova.cangjie.psi.stubs.impl.CangJieFunctionForExtendStubImpl
 import cn.cangnova.cangjie.psi.stubs.impl.CangJieFunctionStubImpl
 import cn.cangnova.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.deserialize
 import cn.cangnova.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.serialize
+import com.intellij.psi.stubs.IndexSink
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+import com.intellij.util.io.StringRef
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJieFunctionStub, CjNamedFunction>(
     debugName,
     CjNamedFunction::class.java,
-    CangJieFunctionStub::class.java
+    CangJieFunctionStub::class.java,
 ) {
-
 
     override fun createStub(psi: CjNamedFunction, parentStub: StubElement<*>): CangJieFunctionStub {
         val isTopLevel = psi.parent is CjFile
@@ -66,7 +65,7 @@ class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJ
             isExtension,
             hasBlockBody,
             hasBody,
-            psi.hasTypeParameterListBeforeFunctionName(),  //                psi.mayHaveContract(),
+            psi.hasTypeParameterListBeforeFunctionName(), //                psi.mayHaveContract(),
             null,
 
         )
@@ -85,10 +84,7 @@ class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJ
         dataStream.writeBoolean(stub.hasBody())
         dataStream.writeBoolean(stub.hasTypeParameterListBeforeFunctionName())
 
-
         if (stub is CangJieFunctionStubImpl) {
-
-
             serialize(stub.origin, dataStream)
         }
     }
@@ -108,11 +104,10 @@ class CjFunctionElementType(debugName: @NonNls String) : CjStubElementType<CangJ
         //        bool mayHaveContract = dataStream.readBoolean();
         return CangJieFunctionStubImpl(
             parentStub, CjStubElementTypes.FUNCTION, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
-            hasTypeParameterListBeforeFunctionName,  //                mayHaveContract,
+            hasTypeParameterListBeforeFunctionName, //                mayHaveContract,
             //                mayHaveContract ? CangJieFunctionStubImpl.Companion.deserializeContract(dataStream) :
 
-
-            deserialize(dataStream)
+            deserialize(dataStream),
         )
     }
 
@@ -133,9 +128,8 @@ class CjFunctionForExtendElementType(debugName: @NonNls String) :
     CjStubElementType<CangJieFunctionStub, CjNamedFunctionForExtend>(
         debugName,
         CjNamedFunctionForExtend::class.java,
-        CangJieFunctionStub::class.java
+        CangJieFunctionStub::class.java,
     ) {
-
 
     override fun createStub(psi: CjNamedFunctionForExtend, parentStub: StubElement<*>): CangJieFunctionStub {
         val isTopLevel = psi.parent is CjFile
@@ -153,7 +147,7 @@ class CjFunctionForExtendElementType(debugName: @NonNls String) :
             hasBlockBody,
             hasBody,
             psi.hasTypeParameterListBeforeFunctionName(),
-            null
+            null,
         )
     }
 
@@ -170,9 +164,7 @@ class CjFunctionForExtendElementType(debugName: @NonNls String) :
         dataStream.writeBoolean(stub.hasBody())
         dataStream.writeBoolean(stub.hasTypeParameterListBeforeFunctionName())
 
-
         if (stub is CangJieFunctionForExtendStubImpl) {
-
             serialize(stub.origin, dataStream)
         }
     }
@@ -194,8 +186,7 @@ class CjFunctionForExtendElementType(debugName: @NonNls String) :
             parentStub, CjStubElementTypes.FUNCTION_EXTEND, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
             hasTypeParameterListBeforeFunctionName,
 
-
-            deserialize(dataStream)
+            deserialize(dataStream),
         )
     }
 

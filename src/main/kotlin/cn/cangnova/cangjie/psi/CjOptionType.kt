@@ -33,15 +33,12 @@ import com.intellij.lang.ASTNode
 
 class CjOptionType : CjElementImplStub<CangJiePlaceHolderStub<CjOptionType>>, CjTypeElement {
 
-
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJiePlaceHolderStub<CjOptionType>) : super(stub, CjStubElementTypes.OPTIONAL_TYPE)
 
-
     fun getQuestionMarkNode(): ASTNode {
-        return node.findChildByType(QUEST) !!
+        return node.findChildByType(QUEST)!!
     }
-
 
     override val typeArgumentsAsTypes: List<CjTypeReference>
         get() {
@@ -58,7 +55,7 @@ class CjOptionType : CjElementImplStub<CangJiePlaceHolderStub<CjOptionType>>, Cj
         return CjStubbedPsiUtil.getStubOrPsiChild(
             this,
             CjTokenSets.TYPE_ELEMENT_TYPES,
-            CjTypeElement.ARRAY_FACTORY
+            CjTypeElement.ARRAY_FACTORY,
         )
     }
 

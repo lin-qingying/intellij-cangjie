@@ -22,8 +22,6 @@
  *
  */
 
-
-
 package cn.cangnova.cangjie.psi.psiUtil
 
 import com.intellij.openapi.editor.Document
@@ -31,7 +29,6 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
-
 import kotlin.math.abs
 val PsiElement.range: TextRange get() = textRange ?: error(if (isPhysical) "No text range for $this" else "No text range is expected for non-physical element $this")
 val TextRange.start: Int get() = startOffset

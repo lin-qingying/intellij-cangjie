@@ -24,13 +24,13 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.stubs.CangJieCatchParameterStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
-class CjCatchParameter : CjNamedDeclarationStub<CangJieCatchParameterStub>,CjParameterBase {
+class CjCatchParameter : CjNamedDeclarationStub<CangJieCatchParameterStub>, CjParameterBase {
 
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieCatchParameterStub) : super(stub, CjStubElementTypes.CATCH_PARAMETER)
@@ -43,28 +43,25 @@ class CjCatchParameter : CjNamedDeclarationStub<CangJieCatchParameterStub>,CjPar
     }
 
     override fun hasDefaultValue(): Boolean {
-       return false
+        return false
     }
 
     override val valueParameterList: CjParameterList? = null
     override val valueParameters: List<CjParameter> = emptyList()
     override val receiverTypeReference: CjTypeReference? get() = typeReference
-    override val typeReference: CjTypeReference? get() =  null
+    override val typeReference: CjTypeReference? get() = null
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
-       return typeReference
+        return typeReference
     }
 
     override val colon: PsiElement?
         get() = findChildByType(CjTokens.COLON)
     override val typeParameterList: CjTypeParameterList? = null
-    override val typeConstraintList: CjTypeConstraintList?= null
+    override val typeConstraintList: CjTypeConstraintList? = null
     override val typeConstraints: List<CjTypeConstraint> = emptyList()
     override val typeParameters: List<CjTypeParameter> = emptyList()
     override val letOrVarKeyword: PsiElement? = null
     val equalsToken: PsiElement?
         get() = findChildByType(CjTokens.EQ)
-
-
-
 }

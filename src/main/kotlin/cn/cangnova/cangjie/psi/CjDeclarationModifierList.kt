@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.psi.stubs.CangJieModifierListStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-
 class CjDeclarationModifierList : CjModifierList {
     constructor(node: ASTNode) : super(node)
 

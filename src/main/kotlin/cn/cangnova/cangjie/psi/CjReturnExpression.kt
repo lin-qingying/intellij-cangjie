@@ -24,13 +24,9 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-
-
-
 
 class CjReturnExpression(node: ASTNode) : CjExpressionWithLabel(node), CjStatementExpression {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -44,4 +40,3 @@ class CjReturnExpression(node: ASTNode) : CjExpressionWithLabel(node), CjStateme
     val labeledExpression: PsiElement?
         get() = findChildByType(CjNodeTypes.LABEL_QUALIFIER)
 }
-

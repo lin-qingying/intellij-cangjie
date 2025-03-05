@@ -26,9 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.name.Name
 
-
-
 interface CjNamed {
-    val nameAsName:  Name?
+    val nameAsName: Name?
 }
-

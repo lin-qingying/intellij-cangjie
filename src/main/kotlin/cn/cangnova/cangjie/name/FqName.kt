@@ -25,16 +25,13 @@
 package cn.cangnova.cangjie.name
 
 import cn.cangnova.cangjie.name.Name.Companion.identifier
-
 import com.intellij.openapi.util.text.StringUtil.join
-
 
 class FqName {
     private val fqName: FqNameUnsafe
 
     @Transient
     private var parent: FqName? = null
-
 
     constructor(fqName: String) {
         this.fqName = FqNameUnsafe(fqName, this)
@@ -81,7 +78,7 @@ class FqName {
             return parent!!.isRoot
         }
 
-    val moduleName : Name get()   {
+    val moduleName: Name get() {
         var _this: FqName? = this
         while (true) {
             if (_this!!.parent().isRoot) return _this.shortName()
@@ -135,7 +132,7 @@ class FqName {
     companion object {
         @JvmField
         val ROOT: FqName = FqName("")
-        fun fromSegments(names: List<String >): FqName {
+        fun fromSegments(names: List<String>): FqName {
             return FqName(join(names, "."))
         }
 

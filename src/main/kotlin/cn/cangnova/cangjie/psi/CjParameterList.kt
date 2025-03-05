@@ -40,7 +40,6 @@ class CjParameterList : CjElementImplStub<CangJiePlaceHolderStub<CjParameterList
 
     constructor(stub: CangJiePlaceHolderStub<CjParameterList>) : super(stub, CjStubElementTypes.VALUE_PARAMETER_LIST)
 
-
     override fun toString(): String {
         return node.elementType.toString()
     }
@@ -60,21 +59,26 @@ class CjParameterList : CjElementImplStub<CangJiePlaceHolderStub<CjParameterList
     fun addParameter(parameter: CjParameter): CjParameter {
         return addItem(
             this,
-            parameters, parameter
+            parameters,
+            parameter,
         )
     }
 
     fun addParameterBefore(parameter: CjParameter, anchor: CjParameter?): CjParameter {
         return addItemBefore(
             this,
-            parameters, parameter, anchor
+            parameters,
+            parameter,
+            anchor,
         )
     }
 
     fun addParameterAfter(parameter: CjParameter, anchor: CjParameter?): CjParameter {
         return addItemAfter(
             this,
-            parameters, parameter, anchor
+            parameters,
+            parameter,
+            anchor,
         )
     }
 

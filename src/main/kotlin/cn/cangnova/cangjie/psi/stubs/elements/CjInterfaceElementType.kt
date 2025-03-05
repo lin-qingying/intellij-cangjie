@@ -44,10 +44,10 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjInterfaceElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieInterfaceStub, CjInterface >(
+    CjStubElementType<CangJieInterfaceStub, CjInterface>(
         debugName,
         CjInterface::class.java,
-        CangJieInterfaceStub::class.java
+        CangJieInterfaceStub::class.java,
     ) {
     override fun indexStub(stub: CangJieInterfaceStub, sink: IndexSink) {
         getInstance().indexInterface(stub, sink)
@@ -67,11 +67,13 @@ class CjInterfaceElementType(debugName: @NonNls String) :
         val superNames = psi.getSuperNames()
         val classId = createNestedClassId(parentStub, psi)
         return CangJieInterfaceStubImpl(
-            CjStubElementTypes.INTERFACE, parentStub,
-            StringRef.fromString(fqName?.asString()), classId,
+            CjStubElementTypes.INTERFACE,
+            parentStub,
+            StringRef.fromString(fqName?.asString()),
+            classId,
             StringRef.fromString(psi.name),
             wrapStrings(superNames),
-            psi.isLocal
+            psi.isLocal,
         )
     }
 
@@ -84,7 +86,6 @@ class CjInterfaceElementType(debugName: @NonNls String) :
 
         serializeClassId(dataStream, stub.getClassId())
 
-
         dataStream.writeBoolean(stub.isLocal())
 
         //        dataStream.writeBoolean(stub.isTopLevel());
@@ -95,14 +96,12 @@ class CjInterfaceElementType(debugName: @NonNls String) :
         }
     }
 
-
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieInterfaceStub {
         val name = dataStream.readName()
         val qualifiedName = dataStream.readName()
 
         val classId = deserializeClassId(dataStream)
-
 
         val isLocal = dataStream.readBoolean()
 
@@ -114,8 +113,13 @@ class CjInterfaceElementType(debugName: @NonNls String) :
         }
 
         return CangJieInterfaceStubImpl(
-            CjStubElementTypes.INTERFACE, parentStub, qualifiedName, classId, name, superNames,
-            isLocal
+            CjStubElementTypes.INTERFACE,
+            parentStub,
+            qualifiedName,
+            classId,
+            name,
+            superNames,
+            isLocal,
         )
     }
 

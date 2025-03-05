@@ -30,7 +30,7 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-class CjTypeProjection : CjModifierListOwnerStub<CangJieTypeProjectionStub > {
+class CjTypeProjection : CjModifierListOwnerStub<CangJieTypeProjectionStub> {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieTypeProjectionStub) : super(stub, CjStubElementTypes.TYPE_PROJECTION)

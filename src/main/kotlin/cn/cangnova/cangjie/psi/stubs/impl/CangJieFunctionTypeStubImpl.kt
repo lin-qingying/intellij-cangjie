@@ -24,12 +24,11 @@
 
 package cn.cangnova.cangjie.psi.stubs.impl
 
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.StubElement
 import cn.cangnova.cangjie.psi.CjFunctionType
 import cn.cangnova.cangjie.psi.stubs.CangJieFunctionTypeStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
 
 /**
  * @param abbreviatedType The type alias application from which this type was originally expanded. It can be used to render or navigate to

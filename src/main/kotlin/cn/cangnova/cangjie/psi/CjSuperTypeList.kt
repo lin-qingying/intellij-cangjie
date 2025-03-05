@@ -38,12 +38,12 @@ import com.intellij.util.IncorrectOperationException
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
-class CjSuperTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList >  > {
+class CjSuperTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList>> {
     private val _modificationStamp = AtomicLong()
 
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjSuperTypeList >) : super(stub, CjStubElementTypes.SUPER_TYPE_LIST)
+    constructor(stub: CangJiePlaceHolderStub<CjSuperTypeList>) : super(stub, CjStubElementTypes.SUPER_TYPE_LIST)
 
     override fun toString(): String {
         return node.elementType.toString()
@@ -56,7 +56,8 @@ class CjSuperTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList
     fun addEntry(entry: CjSuperTypeListEntry): CjSuperTypeListEntry {
         return addItem(
             this,
-            entries, entry
+            entries,
+            entry,
         )
     }
 
@@ -72,7 +73,7 @@ class CjSuperTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList
         var left = PsiTreeUtil.skipSiblingsBackward(
             this,
             PsiWhiteSpace::class.java,
-            PsiComment::class.java
+            PsiComment::class.java,
         )
         if (left == null || left.node.elementType !== CjTokens.COLON) left = this
         parent.deleteChildRange(left, this)
@@ -82,17 +83,15 @@ class CjSuperTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList
         get() = listOf(
             *getStubOrPsiChildren(
                 CjTokenSets.SUPER_TYPE_LIST_ENTRIES,
-                CjSuperTypeListEntry.ARRAY_FACTORY
-            )
+                CjSuperTypeListEntry.ARRAY_FACTORY,
+            ),
         )
-
 
     override fun subtreeChanged() {
         super.subtreeChanged()
         _modificationStamp.getAndIncrement()
     }
 
-    val modificationStamp : Long get() =
-          _modificationStamp.get()
-
+    val modificationStamp: Long get() =
+        _modificationStamp.get()
 }

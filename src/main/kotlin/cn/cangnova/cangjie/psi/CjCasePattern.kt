@@ -23,5 +23,3 @@
  */
 
 package cn.cangnova.cangjie.psi
-
-

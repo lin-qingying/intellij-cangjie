@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
 import com.intellij.lang.ASTNode
@@ -35,14 +34,12 @@ import com.intellij.psi.tree.TokenSet
 
 class CjDestructuringDeclarationEntry(node: ASTNode) : CjNamedDeclarationNotStubbed(node), CjVariableDeclaration {
 
-
     override val typeReference: CjTypeReference?
         get() = getTypeReference(this)
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
         return setTypeReference(this, nameIdentifier, typeRef)
     }
-
 
     override val colon: PsiElement?
         get() = findChildByType(CjTokens.COLON)

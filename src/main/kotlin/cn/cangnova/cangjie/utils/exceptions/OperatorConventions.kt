@@ -24,8 +24,6 @@
 
 package cn.cangnova.cangjie.utils.exceptions
 
-import com.google.common.collect.ImmutableBiMap
-import com.google.common.collect.ImmutableSet
 import cn.cangnova.cangjie.lexer.CjSingleValueToken
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
@@ -38,6 +36,7 @@ import cn.cangnova.cangjie.utils.OperatorNameConventions.COMPARE_GT
 import cn.cangnova.cangjie.utils.OperatorNameConventions.COMPARE_GTEQ
 import cn.cangnova.cangjie.utils.OperatorNameConventions.COMPARE_LT
 import cn.cangnova.cangjie.utils.OperatorNameConventions.COMPARE_LTEQ
+import cn.cangnova.cangjie.utils.OperatorNameConventions.COMPOSITION
 import cn.cangnova.cangjie.utils.OperatorNameConventions.DEC
 import cn.cangnova.cangjie.utils.OperatorNameConventions.DIV
 import cn.cangnova.cangjie.utils.OperatorNameConventions.DIV_ASSIGN
@@ -58,6 +57,7 @@ import cn.cangnova.cangjie.utils.OperatorNameConventions.OR
 import cn.cangnova.cangjie.utils.OperatorNameConventions.OREQ_ASSIGN
 import cn.cangnova.cangjie.utils.OperatorNameConventions.OROR
 import cn.cangnova.cangjie.utils.OperatorNameConventions.OROREQ_ASSIGN
+import cn.cangnova.cangjie.utils.OperatorNameConventions.PIPELINE
 import cn.cangnova.cangjie.utils.OperatorNameConventions.PLUS
 import cn.cangnova.cangjie.utils.OperatorNameConventions.PLUS_ASSIGN
 import cn.cangnova.cangjie.utils.OperatorNameConventions.REM
@@ -68,10 +68,9 @@ import cn.cangnova.cangjie.utils.OperatorNameConventions.TIMES_ASSIGN
 import cn.cangnova.cangjie.utils.OperatorNameConventions.UNARY_MINUS
 import cn.cangnova.cangjie.utils.OperatorNameConventions.XOR
 import cn.cangnova.cangjie.utils.OperatorNameConventions.XOREQ_ASSIGN
-import cn.cangnova.cangjie.utils.OperatorNameConventions.COMPOSITION
-import cn.cangnova.cangjie.utils.OperatorNameConventions.PIPELINE
+import com.google.common.collect.ImmutableBiMap
+import com.google.common.collect.ImmutableSet
 import com.intellij.psi.tree.IElementType
-
 
 object OperatorConventions {
 
@@ -124,8 +123,6 @@ object OperatorConventions {
             .put(CjTokens.PERCEQ, CjTokens.PERC)
             .put(CjTokens.PLUSEQ, CjTokens.PLUS)
             .put(CjTokens.MINUSEQ, CjTokens.MINUS)
-
-
             .put(CjTokens.ANDEQ, CjTokens.AND)
             .put(CjTokens.XOREQ, CjTokens.XOR)
             .put(CjTokens.OREQ, CjTokens.OR)
@@ -134,18 +131,16 @@ object OperatorConventions {
             .put(CjTokens.MULMULEQ, CjTokens.MULMUL)
             .put(CjTokens.ANDANDEQ, CjTokens.ANDAND)
             .put(CjTokens.OROREQ, CjTokens.OROR)
-
-
             .build()
 
     @JvmStatic
     fun isConventionType(type: IElementType): Boolean {
         return COMPARISON_OPERATIONS_NAMES.containsKey(type) ||
-                UNARY_OPERATION_NAMES.containsKey(type) ||
-                BINARY_OPERATION_NAMES.containsKey(type) ||FLOW_OPERATION_NAMES.containsKey(type) ||
-                COMPARISON_OPERATIONS_NAMES.containsKey(
-                    type
-                )
+            UNARY_OPERATION_NAMES.containsKey(type) ||
+            BINARY_OPERATION_NAMES.containsKey(type) || FLOW_OPERATION_NAMES.containsKey(type) ||
+            COMPARISON_OPERATIONS_NAMES.containsKey(
+                type,
+            )
     }
 
     @JvmStatic
@@ -155,7 +150,6 @@ object OperatorConventions {
     }
 
     @JvmField
-
     val COMPARISON_OPERATIONS_NAMES: ImmutableBiMap<CjSingleValueToken, Name> =
         ImmutableBiMap.builder<CjSingleValueToken, Name>()
             .put(CjTokens.GTEQ, COMPARE_GTEQ)
@@ -176,9 +170,8 @@ object OperatorConventions {
     fun getNameForOperationSymbol(
         token: CjToken,
         unaryOperations: Boolean,
-        binaryOperations: Boolean
+        binaryOperations: Boolean,
     ): Name? {
-
         var name: Name?
 
         if (binaryOperations) {
@@ -212,7 +205,6 @@ object OperatorConventions {
             .put(CjTokens.PLUSPLUS, INC)
             .put(CjTokens.MINUSMINUS, DEC)
             .put(CjTokens.MINUS, UNARY_MINUS)
-
             .build()
 
     @JvmField
@@ -224,8 +216,6 @@ object OperatorConventions {
             .put(CjTokens.PLUSEQ, PLUS_ASSIGN)
             .put(CjTokens.MINUSEQ, MINUS_ASSIGN)
             .put(CjTokens.MULMULEQ, EXPONENTIATION_ASSIGN)
-
-
             .put(CjTokens.OROREQ, OROREQ_ASSIGN)
             .put(CjTokens.ANDANDEQ, ANDANDEQ_ASSIGN)
             .put(CjTokens.OREQ, OREQ_ASSIGN)
@@ -233,7 +223,6 @@ object OperatorConventions {
             .put(CjTokens.XOREQ, XOREQ_ASSIGN)
             .put(CjTokens.GTGTEQ, GTGTEQ_ASSIGN)
             .put(CjTokens.LTLTEQ, LTLTEQ_ASSIGN)
-
             .build()
 
     @JvmField
@@ -241,10 +230,8 @@ object OperatorConventions {
         ImmutableBiMap.builder<CjSingleValueToken, Name>()
             .put(CjTokens.PIPELINE, PIPELINE)
             .put(CjTokens.COMPOSITION, COMPOSITION)
-
-
-
             .build()
+
     @JvmField
     val BINARY_OPERATION_NAMES: ImmutableBiMap<CjSingleValueToken, Name> =
         ImmutableBiMap.builder<CjSingleValueToken, Name>()
@@ -254,15 +241,11 @@ object OperatorConventions {
             .put(CjTokens.MINUS, MINUS)
             .put(CjTokens.DIV, DIV)
             .put(CjTokens.PERC, REM)
-
             .put(CjTokens.GTGT, RIGHT_SHIFT)
             .put(CjTokens.LTLT, LEFT_SHIFT)
-
             .put(CjTokens.AND, AND)
             .put(CjTokens.XOR, XOR)
             .put(CjTokens.OR, OR)
-
-
             .build()
     // If you add new unary, binary or assignment operators, add it to OperatorConventionNames as well
 
@@ -270,12 +253,10 @@ object OperatorConventions {
     val CONVENTION_NAMES: ImmutableSet<Name> =
         ImmutableSet.builder<Name>()
             .add(INVOKE)
-
             .add(GET)
             .addAll(UNARY_OPERATION_NAMES.values)
             .addAll(COMPARISON_OPERATIONS_NAMES.values)
             .addAll(BINARY_OPERATION_NAMES.values)
 //            .addAll(ASSIGNMENT_OPERATIONS.values)
             .build()
-
 }

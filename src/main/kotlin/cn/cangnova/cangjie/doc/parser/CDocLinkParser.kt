@@ -33,7 +33,6 @@ import com.intellij.lang.PsiBuilderFactory
 import com.intellij.lang.PsiParser
 import com.intellij.psi.tree.IElementType
 
-
 /**
  * 分析 CDOC 中的 Markdown 链接的内容。使用标准的 CangJie 词法分析器。
  */
@@ -48,7 +47,7 @@ class CDocLinkParser : PsiParser {
                 chameleon,
                 CangJieLexer(),
                 root.language,
-                chameleon.text
+                chameleon.text,
             )
             val parser = CDocLinkParser()
 

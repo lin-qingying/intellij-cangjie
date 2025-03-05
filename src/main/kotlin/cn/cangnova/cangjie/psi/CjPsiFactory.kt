@@ -24,6 +24,11 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.lang.CangJieFileType
+import cn.cangnova.cangjie.lexer.CjKeywordToken
+import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.utils.checkWithAttachment
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiComment
@@ -32,21 +37,13 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.LocalTimeCounter
-import cn.cangnova.cangjie.lang.CangJieFileType
-import cn.cangnova.cangjie.lexer.CjKeywordToken
-import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.parsing.Pattern
-import cn.cangnova.cangjie.utils.checkWithAttachment
 import org.jetbrains.annotations.NonNls
-
 
 var CjFile.doNotAnalyze: String? by UserDataProperty(Key.create("DO_NOT_ANALYZE"))
 var CjFile.analysisContext: PsiElement? by UserDataProperty(Key.create("ANALYSIS_CONTEXT"))
 
-
 private const val DO_NOT_ANALYZE_NOTIFICATION = "This file was created by CjPsiFactory and should not be analyzed\n" +
-        "Use createAnalyzableFile to create file that can be analyzed\n"
+    "Use createAnalyzableFile to create file that can be analyzed\n"
 
 class CjPsiFactory private constructor(
     private val project: Project,
@@ -56,23 +53,24 @@ class CjPsiFactory private constructor(
 ) {
     @JvmOverloads
     constructor(project: Project, markGenerated: Boolean = true) :
-            this(project, markGenerated, context = null, eventSystemEnabled = false)
+        this(project, markGenerated, context = null, eventSystemEnabled = false)
 
     constructor(project: Project, markGenerated: Boolean = true, eventSystemEnabled: Boolean) :
-            this(project, markGenerated, context = null, eventSystemEnabled = eventSystemEnabled)
+        this(project, markGenerated, context = null, eventSystemEnabled = eventSystemEnabled)
 
     @JvmOverloads
     constructor(element: CjElement, markGenerated: Boolean = true) : this(
         element.project,
         markGenerated,
         context = null,
-        eventSystemEnabled = false
+        eventSystemEnabled = false,
     )
 
     fun createEmptyClassBody(): CjAbstractClassBody {
         return createClass("class A{}").body!!
     }
-  //the pair contains the first and the last elements of a range
+
+    // the pair contains the first and the last elements of a range
     fun createWhitespaceAndArrow(): Pair<PsiElement, PsiElement> {
         val functionType = createType("() -> Int").typeElement as CjFunctionType
         return Pair(functionType.findElementAt(2)!!, functionType.findElementAt(3)!!)
@@ -105,7 +103,7 @@ class CjPsiFactory private constructor(
         @NonNls name: String,
         @NonNls type: String?,
         isMut: Boolean,
-        @NonNls initializer: String?
+        @NonNls initializer: String?,
     ): CjProperty {
         return createProperty(null, name, type, isMut, initializer)
     }
@@ -133,30 +131,31 @@ class CjPsiFactory private constructor(
         @NonNls name: String,
         @NonNls type: String?,
         @NonNls isMut: Boolean,
-        @NonNls initializer: String?
+        @NonNls initializer: String?,
     ): CjProperty {
         val text = modifiers.let { "$it " } +
 
-                (if (isMut) " mut " else "") + "prop" + name +
-                (if (type != null) ":$type" else "") +
-                "{" +
-                "get(){}" +
-                if (isMut) "set(value){}" else "" +
-                        "}"
+            (if (isMut) " mut " else "") + "prop" + name +
+            (if (type != null) ":$type" else "") +
+            "{" +
+            "get(){}" +
+            if (isMut) {
+                "set(value){}"
+            } else {
+                "" +
+                    "}"
+            }
         return createProperty(text)
     }
 
     fun createProperty(@NonNls text: String): CjProperty {
-
         return createClass(
-            "class A { $text }"
+            "class A { $text }",
         ).properties.first()
-
     }
 
     fun createSimpleName(@NonNls name: String): CjSimpleNameExpression {
         return createVariable(name, null, false, name).initializer as CjSimpleNameExpression
-
     }
 
     private inline fun <reified E : CjExpression> createExpressionOfType(text: String): E =
@@ -168,8 +167,6 @@ class CjPsiFactory private constructor(
         return stringTemplateExpression.entries[0] as CjSimpleNameStringTemplateEntry
     }
 
-
-
     fun createColon(): PsiElement {
         return createVariable("let x: Int64").findElementAt(5)!!
     }
@@ -180,8 +177,6 @@ class CjPsiFactory private constructor(
 
     private class BlockWrapper(fakeBlockExpression: CjBlockExpression, private val expression: CjExpression) :
         CjBlockExpression(fakeBlockExpression.text), CjPsiUtil.CjExpressionWrapper {
-
-
 
         override val statements: List<CjExpression>
             get() = listOf(expression)
@@ -214,12 +209,12 @@ class CjPsiFactory private constructor(
     fun createFunctionTypeReceiver(typeReference: CjTypeReference): CjFunctionTypeReceiver {
         return (createType("() -> B").typeElement as CjFunctionType).receiver!!.apply {
             this.typeReference.replace(
-                typeReference
+                typeReference,
             )
         }
     }
 
-    fun createImportDirective(importPath: ImportPath): CjImportDirective  {
+    fun createImportDirective(importPath: ImportPath): CjImportDirective {
         if (importPath.fqName.isRoot) {
             throw IllegalArgumentException("import path must not be empty")
         }
@@ -253,8 +248,13 @@ class CjPsiFactory private constructor(
     }
 
     fun createLambdaExpression(@NonNls parameters: String, @NonNls body: String): CjLambdaExpression =
-        (if (parameters.isNotEmpty()) createExpression("{ $parameters -> $body }")
-        else createExpression("{ $body }")) as CjLambdaExpression
+        (
+            if (parameters.isNotEmpty()) {
+                createExpression("{ $parameters -> $body }")
+            } else {
+                createExpression("{ $body }")
+            }
+            ) as CjLambdaExpression
 
     fun createExpressionCodeFragment(@NonNls text: String, context: PsiElement?): CjExpressionCodeFragment {
         return CjExpressionCodeFragment(project, "fragment.cj", text, null, context)
@@ -267,7 +267,6 @@ class CjPsiFactory private constructor(
     fun createFunction(@NonNls funDecl: String): CjNamedFunction {
         return createDeclaration(funDecl)
     }
-
 
 //    fun createIdentifier(text: String): PsiElement =
 //        createFromText<CjModDeclItem>("mod ${text.escapeIdentifierIfNeeded()};")?.identifier
@@ -286,13 +285,12 @@ class CjPsiFactory private constructor(
         @NonNls name: String,
         @NonNls type: String?,
         isVar: Boolean,
-        @NonNls initializer: String?
+        @NonNls initializer: String?,
     ): CjVariable {
         return createVariable(null, name, type, isVar, initializer)
     }
 
     fun creareDelegatedSuperTypeEntry(@NonNls text: String): CjConstructorDelegationCall {
-
         return createClass("class A { init() { $text}").secondaryConstructors.first()
             .getDelegationCall()!!
     }
@@ -310,11 +308,11 @@ class CjPsiFactory private constructor(
         @NonNls name: String,
         @NonNls type: String?,
         isVar: Boolean,
-        @NonNls initializer: String?
+        @NonNls initializer: String?,
     ): CjVariable {
         val text = modifiers.let { "$it " } +
-                (if (isVar) " var " else " let ") + name +
-                (if (type != null) ":$type" else "") + (if (initializer == null) "" else " = $initializer")
+            (if (isVar) " var " else " let ") + name +
+            (if (type != null) ":$type" else "") + (if (initializer == null) "" else " = $initializer")
         return createVariable(text)
     }
 
@@ -326,9 +324,8 @@ class CjPsiFactory private constructor(
         return createFile("package ${fqName.asString()}").packageDirective!!
     }
 
-
     private fun doCreateExpression(@NonNls text: String): CjExpression? {
-        //注意：下面的‘\n’很重要--如果没有它，会出现一些奇怪的代码缩进问题
+        // 注意：下面的‘\n’很重要--如果没有它，会出现一些奇怪的代码缩进问题
         return createVariable("let x =\n$text").initializer
     }
 
@@ -357,7 +354,7 @@ class CjPsiFactory private constructor(
             text,
             LocalTimeCounter.currentTime(),
             eventSystemEnabled,
-            markGenerated
+            markGenerated,
         ) as CjFile
     }
 
@@ -395,7 +392,6 @@ class CjPsiFactory private constructor(
         return createModifierList(modifier.value)
     }
 
-
     fun createModifierList(modifier: CjModifierKeywordToken): CjModifierList {
         return createModifierList(modifier.value)
     }
@@ -403,7 +399,6 @@ class CjPsiFactory private constructor(
     fun createModifierList(@NonNls text: String): CjModifierList {
         return createClass("$text class x").modifierList!!
     }
-
 
     fun createComma(): PsiElement {
         return createType("T<X, Y>").findElementAt(3)!!
@@ -456,6 +451,5 @@ class CjPsiFactory private constructor(
 
     fun createIdentifier(toString: String): PsiElement? {
         return createClass("class $toString").nameIdentifier
-
     }
 }

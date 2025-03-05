@@ -24,6 +24,15 @@
 
 package cn.cangnova.cangjie.psi.psiUtil
 
+import cn.cangnova.cangjie.psi.CjNodeTypes
+import cn.cangnova.cangjie.lexer.CangJieLexer
+import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
+import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.SpecialNames
+import cn.cangnova.cangjie.psi.*
+import cn.cangnova.cangjie.psi.stubs.CangJieTypeStatementStub
 import com.intellij.extapi.psi.StubBasedPsiElementBase
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
@@ -33,18 +42,9 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.findTopmostParentInFile
 import com.intellij.util.codeInsight.CommentUtilCore
-import cn.cangnova.cangjie.CjNodeTypes
-import cn.cangnova.cangjie.lexer.CangJieLexer
-import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
-import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.name.SpecialNames
-import cn.cangnova.cangjie.psi.*
-import cn.cangnova.cangjie.psi.stubs.CangJieTypeStatementStub
 import java.util.*
 
-//fun CjDeclaration.isExpectDeclaration(): Boolean =
+// fun CjDeclaration.isExpectDeclaration(): Boolean =
 //    when {
 //        hasExpectModifier() -> true
 //        this is CjParameter -> ownerFunction?.isExpectDeclaration() == true
@@ -182,7 +182,7 @@ fun CjSimpleNameExpression.getReceiverExpression(): CjExpression? {
         }
 
         parent is CjCallExpression -> {
-            //This is in case `a().b()`
+            // This is in case `a().b()`
             val grandParent = parent.parent
             if (grandParent is CjQualifiedExpression) {
                 val parentsReceiver = grandParent.receiverExpression
@@ -225,7 +225,6 @@ private fun CjModifierList.modifierFromTokenSet(set: TokenSet): PsiElement? {
         .asSequence()
         .map { getModifier(it as CjModifierKeywordToken) }
         .firstOrNull { it != null }
-
 }
 
 fun CjModifierListOwner.visibilityModifierType(): CjModifierKeywordToken? =
@@ -237,8 +236,8 @@ fun CjExpression.referenceExpression(): CjReferenceExpression? =
 fun CjNamedFunction.isContractPresentPsiCheck(isAllowedOnMembers: Boolean): Boolean {
     val contractAllowedHere =
         (isAllowedOnMembers || isTopLevel) &&
-                hasBlockBody() &&
-                !hasModifier(CjTokens.OPERATOR_KEYWORD)
+            hasBlockBody() &&
+            !hasModifier(CjTokens.OPERATOR_KEYWORD)
     if (!contractAllowedHere) return false
 
     val firstExpression = (this as? CjFunction)?.bodyBlockExpression?.statements?.firstOrNull() ?: return false
@@ -257,7 +256,6 @@ fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Void, D>, data: D) 
         }
         child = child.nextSibling
     }
-
 }
 
 private fun StubElement<*>.collectAnnotationEntriesFromStubElement(): List<CjAnnotationEntry> {
@@ -337,28 +335,28 @@ fun isComment(element: PsiElement): Boolean {
 }
 
 fun CjEnumEntry.safeFqNameForLazyResolveByParent(): FqName? {
-    //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
+    // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = (this.parent?.parent as CjEnum).safeFqNameForLazyResolve()
     return parentFqName?.child(safeNameForLazyResolve())
 }
 
 fun CjEnumEntry.safeFqNameForLazyResolve(): FqName? {
-    //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
+    // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this.parent?.parent as CjEnum)
     return parentFqName?.child(safeNameForLazyResolve())
 }
-fun CjNamedDeclaration.safeFqNameForLazyResolve(name:Name): FqName? {
-    //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
+fun CjNamedDeclaration.safeFqNameForLazyResolve(name: Name): FqName? {
+    // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)
     return parentFqName?.child(name)
 }
-fun CjNamedDeclaration.safeFqNameForLazyResolve(name:String?): FqName? {
-    //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
+fun CjNamedDeclaration.safeFqNameForLazyResolve(name: String?): FqName? {
+    // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)
     return parentFqName?.child(Name.identifier(name ?: ""))
 }
 fun CjNamedDeclaration.safeFqNameForLazyResolve(): FqName? {
-    //应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
+    // 应该只为包级声明创建特殊名称，这样就可以安全地依赖于父级的真实fq名称
     val parentFqName = CjNamedDeclarationUtil.getParentFqName(this)
     return parentFqName?.child(safeNameForLazyResolve())
 }
@@ -366,7 +364,7 @@ fun CjNamedDeclaration.safeFqNameForLazyResolve(): FqName? {
 fun CjNamedDeclaration.safeNameForLazyResolve(): Name {
     return nameAsName.safeNameForLazyResolve()
 }
-//fun CjFunctionImpl.isContractPresentPsiCheck(isAllowedOnMembers: Boolean): Boolean {
+// fun CjFunctionImpl.isContractPresentPsiCheck(isAllowedOnMembers: Boolean): Boolean {
 //    val contractAllowedHere =
 //        (isAllowedOnMembers || isTopLevel) &&
 //                hasBlockBody() &&
@@ -376,12 +374,11 @@ fun CjNamedDeclaration.safeNameForLazyResolve(): Name {
 //    val firstExpression = (this as? CjFunction)?.bodyBlockExpression?.statements?.firstOrNull() ?: return false
 //
 //    return firstExpression.isContractDescriptionCallPsiCheck()
-//}
-//fun CjExpression.isContractDescriptionCallPsiCheck(): Boolean =
+// }
+// fun CjExpression.isContractDescriptionCallPsiCheck(): Boolean =
 //    (this is CjCallExpression && calleeExpression?.text == "contract") || (this is CjQualifiedExpression && isContractDescriptionCallPsiCheck())
 
 fun Name?.safeNameForLazyResolve(): Name = this?.takeUnless(Name::isSpecial) ?: SpecialNames.NO_NAME_PROVIDED
-
 
 fun CjExpression.getAssignmentByLHS(): CjBinaryExpression? {
     val parent = parent as? CjBinaryExpression ?: return null
@@ -469,13 +466,12 @@ fun CjStringTemplateExpression.getContentRange(): TextRange {
     val length = textLength
     return TextRange(
         start,
-        if (lastChild.elementType == CjTokens.CLOSING_QUOTE) length - lastChild.textLength else length
+        if (lastChild.elementType == CjTokens.CLOSING_QUOTE) length - lastChild.textLength else length,
     )
 }
 
 fun CjStringTemplateExpression.isSingleQuoted(): Boolean = node.firstChildNode.textLength == 1
 fun CjStringTemplateExpression.isPlain() = entries.all { it is CjLiteralStringTemplateEntry }
-
 
 fun List<CangJieImportField>.addIf(element: CangJieImportField) {
     if (!this.contains(element)) {
@@ -486,31 +482,28 @@ fun List<CangJieImportField>.addIf(element: CangJieImportField) {
 fun CjDeclaration.modalityModifier() = modifierFromTokenSet(CjTokens.MODALITY_MODIFIERS)
 private fun CjModifierListOwner.modifierFromTokenSet(set: TokenSet) = modifierList?.modifierFromTokenSet(set)
 
-
 fun CjElement.findElementOfAdditionalResolve(): CjElement? {
-
     val elementOfAdditionalResolve = findTopmostParentInFile {
         it is CjFunction ||
-                it is CjAnonymousInitializer ||
+            it is CjAnonymousInitializer ||
 //                    it is CjPrimaryConstructor ||
 //                    it is CjSecondaryConstructor ||
-                it is CjProperty ||
-                it is CjVariable ||
-                it is CjSuperTypeList ||
+            it is CjProperty ||
+            it is CjVariable ||
+            it is CjSuperTypeList ||
 
-                it is CjImportList ||
-                it is CjAnnotationEntry ||
-                it is CjTypeParameter ||
-                it is CjTypeConstraint ||
-                it is CjPackageDirective ||
-                it is CjCodeFragment ||
-                it is CjTypeAlias ||
-                it is CjDestructuringDeclaration
+            it is CjImportList ||
+            it is CjAnnotationEntry ||
+            it is CjTypeParameter ||
+            it is CjTypeConstraint ||
+            it is CjPackageDirective ||
+            it is CjCodeFragment ||
+            it is CjTypeAlias ||
+            it is CjDestructuringDeclaration
     } as CjElement?
 
     when (elementOfAdditionalResolve) {
         null -> {
-
             if (this is CjAnnotationEntry) {
                 return this
             }

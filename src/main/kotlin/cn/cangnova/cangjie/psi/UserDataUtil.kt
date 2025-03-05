@@ -29,7 +29,6 @@ import com.intellij.openapi.util.UserDataHolder
 import com.intellij.psi.PsiElement
 import kotlin.reflect.KProperty
 
-
 class UserDataProperty<in R : UserDataHolder, T : Any>(val key: Key<T>) {
     operator fun getValue(thisRef: R, desc: KProperty<*>) = thisRef.getUserData(key)
 

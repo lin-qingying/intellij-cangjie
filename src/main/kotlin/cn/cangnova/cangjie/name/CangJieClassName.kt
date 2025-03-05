@@ -24,10 +24,9 @@
 
 package cn.cangnova.cangjie.name
 
-
-class CangJieClassName private constructor(// Internal name:  kotlin/Map$Entry
+class CangJieClassName private constructor( // Internal name:  kotlin/Map$Entry
     // FqName:         kotlin.Map.Entry
-    val internalName: String
+    val internalName: String,
 ) {
     private var fqName: FqName? = null
 
@@ -91,10 +90,11 @@ class CangJieClassName private constructor(// Internal name:  kotlin/Map$Entry
         fun internalNameByClassId(classId: ClassId): String {
             val packageFqName: FqName = classId.packageFqName
             val relativeClassName: String = classId.relativeClassName.asString().replace('.', '$')
-            return if (packageFqName.isRoot)
+            return if (packageFqName.isRoot) {
                 relativeClassName
-            else
+            } else {
                 packageFqName.asString().replace('.', '/') + "/" + relativeClassName
+            }
         }
 
         /**

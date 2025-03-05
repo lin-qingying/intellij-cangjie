@@ -24,40 +24,42 @@
 
 package cn.cangnova.cangjie.parsing
 
-
-import com.google.common.collect.ImmutableMap
-import com.intellij.lang.PsiBuilder
-import com.intellij.lang.parser.GeneratedParserUtilBase
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.Pair
-import com.intellij.psi.TokenType
-import com.intellij.psi.tree.IElementType
-import com.intellij.psi.tree.TokenSet
-import cn.cangnova.cangjie.CjNodeTypes
-import cn.cangnova.cangjie.CjNodeTypes.*
+import cn.cangnova.cangjie.psi.CjNodeTypes
+import cn.cangnova.cangjie.psi.CjNodeTypes.*
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.lexer.CjTokens.*
 import cn.cangnova.cangjie.parsing.CangJieParsing.DeclarationParsingMode
 import cn.cangnova.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.BASIC_REFERENCE_EXPRESSION
+import com.google.common.collect.ImmutableMap
+import com.intellij.lang.PsiBuilder
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Pair
+import com.intellij.psi.TokenType
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.tree.TokenSet
 
 open class CangJieExpressionParsing(
-    builder: SemanticWhitespaceAwarePsiBuilder, private val cangJieParsing: CangJieParsing, isLazy: Boolean
+    builder: SemanticWhitespaceAwarePsiBuilder,
+    private val cangJieParsing: CangJieParsing,
+    isLazy: Boolean,
 ) : AbstractCangJieParsing(
-    builder, isLazy
+    builder,
+    isLazy,
 ) {
     private val ARROW_SET = TokenSet.create(DOUBLE_ARROW)
     private val ARROW_COMMA_SET =
         TokenSet.create(DOUBLE_ARROW, COMMA)
 
-
     @SuppressWarnings("UnusedDeclaration")
-
     enum class Precedence(vararg operations: IElementType) {
         // 后缀操作符，例如自增（++）、自减（--）、成员访问（.）、安全访问（?.）
         POSTFIX(
-            PLUSPLUS, MINUSMINUS, DOT, SAFE_ACCESS,
+            PLUSPLUS,
+            MINUSMINUS,
+            DOT,
+            SAFE_ACCESS,
         ),
 
         // 前缀操作符，例如负号（-）、正号（+）、逻辑非（!）
@@ -72,11 +74,11 @@ open class CangJieExpressionParsing(
         AS(AS_KEYWORD) {
             // 解析右侧表达式的方法
             override fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
-                parser.mark().drop()  // 标记并丢弃当前解析状态
+                parser.mark().drop() // 标记并丢弃当前解析状态
 
                 // 解析类型引用
                 parser.cangJieParsing.parseTypeRefWithoutIntersections()
-                return BINARY_WITH_TYPE  // 返回与类型相关的二元表达式类型
+                return BINARY_WITH_TYPE // 返回与类型相关的二元表达式类型
             }
 
             // 解析更高优先级的方法
@@ -125,7 +127,7 @@ open class CangJieExpressionParsing(
                     parser.mark().drop()
                     // 解析类型引用
                     parser.cangJieParsing.parseTypeRefWithoutIntersections()
-                    return IS_EXPRESSION  // 返回 `IS` 表达式类型
+                    return IS_EXPRESSION // 返回 `IS` 表达式类型
                 }
                 return super.parseRightHandSide(operation, parser)
             }
@@ -164,8 +166,9 @@ open class CangJieExpressionParsing(
             XOREQ,
             LTLTEQ,
             GTGTEQ,
-            MULMULEQ
-        );
+            MULMULEQ,
+        ),
+        ;
 
         // 存储上一级优先级
         private var higher: Precedence? = null
@@ -203,7 +206,7 @@ open class CangJieExpressionParsing(
          */
         open fun parseRightHandSide(operation: IElementType, parser: CangJieExpressionParsing): IElementType {
             parseHigherPrecedence(parser)
-            return BINARY_EXPRESSION  // 默认返回二元表达式类型
+            return BINARY_EXPRESSION // 默认返回二元表达式类型
         }
 
         /**
@@ -211,11 +214,10 @@ open class CangJieExpressionParsing(
          * @param parser 解析器对象
          */
         open fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
-            assert(higher != null)  // 确保 `higher` 不为 null
+            assert(higher != null) // 确保 `higher` 不为 null
             higher?.let { parser.parseBinaryExpression(it) }
         }
     }
-
 
     private fun parseRangeExpression() {
         parseExpression()
@@ -229,14 +231,12 @@ open class CangJieExpressionParsing(
 //            } else {
 //
 //                error("Lack of layer frequency")
-////                errorAndAdvance("Expecting an integer literal")
+// //                errorAndAdvance("Expecting an integer literal")
 //            }
         }
     }
 
-
     override fun create(builder: SemanticWhitespaceAwarePsiBuilder?): CangJieParsing = cangJieParsing.create(builder)
-
 
     fun parseStatements(type: IElementType) {
         while (at(SEMICOLON)) advance() // SEMICOLON
@@ -259,20 +259,19 @@ open class CangJieExpressionParsing(
                     error(severalStatementsError)
                 } else {
                     errorUntil(
-                        severalStatementsError, TokenSet.create(EOL_OR_SEMICOLON, LBRACE, RBRACE, type)
+                        severalStatementsError,
+                        TokenSet.create(EOL_OR_SEMICOLON, LBRACE, RBRACE, type),
                     )
                 }
             }
         }
     }
 
-
     /*
-        * expressions
-        *   : SEMI* statement{SEMI+} SEMI*
-        */
+     * expressions
+     *   : SEMI* statement{SEMI+} SEMI*
+     */
     fun parseStatements() {
-
         while (at(SEMICOLON)) advance() // SEMICOLON
         while (!eof() && !at(RBRACE)) {
             if (!atSet(STATEMENT_FIRST)) {
@@ -293,7 +292,8 @@ open class CangJieExpressionParsing(
                     error(severalStatementsError)
                 } else {
                     errorUntil(
-                        severalStatementsError, TokenSet.create(EOL_OR_SEMICOLON, LBRACE, RBRACE)
+                        severalStatementsError,
+                        TokenSet.create(EOL_OR_SEMICOLON, LBRACE, RBRACE),
                     )
                 }
             }
@@ -321,7 +321,6 @@ open class CangJieExpressionParsing(
     }
 
     fun parseValueArgumentList() {
-
         parseValueArgumentList(LPAR, RPAR)
     }
 
@@ -331,7 +330,6 @@ open class CangJieExpressionParsing(
      *   ;
      */
     fun parseValueArgumentList(start: CjToken = LPAR, end: CjToken = RPAR) {
-
         parseValueArgumentList(Pair.create(TokenSet.create(start), end))
     }
 
@@ -370,7 +368,6 @@ open class CangJieExpressionParsing(
         list.done(VALUE_ARGUMENT_LIST)
     }
 
-
     /**
      * 解析调用后缀（callSuffix）
      * 该函数尝试解析紧跟在函数调用之前的类型参数列表（可选）、值参数列表或带有注释的Lambda表达式
@@ -390,7 +387,6 @@ open class CangJieExpressionParsing(
         } else if (at(LPAR) || tokenType == SAFE_CALL) {
             // 如果当前token是左圆括号或安全调用符号，解析值参数列表
             parseValueArgumentList()
-
         } /*else if (at(LT)) {
             // 如果当前token是左尖括号，尝试解析类型参数列表
             val typeArgumentList = mark()
@@ -414,9 +410,8 @@ open class CangJieExpressionParsing(
         return true
     }
 
-
     /*
-    * 后缀表达式
+     * 后缀表达式
      * postfixUnaryExpression
      *   : atomicExpression postfixUnaryOperation*
      *   ;
@@ -431,7 +426,6 @@ open class CangJieExpressionParsing(
      */
     private fun parsePostfixExpression() {
         var expression = mark()
-
 
         var firstExpressionParsed =
 //            TODO 是否应该处理安全访问 ?.
@@ -448,13 +442,11 @@ open class CangJieExpressionParsing(
 //                cangJieParsing.parseBasicType()
                 mark.done(BASIC_REFERENCE_EXPRESSION)
                 true
-            } else
-
+            } else {
                 if (at(VARRAY_KEYWORD)) {
 //                这里必须处理为名称原子表达式
                     val mark = mark()
                     advance()
-
 
                     val typeArgumentList = mark()
                     expect(LT, "Should be '<'")
@@ -464,8 +456,6 @@ open class CangJieExpressionParsing(
 
                     projection.done(TYPE_PROJECTION)
 
-
-
                     expect(COMMA, "Should be ','")
                     expect(DOLLAR, "Should be '$'")
 
@@ -474,24 +464,19 @@ open class CangJieExpressionParsing(
 
                     typeArgumentList.done(TYPE_ARGUMENT_LIST)
 
-
                     mark.done(REFERENCE_EXPRESSION)
                     if (!at(LPAR)) {
                         error("Should be '('")
                     }
 
-
                     false
                 } else if (atSet(BASICTYPES)) {
-
-
                     errorAndAdvance("expected expression or declaration, found keyword ${myBuilder.tokenText}")
                     false
                 } else {
                     parseAtomicExpression()
-
                 }
-
+            }
 
         while (true) {
             if (interruptedWithNewLine()) {
@@ -514,40 +499,26 @@ open class CangJieExpressionParsing(
                 try {
                     expression.done(expressionType)
                 } catch (_: Throwable) {
-
-
                 }
             } else if (atSet(Precedence.POSTFIX.getOperations())) {
-
-
                 parseOperationReference()
 
-
-
                 expression.done(POSTFIX_EXPRESSION)
-
-
             } else if (at(RANGE) && lookahead(1) === RBRACKET) {
 //                后缀切片或者区间
                 advance()
 
-
 //                TODO 更改为区间或者切片
                 expression.done(SLICE_EXPRESSION)
-
-
             } else {
-
                 break
             }
 
             expression = expression.precede()
         }
 
-
         expression.drop()
     }
-
 
     /**
      * 解析选择器调用表达式
@@ -572,7 +543,6 @@ open class CangJieExpressionParsing(
     }
 
     fun parseDoubleColonSuffix(expression: PsiBuilder.Marker): Boolean {
-
         return false
     }
 
@@ -593,17 +563,13 @@ open class CangJieExpressionParsing(
     private fun parseAtomicExpression(): Boolean {
         var ok = true
 
-
-
         when (getTokenId()) {
-
 //            宏表达式
 
-
-            //元组
+            // 元组
 //            TUPLE_LTIERAL_Id -> parseTupleLiteralExpression()
-UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
-            //字面量
+            UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
+            // 字面量
             LPAR_Id -> parseParenthesizedExpression()
 //            //索引
             LBRACKET_Id -> parseCollectionLiteralExpression()
@@ -631,26 +597,26 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             WHILE_KEYWORD_Id -> parseWhile()
 //            //do while
             DO_KEYWORD_Id -> parseDoWhile()
-            //标识符
+            // 标识符
             IDENTIFIER_Id -> parseSimpleNameExpression()
-            //lambda
+            // lambda
             LBRACE_Id -> parseFunctionLiteral()
-            //字符串模板
+            // 字符串模板
             OPEN_QUOTE_Id -> parseStringTemplate()
-            //true false
+            // true false
             TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> parseOneTokenExpression(BOOLEAN_CONSTANT)
-            //整数
+            // 整数
             INTEGER_LITERAL_Id -> parseOneTokenExpression(INTEGER_CONSTANT)
 //            //字符
             RUNE_LITERAL_Id -> parseOneTokenExpression(RUNE_CONSTANT)
 //            字符字节字面量
             CHARACTER_BYTE_LITERAL_Id -> parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
 
-            //浮点数
+            // 浮点数
             FLOAT_LITERAL_Id -> parseOneTokenExpression(FLOAT_CONSTANT)
             // Unit
 //            UNIT_LTIERAL_Id -> parseOneTokenExpression(UNIT_CONSTANT)
-//class interface func let var
+// class interface func let var
 //            CLASS_KEYWORD_Id, INTERFACE_KEYWORD_Id, FUNC_KEYWORD_Id, LET_KEYWORD_Id, VAR_KEYWORD_Id -> if (!parseLocalDeclaration(
 //                    myBuilder.newlineBeforeCurrentToken(),
 //
@@ -662,11 +628,12 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             else -> ok = false
         }
         if (!ok) {
-
             errorWithRecovery(
-                "Expecting an element", TokenSet.orSet(
-                    EXPRESSION_FOLLOW, TokenSet.create(LONG_TEMPLATE_ENTRY_END)
-                )
+                "Expecting an element",
+                TokenSet.orSet(
+                    EXPRESSION_FOLLOW,
+                    TokenSet.create(LONG_TEMPLATE_ENTRY_END),
+                ),
             )
         }
         return ok
@@ -692,7 +659,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             expect(RPAR, "Expecting ')'")
         }
         tuple.done(TUPLE_EXPRESSION)
-
     }
 
     /*
@@ -703,18 +669,13 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
      *   ;
      */
     private fun parseMatch() {
-
-
         assert(_at(MATCH_KEYWORD))
         val match = mark()
         advance() // MATCH_KEYWORD
 
-
         myBuilder.disableNewlines()
         var isExpression = true
         if (at(LPAR)) {
-
-
 //            val atWhenStart = mark()
 //            cangJieParsing.parseAnnotationsList(  EQ_RPAR_SET)
 //            if (at( LET_KEYWORD) || at( VAR_KEYWORD)) {
@@ -734,27 +695,21 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             isExpression = false
         }
 
-
         myBuilder.restoreNewlinesState()
-
 
         myBuilder.enableNewlines()
         if (expect(LBRACE, "Expecting '{'")) {
-
             if (!at(CASE_KEYWORD)) {
                 error("Expecting 'case'")
             }
 
             while (!eof() && !at(RBRACE)) {
-
                 if (!at(CASE_KEYWORD)) {
                     errorAndAdvance("Expecting 'case'")
 //                    break
                 } else {
                     parseMatchEntry(isExpression)
-
                 }
-
             }
             expect(RBRACE, "Expecting '}'")
         }
@@ -772,7 +727,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         }
     }
 
-
     /**
      * caseBody
      *
@@ -780,10 +734,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
     private fun parseCaseBody() {
         val body = mark()
         if (!at(SEMICOLON)) {
-
-
             if (at(RBRACE) || at(CASE_KEYWORD)) {
-
 //             errorBefore("match case cannot be empty")
 //                val error = body.precede()
 
@@ -791,13 +742,9 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
                 body.drop()
                 return
-
-
             } else {
                 parseStatements(CASE_KEYWORD)
             }
-
-
         }
         body.done(CASE_BLOCK)
     }
@@ -827,30 +774,25 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         }
 
         entry.done(MATCH_ENTRY)
-
     }
 
     private fun parseReferenceExpression() {
-
-
         var reference = mark()
 
         parseSimpleNameExpression()
 
         while (at(DOT)) {
-
             advance()
             parseSimpleNameExpression()
             reference.done(DOT_QUALIFIED_EXPRESSION)
             reference = reference.precede()
         }
         reference.drop()
-
     }
 
     inner class CasePattern(
         val config: PatternConfig = PatternConfig(),
-        vararg val patternType: Pattern = Pattern.ALL.toTypedArray()
+        vararg val patternType: Pattern = Pattern.ALL.toTypedArray(),
     ) {
 
         var layer: Int = 0
@@ -870,7 +812,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
                 if (at(LPAR)) {
                     layer++
-                    //枚举模式
+                    // 枚举模式
                     advance() // LPAR
                     type = 3
                     parseExpression()
@@ -886,21 +828,20 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 //                advance() // IDENTIFIER
                 parseReferenceExpression()
 
-                //1.绑定模式
-                //2.类型模式
-                //3.枚举模式
+                // 1.绑定模式
+                // 2.类型模式
+                // 3.枚举模式
                 if (at(COLON) && (!config.isVariable || layer > 0)) {
                     advance() // COLON
                     type = 2
                     cangJieParsing.parseTypeRef()
-
                 } else if (at(LPAR)) {
                     mark.rollbackTo()
                     mark = mark()
 //                    cangJieParsing.parseTypeRef()
                     parseReferenceExpression()
 
-                    //枚举模式
+                    // 枚举模式
                     advance() // LPAR
                     type = 3
                     parseExpression()
@@ -911,7 +852,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                     expect(RPAR, "Expecting ')'")
                 }
             }
-
 
             when (type) {
                 1 -> {
@@ -934,10 +874,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                     mark.error("Enum patterns are not supported here")
                 }
             }
-
-
         }
-
 
         fun parseUnderline() {
             val pattern = mark()
@@ -947,13 +884,12 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
             if (at(COLON) && !config.isVariable) {
                 advance() // COLON
-                //处理类型
+                // 处理类型
                 cangJieParsing.parseTypeRef()
                 if (patternType.contains(Pattern.Type)) {
                     pattern.done(TYPE_PATTERN)
                 } else {
                     pattern.error("Type patterns are not supported here")
-
                 }
             } else {
                 if (patternType.contains(Pattern.Wildcard)) {
@@ -961,10 +897,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 } else {
                     pattern.error("Wildcard patterns are not supported here")
                 }
-
             }
-
-
         }
 
         private fun doneConstantPattern(constantPattern: PsiBuilder.Marker) {
@@ -979,7 +912,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             val constantPattern = mark()
 
             when (tokenId) {
-
                 UNDERLINE_Id -> {
                     constantPattern.drop()
                     parseUnderline()
@@ -1005,13 +937,11 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 CHARACTER_BYTE_LITERAL_Id -> {
                     parseOneTokenExpression(CHARACTER_BYTE_CONSTANT)
                     doneConstantPattern(constantPattern)
-
                 }
 
                 TRUE_KEYWORD_Id, FALSE_KEYWORD_Id -> {
                     parseOneTokenExpression(BOOLEAN_CONSTANT)
                     doneConstantPattern(constantPattern)
-
                 }
 
                 FLOAT_LITERAL_Id -> {
@@ -1029,16 +959,13 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                     constantPattern.drop()
 
                     parseSimpleNameExpression()
-
                 }
 
                 else -> {
                     error("Expecting a pattern expression")
                     constantPattern.drop()
                 }
-
             }
-
         }
 
         fun parseTupleExpression() {
@@ -1053,13 +980,10 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             } else {
                 error("Expecting Tuple expression")
             }
-
-
         }
 
         fun parseParenthesizedExpression() {
             assert(_at(LPAR))
-
 
             var isUnit = false
             var isTuple = false
@@ -1067,7 +991,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             val mark = mark()
             myBuilder.disableNewlines()
             advance() // LPAR
-
 
             if (at(RPAR)) {
                 isUnit = true
@@ -1079,11 +1002,8 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 isTuple = true
 
                 parseTupleExpression()
-
             }
             expect(RPAR, "Expecting ')'")
-
-
 
             when {
                 isUnit -> {
@@ -1092,7 +1012,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 }
 
                 isTuple -> {
-
                     if (patternType.contains(Pattern.Tuple)) {
                         mark.done(TUPLE_PATTERN)
                     } else {
@@ -1104,22 +1023,14 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             }
 
             myBuilder.restoreNewlinesState()
-
-
         }
-
     }
-
-
 
     fun parsePattern(config: PatternConfig, vararg patternType: Pattern) {
         val casePattern = CasePattern(config, *patternType)
 
         casePattern.parseExpression()
-
-
     }
-
 
     /**
      * case condition
@@ -1157,46 +1068,40 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 parseExpression()
                 expr.done(MATCH_CONDITION_EXPRESSION)
             }
-
         } else {
             casePattern.parseExpression()
-
         }
 
-
-
-
-        //是否常量模式
+        // 是否常量模式
         fun isConstantPattern(): Boolean {
             return at(INTEGER_LITERAL) || at(RUNE_LITERAL) || at(TRUE_KEYWORD) || at(FALSE_KEYWORD) || at(
-                OPEN_QUOTE
+                OPEN_QUOTE,
             )
         }
 
-        //是否通配符模式
+        // 是否通配符模式
         fun isWildcardPattern(): Boolean {
             return myBuilder.tokenText == "_"
         }
 
-        //是否绑定模式
+        // 是否绑定模式
         fun isBindingPattern(): Boolean {
             return at(IDENTIFIER)
         }
 
-        //是否元组模式
+        // 是否元组模式
         fun isTuplePattern(): Boolean {
             return at(LPAR)
         }
 
-        //是否类型模式
+        // 是否类型模式
         fun isTypePattern(): Boolean {
             return at(IDENTIFIER) && lookahead(1) == COLON
         }
-//是否枚举模式
+// 是否枚举模式
 //        fun isEnumPattern(): Boolean {
 //            return at(IDENTIFIER) && lookahead(1) == LPAR
 //        }
-
 
         if (at(WHERE_KEYWORD)) {
             parsePatternGuard()
@@ -1227,21 +1132,16 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
      *
      */
     private fun parseFor() {
-
-
         assert(_at(FOR_KEYWORD))
         val loop = mark()
         advance() // FOR_KEYWORD
         if (expect(LPAR, "Expecting '(' to open a loop range", EXPRESSION_FIRST)) {
             myBuilder.disableNewlines()
             if (!at(RPAR)) {
-
-
 //                val parameter = mark()
                 if (!at(IN_KEYWORD)) {
                     cangJieParsing.parseModifierList(IN_KEYWORD_R_PAR_COLON_SET)
                 }
-
 
                 CasePattern().parseExpression()
 
@@ -1311,8 +1211,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         }
         parseLoopBody()
         loop.done(WHILE)
-
-
     }
 
     /*
@@ -1332,7 +1230,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         val tryExpression = mark()
         advance() // TRY_KEYWORD
 
-//是否是Try-with-resources表达式
+// 是否是Try-with-resources表达式
         var isTryWithResources = false
         if (at(LPAR)) {
             isTryWithResources = true
@@ -1350,7 +1248,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
                 if (expect(EQ, "Expecting '='", TRY_CATCH_RECOVERY_TOKEN_SET)) {
                     parseExpression()
-
                 }
 
                 resource.done(TRY_RESOURCE)
@@ -1358,10 +1255,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
             resourceList.done(TRY_RESOURCE_LIST)
             expect(RPAR, "Expecting ')'")
-
         }
-
-
 
         cangJieParsing.parseBlock()
         var catchOrFinally = false
@@ -1375,15 +1269,12 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 val parameter = mark()
                 expect(LPAR, "Expecting '('", TRY_CATCH_RECOVERY_TOKEN_SET)
                 if (!atSet(TRY_CATCH_RECOVERY_TOKEN_SET)) {
-
-
                     if (at(UNDERLINE)) {
 //                        所有匹配项
                         advance()
                         if (at(COLON)) {
                             advance()
                             parseTypeReferencesByOr()
-
                         }
                     } else {
                         expect(IDENTIFIER, "Expecting exception variable name")
@@ -1406,7 +1297,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 }
 
                 parameter.done(CATCH_PARAMETER)
-
             }
             if (at(LBRACE)) {
                 cangJieParsing.parseBlock()
@@ -1432,25 +1322,22 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
      * 处理以 | 连接的多个类型
      */
     private fun parseTypeReferencesByOr() {
-
 //        必须最少具有一个
         do {
             if (at(OR)) advance()
             cangJieParsing.parseTypeRef()
         } while (at(OR))
-
     }
 
     /*
      * "(" element ")"
      */
     private fun parseCondition() {
-
         myBuilder.disableNewlines()
         if (expect(
                 LPAR,
                 "Expecting a condition in parentheses '(...)'",
-                EXPRESSION_FIRST
+                EXPRESSION_FIRST,
             )
         ) {
             val condition = mark()
@@ -1461,42 +1348,34 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             expect(RPAR, "Expecting ')")
         }
         myBuilder.restoreNewlinesState()
-
     }
 
     private fun parseControlStructureOrBody() {
         if (!parseAnnotatedLambda( /* preferBlock = */true)) {
             parseBlockLevelExpression()
         }
-
     }
 
     private fun parseControlStructureBody() {
-
         if (at(LBRACE)) {
-
             val body = mark()
             advance()
             parseStatements()
 
             expect(RBRACE, "Expecting '}'")
 
-
-
             body.done(BLOCK)
-
         } else {
 //            parseBlockLevelExpression()
             error("Expecting '{'")
         }
-
-
     }
 
     private fun rollbackOrDrop(
         rollbackMarker: PsiBuilder.Marker,
-        expected: CjToken, expectMessage: String,
-        validForDrop: IElementType
+        expected: CjToken,
+        expectMessage: String,
+        validForDrop: IElementType,
     ): Boolean {
         if (at(expected)) {
             advance() // dropAt
@@ -1521,7 +1400,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         rollbackMarker.rollbackTo()
         return false
     }
-
 
     /**
      * parseBlock
@@ -1562,7 +1440,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 expect(
                     IDENTIFIER_RECOVERY_SET,
                     "Expecting parameter name",
-                    ARROW_SET
+                    ARROW_SET,
                 )
             }
 
@@ -1584,7 +1462,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
         parameterList.done(VALUE_PARAMETER_LIST)
     }
-
 
     /**
      * If it has no ->, it's a block, otherwise a function literal
@@ -1618,12 +1495,16 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 (nextToken === COMMA || nextToken === COLON)
             parseFunctionLiteralParameterList()
 
-            paramsFound = if (preferParamsToExpressions) rollbackOrDrop(
-                rollbackMarker,
-                DOUBLE_ARROW,
-                "An -> is expected",
-                RBRACE
-            ) else rollbackOrDropAt(rollbackMarker, DOUBLE_ARROW)
+            paramsFound = if (preferParamsToExpressions) {
+                rollbackOrDrop(
+                    rollbackMarker,
+                    DOUBLE_ARROW,
+                    "An -> is expected",
+                    RBRACE,
+                )
+            } else {
+                rollbackOrDropAt(rollbackMarker, DOUBLE_ARROW)
+            }
         } else if (isDoubleArrow) {
             error("expected '=>' in lambda expression, found '${myBuilder.tokenText}'")
         }
@@ -1652,7 +1533,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 literalExpression.done(BLOCK)
                 myBuilder.restoreNewlinesState()
                 return
-        */
+         */
 
         if (!paramsFound && preferBlock) {
             literal.drop()
@@ -1663,7 +1544,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
             return
         }
-
 
         if (collapse && isLazy) {
             cangJieParsing.advanceBalancedBlock()
@@ -1681,7 +1561,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             literalExpression.done(LAMBDA_EXPRESSION)
         }
         myBuilder.restoreNewlinesState()
-
     }
 
     /**
@@ -1689,24 +1568,19 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
      * ; let
      */
     fun parseLetExpression() {
-
         myBuilder.disableNewlines()
         val let = mark()
         if (expect(
                 LPAR,
                 "Expecting a condition in parentheses '(...)'",
-                EXPRESSION_FIRST
+                EXPRESSION_FIRST,
             )
         ) {
-
 //
-
 
             expect(LET_KEYWORD, "Expecting 'let'")
 
-
             parseCasePattern()
-
 
             if (at(LEFT_ARROW)) {
                 advance()
@@ -1714,24 +1588,15 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 error("Expecting '<-'")
             }
 
-
 //            expect(LEFT_ARROW, "Expecting '<-'")
-
 
             parseExpression()
 
-
-
             expect(RPAR, "Expecting ')")
-
-
         }
         let.done(LET_EXPRESSION)
         myBuilder.restoreNewlinesState()
-
-
     }
-
 
     /*
      * if
@@ -1741,7 +1606,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
     private fun parseIf() {
         assert(_at(IF_KEYWORD))
         val marker = mark()
-        advance() //IF_KEYWORD
+        advance() // IF_KEYWORD
 
         if (at(LPAR) && lookahead(1) == LET_KEYWORD) {
             parseLetExpression()
@@ -1749,23 +1614,18 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             parseCondition()
         }
 
-
         val thenBranch = mark()
         if (!at(ELSE_KEYWORD) && !at(SEMICOLON)) {
-
 //            if(at(LBRACE)){
             parseControlStructureBody()
 //            }else{
 //                 error("Expecting '{'")
 //            }
-
         }
         if (at(SEMICOLON) && lookahead(1) === ELSE_KEYWORD) {
             advance() // SEMICOLON
         }
         thenBranch.done(THEN)
-
-
 
         if (at(ELSE_KEYWORD) && lookahead(1) !== ARROW) {
             advance() // ELSE_KEYWORD
@@ -1779,14 +1639,9 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 } else {
                     parseControlStructureBody()
                 }
-
-
             }
             elseBranch.done(ELSE)
         }
-
-
-
 
         marker.done(IF)
     }
@@ -1839,8 +1694,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
      * "(" expression? ")"
      */
     private fun parseParenthesizedExpression(isParseOperator: Boolean = true) {
-
-
         assert(_at(LPAR))
 
         var isUnit = false
@@ -1850,7 +1703,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         myBuilder.disableNewlines()
         advance() // LPAR
         if (!at(RPAR) && isParseOperator && !at(COMMA)) {
-
             parseExpression()
         } else {
             isUnit = true
@@ -1978,14 +1830,12 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 parsePefixSliceExpression()
             } else {
                 parseExpression()
-
             }
 
             if (!at(COMMA)) break
             advance() // COMMA
         }
     }
-
 
     private fun parsePefixSliceExpression() {
         val mark = mark()
@@ -1994,7 +1844,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         advance() // RANGE
         if (!at(RBRACKET)) {
             parseExpression()
-
         }
         mark.done(SLICE_EXPRESSION)
     }
@@ -2081,8 +1930,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         val simpleName = mark()
         expect(IDENTIFIER, "Expecting an identifier")
 
-
-
         if (at(LT)) {
             // 如果当前token是左尖括号，尝试解析类型参数列表
             val typeArgumentList = mark()
@@ -2096,11 +1943,12 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         }
 
         simpleName.done(REFERENCE_EXPRESSION)
-
     }
 
     private fun parseAsCollectionLiteralExpression(
-        nodeType: IElementType, canBeEmpty: Boolean, missingElementErrorMessage: String
+        nodeType: IElementType,
+        canBeEmpty: Boolean,
+        missingElementErrorMessage: String,
     ) {
         assert(_at(LBRACKET) || _at(SAFE_INDEXEX))
         val innerExpressions = mark()
@@ -2126,8 +1974,8 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
     }
 
     /*
-    * operation? prefixExpression
-    */
+     * operation? prefixExpression
+     */
     fun parsePrefixExpression() {
         myBuilder.disableJoiningComplexTokens()
         if (atSet(Precedence.PREFIX.getOperations())) {
@@ -2137,7 +1985,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             parsePrefixExpression()
             expression.done(PREFIX_EXPRESSION)
         } else {
-
             if (at(MINUSMINUS) || at(PLUSPLUS)) {
                 errorAndAdvance("expected expression or declaration, found '${myBuilder.tokenText}'")
             }
@@ -2146,12 +1993,10 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         }
     }
 
-
     /**
      * 根据作用域解析语句
      */
     fun parseStatementByScope(scope: DeclarationParsingMode) {
-
         if (!parseDeclaration(scope, false)) {
             if (!atSet(EXPRESSION_FIRST)) {
                 errorAndAdvance("Expecting a statement")
@@ -2159,8 +2004,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 parseBlockLevelExpression()
             }
         }
-
-
     }
 
     /*
@@ -2200,7 +2043,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
                     error(severalStatementsError)
                 } else {
-
                     val errorMarker = mark()
                     errorMarker.error(severalStatementsError)
 
@@ -2222,7 +2064,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         parseExpression()
     }
 
-
     /**
      *     quoteExpr
      *     : LPAREN NL* quoteParameters NL* RPAREN
@@ -2234,19 +2075,15 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         val quoteExpression = mark()
         advance()
 
-
-
         if (at(LPAR)) {
             advance()
             parseQuoteParameters()
         } else {
-
             error("expected '(' after 'quote'")
         }
         expect(RPAR, "expected ')' ")
         quoteExpression.done(QUOTE_EXPRESSION)
     }
-
 
     /**
      *  插值引用表达式规则，允许在引用中嵌入可计算表达式
@@ -2262,7 +2099,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         advance()
         parseExpression()
 
-
         if (at(RPAR)) {
             advance()
         } else {
@@ -2270,9 +2106,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         }
 
         mark.done(QUOTE_INTERPOLATE)
-
     }
-
 
     /**
      *  引用参数列表规则，由一个或多个引用标记、插值表达式或宏表达式组成
@@ -2286,10 +2120,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 //        解析中出现的 ( 标记数量
         var lparCount = 0
 
-
         do {
-
-
             if (at(DOLLAR) && lookahead(1) == LPAR) {
                 parseQuoteInterpolate()
             } else if (at(AT) && lookahead(1) == IDENTIFIER) {
@@ -2303,7 +2134,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                         break
                     }
                 } else if (at(DOLLAR)) {
-
                     errorAndAdvance("expected identifier or '(' after '$'")
                 } else if (at(ESCAPE_LBRACKET) || at(ESCAPE_RBRACKET)) {
                     errorAndAdvance("Illegal Token")
@@ -2313,7 +2143,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         } while (atSet(QUOTE_TOKENS))
         quoteParameters.done(QUOTE_PARAMETERS)
     }
-
 
     /**
      * 可以回滚
@@ -2333,7 +2162,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             simpleName.drop()
 
             macroExpression.drop()
-
         }
 
 //        带属性的宏
@@ -2344,10 +2172,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 //        宏的输入
         if (at(LPAR)) {
             parseMacroInputExprWithParens()
-
-
         } else {
-
             val decl = mark()
 
             val productionsSize = productions.size
@@ -2357,18 +2182,17 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
             val declType = parseMacroInputExprWithoutParens(modifiterDetector)
             productions.subList(
-                productionsSize, productions.size
+                productionsSize,
+                productions.size,
             ).any {
                 it.tokenType == TokenType.ERROR_ELEMENT
             }
             if (declType == null || productions.subList(
-                    productionsSize, productions.size
+                    productionsSize, productions.size,
                 ).any {
                     it.tokenType == TokenType.ERROR_ELEMENT
                 }
             ) {
-
-
                 decl.drop()
                 input.drop()
                 macroExpression.rollbackTo()
@@ -2376,13 +2200,11 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 return
             } else {
                 closeDeclarationWithCommentBinders(decl, declType, true)
-
             }
         }
         input.done(MACRO_INPUT)
 
         macroExpression.done(MACRO_EXPRESSION)
-
     }
 
     fun parseMacroExpression(backToken: Boolean = false): IElementType? {
@@ -2404,10 +2226,8 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             return null
         }
 
-
 //        带属性的宏
         if (at(LBRACKET)) {
-
             parseMacroAttrExpression()
         }
 
@@ -2415,10 +2235,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 //        宏的输入
         if (at(LPAR)) {
             parseMacroInputExprWithParens()
-
-
         } else {
-
             val decl = mark()
 
             val modifiterDetector = CangJieParsing.ModifierDetector()
@@ -2428,14 +2245,11 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             val declType = parseMacroInputExprWithoutParens(modifiterDetector)
 
             if (declType == null) {
-
                 error("Macro call has no input")
                 //            decl.error("Expecting a top level declaration");
                 decl.drop()
-
             } else {
                 closeDeclarationWithCommentBinders(decl, declType, true)
-
             }
         }
         input.done(MACRO_INPUT)
@@ -2446,7 +2260,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             macroExpression.done(MACRO_EXPRESSION)
             return null
         }
-
     }
 
     /**
@@ -2471,17 +2284,12 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
      *
      */
     private fun parseMacroInputExprWithoutParens(modifiterDetector: CangJieParsing.ModifierDetector): IElementType? {
-
         var declType = parseMacroInputExprWithoutParensDeclaration(modifiterDetector)
 
         if (declType == null) {
-
-
             if (at(IDENTIFIER) && modifiterDetector.size <= 0) {
-
                 advance()
                 if (at(LPAR)) {
-
                     if (lookahead(1) == IDENTIFIER && lookahead(2) === COLON || lookahead(1) == RPAR) {
 //                        解析为主构造方法
                         cangJieParsing.parseInitFuncValueParameterList()
@@ -2489,36 +2297,23 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                         if (at(LBRACE)) {
                             cangJieParsing.parseFunctionBody()
                         } else {
-                            error("Expecting '{' ") //应该为'{'
+                            error("Expecting '{' ") // 应该为'{'
                         }
 
-
                         declType = CLASS_MAIN_INIT
-
                     }
-
                 }
-
-
             } else if (at(IDENTIFIER) && lookahead(1) === LPAR) {
-
-
 //                主构造函数
                 cangJieParsing.parseMainInitFunc()
                 declType = CLASS_MAIN_INIT
             }
-
         }
-
-
-
 
         return declType
     }
 
     private fun parseMacroInputExprWithoutParensDeclaration(modifiterDetector: CangJieParsing.ModifierDetector): IElementType? {
-
-
         return when (tokenId) {
             AT_Id -> parseMacroExpression(true)
             FUNC_KEYWORD_Id -> cangJieParsing.parseFunction(modifiterDetector)
@@ -2536,8 +2331,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
             else -> null
         }
-
-
     }
 
     private fun parseMacroInputExprWithParens() {
@@ -2547,7 +2340,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         var lparCount = 0
         val tokens = mark()
         while (atSet(QUOTE_TOKENS)) {
-
             if (at(AT) && lookahead(1) == IDENTIFIER) {
                 parseMacroExpression()
             } else {
@@ -2559,21 +2351,17 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                         break
                     }
                 } else if (at(DOLLAR)) {
-
                     errorAndAdvance("expected identifier or '(' after '$'")
                 } else if (at(ESCAPE_LBRACKET) || at(ESCAPE_RBRACKET)) {
                     errorAndAdvance("Illegal Token")
                 }
                 advance()
             }
-
         }
         tokens.done(CjNodeTypes.QUOTE_TOKENS)
 
         expect(RPAR, "expected ')'")
-
     }
-
 
     /**
      *  宏属性表达式规则，由方括号包围的一系列引用标记组成
@@ -2590,7 +2378,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             var lparCount = 0
             while (atSet(QUOTE_TOKENS)) {
                 if (at(LBRACKET)) {
-
                     lparCount++
                 } else if (at(RBRACKET)) {
                     lparCount--
@@ -2598,7 +2385,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                         break
                     }
                 } else if (at(DOLLAR)) {
-
                     errorAndAdvance("expected identifier or '(' after '$'")
                 } else if (at(ESCAPE_LPAR) || at(ESCAPE_RPAR)) {
                     errorAndAdvance("Illegal Token")
@@ -2611,16 +2397,12 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             error("expected '['")
         }
         attr.done(MACRO_ATTR)
-
     }
 
     fun parseExpression() {
-
         if (at(AT)) {
-
             parseMacroExpression()
             return
-
         } else if (at(SPAWN_KEYWORD)) {
             parseSpawnExpression()
             return
@@ -2659,7 +2441,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         assert(_at(UNSAFE_KEYWORD))
         val unsafe = mark()
 
-
         advance()
 
 //        parseCallWithClosure()
@@ -2682,7 +2463,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 //            error("Expecting '{' ") //应该为'{'
 //        }
 
-
         spawn.done(SPAWN_EXPRESSION)
     }
 
@@ -2691,23 +2471,18 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
      *  : ("@" annotationEntry)* labelDefinition? functionLiteral
      */
     private fun parseAnnotatedLambda(preferBlock: Boolean): Boolean {
-
-
         if (!at(LBRACE)) {
-
             return false
         }
 
-        parseFunctionLiteral(preferBlock,  /* collapse = */true, false)
-
-
+        parseFunctionLiteral(preferBlock, /* collapse = */true, false)
 
         return true
     }
 
     /*
-         * annotatedLambda*
-         */
+     * annotatedLambda*
+     */
     protected fun parseCallWithClosure(): Boolean {
         var success = false
 
@@ -2732,13 +2507,8 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
      * 请查看排序表
      */
     private fun parseBinaryExpression(precedence: Precedence) {
-
-
         var expression = mark()
         precedence.parseHigherPrecedence(this)
-
-
-
 
         while (!interruptedWithNewLine() && /*atSet(precedence.getOperations())*/ precedence.getOperations()
                 .contains(gtTokenType)
@@ -2757,7 +2527,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
     private fun interruptedWithNewLine(): Boolean {
 //        var a = !ALLOW_NEWLINE_OPERATIONS.contains(tt())
 //        var b = myBuilder.newlineBeforeCurrentToken()
-//return a && b
+// return a && b
         return !ALLOW_NEWLINE_OPERATIONS.contains(tt()) && myBuilder.newlineBeforeCurrentToken()
     }
 
@@ -2775,10 +2545,10 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         operationReference.done(OPERATION_REFERENCE)
     }
 
-
     fun parseDeclaration(
-        scope: DeclarationParsingMode, rollbackIfDefinitelyNotExpression: Boolean,
-        rollbackMacro: Boolean = false
+        scope: DeclarationParsingMode,
+        rollbackIfDefinitelyNotExpression: Boolean,
+        rollbackMacro: Boolean = false,
     ): Boolean {
         val decl: PsiBuilder.Marker = mark()
         val detector: CangJieParsing.ModifierDetector = CangJieParsing.ModifierDetector()
@@ -2790,7 +2560,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         return if (declType == ANNOTATION_ENTRY) {
             decl.rollbackTo()
 
-
             return parseLocalDeclaration(rollbackIfDefinitelyNotExpression, true)
         } else if (declType == INVALID_DECLARATION) {
             decl.error("Invalid declaration in scope")
@@ -2798,7 +2567,9 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
         } else if (declType != null) {
             // 不将前面的注释(非文档)附加到局部变量，因为它们可能会注释下面的几个语句
             closeDeclarationWithCommentBinders(
-                decl, declType, declType !== VARIABLE && declType !== DESTRUCTURING_DECLARATION
+                decl,
+                declType,
+                declType !== VARIABLE && declType !== DESTRUCTURING_DECLARATION,
             )
             true
         } else {
@@ -2814,30 +2585,28 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
      */
     private fun parseLocalDeclaration(
         rollbackIfDefinitelyNotExpression: Boolean,
-        rollbackMacro: Boolean = false
+        rollbackMacro: Boolean = false,
     ): Boolean {
         return parseDeclaration(DeclarationParsingMode.LOCAL, rollbackIfDefinitelyNotExpression, rollbackMacro)
     }
 
     private fun parseDeclarationRest(
-        detector: CangJieParsing.ModifierDetector, failIfDefinitelyNotExpression: Boolean, scope: DeclarationParsingMode
+        detector: CangJieParsing.ModifierDetector,
+        failIfDefinitelyNotExpression: Boolean,
+        scope: DeclarationParsingMode,
     ): IElementType? {
-
-
         val keyword = tt()
         if (failIfDefinitelyNotExpression) {
             if (keyword != FUNC_KEYWORD) return null
             return cangJieParsing.parseFunction()
-
-
         }
 
-
         return cangJieParsing.parseCommonDeclaration(
-            detector, CangJieParsing.NameParsingMode.REQUIRED, scope
+            detector,
+            CangJieParsing.NameParsingMode.REQUIRED,
+            scope,
         )
     }
-
 
     @OptIn(ExperimentalStdlibApi::class)
     companion object {
@@ -2845,13 +2614,14 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
         @JvmField
         val IDENTIFIER_RECOVERY_SET = TokenSet.create(
-            IDENTIFIER, UNDERLINE
+            IDENTIFIER,
+            UNDERLINE,
         )
 
         private fun doneOrDrop(
             marker: PsiBuilder.Marker,
             type: IElementType,
-            condition: Boolean
+            condition: Boolean,
         ) {
             if (condition) {
                 marker.done(type)
@@ -2862,11 +2632,24 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
         @JvmStatic
         val EXPRESSION_FOLLOW = TokenSet.create(
-            EOL_OR_SEMICOLON, ARROW, DOUBLE_ARROW, COMPOSITION, COMMA, RBRACE, RPAR, RBRACKET
+            EOL_OR_SEMICOLON,
+            ARROW,
+            DOUBLE_ARROW,
+            COMPOSITION,
+            COMMA,
+            RBRACE,
+            RPAR,
+            RBRACKET,
         )
 
         val ALLOW_NEWLINE_OPERATIONS = TokenSet.create(
-            DOT, COLON, AS_KEYWORD, ANDAND, OROR, COALESCING, SAFE_ACCESS
+            DOT,
+            COLON,
+            AS_KEYWORD,
+            ANDAND,
+            OROR,
+            COALESCING,
+            SAFE_ACCESS,
         )
         val QUOTE_TOKENS = TokenSet.orSet(
             TokenSet.create(
@@ -3012,7 +2795,8 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 RUNE_LITERAL,
                 LONG_TEMPLATE_ENTRY_START,
 
-                ), LITERAL_CONSTANT
+            ),
+            LITERAL_CONSTANT,
         )
 
         @JvmStatic
@@ -3024,7 +2808,7 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 MINUSMINUS,
                 PLUSPLUS,
                 EXCL,
-                LPAR,  // parenthesized
+                LPAR, // parenthesized
                 // literal constant
                 TRUE_KEYWORD,
                 FALSE_KEYWORD,
@@ -3034,36 +2818,34 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 CHARACTER_BYTE_LITERAL,
                 FLOAT_LITERAL,
 
-                LBRACE,  // functionLiteral
-                FUNC_KEYWORD,  // expression function
-                THIS_KEYWORD,  // this
-                SUPER_KEYWORD,  // super
-                IF_KEYWORD,  // if
-                MATCH_KEYWORD,  // when
-                TRY_KEYWORD,  // try
+                LBRACE, // functionLiteral
+                FUNC_KEYWORD, // expression function
+                THIS_KEYWORD, // this
+                SUPER_KEYWORD, // super
+                IF_KEYWORD, // if
+                MATCH_KEYWORD, // when
+                TRY_KEYWORD, // try
 
                 // jump
                 THROW_KEYWORD,
                 RETURN_KEYWORD,
                 CONTINUE_KEYWORD,
-                BREAK_KEYWORD,  // loop
+                BREAK_KEYWORD, // loop
                 FOR_KEYWORD,
                 WHILE_KEYWORD,
                 DO_KEYWORD,
-                IDENTIFIER,  // SimpleName
-                LBRACKET,// Collection literal expression
+                IDENTIFIER, // SimpleName
+                LBRACKET, // Collection literal expression
 //                UNSAFE_EXPRESSION
                 UNSAFE_KEYWORD,
 
-
-                //线程
+                // 线程
                 SPAWN_KEYWORD,
                 SYNCHRONIZED_KEYWORD,
 
-
 //                macro
 
-                QUOTE_KEYWORD
+                QUOTE_KEYWORD,
 
             ),
             BASICTYPES,
@@ -3113,12 +2895,10 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             PERC,
             LTEQ,
 
-
             EQEQ,
             EXCLEQ,
             ANDAND,
             OROR,
-
 
             SEMICOLON,
             RANGE,
@@ -3139,19 +2919,15 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
         private val IN_KEYWORD_R_PAR_COLON_SET = TokenSet.create(IN_KEYWORD, RPAR, COLON)
 
-
         private val IN_KEYWORD_L_BRACE_SET = TokenSet.create(IN_KEYWORD, LBRACE)
-
 
         private val IN_KEYWORD_L_BRACE_RECOVERY_SET =
             TokenSet.orSet(IN_KEYWORD_L_BRACE_SET, PARAMETER_NAME_RECOVERY_SET)
-
 
         private val COLON_IN_KEYWORD_SET = TokenSet.create(COLON, IN_KEYWORD)
         private val IN_KEYWORD_SET = TokenSet.create(IN_KEYWORD)
 
         private val L_PAR_L_BRACE_R_PAR_SET = TokenSet.create(LPAR, LBRACE, RPAR)
-
 
         private val MATCH_CONDITION_RECOVERY_SET = TokenSet.create(
             RBRACE,
@@ -3164,18 +2940,31 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
 
         @SuppressWarnings("WeakerAccess")
         val STATEMENT_FIRST = TokenSet.orSet(
-            EXPRESSION_FIRST, TokenSet.create( // declaration
-                FUNC_KEYWORD, LET_KEYWORD, CONST_KEYWORD, VAR_KEYWORD, INTERFACE_KEYWORD, CLASS_KEYWORD,
-                SPAWN_KEYWORD, SYNCHRONIZED_KEYWORD
-            ), MODIFIER_KEYWORDS, BASICTYPES, SPECIAL_MODIFIER_KEYWORDS, TokenSet.create(AT)
+            EXPRESSION_FIRST,
+            TokenSet.create( // declaration
+                FUNC_KEYWORD,
+                LET_KEYWORD,
+                CONST_KEYWORD,
+                VAR_KEYWORD,
+                INTERFACE_KEYWORD,
+                CLASS_KEYWORD,
+                SPAWN_KEYWORD,
+                SYNCHRONIZED_KEYWORD,
+            ),
+            MODIFIER_KEYWORDS,
+            BASICTYPES,
+            SPECIAL_MODIFIER_KEYWORDS,
+            TokenSet.create(AT),
         )
         val STATEMENT_NEW_LINE_QUICK_RECOVERY_SET = TokenSet.orSet(
             TokenSet.andSet(
-                STATEMENT_FIRST, TokenSet.andNot(KEYWORDS, TokenSet.create(IN_KEYWORD))
-            ), TokenSet.create(EOL_OR_SEMICOLON)
+                STATEMENT_FIRST,
+                TokenSet.andNot(KEYWORDS, TokenSet.create(IN_KEYWORD)),
+            ),
+            TokenSet.create(EOL_OR_SEMICOLON),
         )
         val logger = Logger.getInstance(
-            CangJieExpressionParsing::class.java
+            CangJieExpressionParsing::class.java,
         )
         private val KEYWORD_TEXTS: ImmutableMap<String, CjToken> =
             tokenSetToMap(KEYWORDS)
@@ -3195,8 +2984,6 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
                 operations.addAll(listOf(*precedence.getOperations().types))
             }
             ALL_OPERATIONS = TokenSet.create(*operations.toTypedArray<IElementType>())
-
-
         }
 
         init {
@@ -3216,20 +3003,17 @@ UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             assert(usedSet.isEmpty()) { usedSet.toString() }
         }
     }
-
 }
 
 private fun IElementType.equal(token: IElementType): Boolean {
     return token === this
-
 }
 
 private fun IElementType.equal(tokenSet: TokenSet): Boolean {
     return tokenSet.contains(this)
-
 }
 
-//模式类型
+// 模式类型
 sealed interface Pattern {
     //    通配符模式
 
@@ -3256,5 +3040,5 @@ sealed interface Pattern {
 }
 
 data class PatternConfig(
-    val isVariable: Boolean = false
+    val isVariable: Boolean = false,
 )

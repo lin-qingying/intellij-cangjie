@@ -24,19 +24,13 @@
 
 package cn.cangnova.cangjie.psi.stubs.impl
 
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.StubElement
-import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.psi.CjBasicType
-import cn.cangnova.cangjie.psi.CjProjectionKind
 import cn.cangnova.cangjie.psi.CjUserType
-import cn.cangnova.cangjie.psi.stubs.CangJieBasicTypeStub
 import cn.cangnova.cangjie.psi.stubs.CangJieUserTypeStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
 
 class CangJieUserTypeStubImpl(
 
     parent: StubElement<out PsiElement>?,
 ) : CangJieStubBaseImpl<CjUserType>(parent, CjStubElementTypes.USER_TYPE), CangJieUserTypeStub
-

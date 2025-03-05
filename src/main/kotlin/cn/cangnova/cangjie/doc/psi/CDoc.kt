@@ -29,7 +29,7 @@ import cn.cangnova.cangjie.doc.psi.impl.CDocSection
 import cn.cangnova.cangjie.psi.CjDeclaration
 import com.intellij.psi.PsiDocCommentBase
 
-interface CDoc: PsiDocCommentBase, CDocElement {
+interface CDoc : PsiDocCommentBase, CDocElement {
     override fun getOwner(): CjDeclaration?
     fun getDefaultSection(): CDocSection
     fun getAllSections(): List<CDocSection>

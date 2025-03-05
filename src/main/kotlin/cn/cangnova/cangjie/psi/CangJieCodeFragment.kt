@@ -1,4 +1,4 @@
-///*
+// /*
 // * Copyright 2024 LinQingYing. and contributors.
 // *
 // * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,28 +22,28 @@
 // *
 // */
 //
-//package cn.cangnova.cangjie.psi
+// package cn.cangnova.cangjie.psi
 //
-//import cn.cangnova.cangjie.CjNodeTypes
-//import cn.cangnova.cangjie.lexer.CjTokens
-//import com.intellij.lang.FileASTNode
-//import com.intellij.lang.Language
-//import com.intellij.navigation.ItemPresentation
-//import com.intellij.openapi.fileTypes.FileType
-//import com.intellij.openapi.project.Project
-//import com.intellij.openapi.util.Key
-//import com.intellij.openapi.util.TextRange
-//import com.intellij.openapi.vfs.VirtualFile
-//import com.intellij.psi.*
-//import com.intellij.psi.scope.PsiScopeProcessor
-//import com.intellij.psi.search.GlobalSearchScope
-//import com.intellij.psi.search.PsiElementProcessor
-//import com.intellij.psi.search.SearchScope
-//import com.intellij.psi.tree.IElementType
-//import javax.swing.Icon
+// import cn.cangnova.cangjie.psi.CjNodeTypes
+// import cn.cangnova.cangjie.lexer.CjTokens
+// import com.intellij.lang.FileASTNode
+// import com.intellij.lang.Language
+// import com.intellij.navigation.ItemPresentation
+// import com.intellij.openapi.fileTypes.FileType
+// import com.intellij.openapi.project.Project
+// import com.intellij.openapi.util.Key
+// import com.intellij.openapi.util.TextRange
+// import com.intellij.openapi.vfs.VirtualFile
+// import com.intellij.psi.*
+// import com.intellij.psi.scope.PsiScopeProcessor
+// import com.intellij.psi.search.GlobalSearchScope
+// import com.intellij.psi.search.PsiElementProcessor
+// import com.intellij.psi.search.SearchScope
+// import com.intellij.psi.tree.IElementType
+// import javax.swing.Icon
 //
 //
-//class CangJieCodeFragment  : PsiCodeFragment {
+// class CangJieCodeFragment  : PsiCodeFragment {
 //    override fun <T : Any?> getUserData(key: Key<T>): T? {
 //        TODO("Not yet implemented")
 //    }
@@ -324,4 +324,4 @@
 //    override fun getForcedResolveScope(): GlobalSearchScope {
 //        TODO("Not yet implemented")
 //    }
-//}
+// }

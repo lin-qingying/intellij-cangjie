@@ -24,17 +24,16 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.google.common.collect.Lists
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
+import com.google.common.collect.Lists
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 
 class CjArrayAccessExpression(node: ASTNode) : CjExpressionImpl(node), CjReferenceExpression {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R  {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitArrayAccessExpression(this, data)
     }
 
@@ -45,7 +44,7 @@ class CjArrayAccessExpression(node: ASTNode) : CjExpressionImpl(node), CjReferen
     val indexExpressions: List<CjExpression>
         get() = PsiTreeUtil.getChildrenOfTypeAsList(
             indicesNode,
-            CjExpression::class.java
+            CjExpression::class.java,
         )
 
     val indicesNode: CjContainerNode
@@ -64,7 +63,7 @@ class CjArrayAccessExpression(node: ASTNode) : CjExpressionImpl(node), CjReferen
             }
             return Lists.newArrayList(
                 lBracket.textRange,
-                rBracket.textRange
+                rBracket.textRange,
             )
         }
 

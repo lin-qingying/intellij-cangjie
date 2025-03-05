@@ -25,9 +25,7 @@
 package cn.cangnova.cangjie.psi
 
 import com.google.common.collect.Lists
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
-
 
 open class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallElement, CjReferenceExpression {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -43,22 +41,17 @@ open class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallEleme
     override val typeArguments: List<CjTypeProjection>
         get() {
             return referenceExpression?.typeArguments ?: emptyList()
-
         }
-
 
     override val typeArgumentList: CjTypeArgumentList?
         get() {
             return referenceExpression?.typeArgumentList
-
         }
 
     fun getBasicTypeExpr(): CjExpression? {
-
         val typeElement = findChildByType<CjTypeReference>(CjNodeTypes.TYPE_REFERENCE) ?: return null
 
         return typeElement.node.findChildByType(CjNodeTypes.BASIC_TYPE)?.psi as? CjExpression
-
     }
 
     override val calleeExpression: CjExpression?
@@ -66,12 +59,10 @@ open class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallEleme
             return findChildByClass(CjExpression::class.java) ?: getBasicTypeExpr()
         }
 
-
     override val valueArgumentList: CjValueArgumentList?
         get() {
 
             return findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST) as CjValueArgumentList?
-
         }
 
     override val valueArguments: List<CjValueArgument>
@@ -90,7 +81,6 @@ open class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallEleme
             allValueArguments.addAll(functionLiteralArguments)
             return allValueArguments
         }
-
 
     override fun toString(): String {
         return node.elementType.toString()

@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
 
 class CjCatchClause(node: ASTNode) : CjElementImpl(node) {
@@ -32,14 +31,12 @@ class CjCatchClause(node: ASTNode) : CjElementImpl(node) {
         return visitor.visitCatchSection(this, data)
     }
 
-
     @get:IfNotParsed
     val catchParameter: CjCatchParameter?
         get() {
 
             return findChildByType(CjNodeTypes.CATCH_PARAMETER)
         }
-
 
     @get:IfNotParsed
     val catchBody: CjExpression?

@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.psi.CjBlockExpression
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.CjPsiUtil
 
-
 open class StatementFilter {
     open val filter: ((CjExpression) -> Boolean)?
         get() = null

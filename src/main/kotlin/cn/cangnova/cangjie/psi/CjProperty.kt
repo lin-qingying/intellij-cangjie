@@ -24,27 +24,25 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.psi.PsiElement
-import com.intellij.psi.tree.TokenSet
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import cn.cangnova.cangjie.psi.stubs.CangJiePropertyStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.TokenSet
 
 open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVariableDeclaration {
     companion object {
         private val LET_VAR_TOKEN_SET =
             TokenSet.create(CjTokens.PROP_KEYWORD, CjTokens.MUT_KEYWORD, CjTokens.CONST_KEYWORD)
         val LOG: Logger = Logger.getInstance(
-            CjProperty::class.java
+            CjProperty::class.java,
         )
-
     }
     val isLocal: Boolean
-        get() =   !isMember
-
+        get() = !isMember
 
     val isMember: Boolean
         get() {
@@ -56,7 +54,6 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
 
     override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitProperty(this, data)
-
     }
 
     fun hasBody(): Boolean {
@@ -87,7 +84,7 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
                             """
                         Invalid stub structure built for property:
                         $text
-                        """.trimIndent()
+                            """.trimIndent(),
                         )
                         return null
                     }
@@ -97,10 +94,8 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
             return getTypeReference(this)
         }
 
-
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
-        return  setTypeReference(this, nameIdentifier, typeRef)
-
+        return setTypeReference(this, nameIdentifier, typeRef)
     }
 
     override val colon: PsiElement?
@@ -119,19 +114,17 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     }
 
     override val letOrVarKeyword: PsiElement?
-       get() {
-        val element =
-            checkNotNull(findChildByType(LET_VAR_TOKEN_SET)) { "Let or var should always exist for property" + this.text }
-        return element
-    }
-
+        get() {
+            val element =
+                checkNotNull(findChildByType(LET_VAR_TOKEN_SET)) { "Let or var should always exist for property" + this.text }
+            return element
+        }
 
     constructor(stub: CangJiePropertyStub) : super(stub, CjStubElementTypes.PROPERTY)
     constructor(node: ASTNode) : super(node)
 
     override val isVar: Boolean
         get() = hasModifier(CjTokens.MUT_KEYWORD)
-
 
     override fun toString(): String = super.toString() + ": " + name
     private val receiverTypeRefByTree: CjTypeReference?
@@ -140,7 +133,6 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
 
             return parent?.receiverTypeReceiver
         }
-
 
     override val receiverTypeReference: CjTypeReference?
         get() {
@@ -162,11 +154,10 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
     override val valueParameterList: CjParameterList? = null
     override val valueParameters: List<CjParameter> = emptyList()
 
-    val body :CjPropertyBody? get() = findChildByClass(CjPropertyBody::class.java)
+    val body: CjPropertyBody? get() = findChildByClass(CjPropertyBody::class.java)
     val accessors: List<CjPropertyAccessor>
         get() {
             return body?.accessors ?: emptyList()
-
         }
 
     val getter: CjPropertyAccessor?
@@ -182,8 +173,5 @@ open class CjProperty : CjTypeParameterListOwnerStub<CangJiePropertyStub>, CjVar
             for (accessor in accessors)
                 if (accessor.isSetter) return accessor
             return null
-
         }
-
-
 }

@@ -31,7 +31,6 @@ import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.utils.newHashMapWithExpectedSize
 import cn.cangnova.cangjie.utils.newHashSetWithExpectedSize
 
-
 @Suppress("Reformat")
 object StandardNames {
     @JvmField
@@ -57,13 +56,11 @@ object StandardNames {
         return "Function$parameterCount"
     }
 
-
     val STD_PACKAGE_NAME = Name.identifier("std")
     val CORE_PACKAGE_NAME = Name.identifier("core")
     val AST_PACKAGE_NAME = Name.identifier("ast")
 
     val SYNC_PACKAGE_NAME = Name.identifier("sync")
-
 
     val COMPRESS_PACKAGE_NAME = Name.identifier("compress")
 
@@ -103,7 +100,6 @@ object StandardNames {
 
     @JvmField
     val STD_SYNC_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("sync"))
-
 
     @JvmField
     val STD_AST_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("ast"))
@@ -210,7 +206,6 @@ object StandardNames {
     @JvmField
     val OPTION = Name.identifier("Option")
 
-
     @JvmField
     val CPOINTER = Name.identifier("CPointer")
 
@@ -302,7 +297,6 @@ object StandardNames {
         @JvmField
         val optionUFqName: FqNameUnsafe = optionFqName.toUnsafe()
 
-
         @JvmField
         val countableFqName: FqName = core.child(COUNTABLE)
 
@@ -345,13 +339,11 @@ object StandardNames {
         @JvmField
         val nothingUFqName: FqNameUnsafe = nothingFqName.toUnsafe()
 
-
         @JvmField
         val toStringFqName: FqName = fqName(TOSTRING)
 
         @JvmField
         val toStringUFqName: FqNameUnsafe = nothingFqName.toUnsafe()
-
 
         @JvmField
         val runeFqName: FqName = fqName(RUNE)
@@ -427,14 +419,12 @@ object StandardNames {
         @JvmField
         val uint_nativeUFqName: FqNameUnsafe = uint_nativeFqName.toUnsafe()
 
-
         /***************************Bool***************************/
         @JvmField
         val boolFqName: FqName = fqName(BOOL)
 
         @JvmField
         val boolUFqName: FqNameUnsafe = boolFqName.toUnsafe()
-
 
         /***************************Float***************************/
 
@@ -456,14 +446,12 @@ object StandardNames {
         @JvmField
         val float64UFqName: FqNameUnsafe = float64FqName.toUnsafe()
 
-
         /***************************内置类型***************************/
         @JvmField
         val cpointerFqName = core.child(CPOINTER)
 
         @JvmField
         val cpointerUFqName: FqNameUnsafe = cpointerFqName.toUnsafe()
-
 
         @JvmField
         val cstringFqName: FqName = core.child(CSTRING)
@@ -477,7 +465,6 @@ object StandardNames {
         @JvmField
         val ctypeUFqName: FqNameUnsafe = ctypeFqName.toUnsafe()
 
-
         @JvmField
         val uInt8ClassId: ClassId = ClassId.topLevel(uint8FqName)
 
@@ -490,7 +477,6 @@ object StandardNames {
         @JvmField
         val uInt64ClassId: ClassId = ClassId.topLevel(uint64FqName)
 
-
         @JvmField
         val extensionFunctionType: FqName = fqName("ExtensionFunctionType")
 
@@ -500,14 +486,11 @@ object StandardNames {
         @JvmField
         val parameterName: FqName = fqName("ParameterName")
 
-
         @JvmField
         val annotation: FqName = fqName("Annotation")
 
-
 //        @kotlin.jvm.JvmField
 //        val cCallable: FqNameUnsafe = reflect("KCallable")
-
 
         private fun fqNameUnsafe(simpleName: String): FqNameUnsafe {
             return fqName(simpleName).toUnsafe()
@@ -524,7 +507,6 @@ object StandardNames {
         fun fromByName(name: Name): FqName =
             when (name) {
                 NOTHING -> nothingFqName
-
 
                 UINT8 -> uint8FqName
                 UINT16 -> uint16FqName
@@ -549,21 +531,17 @@ object StandardNames {
                 ARRAY -> arrayFqName
                 UNIT -> unitFqName
 
-
                 CPOINTER -> cpointerFqName
                 CSTRING -> cstringFqName
 
                 else -> throw IllegalArgumentException("Unknown name: $name")
             }
-
     }
-
 
     @JvmField
     val BASIC_TYPE_NAMES = setOf(
-        UNIT
+        UNIT,
     )
-
 
     @JvmField
     val STDLIB_PACKAGE_FQ_NAMES = setOf(
@@ -573,22 +551,16 @@ object StandardNames {
         FUZZ_PACKAGE_FQ_NAME,
         ENCODING_PACKAGE_FQ_NAME,
         CRYPTO_PACKAGE_FQ_NAME,
-        SERIALIZATION_PACKAGE_FQ_NAME
+        SERIALIZATION_PACKAGE_FQ_NAME,
     )
 
-
     private fun namesToSetOf(): Set<FqName> {
-
-
         val set = mutableSetOf<FqName>()
         set.add(BUILT_INS_PACKAGE_FQ_NAME)
-
-
 
         set.add(STD_CORE_PACKAGE_FQ_NAME)
         set.add(STD_COLLECTION_PACKAGE_FQ_NAME)
 //        set.add(STD_CORE_PACKAGE_FQ_NAME)
-
 
 //        STDLIB_PACKAGE_FQ_NAMES.map {
 //            set.add(it)
@@ -596,8 +568,6 @@ object StandardNames {
 //
 //        }
         return set
-
-
     }
 
     @JvmField

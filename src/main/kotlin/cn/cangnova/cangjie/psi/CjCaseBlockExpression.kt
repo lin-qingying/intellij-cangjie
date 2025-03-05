@@ -24,16 +24,11 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes.CASE_BLOCK
-import cn.cangnova.cangjie.CjNodeTypes.INIT_BLOCK
+import cn.cangnova.cangjie.psi.CjNodeTypes.CASE_BLOCK
 import com.intellij.openapi.diagnostic.Logger
 
 class CjCaseBlockExpression(text: CharSequence?) : CjBlockExpression(CASE_BLOCK, text) {
     companion object {
         val LOG = Logger.getInstance(CjCaseBlockExpression::class.java)
     }
-
-
-
-
 }

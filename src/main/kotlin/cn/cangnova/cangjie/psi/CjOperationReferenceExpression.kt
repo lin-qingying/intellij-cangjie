@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.psi
 import cn.cangnova.cangjie.lexer.CjSingleValueToken
 import cn.cangnova.cangjie.parsing.CangJieExpressionParsing
 import cn.cangnova.cangjie.utils.exceptions.OperatorConventions
-
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.TreeElement
@@ -35,8 +34,8 @@ import com.intellij.psi.impl.source.tree.TreeElement
 class CjOperationReferenceExpression(node: ASTNode) : CjSimpleNameExpressionImpl(node) {
 
     override val referencedNameElement get() = CangJieExpressionParsing.ALL_OPERATIONS?.let {
-        findChildByType<PsiElement >(
-            it
+        findChildByType<PsiElement>(
+            it,
         )
     }
         ?: this
@@ -47,6 +46,4 @@ class CjOperationReferenceExpression(node: ASTNode) : CjSimpleNameExpressionImpl
     }
     val operationSignTokenType: CjSingleValueToken?
         get() = (firstChild as? TreeElement)?.elementType as? CjSingleValueToken
-
-
 }

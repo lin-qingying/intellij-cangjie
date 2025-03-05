@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.renderer.render
 
-
 data class ImportPath @JvmOverloads constructor(val fqName: FqName, val isAllUnder: Boolean, val alias: Name? = null) {
 
     val pathStr: String
@@ -58,7 +57,6 @@ data class ImportPath @JvmOverloads constructor(val fqName: FqName, val isAllUnd
                 ImportPath(FqName(pathStr.substring(0, pathStr.length - 2)), isAllUnder = true)
             } else {
                 ImportPath(FqName(pathStr), isAllUnder = false)
-
             }
         }
     }

@@ -69,4 +69,3 @@ interface CjCallableDeclaration : CjNamedDeclaration, CjTypeParameterListOwner {
      */
     val colon: PsiElement?
 }
-

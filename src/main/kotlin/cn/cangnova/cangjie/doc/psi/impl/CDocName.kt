@@ -32,8 +32,6 @@ import cn.cangnova.cangjie.psi.psiUtil.getChildOfType
 import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
-import cn.cangnova.cangjie.doc.psi.impl.CDocSection
-
 
 /**
  * 标签主题或链接中限定名称的单个部分。

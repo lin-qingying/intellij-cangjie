@@ -24,21 +24,18 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-
 
 class CjMatchExpression(node: ASTNode) : CjExpressionImpl(node) {
     val entries
         get() = findChildrenByType<CjMatchEntry>(CjNodeTypes.MATCH_ENTRY)
 
-
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitMatchExpression(this, data)
     }
-    val elseExpression : CjExpression? get(){
+    val elseExpression: CjExpression? get() {
         for (entry in entries) {
             if (entry.isElse) {
                 return entry.expression
@@ -60,6 +57,4 @@ class CjMatchExpression(node: ASTNode) : CjExpressionImpl(node) {
         get() = findChildByType(CjTokens.LPAR)
     val rightParenthesis: PsiElement?
         get() = findChildByType(CjTokens.RPAR)
-
 }
-

@@ -33,8 +33,6 @@ import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
 
-
-
 class CjImportAliasElementType(debugName: String) :
     CjStubElementType<CangJieImportAliasStub, CjImportAlias>(debugName, CjImportAlias::class.java, CangJieImportAliasStub::class.java) {
     override fun createStub(psi: CjImportAlias, parentStub: StubElement<out PsiElement>?): CangJieImportAliasStub {

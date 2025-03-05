@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.doc.parser
 
 import cn.cangnova.cangjie.utils.toUpperCaseAsciiOnly
 
-
 enum class CDocKnownTag(val isReferenceRequired: Boolean, val isSectionStart: Boolean) {
     AUTHOR(false, false),
     THROWS(true, false),
@@ -39,14 +38,16 @@ enum class CDocKnownTag(val isReferenceRequired: Boolean, val isSectionStart: Bo
     CONSTRUCTOR(false, true),
     PROPERTY(true, true),
     SAMPLE(true, false),
-    SUPPRESS(false, false);
-
+    SUPPRESS(false, false),
+    ;
 
     companion object {
         fun findByTagName(tagName: CharSequence): CDocKnownTag? {
             val name = if (tagName.startsWith('@')) {
                 tagName.subSequence(1, tagName.length)
-            } else tagName
+            } else {
+                tagName
+            }
             try {
                 return valueOf(name.toString().toUpperCaseAsciiOnly())
             } catch (ignored: IllegalArgumentException) {

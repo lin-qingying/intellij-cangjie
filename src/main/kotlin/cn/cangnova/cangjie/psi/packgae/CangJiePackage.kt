@@ -32,6 +32,9 @@ import com.intellij.psi.PsiQualifiedNamedElement
 /**
  * Represents a CangJie package.
  */
-interface CangJiePackage : PsiCheckedRenameElement, NavigationItem,
+interface CangJiePackage :
+    PsiCheckedRenameElement,
+    NavigationItem,
 
-    PsiDirectoryContainer, PsiQualifiedNamedElement
+    PsiDirectoryContainer,
+    PsiQualifiedNamedElement

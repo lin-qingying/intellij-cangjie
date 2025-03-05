@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.name.ClassId
 
-
 interface CjClassLikeDeclaration : CjNamedDeclaration {
 
     fun getClassId(): ClassId?

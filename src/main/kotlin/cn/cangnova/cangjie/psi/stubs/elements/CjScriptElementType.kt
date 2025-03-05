@@ -1,17 +1,19 @@
 package cn.cangnova.cangjie.psi.stubs.elements
 
+import cn.cangnova.cangjie.psi.CjScript
+import cn.cangnova.cangjie.psi.stubs.CangJieScriptStub
+import cn.cangnova.cangjie.psi.stubs.impl.CangJieScriptStubImpl
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
-import cn.cangnova.cangjie.psi.CjScript
-import cn.cangnova.cangjie.psi.stubs.CangJieScriptStub
-import cn.cangnova.cangjie.psi.stubs.impl.CangJieScriptStubImpl
 
 class CjScriptElementType(debugName: String) : CjStubElementType<CangJieScriptStub, CjScript>(
-    debugName, CjScript::class.java, CangJieScriptStub::class.java
+    debugName,
+    CjScript::class.java,
+    CangJieScriptStub::class.java,
 ) {
 
     override fun createStub(psi: CjScript, parentStub: StubElement<out PsiElement>): CangJieScriptStub {
@@ -26,7 +28,6 @@ class CjScriptElementType(debugName: String) : CjStubElementType<CangJieScriptSt
         val fqName = dataStream.readName()
         return CangJieScriptStubImpl(parentStub, fqName)
     }
-
 
     override fun indexStub(stub: CangJieScriptStub, sink: IndexSink) {
         StubIndexService.getInstance().indexScript(stub, sink)

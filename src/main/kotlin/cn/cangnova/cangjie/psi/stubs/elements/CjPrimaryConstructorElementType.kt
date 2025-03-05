@@ -31,7 +31,6 @@ import cn.cangnova.cangjie.psi.stubs.impl.CangJieConstructorStubImpl
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 
-
 class CjPrimaryConstructorElementType(debugName: String) :
     CjConstructorElementType<CjPrimaryConstructor>(debugName, CjPrimaryConstructor::class.java, CangJieConstructorStub::class.java) {
     override fun newStub(
@@ -41,11 +40,13 @@ class CjPrimaryConstructorElementType(debugName: String) :
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjPrimaryConstructor> {
         return CangJieConstructorStubImpl(
-            parentStub, CjStubElementTypes.PRIMARY_CONSTRUCTOR, nameRef, hasBody, isDelegatedCallToThis
+            parentStub,
+            CjStubElementTypes.PRIMARY_CONSTRUCTOR,
+            nameRef,
+            hasBody,
+            isDelegatedCallToThis,
         )
     }
-
-
 
     override fun isDelegatedCallToThis(constructor: CjPrimaryConstructor) = false
 }

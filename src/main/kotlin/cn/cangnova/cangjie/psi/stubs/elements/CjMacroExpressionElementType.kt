@@ -24,20 +24,19 @@
 
 package cn.cangnova.cangjie.psi.stubs.elements
 
+import cn.cangnova.cangjie.psi.CjMacroExpression
+import cn.cangnova.cangjie.psi.stubs.CangJieMacroExpressionStub
+import cn.cangnova.cangjie.psi.stubs.impl.CangJieMacroExpressionStubImpl
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
-import cn.cangnova.cangjie.psi.CjMacroExpression
-import cn.cangnova.cangjie.psi.stubs.CangJieMacroExpressionStub
-import cn.cangnova.cangjie.psi.stubs.impl.CangJieAnnotationEntryStubImpl
-import cn.cangnova.cangjie.psi.stubs.impl.CangJieMacroExpressionStubImpl
 
-class CjMacroExpressionElementType(debugName:String) :  CjStubElementType<CangJieMacroExpressionStub , CjMacroExpression>(
+class CjMacroExpressionElementType(debugName: String) : CjStubElementType<CangJieMacroExpressionStub, CjMacroExpression>(
     debugName,
     CjMacroExpression::class.java,
-    CangJieMacroExpressionStub::class.java
+    CangJieMacroExpressionStub::class.java,
 ) {
     override fun serialize(stub: CangJieMacroExpressionStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.getShortName())
@@ -58,7 +57,7 @@ class CjMacroExpressionElementType(debugName:String) :  CjStubElementType<CangJi
 
     override fun createStub(
         psi: CjMacroExpression,
-        parentStub: StubElement<out PsiElement>?
+        parentStub: StubElement<out PsiElement>?,
     ): CangJieMacroExpressionStub {
         val shortName = psi.shortName
         val resultName = shortName?.asString()
@@ -66,6 +65,4 @@ class CjMacroExpressionElementType(debugName:String) :  CjStubElementType<CangJi
         val hasValueArguments = valueArgumentList != null && valueArgumentList.arguments.isNotEmpty()
         return CangJieMacroExpressionStubImpl(parentStub, StringRef.fromString(resultName), hasValueArguments)
     }
-
-
 }

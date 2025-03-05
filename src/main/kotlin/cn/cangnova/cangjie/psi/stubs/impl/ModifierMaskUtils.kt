@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens.MODIFIER_KEYWORDS_ARRAY
 import cn.cangnova.cangjie.psi.CjModifierList
 
-
 object ModifierMaskUtils {
     init {
         assert(MODIFIER_KEYWORDS_ARRAY.size <= 64) { "Current implementation depends on the ability to represent modifier list as bit mask" }
@@ -37,8 +36,6 @@ object ModifierMaskUtils {
 
     @JvmStatic
     fun computeMaskFromModifierList(modifierList: CjModifierList): Long = computeMask { modifierList.hasModifier(it) }
-
-
 
     @JvmStatic
     fun computeMask(hasModifier: (CjModifierKeywordToken) -> Boolean): Long {
@@ -75,5 +72,4 @@ object ModifierMaskUtils {
         sb.append("]")
         return sb.toString()
     }
-
 }

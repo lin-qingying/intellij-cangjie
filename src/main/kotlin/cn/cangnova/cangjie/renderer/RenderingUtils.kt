@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.FqNameUnsafe
 import cn.cangnova.cangjie.name.Name
 
-
 fun Name.render(): String {
     return if (this.shouldBeEscaped()) '`' + asString() + '`' else asString()
 }
@@ -36,9 +35,9 @@ fun Name.render(): String {
 private fun Name.shouldBeEscaped(): Boolean {
     val string = asString()
     return string in KeywordStringsGenerated.KEYWORDS ||
-            string.any { !Character.isLetterOrDigit(it) && it != '_' } ||
-            string.isEmpty() ||
-            !Character.isJavaIdentifierStart(string.codePointAt(0))
+        string.any { !Character.isLetterOrDigit(it) && it != '_' } ||
+        string.isEmpty() ||
+        !Character.isJavaIdentifierStart(string.codePointAt(0))
 }
 
 fun FqNameUnsafe.render(): String {
@@ -65,7 +64,7 @@ fun replacePrefixesInTypeRepresentations(
     lowerPrefix: String,
     upperRendered: String,
     upperPrefix: String,
-    foldedPrefix: String
+    foldedPrefix: String,
 ): String? {
     if (lowerRendered.startsWith(lowerPrefix) && upperRendered.startsWith(upperPrefix)) {
         val lowerWithoutPrefix = lowerRendered.substring(lowerPrefix.length)
@@ -83,4 +82,3 @@ fun replacePrefixesInTypeRepresentations(
 
 fun typeStringsDifferOnlyInNullability(lower: String, upper: String) =
     lower == upper.replace("?", "") || upper.endsWith("?") && ("$lower?") == upper || "($lower)?" == upper
-

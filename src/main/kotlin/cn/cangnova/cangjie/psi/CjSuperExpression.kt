@@ -24,11 +24,8 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-
-
 
 class CjSuperExpression(node: ASTNode) : CjInstanceExpressionWithLabel(node), CjStatementExpression {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -39,4 +36,3 @@ class CjSuperExpression(node: ASTNode) : CjInstanceExpressionWithLabel(node), Cj
 
         get() = findChildByType<PsiElement>(CjNodeTypes.TYPE_REFERENCE) as CjTypeReference?
 }
-

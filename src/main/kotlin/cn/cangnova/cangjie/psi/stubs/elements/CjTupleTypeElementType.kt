@@ -25,18 +25,18 @@
 package cn.cangnova.cangjie.psi.stubs.elements
 
 import cn.cangnova.cangjie.psi.CjTupleType
-
 import cn.cangnova.cangjie.psi.stubs.CangJieTupleTypeStub
 import cn.cangnova.cangjie.psi.stubs.impl.CangJieTupleTypeStubImpl
-
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 
-class CjTupleTypeElementType(debugName:String) :CjStubElementType<CangJieTupleTypeStub,CjTupleType>(debugName,
+class CjTupleTypeElementType(debugName: String) : CjStubElementType<CangJieTupleTypeStub, CjTupleType>(
+    debugName,
     CjTupleType::class.java,
-    CangJieTupleTypeStub::class.java) {
+    CangJieTupleTypeStub::class.java,
+) {
     override fun serialize(stub: CangJieTupleTypeStub, dataStream: StubOutputStream) {
 //        dataStream.writeName(name)
     }
@@ -46,6 +46,6 @@ class CjTupleTypeElementType(debugName:String) :CjStubElementType<CangJieTupleTy
     }
 
     override fun createStub(psi: CjTupleType, parentStub: StubElement<out PsiElement>?): CangJieTupleTypeStub {
-       return CangJieTupleTypeStubImpl(parentStub)
+        return CangJieTupleTypeStubImpl(parentStub)
     }
 }

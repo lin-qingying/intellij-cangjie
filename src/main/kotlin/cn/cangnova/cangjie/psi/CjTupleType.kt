@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-
 class CjTupleType : CjElementImplStub<CangJiePlaceHolderStub<CjTupleType>>, CjTypeElement {
 
     constructor(node: ASTNode) : super(node)
@@ -36,11 +35,9 @@ class CjTupleType : CjElementImplStub<CangJiePlaceHolderStub<CjTupleType>>, CjTy
     constructor(stub: CangJiePlaceHolderStub<CjTupleType>) : super(stub, CjStubElementTypes.TUPLE_TYPE)
 //    constructor(stub:CangJieTupleTypeStub):super(stub, CjStubElementTypes.TUPLE_TYPE)
 
-
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitTupleType(this, data)
     }
-
 
 //
 //    fun getParameters(): List<CjParameter> {
@@ -49,5 +46,4 @@ class CjTupleType : CjElementImplStub<CangJiePlaceHolderStub<CjTupleType>>, CjTy
 //    }
     override val typeArgumentsAsTypes: List<CjTypeReference>
         get() = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE)
-
 }

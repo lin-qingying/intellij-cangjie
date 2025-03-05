@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.psi.stubs.CangJieValueArgumentStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-
 class CjLambdaArgument : CjValueArgument, LambdaArgument {
     constructor(node: ASTNode) : super(node)
 

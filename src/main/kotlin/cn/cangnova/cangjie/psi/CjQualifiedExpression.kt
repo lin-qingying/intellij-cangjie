@@ -24,6 +24,11 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.lexer.CjSingleValueToken
+import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.psi.psiUtil.getElementTextWithContext
+import cn.cangnova.cangjie.psi.psiUtil.siblings
+import cn.cangnova.cangjie.utils.firstIsInstanceOrNull
 import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
 import com.intellij.navigation.ItemPresentation
@@ -34,14 +39,8 @@ import com.intellij.psi.*
 import com.intellij.psi.scope.PsiScopeProcessor
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
-import cn.cangnova.cangjie.lexer.CjSingleValueToken
-import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.psiUtil.getElementTextWithContext
-import cn.cangnova.cangjie.psi.psiUtil.siblings
-import cn.cangnova.cangjie.utils.firstIsInstanceOrNull
 import java.util.*
 import javax.swing.Icon
-
 
 interface CjQualifiedExpression : CjExpression {
     val receiverExpression: CjExpression
@@ -55,7 +54,7 @@ interface CjQualifiedExpression : CjExpression {
 
     val operationTokenNode: ASTNode
         get() = node.findChildByType(CjTokens.OPERATIONS) ?: error(
-            "No operation node for ${node.elementType}. Children: ${Arrays.toString(children)}"
+            "No operation node for ${node.elementType}. Children: ${Arrays.toString(children)}",
         )
 
     val operationSign: CjSingleValueToken
@@ -70,7 +69,7 @@ class CjSynthesisQualifiedExpression(
     override val receiverExpression: CjExpression,
     override val selectorExpression: CjExpression?,
 
-    ) : CjQualifiedExpression {
+) : CjQualifiedExpression {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         TODO("Not yet implemented")
     }
@@ -267,7 +266,7 @@ class CjSynthesisQualifiedExpression(
         processor: PsiScopeProcessor,
         state: ResolveState,
         lastParent: PsiElement?,
-        place: PsiElement
+        place: PsiElement,
     ): Boolean {
         TODO("Not yet implemented")
     }

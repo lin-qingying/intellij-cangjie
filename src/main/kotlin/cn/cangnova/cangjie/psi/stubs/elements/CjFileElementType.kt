@@ -40,7 +40,7 @@ import java.io.IOException
 class CjFileElementType : IStubFileElementType<CangJieFileStub> {
     private constructor() : super(NAME, CangJieLanguage)
 
-      constructor(debugName: @NonNls String?) : super(debugName, CangJieLanguage)
+    constructor(debugName: @NonNls String?) : super(debugName, CangJieLanguage)
 
     override fun getBuilder(): StubBuilder {
         return CjFileStubBuilder()
@@ -72,14 +72,9 @@ class CjFileElementType : IStubFileElementType<CangJieFileStub> {
         return parse(builder, psi.containingFile).firstChildNode
     }
 
-
-
     override fun indexStub(stub: PsiFileStub<*>, sink: IndexSink) {
-        getInstance().indexFile(stub as CangJieFileStub , sink)
-
+        getInstance().indexFile(stub as CangJieFileStub, sink)
     }
-
-
 
     companion object {
         private const val NAME = "cangjie.FILE"

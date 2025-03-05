@@ -45,7 +45,7 @@ abstract class CjDeclarationStub<T : StubElement<*>> : CjModifierListOwnerStub<T
     override val expression: CjExpression?
         get() = PsiTreeUtil.getStubChildOfType(
             this,
-            CjExpression::class.java
+            CjExpression::class.java,
         )
 
     override fun subtreeChanged() {
@@ -71,17 +71,16 @@ abstract class CjDeclarationStub<T : StubElement<*>> : CjModifierListOwnerStub<T
         return super.getParent()
     }
 
-
     override fun getOriginalElement(): PsiElement {
         val navigationPolicy: CangJieDeclarationNavigationPolicy? = ApplicationManager.getApplication().getService(
-            CangJieDeclarationNavigationPolicy::class.java
+            CangJieDeclarationNavigationPolicy::class.java,
         )
         return navigationPolicy?.getOriginalElement(this) ?: this
     }
 
     override fun getNavigationElement(): PsiElement {
         val navigationPolicy: CangJieDeclarationNavigationPolicy? = ApplicationManager.getApplication().getService(
-            CangJieDeclarationNavigationPolicy::class.java
+            CangJieDeclarationNavigationPolicy::class.java,
         )
         return navigationPolicy?.getNavigationElement(this) ?: this
     }

@@ -32,7 +32,6 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-
 interface CjAnonymousInitializer : CjDeclaration, CjStatementExpression {
     val containingDeclaration: CjDeclaration
     val body: CjExpression?
@@ -47,7 +46,6 @@ class CjClassInitializer : CjDeclarationStub<CangJiePlaceHolderStub<CjClassIniti
     override val body: CjExpression?
         get() = findChildByClass(CjExpression::class.java)
 
-
     val openBraceNode: PsiElement?
         get() = (body as? CjBlockExpression)?.lBrace
 
@@ -56,6 +54,4 @@ class CjClassInitializer : CjDeclarationStub<CangJiePlaceHolderStub<CjClassIniti
 
     override val containingDeclaration: CjClass
         get() = getParentOfType<CjClass>(true).sure { "Should only be present in class or object" }
-
 }
-

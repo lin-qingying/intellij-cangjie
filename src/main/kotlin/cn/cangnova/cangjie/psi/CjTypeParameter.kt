@@ -33,7 +33,7 @@ import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.PsiTreeUtil
 
-class CjTypeParameter : CjNamedDeclarationStub<CangJieTypeParameterStub > {
+class CjTypeParameter : CjNamedDeclarationStub<CangJieTypeParameterStub> {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieTypeParameterStub) : super(stub, CjStubElementTypes.TYPE_PARAMETER)
@@ -42,12 +42,9 @@ class CjTypeParameter : CjNamedDeclarationStub<CangJieTypeParameterStub > {
         return visitor.visitTypeParameter(this, data)
     }
 
-
     override fun toString(): String {
         return node.elementType.toString()
     }
-
-
 
     fun setExtendsBound(typeReference: CjTypeReference?): CjTypeReference? {
         val currentExtendsBound = extendsBound
@@ -73,13 +70,13 @@ class CjTypeParameter : CjNamedDeclarationStub<CangJieTypeParameterStub > {
         get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
     val extendsBounds: List<CjTypeReference>
         get() = getStubOrPsiChildrenAsList(
-            CjStubElementTypes.TYPE_REFERENCE
+            CjStubElementTypes.TYPE_REFERENCE,
         )
 
     override fun getUseScope(): SearchScope {
         val owner = PsiTreeUtil.getParentOfType(
             this,
-            CjTypeParameterListOwner::class.java
+            CjTypeParameterListOwner::class.java,
         )
         return LocalSearchScope(owner ?: this)
     }

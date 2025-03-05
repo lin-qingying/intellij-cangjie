@@ -34,23 +34,25 @@ fun CjFunctionType.setReceiverTypeReference(typeRef: CjTypeReference?) =
         typeRef,
         { receiverTypeReference },
         {
-            (addBefore(
-               CjPsiFactory(project).createFunctionTypeReceiver(it),
-                parameterList ?: firstChild
-            ) as CjFunctionTypeReceiver).typeReference
-        }
+            (
+                addBefore(
+                    CjPsiFactory(project).createFunctionTypeReceiver(it),
+                    parameterList ?: firstChild,
+                ) as CjFunctionTypeReceiver
+                ).typeReference
+        },
     )
 fun CjCallableDeclaration.setReceiverTypeReference(typeRef: CjTypeReference?) =
     doSetReceiverTypeReference(
         typeRef,
         { receiverTypeReference },
-        { this.addBefore(it, nameIdentifier ?: valueParameterList) as CjTypeReference }
+        { this.addBefore(it, nameIdentifier ?: valueParameterList) as CjTypeReference },
     )
 
 private inline fun <T : CjElement> T.doSetReceiverTypeReference(
     typeRef: CjTypeReference?,
     getReceiverTypeReference: T.() -> CjTypeReference?,
-    addReceiverTypeReference: T.(typeRef: CjTypeReference) -> CjTypeReference
+    addReceiverTypeReference: T.(typeRef: CjTypeReference) -> CjTypeReference,
 ): CjTypeReference? {
     val needParentheses = typeRef != null && typeRef.typeElement is CjFunctionType && !typeRef.hasParentheses()
     val oldTypeRef = getReceiverTypeReference()

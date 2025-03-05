@@ -24,13 +24,13 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.google.common.collect.Lists
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.stubs.CangJieUserTypeStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.google.common.collect.Lists
 import com.intellij.lang.ASTNode
 
-class CjUserType : CjElementImplStub<CangJieUserTypeStub >, CjTypeElement {
+class CjUserType : CjElementImplStub<CangJieUserTypeStub>, CjTypeElement {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieUserTypeStub) : super(stub, CjStubElementTypes.USER_TYPE)
@@ -54,7 +54,7 @@ class CjUserType : CjElementImplStub<CangJieUserTypeStub >, CjTypeElement {
 
     override val typeArgumentsAsTypes: List<CjTypeReference>
         get() {
-            val result: MutableList<CjTypeReference > =
+            val result: MutableList<CjTypeReference> =
                 Lists.newArrayList()
             for (projection in typeArguments) {
                 projection.typeReference?.let { result.add(it) }

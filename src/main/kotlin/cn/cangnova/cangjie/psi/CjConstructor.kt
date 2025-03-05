@@ -35,20 +35,19 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.search.SearchScope
 import com.intellij.util.IncorrectOperationException
 
-
 abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieConstructorStub<T>>, CjFunction {
     protected constructor(node: ASTNode) : super(node)
     protected constructor(stub: CangJieConstructorStub<T>, nodeType: CjConstructorElementType<T>) : super(
         stub,
-        nodeType
+        nodeType,
     )
 
     open fun getConstructorKeyword(): PsiElement? = findChildByType(CjTokens.INIT_KEYWORD)
 
     abstract fun getContainingTypeStatement(): CjTypeStatement
 
-    override val isLocal  = false
-    override val bodyExpression : CjInitBlockExpression?get()   {
+    override val isLocal = false
+    override val bodyExpression: CjInitBlockExpression?get() {
         val stub = stub
         if (stub != null) {
             if (!stub.hasBody()) {
@@ -60,7 +59,6 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
         }
         return findChildByClass(CjInitBlockExpression::class.java)
     }
-
 
     override val receiverTypeReference: CjTypeReference? = null
 
@@ -84,10 +82,9 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
     override fun setTypeReference(typeRef: CjTypeReference?) =
         throw IncorrectOperationException("setTypeReference to constructor")
 
-
     override val colon get() = findChildByType<PsiElement>(CjTokens.COLON)
 
-    override val equalsToken  = null
+    override val equalsToken = null
 
     override fun hasBlockBody() = hasBody()
 
@@ -112,9 +109,7 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
 
     override fun hasDeclaredReturnType() = false
 
-
     override fun getName(): String? = getContainingTypeStatement().name
-
 
     override val fqName: FqName?
         get() = null
@@ -133,7 +128,6 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
     override fun setName(name: String): PsiElement = throw IncorrectOperationException("setName to constructor")
 
     override fun getPresentation() = ItemPresentationProviders.getItemPresentation(this)
-
 
     open fun getInitKeyword(): PsiElement? = findChildByType(CjTokens.INIT_KEYWORD)
 

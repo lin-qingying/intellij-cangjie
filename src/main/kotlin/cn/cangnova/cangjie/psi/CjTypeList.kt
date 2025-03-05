@@ -28,9 +28,9 @@ import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjTypeList: CjElementImplStub<CangJiePlaceHolderStub<CjTypeList>> {
+class CjTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeList>> {
 
-    constructor(node:ASTNode) : super(node)
+    constructor(node: ASTNode) : super(node)
 
-    constructor(stub:CangJiePlaceHolderStub<CjTypeList>) : super(stub,CjStubElementTypes.TYPE_LIST)
+    constructor(stub: CangJiePlaceHolderStub<CjTypeList>) : super(stub, CjStubElementTypes.TYPE_LIST)
 }

@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 
-
 class CDocLink(node: ASTNode) : CjElementImpl(node) {
     fun getLinkText(): String = getLinkTextRange().substring(text)
 

@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
@@ -64,7 +63,7 @@ open class CjBinaryExpression(node: ASTNode) : CjExpressionImpl(node), CjOperati
             return null
         }
 
-    override val operationReference : CjOperationReferenceExpression get()  {
+    override val operationReference: CjOperationReferenceExpression get() {
         val operationReference = findChildByType<PsiElement>(CjNodeTypes.OPERATION_REFERENCE)
             ?: throw NullPointerException("No operation reference for binary expression: " + children.contentToString())
 

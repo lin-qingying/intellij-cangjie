@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
 
 class CjConstructorDelegationCall(node: ASTNode) : CjElementImpl(node), CjCallElement {
@@ -32,11 +31,9 @@ class CjConstructorDelegationCall(node: ASTNode) : CjElementImpl(node), CjCallEl
         return visitor.visitConstructorDelegationCall(this, data)
     }
 
-
     override val calleeExpression: CjConstructorDelegationReferenceExpression?
         get() =
             findChildByClass(CjConstructorDelegationReferenceExpression::class.java)
-
 
     override val lambdaArguments: List<CjLambdaArgument> = emptyList()
 
@@ -51,7 +48,6 @@ class CjConstructorDelegationCall(node: ASTNode) : CjElementImpl(node), CjCallEl
             val list = valueArgumentList
             return list?.arguments ?: emptyList<CjValueArgument>()
         }
-
 
     val isImplicit: Boolean
         get() {

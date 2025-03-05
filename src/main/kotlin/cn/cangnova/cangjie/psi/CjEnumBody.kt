@@ -24,15 +24,8 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
-import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.intellij.lang.ASTNode
-import com.intellij.psi.tree.TokenSet
-import com.intellij.psi.util.PsiTreeUtil
-
 //
-//class CjEnumBody : CjElementImplStub<CangJiePlaceHolderStub<CjEnumBody>>, CjDeclarationContainer {
+// class CjEnumBody : CjElementImplStub<CangJiePlaceHolderStub<CjEnumBody>>, CjDeclarationContainer {
 //    private val lBraceTokenSet = TokenSet.create(CjTokens.LBRACE)
 //    private val rBraceTokenSet = TokenSet.create(CjTokens.RBRACE)
 //
@@ -57,4 +50,4 @@ import com.intellij.psi.util.PsiTreeUtil
 //
 //
 //
-//}
+// }

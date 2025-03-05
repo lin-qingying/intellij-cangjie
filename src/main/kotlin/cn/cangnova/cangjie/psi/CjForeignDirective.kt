@@ -28,7 +28,7 @@ import cn.cangnova.cangjie.psi.stubs.CangJieForeignDirectiveStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjForeignDirective : CjElementImplStub<CangJieForeignDirectiveStub > {
+class CjForeignDirective : CjElementImplStub<CangJieForeignDirectiveStub> {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieForeignDirectiveStub) : super(stub, CjStubElementTypes.FOREIGN)

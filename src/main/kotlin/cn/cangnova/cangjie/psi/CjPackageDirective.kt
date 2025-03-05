@@ -23,8 +23,6 @@
  */
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
 import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens
@@ -38,8 +36,9 @@ import cn.cangnova.cangjie.psi.psiUtil.getQualifiedElementSelector
 import cn.cangnova.cangjie.psi.stubs.CangJiePackageDirectiveStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import cn.cangnova.cangjie.psi.stubs.elements.CjTokenSets
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 import java.util.*
-
 
 class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
     private var qualifiedNameCache: String? = null
@@ -56,10 +55,10 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
         get() = CjStubbedPsiUtil.getStubOrPsiChild(
             this,
             CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS!!,
-            CjExpression.ARRAY_FACTORY
+            CjExpression.ARRAY_FACTORY,
         )
 
-    val packageNames:List<CjSimpleNameExpression>
+    val packageNames: List<CjSimpleNameExpression>
         get() {
             var nameExpression = this.packageNameExpression ?: return mutableListOf<CjSimpleNameExpression>()
 
@@ -125,9 +124,8 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
         return getModifier(tokenType) != null
     }
 
-
     val isMacroPackage: Boolean
-        get() =//        try {
+        get() = //        try {
 
             findChildByType<PsiElement>(CjTokens.MACRO_KEYWORD) != null
     //        } catch (Exception e) {
@@ -137,9 +135,13 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
     val nameAsName: Name
         get() {
             val nameIdentifier = this.nameIdentifier
-            return if (nameIdentifier == null) SpecialNames.ROOT_PACKAGE else identifier(
-                nameIdentifier.text
-            )
+            return if (nameIdentifier == null) {
+                SpecialNames.ROOT_PACKAGE
+            } else {
+                identifier(
+                    nameIdentifier.text,
+                )
+            }
         }
 
     val isRoot: Boolean
@@ -148,9 +150,13 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
     var fqName: FqName = FqName.ROOT
         get() {
             val qualifiedName = this.qualifiedName
-            return if (qualifiedName.isEmpty()) FqName.ROOT else fromString(
-                qualifiedName
-            )
+            return if (qualifiedName.isEmpty()) {
+                FqName.ROOT
+            } else {
+                fromString(
+                    qualifiedName,
+                )
+            }
         }
         set(fqName) {
             if (fqName.isRoot) {
@@ -158,9 +164,9 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
                     replace(
                         Objects.requireNonNull<CjPackageDirective>(
                             CjPsiFactory(project).createFile(
-                                ""
-                            ).packageDirective
-                        )
+                                "",
+                            ).packageDirective,
+                        ),
                     )
                 }
                 return
@@ -217,7 +223,7 @@ class CjPackageDirective : CjDeclarationStub<CangJiePackageDirectiveStub> {
         qualifiedNameCache = null
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R , D>, data: D?): R  {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPackageDirective(this, data)
     }
 }

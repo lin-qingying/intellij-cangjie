@@ -49,11 +49,9 @@ open class CjElementImplStub<T : StubElement<*>> :
         return this
     }
 
-
     override fun toString(): String {
         return node.elementType.toString()
     }
-
 
     override fun getReference(): PsiReference? {
         val references = references
@@ -61,7 +59,7 @@ open class CjElementImplStub<T : StubElement<*>> :
     }
 
     override fun getReferences(): Array<PsiReference> {
-        if(this is CjBasicType) return emptyArray()
+        if (this is CjBasicType) return emptyArray()
 
         return getReferencesFromProviders(this)
     }
@@ -81,18 +79,16 @@ open class CjElementImplStub<T : StubElement<*>> :
 
             throw IllegalStateException(
                 "CjElement not inside CjFile: " +
-                        file + fileString + " of type " + file.javaClass +
-                        " for element " + this + " of type " + this.javaClass + nodeString
+                    file + fileString + " of type " + file.javaClass +
+                    " for element " + this + " of type " + this.javaClass + nodeString,
             )
         }
         return file
     }
 
-
     override fun getLanguage(): Language {
         return CangJieLanguage
     }
-
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
@@ -113,7 +109,7 @@ open class CjElementImplStub<T : StubElement<*>> :
     }
 
     fun <PsiT : CjElementImplStub<*>, StubT : StubElement<*>> getStubOrPsiChildrenAsList(
-        elementType: CjStubElementType<StubT, PsiT>
+        elementType: CjStubElementType<StubT, PsiT>,
     ): List<PsiT> {
         return listOf(*getStubOrPsiChildren(elementType, elementType.arrayFactory))
     }

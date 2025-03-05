@@ -34,15 +34,13 @@ interface CjDeclarationWithBody : CjDeclaration {
 
     override fun getName(): String?
 
-
     fun hasBlockBody(): Boolean
 
     fun hasBody(): Boolean
 
     fun hasDeclaredReturnType(): Boolean
 
-
-    val valueParameters: List<CjParameter >
+    val valueParameters: List<CjParameter>
 
     val bodyBlockExpression: CjBlockExpression?
         get() {
@@ -54,4 +52,3 @@ interface CjDeclarationWithBody : CjDeclaration {
             return null
         }
 }
-

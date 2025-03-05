@@ -24,22 +24,22 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.google.common.collect.Lists
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.google.common.collect.Lists
 import com.intellij.lang.ASTNode
 
-class CjFunctionType : CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType > >, CjTypeElement {
+class CjFunctionType : CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType>>, CjTypeElement {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjFunctionType >) : super(stub, CjStubElementTypes.FUNCTION_TYPE)
+    constructor(stub: CangJiePlaceHolderStub<CjFunctionType>) : super(stub, CjStubElementTypes.FUNCTION_TYPE)
 
-    override val typeArgumentsAsTypes: List<CjTypeReference >
+    override val typeArgumentsAsTypes: List<CjTypeReference>
         get() {
             val result =
-                Lists.newArrayList<CjTypeReference >()
+                Lists.newArrayList<CjTypeReference>()
 
             result.addAll(contextReceiversTypeReferences)
             val receiverTypeRef = receiverTypeReference
@@ -81,10 +81,10 @@ class CjFunctionType : CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType >
     val contextReceiverList: CjContextReceiverList?
         get() = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
 
-    val contextReceiversTypeReferences: List<CjTypeReference >
+    val contextReceiversTypeReferences: List<CjTypeReference>
         get() {
             val contextReceiverList = contextReceiverList
-            return contextReceiverList?.typeReferences() ?: emptyList ()
+            return contextReceiverList?.typeReferences() ?: emptyList()
         }
 
     val returnTypeReference: CjTypeReference?

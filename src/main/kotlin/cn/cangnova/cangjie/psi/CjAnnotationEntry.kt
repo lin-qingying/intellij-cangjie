@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.name.Name.Companion.identifier
@@ -33,27 +32,27 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub >, CjCallElement {
+class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub>, CjCallElement {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieAnnotationEntryStub) : super(stub, CjStubElementTypes.ANNOTATION_ENTRY)
 
-    override val calleeExpression : CjConstructorCalleeExpression? get(){
+    override val calleeExpression: CjConstructorCalleeExpression? get() {
         return getStubOrPsiChild(CjStubElementTypes.CONSTRUCTOR_CALLEE)
     }
 
-    override val lambdaArguments: List<CjLambdaArgument> get(){
+    override val lambdaArguments: List<CjLambdaArgument> get() {
         return emptyList()
     }
 
-    override val typeArguments : List<CjTypeProjection> get(){
+    override val typeArguments: List<CjTypeProjection> get() {
         val typeArgumentList = typeArgumentList ?: return emptyList()
         return typeArgumentList.arguments
     }
 
-    override val typeArgumentList : CjTypeArgumentList? = null
+    override val typeArgumentList: CjTypeArgumentList? = null
 
-    override val valueArgumentList : CjValueArgumentList? get(){
+    override val valueArgumentList: CjValueArgumentList? get() {
         val stub = stub
         if (stub == null && greenStub != null) {
             return findChildByType(CjNodeTypes.VALUE_ARGUMENT_LIST)
@@ -62,7 +61,7 @@ class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub >, CjCall
         return getStubOrPsiChild(CjStubElementTypes.VALUE_ARGUMENT_LIST)
     }
 
-    override val valueArguments : List<ValueArgument > get(){
+    override val valueArguments: List<ValueArgument> get() {
         val stub = stub
         if (stub != null && !stub.hasValueArguments()) {
             return emptyList<CjValueArgument>()
@@ -71,9 +70,10 @@ class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub >, CjCall
         val list = valueArgumentList
         return list?.arguments ?: emptyList<CjValueArgument>()
     }
-    val atSymbol : PsiElement? get()    {
+    val atSymbol: PsiElement? get() {
         return findChildByType(CjTokens.AT)
     }
+
     @get:IfNotParsed
     val typeReference: CjTypeReference?
         get() {
@@ -102,5 +102,4 @@ class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub >, CjCall
             }
             return null
         }
-
 }

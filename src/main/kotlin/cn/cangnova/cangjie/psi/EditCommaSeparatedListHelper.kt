@@ -30,8 +30,6 @@ import cn.cangnova.cangjie.psi.psiUtil.siblings
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiWhiteSpace
 
-
-
 object EditCommaSeparatedListHelper {
     @JvmOverloads
     fun <TItem : CjElement> addItem(list: CjElement, allItems: List<TItem>, item: TItem, prefix: CjToken = CjTokens.LPAR): TItem {
@@ -45,7 +43,7 @@ object EditCommaSeparatedListHelper {
         allItems: List<TItem>,
         item: TItem,
         anchor: TItem?,
-        prefix: CjToken = CjTokens.LPAR
+        prefix: CjToken = CjTokens.LPAR,
     ): TItem {
         assert(anchor == null || anchor.parent == list)
         if (allItems.isEmpty()) {
@@ -72,7 +70,7 @@ object EditCommaSeparatedListHelper {
         allItems: List<TItem>,
         item: TItem,
         anchor: TItem?,
-        prefix: CjToken = CjTokens.LPAR
+        prefix: CjToken = CjTokens.LPAR,
     ): TItem {
         val anchorAfter: TItem?
         anchorAfter = if (allItems.isEmpty()) {

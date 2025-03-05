@@ -28,15 +28,11 @@ import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.parsing.CangJieParser
 import com.intellij.lang.ASTNode
 import com.intellij.lang.PsiBuilderFactory
-import com.intellij.openapi.project.Project
-import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.ICodeFragmentElementType
 
-
-  class CjExpressionCodeFragmentType :
+class CjExpressionCodeFragmentType :
     ICodeFragmentElementType(NAME, CangJieLanguage) {
-
 
     override fun doParseContents(chameleon: ASTNode, psi: PsiElement): ASTNode? {
         val project = psi.project
@@ -50,4 +46,3 @@ import com.intellij.psi.impl.source.tree.ICodeFragmentElementType
         private const val NAME = "cangjie.EXPRESSION_CODE_FRAGMENT"
     }
 }
-

@@ -28,13 +28,12 @@ import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderWithTextStub
 import com.intellij.lang.ASTNode
 import com.intellij.psi.stubs.IStubElementType
 
-
-abstract class CjStringTemplateEntry : CjElementImplStub<CangJiePlaceHolderWithTextStub<out CjStringTemplateEntry > > {
+abstract class CjStringTemplateEntry : CjElementImplStub<CangJiePlaceHolderWithTextStub<out CjStringTemplateEntry>> {
     constructor(node: ASTNode) : super(node)
 
     constructor(
-        stub: CangJiePlaceHolderWithTextStub<out CjStringTemplateEntry >,
-        elementType: IStubElementType<*, *>
+        stub: CangJiePlaceHolderWithTextStub<out CjStringTemplateEntry>,
+        elementType: IStubElementType<*, *>,
     ) : super(stub, elementType)
 
     val expression: CjExpression?

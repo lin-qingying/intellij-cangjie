@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-
 class CjCallableReferenceExpression(node: ASTNode) : CjExpressionImpl(node), CjDoubleColonExpression {
     val callableReference: CjSimpleNameExpression
         get() {

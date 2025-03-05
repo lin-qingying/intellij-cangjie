@@ -25,16 +25,12 @@
 package cn.cangnova.cangjie.psi
 
 import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElementVisitor
-import cn.cangnova.cangjie.CjNodeTypes.PATTERN_GUARD
 
-class CjPatternGuard (node:ASTNode): CjElementImpl(node) {
+class CjPatternGuard(node: ASTNode) : CjElementImpl(node) {
 
-    override fun <R,D> accept(visitor: CjVisitor<R, D>, data: D?): R  {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPatternGuard(this, data)
     }
 
-
-    val expression:CjExpression? get() = findChildByClass(CjExpression::class.java)
-
+    val expression: CjExpression? get() = findChildByClass(CjExpression::class.java)
 }

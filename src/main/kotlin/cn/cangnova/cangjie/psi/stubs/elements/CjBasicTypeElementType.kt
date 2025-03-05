@@ -24,19 +24,12 @@
 
 package cn.cangnova.cangjie.psi.stubs.elements
 
-import cn.cangnova.cangjie.psi.CjBasicType
-import cn.cangnova.cangjie.psi.stubs.CangJieBasicTypeStub
-
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.stubs.StubInputStream
-import com.intellij.psi.stubs.StubOutputStream
 //
-//class CjBasicTypeElementType(
+// class CjBasicTypeElementType(
 //    debugString: String
-//) : CjStubElementType<CangJieBasicTypeStub, CjBasicType>(
+// ) : CjStubElementType<CangJieBasicTypeStub, CjBasicType>(
 //    debugString, CjBasicType::class.java, CangJieBasicTypeStub::class.java
-//) {
+// ) {
 //    override fun serialize(stub: CangJieBasicTypeStub, dataStream: StubOutputStream) {
 //        dataStream.writeName(stub.basicType)
 //
@@ -55,4 +48,4 @@ import com.intellij.psi.stubs.StubOutputStream
 //    override fun createStub(psi: CjBasicType, parentStub: StubElement<out PsiElement>?): CangJieBasicTypeStub {
 //        return CangJieBasicTypeStubImpl(parentStub, psi.name)
 //    }
-//}
+// }

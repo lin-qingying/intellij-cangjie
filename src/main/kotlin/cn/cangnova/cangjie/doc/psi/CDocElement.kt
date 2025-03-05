@@ -26,4 +26,4 @@ package cn.cangnova.cangjie.doc.psi
 
 import com.intellij.psi.PsiElement
 
-interface CDocElement:PsiElement
+interface CDocElement : PsiElement

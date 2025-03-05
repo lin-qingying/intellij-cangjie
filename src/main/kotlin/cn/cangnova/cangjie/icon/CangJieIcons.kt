@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.icon
 
-
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
 import java.awt.Component
@@ -41,11 +40,11 @@ object CangJieIcons {
     /** 16x16  */
     @JvmField
     val FILE: Icon = CangJieBaseResourcesIcons.CangJie_file
-    @JvmField
 
+    @JvmField
     val CANGJIE = CangJieBaseResourcesIcons.CangJie
-    @JvmField
 
+    @JvmField
     val TOML = CangJieBaseResourcesIcons.Toml
 
     /** 16x16  */
@@ -98,12 +97,10 @@ object CangJieIcons {
     /** 16x16  */
     val ABSTRACT_EXTENSION_FUNCTION: Icon = CangJieBaseResourcesIcons.Abstract_extension_function
 
-
     val PARAMETER: Icon = AllIcons.Nodes.Parameter
 
     /** 16x16  */
     val LAMBDA: Icon = CangJieBaseResourcesIcons.Lambda
-
 }
 
 /**

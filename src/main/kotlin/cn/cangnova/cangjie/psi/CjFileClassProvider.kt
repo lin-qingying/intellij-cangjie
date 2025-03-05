@@ -24,17 +24,17 @@
 
 package cn.cangnova.cangjie.psi
 //
-//import com.intellij.psi.PsiClass
+// import com.intellij.psi.PsiClass
 //
-//interface CjFileClassProvider {
+// interface CjFileClassProvider {
 //    fun getFileClasses(file: CjFile): Array<PsiClass>
-//}
+// }
 //
 //
-//class  CjFileClassProviderImpl : CjFileClassProvider {
+// class  CjFileClassProviderImpl : CjFileClassProvider {
 //    override fun getFileClasses(file: CjFile): Array<PsiClass> {
 //
 //
 //        return PsiClass.EMPTY_ARRAY
 //    }
-//}
+// }

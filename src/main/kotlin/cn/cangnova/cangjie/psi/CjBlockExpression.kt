@@ -23,10 +23,8 @@
  */
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.psiUtil.deleteSemicolon
 import cn.cangnova.cangjie.psi.psiUtil.parentSubstitute
 import com.intellij.lang.Language
@@ -45,7 +43,6 @@ open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression,
     constructor(type: IElementType, text: CharSequence?) : super(type, text)
     constructor(text: CharSequence?) : super(CjNodeTypes.BLOCK, text)
 
-
     override fun getLanguage(): Language {
         return CangJieLanguage
     }
@@ -53,7 +50,6 @@ open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression,
     override fun toString(): String {
         return node.elementType.toString()
     }
-
 
     override fun getContainingFile(): PsiFile {
         return super.getContainingFile()
@@ -77,7 +73,7 @@ open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression,
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
-            accept (visitor, null)
+            accept(visitor, null)
         } else {
             visitor.visitElement(this)
         }
@@ -139,7 +135,6 @@ open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression,
             val returns =
                 findChildrenByClass(CjReturnExpression::class.java)
 
-
             val result: MutableSet<CjExpression> = HashSet()
 
             for (statement in returns) {
@@ -161,9 +156,9 @@ open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression,
             val returns: MutableSet<CjExpression> = HashSet(
                 java.util.List.of(
                     *findChildrenByClass(
-                        CjReturnExpression::class.java
-                    )
-                )
+                        CjReturnExpression::class.java,
+                    ),
+                ),
             )
 
             val lastStatement = lastStatement
@@ -172,7 +167,6 @@ open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression,
             }
             return returns
         }
-
 
     val lastBracketRange: TextRange?
         get() {

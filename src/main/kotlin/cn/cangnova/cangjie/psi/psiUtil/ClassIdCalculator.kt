@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.name.SpecialNames
 import cn.cangnova.cangjie.psi.CjClassLikeDeclaration
 import cn.cangnova.cangjie.psi.CjFile
 
-
 internal object ClassIdCalculator {
     fun calculateClassId(declaration: CjClassLikeDeclaration): ClassId? {
         var CjFile: CjFile? = null
@@ -38,7 +37,6 @@ internal object ClassIdCalculator {
 
         for (element in declaration.parentsWithSelf) {
             when (element) {
-
                 is CjClassLikeDeclaration -> {
                     containingClasses += element
                 }
@@ -46,8 +44,6 @@ internal object ClassIdCalculator {
                     CjFile = element
                     break
                 }
-
-
             }
         }
 
@@ -55,7 +51,7 @@ internal object ClassIdCalculator {
         val relativeClassName = FqName.fromSegments(
             containingClasses.asReversed().map { containingClass ->
                 containingClass.name ?: SpecialNames.NO_NAME_PROVIDED.asString()
-            }
+            },
         )
 
         return ClassId(CjFile.packageFqName, relativeClassName, isLocal = false)

@@ -29,7 +29,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.DummyHolder
 import com.intellij.psi.impl.source.tree.TreeElement
-import com.intellij.psi.tree.IFileElementType
 import com.intellij.util.CharTable
 
 class CangJieDummyHolder : DummyHolder {
@@ -39,14 +38,13 @@ class CangJieDummyHolder : DummyHolder {
     constructor(
         manager: PsiManager,
         contentElement: TreeElement?,
-        context: PsiElement?
+        context: PsiElement?,
     ) : super(manager, contentElement, context, null, null, language(context, CangJieLanguage))
-
 
     constructor(
         manager: PsiManager,
         table: CharTable?,
-        validity: Boolean
+        validity: Boolean,
     ) : super(manager, null, null, table, validity, CangJieLanguage)
 
     constructor(manager: PsiManager, context: PsiElement?) : super(
@@ -55,7 +53,7 @@ class CangJieDummyHolder : DummyHolder {
         context,
         null,
         null,
-        language(context, CangJieLanguage)
+        language(context, CangJieLanguage),
     )
 
     constructor(manager: PsiManager, contentElement: TreeElement?, context: PsiElement?, table: CharTable?) : super(
@@ -64,7 +62,7 @@ class CangJieDummyHolder : DummyHolder {
         context,
         table,
         null,
-        language(context, CangJieLanguage)
+        language(context, CangJieLanguage),
     )
 
     constructor(manager: PsiManager, context: PsiElement?, table: CharTable?) : super(
@@ -73,13 +71,8 @@ class CangJieDummyHolder : DummyHolder {
         context,
         table,
         null,
-        language(context, CangJieLanguage)
+        language(context, CangJieLanguage),
     )
 
     constructor(manager: PsiManager, table: CharTable?) : super(manager, null, null, table, null, CangJieLanguage)
-
-
 }
-
-
-

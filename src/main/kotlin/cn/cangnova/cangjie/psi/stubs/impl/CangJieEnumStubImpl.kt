@@ -26,17 +26,13 @@ package cn.cangnova.cangjie.psi.stubs.impl
 
 import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.psi.CjClass
 import cn.cangnova.cangjie.psi.CjEnum
-import cn.cangnova.cangjie.psi.stubs.CangJieClassStub
 import cn.cangnova.cangjie.psi.stubs.CangJieEnumStub
-import cn.cangnova.cangjie.psi.stubs.elements.CjClassElementType
 import cn.cangnova.cangjie.psi.stubs.elements.CjEnumElementType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 import java.util.ArrayList
-
 
 open class CangJieEnumStubImpl(
     type: CjEnumElementType,
@@ -54,7 +50,6 @@ open class CangJieEnumStubImpl(
         val stringRef = StringRef.toString(qualifiedName) ?: return null
         return FqName(stringRef)
     }
-
 
     override fun isLocal() = isLocal
     override fun getName() = StringRef.toString(name)

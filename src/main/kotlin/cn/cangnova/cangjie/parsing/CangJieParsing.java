@@ -30,7 +30,7 @@ import com.intellij.lang.WhitespacesBinders;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
-import cn.cangnova.cangjie.parsing.*;import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +38,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import static cn.cangnova.cangjie.CjNodeTypes.*;
+import static cn.cangnova.cangjie.psi.CjNodeTypes.*;
 import static cn.cangnova.cangjie.lexer.CjTokens.*;
 import static cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE;
 import static cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.END_SECONDARY_CONSTRUCTOR;

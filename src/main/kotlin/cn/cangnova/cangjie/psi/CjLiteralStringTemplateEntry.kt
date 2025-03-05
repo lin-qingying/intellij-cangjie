@@ -31,9 +31,9 @@ import com.intellij.lang.ASTNode
 class CjLiteralStringTemplateEntry : CjStringTemplateEntry {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderWithTextStub<CjLiteralStringTemplateEntry >) : super(
+    constructor(stub: CangJiePlaceHolderWithTextStub<CjLiteralStringTemplateEntry>) : super(
         stub,
-        CjStubElementTypes.LITERAL_STRING_TEMPLATE_ENTRY
+        CjStubElementTypes.LITERAL_STRING_TEMPLATE_ENTRY,
     )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {

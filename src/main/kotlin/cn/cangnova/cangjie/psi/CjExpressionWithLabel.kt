@@ -24,10 +24,8 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.name.Name
 import com.intellij.lang.ASTNode
-
 
 open class CjExpressionWithLabel(node: ASTNode) : CjExpressionImpl(node) {
 

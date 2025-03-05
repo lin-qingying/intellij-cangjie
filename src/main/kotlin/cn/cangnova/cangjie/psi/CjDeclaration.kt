@@ -30,9 +30,7 @@ import com.intellij.util.ArrayFactory
 interface CjDeclaration : CjExpression, CjModifierListOwner {
     val docComment: CDoc?
 
-
     val expression: CjExpression?
-
 
     companion object {
         val EMPTY_ARRAY: Array<CjDeclaration?> = arrayOfNulls(0)

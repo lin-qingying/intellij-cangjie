@@ -24,20 +24,17 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.doc.psi.CDoc
-import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
+import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.psi.psiUtil.addModifier
 import cn.cangnova.cangjie.psi.psiUtil.findDocComment
 import cn.cangnova.cangjie.psi.psiUtil.removeModifier
 import com.intellij.lang.ASTNode
 import com.intellij.psi.util.PsiTreeUtil
-import cn.cangnova.cangjie.lexer.CjKeywordToken
 
 abstract class CjDeclarationImpl(node: ASTNode) : CjExpressionImpl(node), CjDeclaration {
-    override val modifierList : CjModifierList? get() =
-          findChildByType(CjNodeTypes.MODIFIER_LIST)
-
+    override val modifierList: CjModifierList? get() =
+        findChildByType(CjNodeTypes.MODIFIER_LIST)
 
     override fun hasModifier(modifier: CjKeywordToken): Boolean {
         val modifierList: CjModifierList? = modifierList
@@ -47,7 +44,7 @@ abstract class CjDeclarationImpl(node: ASTNode) : CjExpressionImpl(node), CjDecl
     override val expression: CjExpression?
         get() = PsiTreeUtil.getStubChildOfType(
             this,
-            CjExpression::class.java
+            CjExpression::class.java,
         )
     override val annotations: List<CjAnnotation>
         get() {
@@ -68,9 +65,6 @@ abstract class CjDeclarationImpl(node: ASTNode) : CjExpressionImpl(node), CjDecl
     override fun removeModifier(modifier: CjKeywordToken) {
         removeModifier(this, modifier)
     }
-
-
-
 
     override val docComment: CDoc?
         get() {

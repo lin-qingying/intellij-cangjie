@@ -41,7 +41,7 @@ import com.intellij.util.io.StringRef
 class CjPropertyElementType(debugName: String) : CjStubElementType<CangJiePropertyStub, CjProperty>(
     debugName,
     CjProperty::class.java,
-    CangJiePropertyStub::class.java
+    CangJiePropertyStub::class.java,
 ) {
     override fun serialize(stub: CangJiePropertyStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
@@ -49,7 +49,6 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
         dataStream.writeBoolean(stub.isExtension())
 
         dataStream.writeBoolean(stub.hasReturnTypeRef())
-
     }
 
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJiePropertyStub {
@@ -61,22 +60,26 @@ class CjPropertyElementType(debugName: String) : CjStubElementType<CangJieProper
         val hasReturnTypeRef = dataStream.readBoolean()
 
         return CangJiePropertyStubImpl(
-            parentStub, name,
-            fqName, hasReceiverTypeRef, hasReturnTypeRef
+            parentStub,
+            name,
+            fqName,
+            hasReceiverTypeRef,
+            hasReturnTypeRef,
         )
     }
 
     override fun createStub(psi: CjProperty, parentStub: StubElement<out PsiElement>?): CangJiePropertyStub {
         return CangJiePropertyStubImpl(
-            parentStub, StringRef.fromString(psi.name),
-            psi.safeFqNameForLazyResolve(), psi.receiverTypeReference != null,
-            psi.typeReference != null
+            parentStub,
+            StringRef.fromString(psi.name),
+            psi.safeFqNameForLazyResolve(),
+            psi.receiverTypeReference != null,
+            psi.typeReference != null,
         )
     }
 
     override fun indexStub(stub: CangJiePropertyStub, sink: IndexSink) {
         getInstance().indexProperty(stub, sink)
-
     }
 
     override fun createPsi(stub: CangJiePropertyStub): CjProperty {

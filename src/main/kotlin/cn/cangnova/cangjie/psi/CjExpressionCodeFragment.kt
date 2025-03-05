@@ -24,11 +24,9 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
-import com.intellij.psi.search.GlobalSearchScope
 
 /**
  * 表达式代码片段
@@ -40,18 +38,16 @@ open class CjExpressionCodeFragment(
     name: String,
     text: CharSequence,
     imports: String?,
-    context: PsiElement?
+    context: PsiElement?,
 ) : CjCodeFragment(project, name, text, imports, CjNodeTypes.EXPRESSION_CODE_FRAGMENT, context) {
 
     override fun getContentElement() = findChildByClass(CjExpression::class.java)
-
-
 }
 
 class CjBlockCodeFragment(
     viewProvider: FileViewProvider,
     imports: String?, // Should be separated by CjCodeFragment.IMPORT_SEPARATOR
-    context: PsiElement?
+    context: PsiElement?,
 ) : CjCodeFragment(viewProvider, imports, CjNodeTypes.BLOCK_CODE_FRAGMENT, context) {
 
     constructor(
@@ -59,7 +55,7 @@ class CjBlockCodeFragment(
         name: String,
         text: CharSequence,
         imports: String?,
-        context: PsiElement?
+        context: PsiElement?,
     ) : this(
         createFileViewProviderForLightFile(project, name, text),
         imports,

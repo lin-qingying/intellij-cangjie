@@ -32,11 +32,10 @@ class CjPrefixExpression(node: ASTNode) : CjUnaryExpression(node) {
         return visitor.visitPrefixExpression(this, data)
     }
 
-
     @get:IfNotParsed
     override val baseExpression: CjExpression?
         get() = PsiTreeUtil.getNextSiblingOfType(
             operationReference,
-            CjExpression::class.java
+            CjExpression::class.java,
         )
 }

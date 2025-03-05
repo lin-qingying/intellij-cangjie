@@ -28,10 +28,10 @@ import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjTypeConstraint : CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstraint > >, CjElement {
+class CjTypeConstraint : CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstraint>>, CjElement {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjTypeConstraint >) : super(stub, CjStubElementTypes.TYPE_CONSTRAINT)
+    constructor(stub: CangJiePlaceHolderStub<CjTypeConstraint>) : super(stub, CjStubElementTypes.TYPE_CONSTRAINT)
 
     override fun toString(): String {
         return node.elementType.toString()
@@ -52,6 +52,6 @@ class CjTypeConstraint : CjElementImplStub<CangJiePlaceHolderStub<CjTypeConstrai
     @get:IfNotParsed
     val boundTypeReferences: List<CjTypeReference>
         get() = getStubOrPsiChildrenAsList(
-            CjStubElementTypes.TYPE_REFERENCE
+            CjStubElementTypes.TYPE_REFERENCE,
         )
 }

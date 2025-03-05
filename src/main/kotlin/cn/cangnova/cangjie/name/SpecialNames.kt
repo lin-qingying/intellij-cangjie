@@ -59,6 +59,7 @@ object SpecialNames {
 
     @JvmField
     val THIS = Name.special("<this>")
+
     @JvmField
     val END_INIT = Name.special("<~init>")
 
@@ -86,10 +87,8 @@ object SpecialNames {
     @JvmField
     val RECEIVER = Name.special("<receiver>")
 
-
     @JvmField
     val ENUM_GET_ENTRIES = Name.special("<get-entries>")
-
 
     @JvmStatic
     fun subscribeOperatorIndex(idx: Int): Name {
@@ -107,6 +106,7 @@ object SpecialNames {
     fun safeIdentifier(name: String?): Name {
         return safeIdentifier(if (name == null) null else Name.identifier(name))
     }
+
     @JvmStatic
     fun isAnonymousParameterName(name: Name): Boolean {
         return name.isSpecial && name.asStringStripSpecialMarkers().startsWith(ANONYMOUS_PARAMETER_NAME_PREFIX)

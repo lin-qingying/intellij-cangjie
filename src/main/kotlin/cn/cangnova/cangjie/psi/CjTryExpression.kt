@@ -24,18 +24,16 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-
 
 class CjTryExpression(node: ASTNode) : CjExpressionImpl(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitTryExpression(this, data)
     }
 
-    val tryResourceList:CjTryResourceList ? get() = findChildByClass(CjTryResourceList::class.java)
+    val tryResourceList: CjTryResourceList? get() = findChildByClass(CjTryResourceList::class.java)
     val catchBody: CjExpression?
         get() = findChildByClass(CjExpression::class.java)
     val tryBlock: CjBlockExpression
@@ -47,4 +45,3 @@ class CjTryExpression(node: ASTNode) : CjExpressionImpl(node) {
     val tryKeyword: PsiElement?
         get() = findChildByType(CjTokens.TRY_KEYWORD)
 }
-

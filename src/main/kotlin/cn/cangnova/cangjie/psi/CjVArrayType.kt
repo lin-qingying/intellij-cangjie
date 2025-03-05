@@ -24,20 +24,18 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
 class CjVArrayType : CjElementImplStub<CangJiePlaceHolderStub<CjVArrayType>>, CjTypeElement {
 
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJiePlaceHolderStub<CjVArrayType>) : super(stub, CjStubElementTypes.VARRAY_TYPE)
 
-
-    //整数字面量
+    // 整数字面量
     val literal: PsiElement? get() = findChildByType(CjTokens.INTEGER_LITERAL)
 
     //    类型参数
@@ -53,7 +51,6 @@ class CjVArrayType : CjElementImplStub<CangJiePlaceHolderStub<CjVArrayType>>, Cj
             val typeArgumentList = typeArgumentList
             return typeArgumentList?.arguments ?: emptyList()
         }
-
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitVArrayType(this, data)

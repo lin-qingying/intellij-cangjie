@@ -24,9 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.psi.PsiElement
-
-//interface CjPureElement {
+// interface CjPureElement {
 //
 //    fun getPsiOrParent(): CjElement
 //
@@ -37,4 +35,4 @@ import com.intellij.psi.PsiElement
 //    fun getContainingCjFile(): CjFile
 //
 //
-//}
+// }

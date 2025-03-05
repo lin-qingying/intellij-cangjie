@@ -31,15 +31,14 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 
-
 class CjContextReceiverElementType(debugName: String) : CjStubElementType<CangJieContextReceiverStub, CjContextReceiver>(
     debugName,
     CjContextReceiver::class.java,
-    CangJieContextReceiverStub::class.java
+    CangJieContextReceiverStub::class.java,
 ) {
     override fun createStub(
         element: CjContextReceiver,
-        parentStub: StubElement<*>?
+        parentStub: StubElement<*>?,
     ): CangJieContextReceiverStub = CangJieContextReceiverStubImpl(parentStub, this, element.labelName())
 
     override fun serialize(stub: CangJieContextReceiverStub, dataStream: StubOutputStream) =

@@ -35,12 +35,12 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-class CjValueArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjValueArgumentList  > > {
+class CjValueArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjValueArgumentList>> {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjValueArgumentList >) : super(
+    constructor(stub: CangJiePlaceHolderStub<CjValueArgumentList>) : super(
         stub,
-        CjStubElementTypes.VALUE_ARGUMENT_LIST
+        CjStubElementTypes.VALUE_ARGUMENT_LIST,
     )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -49,7 +49,7 @@ class CjValueArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjValueArgu
 
     val arguments: List<CjValueArgument>
         get() = getStubOrPsiChildrenAsList(
-            CjStubElementTypes.VALUE_ARGUMENT
+            CjStubElementTypes.VALUE_ARGUMENT,
         )
 
     val rightParenthesis: PsiElement?
@@ -65,21 +65,26 @@ class CjValueArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjValueArgu
     fun addArgument(argument: CjValueArgument): CjValueArgument {
         return addItem(
             this,
-            arguments, argument
+            arguments,
+            argument,
         )
     }
 
     fun addArgumentAfter(argument: CjValueArgument, anchor: CjValueArgument?): CjValueArgument {
         return addItemAfter(
             this,
-            arguments, argument, anchor
+            arguments,
+            argument,
+            anchor,
         )
     }
 
     fun addArgumentBefore(argument: CjValueArgument, anchor: CjValueArgument?): CjValueArgument {
         return addItemBefore(
             this,
-            arguments, argument, anchor
+            arguments,
+            argument,
+            anchor,
         )
     }
 

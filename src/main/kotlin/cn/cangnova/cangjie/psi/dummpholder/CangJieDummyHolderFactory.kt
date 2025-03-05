@@ -33,7 +33,7 @@ import com.intellij.psi.impl.source.HolderFactory
 import com.intellij.psi.impl.source.tree.TreeElement
 import com.intellij.util.CharTable
 
-class CangJieDummyHolderFactory: HolderFactory {
+class CangJieDummyHolderFactory : HolderFactory {
     override fun createHolder(manager: PsiManager, contentElement: TreeElement?, context: PsiElement?): DummyHolder {
         return CangJieDummyHolder(manager, contentElement, context)
     }
@@ -47,19 +47,22 @@ class CangJieDummyHolderFactory: HolderFactory {
     }
 
     override fun createHolder(manager: PsiManager, language: Language?, context: PsiElement?): DummyHolder {
-        return if (language ===CangJieLanguage) CangJieDummyHolder(manager, context) else DummyHolder(
-            manager,
-            language,
-            context
-        )
-
+        return if (language === CangJieLanguage) {
+            CangJieDummyHolder(manager, context)
+        } else {
+            DummyHolder(
+                manager,
+                language,
+                context,
+            )
+        }
     }
 
     override fun createHolder(
         manager: PsiManager,
         contentElement: TreeElement?,
         context: PsiElement?,
-        table: CharTable?
+        table: CharTable?,
     ): DummyHolder {
         return CangJieDummyHolder(manager, contentElement, context, table)
     }
@@ -69,7 +72,6 @@ class CangJieDummyHolderFactory: HolderFactory {
     }
 
     override fun createHolder(manager: PsiManager, table: CharTable?, language: Language?): DummyHolder {
-
-        return CangJieDummyHolder(manager,table)
+        return CangJieDummyHolder(manager, table)
     }
 }

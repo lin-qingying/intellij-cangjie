@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjContextReceiverElementType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 
-
 class CangJieContextReceiverStubImpl(
     parent: StubElement<out PsiElement>?,
     elementType: CjContextReceiverElementType,

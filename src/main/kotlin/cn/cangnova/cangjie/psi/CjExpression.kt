@@ -30,25 +30,21 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.util.ArrayFactory
 
-
-//表达式
+// 表达式
 interface CjExpression : CjElement {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R
 
     companion object {
         @JvmStatic
-
         val EMPTY_ARRAY = arrayOf<CjExpression>()
 
         @JvmStatic
         val ARRAY_FACTORY =
             ArrayFactory { count: Int ->
                 if (count == 0) EMPTY_ARRAY else arrayOfNulls<CjExpression>(count)
-
             }
     }
 }
-
 
 abstract class CjExpressionImpl(node: ASTNode) : CjElementImpl(node), CjExpression {
 
@@ -68,7 +64,7 @@ abstract class CjExpressionImpl(node: ASTNode) : CjElementImpl(node), CjExpressi
             expression: CjExpression,
             newElement: PsiElement,
             reformat: Boolean = true,
-            rawReplaceHandler: (PsiElement) -> PsiElement
+            rawReplaceHandler: (PsiElement) -> PsiElement,
         ): PsiElement {
             val parent = expression.parent
 
@@ -81,8 +77,8 @@ abstract class CjExpressionImpl(node: ASTNode) : CjElementImpl(node), CjExpressi
                                 factory.createExpressionByPattern(
                                     "($0)",
                                     newElement,
-                                    reformat = reformat
-                                )
+                                    reformat = reformat,
+                                ),
                             )
                         }
                     }
@@ -100,4 +96,3 @@ abstract class CjExpressionImpl(node: ASTNode) : CjElementImpl(node), CjExpressi
         }
     }
 }
-

@@ -24,12 +24,11 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.name.Name.Companion.identifier
 import cn.cangnova.cangjie.psi.stubs.CangJieMacroExpressionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
 class CjMacroExpression : CjElementImplStub<CangJieMacroExpressionStub>, CjCallElement {
 
@@ -61,7 +60,6 @@ class CjMacroExpression : CjElementImplStub<CangJieMacroExpressionStub>, CjCallE
     val input: CjMacroInput? get() = findChildByType(CjNodeTypes.MACRO_INPUT)
     val attr: CjMacroAttr? get() = findChildByType(CjNodeTypes.MACRO_ATTR)
 
-
     override val calleeExpression: CjExpression?
         get() = null
     override val valueArgumentList: CjValueArgumentList?
@@ -74,6 +72,4 @@ class CjMacroExpression : CjElementImplStub<CangJieMacroExpressionStub>, CjCallE
         get() = emptyList()
     override val typeArgumentList: CjTypeArgumentList?
         get() = null
-
 }
-

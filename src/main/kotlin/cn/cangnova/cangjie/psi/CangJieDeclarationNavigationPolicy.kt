@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.ide.navigation.SourceNavigationHelper
 
-
 interface CangJieDeclarationNavigationPolicy {
     fun getOriginalElement(declaration: CjDeclaration): CjElement
     fun getNavigationElement(declaration: CjDeclaration): CjElement

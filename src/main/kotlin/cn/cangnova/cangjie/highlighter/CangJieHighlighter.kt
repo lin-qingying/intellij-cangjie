@@ -34,7 +34,6 @@ import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
-
 class CangJieHighlighter : SyntaxHighlighterBase() {
     override fun getHighlightingLexer(): Lexer {
         return CangJieHighlightingLexer()
@@ -43,7 +42,7 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
     override fun getTokenHighlights(tokenType: IElementType): Array<TextAttributesKey> {
         return pack(
             keys1[tokenType],
-            keys2[tokenType]
+            keys2[tokenType],
         )
     }
 
@@ -51,14 +50,11 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
         private val keys1: MutableMap<IElementType, TextAttributesKey> = HashMap()
         private val keys2: MutableMap<IElementType, TextAttributesKey> = HashMap()
 
-
-
         init {
 
             fillMap(keys1, CjTokens.KEYWORDS, CangJieHighlightingColors.KEYWORD)
 
-
-            fillMap(keys1,CjTokens.BASICTYPES, CangJieHighlightingColors.KEYWORD)
+            fillMap(keys1, CjTokens.BASICTYPES, CangJieHighlightingColors.KEYWORD)
 
             keys1[CjTokens.LET_KEYWORD] =
                 CangJieHighlightingColors.LET_KEYWORD
@@ -66,9 +62,6 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
                 CangJieHighlightingColors.VAR_KEYWORD
             keys1[CjTokens.CONST_KEYWORD] =
                 CangJieHighlightingColors.CONST_KEYWORD
-
-
-
 
             keys1[CjTokens.INTEGER_LITERAL] =
                 CangJieHighlightingColors.NUMBER
@@ -81,11 +74,12 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
                     TokenSet.orSet(
                         TokenSet.create(
                             CjTokens.IDENTIFIER,
-                            CjTokens.AT
-                        ),CjTokens.KEYWORDS
-                    )
+                            CjTokens.AT,
+                        ),
+                        CjTokens.KEYWORDS,
+                    ),
                 ),
-                CangJieHighlightingColors.OPERATOR_SIGN
+                CangJieHighlightingColors.OPERATOR_SIGN,
             )
             keys1[CjTokens.LPAR] = CangJieHighlightingColors.PARENTHESIS
             keys1[CjTokens.RPAR] = CangJieHighlightingColors.PARENTHESIS
@@ -126,7 +120,7 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
             fillMap(
                 keys1,
                 CDOC_HIGHLIGHT_TOKENS,
-                CangJieHighlightingColors.DOC_COMMENT
+                CangJieHighlightingColors.DOC_COMMENT,
             )
             keys1[CDocTokens.TAG_NAME] =
                 CangJieHighlightingColors.DOC_COMMENT
@@ -136,4 +130,3 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
         }
     }
 }
-

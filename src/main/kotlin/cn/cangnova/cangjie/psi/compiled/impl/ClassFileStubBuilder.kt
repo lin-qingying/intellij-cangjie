@@ -24,6 +24,8 @@
 
 package cn.cangnova.cangjie.psi.compiled.impl
 
+import cn.cangnova.cangjie.psi.compiled.ClassFileDecompilers
+import cn.cangnova.cangjie.psi.compiled.ClassFileDecompilers.Full
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileFilter
@@ -31,8 +33,6 @@ import com.intellij.psi.stubs.BinaryFileStubBuilder
 import com.intellij.psi.stubs.Stub
 import com.intellij.util.cls.ClsFormatException
 import com.intellij.util.indexing.FileContent
-import cn.cangnova.cangjie.psi.compiled.ClassFileDecompilers
-import cn.cangnova.cangjie.psi.compiled.ClassFileDecompilers.Full
 import java.util.function.Supplier
 import java.util.stream.Stream
 
@@ -52,8 +52,10 @@ class ClassFileStubBuilder : BinaryFileStubBuilder.CompositeBinaryFileStubBuilde
 
     override fun getSubBuilder(fileContent: FileContent): Full? {
         return fileContent.file
-            .computeWithPreloadedContentHint(fileContent.content,
-                Supplier { ClassFileDecompilers.instance.find(fileContent.file, Full::class.java) })
+            .computeWithPreloadedContentHint(
+                fileContent.content,
+                Supplier { ClassFileDecompilers.instance.find(fileContent.file, Full::class.java) },
+            )
     }
 
     override fun getSubBuilderVersion(decompiler: Full?): String {
@@ -64,7 +66,8 @@ class ClassFileStubBuilder : BinaryFileStubBuilder.CompositeBinaryFileStubBuilde
 
     override fun buildStubTree(fileContent: FileContent, decompiler: Full?): Stub? {
         if (decompiler == null) return null
-        return fileContent.file.computeWithPreloadedContentHint(fileContent.content,
+        return fileContent.file.computeWithPreloadedContentHint(
+            fileContent.content,
             Supplier {
                 val file = fileContent.file
                 try {
@@ -77,7 +80,8 @@ class ClassFileStubBuilder : BinaryFileStubBuilder.CompositeBinaryFileStubBuilde
                     }
                 }
                 null
-            })
+            },
+        )
     }
 
     override fun getStubVersion(): Int {
@@ -86,7 +90,7 @@ class ClassFileStubBuilder : BinaryFileStubBuilder.CompositeBinaryFileStubBuilde
 
     companion object {
         private val LOG = Logger.getInstance(
-            ClassFileStubBuilder::class.java
+            ClassFileStubBuilder::class.java,
         )
 
         const val STUB_VERSION: Int = 27

@@ -31,12 +31,14 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 
-class CjPropertyAccessor : CjDeclarationStub<CangJiePropertyAccessorStub >, CjDeclarationWithBody, CjModifierListOwner,
+class CjPropertyAccessor :
+    CjDeclarationStub<CangJiePropertyAccessorStub>,
+    CjDeclarationWithBody,
+    CjModifierListOwner,
     CjDeclarationWithInitializer {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJiePropertyAccessorStub) : super(stub, CjStubElementTypes.PROPERTY_ACCESSOR)
-
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitPropertyAccessor(this, data)
@@ -106,7 +108,7 @@ class CjPropertyAccessor : CjDeclarationStub<CangJiePropertyAccessorStub >, CjDe
             }
 
             val bodyExpression: CjExpression? = findChildByClass(
-                CjExpression::class.java
+                CjExpression::class.java,
             )
             if (bodyExpression is CjBlockExpression) {
                 return bodyExpression
@@ -134,7 +136,6 @@ class CjPropertyAccessor : CjDeclarationStub<CangJiePropertyAccessorStub >, CjDe
     override val equalsToken: PsiElement?
         get() = findChildByType(CjTokens.EQ)
 
-
     override fun hasDeclaredReturnType(): Boolean {
         return true
     }
@@ -160,7 +161,7 @@ class CjPropertyAccessor : CjDeclarationStub<CangJiePropertyAccessorStub >, CjDe
     override val initializer: CjExpression?
         get() = PsiTreeUtil.getNextSiblingOfType(
             equalsToken,
-            CjExpression::class.java
+            CjExpression::class.java,
         )
 
     override fun hasInitializer(): Boolean {
@@ -169,7 +170,7 @@ class CjPropertyAccessor : CjDeclarationStub<CangJiePropertyAccessorStub >, CjDe
 
     val property: CjProperty
         get() {
-            return parent!!.parent as   CjProperty
+            return parent!!.parent as CjProperty
         }
 
     override fun getTextOffset(): Int {

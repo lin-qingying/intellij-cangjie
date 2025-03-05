@@ -23,13 +23,13 @@
  */
 package cn.cangnova.cangjie.psi.stubs.impl
 
-import com.intellij.psi.stubs.IStubElementType
-import com.intellij.psi.stubs.StubElement
 import cn.cangnova.cangjie.psi.CjElementImplStub
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
+import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.stubs.StubElement
 
 open class CangJiePlaceHolderStubImpl<T : CjElementImplStub<out StubElement<*>>>(
     parent: StubElement<*>?,
-    elementType: IStubElementType<*, *>
+    elementType: IStubElementType<*, *>,
 ) :
     CangJieStubBaseImpl<T>(parent, elementType), CangJiePlaceHolderStub<T>

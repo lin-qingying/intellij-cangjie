@@ -45,7 +45,7 @@ object CangJieBaseResourcesIcons {
     val Abstract_extension_function: Icon = load(
         "/icons/abstract_extension_function.svg",
 
-        )
+    )
 
     /** 16x16  */
 
@@ -104,7 +104,6 @@ object CangJieBaseResourcesIcons {
 
     /** 16x16  */
 
-
     val Value: Icon = load("/icons/value.svg")
 
     /** 16x16  */
@@ -118,5 +117,4 @@ object CangJieBaseResourcesIcons {
     /** 16x16 */
     @JvmField
     val MacroCangJie: Icon = load("/icons/macroCangJie.svg")
-
 }

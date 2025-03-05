@@ -31,8 +31,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 
-
-
 class CangJieConstructorStubImpl<T : CjConstructor<T>>(
     parent: StubElement<out PsiElement>?,
     elementType: CjConstructorElementType<T>,

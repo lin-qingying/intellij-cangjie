@@ -24,9 +24,10 @@
 
 package cn.cangnova.cangjie.name
 
-object NameUtils{
+object NameUtils {
     @JvmStatic
     val CONTEXT_RECEIVER_PREFIX = "\$context_receiver"
+
     @JvmStatic
     fun contextReceiverName(index: Int): Name =
         Name.identifier("${CONTEXT_RECEIVER_PREFIX}_$index")
@@ -36,9 +37,7 @@ object NameUtils{
     fun getScriptNameForFile(filePath: String): Name =
         Name.identifier(getPackagePartClassNamePrefix(filePath.substringAfterLast('/').substringBeforeLast('.')))
 
-
     @JvmStatic
     fun getPackagePartClassNamePrefix(shortFileName: String): String =
         shortFileName.ifEmpty { "_" }
-
 }

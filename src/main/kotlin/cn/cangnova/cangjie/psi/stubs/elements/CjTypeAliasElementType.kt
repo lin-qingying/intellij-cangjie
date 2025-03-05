@@ -39,13 +39,12 @@ class CjTypeAliasElementType(debugName: String) :
     CjStubElementType<CangJieTypeAliasStub, CjTypeAlias>(
         debugName,
         CjTypeAlias::class.java,
-        CangJieTypeAliasStub::class.java
+        CangJieTypeAliasStub::class.java,
     ) {
     override fun serialize(stub: CangJieTypeAliasStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
         dataStream.writeName(stub.getFqName()?.asString())
         StubUtils.serializeClassId(dataStream, stub.getClassId())
-
     }
 
     override fun indexStub(stub: CangJieTypeAliasStub, sink: IndexSink) {
@@ -66,5 +65,4 @@ class CjTypeAliasElementType(debugName: String) :
 
         return CangJieTypeAliasStubImpl(parentStub, name, fqName, classId)
     }
-
 }

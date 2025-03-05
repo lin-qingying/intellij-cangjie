@@ -28,12 +28,12 @@ import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjConstructorCalleeExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjConstructorCalleeExpression > > {
+class CjConstructorCalleeExpression : CjExpressionImplStub<CangJiePlaceHolderStub<CjConstructorCalleeExpression>> {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjConstructorCalleeExpression >) : super(
+    constructor(stub: CangJiePlaceHolderStub<CjConstructorCalleeExpression>) : super(
         stub,
-        CjStubElementTypes.CONSTRUCTOR_CALLEE
+        CjStubElementTypes.CONSTRUCTOR_CALLEE,
     )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {

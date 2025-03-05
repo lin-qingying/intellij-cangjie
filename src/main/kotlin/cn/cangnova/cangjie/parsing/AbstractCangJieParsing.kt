@@ -36,7 +36,6 @@ import org.jetbrains.annotations.TestOnly
 
 abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBuilder, val isLazy: Boolean = true) {
 
-
     /**
      * 获取标记流中的最后一个标记类型
      *
@@ -81,11 +80,11 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
     }
 
     protected fun errorBefore(message: String?, marker: PsiBuilder.Marker?) {
-////        PsiBuilder.Marker err = marker.precede();
+// //        PsiBuilder.Marker err = marker.precede();
 //
 //        marker.error(message);
 //
-////        err.done(ERROR_ELEMENT);
+// //        err.done(ERROR_ELEMENT);
     }
 
     /**
@@ -179,14 +178,12 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
         err.error(message)
     }
 
-
     /**
      * 报告错误，但不消耗标记
      */
     protected fun errorWithoutAdvancing(message: String) {
         mark().error(message)
     }
-
 
     /**
      * 是否到文件结尾
@@ -236,7 +233,6 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
         return if ((elementType is CjToken)) elementType.tokenId else CjTokens.INVALID_Id
     }
 
-
     /**
      * 获取当前标记的类型
      *
@@ -245,7 +241,6 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
     protected fun tt(): IElementType? {
         return builder.tokenType
     }
-
 
     protected fun rawLookup(steps: Int): IElementType? {
         return builder.rawLookup(steps)
@@ -353,8 +348,6 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
         return builder.lookAhead(k)
     }
 
-
-
     /**
      * 如果当前标记与指定的标记匹配，则该方法将消耗该标记并返回true。否则，该方法将不会消耗标记并返回false
      *
@@ -404,7 +397,6 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
             advance()
         }
     }
-
 
     protected fun errorUntil(message: String?, tokenSet: TokenSet) {
         assert(tokenSet.contains(CjTokens.LBRACE)) { "Cannot include LBRACE into error element!" }
@@ -470,7 +462,7 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
         while (!eof()) {
             if (pattern.processToken(
                     builder.currentOffset,
-                    pattern.isTopLevel(openAngleBrackets, openBrackets, openBraces, openParentheses)
+                    pattern.isTopLevel(openAngleBrackets, openBrackets, openBraces, openParentheses),
                 )
             ) {
                 break
@@ -534,7 +526,7 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
 
     protected inner class At @JvmOverloads constructor(
         private val lookFor: IElementType,
-        private val topLevelOnly: Boolean = true
+        private val topLevelOnly: Boolean = true,
     ) :
         AbstractTokenStreamPredicate() {
         override fun matching(topLevel: Boolean): Boolean {
@@ -544,7 +536,7 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
 
     protected inner class AtSet @JvmOverloads constructor(
         private val lookFor: TokenSet,
-        private val topLevelOnly: TokenSet = lookFor
+        private val topLevelOnly: TokenSet = lookFor,
     ) :
         AbstractTokenStreamPredicate() {
         override fun matching(topLevel: Boolean): Boolean {
@@ -591,12 +583,12 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
         protected fun closeDeclarationWithCommentBinders(
             marker: PsiBuilder.Marker,
             elementType: IElementType,
-            precedingNonDocComments: Boolean
+            precedingNonDocComments: Boolean,
         ) {
             marker.done(elementType)
             marker.setCustomEdgeTokenBinders(
                 if (precedingNonDocComments) PrecedingCommentsBinder else PrecedingDocCommentsBinder,
-                TrailingCommentsBinder
+                TrailingCommentsBinder,
             )
         }
 
@@ -614,6 +606,5 @@ abstract class AbstractCangJieParsing1(val builder: SemanticWhitespaceAwarePsiBu
                 marker.drop()
             }
         }
-
     }
 }

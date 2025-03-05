@@ -36,14 +36,14 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjAnnotationEntryElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieAnnotationEntryStub , CjAnnotationEntry >(
+    CjStubElementType<CangJieAnnotationEntryStub, CjAnnotationEntry>(
         debugName,
         CjAnnotationEntry::class.java,
-        CangJieAnnotationEntryStub::class.java
+        CangJieAnnotationEntryStub::class.java,
     ) {
     override fun createStub(
         psi: CjAnnotationEntry,
-        parentStub: StubElement<out PsiElement?>
+        parentStub: StubElement<out PsiElement?>,
     ): CangJieAnnotationEntryStub {
         val shortName = psi.shortName
         val resultName = shortName?.asString()

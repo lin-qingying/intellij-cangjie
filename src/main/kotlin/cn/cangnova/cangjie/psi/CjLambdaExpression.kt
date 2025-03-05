@@ -24,8 +24,8 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes.FUNCTION_LITERAL
-import cn.cangnova.cangjie.CjNodeTypes.LAMBDA_EXPRESSION
+import cn.cangnova.cangjie.psi.CjNodeTypes.FUNCTION_LITERAL
+import cn.cangnova.cangjie.psi.CjNodeTypes.LAMBDA_EXPRESSION
 import cn.cangnova.cangjie.lexer.CjTokens.LBRACE
 import cn.cangnova.cangjie.lexer.CjTokens.RBRACE
 import cn.cangnova.cangjie.psi.psiUtil.getContainingCjFile
@@ -35,12 +35,11 @@ import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.impl.source.tree.LazyParseablePsiElement
 
 class CjLambdaExpression(text: CharSequence?) :
-    LazyParseablePsiElement( LAMBDA_EXPRESSION, text),
-   CjExpression {
-
+    LazyParseablePsiElement(LAMBDA_EXPRESSION, text),
+    CjExpression {
 
     val functionLiteral: CjFunctionLiteral
-        get() = findChildByType( FUNCTION_LITERAL)?.getPsi(CjFunctionLiteral::class.java)!!
+        get() = findChildByType(FUNCTION_LITERAL)?.getPsi(CjFunctionLiteral::class.java)!!
 
     val valueParameters: List<CjParameter>
         get() = functionLiteral.valueParameters
@@ -59,11 +58,10 @@ class CjLambdaExpression(text: CharSequence?) :
     }
 
     val leftCurlyBrace: ASTNode
-        get() = functionLiteral.node.findChildByType( LBRACE)!!
+        get() = functionLiteral.node.findChildByType(LBRACE)!!
 
     val rightCurlyBrace: ASTNode?
-        get() = functionLiteral.node.findChildByType( RBRACE)
-
+        get() = functionLiteral.node.findChildByType(RBRACE)
 
     override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
         CjPsiUtil.visitChildren<D>(this, visitor, data)
@@ -71,7 +69,6 @@ class CjLambdaExpression(text: CharSequence?) :
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitLambdaExpression(this, data)
-
     }
 
     override fun accept(visitor: PsiElementVisitor) {
@@ -87,18 +84,14 @@ class CjLambdaExpression(text: CharSequence?) :
     }
 
     override fun getPsiOrParent(): CjElement {
-      return this
+        return this
     }
 
     override fun getContainingCjFile(): CjFile {
-
         return (this as LazyParseablePsiElement).getContainingCjFile()
-
     }
 
-
-
-    @Suppress("unused") //keep for compatibility with potential plugins
+    @Suppress("unused") // keep for compatibility with potential plugins
     fun shouldChangeModificationCount(place: PsiElement?): Boolean {
         return false
     }

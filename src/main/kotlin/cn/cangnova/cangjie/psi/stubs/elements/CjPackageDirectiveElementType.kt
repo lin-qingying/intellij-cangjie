@@ -34,14 +34,14 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjPackageDirectiveElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJiePackageDirectiveStub , CjPackageDirective >(
+    CjStubElementType<CangJiePackageDirectiveStub, CjPackageDirective>(
         debugName,
         CjPackageDirective::class.java,
-        CangJiePackageDirectiveStub::class.java
+        CangJiePackageDirectiveStub::class.java,
     ) {
     override fun createStub(
         psi: CjPackageDirective,
-        parentStub: StubElement<out PsiElement?>
+        parentStub: StubElement<out PsiElement?>,
     ): CangJiePackageDirectiveStub {
         return CangJiePackageDirectiveStubImpl(parentStub)
     }

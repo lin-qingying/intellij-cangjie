@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.psi.psiUtil.ClassIdCalculator
@@ -34,7 +33,6 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.navigation.ItemPresentationProviders
 import com.intellij.psi.PsiElement
-
 
 class CjTypeAlias : CjTypeParameterListOwnerStub<CangJieTypeAliasStub>, CjNamedDeclaration, CjClassLikeDeclaration {
     constructor(node: ASTNode) : super(node)
@@ -54,10 +52,9 @@ class CjTypeAlias : CjTypeParameterListOwnerStub<CangJieTypeAliasStub>, CjNamedD
     fun getTypeAliasKeyword(): PsiElement? =
         findChildByType(CjTokens.TYPE_KEYWORD)
 
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R  {
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitTypeAlias(this, data)
     }
-
 
     @IfNotParsed
     fun getTypeReference(): CjTypeReference? {
@@ -69,7 +66,4 @@ class CjTypeAlias : CjTypeParameterListOwnerStub<CangJieTypeAliasStub>, CjNamedD
             findChildByType(CjNodeTypes.TYPE_REFERENCE)
         }
     }
-
 }
-
-

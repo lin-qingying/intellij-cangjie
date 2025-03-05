@@ -25,15 +25,14 @@
 package cn.cangnova.cangjie.psi.psiUtil
 
 import cn.cangnova.cangjie.doc.psi.CDoc
-import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.CjDeclaration
 import cn.cangnova.cangjie.psi.CjDeclarationModifierList
-
+import cn.cangnova.cangjie.psi.CjFile
 
 fun findDocComment(declaration: CjDeclaration): CDoc? {
     val containingFile = declaration.containingFile
     if (containingFile is CjFile && containingFile.isCompiled) {
-        //can't use containingCjFile due to non-physical code fragments, e.g. ssr
+        // can't use containingCjFile due to non-physical code fragments, e.g. ssr
         return null
     }
     return declaration.allChildren

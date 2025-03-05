@@ -39,14 +39,19 @@ class CjParameterElementType(debugName: @NonNls String) :
     CjStubElementType<CangJieParameterStub, CjParameter>(
         debugName,
         CjParameter::class.java,
-        CangJieParameterStub::class.java
+        CangJieParameterStub::class.java,
     ) {
     override fun createStub(psi: CjParameter, parentStub: StubElement<*>?): CangJieParameterStub {
         val fqName = psi.fqName
         val fqNameRef = StringRef.fromString(fqName?.asString())
         return CangJieParameterStubImpl(
-            parentStub, fqNameRef, StringRef.fromString(psi.name),
-            psi.isMutable, psi.hasLetOrVar(), psi.hasDefaultValue(), null
+            parentStub,
+            fqNameRef,
+            StringRef.fromString(psi.name),
+            psi.isMutable,
+            psi.hasLetOrVar(),
+            psi.hasDefaultValue(),
+            null,
         )
     }
 
@@ -70,8 +75,13 @@ class CjParameterElementType(debugName: @NonNls String) :
         val fqName = dataStream.readName()
 
         return CangJieParameterStubImpl(
-            parentStub, fqName, name, isMutable, hasValOrValNode, hasDefaultValue,
-            dataStream.readNameString()
+            parentStub,
+            fqName,
+            name,
+            isMutable,
+            hasValOrValNode,
+            hasDefaultValue,
+            dataStream.readNameString(),
         )
     }
 

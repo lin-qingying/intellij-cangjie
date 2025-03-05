@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import com.intellij.psi.PsiElement
 
-
 interface CjLightElement<out T : CjElement, out D : PsiElement> : PsiElement {
     val cangjieOrigin: T?
 

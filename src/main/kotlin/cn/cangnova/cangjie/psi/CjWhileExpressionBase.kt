@@ -24,14 +24,10 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
-
-
 
 abstract class CjWhileExpressionBase(node: ASTNode) : CjLoopExpression(node) {
     @get: IfNotParsed
     val condition: CjExpression?
         get() = findExpressionUnder(CjNodeTypes.CONDITION)
 }
-

@@ -24,16 +24,14 @@
 
 package cn.cangnova.cangjie.psi.stubs.impl
 
-import com.intellij.psi.stubs.StubElement
-import com.intellij.util.io.StringRef
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjImportDirective
 import cn.cangnova.cangjie.psi.CjImportDirectiveItem
-
 import cn.cangnova.cangjie.psi.stubs.CangJieImportDirectiveItemStub
 import cn.cangnova.cangjie.psi.stubs.CangJieImportDirectiveStub
-
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.psi.stubs.StubElement
+import com.intellij.util.io.StringRef
 
 class CangJieImportDirectiveItemStubImpl(
     parent: StubElement<*>,
@@ -50,33 +48,20 @@ class CangJieImportDirectiveItemStubImpl(
         return if (fqNameString != null) FqName(fqNameString) else null
     }
 
-
-
     override fun isValid(): Boolean = isValid
-
 
     override fun getPackageFqName(): FqName {
         return psi.getContainingCjFile().packageFqName
-
     }
-
 }
-
 
 class CangJieImportDirectiveStubImpl(
     parent: StubElement<*>,
 
-
-
-) : CangJieStubBaseImpl<CjImportDirective>(parent, CjStubElementTypes. IMPORT_DIRECTIVE),
+) : CangJieStubBaseImpl<CjImportDirective>(parent, CjStubElementTypes.IMPORT_DIRECTIVE),
     CangJieImportDirectiveStub {
-
-
-
 
     override fun getPackageFqName(): FqName {
         return psi.getContainingCjFile().packageFqName
-
     }
-
 }

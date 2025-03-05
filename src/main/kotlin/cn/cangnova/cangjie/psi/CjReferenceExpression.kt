@@ -24,5 +24,4 @@
 
 package cn.cangnova.cangjie.psi
 
-
 interface CjReferenceExpression : CjExpression

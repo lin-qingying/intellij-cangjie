@@ -24,19 +24,19 @@
 
 package cn.cangnova.cangjie.parsing
 
-import com.intellij.extapi.psi.ASTWrapperPsiElement
-import cn.cangnova.cangjie.CjNodeType
+import cn.cangnova.cangjie.psi.CjNodeType
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.doc.lexer.CDocTokens
 import cn.cangnova.cangjie.doc.parser.CDocElementType
 import cn.cangnova.cangjie.doc.psi.impl.CDocLink
 import cn.cangnova.cangjie.lang.CangJieLanguage
-
 import cn.cangnova.cangjie.lexer.CangJieLexer
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.stubs.elements.CjFileElementType
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementType
+import com.intellij.extapi.psi.ASTWrapperPsiElement
 import com.intellij.lang.ASTNode
 import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.lang.ParserDefinition
@@ -49,14 +49,11 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
-import cn.cangnova.cangjie.CjNodeTypes
-
 
 class CangJieParserDefinition : ParserDefinition {
     override fun createLexer(project: Project?): Lexer = CangJieLexer()
 
     override fun createParser(project: Project?): PsiParser = CangJieParser(project!!)
-
 
     /**
      *  如果使用bnf 需要把 [cn.cangnova.cangjie.psi.stubs.elements.CjFileElementType]的[doParseContents]方法注释掉
@@ -70,7 +67,6 @@ class CangJieParserDefinition : ParserDefinition {
 
     override fun getFileNodeType(): IFileElementType = CjFileElementType.INSTANCE
 
-
     val EOL_COMMENT = CjToken("EOL_COMMENT", 4)
     val BLOCK_COMMENT = CjToken("BLOCK_COMMENT", 3)
     val DOC_COMMENT: IElementType = CDocTokens.CDOC
@@ -80,23 +76,20 @@ class CangJieParserDefinition : ParserDefinition {
         EOL_COMMENT,
         BLOCK_COMMENT,
         DOC_COMMENT,
-        SHEBANG_COMMENT
+        SHEBANG_COMMENT,
     )
 
     override fun getCommentTokens(): TokenSet = CjTokens.COMMENTS
-
 
     override fun getWhitespaceTokens(): TokenSet = CjTokens.WHITESPACES
 
     override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
 
-
     override fun createElement(astNode: ASTNode): PsiElement {
         return when (val elementType = astNode.elementType) {
-
             is CjStubElementType<*, *> -> elementType.createPsiFromAst(astNode)
             CjNodeTypes.TYPE_CODE_FRAGMENT, CjNodeTypes.EXPRESSION_CODE_FRAGMENT, CjNodeTypes.BLOCK_CODE_FRAGMENT -> ASTWrapperPsiElement(
-                astNode
+                astNode,
             )
 
             is CDocElementType -> elementType.createPsi(astNode)
@@ -105,13 +98,9 @@ class CangJieParserDefinition : ParserDefinition {
         }
     }
 
-
     override fun createFile(viewProvider: FileViewProvider): PsiFile {
-
-
         return CjFile(viewProvider, false)
     }
-
 
     object Util {
         @JvmField
@@ -122,5 +111,4 @@ class CangJieParserDefinition : ParserDefinition {
         val instance: CangJieParserDefinition
             get() = LanguageParserDefinitions.INSTANCE.forLanguage(CangJieLanguage) as CangJieParserDefinition
     }
-
 }

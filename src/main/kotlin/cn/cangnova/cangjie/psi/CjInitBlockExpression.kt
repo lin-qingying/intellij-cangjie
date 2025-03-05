@@ -24,14 +24,13 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes.INIT_BLOCK
+import cn.cangnova.cangjie.psi.CjNodeTypes.INIT_BLOCK
 import com.intellij.openapi.diagnostic.Logger
 
 class CjInitBlockExpression(text: CharSequence?) : CjBlockExpression(INIT_BLOCK, text) {
     companion object {
         val LOG = Logger.getInstance(CjInitBlockExpression::class.java)
     }
-
 
     fun replaceImplicitDelegationCallWithExplicit(isThis: Boolean): CjConstructorDelegationCall {
         val psiFactory = CjPsiFactory(project)
@@ -46,15 +45,13 @@ class CjInitBlockExpression(text: CharSequence?) : CjBlockExpression(INIT_BLOCK,
 
         return addAfter(
             psiFactory.creareDelegatedSuperTypeEntry("$delegationName()"),
-            whiteSpace.nextSibling
+            whiteSpace.nextSibling,
         ) as CjConstructorDelegationCall
     }
-
 
     fun getDelegationCall(): CjConstructorDelegationCall =
         getDelegationCallOrNull()!!
 
     fun getDelegationCallOrNull(): CjConstructorDelegationCall? =
         findChildByClass(CjConstructorDelegationCall::class.java)
-
 }

@@ -31,9 +31,9 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.util.IncorrectOperationException
 
-class CjConstantExpression
+class CjConstantExpression :
 
-    : CjElementImplStub<CangJieConstantExpressionStub>, CjExpression {
+    CjElementImplStub<CangJieConstantExpressionStub>, CjExpression {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieConstantExpressionStub) : super(stub, kindToConstantElementType(stub.kind()))
@@ -42,12 +42,11 @@ class CjConstantExpression
         return visitor.visitConstantExpression(this, data)
     }
 
-
     @Throws(IncorrectOperationException::class)
     override fun replace(newElement: PsiElement): PsiElement {
         return replaceExpression(this, newElement, true) { newElement: PsiElement? ->
             super.replace(
-                newElement!!
+                newElement!!,
             )
         }
     }

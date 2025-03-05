@@ -1,0 +1,50 @@
+build:
+  maxIssues: 500
+  weights:
+    complexity: 1
+    formatting: 1
+    LongParameterList: 1
+    style: 1
+
+complexity:
+  TooManyFunctions:
+    thresholdInFiles: 30
+    thresholdInClasses: 30
+    thresholdInInterfaces: 20
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 10
+  CyclomaticComplexMethod:
+    threshold: 20
+  LargeClass:
+    threshold: 800
+  ComplexCondition:
+    threshold: 6
+  NestedBlockDepth:
+    threshold: 5
+
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    maxLineLength: 150
+  WildcardImport:
+    active: false
+  ReturnCount:
+    active: false
+
+comments:
+  active: false
+  
+naming:
+  active: true
+  FunctionNaming:
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+  VariableNaming:
+    variablePattern: '[a-zA-Z][a-zA-Z0-9]*'
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  SwallowedException:
+    active: false 

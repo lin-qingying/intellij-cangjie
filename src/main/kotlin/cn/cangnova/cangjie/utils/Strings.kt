@@ -24,14 +24,11 @@
 
 package cn.cangnova.cangjie.utils
 
-
-
-
 import com.intellij.openapi.util.text.StringUtil
 
-private val CARET_MARKER = "<~!!~>"
-private val BEGIN_MARKER = "<~BEGIN~>"
-private val END_MARKER = "<~END~>"
+private const val CARET_MARKER = "<~!!~>"
+private const val BEGIN_MARKER = "<~BEGIN~>"
+private const val END_MARKER = "<~END~>"
 fun String.collapseSpaces(): String {
     val builder = StringBuilder()
     var haveSpaces = false
@@ -69,6 +66,5 @@ private fun position(str: CharSequence, offset: Int): String {
     val line = StringUtil.offsetToLineNumber(str, offset) + 1
     return "(line: $line)"
 }
-
 
 fun join(collection: Iterable<Any>, separator: String) = collection.joinToString(separator)

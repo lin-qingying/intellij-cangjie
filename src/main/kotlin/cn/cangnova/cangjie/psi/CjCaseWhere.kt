@@ -24,5 +24,4 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
 

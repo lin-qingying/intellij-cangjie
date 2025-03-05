@@ -24,20 +24,20 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.stubs.CangJieConstructorStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.lexer.CjTokens
 
-//从构造函数
+// 从构造函数
 
 class CjSecondaryConstructor : CjConstructor<CjSecondaryConstructor> {
 
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieConstructorStub<CjSecondaryConstructor>) : super(
         stub,
-        CjStubElementTypes.SECONDARY_CONSTRUCTOR
+        CjStubElementTypes.SECONDARY_CONSTRUCTOR,
     )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R = visitor.visitSecondaryConstructor(this, data)
@@ -48,8 +48,5 @@ class CjSecondaryConstructor : CjConstructor<CjSecondaryConstructor> {
     override val isConst: Boolean
         get() = hasModifier(CjTokens.CONST_KEYWORD)
 
-
     override fun getInitKeyword() = notNullChild<PsiElement>(super.getInitKeyword())
-
-
 }

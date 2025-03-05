@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.psi
 
 interface CjAnnotated : CjElement {
-    val annotations: List<CjAnnotation >
+    val annotations: List<CjAnnotation>
 
-    val annotationEntries: List<CjAnnotationEntry >
+    val annotationEntries: List<CjAnnotationEntry>
 }

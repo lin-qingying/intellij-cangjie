@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.psi.CjStringTemplateExpression
 import com.intellij.lang.ASTNode
 import org.jetbrains.annotations.NonNls
 
-
 class CjStringTemplateExpressionElementType(@NonNls debugName: String) :
     CjPlaceHolderStubElementType<CjStringTemplateExpression>(debugName, CjStringTemplateExpression::class.java) {
 

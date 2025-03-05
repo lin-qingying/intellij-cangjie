@@ -24,19 +24,18 @@
 
 package cn.cangnova.cangjie.psi.psiUtil
 
+import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens.*
 import cn.cangnova.cangjie.psi.*
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
-import cn.cangnova.cangjie.lexer.CjKeywordToken
 
 inline fun <reified T : Any> Sequence<*>.firstIsInstanceOrNull(): T? {
     for (element in this) if (element is T) return element
     return null
 }
-
 
 fun addModifier(owner: CjModifierListOwner, modifier: CjKeywordToken) {
     val modifierList = owner.modifierList
@@ -55,11 +54,9 @@ private fun CjModifierListOwner.addModifierList(newModifierList: CjModifierList)
     return addBefore(newModifierList, anchor) as CjModifierList
 }
 
-
 private fun createModifierList(text: String, owner: CjModifierListOwner): CjModifierList {
     return owner.addModifierList(CjPsiFactory(owner.project).createModifierList(text))
 }
-
 
 internal fun addModifier(modifierList: CjModifierList, modifier: CjKeywordToken) {
     if (modifierList.hasModifier(modifier)) return
@@ -68,7 +65,6 @@ internal fun addModifier(modifierList: CjModifierList, modifier: CjKeywordToken)
     val modifierToReplace = MODIFIERS_TO_REPLACE[modifier]
         ?.mapNotNull { modifierList.getModifier(it) }
         ?.firstOrNull()
-
 
     if (modifierToReplace != null && modifierList.firstChild == modifierList.lastChild) {
         modifierToReplace.replace(newModifier)
@@ -129,7 +125,7 @@ fun sortModifiers(modifiers: List<CjModifierKeywordToken>): List<CjModifierKeywo
 private val MODIFIERS_TO_REPLACE = mapOf(
     OVERRIDE_KEYWORD to listOf(OPEN_KEYWORD),
     ABSTRACT_KEYWORD to listOf(OPEN_KEYWORD),
-    OPEN_KEYWORD to listOf( ABSTRACT_KEYWORD),
+    OPEN_KEYWORD to listOf(ABSTRACT_KEYWORD),
 //    FINAL_KEYWORD to listOf(ABSTRACT_KEYWORD, OPEN_KEYWORD),
     PUBLIC_KEYWORD to listOf(PROTECTED_KEYWORD, PRIVATE_KEYWORD, INTERNAL_KEYWORD),
     PROTECTED_KEYWORD to listOf(PUBLIC_KEYWORD, PRIVATE_KEYWORD, INTERNAL_KEYWORD),
@@ -140,7 +136,7 @@ private val MODIFIERS_TO_REPLACE = mapOf(
 val MODIFIERS_ORDER = listOf(
     PUBLIC_KEYWORD, PROTECTED_KEYWORD, PRIVATE_KEYWORD, INTERNAL_KEYWORD,
 
- OPEN_KEYWORD, ABSTRACT_KEYWORD, SEALED_KEYWORD,
+    OPEN_KEYWORD, ABSTRACT_KEYWORD, SEALED_KEYWORD,
     CONST_KEYWORD,
 
     OVERRIDE_KEYWORD,
@@ -148,6 +144,5 @@ val MODIFIERS_ORDER = listOf(
     ENUM_KEYWORD,
 
     OPERATOR_KEYWORD,
-
 
 )

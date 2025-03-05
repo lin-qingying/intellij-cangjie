@@ -28,12 +28,10 @@ import cn.cangnova.cangjie.icon.CangJieIcons
 import com.intellij.openapi.fileTypes.LanguageFileType
 import javax.swing.Icon
 
-
 open class CangJieFileType : LanguageFileType(CangJieLanguage) {
     override fun getName(): String = CangJieLanguage.displayName
 
     override fun getDescription(): String = name
-
 
     override fun getDefaultExtension(): String = EXTENSION
 
@@ -45,5 +43,4 @@ open class CangJieFileType : LanguageFileType(CangJieLanguage) {
         val DOT_DEFAULT_EXTENSION: String = ".$EXTENSION"
         val INSTANCE = CangJieFileType()
     }
-
 }

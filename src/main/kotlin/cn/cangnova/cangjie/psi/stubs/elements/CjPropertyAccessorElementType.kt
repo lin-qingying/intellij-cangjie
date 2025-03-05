@@ -33,10 +33,10 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjPropertyAccessorElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJiePropertyAccessorStub , CjPropertyAccessor >(
+    CjStubElementType<CangJiePropertyAccessorStub, CjPropertyAccessor>(
         debugName,
         CjPropertyAccessor::class.java,
-        CangJiePropertyAccessorStub::class.java
+        CangJiePropertyAccessorStub::class.java,
     ) {
     override fun createStub(psi: CjPropertyAccessor, parentStub: StubElement<*>?): CangJiePropertyAccessorStub {
         return CangJiePropertyAccessorStubImpl(parentStub, psi.isGetter, psi.hasBody(), psi.hasBlockBody())

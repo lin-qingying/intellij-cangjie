@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
+import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.psiUtil.addModifier
 import cn.cangnova.cangjie.psi.stubs.CangJieConstructorStub
@@ -32,14 +32,13 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
-import cn.cangnova.cangjie.lexer.CjKeywordToken
 
-//主构造函数
+// 主构造函数
 class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieConstructorStub<CjPrimaryConstructor>) : super(stub, CjStubElementTypes.PRIMARY_CONSTRUCTOR)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R  = visitor.visitPrimaryConstructor(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R = visitor.visitPrimaryConstructor(this, data)
 
     override fun getContainingTypeStatement() = parent?.parent as CjTypeStatement
 
@@ -74,10 +73,8 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
     override fun getIdentifyingElement(): PsiElement? {
         return identifier
     }
-      val identifier: PsiElement?  get() = findChildByType(CjTokens.IDENTIFIER)
+    val identifier: PsiElement? get() = findChildByType(CjTokens.IDENTIFIER)
     override fun getName(): String? {
-
-
         return identifier ?.text
     }
     override fun removeModifier(modifier: CjKeywordToken) {
@@ -89,5 +86,4 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
     override fun toString(): String {
         return node.elementType.toString()
     }
-
 }

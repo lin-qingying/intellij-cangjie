@@ -31,14 +31,10 @@ import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
 import org.jetbrains.annotations.NotNull
 
-abstract class CDocElementImpl(node:ASTNode): ASTWrapperPsiElement(node), CDocElement {
-
+abstract class CDocElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CDocElement {
 
     @NotNull
     override fun getLanguage(): Language = CangJieLanguage
 
-
     override fun toString(): String = node.elementType.toString()
-
-
 }

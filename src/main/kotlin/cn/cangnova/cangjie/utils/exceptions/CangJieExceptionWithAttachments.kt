@@ -29,8 +29,6 @@ import com.intellij.openapi.diagnostic.Attachment
 import com.intellij.openapi.diagnostic.ExceptionWithAttachments
 import java.nio.charset.StandardCharsets
 
-
-
 interface CangJieExceptionWithAttachments : ExceptionWithAttachments {
     val mutableAttachments: MutableList<Attachment>
 
@@ -89,4 +87,3 @@ open class CangJieIllegalArgumentExceptionWithAttachments : IllegalArgumentExcep
         withAttachmentsFrom(cause)
     }
 }
-

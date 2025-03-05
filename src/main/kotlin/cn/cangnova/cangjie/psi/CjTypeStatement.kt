@@ -35,21 +35,21 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.util.PsiTreeUtil
 
-
 abstract class CjTypeStatement :
-    CjTypeParameterListOwnerStub<CangJieTypeStatementStub<out CjTypeStatement>>, CjDeclarationContainer,
+    CjTypeParameterListOwnerStub<CangJieTypeStatementStub<out CjTypeStatement>>,
+    CjDeclarationContainer,
     CjNamedDeclaration,
-    CjPureTypeStatement, CjClassLikeDeclaration {
+    CjPureTypeStatement,
+    CjClassLikeDeclaration {
 
     companion object {
         val EMPTY_ARRAY: Array<CjTypeStatement?> = arrayOfNulls(0)
-
     }
 
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieTypeStatementStub<out CjTypeStatement>, nodeType: IStubElementType<*, *>) : super(
         stub,
-        nodeType
+        nodeType,
     )
 
     override val superTypeListEntries: List<CjSuperTypeListEntry>
@@ -72,7 +72,6 @@ abstract class CjTypeStatement :
 
     fun getSuperTypeList(): CjSuperTypeList? = getStubOrPsiChild(CjStubElementTypes.SUPER_TYPE_LIST)
 
-
     inline fun <reified T : CjDeclaration> addDeclaration(declaration: T): T {
         val body = getOrCreateBody()
         val anchor = PsiTreeUtil.skipSiblingsBackward(body.rBrace ?: body.lastChild!!, PsiWhiteSpace::class.java)
@@ -92,10 +91,8 @@ abstract class CjTypeStatement :
     override val primaryConstructor: CjPrimaryConstructor?
         get() = body?.getStubOrPsiChild(CjStubElementTypes.PRIMARY_CONSTRUCTOR)
 
-
     override val primaryConstructorModifierList: CjModifierList?
         get() = primaryConstructor?.modifierList
-
 
     override val primaryConstructorParameters: List<CjParameter>
         get() = getPrimaryConstructorParameterList()?.parameters.orEmpty()
@@ -115,17 +112,16 @@ abstract class CjTypeStatement :
 
     fun getContextReceiverList(): CjContextReceiverList? = getStubOrPsiChild(CjStubElementTypes.CONTEXT_RECEIVER_LIST)
 
-
     override val contextReceivers: List<CjContextReceiver>
-        get() =         getContextReceiverList()?.let { return it.contextReceivers() } ?: emptyList()
+        get() = getContextReceiverList()?.let { return it.contextReceivers() } ?: emptyList()
 
     private val BODY_TYPE = listOf(
         CjStubElementTypes.CLASS_BODY,
         CjStubElementTypes.INTERFACE_BODY,
-        CjStubElementTypes.ENUM_BODY
+        CjStubElementTypes.ENUM_BODY,
     )
 
-    override val body: CjAbstractClassBody?get()   {
+    override val body: CjAbstractClassBody?get() {
         for (type in BODY_TYPE) {
             val body = getStubOrPsiChild(type)
             if (body != null) {
@@ -135,8 +131,6 @@ abstract class CjTypeStatement :
         return null // 如果没有找到匹配的类型，则返回 null
     }
 
-
-
     override fun getClassId(): ClassId? {
         stub?.let { return it.getClassId() }
         return ClassIdCalculator.calculateClassId(this)
@@ -144,26 +138,21 @@ abstract class CjTypeStatement :
 
     fun isExtend(): Boolean {
         return this is CjExtend
-
     }
 
     fun isStruct(): Boolean {
         return this is CjStruct
-
     }
 
     fun isInterface(): Boolean {
         return this is CjInterface
-
     }
 
     fun isSealed(): Boolean = hasModifier(CjTokens.SEALED_KEYWORD)
 
     fun isEnum(): Boolean {
         return this is CjEnum
-
     }
-
 }
 
 fun CjTypeStatement.getOrCreateBody(): CjAbstractClassBody {

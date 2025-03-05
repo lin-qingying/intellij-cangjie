@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjStructElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieStructStub , CjStruct >(debugName, CjStruct::class.java, CangJieStructStub::class.java) {
+    CjStubElementType<CangJieStructStub, CjStruct>(debugName, CjStruct::class.java, CangJieStructStub::class.java) {
     override fun indexStub(stub: CangJieStructStub, sink: IndexSink) {
         getInstance().indexStruct(stub, sink)
     }
@@ -52,7 +52,6 @@ class CjStructElementType(debugName: @NonNls String) :
     override fun createPsi(stub: CangJieStructStub): CjStruct {
         return CjStruct(stub)
     }
-
 
     override fun createPsiFromAst(node: ASTNode): CjStruct {
         return CjStruct(node)
@@ -64,11 +63,13 @@ class CjStructElementType(debugName: @NonNls String) :
         val superNames = psi.getSuperNames()
         val classId = createNestedClassId(parentStub, psi)
         return CangJieStructStubImpl(
-            CjStubElementTypes.STRUCT, parentStub,
-            StringRef.fromString(fqName?.asString()), classId,
+            CjStubElementTypes.STRUCT,
+            parentStub,
+            StringRef.fromString(fqName?.asString()),
+            classId,
             StringRef.fromString(psi.name),
             wrapStrings(superNames),
-            psi.isLocal
+            psi.isLocal,
         )
     }
 
@@ -80,7 +81,6 @@ class CjStructElementType(debugName: @NonNls String) :
         dataStream.writeName(fqName?.asString())
 
         serializeClassId(dataStream, stub.getClassId())
-
 
         dataStream.writeBoolean(stub.isLocal())
 
@@ -99,7 +99,6 @@ class CjStructElementType(debugName: @NonNls String) :
 
         val classId = deserializeClassId(dataStream)
 
-
         val isLocal = dataStream.readBoolean()
 
         //        bool isTopLevel = dataStream.readBoolean();
@@ -110,8 +109,13 @@ class CjStructElementType(debugName: @NonNls String) :
         }
 
         return CangJieStructStubImpl(
-            CjStubElementTypes.STRUCT, parentStub, qualifiedName, classId, name, superNames,
-            isLocal
+            CjStubElementTypes.STRUCT,
+            parentStub,
+            qualifiedName,
+            classId,
+            name,
+            superNames,
+            isLocal,
         )
     }
 

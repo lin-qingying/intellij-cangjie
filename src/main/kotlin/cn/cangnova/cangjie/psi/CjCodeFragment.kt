@@ -35,21 +35,19 @@ import com.intellij.psi.impl.source.tree.FileElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.testFramework.LightVirtualFile
-import cn.cangnova.cangjie.lang.CangJieLanguage
 import java.util.LinkedHashSet
-
 
 abstract class CjCodeFragment(
     viewProvider: FileViewProvider,
     imports: String?, // Should be separated by KtCodeFragment.IMPORT_SEPARATOR
     elementType: IElementType,
-    private val context: PsiElement?
+    private val context: PsiElement?,
 ) : CjFile(
-    viewProvider, false
-), CjCodeFragmentBase {
+    viewProvider,
+    false,
+),
+    CjCodeFragmentBase {
     private var viewProvider = super.getViewProvider() as SingleRootFileViewProvider
-
-
 
     constructor(
         project: Project,
@@ -57,7 +55,7 @@ abstract class CjCodeFragment(
         text: CharSequence,
         imports: String?,
         elementType: IElementType,
-        context: PsiElement?
+        context: PsiElement?,
     ) : this(
         createFileViewProviderForLightFile(project, name, text),
         imports,
@@ -131,13 +129,11 @@ abstract class CjCodeFragment(
 
     abstract fun getContentElement(): CjElement?
 
-
     override fun isPhysical() = isPhysical
 
     override fun isValid() = true
 
     override fun getContext(): PsiElement? {
-
         if (context != null && context !is CjElement) {
             val logInfoForContextElement =
                 (context as? PsiFile)?.virtualFile?.path ?: context.getElementTextWithContext()
@@ -159,7 +155,7 @@ abstract class CjCodeFragment(
             viewProvider = SingleRootFileViewProvider(
                 PsiManager.getInstance(project),
                 LightVirtualFile(name, CangJieFileType.INSTANCE, text),
-                false
+                false,
             )
             viewProvider.forceCachedPsi(this)
         }
@@ -171,7 +167,7 @@ abstract class CjCodeFragment(
             viewProvider = SingleRootFileViewProvider(
                 PsiManager.getInstance(project),
                 LightVirtualFile(name, CangJieFileType.INSTANCE, text),
-                false
+                false,
             )
             viewProvider.forceCachedPsi(this)
         }
@@ -183,16 +179,14 @@ abstract class CjCodeFragment(
 
     final override fun getViewProvider() = viewProvider
 
-
     @Deprecated(
         "Use 'addImportsFromString()w' instead",
         ReplaceWith("addImportsFromString(import)"),
-        level = DeprecationLevel.WARNING
+        level = DeprecationLevel.WARNING,
     )
     fun addImport(import: String) {
         addImportsFromString(import)
     }
-
 
     fun importsAsImportList(): CjImportList? {
         if (importDirectiveStrings.isNotEmpty() && context != null) {
@@ -206,7 +200,6 @@ abstract class CjCodeFragment(
 
     override val importDirectivesItem: List<CjImportDirectiveItem>
         get() = importsAsImportList()?.importItems ?: emptyList()
-
 
     fun getContextContainingFile(): CjFile? {
         return getOriginalContext()?.takeIf { it.isValid }?.getContainingCjFile()
@@ -240,12 +233,13 @@ abstract class CjCodeFragment(
         fun createFileViewProviderForLightFile(
             project: Project,
             name: String,
-            text: CharSequence
+            text: CharSequence,
         ): FileViewProvider {
             val psiManager = PsiManager.getInstance(project) as PsiManagerEx
             return psiManager.fileManager.createFileViewProvider(
                 LightVirtualFile(name, CangJieFileType.INSTANCE, text),
-                /* eventSystemEnabled = */true
+                /* eventSystemEnabled = */
+                true,
             )
         }
     }

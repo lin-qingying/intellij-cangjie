@@ -24,12 +24,6 @@
 
 package cn.cangnova.cangjie.psi.stubs.elements
 
-import com.intellij.lang.ASTNode
-import com.intellij.psi.stubs.IndexSink
-import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.stubs.StubInputStream
-import com.intellij.psi.stubs.StubOutputStream
-import com.intellij.util.io.StringRef
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjEnumEntry
 import cn.cangnova.cangjie.psi.CjNamedDeclaration
@@ -40,12 +34,18 @@ import cn.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
 import cn.cangnova.cangjie.psi.stubs.CangJieEnumEntryStub
 import cn.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
 import cn.cangnova.cangjie.psi.stubs.impl.CangJieEnumEntryStubImpl
+import com.intellij.lang.ASTNode
+import com.intellij.psi.stubs.IndexSink
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+import com.intellij.util.io.StringRef
 import java.io.IOException
 
 class CjEnumEntryElementType(debugName: String) : CjStubElementType<CangJieEnumEntryStub, CjEnumEntry>(
     debugName,
     CjEnumEntry::class.java,
-    CangJieEnumEntryStub::class.java
+    CangJieEnumEntryStub::class.java,
 ) {
 
     override fun createPsi(stub: CangJieEnumEntryStub): CjEnumEntry {
@@ -57,25 +57,25 @@ class CjEnumEntryElementType(debugName: String) : CjStubElementType<CangJieEnumE
     }
 
     override fun createStub(psi: CjEnumEntry, parentStub: StubElement<*>?): CangJieEnumEntryStub {
-        val fqNameByParent: FqName? = (psi as CjNamedDeclaration).safeFqNameForLazyResolve() //psi.safeFqNameForLazyResolveByParent()
+        val fqNameByParent: FqName? = (psi as CjNamedDeclaration).safeFqNameForLazyResolve() // psi.safeFqNameForLazyResolveByParent()
 
         val fqNameByPackage = psi.safeFqNameForLazyResolve()
         val classId = createNestedClassId(parentStub!!, psi)
         return CangJieEnumEntryStubImpl(
-            getStubType(), parentStub as StubElement<*>?,
+            getStubType(),
+            parentStub as StubElement<*>?,
             StringRef.fromString(fqNameByParent?.asString()),
-            StringRef.fromString(fqNameByPackage?.asString()), classId,
+            StringRef.fromString(fqNameByPackage?.asString()),
+            classId,
             StringRef.fromString(psi.name),
 
-            psi.isLocal
+            psi.isLocal,
         )
     }
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieEnumEntryStub, dataStream: StubOutputStream) {
-
         dataStream.writeName(stub.name)
-
 
         val fqNameByParent = stub.getFqName()
         val fqNameByPacage = stub.fqNameByPackage
@@ -85,9 +85,7 @@ class CjEnumEntryElementType(debugName: String) : CjStubElementType<CangJieEnumE
 
         serializeClassId(dataStream, stub.getClassId())
 
-
         dataStream.writeBoolean(stub.isLocal())
-
 
 //        val superNames = stub.getSuperNames()
 //        dataStream.writeVarInt(superNames.size)
@@ -104,26 +102,29 @@ class CjEnumEntryElementType(debugName: String) : CjStubElementType<CangJieEnumE
 
         val classId = deserializeClassId(dataStream)
 
-        val isLocal = try{
+        val isLocal = try {
             dataStream.readBoolean()
-        }catch (e:IOException){
+        } catch (e: IOException) {
             false
         }
 
-
         return CangJieEnumEntryStubImpl(
-            getStubType(), parentStub, qualifiedNameByParent, qualifiedNameByPackage, classId, name,
-            isLocal
+            getStubType(),
+            parentStub,
+            qualifiedNameByParent,
+            qualifiedNameByPackage,
+            classId,
+            name,
+            isLocal,
         )
     }
 
     override fun indexStub(stub: CangJieEnumEntryStub, sink: IndexSink) {
         getInstance().indexEnumEntry(stub, sink)
     }
-companion object{
-      fun getStubType(): CjEnumEntryElementType {
-        return CjStubElementTypes.ENUM_ENTRY
+    companion object {
+        fun getStubType(): CjEnumEntryElementType {
+            return CjStubElementTypes.ENUM_ENTRY
+        }
     }
-}
-
 }

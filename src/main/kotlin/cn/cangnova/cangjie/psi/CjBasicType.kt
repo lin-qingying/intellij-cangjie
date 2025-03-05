@@ -24,32 +24,26 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
 class CjBasicType : CjElementImplStub<CangJiePlaceHolderStub<CjBasicType>>, CjTypeElement {
-
 
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJiePlaceHolderStub<CjBasicType>) : super(stub, CjStubElementTypes.BASIC_TYPE)
 
-
     override fun toString(): String {
-
         return elementType.toString()
     }
-
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitBasicType(this, data)
     }
 
-
     override fun getName(): String {
         return text
     }
-
 
     val typeArguments: List<CjTypeProjection>
         get() = emptyList()

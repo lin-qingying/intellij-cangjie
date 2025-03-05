@@ -29,7 +29,6 @@ interface CjPureTypeStatement : CjPureElement, CjDeclarationContainer {
 
     val superTypeListEntries: List<CjSuperTypeListEntry>
 
-
     fun hasExplicitPrimaryConstructor(): Boolean
 
     fun hasPrimaryConstructor(): Boolean
@@ -46,4 +45,3 @@ interface CjPureTypeStatement : CjPureElement, CjDeclarationContainer {
 
     val body: CjAbstractClassBody?
 }
-

@@ -24,12 +24,11 @@
 
 package cn.cangnova.cangjie.parsing
 
-import cn.cangnova.cangjie.CjNodeTypes.DOT_QUALIFIED_EXPRESSION
-import cn.cangnova.cangjie.CjNodeTypes.REFERENCE_EXPRESSION
+import cn.cangnova.cangjie.psi.CjNodeTypes.DOT_QUALIFIED_EXPRESSION
+import cn.cangnova.cangjie.psi.CjNodeTypes.REFERENCE_EXPRESSION
 import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens.*
-import cn.cangnova.cangjie.parsing.CangJieParserUtil.parseStringTemplate
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.parser.GeneratedParserUtilBase
 import com.intellij.psi.TokenType
@@ -143,7 +142,7 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
     fun PsiBuilder.errorWithRecovery(message: String, recoverySet: TokenSet?) {
         val tt = tt()
         if (recoverySet == null ||
-            recoverySet.contains(tt) ||  //                tt == LBRACE || tt == RBRACE ||
+            recoverySet.contains(tt) || //                tt == LBRACE || tt == RBRACE ||
             (recoverySet.contains(EOL_OR_SEMICOLON) && (eof() || tt === SEMICOLON || newlineBeforeCurrentToken()))
         ) {
             error(message)
@@ -165,31 +164,21 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
         return false
     }
 
-
     private val joinComplexTokens = Stack<Boolean>()
     private val newlinesEnabled = Stack<Boolean>()
-
 
     init {
         newlinesEnabled.push(true)
         joinComplexTokens.push(true)
-
     }
 
     fun PsiBuilder.newlineBeforeCurrentToken(): Boolean {
-
-
         if (!newlinesEnabled.peek()) return false
 
         if (eof()) return true
 
-
         for (i in 1..currentOffset) {
             val previousToken = rawLookup(-i)
-
-
-
-
 
             if (previousToken === BLOCK_COMMENT || previousToken === DOC_COMMENT || previousToken === EOL_COMMENT || previousToken === SHEBANG_COMMENT) {
                 continue
@@ -242,7 +231,7 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
             if (newlineBeforeCurrentToken()) {
                 errorWithRecovery(
                     "Package name must be a '.'-separated identifier list placed on a single line",
-                    PACKAGE_NAME_RECOVERY_SET
+                    PACKAGE_NAME_RECOVERY_SET,
                 )
                 break
             }
@@ -258,7 +247,7 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
             val simpleNameFound: Boolean = expect(
                 IDENTIFIER,
                 "Package name must be a '.'-separated identifier list",
-                PACKAGE_NAME_RECOVERY_SET
+                PACKAGE_NAME_RECOVERY_SET,
             )
             if (simpleNameFound) {
                 nsName.done(REFERENCE_EXPRESSION)
@@ -287,16 +276,14 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
         }
         qualifiedExpression.drop()
 
-
-
         return true
     }
 
     @JvmStatic
     fun PsiBuilder.parseStringTemplate(level: Int): Boolean {
-    if(this.tokenType != OPEN_QUOTE ) return false
+        if (this.tokenType != OPEN_QUOTE) return false
 
-        val cp = CangJieParsing.createForTopLevelNonLazy(SemanticWhitespaceAwarePsiBuilderImpl(this) )
+        val cp = CangJieParsing.createForTopLevelNonLazy(SemanticWhitespaceAwarePsiBuilderImpl(this))
         cp.expressionParsing.parseStringTemplate()
         return true
     }
@@ -304,8 +291,8 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
     @JvmStatic
     fun constKeyword(builder: PsiBuilder, level: Int): Boolean {
         val token = builder.tokenType
-        if (token == CONST_KEYWORD &&  /* lookahead(1) != IDENTIFIER && */builder.lookahead(2) !== EQ && builder.lookahead(
-                2
+        if (token == CONST_KEYWORD && /* lookahead(1) != IDENTIFIER && */builder.lookahead(2) !== EQ && builder.lookahead(
+                2,
             ) !== COLON
         ) {
             builder.advanceLexer()
@@ -331,8 +318,7 @@ object CangJieParserUtil : GeneratedParserUtilBase() {
 
         elementType: IElementType,
 
-        ): Boolean {
-
+    ): Boolean {
         val token = builder.tokenType
         if (token === IDENTIFIER) {
             val keywordToken = SOFT_KEYWORD_TEXTS[builder.tokenText]

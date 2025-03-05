@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.psi.psiUtil.getElementTextWithContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 
-
 inline fun CangJieExceptionWithAttachments.buildAttachment(
     name: String = "info.txt",
     buildContent: ExceptionAttachmentBuilder.() -> Unit,

@@ -24,16 +24,16 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
+import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.psi.psiUtil.addModifier
 import cn.cangnova.cangjie.psi.psiUtil.removeModifier
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.stubs.StubElement
-import cn.cangnova.cangjie.lexer.CjKeywordToken
 
-open class CjModifierListOwnerStub<T : StubElement<*> > : CjElementImplStub<T>,
+open class CjModifierListOwnerStub<T : StubElement<*>> :
+    CjElementImplStub<T>,
     CjModifierListOwner {
     constructor(node: ASTNode) : super(node)
 
@@ -58,7 +58,6 @@ open class CjModifierListOwnerStub<T : StubElement<*> > : CjElementImplStub<T>,
             val modifierList = modifierList ?: return emptyList()
             return modifierList.annotationEntries
         }
-
 
     override fun addModifier(modifier: CjKeywordToken) {
         addModifier(this, modifier)

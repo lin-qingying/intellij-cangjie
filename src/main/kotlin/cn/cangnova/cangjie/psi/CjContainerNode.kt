@@ -33,9 +33,9 @@ open class CjContainerNode(node: ASTNode) : CjElementImpl(node) {
         return super.findChildByClass(aClass)
     }
 
-    public override fun <T : PsiElement > findChildByType(type: IElementType): T? {
+    public override fun <T : PsiElement> findChildByType(type: IElementType): T? {
         return super.findChildByType(type)
     }
 
-    val expression get() =  findChildByClass(CjExpression::class.java)
+    val expression get() = findChildByClass(CjExpression::class.java)
 }

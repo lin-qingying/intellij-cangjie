@@ -29,7 +29,7 @@ import com.intellij.lang.ASTNode
 import org.jetbrains.annotations.NonNls
 
 class CjDotQualifiedExpressionElementType(debugName: @NonNls String) :
-    CjPlaceHolderStubElementType<CjDotQualifiedExpression >(debugName, CjDotQualifiedExpression::class.java) {
+    CjPlaceHolderStubElementType<CjDotQualifiedExpression>(debugName, CjDotQualifiedExpression::class.java) {
     override fun shouldCreateStub(node: ASTNode): Boolean {
         val treeParent = node.treeParent ?: return false
 

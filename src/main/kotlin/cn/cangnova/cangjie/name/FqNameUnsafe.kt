@@ -28,12 +28,10 @@ import cn.cangnova.cangjie.name.Name.Companion.guessByFirstCharacter
 import cn.cangnova.cangjie.name.Name.Companion.special
 import java.util.*
 import java.util.regex.Pattern
-
 import kotlin.math.max
 
 class FqNameUnsafe {
     private val fqName: String
-
 
     @Transient
     private var safe: FqName? = null
@@ -97,9 +95,8 @@ class FqNameUnsafe {
         return fqName
     }
 
-
-val isSafe: Boolean
-    get() {return safe != null || asString().indexOf('<') < 0}
+    val isSafe: Boolean
+        get() { return safe != null || asString().indexOf('<') < 0 }
 
     fun toSafe(): FqName {
         if (safe != null) {
@@ -175,10 +172,11 @@ val isSafe: Boolean
             0,
             segmentAsString,
             0,
-            if (firstDot == -1)
+            if (firstDot == -1) {
                 max(fqName.length.toDouble(), segmentAsString.length.toDouble()).toInt()
-            else
+            } else {
                 firstDot
+            },
         )
     }
 
@@ -190,7 +188,7 @@ val isSafe: Boolean
         if (thisLength < otherLength) return false
 
         return (thisLength == otherLength || fqName[otherLength] == '.') &&
-                fqName.regionMatches(0, other.fqName, 0, otherLength)
+            fqName.regionMatches(0, other.fqName, 0, otherLength)
     }
 
     override fun toString(): String {
@@ -212,8 +210,8 @@ val isSafe: Boolean
         private val ROOT_NAME = special("<root>")
         private val SPLIT_BY_DOTS: Pattern = Pattern.compile("\\.")
 
-        private val STRING_TO_NAME: (String ) -> Name =
-            {   name: String -> guessByFirstCharacter(name) }
+        private val STRING_TO_NAME: (String) -> Name =
+            { name: String -> guessByFirstCharacter(name) }
 
         fun isValid(qualifiedName: String?): Boolean {
             // TODO: ���ڴ���ת���ַ�����Ч����''

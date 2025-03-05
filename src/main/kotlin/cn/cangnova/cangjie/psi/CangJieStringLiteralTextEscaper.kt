@@ -24,10 +24,10 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.LiteralTextEscaper
 import cn.cangnova.cangjie.psi.psiUtil.getContentRange
 import cn.cangnova.cangjie.psi.psiUtil.isSingleQuoted
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.LiteralTextEscaper
 import kotlin.math.min
 
 fun List<Int>.toNativeArray(dest: IntArray, offset: Int, len: Int) {
@@ -61,7 +61,6 @@ fun List<Int>.toNativeArray(offset: Int, len: Int): IntArray {
     }
 }
 
-
 class CangJieStringLiteralTextEscaper(host: CjStringTemplateExpression) :
     LiteralTextEscaper<CjStringTemplateExpression>(host) {
     private var sourceOffsets: IntArray? = null
@@ -81,7 +80,6 @@ class CangJieStringLiteralTextEscaper(host: CjStringTemplateExpression) :
             when (child) {
                 is CjEscapeStringTemplateEntry -> {
                     if (!rangeInsideHost.contains(childRange)) {
-
                         sourceOffsetsList.add(sourceOffset)
                         sourceOffsets = sourceOffsetsList.toNativeArray()
                         return false

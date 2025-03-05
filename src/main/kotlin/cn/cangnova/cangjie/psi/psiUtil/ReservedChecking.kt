@@ -24,6 +24,4 @@
 
 package cn.cangnova.cangjie.psi.psiUtil
 
-import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjSimpleNameExpression
 

@@ -24,13 +24,13 @@
 
 package cn.cangnova.cangjie.psi.stubs
 
-import com.intellij.psi.PsiNamedElement
-import com.intellij.psi.stubs.*
-import com.intellij.util.io.StringRef
 import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.*
+import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.stubs.*
+import com.intellij.util.io.StringRef
 import java.io.IOException
 
 enum class ConstantValueKind {
@@ -41,9 +41,8 @@ enum class ConstantValueKind {
 
     CHARACTER_BYTE_CONSTANT,
     INTEGER_CONSTANT,
-    UNIT_CONSTANT
+    UNIT_CONSTANT,
 }
-
 
 interface CangJiePropertyAccessorStub : StubElement<CjPropertyAccessor> {
     fun isGetter(): Boolean
@@ -60,16 +59,13 @@ interface CangJieConstantExpressionStub : StubElement<CjConstantExpression> {
 
 interface CangJieFilesStub {
     fun getPackageFqName(): FqName
-
 }
 
-//interface CangJieDeclarationsFileStub : PsiFileStub<CjDeclarationsFile > ,CangJieFileStub{
+// interface CangJieDeclarationsFileStub : PsiFileStub<CjDeclarationsFile > ,CangJieFileStub{
 //
-////    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveItemStub>
-//}
-interface CangJieFileStub : PsiFileStub<CjFile>, CangJieFilesStub {
-
-}
+// //    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveItemStub>
+// }
+interface CangJieFileStub : PsiFileStub<CjFile>, CangJieFilesStub
 
 /**
  * CangJiePlaceHolderStub接口定义了一个通用的占位符 Stub 元素
@@ -108,7 +104,7 @@ interface CangJieBasicTypeStub : StubElement<CjBasicType> {
 
 interface CangJieUserTypeStub : StubElement<CjUserType>
 interface CangJieTupleTypeStub : StubElement<CjTupleType>
-//interface CangJieBasicTypeStub : StubElement<CjBasicType>
+// interface CangJieBasicTypeStub : StubElement<CjBasicType>
 
 interface CangJieClassifierStub {
     fun getClassId(): ClassId?
@@ -116,7 +112,6 @@ interface CangJieClassifierStub {
 
 interface CangJieTypeAliasStub : CangJieClassifierStub, CangJieStubWithFqName<CjTypeAlias> {
 //    fun isTopLevel(): Boolean
-
 }
 
 interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
@@ -126,26 +121,24 @@ interface CangJieVariableStub : CangJieCallableStubBase<CjVariable> {
     fun hasReturnTypeRef(): Boolean
 
     data class ChildInfo(
-        val name: StringRef?, val fqName: FqName?
+        val name: StringRef?,
+        val fqName: FqName?,
     ) {
 
         fun serialize(dataStream: StubOutputStream) {
             dataStream.writeName(name?.string)
 
             dataStream.writeName(fqName?.asString())
-
         }
 
         companion object {
             @Throws(IOException::class)
             fun deserialize(dataStream: StubInputStream): ChildInfo {
-
                 val name = dataStream.readName()
                 val fqNameAsString = dataStream.readName()
                 val fqName = if (fqNameAsString != null) FqName(fqNameAsString.toString()) else null
 
                 return ChildInfo(name, fqName)
-
             }
         }
     }
@@ -172,7 +165,6 @@ interface CangJieStubWithFqName<T : PsiNamedElement> : NamedStub<T> {
 
 interface CangJieTypeParameterStub : CangJieStubWithFqName<CjTypeParameter> {
 //    fun isInVariance(): Boolean
-
 }
 
 interface CangJieNameBasicReferenceExpressionStub : StubElement<CjNameBasicReferenceExpression> {
@@ -214,11 +206,11 @@ interface CangJieExtendStub : CangJieTypeStatementStub<CjExtend> {
 //    fun getClassId(): ClassId?
 }
 
-//interface CangJieExtendStub : StubElement<CjExtend>{
+// interface CangJieExtendStub : StubElement<CjExtend>{
 //    fun getSuperNames(): List<String>
 //    fun getFqName(): FqName?
-////    fun getClassId(): ClassId?
-//}
+// //    fun getClassId(): ClassId?
+// }
 interface CangJieTypeStatementStub<T : CjTypeStatement> : CangJieClassifierStub, CangJieStubWithFqName<T> {
     fun isLocal(): Boolean
     fun getSuperNames(): List<String>
@@ -234,12 +226,12 @@ interface CangJieConstructorStub<T : CjConstructor<T>> :
 interface CangJieImportAliasStub : StubElement<CjImportAlias> {
     fun getName(): String?
 }
-//interface CangJieFunctionStub : CangJieCallableStubBase<CjNamedFunction> {
+// interface CangJieFunctionStub : CangJieCallableStubBase<CjNamedFunction> {
 //    fun hasBlockBody(): Boolean
 //    fun hasBody(): Boolean
 //    fun hasTypeParameterListBeforeFunctionName(): Boolean
 //    fun mayHaveContract(): Boolean
-//}
+// }
 
 interface CangJieFunctionForExtendStub : CangJieFunctionStub
 
@@ -247,25 +239,21 @@ interface CangJieFunctionStub : CangJieCallableStubBase<CjFunctionImpl> {
     fun hasBlockBody(): Boolean
     fun hasBody(): Boolean
     fun hasTypeParameterListBeforeFunctionName(): Boolean
-
 }
 
 interface CangJieForeignDirectiveStub : StubElement<CjForeignDirective>
 
+// }
+interface CangJiePackageDirectiveStub : StubElement<CjPackageDirective>
 
-//}
-interface CangJiePackageDirectiveStub : StubElement<CjPackageDirective> {
-
-}
-
-//interface CangJieImportStub<T : PsiElement> : StubElement<T> {
+// interface CangJieImportStub<T : PsiElement> : StubElement<T> {
 //    fun getPackageFqName(): FqName?
 //
 //
 //    fun getModifierVisibility(): DescriptorVisibility
-//}
+// }
 
-interface CangJieImportDirectiveStub : StubElement<CjImportDirective >{
+interface CangJieImportDirectiveStub : StubElement<CjImportDirective> {
 
     fun getPackageFqName(): FqName?
 }
@@ -274,16 +262,14 @@ interface CangJieImportDirectiveItemStub : StubElement<CjImportDirectiveItem> {
     fun getImportedFqName(): FqName?
     fun isValid(): Boolean
 
-
-      fun getPackageFqName(): FqName?
-
+    fun getPackageFqName(): FqName?
 }
 
 interface CangJieTypeProjectionStub : StubElement<CjTypeProjection> {
     fun getProjectionKind(): CjProjectionKind
 }
 
-//interface CangJieMainFunctionStub : CangJieFunctionStub
+// interface CangJieMainFunctionStub : CangJieFunctionStub
 interface CangJiePlaceHolderWithTextStub<T : CjElement> : CangJiePlaceHolderStub<T> {
     fun text(): String
 }

@@ -32,7 +32,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.TokenType
 
-
 open class CDocTag(node: ASTNode) : CDocElementImpl(node) {
 
     /**
@@ -112,10 +111,11 @@ open class CDocTag(node: ASTNode) : CDocElementImpl(node) {
         for (node in children) {
             val type = node.elementType
             if (type == CDocTokens.CODE_BLOCK_TEXT) {
-                //If first line of code block
-                if (!isCodeBlock())
+                // If first line of code block
+                if (!isCodeBlock()) {
                     indentedCodeBlock =
                         indentedCodeBlock || node.text.startsWith(indentationWhiteSpaces) || node.text.startsWith("\t")
+                }
                 startCodeBlock()
             } else if (CDocTokens.CONTENT_TOKENS.contains(type)) {
                 flushCodeBlock()
@@ -124,8 +124,8 @@ open class CDocTag(node: ASTNode) : CDocElementImpl(node) {
 
             if (CDocTokens.CONTENT_TOKENS.contains(type)) {
                 val isPlainContent = afterAsterisk && !isCodeBlock()
-//如果内容尚未开始且不是缩进代码块的一部分
-//并且不在带围栏的代码块内， 应该去掉前面空格
+// 如果内容尚未开始且不是缩进代码块的一部分
+// 并且不在带围栏的代码块内， 应该去掉前面空格
                 val trimLeadingSpaces = !(contentStarted || indentedCodeBlock) || isPlainContent
 
                 targetBuilder.append(if (trimLeadingSpaces) node.text.trimStart() else node.text)
@@ -152,9 +152,10 @@ open class CDocTag(node: ASTNode) : CDocElementImpl(node) {
         val lines = builder.toString().split('\n')
         val minIndent = lines.filter { it.trim().isNotEmpty() }.minOfOrNull { it.calcIndent() } ?: 0
         var processedLines = lines.map { it.drop(minIndent) }
-        if (prepend4WhiteSpaces)
+        if (prepend4WhiteSpaces) {
             processedLines =
                 processedLines.map { if (it.isNotBlank()) it.prependIndent(indentationWhiteSpaces) else it }
+        }
         return processedLines.joinToString("\n")
     }
 

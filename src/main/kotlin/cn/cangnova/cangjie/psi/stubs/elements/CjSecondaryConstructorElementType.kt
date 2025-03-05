@@ -41,7 +41,11 @@ class CjEndSecondaryConstructorElementType(debugName: String) :
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjEndSecondaryConstructor> {
         return CangJieConstructorStubImpl(
-            parentStub, CjStubElementTypes.END_SECONDARY_CONSTRUCTOR, nameRef, hasBody, isDelegatedCallToThis
+            parentStub,
+            CjStubElementTypes.END_SECONDARY_CONSTRUCTOR,
+            nameRef,
+            hasBody,
+            isDelegatedCallToThis,
         )
     }
 
@@ -57,7 +61,11 @@ class CjSecondaryConstructorElementType(debugName: String) :
         isDelegatedCallToThis: Boolean,
     ): CangJieConstructorStub<CjSecondaryConstructor> {
         return CangJieConstructorStubImpl(
-            parentStub, CjStubElementTypes.SECONDARY_CONSTRUCTOR, nameRef, hasBody, isDelegatedCallToThis
+            parentStub,
+            CjStubElementTypes.SECONDARY_CONSTRUCTOR,
+            nameRef,
+            hasBody,
+            isDelegatedCallToThis,
         )
     }
 

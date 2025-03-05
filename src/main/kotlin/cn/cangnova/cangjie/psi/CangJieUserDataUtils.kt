@@ -33,8 +33,8 @@ import kotlin.reflect.KProperty
 private class UserDataCachedDelegate<in T : UserDataHolder, out V>(
     key: String,
     private val modificationStampFactory: (T) -> Long,
-    private val valueFactory: (T) -> V
-): ReadOnlyProperty<T, V> {
+    private val valueFactory: (T) -> V,
+) : ReadOnlyProperty<T, V> {
     private val key = Key<ValueHolder<V>>(key)
 
     private class ValueHolder<V>(val value: V, val modificationStamp: Long)

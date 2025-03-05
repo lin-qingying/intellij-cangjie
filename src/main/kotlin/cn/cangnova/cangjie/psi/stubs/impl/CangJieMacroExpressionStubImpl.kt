@@ -24,21 +24,19 @@
 
 package cn.cangnova.cangjie.psi.stubs.impl
 
+import cn.cangnova.cangjie.psi.CjMacroExpression
+import cn.cangnova.cangjie.psi.stubs.CangJieMacroExpressionStub
+import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
-import cn.cangnova.cangjie.psi.CjAnnotationEntry
-import cn.cangnova.cangjie.psi.CjMacroExpression
-import cn.cangnova.cangjie.psi.stubs.CangJieAnnotationEntryStub
-import cn.cangnova.cangjie.psi.stubs.CangJieMacroExpressionStub
-import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 
-class CangJieMacroExpressionStubImpl (
+class CangJieMacroExpressionStubImpl(
     parent: StubElement<out PsiElement>?,
     private val shortName: StringRef?,
     private val hasValueArguments: Boolean,
 //    val valueArguments: Map<Name, ConstantValue<*>>?
-):CangJieStubBaseImpl<CjMacroExpression>(parent, CjStubElementTypes.MACRO_EXPRESSION), CangJieMacroExpressionStub {
+) : CangJieStubBaseImpl<CjMacroExpression>(parent, CjStubElementTypes.MACRO_EXPRESSION), CangJieMacroExpressionStub {
 
     override fun getShortName() = shortName?.string
 

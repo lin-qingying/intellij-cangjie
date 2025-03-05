@@ -24,8 +24,8 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.psi.PsiElement
 import cn.cangnova.cangjie.lexer.CjKeywordToken
+import com.intellij.psi.PsiElement
 
 interface CjModifierListOwner : PsiElement, CjAnnotated {
 
@@ -36,5 +36,4 @@ interface CjModifierListOwner : PsiElement, CjAnnotated {
     fun addModifier(modifier: CjKeywordToken)
 
     fun removeModifier(modifier: CjKeywordToken)
-
 }

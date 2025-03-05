@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
 import com.intellij.lang.ASTNode
@@ -32,12 +31,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 
-class CjDestructuringDeclaration(node: ASTNode) : CjDeclarationImpl(node), CjLetVarKeywordOwner,
+class CjDestructuringDeclaration(node: ASTNode) :
+    CjDeclarationImpl(node),
+    CjLetVarKeywordOwner,
     CjDeclarationWithInitializer {
     override val expression: CjExpression?
         get() = PsiTreeUtil.getStubChildOfType(
             this,
-            CjExpression::class.java
+            CjExpression::class.java,
         )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -57,7 +58,7 @@ class CjDestructuringDeclaration(node: ASTNode) : CjDeclarationImpl(node), CjLet
             }
             return PsiTreeUtil.getNextSiblingOfType(
                 eqNode.psi,
-                CjExpression::class.java
+                CjExpression::class.java,
             )
         }
 

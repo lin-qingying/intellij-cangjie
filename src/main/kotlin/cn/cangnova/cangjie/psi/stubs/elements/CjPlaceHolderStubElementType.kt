@@ -23,15 +23,14 @@
  */
 package cn.cangnova.cangjie.psi.stubs.elements
 
-import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.stubs.StubInputStream
-import com.intellij.psi.stubs.StubOutputStream
 import cn.cangnova.cangjie.psi.CjElementImplStub
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.impl.CangJiePlaceHolderStubImpl
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
-
 
 /**
  * 定义一个占位符Stub元素类型类，用于处理特定的编程结构，
@@ -46,7 +45,7 @@ open class CjPlaceHolderStubElementType<T : CjElementImplStub<out StubElement<*>
  * @param debugName 用于调试的名称，帮助开发者识别对象类型。
  * @param psiClass 与Stub关联的Psi元素类，用于类型绑定。
  */
-    (debugName: @NonNls String, psiClass: Class<T>) :
+(debugName: @NonNls String, psiClass: Class<T>) :
     CjStubElementType<CangJiePlaceHolderStub<T>, T>(debugName, psiClass, CangJiePlaceHolderStub::class.java) {
     /**
      * 创建占位符Stub对象。
@@ -68,7 +67,7 @@ open class CjPlaceHolderStubElementType<T : CjElementImplStub<out StubElement<*>
      */
     @Throws(IOException::class)
     override fun serialize(stub: CangJiePlaceHolderStub<T>, dataStream: StubOutputStream) {
-        //do nothing
+        // do nothing
     }
 
     /**

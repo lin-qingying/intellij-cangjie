@@ -34,12 +34,10 @@ import com.intellij.util.io.StringRef
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
-
-
 abstract class CjConstructorElementType<T : CjConstructor<T>>(
     @NonNls debugName: String,
     tClass: Class<T>,
-    stubClass: Class<CangJieConstructorStub<*>>
+    stubClass: Class<CangJieConstructorStub<*>>,
 ) : CjStubElementType<CangJieConstructorStub<T>, T>(debugName, tClass, stubClass) {
     protected abstract fun newStub(
         parentStub: StubElement<*>,

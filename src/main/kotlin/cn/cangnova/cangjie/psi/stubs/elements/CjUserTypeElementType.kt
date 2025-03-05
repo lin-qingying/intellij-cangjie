@@ -34,10 +34,10 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjUserTypeElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieUserTypeStub , CjUserType >(
+    CjStubElementType<CangJieUserTypeStub, CjUserType>(
         debugName,
         CjUserType::class.java,
-        CangJieUserTypeStub::class.java
+        CangJieUserTypeStub::class.java,
     ) {
     override fun createStub(psi: CjUserType, parentStub: StubElement<*>?): CangJieUserTypeStub {
         return CangJieUserTypeStubImpl(parentStub)
@@ -54,7 +54,6 @@ class CjUserTypeElementType(debugName: @NonNls String) :
     @Throws(IOException::class)
     override fun serialize(stub: CangJieUserTypeStub, dataStream: StubOutputStream) {
     }
-
 
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieUserTypeStub {

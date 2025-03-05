@@ -24,16 +24,14 @@
 
 package cn.cangnova.cangjie.name
 
-
 data class Name(private val name: String, val isSpecial: Boolean) : Comparable<Name> {
 
     fun asString(): String {
         return name
     }
 
-
     fun asStringRoot(): String {
-        return "${name}:${isRoot}"
+        return "$name:$isRoot"
     }
 
     var isRoot: Boolean = false
@@ -59,7 +57,6 @@ data class Name(private val name: String, val isSpecial: Boolean) : Comparable<N
         return name
     }
 
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is Name) return false
@@ -76,6 +73,7 @@ data class Name(private val name: String, val isSpecial: Boolean) : Comparable<N
     companion object {
         @JvmField
         val ERROR_NAME = Name("<error>", true)
+
         @JvmStatic
         fun identifier(name: String): Name {
             return Name(name, false)
@@ -123,8 +121,5 @@ data class Name(private val name: String, val isSpecial: Boolean) : Comparable<N
                 this.isRoot = isRoot.toBoolean()
             }
         }
-
-
     }
 }
-

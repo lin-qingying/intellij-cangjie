@@ -29,12 +29,12 @@ import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 
-class CjValueArgumentName : CjElementImplStub<CangJiePlaceHolderStub<CjValueArgumentName > >, ValueArgumentName {
+class CjValueArgumentName : CjElementImplStub<CangJiePlaceHolderStub<CjValueArgumentName>>, ValueArgumentName {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjValueArgumentName >) : super(
+    constructor(stub: CangJiePlaceHolderStub<CjValueArgumentName>) : super(
         stub,
-        CjStubElementTypes.VALUE_ARGUMENT_NAME
+        CjStubElementTypes.VALUE_ARGUMENT_NAME,
     )
 
     override val referenceExpression: CjSimpleNameExpression

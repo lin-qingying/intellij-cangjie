@@ -24,18 +24,15 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
-import com.intellij.psi.impl.source.tree.LeafPsiElement
-import com.intellij.psi.tree.IElementType
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.doc.psi.CDoc
 import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
-
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.tree.IElementType
 
 abstract class CjCasePattern(node: ASTNode) : CjElementImpl(node), ValueArgument, CjExpression {
 
@@ -82,8 +79,6 @@ class CjMatchConditionWithExpression(node: ASTNode) : CjCasePattern(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitMatchConditionWithExpression(this, data)
     }
-
-
 }
 
 abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), CjVariableDeclaration {
@@ -93,8 +88,6 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
     override val valueParameters: List<CjParameter> = emptyList()
     override val receiverTypeReference: CjTypeReference? = null
     override val typeReference: CjTypeReference? = null
-
-
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? = null
     override fun getName(): String? {
@@ -108,8 +101,6 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
             parent = parent.parent
         }
         return parent as? CjVariable
-
-
     }
 
     //    绑定模式隶属的变量声明
@@ -128,18 +119,15 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
     override fun hasModifier(modifier: CjKeywordToken): Boolean = false
 
     override fun addModifier(modifier: CjKeywordToken) {
-
     }
 
     override fun removeModifier(modifier: CjKeywordToken) {
-
     }
 
     override val annotations: List<CjAnnotation> = emptyList()
     override val annotationEntries: List<CjAnnotationEntry> = emptyList()
 
     override fun setName(name: String): PsiElement {
-
         return this
     }
 
@@ -160,11 +148,11 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
 }
 
 class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node), CjSimpleNameExpression {
-    override val referencedName : String get(){
+    override val referencedName: String get() {
         return expression?.name ?: ""
     }
 
-    override val referencedNameAsName : Name  get(){
+    override val referencedNameAsName: Name get() {
         return Name.identifier(referencedName)
     }
 
@@ -173,23 +161,19 @@ class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node), CjSimp
     val isTopLevel: Boolean
         get() {
 
-
             return parent is CjFile
         }
 
-
-
-    override val referencedNameElement : PsiElement  get(){
+    override val referencedNameElement: PsiElement get() {
         return expression ?: this
     }
 
-    override val identifier : PsiElement?  get(){
+    override val identifier: PsiElement? get() {
         return findChildByType(CjTokens.IDENTIFIER)
     }
 
-    override val referencedNameElementType : IElementType  get(){
+    override val referencedNameElementType: IElementType get() {
         return CjSimpleNameExpressionImpl.getReferencedNameElementTypeImpl(this)
-
     }
 
     override val expression: CjSimpleNameExpression?
@@ -224,7 +208,6 @@ class CjTuplePattern(node: ASTNode) : CjCasePattern(node), CjEnumAndTuplePattern
     }
 
     override val patterns get() = findChildrenByClass(CjCasePattern::class.java).toList()
-
 }
 
 interface CjEnumAndTuplePattern {
@@ -240,11 +223,10 @@ class CjEnumPattern(node: ASTNode) : CjCasePattern(node), CjEnumAndTuplePattern 
         get() = findChildByType(CjNodeTypes.TYPE_REFERENCE)
     val expression: CjExpression?
         get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION) ?: findChildByType(
-            CjNodeTypes.DOT_QUALIFIED_EXPRESSION
+            CjNodeTypes.DOT_QUALIFIED_EXPRESSION,
         )
 
     override val patterns get() = findChildrenByClass(CjCasePattern::class.java).toList()
-
 }
 
 class CjWildcardPattern(node: ASTNode) : CjCasePattern(node) {
@@ -258,10 +240,8 @@ class CjConstantPattern(node: ASTNode) : CjCasePattern(node) {
         return visitor.visitPatternByConstant(this, data)
     }
 
-
     val expression: CjExpression?
         get() {
             return findChildByClass(CjExpression::class.java)
         }
-
 }

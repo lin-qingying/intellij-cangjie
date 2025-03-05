@@ -24,5 +24,4 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.name.FqName
-import com.intellij.lang.ASTNode
+

@@ -26,27 +26,27 @@ package cn.cangnova.cangjie.psi.stubs.elements
 import com.intellij.psi.tree.TokenSet
 
 object CjTokenSets {
-        val SUPER_TYPE_LIST_ENTRIES: TokenSet =
-            TokenSet.create(CjStubElementTypes.SUPER_TYPE_CALL_ENTRY, CjStubElementTypes.SUPER_TYPE_ENTRY)
-        val DECLARATION_TYPES: TokenSet = TokenSet.create(
-            CjStubElementTypes.CLASS,
-            CjStubElementTypes.FUNCTION, CjStubElementTypes.VARIABLE, CjStubElementTypes.STRUCT,
-            CjStubElementTypes.TYPEALIAS, CjStubElementTypes.CLASS_INITIALIZER,
-            CjStubElementTypes.SECONDARY_CONSTRUCTOR, CjStubElementTypes.ENUM, CjStubElementTypes.EXTEND
-        )
+    val SUPER_TYPE_LIST_ENTRIES: TokenSet =
+        TokenSet.create(CjStubElementTypes.SUPER_TYPE_CALL_ENTRY, CjStubElementTypes.SUPER_TYPE_ENTRY)
+    val DECLARATION_TYPES: TokenSet = TokenSet.create(
+        CjStubElementTypes.CLASS,
+        CjStubElementTypes.FUNCTION, CjStubElementTypes.VARIABLE, CjStubElementTypes.STRUCT,
+        CjStubElementTypes.TYPEALIAS, CjStubElementTypes.CLASS_INITIALIZER,
+        CjStubElementTypes.SECONDARY_CONSTRUCTOR, CjStubElementTypes.ENUM, CjStubElementTypes.EXTEND,
+    )
 
-        val INSIDE_DIRECTIVE_EXPRESSIONS: TokenSet = TokenSet.create( //            IMPORT_DIRECTIVE_ITEM,
-            CjStubElementTypes.DOT_QUALIFIED_EXPRESSION,
-            CjStubElementTypes.REFERENCE_EXPRESSION
-        )
-        val TYPE_ELEMENT_TYPES: TokenSet = TokenSet.create(
-            CjStubElementTypes.THIS_TYPE,
-            CjStubElementTypes.VARRAY_TYPE,
-            CjStubElementTypes.USER_TYPE,
-            CjStubElementTypes.BASIC_TYPE,
-            CjStubElementTypes.TUPLE_TYPE,
-            CjStubElementTypes.FUNCTION_TYPE,
-            CjStubElementTypes.OPTIONAL_TYPE,
-            CjStubElementTypes.PARENTHESIZED_TYPE
-        )
+    val INSIDE_DIRECTIVE_EXPRESSIONS: TokenSet = TokenSet.create( //            IMPORT_DIRECTIVE_ITEM,
+        CjStubElementTypes.DOT_QUALIFIED_EXPRESSION,
+        CjStubElementTypes.REFERENCE_EXPRESSION,
+    )
+    val TYPE_ELEMENT_TYPES: TokenSet = TokenSet.create(
+        CjStubElementTypes.THIS_TYPE,
+        CjStubElementTypes.VARRAY_TYPE,
+        CjStubElementTypes.USER_TYPE,
+        CjStubElementTypes.BASIC_TYPE,
+        CjStubElementTypes.TUPLE_TYPE,
+        CjStubElementTypes.FUNCTION_TYPE,
+        CjStubElementTypes.OPTIONAL_TYPE,
+        CjStubElementTypes.PARENTHESIZED_TYPE,
+    )
 }

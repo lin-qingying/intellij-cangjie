@@ -31,8 +31,8 @@ import com.intellij.openapi.fileTypes.SyntaxHighlighterProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-
-internal class CangJieSyntaxHighlighterFactory : SingleLazyInstanceSyntaxHighlighterFactory(),
+internal class CangJieSyntaxHighlighterFactory :
+    SingleLazyInstanceSyntaxHighlighterFactory(),
     SyntaxHighlighterProvider {
     override fun createHighlighter(): SyntaxHighlighter = CangJieHighlighter()
 
@@ -40,6 +40,4 @@ internal class CangJieSyntaxHighlighterFactory : SingleLazyInstanceSyntaxHighlig
         when (fileType) {
             else -> null
         }
-
-
 }

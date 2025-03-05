@@ -24,7 +24,8 @@
 
 package cn.cangnova.cangjie.psi.psiUtil
 
-import com.intellij.codeInsight.completion.InsertionContext
+import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.psi.*
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
@@ -40,8 +41,6 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.psi.util.parentOfType
-import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.*
 
 fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEntry {
     val name = when (expression) {
@@ -60,8 +59,8 @@ fun PsiElement.isInsideAnnotationEntryArgumentList(): Boolean =
 
 fun CjBlockStringTemplateEntry.canDropCurlyBrackets(): Boolean {
     val expression = this.expression
-    return (expression is CjNameReferenceExpression || (expression is CjThisExpression && expression.labelQualifier == null))
-            && canPlaceAfterSimpleNameEntry(nextSibling)
+    return (expression is CjNameReferenceExpression || (expression is CjThisExpression && expression.labelQualifier == null)) &&
+        canPlaceAfterSimpleNameEntry(nextSibling)
 }
 fun PsiElement.isAncestorOf(child: PsiElement): Boolean =
     child.ancestors.contains(this)
@@ -83,13 +82,13 @@ inline fun <reified T : PsiElement> PsiElement.ancestorStrict(): T? =
 
 inline fun <reified T : PsiElement> PsiElement.collectDescendantsOfType(
     crossinline canGoInside: (PsiElement) -> Boolean,
-    noinline predicate: (T) -> Boolean = { true }
+    noinline predicate: (T) -> Boolean = { true },
 ): List<T> = collectDescendantsOfTypeTo(ArrayList(), canGoInside, predicate)
 
 inline fun <reified T : PsiElement, C : MutableCollection<T>> PsiElement.collectDescendantsOfTypeTo(
     to: C,
     crossinline canGoInside: (PsiElement) -> Boolean,
-    noinline predicate: (T) -> Boolean = { true }
+    noinline predicate: (T) -> Boolean = { true },
 ): C {
     forEachDescendantOfType<T>(canGoInside) {
         if (predicate(it)) {
@@ -148,7 +147,6 @@ fun PsiElement?.unwrapParenthesesLabelsAndAnnotations(): PsiElement? {
         }
     }
 }
-
 
 inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(noinline predicate: (T) -> Boolean = { true }): T? {
     return findDescendantOfType({ true }, predicate)
@@ -236,10 +234,9 @@ fun PsiElement.getPrevSiblingIgnoringWhitespaceAndComments(withItself: Boolean =
 fun PsiElement.getNextSiblingIgnoringWhitespaceAndComments(withItself: Boolean = false): PsiElement? {
     return siblings(withItself = withItself).filter { it !is PsiWhiteSpace && it !is PsiComment }.firstOrNull()
 }
-//fun CjModifierList.hasSuspendModifier() = hasModifier(CjTokens.SUSPEND_KEYWORD)
+// fun CjModifierList.hasSuspendModifier() = hasModifier(CjTokens.SUSPEND_KEYWORD)
 
 fun LazyParseablePsiElement.getContainingCjFile(): CjFile {
-
     val file = this.containingFile
 
     if (file is CjFile) return file
@@ -252,7 +249,6 @@ fun PsiElement.getElementTextWithContext(): String = getElementTextWithContext(t
 inline fun <reified T : PsiElement> PsiElement.parentOfType(withSelf: Boolean = false): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, !withSelf)
 }
-
 
 fun PsiElement.parentOfType(vararg psiClassNames: String): PsiElement? {
     fun acceptsClass(javaClass: Class<*>): Boolean {
@@ -272,7 +268,6 @@ inline fun <T : Any> T?.sure(message: () -> String): T = this ?: throw Assertion
 inline fun <reified T : PsiElement> PsiElement.getChildrenOfType(): Array<T> {
     return PsiTreeUtil.getChildrenOfType(this, T::class.java) ?: arrayOf()
 }
-
 
 inline fun <reified T : PsiElement> PsiElement.getChildOfType(): T? {
     return PsiTreeUtil.getChildOfType(this, T::class.java)
@@ -321,14 +316,14 @@ fun PsiElement.getNextSiblingIgnoringWhitespace(withItself: Boolean = false): Ps
 
 inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(
     crossinline canGoInside: (PsiElement) -> Boolean,
-    noinline predicate: (T) -> Boolean = { true }
+    noinline predicate: (T) -> Boolean = { true },
 ): Boolean {
     return findDescendantOfType(canGoInside, predicate) != null
 }
 
 inline fun <reified T : PsiElement> PsiElement.findDescendantOfType(
     crossinline canGoInside: (PsiElement) -> Boolean,
-    noinline predicate: (T) -> Boolean = { true }
+    noinline predicate: (T) -> Boolean = { true },
 ): T? {
     checkDecompiledText()
     var result: T? = null
@@ -358,9 +353,7 @@ fun PsiElement.checkDecompiledText() {
 inline fun <reified T : PsiElement> PsiElement.ancestorOrSelf(): T? =
     PsiTreeUtil.getParentOfType(this, T::class.java, /* strict */ false)
 
-
 fun CjExpression.isEmptyBody(): Boolean = this is CjBlockExpression && statements.isEmpty()
-
 
 /**
  * 获取return语句的上层元素

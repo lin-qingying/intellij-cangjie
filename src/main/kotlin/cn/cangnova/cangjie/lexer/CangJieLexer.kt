@@ -26,14 +26,12 @@ package cn.cangnova.cangjie.lexer
 
 import com.intellij.lexer.FlexAdapter
 
-
 class CangJieLexer : FlexAdapter(_JetLexer()) {
 
 //    private val braceStack: Stack<Int> = Stack()
 //    private val lBraceCount = 0
 //    private val commentDepth = 0
 //    private val commentStart = 0
-
 
 //    override fun advance() {
 //        super.advance()
@@ -49,12 +47,12 @@ class CangJieLexer : FlexAdapter(_JetLexer()) {
 //        val type = super.getTokenType()
 //
 //        //处理>>和连续泛型声明a<b<c>>冲突的问题
-////        if (type == CjTokens.GT) {
-////            val nextType = super.getTokenType()
-////            if (nextType == CjTokens.GT) {
-////                return CjTokens.GTGT
-////            }
-////        }
+// //        if (type == CjTokens.GT) {
+// //            val nextType = super.getTokenType()
+// //            if (nextType == CjTokens.GT) {
+// //                return CjTokens.GTGT
+// //            }
+// //        }
 //        return type
 //
 //    }

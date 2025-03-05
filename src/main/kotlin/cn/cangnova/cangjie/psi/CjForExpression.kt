@@ -24,11 +24,9 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.lexer.CjTokens
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.CjNodeTypes
-import cn.cangnova.cangjie.lexer.CjTokens
-
 
 class CjForExpression(node: ASTNode) : CjLoopExpression(node), CjPatternEntryBlock {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -46,15 +44,14 @@ class CjForExpression(node: ASTNode) : CjLoopExpression(node), CjPatternEntryBlo
     val pattern: CjCasePattern?
         get() {
 
-
             return findChildByClass(CjCasePattern::class.java)
         }
     val patternGuard: CjPatternGuard?
         get() {
 
-
             return findChildByClass(CjPatternGuard::class.java)
         }
+
     @get: IfNotParsed
     val loopRange: CjExpression?
         get() = findExpressionUnder(CjNodeTypes.LOOP_RANGE)
@@ -65,4 +62,3 @@ class CjForExpression(node: ASTNode) : CjLoopExpression(node), CjPatternEntryBlo
     val forKeyword: PsiElement?
         get() = findChildByType(CjTokens.FOR_KEYWORD)
 }
-

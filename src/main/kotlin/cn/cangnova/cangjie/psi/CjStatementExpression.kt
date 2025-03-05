@@ -24,6 +24,4 @@
 
 package cn.cangnova.cangjie.psi
 
-
 interface CjStatementExpression
-

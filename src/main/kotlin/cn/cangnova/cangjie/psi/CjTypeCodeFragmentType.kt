@@ -31,8 +31,6 @@ import com.intellij.lang.PsiBuilderFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.ICodeFragmentElementType
 
-
-
 class CjTypeCodeFragmentType :
     ICodeFragmentElementType(NAME, CangJieLanguage) {
     override fun doParseContents(chameleon: ASTNode, psi: PsiElement): ASTNode {
@@ -47,4 +45,3 @@ class CjTypeCodeFragmentType :
         private const val NAME = "cangjie.TYPE_CODE_FRAGMENT"
     }
 }
-

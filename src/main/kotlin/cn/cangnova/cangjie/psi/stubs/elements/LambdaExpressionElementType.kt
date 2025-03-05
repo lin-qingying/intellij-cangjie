@@ -23,8 +23,7 @@
  */
 package cn.cangnova.cangjie.psi.stubs.elements
 
-
-import cn.cangnova.cangjie.ElementTypeUtils
+import cn.cangnova.cangjie.psi.ElementTypeUtils
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.lexer.CangJieLexer
 import cn.cangnova.cangjie.lexer.CjTokens
@@ -48,7 +47,11 @@ internal class LambdaExpressionElementType :
     override fun parseContents(chameleon: ASTNode): ASTNode {
         val project = chameleon.psi.project
         val builder: PsiBuilder = PsiBuilderFactory.getInstance().createBuilder(
-            project, chameleon, null, CangJieLanguage, chameleon.chars
+            project,
+            chameleon,
+            null,
+            CangJieLanguage,
+            chameleon.chars,
         )
         return CangJieParser.parseLambdaExpression(builder).firstChildNode
     }
@@ -60,7 +63,7 @@ internal class LambdaExpressionElementType :
     override fun isParsable(parent: ASTNode?, buffer: CharSequence, fileLanguage: Language, project: Project): Boolean {
         return super.isParsable(parent, buffer, fileLanguage, project) && !wasArrowMovedOrDeleted(
             parent,
-            buffer
+            buffer,
         ) && !wasParameterCommaMovedOrDeleted(parent, buffer)
     }
 
@@ -112,7 +115,7 @@ internal class LambdaExpressionElementType :
 
             val parentPsi: PsiElement? = parent.psi
             val lambdaExpressions: Array<CjLambdaExpression?>? =
-                PsiTreeUtil.getChildrenOfType (parentPsi, CjLambdaExpression::class.java)
+                PsiTreeUtil.getChildrenOfType(parentPsi, CjLambdaExpression::class.java)
             if (lambdaExpressions == null || lambdaExpressions.size != 1) return null
 
             // Now works only when actual node can be spotted ambiguously. Need change in API.
@@ -123,7 +126,7 @@ internal class LambdaExpressionElementType :
             oldText: String,
             buffer: CharSequence,
             oldOffset: Int,
-            tokenType: IElementType?
+            tokenType: IElementType?,
         ): Boolean {
             val oldLexer: Lexer = CangJieLexer()
             oldLexer.start(oldText)
@@ -135,10 +138,8 @@ internal class LambdaExpressionElementType :
                 val oldType = oldLexer.tokenType
                 if (oldType == null) break // Didn't find an expected token. Consider it as no token was present.
 
-
                 val newType = newLexer.tokenType
                 if (newType == null) return true // New text was finished before reaching expected token in old text
-
 
                 if (newType !== oldType) {
                     if (newType === CjTokens.WHITE_SPACE) {

@@ -54,7 +54,6 @@ class CjFunctionLiteral(node: ASTNode) : CjFunctionNotStubbed(node) {
             return super.bodyExpression as CjBlockExpression?
         }
 
-
     override val equalsToken: PsiElement? = null
     val lBrace: PsiElement
         get() = findChildByType(CjTokens.LBRACE)!!

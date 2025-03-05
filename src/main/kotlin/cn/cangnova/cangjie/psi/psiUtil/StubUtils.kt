@@ -26,16 +26,14 @@ package cn.cangnova.cangjie.psi.psiUtil
 
 import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.psi.CjClassLikeDeclaration
-import cn.cangnova.cangjie.psi.CjTypeElement
+import cn.cangnova.cangjie.psi.CjEnumEntry
+import cn.cangnova.cangjie.psi.stubs.CangJieClassifierStub
 import cn.cangnova.cangjie.psi.stubs.CangJieFileStub
+import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
+import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
-import cn.cangnova.cangjie.psi.CjEnumEntry
-import cn.cangnova.cangjie.psi.stubs.CangJieClassifierStub
-import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
-import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-
 
 object StubUtils {
     @JvmStatic
@@ -48,6 +46,7 @@ object StubUtils {
     fun serializeClassId(dataStream: StubOutputStream, classId: ClassId?) {
         dataStream.writeName(classId?.asString())
     }
+
 //
     @JvmStatic
     fun createNestedClassId(parentStub: StubElement<*>, currentDeclaration: CjClassLikeDeclaration): ClassId? = when {

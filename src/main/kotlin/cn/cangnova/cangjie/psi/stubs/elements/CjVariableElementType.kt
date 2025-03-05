@@ -24,11 +24,6 @@
 
 package cn.cangnova.cangjie.psi.stubs.elements
 
-import com.intellij.psi.stubs.IndexSink
-import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.stubs.StubInputStream
-import com.intellij.psi.stubs.StubOutputStream
-import com.intellij.util.io.StringRef
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
@@ -37,6 +32,11 @@ import cn.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInst
 import cn.cangnova.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.deserialize
 import cn.cangnova.cangjie.psi.stubs.impl.CangJieStubOrigin.Companion.serialize
 import cn.cangnova.cangjie.psi.stubs.impl.CangJieVariableStubImpl
+import com.intellij.psi.stubs.IndexSink
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+import com.intellij.util.io.StringRef
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
@@ -55,15 +55,13 @@ class CjVariableElementType(debugName: @NonNls String) :
     CjStubElementType<CangJieVariableStub, CjVariable>(
         debugName,
         CjVariable::class.java,
-        CangJieVariableStub::class.java
+        CangJieVariableStub::class.java,
     ) {
-
 
     override fun createStub(psi: CjVariable, parentStub: StubElement<*>?): CangJieVariableStub {
 //        assert !psi.isLocal() :
 //                String.format("Should not store local property: %s, parent %s",
 //                        psi.getText(), psi.getParent() != null ? psi.getParent().getText() : "<no parent>");
-
 
         val childPattern = psi.pattern?.getAllBindings()?.map {
 //            CangJieVariableStubImpl(
@@ -76,8 +74,7 @@ class CjVariableElementType(debugName: @NonNls String) :
 //                null
 //            )
 
-            CangJieVariableStub.ChildInfo(StringRef.fromString(it.name),   psi.safeFqNameForLazyResolve(it.name))
-
+            CangJieVariableStub.ChildInfo(StringRef.fromString(it.name), psi.safeFqNameForLazyResolve(it.name))
         } ?: emptyList()
 
         return CangJieVariableStubImpl(
@@ -89,8 +86,7 @@ class CjVariableElementType(debugName: @NonNls String) :
             childPattern,
             null,
 
-
-            )
+        )
     }
 
     companion object {
@@ -116,7 +112,7 @@ class CjVariableElementType(debugName: @NonNls String) :
                 parentStub, name, isVar, isTopLevel, hasInitializer,
                 hasReceiverTypeRef, hasReturnTypeRef, fqName,
                 childVariableByPattern,
-                deserialize(dataStream)
+                deserialize(dataStream),
             )
         }
 
@@ -134,14 +130,9 @@ class CjVariableElementType(debugName: @NonNls String) :
 
             dataStream.writeInt(stub.childNamesByPattern.size)
 
-
-
             stub.childNamesByPattern.forEach {
                 it.serialize(dataStream)
-
             }
-
-
 
             if (stub is CangJieVariableStubImpl) {
                 serialize(stub.origin, dataStream)
@@ -152,15 +143,11 @@ class CjVariableElementType(debugName: @NonNls String) :
     @Throws(IOException::class)
     override fun serialize(stub: CangJieVariableStub, dataStream: StubOutputStream) {
         Companion.serialize(stub, dataStream)
-
     }
 
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieVariableStub {
-
         val stub = Companion.deserialize(dataStream, parentStub)
-
-
 
         return stub
     }

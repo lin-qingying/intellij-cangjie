@@ -34,14 +34,15 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjTypeParameterElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieTypeParameterStub , CjTypeParameter >(
+    CjStubElementType<CangJieTypeParameterStub, CjTypeParameter>(
         debugName,
         CjTypeParameter::class.java,
-        CangJieTypeParameterStub::class.java
+        CangJieTypeParameterStub::class.java,
     ) {
     override fun createStub(psi: CjTypeParameter, parentStub: StubElement<*>?): CangJieTypeParameterStub {
         return CangJieTypeParameterStubImpl(
-            parentStub, StringRef.fromString(psi.name) //                psi.getVariance() == Variance.IN_VARIANCE
+            parentStub,
+            StringRef.fromString(psi.name), //                psi.getVariance() == Variance.IN_VARIANCE
         )
     }
 
@@ -55,7 +56,6 @@ class CjTypeParameterElementType(debugName: @NonNls String) :
     @Throws(IOException::class)
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>): CangJieTypeParameterStub {
         val name = dataStream.readName()
-
 
         //        bool isInVariance = dataStream.readBoolean();
         return CangJieTypeParameterStubImpl(parentStub, name)

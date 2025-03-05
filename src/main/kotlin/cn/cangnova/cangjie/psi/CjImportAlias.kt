@@ -33,14 +33,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.psi.search.LocalSearchScope
 
-
 class CjImportAlias : CjElementImplStub<CangJieImportAliasStub>, PsiNameIdentifierOwner {
     @Suppress("unused")
     constructor(node: ASTNode) : super(node)
+
     @Suppress("unused")
     constructor(stub: CangJieImportAliasStub) : super(stub, CjStubElementTypes.IMPORT_ALIAS)
 
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R  {
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitImportAlias(this, data)
     }
 

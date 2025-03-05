@@ -24,31 +24,26 @@
 
 package cn.cangnova.cangjie.psi.stubs.impl
 
-import cn.cangnova.cangjie.contracts.description.CjContractDescriptionElement
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFunctionImpl
+import cn.cangnova.cangjie.psi.stubs.CangJieFunctionForExtendStub
 import cn.cangnova.cangjie.psi.stubs.CangJieFunctionStub
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.stubs.StubInputStream
-import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
-import cn.cangnova.cangjie.psi.stubs.CangJieFunctionForExtendStub
-import java.io.IOException
 
-
-  class CangJieFunctionStubImpl(
-      parent: StubElement<out PsiElement>?,
-      element: IStubElementType<*, *>,
-      private val nameRef: StringRef?,
-      private val isTopLevel: Boolean,
-      private val fqName: FqName?,
-      private val isExtension: Boolean,
-      private val hasBlockBody: Boolean,
-      private val hasBody: Boolean,
-      private val hasTypeParameterListBeforeFunctionName: Boolean,
-      val origin: CangJieStubOrigin?
+class CangJieFunctionStubImpl(
+    parent: StubElement<out PsiElement>?,
+    element: IStubElementType<*, *>,
+    private val nameRef: StringRef?,
+    private val isTopLevel: Boolean,
+    private val fqName: FqName?,
+    private val isExtension: Boolean,
+    private val hasBlockBody: Boolean,
+    private val hasBody: Boolean,
+    private val hasTypeParameterListBeforeFunctionName: Boolean,
+    val origin: CangJieStubOrigin?,
 ) : CangJieStubBaseImpl<CjFunctionImpl>(parent, element), CangJieFunctionStub {
     init {
         if (isTopLevel && fqName == null) {
@@ -66,8 +61,7 @@ import java.io.IOException
     override fun hasTypeParameterListBeforeFunctionName() = hasTypeParameterListBeforeFunctionName
 
     companion object
-
-  }
+}
 
 class CangJieFunctionForExtendStubImpl(
     parent: StubElement<out PsiElement>?,
@@ -79,7 +73,7 @@ class CangJieFunctionForExtendStubImpl(
     private val hasBlockBody: Boolean,
     private val hasBody: Boolean,
     private val hasTypeParameterListBeforeFunctionName: Boolean,
-    val origin: CangJieStubOrigin?
+    val origin: CangJieStubOrigin?,
 ) : CangJieStubBaseImpl<CjFunctionImpl>(parent, element), CangJieFunctionForExtendStub {
     init {
         if (isTopLevel && fqName == null) {
@@ -97,5 +91,4 @@ class CangJieFunctionForExtendStubImpl(
     override fun hasTypeParameterListBeforeFunctionName() = hasTypeParameterListBeforeFunctionName
 
     companion object
-
 }

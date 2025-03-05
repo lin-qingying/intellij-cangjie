@@ -41,7 +41,8 @@ import com.intellij.util.io.StringRef
 
 class CjExtendElementType(debugName: String) : CjStubElementType<CangJieExtendStub, CjExtend>(
     debugName,
-    CjExtend::class.java, CangJieExtendStub::class.java
+    CjExtend::class.java,
+    CangJieExtendStub::class.java,
 ) {
 
     override fun indexStub(stub: CangJieExtendStub, sink: IndexSink) {
@@ -55,7 +56,6 @@ class CjExtendElementType(debugName: String) : CjStubElementType<CangJieExtendSt
         dataStream.writeName(fqName?.asString())
 
         StubUtils.serializeClassId(dataStream, stub.getClassId())
-
 
         val superNames = stub.getSuperNames()
         dataStream.writeVarInt(superNames.size)
@@ -72,7 +72,6 @@ class CjExtendElementType(debugName: String) : CjStubElementType<CangJieExtendSt
 
 //        val isLocal = dataStream.readBoolean()
 
-
         val superCount = dataStream.readVarInt()
         val superNames = StringRef.createArray(superCount)
         for (i in 0 until superCount) {
@@ -80,18 +79,20 @@ class CjExtendElementType(debugName: String) : CjStubElementType<CangJieExtendSt
         }
 
         return CangJieExtendStubImpl(
-            CjStubElementTypes.EXTEND, parentStub, qualifiedName, classId, name, superNames
+            CjStubElementTypes.EXTEND,
+            parentStub,
+            qualifiedName,
+            classId,
+            name,
+            superNames,
 
         )
     }
 
-
     override fun createStub(psi: CjExtend, parentStub: StubElement<out PsiElement>?): CangJieExtendStub {
-
-
 //        val cache = CangJieCacheService.getInstance(psi.project)
 //        val module = cache.getResolutionFacadeByModuleInfo(psi.getContainingCjFile().moduleInfo).moduleDescriptor
-//val file = psi.getContainingCjFile()
+// val file = psi.getContainingCjFile()
 //        file.analyze(
 //
 //        )
@@ -101,12 +102,14 @@ class CjExtendElementType(debugName: String) : CjStubElementType<CangJieExtendSt
         val superNames = psi.getSuperNames()
         val classId = StubUtils.createNestedClassId(parentStub!!, psi)
         return CangJieExtendStubImpl(
-            CjStubElementTypes.EXTEND, parentStub as StubElement<*>?,
-            StringRef.fromString(fqName?.asString()), classId,
+            CjStubElementTypes.EXTEND,
+            parentStub as StubElement<*>?,
+            StringRef.fromString(fqName?.asString()),
+            classId,
             StringRef.fromString(psi.name),
             Utils.wrapStrings(superNames),
 
-            )
+        )
     }
 
     override fun createPsi(stub: CangJieExtendStub): CjExtend {

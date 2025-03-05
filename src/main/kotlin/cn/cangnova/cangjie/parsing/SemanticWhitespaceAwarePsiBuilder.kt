@@ -27,11 +27,7 @@ package cn.cangnova.cangjie.parsing
 import com.intellij.lang.PsiBuilder
 import com.intellij.psi.tree.IElementType
 
-
-
 interface SemanticWhitespaceAwarePsiBuilder : PsiBuilder {
-
-
 
     /**
      * 检查当前标记之前是否有换行符

@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.psi.CjFile
 import com.intellij.openapi.util.Key
 
-
 fun CjElement.suppressDiagnosticsInDebugMode(): Boolean {
     return if (this is CjFile) {
         this.suppressDiagnosticsInDebugMode

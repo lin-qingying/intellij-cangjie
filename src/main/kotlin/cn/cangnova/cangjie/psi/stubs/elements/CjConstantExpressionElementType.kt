@@ -36,13 +36,11 @@ import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
 import org.jetbrains.annotations.NonNls
 
-
-
 class CjConstantExpressionElementType(@NonNls debugName: String) :
     CjStubElementType<CangJieConstantExpressionStub, CjConstantExpression>(
         debugName,
         CjConstantExpression::class.java,
-        CangJieConstantExpressionStub::class.java
+        CangJieConstantExpressionStub::class.java,
     ) {
 
     override fun shouldCreateStub(node: ASTNode): Boolean {
@@ -62,7 +60,7 @@ class CjConstantExpressionElementType(@NonNls debugName: String) :
             parentStub,
             elementType,
             constantElementTypeToKind(elementType),
-            StringRef.fromString(value)
+            StringRef.fromString(value),
         )
     }
 
@@ -81,27 +79,24 @@ class CjConstantExpressionElementType(@NonNls debugName: String) :
             parentStub,
             kindToConstantElementType(valueKind),
             valueKind,
-            value
+            value,
         )
     }
 
     companion object {
         fun kindToConstantElementType(kind: ConstantValueKind): CjConstantExpressionElementType {
             return when (kind) {
-
                 BOOLEAN_CONSTANT -> CjStubElementTypes.BOOLEAN_CONSTANT
                 FLOAT_CONSTANT -> CjStubElementTypes.FLOAT_CONSTANT
                 RUNE_CONSTANT -> CjStubElementTypes.RUNE_CONSTANT
                 CHARACTER_BYTE_CONSTANT -> CjStubElementTypes.CHARACTER_BYTE_CONSTANT
                 INTEGER_CONSTANT -> CjStubElementTypes.INTEGER_CONSTANT
                 UNIT_CONSTANT -> CjStubElementTypes.UNIT_CONSTANT
-
             }
         }
 
         private fun constantElementTypeToKind(elementType: CjConstantExpressionElementType): ConstantValueKind {
             return when (elementType) {
-
                 CjStubElementTypes.BOOLEAN_CONSTANT -> BOOLEAN_CONSTANT
                 CjStubElementTypes.INTEGER_CONSTANT -> INTEGER_CONSTANT
                 CjStubElementTypes.FLOAT_CONSTANT -> FLOAT_CONSTANT

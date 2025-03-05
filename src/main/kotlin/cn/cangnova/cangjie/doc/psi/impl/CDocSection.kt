@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.doc.psi.impl
 import cn.cangnova.cangjie.psi.psiUtil.getChildrenOfType
 import com.intellij.lang.ASTNode
 
-
 /**
  *文档注释中描述单个类、方法或属性的部分由被记录的元素产生。例如，类的文档注释可以有类本身、其主构造函数和每个在主构造函数中定义的属性
  */

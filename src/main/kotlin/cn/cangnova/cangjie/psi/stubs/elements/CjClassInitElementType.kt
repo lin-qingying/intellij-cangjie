@@ -38,7 +38,7 @@ import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
 
 class CjClassInitElementType(debugName: String) :
-    CjStubElementType<CangJieFunctionStub, CjClassInit>(debugName, CjClassInit::class.java,CangJieFunctionStub::class.java){
+    CjStubElementType<CangJieFunctionStub, CjClassInit>(debugName, CjClassInit::class.java, CangJieFunctionStub::class.java) {
     override fun serialize(stub: CangJieFunctionStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
 
@@ -58,7 +58,6 @@ class CjClassInitElementType(debugName: String) :
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieFunctionStub {
         val name = dataStream.readName()
 
-
         val fqNameAsString = dataStream.readName()
         val fqName = if (fqNameAsString != null) FqName(fqNameAsString.toString()) else null
 
@@ -70,14 +69,13 @@ class CjClassInitElementType(debugName: String) :
         return CangJieFunctionStubImpl(
             parentStub, CjStubElementTypes.CLASS_INIT, name, false, fqName, isExtension, hasBlockBody, hasBody,
             hasTypeParameterListBeforeFunctionName,
-             /*contract*/
-            deserialize(dataStream)
+            /*contract*/
+            deserialize(dataStream),
         )
     }
 
     override fun createStub(psi: CjClassInit, parentStub: StubElement<out PsiElement>?): CangJieFunctionStub {
-
-        val isExtension = psi.receiverTypeReference  != null
+        val isExtension = psi.receiverTypeReference != null
         val fqName = psi.safeFqNameForLazyResolve()
         val hasBlockBody = psi.hasBlockBody()
         val hasBody = psi.hasBody()
@@ -85,8 +83,7 @@ class CjClassInitElementType(debugName: String) :
             parentStub, CjStubElementTypes.CLASS_INIT, StringRef.fromString(psi.getName()), false, fqName,
             isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
 
-            null
+            null,
         )
     }
-
 }

@@ -33,23 +33,20 @@ object SourceNavigationHelper {
 
     fun getOriginalElement(declaration: CjDeclaration): CjElement {
         return navigateToDeclaration(declaration, NavigationKind.SOURCES_TO_CLASS_FILES)
-
     }
 
     fun getNavigationElement(declaration: CjDeclaration): CjElement {
         return navigateToDeclaration(declaration, NavigationKind.CLASS_FILES_TO_SOURCES)
-
-
     }
 
     enum class NavigationKind {
         CLASS_FILES_TO_SOURCES,
-        SOURCES_TO_CLASS_FILES
+        SOURCES_TO_CLASS_FILES,
     }
 
     private fun navigateToDeclaration(
         from: CjDeclaration,
-        navigationKind: NavigationKind
+        navigationKind: NavigationKind,
     ): CjDeclaration {
         if (!from.isValid || DumbService.isDumb(from.project)) return from
 

@@ -24,9 +24,7 @@
 
 package cn.cangnova.cangjie.psi.stubs
 
-
 object CangJieStubVersions {
-
 
     const val SOURCE_STUB_VERSION = 157
 

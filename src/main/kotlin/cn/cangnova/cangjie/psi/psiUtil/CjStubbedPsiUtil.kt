@@ -24,13 +24,13 @@
 
 package cn.cangnova.cangjie.psi.psiUtil
 
+import cn.cangnova.cangjie.psi.CjDeclaration
+import cn.cangnova.cangjie.psi.CjElement
+import cn.cangnova.cangjie.psi.CjElementImplStub
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
-import cn.cangnova.cangjie.psi.CjDeclaration
-import cn.cangnova.cangjie.psi.CjElement
-import cn.cangnova.cangjie.psi.CjElementImplStub
 
 object CjStubbedPsiUtil {
     /**
@@ -77,7 +77,7 @@ object CjStubbedPsiUtil {
     fun <T : CjElement> getPsiOrStubParent(
         element: PsiElement,
         declarationClass: Class<T>,
-        strict: Boolean
+        strict: Boolean,
     ): T? {
         // 如果不严格匹配且当前元素即为目标类型，则直接返回当前元素
         if (!strict && declarationClass.isInstance(element)) {
@@ -109,7 +109,7 @@ object CjStubbedPsiUtil {
     fun <T : CjElement> getStubOrPsiChild(
         element: CjElementImplStub<*>,
         types: TokenSet,
-        factory: ArrayFactory<T?>
+        factory: ArrayFactory<T?>,
     ): T? {
         // 获取所有匹配指定类型的子元素或stub子元素
         val typeElements = element.getStubOrPsiChildren(types, factory)
@@ -120,5 +120,4 @@ object CjStubbedPsiUtil {
         // 返回第一个匹配类型的子元素
         return typeElements[0]
     }
-
 }

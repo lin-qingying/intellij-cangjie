@@ -24,16 +24,14 @@
 
 package cn.cangnova.cangjie.psi
 
-
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.psiUtil.getChildrenOfType
 import cn.cangnova.cangjie.psi.psiUtil.identifier
 import cn.cangnova.cangjie.psi.stubs.CangJieExtendStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
 class CjExtend : CjTypeStatement {
     private val _stub: CangJieExtendStub?
@@ -60,7 +58,6 @@ class CjExtend : CjTypeStatement {
         return when (val type = receiverTypeReceiver?.typeElement) {
             is CjUserType -> {
                 type.referencedName
-
             }
 
             is CjOptionType -> {
@@ -73,15 +70,13 @@ class CjExtend : CjTypeStatement {
 
             else -> null
         }
-
-
     }
 
     override fun getNameIdentifier(): PsiElement? {
         return receiverTypeReceiver?.typeElement?.identifier
     }
 
-    //被扩展类型
+    // 被扩展类型
     val receiverTypeReceiver: CjTypeReference?
         get() {
             val stub = stub
@@ -130,7 +125,6 @@ class CjExtend : CjTypeStatement {
             it.children[0].text
         }
         return names.joinToString()
-
     }
 
     private fun getReceiverTypeRefByTree(): CjTypeReference? {
@@ -146,5 +140,4 @@ class CjExtend : CjTypeStatement {
 
         return null
     }
-
 }

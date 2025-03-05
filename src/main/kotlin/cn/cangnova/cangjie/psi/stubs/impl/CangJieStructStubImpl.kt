@@ -26,18 +26,15 @@ package cn.cangnova.cangjie.psi.stubs.impl
 
 import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.psi.CjInterface
 import cn.cangnova.cangjie.psi.CjStruct
-import cn.cangnova.cangjie.psi.stubs.CangJieInterfaceStub
 import cn.cangnova.cangjie.psi.stubs.CangJieStructStub
-import cn.cangnova.cangjie.psi.stubs.elements.CjInterfaceElementType
 import cn.cangnova.cangjie.psi.stubs.elements.CjStructElementType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 import java.util.ArrayList
 
-open  class  CangJieStructStubImpl   (
+open class CangJieStructStubImpl(
     type: CjStructElementType,
     parent: StubElement<out PsiElement>?,
     private val qualifiedName: StringRef?,
@@ -45,18 +42,14 @@ open  class  CangJieStructStubImpl   (
     private val name: StringRef?,
     private val superNames: Array<StringRef>,
 
-
     private val isLocal: Boolean,
 //    private val isTopLevel: Boolean,
 ) : CangJieStubBaseImpl<CjStruct>(parent, type), CangJieStructStub {
-
 
     override fun getFqName(): FqName? {
         val stringRef = StringRef.toString(qualifiedName) ?: return null
         return FqName(stringRef)
     }
-
-
 
     override fun isLocal() = isLocal
     override fun getName() = StringRef.toString(name)

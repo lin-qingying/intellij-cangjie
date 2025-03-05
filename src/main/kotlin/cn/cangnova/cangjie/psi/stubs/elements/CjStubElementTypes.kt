@@ -22,12 +22,12 @@
  *
  */
 
-//package cn.cangnova.cangjie.psi.stubs.elements
+// package cn.cangnova.cangjie.psi.stubs.elements
 //
-//import cn.cangnova.cangjie.psi.*
-//import com.intellij.psi.tree.TokenSet
+// import cn.cangnova.cangjie.psi.*
+// import com.intellij.psi.tree.TokenSet
 //
-//interface CjStubElementTypes {
+// interface CjStubElementTypes {
 //
 //
 //    val CLASS: CjClassElementType = CjClassElementType("CLASS")
@@ -51,7 +51,7 @@
 //    @JvmField
 //    val ENUM_ENTRY: CjClassElementType = CjClassElementType("ENUM_ENTRY")
 //
- //    @JvmField
+//    @JvmField
 //    val CLASS_INITIALIZER: CjPlaceHolderStubElementType<CjClassInitializer> = CjPlaceHolderStubElementType(
 //        "CLASS_INITIALIZER",
 //        CjClassInitializer::class.java
@@ -161,15 +161,15 @@
 //        CjFunctionType::class.java
 //    )
 //
-////    @JvmField
-//@JvmStatic
+// //    @JvmField
+// @JvmStatic
 //    val TYPE_CODE_FRAGMENT: CjTypeCodeFragmentType = CjTypeCodeFragmentType()
 //
-////    @JvmField
-//@JvmStatic
+// //    @JvmField
+// @JvmStatic
 //    val EXPRESSION_CODE_FRAGMENT: CjExpressionCodeFragmentType = CjExpressionCodeFragmentType()
 //
-////    @JvmField
+// //    @JvmField
 //    @JvmStatic
 //    val BLOCK_CODE_FRAGMENT: CjBlockCodeFragmentType = CjBlockCodeFragmentType()
 //
@@ -435,4 +435,4 @@
 //    )
 //
 //
-//}
+// }

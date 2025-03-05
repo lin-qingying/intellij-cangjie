@@ -45,7 +45,7 @@ class CjMacroElementType(debugName: @NonNls String) :
     CjStubElementType<CangJieFunctionStub, CjMacroDeclaration>(
         debugName,
         CjMacroDeclaration::class.java,
-        CangJieFunctionStub::class.java
+        CangJieFunctionStub::class.java,
     ) {
     override fun createStub(psi: CjMacroDeclaration, parentStub: StubElement<out PsiElement?>): CangJieFunctionStub {
         val isTopLevel = psi.parent is CjFile
@@ -57,7 +57,7 @@ class CjMacroElementType(debugName: @NonNls String) :
             parentStub, CjStubElementTypes.MACRO, StringRef.fromString(psi.name), isTopLevel, fqName,
             isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
 
-            null
+            null,
         )
     }
 
@@ -100,7 +100,7 @@ class CjMacroElementType(debugName: @NonNls String) :
         return CangJieFunctionStubImpl(
             parentStub, CjStubElementTypes.MACRO, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
             hasTypeParameterListBeforeFunctionName,
-            deserialize(dataStream)
+            deserialize(dataStream),
         )
     }
 }

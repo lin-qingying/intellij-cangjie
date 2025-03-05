@@ -24,10 +24,9 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
 
-class CjFinallySection(node:ASTNode):CjElementImpl(node),CjStatementExpression{
+class CjFinallySection(node: ASTNode) : CjElementImpl(node), CjStatementExpression {
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitFinallySection(this, data)
@@ -36,5 +35,3 @@ class CjFinallySection(node:ASTNode):CjElementImpl(node),CjStatementExpression{
     val finalExpression: CjBlockExpression?
         get() = findChildByType(CjNodeTypes.BLOCK) as CjBlockExpression?
 }
-
-

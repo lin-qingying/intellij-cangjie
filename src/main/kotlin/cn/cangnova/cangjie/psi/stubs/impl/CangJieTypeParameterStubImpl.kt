@@ -31,8 +31,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 
-
-
 class CangJieTypeParameterStubImpl(
     parent: StubElement<out PsiElement>?,
     private val name: StringRef?,
@@ -42,6 +40,7 @@ class CangJieTypeParameterStubImpl(
 //    override fun isInVariance() = isInVariance
 
     override fun getName() = StringRef.toString(name)
+
     // type parameters don't have FqNames
     override fun getFqName() = null
 }

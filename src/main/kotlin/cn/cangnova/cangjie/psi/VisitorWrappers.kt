@@ -23,9 +23,9 @@
  */
 
 package cn.cangnova.cangjie.psi
-fun importDirectiveVisitor(block: (CjImportDirective ) -> Unit) =
+fun importDirectiveVisitor(block: (CjImportDirective) -> Unit) =
     object : CjVisitorVoid() {
-        override fun visitImportDirective(importDirective: CjImportDirective ) {
+        override fun visitImportDirective(importDirective: CjImportDirective) {
             block(importDirective)
         }
     }

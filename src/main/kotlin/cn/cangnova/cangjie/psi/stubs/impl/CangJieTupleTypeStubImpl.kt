@@ -25,13 +25,11 @@
 package cn.cangnova.cangjie.psi.stubs.impl
 
 import cn.cangnova.cangjie.psi.CjTupleType
-import cn.cangnova.cangjie.psi.CjUserType
 import cn.cangnova.cangjie.psi.stubs.CangJieTupleTypeStub
-import cn.cangnova.cangjie.psi.stubs.CangJieUserTypeStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 
 class CangJieTupleTypeStubImpl(
-    parent: StubElement<out PsiElement>?
+    parent: StubElement<out PsiElement>?,
 ) : CangJieStubBaseImpl<CjTupleType>(parent, CjStubElementTypes.TUPLE_TYPE), CangJieTupleTypeStub

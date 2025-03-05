@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.psi.stubs.elements
 
-import cn.cangnova.cangjie.ElementTypeUtils
+import cn.cangnova.cangjie.psi.ElementTypeUtils
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.lexer.CangJieLexer
 import cn.cangnova.cangjie.lexer.CjTokens
@@ -42,7 +42,11 @@ class CaseBlockExpressionElementType : BlockExpressionElementType("CASE_BLOCK") 
     override fun parseContents(chameleon: ASTNode): ASTNode {
         val project = chameleon.psi.project
         val builder = PsiBuilderFactory.getInstance().createBuilder(
-            project, chameleon, null, CangJieLanguage, chameleon.chars
+            project,
+            chameleon,
+            null,
+            CangJieLanguage,
+            chameleon.chars,
         )
 
         return CangJieParser.parseInitFunctionBlockExpression(builder).firstChildNode
@@ -51,14 +55,17 @@ class CaseBlockExpressionElementType : BlockExpressionElementType("CASE_BLOCK") 
     override fun createCompositeNode() = CjCaseBlockExpression(null)
 
     override fun createNode(text: CharSequence?) = CjCaseBlockExpression(text)
-
 }
 
 class InitBlockExpressionElementType : BlockExpressionElementType("INIT_BLOCK") {
     override fun parseContents(chameleon: ASTNode): ASTNode {
         val project = chameleon.psi.project
         val builder = PsiBuilderFactory.getInstance().createBuilder(
-            project, chameleon, null, CangJieLanguage, chameleon.chars
+            project,
+            chameleon,
+            null,
+            CangJieLanguage,
+            chameleon.chars,
         )
 
         return CangJieParser.parseInitFunctionBlockExpression(builder).firstChildNode
@@ -67,17 +74,14 @@ class InitBlockExpressionElementType : BlockExpressionElementType("INIT_BLOCK") 
     override fun createCompositeNode() = CjInitBlockExpression(null)
 
     override fun createNode(text: CharSequence?) = CjInitBlockExpression(text)
-
 }
 
 open class BlockExpressionElementType(debugName: String = "BLOCK") :
     IErrorCounterReparseableElementType(debugName, CangJieLanguage),
     ICompositeElementType {
 
-
     init {
 //            DummyHolderFactory.setFactory(CangJieDummyHolderFactory())
-
     }
 
     override fun createCompositeNode() = CjBlockExpression(null)
@@ -86,9 +90,9 @@ open class BlockExpressionElementType(debugName: String = "BLOCK") :
 
     override fun isParsable(parent: ASTNode?, buffer: CharSequence, fileLanguage: Language, project: Project) =
         fileLanguage == CangJieLanguage &&
-                isAllowedParentNode(parent) &&
-                isReparseableBlock(buffer) &&
-                super.isParsable(buffer, fileLanguage, project)
+            isAllowedParentNode(parent) &&
+            isReparseableBlock(buffer) &&
+            super.isParsable(buffer, fileLanguage, project)
 
     override fun getErrorsCount(seq: CharSequence, fileLanguage: Language, project: Project) =
         ElementTypeUtils.getCangJieBlockImbalanceCount(seq)
@@ -96,21 +100,22 @@ open class BlockExpressionElementType(debugName: String = "BLOCK") :
     override fun parseContents(chameleon: ASTNode): ASTNode {
         val project = chameleon.psi.project
         val builder = PsiBuilderFactory.getInstance().createBuilder(
-            project, chameleon, null, CangJieLanguage, chameleon.chars
+            project,
+            chameleon,
+            null,
+            CangJieLanguage,
+            chameleon.chars,
         )
 
         return CangJieParser.parseBlockExpression(builder).firstChildNode
     }
-
 
     companion object {
 
         private fun isAllowedParentNode(node: ASTNode?) =
             node != null
 
-
         fun isReparseableBlock(blockText: CharSequence): Boolean {
-
             fun advanceWhitespacesCheckIsEndOrArrow(lexer: CangJieLexer): Boolean {
                 lexer.advance()
                 while (lexer.tokenType != null && lexer.tokenType != CjTokens.EOF) {
@@ -124,7 +129,7 @@ open class BlockExpressionElementType(debugName: String = "BLOCK") :
             val lexer = CangJieLexer()
             lexer.start(blockText)
 
-            //尝试解析后面跟一个箭头的简单名称列表
+            // 尝试解析后面跟一个箭头的简单名称列表
             //   {a -> ...}
             //   {a, b -> ...}
             //   {(a, b) -> ... }
@@ -135,7 +140,9 @@ open class BlockExpressionElementType(debugName: String = "BLOCK") :
             if (lexer.tokenType != CjTokens.COLON &&
                 lexer.tokenType != CjTokens.IDENTIFIER &&
                 lexer.tokenType != CjTokens.LPAR
-            ) return true
+            ) {
+                return true
+            }
 
             val searchForRPAR = lexer.tokenType == CjTokens.LPAR
 
@@ -144,7 +151,6 @@ open class BlockExpressionElementType(debugName: String = "BLOCK") :
             val preferParamsToExpressions = lexer.tokenType == CjTokens.COMMA || lexer.tokenType == CjTokens.COLON
 
             while (true) {
-
                 if (lexer.tokenType == CjTokens.LBRACE) return true
                 if (lexer.tokenType == CjTokens.RBRACE) return !preferParamsToExpressions
 

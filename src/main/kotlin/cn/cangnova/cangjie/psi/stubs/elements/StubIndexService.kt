@@ -31,7 +31,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
-
 import java.io.IOException
 
 open class StubIndexService protected constructor() {
@@ -39,12 +38,10 @@ open class StubIndexService protected constructor() {
     }
 
     open fun indexEnumEntry(stub: CangJieEnumEntryStub, sink: IndexSink) {
-
     }
     open fun indexScript(stub: CangJieScriptStub, sink: IndexSink) {
     }
     open fun indexEnum(stub: CangJieEnumStub, sink: IndexSink) {
-
     }
     open fun indexImports(stub: CangJieImportDirectiveItemStub, sink: IndexSink) {
     }
@@ -55,16 +52,12 @@ open class StubIndexService protected constructor() {
     }
 
     open fun indexExtend(stub: CangJieExtendStub, sink: IndexSink) {
-
     }
     open fun indexMacroFunction(stub: CangJieFunctionStub, sink: IndexSink) {
     }
 
-
     open fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
     }
-
-
 
     open fun indexMainFunction(stub: CangJieFunctionStub, sink: IndexSink) {
     }
@@ -85,12 +78,10 @@ open class StubIndexService protected constructor() {
     }
 
     open fun indexInterface(stub: CangJieInterfaceStub, sink: IndexSink) {
-
     }
 
     open fun indexAnnotation(stub: CangJieAnnotationEntryStub, sink: IndexSink) {
     }
-
 
     open fun createFileStub(file: CjFile): CangJieFileStub {
         return CangJieFileStubImpl(file, file.packageFqNameByTree.asString())
@@ -99,7 +90,6 @@ open class StubIndexService protected constructor() {
     @Throws(IOException::class)
     open fun serializeFileStub(stub: CangJieFileStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.getPackageFqName().asString())
-
     }
 
     @Throws(IOException::class)
@@ -108,7 +98,6 @@ open class StubIndexService protected constructor() {
 
         return CangJieFileStubImpl(null, packageFqNameAsString!!.string)
     }
-
 
     companion object {
         @JvmStatic

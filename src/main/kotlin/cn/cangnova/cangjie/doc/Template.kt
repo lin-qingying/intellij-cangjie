@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.doc
 
-
 /**
  * A template that expands inside [TOuter]
  */
@@ -62,6 +61,7 @@ open class Placeholder<TOuter> {
         top?.invoke(destination, exec)
     }
 }
+
 /**
  * A placeholder that is also a template
  */
@@ -84,6 +84,7 @@ fun <TTemplate : Template<TOuter>, TOuter> TOuter.insert(template: TTemplate, pl
     placeholder.apply(template)
     with(template) { apply() }
 }
+
 /**
  * Inserts placeholder
  */

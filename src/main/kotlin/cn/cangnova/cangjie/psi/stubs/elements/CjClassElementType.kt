@@ -43,7 +43,7 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjClassElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieClassStub, CjClass >(debugName, CjClass::class.java, CangJieClassStub::class.java) {
+    CjStubElementType<CangJieClassStub, CjClass>(debugName, CjClass::class.java, CangJieClassStub::class.java) {
     override fun createPsi(stub: CangJieClassStub): CjClass {
         return CjClass(stub)
     }
@@ -58,11 +58,13 @@ class CjClassElementType(debugName: @NonNls String) :
         val superNames = psi.getSuperNames()
         val classId = createNestedClassId(parentStub, psi)
         return CangJieClassStubImpl(
-            stubType, parentStub,
-            StringRef.fromString(fqName?.asString()), classId,
+            stubType,
+            parentStub,
+            StringRef.fromString(fqName?.asString()),
+            classId,
             StringRef.fromString(psi.name),
             wrapStrings(superNames),
-            psi.isLocal
+            psi.isLocal,
         )
     }
 
@@ -104,8 +106,13 @@ class CjClassElementType(debugName: @NonNls String) :
         }
 
         return CangJieClassStubImpl(
-            stubType, parentStub, qualifiedName, classId, name, superNames,
-            isLocal
+            stubType,
+            parentStub,
+            qualifiedName,
+            classId,
+            name,
+            superNames,
+            isLocal,
         )
     }
 

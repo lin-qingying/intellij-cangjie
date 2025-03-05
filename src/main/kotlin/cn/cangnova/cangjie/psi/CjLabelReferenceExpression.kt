@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import com.intellij.lang.ASTNode
 
-
 class CjLabelReferenceExpression(node: ASTNode) : CjSimpleNameExpressionImpl(node) {
     override val referencedNameElement get() = identifier ?: this
 }

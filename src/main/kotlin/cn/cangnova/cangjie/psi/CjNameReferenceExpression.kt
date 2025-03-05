@@ -24,23 +24,24 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
-import com.intellij.psi.tree.IElementType
-import com.intellij.psi.tree.TokenSet
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens.*
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.stubs.CangJieNameBasicReferenceExpressionStub
 import cn.cangnova.cangjie.psi.stubs.CangJieNameReferenceExpressionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.tree.TokenSet
 
 interface CjCallableReference : CjReferenceExpression {
     val callableReference: CjSimpleNameExpression
     val receiverExpression: CjExpression? get() = null
 }
 
-class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpressionStub>, CjSimpleNameExpression,
+class CjNameReferenceExpression :
+    CjExpressionImplStub<CangJieNameReferenceExpressionStub>,
+    CjSimpleNameExpression,
     CjCallableReference {
     constructor(node: ASTNode) : super(node)
 
@@ -100,7 +101,9 @@ class CjNameReferenceExpression : CjExpressionImplStub<CangJieNameReferenceExpre
         get() = this
 }
 
-class CjNameBasicReferenceExpression : CjExpressionImplStub<CangJieNameBasicReferenceExpressionStub>, CjSimpleNameExpression,
+class CjNameBasicReferenceExpression :
+    CjExpressionImplStub<CangJieNameBasicReferenceExpressionStub>,
+    CjSimpleNameExpression,
     CjCallableReference {
     constructor(node: ASTNode) : super(node)
 

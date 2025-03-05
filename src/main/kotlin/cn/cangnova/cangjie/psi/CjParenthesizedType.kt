@@ -24,13 +24,12 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.google.common.collect.Lists
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.google.common.collect.Lists
 import com.intellij.lang.ASTNode
 
 class CjParenthesizedType : CjElementImplStub<CangJiePlaceHolderStub<CjParenthesizedType>>, CjTypeElement {
-
 
     constructor(node: ASTNode) : super(node)
 
@@ -62,5 +61,4 @@ class CjParenthesizedType : CjElementImplStub<CangJiePlaceHolderStub<CjParenthes
             }
             return result
         }
-
 }

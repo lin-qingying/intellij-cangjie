@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.psi.stubs.impl
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 
-
 sealed class CangJieStubOrigin {
     companion object {
         private const val FACADE_KIND = 1
@@ -58,7 +57,7 @@ sealed class CangJieStubOrigin {
     protected abstract fun serializeContent(dataStream: StubOutputStream)
 
     data class Facade(
-        val className: String // Internal name of the package part class
+        val className: String, // Internal name of the package part class
     ) : CangJieStubOrigin() {
         companion object {
             @JvmStatic
@@ -77,7 +76,7 @@ sealed class CangJieStubOrigin {
 
     data class MultiFileFacade(
         val className: String, // Internal name of the package part class
-        val facadeClassName: String // Internal name of the facade class
+        val facadeClassName: String, // Internal name of the facade class
     ) : CangJieStubOrigin() {
         companion object {
             @JvmStatic

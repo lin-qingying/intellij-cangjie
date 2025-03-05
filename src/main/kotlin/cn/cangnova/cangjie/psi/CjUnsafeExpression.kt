@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.psi
 
 import com.intellij.lang.ASTNode
-import cn.cangnova.cangjie.CjNodeTypes
 
 class CjUnsafeExpression(node: ASTNode) : CjCallExpression(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {

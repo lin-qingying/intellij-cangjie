@@ -25,10 +25,8 @@
 package cn.cangnova.cangjie.psi
 
 import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.lexer.CjTokens
 
-
-interface CjFunction : CjDeclarationWithBody, CjCallableDeclaration,CjLocalNamedDeclaration {
+interface CjFunction : CjDeclarationWithBody, CjCallableDeclaration, CjLocalNamedDeclaration {
     val isLocal: Boolean
     val isStatic: Boolean
         get() = false
@@ -38,8 +36,7 @@ interface CjFunction : CjDeclarationWithBody, CjCallableDeclaration,CjLocalNamed
         get() = false
     val isMut get() = false
 
-    val isConst get() =  false
+    val isConst get() = false
 
-    val keyword :PsiElement? get() = null
+    val keyword: PsiElement? get() = null
 }
-

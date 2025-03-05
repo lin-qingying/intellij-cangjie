@@ -24,44 +24,37 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
+import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.*
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
-import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
-import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.*
-
 
 class CjInterfaceBody : CjAbstractClassBody {
     constructor(node: ASTNode) : super(node)
 
-
     constructor(stub: CangJiePlaceHolderStub<CjInterfaceBody>) : super(stub, INTERFACE_BODY)
-
 }
 
 class CjEnumBody : CjAbstractClassBody {
     constructor(node: ASTNode) : super(node)
 
-
     constructor(stub: CangJiePlaceHolderStub<CjEnumBody>) : super(stub, ENUM_BODY)
 
-
     val entrys get() = getStubOrPsiChildrenAsList(ENUM_ENTRY)
-
 }
 
 class CjClassBody : CjAbstractClassBody {
     constructor(node: ASTNode) : super(node)
 
-
     constructor(stub: CangJiePlaceHolderStub<CjEnumBody>) : super(stub, CLASS_BODY)
-
 }
 
-abstract class CjAbstractClassBody : CjElementImplStub<CangJiePlaceHolderStub<out CjAbstractClassBody>>,
+abstract class CjAbstractClassBody :
+    CjElementImplStub<CangJiePlaceHolderStub<out CjAbstractClassBody>>,
     CjDeclarationContainer {
     private val lBraceTokenSet = TokenSet.create(CjTokens.LBRACE)
     private val rBraceTokenSet = TokenSet.create(CjTokens.RBRACE)
@@ -70,9 +63,8 @@ abstract class CjAbstractClassBody : CjElementImplStub<CangJiePlaceHolderStub<ou
 
     constructor(stub: CangJiePlaceHolderStub<out CjAbstractClassBody>, nodeType: IStubElementType<*, *>) : super(
         stub,
-        nodeType
+        nodeType,
     )
-
 
     constructor(stub: CangJiePlaceHolderStub<CjAbstractClassBody>) : super(stub, CLASS_BODY)
 
@@ -109,5 +101,4 @@ abstract class CjAbstractClassBody : CjElementImplStub<CangJiePlaceHolderStub<ou
 
     val lBrace: PsiElement?
         get() = node.getChildren(lBraceTokenSet).singleOrNull()?.psi
-
 }

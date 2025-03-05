@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.CangJieValueArgumentStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -32,7 +31,8 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.stubs.IStubElementType
 
-open class CjValueArgument : CjElementImplStub<CangJieValueArgumentStub<out CjValueArgument>>,
+open class CjValueArgument :
+    CjElementImplStub<CangJieValueArgumentStub<out CjValueArgument>>,
     ValueArgument {
     constructor(node: ASTNode) : super(node)
 
@@ -40,9 +40,8 @@ open class CjValueArgument : CjElementImplStub<CangJieValueArgumentStub<out CjVa
 
     protected constructor(
         stub: CangJieValueArgumentStub<out CjValueArgument>,
-        nodeType: IStubElementType<*, *>
+        nodeType: IStubElementType<*, *>,
     ) : super(stub, nodeType)
-
 
     override fun getArgumentExpression(): CjExpression? {
         val stub: CangJiePlaceHolderStub<out CjValueArgument>? = stub
@@ -87,4 +86,3 @@ open class CjValueArgument : CjElementImplStub<CangJieValueArgumentStub<out CjVa
             return getSpreadElement() != null
         }
 }
-

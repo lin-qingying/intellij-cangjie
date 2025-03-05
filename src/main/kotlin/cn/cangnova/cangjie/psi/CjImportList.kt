@@ -24,9 +24,9 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
 class CjImportList : CjElementImplStub<CangJiePlaceHolderStub<CjImportList>> {
     constructor(node: ASTNode) : super(node)
@@ -44,7 +44,7 @@ class CjImportList : CjElementImplStub<CangJiePlaceHolderStub<CjImportList>> {
                 addAll(
                     imports.flatMap {
                         it.items
-                    }
+                    },
                 )
             }
             return importDirectives
@@ -53,7 +53,7 @@ class CjImportList : CjElementImplStub<CangJiePlaceHolderStub<CjImportList>> {
         get() {
             val importDirectives = mutableListOf<CjImportDirective>().apply {
                 addAll(
-                    getStubOrPsiChildrenAsList(CjStubElementTypes.IMPORT_DIRECTIVE)
+                    getStubOrPsiChildrenAsList(CjStubElementTypes.IMPORT_DIRECTIVE),
                 )
             }
             return importDirectives

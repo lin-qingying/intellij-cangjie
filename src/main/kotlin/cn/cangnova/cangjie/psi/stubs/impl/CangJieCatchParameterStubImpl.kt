@@ -24,13 +24,13 @@
 
 package cn.cangnova.cangjie.psi.stubs.impl
 
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.StubElement
-import com.intellij.util.io.StringRef
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjCatchParameter
 import cn.cangnova.cangjie.psi.stubs.CangJieCatchParameterStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
+import com.intellij.util.io.StringRef
 
 class CangJieCatchParameterStubImpl(
     private val fqName: StringRef?,
@@ -38,9 +38,11 @@ class CangJieCatchParameterStubImpl(
     private val name: StringRef?,
     parent: StubElement<out PsiElement>?,
 
-    ) : CangJieStubBaseImpl<CjCatchParameter>(
-    parent, CjStubElementTypes.CATCH_PARAMETER
-), CangJieCatchParameterStub {
+) : CangJieStubBaseImpl<CjCatchParameter>(
+    parent,
+    CjStubElementTypes.CATCH_PARAMETER,
+),
+    CangJieCatchParameterStub {
     override fun getName(): String? {
         return StringRef.toString(name)
     }

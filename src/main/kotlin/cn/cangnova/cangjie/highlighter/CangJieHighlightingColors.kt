@@ -47,15 +47,15 @@ object CangJieHighlightingColors {
         TextAttributesKey.createTextAttributesKey("CANGJIE_STRING", DefaultLanguageHighlighterColors.STRING)
     val STRING_ESCAPE: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_STRING_ESCAPE",
-        DefaultLanguageHighlighterColors.VALID_STRING_ESCAPE
+        DefaultLanguageHighlighterColors.VALID_STRING_ESCAPE,
     )
     val INVALID_STRING_ESCAPE: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_INVALID_STRING_ESCAPE",
-        DefaultLanguageHighlighterColors.INVALID_STRING_ESCAPE
+        DefaultLanguageHighlighterColors.INVALID_STRING_ESCAPE,
     )
     val OPERATOR_SIGN: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_OPERATION_SIGN",
-        DefaultLanguageHighlighterColors.OPERATION_SIGN
+        DefaultLanguageHighlighterColors.OPERATION_SIGN,
     )
     val PARENTHESIS: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_PARENTHESIS", DefaultLanguageHighlighterColors.PARENTHESES)
@@ -86,7 +86,7 @@ object CangJieHighlightingColors {
         TextAttributesKey.createTextAttributesKey("CANGJIE_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)
     val BLOCK_COMMENT: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_BLOCK_COMMENT",
-        DefaultLanguageHighlighterColors.BLOCK_COMMENT
+        DefaultLanguageHighlighterColors.BLOCK_COMMENT,
     )
     val DOC_COMMENT: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_DOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT)
@@ -94,7 +94,6 @@ object CangJieHighlightingColors {
         TextAttributesKey.createTextAttributesKey("KDOC_TAG_NAME", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG)
     val CDOC_LINK: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CDOC_LINK", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG_VALUE)
-
 
     val CLASS: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_CLASS", DefaultLanguageHighlighterColors.CLASS_NAME)
@@ -113,31 +112,30 @@ object CangJieHighlightingColors {
         TextAttributesKey.createTextAttributesKey("CANGJIE_ENUM_ENTRY", DefaultLanguageHighlighterColors.STATIC_FIELD)
     val TYPE_ALIAS: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_TYPE_ALIAS", CLASS)
 
-
     val MUTABLE_VARIABLE: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_MUTABLE_VARIABLE")
     val LOCAL_VARIABLE: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_LOCAL_VARIABLE",
-        DefaultLanguageHighlighterColors.LOCAL_VARIABLE
+        DefaultLanguageHighlighterColors.LOCAL_VARIABLE,
     )
     val PARAMETER: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_PARAMETER", DefaultLanguageHighlighterColors.PARAMETER)
     val WRAPPED_INTO_REF: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_WRAPPED_INTO_REF",
-        DefaultLanguageHighlighterColors.CLASS_NAME
+        DefaultLanguageHighlighterColors.CLASS_NAME,
     )
     val INSTANCE_PROPERTY: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_INSTANCE_PROPERTY",
-        DefaultLanguageHighlighterColors.INSTANCE_FIELD
+        DefaultLanguageHighlighterColors.INSTANCE_FIELD,
     )
     val PACKAGE_PROPERTY: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_PACKAGE_PROPERTY",
-        DefaultLanguageHighlighterColors.STATIC_FIELD
+        DefaultLanguageHighlighterColors.STATIC_FIELD,
     )
     val BACKING_FIELD_VARIABLE: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_BACKING_FIELD_VARIABLE")
     val EXTENSION_PROPERTY: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_EXTENSION_PROPERTY",
-        DefaultLanguageHighlighterColors.STATIC_FIELD
+        DefaultLanguageHighlighterColors.STATIC_FIELD,
     )
     val SYNTHETIC_EXTENSION_PROPERTY: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_SYNTHETIC_EXTENSION_PROPERTY", EXTENSION_PROPERTY)
@@ -147,11 +145,11 @@ object CangJieHighlightingColors {
         TextAttributesKey.createTextAttributesKey("CANGJIE_ANDROID_EXTENSIONS_PROPERTY_CALL")
     val INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION",
-        INSTANCE_PROPERTY
+        INSTANCE_PROPERTY,
     )
     val PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION",
-        PACKAGE_PROPERTY
+        PACKAGE_PROPERTY,
     )
 
     // functions
@@ -159,19 +157,19 @@ object CangJieHighlightingColors {
         TextAttributesKey.createTextAttributesKey("CANGJIE_CLOSURE_DEFAULT_PARAMETER", PARAMETER)
     val FUNCTION_DECLARATION: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_FUNCTION_DECLARATION",
-        DefaultLanguageHighlighterColors.FUNCTION_DECLARATION
+        DefaultLanguageHighlighterColors.FUNCTION_DECLARATION,
     )
     val FUNCTION_CALL: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_FUNCTION_CALL",
-        DefaultLanguageHighlighterColors.FUNCTION_CALL
+        DefaultLanguageHighlighterColors.FUNCTION_CALL,
     )
     val PACKAGE_FUNCTION_CALL: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_PACKAGE_FUNCTION_CALL",
-        DefaultLanguageHighlighterColors.STATIC_METHOD
+        DefaultLanguageHighlighterColors.STATIC_METHOD,
     )
     val EXTENSION_FUNCTION_CALL: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_EXTENSION_FUNCTION_CALL",
-        DefaultLanguageHighlighterColors.STATIC_METHOD
+        DefaultLanguageHighlighterColors.STATIC_METHOD,
     )
     val CONSTRUCTOR_CALL: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_CONSTRUCTOR", DefaultLanguageHighlighterColors.FUNCTION_CALL)
@@ -183,7 +181,6 @@ object CangJieHighlightingColors {
         TextAttributesKey.createTextAttributesKey("CANGJIE_VARIABLE_AS_FUNCTION")
     val VARIABLE_AS_FUNCTION_LIKE_CALL: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_VARIABLE_AS_FUNCTION_LIKE")
-
 
     val BAD_CHARACTER: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER)
@@ -198,6 +195,6 @@ object CangJieHighlightingColors {
     val NAMED_ARGUMENT: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_NAMED_ARGUMENT")
     val ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES: TextAttributesKey = TextAttributesKey.createTextAttributesKey(
         "CANGJIE_ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES",
-        DefaultLanguageHighlighterColors.METADATA
+        DefaultLanguageHighlighterColors.METADATA,
     )
 }

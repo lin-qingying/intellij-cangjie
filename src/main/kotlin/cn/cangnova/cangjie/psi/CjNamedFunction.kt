@@ -24,11 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
-import com.intellij.navigation.ItemPresentation
-import com.intellij.navigation.ItemPresentationProviders
-import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
@@ -36,6 +31,11 @@ import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import cn.cangnova.cangjie.psi.stubs.CangJieFunctionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import cn.cangnova.cangjie.utils.OperatorNameConventions
+import com.intellij.lang.ASTNode
+import com.intellij.navigation.ItemPresentation
+import com.intellij.navigation.ItemPresentationProviders
+import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 
 /**
  * 来自扩展的方法
@@ -49,7 +49,6 @@ class CjNamedFunctionForExtend : CjNamedFunction, CjTypeParameterListOwnerForExt
     val extendTypeParameterList get() = this.getStrictParentOfType<CjExtend>()?.typeParameterList
     override val extendTypeParameters: List<CjTypeParameter>
         get() = extendTypeParameterList?.parameters ?: emptyList()
-
 
     override val extendTypeConstraintList: CjTypeConstraintList? get() = this.getStrictParentOfType<CjExtend>()?.typeConstraintList
     override val extendTypeConstraints: List<CjTypeConstraint>
@@ -88,7 +87,6 @@ open class CjNamedFunction : CjFunctionImpl {
         get() {
             if (!isOperator) return false
             return valueParameters.lastOrNull()?.isNamed == true && valueParameters.last().nameAsName?.asString() == "value"
-
         }
 
     override fun getName(): String? {
@@ -99,7 +97,6 @@ open class CjNamedFunction : CjFunctionImpl {
         get() {
             if (isSetFunc) return OperatorNameConventions.SET
             return super.nameAsName
-
         }
     override val fqName: FqName?
         get() = super.fqName
@@ -129,7 +126,7 @@ open class CjNamedFunction : CjFunctionImpl {
     override val initializer: CjExpression?
         get() = PsiTreeUtil.getNextSiblingOfType(
             equalsToken,
-            CjExpression::class.java
+            CjExpression::class.java,
         )
 
     override fun hasInitializer(): Boolean {
@@ -173,7 +170,6 @@ open class CjNamedFunction : CjFunctionImpl {
         return typeReference != null
     }
 
-
     override fun toString(): String {
 //        return getNode().getElementType().toString();
         return node.elementType.toString() + ": " + name
@@ -195,7 +191,6 @@ open class CjNamedFunction : CjFunctionImpl {
         return setTypeReference(this, valueParameterList, typeRef)
     }
 
-
     override val colon: PsiElement?
         get() {
             return super.colon
@@ -210,5 +205,4 @@ open class CjNamedFunction : CjFunctionImpl {
         get() = hasModifier(CjTokens.MUT_KEYWORD)
     override val isConst: Boolean
         get() = hasModifier(CjTokens.CONST_KEYWORD)
-
 }

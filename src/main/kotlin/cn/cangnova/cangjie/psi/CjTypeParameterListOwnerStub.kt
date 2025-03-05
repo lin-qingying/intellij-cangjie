@@ -29,12 +29,11 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.stubs.IStubElementType
 
-abstract class CjTypeParameterListOwnerStub<T : CangJieStubWithFqName<*>>
-    : CjNamedDeclarationStub<T>, CjTypeParameterListOwner {
+abstract class CjTypeParameterListOwnerStub<T : CangJieStubWithFqName<*>> :
+    CjNamedDeclarationStub<T>, CjTypeParameterListOwner {
     constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
     constructor(node: ASTNode) : super(node)
-
 
     override val typeParameterList: CjTypeParameterList? get() = getStubOrPsiChild(CjStubElementTypes.TYPE_PARAMETER_LIST)
     override val typeConstraintList: CjTypeConstraintList? get() = getStubOrPsiChild(CjStubElementTypes.TYPE_CONSTRAINT_LIST)
@@ -49,5 +48,4 @@ abstract class CjTypeParameterListOwnerStub<T : CangJieStubWithFqName<*>>
 
             return list.parameters
         }
-
 }

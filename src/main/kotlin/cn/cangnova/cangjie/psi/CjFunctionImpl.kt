@@ -34,10 +34,11 @@ import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 
-abstract class CjFunctionImpl : CjTypeParameterListOwnerStub<CangJieFunctionStub>, CjFunction,
+abstract class CjFunctionImpl :
+    CjTypeParameterListOwnerStub<CangJieFunctionStub>,
+    CjFunction,
     CjDeclarationWithInitializer {
     constructor(node: ASTNode) : super(node)
-
 
     constructor(stub: CangJieFunctionStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
@@ -49,7 +50,7 @@ abstract class CjFunctionImpl : CjTypeParameterListOwnerStub<CangJieFunctionStub
     }
 
 //    是否需要推断返回值类型
-open val isInferReturnType: Boolean get() =  typeReference == null
+    open val isInferReturnType: Boolean get() = typeReference == null
     open fun hasTypeParameterListBeforeFunctionName(): Boolean {
         val stub = stub
         if (stub != null) {
@@ -89,7 +90,6 @@ open val isInferReturnType: Boolean get() =  typeReference == null
 
             if (superTypeParameterList != null) return superTypeParameterList
 
-
             return null
         }
     private val receiverTypeRefByTree: CjTypeReference?
@@ -99,14 +99,13 @@ open val isInferReturnType: Boolean get() =  typeReference == null
             return parent?.receiverTypeReceiver
         }
 
-
     override val typeReference: CjTypeReference?
         get() {
             val stub = stub
             if (stub != null) {
                 val typeReferences =
                     getStubOrPsiChildrenAsList(
-                        CjStubElementTypes.TYPE_REFERENCE
+                        CjStubElementTypes.TYPE_REFERENCE,
                     )
                 val returnTypeIndex = if (stub.isExtension()) 1 else 0
                 if (returnTypeIndex >= typeReferences.size) {
@@ -156,7 +155,7 @@ open val isInferReturnType: Boolean get() =  typeReference == null
             }
 
             val bodyExpression = findChildByClass(
-                CjExpression::class.java
+                CjExpression::class.java,
             )
             if (bodyExpression is CjBlockExpression) {
                 return bodyExpression
@@ -192,7 +191,6 @@ open val isInferReturnType: Boolean get() =  typeReference == null
             return list?.parameters ?: emptyList()
         }
 
-
     override val isLocal: Boolean
         get() {
             val parent = parent
@@ -209,7 +207,7 @@ open val isInferReturnType: Boolean get() =  typeReference == null
         //    public bool mayHaveContract() {
         get() = PsiTreeUtil.getNextSiblingOfType(
             equalsToken,
-            CjExpression::class.java
+            CjExpression::class.java,
         )
 
     override fun hasInitializer(): Boolean {

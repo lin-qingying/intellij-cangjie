@@ -24,15 +24,17 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.psi.PsiNameIdentifierOwner
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
+import com.intellij.psi.PsiNameIdentifierOwner
 
 interface CjLocalNamedDeclaration : CjDeclaration
 
-interface CjNamedDeclaration : CjDeclaration, PsiNameIdentifierOwner, CjStatementExpression,
+interface CjNamedDeclaration :
+    CjDeclaration,
+    PsiNameIdentifierOwner,
+    CjStatementExpression,
     CjNamed {
     val nameAsSafeName: Name
     val fqName: FqName?
 }
-

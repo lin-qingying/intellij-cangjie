@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
 
 class CjIsExpression(node: ASTNode) : CjExpressionImpl(node), CjOperationExpression {
@@ -39,7 +38,7 @@ class CjIsExpression(node: ASTNode) : CjExpressionImpl(node), CjOperationExpress
     val typeReference: CjTypeReference?
         get() = findChildByType(CjNodeTypes.TYPE_REFERENCE)
 
-    override val operationReference : CjSimpleNameExpression get()   {
+    override val operationReference: CjSimpleNameExpression get() {
         return findChildByType(CjNodeTypes.OPERATION_REFERENCE)!!
     }
 }

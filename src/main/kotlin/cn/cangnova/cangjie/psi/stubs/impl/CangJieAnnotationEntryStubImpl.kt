@@ -31,12 +31,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 
-class CangJieAnnotationEntryStubImpl (
+class CangJieAnnotationEntryStubImpl(
     parent: StubElement<out PsiElement>?,
     private val shortName: StringRef?,
     private val hasValueArguments: Boolean,
 //    val valueArguments: Map<Name, ConstantValue<*>>?
-):CangJieStubBaseImpl<CjAnnotationEntry>(parent, CjStubElementTypes.ANNOTATION_ENTRY), CangJieAnnotationEntryStub {
+) : CangJieStubBaseImpl<CjAnnotationEntry>(parent, CjStubElementTypes.ANNOTATION_ENTRY), CangJieAnnotationEntryStub {
 
     override fun getShortName() = shortName?.string
 

@@ -31,7 +31,7 @@ import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.IncorrectOperationException
 
-abstract class CjExpressionImplStub<T : StubElement<*> > : CjElementImplStub<T>, CjExpression {
+abstract class CjExpressionImplStub<T : StubElement<*>> : CjElementImplStub<T>, CjExpression {
     constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
     constructor(node: ASTNode) : super(node)
@@ -49,7 +49,7 @@ abstract class CjExpressionImplStub<T : StubElement<*> > : CjElementImplStub<T>,
         return super.replace(newElement)
     }
 
-    override fun getParent(): PsiElement ?{
+    override fun getParent(): PsiElement? {
         val stub = getStub()
         if (stub != null) {
             return stub.parentStub.psi

@@ -24,12 +24,12 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
 @Suppress("deprecation")
-abstract class CjFunctionNotStubbed(node: ASTNode) : CjTypeParameterListOwnerNotStubbed(node),
+abstract class CjFunctionNotStubbed(node: ASTNode) :
+    CjTypeParameterListOwnerNotStubbed(node),
     CjFunction {
     override val valueParameterList: CjParameterList?
         get() = findChildByType(CjNodeTypes.VALUE_PARAMETER_LIST)

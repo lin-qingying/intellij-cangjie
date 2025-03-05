@@ -43,8 +43,8 @@ open class CangJieStubBaseImpl<T : CjElementImplStub<*>>(parent: StubElement<*>?
         private val LOGGER: Logger = Logger.getInstance(CangJieStubBaseImpl::class.java)
         private val BASE_STUB_INTERFACES = listOf(
 //                CangJieStubWithFqName::class.java,
-                CangJieClassifierStub::class.java,
-                CangJieTypeStatementStub::class.java,
+            CangJieClassifierStub::class.java,
+            CangJieTypeStatementStub::class.java,
             NamedStub::class.java,
 //                CangJieCallableStubBase::class.java
         )
@@ -96,5 +96,4 @@ open class CangJieStubBaseImpl<T : CjElementImplStub<*>>(parent: StubElement<*>?
         val properties = propertiesValues.joinToString(separator = ", ", prefix = "[", postfix = "]")
         return "$STUB_TO_STRING_PREFIX$stubType$properties"
     }
-
 }

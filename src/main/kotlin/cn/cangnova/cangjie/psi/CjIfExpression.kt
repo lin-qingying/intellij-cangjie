@@ -24,13 +24,11 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-
-class CjIfExpression(node: ASTNode) : CjExpressionImpl(node) ,CjPatternEntryBlock{
+class CjIfExpression(node: ASTNode) : CjExpressionImpl(node), CjPatternEntryBlock {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitIfExpression(this, data)
     }
@@ -38,7 +36,6 @@ class CjIfExpression(node: ASTNode) : CjExpressionImpl(node) ,CjPatternEntryBloc
     @get: IfNotParsed
     val condition: CjExpression?
         get() = findExpressionUnder(CjNodeTypes.CONDITION)
-
 
     val letExpression get() = findChildByType<CjLetExpression>(CjNodeTypes.LET_EXPRESSION)
 
@@ -58,4 +55,3 @@ class CjIfExpression(node: ASTNode) : CjExpressionImpl(node) ,CjPatternEntryBloc
     val ifKeyword: PsiElement
         get() = findChildByType(CjTokens.IF_KEYWORD)!!
 }
-

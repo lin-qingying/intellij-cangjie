@@ -24,8 +24,8 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.psi.impl.source.tree.LeafPsiElement
 import cn.cangnova.cangjie.name.Name
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 
 interface ValueArgument {
     @IfNotParsed

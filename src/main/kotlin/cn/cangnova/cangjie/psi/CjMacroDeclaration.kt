@@ -24,9 +24,9 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
 import cn.cangnova.cangjie.psi.stubs.CangJieFunctionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
+import com.intellij.lang.ASTNode
 
 class CjMacroDeclaration : CjFunctionImpl {
     constructor(node: ASTNode) : super(node)

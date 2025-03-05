@@ -24,15 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.extapi.psi.PsiFileBase
-import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.vfs.VirtualFileWithId
-import com.intellij.psi.*
-import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.tree.TokenSet
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.ArrayFactory
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.name.FqName
@@ -41,21 +32,28 @@ import cn.cangnova.cangjie.psi.stubs.CangJieFileStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import cn.cangnova.cangjie.psi.stubs.elements.CjTokenSets
+import com.intellij.extapi.psi.PsiFileBase
+import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.vfs.VirtualFileWithId
+import com.intellij.psi.*
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.tree.TokenSet
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.ArrayFactory
 
 interface CangJieFile
-abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boolean): PsiFileBase(viewProvider, CangJieLanguage),
+abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Boolean) :
+    PsiFileBase(viewProvider, CangJieLanguage),
 
     PsiNamedElement,
 
     CjDeclarationContainer,
-    CjElement, CangJieFile{
+    CjElement,
+    CangJieFile {
     override fun getFileType(): FileType = CangJieFileType.INSTANCE
 
     @Volatile
     private var pathCached: String? = null
-
-
-
 
     @Volatile
     private var hasTopLevelCallables: Boolean? = null
@@ -64,10 +62,12 @@ abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boo
         hasTopLevelCallables?.let { return it }
 
         val result = declarations.any {
-            (it is CjVariable ||
+            (
+                it is CjVariable ||
                     it is CjNamedFunction ||
 
-                    it is CjTypeAlias)/* && !it.hasExpectModifier()*/
+                    it is CjTypeAlias
+                ) /* && !it.hasExpectModifier()*/
         }
 
         hasTopLevelCallables = result
@@ -87,8 +87,7 @@ abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boo
         if (!hasImportAlias()) return null
 
         return importDirectivesItem.firstOrNull {
-
-            it .alias != null && fqName == it.importedFqName
+            it.alias != null && fqName == it.importedFqName
         }?.alias
     }
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -119,20 +118,17 @@ abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boo
         val newValue = importLists.any(CjImportList::computeHasImportAlias)
         this.hasImportAlias = newValue
         return newValue
-
     }
 
     override fun toString(): String {
         return "CangJie File: $name"
     }
 
-
     override fun getPsiOrParent(): CjElement = this
     open val importDirectivesItem: List<CjImportDirectiveItem>
         get() = importLists.flatMap { it.importItems }
     open val importDirectives: List<CjImportDirective>
-        get() = importLists.flatMap { it.imports}
-
+        get() = importLists.flatMap { it.imports }
 
     override fun getContainingCjFile(): CjFile = this as CjFile
 
@@ -144,7 +140,7 @@ abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boo
 
     private fun <T : CjElementImplStub<out StubElement<*>>> findChildrenByTypeOrClass(
         elementType: CjPlaceHolderStubElementType<T>,
-        elementClass: Class<T>
+        elementClass: Class<T>,
     ): Array<out T> {
         val stub = stub
         if (stub != null) {
@@ -156,7 +152,6 @@ abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boo
 
     val packageFqNameByTree: FqName
         get() = packageDirectiveByTree?.fqName ?: FqName.ROOT
-
 
     private val packageDirectiveByTree: CjPackageDirective?
         get() {
@@ -184,11 +179,8 @@ abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boo
             return packageDirectiveByTree
         }
 
-
     @Volatile
     private var hasImportAlias: Boolean? = null
-
-
 
     override val declarations: List<CjDeclaration>
         get() {
@@ -197,7 +189,6 @@ abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boo
                 ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java).toMutableList().apply {
 //                remove所有PACKAGE_DIRECTIVE
                     removeAll { it is CjPackageDirective }
-
                 }
         }
     var packageFqName: FqName
@@ -214,18 +205,15 @@ abstract class CjCommonFile (viewProvider: FileViewProvider, val isCompiled: Boo
 
     val importList: CjImportList?
         get() = importLists.firstOrNull()
-
-    }
-open class CjFile(viewProvider: FileViewProvider,   isCompiled: Boolean = false,val isCodeFragment: Boolean = false) :
+}
+open class CjFile(viewProvider: FileViewProvider, isCompiled: Boolean = false, val isCodeFragment: Boolean = false) :
     CjCommonFile(viewProvider, isCompiled) {
-
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R =
         visitor.visitCjFile(this, data)
 
     companion object {
         val FILE_DECLARATION_TYPES = TokenSet.orSet(CjTokenSets.DECLARATION_TYPES, TokenSet.create(CjStubElementTypes.CJ_SCRIPT))
-
     }
 }
 
@@ -241,4 +229,3 @@ private fun CjImportList.computeHasImportAlias(): Boolean {
 
     return false
 }
-

@@ -24,22 +24,20 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.psiUtil.CjStubbedPsiUtil
-import cn.cangnova.cangjie.psi.psiUtil.elementType
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import cn.cangnova.cangjie.psi.stubs.elements.CjTokenSets
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-
 /**
  *键入Reference Element。
- *底层令牌为[cn.cangnova.cangjie.CjNodeTypes.TYPE_REFERENCE]
+ *底层令牌为[CjNodeTypes.TYPE_REFERENCE]
  */
-class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeReference>>,
+class CjTypeReference :
+    CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeReference>>,
     CjElement {
 
     constructor(node: ASTNode) : super(node)
@@ -49,7 +47,6 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitTypeReference(this, data)
     }
-
 
     override val annotationEntries: List<CjAnnotationEntry>
         get() = modifierList?.annotationEntries.orEmpty()
@@ -67,11 +64,9 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
                 }*/
         }
 
-
     fun hasParentheses(): Boolean {
         return findChildByType<PsiElement>(CjTokens.LPAR) != null && findChildByType<PsiElement>(CjTokens.RPAR) != null
     }
-
 
     fun nameForReceiverLabel() = (typeElement as? CjUserType)?.referencedName
 
@@ -112,9 +107,11 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
                     append(contextReceivers.joinToString(", ", "context(", ")") { getTypeText(it.typeElement) ?: "" })
                 }
                 typeElement.receiverTypeReference?.let { append(getTypeText(it.typeElement)) }
-                append(typeElement.parameters.joinToString(", ", "(", ")") { param ->
-                    param.name?.let { "$it: " }.orEmpty() + param.typeReference?.getTypeText().orEmpty()
-                })
+                append(
+                    typeElement.parameters.joinToString(", ", "(", ")") { param ->
+                        param.name?.let { "$it: " }.orEmpty() + param.typeReference?.getTypeText().orEmpty()
+                    },
+                )
                 typeElement.returnTypeReference?.let { returnType ->
                     append(" -> ")
                     append(getTypeText(returnType.typeElement))
@@ -126,4 +123,3 @@ class CjTypeReference : CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeRef
         }
     }
 }
-

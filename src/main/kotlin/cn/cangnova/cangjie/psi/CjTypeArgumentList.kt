@@ -32,10 +32,10 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-class CjTypeArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeArgumentList > > {
+class CjTypeArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeArgumentList>> {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjTypeArgumentList >) : super(stub, CjStubElementTypes.TYPE_ARGUMENT_LIST)
+    constructor(stub: CangJiePlaceHolderStub<CjTypeArgumentList>) : super(stub, CjStubElementTypes.TYPE_ARGUMENT_LIST)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitTypeArgumentList(this, data)
@@ -44,11 +44,13 @@ class CjTypeArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeArgume
     val arguments: List<CjTypeProjection>
         get() = getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_PROJECTION)
 
-val varrayLiteral: PsiElement? get() = findChildByType(CjTokens.INTEGER_LITERAL)
+    val varrayLiteral: PsiElement? get() = findChildByType(CjTokens.INTEGER_LITERAL)
     fun addArgument(typeArgument: CjTypeProjection): CjTypeProjection {
         return addItem(
             this,
-            arguments, typeArgument, CjTokens.LT
+            arguments,
+            typeArgument,
+            CjTokens.LT,
         )
     }
 

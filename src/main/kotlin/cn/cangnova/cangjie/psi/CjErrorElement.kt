@@ -26,4 +26,4 @@ package cn.cangnova.cangjie.psi
 
 import com.intellij.lang.ASTNode
 
-class CjErrorElement(node:ASTNode) : CjElementImpl(node)
+class CjErrorElement(node: ASTNode) : CjElementImpl(node)

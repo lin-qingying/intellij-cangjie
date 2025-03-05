@@ -24,11 +24,10 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 
 interface CjPatternEntryBlock : PsiElement
 
@@ -46,7 +45,6 @@ class CjMatchEntry(node: ASTNode) : CjElementImpl(node), CjPatternEntryBlock {
     val expression: CjCaseBlockExpression?
         get() = findChildByClass(CjCaseBlockExpression::class.java)
 
-
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitMatchEntry(this, data)
     }
@@ -59,7 +57,6 @@ class CjMatchEntry(node: ASTNode) : CjElementImpl(node), CjPatternEntryBlock {
 
     val arrow: PsiElement?
         get() = findChildByType(CjTokens.DOUBLE_ARROW)
-
 
     val patternGuard: CjPatternGuard? get() = findChildByClass(CjPatternGuard::class.java)
 }

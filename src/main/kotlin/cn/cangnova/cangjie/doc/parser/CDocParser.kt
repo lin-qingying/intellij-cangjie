@@ -32,15 +32,13 @@ import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiParser
 import com.intellij.psi.tree.IElementType
 
-class CDocParser :PsiParser {
+class CDocParser : PsiParser {
     override fun parse(root: IElementType, builder: PsiBuilder): ASTNode {
         val rootMarker = builder.mark()
         if (builder.tokenType === START) {
             builder.advanceLexer()
         }
         var currentSectionMarker: PsiBuilder.Marker? = builder.mark()
-
-
 
         while (!builder.eof()) {
             if (builder.tokenType === TAG_NAME) {
@@ -61,7 +59,7 @@ class CDocParser :PsiParser {
         return builder.treeBuilt
     }
 
-    companion object{
+    companion object {
         private fun parseTag(builder: PsiBuilder, currentSectionMarker: PsiBuilder.Marker?): PsiBuilder.Marker? {
             var currentSectionMarker = currentSectionMarker
             val tagName = builder.tokenText

@@ -24,14 +24,11 @@
 
 package cn.cangnova.cangjie.psi.stubs.impl
 
-import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
-
+import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.stubs.CangJieFileStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjFileElementType
-
-
 import com.intellij.psi.stubs.PsiFileStubImpl
 import com.intellij.psi.tree.IStubFileElementType
 
@@ -44,13 +41,13 @@ class CangJieFileStubImpl(
     val facadePartSimpleNames: List<String>?,
 ) : PsiFileStubImpl<CjFile>(CjFile), CangJieFileStub {
 
-    constructor(CjFile: CjFile?, packageName: String,  ) : this(
+    constructor(CjFile: CjFile?, packageName: String) : this(
         CjFile,
         packageName,
 
         facadeFqNameString = null,
         partSimpleName = null,
-        facadePartSimpleNames = null
+        facadePartSimpleNames = null,
     )
 
     private fun String.relativeToPackage() = getPackageFqName().child(Name.identifier(this))
@@ -70,8 +67,6 @@ class CangJieFileStubImpl(
 //    override fun getClasses(): Array<PsiClass> {
 //        return childrenStubs.filterIsInstance<PsiClassStub<*>>().map { it.psi }.toTypedArray()
 //    }
-
-
 
     companion object {
         fun forFile(packageFqName: FqName): CangJieFileStubImpl = CangJieFileStubImpl(

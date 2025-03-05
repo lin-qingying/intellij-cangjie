@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi;
 
-import cn.cangnova.cangjie.CjNodeTypes;
 import cn.cangnova.cangjie.builtins.StandardNames;
 import cn.cangnova.cangjie.doc.psi.CDocElement;
 import cn.cangnova.cangjie.name.Name;

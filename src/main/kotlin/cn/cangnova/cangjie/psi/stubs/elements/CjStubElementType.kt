@@ -34,10 +34,10 @@ import com.intellij.util.ReflectionUtil
 import org.jetbrains.annotations.NonNls
 import java.lang.reflect.Constructor
 
-abstract class CjStubElementType<StubT : StubElement<*> , PsiT : CjElementImplStub<*>>(
+abstract class CjStubElementType<StubT : StubElement<*>, PsiT : CjElementImplStub<*>>(
     debugName: @NonNls String,
     psiClass: Class<PsiT>,
-    stubClass: Class<*>
+    stubClass: Class<*>,
 ) :
     IStubElementType<StubT, PsiT>(debugName, CangJieLanguage) {
     private val byNodeConstructor: Constructor<PsiT>
@@ -52,7 +52,7 @@ abstract class CjStubElementType<StubT : StubElement<*> , PsiT : CjElementImplSt
         } catch (e: NoSuchMethodException) {
             throw RuntimeException(
                 "Stub element type declaration for " + psiClass.simpleName + " is missing required constructors",
-                e
+                e,
             )
         }
         emptyArray = java.lang.reflect.Array.newInstance(psiClass, 0) as Array<PsiT>
@@ -64,7 +64,6 @@ abstract class CjStubElementType<StubT : StubElement<*> , PsiT : CjElementImplSt
         }
     }
 
-
     open fun createPsiFromAst(node: ASTNode): PsiT {
         return ReflectionUtil.createInstance(byNodeConstructor, node)
     }
@@ -73,11 +72,9 @@ abstract class CjStubElementType<StubT : StubElement<*> , PsiT : CjElementImplSt
         return ReflectionUtil.createInstance(byStubConstructor, stub)
     }
 
-
     override fun getExternalId(): String {
         return "cangjie.$this"
     }
-
 
     override fun indexStub(stub: StubT, sink: IndexSink) {
     }

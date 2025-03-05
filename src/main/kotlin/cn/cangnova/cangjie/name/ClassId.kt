@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.name
 
-
 import com.intellij.util.runIf
 
 interface IClassId {
@@ -39,13 +38,13 @@ interface IClassId {
 data class ClassId(
     override val packageFqName: FqName,
     override val relativeClassName: FqName,
-    override val isLocal: Boolean
+    override val isLocal: Boolean,
 ) : IClassId {
     constructor(packageFqName: FqName, topLevelName: Name) : this(
         packageFqName,
 
         FqName.topLevel(topLevelName),
-        isLocal = false
+        isLocal = false,
     )
 
     init {
@@ -90,7 +89,6 @@ data class ClassId(
         return packageFqName.startsWith(segment)
     }
 
-
     fun asString(): String {
         return if (packageFqName.isRoot) {
             relativeClassName.asString()
@@ -104,8 +102,6 @@ data class ClassId(
     }
 
     override fun equals(other: Any?): Boolean {
-
-
         if (other !is ClassId) return false
         return other.packageFqName == packageFqName && other.relativeClassName == relativeClassName
     }
@@ -137,7 +133,6 @@ data class ClassId(
         fun topLevel(topLevelFqName: FqName): ClassId {
             return ClassId(topLevelFqName.parent(), topLevelFqName.shortName())
         }
-
 
         @JvmOverloads
         @JvmStatic

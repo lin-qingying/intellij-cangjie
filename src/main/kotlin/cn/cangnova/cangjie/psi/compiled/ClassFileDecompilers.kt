@@ -32,7 +32,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiManager
 
-
 /**
  * An API to extend default IDEA .class file decompiler and handle files compiled from sources other than Java.
  */
@@ -102,14 +101,14 @@ class ClassFileDecompilers private constructor() {
         EP_NAME.addChangeListener({ BinaryFileTypeDecompilers.getInstance().notifyDecompilerSetChange() }, null)
     }
 
-    fun <D : Decompiler > find(file: VirtualFile, decompilerClass: Class<D>): D  {
+    fun <D : Decompiler> find(file: VirtualFile, decompilerClass: Class<D>): D {
         return EP_NAME.findFirstSafe({ d: Decompiler -> decompilerClass.isInstance(d) && d.accepts(file) }) as D
     }
 
     companion object {
         val instance: ClassFileDecompilers
             get() = ApplicationManager.getApplication().getService(
-                ClassFileDecompilers::class.java
+                ClassFileDecompilers::class.java,
             )
     }
 }

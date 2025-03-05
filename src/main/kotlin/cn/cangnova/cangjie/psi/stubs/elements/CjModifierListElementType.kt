@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjModifierListElementType<T : CjModifierList>(debugName: @NonNls String, psiClass: Class<T>) :
-    CjStubElementType<CangJieModifierListStub , T>(debugName, psiClass, CangJieModifierListStub::class.java) {
+    CjStubElementType<CangJieModifierListStub, T>(debugName, psiClass, CangJieModifierListStub::class.java) {
     override fun createStub(psi: T, parentStub: StubElement<*>?): CangJieModifierListStub {
         return CangJieModifierListStubImpl(parentStub, computeMaskFromModifierList(psi), this)
     }

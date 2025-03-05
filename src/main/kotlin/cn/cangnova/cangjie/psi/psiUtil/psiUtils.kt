@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi.psiUtil
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.*
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
@@ -33,13 +32,12 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.isAncestor
 
-
 fun TextRange.containsInside(offset: Int): Boolean = startOffset < offset && offset < endOffset
 inline fun <reified T : PsiElement> PsiElement.getLastParentOfTypeInRow() = parents.takeWhile { it is T }.lastOrNull() as? T
 
 fun PsiElement.isExtensionDeclaration(): Boolean {
     val callable: CjCallableDeclaration? = when (this) {
-        is CjNamedFunction, is CjProperty , is CjVariable -> this as CjCallableDeclaration
+        is CjNamedFunction, is CjProperty, is CjVariable -> this as CjCallableDeclaration
         is CjPropertyAccessor -> getNonStrictParentOfType<CjProperty>()
         else -> null
     }
@@ -49,11 +47,12 @@ fun PsiElement.isExtensionDeclaration(): Boolean {
 fun getElementTextWithContext(psiElement: PsiElement): String {
     if (!psiElement.isValid) return "<invalid element $psiElement>"
 
-    @Suppress("LocalVariableName") val ELEMENT_TAG = "ELEMENT"
+    @Suppress("LocalVariableName")
+    val ELEMENT_TAG = "ELEMENT"
     val containingFile = psiElement.containingFile
     val context = psiElement.parentOfType("CjImportDirectiveItem")
         ?: psiElement.parentOfType("CjPackageDirective")
-        ?: psiElement.parentOfType("CjDeclarationWithBody"  )
+        ?: psiElement.parentOfType("CjDeclarationWithBody")
         ?: psiElement.parentOfType("CjProperty")
         ?: containingFile
     val elementTextInContext = buildString {
@@ -96,7 +95,7 @@ inline fun <reified T : PsiElement> PsiElement.findParentOfType(strict: Boolean 
 
 inline fun <reified T : PsiElement> PsiElement.forEachDescendantOfType(
     crossinline canGoInside: (PsiElement) -> Boolean,
-    noinline action: (T) -> Unit
+    noinline action: (T) -> Unit,
 ) {
     checkDecompiledText()
     this.accept(object : PsiRecursiveElementVisitor() {
@@ -114,7 +113,6 @@ inline fun <reified T : PsiElement> PsiElement.forEachDescendantOfType(
 inline fun <reified T : PsiElement> PsiElement.getParentOfTypeAndBranch(strict: Boolean = false, noinline branch: T.() -> PsiElement?): T? {
     return getParentOfType<T>(strict)?.getIfChildIsInBranch(this, branch)
 }
-
 
 fun <T : PsiElement> T.getIfChildIsInBranch(element: PsiElement, branch: T.() -> PsiElement?): T? {
     return if (branch().isAncestor(element)) this else null
@@ -136,7 +134,6 @@ fun PsiElement.getStartOffsetIn(ancestor: PsiElement): Int {
     }
     return offset
 }
-
 
 inline fun <reified T : PsiElement, reified V : PsiElement, reified U : PsiElement> PsiElement.getParentOfTypes3(): PsiElement? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, V::class.java, U::class.java)

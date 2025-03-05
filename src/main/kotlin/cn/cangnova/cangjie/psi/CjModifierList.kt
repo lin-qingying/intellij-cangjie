@@ -24,16 +24,14 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.lexer.CjKeywordToken
+import cn.cangnova.cangjie.psi.psiUtil.collectAnnotationEntriesFromStubOrPsi
+import cn.cangnova.cangjie.psi.stubs.CangJieModifierListStub
+import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.tree.TokenSet
-import cn.cangnova.cangjie.lexer.CjKeywordToken
-import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
-import cn.cangnova.cangjie.psi.psiUtil.collectAnnotationEntriesFromStubOrPsi
-import cn.cangnova.cangjie.psi.stubs.CangJieModifierListStub
-import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-
 
 abstract class CjModifierList : CjElementImplStub<CangJieModifierListStub>, CjAnnotationsContainer {
     constructor(stub: CangJieModifierListStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
@@ -58,8 +56,6 @@ abstract class CjModifierList : CjElementImplStub<CangJieModifierListStub>, CjAn
         return getModifier(tokenType) != null
     }
 
-
-
     fun getModifier(tokenType: CjKeywordToken): PsiElement? {
         return findChildByType(tokenType)
     }
@@ -67,7 +63,6 @@ abstract class CjModifierList : CjElementImplStub<CangJieModifierListStub>, CjAn
     fun getModifier(tokenTypes: TokenSet): PsiElement? {
         return findChildByType(tokenTypes)
     }
-
 
     val owner: PsiElement
         get() = parentByStub

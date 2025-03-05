@@ -24,11 +24,8 @@
 
 package cn.cangnova.cangjie.utils
 
-
-
 import com.intellij.util.SmartList
 import java.util.*
-
 
 inline fun <K, V> MutableMap<K, V>.getOrPutNullable(key: K, defaultValue: () -> V): V {
     return if (!containsKey(key)) {
@@ -60,7 +57,7 @@ fun <K, V> newLinkedHashMapWithExpectedSize(expectedSize: Int): LinkedHashMap<K,
 
 inline fun <T> buildCollection(
     result: MutableCollection<T>,
-    builder: (CollectionBuilder<T>).() -> Unit
+    builder: (CollectionBuilder<T>).() -> Unit,
 ): MutableCollection<T> {
     object : CollectionBuilder<T> {
         override fun add(item: T) {
@@ -121,7 +118,6 @@ fun <T> SmartList<T>.optimizeList(): List<T> = when (size) {
 
 private const val INT_MAX_POWER_OF_TWO: Int = Int.MAX_VALUE / 2 + 1
 
-
 fun mapCapacity(expectedSize: Int): Int {
     if (expectedSize < 3) {
         return expectedSize + 1
@@ -134,7 +130,6 @@ fun mapCapacity(expectedSize: Int): Int {
 
 fun <K, V> newHashMapWithExpectedSize(size: Int): HashMap<K, V> =
     HashMap<K, V>(mapCapacity(size))
-
 
 fun <T> Iterable<T>.collectionSizeOrDefault(default: Int): Int =
     if (this is Collection<*>) size else default
@@ -183,7 +178,7 @@ inline fun <T> Iterable<T>.joinToWithBuffer(
     separator: CharSequence = ", ",
     prefix: CharSequence = "",
     postfix: CharSequence = "",
-    action: T.(StringBuilder) -> Unit
+    action: T.(StringBuilder) -> Unit,
 ) {
     buffer.append(prefix)
     var needInsertSeparator = false

@@ -25,15 +25,10 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjSingleValueToken
-import cn.cangnova.cangjie.lexer.CjTokens
-
 
 enum class CjProjectionKind(val token: CjSingleValueToken?) {
 //    IN(CjTokens.IN_KEYWORD),
 
 //    STAR(CjTokens.MUL),
-    NONE(null);
-
-
+    NONE(null),
 }
-

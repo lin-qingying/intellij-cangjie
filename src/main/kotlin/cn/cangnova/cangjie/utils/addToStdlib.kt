@@ -74,7 +74,7 @@ fun <K, V> Map<K, V>.compactIfPossible(): Map<K, V> =
 
 inline fun <T, R, C : MutableCollection<in R>> Iterable<T>.flatMapToNullable(
     destination: C,
-    transform: (T) -> Iterable<R>?
+    transform: (T) -> Iterable<R>?,
 ): C? {
     for (element in this) {
         val list = transform(element) ?: return null
@@ -110,7 +110,6 @@ fun <T : Any> constant(calculator: () -> T): T {
     @Suppress("UNCHECKED_CAST")
     if (cached != null) return cached as T
 
-
     val fields = calculator::class.java.declaredFields.filter { it.modifiers.and(Modifier.STATIC) == 0 }
     assert(fields.isEmpty()) {
         "No fields in the passed lambda expected but ${fields.joinToString()} found"
@@ -124,7 +123,6 @@ fun <T : Any> constant(calculator: () -> T): T {
 @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @UnsafeCastFunction
 inline fun <reified T : Any> Any?.safeAs(): @kotlin.internal.NoInfer T? = this as? T
-
 
 inline fun <reified T : Any> Iterable<*>.lastIsInstanceOrNull(): T? {
     when (this) {
@@ -146,4 +144,3 @@ inline fun <reified T : Any> Iterable<*>.firstIsInstanceOrNull(): T? {
     for (element in this) if (element is T) return element
     return null
 }
-

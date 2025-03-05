@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.name
 
-
 // NB: with className == null we are at top level
 class CallableId private constructor(
     val packageName: FqName,
@@ -32,7 +31,7 @@ class CallableId private constructor(
     val callableName: Name,
     val classId: IClassId?,
     // Currently, it's only used for debug info
-    private val pathToLocal: FqName?
+    private val pathToLocal: FqName?,
 ) {
     companion object {
         private val LOCAL_NAME = SpecialNames.LOCAL
@@ -50,25 +49,29 @@ class CallableId private constructor(
         get() = packageName == PACKAGE_FQ_NAME_FOR_LOCAL || classId?.isLocal == true
 
     constructor(
-        packageName: FqName, className: FqName?, callableName: Name,
+        packageName: FqName,
+        className: FqName?,
+        callableName: Name,
     ) : this(packageName, className, callableName, calculateClassId(packageName, className), pathToLocal = null)
 
     constructor(
-        packageName: FqName, className: FqName?, callableName: Name,
+        packageName: FqName,
+        className: FqName?,
+        callableName: Name,
         // Currently, it's only used for debug info
-        pathToLocal: FqName?
+        pathToLocal: FqName?,
     ) : this(packageName, className, callableName, calculateClassId(packageName, className), pathToLocal)
 
     constructor(classId: ClassId, callableName: Name) :
-            this(classId.packageFqName, classId.relativeClassName, callableName, classId, pathToLocal = null)
+        this(classId.packageFqName, classId.relativeClassName, callableName, classId, pathToLocal = null)
 
     constructor(packageName: FqName, callableName: Name) :
-            this(packageName, className = null, callableName, classId = null, pathToLocal = null)
+        this(packageName, className = null, callableName, classId = null, pathToLocal = null)
 
     constructor(
         callableName: Name,
         // Currently, it's only used for debug info
-        pathToLocal: FqName?
+        pathToLocal: FqName?,
     ) : this(PACKAGE_FQ_NAME_FOR_LOCAL, className = null, callableName, classId = null, pathToLocal)
 
     constructor(callableName: Name) : this(PACKAGE_FQ_NAME_FOR_LOCAL, className = null, callableName, classId = null, pathToLocal = null)

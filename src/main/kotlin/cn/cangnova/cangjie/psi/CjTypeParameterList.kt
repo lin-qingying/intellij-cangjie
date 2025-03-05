@@ -32,12 +32,12 @@ import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
-class CjTypeParameterList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeParameterList > > {
+class CjTypeParameterList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeParameterList>> {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderStub<CjTypeParameterList >) : super(
+    constructor(stub: CangJiePlaceHolderStub<CjTypeParameterList>) : super(
         stub,
-        CjStubElementTypes.TYPE_PARAMETER_LIST
+        CjStubElementTypes.TYPE_PARAMETER_LIST,
     )
 
     override fun toString(): String {
@@ -50,7 +50,9 @@ class CjTypeParameterList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeParam
     fun addParameter(typeParameter: CjTypeParameter): CjTypeParameter {
         return addItem(
             this,
-            parameters, typeParameter, CjTokens.LT
+            parameters,
+            typeParameter,
+            CjTokens.LT,
         )
     }
 

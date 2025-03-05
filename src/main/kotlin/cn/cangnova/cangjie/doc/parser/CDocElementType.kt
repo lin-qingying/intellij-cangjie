@@ -30,8 +30,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import java.lang.reflect.Constructor
 
-
-
 class CDocElementType(debugName: String, psiClass: Class<out PsiElement?>) :
     IElementType(debugName, CangJieLanguage) {
     private var psiFactory: Constructor<out PsiElement?>? = null
@@ -53,4 +51,3 @@ class CDocElementType(debugName: String, psiClass: Class<out PsiElement?>) :
         }
     }
 }
-

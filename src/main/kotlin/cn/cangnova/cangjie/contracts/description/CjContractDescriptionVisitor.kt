@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.contracts.description
 
-
 abstract class CjContractDescriptionVisitor<out R, in D, Type, Diagnostic> {
     open fun visitContractDescriptionElement(contractDescriptionElement: CjContractDescriptionElement<Type, Diagnostic>, data: D): R {
         throw IllegalStateException("Top of hierarchy reached, no overloads were found for element: $contractDescriptionElement")

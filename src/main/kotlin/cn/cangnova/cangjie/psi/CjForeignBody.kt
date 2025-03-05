@@ -37,12 +37,9 @@ class CjForeignBody : CjElementImplStub<CangJiePlaceHolderStub<CjForeignBody>>, 
 
     constructor(node: ASTNode) : super(node)
 
-
     constructor(stub: CangJiePlaceHolderStub<CjForeignBody>) : super(stub, CjStubElementTypes.FOREIGN_BODY)
 
     override val declarations: List<CjDeclaration>
         get() = stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)
-
-
 }

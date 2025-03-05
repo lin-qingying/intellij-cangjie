@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
 import cn.cangnova.cangjie.psi.stubs.CangJieCollectionLiteralExpressionStub
@@ -34,11 +33,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import java.util.*
 
-class CjCollectionLiteralExpression : CjElementImplStub<CangJieCollectionLiteralExpressionStub  >,
+class CjCollectionLiteralExpression :
+    CjElementImplStub<CangJieCollectionLiteralExpressionStub>,
     CjReferenceExpression {
     constructor(stub: CangJieCollectionLiteralExpressionStub) : super(
         stub,
-        CjStubElementTypes.COLLECTION_LITERAL_EXPRESSION
+        CjStubElementTypes.COLLECTION_LITERAL_EXPRESSION,
     )
 
     constructor(node: ASTNode) : super(node)
@@ -72,13 +72,13 @@ class CjCollectionLiteralExpression : CjElementImplStub<CangJieCollectionLiteral
                 return Arrays.asList(
                     *stub.getChildrenByType(
                         CjNodeTypes.CONSTANT_EXPRESSIONS_TYPES,
-                        CjExpression.EMPTY_ARRAY
-                    )
+                        CjExpression.EMPTY_ARRAY,
+                    ),
                 )
             }
             return PsiTreeUtil.getChildrenOfTypeAsList(
                 this,
-                CjExpression::class.java
+                CjExpression::class.java,
             )
         }
 }

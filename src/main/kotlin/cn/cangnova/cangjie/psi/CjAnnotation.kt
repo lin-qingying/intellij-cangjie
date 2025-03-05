@@ -40,9 +40,7 @@ class CjAnnotation : CjElementImplStub<CangJiePlaceHolderStub<CjAnnotation>> {
     val entries: List<CjAnnotationEntry>
         get() = getStubOrPsiChildrenAsList(CjStubElementTypes.ANNOTATION_ENTRY)
 
-
     fun removeEntry(entry: CjAnnotationEntry) {
-
         if (entries.size > 1) {
             entry.delete()
         } else {
@@ -50,4 +48,3 @@ class CjAnnotation : CjElementImplStub<CangJiePlaceHolderStub<CjAnnotation>> {
         }
     }
 }
-

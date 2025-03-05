@@ -34,17 +34,17 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjForeignDirectiveElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieForeignDirectiveStub , CjForeignDirective >(
+    CjStubElementType<CangJieForeignDirectiveStub, CjForeignDirective>(
         debugName,
         CjForeignDirective::class.java,
-        CangJieForeignDirectiveStub::class.java
+        CangJieForeignDirectiveStub::class.java,
     ) {
     override fun createStub(
         cjForeign: CjForeignDirective,
-        parentStub: StubElement<out PsiElement?>
+        parentStub: StubElement<out PsiElement?>,
     ): CangJieForeignDirectiveStub {
         return CangJieForeignDirectiveStubImpl(
-            parentStub
+            parentStub,
         )
     }
 
@@ -55,10 +55,10 @@ class CjForeignDirectiveElementType(debugName: @NonNls String) :
     @Throws(IOException::class)
     override fun deserialize(
         stubInputStream: StubInputStream,
-        parentStub: StubElement<*>
+        parentStub: StubElement<*>,
     ): CangJieForeignDirectiveStub {
         return CangJieForeignDirectiveStubImpl(
-            parentStub
+            parentStub,
         )
     }
 }

@@ -24,9 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import com.intellij.lang.ASTNode
-import java.util.*
 
 class CjBinaryExpressionWithTypeRHS(node: ASTNode) : CjExpressionImpl(node), CjOperationExpression {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -37,8 +35,8 @@ class CjBinaryExpressionWithTypeRHS(node: ASTNode) : CjExpressionImpl(node), CjO
         get() {
             val left = checkNotNull(
                 findChildByClass(
-                    CjExpression::class.java
-                )
+                    CjExpression::class.java,
+                ),
             )
             return left
         }
@@ -58,7 +56,6 @@ class CjBinaryExpressionWithTypeRHS(node: ASTNode) : CjExpressionImpl(node), CjO
             return null
         }
 
-    override val operationReference : CjSimpleNameExpression get() =
-           findChildByType(CjNodeTypes.OPERATION_REFERENCE)!!
-
+    override val operationReference: CjSimpleNameExpression get() =
+        findChildByType(CjNodeTypes.OPERATION_REFERENCE)!!
 }

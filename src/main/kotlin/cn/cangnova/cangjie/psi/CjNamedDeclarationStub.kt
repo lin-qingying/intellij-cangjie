@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lang.CangJieFileType.Companion.INSTANCE
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
@@ -45,7 +44,6 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.annotations.NonNls
 
-
 abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarationStub<T>, CjNamedDeclaration {
     constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
@@ -60,7 +58,6 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
 
             val identifier = nameIdentifier
             if (identifier != null) {
-
                 val text = identifier.text
 
                 return@runReadAction if (text != null) CjPsiUtil.unquoteIdentifier(text) else null
@@ -75,7 +72,6 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
             return this.name?.asOperatorName()
         }
 
-
     override val nameAsSafeName: Name
         get() = CjPsiUtil.safeName(name)
 
@@ -86,11 +82,9 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
     val operatorName: CjOperationName?
         get() = findChildByType(CjNodeTypes.OPERATION_NAME)
 
-
     @Throws(IncorrectOperationException::class)
     override fun setName(@NonNls name: String): PsiElement? {
         val identifier = nameIdentifier ?: return null
-
 
         val newIdentifier = CjPsiFactory(project).createNameIdentifierIfPossible(name.quoteIfNeeded())
         if (newIdentifier != null) {
@@ -111,22 +105,19 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
         if (enclosingBlock != null) {
 //            PsiElement enclosingParent = enclosingBlock.getParent();
 
-
 //            if (enclosingParent instanceof CjContainerNode) {
 //                enclosingParent = enclosingParent.getParent();
 //            }
 
-
             return LocalSearchScope(enclosingBlock)
         }
-
 
         //        PsiElement parent = getParent();
 //        PsiElement grandParent = parent != null ? parent.getParent() : null;
         if (hasModifier(CjTokens.PRIVATE_KEYWORD)) {
             val containingClass: CjElement? = PsiTreeUtil.getParentOfType(
                 this,
-                CjTypeStatement::class.java
+                CjTypeStatement::class.java,
             )
 
             if (containingClass != null) {
@@ -137,7 +128,7 @@ abstract class CjNamedDeclarationStub<T : CangJieStubWithFqName<*>> : CjDeclarat
                 val project = getProject()
                 val searchScope = GlobalSearchScope.getScopeRestrictedByFileTypes(
                     GlobalSearchScope.allScope(project),
-                    INSTANCE
+                    INSTANCE,
                 )
 
                 val fileScope: SearchScope = GlobalSearchScope.fileScope(file)

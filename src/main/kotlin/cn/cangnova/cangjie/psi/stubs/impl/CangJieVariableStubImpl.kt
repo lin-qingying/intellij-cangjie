@@ -24,14 +24,13 @@
 
 package cn.cangnova.cangjie.psi.stubs.impl
 
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.StubElement
-import com.intellij.util.io.StringRef
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjVariable
 import cn.cangnova.cangjie.psi.stubs.CangJieVariableStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.StubElement
+import com.intellij.util.io.StringRef
 
 class CangJieVariableStubImpl @JvmOverloads constructor(
     parent: StubElement<out PsiElement>?,
@@ -46,13 +45,12 @@ class CangJieVariableStubImpl @JvmOverloads constructor(
     override val childNamesByPattern: List<CangJieVariableStub.ChildInfo> = emptyList(),
 
     val origin: CangJieStubOrigin?,
-    ) : CangJieStubBaseImpl<CjVariable>(parent, CjStubElementTypes.VARIABLE), CangJieVariableStub {
+) : CangJieStubBaseImpl<CjVariable>(parent, CjStubElementTypes.VARIABLE), CangJieVariableStub {
 
     init {
         if (isTopLevel && fqName == null) {
             throw IllegalArgumentException("fqName shouldn't be null for top level properties")
         }
-
     }
 
     override fun getFqName() = fqName

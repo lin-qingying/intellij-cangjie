@@ -25,19 +25,15 @@
 package cn.cangnova.cangjie.parsing
 
 import cn.cangnova.cangjie.lexer.CjTokens
-
-
-
-
-
 import com.intellij.lang.WhitespacesAndCommentsBinder
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.tree.IElementType
 
-
 object PrecedingCommentsBinder : WhitespacesAndCommentsBinder {
     override fun getEdgePosition(
-        tokens: List<IElementType>, atStreamEdge: Boolean, getter: WhitespacesAndCommentsBinder.TokenTextGetter
+        tokens: List<IElementType>,
+        atStreamEdge: Boolean,
+        getter: WhitespacesAndCommentsBinder.TokenTextGetter,
     ): Int {
         if (tokens.isEmpty()) return 0
 
@@ -69,7 +65,9 @@ object PrecedingCommentsBinder : WhitespacesAndCommentsBinder {
 
 object PrecedingDocCommentsBinder : WhitespacesAndCommentsBinder {
     override fun getEdgePosition(
-        tokens: List<IElementType>, atStreamEdge: Boolean, getter: WhitespacesAndCommentsBinder.TokenTextGetter
+        tokens: List<IElementType>,
+        atStreamEdge: Boolean,
+        getter: WhitespacesAndCommentsBinder.TokenTextGetter,
     ): Int {
         if (tokens.isEmpty()) return 0
 
@@ -84,7 +82,9 @@ object PrecedingDocCommentsBinder : WhitespacesAndCommentsBinder {
 // 绑定行注释
 object TrailingCommentsBinder : WhitespacesAndCommentsBinder {
     override fun getEdgePosition(
-        tokens: List<IElementType>, atStreamEdge: Boolean, getter: WhitespacesAndCommentsBinder.TokenTextGetter
+        tokens: List<IElementType>,
+        atStreamEdge: Boolean,
+        getter: WhitespacesAndCommentsBinder.TokenTextGetter,
     ): Int {
         if (tokens.isEmpty()) return 0
 
@@ -106,12 +106,13 @@ object TrailingCommentsBinder : WhitespacesAndCommentsBinder {
 
 private class AllCommentsBinder(val isTrailing: Boolean) : WhitespacesAndCommentsBinder {
     override fun getEdgePosition(
-        tokens: List<IElementType>, atStreamEdge: Boolean, getter: WhitespacesAndCommentsBinder.TokenTextGetter
+        tokens: List<IElementType>,
+        atStreamEdge: Boolean,
+        getter: WhitespacesAndCommentsBinder.TokenTextGetter,
     ): Int {
         if (tokens.isEmpty()) return 0
 
         val size = tokens.size
-
 
         val endToken = tokens[if (isTrailing) size - 1 else 0]
         val shift = if (endToken == CjTokens.WHITE_SPACE) 1 else 0
@@ -128,7 +129,9 @@ val TRAILING_ALL_COMMENTS_BINDER: WhitespacesAndCommentsBinder = AllCommentsBind
 
 object DoNotBindAnything : WhitespacesAndCommentsBinder {
     override fun getEdgePosition(
-        tokens: List<IElementType>, atStreamEdge: Boolean, getter: WhitespacesAndCommentsBinder.TokenTextGetter
+        tokens: List<IElementType>,
+        atStreamEdge: Boolean,
+        getter: WhitespacesAndCommentsBinder.TokenTextGetter,
     ): Int {
         return 0
     }
@@ -136,7 +139,9 @@ object DoNotBindAnything : WhitespacesAndCommentsBinder {
 
 object BindFirstShebangWithWhitespaceOnly : WhitespacesAndCommentsBinder {
     override fun getEdgePosition(
-        tokens: List<IElementType>, atStreamEdge: Boolean, getter: WhitespacesAndCommentsBinder.TokenTextGetter
+        tokens: List<IElementType>,
+        atStreamEdge: Boolean,
+        getter: WhitespacesAndCommentsBinder.TokenTextGetter,
     ): Int {
         if (tokens.firstOrNull() == CjTokens.SHEBANG_COMMENT) {
             return if (tokens.getOrNull(1) == CjTokens.WHITE_SPACE) 2 else 1
@@ -148,7 +153,9 @@ object BindFirstShebangWithWhitespaceOnly : WhitespacesAndCommentsBinder {
 
 class BindAll(val isTrailing: Boolean) : WhitespacesAndCommentsBinder {
     override fun getEdgePosition(
-        tokens: List<IElementType>, atStreamEdge: Boolean, getter: WhitespacesAndCommentsBinder.TokenTextGetter
+        tokens: List<IElementType>,
+        atStreamEdge: Boolean,
+        getter: WhitespacesAndCommentsBinder.TokenTextGetter,
     ): Int {
         return if (!isTrailing) 0 else tokens.size
     }

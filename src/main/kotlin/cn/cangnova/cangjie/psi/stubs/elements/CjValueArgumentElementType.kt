@@ -32,7 +32,6 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 
-
 class CjValueArgumentElementType<T : CjValueArgument>(debugName: String, psiClass: Class<T>) :
     CjStubElementType<CangJieValueArgumentStub<T>, T>(debugName, psiClass, CangJieValueArgumentStub::class.java) {
 

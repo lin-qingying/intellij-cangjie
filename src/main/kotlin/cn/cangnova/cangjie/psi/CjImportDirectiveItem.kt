@@ -40,16 +40,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 
-
 class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
     @Deprecated("")
     constructor(node: ASTNode) : super(node)
 
     @Deprecated("")
-
     constructor(stub: CangJieImportDirectiveStub) : super(
         stub,
-        CjStubElementTypes.IMPORT_DIRECTIVE
+        CjStubElementTypes.IMPORT_DIRECTIVE,
     )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -63,7 +61,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
         get() {
             val items = getStubOrPsiChildren(
                 CjStubElementTypes.IMPORT_DIRECTIVE_ITEM,
-                CjImportDirectiveItem.ARRAY_FACTORY
+                CjImportDirectiveItem.ARRAY_FACTORY,
             ).mapNotNull {
                 it
             }
@@ -77,7 +75,6 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
             return a
         }
 
-
     fun getModifier(tokenType: CjKeywordToken): PsiElement? {
         return findChildByType(tokenType)
     }
@@ -89,7 +86,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
             val references =
                 getStubOrPsiChildren(
                     CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS,
-                    CjExpression.ARRAY_FACTORY
+                    CjExpression.ARRAY_FACTORY,
                 )
             if (references.isNotEmpty()) {
                 return references[0]
@@ -98,11 +95,8 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
         }
 
     override fun hasModifier(modifier: CjKeywordToken): Boolean {
-
         return getModifier(modifier) != null
     }
-
-
 
     companion object {
         fun fqNameFromExpression(expression: CjExpression?): FqName? {
@@ -124,7 +118,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
                 is CjSynthesisQualifiedExpression -> {
                     return fqNameFromExpression(expression.selectorExpression)?.let {
                         fqNameFromExpression(expression.receiverExpression)?.child(
-                            it
+                            it,
                         )
                     }
                 }
@@ -146,8 +140,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
 
             if (expression is CjSimpleNameExpression) {
                 return expression.referencedNameAsName
-            }
-            else {
+            } else {
                 throw IllegalArgumentException("Can't construct name for: " + expression.javaClass)
             }
         }
@@ -156,7 +149,6 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
 
 @Deprecated("Use CjImportDirective")
 class CjMultiImportDirective(node: ASTNode) : CjElementImpl(node)
-
 
 // import
 //       item*
@@ -184,14 +176,12 @@ class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>,
 
     companion object {
         @JvmStatic
-
         val EMPTY_ARRAY = arrayOf<CjImportDirectiveItem>()
 
         @JvmStatic
         val ARRAY_FACTORY =
             ArrayFactory { count: Int ->
                 if (count == 0) EMPTY_ARRAY else arrayOfNulls<CjImportDirectiveItem>(count)
-
             }
     }
 
@@ -213,19 +203,18 @@ class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>,
             val references =
                 getStubOrPsiChildren(
                     CjTokenSets.INSIDE_DIRECTIVE_EXPRESSIONS,
-                    CjExpression.ARRAY_FACTORY
+                    CjExpression.ARRAY_FACTORY,
                 ).firstOrNull()
-
 
             if (isMultiUnder) {
                 return CjSynthesisQualifiedExpression(
-                    parentImportedReference!!, references
+                    parentImportedReference!!,
+                    references,
                 )
             }
 
             return references
         }
-
 
     val alias: CjImportAlias?
         get() = getStubOrPsiChild(CjStubElementTypes.IMPORT_ALIAS)
@@ -236,11 +225,8 @@ class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>,
             return alias?.name
         }
 
-
     val importDirective: CjImportDirective
         get() = getStrictParentOfType<CjImportDirective>() ?: throw IllegalStateException()
-
-
 
     @Volatile
     private var _importedFqName: FqName? = null
@@ -264,7 +250,6 @@ class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>,
     override val importedFqName: FqName?
         get() {
 
-
             val stub = stub
             if (stub != null) {
                 return stub.getImportedFqName()
@@ -277,14 +262,9 @@ class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>,
             importedFqName =
                 fqNameFromExpression(importedReference)
 
-
-
-
-
             this._importedFqName = importedFqName
             return importedFqName
         }
-
 
     val isValidImport: Boolean
         get() {

@@ -33,7 +33,7 @@ class CjInterface : CjTypeStatement {
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieInterfaceStub) : super(stub, CjStubElementTypes.INTERFACE)
 
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R  {
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitInterface(this, data)
     }
     override val typeName: String

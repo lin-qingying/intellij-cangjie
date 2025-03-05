@@ -33,10 +33,10 @@ import org.jetbrains.annotations.NonNls
 import java.io.IOException
 
 class CjTypeProjectionElementType(debugName: @NonNls String) :
-    CjStubElementType<CangJieTypeProjectionStub , CjTypeProjection >(
+    CjStubElementType<CangJieTypeProjectionStub, CjTypeProjection>(
         debugName,
         CjTypeProjection::class.java,
-        CangJieTypeProjectionStub::class.java
+        CangJieTypeProjectionStub::class.java,
     ) {
     override fun createStub(psi: CjTypeProjection, parentStub: StubElement<*>?): CangJieTypeProjectionStub {
         return CangJieTypeProjectionStubImpl(parentStub, psi.projectionKind.ordinal)

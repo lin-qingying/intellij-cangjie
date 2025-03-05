@@ -24,13 +24,6 @@
 
 package cn.cangnova.cangjie.psi.stubs.elements
 
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.IndexSink
-import com.intellij.psi.stubs.StubElement
-import com.intellij.psi.stubs.StubInputStream
-import com.intellij.psi.stubs.StubOutputStream
-import com.intellij.util.io.StringRef
 import cn.cangnova.cangjie.psi.CjEnum
 import cn.cangnova.cangjie.psi.psiUtil.StubUtils.createNestedClassId
 import cn.cangnova.cangjie.psi.psiUtil.StubUtils.deserializeClassId
@@ -41,9 +34,19 @@ import cn.cangnova.cangjie.psi.stubs.CangJieEnumStub
 import cn.cangnova.cangjie.psi.stubs.elements.StubIndexService.Companion.getInstance
 import cn.cangnova.cangjie.psi.stubs.impl.CangJieEnumStubImpl
 import cn.cangnova.cangjie.psi.stubs.impl.Utils.wrapStrings
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.stubs.IndexSink
+import com.intellij.psi.stubs.StubElement
+import com.intellij.psi.stubs.StubInputStream
+import com.intellij.psi.stubs.StubOutputStream
+import com.intellij.util.io.StringRef
 
-class CjEnumElementType(debugName:String):CjStubElementType<CangJieEnumStub, CjEnum>(debugName,
-    CjEnum::class.java,CangJieEnumStub::class.java) {
+class CjEnumElementType(debugName: String) : CjStubElementType<CangJieEnumStub, CjEnum>(
+    debugName,
+    CjEnum::class.java,
+    CangJieEnumStub::class.java,
+) {
     override fun serialize(stub: CangJieEnumStub, dataStream: StubOutputStream) {
         dataStream.writeName(stub.name)
 
@@ -61,11 +64,11 @@ class CjEnumElementType(debugName:String):CjStubElementType<CangJieEnumStub, CjE
             dataStream.writeName(name)
         }
     }
-   companion object{
-       fun getStubType(): CjEnumElementType {
-           return CjStubElementTypes.ENUM
-       }
-   }
+    companion object {
+        fun getStubType(): CjEnumElementType {
+            return CjStubElementTypes.ENUM
+        }
+    }
     override fun deserialize(dataStream: StubInputStream, parentStub: StubElement<*>?): CangJieEnumStub {
         val name = dataStream.readName()
         val qualifiedName = dataStream.readName()
@@ -73,7 +76,6 @@ class CjEnumElementType(debugName:String):CjStubElementType<CangJieEnumStub, CjE
         val classId = deserializeClassId(dataStream)
 
 //        bool isTrait = dataStream.readBoolean();
-
 
 //        bool isTrait = dataStream.readBoolean();
         val isLocal = dataStream.readBoolean()
@@ -86,8 +88,13 @@ class CjEnumElementType(debugName:String):CjStubElementType<CangJieEnumStub, CjE
         }
 
         return CangJieEnumStubImpl(
-            CjStubElementTypes.ENUM, parentStub, qualifiedName, classId, name, superNames,
-            isLocal
+            CjStubElementTypes.ENUM,
+            parentStub,
+            qualifiedName,
+            classId,
+            name,
+            superNames,
+            isLocal,
         )
     }
 
@@ -97,11 +104,13 @@ class CjEnumElementType(debugName:String):CjStubElementType<CangJieEnumStub, CjE
         val superNames = psi.getSuperNames()
         val classId = createNestedClassId(parentStub!!, psi)
         return CangJieEnumStubImpl(
-            CjStubElementTypes.ENUM, parentStub as StubElement<*>?,
-            StringRef.fromString(fqName?.asString()), classId,
+            CjStubElementTypes.ENUM,
+            parentStub as StubElement<*>?,
+            StringRef.fromString(fqName?.asString()),
+            classId,
             StringRef.fromString(psi.name),
             wrapStrings(superNames),
-            psi.isLocal
+            psi.isLocal,
         )
     }
 
@@ -111,7 +120,6 @@ class CjEnumElementType(debugName:String):CjStubElementType<CangJieEnumStub, CjE
 
     override fun indexStub(stub: CangJieEnumStub, sink: IndexSink) {
         getInstance().indexEnum(stub, sink)
-
     }
 
     override fun createPsiFromAst(node: ASTNode): CjEnum {

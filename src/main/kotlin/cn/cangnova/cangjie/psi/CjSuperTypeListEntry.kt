@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.psi.CjTypeStatement
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -33,18 +32,18 @@ import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
 
-open class CjSuperTypeListEntry : CjElementImplStub<CangJiePlaceHolderStub<out CjSuperTypeListEntry > > {
+open class CjSuperTypeListEntry : CjElementImplStub<CangJiePlaceHolderStub<out CjSuperTypeListEntry>> {
     constructor(node: ASTNode) : super(node)
 
     constructor(
-        stub: CangJiePlaceHolderStub<out CjSuperTypeListEntry >,
-        nodeType: IStubElementType<*, *>
+        stub: CangJiePlaceHolderStub<out CjSuperTypeListEntry>,
+        nodeType: IStubElementType<*, *>,
     ) : super(stub, nodeType)
 
     val parentDeclaration: PsiElement?
         get() = PsiTreeUtil.getParentOfType(
             this,
-            CjTypeStatement::class.java
+            CjTypeStatement::class.java,
         )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
@@ -73,7 +72,7 @@ open class CjSuperTypeListEntry : CjElementImplStub<CangJiePlaceHolderStub<out C
     companion object {
         private val EMPTY_ARRAY = arrayOfNulls<CjSuperTypeListEntry>(0)
 
-        var ARRAY_FACTORY: ArrayFactory<CjSuperTypeListEntry > =
+        var ARRAY_FACTORY: ArrayFactory<CjSuperTypeListEntry> =
             ArrayFactory { count: Int -> if (count == 0) EMPTY_ARRAY else arrayOfNulls(count) }
     }
 }

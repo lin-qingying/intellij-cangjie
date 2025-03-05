@@ -24,20 +24,18 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.psi.stubs.CangJieVariableStub
+import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
-import cn.cangnova.cangjie.CjNodeTypes
-import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.stubs.CangJieVariableStub
-import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 
 class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariableDeclaration, CjLocalNamedDeclaration {
     constructor(stub: CangJieVariableStub) : super(stub, CjStubElementTypes.VARIABLE)
     constructor(node: ASTNode) : super(node)
-
 
     override val valueParameterList: CjParameterList?
         //    @Override
@@ -57,7 +55,6 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitVariable(this, data)
     }
-
 
     override val receiverTypeReference: CjTypeReference?
         get() {
@@ -106,7 +103,7 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
                 } else {
                     val typeReferences =
                         getStubOrPsiChildrenAsList(
-                            CjStubElementTypes.TYPE_REFERENCE
+                            CjStubElementTypes.TYPE_REFERENCE,
                         )
                     val returnTypeRefPositionInPsi = if (stub.isExtension()) 1 else 0
                     if (typeReferences.size <= returnTypeRefPositionInPsi) {
@@ -114,7 +111,7 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
                             """
                                 Invalid stub structure built for property:
                                 $text
-                                """.trimIndent()
+                            """.trimIndent(),
                         )
                         return null
                     }
@@ -125,7 +122,6 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
         }
     val isLocal: Boolean
         get() = !isTopLevel && !isMember
-
 
     /**
      * 判断当前对象是否为成员对象
@@ -149,7 +145,9 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
         return node.findChildByType(CjNodeTypes.BINDING_PATTERN)?.findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)
             ?.findChildByType(CjTokens.IDENTIFIER)?.getPsi() ?: if (isMember) {
             super.getNameIdentifier()
-        } else null
+        } else {
+            null
+        }
     }
 
     override val colon: PsiElement?
@@ -188,7 +186,7 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
 
             return PsiTreeUtil.getNextSiblingOfType(
                 findChildByType(CjTokens.EQ),
-                CjExpression::class.java
+                CjExpression::class.java,
             )
         }
 
@@ -201,10 +199,9 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
         return initializer != null
     }
 
-
     companion object {
         private val LOG = Logger.getInstance(
-            CjVariable::class.java
+            CjVariable::class.java,
         )
 
         private val LET_VAR_TOKEN_SET =

@@ -24,12 +24,11 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.name.Name
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
-import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.Name
-
 
 interface CjSimpleNameExpression : CjReferenceExpression {
 
@@ -63,7 +62,6 @@ abstract class CjSimpleNameExpressionImpl(node: ASTNode) : CjExpressionImpl(node
     override val referencedNameAsName get() = getReferencedNameAsNameImpl(this)
 
     override val referencedName get() = getReferencedNameImpl(this)
-
 
     companion object {
         fun getReferencedNameElementTypeImpl(expression: CjSimpleNameExpression): IElementType {

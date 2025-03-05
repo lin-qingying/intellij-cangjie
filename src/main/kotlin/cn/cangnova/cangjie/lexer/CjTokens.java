@@ -24,12 +24,11 @@
 
 package cn.cangnova.cangjie.lexer;
 
-import cn.cangnova.cangjie.lexer.CjToken;
 import com.intellij.lang.BracePair;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
-import cn.cangnova.cangjie.CjNodeTypes;
+import cn.cangnova.cangjie.psi.CjNodeTypes;
 import cn.cangnova.cangjie.doc.lexer.CDocTokens;
 
 public interface CjTokens {

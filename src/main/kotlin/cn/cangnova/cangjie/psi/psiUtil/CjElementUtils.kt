@@ -34,7 +34,6 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.PsiTreeUtil
 
 internal fun CjElement.deleteSemicolon() {
-
     val sibling = PsiTreeUtil.skipSiblingsForward(this, PsiWhiteSpace::class.java, PsiComment::class.java)
     if (sibling == null || sibling.node.elementType != CjTokens.SEMICOLON) return
 

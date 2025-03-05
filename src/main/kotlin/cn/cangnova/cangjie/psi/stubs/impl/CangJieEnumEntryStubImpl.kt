@@ -33,12 +33,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 
-
 open class CangJieEnumEntryStubImpl(
     type: CjEnumEntryElementType,
     parent: StubElement<out PsiElement>?,
-      val qualifiedNameByParent: StringRef?,  //枚举值对于enum声明的名称
-      val qualifiedNameByPackage:StringRef?, //枚举值对于包声明的名称
+    val qualifiedNameByParent: StringRef?, // 枚举值对于enum声明的名称
+    val qualifiedNameByPackage: StringRef?, // 枚举值对于包声明的名称
     private val classId: ClassId?,
     private val name: StringRef?,
 
@@ -62,7 +61,7 @@ open class CangJieEnumEntryStubImpl(
     override fun isLocal() = isLocal
     override fun getName() = StringRef.toString(name)
 
-    override fun getSuperNames(): List<String>  = emptyList()
+    override fun getSuperNames(): List<String> = emptyList()
     override fun getClassId(): ClassId? = classId
 
 //    override fun isTopLevel() = isTopLevel

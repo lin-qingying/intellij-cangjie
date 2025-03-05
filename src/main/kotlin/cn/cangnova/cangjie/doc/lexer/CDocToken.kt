@@ -27,10 +27,8 @@ package cn.cangnova.cangjie.doc.lexer
 import cn.cangnova.cangjie.lexer.CjToken
 import org.jetbrains.annotations.NonNls
 
-
 class CDocToken : CjToken {
     @Deprecated("")
     constructor(debugName: @NonNls String) : super(debugName)
     constructor(debugName: @NonNls String, tokenId: Int) : super(debugName, tokenId)
 }
-

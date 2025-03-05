@@ -24,18 +24,17 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import cn.cangnova.cangjie.psi.stubs.CangJieEnumEntryStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.psiUtil.getParentOfType
-import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 
 class CjEnumEntry : CjTypeStatement {
     constructor(node: ASTNode) : super(node)
 
     constructor(
-        stub: CangJieEnumEntryStub
+        stub: CangJieEnumEntryStub,
 
     ) : super(stub, CjStubElementTypes.ENUM_ENTRY)
 
@@ -49,12 +48,11 @@ class CjEnumEntry : CjTypeStatement {
     }
 
 //    entry所属的enum类型名称
-val enumTypeName: Name get() {
-    val enum = getStrictParentOfType <CjEnum>()
+    val enumTypeName: Name get() {
+        val enum = getStrictParentOfType<CjEnum>()
 
-
-    return enum?.nameAsSafeName ?: Name.ERROR_NAME
-}
+        return enum?.nameAsSafeName ?: Name.ERROR_NAME
+    }
 
     override fun toString(): String {
         return node.elementType.toString()
@@ -68,7 +66,5 @@ val enumTypeName: Name get() {
                 return typeEntry!!.getStubOrPsiChildrenAsList(CjStubElementTypes.TYPE_REFERENCE)
             }
             return emptyList()
-
-
         }
 }

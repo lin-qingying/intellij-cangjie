@@ -34,21 +34,23 @@ import com.intellij.psi.tree.TokenSet
 import com.intellij.util.IncorrectOperationException
 import java.util.regex.Pattern
 
-class CjStringTemplateExpression : CjElementImplStub<CangJiePlaceHolderStub<CjStringTemplateExpression>>,
+class CjStringTemplateExpression :
+    CjElementImplStub<CangJiePlaceHolderStub<CjStringTemplateExpression>>,
     CjExpression,
-    PsiLanguageInjectionHost, ContributedReferenceHost {
+    PsiLanguageInjectionHost,
+    ContributedReferenceHost {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJiePlaceHolderStub<CjStringTemplateExpression>) : super(
         stub,
-        CjStubElementTypes.STRING_TEMPLATE
+        CjStubElementTypes.STRING_TEMPLATE,
     )
 
     @Throws(IncorrectOperationException::class)
     override fun replace(newElement: PsiElement): PsiElement {
         return replaceExpression(this, newElement, true) { newElement: PsiElement? ->
             super.replace(
-                newElement!!
+                newElement!!,
             )
         }
     }
@@ -106,7 +108,7 @@ class CjStringTemplateExpression : CjElementImplStub<CangJiePlaceHolderStub<CjSt
     val entries: Array<CjStringTemplateEntry>
         get() = getStubOrPsiChildren(
             STRING_ENTRIES_TYPES,
-            CjStringTemplateEntry.EMPTY_ARRAY
+            CjStringTemplateEntry.EMPTY_ARRAY,
         )
 
     override fun isValidHost(): Boolean {
@@ -139,7 +141,7 @@ class CjStringTemplateExpression : CjElementImplStub<CangJiePlaceHolderStub<CjSt
             CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY,
             CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY,
             CjStubElementTypes.LITERAL_STRING_TEMPLATE_ENTRY,
-            CjStubElementTypes.ESCAPE_STRING_TEMPLATE_ENTRY
+            CjStubElementTypes.ESCAPE_STRING_TEMPLATE_ENTRY,
         )
     }
 }

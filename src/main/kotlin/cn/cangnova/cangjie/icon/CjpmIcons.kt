@@ -35,5 +35,4 @@ object CjpmIcons {
 //    val LOCK_ICON = load("/icons/cjpmLock.svg")
 
     private fun load(path: String): Icon = IconLoader.getIcon(path, CjpmIcons::class.java)
-
 }

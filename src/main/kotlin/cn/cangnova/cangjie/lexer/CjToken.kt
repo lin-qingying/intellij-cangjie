@@ -27,22 +27,19 @@ package cn.cangnova.cangjie.lexer
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import com.intellij.psi.tree.IElementType
 
-open class CjToken  @JvmOverloads   constructor(
-    val name: String, var tokenId: Int = INVALID_ID
+open class CjToken @JvmOverloads constructor(
+    val name: String,
+    var tokenId: Int = INVALID_ID,
 ) : IElementType(
-    name, CangJieLanguage
+    name,
+    CangJieLanguage,
 ) {
-
 
     companion object {
         private const val INVALID_ID = -1
     }
 
-
     override fun toString(): String {
         return name
     }
-
 }
-
-

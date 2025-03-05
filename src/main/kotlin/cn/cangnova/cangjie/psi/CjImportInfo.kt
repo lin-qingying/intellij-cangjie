@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import com.intellij.util.SmartList
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
 
@@ -72,7 +71,6 @@ interface CjImportInfo {
      */
     val aliasName: String?
 
-
     /**
      * 导入的名称，表示导入项在代码中使用的名称。
      */
@@ -98,4 +96,3 @@ interface CjImportInfo {
         }
     }
 }
-

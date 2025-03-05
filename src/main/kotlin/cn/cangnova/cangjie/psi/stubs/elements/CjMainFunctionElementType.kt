@@ -41,16 +41,14 @@ import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
 import java.io.IOException
 
-class CjMainFunctionElementType : CjStubElementType<CangJieFunctionStub , CjMainFunction> {
-    constructor(debugName: String, psiClass: Class<CjMainFunction >, stubClass: Class<*>) : super(
+class CjMainFunctionElementType : CjStubElementType<CangJieFunctionStub, CjMainFunction> {
+    constructor(debugName: String, psiClass: Class<CjMainFunction>, stubClass: Class<*>) : super(
         debugName,
         psiClass,
-        stubClass
+        stubClass,
     )
 
-
     constructor(debugName: String) : super(debugName, CjMainFunction::class.java, CangJieFunctionStub::class.java)
-
 
     override fun createStub(psi: CjMainFunction, parentStub: StubElement<out PsiElement>): CangJieFunctionStubImpl {
         val isTopLevel = psi.parent is CjFile
@@ -65,10 +63,9 @@ class CjMainFunctionElementType : CjStubElementType<CangJieFunctionStub , CjMain
             parentStub, CjStubElementTypes.MAIN_FUNC, StringRef.fromString(psi.name), isTopLevel, fqName,
             isExtension, hasBlockBody, hasBody, psi.hasTypeParameterListBeforeFunctionName(),
 
-            null
+            null,
         )
     }
-
 
     @Throws(IOException::class)
     override fun serialize(stub: CangJieFunctionStub, dataStream: StubOutputStream) {
@@ -109,7 +106,7 @@ class CjMainFunctionElementType : CjStubElementType<CangJieFunctionStub , CjMain
         return CangJieFunctionStubImpl(
             parentStub, CjStubElementTypes.MAIN_FUNC, name, isTopLevel, fqName, isExtension, hasBlockBody, hasBody,
             hasTypeParameterListBeforeFunctionName,
-            deserialize(dataStream)
+            deserialize(dataStream),
         )
     }
 

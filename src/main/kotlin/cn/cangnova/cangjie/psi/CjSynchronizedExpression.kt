@@ -26,11 +26,10 @@ package cn.cangnova.cangjie.psi
 
 import com.intellij.lang.ASTNode
 
-class CjSynchronizedExpression(node: ASTNode) : CjExpressionImpl(node)
-{
+class CjSynchronizedExpression(node: ASTNode) : CjExpressionImpl(node) {
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitSynchronizedExpression(this, data)
     }
-val expression:CjExpression? get() = findChildByClass(CjExpression::class.java)
-    val blockExpression:CjBlockExpression? get() = findChildByClass(CjBlockExpression::class.java)
+    val expression: CjExpression? get() = findChildByClass(CjExpression::class.java)
+    val blockExpression: CjBlockExpression? get() = findChildByClass(CjBlockExpression::class.java)
 }

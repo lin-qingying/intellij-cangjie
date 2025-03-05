@@ -24,8 +24,7 @@
 
 package cn.cangnova.cangjie.highlighter
 
-
-import cn.cangnova.cangjie.CangJieBundle
+import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.icon.CangJieIcons
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import com.intellij.openapi.editor.colors.TextAttributesKey
@@ -36,8 +35,6 @@ import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
 import com.intellij.openapi.options.colors.RainbowColorSettingsPage
 import com.intellij.openapi.util.NlsSafe
-import cn.cangnova.cangjie.highlighter.CangJieHighlightingColors
-
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.memberProperties
 
@@ -108,8 +105,6 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
     override fun getAdditionalHighlightingTagToDescriptorMap(): Map<String, TextAttributesKey> {
         val map = HashMap<String, TextAttributesKey>()
 
-
-
         for (field in CangJieHighlightingColors::class.memberProperties) {
             if (field.visibility == KVisibility.PUBLIC) {
                 try {
@@ -128,7 +123,6 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
 //
 //            }
         }
-
 
         return map
     }
@@ -189,7 +183,6 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
             CangJieBundle.message("highlighter.descriptor.text.instance.property.custom.property.declaration") to CangJieHighlightingColors.INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION,
             OptionsBundle.message("options.java.attribute.descriptor.parameter") to CangJieHighlightingColors.PARAMETER,
 
-
             CangJieBundle.message("highlighter.descriptor.text.package.property.custom.property.declaration") to CangJieHighlightingColors.PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION,
             CangJieBundle.message("highlighter.descriptor.text.package.property") to CangJieHighlightingColors.PACKAGE_PROPERTY,
             CangJieBundle.message("highlighter.descriptor.text.field") to CangJieHighlightingColors.BACKING_FIELD_VARIABLE,
@@ -210,7 +203,7 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
 //            CangJieBundle.message("highlighter.descriptor.text.smart.constant") to CangJieHighlightingColors.SMART_CONSTANT,
 //            CangJieBundle.message("highlighter.descriptor.text.smart.cast.receiver") to CangJieHighlightingColors.SMART_CAST_RECEIVER,
 //            CangJieBundle.message("highlighter.descriptor.text.label") to CangJieHighlightingColors.LABEL,
-            CangJieBundle.message("highlighter.descriptor.text.named.argument") to CangJieHighlightingColors.NAMED_ARGUMENT
+            CangJieBundle.message("highlighter.descriptor.text.named.argument") to CangJieHighlightingColors.NAMED_ARGUMENT,
         )
     }
 
@@ -223,6 +216,6 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
 
     override fun isRainbowType(type: TextAttributesKey): Boolean {
         return type == CangJieHighlightingColors.LOCAL_VARIABLE ||
-                type == CangJieHighlightingColors.PARAMETER
+            type == CangJieHighlightingColors.PARAMETER
     }
 }

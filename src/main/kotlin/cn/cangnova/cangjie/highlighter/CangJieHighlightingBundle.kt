@@ -24,11 +24,10 @@
 
 package cn.cangnova.cangjie.highlighter
 
-import cn.cangnova.cangjie.AbstractCangJieBundle
+import cn.cangnova.cangjie.messages.AbstractCangJieBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
-
 
 @NonNls
 private const val BUNDLE = "messages.CangJieHighlightingBundle"

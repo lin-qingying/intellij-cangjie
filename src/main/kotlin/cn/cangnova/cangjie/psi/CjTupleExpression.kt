@@ -31,11 +31,8 @@ class CjTupleExpression(node: ASTNode) : CjExpressionImpl(node) {
         return visitor.visitTupleExpression(this, data)
     }
 
-
     val expressions: List<CjExpression>
         get() {
-          return  findChildrenByClass(CjExpression::class.java).toList()
-
+            return findChildrenByClass(CjExpression::class.java).toList()
         }
-
 }

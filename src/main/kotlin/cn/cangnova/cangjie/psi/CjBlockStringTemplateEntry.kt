@@ -31,9 +31,9 @@ import com.intellij.lang.ASTNode
 class CjBlockStringTemplateEntry : CjStringTemplateEntryWithExpression {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderWithTextStub<CjBlockStringTemplateEntry >) : super(
+    constructor(stub: CangJiePlaceHolderWithTextStub<CjBlockStringTemplateEntry>) : super(
         stub,
-        CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY
+        CjStubElementTypes.LONG_STRING_TEMPLATE_ENTRY,
     )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {

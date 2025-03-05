@@ -24,9 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.stubs.CangJieParameterStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -37,12 +35,12 @@ import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
-interface CjParameterBase  :  CjCallableDeclaration, CjLetVarKeywordOwner{
+interface CjParameterBase : CjCallableDeclaration, CjLetVarKeywordOwner {
     fun hasLetOrVar(): Boolean
     fun hasDefaultValue(): Boolean
 }
 
-class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase {
+class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>, CjParameterBase {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieParameterStub) : super(stub, CjStubElementTypes.VALUE_PARAMETER)
@@ -50,13 +48,13 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
         return visitor.visitParameter(this, data)
     }
-    val isVarArg : Boolean get()   {
+    val isVarArg: Boolean get() {
 
         return modifierList != null && modifierList!!.hasModifier(CjTokens.VARARG_KEYWORD)
     }
     val isLoopParameter get() = parent is CjForExpression
     override val typeReference: CjTypeReference?
-        get() =  getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
+        get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
 
     override fun setTypeReference(typeRef: CjTypeReference?): CjTypeReference? {
         return setTypeReference(this, nameIdentifier, typeRef)
@@ -69,7 +67,6 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase
             return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION)
         }
 
-
     /**
      * For example,
      * fun foo(lambdaArgument: (functionTypeParameter: T, ...) -> R) { ... }
@@ -77,7 +74,7 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase
      * @return [true] if this [KtParameter] is a parameter of a function type.
      */
     fun isFunctionTypeParameter(): Boolean {
-        return checkParentOfParentType ( CjFunctionType::class.java)
+        return checkParentOfParentType(CjFunctionType::class.java)
     }
 
     override val colon: PsiElement?
@@ -87,7 +84,6 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase
 //            if (colon != null) {
 //                return colon!!.node.treePrev.elementType === CjTokens.EXCL
 //            }
-
 
             return findChildByType<PsiElement>(CjTokens.EXCL) != null
         }
@@ -128,10 +124,14 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase
             }
 
             val equalsToken = equalsToken
-            return if (equalsToken != null) PsiTreeUtil.getNextSiblingOfType(
-                equalsToken,
-                CjExpression::class.java
-            ) else null
+            return if (equalsToken != null) {
+                PsiTreeUtil.getNextSiblingOfType(
+                    equalsToken,
+                    CjExpression::class.java,
+                )
+            } else {
+                null
+            }
         }
 
     val isMutable: Boolean
@@ -165,7 +165,6 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase
         return ItemPresentationProviders.getItemPresentation(this)
     }
 
-
     private fun <T : PsiElement> checkParentOfParentType(klass: Class<T>): Boolean {
         val parent = parent ?: return false
         return klass.isInstance(parent.parent)
@@ -173,8 +172,6 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase
 
     val isCatchParameter: Boolean
         get() = checkParentOfParentType(CjCatchClause::class.java)
-
-
 
     override val contextReceivers: List<CjContextReceiver> = emptyList()
     override val valueParameterList: CjParameterList? = null

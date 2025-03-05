@@ -31,9 +31,9 @@ import com.intellij.lang.ASTNode
 class CjSimpleNameStringTemplateEntry : CjStringTemplateEntryWithExpression {
     constructor(node: ASTNode) : super(node)
 
-    constructor(stub: CangJiePlaceHolderWithTextStub<CjSimpleNameStringTemplateEntry >) : super(
+    constructor(stub: CangJiePlaceHolderWithTextStub<CjSimpleNameStringTemplateEntry>) : super(
         stub,
-        CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY
+        CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY,
     )
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {

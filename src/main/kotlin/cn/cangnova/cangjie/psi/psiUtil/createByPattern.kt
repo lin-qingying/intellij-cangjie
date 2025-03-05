@@ -66,6 +66,7 @@ private object PsiChildRangeArgumentType :
         }
     }
 }
+
 @get:TestOnly
 @set:TestOnly
 var CREATE_BY_PATTERN_MAY_NOT_REFORMAT = false
@@ -89,12 +90,12 @@ private val SUPPORTED_ARGUMENT_TYPES = listOf(
     PsiElementArgumentType(CjTypeReference::class.java),
     PlainTextArgumentType(String::class.java, toPlainText = { it }),
     PlainTextArgumentType(Name::class.java, toPlainText = Name::render),
-    PsiChildRangeArgumentType
+    PsiChildRangeArgumentType,
 )
 private data class Placeholder(val range: TextRange, val text: String)
 private abstract class PsiElementPlaceholderArgumentType<T : Any, TPlaceholder : PsiElement>(
     klass: Class<T>,
-    val placeholderClass: Class<TPlaceholder>
+    val placeholderClass: Class<TPlaceholder>,
 ) : ArgumentType<T>(klass) {
     abstract fun replacePlaceholderElement(placeholder: TPlaceholder, argument: T, reformat: Boolean): PsiChildRange
 }
@@ -173,13 +174,13 @@ fun <TElement : CjElement> createByPattern(
     pattern: String,
     vararg args: Any,
     reformat: Boolean = true,
-    factory: (String) -> TElement
+    factory: (String) -> TElement,
 ): TElement {
     val argumentTypes = args.map { arg ->
         SUPPORTED_ARGUMENT_TYPES.firstOrNull { it.klass.isInstance(arg) }
             ?: throw IllegalArgumentException(
                 "Unsupported argument type: ${arg::class.java}, should be one of: " +
-                        SUPPORTED_ARGUMENT_TYPES.joinToString { it.klass.simpleName }
+                    SUPPORTED_ARGUMENT_TYPES.joinToString { it.klass.simpleName },
             )
     }
 
@@ -188,7 +189,7 @@ fun <TElement : CjElement> createByPattern(
     val args = args.zip(argumentTypes).map {
         val (arg, type) = it
 
-            arg
+        arg
     }
 
     val (processedText, allPlaceholders) = processPattern(pattern, args)
@@ -267,10 +268,10 @@ fun <TElement : CjElement> createByPattern(
         }
     }
 
-    if (reformat)
+    if (reformat) {
         codeStyleManager.adjustLineIndent(resultElement.containingFile, resultElement.textRange)
+    }
 
     @Suppress("UNCHECKED_CAST")
     return resultElement as TElement
-
 }
