@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.doc
+package cn.cangnova.cangjie.psi.cdoc
 
 import com.intellij.lang.documentation.DocumentationMarkup.*
 

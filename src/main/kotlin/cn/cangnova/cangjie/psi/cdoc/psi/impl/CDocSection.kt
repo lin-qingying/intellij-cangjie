@@ -22,29 +22,30 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.psi.impl
+package cn.cangnova.cangjie.psi.cdoc.psi.impl
 
-import cn.cangnova.cangjie.psi.CjElementImpl
-import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
+import cn.cangnova.cangjie.psi.psiUtil.getChildrenOfType
 import com.intellij.lang.ASTNode
-import com.intellij.openapi.util.TextRange
 
-class CDocLink(node: ASTNode) : CjElementImpl(node) {
-    fun getLinkText(): String = getLinkTextRange().substring(text)
-
-    fun getLinkTextRange(): TextRange {
-        val text = text
-        if (text.startsWith('[') && text.endsWith(']')) {
-            return TextRange(1, text.length - 1)
-        }
-        return TextRange(0, text.length)
-    }
-
+/**
+ *文档注释中描述单个类、方法或属性的部分由被记录的元素产生。例如，类的文档注释可以有类本身、其主构造函数和每个在主构造函数中定义的属性
+ */
+class CDocSection(node: ASTNode) : CDocTag(node) {
     /**
-     * If this link is the subject of a tag, returns the tag. Otherwise, returns null.
+     *返回节的名称(引导节的文档标签的名称或对于默认部分为NULL)
      */
-    fun getTagIfSubject(): CDocTag? {
-        val tag = getStrictParentOfType<CDocTag>()
-        return if (tag != null && tag.getSubjectLink() == this) tag else null
+    override fun getName(): String? =
+        (firstChild as? CDocTag)?.name
+
+    override fun getSubjectName(): String? =
+        (firstChild as? CDocTag)?.getSubjectName()
+
+    override fun getContent(): String =
+        (firstChild as? CDocTag)?.getContent() ?: super.getContent()
+
+    fun findTagsByName(name: String): List<CDocTag> {
+        return getChildrenOfType<CDocTag>().filter { it.name == name }
     }
+
+    fun findTagByName(name: String): CDocTag? = findTagsByName(name).firstOrNull()
 }

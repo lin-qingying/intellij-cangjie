@@ -22,18 +22,13 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.psi
+package cn.cangnova.cangjie.psi.cdoc.lexer
 
-import cn.cangnova.cangjie.doc.parser.CDocKnownTag
-import cn.cangnova.cangjie.doc.psi.impl.CDocSection
-import cn.cangnova.cangjie.psi.CjDeclaration
-import com.intellij.psi.PsiDocCommentBase
+import cn.cangnova.cangjie.lexer.CjToken
+import org.jetbrains.annotations.NonNls
 
-interface CDoc : PsiDocCommentBase, CDocElement {
-    override fun getOwner(): CjDeclaration?
-    fun getDefaultSection(): CDocSection
-    fun getAllSections(): List<CDocSection>
-    fun findSectionByName(name: String): CDocSection?
-    fun findSectionByTag(tag: CDocKnownTag): CDocSection?
-    fun findSectionByTag(tag: CDocKnownTag, subjectName: String): CDocSection?
+class CDocToken : CjToken {
+    @Deprecated("")
+    constructor(debugName: @NonNls String) : super(debugName)
+    constructor(debugName: @NonNls String, tokenId: Int) : super(debugName, tokenId)
 }

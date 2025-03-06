@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.highlighter
 
-import cn.cangnova.cangjie.doc.lexer.CDocLexer
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocLexer
 import cn.cangnova.cangjie.lexer.CangJieLexer
 import cn.cangnova.cangjie.lexer.CjTokens
 import com.intellij.lexer.LayeredLexer

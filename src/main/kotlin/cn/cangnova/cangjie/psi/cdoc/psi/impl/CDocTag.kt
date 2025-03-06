@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.psi.impl
+package cn.cangnova.cangjie.psi.cdoc.psi.impl
 
-import cn.cangnova.cangjie.doc.lexer.CDocTokens
-import cn.cangnova.cangjie.doc.parser.CDocElementTypes
-import cn.cangnova.cangjie.doc.parser.CDocKnownTag
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocElementTypes
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocKnownTag
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement

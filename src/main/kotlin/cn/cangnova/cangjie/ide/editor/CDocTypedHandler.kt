@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.editor
 
-import cn.cangnova.cangjie.doc.lexer.CDocTokens
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
 import cn.cangnova.cangjie.psi.CjFile
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate

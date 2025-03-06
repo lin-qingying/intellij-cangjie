@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.lexer;
+package cn.cangnova.cangjie.psi.cdoc.lexer;
 
-import cn.cangnova.cangjie.doc.parser.CDocLinkParser;
-import cn.cangnova.cangjie.doc.parser.CDocParser;
-import cn.cangnova.cangjie.doc.psi.impl.CDocImpl;
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocLinkParser;
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocParser;
+import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocImpl;
 import cn.cangnova.cangjie.lang.CangJieLanguage;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;

@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.doc.psi.CDoc
+import cn.cangnova.cangjie.psi.cdoc.psi.CDoc
 import cn.cangnova.cangjie.psi.psiUtil.findDocComment
 import cn.cangnova.cangjie.psi.stubs.CangJieTypeStatementStub
 import com.intellij.lang.ASTNode

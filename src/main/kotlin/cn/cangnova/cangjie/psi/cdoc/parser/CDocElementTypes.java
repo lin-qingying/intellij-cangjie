@@ -22,12 +22,15 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.lexer
+package cn.cangnova.cangjie.psi.cdoc.parser;
 
-import com.intellij.lexer.FlexAdapter
-import com.intellij.lexer.MergingLexerAdapter
-import com.intellij.psi.tree.TokenSet
 
-private val CDOC_TOKENS = TokenSet.create(CDocTokens.TEXT, CDocTokens.CODE_BLOCK_TEXT)
+import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocName;
+import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocSection;
+import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocTag;
 
-class CDocLexer : MergingLexerAdapter(FlexAdapter(_CDocLexer()), CDOC_TOKENS)
+public class CDocElementTypes {
+    public static final CDocElementType CDOC_SECTION = new CDocElementType("CDOC_SECTION", CDocSection.class);
+    public static final CDocElementType CDOC_TAG = new CDocElementType("CDOC_TAG", CDocTag.class);
+    public static final CDocElementType CDOC_NAME = new CDocElementType("CDOC_NAME", CDocName.class);
+}

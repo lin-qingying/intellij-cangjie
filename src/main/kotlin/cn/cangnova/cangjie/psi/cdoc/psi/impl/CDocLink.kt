@@ -22,38 +22,29 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.parser
+package cn.cangnova.cangjie.psi.cdoc.psi.impl
 
-import cn.cangnova.cangjie.utils.toUpperCaseAsciiOnly
+import cn.cangnova.cangjie.psi.CjElementImpl
+import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
+import com.intellij.lang.ASTNode
+import com.intellij.openapi.util.TextRange
 
-enum class CDocKnownTag(val isReferenceRequired: Boolean, val isSectionStart: Boolean) {
-    AUTHOR(false, false),
-    THROWS(true, false),
-    EXCEPTION(true, false),
-    PARAM(true, false),
-    RECEIVER(false, false),
-    RETURN(false, false),
-    SEE(true, false),
-    SINCE(false, false),
-    CONSTRUCTOR(false, true),
-    PROPERTY(true, true),
-    SAMPLE(true, false),
-    SUPPRESS(false, false),
-    ;
+class CDocLink(node: ASTNode) : CjElementImpl(node) {
+    fun getLinkText(): String = getLinkTextRange().substring(text)
 
-    companion object {
-        fun findByTagName(tagName: CharSequence): CDocKnownTag? {
-            val name = if (tagName.startsWith('@')) {
-                tagName.subSequence(1, tagName.length)
-            } else {
-                tagName
-            }
-            try {
-                return valueOf(name.toString().toUpperCaseAsciiOnly())
-            } catch (ignored: IllegalArgumentException) {
-            }
-
-            return null
+    fun getLinkTextRange(): TextRange {
+        val text = text
+        if (text.startsWith('[') && text.endsWith(']')) {
+            return TextRange(1, text.length - 1)
         }
+        return TextRange(0, text.length)
+    }
+
+    /**
+     * If this link is the subject of a tag, returns the tag. Otherwise, returns null.
+     */
+    fun getTagIfSubject(): CDocTag? {
+        val tag = getStrictParentOfType<CDocTag>()
+        return if (tag != null && tag.getSubjectLink() == this) tag else null
     }
 }

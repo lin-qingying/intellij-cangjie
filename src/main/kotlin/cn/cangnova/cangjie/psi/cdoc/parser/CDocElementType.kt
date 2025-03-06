@@ -22,15 +22,32 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.parser;
+package cn.cangnova.cangjie.psi.cdoc.parser
 
+import cn.cangnova.cangjie.lang.CangJieLanguage
+import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.IElementType
+import java.lang.reflect.Constructor
 
-import cn.cangnova.cangjie.doc.psi.impl.CDocName;
-import cn.cangnova.cangjie.doc.psi.impl.CDocSection;
-import cn.cangnova.cangjie.doc.psi.impl.CDocTag;
+class CDocElementType(debugName: String, psiClass: Class<out PsiElement?>) :
+    IElementType(debugName, CangJieLanguage) {
+    private var psiFactory: Constructor<out PsiElement?>? = null
 
-public class CDocElementTypes {
-    public static final CDocElementType CDOC_SECTION = new CDocElementType("CDOC_SECTION", CDocSection.class);
-    public static final CDocElementType CDOC_TAG = new CDocElementType("CDOC_TAG", CDocTag.class);
-    public static final CDocElementType CDOC_NAME = new CDocElementType("CDOC_NAME", CDocName.class);
+    init {
+        psiFactory = try {
+            psiClass.getConstructor(ASTNode::class.java)
+        } catch (e: NoSuchMethodException) {
+            throw RuntimeException("Must have a constructor with ASTNode")
+        }
+    }
+
+    fun createPsi(node: ASTNode): PsiElement {
+        assert(node.elementType === this)
+        return try {
+            psiFactory?.newInstance(node)!!
+        } catch (e: Exception) {
+            throw RuntimeException("Error creating psi element for node", e)
+        }
+    }
 }

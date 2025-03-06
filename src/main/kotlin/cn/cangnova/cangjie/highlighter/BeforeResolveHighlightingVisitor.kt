@@ -24,9 +24,9 @@
 
 package cn.cangnova.cangjie.highlighter
 
-import cn.cangnova.cangjie.doc.parser.CDocKnownTag
-import cn.cangnova.cangjie.doc.psi.impl.CDocLink
-import cn.cangnova.cangjie.doc.psi.impl.CDocTag
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocKnownTag
+import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocLink
+import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocTag
 import cn.cangnova.cangjie.highlighter.visitor.AbstractHighlightingVisitor
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.lexer.CjTokens

@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.psi.impl
+package cn.cangnova.cangjie.psi.cdoc.psi.impl
 
-import cn.cangnova.cangjie.doc.psi.CDoc
+import cn.cangnova.cangjie.psi.cdoc.psi.CDoc
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjElementImpl

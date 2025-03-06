@@ -22,12 +22,8 @@
  *
  */
 
-/*
- * Use of this source code is governed by the MIT license that can be
- * found in the LICENSE file.
- */
+package cn.cangnova.cangjie.psi.cdoc.psi
 
-package cn.cangnova.cangjie.openapiext
+import com.intellij.psi.PsiElement
 
-//import com.intellij.openapi.wm.ex.WindowManagerEx
-
+interface CDocElement : PsiElement

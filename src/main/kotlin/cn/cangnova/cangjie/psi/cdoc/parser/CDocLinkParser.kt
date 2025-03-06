@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.parser
+package cn.cangnova.cangjie.psi.cdoc.parser
 
 import cn.cangnova.cangjie.lexer.CangJieLexer
 import cn.cangnova.cangjie.lexer.CjTokens

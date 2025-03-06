@@ -26,9 +26,9 @@ package cn.cangnova.cangjie.parsing
 
 import cn.cangnova.cangjie.psi.CjNodeType
 import cn.cangnova.cangjie.psi.CjNodeTypes
-import cn.cangnova.cangjie.doc.lexer.CDocTokens
-import cn.cangnova.cangjie.doc.parser.CDocElementType
-import cn.cangnova.cangjie.doc.psi.impl.CDocLink
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocElementType
+import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocLink
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
 import cn.cangnova.cangjie.lang.declarations.CjDeclarationsFile

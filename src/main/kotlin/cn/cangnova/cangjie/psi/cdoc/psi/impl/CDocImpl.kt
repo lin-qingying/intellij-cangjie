@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.psi.impl
+package cn.cangnova.cangjie.psi.cdoc.psi.impl
 
-import cn.cangnova.cangjie.doc.lexer.CDocTokens
-import cn.cangnova.cangjie.doc.parser.CDocKnownTag
-import cn.cangnova.cangjie.doc.psi.CDoc
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocKnownTag
+import cn.cangnova.cangjie.psi.cdoc.psi.CDoc
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.CjDeclaration

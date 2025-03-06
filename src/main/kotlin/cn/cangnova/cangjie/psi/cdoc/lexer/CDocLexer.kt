@@ -22,13 +22,12 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.lexer
+package cn.cangnova.cangjie.psi.cdoc.lexer
 
-import cn.cangnova.cangjie.lexer.CjToken
-import org.jetbrains.annotations.NonNls
+import com.intellij.lexer.FlexAdapter
+import com.intellij.lexer.MergingLexerAdapter
+import com.intellij.psi.tree.TokenSet
 
-class CDocToken : CjToken {
-    @Deprecated("")
-    constructor(debugName: @NonNls String) : super(debugName)
-    constructor(debugName: @NonNls String, tokenId: Int) : super(debugName, tokenId)
-}
+private val CDOC_TOKENS = TokenSet.create(CDocTokens.TEXT, CDocTokens.CODE_BLOCK_TEXT)
+
+class CDocLexer : MergingLexerAdapter(FlexAdapter(_CDocLexer()), CDOC_TOKENS)

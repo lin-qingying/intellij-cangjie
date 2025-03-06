@@ -25,8 +25,8 @@
 package cn.cangnova.cangjie.ide.formatter
 
 import cn.cangnova.cangjie.psi.CjNodeTypes.*
-import cn.cangnova.cangjie.doc.lexer.CDocTokens
-import cn.cangnova.cangjie.doc.parser.CDocElementTypes
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocElementTypes
 import cn.cangnova.cangjie.ide.formatter.NodeIndentStrategy.Companion.strategy
 import cn.cangnova.cangjie.ide.formatter.util.TrailingCommaHelper.trailingCommaExistsOrCanExist
 import cn.cangnova.cangjie.ide.formatter.util.addTrailingCommaIsAllowedFor

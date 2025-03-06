@@ -22,8 +22,18 @@
  *
  */
 
-package cn.cangnova.cangjie.doc.psi
+package cn.cangnova.cangjie.psi.cdoc.psi
 
-import com.intellij.psi.PsiElement
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocKnownTag
+import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocSection
+import cn.cangnova.cangjie.psi.CjDeclaration
+import com.intellij.psi.PsiDocCommentBase
 
-interface CDocElement : PsiElement
+interface CDoc : PsiDocCommentBase, CDocElement {
+    override fun getOwner(): CjDeclaration?
+    fun getDefaultSection(): CDocSection
+    fun getAllSections(): List<CDocSection>
+    fun findSectionByName(name: String): CDocSection?
+    fun findSectionByTag(tag: CDocKnownTag): CDocSection?
+    fun findSectionByTag(tag: CDocKnownTag, subjectName: String): CDocSection?
+}

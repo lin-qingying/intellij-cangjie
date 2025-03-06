@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.psi.psiUtil
 
-import cn.cangnova.cangjie.doc.psi.CDoc
+import cn.cangnova.cangjie.psi.cdoc.psi.CDoc
 import cn.cangnova.cangjie.psi.CjDeclaration
 import cn.cangnova.cangjie.psi.CjDeclarationModifierList
 import cn.cangnova.cangjie.psi.CjFile

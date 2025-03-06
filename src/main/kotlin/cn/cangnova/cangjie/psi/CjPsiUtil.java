@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.psi;
 
 import cn.cangnova.cangjie.builtins.StandardNames;
-import cn.cangnova.cangjie.doc.psi.CDocElement;
+import cn.cangnova.cangjie.psi.cdoc.psi.CDocElement;
 import cn.cangnova.cangjie.name.Name;
 import cn.cangnova.cangjie.name.SpecialNames;
 import cn.cangnova.cangjie.parsing.CangJieExpressionParsing;

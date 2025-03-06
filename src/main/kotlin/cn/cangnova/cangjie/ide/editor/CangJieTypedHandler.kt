@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.editor
 
-import cn.cangnova.cangjie.doc.lexer.CDocTokens
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
 import cn.cangnova.cangjie.ide.formatter.adjustLineIndent
 import cn.cangnova.cangjie.ide.project.tools.projectWizard.core.safeAs
 import cn.cangnova.cangjie.lexer.CjTokens
