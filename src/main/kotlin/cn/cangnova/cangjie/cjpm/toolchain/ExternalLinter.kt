@@ -24,11 +24,12 @@
 
 package cn.cangnova.cangjie.cjpm.toolchain
 
-import cn.cangnova.cangjie.messages.BUNDLE
+
+import cn.cangnova.cangjie.messages.CORE_BUNDLE
 import cn.cangnova.cangjie.messages.CangJieBundle
 import org.jetbrains.annotations.PropertyKey
 
-enum class ExternalLinter(@PropertyKey(resourceBundle = BUNDLE) val titleKey: String) {
+enum class ExternalLinter(@PropertyKey(resourceBundle = CORE_BUNDLE) val titleKey: String) {
     CJPM_CHECK("cangjie.external.linter.cjpm.check.item"),
     CLIPPY("cangjie.external.linter.clippy.item");
 

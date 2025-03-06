@@ -1,0 +1,15 @@
+[dependencies]
+
+
+[package]
+cjc-version = "0.49.2"
+compile-option = "-Woff unused"
+description = "nothing here"
+link-option = ""
+name = "opengauss"
+output-type = "static"
+src-dir = "src"
+target-dir = ""
+version = "1.0.0"
+package-configuration = {}
+scripts = {}

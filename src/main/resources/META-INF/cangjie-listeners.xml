@@ -1,0 +1,10 @@
+<idea-plugin>
+
+
+    <projectListeners>
+
+
+<!--        <listener class="cn.cangnova.cangjie.ide.status.CjExternalLinterWidgetUpdater"-->
+<!--                  topic="com.linqingying.cangjie.cjpm.project.model.CjpmProjectsService$CjpmProjectsListener"/>-->
+    </projectListeners>
+</idea-plugin>

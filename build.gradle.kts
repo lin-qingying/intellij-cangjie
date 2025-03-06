@@ -34,6 +34,7 @@ import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.AbstractCopyTask
+import org.gradle.kotlin.dsl.testImplementation
 
 plugins {
     idea
@@ -136,8 +137,12 @@ allprojects {
         }
 
         testImplementation("junit:junit:4.13.2")
-        testImplementation("org.junit.jupiter:junit-jupiter-api:4.13.2")
+// https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")
+
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+        // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit
+        testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.0")
 
     }
 

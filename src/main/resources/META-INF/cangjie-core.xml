@@ -1,32 +1,45 @@
 <idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <!-- IntelliJ 平台扩展点配置 -->
     <extensions defaultExtensionNs="com.intellij">
-
-<!--        插件启动-->
+        <!-- 1. 启动配置 -->
+        <!-- 插件启动后执行的活动 -->
         <postStartupActivity implementation="cn.cangnova.cangjie.CangJieStartupActivity"/>
 
+        <!-- 2. 项目相关配置 -->
+        <!-- 新项目向导 -->
+        <newProjectWizard.languageGenerator
+                implementation="cn.cangnova.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
+        <!-- 模块构建器 -->
+        <moduleBuilder
+                builderClass="cn.cangnova.cangjie.ide.module.CangJieModuleBuilder"/>
 
-        <!--        文件类型-->
-        <fileType name="CangJie"
-                  language="CangJie"
-                  implementationClass="cn.cangnova.cangjie.lang.CangJieFileType"
-                  extensions="cj"
-                  fieldName="INSTANCE"/>
+        <!-- 3. 项目设置配置 -->
+        <!-- 主设置页面 -->
+        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieConfigurable"
+                           groupId="language"
+                           id="language.cangjie"
+                           bundle="messages.CangJieBundle" key="CangJie"/>
+        <!-- 语言服务器设置页面 -->
+        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieLanguageServerConfigurable"
+                           parentId="language.cangjie"
+                           groupId="language.cangjie"
+                           id="language.cangjie.languageServer"
+                           bundle="messages.CangJieBundle" key="CangJie.languageServer"/>
+        <!-- LSP设置页面 -->
+        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieLspConfigurable"
+                           parentId="language.cangjie.languageServer"
+                           groupId="language.cangjie.languageServer"
+                           id="language.cangjie.languageServer.lsp"
+                           bundle="messages.CangJieBundle" key="CangJie.languageServer.lsp"/>
+        <!-- AST分析器设置页面 -->
+        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieAstAnalyzerConfigurable"
+                           parentId="language.cangjie.languageServer"
+                           groupId="language.cangjie.languageServer"
+                           id="language.cangjie.languageServer.ast"
+                           bundle="messages.CangJieBundle" key="CangJie.languageServer.astanalyzer"/>
 
-        <!--      PSI解析-->
-        <lang.parserDefinition language="CangJie"
-                               implementationClass="cn.cangnova.cangjie.parsing.CangJieParserDefinition"/>
-
-        <!--        图标-->
-        <fileIconProvider implementation="cn.cangnova.cangjie.icon.CjpmIconProvider"/>
-        <!--语法高亮-->
-        <colorSettingsPage implementation="cn.cangnova.cangjie.highlighter.CangJieColorSettingsPage"/>
-        <lang.syntaxHighlighterFactory language="CangJie"
-                                       implementationClass="cn.cangnova.cangjie.highlighter.CangJieSyntaxHighlighterFactory"/>
-
-
-        <stubElementTypeHolder class="cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes"
-                               externalIdPrefix="cangjie."/>
-
+        <!-- 5. 服务注册 -->
+        <projectService serviceInterface="cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService"
+                      serviceImplementation="cn.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"/>
     </extensions>
-
 </idea-plugin>

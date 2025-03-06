@@ -1,15 +1,17 @@
 package cn.cangnova.cangjie.cjpm.project.model
 
 import cn.cangnova.cangjie.CangJieTestBase
+import org.junit.jupiter.api.assertDoesNotThrow
 
 import java.io.File
+import kotlin.test.assertTrue
 
 class CjpmDeserializerTest :CangJieTestBase(){
 
 
-    fun should_deserialize_project_toml_file_success() {
+    fun `test should_deserialize_project_toml_file_success`() {
         val resourcePath = this.javaClass.getResource("/project_toml_files")?.path
-        val files = resourcePath?.let { File(it).walk().filter { it.isFile && it.name.endsWith(".toml") } }
+        val files = resourcePath?.let { File(it).walk().filter { it.isFile && it.name.endsWith(".toml") } } ?: error("files not found")
 
         assertNotNull(files)
         assertTrue { files.count() > 0 }

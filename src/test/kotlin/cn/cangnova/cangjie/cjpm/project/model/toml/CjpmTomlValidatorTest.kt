@@ -1,6 +1,5 @@
-package com.linqingying.cangjie.cjpm.project.model.toml
+package cn.cangnova.cangjie.cjpm.project.model.toml
 
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue

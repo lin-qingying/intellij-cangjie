@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.psi.stubs
 
+import cn.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.name.FqName
@@ -61,10 +62,7 @@ interface CangJieFilesStub {
     fun getPackageFqName(): FqName
 }
 
-// interface CangJieDeclarationsFileStub : PsiFileStub<CjDeclarationsFile > ,CangJieFileStub{
-//
-// //    fun findImportsByAlias(alias: String): List<CangJieImportDirectiveItemStub>
-// }
+
 interface CangJieFileStub : PsiFileStub<CjFile>, CangJieFilesStub
 
 /**

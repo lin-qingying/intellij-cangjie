@@ -29,6 +29,7 @@ import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.FqName.Companion.topLevel
 import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.Name.Companion.identifier
 import cn.cangnova.cangjie.psi.CjImportDirective.Companion.fqNameFromExpression
 import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import cn.cangnova.cangjie.psi.stubs.CangJieImportDirectiveItemStub
@@ -265,7 +266,19 @@ class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>,
             this._importedFqName = importedFqName
             return importedFqName
         }
+    @get:IfNotParsed
+    val importPath: ImportPath?
+        get() {
+            val importFqn = _importedFqName ?: return null
 
+            var alias: Name? = null
+            val aliasName = aliasName
+            if (aliasName != null) {
+                alias = identifier(aliasName)
+            }
+
+            return ImportPath(importFqn, isAllUnder, alias)
+        }
     val isValidImport: Boolean
         get() {
             val stub = stub

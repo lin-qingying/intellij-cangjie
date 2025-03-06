@@ -294,6 +294,9 @@ class CjPsiFactory private constructor(
         return createClass("class A { init() { $text}").secondaryConstructors.first()
             .getDelegationCall()!!
     }
+    fun createStruct(@NonNls text: String): CjStruct {
+        return createDeclaration(text)
+    }
 
     fun createClass(@NonNls text: String): CjClass {
         return createDeclaration(text)

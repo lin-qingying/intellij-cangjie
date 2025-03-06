@@ -1,0 +1,15 @@
+[dependencies]
+crypto4cj = {branch = "v0.0.1.B002", git = "https://gitcode.com/Cangjie-TPC/crypto4cj.git"}
+
+[package]
+cjc-version = "0.55.3"
+compile-option = "-O2 --fno-chir-function-inlining -Woff all"
+description = "io library for okhttp ecosystem"
+link-option = ""
+name = "io4cj"
+output-type = "dynamic"
+src-dir = "src"
+target-dir = ""
+version = "0.0.4"
+package-configuration = {}
+scripts = {}

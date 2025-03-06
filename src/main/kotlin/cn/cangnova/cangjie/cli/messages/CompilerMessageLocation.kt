@@ -24,9 +24,6 @@
 
 package cn.cangnova.cangjie.cli.messages
 
-import java.io.Serializable
-
-
 
 data class CompilerMessageLocation private constructor(
     override val path: String,

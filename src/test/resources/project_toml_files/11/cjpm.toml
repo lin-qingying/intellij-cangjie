@@ -1,0 +1,14 @@
+[dependencies]
+
+[package]
+cjc-version = "0.55.3"
+compile-option = "-O2"
+description = "mqtt4cj"
+link-option = ""
+name = "mqtt4cj"
+output-type = "dynamic"
+src-dir = "src"
+target-dir = ""
+version = "0.0.1"
+package-configuration = {}
+scripts = {cjcov = "cjpm clean && ciTest clean && ciTest coverage ; cjcov --root=./ -e 'ci_test test' --html-details -o tmp/cjcov --branches", code_line_count = "cloc --read-lang-def=doc/cj_lang_definition.txt --by-file-by-lang src >doc/code_line_count.txt 2>/dev/null"}

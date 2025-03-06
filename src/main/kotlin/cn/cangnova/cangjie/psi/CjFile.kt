@@ -111,7 +111,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
     protected open val importLists: List<CjImportList>
         get() = findChildrenByTypeOrClass(CjStubElementTypes.IMPORT_LIST, CjImportList::class.java).asList()
 
-    private fun hasImportAlias(): Boolean {
+    internal fun hasImportAlias(): Boolean {
         val hasImportAlias = hasImportAlias
         if (hasImportAlias != null) return hasImportAlias
 

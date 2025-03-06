@@ -1,6 +1,5 @@
-package com.linqingying.cangjie.cjpm.project.model.toml
+package cn.cangnova.cangjie.cjpm.project.model.toml
 
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
@@ -31,7 +30,7 @@ class CjpmTomlMergerTest {
         val merged = CjpmTomlMerger.merge(base, other)
         
         assertNotNull(merged.`package`)
-        with(merged.`package`!!) {
+        with(merged.`package`) {
             assertEquals("other", name)
             assertEquals("0.2.0", version)
             assertEquals("0.55.3", cjcVersion)

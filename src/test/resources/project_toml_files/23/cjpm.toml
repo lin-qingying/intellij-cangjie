@@ -1,0 +1,18 @@
+[dependencies]
+
+[package]
+cjc-version = "0.45.2"
+compile-option = "-Woff unused"
+description = "nothing here"
+link-option = ""
+name = "config_client"
+output-type = "static"
+src-dir = "src"
+target-dir = ""
+version = "1.0.0"
+[package.package-configuration]
+
+[target]
+[target.x86_64-unknown-linux-gnu]
+[target.x86_64-unknown-linux-gnu.bin-dependencies]
+path-option = [ "libs/yaml4cj" ]

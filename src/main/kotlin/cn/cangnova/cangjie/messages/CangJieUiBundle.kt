@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
 import java.util.function.Supplier
 @NonNls
-const val BUNDLE = "messages.CangJieBundle"
+private const val BUNDLE = "messages.CangJieBundle"
 
 object CangJieUiBundle : AbstractCangJieBundle(BUNDLE) {
 

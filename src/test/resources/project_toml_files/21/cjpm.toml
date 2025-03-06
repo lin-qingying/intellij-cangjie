@@ -1,0 +1,18 @@
+[dependencies]
+
+[package]
+cjc-version = "0.51.4"
+compile-option = ""
+description = "nothing here"
+link-option = ""
+name = "obs4cj"
+output-type = "static"
+src-dir = "src"
+target-dir = ""
+version = "1.0.0"
+[package.package-configuration]
+
+[target]
+[target.x86_64-w64-mingw32]
+[target.x86_64-w64-mingw32.bin-dependencies]
+path-option = [ "./lib/httpclient4cj", "./lib/crypto4cj" ]

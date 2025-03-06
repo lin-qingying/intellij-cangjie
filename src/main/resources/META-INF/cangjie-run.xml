@@ -1,0 +1,28 @@
+<idea-plugin>
+    <!-- IntelliJ 平台运行相关扩展点配置 -->
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 1. 运行标记配置 -->
+        <!-- 运行行标记提供器 - 在编辑器左侧显示运行图标 -->
+        <runLineMarkerContributor language="CangJie"
+                                implementationClass="cn.cangnova.cangjie.ide.run.CjRunLineMarkersProvider"/>
+
+        <!-- 2. CJPM运行配置 -->
+        <!-- CJPM 运行配置生成器 -->
+        <runConfigurationProducer implementation="cn.cangnova.cangjie.ide.run.cjpm.CjpmRunConfigurationProducer"
+                                id="CjpmRunConfigurationProducer"/>
+        <!-- 运行配置类型定义 -->
+        <configurationType
+                implementation="cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType"
+                id="CjpmRunConfiguration"/>
+        <!-- 运行前步骤提供器 -->
+        <stepsBeforeRunProvider
+                implementation="cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskProvider"/>
+        <!-- 程序运行器 -->
+        <programRunner implementation="cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandRunner"/>
+
+        <!-- 3. 构建任务配置 -->
+        <!-- 项目构建任务运行器 -->
+        <projectTaskRunner
+                implementation="cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskRunner"/>
+    </extensions>
+</idea-plugin> 

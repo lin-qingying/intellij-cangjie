@@ -1,0 +1,20 @@
+<idea-plugin>
+    <!-- IntelliJ 平台文件类型相关扩展点配置 -->
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 1. 文件类型图标提供器 -->
+        <!-- CJPM项目文件图标提供器 -->
+        <fileIconProvider implementation="cn.cangnova.cangjie.icon.CjpmIconProvider"/>
+
+        <!-- 2. 文件类型定义 -->
+        <!-- 仓颉语言文件类型 -->
+        <fileType name="cjd" fieldName="INSTANCE" extensions="cjd"
+                  language="CangJie"
+                  implementationClass="cn.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType"/>
+        <!--        文件类型-->
+        <fileType name="CangJie"
+                  language="CangJie"
+                  implementationClass="cn.cangnova.cangjie.lang.CangJieFileType"
+                  extensions="cj"
+                  fieldName="INSTANCE"/>
+    </extensions>
+</idea-plugin>

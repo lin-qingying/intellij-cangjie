@@ -1,0 +1,30 @@
+<idea-plugin>
+    <!-- IntelliJ 平台通知相关扩展点配置 -->
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- 1. 编辑器通知提供器 -->
+        <!-- 缺失工具链通知 - 当未找到必要的工具链时显示通知 -->
+        <editorNotificationProvider
+                implementation="cn.cangnova.cangjie.ide.notifications.MissingToolchainNotificationProvider"/>
+        
+        <!-- 无CJPM项目通知 - 当打开文件不在CJPM项目中时显示通知 -->
+        <editorNotificationProvider
+                implementation="cn.cangnova.cangjie.ide.notifications.NoCjpmProjectNotificationProvider"/>
+
+        <!-- 2. 通知组配置 -->
+        <notificationGroup id="CangJie Plugin" 
+                          displayType="BALLOON" 
+                          bundle="messages.CangJieBundle"
+                          key="notification.group.cangjie.plugin"/>
+        
+        <notificationGroup id="CangJie Build Log" 
+                          bundle="messages.CangJieBundle" 
+                          displayType="NONE"
+                          key="notification.group.cangjie.plugin"/>
+
+        <notificationGroup id="jps configuration error"
+                          toolWindowId="Build"
+                          displayType="TOOL_WINDOW"
+                          bundle="messages.CangJieCompilerBundle"
+                          key="notification.group.title.jps.cannot.start.compiler"/>
+    </extensions>
+</idea-plugin> 

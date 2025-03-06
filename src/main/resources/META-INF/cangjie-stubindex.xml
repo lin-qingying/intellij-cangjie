@@ -1,0 +1,101 @@
+<idea-plugin>
+
+    <extensions defaultExtensionNs="com.intellij">
+
+        <stubElementTypeHolder externalIdPrefix="cangjie."
+                               class="cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes"/>
+
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelTypeAliasByPackageIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelVariableByPackageIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex"/>
+
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieMacroDeclarationByPackageIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieMacroDeclarationFqnNameIndex"/>
+
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieMacroDeclarationShortNameIndex"/>
+
+
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieFunctionShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieProbablyNothingFunctionShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJiePrimeSymbolNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieExactPackagesIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieClassShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieEnumEntryShortNameIndex"/>
+
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieSuperClassIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelTypeAliasFqNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelPropertyFqnNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelPropertyByPackageIndex"/>
+
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelVariableFqnNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelClassByPackageIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieFullClassNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJiePropertyShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieVariableShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelExtensionsByReceiverTypeIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieProbablyNothingPropertyShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieVariableNothingVariableShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTypeAliasShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTypeAliasByExpansionShortNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex"/>
+        <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieExtendClassNameIndex"/>
+
+
+
+        <fileBasedIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJiePackageSourcesMemberNamesIndex"/>
+
+        <fileBasedIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJiePartialPackageNamesIndex"/>
+        <fileBasedIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieShortClassNameFileIndex"/>
+
+
+
+
+        <notificationGroup
+                id="Recover CangJie Indices"
+                displayType="STICKY_BALLOON"
+                bundle="messages.CangJieAnalysisBundle"
+                key="cangjie.repair.indices.group.name"
+        />
+
+        <registryKey key="cangjie.indices.short.names.filtering.enabled" defaultValue="true"
+                     description="Filter irrelevant CangJie FQNames by short name index"
+                     restartRequired="true"/>
+
+        <registryKey key="cangjie.indices.nested.access.enabled"
+                     defaultValue="false"
+                     description="Allows nested indices access"/>
+        <registryKey key="cangjie.indices.timing.threshold.single"
+                     defaultValue="2500"
+                     description="Time threshold in ms to report slow index single get access"/>
+        <registryKey key="cangjie.indices.timing.threshold.batch"
+                     defaultValue="5000"
+                     description="Time threshold in ms to report slow index batch (processAll-like) access"/>
+        <registryKey key="cangjie.indices.timing.enabled"
+                     defaultValue="false"
+                     description="Allows indices access time tracking"/>
+
+
+
+    </extensions>
+
+    <extensionPoints>
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.ide.search.classInheritorsSearch"
+                        interface="com.intellij.util.QueryExecutor" dynamic="true"/>
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.ide.search.directClassInheritorsSearch"
+                        interface="com.intellij.util.QueryExecutor" dynamic="true"/>
+
+    </extensionPoints>
+
+    <projectListeners>
+<!--        监听索引损坏-->
+<!--        <listener class="cn.cangnova.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"-->
+<!--                  topic="cn.cangnova.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"-->
+<!--                  activeInHeadlessMode="false"-->
+<!--                  activeInTestMode="false"/>-->
+
+
+    </projectListeners>
+</idea-plugin>

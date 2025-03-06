@@ -22,14 +22,49 @@
   ~
   -->
 
+<!-- 根元素，allow-bundled-update="true" 允许插件随IDE更新
+     xmlns:xi 声明用于XML Include的命名空间 -->
 <idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
 
-
-
+    <!-- 引入核心功能配置
+         包含插件的基本信息、依赖关系等核心配置 -->
     <xi:include href="/META-INF/cangjie-core.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
+    <xi:include href="/META-INF/cangjie-highlighting.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
+    <!-- 引入 PSI（Program Structure Interface）相关配置
+         定义语言的语法结构、解析器等 -->
+    <xi:include href="/META-INF/cangjie-psi.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入动作相关配置
+         定义插件的各种用户界面动作 -->
+    <xi:include href="/META-INF/cangjie-actions.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入文件类型相关配置
+         定义支持的文件类型和图标 -->
+    <xi:include href="/META-INF/cangjie-filetypes.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入监听器相关配置
+         定义各种事件监听器 -->
+    <xi:include href="/META-INF/cangjie-listeners.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入格式化器相关配置
+         定义代码格式化规则 -->
+    <xi:include href="/META-INF/cangjie-formatter.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入存根索引相关配置
+         定义用于加速符号解析的索引结构 -->
+    <xi:include href="/META-INF/cangjie-stubindex.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入运行相关配置 -->
+    <xi:include href="/META-INF/cangjie-run.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入工具窗口相关配置 -->
+    <xi:include href="/META-INF/cangjie-toolwindow.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+    <!-- 引入通知相关配置 -->
+    <xi:include href="/META-INF/cangjie-notifications.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 </idea-plugin>

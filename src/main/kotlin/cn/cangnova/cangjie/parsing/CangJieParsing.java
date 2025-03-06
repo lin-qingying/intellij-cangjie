@@ -1117,9 +1117,9 @@ public class CangJieParsing extends AbstractCangJieParsing {
             //处理表达式
 //myExpressionParsing.test();
             myExpressionParsing.parseExpression();
-        } else if (noTypeReference) {
+        } /*else if (noTypeReference) {
             errorAndAdvance("variable in top-level scope must be initialized");
-        }
+        }*/
 
 //        if (!parsePropertyDelegateOrAssignment() && isNameOnTheNextLine && noTypeReference && !receiverTypeDeclared) {
 //

@@ -30,22 +30,25 @@ import org.jetbrains.annotations.PropertyKey
 
 
 @NonNls
+  const val CORE_BUNDLE = "messages.CangJieBundle"
+
+@NonNls
 const val BUNDLE_IDE = "messages.CangJieIdeBundle"
 
-object CangJieBundle : AbstractCangJieBundle(BUNDLE) {
+object CangJieBundle : AbstractCangJieBundle(CORE_BUNDLE) {
     @Nls
     @JvmStatic
-    fun message(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
+    fun message(@NonNls @PropertyKey(resourceBundle = CORE_BUNDLE) key: String, vararg params: Any): String =
         getMessage(key, *params)
 
     @Nls
     @JvmStatic
-    fun htmlMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): String =
+    fun htmlMessage(@NonNls @PropertyKey(resourceBundle = CORE_BUNDLE) key: String, vararg params: Any): String =
         getMessage(key, *params).withHtml()
 
     @Nls
     @JvmStatic
-    fun lazyMessage(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: Any): () -> String =
+    fun lazyMessage(@PropertyKey(resourceBundle = CORE_BUNDLE) key: String, vararg params: Any): () -> String =
         { getMessage(key, *params) }
 }
 

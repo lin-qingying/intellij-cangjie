@@ -30,6 +30,8 @@ import cn.cangnova.cangjie.doc.lexer.CDocTokens
 import cn.cangnova.cangjie.doc.parser.CDocElementType
 import cn.cangnova.cangjie.doc.psi.impl.CDocLink
 import cn.cangnova.cangjie.lang.CangJieLanguage
+import cn.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
+import cn.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import cn.cangnova.cangjie.lexer.CangJieLexer
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
@@ -55,15 +57,6 @@ class CangJieParserDefinition : ParserDefinition {
 
     override fun createParser(project: Project?): PsiParser = CangJieParser(project!!)
 
-    /**
-     *  如果使用bnf 需要把 [cn.cangnova.cangjie.psi.stubs.elements.CjFileElementType]的[doParseContents]方法注释掉
-     */
-//    override fun createLexer(p0: Project?): Lexer {
-//     return FlexAdapter(_CangJieLexer())
-//    }
-//    override fun createParser(p0: Project?): PsiParser {
-//        return CangJieParser()
-//    }
 
     override fun getFileNodeType(): IFileElementType = CjFileElementType.INSTANCE
 
@@ -99,12 +92,19 @@ class CangJieParserDefinition : ParserDefinition {
     }
 
     override fun createFile(viewProvider: FileViewProvider): PsiFile {
+
+
+        if (viewProvider.fileType is CangJieDeclarationsFileType) {
+            return CjDeclarationsFile(viewProvider)
+        }
+
+
+
         return CjFile(viewProvider, false)
     }
 
     object Util {
-        @JvmField
-        val STD_SCRIPT_SUFFIX = "cj"
+        const val STD_SCRIPT_SUFFIX = "cj"
 
         @JvmField
         val STD_SCRIPT_EXT = ".$STD_SCRIPT_SUFFIX"

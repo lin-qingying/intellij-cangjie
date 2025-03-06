@@ -1,0 +1,17 @@
+[target.aarch64-hm-gnu]
+compile-option = "-BD:/ohos-3.2/out/rk3568/obj/third_party/musl/usr/lib/aarch64-linux-ohos -BD:/ohos-3.2/prebuilts/clang/ohos/linux-x86_64/llvm/bin -LD:/ohos-3.2/prebuilts/clang/ohos/linux-x86_64/llvm/lib/clang/12.0.1/lib/aarch64-linux-ohos -LD:/ohos-3.2/prebuilts/clang/ohos/linux-x86_64/llvm/lib/aarch64-linux-ohos -LD:/ohos-3.2/out/rk3568/obj/third_party/musl/usr/lib/aarch64-linux-ohos --sysroot D:/ohos-3.2/out/rk3568/obj/third_party/musl"
+
+[dependencies]
+
+[package]
+cjc-version = "0.55.3"
+compile-option = "-O2"
+description = "nothing here"
+link-option = ""
+name = "ahoCorasick4cj"
+output-type = "dynamic"
+src-dir = "src"
+target-dir = ""
+version = "0.0.1"
+package-configuration = {}
+scripts = {}

@@ -64,6 +64,6 @@ class CjpmTomlUtilsTest: CangJieTestBase() {
         
         val found = CjpmTomlUtils.findCjpmToml(tempDir)
         assertNotNull(found)
-        assertTrue(found.exists())
+        assertTrue(found!!.exists())
     }
 } 

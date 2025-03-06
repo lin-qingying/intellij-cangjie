@@ -1,0 +1,17 @@
+[dependencies]
+
+[ffi.c]
+libbz2 = {path = "./lib/"}
+
+[package]
+cjc-version = "0.55.3"
+compile-option = ""
+description = "bzip2 is a compression/decompression library"
+link-option = ""
+name = "bz2ffi"
+output-type = "dynamic"
+src-dir = "src"
+target-dir = ""
+version = "0.0.1"
+package-configuration = {}
+scripts = {}

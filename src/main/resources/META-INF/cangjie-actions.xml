@@ -1,0 +1,62 @@
+<idea-plugin>
+    <!-- Actions 扩展点用于定义插件的操作和菜单项 -->
+    <actions>
+        <!-- 运行主程序的动作 
+             扩展类型: AnAction -->
+        <action id="CjpmRunMain" class="cn.cangnova.cangjie.ide.run.cjpm.RunMainAction"/>
+
+        <!-- 创建新的仓颉文件的动作
+             扩展类型: AnAction
+             添加到 IDE 的 New 菜单组中 -->
+        <action id="CangJie.NewFile" class="cn.cangnova.cangjie.ide.actions.NewCangJieFileAction"
+                text="Add Cangjie File"
+                icon="cn.cangnova.cangjie.icon.CangJieIcons.CANGJIE">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewGroup1"/>
+        </action>
+
+        <!-- CJPM 相关动作 -->
+        
+        <!-- 附加 CJPM 项目的动作
+             扩展类型: AnAction -->
+        <action id="Cjpm.AttachCjpmProject"
+                class="cn.cangnova.cangjie.cjpm.project.model.AttachCjpmProjectAction"
+                icon="AllIcons.General.Add"/>
+
+        <!-- 刷新 CJPM 项目结构的动作
+             扩展类型: AnAction -->
+        <action id="Cjpm.RefreshCjpmProject"
+                class="cn.cangnova.cangjie.ide.actions.RefreshCjpmProjectsAction"
+                icon="AllIcons.Actions.Refresh"/>
+
+        <!-- 显示 CJPM 设置的动作
+             扩展类型: AnAction -->
+        <action id="Cjpm.ShowSettings"
+                class="cn.cangnova.cangjie.ide.actions.CjpmEditSettingsAction"
+                icon="AllIcons.General.Settings">
+        </action>
+
+        <!-- 运行 CJPM 命令的动作
+             扩展类型: AnAction -->
+        <action id="Cjpm.RunCjpmCommand"
+                class="cn.cangnova.cangjie.cjpm.runconfig.command.RunCjpmCommandAction"
+        />
+
+        <!-- CJPM 动作组，将相关动作组织在一起
+             扩展类型: ActionGroup -->
+        <group id="CangJie.Cjpm">
+            <reference id="Cjpm.RefreshCjpmProject"/>
+            <reference id="Cjpm.AttachCjpmProject"/>
+            <!--            <reference id="Cjpm.DetachCjpmProject"/>-->
+            <separator/>
+            <reference id="Cjpm.RunCjpmCommand"/>
+            <!--            <reference id="Cjpm.RunExternalLinter"/>-->
+            <!--            <reference id="Cjpm.RustfmtCjpmProject"/>-->
+            <separator/>
+            <reference id="ExpandAll"/>
+            <reference id="CollapseAll"/>
+            <separator/>
+            <reference id="Cjpm.ShowSettings"/>
+        </group>
+
+    </actions>
+</idea-plugin>
