@@ -53,23 +53,23 @@ import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
 import java.io.IOException
 
-class IdeStubIndexService : StubIndexService() {
+internal class IdeStubIndexService : StubIndexService() {
     override fun indexVariable(stub: CangJieVariableStub, sink: IndexSink) {
         val name: String? = stub.name
         if (name != null) {
-            sink.occurrence (CangJieVariableShortNameIndex.Helper.indexKey, name)
+            sink.occurrence(CangJieVariableShortNameIndex.Helper.indexKey, name)
 
 
             val typeReference: CjTypeReference? = stub.psi.typeReference
             if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
-                sink.occurrence (CangJieVariableNothingVariableShortNameIndex.Helper.indexKey, name)
+                sink.occurrence(CangJieVariableNothingVariableShortNameIndex.Helper.indexKey, name)
             }
             indexPrime(stub, sink)
         }
         if (!stub.childNamesByPattern.isEmpty()) {
             for (childInfo in stub.childNamesByPattern) {
-                if (childInfo.name  != null) {
-                    sink.occurrence (
+                if (childInfo.name != null) {
+                    sink.occurrence(
                         CangJieVariableShortNameIndex.Helper.indexKey,
                         childInfo.name.getString()
                     )
@@ -77,7 +77,7 @@ class IdeStubIndexService : StubIndexService() {
 
                     val typeReference: CjTypeReference? = stub.psi.typeReference
                     if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
-                        sink.occurrence (
+                        sink.occurrence(
                             CangJieVariableNothingVariableShortNameIndex.Helper.indexKey,
                             childInfo.name.getString()
                         )
@@ -91,46 +91,43 @@ class IdeStubIndexService : StubIndexService() {
             val fqName: FqName? = stub.getFqName()
 
             if (fqName != null) {
-                sink.occurrence (CangJieTopLevelVariableFqnNameIndex.Helper.indexKey, fqName.asString())
-                sink.occurrence (
+                sink.occurrence(CangJieTopLevelVariableFqnNameIndex.Helper.indexKey, fqName.asString())
+                sink.occurrence(
                     CangJieTopLevelVariableByPackageIndex.Helper.indexKey,
                     fqName.parent().asString()
                 )
-                 indexTopLevelExtension(stub, sink)
+                indexTopLevelExtension(stub, sink)
             }
 
             if (!stub.childNamesByPattern.isEmpty()) {
                 for (childInfo in stub.childNamesByPattern) {
                     if (childInfo.fqName != null) {
-                        sink.occurrence (
+                        sink.occurrence(
                             CangJieTopLevelVariableFqnNameIndex.Helper.indexKey,
                             childInfo.fqName.asString()
                         )
-                        sink.occurrence (
+                        sink.occurrence(
                             CangJieTopLevelVariableByPackageIndex.Helper.indexKey,
                             childInfo.fqName.parent().asString()
                         )
-                         indexTopLevelExtension(stub, sink)
+                        indexTopLevelExtension(stub, sink)
                     }
                 }
-                 indexTopLevelExtension(stub, sink)
+                indexTopLevelExtension(stub, sink)
             }
         }
 
-         indexInternals(stub, sink)
+        indexInternals(stub, sink)
     }
 
     override fun indexProperty(stub: CangJiePropertyStub, sink: IndexSink) {
         val name: String? = stub.name
         if (name != null) {
-            sink.occurrence (CangJiePropertyShortNameIndex.Helper.indexKey, name)
+            sink.occurrence(CangJiePropertyShortNameIndex.Helper.indexKey, name)
 
-            //            if ( isDeclaredInObject(stub)) {
-//                 indexExtensionInObject(stub, sink);
-//            }
             val typeReference: CjTypeReference? = stub.psi.typeReference
             if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
-                sink.occurrence (CangJieProbablyNothingPropertyShortNameIndex.Helper.indexKey, name)
+                sink.occurrence(CangJieProbablyNothingPropertyShortNameIndex.Helper.indexKey, name)
             }
             indexPrime(stub, sink)
         }
@@ -139,71 +136,44 @@ class IdeStubIndexService : StubIndexService() {
             val fqName: FqName? = stub.getFqName()
             // can have special fq name in case of syntactically incorrect property with no name
             if (fqName != null) {
-                sink.occurrence (CangJieTopLevelPropertyFqnNameIndex.Helper.indexKey, fqName.asString())
-                sink.occurrence (
+                sink.occurrence(CangJieTopLevelPropertyFqnNameIndex.Helper.indexKey, fqName.asString())
+                sink.occurrence(
                     CangJieTopLevelPropertyByPackageIndex.Helper.indexKey,
                     fqName.parent().asString()
                 )
-                 indexTopLevelExtension(stub, sink)
+                indexTopLevelExtension(stub, sink)
             }
         }
 
-         indexInternals(stub, sink)
+        indexInternals(stub, sink)
     }
 
     override fun indexFile(stub: CangJieFileStub, sink: IndexSink) {
         val packageFqName: FqName = stub.getPackageFqName()
 
-        sink.occurrence (CangJieExactPackagesIndex.NAME, packageFqName.asString())
+        sink.occurrence(CangJieExactPackagesIndex.NAME, packageFqName.asString())
 
 
-        //
-//        FqName facadeFqName = ((CangJieFileStubImpl) stub).getFacadeFqName();
-//        if (facadeFqName != null) {
-//            sink.occurrence(CangJieFileFacadeFqNameIndex.Helper.indexKey, facadeFqName.asString());
-//            sink.occurrence(CangJieFileFacadeShortNameIndex.Helper.indexKey, facadeFqName.shortName().asString());
-//            sink.occurrence(CangJieFileFacadeClassByPackageIndex.Helper.indexKey, packageFqName.asString());
-//        }
-//
-//        FqName partFqName = ((CangJieFileStubImpl) stub).getPartFqName();
-//        if (partFqName != null) {
-//            sink.occurrence(CangJieFilePartClassIndex.Helper.indexKey, partFqName.asString());
-//        }
-//
-//        List<String> partNames = ((CangJieFileStubImpl) stub).getFacadePartSimpleNames();
-//        if (partNames != null) {
-//            for (String partName : partNames) {
-//                if (partName == null) {
-//                    continue;
-//                }
-//                FqName multiFileClassPartFqName = packageFqName.child(Name.identifier(partName));
-//                sink.occurrence(CangJieMultiFileClassPartIndex.Helper.indexKey, multiFileClassPartFqName.asString());
-//            }
-//        }
     }
 
     override fun indexTypeAlias(stub: CangJieTypeAliasStub, sink: IndexSink) {
         val name: String? = stub.name
         if (name != null) {
-            sink.occurrence (CangJieTypeAliasShortNameIndex.Helper.indexKey, name)
+            sink.occurrence(CangJieTypeAliasShortNameIndex.Helper.indexKey, name)
             indexPrime(stub, sink)
         }
 
-         indexTypeAliasExpansion(stub, sink)
+        indexTypeAliasExpansion(stub, sink)
 
         val fqName: FqName? = stub.getFqName()
         if (fqName != null) {
-            sink.occurrence (CangJieTopLevelTypeAliasFqNameIndex.Helper.indexKey, fqName.asString())
-            sink.occurrence (
+            sink.occurrence(CangJieTopLevelTypeAliasFqNameIndex.Helper.indexKey, fqName.asString())
+            sink.occurrence(
                 CangJieTopLevelTypeAliasByPackageIndex.Helper.indexKey,
                 fqName.parent().asString()
             )
         }
 
-        //        ClassId classId = stub.getClassId();
-//        if (classId != null && !stub.isTopLevel()) {
-//            sink.occurrence(CangJieInnerTypeAliasClassIdIndex.Helper.indexKey, classId.asString());
-//        }
     }
 
     override fun createFileStub(file: CjFile): CangJieFileStub {
@@ -223,7 +193,7 @@ class IdeStubIndexService : StubIndexService() {
         val facadeFqName: FqName? = fileStub.facadeFqName
         dataStream.writeName(facadeFqName?.asString())
         dataStream.writeName(fileStub.partSimpleName)
-        val facadePartNames  = fileStub.facadePartSimpleNames
+        val facadePartNames = fileStub.facadePartSimpleNames
         if (facadePartNames == null) {
             dataStream.writeInt(0)
         } else {
@@ -239,75 +209,66 @@ class IdeStubIndexService : StubIndexService() {
             // can have special fq name in case of syntactically incorrect function with no name
             val fqName: FqName? = stub.getFqName()
             if (fqName != null) {
-                sink.occurrence (CangJieMainFunctionFqnNameIndex.Helper.indexKey, fqName.asString())
-                //                sink.occurrence(CangJieTopLevelFunctionByPackageIndex.Helper.indexKey, fqName.parent().asString());
-                 indexTopLevelExtension(stub, sink)
+                sink.occurrence(CangJieMainFunctionFqnNameIndex.Helper.indexKey, fqName.asString())
+                indexTopLevelExtension(stub, sink)
             }
         }
 
-         indexInternals(stub, sink)
+        indexInternals(stub, sink)
     }
 
     override fun indexMacroFunction(stub: CangJieFunctionStub, sink: IndexSink) {
         val name: String? = stub.name
         if (name != null) {
-            sink.occurrence (CangJieMacroDeclarationShortNameIndex.Helper.indexKey, name)
+            sink.occurrence(CangJieMacroDeclarationShortNameIndex.Helper.indexKey, name)
 
             indexPrime(stub, sink)
         }
         val fqName: FqName? = stub.getFqName()
         if (fqName != null) {
-            sink.occurrence (CangJieMacroDeclarationFqnNameIndex.Helper.indexKey, fqName.asString())
-            sink.occurrence (
+            sink.occurrence(CangJieMacroDeclarationFqnNameIndex.Helper.indexKey, fqName.asString())
+            sink.occurrence(
                 CangJieMacroDeclarationByPackageIndex.Helper.indexKey,
                 fqName.parent().asString()
             )
-             indexTopLevelExtension(stub, sink)
+            indexTopLevelExtension(stub, sink)
         }
     }
 
     override fun indexFunction(stub: CangJieFunctionStub, sink: IndexSink) {
         val name: String? = stub.name
         if (name != null) {
-            sink.occurrence (CangJieFunctionShortNameIndex.Helper.indexKey, name)
+            sink.occurrence(CangJieFunctionShortNameIndex.Helper.indexKey, name)
 
-            //            if ( isDeclaredInStruct(stub)) {
-//                 indexExtensionInStruct(stub, sink);
-//            }
             val typeReference: CjTypeReference? = stub.psi.typeReference
             if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
-                sink.occurrence (CangJieProbablyNothingFunctionShortNameIndex.Helper.indexKey, name)
+                sink.occurrence(CangJieProbablyNothingFunctionShortNameIndex.Helper.indexKey, name)
             }
 
-            //
-            /*     if (stub.mayHaveContract()) {
-                sink.occurrence(CangJieProbablyContractedFunctionShortNameIndex.Helper.indexKey, name);
-            }*/
             indexPrime(stub, sink)
         }
         //如果该方法是顶层方法或有扩展接收器，则将其索引到顶层
         if (stub.isTopLevel() /*|| stub.isExtension()*/) {
-            // can have special fq name in case of syntactically incorrect function with no name
             val fqName: FqName? = stub.getFqName()
             if (fqName != null) {
-                sink.occurrence (CangJieTopLevelFunctionFqnNameIndex.Helper.indexKey, fqName.asString())
-                sink.occurrence (
+                sink.occurrence(CangJieTopLevelFunctionFqnNameIndex.Helper.indexKey, fqName.asString())
+                sink.occurrence(
                     CangJieTopLevelFunctionByPackageIndex.Helper.indexKey,
                     fqName.parent().asString()
                 )
-                 indexTopLevelExtension(stub, sink)
+                indexTopLevelExtension(stub, sink)
             }
         }
         if (stub.isExtension()) {
             val fqName: FqName? = stub.getFqName()
             if (fqName != null) {
-                sink.occurrence (CangJieTopLevelFunctionFqnNameIndex.Helper.indexKey, fqName.asString())
+                sink.occurrence(CangJieTopLevelFunctionFqnNameIndex.Helper.indexKey, fqName.asString())
 
-                 indexTopLevelExtension(stub, sink)
+                indexTopLevelExtension(stub, sink)
             }
         }
 
-         indexInternals(stub, sink)
+        indexInternals(stub, sink)
     }
 
     override fun indexExtend(stub: CangJieExtendStub, sink: IndexSink) {
@@ -315,7 +276,7 @@ class IdeStubIndexService : StubIndexService() {
 
 
         if (fqName != null) {
-            sink.occurrence (CangJieExtendClassNameIndex.Helper.indexKey, fqName.asString())
+            sink.occurrence(CangJieExtendClassNameIndex.Helper.indexKey, fqName.asString())
         }
 
         indexSuperNames(stub, sink)
@@ -333,9 +294,8 @@ class IdeStubIndexService : StubIndexService() {
 
         val fqName: FqName? = stub.getPackageFqName()
         if (fqName != null) {
-            sink.occurrence (CangJieImportFqNameForPackageNameIndex.Helper.indexKey, fqName.asString())
+            sink.occurrence(CangJieImportFqNameForPackageNameIndex.Helper.indexKey, fqName.asString())
 
-            //            sink.occurrence(CangJieImportFqNameForPackageNameIndex.Helper.indexKey, fqName.parent().asString());
         }
     }
 
@@ -344,18 +304,18 @@ class IdeStubIndexService : StubIndexService() {
         indexSuperNames(stub, sink)
 
         indexPrime(stub, sink)
-        sink.occurrence (CangJieEnumEntryShortNameIndex.Helper.indexKey, stub.name ?: "")
+        sink.occurrence(CangJieEnumEntryShortNameIndex.Helper.indexKey, stub.name ?: "")
     }
 
     override fun indexEnum(stub: CangJieEnumStub, sink: IndexSink) {
         indexTypeStatementStub(stub, sink)
     }
 
-    private fun indexTypeStatementStub(stub: CangJieTypeStatementStub<out CjTypeStatement >, sink: IndexSink) {
+    private fun indexTypeStatementStub(stub: CangJieTypeStatementStub<out CjTypeStatement>, sink: IndexSink) {
         processNames(sink, stub.name, stub.getFqName() /*, stub.isTopLevel()*/)
 
         if (stub is CangJieInterfaceStub) {
-            sink.occurrence (CangJieClassShortNameIndex.Helper.indexKey, "DefaultImpls")
+            sink.occurrence(CangJieClassShortNameIndex.Helper.indexKey, "DefaultImpls")
         }
 
         indexSuperNames(stub, sink)
@@ -380,7 +340,7 @@ class IdeStubIndexService : StubIndexService() {
         val facadeString: String? = dataStream.readNameString()
         val partSimpleName: String? = dataStream.readNameString()
         val numPartNames: Int = dataStream.readInt()
-        val facadePartNames: MutableList<String > = ArrayList<String>()
+        val facadePartNames: MutableList<String> = ArrayList<String>()
         for (i in 0..<numPartNames) {
             val partNameRef: String? = dataStream.readNameString()
             partNameRef?.let { facadePartNames.add(it) }
@@ -393,22 +353,11 @@ class IdeStubIndexService : StubIndexService() {
             return stub.findChildStubByType(CjStubElementTypes.MODIFIER_LIST)
         }
 
-        private fun indexSuperNames(stub: CangJieTypeStatementStub<out CjTypeStatement >, sink: IndexSink) {
+        private fun indexSuperNames(stub: CangJieTypeStatementStub<out CjTypeStatement>, sink: IndexSink) {
             for (superName in stub.getSuperNames()) {
-                sink.occurrence (CangJieSuperClassIndex.Helper.indexKey, superName)
+                sink.occurrence(CangJieSuperClassIndex.Helper.indexKey, superName)
             }
 
-            //        if (!(stub instanceof CangJieClassStub)) {
-//        }
-
-//        CangJieModifierListStub modifierListStub = getModifierListStub(stub);
-
-//        if (modifierListStub.hasModifier(CjTokens.ENUM_KEYWORD)) {
-//            sink.occurrence(CangJieSuperClassIndex.Helper.indexKey, Enum.class.getSimpleName());
-//        }
-//        if (modifierListStub.hasModifier(CjTokens.ANNOTATION_KEYWORD)) {
-//            sink.occurrence(CangJieSuperClassIndex.Helper.indexKey, Annotation.class.getSimpleName());
-//        }
         }
 
         private fun processNames(
@@ -418,14 +367,14 @@ class IdeStubIndexService : StubIndexService() {
             level: Boolean
         ) {
             if (shortName != null) {
-                sink.occurrence (CangJieClassShortNameIndex.Helper.indexKey, shortName)
+                sink.occurrence(CangJieClassShortNameIndex.Helper.indexKey, shortName)
             }
 
             if (fqName != null) {
-                sink.occurrence (CangJieFullClassNameIndex.Helper.indexKey, fqName.asString())
+                sink.occurrence(CangJieFullClassNameIndex.Helper.indexKey, fqName.asString())
 
                 if (level) {
-                    sink.occurrence (
+                    sink.occurrence(
                         CangJieTopLevelClassByPackageIndex.Helper.indexKey,
                         fqName.parent().asString()
                     )
@@ -447,12 +396,12 @@ class IdeStubIndexService : StubIndexService() {
             if (modifierList != null && modifierList.hasModifier(CjTokens.PRIVATE_KEYWORD)) return
             if (modifierList != null && modifierList.hasModifier(CjTokens.OVERRIDE_KEYWORD)) return
 
-            val parent  =
+            val parent =
                 stub.parentStub
             val prime = parent is CangJieFileStub
 
             if (prime) {
-                sink.occurrence (CangJiePrimeSymbolNameIndex.Helper.indexKey, name)
+                sink.occurrence(CangJiePrimeSymbolNameIndex.Helper.indexKey, name)
             }
         }
     }
