@@ -44,7 +44,8 @@
     <dependencies>
         <plugin id="com.intellij.modules.platform"/>
 
-
+        <plugin id="com.intellij.modules.json"/>
+        <plugin id="org.toml.lang"/>
     </dependencies>
 
 

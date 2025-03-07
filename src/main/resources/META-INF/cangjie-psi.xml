@@ -39,5 +39,16 @@
         <applicationService
                 serviceInterface="cn.cangnova.cangjie.psi.stubs.elements.StubIndexService"
                 serviceImplementation="cn.cangnova.cangjie.ide.stubindex.IdeStubIndexService"/>
+
+
+        <projectService serviceInterface="cn.cangnova.cangjie.references.CangJieReferenceProviderContributor"
+                        serviceImplementation="cn.cangnova.cangjie.references.CangJieReferenceContributor"/>
+
+        <!--        引用搜索-->
+        <projectService
+                serviceInterface="cn.cangnova.cangjie.psi.CangJieReferenceProvidersService"
+                serviceImplementation="cn.cangnova.cangjie.references.CjIdeReferenceProviderService"/>
+
+
     </extensions>
 </idea-plugin>

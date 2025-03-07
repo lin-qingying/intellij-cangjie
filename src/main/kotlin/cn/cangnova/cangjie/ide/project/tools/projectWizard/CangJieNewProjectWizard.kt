@@ -63,7 +63,7 @@ import javax.swing.ListModel
 import com.intellij.openapi.module.Module
 
 
-class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWizard {
+internal class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWizard {
 
     companion object {
         private const val GITIGNORE: String = ".gitignore"
@@ -81,19 +81,17 @@ class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWizard {
     override val icon: Icon = CangJieIcons.CANGJIE
     override val name: String = CangJieBundle.message("cangjie")
 
-    override fun createStep(parent: NewProjectWizardStep): NewProjectWizardStep = Step(parent as NewProjectWizardLanguageStep)
-    class Step(parent: NewProjectWizardLanguageStep) : AbstractNewProjectWizardStep(parent) {
+    override fun createStep(parent: NewProjectWizardStep): NewProjectWizardStep =
+        Step(parent)
+
+    class Step(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(parent) {
 
 
-        private val peer: CjProjectGeneratorPeer = CjProjectGeneratorPeer(parent.path.toPathOrNull() ?: Paths.get("."))
+        private val peer: CjProjectGeneratorPeer = CjProjectGeneratorPeer(parent.context.projectDirectory)
         override fun setupProject(project: Project) {
 
-            val builder = CangJieModuleBuilder(
-                //                moduleName = moduleNameTextField.text,
-                //                organizationName = groupIdTextField.text,
-                //                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
-            )
-            val module = builder.commit(project)?.firstOrNull() ?: return
+            val builder = CangJieModuleBuilder()
+            val module = builder.commit(project).firstOrNull() ?: return
             //
             ModuleRootModificationUtil.updateModel(module) { rootModel ->
                 builder.configurationData = peer.settings
@@ -101,8 +99,7 @@ class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWizard {
 
                 try {
                     builder.createProject(rootModel)
-                }
-                catch (e: ConfigurationException) {
+                } catch (e: ConfigurationException) {
                     //                    捕获cjpm执行错误
                     //                    弹窗向用户报告错误
 
@@ -164,107 +161,106 @@ class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWizard {
     }
 }
 
-class CangJieNewProjectWizard : LanguageNewProjectWizard {
-    override val name = "CangJie"
-
-    companion object {
-        private const val GITIGNORE: String = ".gitignore"
-
-        private fun createGitIgnoreFile(projectDir: Path, module: Module) {
-            val directory = VfsUtil.createDirectoryIfMissing(projectDir.toString()) ?: return
-            val existingFile = directory.findChild(GITIGNORE)
-            if (existingFile != null) return
-            val file = directory.createChildData(module, GITIGNORE)
-            VfsUtil.saveText(file, "/build\n")
-        }
-
-    }
-
-
-    override fun createStep(parent: NewProjectWizardLanguageStep): NewProjectWizardStep = Step(parent)
-
-
-    class Step(parent: NewProjectWizardLanguageStep) : AbstractNewProjectWizardStep(parent) {
-
-        private val peer: CjProjectGeneratorPeer = CjProjectGeneratorPeer(parent.path.toPathOrNull() ?: Paths.get("."))
-        override fun setupProject(project: Project) {
-
-            val builder = CangJieModuleBuilder(
-                //                moduleName = moduleNameTextField.text,
-                //                organizationName = groupIdTextField.text,
-                //                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
-            )
-            val module = builder.commit(project)?.firstOrNull() ?: return
-            //
-            ModuleRootModificationUtil.updateModel(module) { rootModel ->
-                builder.configurationData = peer.settings
-
-
-                try {
-                    builder.createProject(rootModel)
-                }
-                catch (e: ConfigurationException) {
-                    //                    捕获cjpm执行错误
-                    //                    弹窗向用户报告错误
-
-                    var message =
-                        getThrowableText(e).replace("com.intellij.openapi.options.ConfigurationException: ", "")
-                    message = message.substring(0, message.indexOf("stderr : "))
-                    MessageDialogBuilder.yesNo(e.title, message)
-
-
-                    return@updateModel
-                }
-
-
-                if (gitData?.git == true) runWriteAction {
-                    createGitIgnoreFile(context.projectDirectory, module)
-                }
-            }
-
-
-        }
-
-        override fun setupUI(builder: Panel) {
-
-
-            with(builder) {
-
-                row {
-                    cell(peer.component).align(Align.FILL)
-
-                        .validationRequestor { peer.checkValid = Runnable(it) }
-                        .validation(DialogValidation { peer.validate() })
-
-                }
-                //                row(CangJieUiBundle.message("action.new.project.projecttype.title")) {
-                //                    cell(projectTypeComboBox)
-                //                        .columns(COLUMNS_MEDIUM)
-                //                        .component
-                //                }.bottomGap(BottomGap.SMALL)
-                //                row(CangJieUiBundle.message("action.new.project.modulename.title")) {
-                //                    cell(moduleNameTextField)
-                //                        .columns(COLUMNS_MEDIUM)
-                //                        //                        .validationOnApply {
-                ////                            validateModuleName(moduleNameTextField.text)
-                ////                        }
-                //                        .component
-                //                }.bottomGap(BottomGap.SMALL)
-                //                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
-                //                    cell(groupIdTextField)
-                //                        .columns(COLUMNS_MEDIUM)
-                ////                        .validationOnApply {
-                ////                            validateGroupName(groupIdTextField.text)
-                ////                        }
-                //                        .component
-                //                }.bottomGap(BottomGap.SMALL)
-            }
-
-
-        }
-    }
-
-}
+//class CangJieNewProjectWizard : LanguageNewProjectWizard {
+//    override val name = "CangJie"
+//
+//    companion object {
+//        private const val GITIGNORE: String = ".gitignore"
+//
+//        private fun createGitIgnoreFile(projectDir: Path, module: Module) {
+//            val directory = VfsUtil.createDirectoryIfMissing(projectDir.toString()) ?: return
+//            val existingFile = directory.findChild(GITIGNORE)
+//            if (existingFile != null) return
+//            val file = directory.createChildData(module, GITIGNORE)
+//            VfsUtil.saveText(file, "/build\n")
+//        }
+//
+//    }
+//
+//
+//    override fun createStep(parent: NewProjectWizardLanguageStep): NewProjectWizardStep = Step(parent)
+//
+//
+//    class Step(parent: NewProjectWizardLanguageStep) : AbstractNewProjectWizardStep(parent) {
+//
+//        private val peer: CjProjectGeneratorPeer = CjProjectGeneratorPeer(parent.path.toPathOrNull() ?: Paths.get("."))
+//        override fun setupProject(project: Project) {
+//
+//            val builder = CangJieModuleBuilder(
+//                //                moduleName = moduleNameTextField.text,
+//                //                organizationName = groupIdTextField.text,
+//                //                projectType = (projectTypeComboBox.selectedItem as CangJieProjectTypeItem).type
+//            )
+//            val module = builder.commit(project)?.firstOrNull() ?: return
+//            //
+//            ModuleRootModificationUtil.updateModel(module) { rootModel ->
+//                builder.configurationData = peer.settings
+//
+//
+//                try {
+//                    builder.createProject(rootModel)
+//                } catch (e: ConfigurationException) {
+//                    //                    捕获cjpm执行错误
+//                    //                    弹窗向用户报告错误
+//
+//                    var message =
+//                        getThrowableText(e).replace("com.intellij.openapi.options.ConfigurationException: ", "")
+//                    message = message.substring(0, message.indexOf("stderr : "))
+//                    MessageDialogBuilder.yesNo(e.title, message)
+//
+//
+//                    return@updateModel
+//                }
+//
+//
+//                if (gitData?.git == true) runWriteAction {
+//                    createGitIgnoreFile(context.projectDirectory, module)
+//                }
+//            }
+//
+//
+//        }
+//
+//        override fun setupUI(builder: Panel) {
+//
+//
+//            with(builder) {
+//
+//                row {
+//                    cell(peer.component).align(Align.FILL)
+//
+//                        .validationRequestor { peer.checkValid = Runnable(it) }
+//                        .validation(DialogValidation { peer.validate() })
+//
+//                }
+//                //                row(CangJieUiBundle.message("action.new.project.projecttype.title")) {
+//                //                    cell(projectTypeComboBox)
+//                //                        .columns(COLUMNS_MEDIUM)
+//                //                        .component
+//                //                }.bottomGap(BottomGap.SMALL)
+//                //                row(CangJieUiBundle.message("action.new.project.modulename.title")) {
+//                //                    cell(moduleNameTextField)
+//                //                        .columns(COLUMNS_MEDIUM)
+//                //                        //                        .validationOnApply {
+//                ////                            validateModuleName(moduleNameTextField.text)
+//                ////                        }
+//                //                        .component
+//                //                }.bottomGap(BottomGap.SMALL)
+//                //                row(CangJieUiBundle.message("action.new.project.groupname.title")) {
+//                //                    cell(groupIdTextField)
+//                //                        .columns(COLUMNS_MEDIUM)
+//                ////                        .validationOnApply {
+//                ////                            validateGroupName(groupIdTextField.text)
+//                ////                        }
+//                //                        .component
+//                //                }.bottomGap(BottomGap.SMALL)
+//            }
+//
+//
+//        }
+//    }
+//
+//}
 
 
 class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
@@ -283,10 +279,11 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
             onNewSdkAdded?.consume(sdk)
         }
 
-        setRenderer(SdkListPresenter.create(
-            this,
-            { (this.model as CangJieSdkModel).innerModel }
-        ) { item -> unwrapItem(item) })
+        setRenderer(
+            SdkListPresenter.create(
+                this,
+                { (this.model as CangJieSdkModel).innerModel }
+            ) { item -> unwrapItem(item) })
         reloadModel()
 
     }
@@ -317,8 +314,7 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
             }
             return if (item is ProjectSdkItem) {
                 ProjectSdkComboBoxItem()
-            }
-            else InnerSdkComboBoxItem(item)
+            } else InnerSdkComboBoxItem(item)
         }
     }
 
@@ -522,8 +518,7 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
                 }
                 return if (item is ProjectSdkItem) {
                     ProjectSdkComboBoxItem()
-                }
-                else InnerSdkComboBoxItem(item)
+                } else InnerSdkComboBoxItem(item)
             }
         }
 
@@ -541,8 +536,7 @@ class CangJieSdkCombox : SdkComboBoxBase<CangJieSdkCombox.CangJieSdkItem> {
         override fun hasSubstep(selectedValue: CangJieSdkItem?): Boolean {
             return if (selectedValue is InnerComboBoxItem) {
                 innerModel.hasSubstep((selectedValue as InnerComboBoxItem).item)
-            }
-            else false
+            } else false
         }
 
         private var mySelectedItem: CangJieSdkItem? = null

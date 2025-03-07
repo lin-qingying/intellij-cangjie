@@ -92,7 +92,7 @@ class CangJieConfigurable(override val project: Project) :
                                             PluginLanguageState.instance.language = selectedLanguage!!
 
                                             // 调用刷新UI的方法
-                                refreshUI()
+                                            refreshUI()
                                         }
                                     )
 

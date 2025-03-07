@@ -6,12 +6,17 @@
         <colorSettingsPage implementation="cn.cangnova.cangjie.highlighter.CangJieColorSettingsPage"/>
         <!-- 语法高亮工厂 - 负责创建语法高亮器实例 -->
         <lang.syntaxHighlighterFactory language="CangJie"
-                                     implementationClass="cn.cangnova.cangjie.highlighter.CangJieSyntaxHighlighterFactory"/>
+                                       implementationClass="cn.cangnova.cangjie.highlighter.CangJieSyntaxHighlighterFactory"/>
 
         <!-- 2. 高级高亮配置 -->
         <!-- 高亮处理工厂 - 用于在解析前进行代码高亮处理 -->
         <highlightingPassFactory
                 implementation="cn.cangnova.cangjie.highlighter.CangJieBeforeResolveHighlightingPass$Registrar"/>
+
+        <applicationService
+                serviceInterface="cn.cangnova.cangjie.psi.CangJieDeclarationNavigationPolicy"
+                serviceImplementation="cn.cangnova.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>
+
     </extensions>
 
     <!-- 自定义扩展点定义 -->

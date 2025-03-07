@@ -62,8 +62,7 @@ abstract class AbstractHighlightingPassBase(
             IGNORE_IN_TESTS = true
             try {
                 return action.invoke()
-            }
-            finally {
+            } finally {
                 IGNORE_IN_TESTS = false
             }
         }
@@ -77,11 +76,19 @@ abstract class AbstractHighlightingPassBase(
             assert(ApplicationManager.getApplication().isUnitTestMode)
             return
         }
-        val result:MutableList<HighlightInfo> = ArrayList(holder.size())
+        val result: MutableList<HighlightInfo> = ArrayList(holder.size())
         for (i in 0 until holder.size()) {
             result.add(holder.get(i))
         }
-        BackgroundUpdateHighlightersUtil.setHighlightersToEditor(myProject, file, myDocument, 0, file.textLength, result, id)
+        BackgroundUpdateHighlightersUtil.setHighlightersToEditor(
+            myProject,
+            file,
+            myDocument,
+            0,
+            file.textLength,
+            result,
+            id
+        )
     }
 
 }

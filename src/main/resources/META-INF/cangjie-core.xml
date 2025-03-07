@@ -16,30 +16,45 @@
         <!-- 3. 项目设置配置 -->
         <!-- 主设置页面 -->
         <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieConfigurable"
-                           groupId="language"
-                           id="language.cangjie"
-                           bundle="messages.CangJieBundle" key="CangJie"/>
+                             groupId="language"
+                             id="language.cangjie"
+                             bundle="messages.CangJieBundle" key="CangJie"/>
         <!-- 语言服务器设置页面 -->
         <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieLanguageServerConfigurable"
-                           parentId="language.cangjie"
-                           groupId="language.cangjie"
-                           id="language.cangjie.languageServer"
-                           bundle="messages.CangJieBundle" key="CangJie.languageServer"/>
+                             parentId="language.cangjie"
+                             groupId="language.cangjie"
+                             id="language.cangjie.languageServer"
+                             bundle="messages.CangJieBundle" key="CangJie.languageServer"/>
         <!-- LSP设置页面 -->
         <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieLspConfigurable"
-                           parentId="language.cangjie.languageServer"
-                           groupId="language.cangjie.languageServer"
-                           id="language.cangjie.languageServer.lsp"
-                           bundle="messages.CangJieBundle" key="CangJie.languageServer.lsp"/>
+                             parentId="language.cangjie.languageServer"
+                             groupId="language.cangjie.languageServer"
+                             id="language.cangjie.languageServer.lsp"
+                             bundle="messages.CangJieBundle" key="CangJie.languageServer.lsp"/>
         <!-- AST分析器设置页面 -->
         <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieAstAnalyzerConfigurable"
-                           parentId="language.cangjie.languageServer"
-                           groupId="language.cangjie.languageServer"
-                           id="language.cangjie.languageServer.ast"
-                           bundle="messages.CangJieBundle" key="CangJie.languageServer.astanalyzer"/>
+                             parentId="language.cangjie.languageServer"
+                             groupId="language.cangjie.languageServer"
+                             id="language.cangjie.languageServer.ast"
+                             bundle="messages.CangJieBundle" key="CangJie.languageServer.astanalyzer"/>
 
         <!-- 5. 服务注册 -->
         <projectService serviceInterface="cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService"
-                      serviceImplementation="cn.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"/>
+                        serviceImplementation="cn.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"/>
+    </extensions>
+
+
+    <extensions defaultExtensionNs="cn.cangnova.cangjie">
+        <!-- Toolchains -->
+        <toolchainFlavor id="cangjie.cjpmToolchainFlavor"
+                         implementation="cn.cangnova.cangjie.cjpm.toolchain.flavors.CjpmToolchainFlavor"
+                         order="first"/>
+        <toolchainFlavor id="cangjie.winToolchainFlavor"
+                         implementation="cn.cangnova.cangjie.cjpm.toolchain.flavors.CjWinToolchainFlavor"/>
+
+        <toolchainFlavor id="cangjie.wslToolchainFlavor"
+                         implementation="cn.cangnova.cangjie.cjpm.toolchain.wsl.CjWslToolchainFlavor"/>
+        <toolchainProvider implementation="cn.cangnova.cangjie.cjpm.toolchain.CjLocalToolchainProvider"/>
+
     </extensions>
 </idea-plugin>

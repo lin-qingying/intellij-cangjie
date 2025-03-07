@@ -39,11 +39,13 @@ import javax.swing.JComponent
 
 class CjProjectGeneratorPeer(
 
-    cjpmProjectDir: Path = Paths.get(".")) : GeneratorPeerImpl<ConfigurationData>() {
+    cjpmProjectDir: Path = Paths.get(".")
+) : GeneratorPeerImpl<ConfigurationData>() {
 
     private val newProjectPanel = CjNewProjectPanel(
 
-        showProjectTypeSelection = true, cjpmProjectDir) { checkValid?.run() }
+        showProjectTypeSelection = true, cjpmProjectDir
+    ) { checkValid?.run() }
     var checkValid: Runnable? = null
 
     override fun getSettings(): ConfigurationData = newProjectPanel.data

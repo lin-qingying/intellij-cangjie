@@ -97,12 +97,11 @@ class CangJieParser(project: Project) : PsiParser {
             if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
                 cjParsing.setDeclarationsFile(false)
                 cjParsing.parseFile()
-            }  else if (psiFile is CjDeclarationsFile) {
+            } else if (psiFile is CjDeclarationsFile) {
                 cjParsing.setDeclarationsFile(true)
                 cjParsing.parseFile()
 
-            }
-            else {
+            } else {
                 cjParsing.parseScript()
             }
 

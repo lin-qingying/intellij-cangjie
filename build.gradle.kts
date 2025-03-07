@@ -283,7 +283,7 @@ project(":plugin") {
                 plugins(
                     pluginsVersionMap[ideaVersion]!!["psiViewerPlugin"]!!,
                     pluginsVersionMap[ideaVersion]!!["indexViewPlugin"]!!,
-                    chinesePlugin, /*, nativeDebugPlugin*/
+                    chinesePlugin,
                 )
                 bundledPlugins(tomlPlugin)
             }

@@ -42,7 +42,7 @@ import kotlin.io.path.isDirectory
 fun Path.hasExecutableOnWsl(toolName: String): Boolean = pathToExecutableOnWsl(toolName).toFile().isFile
 fun Path.pathToExecutableOnWsl(toolName: String): Path = resolve(toolName)
 
-class CjWslToolchainFlavor : CjToolchainFlavor() {
+internal class CjWslToolchainFlavor : CjToolchainFlavor() {
     override fun getHomePathCandidates(): Sequence<Path> = sequence {
         val distributions = compute(CangJieBundle.message("progress.title.getting.installed.distributions")) {
             WslDistributionManager.getInstance().installedDistributions

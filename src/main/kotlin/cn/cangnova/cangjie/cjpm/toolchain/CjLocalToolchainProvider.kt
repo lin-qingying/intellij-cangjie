@@ -29,7 +29,7 @@ import com.intellij.openapi.util.SystemInfo
 import java.nio.file.Path
 
 
-class CjLocalToolchainProvider : CjToolchainProvider {
+internal class CjLocalToolchainProvider : CjToolchainProvider {
 
     val map = mutableMapOf<Path, CjLocalToolchain>()
 
