@@ -1,0 +1,15 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+
+
+        <fileType name="TOML"
+                  language="TOML"
+                  fileNames="cjpm.lock"
+        />
+        <completion.contributor language="TOML"
+                                implementationClass="cn.cangnova.cangjie.toml.completion.CjpmTomlCompletionContributor"/>
+
+
+    </extensions>
+
+</idea-plugin>
