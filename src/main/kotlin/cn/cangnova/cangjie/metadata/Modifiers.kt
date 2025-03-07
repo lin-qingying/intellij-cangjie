@@ -1,0 +1,209 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+
+package cn.cangnova.cangjie.metadata
+
+
+import cn.cangnova.cangjie.metadata.internal.FlagImpl
+import cn.cangnova.cangjie.metadata.deserialization.Flags as ProtoFlags
+import cn.cangnova.cangjie.metadata.ProtoBuf.Class.Kind as ProtoClassKind
+import cn.cangnova.cangjie.metadata.ProtoBuf.Visibility as ProtoVisibility
+import cn.cangnova.cangjie.metadata.ProtoBuf.Modality as ProtoModality
+import cn.cangnova.cangjie.metadata.ProtoBuf.MemberKind as ProtoMemberKind
+
+// Pay attention to the order of enums in this file!
+// Order of enum values is directly linked to order of corresponding protobuf enums in cn.cangnova.cangjie.metadata.ProtoBuf.
+// Changes in the binary format should be reflected in the protobuf and therefore in enums in this file.
+// Arbitrary reordering of enum members here will likely break deserialization.
+
+/**
+ * Represents visibility level (also known as access level) of the corresponding declaration.
+ * Some of these visibilities may be non-denotable in Kotlin.
+ */
+enum class Visibility(kind: Int) {
+    /**
+     * Signifies that the corresponding declaration is `internal`.
+     */
+    INTERNAL(ProtoVisibility.INTERNAL_VALUE),
+
+    /**
+     * Signifies that the corresponding declaration is `private`.
+     */
+    PRIVATE(ProtoVisibility.PRIVATE_VALUE),
+
+    /**
+     * Signifies that the corresponding declaration is `protected`.
+     */
+    PROTECTED(ProtoVisibility.PROTECTED_VALUE),
+
+    /**
+     * Signifies that the corresponding declaration is `public`.
+     */
+    PUBLIC(ProtoVisibility.PUBLIC_VALUE),
+
+    /**
+     * Signifies that the corresponding declaration is "private-to-this", which is a non-denotable visibility of
+     * private members in Kotlin which are callable only on the same instance of the declaring class.
+     * Generally, this visibility is more restrictive than 'private', so for most use cases it can be treated the same.
+     *
+     * Example of 'PRIVATE_TO_THIS' declaration:
+     * ```
+     *  class A<in T>(t: T) {
+     *      private val t: T = t // visibility for t is PRIVATE_TO_THIS
+     *
+     *      fun test() {
+     *          val x: T = t // correct
+     *          val y: T = this.t // also correct
+     *      }
+     *      fun foo(a: A<String>) {
+     *         val x: String = a.t // incorrect, because a.t can be Any
+     *      }
+     *  }
+     *  ```
+     */
+    PRIVATE_TO_THIS(ProtoVisibility.PRIVATE_TO_THIS_VALUE),
+
+    /**
+     * Signifies that the corresponding declaration is local, i.e., declared inside a code block,
+     * and not visible from the outside.
+     */
+    LOCAL(ProtoVisibility.LOCAL_VALUE)
+    ;
+
+    internal val flag = FlagImpl(ProtoFlags.VISIBILITY, kind)
+}
+
+/**
+ * Represents modality of the corresponding declaration.
+ *
+ * Modality determines when and where it is possible to extend/override a class/member.
+ */
+enum class Modality(kind: Int) {
+    /**
+     * Signifies that the corresponding declaration is `final`.
+     */
+    FINAL(ProtoModality.FINAL_VALUE),
+
+    /**
+     * Signifies that the corresponding declaration is `open`.
+     */
+    OPEN(ProtoModality.OPEN_VALUE),
+
+    /**
+     * Signifies that the corresponding declaration is `abstract`.
+     */
+    ABSTRACT(ProtoModality.ABSTRACT_VALUE),
+
+    /**
+     * Signifies that the corresponding declaration is `sealed`.
+     *
+     * Pay attention that this modality is not applicable to class members.
+     * Setting it as a value for member modality leads to an undefined behavior.
+     */
+    SEALED(ProtoModality.SEALED_VALUE)
+    ;
+
+    internal val flag = FlagImpl(ProtoFlags.MODALITY, kind)
+}
+
+/**
+ * Represents the kind of the corresponding class, i.e., the way it is declared in the source code.
+ */
+enum class ClassKind(kind: Int) {
+    /**
+     * Signifies that the corresponding class is a usual or anonymous class.
+     */
+    CLASS(ProtoClassKind.CLASS_VALUE),
+
+    /**
+     * Signifies that the corresponding class is an `interface`.
+     */
+    INTERFACE(ProtoClassKind.INTERFACE_VALUE),
+
+    /**
+     * Signifies that the corresponding class is an `enum class`.
+     */
+    ENUM_CLASS(ProtoClassKind.ENUM_VALUE),
+
+    /**
+     * Signifies that the corresponding class is an enum entry.
+     */
+    ENUM_ENTRY(ProtoClassKind.ENUM_ENTRY_VALUE),
+
+    /**
+     * Signifies that the corresponding class is an `annotation class`.
+     */
+    ANNOTATION_CLASS(ProtoClassKind.ANNOTATION_CLASS_VALUE),
+
+    /**
+     * Signifies that the corresponding class is a non-companion, singleton `object`.
+     */
+    OBJECT(ProtoClassKind.STRUCT_VALUE),
+
+
+    ;
+
+    internal val flag = FlagImpl(ProtoFlags.CLASS_KIND, kind)
+}
+
+/**
+ * Represents kind of a function or property.
+ *
+ * Kind indicates the origin of a declaration within a containing class.
+ * It provides information about whether a function or property was defined, generated, or something else.
+ */
+enum class MemberKind(kind: Int) {
+    /**
+     * Signifies that the corresponding function or property is explicitly declared in the containing class.
+     */
+    DECLARATION(ProtoMemberKind.DECLARATION_VALUE),
+
+    /**
+     * Signifies that the corresponding function or property exists in the containing class because a function with a suitable
+     * signature exists in a supertype.
+     * This flag is not written by the Kotlin compiler and normally cannot be encountered in binary metadata.
+     * Its effects are unspecified.
+     */
+    FAKE_OVERRIDE(ProtoMemberKind.FAKE_OVERRIDE_VALUE),
+
+    /**
+     * Signifies that the corresponding function or property exists in the containing class because it has been produced
+     * by interface delegation.
+     *
+     * Not to be confused with property delegation which is denoted by [KmProperty.isDelegated].
+     */
+    DELEGATION(ProtoMemberKind.DELEGATION_VALUE),
+
+    /**
+     * Signifies that the corresponding function or property exists in the containing class because it has been synthesized
+     * by the compiler or compiler plugin and has no declaration in the source code.
+     *
+     * An example of such a function can be `component1()` of a data class.
+     */
+    SYNTHESIZED(ProtoMemberKind.SYNTHESIZED_VALUE)
+    ;
+
+    internal val flag = FlagImpl(ProtoFlags.MEMBER_KIND, kind)
+}

@@ -1,0 +1,49 @@
+
+package cn.cangnova.cangjie.metadata.builtins;
+
+
+import "metadata.proto";
+
+// Changes to this proto are tracked by BuiltInsBinaryVersion version. See BuiltInsBinaryVersion CDoc.
+
+option java_outer_classname = "BuiltInsProtoBuf";
+option optimize_for = LITE_RUNTIME;
+
+extend Package {
+  optional int32 package_fq_name = 151;
+}
+
+extend Class {
+  repeated Annotation class_annotation = 150;
+}
+
+extend Constructor {
+  repeated Annotation constructor_annotation = 150;
+}
+
+extend Function {
+  repeated Annotation function_annotation = 150;
+}
+
+extend Property {
+  repeated Annotation property_annotation = 150;
+  repeated Annotation property_getter_annotation = 152;
+  repeated Annotation property_setter_annotation = 153;
+  optional Annotation.Argument.Value compile_time_value = 151;
+}
+
+extend EnumEntry {
+  repeated Annotation enum_entry_annotation = 150;
+}
+
+extend ValueParameter {
+  repeated Annotation parameter_annotation = 150;
+}
+
+extend Type {
+  repeated Annotation type_annotation = 150;
+}
+
+extend TypeParameter {
+  repeated Annotation type_parameter_annotation = 150;
+}

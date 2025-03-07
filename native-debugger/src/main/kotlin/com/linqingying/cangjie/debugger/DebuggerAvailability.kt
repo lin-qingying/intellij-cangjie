@@ -1,4 +1,4 @@
-package com.linqingying.cangjie.debugger
+package cn.cangnova.cangjie.debugger
 
 import java.nio.file.Path
 

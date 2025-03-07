@@ -1,30 +1,30 @@
 <idea-plugin>
 
     <extensions defaultExtensionNs="com.intellij">
-        <projectService serviceInterface="com.linqingying.cangjie.utils.roots.PackageIndex"
-                        serviceImplementation="com.linqingying.cangjie.utils.roots.impl.ProjectPackageIndexImpl"/>
-<!--        <projectService serviceInterface="com.linqingying.cangjie.utils.fileIndex.DirectoryIndex"-->
-<!--                        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.DirectoryIndexImpl"/>-->
-<!--        <projectService serviceInterface="com.linqingying.cangjie.utils.fileIndex.WorkspaceFileIndex"-->
-<!--                        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.impl.WorkspaceFileIndexImpl"/>-->
+        <projectService serviceInterface="cn.cangnova.cangjie.utils.roots.PackageIndex"
+                        serviceImplementation="cn.cangnova.cangjie.utils.roots.impl.ProjectPackageIndexImpl"/>
+<!--        <projectService serviceInterface="cn.cangnova.cangjie.utils.fileIndex.DirectoryIndex"-->
+<!--                        serviceImplementation="cn.cangnova.cangjie.utils.fileIndex.DirectoryIndexImpl"/>-->
+<!--        <projectService serviceInterface="cn.cangnova.cangjie.utils.fileIndex.WorkspaceFileIndex"-->
+<!--                        serviceImplementation="cn.cangnova.cangjie.utils.fileIndex.impl.WorkspaceFileIndexImpl"/>-->
         <!--        <projectService serviceInterface="com.intellij.workspaceModel.core.fileIndex.WorkspaceFileIndex"-->
-        <!--        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.impl.WorkspaceFileIndexImpl"/>-->
+        <!--        serviceImplementation="cn.cangnova.cangjie.utils.fileIndex.impl.WorkspaceFileIndexImpl"/>-->
 <!--        <workspaceModel.fileIndexContributor-->
-<!--                implementation="com.linqingying.cangjie.utils.fileIndex.impl.SourceRootFileIndexContributor"/>-->
-        <projectService serviceInterface="com.linqingying.cangjie.utils.fileIndex.DirectoryIndex"
-                        serviceImplementation="com.linqingying.cangjie.utils.fileIndex.EmptyDirectoryIndexImpl"/>
+<!--                implementation="cn.cangnova.cangjie.utils.fileIndex.impl.SourceRootFileIndexContributor"/>-->
+        <projectService serviceInterface="cn.cangnova.cangjie.utils.fileIndex.DirectoryIndex"
+                        serviceImplementation="cn.cangnova.cangjie.utils.fileIndex.EmptyDirectoryIndexImpl"/>
 
     </extensions>
-<!--    <extensions defaultExtensionNs="com.linqingying.cangjie.util.fileIndex">-->
+<!--    <extensions defaultExtensionNs="cn.cangnova.cangjie.util.fileIndex">-->
 
 <!--        <fileIndexContributor-->
-<!--                implementation="com.linqingying.cangjie.utils.fileIndex.impl.SourceRootFileIndexContributor"/>-->
+<!--                implementation="cn.cangnova.cangjie.utils.fileIndex.impl.SourceRootFileIndexContributor"/>-->
 
 <!--    </extensions>-->
 <!--    <extensionPoints>-->
 
-<!--        <extensionPoint qualifiedName="com.linqingying.cangjie.util.fileIndex.fileIndexContributor"-->
-<!--                        interface="com.linqingying.cangjie.utils.fileIndex.WorkspaceFileIndexContributor"-->
+<!--        <extensionPoint qualifiedName="cn.cangnova.cangjie.util.fileIndex.fileIndexContributor"-->
+<!--                        interface="cn.cangnova.cangjie.utils.fileIndex.WorkspaceFileIndexContributor"-->
 <!--                        dynamic="true"/>-->
 <!--    </extensionPoints>-->
 </idea-plugin>

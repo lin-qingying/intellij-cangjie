@@ -1,16 +1,16 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
         <projectService
-                serviceInterface="com.linqingying.cangjie.resolve.CodeAnalyzerInitializer"
-                serviceImplementation="com.linqingying.cangjie.resolve.DummyCodeAnalyzerInitializer"/>
+                serviceInterface="cn.cangnova.cangjie.resolve.CodeAnalyzerInitializer"
+                serviceImplementation="cn.cangnova.cangjie.resolve.DummyCodeAnalyzerInitializer"/>
         <registryKey
                 key="cangjie.dispatch.thread.resolve.check"
                 description="Whether to enable the check for resolve activated from the write action"
                 defaultValue="false"
                 restartRequired="false"/>
         <projectService
-                serviceInterface="com.linqingying.cangjie.resolve.caches.CangJieCacheService"
-                serviceImplementation="com.linqingying.cangjie.resolve.caches.CangJieCacheServiceImpl"/>
+                serviceInterface="cn.cangnova.cangjie.resolve.caches.CangJieCacheService"
+                serviceImplementation="cn.cangnova.cangjie.resolve.caches.CangJieCacheServiceImpl"/>
         <registryKey
                 key="cangjie.caches.fine.grained.entity.validation"
                 description="Allow a fine grained cache entity validation"
@@ -18,8 +18,8 @@
                 restartRequired="true"
         />
         <projectService
-                serviceInterface="com.linqingying.cangjie.ide.cache.trackers.ModuleDependencyProviderExtension"
-                serviceImplementation="com.linqingying.cangjie.ide.cache.trackers.ResolutionAnchorModuleDependencyProviderExtension"/>
+                serviceInterface="cn.cangnova.cangjie.ide.cache.trackers.ModuleDependencyProviderExtension"
+                serviceImplementation="cn.cangnova.cangjie.ide.cache.trackers.ResolutionAnchorModuleDependencyProviderExtension"/>
 
         <registryKey key="cangjie.cache.packages.strong.map"
                      description="Hold info about packages using strong references instead of soft ones"
@@ -33,8 +33,8 @@
                      restartRequired="true"/>
 
         <projectService
-                serviceInterface="com.linqingying.cangjie.analyzer.LanguageSettingsProvider"
-                serviceImplementation="com.linqingying.cangjie.ide.projectStructure.IDELanguageSettingsProvider"/>
+                serviceInterface="cn.cangnova.cangjie.analyzer.LanguageSettingsProvider"
+                serviceImplementation="cn.cangnova.cangjie.ide.projectStructure.IDELanguageSettingsProvider"/>
 
         <registryKey
                 key="cangjie.caches.fine.grained.throttling.timeout.ms"
@@ -44,22 +44,22 @@
         />
 
         <projectService
-                serviceInterface="com.linqingying.cangjie.ide.cache.project.ModelInfosCache"
-                serviceImplementation="com.linqingying.cangjie.ide.cache.project.FineGrainedIdeaModelInfosCache"/>
+                serviceInterface="cn.cangnova.cangjie.ide.cache.project.ModelInfosCache"
+                serviceImplementation="cn.cangnova.cangjie.ide.cache.project.FineGrainedIdeaModelInfosCache"/>
 
 
 
-        <psi.treeChangePreprocessor implementation="com.linqingying.cangjie.ide.cache.CangJiePackageStatementPsiTreeChangePreprocessor"/>
+        <psi.treeChangePreprocessor implementation="cn.cangnova.cangjie.ide.cache.CangJiePackageStatementPsiTreeChangePreprocessor"/>
 
     </extensions>
 
     <projectListeners>
 
 
-        <listener class="com.linqingying.cangjie.ide.cache.PerModulePackageCacheService$PackageCacheBulkFileListener"
+        <listener class="cn.cangnova.cangjie.ide.cache.PerModulePackageCacheService$PackageCacheBulkFileListener"
                   topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
 
-        <listener class="com.linqingying.cangjie.ide.cache.PerModulePackageCacheService$PackageCacheModuleRootListener"
+        <listener class="cn.cangnova.cangjie.ide.cache.PerModulePackageCacheService$PackageCacheModuleRootListener"
                   topic="com.intellij.openapi.roots.ModuleRootListener"/>
     </projectListeners>
 </idea-plugin>

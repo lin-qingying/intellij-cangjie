@@ -1,16 +1,16 @@
-package com.linqingying.cangjie.debugger.runconfig.legacy
+package cn.cangnova.cangjie.debugger.runconfig.legacy
 
-import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.cjpm.toolchain.tools.Cjpm.Companion.getCjpmCommonPatch
+import cn.cangnova.cangjie.CangJieBundle
+import cn.cangnova.cangjie.cjpm.toolchain.tools.Cjpm.Companion.getCjpmCommonPatch
 
-import com.linqingying.cangjie.ide.run.CjpmArgsParser.Companion.parseArgs
-import com.linqingying.cangjie.ide.run.cjpm.*
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.CjProcessHandler
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.localBuildArgsForRemoteRun
-import com.linqingying.cangjie.ide.run.hasRemoteTarget
+import cn.cangnova.cangjie.ide.run.CjpmArgsParser.Companion.parseArgs
+import cn.cangnova.cangjie.ide.run.cjpm.*
+import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjProcessHandler
+import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
+import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
+import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
+import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.localBuildArgsForRemoteRun
+import cn.cangnova.cangjie.ide.run.hasRemoteTarget
 
 import com.intellij.execution.DefaultExecutionResult
 import com.intellij.execution.RunContentExecutor

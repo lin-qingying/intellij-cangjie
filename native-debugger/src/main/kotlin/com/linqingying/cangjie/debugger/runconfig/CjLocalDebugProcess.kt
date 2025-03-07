@@ -1,4 +1,4 @@
-package com.linqingying.cangjie.debugger.runconfig
+package cn.cangnova.cangjie.debugger.runconfig
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.filters.Filter

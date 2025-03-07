@@ -1,9 +1,9 @@
-package com.linqingying.cangjie.debugger.runconfig.legacy
+package cn.cangnova.cangjie.debugger.runconfig.legacy
 
-import com.linqingying.cangjie.debugger.runconfig.CjDebugRunnerUtils
-import com.linqingying.cangjie.debugger.runconfig.CjDebugRunnerUtils.ERROR_MESSAGE_TITLE
-import com.linqingying.cangjie.ide.run.cjpm.BuildResult
-import com.linqingying.cangjie.ide.run.cjpm.CjpmRunStateBase
+import cn.cangnova.cangjie.debugger.runconfig.CjDebugRunnerUtils
+import cn.cangnova.cangjie.debugger.runconfig.CjDebugRunnerUtils.ERROR_MESSAGE_TITLE
+import cn.cangnova.cangjie.ide.run.cjpm.BuildResult
+import cn.cangnova.cangjie.ide.run.cjpm.CjpmRunStateBase
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.executors.DefaultDebugExecutor

@@ -1,0 +1,121 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.resolve;
+
+import cn.cangnova.cangjie.descriptors.BindingTrace;
+import cn.cangnova.cangjie.diagnostics.Diagnostic;
+import cn.cangnova.cangjie.psi.CjExpression;
+import cn.cangnova.cangjie.types.CangJieType;
+import cn.cangnova.cangjie.utils.slicedMap.ReadOnlySlice;
+import cn.cangnova.cangjie.utils.slicedMap.WritableSlice;
+import com.intellij.util.SmartFMap;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+
+public class ObservableBindingTrace implements BindingTrace  {
+
+    @Override
+    public void recordType(@NotNull CjExpression expression, @Nullable CangJieType type) {
+        originalTrace.recordType(expression, type);
+
+    }
+
+    public interface RecordHandler<K, V> {
+
+        void handleRecord(WritableSlice<K, V> slice, K key, V value);
+    }
+
+
+    private final BindingTrace originalTrace;
+
+    private   SmartFMap<WritableSlice, RecordHandler> handlers = SmartFMap.emptyMap();
+
+    public ObservableBindingTrace(BindingTrace originalTrace) {
+        this.originalTrace = originalTrace;
+    }
+    @NotNull
+    @Override
+    public BindingContext getBindingContext() {
+        return originalTrace.getBindingContext();
+    }
+
+    public <K, V> ObservableBindingTrace addHandler(@NotNull WritableSlice<K, V> slice, @NotNull RecordHandler<K, V> handler) {
+        handlers = handlers.plus(slice, handler);
+        return this;
+    }
+    @Override
+    @NotNull
+    public <K, V> Collection<K> getKeys(WritableSlice<K, V> slice) {
+        return originalTrace.getKeys(slice);
+    }
+
+
+    @Nullable
+    @Override
+    public CangJieType getType(@NotNull CjExpression expression) {
+        return originalTrace.getType(expression);
+
+    }
+
+    @Override
+    public <K, V> void record(@NotNull WritableSlice<K, V> slice, K key, V value) {
+
+        originalTrace.record(slice, key, value);
+        RecordHandler<K, V> recordHandler = (RecordHandler) handlers.get(slice);
+        if (recordHandler != null) {
+            recordHandler.handleRecord(slice, key, value);
+        }
+    }
+
+    @Override
+    public <K> void record(@NotNull WritableSlice<K, Boolean> slice, K key) {
+        record(slice, key, true);
+    }
+
+    @Nullable
+    @Override
+    public <K, V> V get(@NotNull ReadOnlySlice<K, V> slice, K key) {
+        return originalTrace.get(slice, key);
+
+    }
+
+    @Override
+    public void report(@NotNull Diagnostic diagnostic) {
+        originalTrace.report(diagnostic);
+
+    }
+
+    @Override
+    public String toString() {
+        return "ObservableTrace over " + originalTrace.toString();
+    }
+    @Override
+    public boolean wantsDiagnostics() {
+        return originalTrace.wantsDiagnostics();
+
+    }
+}

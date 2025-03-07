@@ -27,12 +27,12 @@
 
         <!--        <intentionAction>-->
         <!--            <language>CangJie</language>-->
-        <!--            <className>com.linqingying.cangjie.ide.intentions.ReplaceExplicitFunctionLiteralParamWithItIntention</className>-->
+        <!--            <className>cn.cangnova.cangjie.ide.intentions.ReplaceExplicitFunctionLiteralParamWithItIntention</className>-->
         <!--            <bundleName>messages.CangJieBundle</bundleName>-->
         <!--            <categoryKey>group.names.cangjie</categoryKey>-->
         <!--        </intentionAction>-->
         <localInspection
-                implementationClass="com.linqingying.cangjie.ide.refactoring.move.changePackage.CangJiePackageDirectoryMismatchInspection"
+                implementationClass="cn.cangnova.cangjie.ide.refactoring.move.changePackage.CangJiePackageDirectoryMismatchInspection"
                 groupPath="CangJie"
                 groupBundle="messages.CangJieBundle" groupKey="group.names.cangjie.interop.issues"
                 enabledByDefault="true"
@@ -42,19 +42,19 @@
 
         <intentionAction>
             <language>CangJie</language>
-            <className>com.linqingying.cangjie.ide.intentions.CangJieInsertExplicitTypeArgumentsIntention</className>
+            <className>cn.cangnova.cangjie.ide.intentions.CangJieInsertExplicitTypeArgumentsIntention</className>
             <bundleName>messages.CangJieBundle</bundleName>
             <categoryKey>group.names.cangjie</categoryKey>
         </intentionAction>
 
         <intentionAction>
             <language>CangJie</language>
-            <className>com.linqingying.cangjie.ide.intentions.SpecifyTypeExplicitlyIntention</className>
+            <className>cn.cangnova.cangjie.ide.intentions.SpecifyTypeExplicitlyIntention</className>
             <bundleName>messages.CangJieBundle</bundleName>
             <categoryKey>group.names.cangjie</categoryKey>
         </intentionAction>
         <localInspection
-                implementationClass="com.linqingying.cangjie.ide.inspections.cdoc.CDocMissingDocumentationInspection"
+                implementationClass="cn.cangnova.cangjie.ide.inspections.cdoc.CDocMissingDocumentationInspection"
                 groupPath="CangJie"
                 groupBundle="messages.CangJieBundle" groupKey="group.names.other.problems"
                 enabledByDefault="false"
@@ -63,7 +63,7 @@
                 runForWholeFile="true"
                 key="inspection.c.doc.missing.documentation.display.name" bundle="messages.CangJieBundle"/>
 <!--        <localInspection-->
-<!--                implementationClass="com.linqingying.cangjie.ide.intentions.CangJieFunctionWithLambdaExpressionBodyInspection"-->
+<!--                implementationClass="cn.cangnova.cangjie.ide.intentions.CangJieFunctionWithLambdaExpressionBodyInspection"-->
 <!--                groupPath="CangJie"-->
 <!--                groupBundle="messages.CangJieBundle" groupKey="group.names.style.issues"-->
 <!--                enabledByDefault="true"-->
@@ -73,12 +73,12 @@
 
         <intentionAction>
             <language>CangJie</language>
-            <className>com.linqingying.cangjie.ide.intentions.SpecifyExplicitLambdaSignatureIntention</className>
+            <className>cn.cangnova.cangjie.ide.intentions.SpecifyExplicitLambdaSignatureIntention</className>
             <bundleName>messages.CangJieBundle</bundleName>
             <categoryKey>group.names.cangjie</categoryKey>
         </intentionAction>
 <!--        <localInspection-->
-<!--                implementationClass="com.linqingying.cangjie.ide.inspections.CangJiePackageCheckInspection"-->
+<!--                implementationClass="cn.cangnova.cangjie.ide.inspections.CangJiePackageCheckInspection"-->
 <!--                groupPath="CangJie"-->
 <!--                groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"-->
 <!--                enabledByDefault="true"-->
@@ -87,7 +87,7 @@
 <!--                language="CangJie"-->
 <!--                key="inspection.package.check.display.name" bundle="messages.CangJieBundle"/>-->
 <!--        <localInspection-->
-<!--                implementationClass="com.linqingying.cangjie.ide.inspections.CangJieImportCheckInspection"-->
+<!--                implementationClass="cn.cangnova.cangjie.ide.inspections.CangJieImportCheckInspection"-->
 <!--                groupPath="CangJie"-->
 <!--                groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"-->
 <!--                enabledByDefault="true"-->
@@ -97,7 +97,7 @@
 <!--                key="inspection.import.check.display.name" bundle="messages.CangJieBundle"/>-->
 
 <!--        <localInspection-->
-<!--                implementationClass="com.linqingying.cangjie.ide.inspections.CangJieDotQualifiedExpressionInspection"-->
+<!--                implementationClass="cn.cangnova.cangjie.ide.inspections.CangJieDotQualifiedExpressionInspection"-->
 <!--                groupPath="CangJie"-->
 <!--                groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"-->
 <!--                enabledByDefault="true"-->
@@ -108,7 +108,7 @@
 
 
         <localInspection
-                implementationClass="com.linqingying.cangjie.ide.inspections.CangJieRedundantVisibilityModifierInspection"
+                implementationClass="cn.cangnova.cangjie.ide.inspections.CangJieRedundantVisibilityModifierInspection"
                 groupPath="CangJie"
                 groupBundle="messages.CangJieBundle" groupKey="group.names.redundant.constructs"
                 enabledByDefault="true"

@@ -1,8 +1,8 @@
-package com.linqingying.cangjie.debugger.runconfig.legacy
+package cn.cangnova.cangjie.debugger.runconfig.legacy
 
-import com.linqingying.cangjie.debugger.runconfig.CjDebugRunnerUtils
-import com.linqingying.cangjie.ide.run.cjpm.BuildResult
-import com.linqingying.cangjie.ide.run.cjpm.CjpmCommandConfiguration
+import cn.cangnova.cangjie.debugger.runconfig.CjDebugRunnerUtils
+import cn.cangnova.cangjie.ide.run.cjpm.BuildResult
+import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.openapi.project.Project
 

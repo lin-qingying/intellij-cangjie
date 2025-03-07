@@ -3,7 +3,7 @@
 
         <!--        <fileType name="TOML"-->
         <!--                  language="TOML"-->
-        <!--                  implementationClass="com.linqingying.cangjie.toml.CangJieTomlFileType"-->
+        <!--                  implementationClass="cn.cangnova.cangjie.toml.CangJieTomlFileType"-->
         <!--                  fieldName="INSTANCE"-->
         <!--                  extensions="toml"-->
         <!--                  fileNames="cjpm.lock"/>-->
@@ -12,12 +12,12 @@
                   fileNames="cjpm.lock"
         />
         <completion.contributor language="TOML"
-                                implementationClass="com.linqingying.cangjie.toml.completion.CjpmTomlCompletionContributor"/>
+                                implementationClass="cn.cangnova.cangjie.toml.completion.CjpmTomlCompletionContributor"/>
 
-        <!--<filetype.decompiler filetype="TOML" implementationClass="com.linqingying.cangjie.toml.CangJieTomlDecompile"/>-->
-        <!--<fileTypeRegistrar implementation="com.linqingying.cangjie.toml.CangJieTomlFileTypeRegistrar"/>-->
-        <!--        <fileTypeFactory implementation="com.linqingying.cangjie.toml.CangJieTomlFileTypeFactory"/>-->
-        <!--        <fileTypeOverrider implementation="com.linqingying.cangjie.toml.CangJieTomlFileTypeOverrider"/>-->
+        <!--<filetype.decompiler filetype="TOML" implementationClass="cn.cangnova.cangjie.toml.CangJieTomlDecompile"/>-->
+        <!--<fileTypeRegistrar implementation="cn.cangnova.cangjie.toml.CangJieTomlFileTypeRegistrar"/>-->
+        <!--        <fileTypeFactory implementation="cn.cangnova.cangjie.toml.CangJieTomlFileTypeFactory"/>-->
+        <!--        <fileTypeOverrider implementation="cn.cangnova.cangjie.toml.CangJieTomlFileTypeOverrider"/>-->
         <!--   -->
     </extensions>
 

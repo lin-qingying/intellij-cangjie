@@ -3,9 +3,9 @@
  * found in the LICENSE file.
  */
 
-package com.linqingying.cangjie.debugger
+package cn.cangnova.cangjie.debugger
 
-import com.linqingying.cangjie.openapiext.CjPathManager
+import cn.cangnova.cangjie.openapiext.CjPathManager
 import org.jetbrains.annotations.PropertyKey
 
 

@@ -2,15 +2,15 @@
 
     <extensions defaultExtensionNs="com.intellij">
 
-        <!--        <statistics.counterUsagesCollector implementationClass="com.linqingying.cangjie.ide.statistics.compilationError.CangJieCompilationErrorFrequencyStatsCollector"/>-->
-        <!--        <statistics.validation.customValidationRule implementation="com.linqingying.cangjie.ide.statistics.compilationError.CangJieCompilationErrorIdValidationRule"/>-->
+        <!--        <statistics.counterUsagesCollector implementationClass="cn.cangnova.cangjie.ide.statistics.compilationError.CangJieCompilationErrorFrequencyStatsCollector"/>-->
+        <!--        <statistics.validation.customValidationRule implementation="cn.cangnova.cangjie.ide.statistics.compilationError.CangJieCompilationErrorIdValidationRule"/>-->
 <!--        <statistics.counterUsagesCollector-->
-<!--                implementationClass="com.linqingying.cangjie.cache.CacheRecoveryUsageCollector"/>.-->
+<!--                implementationClass="cn.cangnova.cangjie.cache.CacheRecoveryUsageCollector"/>.-->
 
     </extensions>
     <extensionPoints>
 <!--        <extensionPoint name="statistics.counterUsagesCollector" beanClass="com.intellij.internal.statistic.service.fus.collectors.CounterUsageCollectorEP" dynamic="true">-->
-<!--            <with attribute="implementationClass" implements="com.linqingying.cangjie.statistic.FeatureUsagesCollector" />-->
+<!--            <with attribute="implementationClass" implements="cn.cangnova.cangjie.statistic.FeatureUsagesCollector" />-->
 <!--        </extensionPoint>-->
     </extensionPoints>
 

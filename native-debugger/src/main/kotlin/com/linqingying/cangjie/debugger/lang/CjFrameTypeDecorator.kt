@@ -3,9 +3,9 @@
  * found in the LICENSE file.
  */
 
-package com.linqingying.cangjie.debugger.lang
+package cn.cangnova.cangjie.debugger.lang
 
-import com.linqingying.cangjie.debugger.settings.CjDebuggerSettings
+import cn.cangnova.cangjie.debugger.settings.CjDebuggerSettings
 import com.jetbrains.cidr.execution.debugger.CidrFrameTypeDecorator
 import com.jetbrains.cidr.execution.debugger.CidrStackFrame
 import com.jetbrains.cidr.execution.debugger.backend.DebuggerDriverConfiguration

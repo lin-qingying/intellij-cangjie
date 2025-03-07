@@ -1,0 +1,56 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.builtins
+
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.util.TypeUtils
+
+//enum class UnsignedType(val classId: ClassId) {
+//    UBYTE(ClassId.fromString("UInt8")),
+//    USHORT(ClassId.fromString("UInt16")),
+//    UINT(ClassId.fromString("UInt32")),
+//    ULONG(ClassId.fromString("UInt64"));
+//
+//    val typeName = classId.shortClassName
+////    val arrayClassId = ClassId(classId.packageFqName, Name.identifier(typeName.asString() + "Array"))
+//}
+object UnsignedTypes {
+
+    //    private val unsignedTypeNames = enumValues<UnsignedType>().map { it.typeName }.toSet()
+//
+//    private fun isUnsignedClass(descriptor: DeclarationDescriptor): Boolean {
+//        val container = descriptor.containingDeclaration
+//        return container is PackageFragmentDescriptor &&
+//                container.fqName == StandardNames.BUILT_INS_PACKAGE_FQ_NAME &&
+//                descriptor.name in UnsignedTypes.unsignedTypeNames
+//    }
+    @JvmStatic
+    fun isUnsignedType(type: CangJieType): Boolean {
+        if (TypeUtils.noExpectedType(type)) return false
+
+        return CangJieBuiltIns.isUnsignedNumber(type)
+
+    }
+}

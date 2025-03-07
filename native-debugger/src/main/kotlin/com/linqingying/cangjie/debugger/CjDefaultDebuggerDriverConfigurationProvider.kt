@@ -1,6 +1,6 @@
-package com.linqingying.cangjie.debugger
+package cn.cangnova.cangjie.debugger
 
-import com.linqingying.cangjie.debugger.settings.CjDebuggerSettings
+import cn.cangnova.cangjie.debugger.settings.CjDebuggerSettings
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
@@ -27,7 +27,7 @@ interface CjDebuggerDriverConfigurationProvider {
     companion object {
         @JvmField
         val EP_NAME: ExtensionPointName<CjDebuggerDriverConfigurationProvider> =
-            ExtensionPointName.create("com.linqingying.cangjie.debugger.driverConfigurationProvider")
+            ExtensionPointName.create("cn.cangnova.cangjie.debugger.driverConfigurationProvider")
     }
 }
 
@@ -115,7 +115,7 @@ open class CjLLDBDriverConfiguration(
     override fun isElevated(): Boolean = isElevated
     override fun emulateTerminal(): Boolean = emulateTerminal
 //    override fun useCangJieTypeSystem(): Boolean =
-//        SystemInfo.isWindows && Registry.`is`("com.linqingying.cangjie.debugger.lldb.cangjie.msvc", false)
+//        SystemInfo.isWindows && Registry.`is`("cn.cangnova.cangjie.debugger.lldb.cangjie.msvc", false)
 }
 
 private class CjCustomBinariesLLDBDriverConfiguration(

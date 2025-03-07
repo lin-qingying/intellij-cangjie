@@ -1,0 +1,626 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.cjpm.project.model.impl
+
+import cn.cangnova.cangjie.AsyncValue
+import cn.cangnova.cangjie.CangJieBundle
+import cn.cangnova.cangjie.cjpm.CjpmConstants
+import cn.cangnova.cangjie.cjpm.findChild
+import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
+import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
+import cn.cangnova.cangjie.cjpm.project.model.ContentEntryWrapper
+import cn.cangnova.cangjie.cjpm.project.model.setup
+import cn.cangnova.cangjie.cjpm.project.pathAsPath
+import cn.cangnova.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase
+import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
+import cn.cangnova.cangjie.cjpm.project.toolwindow.CjpmToolWindow
+import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
+import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
+import cn.cangnova.cangjie.cjpm.project.workspace.additionalRoots
+import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
+import cn.cangnova.cangjie.ide.notifications.CjNotifications
+import cn.cangnova.cangjie.ide.run.cjpm.isUnitTestMode
+import cn.cangnova.cangjie.lang.CangJieFileType
+import cn.cangnova.cangjie.lang.lsp.CangJieLspServerManager
+import cn.cangnova.cangjie.taskQueue
+import com.intellij.execution.RunManager
+import com.intellij.ide.impl.isTrusted
+import com.intellij.notification.NotificationListener
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.components.*
+
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
+import com.intellij.openapi.fileTypes.FileTypeManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.openapi.project.modules
+import com.intellij.openapi.roots.*
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx
+import com.intellij.openapi.roots.libraries.Library
+import com.intellij.openapi.roots.libraries.LibraryTable
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar
+import com.intellij.openapi.startup.StartupManager
+import com.intellij.openapi.util.EmptyRunnable
+import com.intellij.openapi.util.NlsContexts
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.util.indexing.LightDirectoryIndex
+import com.intellij.util.io.systemIndependentPath
+import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
+import org.jdom.Element
+import java.nio.file.Path
+import java.nio.file.Paths
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionException
+import kotlin.io.path.exists
+import com.intellij.openapi.project.DumbService
+
+@State(
+    name = "CjpmProjects", storages = [
+        Storage(StoragePathMacros.WORKSPACE_FILE),
+        Storage("misc.xml", deprecated = true)
+    ]
+)
+class CjpmProjectsServiceImpl(
+    override val project: Project
+) : CjpmProjectsService, PersistentStateComponent<Element>, Disposable {
+
+    private val noProjectMarker = CjpmProjectImpl(Paths.get(""), this)
+
+    /**
+     * 插件项目模型的核心。必须小心确保这是线程安全的，并且在项目集更改后调度刷新
+     */
+    private val projects = AsyncValue<List<CjpmProjectImpl>>(emptyList())
+
+    /**
+     *[directoryIndex]允许从[VirtualFile]快速映射到
+     *[CjpmProject]
+     */
+    private val directoryIndex: LightDirectoryIndex<CjpmProjectImpl> =
+        LightDirectoryIndex(project, noProjectMarker) { index ->
+            val visited = mutableSetOf<VirtualFile>()
+
+            fun VirtualFile.put(cjpmProject: CjpmProjectImpl) {
+                if (this in visited) return
+                visited += this
+                index.putInfo(this, cjpmProject)
+            }
+
+            fun CjpmWorkspace.Package.put(cjpmProject: CjpmProjectImpl) {
+                contentRoot?.put(cjpmProject)
+                outDir?.put(cjpmProject)
+                for (additionalRoot in additionalRoots()) {
+                    additionalRoot.put(cjpmProject)
+                }
+
+            }
+
+
+            val lowPriority = mutableListOf<Pair<CjpmWorkspace.Package, CjpmProjectImpl>>()
+            for (cjpmProject in projects.currentState) {
+                cjpmProject.rootDir?.put(cjpmProject)
+                for (pkg in cjpmProject.workspace?.packages.orEmpty()) {
+                    if (pkg.origin == PackageOrigin.WORKSPACE) {
+                        pkg.put(cjpmProject)
+                    } else {
+                        lowPriority += pkg to cjpmProject
+                    }
+                }
+            }
+            for ((pkg, cjpmProject) in lowPriority) {
+                pkg.put(cjpmProject)
+            }
+        }
+
+
+    override val hasAtLeastOneValidProject: Boolean
+        get() = hasAtLeastOneValidProject(allProjects)
+
+
+    override var initialized: Boolean = false
+    override val allProjects: Collection<CjpmProject>
+        get() = projects.currentState
+
+    private var isLegacyCangJieNotificationShowed: Boolean = false
+
+
+    init {
+        val newProjectModelImportEnabled = isNewProjectModelImportEnabled
+        if (newProjectModelImportEnabled) {
+            registerProjectAware(project, this)
+        }
+
+        with(project.messageBus.connect()) {
+            if (!newProjectModelImportEnabled) {
+                if (!isUnitTestMode) {
+                    subscribe(VirtualFileManager.VFS_CHANGES, CjpmJsonWatcher(this@CjpmProjectsServiceImpl, fun() {
+                        if (!project.cangjieSettings.autoUpdateEnabled) return
+                        refreshAllProjects()
+                    }))
+                }
+
+                subscribe(
+                    CjProjectSettingsServiceBase.CANGJIE_SETTINGS_TOPIC,
+                    object : CjProjectSettingsServiceBase.CjSettingsListener {
+                        override fun <T : CjProjectSettingsServiceBase.CjProjectSettingsBase<T>> settingsChanged(e: CjProjectSettingsServiceBase.SettingsChangedEventBase<T>) {
+                            if (e.affectsCjpmMetadata) {
+                                refreshAllProjects()
+                            }
+                        }
+                    })
+            }
+
+//            subscribe(CjpmProjectsService.CJPM_PROJECTS_TOPIC, CjpmProjectsService.CjpmProjectsListener { _, _ ->
+//
+//                // 使用 DumbService 确保在索引就绪时执行
+//                DumbService.getInstance(project).smartInvokeLater {
+//                    if (!project.isDisposed) {
+//                        CjpmToolWindow.initializeToolWindow(project)
+//                    }
+//                }
+//
+//            })
+        }
+    }
+
+
+    private fun registerProjectAware(project: Project, disposable: Disposable) {
+        // There is no sense to register `CjpmExternalSystemProjectAware` for default project.
+        // Moreover, it may break searchable options building.
+        // Also, we don't need to register `CjpmExternalSystemProjectAware` in light tests because:
+        // - we check it only in heavy tests
+        // - it heavily depends on service disposing which doesn't work in light tests
+        if (project.isDefault || isUnitTestMode && (project as? ProjectEx)?.isLight == true) return
+
+        val cjpmProjectAware = CjpmExternalSystemProjectAware(project)
+        val projectTracker = ExternalSystemProjectTracker.getInstance(project)
+        projectTracker.register(cjpmProjectAware, disposable)
+        projectTracker.activate(cjpmProjectAware.projectId)
+
+        project.messageBus.connect(disposable)
+            .subscribe(
+                CjProjectSettingsServiceBase.CANGJIE_SETTINGS_TOPIC,
+                object : CjProjectSettingsServiceBase.CjSettingsListener {
+                    override fun <T : CjProjectSettingsServiceBase.CjProjectSettingsBase<T>> settingsChanged(e: CjProjectSettingsServiceBase.SettingsChangedEventBase<T>) {
+                        if (e.affectsCjpmMetadata) {
+                            val tracker = ExternalSystemProjectTracker.getInstance(project)
+
+
+                            tracker.markDirty(cjpmProjectAware.projectId)
+                            tracker.scheduleProjectRefresh()
+                        }
+                    }
+                })
+    }
+
+    override fun findProjectForFile(file: VirtualFile): CjpmProject? =
+        file.applyWithSymlink { directoryIndex.getInfoForFile(it).takeIf { info -> info !== noProjectMarker } }
+
+    override fun findProjectForModuleFile(file: VirtualFile): CjpmProject? {
+        return file.applyWithSymlink { directoryIndex.getInfoForFile(it) }
+
+    }
+
+    override fun suggestManifests(): Sequence<VirtualFile> =
+        project.modules
+            .asSequence()
+            .flatMap { ModuleRootManager.getInstance(it).contentRoots.asSequence() }
+            .mapNotNull { it.findChild(CjpmConstants.MANIFEST_FILE) }
+
+    override fun attachCjpmProject(manifest: Path): Boolean {
+        if (isExistingProject(allProjects, manifest)) return false
+        modifyProjects { projects ->
+            if (isExistingProject(projects, manifest))
+                CompletableFuture.completedFuture(projects)
+            else
+                doRefresh(project, projects + CjpmProjectImpl(manifest, this))
+        }
+        return true
+    }
+
+    @Suppress("LeakingThis")
+    private val packageIndex: CjpmPackageIndex = CjpmPackageIndex(project, this)
+
+    override fun findPackageForFile(file: VirtualFile): CjpmWorkspace.Package? =
+        file.applyWithSymlink(packageIndex::findPackageForFile)
+
+    override fun discoverAndRefresh(): CompletableFuture<out List<CjpmProject>> {
+        val guessManifest = suggestManifests().firstOrNull()
+            ?: return CompletableFuture.completedFuture(projects.currentState)
+
+        return modifyProjects { projects ->
+            if (hasAtLeastOneValidProject(projects)) return@modifyProjects CompletableFuture.completedFuture(projects)
+            doRefresh(project, listOf(CjpmProjectImpl(guessManifest.pathAsPath, this)))
+        }
+    }
+
+
+    override fun refreshAllProjects(): CompletableFuture<out List<CjpmProject>> =
+        modifyProjects { doRefresh(project, it) }
+
+
+    private fun checkCangjieVersion(projects: List<CjpmProjectImpl>) {
+        val minToolchainVersion = projects.asSequence()
+            .mapNotNull { it.cjcInfo?.version?.semver }
+            .minOrNull()
+        if (minToolchainVersion != null && minToolchainVersion < CjToolchainBase.MIN_SUPPORTED_TOOLCHAIN) {
+            if (!isLegacyCangJieNotificationShowed) {
+                val content = CangJieBundle.message(
+                    "notification.content.cangjie.toolchain.no.longer.supported",
+                    minToolchainVersion,
+                    CjToolchainBase.MIN_SUPPORTED_TOOLCHAIN
+                )
+                project.showBalloon(content, NotificationType.WARNING)
+            }
+            isLegacyCangJieNotificationShowed = true
+        } else {
+            isLegacyCangJieNotificationShowed = false
+        }
+    }
+
+    /**
+     * 除了低级别的 `loadState` 操作外，所有对项目模型的修改都应该通过此方法进行。
+     * 它确保在更新各种 IDEA 监听器时，[allProjects] 包含最新的项目。
+     *
+     * @param updater 一个函数，接收当前项目列表并返回一个 CompletableFuture，其中包含更新后的项目列表。
+     *                该函数负责执行具体的项目更新逻辑。
+     * @return 返回一个 CompletableFuture，表示异步更新操作的结果，结果为更新后的项目列表。
+     */
+    protected fun modifyProjects(
+        updater: (List<CjpmProjectImpl>) -> CompletableFuture<List<CjpmProjectImpl>>
+    ): CompletableFuture<List<CjpmProjectImpl>> {
+
+        // 发布刷新开始的通知
+        val refreshStatusPublisher = project.messageBus.syncPublisher(CjpmProjectsService.CJPM_PROJECTS_REFRESH_TOPIC)
+
+        // 包装 updater 函数，在调用 updater 前发布刷新开始通知
+        val wrappedUpdater = { projects: List<CjpmProjectImpl> ->
+            refreshStatusPublisher.onRefreshStarted()
+            updater(projects)
+        }
+
+        return projects.updateAsync(wrappedUpdater)
+            .thenApply { projects ->
+                invokeAndWaitIfNeeded {
+                    // 获取文件类型管理器实例，并在写入操作中进行必要的文件类型关联和索引重置
+                    val fileTypeManager = FileTypeManager.getInstance()
+                    runWriteAction {
+                        if (projects.isNotEmpty()) {
+                            checkCangjieVersion(projects)
+                            fileTypeManager.associateExtension(
+                                CangJieFileType.INSTANCE,
+                                CangJieFileType.INSTANCE.defaultExtension
+                            )
+                        }
+
+                        directoryIndex.resetIndex()
+                        // 在非轻量级项目中，通过 ProjectRootManagerEx 更新项目根目录
+                        runWithNonLightProject(project) {
+                            ProjectRootManagerEx.getInstanceEx(project)
+                                .makeRootsChange(EmptyRunnable.getInstance(), false, true)
+                        }
+                        // 发布项目更新通知
+                        project.messageBus.syncPublisher(CjpmProjectsService.CJPM_PROJECTS_TOPIC)
+                            .cjpmProjectsUpdated(this, projects)
+                        initialized = true
+                    }
+                }
+                projects
+            }.handle { projects, err ->
+                // 处理异常情况，发布刷新结束通知
+                val status = err?.toRefreshStatus() ?: CjpmProjectsService.CjpmRefreshStatus.SUCCESS
+                refreshStatusPublisher.onRefreshFinished(status)
+                projects
+            }
+    }
+
+    private fun Throwable.toRefreshStatus(): CjpmProjectsService.CjpmRefreshStatus {
+        return when {
+            this is ProcessCanceledException -> CjpmProjectsService.CjpmRefreshStatus.CANCEL
+            this is CompletionException && cause is ProcessCanceledException -> CjpmProjectsService.CjpmRefreshStatus.CANCEL
+            else -> CjpmProjectsService.CjpmRefreshStatus.FAILURE
+        }
+    }
+
+    override fun getState(): Element {
+
+        val state = Element("state")
+        for (cjpmProject in allProjects) {
+            val cjpmProjectElement = Element("cjpmProject")
+            cjpmProjectElement.setAttribute("FILE", cjpmProject.manifest.systemIndependentPath)
+            state.addContent(cjpmProjectElement)
+        }
+
+
+        return state
+    }
+
+    /**
+     * Note that [noStateLoaded] is called not only during the first service creation, but on any
+     * service load if [getState] returned empty state during previous save (i.e. there are no cjpm project)
+     */
+    override fun noStateLoaded() {
+
+
+        // 显示在 [cn.cangnova.cangjie.ide.notifications.MissingToolchainNotificationProvider]
+
+        initialized = true // 不需要锁定B/C的服务初始时间
+
+//应该使用该服务进行初始化，因为它存储了cjpm项目数据的一部分
+        project.service<UserDisabledFeaturesHolder>()
+    }
+
+    override fun loadState(state: Element) {
+        val cjpmProjects = state.getChildren("cjpmProject")
+        val loaded = mutableListOf<CjpmProjectImpl>()
+        val userDisabledFeaturesMap = project.service<UserDisabledFeaturesHolder>()
+            .takeLoadedUserDisabledFeatures()
+
+
+        for (cjpmProject in cjpmProjects) {
+            val file = cjpmProject.getAttributeValue("FILE")
+            val manifest = Paths.get(file)
+//            val userDisabledFeatures = userDisabledFeaturesMap[manifest] ?: UserDisabledFeatures.EMPTY
+            val newProject = CjpmProjectImpl(manifest, this)
+            loaded.add(newProject)
+        }
+
+        //通过`invokeLater`刷新项目，避免修改模型
+//在打开项目时。直接使用`updateSync`
+//因此不是`ModifyProjects`
+        projects.updateSync { loaded }
+            .whenComplete { _, _ ->
+                val disableRefresh =
+                    System.getProperty(CJPM_DISABLE_PROJECT_REFRESH_ON_CREATION, "false").toBooleanStrictOrNull()
+                if (disableRefresh != true) {
+                    invokeLater {
+                        if (project.isDisposed) return@invokeLater
+//                        刷新所有项目
+                        refreshAllProjects()
+                    }
+                }
+            }
+    }
+
+    override fun dispose() {
+
+    }
+
+    companion object {
+        const val CJPM_DISABLE_PROJECT_REFRESH_ON_CREATION: String = "cjpm.disable.project.refresh.on.creation"
+
+    }
+}
+
+private fun hasAtLeastOneValidProject(projects: Collection<CjpmProject>) =
+    projects.any { it.manifest.exists() }
+
+private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): CompletableFuture<List<CjpmProjectImpl>> {
+    @Suppress("UnstableApiUsage")
+    if (!project.isTrusted()) return CompletableFuture.completedFuture(projects)
+    // TODO: get rid of `result` here
+    val result = if (projects.isEmpty()) {
+        CompletableFuture.completedFuture(emptyList())
+    } else {
+        val result = CompletableFuture<List<CjpmProjectImpl>>()
+        val syncTask = CjpmSyncTask(project, projects, result)
+        project.taskQueue.run(syncTask)
+        result
+    }
+
+    return result.thenApply { updatedProjects ->
+
+
+        runWithNonLightProject(project) {
+            setupProjectRoots(project, updatedProjects)
+
+
+
+            if (CangJieLanguageServerServices.getInstance().lspConfig.enabled) {
+                //            TODO 重启lsp服务器
+                CangJieLspServerManager.restartLspServer(project)
+            }
+
+
+        }
+        updatedProjects
+    }
+}
+
+private inline fun runWithNonLightProject(project: Project, action: () -> Unit) {
+    if ((project as? ProjectEx)?.isLight != true) {
+        action()
+    } else {
+        check(isUnitTestMode)
+    }
+}
+
+private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>) {
+    invokeAndWaitIfNeeded {
+
+        RunManager.getInstance(project)
+
+        runWriteAction {
+            if (project.isDisposed) return@runWriteAction
+
+            addDependencies(project, cjpmProjects)
+
+
+
+            ProjectRootManagerEx.getInstanceEx(project).mergeRootsChangesDuring {
+                for (cjpmProject in cjpmProjects) {
+//                    if (cjpmProject !is CjpmProjectImpl) {
+//                        continue
+//                    }
+
+//保持与cjpm模块名称一致
+//                    if (cjpmProject.project.name != cjpmProject.workspace?.metadata?.name) {
+//                        cjpmProject.workspace?.metadata?.name?.let {
+//                            (cjpmProject.project as? ProjectEx)?.setProjectName(
+//                                it
+//                            )
+//                        }
+//                    }
+
+
+// 设置生产文件夹
+//                    cjpmProject.workspaceRootDir?.setupContentRoots(project) { contentRoot ->
+//                        addExcludeFolder("${contentRoot.url}/${CjpmConstants.ProjectLayout.target}")
+//                    }
+
+                    val workspacePackages = cjpmProject.workspace?.packages
+                        .orEmpty()
+                        .filter { it.origin == PackageOrigin.WORKSPACE }
+
+                    for (pkg in workspacePackages) {
+                        pkg.contentRoot?.setupContentRoots(project, pkg.metadata, ContentEntryWrapper::setup)
+                    }
+                }
+            }
+        }
+        ProjectFileIndex.getInstance(project)
+    }
+}
+
+private val libraryTablesRegistrar = LibraryTablesRegistrar.getInstance()
+
+/**
+ * 添加依赖项
+ */
+private fun addDependencies(project: Project, cjpmProjects: List<CjpmProject>) {
+    val libraryTable = libraryTablesRegistrar.getLibraryTable(project)
+    val module = ModuleManager.getInstance(project).findModuleByName(project.name)
+    val moduleModel: ModifiableRootModel? = module?.let { ModuleRootManager.getInstance(it).modifiableModel }
+
+    // Remove existing libraries
+    moduleModel?.let { model ->
+        val existingEntries = model.orderEntries.filterIsInstance<LibraryOrderEntry>()
+        existingEntries.forEach { model.removeOrderEntry(it) }
+    }
+
+    cjpmProjects.forEach { cjpmProject ->
+        cjpmProject.workspace?.packages?.forEach {
+            if (it.origin == PackageOrigin.WORKSPACE) {
+                return@forEach
+            }
+            val library = it.getOrCreateLibrary(libraryTable)
+            val modifiableModel = library.modifiableModel
+            if (it.origin == PackageOrigin.STDLIB) {
+//                遍历文件夹下节点
+                it.contentRoot?.let { it1 ->
+                    modifiableModel.addRoot(it1, OrderRootType.CLASSES)
+                    modifiableModel.addRoot(it1, OrderRootType.SOURCES)
+                }
+            } else {
+                it.contentRoot?.url?.let { it1 ->
+                    modifiableModel.addRoot(it1, OrderRootType.CLASSES)
+                    modifiableModel.addRoot(it1, OrderRootType.SOURCES)
+                }
+            }
+            modifiableModel.commit()
+            moduleModel?.addLibraryEntry(library)
+        }
+    }
+    moduleModel?.commit()
+}
+
+private fun CjpmWorkspace.Package.getOrCreateLibrary(libraryTable: LibraryTable): Library {
+    return if (this.origin == PackageOrigin.STDLIB) {
+        libraryTable.getLibraryByName("stdlib") ?: libraryTable.createLibrary("stdlib")
+    } else {
+        libraryTable.getLibraryByName(this.name) ?: libraryTable.createLibrary(this.name)
+
+    }
+}
+
+private fun isExistingProject(projects: Collection<CjpmProject>, manifest: Path): Boolean {
+    if (projects.any { it.manifest == manifest }) return true
+    return projects.map { it.workingDirectory }
+        .any { it.parent == manifest.parent }
+}
+
+private fun VirtualFile.setupContentRoots(
+    project: Project,
+    metadata: CjpmTomlConfig?,
+    setup: ContentEntryWrapper.(VirtualFile, CjpmTomlConfig?) -> Unit
+) {
+    val packageModule = ModuleUtilCore.findModuleForFile(this, project) ?: return
+    setupContentRoots(packageModule, metadata, setup)
+}
+
+private fun VirtualFile.setupContentRoots(
+    packageModule: Module,
+    metadata: CjpmTomlConfig?,
+    setup: ContentEntryWrapper.(VirtualFile, CjpmTomlConfig?) -> Unit
+) {
+    ModuleRootModificationUtil.updateModel(packageModule) { rootModel ->
+
+        val contentEntry = rootModel.contentEntries.singleOrNull() ?: return@updateModel
+        ContentEntryWrapper(contentEntry).setup(this, metadata)
+    }
+}
+
+
+inline fun <T> VirtualFile.applyWithSymlink(f: (VirtualFile) -> T?): T? {
+    return f(this) ?: f(canonicalFile ?: return null)
+}
+
+
+fun Project.showBalloon(
+    @Suppress("UnstableApiUsage") @NlsContexts.NotificationTitle title: String,
+    @Suppress("UnstableApiUsage") @NlsContexts.NotificationContent content: String,
+    type: NotificationType,
+    action: AnAction? = null,
+    listener: NotificationListener? = null
+) {
+    val notification = CjNotifications.pluginNotifications().createNotification(title, content, type)
+    if (listener != null) {
+        notification.setListener(listener)
+    }
+    if (action != null) {
+        notification.addAction(action)
+    }
+    Notifications.Bus.notify(notification, this)
+}
+
+fun Project.showBalloon(
+    @Suppress("UnstableApiUsage") @NlsContexts.NotificationContent content: String,
+    type: NotificationType,
+    action: AnAction? = null
+) {
+    showBalloon("", content, type, action)
+}

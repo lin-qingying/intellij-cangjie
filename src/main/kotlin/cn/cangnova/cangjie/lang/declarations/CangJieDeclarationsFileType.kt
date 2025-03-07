@@ -1,0 +1,75 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.lang.declarations
+
+import com.intellij.openapi.fileTypes.FileType
+import cn.cangnova.cangjie.icon.CangJieIcons
+import cn.cangnova.cangjie.lang.CangJieFileType
+import com.intellij.openapi.vfs.VirtualFile
+import cn.cangnova.cangjie.ide.CangJieIconProviderService
+import cn.cangnova.cangjie.serialization.deserialization.BuiltInSerializerProtocol
+import javax.swing.Icon
+
+object CangJieBuiltInFileType : FileType {
+    override fun getName() = "cangjie_builtins"
+
+    override fun getDescription(): String = ""
+
+    override fun getDefaultExtension() = BuiltInSerializerProtocol.BUILTINS_FILE_EXTENSION
+
+    override fun getIcon(): Icon? = CangJieIconProviderService.instance.builtInFileIcon
+
+    override fun isBinary() = true
+
+    override fun isReadOnly() = true
+
+    override fun getCharset(file: VirtualFile, content: ByteArray): String? = null
+
+    private const val DEFAULT_DESCRIPTION = "CangJie built-in declarations"
+}
+
+object CangJieDeclarationsFileType : CangJieFileType() {
+      val EXTENSION: String = "cjd"
+
+    override fun getDisplayName(): String {
+        return EXTENSION
+    }
+
+    override fun getName() = EXTENSION
+
+    override fun getDescription(): String = DEFAULT_DESCRIPTION
+
+    override fun getDefaultExtension() = "cjd"
+
+    override fun getIcon(): Icon = CangJieIcons.CANGJIE_FILE
+
+//    override fun isBinary() = false
+
+    override fun isReadOnly() = true
+
+    override fun getCharset(file: VirtualFile, content: ByteArray): String? = null
+
+    private const val DEFAULT_DESCRIPTION = "CangJie built-in declarations"
+}

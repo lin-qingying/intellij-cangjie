@@ -1,0 +1,288 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.resolve;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
+import com.intellij.openapi.util.Ref;
+import com.intellij.psi.PsiElement;
+import cn.cangnova.cangjie.contracts.description.EventOccurrencesRange;
+import cn.cangnova.cangjie.contracts.model.Computation;
+import cn.cangnova.cangjie.descriptors.*;
+import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor;
+import cn.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor;
+import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor;
+import cn.cangnova.cangjie.diagnostics.Diagnostics;
+import cn.cangnova.cangjie.name.FqName;
+import cn.cangnova.cangjie.name.FqNameUnsafe;
+import cn.cangnova.cangjie.psi.*;
+import cn.cangnova.cangjie.resolve.caches.PrimitiveNumericComparisonInfo;
+import cn.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext;
+import cn.cangnova.cangjie.resolve.calls.model.PartialCallContainer;
+import cn.cangnova.cangjie.resolve.calls.model.ResolvedCall;
+import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo;
+import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue;
+import cn.cangnova.cangjie.resolve.calls.smartcasts.ExplicitSmartCasts;
+import cn.cangnova.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl;
+import cn.cangnova.cangjie.resolve.constants.CompileTimeConstant;
+import cn.cangnova.cangjie.resolve.scopes.LexicalScope;
+import cn.cangnova.cangjie.resolve.scopes.receivers.QualifierReceiver;
+import cn.cangnova.cangjie.types.CangJieType;
+import cn.cangnova.cangjie.types.DeferredType;
+import cn.cangnova.cangjie.types.DeferredTypeNoCache;
+import cn.cangnova.cangjie.types.expressions.CaptureKind;
+import cn.cangnova.cangjie.types.expressions.PreliminaryDeclarationVisitor;
+import cn.cangnova.cangjie.types.expressions.match.Pattern;
+import cn.cangnova.cangjie.utils.Box;
+import cn.cangnova.cangjie.utils.ReadOnly;
+import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo;
+import cn.cangnova.cangjie.utils.slicedMap.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import static cn.cangnova.cangjie.utils.slicedMap.RewritePolicy.DO_NOTHING;
+import static cn.cangnova.cangjie.utils.slicedMap.Slices.COMPILE_TIME_VALUE_REWRITE_POLICY;
+
+public interface BindingContext {
+    BindingContext EMPTY = new BindingContext() {
+        @NotNull
+        @Override
+        public Diagnostics getDiagnostics() {
+            return Diagnostics.Companion.getEMPTY();
+        }
+
+        @Override
+        public <K, V> V get(ReadOnlySlice<K, V> slice, K key) {
+            return null;
+        }
+
+        @NotNull
+        @Override
+        public <K, V> Collection<K> getKeys(WritableSlice<K, V> slice) {
+            return Collections.emptyList();
+        }
+
+        @NotNull
+        @TestOnly
+        @Override
+        public <K, V> ImmutableMap<K, V> getSliceContents(@NotNull ReadOnlySlice<K, V> slice) {
+            return ImmutableMap.of();
+        }
+
+        @Nullable
+        @Override
+        public CangJieType getType(@NotNull CjExpression expression) {
+            return null;
+        }
+
+        @Override
+        public void addOwnDataTo(@NotNull BindingTrace trace, boolean commitDiagnostics) {
+            // Do nothing
+        }
+    };
+    WritableSlice<Box<DeferredTypeNoCache>, Boolean> DEFERRED_TYPE_NO_CACHE = Slices.createCollectiveSetSlice();
+
+    WritableSlice<Box<DeferredType>, Boolean> DEFERRED_TYPE = Slices.createCollectiveSetSlice();
+    WritableSlice<CjCollectionLiteralExpression, ResolvedCall<FunctionDescriptor>> COLLECTION_LITERAL_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjRangeExpression, ResolvedCall<FunctionDescriptor>> RANGE_LITERAL_CALL = Slices.createSimpleSlice();
+    WritableSlice<VariableDescriptor, Boolean> IS_UNINITIALIZED = Slices.createSimpleSetSlice();
+
+    WritableSlice<CjExpression, ExplicitSmartCasts> UNSTABLE_SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjExpression, DataFlowInfo> DATAFLOW_INFO_AFTER_CONDITION = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, Boolean> VARIABLE_REASSIGNMENT = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_ITERATOR_RESOLVED_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_HAS_NEXT_RESOLVED_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> LOOP_RANGE_NEXT_RESOLVED_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjDestructuringDeclarationEntry, ResolvedCall<FunctionDescriptor>> COMPONENT_RESOLVED_CALL = Slices.createSimpleSlice();
+    WritableSlice<CjLambdaExpression, EventOccurrencesRange> LAMBDA_INVOCATIONS = Slices.createSimpleSlice();
+    WritableSlice<CjElement, Boolean> USED_AS_RESULT_OF_LAMBDA = Slices.createSimpleSetSlice();
+    WritableSlice<CjExpression, ExplicitSmartCasts> SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjMatchExpression, Boolean> IMPLICIT_EXHAUSTIVE_WHEN = Slices.createSimpleSlice();
+    WritableSlice<CjPropertyAccessor, PropertyAccessorDescriptor> PROPERTY_ACCESSOR = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, Boolean> SMARTCAST_NULL = Slices.createSimpleSlice();
+    //    WritableSlice<CjExpression, ImplicitSmartCasts> IMPLICIT_RECEIVER_SMARTCAST = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<VariableDescriptor, CaptureKind> CAPTURED_IN_CLOSURE = new BasicWritableSlice<>(DO_NOTHING);
+
+    WritableSlice<CjTypeReference, CangJieType> TYPE = Slices.createSimpleSlice();
+    WritableSlice<DeclarationDescriptor, Multimap<String, ReceiverParameterDescriptor>> DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP = Slices.createSimpleSlice();
+    WritableSlice<CjTypeReference, CangJieType> ABBREVIATED_TYPE = Slices.createSimpleSlice();
+    WritableSlice<Call, BasicCallResolutionContext> PARTIAL_CALL_RESOLUTION_CONTEXT = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjExpression, Call> DELEGATE_EXPRESSION_TO_PROVIDE_DELEGATE_CALL = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjDeclaration, PreliminaryDeclarationVisitor> PRELIMINARY_VISITOR = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjSuperExpression, Boolean> SUPER_EXPRESSION_FROM_ANY_MIGRATION = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, CompileTimeConstant<?>> COMPILE_TIME_VALUE = new BasicWritableSlice<>(COMPILE_TIME_VALUE_REWRITE_POLICY);
+    WritableSlice<PsiElement, VariableDescriptor> PRIMARY_CONSTRUCTOR_PARAMETER = Slices.createSimpleSlice();
+    WritableSlice<CjReferenceExpression, ClassifierDescriptorWithTypeParameters> SHORT_REFERENCE_TO_COMPANION_OBJECT =
+            new BasicWritableSlice<>(DO_NOTHING);
+
+    //    表示形参转变量声明
+    WritableSlice<ValueParameterDescriptor, VariableDescriptor> VALUE_PARAMETER_AS_VARIABLE = Slices.createSimpleSlice();
+    WritableSlice<ValueParameterDescriptor, Boolean> AUTO_CREATED_IT = Slices.createSimpleSetSlice();
+
+    WritableSlice<CjFunction, CangJieType> EXPECTED_RETURN_TYPE = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<FqNameUnsafe, ClassDescriptor> FQNAME_TO_CLASS_DESCRIPTOR = new BasicWritableSlice<>(DO_NOTHING, true);
+    WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> INDEXED_LVALUE_SET = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, ResolvedCall<FunctionDescriptor>> INDEXED_LVALUE_GET = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, PrimitiveNumericComparisonInfo> PRIMITIVE_NUMERIC_COMPARISON_INFO = Slices.createSimpleSlice();
+    WritableSlice<PropertyDescriptor, Boolean> BACKING_FIELD_REQUIRED = new BasicWritableSlice<PropertyDescriptor, Boolean>(DO_NOTHING) {
+        @Override
+        public Boolean computeValue(
+                SlicedMap map,
+                PropertyDescriptor propertyDescriptor,
+                Boolean backingFieldRequired,
+                boolean valueNotFound
+        ) {
+            if (propertyDescriptor.getKind() != CallableMemberDescriptor.Kind.DECLARATION) {
+                return false;
+            }
+//            PsiElement declarationPsiElement = DescriptorToSourceUtils.descriptorToDeclaration(propertyDescriptor);
+//            if (declarationPsiElement instanceof CjParameter) {
+//                CjParameter cjParameter = (CjParameter) declarationPsiElement;
+//                return cjParameter.hasLetOrVar() ||
+//                        backingFieldRequired; // this part is unused because we do not allow access to constructor parameters in member bodies
+//            }
+//            if (propertyDescriptor.getModality() == Modality.ABSTRACT) return false;
+//            if (declarationPsiElement instanceof CjProperty  ) return false;
+//            PropertyGetterDescriptor getter = propertyDescriptor.getGetter();
+//            PropertySetterDescriptor setter = propertyDescriptor.getSetter();
+//
+//            if (getter == null) return true;
+//            if (propertyDescriptor.isVar() && setter == null) return true;
+//            if (setter != null && !DescriptorPsiUtilsKt.hasBody(setter) && setter.getModality() != Modality.ABSTRACT) return true;
+//            if (!DescriptorPsiUtilsKt.hasBody(getter) && getter.getModality() != Modality.ABSTRACT) return true;
+//
+//            return backingFieldRequired;
+            return false;
+        }
+    };
+    WritableSlice<CjMatchExpression, Boolean> IMPLICIT_EXHAUSTIVE_MATCH = Slices.createSimpleSlice();
+
+    WritableSlice<CjReferenceExpression, ReceiverParameterDescriptor> THIS_REFERENCE_TARGET = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjElement, Computation> EXPRESSION_EFFECTS = Slices.createSimpleSlice();
+    WritableSlice<VariableDescriptor, DataFlowValue> BOUND_INITIALIZER_VALUE = Slices.createSimpleSlice();
+    WritableSlice<PsiElement, ConstructorDescriptor> CONSTRUCTOR = Slices.createSimpleSlice();
+    WritableSlice<PsiElement, ConstructorDescriptor> END_CONSTRUCTOR = Slices.createSimpleSlice();
+
+    WritableSlice<CjCasePattern, Pattern> PATTERN = Slices.createSimpleSlice();
+
+    WritableSlice<CjCallableReference, Boolean> IS_FUNC = Slices.createSimpleSlice();
+
+    WritableSlice<CjFunction, CangJieResolutionCallbacksImpl.LambdaInfo> NEW_INFERENCE_LAMBDA_INFO = new BasicWritableSlice<>(DO_NOTHING);
+
+    WritableSlice<CjSuperExpression, CangJieType> THIS_TYPE_FOR_SUPER_EXPRESSION = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<Call, PartialCallContainer> ONLY_RESOLVED_CALL = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<PsiElement, Boolean> DEPRECATED_SHORT_NAME_ACCESS = Slices.createSimpleSlice();
+
+    WritableSlice<CjElement, LexicalScope> LEXICAL_SCOPE = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, DataFlowInfo> DATA_FLOW_INFO_BEFORE = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjExpression, CangJieType> EXPECTED_EXPRESSION_TYPE = new BasicWritableSlice<>(DO_NOTHING);
+
+    WritableSlice<CjExpression, Boolean> PROCESSED = Slices.createSimpleSlice();
+    WritableSlice<CjBinaryExpressionWithTypeRHS, Boolean> CAST_TYPE_USED_AS_EXPECTED_TYPE = Slices.createSimpleSlice();
+
+    WritableSlice<CjAnnotationEntry, AnnotationDescriptor> ANNOTATION = Slices.createSimpleSlice();
+    WritableSlice<FqName, Collection<CjFile>> PACKAGE_TO_FILES = Slices.createSimpleSlice();
+    WritableSlice<PsiElement, SimpleFunctionDescriptor> FUNCTION = Slices.createSimpleSlice();
+    WritableSlice<PsiElement, MacroDescriptor> MACRO = Slices.createSimpleSlice();
+
+    WritableSlice<CjExpression, QualifierReceiver> QUALIFIER = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjElement, Boolean> USED_AS_EXPRESSION = new BasicWritableSlice<>(DO_NOTHING);
+
+    WritableSlice<CjElement, Call> CALL = new BasicWritableSlice<>(DO_NOTHING);
+
+    WritableSlice<ConstructorDescriptor, ResolvedCall<ConstructorDescriptor>> CONSTRUCTOR_RESOLVED_DELEGATION_CALL =
+            Slices.createSimpleSlice();
+    WritableSlice<CjReferenceExpression, DeclarationDescriptor> REFERENCE_TARGET = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjExpression, Collection<? extends DeclarationDescriptor>> AMBIGUOUS_REFERENCE_TARGET =
+            new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<Call, ResolvedCall<?>> RESOLVED_CALL = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjExpression, Ref<VariableDescriptor>> NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
+
+    WritableSlice<CjExpression, Ref<List<VariableDescriptor>>> NEW_INFERENCE_TRY_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
+
+    //    像块插入局部变量
+    WritableSlice<CjExpression, Ref<List<VariableDescriptor>>> NEW_INFENCE_BLOCK_EXCEPTION_PARAMETER = Slices.createSimpleSlice();
+
+    WritableSlice<CjReferenceExpression, PsiElement> LABEL_TARGET = Slices.createSimpleSlice();
+    WritableSlice<CjReferenceExpression, Collection<? extends PsiElement>> AMBIGUOUS_LABEL_TARGET = Slices.createSimpleSlice();
+
+
+    WritableSlice<PsiElement, ClassDescriptor> CLASS = Slices.createSimpleSlice();
+    WritableSlice<CjExpression, CangJieTypeInfo> EXPRESSION_TYPE_INFO = new BasicWritableSlice<>(DO_NOTHING);
+    WritableSlice<CjTypeParameter, TypeParameterDescriptor> TYPE_PARAMETER = Slices.createSimpleSlice();
+    WritableSlice<PsiElement, VariableDescriptor> VARIABLE = Slices.createSimpleSlice();
+
+    /**
+     * return语句的目标，可能是方法，lambda表达式
+     */
+    WritableSlice<CjDeclaration, Set<CjExpression>> RETURN_TARGET = Slices.createSimpleSlice();
+
+    WritableSlice<CjParameterBase, VariableDescriptor> VALUE_PARAMETER = Slices.createSimpleSlice();
+    WritableSlice<PsiElement, TypeAliasDescriptor> TYPE_ALIAS = Slices.createSimpleSlice();
+    WritableSlice[] DECLARATIONS_TO_DESCRIPTORS = new WritableSlice[]{
+            CLASS
+            , TYPE_PARAMETER, MACRO,FUNCTION, CONSTRUCTOR, VARIABLE, VALUE_PARAMETER, PROPERTY_ACCESSOR, PRIMARY_CONSTRUCTOR_PARAMETER,
+            TYPE_ALIAS
+    };
+
+
+    @SuppressWarnings("unchecked")
+    ReadOnlySlice<PsiElement, DeclarationDescriptor> DECLARATION_TO_DESCRIPTOR =
+            Slices.<PsiElement, DeclarationDescriptor>sliceBuilder()
+                    .setFurtherLookupSlices(DECLARATIONS_TO_DESCRIPTORS)
+                    .build();
+
+
+    @SuppressWarnings("UnusedDeclaration")
+    @Deprecated // This field is needed only for the side effects of its initializer
+    Void _static_initializer = BasicWritableSlice.initSliceDebugNames(BindingContext.class);
+
+    @NotNull
+    Diagnostics getDiagnostics();
+
+    @Nullable <K, V> V get(ReadOnlySlice<K, V> slice, K key);
+
+    // slice.isCollective() must be true
+    @NotNull
+    @ReadOnly
+    <K, V> Collection<K> getKeys(WritableSlice<K, V> slice);
+
+    /**
+     * This method should be used only for debug and testing
+     */
+    @TestOnly
+    @NotNull <K, V> ImmutableMap<K, V> getSliceContents(@NotNull ReadOnlySlice<K, V> slice);
+
+    @Nullable
+    CangJieType getType(@NotNull CjExpression expression);
+
+    void addOwnDataTo(@NotNull BindingTrace trace, boolean commitDiagnostics);
+}

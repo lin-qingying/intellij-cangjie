@@ -1,4 +1,4 @@
-package com.linqingying.cangjie.debugger.lang
+package cn.cangnova.cangjie.debugger.lang
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -6,9 +6,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.jetbrains.cidr.execution.debugger.CidrDebuggerEditorsExtensionBase
-import com.linqingying.cangjie.psi.CjElement
-import com.linqingying.cangjie.psi.CjPsiFactory
-import com.linqingying.cangjie.psi.psiUtil.ancestorOrSelf
+import cn.cangnova.cangjie.psi.CjElement
+import cn.cangnova.cangjie.psi.CjPsiFactory
+import cn.cangnova.cangjie.psi.psiUtil.ancestorOrSelf
 
 
 class CjDebuggerEditorsExtension : CidrDebuggerEditorsExtensionBase() {

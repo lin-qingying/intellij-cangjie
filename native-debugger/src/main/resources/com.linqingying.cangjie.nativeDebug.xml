@@ -1,6 +1,6 @@
-<idea-plugin package="com.linqingying.cangjie.debugger">
+<idea-plugin package="cn.cangnova.cangjie.debugger">
 
-    <module value="com.linqingying.cangjie.nativeDebug"/>
+    <module value="cn.cangnova.cangjie.nativeDebug"/>
     <dependencies>
 
         <plugin id="com.intellij.modules.cidr.debugger"/>
@@ -8,49 +8,49 @@
 
     </dependencies>
     <extensionPoints>
-        <extensionPoint qualifiedName="com.linqingying.cangjie.debugger.driverConfigurationProvider"
-                        interface="com.linqingying.cangjie.debugger.CjDebuggerDriverConfigurationProvider"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.debugger.driverConfigurationProvider"
+                        interface="cn.cangnova.cangjie.debugger.CjDebuggerDriverConfigurationProvider"
                         dynamic="true"/>
 
     </extensionPoints>
     <extensions defaultExtensionNs="cidr.debugger">
-        <editorsExtension language="CangJie" implementationClass="com.linqingying.cangjie.debugger.lang.CjDebuggerEditorsExtension"/>
+        <editorsExtension language="CangJie" implementationClass="cn.cangnova.cangjie.debugger.lang.CjDebuggerEditorsExtension"/>
 
         <languageSupport language="CangJie"
-                         implementationClass="com.linqingying.cangjie.debugger.lang.CjDebuggerLanguageSupport"/>
+                         implementationClass="cn.cangnova.cangjie.debugger.lang.CjDebuggerLanguageSupport"/>
         <lineBreakpointFileTypesProvider
-                implementation="com.linqingying.cangjie.debugger.CjLineBreakpointFileTypesProvider"/>
+                implementation="cn.cangnova.cangjie.debugger.CjLineBreakpointFileTypesProvider"/>
 
         <debugProcessConfigurator
-                implementation="com.linqingying.cangjie.debugger.runconfig.CjDebugProcessConfigurator"/>
+                implementation="cn.cangnova.cangjie.debugger.runconfig.CjDebugProcessConfigurator"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
-        <xdebugger.settings implementation="com.linqingying.cangjie.debugger.settings.CjDebuggerSettings"/>
+        <xdebugger.settings implementation="cn.cangnova.cangjie.debugger.settings.CjDebuggerSettings"/>
 
 
         <programRunner id="CjDebugRunner"
-                       implementation="com.linqingying.cangjie.debugger.runconfig.CjDebugRunner"/>
+                       implementation="cn.cangnova.cangjie.debugger.runconfig.CjDebugRunner"/>
 
         <programRunner id="CjDebugRunnerLegacy"
-                       implementation="com.linqingying.cangjie.debugger.runconfig.legacy.CjDebugRunnerLegacy"/>
-        <registryKey key="com.linqingying.cangjie.debugger.gdb.setup.v2"
+                       implementation="cn.cangnova.cangjie.debugger.runconfig.legacy.CjDebugRunnerLegacy"/>
+        <registryKey key="cn.cangnova.cangjie.debugger.gdb.setup.v2"
                      defaultValue="false"
                      description="Enables new way how GDB is set up for CangJie"/>
 
-        <registryKey key="com.linqingying.cangjie.debugger.gdb.setup.v2"
+        <registryKey key="cn.cangnova.cangjie.debugger.gdb.setup.v2"
                      defaultValue="false"
                      description="Enables new way how GDB is set up for CangJie"/>
 
-        <registryKey key="com.linqingying.cangjie.debugger.lldb.cangjie.msvc" defaultValue="true"
+        <registryKey key="cn.cangnova.cangjie.debugger.lldb.cangjie.msvc" defaultValue="true"
                      restartRequired="false"
                      description="Enable CangJie MSVC support in LLDB (Windows-only)"/>
 
     </extensions>
 
-    <extensions defaultExtensionNs="com.linqingying.cangjie">
+    <extensions defaultExtensionNs="cn.cangnova.cangjie">
         <debugger.driverConfigurationProvider
                 id="CjDefaultDebuggerDriverConfigurationProvider"
-                implementation="com.linqingying.cangjie.debugger.CjDefaultDebuggerDriverConfigurationProvider"
+                implementation="cn.cangnova.cangjie.debugger.CjDefaultDebuggerDriverConfigurationProvider"
                 order="last"/>
     </extensions>
 </idea-plugin>

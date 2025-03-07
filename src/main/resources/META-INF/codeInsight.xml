@@ -24,23 +24,23 @@
 
 <idea-plugin>
 
-<extensions defaultExtensionNs="com.linqingying.cangjie.ide">
+<extensions defaultExtensionNs="cn.cangnova.cangjie.ide">
 <!--    <codeInsight.unresolvedReferenceQuickFixProvider-->
 <!--            id="cangjieUnresolvedReferenceQuickFixProvider"-->
-<!--            implementation="com.linqingying.cangjie.ide.codeinsight.CangJieUnresolvedReferenceQuickFixProvider"/>-->
+<!--            implementation="cn.cangnova.cangjie.ide.codeinsight.CangJieUnresolvedReferenceQuickFixProvider"/>-->
 
 </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.unresolvedReferenceQuickFixProvider
                 id="cangjieUnresolvedReferenceQuickFixProvider"
-                implementation="com.linqingying.cangjie.ide.codeinsight.CangJieUnresolvedReferenceQuickFixProvider"/>
+                implementation="cn.cangnova.cangjie.ide.codeinsight.CangJieUnresolvedReferenceQuickFixProvider"/>
         <codeInsight.lineMarkerProvider language="CangJie"
-                                        implementationClass="com.linqingying.cangjie.ide.codeinsight.CangJieIconLineMarkerProvider"/>
+                                        implementationClass="cn.cangnova.cangjie.ide.codeinsight.CangJieIconLineMarkerProvider"/>
 
         <!--      lambda 表达式-->
         <codeInsight.declarativeInlayProvider
                 language="CangJie"
-                implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieLambdasHintsProvider"
+                implementationClass="cn.cangnova.cangjie.ide.codeinsight.hints.declarative.CangJieLambdasHintsProvider"
                 isEnabledByDefault="false"
                 group="LAMBDAS_GROUP"
                 providerId="cangjie.lambdas.hints"
@@ -59,16 +59,16 @@
 <!--                    descriptionKey="inlay.cangjie.lambdas.hints.hints.lambda.receivers.parameters"/>-->
         </codeInsight.declarativeInlayProvider>
         <codeInsight.parameterNameHints language="CangJie"
-                                        implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.CangJieInlayParameterHintsProvider"/>
+                                        implementationClass="cn.cangnova.cangjie.ide.codeinsight.hints.CangJieInlayParameterHintsProvider"/>
 
         <codeInsight.inlayActionHandler
-                implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieFqnDeclarativeInlayActionHandler"
+                implementationClass="cn.cangnova.cangjie.ide.codeinsight.hints.declarative.CangJieFqnDeclarativeInlayActionHandler"
                 handlerId="cangjie.fqn.class"/>
 
         <!--        值的嵌入提示-->
         <codeInsight.declarativeInlayProvider
                 language="CangJie"
-                implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieValuesHintsProvider"
+                implementationClass="cn.cangnova.cangjie.ide.codeinsight.hints.declarative.CangJieValuesHintsProvider"
                 isEnabledByDefault="true"
                 group="VALUES_GROUP"
                 providerId="cangjie.values.hints"
@@ -79,7 +79,7 @@
         <!--        类型的嵌入提示-->
         <codeInsight.declarativeInlayProvider
                 language="CangJie"
-                implementationClass="com.linqingying.cangjie.ide.codeinsight.hints.declarative.CangJieReferencesTypeHintsProvider"
+                implementationClass="cn.cangnova.cangjie.ide.codeinsight.hints.declarative.CangJieReferencesTypeHintsProvider"
                 isEnabledByDefault="false"
                 group="TYPES_GROUP"
                 providerId="cangjie.references.types.hints"
@@ -120,14 +120,14 @@
         </codeInsight.declarativeInlayProvider>
 
         <lang.documentationProvider language="CangJie"
-                                    implementationClass="com.linqingying.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieDocumentationProvider"
+                                    implementationClass="cn.cangnova.cangjie.ide.codeinsight.quickDoc.cdoc.CangJieDocumentationProvider"
                                     order="first"/>
 
         <!--        <platform.backend.documentation.targetProvider id="CangJieDocumentationTargetProvider"-->
-        <!--                                                       implementation="com.linqingying.cangjie.ide.codeinsight.quickDoc.CangJieDocumentationTargetProvider"/>-->
+        <!--                                                       implementation="cn.cangnova.cangjie.ide.codeinsight.quickDoc.CangJieDocumentationTargetProvider"/>-->
 
         <!--        <platform.backend.documentation.psiTargetProvider id="CangJieDocumentationTargetProvider"-->
-        <!--                                                          implementation="com.linqingying.cangjie.ide.codeinsight.quickDoc.CangJiePsiDocumentationTargetProvider"/>-->
+        <!--                                                          implementation="cn.cangnova.cangjie.ide.codeinsight.quickDoc.CangJiePsiDocumentationTargetProvider"/>-->
 
     </extensions>
 </idea-plugin>

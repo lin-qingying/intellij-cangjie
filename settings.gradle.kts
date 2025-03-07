@@ -46,18 +46,8 @@ rootProject.name = "intellij-cangjie"
 
 
 include("plugin")
-include("utils")
 
 
-//lsp支持
-include("lsp")
-
-
-
-
-//include("native-debugger")
-
-//include("dap-debugger")
 
 include("dap-debugger1")
 

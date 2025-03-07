@@ -1,0 +1,177 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.ide.quickfix
+
+import cn.cangnova.cangjie.CangJieBundle
+import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
+import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.psi.*
+import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
+import com.intellij.codeInsight.daemon.impl.actions.IntentionActionWithFixAllOption
+import com.intellij.codeInsight.intention.FileModifier
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiNameIdentifierOwner
+import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.annotations.Nls
+
+open class RemoveModifierFixBase(
+    element: CjModifierListOwner,
+    @FileModifier.SafeFieldForPreview
+    private val modifier: CjModifierKeywordToken,
+    private val isRedundant: Boolean
+) : CangJieCrossLanguageQuickFixAction<CjModifierListOwner>(element), IntentionActionWithFixAllOption {
+
+    @Nls
+    private val text = run {
+        val modifierText = modifier.value
+        when {
+            isRedundant ->
+                CangJieBundle.message("remove.redundant.0.modifier", modifierText)
+            modifier === CjTokens.ABSTRACT_KEYWORD || modifier === CjTokens.OPEN_KEYWORD ->
+                CangJieBundle.message("make.0.not.1", getElementName(element), modifierText)
+            else ->
+                CangJieBundle.message("remove.0.modifier", modifierText, modifier)
+        }
+    }
+
+    override fun getFamilyName() = CangJieBundle.message("remove.modifier")
+
+    override fun getText() = text
+
+    override fun isAvailableImpl(project: Project, editor: Editor?, file: PsiFile) = element?.hasModifier(modifier) == true
+
+    override fun invokeImpl(project: Project, editor: Editor?, file: PsiFile) {
+        invoke()
+    }
+
+    operator fun invoke() {
+        element?.removeModifier(modifier)
+    }
+
+    companion object {
+        val removeRedundantModifier: QuickFixesPsiBasedFactory<PsiElement> = createRemoveModifierFactory(isRedundant = true)
+        val removeNonRedundantModifier: QuickFixesPsiBasedFactory<PsiElement> = createRemoveModifierFactory(isRedundant = false)
+        val removeAbstractModifier: QuickFixesPsiBasedFactory<PsiElement> =
+            createRemoveModifierFromListOwnerPsiBasedFactory(CjTokens.ABSTRACT_KEYWORD)
+        val removeOpenModifier: QuickFixesPsiBasedFactory<PsiElement> = createRemoveModifierFromListOwnerPsiBasedFactory(CjTokens.OPEN_KEYWORD)
+
+        val removePrivateModifier: QuickFixesPsiBasedFactory<PsiElement> = createRemoveModifierFromListOwnerPsiBasedFactory(CjTokens.PRIVATE_KEYWORD)
+
+        fun createRemoveModifierFromListOwnerPsiBasedFactory(
+            modifier: CjModifierKeywordToken,
+            isRedundant: Boolean = false
+        ): QuickFixesPsiBasedFactory<PsiElement> =
+            createRemoveModifierFromListOwnerFactoryByModifierListOwner(
+                modifier,
+                isRedundant
+            ).coMap { PsiTreeUtil.getParentOfType(it, CjModifierListOwner::class.java, false) }
+
+
+        private fun createRemoveModifierFromListOwnerFactoryByModifierListOwner(
+            modifier: CjModifierKeywordToken,
+            isRedundant: Boolean = false
+        ) = quickFixesPsiBasedFactory<CjModifierListOwner> {
+            listOf(RemoveModifierFixBase(it, modifier, isRedundant))
+        }
+
+        private fun createRemoveModifierFactory(isRedundant: Boolean = false): QuickFixesPsiBasedFactory<PsiElement> {
+            return quickFixesPsiBasedFactory { psiElement: PsiElement ->
+                val elementType = psiElement.node.elementType as? CjModifierKeywordToken ?: return@quickFixesPsiBasedFactory emptyList()
+                val modifierListOwner = psiElement.getStrictParentOfType<CjModifierListOwner>()
+                    ?: return@quickFixesPsiBasedFactory emptyList()
+                listOf(RemoveModifierFixBase(modifierListOwner, elementType, isRedundant))
+            }
+        }
+
+
+        fun createRemoveProjectionFactory(isRedundant: Boolean): QuickFixesPsiBasedFactory<PsiElement> {
+            return quickFixesPsiBasedFactory { psiElement: PsiElement ->
+                val projection = psiElement as CjTypeProjection
+                val elementType = projection.projectionToken?.node?.elementType as? CjModifierKeywordToken
+                    ?: return@quickFixesPsiBasedFactory listOf()
+                listOf(RemoveModifierFixBase(projection, elementType, isRedundant))
+            }
+        }
+
+        fun createRemoveVarianceFactory(): QuickFixesPsiBasedFactory<PsiElement> {
+            return quickFixesPsiBasedFactory { psiElement: PsiElement ->
+                require(psiElement is CjTypeParameter)
+                val modifier = when (psiElement.variance) {
+//                    Variance.IN_VARIANCE -> CjTokens.IN_KEYWORD
+//                    Variance.OUT_VARIANCE -> CjTokens.OUT_KEYWORD
+                    else -> return@quickFixesPsiBasedFactory emptyList()
+                }
+                listOf(RemoveModifierFixBase(psiElement, modifier, isRedundant = false))
+            }
+        }
+
+//        fun createRemoveSuspendFactory(): QuickFixesPsiBasedFactory<PsiElement> {
+//            return quickFixesPsiBasedFactory { psiElement: PsiElement ->
+//                val modifierList = psiElement.parent as CjDeclarationModifierList
+//                val type = modifierList.parent as CjTypeReference
+//                if (!type.hasModifier(CjTokens.SUSPEND_KEYWORD)) return@quickFixesPsiBasedFactory emptyList()
+//                listOf(RemoveModifierFixBase(type, CjTokens.SUSPEND_KEYWORD, isRedundant = false))
+//            }
+//        }
+//
+//        fun createRemoveLateinitFactory(): QuickFixesPsiBasedFactory<PsiElement> {
+//            return quickFixesPsiBasedFactory { psiElement: PsiElement ->
+//                val property = psiElement as? CjProperty ?: return@quickFixesPsiBasedFactory emptyList()
+//                if (!property.hasModifier(CjTokens.LATEINIT_KEYWORD)) return@quickFixesPsiBasedFactory emptyList()
+//                listOf(RemoveModifierFixBase(property, CjTokens.LATEINIT_KEYWORD, isRedundant = false))
+//            }
+//        }
+
+//        fun createRemoveFunFromInterfaceFactory(): QuickFixesPsiBasedFactory<PsiElement> {
+//            return quickFixesPsiBasedFactory { psiElement: PsiElement ->
+//                val modifierList = psiElement.parent as? CjDeclarationModifierList
+//                    ?: return@quickFixesPsiBasedFactory emptyList()
+//                val funInterface = (modifierList.parent as? CjClass)?.takeIf {
+//                    it.isInterface() && it.hasModifier(CjTokens.FUN_KEYWORD)
+//                } ?: return@quickFixesPsiBasedFactory emptyList()
+//                listOf(RemoveModifierFixBase(funInterface, CjTokens.FUNC_KEYWORD, isRedundant = false))
+//            }
+//        }
+
+        fun getElementName(modifierListOwner: CjModifierListOwner): String {
+            var name: String? = null
+            if (modifierListOwner is PsiNameIdentifierOwner) {
+                val nameIdentifier = modifierListOwner.nameIdentifier
+                if (nameIdentifier != null) {
+                    name = nameIdentifier.text
+                }
+            } else if (modifierListOwner is CjPropertyAccessor) {
+                name = modifierListOwner.namePlaceholder.text
+            }
+            if (name == null) {
+                name = modifierListOwner.text
+            }
+            return "'$name'"
+        }
+    }
+}

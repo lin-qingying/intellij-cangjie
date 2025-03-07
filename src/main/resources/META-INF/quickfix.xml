@@ -2,8 +2,8 @@
     <xi:include href="/META-INF/intentions.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
-    <extensions defaultExtensionNs="com.linqingying.cangjie">
-        <quickFixContributor implementation="com.linqingying.cangjie.ide.quickfix.QuickFixRegistrar"/>
+    <extensions defaultExtensionNs="cn.cangnova.cangjie">
+        <quickFixContributor implementation="cn.cangnova.cangjie.ide.quickfix.QuickFixRegistrar"/>
 
 
     </extensions>
@@ -11,12 +11,12 @@
 
     <extensionPoints>
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.ide.codeInsight.unresolvedReferenceQuickFixProvider"
-                interface="com.linqingying.cangjie.ide.quickfix.UnresolvedReferenceQuickFixProvider"
+                qualifiedName="cn.cangnova.cangjie.ide.codeInsight.unresolvedReferenceQuickFixProvider"
+                interface="cn.cangnova.cangjie.ide.quickfix.UnresolvedReferenceQuickFixProvider"
                 dynamic="true"/>
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.quickFixContributor"
-                interface="com.linqingying.cangjie.ide.quickfix.QuickFixContributor"
+                qualifiedName="cn.cangnova.cangjie.quickFixContributor"
+                interface="cn.cangnova.cangjie.ide.quickfix.QuickFixContributor"
                 dynamic="true"/>
     </extensionPoints>
 </idea-plugin>

@@ -122,7 +122,7 @@ protobuf {
     sourceSets {
         main {
             proto {
-                srcDir("src/main/kotlin/com/linqingying/cangjie/metadata/proto") // 指定 Protobuf 文件目录
+                srcDir("src/main/kotlin/cn/cangnova/cangjie/metadata/proto") // 指定 Protobuf 文件目录
             }
         }
     }
@@ -169,7 +169,7 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaCommunity,ideaVersion)
+            create(IntelliJPlatformType.IntellijIdeaUltimate,ideaVersion)
 //            local("C:\\Users\\27439\\AppData\\Local\\Programs\\RustRover")
         }
 
@@ -316,7 +316,6 @@ project(":plugin") {
         }
     }
 
-//    group = "com.linqingying.cangjie"
     version = cangjiePluginVersion
     dependencies {
         intellijPlatform {
@@ -430,7 +429,7 @@ project(":plugin") {
         args(
             "buildEventsScheme",
             "--outputFile=${buildDir.resolve("eventScheme.json").absolutePath}",
-            "--pluginId=linqingying.cangjie-analyzer"
+            "--pluginId=cn.cangnova.cangjie"
         )
 
     }
@@ -455,9 +454,8 @@ project(":") {
 
         implementation("io.hotmoka:toml4j:0.7.3")
 
-        implementation(project(":lsp"))
+        implementation("com.github.ballerina-platform:lsp4intellij:0.96.2")
 
-        implementation(project(":utils"))
         implementation("io.javaslang:javaslang:2.1.0-alpha")
 
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2")
@@ -484,53 +482,9 @@ project(":") {
 }
 
 
-project(":lsp") {
-    dependencies {
-        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.22.0")
-        implementation(project(":utils"))
-
-//        implementation(project(":"))
-    }
-}
-
-project(":utils") {
-    dependencies {
 
 
-    }
-}
 
-//project(":native-debugger") {
-//
-//    dependencies {
-//        intellijPlatform {
-//            plugin(nativeDebugPlugin)
-//        }
-//        implementation(project(":"))
-//    }
-//}
-//project(":dap-debugger") {
-//
-//    apply {
-//
-//        plugin("org.jetbrains.kotlin.plugin.serialization")
-//    }
-//    dependencies {
-//
-//        intellijPlatform {
-//            bundledPlugins(
-//                terminalPlugin
-//            )
-//        }
-//        implementation(project(":"))
-//
-//
-//        implementation("com.squareup.moshi:moshi-adapters:${moshiVersion}")
-//        implementation("com.squareup.moshi:moshi-kotlin:${moshiVersion}")
-//        implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
-//        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-//    }
-//}
 project(":dap-debugger1") {
 
     apply {

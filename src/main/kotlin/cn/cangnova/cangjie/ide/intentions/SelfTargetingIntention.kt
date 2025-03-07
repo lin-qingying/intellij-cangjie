@@ -1,0 +1,182 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.ide.intentions
+
+import cn.cangnova.cangjie.ide.stubindex.resolve.isUnitTestMode
+import cn.cangnova.cangjie.psi.CjBlockExpression
+import cn.cangnova.cangjie.psi.CjFile
+import cn.cangnova.cangjie.psi.psiUtil.CREATE_BY_PATTERN_MAY_NOT_REFORMAT
+import cn.cangnova.cangjie.psi.psiUtil.containsInside
+import cn.cangnova.cangjie.psi.psiUtil.parentsWithSelf
+import com.intellij.codeInsight.FileModificationService
+import com.intellij.codeInsight.intention.FileModifier
+import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.impl.BaseIntentionAction
+import com.intellij.codeInspection.IntentionWrapper
+import com.intellij.codeInspection.util.IntentionFamilyName
+import com.intellij.codeInspection.util.IntentionName
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.annotations.Nls
+
+
+@Suppress("EqualsOrHashCode")
+abstract class SelfTargetingIntention<TElement : PsiElement>(
+    val elementType: Class<TElement>,
+    @FileModifier.SafeFieldForPreview // should not depend on the file and affect fix behavior
+    private var textGetter: () -> @IntentionName String,
+    @FileModifier.SafeFieldForPreview // should not depend on the file and affect fix behavior
+    private var familyNameGetter: () -> @IntentionFamilyName String = textGetter,
+) : IntentionAction {
+
+    protected val defaultText: @IntentionName String get() = defaultTextGetter()
+    @FileModifier.SafeFieldForPreview // should not depend on the file and affect fix behavior
+    protected val defaultTextGetter: () -> @IntentionName String = textGetter
+
+    protected fun setTextGetter(textGetter: () -> @IntentionName String) {
+        this.textGetter = textGetter
+    }
+
+    final override fun getText(): @IntentionName String = textGetter()
+
+    // Not final because `KotlinApplicableIntentionBase` redefines `getFamilyName` as an abstract function and disregards
+    // `familyNameGetter`.
+    override fun getFamilyName(): @IntentionFamilyName String = familyNameGetter()
+
+    protected fun setFamilyNameGetter(@Nls familyNameGetter: () -> String) {
+        this.familyNameGetter = familyNameGetter
+    }
+
+    abstract fun isApplicableTo(element: TElement, caretOffset: Int): Boolean
+
+    abstract fun applyTo(element: TElement, editor: Editor?)
+
+    open fun applyTo(element: TElement, project: Project, editor: Editor?) {
+        applyTo(element, editor)
+    }
+
+    protected open val isKotlinOnlyIntention: Boolean = true
+
+    /**
+     * Override if the action should be available on library sources.
+     * It means that it won't modify the code of the current file e.g., it implements the interface in project code or change some settings
+     */
+    protected open fun checkFile(file: PsiFile): Boolean {
+        return BaseIntentionAction.canModify(file)
+    }
+
+    fun getTarget(offset: Int, file: PsiFile): TElement? {
+        if (!checkFile(file)) return null
+
+        val leaf1 = file.findElementAt(offset)
+        val leaf2 = file.findElementAt(offset - 1)
+        val commonParent = if (leaf1 != null && leaf2 != null) PsiTreeUtil.findCommonParent(leaf1, leaf2) else null
+
+        var elementsToCheck: Sequence<PsiElement> = emptySequence()
+        if (leaf1 != null) elementsToCheck += leaf1.parentsWithSelf.takeWhile { it != commonParent }
+        if (leaf2 != null) elementsToCheck += leaf2.parentsWithSelf.takeWhile { it != commonParent }
+        if (commonParent != null && commonParent !is PsiFile) elementsToCheck += commonParent.parentsWithSelf
+
+        for (element in elementsToCheck) {
+            @Suppress("UNCHECKED_CAST")
+            if (elementType.isInstance(element)) {
+                ProgressManager.checkCanceled()
+                if (isApplicableTo(element as TElement, offset)) {
+                    return element
+                }
+                if (visitTargetTypeOnlyOnce()) {
+                    return null
+                }
+            }
+            if (element.textRange.containsInside(offset) && skipProcessingFurtherElementsAfter(element)) break
+        }
+        return null
+    }
+
+    fun getTarget(editor: Editor, file: PsiFile): TElement? {
+        if (isKotlinOnlyIntention && file !is CjFile) return null
+
+        val offset = editor.caretModel.offset
+        return getTarget(offset, file)
+    }
+
+    /** Whether to skip looking for targets after having processed the given element, which contains the cursor. */
+    protected open fun skipProcessingFurtherElementsAfter(element: PsiElement): Boolean = element is CjBlockExpression
+
+    protected open fun visitTargetTypeOnlyOnce(): Boolean = false
+
+    final override fun isAvailable(project: Project, editor: Editor, file: PsiFile): Boolean {
+        if (isUnitTestMode()) {
+            CREATE_BY_PATTERN_MAY_NOT_REFORMAT = true
+        }
+        try {
+            return getTarget(editor, file) != null
+        } finally {
+            if (isUnitTestMode()) { // do not trigger additional class loading outside of tests
+                CREATE_BY_PATTERN_MAY_NOT_REFORMAT = false
+            }
+        }
+    }
+
+    @FileModifier.SafeFieldForPreview // inspection should not depend on the file where the fix is applied
+    var inspection: IntentionBasedInspection<TElement>? = null
+        internal set
+
+    final override fun invoke(project: Project, editor: Editor?, file: PsiFile) {
+        editor ?: return
+        val target = getTarget(editor, file) ?: return
+        if (!preparePsiElementForWriteIfNeeded(target)) return
+        applyTo(target, project, editor)
+    }
+
+    /**
+     * If [startInWriteAction] returns true, that means that the platform already called `preparePsiElementForWrite`
+     * for us (we do not want to call it again because it will throw if the intention is used with Intention Preview).
+     *
+     * Otherwise, we have to call it ourselves (see javadoc for [getElementToMakeWritable]).
+     */
+    protected open fun preparePsiElementForWriteIfNeeded(target: TElement): Boolean {
+        if (startInWriteAction()) return true
+        return FileModificationService.getInstance().preparePsiElementForWrite(target)
+    }
+
+    override fun startInWriteAction() = true
+
+    override fun toString(): String = text
+
+    override fun equals(other: Any?): Boolean {
+        // Nasty code because IntentionWrapper itself does not override equals
+        if (other is IntentionWrapper) return this == other.action
+        if (other is IntentionBasedInspection<*>.IntentionBasedQuickFix) return this == other.intention
+        return other is SelfTargetingIntention<*> && javaClass == other.javaClass && text == other.text
+    }
+
+    // Intentionally missed hashCode (IntentionWrapper does not override it)
+}
+

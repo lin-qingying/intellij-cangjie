@@ -1,0 +1,190 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.ide.cdoc
+
+import cn.cangnova.cangjie.descriptors.*
+import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
+import cn.cangnova.cangjie.ide.indices.CangJiePackageIndexUtils
+import cn.cangnova.cangjie.ide.stubindex.CangJieClassShortNameIndex
+import cn.cangnova.cangjie.ide.stubindex.CangJieFullClassNameIndex
+import cn.cangnova.cangjie.ide.stubindex.CangJieFunctionShortNameIndex
+import cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelFunctionFqnNameIndex
+import cn.cangnova.cangjie.incremental.components.LookupLocation
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.isChildOf
+import cn.cangnova.cangjie.name.isOneSegmentFQN
+import cn.cangnova.cangjie.resolve.BindingContext
+import cn.cangnova.cangjie.resolve.ResolutionFacade
+import cn.cangnova.cangjie.resolve.caches.resolveToDescriptorIfAny
+import cn.cangnova.cangjie.resolve.caches.unsafeResolveToDescriptor
+import cn.cangnova.cangjie.resolve.lazy.BodyResolveMode
+import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
+import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
+import cn.cangnova.cangjie.resolve.scopes.MemberScope
+import cn.cangnova.cangjie.utils.Printer
+import com.intellij.openapi.project.Project
+import com.intellij.psi.search.GlobalSearchScope
+import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
+
+interface CDocLinkResolutionService {
+    fun resolveCDocLink(
+        context: BindingContext,
+        fromDescriptor: DeclarationDescriptor,
+        resolutionFacade: ResolutionFacade,
+        qualifiedName: List<String>
+    ): Collection<DeclarationDescriptor>
+}
+
+class IdeCDocLinkResolutionService(val project: Project) : CDocLinkResolutionService {
+    override fun resolveCDocLink(
+        context: BindingContext,
+        fromDescriptor: DeclarationDescriptor,
+        resolutionFacade: ResolutionFacade,
+        qualifiedName: List<String>
+    ): Collection<DeclarationDescriptor> {
+
+        val scope = CangJieSourceFilterScope.projectAndLibrarySources(GlobalSearchScope.projectScope(project), project)
+
+        val shortName = qualifiedName.lastOrNull() ?: return emptyList()
+
+        val targetFqName = FqName.fromSegments(qualifiedName)
+
+        val functions = CangJieFunctionShortNameIndex[shortName, project, scope].asSequence()
+        val classes = CangJieClassShortNameIndex[shortName, project, scope].asSequence()
+
+        val descriptors = (functions + classes).filter { it.fqName == targetFqName }
+            .map { it.unsafeResolveToDescriptor(BodyResolveMode.PARTIAL) } // TODO Filter out not visible due dependencies config descriptors
+            .toList()
+        if (descriptors.isNotEmpty())
+            return descriptors
+
+
+
+
+
+
+        if (!targetFqName.isRoot && CangJiePackageIndexUtils.packageExists(targetFqName, scope))
+            return listOf(GlobalSyntheticPackageViewDescriptor(targetFqName, project, scope))
+        return emptyList()
+    }
+}
+
+private fun shouldNotBeCalled(): Nothing = throw UnsupportedOperationException("Synthetic PVD for CDoc link resolution")
+
+private class GlobalSyntheticPackageViewDescriptor(
+    override val fqName: FqName,
+    private val project: Project,
+    private val scope: GlobalSearchScope
+) : PackageViewDescriptor {
+
+
+    override val containingDeclaration: PackageViewDescriptor?
+        get() = if (fqName.isOneSegmentFQN()) null else GlobalSyntheticPackageViewDescriptor(
+            fqName.parent(),
+            project,
+            scope
+        )
+    override val visibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC
+    override val memberScope: MemberScope = object : MemberScope {
+
+        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> =
+            shouldNotBeCalled()
+
+        override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> =
+            shouldNotBeCalled()
+
+        override fun getContributedFunctions(
+            name: Name,
+            location: LookupLocation
+        ): Collection<SimpleFunctionDescriptor> =
+            shouldNotBeCalled()
+        override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor>  = shouldNotBeCalled()
+        override fun getFunctionNames(): Set<Name> = shouldNotBeCalled()
+        override fun getVariableNames(): Set<Name> = shouldNotBeCalled()
+        override fun getClassifierNames(): Set<Name> = shouldNotBeCalled()
+        override fun getPropertyNames(): Set<Name> = shouldNotBeCalled()
+        override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor =
+            shouldNotBeCalled()
+
+        override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor>  = shouldNotBeCalled()
+
+
+        override fun printScopeStructure(p: Printer) {
+            p.printIndent()
+            p.print("GlobalSyntheticPackageViewDescriptorMemberScope (INDEX)")
+        }
+
+
+        fun getClassesByNameFilter(nameFilter: (Name) -> Boolean) = CangJieFullClassNameIndex
+            .getAllKeys(project)
+            .asSequence()
+            .filter { it.startsWith(fqName.asString()) }
+            .map(::FqName)
+            .filter { it.isChildOf(fqName) }
+            .filter { nameFilter(it.shortName()) }
+            .flatMap { CangJieFullClassNameIndex[it.asString(), project, scope].asSequence() }
+            .map { it.resolveToDescriptorIfAny() }
+
+        fun getFunctionsByNameFilter(nameFilter: (Name) -> Boolean) = CangJieTopLevelFunctionFqnNameIndex
+            .getAllKeys(project)
+            .asSequence()
+            .filter { it.startsWith(fqName.asString()) }
+            .map(::FqName)
+            .filter { it.isChildOf(fqName) }
+            .filter { nameFilter(it.shortName()) }
+            .flatMap { CangJieTopLevelFunctionFqnNameIndex[it.asString(), project, scope].asSequence() }
+            .map { it.resolveToDescriptorIfAny() }
+
+        fun getSubpackages(nameFilter: (Name) -> Boolean) =
+            CangJiePackageIndexUtils.getSubPackageFqNames(fqName, scope, nameFilter)
+                .map { GlobalSyntheticPackageViewDescriptor(it, project, scope) }
+
+        override fun getContributedDescriptors(
+            kindFilter: DescriptorKindFilter,
+            nameFilter: (Name) -> Boolean
+        ): Collection<DeclarationDescriptor> = (getClassesByNameFilter(nameFilter) +
+                getFunctionsByNameFilter(nameFilter) +
+                getSubpackages(nameFilter)
+                ).filterNotNull().toList()
+
+    }
+    override val module: ModuleDescriptor
+        get() = shouldNotBeCalled()
+    override val fragments: List<PackageFragmentDescriptor>
+        get() = shouldNotBeCalled()
+
+
+    override val original: DeclarationDescriptor = this
+
+    override val name: Name = fqName.shortName()
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R =
+        shouldNotBeCalled()
+
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) = shouldNotBeCalled()
+
+    override val annotations = Annotations.EMPTY
+}

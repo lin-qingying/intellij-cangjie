@@ -2,11 +2,11 @@
 
     <extensionPoints>
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.ide.completionInformationProvider"
-                interface="com.linqingying.cangjie.ide.completion.CompletionInformationProvider"
+                qualifiedName="cn.cangnova.cangjie.ide.completionInformationProvider"
+                interface="cn.cangnova.cangjie.ide.completion.CompletionInformationProvider"
                 dynamic="true"/>
-        <extensionPoint qualifiedName="com.linqingying.cangjie.ide.completion.turboComplete.smartPipelineRunner"
-                        interface="com.linqingying.cangjie.ide.completion.turboComplete.SmartPipelineRunner"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.ide.completion.turboComplete.smartPipelineRunner"
+                        interface="cn.cangnova.cangjie.ide.completion.turboComplete.SmartPipelineRunner"
                         dynamic="true"/>
 
     </extensionPoints>
@@ -14,8 +14,8 @@
     <extensions defaultExtensionNs="com.intellij">
 
         <applicationService
-                serviceInterface="com.linqingying.cangjie.ide.completion.CompletionDummyIdentifierProviderService"
-                serviceImplementation="com.linqingying.cangjie.ide.completion.CangJieCompletionDummyIdentifierProviderService"/>
+                serviceInterface="cn.cangnova.cangjie.ide.completion.CompletionDummyIdentifierProviderService"
+                serviceImplementation="cn.cangnova.cangjie.ide.completion.CangJieCompletionDummyIdentifierProviderService"/>
 
         <registryKey
                 key="cangjie.auto.completion.prefer.vararg.to.noargs"
@@ -23,8 +23,8 @@
                 defaultValue="true"
                 restartRequired="false"/>
         <applicationService
-                serviceInterface="com.linqingying.cangjie.ide.completion.handlers.SmartCompletionTailOffsetProvider"
-                serviceImplementation="com.linqingying.cangjie.ide.completion.handlers.SmartCompletionTailOffsetProviderImpl"/>
+                serviceInterface="cn.cangnova.cangjie.ide.completion.handlers.SmartCompletionTailOffsetProvider"
+                serviceImplementation="cn.cangnova.cangjie.ide.completion.handlers.SmartCompletionTailOffsetProviderImpl"/>
 
         <registryKey
                 key="cangjie.auto.completion.insert.constructor.parenthesis"
@@ -36,9 +36,9 @@
                 language="CangJie"
                 id="CangJieCompletionContributor"
                 order="first, after liveTemplates"
-                implementationClass="com.linqingying.cangjie.ide.completion.CangJieCompletionContributor"/>
+                implementationClass="cn.cangnova.cangjie.ide.completion.CangJieCompletionContributor"/>
         <completion.contributor
                 language="CangJie"
-                implementationClass="com.linqingying.cangjie.ide.completion.CDocCompletionContributor"/>
+                implementationClass="cn.cangnova.cangjie.ide.completion.CDocCompletionContributor"/>
     </extensions>
 </idea-plugin>

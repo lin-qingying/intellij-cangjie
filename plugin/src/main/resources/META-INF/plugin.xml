@@ -23,11 +23,11 @@
   --><idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" allow-bundled-update="true">
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
 
-    <id>linqingying.cangjie</id>
+    <id>cn.cangnova.cangjie</id>
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
-    <name>Cangjie</name>
+    <name>CangJie</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="lin17624294976@outlook.com" url="https://gitee.com/Lin_Qing_Ying">@Lin_Qing_Ying</vendor>
@@ -38,13 +38,10 @@
     </change-notes>
     <version>3.0.1</version>
 
-    <module value="com.linqingying.cangjie"/>
 
-    <depends>com.intellij.modules.platform</depends>
 
     <dependencies>
-        <plugin id="com.intellij.modules.lang"/>
-        <!--<plugin id="com.intellij.modules.cangjie-core-capable"/>-->
+        <plugin id="com.intellij.modules.platform"/>
         <plugin id="com.intellij.modules.json"/>
         <plugin id="org.toml.lang"/>
 
@@ -54,9 +51,9 @@
     <xi:include href="/META-INF/cangjie-all.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
     <content>
-<!--        <module name="com.linqingying.cangjie.dapDebugger"/>-->
-     <module name="com.linqingying.cangjie.dapDebugger1"/>
-<!--        <module name="com.linqingying.cangjie.nativeDebug"/>-->
+<!--        <module name="cn.cangnova.cangjie.dapDebugger"/>-->
+     <module name="cn.cangnova.cangjie.dapDebugger1"/>
+<!--        <module name="cn.cangnova.cangjie.nativeDebug"/>-->
 
 
     </content>

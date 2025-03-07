@@ -1,10 +1,10 @@
-package com.linqingying.cangjie.debugger.runconfig
+package cn.cangnova.cangjie.debugger.runconfig
 
 
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.openapi.project.Project
-import com.linqingying.cangjie.ide.run.cjpm.BuildResult
-import com.linqingying.cangjie.ide.run.cjpm.CjpmCommandConfiguration
+import cn.cangnova.cangjie.ide.run.cjpm.BuildResult
+import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 
 class CjDebugRunner: CjDebugRunnerBase() {
     override fun canRun(executorId: String, profile: RunProfile): Boolean =

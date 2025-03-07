@@ -1,0 +1,21 @@
+<idea-plugin package="cn.cangnova.cangjie.dapDebugger1">
+    <!--suppress PluginXmlValidity -->
+    <module value="cn.cangnova.cangjie.dapDebugger1"/>
+
+    <extensions defaultExtensionNs="com.intellij">
+                <programRunner id="CjDebugRunner"
+                               implementation="cn.cangnova.cangjie.dapDebugger1.runconfig.CjDebugRunner"/>
+                <xdebugger.breakpointType implementation="cn.cangnova.cangjie.dapDebugger1.runconfig.breakpoint.CangJieLineBreakpointType"
+                                          order="first"/>
+
+
+<!--                <toolWindow factoryClass="cn.cangnova.cangjie.dapDebugger.runconfig.MyToolWindowFactory" id="1"/>-->
+
+        <!--   重构内容如下-->
+<!--        <programRunner implementation="com.debug.CjDebugRunner" id="CjDebugRunner"/>-->
+
+
+    </extensions>
+
+
+</idea-plugin>

@@ -26,20 +26,20 @@
 
     <extensionPoints>
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.highlighterExtension"
-                interface="com.linqingying.cangjie.highlighter.CangJieHighlightingVisitorExtension"
+                qualifiedName="cn.cangnova.cangjie.highlighterExtension"
+                interface="cn.cangnova.cangjie.highlighter.CangJieHighlightingVisitorExtension"
                 dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
         <codeInsight.lineMarkerProvider language="CangJie"
-                                        implementationClass="com.linqingying.cangjie.ide.lineMarkers.CangJieLineMarkerProvider"/>
-<!--    <highlightingPassFactory implementation="com.linqingying.cangjie.highlighter.DebugInfoHighlightingPass$Registrar"/>-->
+                                        implementationClass="cn.cangnova.cangjie.ide.lineMarkers.CangJieLineMarkerProvider"/>
+<!--    <highlightingPassFactory implementation="cn.cangnova.cangjie.highlighter.DebugInfoHighlightingPass$Registrar"/>-->
 
 
         <additionalTextAttributes scheme="Default" file="colorScheme/Default_CangJie.xml"/>
         <additionalTextAttributes scheme="Darcula" file="colorScheme/Darcula_CangJie.xml"/>
-        <highlightVisitor implementation="com.linqingying.cangjie.highlighter.CangJieHighlightVisitor"/>
+        <highlightVisitor implementation="cn.cangnova.cangjie.highlighter.CangJieHighlightVisitor"/>
         <registryKey key="cangjie.highlighting.suspended.timeout"
                      description="Timeout (in seconds) when highlighting is temporarily turned off in case of unexpected errors."
                      defaultValue="10"
@@ -49,11 +49,11 @@
                      description="Suppress cangjie.Deprecated warning"
                      defaultValue="false"/>
         <projectService
-                serviceInterface="com.linqingying.cangjie.highlighter.CangJieQuickFixProvider"
-                serviceImplementation="com.linqingying.cangjie.ide.codeinsight.CangJieQuickFixProviderImpl"/>
+                serviceInterface="cn.cangnova.cangjie.highlighter.CangJieQuickFixProvider"
+                serviceImplementation="cn.cangnova.cangjie.ide.codeinsight.CangJieQuickFixProviderImpl"/>
         <applicationService
-                serviceInterface="com.linqingying.cangjie.psi.CangJieDeclarationNavigationPolicy"
-                serviceImplementation="com.linqingying.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>
+                serviceInterface="cn.cangnova.cangjie.psi.CangJieDeclarationNavigationPolicy"
+                serviceImplementation="cn.cangnova.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>
 
         <registryKey
                 key="cangjie.resolve.force.full.resolve.on.highlighting"
@@ -61,7 +61,7 @@
                 defaultValue="true"
                 restartRequired="false"/>
         <projectService
-                serviceInterface="com.linqingying.cangjie.ide.base.projectStructure.RootKindMatcher"
-                serviceImplementation="com.linqingying.cangjie.ide.base.analysis.RootKindMatcherImpl"/>
+                serviceInterface="cn.cangnova.cangjie.ide.base.projectStructure.RootKindMatcher"
+                serviceImplementation="cn.cangnova.cangjie.ide.base.analysis.RootKindMatcherImpl"/>
     </extensions>
 </idea-plugin>

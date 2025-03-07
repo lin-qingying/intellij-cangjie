@@ -1,6 +1,6 @@
-package com.linqingying.cangjie.debugger.lang
+package cn.cangnova.cangjie.debugger.lang
 
-import com.linqingying.cangjie.ide.run.cjpm.CjpmCommandConfiguration
+import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 import com.jetbrains.cidr.execution.debugger.*

@@ -1,0 +1,186 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.ide.structureView
+
+import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
+import cn.cangnova.cangjie.descriptors.DeclarationDescriptorWithVisibility
+import cn.cangnova.cangjie.descriptors.DescriptorVisibilities
+import cn.cangnova.cangjie.psi.*
+import cn.cangnova.cangjie.resolve.caches.resolveToDescriptorIfAny
+import com.intellij.ide.structureView.StructureViewTreeElement
+import com.intellij.ide.structureView.impl.common.PsiTreeElementBase
+import com.intellij.navigation.ItemPresentation
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.ui.Queryable
+import com.intellij.psi.NavigatablePsiElement
+import com.intellij.psi.PsiElement
+import org.jetbrains.annotations.TestOnly
+import javax.swing.Icon
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
+
+/**
+ * Required until 2 implementations would be merged
+ */
+interface AbstractCangJieStructureViewElement {
+    val accessLevel: Int?
+    val isPublic: Boolean
+    val element: NavigatablePsiElement
+}
+
+class CangJieStructureViewElement(
+    override val element: NavigatablePsiElement,
+    private val isInherited: Boolean = false
+) : PsiTreeElementBase<NavigatablePsiElement>(element), Queryable, AbstractCangJieStructureViewElement {
+
+    private var cangjiePresentation
+            by AssignableLazyProperty {
+                CangJieStructureElementPresentation(isInherited, element, countDescriptor())
+            }
+
+    var visibility
+            by AssignableLazyProperty {
+                Visibility(countDescriptor())
+            }
+        private set
+
+    constructor(element: NavigatablePsiElement, descriptor: DeclarationDescriptor, isInherited: Boolean) : this(
+        element,
+        isInherited
+    ) {
+        if (element !is CjElement) {
+            // Avoid storing descriptor in fields
+            cangjiePresentation = CangJieStructureElementPresentation(isInherited, element, descriptor)
+            visibility = Visibility(descriptor)
+        }
+    }
+
+    override val accessLevel: Int?
+        get() = visibility.accessLevel
+    override val isPublic: Boolean
+        get() = visibility.isPublic
+
+    override fun getPresentation(): ItemPresentation = cangjiePresentation
+    override fun getLocationString(): String? = cangjiePresentation.locationString
+    override fun getIcon(open: Boolean): Icon? = cangjiePresentation.getIcon(open)
+    override fun getPresentableText(): String? = cangjiePresentation.presentableText
+
+    @TestOnly
+    override fun putInfo(info: MutableMap<in String, in String?>) {
+        // Sanity check for API consistency
+        assert(presentation.presentableText == presentableText) { "Two different ways of getting presentableText" }
+        assert(presentation.locationString == locationString) { "Two different ways of getting locationString" }
+
+        info["text"] = presentableText
+        info["location"] = locationString
+    }
+
+    override fun getChildrenBase(): Collection<StructureViewTreeElement> {
+        val children = when (val element = element) {
+            is CjFile -> {
+                val declarations = element.declarations
+
+                element
+                    .declarations
+            }
+
+            is CjClass -> element.getStructureDeclarations()
+            is CjTypeStatement -> element.declarations
+            is CjFunction, is CjClassInitializer, is CjProperty -> element.collectLocalDeclarations()
+            else -> emptyList()
+        }
+
+        return children.map { CangJieStructureViewElement(it, false) }
+    }
+
+    private fun PsiElement.collectLocalDeclarations(): List<CjDeclaration> {
+        val result = mutableListOf<CjDeclaration>()
+
+        acceptChildren(object : CjTreeVisitorVoid() {
+
+            override fun visitTypeStatement(typeStatement: CjTypeStatement) {
+                result.add(typeStatement)
+
+            }
+
+            override fun visitNamedFunction(function: CjNamedFunction) {
+                result.add(function)
+            }
+        })
+
+        return result
+    }
+
+    private fun countDescriptor(): DeclarationDescriptor? {
+        val element = element
+        return when {
+            !element.isValid -> null
+            element !is CjDeclaration -> null
+            element is CjAnonymousInitializer -> null
+            else -> runReadAction {
+                if (!DumbService.isDumb(element.getProject())) {
+                    element.resolveToDescriptorIfAny()
+                } else null
+            }
+        }
+    }
+
+    class Visibility(descriptor: DeclarationDescriptor?) {
+        private val visibility = (descriptor as? DeclarationDescriptorWithVisibility)?.visibility
+
+        val isPublic: Boolean
+            get() = visibility == DescriptorVisibilities.PUBLIC
+
+        val accessLevel: Int?
+            get() = when {
+                visibility == DescriptorVisibilities.PUBLIC -> 1
+                visibility == DescriptorVisibilities.INTERNAL -> 2
+                visibility == DescriptorVisibilities.PROTECTED -> 3
+                visibility?.let { DescriptorVisibilities.isPrivate(it) } == true -> 4
+                else -> null
+            }
+    }
+}
+
+private class AssignableLazyProperty<in R, T : Any>(val init: () -> T) : ReadWriteProperty<R, T> {
+    private var _value: T? = null
+
+    override fun getValue(thisRef: R, property: KProperty<*>): T {
+        return _value ?: init().also { _value = it }
+    }
+
+    override fun setValue(thisRef: R, property: KProperty<*>, value: T) {
+        _value = value
+    }
+}
+
+fun CjTypeStatement.getStructureDeclarations() =
+    buildList {
+        primaryConstructor?.let { add(it) }
+        primaryConstructorParameters.filterTo(this) { it.hasLetOrVar() }
+        addAll(declarations)
+    }
+

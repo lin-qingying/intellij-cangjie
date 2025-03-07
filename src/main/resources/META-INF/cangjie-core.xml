@@ -33,38 +33,33 @@
 
         <!-- 编辑器执行配置 -->
         <runLineMarkerContributor language="CangJie"
-                                  implementationClass="com.linqingying.cangjie.ide.run.CjRunLineMarkersProvider"/>
-        <!--        editorSmartKeysConfigurable-->
-        <editorSmartKeysConfigurable instance="com.linqingying.cangjie.ide.editor.CangJieEditorOptionsConfigurable"/>
+                                  implementationClass="cn.cangnova.cangjie.ide.run.CjRunLineMarkersProvider"/>
+        <editorSmartKeysConfigurable instance="cn.cangnova.cangjie.ide.editor.CangJieEditorOptionsConfigurable"/>
         <lang.foldingBuilder language="CangJie"
-                             implementationClass="com.linqingying.cangjie.ide.editor.folding.CangJieFoldingBuilder"/>
+                             implementationClass="cn.cangnova.cangjie.ide.editor.folding.CangJieFoldingBuilder"/>
 
 
-        <!--        插件启动初始化-->
 
-        <!--                <applicationService serviceImplementation="com.linqingying.cangjie.CangJieStartupActivity" serviceInterface="com.intellij.openapi.startup.StartupActivity"/>-->
-        <postStartupActivity implementation="com.linqingying.cangjie.CangJieStartupActivity"/>
-        <!--                <additionalLibraryRootsProvider-->
-        <!--                        implementation="com.linqingying.cangjie.cjpm.project.workspace.CjAdditionalLibraryRootsProvider"/>-->
+        <postStartupActivity implementation="cn.cangnova.cangjie.CangJieStartupActivity"/>
 
         <!--        编辑器自动插入-->
-        <typedHandler implementation="com.linqingying.cangjie.ide.editor.CangJieTypedHandler"/>
-        <typedHandler implementation="com.linqingying.cangjie.ide.editor.CDocTypedHandler"/>
-        <typedHandler implementation="com.linqingying.cangjie.ide.editor.CangJieRawStringTypedHandler"/>
-        <backspaceHandlerDelegate implementation="com.linqingying.cangjie.ide.editor.CangJieBackspaceHandlerDelegate"/>
-        <lang.braceMatcher implementationClass="com.linqingying.cangjie.ide.editor.CangJiePairedBraceMatcher"
+        <typedHandler implementation="cn.cangnova.cangjie.ide.editor.CangJieTypedHandler"/>
+        <typedHandler implementation="cn.cangnova.cangjie.ide.editor.CDocTypedHandler"/>
+        <typedHandler implementation="cn.cangnova.cangjie.ide.editor.CangJieRawStringTypedHandler"/>
+        <backspaceHandlerDelegate implementation="cn.cangnova.cangjie.ide.editor.CangJieBackspaceHandlerDelegate"/>
+        <lang.braceMatcher implementationClass="cn.cangnova.cangjie.ide.editor.CangJiePairedBraceMatcher"
                            language="CangJie"/>
-        <quoteHandler fileType="CangJie" className="com.linqingying.cangjie.ide.editor.CangJieQuoteHandler"/>
-        <backspaceHandlerDelegate implementation="com.linqingying.cangjie.ide.editor.CangJieRawStringBackspaceHandler"/>
+        <quoteHandler fileType="CangJie" className="cn.cangnova.cangjie.ide.editor.CangJieQuoteHandler"/>
+        <backspaceHandlerDelegate implementation="cn.cangnova.cangjie.ide.editor.CangJieRawStringBackspaceHandler"/>
         <backspaceHandlerDelegate
-                implementation="com.linqingying.cangjie.ide.editor.CangJieStringTemplateBackspaceHandler"/>
+                implementation="cn.cangnova.cangjie.ide.editor.CangJieStringTemplateBackspaceHandler"/>
 
 
 
         <!--        文件类型-->
         <fileType name="CangJie"
                   language="CangJie"
-                  implementationClass="com.linqingying.cangjie.lang.CangJieFileType"
+                  implementationClass="cn.cangnova.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
 
@@ -72,170 +67,143 @@
 
         <!--      PSI解析-->
         <lang.parserDefinition language="CangJie"
-                               implementationClass="com.linqingying.cangjie.parsing.CangJieParserDefinition"/>
+                               implementationClass="cn.cangnova.cangjie.parsing.CangJieParserDefinition"/>
 
 
         <!--语法高亮-->
-        <colorSettingsPage implementation="com.linqingying.cangjie.highlighter.CangJieColorSettingsPage"/>
+        <colorSettingsPage implementation="cn.cangnova.cangjie.highlighter.CangJieColorSettingsPage"/>
         <lang.syntaxHighlighterFactory language="CangJie"
-                                       implementationClass="com.linqingying.cangjie.highlighter.CangJieSyntaxHighlighterFactory"/>
+                                       implementationClass="cn.cangnova.cangjie.highlighter.CangJieSyntaxHighlighterFactory"/>
 
 
-        <stubElementTypeHolder class="com.linqingying.cangjie.psi.stubs.elements.CjStubElementTypes"
+        <stubElementTypeHolder class="cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes"
                                externalIdPrefix="cangjie."/>
 
 
         <highlightingPassFactory
-                implementation="com.linqingying.cangjie.highlighter.CangJieBeforeResolveHighlightingPass$Registrar"/>
+                implementation="cn.cangnova.cangjie.highlighter.CangJieBeforeResolveHighlightingPass$Registrar"/>
 
         <newProjectWizard.languageGenerator
-                implementation="com.linqingying.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
+                implementation="cn.cangnova.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
 
-        <!--        <newProjectWizard.language-->
-        <!--                implementation="com.linqingying.cangjie.ide.project.tools.projectWizard.CangJieNewProjectWizard"/>-->
         <moduleBuilder
-                builderClass="com.linqingying.cangjie.ide.module.CangJieModuleBuilder"/>
-        <!--        <moduleBuilder-->
-        <!--                builderClass="com.linqingying.cangjie.ide.project.moduletype.CangJieLibraryModuleBuilder"/>-->
+                builderClass="cn.cangnova.cangjie.ide.module.CangJieModuleBuilder"/>
 
 
         <!--运行-->
         <!--        cjpm运行任务-->
-        <runConfigurationProducer implementation="com.linqingying.cangjie.ide.run.cjpm.CjpmRunConfigurationProducer"
+        <runConfigurationProducer implementation="cn.cangnova.cangjie.ide.run.cjpm.CjpmRunConfigurationProducer"
                                   id="CjpmRunConfigurationProducer"/>
         <configurationType
-                implementation="com.linqingying.cangjie.ide.run.cjpm.CjpmCommandConfigurationType"
+                implementation="cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType"
                 id="CjpmRunConfiguration"/>
 
 
         <!--    行配置之前执行的步骤   -->
         <stepsBeforeRunProvider
-                implementation="com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskProvider"/>
+                implementation="cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskProvider"/>
 
-        <programRunner implementation="com.linqingying.cangjie.ide.run.cjpm.CjpmCommandRunner"/>
+        <programRunner implementation="cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandRunner"/>
 
 
-        <!--        <analyzeStacktraceFilter implementation="com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjBacktraceFilter"/>-->
 
         <!--        构建-->
         <projectTaskRunner
-                implementation="com.linqingying.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskRunner"/>
+                implementation="cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskRunner"/>
 
-        <!--        cjc-->
-        <!--        <configurationType-->
-        <!--                implementation="com.linqingying.cangjie.ide.run.cjc.CjcRunConfigurationType"-->
-        <!--                id="CjcRunConfiguration"/>-->
-        <!--        <runConfigurationProducer implementation="com.linqingying.cangjie.ide.run.cjc.CjcRunConfigurationProducer" id="CjcRunConfigurationProducer"/>-->
 
-        <directoryProjectGenerator implementation="com.linqingying.cangjie.ide.newProject.CjDirectoryProjectGenerator"/>
+        <directoryProjectGenerator implementation="cn.cangnova.cangjie.ide.newProject.CjDirectoryProjectGenerator"/>
 
-        <projectConfigurable instance="com.linqingying.cangjie.configurable.CangJieConfigurable"
+        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieConfigurable"
                              groupId="language"
                              id="language.cangjie"
                              bundle="messages.CangJieBundle" key="CangJie"/>
-        <projectConfigurable instance="com.linqingying.cangjie.configurable.CangJieLanguageServerConfigurable"
+        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieLanguageServerConfigurable"
                              parentId="language.cangjie"
                              groupId="language.cangjie"
                              id="language.cangjie.languageServer"
                              bundle="messages.CangJieBundle" key="CangJie.languageServer"/>
-        <projectConfigurable instance="com.linqingying.cangjie.configurable.CangJieLspConfigurable"
+        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieLspConfigurable"
                              parentId="language.cangjie.languageServer"
                              groupId="language.cangjie.languageServer"
                              id="language.cangjie.languageServer.lsp"
                              bundle="messages.CangJieBundle" key="CangJie.languageServer.lsp"/>
-        <projectConfigurable instance="com.linqingying.cangjie.configurable.CangJieAstAnalyzerConfigurable"
+        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieAstAnalyzerConfigurable"
                              parentId="language.cangjie.languageServer"
                              groupId="language.cangjie.languageServer"
                              id="language.cangjie.languageServer.ast"
                              bundle="messages.CangJieBundle" key="CangJie.languageServer.astanalyzer"/>
-        <!--        <projectConfigurable instance="com.linqingying.cangjie.configurable.CangJieDebuggerTypeConfigurable"-->
-        <!--                             parentId="language.cangjie"-->
-        <!--                             groupId="language.cangjie"-->
-        <!--                             id="language.cangjie.debugger"-->
-        <!--                             bundle="messages.CangJieBundle" key="CangJie.debugger"/>-->
 
 
         <!--注释-->
-        <lang.commenter language="CangJie" implementationClass="com.linqingying.cangjie.ide.commenter.CjCommenter"/>
+        <lang.commenter language="CangJie" implementationClass="cn.cangnova.cangjie.ide.commenter.CjCommenter"/>
         <!--结构视图-->
         <lang.psiStructureViewFactory
                 language="CangJie"
-                implementationClass="com.linqingying.cangjie.ide.structureView.CangJieStructureViewFactory"/>
+                implementationClass="cn.cangnova.cangjie.ide.structureView.CangJieStructureViewFactory"/>
         <typeHierarchyProvider
                 language="CangJie"
-                implementationClass="com.linqingying.cangjie.ide.hierarchy.CangJieTypeHierarchyProvider"/>
+                implementationClass="cn.cangnova.cangjie.ide.hierarchy.CangJieTypeHierarchyProvider"/>
         <executionTargetLanguageRuntimeType
-                implementation="com.linqingying.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeType"/>
+                implementation="cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeType"/>
         <applicationService
-                serviceImplementation="com.linqingying.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager"/>
+                serviceImplementation="cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager"/>
 
         <applicationService
-                serviceInterface="com.linqingying.cangjie.ide.debugger.CodeFragmentContextTuner"
-                serviceImplementation="com.linqingying.cangjie.ide.debugger.CangJieCodeFragmentContextTuner"/>
+                serviceInterface="cn.cangnova.cangjie.ide.debugger.CodeFragmentContextTuner"
+                serviceImplementation="cn.cangnova.cangjie.ide.debugger.CangJieCodeFragmentContextTuner"/>
 
-        <!--        <applicationService-->
-        <!--                serviceImplementation="com.linqingying.cangjie.ide.completion.FirCompletionDummyIdentifierProviderService"-->
-        <!--                serviceInterface="com.linqingying.cangjie.ide.completion.CompletionDummyIdentifierProviderService"/>-->
 
         <applicationService
-                serviceInterface="com.linqingying.cangjie.psi.stubs.elements.StubIndexService"
-                serviceImplementation="com.linqingying.cangjie.ide.stubindex.IdeStubIndexService"/>
+                serviceInterface="cn.cangnova.cangjie.psi.stubs.elements.StubIndexService"
+                serviceImplementation="cn.cangnova.cangjie.ide.stubindex.IdeStubIndexService"/>
 
-        <!--        <applicationService-->
-        <!--                serviceInterface="com.linqingying.cangjie.ide.liveTemplates.ShortenReferencesFacility"-->
-        <!--                serviceImplementation="com.linqingying.cangjie.ide.liveTemplates.CangJieShortenReferencesFacility"/>-->
-        <projectService serviceInterface="com.linqingying.cangjie.cjpm.project.model.CjpmProjectsService"
-                        serviceImplementation="com.linqingying.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"
+        <projectService serviceInterface="cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService"
+                        serviceImplementation="cn.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"
         />
-        <!--        <projectService serviceImplementation="com.linqingying.cangjie.cjpm.project.settings.CangJieProjectSettingsService"/>-->
         <projectService
-                serviceImplementation="com.linqingying.cangjie.cjpm.project.settings.CjExternalLinterProjectSettingsService"/>
+                serviceImplementation="cn.cangnova.cangjie.cjpm.project.settings.CjExternalLinterProjectSettingsService"/>
         <projectService
-                serviceInterface="com.linqingying.cangjie.ide.imports.ImportInsertHelper"
-                serviceImplementation="com.linqingying.cangjie.ide.imports.ImportInsertHelperImpl"/>
+                serviceInterface="cn.cangnova.cangjie.ide.imports.ImportInsertHelper"
+                serviceImplementation="cn.cangnova.cangjie.ide.imports.ImportInsertHelperImpl"/>
         <projectService
-                serviceInterface="com.linqingying.cangjie.psi.CangJiePsiFacade"
-                serviceImplementation="com.linqingying.cangjie.psi.DefaultCangJiePsiFacade"/>
+                serviceInterface="cn.cangnova.cangjie.psi.CangJiePsiFacade"
+                serviceImplementation="cn.cangnova.cangjie.psi.DefaultCangJiePsiFacade"/>
         <applicationService
-                serviceInterface="com.linqingying.cangjie.ide.CangJieIconProviderService"
-                serviceImplementation="com.linqingying.cangjie.ide.CangJieIconProviderService$CompilerCangJieFileIconProviderService"
+                serviceInterface="cn.cangnova.cangjie.ide.CangJieIconProviderService"
+                serviceImplementation="cn.cangnova.cangjie.ide.CangJieIconProviderService$CompilerCangJieFileIconProviderService"
         />
         <projectService
-                serviceInterface="com.linqingying.cangjie.metadata.CangJieBuiltInDecompilationInterceptor"
-                serviceImplementation="com.linqingying.cangjie.metadata.IdeCangJieBuiltInDecompilationInterceptor"
+                serviceInterface="cn.cangnova.cangjie.metadata.CangJieBuiltInDecompilationInterceptor"
+                serviceImplementation="cn.cangnova.cangjie.metadata.IdeCangJieBuiltInDecompilationInterceptor"
         />
         <applicationService
-                serviceInterface="com.linqingying.cangjie.metadata.CangJieBuiltInStubVersionOffsetProvider"
-                serviceImplementation="com.linqingying.cangjie.metadata.IdeCangJieBuiltInStubVersionOffsetProvider"
+                serviceInterface="cn.cangnova.cangjie.metadata.CangJieBuiltInStubVersionOffsetProvider"
+                serviceImplementation="cn.cangnova.cangjie.metadata.IdeCangJieBuiltInStubVersionOffsetProvider"
         />
-        <projectService serviceInterface="com.linqingying.cangjie.metadata.decompiler.BuiltInsVirtualFileProvider"
-                        serviceImplementation="com.linqingying.cangjie.metadata.decompiler.IdeBuiltInsVirtualFileProviderImpl"/>
+        <projectService serviceInterface="cn.cangnova.cangjie.metadata.decompiler.BuiltInsVirtualFileProvider"
+                        serviceImplementation="cn.cangnova.cangjie.metadata.decompiler.IdeBuiltInsVirtualFileProviderImpl"/>
         <registryKey
                 key="cangjie.enable.inlay.hint.for.lambda.return.type"
                 description="Show inlay hint for lambda return type"
                 defaultValue="false"
                 restartRequired="false"/>
-        <applicationService serviceImplementation="com.linqingying.cangjie.ide.newProject.state.CjUserTemplatesState"/>
+        <applicationService serviceImplementation="cn.cangnova.cangjie.ide.newProject.state.CjUserTemplatesState"/>
 
-        <!--        <projectService serviceImplementation="com.linqingying.cangjie.ide.run.cjpm.back.CangJieProjectSettingsService"/>-->
-
-        <!--        <applicationService serviceInterface="com.linqingying.cangjie.psi.CangJieDeclarationNavigationPolicy"-->
-        <!--                        serviceImplementation="com.linqingying.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>-->
-        <projectService serviceInterface="com.linqingying.cangjie.references.ReadWriteAccessChecker"
-                        serviceImplementation="com.linqingying.cangjie.references.ReadWriteAccessCheckerDescriptorsImpl"/>
-        <projectService serviceInterface="com.linqingying.cangjie.ide.vfilefinder.VirtualFileFinderFactory"
-                        serviceImplementation="com.linqingying.cangjie.ide.vfilefinder.IdeVirtualFileFinderFactory"/>
-        <iconProvider implementation="com.linqingying.cangjie.ide.CangJieIconProvider"/>
+        <projectService serviceInterface="cn.cangnova.cangjie.references.ReadWriteAccessChecker"
+                        serviceImplementation="cn.cangnova.cangjie.references.ReadWriteAccessCheckerDescriptorsImpl"/>
+        <projectService serviceInterface="cn.cangnova.cangjie.ide.vfilefinder.VirtualFileFinderFactory"
+                        serviceImplementation="cn.cangnova.cangjie.ide.vfilefinder.IdeVirtualFileFinderFactory"/>
+        <iconProvider implementation="cn.cangnova.cangjie.ide.CangJieIconProvider"/>
         <treeStructureProvider
-                implementation="com.linqingying.cangjie.ide.projectView.CangJieSelectInProjectViewProvider"/>
+                implementation="cn.cangnova.cangjie.ide.projectView.CangJieSelectInProjectViewProvider"/>
         <treeStructureProvider
-                implementation="com.linqingying.cangjie.ide.projectView.CangJieExpandNodeProjectViewProvider"
+                implementation="cn.cangnova.cangjie.ide.projectView.CangJieExpandNodeProjectViewProvider"
                 order="last"/>
-        <!--        <statistics.counterUsagesCollector implementationClass="com.linqingying.cangjie.ide.projectStructure.download.SdkDownloaderLogger"/>-->
 
         <projectService
-                serviceInterface="com.linqingying.cangjie.ide.projectStructure.LibraryUsageIndex"
-                serviceImplementation="com.linqingying.cangjie.ide.projectStructure.LibraryUsageIndexImpl"/>
+                serviceInterface="cn.cangnova.cangjie.ide.projectStructure.LibraryUsageIndex"
+                serviceImplementation="cn.cangnova.cangjie.ide.projectStructure.LibraryUsageIndexImpl"/>
         <registryKey
                 key="cangjie.disable.auto.completion.inside.expression"
                 description="Disables auto-completion inside expressions"
@@ -244,7 +212,7 @@
         <registryKey key="org.cangjie.cjpm.lock.update.delay.threshold" defaultValue="5000" restartRequired="false"
                      description="Delay in ms between Cjpm metadata call and changes in module-lock.json
                      when automatic project structure reload doesn't occur"/>
-        <registryKey key="com.linqingying.cangjie.cjpm.new.auto.import"
+        <registryKey key="cn.cangnova.cangjie.cjpm.new.auto.import"
                      defaultValue="true"
                      description="Enable new Cjpm project model reloading"
                      restartRequired="true"/>
@@ -258,7 +226,7 @@
         <registryKey key="cangjie.create.sealed.templates.enabled"
                      defaultValue="false"
                      description="Enables dedicated Sealed class/interface templates in File-New-CangJie File"/>
-        <registryKey key="com.linqingying.cangjie.cjpm.test.nocapture" defaultValue="false" restartRequired="false"
+        <registryKey key="cn.cangnova.cangjie.cjpm.test.nocapture" defaultValue="false" restartRequired="false"
                      description="Add `--nocapture` flag to the test command line and show test results in
                      Run Tool Window instead of raw console"/>
         <notificationGroup id="CangJie Plugin" displayType="BALLOON" bundle="messages.CangJieBundle"
@@ -273,95 +241,72 @@
                            key="notification.group.title.jps.cannot.start.compiler"/>
 
         <runAnything.executionProvider order="after RunAnythingRunConfigurationProvider"
-                                       implementation="com.linqingying.cangjie.ide.actions.runAnything.cjpm.CjpmRunAnythingProvider"/>
+                                       implementation="cn.cangnova.cangjie.ide.actions.runAnything.cjpm.CjpmRunAnythingProvider"/>
         <!--        工具栏-->
         <toolWindow id="Cjpm"
                     anchor="right"
-                    factoryClass="com.linqingying.cangjie.cjpm.project.toolwindow.CjpmToolWindowFactory"
+                    factoryClass="cn.cangnova.cangjie.cjpm.project.toolwindow.CjpmToolWindowFactory"
 
         />
         <!--        文档-->
         <toolWindow id="cangjie_doc"
                     anchor="right"
-                    factoryClass="com.linqingying.cangjie.toolwindow.doc.CangJieDocWindowFactory"
+                    factoryClass="cn.cangnova.cangjie.toolwindow.doc.CangJieDocWindowFactory"
 
         />
 
         <projectConfigurable
-                provider="com.linqingying.cangjie.cjpm.project.configurable.CjpmBuildToolConfigurableProvider"
+                provider="cn.cangnova.cangjie.cjpm.project.configurable.CjpmBuildToolConfigurableProvider"
                 parentId="build.tools"
                 id="language.cangjie.build.tool.cjpm"
                 bundle="messages.CangJieBundle" key="settings.cangjie.cjpm.name"/>
         <!-- Notifications -->
 
         <editorNotificationProvider
-                implementation="com.linqingying.cangjie.ide.notifications.MissingToolchainNotificationProvider"/>
+                implementation="cn.cangnova.cangjie.ide.notifications.MissingToolchainNotificationProvider"/>
         <editorNotificationProvider
-                implementation="com.linqingying.cangjie.ide.notifications.NoCjpmProjectNotificationProvider"/>
+                implementation="cn.cangnova.cangjie.ide.notifications.NoCjpmProjectNotificationProvider"/>
 
 
         <statusBarWidgetFactory id="cangjieExternalLinterWidget"
-                                implementation="com.linqingying.cangjie.ide.status.CjExternalLinterWidgetFactory"
+                                implementation="cn.cangnova.cangjie.ide.status.CjExternalLinterWidgetFactory"
                                 order="first"/>
-        <psi.treeChangeListener implementation="com.linqingying.cangjie.dag.DependencyGraphListener"/>
+        <psi.treeChangeListener implementation="cn.cangnova.cangjie.dag.DependencyGraphListener"/>
 
 
         <!--        引用搜索-->
         <projectService
-                serviceInterface="com.linqingying.cangjie.psi.CangJieReferenceProvidersService"
-                serviceImplementation="com.linqingying.cangjie.references.CjIdeReferenceProviderService"/>
+                serviceInterface="cn.cangnova.cangjie.psi.CangJieReferenceProvidersService"
+                serviceImplementation="cn.cangnova.cangjie.references.CjIdeReferenceProviderService"/>
 
 
-        <fileIconProvider implementation="com.linqingying.cangjie.icon.CjpmIconProvider"/>
+        <fileIconProvider implementation="cn.cangnova.cangjie.icon.CjpmIconProvider"/>
 
 
-        <!--        <projectService-->
-        <!--                serviceInterface="com.linqingying.cangjie.cjpm.CjpmConstantsService"-->
-        <!--                serviceImplementation="com.linqingying.cangjie.cjpm.CjpmConstantsServiceImpl"-->
 
-
-        <!--        />-->
-
-        <projectService serviceInterface="com.linqingying.cangjie.references.CangJieReferenceProviderContributor"
-                        serviceImplementation="com.linqingying.cangjie.references.CangJieReferenceContributor"/>
+        <projectService serviceInterface="cn.cangnova.cangjie.references.CangJieReferenceProviderContributor"
+                        serviceImplementation="cn.cangnova.cangjie.references.CangJieReferenceContributor"/>
         <projectService
-                serviceInterface="com.linqingying.cangjie.analyzer.lifetime.CjLifetimeTokenProvider"
-                serviceImplementation="com.linqingying.cangjie.analyzer.lifetime.CjReadActionConfinementLifetimeTokenProvider"/>
+                serviceInterface="cn.cangnova.cangjie.analyzer.lifetime.CjLifetimeTokenProvider"
+                serviceImplementation="cn.cangnova.cangjie.analyzer.lifetime.CjReadActionConfinementLifetimeTokenProvider"/>
         <projectService
-                serviceInterface="com.linqingying.cangjie.analyzer.ProjectStructureProvider"
-                serviceImplementation="com.linqingying.cangjie.analyzer.ProjectStructureProviderIdeImpl"/>
+                serviceInterface="cn.cangnova.cangjie.analyzer.ProjectStructureProvider"
+                serviceImplementation="cn.cangnova.cangjie.analyzer.ProjectStructureProviderIdeImpl"/>
 
         <projectService
-                serviceInterface="com.linqingying.cangjie.analyzer.CjAnalysisFacade"
-                serviceImplementation="com.linqingying.cangjie.analyzer.IdeCjAnalysisFacade"/>
+                serviceInterface="cn.cangnova.cangjie.analyzer.CjAnalysisFacade"
+                serviceImplementation="cn.cangnova.cangjie.analyzer.IdeCjAnalysisFacade"/>
 
         <projectService
-                serviceInterface="com.linqingying.cangjie.analyzer.session.CjAnalysisSessionProvider"
-                serviceImplementation="com.linqingying.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>
+                serviceInterface="cn.cangnova.cangjie.analyzer.session.CjAnalysisSessionProvider"
+                serviceImplementation="cn.cangnova.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>
         <projectService
-                serviceInterface="com.linqingying.cangjie.ide.cdoc.CDocLinkResolutionService"
-                serviceImplementation="com.linqingying.cangjie.ide.cdoc.IdeCDocLinkResolutionService"/>
-        <!--        <projectService-->
-        <!--                serviceInterface="com.linqingying.cangjie.analyzer.lifetime.CjLifetimeTokenProvider"-->
-        <!--                serviceImplementation="com.linqingying.cangjie.analyzer.lifetime.CjReadActionConfinementLifetimeTokenProvider"/>-->
-
-        <!--        <projectService-->
-        <!--                serviceInterface="com.linqingying.cangjie.analyzer.ProjectStructureProvider"-->
-        <!--                serviceImplementation="com.linqingying.cangjie.analyzer.ProjectStructureProviderIdeImpl"/>-->
-        <!--        <projectService-->
-        <!--                serviceInterface="com.linqingying.cangjie.analyzer.CjAnalysisFacade"-->
-        <!--                serviceImplementation="com.linqingying.cangjie.analyzer.IdeCjAnalysisFacade"/>-->
-
-        <!--        <projectService-->
-        <!--                serviceInterface="com.linqingying.cangjie.ide.completion.providers.CangJieResolutionScopeProvider"-->
-        <!--                serviceImplementation="com.linqingying.cangjie.ide.completion.providers.IdeCangJieByModulesResolutionScopeProvider"/>-->
-        <!--        <projectService-->
-        <!--                serviceInterface="com.linqingying.cangjie.analyzer.session.CjAnalysisSessionProvider"-->
-        <!--                serviceImplementation="com.linqingying.cangjie.analyzer.session.CjAnalysisSessionProviderImpl"/>-->
+                serviceInterface="cn.cangnova.cangjie.ide.cdoc.CDocLinkResolutionService"
+                serviceImplementation="cn.cangnova.cangjie.ide.cdoc.IdeCDocLinkResolutionService"/>
 
         <projectService
-                serviceInterface="com.linqingying.cangjie.NotPropertiesService"
-                serviceImplementation="com.linqingying.cangjie.ide.intentions.NotPropertiesServiceImpl"/>
+                serviceInterface="cn.cangnova.cangjie.NotPropertiesService"
+                serviceImplementation="cn.cangnova.cangjie.ide.intentions.NotPropertiesServiceImpl"/>
     </extensions>
     <xi:include href="/META-INF/codeInsight.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/searching.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -375,87 +320,87 @@
 
     <!--        监听-->
     <applicationListeners>
-        <!--        <listener class="com.linqingying.cangjie.ide.project.CangJieProjectManagerListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>-->
+        <!--        <listener class="cn.cangnova.cangjie.ide.project.CangJieProjectManagerListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>-->
 
-        <!--        <listener class="com.linqingying.cangjie.lang.sdk.CangJieProjectSdkTableListener" topic="com.intellij.openapi.projectRoots.ProjectJdkTable$Listener"/>-->
+        <!--        <listener class="cn.cangnova.cangjie.lang.sdk.CangJieProjectSdkTableListener" topic="com.intellij.openapi.projectRoots.ProjectJdkTable$Listener"/>-->
     </applicationListeners>
 
     <projectListeners>
 
 
-        <listener class="com.linqingying.cangjie.ide.status.CjExternalLinterWidgetUpdater"
-                  topic="com.linqingying.cangjie.cjpm.project.model.CjpmProjectsService$CjpmProjectsListener"/>
+        <listener class="cn.cangnova.cangjie.ide.status.CjExternalLinterWidgetUpdater"
+                  topic="cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService$CjpmProjectsListener"/>
     </projectListeners>
 
     <extensionPoints>
 
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.ide.caches.resolve.resolveOptimizingOptionsProvider"
-                interface="com.linqingying.cangjie.resolve.caches.ResolveOptimizingOptionsProvider"
+                qualifiedName="cn.cangnova.cangjie.ide.caches.resolve.resolveOptimizingOptionsProvider"
+                interface="cn.cangnova.cangjie.resolve.caches.ResolveOptimizingOptionsProvider"
                 dynamic="true"/>
         <!--        工具链  多平台支持-->
-        <extensionPoint qualifiedName="com.linqingying.cangjie.toolchainProvider"
-                        interface="com.linqingying.cangjie.cjpm.toolchain.CjToolchainProvider"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.toolchainProvider"
+                        interface="cn.cangnova.cangjie.cjpm.toolchain.CjToolchainProvider"
                         dynamic="true"/>
-        <extensionPoint qualifiedName="com.linqingying.cangjie.toolchainFlavor"
-                        interface="com.linqingying.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.toolchainFlavor"
+                        interface="cn.cangnova.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor"
                         dynamic="true"/>
         <!--        psi查找-->
-        <extensionPoint qualifiedName="com.linqingying.cangjie.psi.elementFinder" dynamic="true"
-                        area="IDEA_PROJECT" interface="com.linqingying.cangjie.psi.CangJiePsiElementFinderBase"/>
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.psi.elementFinder" dynamic="true"
+                        area="IDEA_PROJECT" interface="cn.cangnova.cangjie.psi.CangJiePsiElementFinderBase"/>
         <!--分析之前高亮-->
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.beforeResolveHighlightingVisitor"
-                interface="com.linqingying.cangjie.highlighter.BeforeResolveHighlightingExtension"
+                qualifiedName="cn.cangnova.cangjie.beforeResolveHighlightingVisitor"
+                interface="cn.cangnova.cangjie.highlighter.BeforeResolveHighlightingExtension"
                 dynamic="true"/>
         <!--        诊断抑制-->
-        <extensionPoint qualifiedName="com.linqingying.cangjie.diagnosticSuppressor"
-                        interface="com.linqingying.cangjie.descriptors.DiagnosticSuppressor"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.diagnosticSuppressor"
+                        interface="cn.cangnova.cangjie.descriptors.DiagnosticSuppressor"
                         dynamic="true"/>
         <!--        Cjpm 运行配置-->
-        <extensionPoint qualifiedName="com.linqingying.cangjie.runConfigurationExtension"
-                        interface="com.linqingying.cangjie.ide.run.cjpm.runconfig.CjpmCommandConfigurationExtension"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.runConfigurationExtension"
+                        interface="cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjpmCommandConfigurationExtension"
                         dynamic="true"/>
         <!--文件被创建后的处理-->
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.newFileHook"
-                interface="com.linqingying.cangjie.ide.actions.NewCangJieFileHook"
+                qualifiedName="cn.cangnova.cangjie.newFileHook"
+                interface="cn.cangnova.cangjie.ide.actions.NewCangJieFileHook"
                 dynamic="true"/>
         <!--         项目配置-->
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.projectConfigurator"
-                interface="com.linqingying.cangjie.ide.configuration.CangJieProjectConfigurator"
+                qualifiedName="cn.cangnova.cangjie.projectConfigurator"
+                interface="cn.cangnova.cangjie.ide.configuration.CangJieProjectConfigurator"
                 dynamic="true"/>
         <!--        模块信息提供者-->
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.moduleinfo.moduleInfoProviderExtension"
-                interface="com.linqingying.cangjie.ide.projectStructure.ModuleInfoProviderExtension"
+                qualifiedName="cn.cangnova.cangjie.moduleinfo.moduleInfoProviderExtension"
+                interface="cn.cangnova.cangjie.ide.projectStructure.ModuleInfoProviderExtension"
                 area="IDEA_PROJECT"
                 dynamic="true"/>
         <!--        解析范围-->
-        <extensionPoint qualifiedName="com.linqingying.cangjie.resolveScopeEnlarger"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.resolveScopeEnlarger"
                         dynamic="true"
-                        interface="com.linqingying.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger"/>
+                        interface="cn.cangnova.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger"/>
         <!--        类导入过滤器-->
         <extensionPoint
-                qualifiedName="com.linqingying.cangjie.classImportFilter"
-                interface="com.linqingying.cangjie.ide.util.ClassImportFilter"
+                qualifiedName="cn.cangnova.cangjie.classImportFilter"
+                interface="cn.cangnova.cangjie.ide.util.ClassImportFilter"
                 dynamic="true"/>
         <!--        简单名称引用扩展点-->
-        <extensionPoint qualifiedName="com.linqingying.cangjie.simpleNameReferenceExtension"
-                        interface="com.linqingying.cangjie.references.SimpleNameReferenceExtension"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.simpleNameReferenceExtension"
+                        interface="cn.cangnova.cangjie.references.SimpleNameReferenceExtension"
                         area="IDEA_PROJECT" dynamic="true"/>
 
 
-        <extensionPoint qualifiedName="com.linqingying.cangjie.classFileDecompiler"
-                        interface="com.linqingying.cangjie.psi.compiled.ClassFileDecompilers$Decompiler"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.classFileDecompiler"
+                        interface="cn.cangnova.cangjie.psi.compiled.ClassFileDecompilers$Decompiler"
                         dynamic="true"/>
 
-        <extensionPoint qualifiedName="com.linqingying.cangjie.sdkDownload"
-                        interface="com.linqingying.cangjie.ide.projectStructure.download.SdkDownloadEp"/>
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.sdkDownload"
+                        interface="cn.cangnova.cangjie.ide.projectStructure.download.SdkDownloadEp"/>
 
-        <extensionPoint qualifiedName="com.linqingying.cangjie.ide.turboComplete.suggestionGeneratorExecutorProvider"
-                        interface="com.linqingying.cangjie.ide.completion.turboComplete.SuggestionGeneratorExecutorProvider"
+        <extensionPoint qualifiedName="cn.cangnova.cangjie.ide.turboComplete.suggestionGeneratorExecutorProvider"
+                        interface="cn.cangnova.cangjie.ide.completion.turboComplete.SuggestionGeneratorExecutorProvider"
                         dynamic="true"
 
         />
@@ -466,15 +411,15 @@
     <actions>
 
 
-        <action id="GeneratedBuiltins" class="com.linqingying.cangjie.ide.actions.GeneratedBuiltins"
+        <action id="GeneratedBuiltins" class="cn.cangnova.cangjie.ide.actions.GeneratedBuiltins"
                 text="生成Builtins文件" description="GeneratedBuiltins">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
         </action>
-        <action id="CjpmRunMain" class="com.linqingying.cangjie.ide.run.cjpm.RunMainAction"/>
+        <action id="CjpmRunMain" class="cn.cangnova.cangjie.ide.run.cjpm.RunMainAction"/>
 
-        <action id="CangJie.NewFile" class="com.linqingying.cangjie.ide.actions.NewCangJieFileAction"
+        <action id="CangJie.NewFile" class="cn.cangnova.cangjie.ide.actions.NewCangJieFileAction"
                 text="Add Cangjie File"
-                icon="com.linqingying.cangjie.icon.CangJieIcons.CANGJIE">
+                icon="cn.cangnova.cangjie.icon.CangJieIcons.CANGJIE">
 
 
             <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewGroup1"/>
@@ -484,22 +429,22 @@
         <!--        CJPM-->
 
         <action id="Cjpm.AttachCjpmProject"
-                class="com.linqingying.cangjie.cjpm.project.model.AttachCjpmProjectAction"
+                class="cn.cangnova.cangjie.cjpm.project.model.AttachCjpmProjectAction"
                 icon="AllIcons.General.Add"/>
 
         <!--        更新cjpm项目结构-->
         <action id="Cjpm.RefreshCjpmProject"
-                class="com.linqingying.cangjie.ide.actions.RefreshCjpmProjectsAction"
+                class="cn.cangnova.cangjie.ide.actions.RefreshCjpmProjectsAction"
                 icon="AllIcons.Actions.Refresh"/>
 
         <action id="Cjpm.ShowSettings"
-                class="com.linqingying.cangjie.ide.actions.CjpmEditSettingsAction"
+                class="cn.cangnova.cangjie.ide.actions.CjpmEditSettingsAction"
                 icon="AllIcons.General.Settings">
         </action>
 
 
         <action id="Cjpm.RunCjpmCommand"
-                class="com.linqingying.cangjie.cjpm.runconfig.command.RunCjpmCommandAction"
+                class="cn.cangnova.cangjie.cjpm.runconfig.command.RunCjpmCommandAction"
         />
         <group id="CangJie.Cjpm">
             <reference id="Cjpm.RefreshCjpmProject"/>
@@ -520,7 +465,7 @@
 
 
     <!--    <extensions defaultExtensionNs="com.jetbrains">-->
-    <!--        <performancePlugin.commandProvider implementation="com.linqingying.cangjie.ide.performancePlugin.CangJiePluginCommandProvider"/>-->
+    <!--        <performancePlugin.commandProvider implementation="cn.cangnova.cangjie.ide.performancePlugin.CangJiePluginCommandProvider"/>-->
     <!--    </extensions>-->
 
 
@@ -533,37 +478,37 @@
     <extensions defaultExtensionNs="lsp">
 
         <!-- LSP -->
-        <!--        <serverSupportProvider implementation="com.linqingying.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
+        <!--        <serverSupportProvider implementation="cn.cangnova.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
 
 
     </extensions>
 
 
-    <extensions defaultExtensionNs="com.linqingying.cangjie">
+    <extensions defaultExtensionNs="cn.cangnova.cangjie">
         <!-- Toolchains -->
         <toolchainFlavor id="cangjie.cjpmToolchainFlavor"
-                         implementation="com.linqingying.cangjie.cjpm.toolchain.flavors.CjpmToolchainFlavor"
+                         implementation="cn.cangnova.cangjie.cjpm.toolchain.flavors.CjpmToolchainFlavor"
                          order="first"/>
         <toolchainFlavor id="cangjie.winToolchainFlavor"
-                         implementation="com.linqingying.cangjie.cjpm.toolchain.flavors.CjWinToolchainFlavor"/>
+                         implementation="cn.cangnova.cangjie.cjpm.toolchain.flavors.CjWinToolchainFlavor"/>
 
-        <toolchainProvider implementation="com.linqingying.cangjie.cjpm.toolchain.CjLocalToolchainProvider"/>
-        <psi.elementFinder implementation="com.linqingying.cangjie.psi.CjpmProjectPsiElementFinder" id="CjpmProject"
+        <toolchainProvider implementation="cn.cangnova.cangjie.cjpm.toolchain.CjLocalToolchainProvider"/>
+        <psi.elementFinder implementation="cn.cangnova.cangjie.psi.CjpmProjectPsiElementFinder" id="CjpmProject"
                            order="first"/>
-        <psi.elementFinder implementation="com.linqingying.cangjie.psi.CjpmPackagePsiElementFinder" id="CjpmPackage"
+        <psi.elementFinder implementation="cn.cangnova.cangjie.psi.CjpmPackagePsiElementFinder" id="CjpmPackage"
                            order="first"/>
-        <psi.elementFinder implementation="com.linqingying.cangjie.psi.CjpmStdlibPsiElementFinder" id="CjpmStdlib"
+        <psi.elementFinder implementation="cn.cangnova.cangjie.psi.CjpmStdlibPsiElementFinder" id="CjpmStdlib"
                            order="first"/>
 
 
         <toolchainFlavor id="cangjie.wslToolchainFlavor"
-                         implementation="com.linqingying.cangjie.cjpm.toolchain.wsl.CjWslToolchainFlavor"/>
+                         implementation="cn.cangnova.cangjie.cjpm.toolchain.wsl.CjWslToolchainFlavor"/>
 
         <moduleinfo.moduleInfoProviderExtension
-                implementation="com.linqingying.cangjie.ide.projectStructure.DefaultModuleInfoProviderExtension"/>
+                implementation="cn.cangnova.cangjie.ide.projectStructure.DefaultModuleInfoProviderExtension"/>
 
 
-        <sdkDownload implementation="com.linqingying.cangjie.ide.projectStructure.download.SdkDownloader"/>
+        <sdkDownload implementation="cn.cangnova.cangjie.ide.projectStructure.download.SdkDownloader"/>
 
 
     </extensions>

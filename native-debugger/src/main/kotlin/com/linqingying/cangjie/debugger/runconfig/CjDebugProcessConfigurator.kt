@@ -1,4 +1,4 @@
-package com.linqingying.cangjie.debugger.runconfig
+package cn.cangnova.cangjie.debugger.runconfig
 
 import com.jetbrains.cidr.execution.debugger.CidrDebugProcess
 import com.jetbrains.cidr.execution.debugger.CidrDebugProcessConfigurator

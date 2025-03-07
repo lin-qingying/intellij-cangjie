@@ -3,20 +3,20 @@
  * found in the LICENSE file.
  */
 
-package com.linqingying.cangjie.debugger.lang
+package cn.cangnova.cangjie.debugger.lang
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.CjResult
-import com.linqingying.cangjie.ide.run.cjpm.runconfig.unwrapOrThrow
+import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjResult
+import cn.cangnova.cangjie.ide.run.cjpm.runconfig.unwrapOrThrow
 import com.intellij.xdebugger.XExpression
 import com.intellij.xdebugger.XSourcePosition
 import com.jetbrains.cidr.execution.debugger.CidrEvaluator
 import com.jetbrains.cidr.execution.debugger.CidrStackFrame
 import com.jetbrains.cidr.execution.debugger.backend.DebuggerDriver
 import com.jetbrains.cidr.execution.debugger.evaluation.CidrEvaluatedValue
-import com.linqingying.cangjie.psi.CjExpression
-import com.linqingying.cangjie.psi.psiUtil.ancestorOrSelf
+import cn.cangnova.cangjie.psi.CjExpression
+import cn.cangnova.cangjie.psi.psiUtil.ancestorOrSelf
 
 class CjEvaluator(frame: CidrStackFrame) : CidrEvaluator(frame) {
 

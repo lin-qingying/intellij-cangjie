@@ -1,8 +1,8 @@
-package com.linqingying.cangjie.debugger
+package cn.cangnova.cangjie.debugger
 
 import com.google.common.annotations.VisibleForTesting
-import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.openapiext.CjPathManager
+import cn.cangnova.cangjie.CangJieBundle
+import cn.cangnova.cangjie.openapiext.CjPathManager
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications

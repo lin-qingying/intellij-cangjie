@@ -1,8 +1,8 @@
-package com.linqingying.cangjie.debugger.settings
+package cn.cangnova.cangjie.debugger.settings
 
-import com.linqingying.cangjie.debugger.CjDebuggerBundle
-import com.linqingying.cangjie.debugger.DebuggerKind
-import com.linqingying.cangjie.debugger.LLDBRenderers
+import cn.cangnova.cangjie.debugger.CjDebuggerBundle
+import cn.cangnova.cangjie.debugger.DebuggerKind
+import cn.cangnova.cangjie.debugger.LLDBRenderers
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.SimpleConfigurable
 import com.intellij.util.xmlb.XmlSerializerUtil

@@ -1,31 +1,31 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
-        <!--        <fileStructureGroupRuleProvider implementation="com.linqingying.cangjie.ide.searching.usages.CangJieDeclarationGroupRuleProvider"/>-->
+        <!--        <fileStructureGroupRuleProvider implementation="cn.cangnova.cangjie.ide.searching.usages.CangJieDeclarationGroupRuleProvider"/>-->
         <!--        <fileStructureGroupRuleProvider-->
-        <!--                implementation="com.linqingying.cangjie.ide.searching.usages.CangJieDeclarationSecondLevelGroupRuleProvider"/>-->
+        <!--                implementation="cn.cangnova.cangjie.ide.searching.usages.CangJieDeclarationSecondLevelGroupRuleProvider"/>-->
 
-                <findUsagesHandlerFactory implementation="com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory"
+                <findUsagesHandlerFactory implementation="cn.cangnova.cangjie.ide.searching.usages.CangJieFindUsagesHandlerFactory"
                                           id="cangjieFindUsagesHandlerFactory"/>
 
-        <!--        <importFilteringRule implementation="com.linqingying.cangjie.ide.searching.usages.CangJieImportFilteringRule"/>-->
+        <!--        <importFilteringRule implementation="cn.cangnova.cangjie.ide.searching.usages.CangJieImportFilteringRule"/>-->
         <!--        <elementDescriptionProvider-->
-        <!--                implementation="com.linqingying.cangjie.ide.searching.usages.CangJieNonCodeSearchElementDescriptionProvider"/>-->
+        <!--                implementation="cn.cangnova.cangjie.ide.searching.usages.CangJieNonCodeSearchElementDescriptionProvider"/>-->
 
-        <!--        <annotatedElementsSearch implementation="com.linqingying.cangjie.ide.searching.CangJieAnnotatedElementsSearcher" />-->
-        <referencesSearch implementation="com.linqingying.cangjie.ide.search.CangJieReferencesSearcher"/>
+        <!--        <annotatedElementsSearch implementation="cn.cangnova.cangjie.ide.searching.CangJieAnnotatedElementsSearcher" />-->
+        <referencesSearch implementation="cn.cangnova.cangjie.ide.search.CangJieReferencesSearcher"/>
 
 
-        <elementDescriptionProvider order="first" implementation="com.linqingying.cangjie.ide.searching.usages.CangJieElementDescriptionProvider"/>
-
-        <lang.findUsagesProvider language="CangJie"
-                                 implementationClass="com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesProviderBase"/>
+        <elementDescriptionProvider order="first" implementation="cn.cangnova.cangjie.ide.searching.usages.CangJieElementDescriptionProvider"/>
 
         <lang.findUsagesProvider language="CangJie"
-                                 implementationClass="com.linqingying.cangjie.ide.searching.usages.CangJieFindUsagesProvider"/>
-        <projectService serviceInterface="com.linqingying.cangjie.ide.search.CangJieSearchUsagesSupport"
-                        serviceImplementation="com.linqingying.cangjie.ide.search.CangJieSearchUsagesSupportImpl"/>
-        <projectService serviceInterface="com.linqingying.cangjie.ide.searching.findUsages.CangJieFindUsagesSupport"
-                        serviceImplementation="com.linqingying.cangjie.ide.searching.findUsages.CangJieFindUsagesSupportImpl"/>
+                                 implementationClass="cn.cangnova.cangjie.ide.searching.usages.CangJieFindUsagesProviderBase"/>
+
+        <lang.findUsagesProvider language="CangJie"
+                                 implementationClass="cn.cangnova.cangjie.ide.searching.usages.CangJieFindUsagesProvider"/>
+        <projectService serviceInterface="cn.cangnova.cangjie.ide.search.CangJieSearchUsagesSupport"
+                        serviceImplementation="cn.cangnova.cangjie.ide.search.CangJieSearchUsagesSupportImpl"/>
+        <projectService serviceInterface="cn.cangnova.cangjie.ide.searching.findUsages.CangJieFindUsagesSupport"
+                        serviceImplementation="cn.cangnova.cangjie.ide.searching.findUsages.CangJieFindUsagesSupportImpl"/>
 
     </extensions>
 </idea-plugin>

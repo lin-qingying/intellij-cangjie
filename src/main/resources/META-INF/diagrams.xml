@@ -4,6 +4,6 @@
 <!--    </dependencies>-->
 
 <!--<extensions defaultExtensionNs="com.intellij.diagram">-->
-<!--    <Provider implementation="com.linqingying.cangjie.uml.CangJieUmlProvider"/>-->
+<!--    <Provider implementation="cn.cangnova.cangjie.uml.CangJieUmlProvider"/>-->
 <!--</extensions>-->
 <!--</idea-plugin>-->

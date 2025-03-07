@@ -3,7 +3,7 @@
 <extensions defaultExtensionNs="com.intellij">
 
     <applicationService
-            serviceInterface="com.linqingying.cangjie.references.CjReferenceMutateService"
-            serviceImplementation="com.linqingying.cangjie.references.rename.CangJieReferenceMutateService"/>
+            serviceInterface="cn.cangnova.cangjie.references.CjReferenceMutateService"
+            serviceImplementation="cn.cangnova.cangjie.references.rename.CangJieReferenceMutateService"/>
 </extensions>
 </idea-plugin>

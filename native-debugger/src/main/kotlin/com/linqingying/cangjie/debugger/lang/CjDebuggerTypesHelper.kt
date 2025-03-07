@@ -1,7 +1,7 @@
-package com.linqingying.cangjie.debugger.lang
+package cn.cangnova.cangjie.debugger.lang
 
-import com.linqingying.cangjie.psi.CjElement
-import com.linqingying.cangjie.psi.psiUtil.ancestorOrSelf
+import cn.cangnova.cangjie.psi.CjElement
+import cn.cangnova.cangjie.psi.psiUtil.ancestorOrSelf
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.xdebugger.XSourcePosition

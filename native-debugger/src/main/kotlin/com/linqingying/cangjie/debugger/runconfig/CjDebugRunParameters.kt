@@ -1,8 +1,8 @@
-package com.linqingying.cangjie.debugger.runconfig
+package cn.cangnova.cangjie.debugger.runconfig
 
-import com.linqingying.cangjie.cjpm.project.model.CjpmProject
-import com.linqingying.cangjie.debugger.CjDebuggerDriverConfigurationProvider
-import com.linqingying.cangjie.debugger.CjLLDBDriverConfiguration
+import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
+import cn.cangnova.cangjie.debugger.CjDebuggerDriverConfigurationProvider
+import cn.cangnova.cangjie.debugger.CjLLDBDriverConfiguration
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.project.Project
 import com.jetbrains.cidr.execution.Installer

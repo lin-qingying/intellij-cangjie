@@ -3,7 +3,7 @@
  * found in the LICENSE file.
  */
 
-package com.linqingying.cangjie.debugger
+package cn.cangnova.cangjie.debugger
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.Nls

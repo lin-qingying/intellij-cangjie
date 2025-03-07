@@ -23,21 +23,14 @@
   -->
 
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
-<!--        <xi:include href="intellij.platform.lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
-<!--    <extensions defaultExtensionNs="com.intellij">-->
+    <extensions defaultExtensionNs="com.intellij">
 
-<!--        <platform.lsp.serverSupportProvider implementation="com.linqingying.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>-->
-<!--    </extensions>-->
-
-    <xi:include href="/META-INF/lsp.xml" xpointer="xpointer(/idea-plugin/*)"/>
+        <platform.lsp.serverSupportProvider implementation="cn.cangnova.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
 
 
-    <extensions defaultExtensionNs="com.linqingying.lsp">
-        <!-- LSP -->
-        <serverSupportProvider implementation="com.linqingying.cangjie.lang.lsp.CangJieLspServerSupportProvider"/>
-<!--        <markdownFormat implementation="com.linqingying.cangjie.lang.lsp.CangJieLspMarkDownFormat"/>-->
 
     </extensions>
+
 
 </idea-plugin>

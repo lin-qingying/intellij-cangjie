@@ -98,7 +98,7 @@
 ////val (protobufCompareSourceSet, protobufCompareApi) = extraSourceSet("protobufCompare", jpsKind = SourceSet.TEST_SOURCE_SET_NAME)
 //
 //val (protobufSourceSet, protobufApi) = extraSourceSet("protobuf")
-////val generateProtoBufCompare by generator("com.linqingying.cangjie.generators.protobuf.GenerateProtoBufCompare", protobufCompareSourceSet)
+////val generateProtoBufCompare by generator("cn.cangnova.cangjie.generators.protobuf.GenerateProtoBufCompare", protobufCompareSourceSet)
 //
 //
 //
@@ -108,5 +108,5 @@
 //
 //
 //}
-//val generateProtoBuf by generator("com.linqingying.cangjie.generators.protobuf.GenerateProtoBufKt", protobufSourceSet)
+//val generateProtoBuf by generator("cn.cangnova.cangjie.generators.protobuf.GenerateProtoBufKt", protobufSourceSet)
 //

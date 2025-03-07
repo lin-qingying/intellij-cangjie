@@ -1,13 +1,13 @@
-package com.linqingying.cangjie.debugger.runconfig
+package cn.cangnova.cangjie.debugger.runconfig
 
-import com.linqingying.cangjie.CangJieBundle
-import com.linqingying.cangjie.debugger.CjDebuggerToolchainService
-import com.linqingying.cangjie.debugger.DebuggerAvailability
-import com.linqingying.cangjie.debugger.DebuggerKind
-import com.linqingying.cangjie.debugger.settings.CjDebuggerSettings
-import com.linqingying.cangjie.ide.run.cjpm.BuildResult
-import com.linqingying.cangjie.ide.run.cjpm.CjpmRunStateBase
-import com.linqingying.cangjie.ide.run.cjpm.isUnitTestMode
+import cn.cangnova.cangjie.CangJieBundle
+import cn.cangnova.cangjie.debugger.CjDebuggerToolchainService
+import cn.cangnova.cangjie.debugger.DebuggerAvailability
+import cn.cangnova.cangjie.debugger.DebuggerKind
+import cn.cangnova.cangjie.debugger.settings.CjDebuggerSettings
+import cn.cangnova.cangjie.ide.run.cjpm.BuildResult
+import cn.cangnova.cangjie.ide.run.cjpm.CjpmRunStateBase
+import cn.cangnova.cangjie.ide.run.cjpm.isUnitTestMode
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessTerminatedListener
