@@ -25,7 +25,11 @@
 package cn.cangnova.cangjie.ide.cache.project
 
 
-import cn.cangnova.cangjie.analyzer.*
+import cn.cangnova.cangjie.descriptors.CangJieLibrary
+import cn.cangnova.cangjie.descriptors.CangJieModuleInfo
+import cn.cangnova.cangjie.descriptors.LibraryInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleSourceInfo
 import cn.cangnova.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import cn.cangnova.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.java.workspace.entities.JavaModuleSettingsEntity
@@ -46,7 +50,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.platform.backend.workspace.WorkspaceModelChangeListener
-import com.intellij.platform.backend.workspace.WorkspaceModelTopics
 import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import com.intellij.platform.workspace.jps.entities.SourceRootEntity
 import com.intellij.platform.workspace.storage.EntityChange
@@ -57,7 +60,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.serviceContainer.AlreadyDisposedException
 import com.intellij.util.messages.MessageBusConnection
-import com.intellij.util.messages.Topic
 import com.intellij.workspaceModel.ide.legacyBridge.findModule
 import cn.cangnova.cangjie.ide.cache.trackers.CHANGED
 

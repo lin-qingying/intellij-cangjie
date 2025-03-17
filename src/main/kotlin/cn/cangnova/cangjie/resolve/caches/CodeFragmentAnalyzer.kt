@@ -27,7 +27,7 @@ import jakarta.inject.Inject
 
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.analyzer.analyzeInContext
+import cn.cangnova.cangjie.resolve.analyzeInContext
 import cn.cangnova.cangjie.descriptors.BindingTrace
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.ClassDescriptorWithResolutionScopes

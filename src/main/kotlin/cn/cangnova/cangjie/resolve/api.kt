@@ -22,12 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.analyzer
+package cn.cangnova.cangjie.resolve
 
 import cn.cangnova.cangjie.descriptors.BindingTrace
 import cn.cangnova.cangjie.ide.FrontendInternals
 import cn.cangnova.cangjie.psi.CjExpression
-import cn.cangnova.cangjie.resolve.*
 import cn.cangnova.cangjie.resolve.caches.getResolutionFacade
 import cn.cangnova.cangjie.resolve.calls.components.InferenceSession
 import cn.cangnova.cangjie.resolve.calls.context.ContextDependency

@@ -26,7 +26,7 @@
 
 package cn.cangnova.cangjie.resolve.caches
 
-import cn.cangnova.cangjie.analyzer.AnalysisResult
+import cn.cangnova.cangjie.resolve.AnalysisResult
 import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
 import cn.cangnova.cangjie.configurable.services.Feature
 import cn.cangnova.cangjie.configurable.services.LanugageServerType

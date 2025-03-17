@@ -24,8 +24,8 @@
 
 package cn.cangnova.cangjie.ide.projectStructure
 
-import cn.cangnova.cangjie.analyzer.CangJieModuleInfo
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.CangJieModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.ide.cache.project.LibraryInfoCache
 import cn.cangnova.cangjie.ide.cache.project.moduleInfos
 import com.intellij.openapi.components.Service

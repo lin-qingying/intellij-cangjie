@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.ide.completion
 
 import cn.cangnova.cangjie.NotPropertiesService
-import cn.cangnova.cangjie.analyzer.ModuleOrigin
+import cn.cangnova.cangjie.descriptors.ModuleOrigin
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.doc.psi.impl.CDocLink
 import cn.cangnova.cangjie.doc.psi.impl.CDocName

@@ -24,13 +24,13 @@
 
 package cn.cangnova.cangjie.resolve.caches
 
-import cn.cangnova.cangjie.analyzer.LibraryInfo
-import cn.cangnova.cangjie.analyzer.ModuleInfo
-import cn.cangnova.cangjie.analyzer.ModuleSourceInfo
-import cn.cangnova.cangjie.analyzer.ResolverForProject.Companion.resolverForLibrariesName
-import cn.cangnova.cangjie.analyzer.ResolverForProject.Companion.resolverForModulesName
-import cn.cangnova.cangjie.analyzer.ResolverForProject.Companion.resolverForSpecialInfoName
-import cn.cangnova.cangjie.analyzer.isLibraryClasses
+import cn.cangnova.cangjie.descriptors.LibraryInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleSourceInfo
+import cn.cangnova.cangjie.resolve.ResolverForProject.Companion.resolverForLibrariesName
+import cn.cangnova.cangjie.resolve.ResolverForProject.Companion.resolverForModulesName
+import cn.cangnova.cangjie.resolve.ResolverForProject.Companion.resolverForSpecialInfoName
+import cn.cangnova.cangjie.descriptors.isLibraryClasses
 import cn.cangnova.cangjie.context.GlobalContext
 import cn.cangnova.cangjie.context.GlobalContextImpl
 import cn.cangnova.cangjie.ide.base.projectStructure.RootKindFilter

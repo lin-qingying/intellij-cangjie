@@ -22,8 +22,10 @@
  *
  */
 
-package cn.cangnova.cangjie.analyzer
+package cn.cangnova.cangjie.resolve
 
+import cn.cangnova.cangjie.descriptors.ModuleDescriptorListener
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
 import cn.cangnova.cangjie.context.ProjectContext
@@ -31,14 +33,13 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.resolve.PackageOracle
-import cn.cangnova.cangjie.resolve.PackageOracleFactory
 import cn.cangnova.cangjie.resolve.caches.ModuleContent
 import cn.cangnova.cangjie.utils.CangJieExceptionWithAttachments
 import cn.cangnova.cangjie.utils.checkWithAttachment
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
+import kotlin.collections.get
 
 fun createModuleDescriptor(projectContext: ProjectContext, project: Project): ModuleDescriptor {
 
@@ -149,7 +150,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
             oldDescriptor.isValid = false
             moduleInfoByDescriptor.remove(oldDescriptor)
             resolverByModuleDescriptor.remove(oldDescriptor)
-            projectContext.project.messageBus.syncPublisher(ModuleDescriptorListener.TOPIC)
+            projectContext.project.messageBus.syncPublisher(ModuleDescriptorListener.Companion.TOPIC)
                 .moduleDescriptorInvalidated(oldDescriptor)
         }
 
@@ -261,7 +262,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
             resolverByModuleDescriptor.getOrPut(descriptor) {
                 checkModuleIsCorrect(module)
 
-                ResolverForModuleComputationTracker.getInstance(projectContext.project)?.onResolverComputed(module)
+                ResolverForModuleComputationTracker.Companion.getInstance(projectContext.project)?.onResolverComputed(module)
 
                 createResolverForModule(descriptor, module)
             }
@@ -293,8 +294,8 @@ private object DiagnoseUnknownModuleInfoReporter {
         val message = "$name does not know how to resolve"
         val error = when {
 
-            name.contains(ResolverForProject.resolverForLibrariesName) -> errorInLibrariesResolver(message)
-            name.contains(ResolverForProject.resolverForModulesName) -> {
+            name.contains(ResolverForProject.Companion.resolverForLibrariesName) -> errorInLibrariesResolver(message)
+            name.contains(ResolverForProject.Companion.resolverForModulesName) -> {
                 when {
                     infos.isEmpty() -> errorInModulesResolverWithEmptyInfos(message)
                     infos.size == 1 -> {
@@ -311,7 +312,7 @@ private object DiagnoseUnknownModuleInfoReporter {
             }
 
 
-            name.contains(ResolverForProject.resolverForSpecialInfoName) -> {
+            name.contains(ResolverForProject.Companion.resolverForSpecialInfoName) -> {
                 when {
                     name.contains("ScriptModuleInfo") -> errorInScriptModuleInfoResolver(message)
                     else -> errorInSpecialModuleInfoResolver(message)

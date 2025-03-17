@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.stubindex.resolve
 
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory

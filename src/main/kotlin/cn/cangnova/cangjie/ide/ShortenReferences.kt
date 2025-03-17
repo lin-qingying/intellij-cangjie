@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide
 
-import cn.cangnova.cangjie.analyzer.analyzeAsReplacement
+import cn.cangnova.cangjie.resolve.analyzeAsReplacement
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.ide.codeinsight.CangJieCodeInsightBundle
 import cn.cangnova.cangjie.ide.imports.ImportDescriptorResult

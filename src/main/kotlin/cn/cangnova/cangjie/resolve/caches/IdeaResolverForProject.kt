@@ -24,18 +24,23 @@
 
 package cn.cangnova.cangjie.resolve.caches
 
-import cn.cangnova.cangjie.analyzer.*
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.builtins.createBuiltIns
 import cn.cangnova.cangjie.context.ProjectContext
 import cn.cangnova.cangjie.context.withModule
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 
 import cn.cangnova.cangjie.psi.CjFile
+import cn.cangnova.cangjie.resolve.AbstractResolverForProject
+import cn.cangnova.cangjie.resolve.CangJieResolverForModuleFactory
 import cn.cangnova.cangjie.resolve.IdePackageOracleFactory
+import cn.cangnova.cangjie.resolve.LanguageSettingsProvider
+import cn.cangnova.cangjie.resolve.ResolverForModule
+import cn.cangnova.cangjie.resolve.ResolverForModuleFactory
+import cn.cangnova.cangjie.resolve.ResolverForProject
 import cn.cangnova.cangjie.resolve.lazy.IdeaAbsentDescriptorHandler
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.ModificationTracker

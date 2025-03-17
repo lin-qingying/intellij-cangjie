@@ -22,13 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.analyzer
+package cn.cangnova.cangjie.descriptors
 
 import cn.cangnova.cangjie.CangJieBundle
+import cn.cangnova.cangjie.resolve.DerivedModuleInfo
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmLibrary
-import cn.cangnova.cangjie.descriptors.ModuleCapability
-import cn.cangnova.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
-import cn.cangnova.cangjie.ide.base.projectStructure.RootKindFilter
 import cn.cangnova.cangjie.ide.cache.cacheByClassInvalidatingOnRootModifications
 import cn.cangnova.cangjie.ide.projectStructure.CangJieModuleDependencyCollector
 import cn.cangnova.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger
@@ -42,7 +40,6 @@ import com.intellij.openapi.project.modules
 import com.intellij.openapi.roots.OrderRootType
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.libraries.Library
-import com.intellij.openapi.roots.ui.configuration.SdkLookupProvider
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 

@@ -29,12 +29,20 @@ import cn.cangnova.cangjie.builtins.StandardNames
 import cn.cangnova.cangjie.builtins.UnsignedTypes
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.descriptors.CallableMemberDescriptor
+import cn.cangnova.cangjie.descriptors.MemberDescriptor
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
+import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import cn.cangnova.cangjie.descriptors.findClassAcrossModuleDependencies
 import cn.cangnova.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
+import cn.cangnova.cangjie.psi.ValueArgument
 import cn.cangnova.cangjie.resolve.DescriptorEquivalenceForOverrides
+import cn.cangnova.cangjie.resolve.DescriptorToSourceUtils
 import cn.cangnova.cangjie.resolve.OverridingUtil
 import cn.cangnova.cangjie.resolve.calls.context.CheckArgumentTypesMode
+import cn.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
+import cn.cangnova.cangjie.resolve.calls.model.DefaultValueArgument
+import cn.cangnova.cangjie.resolve.calls.model.ResolvedCall
+import cn.cangnova.cangjie.resolve.calls.model.VariableAsFunctionResolvedCallImpl
 import cn.cangnova.cangjie.resolve.calls.tower.ClassCallableDescriptor
 import cn.cangnova.cangjie.resolve.descriptorUtil.isTypeRefinementEnabled
 import cn.cangnova.cangjie.types.CangJieType
@@ -46,6 +54,77 @@ import cn.cangnova.cangjie.utils.CancellationChecker
 import it.unimi.dsi.fastutil.Hash
 import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet
 
+@JvmName("createWithConvertedTypes")
+fun <T> FlatSignature.Companion.create(
+    origin: T,
+    descriptor: CallableDescriptor,
+    numDefaults: Int,
+    parameterTypes: List<CangJieType?>
+): FlatSignature<T> {
+    val extensionReceiverType = descriptor.extensionReceiverParameter?.type
+    val contextReceiverTypes = descriptor.contextReceiverParameters.mapNotNull { it.type }
+
+    return FlatSignature(
+        origin,
+        descriptor.typeParameters,
+        valueParameterTypes = contextReceiverTypes + listOfNotNull(extensionReceiverType) + parameterTypes,
+        hasExtensionReceiver = extensionReceiverType != null,
+        contextReceiverCount = contextReceiverTypes.size,
+        hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
+        numDefaults = numDefaults,
+        isExpect = descriptor is MemberDescriptor && descriptor.isExpect,
+        isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
+    )
+}
+
+
+fun <RC : ResolvedCall<*>> RC.createFlatSignature(): FlatSignature<RC> {
+    val originalDescriptor = candidateDescriptor.original
+    val originalValueParameters = originalDescriptor.valueParameters
+
+    var numDefaults = 0
+    val valueArgumentToParameterType = HashMap<ValueArgument, CangJieType>()
+    for ((valueParameter, resolvedValueArgument) in valueArguments.entries) {
+        if (resolvedValueArgument is DefaultValueArgument) {
+            numDefaults++
+        } else {
+            val originalValueParameter = originalValueParameters[valueParameter.index]
+            val parameterType = originalValueParameter.argumentValueType
+            for (valueArgument in resolvedValueArgument.arguments) {
+                valueArgumentToParameterType[valueArgument] = parameterType
+            }
+        }
+    }
+
+    return FlatSignature.create(
+        this,
+        originalDescriptor,
+        numDefaults,
+        call.valueArguments.map { valueArgumentToParameterType[it] })
+}
+val ValueParameterDescriptor.argumentValueType get() = type
+
+fun createOverloadingConflictResolver(
+    builtIns: CangJieBuiltIns,
+    module: ModuleDescriptor,
+    specificityComparator: TypeSpecificityComparator,
+    platformOverloadsSpecificityComparator: PlatformOverloadsSpecificityComparator,
+    cancellationChecker: CancellationChecker,
+    cangjieTypeRefiner: CangJieTypeRefiner,
+) = OverloadingConflictResolver(
+    builtIns,
+    module,
+    specificityComparator,
+    platformOverloadsSpecificityComparator,
+    cancellationChecker,
+    ResolvedCall<*>::getResultingDescriptor,
+    ConstraintSystemBuilderImpl.Companion::forSpecificity,
+    ResolvedCall<*>::createFlatSignature,
+    { (it as? VariableAsFunctionResolvedCallImpl)?.variableCall },
+    { DescriptorToSourceUtils.descriptorToDeclaration(it) != null },
+    null,
+    cangjieTypeRefiner
+)
 
 open class OverloadingConflictResolver<C : Any>(
     private val builtIns: CangJieBuiltIns,

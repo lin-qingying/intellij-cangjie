@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.completion.handlers
 
-import cn.cangnova.cangjie.analyzer.canAddRootPrefix
+import cn.cangnova.cangjie.utils.canAddRootPrefix
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.ide.IdeDescriptorRenderers
 import cn.cangnova.cangjie.ide.completion.DescriptorBasedDeclarationLookupObject
@@ -37,7 +37,6 @@ import cn.cangnova.cangjie.ide.imports.ImportDescriptorResult
 import cn.cangnova.cangjie.ide.imports.ImportInsertHelper
 import cn.cangnova.cangjie.ide.stubindex.resolve.isUnitTestMode
 import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.getParentOfType
 import cn.cangnova.cangjie.psi.psiUtil.parentOfType

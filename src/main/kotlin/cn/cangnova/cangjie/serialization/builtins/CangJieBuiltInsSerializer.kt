@@ -25,10 +25,10 @@
 package cn.cangnova.cangjie.serialization.builtins
 
 import com.intellij.openapi.project.Project
-import cn.cangnova.cangjie.analyzer.AnalysisResult
-import cn.cangnova.cangjie.analyzer.AnalyzerWithCompilerReport
-import cn.cangnova.cangjie.analyzer.CommonResolverForModuleFactory
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.resolve.AnalysisResult
+import cn.cangnova.cangjie.resolve.AnalyzerWithCompilerReport
+import cn.cangnova.cangjie.resolve.CommonResolverForModuleFactory
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.builtins.StandardNames
 import cn.cangnova.cangjie.config.*
 import cn.cangnova.cangjie.descriptors.*

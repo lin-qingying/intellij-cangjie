@@ -37,8 +37,8 @@ import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.findTopmostParentInFile
 import com.intellij.psi.util.findTopmostParentOfType
 import com.intellij.psi.util.parents
-import cn.cangnova.cangjie.analyzer.AnalysisResult
-import cn.cangnova.cangjie.analyzer.DelegateAnalysisResult
+import cn.cangnova.cangjie.resolve.AnalysisResult
+import cn.cangnova.cangjie.resolve.DelegateAnalysisResult
 import cn.cangnova.cangjie.container.ComponentProvider
 import cn.cangnova.cangjie.container.get
 import cn.cangnova.cangjie.context.GlobalContext

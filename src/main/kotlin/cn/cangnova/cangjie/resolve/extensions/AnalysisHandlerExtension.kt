@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.resolve.extensions
 
 import com.intellij.openapi.project.Project
-import cn.cangnova.cangjie.analyzer.AnalysisResult
+import cn.cangnova.cangjie.resolve.AnalysisResult
 import cn.cangnova.cangjie.container.ComponentProvider
 import cn.cangnova.cangjie.context.ProjectContext
 import cn.cangnova.cangjie.descriptors.BindingTrace

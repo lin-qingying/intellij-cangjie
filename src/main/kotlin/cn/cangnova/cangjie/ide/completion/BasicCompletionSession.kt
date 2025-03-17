@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.ide.completion
 
 import cn.cangnova.cangjie.NotPropertiesService
-import cn.cangnova.cangjie.analyzer.analyzeInContext
+import cn.cangnova.cangjie.resolve.analyzeInContext
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.ide.CangJieIndicesHelper
 import cn.cangnova.cangjie.ide.ExpectedInfo
@@ -76,7 +76,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.ProcessingContext
 import cn.cangnova.cangjie.ide.completion.addingPolicy.PolicyController
 import cn.cangnova.cangjie.ide.completion.turboComplete.CompletionKind
 import cn.cangnova.cangjie.ide.completion.turboComplete.SuggestionGeneratorConsumer

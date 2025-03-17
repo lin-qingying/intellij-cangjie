@@ -33,7 +33,7 @@
                      restartRequired="true"/>
 
         <projectService
-                serviceInterface="cn.cangnova.cangjie.analyzer.LanguageSettingsProvider"
+                serviceInterface="cn.cangnova.cangjie.resolve.LanguageSettingsProvider"
                 serviceImplementation="cn.cangnova.cangjie.ide.projectStructure.IDELanguageSettingsProvider"/>
 
         <registryKey

@@ -26,7 +26,7 @@ package cn.cangnova.cangjie.resolve.caches
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.resolve.scopes.optimization.OptimizingOptions
 

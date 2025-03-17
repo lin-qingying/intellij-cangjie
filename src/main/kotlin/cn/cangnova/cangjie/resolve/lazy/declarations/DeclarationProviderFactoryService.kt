@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.resolve.lazy.declarations
 
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.storage.StorageManager
 import com.intellij.openapi.project.Project

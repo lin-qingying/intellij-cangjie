@@ -24,13 +24,12 @@
 
 package cn.cangnova.cangjie.ide.projectStructure.moduleInfo
 
-import cn.cangnova.cangjie.analyzer.ModuleInfo
-import cn.cangnova.cangjie.analyzer.ModuleOrigin
+import cn.cangnova.cangjie.descriptors.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleOrigin
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.PlatformDependentAnalyzerServices
 import cn.cangnova.cangjie.resolve.PlatformDependentAnalyzerServicesImpl
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer

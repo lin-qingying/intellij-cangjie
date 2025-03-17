@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static cn.cangnova.cangjie.analyzer.CangJieAnalysisSessionKt.createOverloadingConflictResolver;
+import static cn.cangnova.cangjie.resolve.calls.results.OverloadingConflictResolverKt.createOverloadingConflictResolver;
 import static cn.cangnova.cangjie.resolve.calls.results.ResolutionStatus.*;
 
 public class ResolutionResultsHandler {

@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.resolve
 
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.container.StorageComponentContainer

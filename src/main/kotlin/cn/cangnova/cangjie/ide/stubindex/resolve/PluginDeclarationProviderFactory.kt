@@ -24,10 +24,9 @@
 
 package cn.cangnova.cangjie.ide.stubindex.resolve
 
-import cn.cangnova.cangjie.analyzer.CangJieModuleInfo
-import cn.cangnova.cangjie.analyzer.ModuleInfo
-import cn.cangnova.cangjie.analyzer.ModuleSourceInfo
-import cn.cangnova.cangjie.analyzer.projectSourceModules
+import cn.cangnova.cangjie.descriptors.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleSourceInfo
+import cn.cangnova.cangjie.descriptors.projectSourceModules
 import cn.cangnova.cangjie.ide.cache.PerModulePackageCacheService
 import cn.cangnova.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import cn.cangnova.cangjie.ide.indices.CangJiePackageIndexUtils

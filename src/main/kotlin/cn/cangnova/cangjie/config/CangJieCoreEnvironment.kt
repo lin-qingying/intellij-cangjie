@@ -43,15 +43,13 @@ import com.intellij.openapi.vfs.impl.ZipHandler
 import com.intellij.psi.FileContextProvider
 import com.intellij.psi.impl.smartPointers.SmartPointerAnchorProvider
 import com.intellij.psi.search.GlobalSearchScope
-import cn.cangnova.cangjie.analyzer.CommonCompilerPerformanceManager
+import cn.cangnova.cangjie.resolve.CommonCompilerPerformanceManager
 import cn.cangnova.cangjie.cli.messages.CompilerSystemProperties
-import cn.cangnova.cangjie.cli.messages.MessageCollector
 import cn.cangnova.cangjie.cli.messages.toBooleanLenient
 import cn.cangnova.cangjie.extensions.CollectAdditionalSourcesExtension
 import cn.cangnova.cangjie.extensions.ProcessSourcesBeforeCompilingExtension
 import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
-import cn.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import cn.cangnova.cangjie.parsing.CangJieParserDefinition
 import cn.cangnova.cangjie.psi.CangJiePsiFacade
 import cn.cangnova.cangjie.psi.CjFile

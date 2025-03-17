@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.cache.trackers
 
-import cn.cangnova.cangjie.analyzer.CangJieModificationTrackerService
+import cn.cangnova.cangjie.resolve.CangJieModificationTrackerService
 import cn.cangnova.cangjie.psi.CjFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key

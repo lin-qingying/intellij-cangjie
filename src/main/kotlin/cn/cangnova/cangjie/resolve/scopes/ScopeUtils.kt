@@ -29,7 +29,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SmartList
-import cn.cangnova.cangjie.analyzer.ModuleSourceInfo
+import cn.cangnova.cangjie.descriptors.ModuleSourceInfo
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.ide.FrontendInternals

@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.projectStructure
 
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 
 import cn.cangnova.cangjie.ide.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
 import cn.cangnova.cangjie.psi.CjFile

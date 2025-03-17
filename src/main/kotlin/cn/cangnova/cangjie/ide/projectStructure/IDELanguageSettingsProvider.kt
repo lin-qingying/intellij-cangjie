@@ -24,11 +24,10 @@
 
 package cn.cangnova.cangjie.ide.projectStructure
 
-import cn.cangnova.cangjie.analyzer.CangJieModuleInfo
-import cn.cangnova.cangjie.analyzer.LanguageSettingsProvider
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.CangJieModuleInfo
+import cn.cangnova.cangjie.resolve.LanguageSettingsProvider
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.config.LanguageVersionSettings
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 
 

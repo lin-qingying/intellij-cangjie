@@ -138,7 +138,7 @@ fun <D : CallableDescriptor> FlatSignature.Companion.createFromCallableDescripto
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
     )
 
-val ValueParameterDescriptor.argumentValueType get() = type
+
 
 
 fun <T> SimpleConstraintSystem.isSignatureNotLessSpecific(

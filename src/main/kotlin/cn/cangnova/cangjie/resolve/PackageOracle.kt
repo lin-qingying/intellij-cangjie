@@ -24,10 +24,10 @@
 
 package cn.cangnova.cangjie.resolve
 
-import cn.cangnova.cangjie.analyzer.CangJieModuleInfo
-import cn.cangnova.cangjie.analyzer.ModuleInfo
-import cn.cangnova.cangjie.analyzer.ModuleOrigin
-import cn.cangnova.cangjie.analyzer.projectSourceModules
+import cn.cangnova.cangjie.descriptors.CangJieModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleOrigin
+import cn.cangnova.cangjie.descriptors.projectSourceModules
 import cn.cangnova.cangjie.ide.cache.PerModulePackageCacheService
 import cn.cangnova.cangjie.name.FqName
 import com.intellij.openapi.components.Service

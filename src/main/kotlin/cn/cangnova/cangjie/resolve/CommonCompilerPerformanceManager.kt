@@ -1,41 +1,25 @@
-/*
- * Copyright 2024 LinQingYing. and contributors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * The use of this source code is governed by the Apache License 2.0,
- * which allows users to freely use, modify, and distribute the code,
- * provided they adhere to the terms of the license.
- *
- * The software is provided "as-is", and the authors are not responsible for
- * any damages or issues arising from its use.
- *
- */
+package cn.cangnova.cangjie.resolve
 
-package cn.cangnova.cangjie.analyzer
-
-import cn.cangnova.cangjie.cli.messages.*
+import cn.cangnova.cangjie.cli.messages.CodeAnalysisMeasurement
+import cn.cangnova.cangjie.cli.messages.CodeGenerationMeasurement
+import cn.cangnova.cangjie.cli.messages.CompilerInitializationMeasurement
+import cn.cangnova.cangjie.cli.messages.GarbageCollectionMeasurement
+import cn.cangnova.cangjie.cli.messages.IRMeasurement
+import cn.cangnova.cangjie.cli.messages.JitCompilationMeasurement
+import cn.cangnova.cangjie.cli.messages.PerformanceCounterMeasurement
+import cn.cangnova.cangjie.cli.messages.PerformanceMeasurement
 import cn.cangnova.cangjie.utils.PerformanceCounter
 import java.io.File
 import java.lang.management.GarbageCollectorMXBean
 import java.lang.management.ManagementFactory
 import java.util.concurrent.TimeUnit
+import kotlin.collections.plusAssign
 
 abstract class CommonCompilerPerformanceManager(private val presentableName: String) {
     @Suppress("MemberVisibilityCanBePrivate")
     protected val measurements: MutableList<PerformanceMeasurement> = mutableListOf()
     protected var isEnabled: Boolean = false
-    private var initStartNanos = PerformanceCounter.currentTime()
+    private var initStartNanos = PerformanceCounter.Companion.currentTime()
     private var analysisStart: Long = 0
     private var generationStart: Long = 0
 
@@ -56,11 +40,11 @@ abstract class CommonCompilerPerformanceManager(private val presentableName: Str
 
     fun enableCollectingPerformanceStatistics() {
         isEnabled = true
-        PerformanceCounter.setTimeCounterEnabled(true)
+        PerformanceCounter.Companion.setTimeCounterEnabled(true)
         ManagementFactory.getGarbageCollectorMXBeans().associateTo(startGCData) { it.name to GCData(it) }
     }
 
-    private fun deltaTime(start: Long): Long = PerformanceCounter.currentTime() - start
+    private fun deltaTime(start: Long): Long = PerformanceCounter.Companion.currentTime() - start
 
     open fun notifyCompilerInitialized(files: Int, lines: Int, targetDescription: String) {
         if (!isEnabled) return
@@ -85,59 +69,61 @@ abstract class CommonCompilerPerformanceManager(private val presentableName: Str
     }
 
     open fun notifyAnalysisStarted() {
-        analysisStart = PerformanceCounter.currentTime()
+        analysisStart = PerformanceCounter.Companion.currentTime()
     }
 
     open fun notifyAnalysisFinished() {
-        val time = PerformanceCounter.currentTime() - analysisStart
-        measurements += CodeAnalysisMeasurement(lines, TimeUnit.NANOSECONDS.toMillis(time))
+        val time = PerformanceCounter.Companion.currentTime() - analysisStart
+        measurements .plusAssign (CodeAnalysisMeasurement(lines, TimeUnit.NANOSECONDS.toMillis(time)))
     }
 
     open fun notifyGenerationStarted() {
-        generationStart = PerformanceCounter.currentTime()
+        generationStart = PerformanceCounter.Companion.currentTime()
     }
 
     open fun notifyGenerationFinished() {
-        val time = PerformanceCounter.currentTime() - generationStart
-        measurements += CodeGenerationMeasurement(lines, TimeUnit.NANOSECONDS.toMillis(time))
+        val time = PerformanceCounter.Companion.currentTime() - generationStart
+        measurements .plusAssign( CodeGenerationMeasurement(lines, TimeUnit.NANOSECONDS.toMillis(time)))
     }
 
     open fun notifyIRTranslationStarted() {
-        irTranslationStart = PerformanceCounter.currentTime()
+        irTranslationStart = PerformanceCounter.Companion.currentTime()
     }
 
     open fun notifyIRTranslationFinished() {
         val time = deltaTime(irTranslationStart)
-        measurements += IRMeasurement(
+        measurements. plusAssign (IRMeasurement(
             lines,
             TimeUnit.NANOSECONDS.toMillis(time),
             IRMeasurement.Kind.TRANSLATION
-        )
+        ))
     }
 
     open fun notifyIRLoweringStarted() {
-        irLoweringStart = PerformanceCounter.currentTime()
+        irLoweringStart = PerformanceCounter.Companion.currentTime()
     }
 
     open fun notifyIRLoweringFinished() {
         val time = deltaTime(irLoweringStart)
-        measurements += IRMeasurement(
+        measurements .plusAssign (IRMeasurement(
             lines,
             TimeUnit.NANOSECONDS.toMillis(time),
             IRMeasurement.Kind.LOWERING
-        )
+        ))
     }
 
     open fun notifyIRGenerationStarted() {
-        irGenerationStart = PerformanceCounter.currentTime()
+        irGenerationStart = PerformanceCounter.Companion.currentTime()
     }
 
     open fun notifyIRGenerationFinished() {
         val time = deltaTime(irGenerationStart)
-        measurements += IRMeasurement(
-            lines,
-            TimeUnit.NANOSECONDS.toMillis(time),
-            IRMeasurement.Kind.GENERATION
+        measurements .plusAssign (
+                IRMeasurement(
+                    lines,
+                    TimeUnit.NANOSECONDS.toMillis(time),
+                    IRMeasurement.Kind.GENERATION
+                )
         )
     }
 
@@ -152,11 +138,11 @@ abstract class CommonCompilerPerformanceManager(private val presentableName: Str
             val startCounts = startGCData[it.name]
             val startCollectionTime = startCounts?.collectionTime ?: 0
             val startCollectionCount = startCounts?.collectionCount ?: 0
-            measurements += GarbageCollectionMeasurement(
+            measurements. plusAssign (GarbageCollectionMeasurement(
                 it.name,
                 it.collectionTime - startCollectionTime,
                 it.collectionCount - startCollectionCount
-            )
+            ))
         }
     }
 
@@ -164,16 +150,16 @@ abstract class CommonCompilerPerformanceManager(private val presentableName: Str
         if (!isEnabled) return
 
         val bean = ManagementFactory.getCompilationMXBean() ?: return
-        measurements += JitCompilationMeasurement(bean.totalCompilationTime)
+        measurements .plusAssign (JitCompilationMeasurement(bean.totalCompilationTime))
     }
 
     private fun recordInitializationTime() {
         val time = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - initStartNanos)
-        measurements += CompilerInitializationMeasurement(time)
+        measurements .plusAssign (CompilerInitializationMeasurement(time))
     }
 
     private fun recordPerfCountersMeasurements() {
-        PerformanceCounter.report { s -> measurements += PerformanceCounterMeasurement(s) }
+        PerformanceCounter.Companion.report { s -> measurements. plusAssign(PerformanceCounterMeasurement(s) ) }
     }
 
     private fun createPerformanceReport(): ByteArray = buildString {

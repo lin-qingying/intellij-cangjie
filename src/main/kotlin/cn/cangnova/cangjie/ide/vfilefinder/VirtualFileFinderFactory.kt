@@ -26,8 +26,7 @@ package cn.cangnova.cangjie.ide.vfilefinder
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
-import cn.cangnova.cangjie.analyzer.MetadataFinderFactory
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 
 interface VirtualFileFinderFactory : MetadataFinderFactory {

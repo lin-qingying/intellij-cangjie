@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.references.rename
 
 
-import cn.cangnova.cangjie.analyzer.withRootPrefixIfNeeded
+import cn.cangnova.cangjie.utils.withRootPrefixIfNeeded
 import cn.cangnova.cangjie.ide.ShortenReferences
 import cn.cangnova.cangjie.ide.codeinsight.shorten.addDelayedImportRequest
 import cn.cangnova.cangjie.ide.codeinsight.shorten.addToShorteningWaitSet

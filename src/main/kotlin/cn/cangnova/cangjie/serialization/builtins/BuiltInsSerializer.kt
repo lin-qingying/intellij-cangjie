@@ -26,7 +26,7 @@ package cn.cangnova.cangjie.serialization.builtins
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import cn.cangnova.cangjie.analyzer.CommonCompilerPerformanceManager
+import cn.cangnova.cangjie.resolve.CommonCompilerPerformanceManager
 import cn.cangnova.cangjie.cli.messages.*
 import cn.cangnova.cangjie.config.*
 import java.io.File

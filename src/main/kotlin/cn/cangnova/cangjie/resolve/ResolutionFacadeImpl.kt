@@ -24,9 +24,7 @@
 
 package cn.cangnova.cangjie.resolve
 
-import cn.cangnova.cangjie.analyzer.AnalysisResult
-import cn.cangnova.cangjie.analyzer.ModuleInfo
-import cn.cangnova.cangjie.analyzer.ResolverForProject
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.container.get
 import cn.cangnova.cangjie.container.getService
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor

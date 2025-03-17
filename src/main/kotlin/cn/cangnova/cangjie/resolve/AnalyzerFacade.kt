@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.analyzer
+package cn.cangnova.cangjie.resolve
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
@@ -33,12 +33,11 @@ import cn.cangnova.cangjie.container.get
 import cn.cangnova.cangjie.context.ModuleContext
 import cn.cangnova.cangjie.descriptors.CompositePackageFragmentProvider
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.descriptors.PackageFragmentProvider
 import cn.cangnova.cangjie.descriptors.impl.ModuleDependencies
 import cn.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import cn.cangnova.cangjie.frontend.createContainerForLazyResolve
-import cn.cangnova.cangjie.resolve.CodeAnalyzerInitializer
-import cn.cangnova.cangjie.resolve.SealedClassInheritorsProvider
 import cn.cangnova.cangjie.resolve.caches.ModuleContent
 import cn.cangnova.cangjie.resolve.lazy.AbsentDescriptorHandler
 import cn.cangnova.cangjie.resolve.lazy.ResolveSession

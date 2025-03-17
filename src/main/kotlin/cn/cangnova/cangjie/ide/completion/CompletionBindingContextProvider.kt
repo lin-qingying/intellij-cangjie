@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.completion
 
-import cn.cangnova.cangjie.analyzer.analyzeInContext
+import cn.cangnova.cangjie.resolve.analyzeInContext
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
 import cn.cangnova.cangjie.ide.cache.trackers.PureCangJieCodeBlockModificationListener

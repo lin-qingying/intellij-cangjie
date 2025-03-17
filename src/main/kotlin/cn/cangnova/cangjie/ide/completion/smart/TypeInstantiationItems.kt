@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.completion.smart
 
-import cn.cangnova.cangjie.analyzer.withRootPrefixIfNeeded
+import cn.cangnova.cangjie.utils.withRootPrefixIfNeeded
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.builtins.isFunctionType
 import cn.cangnova.cangjie.descriptors.*

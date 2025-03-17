@@ -22,14 +22,12 @@
  *
  */
 
-package cn.cangnova.cangjie.analyzer
+package cn.cangnova.cangjie.resolve
 
 
 import cn.cangnova.cangjie.cli.messages.MessageCollector
 import cn.cangnova.cangjie.config.*
 import cn.cangnova.cangjie.psi.CjFile
-import cn.cangnova.cangjie.resolve.CompilerEnvironment
-import cn.cangnova.cangjie.resolve.TargetEnvironment
 import cn.cangnova.cangjie.serialization.builtins.languageVersionSettings
 
 

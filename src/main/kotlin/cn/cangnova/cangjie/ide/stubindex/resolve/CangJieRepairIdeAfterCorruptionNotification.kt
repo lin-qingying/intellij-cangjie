@@ -24,19 +24,11 @@
 
 package cn.cangnova.cangjie.ide.stubindex.resolve
 
-import cn.cangnova.cangjie.analyzer.CangJieBaseAnalysisBundle
-import com.intellij.ide.actions.cache.ProjectRecoveryScope
-import com.intellij.ide.actions.cache.Saul
 import com.intellij.idea.ActionsBundle
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.components.service
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.util.IntellijInternalApi
-import com.intellij.util.indexing.FileBasedIndex
 import java.util.concurrent.atomic.AtomicBoolean
 
 

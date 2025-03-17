@@ -22,9 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.analyzer
+package cn.cangnova.cangjie.resolve
 
 
+import cn.cangnova.cangjie.descriptors.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleOrigin
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import cn.cangnova.cangjie.builtins.createBuiltIns
@@ -46,7 +48,6 @@ import cn.cangnova.cangjie.ide.vfilefinder.VirtualFileFinderFactory
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.platform.TargetPlatform
 import cn.cangnova.cangjie.psi.CjFile
-import cn.cangnova.cangjie.resolve.*
 import cn.cangnova.cangjie.resolve.caches.ModuleContent
 import cn.cangnova.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import cn.cangnova.cangjie.resolve.extensions.AnalysisHandlerExtension
@@ -227,7 +228,7 @@ class CommonResolverForModuleFactory(
             } ?: run {
                 container.get<LazyTopDownAnalyzer>()
                     .analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, files)
-                AnalysisResult.success(trace.bindingContext, moduleDescriptor)
+                AnalysisResult.Companion.success(trace.bindingContext, moduleDescriptor)
             }
 
             result = analysisHandlerExtensions.firstNotNullOfOrNull { extension ->

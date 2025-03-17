@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.resolve.caches
 
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 
 interface BuiltInsCacheKey {
     object DefaultBuiltInsKey : BuiltInsCacheKey

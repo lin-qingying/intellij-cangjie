@@ -24,11 +24,9 @@
 
 package cn.cangnova.cangjie.ide.cache.trackers
 
-import cn.cangnova.cangjie.analyzer.ModuleInfo
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.util.Processor
 
 interface ModuleDependencyProviderExtension {

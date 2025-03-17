@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.search.operators
 
-import cn.cangnova.cangjie.analyzer.CangJieBaseAnalysisBundle
+import cn.cangnova.cangjie.ide.stubindex.resolve.CangJieBaseAnalysisBundle
 import cn.cangnova.cangjie.highlighter.namedUnwrappedElement
 import cn.cangnova.cangjie.ide.restrictToCangJieSources
 import cn.cangnova.cangjie.ide.search.CangJieSearchUsagesSupport.SearchUtils.forceResolveReferences

@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.ide.intentions
 
 import cn.cangnova.cangjie.CangJieBundle
-import cn.cangnova.cangjie.analyzer.analyzeAsReplacement
+import cn.cangnova.cangjie.resolve.analyzeAsReplacement
 import cn.cangnova.cangjie.descriptors.ParameterDescriptor
 import cn.cangnova.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import cn.cangnova.cangjie.ide.project.tools.projectWizard.core.safeAs

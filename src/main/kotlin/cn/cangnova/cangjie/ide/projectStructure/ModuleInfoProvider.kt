@@ -24,9 +24,9 @@
 
 package cn.cangnova.cangjie.ide.projectStructure
 
-import cn.cangnova.cangjie.analyzer.LibraryInfo
-import cn.cangnova.cangjie.analyzer.ModuleInfo
-import cn.cangnova.cangjie.analyzer.ModuleSourceInfo
+import cn.cangnova.cangjie.descriptors.LibraryInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleSourceInfo
 import cn.cangnova.cangjie.ide.base.projectStructure.RootKindFilter
 import cn.cangnova.cangjie.ide.base.projectStructure.matches
 import cn.cangnova.cangjie.ide.cache.project.LibraryInfoCache

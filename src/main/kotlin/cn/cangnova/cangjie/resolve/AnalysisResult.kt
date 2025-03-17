@@ -22,10 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.analyzer
+package cn.cangnova.cangjie.resolve
 
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
-import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.types.ErrorUtils
 import java.io.File
 

@@ -31,10 +31,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import cn.cangnova.cangjie.analyzer.*
 import cn.cangnova.cangjie.context.GlobalContextImpl
 import cn.cangnova.cangjie.context.withProject
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.diagnostics.DiagnosticSink
 import cn.cangnova.cangjie.ide.cache.project.getModuleInfosFromIdeaModel
 import cn.cangnova.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
@@ -43,7 +43,12 @@ import cn.cangnova.cangjie.ide.projectStructure.moduleInfo
 import cn.cangnova.cangjie.ide.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
 import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.psi.CjFile
+import cn.cangnova.cangjie.resolve.AnalysisResult
+import cn.cangnova.cangjie.resolve.CangJieModificationTrackerService
 import cn.cangnova.cangjie.resolve.CompositeBindingContext
+import cn.cangnova.cangjie.resolve.EmptyResolverForProject
+import cn.cangnova.cangjie.resolve.ResolverForModule
+import cn.cangnova.cangjie.resolve.ResolverForProject
 import cn.cangnova.cangjie.storage.CancellableSimpleLock
 import cn.cangnova.cangjie.storage.guarded
 import java.util.concurrent.TimeUnit

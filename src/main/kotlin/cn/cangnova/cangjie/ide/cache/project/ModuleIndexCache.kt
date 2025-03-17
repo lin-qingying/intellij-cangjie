@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.cache.project
 
-import cn.cangnova.cangjie.analyzer.ModuleSourceInfo
+import cn.cangnova.cangjie.descriptors.ModuleSourceInfo
 import cn.cangnova.cangjie.ide.cache.trackers.ModuleModificationTracker
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module

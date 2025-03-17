@@ -25,9 +25,9 @@
 package cn.cangnova.cangjie.resolve.caches
 
 
-import cn.cangnova.cangjie.analyzer.AnalysisResult
-import cn.cangnova.cangjie.analyzer.ModuleInfo
-import cn.cangnova.cangjie.analyzer.ResolverForProject
+import cn.cangnova.cangjie.resolve.AnalysisResult
+import cn.cangnova.cangjie.descriptors.ModuleInfo
+import cn.cangnova.cangjie.resolve.ResolverForProject
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.diagnostics.DiagnosticSink
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor

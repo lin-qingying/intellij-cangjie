@@ -35,9 +35,8 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.findParentOfType
 import com.intellij.util.containers.CollectionFactory
 
-import cn.cangnova.cangjie.analyzer.CjpmLibraryInfo
-import cn.cangnova.cangjie.analyzer.DaemonCodeAnalyzerStatusService
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.CjpmLibraryInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.container.get
 import cn.cangnova.cangjie.context.SimpleGlobalContext
 import cn.cangnova.cangjie.context.withModule

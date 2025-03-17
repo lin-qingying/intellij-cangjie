@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.completion.handlers
 
-import cn.cangnova.cangjie.analyzer.withRootPrefixIfNeeded
+import cn.cangnova.cangjie.utils.withRootPrefixIfNeeded
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.ide.ShortenReferences
 import cn.cangnova.cangjie.ide.completion.DescriptorBasedDeclarationLookupObject

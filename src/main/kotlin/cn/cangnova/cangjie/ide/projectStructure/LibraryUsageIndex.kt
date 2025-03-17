@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.projectStructure
 
-import cn.cangnova.cangjie.analyzer.LibraryInfo
+import cn.cangnova.cangjie.descriptors.LibraryInfo
 import cn.cangnova.cangjie.ide.cache.project.LibraryInfoCache
 import cn.cangnova.cangjie.ide.cache.project.getIdeaModelInfosCache
 import cn.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus.checkCanceled

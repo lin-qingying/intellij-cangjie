@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.descriptors
 
-import cn.cangnova.cangjie.analyzer.ModuleOrigin
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name

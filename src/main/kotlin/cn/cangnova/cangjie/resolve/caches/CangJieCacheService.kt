@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.resolve.caches
 
-import cn.cangnova.cangjie.analyzer.ModuleInfo
+import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.resolve.ResolutionFacade
 import com.intellij.openapi.components.service
