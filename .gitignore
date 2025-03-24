@@ -53,22 +53,5 @@ bin/
 /src/main/gen/
 /.gradle/
 
-
-
-/back/
-/cidr/
-/cidr1/
-/debugger/
-/debugger1/
-/lsp4j/
-/log/
-/vscode/
-/protoc/
-/htmlReport/
-/generators/deveco/
-
-/lsp1/
+ 
 /.intellijPlatform/
-/.intellijPlatform/
-/.kotlin/
-/pluginVerification/

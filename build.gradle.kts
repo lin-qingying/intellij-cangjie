@@ -333,7 +333,7 @@ project(":plugin") {
 
 //        implementation(project(":native-debugger"))
 //        implementation(project(":dap-debugger"))
-        implementation(project(":dap-debugger1"))
+        implementation(project(":dap-debugger"))
 
 
     }
@@ -485,7 +485,7 @@ project(":") {
 
 
 
-project(":dap-debugger1") {
+project(":dap-debugger") {
 
     apply {
 
