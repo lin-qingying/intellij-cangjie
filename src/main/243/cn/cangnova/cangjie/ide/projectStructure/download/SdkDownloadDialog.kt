@@ -4,14 +4,7 @@ import cn.cangnova.cangjie.messages.CangJieBundle
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.BrowseFolderRunnable
-import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.DialogPanel
-import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.DialogWrapper.IdeModalityType
-import com.intellij.openapi.ui.TextComponentAccessor
-import com.intellij.openapi.ui.TextFieldWithBrowseButton
-import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.ui.*
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.ui.CollectionComboBoxModel
@@ -28,11 +21,10 @@ import java.nio.file.Path
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.event.DocumentEvent
-import kotlin.toString
 
 internal class SdkDownloadDialog(
     val project: Project?,
-    private val parentComponent: Component?,
+    parentComponent: Component?,
 
     private val mergedModel: SdkDownloaderMergedModel,
     okActionText: @NlsContexts.Button String = CangJieBundle.message("dialog.button.download.sdk"),
@@ -108,8 +100,7 @@ internal class SdkDownloadDialog(
                             .withTitle(CangJieBundle.message("dialog.title.select.path.to.install.sdk")),
                         installDirCombo,
                         TextComponentAccessor.STRING_COMBOBOX_WHOLE_TEXT
-                    )
-                    , disposable
+                    ), disposable
                 )
                 addActionListener { onTargetPathChanged(editor.item as String) }
                 installDirComponent = this

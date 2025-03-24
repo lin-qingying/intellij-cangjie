@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <SmellBaseline>
-  <ManuallySuppressedIssues>
-    <!-- 在这里添加手动忽略的问题 -->
-  </ManuallySuppressedIssues>
-  <CurrentIssues>
-    <!-- 当前存在的问题会自动添加到这里 -->
-  </CurrentIssues>
+    <ManuallySuppressedIssues>
+        <!-- 在这里添加手动忽略的问题 -->
+    </ManuallySuppressedIssues>
+    <CurrentIssues>
+        <!-- 当前存在的问题会自动添加到这里 -->
+    </CurrentIssues>
 </SmellBaseline> 

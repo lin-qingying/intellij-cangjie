@@ -43,4 +43,3 @@ plugins {
 rootProject.name = "intellij-cangjie-cangnova"
 
 include("plugin")
-include("lsp")

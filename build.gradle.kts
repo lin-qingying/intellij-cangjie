@@ -402,12 +402,6 @@ project(":") {
     }
 }
 
-project(":lsp") {
-    dependencies {
-
-        implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
-    }
-}
 
 fun isBuildPlugin(): Boolean {
     return "buildPlugin" in gradle.startParameter.taskNames

@@ -1,0 +1,17 @@
+This project contains code modified from the Kotlin Programming Language project and IntelliJ Kotlin Plugin:
+
+Copyright 2010-2024 JetBrains s.r.o. and Kotlin Programming Language contributors.
+Modified portions of Kotlin source code are used in the following components:
+
+- Parser implementation
+
+
+
+Original Kotlin source code can be found at:
+https://github.com/JetBrains/kotlin
+
+Original IntelliJ Kotlin Plugin source code can be found at:
+https://github.com/JetBrains/intellij-kotlin
+
+The use of Kotlin source code and IntelliJ Kotlin Plugin code is governed by the Apache License 2.0,
+which can be found in the LICENSE-KOTLIN file.
