@@ -53,5 +53,6 @@ bin/
 /src/main/gen/
 /.gradle/
 
- 
+
 /.intellijPlatform/
+
