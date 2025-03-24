@@ -91,7 +91,7 @@ internal class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWiz
         override fun setupProject(project: Project) {
 
             val builder = CangJieModuleBuilder()
-            val module = builder.commit(project).firstOrNull() ?: return
+            val module = builder.commit(project)?.firstOrNull() ?: return
             //
             ModuleRootModificationUtil.updateModel(module) { rootModel ->
                 builder.configurationData = peer.settings

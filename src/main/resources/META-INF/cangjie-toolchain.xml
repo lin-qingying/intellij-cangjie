@@ -1,0 +1,17 @@
+<idea-plugin>
+
+
+    <extensions defaultExtensionNs="cn.cangnova.cangjie">
+        <!-- Toolchains -->
+        <toolchainFlavor id="cangjie.cjpmToolchainFlavor"
+                         implementation="cn.cangnova.cangjie.cjpm.toolchain.flavors.CjpmToolchainFlavor"
+                         order="first"/>
+        <toolchainFlavor id="cangjie.winToolchainFlavor"
+                         implementation="cn.cangnova.cangjie.cjpm.toolchain.flavors.CjWinToolchainFlavor"/>
+
+        <toolchainFlavor id="cangjie.wslToolchainFlavor"
+                         implementation="cn.cangnova.cangjie.cjpm.toolchain.wsl.CjWslToolchainFlavor"/>
+        <toolchainProvider implementation="cn.cangnova.cangjie.cjpm.toolchain.CjLocalToolchainProvider"/>
+        <sdkDownload implementation="cn.cangnova.cangjie.ide.projectStructure.download.SdkDownloader"/>
+    </extensions>
+</idea-plugin>

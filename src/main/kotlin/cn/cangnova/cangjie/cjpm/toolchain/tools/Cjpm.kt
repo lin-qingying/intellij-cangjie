@@ -334,11 +334,10 @@ class Cjpm(
 
                 if (isFeatureEnabled(CjExperiments.BUILD_TOOL_WINDOW)) withSudo else false,
 
-            )
+                )
 //                .withEnvironment("CJC", cjcExecutable)
 
         }
-
 
 
     fun checkSupportForBuildCheckAllTargets(): Boolean {

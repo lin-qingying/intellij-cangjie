@@ -22,7 +22,7 @@
  *
  */
 
-package com.linqingying.cangjie.extensions
+package cn.cangnova.cangjie.extensions
 
 import com.intellij.core.CoreApplicationEnvironment
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -56,7 +56,7 @@ open class ProjectExtensionDescriptor<T : Any>(name: String, private val extensi
      */
     fun getInstances(project: Project): List<T> {
 
-     return   extensionPointName.extensionList
+        return extensionPointName.extensionList
     }
 
 }

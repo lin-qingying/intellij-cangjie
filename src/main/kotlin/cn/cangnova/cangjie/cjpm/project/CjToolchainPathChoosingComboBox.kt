@@ -24,13 +24,10 @@
 
 package cn.cangnova.cangjie.cjpm.project
 
-import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import cn.cangnova.cangjie.cjpm.project.CjToolchainPathChoosingComboBox.Companion.LOG
 import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.ide.project.settings.ui.addTextChangeListener
-
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileChooser.FileChooser
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
@@ -38,11 +35,9 @@ import com.intellij.openapi.ui.ComboBoxWithWidePopup
 import com.intellij.openapi.ui.ComponentWithBrowseButton
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.AnimatedIcon
-import com.intellij.ui.ComboboxSpeedSearch
 import com.intellij.ui.ComboboxSpeedSearch.installOn
 import com.intellij.ui.components.fields.ExtendableTextComponent
 import com.intellij.ui.components.fields.ExtendableTextField
-
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -58,7 +53,7 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
     ) {
 
     companion object {
-        val LOG = Logger.getInstance(CjToolchainPathChoosingComboBox::class.java)
+        val LOG: Logger = Logger.getInstance(CjToolchainPathChoosingComboBox::class.java)
     }
 
     // 创建一个BasicComboBoxEditor对象，用于编辑ComboBox中的文本
@@ -115,7 +110,6 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
     }
 
 
-    @Suppress("MemberVisibilityCanBePrivate")
     // 异步添加工具链
     fun <T> addToolchainsAsync(toolchainObtainer: () -> List<T>, callback: () -> Unit) {
         setBusy(true)

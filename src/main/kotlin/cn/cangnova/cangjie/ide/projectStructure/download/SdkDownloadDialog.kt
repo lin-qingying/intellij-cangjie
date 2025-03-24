@@ -150,7 +150,7 @@ class SdkDownloader : SdkDownloadEp, SdkDownloaderBase {
     override fun showDownloadUI(
         parentComponent: JComponent, sdkCreatedCallback: Consumer<in SdkDownloadTask>
     ) {
-        TODO("Not yet implemented")
+
     }
 
     private fun pickSdkItem(

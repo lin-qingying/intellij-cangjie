@@ -41,7 +41,7 @@ gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 
 val kotlinVersion = "2.1.0"
 
-val basePluginArchiveName = "intellij-cangjie-analyzer"
+val basePluginArchiveName = "intellij-cangjie"
 
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 
@@ -70,12 +70,6 @@ val chinesePlugin = "com.intellij.zh:233.407"
 val diagramPlugin = "com.intellij.diagram"
 
 //###############################################################
-
-//插件需要的依赖列表
-val pluginDescriptors = arrayOf<String>(
-
-)
-
 
 
 plugins {

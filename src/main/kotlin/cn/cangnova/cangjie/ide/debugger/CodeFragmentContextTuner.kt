@@ -26,11 +26,9 @@ interface CodeFragmentContextTuner {
 }
 
 
-internal class CangJieCodeFragmentContextTuner :  CodeFragmentContextTuner {
+internal class CangJieCodeFragmentContextTuner : CodeFragmentContextTuner {
     override fun tuneContextElement(element: PsiElement?): PsiElement? {
         if (element == null) return null
-
-
 
 
         val containingFile = element.containingFile
