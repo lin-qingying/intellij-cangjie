@@ -40,7 +40,6 @@
     <version>1.0.0</version>
 
 
-
     <dependencies>
         <plugin id="com.intellij.modules.platform"/>
 
@@ -50,6 +49,11 @@
 
 
     <xi:include href="/META-INF/cangjie-all.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <content>
+        <!--        <module name="cn.cangnova.cangjie.dapDebugger"/>-->
+        <module name="cn.cangnova.cangjie.dapDebugger"/>
+        <!--        <module name="cn.cangnova.cangjie.nativeDebug"/>-->
 
 
+    </content>
 </idea-plugin>

@@ -36,58 +36,73 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.AbstractCopyTask
 import org.gradle.kotlin.dsl.testImplementation
 
-plugins {
-    idea
+gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 
-    kotlin("jvm") version "2.1.0"
-    id("org.jetbrains.intellij.platform") version "2.2.1"
 
-    kotlin("plugin.serialization") version "2.1.0"
-    id("org.gradle.test-retry") version "1.5.3"
 
-    // 添加代码质量检查工具
-    id("io.gitlab.arturbosch.detekt") version "1.23.4"
-    id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
-    id("com.diffplug.spotless") version "6.25.0"
-}
-val pluginsVersionMap = mapOf(
-    "2024.3" to mapOf(
-        "psiViewerPlugin" to "PsiViewer:243.7768",
-        "indexViewPlugin" to "com.jetbrains.hackathon.indices.viewer:1.29",
-        "ideVersion" to "243",
-    ),
-    "2024.2" to mapOf(
-        "psiViewerPlugin" to "PsiViewer:242.4697",
-        "indexViewPlugin" to "com.jetbrains.hackathon.indices.viewer:1.28",
-        "ideVersion" to "242",
-    ),
-    "2024.1" to mapOf(
-        "psiViewerPlugin" to "PsiViewer:241-SNAPSHOT",
-        "indexViewPlugin" to "com.jetbrains.hackathon.indices.viewer:1.28",
-        "ideVersion" to "241",
-    ),
-)
-// IDEA版本
-val ideaVersion = "2024.3"
-// 插件版本
-val pluginVersion = "3.0.1"
-val ideVersion = pluginsVersionMap[ideaVersion]!!["ideVersion"]!!
-val cangjiePluginVersion = "$pluginVersion-$ideVersion"
+val kotlinVersion = "2.1.0"
 
-val tomlPlugin = "org.toml.lang"
-val chinesePlugin = "com.intellij.zh:233.407"
-val basePluginArchiveName = "intellij-cangjie-cangnova"
+val basePluginArchiveName = "intellij-cangjie-analyzer"
 
 val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
 
 val pluginProjects: List<Project>
     get() = rootProject.allprojects.filter { it.name != grammarKitFakePsiDeps }
 
+val platformVersion = prop("platformVersion").toInt()
+val baseIDE = prop("baseIDE")
+val ideToRunType = prop("ideToRunType").ifEmpty { baseIDE }
+
+
+val ideRunVersion = prop("ideRunVersion")
+val ideVersion = prop("ideVersion")
+//插件版本
+val pluginVersion = prop("pluginVersion")
+val cangjiePluginVersion = "$pluginVersion-$ideVersion"
+
+
+//###############################################################
+val psiViewerPlugin = prop("psiViewerPlugin")
+val indexViewPlugin = prop("indexViewPlugin")
+val tomlPlugin = "org.toml.lang"
+val terminalPlugin = "org.jetbrains.plugins.terminal"
+
+val chinesePlugin = "com.intellij.zh:233.407"
+val diagramPlugin = "com.intellij.diagram"
+
+//###############################################################
+
+//插件需要的依赖列表
+val pluginDescriptors = arrayOf<String>(
+
+)
+
+
+
+plugins {
+    idea
+    id("net.saliman.properties") version "1.5.2"
+    kotlin("jvm") version "2.1.0"
+    id("org.jetbrains.intellij.platform") version "2.2.1"
+
+    kotlin("plugin.serialization") version "2.1.0"
+    id("org.gradle.test-retry") version "1.5.3"
+
+
+
+
+
+
+}
+
+
+
+
 idea {
     module {
         // https://github.com/gradle/kotlin-dsl/issues/537/
         excludeDirs = excludeDirs + file("testData") + file("deps") + file("bin") +
-            file("$grammarKitFakePsiDeps/src/main/kotlin")
+                file("$grammarKitFakePsiDeps/src/main/kotlin")
     }
 }
 
@@ -133,7 +148,11 @@ allprojects {
 
         intellijPlatform {
             testFramework(TestFrameworkType.Platform)
-            create(IntelliJPlatformType.IntellijIdeaCommunity, ideaVersion)
+            intellijPlatform {
+
+                create(IntelliJPlatformType.fromCode(ideToRunType), ideRunVersion)
+
+            }
         }
 
         testImplementation("junit:junit:4.13.2")
@@ -281,14 +300,16 @@ project(":plugin") {
         intellijPlatform {
             if (!isBuildPlugin()) {
                 plugins(
-                    pluginsVersionMap[ideaVersion]!!["psiViewerPlugin"]!!,
-                    pluginsVersionMap[ideaVersion]!!["indexViewPlugin"]!!,
-                    chinesePlugin,
+                    psiViewerPlugin,
+                    indexViewPlugin,
+                    chinesePlugin/*, nativeDebugPlugin*/
                 )
                 bundledPlugins(tomlPlugin)
             }
         }
         implementation(project(":"))
+
+        implementation(project(":dap-debugger"))
     }
 
     val mergePluginJarTask = task<Jar>("mergePluginJars") {
@@ -444,93 +465,7 @@ tasks.compileKotlin {
     dependsOn("createIdeVersionSourceDir")
 }
 
-// Detekt 配置
-detekt {
-    buildUponDefaultConfig = true
-    config.setFrom(files("$projectDir/config/detekt.yml"))
-    baseline = file("$projectDir/config/baseline.xml")
-    ignoreFailures = true
 
-    reports {
-        html.required.set(true)
-        xml.required.set(true)
-        txt.required.set(false)
-    }
-}
 
-// KtLint 配置
-ktlint {
-    version.set("0.50.0")
-    verbose.set(true)
-    outputToConsole.set(true)
-    
-    // 禁用文件名检查规则
-//    disabledRules.set(setOf("no-wildcard-imports", "filename"))
 
-    reporters {
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
-        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
-    }
-    filter {
-        exclude { element -> element.file.path.contains("generated/") }
-    }
-}
 
-// Spotless 配置
-spotless {
-    kotlin {
-        target("**/*.kt")
-        targetExclude("build/**/*.kt", "**/generated/**", "config/**/*.kt")  // 排除 config 目录
-
-        // 使用 ktlint 格式化
-        ktlint("0.50.0")
-
-        // 自定义格式化规则
-        trimTrailingWhitespace()
-        indentWithSpaces()
-        endWithNewline()
-
-        // 修改许可证头配置，添加正确的分隔符
-        licenseHeader("""
-            /*
-             * Copyright ${'$'}YEAR LinQingYing. and contributors.
-             *
-             * Licensed under the Apache License, Version 2.0 (the "License");
-             * you may not use this file except in compliance with the License.
-             * You may obtain a copy of the License at
-             *
-             *     http://www.apache.org/licenses/LICENSE-2.0
-             *
-             * Unless required by applicable law or agreed to in writing, software
-             * distributed under the License is distributed on an "AS IS" BASIS,
-             * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-             * See the License for the specific language governing permissions and
-             * limitations under the License.
-             *
-             * The use of this source code is governed by the Apache License 2.0,
-             * which allows users to freely use, modify, and distribute the code,
-             * provided they adhere to the terms of the license.
-             *
-             * The software is provided "as-is", and the authors are not responsible for
-             * any damages or issues arising from its use.
-             */
-        """.trimIndent(), "^(package |@file|import |class |interface |object |enum |fun |val |var |const |private |internal |public |sealed |open |abstract |data |annotation |expect |actual |suspend |tailrec |operator |infix |inline |external |typealias )")
-    }
-}
-
-// 添加代码质量检查任务
-tasks {
-    // 在构建前运行代码检查
-    build {
-        dependsOn("detekt")
-        dependsOn("ktlintCheck")
-        dependsOn("spotlessCheck")
-    }
-
-    // 创建一个组合任务运行所有检查
-    register("checkCode") {
-        group = "verification"
-        description = "Run all code quality checks"
-        dependsOn("detekt", "ktlintCheck", "spotlessCheck")
-    }
-}

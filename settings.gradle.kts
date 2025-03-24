@@ -39,7 +39,15 @@ pluginManagement {
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
 }
+buildCache {
+    local {
+        isEnabled = System.getenv("CI") == null
+        directory = File(rootDir, "build/build-cache")
+        removeUnusedEntriesAfterDays = 30
+    }
+}
 
 rootProject.name = "intellij-cangjie-cangnova"
 
 include("plugin")
+include("dap-debugger")
