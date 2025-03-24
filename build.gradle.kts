@@ -32,6 +32,46 @@ import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
+
+val kotlinVersion = "2.1.0"
+
+val basePluginArchiveName = "intellij-cangjie-analyzer"
+
+val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
+
+val pluginProjects: List<Project>
+    get() = rootProject.allprojects.filter { it.name != grammarKitFakePsiDeps }
+
+val platformVersion = prop("platformVersion").toInt()
+val baseIDE = prop("baseIDE")
+val ideToRunType = prop("ideToRunType").ifEmpty { baseIDE }
+
+
+val ideRunVersion = prop("ideRunVersion")
+val ideVersion = prop("ideVersion")
+//插件版本
+val pluginVersion = prop("pluginVersion")
+val cangjiePluginVersion = "$pluginVersion-$ideVersion"
+
+
+//###############################################################
+val psiViewerPlugin = prop("psiViewerPlugin")
+val indexViewPlugin = prop("indexViewPlugin")
+val tomlPlugin = "org.toml.lang"
+val terminalPlugin = "org.jetbrains.plugins.terminal"
+
+val chinesePlugin = "com.intellij.zh:233.407"
+val diagramPlugin = "com.intellij.diagram"
+
+//###############################################################
+
+//插件需要的依赖列表
+val pluginDescriptors = arrayOf<String>(
+
+)
+
+
 plugins {
     idea
 
@@ -43,53 +83,9 @@ plugins {
     kotlin("plugin.serialization") version "1.9.21"
     id("org.gradle.test-retry") version "1.5.3"
     id("com.google.protobuf") version "0.9.3"
-
+    id("net.saliman.properties") version "1.5.2"
 
 }
-val pluginsVersionMap = mapOf(
-    "2024.3" to mapOf(
-        "psiViewerPlugin" to "PsiViewer:243.7768",
-        "indexViewPlugin" to "com.jetbrains.hackathon.indices.viewer:1.29",
-        "ideVersion" to "243"
-    ),
-    "2024.2" to mapOf(
-        "psiViewerPlugin" to "PsiViewer:242.4697",
-        "indexViewPlugin" to "com.jetbrains.hackathon.indices.viewer:1.28",
-        "ideVersion" to "242"
-    )
-
-)
-//IDEA版本
-val ideaVersion = "2024.3"
-//插件版本
-val pluginVersion = "3.0.1"
-val ideVersion = pluginsVersionMap[ideaVersion]!!["ideVersion"]!!
-val cangjiePluginVersion = "$pluginVersion-$ideVersion"
-
-
-val kotlinVersion = "2.1.0"
-val tomlPlugin = "org.toml.lang"
-val terminalPlugin = "org.jetbrains.plugins.terminal"
-val nativeDebugPlugin: String = "com.intellij.nativeDebug:243.21565.23"
-//val psiViewerPlugin: String = "PsiViewer:243.7768"
-//val indexViewPlugin = "com.jetbrains.hackathon.indices.viewer:1.29"
-val chinesePlugin = "com.intellij.zh:233.407"
-val diagramPlugin = "com.intellij.diagram"
-val basePluginArchiveName = "intellij-cangjie-analyzer"
-
-val grammarKitFakePsiDeps = "grammar-kit-fake-psi-deps"
-
-val pluginProjects: List<Project>
-    get() = rootProject.allprojects.filter { it.name != grammarKitFakePsiDeps }
-
-
-//moshi版本
-//val moshiVersion = "1.15.0"
-
-//插件需要的依赖列表
-val pluginDescriptors = arrayOf<String>(
-
-)
 
 
 val Project.dependencyCachePath
@@ -169,10 +165,9 @@ allprojects {
 
         intellijPlatform {
 
-            create(IntelliJPlatformType.IntellijIdeaUltimate,ideaVersion)
-//            local("C:\\Users\\27439\\AppData\\Local\\Programs\\RustRover")
-        }
+            create(IntelliJPlatformType.fromCode(ideToRunType), ideRunVersion)
 
+        }
 
 
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
@@ -192,8 +187,7 @@ allprojects {
 
 
             ides {
-//                ide(IntelliJPlatformType.IntellijIdeaCommunity, "2023.3")
-//                local(file("pluginVerification"))
+
                 recommended()
                 select {
                     types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
@@ -321,8 +315,8 @@ project(":plugin") {
         intellijPlatform {
             if (!isBuildPlugin()) {
                 plugins(
-                    pluginsVersionMap[ideaVersion]!!["psiViewerPlugin"]!!,
-                    pluginsVersionMap[ideaVersion]!!["indexViewPlugin"]!!,
+                    psiViewerPlugin,
+                    indexViewPlugin,
                     chinesePlugin/*, nativeDebugPlugin*/
                 )
                 bundledPlugins(tomlPlugin)
@@ -331,8 +325,7 @@ project(":plugin") {
         implementation(project(":"))
 
 
-//        implementation(project(":native-debugger"))
-//        implementation(project(":dap-debugger"))
+
         implementation(project(":dap-debugger"))
 
 
@@ -428,7 +421,7 @@ project(":plugin") {
         dependsOn(tasks.prepareSandbox)
         args(
             "buildEventsScheme",
-            "--outputFile=${buildDir.resolve("eventScheme.json").absolutePath}",
+            "--outputFile=${getLayout().getBuildDirectory().file("eventScheme.json").get().asFile.absolutePath}",
             "--pluginId=cn.cangnova.cangjie"
         )
 
@@ -544,9 +537,11 @@ fun <T : ModuleDependency> T.excludeKotlinDeps() {
     exclude(module = "kotlinx-serialization-core")
 }
 
-fun prop(name: String): String =
-    extra.properties[name] as? String
+fun prop(name: String): String {
+    return extra.properties[name] as? String
         ?: error("Property `$name` is not defined in gradle.properties")
+}
+
 
 // 确保在编译前创建 IDE 版本特定的源码目录
 tasks.register("createIdeVersionSourceDir") {

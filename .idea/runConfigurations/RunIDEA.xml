@@ -1,16 +1,17 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="运行插件[Run Plugin]" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="RunIDEA" type="GradleRunConfiguration" factoryName="Gradle">
+    <log_file alias="idea.log" path="$PROJECT_DIR$/plugin/build/clion-sandbox/system/log/idea.log" />
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="" />
+      <option name="scriptParameters" value="-PideToRunType=IC" />
       <option name="taskDescriptions">
         <list />
       </option>
       <option name="taskNames">
         <list>
-          <option value="runIde" />
+          <option value=":plugin:runIde" />
         </list>
       </option>
       <option name="vmOptions" />
