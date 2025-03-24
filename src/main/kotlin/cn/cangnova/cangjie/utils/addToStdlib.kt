@@ -27,6 +27,7 @@ package cn.cangnova.cangjie.utils
 import java.lang.reflect.Modifier
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+
 inline fun <T> Iterable<T>.sumByLong(selector: (T) -> Long): Long {
     var sum: Long = 0
     for (element in this) {
@@ -34,6 +35,7 @@ inline fun <T> Iterable<T>.sumByLong(selector: (T) -> Long): Long {
     }
     return sum
 }
+
 fun <T> sequenceOfLazyValues(vararg elements: () -> T): Sequence<T> = elements.asSequence().map { it() }
 inline fun <T, C : Collection<T>, O> C.ifNotEmpty(body: C.() -> O?): O? = if (isNotEmpty()) this.body() else null
 
@@ -44,12 +46,15 @@ inline fun <T, R : Any> Iterable<T>.firstNotNullResult(transform: (T) -> R?): R?
     }
     return null
 }
+
 fun <E> MutableList<E>.popLast(): E = removeAt(lastIndex)
 inline fun <T> Boolean.ifTrue(body: () -> T?): T? =
     if (this) body() else null
+
 fun shouldNotBeCalled(message: String = "should not be called"): Nothing {
     error(message)
 }
+
 inline fun <reified T> Sequence<*>.firstIsInstance(): T {
     for (element in this) if (element is T) return element
     throw NoSuchElementException("No element of given type found")

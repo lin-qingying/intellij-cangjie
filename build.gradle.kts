@@ -39,7 +39,6 @@ import org.gradle.kotlin.dsl.testImplementation
 gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 
 
-
 val kotlinVersion = "2.1.0"
 
 val basePluginArchiveName = "intellij-cangjie-analyzer"
@@ -87,10 +86,6 @@ plugins {
 
     kotlin("plugin.serialization") version "2.1.0"
     id("org.gradle.test-retry") version "1.5.3"
-
-
-
-
 
 
 }
@@ -422,7 +417,11 @@ project(":") {
         }
     }
 }
-
+project(":dap-debugger") {
+    dependencies {
+        implementation(project(":"))
+    }
+}
 
 fun isBuildPlugin(): Boolean {
     return "buildPlugin" in gradle.startParameter.taskNames

@@ -31,10 +31,10 @@ import cn.cangnova.cangjie.psi.CjFile
 import kotlin.io.path.Path
 
 import com.intellij.openapi.roots.SingleFileSourcesTracker
-import com.intellij.openapi.vfs.VirtualFile
+
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
-import kotlinx.metadata.internal.metadata.builtins.BuiltInsProtoBuf.packageFqName
+
 import java.nio.file.Path
 
 /**

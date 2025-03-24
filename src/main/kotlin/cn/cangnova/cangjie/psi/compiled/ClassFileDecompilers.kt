@@ -102,7 +102,7 @@ class ClassFileDecompilers private constructor() {
     }
 
     fun <D : Decompiler> find(file: VirtualFile, decompilerClass: Class<D>): D {
-        return EP_NAME.findFirstSafe({ d: Decompiler -> decompilerClass.isInstance(d) && d.accepts(file) }) as D
+        return EP_NAME.findFirstSafe { d: Decompiler -> decompilerClass.isInstance(d) && d.accepts(file) } as D
     }
 
     companion object {
