@@ -2,7 +2,7 @@
 
 ## 适用于intellij平台的仓颉语言插件
 
-[从 Jetbrains Marketplace 获取](https://plugins.jetbrains.com/plugin/24984-cangjie)
+[从 Jetbrains Marketplace 获取](https://plugins.jetbrains.com/plugin/26907-cangjie)
 
 ### 仓库
 
