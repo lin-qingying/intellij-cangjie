@@ -69,7 +69,7 @@ val terminalPlugin = "org.jetbrains.plugins.terminal"
 
 val chinesePlugin = "com.intellij.zh:233.407"
 val diagramPlugin = "com.intellij.diagram"
-val lsp4ij = "com.redhat.devtools.lsp4ij:0.11.0"
+
 //###############################################################
 
 
@@ -291,7 +291,7 @@ project(":plugin") {
         intellijPlatform {
             if (!isBuildPlugin()) {
                 plugins(
-                    lsp4ij,
+
                     psiViewerPlugin,
                     indexViewPlugin,
                     chinesePlugin/*, nativeDebugPlugin*/
@@ -300,7 +300,7 @@ project(":plugin") {
             }
         }
         implementation(project(":"))
-        implementation(project(":lsp4ij"))
+
         implementation(project(":dap-debugger"))
     }
 
@@ -461,16 +461,4 @@ tasks.compileKotlin {
     dependsOn("createIdeVersionSourceDir")
 }
 
-
-project(":lsp4ij") {
-
-    dependencies {
-        intellijPlatform {
-            plugins(lsp4ij)
-        }
-
-        implementation(project(":"))
-    }
-
-}
 
