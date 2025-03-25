@@ -49,5 +49,3 @@ rootProject.name = "intellij-cangjie-cangnova"
 include("plugin")
 include("dap-debugger")
 
-
-include("lsp4ij")
