@@ -1,6 +1,3 @@
-
-
-
 /*
  * Copyright 2024 LinQingYing. and contributors.
  *
@@ -51,3 +48,6 @@ rootProject.name = "intellij-cangjie-cangnova"
 
 include("plugin")
 include("dap-debugger")
+
+
+include("lsp4ij")

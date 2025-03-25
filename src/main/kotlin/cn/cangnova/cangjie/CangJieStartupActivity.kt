@@ -32,6 +32,7 @@ class CangJieStartupActivity : ProjectActivity {
     companion object {
         val LOG = Logger.getInstance(CangJieStartupActivity::class.java)
     }
+
     override suspend fun execute(project: Project) {
         LOG.info("Cangjie plugin has been launched")
 //        try {

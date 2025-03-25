@@ -1,6 +1,6 @@
 <idea-plugin package="cn.cangnova.cangjie.dapDebugger">
     <!--suppress PluginXmlValidity -->
-    <module value="cn.cangnova.cangjie.dapDebugger1"/>
+    <module value="cn.cangnova.cangjie.dapDebugger"/>
 
     <extensions defaultExtensionNs="com.intellij">
         <programRunner id="CjDebugRunner"

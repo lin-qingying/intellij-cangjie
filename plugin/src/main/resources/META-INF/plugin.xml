@@ -45,14 +45,15 @@
 
         <plugin id="com.intellij.modules.json"/>
         <plugin id="org.toml.lang"/>
+
     </dependencies>
 
 
     <xi:include href="/META-INF/cangjie-all.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <content>
-        <!--        <module name="cn.cangnova.cangjie.dapDebugger"/>-->
+        <module name="cn.cangnova.cangjie.lsp4ij"/>
         <module name="cn.cangnova.cangjie.dapDebugger"/>
-        <!--        <module name="cn.cangnova.cangjie.nativeDebug"/>-->
+
 
 
     </content>

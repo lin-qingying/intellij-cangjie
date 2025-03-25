@@ -24,8 +24,6 @@
 
 package cn.cangnova.cangjie.references
 
-import com.intellij.psi.PsiReference
-
 
 internal class CangJieReferenceContributor : CangJieReferenceProviderContributor {
     override fun registerReferenceProviders(registrar: CangJiePsiReferenceRegistrar) {

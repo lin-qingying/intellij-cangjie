@@ -7,11 +7,11 @@
 来自分析器核心？ 来自cjpm构建系统的检查？
 
 ```cangjie
-cjpm  模块m
+cjpm  模块 m
 pacakge m.p1  文件夹不匹配时error  
 
 非cjpm
-package m.p1  文件夹不匹配时waring就行
+package m.p1  文件夹不匹配时waring
 ```
 
 来自检测器？来自检测器的插件？
