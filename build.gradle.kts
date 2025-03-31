@@ -300,6 +300,7 @@ project(":plugin") {
             }
         }
         implementation(project(":"))
+        implementation(project(":lsp4intellij"))
 
         implementation(project(":dap-debugger"))
     }
@@ -395,6 +396,9 @@ project(":") {
         implementation("io.hotmoka:toml4j:0.7.3")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+
+
+
     }
     tasks {
         processTestResources {
@@ -462,3 +466,13 @@ tasks.compileKotlin {
 }
 
 
+//project(":lsp"){
+//    dependencies{
+//        // https://mvnrepository.com/artifact/com.github.nipunaranasinghe/lsp4intellij
+////    implementation("com.github.ballerina-platform:lsp4intellij:0.96.2")
+//// https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j
+//        implementation  ("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
+//        implementation(project(":"))
+//
+//    }
+//}

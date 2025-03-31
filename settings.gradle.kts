@@ -44,8 +44,10 @@ buildCache {
     }
 }
 
-rootProject.name = "intellij-cangjie-cangnova"
+rootProject.name = "intellij-cangjie"
 
 include("plugin")
 include("dap-debugger")
 
+//include(":lsp")
+include("lsp4intellij")

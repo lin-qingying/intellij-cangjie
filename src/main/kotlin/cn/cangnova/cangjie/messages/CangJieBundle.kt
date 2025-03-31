@@ -30,7 +30,7 @@ import org.jetbrains.annotations.PropertyKey
 
 
 @NonNls
-  const val CORE_BUNDLE = "messages.CangJieBundle"
+const val CORE_BUNDLE = "messages.CangJieBundle"
 
 @NonNls
 const val BUNDLE_IDE = "messages.CangJieIdeBundle"

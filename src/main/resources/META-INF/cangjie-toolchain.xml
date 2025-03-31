@@ -1,6 +1,14 @@
 <idea-plugin>
 
+<extensions defaultExtensionNs="com.intellij">
+    <registryKey key="sdk.downloader.url" description="Custom URL to download the list of available SDKs"
+                 defaultValue=""/>
+    <registryKey key="sdk.downloader.reuse.installed" defaultValue="true"
+                 description="Allow to reuse locally installed with the SDK Downloader SDK instead of download it again"/>
+    <registryKey key="sdk.downloader.reuse.downloading" defaultValue="true"
+                 description="Allow to reuse currently downloading with the SDK Downloader SDK instead of downloading it again"/>
 
+</extensions>
     <extensions defaultExtensionNs="cn.cangnova.cangjie">
         <!-- Toolchains -->
         <toolchainFlavor id="cangjie.cjpmToolchainFlavor"

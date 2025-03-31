@@ -146,7 +146,7 @@ interface SdkDownloaderBase {
     }
 }
 
-class SdkDownloader : SdkDownloadEp, SdkDownloaderBase {
+internal class SdkDownloader : SdkDownloadEp, SdkDownloaderBase {
     override fun showDownloadUI(
         parentComponent: JComponent, sdkCreatedCallback: Consumer<in SdkDownloadTask>
     ) {
