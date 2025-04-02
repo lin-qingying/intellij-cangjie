@@ -50,11 +50,16 @@
 
 
     <xi:include href="/META-INF/cangjie-all.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+
+<!--    <xi:include href="/META-INF/cangjie-lsp4ij.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+
     <content>
 
         <module name="cn.cangnova.cangjie.dapDebugger"/>
 
         <module name="cn.cangnova.cangjie.lsp4intellij"/>
+
 
 
     </content>

@@ -300,7 +300,7 @@ project(":plugin") {
             }
         }
         implementation(project(":"))
-        implementation(project(":lsp4intellij"))
+
 
         implementation(project(":dap-debugger"))
     }
