@@ -39,3 +39,5 @@ jobs:
       with:
         name: plugin-artifacts
         path: ./plugin/build/distributions/*.zip
+        retention-days: 5
+        if-no-files-found: error
