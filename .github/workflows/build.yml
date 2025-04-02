@@ -34,10 +34,4 @@ jobs:
     - name: Build Plugin
       run: ./gradlew buildPlugin
 
-    - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: plugin-artifacts
-        path: ./plugin/build/distributions/*.zip
-        retention-days: 5
-        if-no-files-found: error
+ 
