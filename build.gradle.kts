@@ -23,7 +23,6 @@
  */
 
 import groovy.xml.XmlParser
-import org.gradle.internal.impldep.org.eclipse.jgit.util.RawCharUtil.trimTrailingWhitespace
 import org.gradle.kotlin.dsl.KotlinClosure2
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
@@ -39,7 +38,7 @@ import org.gradle.kotlin.dsl.testImplementation
 gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 
 
-val kotlinVersion = "2.1.0"
+
 
 val basePluginArchiveName = "intellij-cangjie"
 
@@ -118,8 +117,14 @@ allprojects {
     }
 
     repositories {
+
+        intellijPlatform {
+
+            intellijDependencies()
+            defaultRepositories()
+        }
         maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
-        maven { url = uri("https://plugins.jetbrains.com/maven") }
+
 
         maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
         mavenCentral()
@@ -127,11 +132,6 @@ allprojects {
             setUrl("https://jitpack.io")
         }
 
-        intellijPlatform {
-
-            intellijDependencies()
-            defaultRepositories()
-        }
     }
 
     dependencies {
