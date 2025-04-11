@@ -141,15 +141,33 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
     }
 }
 
+/**
+ * 文件选择器描述符，用于配置CJPM项目文件的选择规则
+ * FileChooserDescriptor构造函数参数说明：
+ * @param chooseFiles 是否可以选择文件 (true)
+ * @param chooseFolders 是否可以选择文件夹 (true)
+ * @param chooseJars 是否可以选择jar文件 (false)
+ * @param chooseJarsAsFiles 是否可以选择jar作为文件 (false)
+ * @param chooseJarContents 是否可以选择jar内容 (false)
+ * @param chooseMultiple 是否可以多选 (false)
+ */
 object CjpmProjectChooserDescriptor : FileChooserDescriptor(true, true, false, false, false, false) {
 
     init {
-        // The filter is not used for directories
+        // 为非目录文件设置过滤器，只允许选择CJPM配置文件
         withFileFilter { it.isCjpmToml }
         @Suppress("DialogTitleCapitalization")
         withTitle(CangJieBundle.message("dialog.title.select.cjpm.toml"))
     }
 
+    /**
+     * 判断文件是否可选
+     * @param file 待判断的文件
+     * @return 当文件满足以下条件时返回true:
+     * 1. 通过父类FileChooserDescriptor的基本校验
+     * 2. 文件不为空
+     * 3. 如果是目录，则必须包含CJPM配置文件；如果是文件，则已通过withFileFilter过滤
+     */
     override fun isFileSelectable(file: VirtualFile?): Boolean {
         return super.isFileSelectable(file) && file != null && (!file.isDirectory || file.findChild(CjpmConstants.MANIFEST_FILE) != null)
     }

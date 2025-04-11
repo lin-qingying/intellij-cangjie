@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.parsing;
 import com.intellij.analysis.AnalysisBundle;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.lang.*;
-import com.intellij.lang.impl.PsiBuilderAdapter;
 import com.intellij.lang.impl.PsiBuilderImpl;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringHash;
@@ -41,7 +40,6 @@ import com.intellij.util.containers.LimitedPool;
 import com.intellij.util.containers.Stack;
 import cn.cangnova.cangjie.lexer.CjKeywordToken;
 import cn.cangnova.cangjie.lexer.CjToken;
-import cn.cangnova.cangjie.parsing.*;
 import cn.cangnova.cangjie.utils.StringsKt;
 import org.jetbrains.annotations.*;
 
@@ -137,9 +135,11 @@ public abstract class AbstractCangJieParsing {
         return ((PsiBuilderImpl) builder).whitespaceOrComment(type);
     }
 
-    protected List<PsiBuilderImpl.ProductionMarker> getProductions() {
-
-        return ((PsiBuilderImpl) ((PsiBuilderAdapter) myBuilder).getDelegate()).getProductions();
+    protected List<? extends SyntaxTreeBuilder.Production> getProductions() {
+      // 获取语法树构建器的产生式
+      return   myBuilder.getProductions();
+//        // 获取PsiBuilderImpl的委托，并获取产生式
+//        return ((PsiBuilderImpl) ((PsiBuilderAdapter) myBuilder).getDelegate()).getProductions();
     }
 
     public void setDeclarationsFile(boolean isDeclarationsFile) {
