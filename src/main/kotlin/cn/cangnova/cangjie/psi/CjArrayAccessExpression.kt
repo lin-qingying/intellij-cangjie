@@ -25,6 +25,7 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
 import com.google.common.collect.Lists
 import com.intellij.lang.ASTNode

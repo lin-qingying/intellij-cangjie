@@ -28,6 +28,7 @@ import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile.Companion.FILE_DECLARATION_TYPES
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.stubs.CangJieFileStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes

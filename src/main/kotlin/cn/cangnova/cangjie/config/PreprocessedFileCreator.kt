@@ -30,7 +30,7 @@ import com.intellij.testFramework.LightVirtualFile
 import cn.cangnova.cangjie.extensions.ProjectExtensionDescriptor
 
 /**
- * The interface for the extensions that are used to substitute VirtualFile on the creation of KtFile, allows to preprocess a file before
+ * The interface for the extensions that are used to substitute VirtualFile on the creation of CjFile, allows to preprocess a file before
  * lexing and parsing
  */
 interface PreprocessedVirtualFileFactoryExtension {

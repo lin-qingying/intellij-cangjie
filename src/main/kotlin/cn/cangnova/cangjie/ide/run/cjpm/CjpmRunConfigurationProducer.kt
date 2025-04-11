@@ -28,7 +28,7 @@ package cn.cangnova.cangjie.ide.run.cjpm
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
-import com.intellij.json.JsonFileType
+
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
@@ -88,7 +88,7 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandCon
     ): Boolean {
 //  判断是否是cjpm项目
 //        文件扩展名为.cj
-//        文件为module.json
+//        文件为cjpm.toml
 
 
         val file = context.location?.virtualFile
@@ -103,8 +103,8 @@ class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandCon
         return if (isInSrc) {
             fileType is CangJieFileType && configuration.command == "run"
         } else {
-            //    判断是否是module.json文件
-            fileType is JsonFileType && fileName?.startsWith("module") == true && configuration.command == "run"
+            //    判断是否是cjpm.toml文件
+            fileType is TomlFileType && fileName?.startsWith("cjpm") == true && configuration.command == "run"
         }
 
 

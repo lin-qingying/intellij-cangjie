@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement

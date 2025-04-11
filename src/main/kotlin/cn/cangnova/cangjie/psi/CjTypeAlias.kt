@@ -26,6 +26,7 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.ClassId
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.ClassIdCalculator
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.CangJieTypeAliasStub

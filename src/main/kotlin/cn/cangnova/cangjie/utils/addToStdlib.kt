@@ -125,9 +125,9 @@ fun <T : Any> constant(calculator: () -> T): T {
     return value
 }
 
-@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
+@Suppress( "INVISIBLE_MEMBER")
 @UnsafeCastFunction
-inline fun <reified T : Any> Any?.safeAs(): @kotlin.internal.NoInfer T? = this as? T
+inline fun <reified T : Any> Any?.safeAs():   T? = this as? T
 
 inline fun <reified T : Any> Iterable<*>.lastIsInstanceOrNull(): T? {
     when (this) {

@@ -34,7 +34,7 @@ import com.intellij.psi.PsiElement
 
 /**
  *键入Reference Element。
- *底层令牌为[CjNodeTypes.TYPE_REFERENCE]
+ *底层令牌为[cn.cangnova.cangjie.psi.CjNodeTypes.TYPE_REFERENCE]
  */
 class CjTypeReference :
     CjModifierListOwnerStub<CangJiePlaceHolderStub<CjTypeReference>>,

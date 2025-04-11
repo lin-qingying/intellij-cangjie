@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import com.intellij.lang.ASTNode
 
 class CjCatchClause(node: ASTNode) : CjElementImpl(node) {

@@ -24,9 +24,9 @@
 
 package cn.cangnova.cangjie.ide.editor.folding
 
-import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.*
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
 import cn.cangnova.cangjie.psi.psiUtil.*
 import cn.cangnova.cangjie.psi.stubs.elements.CjFunctionElementType
 import com.intellij.lang.ASTNode

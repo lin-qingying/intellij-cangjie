@@ -25,6 +25,7 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
 import cn.cangnova.cangjie.psi.stubs.CangJieCollectionLiteralExpressionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes

@@ -29,6 +29,7 @@ import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement

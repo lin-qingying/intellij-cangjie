@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import com.intellij.lang.ASTNode
 
 abstract class CjWhileExpressionBase(node: ASTNode) : CjLoopExpression(node) {

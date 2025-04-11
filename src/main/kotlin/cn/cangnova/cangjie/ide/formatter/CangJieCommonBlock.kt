@@ -30,7 +30,9 @@ import cn.cangnova.cangjie.psi.cdoc.parser.CDocElementTypes
 import cn.cangnova.cangjie.ide.formatter.NodeIndentStrategy.Companion.strategy
 import cn.cangnova.cangjie.ide.formatter.util.TrailingCommaHelper.trailingCommaExistsOrCanExist
 import cn.cangnova.cangjie.ide.formatter.util.addTrailingCommaIsAllowedFor
-import cn.cangnova.cangjie.lexer.CjTokens.*
+import cn.cangnova.cangjie.lexer. CjTokens.*
+
+
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.*
 import cn.cangnova.cangjie.utils.safeAs
@@ -47,19 +49,19 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
 
-private val QUALIFIED_OPERATION = TokenSet.create(DOT)
-private val QUALIFIED_EXPRESSIONS = TokenSet.create(DOT_QUALIFIED_EXPRESSION)
+private val QUALIFIED_OPERATION = TokenSet.create( DOT)
+private val QUALIFIED_EXPRESSIONS = TokenSet.create( DOT_QUALIFIED_EXPRESSION)
 private val ELVIS_SET = TokenSet.create()
-private val QUALIFIED_EXPRESSIONS_WITHOUT_WRAP = TokenSet.create(IMPORT_DIRECTIVE, PACKAGE_DIRECTIVE)
+private val QUALIFIED_EXPRESSIONS_WITHOUT_WRAP = TokenSet.create( IMPORT_DIRECTIVE,  PACKAGE_DIRECTIVE)
 
 private const val CDOC_COMMENT_INDENT = 1
 
-private val BINARY_EXPRESSIONS = TokenSet.create(BINARY_EXPRESSION, BINARY_WITH_TYPE, IS_EXPRESSION)
+private val BINARY_EXPRESSIONS = TokenSet.create( BINARY_EXPRESSION,  BINARY_WITH_TYPE,  IS_EXPRESSION)
 private val CDOC_CONTENT = TokenSet.create(CDocTokens.CDOC, CDocElementTypes.CDOC_SECTION, CDocElementTypes.CDOC_TAG)
 
-private val CODE_BLOCKS = TokenSet.create(BLOCK, CLASS_BODY, FUNCTION_LITERAL, PROPERTY_BODY)
+private val CODE_BLOCKS = TokenSet.create( BLOCK,  CLASS_BODY,  FUNCTION_LITERAL,  PROPERTY_BODY)
 
-private val ALIGN_FOR_BINARY_OPERATIONS = TokenSet.create(MUL, DIV, PERC, PLUS, MINUS, LT, GT, LTEQ, GTEQ, ANDAND, OROR)
+private val ALIGN_FOR_BINARY_OPERATIONS = TokenSet.create( MUL,  DIV,  PERC,  PLUS,  MINUS,  LT,  GT,  LTEQ,  GTEQ,  ANDAND,  OROR)
 private val ANNOTATIONS = TokenSet.create()
 
 typealias WrappingStrategy = (childElement: ASTNode) -> Wrap?
@@ -119,7 +121,7 @@ abstract class CangJieCommonBlock(
         }
 
 
-        return node.elementType == MODIFIER_LIST && node.treeParent?.elementType == CLASS_BODY
+        return node.elementType ==  MODIFIER_LIST && node.treeParent?.elementType ==   CLASS_BODY
     }
 
     fun buildChildren(): List<Block> {
@@ -164,7 +166,7 @@ abstract class CangJieCommonBlock(
 
         @Suppress("UNCHECKED_CAST") val subBlocks = subBlocks as List<ASTBlock>
         val elementType = currentNode.elementType
-        if (elementType != POSTFIX_EXPRESSION && elementType !in QUALIFIED_EXPRESSIONS) return this
+        if (elementType !=  POSTFIX_EXPRESSION && elementType !in QUALIFIED_EXPRESSIONS) return this
 
         val index = 0
         val resultWrap =
@@ -227,7 +229,7 @@ abstract class CangJieCommonBlock(
         } else {
             {
                 val parent = it.treeParent ?: node
-                val skipOperationNodeParent = if (parent.elementType === OPERATION_REFERENCE) {
+                val skipOperationNodeParent = if (parent.elementType ===  OPERATION_REFERENCE) {
                     parent.treeParent ?: parent
                 } else {
                     parent
@@ -275,7 +277,7 @@ abstract class CangJieCommonBlock(
 
         if (childParent != null && childParent.psi is CjDeclaration) {
             val prev = getPrevWithoutWhitespace(child)
-            if (prev != null && COMMENTS.contains(prev.elementType) && getSiblingWithoutWhitespaceAndComments(prev) == null) {
+            if (prev != null &&  COMMENTS.contains(prev.elementType) && getSiblingWithoutWhitespaceAndComments(prev) == null) {
                 return Indent.getNoneIndent()
             }
         }
@@ -293,7 +295,7 @@ abstract class CangJieCommonBlock(
 
             if (parentType === VALUE_PARAMETER_LIST || parentType === VALUE_ARGUMENT_LIST) {
                 val prev = getPrevWithoutWhitespace(child)
-                if (childType === RPAR && (prev == null || prev.elementType !== COMMA || !hasDoubleLineBreakBefore(child))) {
+                if (childType ===  RPAR && (prev == null || prev.elementType !==  COMMA || !hasDoubleLineBreakBefore(child))) {
                     return Indent.getNoneIndent()
                 }
 
@@ -313,13 +315,13 @@ abstract class CangJieCommonBlock(
     private fun isInCodeChunk(node: ASTNode): Boolean {
         val parent = node.treeParent ?: return false
 
-        if (node.elementType != BLOCK) {
+        if (node.elementType !=   BLOCK) {
             return false
         }
 
         val parentType = parent.elementType
         return parentType == EXPRESSION_CODE_FRAGMENT ||
-                parentType == TYPE_CODE_FRAGMENT
+                parentType ==  TYPE_CODE_FRAGMENT
 //       || parentType == BLOCK_CODE_FRAGMENT
     }
 
@@ -332,7 +334,7 @@ abstract class CangJieCommonBlock(
 
         if (type == IF) {
             val elseBlock = mySubBlocks?.getOrNull(newChildIndex)
-            if (elseBlock != null && elseBlock.requireNode().elementType == ELSE_KEYWORD) {
+            if (elseBlock != null && elseBlock.requireNode().elementType ==  ELSE_KEYWORD) {
                 return ChildAttributes.DELEGATE_TO_NEXT_CHILD
             }
         }
@@ -345,12 +347,12 @@ abstract class CangJieCommonBlock(
         }
 
         return when (type) {
-            in CODE_BLOCKS, MATCH, IF, FOR, WHILE, DO_WHILE, MATCH_ENTRY -> ChildAttributes(
+            in CODE_BLOCKS,  MATCH, IF, FOR,  WHILE, DO_WHILE, MATCH_ENTRY -> ChildAttributes(
                 Indent.getNormalIndent(),
                 null,
             )
 
-            TRY, CATCH, FINALLY -> ChildAttributes(Indent.getNoneIndent(), null)
+             TRY, CATCH, FINALLY -> ChildAttributes(Indent.getNoneIndent(), null)
 
             in QUALIFIED_EXPRESSIONS -> ChildAttributes(Indent.getContinuationWithoutFirstIndent(), null)
 
@@ -383,7 +385,7 @@ abstract class CangJieCommonBlock(
                     if (isIncomplete) {
                         if (blocks.size == newChildIndex && !settings.cangjieCustomSettings.CONTINUATION_INDENT_FOR_EXPRESSION_BODIES) {
                             val lastInParent = blocks.last()
-                            if (lastInParent is ASTBlock && lastInParent.node?.elementType in ALL_ASSIGNMENTS) {
+                            if (lastInParent is ASTBlock && lastInParent.node?.elementType in  ALL_ASSIGNMENTS) {
                                 return ChildAttributes(Indent.getNormalIndent(), null)
                             }
                         }
@@ -407,21 +409,21 @@ abstract class CangJieCommonBlock(
         val cangjieCustomSettings = settings.cangjieCustomSettings
         val parentType = node.elementType
         return when {
-            parentType === VALUE_PARAMETER_LIST -> getAlignmentForChildInParenthesis(
+            parentType ===   VALUE_PARAMETER_LIST -> getAlignmentForChildInParenthesis(
                 cangjieCommonSettings.ALIGN_MULTILINE_PARAMETERS,
-                VALUE_PARAMETER,
+                    VALUE_PARAMETER,
                 cangjieCommonSettings.ALIGN_MULTILINE_METHOD_BRACKETS,
             )
 
-            parentType === VALUE_ARGUMENT_LIST -> getAlignmentForChildInParenthesis(
+            parentType ===  VALUE_ARGUMENT_LIST -> getAlignmentForChildInParenthesis(
                 cangjieCommonSettings.ALIGN_MULTILINE_PARAMETERS_IN_CALLS,
-                VALUE_ARGUMENT,
+                 VALUE_ARGUMENT,
                 cangjieCommonSettings.ALIGN_MULTILINE_METHOD_BRACKETS,
             )
 
-            parentType === MATCH -> getAlignmentForCaseBranch(cangjieCustomSettings.ALIGN_IN_COLUMNS_CASE_BRANCH)
+            parentType ===  MATCH -> getAlignmentForCaseBranch(cangjieCustomSettings.ALIGN_IN_COLUMNS_CASE_BRANCH)
 
-            parentType === MATCH_ENTRY -> alignmentStrategy
+            parentType ===   MATCH_ENTRY -> alignmentStrategy
 
             parentType in BINARY_EXPRESSIONS && getOperationType(node) in ALIGN_FOR_BINARY_OPERATIONS -> createAlignmentStrategy(
                 cangjieCommonSettings.ALIGN_MULTILINE_BINARY_OPERATION,
@@ -433,7 +435,7 @@ abstract class CangJieCommonBlock(
                 getAlignment()
             )
 
-            parentType === PARENTHESIZED -> object : CommonAlignmentStrategy() {
+            parentType ===   PARENTHESIZED -> object : CommonAlignmentStrategy() {
                 private var bracketsAlignment: Alignment? =
                     if (cangjieCommonSettings.ALIGN_MULTILINE_BINARY_OPERATION) Alignment.createAlignment() else null
 
@@ -445,7 +447,7 @@ abstract class CangJieCommonBlock(
                         return bracketsAlignment
                     }
 
-                    if (childNodeType === LPAR || childNodeType === RPAR) {
+                    if (childNodeType ===  LPAR || childNodeType ===  RPAR) {
                         return bracketsAlignment
                     }
 
@@ -453,7 +455,7 @@ abstract class CangJieCommonBlock(
                 }
             }
 
-            parentType == TYPE_CONSTRAINT_LIST -> createAlignmentStrategy(true, getAlignment())
+            parentType ==  TYPE_CONSTRAINT_LIST -> createAlignmentStrategy(true, getAlignment())
 
             else -> getNullAlignmentStrategy()
         }
@@ -496,9 +498,9 @@ abstract class CangJieCommonBlock(
 
         val childNodes = when {
             overrideChildren != null -> overrideChildren
-            node.elementType == BINARY_EXPRESSION -> {
+            node.elementType ==  BINARY_EXPRESSION -> {
                 val binaryExpression = node.psi as? CjBinaryExpression
-                if (binaryExpression != null && ALL_ASSIGNMENTS.contains(binaryExpression.operationToken)) {
+                if (binaryExpression != null &&  ALL_ASSIGNMENTS.contains(binaryExpression.operationToken)) {
                     node.children()
                 } else {
                     val binaryExpressionChildren = mutableListOf<ASTNode>()
@@ -519,14 +521,14 @@ abstract class CangJieCommonBlock(
         childrenAlignmentStrategy: CommonAlignmentStrategy,
         wrappingStrategy: WrappingStrategy,
     ): Sequence<ASTBlock> {
-        if (node.elementType == FUNC) {
+        if (node.elementType ==  FUNC) {
             val filteredChildren = node.children().filter {
                 it.textRange.length > 0 && it.elementType != TokenType.WHITE_SPACE
             }
-            val significantChildren = filteredChildren.dropWhile { it.elementType == EOL_COMMENT }
+            val significantChildren = filteredChildren.dropWhile { it.elementType ==  EOL_COMMENT }
             val funIndent = extractIndent(significantChildren.first())
             val eolComments = filteredChildren.takeWhile {
-                it.elementType == EOL_COMMENT && extractIndent(it) != funIndent
+                it.elementType ==  EOL_COMMENT && extractIndent(it) != funIndent
             }.toList()
             val remainingChildren = filteredChildren.drop(eolComments.size)
 
@@ -543,7 +545,7 @@ abstract class CangJieCommonBlock(
 
     private fun collectBinaryExpressionChildren(node: ASTNode, result: MutableList<ASTNode>) {
         for (child in node.children()) {
-            if (child.elementType == BINARY_EXPRESSION) {
+            if (child.elementType ==   BINARY_EXPRESSION) {
                 collectBinaryExpressionChildren(child, result)
             } else {
                 result.add(child)
@@ -558,7 +560,7 @@ abstract class CangJieCommonBlock(
         val nodePsi = node.psi
 
         when {
-            elementType === VALUE_ARGUMENT_LIST -> {
+            elementType ===   VALUE_ARGUMENT_LIST -> {
                 val wrapSetting = commonSettings.CALL_PARAMETERS_WRAP
                 if (!node.addTrailingComma && (wrapSetting == CommonCodeStyleSettings.WRAP_AS_NEEDED || wrapSetting == CommonCodeStyleSettings.WRAP_ON_EVERY_ITEM)
 
@@ -568,15 +570,15 @@ abstract class CangJieCommonBlock(
 
                 return getWrappingStrategyForItemList(
                     wrapSetting,
-                    VALUE_ARGUMENT,
+                      VALUE_ARGUMENT,
                     node.addTrailingComma,
                     additionalWrap = trailingCommaWrappingStrategyWithMultiLineCheck(LPAR, RPAR),
                 )
             }
 
-            elementType === VALUE_PARAMETER_LIST -> {
+            elementType ===  VALUE_PARAMETER_LIST -> {
                 when (parentElementType) {
-                    FUNC, PRIMARY_CONSTRUCTOR, SECONDARY_CONSTRUCTOR -> return getWrappingStrategyForItemList(
+                     FUNC,  PRIMARY_CONSTRUCTOR,   SECONDARY_CONSTRUCTOR -> return getWrappingStrategyForItemList(
                         commonSettings.METHOD_PARAMETERS_WRAP,
                         VALUE_PARAMETER,
                         node.addTrailingComma,
@@ -930,7 +932,7 @@ fun NodeIndentStrategy.PositionStrategy.continuationIf(
 }
 
 //TODO 块相对于父级块的缩进
-private val INDENT_RULES = arrayOf(
+private val INDENT_RULES  = arrayOf(
 
     // 不对块中的右大括号和左大括号进行缩进
     strategy("No indent for braces in blocks").within(BLOCK, INIT_BLOCK, CLASS_BODY, FUNCTION_LITERAL, ENUM_BODY)

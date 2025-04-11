@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import com.google.common.collect.Lists
 import com.intellij.lang.ASTNode
 

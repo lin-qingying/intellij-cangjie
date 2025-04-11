@@ -25,6 +25,7 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.stubs.CangJieContextReceiverStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode

@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.psi
 
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import com.intellij.lang.ASTNode
 
 class CjBinaryExpressionWithTypeRHS(node: ASTNode) : CjExpressionImpl(node), CjOperationExpression {

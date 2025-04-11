@@ -63,7 +63,7 @@ val cangjiePluginVersion = "$pluginVersion-$ideVersion"
 val psiViewerPlugin = prop("psiViewerPlugin")
 val indexViewPlugin = prop("indexViewPlugin")
 val tomlPlugin = "org.toml.lang"
-val jsonPlugin = "com.intellij.modules.json"
+
 val terminalPlugin = "org.jetbrains.plugins.terminal"
 
 val chinesePlugin = "com.intellij.zh:233.407"
@@ -173,11 +173,11 @@ allprojects {
         main {
             java {
                 srcDirs("src/main/kotlin")
-                srcDirs("src/main/$ideVersion") // 添加 IDE 版本特定的源码目录
+                srcDirs("src/main/$platformVersion") // 添加 IDE 版本特定的源码目录
             }
             kotlin {
                 srcDirs("src/main/kotlin")
-                srcDirs("src/main/$ideVersion") // 添加 IDE 版本特定的源码目录
+                srcDirs("src/main/$platformVersion") // 添加 IDE 版本特定的源码目录
                 srcDirs("src/gen")
             }
             resources {
@@ -296,7 +296,7 @@ project(":plugin") {
                     indexViewPlugin,
                     chinesePlugin/*, nativeDebugPlugin*/
                 )
-                bundledPlugins(tomlPlugin,jsonPlugin)
+                bundledPlugins(tomlPlugin, )
             }
         }
         implementation(project(":"))
@@ -389,7 +389,7 @@ project(":") {
 
     dependencies {
         intellijPlatform {
-            bundledPlugins(tomlPlugin,jsonPlugin)
+            bundledPlugins(tomlPlugin)
         }
         implementation("org.fusesource.jansi:jansi:2.4.1")
 

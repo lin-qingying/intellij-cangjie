@@ -42,7 +42,7 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IErrorCounterReparseableElementType
 import com.intellij.psi.util.PsiTreeUtil
 
-internal class LambdaExpressionElementType :
+  class LambdaExpressionElementType :
     IErrorCounterReparseableElementType("LAMBDA_EXPRESSION", CangJieLanguage) {
     override fun parseContents(chameleon: ASTNode): ASTNode {
         val project = chameleon.psi.project

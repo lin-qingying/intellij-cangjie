@@ -25,6 +25,7 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.deleteSemicolon
 import cn.cangnova.cangjie.psi.psiUtil.parentSubstitute
 import com.intellij.lang.Language
