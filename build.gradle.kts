@@ -63,7 +63,7 @@ val cangjiePluginVersion = "$pluginVersion-$ideVersion"
 val psiViewerPlugin = prop("psiViewerPlugin")
 val indexViewPlugin = prop("indexViewPlugin")
 val tomlPlugin = "org.toml.lang"
-
+val jsonPlugin = "com.intellij.modules.json"
 val terminalPlugin = "org.jetbrains.plugins.terminal"
 
 val chinesePlugin = "com.intellij.zh:233.407"
@@ -164,7 +164,7 @@ allprojects {
                     types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
                     channels = listOf(ProductRelease.Channel.RELEASE)
                     sinceBuild = "241"
-                    untilBuild = "243.*"
+                    untilBuild = "251.*"
                 }
             }
         }
@@ -296,7 +296,7 @@ project(":plugin") {
                     indexViewPlugin,
                     chinesePlugin/*, nativeDebugPlugin*/
                 )
-                bundledPlugins(tomlPlugin)
+                bundledPlugins(tomlPlugin,jsonPlugin)
             }
         }
         implementation(project(":"))
@@ -389,7 +389,7 @@ project(":") {
 
     dependencies {
         intellijPlatform {
-            bundledPlugins(tomlPlugin)
+            bundledPlugins(tomlPlugin,jsonPlugin)
         }
         implementation("org.fusesource.jansi:jansi:2.4.1")
 

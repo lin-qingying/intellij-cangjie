@@ -11,7 +11,7 @@ import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.cjpm.toolchain.cjc
 import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
 import cn.cangnova.cangjie.messages.CangJieBundle
-import kotlinx.html.currentTimeMillis
+
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -20,6 +20,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import kotlin.io.path.exists
 import com.google.gson.JsonParser
+import java.lang.System.currentTimeMillis
 
 fun downloadStdlib(version: String): DownloadResult<File> {
     return try {

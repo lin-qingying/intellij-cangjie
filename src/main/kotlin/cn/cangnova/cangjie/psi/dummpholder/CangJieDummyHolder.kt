@@ -33,7 +33,7 @@ import com.intellij.util.CharTable
 
 class CangJieDummyHolder : DummyHolder {
 
-    val a = 1
+  
 
     constructor(
         manager: PsiManager,

@@ -25,6 +25,7 @@
 package cn.cangnova.cangjie.cli.messages
 
 
+@ConsistentCopyVisibility
 data class CompilerMessageLocation private constructor(
     override val path: String,
     override val line: Int,
