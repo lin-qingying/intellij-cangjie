@@ -15,9 +15,6 @@
  */
 package cn.cangnova.cangjie.lsp4intellij.utils;
 
-import cn.cangnova.cangjie.lsp4intellij.Lsp4IntellijBundle;
-import cn.cangnova.cangjie.lsp4intellij.lsp4intellij.ProjectActivity;
-import cn.cangnova.cangjie.lsp4intellij.lsp4intellij.ProjectActivityKt;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -271,8 +268,7 @@ public class FileUtils {
         try {
             return LocalFileSystem.getInstance().findFileByIoFile(new File(new URI(sanitizeURI(uri))));
         } catch (URISyntaxException e) {
-            LOG.warn(Lsp4IntellijBundle.message("warning.uri.syntax.error"), e);
-
+            LOG.warn(e);
             return null;
         }
     }
