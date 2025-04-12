@@ -137,7 +137,7 @@ private val CjpmProject.ideaLibraries: Collection<SyntheticLibrary>
     }
 
 
-private fun makeStdlibLibrary(packages: List<CjpmWorkspace.Package>, rustcVersion: CangJieVersion?): CjpmLibrary? {
+private fun makeStdlibLibrary(packages: List<CjpmWorkspace.Package>, cjcVersion: CangJieVersion?): CjpmLibrary? {
     if (packages.isEmpty()) return null
     val sourceRoots = mutableSetOf<VirtualFile>()
     val excludedRoots = mutableSetOf<VirtualFile>()
@@ -154,11 +154,11 @@ private fun makeStdlibLibrary(packages: List<CjpmWorkspace.Package>, rustcVersio
             root.findChild("examples"),
             root.findChild("ci"), // From `backtrace`
             root.findChild(".github"), // From `backtrace`
-            root.findChild("libc-test") // From Rust 1.32.0 `liblibc`
+
         )
     }
 
-    val version = rustcVersion?.semver?.parsedVersion
+    val version = cjcVersion?.semver?.parsedVersion
     return CjpmLibrary("stdlib", sourceRoots, excludedRoots, CangJieIcons.CANGJIE_FILE, version)
 }
 

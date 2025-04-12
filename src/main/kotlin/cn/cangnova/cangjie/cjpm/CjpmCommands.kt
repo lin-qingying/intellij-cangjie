@@ -129,7 +129,7 @@ enum class CjpmCommands(val description: String, val options: List<CjpmOption>) 
     ),
 
     RUN_SCRIPT(
-        description = "Build and install a Rust binary",
+        description = "Build and install a CangJie binary",
         options = listOf(
             CjpmOption("help", """帮助"""),
 

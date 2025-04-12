@@ -221,6 +221,7 @@ allprojects {
         withType<PatchPluginXmlTask> {
             sinceBuild.set(ideVersion)
             untilBuild.set("$ideVersion.*")
+
         }
         runIde { enabled = false }
         prepareSandbox { enabled = false }

@@ -52,7 +52,7 @@ fun downloadStdlib(version: String): DownloadResult<File> {
 fun fetchStdlib(
     context: CjpmSyncTask.SyncContext,
     cjpmProject: CjpmProjectImpl,
-    rustcInfo: CjcInfo?
+    cjcInfo: CjcInfo?
 ): TaskResult<StandardLibrary>? {
     return if (CangJieLanguageServerServices.getInstance().astConfig.enabled) {
         context.runWithChildProgress(CangJieBundle.message("progress.text.getting.cangjie.stdlib")) { childContext ->

@@ -52,9 +52,9 @@ abstract class CjpmProjectActionBase : DumbAwareAction() {
 }
 
 /**
- * Adds cjpm project to [CjpmProjectsService]
+ * 将CJPM项目添加到[CjpmProjectsService]
  *
- * It can be invoked from Project View, [CjpmToolWindow] and [CjEditorNotificationPanel]
+ * 可以从Project View、[CjpmToolWindow]和[CjEditorNotificationPanel]调用
  */
 class AttachCjpmProjectAction : CjpmProjectActionBase() {
     override fun actionPerformed(e: AnActionEvent) {
@@ -101,8 +101,8 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
         return when (e.place) {
             CjpmToolWindow.CJPM_TOOLBAR_PLACE, CjEditorNotificationPanel.NOTIFICATION_PANEL_PLACE -> true
             else -> {
-                // We need to use `ProjectFileIndex` to check if `Cjpm.toml` is in project content
-                // so disable the action in dumb mode
+                // 需要使用`ProjectFileIndex`来检查`cjpm.toml`是否在项目内容中
+                // 所以在dumb模式下禁用该操作
                 if (DumbService.isDumb(project)) return false
                 val file = e.getData(PlatformDataKeys.VIRTUAL_FILE)
                 val cjpmToml = file?.findCjpmToml() ?: return false
@@ -126,9 +126,9 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
 
             val path = cjpmToml.pathAsPath
 
-            // Project module already contains Cargo project with `cargoToml` as manifest file
+            // 项目模块已包含以该清单文件为配置的CJPM项目
             if (project.cjpmProjects.allProjects.any { it.manifest == path }) return false
-            // Project module already contains a package with `cargoToml` as manifest file
+            // 项目模块已包含以该清单文件为配置的CJPM包
             if (project.cjpmProjects.allProjects.any { it.containsWorkspaceManifest(path) }) return false
             return true
 
@@ -154,22 +154,19 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
 object CjpmProjectChooserDescriptor : FileChooserDescriptor(true, true, false, false, false, false) {
 
     init {
-        // 为非目录文件设置过滤器，只允许选择CJPM配置文件
-        withFileFilter { it.isCjpmToml }
+        // 设置文件过滤器，只允许选择包含CJPM配置文件的目录或CJPM配置文件本身
+        // 如果是目录，检查是否包含CJPM配置文件
+        // 如果是文件，检查是否是CJPM配置文件
+        withFileFilter { file ->
+            if (file.isDirectory) {
+                file.findChild(CjpmConstants.MANIFEST_FILE) != null
+            } else {
+                file.isCjpmToml
+            }
+        }
+        // 设置文件选择器对话框的标题
         @Suppress("DialogTitleCapitalization")
         withTitle(CangJieBundle.message("dialog.title.select.cjpm.toml"))
-    }
-
-    /**
-     * 判断文件是否可选
-     * @param file 待判断的文件
-     * @return 当文件满足以下条件时返回true:
-     * 1. 通过父类FileChooserDescriptor的基本校验
-     * 2. 文件不为空
-     * 3. 如果是目录，则必须包含CJPM配置文件；如果是文件，则已通过withFileFilter过滤
-     */
-    override fun isFileSelectable(file: VirtualFile?): Boolean {
-        return super.isFileSelectable(file) && file != null && (!file.isDirectory || file.findChild(CjpmConstants.MANIFEST_FILE) != null)
     }
 }
 

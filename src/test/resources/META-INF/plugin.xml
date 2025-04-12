@@ -1,4 +1,4 @@
-<idea-plugin package="org.rust" xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin   xmlns:xi="http://www.w3.org/2001/XInclude">
     <id>cn.cangnova.cangjie</id>
     <xi:include href="/META-INF/cangjie-all.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>
