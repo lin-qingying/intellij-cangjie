@@ -1,4 +1,4 @@
-package cn.cangnova.cangjie.dapDebugger1.runconfig
+package cn.cangnova.cangjie.dapDebugger.runconfig
 
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.utils.getSavePluginVersion

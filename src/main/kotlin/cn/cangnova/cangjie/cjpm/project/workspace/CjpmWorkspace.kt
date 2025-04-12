@@ -73,10 +73,10 @@ interface CjpmWorkspace {
     /**
      * withStdlib函数允许在当前workspace中添加标准库信息
      * @param stdlib 标准库信息
-     * @param rustcInfo 可选的rustc信息
+     * @param cjcInfo 可选的cjc信息
      * @return 返回一个新的包含标准库信息的CjpmWorkspace实例
      */
-    fun withStdlib(stdlib: StandardLibrary, rustcInfo: CjcInfo? = null): CjpmWorkspace
+    fun withStdlib(stdlib: StandardLibrary, cjcInfo: CjcInfo? = null): CjpmWorkspace
 
 
     //    cjpm module.json数据
@@ -331,7 +331,7 @@ class WorkspaceImpl(
     }.distinctBy { it.name } // 根据name去重
 
 
-    override fun withStdlib(stdlib: StandardLibrary, rustcInfo: CjcInfo?): CjpmWorkspace {
+    override fun withStdlib(stdlib: StandardLibrary, cjcInfo: CjcInfo?): CjpmWorkspace {
 //        TODO 添加标准库
         val (newPackagesData, @Suppress("NAME_SHADOWING") stdlib) = Pair(packages.map { it.asPackageData() } + stdlib.packages,
             stdlib)

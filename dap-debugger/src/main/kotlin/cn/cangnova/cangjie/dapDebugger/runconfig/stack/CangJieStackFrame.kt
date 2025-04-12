@@ -1,4 +1,4 @@
-package cn.cangnova.cangjie.dapDebugger1.runconfig.stack
+package cn.cangnova.cangjie.dapDebugger.runconfig.stack
 
 import com.intellij.icons.AllIcons
 import com.intellij.xdebugger.frame.XStackFrame

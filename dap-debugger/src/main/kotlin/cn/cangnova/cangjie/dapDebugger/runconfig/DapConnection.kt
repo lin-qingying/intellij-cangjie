@@ -1,4 +1,4 @@
-package cn.cangnova.cangjie.dapDebugger1.runconfig
+package cn.cangnova.cangjie.dapDebugger.runconfig
 
 import com.intellij.xdebugger.XDebugSession
 import cn.cangnova.cangjie.dapDebugger1.runconfig.breakpoint.CangJieBreakpointHandler

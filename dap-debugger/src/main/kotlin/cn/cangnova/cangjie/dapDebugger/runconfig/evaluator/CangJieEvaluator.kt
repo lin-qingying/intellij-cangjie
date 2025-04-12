@@ -1,4 +1,4 @@
-package cn.cangnova.cangjie.dapDebugger1.runconfig.evaluator
+package cn.cangnova.cangjie.dapDebugger.runconfig.evaluator
 
 import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator

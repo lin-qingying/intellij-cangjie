@@ -453,7 +453,7 @@
             <separator/>
             <reference id="Cjpm.RunCjpmCommand"/>
             <!--            <reference id="Cjpm.RunExternalLinter"/>-->
-            <!--            <reference id="Cjpm.RustfmtCjpmProject"/>-->
+            <!--            <reference id="Cjpm.CangJiefmtCjpmProject"/>-->
             <separator/>
             <reference id="ExpandAll"/>
             <reference id="CollapseAll"/>

@@ -1,4 +1,4 @@
-package cn.cangnova.cangjie.dapDebugger1.runconfig.variables
+package cn.cangnova.cangjie.dapDebugger.runconfig.variables
 
 import com.intellij.xdebugger.frame.XCompositeNode
 import com.intellij.xdebugger.frame.XValue

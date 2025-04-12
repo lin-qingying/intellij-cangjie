@@ -271,7 +271,7 @@ abstract class CjAsyncRunner(
 //    val targetEnvironment = runConfiguration.targetEnvironment
 //    val context = ConfigurationExtensionContext()
 //
-//    val extensionManager = RsRunConfigurationExtensionManager.getInstance()
+//    val extensionManager = CjRunConfigurationExtensionManager.getInstance()
 //    extensionManager.patchCommandLine(runConfiguration, environment, commandLine, context)
 //    extensionManager.patchCommandLineState(runConfiguration, environment, this, context)
 //    val handler = commandLine.startProcess(environment.project, targetEnvironment, processColors = true, uploadExecutable = true)

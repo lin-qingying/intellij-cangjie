@@ -29,7 +29,7 @@ class CjDebuggerSettings: XDebuggerSettings<CjDebuggerSettings>("CangJie")  {
 //        return SimpleConfigurable.create(
 //            STEPPING_ID,
 //            CjDebuggerBundle.message("settings.cangjie.debugger.title"),
-//            RsDebuggerSteppingSettingsConfigurableUi::class.java,
+//            CjDebuggerSteppingSettingsConfigurableUi::class.java,
 //            Companion::getInstance
 //        )
 //    }

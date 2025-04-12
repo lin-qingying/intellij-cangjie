@@ -98,7 +98,7 @@ class CjBackgroundTaskQueue {
             }
             val data = BackgroundableTaskData(task, ::onFinish)
 
-            // Add to cancelable tasks even if the task is not [RsTaskExt] b/c it still can be canceled by [cancelAll]
+            // Add to cancelable tasks even if the task is not [CjTaskExt] b/c it still can be canceled by [cancelAll]
             cancelableTasks += data
 
             processor.add(data)

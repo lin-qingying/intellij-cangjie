@@ -17,6 +17,6 @@ import com.intellij.execution.ui.RunContentDescriptor
     ): RunContentDescriptor? = CjDebugRunnerUtils.showRunContent(state, environment, runExecutable)
 
     companion object {
-        const val RUNNER_ID: String = "RsDebugRunner"
+        const val RUNNER_ID: String = "CjDebugRunner"
     }
 }

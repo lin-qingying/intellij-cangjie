@@ -1,4 +1,4 @@
-package cn.cangnova.cangjie.dapDebugger1.runconfig.breakpoint
+package cn.cangnova.cangjie.dapDebugger.runconfig.breakpoint
 
 import com.intellij.icons.AllIcons
 import com.intellij.xdebugger.breakpoints.XBreakpoint

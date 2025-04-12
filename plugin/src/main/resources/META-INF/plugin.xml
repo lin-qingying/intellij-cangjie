@@ -52,7 +52,7 @@
 
     <content>
 <!--        <module name="cn.cangnova.cangjie.dapDebugger"/>-->
-     <module name="cn.cangnova.cangjie.dapDebugger1"/>
+     <module name="cn.cangnova.cangjie.dapDebugger"/>
 <!--        <module name="cn.cangnova.cangjie.nativeDebug"/>-->
 
 

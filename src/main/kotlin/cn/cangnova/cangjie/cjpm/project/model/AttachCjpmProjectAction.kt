@@ -126,9 +126,9 @@ class AttachCjpmProjectAction : CjpmProjectActionBase() {
 
             val path = cjpmToml.pathAsPath
 
-            // Project module already contains Cargo project with `cargoToml` as manifest file
+
             if (project.cjpmProjects.allProjects.any { it.manifest == path }) return false
-            // Project module already contains a package with `cargoToml` as manifest file
+
             if (project.cjpmProjects.allProjects.any { it.containsWorkspaceManifest(path) }) return false
             return true
 

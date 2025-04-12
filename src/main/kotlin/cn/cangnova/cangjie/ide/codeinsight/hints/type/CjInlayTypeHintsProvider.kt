@@ -91,7 +91,7 @@ class CjInlayTypeHintsProvider : InlayHintsProvider<CjInlayTypeHintsProvider.Set
 //            private fun presentTypeForIdentify(identify: PsiElement, expr: CjExpression?, isExpanded: Boolean) {
 //                if (!settings.showObviousTypes  ) return
 //
-//                for (binding in pat.descendantsOfType<RsPatBinding>()) {
+//                for (binding in pat.descendantsOfType<CjPatBinding>()) {
 //                    if (binding.referenceName.startsWith("_")) continue
 //                    presentTypeForBinding(binding, isExpanded)
 //                }

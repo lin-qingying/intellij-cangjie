@@ -41,7 +41,7 @@ import java.util.LinkedHashSet
 
 abstract class CjCodeFragment(
     viewProvider: FileViewProvider,
-    imports: String?, // Should be separated by KtCodeFragment.IMPORT_SEPARATOR
+    imports: String?, // Should be separated by CjCodeFragment.IMPORT_SEPARATOR
     elementType: IElementType,
     private val context: PsiElement?
 ) : CjFile(

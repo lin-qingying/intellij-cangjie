@@ -74,7 +74,7 @@ class CjParameter : CjNamedDeclarationStub<CangJieParameterStub>,CjParameterBase
      * For example,
      * fun foo(lambdaArgument: (functionTypeParameter: T, ...) -> R) { ... }
      *
-     * @return [true] if this [KtParameter] is a parameter of a function type.
+     * @return [true] if this [CjParameter] is a parameter of a function type.
      */
     fun isFunctionTypeParameter(): Boolean {
         return checkParentOfParentType ( CjFunctionType::class.java)
