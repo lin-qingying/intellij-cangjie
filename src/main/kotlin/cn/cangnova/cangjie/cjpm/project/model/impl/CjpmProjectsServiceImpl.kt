@@ -36,10 +36,10 @@ import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
 import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
 import cn.cangnova.cangjie.cjpm.project.workspace.additionalRoots
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
 import cn.cangnova.cangjie.ide.notifications.CjNotifications
-import cn.cangnova.cangjie.ide.run.cjpm.isUnitTestMode
+
 import cn.cangnova.cangjie.lang.CangJieFileType
 import com.intellij.openapi.module.Module
 import com.intellij.execution.RunManager
@@ -76,6 +76,7 @@ import com.intellij.util.io.systemIndependentPath
 import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
 import cn.cangnova.cangjie.task.taskQueue
 import cn.cangnova.cangjie.utils.AsyncValue
+import cn.cangnova.cangjie.utils.isUnitTestMode
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths

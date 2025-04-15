@@ -23,19 +23,14 @@
  */
 
 import groovy.xml.XmlParser
-import org.gradle.kotlin.dsl.KotlinClosure2
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
-import org.jetbrains.intellij.platform.gradle.tasks.JarSearchableOptionsTask
 import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
+import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
 import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.gradle.api.tasks.AbstractCopyTask
-import org.gradle.kotlin.dsl.testImplementation
-import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
-import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
 
 gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 
@@ -237,6 +232,8 @@ allprojects {
             sinceBuild.set(ideVersion)
             untilBuild.set("$ideVersion.*")
 
+            pluginVersion.set(prop("pluginVersion"))
+
         }
         runIde { enabled = false }
         prepareSandbox { enabled = false }
@@ -376,19 +373,19 @@ project(":plugin") {
         }
         runIde { enabled = true }
         prepareSandbox {
-//            finalizedBy(mergePluginJarTask)
+            finalizedBy(mergePluginJarTask)
             enabled = true
         }
         buildSearchableOptions {
             // Force `mergePluginJarTask` be executed before `buildSearchableOptions`
             // Otherwise, `buildSearchableOptions` task can't load the plugin and searchable options are not built.
             // Should be dropped when jar merging is implemented in `gradle-intellij-plugin` itself
-//            dependsOn(mergePluginJarTask)
+            dependsOn(mergePluginJarTask)
             enabled = prop("enableBuildSearchableOptions").toBoolean()
         }
 
         withType<RunIdeTask> {
-//            dependsOn(mergePluginJarTask)
+            dependsOn(mergePluginJarTask)
             jvmArgs("-Xmx768m", "-XX:+UseG1GC", "-XX:SoftRefLRUPolicyMSPerMB=50")
             jvmArgs("-Didea.auto.reload.plugins=false")
 

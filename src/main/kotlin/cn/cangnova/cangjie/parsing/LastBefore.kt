@@ -21,44 +21,35 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.parsing
 
-package cn.cangnova.cangjie.parsing;
 
+class LastBefore private constructor(
+    private val lookFor: TokenStreamPredicate,
+    private val stopAt: TokenStreamPredicate,
+    private val dontStopRightAfterOccurrence: Boolean
+) : AbstractTokenStreamPattern() {
+    private var previousLookForResult = false
 
-import cn.cangnova.cangjie.parsing.TokenStreamPredicate;public class LastBefore extends AbstractTokenStreamPattern {
-    private final boolean dontStopRightAfterOccurrence;
-    private final TokenStreamPredicate lookFor;
-    private final TokenStreamPredicate stopAt;
-    private boolean previousLookForResult;
+    constructor(lookFor: TokenStreamPredicate, stopAt: TokenStreamPredicate) : this(lookFor, stopAt, false)
 
-    private LastBefore(TokenStreamPredicate lookFor, TokenStreamPredicate stopAt, boolean dontStopRightAfterOccurrence) {
-        this.lookFor = lookFor;
-        this.stopAt = stopAt;
-        this.dontStopRightAfterOccurrence = dontStopRightAfterOccurrence;
-    }
-
-    public LastBefore(TokenStreamPredicate lookFor, TokenStreamPredicate stopAt) {
-        this(lookFor, stopAt, false);
-    }
-
-    @Override
-    public boolean processToken(int offset, boolean topLevel) {
-        boolean lookForResult = lookFor.matching(topLevel);
+    override fun processToken(offset: Int, topLevel: Boolean): Boolean {
+        val lookForResult = lookFor.matching(topLevel)
         if (lookForResult) {
-            lastOccurrence = offset;
+            lastOccurrence = offset
         }
         if (stopAt.matching(topLevel)) {
             if (topLevel
-                    && (!dontStopRightAfterOccurrence
-                    || !previousLookForResult)) return true;
+                && (!dontStopRightAfterOccurrence
+                        || !previousLookForResult)
+            ) return true
         }
-        previousLookForResult = lookForResult;
-        return false;
+        previousLookForResult = lookForResult
+        return false
     }
 
-    @Override
-    public void reset() {
-        super.reset();
-        previousLookForResult = false;
+    override fun reset() {
+        super.reset()
+        previousLookForResult = false
     }
 }

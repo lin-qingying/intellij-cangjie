@@ -21,62 +21,60 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.lexer
 
-package cn.cangnova.cangjie.lexer;
+import org.jetbrains.annotations.NonNls
 
 
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
+open class CjKeywordToken : CjSingleValueToken {
+    val isSoft: Boolean
 
-public class CjKeywordToken extends CjSingleValueToken  {
-
-    /**
-     * 生成关键字(在所有可能的上下文中具有关键字含义的标识符)
-     */
-    @Deprecated
-    public static CjKeywordToken keyword(String value) {
-        return keyword(value, value);
-    }
-
-    public static CjKeywordToken keyword(String value, int tokenId) {
-        return keyword(value, value, tokenId);
-    }
-
-    @Deprecated
-    public static CjKeywordToken keyword(String debugName, String value) {
-        return new CjKeywordToken(debugName, value, false);
-    }
-
-    public static CjKeywordToken keyword(String debugName, String value, int tokenId) {
-        return new CjKeywordToken(debugName, value, false, tokenId);
+    @Deprecated("")
+    protected constructor(debugName: @NonNls String, value: @NonNls String, isSoft: Boolean) : super(debugName, value) {
+        this.isSoft = isSoft
     }
 
 
-    @Deprecated
-    public static CjKeywordToken softKeyword(String value) {
-        return new CjKeywordToken(value, value, true);
+    protected constructor(debugName: @NonNls String, value: @NonNls String, isSoft: Boolean, tokenId: Int) : super(
+        debugName,
+        value,
+        tokenId
+    ) {
+        this.isSoft = isSoft
     }
 
-    public static CjKeywordToken softKeyword(String value, int tokenId) {
-        return new CjKeywordToken(value, value, true, tokenId);
-    }
+    companion object {
+        /**
+         * 生成关键字(在所有可能的上下文中具有关键字含义的标识符)
+         */
+        @Deprecated("")
+        fun keyword(value: String): CjKeywordToken {
+            return keyword(value, value)
+        }
 
-    private final boolean myIsSoft;
+        @JvmStatic
+        fun keyword(value: String, tokenId: Int): CjKeywordToken {
+            return keyword(value, value, tokenId)
+        }
 
-    @Deprecated
-    protected CjKeywordToken(@NotNull @NonNls String debugName, @NotNull @NonNls String value, boolean isSoft) {
-        super(debugName, value);
-        myIsSoft = isSoft;
-    }
+        @Deprecated("")
+        fun keyword(debugName: String, value: String): CjKeywordToken {
+            return CjKeywordToken(debugName, value, false)
+        }
+
+        fun keyword(debugName: String, value: String, tokenId: Int): CjKeywordToken {
+            return CjKeywordToken(debugName, value, false, tokenId)
+        }
 
 
+        @Deprecated("")
+        fun softKeyword(value: String): CjKeywordToken {
+            return CjKeywordToken(value, value, true)
+        }
 
-    protected CjKeywordToken(@NotNull @NonNls String debugName, @NotNull @NonNls String value, boolean isSoft, int tokenId) {
-        super(debugName, value, tokenId);
-        myIsSoft = isSoft;
-    }
-
-    public boolean isSoft() {
-        return myIsSoft;
+        @JvmStatic
+        fun softKeyword(value: String, tokenId: Int): CjKeywordToken {
+            return CjKeywordToken(value, value, true, tokenId)
+        }
     }
 }

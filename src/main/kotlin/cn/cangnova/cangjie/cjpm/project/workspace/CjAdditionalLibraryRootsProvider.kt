@@ -27,9 +27,9 @@ package cn.cangnova.cangjie.cjpm.project.workspace
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin.*
-import cn.cangnova.cangjie.cjpm.toolchain.impl.CangJieVersion
 import cn.cangnova.cangjie.icon.CangJieIcons
 import cn.cangnova.cangjie.ide.project.moduletype.CangJieLibraryModuleType
+import cn.cangnova.cangjie.toolchain.impl.CangJieVersion
 import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction

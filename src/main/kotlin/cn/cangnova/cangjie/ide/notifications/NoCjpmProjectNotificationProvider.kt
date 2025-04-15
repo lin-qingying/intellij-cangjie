@@ -29,8 +29,9 @@ import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.cjpm.project.model.AttachCjpmProjectAction
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.cjpm.toolchain.wsl.isDispatchThread
-import cn.cangnova.cangjie.ide.run.cjpm.isUnitTestMode
+import cn.cangnova.cangjie.utils.isDispatchThread
+
+import cn.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.ide.impl.isTrusted
 import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.openapi.fileEditor.FileEditor

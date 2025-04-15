@@ -21,177 +21,140 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.utils.exceptions
 
-package cn.cangnova.cangjie.utils.exceptions;
+import java.io.IOException
 
-import org.jetbrains.annotations.NotNull;
+class Printer private constructor(
+    private val out: Appendable,
+    private val maxBlankLines: Int,
+    private val indentUnit: String,
+    private var indent: String
+) {
+    private var blankLineCountIncludingCurrent = 0
+    private var withholdIndentOnce = false
+    private var length = 0
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
+    constructor(out: Appendable, indentUnit: String) : this(out, Int.Companion.MAX_VALUE, indentUnit)
 
+    @JvmOverloads
+    constructor(
+        out: Appendable,
+        maxBlankLines: Int = Int.Companion.MAX_VALUE,
+        indentUnit: String = DEFAULT_INDENTATION_UNIT
+    ) : this(out, maxBlankLines, indentUnit, "")
 
-public class Printer {
-    private static final String DEFAULT_INDENTATION_UNIT = "    ";
-    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
+    constructor(out: Appendable, parent: Printer) : this(out, parent.maxBlankLines, parent.indentUnit, parent.indent)
 
-    private final Appendable out;
-    private final int maxBlankLines;
-
-    private String indent;
-    private final String indentUnit;
-    private int blankLineCountIncludingCurrent = 0;
-    private boolean withholdIndentOnce = false;
-    private int length = 0;
-
-    public Printer(@NotNull Appendable out) {
-        this(out, Integer.MAX_VALUE);
-    }
-
-    public Printer(@NotNull Appendable out, @NotNull String indentUnit) {
-        this(out, Integer.MAX_VALUE, indentUnit);
-    }
-
-    public Printer(@NotNull Appendable out, int maxBlankLines) {
-        this(out, maxBlankLines, DEFAULT_INDENTATION_UNIT);
-    }
-
-    public Printer(@NotNull Appendable out, int maxBlankLines, @NotNull String indentUnit) {
-        this(out, maxBlankLines, indentUnit, "");
-    }
-
-    private Printer(@NotNull Appendable out, int maxBlankLines, @NotNull String indentUnit, @NotNull String indent) {
-        this.out = out;
-        this.maxBlankLines = maxBlankLines;
-        this.indentUnit = indentUnit;
-        this.indent = indent;
-    }
-
-    public Printer(@NotNull Appendable out, @NotNull Printer parent) {
-        this(out, parent.maxBlankLines, parent.indentUnit, parent.indent);
-    }
-
-    private void append(Object o) {
+    private fun append(o: Any) {
         try {
-            String string = o.toString();
-            out.append(string);
-            length += string.length();
-        }
-        catch (IOException e) {
-
+            val string = o.toString()
+            out.append(string)
+            length += string.length
+        } catch (e: IOException) {
         }
     }
 
-    @NotNull
-    public Printer println(Object... objects) {
-        print(objects);
-        printLineSeparator();
+    fun println(vararg objects: Any): Printer {
+        print(*objects)
+        printLineSeparator()
 
-        return this;
+        return this
     }
 
-    private void printLineSeparator() {
+    private fun printLineSeparator() {
         if (blankLineCountIncludingCurrent <= maxBlankLines) {
-            blankLineCountIncludingCurrent++;
-            append(LINE_SEPARATOR);
+            blankLineCountIncludingCurrent++
+            append(LINE_SEPARATOR)
         }
     }
 
-    @NotNull
-    public Printer print(Object... objects) {
+    fun print(vararg objects: Any): Printer {
         if (withholdIndentOnce) {
-            withholdIndentOnce = false;
+            withholdIndentOnce = false
+        } else if (objects.isNotEmpty()) {
+            printIndent()
         }
-        else if (objects.length > 0) {
-            printIndent();
-        }
-        printWithNoIndent(objects);
+        printWithNoIndent(*objects)
 
-        return this;
+        return this
     }
 
-    public void printIndent() {
-        append(indent);
+    fun printIndent() {
+        append(indent)
     }
 
-    @NotNull
-    public Printer printWithNoIndent(Object... objects) {
-        for (Object object : objects) {
-            blankLineCountIncludingCurrent = 0;
-            append(object);
+    fun printWithNoIndent(vararg objects: Any): Printer {
+        for (`object` in objects) {
+            blankLineCountIncludingCurrent = 0
+            append(`object`)
         }
 
-        return this;
+        return this
     }
 
-    @NotNull
-    public Printer withholdIndentOnce() {
-        withholdIndentOnce = true;
-        return this;
+    fun withholdIndentOnce(): Printer {
+        withholdIndentOnce = true
+        return this
     }
 
-    @NotNull
-    public Printer printlnWithNoIndent(Object... objects) {
-        printWithNoIndent(objects);
-        printLineSeparator();
+    fun printlnWithNoIndent(vararg objects: Any): Printer {
+        printWithNoIndent(*objects)
+        printLineSeparator()
 
-        return this;
+        return this
     }
 
-    @NotNull
-    public Printer pushIndent() {
-        indent += indentUnit;
+    fun pushIndent(): Printer {
+        indent += indentUnit
 
-        return this;
+        return this
     }
 
-    @NotNull
-    public Printer popIndent() {
-        if (indent.length() < indentUnit.length()) {
-            throw new IllegalStateException("No indentation to pop");
-        }
+    fun popIndent(): Printer {
+        check(indent.length >= indentUnit.length) { "No indentation to pop" }
 
-        indent = indent.substring(indentUnit.length());
+        indent = indent.substring(indentUnit.length)
 
-        return this;
+        return this
     }
 
-    @NotNull
-    public Printer separated(Object separator, Object... items) {
-        for (int i = 0; i < items.length; i++) {
+    fun separated(separator: Any, vararg items: Any?): Printer {
+        for (i in items.indices) {
             if (i > 0) {
-                printlnWithNoIndent(separator);
+                printlnWithNoIndent(separator)
             }
-            printlnWithNoIndent(items[i]);
+            printlnWithNoIndent(items[i]!!)
         }
-        return this;
+        return this
     }
 
-    @NotNull
-    public Printer separated(Object separator, Collection<?> items) {
-        for (Iterator<?> iterator = items.iterator(); iterator.hasNext(); ) {
-            printlnWithNoIndent(iterator.next());
+    fun separated(separator: Any, items: MutableCollection<*>): Printer {
+        val iterator: MutableIterator<*> = items.iterator()
+        while (iterator.hasNext()) {
+            printlnWithNoIndent(iterator.next()!!)
             if (iterator.hasNext()) {
-                printlnWithNoIndent(separator);
+                printlnWithNoIndent(separator)
             }
         }
-        return this;
+        return this
     }
 
-    public boolean isEmpty() {
-        return length == 0;
+    val isEmpty: Boolean
+        get() = length == 0
+
+    override fun toString(): String {
+        return out.toString()
     }
 
-    @Override
-    public String toString() {
-        return out.toString();
-    }
+    val currentIndentLengthInUnits: Int
+        get() = indent.length / indentUnit.length
 
-    public int getCurrentIndentLengthInUnits() {
-        return indent.length() / indentUnit.length();
-    }
+    val indentUnitLength: Int
+        get() = indentUnit.length
 
-    public int getIndentUnitLength() {
-        return indentUnit.length();
+    companion object {
+        private const val DEFAULT_INDENTATION_UNIT = "    "
+        val LINE_SEPARATOR: String = System.lineSeparator()
     }
 }

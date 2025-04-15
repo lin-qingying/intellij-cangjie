@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.ide.notifications
 
+import com.intellij.ide.plugins.PluginManagerCore.isUnitTestMode
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationGroupManager
@@ -93,7 +94,7 @@ class CompileDriverNotifications(
          * This wrapper helps to make sure we have only one active unresolved notification per project
          */
         fun showNotification() {
-            if (ApplicationManager.getApplication().isUnitTestMode) {
+            if (isUnitTestMode) {
                 thisLogger().error("" + baseNotification.content)
                 return
             }

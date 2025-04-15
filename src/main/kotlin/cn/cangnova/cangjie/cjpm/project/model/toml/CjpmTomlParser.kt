@@ -1,6 +1,6 @@
 package cn.cangnova.cangjie.cjpm.project.model.toml
 
-import cn.cangnova.cangjie.cjpm.toolchain.tools.Cjpm
+import cn.cangnova.cangjie.toolchain.tools.Cjpm
 import java.io.File
 import java.io.InputStream
 import java.nio.file.Path

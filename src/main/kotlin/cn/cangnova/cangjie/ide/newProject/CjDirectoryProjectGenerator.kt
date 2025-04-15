@@ -25,14 +25,14 @@
 package cn.cangnova.cangjie.ide.newProject
 
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
-import cn.cangnova.cangjie.cjpm.toolchain.cjpm
 import cn.cangnova.cangjie.icon.CangJieIcons
-import cn.cangnova.cangjie.ide.newProject.ui.ConfigurationData
 import cn.cangnova.cangjie.ide.module.makeProject
 import cn.cangnova.cangjie.ide.module.openFiles
+import cn.cangnova.cangjie.ide.newProject.ui.ConfigurationData
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.computeWithCancelableProgress
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.unwrapOrThrow
 import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.toolchain.cjpm
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.ide.util.projectWizard.AbstractNewProjectStep
 import com.intellij.ide.util.projectWizard.CustomStepProjectGenerator
@@ -83,7 +83,6 @@ class CjDirectoryProjectGenerator : DirectoryProjectGeneratorBase<ConfigurationD
 
         project.cangjieSettings.modify {
             it.toolchain = settings.toolchain
-//            it.explicitPathToStdlib = settings.explicitPathToStdlib
         }
 
 

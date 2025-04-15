@@ -21,36 +21,25 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.parsing
 
-package cn.cangnova.cangjie.parsing;
+class SemanticWhitespaceAwarePsiBuilderForByClause(builder: SemanticWhitespaceAwarePsiBuilder?) :
+    SemanticWhitespaceAwarePsiBuilderAdapter(builder) {
+    var stackSize: Int = 0
+        private set
 
-import cn.cangnova.cangjie.parsing.SemanticWhitespaceAwarePsiBuilder;public class SemanticWhitespaceAwarePsiBuilderForByClause extends SemanticWhitespaceAwarePsiBuilderAdapter {
-
-    private int stackSize = 0;
-
-    public SemanticWhitespaceAwarePsiBuilderForByClause(SemanticWhitespaceAwarePsiBuilder builder) {
-        super(builder);
+    override fun disableNewlines() {
+        super.disableNewlines()
+        stackSize++
     }
 
-    @Override
-    public void disableNewlines() {
-        super.disableNewlines();
-        stackSize++;
+    override fun enableNewlines() {
+        super.enableNewlines()
+        stackSize++
     }
 
-    @Override
-    public void enableNewlines() {
-        super.enableNewlines();
-        stackSize++;
-    }
-
-    @Override
-    public void restoreNewlinesState() {
-        super.restoreNewlinesState();
-        stackSize--;
-    }
-
-    public int getStackSize() {
-        return stackSize;
+    override fun restoreNewlinesState() {
+        super.restoreNewlinesState()
+        stackSize--
     }
 }

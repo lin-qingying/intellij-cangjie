@@ -21,23 +21,20 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.parsing
 
-package cn.cangnova.cangjie.parsing;
-
-
-
-import com.intellij.psi.tree.IElementType;
-
-public interface TokenStreamPattern {
-
-    boolean processToken(int offset, boolean topLevel);
+import com.intellij.psi.tree.IElementType
 
 
-    int result();
+interface TokenStreamPattern {
+    fun processToken(offset: Int, topLevel: Boolean): Boolean
 
 
-    boolean isTopLevel(int openAngleBrackets, int openBrackets, int openBraces, int openParentheses);
+    fun result(): Int
 
 
-    boolean handleUnmatchedClosing(IElementType token);
+    fun isTopLevel(openAngleBrackets: Int, openBrackets: Int, openBraces: Int, openParentheses: Int): Boolean
+
+
+    fun handleUnmatchedClosing(token: IElementType?): Boolean
 }

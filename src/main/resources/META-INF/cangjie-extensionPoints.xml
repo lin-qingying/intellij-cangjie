@@ -5,10 +5,10 @@
 
         <!--        工具链  多平台支持-->
         <extensionPoint qualifiedName="cn.cangnova.cangjie.toolchainProvider"
-                        interface="cn.cangnova.cangjie.cjpm.toolchain.CjToolchainProvider"
+                        interface="cn.cangnova.cangjie.toolchain.CjToolchainProvider"
                         dynamic="true"/>
         <extensionPoint qualifiedName="cn.cangnova.cangjie.toolchainFlavor"
-                        interface="cn.cangnova.cangjie.cjpm.toolchain.flavors.CjToolchainFlavor"
+                        interface="cn.cangnova.cangjie.toolchain.flavors.CjToolchainFlavor"
                         dynamic="true"/>
 
 
@@ -38,7 +38,7 @@
                         dynamic="true"/>
 
         <extensionPoint qualifiedName="cn.cangnova.cangjie.sdkDownload"
-                        interface="cn.cangnova.cangjie.ide.projectStructure.download.SdkDownloadEp"/>
+                        interface="cn.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp"/>
 
 
     </extensionPoints>

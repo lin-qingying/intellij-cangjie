@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.cjpm.project.settings
 
-import cn.cangnova.cangjie.cjpm.toolchain.ExternalLinter
+import cn.cangnova.cangjie.toolchain.ExternalLinter
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros

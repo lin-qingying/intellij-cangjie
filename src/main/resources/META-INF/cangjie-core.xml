@@ -1,4 +1,4 @@
-<idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin allow-bundled-update="true">
     <!-- IntelliJ 平台扩展点配置 -->
     <extensions defaultExtensionNs="com.intellij">
         <!-- 1. 启动配置 -->
@@ -9,6 +9,8 @@
         <!-- 新项目向导 -->
         <newProjectWizard.languageGenerator
                 implementation="cn.cangnova.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
+        <directoryProjectGenerator implementation="cn.cangnova.cangjie.ide.newProject.CjDirectoryProjectGenerator"/>
+
         <!-- 模块构建器 -->
         <moduleBuilder
                 builderClass="cn.cangnova.cangjie.ide.module.CangJieModuleBuilder"/>

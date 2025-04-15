@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.TextNode
 import cn.cangnova.cangjie.cjpm.project.model.toml.PackageConfigurationInfo
-import cn.cangnova.cangjie.cjpm.toolchain.tools.Cjpm
+import cn.cangnova.cangjie.toolchain.tools.Cjpm
 import com.moandjiezana.toml.Toml
 import java.nio.file.Path
 import java.util.*

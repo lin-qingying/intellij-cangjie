@@ -25,16 +25,15 @@
 package cn.cangnova.cangjie.ide.stubindex
 
 
-import kotlin.time.Duration
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
-
-
-import com.intellij.openapi.application.ApplicationManager
+import cn.cangnova.cangjie.utils.isInternal
+import cn.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.stubs.StubIndexKey
-import kotlin.time.*
+import kotlin.time.Duration
+import kotlin.time.DurationUnit
+import kotlin.time.TimeSource
+import kotlin.time.toDuration
 
 fun getByKeyMaxDuration(): Duration =
     Registry.intValue("cangjie.indices.timing.threshold.single").toDuration(DurationUnit.MILLISECONDS)
@@ -56,8 +55,7 @@ inline fun <T> measureIndexCall(
     val t = block()
     val elapsed = mark.elapsedNow()
     if (elapsed > threshold) {
-        val application = ApplicationManager.getApplication()
-        if (application.isInternal && !application.isUnitTestMode && Registry.`is`("cangjie.indices.timing.enabled")) {
+        if (isInternal && !isUnitTestMode && Registry.`is`("cangjie.indices.timing.enabled")) {
             log.error("${index.name} $prefix took $elapsed more than expected $threshold")
         }
     }

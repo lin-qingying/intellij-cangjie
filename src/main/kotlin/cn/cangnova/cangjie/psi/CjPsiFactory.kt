@@ -175,22 +175,19 @@ class CjPsiFactory private constructor(
         return createClass(if (text.isNotEmpty()) "class A { public A$text{} }" else "class A { public A(){} } ").primaryConstructor!!
     }
 
-    private class BlockWrapper(fakeBlockExpression: CjBlockExpression, private val expression: CjExpression) :
+    private class BlockWrapper(fakeBlockExpression: CjBlockExpression, override val baseExpression: CjExpression) :
         CjBlockExpression(fakeBlockExpression.text), CjPsiUtil.CjExpressionWrapper {
 
         override val statements: List<CjExpression>
-            get() = listOf(expression)
-        override fun getBaseExpression(): CjExpression {
-            return expression
-        }
+            get() = listOf(baseExpression)
 
-        override fun getParent(): PsiElement = expression.parent
+        override fun getParent(): PsiElement = baseExpression.parent
 
-        override fun getPsiOrParent(): CjElement = expression.psiOrParent
+        override fun getPsiOrParent(): CjElement = baseExpression.psiOrParent
 
-        override fun getContainingCjFile() = expression.getContainingCjFile()
+        override fun getContainingCjFile() = baseExpression.getContainingCjFile()
 
-        override fun getContainingFile(): PsiFile = expression.containingFile
+        override fun getContainingFile(): PsiFile = baseExpression.containingFile
     }
 
     fun createCallArguments(@NonNls text: String): CjValueArgumentList {

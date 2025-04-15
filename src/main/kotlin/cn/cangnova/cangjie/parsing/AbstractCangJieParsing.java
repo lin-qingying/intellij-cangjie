@@ -24,6 +24,9 @@
 
 package cn.cangnova.cangjie.parsing;
 
+import cn.cangnova.cangjie.lexer.CjKeywordToken;
+import cn.cangnova.cangjie.lexer.CjToken;
+import cn.cangnova.cangjie.utils.StringsKt;
 import com.intellij.analysis.AnalysisBundle;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.lang.*;
@@ -38,15 +41,12 @@ import com.intellij.util.Function;
 import com.intellij.util.PairProcessor;
 import com.intellij.util.containers.LimitedPool;
 import com.intellij.util.containers.Stack;
-import cn.cangnova.cangjie.lexer.CjKeywordToken;
-import cn.cangnova.cangjie.lexer.CjToken;
-import cn.cangnova.cangjie.utils.StringsKt;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
 
-import static com.intellij.openapi.util.text.StringUtil.*;
 import static cn.cangnova.cangjie.lexer.CjTokens.*;
+import static com.intellij.openapi.util.text.StringUtil.*;
 
 
 public abstract class AbstractCangJieParsing {
@@ -354,7 +354,7 @@ public abstract class AbstractCangJieParsing {
     protected void errorBefore(String message, PsiBuilder.Marker marker) {
         PsiBuilder.Marker err = marker.precede();
 //
-//        marker.error(message);
+        marker.error(message);
 //
 ////        err.done(ERROR_ELEMENT);
 

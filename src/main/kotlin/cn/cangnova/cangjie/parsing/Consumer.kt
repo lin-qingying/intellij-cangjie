@@ -21,12 +21,9 @@
  * any damages or issues arising from its use.
  *
  */
-
-package cn.cangnova.cangjie.parsing;
-
-
-public interface Consumer<T> {
-    void consume(T item);
+package cn.cangnova.cangjie.parsing
 
 
+interface Consumer<T> {
+    fun consume(item: T?)
 }

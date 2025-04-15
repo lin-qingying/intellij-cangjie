@@ -29,7 +29,7 @@ import com.intellij.codeHighlighting.TextEditorHighlightingPass
 import com.intellij.codeInsight.daemon.impl.BackgroundUpdateHighlightersUtil
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ide.plugins.PluginManagerCore.isUnitTestMode
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.DumbAware
@@ -58,7 +58,7 @@ abstract class AbstractHighlightingPassBase(
 
         @TestOnly
         fun <T> ignoreThesePassesInTests(action: () -> T): T {
-            assert(ApplicationManager.getApplication().isUnitTestMode)
+            assert(isUnitTestMode)
             IGNORE_IN_TESTS = true
             try {
                 return action.invoke()
@@ -73,7 +73,7 @@ abstract class AbstractHighlightingPassBase(
 
     private fun applyInformationInBackground(holder: HighlightInfoHolder) {
         if (IGNORE_IN_TESTS) {
-            assert(ApplicationManager.getApplication().isUnitTestMode)
+            assert(isUnitTestMode)
             return
         }
         val result: MutableList<HighlightInfo> = ArrayList(holder.size())

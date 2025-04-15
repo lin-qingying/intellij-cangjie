@@ -21,25 +21,16 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.parsing
 
-package cn.cangnova.cangjie.parsing;
 
-
-import cn.cangnova.cangjie.parsing.TokenStreamPredicate;public class FirstBefore extends AbstractTokenStreamPattern {
-    private final TokenStreamPredicate lookFor;
-    private final TokenStreamPredicate stopAt;
-
-    public FirstBefore(TokenStreamPredicate lookFor, TokenStreamPredicate stopAt) {
-        this.lookFor = lookFor;
-        this.stopAt = stopAt;
-    }
-
-    @Override
-    public boolean processToken(int offset, boolean topLevel) {
+class FirstBefore(private val lookFor: TokenStreamPredicate, private val stopAt: TokenStreamPredicate) :
+    AbstractTokenStreamPattern() {
+    override fun processToken(offset: Int, topLevel: Boolean): Boolean {
         if (lookFor.matching(topLevel)) {
-            lastOccurrence = offset;
-            return true;
+            lastOccurrence = offset
+            return true
         }
-        return stopAt.matching(topLevel);
+        return stopAt.matching(topLevel)
     }
 }

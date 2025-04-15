@@ -24,14 +24,14 @@
 
 package cn.cangnova.cangjie.configurable
 
-import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.cjpm.project.configurable.CjConfigurableBase
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import cn.cangnova.cangjie.cjpm.project.pathAsPath
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.cjpm.project.settings.ui.CangJieProjectSettingsPanel
 import cn.cangnova.cangjie.configurable.state.PluginLanguageState
+import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project

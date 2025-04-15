@@ -16,5 +16,15 @@
                   implementationClass="cn.cangnova.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
+
+
     </extensions>
+
+    <extensionPoints>
+        <extensionPoint
+                qualifiedName="cn.cangnova.cangjie.binaryExtension"
+                interface="cn.cangnova.cangjie.ide.project.structure.CangJieBinaryExtension"
+                dynamic="true"/>
+    </extensionPoints>
+
 </idea-plugin>

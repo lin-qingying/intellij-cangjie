@@ -28,10 +28,9 @@ package cn.cangnova.cangjie.ide.run
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import cn.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
 import cn.cangnova.cangjie.ide.experiments.CjExperiments
-
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.isUnitTestMode
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.isHeadlessEnvironment
+import cn.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.execution.ExternalizablePath
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.LocatableConfigurationBase

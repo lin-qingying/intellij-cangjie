@@ -26,9 +26,9 @@ package cn.cangnova.cangjie.ide.run.cjpm
 
 
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.cjpm.toolchain.cjpm
-import cn.cangnova.cangjie.cjpm.toolchain.tools.Cjpm
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.toolchain.cjpm
+import cn.cangnova.cangjie.toolchain.tools.Cjpm
 
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjProcessHandler

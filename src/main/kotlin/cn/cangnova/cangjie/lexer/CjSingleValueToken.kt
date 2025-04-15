@@ -21,30 +21,20 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.lexer
 
-package cn.cangnova.cangjie.lexer;
+import org.jetbrains.annotations.NonNls
 
 
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
+open class CjSingleValueToken : CjToken {
+    val value: String
 
-public class CjSingleValueToken extends CjToken {
-    private final String myValue;
-
-    @Deprecated
-    public CjSingleValueToken(@NotNull @NonNls String debugName, @NotNull @NonNls String value) {
-        super(debugName);
-        myValue = value;
+    @Deprecated("")
+    constructor(debugName: @NonNls String, value: @NonNls String) : super(debugName) {
+        this.value = value
     }
 
-    public CjSingleValueToken(@NotNull @NonNls String debugName, @NotNull @NonNls String value, int tokenId) {
-        super(debugName, tokenId);
-        myValue = value;
-    }
-
-    @NotNull
-    @NonNls
-    public String getValue() {
-        return myValue;
+    constructor(debugName: @NonNls String, value: @NonNls String, tokenId: Int) : super(debugName, tokenId) {
+        this.value = value
     }
 }

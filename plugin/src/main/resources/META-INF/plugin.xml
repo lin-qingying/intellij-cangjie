@@ -37,7 +37,7 @@
     The plugin provides support for CangJie language
     ]]>
     </change-notes>
-    <version>1.0.0</version>
+    <!--    <version>1.0.0</version>-->
 
 
     <dependencies>

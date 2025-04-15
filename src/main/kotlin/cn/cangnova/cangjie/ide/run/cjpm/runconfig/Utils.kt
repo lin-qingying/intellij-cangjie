@@ -27,7 +27,7 @@ package cn.cangnova.cangjie.ide.run.cjpm.runconfig
 
 import cn.cangnova.cangjie.messages.CangJieBundle
 
-import cn.cangnova.cangjie.ide.run.cjpm.isUnitTestMode
+import cn.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessHandler

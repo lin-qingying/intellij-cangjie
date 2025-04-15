@@ -24,13 +24,15 @@
 
 package cn.cangnova.cangjie.ide.run.cjpm.runconfig
 
+
+import cn.cangnova.cangjie.utils.isDispatchThread
 import com.intellij.execution.target.*
 import com.intellij.execution.target.local.LocalTargetEnvironment
 import com.intellij.execution.target.value.DeferredTargetValue
 import com.intellij.execution.target.value.TargetValue
 import com.intellij.execution.target.value.getUploadRootForLocalPath
+import com.intellij.ide.plugins.PluginManagerCore.isUnitTestMode
 import com.intellij.lang.LangCoreBundle
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.io.FileUtil
@@ -108,12 +110,12 @@ class CjCommandLineSetup(val request: TargetEnvironmentRequest) {
         segments.joinToString(request.targetPlatform.platform.fileSeparator.toString())
 
     fun provideEnvironment(environment: TargetEnvironment, targetProgressIndicator: TargetProgressIndicator) {
-        val application = ApplicationManager.getApplication()
+
         LOG.assertTrue(
             environment is LocalTargetEnvironment ||
                     uploads.isEmpty() ||
-                    !application.isDispatchThread ||
-                    application.isUnitTestMode,
+                    !isDispatchThread ||
+                    isUnitTestMode,
             "Preparation of environment shouldn't be performed on EDT."
         )
         environmentPromise.setResult(environment to targetProgressIndicator)

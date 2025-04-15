@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2024 LinQingYing. and contributors.
  *
@@ -22,18 +21,11 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.renderer
 
-package cn.cangnova.cangjie.renderer;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-public class KeywordStringsGenerated {
-    private KeywordStringsGenerated() {
-    }
-
-    public static final Set<String> KEYWORDS = new HashSet<String>(Arrays.asList(
+object KeywordStringsGenerated {
+    val KEYWORDS: MutableSet<String> = HashSet<String>(
+        mutableListOf(
             "package",
             "as",
             "class",
@@ -61,5 +53,6 @@ public class KeywordStringsGenerated {
             "from",
             "import"
 
-    ));
+        )
+    )
 }

@@ -21,67 +21,55 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.psi
 
-package cn.cangnova.cangjie.psi;
+import cn.cangnova.cangjie.builtins.StandardNames
+import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.SpecialNames
+import cn.cangnova.cangjie.parsing.CangJieExpressionParsing
+import cn.cangnova.cangjie.psi.cdoc.psi.CDocElement
+import cn.cangnova.cangjie.psi.psiUtil.getQualifiedElement
+import cn.cangnova.cangjie.psi.psiUtil.getQualifiedElementSelector
+import cn.cangnova.cangjie.psi.psiUtil.getQualifiedExpressionForSelector
+import cn.cangnova.cangjie.resolve.StatementFilter
+import cn.cangnova.cangjie.resolve.getLastStatementInABlock
+import cn.cangnova.cangjie.utils.OperatorNameConventions.asOperatorName
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.codeInsight.CommentUtilCore
 
-import cn.cangnova.cangjie.builtins.StandardNames;
-import cn.cangnova.cangjie.psi.cdoc.psi.CDocElement;
-import cn.cangnova.cangjie.name.Name;
-import cn.cangnova.cangjie.name.SpecialNames;
-import cn.cangnova.cangjie.parsing.CangJieExpressionParsing;
-import cn.cangnova.cangjie.psi.CjNodeTypes;
-import cn.cangnova.cangjie.resolve.StatementFilter;
-import cn.cangnova.cangjie.resolve.StatementFilterKt;
-import cn.cangnova.cangjie.utils.OperatorNameConventions;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.codeInsight.CommentUtilCore;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import cn.cangnova.cangjie.psi.psiUtil.CjPsiUtilKt;
-import  cn.cangnova.cangjie.lexer.CjTokens;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-public class CjPsiUtil {
-    public interface CjExpressionWrapper {
-        CjExpression getBaseExpression();
+object CjPsiUtil {
+    fun isAbstract(declaration: CjDeclarationWithBody): Boolean {
+        return declaration.bodyExpression == null
     }
-    public static boolean isAbstract(@NotNull CjDeclarationWithBody declaration) {
-        return declaration.getBodyExpression() == null;
-    }
-    public static boolean isDeprecated(@NotNull CjModifierListOwner owner) {
-        CjModifierList modifierList = owner.getModifierList();
+
+    fun isDeprecated(owner: CjModifierListOwner): Boolean {
+        val modifierList = owner.modifierList
         if (modifierList != null) {
-            List<CjAnnotationEntry> annotationEntries = modifierList.getAnnotationEntries();
-            for (CjAnnotationEntry annotation : annotationEntries) {
-                Name shortName = annotation.getShortName();
-                if (StandardNames.FqNames.deprecated.shortName().equals(shortName)) {
-                    return true;
+            val annotationEntries = modifierList.annotationEntries
+            for (annotation in annotationEntries) {
+                val shortName = annotation.shortName
+                if (StandardNames.FqNames.deprecated.shortName() == shortName) {
+                    return true
                 }
             }
         }
-        return false;
+        return false
     }
 
-    public static boolean isStatement(@NotNull PsiElement element) {
-        return isStatementContainer(element.getParent());
+    fun isStatement(element: PsiElement): Boolean {
+        return isStatementContainer(element.parent)
     }
 
-    @NotNull
-    public static CjExpression safeDeparenthesize(@NotNull CjExpression expression) {
-        return safeDeparenthesize(expression, false);
+    fun isBooleanConstant(condition: CjExpression?): Boolean {
+        return condition != null && condition.node.elementType === CjNodeTypes.BOOLEAN_CONSTANT
     }
-    public static boolean isBooleanConstant(@Nullable CjExpression condition) {
-        return condition != null && condition.getNode().getElementType() == CjNodeTypes.BOOLEAN_CONSTANT;
-    }
+
     /**
-     * CommentUtilCore.isComment fails if element <strong>inside</strong> comment.
+     * CommentUtilCore.isComment fails if element **inside** comment.
      *
      * Also, we can not add CDocTokens to COMMENTS TokenSet, because it is used in KotlinParserDefinition.getCommentTokens(),
      * and therefor all COMMENTS tokens will be ignored by PsiBuilder.
@@ -89,89 +77,91 @@ public class CjPsiUtil {
      * @param element
      * @return
      */
-    public static boolean isInComment(PsiElement element) {
-        return CommentUtilCore.isComment(element) || element instanceof CDocElement;
+    fun isInComment(element: PsiElement?): Boolean {
+        return CommentUtilCore.isComment(element) || element is CDocElement
     }
 
-    @Nullable
-    public static CjExpression getExpressionOrLastStatementInBlock(@Nullable CjExpression expression) {
-        if (expression instanceof CjBlockExpression) {
-            return getLastStatementInABlock((CjBlockExpression) expression);
+    fun getExpressionOrLastStatementInBlock(expression: CjExpression?): CjExpression? {
+        if (expression is CjBlockExpression) {
+            return getLastStatementInABlock(expression)
         }
-        return expression;
+        return expression
     }
-    public static boolean isLHSOfDot(@NotNull CjExpression expression) {
-        PsiElement parent = expression.getParent();
-        if (!(parent instanceof CjQualifiedExpression qualifiedParent)) return false;
-        return qualifiedParent.getReceiverExpression() == expression || isLHSOfDot(qualifiedParent);
+
+    fun isLHSOfDot(expression: CjExpression): Boolean {
+        val parent = expression.parent
+        if (parent !is CjQualifiedExpression) return false
+        return parent.receiverExpression === expression || isLHSOfDot(parent)
     }
-    @NotNull
-    public static Set<CjElement> findRootExpressions(@NotNull Collection<CjElement> unreachableElements) {
-        Set<CjElement> rootElements = new HashSet<>();
-        Set<CjElement> shadowedElements = new HashSet<>();
-        CjVisitorVoid shadowAllChildren = new CjVisitorVoid() {
-            @Override
-            public void visitCjElement(@NotNull CjElement element) {
+
+    fun findRootExpressions(unreachableElements: MutableCollection<CjElement>): MutableSet<CjElement?> {
+        val rootElements: MutableSet<CjElement?> = HashSet<CjElement?>()
+        val shadowedElements: MutableSet<CjElement?> = HashSet<CjElement?>()
+        val shadowAllChildren: CjVisitorVoid = object : CjVisitorVoid() {
+            override fun visitCjElement(element: CjElement) {
                 if (shadowedElements.add(element)) {
-                    element.acceptChildren(this);
+                    element.acceptChildren(this)
                 }
             }
-        };
-
-        for (CjElement element : unreachableElements) {
-            if (shadowedElements.contains(element)) continue;
-            element.acceptChildren(shadowAllChildren);
-
-            rootElements.removeAll(shadowedElements);
-            rootElements.add(element);
         }
-        return rootElements;
-    }
-    public static boolean isTrueConstant(@Nullable CjExpression condition) {
-        return isBooleanConstant(condition) && condition.getNode().findChildByType(CjTokens.TRUE_KEYWORD) != null;
-    }
-    public static boolean isSelectorInQualified(@NotNull CjSimpleNameExpression nameExpression) {
-        CjElement qualifiedElement = CjPsiUtilKt.getQualifiedElement(nameExpression);
-        return qualifiedElement instanceof CjQualifiedExpression
-                || ((qualifiedElement instanceof CjUserType) && ((CjUserType) qualifiedElement).getQualifier() != null);
-    }
-    @SuppressWarnings("unused") // used in intellij repo
-    public static boolean areParenthesesUseless(@NotNull CjParenthesizedExpression expression) {
-        CjExpression innerExpression = expression.getExpression();
-        if (innerExpression == null) return true;
-        PsiElement parent = expression.getParent();
-        if (!(parent instanceof CjElement)) return true;
-        return !areParenthesesNecessary(innerExpression, expression, (CjElement) parent);
-    }
-    @Nullable
-    public static CjExpression getLastStatementInABlock(@Nullable CjBlockExpression blockExpression) {
-        if (blockExpression == null) return null;
-        List<CjExpression> statements = blockExpression.getStatements();
-        return statements.isEmpty() ? null : statements.get(statements.size() - 1);
+
+        for (element in unreachableElements) {
+            if (shadowedElements.contains(element)) continue
+            element.acceptChildren(shadowAllChildren)
+
+            rootElements.removeAll(shadowedElements)
+            rootElements.add(element)
+        }
+        return rootElements
     }
 
-    @Nullable
-    public static CjExpression getLastElementDeparenthesized(
-            @Nullable CjExpression expression,
-            @NotNull StatementFilter statementFilter
-    ) {
-        CjExpression deparenthesizedExpression = deparenthesize(expression);
-        if (deparenthesizedExpression instanceof CjBlockExpression blockExpression) {
+    fun isTrueConstant(condition: CjExpression?): Boolean {
+        return isBooleanConstant(condition) && condition!!.node.findChildByType(CjTokens.TRUE_KEYWORD) != null
+    }
+
+    fun isSelectorInQualified(nameExpression: CjSimpleNameExpression): Boolean {
+        val qualifiedElement = nameExpression.getQualifiedElement()
+        return qualifiedElement is CjQualifiedExpression
+                || ((qualifiedElement is CjUserType) && qualifiedElement.qualifier != null)
+    }
+
+    @Suppress("unused") // used in intellij repo
+    fun areParenthesesUseless(expression: CjParenthesizedExpression): Boolean {
+        val innerExpression = expression.expression
+        if (innerExpression == null) return true
+        val parent = expression.getParent()
+        if (parent !is CjElement) return true
+        return !areParenthesesNecessary(innerExpression, expression, parent)
+    }
+
+    fun getLastStatementInABlock(blockExpression: CjBlockExpression?): CjExpression? {
+        if (blockExpression == null) return null
+        val statements = blockExpression.statements
+        return if (statements.isEmpty()) null else statements[statements.size - 1]
+    }
+
+    fun getLastElementDeparenthesized(
+        expression: CjExpression?,
+        statementFilter: StatementFilter
+    ): CjExpression? {
+        val deparenthesizedExpression: CjExpression? = deparenthesize(expression)
+        if (deparenthesizedExpression is CjBlockExpression) {
             // todo
             // This case is a temporary hack for 'if' branches.
             // The right way to implement this logic is to interpret 'if' branches as function literals with explicitly-typed signatures
             // (no arguments and no receiver) and therefore analyze them straight away (not in the 'complete' phase).
-            CjExpression lastStatementInABlock = StatementFilterKt.getLastStatementInABlock(statementFilter, blockExpression);
+            val lastStatementInABlock = statementFilter.getLastStatementInABlock(deparenthesizedExpression)
             if (lastStatementInABlock != null) {
-                return getLastElementDeparenthesized(lastStatementInABlock, statementFilter);
+                return getLastElementDeparenthesized(lastStatementInABlock, statementFilter)
             }
         }
-        return deparenthesizedExpression;
+        return deparenthesizedExpression
     }
-    @Nullable
-    public static CjExpression deparenthesizeOnce(
-            @Nullable CjExpression expression, boolean keepAnnotations
-    ) {
+
+    @JvmOverloads
+    fun deparenthesizeOnce(
+        expression: CjExpression?, keepAnnotations: Boolean = false
+    ): CjExpression? {
 //        if (expression instanceof CjAnnotatedExpression && !keepAnnotations) {
 //            return ((CjAnnotatedExpression) expression).getBaseExpression();
 //        }
@@ -179,287 +169,270 @@ public class CjPsiUtil {
 //            return ((CjLabeledExpression) expression).getBaseExpression();
 //        }
 //        else
-            if (expression instanceof CjExpressionWrapper) {
-            return ((CjExpressionWrapper) expression).getBaseExpression();
+        if (expression is CjExpressionWrapper) {
+            return (expression as CjExpressionWrapper).baseExpression
+        } else if (expression is CjParenthesizedExpression) {
+            return expression.expression
         }
-        else if (expression instanceof CjParenthesizedExpression) {
-            return ((CjParenthesizedExpression) expression).getExpression();
-        }
-        return expression;
-    }
-    @Nullable
-    public static CjExpression deparenthesizeOnce(
-            @Nullable CjExpression expression
-    ) {
-        return deparenthesizeOnce(expression, false);
+        return expression
     }
 
-    @Nullable
-    public static CjExpression deparenthesize(@Nullable CjExpression expression) {
-        return deparenthesize(expression, false);
-    }
-
-    @Nullable
-    public static CjExpression deparenthesize(@Nullable CjExpression expression, boolean keepAnnotations) {
+    @JvmOverloads
+    fun deparenthesize(expression: CjExpression?, keepAnnotations: Boolean = false): CjExpression? {
+        var expression = expression
         while (true) {
-            CjExpression baseExpression = deparenthesizeOnce(expression, keepAnnotations);
+            val baseExpression = deparenthesizeOnce(expression, keepAnnotations)
 
-            if (baseExpression == expression) return baseExpression;
-            expression = baseExpression;
+            if (baseExpression === expression) return baseExpression
+            expression = baseExpression
         }
     }
-    @NotNull
-    public static CjExpression safeDeparenthesize(@NotNull CjExpression expression, boolean keepAnnotations) {
-        CjExpression deparenthesized = deparenthesize(expression, keepAnnotations);
-        return deparenthesized != null ? deparenthesized : expression;
+
+    @JvmOverloads
+    fun safeDeparenthesize(expression: CjExpression, keepAnnotations: Boolean = false): CjExpression {
+        val deparenthesized = deparenthesize(expression, keepAnnotations)
+        return deparenthesized ?: expression
     }
-    public static boolean isStatementContainer(@Nullable PsiElement container) {
-        return container instanceof CjBlockExpression ||
-                container instanceof CjContainerNodeForControlStructureBody  ;
+
+    fun isStatementContainer(container: PsiElement?): Boolean {
+        return container is CjBlockExpression ||
+                container is CjContainerNodeForControlStructureBody
     }
-    public static boolean isAssignment(@NotNull PsiElement element) {
-        return element instanceof CjBinaryExpression &&
-                CjTokens.ALL_ASSIGNMENTS.contains(((CjBinaryExpression) element).getOperationToken());
+
+    fun isAssignment(element: PsiElement): Boolean {
+        return element is CjBinaryExpression &&
+                CjTokens.ALL_ASSIGNMENTS.contains(element.operationToken)
     }
-    public static boolean isLocal(@NotNull CjDeclaration declaration) {
-        return getEnclosingElementForLocalDeclaration(declaration) != null;
+
+    fun isLocal(declaration: CjDeclaration): Boolean {
+        return getEnclosingElementForLocalDeclaration(declaration) != null
     }
-    @Nullable
-    public static CjElement getEnclosingElementForLocalDeclaration(@NotNull CjDeclaration declaration) {
-        return getEnclosingElementForLocalDeclaration(declaration, true);
+
+    fun getEnclosingElementForLocalDeclaration(declaration: CjDeclaration): CjElement? {
+        return getEnclosingElementForLocalDeclaration(declaration, true)
     }
-    @NotNull
-    public static String unquoteIdentifierOrFieldReference(@NotNull String quoted) {
+
+    fun unquoteIdentifierOrFieldReference(quoted: String): String {
         if (quoted.indexOf('`') < 0) {
-            return quoted;
+            return quoted
         }
 
-        if (quoted.startsWith("$")) {
-            return "$" + unquoteIdentifier(quoted.substring(1));
-        }
-        else {
-            return unquoteIdentifier(quoted);
+        return if (quoted.startsWith("$")) {
+            "$" + unquoteIdentifier(quoted.substring(1))
+        } else {
+            unquoteIdentifier(quoted)
         }
     }
-    @Nullable
-    public static CjTypeStatement getClassIfParameterIsProperty(@NotNull CjParameter cjParameter) {
+
+    fun getClassIfParameterIsProperty(cjParameter: CjParameter): CjTypeStatement? {
         if (cjParameter.hasLetOrVar()) {
-            PsiElement grandParent = null;
+            var grandParent: PsiElement? = null
             if (cjParameter.getParent() != null) {
-                grandParent = cjParameter.getParent().getParent();
+                grandParent = cjParameter.getParent()!!.parent
             }
-            if (grandParent instanceof CjPrimaryConstructor) {
-                return ((CjPrimaryConstructor) grandParent).getContainingTypeStatement();
+            if (grandParent is CjPrimaryConstructor) {
+                return grandParent.getContainingTypeStatement()
             }
         }
 
-        return null;
+        return null
     }
 
-    @NotNull
-    public static Name safeName(@Nullable String name) {
-        return name == null ? SpecialNames.NO_NAME_PROVIDED : OperatorNameConventions.INSTANCE.asOperatorName(name);
+    fun safeName(name: String?): Name {
+        return name?.asOperatorName() ?: SpecialNames.NO_NAME_PROVIDED
     }
-    @Nullable
-    public static CjSimpleNameExpression getLastReference(@NotNull CjExpression importedReference) {
-        CjElement selector = CjPsiUtilKt.getQualifiedElementSelector(importedReference);
-        return selector instanceof CjSimpleNameExpression ? (CjSimpleNameExpression) selector : null;
+
+    fun getLastReference(importedReference: CjExpression): CjSimpleNameExpression? {
+        val selector = importedReference.getQualifiedElementSelector()
+        return selector as? CjSimpleNameExpression
     }
-    private static boolean isNonLocalCallable(@Nullable CjDeclaration declaration) {
-        if (declaration instanceof CjVariable) {
-            return !((CjVariable) declaration).isLocal();
+
+    private fun isNonLocalCallable(declaration: CjDeclaration?): Boolean {
+        if (declaration is CjVariable) {
+            return !declaration.isLocal
         }
 
-        return false;
+        return false
     }
-    public static <D> void visitChildren(@NotNull CjElement element, @NotNull CjVisitor<Void, D> visitor, D data) {
-        PsiElement child = element.getFirstChild();
+
+    fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Void, D>, data: D?) {
+        var child = element.firstChild
         while (child != null) {
-            if (child instanceof CjElement) {
-                ((CjElement) child).accept(visitor, data);
+            if (child is CjElement) {
+                child.accept<Void, D>(visitor, data)
             }
-            child = child.getNextSibling();
+            child = child.nextSibling
         }
     }
-    @Nullable
-    private static IElementType getOperation(@NotNull CjExpression expression) {
-        if (expression instanceof CjQualifiedExpression) {
-            return ((CjQualifiedExpression) expression).getOperationSign();
+
+    private fun getOperation(expression: CjExpression): IElementType? {
+        if (expression is CjQualifiedExpression) {
+            return expression.operationSign
+        } else if (expression is CjOperationExpression) {
+            return expression.operationReference.referencedNameElementType
         }
-        else if (expression instanceof CjOperationExpression) {
-            return ((CjOperationExpression) expression).getOperationReference().getReferencedNameElementType();
-        }
-        return null;
+        return null
     }
 
-    private static int getPriority(@NotNull CjExpression expression) {
-        int maxPriority = CangJieExpressionParsing.Precedence.values().length + 1;
+    private fun getPriority(expression: CjExpression): Int {
+        val maxPriority = CangJieExpressionParsing.Precedence.entries.size + 1
 
 
-        if (
-                expression instanceof CjQualifiedExpression ||
-                expression instanceof CjCallExpression
-                ) {
-            return maxPriority - 1;
+        if (expression is CjQualifiedExpression ||
+            expression is CjCallExpression
+        ) {
+            return maxPriority - 1
         }
 
 
 
 
 
-        if (expression instanceof CjDeclaration || expression instanceof CjStatementExpression) {
-            return 0;
+        if (expression is CjDeclaration || expression is CjStatementExpression) {
+            return 0
         }
 
-        IElementType operation = getOperation(expression);
-        for (CangJieExpressionParsing.Precedence precedence : CangJieExpressionParsing.Precedence.values()) {
-            if (precedence != CangJieExpressionParsing.Precedence.PREFIX && precedence != CangJieExpressionParsing.Precedence.POSTFIX &&
-                    precedence.getOperations().contains(operation)) {
-                return maxPriority - precedence.ordinal() - 1;
+        val operation = getOperation(expression)
+        for (precedence in CangJieExpressionParsing.Precedence.entries) {
+            if (precedence !== CangJieExpressionParsing.Precedence.PREFIX && precedence !== CangJieExpressionParsing.Precedence.POSTFIX &&
+                precedence.getOperations().contains(operation)
+            ) {
+                return maxPriority - precedence.ordinal - 1
             }
         }
 
-        return maxPriority;
+        return maxPriority
     }
-    public static boolean areParenthesesNecessary(
-            @NotNull CjExpression innerExpression,
-            @NotNull CjExpression currentInner,
-            @NotNull CjElement parentElement
-    ) {
 
-
-
-
-        if (parentElement instanceof CjPackageDirective) return false;
+    fun areParenthesesNecessary(
+        innerExpression: CjExpression,
+        currentInner: CjExpression,
+        parentElement: CjElement
+    ): Boolean {
+        if (parentElement is CjPackageDirective) return false
 
 
 
 
 
 
-        if (parentElement instanceof CjCallExpression parentCall && currentInner == parentCall.getCalleeExpression()) {
-            CjExpression targetInnerExpression = innerExpression;
-            if (targetInnerExpression instanceof CjDotQualifiedExpression) {
-                CjExpression selector = ((CjDotQualifiedExpression) targetInnerExpression).getSelectorExpression();
+        if (parentElement is CjCallExpression && currentInner === parentElement.calleeExpression) {
+            var targetInnerExpression: CjExpression? = innerExpression
+            if (targetInnerExpression is CjDotQualifiedExpression) {
+                val selector = targetInnerExpression.selectorExpression
                 if (selector != null) {
-                    targetInnerExpression = selector;
+                    targetInnerExpression = selector
                 }
             }
-            if (targetInnerExpression instanceof CjSimpleNameExpression) return false;
-            if (CjPsiUtilKt.getQualifiedExpressionForSelector(parentElement) != null) return true;
+            if (targetInnerExpression is CjSimpleNameExpression) return false
+            if (parentElement.getQualifiedExpressionForSelector() != null) return true
 
-            return !(   targetInnerExpression instanceof CjCallExpression);
+            return targetInnerExpression !is CjCallExpression
         }
 
-        if (parentElement instanceof CjValueArgument) {
+        if (parentElement is CjValueArgument) {
             // a(___, d > (e + f)) => a((b < c), d > (e + f)) to prevent parsing < c, d > as type argument list
-            CjValueArgument nextArg = PsiTreeUtil.getNextSiblingOfType(parentElement, CjValueArgument.class);
-            PsiElement nextExpression = nextArg != null ? nextArg.getArgumentExpression() : null;
-
+            val nextArg = PsiTreeUtil.getNextSiblingOfType<CjValueArgument?>(parentElement, CjValueArgument::class.java)
+            val nextExpression: PsiElement? = nextArg?.getArgumentExpression()
         }
 
-        IElementType innerOperation = getOperation(innerExpression);
+        val innerOperation = getOperation(innerExpression)
 
 
 
-        if (!(parentElement instanceof CjExpression)) return false;
+        if (parentElement !is CjExpression) return false
 
-        IElementType parentOperation = getOperation((CjExpression) parentElement);
-
-
+        val parentOperation = getOperation(parentElement)
 
 
-
-
-
-
-
-        int innerPriority = getPriority(innerExpression);
-        int parentPriority = getPriority((CjExpression) parentElement);
+        val innerPriority = getPriority(innerExpression)
+        val parentPriority = getPriority(parentElement)
 
         if (innerPriority == parentPriority) {
-
-
-
-            return false;
+            return false
         }
 
-        return innerPriority < parentPriority;
+        return innerPriority < parentPriority
     }
 
-    @Nullable
-    public static CjElement getEnclosingElementForLocalDeclaration(@NotNull CjDeclaration declaration, boolean skipParameters) {
-        if (declaration instanceof CjTypeParameter && skipParameters) {
-            declaration = PsiTreeUtil.getParentOfType(declaration, CjNamedDeclaration.class);
-        }
-
-        else if (declaration instanceof CjParameterBase) {
-            CjFunctionType functionType = PsiTreeUtil.getParentOfType(declaration, CjFunctionType.class);
+    fun getEnclosingElementForLocalDeclaration(declaration: CjDeclaration, skipParameters: Boolean): CjElement? {
+        var declaration = declaration
+        if (declaration is CjTypeParameter && skipParameters) {
+            declaration = PsiTreeUtil.getParentOfType<CjNamedDeclaration?>(
+                declaration,
+                CjNamedDeclaration::class.java
+            )!!
+        } else if (declaration is CjParameterBase) {
+            val functionType = PsiTreeUtil.getParentOfType<CjFunctionType?>(declaration, CjFunctionType::class.java)
             if (functionType != null) {
-                return functionType;
+                return functionType
             }
 
-            PsiElement parent = declaration.getParent();
+            val parent = declaration.parent
 
             // let/var parameter of primary constructor should be considered as local according to containing class
-            if (((CjParameterBase) declaration).hasLetOrVar() && parent != null && parent.getParent() instanceof CjPrimaryConstructor) {
-                return getEnclosingElementForLocalDeclaration(((CjPrimaryConstructor) parent.getParent()).getContainingTypeStatement(), skipParameters);
-            }
-            else if (skipParameters && parent != null &&
-                    !(parent instanceof CjForExpression) &&
-                    !(parent instanceof CjTryResource)&&
-                    parent.getParent() instanceof CjNamedFunction) {
-                declaration = (CjNamedFunction) parent.getParent();
+            if (declaration.hasLetOrVar() && parent != null && parent.parent is CjPrimaryConstructor) {
+                return getEnclosingElementForLocalDeclaration(
+                    (parent.parent as CjPrimaryConstructor).getContainingTypeStatement(),
+                    skipParameters
+                )
+            } else if (skipParameters && parent != null && (parent !is CjForExpression) && (parent !is CjTryResource) &&
+                parent.parent is CjNamedFunction
+            ) {
+                declaration = parent.parent as CjNamedFunction
             }
         }
-        if (declaration instanceof PsiFile) {
-            return declaration;
+        if (declaration is PsiFile) {
+            return declaration
         }
 
 
-        PsiElement current = PsiTreeUtil.getStubOrPsiParent(declaration);
-        boolean isNonLocalCallable = isNonLocalCallable(declaration);
+        var current = PsiTreeUtil.getStubOrPsiParent(declaration)
+        val isNonLocalCallable = isNonLocalCallable(declaration)
         while (current != null) {
-            PsiElement parent = PsiTreeUtil.getStubOrPsiParent(current);
+            val parent = PsiTreeUtil.getStubOrPsiParent(current)
 
 
-            if (current instanceof CjParameter) {
-                return (CjElement) current;
+            if (current is CjParameter) {
+                return current as CjElement
             }
-            if (current instanceof CjValueArgument) {
-                   if (!isNonLocalCallable) {
-                    return (CjElement) current;
+            if (current is CjValueArgument) {
+                if (!isNonLocalCallable) {
+                    return current as CjElement
                 }
             }
 
-            if (current instanceof CjBlockExpression) {
+            if (current is CjBlockExpression) {
                 // For members also not applicable if has function literal parent
-                if (!isNonLocalCallable || !(current.getParent() instanceof CjFunctionLiteral)) {
-                    return (CjElement) current;
+                if (!isNonLocalCallable || current.getParent() !is CjFunctionLiteral) {
+                    return current as CjElement
                 }
             }
-            if ( current instanceof CjSuperTypeCallEntry) {
-                PsiElement grandParent = current.getParent().getParent();
-                if (grandParent instanceof CjTypeStatement ) {
-                    return (CjElement) grandParent;
+            if (current is CjSuperTypeCallEntry) {
+                val grandParent = current.parent.parent
+                if (grandParent is CjTypeStatement) {
+                    return grandParent as CjElement
                 }
             }
 
-            current = parent;
+            current = parent
         }
-        return null;
+        return null
     }
-    @NotNull
-    public static String unquoteIdentifier(@NotNull String quoted) {
+
+    fun unquoteIdentifier(quoted: String): String {
         if (quoted.indexOf('`') < 0) {
-            return quoted;
+            return quoted
         }
 
-        if (quoted.startsWith("`") && quoted.endsWith("`") && quoted.length() >= 2) {
-            return quoted.substring(1, quoted.length() - 1);
+        return if (quoted.startsWith("`") && quoted.endsWith("`") && quoted.length >= 2) {
+            quoted.substring(1, quoted.length - 1)
+        } else {
+            quoted
         }
-        else {
-            return quoted;
-        }
+    }
+
+    interface CjExpressionWrapper {
+        val baseExpression: CjExpression?
     }
 }

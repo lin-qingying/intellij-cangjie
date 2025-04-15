@@ -21,12 +21,11 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.parsing
 
-package cn.cangnova.cangjie.parsing;
 
+interface TokenStreamPredicate {
+    fun matching(topLevel: Boolean): Boolean
 
-public interface TokenStreamPredicate {
-    boolean matching(boolean topLevel);
-
-    TokenStreamPredicate or(TokenStreamPredicate other);
+    fun or(other: TokenStreamPredicate): TokenStreamPredicate
 }

@@ -7,8 +7,8 @@ import cn.cangnova.cangjie.cjpm.project.model.impl.DownloadResult
 import cn.cangnova.cangjie.cjpm.project.model.impl.TaskResult
 import cn.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
 import cn.cangnova.cangjie.cjpm.project.workspace.StandardLibrary
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.cjpm.toolchain.cjc
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.toolchain.cjc
 import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
 import cn.cangnova.cangjie.messages.CangJieBundle
 

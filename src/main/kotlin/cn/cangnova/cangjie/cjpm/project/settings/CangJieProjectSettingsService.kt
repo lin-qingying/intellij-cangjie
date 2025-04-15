@@ -25,11 +25,12 @@
 package cn.cangnova.cangjie.cjpm.project.settings
 
 import cn.cangnova.cangjie.configurable.CangJieConfigurable
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainProvider
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainServices
-import cn.cangnova.cangjie.cjpm.toolchain.ExternalLinter
-import cn.cangnova.cangjie.ide.run.cjpm.isUnitTestMode
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.toolchain.CjToolchainProvider
+import cn.cangnova.cangjie.toolchain.CjToolchainServices
+import cn.cangnova.cangjie.toolchain.ExternalLinter
+import cn.cangnova.cangjie.utils.isUnitTestMode
+
 import cn.cangnova.cangjie.utils.showSettingsDialog
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.*

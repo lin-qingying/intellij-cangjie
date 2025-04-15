@@ -25,12 +25,12 @@
 package cn.cangnova.cangjie.ide.newProject.ui
 
 import cn.cangnova.cangjie.cjpm.project.settings.ui.CangJieProjectSettingsPanel
-import cn.cangnova.cangjie.cjpm.toolchain.cjpm
-import cn.cangnova.cangjie.cjpm.toolchain.tools.Cjpm
 import cn.cangnova.cangjie.ide.project.settings.ui.UiDebouncer
 import cn.cangnova.cangjie.ide.project.tools.projectWizard.CangJieProjectTypeItem
-import cn.cangnova.cangjie.messages.CangJieUiBundle
 import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.messages.CangJieUiBundle
+import cn.cangnova.cangjie.toolchain.cjpm
+import cn.cangnova.cangjie.toolchain.tools.Cjpm
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.ui.ComboBox

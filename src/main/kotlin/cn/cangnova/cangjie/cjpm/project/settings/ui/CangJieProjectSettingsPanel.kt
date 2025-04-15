@@ -29,28 +29,26 @@
 
 package cn.cangnova.cangjie.cjpm.project.settings.ui
 
-import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
 import cn.cangnova.cangjie.cjpm.project.settings.CangJieProjectSettingsService
 import cn.cangnova.cangjie.cjpm.project.toPath
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainProvider
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainServices
-import cn.cangnova.cangjie.cjpm.toolchain.cjc
 import cn.cangnova.cangjie.ide.project.settings.ui.UiDebouncer
 import cn.cangnova.cangjie.ide.project.settings.ui.fullWidthCell
+import cn.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp
+import cn.cangnova.cangjie.ide.project.structure.download.addDownloadItem
+import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.toolchain.CjToolchainProvider
+import cn.cangnova.cangjie.toolchain.CjToolchainServices
+import cn.cangnova.cangjie.toolchain.cjc
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.ProjectManager
-
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.Panel
-import cn.cangnova.cangjie.ide.projectStructure.download.SdkDownloadEp
-
-import cn.cangnova.cangjie.ide.projectStructure.download.addDownloadItem
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.swing.JButton
@@ -99,7 +97,6 @@ class CangJieProjectSettingsPanel(
     //    所有历史工具链路径
     private val toolchainsService = ApplicationManager.getApplication().getService(CjToolchainServices::class.java)
 
-    //    private val toolchainPaths: List<CjToolchainBase> = toolchainsService.getToolchainPaths()
     private val toolchainPaths: List<String> = toolchainsService.getToolchainPaths()
 
     // 抛出ConfigurationException异常

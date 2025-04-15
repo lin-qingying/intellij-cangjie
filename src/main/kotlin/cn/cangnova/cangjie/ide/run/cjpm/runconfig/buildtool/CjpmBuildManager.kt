@@ -26,12 +26,13 @@ package cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool
 
 
 
-import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.ide.notifications.CjNotifications
 import cn.cangnova.cangjie.ide.run.CjpmArgsParser.Companion.parseArgs
 import cn.cangnova.cangjie.ide.run.cjpm.*
 import cn.cangnova.cangjie.ide.run.hasRemoteTarget
+import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.utils.isUnitTestMode
 import cn.cangnova.cangjie.utils.toSystemIndependentPath
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildViewManager

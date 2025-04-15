@@ -21,11 +21,6 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.lexer
 
-package cn.cangnova.cangjie.lexer;
-
-public class CangJieLexerException extends RuntimeException {
-    public CangJieLexerException(String message) {
-        super(message);
-    }
-}
+class CangJieLexerException(message: String?) : RuntimeException(message)

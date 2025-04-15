@@ -24,16 +24,16 @@
 
 package cn.cangnova.cangjie.ide.run.cjpm
 
-import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.cjpm.toolchain.tools.Cjpm
 import cn.cangnova.cangjie.ide.run.CjCommandConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeType
 import cn.cangnova.cangjie.ide.run.hasRemoteTarget
+import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.toolchain.tools.Cjpm
 import com.intellij.execution.Executor
 import com.intellij.execution.InputRedirectAware
 import com.intellij.execution.configuration.EnvironmentVariablesData
@@ -44,7 +44,7 @@ import com.intellij.execution.target.TargetEnvironmentAwareRunProfile
 import com.intellij.execution.target.TargetEnvironmentConfiguration
 import com.intellij.execution.testframework.actions.ConsolePropertiesProvider
 import com.intellij.execution.util.ProgramParametersUtil
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ide.plugins.PluginManagerCore.isUnitTestMode
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.options.SettingsEditorGroup
 import com.intellij.openapi.project.Project
@@ -58,7 +58,6 @@ import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 
-val isUnitTestMode: Boolean get() = ApplicationManager.getApplication().isUnitTestMode
 
 val Project.toolchain: CjToolchainBase?
     get() {
@@ -136,10 +135,7 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
     var buildTarget: BuildTarget = BuildTarget.REMOTE
 
     sealed class CleanConfiguration {
-        //        class Ok(
-//            val cmd: CjpmCommandLine,
-//            val toolchain: CjToolchainBase
-//        ) : CleanConfiguration()
+
         class Ok(
             val cmd: CjpmCommandLine,
             val toolchain: CjToolchainBase
@@ -191,7 +187,7 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
         val config = clean().ok ?: return null
 //        运行命令
 
-        return CjpmRunState(environment, this, config,)
+        return CjpmRunState(environment, this, config)
 
     }
 

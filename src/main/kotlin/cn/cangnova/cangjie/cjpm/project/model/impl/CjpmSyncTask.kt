@@ -25,20 +25,20 @@
 package cn.cangnova.cangjie.cjpm.project.model.impl
 
 import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.cjpm.toolchain.cjc
-import cn.cangnova.cangjie.cjpm.toolchain.cjpm
-import cn.cangnova.cangjie.cjpm.toolchain.impl.CangJieVersion
-import cn.cangnova.cangjie.cjpm.toolchain.tools.CjpmCallType
+import cn.cangnova.cangjie.toolchain.cjc
+import cn.cangnova.cangjie.toolchain.cjpm
+import cn.cangnova.cangjie.toolchain.impl.CangJieVersion
+import cn.cangnova.cangjie.toolchain.tools.CjpmCallType
 import cn.cangnova.cangjie.cjpm.CjpmConstants
 import cn.cangnova.cangjie.cjpm.project.model.CjcInfo
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.model.ProcessProgressListener
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
 import cn.cangnova.cangjie.cjpm.project.workspace.StandardLibrary
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.cjpm.toolchain.cjc
-import cn.cangnova.cangjie.cjpm.toolchain.cjpm
-import cn.cangnova.cangjie.cjpm.toolchain.tools.unwrapOrElse
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.toolchain.cjc
+import cn.cangnova.cangjie.toolchain.cjpm
+import cn.cangnova.cangjie.toolchain.tools.unwrapOrElse
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildAdapterBase
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildContextBase
 import cn.cangnova.cangjie.ide.run.cjpm.toolchain
@@ -47,7 +47,7 @@ import com.intellij.openapi.diagnostic.logger
 import cn.cangnova.cangjie.download.stdlib.fetchStdlib
 import kotlin.io.path.exists
 
-import cn.cangnova.cangjie.cjpm.toolchain.tools.unwrapOrElse
+import cn.cangnova.cangjie.toolchain.tools.unwrapOrElse
 import cn.cangnova.cangjie.download.stdlib.fetchStdlib
 
 import cn.cangnova.cangjie.ide.run.cjpm.toolchain

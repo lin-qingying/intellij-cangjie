@@ -33,7 +33,7 @@ import cn.cangnova.cangjie.cjpm.project.model.guessAndSetupCangJieProject
 import cn.cangnova.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase
 import cn.cangnova.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase.Companion.CANGJIE_SETTINGS_TOPIC
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
-import cn.cangnova.cangjie.ide.run.cjpm.isUnitTestMode
+import cn.cangnova.cangjie.utils.isUnitTestMode
 import cn.cangnova.cangjie.ide.run.cjpm.toolchain
 import cn.cangnova.cangjie.lang.CangJieFileType
 import com.intellij.ide.impl.isTrusted

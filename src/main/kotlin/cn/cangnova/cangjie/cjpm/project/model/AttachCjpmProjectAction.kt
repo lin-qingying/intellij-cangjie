@@ -24,15 +24,15 @@
 
 package cn.cangnova.cangjie.cjpm.project.model
 
-import com.google.common.annotations.VisibleForTesting
-import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.cjpm.CjpmConstants
 import cn.cangnova.cangjie.cjpm.project.pathAsPath
 import cn.cangnova.cangjie.cjpm.project.toolwindow.CjpmToolWindow
 import cn.cangnova.cangjie.ide.notifications.CjEditorNotificationPanel
 import cn.cangnova.cangjie.ide.notifications.isCjpmToml
-import cn.cangnova.cangjie.ide.run.cjpm.isUnitTestMode
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.saveAllDocuments
+import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.utils.isUnitTestMode
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey

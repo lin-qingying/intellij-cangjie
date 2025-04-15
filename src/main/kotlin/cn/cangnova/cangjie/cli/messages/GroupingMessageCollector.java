@@ -27,9 +27,6 @@ package cn.cangnova.cangjie.cli.messages;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
-import cn.cangnova.cangjie.cli.messages.CompilerMessageSeverity;
-import cn.cangnova.cangjie.cli.messages.CompilerMessageSourceLocation;
-import cn.cangnova.cangjie.cli.messages.MessageCollector;
 import kotlin.collections.CollectionsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +41,7 @@ public class GroupingMessageCollector implements MessageCollector {
     private final boolean reportAllWarnings;
 
     // Note that the key in this map can be null
-    private final Multimap<CompilerMessageSourceLocation, Message> groupedMessages = LinkedHashMultimap.create();
+    private final Multimap<CompilerMessageSourceLocation, Message> groupedMessages = LinkedHashMultimap.<CompilerMessageSourceLocation, Message>create();
 
     public GroupingMessageCollector(@NotNull MessageCollector delegate, boolean treatWarningsAsErrors, boolean reportAllWarnings) {
         this.delegate = delegate;
@@ -92,7 +89,7 @@ public class GroupingMessageCollector implements MessageCollector {
         }
 
         List<CompilerMessageSourceLocation> sortedKeys =
-                CollectionsKt.sortedWith(groupedMessages.keySet(), Comparator.nullsFirst(CompilerMessageLocationComparator.INSTANCE));
+                CollectionsKt.<CompilerMessageSourceLocation>sortedWith(groupedMessages.keySet(), Comparator.<CompilerMessageSourceLocation>nullsFirst(CompilerMessageLocationComparator.INSTANCE));
         for (CompilerMessageSourceLocation location : sortedKeys) {
             for (Message message : groupedMessages.get(location)) {
                 if (!hasExplicitErrors || reportAllWarnings || message.severity.isError() || message.severity == CompilerMessageSeverity.STRONG_WARNING) {
@@ -120,11 +117,7 @@ public class GroupingMessageCollector implements MessageCollector {
         }
     }
 
-    private static class Message {
-        private final CompilerMessageSeverity severity;
-        private final String message;
-        private final CompilerMessageSourceLocation location;
-
+    private record Message(CompilerMessageSeverity severity, String message, CompilerMessageSourceLocation location) {
         private Message(@NotNull CompilerMessageSeverity severity, @NotNull String message, @Nullable CompilerMessageSourceLocation location) {
             this.severity = severity;
             this.message = message;
@@ -141,14 +134,6 @@ public class GroupingMessageCollector implements MessageCollector {
             if (!Objects.equals(location, other.location)) return false;
             if (!message.equals(other.message)) return false;
             return severity == other.severity;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = severity.hashCode();
-            result = 31 * result + message.hashCode();
-            result = 31 * result + (location != null ? location.hashCode() : 0);
-            return result;
         }
 
         @Override

@@ -21,19 +21,15 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.parsing
 
-package cn.cangnova.cangjie.parsing;
-
-import cn.cangnova.cangjie.parsing.TokenStreamPredicate;public abstract class AbstractTokenStreamPredicate implements TokenStreamPredicate {
-
-    @Override
-    public TokenStreamPredicate or(TokenStreamPredicate other) {
-        return new AbstractTokenStreamPredicate() {
-            @Override
-            public boolean matching(boolean topLevel) {
-                if (AbstractTokenStreamPredicate.this.matching(topLevel)) return true;
-                return other.matching(topLevel);
+abstract class AbstractTokenStreamPredicate : TokenStreamPredicate {
+    override fun or(other: TokenStreamPredicate): TokenStreamPredicate {
+        return object : AbstractTokenStreamPredicate() {
+            override fun matching(topLevel: Boolean): Boolean {
+                if (this@AbstractTokenStreamPredicate.matching(topLevel)) return true
+                return other.matching(topLevel)
             }
-        };
+        }
     }
 }

@@ -34,7 +34,25 @@ import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.SystemInfo
 import java.util.*
+
+fun String.toSystemIndependentPath(): String {
+    return if (SystemInfo.isWindows) {
+        "$this.exe"
+    } else {
+        this
+    }
+}
+
+/**
+ * 将下划线命名转换为大驼峰命名
+ */
+
+fun String.toCamelCase(): String {
+    return this.split('_')
+        .joinToString("") { it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } }
+}
 
 /**
  * 判断系统是否为windows

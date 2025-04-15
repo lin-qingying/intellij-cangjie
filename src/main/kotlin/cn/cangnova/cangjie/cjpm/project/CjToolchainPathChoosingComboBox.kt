@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.cjpm.project
 
 import cn.cangnova.cangjie.cjpm.project.CjToolchainPathChoosingComboBox.Companion.LOG
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.ide.project.settings.ui.addTextChangeListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger

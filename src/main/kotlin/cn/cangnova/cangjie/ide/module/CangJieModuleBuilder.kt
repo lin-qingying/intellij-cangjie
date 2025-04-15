@@ -27,19 +27,18 @@ package cn.cangnova.cangjie.ide.module
 
 import cn.cangnova.cangjie.cjpm.CjpmConstants
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
-import cn.cangnova.cangjie.cjpm.toolchain.cjpm
-import cn.cangnova.cangjie.cjpm.toolchain.tools.Cjpm
-
-
+import cn.cangnova.cangjie.ide.newProject.ui.ConfigurationData
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjProcessExecutionException
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjResult
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.isHeadlessEnvironment
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.toPath
+import cn.cangnova.cangjie.toolchain.cjpm
+import cn.cangnova.cangjie.toolchain.tools.Cjpm
+import cn.cangnova.cangjie.toolchain.tools.Cjpm.GeneratedFilesHolder
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings
-
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.openapi.application.invokeLater
@@ -50,8 +49,6 @@ import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.vfs.VirtualFile
-import cn.cangnova.cangjie.cjpm.toolchain.tools.Cjpm.GeneratedFilesHolder
-import cn.cangnova.cangjie.ide.newProject.ui.ConfigurationData
 
 class CangJieModuleBuilder : ModuleBuilder() {
     companion object {
@@ -80,7 +77,9 @@ class CangJieModuleBuilder : ModuleBuilder() {
 
             val cjpm = toolchain.cjpm()
             val project = modifiableRootModel.project
-            val name = project.name.replace(' ', '_')
+            val name = project.name.replace(' ', '_').replace(
+                "-", "_"
+            ).replace(".", "_")
 
 
                 val generatedFiles = cjpm.makeProject(

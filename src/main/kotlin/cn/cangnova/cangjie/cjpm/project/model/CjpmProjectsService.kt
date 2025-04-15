@@ -28,8 +28,8 @@ import cn.cangnova.cangjie.cjpm.CjpmConstants
 import cn.cangnova.cangjie.cjpm.project.pathAsPath
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
-import cn.cangnova.cangjie.cjpm.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.cjpm.toolchain.impl.CangJieVersion
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.toolchain.impl.CangJieVersion
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
