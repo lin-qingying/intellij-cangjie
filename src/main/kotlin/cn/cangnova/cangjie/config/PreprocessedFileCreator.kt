@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@
 
 package cn.cangnova.cangjie.config
 
+import cn.cangnova.cangjie.extensions.ProjectExtensionDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.LightVirtualFile
-import cn.cangnova.cangjie.extensions.ProjectExtensionDescriptor
 
 /**
  * The interface for the extensions that are used to substitute VirtualFile on the creation of CjFile, allows to preprocess a file before

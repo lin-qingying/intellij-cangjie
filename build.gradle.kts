@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,11 +229,14 @@ allprojects {
         }
 
         withType<PatchPluginXmlTask> {
-            sinceBuild.set(ideVersion)
-            untilBuild.set("$ideVersion.*")
+//            sinceBuild.set(ideVersion)
+//            untilBuild.set("$ideVersion.*")
 
+//            pluginVersion.set(cangjiePluginVersion)
+
+            sinceBuild.set("241")
+            untilBuild.set("243.*")
             pluginVersion.set(prop("pluginVersion"))
-
         }
         runIde { enabled = false }
         prepareSandbox { enabled = false }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 
 open class ProjectExtensionDescriptor<T : Any>(name: String, private val extensionClass: Class<T>) {
-    private val extensionPointName: ExtensionPointName<T> = ExtensionPointName.create(name)
+    private val extensionPointName: ExtensionPointName<T> = ExtensionPointName.Companion.create(name)
 
     fun registerExtensionPoint(project: Project) {
         CoreApplicationEnvironment.registerExtensionPoint(
@@ -56,12 +56,7 @@ open class ProjectExtensionDescriptor<T : Any>(name: String, private val extensi
      */
     fun getInstances(project: Project): List<T> {
         // 获取项目的扩展区域
-        val projectArea = project.extensionArea
-        // 检查项目中是否存在指定的扩展点
-        if (!projectArea.hasExtensionPoint(extensionPointName.name)) return listOf()
-
-        // 获取指定扩展点下的所有扩展，并转换为列表返回
-        return projectArea.getExtensionPoint(extensionPointName).extensions.toList()
+        return extensionPointName.extensionList
 
     }
 

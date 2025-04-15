@@ -1,14 +1,44 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package cn.cangnova.cangjie.ide.project.structure.download
 
+
+import cn.cangnova.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
+import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.messages.CangJieUiBundle
+import cn.cangnova.cangjie.task.AbstractForegroundTask
+import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import com.google.common.hash.Hashing
 import com.intellij.execution.process.ProcessOutput
 import com.intellij.execution.wsl.WSLDistribution
 import com.intellij.execution.wsl.WslPath
 import com.intellij.ide.DataManager
-
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -16,6 +46,10 @@ import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.fileChooser.FileChooser
+import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -23,47 +57,46 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.progress.util.ProgressIndicatorBase
 import com.intellij.openapi.progress.util.RelayUiToDelegateIndicator
 import com.intellij.openapi.project.Project
-
-
 import com.intellij.openapi.roots.ui.configuration.projectRoot.SdkDownloadTask
-
-
-import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.ui.*
+import com.intellij.openapi.ui.BrowseFolderDescriptor.Companion.asBrowseFolderDescriptor
+import com.intellij.openapi.ui.ComponentWithBrowseButton.BrowseFolderActionListener
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.NioFiles
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.CollectionComboBoxModel
+import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import com.intellij.util.Urls
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.delete
-
-import cn.cangnova.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
-
-import cn.cangnova.cangjie.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.messages.CangJieUiBundle
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.task.AbstractForegroundTask
 import org.jetbrains.annotations.Nls
-
+import org.jetbrains.annotations.NonNls
+import java.awt.Component
+import java.awt.event.ItemEvent
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.concurrent.CancellationException
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
 import java.util.function.Predicate
-
 import javax.swing.ComboBoxModel
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
+import javax.swing.JTextField
+import javax.swing.event.DocumentEvent
 import kotlin.concurrent.withLock
 import kotlin.io.path.createDirectories
 import kotlin.io.path.exists
@@ -849,4 +882,354 @@ private data class LocallyFoundSdk(
     override fun toString(): String {
         return "LocallyFoundSdk(item=$item, installDir=$installDir)"
     }
+}
+
+
+open class BrowseFolderRunnable<T : JComponent?> : Runnable {
+    protected val project: Project?
+    protected val myAccessor: TextComponentAccessor<in T?>
+    protected val myFileChooserDescriptor: FileChooserDescriptor
+    protected var myTextComponent: T?
+
+    constructor(
+        project: Project?,
+        fileChooserDescriptor: FileChooserDescriptor,
+        component: T?,
+        accessor: TextComponentAccessor<in T?>
+    ) {
+        if (fileChooserDescriptor.isChooseMultiple) {
+            Logger.getInstance(com.intellij.openapi.ui.BrowseFolderRunnable::class.java)
+                .warn("multiple selection not supported")
+        }
+        myTextComponent = component
+        this.project = project
+        myFileChooserDescriptor = fileChooserDescriptor
+        myAccessor = accessor
+    }
+
+    @Deprecated(
+        """use {@link #BrowseFolderRunnable(Project, FileChooserDescriptor, JComponent, TextComponentAccessor)}
+    together with {@link FileChooserDescriptor#withTitle} and {@link FileChooserDescriptor#withDescription}"""
+    )
+    constructor(
+        title: @NlsContexts.DialogTitle String?,
+        description: @NlsContexts.Label String?,
+        project: Project?,
+        fileChooserDescriptor: FileChooserDescriptor,
+        component: T?,
+        accessor: TextComponentAccessor<in T?>
+    ) {
+        var fileChooserDescriptor = fileChooserDescriptor
+        if (fileChooserDescriptor.isChooseMultiple) {
+            Logger.getInstance(com.intellij.openapi.ui.BrowseFolderRunnable::class.java)
+                .error("multiple selection not supported")
+        }
+        if (title != null) {
+            fileChooserDescriptor = fileChooserDescriptor.withTitle(title)
+        }
+        if (description != null) {
+            fileChooserDescriptor = fileChooserDescriptor.withDescription(description)
+        }
+        myTextComponent = component
+        this.project = project
+        myFileChooserDescriptor = fileChooserDescriptor
+        myAccessor = accessor
+    }
+
+    override fun run() {
+        chooseFile(myFileChooserDescriptor)
+    }
+
+    protected fun chooseFile(descriptor: FileChooserDescriptor) {
+        FileChooser.chooseFile(
+            descriptor,
+            this.project, myTextComponent,
+            this.initialFile
+        ) { chosenFile: VirtualFile? ->
+            this.onFileChosen(chosenFile!!)
+        }
+    }
+
+    protected open val initialFile: VirtualFile?
+        get() {
+            val directoryName = myAccessor.getText(myTextComponent).trim { it <= ' ' }
+            if (directoryName.isBlank()) return null
+
+            var path =
+                NioFiles.toPath(expandPath(directoryName))
+            if (path == null || !path.isAbsolute) return null
+
+            while (path != null) {
+                val result = LocalFileSystem.getInstance().findFileByNioFile(path)
+                if (result != null) return result
+                path = path.parent
+            }
+            return null
+        }
+
+    protected open fun expandPath(path: String): @NonNls String {
+        val descriptor =
+            myFileChooserDescriptor.asBrowseFolderDescriptor()
+        val convertTextToPath = descriptor.convertTextToPath
+        return convertTextToPath?.invoke(path) ?: path
+    }
+
+    protected open fun chosenFileToResultingText(chosenFile: VirtualFile): @NlsSafe String {
+        val descriptor: BrowseFolderDescriptor =
+            myFileChooserDescriptor.asBrowseFolderDescriptor()
+        val convertFileToText = descriptor.convertFileToText
+        if (convertFileToText != null) {
+            return convertFileToText.invoke(chosenFile)
+        }
+        val convertPathToText = descriptor.convertPathToText
+        if (convertPathToText != null) {
+            return convertPathToText.invoke(chosenFile.path)
+        }
+        return chosenFile.presentableUrl
+    }
+
+    protected val componentText: String
+        get() = myAccessor.getText(myTextComponent).trim { it <= ' ' }
+
+    protected open fun onFileChosen(chosenFile: VirtualFile) {
+        myAccessor.setText(myTextComponent, chosenFileToResultingText(chosenFile))
+    }
+}
+
+internal class SdkDownloadDialog(
+    val project: Project?,
+    parentComponent: Component?,
+
+    private val mergedModel: SdkDownloaderMergedModel,
+    okActionText: @NlsContexts.Button String = CangJieBundle.message("dialog.button.download.sdk"),
+    val text: @Nls String? = null
+) : DialogWrapper(project, parentComponent, false, IdeModalityType.IDE) {
+    private lateinit var versionComboBox: ComboBox<SdkVersionItem>
+
+
+    private var installDirTextField: TextFieldWithBrowseButton? = null
+    private var installDirCombo: ComboBox<String>? = null
+    private lateinit var installDirComponent: JComponent
+
+
+    private var currentModel: SdkDownloaderModel? = null
+
+
+    private lateinit var selectedItem: SdkItem
+    private lateinit var selectedPath: String
+
+
+    private val panel: DialogPanel = panel {
+        if (text != null) {
+            row {
+                label(text)
+            }
+        }
+
+        var archiveSizeCell: Cell<*>? = null
+
+        row(CangJieBundle.message("dialog.row.sdk.version")) {
+            versionComboBox =
+                comboBox(listOf<SdkVersionItem>().toMutableList(), textListCellRenderer { it!!.sdkVersion }).align(
+                    AlignX.FILL
+                ).component
+        }
+
+        row(CangJieBundle.message("dialog.row.sdk.location")) {
+            cell(setupContainer()).align(AlignX.FILL).apply {
+                archiveSizeCell = comment("")
+            }
+        }
+    }
+
+
+    init {
+        title = CangJieBundle.message("dialog.title.download.sdk")
+        isResizable = false
+
+        versionComboBox.onSelectionChange(::onVersionSelectionChange)
+
+        setOKButtonText(okActionText)
+
+        setModel(false/*mergedModel.projectWSLDistribution != null*/)
+        init()
+    }
+
+    private fun setupContainer(): JComponent {
+        if (mergedModel.hasWsl) {
+            installDirCombo = ComboBox<String>().apply {
+                isEditable = true
+                initBrowsableEditor(
+//                    BrowseFolderRunnable(
+//                        CangJieBundle.message("dialog.title.select.path.to.install.sdk"),
+//                        null,
+//                        project,
+//                        FileChooserDescriptorFactory.createSingleFolderDescriptor(),
+//                        installDirCombo,
+//                        TextComponentAccessor.STRING_COMBOBOX_WHOLE_TEXT
+//                    )
+                    BrowseFolderRunnable(
+                        project,
+                        FileChooserDescriptorFactory.createSingleFolderDescriptor()
+                            .withTitle(CangJieBundle.message("dialog.title.select.path.to.install.sdk")),
+                        installDirCombo,
+                        TextComponentAccessor.STRING_COMBOBOX_WHOLE_TEXT
+                    ), disposable
+                )
+                addActionListener { onTargetPathChanged(editor.item as String) }
+                installDirComponent = this
+            }
+            installDirTextField = null
+        } else {
+            installDirTextField = textFieldWithBrowseButton(
+                project,
+                FileChooserDescriptorFactory.createSingleFolderDescriptor()
+                    .withTitle(CangJieBundle.message("dialog.title.select.path.to.install.sdk"))
+            )
+
+                .apply {
+                    onTextChange { onTargetPathChanged(it) }
+                    textField.columns = 36
+                    installDirComponent = this
+                }
+            installDirCombo = null
+        }
+        return installDirComponent
+    }
+
+    private fun setModel(forWsl: Boolean) {
+        val model = mergedModel.selectModel(forWsl)
+        if (currentModel === model) return
+
+        val prevSelectedVersion = versionComboBox.selectedItem as? SdkVersionItem
+
+        currentModel = model
+        versionComboBox.model = DefaultComboBoxModel(model.versionGroups.toTypedArray())
+
+        val newVersionItem = if (prevSelectedVersion != null) {
+            model.versionGroups.singleOrNull { it.sdkVersion == prevSelectedVersion.sdkVersion }
+        } else null
+
+
+        onVersionSelectionChange(newVersionItem ?: model.defaultVersion)
+
+    }
+
+
+    private fun onTargetPathChanged(path: String) {
+        @Suppress("NAME_SHADOWING") val path = FileUtil.expandUserHome(path)
+        selectedPath = path
+
+
+        setModel(WslPath.isWslUncPath(path))
+    }
+
+    private fun getSuggestedInstallDirs(newVersion: SdkItem): List<String> {
+        return (listOf(null) + mergedModel.wslDistributions).mapTo(LinkedHashSet()) {
+            SdkInstaller.getInstance().defaultInstallDir(newVersion, it).toString()
+        }.map {
+            FileUtil.getLocationRelativeToUserHome(it)
+        }
+    }
+
+    private fun onVersionSelectionChange(it: SdkVersionItem?) {
+        if (it == null) return
+        versionComboBox.selectedItem = it
+        val path =
+            SdkInstaller.getInstance().defaultInstallDir(it.item/* mergedModel.projectWSLDistribution*/).toString()
+        val relativePath = FileUtil.getLocationRelativeToUserHome(path)
+        if (installDirTextField != null) {
+            installDirTextField!!.text = relativePath
+        } else {
+            installDirCombo!!.model = CollectionComboBoxModel(getSuggestedInstallDirs(it.item), relativePath)
+        }
+        selectedPath = path
+        selectedItem = it.item
+
+    }
+
+    override fun doValidate(): ValidationInfo? {
+        super.doValidate()?.let { return it }
+
+        val (_, error) = SdkInstaller.getInstance().validateInstallDir(selectedPath)
+        return error?.let { ValidationInfo(error, installDirComponent) }
+    }
+
+    override fun createCenterPanel() = panel
+
+    fun selectSdkAndPath(): Pair<SdkItem, Path>? {
+        if (!showAndGet()) {
+            return null
+        }
+
+        val (selectedFile) = SdkInstaller.getInstance().validateInstallDir(selectedPath)
+        if (selectedFile == null) {
+            return null
+        }
+
+        return selectedItem to selectedFile
+    }
+
+    private inline fun TextFieldWithBrowseButton.onTextChange(crossinline action: (String) -> Unit) {
+        textField.document.addDocumentListener(object : DocumentAdapter() {
+            override fun textChanged(e: DocumentEvent) {
+                action(text)
+            }
+        })
+    }
+
+    private inline fun <reified T> ComboBox<T>.onSelectionChange(crossinline action: (T) -> Unit) {
+        this.addItemListener { e ->
+            if (e.stateChange == ItemEvent.SELECTED) action(e.item as T)
+        }
+    }
+
+}
+
+fun textFieldWithBrowseButton(
+    project: Project?,
+    fileChooserDescriptor: FileChooserDescriptor,
+    fileChosen: ((chosenFile: VirtualFile) -> String)? = null
+): TextFieldWithBrowseButton {
+    val component = TextFieldWithBrowseButton()
+    val textComponentAccessor = TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT
+    installFileCompletionAndBrowseDialog(
+        project,
+        component,
+        component.textField,
+        fileChooserDescriptor,
+        textComponentAccessor,
+        fileChosen
+    )
+    return component
+}
+
+@JvmOverloads
+fun <T : JComponent> installFileCompletionAndBrowseDialog(
+    project: Project?,
+    component: ComponentWithBrowseButton<T>,
+    textField: JTextField,
+    fileChooserDescriptor: FileChooserDescriptor,
+    textComponentAccessor: TextComponentAccessor<T>,
+    fileChosen: ((chosenFile: VirtualFile) -> String)? = null
+) {
+    if (ApplicationManager.getApplication() == null) {
+        return // tests
+    }
+    val browseFolderDescriptor = fileChooserDescriptor.asBrowseFolderDescriptor()
+    if (fileChosen != null) {
+        browseFolderDescriptor.convertFileToText = fileChosen
+    }
+    component.addActionListener(
+        BrowseFolderActionListener(
+            fileChooserDescriptor.title,
+            fileChooserDescriptor.description,
+            component,
+            project,
+            browseFolderDescriptor,
+            textComponentAccessor
+        )
+    )
+    FileChooserFactory.getInstance()
+        .installFileCompletion(textField, fileChooserDescriptor, true, null /*infer disposable from context*/)
 }
