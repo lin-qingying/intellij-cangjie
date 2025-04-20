@@ -58,7 +58,7 @@
 
         <module name="cn.cangnova.cangjie.dapDebugger"/>
 
-        <module name="cn.cangnova.cangjie.lsp4intellij"/>
+        <module name="cn.cangnova.cangjie.lsp4ij"/>
 
 
 

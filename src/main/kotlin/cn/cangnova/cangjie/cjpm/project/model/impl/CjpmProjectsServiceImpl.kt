@@ -49,7 +49,6 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.*
@@ -76,6 +75,7 @@ import com.intellij.util.io.systemIndependentPath
 import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
 import cn.cangnova.cangjie.task.taskQueue
 import cn.cangnova.cangjie.utils.AsyncValue
+import cn.cangnova.cangjie.utils.invokeAndWaitIfNeeded
 import cn.cangnova.cangjie.utils.isUnitTestMode
 import org.jdom.Element
 import java.nio.file.Path

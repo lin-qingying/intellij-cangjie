@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,33 +22,14 @@
  *
  */
 
-pluginManagement {
+dependencies {
+    implementation(project(":"))
+}
 
-    repositories {
 
-        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
-        maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
-        maven { url = uri("https://www.jitpack.io") }
-        mavenCentral()
-        gradlePluginPortal()
+project(":plugin") {
+    dependencies {
+        implementation(project(":dap-debugger"))
+
     }
 }
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
-}
-buildCache {
-    local {
-        isEnabled = System.getenv("CI") == null
-        directory = File(rootDir, "build/build-cache")
-        removeUnusedEntriesAfterDays = 30
-    }
-}
-
-rootProject.name = "intellij-cangjie"
-
-include("plugin")
-include("dap-debugger")
-
-//include("lsp4intellij")
-
-include("lsp4ij")

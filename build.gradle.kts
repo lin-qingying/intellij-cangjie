@@ -318,7 +318,7 @@ project(":plugin") {
         implementation(project(":"))
 
 
-        implementation(project(":dap-debugger"))
+
     }
 
     val mergePluginJarTask = task<Jar>("mergePluginJars") {
@@ -431,11 +431,6 @@ project(":") {
                 .flatMap { it.filter { c -> c.isCanBeResolved } }
                 .forEach { it.resolve() }
         }
-    }
-}
-project(":dap-debugger") {
-    dependencies {
-        implementation(project(":"))
     }
 }
 

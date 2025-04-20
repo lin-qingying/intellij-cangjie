@@ -2,7 +2,6 @@ package cn.cangnova.cangjie.lsp4intellij;
 
 import com.intellij.DynamicBundle;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
 public class Lsp4IntellijBundle extends DynamicBundle {
