@@ -1,6 +1,9 @@
 
 
 dependencies {
+    intellijPlatform{
+        plugins("com.redhat.devtools.lsp4ij:0.12.0")
+    }
     implementation(project(":"))
 }
 
@@ -8,6 +11,8 @@ dependencies {
 project(":plugin") {
     dependencies {
         implementation(project(":lsp4ij"))
-
+        intellijPlatform{
+            plugins("com.redhat.devtools.lsp4ij:0.12.0")
+        }
     }
 }

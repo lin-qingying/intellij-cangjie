@@ -133,11 +133,11 @@ allprojects {
 
         intellijPlatform {
             testFramework(TestFrameworkType.Platform)
-            intellijPlatform {
 
-                create(IntelliJPlatformType.fromCode(ideToRunType), ideRunVersion)
 
-            }
+            create(IntelliJPlatformType.fromCode(ideToRunType), ideRunVersion)
+
+
         }
 
         testImplementation("junit:junit:4.13.2")
@@ -316,7 +316,6 @@ project(":plugin") {
             }
         }
         implementation(project(":"))
-
 
 
     }

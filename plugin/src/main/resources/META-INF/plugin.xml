@@ -46,6 +46,9 @@
         <plugin id="com.intellij.modules.json"/>
         <plugin id="org.toml.lang"/>
 
+
+
+        <plugin id="com.redhat.devtools.lsp4ij"/>
     </dependencies>
 
 
@@ -59,6 +62,7 @@
         <module name="cn.cangnova.cangjie.dapDebugger"/>
 
         <module name="cn.cangnova.cangjie.lsp4ij"/>
+<!--        <module name="cn.cangnova.cangjie.lsp4intellij"/>-->
 
 
 

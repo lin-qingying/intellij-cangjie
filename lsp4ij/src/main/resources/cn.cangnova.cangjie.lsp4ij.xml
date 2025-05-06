@@ -1,3 +1,14 @@
 <idea-plugin package="cn.cangnova.cangjie.lsp4ij">
 
+
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <server
+                name="CangJie Language Server" factoryClass="cn.cangnova.cangjie.lsp4ij.CangJieLanguageServerFactory"
+                id="CangJie">
+            <description><![CDATA[
+        CangJie Language Protocol Server  ]]>
+            </description>
+        </server>
+        <languageMapping language="CangJie" serverId="CangJie" languageId="Cangjie"/>
+    </extensions>
 </idea-plugin>
