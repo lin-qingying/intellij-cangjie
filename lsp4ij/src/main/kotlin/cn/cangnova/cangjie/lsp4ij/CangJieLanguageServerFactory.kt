@@ -87,17 +87,12 @@ fun lowercaseWindowsDriveAndEscapeColon(uri: String): String {
 
 class CangJieLSPClientFeatures : LSPClientFeatures() {
 
-//    class CangJieLanguageServerWrapper(
-//        delegate:LanguageServerWrapper
-//    ) : LanguageServerWrapper(delegate.project,delegate.serverDefinition,delegate.i)
-//
-//
 
 
-    override fun getFileUri(file: VirtualFile): URI? {
-        val uri = lowercaseWindowsDriveAndEscapeColon( DEFAULT.getFileUri(file).toString())
-        return URI.create(uri)
-    }
+//    override fun getFileUri(file: VirtualFile): URI? {
+//        val uri = lowercaseWindowsDriveAndEscapeColon( DEFAULT.getFileUri(file).toString())
+//        return URI.create(uri)
+//    }
 
 
     fun getCapabilities(): ClientCapabilities {
