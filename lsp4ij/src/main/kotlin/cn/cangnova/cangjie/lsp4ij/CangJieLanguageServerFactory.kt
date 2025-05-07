@@ -27,22 +27,22 @@ package cn.cangnova.cangjie.lsp4ij
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
+import cn.cangnova.cangjie.cjpm.project.toPath
 import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
 import cn.cangnova.cangjie.lang.lsp.replacePathBySystem
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.OSAgnosticPathUtil
-import com.intellij.openapi.util.io.OSAgnosticPathUtil.startsWithWindowsDrive
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.util.io.URLUtil
 import com.intellij.util.io.systemIndependentPath
 import com.redhat.devtools.lsp4ij.LanguageServerFactory
 import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 import org.eclipse.lsp4j.*
-import java.net.URI
 
 class CangJieLanguageServerFactory : LanguageServerFactory {
     override fun createConnectionProvider(project: Project): StreamConnectionProvider {
@@ -55,8 +55,6 @@ class CangJieLanguageServerFactory : LanguageServerFactory {
 }
 
 
-
-
 fun getFilePath(file: VirtualFile) = file.path
 fun getFileUri(file: VirtualFile): String {
     val escapedPath = URLUtil.encodePath(getFilePath(file))
@@ -64,6 +62,7 @@ fun getFileUri(file: VirtualFile): String {
     val uri = VfsUtil.toUri(url)?.toString() ?: url
     return lowercaseWindowsDriveAndEscapeColon(uri)
 }
+
 /**
  * The LSP specification [requires](https://microsoft.github.io/language-server-protocol/specification/#uri)
  * all servers to handle two URI formats correctly: `file:///C:/foo` and `file:///c%3A/foo`.
@@ -473,6 +472,10 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
             fun getMap(): Map<String, Any> {
                 return mapOf(
+                    "targetLib" to (project.basePath?.toPath()?.resolve(".cache")
+                        ?.resolve("lsp")?.systemIndependentPath?.replacePathBySystem() ?: ""),
+
+
                     "modulesHomeOption" to toolchain.location.systemIndependentPath.replacePathBySystem(),
 
 
@@ -481,7 +484,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
                             "name" to projectName,
 
                             "package_requires" to mapOf(
-                                "path_option" to listOf<String>(),
+                                "path_option" to project.findPathOptions(),
                                 "package_option" to mapOf<String, String>()
                             ),
                             "requires" to mutableMapOf<String, Any>().apply {
@@ -494,7 +497,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
                                                 put(
                                                     `package`.name, mapOf(
                                                         "path" to `package`.contentRoot?.let {
-                                                            getFileUri(
+                                                            cn.cangnova.cangjie.lsp4ij.getFileUri(
                                                                 it
                                                             )
                                                         }
@@ -556,4 +559,27 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
         }
     }
+}
+
+
+/**
+ * 查找项目中可能的path_option
+ *
+ * @return 编码后的路径集合
+ */
+fun Project.findPathOptions(): List<String> {
+    val projectName = name
+    val cacheLsp = this.guessProjectDir()?.toNioPathOrNull()?.resolve(".cache")?.resolve("lsp") ?: return listOf()
+    val pathOptions = mutableListOf<String>()
+
+
+    //如果不是文件夹，或者名称为bin，项目名，.build-logs，那么则不是可能的path_option
+    for (file in cacheLsp.toFile().listFiles()!!) {
+        if (file.isDirectory && file.name != "bin" && file.name != projectName && file.name != ".build-logs") {
+            pathOptions.add(getFileUri(VirtualFileManager.getInstance().findFileByNioPath(file.toPath())!!))
+        }
+
+    }
+    return pathOptions
+
 }
