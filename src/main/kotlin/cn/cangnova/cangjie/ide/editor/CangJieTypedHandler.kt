@@ -24,15 +24,12 @@
 
 package cn.cangnova.cangjie.ide.editor
 
-import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
 import cn.cangnova.cangjie.ide.formatter.adjustLineIndent
 import cn.cangnova.cangjie.ide.project.tools.projectWizard.core.safeAs
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjDeclarationModifierList
-import cn.cangnova.cangjie.psi.CjFile
-import cn.cangnova.cangjie.psi.CjFunctionLiteral
-import cn.cangnova.cangjie.psi.CjNodeTypes
-import cn.cangnova.cangjie.psi.CjSimpleNameStringTemplateEntry
+import cn.cangnova.cangjie.psi.*
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
+import cn.cangnova.cangjie.psi.psiUtil.startOffset
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.editorActions.TypedHandler
@@ -47,7 +44,6 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.startOffset
 import com.intellij.util.DocumentUtil
 
 
@@ -193,8 +189,6 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
         when (c) {
 
 
-
-
             '<' -> {
                 cangjieLTTyped = CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET &&
                         LtGtTypingUtils.shouldAutoCloseAngleBracket(editor.caretModel.offset, editor)
@@ -299,7 +293,7 @@ class CangJieTypedHandler : TypedHandlerDelegate() {
                     val identifier = file.findElementAt(offset)
                         ?.safeAs<LeafPsiElement>()
                         ?.takeIf { it.elementType == CjTokens.IDENTIFIER }
-                        ?:  run {
+                        ?: run {
                             editor.document.insertString(offset, "}")
                             return Result.STOP
                         }

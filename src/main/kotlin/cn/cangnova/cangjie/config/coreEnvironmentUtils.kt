@@ -37,27 +37,27 @@ import cn.cangnova.cangjie.psi.CjFile
 import java.io.File
 
 
-fun createSourceFilesFromSourceRoots(
-    configuration: CompilerConfiguration,
-    project: Project,
-    sourceRoots: List<CangJieSourceRoot>,
-    reportLocation: CompilerMessageLocation? = null
-): MutableList<CjFile> {
-    val psiManager = PsiManager.getInstance(project)
-    val result = mutableListOf<CjFile>()
-    sourceRoots.forAllFiles(configuration, project, reportLocation) { virtualFile, isCommon, moduleName ->
-        psiManager.findFile(virtualFile)?.let {
-            if (it is CjFile) {
-//                it.isCommonSource = isCommon
-//                if (moduleName != null) {
-//                    it.hmppModuleName = moduleName
-//                }
-                result.add(it)
-            }
-        }
-    }
-    return result
-}
+//fun createSourceFilesFromSourceRoots(
+//    configuration: CompilerConfiguration,
+//    project: Project,
+//    sourceRoots: List<CangJieSourceRoot>,
+//    reportLocation: CompilerMessageLocation? = null
+//): MutableList<CjFile> {
+//    val psiManager = PsiManager.getInstance(project)
+//    val result = mutableListOf<CjFile>()
+//    sourceRoots.forAllFiles(configuration, project, reportLocation) { virtualFile, isCommon, moduleName ->
+//        psiManager.findFile(virtualFile)?.let {
+//            if (it is CjFile) {
+////                it.isCommonSource = isCommon
+////                if (moduleName != null) {
+////                    it.hmppModuleName = moduleName
+////                }
+//                result.add(it)
+//            }
+//        }
+//    }
+//    return result
+//}
 
 fun getSourceRootsCheckingForDuplicates(
     configuration: CompilerConfiguration,
@@ -86,68 +86,68 @@ fun checkFileByExtension(vFile: VirtualFile): Boolean {
 //            &&    vFile.extension != CangJieDeclarationsFileType.EXTENSION
 }
 
-fun List<CangJieSourceRoot>.forAllFiles(
-    configuration: CompilerConfiguration,
-    project: Project,
-    reportLocation: CompilerMessageLocation? = null,
-    body: (VirtualFile, Boolean, moduleName: String?) -> Unit
-) {
-    val localFileSystem = VirtualFileManager.getInstance()
-        .getFileSystem(StandardFileSystems.FILE_PROTOCOL)
-
-    val processedFiles = hashSetOf<VirtualFile>()
-
-    val virtualFileCreator = PreprocessedFileCreator(project)
-
-    var pluginsConfigured = false
-    fun ensurePluginsConfigured() {
-        if (!pluginsConfigured) {
-            for (extension in CompilerConfigurationExtension.getInstances(project)) {
-                extension.updateFileRegistry()
-            }
-            pluginsConfigured = true
-        }
-    }
-
-    for ((sourceRootPath, isCommon, hmppModuleName) in this) {
-        val sourceRoot = File(sourceRootPath)
-        val vFile = localFileSystem.findFileByPath(sourceRoot.normalize().path)
-        if (vFile == null) {
-            val message = "Source file or directory not found: $sourceRootPath"
-
-
-            configuration.report(CompilerMessageSeverity.ERROR, message, reportLocation)
-            continue
-        }
-
-        if (!vFile.isDirectory && checkFileByExtension(vFile)) {
-            ensurePluginsConfigured()
-            if (checkFileByExtension(vFile)) {
-                configuration.report(
-                    CompilerMessageSeverity.ERROR,
-                    "Source entry is not a CangJie file: $sourceRootPath",
-                    reportLocation
-                )
-                continue
-            }
-        }
-
-        for (file in sourceRoot.walkTopDown()) {
-            if (!file.isFile) continue
-
-            val virtualFile =
-                localFileSystem.findFileByPath(file.absoluteFile.normalize().path)?.let(virtualFileCreator::create)
-            if (virtualFile != null && processedFiles.add(virtualFile)) {
-                if (checkFileByExtension(vFile)) {
-                    ensurePluginsConfigured()
-                }
-                if (!checkFileByExtension(virtualFile) || !checkFileByType(virtualFile)) {
-                    body(virtualFile, isCommon, hmppModuleName)
-                }
-            }
-        }
-    }
-}
+//fun List<CangJieSourceRoot>.forAllFiles(
+//    configuration: CompilerConfiguration,
+//    project: Project,
+//    reportLocation: CompilerMessageLocation? = null,
+//    body: (VirtualFile, Boolean, moduleName: String?) -> Unit
+//) {
+//    val localFileSystem = VirtualFileManager.getInstance()
+//        .getFileSystem(StandardFileSystems.FILE_PROTOCOL)
+//
+//    val processedFiles = hashSetOf<VirtualFile>()
+//
+//    val virtualFileCreator = PreprocessedFileCreator(project)
+//
+//    var pluginsConfigured = false
+//    fun ensurePluginsConfigured() {
+//        if (!pluginsConfigured) {
+//            for (extension in CompilerConfigurationExtension.getInstances(project)) {
+//                extension.updateFileRegistry()
+//            }
+//            pluginsConfigured = true
+//        }
+//    }
+//
+//    for ((sourceRootPath, isCommon, hmppModuleName) in this) {
+//        val sourceRoot = File(sourceRootPath)
+//        val vFile = localFileSystem.findFileByPath(sourceRoot.normalize().path)
+//        if (vFile == null) {
+//            val message = "Source file or directory not found: $sourceRootPath"
+//
+//
+//            configuration.report(CompilerMessageSeverity.ERROR, message, reportLocation)
+//            continue
+//        }
+//
+//        if (!vFile.isDirectory && checkFileByExtension(vFile)) {
+//            ensurePluginsConfigured()
+//            if (checkFileByExtension(vFile)) {
+//                configuration.report(
+//                    CompilerMessageSeverity.ERROR,
+//                    "Source entry is not a CangJie file: $sourceRootPath",
+//                    reportLocation
+//                )
+//                continue
+//            }
+//        }
+//
+//        for (file in sourceRoot.walkTopDown()) {
+//            if (!file.isFile) continue
+//
+//            val virtualFile =
+//                localFileSystem.findFileByPath(file.absoluteFile.normalize().path)?.let(virtualFileCreator::create)
+//            if (virtualFile != null && processedFiles.add(virtualFile)) {
+//                if (checkFileByExtension(vFile)) {
+//                    ensurePluginsConfigured()
+//                }
+//                if (!checkFileByExtension(virtualFile) || !checkFileByType(virtualFile)) {
+//                    body(virtualFile, isCommon, hmppModuleName)
+//                }
+//            }
+//        }
+//    }
+//}
 
 fun CompilerConfiguration.report(
     severity: CompilerMessageSeverity,

@@ -65,6 +65,18 @@ val chinesePlugin = "com.intellij.zh:233.407"
 val diagramPlugin = "com.intellij.diagram"
 
 //###############################################################
+//val sinceBuild = prop("sinceBuild")
+//val untilBuild = prop("untilBuild")
+
+
+/**
+ * 将版本号转为合法的文件夹名
+ * .改为-  如果最后面是.*去掉
+ */
+fun String.toValidDirectoryName(): String {
+    return this.replace(".", "-").removeSuffix(".*")
+}
+
 
 
 plugins {
@@ -159,7 +171,7 @@ allprojects {
                     types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
                     channels = listOf(ProductRelease.Channel.RELEASE)
                     sinceBuild = "241"
-                    untilBuild = "251.*"
+                    untilBuild = "253.*"
                 }
             }
         }
@@ -169,10 +181,13 @@ allprojects {
             java {
                 srcDirs("src/main/kotlin")
                 srcDirs("src/main/$platformVersion") // 添加 IDE 版本特定的源码目录
+//                srcDirs("src/main/${sinceBuild.toValidDirectoryName()}-${untilBuild.toValidDirectoryName()}")
             }
             kotlin {
                 srcDirs("src/main/kotlin")
                 srcDirs("src/main/$platformVersion") // 添加 IDE 版本特定的源码目录
+//                srcDirs("src/main/${sinceBuild.toValidDirectoryName()}-${untilBuild.toValidDirectoryName()}")
+
                 srcDirs("src/gen")
             }
             resources {
@@ -229,14 +244,14 @@ allprojects {
         }
 
         withType<PatchPluginXmlTask> {
-//            sinceBuild.set(ideVersion)
-//            untilBuild.set("$ideVersion.*")
+            sinceBuild.set(ideVersion)
+            untilBuild.set("$ideVersion.*")
 
-//            pluginVersion.set(cangjiePluginVersion)
+            pluginVersion.set(cangjiePluginVersion)
 
-            sinceBuild.set("241")
-            untilBuild.set("243.*")
-            pluginVersion.set(prop("pluginVersion"))
+//            sinceBuild.set("241")
+//            untilBuild.set("242.*")
+//            pluginVersion.set(prop("pluginVersion"))
         }
         runIde { enabled = false }
         prepareSandbox { enabled = false }

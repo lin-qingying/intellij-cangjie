@@ -33,7 +33,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
 
-import com.intellij.util.net.ProxySettings
+
 import com.intellij.util.text.SemVer
 import cn.cangnova.cangjie.cjpm.project.toPath
 

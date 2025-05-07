@@ -30,6 +30,7 @@ import cn.cangnova.cangjie.utils.StringsKt;
 import com.intellij.analysis.AnalysisBundle;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.lang.*;
+import com.intellij.lang.impl.PsiBuilderAdapter;
 import com.intellij.lang.impl.PsiBuilderImpl;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringHash;

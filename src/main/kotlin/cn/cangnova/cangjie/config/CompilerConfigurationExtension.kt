@@ -24,16 +24,16 @@
 
 package cn.cangnova.cangjie.config
 
-import cn.cangnova.cangjie.extensions.ProjectExtensionDescriptor
-
-interface CompilerConfigurationExtension {
-
-    companion object : ProjectExtensionDescriptor<CompilerConfigurationExtension>(
-        "cn.cangnova.cangjie.compilerConfigurationExtension",
-        CompilerConfigurationExtension::class.java
-    )
-
-    fun updateConfiguration(configuration: CompilerConfiguration)
-
-    fun updateFileRegistry() {}
-}
+//import cn.cangnova.cangjie.extensions.ProjectExtensionDescriptor
+//
+//interface CompilerConfigurationExtension {
+//
+//    companion object : ProjectExtensionDescriptor<CompilerConfigurationExtension>(
+//        "cn.cangnova.cangjie.compilerConfigurationExtension",
+//        CompilerConfigurationExtension::class.java
+//    )
+//
+//    fun updateConfiguration(configuration: CompilerConfiguration)
+//
+//    fun updateFileRegistry() {}
+//}

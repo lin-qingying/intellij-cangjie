@@ -156,3 +156,5 @@ private fun correctComma(comma: PsiElement) {
         commentOwner.deleteChildRange(firstElement, prevWithComment)
     }
 }
+fun <E : PsiElement> E.createSmartPointer(): SmartPsiElementPointer<E> =
+    SmartPointerManager.getInstance(project).createSmartPsiElementPointer(this)
