@@ -25,6 +25,8 @@
 package cn.cangnova.cangjie.cjpm.project.model
 
 //import com.akuleshov7.ktoml.file.TomlFileReader
+import cn.cangnova.cangjie.cjpm.project.model.toml.PackageConfigurationInfo
+import cn.cangnova.cangjie.toolchain.tools.Cjpm
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -32,15 +34,13 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.node.TextNode
-import cn.cangnova.cangjie.cjpm.project.model.toml.PackageConfigurationInfo
-import cn.cangnova.cangjie.toolchain.tools.Cjpm
 import com.moandjiezana.toml.Toml
 import java.nio.file.Path
 import java.util.*
 
 
 /**
- * cjpm项目信息，该类存储module.json原始数据
+ * cjpm项目信息，该类存储cjpm.toml原始数据
  */
 //@JsonDeserialize(using = CjpmProjectInfo.CjpmProjectInfoDeserializer::class)
 //@JsonInclude(JsonInclude.Include.NON_NULL)
@@ -62,10 +62,10 @@ data class CjpmProjectInfo(
 //    仓颉中心仓库依赖
     @JsonProperty("dependencies")
     @JsonDeserialize(using = Dependencie.ListDeserializer::class)
-    private   var dependencies1: List<Dependencie>? = emptyList(),
+    private var dependencies1: List<Dependencie>? = emptyList(),
     @JsonProperty("dev-dependencies")
     @JsonDeserialize(using = Require.ListDeserializer::class)
-    private   var devDependencies1: List<Dependencie>? = emptyList(),
+    private var devDependencies1: List<Dependencie>? = emptyList(),
 
 //     依赖模块信息配置项，非必须
     @JsonProperty("requires")
@@ -118,7 +118,7 @@ data class CjpmProjectInfo(
 
 //    按照条件选项透传给 cjc 的命令
     @JsonProperty("condition_option")
-    private   val condition_option1: Map<String, String>? = mapOf(),
+    private val condition_option1: Map<String, String>? = mapOf(),
     @JsonProperty("condition-option")
     private val condition_option2: Map<String, String>? = mapOf(),
 
@@ -236,7 +236,7 @@ data class CjpmProjectInfo(
             dependencies.addAll(dependencies1!!)
         }
         if (requires != null) {
-            dependencies .addAll(requires)
+            dependencies.addAll(requires)
         }
         //  dependencies += requires
         // devDependencies = devDependencies?.plus(devRequires
@@ -249,35 +249,18 @@ data class CjpmProjectInfo(
         }
 
     }
-//    class CjpmProjectInfoDeserializer : StdDeserializer<CjpmProjectInfo>(CjpmProjectInfo::class.java) {
-//        override fun deserialize(p0: JsonParser?, p1: DeserializationContext?): CjpmProjectInfo {
-//            val node: JsonNode = p0!!.codec.readTree(p0)
-//
-//
-//            TODO()
-//        }
-//    }
+
 
     companion object {
         fun deserialize(filePath: Path): CjpmProjectInfo {
-
             val file = filePath.toFile()
-
             val data = file.readText()
-
-
-
-
             return if (filePath.toFile().name == "cjpm.toml") {
-
-
                 val toml: Toml = Toml().read(data)
                 val map = mutableMapOf<String, Any>()
-
                 toml.toMap().forEach {
                     if (it.key == "package") {
                         val packageNode = it.value as Map<String, Any>
-
                         packageNode.forEach { key, value ->
                             map[key] = value
                         }
@@ -285,16 +268,9 @@ data class CjpmProjectInfo(
                         map[it.key] = it.value
                     }
                 }
-
-
 //                将package移动到顶层
-
-
                 val jsonString = Cjpm.JSON_MAPPER.writeValueAsString(map)
-
                 Cjpm.JSON_MAPPER.readValue(jsonString, CjpmProjectInfo::class.java)
-
-
             } else {
                 Cjpm.JSON_MAPPER.readValue(data, CjpmProjectInfo::class.java)
             }
@@ -303,6 +279,7 @@ data class CjpmProjectInfo(
         }
     }
 }
+
 data class PackageConfigurationInfo(
     @JsonProperty("cjc-version")
     val cjcVersion: String?,

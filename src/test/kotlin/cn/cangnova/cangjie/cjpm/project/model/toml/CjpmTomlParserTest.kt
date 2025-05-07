@@ -1,12 +1,13 @@
 package cn.cangnova.cangjie.cjpm.project.model.toml
 
+import cn.cangnova.cangjie.CangJieTestBase
 import org.junit.jupiter.api.assertThrows
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class CjpmTomlParserTest {
+class CjpmTomlParserTest: CangJieTestBase() {
     
 
     fun `test parse basic package config`() {
@@ -28,29 +29,31 @@ class CjpmTomlParserTest {
         
         assertNotNull(config.`package`)
         with(config.`package`) {
-            assertEquals("0.55.3", cjcVersion)
-            assertEquals("-O2", compileOption)
-            assertEquals("YAML解析工具", description)
+            assertEquals("0.55.3", this.cjcVersion)
+            assertEquals("-O2", this.compileOption)
+            assertEquals("YAML解析工具", this.description)
             assertEquals("", linkOption)
             assertEquals("yaml4cj", name)
             assertEquals(OutputType.DYNAMIC, outputType)
-            assertEquals("src", srcDir)
-            assertEquals("", targetDir)
-            assertEquals("0.0.1", version)
+            assertEquals("src", this.srcDir)
+            assertEquals("", this.targetDir)
+            assertEquals("0.0.1", this.version)
         }
     }
     
 
     fun `test parse dependencies`() {
         val content = """
-            [dependencies]
-            charset4cj = {branch = "v0.0.1.B002", git = "https://gitcode.com/Cangjie-TPC/charset4cj.git"}
-            
+          
             [package]
             name = "test"
             cjc-version = "0.55.3"
             version = "0.0.1"
             output-type = "dynamic"
+            
+            [dependencies]
+            charset4cj = {branch = "v0.0.1.B002", git = "https://gitcode.com/Cangjie-TPC/charset4cj.git"}
+            
         """.trimIndent()
         
         val config = CjpmTomlParser.parse(content)
@@ -86,9 +89,9 @@ class CjpmTomlParserTest {
         assertEquals("-B\"\${DEVECO_CANGJIE_HOME}/compiler/third_party/llvm/bin\"", targetConfig.compileOption)
         
         assertNotNull(targetConfig.binDependencies)
-        assertEquals(1, targetConfig.binDependencies.pathOption?.size)
+        assertEquals(1, targetConfig.binDependencies .pathOption?.size)
         assertEquals("\${DEVECO_CANGJIE_HOME}/build/linux_ohos_aarch64_llvm/ohos", 
-            targetConfig.binDependencies.pathOption?.get(0))
+            targetConfig .binDependencies.pathOption?.get(0))
     }
     
 
@@ -172,9 +175,9 @@ class CjpmTomlParserTest {
         assertNotNull(config.profile)
         with(config.profile) {
             // 验证 build 配置
-            assertNotNull(build)
+            assertNotNull(this.build)
             assertEquals(false, build.incremental)
-            assertEquals("", build.lto)
+            assertEquals("",  build.lto)
             
             // 验证自定义选项
             assertNotNull(customizedOption)

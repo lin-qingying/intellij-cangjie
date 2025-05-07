@@ -14,13 +14,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CjpmTomlConfig(
     /** 单模块配置字段，与 workspace 字段不能同时存在 */
-    val `package`: PackageConfig? = null,
+    @JsonProperty("package") val `package`: PackageConfig? = null,
 
     /** 工作空间管理字段，与 package 字段不能同时存在 */
     @JsonDeserialize(using = EmptyStringToWorkspaceConfigDeserializer::class) val workspace: WorkspaceConfig? = null,
 
     /** 源码依赖配置项 */
-    val dependencies: Map<String, DependencyConfig> = mapOf(),
+    @JsonProperty("dependencies") val dependencies: Map<String, DependencyConfig> = mapOf(),
 
     /** 测试阶段的依赖配置项 */
     @JsonProperty("test-dependencies") val testDependencies: Map<String, DependencyConfig> = mapOf(),
@@ -35,7 +35,7 @@ data class CjpmTomlConfig(
     @JsonDeserialize(using = EmptyStringToProfileConfigDeserializer::class) val profile: ProfileConfig? = null,
 
     /** 后端和平台隔离配置项 */
-    val target: Map<String, TargetConfig> = mapOf()
+    @JsonProperty("target")   val target: Map<String, TargetConfig> = mapOf()
 ) {
 
     val srcDir get() = if (`package`?.srcDir?.isNullOrEmpty() != false) "src" else `package`.srcDir
@@ -106,7 +106,7 @@ data class PackageConfig(
     @JsonProperty("target-dir") val targetDir: String = "target",
 
     /** 单包配置选项 */
-    @JsonProperty("package-configuration") @JsonDeserialize(using = EmptyStringToNullMapDeserializer::class) val packageConfiguration: Map<String, PackageConfigurationInfo>? = null
+    @JsonProperty("package-configuration") val packageConfiguration: Map<String, PackageConfigurationInfo>? = null
 )
 
 /**

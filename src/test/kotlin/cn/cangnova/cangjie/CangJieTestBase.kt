@@ -10,6 +10,10 @@ import org.junit.runners.model.TestClass
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.Collections
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+import kotlin.test.asserter
+
 /**
  * 这是一个自定义的 JUnit4 测试运行器，它支持两种风格的测试方法：
  * 1. JUnit4 风格 - 使用 @Test 注解
@@ -69,7 +73,13 @@ abstract class CangJieTestBase : BasePlatformTestCase(),CangJieTestCase
     override fun getTestDataPath(): String = "${TestCase.testResourcesPath}/$dataPath"
     protected val fileName: String
         get() = "$testName.cj"
-
+    /** Asserts that the [actual] value is not `null`, with an optional [message]. */
+    @OptIn(ExperimentalContracts::class)
+    public fun <T : Any> assertNotNull(actual: T?, message: String? = null): T {
+        contract { returns() implies (actual != null) }
+        asserter.assertNotNull(message, actual)
+        return actual!!
+    }
     private val testName: String
         get() = getTestName(true)
 
