@@ -246,9 +246,8 @@ allprojects {
         withType<PatchPluginXmlTask> {
             sinceBuild.set(ideVersion)
             untilBuild.set("$ideVersion.*")
-
             pluginVersion.set(cangjiePluginVersion)
-
+//
 //            sinceBuild.set("243")
 //            untilBuild.set("253.*")
 //            pluginVersion.set(prop("pluginVersion"))

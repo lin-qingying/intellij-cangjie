@@ -1,0 +1,396 @@
+{
+  "jsonrpc": "2.0",
+  "id": "1",
+  "method": "initialize",
+  "params": {
+    "processId": 29176,
+    "rootPath": "D:/code/cangjie/bson" , //required
+    "rootUri": "file:///d%3A/code/cangjie/bson",  //required
+    "initializationOptions": {
+      "modulesHomeOption": "C:\\Users\\27439\\.sdk\\cangjie",  //SDK HOME
+      "multiModuleOption": {
+        "file:///d%3A/code/cangjie/bson": {//required  Corresponding to a module
+          "name": "bson",
+          "package_requires": {
+            "path_option": [],
+            "package_option": {}
+          },
+          "requires": {}
+        },
+      }
+    },
+    "capabilities": {
+      "workspace": {
+        "applyEdit": true,
+        "didChangeConfiguration": {
+          "dynamicRegistration": true
+        },
+        "didChangeWatchedFiles": {
+          "relativePatternSupport": true,
+          "dynamicRegistration": true
+        },
+        "symbol": {
+          "symbolKind": {
+            "valueSet": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26
+            ]
+          },
+          "resolveSupport": {
+            "properties": [
+              "location.range"
+            ]
+          },
+          "dynamicRegistration": true
+        },
+        "executeCommand": {
+          "dynamicRegistration": true
+        },
+        "workspaceFolders": true,
+        "configuration": true,
+        "semanticTokens": {
+          "refreshSupport": true
+        },
+        "codeLens": {
+          "refreshSupport": true
+        },
+        "fileOperations": {
+          "didCreate": true,
+          "willCreate": true,
+          "didRename": true,
+          "willRename": true,
+          "didDelete": true,
+          "willDelete": true,
+          "dynamicRegistration": true
+        },
+        "inlineValue": {
+          "refreshSupport": true
+        },
+        "diagnostics": {
+          "refreshSupport": true
+        }
+      },
+      "textDocument": {
+        "synchronization": {
+          "willSave": true,
+          "willSaveWaitUntil": true,
+          "didSave": true,
+          "dynamicRegistration": true
+        },
+        "completion": {
+          "completionItem": {
+            "snippetSupport": true,
+            "commitCharactersSupport": true,
+            "deprecatedSupport": true,
+            "preselectSupport": true,
+            "tagSupport": {
+              "valueSet": [
+                1
+              ]
+            },
+            "insertReplaceSupport": true,
+            "resolveSupport": {
+              "properties": [
+                "documentation",
+                "detail",
+                "additionalTextEdits"
+              ]
+            },
+            "insertTextModeSupport": {
+              "valueSet": []
+            },
+            "labelDetailsSupport": true
+          },
+          "contextSupport": true,
+          "completionList": {
+            "itemDefaults": [
+              "commitCharacters",
+              "editRange",
+              "insertTextFormat",
+              "insertTextMode"
+            ]
+          },
+          "dynamicRegistration": true
+        },
+        "hover": {
+          "dynamicRegistration": true
+        },
+        "signatureHelp": {
+          "signatureInformation": {
+            "documentationFormat": [
+              "markdown",
+              "plaintext"
+            ],
+            "parameterInformation": {
+              "labelOffsetSupport": true
+            },
+            "activeParameterSupport": true
+          },
+          "contextSupport": true,
+          "dynamicRegistration": true
+        },
+        "references": {
+          "dynamicRegistration": true
+        },
+        "documentHighlight": {
+          "dynamicRegistration": true
+        },
+        "documentSymbol": {
+          "symbolKind": {
+            "valueSet": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26
+            ]
+          },
+          "tagSupport": {
+            "valueSet": [
+              1
+            ]
+          },
+          "labelSupport": true,
+          "dynamicRegistration": true
+        },
+        "formatting": {
+          "dynamicRegistration": true
+        },
+        "rangeFormatting": {
+          "dynamicRegistration": true
+        },
+        "onTypeFormatting": {
+          "dynamicRegistration": true
+        },
+        "declaration": {
+          "linkSupport": true,
+          "dynamicRegistration": true
+        },
+        "definition": {
+          "linkSupport": true,
+          "dynamicRegistration": true
+        },
+        "typeDefinition": {
+          "linkSupport": true,
+          "dynamicRegistration": true
+        },
+        "implementation": {
+          "linkSupport": true,
+          "dynamicRegistration": true
+        },
+        "codeAction": {
+          "codeActionLiteralSupport": {
+            "codeActionKind": {
+              "valueSet": [
+                "",
+                "quickfix",
+                "refactor",
+                "refactor.extract",
+                "refactor.inline",
+                "refactor.rewrite",
+                "source",
+                "source.organizeImports"
+              ]
+            }
+          },
+          "isPreferredSupport": true,
+          "disabledSupport": true,
+          "dataSupport": true,
+          "resolveSupport": {
+            "properties": [
+              "edit"
+            ]
+          },
+          "honorsChangeAnnotations": false,
+          "dynamicRegistration": true
+        },
+        "codeLens": {
+          "dynamicRegistration": true
+        },
+        "documentLink": {
+          "tooltipSupport": true,
+          "dynamicRegistration": true
+        },
+        "colorProvider": {
+          "dynamicRegistration": true
+        },
+        "publishDiagnostics": {
+          "relatedInformation": true,
+          "versionSupport": false,
+          "codeDescriptionSupport": true,
+          "dataSupport": true
+        },
+        "foldingRange": {
+          "rangeLimit": 5000,
+          "lineFoldingOnly": true,
+          "foldingRangeKind": {
+            "valueSet": [
+              "comment",
+              "imports",
+              "region"
+            ]
+          },
+          "foldingRange": {
+            "collapsedText": false
+          },
+          "dynamicRegistration": true
+        },
+        "typeHierarchy": {
+          "dynamicRegistration": true
+        },
+        "callHierarchy": {
+          "dynamicRegistration": true
+        },
+        "selectionRange": {
+          "dynamicRegistration": true
+        },
+        "semanticTokens": {
+          "requests": {},
+          "tokenTypes": [
+            "namespace",
+            "type",
+            "class",
+            "enum",
+            "interface",
+            "struct",
+            "typeParameter",
+            "parameter",
+            "variable",
+            "property",
+            "enumMember",
+            "event",
+            "function",
+            "method",
+            "macro",
+            "keyword",
+            "modifier",
+            "comment",
+            "string",
+            "number",
+            "regexp",
+            "operator",
+            "decorator"
+          ],
+          "tokenModifiers": [
+            "declaration",
+            "definition",
+            "readonly",
+            "static",
+            "deprecated",
+            "abstract",
+            "async",
+            "modification",
+            "documentation",
+            "defaultLibrary"
+          ],
+          "overlappingTokenSupport": false,
+          "multilineTokenSupport": false,
+          "serverCancelSupport": true,
+          "augmentsSyntaxTokens": true,
+          "dynamicRegistration": true
+        },
+        "linkedEditingRange": {
+          "dynamicRegistration": true
+        },
+        "inlineValue": {
+          "dynamicRegistration": true
+        },
+        "diagnostic": {
+          "relatedDocumentSupport": false,
+          "dynamicRegistration": true
+        }
+      },
+      "notebookDocument": {
+        "synchronization": {
+          "dynamicRegistration": true
+        }
+      },
+      "window": {
+        "workDoneProgress": true,
+        "showMessage": {
+          "messageActionItem": {
+            "additionalPropertiesSupport": true
+          }
+        },
+        "showDocument": {
+          "support": true
+        }
+      },
+      "general": {
+        "regularExpressions": {
+          "engine": "ECMAScript",
+          "version": "ES2020"
+        },
+        "markdown": {
+          "parser": "marked",
+          "version": "1.1.0"
+        },
+        "staleRequestSupport": {
+          "cancel": true,
+          "retryOnContentModified": [
+            "textDocument/semanticTokens/full",
+            "textDocument/semanticTokens/range",
+            "textDocument/semanticTokens/full/delta"
+          ]
+        }
+      }
+    },
+    "clientInfo": {
+      "name": "Intellij CangJie",
+      "version": "1.0.0"
+    },
+    "locale": "zh_cn",
+    "trace": "off",
+    "workspaceFolders": [
+      {
+        "uri": "file:///D:/code/cangjie/bson",
+        "name": "bson"
+      }
+    ]
+  }
+}

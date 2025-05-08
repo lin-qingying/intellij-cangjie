@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templateSet group="CangJie">
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.main"
+              name="main" toReformat="true" toShortenFQNames="true"
+              value="main($ARGS$) {&#10;  $END$&#10;}">
+        <variable name="ARGS" expression="cangjieMainArguments()" defaultValue="" alwaysStopAt="false" />
+        <context>
+            <option name="CANGJIE_TOPLEVEL" value="true" />
+        </context>
+    </template>
+
+
+
+
+
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.iter"
+              name="iter" toReformat="true" toShortenFQNames="true"
+              value="for ($VAR$ in $ITERABLE$) {&#10;$END$&#10;}">
+        <variable alwaysStopAt="true" defaultValue="&quot;iterable&quot;" expression="cangjieVariable()" name="ITERABLE" />
+        <variable alwaysStopAt="true" defaultValue="&quot;i&quot;" expression="cangjieSuggestVariableName()" name="VAR" />
+        <context>
+            <option name="CANGJIE_STATEMENT" value="true" />
+        </context>
+    </template>
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.ifn"
+              name="ifn" toReformat="true" toShortenFQNames="true"
+              value="if ($VAR$ == None) {&#10;$END$&#10;}">
+      <variable alwaysStopAt="true" defaultValue="&quot;i&quot;" expression="cangjieVariable()" name="VAR" />
+      <context>
+        <option name="CANGJIE_EXPRESSION" value="true" />
+      </context>
+    </template>
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.inn"
+              name="inn" toReformat="true" toShortenFQNames="true"
+              value="if ($VAR$ != None) {&#10;$END$&#10;}">
+      <variable alwaysStopAt="true" defaultValue="&quot;i&quot;" expression="cangjieVariable()" name="VAR" />
+      <context>
+        <option name="CANGJIE_EXPRESSION" value="true" />
+      </context>
+    </template>
+
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.iflet"
+              name="iflet" toReformat="true" toShortenFQNames="true"
+              value="if (let $VAR$ &lt;- Some($VAR2$)) {&#10;$END$&#10;}">
+        <variable alwaysStopAt="true" defaultValue="&quot;i&quot;" expression="cangjieVariable()" name="VAR" />
+        <variable alwaysStopAt="true" defaultValue="&quot;i&quot;" expression="cangjieVariable()" name="VAR2" />
+        <context>
+            <option name="CANGJIE_EXPRESSION" value="true" />
+        </context>
+    </template>
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.whilelet"
+              name="whilelet" toReformat="true" toShortenFQNames="true"
+              value="while (let $VAR$ &lt;- Some($VAR2$)) {&#10;$END$&#10;}">
+        <variable alwaysStopAt="true" defaultValue="&quot;i&quot;" expression="cangjieVariable()" name="VAR" />
+        <variable alwaysStopAt="true" defaultValue="&quot;i&quot;" expression="cangjieVariable()" name="VAR2" />
+        <context>
+            <option name="CANGJIE_EXPRESSION" value="true" />
+        </context>
+    </template>
+
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.void"
+              name="void" toReformat="true" toShortenFQNames="true" value="func $NAME$($PARAMS$) {&#10;$END$&#10;}">
+        <variable alwaysStopAt="true" defaultValue="" expression="" name="NAME" />
+        <variable alwaysStopAt="true" defaultValue="" expression="" name="PARAMS" />
+        <context>
+            <option name="CANGJIE_STATEMENT" value="true"/>
+            <option name="CANGJIE_CLASS" value="true"/>
+            <option name="CANGJIE_TOPLEVEL" value="true"/>
+        </context>
+    </template>
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.func0"
+              name="func0" toReformat="true" toShortenFQNames="true" value="func $NAME$() : $RETURN$ {&#10;$END$&#10;}">
+        <variable alwaysStopAt="true" defaultValue="" expression="" name="NAME" />
+        <variable alwaysStopAt="true" defaultValue="&quot;Unit&quot;" expression="" name="RETURN" />
+        <context>
+            <option name="CANGJIE_STATEMENT" value="true"/>
+            <option name="CANGJIE_CLASS" value="true"/>
+            <option name="CANGJIE_TOPLEVEL" value="true"/>
+        </context>
+    </template>
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.func1"
+              name="func1" toReformat="true" toShortenFQNames="true"
+              value="func $NAME$($PARAM1$ : $PARAM1TYPE$) : $RETURN$ {&#10;$END$&#10;}">
+        <variable alwaysStopAt="true" defaultValue="" expression="" name="NAME" />
+        <variable alwaysStopAt="true" defaultValue="&quot;x&quot;" expression="" name="PARAM1" />
+        <variable alwaysStopAt="true" defaultValue="&quot;Any&quot;" expression="" name="PARAM1TYPE" />
+        <variable alwaysStopAt="true" defaultValue="&quot;Unit&quot;" expression="" name="RETURN" />
+        <context>
+            <option name="CANGJIE_STATEMENT" value="true"/>
+            <option name="CANGJIE_CLASS" value="true"/>
+            <option name="CANGJIE_TOPLEVEL" value="true"/>
+        </context>
+    </template>
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.func2"
+              name="func2" toReformat="true" toShortenFQNames="true"
+              value="func $NAME$($PARAM1$ : $PARAM1TYPE$, $PARAM2$ : $PARAM2TYPE$) : $RETURN$ {&#10;$END$&#10;}">
+        <variable alwaysStopAt="true" defaultValue="" expression="" name="NAME" />
+        <variable alwaysStopAt="true" defaultValue="&quot;x&quot;" expression="" name="PARAM1" />
+        <variable alwaysStopAt="true" defaultValue="&quot;Any&quot;" expression="" name="PARAM1TYPE" />
+        <variable alwaysStopAt="true" defaultValue="&quot;y&quot;" expression="" name="PARAM2" />
+        <variable alwaysStopAt="true" defaultValue="&quot;Any&quot;" expression="" name="PARAM2TYPE" />
+        <variable alwaysStopAt="true" defaultValue="&quot;Unit&quot;" expression="" name="RETURN" />
+        <context>
+            <option name="CANGJIE_STATEMENT" value="true"/>
+            <option name="CANGJIE_CLASS" value="true"/>
+            <option name="CANGJIE_TOPLEVEL" value="true"/>
+        </context>
+    </template>
+
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.interface"
+              name="interface" toReformat="true" toShortenFQNames="true" value="interface $NAME$ {&#10;$END$&#10;}">
+        <variable alwaysStopAt="true" defaultValue="" expression="" name="NAME" />
+        <context>
+
+            <option name="CANGJIE_TOPLEVEL" value="true"/>
+        </context>
+    </template>
+
+    <template resource-bundle="messages.CangJieBundle" key="livetemplate.description.closure"
+              name="class" toReformat="true" toShortenFQNames="true" value="class $NAME$ {&#10;$END$&#10;}">
+        <variable alwaysStopAt="true" defaultValue="" expression="" name="NAME" />
+        <context>
+
+            <option name="CANGJIE_TOPLEVEL" value="true"/>
+        </context>
+    </template>
+
+
+
+
+
+
+
+
+
+</templateSet>
