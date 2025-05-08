@@ -78,9 +78,12 @@ class CangJieOSProcessStreamConnectionProvider(
                 // 重新计算 Content-Length
                 val newContentLength = json.toByteArray().size
 
-
+//                $separator
                 // 发送修改后的数据
-                writer.write("Content-Length: $newContentLength$separator")
+                writer.write("Content-Length: $newContentLength")
+                writer.write(13)
+                writer.write(10)
+                writer.write(13)
                 writer.write(10)
                 writer.write(json)
                 writer.flush()

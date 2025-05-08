@@ -249,8 +249,8 @@ allprojects {
 
             pluginVersion.set(cangjiePluginVersion)
 
-//            sinceBuild.set("241")
-//            untilBuild.set("242.*")
+//            sinceBuild.set("243")
+//            untilBuild.set("253.*")
 //            pluginVersion.set(prop("pluginVersion"))
         }
         runIde { enabled = false }
