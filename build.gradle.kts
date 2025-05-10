@@ -129,6 +129,8 @@ allprojects {
 
             intellijDependencies()
             defaultRepositories()
+
+            nightly()
         }
         maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
 
