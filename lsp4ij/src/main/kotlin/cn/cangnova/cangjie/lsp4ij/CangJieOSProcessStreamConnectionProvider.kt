@@ -39,7 +39,7 @@ class CangJieOSProcessStreamConnectionProvider(
 
     override fun start() {
         super.start() // 启动 LSP 服务器
-        Thread { interceptAndModifyOutput() }.start() // 启动拦截线程
+//        Thread { interceptAndModifyOutput() }.start() // 启动拦截线程
     }
 
     private fun interceptAndModifyOutput() {
@@ -124,8 +124,8 @@ class CangJieOSProcessStreamConnectionProvider(
     }
 
 
-    override fun getInputStream(): InputStream? {
-        return modifiedInputStream
-    }
+//    override fun getInputStream(): InputStream? {
+//        return modifiedInputStream
+//    }
 
 }

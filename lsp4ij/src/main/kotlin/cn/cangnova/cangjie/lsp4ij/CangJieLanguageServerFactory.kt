@@ -40,9 +40,11 @@ import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.util.io.URLUtil
 import com.intellij.util.io.systemIndependentPath
 import com.redhat.devtools.lsp4ij.LanguageServerFactory
+import com.redhat.devtools.lsp4ij.client.features.FileUriSupport
 import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 import org.eclipse.lsp4j.*
+import kotlin.io.path.exists
 
 class CangJieLanguageServerFactory : LanguageServerFactory {
     override fun createConnectionProvider(project: Project): StreamConnectionProvider {
@@ -55,13 +57,13 @@ class CangJieLanguageServerFactory : LanguageServerFactory {
 }
 
 
-fun getFilePath(file: VirtualFile) = file.path
-fun getFileUri(file: VirtualFile): String {
-    val escapedPath = URLUtil.encodePath(getFilePath(file))
-    val url = VirtualFileManager.constructUrl(URLUtil.FILE_PROTOCOL, escapedPath)
-    val uri = VfsUtil.toUri(url)?.toString() ?: url
-    return lowercaseWindowsDriveAndEscapeColon(uri)
-}
+//fun getFilePath(file: VirtualFile) = file.path
+//fun getFileUri(file: VirtualFile): String {
+//    val escapedPath = URLUtil.encodePath(getFilePath(file))
+//    val url = VirtualFileManager.constructUrl(URLUtil.FILE_PROTOCOL, escapedPath)
+//    val uri = VfsUtil.toUri(url)?.toString() ?: url
+//    return lowercaseWindowsDriveAndEscapeColon(uri)
+//}
 
 /**
  * The LSP specification [requires](https://microsoft.github.io/language-server-protocol/specification/#uri)
@@ -76,16 +78,19 @@ fun getFileUri(file: VirtualFile): String {
  * Some LSP servers only support VS Code friendly URI format (`file:///c%3A/foo`),
  * so it's safer to use this format by default.
  */
-fun lowercaseWindowsDriveAndEscapeColon(uri: String): String {
-    val prefix = "file:///"
-    if (uri.startsWith(prefix) && OSAgnosticPathUtil.startsWithWindowsDrive(uri.substring(prefix.length))) {
-        return prefix + uri[prefix.length].lowercase() + "%3A" + uri.substring(prefix.length + 2)
-    }
-    return uri
-}
+//fun lowercaseWindowsDriveAndEscapeColon(uri: String): String {
+//    val prefix = "file:///"
+//    if (uri.startsWith(prefix) && OSAgnosticPathUtil.startsWithWindowsDrive(uri.substring(prefix.length))) {
+//        return prefix + uri[prefix.length].lowercase() + "%3A" + uri.substring(prefix.length + 2)
+//    }
+//    return uri
+//}
 
 class CangJieLSPClientFeatures : LSPClientFeatures() {
 
+    init {
+        setFileUriSupport(FileUriSupport.ENCODED)
+    }
 
     /**
      * Overwriting it causes openDocuments to miss the files in the editor,
@@ -449,14 +454,35 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
         return capabilities
 
     }
+    /**
+     * 查找项目中可能的path_option
+     *
+     * @return 编码后的路径集合
+     */
+    fun Project.findPathOptions(): List<String> {
+        val projectName = name
+        val cacheLsp = this.guessProjectDir()?.toNioPathOrNull()?.resolve(".cache")?.resolve("lsp") ?: return listOf()
+        val pathOptions = mutableListOf<String>()
 
+        if(!cacheLsp.exists()) return pathOptions
+
+        //如果不是文件夹，或者名称为bin，项目名，.build-logs，那么则不是可能的path_option
+        for (file in cacheLsp.toFile().listFiles() ) {
+            if (file.isDirectory && file.name != "bin" && file.name != projectName && file.name != ".build-logs") {
+                pathOptions.add(toString(VirtualFileManager.getInstance().findFileByNioPath(file.toPath())!!).toString())
+            }
+
+        }
+        return pathOptions
+
+    }
     override fun initializeParams(initializeParams: InitializeParams) {
 
         val toolchain = project.cangjieSettings.toolchain
 
 
-        initializeParams.rootPath = project.guessProjectDir()?.path
-        initializeParams.rootUri = cn.cangnova.cangjie.lsp4ij.getFileUri(project.guessProjectDir()!!)
+//        initializeParams.rootPath = project.guessProjectDir()?.path
+//        initializeParams.rootUri = cn.cangnova.cangjie.lsp4ij.getFileUri(project.guessProjectDir()!!)
 
         initializeParams.clientInfo = ClientInfo("Intellij CangJie", "1.0.0")
 
@@ -480,7 +506,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
 
                     "multiModuleOption" to mutableMapOf<String, Any>(
-                        cn.cangnova.cangjie.lsp4ij.getFileUri(project.guessProjectDir()!!) to mapOf(
+                toString(project.guessProjectDir()!!).toString() to mapOf(
                             "name" to projectName,
 
                             "package_requires" to mapOf(
@@ -497,9 +523,9 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
                                                 put(
                                                     `package`.name, mapOf(
                                                         "path" to `package`.contentRoot?.let {
-                                                            cn.cangnova.cangjie.lsp4ij.getFileUri(
+                                                            toString(
                                                                 it
-                                                            )
+                                                            ).toString()
                                                         }
                                                     )
                                                 )
@@ -518,9 +544,9 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
                                     if (`package`.origin == PackageOrigin.DEPENDENCY) {
                                         `package`.contentRoot?.let {
-                                            cn.cangnova.cangjie.lsp4ij.getFileUri(
+                                            toString(
                                                 it
-                                            )
+                                            ).toString()
                                         }?.let {
                                             put(
                                                 it,
@@ -562,24 +588,3 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 }
 
 
-/**
- * 查找项目中可能的path_option
- *
- * @return 编码后的路径集合
- */
-fun Project.findPathOptions(): List<String> {
-    val projectName = name
-    val cacheLsp = this.guessProjectDir()?.toNioPathOrNull()?.resolve(".cache")?.resolve("lsp") ?: return listOf()
-    val pathOptions = mutableListOf<String>()
-
-
-    //如果不是文件夹，或者名称为bin，项目名，.build-logs，那么则不是可能的path_option
-    for (file in cacheLsp.toFile().listFiles()!!) {
-        if (file.isDirectory && file.name != "bin" && file.name != projectName && file.name != ".build-logs") {
-            pathOptions.add(getFileUri(VirtualFileManager.getInstance().findFileByNioPath(file.toPath())!!))
-        }
-
-    }
-    return pathOptions
-
-}
