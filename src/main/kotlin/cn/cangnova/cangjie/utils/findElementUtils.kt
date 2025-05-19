@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,23 @@
  *
  */
 
-package cn.cangnova.cangjie.psi
+package cn.cangnova.cangjie.utils
 
-import com.intellij.psi.PsiElement
+import cn.cangnova.cangjie.psi.CjElement
+import cn.cangnova.cangjie.psi.CjExpression
+import cn.cangnova.cangjie.psi.CjSimpleNameExpression
+import cn.cangnova.cangjie.psi.CjTypeElement
 
-open class CjTreeVisitorVoid : CjVisitorVoid() {
-    override fun visitElement(element: PsiElement) {
-        element.acceptChildren(this)
-    }
+enum class ElementKind {
+    EXPRESSION {
+        override val elementClass = CjExpression::class.java
+    },
+    TYPE_ELEMENT {
+        override val elementClass = CjTypeElement::class.java
+    },
+    TYPE_CONSTRUCTOR {
+        override val elementClass = CjSimpleNameExpression::class.java
+    };
 
-
+    abstract val elementClass: Class<out CjElement>
 }

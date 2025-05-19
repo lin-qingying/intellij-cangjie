@@ -108,6 +108,10 @@ inline fun <reified T : PsiElement> PsiElement.replaced(newElement: T): T {
         else -> (result as CjParenthesizedExpression).expression as T
     }
 }
+inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean, vararg stopAt: Class<out PsiElement>): T? {
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+    return PsiTreeUtil.getParentOfType(this, T::class.java, strict, *stopAt)
+}
 
 inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict)

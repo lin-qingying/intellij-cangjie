@@ -75,6 +75,7 @@ open class CjElementImplStub<T : StubElement<*>> :
                 } catch (_: Exception) {
                 }
             }
+
             // getNode() will fail if getContainingFile() returns not PsiFileImpl instance
             val nodeString = (if (file is PsiFileImpl) (" node = $node") else "")
 

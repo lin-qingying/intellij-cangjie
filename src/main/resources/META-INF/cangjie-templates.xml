@@ -3,6 +3,9 @@
     <defaultLiveTemplates file="liveTemplates/CangJie.xml"/>
 
 
+    <codeInsight.template.postfixTemplateProvider
+            language="CangJie"
+            implementationClass="cn.cangnova.cangjie.ide.codeInsight.template.template.CangJiePostfixTemplateProvider"/>
 
     <liveTemplateContext contextId="CANGJIE" implementation="cn.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Generic"/>
     <liveTemplateContext contextId="CANGJIE_TOPLEVEL" baseContextId="CANGJIE" implementation="cn.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$TopLevel"/>

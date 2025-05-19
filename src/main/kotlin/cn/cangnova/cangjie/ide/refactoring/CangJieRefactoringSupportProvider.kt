@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,16 @@
  *
  */
 
-package cn.cangnova.cangjie.psi
+package cn.cangnova.cangjie.ide.refactoring
 
-import com.intellij.psi.PsiElement
+import cn.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableHandler
+import com.intellij.lang.refactoring.RefactoringSupportProvider
+import com.intellij.refactoring.RefactoringActionHandler
 
-open class CjTreeVisitorVoid : CjVisitorVoid() {
-    override fun visitElement(element: PsiElement) {
-        element.acceptChildren(this)
-    }
-
+/**
+ * 重构支持提供者
+ */
+class CangJieRefactoringSupportProvider : RefactoringSupportProvider() {
+    override fun getIntroduceVariableHandler(): RefactoringActionHandler? = CangJieIntroduceVariableHandler.DEFAULT
 
 }

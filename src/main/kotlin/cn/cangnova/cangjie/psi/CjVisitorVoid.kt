@@ -224,11 +224,11 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         super.visitConstructorDelegationCall(call, null)
     }
 
-    fun visitTypeReference(typeReference: CjTypeReference) {
+    open fun visitTypeReference(typeReference: CjTypeReference) {
         super.visitTypeReference(typeReference, null)
     }
 
-    fun visitValueArgumentList(list: CjValueArgumentList) {
+    open fun visitValueArgumentList(list: CjValueArgumentList) {
         super.visitValueArgumentList(list, null)
     }
 
@@ -252,11 +252,11 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         super.visitReferenceExpression(expression, null)
     }
 
-    fun visitPrefixExpression(expression: CjPrefixExpression) {
+    open fun visitPrefixExpression(expression: CjPrefixExpression) {
         super.visitPrefixExpression(expression, null)
     }
 
-    fun visitPostfixExpression(expression: CjPostfixExpression) {
+    open fun visitPostfixExpression(expression: CjPostfixExpression) {
         super.visitPostfixExpression(expression, null)
     }
 
@@ -361,7 +361,7 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         super.visitThisExpression(expression, null)
     }
 
-    fun visitSuperExpression(expression: CjSuperExpression) {
+    open fun visitSuperExpression(expression: CjSuperExpression) {
         super.visitSuperExpression(expression, null)
     }
 

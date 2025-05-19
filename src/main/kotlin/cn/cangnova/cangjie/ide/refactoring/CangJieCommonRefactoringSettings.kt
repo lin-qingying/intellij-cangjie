@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,34 @@
  *
  */
 
-package cn.cangnova.cangjie.psi
+package cn.cangnova.cangjie.ide.refactoring
 
-import com.intellij.psi.PsiElement
+import com.intellij.openapi.components.*
+import com.intellij.util.xmlb.XmlSerializerUtil
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KMutableProperty0
+import kotlin.reflect.KProperty
 
-open class CjTreeVisitorVoid : CjVisitorVoid() {
-    override fun visitElement(element: PsiElement) {
-        element.acceptChildren(this)
+
+
+
+@State(
+    name = "CangJieRefactoringSettings",
+    storages = [Storage("cangjieRefactoring.xml")],
+    category = SettingsCategory.CODE
+)
+class CangJieRefactoringSettings : PersistentStateComponent<CangJieRefactoringSettings> {
+
+    var INTRODUCE_DECLARE_WITH_VAR = false
+
+
+    override fun getState() = this
+
+    override fun loadState(state: CangJieRefactoringSettings) = XmlSerializerUtil.copyBean(state, this)
+
+    companion object {
+        @JvmStatic
+        val instance: CangJieRefactoringSettings
+            get() = service()
     }
-
-
 }

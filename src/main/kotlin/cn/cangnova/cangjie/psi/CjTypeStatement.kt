@@ -30,10 +30,13 @@ import cn.cangnova.cangjie.psi.psiUtil.ClassIdCalculator
 import cn.cangnova.cangjie.psi.stubs.CangJieTypeStatementStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
+
 
 abstract class CjTypeStatement :
     CjTypeParameterListOwnerStub<CangJieTypeStatementStub<out CjTypeStatement>>,
@@ -44,6 +47,17 @@ abstract class CjTypeStatement :
 
     companion object {
         val EMPTY_ARRAY: Array<CjTypeStatement?> = arrayOfNulls(0)
+        private val declarationKeyword by lazy {
+
+            TokenSet.create(
+                CjTokens.CLASS_KEYWORD,
+                CjTokens.INTERFACE_KEYWORD,
+                CjTokens.ENUM_KEYWORD,
+                CjTokens.STRUCT_KEYWORD,
+                CjTokens.EXTEND_KEYWORD
+            )
+
+        }
     }
 
     constructor(node: ASTNode) : super(node)
@@ -63,10 +77,15 @@ abstract class CjTypeStatement :
 //    fun isTopLevel(): Boolean = stub?.isTopLevel() ?: (parent is CjFile)
 
     override fun toString(): String {
+
         return node.elementType.toString()
     }
 
     abstract val typeName: String
+
+
+    val declarationKeyword: PsiElement? get() = findChildByType(CjTypeStatement.declarationKeyword)
+
     val variables: List<CjVariable> get() = body?.variables.orEmpty()
     val properties: List<CjProperty> get() = body?.properties.orEmpty()
 
@@ -121,15 +140,16 @@ abstract class CjTypeStatement :
         CjStubElementTypes.ENUM_BODY,
     )
 
-    override val body: CjAbstractClassBody?get() {
-        for (type in BODY_TYPE) {
-            val body = getStubOrPsiChild(type)
-            if (body != null) {
-                return body // 找到匹配的子节点并返回
+    override val body: CjAbstractClassBody?
+        get() {
+            for (type in BODY_TYPE) {
+                val body = getStubOrPsiChild(type)
+                if (body != null) {
+                    return body // 找到匹配的子节点并返回
+                }
             }
+            return null // 如果没有找到匹配的类型，则返回 null
         }
-        return null // 如果没有找到匹配的类型，则返回 null
-    }
 
     override fun getClassId(): ClassId? {
         stub?.let { return it.getClassId() }
@@ -153,6 +173,8 @@ abstract class CjTypeStatement :
     fun isEnum(): Boolean {
         return this is CjEnum
     }
+
+
 }
 
 fun CjTypeStatement.getOrCreateBody(): CjAbstractClassBody {
