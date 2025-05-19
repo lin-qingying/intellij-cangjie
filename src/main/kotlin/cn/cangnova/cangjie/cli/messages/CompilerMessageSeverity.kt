@@ -39,7 +39,7 @@ enum class CompilerMessageSeverity {
     LOGGING,
 
     /**
-     * Source to output files mapping messages (e.g A.Cj->A.cclass).
+     * Source to output files mapping messages (e.g A.Cj->A.klass).
      * It is needed for incremental compilation.
      */
     OUTPUT;

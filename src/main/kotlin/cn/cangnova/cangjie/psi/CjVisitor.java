@@ -521,8 +521,8 @@ public class CjVisitor<R, D> extends PsiElementVisitor {
         return visitTypeStatement(cjExtend, data);
     }
 
-    public R visitClass(@NotNull CjClass cclass, D data) {
-        return visitTypeStatement(cclass, data);
+    public R visitClass(@NotNull CjClass klass, D data) {
+        return visitTypeStatement(klass, data);
     }
 
     public R visitEnum(@NotNull CjEnum cenum, D data) {

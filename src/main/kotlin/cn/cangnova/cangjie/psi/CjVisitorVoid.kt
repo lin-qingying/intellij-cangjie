@@ -78,8 +78,8 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         super.visitTypeStatement(typeStatement, null)
     }
 
-    open fun visitClass(cclass: CjClass) {
-        super.visitClass(cclass, null)
+    open fun visitClass(klass: CjClass) {
+        super.visitClass(klass, null)
     }
 
     override fun visitExtend(cjExtend: CjExtend, data: Void?): Void? {
@@ -925,8 +925,8 @@ open class CjVisitorVoid : CjVisitor<Void?, Void?>() {
         return null
     }
 
-    override fun visitClass(cclass: CjClass, data: Void?): Void? {
-        visitClass(cclass)
+    override fun visitClass(klass: CjClass, data: Void?): Void? {
+        visitClass(klass)
         return null
     }
 
