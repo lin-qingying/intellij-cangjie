@@ -1,6 +1,6 @@
 package #if (${PACKAGE_NAME} && ${PACKAGE_NAME} != "") ${CANGJIE_MODULE_NAME}.${PACKAGE_NAME} #else ${CANGJIE_MODULE_NAME}
 #end
-#parse("File Header.java")
+###parse("File Header.java")
 public class ${NAME} {
 
 }
