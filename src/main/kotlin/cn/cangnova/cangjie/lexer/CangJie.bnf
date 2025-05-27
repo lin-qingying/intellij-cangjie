@@ -1,0 +1,22 @@
+{
+  parserClass="cn.cangnova.cangjie.parser.CangJieParser"
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="CangJie"
+  psiImplClassSuffix="Impl"
+  psiPackage="cn.cangnova.cangjie.psi"
+  psiImplPackage="cn.cangnova.cangjie.psi.impl"
+
+  elementTypeHolderClass="cn.cangnova.cangjie.psi.CangJieTypes"
+  elementTypeClass="cn.cangnova.cangjie.psi.CangJieElementType"
+  tokenTypeClass="cn.cangnova.cangjie.psi.CangJieTokenType"
+
+  tokens=[
+    LT='<'
+    GT='>'
+    COMMA=','
+  ]
+}
+
+TYPE_PARAMETERS ::= LT IDENTIFIER TYPE_PARAMETERS_LIST? GT
+TYPE_PARAMETERS_LIST ::= COMMA IDENTIFIER TYPE_PARAMETERS_LIST?

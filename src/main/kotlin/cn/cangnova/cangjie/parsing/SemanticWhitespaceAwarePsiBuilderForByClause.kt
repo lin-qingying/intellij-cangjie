@@ -23,7 +23,7 @@
  */
 package cn.cangnova.cangjie.parsing
 
-class SemanticWhitespaceAwarePsiBuilderForByClause(builder: SemanticWhitespaceAwarePsiBuilder?) :
+class SemanticWhitespaceAwarePsiBuilderForByClause(builder: SemanticWhitespaceAwarePsiBuilder ) :
     SemanticWhitespaceAwarePsiBuilderAdapter(builder) {
     var stackSize: Int = 0
         private set

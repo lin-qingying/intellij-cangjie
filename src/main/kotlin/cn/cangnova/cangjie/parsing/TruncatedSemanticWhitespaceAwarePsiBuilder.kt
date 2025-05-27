@@ -27,7 +27,7 @@ import com.intellij.psi.tree.IElementType
 
 
 class TruncatedSemanticWhitespaceAwarePsiBuilder(
-    builder: SemanticWhitespaceAwarePsiBuilder?,
+    builder: SemanticWhitespaceAwarePsiBuilder ,
     private val myEOFPosition: Int
 ) : SemanticWhitespaceAwarePsiBuilderAdapter(builder) {
     override fun eof(): Boolean {

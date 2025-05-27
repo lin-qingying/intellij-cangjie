@@ -3,6 +3,7 @@ package cn.cangnova.cangjie.parsing
 import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.lexer.CjTokens.*
 import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.utils.hasFlag
 import cn.cangnova.cangjie.utils.substringWithContext
@@ -23,7 +24,7 @@ import com.intellij.util.containers.Stack
 import org.jetbrains.annotations.Contract
 import org.jetbrains.annotations.TestOnly
 
-abstract class AbstractCangJieParsing1(
+abstract class AbstractCangJieParsing(
     protected val builder: SemanticWhitespaceAwarePsiBuilder,
     protected val isLazy: Boolean = true
 ) {
@@ -442,11 +443,28 @@ abstract class AbstractCangJieParsing1(
          * @param condition
          * @param message
          */
+        @JvmStatic
         protected fun errorIf(marker: PsiBuilder.Marker, condition: Boolean, message: String) {
             if (condition) {
                 marker.error(message)
             } else {
                 marker.drop()
+            }
+        }
+    }
+
+    fun advanceBalancedBlock() {
+        var braceCount = 1
+        while (!eof()) {
+            when {
+                _at(LBRACE) -> braceCount++
+                _at(RBRACE) -> braceCount--
+            }
+
+            advance()
+
+            if (braceCount == 0) {
+                break
             }
         }
     }
@@ -710,6 +728,26 @@ abstract class AbstractCangJieParsing1(
         return false
     }
 
+    protected fun expect(expectationSet: TokenSet): Boolean {
+        if (atSet(expectationSet)) {
+            advance()
+            return true
+        }
+
+
+        return false
+    }
+
+    protected fun expect(expectationSet: TokenSet, message: String, recoverySet: TokenSet?): Boolean {
+        if (expect(expectationSet)) {
+            return true
+        }
+
+        errorWithRecovery(message, recoverySet)
+
+        return false
+    }
+
     /**
      * 报告解析错误并尝试恢复解析过程
      *
@@ -840,26 +878,41 @@ abstract class AbstractCangJieParsing1(
         return create(TruncatedSemanticWhitespaceAwarePsiBuilder(builder, eofPosition))
     }
 
+    protected fun expectSafeCall(expectationSet: TokenSet, message: String, recoverySet: TokenSet?): Boolean {
+        val tokenType = getSafeTokenType()
+        if (expectationSet.contains(tokenType)) {
+            advanceSafeToken(tokenType)
+            return true
+        }
+
+        errorWithRecovery(message, recoverySet)
+
+        return false
+    }
+
     /**
      * 根据标记类型推进GT标记
-     * 
+     *
      * @param type 要处理的标记类型
      */
-    protected fun advanceGtToken(type: IElementType?) {
+    protected fun advanceGtToken(type: IElementType) {
         mark().apply {
             when (type) {
                 CjTokens.COALESCING -> {
                     PsiBuilderUtil.advance(builder, 2)
                     collapse(type)
                 }
+
                 CjTokens.GTGTEQ -> {
                     PsiBuilderUtil.advance(builder, 3)
                     collapse(type)
                 }
+
                 CjTokens.GTGT, CjTokens.GTEQ -> {
                     PsiBuilderUtil.advance(builder, 2)
                     collapse(type)
                 }
+
                 else -> {
                     drop()
                     advance()
@@ -977,7 +1030,7 @@ abstract class AbstractCangJieParsing1(
         return marker
     }
 
-    protected fun parsing(block: AbstractCangJieParsing1.() -> Unit) {
+    protected fun parsing(block: AbstractCangJieParsing.() -> Unit) {
         this.block()
     }
 
@@ -1182,6 +1235,25 @@ abstract class AbstractCangJieParsing1(
         error(message)
     }
 
+    protected fun advanceOperationToken(type: IElementType?) {
+        val gtToken = mark()
+
+        when (type) {
+            OPERATION_INVOKE,
+            OPERATION_GET,
+            OPERATION_COMPARE_GTEQ,
+            OPERATION_RIGHT_SHIFT -> {
+                PsiBuilderUtil.advance(builder, 2)
+                gtToken.collapse(type)
+            }
+
+            else -> {
+                gtToken.drop()
+                advance()
+            }
+        }
+    }
+
     val productions: MutableList<out SyntaxTreeBuilder.Production> get() = builder.getProductions()
     protected fun getSafeTokenType(): IElementType? {
         var tokenType = tt()
@@ -1210,7 +1282,7 @@ abstract class AbstractCangJieParsing1(
      * }
      * ```
      */
-    protected fun parsingContext(block: AbstractCangJieParsing1.() -> Unit) {
+    protected fun parsingContext(block: AbstractCangJieParsing.() -> Unit) {
         this.block()
     }
 

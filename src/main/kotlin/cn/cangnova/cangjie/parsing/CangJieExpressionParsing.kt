@@ -24,13 +24,14 @@
 
 package cn.cangnova.cangjie.parsing
 
-import cn.cangnova.cangjie.psi.CjNodeTypes
-import cn.cangnova.cangjie.psi.CjNodeTypes.*
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.lexer.CjTokens.*
+import cn.cangnova.cangjie.parsing.CangJieParsing.Companion.PARAMETER_NAME_RECOVERY_SET
 import cn.cangnova.cangjie.parsing.CangJieParsing.DeclarationParsingMode
-import cn.cangnova.cangjie.parsing.CangJieParsing.PARAMETER_NAME_RECOVERY_SET
+
+import cn.cangnova.cangjie.psi.CjNodeTypes
+import cn.cangnova.cangjie.psi.CjNodeTypes.*
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.BASIC_REFERENCE_EXPRESSION
 import com.google.common.collect.ImmutableMap
 import com.intellij.lang.PsiBuilder
@@ -236,7 +237,7 @@ open class CangJieExpressionParsing(
         }
     }
 
-    override fun create(builder: SemanticWhitespaceAwarePsiBuilder?): CangJieParsing = cangJieParsing.create(builder)
+    override fun create(builder: SemanticWhitespaceAwarePsiBuilder): CangJieParsing = cangJieParsing.create(builder)
 
     fun parseStatements(type: IElementType) {
         while (at(SEMICOLON)) advance() // SEMICOLON
@@ -253,7 +254,7 @@ open class CangJieExpressionParsing(
                 break
             } else if (at(type)) {
                 break
-            } else if (!myBuilder.newlineBeforeCurrentToken()) {
+            } else if (!builder.newlineBeforeCurrentToken()) {
                 val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
                 if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
                     error(severalStatementsError)
@@ -286,7 +287,7 @@ open class CangJieExpressionParsing(
                 while (at(SEMICOLON)) advance() // SEMICOLON
             } else if (at(RBRACE)) {
                 break
-            } else if (!myBuilder.newlineBeforeCurrentToken()) {
+            } else if (!builder.newlineBeforeCurrentToken()) {
                 val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
                 if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
                     error(severalStatementsError)
@@ -339,7 +340,7 @@ open class CangJieExpressionParsing(
         val sturctStart = struct.first
         val sturctEnd = struct.second
 
-        myBuilder.disableNewlines()
+        builder.disableNewlines()
         if (expectSafeCall(sturctStart, "Expecting an argument list", EXPRESSION_FOLLOW)) {
             if (!at(sturctEnd)) {
                 while (true) {
@@ -364,7 +365,7 @@ open class CangJieExpressionParsing(
             }
             expect(sturctEnd, "Expecting '${sturctEnd.name}'", EXPRESSION_FOLLOW)
         }
-        myBuilder.restoreNewlinesState()
+        builder.restoreNewlinesState()
         list.done(VALUE_ARGUMENT_LIST)
     }
 
@@ -379,7 +380,7 @@ open class CangJieExpressionParsing(
      */
     private fun parseCallSuffix(): Boolean {
         // 获取当前安全的token类型，用于后续的解析判断
-        val tokenType = safeTokenType
+        val tokenType = getSafeTokenType()
 
         // 尝试解析带有闭包的调用，如果成功，则什么都不做
         if (parseCallWithClosure()) {
@@ -394,7 +395,7 @@ open class CangJieExpressionParsing(
                 // 成功解析类型参数列表后，标记为完成
                 typeArgumentList.done(TYPE_ARGUMENT_LIST)
                 // 如果当前token不是左圆括号或没有换行，尝试解析值参数列表
-                if (!myBuilder.newlineBeforeCurrentToken() && at(LPAR)) parseValueArgumentList()
+                if (!builder.newlineBeforeCurrentToken() && at(LPAR)) parseValueArgumentList()
                 // 尝试解析带有闭包的调用
                 parseCallWithClosure()
             } else {
@@ -471,7 +472,7 @@ open class CangJieExpressionParsing(
 
                     false
                 } else if (atSet(BASICTYPES)) {
-                    errorAndAdvance("expected expression or declaration, found keyword ${myBuilder.tokenText}")
+                    errorAndAdvance("expected expression or declaration, found keyword ${builder.tokenText}")
                     false
                 } else {
                     parseAtomicExpression()
@@ -533,7 +534,7 @@ open class CangJieExpressionParsing(
         // 解析原子表达式，这是选择器调用表达式的起始部分
         parseAtomicExpression()
         // 如果当前标记之前没有换行，并且成功解析了调用后缀，则认为解析成功
-        if (!myBuilder.newlineBeforeCurrentToken() && parseCallSuffix()) {
+        if (!builder.newlineBeforeCurrentToken() && parseCallSuffix()) {
             // 成功解析后，将标记范围内的内容标记为调用表达式
             mark.done(CALL_EXPRESSION)
         } else {
@@ -618,7 +619,7 @@ open class CangJieExpressionParsing(
 //            UNIT_LTIERAL_Id -> parseOneTokenExpression(UNIT_CONSTANT)
 // class interface func let var
 //            CLASS_KEYWORD_Id, INTERFACE_KEYWORD_Id, FUNC_KEYWORD_Id, LET_KEYWORD_Id, VAR_KEYWORD_Id -> if (!parseLocalDeclaration(
-//                    myBuilder.newlineBeforeCurrentToken(),
+//                    builder.newlineBeforeCurrentToken(),
 //
 //                    )
 //            ) {
@@ -673,7 +674,7 @@ open class CangJieExpressionParsing(
         val match = mark()
         advance() // MATCH_KEYWORD
 
-        myBuilder.disableNewlines()
+        builder.disableNewlines()
         var isExpression = true
         if (at(LPAR)) {
 //            val atWhenStart = mark()
@@ -695,9 +696,9 @@ open class CangJieExpressionParsing(
             isExpression = false
         }
 
-        myBuilder.restoreNewlinesState()
+        builder.restoreNewlinesState()
 
-        myBuilder.enableNewlines()
+        builder.enableNewlines()
         if (expect(LBRACE, "Expecting '{'")) {
             if (!at(CASE_KEYWORD)) {
                 error("Expecting 'case'")
@@ -713,7 +714,7 @@ open class CangJieExpressionParsing(
             }
             expect(RBRACE, "Expecting '}'")
         }
-        myBuilder.restoreNewlinesState()
+        builder.restoreNewlinesState()
         match.done(MATCH)
     }
 
@@ -911,7 +912,7 @@ open class CangJieExpressionParsing(
         fun parseExpression() {
             val constantPattern = mark()
 
-            when (tokenId) {
+            when (getTokenId()) {
                 UNDERLINE_Id -> {
                     constantPattern.drop()
                     parseUnderline()
@@ -989,7 +990,7 @@ open class CangJieExpressionParsing(
             var isTuple = false
 
             val mark = mark()
-            myBuilder.disableNewlines()
+            builder.disableNewlines()
             advance() // LPAR
 
             if (at(RPAR)) {
@@ -1022,7 +1023,7 @@ open class CangJieExpressionParsing(
                 else -> mark.drop()
             }
 
-            myBuilder.restoreNewlinesState()
+            builder.restoreNewlinesState()
         }
     }
 
@@ -1081,7 +1082,7 @@ open class CangJieExpressionParsing(
 
         // 是否通配符模式
         fun isWildcardPattern(): Boolean {
-            return myBuilder.tokenText == "_"
+            return builder.tokenText == "_"
         }
 
         // 是否绑定模式
@@ -1136,7 +1137,7 @@ open class CangJieExpressionParsing(
         val loop = mark()
         advance() // FOR_KEYWORD
         if (expect(LPAR, "Expecting '(' to open a loop range", EXPRESSION_FIRST)) {
-            myBuilder.disableNewlines()
+            builder.disableNewlines()
             if (!at(RPAR)) {
 //                val parameter = mark()
                 if (!at(IN_KEYWORD)) {
@@ -1158,7 +1159,7 @@ open class CangJieExpressionParsing(
                 error("Expecting a variable name")
             }
             expectNoAdvance(RPAR, "Expecting ')'")
-            myBuilder.restoreNewlinesState()
+            builder.restoreNewlinesState()
         }
         parseLoopBody()
         loop.done(FOR)
@@ -1333,7 +1334,7 @@ open class CangJieExpressionParsing(
      * "(" element ")"
      */
     private fun parseCondition() {
-        myBuilder.disableNewlines()
+        builder.disableNewlines()
         if (expect(
                 LPAR,
                 "Expecting a condition in parentheses '(...)'",
@@ -1347,7 +1348,7 @@ open class CangJieExpressionParsing(
             condition.done(CONDITION)
             expect(RPAR, "Expecting ')")
         }
-        myBuilder.restoreNewlinesState()
+        builder.restoreNewlinesState()
     }
 
     private fun parseControlStructureOrBody() {
@@ -1475,7 +1476,7 @@ open class CangJieExpressionParsing(
         assert(_at(LBRACE))
         val literalExpression = mark()
         val literal = mark()
-        myBuilder.enableNewlines()
+        builder.enableNewlines()
         advance() // LBRACE
         var paramsFound = false
         val token = tt()
@@ -1484,7 +1485,7 @@ open class CangJieExpressionParsing(
             mark().done(VALUE_PARAMETER_LIST)
             advance() // ARROW
             paramsFound = true
-        } else if (token.equal(IDENTIFIER_RECOVERY_SET) || token === COLON || token === LPAR) {
+        } else if (token?.equal(IDENTIFIER_RECOVERY_SET) == true || token === COLON || token === LPAR) {
             // Try to parse a simple name list followed by an ARROW
             //   {a => ...}
             //   {a, b => ...}
@@ -1506,7 +1507,7 @@ open class CangJieExpressionParsing(
                 rollbackOrDropAt(rollbackMarker, DOUBLE_ARROW)
             }
         } else if (isDoubleArrow) {
-            error("expected '=>' in lambda expression, found '${myBuilder.tokenText}'")
+            error("expected '=>' in lambda expression, found '${builder.tokenText}'")
         }
 
 //      if (token === IDENTIFIER || token === COLON || token === LPAR) {
@@ -1531,7 +1532,7 @@ open class CangJieExpressionParsing(
                 parseStatements()
                 expect(RBRACE, "Expecting '}'")
                 literalExpression.done(BLOCK)
-                myBuilder.restoreNewlinesState()
+                builder.restoreNewlinesState()
                 return
          */
 
@@ -1540,7 +1541,7 @@ open class CangJieExpressionParsing(
             parseStatements()
             expect(RBRACE, "Expecting '}'")
             literalExpression.done(BLOCK)
-            myBuilder.restoreNewlinesState()
+            builder.restoreNewlinesState()
 
             return
         }
@@ -1560,7 +1561,7 @@ open class CangJieExpressionParsing(
             literal.done(FUNCTION_LITERAL)
             literalExpression.done(LAMBDA_EXPRESSION)
         }
-        myBuilder.restoreNewlinesState()
+        builder.restoreNewlinesState()
     }
 
     /**
@@ -1568,7 +1569,7 @@ open class CangJieExpressionParsing(
      * ; let
      */
     fun parseLetExpression() {
-        myBuilder.disableNewlines()
+        builder.disableNewlines()
         val let = mark()
         if (expect(
                 LPAR,
@@ -1595,7 +1596,7 @@ open class CangJieExpressionParsing(
             expect(RPAR, "Expecting ')")
         }
         let.done(LET_EXPRESSION)
-        myBuilder.restoreNewlinesState()
+        builder.restoreNewlinesState()
     }
 
     /*
@@ -1700,7 +1701,7 @@ open class CangJieExpressionParsing(
         var isTuple = false
 
         val mark = mark()
-        myBuilder.disableNewlines()
+        builder.disableNewlines()
         advance() // LPAR
         if (!at(RPAR) && isParseOperator && !at(COMMA)) {
             parseExpression()
@@ -1714,7 +1715,7 @@ open class CangJieExpressionParsing(
             parseExpression()
         }
         expect(RPAR, "Expecting ')'")
-        myBuilder.restoreNewlinesState()
+        builder.restoreNewlinesState()
 
         when {
             isUnit -> mark.done(UNIT_CONSTANT)
@@ -1736,7 +1737,7 @@ open class CangJieExpressionParsing(
         if (at(LT)) {
             // This may be "super < foo" or "super<foo>", thus the backtracking
             val supertype = mark()
-            myBuilder.disableNewlines()
+            builder.disableNewlines()
             advance() // LT
             cangJieParsing.parseTypeRef()
             if (at(GT)) {
@@ -1745,7 +1746,7 @@ open class CangJieExpressionParsing(
             } else {
                 supertype.rollbackTo()
             }
-            myBuilder.restoreNewlinesState()
+            builder.restoreNewlinesState()
         }
         parseLabelReferenceWithNoWhitespace()
         mark.done(SUPER_EXPRESSION)
@@ -1768,8 +1769,8 @@ open class CangJieExpressionParsing(
      * labelReference?
      */
     private fun parseLabelReferenceWithNoWhitespace() {
-        if (at(AT) && !myBuilder.newlineBeforeCurrentToken()) {
-            if (WHITE_SPACE_OR_COMMENT_BIT_SET.contains(myBuilder.rawLookup(-1))) {
+        if (at(AT) && !builder.newlineBeforeCurrentToken()) {
+            if (WHITE_SPACE_OR_COMMENT_BIT_SET.contains(builder.rawLookup(-1))) {
                 error("There should be no space or comments before '@' in label reference")
             }
             parseLabelReference()
@@ -1783,7 +1784,7 @@ open class CangJieExpressionParsing(
         assert(_at(AT))
         val labelWrap = mark()
         val mark = mark()
-        if (myBuilder.rawLookup(1) !== IDENTIFIER) {
+        if (builder.rawLookup(1) !== IDENTIFIER) {
             errorAndAdvance("Label must be named") // AT
             labelWrap.drop()
             mark.drop()
@@ -1885,9 +1886,9 @@ open class CangJieExpressionParsing(
                 reference.done(REFERENCE_EXPRESSION)
                 thisExpression.done(THIS_EXPRESSION)
             } else {
-                val keyword: CjToken? = KEYWORD_TEXTS.get(myBuilder.tokenText)
+                val keyword: CjToken? = KEYWORD_TEXTS.get(builder.tokenText)
                 if (keyword != null) {
-                    myBuilder.remapCurrentToken(keyword)
+                    builder.remapCurrentToken(keyword)
                     errorAndAdvance("Keyword cannot be used as a reference")
                 } else {
                     val reference = mark()
@@ -1900,7 +1901,7 @@ open class CangJieExpressionParsing(
             val longTemplateEntry = mark()
             advance() // LONG_TEMPLATE_ENTRY_START
             while (!eof()) {
-                val offset = myBuilder.currentOffset
+                val offset = builder.currentOffset
 //                parseExpression()
 //                cangJieParsing.parseBlock()
 //                parseStatement()
@@ -1910,7 +1911,7 @@ open class CangJieExpressionParsing(
                     break
                 } else {
                     error("Expecting '}'")
-                    if (offset == myBuilder.currentOffset) {
+                    if (offset == builder.currentOffset) {
                         // 如果无法使用parseExpression()前进，则防止挂起
                         advance()
                     }
@@ -1952,7 +1953,7 @@ open class CangJieExpressionParsing(
     ) {
         assert(_at(LBRACKET) || _at(SAFE_INDEXEX))
         val innerExpressions = mark()
-        myBuilder.disableNewlines()
+        builder.disableNewlines()
         advance() // LBRACKET or SAFE_INDEXEX
         if (!canBeEmpty && at(RBRACKET)) {
             error(missingElementErrorMessage)
@@ -1960,7 +1961,7 @@ open class CangJieExpressionParsing(
             parseInnerExpressions(missingElementErrorMessage)
         }
         expect(RBRACKET, "Expecting ']'")
-        myBuilder.restoreNewlinesState()
+        builder.restoreNewlinesState()
         innerExpressions.done(nodeType)
     }
 
@@ -1977,18 +1978,18 @@ open class CangJieExpressionParsing(
      * operation? prefixExpression
      */
     fun parsePrefixExpression() {
-        myBuilder.disableJoiningComplexTokens()
+        builder.disableJoiningComplexTokens()
         if (atSet(Precedence.PREFIX.getOperations())) {
             val expression = mark()
             parseOperationReference()
-            myBuilder.restoreJoiningComplexTokensState()
+            builder.restoreJoiningComplexTokensState()
             parsePrefixExpression()
             expression.done(PREFIX_EXPRESSION)
         } else {
             if (at(MINUSMINUS) || at(PLUSPLUS)) {
-                errorAndAdvance("expected expression or declaration, found '${myBuilder.tokenText}'")
+                errorAndAdvance("expected expression or declaration, found '${builder.tokenText}'")
             }
-            myBuilder.restoreJoiningComplexTokensState()
+            builder.restoreJoiningComplexTokensState()
             parsePostfixExpression()
         }
     }
@@ -2038,7 +2039,7 @@ open class CangJieExpressionParsing(
                 while (at(SEMICOLON)) advance() // SEMICOLON
             } else if (at(LONG_TEMPLATE_ENTRY_END)) {
                 break
-            } else if (!myBuilder.newlineBeforeCurrentToken()) {
+            } else if (!builder.newlineBeforeCurrentToken()) {
                 val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
                 if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
                     error(severalStatementsError)
@@ -2287,7 +2288,7 @@ open class CangJieExpressionParsing(
         var declType = parseMacroInputExprWithoutParensDeclaration(modifiterDetector)
 
         if (declType == null) {
-            if (at(IDENTIFIER) && modifiterDetector.size <= 0) {
+            if (at(IDENTIFIER) && modifiterDetector.getSize() <= 0) {
                 advance()
                 if (at(LPAR)) {
                     if (lookahead(1) == IDENTIFIER && lookahead(2) === COLON || lookahead(1) == RPAR) {
@@ -2314,16 +2315,16 @@ open class CangJieExpressionParsing(
     }
 
     private fun parseMacroInputExprWithoutParensDeclaration(modifiterDetector: CangJieParsing.ModifierDetector): IElementType? {
-        return when (tokenId) {
+        return when (getTokenId()) {
             AT_Id -> parseMacroExpression(true)
-            FUNC_KEYWORD_Id -> cangJieParsing.parseFunction(modifiterDetector)
+            FUNC_KEYWORD_Id -> cangJieParsing.parseFunction(detector = modifiterDetector)
             EXTEND_KEYWORD_Id, ENUM_KEYWORD_Id, STRUCT_KEYWORD_Id, INTERFACE_KEYWORD_Id, CLASS_KEYWORD_Id ->
 
                 cangJieParsing.parseClass(modifiterDetector)
 
             LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> cangJieParsing.parseVariable(modifiterDetector)
 
-            PROP_KEYWORD_Id -> cangJieParsing.parseProperty(null, modifiterDetector)
+            PROP_KEYWORD_Id -> cangJieParsing.parseProperty(detector= modifiterDetector)
             INIT_KEYWORD_Id -> {
                 cangJieParsing.parseInitFunc()
                 CLASS_INIT
@@ -2511,37 +2512,39 @@ open class CangJieExpressionParsing(
         precedence.parseHigherPrecedence(this)
 
         while (!interruptedWithNewLine() && /*atSet(precedence.getOperations())*/ precedence.getOperations()
-                .contains(gtTokenType)
+                .contains(getGtTokenType())
         ) {
 //            val operation = tt()
-            val operation = getGtTokenType()
 
-            parseOperationReference(operation)
-            val resultType: IElementType = precedence.parseRightHandSide(operation, this)
-            expression.done(resultType)
-            expression = expression.precede()
+            getGtTokenType()?.let {
+                parseOperationReference(it)
+                val resultType = precedence.parseRightHandSide(it, this)
+                expression.done(resultType)
+                expression = expression.precede()
+            }
+
         }
         expression.drop()
     }
 
     private fun interruptedWithNewLine(): Boolean {
 //        var a = !ALLOW_NEWLINE_OPERATIONS.contains(tt())
-//        var b = myBuilder.newlineBeforeCurrentToken()
+//        var b = builder.newlineBeforeCurrentToken()
 // return a && b
-        return !ALLOW_NEWLINE_OPERATIONS.contains(tt()) && myBuilder.newlineBeforeCurrentToken()
+        return !ALLOW_NEWLINE_OPERATIONS.contains(tt()) && builder.newlineBeforeCurrentToken()
     }
 
     private fun parseOperationReference(type: IElementType) {
         val operationReference = mark()
 //        advance() // operation
-        advanceGtToken(gtTokenType)
+        getGtTokenType()?.let { advanceGtToken(it) }
         operationReference.done(OPERATION_REFERENCE)
     }
 
     private fun parseOperationReference() {
         val operationReference = mark()
 //        advance() // operation
-        advanceGtToken(getGtTokenType())
+        getGtTokenType()?.let { advanceGtToken(it) }
         operationReference.done(OPERATION_REFERENCE)
     }
 
@@ -2795,7 +2798,7 @@ open class CangJieExpressionParsing(
                 RUNE_LITERAL,
                 LONG_TEMPLATE_ENTRY_START,
 
-            ),
+                ),
             LITERAL_CONSTANT,
         )
 
@@ -2847,7 +2850,7 @@ open class CangJieExpressionParsing(
 
                 QUOTE_KEYWORD,
 
-            ),
+                ),
             BASICTYPES,
         )
         private val TYPE_ARGUMENT_LIST_STOPPERS = TokenSet.create(
@@ -2941,7 +2944,8 @@ open class CangJieExpressionParsing(
         @SuppressWarnings("WeakerAccess")
         val STATEMENT_FIRST = TokenSet.orSet(
             EXPRESSION_FIRST,
-            TokenSet.create( // declaration
+            TokenSet.create(
+                // declaration
                 FUNC_KEYWORD,
                 LET_KEYWORD,
                 CONST_KEYWORD,
