@@ -38,15 +38,15 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import static cn.cangnova.cangjie.psi.CjNodeTypes.*;
 import static cn.cangnova.cangjie.lexer.CjTokens.*;
+import static cn.cangnova.cangjie.psi.CjNodeTypes.*;
 import static cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE;
 import static cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.END_SECONDARY_CONSTRUCTOR;
 
-public class CangJieParsing extends AbstractCangJieParsing1 {
+public class CangJieParsing1 extends AbstractCangJieParsing1 {
     public static final TokenSet PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR);
     private static final TokenSet GT_COMMA_COLON_SET = TokenSet.create(GT, COMMA, COLON);
-    private static final Logger LOG = Logger.getInstance(CangJieParsing.class);
+    private static final Logger LOG = Logger.getInstance(CangJieParsing1.class);
     private static final TokenSet TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(INTERFACE_KEYWORD, CLASS_KEYWORD, FUNC_KEYWORD, LET_KEYWORD, VAR_KEYWORD, CONST_KEYWORD, PACKAGE_KEYWORD);
     private static final TokenSet TOP_LEVEL_DECLARATION_FIRST_SEMICOLON_SET = TokenSet.orSet(TOP_LEVEL_DECLARATION_FIRST, TokenSet.create(SEMICOLON));
     private static final TokenSet LT_EQ_SEMICOLON_TOP_LEVEL_DECLARATION_FIRST_SET = TokenSet.orSet(TokenSet.create(LT, EQ, SEMICOLON), TOP_LEVEL_DECLARATION_FIRST);
@@ -128,7 +128,7 @@ public class CangJieParsing extends AbstractCangJieParsing1 {
                 }
             });
 
-    private CangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isTopLevel, boolean isLazy) {
+    private CangJieParsing1(SemanticWhitespaceAwarePsiBuilder builder, boolean isTopLevel, boolean isLazy) {
         super(builder, isLazy);
 
         myExpressionParsing =
@@ -136,7 +136,7 @@ public class CangJieParsing extends AbstractCangJieParsing1 {
 
 
                     @Override
-                    protected @NotNull CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder) {
+                    protected @NotNull CangJieParsing1 create(SemanticWhitespaceAwarePsiBuilder builder) {
                         return createForByClause(builder, super.isLazy);
                     }
                 };
@@ -146,16 +146,16 @@ public class CangJieParsing extends AbstractCangJieParsing1 {
 
     //    如果是声明文件，则不需要函数体
 
-    private static CangJieParsing createForByClause(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
-        return new CangJieParsing(new SemanticWhitespaceAwarePsiBuilderForByClause(builder), false, isLazy);
+    private static CangJieParsing1 createForByClause(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
+        return new CangJieParsing1(new SemanticWhitespaceAwarePsiBuilderForByClause(builder), false, isLazy);
     }
 
-    static CangJieParsing createForTopLevel(SemanticWhitespaceAwarePsiBuilder builder) {
-        return new CangJieParsing(builder, true, true);
+    static CangJieParsing1 createForTopLevel(SemanticWhitespaceAwarePsiBuilder builder) {
+        return new CangJieParsing1(builder, true, true);
     }
 
-    static CangJieParsing createForTopLevelNonLazy(SemanticWhitespaceAwarePsiBuilder builder) {
-        return new CangJieParsing(builder, true, false);
+    static CangJieParsing1 createForTopLevelNonLazy(SemanticWhitespaceAwarePsiBuilder builder) {
+        return new CangJieParsing1(builder, true, false);
     }
 
     public CangJieExpressionParsing getExpressionParsing() {
@@ -177,7 +177,7 @@ public class CangJieParsing extends AbstractCangJieParsing1 {
     }
 
     @Override
-    protected CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder) {
+    protected CangJieParsing1 create(SemanticWhitespaceAwarePsiBuilder builder) {
         return createForTopLevel(builder);
     }
 

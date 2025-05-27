@@ -149,3 +149,10 @@ inline fun <reified T : Any> Iterable<*>.firstIsInstanceOrNull(): T? {
     for (element in this) if (element is T) return element
     return null
 }
+
+/**
+ * Checks if a bit flag is set in this integer value.
+ * @param flag The flag to check
+ * @return true if the flag is set, false otherwise
+ */
+infix fun Int.hasFlag(flag: Int): Boolean = (this and flag) == flag

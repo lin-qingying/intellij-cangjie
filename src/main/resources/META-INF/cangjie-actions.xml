@@ -9,13 +9,13 @@
              扩展类型: AnAction
              添加到 IDE 的 New 菜单组中 -->
         <action id="CangJie.NewFile" class="cn.cangnova.cangjie.ide.actions.NewCangJieFileAction"
-                text="Add Cangjie File"
+                text="Cangjie File"
                 icon="cn.cangnova.cangjie.icon.CangJieIcons.CANGJIE">
-            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewGroup1"/>
+            <add-to-group group-id="NewGroup"   anchor="before" relative-to-action="NewFile" />
         </action>
 
         <!-- CJPM 相关动作 -->
-        
+
         <!-- 附加 CJPM 项目的动作
              扩展类型: AnAction -->
         <action id="Cjpm.AttachCjpmProject"

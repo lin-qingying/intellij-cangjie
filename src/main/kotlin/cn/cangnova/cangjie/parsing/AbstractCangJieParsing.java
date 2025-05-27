@@ -971,106 +971,106 @@ public abstract class AbstractCangJieParsing {
         }
     }
 
-    public static class ErrorState {
+        public static class ErrorState {
 
-        final MyList<Variant> variants = new MyList<>(INITIAL_VARIANTS_SIZE);
-        final MyList<Variant> unexpected = new MyList<>(INITIAL_VARIANTS_SIZE / 10);
-        final LimitedPool<Variant> VARIANTS = new LimitedPool<>(VARIANTS_POOL_SIZE, Variant::new);
-        final LimitedPool<Frame> FRAMES = new LimitedPool<>(FRAMES_POOL_SIZE, Frame::new);
-        public Frame currentFrame;
-        public CompletionState completionState;
-        public PairProcessor<IElementType, IElementType> altExtendsChecker;
-        public BracePair[] braces;
-        public Parser tokenAdvancer = TOKEN_ADVANCER;
-        public boolean altMode;
-        int predicateCount;
-        int level;
-        boolean predicateSign = true;
-        boolean suppressErrors;
-        Hooks<?> hooks;
-        TokenSet[] extendsSets;
-        private boolean caseSensitive;
+            final MyList<Variant> variants = new MyList<>(INITIAL_VARIANTS_SIZE);
+            final MyList<Variant> unexpected = new MyList<>(INITIAL_VARIANTS_SIZE / 10);
+            final LimitedPool<Variant> VARIANTS = new LimitedPool<>(VARIANTS_POOL_SIZE, Variant::new);
+            final LimitedPool<Frame> FRAMES = new LimitedPool<>(FRAMES_POOL_SIZE, Frame::new);
+            public Frame currentFrame;
+            public CompletionState completionState;
+            public PairProcessor<IElementType, IElementType> altExtendsChecker;
+            public BracePair[] braces;
+            public Parser tokenAdvancer = TOKEN_ADVANCER;
+            public boolean altMode;
+            int predicateCount;
+            int level;
+            boolean predicateSign = true;
+            boolean suppressErrors;
+            Hooks<?> hooks;
+            TokenSet[] extendsSets;
+            private boolean caseSensitive;
 
 
-        public static void initState(ErrorState state, PsiBuilder builder, IElementType root, TokenSet[] extendsSets) {
-            state.extendsSets = extendsSets;
-            PsiFile file = builder.getUserData(FileContextUtil.CONTAINING_FILE_KEY);
-            state.completionState = null == file ? null : file.getUserData(COMPLETION_STATE_KEY);
-            Language language = null == file ? root.getLanguage() : file.getLanguage();
-            state.caseSensitive = language.isCaseSensitive();
-            PairedBraceMatcher matcher = LanguageBraceMatching.INSTANCE.forLanguage(language);
-            state.braces = null == matcher ? null : matcher.getPairs();
-            if (null != state.braces && 0 == state.braces.length) state.braces = null;
-        }
+            public static void initState(ErrorState state, PsiBuilder builder, IElementType root, TokenSet[] extendsSets) {
+                state.extendsSets = extendsSets;
+                PsiFile file = builder.getUserData(FileContextUtil.CONTAINING_FILE_KEY);
+                state.completionState = null == file ? null : file.getUserData(COMPLETION_STATE_KEY);
+                Language language = null == file ? root.getLanguage() : file.getLanguage();
+                state.caseSensitive = language.isCaseSensitive();
+                PairedBraceMatcher matcher = LanguageBraceMatching.INSTANCE.forLanguage(language);
+                state.braces = null == matcher ? null : matcher.getPairs();
+                if (null != state.braces && 0 == state.braces.length) state.braces = null;
+            }
 
-        public @NotNull String getExpected(int position, boolean expected) {
-            StringBuilder sb = new StringBuilder();
-            MyList<Variant> list = expected ? variants : unexpected;
-            String[] strings = new String[list.size()];
-            long[] hashes = new long[strings.length];
-            Arrays.fill(strings, "");
-            int count = 0;
-            loop:
-            for (Variant variant : list) {
-                if (position == variant.position) {
-                    String text = String.valueOf(variant.object);
-                    long hash = StringHash.calc(text);
-                    for (int i = 0; i < count; i++) {
-                        if (hashes[i] == hash) continue loop;
+            public @NotNull String getExpected(int position, boolean expected) {
+                StringBuilder sb = new StringBuilder();
+                MyList<Variant> list = expected ? variants : unexpected;
+                String[] strings = new String[list.size()];
+                long[] hashes = new long[strings.length];
+                Arrays.fill(strings, "");
+                int count = 0;
+                loop:
+                for (Variant variant : list) {
+                    if (position == variant.position) {
+                        String text = String.valueOf(variant.object);
+                        long hash = StringHash.calc(text);
+                        for (int i = 0; i < count; i++) {
+                            if (hashes[i] == hash) continue loop;
+                        }
+                        hashes[count] = hash;
+                        strings[count] = text;
+                        count++;
                     }
-                    hashes[count] = hash;
-                    strings[count] = text;
+                }
+                Arrays.sort(strings);
+                count = 0;
+                for (String s : strings) {
+                    if (0 == s.length()) continue;
+                    if (0 < count) {
+                        if (MAX_VARIANTS_TO_DISPLAY < count) {
+                            sb.append(" ").append(AnalysisBundle.message("parsing.error.and.ellipsis"));
+                            break;
+                        } else {
+                            sb.append(", ");
+                        }
+                    }
                     count++;
+                    char c = s.charAt(0);
+                    String displayText = '<' == c || isJavaIdentifierStart(c) ? s : '\'' + s + '\'';
+                    sb.append(displayText);
                 }
+                if (1 < count && MAX_VARIANTS_TO_DISPLAY > count) {
+                    int idx = sb.lastIndexOf(", ");
+                    sb.replace(idx, idx + 1, " " + AnalysisBundle.message("parsing.error.or"));
+                }
+                return sb.toString();
             }
-            Arrays.sort(strings);
-            count = 0;
-            for (String s : strings) {
-                if (0 == s.length()) continue;
-                if (0 < count) {
-                    if (MAX_VARIANTS_TO_DISPLAY < count) {
-                        sb.append(" ").append(AnalysisBundle.message("parsing.error.and.ellipsis"));
-                        break;
-                    } else {
-                        sb.append(", ");
+
+            public void clearVariants(Frame frame) {
+                clearVariants(true, null == frame ? 0 : frame.variantCount);
+                if (null != frame) frame.lastVariantAt = -1;
+            }
+
+            void clearVariants(boolean expected, int start) {
+                MyList<Variant> list = expected ? variants : unexpected;
+                if (0 > start || start >= list.size()) return;
+                for (int i = start, len = list.size(); i < len; i++) {
+                    VARIANTS.recycle(list.get(i));
+                }
+                list.setSize(start);
+            }
+
+            public boolean typeExtends(IElementType child, IElementType parent) {
+                if (child == parent) return true;
+                if (null != extendsSets) {
+                    for (TokenSet set : extendsSets) {
+                        if (set.contains(child) && set.contains(parent)) return true;
                     }
                 }
-                count++;
-                char c = s.charAt(0);
-                String displayText = '<' == c || isJavaIdentifierStart(c) ? s : '\'' + s + '\'';
-                sb.append(displayText);
+                return null != altExtendsChecker && altExtendsChecker.process(child, parent);
             }
-            if (1 < count && MAX_VARIANTS_TO_DISPLAY > count) {
-                int idx = sb.lastIndexOf(", ");
-                sb.replace(idx, idx + 1, " " + AnalysisBundle.message("parsing.error.or"));
-            }
-            return sb.toString();
         }
-
-        public void clearVariants(Frame frame) {
-            clearVariants(true, null == frame ? 0 : frame.variantCount);
-            if (null != frame) frame.lastVariantAt = -1;
-        }
-
-        void clearVariants(boolean expected, int start) {
-            MyList<Variant> list = expected ? variants : unexpected;
-            if (0 > start || start >= list.size()) return;
-            for (int i = start, len = list.size(); i < len; i++) {
-                VARIANTS.recycle(list.get(i));
-            }
-            list.setSize(start);
-        }
-
-        public boolean typeExtends(IElementType child, IElementType parent) {
-            if (child == parent) return true;
-            if (null != extendsSets) {
-                for (TokenSet set : extendsSets) {
-                    if (set.contains(child) && set.contains(parent)) return true;
-                }
-            }
-            return null != altExtendsChecker && altExtendsChecker.process(child, parent);
-        }
-    }
 
     /**
      * 表示一个可选的标记
