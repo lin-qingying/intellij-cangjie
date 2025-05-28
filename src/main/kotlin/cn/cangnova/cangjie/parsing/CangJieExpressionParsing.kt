@@ -237,7 +237,15 @@ open class CangJieExpressionParsing(
         }
     }
 
-    override fun create(builder: SemanticWhitespaceAwarePsiBuilder): CangJieParsing = cangJieParsing.create(builder)
+
+    val quoteExpressionParsing = CangJieQuoteExpressionParsing(
+        builder,
+        this,
+        true
+    )
+
+    public override fun create(builder: SemanticWhitespaceAwarePsiBuilder): CangJieParsing =
+        cangJieParsing.create(builder)
 
     fun parseStatements(type: IElementType) {
         while (at(SEMICOLON)) advance() // SEMICOLON
@@ -571,6 +579,7 @@ open class CangJieExpressionParsing(
 
             // 元组
 //            TUPLE_LTIERAL_Id -> parseTupleLiteralExpression()
+            QUOTE_KEYWORD_Id -> parseQuoteExpression()
             UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
             SPAWN_KEYWORD_Id -> parseSpawnExpression()
             // 字面量
@@ -2079,14 +2088,21 @@ open class CangJieExpressionParsing(
         val quoteExpression = mark()
         advance()
 
-        if (at(LPAR)) {
-            advance()
+
+        expect(LPAR, "expected '(' after 'quote'") {
             parseQuoteParameters()
-        } else {
-            error("expected '(' after 'quote'")
         }
+//        if (at(LPAR)) {
+//            advance()
+//            parseQuoteParameters()
+//        } else {
+//            error("expected '(' after 'quote'")
+//        }
         expect(RPAR, "expected ')' ")
         quoteExpression.done(QUOTE_EXPRESSION)
+
+
+        quoteExpressionParsing.parseQuoteExpression()
     }
 
     /**
@@ -2388,7 +2404,15 @@ open class CangJieExpressionParsing(
                     if (lparCount < 0) {
                         break
                     }
-                } else if (at(DOLLAR)) {
+                }else if(
+                    at(OPEN_QUOTE)
+                ) {
+                    parseStringTemplate()
+                    break
+                }
+
+
+                else if (at(DOLLAR)) {
                     errorAndAdvance("expected identifier or '(' after '$'")
                 } else if (at(ESCAPE_LPAR) || at(ESCAPE_RPAR)) {
                     errorAndAdvance("Illegal Token")
@@ -2416,10 +2440,10 @@ open class CangJieExpressionParsing(
         } /*else if (at(UNSAFE_KEYWORD)) {
             parseUnsafeExpression()
             return
-        } */else if (at(QUOTE_KEYWORD)) {
+        } *//*else if (at(QUOTE_KEYWORD)) {
             parseQuoteExpression()
             return
-        } else if (!atSet(EXPRESSION_FIRST)) {
+        }*/ else if (!atSet(EXPRESSION_FIRST)) {
             error("Expecting an expression")
             return
         }
@@ -2659,6 +2683,13 @@ open class CangJieExpressionParsing(
         )
         val QUOTE_TOKENS = TokenSet.orSet(
             TokenSet.create(
+//                字符串
+                STRING_TEMPLATE,
+                REGULAR_STRING_PART,
+                OPEN_QUOTE,
+                LITERAL_STRING_TEMPLATE_ENTRY,
+                CLOSING_QUOTE,
+
                 DOT,
                 COMMA,
                 LPAR,
@@ -2801,7 +2832,9 @@ open class CangJieExpressionParsing(
                 RUNE_LITERAL,
                 LONG_TEMPLATE_ENTRY_START,
 
+
                 ),
+            CjTokens.KEYWORDALL,
             LITERAL_CONSTANT,
         )
 

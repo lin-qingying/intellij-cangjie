@@ -1,89 +1,94 @@
 <list>
-  <option name="CANGJIE_TYPE_PARAMETER">
-  <value>
-    <option name="FOREGROUND" value="007E8A" />
-  </value>
-</option>
-  <option name="CANGJIE_FUNCTION_LITERAL_BRACES_AND_ARROW">
-    <value>
-      <option name="FONT_TYPE" value="1" />
-    </value>
-  </option>
-  <option name="CANGJIE_MUTABLE_VARIABLE">
-    <value>
-      <option name="EFFECT_COLOR" value="000000" />
-      <option name="EFFECT_TYPE" value="1" />
-    </value>
-  </option>
-  <option name="CANGJIE_PROPERTY_WITH_BACKING_FIELD">
-    <value>
-      <option name="BACKGROUND" value="f5d7ef" />
-    </value>
-  </option>
-  <option name="CANGJIE_CLOSURE_DEFAULT_PARAMETER">
-    <value>
-      <option name="FONT_TYPE" value="1" />
-    </value>
-  </option>
-  <option name="CANGJIE_BACKING_FIELD_VARIABLE">
-    <value>
-      <option name="FONT_TYPE" value="1" />
-    </value>
-  </option>
-  <option name="CANGJIE_SMART_CAST_VALUE">
-    <value>
-      <option name="BACKGROUND" value="dbffdb" />
-    </value>
-  </option>
-  <option name="CANGJIE_SMART_CONSTANT">
-    <value>
-      <option name="BACKGROUND" value="dbffdb" />
-    </value>
-  </option>
-  <option name="CANGJIE_SMART_CAST_RECEIVER">
-    <value>
-      <option name="BACKGROUND" value="dbffdb" />
-    </value>
-  </option>
-  <option name="CANGJIE_LABEL">
-    <value>
-      <option name="FOREGROUND" value="4a86e8" />
-    </value>
-  </option>
-  <option name="CANGJIE_NAMED_ARGUMENT">
-    <value>
-      <option name="FOREGROUND" value="4a86e8" />
-    </value>
-  </option>
-  <option name="CANGJIE_DYNAMIC_FUNCTION_CALL">
-    <value>
-      <option name="FONT_TYPE" value="3" />
-      <option name="EFFECT_TYPE" value="0" />
-    </value>
-  </option>
-  <option name="CANGJIE_DYNAMIC_PROPERTY_CALL">
-    <value>
-      <option name="FONT_TYPE" value="3" />
-      <option name="EFFECT_TYPE" value="0" />
-    </value>
-  </option>
-  <option name="CANGJIE_DEBUG_INFO">
-    <value>
-      <option name="EFFECT_COLOR" value="000000"/>
-      <option name="EFFECT_TYPE" value="0" />
-      <option name="ERROR_STRIPE_COLOR" value="000000" />
-    </value>
-  </option>
-  <option name="CANGJIE_RESOLVED_TO_ERROR">
-    <value>
-      <option name="EFFECT_COLOR" value="ff0000"/>
-      <option name="EFFECT_TYPE" value="0" />
-      <option name="ERROR_STRIPE_COLOR" value="ff0000"/>
-    </value>
-  </option>
-  <option name="CANGJIE_COROUTINE_DEBUGGER_VALUE">
-    <value>
-      <option name="FOREGROUND" value="840000" />
-    </value>
-  </option>
+    <option name="CANGJIE_TYPE_PARAMETER">
+        <value>
+            <option name="FOREGROUND" value="007E8A"/>
+        </value>
+    </option>
+    <option name="CANGJIE_FUNCTION_LITERAL_BRACES_AND_ARROW">
+        <value>
+            <option name="FONT_TYPE" value="1"/>
+        </value>
+    </option>
+    <option name="CANGJIE_KEYWORD_QUOTE">
+        <value>
+            <option name="FOREGROUND" value="CC27F6"/>
+        </value>
+    </option>
+    <option name="CANGJIE_MUTABLE_VARIABLE">
+        <value>
+            <option name="EFFECT_COLOR" value="000000"/>
+            <option name="EFFECT_TYPE" value="1"/>
+        </value>
+    </option>
+    <option name="CANGJIE_PROPERTY_WITH_BACKING_FIELD">
+        <value>
+            <option name="BACKGROUND" value="f5d7ef"/>
+        </value>
+    </option>
+    <option name="CANGJIE_CLOSURE_DEFAULT_PARAMETER">
+        <value>
+            <option name="FONT_TYPE" value="1"/>
+        </value>
+    </option>
+    <option name="CANGJIE_BACKING_FIELD_VARIABLE">
+        <value>
+            <option name="FONT_TYPE" value="1"/>
+        </value>
+    </option>
+    <option name="CANGJIE_SMART_CAST_VALUE">
+        <value>
+            <option name="BACKGROUND" value="dbffdb"/>
+        </value>
+    </option>
+    <option name="CANGJIE_SMART_CONSTANT">
+        <value>
+            <option name="BACKGROUND" value="dbffdb"/>
+        </value>
+    </option>
+    <option name="CANGJIE_SMART_CAST_RECEIVER">
+        <value>
+            <option name="BACKGROUND" value="dbffdb"/>
+        </value>
+    </option>
+    <option name="CANGJIE_LABEL">
+        <value>
+            <option name="FOREGROUND" value="4a86e8"/>
+        </value>
+    </option>
+    <option name="CANGJIE_NAMED_ARGUMENT">
+        <value>
+            <option name="FOREGROUND" value="4a86e8"/>
+        </value>
+    </option>
+    <option name="CANGJIE_DYNAMIC_FUNCTION_CALL">
+        <value>
+            <option name="FONT_TYPE" value="3"/>
+            <option name="EFFECT_TYPE" value="0"/>
+        </value>
+    </option>
+    <option name="CANGJIE_DYNAMIC_PROPERTY_CALL">
+        <value>
+            <option name="FONT_TYPE" value="3"/>
+            <option name="EFFECT_TYPE" value="0"/>
+        </value>
+    </option>
+    <option name="CANGJIE_DEBUG_INFO">
+        <value>
+            <option name="EFFECT_COLOR" value="000000"/>
+            <option name="EFFECT_TYPE" value="0"/>
+            <option name="ERROR_STRIPE_COLOR" value="000000"/>
+        </value>
+    </option>
+    <option name="CANGJIE_RESOLVED_TO_ERROR">
+        <value>
+            <option name="EFFECT_COLOR" value="ff0000"/>
+            <option name="EFFECT_TYPE" value="0"/>
+            <option name="ERROR_STRIPE_COLOR" value="ff0000"/>
+        </value>
+    </option>
+    <option name="CANGJIE_COROUTINE_DEBUGGER_VALUE">
+        <value>
+            <option name="FOREGROUND" value="840000"/>
+        </value>
+    </option>
 </list>

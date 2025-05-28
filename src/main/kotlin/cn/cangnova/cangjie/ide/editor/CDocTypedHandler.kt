@@ -66,7 +66,7 @@ class CDocTypedHandler : TypedHandlerDelegate() {
 
             return when (c) {
                 ']' -> {
-                    //如果括号不是链接的一部分，则它将是KDOC_TEXT的一部分，而不是单独的RBRACKET元素
+                    //如果括号不是链接的一部分，则它将是CDOC_TEXT的一部分，而不是单独的RBRACKET元素
                     prevElementType in CDocTokens.CDOC_HIGHLIGHT_TOKENS && (elementType == CDocTokens.MARKDOWN_LINK || (offset > 0 && chars[offset - 1] == '['))
                 }
 

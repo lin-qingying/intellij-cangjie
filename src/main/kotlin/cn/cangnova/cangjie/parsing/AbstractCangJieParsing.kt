@@ -706,7 +706,7 @@ abstract class AbstractCangJieParsing(
      * @param message
      * @return
      */
-    protected fun expect(expectation: CjToken, message: String): Boolean {
+    protected fun expect(expectation: IElementType, message: String): Boolean {
         return expect(expectation, message, null)
     }
 
@@ -718,7 +718,7 @@ abstract class AbstractCangJieParsing(
      * @param recoverySet
      * @return
      */
-    protected fun expect(expectation: CjToken, message: String, recoverySet: TokenSet?): Boolean {
+    protected fun expect(expectation: IElementType, message: String, recoverySet: TokenSet?): Boolean {
         if (expect(expectation)) {
             return true
         }
@@ -1518,6 +1518,14 @@ abstract class AbstractCangJieParsing(
             advance()
         }
         block(modifiers)
+    }
+
+
+    protected fun expect(tokenType: IElementType, message: String = "", block: () -> Unit) {
+        if (expect(tokenType, message)) {
+            block()
+        }
+
     }
 
     /**

@@ -31,7 +31,7 @@ import cn.cangnova.cangjie.ide.formatter.NodeIndentStrategy.Companion.strategy
 import cn.cangnova.cangjie.ide.formatter.util.TrailingCommaHelper.trailingCommaExistsOrCanExist
 import cn.cangnova.cangjie.ide.formatter.util.addTrailingCommaIsAllowedFor
 import cn.cangnova.cangjie.lexer. CjTokens.*
-
+import cn.cangnova.cangjie.ide.formatter.indent.IndentRules
 
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.*
@@ -49,20 +49,20 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 
 
-private val QUALIFIED_OPERATION = TokenSet.create( DOT)
-private val QUALIFIED_EXPRESSIONS = TokenSet.create( DOT_QUALIFIED_EXPRESSION)
-private val ELVIS_SET = TokenSet.create()
-private val QUALIFIED_EXPRESSIONS_WITHOUT_WRAP = TokenSet.create( IMPORT_DIRECTIVE,  PACKAGE_DIRECTIVE)
+internal val QUALIFIED_OPERATION = TokenSet.create( DOT)
+internal val QUALIFIED_EXPRESSIONS = TokenSet.create( DOT_QUALIFIED_EXPRESSION)
+internal val ELVIS_SET = TokenSet.create()
+internal val QUALIFIED_EXPRESSIONS_WITHOUT_WRAP = TokenSet.create( IMPORT_DIRECTIVE,  PACKAGE_DIRECTIVE)
 
-private const val CDOC_COMMENT_INDENT = 1
+internal const val CDOC_COMMENT_INDENT = 1
 
-private val BINARY_EXPRESSIONS = TokenSet.create( BINARY_EXPRESSION,  BINARY_WITH_TYPE,  IS_EXPRESSION)
-private val CDOC_CONTENT = TokenSet.create(CDocTokens.CDOC, CDocElementTypes.CDOC_SECTION, CDocElementTypes.CDOC_TAG)
+internal val BINARY_EXPRESSIONS = TokenSet.create( BINARY_EXPRESSION,  BINARY_WITH_TYPE,  IS_EXPRESSION)
+internal val CDOC_CONTENT = TokenSet.create(CDocTokens.CDOC, CDocElementTypes.CDOC_SECTION, CDocElementTypes.CDOC_TAG)
 
-private val CODE_BLOCKS = TokenSet.create( BLOCK,  CLASS_BODY,  FUNCTION_LITERAL,  PROPERTY_BODY)
+internal val CODE_BLOCKS = TokenSet.create( BLOCK,  CLASS_BODY,  FUNCTION_LITERAL,  PROPERTY_BODY)
 
-private val ALIGN_FOR_BINARY_OPERATIONS = TokenSet.create( MUL,  DIV,  PERC,  PLUS,  MINUS,  LT,  GT,  LTEQ,  GTEQ,  ANDAND,  OROR)
-private val ANNOTATIONS = TokenSet.create()
+internal val ALIGN_FOR_BINARY_OPERATIONS = TokenSet.create( MUL,  DIV,  PERC,  PLUS,  MINUS,  LT,  GT,  LTEQ,  GTEQ,  ANDAND,  OROR)
+internal val ANNOTATIONS = TokenSet.create()
 
 typealias WrappingStrategy = (childElement: ASTNode) -> Wrap?
 
@@ -282,7 +282,8 @@ abstract class CangJieCommonBlock(
             }
         }
 
-        for (strategy in INDENT_RULES) {
+        // 使用IndentRules获取缩进规则
+        for (strategy in IndentRules.getIndentRules()) {
             val indent = strategy.getIndent(child, settings)
             if (indent != null) {
                 return indent
@@ -931,176 +932,6 @@ fun NodeIndentStrategy.PositionStrategy.continuationIf(
     } else Indent.getNormalIndent()
 }
 
-//TODO 块相对于父级块的缩进
-private val INDENT_RULES  = arrayOf(
-
-    // 不对块中的右大括号和左大括号进行缩进
-    strategy("No indent for braces in blocks").within(BLOCK, INIT_BLOCK, CLASS_BODY, FUNCTION_LITERAL, ENUM_BODY)
-        .forType(RBRACE, LBRACE).set(Indent.getNoneIndent()),
-
-    // 对块内容进行正常缩进
-    strategy("Indent for block content").within(
-        BLOCK,
-        INIT_BLOCK,
-        CLASS_BODY,
-        FUNCTION_LITERAL,
-        PROPERTY_BODY,
-        ENUM_BODY
-    )
-        .notForType(RBRACE, LBRACE, BLOCK, ENUM_ENTRY).set(Indent.getNormalIndent()),
-
-    // 对模板内容进行正常缩进
-    strategy("Indent for template content").within(LONG_STRING_TEMPLATE_ENTRY)
-        .notForType(LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END).set(Indent.getNormalIndent()),
-
-    // 对模板中的大括号不进行缩进
-    strategy("No indent for braces in template").within(LONG_STRING_TEMPLATE_ENTRY)
-        .forType(LONG_TEMPLATE_ENTRY_START, LONG_TEMPLATE_ENTRY_END).set(Indent.getNoneIndent()),
-
-    // 对属性访问器进行正常缩进
-    strategy("Indent for property accessors").within(PROPERTY).forType(PROPERTY_BODY).set(Indent.getNormalIndent()),
-
-    // 对 'for' 循环中的单一语句进行正常缩进
-    strategy("For a single statement in 'for'").within(BODY).notForType(BLOCK).set(Indent.getNormalIndent()),
-
-    // 对 'THEN' 和 'ELSE' 中的单一语句进行正常缩进
-    strategy("For single statement in THEN and ELSE").within(THEN, ELSE).notForType(BLOCK)
-        .set(Indent.getNormalIndent()),
-
-    // 对表达式体应用缩进
-    strategy("Expression body").within(FUNC).notForType(OPERATION_REFERENCE).forElement {
-        (it.psi is CjExpression && it.psi !is CjBlockExpression)
-    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES, indentFirst = true),
-
-    // 对表达式体位置的行注释应用缩进
-    strategy("Line comment at expression body position").forElement { node ->
-        val psi = node.psi
-        val parent = psi.parent
-        if (psi is PsiComment && parent is CjDeclarationWithInitializer) {
-            psi.getNextSiblingIgnoringWhitespace() == parent.initializer
-        } else {
-            false
-        }
-    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES, indentFirst = true),
-
-    // 对 if 条件中的缩进类型进行动态设置
-    strategy("If condition").within(CONDITION).set { settings ->
-        val indentType =
-            if (settings.cangjieCustomSettings.CONTINUATION_INDENT_IN_IF_CONDITIONS) Indent.Type.CONTINUATION
-            else Indent.Type.NORMAL
-
-        Indent.getIndent(indentType, false, true)
-    },
-
-    // 对属性访问器中的表达式体进行正常缩进
-    strategy("Property accessor expression body").within(PROPERTY_ACCESSOR).forElement {
-        it.psi is CjExpression && it.psi !is CjBlockExpression
-    }.set(Indent.getNormalIndent()),
-
-    // 对属性初始化器中的表达式进行连续缩进
-    strategy("Property initializer").within(PROPERTY).forElement {
-        it.psi is CjExpression
-    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
-
-    // 对解构声明中的表达式应用缩进
-    strategy("Destructuring declaration").within(DESTRUCTURING_DECLARATION).forElement {
-        it.psi is CjExpression
-    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
-
-    // 对赋值表达式的右侧部分应用缩进
-    strategy("Assignment expressions").within(BINARY_EXPRESSION).within {
-        val binaryExpression = it.psi as? CjBinaryExpression ?: return@within false
-        ALL_ASSIGNMENTS.contains(binaryExpression.operationToken)
-    }.forElement {
-        val psi = it.psi
-        val binaryExpression = psi?.parent as? CjBinaryExpression
-        binaryExpression?.right == psi
-    }.continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES),
-
-    // 对块和函数等部分进行缩进，排除某些特定类型
-    strategy("Indent for parts").within(
-        PROPERTY,
-        FUNC,
-        DESTRUCTURING_DECLARATION,
-        PRIMARY_CONSTRUCTOR,
-        SECONDARY_CONSTRUCTOR,
-        END_SECONDARY_CONSTRUCTOR
-    ).notForType(
-        BLOCK,
-        INIT_BLOCK,
-        FUNC_KEYWORD,
-        CONST_KEYWORD,
-        LET_KEYWORD,
-        VAR_KEYWORD,
-        INIT_KEYWORD,
-        RPAR,
-        EOL_COMMENT,
-        CONTEXT_RECEIVER_LIST,
-        MODIFIER_LIST
-    ).set(Indent.getContinuationWithoutFirstIndent()),
-
-    // 对链式调用进行缩进
-    strategy("Chained calls").within(QUALIFIED_EXPRESSIONS)
-        .forType(EOL_COMMENT, BLOCK_COMMENT, DOC_COMMENT, SHEBANG_COMMENT)
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_CHAINED_CALLS),
-
-    // 对继承列表进行缩进
-    strategy("Delegation list").within(SUPER_TYPE_LIST)
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_IN_SUPERTYPE_LISTS, indentFirst = true),
-
-    // 对索引进行缩进，排除右中括号
-    strategy("Indices").within(INDICES).notForType(RBRACKET)
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_IN_ARGUMENT_LISTS),
-
-    // 对二元表达式进行缩进
-    strategy("Binary expressions").within(BINARY_EXPRESSIONS)
-        .forElement { node -> !node.suppressBinaryExpressionIndent() }
-        .set(Indent.getContinuationWithoutFirstIndent(false)),
-
-    // 对括号中的表达式进行缩进
-    strategy("Parenthesized expression").within(PARENTHESIZED).set(Indent.getContinuationWithoutFirstIndent(false)),
-
-    // 对条件中的左括号应用缩进
-    strategy("Opening parenthesis for conditions").forType(LPAR).within(IF, MATCH_ENTRY, WHILE, DO_WHILE, FOR, MATCH)
-        .set(Indent.getContinuationWithoutFirstIndent(true)),
-
-    // 对条件中的右括号应用不缩进
-    strategy("Closing parenthesis for conditions").forType(RPAR)
-        .forElement { node -> !hasErrorElementBefore(node) || node.prev()?.textLength == 0 }
-        .within(IF, MATCH_ENTRY, WHILE, DO_WHILE, FOR, MATCH).set(Indent.getNoneIndent()),
-
-    // 对不完整条件中的右括号应用连续缩进
-    strategy("Closing parenthesis for incomplete conditions").forType(RPAR)
-        .forElement { node -> hasErrorElementBefore(node) }.within(IF, MATCH_ENTRY, WHILE, DO_WHILE, FOR, MATCH)
-        .set(Indent.getContinuationWithoutFirstIndent()),
-
-    // 对 MATCH 内容进行正常缩进
-    strategy("For MATCH content").within(MATCH).notForType(RBRACE, LBRACE, MATCH_KEYWORD).set(Indent.getNormalIndent()),
-
-    // 对 CDoc 注释中的星号和结束标记进行缩进
-    strategy("CDoc comment indent").within(CDOC_CONTENT).forType(CDocTokens.LEADING_ASTERISK, CDocTokens.END)
-        .set(Indent.getSpaceIndent(CDOC_COMMENT_INDENT)),
-
-    // 对参数列表中的元素应用缩进
-    strategy("Parameter list").within(VALUE_PARAMETER_LIST)
-        .forElement { it.elementType == VALUE_PARAMETER && it.psi.prevSibling != null }
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_IN_PARAMETER_LISTS, indentFirst = true),
-
-    // 对 WHERE 子句应用缩进
-    strategy("Where clause").within(CLASS, EXTEND, STRUCT, ENUM, INTERFACE, FUNC, PROPERTY).forType(WHERE_KEYWORD)
-        .set(Indent.getContinuationIndent()),
-
-    // 对数组字面量中的元素进行缩进
-    strategy("Array literals").within(COLLECTION_LITERAL_EXPRESSION).notForType(LBRACKET, RBRACKET)
-        .set(Indent.getNormalIndent()),
-
-    // 对默认参数值应用缩进
-    strategy("Default parameter values").within(VALUE_PARAMETER)
-        .forElement { node -> node.psi != null && node.psi == (node.psi.parent as? CjParameter)?.defaultValue }
-        .continuationIf(CangJieCodeStyleSettings::CONTINUATION_INDENT_FOR_EXPRESSION_BODIES, indentFirst = true),
-)
-
-
 private fun getOperationType(node: ASTNode): IElementType? =
     node.findChildByType(OPERATION_REFERENCE)?.firstChildNode?.elementType
 
@@ -1112,7 +943,7 @@ fun hasErrorElementBefore(node: ASTNode): Boolean {
 }
 
 
-private fun ASTNode.suppressBinaryExpressionIndent(): Boolean {
+  fun ASTNode.suppressBinaryExpressionIndent(): Boolean {
     var psi = psi.parent as? CjBinaryExpression ?: return false
     while (psi.parent is CjBinaryExpression) {
         psi = psi.parent as CjBinaryExpression
@@ -1157,9 +988,7 @@ private fun getAlignmentForChildInParenthesis(
     }
 }
 
-private fun getPrevWithoutWhitespace(pNode: ASTNode): ASTNode? {
-    return pNode.siblings(forward = false).firstOrNull { it.elementType != TokenType.WHITE_SPACE }
-}
+
 
 private fun getSiblingWithoutWhitespaceAndComments(pNode: ASTNode, forward: Boolean = false): ASTNode? {
     return pNode.siblings(forward = forward).firstOrNull {
@@ -1247,7 +1076,7 @@ private fun getWrappingStrategyForItemList(
     }
 }
 
-private fun ASTNode.prev(): ASTNode? {
+  fun ASTNode.prev(): ASTNode? {
     var prev = treePrev
     while (prev != null && prev.elementType == TokenType.WHITE_SPACE) {
         prev = prev.treePrev
@@ -1268,3 +1097,9 @@ private fun extractIndent(node: ASTNode): String {
 }
 
 private fun createWrapAlwaysIf(option: Boolean): Wrap? = if (option) Wrap.createWrap(WrapType.ALWAYS, true) else null
+
+
+
+fun getPrevWithoutWhitespace(pNode: ASTNode): ASTNode? {
+    return pNode.siblings(forward = false).firstOrNull { it.elementType != TokenType.WHITE_SPACE }
+}

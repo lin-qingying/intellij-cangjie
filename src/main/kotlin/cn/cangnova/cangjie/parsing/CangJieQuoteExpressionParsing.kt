@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,33 +22,21 @@
  *
  */
 
-pluginManagement {
+package cn.cangnova.cangjie.parsing
 
-    repositories {
+class CangJieQuoteExpressionParsing(
+    builder: SemanticWhitespaceAwarePsiBuilder,
+    private val expressionParsing: CangJieExpressionParsing,
+    isLazy: Boolean,
+) : AbstractCangJieParsing(
+    builder,
+    isLazy,
+) {
+    override fun create(builder: SemanticWhitespaceAwarePsiBuilder): CangJieParsing {
+        return expressionParsing.create(builder)
+    }
 
-        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
-        maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
-        maven { url = uri("https://www.jitpack.io") }
-        mavenCentral()
-        gradlePluginPortal()
+    fun parseQuoteExpression() {
+//        TODO("Not yet implemented")
     }
 }
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
-}
-buildCache {
-    local {
-        isEnabled = System.getenv("CI") == null
-        directory = File(rootDir, "build/build-cache")
-
-    }
-}
-
-rootProject.name = "intellij-cangjie"
-
-include("plugin")
-include("dap-debugger")
-
-//include("lsp4intellij")
-
-include("lsp4ij")

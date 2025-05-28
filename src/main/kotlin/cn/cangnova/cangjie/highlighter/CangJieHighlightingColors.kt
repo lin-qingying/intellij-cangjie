@@ -40,6 +40,7 @@ object CangJieHighlightingColors {
 
     val VAR_KEYWORD: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD_VAR", KEYWORD)
     val CONST_KEYWORD: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD_CONST", KEYWORD)
+    val QUOTE_KEYWORD : TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_KEYWORD_QUOTE",KEYWORD)
 
     val NUMBER: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_NUMBER", DefaultLanguageHighlighterColors.NUMBER)
@@ -91,9 +92,10 @@ object CangJieHighlightingColors {
     val DOC_COMMENT: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_DOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT)
     val CDOC_TAG: TextAttributesKey =
-        TextAttributesKey.createTextAttributesKey("KDOC_TAG_NAME", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG)
+        TextAttributesKey.createTextAttributesKey("CDOC_TAG_NAME", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG)
     val CDOC_LINK: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CDOC_LINK", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG_VALUE)
+
 
     val CLASS: TextAttributesKey =
         TextAttributesKey.createTextAttributesKey("CANGJIE_CLASS", DefaultLanguageHighlighterColors.CLASS_NAME)
@@ -197,4 +199,6 @@ object CangJieHighlightingColors {
         "CANGJIE_ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES",
         DefaultLanguageHighlighterColors.METADATA,
     )
+
+
 }

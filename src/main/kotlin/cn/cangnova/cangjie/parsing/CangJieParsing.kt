@@ -147,7 +147,7 @@ class CangJieParsing private constructor(
     val expressionParsing: CangJieExpressionParsing =
         if (isTopLevel) CangJieExpressionParsing(builder, this, isLazy) else object :
             CangJieExpressionParsing(builder, this@CangJieParsing, isLazy) {
-            protected override fun create(builder: SemanticWhitespaceAwarePsiBuilder): CangJieParsing {
+            public override fun create(builder: SemanticWhitespaceAwarePsiBuilder): CangJieParsing {
                 return CangJieParsing.createForByClause(builder, super.isLazy)
             }
         }

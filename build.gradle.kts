@@ -23,6 +23,7 @@
  */
 
 import groovy.xml.XmlParser
+import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
@@ -83,7 +84,8 @@ plugins {
     idea
     id("net.saliman.properties") version "1.5.2"
     kotlin("jvm") version "2.1.0"
-    id("org.jetbrains.intellij.platform") version "2.2.1"
+    id("org.jetbrains.intellij.platform") version "2.6.0"
+    id("org.jetbrains.changelog") version "2.2.1"
 
     kotlin("plugin.serialization") version "2.1.0"
     id("org.gradle.test-retry") version "1.5.3"
@@ -130,7 +132,7 @@ allprojects {
             intellijDependencies()
             defaultRepositories()
 
-            nightly()
+//            nightly()
         }
         maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
 
@@ -245,15 +247,8 @@ allprojects {
             token = prop("publishToken")
         }
 
-        withType<PatchPluginXmlTask> {
-//            sinceBuild.set(ideVersion)
-//            untilBuild.set("$ideVersion.*")
-//            pluginVersion.set(cangjiePluginVersion)
-//
-            sinceBuild.set("243")
-            untilBuild.set("253.*")
-            pluginVersion.set(prop("pluginVersion"))
-        }
+
+
         runIde { enabled = false }
         prepareSandbox { enabled = false }
         buildSearchableOptions { enabled = false }
@@ -300,6 +295,36 @@ allprojects {
                 include("**")
             }
         }
+
+        // Add task to update changelog
+        register("updateChangelog") {
+            group = "documentation"
+            description = "Updates the changelog with the current version"
+
+            doLast {
+                val currentVersion = cangjiePluginVersion
+
+                // Get unreleased changes and check if they exist
+                val unreleasedChanges = changelog.getUnreleased()
+                val hasUnreleasedChanges =
+                    !changelog.renderItem(unreleasedChanges, Changelog.OutputType.MARKDOWN).isNullOrBlank()
+
+                if (!hasUnreleasedChanges) {
+                    logger.warn("No unreleased changes found in the changelog.")
+                    return@doLast
+                }
+
+                // Set the current version
+                changelog.version.set(currentVersion)
+
+                logger.quiet("Changelog updated successfully for version $currentVersion")
+            }
+        }
+
+        // Make the publish task depend on updateChangelog
+        withType<PublishPluginTask> {
+            dependsOn("updateChangelog")
+        }
     }
 }
 
@@ -336,7 +361,7 @@ project(":plugin") {
 
     }
 
-    val mergePluginJarTask = task<Jar>("mergePluginJars") {
+    val mergePluginJarTask = tasks.register<Jar>("mergePluginJars") {
         duplicatesStrategy = DuplicatesStrategy.FAIL
         archiveBaseName.set(basePluginArchiveName)
 
@@ -368,7 +393,7 @@ project(":plugin") {
             delete(pluginJars)
         }
     }
-    val createSourceJar = task<Jar>("createSourceJar") {
+    val createSourceJar = tasks.register<Jar>("createSourceJar") {
 
         for (prj in pluginProjects) {
             from(prj.kotlin.sourceSets.main.get().kotlin) {
@@ -380,16 +405,33 @@ project(":plugin") {
         archiveBaseName.set(basePluginArchiveName)
         archiveClassifier.set("src")
     }
-    tasks {
 
+    tasks {
+        patchPluginXml {
+
+
+//            sinceBuild.set(ideVersion)
+//            untilBuild.set("$ideVersion.*")
+//            pluginVersion.set(cangjiePluginVersion)
+//
+            sinceBuild.set("243")
+            untilBuild.set("253.*")
+            pluginVersion.set(prop("pluginVersion"))
+        }
         buildPlugin {
             dependsOn(createSourceJar)
+            dependsOn("updateChangelog")
             from(createSourceJar) { into("lib/src") }
             // Set proper name for final plugin zip.
             // Otherwise, base name is the same as gradle module name
             archiveBaseName.set(basePluginArchiveName)
         }
-        runIde { enabled = true }
+        runIde {
+            enabled = true
+            jvmArgs("-Xmx768m", "-XX:+UseG1GC", "-XX:SoftRefLRUPolicyMSPerMB=50")
+            jvmArgs("-Didea.auto.reload.plugins=false")
+            jvmArgs("-Dide.show.tips.on.startup.default.value=false")
+        }
         prepareSandbox {
             finalizedBy(mergePluginJarTask)
             enabled = true
@@ -439,7 +481,7 @@ project(":") {
             }
         }
     }
-    task("resolveDependencies") {
+    tasks.register("resolveDependencies") {
         doLast {
             rootProject.allprojects
                 .map { it.configurations }

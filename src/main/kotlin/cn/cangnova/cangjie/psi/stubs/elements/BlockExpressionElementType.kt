@@ -98,6 +98,7 @@ open class BlockExpressionElementType(debugName: String = "BLOCK") :
         ElementTypeUtils.getCangJieBlockImbalanceCount(seq)
 
     override fun parseContents(chameleon: ASTNode): ASTNode {
+
         val project = chameleon.psi.project
         val builder = PsiBuilderFactory.getInstance().createBuilder(
             project,

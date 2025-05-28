@@ -62,7 +62,8 @@ class CangJieHighlighter : SyntaxHighlighterBase() {
                 CangJieHighlightingColors.VAR_KEYWORD
             keys1[CjTokens.CONST_KEYWORD] =
                 CangJieHighlightingColors.CONST_KEYWORD
-
+            keys1[CjTokens.QUOTE_KEYWORD] =
+                CangJieHighlightingColors.QUOTE_KEYWORD
             keys1[CjTokens.INTEGER_LITERAL] =
                 CangJieHighlightingColors.NUMBER
             keys1[CjTokens.FLOAT_LITERAL] =
