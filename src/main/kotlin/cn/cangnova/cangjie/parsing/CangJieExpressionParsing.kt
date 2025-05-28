@@ -559,6 +559,8 @@ open class CangJieExpressionParsing(
      *   : functionLiteral
      *   : declaration
      *   : SimpleName
+     *   : unsafe
+     *   : spawn
      *   ;
      */
     private fun parseAtomicExpression(): Boolean {
@@ -570,6 +572,7 @@ open class CangJieExpressionParsing(
             // 元组
 //            TUPLE_LTIERAL_Id -> parseTupleLiteralExpression()
             UNSAFE_KEYWORD_Id -> parseUnsafeExpression()
+            SPAWN_KEYWORD_Id -> parseSpawnExpression()
             // 字面量
             LPAR_Id -> parseParenthesizedExpression()
 //            //索引
@@ -2324,7 +2327,7 @@ open class CangJieExpressionParsing(
 
             LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> cangJieParsing.parseVariable(modifiterDetector)
 
-            PROP_KEYWORD_Id -> cangJieParsing.parseProperty(detector= modifiterDetector)
+            PROP_KEYWORD_Id -> cangJieParsing.parseProperty(detector = modifiterDetector)
             INIT_KEYWORD_Id -> {
                 cangJieParsing.parseInitFunc()
                 CLASS_INIT
@@ -2404,16 +2407,16 @@ open class CangJieExpressionParsing(
         if (at(AT)) {
             parseMacroExpression()
             return
-        } else if (at(SPAWN_KEYWORD)) {
+        }/* else if (at(SPAWN_KEYWORD)) {
             parseSpawnExpression()
             return
-        } else if (at(SYNCHRONIZED_KEYWORD)) {
+        }*/ else if (at(SYNCHRONIZED_KEYWORD)) {
             cangJieParsing.parseSynchronizedExpression()
             return
-        } else if (at(UNSAFE_KEYWORD)) {
+        } /*else if (at(UNSAFE_KEYWORD)) {
             parseUnsafeExpression()
             return
-        } else if (at(QUOTE_KEYWORD)) {
+        } */else if (at(QUOTE_KEYWORD)) {
             parseQuoteExpression()
             return
         } else if (!atSet(EXPRESSION_FIRST)) {

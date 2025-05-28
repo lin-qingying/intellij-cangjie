@@ -89,7 +89,7 @@
 //    }
 //
 //    public final ErrorState state = new ErrorState();
-//    protected final SemanticWhitespaceAwarePsiBuilder myBuilder;
+//    protected final SemanticWhitespaceAwarePsiBuilder builder;
 //    protected final boolean isLazy;
 //    protected boolean isDeclarationsFile;
 //
@@ -98,7 +98,7 @@
 //    }
 //
 //    protected AbstractCangJieParsing(SemanticWhitespaceAwarePsiBuilder builder, boolean isLazy) {
-//        myBuilder = builder;
+//        this.builder = builder;
 //        this.isLazy = isLazy;
 //
 //
@@ -138,9 +138,9 @@
 //
 //    protected List<? extends SyntaxTreeBuilder.Production> getProductions() {
 //      // 获取语法树构建器的产生式
-//      return   myBuilder.getProductions();
+//      return   builder.getProductions();
 ////        // 获取PsiBuilderImpl的委托，并获取产生式
-////        return ((PsiBuilderImpl) ((PsiBuilderAdapter) myBuilder).getDelegate()).getProductions();
+////        return ((PsiBuilderImpl) ((PsiBuilderAdapter) builder).getDelegate()).getProductions();
 //    }
 //
 //    public void setDeclarationsFile(boolean isDeclarationsFile) {
@@ -156,11 +156,11 @@
 //     */
 //    protected IElementType getLastToken() {
 //        int i = 1;
-//        int currentOffset = myBuilder.getCurrentOffset();
-//        while (i <= currentOffset && WHITE_SPACE_OR_COMMENT_BIT_SET.contains(myBuilder.rawLookup(-i))) {
+//        int currentOffset = builder.getCurrentOffset();
+//        while (i <= currentOffset && WHITE_SPACE_OR_COMMENT_BIT_SET.contains(builder.rawLookup(-i))) {
 //            i++;
 //        }
-//        return myBuilder.rawLookup(-i);
+//        return builder.rawLookup(-i);
 //    }
 //
 //    protected IElementType getSafeTokenType() {
@@ -179,7 +179,7 @@
 //    protected void advanceSafeToken(IElementType type) {
 //        PsiBuilder.Marker safeToken = mark();
 //        if (type == COALESCING || type == SAFE_CALL) {
-//            PsiBuilderUtil.advance(myBuilder, 2);
+//            PsiBuilderUtil.advance(builder, 2);
 //        } else {
 //            safeToken.drop();
 //            advance();
@@ -285,7 +285,7 @@
 //        PsiBuilder.Marker gtToken = mark();
 //
 //        if (type == OPERATION_INVOKE || type == OPERATION_GET || OPERATION_COMPARE_GTEQ == type || OPERATION_RIGHT_SHIFT == type) {
-//            PsiBuilderUtil.advance(myBuilder, 2);
+//            PsiBuilderUtil.advance(builder, 2);
 //        } else {
 //            gtToken.drop();
 //            advance();
@@ -299,12 +299,12 @@
 //        PsiBuilder.Marker gtToken = mark();
 //
 //        if (type == COALESCING) {
-//            PsiBuilderUtil.advance(myBuilder, 2);
+//            PsiBuilderUtil.advance(builder, 2);
 //
 //        } else if (type == GTGTEQ) {
-//            PsiBuilderUtil.advance(myBuilder, 3);
+//            PsiBuilderUtil.advance(builder, 3);
 //        } else if (type == GTGT || type == GTEQ) {
-//            PsiBuilderUtil.advance(myBuilder, 2);
+//            PsiBuilderUtil.advance(builder, 2);
 //        } else {
 //            gtToken.drop();
 //            advance();
@@ -330,12 +330,12 @@
 //     * @return
 //     */
 //    protected PsiBuilder.Marker mark() {
-//        return myBuilder.mark();
+//        return builder.mark();
 //    }
 //
 //    //    获取上一个标记类型
 //    protected @Nullable LighterASTNode getLatestMarker() {
-//        return myBuilder.getLatestDoneMarker();
+//        return builder.getLatestDoneMarker();
 //    }
 //
 //    //    上一个已解析的标记是否以分号结尾
@@ -349,7 +349,7 @@
 //     * @param message
 //     */
 //    protected void error(String message) {
-//        myBuilder.error(message);
+//        builder.error(message);
 //    }
 //
 //    protected void errorBefore(String message, PsiBuilder.Marker marker) {
@@ -415,7 +415,7 @@
 //            return true;
 //        }
 //
-//        if (expectation == IDENTIFIER && "`".equals(myBuilder.getTokenText())) {
+//        if (expectation == IDENTIFIER && "`".equals(builder.getTokenText())) {
 //            advance();
 //        }
 //
@@ -428,7 +428,7 @@
 //            return true;
 //        }
 ////
-////        if (expectationSet == CjTokens.IDENTIFIER && "`".equals(myBuilder.getTokenText())) {
+////        if (expectationSet == CjTokens.IDENTIFIER && "`".equals(builder.getTokenText())) {
 ////            advance();
 ////        }
 //
@@ -461,7 +461,7 @@
 //        if (null == recoverySet ||
 //                recoverySet.contains(tt) ||
 ////                tt == LBRACE || tt == RBRACE ||
-//                (recoverySet.contains(EOL_OR_SEMICOLON) && (eof() || tt == SEMICOLON || myBuilder.newlineBeforeCurrentToken()))) {
+//                (recoverySet.contains(EOL_OR_SEMICOLON) && (eof() || tt == SEMICOLON || builder.newlineBeforeCurrentToken()))) {
 //            error(message);
 //        } else {
 //            errorAndAdvance(message);
@@ -502,7 +502,7 @@
 //     * @return
 //     */
 //    protected boolean eof() {
-//        return myBuilder.eof();
+//        return builder.eof();
 //    }
 //
 //    /**
@@ -510,7 +510,7 @@
 //     */
 //    protected void advance() {
 //
-//        myBuilder.advanceLexer();
+//        builder.advanceLexer();
 //    }
 //
 //    /**
@@ -531,7 +531,7 @@
 //     */
 //    protected void advanceAt(IElementType current) {
 //        assert _at(current);
-//        myBuilder.advanceLexer();
+//        builder.advanceLexer();
 //    }
 //
 //    /**
@@ -550,11 +550,11 @@
 //     * @return
 //     */
 //    protected IElementType tt() {
-//        return myBuilder.getTokenType();
+//        return builder.getTokenType();
 //    }
 //
 //    protected IElementType rawLookup(int steps) {
-//        return myBuilder.rawLookup(steps);
+//        return builder.rawLookup(steps);
 //    }
 //
 //    /**
@@ -577,7 +577,7 @@
 //        if (expectation == EOL_OR_SEMICOLON) {
 //            if (eof()) return true;
 //            if (token == SEMICOLON) return true;
-//            return myBuilder.newlineBeforeCurrentToken();
+//            return builder.newlineBeforeCurrentToken();
 //        }
 //        return false;
 //    }
@@ -592,14 +592,14 @@
 //        if (_at(expectation)) return true;
 //        IElementType token = tt();
 //        if (token == IDENTIFIER && expectation instanceof CjKeywordToken expectedKeyword) {
-//            if (expectedKeyword.isSoft() && expectedKeyword.getValue().equals(myBuilder.getTokenText())) {
-//                myBuilder.remapCurrentToken(expectation);
+//            if (expectedKeyword.isSoft() && expectedKeyword.getValue().equals(builder.getTokenText())) {
+//                builder.remapCurrentToken(expectation);
 //                return true;
 //            }
 //        }
 //        if (expectation == IDENTIFIER && token instanceof CjKeywordToken keywordToken) {
 //            if (keywordToken.isSoft()) {
-//                myBuilder.remapCurrentToken(IDENTIFIER);
+//                builder.remapCurrentToken(IDENTIFIER);
 //                return true;
 //            }
 //        }
@@ -618,7 +618,7 @@
 //        if (set.contains(EOL_OR_SEMICOLON)) {
 //            if (eof()) return true;
 //            if (token == SEMICOLON) return true;
-//            return myBuilder.newlineBeforeCurrentToken();
+//            return builder.newlineBeforeCurrentToken();
 //        }
 //        return false;
 //    }
@@ -633,16 +633,16 @@
 //        if (_atSet(set)) return true;
 //        IElementType token = tt();
 //        if (token == IDENTIFIER) {
-//            CjKeywordToken keywordToken = SOFT_KEYWORD_TEXTS.get(myBuilder.getTokenText());
+//            CjKeywordToken keywordToken = SOFT_KEYWORD_TEXTS.get(builder.getTokenText());
 //            if (set.contains(keywordToken)) {
-//                myBuilder.remapCurrentToken(keywordToken);
+//                builder.remapCurrentToken(keywordToken);
 //                return true;
 //            }
 //        } else {
 //
 //            if (set.contains(IDENTIFIER) && token instanceof CjKeywordToken) {
 //                if (((CjKeywordToken) token).isSoft()) {
-//                    myBuilder.remapCurrentToken(IDENTIFIER);
+//                    builder.remapCurrentToken(IDENTIFIER);
 //                    return true;
 //                }
 //            }
@@ -658,7 +658,7 @@
 //     */
 //    protected IElementType lookahead(int k) {
 //
-//        return myBuilder.lookAhead(k);
+//        return builder.lookAhead(k);
 //    }
 //
 //    /**
@@ -735,7 +735,7 @@
 //        int openBrackets = 0;
 //        while (!eof()) {
 //            if (pattern.processToken(
-//                    myBuilder.getCurrentOffset(),
+//                    builder.getCurrentOffset(),
 //                    pattern.isTopLevel(openAngleBrackets, openBrackets, openBraces, openParentheses))) {
 //                break;
 //            }
@@ -789,13 +789,13 @@
 //     * @return
 //     */
 //    protected boolean eol() {
-//        return myBuilder.newlineBeforeCurrentToken() || eof();
+//        return builder.newlineBeforeCurrentToken() || eof();
 //    }
 //
 //    protected abstract CangJieParsing create(SemanticWhitespaceAwarePsiBuilder builder);
 //
 //    protected CangJieParsing createTruncatedBuilder(int eofPosition) {
-//        return create(new TruncatedSemanticWhitespaceAwarePsiBuilder(myBuilder, eofPosition));
+//        return create(new TruncatedSemanticWhitespaceAwarePsiBuilder(builder, eofPosition));
 //    }
 //
 //    /**
@@ -806,7 +806,7 @@
 //    @SuppressWarnings("UnusedDeclaration")
 //    @TestOnly
 //    public String currentContext() {
-//        return StringsKt.substringWithContext(myBuilder.getOriginalText(), myBuilder.getCurrentOffset(), myBuilder.getCurrentOffset(), 20);
+//        return StringsKt.substringWithContext(builder.getOriginalText(), builder.getCurrentOffset(), builder.getCurrentOffset(), 20);
 //    }
 //
 //    public interface Parser {
@@ -1086,7 +1086,7 @@
 //         */
 //        public OptionalMarker(boolean actuallyMark) {
 //            marker = actuallyMark ? mark() : null;
-//            offset = myBuilder.getCurrentOffset();
+//            offset = builder.getCurrentOffset();
 //        }
 //
 //        /**
@@ -1106,7 +1106,7 @@
 //         */
 //        public void error(String message) {
 //            if (null == marker) return;
-//            if (offset == myBuilder.getCurrentOffset()) {
+//            if (offset == builder.getCurrentOffset()) {
 //                marker.drop(); // 没有空错误
 //            } else {
 //                marker.error(message);
