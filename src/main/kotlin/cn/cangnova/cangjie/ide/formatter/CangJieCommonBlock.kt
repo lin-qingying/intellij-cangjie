@@ -125,6 +125,8 @@ abstract class CangJieCommonBlock(
     }
 
     fun buildChildren(): List<Block> {
+
+        
         if (mySubBlocks != null) {
             return mySubBlocks!!
         }

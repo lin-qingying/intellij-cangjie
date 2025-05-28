@@ -6,7 +6,7 @@
         <!--                           implementation="cn.cangnova.cangjie.ide.formatter.CangJieFormattingService"/>-->
 
         <!--自动缩进-->
-<!--        <lineIndentProvider implementation="cn.cangnova.cangjie.ide.formatter.CangJieLineIndentProvider"/>-->
+        <lineIndentProvider implementation="cn.cangnova.cangjie.ide.formatter.CangJieLineIndentProvider"/>
 
 
         <!--        格式化预处理-->

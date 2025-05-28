@@ -296,35 +296,8 @@ allprojects {
             }
         }
 
-        // Add task to update changelog
-        register("updateChangelog") {
-            group = "documentation"
-            description = "Updates the changelog with the current version"
 
-            doLast {
-                val currentVersion = cangjiePluginVersion
 
-                // Get unreleased changes and check if they exist
-                val unreleasedChanges = changelog.getUnreleased()
-                val hasUnreleasedChanges =
-                    !changelog.renderItem(unreleasedChanges, Changelog.OutputType.MARKDOWN).isNullOrBlank()
-
-                if (!hasUnreleasedChanges) {
-                    logger.warn("No unreleased changes found in the changelog.")
-                    return@doLast
-                }
-
-                // Set the current version
-                changelog.version.set(currentVersion)
-
-                logger.quiet("Changelog updated successfully for version $currentVersion")
-            }
-        }
-
-        // Make the publish task depend on updateChangelog
-        withType<PublishPluginTask> {
-            dependsOn("updateChangelog")
-        }
     }
 }
 
@@ -420,7 +393,7 @@ project(":plugin") {
         }
         buildPlugin {
             dependsOn(createSourceJar)
-            dependsOn("updateChangelog")
+
             from(createSourceJar) { into("lib/src") }
             // Set proper name for final plugin zip.
             // Otherwise, base name is the same as gradle module name
