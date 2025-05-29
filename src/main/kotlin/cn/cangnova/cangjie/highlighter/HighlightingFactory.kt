@@ -31,8 +31,77 @@ import com.intellij.openapi.util.NlsContexts.DetailedDescription
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 
-
+/**
+ * 高亮信息工厂类 - 创建和管理代码高亮信息
+ * Highlighting Factory - Creates and manages code highlighting information
+ *
+ * 这个工厂类负责创建和配置代码高亮信息。它提供了一组静态方法，用于生成不同类型的高亮效果。
+ * This factory class is responsible for creating and configuring code highlighting information.
+ * It provides a set of static methods for generating different types of highlighting effects.
+ *
+ * 主要功能：
+ * Main Features:
+ *
+ * 1. 元素高亮 (Element Highlighting)
+ *    - 为 PSI 元素创建高亮信息
+ *    - 支持自定义高亮类型
+ *    - 可以添加描述性提示信息
+ *
+ * 2. 范围高亮 (Range Highlighting)
+ *    - 支持指定文本范围的高亮
+ *    - 可以独立于 PSI 元素进行高亮
+ *    - 适用于特定文本区域的高亮需求
+ *
+ * 使用场景：
+ * Usage Scenarios:
+ *
+ * 1. 语法高亮 (Syntax Highlighting)
+ *    ```kotlin
+ *    // 高亮一个方法名
+ *    highlightName(methodElement, CangJieHighlightInfoTypeSemanticNames.FUNCTION_DECLARATION)
+ *    ```
+ *
+ * 2. 错误标记 (Error Marking)
+ *    ```kotlin
+ *    // 标记语法错误
+ *    highlightName(element, CangJieHighlightInfoTypeSemanticNames.ERROR, "Syntax error")
+ *    ```
+ *
+ * 3. 范围高亮 (Range Highlighting)
+ *    ```kotlin
+ *    // 高亮特定文本范围
+ *    highlightName(project, textRange, CangJieHighlightInfoTypeSemanticNames.KEYWORD)
+ *    ```
+ *
+ * 工作原理：
+ * How it works:
+ *
+ * 1. 创建高亮信息
+ *    - 检查元素或范围的有效性
+ *    - 配置高亮类型和属性
+ *    - 生成高亮信息构建器
+ *
+ * 2. 配置选项
+ *    - 设置高亮范围
+ *    - 添加提示信息（可选）
+ *    - 应用高亮样式
+ *
+ * 注意事项：
+ * Notes:
+ * 1. 确保传入的 PSI 元素有效且具有非空的文本范围
+ * 2. 高亮类型应该与元素的语义相匹配
+ * 3. 提示信息应该简洁明确，帮助用户理解高亮原因
+ */
 object HighlightingFactory {
+    /**
+     * 为 PSI 元素创建高亮信息
+     * Creates highlighting information for a PSI element
+     *
+     * @param element 要高亮的 PSI 元素 (The PSI element to highlight)
+     * @param highlightInfoType 高亮类型，决定高亮的样式 (Highlight type that determines the style)
+     * @param message 可选的提示信息，鼠标悬停时显示 (Optional tooltip message shown on hover)
+     * @return 高亮信息构建器，如果元素无效则返回 null (Highlight info builder, or null if element is invalid)
+     */
     fun highlightName(element: PsiElement, highlightInfoType: HighlightInfoType, message: @DetailedDescription String? = null): HighlightInfo.Builder? {
         val project = element.project
         if (!element.textRange.isEmpty) {
@@ -41,6 +110,16 @@ object HighlightingFactory {
         return null
     }
 
+    /**
+     * 为指定文本范围创建高亮信息
+     * Creates highlighting information for a specific text range
+     *
+     * @param project 当前项目实例 (Current project instance)
+     * @param textRange 要高亮的文本范围 (Text range to highlight)
+     * @param highlightInfoType 高亮类型，决定高亮的样式 (Highlight type that determines the style)
+     * @param message 可选的提示信息，鼠标悬停时显示 (Optional tooltip message shown on hover)
+     * @return 高亮信息构建器 (Highlight info builder)
+     */
     fun highlightName(
         project: Project,
         textRange: TextRange,

@@ -24,12 +24,10 @@
 
 package cn.cangnova.cangjie.highlighter
 
-import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.icon.CangJieIcons
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighter
-import com.intellij.openapi.options.OptionsBundle
 import com.intellij.openapi.options.colors.AttributesDescriptor
 import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
@@ -44,64 +42,77 @@ class CangJieColorSettingsPage : ColorSettingsPage, RainbowColorSettingsPage {
     override fun getHighlighter(): SyntaxHighlighter = CangJieHighlighter()
 
     override fun getDemoText(): String {
-        return """/* Block comment */
-<KEYWORD>package</KEYWORD> hello
-<KEYWORD>from</KEYWORD> std <KEYWORD>import</KEYWORD> socket.* // line comment
-<KEYWORD>import</KEYWORD> socket.* // line comment
+        return """/* 块注释 Block comment */
+<KEYWORD>package</KEYWORD> demo
+
+// 行注释 Line comment
+<KEYWORD>import</KEYWORD> std.{io.*, math.*}
+
+// 宏声明
+<KEYWORD>macro</KEYWORD> <MACRO_DECLARATION>name</MACRO_DECLARATION>(<PARAMETER>input</PARAMETER>: <TYPE_REFERENCE>Tokens</TYPE_REFERENCE>): <TYPE_REFERENCE>Tokens</TYPE_REFERENCE> {
+    <KEYWORD>return</KEYWORD> <PARAMETER>input</PARAMETER>
+}
+
+// 宏调用
+<MACRO_CALL>@derive</MACRO_CALL>[<STRING>"a"</STRING>]
+
+// 接口声明
+<KEYWORD>interface</KEYWORD> <INTERFACE>Printable</INTERFACE> {
+    <KEYWORD>func</KEYWORD> <FUNCTION_DECLARATION>print</FUNCTION_DECLARATION>(): <TYPE_REFERENCE>Unit</TYPE_REFERENCE>
+}
+// 枚举定义
+    <KEYWORD>enum</KEYWORD> <ENUM>Color</ENUM> <BRACES>{</BRACES>
+        <ENUM_ENTRY>RED</ENUM_ENTRY><COMMA>,</COMMA>
+        <ENUM_ENTRY>GREEN</ENUM_ENTRY><COMMA>,</COMMA>
+        <ENUM_ENTRY>BLUE</ENUM_ENTRY>
+    <BRACES>}</BRACES>
+// 结构体声明
+<KEYWORD>struct</KEYWORD> <STRUCT>Point</STRUCT> {
+ 
+}
+
 /**
- * Doc comment here for `SomeClass`
+ * CDoc 文档注释
  * @see <CDOC_LINK>Iterator#next()</CDOC_LINK>
  */
- 
-<BUILTIN_ANNOTATION>private</BUILTIN_ANNOTATION> class <CLASS>MyClass</CLASS>  {
-    func <FUNCTION_DECLARATION>foo</FUNCTION_DECLARATION>(  <PARAMETER>str</PARAMETER> : <TRAIT>String</TRAIT>   ) {
-        <PACKAGE_FUNCTION_CALL>println</PACKAGE_FUNCTION_CALL>("length\nis ${"$"}{<PARAMETER>str</PARAMETER><SAFE_ACCESS>.</SAFE_ACCESS><INSTANCE_PROPERTY>size</INSTANCE_PROPERTY>} <STRING_ESCAPE><INVALID_STRING_ESCAPE>\e</INVALID_STRING_ESCAPE></STRING_ESCAPE>")
-         
- 
-                   str.<DYNAMIC_FUNCTION_CALL>indexOf</DYNAMIC_FUNCTION_CALL>()
-     
- 
-    }
-
-    <BUILTIN_ANNOTATION>override</BUILTIN_ANNOTATION> func hashCode(): Int {
-        return <KEYWORD>super</KEYWORD>.<FUNCTION_CALL>hashCode</FUNCTION_CALL>() * 31
-    }
-}
-
- 
-
-var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounter</MUTABLE_VARIABLE></PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION> : Int = <NUMBER>5</NUMBER>
- 
-
-<KEYWORD>abstract</KEYWORD> class <ABSTRACT_CLASS>Abstract</ABSTRACT_CLASS> {
-    prop <INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION>bar</INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION>  : <CLASS>Int</CLASS>  {
-        <KEYWORD>get</KEYWORD>() { <NUMBER>5</NUMBER> }
-        <KEYWORD>set</KEYWORD>(<PARAMETER>value</PARAMETER>) { <INSTANCE_PROPERTY>field</INSTANCE_PROPERTY> = <PARAMETER><VARIABLE_AS_FUNCTION_CALL>value</VARIABLE_AS_FUNCTION_CALL></PARAMETER> }
+<KEYWORD>public</KEYWORD> <KEYWORD>class</KEYWORD> <CLASS>DemoClass</CLASS> <OPERATOR_SIGN><:</OPERATOR_SIGN> <TYPE_REFERENCE>Runnable</TYPE_REFERENCE> {
+    // 属性定义
+    <KEYWORD>const</KEYWORD> PI: <TYPE_REFERENCE>Float</TYPE_REFERENCE> = <NUMBER>3.14159</NUMBER>
+    <KEYWORD>let</KEYWORD> name: <TYPE_REFERENCE>String</TYPE_REFERENCE> = <STRING>"Hello"</STRING>
+    <KEYWORD>var</KEYWORD> <CANGJIE_MUTABLE_VARIABLE>count</CANGJIE_MUTABLE_VARIABLE>: <TYPE_REFERENCE>Int</TYPE_REFERENCE> = <NUMBER>0</NUMBER>
     
+    // 可变属性定义
+    <KEYWORD>mut</KEYWORD> <KEYWORD>prop</KEYWORD> <MUTABLE_PROPERTY>items</MUTABLE_PROPERTY>: <TYPE_REFERENCE>String</TYPE_REFERENCE> {
+        <KEYWORD>get</KEYWORD>() {
+            <KEYWORD>return</KEYWORD> <STRING>""</STRING>
+        }
+        <KEYWORD>set</KEYWORD>(<PARAMETER>value</PARAMETER>) {
+            // setter implementation
+        }
+    }
+     // 构造函数
+    <FUNCTION_DECLARATION>init</FUNCTION_DECLARATION>(<PARAMETER>name</PARAMETER>: <TYPE_REFERENCE>String</TYPE_REFERENCE>) {
+        <KEYWORD>this</KEYWORD><DOT>.</DOT><INSTANCE_PROPERTY>name</INSTANCE_PROPERTY> = <PARAMETER>name</PARAMETER>
+    }
     
+    // 可变方法定义
+    <KEYWORD>mut</KEYWORD> <KEYWORD>func</KEYWORD> <FUNCTION_DECLARATION>calculate</FUNCTION_DECLARATION>(<PARAMETER>x</PARAMETER>: <TYPE_REFERENCE>Int</TYPE_REFERENCE>, <PARAMETER>y</PARAMETER>: <TYPE_REFERENCE>Int</TYPE_REFERENCE>): <TYPE_REFERENCE>Int</TYPE_REFERENCE> {
+        <KEYWORD>let</KEYWORD> <LOCAL_VARIABLE>result</LOCAL_VARIABLE> = <PACKAGE_FUNCTION_CALL>max</PACKAGE_FUNCTION_CALL>(<PARAMETER>x</PARAMETER>, <PARAMETER>y</PARAMETER>) <OPERATOR_SIGN>*</OPERATOR_SIGN> <NUMBER>2</NUMBER>
+        <KEYWORD>return</KEYWORD> <LOCAL_VARIABLE>result</LOCAL_VARIABLE>
     }
-    func <FUNCTION_DECLARATION>test</FUNCTION_DECLARATION>() {
-        <INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION>bar</INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION>
+    // Lambda 表达式
+    <KEYWORD>let</KEYWORD> <LOCAL_VARIABLE>operation</LOCAL_VARIABLE> = { <PARAMETER>a1</PARAMETER>: <TYPE_REFERENCE>Int</TYPE_REFERENCE>, <PARAMETER>a2</PARAMETER>: <TYPE_REFERENCE>String</TYPE_REFERENCE> =>
+        <PACKAGE_FUNCTION_CALL>println</PACKAGE_FUNCTION_CALL>(<PARAMETER>a1</PARAMETER>)
+        <PACKAGE_FUNCTION_CALL>println</PACKAGE_FUNCTION_CALL>(<PARAMETER>a2</PARAMETER>)
     }
-}
-
- 
-
-<KEYWORD>enum</KEYWORD>   <ENUM>E</ENUM> { <ENUM_ENTRY>A</ENUM_ENTRY> | <ENUM_ENTRY>B</ENUM_ENTRY> }
-
-<KEYWORD>interface</KEYWORD> <TRAIT>FunctionLike</TRAIT> {
-    <KEYWORD>func</KEYWORD> <FUNCTION_DECLARATION>invoke</FUNCTION_DECLARATION>()  
-}
-<KEYWORD>type</KEYWORD> <TYPE_ALIAS>Predicate</TYPE_ALIAS><<TYPE_PARAMETER>T</TYPE_PARAMETER>> = (<TYPE_PARAMETER>T</TYPE_PARAMETER>) -> <CLASS>Bool</CLASS>
-
- 
-<KEYWORD>func</KEYWORD> <FUNCTION_DECLARATION>baz</FUNCTION_DECLARATION>(<PARAMETER>p</PARAMETER>: <TYPE_ALIAS>Predicate</TYPE_ALIAS><<CLASS>Int</CLASS>>) {
-  print(1,<NAMED_ARGUMENT>flush :</NAMED_ARGUMENT>  <KEYWORD>true</KEYWORD>)
-<KEYWORD>return </KEYWORD> <PARAMETER><VARIABLE_AS_FUNCTION_CALL>p</VARIABLE_AS_FUNCTION_CALL></PARAMETER>(<NUMBER>42</NUMBER>)
-} 
-
- """
+     // 类型别名
+    <KEYWORD>type</KEYWORD> <TYPE_ALIAS>String1</TYPE_ALIAS> = <TYPE_REFERENCE>String</TYPE_REFERENCE>
+    
+    // 错误字符和解析错误示例
+    <BAD_CHARACTER>@</BAD_CHARACTER> <RESOLVED_TO_ERROR>unknownFunction</RESOLVED_TO_ERROR>()
+}"""
     }
+
     override fun getAdditionalHighlightingTagToDescriptorMap(): Map<String, TextAttributesKey> {
         val map = HashMap<String, TextAttributesKey>()
 
@@ -126,85 +137,111 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
 
         return map
     }
-//    override fun getAdditionalHighlightingTagToDescriptorMap(): Map<String, TextAttributesKey> {
-//        val map = HashMap<String, TextAttributesKey>()
-//        for (field in CangJieHighlightingColors::class.java.fields) {
-//
-//            if (Modifier.isStatic(field.modifiers)) {
-//                try {
-//                    map[field.name] = field.get(null) as TextAttributesKey
-//
-//                } catch (e: IllegalAccessException) {
-//                    assert(false)
-//                }
-//
-//            }
-//        }
-//
-//        map.putAll(DslStyleUtils.descriptionsToStyles)
-//
-//        return map
-//    }
+
 
     override fun getAttributeDescriptors(): Array<AttributesDescriptor> {
         infix fun String.to(key: TextAttributesKey) = AttributesDescriptor(this, key)
 
         return arrayOf(
-            CangJieBundle.message("highlighter.descriptor.text.builtin.keyword") to CangJieHighlightingColors.KEYWORD,
-            CangJieBundle.message("highlighter.descriptor.text.builtin.keyword.let") to CangJieHighlightingColors.LET_KEYWORD,
-            CangJieBundle.message("highlighter.descriptor.text.builtin.keyword.quote") to CangJieHighlightingColors.QUOTE_KEYWORD,
-            CangJieBundle.message("highlighter.descriptor.text.builtin.keyword.const") to CangJieHighlightingColors.CONST_KEYWORD,
-            CangJieBundle.message("highlighter.descriptor.text.builtin.keyword.var") to CangJieHighlightingColors.VAR_KEYWORD,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.builtin.keyword") to CangJieHighlightingColors.KEYWORD,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.builtin.keyword.let") to CangJieHighlightingColors.LET_KEYWORD,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.builtin.keyword.quote") to CangJieHighlightingColors.QUOTE_KEYWORD,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.builtin.keyword.const") to CangJieHighlightingColors.CONST_KEYWORD,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.builtin.keyword.var") to CangJieHighlightingColors.VAR_KEYWORD,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.builtin.keyword.mut") to CangJieHighlightingColors.MUT_KEYWORD,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.builtin.keyword.prop") to CangJieHighlightingColors.PROP_KEYWORD,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.builtin.keyword.static") to CangJieHighlightingColors.STATIC_KEYWORD,
+
+            // 字面量相关的高亮设置
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.literal.number") to CangJieHighlightingColors.NUMBER,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.literal.string") to CangJieHighlightingColors.STRING,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.literal.string.escape") to CangJieHighlightingColors.STRING_ESCAPE,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.literal.string.invalid.escape") to CangJieHighlightingColors.INVALID_STRING_ESCAPE,
+
 //            CangJieBundle.message("highlighter.descriptor.text.builtin.annotation") to CangJieHighlightingColors.BUILTIN_ANNOTATION,
-            CangJieBundle.message("highlighter.descriptor.text.string.escape") to CangJieHighlightingColors.STRING_ESCAPE,
-            CangJieBundle.message("highlighter.descriptor.text.closure.braces") to CangJieHighlightingColors.FUNCTION_LITERAL_BRACES_AND_ARROW,
-            CangJieBundle.message("highlighter.descriptor.text.arrow") to CangJieHighlightingColors.ARROW,
-            CangJieBundle.message("highlighter.descriptor.text.colon") to CangJieHighlightingColors.COLON,
-            CangJieBundle.message("highlighter.descriptor.text.double.colon") to CangJieHighlightingColors.DOUBLE_COLON,
-            CangJieBundle.message("highlighter.descriptor.text.safe.access") to CangJieHighlightingColors.SAFE_ACCESS,
-            CangJieBundle.message("highlighter.descriptor.text.quest") to CangJieHighlightingColors.QUEST,
-            CangJieBundle.message("highlighter.descriptor.text.exclexcl") to CangJieHighlightingColors.EXCLEXCL,
-            OptionsBundle.message("options.java.attribute.descriptor.line.comment") to CangJieHighlightingColors.LINE_COMMENT,
-            OptionsBundle.message("options.java.attribute.descriptor.block.comment") to CangJieHighlightingColors.BLOCK_COMMENT,
-            CangJieBundle.message("highlighter.descriptor.text.cdoc.comment") to CangJieHighlightingColors.DOC_COMMENT,
-            CangJieBundle.message("highlighter.descriptor.text.cdoc.tag") to CangJieHighlightingColors.CDOC_TAG,
-            CangJieBundle.message("highlighter.descriptor.text.cdoc.value") to CangJieHighlightingColors.CDOC_LINK,
-            CangJieBundle.message("highlighter.descriptor.text.abstract.class") to CangJieHighlightingColors.ABSTRACT_CLASS,
-//            CangJieBundle.message("highlighter.descriptor.text.annotation") to CangJieHighlightingColors.ANNOTATION,
-//            CangJieBundle.message("highlighter.descriptor.text.annotation.attribute.name") to CangJieHighlightingColors.ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES,
-            OptionsBundle.message("options.java.attribute.descriptor.type.parameter") to CangJieHighlightingColors.TYPE_PARAMETER,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.string.escape") to CangJieHighlightingColors.STRING_ESCAPE,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.closure.braces") to CangJieHighlightingColors.FUNCTION_LITERAL_BRACES_AND_ARROW,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.arrow") to CangJieHighlightingColors.ARROW,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.colon") to CangJieHighlightingColors.COLON,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.double.colon") to CangJieHighlightingColors.DOUBLE_COLON,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.safe.access") to CangJieHighlightingColors.SAFE_ACCESS,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.quest") to CangJieHighlightingColors.QUEST,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.exclexcl") to CangJieHighlightingColors.EXCLEXCL,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.line.comment") to CangJieHighlightingColors.LINE_COMMENT,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.operator.sign") to CangJieHighlightingColors.OPERATOR_SIGN,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.block.comment") to CangJieHighlightingColors.BLOCK_COMMENT,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.cdoc.comment") to CangJieHighlightingColors.DOC_COMMENT,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.cdoc.tag") to CangJieHighlightingColors.CDOC_TAG,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.cdoc.value") to CangJieHighlightingColors.CDOC_LINK,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.abstract.class") to CangJieHighlightingColors.ABSTRACT_CLASS,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.annotation") to CangJieHighlightingColors.ANNOTATION,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.annotation.attribute.name") to CangJieHighlightingColors.ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.type.reference") to CangJieHighlightingColors.TYPE_REFERENCE,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.type.parameter") to CangJieHighlightingColors.TYPE_PARAMETER,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.typeDefined") to CangJieHighlightingColors.TYPE_DEFINED,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.typeAlias") to CangJieHighlightingColors.TYPE_ALIAS,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.enum") to CangJieHighlightingColors.ENUM,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.enumEntry") to CangJieHighlightingColors.ENUM_ENTRY,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.var") to CangJieHighlightingColors.MUTABLE_VARIABLE,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.local.variable") to CangJieHighlightingColors.LOCAL_VARIABLE,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.captured.variable") to CangJieHighlightingColors.WRAPPED_INTO_REF,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.instance.property") to CangJieHighlightingColors.INSTANCE_PROPERTY,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.instance.property.custom.property.declaration") to CangJieHighlightingColors.INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.parameter") to CangJieHighlightingColors.PARAMETER,
 
-            CangJieBundle.message("highlighter.descriptor.text.enum") to CangJieHighlightingColors.ENUM,
-            CangJieBundle.message("highlighter.descriptor.text.enumEntry") to CangJieHighlightingColors.ENUM_ENTRY,
-            CangJieBundle.message("highlighter.descriptor.text.typeAlias") to CangJieHighlightingColors.TYPE_ALIAS,
-            CangJieBundle.message("highlighter.descriptor.text.var") to CangJieHighlightingColors.MUTABLE_VARIABLE,
-            CangJieBundle.message("highlighter.descriptor.text.local.variable") to CangJieHighlightingColors.LOCAL_VARIABLE,
-            CangJieBundle.message("highlighter.descriptor.text.captured.variable") to CangJieHighlightingColors.WRAPPED_INTO_REF,
-            CangJieBundle.message("highlighter.descriptor.text.instance.property") to CangJieHighlightingColors.INSTANCE_PROPERTY,
-            CangJieBundle.message("highlighter.descriptor.text.instance.property.custom.property.declaration") to CangJieHighlightingColors.INSTANCE_PROPERTY_CUSTOM_PROPERTY_DECLARATION,
-            OptionsBundle.message("options.java.attribute.descriptor.parameter") to CangJieHighlightingColors.PARAMETER,
-
-            CangJieBundle.message("highlighter.descriptor.text.package.property.custom.property.declaration") to CangJieHighlightingColors.PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION,
-            CangJieBundle.message("highlighter.descriptor.text.package.property") to CangJieHighlightingColors.PACKAGE_PROPERTY,
-            CangJieBundle.message("highlighter.descriptor.text.field") to CangJieHighlightingColors.BACKING_FIELD_VARIABLE,
-            CangJieBundle.message("highlighter.descriptor.text.extension.property") to CangJieHighlightingColors.EXTENSION_PROPERTY,
-            CangJieBundle.message("highlighter.descriptor.text.synthetic.extension.property") to CangJieHighlightingColors.SYNTHETIC_EXTENSION_PROPERTY,
-            CangJieBundle.message("highlighter.descriptor.text.dynamic.property") to CangJieHighlightingColors.DYNAMIC_PROPERTY_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.android.extensions.property") to CangJieHighlightingColors.ANDROID_EXTENSIONS_PROPERTY_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.func") to CangJieHighlightingColors.FUNCTION_DECLARATION,
-            CangJieBundle.message("highlighter.descriptor.text.func.call") to CangJieHighlightingColors.FUNCTION_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.dynamic.func.call") to CangJieHighlightingColors.DYNAMIC_FUNCTION_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.suspend.func.call") to CangJieHighlightingColors.SUSPEND_FUNCTION_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.package.func.call") to CangJieHighlightingColors.PACKAGE_FUNCTION_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.extension.func.call") to CangJieHighlightingColors.EXTENSION_FUNCTION_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.constructor.call") to CangJieHighlightingColors.CONSTRUCTOR_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.variable.as.function.call") to CangJieHighlightingColors.VARIABLE_AS_FUNCTION_CALL,
-            CangJieBundle.message("highlighter.descriptor.text.variable.as.function.like.call") to CangJieHighlightingColors.VARIABLE_AS_FUNCTION_LIKE_CALL,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.package.property.custom.property.declaration") to CangJieHighlightingColors.PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.package.variable") to CangJieHighlightingColors.PACKAGE_VARIABLE,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.field") to CangJieHighlightingColors.BACKING_FIELD_VARIABLE,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.extension.property") to CangJieHighlightingColors.EXTENSION_PROPERTY,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.synthetic.extension.property") to CangJieHighlightingColors.SYNTHETIC_EXTENSION_PROPERTY,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.dynamic.property") to CangJieHighlightingColors.DYNAMIC_PROPERTY_CALL,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.func") to CangJieHighlightingColors.FUNCTION_DECLARATION,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.func.call") to CangJieHighlightingColors.FUNCTION_CALL,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.dynamic.func.call") to CangJieHighlightingColors.DYNAMIC_FUNCTION_CALL,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.suspend.func.call") to CangJieHighlightingColors.SUSPEND_FUNCTION_CALL,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.package.func.call") to CangJieHighlightingColors.PACKAGE_FUNCTION_CALL,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.extension.func.call") to CangJieHighlightingColors.EXTENSION_FUNCTION_CALL,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.constructor.call") to CangJieHighlightingColors.CONSTRUCTOR_CALL,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.variable.as.function.call") to CangJieHighlightingColors.VARIABLE_AS_FUNCTION_CALL,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.variable.as.function.like.call") to CangJieHighlightingColors.VARIABLE_AS_FUNCTION_LIKE_CALL,
 //            CangJieBundle.message("highlighter.descriptor.text.smart.cast") to CangJieHighlightingColors.SMART_CAST_VALUE,
 //            CangJieBundle.message("highlighter.descriptor.text.smart.constant") to CangJieHighlightingColors.SMART_CONSTANT,
 //            CangJieBundle.message("highlighter.descriptor.text.smart.cast.receiver") to CangJieHighlightingColors.SMART_CAST_RECEIVER,
 //            CangJieBundle.message("highlighter.descriptor.text.label") to CangJieHighlightingColors.LABEL,
-            CangJieBundle.message("highlighter.descriptor.text.named.argument") to CangJieHighlightingColors.NAMED_ARGUMENT,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.func.named.argument") to CangJieHighlightingColors.NAMED_ARGUMENT,
+
+            // 括号和标点符号
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.parenthesis") to CangJieHighlightingColors.PARENTHESIS,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.braces") to CangJieHighlightingColors.BRACES,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.brackets") to CangJieHighlightingColors.BRACKETS,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.comma") to CangJieHighlightingColors.COMMA,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.semicolon") to CangJieHighlightingColors.SEMICOLON,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.dot") to CangJieHighlightingColors.DOT,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.lt.colon") to CangJieHighlightingColors.LT_COLON,
+
+            // 类和接口
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.class") to CangJieHighlightingColors.CLASS,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.interface") to CangJieHighlightingColors.INTERFACE,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.struct") to CangJieHighlightingColors.STRUCT,
+
+            // 变量和属性
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.mutable.property") to CangJieHighlightingColors.MUTABLE_PROPERTY,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.property") to CangJieHighlightingColors.PROPERTY,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.instance.variable") to CangJieHighlightingColors.INSTANCE_VARIABLE,
+
+            // 智能转换
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.smart.cast.value") to CangJieHighlightingColors.SMART_CAST_VALUE,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.smart.constant") to CangJieHighlightingColors.SMART_CONSTANT,
+//            CangJieHighlightingBundle.message("highlighter.descriptor.text.smart.cast.receiver") to CangJieHighlightingColors.SMART_CAST_RECEIVER,
+
+            // 宏
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.macro.declaration") to CangJieHighlightingColors.MACRO_DECLARATION,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.macro.call") to CangJieHighlightingColors.MACRO_CALL,
+
+            // 其他
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.debug.info") to CangJieHighlightingColors.DEBUG_INFO,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.bad.character") to CangJieHighlightingColors.BAD_CHARACTER,
+            CangJieHighlightingBundle.message("highlighter.descriptor.text.resolved.to.error") to CangJieHighlightingColors.RESOLVED_TO_ERROR,
         )
     }
 
@@ -217,6 +254,6 @@ var <PACKAGE_PROPERTY_CUSTOM_PROPERTY_DECLARATION><MUTABLE_VARIABLE>globalCounte
 
     override fun isRainbowType(type: TextAttributesKey): Boolean {
         return type == CangJieHighlightingColors.LOCAL_VARIABLE ||
-            type == CangJieHighlightingColors.PARAMETER
+                type == CangJieHighlightingColors.PARAMETER
     }
 }

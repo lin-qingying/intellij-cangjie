@@ -53,12 +53,6 @@ internal val ELVIS_SET = TokenSet.create()
 internal val QUALIFIED_EXPRESSIONS_WITHOUT_WRAP = TokenSet.create(IMPORT_DIRECTIVE, PACKAGE_DIRECTIVE)
 internal val COMMENTS = TokenSet.create(BLOCK_COMMENT, DOC_COMMENT)
 
-// 定义不需要格式化的节点类型集合
-internal val NO_FORMAT_NODES = TokenSet.create(
-    QUOTE_EXPRESSION,  // 字符串表达式不格式化
-
-)
-
 internal const val CDOC_COMMENT_INDENT = 1
 
 internal val BINARY_EXPRESSIONS = TokenSet.create(BINARY_EXPRESSION, BINARY_WITH_TYPE, IS_EXPRESSION)
@@ -71,6 +65,12 @@ internal val ALIGN_FOR_BINARY_OPERATIONS =
 internal val ANNOTATIONS = TokenSet.create()
 
 typealias WrappingStrategy = (childElement: ASTNode) -> Wrap?
+
+
+internal val NO_FORMAT_NODES = listOf(
+
+    QUOTE_EXPRESSION
+)
 
 fun noWrapping(@Suppress("UNUSED_PARAMETER") childElement: ASTNode): Wrap? = null
 
@@ -136,6 +136,9 @@ abstract class CangJieCommonBlock(
             return emptyList()
         }
 
+        if (node.elementType == QUOTE_EXPRESSION) {
+            return emptyList()
+        }
 
         if (mySubBlocks != null) {
             return mySubBlocks!!
@@ -158,18 +161,13 @@ abstract class CangJieCommonBlock(
     }
 
     private fun shouldFormat(node: ASTNode): Boolean {
-        // 检查节点类型是否在不格式化列表中
-        if (node.elementType in NO_FORMAT_NODES) {
-            return false
-        }
-
-        // 检查是否有特殊注释标记不格式化
+        // Check for special comments that indicate no formatting
         val prevComment = getPrevWithoutWhitespace(node)?.takeIf { it.elementType in COMMENTS }
         if (prevComment?.text?.trim()?.startsWith("// @formatter:off") == true) {
             return false
         }
 
-        // 检查是否在不格式化区域内
+        // Check if node is within a no-format region
         var current = node
         while (current.treeParent != null) {
             val parent = current.treeParent!!

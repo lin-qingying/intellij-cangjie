@@ -25,6 +25,7 @@
 package cn.cangnova.cangjie.highlighter.visitor
 
 import cn.cangnova.cangjie.highlighter.HighlightingFactory
+import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.psi.CjNamedDeclaration
 import cn.cangnova.cangjie.psi.CjVisitorVoid
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
@@ -33,6 +34,28 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 
+/**
+ * 高亮访问器抽象基类 - 提供语法高亮的通用访问器功能
+ * Abstract Highlighting Visitor - Provides common visitor functionality for syntax highlighting
+ *
+ * 这个抽象类为仓颉语言的语法高亮访问器提供了基础实现。主要功能包括：
+ * This abstract class provides the base implementation for syntax highlighting visitors in CangJie language. Main features include:
+ *
+ * 1. 元素高亮 (Element Highlighting)
+ *    - 提供 highlightName 方法用于高亮各类语法元素
+ *    - Provides highlightName methods for highlighting various syntax elements
+ *
+ * 2. 声明高亮 (Declaration Highlighting)
+ *    - 通过 highlightNamedDeclaration 方法处理命名声明的高亮
+ *    - Handles highlighting of named declarations through highlightNamedDeclaration method
+ *
+ * 3. 高亮信息管理 (Highlight Info Management)
+ *    - 维护 HighlightInfoHolder 用于存储高亮信息
+ *    - Maintains HighlightInfoHolder for storing highlighting information
+ *
+ * 该类继承自 CjVisitorVoid，是仓颉语言语法高亮系统的核心组件之一。
+ * This class extends CjVisitorVoid and is one of the core components of the CangJie language highlighting system.
+ */
 
 abstract class AbstractHighlightingVisitor(protected val holder: HighlightInfoHolder) : CjVisitorVoid() {
     protected fun highlightName(element: PsiElement, highlightInfoType: HighlightInfoType, message: String? = null) {
@@ -50,5 +73,9 @@ abstract class AbstractHighlightingVisitor(protected val holder: HighlightInfoHo
 
     protected fun highlightNamedDeclaration(declaration: CjNamedDeclaration, attributesKey: HighlightInfoType) {
         declaration.nameIdentifier?.let { highlightName(it, attributesKey) }
+    }
+
+    protected fun highlightCjElement(element: CjElement, attributesKey: HighlightInfoType) {
+        highlightName(element, attributesKey)
     }
 }

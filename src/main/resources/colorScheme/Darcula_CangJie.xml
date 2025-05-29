@@ -4,6 +4,12 @@
             <option name="FOREGROUND" value="007E8A"/>
         </value>
     </option>
+    <option name="CANGJIE_MUTABLE_VARIABLE">
+        <value>
+            <option name="EFFECT_COLOR" value="bca5c4" />
+            <option name="EFFECT_TYPE" value="1" />
+        </value>
+    </option>
     <option name="CANGJIE_FUNCTION_LITERAL_BRACES_AND_ARROW">
         <value>
             <option name="FONT_TYPE" value="1"/>

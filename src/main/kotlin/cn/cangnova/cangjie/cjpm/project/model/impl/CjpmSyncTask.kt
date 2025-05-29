@@ -48,7 +48,6 @@ import cn.cangnova.cangjie.download.stdlib.fetchStdlib
 import kotlin.io.path.exists
 
 import cn.cangnova.cangjie.toolchain.tools.unwrapOrElse
-import cn.cangnova.cangjie.download.stdlib.fetchStdlib
 
 import cn.cangnova.cangjie.ide.run.cjpm.toolchain
 import cn.cangnova.cangjie.task.CjTask

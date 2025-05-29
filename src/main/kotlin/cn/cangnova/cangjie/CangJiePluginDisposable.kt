@@ -22,25 +22,33 @@
  *
  */
 
-package cn.cangnova.cangjie.highlighter
+package cn.cangnova.cangjie
 
-import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.fileTypes.SingleLazyInstanceSyntaxHighlighterFactory
-import com.intellij.openapi.fileTypes.SyntaxHighlighter
-import com.intellij.openapi.fileTypes.SyntaxHighlighterProvider
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-
-internal class CangJieSyntaxHighlighterFactory :
-    SingleLazyInstanceSyntaxHighlighterFactory(),
-    SyntaxHighlighterProvider {
-    override fun createHighlighter(): SyntaxHighlighter = CangJieHighlighter()
 
 
+ @Service(Service.Level.PROJECT)
+class CangJiePluginDisposable : Disposable {
+    @Volatile
+    var disposed: Boolean = false
+
+    companion object {
+        @JvmStatic
+        fun getInstance(project: Project): CangJiePluginDisposable = project.service<CangJiePluginDisposable>()
+    }
+
+    override fun dispose() {
+        disposed = true
+    }
+}
 
 
-    override fun create(fileType: FileType, project: Project?, file: VirtualFile?): SyntaxHighlighter? =
-        when (fileType) {
-            else -> null
-        }
+fun <T> syncNonBlockingReadAction(project: Project, task: () -> T): T {
+    return ReadAction.nonBlocking<T> { task() }
+        .expireWith(CangJiePluginDisposable.getInstance(project))
+        .executeSynchronously()
 }

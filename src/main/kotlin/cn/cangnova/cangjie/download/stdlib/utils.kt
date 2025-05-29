@@ -1,26 +1,20 @@
 package cn.cangnova.cangjie.download.stdlib
 
 import cn.cangnova.cangjie.cjpm.project.model.CjcInfo
-import cn.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectImpl
-import cn.cangnova.cangjie.cjpm.project.model.impl.CjpmSyncTask
-import cn.cangnova.cangjie.cjpm.project.model.impl.DownloadResult
-import cn.cangnova.cangjie.cjpm.project.model.impl.TaskResult
-import cn.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
+import cn.cangnova.cangjie.cjpm.project.model.impl.*
 import cn.cangnova.cangjie.cjpm.project.workspace.StandardLibrary
-import cn.cangnova.cangjie.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.toolchain.cjc
 import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
 import cn.cangnova.cangjie.messages.CangJieBundle
-
+import cn.cangnova.cangjie.toolchain.cjc
+import com.google.gson.JsonParser
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.lang.System.currentTimeMillis
 import java.net.URL
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import kotlin.io.path.exists
-import com.google.gson.JsonParser
-import java.lang.System.currentTimeMillis
 
 fun downloadStdlib(version: String): DownloadResult<File> {
     return try {
@@ -54,12 +48,14 @@ fun fetchStdlib(
     cjpmProject: CjpmProjectImpl,
     cjcInfo: CjcInfo?
 ): TaskResult<StandardLibrary>? {
+    return null
     return if (CangJieLanguageServerServices.getInstance().astConfig.enabled) {
         context.runWithChildProgress(CangJieBundle.message("progress.text.getting.cangjie.stdlib")) { childContext ->
 
             val workingDirectory = cjpmProject.workingDirectory
             val toolchain = childContext.toolchain
-            val version = toolchain.cjc().version ?.semver ?.rawVersion ?: return@runWithChildProgress    TaskResult.Err("get sdk version error")
+            val version = toolchain.cjc().version?.semver?.rawVersion
+                ?: return@runWithChildProgress TaskResult.Err("get sdk version error")
             val stdlibPath = STDLIB_PATH_LOCAL.resolve(version)
 
             val stdlibPathIndex = STDLIB_PATH_LOCAL.resolve("$version-intellij_cangjie_stdlib")
@@ -69,7 +65,7 @@ fun fetchStdlib(
                 stdlibPath.toFile().mkdirs()
                 // 下载标准库到 stdlibPath
                 return@runWithChildProgress when (val downloadResult =
-                    downloadStdlib(toolchain.cjc().version !!.semver.rawVersion)) {
+                    downloadStdlib(toolchain.cjc().version!!.semver.rawVersion)) {
                     is DownloadResult.Ok -> {
                         val downloadedFile = downloadResult.value
                         try {

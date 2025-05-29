@@ -1,7 +1,20 @@
 <idea-plugin package="cn.cangnova.cangjie.lsp4ij">
 
-
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- LSP textDocument/documentSymbol -->
+        <lang.psiStructureViewFactory
+                language="CangJie"
+                implementationClass="com.redhat.devtools.lsp4ij.features.documentSymbol.LSPDocumentSymbolStructureViewFactory"/>
+        <!-- LSP textDocument/signatureHelp -->
+        <codeInsight.parameterInfo
+                language="CangJie"
+                implementationClass="com.redhat.devtools.lsp4ij.features.signatureHelp.LSPParameterInfoHandler"/>
+    </extensions>
     <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+
+        <semanticTokensColorsProvider
+                serverId="CangJie"
+                class="cn.cangnova.cangjie.lsp4ij.CangJieSemanticTokensColorsProvider" />
         <server
                 name="CangJie Language Server" factoryClass="cn.cangnova.cangjie.lsp4ij.CangJieLanguageServerFactory"
                 id="CangJie">
