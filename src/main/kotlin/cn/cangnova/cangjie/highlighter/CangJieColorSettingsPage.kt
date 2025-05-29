@@ -113,22 +113,31 @@ class CangJieColorSettingsPage : ColorSettingsPage, RainbowColorSettingsPage {
 }"""
     }
 
+// 重写getAdditionalHighlightingTagToDescriptorMap方法，返回一个Map，其中包含CangJieHighlightingColors类中所有公共属性的名称和对应的TextAttributesKey
     override fun getAdditionalHighlightingTagToDescriptorMap(): Map<String, TextAttributesKey> {
+        // 创建一个HashMap，用于存储属性名称和对应的TextAttributesKey
         val map = HashMap<String, TextAttributesKey>()
 
+        // 遍历CangJieHighlightingColors类的所有成员属性
         for (field in CangJieHighlightingColors::class.memberProperties) {
+
             if (field.visibility == KVisibility.PUBLIC) {
                 try {
+                    // 将属性名称和对应的TextAttributesKey存入map中
                     map[field.name] = field.getter.call(CangJieHighlightingColors) as TextAttributesKey
                 } catch (e: Exception) {
+                    // 如果出现异常，断言失败
                     assert(false)
                 }
             }
+//            // 如果属性是静态的
 //            if (Modifier.isStatic(field.modifiers)) {
 //                try {
+//                    // 将属性名称和对应的TextAttributesKey存入map中
 //                    map[field.name] = field.get(null) as TextAttributesKey
 //
 //                } catch (e: IllegalAccessException) {
+//                    // 如果出现异常，断言失败
 //                    assert(false)
 //                }
 //

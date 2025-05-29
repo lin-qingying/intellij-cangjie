@@ -151,13 +151,15 @@ class BeforeResolveHighlightingVisitor(holder: HighlightInfoHolder) : AbstractHi
 
     override fun visitTypeReference(typeReference: CjTypeReference) {
 
-        val typeElement  = typeReference.typeElement
+        val typeElement = typeReference.typeElement
         if (typeElement is CjUserType) {
             typeElement.referenceExpression?.let {
+
                 highlightName(
                     it,
                     CangJieHighlightInfoTypeSemanticNames.TYPE_REFERENCE
                 )
+
             }
         }
         super.visitTypeReference(typeReference)

@@ -189,7 +189,7 @@ object CangJieHighlightingColors {
         TextAttributesKey.createTextAttributesKey("CANGJIE_ENUM_ENTRY", DefaultLanguageHighlighterColors.STATIC_FIELD)
 
     // 类型别名的高亮（typealias）
-    val TYPE_ALIAS: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_TYPE_ALIAS", CLASS)
+    val TYPE_ALIAS: TextAttributesKey = TextAttributesKey.createTextAttributesKey("CANGJIE_TYPE_ALIAS", TYPE_DEFINED)
 
     /*********************************变量和属性****************************************************/
     // 可变变量的高亮

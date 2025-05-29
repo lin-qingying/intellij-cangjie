@@ -87,22 +87,28 @@ object CangJieHighlightInfoTypeSemanticNames {
     val INSTANCE_PROPERTY: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.INSTANCE_PROPERTY)
     val INSTANCE_VARIABLE: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.INSTANCE_VARIABLE)
     val WRAPPED_INTO_REF: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.WRAPPED_INTO_REF)
-    val BACKING_FIELD_VARIABLE: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.BACKING_FIELD_VARIABLE)
+    val BACKING_FIELD_VARIABLE: HighlightInfoType =
+        createSymbolTypeInfo(CangJieHighlightingColors.BACKING_FIELD_VARIABLE)
     val EXTENSION_PROPERTY: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.EXTENSION_PROPERTY)
 
     // 函数相关
     val FUNCTION_DECLARATION: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.FUNCTION_DECLARATION)
     val FUNCTION_CALL: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.FUNCTION_CALL)
     val PACKAGE_FUNCTION_CALL: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.PACKAGE_FUNCTION_CALL)
-    val EXTENSION_FUNCTION_CALL: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.EXTENSION_FUNCTION_CALL)
+    val EXTENSION_FUNCTION_CALL: HighlightInfoType =
+        createSymbolTypeInfo(CangJieHighlightingColors.EXTENSION_FUNCTION_CALL)
     val CONSTRUCTOR_CALL: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.CONSTRUCTOR_CALL)
-    val VARIABLE_AS_FUNCTION_CALL: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.VARIABLE_AS_FUNCTION_CALL)
-    val VARIABLE_AS_FUNCTION_LIKE_CALL: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.VARIABLE_AS_FUNCTION_LIKE_CALL)
-    val FUNCTION_LITERAL_BRACES_AND_ARROW: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.FUNCTION_LITERAL_BRACES_AND_ARROW)
+    val VARIABLE_AS_FUNCTION_CALL: HighlightInfoType =
+        createSymbolTypeInfo(CangJieHighlightingColors.VARIABLE_AS_FUNCTION_CALL)
+    val VARIABLE_AS_FUNCTION_LIKE_CALL: HighlightInfoType =
+        createSymbolTypeInfo(CangJieHighlightingColors.VARIABLE_AS_FUNCTION_LIKE_CALL)
+    val FUNCTION_LITERAL_BRACES_AND_ARROW: HighlightInfoType =
+        createSymbolTypeInfo(CangJieHighlightingColors.FUNCTION_LITERAL_BRACES_AND_ARROW)
 
     // 注解相关
     val ANNOTATION: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.ANNOTATION)
-    val ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES)
+    val ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES: HighlightInfoType =
+        createSymbolTypeInfo(CangJieHighlightingColors.ANNOTATION_ATTRIBUTE_NAME_ATTRIBUTES)
 
     // 宏相关
     val MACRO_DECLARATION: HighlightInfoType = createSymbolTypeInfo(CangJieHighlightingColors.MACRO_DECLARATION)

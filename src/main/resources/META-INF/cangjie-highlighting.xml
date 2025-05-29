@@ -1,6 +1,10 @@
 <idea-plugin>
     <!-- IntelliJ 平台高亮相关扩展点配置 -->
     <extensions defaultExtensionNs="com.intellij">
+
+        <additionalTextAttributes scheme="Default" file="colorScheme/Default_CangJie.xml"/>
+        <additionalTextAttributes scheme="Darcula" file="colorScheme/Darcula_CangJie.xml"/>
+
         <!-- 1. 基础语法高亮配置 -->
         <!-- 语法高亮设置页面 - 用于配置语言的语法高亮颜色方案 -->
         <colorSettingsPage implementation="cn.cangnova.cangjie.highlighter.CangJieColorSettingsPage"/>
