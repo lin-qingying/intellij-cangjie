@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.highlighter.visitor
 
 import cn.cangnova.cangjie.highlighter.HighlightingFactory
-import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.psi.CjNamedDeclaration
 import cn.cangnova.cangjie.psi.CjVisitorVoid
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
@@ -75,7 +74,5 @@ abstract class AbstractHighlightingVisitor(protected val holder: HighlightInfoHo
         declaration.nameIdentifier?.let { highlightName(it, attributesKey) }
     }
 
-    protected fun highlightCjElement(element: CjElement, attributesKey: HighlightInfoType) {
-        highlightName(element, attributesKey)
-    }
+
 }
