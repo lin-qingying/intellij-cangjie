@@ -1,5 +1,12 @@
 <idea-plugin package="cn.cangnova.cangjie.lsp4ij">
 
+
+    <actions>
+        <action class="cn.cangnova.cangjie.lsp4ij.CangJieDebugLSPCommandAction" id ="cangjie.test.debug"/>
+
+        <action class="cn.cangnova.cangjie.lsp4ij.CangJieRunLSPCommandAction" id ="cangjie.test.run"/>
+    </actions>
+
     <extensions defaultExtensionNs="com.intellij">
         <!-- LSP textDocument/documentSymbol -->
         <lang.psiStructureViewFactory

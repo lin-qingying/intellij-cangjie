@@ -1,12 +1,10 @@
-
-
-repositories{
-    intellijPlatform{
-        nightly()
+repositories {
+    intellijPlatform {
+//        nightly()
     }
 }
 dependencies {
-    intellijPlatform{
+    intellijPlatform {
 
         plugins("com.redhat.devtools.lsp4ij:0.13.0")
     }
@@ -17,7 +15,7 @@ dependencies {
 project(":plugin") {
     dependencies {
         implementation(project(":lsp4ij"))
-        intellijPlatform{
+        intellijPlatform {
             plugins("com.redhat.devtools.lsp4ij:0.13.0")
 
         }

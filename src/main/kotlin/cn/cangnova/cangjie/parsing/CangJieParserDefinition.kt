@@ -24,18 +24,21 @@
 
 package cn.cangnova.cangjie.parsing
 
-import cn.cangnova.cangjie.psi.CjNodeType
-import cn.cangnova.cangjie.psi.CjNodeTypes
-import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
-import cn.cangnova.cangjie.psi.cdoc.parser.CDocElementType
-import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocLink
+import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
 import cn.cangnova.cangjie.lang.declarations.CjDeclarationsFile
 import cn.cangnova.cangjie.lexer.CangJieLexer
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
+import cn.cangnova.cangjie.macro.file.CangJieMacroCallFileType
+import cn.cangnova.cangjie.macro.file.CjMacroCallFile
 import cn.cangnova.cangjie.psi.CjFile
+import cn.cangnova.cangjie.psi.CjNodeType
+import cn.cangnova.cangjie.psi.CjNodeTypes
+import cn.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
+import cn.cangnova.cangjie.psi.cdoc.parser.CDocElementType
+import cn.cangnova.cangjie.psi.cdoc.psi.impl.CDocLink
 import cn.cangnova.cangjie.psi.stubs.elements.CjFileElementType
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementType
 import com.intellij.extapi.psi.ASTWrapperPsiElement
@@ -48,6 +51,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.impl.source.PsiPlainTextFileImpl
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
@@ -94,13 +98,14 @@ class CangJieParserDefinition : ParserDefinition {
     override fun createFile(viewProvider: FileViewProvider): PsiFile {
 
 
-        if (viewProvider.fileType is CangJieDeclarationsFileType) {
-            return CjDeclarationsFile(viewProvider)
+        return when (viewProvider.fileType) {
+            is CangJieDeclarationsFileType -> CjDeclarationsFile(viewProvider)
+            is CangJieMacroCallFileType -> CjMacroCallFile(viewProvider)
+            is CangJieFileType -> CjFile(viewProvider, false)
+            else -> PsiPlainTextFileImpl(viewProvider)
         }
 
 
-
-        return CjFile(viewProvider, false)
     }
 
     object Util {

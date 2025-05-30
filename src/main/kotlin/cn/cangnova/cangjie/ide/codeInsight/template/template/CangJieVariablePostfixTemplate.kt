@@ -50,7 +50,7 @@ internal abstract class AbstractCangJieVariablePostfixTemplate(
 ) {
     override fun expandForChooseExpression(expression: PsiElement, editor: Editor) {
         val isVar = kind == "var"
-        val provider = LanguageRefactoringSupport.getInstance().forLanguage(CangJieLanguage)
+        val provider = LanguageRefactoringSupport.INSTANCE.forLanguage(CangJieLanguage)
         val introduceVariableHandler =
             provider.introduceVariableHandler as? CangJieIntroduceVariableHandler ?: return
 

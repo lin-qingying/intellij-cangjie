@@ -17,6 +17,13 @@
                   extensions="cj"
                   fieldName="INSTANCE"/>
 
+        <fileType name="cj.macrocall"
+                  language="CangJie"
+                  implementationClass="cn.cangnova.cangjie.macro.file.CangJieMacroCallFileType"
+
+                  extensions="cj.macrocall"
+        />
+
 
     </extensions>
 

@@ -23,7 +23,6 @@
  */
 
 import groovy.xml.XmlParser
-import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
@@ -52,7 +51,11 @@ val ideRunVersion = prop("ideRunVersion")
 val ideVersion = prop("ideVersion")
 //插件版本
 val pluginVersion = prop("pluginVersion")
-val cangjiePluginVersion = "$pluginVersion-$ideVersion"
+val sinceBuild = prop("sinceBuild")
+val untilBuild = prop("untilBuild")
+val versionSuffix = prop("versionSuffix")
+//val cangjiePluginVersion = "$pluginVersion-$ideVersion"
+val cangjiePluginVersion = "$pluginVersion$versionSuffix"
 
 
 //###############################################################
@@ -297,7 +300,6 @@ allprojects {
         }
 
 
-
     }
 }
 
@@ -387,14 +389,14 @@ project(":plugin") {
 //            untilBuild.set("$ideVersion.*")
 //            pluginVersion.set(cangjiePluginVersion)
 //
-            sinceBuild.set("243")
-            untilBuild.set("253.*")
-            pluginVersion.set(prop("pluginVersion"))
+            sinceBuild.set(prop("sinceBuild"))
+            untilBuild.set(prop("untilBuild"))
+            pluginVersion.set(cangjiePluginVersion)
         }
         buildPlugin {
-            dependsOn(createSourceJar)
+//            dependsOn(createSourceJar)
 
-            from(createSourceJar) { into("lib/src") }
+//            from(createSourceJar) { into("lib/src") }
             // Set proper name for final plugin zip.
             // Otherwise, base name is the same as gradle module name
             archiveBaseName.set(basePluginArchiveName)
@@ -496,6 +498,7 @@ fun prop(name: String): String =
 
 // 确保在编译前创建 IDE 版本特定的源码目录
 tasks.register("createIdeVersionSourceDir") {
+    val dir = layout.projectDirectory.dir("src/main/$ideVersion")
     doLast {
         file("src/main/$ideVersion").mkdirs()
     }
