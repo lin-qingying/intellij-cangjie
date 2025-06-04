@@ -40,7 +40,7 @@ class CangJieSuperClassIndex internal constructor() : StringStubIndexExtension<C
         }
 
         override val indexKey: StubIndexKey<String, CjTypeStatement> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieSuperClassIndex")
+            StubIndexKey.createIndexKey(CangJieSuperClassIndex::class.java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjTypeStatement> = indexKey

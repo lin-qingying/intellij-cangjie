@@ -38,7 +38,7 @@ class CangJieExactPackagesIndex internal constructor() : StringStubIndexExtensio
         private val LOG = Logger.getInstance(CangJieExactPackagesIndex::class.java)
 
         @JvmField
-        val NAME: StubIndexKey<String, CjFile> = StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieExactPackagesIndex")
+        val NAME: StubIndexKey<String, CjFile> = StubIndexKey.createIndexKey(CangJieExactPackagesIndex::class.java.simpleName )
 
         @JvmStatic
         @JvmName("getFiles")

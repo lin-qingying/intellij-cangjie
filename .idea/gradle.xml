@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/dap-debugger" />
             <option value="$PROJECT_DIR$/lsp4ij" />
             <option value="$PROJECT_DIR$/plugin" />
+            <option value="$PROJECT_DIR$/telemetry" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="true" />

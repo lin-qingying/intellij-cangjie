@@ -33,7 +33,7 @@ import com.intellij.psi.stubs.StubIndexKey
 class CangJieMacroDeclarationByPackageIndex internal constructor() : StringStubIndexExtension<CjMacroDeclaration>() {
     companion object Helper : CangJieStringStubIndexHelper<CjMacroDeclaration>(CjMacroDeclaration::class.java) {
         override val indexKey: StubIndexKey<String, CjMacroDeclaration> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieMacroDeclarationByPackageIndex")
+            StubIndexKey.createIndexKey(CangJieMacroDeclarationByPackageIndex::class.java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjMacroDeclaration> = indexKey

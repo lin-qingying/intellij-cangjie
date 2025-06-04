@@ -46,7 +46,7 @@ class CangJieFullClassNameIndex internal constructor() : StringStubIndexExtensio
         }
 
         override val indexKey: StubIndexKey<String, CjTypeStatement> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieFullClassNameIndex")
+            StubIndexKey.createIndexKey(CangJieFullClassNameIndex::class.java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjTypeStatement> = indexKey

@@ -35,7 +35,7 @@ import com.intellij.psi.stubs.StubIndexKey
 class CangJieImportFqNameForPackageNameIndex internal constructor() : StringStubIndexExtension<CjImportDirectiveItem>() {
     companion object Helper : CangJieStringStubIndexHelper<CjImportDirectiveItem>(CjImportDirectiveItem::class.java) {
         override val indexKey: StubIndexKey<String, CjImportDirectiveItem> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex")
+            StubIndexKey.createIndexKey( CangJieImportFqNameForPackageNameIndex::class.java.simpleName)
 
 
 

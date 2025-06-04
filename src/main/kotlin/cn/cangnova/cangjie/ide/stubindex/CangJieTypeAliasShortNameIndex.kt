@@ -34,7 +34,7 @@ import com.intellij.psi.stubs.StubIndexKey
 class CangJieTypeAliasShortNameIndex internal constructor() : StringStubIndexExtension<CjTypeAlias>() {
     companion object Helper : CangJieStringStubIndexHelper<CjTypeAlias>(CjTypeAlias::class.java) {
         override val indexKey: StubIndexKey<String, CjTypeAlias> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieTypeAliasShortNameIndex")
+            StubIndexKey.createIndexKey(CangJieTypeAliasShortNameIndex::class.java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjTypeAlias> = indexKey

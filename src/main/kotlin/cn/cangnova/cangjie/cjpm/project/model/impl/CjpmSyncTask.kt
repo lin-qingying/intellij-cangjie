@@ -36,8 +36,6 @@ import cn.cangnova.cangjie.cjpm.project.model.ProcessProgressListener
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
 import cn.cangnova.cangjie.cjpm.project.workspace.StandardLibrary
 import cn.cangnova.cangjie.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.toolchain.cjc
-import cn.cangnova.cangjie.toolchain.cjpm
 import cn.cangnova.cangjie.toolchain.tools.unwrapOrElse
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildAdapterBase
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildContextBase
@@ -47,10 +45,7 @@ import com.intellij.openapi.diagnostic.logger
 import cn.cangnova.cangjie.download.stdlib.fetchStdlib
 import kotlin.io.path.exists
 
-import cn.cangnova.cangjie.toolchain.tools.unwrapOrElse
-
-import cn.cangnova.cangjie.ide.run.cjpm.toolchain
-import cn.cangnova.cangjie.task.CjTask
+import cn.cangnova.cangjie.task.CangJieTask
 import com.intellij.build.BuildContentDescriptor
 import com.intellij.build.BuildDescriptor
 import com.intellij.build.DefaultBuildDescriptor
@@ -65,8 +60,6 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -77,7 +70,6 @@ import com.intellij.openapi.util.NlsContexts
 import org.jetbrains.annotations.Nls
 import java.util.concurrent.CompletableFuture
 import javax.swing.JComponent
-import kotlin.io.path.exists
 
 
 class CjpmSyncTask(
@@ -86,7 +78,7 @@ class CjpmSyncTask(
     private val result: CompletableFuture<List<CjpmProjectImpl>>
 ) :
     Task.Backgroundable(project, CangJieBundle.message("progress.title.reloading.cjpm.projects"), true),
-    CjTask {
+    CangJieTask {
 
 
     private fun doRun(
@@ -265,8 +257,8 @@ class CjpmSyncTask(
         LOG.debug("Finished Cjpm sync task in $elapsed ms")
     }
 
-    override val taskType: CjTask.TaskType
-        get() = CjTask.TaskType.CJPM_SYNC
+    override val taskType: CangJieTask.TaskType
+        get() = CangJieTask.TaskType.CJPM_SYNC
 
     override val runSyncInUnitTests: Boolean
         get() = true
@@ -300,7 +292,9 @@ class CjpmSyncTask(
     private class StopAction(private val progress: ProgressIndicator) :
         DumbAwareAction({ "Stop" }, AllIcons.Actions.Suspend) {
 
+// 重写update方法，用于更新AnActionEvent的presentation属性
         override fun update(e: AnActionEvent) {
+            // 设置presentation属性的isEnabled属性为progress的isRunning属性
             e.presentation.isEnabled = progress.isRunning
         }
 

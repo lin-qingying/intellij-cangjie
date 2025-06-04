@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.ide.stubindex
 
 import cn.cangnova.cangjie.psi.CjMainFunction
-import cn.cangnova.cangjie.psi.CjNamedFunction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
@@ -33,9 +32,9 @@ import com.intellij.psi.stubs.StubIndexKey
 
 class CangJieMainFunctionFqnNameIndex internal constructor() : StringStubIndexExtension<CjMainFunction>() {
 
-    companion  object Helper : CangJieStringStubIndexHelper<CjMainFunction>(CjMainFunction::class.java) {
+    companion object Helper : CangJieStringStubIndexHelper<CjMainFunction>(CjMainFunction::class.java) {
         override val indexKey: StubIndexKey<String, CjMainFunction> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex")
+            StubIndexKey.createIndexKey(CangJieMainFunctionFqnNameIndex::class.java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjMainFunction> = indexKey

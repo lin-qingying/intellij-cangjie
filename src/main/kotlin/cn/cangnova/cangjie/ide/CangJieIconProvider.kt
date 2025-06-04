@@ -71,16 +71,7 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
 
     private fun Icon.addExpectActualMarker(element: PsiElement): Icon {
         return this
-//        val declaration = (element as? CjNamedDeclaration) ?: return this
-//        val additionalIcon = when {
-////            isExpectDeclaration(declaration) -> EXPECT
-////            isMatchingExpected(declaration) -> ACTUAL
-//            else -> return this
-//        }
-//        return RowIcon(2).apply {
-//            setIcon(this@addExpectActualMarker, 0)
-//            setIcon(additionalIcon, 1)
-//        }
+
     }
 
 

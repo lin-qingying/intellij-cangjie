@@ -26,5 +26,8 @@
                           displayType="TOOL_WINDOW"
                           bundle="messages.CangJieCompilerBundle"
                           key="notification.group.title.jps.cannot.start.compiler"/>
+
+
+
     </extensions>
 </idea-plugin> 

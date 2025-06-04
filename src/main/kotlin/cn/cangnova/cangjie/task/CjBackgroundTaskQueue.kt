@@ -63,9 +63,9 @@ class CjBackgroundTaskQueue {
 
     val isEmpty: Boolean get() = processor.isEmpty
     @Synchronized
-    fun cancelTasks(taskType:CjTask.TaskType) {
+    fun cancelTasks(taskType:CangJieTask.TaskType) {
         cancelableTasks.removeIf { data ->
-            if (data.task is CjTask && taskType.canCancelOther(data.task.taskType)) {
+            if (data.task is CangJieTask && taskType.canCancelOther(data.task.taskType)) {
                 data.cancel()
                 true
             } else {
@@ -87,11 +87,11 @@ class CjBackgroundTaskQueue {
     }
     @Synchronized
     fun run(task: Task.Backgroundable) {
-        if (isUnitTestMode && task is CjTask && task.runSyncInUnitTests) {
+        if (isUnitTestMode && task is CangJieTask && task.runSyncInUnitTests) {
             runTaskInCurrentThread(task)
         } else {
             LOG.debug("Scheduling task $task")
-            if (task is CjTask) {
+            if (task is CangJieTask) {
                 cancelTasks(task.taskType)
             }
             val data = BackgroundableTaskData(task, ::onFinish)
@@ -149,7 +149,7 @@ class CjBackgroundTaskQueue {
                 else -> Unit
             }
 
-            if (task is CjTask && task.waitForSmartMode && DumbService.isDumb(task.project)) {
+            if (task is CangJieTask && task.waitForSmartMode && DumbService.isDumb(task.project)) {
                 check(state !is State.WaitForSmartMode)
                 state = State.WaitForSmartMode(continuation)
                 DumbService.getInstance(task.project).runWhenSmart { run(continuation) }
@@ -159,7 +159,7 @@ class CjBackgroundTaskQueue {
             val indicator = when {
                 isHeadlessEnvironment -> EmptyProgressIndicator()
 
-                task is CjTask && task.progressBarShowDelay > 0 ->
+                task is CangJieTask && task.progressBarShowDelay > 0 ->
                     DelayedBackgroundableProcessIndicator(task, task.progressBarShowDelay)
 
                 else -> BackgroundableProcessIndicator(task)

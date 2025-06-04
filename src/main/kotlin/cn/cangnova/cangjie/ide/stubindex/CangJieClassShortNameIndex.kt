@@ -44,10 +44,10 @@ class CangJieClassShortNameIndex internal constructor() : StringStubIndexExtensi
         val INSTANCE: CangJieClassShortNameIndex = CangJieClassShortNameIndex()
 
         override val indexKey: StubIndexKey<String, CjTypeStatement> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieClassShortNameIndex")
+            StubIndexKey.createIndexKey(CangJieClassShortNameIndex::class.java.simpleName)
     }
 
-    override fun getKey(): StubIndexKey<String,CjTypeStatement> = indexKey
+    override fun getKey(): StubIndexKey<String, CjTypeStatement> = indexKey
 
     @Deprecated("Base method is deprecated", ReplaceWith("CangJieClassShortNameIndex[key, project, scope]"))
     override fun get(shortName: String, project: Project, scope: GlobalSearchScope): Collection<CjTypeStatement> {

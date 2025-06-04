@@ -52,3 +52,5 @@ include("dap-debugger")
 //include("lsp4intellij")
 
 include("lsp4ij")
+
+include("telemetry")

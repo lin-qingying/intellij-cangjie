@@ -35,7 +35,7 @@ import com.intellij.psi.stubs.StubIndexKey
 class CangJieMacroDeclarationShortNameIndex internal constructor() : StringStubIndexExtension<CjMacroDeclaration>() {
     companion object Helper : CangJieStringStubIndexHelper<CjMacroDeclaration>(CjMacroDeclaration::class.java) {
         override val indexKey: StubIndexKey<String, CjMacroDeclaration> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieMacroDeclarationShortNameIndex")
+            StubIndexKey.createIndexKey(CangJieMacroDeclarationShortNameIndex::class.java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjMacroDeclaration> = indexKey

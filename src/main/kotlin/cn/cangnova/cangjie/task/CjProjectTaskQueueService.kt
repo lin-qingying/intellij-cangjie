@@ -34,11 +34,11 @@ import com.intellij.openapi.project.Project
 class CjProjectTaskQueueService: Disposable {
     private val queue: CjBackgroundTaskQueue = CjBackgroundTaskQueue()
 
-    /** Submits a task. A task can implement [CjTask] */
+    /** Submits a task. A task can implement [CangJieTask] */
     fun run(task: Task.Backgroundable) = queue.run(task)
 
-    /** Equivalent to running an empty task with [CjTask.taskType] = [taskType] */
-    fun cancelTasks(taskType:CjTask.TaskType) = queue.cancelTasks(taskType)
+    /** Equivalent to running an empty task with [CangJieTask.taskType] = [taskType] */
+    fun cancelTasks(taskType:CangJieTask.TaskType) = queue.cancelTasks(taskType)
 
     /** @return true if no running or pending tasks */
     val isEmpty: Boolean get() = queue.isEmpty
@@ -49,7 +49,7 @@ class CjProjectTaskQueueService: Disposable {
 }
 val Project.taskQueue: CjProjectTaskQueueService get() = service()
 
-interface CjTask {
+interface CangJieTask {
     val taskType: TaskType
         get() = TaskType.INDEPENDENT
 

@@ -43,7 +43,6 @@ inline fun <T> getByKeyAndMeasure(index: StubIndexKey<*, *>, log: Logger, crossi
     measureIndexCall(index, "getByKey", getByKeyMaxDuration(), log, block)
 
 
-
 inline fun <T> measureIndexCall(
     index: StubIndexKey<*, *>,
     prefix: String,
@@ -76,9 +75,7 @@ inline fun <T> getAllKeysAndMeasure(index: StubIndexKey<*, *>, log: Logger, cros
     measureIndexCall(index, "getAllKeys", processElementsMaxDuration(), log, block)
 
 
-
-
-inline fun processElementsMaxDuration(): Duration =
+fun processElementsMaxDuration(): Duration =
     Registry.intValue("cangjie.indices.timing.threshold.batch").toDuration(DurationUnit.MILLISECONDS)
 
 

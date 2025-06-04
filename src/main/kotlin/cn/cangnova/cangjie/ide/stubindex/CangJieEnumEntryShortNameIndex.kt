@@ -46,7 +46,7 @@ class CangJieEnumEntryShortNameIndex internal constructor() : StringStubIndexExt
         val INSTANCE: CangJieEnumEntryShortNameIndex = CangJieEnumEntryShortNameIndex()
 
         override val indexKey: StubIndexKey<String, CjEnumEntry> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieEnumEntryShortNameIndex")
+            StubIndexKey.createIndexKey(CangJieEnumEntryShortNameIndex::class.java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjEnumEntry> = indexKey

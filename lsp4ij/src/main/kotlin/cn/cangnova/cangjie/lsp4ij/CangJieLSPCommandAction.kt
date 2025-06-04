@@ -30,8 +30,8 @@ import com.redhat.devtools.lsp4ij.commands.LSPCommandAction
 
 class CangJieRunLSPCommandAction : LSPCommandAction() {
     override fun commandPerformed(
-        p0: LSPCommand,
-        p1: AnActionEvent
+        command: LSPCommand,
+        action: AnActionEvent
     ) {
         println(1)
 
@@ -40,8 +40,8 @@ class CangJieRunLSPCommandAction : LSPCommandAction() {
 
 class CangJieDebugLSPCommandAction : LSPCommandAction() {
     override fun commandPerformed(
-        p0: LSPCommand,
-        p1: AnActionEvent
+        command: LSPCommand,
+        action: AnActionEvent
     ) {
         println(1)
     }

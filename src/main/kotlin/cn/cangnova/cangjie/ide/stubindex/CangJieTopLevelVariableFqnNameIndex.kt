@@ -34,12 +34,13 @@ import com.intellij.psi.stubs.StubIndexKey
 class CangJieTopLevelVariableFqnNameIndex internal constructor() : StringStubIndexExtension<CjVariable>() {
     companion object Helper : CangJieStringStubIndexHelper<CjVariable>(CjVariable::class.java) {
         override val indexKey: StubIndexKey<String, CjVariable> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelVariableFqnNameIndex")
+            StubIndexKey.createIndexKey(CangJieTopLevelVariableFqnNameIndex::class.java.simpleName)
     }
 
     override fun getVersion(): Int {
         return 4
     }
+
     override fun getKey(): StubIndexKey<String, CjVariable> = indexKey
 
     @Deprecated("Base method is deprecated", ReplaceWith("CangJieTopLevelVariableFqnNameIndex[key, project, scope]"))
