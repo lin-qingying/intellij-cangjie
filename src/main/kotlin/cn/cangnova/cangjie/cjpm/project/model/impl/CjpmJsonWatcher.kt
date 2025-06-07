@@ -42,10 +42,10 @@ import com.intellij.util.PathUtil
 import java.nio.file.Paths
 
 /**
- *文件更改监听器，检测`module.json`文件内部的更改
+ *文件更改监听器，检测`cjpm.toml`文件内部的更改
  *和创建`*.cj`文件作
  */
-class CjpmJsonWatcher(
+class CjpmTomlWatcher(
     private val cjpmProjects: CjpmProjectsService,
     private val onCjpmJsonChange: () -> Unit
 ) : BulkFileListener {
@@ -125,7 +125,7 @@ class CjpmJsonWatcher(
         }
 
 
-        private val LOG = logger<CjpmJsonWatcher>()
+        private val LOG = logger<CjpmTomlWatcher>()
     }
 
 }

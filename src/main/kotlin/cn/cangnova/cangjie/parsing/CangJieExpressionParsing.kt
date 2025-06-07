@@ -2831,7 +2831,7 @@ open class CangJieExpressionParsing(
 
                 RUNE_LITERAL,
                 LONG_TEMPLATE_ENTRY_START,
-
+                LONG_TEMPLATE_ENTRY_END
 
                 ),
             CjTokens.KEYWORDALL,
