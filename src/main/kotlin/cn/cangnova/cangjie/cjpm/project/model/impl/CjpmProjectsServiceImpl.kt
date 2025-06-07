@@ -507,7 +507,8 @@ private fun setupProjectRoots(project: Project, cjpmProjects: List<CjpmProject>)
                 }
             }
         }
-        ProjectFileIndex.getInstance(project)
+//        更新索引
+//        ProjectFileIndex.getInstance(project)
     }
 }
 

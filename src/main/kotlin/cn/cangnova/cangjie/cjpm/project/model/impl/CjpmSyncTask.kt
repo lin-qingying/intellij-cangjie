@@ -206,7 +206,7 @@ class CjpmSyncTask(
         }
     }
 
-    // 重写run方法，传入一个ProgressIndicator参数
+
     override fun run(indicator: ProgressIndicator) {
         // 记录日志，CjpmSyncTask开始
         LOG.info("CjpmSyncTask started")

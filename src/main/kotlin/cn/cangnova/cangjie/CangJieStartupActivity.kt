@@ -38,7 +38,7 @@ class CangJieStartupActivity : ProjectActivity {
         LOG.info("Cangjie plugin has been launched")
 
 
-        TelemetryNotifications.showNotification()
+//        TelemetryNotifications.showNotification()
 //        try {
 //            (project.serviceAsync<WorkspaceFileIndex>() as WorkspaceFileIndexEx).initialize()
 //

@@ -26,7 +26,7 @@ package cn.cangnova.cangjie.lexer
 
 import com.intellij.lexer.FlexAdapter
 
-class CangJieLexer : FlexAdapter(_JetLexer()) {
+class CangJieLexer : FlexAdapter(_CangJieLexer()) {
 
 //    private val braceStack: Stack<Int> = Stack()
 //    private val lBraceCount = 0

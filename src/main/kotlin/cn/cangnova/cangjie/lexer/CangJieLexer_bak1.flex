@@ -8,12 +8,12 @@ import cn.cangnova.cangjie.lexer.CjTokens;
 %%
 
 %unicode
-%class _JetLexer
+%class _CangJieLexer
 %implements FlexLexer
 
 
 %{
- public _JetLexer() {
+ public _CangJieLexer() {
     this((java.io.Reader)null);}
 %}
 

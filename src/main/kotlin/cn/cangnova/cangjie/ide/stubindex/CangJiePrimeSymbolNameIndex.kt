@@ -31,7 +31,8 @@ import com.intellij.psi.stubs.StubIndexKey
 
 class CangJiePrimeSymbolNameIndex internal constructor() : StringStubIndexExtension<NavigatablePsiElement>() {
     companion object Helper : CangJieStringStubIndexHelper<NavigatablePsiElement>(NavigatablePsiElement::class.java) {
-        override val indexKey: StubIndexKey<String, NavigatablePsiElement> = StubIndexKey.createIndexKey("cangjie.primeIndexKey")
+        override val indexKey: StubIndexKey<String, NavigatablePsiElement> =
+            StubIndexKey.createIndexKey(CangJiePrimeSymbolNameIndex::class.java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, NavigatablePsiElement> = indexKey

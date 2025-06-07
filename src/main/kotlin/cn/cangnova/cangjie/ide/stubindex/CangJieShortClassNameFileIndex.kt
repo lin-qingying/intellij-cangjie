@@ -38,7 +38,7 @@ import com.intellij.util.io.EnumeratorStringDescriptor
 
 class CangJieShortClassNameFileIndex : FileBasedIndexExtension<String, Collection<String>>() {
     companion object {
-        val NAME: ID<String, Collection<String>> = ID.create(CangJieShortClassNameFileIndex::class.java.canonicalName)
+        val NAME: ID<String, Collection<String>> = ID.create(CangJieShortClassNameFileIndex::class.java.simpleName)
     }
 
     override fun getName(): ID<String, Collection<String>> = NAME

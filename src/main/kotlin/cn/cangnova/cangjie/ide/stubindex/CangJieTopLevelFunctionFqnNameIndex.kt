@@ -36,7 +36,7 @@ import com.intellij.psi.stubs.StubIndexKey
 class CangJieTopLevelFunctionFqnNameIndex internal constructor() : StringStubIndexExtension<CjNamedFunction>() {
   companion  object Helper : CangJieStringStubIndexHelper<CjNamedFunction>(CjNamedFunction::class.java) {
         override val indexKey: StubIndexKey<String, CjNamedFunction> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelFunctionFqnNameIndex")
+            StubIndexKey.createIndexKey(CangJieTopLevelFunctionFqnNameIndex::class .java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjNamedFunction> = indexKey

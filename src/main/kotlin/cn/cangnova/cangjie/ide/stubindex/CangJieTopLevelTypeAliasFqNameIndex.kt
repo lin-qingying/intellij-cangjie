@@ -34,7 +34,7 @@ import com.intellij.psi.stubs.StubIndexKey
 class CangJieTopLevelTypeAliasFqNameIndex internal constructor() : StringStubIndexExtension<CjTypeAlias>() {
     companion object Helper : CangJieStringStubIndexHelper<CjTypeAlias>(CjTypeAlias::class.java) {
         override val indexKey: StubIndexKey<String, CjTypeAlias> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelTypeAliasFqNameIndex")
+            StubIndexKey.createIndexKey(CangJieTopLevelTypeAliasFqNameIndex::class.java.simpleName)
 
         @JvmField
         @Deprecated("Use the Helper object instead", level = DeprecationLevel.ERROR)

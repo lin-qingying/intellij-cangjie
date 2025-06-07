@@ -23,4 +23,17 @@
  */
 package cn.cangnova.cangjie.lexer
 
-class CangJieLexerException(message: String?) : RuntimeException(message)
+/**
+ * 词法分析器异常类
+ *
+ * @property message 错误消息
+ * @property position 错误发生的位置（字符偏移量）
+ */
+class CangJieLexerException @JvmOverloads constructor(
+    message: String,
+    val position: Int? = null
+) : RuntimeException(message) {
+    override fun toString(): String {
+        return "CangJieLexerException: $message at position $position"
+    }
+}

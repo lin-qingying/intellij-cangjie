@@ -63,7 +63,7 @@ class CompileDriverNotifications(
 
     inner class LightNotification {
         private val isShown = AtomicBoolean()
-        private val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("jps configuration error")
+        private val notificationGroup = NotificationGroupManager.getInstance().getNotificationGroup("CangJie Build configuration error")
 
         private val baseNotification = notificationGroup
             .createNotification(CangJieCompilerBundle.message("notification.title.jps.cannot.start.compiler"), NotificationType.ERROR)

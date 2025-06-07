@@ -45,7 +45,7 @@ import java.io.DataInput
 import java.io.DataOutput
 
 private val LOG = logger<CangJiePartialPackageNamesIndex>()
-val NAME: ID<FqName, Name?> = ID.create(CangJiePartialPackageNamesIndex::class.java.canonicalName)
+val NAME: ID<FqName, Name?> = ID.create(CangJiePartialPackageNamesIndex::class.java.simpleName)
 
 data class NameIsRoot(
     val name: Name,
@@ -54,7 +54,7 @@ data class NameIsRoot(
     fun asString() = "$name:$isRoot"
 }
 
-class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>() {
+internal class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>() {
 
 
     private object NullableNameExternalizer : DataExternalizer<Name?> {
@@ -121,23 +121,17 @@ class CangJiePartialPackageNamesIndex : FileBasedIndexExtension<FqName, Name?>()
     override fun getIndexer() = DataIndexer<FqName, Name?, FileContent> { fileContent ->
         try {
             val packageFqName = fileContent.toPackageFqName() ?: return@DataIndexer emptyMap<FqName, Name?>()
-//
-//            generateSequence(packageFqName) {
-//                it.parentOrNull()
-//            }.filterNot { it.isRoot }.associateBy({ it.parent() }, { it.shortName() }) + mapOf(packageFqName to null)
-//
+
             val a = generateSequence(packageFqName) {
                 it.parentOrNull()
             }
             val b = a.filterNot { it.isRoot }
             val c = b.associateBy({ it.parent() }, {
-//                NameIsRoot(
+
                 it.shortName().apply {
                     isRoot = it.parent().isRoot
                 }
-//                ,
-//                    it.parent().isRoot
-//                )
+
             })
             val d = c + mapOf(packageFqName to null)
             d

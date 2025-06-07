@@ -167,6 +167,10 @@ allprojects {
         // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit
         testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.0")
 
+        implementation(kotlin("stdlib"))
+        implementation(kotlin("test"))
+        implementation(kotlin("test-junit"))
+
     }
 
     intellijPlatform {

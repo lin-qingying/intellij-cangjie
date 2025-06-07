@@ -25,6 +25,8 @@
 package cn.cangnova.cangjie.psi.psiUtil
 
 import cn.cangnova.cangjie.psi.*
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -33,7 +35,8 @@ import com.intellij.psi.util.findParentInFile
 import com.intellij.psi.util.isAncestor
 
 fun TextRange.containsInside(offset: Int): Boolean = startOffset < offset && offset < endOffset
-inline fun <reified T : PsiElement> PsiElement.getLastParentOfTypeInRow() = parents.takeWhile { it is T }.lastOrNull() as? T
+inline fun <reified T : PsiElement> PsiElement.getLastParentOfTypeInRow() =
+    parents.takeWhile { it is T }.lastOrNull() as? T
 
 fun PsiElement.isExtensionDeclaration(): Boolean {
     val callable: CjCallableDeclaration? = when (this) {
@@ -44,6 +47,7 @@ fun PsiElement.isExtensionDeclaration(): Boolean {
 
     return callable?.receiverTypeReference != null
 }
+
 fun getElementTextWithContext(psiElement: PsiElement): String {
     if (!psiElement.isValid) return "<invalid element $psiElement>"
 
@@ -74,9 +78,11 @@ fun getElementTextWithContext(psiElement: PsiElement): String {
         append(elementTextInContext)
     }
 }
+
 inline fun <reified T : PsiElement> PsiElement.getNonStrictParentOfType(): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, false)
 }
+
 val PsiElement.parents: Sequence<PsiElement>
     get() = parentsWithSelf.drop(1)
 val PsiElement.parentsWithSelf: Sequence<PsiElement>
@@ -85,6 +91,7 @@ val PsiElement.parentsWithSelf: Sequence<PsiElement>
 inline fun <reified T : PsiElement> PsiElement.anyDescendantOfType(noinline predicate: (T) -> Boolean = { true }): Boolean {
     return findDescendantOfType(predicate) != null
 }
+
 inline fun <reified T : PsiElement> PsiElement.forEachDescendantOfType(noinline action: (T) -> Unit) {
     forEachDescendantOfType({ true }, action)
 }
@@ -110,21 +117,28 @@ inline fun <reified T : PsiElement> PsiElement.forEachDescendantOfType(
         }
     })
 }
-inline fun <reified T : PsiElement> PsiElement.getParentOfTypeAndBranch(strict: Boolean = false, noinline branch: T.() -> PsiElement?): T? {
+
+inline fun <reified T : PsiElement> PsiElement.getParentOfTypeAndBranch(
+    strict: Boolean = false,
+    noinline branch: T.() -> PsiElement?
+): T? {
     return getParentOfType<T>(strict)?.getIfChildIsInBranch(this, branch)
 }
 
 fun <T : PsiElement> T.getIfChildIsInBranch(element: PsiElement, branch: T.() -> PsiElement?): T? {
     return if (branch().isAncestor(element)) this else null
 }
+
 fun PsiElement.getPrevSiblingIgnoringWhitespace(withItself: Boolean = false): PsiElement? {
     return siblings(withItself = withItself, forward = false).filter { it !is PsiWhiteSpace }.firstOrNull()
 }
+
 val PsiChildRange.textRange: TextRange?
     get() {
         if (isEmpty) return null
         return TextRange(first!!.startOffset, last!!.endOffset)
     }
+
 fun PsiElement.getStartOffsetIn(ancestor: PsiElement): Int {
     var offset = 0
     var parent = this
@@ -138,3 +152,5 @@ fun PsiElement.getStartOffsetIn(ancestor: PsiElement): Int {
 inline fun <reified T : PsiElement, reified V : PsiElement, reified U : PsiElement> PsiElement.getParentOfTypes3(): PsiElement? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, V::class.java, U::class.java)
 }
+
+

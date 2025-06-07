@@ -34,7 +34,7 @@ import com.intellij.psi.stubs.StubIndexKey
 class CangJieTopLevelClassByPackageIndex internal constructor() : StringStubIndexExtension<CjTypeStatement>() {
     companion object Helper : CangJieStringStubIndexHelper<CjTypeStatement>(CjTypeStatement::class.java) {
         override val indexKey: StubIndexKey<String, CjTypeStatement> =
-            StubIndexKey.createIndexKey("cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelClassByPackageIndex")
+            StubIndexKey.createIndexKey(CangJieTopLevelClassByPackageIndex::class.java.simpleName)
     }
 
     override fun getKey(): StubIndexKey<String, CjTypeStatement> = indexKey
