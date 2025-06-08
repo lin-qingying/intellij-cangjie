@@ -242,15 +242,16 @@ allprojects {
         withType<PublishPluginTask> {
 //           先构建
 //            dependsOn("clean")
-//            dependsOn("buildPlugin")
+            dependsOn("buildPlugin")
 
+            channels.set(props("channel").map { listOf(it) })
 
             archiveFile.set(
                 project(":plugin").layout.buildDirectory.file(
                     "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
                 ),
             )
-            token = prop("publishToken")
+            token = environment("PUBLISH_TOKEN")
         }
 
 
@@ -316,8 +317,9 @@ project(":plugin") {
             name = "CangJie"
         }
         publishing {
-            token.set(token)
-            channels.set(listOf("dev"))
+            token = environment("PUBLISH_TOKEN")
+            channels.set(props("channel").map { listOf(it) })
+
         }
     }
 
@@ -516,10 +518,12 @@ fun File.isManifestFile(): Boolean {
     return rootNode.name() == "idea-plugin"
 }
 
+fun environment(key: String) = providers.environmentVariable(key)
 fun prop(name: String): String =
     extra.properties[name] as? String
         ?: error("Property `$name` is not defined in gradle.properties")
 
+fun props(key: String) = providers.gradleProperty(key)
 // 确保在编译前创建 IDE 版本特定的源码目录
 tasks.register("createIdeVersionSourceDir") {
     val dir = layout.projectDirectory.dir("src/main/$ideVersion")
