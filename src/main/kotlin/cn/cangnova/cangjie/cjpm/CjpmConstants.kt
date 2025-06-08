@@ -91,7 +91,7 @@ import kotlin.io.path.exists
 object CjpmConstants {
 
 
-    val LOCK_FILE = listOf("cjpm.lock", "module-lock.json")
+    val LOCK_FILE =  "cjpm.lock"
 //        get() {
 //            return CjpmConstantsService.getInstance().LOCK_FILE
 //        }

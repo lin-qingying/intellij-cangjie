@@ -28,7 +28,6 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
-import org.jetbrains.intellij.platform.gradle.tasks.RunIdeTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -407,9 +406,29 @@ project(":plugin") {
         }
         runIde {
             enabled = true
-            jvmArgs("-Xmx768m", "-XX:+UseG1GC", "-XX:SoftRefLRUPolicyMSPerMB=50")
-            jvmArgs("-Didea.auto.reload.plugins=false")
-            jvmArgs("-Dide.show.tips.on.startup.default.value=false")
+            dependsOn(mergePluginJarTask)
+
+            jvmArgs(
+                // 内存配置（确保-Xmx参数不被后续覆盖）
+                "-Xms512m",  // 初始堆内存
+                "-Xmx2048m", // 最大堆内存（根据物理内存调整）
+
+                // G1垃圾收集器优化（合并重复参数）
+                "-XX:+UseG1GC",
+                "-XX:G1HeapRegionSize=16m",
+                "-XX:G1ReservePercent=20",
+                "-XX:InitiatingHeapOccupancyPercent=35",
+                "-XX:SoftRefLRUPolicyMSPerMB=50", // Soft引用缓存策略
+
+                // IDE性能参数（合并重复项）
+                "-Didea.auto.reload.plugins=false", // 禁用插件自动重载
+                "-Dide.show.tips.on.startup.default.value=false", // 禁用启动提示
+
+                // 内存溢出处理
+//                "-XX:+HeapDumpOnOutOfMemoryError", // 启用堆转储
+//                "-XX:HeapDumpPath=${buildDir}/heapDumps.hprof" // 转储文件路径
+            )
+//            jvmArgs("-Xmx768m", "-XX:+UseG1GC", "-XX:SoftRefLRUPolicyMSPerMB=50")
         }
         prepareSandbox {
             finalizedBy(mergePluginJarTask)
@@ -423,13 +442,13 @@ project(":plugin") {
             enabled = prop("enableBuildSearchableOptions").toBoolean()
         }
 
-        withType<RunIdeTask> {
-            dependsOn(mergePluginJarTask)
-            jvmArgs("-Xmx768m", "-XX:+UseG1GC", "-XX:SoftRefLRUPolicyMSPerMB=50")
-            jvmArgs("-Didea.auto.reload.plugins=false")
-
-            jvmArgs("-Dide.show.tips.on.startup.default.value=false")
-        }
+//        withType<RunIdeTask> {
+//            dependsOn(mergePluginJarTask)
+//            jvmArgs("-Xmx768m", "-XX:+UseG1GC", "-XX:SoftRefLRUPolicyMSPerMB=50")
+//            jvmArgs("-Didea.auto.reload.plugins=false")
+//
+//            jvmArgs("-Dide.show.tips.on.startup.default.value=false")
+//        }
 
         withType<PatchPluginXmlTask> {
             pluginDescription.set(provider { file("description.html").readText() })

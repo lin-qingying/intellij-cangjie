@@ -49,7 +49,7 @@ class CjMacroCallFile(
 }
 
 object CangJieMacroCallFileType : CangJieFileType() {
-    val EXTENSION: String = "cj.macrocall"
+    val EXTENSION: String = "macrocall"
 
     override fun getDisplayName(): String {
         return EXTENSION

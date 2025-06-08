@@ -4,6 +4,11 @@
 
         <stubElementTypeHolder externalIdPrefix="cangjie."
                                class="cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes"/>
+        <!--         Stub索引服务 -->
+        <applicationService
+                serviceInterface="cn.cangnova.cangjie.psi.stubs.elements.StubIndexService"
+                serviceImplementation="cn.cangnova.cangjie.ide.stubindex.IdeStubIndexService"/>
+
 
         <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
         <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieTopLevelTypeAliasByPackageIndex"/>
@@ -44,13 +49,10 @@
         <stubIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieExtendClassNameIndex"/>
 
 
-
         <fileBasedIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJiePackageSourcesMemberNamesIndex"/>
 
         <fileBasedIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJiePartialPackageNamesIndex"/>
         <fileBasedIndex implementation="cn.cangnova.cangjie.ide.stubindex.CangJieShortClassNameFileIndex"/>
-
-
 
 
         <notificationGroup
@@ -78,7 +80,6 @@
                      description="Allows indices access time tracking"/>
 
 
-
     </extensions>
 
     <extensionPoints>
@@ -90,11 +91,11 @@
     </extensionPoints>
 
     <projectListeners>
-<!--        监听索引损坏-->
-<!--        <listener class="cn.cangnova.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"-->
-<!--                  topic="cn.cangnova.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"-->
-<!--                  activeInHeadlessMode="false"-->
-<!--                  activeInTestMode="false"/>-->
+        <!--        监听索引损坏-->
+        <!--        <listener class="cn.cangnova.cangjie.ide.stubindex.resolve.CangJieRepairIdeAfterCorruptionNotification"-->
+        <!--                  topic="cn.cangnova.cangjie.ide.stubindex.resolve.CangJieCorruptedIndexListener"-->
+        <!--                  activeInHeadlessMode="false"-->
+        <!--                  activeInTestMode="false"/>-->
 
 
     </projectListeners>

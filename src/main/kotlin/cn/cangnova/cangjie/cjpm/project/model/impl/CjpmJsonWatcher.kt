@@ -83,22 +83,22 @@ class CjpmTomlWatcher(
         fun isInterestingEvent(project: Project, event: VFileEvent): Boolean {
             return when {
                 event.pathEndsWith(CjpmConstants.MANIFEST_FILE) -> true
-                event.pathEndsWith(CjpmConstants.LOCK_FILE) -> {
-                    val projectDir = Paths.get(event.path).parent
-                    val timestamp = CjpmEventService.getInstance(project).extractTimestamp(projectDir) ?: 0
-                    // Non-null requestor means a change from IDE itself
-                    if (event.requestor != null) return true
-                    val current = System.currentTimeMillis()
-                    val delayThreshold = Registry.intValue("org.cangjie.cjpm.lock.update.delay.threshold")
-                    val delay = current - timestamp
-                    return if (delay > delayThreshold) {
-                        LOG.info("External change in ${event.path}. Previous Cjpm metadata call was $delay ms before")
-                        true
-                    } else {
-                        LOG.info("Skip external change for ${event.path}. Previous Cjpm metadata call was $delay ms before")
-                        false
-                    }
-                }
+//                event.pathEndsWith(CjpmConstants.LOCK_FILE) -> {
+//                    val projectDir = Paths.get(event.path).parent
+//                    val timestamp = CjpmEventService.getInstance(project).extractTimestamp(projectDir) ?: 0
+//                    // Non-null requestor means a change from IDE itself
+//                    if (event.requestor != null) return true
+//                    val current = System.currentTimeMillis()
+//                    val delayThreshold = Registry.intValue("org.cangjie.cjpm.lock.update.delay.threshold")
+//                    val delay = current - timestamp
+//                    return if (delay > delayThreshold) {
+//                        LOG.info("External change in ${event.path}. Previous Cjpm metadata call was $delay ms before")
+//                        true
+//                    } else {
+//                        LOG.info("Skip external change for ${event.path}. Previous Cjpm metadata call was $delay ms before")
+//                        false
+//                    }
+//                }
 
                 event is VFileContentChangeEvent -> false
                 !event.pathEndsWith(".cj") -> false

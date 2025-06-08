@@ -35,11 +35,6 @@
         <lang.commenter language="CangJie" implementationClass="cn.cangnova.cangjie.ide.commenter.CjCommenter"/>
 
         <!-- 5. PSI服务配置 -->
-        <!-- Stub索引服务 -->
-        <applicationService
-                serviceInterface="cn.cangnova.cangjie.psi.stubs.elements.StubIndexService"
-                serviceImplementation="cn.cangnova.cangjie.ide.stubindex.IdeStubIndexService"/>
-
 
         <projectService serviceInterface="cn.cangnova.cangjie.references.CangJieReferenceProviderContributor"
                         serviceImplementation="cn.cangnova.cangjie.references.CangJieReferenceContributor"/>
