@@ -24,11 +24,9 @@
 
 package cn.cangnova.cangjie.parsing
 
-import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.lang.declarations.CjDeclarationsFile
+import cn.cangnova.cangjie.macro.file.CjMacroCallFile
 import cn.cangnova.cangjie.parsing.CangJieParsing.Companion.createForTopLevel
-
-import cn.cangnova.cangjie.psi.CjFile
 import com.intellij.lang.ASTNode
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.PsiParser
@@ -40,7 +38,7 @@ import org.jetbrains.annotations.NotNull
 
 class CangJieParser(project: Project) : PsiParser {
     override fun parse(root: IElementType, builder: PsiBuilder): ASTNode {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     companion object {
@@ -95,16 +93,31 @@ class CangJieParser(project: Project) : PsiParser {
                 )
 
             val extension = FileUtilRt.getExtension(psiFile.name)
-            if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled) {
-                cjParsing.isDeclarationsFile = (false)
-                cjParsing.parseFile()
-            } else if (psiFile is CjDeclarationsFile) {
+
+            if (psiFile is CjDeclarationsFile) {
                 cjParsing.isDeclarationsFile = (true)
                 cjParsing.parseFile()
-
+            } else if (psiFile is CjMacroCallFile) {
+                cjParsing.isDeclarationsFile = (false)
+                cjParsing.parseFile()
             } else {
-                cjParsing.parseScript()
+                cjParsing.isDeclarationsFile = (false)
+                cjParsing.parseFile()
             }
+//
+//            if (extension.isEmpty() || extension == CangJieFileType.EXTENSION || psiFile is CjFile && psiFile.isCompiled
+//
+//                || psiFile is CjMacroCallFile
+//            ) {
+//                cjParsing.isDeclarationsFile = (false)
+//                cjParsing.parseFile()
+//            } else if (psiFile is CjDeclarationsFile) {
+//                cjParsing.isDeclarationsFile = (true)
+//                cjParsing.parseFile()
+//
+//            } else {
+//                cjParsing.parseScript()
+//            }
 
             return psiBuilder.treeBuilt
         }

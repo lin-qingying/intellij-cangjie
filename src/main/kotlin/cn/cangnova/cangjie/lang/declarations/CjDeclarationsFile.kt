@@ -32,8 +32,8 @@ class CjDeclarationsFile(
     private val provider: FileViewProvider,
 
     ) : CjFile(
-    provider
-
+    provider,
+            isCompiled = true
 ) {
     override fun toString(): String {
         return "CangJieDeclaration File: $name"

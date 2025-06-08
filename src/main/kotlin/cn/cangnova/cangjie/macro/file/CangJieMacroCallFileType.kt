@@ -27,7 +27,10 @@ package cn.cangnova.cangjie.macro.file
 import cn.cangnova.cangjie.icon.CangJieIcons
 import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.psi.CjFile
+import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.FileTypeConsumer
+import com.intellij.openapi.fileTypes.FileTypeFactory
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import javax.swing.Icon
@@ -36,8 +39,8 @@ class CjMacroCallFile(
     private val provider: FileViewProvider,
 
     ) : CjFile(
-    provider
-
+    provider,
+    isCompiled = true
 ) {
     override fun toString(): String {
         return "CjMacroCallFile File: $name"
@@ -49,11 +52,12 @@ class CjMacroCallFile(
 }
 
 object CangJieMacroCallFileType : CangJieFileType() {
-    val EXTENSION: String = "macrocall"
+    val EXTENSION: String = "cj.macrocall"
 
     override fun getDisplayName(): String {
         return EXTENSION
     }
+
 
     override fun getName() = EXTENSION
 
@@ -70,4 +74,15 @@ object CangJieMacroCallFileType : CangJieFileType() {
     override fun getCharset(file: VirtualFile, content: ByteArray): String? = null
 
     private val DEFAULT_DESCRIPTION = "CangJie Macro Call"
+}
+
+internal class MacroCallFileTypeFactory : FileTypeFactory() {
+
+
+    override fun createFileTypes(consumer: FileTypeConsumer) {
+        consumer.consume(
+            CangJieMacroCallFileType,
+            ExtensionFileNameMatcher("cj.macrocall")
+        );
+    }
 }

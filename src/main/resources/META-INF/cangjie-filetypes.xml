@@ -17,13 +17,15 @@
                   extensions="cj"
                   fieldName="INSTANCE"/>
 
-        <fileType name="cj.macrocall"
-                          language="CangJie"
-                          implementationClass="cn.cangnova.cangjie.macro.file.CangJieMacroCallFileType"
-                          extensions="macrocall"
-                />
+                <fileType name="cj.macrocall"
+                                  language="CangJie"
+                                  implementationClass="cn.cangnova.cangjie.macro.file.CangJieMacroCallFileType"
+                                  extensions="cj.macrocall"
 
+                          patterns="*.cj.macrocall"
+                        />
 
+        <!--<fileTypeFactory implementation="cn.cangnova.cangjie.macro.file.MacroCallFileTypeFactory"/>-->
     </extensions>
 
     <extensionPoints>
