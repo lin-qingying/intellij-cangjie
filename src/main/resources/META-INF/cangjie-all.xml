@@ -80,4 +80,8 @@
 
 
     <xi:include href="/META-INF/telemetry.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+
+    <xi:include href="/META-INF/cangjie-registry-key.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
 </idea-plugin>

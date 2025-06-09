@@ -24,9 +24,9 @@
 
 package cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool
 
-import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.ide.run.cjpm.CompilerArtifactMessage
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjAnsiEscapeDecoder.Companion.quantizeAnsiColors
+import cn.cangnova.cangjie.messages.CangJieBundle
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.BuildEventsNls
@@ -122,8 +122,8 @@ class CjBuildEventsConverter(private val context: CjpmBuildContextBase) : BuildO
             }
 
             else -> {
-//TODO 获取模块名
-                val parentEventId = "cjpm"
+
+                val parentEventId = context.project.name
 
                 val filePosition = getFilePosition(span)
 
@@ -270,12 +270,13 @@ class CjBuildEventsConverter(private val context: CjpmBuildContextBase) : BuildO
             isRecordError = true
         }
         when {
-            cleanLine.startsWith("Error: cjpm build failed") -> {
+            cleanLine.startsWith("Error: cjpm build failed")
+                    || cleanLine.startsWith("Error: cjpm test failed") -> {
                 val taskName = "cjpm"
                 handleFinishedMessage(taskName, messageConsumer)
             }
 
-            cleanLine.startsWith("cjpm build success") -> {
+            cleanLine.startsWith("cjpm build success") || cleanLine.startsWith("cjpm test success") -> {
 
                 handleFinishedMessage(null, messageConsumer)
 

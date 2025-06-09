@@ -82,6 +82,7 @@ class CjpmCommandConfiguration(project: Project, factory: ConfigurationFactory, 
     ConsolePropertiesProvider,
     TargetEnvironmentAwareRunProfile {
 
+
     override var command: String = "run"
     override fun checkConfiguration() {
 

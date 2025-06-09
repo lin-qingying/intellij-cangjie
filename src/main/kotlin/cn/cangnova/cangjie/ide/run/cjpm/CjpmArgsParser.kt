@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.ide.run
+package cn.cangnova.cangjie.ide.run.cjpm
 
 
 class CjpmArgsParser private constructor(

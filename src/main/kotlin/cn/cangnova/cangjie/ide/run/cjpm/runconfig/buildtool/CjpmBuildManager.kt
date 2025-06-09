@@ -25,11 +25,10 @@
 package cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool
 
 
-
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.ide.notifications.CjNotifications
-import cn.cangnova.cangjie.ide.run.CjpmArgsParser.Companion.parseArgs
 import cn.cangnova.cangjie.ide.run.cjpm.*
+import cn.cangnova.cangjie.ide.run.cjpm.CjpmArgsParser.Companion.parseArgs
 import cn.cangnova.cangjie.ide.run.hasRemoteTarget
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.utils.isUnitTestMode
@@ -112,6 +111,7 @@ object CjpmBuildManager {
             "test" -> {
                 val (commandArguments, _) = parseArgs(command, parsed.additionalArguments)
                 "--no-run" in commandArguments
+
             }
 
             else -> false
@@ -127,18 +127,12 @@ object CjpmBuildManager {
         if (parsed.command !in BUILDABLE_COMMANDS) return null
 
 
-//        if (configuration.executorId == "Debug") {
-//            parsed.additionalArguments.add("-g")
-//        }
-
         val commandArguments = parseArgs(
             parsed.command,
             parsed.additionalArguments
         ).commandArguments.toMutableList()
         commandArguments.addAll(configuration.localBuildArgsForRemoteRun)
 
-
-        if (parsed.command == "test") return null
 
         val buildConfiguration = configuration.clone() as CjpmCommandConfiguration
 
@@ -150,6 +144,18 @@ object CjpmBuildManager {
 //                "run" -> listOfNotNull(
 //                    parsed.toolchain, "build",  *commandArguments.toTypedArray()
 //                )
+
+                "test" -> {
+                    if (configuration.executorId == "Debug") {
+
+
+                        commandArguments.add("-g")
+
+                    }
+                    commandArguments.add("--no-run")
+                    listOfNotNull(parsed.toolchain, "test", *commandArguments.toTypedArray())
+
+                }
 
                 "run" -> {
                     var buildArgs: String = ""
@@ -165,7 +171,6 @@ object CjpmBuildManager {
                             }
                             if (buildArgs.endsWith("\"") || buildArgs.endsWith("”"))
                                 buildArgs = buildArgs.substring(0, buildArgs.length - 1)
-
 
 
                         }
@@ -185,12 +190,6 @@ object CjpmBuildManager {
                     )
 
                 }
-//if ("--build-args" in commandArguments) {
-//                        commandArguments.toTypedArray()
-//                    } else {
-//                        arrayOf()
-//                    }
-                "test" -> listOfNotNull(parsed.toolchain, "test", *commandArguments.toTypedArray())
 
                 else -> return null
             }

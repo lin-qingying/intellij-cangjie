@@ -4,12 +4,20 @@
         <!-- 1. 运行标记配置 -->
         <!-- 运行行标记提供器 - 在编辑器左侧显示运行图标 -->
         <runLineMarkerContributor language="CangJie"
-                                implementationClass="cn.cangnova.cangjie.ide.run.CjRunLineMarkersProvider"/>
+                                  implementationClass="cn.cangnova.cangjie.ide.run.CjRunLineMarkersProvider"/>
+        <runLineMarkerContributor
+                language="CangJie"
+                implementationClass="cn.cangnova.cangjie.ide.run.test.CangJieTestRunLineMarkerContributor"/>
+
 
         <!-- 2. CJPM运行配置 -->
         <!-- CJPM 运行配置生成器 -->
         <runConfigurationProducer implementation="cn.cangnova.cangjie.ide.run.cjpm.CjpmRunConfigurationProducer"
-                                id="CjpmRunConfigurationProducer"/>
+                                  id="CjpmRunConfigurationProducer"/>
+
+        <runConfigurationProducer
+                implementation="cn.cangnova.cangjie.ide.run.cjpm.test.CjpmTestRunConfigurationProducer"/>
+
         <!-- 运行配置类型定义 -->
         <configurationType
                 implementation="cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType"

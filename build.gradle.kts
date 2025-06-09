@@ -173,6 +173,8 @@ allprojects {
     }
 
     intellijPlatform {
+
+
         pluginVerification {
 
             ides {

@@ -24,29 +24,31 @@
 
 package cn.cangnova.cangjie.ide.run
 
+import cn.cangnova.cangjie.ide.run.cjpm.RunMainAction
+import cn.cangnova.cangjie.lexer.CjTokens.IDENTIFIER
+import cn.cangnova.cangjie.psi.CjAnnotated
+import cn.cangnova.cangjie.psi.CjMainFunction
+import cn.cangnova.cangjie.psi.psiUtil.elementType
+import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.ide.run.cjpm.RunMainAction
-import cn.cangnova.cangjie.ide.run.cjpm.RunTestAction
-import cn.cangnova.cangjie.lexer.CjTokens.IDENTIFIER
-import cn.cangnova.cangjie.psi.CjAnnotated
-import cn.cangnova.cangjie.psi.CjMainFunction
-import cn.cangnova.cangjie.psi.psiUtil.elementType
 
 class CjRunLineMarkersProvider : RunLineMarkerContributor(), DumbAware {
 
     override fun getInfo(element: PsiElement): Info? {
         if (element is CjMainFunction) {
             val action = ActionManager.getInstance().getAction(RunMainAction.ID)
-            return Info(AllIcons.RunConfigurations.TestState.Run, arrayOf(action), { "run main" })
-        } else if (isTestCase(element)) {
+            return Info(
+                AllIcons.RunConfigurations.TestState.Run,
+                ExecutorAction.getActions(), { "run main" })
+        } /*else if (isTestCase(element)) {
             // TODO: mem leak ?
             val action = RunTestAction(element)
             return Info(AllIcons.RunConfigurations.TestState.Run, arrayOf(action), { "run test" })
-        }
+        }*/
         return null
     }
 

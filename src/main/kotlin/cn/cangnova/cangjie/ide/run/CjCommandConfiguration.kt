@@ -31,13 +31,15 @@ import cn.cangnova.cangjie.ide.experiments.CjExperiments
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.isHeadlessEnvironment
 import cn.cangnova.cangjie.utils.isUnitTestMode
+import com.intellij.execution.Executor
 import com.intellij.execution.ExternalizablePath
-import com.intellij.execution.configurations.ConfigurationFactory
-import com.intellij.execution.configurations.LocatableConfigurationBase
-import com.intellij.execution.configurations.RunConfigurationWithSuppressedDefaultDebugAction
-import com.intellij.execution.configurations.RunProfileState
+import com.intellij.execution.configurations.*
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.application.Experiments
+import com.intellij.openapi.options.SettingsEditor
+import com.intellij.openapi.options.SettingsEditorGroup
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -53,10 +55,46 @@ abstract class CjCommandConfiguration(
 ) : LocatableConfigurationBase<RunProfileState>(project, factory, name),
     RunConfigurationWithSuppressedDefaultDebugAction {
 
-        companion object{
-            val emulateTerminalDefault: Boolean
-                get() = isFeatureEnabled(CjExperiments.EMULATE_TERMINAL) && !isUnitTestMode
+    companion object {
+        val emulateTerminalDefault: Boolean
+            get() = isFeatureEnabled(CjExperiments.EMULATE_TERMINAL) && !isUnitTestMode
+
+        private const val DEBUG_ALL_NAME: String = "DebugAllEnabled"
+
+        private const val RUN_AS_TEST_NAME: String = "RunAsTest"
+
+
+        val DEBUG_ALL_KEY: Key<Boolean?> = Key.create<Boolean?>("DEBUG_ALL_TASKS")
+
+        val RUN_AS_TEST_KEY: Key<Boolean?> = Key.create<Boolean?>("RUN_AS_TEST")
+
+        val IS_TEST_TASK_RERUN_KEY: Key<Boolean?> = Key.create<Boolean?>("IS_TEST_TASK_RERUN")
+
+
+    }
+
+    class Default(project: Project, factory: ConfigurationFactory) : CjCommandConfiguration(
+        project, "CangJie Default", factory
+    ) {
+        override var command: String
+            get() = ""
+            set(value) {}
+
+        override fun getState(
+            executor: Executor,
+            environment: ExecutionEnvironment
+        ): RunProfileState? {
+            return null
         }
+
+        override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration?> {
+//        创建
+            val group = SettingsEditorGroup<RunConfiguration>()
+
+
+            return group
+        }
+    }
 
     abstract var command: String
     var emulateTerminal: Boolean = emulateTerminalDefault
@@ -65,6 +103,23 @@ abstract class CjCommandConfiguration(
         project.cjpmProjects.allProjects.firstOrNull()?.workingDirectory
     } else {
         null
+    }
+
+    private var _isRunAsTest = false
+    fun isRunAsTest(): Boolean {
+        return _isRunAsTest
+    }
+
+    fun setRunAsTest(runAsTest: Boolean) {
+        this._isRunAsTest = runAsTest
+        putUserData<Boolean?>(
+            RUN_AS_TEST_KEY,
+            runAsTest
+        )
+        putUserData<Boolean?>(
+            IS_TEST_TASK_RERUN_KEY,
+            runAsTest
+        )
     }
 
     override fun writeExternal(element: Element) {
@@ -127,6 +182,7 @@ inline fun <reified E : Enum<E>> Element.readEnum(name: String): E? {
         null
     }
 }
+
 fun isFeatureEnabled(featureId: String): Boolean {
     // Hack to pass values of experimental features in headless IDE run
     // Should help to configure IDE-based tools like Qodana

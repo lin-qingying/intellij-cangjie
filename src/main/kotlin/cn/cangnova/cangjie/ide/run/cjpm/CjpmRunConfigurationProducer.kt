@@ -25,62 +25,50 @@
 package cn.cangnova.cangjie.ide.run.cjpm
 
 
+import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
+import cn.cangnova.cangjie.ide.run.CangJieRunConfigurationProducer
+import cn.cangnova.cangjie.ide.run.cjpm.test.CjpmTestRunConfigurationProducer.Companion.isTestCase
+import cn.cangnova.cangjie.lang.CangJieFileType
 import com.intellij.execution.actions.ConfigurationContext
-import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
-
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
-import cn.cangnova.cangjie.lang.CangJieFileType
 import org.toml.lang.psi.TomlFileType
 
-class CjpmRunConfigurationProducer : LazyRunConfigurationProducer<CjpmCommandConfiguration>() {
+class CjpmRunConfigurationProducer : CangJieRunConfigurationProducer<CjpmCommandConfiguration>() {
     override fun getConfigurationFactory(): ConfigurationFactory {
         return CjpmCommandConfigurationType.instance.factory
     }
 
     override fun setupConfigurationFromContext(
-        configuration: CjpmCommandConfiguration, context: ConfigurationContext, sourceElement: Ref<PsiElement>
+        configuration: CjpmCommandConfiguration,
+        context: ConfigurationContext,
+        sourceElement: Ref<PsiElement>
     ): Boolean {
+        if (isTestCase(sourceElement.get())) return false
 //如果该项目有运行配置中command为run的运行配置，就使用这个运行配置，否则就创建一个run的运行配置
-
-
         val file = context.location?.virtualFile
         val fileName = file?.name
         val fileType = file?.fileType
-
         val isInSrc = file?.path?.contains("/src/") == true
-
-
         if (fileType !is CangJieFileType) {
-
             if (fileType is TomlFileType) {
                 if (configuration.project.currentCjpmProject == null) {
                     return false
-
                 }
             } else {
                 return false
-
             }
-
         } else if (!isInSrc) {
             return false
         }
-
         // 获取项目
         val project = context.project
-        // 获取所有的运行配置
-//        val runManager = RunManager.getInstance(project)
-
         // 如果不存在，则创建一个新的运行配置
         configuration.name = project.name
         configuration.command = "run"
         sourceElement.set(context.psiLocation)
         return true
-//            true
-//        }
     }
 
     override fun isConfigurationFromContext(

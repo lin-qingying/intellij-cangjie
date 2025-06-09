@@ -5,6 +5,11 @@
     <extensions defaultExtensionNs="com.intellij">
         <programRunner id="CjDebugRunner"
                        implementation="cn.cangnova.cangjie.dapDebugger.runconfig.CjDebugRunner"/>
+
+<!--        <programRunner id="CjpmTestDebugRunner"-->
+<!--                       implementation="cn.cangnova.cangjie.dapDebugger.runconfig.CjpmTestDebugRunner"/>-->
+
+
         <xdebugger.breakpointType
                 implementation="cn.cangnova.cangjie.dapDebugger.runconfig.breakpoint.CangJieLineBreakpointType"
                 order="first"/>
