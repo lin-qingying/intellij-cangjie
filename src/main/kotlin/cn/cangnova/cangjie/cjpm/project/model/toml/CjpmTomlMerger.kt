@@ -39,7 +39,7 @@ object CjpmTomlMerger {
             outputType = other.outputType,
             srcDir = other.srcDir,
             targetDir = other.targetDir,
-            packageConfiguration = mergePackageConfigurations(base.packageConfiguration, other.packageConfiguration)
+            packageConfiguration = mergePackageConfigurations(base.packageConfiguration, other.packageConfiguration) ?: mapOf()
         )
     }
 

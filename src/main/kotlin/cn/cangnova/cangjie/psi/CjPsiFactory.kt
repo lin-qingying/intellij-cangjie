@@ -397,7 +397,7 @@ class CjPsiFactory private constructor(
     }
 
     fun createModifierList(@NonNls text: String): CjModifierList {
-        return createClass("$text class x").modifierList!!
+        return createClass("$text class x{}").modifierList!!
     }
 
     fun createComma(): PsiElement {

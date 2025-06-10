@@ -3,9 +3,9 @@ package cn.cangnova.cangjie.cjpm.project.model.toml
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.JsonToken
-import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind.DeserializationContext
+import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import cn.cangnova.cangjie.cjpm.project.model.toml.PackageConfigurationInfo
 import kotlinx.serialization.Serializable
 
 /**
@@ -35,7 +35,7 @@ data class CjpmTomlConfig(
     @JsonDeserialize(using = EmptyStringToProfileConfigDeserializer::class) val profile: ProfileConfig? = null,
 
     /** 后端和平台隔离配置项 */
-    @JsonProperty("target")   val target: Map<String, TargetConfig> = mapOf()
+    @JsonProperty("target") val target: Map<String, TargetConfig> = mapOf()
 ) {
 
     val srcDir get() = if (`package`?.srcDir?.isNullOrEmpty() != false) "src" else `package`.srcDir
@@ -106,7 +106,7 @@ data class PackageConfig(
     @JsonProperty("target-dir") val targetDir: String = "target",
 
     /** 单包配置选项 */
-    @JsonProperty("package-configuration") val packageConfiguration: Map<String, PackageConfigurationInfo>? = null
+    @JsonProperty("package-configuration") val packageConfiguration: Map<String, PackageConfigurationInfo> = mapOf()
 )
 
 /**

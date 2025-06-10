@@ -888,8 +888,8 @@ class CangJieParsing private constructor(
         noModifiersBefore: TokenSet,
         isParseMacro: Boolean = false
     ): Boolean {
-        // 这里你可以继续调用你之前重写的 doParseModifierListBody
-        return doParseModifierListBody(tokenConsumer, MODIFIER_KEYWORDS, noModifiersBefore, isParseMacro)
+
+        return doParseModifierList(tokenConsumer, MODIFIER_KEYWORDS, noModifiersBefore, isParseMacro)
     }
 
 
