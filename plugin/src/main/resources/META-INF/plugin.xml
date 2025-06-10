@@ -33,10 +33,6 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="lin17624294976@outlook.com" url="https://gitee.com/Lin_Qing_Ying">@Lin_Qing_Ying</vendor>
 
-    <change-notes><![CDATA[
-    The plugin provides support for CangJie language
-    ]]>
-    </change-notes>
     <!--    <version>1.0.0</version>-->
 
 

@@ -23,13 +23,14 @@
  */
 
 import groovy.xml.XmlParser
+import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
-import org.jetbrains.intellij.platform.gradle.tasks.PatchPluginXmlTask
 import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.time.LocalDate
 
 gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 
@@ -94,9 +95,6 @@ plugins {
 
 
 }
-
-
-
 
 idea {
     module {
@@ -272,7 +270,7 @@ allprojects {
             systemProperty("java.awt.headless", "true")
             testLogging {
                 showStandardStreams = prop("showStandardStreams").toBoolean()
-                events("passed", "skipped", "failed")  // 添加这行
+                events("passed", "skipped", "failed")
                 afterSuite(
                     KotlinClosure2<TestDescriptor, TestResult, Unit>({ desc, result ->
                         if (desc.parent == null) {
@@ -311,6 +309,22 @@ allprojects {
 
 
 project(":plugin") {
+
+    apply {
+        plugin("org.jetbrains.changelog")
+    }
+
+    // Configure the changelog plugin
+    changelog {
+        version.set(cangjiePluginVersion)
+        path.set("${rootProject.projectDir}/CHANGELOG.md")
+        header.set(provider { "[${version.get()}] - ${LocalDate.now()}" })
+        itemPrefix.set("-")
+        keepUnreleasedSection.set(true)
+        unreleasedTerm.set("Unreleased")
+        groups.set(listOf("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"))
+        headerParserRegex.set("""([\d.]+)(-\d+)?""".toRegex())
+    }
 
     intellijPlatform {
         autoReload = true
@@ -399,6 +413,19 @@ project(":plugin") {
             sinceBuild.set(prop("sinceBuild"))
             untilBuild.set(prop("untilBuild"))
             pluginVersion.set(cangjiePluginVersion)
+
+
+
+            pluginDescription.set(provider { file("description.html").readText() })
+            changeNotes.set(provider { 
+                changelog.getAll()
+                    .filter { it.key != "Unreleased" }
+                    .entries
+                    .firstOrNull()
+                    ?.let { changelog.renderItem(it.value, Changelog.OutputType.HTML) }
+                    ?: "No changes available"
+            })
+
         }
         buildPlugin {
 //            dependsOn(createSourceJar)
@@ -454,9 +481,7 @@ project(":plugin") {
 //            jvmArgs("-Dide.show.tips.on.startup.default.value=false")
 //        }
 
-        withType<PatchPluginXmlTask> {
-            pluginDescription.set(provider { file("description.html").readText() })
-        }
+
     }
 }
 
