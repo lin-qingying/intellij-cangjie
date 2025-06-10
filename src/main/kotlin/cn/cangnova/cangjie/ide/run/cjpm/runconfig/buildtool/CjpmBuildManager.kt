@@ -27,6 +27,7 @@ package cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool
 
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.ide.notifications.CjNotifications
+import cn.cangnova.cangjie.ide.run.CjCommandConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.*
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmArgsParser.Companion.parseArgs
 import cn.cangnova.cangjie.ide.run.hasRemoteTarget
@@ -386,11 +387,34 @@ object CjpmBuildManager {
         )
     }
 
-    fun getExecutable(project: Project, buildId: String): String {
+    fun getExecutable(context: CjpmBuildContextBase, buildId: String): String {
 
         return when (buildId) {
-            "Debug" -> "${project.basePath}/target/debug/bin/main".toSystemIndependentPath()
-            "Run" -> "${project.basePath}/target/release/bin/main".toSystemIndependentPath()
+            "Debug" -> {
+                if (context is CjpmBuildContext) {
+                    val runProfile = context.environment.runProfile
+                    if (runProfile is CjCommandConfiguration) {
+                        if (runProfile.isRunAsTest()) {
+                            return "${context.project.basePath}/target/debug/unittest_bin/${context.project.name}".toSystemIndependentPath()
+                        }
+                    }
+                }
+
+                "${context.project.basePath}/target/debug/bin/main".toSystemIndependentPath()
+            }
+
+            "Run" -> {
+                if (context is CjpmBuildContext) {
+                    val runProfile = context.environment.runProfile
+                    if (runProfile is CjCommandConfiguration) {
+                        if (runProfile.isRunAsTest()) {
+                            return "${context.project.basePath}/target/release/unittest_bin/${context.project.name}".toSystemIndependentPath()
+                        }
+                    }
+                }
+                "${context.project.basePath}/target/release/bin/main".toSystemIndependentPath()
+            }
+
             else -> ""
         }
 

@@ -285,7 +285,7 @@ class CjBuildEventsConverter(private val context: CjpmBuildContextBase) : BuildO
 
                 context.artifacts += CompilerArtifactMessage(
                     CjpmBuildManager.getExecutable(
-                        context.project,
+                        context ,
                         context.buildId.toString()
                     )
                 )

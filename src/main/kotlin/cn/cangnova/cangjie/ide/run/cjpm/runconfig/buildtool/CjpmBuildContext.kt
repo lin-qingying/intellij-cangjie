@@ -54,7 +54,8 @@ abstract class CjpmBuildContextBase(
     @NlsContexts.ProgressText val progressTitle: String,
     val isTestBuild: Boolean,
     val buildId: Any,
-    val parentId: Any
+    val parentId: Any,
+
 ) {
     //    val project: Project get() =  CangJieProjectManager.getCurrentProject()
 //    val workingDirectory: Path get() = CangJieProjectManager.getCurrentProject().basePath?.let { Path.of(it) } ?: throw ProcessCanceledException()
@@ -80,7 +81,7 @@ class CjpmBuildContext(
     isTestBuild: Boolean,
     buildId: Any,
     parentId: Any
-) : CjpmBuildContextBase(cjpmProject,progressTitle, isTestBuild, buildId, parentId) {
+) : CjpmBuildContextBase(cjpmProject,progressTitle, isTestBuild, buildId, parentId ) {
     @Volatile
     var processHandler: ProcessHandler? = null
     val result: CompletableFuture<CjpmBuildResult> = CompletableFuture()
