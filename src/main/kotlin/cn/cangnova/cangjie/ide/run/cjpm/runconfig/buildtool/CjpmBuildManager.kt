@@ -146,11 +146,10 @@ object CjpmBuildManager {
 //                )
 
                 "test" -> {
+//                    if(configuration.executorId != "Debug") return null
+
                     if (configuration.executorId == "Debug") {
-
-
                         commandArguments.add("-g")
-
                     }
                     commandArguments.add("--no-run")
                     listOfNotNull(parsed.toolchain, "test", *commandArguments.toTypedArray())
@@ -158,6 +157,7 @@ object CjpmBuildManager {
                 }
 
                 "run" -> {
+//                    if(configuration.executorId != "Debug") return null
                     var buildArgs: String = ""
                     for (arg in commandArguments) {
                         if (arg.startsWith("--build-args")) {

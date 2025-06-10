@@ -83,6 +83,43 @@ internal class CjpmTestRunConfigurationProducer : CangJieRunConfigurationProduce
         return true
     }
 
+    override fun isConfigurationFromContext(
+        configuration: CjpmCommandConfiguration,
+        context: ConfigurationContext
+    ): Boolean {
+        if (!configuration.isRunAsTest()) return false
+        val location = context.getLocation()
+
+        val element = location?.psiElement ?: return false
+
+        val declaration =
+            element.getStrictParentOfType<CjNamedDeclaration>()
+                ?.takeIf { it.nameIdentifier == element }
+                ?: return false
+
+
+        val command = StringBuilder()
+        command.append("test")
+        command.append(" ")
+        command.append("--filter")
+        command.append("=")
+        if (declaration is CjTypeStatement) {
+
+            command.append(declaration.name)
+        } else if (declaration is CjNamedFunction) {
+            val type =
+                declaration.getStrictParentOfType<CjTypeStatement>() ?: return false
+
+            command.append(type.name)
+            command.append(".")
+            command.append(declaration.name)
+
+        }
+
+        return command.toString() == configuration.command
+
+    }
+
     companion object {
         fun isTestCase(element: PsiElement): Boolean {
             val declaration =
