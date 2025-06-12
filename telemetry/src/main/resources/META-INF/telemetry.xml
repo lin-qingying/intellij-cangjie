@@ -24,13 +24,51 @@
 
 <idea-plugin>
 
+<resource-bundle />
     <extensions defaultExtensionNs="com.intellij">
         <notificationGroup id="Enable Telemetry"
-
                            displayType="STICKY_BALLOON"
                            bundle="messages.TelemetryBundle"
                            key="notification.group.title.enable.telemetry"/>
 
+        <!-- Telemetry Settings -->
+        <applicationService serviceImplementation="cn.cangnova.telemetry.TelemetrySettings"/>
+        <applicationConfigurable
+                parentId="tools"
+                key="settings.telemetry.display.name"
+                instance="cn.cangnova.telemetry.ui.TelemetrySettingsPanel"
+                id="cn.cangnova.telemetry.settings"
+                bundle="messages.TelemetryBundle"
+
+        />
+
+        <!-- Telemetry Services -->
+        <applicationService serviceImplementation="cn.cangnova.telemetry.data.TelemetryDataCollector"/>
+        <applicationService serviceImplementation="cn.cangnova.telemetry.sender.TelemetryDataSender"/>
+        <applicationService serviceImplementation="cn.cangnova.telemetry.impl.DefaultTelemetryService"
+                            serviceInterface="cn.cangnova.telemetry.api.TelemetryService"/>
+
+        <!-- Startup Activities -->
+        <postStartupActivity implementation="cn.cangnova.telemetry.TelemetryStartupActivity"/>
+
+        <!-- Notification Groups -->
+        <notificationGroup id="CangJie.Telemetry"
+                           displayType="BALLOON"
+                           bundle="messages.TelemetryBundle"
+                           key="notification.group.cangjie.title"/>
     </extensions>
 
+    <actions>
+        <!-- Add Telemetry Settings to the toolbar -->
+        <action id="cn.cangnova.telemetry.TelemetrySettingsAction"
+                class="cn.cangnova.telemetry.ui.TelemetrySettingsAction">
+            <add-to-group group-id="MainToolBar" anchor="last"/>
+        </action>
+
+        <!-- Add Immediate Send Telemetry Action -->
+        <action id="cn.cangnova.telemetry.actions.SendImmediatelyTelemetryAction"
+                class="cn.cangnova.telemetry.actions.SendImmediatelyTelemetryAction">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+    </actions>
 </idea-plugin>

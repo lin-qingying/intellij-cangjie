@@ -32,12 +32,8 @@ import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
 import cn.cangnova.cangjie.lang.lsp.replacePathBySystem
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.util.io.OSAgnosticPathUtil
-import com.intellij.openapi.vfs.VfsUtil
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.toNioPathOrNull
-import com.intellij.util.io.URLUtil
 import com.intellij.util.io.systemIndependentPath
 import com.redhat.devtools.lsp4ij.LanguageServerFactory
 import com.redhat.devtools.lsp4ij.client.features.FileUriSupport
@@ -90,7 +86,10 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
     init {
         setFileUriSupport(FileUriSupport.ENCODED)
+        setDiagnosticFeature(CangJieLSPDiagnosticFeature())
+        setHoverFeature(CangJieLSPHoverFeature())
     }
+
 
     /**
      * Overwriting it causes openDocuments to miss the files in the editor,
@@ -454,6 +453,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
         return capabilities
 
     }
+
     /**
      * 查找项目中可能的path_option
      *
@@ -464,25 +464,30 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
         val cacheLsp = this.guessProjectDir()?.toNioPathOrNull()?.resolve(".cache")?.resolve("lsp") ?: return listOf()
         val pathOptions = mutableListOf<String>()
 
-        if(!cacheLsp.exists()) return pathOptions
+        if (!cacheLsp.exists()) return pathOptions
 
         //如果不是文件夹，或者名称为bin，项目名，.build-logs，那么则不是可能的path_option
-        for (file in cacheLsp.toFile().listFiles() ) {
+        for (file in cacheLsp.toFile().listFiles()) {
             if (file.isDirectory && file.name != "bin" && file.name != projectName && file.name != ".build-logs") {
-                pathOptions.add(toString(VirtualFileManager.getInstance().findFileByNioPath(file.toPath())!!).toString())
+                pathOptions.add(
+                    toString(
+                        VirtualFileManager.getInstance().findFileByNioPath(file.toPath())!!
+                    ).toString()
+                )
             }
 
         }
         return pathOptions
 
     }
+
     override fun initializeParams(initializeParams: InitializeParams) {
 
         val toolchain = project.cangjieSettings.toolchain
 
 
 //        initializeParams.rootPath = project.guessProjectDir()?.path
-//        initializeParams.rootUri = cn.cangnova.cangjie.lsp4ij.getFileUri(project.guessProjectDir()!!)
+//        initializeParams.rootUri = toString(project.guessProjectDir()!!)
 
         initializeParams.clientInfo = ClientInfo("Intellij CangJie", "1.0.0")
 
@@ -506,7 +511,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
 
                     "multiModuleOption" to mutableMapOf<String, Any>(
-                toString(project.guessProjectDir()!!).toString() to mapOf(
+                        toString(project.guessProjectDir()!!).toString() to mapOf(
                             "name" to projectName,
 
                             "package_requires" to mapOf(

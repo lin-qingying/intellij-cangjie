@@ -1,0 +1,146 @@
+openapi: "3.0.3"
+info:
+  title: "CangJie Telemetry API"
+  description: "API for collecting telemetry data from CangJie IntelliJ plugin"
+  version: "1.0.0"
+  contact:
+    name: "CangJie"
+    url: "https://github.com/LinQingYing/intellij-cangjie"
+
+servers:
+  - url: "http://localhost:8880"
+    description: "Local Development Server"
+
+paths:
+  /api/telemetry:
+    post:
+      summary: "Submit telemetry data"
+      description: "Submit telemetry data from the CangJie plugin"
+      operationId: "submitTelemetry"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TelemetryPayload"
+      responses:
+        "200":
+          description: "Successfully received telemetry data"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TelemetryResponse"
+        "400":
+          description: "Bad request"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TelemetryResponse"
+    get:
+      summary: "Check telemetry service status"
+      description: "Check if the telemetry service is running"
+      operationId: "checkTelemetryStatus"
+      responses:
+        "200":
+          description: "Telemetry service status"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TelemetryResponse"
+
+components:
+  schemas:
+    TelemetryEvent:
+      type: "object"
+      required:
+        - "id"
+        - "category"
+        - "name"
+        - "value"
+        - "timestamp"
+      properties:
+        id:
+          type: "string"
+          description: "Unique identifier for the event"
+        category:
+          type: "string"
+          description: "Category of the event"
+        name:
+          type: "string"
+          description: "Name of the event"
+        value:
+          type: "string"
+          description: "Value of the event"
+        timestamp:
+          type: "string"
+          format: "date-time"
+          description: "Timestamp when the event was created"
+        properties:
+          type: "object"
+          additionalProperties:
+            type: "string"
+          description: "Additional properties for the event"
+    
+    TelemetryMetadata:
+      type: "object"
+      required:
+        - "pluginVersion"
+        - "ideVersion"
+        - "ideBuild"
+        - "os"
+        - "osVersion"
+        - "javaVersion"
+        - "timestamp"
+      properties:
+        pluginVersion:
+          type: "string"
+          description: "Version of the plugin"
+        ideVersion:
+          type: "string"
+          description: "Version of the IDE"
+        ideBuild:
+          type: "string"
+          description: "Build number of the IDE"
+        os:
+          type: "string"
+          description: "Operating system"
+        osVersion:
+          type: "string"
+          description: "Operating system version"
+        javaVersion:
+          type: "string"
+          description: "Java version"
+        timestamp:
+          type: "integer"
+          format: "int64"
+          description: "Timestamp when the data was collected"
+    
+    TelemetryPayload:
+      type: "object"
+      required:
+        - "metadata"
+        - "events"
+      properties:
+        metadata:
+          $ref: "#/components/schemas/TelemetryMetadata"
+        events:
+          type: "array"
+          items:
+            $ref: "#/components/schemas/TelemetryEvent"
+    
+    TelemetryResponse:
+      type: "object"
+      required:
+        - "success"
+        - "message"
+        - "count"
+      properties:
+        success:
+          type: "boolean"
+          description: "Whether the operation was successful"
+        message:
+          type: "string"
+          description: "Message describing the result"
+        count:
+          type: "integer"
+          description: "Number of events processed"
