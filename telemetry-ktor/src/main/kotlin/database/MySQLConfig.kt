@@ -1,8 +1,8 @@
 package cn.cangnova.database
 
-import com.typesafe.config.Config
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.server.config.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -14,7 +14,7 @@ import java.sql.Connection
 /**
  * MySQL配置类，负责初始化和管理MySQL连接
  */
-class MySQLConfig(private val config: Config) : DatabaseConfig {
+class MySQLConfig(private val config: ApplicationConfig) : DatabaseConfig {
     private val logger = KotlinLogging.logger {}
     private var dataSource: HikariDataSource? = null
     
@@ -42,7 +42,7 @@ class MySQLConfig(private val config: Config) : DatabaseConfig {
         val javaVersion = varchar("java_version", 50)
         val receivedTimestamp = timestamp("received_timestamp")
         val clientTimestamp = long("client_timestamp")
-        val systemId =    varchar("id", 255)
+        val systemId = varchar("system_id", 255)
         override val primaryKey = PrimaryKey(id)
     }
     
@@ -52,16 +52,16 @@ class MySQLConfig(private val config: Config) : DatabaseConfig {
     override fun init() {
         try {
             // 从配置文件读取设置
-            val jdbcUrl = config.getString("database.mysql.url")
-            val driverClassName = config.getString("database.mysql.driver")
-            val username = config.getString("database.mysql.user")
-            val password = config.getString("database.mysql.password")
+            val jdbcUrl = config.property("database.mysql.url").getString()
+            val driverClassName = config.property("database.mysql.driver").getString()
+            val username = config.property("database.mysql.user").getString()
+            val password = config.property("database.mysql.password").getString()
             
             // 读取连接池配置
-            val maxPoolSize = config.getInt("database.mysql.pool.max_size")
-            val minIdle = config.getInt("database.mysql.pool.min_size")
-            val idleTimeout = config.getLong("database.mysql.pool.idle_timeout_ms")
-            val maxLifetime = config.getLong("database.mysql.pool.max_lifetime_ms")
+            val maxPoolSize = config.property("database.mysql.pool.max_size").getString().toInt()
+            val minIdle = config.property("database.mysql.pool.min_size").getString().toInt()
+            val idleTimeout = config.property("database.mysql.pool.idle_timeout_ms").getString().toLong()
+            val maxLifetime = config.property("database.mysql.pool.max_lifetime_ms").getString().toLong()
             
             // 配置HikariCP连接池
             val hikariConfig = HikariConfig().apply {

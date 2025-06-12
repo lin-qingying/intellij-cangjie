@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.telemetry.ui
+package cn.cangnova.telemetry
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.Nls

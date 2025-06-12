@@ -34,7 +34,6 @@ import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.mindrot.jbcrypt.BCrypt
 import java.time.Instant
@@ -76,7 +75,7 @@ class SQLAdminUserRepository : AdminUserRepository {
             createUser(
                 CreateUserRequest(
                     username = "admin",
-                    password = "admin",
+                    password = "admin123",
                     displayName = "Administrator",
                     role = "ADMIN",
                     email = "admin@example.com"

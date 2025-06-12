@@ -8,7 +8,7 @@ import com.mongodb.connection.ConnectionPoolSettings
 import com.mongodb.kotlin.client.MongoClient
 import com.mongodb.kotlin.client.MongoCollection
 import com.mongodb.kotlin.client.MongoDatabase
-import com.typesafe.config.Config
+import io.ktor.server.config.*
 import mu.KotlinLogging
 import org.bson.Document
 import org.bson.codecs.configuration.CodecRegistries
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit
 /**
  * MongoDB配置类，负责初始化和管理MongoDB连接
  */
-class MongoDBConfig(private val config: Config) : DatabaseConfig {
+class MongoDBConfig(private val config: ApplicationConfig) : DatabaseConfig {
     private val logger = KotlinLogging.logger {}
     private lateinit var client: MongoClient
     private lateinit var database: MongoDatabase
@@ -37,14 +37,34 @@ class MongoDBConfig(private val config: Config) : DatabaseConfig {
     override fun init() {
         try {
             // 从配置文件读取设置
-            val connectionString = config.getString("database.mongodb.connection_string")
-            val databaseName = config.getString("database.mongodb.database_name")
+            logger.info { "开始读取MongoDB配置" }
+            val connectionString = config.property("database.mongodb.connection_string").getString()
+            logger.info { "MongoDB连接字符串: $connectionString" }
+            
+            val databaseName = config.property("database.mongodb.database_name").getString()
+            logger.info { "MongoDB数据库名称: $databaseName" }
+            
+            // 读取认证信息（如果配置了）
+            val useAuth = config.propertyOrNull("database.mongodb.auth.enabled")?.getString()?.toBoolean() ?: false
+            logger.info { "MongoDB认证启用状态: $useAuth" }
+            
+            val username = if (useAuth) config.property("database.mongodb.auth.username").getString() else null
+            val password = if (useAuth) "******" else null
+            // 使用配置的 admin 作为认证数据库
+            val authDatabase = "admin"
+            
+            if (useAuth) {
+                logger.info { "MongoDB认证用户名: $username, 认证数据库: $authDatabase" }
+            }
             
             // 读取连接池配置
-            val maxPoolSize = config.getInt("database.mongodb.pool.max_size")
-            val minPoolSize = config.getInt("database.mongodb.pool.min_size")
-            val maxWaitTimeMs = config.getLong("database.mongodb.pool.max_wait_time_ms")
-            val maxConnectionLifetimeMs = config.getLong("database.mongodb.pool.max_connection_lifetime_ms")
+            logger.info { "读取MongoDB连接池配置" }
+            val maxPoolSize = config.property("database.mongodb.pool.max_size").getString().toInt()
+            val minPoolSize = config.property("database.mongodb.pool.min_size").getString().toInt()
+            val maxWaitTimeMs = config.property("database.mongodb.pool.max_wait_time_ms").getString().toLong()
+            val maxConnectionLifetimeMs = config.property("database.mongodb.pool.max_connection_lifetime_ms").getString().toLong()
+            
+            logger.info { "MongoDB连接池配置: maxSize=$maxPoolSize, minSize=$minPoolSize, maxWaitTime=${maxWaitTimeMs}ms, maxLifetime=${maxConnectionLifetimeMs}ms" }
             
             // 配置连接池
             val poolSettings = ConnectionPoolSettings.builder()
@@ -55,6 +75,7 @@ class MongoDBConfig(private val config: Config) : DatabaseConfig {
                 .build()
             
             // 配置POJO编解码器，使MongoDB能够直接映射Kotlin对象
+            logger.info { "配置MongoDB编解码器" }
             val pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build()
             val codecRegistry = CodecRegistries.fromRegistries(
                 MongoClientSettings.getDefaultCodecRegistry(),
@@ -62,17 +83,31 @@ class MongoDBConfig(private val config: Config) : DatabaseConfig {
             )
             
             // 创建客户端设置
-            val clientSettings = MongoClientSettings.builder()
+            logger.info { "创建MongoDB客户端设置" }
+            val clientSettingsBuilder = MongoClientSettings.builder()
                 .applyConnectionString(ConnectionString(connectionString))
                 .codecRegistry(codecRegistry)
                 .applyToConnectionPoolSettings { builder -> builder.applySettings(poolSettings) }
-                .build()
+            
+            // 如果配置了认证信息，添加认证
+            if (useAuth && username != null && password != null) {
+                logger.info { "配置MongoDB认证" }
+                val credential = MongoCredential.createCredential(
+                    username,
+                    authDatabase,
+                    config.property("database.mongodb.auth.password").getString().toCharArray()
+                )
+                clientSettingsBuilder.credential(credential)
+                logger.info { "MongoDB认证已配置: 用户名=$username, 认证数据库=$authDatabase" }
+            }
             
             // 创建客户端和获取数据库
-            client = MongoClient.create(clientSettings)
+            logger.info { "创建MongoDB客户端" }
+            client = MongoClient.create(clientSettingsBuilder.build())
             database = client.getDatabase(databaseName)
             
             // 确保集合存在
+            logger.info { "检查并创建必要的集合" }
             ensureCollections()
             
             logger.info { "MongoDB连接已初始化: $connectionString, 数据库: $databaseName" }

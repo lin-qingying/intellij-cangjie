@@ -1,6 +1,16 @@
 # Changelog
 
 ## Unreleased
+## 1.0.8
+
+### Added
+
+- 增加遥测
+
+ 
+
+ 
+
 
 ## 1.0.7
 

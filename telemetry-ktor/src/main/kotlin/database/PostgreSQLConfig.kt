@@ -1,8 +1,8 @@
 package cn.cangnova.database
 
-import com.typesafe.config.Config
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.server.config.*
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -11,7 +11,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 /**
  * PostgreSQL配置类，负责初始化和管理PostgreSQL连接
  */
-class PostgreSQLConfig(private val config: Config) : DatabaseConfig {
+class PostgreSQLConfig(private val config: ApplicationConfig) : DatabaseConfig {
     private val logger = KotlinLogging.logger {}
     private var dataSource: HikariDataSource? = null
 
@@ -21,16 +21,16 @@ class PostgreSQLConfig(private val config: Config) : DatabaseConfig {
     override fun init() {
         try {
             // 从配置文件读取设置
-            val jdbcUrl = config.getString("database.postgresql.url")
-            val driverClassName = config.getString("database.postgresql.driver")
-            val username = config.getString("database.postgresql.user")
-            val password = config.getString("database.postgresql.password")
+            val jdbcUrl = config.property("database.postgresql.url").getString()
+            val driverClassName = config.property("database.postgresql.driver").getString()
+            val username = config.property("database.postgresql.user").getString()
+            val password = config.property("database.postgresql.password").getString()
 
             // 读取连接池配置
-            val maxPoolSize = config.getInt("database.postgresql.pool.max_size")
-            val minIdle = config.getInt("database.postgresql.pool.min_size")
-            val idleTimeout = config.getLong("database.postgresql.pool.idle_timeout_ms")
-            val maxLifetime = config.getLong("database.postgresql.pool.max_lifetime_ms")
+            val maxPoolSize = config.property("database.postgresql.pool.max_size").getString().toInt()
+            val minIdle = config.property("database.postgresql.pool.min_size").getString().toInt()
+            val idleTimeout = config.property("database.postgresql.pool.idle_timeout_ms").getString().toLong()
+            val maxLifetime = config.property("database.postgresql.pool.max_lifetime_ms").getString().toLong()
 
             // 配置HikariCP连接池
             val hikariConfig = HikariConfig().apply {

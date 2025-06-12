@@ -51,7 +51,7 @@ class MongoAdminUserRepository : AdminUserRepository {
             createUser(
                 CreateUserRequest(
                     username = "admin",
-                    password = "admin",
+                    password = "admin123",
                     displayName = "Administrator",
                     role = "ADMIN",
                     email = "admin@example.com"

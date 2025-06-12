@@ -21,7 +21,7 @@ import kotlinx.serialization.Serializable
 
 fun Application.module() {
     // 初始化数据库
-    DatabaseFactory.init()
+    DatabaseFactory.init(this)
     
     // 初始化管理员用户仓库
     launch {

@@ -57,8 +57,8 @@ dependencies {
     implementation("com.auth0:java-jwt:4.4.0")
     implementation("com.auth0:jwks-rsa:0.22.1")
 
-    // 配置库
-    implementation("com.typesafe:config:1.4.2")
+    // YAML 解析库
+    implementation("org.yaml:snakeyaml:2.2")
 
     // MongoDB依赖
     implementation("org.mongodb:mongodb-driver-kotlin-sync:4.10.1")
