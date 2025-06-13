@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,4 +22,17 @@
  *
  */
 
-package cn.cangnova.cangjie.cjpm.runconfig.test
+package cn.cangnova.cangjie.lsp4ij
+
+import com.intellij.psi.PsiFile
+import com.redhat.devtools.lsp4ij.client.features.LSPCodeLensFeature
+
+object CangJieLSPCodeLensFeature : LSPCodeLensFeature() {
+    override fun isSupported(file: PsiFile): Boolean {
+        return false
+    }
+
+    override fun isEnabled(file: PsiFile): Boolean {
+        return false
+    }
+}

@@ -44,6 +44,9 @@
                 serviceInterface="cn.cangnova.cangjie.psi.CangJieReferenceProvidersService"
                 serviceImplementation="cn.cangnova.cangjie.references.CjIdeReferenceProviderService"/>
 
-
+        <enterHandlerDelegate
+                id="CangJieMultilineStringEnterHandler"
+                order="before EnterBetweenBracesHandler, before xmlEnter"
+                implementation="cn.cangnova.cangjie.ide.editor.CangJieMultilineStringEnterHandler"/>
     </extensions>
 </idea-plugin>

@@ -7,23 +7,24 @@
 
         <!-- 2. 文件类型定义 -->
         <!-- 仓颉语言文件类型 -->
-        <fileType name="cjd" fieldName="INSTANCE" extensions="cjd"
-                  language="CangJie"
-                  implementationClass="cn.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType"/>
         <!--        文件类型-->
         <fileType name="CangJie"
+
                   language="CangJie"
                   implementationClass="cn.cangnova.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
 
-                <fileType name="cj.macrocall"
-                                  language="CangJie"
-                                  implementationClass="cn.cangnova.cangjie.macro.file.CangJieMacroCallFileType"
-                                  extensions="cj.macrocall"
+        <fileType name="cj.macrocall"
+                  language="CangJie"
+                  implementationClass="cn.cangnova.cangjie.macro.file.CangJieMacroCallFileType"
+                  extensions="cj.macrocall"
 
-                          patterns="*.cj.macrocall"
-                        />
+                  patterns="*.cj.macrocall"
+        />
+        <fileType name="cjd" fieldName="INSTANCE" extensions="cjd"
+                  language="CangJie"
+                  implementationClass="cn.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType"/>
 
         <!--<fileTypeFactory implementation="cn.cangnova.cangjie.macro.file.MacroCallFileTypeFactory"/>-->
     </extensions>

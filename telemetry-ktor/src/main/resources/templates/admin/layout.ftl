@@ -268,6 +268,11 @@
                     <i class="fas fa-cog"></i> 系统设置
                 </a>
             </li>
+            <li>
+                <a href="/privacy-policy"  >
+             隐私政策
+                </a>
+            </li>
         </ul>
     </div>
 

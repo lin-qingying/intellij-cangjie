@@ -24,9 +24,17 @@
 
 package cn.cangnova.cangjie.ide.formatter
 
+import cn.cangnova.cangjie.lexer.CjTokens.*
+import cn.cangnova.cangjie.psi.*
+import cn.cangnova.cangjie.psi.CjNodeTypes.*
+import cn.cangnova.cangjie.psi.psiUtil.children
+import cn.cangnova.cangjie.psi.psiUtil.textRangeWithoutComments
+import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_INITIALIZER
 import com.intellij.formatting.ASTBlock
 import com.intellij.formatting.DependentSpacingRule
 import com.intellij.formatting.Spacing
+import com.intellij.formatting.SpacingBuilder
+import com.intellij.formatting.SpacingBuilder.RuleBuilder
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.text.StringUtil
@@ -34,16 +42,7 @@ import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
-import cn.cangnova.cangjie.lexer.CjTokens.*
-import cn.cangnova.cangjie.psi.*
-import cn.cangnova.cangjie.psi.CjNodeTypes.*
-import cn.cangnova.cangjie.psi.psiUtil.children
-import cn.cangnova.cangjie.psi.psiUtil.textRangeWithoutComments
-import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_INITIALIZER
-import com.intellij.formatting.SpacingBuilder
 import com.intellij.util.text.TextRangeUtil
-
-import com.intellij.formatting.SpacingBuilder.RuleBuilder
 
 
 val MODIFIERS_LIST_ENTRIES = TokenSet.orSet(MODIFIER_KEYWORDS)
@@ -51,7 +50,8 @@ val MODIFIERS_LIST_ENTRIES = TokenSet.orSet(MODIFIER_KEYWORDS)
 val EXTEND_COLON_ELEMENTS =
     TokenSet.create(TYPE_CONSTRAINT, CLASS, TYPE_PARAMETER, ENUM_ENTRY, SECONDARY_CONSTRUCTOR)
 
- val TYPE_COLON_ELEMENTS = TokenSet.create(PROPERTY, FUNC, VALUE_PARAMETER, DESTRUCTURING_DECLARATION_ENTRY, FUNCTION_LITERAL)
+val TYPE_COLON_ELEMENTS =
+    TokenSet.create(PROPERTY, FUNC, VALUE_PARAMETER, DESTRUCTURING_DECLARATION_ENTRY, FUNCTION_LITERAL)
 
 
 val DECLARATIONS = TokenSet.create(PROPERTY, FUNC, CLASS, ENUM_ENTRY, SECONDARY_CONSTRUCTOR, CLASS_INITIALIZER)
@@ -135,7 +135,10 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                         node.text.subSequence(0, elementStart.startOffset - node.startOffset).trimStart()
                     )
                 )
-                    createSpacing(0, minLineFeeds = 1 + cangjieCustomSettings.BLANK_LINES_BEFORE_DECLARATION_WITH_COMMENT_OR_ANNOTATION_ON_SEPARATE_LINE)
+                    createSpacing(
+                        0,
+                        minLineFeeds = 1 + cangjieCustomSettings.BLANK_LINES_BEFORE_DECLARATION_WITH_COMMENT_OR_ANNOTATION_ON_SEPARATE_LINE
+                    )
                 else
                     null
             })
@@ -159,7 +162,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 //                if (cjlass.isEnum() && right.requireNode().elementType in DECLARATIONS) {
 //                    createSpacing(0, minLineFeeds = 2, keepBlankLines = cangjieCommonSettings.KEEP_BLANK_LINES_IN_DECLARATIONS)
 //                } else
-                    null
+                null
             }
 
             inPosition(parent = CLASS_BODY, left = LBRACE).customRule { parent, left, right ->
@@ -168,13 +171,14 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                 }
                 val classBody = parent.requireNode().psi as CjAbstractClassBody
                 val parentPsi = classBody.parent as? CjTypeStatement ?: return@customRule null
-                if (cangjieCommonSettings.BLANK_LINES_AFTER_CLASS_HEADER == 0  ) {
+                if (cangjieCommonSettings.BLANK_LINES_AFTER_CLASS_HEADER == 0) {
                     null
                 } else {
-                    val minLineFeeds = if (right.requireNode().elementType == FUNC || right.requireNode().elementType == PROPERTY)
-                        cangjieCommonSettings.BLANK_LINES_AFTER_CLASS_HEADER + 1
-                    else
-                        0
+                    val minLineFeeds =
+                        if (right.requireNode().elementType == FUNC || right.requireNode().elementType == PROPERTY)
+                            cangjieCommonSettings.BLANK_LINES_AFTER_CLASS_HEADER + 1
+                        else
+                            0
 
                     builderUtil.createLineFeedDependentSpacing(
                         1,
@@ -194,7 +198,12 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 
             val parameterWithDocCommentRule = { _: ASTBlock, _: ASTBlock, right: ASTBlock ->
                 if (right.requireNode().firstChildNode.elementType == DOC_COMMENT) {
-                    createSpacing(0, minLineFeeds = 1, keepLineBreaks = true, keepBlankLines = cangjieCommonSettings.KEEP_BLANK_LINES_IN_DECLARATIONS)
+                    createSpacing(
+                        0,
+                        minLineFeeds = 1,
+                        keepLineBreaks = true,
+                        keepBlankLines = cangjieCommonSettings.KEEP_BLANK_LINES_IN_DECLARATIONS
+                    )
                 } else {
                     null
                 }
@@ -212,7 +221,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 
             inPosition(parent = VALUE_ARGUMENT_LIST, left = LPAR).customRule { parent, _, _ ->
                 when {
-                    cangjieCommonSettings.CALL_PARAMETERS_LPAREN_ON_NEXT_LINE   -> {
+                    cangjieCommonSettings.CALL_PARAMETERS_LPAREN_ON_NEXT_LINE -> {
                         Spacing.createDependentLFSpacing(
                             0, 0,
                             excludeLambdas(parent),
@@ -238,7 +247,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                     }
 
                     cangjieCustomSettings.ALLOW_TRAILING_COMMA -> null
-                    left.requireNode().elementType == COMMA ->  createSpacing(1)
+                    left.requireNode().elementType == COMMA -> createSpacing(1)
                     else -> createSpacing(0)
                 }
             }
@@ -263,8 +272,14 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                     null
             }
 
-            inPosition(parent = LONG_STRING_TEMPLATE_ENTRY, right = LONG_TEMPLATE_ENTRY_END).lineBreakIfLineBreakInParent(0)
-            inPosition(parent = LONG_STRING_TEMPLATE_ENTRY, left = LONG_TEMPLATE_ENTRY_START).lineBreakIfLineBreakInParent(0)
+            inPosition(
+                parent = LONG_STRING_TEMPLATE_ENTRY,
+                right = LONG_TEMPLATE_ENTRY_END
+            ).lineBreakIfLineBreakInParent(0)
+            inPosition(
+                parent = LONG_STRING_TEMPLATE_ENTRY,
+                left = LONG_TEMPLATE_ENTRY_START
+            ).lineBreakIfLineBreakInParent(0)
         }
 
         simple {
@@ -318,20 +333,33 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             beforeInside(EQ, FUNC).spacing(spacesAroundAssignment, spacesAroundAssignment, 0, false, 0)
 
             around(
-                TokenSet.create(EQ, MULTEQ, DIVEQ, PLUSEQ, MINUSEQ, PERCEQ)
+                TokenSet.create(EQ, MULTEQ, DIVEQ, PLUSEQ, MINUSEQ, PERCEQ),
             ).spaceIf(cangjieCommonSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS)
+
+
+
+
+
+
             around(TokenSet.create(ANDAND, OROR)).spaceIf(cangjieCommonSettings.SPACE_AROUND_LOGICAL_OPERATORS)
             around(TokenSet.create(EQEQ, EXCLEQ)).spaceIf(cangjieCommonSettings.SPACE_AROUND_EQUALITY_OPERATORS)
             aroundInside(
                 TokenSet.create(LT, GT, LTEQ, GTEQ), BINARY_EXPRESSION
             ).spaceIf(cangjieCommonSettings.SPACE_AROUND_RELATIONAL_OPERATORS)
-            aroundInside(TokenSet.create(PLUS, MINUS), BINARY_EXPRESSION).spaceIf(cangjieCommonSettings.SPACE_AROUND_ADDITIVE_OPERATORS)
+            aroundInside(
+                TokenSet.create(PLUS, MINUS),
+                BINARY_EXPRESSION
+            ).spaceIf(cangjieCommonSettings.SPACE_AROUND_ADDITIVE_OPERATORS)
             aroundInside(
                 TokenSet.create(MUL, DIV, PERC), BINARY_EXPRESSION
             ).spaceIf(cangjieCommonSettings.SPACE_AROUND_MULTIPLICATIVE_OPERATORS)
+
+//            around(
+//                TokenSet.create(PLUSPLUS, MINUSMINUS, MINUS,   EXCL)
+//            ).spaceIf(cangjieCommonSettings.SPACE_AROUND_UNARY_OPERATOR)
             around(
-                TokenSet.create(PLUSPLUS, MINUSMINUS, MINUS, PLUS, EXCL)
-            ).spaceIf(cangjieCommonSettings.SPACE_AROUND_UNARY_OPERATOR)
+                TokenSet.create(PLUSPLUS, MINUSMINUS, MINUS, EXCL)
+            ).spaceIf(cangjieCustomSettings.SPACE_AROUND_UNARY_OPERATOR)
 
 
             around(RANGE).spaceIf(cangjieCustomSettings.SPACE_AROUND_RANGE)
@@ -397,15 +425,21 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             after(LBRACKET).spaces(0)
             before(RBRACKET).spaces(0)
 
-            afterInside(LPAR, VALUE_PARAMETER_LIST).spaces(0, cangjieCommonSettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE)
-            beforeInside(RPAR, VALUE_PARAMETER_LIST).spaces(0, cangjieCommonSettings.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE)
+            afterInside(LPAR, VALUE_PARAMETER_LIST).spaces(
+                0,
+                cangjieCommonSettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE
+            )
+            beforeInside(RPAR, VALUE_PARAMETER_LIST).spaces(
+                0,
+                cangjieCommonSettings.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE
+            )
             afterInside(LT, TYPE_PARAMETER_LIST).spaces(0)
             beforeInside(GT, TYPE_PARAMETER_LIST).spaces(0)
             afterInside(LT, TYPE_ARGUMENT_LIST).spaces(0)
             beforeInside(GT, TYPE_ARGUMENT_LIST).spaces(0)
             before(TYPE_ARGUMENT_LIST).spaces(0)
 
-                   after(LPAR).spaces(0)
+            after(LPAR).spaces(0)
             before(RPAR).spaces(0)
 
             betweenInside(FOR_KEYWORD, LPAR, FOR).spaceIf(cangjieCommonSettings.SPACE_BEFORE_FOR_PARENTHESES)
@@ -413,7 +447,11 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             betweenInside(WHILE_KEYWORD, LPAR, WHILE).spaceIf(cangjieCommonSettings.SPACE_BEFORE_WHILE_PARENTHESES)
             betweenInside(WHILE_KEYWORD, LPAR, DO_WHILE).spaceIf(cangjieCommonSettings.SPACE_BEFORE_WHILE_PARENTHESES)
             betweenInside(MATCH_KEYWORD, LPAR, MATCH).spaceIf(cangjieCustomSettings.SPACE_BEFORE_MATCH_PARENTHESES)
-            betweenInside(CATCH_KEYWORD, VALUE_PARAMETER_LIST, CATCH).spaceIf(cangjieCommonSettings.SPACE_BEFORE_CATCH_PARENTHESES)
+            betweenInside(
+                CATCH_KEYWORD,
+                CATCH_PARAMETER,
+                CATCH
+            ).spaceIf(cangjieCommonSettings.SPACE_BEFORE_CATCH_PARENTHESES)
 
             betweenInside(LPAR, VALUE_PARAMETER, FOR).spaces(0)
             betweenInside(LPAR, DESTRUCTURING_DECLARATION, FOR).spaces(0)
@@ -422,6 +460,11 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
 
 
             before(SEMICOLON).spaces(0)
+
+            beforeInside(LTCOLON, TYPE_COLON_ELEMENTS) { spaceIf(cangjieCustomSettings.SPACE_BEFORE_TYPE_COLON) }
+            afterInside(LTCOLON, TYPE_COLON_ELEMENTS) { spaceIf(cangjieCustomSettings.SPACE_AFTER_TYPE_COLON) }
+
+            afterInside(LTCOLON, EXTEND_COLON_ELEMENTS) { spaceIf(cangjieCustomSettings.SPACE_AFTER_EXTEND_COLON) }
 
 
 
@@ -434,6 +477,10 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             beforeInside(ARROW, FUNCTION_LITERAL).spaceIf(cangjieCustomSettings.SPACE_BEFORE_LAMBDA_ARROW)
 
             aroundInside(ARROW, FUNCTION_TYPE).spaceIf(cangjieCustomSettings.SPACE_AROUND_FUNCTION_TYPE_ARROW)
+
+            beforeInside(DOUBLE_ARROW, FUNCTION_LITERAL).spaceIf(cangjieCustomSettings.SPACE_BEFORE_LAMBDA_ARROW)
+
+            aroundInside(DOUBLE_ARROW, FUNCTION_TYPE).spaceIf(cangjieCustomSettings.SPACE_AROUND_FUNCTION_TYPE_ARROW)
 
             before(VALUE_ARGUMENT_LIST).spaces(0)
 
@@ -470,13 +517,18 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                             previousLeaf.treeParent!!
                         } else null
 
-                        val removeLineBreaks = leftBlock != null && afterBlockFilter(right.node?.treeParent!!, leftBlock)
+                        val removeLineBreaks =
+                            leftBlock != null && afterBlockFilter(right.node?.treeParent!!, leftBlock)
                         createSpacing(1, minLineFeeds = 0, keepLineBreaks = !removeLineBreaks, keepBlankLines = 0)
                     }
                 }
             }
 
-            ruleForKeywordOnNewLine(cangjieCommonSettings.ELSE_ON_NEW_LINE, keyword = ELSE_KEYWORD, parent = IF) { keywordParent, block ->
+            ruleForKeywordOnNewLine(
+                cangjieCommonSettings.ELSE_ON_NEW_LINE,
+                keyword = ELSE_KEYWORD,
+                parent = IF
+            ) { keywordParent, block ->
                 block.treeParent?.elementType == THEN && block.treeParent?.treeParent == keywordParent
             }
             ruleForKeywordOnNewLine(
@@ -498,7 +550,12 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                         val isAfterEolComment = previousLeaf != null && (previousLeaf.elementType == EOL_COMMENT)
                         val keepLineBreaks = cangjieCustomSettings.LBRACE_ON_NEXT_LINE || isAfterEolComment
                         val minimumLF = if (cangjieCustomSettings.LBRACE_ON_NEXT_LINE) 1 else 0
-                        return createSpacing(1, minLineFeeds = minimumLF, keepLineBreaks = keepLineBreaks, keepBlankLines = 0)
+                        return createSpacing(
+                            1,
+                            minLineFeeds = minimumLF,
+                            keepLineBreaks = keepLineBreaks,
+                            keepBlankLines = 0
+                        )
                     }
                 }
                 return createSpacing(1)
@@ -577,7 +634,8 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                 createSpacing(0, minLineFeeds = 1)
             }
 
-            val spacesInSimpleFunction = if (cangjieCustomSettings.INSERT_WHITESPACES_IN_SIMPLE_ONE_LINE_METHOD) 1 else 0
+            val spacesInSimpleFunction =
+                if (cangjieCustomSettings.INSERT_WHITESPACES_IN_SIMPLE_ONE_LINE_METHOD) 1 else 0
             inPosition(
                 parent = FUNCTION_LITERAL,
                 left = LBRACE,
@@ -607,7 +665,7 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             ).customRule { _, _, right ->
                 val rightNode = right.requireNode()
                 val rightType = rightNode.elementType
-                if (rightType == VALUE_PARAMETER_LIST  ) {
+                if (rightType == VALUE_PARAMETER_LIST) {
                     createSpacing(spacesInSimpleFunction, keepLineBreaks = false)
                 } else {
                     createSpacing(spacesInSimpleFunction)
@@ -618,7 +676,11 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                 cangjieCommonSettings.createSpaceBeforeRBrace(1, parent.textRange)
             }
 
-            inPosition(parent = BLOCK, right = RBRACE).customRule(fun(block: ASTBlock, left: ASTBlock, _: ASTBlock): Spacing? {
+            inPosition(parent = BLOCK, right = RBRACE).customRule(fun(
+                block: ASTBlock,
+                left: ASTBlock,
+                _: ASTBlock
+            ): Spacing? {
                 val psiElement = block.requireNode().treeParent.psi
 
                 val empty = left.requireNode().elementType == LBRACE
@@ -647,7 +709,11 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
                 )
             }
 
-            inPosition(parentSet = EXTEND_COLON_ELEMENTS, left = PRIMARY_CONSTRUCTOR, right = COLON).customRule { _, left, _ ->
+            inPosition(
+                parentSet = EXTEND_COLON_ELEMENTS,
+                left = PRIMARY_CONSTRUCTOR,
+                right = COLON
+            ).customRule { _, left, _ ->
                 val primaryConstructor = left.requireNode().psi as CjPrimaryConstructor
                 val rightParenthesis = primaryConstructor.valueParameterList?.rightParenthesis
                 val prevSibling = rightParenthesis?.prevSibling
@@ -680,20 +746,23 @@ fun createSpacingBuilder(settings: CodeStyleSettings, builderUtil: CangJieSpacin
             beforeInside(RBRACE, MATCH).lineBreakInCode()
             between(RPAR, BODY).spaces(1)
 
-            aroundInside(ARROW, MATCH_ENTRY).spaceIf(cangjieCustomSettings.SPACE_AROUND_MATCH_ARROW)
+            aroundInside(DOUBLE_ARROW, MATCH_ENTRY).spaceIf(cangjieCustomSettings.SPACE_AROUND_MATCH_ARROW)
 
             beforeInside(COLON, EXTEND_COLON_ELEMENTS) { spaceIf(cangjieCustomSettings.SPACE_BEFORE_EXTEND_COLON) }
+            beforeInside(LTCOLON, EXTEND_COLON_ELEMENTS) { spaceIf(cangjieCustomSettings.SPACE_BEFORE_EXTEND_COLON) }
 
             after(EOL_COMMENT).lineBreakInCode()
         }
     }
 }
+
 fun SpacingBuilder.RuleBuilder.spacesNoLineBreak(spaces: Int): SpacingBuilder? =
     spacing(spaces, spaces, 0, false, 0)
 
 fun SpacingBuilder.afterInside(element: IElementType, tokenSet: TokenSet, spacingFun: RuleBuilder.() -> Unit) {
     tokenSet.types.forEach { inType -> afterInside(element, inType).spacingFun() }
 }
+
 fun SpacingBuilder.beforeInside(element: IElementType, tokenSet: TokenSet, spacingFun: RuleBuilder.() -> Unit) {
     tokenSet.types.forEach { inType -> beforeInside(element, inType).spacingFun() }
 }

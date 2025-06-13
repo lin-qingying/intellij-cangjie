@@ -27,7 +27,7 @@ package cn.cangnova.cangjie.ide.run.cjpm
 
 import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
 import cn.cangnova.cangjie.ide.run.CangJieRunConfigurationProducer
-import cn.cangnova.cangjie.ide.run.cjpm.test.CjpmTestRunConfigurationProducer.Companion.isTestCase
+import cn.cangnova.cangjie.ide.run.cjpm.test.isTestCase
 import cn.cangnova.cangjie.lang.CangJieFileType
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.configurations.ConfigurationFactory

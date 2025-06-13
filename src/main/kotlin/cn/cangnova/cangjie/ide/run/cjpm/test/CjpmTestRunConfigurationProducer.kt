@@ -119,34 +119,31 @@ internal class CjpmTestRunConfigurationProducer : CangJieRunConfigurationProduce
         return command.toString() == configuration.command
 
     }
+}
 
-    companion object {
-        fun isTestCase(element: PsiElement): Boolean {
-            val declaration =
-                element.getStrictParentOfType<CjNamedDeclaration>()?.takeIf { it.nameIdentifier == element }
-                    ?: return false
-            val macroException = declaration.getStrictParentOfType<CjMacroExpression>() ?: return false
+fun isTestCase(element: PsiElement): Boolean {
+    val declaration =
+        element.getStrictParentOfType<CjNamedDeclaration>()?.takeIf { it.nameIdentifier == element }
+            ?: return false
+    val macroException = declaration.getStrictParentOfType<CjMacroExpression>() ?: return false
 
-            if (declaration is CjTypeStatement && macroException.shortName == identifier("Test")) {
-                return true
+    if (declaration is CjTypeStatement && macroException.shortName == identifier("Test")) {
+        return true
 
-            }
-
-            val type =
-                element.getStrictParentOfType<CjTypeStatement>() ?: return false
-
-
-
-
-            if (declaration is CjNamedFunction && macroException.shortName == identifier("TestCase")) {
-                val typeMacro = type.getStrictParentOfType<CjMacroExpression>() ?: return false
-                if (typeMacro.shortName != identifier("Test")) return false
-                return true
-            }
-
-
-            return false
-        }
     }
 
+    val type =
+        element.getStrictParentOfType<CjTypeStatement>() ?: return false
+
+
+
+
+    if (declaration is CjNamedFunction && macroException.shortName == identifier("TestCase")) {
+        val typeMacro = type.getStrictParentOfType<CjMacroExpression>() ?: return false
+        if (typeMacro.shortName != identifier("Test")) return false
+        return true
+    }
+
+
+    return false
 }

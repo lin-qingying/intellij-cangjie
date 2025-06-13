@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.lsp4ij
 
+import cn.cangnova.cangjie.ide.run.cjpm.test.isTestCase
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.redhat.devtools.lsp4ij.commands.LSPCommand
 import com.redhat.devtools.lsp4ij.commands.LSPCommandAction
@@ -33,6 +34,7 @@ class CangJieRunLSPCommandAction : LSPCommandAction() {
         command: LSPCommand,
         action: AnActionEvent
     ) {
+
         println(1)
 
     }

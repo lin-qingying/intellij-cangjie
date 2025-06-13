@@ -199,8 +199,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-        
+                    </div>
+                    
         <div class="col-md-6 col-xl-3 mb-4">
             <div class="settings-card h-100">
                 <div class="card-body">
@@ -279,7 +279,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- 设置选项卡 -->
     <div class="settings-card">
         <div class="card-header">
@@ -357,7 +357,7 @@
                                 <div class="col-md-6">
                                     <label for="dataRetentionDays" class="form-label">数据保留天数</label>
                                     <input type="number" class="form-control" id="dataRetentionDays" name="dataRetentionDays" value="${settings.dataRetentionDays}">
-                                    <div class="form-text">设置遥测数据的保留时间。超过此天数的数据将被自动清理。</div>
+                    <div class="form-text">设置遥测数据的保留时间。超过此天数的数据将被自动清理。</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="cleanupSchedule" class="form-label">清理计划</label>
@@ -449,10 +449,10 @@
                             <h5 class="settings-section-title">性能设置</h5>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="eventBatchSize" class="form-label">事件批处理大小</label>
+                <div class="mb-3">
+                    <label for="eventBatchSize" class="form-label">事件批处理大小</label>
                                         <input type="number" class="form-control" id="eventBatchSize" name="eventBatchSize" value="${settings.eventBatchSize}">
-                                        <div class="form-text">设置处理遥测事件时的批处理大小。</div>
+                    <div class="form-text">设置处理遥测事件时的批处理大小。</div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">

@@ -88,6 +88,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
         setFileUriSupport(FileUriSupport.ENCODED)
         setDiagnosticFeature(CangJieLSPDiagnosticFeature())
         setHoverFeature(CangJieLSPHoverFeature())
+        setCodeLensFeature(CangJieLSPCodeLensFeature)
     }
 
 

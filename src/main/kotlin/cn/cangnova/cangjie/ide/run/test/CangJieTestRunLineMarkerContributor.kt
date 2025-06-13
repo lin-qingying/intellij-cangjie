@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.run.test
 
-import cn.cangnova.cangjie.ide.run.cjpm.test.CjpmTestRunConfigurationProducer.Companion.isTestCase
+import cn.cangnova.cangjie.ide.run.cjpm.test.isTestCase
 import cn.cangnova.cangjie.messages.CangJieUiBundle
 import com.intellij.execution.lineMarker.ExecutorAction
 import com.intellij.execution.lineMarker.RunLineMarkerContributor

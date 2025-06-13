@@ -2,6 +2,7 @@ package cn.cangnova
 
 import cn.cangnova.controller.web.AdminController.adminRoutes
 import cn.cangnova.controller.api.AdminUserController.adminUserRoutes
+import cn.cangnova.controller.web.PrivacyController.privacyRoutes
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.cors.routing.*
@@ -17,6 +18,7 @@ import io.ktor.server.sessions.*
  */
 fun Application.configureRouting() {
     routing {
+
         // 根路径处理
         rootRoutes()
         
@@ -25,6 +27,9 @@ fun Application.configureRouting() {
         
         // API 路由 (JSON 响应)
         apiRoutes()
+        
+        // 公共页面路由 (无需认证)
+        publicRoutes()
     }
 }
 
@@ -34,7 +39,21 @@ fun Application.configureRouting() {
 private fun Routing.rootRoutes() {
     // Swagger UI 路由
     swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
-    
+
+    get {
+        // 检查用户是否已登录
+        val session = call.sessions.get<AdminSession>()
+        if (session != null) {
+            // 已登录，重定向到仪表盘
+            call.respondRedirect("/web/dashboard")
+        } else {
+            // 未登录，重定向到登录页面
+            call.respondRedirect("/web/login")
+        }
+    }
+
+
+
     // 静态资源
     staticRoutes()
 }
@@ -60,6 +79,14 @@ private fun Routing.apiRoutes() {
             adminUserRoutes()
         }
     }
+}
+
+/**
+ * 公共页面路由配置 (无需认证)
+ */
+private fun Routing.publicRoutes() {
+    // 隐私政策路由
+    privacyRoutes()
 }
 
 /**

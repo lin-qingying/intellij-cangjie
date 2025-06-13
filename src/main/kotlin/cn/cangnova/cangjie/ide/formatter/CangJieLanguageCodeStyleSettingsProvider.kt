@@ -55,8 +55,7 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
 
     override fun getIndentOptionsEditor(): IndentOptionsEditor = SmartIndentOptionsEditor()
 
-    //    TODO 功能是否与父类一致？
-//   TODO  由于内部api，面板需要更改
+
     @Deprecated("Deprecated in Java")
     override fun getDefaultCommonSettings(): CommonCodeStyleSettings = CangJieCommonCodeStyleSettings().apply {
         initIndentOptions()
@@ -102,7 +101,7 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
                     "SPACE_AROUND_RELATIONAL_OPERATORS",
                     "SPACE_AROUND_ADDITIVE_OPERATORS",
                     "SPACE_AROUND_MULTIPLICATIVE_OPERATORS",
-                    "SPACE_AROUND_UNARY_OPERATOR",
+//                    "SPACE_AROUND_UNARY_OPERATOR",
                     "SPACE_AFTER_COMMA",
                     "SPACE_BEFORE_COMMA",
                     "SPACE_BEFORE_IF_PARENTHESES",
@@ -110,7 +109,11 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
                     "SPACE_BEFORE_FOR_PARENTHESES",
                     "SPACE_BEFORE_CATCH_PARENTHESES"
                 )
-
+                showCustomOption(
+                    CangJieCodeStyleSettings::SPACE_AROUND_UNARY_OPERATOR,
+                    CangJieBundle.message("formatter.title.unary.operator"),
+                    codeStyleSettingsCustomizableOptions.SPACES_AROUND_OPERATORS
+                )
                 showCustomOption(
                     CangJieCodeStyleSettings::SPACE_AROUND_RANGE,
                     CangJieBundle.message("formatter.title.range.operator"),
@@ -350,15 +353,12 @@ class CangJieLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvid
         }
     }
 
-//    override fun usesCommonKeepLineBreaks(): Boolean {
-//        return true
-//    }
 
     override fun getCodeSample(settingsType: SettingsType): String = when (settingsType) {
         SettingsType.WRAPPING_AND_BRACES_SETTINGS ->
             """
               public class ThisIsASampleClass <: Comparable<Any> & Appendable{
-    let test = 12
+              let test = 12
 
     func foo1(i1: Int, i2: Int, i3: Int): Int {
         match (i1) {
@@ -420,7 +420,7 @@ enum Enumeration {
                    private var field1: Int = 1
                    private let field2: String? = None
                    
-               
+                   
 
                    init() {
                        field1 = 2;
@@ -466,6 +466,7 @@ enum Enumeration {
                    
                    let b = 43
                    func c() {
+                   
                        a + b
                    }
                    func d() = Unit
@@ -477,57 +478,69 @@ enum Enumeration {
                }
                """.trimIndent()
 
-        else -> """func b(a: Int): Int {
-  return 1
-}
-open class Some {
-  private let f: (a:Int ) -> Int = b
+        else -> """
+            func b(a: Int): Int {
+                return 1
+            }
+            open class Some {
+               private let f: (a: Int) -> Int = { a => a * 1 }
 
 
-  prop aprop: String {
-  get() {
-    "this is a String"
-  }
-  }
+                prop aprop: String {
+                    get() {
+                        "this is a String"
+                    }
+                }
 
-  func foo(): Int {
-    let test: Int = 12
-    for (i in 10..42) {
-      println(match (i) {
-          case a => i
-      })
-    }
-    if (true) {
-    }
-    while (true) {
-      break
-    }
-    try {
-      match (test) {
-          case 12 => println("foo")
+                func foo(): Int {
+                  a += 1
+                    let test: Int = 12
+                    let test2 = 1 && 2
+                    let test3 = 1 == 1
+                    let test4 = 1 > 2
+                    let test5 = 1 + 1
+                    let test6 = 1 * 1
+                    let test7 = 1..1
+                    let test8 = -a
+                    match (i1) {
+                        case 0 => 1
+                        case _ => 0
+                    }
+                    for (i in 10..42) {
+                        println(match (i) {
+                            case a => i
+                        })
+                    }
+                    if (true) {
+                    }
+                    while (true) {
+                        break
+                    }
+                    try {
+                        match (test) {
+                            case 12 => println("foo")
 
-          case _ => println("bar")
-      }
-    } catch (e: Exception) {
-    } finally {
-    }
-    return test
-  }
+                            case _ => println("bar")
+                        }
+                    } catch (e: Exception) {
+                    } finally {
+                    }
+                    return test
+                }
 
-  private func foo2<T>(): Int where T <: List<T> {
-    return 0
-  }
+                private func foo2<T>(): Int where T <: List<T> {
+                    return 0
+                }
 
-  func multilineMethod(
-          foo: String,
-          bar: String
-  ) {
-    foo.size
-  }
-}
+                func multilineMethod(
+                        foo: String,
+                        bar: String
+                ) {
+                    foo.size
+                }
+            }
 
-class AnotherClass<T> where T <: String {}
-
-                   """.trimIndent()
+            class AnotherClass<T> where T <: String {}
+        """.trimIndent()
     }
 }

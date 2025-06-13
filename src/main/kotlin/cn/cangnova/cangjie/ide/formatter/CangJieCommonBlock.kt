@@ -527,21 +527,21 @@ abstract class CangJieCommonBlock(
         val childWrap = wrappingStrategy(child)
 
 
-//        if (child.elementType === OPERATION_REFERENCE) {
-////            val operationNode = child.firstChildNode
-//                        val operationNode = child
-//            if (operationNode != null) {
-//                return createBlock(
-//                    operationNode,
-//                    alignmentStrategy,
-//                    createChildIndent(child),
-//                    childWrap,
-//                    settings,
-//                    spacingBuilder,
-//                    overrideChildren,
-//                )
-//            }
-//        }
+        if (child.elementType === OPERATION_REFERENCE) {
+            val operationNode = child.firstChildNode
+
+            if (operationNode != null) {
+                return createBlock(
+                    operationNode,
+                    alignmentStrategy,
+                    createChildIndent(child),
+                    childWrap,
+                    settings,
+                    spacingBuilder,
+                    overrideChildren,
+                )
+            }
+        }
 
         return createBlock(
             child, alignmentStrategy, createChildIndent(child), childWrap, settings, spacingBuilder, overrideChildren

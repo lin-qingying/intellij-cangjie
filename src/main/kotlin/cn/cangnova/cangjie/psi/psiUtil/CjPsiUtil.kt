@@ -58,6 +58,15 @@ fun CjTypeStatement.effectiveDeclarations(): List<CjDeclaration> {
         else -> declarations
     }
 }
+fun CjCallElement.getCallNameExpression(): CjSimpleNameExpression? {
+    val calleeExpression = calleeExpression ?: return null
+
+    return when (calleeExpression) {
+        is CjSimpleNameExpression -> calleeExpression
+        is CjConstructorCalleeExpression -> calleeExpression.constructorReferenceExpression
+        else -> null
+    }
+}
 
 fun getImportedSimpleNameByImportAlias(file: CjFile, aliasName: String): String? {
     val directive = file.findImportByAlias(aliasName) ?: return null

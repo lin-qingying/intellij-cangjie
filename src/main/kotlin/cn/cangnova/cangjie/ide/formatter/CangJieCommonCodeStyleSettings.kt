@@ -56,54 +56,55 @@ class CangJieCommonCodeStyleSettings(val isTempForDeserialize: Boolean = false) 
         }
     }
 
-    override fun clone(rootSettings: CodeStyleSettings): CommonCodeStyleSettings =
-        CangJieCommonCodeStyleSettings().let {
-            copyPublicFields(this, it)
+    override fun clone(rootSettings: CodeStyleSettings): CommonCodeStyleSettings {
 
-            // 反射设置根设置
-            try {
-                CommonCodeStyleSettings::class.java.getDeclaredMethod("setRootSettings", CodeStyleSettings::class.java).apply {
-                    isAccessible = true
-                }.invoke(it, rootSettings)
+        val commonSettings = CangJieCommonCodeStyleSettings()
+        copyPublicFields(this, commonSettings)
+        // 反射设置根设置
+        try {
+            CommonCodeStyleSettings::class.java.getDeclaredMethod("setRootSettings", CodeStyleSettings::class.java).apply {
+                isAccessible = true
+            }.invoke(commonSettings, rootSettings)
 
-            } catch (e: NoSuchMethodException) {
-                throw IllegalStateException(e)
-            } catch (e: IllegalAccessException) {
-                throw IllegalStateException(e)
-            } catch (e: InvocationTargetException) {
-                throw IllegalStateException(e)
-            }
-            // 设置强制排列菜单
-
-            it.isForceArrangeMenuAvailable = this.isForceArrangeMenuAvailable
-
-            //  处理缩进选项（使用安全调用操作符）
-            indentOptions?.let { sourceIndent ->
-                initIndentOptions().apply {
-                    copyFrom(sourceIndent)
-                }
-            }
-
-            //  处理排列设置（使用安全调用和对象克隆）
-            arrangementSettings?.let { it1 ->
-                it.setArrangementSettings(it1.clone())
-
-
-            }
-
-            //   使用更简洁的反射查找方法
-            try {
-                CommonCodeStyleSettings::class.java.declaredMethods
-                    .find { it.name == "setSoftMargins" }
-                    ?.apply { isAccessible = true }
-                    ?.invoke(this, softMargins)
-            } catch (e: IllegalAccessException) {
-                throw IllegalStateException(e)
-            } catch (e: InvocationTargetException) {
-                throw IllegalStateException(e)
-            }
-            it
+        } catch (e: NoSuchMethodException) {
+            throw IllegalStateException(e)
+        } catch (e: IllegalAccessException) {
+            throw IllegalStateException(e)
+        } catch (e: InvocationTargetException) {
+            throw IllegalStateException(e)
         }
+
+        // 设置强制排列菜单
+
+        commonSettings.isForceArrangeMenuAvailable = this.isForceArrangeMenuAvailable
+
+        //  处理缩进选项（使用安全调用操作符）
+        indentOptions?.let { sourceIndent ->
+            commonSettings.initIndentOptions().apply {
+                copyFrom(sourceIndent)
+            }
+        }
+        //  处理排列设置（使用安全调用和对象克隆）
+        arrangementSettings?.let { it1 ->
+            commonSettings.setArrangementSettings(it1.clone())
+
+
+        }
+
+        //   使用更简洁的反射查找方法
+        try {
+            CommonCodeStyleSettings::class.java.declaredMethods
+                .find { it.name == "setSoftMargins" }
+                ?.apply { isAccessible = true }
+                ?.invoke(this, softMargins)
+        } catch (e: IllegalAccessException) {
+            throw IllegalStateException(e)
+        } catch (e: InvocationTargetException) {
+            throw IllegalStateException(e)
+        }
+        return commonSettings
+
+    }
 
     companion object {
         private const val INDENT_OPTIONS_TAG = "indentOptions"
@@ -113,6 +114,7 @@ class CangJieCommonCodeStyleSettings(val isTempForDeserialize: Boolean = false) 
             return CangJieCommonCodeStyleSettings(true)
         }
     }
+
 
     override fun hashCode(): Int {
         var result = isTempForDeserialize.hashCode()

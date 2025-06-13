@@ -26,9 +26,6 @@
 
         <!--符合标准风格的代码样式设置-->
         <predefinedCodeStyle implementation="cn.cangnova.cangjie.ide.formatter.CangJieStyleGuideCodeStyle"/>
-        <!--        废弃的代码样式-->
-        <!--        <predefinedCodeStyle implementation="cn.cangnova.cangjie.ide.formatter.CangJieObsoleteCodeStyle"/>-->
-
 
 
         <registryKey
