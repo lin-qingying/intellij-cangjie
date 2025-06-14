@@ -64,7 +64,7 @@ open class CangJieExpressionParsing(
         ),
 
         // 前缀操作符，例如负号（-）、正号（+）、逻辑非（!）
-        PREFIX(MINUS, PLUS, EXCL) {
+        PREFIX(MINUS, /*PLUS,*/ EXCL) {
             // 覆盖了`parseHigherPrecedence`方法，防止调用此方法并抛出异常
             override fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
                 throw IllegalStateException("Don't call this method")
@@ -1998,7 +1998,7 @@ open class CangJieExpressionParsing(
             parsePrefixExpression()
             expression.done(PREFIX_EXPRESSION)
         } else {
-            if (at(MINUSMINUS) || at(PLUSPLUS)) {
+            if (at(MINUSMINUS) || at(PLUSPLUS) ||at(PLUS) ) {
                 errorAndAdvance("expected expression or declaration, found '${builder.tokenText}'")
             }
             builder.restoreJoiningComplexTokensState()
