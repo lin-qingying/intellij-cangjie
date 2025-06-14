@@ -24,15 +24,21 @@
 
 package cn.cangnova.telemetry.actions
 
+import cn.cangnova.telemetry.TelemetryBundle
 import cn.cangnova.telemetry.api.TelemetryService
 import cn.cangnova.telemetry.data.TelemetryDataCollector
-import cn.cangnova.telemetry.TelemetryBundle
 import com.intellij.icons.AllIcons
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * 立即发送遥测数据的动作
@@ -44,64 +50,72 @@ class SendImmediatelyTelemetryAction : AnAction(
     AllIcons.Actions.Upload
 ) {
     private val logger = Logger.getInstance(SendImmediatelyTelemetryAction::class.java)
-    
+
     // 通知组ID，与telemetry.xml中定义的一致
     private val NOTIFICATION_GROUP_ID = "CangJie.Telemetry"
-    
+
     override fun actionPerformed(e: AnActionEvent) {
-        try {
-            // 获取遥测服务
-            val telemetryService = TelemetryService.getInstance()
-            if (!telemetryService.isEnabled()) {
-                showNotification(
-                    e, 
-                    TelemetryBundle.message("telemetry.send.immediately.disabled.message"), 
-                    NotificationType.WARNING
-                )
-                return
-            }
-            
-            // 获取数据收集器
-            val dataCollector = TelemetryDataCollector.getInstance()
-            
-            // 获取缓存数据数量
-            val cachedCount = dataCollector.getPendingEventsCount()
-            
-            // 手动触发数据发送
-            val sendResult = telemetryService.sendImmediately()
-            
-            // 显示结果通知
-            if (sendResult) {
-                if (cachedCount > 0) {
+        ApplicationManager.getApplication().executeOnPooledThread {
+            try {
+                // 获取遥测服务
+                val telemetryService = TelemetryService.getInstance()
+                if (!telemetryService.isEnabled()) {
+                    ApplicationManager.getApplication().invokeLater {
+                        showNotification(
+                            e,
+                            TelemetryBundle.message("telemetry.send.immediately.disabled.message"),
+                            NotificationType.WARNING
+                        )
+                    }
+                    return@executeOnPooledThread
+                }
+
+                // 获取数据收集器
+                val dataCollector = TelemetryDataCollector.getInstance()
+
+                // 获取缓存数据数量
+                val cachedCount = dataCollector.getPendingEventsCount()
+
+                // 手动触发数据发送
+                val sendResult = telemetryService.sendImmediately()
+
+                ApplicationManager.getApplication().invokeLater {
+                    // 显示结果通知
+                    if (sendResult) {
+                        if (cachedCount > 0) {
+                            showNotification(
+                                e,
+                                TelemetryBundle.message("telemetry.send.immediately.success.with.count", cachedCount),
+                                NotificationType.INFORMATION
+                            )
+                        } else {
+                            showNotification(
+                                e,
+                                TelemetryBundle.message("telemetry.send.immediately.success.no.data"),
+                                NotificationType.INFORMATION
+                            )
+                        }
+                    } else {
+                        showNotification(
+                            e,
+                            TelemetryBundle.message("telemetry.send.immediately.error"),
+                            NotificationType.ERROR
+                        )
+                    }
+                }
+            } catch (ex: Exception) {
+                logger.error("立即发送遥测数据时出错", ex)
+                ApplicationManager.getApplication().invokeLater {
                     showNotification(
-                        e, 
-                        TelemetryBundle.message("telemetry.send.immediately.success.with.count", cachedCount), 
-                        NotificationType.INFORMATION
-                    )
-                } else {
-                    showNotification(
-                        e, 
-                        TelemetryBundle.message("telemetry.send.immediately.success.no.data"), 
-                        NotificationType.INFORMATION
+                        e,
+                        TelemetryBundle.message("telemetry.send.immediately.exception", ex.message ?: ""),
+                        NotificationType.ERROR
                     )
                 }
-            } else {
-                showNotification(
-                    e, 
-                    TelemetryBundle.message("telemetry.send.immediately.error"), 
-                    NotificationType.ERROR
-                )
             }
-        } catch (ex: Exception) {
-            logger.error("立即发送遥测数据时出错", ex)
-            showNotification(
-                e, 
-                TelemetryBundle.message("telemetry.send.immediately.exception", ex.message ?: ""), 
-                NotificationType.ERROR
-            )
         }
     }
-    
+
     /**
      * 显示通知
      */

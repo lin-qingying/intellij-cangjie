@@ -42,7 +42,7 @@
         <plugin id="com.intellij.modules.json"/>
         <plugin id="org.toml.lang"/>
 
-
+        <plugin id="com.intellij.copyright"/>
 
         <plugin id="com.redhat.devtools.lsp4ij"/>
     </dependencies>
