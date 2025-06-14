@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie
 
-import cn.cangnova.telemetry.ui.TelemetryNotifications
+
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity

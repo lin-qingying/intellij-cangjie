@@ -5,36 +5,7 @@ import cn.cangnova.cangjie.CangJieTestBase
 class CjpmTomlDifferTest: CangJieTestBase() {
     
 
-    fun `test diff package configs`() {
-        val base = CjpmTomlConfig(
-            `package` = PackageConfig(
-                name = "base",
-                version = "0.1.0",
-                cjcVersion = "0.55.3",
-                outputType = OutputType.DYNAMIC
-            )
-        )
-        
-        val other = CjpmTomlConfig(
-            `package` = PackageConfig(
-                name = "other",
-                version = "0.2.0",
-                cjcVersion = "0.55.3",
-                outputType = OutputType.STATIC
-            )
-        )
-        
-        val result = CjpmTomlDiffer.diff(base, other)
-        
-        assertTrue(result.hasDifferences)
-        assertEquals(3, result.differences.size)
-        
-        val modifiedDiffs = result.getDifferencesOfType(CjpmTomlDiffer.DiffType.MODIFIED)
-        assertEquals(3, modifiedDiffs.size)
-        assertTrue(modifiedDiffs.any { it.path == "package.name" })
-        assertTrue(modifiedDiffs.any { it.path == "package.version" })
-        assertTrue(modifiedDiffs.any { it.path == "package.output-type" })
-    }
+
     
 
     fun `test diff dependencies`() {
@@ -84,5 +55,36 @@ class CjpmTomlDifferTest: CangJieTestBase() {
         
         assertFalse(result.hasDifferences)
         assertTrue(result.differences.isEmpty())
+    }
+
+    fun `test diff package configs`() {
+        val base = CjpmTomlConfig(
+            `package` = PackageConfig(
+                name = "base",
+                version = "0.1.0",
+                cjcVersion = "0.55.3",
+                outputType = OutputType.DYNAMIC
+            )
+        )
+
+        val other = CjpmTomlConfig(
+            `package` = PackageConfig(
+                name = "other",
+                version = "0.2.0",
+                cjcVersion = "0.55.3",
+                outputType = OutputType.STATIC
+            )
+        )
+
+        val result = CjpmTomlDiffer.diff(base, other)
+
+        assertTrue(result.hasDifferences)
+        assertEquals(3, result.differences.size)
+
+        val modifiedDiffs = result.getDifferencesOfType(CjpmTomlDiffer.DiffType.MODIFIED)
+        assertEquals(3, modifiedDiffs.size)
+        assertTrue(modifiedDiffs.any { it.path == "package.name" })
+        assertTrue(modifiedDiffs.any { it.path == "package.version" })
+        assertTrue(modifiedDiffs.any { it.path == "package.output-type" })
     }
 } 

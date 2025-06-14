@@ -29,17 +29,21 @@ import cn.cangnova.telemetry.ui.TelemetryNotifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectActivity
 
 /**
  * 遥测启动活动，负责：
  * 1. 初始化遥测系统和数据发送器
  * 2. 检查遥测设置并显示通知
  */
-class TelemetryStartupActivity : StartupActivity {
+class TelemetryStartupActivity : ProjectActivity {
     private val logger = Logger.getInstance(TelemetryStartupActivity::class.java)
 
-    override fun runActivity(project: Project) {
+    override suspend fun execute(project: Project) {
+        runActivity(project)
+    }
+
+    fun runActivity(project: Project) {
         // 只在应用启动时执行一次，不是每个项目都执行
         if (ApplicationManager.getApplication().isUnitTestMode) {
             return

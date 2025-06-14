@@ -498,7 +498,6 @@ project(":") {
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
 
-        implementation(project(":telemetry"))
 
     }
     tasks {
