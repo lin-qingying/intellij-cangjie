@@ -36,18 +36,14 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.PluginId
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.net.HttpURLConnection
 import java.net.URL
 import java.time.Instant
+import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-import java.util.UUID
 
 /**
  * URL扩展函数，用于使用协程获取URL内容
@@ -58,7 +54,7 @@ private suspend fun URL.fetchContent(): Result<String> = withContext(Dispatchers
             requestMethod = "GET"
             connectTimeout = 5000
             readTimeout = 5000
-            
+
             val responseCode = responseCode
             if (responseCode in 200..299) {
                 inputStream.bufferedReader().use { it.readText() }
@@ -83,7 +79,7 @@ class TelemetryDataSender {
         thread.isDaemon = true
         thread
     }
-    
+
     // 协程作用域
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -140,10 +136,10 @@ class TelemetryDataSender {
         coroutineScope.launch {
             try {
                 logger.info("Fetching telemetry configuration from $CONFIG_URL")
-                
+
                 // 使用扩展函数获取配置
                 val result = URL(CONFIG_URL).fetchContent()
-                
+
                 result.fold(
                     onSuccess = { configJson ->
                         if (configJson.isNotEmpty()) {
@@ -221,31 +217,32 @@ class TelemetryDataSender {
     /**
      * 使用协程异步发送HTTP POST请求
      */
-    private suspend fun sendPostRequestAsync(url: String, jsonPayload: String): Result<String> = withContext(Dispatchers.IO) {
-        runCatching {
-            (URL(url).openConnection() as HttpURLConnection).run {
-                requestMethod = "POST"
-                setRequestProperty("Content-Type", "application/json")
-                setRequestProperty("Accept", "application/json")
-                doOutput = true
-                connectTimeout = 10000
-                readTimeout = 10000
+    private suspend fun sendPostRequestAsync(url: String, jsonPayload: String): Result<String> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                (URL(url).openConnection() as HttpURLConnection).run {
+                    requestMethod = "POST"
+                    setRequestProperty("Content-Type", "application/json")
+                    setRequestProperty("Accept", "application/json")
+                    doOutput = true
+                    connectTimeout = 10000
+                    readTimeout = 10000
 
-                outputStream.use { os ->
-                    os.write(jsonPayload.toByteArray())
-                    os.flush()
-                }
+                    outputStream.use { os ->
+                        os.write(jsonPayload.toByteArray())
+                        os.flush()
+                    }
 
-                val responseCode = responseCode
-                if (responseCode in 200..299) {
-                    inputStream.bufferedReader().use { it.readText() }
-                } else {
-                    val errorResponse = errorStream?.bufferedReader()?.use { it.readText() } ?: "No error details"
-                    throw Exception("HTTP error $responseCode: $errorResponse")
+                    val responseCode = responseCode
+                    if (responseCode in 200..299) {
+                        inputStream.bufferedReader().use { it.readText() }
+                    } else {
+                        val errorResponse = errorStream?.bufferedReader()?.use { it.readText() } ?: "No error details"
+                        throw Exception("HTTP error $responseCode: $errorResponse")
+                    }
                 }
             }
         }
-    }
 
     /**
      * 立即发送数据到服务器
@@ -261,7 +258,7 @@ class TelemetryDataSender {
             logger.debug("No telemetry data to send")
             return true
         }
-        
+
         // 如果服务器URL为空，无法发送数据
         if (TELEMETRY_SERVER_URL.isEmpty()) {
             logger.debug("Telemetry server URL is not configured, cannot send data")
@@ -271,7 +268,7 @@ class TelemetryDataSender {
         // 创建有效载荷
         val payload = createPayload(events)
         val jsonPayload = gson.toJson(payload)
-        
+
         // 记录发送的数据，用于调试
         logger.debug("Sending telemetry payload to ${getTeleMetryServerUrl()}: $jsonPayload")
 
@@ -312,7 +309,7 @@ class TelemetryDataSender {
         val osVersion = System.getProperty("os.version") ?: ""
         val userName = System.getProperty("user.name") ?: ""
         val computerName = System.getProperty("COMPUTERNAME") ?: System.getProperty("HOSTNAME") ?: ""
-        
+
         // 组合系统信息并生成哈希值作为唯一标识符
         val systemInfo = "$osName-$osVersion-$userName-$computerName-${System.currentTimeMillis()}"
         return UUID.nameUUIDFromBytes(systemInfo.toByteArray()).toString()

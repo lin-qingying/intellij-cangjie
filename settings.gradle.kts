@@ -54,3 +54,4 @@ include("dap-debugger")
 include("lsp4ij")
 
 include("telemetry")
+include("analyze")
