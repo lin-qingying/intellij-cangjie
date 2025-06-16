@@ -1,10 +1,11 @@
 package cn.cangnova.cangjie.cjpm.project.model.toml
 
+import cn.cangnova.cangjie.CangJieNoPlatformTestBase
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class CjpmTomlValidatorTest {
+class CjpmTomlValidatorTest : CangJieNoPlatformTestBase(){
     
 
     fun `test valid config`() {

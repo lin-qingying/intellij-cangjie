@@ -3,12 +3,9 @@ package cn.cangnova.cangjie.cjpm.project.model.toml
 import cn.cangnova.cangjie.CangJieTestBase
 import org.junit.jupiter.api.assertThrows
 import java.io.File
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
-class CjpmTomlParserTest: CangJieTestBase() {
-    
+class CjpmTomlParserTest : CangJieTestBase() {
+
 
     fun `test parse basic package config`() {
         val content = """
@@ -24,23 +21,23 @@ class CjpmTomlParserTest: CangJieTestBase() {
             version = "0.0.1"
             package-configuration = {}
         """.trimIndent()
-        
+
         val config = CjpmTomlParser.parse(content)
-        
+
         assertNotNull(config.`package`)
         with(config.`package`) {
             assertEquals("0.55.3", this.cjcVersion)
-            assertEquals("-O2", this.compileOption)
-            assertEquals("YAML解析工具", this.description)
-            assertEquals("", linkOption)
+            assertEquals("-O2", this?.compileOption)
+            assertEquals("YAML解析工具", this?.description)
+            assertEquals("", this?.linkOption)
             assertEquals("yaml4cj", name)
-            assertEquals(OutputType.DYNAMIC, outputType)
-            assertEquals("src", this.srcDir)
-            assertEquals("", this.targetDir)
-            assertEquals("0.0.1", this.version)
+            assertEquals(OutputType.DYNAMIC, this?.outputType)
+            assertEquals("src", this?.srcDir)
+            assertEquals("", this?.targetDir)
+            assertEquals("0.0.1", this?.version)
         }
     }
-    
+
 
     fun `test parse dependencies`() {
         val content = """
@@ -55,16 +52,16 @@ class CjpmTomlParserTest: CangJieTestBase() {
             charset4cj = {branch = "v0.0.1.B002", git = "https://gitcode.com/Cangjie-TPC/charset4cj.git"}
             
         """.trimIndent()
-        
+
         val config = CjpmTomlParser.parse(content)
-        
+
         assertEquals(1, config.dependencies.size)
         with(config.dependencies["charset4cj"]!!) {
             assertEquals("v0.0.1.B002", branch)
             assertEquals("https://gitcode.com/Cangjie-TPC/charset4cj.git", git)
         }
     }
-    
+
 
     fun `test parse target config`() {
         val content = """
@@ -81,28 +78,30 @@ class CjpmTomlParserTest: CangJieTestBase() {
             version = "0.0.1"
             output-type = "dynamic"
         """.trimIndent()
-        
+
         val config = CjpmTomlParser.parse(content)
-        
+
         val targetConfig = config.target["aarch64-linux-ohos"]
         assertNotNull(targetConfig)
         assertEquals("-B\"\${DEVECO_CANGJIE_HOME}/compiler/third_party/llvm/bin\"", targetConfig.compileOption)
-        
+
         assertNotNull(targetConfig.binDependencies)
-        assertEquals(1, targetConfig.binDependencies .pathOption?.size)
-        assertEquals("\${DEVECO_CANGJIE_HOME}/build/linux_ohos_aarch64_llvm/ohos", 
-            targetConfig .binDependencies.pathOption?.get(0))
+        assertEquals(1, targetConfig.binDependencies.pathOption?.size)
+        assertEquals(
+            "\${DEVECO_CANGJIE_HOME}/build/linux_ohos_aarch64_llvm/ohos",
+            targetConfig.binDependencies.pathOption?.get(0)
+        )
     }
-    
+
 
     fun `test parse from file`() {
         val file = File(javaClass.getResource("/project_toml_files/14/cjpm.toml")!!.file)
         val config = CjpmTomlParser.parse(file)
-        
+
         assertNotNull(config.`package`)
         assertEquals("yaml4cj", config.`package`.name)
     }
-    
+
 
     fun `test write config to string`() {
         val config = CjpmTomlConfig(
@@ -113,26 +112,26 @@ class CjpmTomlParserTest: CangJieTestBase() {
                 outputType = OutputType.DYNAMIC
             )
         )
-        
+
         val tomlString = CjpmTomlParser.writeToString(config)
-        
+
         // Parse back to verify
         val parsedConfig = CjpmTomlParser.parse(tomlString)
         assertEquals(config.`package`?.name, parsedConfig.`package`?.name)
     }
-    
+
 
     fun `test invalid TOML content`() {
         val invalidContent = """
             [package
             name = test
         """.trimIndent()
-        
+
         assertThrows<Exception> {
             CjpmTomlParser.parse(invalidContent)
         }
     }
-    
+
 
     fun `test parse profile config`() {
         val content = """
@@ -169,21 +168,21 @@ class CjpmTomlParserTest: CangJieTestBase() {
             version = "0.0.1"
             output-type = "dynamic"
         """.trimIndent()
-        
+
         val config = CjpmTomlParser.parse(content)
-        
+
         assertNotNull(config.profile)
         with(config.profile) {
             // 验证 build 配置
             assertNotNull(this.build)
             assertEquals(false, build.incremental)
-            assertEquals("",  build.lto)
-            
+            assertEquals("", build.lto)
+
             // 验证自定义选项
             assertNotNull(customizedOption)
             assertEquals("-g", customizedOption["debug"])
             assertEquals("--fast-math -O2", customizedOption["release"])
-            
+
             // 验证测试配置
             assertNotNull(test)
             with(test) {
@@ -194,13 +193,13 @@ class CjpmTomlParserTest: CangJieTestBase() {
                 assertEquals("./test-report", reportPath)
                 assertEquals("xml", reportFormat)
                 assertEquals(true, verbose)
-                
+
                 // 验证测试构建配置
                 assertNotNull(build)
                 assertEquals("-O0", build.compileOption)
                 assertEquals("thin", build.lto)
                 assertEquals("mock-config", build.mock)
-                
+
                 // 验证环境变量配置
                 assertNotNull(env)
                 val testVar = env["TEST_VAR"]
@@ -208,7 +207,7 @@ class CjpmTomlParserTest: CangJieTestBase() {
                 assertEquals("test_value", testVar.value)
                 assertEquals(SpliceType.REPLACE, testVar.spliceType)
             }
-            
+
             // 验证性能测试配置
             assertNotNull(bench)
             with(bench) {
@@ -219,7 +218,7 @@ class CjpmTomlParserTest: CangJieTestBase() {
             }
         }
     }
-    
+
 
     fun `test parse ffi config`() {
         val content = """
@@ -233,15 +232,15 @@ class CjpmTomlParserTest: CangJieTestBase() {
             version = "0.0.1"
             output-type = "dynamic"
         """.trimIndent()
-        
+
         val config = CjpmTomlParser.parse(content)
-        
+
         assertNotNull(config.ffi?.c)
-        assertEquals(2, config.ffi .c.size)
+        assertEquals(2, config.ffi.c.size)
         assertEquals("./libs/arm64-v8a/", config.ffi.c["latex"]?.path)
         assertEquals("./libs/openssl/", config.ffi.c["openssl"]?.path)
     }
-    
+
 
     fun `test parse complex target config`() {
         val content = """
@@ -273,30 +272,30 @@ class CjpmTomlParserTest: CangJieTestBase() {
             version = "0.0.1"
             output-type = "dynamic"
         """.trimIndent()
-        
+
         val config = CjpmTomlParser.parse(content)
-        
+
         val targetConfig = config.target["x86_64-unknown-linux-gnu"]
         assertNotNull(targetConfig)
-        
+
         with(targetConfig) {
             // 基本配置
             assertEquals("-O2", compileOption)
             assertEquals("--fast-math", overrideCompileOption)
             assertEquals("-static", linkOption)
-            
+
             // 依赖配置
             assertNotNull(dependencies)
             assertEquals(2, dependencies.size)
             assertEquals("./dep1", dependencies["dep1"]?.path)
             assertEquals("https://example.com/dep2.git", dependencies["dep2"]?.git)
             assertEquals("main", dependencies["dep2"]?.branch)
-            
+
             // 测试依赖配置
             assertNotNull(testDependencies)
             assertEquals(1, testDependencies.size)
             assertEquals("./test-dep", testDependencies["test-dep"]?.path)
-            
+
             // 二进制依赖配置
             assertNotNull(binDependencies)
             assertEquals(2, binDependencies.pathOption?.size)
@@ -305,17 +304,17 @@ class CjpmTomlParserTest: CangJieTestBase() {
             assertEquals(2, binDependencies.packageOption?.size)
             assertEquals("/path/to/pkg1", binDependencies.packageOption?.get("pkg1"))
             assertEquals("/path/to/pkg2", binDependencies.packageOption?.get("pkg2"))
-            
+
             // debug 配置
             assertNotNull(debug)
             assertEquals("-g", debug.compileOption)
-            
+
             // release 配置
             assertNotNull(release)
             assertEquals("-O3", release.compileOption)
         }
     }
-    
+
 
     fun `test parse workspace config`() {
         val content = """
@@ -343,9 +342,9 @@ class CjpmTomlParserTest: CangJieTestBase() {
             version = "0.0.1"
             output-type = "dynamic"
         """.trimIndent()
-        
+
         val config = CjpmTomlParser.parse(content)
-        
+
         assertNotNull(config.workspace)
         with(config.workspace) {
             // 验证成员列表
@@ -353,18 +352,18 @@ class CjpmTomlParserTest: CangJieTestBase() {
             assertTrue(members.contains("packages/*"))
             assertTrue(members.contains("tools/package1"))
             assertTrue(members.contains("tools/package2"))
-            
+
             // 验证构建成员列表
             assertNotNull(buildMembers)
             assertEquals(2, buildMembers.size)
             assertTrue(buildMembers.contains("packages/core"))
             assertTrue(buildMembers.contains("tools/package1"))
-            
+
             // 验证测试成员列表
             assertNotNull(testMembers)
             assertEquals(1, testMembers.size)
             assertTrue(testMembers.contains("packages/core"))
-            
+
             // 验证编译选项
             assertEquals("-O2", compileOption)
             assertEquals("--fast-math", overrideCompileOption)

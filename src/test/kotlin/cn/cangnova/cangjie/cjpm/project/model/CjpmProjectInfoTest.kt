@@ -1,12 +1,13 @@
 package cn.cangnova.cangjie.cjpm.project.model
 
+import cn.cangnova.cangjie.CangJieNoPlatformTestBase
 import cn.cangnova.cangjie.CangJieTestBase
 import org.junit.jupiter.api.assertDoesNotThrow
 
 import java.io.File
 import kotlin.test.assertTrue
 
-class CjpmDeserializerTest :CangJieTestBase(){
+class CjpmDeserializerTest : CangJieNoPlatformTestBase(){
 
 
     fun `test should_deserialize_project_toml_file_success`() {
@@ -21,4 +22,6 @@ class CjpmDeserializerTest :CangJieTestBase(){
             }
         }
     }
+
+
 }

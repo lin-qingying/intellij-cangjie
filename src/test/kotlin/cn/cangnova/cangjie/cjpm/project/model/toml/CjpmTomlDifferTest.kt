@@ -1,8 +1,9 @@
 package cn.cangnova.cangjie.cjpm.project.model.toml
 
+import cn.cangnova.cangjie.CangJieNoPlatformTestBase
 import cn.cangnova.cangjie.CangJieTestBase
 
-class CjpmTomlDifferTest: CangJieTestBase() {
+class CjpmTomlDifferTest: CangJieNoPlatformTestBase(){
     
 
 

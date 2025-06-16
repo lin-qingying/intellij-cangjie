@@ -1,9 +1,11 @@
 package cn.cangnova.cangjie.cjpm.project.model.toml
 
+import cn.cangnova.cangjie.CangJieNoPlatformTestBase
+import cn.cangnova.cangjie.CangJieTestBase
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class CjpmTomlMergerTest {
+class CjpmTomlMergerTest : CangJieTestBase(){
     
 
     fun `test merge package configs`() {
@@ -32,11 +34,11 @@ class CjpmTomlMergerTest {
         assertNotNull(merged.`package`)
         with(merged.`package`) {
             assertEquals("other", name)
-            assertEquals("0.2.0", version)
-            assertEquals("0.55.3", cjcVersion)
-            assertEquals(OutputType.STATIC, outputType)
-            assertEquals("base description", description)
-            assertEquals("-O2", compileOption)
+            assertEquals("0.2.0", this?.version)
+            assertEquals("0.55.3", this?.cjcVersion)
+            assertEquals(OutputType.STATIC, this?.outputType)
+            assertEquals("base description", this?.description)
+            assertEquals("-O2", this?.compileOption)
         }
     }
     
@@ -92,8 +94,8 @@ class CjpmTomlMergerTest {
         
         val targetConfig = merged.target["x86_64-unknown-linux-gnu"]
         assertNotNull(targetConfig)
-        assertEquals("-O3", targetConfig.compileOption)
-        assertEquals(2, targetConfig.binDependencies?.pathOption?.size)
-        assertEquals(listOf("/usr/lib", "/opt/lib"), targetConfig.binDependencies?.pathOption)
+        assertEquals("-O3", targetConfig?.compileOption)
+        assertEquals(2, targetConfig?.binDependencies?.pathOption?.size)
+        assertEquals(listOf("/usr/lib", "/opt/lib"), targetConfig?.binDependencies?.pathOption)
     }
 } 

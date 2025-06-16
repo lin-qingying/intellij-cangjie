@@ -1,5 +1,6 @@
 package cn.cangnova.cangjie.cjpm.project.model.toml
 
+import cn.cangnova.cangjie.CangJieNoPlatformTestBase
 import cn.cangnova.cangjie.CangJieTestBase
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
@@ -9,7 +10,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class CjpmTomlUtilsTest: CangJieTestBase() {
+class CjpmTomlUtilsTest:  CangJieNoPlatformTestBase(){
     
 
     fun `test create basic cjpm toml`(@TempDir tempDir: Path) {

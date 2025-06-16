@@ -9,7 +9,7 @@ import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.model.TestClass
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
-import java.util.Collections
+import java.util.*
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.test.asserter
@@ -19,11 +19,11 @@ import kotlin.test.asserter
  * 1. JUnit4 风格 - 使用 @Test 注解
  * 2. JUnit3 风格 - 方法名以 "test" 开头
  */
-class CangJieJUnit4TestRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass)
-{
+class CangJieJUnit4TestRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
 
     override fun computeTestMethods(): List<FrameworkMethod> =
         addJUnit3Methods(super.computeTestMethods(), testClass)
+
     companion object {
         fun addJUnit3Methods(junit4Methods: List<FrameworkMethod>, testClass: TestClass): List<FrameworkMethod> {
             val junit3Methods = computeJUnit3TestMethods(testClass)
@@ -65,14 +65,26 @@ class CangJieJUnit4TestRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(test
         }
     }
 }
+
+/**
+ * 不需要Intellij平台的测试类,可以提升运行速度
+ */
 @RunWith(CangJieJUnit4TestRunner::class)
-abstract class CangJieTestBase : BasePlatformTestCase(),CangJieTestCase
-{
+abstract class CangJieNoPlatformTestBase : junit.framework.TestCase() {
+
+}
+
+/**
+ * Intellij平台测试类
+ */
+@RunWith(CangJieJUnit4TestRunner::class)
+abstract class CangJieTestBase : BasePlatformTestCase(), CangJieTestCase {
     open val dataPath: String = ""
 
     override fun getTestDataPath(): String = "${TestCase.testResourcesPath}/$dataPath"
     protected val fileName: String
         get() = "$testName.cj"
+
     /** Asserts that the [actual] value is not `null`, with an optional [message]. */
     @OptIn(ExperimentalContracts::class)
     public fun <T : Any> assertNotNull(actual: T?, message: String? = null): T {
@@ -80,6 +92,7 @@ abstract class CangJieTestBase : BasePlatformTestCase(),CangJieTestCase
         asserter.assertNotNull(message, actual)
         return actual!!
     }
+
     private val testName: String
         get() = getTestName(true)
 
@@ -105,6 +118,7 @@ interface TestCase {
         }
     }
 }
+
 interface CangJieTestCase : TestCase {
-    override val testFileExtension: String get() = "rs"
+    override val testFileExtension: String get() = "cj"
 }
