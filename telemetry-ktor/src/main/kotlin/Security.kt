@@ -1,12 +1,29 @@
 package cn.cangnova
 
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.response.*
+import io.ktor.server.sessions.*
 
 /**
- * 配置安全相关的功能
- * 
- * 目前遥测服务不需要身份验证，但将来可能会添加
+ * 配置应用程序的安全性
  */
 fun Application.configureSecurity() {
-    // 暂时不需要身份验证
+    authentication {
+        // 用户会话认证
+        session<UserSession>("user-session") {
+            validate { session ->
+                // 简单验证会话是否存在
+                if (session.username.isNotBlank()) {
+                    UserIdPrincipal(session.username)
+                } else {
+                    null
+                }
+            }
+            challenge {
+                call.sessions.clear<UserSession>()
+                call.respondRedirect("/login")
+            }
+        }
+    }
 }

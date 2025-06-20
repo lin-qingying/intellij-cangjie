@@ -156,7 +156,7 @@
             <div class="card stat-card bg-primary text-white h-100">
                 <div class="card-body position-relative">
                     <p class="stat-label">总事件数</p>
-                    <h2 class="stat-value" data-value="${totalEvents?c}">${totalEvents}</h2>
+                    <h2 class="stat-value" data-value="${(totalEvents??)?then(totalEvents?c, '0')}">${(totalEvents??)?then(totalEvents, 0)}</h2>
                     <i class="fas fa-chart-line icon-bg"></i>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
@@ -170,7 +170,7 @@
             <div class="card stat-card bg-success text-white h-100">
                 <div class="card-body position-relative">
                     <p class="stat-label">总元数据数</p>
-                    <h2 class="stat-value" data-value="${totalMetadata?c}">${totalMetadata}</h2>
+                    <h2 class="stat-value" data-value="${(totalMetadata??)?then(totalMetadata?c, '0')}">${(totalMetadata??)?then(totalMetadata, 0)}</h2>
                     <i class="fas fa-database icon-bg"></i>
                 </div>
                 <div class="card-footer d-flex align-items-center justify-content-between">
@@ -243,10 +243,10 @@
                                 <#if recentMetadata?? && recentMetadata?size gt 0>
                                     <#list recentMetadata as item>
                                         <tr>
-                                            <td class="ps-3">${item.metadata.pluginVersion}</td>
-                                            <td>${item.metadata.ideVersion}</td>
-                                            <td>${item.metadata.os} ${item.metadata.osVersion}</td>
-                                            <td class="pe-3">${item.formattedTime}</td>
+                                            <td class="ps-3">${item.pluginVersion!"未知版本"}</td>
+                                            <td>${item.ideVersion!"未知IDE"}</td>
+                                            <td>${item.os!""} ${item.osVersion!""}</td>
+                                            <td class="pe-3">${item.formattedTime!"未知时间"}</td>
                                         </tr>
                                     </#list>
                                 <#else>

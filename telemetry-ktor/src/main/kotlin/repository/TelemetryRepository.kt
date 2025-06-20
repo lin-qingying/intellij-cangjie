@@ -93,7 +93,7 @@ interface TelemetryRepository {
         startDate: String? = null,
         endDate: String? = null
     ): List<TelemetryEvent> {
-        // 默认实现，可以被具体实现类覆盖以提供更高效的实现
+
         return getEvents(page, pageSize, category)
     }
     
@@ -162,11 +162,48 @@ interface TelemetryRepository {
     fun getUniqueUsersCount(timeRange: Int = 30): Int
     
     /**
+     * 根据ID获取事件
+     * @param id 事件ID
+     * @return 事件对象，如果不存在则返回null
+     */
+    fun getEventById(id: String): TelemetryEvent?
+    
+    /**
      * 根据ID获取元数据
      * @param id 元数据ID
      * @return 元数据对象，如果不存在则返回null
      */
     fun getMetadataById(id: String): TelemetryMetadata?
+    
+    /**
+     * 删除单个事件
+     * @param id 事件ID
+     * @return 是否删除成功
+     */
+    fun deleteEvent(id: String): Boolean
+    
+    /**
+     * 批量删除事件
+     * @param ids 事件ID列表
+     * @return 成功删除的事件数量
+     */
+    fun bulkDeleteEvents(ids: List<String>): Int
+    
+    /**
+     * 根据元数据ID获取事件列表
+     * @param metadataId 元数据ID
+     * @param page 页码，从1开始
+     * @param pageSize 每页大小
+     * @return 遥测事件列表
+     */
+    fun getEventsByMetadataId(metadataId: String, page: Int, pageSize: Int): List<TelemetryEvent>
+    
+    /**
+     * 获取指定元数据ID关联的事件总数
+     * @param metadataId 元数据ID
+     * @return 事件总数
+     */
+    fun getEventsByMetadataIdCount(metadataId: String): Int
     
     /**
      * 辅助方法：解析日期字符串

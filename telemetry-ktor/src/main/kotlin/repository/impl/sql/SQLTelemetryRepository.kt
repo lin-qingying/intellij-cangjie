@@ -32,6 +32,7 @@ import cn.cangnova.repository.TelemetryRepository
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.less
 import org.jetbrains.exposed.sql.selectAll
@@ -740,12 +741,12 @@ object SQLTelemetryRepository : TelemetryRepository {
         return try {
             transaction {
                 MySQLConfig.TelemetryMetadata
-                    .selectAll().where { MySQLConfig.TelemetryMetadata.id eq id }
-                    .singleOrNull()
-                    ?.let { row ->
+                    .select { MySQLConfig.TelemetryMetadata.id eq id }
+                    .limit(1)
+                    .map { row ->
                         TelemetryMetadata(
                             _id = row[MySQLConfig.TelemetryMetadata.id],
-                            systemId = "unknown", // 添加缺少的 systemId 参数
+                            systemId = row[MySQLConfig.TelemetryMetadata.systemId],
                             pluginVersion = row[MySQLConfig.TelemetryMetadata.pluginVersion],
                             ideVersion = row[MySQLConfig.TelemetryMetadata.ideVersion],
                             ideBuild = row[MySQLConfig.TelemetryMetadata.ideBuild],
@@ -756,6 +757,7 @@ object SQLTelemetryRepository : TelemetryRepository {
                             receivedTimestamp = row[MySQLConfig.TelemetryMetadata.receivedTimestamp].toString()
                         )
                     }
+                    .firstOrNull()
             }
         } catch (e: Exception) {
             logger.error(e) { "Error retrieving metadata by ID: ${e.message}" }
@@ -802,6 +804,141 @@ object SQLTelemetryRepository : TelemetryRepository {
             }
         } catch (e: Exception) {
             logger.error(e) { "清理过期数据失败: ${e.message}" }
+            0
+        }
+    }
+
+    /**
+     * 删除单个事件
+     * @param id 事件ID
+     * @return 是否删除成功
+     */
+    override fun deleteEvent(id: String): Boolean {
+        return try {
+            transaction {
+                val deletedCount = MySQLConfig.TelemetryEvents
+                    .deleteWhere { MySQLConfig.TelemetryEvents.eventId eq id }
+                deletedCount > 0
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Error deleting event with ID $id: ${e.message}" }
+            false
+        }
+    }
+    
+    /**
+     * 批量删除事件
+     * @param ids 事件ID列表
+     * @return 成功删除的事件数量
+     */
+    override fun bulkDeleteEvents(ids: List<String>): Int {
+        if (ids.isEmpty()) return 0
+        
+        return try {
+            transaction {
+                MySQLConfig.TelemetryEvents.deleteWhere { MySQLConfig.TelemetryEvents.id.inList(ids) }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Error bulk deleting events: ${e.message}" }
+            0
+        }
+    }
+
+    /**
+     * 根据ID获取事件
+     * @param id 事件ID
+     * @return 事件对象，如果不存在则返回null
+     */
+    override fun getEventById(id: String): TelemetryEvent? {
+        return try {
+            transaction {
+                MySQLConfig.TelemetryEvents
+                    .select { MySQLConfig.TelemetryEvents.eventId eq id }
+                    .limit(1)
+                    .map { row ->
+                        TelemetryEvent(
+                            _id = row[MySQLConfig.TelemetryEvents.id],
+                            id = row[MySQLConfig.TelemetryEvents.eventId],
+                            category = row[MySQLConfig.TelemetryEvents.category],
+                            name = row[MySQLConfig.TelemetryEvents.name],
+                            value = row[MySQLConfig.TelemetryEvents.value],
+                            timestamp = row[MySQLConfig.TelemetryEvents.timestamp].toString(),
+                            properties = try {
+                                json.decodeFromString<Map<String, String>>(row[MySQLConfig.TelemetryEvents.properties])
+                            } catch (e: Exception) {
+                                emptyMap()
+                            },
+                            metadataId = row[MySQLConfig.TelemetryEvents.metadataId]
+                        )
+                    }
+                    .firstOrNull()
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Error retrieving event by ID: ${e.message}" }
+            null
+        }
+    }
+
+    /**
+     * 根据元数据ID获取事件列表
+     * @param metadataId 元数据ID
+     * @param page 页码，从1开始
+     * @param pageSize 每页大小
+     * @return 遥测事件列表
+     */
+    override fun getEventsByMetadataId(metadataId: String, page: Int, pageSize: Int): List<TelemetryEvent> {
+        return try {
+            transaction {
+                val offset = (page - 1) * pageSize
+                MySQLConfig.TelemetryEvents
+                    .select(MySQLConfig.TelemetryEvents.columns)
+                    .where { MySQLConfig.TelemetryEvents.metadataId eq metadataId }
+                    .orderBy(MySQLConfig.TelemetryEvents.timestamp to SortOrder.DESC)
+                    .limit(pageSize, offset.toLong())
+                    .map { row ->
+                        val properties = if (row[MySQLConfig.TelemetryEvents.properties] != null) {
+                            try {
+                                Json.decodeFromString<Map<String, String>>(row[MySQLConfig.TelemetryEvents.properties])
+                            } catch (e: Exception) {
+                                emptyMap()
+                            }
+                        } else {
+                            emptyMap()
+                        }
+                        
+                        TelemetryEvent(
+                            _id = row[MySQLConfig.TelemetryEvents.id].toString(),
+                            id = row[MySQLConfig.TelemetryEvents.id].toString(),
+                            category = row[MySQLConfig.TelemetryEvents.category],
+                            name = row[MySQLConfig.TelemetryEvents.name],
+                            value = row[MySQLConfig.TelemetryEvents.value] ?: "",
+                            timestamp = row[MySQLConfig.TelemetryEvents.timestamp].toString(),
+                            properties = properties,
+                            metadataId = row[MySQLConfig.TelemetryEvents.metadataId]
+                        )
+                    }
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Error getting events by metadataId: ${e.message}" }
+            emptyList()
+        }
+    }
+    
+    /**
+     * 获取指定元数据ID关联的事件总数
+     * @param metadataId 元数据ID
+     * @return 事件总数
+     */
+    override fun getEventsByMetadataIdCount(metadataId: String): Int {
+        return try {
+            transaction {
+                MySQLConfig.TelemetryEvents
+                    .select(MySQLConfig.TelemetryEvents.id.count())
+                    .where { MySQLConfig.TelemetryEvents.metadataId eq metadataId }
+                    .single()[MySQLConfig.TelemetryEvents.id.count()].toInt()
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Error getting events count by metadataId: ${e.message}" }
             0
         }
     }

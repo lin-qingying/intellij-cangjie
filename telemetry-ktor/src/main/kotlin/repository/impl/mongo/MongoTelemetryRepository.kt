@@ -828,9 +828,7 @@ object MongoTelemetryRepository : TelemetryRepository {
         try {
             val mongoConfig = DatabaseFactory.getTypedConfig<MongoDBConfig>()
             val collection = mongoConfig.getMetadataCollection()
-            
-            val filter = Filters.eq("_id", id)
-            val doc = collection.find(filter).firstOrNull()
+            val doc = collection.find(Filters.eq("_id", id)).firstOrNull()
             
             return doc?.let {
                 TelemetryMetadata(
@@ -848,6 +846,37 @@ object MongoTelemetryRepository : TelemetryRepository {
             }
         } catch (e: Exception) {
             logger.error(e) { "Error retrieving metadata by ID: ${e.message}" }
+            return null
+        }
+    }
+
+    /**
+     * 根据ID获取事件
+     * @param id 事件ID
+     * @return 事件对象，如果不存在则返回null
+     */
+    override fun getEventById(id: String): TelemetryEvent? {
+        try {
+            val mongoConfig = DatabaseFactory.getTypedConfig<MongoDBConfig>()
+            val collection = mongoConfig.getEventsCollection()
+            val doc = collection.find(Filters.eq("id", id)).firstOrNull()
+            
+            return doc?.let {
+                TelemetryEvent(
+                    _id = it.getString("_id") ?: "",
+                    id = it.getString("id") ?: "",
+                    category = it.getString("category") ?: "",
+                    name = it.getString("name") ?: "",
+                    value = it.getString("value") ?: "",
+                    timestamp = it.getString("timestamp") ?: "",
+                    properties = (it.get("properties") as? Document)?.mapNotNull { entry ->
+                        entry.key to entry.value.toString()
+                    }?.toMap() ?: emptyMap(),
+                    metadataId = it.getString("metadataId")
+                )
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "Error retrieving event by ID: ${e.message}" }
             return null
         }
     }
@@ -900,5 +929,115 @@ object MongoTelemetryRepository : TelemetryRepository {
             logger.error(e) { "清理过期数据失败: ${e.message}" }
             return 0
         }
+    }
+
+    /**
+     * 删除单个事件
+     * @param id 事件ID
+     * @return 是否删除成功
+     */
+    override fun deleteEvent(id: String): Boolean {
+        try {
+            val mongoConfig = DatabaseFactory.getTypedConfig<MongoDBConfig>()
+            val collection = mongoConfig.getEventsCollection()
+            val result = collection.deleteOne(Filters.eq("id", id))
+            return result.deletedCount > 0
+        } catch (e: Exception) {
+            logger.error(e) { "Error deleting event with ID $id: ${e.message}" }
+            return false
+        }
+    }
+    
+    /**
+     * 批量删除事件
+     * @param ids 事件ID列表
+     * @return 成功删除的事件数量
+     */
+    override fun bulkDeleteEvents(ids: List<String>): Int {
+        if (ids.isEmpty()) return 0
+
+        try {
+            val mongoConfig = DatabaseFactory.getTypedConfig<MongoDBConfig>()
+            val collection = mongoConfig.getEventsCollection()
+
+            // 创建批量删除请求
+            val result = collection.deleteMany(Filters.`in`("_id", ids))
+            return result.deletedCount.toInt()
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to bulk delete events: ${e.message}" }
+            return 0
+        }
+    }
+
+    /**
+     * 根据元数据ID获取事件列表
+     * @param metadataId 元数据ID
+     * @param page 页码，从1开始
+     * @param pageSize 每页大小
+     * @return 遥测事件列表
+     */
+    override fun getEventsByMetadataId(metadataId: String, page: Int, pageSize: Int): List<TelemetryEvent> {
+        val events = mutableListOf<TelemetryEvent>()
+
+        try {
+            val mongoConfig = DatabaseFactory.getTypedConfig<MongoDBConfig>()
+            val collection = mongoConfig.getEventsCollection()
+            val skip = (page - 1) * pageSize
+
+            // 创建筛选器
+            val filter = Filters.eq("metadataId", metadataId)
+
+            // 执行查询
+            collection.find(filter)
+                .sort(Sorts.descending("timestamp"))
+                .skip(skip)
+                .limit(pageSize)
+                .forEach { document ->
+                    events.add(documentToEvent(document))
+                }
+        } catch (e: Exception) {
+            logger.error(e) { "Error getting events by metadataId: ${e.message}" }
+        }
+
+        return events
+    }
+    
+    /**
+     * 获取指定元数据ID关联的事件总数
+     * @param metadataId 元数据ID
+     * @return 事件总数
+     */
+    override fun getEventsByMetadataIdCount(metadataId: String): Int {
+        try {
+            val mongoConfig = DatabaseFactory.getTypedConfig<MongoDBConfig>()
+            val collection = mongoConfig.getEventsCollection()
+            
+            // 创建筛选器
+            val filter = Filters.eq("metadataId", metadataId)
+            
+            // 执行计数查询
+            return collection.countDocuments(filter).toInt()
+        } catch (e: Exception) {
+            logger.error(e) { "Error getting events count by metadataId: ${e.message}" }
+            return 0
+        }
+    }
+
+    /**
+     * 辅助方法：将MongoDB文档转换为TelemetryEvent对象
+     */
+    private fun documentToEvent(document: Document): TelemetryEvent {
+        return TelemetryEvent(
+            _id = document.getString("_id") ?: "",
+            id = document.getString("id") ?: "",
+            category = document.getString("category") ?: "",
+            name = document.getString("name") ?: "",
+            value = document.getString("value") ?: "",
+            timestamp = document.getString("timestamp") ?: "",
+            properties = (document.get("properties") as? Document)?.mapNotNull { entry ->
+                entry.key to entry.value.toString()
+            }?.toMap() ?: emptyMap(),
+            metadataId = document.getString("metadataId")
+        )
     }
 } 

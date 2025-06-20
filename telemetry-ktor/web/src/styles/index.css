@@ -1,0 +1,69 @@
+.app-layout {
+  min-height: 100vh;
+}
+
+.site-layout-content {
+  background: #fff;
+  padding: 24px;
+  min-height: 280px;
+}
+
+.logo {
+  height: 32px;
+  margin: 16px;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.card-container {
+  background-color: #f0f2f5;
+  padding: 24px;
+}
+
+.dashboard-card {
+  margin-bottom: 24px;
+}
+
+.dashboard-statistic {
+  text-align: center;
+}
+
+.ant-table-wrapper {
+  background-color: white;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.filter-form {
+  margin-bottom: 24px;
+  background-color: white;
+  padding: 24px;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.action-button {
+  margin-right: 8px;
+}
+
+.property-tag {
+  margin: 2px;
+}
+
+.chart-container {
+  background-color: white;
+  padding: 24px;
+  border-radius: 4px;
+  margin-bottom: 24px;
+} 

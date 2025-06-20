@@ -81,6 +81,16 @@ data class SystemSettings(
     val cacheExpiry: Int = 30,
     
     /**
+     * 是否启用API密钥
+     */
+    val apiKeyEnabled: Boolean = true,
+    
+    /**
+     * 是否启用匿名报告
+     */
+    val anonymousReportingEnabled: Boolean = true,
+    
+    /**
      * 最后更新时间
      */
     val lastUpdated: Long = System.currentTimeMillis()

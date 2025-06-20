@@ -11,13 +11,13 @@ database:
   
   # MongoDB配置
   mongodb:
-    connection_string: "mongodb://172.18.0.4:27017"
-    #    connection_string: "mongodb://localhost:27017"
+    #    connection_string: "mongodb://172.18.0.4:27017"
+    connection_string: "mongodb://localhost:27017"
 
     database_name: "telemetry"
     # 认证配置
     auth:
-      enabled: true
+      enabled: false
       username: "mongo_DJCwak"
       password: "mongo_zZFWXY"
     # 连接池配置

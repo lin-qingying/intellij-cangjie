@@ -1,12 +1,12 @@
 <#-- 事件列表模板 -->
 
 <#assign title="CangJie 遥测管理后台 - 事件列表">
-<#assign currentPage="events">
+<#assign currentNav="events">   <!-- 用于导航高亮 -->
 <#assign pageTitle="事件列表">
 
 <#import "layout.ftl" as layout>
 
-<@layout.page title=title currentPage=currentPage pageTitle=pageTitle additionalStyles='
+<@layout.page title=title currentPage=currentNav pageTitle=pageTitle additionalStyles='
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
     .filter-card {
@@ -392,17 +392,32 @@ document.addEventListener("DOMContentLoaded", function() {
             <div>
                 <i class="fas fa-list me-2 text-primary"></i>
                 <span class="fw-bold">事件列表</span>
+                <#if metadataId?? && metadataId != "">
+                    <span class="badge bg-info ms-2">
+                        按元数据ID过滤: ${metadataId}
+                        <a href="/web/events" class="text-white ms-2" title="清除过滤">
+                            <i class="fas fa-times-circle"></i>
+                        </a>
+                    </span>
+                </#if>
             </div>
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="/web/events/export?format=csv<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if>"><i class="fas fa-file-csv me-2"></i>导出为CSV</a></li>
-                    <li><a class="dropdown-item" href="/web/events/export?format=json<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if>"><i class="fas fa-file-code me-2"></i>导出为JSON</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item help-btn" href="#" data-bs-toggle="modal" data-bs-target="#helpModal"><i class="fas fa-question-circle me-2"></i>帮助</a></li>
-                </ul>
+            <div class="d-flex align-items-center gap-2">
+<#--                <form action="/web/events/generate-test-data" method="post" style="display:inline;" onsubmit="return confirm('确定要插入100条测试数据吗？');">-->
+<#--                    <button type="submit" class="btn btn-sm btn-warning">-->
+<#--                        <i class="fas fa-plus-circle me-1"></i> 生成测试数据-->
+<#--                    </button>-->
+<#--                </form>-->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/web/events/export?format=csv<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if>"><i class="fas fa-file-csv me-2"></i>导出为CSV</a></li>
+                        <li><a class="dropdown-item" href="/web/events/export?format=json<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if>"><i class="fas fa-file-code me-2"></i>导出为JSON</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item help-btn" href="#" data-bs-toggle="modal" data-bs-target="#helpModal"><i class="fas fa-question-circle me-2"></i>帮助</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="card-body p-0">
@@ -438,16 +453,27 @@ document.addEventListener("DOMContentLoaded", function() {
                                     </td>
                                     <td>${event.name!''}</td>
                                     <td class="event-value" data-bs-toggle="tooltip" title="${event.value!''}">${event.value!''}</td>
-                                    <td class="event-time">${event.timestamp!''}</td>
-                                    <td class="pe-3">
-                                        <#if event.properties?? && event.properties?size gt 0>
-                                            <button type="button" class="btn btn-sm btn-outline-info properties-btn" 
-                                                    data-bs-toggle="modal" data-bs-target="#propertiesModal-${event?index}">
-                                                <i class="fas fa-list-ul me-1"></i> 查看属性
-                                            </button>
+                                    <td class="event-time">
+                                        <#if formattedTimestamps?? && formattedTimestamps[event.id]??>
+                                            ${formattedTimestamps[event.id]}
                                         <#else>
-                                            <span class="badge bg-light text-dark">无属性</span>
+                                            ${event.timestamp!'未知时间'}
                                         </#if>
+                                    </td>
+                                    <td class="pe-3">
+                                        <div class="d-flex gap-2">
+                                            <#if event.properties?? && event.properties?size gt 0>
+                                                <button type="button" class="btn btn-sm btn-outline-info properties-btn" 
+                                                        data-bs-toggle="modal" data-bs-target="#propertiesModal-${event?index}">
+                                                    <i class="fas fa-list-ul me-1"></i> 快速查看
+                                                </button>
+                                            <#else>
+                                                <span class="badge bg-light text-dark">无属性</span>
+                                            </#if>
+                                            <a href="/web/events/${event.id}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-external-link-alt me-1"></i> 详细页面
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             </#list>
@@ -468,38 +494,79 @@ document.addEventListener("DOMContentLoaded", function() {
             
             <#-- 分页 -->
             <#if totalPages?? && totalPages gt 1>
-                <div class="d-flex justify-content-between align-items-center p-3 border-top">
+                <div class="d-flex justify-content-between align-items-center px-3 py-3 border-top">
                     <div class="text-muted small">
-                        显示 ${((currentPage!1) - 1) * (pageSize!10) + 1} - ${((currentPage!1) * (pageSize!10) > (totalEvents!0))?then(totalEvents!0, (currentPage!1) * (pageSize!10))} 条，共 ${totalEvents!0} 条
+                        共 <span class="fw-bold">${totalPages}</span> 页，当前第 <span class="fw-bold">${currentPage}</span> 页
                     </div>
                     <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            <li class="page-item <#if (currentPage!1) <= 1>disabled</#if>">
-                                <a class="page-link" href="/web/events?page=${(currentPage!1) - 1}&pageSize=${pageSize!10}<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if>" aria-label="Previous">
-                                    <i class="fas fa-chevron-left"></i>
+                        <ul class="pagination mb-0">
+                            <#-- 上一页按钮 -->
+                            <li class="page-item <#if currentPage == 1>disabled</#if>">
+                                <a class="page-link" href="/web/events?page=${currentPage - 1}&pageSize=${pageSize}<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if><#if metadataId??>&metadataId=${metadataId}</#if>" aria-label="Previous">
+                                    <span aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
                                 </a>
                             </li>
                             
-                            <#list 1..totalPages as i>
-                                <#if i == (currentPage!1)>
-                                    <li class="page-item active"><span class="page-link">${i}</span></li>
-                                <#elseif i <= 2 || i >= totalPages - 1 || (i >= (currentPage!1) - 1 && i <= (currentPage!1) + 1)>
-                                    <li class="page-item"><a class="page-link" href="/web/events?page=${i}&pageSize=${pageSize!10}<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if>">${i}</a></li>
-                                <#elseif i == 3 || i == totalPages - 2>
-                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                            <#-- 生成页码链接 -->
+                            <#assign startPage = 1>
+                            <#if (currentPage - 2) gt 1>
+                                <#assign startPage = currentPage - 2>
+                            </#if>
+                            
+                            <#assign endPage = totalPages>
+                            <#if (startPage + 4) lt totalPages>
+                                <#assign endPage = startPage + 4>
+                            </#if>
+                            
+                            <#if (endPage - startPage) lt 4 && startPage gt 1>
+                                <#assign startPage = endPage - 4>
+                                <#if startPage lt 1>
+                                    <#assign startPage = 1>
                                 </#if>
+                            </#if>
+                            
+                            <#-- 第一页 -->
+                            <#if startPage gt 1>
+                                <li class="page-item">
+                                    <a class="page-link" href="/web/events?page=1&pageSize=${pageSize}<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if><#if metadataId??>&metadataId=${metadataId}</#if>">1</a>
+                                </li>
+                                <#if startPage gt 2>
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">...</a>
+                                    </li>
+                                </#if>
+                            </#if>
+                            
+                            <#-- 页码 -->
+                            <#list startPage..endPage as page>
+                                <li class="page-item <#if page == currentPage>active</#if>">
+                                    <a class="page-link" href="/web/events?page=${page}&pageSize=${pageSize}<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if><#if metadataId??>&metadataId=${metadataId}</#if>">${page}</a>
+                                </li>
                             </#list>
                             
-                            <li class="page-item <#if (currentPage!1) >= (totalPages!1)>disabled</#if>">
-                                <a class="page-link" href="/web/events?page=${(currentPage!1) + 1}&pageSize=${pageSize!10}<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if>" aria-label="Next">
-                                    <i class="fas fa-chevron-right"></i>
+                            <#-- 最后一页 -->
+                            <#if endPage lt totalPages>
+                                <#if endPage lt totalPages - 1>
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">...</a>
+                                    </li>
+                                </#if>
+                                <li class="page-item">
+                                    <a class="page-link" href="/web/events?page=${totalPages}&pageSize=${pageSize}<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if><#if metadataId??>&metadataId=${metadataId}</#if>">${totalPages}</a>
+                                </li>
+                            </#if>
+                            
+                            <#-- 下一页按钮 -->
+                            <li class="page-item <#if currentPage == totalPages>disabled</#if>">
+                                <a class="page-link" href="/web/events?page=${currentPage + 1}&pageSize=${pageSize}<#if category??>&category=${category}</#if><#if selectedEventName??>&name=${selectedEventName}</#if><#if startDate??>&startDate=${startDate}</#if><#if endDate??>&endDate=${endDate}</#if><#if metadataId??>&metadataId=${metadataId}</#if>" aria-label="Next">
+                                    <span aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
                                 </a>
                             </li>
                         </ul>
                     </nav>
                 </div>
             </#if>
-        </div>
+        </div>-
     </div>
     
     <#-- 属性模态框 -->
@@ -520,47 +587,47 @@ document.addEventListener("DOMContentLoaded", function() {
                                 </div>
                                 
                                 <!-- 添加元数据信息部分 -->
-                                <#if event.metadataId??>
-                                <div class="card mb-3 bg-light">
-                                    <div class="card-header py-2 bg-transparent d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>元数据信息</h6>
-                                        <button class="btn btn-sm btn-link p-0 metadata-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#metadataCollapse-${event?index}" aria-expanded="false">
-                                            <i class="fas fa-chevron-down"></i>
-                                        </button>
-                                    </div>
-                                    <div class="collapse" id="metadataCollapse-${event?index}">
-                                        <div class="card-body py-2">
-                                            <div class="row g-2">
-                                                <#assign metadata = metadataMap[event.metadataId!'']!{}>
-                                                <div class="col-md-6">
-                                                    <small class="d-block text-muted">插件版本</small>
-                                                    <span>${metadata.pluginVersion!'未知'}</span>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <small class="d-block text-muted">IDE版本</small>
-                                                    <span>${metadata.ideVersion!'未知'}</span>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <small class="d-block text-muted">IDE构建号</small>
-                                                    <span>${metadata.ideBuild!'未知'}</span>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <small class="d-block text-muted">操作系统</small>
-                                                    <span>${metadata.os!''} ${metadata.osVersion!''}</span>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <small class="d-block text-muted">Java版本</small>
-                                                    <span>${metadata.javaVersion!'未知'}</span>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <small class="d-block text-muted">系统ID</small>
-                                                    <span class="text-monospace">${metadata.systemId!'未知'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                </#if>
+<#--                                <#if event.metadataId??>-->
+<#--                                <div class="card mb-3 bg-light">-->
+<#--                                    <div class="card-header py-2 bg-transparent d-flex justify-content-between align-items-center">-->
+<#--                                        <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>元数据信息</h6>-->
+<#--                                        <button class="btn btn-sm btn-link p-0 metadata-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#metadataCollapse-${event?index}" aria-expanded="false">-->
+<#--                                            <i class="fas fa-chevron-down"></i>-->
+<#--                                        </button>-->
+<#--                                    </div>-->
+<#--                                    <div class="collapse" id="metadataCollapse-${event?index}">-->
+<#--                                        <div class="card-body py-2">-->
+<#--                                            <div class="row g-2">-->
+<#--                                                <#assign metadata = metadataMap[event.metadataId!'']!{}>-->
+<#--                                                <div class="col-md-6">-->
+<#--                                                    <small class="d-block text-muted">插件版本</small>-->
+<#--                                                    <span>${metadata.pluginVersion!'未知'}</span>-->
+<#--                                                </div>-->
+<#--                                                <div class="col-md-6">-->
+<#--                                                    <small class="d-block text-muted">IDE版本</small>-->
+<#--                                                    <span>${metadata.ideVersion!'未知'}</span>-->
+<#--                                                </div>-->
+<#--                                                <div class="col-md-6">-->
+<#--                                                    <small class="d-block text-muted">IDE构建号</small>-->
+<#--                                                    <span>${metadata.ideBuild!'未知'}</span>-->
+<#--                                                </div>-->
+<#--                                                <div class="col-md-6">-->
+<#--                                                    <small class="d-block text-muted">操作系统</small>-->
+<#--                                                    <span>${metadata.os!''} ${metadata.osVersion!''}</span>-->
+<#--                                                </div>-->
+<#--                                                <div class="col-md-6">-->
+<#--                                                    <small class="d-block text-muted">Java版本</small>-->
+<#--                                                    <span>${metadata.javaVersion!'未知'}</span>-->
+<#--                                                </div>-->
+<#--                                                <div class="col-md-6">-->
+<#--                                                    <small class="d-block text-muted">系统ID</small>-->
+<#--                                                    <span class="text-monospace">${metadata.systemId!'未知'}</span>-->
+<#--                                                </div>-->
+<#--                                            </div>-->
+<#--                                        </div>-->
+<#--                                    </div>-->
+<#--                                </div>-->
+<#--                                </#if>-->
                                 
                                 <h6 class="mb-2">事件属性</h6>
                                 <div class="table-responsive">

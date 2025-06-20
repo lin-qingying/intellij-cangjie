@@ -232,29 +232,34 @@
                         <#if metadata?? && metadata?size gt 0>
                             <#list metadata as item>
                                 <tr>
-                                    <td class="ps-3">${item.metadata._id}</td>
-                                    <td>${item.metadata.pluginVersion}</td>
-                                    <td>${item.metadata.ideVersion} <span class="text-muted small">(${item.metadata.ideBuild})</span></td>
+                                    <td class="ps-3">${item.id}</td>
+                                    <td>${item.pluginVersion}</td>
+                                    <td>${item.ideVersion} <span class="text-muted small">(${item.ideBuild})</span></td>
                                     <td>
                                         <#assign osBadgeClass = "bg-secondary">
-                                        <#if item.metadata.os?contains("Windows")>
+                                        <#if item.os?contains("Windows")>
                                             <#assign osBadgeClass = "bg-primary">
-                                        <#elseif item.metadata.os?contains("Mac")>
+                                        <#elseif item.os?contains("Mac")>
                                             <#assign osBadgeClass = "bg-info">
-                                        <#elseif item.metadata.os?contains("Linux")>
+                                        <#elseif item.os?contains("Linux")>
                                             <#assign osBadgeClass = "bg-success">
                                         </#if>
-                                        <span class="badge ${osBadgeClass} os-badge">${item.metadata.os}</span>
-                                        <span class="text-muted small">${item.metadata.osVersion}</span>
+                                        <span class="badge ${osBadgeClass} os-badge">${item.os}</span>
+                                        <span class="text-muted small">${item.osVersion}</span>
                                     </td>
-                                    <td>${item.metadata.javaVersion}</td>
+                                    <td>${item.javaVersion}</td>
                                     <td>${item.formattedTime}</td>
                                     <td class="pe-3">
-                                        <button type="button" class="btn btn-sm btn-outline-info details-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#detailsModal-${item?index}">
-                                            <i class="fas fa-info-circle me-1"></i> 详情
-                                        </button>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-sm btn-outline-info details-btn" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#detailsModal-${item?index}">
+                                                <i class="fas fa-info-circle me-1"></i> 快速查看
+                                            </button>
+                                            <a href="/web/metadata/${item.id}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-external-link-alt me-1"></i> 详细页面
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             </#list>
@@ -323,33 +328,33 @@
                         </div>
                         <div class="modal-body">
                             <div class="mb-3">
-                                <span class="badge bg-primary">ID: ${item.metadata._id}</span>
+                                <span class="badge bg-primary">ID: ${item.id}</span>
                             </div>
                             <table class="table table-sm metadata-detail-table">
                                 <tbody>
                                     <tr>
                                         <th>插件版本</th>
-                                        <td>${item.metadata.pluginVersion}</td>
+                                        <td>${item.pluginVersion}</td>
                                     </tr>
                                     <tr>
                                         <th>IDE版本</th>
-                                        <td>${item.metadata.ideVersion}</td>
+                                        <td>${item.ideVersion}</td>
                                     </tr>
                                     <tr>
                                         <th>IDE构建号</th>
-                                        <td>${item.metadata.ideBuild}</td>
+                                        <td>${item.ideBuild}</td>
                                     </tr>
                                     <tr>
                                         <th>操作系统</th>
-                                        <td>${item.metadata.os}</td>
+                                        <td>${item.os}</td>
                                     </tr>
                                     <tr>
                                         <th>系统版本</th>
-                                        <td>${item.metadata.osVersion}</td>
+                                        <td>${item.osVersion}</td>
                                     </tr>
                                     <tr>
                                         <th>Java版本</th>
-                                        <td>${item.metadata.javaVersion}</td>
+                                        <td>${item.javaVersion}</td>
                                     </tr>
                                     <tr>
                                         <th>客户端时间</th>
@@ -357,7 +362,7 @@
                                     </tr>
                                     <tr>
                                         <th>接收时间</th>
-                                        <td>${item.metadata.receivedTimestamp}</td>
+                                        <td>${item.timestamp?number_to_datetime?string("yyyy-MM-dd HH:mm:ss")}</td>
                                     </tr>
                                 </tbody>
                             </table>
