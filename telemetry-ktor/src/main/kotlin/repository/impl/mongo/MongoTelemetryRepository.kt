@@ -388,6 +388,7 @@ object MongoTelemetryRepository : TelemetryRepository {
      * @param name 可选的事件名称过滤
      * @param startDate 可选的开始日期过滤（格式：yyyy-MM-dd）
      * @param endDate 可选的结束日期过滤（格式：yyyy-MM-dd）
+     * @param metadataId 可选的元数据ID过滤
      * @return 遥测事件列表
      */
     override fun getFilteredEvents(
@@ -396,7 +397,8 @@ object MongoTelemetryRepository : TelemetryRepository {
         category: String?,
         name: String?,
         startDate: String?,
-        endDate: String?
+        endDate: String?,
+        metadataId: String?
     ): List<TelemetryEvent> {
         val events = mutableListOf<TelemetryEvent>()
 
@@ -408,6 +410,11 @@ object MongoTelemetryRepository : TelemetryRepository {
 
             // 构建过滤条件
             val filters = mutableListOf<org.bson.conversions.Bson>()
+
+            // 元数据ID过滤
+            if (!metadataId.isNullOrBlank()) {
+                filters.add(Filters.eq("metadataId", metadataId))
+            }
 
             // 类别过滤
             if (!category.isNullOrBlank()) {
@@ -453,19 +460,7 @@ object MongoTelemetryRepository : TelemetryRepository {
                 .skip(skip)
                 .limit(pageSize)
                 .forEach { doc ->
-                    val event = TelemetryEvent(
-                        _id = doc.getString("_id") ?: "",
-                        id = doc.getString("id") ?: "",
-                        category = doc.getString("category") ?: "",
-                        name = doc.getString("name") ?: "",
-                        value = doc.getString("value") ?: "",
-                        timestamp = doc.getString("timestamp") ?: "",
-                        properties = (doc.get("properties") as? Document)?.mapNotNull { entry ->
-                            entry.key to entry.value.toString()
-                        }?.toMap() ?: emptyMap(),
-                        metadataId = doc.getString("metadataId")
-                    )
-                    events.add(event)
+                    events.add(documentToEvent(doc))
                 }
         } catch (e: Exception) {
             logger.error(e) { "Error retrieving filtered events: ${e.message}" }
@@ -480,13 +475,15 @@ object MongoTelemetryRepository : TelemetryRepository {
      * @param name 可选的事件名称过滤
      * @param startDate 可选的开始日期过滤（格式：yyyy-MM-dd）
      * @param endDate 可选的结束日期过滤（格式：yyyy-MM-dd）
+     * @param metadataId 可选的元数据ID过滤
      * @return 事件总数
      */
     override fun getFilteredEventsCount(
         category: String?,
         name: String?,
         startDate: String?,
-        endDate: String?
+        endDate: String?,
+        metadataId: String?
     ): Int {
         try {
             val mongoConfig = DatabaseFactory.getTypedConfig<MongoDBConfig>()
@@ -495,6 +492,11 @@ object MongoTelemetryRepository : TelemetryRepository {
             // 构建过滤条件
             val filters = mutableListOf<org.bson.conversions.Bson>()
 
+            // 元数据ID过滤
+            if (!metadataId.isNullOrBlank()) {
+                filters.add(Filters.eq("metadataId", metadataId))
+            }
+            
             // 类别过滤
             if (!category.isNullOrBlank()) {
                 filters.add(Filters.eq("category", category))
@@ -965,60 +967,6 @@ object MongoTelemetryRepository : TelemetryRepository {
             return result.deletedCount.toInt()
         } catch (e: Exception) {
             logger.error(e) { "Failed to bulk delete events: ${e.message}" }
-            return 0
-        }
-    }
-
-    /**
-     * 根据元数据ID获取事件列表
-     * @param metadataId 元数据ID
-     * @param page 页码，从1开始
-     * @param pageSize 每页大小
-     * @return 遥测事件列表
-     */
-    override fun getEventsByMetadataId(metadataId: String, page: Int, pageSize: Int): List<TelemetryEvent> {
-        val events = mutableListOf<TelemetryEvent>()
-
-        try {
-            val mongoConfig = DatabaseFactory.getTypedConfig<MongoDBConfig>()
-            val collection = mongoConfig.getEventsCollection()
-            val skip = (page - 1) * pageSize
-
-            // 创建筛选器
-            val filter = Filters.eq("metadataId", metadataId)
-
-            // 执行查询
-            collection.find(filter)
-                .sort(Sorts.descending("timestamp"))
-                .skip(skip)
-                .limit(pageSize)
-                .forEach { document ->
-                    events.add(documentToEvent(document))
-                }
-        } catch (e: Exception) {
-            logger.error(e) { "Error getting events by metadataId: ${e.message}" }
-        }
-
-        return events
-    }
-    
-    /**
-     * 获取指定元数据ID关联的事件总数
-     * @param metadataId 元数据ID
-     * @return 事件总数
-     */
-    override fun getEventsByMetadataIdCount(metadataId: String): Int {
-        try {
-            val mongoConfig = DatabaseFactory.getTypedConfig<MongoDBConfig>()
-            val collection = mongoConfig.getEventsCollection()
-            
-            // 创建筛选器
-            val filter = Filters.eq("metadataId", metadataId)
-            
-            // 执行计数查询
-            return collection.countDocuments(filter).toInt()
-        } catch (e: Exception) {
-            logger.error(e) { "Error getting events count by metadataId: ${e.message}" }
             return 0
         }
     }

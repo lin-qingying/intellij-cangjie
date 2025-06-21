@@ -345,6 +345,7 @@ object SQLTelemetryRepository : TelemetryRepository {
      * @param name 可选的事件名称过滤
      * @param startDate 可选的开始日期过滤（格式：yyyy-MM-dd）
      * @param endDate 可选的结束日期过滤（格式：yyyy-MM-dd）
+     * @param metadataId 可选的元数据ID过滤
      * @return 遥测事件列表
      */
     override fun getFilteredEvents(
@@ -353,7 +354,8 @@ object SQLTelemetryRepository : TelemetryRepository {
         category: String?,
         name: String?,
         startDate: String?,
-        endDate: String?
+        endDate: String?,
+        metadataId: String?
     ): List<TelemetryEvent> {
         return try {
             transaction {
@@ -363,6 +365,10 @@ object SQLTelemetryRepository : TelemetryRepository {
                 var query = MySQLConfig.TelemetryEvents.selectAll()
 
                 // 应用过滤条件
+                if (!metadataId.isNullOrBlank()) {
+                    query = query.andWhere { MySQLConfig.TelemetryEvents.metadataId eq metadataId }
+                }
+                
                 if (!category.isNullOrBlank()) {
                     query = query.andWhere { MySQLConfig.TelemetryEvents.category eq category }
                 }
@@ -416,13 +422,15 @@ object SQLTelemetryRepository : TelemetryRepository {
      * @param name 可选的事件名称过滤
      * @param startDate 可选的开始日期过滤（格式：yyyy-MM-dd）
      * @param endDate 可选的结束日期过滤（格式：yyyy-MM-dd）
+     * @param metadataId 可选的元数据ID过滤
      * @return 事件总数
      */
     override fun getFilteredEventsCount(
         category: String?,
         name: String?,
         startDate: String?,
-        endDate: String?
+        endDate: String?,
+        metadataId: String?
     ): Int {
         return try {
             transaction {
@@ -430,6 +438,10 @@ object SQLTelemetryRepository : TelemetryRepository {
                 var query = MySQLConfig.TelemetryEvents.selectAll()
 
                 // 应用过滤条件
+                if (!metadataId.isNullOrBlank()) {
+                    query = query.andWhere { MySQLConfig.TelemetryEvents.metadataId eq metadataId }
+                }
+                
                 if (!category.isNullOrBlank()) {
                     query = query.andWhere { MySQLConfig.TelemetryEvents.category eq category }
                 }
@@ -876,70 +888,6 @@ object SQLTelemetryRepository : TelemetryRepository {
         } catch (e: Exception) {
             logger.error(e) { "Error retrieving event by ID: ${e.message}" }
             null
-        }
-    }
-
-    /**
-     * 根据元数据ID获取事件列表
-     * @param metadataId 元数据ID
-     * @param page 页码，从1开始
-     * @param pageSize 每页大小
-     * @return 遥测事件列表
-     */
-    override fun getEventsByMetadataId(metadataId: String, page: Int, pageSize: Int): List<TelemetryEvent> {
-        return try {
-            transaction {
-                val offset = (page - 1) * pageSize
-                MySQLConfig.TelemetryEvents
-                    .select(MySQLConfig.TelemetryEvents.columns)
-                    .where { MySQLConfig.TelemetryEvents.metadataId eq metadataId }
-                    .orderBy(MySQLConfig.TelemetryEvents.timestamp to SortOrder.DESC)
-                    .limit(pageSize, offset.toLong())
-                    .map { row ->
-                        val properties = if (row[MySQLConfig.TelemetryEvents.properties] != null) {
-                            try {
-                                Json.decodeFromString<Map<String, String>>(row[MySQLConfig.TelemetryEvents.properties])
-                            } catch (e: Exception) {
-                                emptyMap()
-                            }
-                        } else {
-                            emptyMap()
-                        }
-                        
-                        TelemetryEvent(
-                            _id = row[MySQLConfig.TelemetryEvents.id].toString(),
-                            id = row[MySQLConfig.TelemetryEvents.id].toString(),
-                            category = row[MySQLConfig.TelemetryEvents.category],
-                            name = row[MySQLConfig.TelemetryEvents.name],
-                            value = row[MySQLConfig.TelemetryEvents.value] ?: "",
-                            timestamp = row[MySQLConfig.TelemetryEvents.timestamp].toString(),
-                            properties = properties,
-                            metadataId = row[MySQLConfig.TelemetryEvents.metadataId]
-                        )
-                    }
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "Error getting events by metadataId: ${e.message}" }
-            emptyList()
-        }
-    }
-    
-    /**
-     * 获取指定元数据ID关联的事件总数
-     * @param metadataId 元数据ID
-     * @return 事件总数
-     */
-    override fun getEventsByMetadataIdCount(metadataId: String): Int {
-        return try {
-            transaction {
-                MySQLConfig.TelemetryEvents
-                    .select(MySQLConfig.TelemetryEvents.id.count())
-                    .where { MySQLConfig.TelemetryEvents.metadataId eq metadataId }
-                    .single()[MySQLConfig.TelemetryEvents.id.count()].toInt()
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "Error getting events count by metadataId: ${e.message}" }
-            0
         }
     }
 } 

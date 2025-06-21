@@ -609,7 +609,7 @@ body {
   align-items: center;
   height: 100vh;
   background-color: #f0f2f5;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
 .login-card {
@@ -870,14 +870,18 @@ body {
   border-bottom: 2px solid #e8e8e8;
 }
 
-/* 底部样式 */
+/* 底部样式修复 */
 .app-footer {
   padding: 12px 24px;
   text-align: center;
   color: rgba(0, 0, 0, 0.45);
   font-size: 14px;
   background: transparent;
-  height: 69px;
+  height: auto;
+  min-height: 69px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .app-footer.modern-footer {
@@ -892,24 +896,40 @@ body {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
+  gap: 12px;
+  max-width: 100%;
 }
 
 .footer-links {
   display: flex;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
-.footer-links a {
-  color: rgba(0, 0, 0, 0.45);
-  transition: color 0.3s;
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .app-footer {
+    height: auto;
+    padding: 12px;
+  }
+
+  .footer-links {
+    justify-content: center;
+    margin-top: 8px;
+  }
 }
 
-.footer-links a:hover {
-  color: #1890ff;
-}
-
-.copyright {
-  color: rgba(0, 0, 0, 0.45);
+/* 确保在宽屏下footer内容不会溢出 */
+@media (min-width: 1200px) {
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
 }
 
 /* 暗色模式 */
@@ -1097,4 +1117,352 @@ body.dark-mode {
   width: 16px;
   height: 16px;
   margin-right: 10px;
+}
+
+/* 添加新的样式支持 */
+
+/* 通知中心样式 */
+.notification-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.notification-item.unread {
+  background-color: rgba(24, 144, 255, 0.05);
+}
+
+.notification-item:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.dark-mode .notification-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.notification-item .ant-list-item-meta-title {
+  margin-bottom: 4px !important;
+}
+
+/* 头部按钮样式 */
+.action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.action-btn:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: #1890ff;
+}
+
+.dark-mode .action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 菜单分组标题样式 */
+.ant-menu-item-group-title {
+  padding: 8px 16px !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-size: 12px !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 8px !important;
+}
+
+/* 暗黑模式样式 */
+.dark-mode {
+  background-color: #141414;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .app-header {
+  background-color: #1f1f1f !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .content-container {
+  background-color: #1f1f1f !important;
+}
+
+.dark-mode .app-footer {
+  background-color: #1f1f1f !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .ant-drawer-content {
+  background-color: #1f1f1f;
+}
+
+.dark-mode .ant-drawer-header {
+  background-color: #1f1f1f;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark-mode .ant-tabs-nav {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .ant-tabs-tab {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.dark-mode .ant-tabs-tab-active {
+  color: #1890ff;
+}
+
+.dark-mode .ant-tabs-ink-bar {
+  background-color: #1890ff;
+}
+
+/* 全局搜索样式 */
+.ant-drawer-top .ant-drawer-content-wrapper {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.ant-drawer-content {
+  border-radius: 0 0 8px 8px;
+}
+
+/* 增强的侧边栏样式 */
+.modern-sider {
+  background: linear-gradient(180deg, #001529 0%, #002140 100%);
+}
+
+.dark-mode .modern-sider {
+  background: linear-gradient(180deg, #141414 0%, #1f1f1f 100%);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .action-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .header-right .ant-space {
+    gap: 8px !important;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notification-item {
+  animation: fadeIn 0.3s ease;
+}
+
+/* 增强的用户下拉菜单 */
+.user-dropdown {
+  padding: 4px 8px;
+  border-radius: 24px;
+  transition: all 0.3s;
+}
+
+.user-dropdown:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.dark-mode .user-dropdown:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 事件列表和详情页样式 */
+.events-page .modern-table,
+.event-details-page .modern-table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.events-page .modern-table .ant-table-thead > tr > th,
+.event-details-page .modern-table .ant-table-thead > tr > th {
+  background: #f5f7fa;
+  color: #5a6877;
+  font-weight: 500;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.events-page .modern-table .ant-table-tbody > tr > td,
+.event-details-page .modern-table .ant-table-tbody > tr > td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.events-page .modern-table .ant-table-tbody > tr:hover > td,
+.event-details-page .modern-table .ant-table-tbody > tr:hover > td {
+  background-color: rgba(24, 144, 255, 0.05);
+}
+
+.events-page .ant-card-head,
+.event-details-page .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 24px;
+}
+
+.events-page .ant-card-body,
+.event-details-page .ant-card-body {
+  padding: 24px;
+}
+
+.events-page .ant-card-head-title,
+.event-details-page .ant-card-head-title {
+  padding: 16px 0;
+}
+
+.events-page .ant-form-item-label > label,
+.event-details-page .ant-form-item-label > label {
+  color: #5a6877;
+  font-weight: 500;
+}
+
+.events-page .ant-select-selector,
+.events-page .ant-input,
+.events-page .ant-picker,
+.event-details-page .ant-select-selector,
+.event-details-page .ant-input,
+.event-details-page .ant-picker {
+  border-radius: 6px;
+  border-color: #d9d9d9;
+  transition: all 0.3s;
+}
+
+.events-page .ant-select-selector:hover,
+.events-page .ant-input:hover,
+.events-page .ant-picker:hover,
+.event-details-page .ant-select-selector:hover,
+.event-details-page .ant-input:hover,
+.event-details-page .ant-picker:hover {
+  border-color: #40a9ff;
+}
+
+.events-page .ant-select-focused .ant-select-selector,
+.events-page .ant-input:focus,
+.events-page .ant-picker-focused,
+.event-details-page .ant-select-focused .ant-select-selector,
+.event-details-page .ant-input:focus,
+.event-details-page .ant-picker-focused {
+  border-color: #40a9ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.events-page .ant-btn,
+.event-details-page .ant-btn {
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.events-page .ant-card-tab-list,
+.event-details-page .ant-card-tab-list {
+  margin-bottom: 0;
+}
+
+.events-page .ant-card-tab-list .ant-tabs-tab,
+.event-details-page .ant-card-tab-list .ant-tabs-tab {
+  padding: 12px 0;
+}
+
+.events-page .ant-card-tab-list .ant-tabs-tab + .ant-tabs-tab,
+.event-details-page .ant-card-tab-list .ant-tabs-tab + .ant-tabs-tab {
+  margin-left: 24px;
+}
+
+.events-page .ant-card-tab-list .ant-tabs-tab-active,
+.event-details-page .ant-card-tab-list .ant-tabs-tab-active {
+  color: #1890ff;
+}
+
+.events-page .ant-card-tab-list .ant-tabs-ink-bar,
+.event-details-page .ant-card-tab-list .ant-tabs-ink-bar {
+  background-color: #1890ff;
+}
+
+.events-page .ant-pagination,
+.event-details-page .ant-pagination {
+  margin-top: 16px;
+}
+
+.events-page .ant-pagination-item,
+.event-details-page .ant-pagination-item {
+  border-radius: 6px;
+}
+
+.events-page .ant-pagination-item-active,
+.event-details-page .ant-pagination-item-active {
+  border-color: #1890ff;
+  background-color: #1890ff;
+}
+
+.events-page .ant-pagination-item-active a,
+.event-details-page .ant-pagination-item-active a {
+  color: white;
+}
+
+.events-page .ant-pagination-item:hover,
+.event-details-page .ant-pagination-item:hover {
+  border-color: #1890ff;
+}
+
+.events-page .ant-pagination-item:hover a,
+.event-details-page .ant-pagination-item:hover a {
+  color: #1890ff;
+}
+
+.events-page .ant-pagination-item-active:hover a,
+.event-details-page .ant-pagination-item-active:hover a {
+  color: white;
+}
+
+/* 暗色模式支持 */
+.dark-mode .events-page .modern-table .ant-table-thead > tr > th,
+.dark-mode .event-details-page .modern-table .ant-table-thead > tr > th {
+  background: #1f1f1f;
+  color: rgba(255, 255, 255, 0.85);
+  border-bottom: 1px solid #303030;
+}
+
+.dark-mode .events-page .modern-table .ant-table-tbody > tr > td,
+.dark-mode .event-details-page .modern-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #303030;
+}
+
+.dark-mode .events-page .modern-table .ant-table-tbody > tr:hover > td,
+.dark-mode .event-details-page .modern-table .ant-table-tbody > tr:hover > td {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .events-page .ant-card-head,
+.dark-mode .event-details-page .ant-card-head {
+  border-bottom: 1px solid #303030;
+}
+
+.dark-mode .events-page .ant-form-item-label > label,
+.dark-mode .event-details-page .ant-form-item-label > label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .events-page .ant-card-body,
+  .event-details-page .ant-card-body {
+    padding: 16px;
+  }
+  
+  .events-page .ant-card-head,
+  .event-details-page .ant-card-head {
+    padding: 0 16px;
+  }
+  
+  .events-page .ant-card-tab-list .ant-tabs-tab + .ant-tabs-tab,
+  .event-details-page .ant-card-tab-list .ant-tabs-tab + .ant-tabs-tab {
+    margin-left: 16px;
+  }
 } 

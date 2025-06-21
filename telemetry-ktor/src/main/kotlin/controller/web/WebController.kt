@@ -90,6 +90,8 @@ fun Route.webRoutes() {
             // 报表
             reportsRoutes()
 
+
+
             // 系统设置
             settingsRoutes()
 
@@ -263,18 +265,26 @@ private fun Route.eventsRoutes() {
                 val metadataId = call.parameters["metadataId"]
 
                 val repository = TelemetryRepositoryFactory.getRepository()
-                val events = if (metadataId != null) {
-                    // 如果有metadataId，优先按照metadataId过滤
-                    repository.getEventsByMetadataId(metadataId, page, pageSize)
-                } else {
-                    repository.getFilteredEvents(page, pageSize, category, name, startDate, endDate)
-                }
                 
-                val totalCount = if (metadataId != null) {
-                    repository.getEventsByMetadataIdCount(metadataId)
-                } else {
-                    repository.getFilteredEventsCount(category, name, startDate, endDate)
-                }
+                // 使用统一的方法获取事件列表，传入所有过滤参数
+                val events = repository.getFilteredEvents(
+                    page, 
+                    pageSize, 
+                    category, 
+                    name, 
+                    startDate, 
+                    endDate, 
+                    metadataId
+                )
+                
+                // 使用统一的方法获取事件总数，传入所有过滤参数
+                val totalCount = repository.getFilteredEventsCount(
+                    category, 
+                    name, 
+                    startDate, 
+                    endDate, 
+                    metadataId
+                )
                 val totalPages = (totalCount + pageSize - 1) / pageSize
                 val categories = repository.getEventCategories()
                 val eventNames = repository.getEventNames(category)
@@ -560,6 +570,8 @@ private fun Route.reportsRoutes() {
         }
     }
 }
+
+
 
 /**
  * 系统设置路由

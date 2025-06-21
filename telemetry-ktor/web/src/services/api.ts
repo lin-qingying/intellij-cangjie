@@ -163,6 +163,7 @@ export const getEvents = (params: {
   startDate?: string;
   endDate?: string;
   groupBy?: string;
+  metadataId?: string;
 }) => {
   return api.get(API.EVENTS.LIST, { params });
 };
@@ -194,6 +195,15 @@ export const getReportData = (params: {
   groupBy?: string;
 }) => {
   return api.get(API.REPORTS.DATA, { params });
+};
+
+// Analytics APIs
+export const getAnalyticsData = (params: {
+  timeRange?: number;
+  category?: string;
+  analysisType?: 'trend' | 'comparison' | 'forecast' | 'correlation';
+}) => {
+  return api.get(API.ANALYTICS.DATA, { params });
 };
 
 // Telemetry Direct APIs

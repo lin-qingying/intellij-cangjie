@@ -1,5 +1,6 @@
 package cn.cangnova
 
+import cn.cangnova.controller.api.analyticsApiRoutes
 import cn.cangnova.controller.api.dashboardApiRoutes
 import cn.cangnova.controller.api.eventsApiRoutes
 import cn.cangnova.controller.api.metadataApiRoutes
@@ -106,6 +107,10 @@ private fun Routing.apiRoutes() {
             // 报表数据
             route("/reports") {
                 reportsApiRoutes()
+            }
+            // 数据分析
+            route("/analytics") {
+                analyticsApiRoutes()
             }
         }
     }

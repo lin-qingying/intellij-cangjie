@@ -2,32 +2,41 @@ import React, { useState, useEffect } from 'react';
 import {
   Card, Table, Typography, Button, Space, Input, Select, DatePicker,
   Tag, Modal, Tabs, Tooltip, message, Spin, Badge, Row, Col, Form, Divider,
-  Dropdown, Menu, Pagination
+  Dropdown, Menu, Pagination, Empty, Alert, Statistic
 } from 'antd';
 import {
   FilterOutlined, SearchOutlined, ReloadOutlined, InfoCircleOutlined,
   DownOutlined, ExportOutlined, QuestionCircleOutlined,
-  ArrowRightOutlined, EyeOutlined, FileTextOutlined, CloseCircleOutlined
+  ArrowRightOutlined, EyeOutlined, FileTextOutlined, CloseCircleOutlined,
+  DatabaseOutlined, AppstoreOutlined, CalendarOutlined, SettingOutlined
 } from '@ant-design/icons';
 import { getEvents } from '../services/api';
 import type { ApiResponse, EventsData, TelemetryEvent } from '../types';
 import dayjs from 'dayjs';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { TabPane } = Tabs;
 
+// 在 EventsData 类型中可能缺少的属性
+interface EnhancedEventsData extends EventsData {
+  todayCount?: number;
+  metadataCount?: number;
+}
+
 const Events: React.FC = () => {
+  const location = useLocation();
   const [loading, setLoading] = useState<boolean>(true);
-  const [eventsData, setEventsData] = useState<EventsData | null>(null);
+  const [eventsData, setEventsData] = useState<EnhancedEventsData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [propertiesModalVisible, setPropertiesModalVisible] = useState<boolean>(false);
   const [currentEvent, setCurrentEvent] = useState<TelemetryEvent | null>(null);
   const [searchText, setSearchText] = useState<string>('');
-  const [filterVisible, setFilterVisible] = useState<boolean>(true);
+  const [filterVisible, setFilterVisible] = useState<boolean>(false);
   const [helpModalVisible, setHelpModalVisible] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<string>('all');
   
   // 筛选条件
   const [filters, setFilters] = useState({
@@ -48,7 +57,7 @@ const Events: React.FC = () => {
       const result = response.data as ApiResponse<EventsData>;
       
       if (result.success && result.data) {
-        setEventsData(result.data);
+        setEventsData(result.data as EnhancedEventsData);
         setError(null);
       } else {
         setError(result.message || '获取事件列表失败');
@@ -60,10 +69,19 @@ const Events: React.FC = () => {
     }
   };
 
-  // 初始加载
+  // 从URL参数中读取metadataId
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    const params = new URLSearchParams(location.search);
+    const metadataId = params.get('metadataId');
+    
+    if (metadataId) {
+      const initialFilters = { ...filters, metadataId };
+      setFilters(initialFilters);
+      fetchEvents(initialFilters);
+    } else {
+      fetchEvents();
+    }
+  }, [location.search]);
 
   // 处理筛选条件变更
   const handleFilterChange = (changedValues: any) => {
@@ -75,6 +93,16 @@ const Events: React.FC = () => {
   // 处理分页变更
   const handlePageChange = (page: number, pageSize?: number) => {
     const newFilters = { ...filters, page, pageSize: pageSize || filters.pageSize };
+    setFilters(newFilters);
+    fetchEvents(newFilters);
+  };
+
+  // 处理标签页切换
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+    // 如果是 'all'，清除类别筛选，否则设置为选中的类别
+    const categoryFilter = key === 'all' ? '' : key;
+    const newFilters = { ...filters, category: categoryFilter, page: 1 };
     setFilters(newFilters);
     fetchEvents(newFilters);
   };
@@ -213,15 +241,129 @@ const Events: React.FC = () => {
     }
   };
 
+  // 获取按类别过滤的事件数据
+  const getFilteredEventsByCategory = (category: string) => {
+    if (!eventsData?.events) return [];
+    if (category === 'all') return eventsData.events;
+    
+    return eventsData.events.filter(event => event.category.toLowerCase() === category.toLowerCase());
+  };
+
+  // 渲染页面标题和统计信息
+  const renderPageHeader = () => (
+    <div className="page-header-wrapper" style={{ marginBottom: 24 }}>
+      <Card
+        bordered={false}
+        style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+          background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+        }}
+        bodyStyle={{ padding: '24px' }}
+      >
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} md={16}>
+            <div style={{ color: 'white' }}>
+              <Title level={2} style={{ color: 'white', margin: 0 }}>
+                事件列表
+              </Title>
+              <Paragraph style={{ color: 'rgba(255, 255, 255, 0.85)', margin: '8px 0 0 0' }}>
+                查看和管理所有遥测事件数据
+              </Paragraph>
+            </div>
+          </Col>
+          <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+            <Space>
+              <Dropdown menu={{ items: exportMenu.props.items }} placement="bottomRight">
+                <Button type="primary" ghost icon={<ExportOutlined />}>
+                  导出数据 <DownOutlined />
+                </Button>
+              </Dropdown>
+              <Button
+                ghost
+                icon={<QuestionCircleOutlined />}
+                onClick={() => setHelpModalVisible(true)}
+              />
+            </Space>
+          </Col>
+        </Row>
+        
+        <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ 
+              borderRadius: '8px', 
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: 'none'
+            }}>
+              <Statistic
+                title={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>总事件数</span>}
+                value={eventsData?.totalCount || 0}
+                valueStyle={{ color: 'white', fontWeight: 'bold' }}
+                prefix={<AppstoreOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ 
+              borderRadius: '8px', 
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: 'none'
+            }}>
+              <Statistic
+                title={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>今日新增</span>}
+                value={eventsData?.todayCount || 0}
+                valueStyle={{ color: 'white', fontWeight: 'bold' }}
+                prefix={<CalendarOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ 
+              borderRadius: '8px', 
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: 'none'
+            }}>
+              <Statistic
+                title={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>元数据关联</span>}
+                value={eventsData?.metadataCount || 0}
+                valueStyle={{ color: 'white', fontWeight: 'bold' }}
+                prefix={<DatabaseOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ 
+              borderRadius: '8px', 
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: 'none'
+            }}>
+              <Statistic
+                title={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>类别数量</span>}
+                value={eventsData?.categories?.length || 0}
+                valueStyle={{ color: 'white', fontWeight: 'bold' }}
+                prefix={<SettingOutlined />}
+              />
+            </Card>
+          </Col>
+        </Row>
+      </Card>
+    </div>
+  );
+
   return (
-    <div>
-      <Title level={2}>事件列表</Title>
+    <div className="events-page">
+      {renderPageHeader()}
       
       {/* 筛选卡片 */}
       <Card 
         title={
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <FilterOutlined style={{ marginRight: 8 }} />
+            <FilterOutlined style={{ marginRight: 8, color: '#1890ff' }} />
             <span>筛选条件</span>
           </div>
         }
@@ -232,7 +374,12 @@ const Events: React.FC = () => {
             onClick={() => setFilterVisible(!filterVisible)}
           />
         }
-        style={{ marginBottom: 16 }}
+        style={{ 
+          marginBottom: 16, 
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}
       >
         {filterVisible && (
           <Form layout="vertical" onFinish={() => {}}>
@@ -240,13 +387,13 @@ const Events: React.FC = () => {
               <Col xs={24} md={24} lg={24}>
                 <Input
                   placeholder="搜索事件..."
-                  prefix={<SearchOutlined />}
+                  prefix={<SearchOutlined style={{ color: '#1890ff' }} />}
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
-                  style={{ marginBottom: 16 }}
+                  style={{ marginBottom: 16, borderRadius: '6px' }}
                   suffix={
                     searchText ? (
-                      <CloseCircleOutlined onClick={() => setSearchText('')} />
+                      <CloseCircleOutlined onClick={() => setSearchText('')} style={{ cursor: 'pointer', color: '#999' }} />
                     ) : null
                   }
                 />
@@ -263,10 +410,16 @@ const Events: React.FC = () => {
                     onChange={(value) => handleFilterChange({ category: value })}
                     allowClear
                     style={{ width: '100%' }}
+                    optionLabelProp="label"
                   >
                     {eventsData?.categories?.map((category) => (
-                      <Option key={category} value={category}>
-                        {category}
+                      <Option key={category} value={category} label={category}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <Tag color={getCategoryColor(category)} style={{ marginRight: 8 }}>
+                            {category}
+                          </Tag>
+                          {category}
+                        </div>
                       </Option>
                     ))}
                   </Select>
@@ -281,6 +434,8 @@ const Events: React.FC = () => {
                     onChange={(value) => handleFilterChange({ name: value })}
                     allowClear
                     style={{ width: '100%' }}
+                    showSearch
+                    optionFilterProp="children"
                   >
                     {eventsData?.eventNames?.map((name) => (
                       <Option key={name} value={name}>
@@ -361,7 +516,7 @@ const Events: React.FC = () => {
       <Card
         title={
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <InfoCircleOutlined style={{ marginRight: 8 }} />
+            <InfoCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
             <span>事件列表</span>
             {filters.metadataId && (
               <Tag color="blue" style={{ marginLeft: 8 }}>
@@ -374,34 +529,46 @@ const Events: React.FC = () => {
             )}
           </div>
         }
-        extra={
-          <Space>
-            <Dropdown overlay={exportMenu}>
-              <Button icon={<ExportOutlined />}>
-                导出 <DownOutlined />
-              </Button>
-            </Dropdown>
-            <Button
-              icon={<QuestionCircleOutlined />}
-              onClick={() => setHelpModalVisible(true)}
-            />
-          </Space>
-        }
+        style={{ 
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}
+        tabList={[
+          { key: 'all', tab: '全部' },
+          ...(eventsData?.categories?.map(category => ({
+            key: category,
+            tab: (
+              <span>
+                <Tag color={getCategoryColor(category)} style={{ marginRight: 4 }}>
+                  {category}
+                </Tag>
+                {category}
+              </span>
+            )
+          })) || [])
+        ]}
+        activeTabKey={activeTab}
+        onTabChange={handleTabChange}
       >
         {loading ? (
           <div style={{ textAlign: 'center', padding: '50px' }}>
             <Spin size="large" />
           </div>
         ) : error ? (
-          <div style={{ textAlign: 'center', color: 'red', padding: '50px' }}>
-            {error}
-          </div>
+          <Alert
+            message="获取数据失败"
+            description={error}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
         ) : (
           <>
             <Table
               rowKey="id"
               columns={columns}
-              dataSource={eventsData?.events.filter(event => {
+              dataSource={(eventsData?.events || []).filter(event => {
                 if (!searchText) return true;
                 const searchLower = searchText.toLowerCase();
                 return (
@@ -410,9 +577,12 @@ const Events: React.FC = () => {
                   event.name.toLowerCase().includes(searchLower) ||
                   event.value.toLowerCase().includes(searchLower)
                 );
-              }) || []}
+              })}
               pagination={false}
               scroll={{ x: 'max-content' }}
+              bordered={false}
+              className="modern-table"
+              locale={{ emptyText: <Empty description="暂无数据" image={Empty.PRESENTED_IMAGE_SIMPLE} /> }}
             />
             
             {eventsData?.totalPages && eventsData.totalPages > 1 && (
@@ -448,10 +618,17 @@ const Events: React.FC = () => {
           </Button>
         ]}
         width={600}
+        centered
+        bodyStyle={{ padding: '16px 24px' }}
       >
         {currentEvent && (
           <>
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ 
+              marginBottom: 16, 
+              padding: '16px', 
+              borderRadius: '8px', 
+              background: 'rgba(24, 144, 255, 0.05)' 
+            }}>
               <Text type="secondary">事件ID: {currentEvent.id}</Text>
               <Title level={5} style={{ margin: '8px 0' }}>{currentEvent.name}</Title>
               <Tag color={getCategoryColor(currentEvent.category)}>{currentEvent.category}</Tag>
@@ -531,11 +708,11 @@ const Events: React.FC = () => {
                 ]}
                 pagination={false}
                 size="small"
+                bordered={false}
+                className="modern-table"
               />
             ) : (
-              <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <Text type="secondary">没有属性数据</Text>
-              </div>
+              <Empty description="没有属性数据" image={Empty.PRESENTED_IMAGE_SIMPLE} />
             )}
           </>
         )}
@@ -556,6 +733,8 @@ const Events: React.FC = () => {
             了解了
           </Button>
         ]}
+        centered
+        bodyStyle={{ padding: '16px 24px' }}
       >
         <Title level={5}>如何使用筛选功能</Title>
         <ul>
@@ -566,7 +745,7 @@ const Events: React.FC = () => {
         </ul>
         
         <Title level={5}>事件类别说明</Title>
-        <Space>
+        <Space wrap>
           <Tag color="blue">默认</Tag>
           <Tag color="green">success</Tag>
           <Tag color="cyan">info</Tag>

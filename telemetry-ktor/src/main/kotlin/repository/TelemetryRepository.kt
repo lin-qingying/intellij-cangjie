@@ -83,6 +83,7 @@ interface TelemetryRepository {
      * @param name 可选的事件名称过滤
      * @param startDate 可选的开始日期过滤（格式：yyyy-MM-dd）
      * @param endDate 可选的结束日期过滤（格式：yyyy-MM-dd）
+     * @param metadataId 可选的元数据ID过滤
      * @return 遥测事件列表
      */
     fun getFilteredEvents(
@@ -91,7 +92,8 @@ interface TelemetryRepository {
         category: String? = null,
         name: String? = null,
         startDate: String? = null,
-        endDate: String? = null
+        endDate: String? = null,
+        metadataId: String? = null
     ): List<TelemetryEvent> {
 
         return getEvents(page, pageSize, category)
@@ -103,13 +105,15 @@ interface TelemetryRepository {
      * @param name 可选的事件名称过滤
      * @param startDate 可选的开始日期过滤（格式：yyyy-MM-dd）
      * @param endDate 可选的结束日期过滤（格式：yyyy-MM-dd）
+     * @param metadataId 可选的元数据ID过滤
      * @return 事件总数
      */
     fun getFilteredEventsCount(
         category: String? = null,
         name: String? = null,
         startDate: String? = null,
-        endDate: String? = null
+        endDate: String? = null,
+        metadataId: String? = null
     ): Int {
         // 默认实现，可以被具体实现类覆盖以提供更高效的实现
         return getTotalEventsCount(category)
@@ -188,22 +192,6 @@ interface TelemetryRepository {
      * @return 成功删除的事件数量
      */
     fun bulkDeleteEvents(ids: List<String>): Int
-    
-    /**
-     * 根据元数据ID获取事件列表
-     * @param metadataId 元数据ID
-     * @param page 页码，从1开始
-     * @param pageSize 每页大小
-     * @return 遥测事件列表
-     */
-    fun getEventsByMetadataId(metadataId: String, page: Int, pageSize: Int): List<TelemetryEvent>
-    
-    /**
-     * 获取指定元数据ID关联的事件总数
-     * @param metadataId 元数据ID
-     * @return 事件总数
-     */
-    fun getEventsByMetadataIdCount(metadataId: String): Int
     
     /**
      * 辅助方法：解析日期字符串

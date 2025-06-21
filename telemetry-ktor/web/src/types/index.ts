@@ -84,4 +84,55 @@ export interface ReportData {
   categories: string[];
   timeRange: number;
   groupBy: string;
+  trendPercentage: number;
+}
+
+// 数据分析类型
+export type AnalysisType = 'trend' | 'comparison' | 'forecast' | 'correlation';
+
+// 比较数据
+export interface ComparisonData {
+  currentPeriod: {
+    events: number;
+    users: number;
+  };
+  previousPeriod: {
+    events: number;
+    users: number;
+  };
+  change: {
+    events: number;
+    eventsPercentage: number;
+  };
+}
+
+// 数据分析响应数据
+export interface AnalyticsData {
+  // 基础信息
+  timeRange: number;
+  category: string | null;
+  analysisType: AnalysisType;
+  
+  // 关键指标
+  totalEvents: number;
+  uniqueUsers: number;
+  dailyAverage: number;
+  growthRate: number;
+  activityScore: number;
+  engagementRate: number;
+  topCategory: string;
+  
+  // 类别数据
+  categories: string[];
+  eventsByCategory: Record<string, number>;
+  
+  // 时间序列数据
+  dailyData: Record<string, number>;
+  weeklyData: Record<string, number>;
+  monthlyData: Record<string, number>;
+  
+  // 分析类型特定数据
+  comparisonData?: ComparisonData;
+  forecastData?: Record<string, number>;
+  correlationData?: Record<string, number>;
 } 

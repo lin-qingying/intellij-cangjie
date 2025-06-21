@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { 
   Table, Card, Typography, Spin, Pagination, 
   Tag, Space, Button, Modal, Tooltip, Row, Col,
-  Input, Select, Form, Divider, Alert, message
+  Input, Select, Form, Divider, Alert, message,
+  Statistic, Avatar
 } from 'antd';
 import { 
   InfoCircleOutlined, ExclamationCircleOutlined, 
   SearchOutlined, FilterOutlined, ReloadOutlined, 
   CloseCircleOutlined, ExportOutlined, QuestionCircleOutlined,
   DesktopOutlined, DatabaseOutlined, ArrowRightOutlined,
-  ClockCircleOutlined
+  ClockCircleOutlined, AppstoreOutlined, BarChartOutlined
 } from '@ant-design/icons';
 import { getMetadata } from '../services/api';
 import type { ApiResponse, MetadataData, TelemetryMetadata } from '../types';
@@ -38,7 +39,7 @@ const Metadata: React.FC = () => {
   const [detailModalVisible, setDetailModalVisible] = useState<boolean>(false);
   const [currentMetadata, setCurrentMetadata] = useState<TelemetryMetadata | null>(null);
   const [searchText, setSearchText] = useState<string>('');
-  const [filterVisible, setFilterVisible] = useState<boolean>(true);
+  const [filterVisible, setFilterVisible] = useState<boolean>(false);
   const [helpModalVisible, setHelpModalVisible] = useState<boolean>(false);
   const [ideVersions, setIdeVersions] = useState<string[]>([]);
   const [pluginVersions, setPluginVersions] = useState<string[]>([]);
@@ -209,15 +210,123 @@ const Metadata: React.FC = () => {
     }
   ];
 
+  // 渲染页面标题和统计信息
+  const renderPageHeader = () => (
+    <div className="page-header-wrapper" style={{ marginBottom: 24 }}>
+      <Card
+        bordered={false}
+        style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+          background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+        }}
+        bodyStyle={{ padding: '24px' }}
+      >
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} md={16}>
+            <div style={{ color: 'white' }}>
+              <Title level={2} style={{ color: 'white', margin: 0 }}>
+                元数据列表
+              </Title>
+              <Paragraph style={{ color: 'rgba(255, 255, 255, 0.85)', margin: '8px 0 0 0' }}>
+                查看和管理所有遥测元数据信息
+              </Paragraph>
+            </div>
+          </Col>
+          <Col xs={24} md={8} style={{ textAlign: 'right' }}>
+            <Space>
+              <Button 
+                ghost 
+                icon={<ExportOutlined />}
+                onClick={() => message.info('导出功能开发中')}
+              >
+                导出数据
+              </Button>
+              <Button
+                ghost
+                icon={<QuestionCircleOutlined />}
+                onClick={() => setHelpModalVisible(true)}
+              />
+            </Space>
+          </Col>
+        </Row>
+        
+        <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ 
+              borderRadius: '8px', 
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: 'none'
+            }}>
+              <Statistic
+                title={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>总元数据数</span>}
+                value={metadataData?.totalCount || 0}
+                valueStyle={{ color: 'white', fontWeight: 'bold' }}
+                prefix={<DatabaseOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ 
+              borderRadius: '8px', 
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: 'none'
+            }}>
+              <Statistic
+                title={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>操作系统种类</span>}
+                value={osList.length}
+                valueStyle={{ color: 'white', fontWeight: 'bold' }}
+                prefix={<DesktopOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ 
+              borderRadius: '8px', 
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: 'none'
+            }}>
+              <Statistic
+                title={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>IDE版本数</span>}
+                value={ideVersions.length}
+                valueStyle={{ color: 'white', fontWeight: 'bold' }}
+                prefix={<AppstoreOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card style={{ 
+              borderRadius: '8px', 
+              background: 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(10px)',
+              border: 'none'
+            }}>
+              <Statistic
+                title={<span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>插件版本数</span>}
+                value={pluginVersions.length}
+                valueStyle={{ color: 'white', fontWeight: 'bold' }}
+                prefix={<BarChartOutlined />}
+              />
+            </Card>
+          </Col>
+        </Row>
+      </Card>
+    </div>
+  );
+
   return (
     <div>
-      <Title level={2}>元数据列表</Title>
+      {renderPageHeader()}
       
       {/* 筛选卡片 */}
       <Card 
         title={
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <FilterOutlined style={{ marginRight: 8 }} />
+            <FilterOutlined style={{ marginRight: 8, color: '#1890ff' }} />
             <span>筛选条件</span>
           </div>
         }
@@ -228,7 +337,12 @@ const Metadata: React.FC = () => {
             onClick={() => setFilterVisible(!filterVisible)}
           />
         }
-        style={{ marginBottom: 16 }}
+        style={{ 
+          marginBottom: 16, 
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}
       >
         {filterVisible && (
           <Form layout="vertical" onFinish={() => {}}>
@@ -236,13 +350,13 @@ const Metadata: React.FC = () => {
               <Col xs={24} md={24} lg={24}>
                 <Input
                   placeholder="搜索元数据..."
-                  prefix={<SearchOutlined />}
+                  prefix={<SearchOutlined style={{ color: '#1890ff' }} />}
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
-                  style={{ marginBottom: 16 }}
+                  style={{ marginBottom: 16, borderRadius: '6px' }}
                   suffix={
                     searchText ? (
-                      <CloseCircleOutlined onClick={() => setSearchText('')} />
+                      <CloseCircleOutlined onClick={() => setSearchText('')} style={{ cursor: 'pointer', color: '#999' }} />
                     ) : null
                   }
                 />
@@ -259,10 +373,16 @@ const Metadata: React.FC = () => {
                     onChange={(value) => handleFilterChange({ os: value })}
                     allowClear
                     style={{ width: '100%' }}
+                    optionLabelProp="label"
                   >
                     {osList.map((os) => (
-                      <Option key={os} value={os}>
-                        {os}
+                      <Option key={os} value={os} label={os}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <Tag color={getOsBadgeColor(os)} style={{ marginRight: 8 }}>
+                            {os}
+                          </Tag>
+                          {os}
+                        </div>
                       </Option>
                     ))}
                   </Select>
@@ -354,24 +474,15 @@ const Metadata: React.FC = () => {
       <Card
         title={
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <DatabaseOutlined style={{ marginRight: 8 }} />
+            <DatabaseOutlined style={{ marginRight: 8, color: '#1890ff' }} />
             <span>元数据列表</span>
           </div>
         }
-        extra={
-          <Space>
-            <Button 
-              icon={<ExportOutlined />}
-              onClick={() => message.info('导出功能开发中')}
-            >
-              导出
-            </Button>
-            <Button
-              icon={<QuestionCircleOutlined />}
-              onClick={() => setHelpModalVisible(true)}
-            />
-          </Space>
-        }
+        style={{ 
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}
       >
         {loading ? (
           <div style={{ textAlign: 'center', padding: '50px' }}>
@@ -393,6 +504,9 @@ const Metadata: React.FC = () => {
               columns={columns}
               dataSource={metadataData?.metadata || []}
               pagination={false}
+              bordered={false}
+              className="modern-table"
+              scroll={{ x: 'max-content' }}
             />
             
             {metadataData?.totalPages && metadataData.totalPages > 1 && (
@@ -428,67 +542,68 @@ const Metadata: React.FC = () => {
           </Button>
         ]}
         width={600}
+        centered
+        bodyStyle={{ padding: '16px 24px' }}
       >
         {currentMetadata && (
           <>
-            <div style={{ marginBottom: 16 }}>
+            <div style={{ 
+              marginBottom: 16, 
+              padding: '16px', 
+              borderRadius: '8px', 
+              background: 'rgba(24, 144, 255, 0.05)' 
+            }}>
               <Tag color="blue">ID: {currentMetadata._id}</Tag>
+              <div style={{ marginTop: 8 }}>
+                <Text strong ellipsis={{ tooltip: currentMetadata.systemId }}>
+                  系统ID: {currentMetadata.systemId}
+                </Text>
+              </div>
             </div>
             
             <Row gutter={[16, 16]}>
               <Col span={12}>
-                <div className="metadata-detail-item" style={{ marginBottom: '8px' }}>
-                  <Text type="secondary">系统ID:</Text> 
-                  <div style={{ marginTop: '4px' }}>
-                    <Text ellipsis={{ tooltip: currentMetadata.systemId }}>
-                      {currentMetadata.systemId}
-                    </Text>
-                  </div>
-                </div>
-              </Col>
-              <Col span={12}>
-                <div className="metadata-detail-item" style={{ marginBottom: '8px' }}>
-                  <Text type="secondary">插件版本:</Text> 
-                  <div style={{ marginTop: '4px' }}>
+                <Card size="small" title="插件信息" bordered={false} style={{ background: '#f9f9f9', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <Avatar 
+                      icon={<AppstoreOutlined />} 
+                      style={{ backgroundColor: '#1890ff', marginRight: 8 }} 
+                      size="small" 
+                    />
                     <Tag color="blue">{currentMetadata.pluginVersion}</Tag>
                   </div>
-                </div>
+                </Card>
               </Col>
               <Col span={12}>
-                <div className="metadata-detail-item" style={{ marginBottom: '8px' }}>
-                  <Text type="secondary">IDE版本:</Text> 
-                  <div style={{ marginTop: '4px' }}>{currentMetadata.ideVersion}</div>
-                </div>
+                <Card size="small" title="IDE信息" bordered={false} style={{ background: '#f9f9f9', borderRadius: '8px' }}>
+                  <div>
+                    <div>{currentMetadata.ideVersion}</div>
+                    <Text type="secondary">{currentMetadata.ideBuild}</Text>
+                  </div>
+                </Card>
               </Col>
               <Col span={12}>
-                <div className="metadata-detail-item" style={{ marginBottom: '8px' }}>
-                  <Text type="secondary">IDE构建号:</Text> 
-                  <div style={{ marginTop: '4px' }}>{currentMetadata.ideBuild}</div>
-                </div>
+                <Card size="small" title="系统信息" bordered={false} style={{ background: '#f9f9f9', borderRadius: '8px' }}>
+                  <div>
+                    <Tag color={getOsBadgeColor(currentMetadata.os)}>{currentMetadata.os}</Tag>
+                    <div style={{ marginTop: 4 }}>
+                      <Text type="secondary">{currentMetadata.osVersion}</Text>
+                    </div>
+                  </div>
+                </Card>
               </Col>
               <Col span={12}>
-                <div className="metadata-detail-item" style={{ marginBottom: '8px' }}>
-                  <Text type="secondary">操作系统:</Text> 
-                  <div style={{ marginTop: '4px' }}>{currentMetadata.os}</div>
-                </div>
-              </Col>
-              <Col span={12}>
-                <div className="metadata-detail-item" style={{ marginBottom: '8px' }}>
-                  <Text type="secondary">系统版本:</Text> 
-                  <div style={{ marginTop: '4px' }}>{currentMetadata.osVersion}</div>
-                </div>
-              </Col>
-              <Col span={12}>
-                <div className="metadata-detail-item" style={{ marginBottom: '8px' }}>
-                  <Text type="secondary">Java版本:</Text> 
-                  <div style={{ marginTop: '4px' }}>{currentMetadata.javaVersion}</div>
-                </div>
-              </Col>
-              <Col span={12}>
-                <div className="metadata-detail-item" style={{ marginBottom: '8px' }}>
-                  <Text type="secondary">时间:</Text> 
-                  <div style={{ marginTop: '4px' }}>{currentMetadata.formattedTime}</div>
-                </div>
+                <Card size="small" title="其他信息" bordered={false} style={{ background: '#f9f9f9', borderRadius: '8px' }}>
+                  <div>
+                    <div>Java: {currentMetadata.javaVersion || '未知'}</div>
+                    <div style={{ marginTop: 4 }}>
+                      <Text type="secondary">
+                        <ClockCircleOutlined style={{ marginRight: 4 }} />
+                        {currentMetadata.formattedTime}
+                      </Text>
+                    </div>
+                  </div>
+                </Card>
               </Col>
             </Row>
             
@@ -520,6 +635,8 @@ const Metadata: React.FC = () => {
             了解了
           </Button>
         ]}
+        centered
+        bodyStyle={{ padding: '16px 24px' }}
       >
         <Title level={5}>如何使用筛选功能</Title>
         <ul>

@@ -30,6 +30,9 @@ export const API = {
   REPORTS: {
     DATA: '/v1/reports',
   },
+  ANALYTICS: {
+    DATA: '/v1/analytics',
+  },
   TELEMETRY: {
     STATUS: '/telemetry',
     SUBMIT: '/telemetry',

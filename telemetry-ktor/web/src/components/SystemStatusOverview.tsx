@@ -71,7 +71,7 @@ const SystemStatusOverview: React.FC<SystemStatusOverviewProps> = ({
       style={{ 
         borderRadius: '1rem', 
         boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-        height: '100%'
+
       }}
     >
       <div style={{ marginBottom: 16 }}>

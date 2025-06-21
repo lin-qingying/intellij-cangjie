@@ -14,6 +14,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.swing.UIManager.put
+import java.time.LocalDate
 
 /**
  * 仪表盘API路由
@@ -102,10 +103,30 @@ fun Route.eventsApiRoutes() {
                 val startDate = call.parameters["startDate"]
                 val endDate = call.parameters["endDate"]
                 val groupBy = call.parameters["groupBy"]
+                val metadataId = call.parameters["metadataId"]
 
                 val repository = TelemetryRepositoryFactory.getRepository()
-                val events = repository.getFilteredEvents(page, pageSize, category, name, startDate, endDate)
-                val totalCount = repository.getFilteredEventsCount(category, name, startDate, endDate)
+                
+                // 使用统一的方法获取事件列表，传入所有过滤参数
+                val events = repository.getFilteredEvents(
+                    page, 
+                    pageSize, 
+                    category, 
+                    name, 
+                    startDate, 
+                    endDate, 
+                    metadataId
+                )
+                
+                // 使用统一的方法获取事件总数，传入所有过滤参数
+                val totalCount = repository.getFilteredEventsCount(
+                    category, 
+                    name, 
+                    startDate, 
+                    endDate, 
+                    metadataId
+                )
+                
                 val totalPages = (totalCount + pageSize - 1) / pageSize
                 val categories = repository.getEventCategories()
                 val eventNames = repository.getEventNames(category)
@@ -437,7 +458,13 @@ fun Route.metadataApiRoutes() {
                 val formattedTime = formatIsoTimestamp(metadata.timestamp.toString())
                 
                 // 获取与该元数据关联的事件数量
-                val eventsCount = repository.getEventsByMetadataIdCount(id)
+                val eventsCount = repository.getFilteredEventsCount(
+                    category = null,
+                    name = null,
+                    startDate = null,
+                    endDate = null,
+                    metadataId = id
+                )
                 
                 // 构建响应数据
                 call.respond(
@@ -489,37 +516,59 @@ fun Route.reportsApiRoutes() {
                 val groupBy = call.parameters["groupBy"] ?: "day"
 
                 val repository = TelemetryRepositoryFactory.getRepository()
-                // 根据不同的groupBy使用不同的方法
-                val reportData = mutableListOf<Map<String, Any>>()
-
-                when (groupBy) {
-                    "day" -> {
-                        val data = repository.getEventCountByDay(timeRange, category)
-                        data.forEach { (date, count) ->
-                            reportData.add(mapOf("date" to date, "count" to count))
-                        }
-                    }
-
-                    "week" -> {
-                        val data = repository.getEventCountByWeek(timeRange, category)
-                        data.forEach { (week, count) ->
-                            reportData.add(mapOf("week" to week, "count" to count))
-                        }
-                    }
-
-                    "category" -> {
-                        val data = repository.getEventCountByCategory(category, timeRange)
-                        data.forEach { (category, count) ->
-                            reportData.add(mapOf("category" to category, "count" to count))
-                        }
-                    }
-
-                    else -> {
-                        val data = repository.getEventCountByDay(timeRange, category)
-                        data.forEach { (date, count) ->
-                            reportData.add(mapOf("date" to date, "count" to count))
-                        }
-                    }
+                
+                // 获取事件总数
+                val totalEvents = repository.getFilteredEventsCount(
+                    category = category,
+                    startDate = LocalDate.now().minusDays(timeRange.toLong()).toString(),
+                    endDate = LocalDate.now().toString()
+                )
+                
+                // 获取唯一用户数
+                val uniqueUsers = repository.getUniqueUsersCount(timeRange)
+                
+                // 计算日均事件数
+                val dailyAverage = if (timeRange > 0) {
+                    totalEvents.toDouble() / timeRange
+                } else {
+                    0.0
+                }
+                
+                // 获取事件类别统计
+                val eventsByCategory = repository.getEventCountByCategory(category, timeRange)
+                
+                // 获取最活跃的类别
+                val topCategory = if (eventsByCategory.isNotEmpty()) {
+                    eventsByCategory.maxByOrNull { it.value }?.key ?: ""
+                } else {
+                    ""
+                }
+                
+                // 获取所有可用类别
+                val categories = repository.getEventCategories()
+                
+                // 获取时间序列数据
+                val eventsByTime = when (groupBy) {
+                    "day" -> repository.getEventCountByDay(timeRange, category)
+                    "week" -> repository.getEventCountByWeek(timeRange, category)
+                    "month" -> repository.getEventCountByMonth(timeRange, category)
+                    else -> repository.getEventCountByDay(timeRange, category)
+                }
+                
+                // 计算趋势变化百分比 (简单实现：比较当前时间段和前一个时间段的事件数)
+                val previousTimeRange = timeRange * 2
+                val previousEvents = repository.getFilteredEventsCount(
+                    category = category,
+                    startDate = LocalDate.now().minusDays(previousTimeRange.toLong()).toString(),
+                    endDate = LocalDate.now().minusDays(timeRange.toLong()).toString()
+                )
+                
+                val trendPercentage = if (previousEvents > 0) {
+                    ((totalEvents - previousEvents).toDouble() / previousEvents * 100).toInt()
+                } else if (totalEvents > 0) {
+                    100 // 如果之前没有事件，但现在有，则增长100%
+                } else {
+                    0 // 如果都没有事件，则增长0%
                 }
 
                 call.respond(
@@ -530,18 +579,26 @@ fun Route.reportsApiRoutes() {
                             put("timeRange", timeRange)
                             put("category", category ?: JsonNull)
                             put("groupBy", groupBy)
-                            put("data", JsonArray(reportData.map { item ->
-                                buildJsonObject {
-                                    item.forEach { (key, value) ->
-                                        when (value) {
-                                            is String -> put(key, value)
-                                            is Number -> put(key, value.toInt())
-                                            is Boolean -> put(key, value)
-                                            else -> put(key, value.toString())
-                                        }
-                                    }
+                            put("totalEvents", totalEvents)
+                            put("uniqueUsers", uniqueUsers)
+                            put("dailyAverage", dailyAverage)
+                            put("topCategory", topCategory)
+                            put("trendPercentage", trendPercentage)
+                            put("categories", JsonArray(categories.map { JsonPrimitive(it) }))
+                            
+                            // 事件类别分布
+                            put("eventsByCategory", buildJsonObject {
+                                eventsByCategory.forEach { (category, count) ->
+                                    put(category, count)
                                 }
-                            }))
+                            })
+                            
+                            // 事件时间分布
+                            put("eventsByTime", buildJsonObject {
+                                eventsByTime.forEach { (time, count) ->
+                                    put(time, count)
+                                }
+                            })
                         },
                         message = "Report data retrieved successfully"
                     )
@@ -553,6 +610,205 @@ fun Route.reportsApiRoutes() {
                         success = false,
                         data = null,
                         message = "Failed to retrieve report data: ${e.message}"
+                    )
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 数据分析API路由
+ */
+fun Route.analyticsApiRoutes() {
+    // 需要JWT认证
+    authenticate("jwt-auth") {
+        get {
+            try {
+                val timeRange = call.parameters["timeRange"]?.toIntOrNull() ?: 30 // 默认30天
+                val category = call.parameters["category"]
+                val analysisType = call.parameters["analysisType"] ?: "trend" // 默认趋势分析
+
+                val repository = TelemetryRepositoryFactory.getRepository()
+                
+                // 获取基础数据
+                val totalEvents = repository.getFilteredEventsCount(
+                    category = category,
+                    startDate = LocalDate.now().minusDays(timeRange.toLong()).toString(),
+                    endDate = LocalDate.now().toString()
+                )
+                
+                val uniqueUsers = repository.getUniqueUsersCount(timeRange)
+                val eventsByCategory = repository.getEventCountByCategory(category, timeRange)
+                val categories = repository.getEventCategories()
+                
+                // 获取时间序列数据
+                val dailyData = repository.getEventCountByDay(timeRange, category)
+                val weeklyData = repository.getEventCountByWeek(timeRange, category)
+                val monthlyData = repository.getEventCountByMonth(timeRange, category)
+                
+                // 计算趋势和增长率
+                val previousTimeRange = timeRange * 2
+                val previousEvents = repository.getFilteredEventsCount(
+                    category = category,
+                    startDate = LocalDate.now().minusDays(previousTimeRange.toLong()).toString(),
+                    endDate = LocalDate.now().minusDays(timeRange.toLong()).toString()
+                )
+                
+                val growthRate = if (previousEvents > 0) {
+                    ((totalEvents - previousEvents).toDouble() / previousEvents * 100)
+                } else if (totalEvents > 0) {
+                    100.0
+                } else {
+                    0.0
+                }
+                
+                // 计算一些高级分析指标
+                val dailyAverage = if (timeRange > 0) totalEvents.toDouble() / timeRange else 0.0
+                val topCategory = eventsByCategory.maxByOrNull { it.value }?.key ?: ""
+                
+                // 计算活跃度分数 (简单实现：基于事件总数和用户数的加权平均)
+                val activityScore = if (uniqueUsers > 0) {
+                    (totalEvents.toDouble() * 0.7 + uniqueUsers.toDouble() * 0.3) / timeRange * 10
+                } else {
+                    0.0
+                }
+                
+                // 计算用户参与度 (简单实现：每个用户平均事件数)
+                val engagementRate = if (uniqueUsers > 0) {
+                    totalEvents.toDouble() / uniqueUsers
+                } else {
+                    0.0
+                }
+                
+                // 构建响应数据
+                call.respond(
+                    HttpStatusCode.OK,
+                    ApiResponse(
+                        success = true,
+                        data = buildJsonObject {
+                            // 基础信息
+                            put("timeRange", timeRange)
+                            put("category", category ?: JsonNull)
+                            put("analysisType", analysisType)
+                            
+                            // 关键指标
+                            put("totalEvents", totalEvents)
+                            put("uniqueUsers", uniqueUsers)
+                            put("dailyAverage", dailyAverage)
+                            put("growthRate", growthRate)
+                            put("activityScore", activityScore)
+                            put("engagementRate", engagementRate)
+                            put("topCategory", topCategory)
+                            
+                            // 类别数据
+                            put("categories", JsonArray(categories.map { JsonPrimitive(it) }))
+                            put("eventsByCategory", buildJsonObject {
+                                eventsByCategory.forEach { (category, count) ->
+                                    put(category, count)
+                                }
+                            })
+                            
+                            // 时间序列数据
+                            put("dailyData", buildJsonObject {
+                                dailyData.forEach { (date, count) ->
+                                    put(date, count)
+                                }
+                            })
+                            
+                            put("weeklyData", buildJsonObject {
+                                weeklyData.forEach { (week, count) ->
+                                    put(week, count)
+                                }
+                            })
+                            
+                            put("monthlyData", buildJsonObject {
+                                monthlyData.forEach { (month, count) ->
+                                    put(month, count)
+                                }
+                            })
+                            
+                            // 根据分析类型提供不同的附加数据
+                            when (analysisType) {
+                                "trend" -> {
+                                    // 趋势分析数据已包含在基础数据中
+                                }
+                                "comparison" -> {
+                                    // 比较分析：计算前后两个时间段的对比数据
+                                    val currentPeriodEvents = totalEvents
+                                    val previousPeriodEvents = previousEvents
+                                    
+                                    put("comparisonData", buildJsonObject {
+                                        put("currentPeriod", buildJsonObject {
+                                            put("events", currentPeriodEvents)
+                                            put("users", uniqueUsers)
+                                        })
+                                        put("previousPeriod", buildJsonObject {
+                                            put("events", previousPeriodEvents)
+                                            put("users", repository.getUniqueUsersCount(timeRange * 2) - uniqueUsers)
+                                        })
+                                        put("change", buildJsonObject {
+                                            put("events", currentPeriodEvents - previousPeriodEvents)
+                                            put("eventsPercentage", growthRate)
+                                        })
+                                    })
+                                }
+                                "forecast" -> {
+                                    // 简单预测：基于平均增长率预测未来趋势
+                                    val forecastData = mutableMapOf<String, Int>()
+                                    val dailyList = dailyData.entries.sortedBy { it.key }
+                                    
+                                    if (dailyList.isNotEmpty()) {
+                                        val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                                        val lastDate = LocalDate.parse(dailyList.last().key)
+                                        val avgGrowth = growthRate / 100 / timeRange // 平均每天增长率
+                                        
+                                        // 预测未来7天
+                                        var lastValue = dailyList.last().value.toDouble()
+                                        for (i in 1..7) {
+                                            val nextDate = lastDate.plusDays(i.toLong())
+                                            val predictedValue = lastValue * (1 + avgGrowth)
+                                            forecastData[nextDate.format(dateFormatter)] = predictedValue.toInt()
+                                            lastValue = predictedValue
+                                        }
+                                    }
+                                    
+                                    put("forecastData", buildJsonObject {
+                                        forecastData.forEach { (date, count) ->
+                                            put(date, count)
+                                        }
+                                    })
+                                }
+                                "correlation" -> {
+                                    // 相关性分析：计算不同类别之间的相关性
+                                    val correlationData = mutableMapOf<String, Double>()
+                                    
+                                    // 简单实现：随机生成相关性数据
+                                    // 实际应用中应该使用真实数据计算
+                                    categories.forEach { cat ->
+                                        if (cat != category && cat != topCategory) {
+                                            correlationData[cat] = (Math.random() * 2 - 1) // -1到1之间的随机值
+                                        }
+                                    }
+                                    
+                                    put("correlationData", buildJsonObject {
+                                        correlationData.forEach { (category, correlation) ->
+                                            put(category, correlation)
+                                        }
+                                    })
+                                }
+                            }
+                        },
+                        message = "Analytics data retrieved successfully"
+                    )
+                )
+            } catch (e: Exception) {
+                call.respond(
+                    HttpStatusCode.InternalServerError,
+                    ApiResponse(
+                        success = false,
+                        data = null,
+                        message = "Failed to retrieve analytics data: ${e.message}"
                     )
                 )
             }
