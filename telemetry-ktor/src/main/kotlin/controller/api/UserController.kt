@@ -1,20 +1,37 @@
 package cn.cangnova.controller.api
 
+import cn.cangnova.JwtConfig
 import cn.cangnova.UserSession
+import cn.cangnova.getJwtConfig
 import cn.cangnova.model.*
 import cn.cangnova.repository.factory.AdminUserRepositoryFactory
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import mu.KotlinLogging
+import kotlinx.serialization.Serializable
 
 private val logger = KotlinLogging.logger {}
 
 // 使用工厂获取仓库实例
 private val repository = AdminUserRepositoryFactory.getRepository()
+
+/**
+ * 令牌刷新响应
+ */
+@Serializable
+data class TokenRefreshResponse(
+    val success: Boolean,
+    val token: String? = null,
+    val refreshToken: String? = null,
+    val expiresIn: Int? = null,
+    val message: String? = null
+)
 
 /**
  * 用户认证 API 路由
@@ -31,22 +48,33 @@ fun Route.authApiRoutes() {
                 // 更新最后登录时间
                 repository.updateLastLoginTime(user.username)
 
-                // 设置会话
+                // 获取JWT配置
+                val jwtConfig = call.application.getJwtConfig()
+                
+                // 生成JWT令牌
+                val token = jwtConfig.generateToken(user.username, user.role)
+                val refreshToken = jwtConfig.generateRefreshToken(user.username)
+
+                // 设置会话（向后兼容）
                 call.sessions.set(UserSession(user.username))
 
-                call.respond(
-                    LoginResponse(
-                        success = true,
-                        message = "登录成功",
-                        user = AdminUserDto.fromAdminUser(user)
-                    )
+                // 创建响应对象
+                val response = mapOf(
+                    "success" to true,
+                    "message" to "登录成功",
+                    "user" to AdminUserDto.fromAdminUser(user),
+                    "token" to token,
+                    "refreshToken" to refreshToken,
+                    "expiresIn" to 3600
                 )
+
+                call.respond(HttpStatusCode.OK, response)
             } else {
                 call.respond(
                     HttpStatusCode.Unauthorized,
-                    LoginResponse(
-                        success = false,
-                        message = "用户名或密码错误"
+                    mapOf(
+                        "success" to false,
+                        "message" to "用户名或密码错误"
                     )
                 )
             }
@@ -54,9 +82,9 @@ fun Route.authApiRoutes() {
             logger.error(e) { "登录失败: ${e.message}" }
             call.respond(
                 HttpStatusCode.InternalServerError,
-                LoginResponse(
-                    success = false,
-                    message = "登录失败: ${e.message}"
+                mapOf(
+                    "success" to false,
+                    "message" to "登录失败: ${e.message}"
                 )
             )
         }
@@ -84,14 +112,75 @@ fun Route.authApiRoutes() {
             )
         }
     }
+    
+    // 刷新令牌API
+    post("/refresh") {
+        try {
+            val request = call.receive<RefreshTokenRequest>()
+            val refreshToken = request.refreshToken
+            
+            // 验证刷新令牌
+            val jwtConfig = call.application.getJwtConfig()
+            
+            try {
+                val jwt = jwtConfig.verifier.verify(refreshToken)
+                val username = jwt.getClaim("username").asString()
+                
+                // 检查用户是否存在
+                val user = repository.findByUsername(username)
+                
+                if (user != null) {
+                    // 生成新的访问令牌
+                    val newToken = jwtConfig.generateToken(user.username, user.role)
+                    val newRefreshToken = jwtConfig.generateRefreshToken(user.username)
+                    
+                    call.respond(
+                        HttpStatusCode.OK,
+                        TokenRefreshResponse(
+                            success = true,
+                            token = newToken,
+                            refreshToken = newRefreshToken,
+                            expiresIn = 3600
+                        )
+                    )
+                } else {
+                    call.respond(
+                        HttpStatusCode.Unauthorized,
+                        TokenRefreshResponse(
+                            success = false,
+                            message = "无效的刷新令牌"
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                logger.error(e) { "刷新令牌验证失败: ${e.message}" }
+                call.respond(
+                    HttpStatusCode.Unauthorized,
+                    TokenRefreshResponse(
+                        success = false,
+                        message = "无效的刷新令牌"
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "刷新令牌失败: ${e.message}" }
+            call.respond(
+                HttpStatusCode.InternalServerError,
+                TokenRefreshResponse(
+                    success = false,
+                    message = "刷新令牌失败"
+                )
+            )
+        }
+    }
 
     // 获取当前用户信息
-    authenticate("user-session") {
+    authenticate("jwt-auth") {
         get("/me") {
             try {
-                val principal =
-                    call.principal<UserIdPrincipal>() ?: return@get call.respond(HttpStatusCode.Unauthorized)
-                val username = principal.name
+                val principal = call.principal<JWTPrincipal>()
+                val username = principal?.payload?.getClaim("username")?.asString()
+                    ?: return@get call.respond(HttpStatusCode.Unauthorized)
 
                 val user = repository.findByUsername(username) ?: return@get call.respond(HttpStatusCode.NotFound)
 
@@ -112,7 +201,7 @@ fun Route.authApiRoutes() {
  */
 fun Route.usersApiRoutes() {
     // 需要用户认证
-    authenticate("user-session") {
+    authenticate("jwt-auth") {
         // 获取所有用户
         get {
             try {

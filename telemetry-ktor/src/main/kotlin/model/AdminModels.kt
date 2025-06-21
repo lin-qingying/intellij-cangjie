@@ -97,7 +97,22 @@ data class LoginRequest(
 data class LoginResponse(
     val success: Boolean,
     val message: String,
-    val user: AdminUserDto? = null
+    val user: AdminUserDto? = null,
+    val token: String? = null,
+    val refreshToken: String? = null,
+    val expiresIn: Int? = null
+)
+
+/**
+ * 令牌刷新响应
+ */
+@Serializable
+data class TokenRefreshResponse(
+    val success: Boolean,
+    val token: String? = null,
+    val refreshToken: String? = null,
+    val expiresIn: Int? = null,
+    val message: String? = null
 )
 
 /**

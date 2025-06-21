@@ -5,6 +5,13 @@ ktor:
     modules:
       - "cn.cangnova.ApplicationKt.module"
 
+# JWT配置
+jwt:
+  secret: "cangjie-telemetry-secret-key-for-jwt-authentication-please-change-in-production"
+  issuer: "cangjie-telemetry"
+  audience: "cangjie-telemetry-users"
+  realm: "CangJie Telemetry API"
+
 database:
   # 数据库类型: mongodb, mysql, postgresql
   type: "mongodb"

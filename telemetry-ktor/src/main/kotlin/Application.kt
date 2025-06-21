@@ -33,8 +33,6 @@ fun Application.module() {
     // 初始化数据库存储库
     configureDatabase()
     
-
-    
     // 配置内容协商
     install(ContentNegotiation) {
         json(Json {
@@ -94,6 +92,7 @@ fun Application.module() {
     
     // 配置认证
     configureWebAuth()
+    configureSecurity()
     
     // 配置路由
     configureRouting()

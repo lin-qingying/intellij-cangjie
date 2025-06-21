@@ -47,11 +47,12 @@ export interface EventsData {
 
 // 元数据列表响应数据
 export interface MetadataData {
-  metadata: Record<string, any>[];
+  metadata: TelemetryMetadata[];
   currentPage: number;
   totalPages: number;
   pageSize: number;
   totalCount: number;
+  formattedTimestamps?: Record<string, string>;
 }
 
 // 仪表盘数据
@@ -59,6 +60,17 @@ export interface DashboardData {
   totalEvents: number;
   totalMetadata: number;
   recentMetadata: Record<string, any>[];
+  uniqueUsers: number;
+  systemStatus: {
+    cpu: number;
+    memory: number;
+    disk: number;
+    status: 'normal' | 'warning' | 'error';
+  };
+  todayNewEvents: number;
+  todayNewMetadata: number;
+  userGrowth: string;
+  lastSyncTime: string;
 }
 
 // 报表数据

@@ -17,40 +17,21 @@ object AnySerializer : KSerializer<Any> {
     override fun serialize(encoder: Encoder, value: Any) {
         val jsonEncoder = encoder as? JsonEncoder
             ?: throw IllegalArgumentException("This serializer can only be used with JSON")
-        
-        val jsonElement = when (value) {
-            is String -> JsonPrimitive(value)
-            is Number -> JsonPrimitive(value)
-            is Boolean -> JsonPrimitive(value)
-            is Map<*, *> -> {
-                val mapContents = value.entries.associate { (k, v) ->
-                    k.toString() to serializeAny(v)
-                }
-                JsonObject(mapContents)
-            }
-            is List<*> -> {
-                val listContents = value.map { serializeAny(it) }
-                JsonArray(listContents)
-            }
-            null -> JsonNull
-            else -> {
-                // For other types, convert to string
-                JsonPrimitive(value.toString())
-            }
-        }
-        
+
+        val jsonElement = serializeAny(value)
         jsonEncoder.encodeJsonElement(jsonElement)
     }
 
     override fun deserialize(decoder: Decoder): Any {
         val jsonDecoder = decoder as? JsonDecoder
             ?: throw IllegalArgumentException("This serializer can only be used with JSON")
-        
+
         return deserializeJsonElement(jsonDecoder.decodeJsonElement())
     }
-    
+
     private fun serializeAny(value: Any?): JsonElement {
         return when (value) {
+            is JsonElement -> value
             is String -> JsonPrimitive(value)
             is Number -> JsonPrimitive(value)
             is Boolean -> JsonPrimitive(value)
@@ -60,18 +41,31 @@ object AnySerializer : KSerializer<Any> {
                 }
                 JsonObject(mapContents)
             }
+
             is List<*> -> {
                 val listContents = value.map { serializeAny(it) }
                 JsonArray(listContents)
             }
+
             null -> JsonNull
             else -> {
-                // For other types, convert to string
-                JsonPrimitive(value.toString())
+                // 对于其他类型，尝试转换为基本类型而不是直接toString
+                try {
+                    // 尝试反射获取属性并转换为Map
+                    val properties = value::class.java.declaredFields
+                        .filter { it.isAccessible || it.trySetAccessible() }
+                        .associate { field ->
+                            field.name to field.get(value)
+                        }
+                    serializeAny(properties)
+                } catch (e: Exception) {
+                    // 如果反射失败，则使用toString
+                    JsonPrimitive(value.toString())
+                }
             }
         }
     }
-    
+
     private fun deserializeJsonElement(element: JsonElement): Any {
         return when (element) {
             is JsonPrimitive -> {
@@ -83,6 +77,7 @@ object AnySerializer : KSerializer<Any> {
                     else -> element.content
                 }
             }
+
             is JsonArray -> element.map { deserializeJsonElement(it) }
             is JsonObject -> element.mapValues { deserializeJsonElement(it.value) }
             JsonNull -> null

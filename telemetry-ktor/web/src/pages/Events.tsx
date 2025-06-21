@@ -1,48 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Table, Card, Form, Input, Select, DatePicker, Button, Space, 
-  Tag, Tooltip, Modal, message, Typography, Pagination, Row, Col, Spin 
+import {
+  Card, Table, Typography, Button, Space, Input, Select, DatePicker,
+  Tag, Modal, Tabs, Tooltip, message, Spin, Badge, Row, Col, Form, Divider,
+  Dropdown, Menu, Pagination
 } from 'antd';
-import { 
-  SearchOutlined, 
-  ReloadOutlined, 
-  DeleteOutlined, 
-  InfoCircleOutlined,
-  ExclamationCircleOutlined 
+import {
+  FilterOutlined, SearchOutlined, ReloadOutlined, InfoCircleOutlined,
+  DownOutlined, ExportOutlined, QuestionCircleOutlined,
+  ArrowRightOutlined, EyeOutlined, FileTextOutlined, CloseCircleOutlined
 } from '@ant-design/icons';
-import { getEvents, deleteEvent, bulkDeleteEvents } from '../services/api';
+import { getEvents } from '../services/api';
 import type { ApiResponse, EventsData, TelemetryEvent } from '../types';
 import dayjs from 'dayjs';
+import { Link } from 'react-router-dom';
 
-const { Title } = Typography;
+const { Title, Text, Paragraph } = Typography;
 const { Option } = Select;
-const { confirm } = Modal;
-
-interface EventsSearchParams {
-  page: number;
-  pageSize: number;
-  category?: string;
-  name?: string;
-  startDate?: string;
-  endDate?: string;
-  groupBy?: string;
-}
+const { RangePicker } = DatePicker;
+const { TabPane } = Tabs;
 
 const Events: React.FC = () => {
-  const [form] = Form.useForm();
   const [loading, setLoading] = useState<boolean>(true);
   const [eventsData, setEventsData] = useState<EventsData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [searchParams, setSearchParams] = useState<EventsSearchParams>({
-    page: 1,
-    pageSize: 10
-  });
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [propertyModalVisible, setPropertyModalVisible] = useState<boolean>(false);
+  const [propertiesModalVisible, setPropertiesModalVisible] = useState<boolean>(false);
   const [currentEvent, setCurrentEvent] = useState<TelemetryEvent | null>(null);
+  const [searchText, setSearchText] = useState<string>('');
+  const [filterVisible, setFilterVisible] = useState<boolean>(true);
+  const [helpModalVisible, setHelpModalVisible] = useState<boolean>(false);
+  
+  // 筛选条件
+  const [filters, setFilters] = useState({
+    category: '',
+    name: '',
+    startDate: '',
+    endDate: '',
+    page: 1,
+    pageSize: 10,
+    metadataId: ''
+  });
 
-  // 获取事件列表数据
-  const fetchEvents = async (params: EventsSearchParams) => {
+  // 获取事件列表
+  const fetchEvents = async (params = filters) => {
     try {
       setLoading(true);
       const response = await getEvents(params);
@@ -52,10 +51,10 @@ const Events: React.FC = () => {
         setEventsData(result.data);
         setError(null);
       } else {
-        setError(result.message || '获取事件数据失败');
+        setError(result.message || '获取事件列表失败');
       }
     } catch (err: any) {
-      setError(err.message || '获取事件数据失败');
+      setError(err.message || '获取事件列表失败');
     } finally {
       setLoading(false);
     }
@@ -63,107 +62,61 @@ const Events: React.FC = () => {
 
   // 初始加载
   useEffect(() => {
-    fetchEvents(searchParams);
+    fetchEvents();
   }, []);
 
-  // 处理搜索
-  const handleSearch = (values: any) => {
-    const params: EventsSearchParams = {
-      ...searchParams,
-      page: 1, // 搜索时重置为第一页
-      category: values.category,
-      name: values.name,
-      startDate: values.startDate ? dayjs(values.startDate).format('YYYY-MM-DD') : undefined,
-      endDate: values.endDate ? dayjs(values.endDate).format('YYYY-MM-DD') : undefined,
-      groupBy: values.groupBy
-    };
-    setSearchParams(params);
-    fetchEvents(params);
+  // 处理筛选条件变更
+  const handleFilterChange = (changedValues: any) => {
+    const newFilters = { ...filters, ...changedValues, page: 1 };
+    setFilters(newFilters);
+    fetchEvents(newFilters);
   };
 
-  // 重置搜索
-  const resetSearch = () => {
-    form.resetFields();
-    const params: EventsSearchParams = {
-      page: 1,
-      pageSize: searchParams.pageSize
-    };
-    setSearchParams(params);
-    fetchEvents(params);
-  };
-
-  // 处理分页变化
+  // 处理分页变更
   const handlePageChange = (page: number, pageSize?: number) => {
-    const newParams = { ...searchParams, page, pageSize: pageSize || searchParams.pageSize };
-    setSearchParams(newParams);
-    fetchEvents(newParams);
+    const newFilters = { ...filters, page, pageSize: pageSize || filters.pageSize };
+    setFilters(newFilters);
+    fetchEvents(newFilters);
   };
 
-  // 查看事件属性
-  const viewProperties = (event: TelemetryEvent) => {
+  // 处理查看属性
+  const showProperties = (event: TelemetryEvent) => {
     setCurrentEvent(event);
-    setPropertyModalVisible(true);
+    setPropertiesModalVisible(true);
   };
 
-  // 删除单个事件
-  const handleDeleteEvent = (id: string) => {
-    confirm({
-      title: '确定要删除这条事件记录吗？',
-      icon: <ExclamationCircleOutlined />,
-      content: '删除后无法恢复',
-      okText: '删除',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          const response = await deleteEvent(id);
-          const result = response.data as ApiResponse<any>;
-          
-          if (result.success) {
-            message.success('事件删除成功');
-            fetchEvents(searchParams);
-          } else {
-            message.error(result.message || '删除事件失败');
-          }
-        } catch (err: any) {
-          message.error(err.message || '删除事件失败');
-        }
+  // 重置筛选条件
+  const resetFilters = () => {
+    const defaultFilters = {
+      category: '',
+      name: '',
+      startDate: '',
+      endDate: '',
+      page: 1,
+      pageSize: 10,
+      metadataId: ''
+    };
+    setFilters(defaultFilters);
+    fetchEvents(defaultFilters);
+  };
+
+  // 导出数据菜单
+  const exportMenu = (
+    <Menu items={[
+      {
+        key: '1',
+        label: '导出为CSV',
+        icon: <FileTextOutlined />,
+        onClick: () => message.info('CSV导出功能正在开发中')
+      },
+      {
+        key: '2',
+        label: '导出为JSON',
+        icon: <FileTextOutlined />,
+        onClick: () => message.info('JSON导出功能正在开发中')
       }
-    });
-  };
-
-  // 批量删除事件
-  const handleBulkDelete = () => {
-    if (selectedRowKeys.length === 0) {
-      message.warning('请选择要删除的事件');
-      return;
-    }
-
-    confirm({
-      title: `确定要删除选中的 ${selectedRowKeys.length} 条事件记录吗？`,
-      icon: <ExclamationCircleOutlined />,
-      content: '删除后无法恢复',
-      okText: '删除',
-      okType: 'danger',
-      cancelText: '取消',
-      onOk: async () => {
-        try {
-          const response = await bulkDeleteEvents(selectedRowKeys as string[]);
-          const result = response.data as ApiResponse<any>;
-          
-          if (result.success) {
-            message.success(`成功删除 ${result.data?.deletedCount || 0} 条事件`);
-            setSelectedRowKeys([]);
-            fetchEvents(searchParams);
-          } else {
-            message.error(result.message || '批量删除事件失败');
-          }
-        } catch (err: any) {
-          message.error(err.message || '批量删除事件失败');
-        }
-      }
-    });
-  };
+    ]} />
+  );
 
   // 表格列配置
   const columns = [
@@ -171,7 +124,7 @@ const Events: React.FC = () => {
       title: 'ID',
       dataIndex: 'id',
       key: 'id',
-      width: 150,
+      width: 100,
       ellipsis: true,
     },
     {
@@ -179,16 +132,15 @@ const Events: React.FC = () => {
       dataIndex: 'category',
       key: 'category',
       width: 100,
-      render: (text: string) => {
+      render: (category: string) => {
         let color = 'blue';
-        switch (text) {
-          case 'error': color = 'red'; break;
-          case 'warning': color = 'orange'; break;
-          case 'info': color = 'green'; break;
-          case 'success': color = 'green'; break;
-        }
-        return <Tag color={color}>{text}</Tag>;
-      }
+        if (category === 'error') color = 'red';
+        else if (category === 'warning') color = 'orange';
+        else if (category === 'info') color = 'cyan';
+        else if (category === 'success') color = 'green';
+        
+        return <Tag color={color}>{category}</Tag>;
+      },
     },
     {
       title: '名称',
@@ -200,216 +152,434 @@ const Events: React.FC = () => {
       title: '值',
       dataIndex: 'value',
       key: 'value',
-      width: 150,
+      width: 200,
       ellipsis: true,
+      render: (value: string) => (
+        <Tooltip title={value}>
+          <span>{value}</span>
+        </Tooltip>
+      ),
     },
     {
       title: '时间',
       key: 'timestamp',
-      width: 180,
-      render: (record: TelemetryEvent) => (
-        <span>
-          {eventsData?.formattedTimestamps[record.id] || record.timestamp}
-        </span>
-      )
+      width: 150,
+      render: (record: TelemetryEvent) => {
+        const formattedTime = eventsData?.formattedTimestamps?.[record.id];
+        return formattedTime || record.timestamp;
+      },
     },
     {
       title: '操作',
       key: 'action',
-      width: 150,
-      render: (record: TelemetryEvent) => (
+      width: 180,
+      render: (_: any, record: TelemetryEvent) => (
         <Space>
-          <Button 
-            type="text" 
-            icon={<InfoCircleOutlined />} 
-            onClick={() => viewProperties(record)}
+          <Button
+            type="primary"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={() => showProperties(record)}
           >
-            属性
+            快速查看
           </Button>
-          <Button 
-            type="text" 
-            danger 
-            icon={<DeleteOutlined />} 
-            onClick={() => handleDeleteEvent(record.id)}
-          >
-            删除
-          </Button>
+          <Link to={`/events/${record.id}`}>
+            <Button
+              type="default"
+              size="small"
+              icon={<ArrowRightOutlined />}
+            >
+              详情
+            </Button>
+          </Link>
         </Space>
-      )
-    }
+      ),
+    },
   ];
+
+  // 获取类别标签颜色
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'error':
+        return 'red';
+      case 'warning':
+        return 'orange';
+      case 'info':
+        return 'cyan';
+      case 'success':
+        return 'green';
+      default:
+        return 'blue';
+    }
+  };
 
   return (
     <div>
       <Title level={2}>事件列表</Title>
       
-      <Card className="filter-form">
-        <Form
-          form={form}
-          layout="horizontal"
-          onFinish={handleSearch}
-          initialValues={{
-            category: undefined,
-            name: undefined,
-            startDate: undefined,
-            endDate: undefined,
-            groupBy: undefined
-          }}
-        >
-          <Row gutter={16}>
-            <Col span={6}>
-              <Form.Item name="category" label="事件类别">
-                <Select
-                  allowClear
-                  placeholder="选择事件类别"
-                >
-                  {eventsData?.categories.map(category => (
-                    <Option key={category} value={category}>{category}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="name" label="事件名称">
-                <Select
-                  allowClear
-                  placeholder="选择事件名称"
-                >
-                  {eventsData?.eventNames.map(name => (
-                    <Option key={name} value={name}>{name}</Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="startDate" label="开始日期">
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item name="endDate" label="结束日期">
-                <DatePicker style={{ width: '100%' }} />
-              </Form.Item>
-            </Col>
-          </Row>
-          
-          <Row gutter={16}>
-            <Col span={6}>
-              <Form.Item name="groupBy" label="分组方式">
-                <Select
-                  allowClear
-                  placeholder="选择分组方式"
-                >
-                  <Option value="value">按值分组</Option>
-                  <Option value="category">按类别分组</Option>
-                  <Option value="name">按名称分组</Option>
-                </Select>
-              </Form.Item>
-            </Col>
-            <Col span={18} style={{ textAlign: 'right' }}>
-              <Space>
-                <Button type="primary" icon={<SearchOutlined />} htmlType="submit">
-                  搜索
-                </Button>
-                <Button icon={<ReloadOutlined />} onClick={resetSearch}>
-                  重置
-                </Button>
-                <Button 
-                  danger 
-                  icon={<DeleteOutlined />} 
-                  disabled={selectedRowKeys.length === 0}
-                  onClick={handleBulkDelete}
-                >
-                  批量删除 ({selectedRowKeys.length})
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        </Form>
-      </Card>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '50px' }}>
-          <Spin size="large" />
-        </div>
-      ) : error ? (
-        <div style={{ textAlign: 'center', color: 'red', padding: '50px' }}>
-          {error}
-        </div>
-      ) : (
-        <Card>
-          <Table
-            rowKey="id"
-            columns={columns}
-            dataSource={eventsData?.events || []}
-            pagination={false}
-            rowSelection={{
-              selectedRowKeys,
-              onChange: (keys) => setSelectedRowKeys(keys)
-            }}
+      {/* 筛选卡片 */}
+      <Card 
+        title={
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <FilterOutlined style={{ marginRight: 8 }} />
+            <span>筛选条件</span>
+          </div>
+        }
+        extra={
+          <Button 
+            type="text" 
+            icon={filterVisible ? <DownOutlined /> : <ArrowRightOutlined />} 
+            onClick={() => setFilterVisible(!filterVisible)}
           />
-          
-          {eventsData && eventsData.totalPages > 0 && (
-            <div style={{ marginTop: 16, textAlign: 'right' }}>
-              <Pagination
-                current={eventsData.currentPage}
-                pageSize={eventsData.pageSize}
-                total={eventsData.totalCount}
-                showSizeChanger
-                showQuickJumper
-                showTotal={(total) => `共 ${total} 条记录`}
-                onChange={handlePageChange}
-              />
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* 事件属性详情模态框 */}
+        }
+        style={{ marginBottom: 16 }}
+      >
+        {filterVisible && (
+          <Form layout="vertical" onFinish={() => {}}>
+            <Row gutter={16}>
+              <Col xs={24} md={24} lg={24}>
+                <Input
+                  placeholder="搜索事件..."
+                  prefix={<SearchOutlined />}
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  style={{ marginBottom: 16 }}
+                  suffix={
+                    searchText ? (
+                      <CloseCircleOutlined onClick={() => setSearchText('')} />
+                    ) : null
+                  }
+                />
+                <Text type="secondary" style={{ display: 'block', marginBottom: 16 }}>
+                  搜索将在当前页面结果中进行筛选
+                </Text>
+              </Col>
+              
+              <Col xs={24} md={8}>
+                <Form.Item label="事件类别">
+                  <Select
+                    placeholder="选择事件类别"
+                    value={filters.category}
+                    onChange={(value) => handleFilterChange({ category: value })}
+                    allowClear
+                    style={{ width: '100%' }}
+                  >
+                    {eventsData?.categories?.map((category) => (
+                      <Option key={category} value={category}>
+                        {category}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} md={8}>
+                <Form.Item label="事件名称">
+                  <Select
+                    placeholder="选择事件名称"
+                    value={filters.name}
+                    onChange={(value) => handleFilterChange({ name: value })}
+                    allowClear
+                    style={{ width: '100%' }}
+                  >
+                    {eventsData?.eventNames?.map((name) => (
+                      <Option key={name} value={name}>
+                        {name}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} md={8}>
+                <Form.Item label="日期范围">
+                  <RangePicker
+                    style={{ width: '100%' }}
+                    onChange={(dates) => {
+                      if (dates) {
+                        handleFilterChange({
+                          startDate: dates[0]?.format('YYYY-MM-DD'),
+                          endDate: dates[1]?.format('YYYY-MM-DD')
+                        });
+                      } else {
+                        handleFilterChange({
+                          startDate: '',
+                          endDate: ''
+                        });
+                      }
+                    }}
+                  />
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} md={8}>
+                <Form.Item label="每页显示">
+                  <Select
+                    value={filters.pageSize}
+                    onChange={(value) => handleFilterChange({ pageSize: value })}
+                    style={{ width: '100%' }}
+                  >
+                    <Option value={10}>10 条/页</Option>
+                    <Option value={25}>25 条/页</Option>
+                    <Option value={50}>50 条/页</Option>
+                    <Option value={100}>100 条/页</Option>
+                  </Select>
+                </Form.Item>
+              </Col>
+              
+              <Col xs={24} md={16}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', height: '100%', marginBottom: 24 }}>
+                  <Space>
+                    <Button
+                      type="primary"
+                      icon={<FilterOutlined />}
+                      onClick={() => fetchEvents(filters)}
+                    >
+                      应用筛选
+                    </Button>
+                    <Button
+                      icon={<ReloadOutlined />}
+                      onClick={resetFilters}
+                    >
+                      重置筛选
+                    </Button>
+                  </Space>
+                  
+                  {eventsData?.totalCount !== undefined && (
+                    <Text style={{ marginLeft: 'auto' }}>
+                      共 <Text strong>{eventsData.totalCount}</Text> 条记录
+                    </Text>
+                  )}
+                </div>
+              </Col>
+            </Row>
+          </Form>
+        )}
+      </Card>
+      
+      {/* 事件列表卡片 */}
+      <Card
+        title={
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <InfoCircleOutlined style={{ marginRight: 8 }} />
+            <span>事件列表</span>
+            {filters.metadataId && (
+              <Tag color="blue" style={{ marginLeft: 8 }}>
+                按元数据ID过滤: {filters.metadataId}
+                <CloseCircleOutlined
+                  onClick={() => handleFilterChange({ metadataId: '' })}
+                  style={{ marginLeft: 4, cursor: 'pointer' }}
+                />
+              </Tag>
+            )}
+          </div>
+        }
+        extra={
+          <Space>
+            <Dropdown overlay={exportMenu}>
+              <Button icon={<ExportOutlined />}>
+                导出 <DownOutlined />
+              </Button>
+            </Dropdown>
+            <Button
+              icon={<QuestionCircleOutlined />}
+              onClick={() => setHelpModalVisible(true)}
+            />
+          </Space>
+        }
+      >
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            <Spin size="large" />
+          </div>
+        ) : error ? (
+          <div style={{ textAlign: 'center', color: 'red', padding: '50px' }}>
+            {error}
+          </div>
+        ) : (
+          <>
+            <Table
+              rowKey="id"
+              columns={columns}
+              dataSource={eventsData?.events.filter(event => {
+                if (!searchText) return true;
+                const searchLower = searchText.toLowerCase();
+                return (
+                  event.id.toLowerCase().includes(searchLower) ||
+                  event.category.toLowerCase().includes(searchLower) ||
+                  event.name.toLowerCase().includes(searchLower) ||
+                  event.value.toLowerCase().includes(searchLower)
+                );
+              }) || []}
+              pagination={false}
+              scroll={{ x: 'max-content' }}
+            />
+            
+            {eventsData?.totalPages && eventsData.totalPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                <Pagination
+                  current={filters.page}
+                  pageSize={filters.pageSize}
+                  total={eventsData.totalCount}
+                  showQuickJumper
+                  showSizeChanger={false}
+                  onChange={handlePageChange}
+                  showTotal={(total) => `共 ${total} 条记录`}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+      
+      {/* 属性模态框 */}
       <Modal
-        title="事件属性详情"
-        open={propertyModalVisible}
-        onCancel={() => setPropertyModalVisible(false)}
-        footer={null}
+        title={
+          <div>
+            <InfoCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+            事件属性
+          </div>
+        }
+        open={propertiesModalVisible}
+        onCancel={() => setPropertiesModalVisible(false)}
+        footer={[
+          <Button key="close" onClick={() => setPropertiesModalVisible(false)}>
+            关闭
+          </Button>
+        ]}
         width={600}
       >
         {currentEvent && (
-          <div>
-            <p><strong>ID:</strong> {currentEvent.id}</p>
-            <p><strong>类别:</strong> <Tag>{currentEvent.category}</Tag></p>
-            <p><strong>名称:</strong> {currentEvent.name}</p>
-            <p><strong>值:</strong> {currentEvent.value}</p>
-            <p><strong>时间:</strong> {eventsData?.formattedTimestamps[currentEvent.id] || currentEvent.timestamp}</p>
+          <>
+            <div style={{ marginBottom: 16 }}>
+              <Text type="secondary">事件ID: {currentEvent.id}</Text>
+              <Title level={5} style={{ margin: '8px 0' }}>{currentEvent.name}</Title>
+              <Tag color={getCategoryColor(currentEvent.category)}>{currentEvent.category}</Tag>
+            </div>
             
-            {currentEvent.metadataId && eventsData?.metadataMap[currentEvent.metadataId] && (
-              <div>
-                <h4>元数据信息</h4>
-                <div style={{ background: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
-                  <p><strong>插件版本:</strong> {eventsData.metadataMap[currentEvent.metadataId].pluginVersion}</p>
-                  <p><strong>IDE版本:</strong> {eventsData.metadataMap[currentEvent.metadataId].ideVersion}</p>
-                  <p><strong>操作系统:</strong> {eventsData.metadataMap[currentEvent.metadataId].os} {eventsData.metadataMap[currentEvent.metadataId].osVersion}</p>
-                  <p><strong>Java版本:</strong> {eventsData.metadataMap[currentEvent.metadataId].javaVersion}</p>
-                  <p><strong>系统ID:</strong> {eventsData.metadataMap[currentEvent.metadataId].systemId}</p>
-                </div>
-              </div>
+            {currentEvent.metadataId && eventsData?.metadataMap && eventsData.metadataMap[currentEvent.metadataId] && (
+              <>
+                <Divider orientation="left">元数据信息</Divider>
+                <Row gutter={[16, 8]}>
+                  {Object.entries(eventsData.metadataMap[currentEvent.metadataId]).map(([key, value]) => (
+                    <Col span={12} key={key}>
+                      <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>{key}</Text>
+                      <div>{value || '-'}</div>
+                    </Col>
+                  ))}
+                </Row>
+              </>
             )}
             
-            <h4>事件属性</h4>
+            <Divider orientation="left">事件属性</Divider>
             {Object.keys(currentEvent.properties).length > 0 ? (
-              <div>
-                {Object.entries(currentEvent.properties).map(([key, value]) => (
-                  <div key={key} style={{ marginBottom: '5px' }}>
-                    <Tooltip title={value}>
-                      <Tag color="blue" className="property-tag">{key}: {value}</Tag>
-                    </Tooltip>
-                  </div>
-                ))}
-              </div>
+              <Table
+                dataSource={Object.entries(currentEvent.properties).map(([key, value]) => ({
+                  key,
+                  value
+                }))}
+                columns={[
+                  {
+                    title: '键',
+                    dataIndex: 'key',
+                    key: 'key',
+                    width: '40%',
+                    render: (text) => <Text code>{text}</Text>
+                  },
+                  {
+                    title: '值',
+                    dataIndex: 'value',
+                    key: 'value',
+                    width: '60%',
+                    render: (value) => {
+                      // 如果是字符串且可能包含HTML代码，则直接渲染HTML
+                      if (typeof value === 'string') {
+                        if (value.includes('<div') || value.includes('<span')) {
+                          return <div dangerouslySetInnerHTML={{ __html: value }} />;
+                        }
+                        
+                        // 尝试解析JSON
+                        try {
+                          if ((value.startsWith('{') && value.endsWith('}')) || 
+                              (value.startsWith('[') && value.endsWith(']'))) {
+                            const parsed = JSON.parse(value);
+                            return (
+                              <div style={{ maxHeight: '200px', overflow: 'auto' }}>
+                                <pre style={{ 
+                                  whiteSpace: 'pre-wrap', 
+                                  wordBreak: 'break-word',
+                                  backgroundColor: '#f5f5f5',
+                                  padding: '8px',
+                                  borderRadius: '4px',
+                                  fontSize: '12px',
+                                  margin: 0
+                                }}>
+                                  {JSON.stringify(parsed, null, 2)}
+                                </pre>
+                              </div>
+                            );
+                          }
+                        } catch (e) {
+                          // 解析失败，按普通文本处理
+                        }
+                      }
+                      
+                      // 默认显示
+                      return <span>{String(value)}</span>;
+                    }
+                  }
+                ]}
+                pagination={false}
+                size="small"
+              />
             ) : (
-              <p>没有属性数据</p>
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <Text type="secondary">没有属性数据</Text>
+              </div>
             )}
-          </div>
+          </>
         )}
+      </Modal>
+      
+      {/* 帮助模态框 */}
+      <Modal
+        title={
+          <div>
+            <QuestionCircleOutlined style={{ marginRight: 8, color: '#1890ff' }} />
+            帮助信息
+          </div>
+        }
+        open={helpModalVisible}
+        onCancel={() => setHelpModalVisible(false)}
+        footer={[
+          <Button key="ok" type="primary" onClick={() => setHelpModalVisible(false)}>
+            了解了
+          </Button>
+        ]}
+      >
+        <Title level={5}>如何使用筛选功能</Title>
+        <ul>
+          <li>使用<Text strong>事件类别</Text>筛选特定类型的事件</li>
+          <li>使用<Text strong>事件名称</Text>筛选特定名称的事件</li>
+          <li>使用<Text strong>日期范围</Text>筛选特定时间段的事件</li>
+          <li>使用<Text strong>搜索框</Text>在当前页面结果中快速查找</li>
+        </ul>
+        
+        <Title level={5}>事件类别说明</Title>
+        <Space>
+          <Tag color="blue">默认</Tag>
+          <Tag color="green">success</Tag>
+          <Tag color="cyan">info</Tag>
+          <Tag color="orange">warning</Tag>
+          <Tag color="red">error</Tag>
+        </Space>
+        
+        <Divider />
+        
+        <Title level={5}>导出数据</Title>
+        <Paragraph>
+          您可以将当前筛选结果导出为CSV或JSON格式，方便进行进一步分析。
+        </Paragraph>
       </Modal>
     </div>
   );

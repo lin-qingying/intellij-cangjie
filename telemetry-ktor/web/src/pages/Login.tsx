@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Card, message, Checkbox, Space } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Form, Input, Button, Card, message, Checkbox, Space, Alert } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../services/api';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { loginWithJWT, isAuthenticated } from '../services/auth';
 
 interface LoginForm {
   username: string;
@@ -12,11 +12,21 @@ interface LoginForm {
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [devMode, setDevMode] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // 如果已经登录，重定向到仪表盘
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleSubmit = async (values: LoginForm) => {
     try {
       setLoading(true);
+      setError(null);
       
       // Development mode bypass
       if (devMode) {
@@ -27,18 +37,16 @@ const Login: React.FC = () => {
         return;
       }
       
-      const response = await login(values.username, values.password);
+      const success = await loginWithJWT(values.username, values.password);
       
-      if (response.data.success) {
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+      if (success) {
         message.success('登录成功');
-        navigate('/dashboard');
-      } else {
-        message.error(response.data.message || '登录失败，请检查用户名和密码');
+        // 获取重定向URL，如果没有则默认到仪表盘
+        const from = location.state?.from?.pathname || '/dashboard';
+        navigate(from);
       }
-    } catch (error) {
-      message.error('登录失败，请稍后重试');
+    } catch (error: any) {
+      setError(error.message || '登录失败，请稍后重试');
       console.error('Login error:', error);
     } finally {
       setLoading(false);
@@ -58,6 +66,18 @@ const Login: React.FC = () => {
         style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
         headStyle={{ textAlign: 'center', fontSize: '20px' }}
       >
+        {error && (
+          <Alert
+            message="登录错误"
+            description={error}
+            type="error"
+            showIcon
+            closable
+            style={{ marginBottom: 16 }}
+            onClose={() => setError(null)}
+          />
+        )}
+        
         <Form
           name="login"
           initialValues={{ remember: true }}
@@ -72,6 +92,8 @@ const Login: React.FC = () => {
               prefix={<UserOutlined />} 
               placeholder="用户名" 
               size="large"
+              disabled={loading}
+              autoComplete="username"
             />
           </Form.Item>
 
@@ -83,12 +105,18 @@ const Login: React.FC = () => {
               prefix={<LockOutlined />} 
               placeholder="密码" 
               size="large"
+              disabled={loading}
+              autoComplete="current-password"
             />
           </Form.Item>
           
           <Form.Item>
             <Space direction="vertical" style={{ width: '100%' }}>
-              <Checkbox checked={devMode} onChange={(e) => setDevMode(e.target.checked)}>
+              <Checkbox 
+                checked={devMode} 
+                onChange={(e) => setDevMode(e.target.checked)}
+                disabled={loading}
+              >
                 开发模式 (跳过后端验证)
               </Checkbox>
               
