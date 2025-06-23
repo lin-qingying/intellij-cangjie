@@ -25,6 +25,8 @@
 package cn.cangnova.cangjie
 
 
+import cn.cangnova.telemetry.api.EventCategories.IDE_OPEN
+import cn.cangnova.telemetry.api.TelemetryService
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
@@ -36,6 +38,13 @@ class CangJieStartupActivity : ProjectActivity {
 
     override suspend fun execute(project: Project) {
         LOG.info("Cangjie plugin has been launched")
+
+
+//        插件打开时发送遥测事件
+        val telemetryService = TelemetryService.getInstance()
+        telemetryService.sendEvent(
+            IDE_OPEN, "ide_open", 0
+        )
 
 
 //        TelemetryNotifications.showNotification()

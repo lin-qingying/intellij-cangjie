@@ -29,40 +29,45 @@ package cn.cangnova.telemetry.api
  */
 object EventCategories {
     /**
+     * IDE打开事件
+     */
+    const val IDE_OPEN = "ide_open"
+
+    /**
      * 用户界面事件
      */
     const val UI = "ui"
-    
+
     /**
      * 性能事件
      */
     const val PERFORMANCE = "performance"
-    
+
     /**
      * 错误事件
      */
     const val ERROR = "error"
-    
+
     /**
      * 诊断事件
      */
     const val DIAGNOSTICS = "diagnostics"
-    
+
     /**
      * 功能使用事件
      */
     const val FEATURE_USAGE = "feature_usage"
-    
+
     /**
      * 编译器事件
      */
     const val COMPILER = "compiler"
-    
+
     /**
      * 语言服务器事件
      */
     const val LSP = "lsp"
-    
+
     /**
      * 测试事件
      */
