@@ -31,7 +31,6 @@ import com.intellij.serialization.PropertyMapping
 object CangJieLanguage : Language("CangJie") {
     private fun readResolve(): Any = CangJieLanguage
 
-    private const val serialVersionUID: Long = -5904233506317486796L
     val NAME: String = "CangJie"
 
 //    private fun readResolve(): Any = CangJieLanguage

@@ -25,6 +25,7 @@
 dependencies {
     implementation(project(":"))
     implementation(project(":util"))
+    implementation(project(":psi"))
 
 }
 

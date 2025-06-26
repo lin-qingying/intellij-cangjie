@@ -57,7 +57,7 @@ internal class IdeStubIndexService : StubIndexService() {
                 if (childInfo.name != null) {
                     sink.occurrence(
                         CangJieVariableShortNameIndex.Helper.indexKey,
-                        childInfo.name.getString()
+                        childInfo.name!!.getString()
                     )
 
 
@@ -65,7 +65,7 @@ internal class IdeStubIndexService : StubIndexService() {
                     if (typeReference != null && CangJiePsiHeuristics.isProbablyNothing(typeReference)) {
                         sink.occurrence(
                             CangJieVariableNothingVariableShortNameIndex.Helper.indexKey,
-                            childInfo.name.getString()
+                            childInfo.name!!.getString()
                         )
                     }
                 }
@@ -90,11 +90,11 @@ internal class IdeStubIndexService : StubIndexService() {
                     if (childInfo.fqName != null) {
                         sink.occurrence(
                             CangJieTopLevelVariableFqnNameIndex.Helper.indexKey,
-                            childInfo.fqName.asString()
+                            childInfo.fqName!!.asString()
                         )
                         sink.occurrence(
                             CangJieTopLevelVariableByPackageIndex.Helper.indexKey,
-                            childInfo.fqName.parent().asString()
+                            childInfo.fqName!!.parent().asString()
                         )
                         indexTopLevelExtension(stub, sink)
                     }
