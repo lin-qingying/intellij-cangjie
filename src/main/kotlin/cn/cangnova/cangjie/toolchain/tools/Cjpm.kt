@@ -28,7 +28,6 @@ package cn.cangnova.cangjie.toolchain.tools
 import cn.cangnova.cangjie.cjpm.CjpmConstants
 import cn.cangnova.cangjie.cjpm.project.pathAsPath
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspaceData
-import cn.cangnova.cangjie.cjpm.resolve
 import cn.cangnova.cangjie.ide.experiments.CjExperiments
 import cn.cangnova.cangjie.ide.module.CjProcessResult
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandLine

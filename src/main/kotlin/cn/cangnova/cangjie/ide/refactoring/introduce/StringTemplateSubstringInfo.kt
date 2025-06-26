@@ -26,16 +26,14 @@ package cn.cangnova.cangjie.ide.refactoring.introduce
 
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.CjExpression
-import cn.cangnova.cangjie.psi.CjLiteralStringTemplateEntry
 import cn.cangnova.cangjie.psi.CjPsiFactory
 import cn.cangnova.cangjie.psi.CjStringTemplateEntry
-import cn.cangnova.cangjie.psi.CjStringTemplateEntryWithExpression
 import cn.cangnova.cangjie.psi.CjStringTemplateExpression
 import cn.cangnova.cangjie.psi.UserDataProperty
 import cn.cangnova.cangjie.psi.psiUtil.endOffset
 import cn.cangnova.cangjie.psi.psiUtil.nextSiblingOfSameType
 import cn.cangnova.cangjie.psi.psiUtil.startOffset
-import cn.cangnova.cangjie.utils.CangJieExceptionWithAttachments
+import cn.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
@@ -108,11 +106,11 @@ abstract class StringTemplateSubstringInfo(
      * 如果子串为纯字符串，则添加引号；否则直接使用内容。
      *
      * @return 新创建的表达式
-     * @throws CangJieExceptionWithAttachments 如果模板缺少引号
+     * @throws CangJieExceptionWithAttachmentsImpl 如果模板缺少引号
      */
     fun createExpression(): CjExpression {
         val quote = template.node.findChildByType(CjTokens.OPEN_QUOTE)?.text
-            ?: throw CangJieExceptionWithAttachments("Missing opening quote in a string template").withPsiAttachment("template", template)
+            ?: throw CangJieExceptionWithAttachmentsImpl("Missing opening quote in a string template").withPsiAttachment("template", template)
         val literalValue = if (isString) "$quote$content$quote" else content
         return CjPsiFactory(template.project).createExpression(literalValue)
             .apply { extractableSubstringInfo = this@StringTemplateSubstringInfo }
@@ -123,7 +121,7 @@ abstract class StringTemplateSubstringInfo(
      *
      * @param newTemplate 新的字符串模板表达式
      * @return 新的子串信息
-     * @throws CangJieExceptionWithAttachments 如果新旧模板的条目不匹配
+     * @throws CangJieExceptionWithAttachmentsImpl 如果新旧模板的条目不匹配
      */
     fun copy(newTemplate: CjStringTemplateExpression): StringTemplateSubstringInfo {
         val oldEntries = template.entries
@@ -131,7 +129,7 @@ abstract class StringTemplateSubstringInfo(
         val startIndex = oldEntries.indexOf(startEntry)
         val endIndex = oldEntries.indexOf(endEntry)
         if (startIndex < 0 || startIndex >= newEntries.size || endIndex < 0 || endIndex >= newEntries.size) {
-            throw CangJieExceptionWithAttachments("Old template($startIndex..$endIndex): $template, new template: $newTemplate")
+            throw CangJieExceptionWithAttachmentsImpl("Old template($startIndex..$endIndex): $template, new template: $newTemplate")
                 .withPsiAttachment("template", template)
                 .withPsiAttachment("newTemplate", newTemplate)
         }

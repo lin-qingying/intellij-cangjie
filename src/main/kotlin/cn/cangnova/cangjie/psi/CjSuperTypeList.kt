@@ -35,7 +35,6 @@ import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
-import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
 class CjSuperTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList>> {

@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.cjpm.project.toolwindow
 
+import cn.cangnova.cangjie.icon.CjpmIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -42,7 +43,6 @@ import cn.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
 import cn.cangnova.cangjie.cjpm.project.toolwindow.CjpmProjectTreeStructure.CjpmSimpleNode
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
 import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
-import cn.cangnova.cangjie.icon.CjpmIcons
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandLine
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent

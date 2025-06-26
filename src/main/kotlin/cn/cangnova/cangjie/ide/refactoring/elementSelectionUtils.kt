@@ -28,15 +28,11 @@ import cn.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableSer
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.psi.*
-import cn.cangnova.cangjie.psi.CjEscapeStringTemplateEntry
-import cn.cangnova.cangjie.psi.CjFile
-import cn.cangnova.cangjie.psi.CjLiteralStringTemplateEntry
 import cn.cangnova.cangjie.psi.cdoc.psi.CDoc
 import cn.cangnova.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComments
 import cn.cangnova.cangjie.psi.psiUtil.getParentOfType
 import cn.cangnova.cangjie.psi.psiUtil.getParentOfTypeAndBranch
 import cn.cangnova.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComments
-import cn.cangnova.cangjie.utils.ElementKind
 import cn.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.codeInsight.navigation.PsiTargetNavigator
 import com.intellij.codeInsight.unwrap.ScopeHighlighter
@@ -47,11 +43,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.platform.backend.presentation.TargetPresentation
-import com.intellij.psi.PsiComment
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiWhiteSpace
-import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.*
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -87,6 +79,7 @@ fun selectElement(
         smartSelectElement(editor, file, offset, failOnEmptySuggestion, elementKinds, callback)
     }
 }
+
 class IntroduceRefactoringException(message: String) : RuntimeException(message)
 
 fun getSmartSelectSuggestions(
@@ -127,7 +120,7 @@ fun getSmartSelectSuggestions(
             if (addElement) {
                 if (element is CjParenthesizedExpression) {
                     addElement = false
-                }   else if (element.parent is CjQualifiedExpression) {
+                } else if (element.parent is CjQualifiedExpression) {
                     val qualifiedExpression = element.parent as CjQualifiedExpression
                     if (qualifiedExpression.receiverExpression !== element) {
                         addElement = false
@@ -164,6 +157,7 @@ fun getSmartSelectSuggestions(
     }
     return elements
 }
+
 private fun smartSelectElement(
     editor: Editor,
     file: PsiFile,
@@ -181,7 +175,7 @@ private fun smartSelectElement(
         return
     }
 
-    if (elements.size == 1 || isUnitTestMode ) {
+    if (elements.size == 1 || isUnitTestMode) {
         callback(elements.first())
         return
     }
@@ -206,7 +200,8 @@ private fun smartSelectElement(
                 .setItemChosenCallback { presentation -> callback((presentation.item as SmartPsiElementPointer<*>).element) }
                 .setItemSelectedCallback { presentation ->
                     highlighter.dropHighlight()
-                    val psiElement = (presentation?.item as? SmartPsiElementPointer<*>)?.element ?: return@setItemSelectedCallback
+                    val psiElement =
+                        (presentation?.item as? SmartPsiElementPointer<*>)?.element ?: return@setItemSelectedCallback
                     highlighter.highlight(psiElement, listOf(psiElement))
                 }
                 .addListener(object : JBPopupListener {
@@ -218,6 +213,7 @@ private fun smartSelectElement(
         .createPopup(file.project, title)
         .showInBestPositionFor(editor)
 }
+
 fun findElementAtRange(
     file: CjFile,
     selectionStart: Int,

@@ -8,7 +8,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.parents
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.CjAbstractClassBody
 import cn.cangnova.cangjie.psi.CjExpression

@@ -19,7 +19,7 @@
 
         <applicationService
                 serviceInterface="cn.cangnova.cangjie.psi.CangJieDeclarationNavigationPolicy"
-                serviceImplementation="cn.cangnova.cangjie.psi.CangJieDeclarationNavigationPolicyImpl"/>
+                serviceImplementation="cn.cangnova.cangjie.ide.navigation.CangJieDeclarationNavigationPolicyImpl"/>
 
     </extensions>
 

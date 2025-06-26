@@ -48,36 +48,7 @@ fun PsiElement.isExtensionDeclaration(): Boolean {
     return callable?.receiverTypeReference != null
 }
 
-fun getElementTextWithContext(psiElement: PsiElement): String {
-    if (!psiElement.isValid) return "<invalid element $psiElement>"
 
-    @Suppress("LocalVariableName")
-    val ELEMENT_TAG = "ELEMENT"
-    val containingFile = psiElement.containingFile
-    val context = psiElement.parentOfType("CjImportDirectiveItem")
-        ?: psiElement.parentOfType("CjPackageDirective")
-        ?: psiElement.parentOfType("CjDeclarationWithBody")
-        ?: psiElement.parentOfType("CjProperty")
-        ?: containingFile
-    val elementTextInContext = buildString {
-        context.accept(object : PsiElementVisitor() {
-            override fun visitElement(element: PsiElement) {
-                if (element === psiElement) append("<$ELEMENT_TAG>")
-                if (element is LeafPsiElement) {
-                    append(element.text)
-                } else {
-                    element.acceptChildren(this)
-                }
-                if (element === psiElement) append("</$ELEMENT_TAG>")
-            }
-        })
-    }.trimIndent().trim()
-
-    return buildString {
-        appendLine("<File name: ${containingFile.name}, Physical: ${containingFile.isPhysical}>")
-        append(elementTextInContext)
-    }
-}
 
 inline fun <reified T : PsiElement> PsiElement.getNonStrictParentOfType(): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, false)

@@ -26,7 +26,7 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjSingleValueToken
 import cn.cangnova.cangjie.parsing.CangJieExpressionParsing
-import cn.cangnova.cangjie.utils.exceptions.OperatorConventions
+import cn.cangnova.cangjie.name.OperatorConventions
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.TreeElement

@@ -55,3 +55,6 @@ include("lsp4ij")
 
 include("telemetry")
 include("analyze")
+include("psi")
+include("util")
+include("icon")

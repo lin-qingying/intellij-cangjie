@@ -28,12 +28,11 @@ import cn.cangnova.cangjie.lang.CangJieFileType.Companion.INSTANCE
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.astReplace
 import cn.cangnova.cangjie.psi.psiUtil.containingTypeStatement
 import cn.cangnova.cangjie.psi.psiUtil.quoteIfNeeded
 import cn.cangnova.cangjie.psi.stubs.CangJieStubWithFqName
-import cn.cangnova.cangjie.utils.OperatorNameConventions.asOperatorName
+import cn.cangnova.cangjie.name.OperatorNameConventions.asOperatorName
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement

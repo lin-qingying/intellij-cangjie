@@ -51,17 +51,20 @@ fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEn
     val newEntry = CjPsiFactory(project).createSimpleNameStringTemplateEntry(name)
     return replaced(newEntry)
 }
+
 inline fun <reified I : PsiElement> psiElement(): PsiElementPattern.Capture<I> {
     return PlatformPatterns.psiElement(I::class.java)
 }
+
 fun PsiElement.isInsideAnnotationEntryArgumentList(): Boolean =
     parentOfType<CjValueArgumentList>()?.parent is CjAnnotationEntry
 
 fun CjBlockStringTemplateEntry.canDropCurlyBrackets(): Boolean {
     val expression = this.expression
     return (expression is CjNameReferenceExpression || (expression is CjThisExpression && expression.labelQualifier == null)) &&
-        canPlaceAfterSimpleNameEntry(nextSibling)
+            canPlaceAfterSimpleNameEntry(nextSibling)
 }
+
 fun PsiElement.isAncestorOf(child: PsiElement): Boolean =
     child.ancestors.contains(this)
 
@@ -69,6 +72,7 @@ val PsiElement.ancestors: Sequence<PsiElement>
     get() = generateSequence(this) {
         if (it is PsiFile) null else it.parent
     }
+
 inline fun <reified T : PsiElement, reified V : PsiElement> PsiElement.getParentOfTypes2(): PsiElement? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, V::class.java)
 }
@@ -108,7 +112,11 @@ inline fun <reified T : PsiElement> PsiElement.replaced(newElement: T): T {
         else -> (result as CjParenthesizedExpression).expression as T
     }
 }
-inline fun <reified T : PsiElement> PsiElement.getParentOfType(strict: Boolean, vararg stopAt: Class<out PsiElement>): T? {
+
+inline fun <reified T : PsiElement> PsiElement.getParentOfType(
+    strict: Boolean,
+    vararg stopAt: Class<out PsiElement>
+): T? {
     @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     return PsiTreeUtil.getParentOfType(this, T::class.java, strict, *stopAt)
 }
@@ -249,7 +257,7 @@ fun LazyParseablePsiElement.getContainingCjFile(): CjFile {
     throw IllegalStateException("CjElement not inside CjFile: $file with text \"$fileString\" for element $this of type ${this::class.java} node = ${this.node}")
 }
 
-fun PsiElement.getElementTextWithContext(): String = getElementTextWithContext(this)
+fun PsiElement.getElementTextWithContext(): String = cn.cangnova.cangjie.utils.getElementTextWithContext(this)
 inline fun <reified T : PsiElement> PsiElement.parentOfType(withSelf: Boolean = false): T? {
     return PsiTreeUtil.getParentOfType(this, T::class.java, !withSelf)
 }

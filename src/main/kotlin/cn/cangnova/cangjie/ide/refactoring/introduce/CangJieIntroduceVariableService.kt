@@ -27,7 +27,7 @@ package cn.cangnova.cangjie.ide.refactoring.introduce
 import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.CjFile
-import cn.cangnova.cangjie.utils.ElementKind
+import cn.cangnova.cangjie.psi.ElementKind
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 

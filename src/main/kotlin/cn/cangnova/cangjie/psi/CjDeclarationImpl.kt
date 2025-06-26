@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.psi.cdoc.psi.CDoc
 import cn.cangnova.cangjie.lexer.CjKeywordToken
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.addModifier
 import cn.cangnova.cangjie.psi.psiUtil.findDocComment
 import cn.cangnova.cangjie.psi.psiUtil.removeModifier

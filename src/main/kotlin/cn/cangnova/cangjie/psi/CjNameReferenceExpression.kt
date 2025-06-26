@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens.*
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.stubs.CangJieNameBasicReferenceExpressionStub
 import cn.cangnova.cangjie.psi.stubs.CangJieNameReferenceExpressionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes

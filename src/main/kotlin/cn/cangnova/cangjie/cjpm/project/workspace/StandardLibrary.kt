@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.cjpm.project.workspace
 
-import cn.cangnova.cangjie.cjpm.project.model.CjcInfo
 import cn.cangnova.cangjie.utils.FileUtils
 import cn.cangnova.cangjie.utils.FileUtils.getTopLevelDirectories
 import com.intellij.openapi.vfs.VfsUtil

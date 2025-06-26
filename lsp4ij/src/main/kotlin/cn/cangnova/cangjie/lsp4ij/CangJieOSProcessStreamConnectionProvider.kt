@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.lsp4ij
 
-import cn.cangnova.cangjie.lang.lsp.CangJieLspServerManager
+import cn.cangnova.cangjie.lsp.CangJieLspServerManager
 import com.intellij.openapi.project.Project
 import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider
 import java.io.*

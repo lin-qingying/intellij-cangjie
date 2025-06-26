@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.cli.messages;
 
 import com.intellij.openapi.util.io.FileUtil;
 
-import cn.cangnova.cangjie.cli.messages.*;
 import cn.cangnova.cangjie.utils.FileUtilsKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

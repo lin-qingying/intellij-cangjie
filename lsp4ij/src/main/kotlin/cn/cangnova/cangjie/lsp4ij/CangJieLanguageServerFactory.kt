@@ -29,7 +29,7 @@ import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.cjpm.project.toPath
 import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
-import cn.cangnova.cangjie.lang.lsp.replacePathBySystem
+import cn.cangnova.cangjie.lsp.replacePathBySystem
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFileManager

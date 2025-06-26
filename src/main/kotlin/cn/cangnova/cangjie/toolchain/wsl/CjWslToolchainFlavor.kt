@@ -28,7 +28,6 @@ import com.intellij.execution.wsl.WSLDistribution
 import com.intellij.execution.wsl.WSLUtil
 import com.intellij.execution.wsl.WslDistributionManager
 import com.intellij.execution.wsl.WslPath.Companion.isWslUncPath
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.NlsContexts
 import cn.cangnova.cangjie.messages.CangJieBundle

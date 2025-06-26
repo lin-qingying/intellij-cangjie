@@ -34,7 +34,7 @@ import cn.cangnova.cangjie.psi.CjClass
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.CjNamedDeclaration
 import cn.cangnova.cangjie.psi.psiUtil.startOffset
-import cn.cangnova.cangjie.utils.getCjpmProjectDirectory
+import cn.cangnova.cangjie.cjpm.utils.getCjpmProjectDirectory
 import cn.cangnova.cangjie.utils.toCamelCase
 import com.intellij.ide.actions.CreateFileFromTemplateAction
 import com.intellij.ide.actions.CreateFileFromTemplateDialog
@@ -54,7 +54,6 @@ import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbService

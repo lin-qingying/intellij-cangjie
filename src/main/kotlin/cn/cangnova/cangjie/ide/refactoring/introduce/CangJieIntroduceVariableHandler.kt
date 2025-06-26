@@ -35,7 +35,6 @@ import cn.cangnova.cangjie.psi.psiUtil.collectDescendantsOfType
 import cn.cangnova.cangjie.psi.psiUtil.isFunctionalExpression
 import cn.cangnova.cangjie.psi.psiUtil.parents
 import cn.cangnova.cangjie.psi.psiUtil.parentsWithSelf
-import cn.cangnova.cangjie.utils.ElementKind
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project

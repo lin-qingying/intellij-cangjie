@@ -24,10 +24,6 @@
 
 package cn.cangnova.cangjie.cli.messages;
 
-import cn.cangnova.cangjie.cli.messages.CompilerMessageSeverity;
-import cn.cangnova.cangjie.cli.messages.CompilerMessageSourceLocation;
-import cn.cangnova.cangjie.cli.messages.CompilerSystemProperties;
-import cn.cangnova.cangjie.cli.messages.PropertiesKt;
 import cn.cangnova.cangjie.utils.CapitalizeDecapitalizeKt;
 import kotlin.text.StringsKt;
 

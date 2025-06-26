@@ -24,6 +24,8 @@
 
 dependencies {
     implementation(project(":"))
+    implementation(project(":util"))
+
 }
 
 
