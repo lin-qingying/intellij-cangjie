@@ -1,21 +1,6 @@
-plugins {
-    kotlin("jvm")
-}
-
-group = "cn.cangnova"
-version = "unspecified"
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    testImplementation(kotlin("test"))
-}
+    implementation(project(":util"))
 
-tasks.test {
-    useJUnitPlatform()
-}
-kotlin {
-    jvmToolchain(17)
+    implementation(project(":psi"))
+    testImplementation(kotlin("test"))
 }
