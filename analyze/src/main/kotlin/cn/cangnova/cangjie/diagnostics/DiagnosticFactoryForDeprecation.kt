@@ -26,9 +26,20 @@ package cn.cangnova.cangjie.diagnostics
 
 import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.config.LanguageVersionSettings
-import cn.cangnova.cangjie.descriptors.PositioningStrategies
 import com.intellij.psi.PsiElement
 
+/**
+ * 用于处理废弃特性的诊断工厂基类
+ * 
+ * 该类提供了根据语言版本设置选择警告或错误诊断工厂的能力
+ *
+ * @param E PSI元素类型
+ * @param D 诊断类型
+ * @param F 诊断工厂类型
+ * @param deprecatingFeature 废弃特性
+ * @param warningFactory 警告级别的诊断工厂
+ * @param errorFactory 错误级别的诊断工厂
+ */
 sealed class DiagnosticFactoryForDeprecation<E : PsiElement,
         D : Diagnostic,
         F : DiagnosticFactoryWithPsiElement<E, D>>(
@@ -39,11 +50,24 @@ sealed class DiagnosticFactoryForDeprecation<E : PsiElement,
     val errorFactory: F
 ) {
 
+    /**
+     * 根据语言版本设置选择合适的诊断工厂
+     * 
+     * @return 如果语言版本支持废弃特性，则返回错误工厂；否则返回警告工厂
+     */
     fun LanguageVersionSettings.chooseFactory(): F {
         return if (supportsFeature(deprecatingFeature)) errorFactory else warningFactory
     }
 }
 
+/**
+ * 无参数的废弃特性诊断工厂
+ *
+ * @param E PSI元素类型
+ * @param featureForError 触发错误的特性
+ * @param warningFactory 警告级别的诊断工厂
+ * @param errorFactory 错误级别的诊断工厂
+ */
 class DiagnosticFactoryForDeprecation0<E : PsiElement>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory0<E>,
@@ -54,6 +78,14 @@ class DiagnosticFactoryForDeprecation0<E : PsiElement>(
     errorFactory
 ) {
     companion object {
+        /**
+         * 创建无参数的废弃特性诊断工厂
+         *
+         * @param E PSI元素类型
+         * @param featureForError 触发错误的特性
+         * @param positioningStrategy 定位策略，默认为 PositioningStrategies.DEFAULT
+         * @return 新创建的诊断工厂
+         */
         @JvmStatic
         @JvmOverloads
         fun <E : PsiElement> create(
@@ -68,13 +100,36 @@ class DiagnosticFactoryForDeprecation0<E : PsiElement>(
         }
     }
 
+    /**
+     * 根据语言版本设置在指定元素上创建诊断
+     *
+     * @param languageVersionSettings 语言版本设置
+     * @param element 目标元素
+     * @return 创建的诊断
+     */
     fun on(languageVersionSettings: LanguageVersionSettings, element: E): SimpleDiagnostic<E> {
         return languageVersionSettings.chooseFactory().on(element)
     }
 
+    /**
+     * 在指定元素上创建错误级别的诊断
+     *
+     * @param element 目标元素
+     * @return 创建的错误诊断
+     */
     fun onError(element: E): SimpleDiagnostic<E> = errorFactory.on(element)
 }
 
+/**
+ * 带两个参数的废弃特性诊断工厂
+ *
+ * @param E PSI元素类型
+ * @param A 第一个参数类型
+ * @param B 第二个参数类型
+ * @param featureForError 触发错误的特性
+ * @param warningFactory 警告级别的诊断工厂
+ * @param errorFactory 错误级别的诊断工厂
+ */
 class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory2<E, A, B>,
@@ -85,6 +140,16 @@ class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
     errorFactory
 ) {
     companion object {
+        /**
+         * 创建带两个参数的废弃特性诊断工厂
+         *
+         * @param E PSI元素类型
+         * @param A 第一个参数类型
+         * @param B 第二个参数类型
+         * @param featureForError 触发错误的特性
+         * @param positioningStrategy 定位策略，默认为 PositioningStrategies.DEFAULT
+         * @return 新创建的诊断工厂
+         */
         @JvmStatic
         @JvmOverloads
         fun <E : PsiElement, A : Any, B : Any> create(
@@ -99,11 +164,29 @@ class DiagnosticFactoryForDeprecation2<E : PsiElement, A : Any, B : Any>(
         }
     }
 
+    /**
+     * 根据语言版本设置在指定元素上创建带两个参数的诊断
+     *
+     * @param languageVersionSettings 语言版本设置
+     * @param element 目标元素
+     * @param a 第一个参数
+     * @param b 第二个参数
+     * @return 创建的诊断
+     */
     fun on(languageVersionSettings: LanguageVersionSettings, element: E, a: A, b: B): ParametrizedDiagnostic<E> {
         return languageVersionSettings.chooseFactory().on(element, a, b)
     }
 }
 
+/**
+ * 带一个参数的废弃特性诊断工厂
+ *
+ * @param E PSI元素类型
+ * @param A 参数类型
+ * @param featureForError 触发错误的特性
+ * @param warningFactory 警告级别的诊断工厂
+ * @param errorFactory 错误级别的诊断工厂
+ */
 class DiagnosticFactoryForDeprecation1<E : PsiElement, A : Any>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory1<E, A>,
@@ -114,6 +197,15 @@ class DiagnosticFactoryForDeprecation1<E : PsiElement, A : Any>(
     errorFactory
 ) {
     companion object {
+        /**
+         * 创建带一个参数的废弃特性诊断工厂
+         *
+         * @param E PSI元素类型
+         * @param A 参数类型
+         * @param featureForError 触发错误的特性
+         * @param positioningStrategy 定位策略，默认为 PositioningStrategies.DEFAULT
+         * @return 新创建的诊断工厂
+         */
         @JvmStatic
         @JvmOverloads
         fun <E : PsiElement, A : Any> create(
@@ -128,11 +220,30 @@ class DiagnosticFactoryForDeprecation1<E : PsiElement, A : Any>(
         }
     }
 
+    /**
+     * 根据语言版本设置在指定元素上创建带一个参数的诊断
+     *
+     * @param languageVersionSettings 语言版本设置
+     * @param element 目标元素
+     * @param a 参数
+     * @return 创建的诊断
+     */
     fun on(languageVersionSettings: LanguageVersionSettings, element: E, a: A): ParametrizedDiagnostic<E> {
         return languageVersionSettings.chooseFactory().on(element, a)
     }
 }
 
+/**
+ * 带三个参数的废弃特性诊断工厂
+ *
+ * @param E PSI元素类型
+ * @param A 第一个参数类型
+ * @param B 第二个参数类型
+ * @param C 第三个参数类型
+ * @param featureForError 触发错误的特性
+ * @param warningFactory 警告级别的诊断工厂
+ * @param errorFactory 错误级别的诊断工厂
+ */
 class DiagnosticFactoryForDeprecation3<E : PsiElement, A : Any, B : Any, C : Any>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory3<E, A, B, C>,
@@ -143,6 +254,17 @@ class DiagnosticFactoryForDeprecation3<E : PsiElement, A : Any, B : Any, C : Any
     errorFactory
 ) {
     companion object {
+        /**
+         * 创建带三个参数的废弃特性诊断工厂
+         *
+         * @param E PSI元素类型
+         * @param A 第一个参数类型
+         * @param B 第二个参数类型
+         * @param C 第三个参数类型
+         * @param featureForError 触发错误的特性
+         * @param positioningStrategy 定位策略，默认为 PositioningStrategies.DEFAULT
+         * @return 新创建的诊断工厂
+         */
         @JvmStatic
         @JvmOverloads
         fun <E : PsiElement, A : Any, B : Any, C : Any> create(
@@ -157,11 +279,33 @@ class DiagnosticFactoryForDeprecation3<E : PsiElement, A : Any, B : Any, C : Any
         }
     }
 
+    /**
+     * 根据语言版本设置在指定元素上创建带三个参数的诊断
+     *
+     * @param languageVersionSettings 语言版本设置
+     * @param element 目标元素
+     * @param a 第一个参数
+     * @param b 第二个参数
+     * @param c 第三个参数
+     * @return 创建的诊断
+     */
     fun on(languageVersionSettings: LanguageVersionSettings, element: E, a: A, b: B, c: C): ParametrizedDiagnostic<E> {
         return languageVersionSettings.chooseFactory().on(element, a, b, c)
     }
 }
 
+/**
+ * 带四个参数的废弃特性诊断工厂
+ *
+ * @param E PSI元素类型
+ * @param A 第一个参数类型
+ * @param B 第二个参数类型
+ * @param C 第三个参数类型
+ * @param D 第四个参数类型
+ * @param featureForError 触发错误的特性
+ * @param warningFactory 警告级别的诊断工厂
+ * @param errorFactory 错误级别的诊断工厂
+ */
 class DiagnosticFactoryForDeprecation4<E : PsiElement, A : Any, B : Any, C : Any, D : Any>(
     featureForError: LanguageFeature,
     warningFactory: DiagnosticFactory4<E, A, B, C, D>,
@@ -172,6 +316,18 @@ class DiagnosticFactoryForDeprecation4<E : PsiElement, A : Any, B : Any, C : Any
     errorFactory
 ) {
     companion object {
+        /**
+         * 创建带四个参数的废弃特性诊断工厂
+         *
+         * @param E PSI元素类型
+         * @param A 第一个参数类型
+         * @param B 第二个参数类型
+         * @param C 第三个参数类型
+         * @param D 第四个参数类型
+         * @param featureForError 触发错误的特性
+         * @param positioningStrategy 定位策略，默认为 PositioningStrategies.DEFAULT
+         * @return 新创建的诊断工厂
+         */
         @JvmStatic
         @JvmOverloads
         fun <E : PsiElement, A : Any, B : Any, C : Any, D : Any> create(
@@ -186,6 +342,17 @@ class DiagnosticFactoryForDeprecation4<E : PsiElement, A : Any, B : Any, C : Any
         }
     }
 
+    /**
+     * 根据语言版本设置在指定元素上创建带四个参数的诊断
+     *
+     * @param languageVersionSettings 语言版本设置
+     * @param element 目标元素
+     * @param a 第一个参数
+     * @param b 第二个参数
+     * @param c 第三个参数
+     * @param d 第四个参数
+     * @return 创建的诊断
+     */
     fun on(
         languageVersionSettings: LanguageVersionSettings,
         element: E,

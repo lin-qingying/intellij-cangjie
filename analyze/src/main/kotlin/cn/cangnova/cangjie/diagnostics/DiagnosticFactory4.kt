@@ -24,25 +24,71 @@
 
 package cn.cangnova.cangjie.diagnostics
 
-import cn.cangnova.cangjie.descriptors.PositioningStrategies
 import com.intellij.psi.PsiElement
 
-class DiagnosticFactory4<E : PsiElement , A:Any, B:Any, C:Any, D:Any> protected constructor(
+/**
+ * 四参数诊断工厂类
+ * 
+ * 用于创建需要四个额外参数的诊断信息
+ *
+ * @param E 目标PSI元素类型
+ * @param A 第一个参数类型
+ * @param B 第二个参数类型
+ * @param C 第三个参数类型
+ * @param D 第四个参数类型
+ * @param severity 诊断严重程度
+ * @param positioningStrategy 定位策略
+ */
+class DiagnosticFactory4<E : PsiElement, A : Any, B : Any, C : Any, D : Any> protected constructor(
     severity: Severity,
     positioningStrategy: PositioningStrategy<E>
 ) :
-    DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters4<E, A, B, C, D> >(severity, positioningStrategy) {
+    DiagnosticFactoryWithPsiElement<E, DiagnosticWithParameters4<E, A, B, C, D>>(severity, positioningStrategy) {
+    /**
+     * 在指定元素上创建带四个参数的诊断
+     *
+     * @param element 目标元素
+     * @param a 第一个参数
+     * @param b 第二个参数
+     * @param c 第三个参数
+     * @param d 第四个参数
+     * @return 创建的参数化诊断
+     */
     fun on(element: E, a: A, b: B, c: C, d: D): ParametrizedDiagnostic<E> {
         return DiagnosticWithParameters4(element, a, b, c, d, this, severity)
     }
 
     companion object {
+        /**
+         * 使用默认定位策略创建诊断工厂
+         *
+         * @param T 目标PSI元素类型
+         * @param A 第一个参数类型
+         * @param B 第二个参数类型
+         * @param C 第三个参数类型
+         * @param D 第四个参数类型
+         * @param severity 诊断严重程度
+         * @return 新创建的诊断工厂
+         */
         @JvmStatic
-        fun <T : PsiElement , A:Any, B:Any, C:Any, D:Any> create(severity: Severity): DiagnosticFactory4<T, A, B, C, D> {
+        fun <T : PsiElement, A : Any, B : Any, C : Any, D : Any> create(severity: Severity): DiagnosticFactory4<T, A, B, C, D> {
             return create(severity, PositioningStrategies.DEFAULT)
         }
+
+        /**
+         * 使用指定定位策略创建诊断工厂
+         *
+         * @param T 目标PSI元素类型
+         * @param A 第一个参数类型
+         * @param B 第二个参数类型
+         * @param C 第三个参数类型
+         * @param D 第四个参数类型
+         * @param severity 诊断严重程度
+         * @param positioningStrategy 定位策略
+         * @return 新创建的诊断工厂
+         */
         @JvmStatic
-        fun <T : PsiElement , A:Any, B:Any, C:Any, D:Any> create(
+        fun <T : PsiElement, A : Any, B : Any, C : Any, D : Any> create(
             severity: Severity,
             positioningStrategy: PositioningStrategy<T>
         ): DiagnosticFactory4<T, A, B, C, D> {

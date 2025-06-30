@@ -78,27 +78,27 @@ class CangJieConfigurable(override val project: Project) :
 
 
 //语言组
-                    group(CangJieBundle.message("cangjie.ide.language")) {
-                        indent {
-                            row {
-
-                                comboBox(LanguageOption.entries)
-                                    .label(CangJieBundle.message("cangjie.ide.language.select"))
-                                    .bindItem(
-                                        { PluginLanguageState.instance.language },
-                                        { selectedLanguage ->
-
-
-                                            PluginLanguageState.instance.language = selectedLanguage!!
-
-                                            // 调用刷新UI的方法
-                                            refreshUI()
-                                        }
-                                    )
-
-                            }
-                        }
-                    }
+//                    group(CangJieBundle.message("cangjie.ide.language")) {
+//                        indent {
+//                            row {
+//
+//                                comboBox(LanguageOption.entries)
+//                                    .label(CangJieBundle.message("cangjie.ide.language.select"))
+//                                    .bindItem(
+//                                        { PluginLanguageState.instance.language },
+//                                        { selectedLanguage ->
+//
+//
+//                                            PluginLanguageState.instance.language = selectedLanguage!!
+//
+//                                            // 调用刷新UI的方法
+//                                            refreshUI()
+//                                        }
+//                                    )
+//
+//                            }
+//                        }
+//                    }
 
                     onApply {
                         settings.modify {

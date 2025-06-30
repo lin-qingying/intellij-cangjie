@@ -32,36 +32,104 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiWhiteSpace
 
+/**
+ * 定位策略类
+ *
+ * 用于确定与诊断相关的PSI元素的文本范围，以便在编辑器中正确高亮显示错误或警告
+ *
+ * @param E PSI元素类型
+ */
 open class PositioningStrategy<in E : PsiElement>{
+    /**
+     * 标记诊断
+     *
+     * 获取与诊断相关联的文本范围列表
+     *
+     * @param diagnostic 要标记的诊断
+     * @return 文本范围列表
+     */
     open fun markDiagnostic(diagnostic: DiagnosticMarker): List<TextRange> {
         @Suppress("UNCHECKED_CAST")
         return mark(diagnostic.psiElement as E)
     }
+    
+    /**
+     * 标记元素
+     *
+     * 获取与指定元素相关联的文本范围列表
+     *
+     * @param element 要标记的PSI元素
+     * @return 文本范围列表
+     */
     open fun mark(element: E): List<TextRange> {
         return markElement(element)
     }
 
+    /**
+     * 检查元素是否有效
+     *
+     * 确定元素是否适合用于诊断标记
+     *
+     * @param element 要检查的PSI元素
+     * @return 如果元素有效则为true，否则为false
+     */
     open fun isValid(element: E): Boolean {
         return !hasSyntaxErrors(element)
     }
 }
 
+/**
+ * 检查PSI元素是否包含语法错误
+ *
+ * @param psiElement 要检查的PSI元素
+ * @return 如果元素包含语法错误则为true，否则为false
+ */
 fun hasSyntaxErrors(psiElement: PsiElement): Boolean {
     if (psiElement is PsiErrorElement) return true
 
     val children = psiElement.children
     return children.isNotEmpty() && hasSyntaxErrors(children.last())
 }
+
+/**
+ * 标记文本范围
+ *
+ * @param range 要标记的文本范围
+ * @return 包含该范围的列表
+ */
 fun markRange(range: TextRange): List<TextRange> {
     return listOf(range)
 }
+
+/**
+ * 标记从一个元素到另一个元素的范围
+ *
+ * @param from 起始PSI元素
+ * @param to 结束PSI元素
+ * @return 包含该范围的列表
+ */
 fun markRange(from: PsiElement, to: PsiElement): List<TextRange> {
     return markRange(TextRange(getStartOffset(from), getEndOffset(to)))
 }
+
+/**
+ * 标记单个PSI元素
+ *
+ * @param element 要标记的PSI元素
+ * @return 包含该元素范围的列表
+ */
 fun markElement(element: PsiElement): List<TextRange> {
     return listOf(TextRange(getStartOffset(element), getEndOffset(element)))
 }
 
+/**
+ * 获取元素的结束偏移量
+ *
+ * 跳过尾部的注释和空白
+ *
+ * @param element 要获取偏移量的PSI元素
+ * @return 结束偏移量
+ */
 private fun getEndOffset(element: PsiElement): Int {
     var child = element.lastChild
     if (child != null) {
@@ -75,6 +143,15 @@ private fun getEndOffset(element: PsiElement): Int {
 
     return element.endOffset
 }
+
+/**
+ * 获取元素的起始偏移量
+ *
+ * 跳过开头的注释和空白
+ *
+ * @param element 要获取偏移量的PSI元素
+ * @return 起始偏移量
+ */
 private fun getStartOffset(element: PsiElement): Int {
     var child = element.firstChild
     if (child != null) {

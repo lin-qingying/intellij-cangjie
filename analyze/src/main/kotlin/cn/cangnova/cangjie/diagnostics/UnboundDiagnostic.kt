@@ -26,10 +26,37 @@ package cn.cangnova.cangjie.diagnostics
 
 import com.intellij.openapi.util.TextRange
 
-
+/**
+ * 未绑定诊断接口
+ * 
+ * 定义了诊断的基本属性，不与特定PSI元素绑定
+ */
 interface UnboundDiagnostic {
+    /**
+     * 诊断工厂
+     * 
+     * 用于创建和管理诊断实例
+     */
     val factory: DiagnosticFactory<*>
+    
+    /**
+     * 诊断严重性
+     * 
+     * 表示诊断的严重程度级别
+     */
     val severity: Severity
+    
+    /**
+     * 文本范围列表
+     * 
+     * 表示诊断在源代码中的位置
+     */
     val textRanges: List<TextRange>
+    
+    /**
+     * 诊断是否有效
+     * 
+     * 表示诊断是否可用于报告
+     */
     val isValid: Boolean
 }

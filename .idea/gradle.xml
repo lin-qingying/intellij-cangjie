@@ -10,6 +10,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/analyze" />
+            <option value="$PROJECT_DIR$/core" />
             <option value="$PROJECT_DIR$/dap-debugger" />
             <option value="$PROJECT_DIR$/icon" />
             <option value="$PROJECT_DIR$/lsp4ij" />

@@ -24,8 +24,8 @@
 
 package cn.cangnova.cangjie.diagnostics.rendering
 
-import cn.cangnova.cangjie.AbstractCangJieBundle
 import cn.cangnova.cangjie.diagnostics.DiagnosticFactory
+import cn.cangnova.cangjie.messages.AbstractCangJieBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
@@ -41,7 +41,7 @@ object CangJieDiagnosisBundle : AbstractCangJieBundle(BUNDLE) {
         getMessage(key, *params)
 
     @Nls
-        @JvmStatic
+    @JvmStatic
     fun rawMessage(@NonNls @PropertyKey(resourceBundle = BUNDLE) key: String): String =
         getMessage(key) // 不传递任何参数
 

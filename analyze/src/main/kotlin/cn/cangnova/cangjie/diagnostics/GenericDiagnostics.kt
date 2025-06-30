@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,26 +24,32 @@
 
 package cn.cangnova.cangjie.diagnostics
 
-import com.intellij.psi.PsiElement
-
 /**
- * 参数化诊断接口
+ * 通用诊断接口
  * 
- * 表示与特定PSI元素关联的诊断，可以包含额外的参数信息
+ * 定义了诊断集合的基本操作，支持遍历和查询功能
  *
- * @param E PSI元素类型
+ * @param T 诊断类型，必须是未绑定诊断的子类型
  */
-interface ParametrizedDiagnostic<E : PsiElement> : Diagnostic {
+interface GenericDiagnostics<T : UnboundDiagnostic> : Iterable<T> {
     /**
-     * 与诊断关联的PSI元素
+     * 获取所有诊断
+     * 
+     * @return 所有诊断的集合
      */
-    override val psiElement: E
+    fun all(): Collection<T>
 
     /**
-     * 诊断工厂名称
+     * 检查诊断集合是否为空
      * 
-     * 默认从工厂获取名称
+     * @return 如果集合为空则返回true，否则返回false
      */
-    override val factoryName: String
-        get() = factory.name
+    fun isEmpty(): Boolean = all().isEmpty()
+
+    /**
+     * 获取诊断迭代器
+     * 
+     * @return 诊断迭代器
+     */
+    override fun iterator(): Iterator<T> = all().iterator()
 }

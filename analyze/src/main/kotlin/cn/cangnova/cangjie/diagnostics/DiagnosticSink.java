@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.diagnostics;
 
-import cn.cangnova.cangjie.descriptors.PsiDiagnosticUtils;
 import cn.cangnova.cangjie.diagnostics.rendering.DefaultErrorMessages;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiFile;
@@ -32,7 +31,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+/**
+ * 诊断接收器接口
+ * 
+ * 用于接收和处理诊断信息
+ */
 public interface DiagnosticSink {
+    /**
+     * 不执行任何操作的诊断接收器
+     * 
+     * 忽略所有报告的诊断
+     */
     DiagnosticSink DO_NOTHING = new DiagnosticSink() {
         @Override
         public void report(@NotNull Diagnostic diagnostic) {
@@ -44,6 +53,11 @@ public interface DiagnosticSink {
         }
     };
 
+    /**
+     * 抛出异常的诊断接收器
+     * 
+     * 当接收到错误级别的诊断时抛出异常
+     */
     DiagnosticSink THROW_EXCEPTION = new DiagnosticSink() {
         @Override
         public void report(@NotNull Diagnostic diagnostic) {
@@ -61,26 +75,60 @@ public interface DiagnosticSink {
             return true;
         }
     };
+    
+    /**
+     * 诊断回调接口
+     * 
+     * 用于处理诊断信息的回调
+     */
     interface DiagnosticsCallback {
+        /**
+         * 处理诊断的回调方法
+         * 
+         * @param diagnostic 要处理的诊断
+         */
         void callback(Diagnostic diagnostic);
     }
 
+    /**
+     * 报告诊断
+     * 
+     * @param diagnostic 要报告的诊断
+     */
     void report(@NotNull Diagnostic diagnostic);
 
     /**
-     * use {@link #setCallbackIfNotSet(DiagnosticsCallback)} instead
-     * @param callback
+     * 设置诊断回调
+     * 
+     * 使用 {@link #setCallbackIfNotSet(DiagnosticsCallback)} 替代
+     * 
+     * @param callback 诊断回调
+     * @deprecated 已过时
      */
     @Deprecated
     default void setCallback(@NotNull DiagnosticsCallback callback) {
         setCallbackIfNotSet(callback);
     }
 
+    /**
+     * 如果未设置回调，则设置诊断回调
+     * 
+     * @param callback 诊断回调
+     * @return 如果成功设置回调则返回true，否则返回false
+     */
     default boolean setCallbackIfNotSet(@NotNull DiagnosticsCallback callback) {
         return false;
     }
 
+    /**
+     * 重置诊断回调
+     */
     default void resetCallback() { }
 
+    /**
+     * 检查是否需要诊断
+     * 
+     * @return 如果需要诊断则返回true，否则返回false
+     */
     boolean wantsDiagnostics();
 }

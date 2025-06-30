@@ -29,10 +29,24 @@ import com.intellij.psi.PsiElement
 import com.intellij.util.containers.Interner
 import com.intellij.util.containers.MultiMap
 
+/**
+ * 诊断元素缓存类
+ * 
+ * 用于缓存诊断与PSI元素之间的关联，提高查询性能
+ *
+ * @param diagnostics 诊断集合
+ * @param filter 诊断过滤器
+ */
 class DiagnosticsElementsCache(val diagnostics: Diagnostics, val filter: (Diagnostic) -> Boolean) {
 
     companion object {
-
+        /**
+         * 构建元素到诊断的缓存映射
+         *
+         * @param diagnostics 诊断集合
+         * @param filter 诊断过滤器
+         * @return 元素到诊断的多值映射
+         */
         private fun buildElementToDiagnosticCache(
             diagnostics: Diagnostics,
             filter: (Diagnostic) -> Boolean
@@ -49,6 +63,11 @@ class DiagnosticsElementsCache(val diagnostics: Diagnostics, val filter: (Diagno
         }
     }
 
+    /**
+     * 元素到诊断的懒加载映射
+     * 
+     * 首次访问时才会构建缓存
+     */
     private val elementToDiagnostic: NotNullLazyValue<MultiMap<PsiElement, Diagnostic>> = NotNullLazyValue.atomicLazy {
         buildElementToDiagnosticCache(
             this.diagnostics,
@@ -56,16 +75,35 @@ class DiagnosticsElementsCache(val diagnostics: Diagnostics, val filter: (Diagno
         )
     }
 
-
+    /**
+     * 获取与指定PSI元素关联的诊断
+     *
+     * @param psiElement PSI元素
+     * @return 与元素关联的诊断集合
+     */
     fun getDiagnostics(psiElement: PsiElement): MutableCollection<Diagnostic> {
         return elementToDiagnostic.value.get(psiElement)
     }
-
-
 }
 
+/**
+ * 创建字符串内部化器
+ * 
+ * 用于减少重复字符串的内存占用
+ *
+ * @return 字符串内部化器
+ */
 fun createStringInterner(): Interner<String> =
     Interner.createStringInterner()
 
+/**
+ * 创建并发多值映射
+ * 
+ * 用于线程安全地存储一对多的映射关系
+ *
+ * @param K 键类型
+ * @param V 值类型
+ * @return 并发多值映射
+ */
 fun <K, V> createConcurrentMultiMap(): MultiMap<K, V> =
     MultiMap.createConcurrent<K, V>()

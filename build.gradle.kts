@@ -501,6 +501,7 @@ project(":") {
         implementation(project(":util"))
         implementation(project(":icon"))
         implementation(project(":psi"))
+        implementation(project(":core"))
 
     }
     tasks {

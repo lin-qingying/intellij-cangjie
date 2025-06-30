@@ -27,10 +27,27 @@ package cn.cangnova.cangjie.diagnostics
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
+/**
+ * 诊断接口
+ * 
+ * 表示与PSI元素关联的诊断，结合了未绑定诊断和诊断标记的功能
+ */
 interface Diagnostic : UnboundDiagnostic, DiagnosticMarker {
+    /**
+     * 与诊断关联的PSI元素
+     */
     override val psiElement: PsiElement
+    
+    /**
+     * 包含诊断的PSI文件
+     */
     val psiFile: PsiFile
 
+    /**
+     * 诊断工厂名称
+     * 
+     * 默认从工厂获取名称
+     */
     override val factoryName: String
         get() = factory.name
 }

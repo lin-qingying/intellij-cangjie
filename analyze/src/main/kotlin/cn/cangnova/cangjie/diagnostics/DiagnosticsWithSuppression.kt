@@ -24,34 +24,52 @@
 
 package cn.cangnova.cangjie.diagnostics
 
-import cn.cangnova.cangjie.descriptors.CangJieSuppressCache
-import cn.cangnova.cangjie.descriptors.SimpleDiagnostics
 import com.intellij.psi.PsiElement
 
-class DiagnosticsWithSuppression(val suppressCache: CangJieSuppressCache, val diagnostics: Collection<Diagnostic>
+/**
+ * 带抑制功能的诊断集合
+ *
+ * 实现了诊断抑制机制，可以根据抑制缓存过滤诊断信息
+ *
+ * @param suppressCache 抑制缓存，用于确定哪些诊断应被抑制
+ * @param diagnostics 原始诊断集合
+ */
+class DiagnosticsWithSuppression(
+    val suppressCache: CangJieSuppressCache, val diagnostics: Collection<Diagnostic>
 
-) :
-    Diagnostics {
-    val elementsCache =  DiagnosticsElementsCache(this, suppressCache.filter)
+) : Diagnostics {
+    /**
+     * 元素缓存
+     *
+     * 用于缓存与PSI元素关联的已过滤诊断，提高查询性能
+     */
+    val elementsCache = DiagnosticsElementsCache(this, suppressCache.filter)
 
-    //    val elementsCache = DiagnosticsElementsCache(this, suppressCache.filter)
+    /**
+     * 获取所有未被抑制的诊断
+     *
+     * @return 未被抑制的诊断集合
+     */
     override fun all(): Collection<Diagnostic> {
-//        return diagnostics.filter(suppressCache.filter)
         return diagnostics.filter(suppressCache.filter)
-
-
-
     }
 
+    /**
+     * 获取与指定PSI元素关联的未被抑制的诊断
+     *
+     * @param psiElement PSI元素
+     * @return 与元素关联的未被抑制的诊断集合
+     */
     override fun forElement(psiElement: PsiElement): Collection<Diagnostic> {
         return elementsCache.getDiagnostics(psiElement)
-
-
     }
 
+    /**
+     * 获取不应用抑制机制的诊断集合
+     *
+     * @return 包含所有原始诊断的集合，不应用抑制规则
+     */
     override fun noSuppression(): Diagnostics {
         return SimpleDiagnostics(diagnostics)
-
     }
-
 }

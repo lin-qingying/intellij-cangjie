@@ -26,18 +26,45 @@ package cn.cangnova.cangjie.diagnostics
 
 import cn.cangnova.cangjie.diagnostics.Errors.*
 
+/**
+ * 诊断严重性枚举
+ * 
+ * 定义了诊断消息的严重程度级别
+ */
 enum class Severity {
+    /**
+     * 信息级别
+     * 
+     * 表示非错误的提示信息
+     */
     INFO,
+    
+    /**
+     * 错误级别
+     * 
+     * 表示阻止程序正常编译或运行的问题
+     */
     ERROR,
+    
+    /**
+     * 警告级别
+     * 
+     * 表示潜在问题，但不会阻止程序编译或运行
+     */
     WARNING
 }
 
 /**
  * 仓颉错误代码
+ * 
+ * 定义了错误代码与诊断工厂的映射关系
  */
 object ErrorCodes {
-
-
+    /**
+     * 错误代码映射表
+     * 
+     * 将诊断工厂与对应的错误代码关联
+     */
     val map: MutableMap<DiagnosticFactory<*>, ErrorCode> = mutableMapOf()
 
     init {
@@ -53,11 +80,18 @@ object ErrorCodes {
 
     }
 
+    /**
+     * 错误代码数据类
+     * 
+     * 包含错误代码、错误消息和相关URL
+     *
+     * @property code 错误代码字符串
+     * @property message 错误消息描述
+     * @property url 相关文档URL
+     */
     data class ErrorCode(
         val code: String,
-
         val message: String = "",
-
         val url: String = ""
     )
 }

@@ -29,10 +29,26 @@ import cn.cangnova.cangjie.psi.CjElement
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 
+/**
+ * 经典定位策略集合
+ * 
+ * 提供用于常见诊断场景的定位策略实现
+ */
 object ClassicPositioningStrategies {
 
+    /**
+     * 不可达代码的定位策略
+     * 
+     * 用于标记代码中不可达部分的文本范围
+     */
     @JvmField
     val UNREACHABLE_CODE: PositioningStrategy<PsiElement> = object : PositioningStrategy<PsiElement>() {
+        /**
+         * 标记不可达代码的诊断
+         *
+         * @param diagnostic 诊断标记
+         * @return 不可达代码的文本范围列表
+         */
         override fun markDiagnostic(diagnostic: DiagnosticMarker): List<TextRange> {
             @Suppress("UNCHECKED_CAST")
             val unreachableCode = diagnostic as DiagnosticWithParameters2Marker<Set<CjElement>, Set<CjElement>>

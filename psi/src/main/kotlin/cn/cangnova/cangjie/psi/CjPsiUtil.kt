@@ -26,6 +26,7 @@ package cn.cangnova.cangjie.psi
 import cn.cangnova.cangjie.builtins.StandardNames
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.OperatorNameConventions.asOperatorName
 import cn.cangnova.cangjie.name.SpecialNames
 import cn.cangnova.cangjie.parsing.CangJieExpressionParsing
 import cn.cangnova.cangjie.psi.cdoc.psi.CDocElement
@@ -34,7 +35,6 @@ import cn.cangnova.cangjie.psi.psiUtil.getQualifiedElementSelector
 import cn.cangnova.cangjie.psi.psiUtil.getQualifiedExpressionForSelector
 import cn.cangnova.cangjie.resolve.StatementFilter
 import cn.cangnova.cangjie.resolve.getLastStatementInABlock
-import cn.cangnova.cangjie.name.OperatorNameConventions.asOperatorName
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
@@ -94,9 +94,9 @@ object CjPsiUtil {
         return parent.receiverExpression === expression || isLHSOfDot(parent)
     }
 
-    fun findRootExpressions(unreachableElements: MutableCollection<CjElement>): MutableSet<CjElement?> {
-        val rootElements: MutableSet<CjElement?> = HashSet<CjElement?>()
-        val shadowedElements: MutableSet<CjElement?> = HashSet<CjElement?>()
+    fun findRootExpressions(unreachableElements:  Collection<CjElement>): MutableSet<CjElement> {
+        val rootElements: MutableSet<CjElement> = HashSet()
+        val shadowedElements: MutableSet<CjElement> = HashSet<CjElement>()
         val shadowAllChildren: CjVisitorVoid = object : CjVisitorVoid() {
             override fun visitCjElement(element: CjElement) {
                 if (shadowedElements.add(element)) {

@@ -29,6 +29,16 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import java.util.*
 
+/**
+ * 参数化诊断的抽象实现
+ * 
+ * 提供与PSI元素关联的诊断基本实现，包括文本范围和有效性检查
+ *
+ * @param E PSI元素类型
+ * @param psiElement 与诊断关联的PSI元素
+ * @param factory 创建此诊断的工厂
+ * @param severity 诊断严重程度
+ */
 abstract class AbstractDiagnostic<E : PsiElement>(
     override val psiElement: E,
     override val factory: DiagnosticFactoryWithPsiElement<E, *>,
@@ -36,20 +46,40 @@ abstract class AbstractDiagnostic<E : PsiElement>(
 ) :
     ParametrizedDiagnostic<E> {
 
-
+    /**
+     * 获取包含诊断的PSI文件
+     * 
+     * @return 包含诊断的PSI文件
+     */
     override val psiFile: PsiFile
         get() = psiElement.containingFile
 
-
-
+    /**
+     * 获取诊断相关的文本范围列表
+     * 
+     * @return 文本范围列表
+     */
     override val textRanges: List<TextRange>
         get() = factory.getTextRanges(this)
 
+    /**
+     * 检查诊断是否有效
+     * 
+     * @return 如果诊断有效则返回true，否则返回false
+     */
     override val isValid: Boolean
         get() {
             return factory.isValid(this)
         }
 
+    /**
+     * 比较两个诊断是否相等
+     * 
+     * 如果PSI元素、工厂和严重程度都相等，则认为诊断相等
+     *
+     * @param other 要比较的对象
+     * @return 如果相等则返回true，否则返回false
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
@@ -57,6 +87,13 @@ abstract class AbstractDiagnostic<E : PsiElement>(
         return psiElement == that.psiElement && factory == that.factory && severity == that.severity
     }
 
+    /**
+     * 计算诊断的哈希码
+     * 
+     * 基于PSI元素、工厂和严重程度计算
+     *
+     * @return 诊断的哈希码
+     */
     override fun hashCode(): Int {
         return Objects.hash(psiElement, factory, severity)
     }

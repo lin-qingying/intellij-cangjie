@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,26 +24,10 @@
 
 package cn.cangnova.cangjie.diagnostics
 
-import com.intellij.psi.PsiElement
-
-/**
- * 参数化诊断接口
- * 
- * 表示与特定PSI元素关联的诊断，可以包含额外的参数信息
- *
- * @param E PSI元素类型
- */
-interface ParametrizedDiagnostic<E : PsiElement> : Diagnostic {
-    /**
-     * 与诊断关联的PSI元素
-     */
-    override val psiElement: E
-
-    /**
-     * 诊断工厂名称
-     * 
-     * 默认从工厂获取名称
-     */
-    override val factoryName: String
-        get() = factory.name
-}
+import com.intellij.openapi.util.TextRange
+//
+//abstract class AbstractSourceElementPositioningStrategy {
+//    abstract fun markDiagnostic(diagnostic: CjDiagnostic): List<TextRange>
+//
+//    abstract fun isValid(element: AbstractCjSourceElement): Boolean
+//}

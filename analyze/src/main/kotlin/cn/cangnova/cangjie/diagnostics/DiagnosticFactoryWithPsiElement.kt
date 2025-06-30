@@ -27,26 +27,51 @@ package cn.cangnova.cangjie.diagnostics
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 
-
+/**
+ * 与PSI元素关联的诊断工厂抽象类
+ * 
+ * 扩展基本诊断工厂，提供与PSI元素相关的诊断功能，包括文本范围和有效性检查
+ *
+ * @param E PSI元素类型
+ * @param D 诊断类型
+ * @param severity 诊断严重程度
+ * @param positioningStrategy 用于确定诊断位置的策略
+ */
 abstract class DiagnosticFactoryWithPsiElement<E : PsiElement, D : Diagnostic>(
     severity: Severity,
     val  positioningStrategy: PositioningStrategy<E>
 ) :
     DiagnosticFactory<D>(severity) {
 
-
+    /**
+     * 获取诊断相关的文本范围列表
+     *
+     * @param diagnostic 参数化诊断
+     * @return 文本范围列表
+     */
     fun getTextRanges(diagnostic: ParametrizedDiagnostic<E>): List<TextRange> {
         // TODO: it's strange that java requires cast here, because ParametrizedDiagnostic<E> inherits DiagnosticMarker
         return positioningStrategy.markDiagnostic(diagnostic)
     }
 
+    /**
+     * 检查诊断是否有效
+     * 
+     * 通过定位策略验证PSI元素的有效性
+     *
+     * @param diagnostic 参数化诊断
+     * @return 如果诊断有效则返回true，否则返回false
+     */
     fun isValid(diagnostic: ParametrizedDiagnostic<E>): Boolean {
         return positioningStrategy.isValid(diagnostic.psiElement)
     }
 
-
-
-
+    /**
+     * 将通用诊断转换为特定类型
+     *
+     * @param d 要转换的诊断
+     * @return 转换后的特定类型诊断
+     */
     fun cast(d: Diagnostic): D {
         return super.cast(d)
     }

@@ -26,12 +26,28 @@ package cn.cangnova.cangjie.diagnostics
 
 import com.intellij.psi.PsiElement
 
-
+/**
+ * 简单诊断类
+ * 
+ * 表示不带参数的基本诊断信息
+ *
+ * @param E PSI元素类型
+ * @property psiElement 与诊断相关的PSI元素
+ * @property factory 创建此诊断的工厂
+ * @property severity 诊断的严重性级别
+ */
 class SimpleDiagnostic<E : PsiElement >(
     psiElement: E,
     factory: DiagnosticFactory0<E>,
     severity: Severity
 ) : AbstractDiagnostic<E>(psiElement, factory, severity) {
+    /**
+     * 获取诊断工厂
+     * 
+     * 覆盖父类方法，确保返回正确的工厂类型
+     *
+     * @return 创建此诊断的工厂
+     */
     override val factory: DiagnosticFactory0<E>
         get() = super.factory as DiagnosticFactory0<E>
 }

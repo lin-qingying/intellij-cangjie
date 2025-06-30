@@ -26,30 +26,111 @@ package cn.cangnova.cangjie.diagnostics
 
 import com.intellij.psi.PsiElement
 
-
+/**
+ * 诊断标记接口
+ * 
+ * 定义了诊断与PSI元素之间的关联，提供基本的诊断信息
+ */
 interface DiagnosticMarker {
+    /**
+     * 与诊断关联的PSI元素
+     */
     val psiElement: PsiElement
+    
+    /**
+     * 诊断工厂名称
+     */
     val factoryName: String
 }
 
+/**
+ * 单参数诊断标记接口
+ * 
+ * 扩展基本诊断标记，添加一个参数
+ *
+ * @param A 参数类型
+ */
 interface DiagnosticWithParameters1Marker<A> : DiagnosticMarker {
+    /**
+     * 诊断参数
+     */
     val a: A
 }
 
+/**
+ * 双参数诊断标记接口
+ * 
+ * 扩展基本诊断标记，添加两个参数
+ *
+ * @param A 第一个参数类型
+ * @param B 第二个参数类型
+ */
 interface DiagnosticWithParameters2Marker<A, B> : DiagnosticMarker {
+    /**
+     * 第一个诊断参数
+     */
     val a: A
+    
+    /**
+     * 第二个诊断参数
+     */
     val b: B
 }
 
+/**
+ * 三参数诊断标记接口
+ * 
+ * 扩展基本诊断标记，添加三个参数
+ *
+ * @param A 第一个参数类型
+ * @param B 第二个参数类型
+ * @param C 第三个参数类型
+ */
 interface DiagnosticWithParameters3Marker<A, B, C> : DiagnosticMarker {
+    /**
+     * 第一个诊断参数
+     */
     val a: A
+    
+    /**
+     * 第二个诊断参数
+     */
     val b: B
+    
+    /**
+     * 第三个诊断参数
+     */
     val c: C
 }
 
+/**
+ * 四参数诊断标记接口
+ * 
+ * 扩展基本诊断标记，添加四个参数
+ *
+ * @param A 第一个参数类型
+ * @param B 第二个参数类型
+ * @param C 第三个参数类型
+ * @param D 第四个参数类型
+ */
 interface DiagnosticWithParameters4Marker<A, B, C, D> : DiagnosticMarker {
+    /**
+     * 第一个诊断参数
+     */
     val a: A
+    
+    /**
+     * 第二个诊断参数
+     */
     val b: B
+    
+    /**
+     * 第三个诊断参数
+     */
     val c: C
+    
+    /**
+     * 第四个诊断参数
+     */
     val d: D
 }

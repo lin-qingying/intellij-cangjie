@@ -24,26 +24,24 @@
 
 package cn.cangnova.cangjie.diagnostics
 
-import com.intellij.psi.PsiElement
+import cn.cangnova.cangjie.diagnostics.UnboundDiagnostic
 
 /**
- * 参数化诊断接口
+ * 简单通用诊断集合类
  * 
- * 表示与特定PSI元素关联的诊断，可以包含额外的参数信息
+ * 实现了通用诊断集合接口的基本功能
  *
- * @param E PSI元素类型
+ * @param T 诊断类型，必须是未绑定诊断的子类型
+ * @property diagnostics 诊断集合
  */
-interface ParametrizedDiagnostic<E : PsiElement> : Diagnostic {
-    /**
-     * 与诊断关联的PSI元素
-     */
-    override val psiElement: E
+open class SimpleGenericDiagnostics<T : UnboundDiagnostic>(diagnostics: Collection<T>) : GenericDiagnostics<T> {
+    //copy to prevent external change
+    private val diagnostics = ArrayList(diagnostics)
 
     /**
-     * 诊断工厂名称
-     * 
-     * 默认从工厂获取名称
+     * 获取所有诊断
+     *
+     * @return 所有诊断的集合
      */
-    override val factoryName: String
-        get() = factory.name
+    override fun all() = diagnostics
 }

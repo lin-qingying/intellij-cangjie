@@ -24,24 +24,53 @@
 
 package cn.cangnova.cangjie.diagnostics
 
-import cn.cangnova.cangjie.descriptors.PositioningStrategies
 import com.intellij.psi.PsiElement
 
-
+/**
+ * 无参数诊断工厂类
+ * 
+ * 用于创建不需要额外参数的诊断信息
+ *
+ * @param E 目标PSI元素类型
+ * @param severity 诊断严重程度
+ * @param positioningStrategy 定位策略
+ */
 class DiagnosticFactory0<E : PsiElement>(
     severity: Severity,
     positioningStrategy: PositioningStrategy<E>
 ) :
     DiagnosticFactoryWithPsiElement<E, SimpleDiagnostic<E>>(severity, positioningStrategy) {
+    /**
+     * 在指定元素上创建诊断
+     *
+     * @param element 目标元素
+     * @return 创建的简单诊断
+     */
     fun on(element: E): SimpleDiagnostic<E> {
         return SimpleDiagnostic(element, this, severity)
     }
 
     companion object {
+        /**
+         * 使用默认定位策略创建诊断工厂
+         *
+         * @param T 目标PSI元素类型
+         * @param severity 诊断严重程度
+         * @return 新创建的诊断工厂
+         */
         @JvmStatic
         fun <T : PsiElement> create(severity: Severity): DiagnosticFactory0<T> {
             return create(severity, PositioningStrategies.DEFAULT)
         }
+        
+        /**
+         * 使用指定定位策略创建诊断工厂
+         *
+         * @param T 目标PSI元素类型
+         * @param severity 诊断严重程度
+         * @param positioningStrategy 定位策略
+         * @return 新创建的诊断工厂
+         */
         @JvmStatic
         fun <T : PsiElement> create(
             severity: Severity,
