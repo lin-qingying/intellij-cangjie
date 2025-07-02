@@ -1,0 +1,74 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.resolve.lazy.data
+
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.psi.*
+import com.intellij.psi.PsiElement
+
+abstract class CjTypeStatementInfo<E : CjTypeStatement>(
+    protected open val element: E
+) : CjClassLikeInfo {
+    override val correspondingClass: CjTypeStatement
+        get() = element
+
+
+    val elementByE get() = element
+
+    override val danglingAnnotations: List<CjAnnotationEntry>
+        get() {
+//            val body: CjAbstractClassBody? = element.body
+//            return if (body == null) emptyList() else body.danglingAnnotations
+            return emptyList()
+        }
+    val name get() = element.nameAsSafeName
+
+    override val scopeAnchor: PsiElement
+        get() = element
+
+
+    override val containingPackageFqName: FqName
+        get() {
+            val file = element.containingFile
+            if (file is CjFile) {
+
+                return file.packageFqName
+            }
+            throw IllegalArgumentException("Not in a CjFile: $element")
+        }
+    override val modifierList: CjModifierList?
+        get() = element.modifierList
+
+
+    override val declarations: List<CjDeclaration>
+        get() = element.declarations
+
+    override fun toString(): String {
+        return "info for " + element.text
+    }
+
+    override val primaryConstructorParameters: List<CjParameter>
+        get() = element.primaryConstructorParameters
+}

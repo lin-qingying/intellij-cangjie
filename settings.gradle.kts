@@ -49,13 +49,12 @@ rootProject.name = "intellij-cangjie"
 include("plugin")
 include("dap-debugger")
 
-//include("lsp4intellij")
 
 include("lsp4ij")
 
 include("telemetry")
-include("analyze")
+include("analyze-ide")
 include("psi")
 include("util")
 include("icon")
-include("core")
+include("messages")

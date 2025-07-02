@@ -1,0 +1,80 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.resolve.calls.inference.constraintPosition
+
+interface ConstraintPosition {
+    val kind: ConstraintPositionKind
+
+    fun isStrong(): Boolean = kind != ConstraintPositionKind.TYPE_BOUND_POSITION
+
+    fun isParameter(): Boolean =
+        kind in setOf(ConstraintPositionKind.VALUE_PARAMETER_POSITION, ConstraintPositionKind.RECEIVER_POSITION)
+}
+
+private data class ConstraintPositionImpl(override val kind: ConstraintPositionKind) : ConstraintPosition {
+    override fun toString() = "$kind"
+}
+
+fun ConstraintPosition.derivedFrom(kind: ConstraintPositionKind): Boolean {
+    return if (this !is CompoundConstraintPosition) this.kind == kind else positions.any { it.kind == kind }
+}
+
+class CompoundConstraintPosition(vararg positions: ConstraintPosition) : ConstraintPosition {
+
+    override val kind: ConstraintPositionKind
+        get() = ConstraintPositionKind.COMPOUND_CONSTRAINT_POSITION
+
+    val positions: Collection<ConstraintPosition> =
+        positions.flatMap { (it as? CompoundConstraintPosition)?.positions ?: listOf(it) }.toSet()
+
+    override fun isStrong() = positions.any { it.isStrong() }
+
+    override fun toString() = "$kind(${positions.joinToString()})"
+}
+
+enum class ConstraintPositionKind {
+    RECEIVER_POSITION,
+    EXPECTED_TYPE_POSITION,
+    VALUE_PARAMETER_POSITION,
+    TYPE_BOUND_POSITION,
+    COMPOUND_CONSTRAINT_POSITION,
+    FROM_COMPLETER,
+    SPECIAL;
+
+    fun position(): ConstraintPosition {
+        assert(this in setOf(RECEIVER_POSITION, EXPECTED_TYPE_POSITION, FROM_COMPLETER, SPECIAL))
+        return ConstraintPositionImpl(this)
+    }
+
+    fun position(index: Int): ConstraintPosition {
+        assert(this in setOf(VALUE_PARAMETER_POSITION, TYPE_BOUND_POSITION))
+        return ConstraintPositionWithIndex(this, index)
+    }
+}
+
+private data class ConstraintPositionWithIndex(override val kind: ConstraintPositionKind, val index: Int) :
+    ConstraintPosition {
+    override fun toString() = "$kind($index)"
+}

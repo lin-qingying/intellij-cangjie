@@ -1,0 +1,219 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.resolve.calls.components
+
+import cn.cangnova.cangjie.builtins.*
+import cn.cangnova.cangjie.descriptors.ReceiverParameterDescriptor
+import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
+import cn.cangnova.cangjie.resolve.DescriptorUtils
+import cn.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
+import cn.cangnova.cangjie.resolve.calls.inference.ConstraintSystemOperation
+import cn.cangnova.cangjie.resolve.calls.inference.components.FreshVariableNewTypeSubstitutor
+import cn.cangnova.cangjie.resolve.calls.inference.model.ArgumentConstraintPositionImpl
+import cn.cangnova.cangjie.resolve.calls.inference.model.CallableReferenceConstraintPositionImpl
+import cn.cangnova.cangjie.resolve.calls.inference.model.ConstraintPosition
+import cn.cangnova.cangjie.resolve.calls.model.*
+import cn.cangnova.cangjie.resolve.calls.tower.PrioritizedCompositeScopeTowerProcessor
+import cn.cangnova.cangjie.resolve.calls.tower.SamePriorityCompositeScopeTowerProcessor
+import cn.cangnova.cangjie.resolve.calls.tower.ScopeTowerProcessor
+import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import cn.cangnova.cangjie.types.AbstractTypeChecker
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.ErrorUtils
+import cn.cangnova.cangjie.types.UnwrappedType
+import cn.cangnova.cangjie.types.checker.captureFromExpression
+import cn.cangnova.cangjie.types.expressions.CoercionStrategy
+import cn.cangnova.cangjie.types.model.TypeVariance
+import cn.cangnova.cangjie.types.model.convertVariance
+import cn.cangnova.cangjie.types.util.TypeUtils
+
+
+sealed class CallableReceiver(val receiver: ReceiverValueWithSmartCastInfo) {
+    class UnboundReference(receiver: ReceiverValueWithSmartCastInfo) : CallableReceiver(receiver)
+    class BoundValueReference(receiver: ReceiverValueWithSmartCastInfo) : CallableReceiver(receiver)
+    class ScopeReceiver(receiver: ReceiverValueWithSmartCastInfo) : CallableReceiver(receiver)
+    class ExplicitValueReceiver(receiver: ReceiverValueWithSmartCastInfo) : CallableReceiver(receiver)
+}
+private fun ConstraintSystemOperation.addLhsTypeConstraint(
+    lhsType: CangJieType,
+    expectedType: UnwrappedType,
+    position: ConstraintPosition
+) {
+        if (!ReflectionTypes.isNumberedTypeWithOneOrMoreNumber(expectedType)) return
+
+    val expectedTypeProjectionForLHS = expectedType.arguments.first()
+    val expectedTypeForLHS = expectedTypeProjectionForLHS.type
+    val expectedTypeVariance = expectedTypeProjectionForLHS.projectionKind.convertVariance()
+    val effectiveVariance = AbstractTypeChecker.effectiveVariance(
+        expectedType.constructor.parameters.first().variance.convertVariance(),
+        expectedTypeVariance
+    ) ?: expectedTypeVariance
+
+    when (effectiveVariance) {
+        TypeVariance.INV -> addEqualityConstraint(lhsType, expectedTypeForLHS, position)
+//        TypeVariance.IN -> addSubtypeConstraint(expectedTypeForLHS, lhsType, position)
+//        TypeVariance.OUT -> addSubtypeConstraint(lhsType, expectedTypeForLHS, position)
+    }
+}
+
+class CallableReferenceAdaptation(
+    val argumentTypes: Array<CangJieType>,
+    val coercionStrategy: CoercionStrategy,
+    val defaults: Int,
+    val mappedArguments: Map<ValueParameterDescriptor, ResolvedCallArgument>,
+//    val suspendConversionStrategy: SuspendConversionStrategy
+)
+
+fun CallableReferenceResolutionCandidate.addConstraints(
+    constraintSystem: ConstraintSystemOperation,
+    substitutor: FreshVariableNewTypeSubstitutor,
+    callableReference: CallableReferenceResolutionAtom
+) {
+    val lhsResult = callableReference.lhsResult
+    val position = when (callableReference) {
+        is CallableReferenceCangJieCallArgument -> ArgumentConstraintPositionImpl(callableReference)
+        is CallableReferenceCangJieCall -> CallableReferenceConstraintPositionImpl(callableReference)
+
+    }
+
+    if (lhsResult is LHSResult.Type && expectedType != null && !TypeUtils.noExpectedType(expectedType)) {
+        // NB: regular objects have lhsResult of `LHSResult.Object` type and won't be proceeded here
+        val isStaticOrCompanionMember =
+            DescriptorUtils.isStaticDeclaration(candidate)
+        if (!isStaticOrCompanionMember) {
+            constraintSystem.addLhsTypeConstraint(lhsResult.unboundDetailedReceiver.stableType, expectedType, position)
+        }
+    }
+
+    if (!ErrorUtils.isError(candidate)) {
+        constraintSystem.addReceiverConstraint(
+            substitutor,
+            dispatchReceiver,
+            candidate.dispatchReceiverParameter,
+            position
+        )
+        constraintSystem.addReceiverConstraint(
+            substitutor,
+            extensionReceiver,
+            candidate.extensionReceiverParameter,
+            position
+        )
+    }
+
+    if (expectedType != null && !TypeUtils.noExpectedType(expectedType) && !constraintSystem.hasContradiction) {
+        constraintSystem.addSubtypeConstraint(
+            substitutor.safeSubstitute(reflectionCandidateType),
+            expectedType,
+            position
+        )
+    }
+}
+
+private fun ConstraintSystemOperation.addReceiverConstraint(
+    toFreshSubstitutor: FreshVariableNewTypeSubstitutor,
+    receiverArgument: CallableReceiver?,
+    receiverParameter: ReceiverParameterDescriptor?,
+    position: ConstraintPosition
+) {
+    if (receiverArgument == null || receiverParameter == null) {
+        assert(receiverArgument == null) { "Receiver argument should be null if parameter is: $receiverArgument" }
+        assert(receiverParameter == null) { "Receiver parameter should be null if argument is: $receiverParameter" }
+        return
+    }
+
+    val expectedType = toFreshSubstitutor.safeSubstitute(receiverParameter.value.type.unwrap())
+    val receiverType = receiverArgument.receiver.stableType.let { captureFromExpression(it) ?: it }
+
+    addSubtypeConstraint(receiverType, expectedType, position)
+}
+
+data class InputOutputTypes(val inputTypes: List<UnwrappedType>, val outputType: UnwrappedType)
+
+fun extractInputOutputTypesFromCallableReferenceExpectedType(expectedType: UnwrappedType?): InputOutputTypes? {
+    if (expectedType == null) return null
+
+    return when {
+        expectedType.isFunctionType ->
+            extractInputOutputTypesFromFunctionType(expectedType)
+
+//        ReflectionTypes.isBaseTypeForNumberedReferenceTypes(expectedType) ->
+//            InputOutputTypes(emptyList(), expectedType.arguments.single().type.unwrap())
+//
+//        ReflectionTypes.isNumberedKFunction(expectedType) -> {
+//            val functionFromSupertype = expectedType.immediateSupertypes().first { it.isFunctionType }.unwrap()
+//            extractInputOutputTypesFromFunctionType(functionFromSupertype)
+//        }
+//
+//        ReflectionTypes.isNumberedKSuspendFunction(expectedType) -> {
+//            val kSuspendFunctionType = expectedType.immediateSupertypes().first { it.isSuspendFunctionType }.unwrap()
+//            extractInputOutputTypesFromFunctionType(kSuspendFunctionType)
+//        }
+//
+//        ReflectionTypes.isNumberedKPropertyOrKMutablePropertyType(expectedType) -> {
+//            val functionFromSupertype = expectedType.supertypes().first { it.isFunctionType }.unwrap()
+//            extractInputOutputTypesFromFunctionType(functionFromSupertype)
+//        }
+
+        else -> null
+    }
+}
+
+private fun extractInputOutputTypesFromFunctionType(functionType: UnwrappedType): InputOutputTypes {
+    val receiver = functionType.getReceiverTypeFromFunctionType()?.unwrap()
+    val parameters = functionType.getValueParameterTypesFromFunctionType().map { it.type.unwrap() }
+
+    val inputTypes = listOfNotNull(receiver) + parameters
+    val outputType = functionType.getReturnTypeFromFunctionType().unwrap()
+
+    return InputOutputTypes(inputTypes, outputType)
+}
+
+
+fun createCallableReferenceProcessor(factory: CallableReferencesCandidateFactory): ScopeTowerProcessor<CallableReferenceResolutionCandidate> {
+    when (val lhsResult = factory.cangjieCall.lhsResult) {
+        LHSResult.Empty, LHSResult.Error, is LHSResult.Expression -> {
+            val explicitReceiver = (lhsResult as? LHSResult.Expression)?.lshCallArgument?.receiver
+            return factory.createCallableProcessor(explicitReceiver)
+        }
+        is LHSResult.Type -> {
+            val static = lhsResult.qualifier?.let(factory::createCallableProcessor)
+            val unbound = factory.createCallableProcessor(lhsResult.unboundDetailedReceiver)
+
+            // note that if we use PrioritizedCompositeScopeTowerProcessor then static will win over unbound members
+            val staticOrUnbound =
+                if (static != null)
+                    SamePriorityCompositeScopeTowerProcessor(static, unbound)
+                else
+                    unbound
+
+            val asValue = lhsResult.qualifier?.classValueReceiverWithSmartCastInfo ?: return staticOrUnbound
+            return PrioritizedCompositeScopeTowerProcessor(staticOrUnbound, factory.createCallableProcessor(asValue))
+        }
+
+
+    }
+//    return factory.createCallableProcessor(factory.cangjieCall.call.explicitReceiver?.receiver)
+
+}

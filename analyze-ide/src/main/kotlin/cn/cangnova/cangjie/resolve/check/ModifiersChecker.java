@@ -1,0 +1,1 @@
+package cn.cangnova.cangjie.resolve.check;

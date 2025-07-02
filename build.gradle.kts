@@ -418,7 +418,7 @@ project(":plugin") {
 
 
             pluginDescription.set(provider { file("description.html").readText() })
-            changeNotes.set(provider { 
+            changeNotes.set(provider {
                 changelog.getAll()
                     .filter { it.key != "Unreleased" }
                     .entries
@@ -485,7 +485,9 @@ project(":plugin") {
 
     }
 }
-
+/**
+ * 该模块相当于core   不可被其他模块引用
+ */
 project(":") {
 
     dependencies {
@@ -501,7 +503,7 @@ project(":") {
         implementation(project(":util"))
         implementation(project(":icon"))
         implementation(project(":psi"))
-        implementation(project(":core"))
+        implementation(project(":messages"))
 
     }
     tasks {

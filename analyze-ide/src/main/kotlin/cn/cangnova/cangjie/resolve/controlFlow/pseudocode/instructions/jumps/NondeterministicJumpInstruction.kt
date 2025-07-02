@@ -1,0 +1,85 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+
+package cn.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.jumps
+
+import cn.cangnova.cangjie.resolve.controlFlow.pseudocode.Label
+import cn.cangnova.cangjie.resolve.controlFlow.pseudocode.PseudoValue
+import cn.cangnova.cangjie.psi.CjElement
+import cn.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.*
+
+
+class NondeterministicJumpInstruction(
+    element: CjElement,
+    targetLabels: List<Label>,
+    blockScope: BlockScope,
+    private val inputValue: PseudoValue?
+) : CjElementInstructionImpl(element, blockScope), JumpInstruction {
+    private var _next: Instruction? = null
+    private val _resolvedTargets: MutableMap<Label, Instruction> = linkedMapOf()
+
+    val targetLabels: List<Label> = ArrayList(targetLabels)
+    private val resolvedTargets: Map<Label, Instruction>
+        get() = _resolvedTargets
+
+    fun setResolvedTarget(label: Label, resolvedTarget: Instruction) {
+        _resolvedTargets[label] = outgoingEdgeTo(resolvedTarget)!!
+    }
+
+    var next: Instruction
+        get() = _next!!
+        set(value) {
+            _next = outgoingEdgeTo(value)
+        }
+
+    override val nextInstructions: Collection<Instruction>
+        get() {
+            val targetInstructions = ArrayList(resolvedTargets.values)
+            targetInstructions.add(next)
+            return targetInstructions
+        }
+
+    override val inputValues: List<PseudoValue>
+        get() = listOfNotNull(inputValue)
+
+    override fun accept(visitor: InstructionVisitor) {
+        visitor.visitNondeterministicJump(this)
+    }
+
+    override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitNondeterministicJump(this)
+
+    override fun toString(): String {
+        val inVal = if (inputValue != null) "|$inputValue" else ""
+        val labels = targetLabels.joinToString(", ") { it.name }
+        return "jmp?($labels$inVal)"
+    }
+
+    override fun createCopy(): InstructionImpl = createCopy(targetLabels)
+
+    fun copy(newTargetLabels: MutableList<Label>): Instruction = updateCopyInfo(createCopy(newTargetLabels))
+
+    private fun createCopy(newTargetLabels: List<Label>): InstructionImpl =
+        NondeterministicJumpInstruction(element, newTargetLabels, blockScope, inputValue)
+}

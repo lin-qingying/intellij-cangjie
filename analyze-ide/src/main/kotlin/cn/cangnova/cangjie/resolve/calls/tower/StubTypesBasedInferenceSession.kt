@@ -1,0 +1,255 @@
+/*
+ * Copyright 2024 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package cn.cangnova.cangjie.resolve.calls.tower
+
+import cn.cangnova.cangjie.builtins.CangJieBuiltIns
+import cn.cangnova.cangjie.descriptors.CallableDescriptor
+import cn.cangnova.cangjie.resolve.calls.components.*
+import cn.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
+import cn.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
+import cn.cangnova.cangjie.resolve.calls.inference.NewConstraintSystem
+import cn.cangnova.cangjie.resolve.calls.inference.components.CangJieConstraintSystemCompleter
+import cn.cangnova.cangjie.resolve.calls.inference.components.ConstraintSystemCompletionMode
+import cn.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
+import cn.cangnova.cangjie.resolve.calls.inference.model.SimpleConstraintSystemConstraintPosition
+import cn.cangnova.cangjie.resolve.calls.inference.model.typeForTypeVariable
+import cn.cangnova.cangjie.resolve.calls.model.*
+import cn.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
+import cn.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
+import cn.cangnova.cangjie.types.TypeConstructor
+
+abstract class CallInfo(
+    open val callResolutionResult: SingleCallResolutionResult,
+    val context: BasicCallResolutionContext,
+    val tracingStrategy: TracingStrategy
+)
+
+class PSIPartialCallInfo(
+    override val callResolutionResult: PartialCallResolutionResult,
+    context: BasicCallResolutionContext,
+    tracingStrategy: TracingStrategy
+) : CallInfo(callResolutionResult, context, tracingStrategy), PartialCallInfo
+
+class PSICompletedCallInfo(
+    override val callResolutionResult: CompletedCallResolutionResult,
+    context: BasicCallResolutionContext,
+    val resolvedCall: NewAbstractResolvedCall<*>,
+    tracingStrategy: TracingStrategy
+) : CallInfo(callResolutionResult, context, tracingStrategy), CompletedCallInfo
+
+class PSIErrorCallInfo<D : CallableDescriptor>(
+    override val callResolutionResult: CallResolutionResult,
+    val result: OverloadResolutionResults<D>
+) : ErrorCallInfo
+
+abstract class StubTypesBasedInferenceSession<D : CallableDescriptor>(
+    private val psiCallResolver: PSICallResolver,
+    private val postponedArgumentsAnalyzer: PostponedArgumentsAnalyzer,
+    protected val cangjieConstraintSystemCompleter: CangJieConstraintSystemCompleter,
+    protected val callComponents: CangJieCallComponents,
+    val builtIns: CangJieBuiltIns
+) : InferenceSession {
+    protected val commonPartiallyResolvedCalls = arrayListOf<PSIPartialCallInfo>()
+    val errorCallsInfo = arrayListOf<PSIErrorCallInfo<D>>()
+    private val completedCalls = hashSetOf<ResolvedAtom>()
+    protected val nestedInferenceSessions = hashSetOf<StubTypesBasedInferenceSession<*>>()
+
+    fun addNestedInferenceSession(inferenceSession: StubTypesBasedInferenceSession<*>) {
+        nestedInferenceSessions.add(inferenceSession)
+    }
+
+    open fun prepareForCompletion(commonSystem: NewConstraintSystem, resolvedCallsInfo: List<PSIPartialCallInfo>) {
+        // do nothing
+    }
+
+    override fun shouldRunCompletion(candidate: ResolutionCandidate): Boolean {
+        return false
+    }
+
+    override fun addPartialCallInfo(callInfo: PartialCallInfo) {
+        if (callInfo !is PSIPartialCallInfo) {
+            throw AssertionError("Call info for $callInfo should be instance of PSIPartialCallInfo")
+        }
+        commonPartiallyResolvedCalls.add(callInfo)
+    }
+
+    override fun addCompletedCallInfo(callInfo: CompletedCallInfo) {
+        // do nothing
+    }
+
+    override fun addErrorCallInfo(callInfo: ErrorCallInfo) {
+        if (callInfo !is PSIErrorCallInfo<*>) {
+            throw AssertionError("Error call info for $callInfo should be instance of PSIErrorCallInfo")
+        }
+        @Suppress("UNCHECKED_CAST")
+        errorCallsInfo.add(callInfo as PSIErrorCallInfo<D>)
+    }
+
+    override fun currentConstraintSystem(): ConstraintStorage {
+        return commonPartiallyResolvedCalls.lastOrNull()?.callResolutionResult?.constraintSystem?.getBuilder()
+            ?.currentStorage()
+            ?: ConstraintStorage.Empty
+    }
+
+    override fun callCompleted(resolvedAtom: ResolvedAtom): Boolean =
+        !completedCalls.add(resolvedAtom)
+
+    override fun shouldCompleteResolvedSubAtomsOf(resolvedCallAtom: ResolvedCallAtom) = true
+
+    fun resolveCandidates(resolutionCallbacks: CangJieResolutionCallbacks): List<ResolutionResultCallInfo<D>> {
+        val resolvedCallsInfo = commonPartiallyResolvedCalls.toList()
+
+        val diagnosticHolder = CangJieDiagnosticsHolder.SimpleHolder()
+
+        val hasOneSuccessfulAndOneErrorCandidate = if (resolvedCallsInfo.size > 1) {
+            val hasErrors = resolvedCallsInfo.map {
+                it.callResolutionResult.constraintSystem.errors.isNotEmpty() || it.callResolutionResult.diagnostics.isNotEmpty()
+            }
+            hasErrors.any { it } && !hasErrors.all { it }
+        } else {
+            false
+        }
+
+        fun runCompletion(constraintSystem: NewConstraintSystem, atoms: List<ResolvedAtom>) {
+            val completionMode = ConstraintSystemCompletionMode.FULL
+                cangjieConstraintSystemCompleter.runCompletion(
+                constraintSystem.asConstraintSystemCompleterContext(),
+                completionMode,
+                atoms,
+                builtIns.unitType,
+                diagnosticHolder
+            ) {
+                postponedArgumentsAnalyzer.analyze(
+                    constraintSystem.asPostponedArgumentsAnalyzerContext(),
+                    resolutionCallbacks,
+                    it,
+                    completionMode,
+                    diagnosticHolder
+                )
+            }
+
+        }
+
+        val allCandidates = arrayListOf<ResolutionResultCallInfo<D>>()
+
+        if (hasOneSuccessfulAndOneErrorCandidate) {
+            val goodCandidate = resolvedCallsInfo.first {
+                it.callResolutionResult.constraintSystem.errors.isEmpty() && it.callResolutionResult.diagnostics.isEmpty()
+            }
+            val badCandidate = resolvedCallsInfo.first {
+                it.callResolutionResult.constraintSystem.errors.isNotEmpty() || it.callResolutionResult.diagnostics.isNotEmpty()
+            }
+
+            for (callInfo in listOf(goodCandidate, badCandidate)) {
+                val atomsToAnalyze = mutableListOf<ResolvedAtom>(callInfo.callResolutionResult)
+                val system = NewConstraintSystemImpl(
+                    callComponents.constraintInjector,
+                    builtIns,
+                    callComponents.cangjieTypeRefiner,
+                    callComponents.languageVersionSettings
+                ).apply {
+                    addOtherSystem(callInfo.callResolutionResult.constraintSystem.getBuilder().currentStorage())
+                    /*
+                     * This is needed for very stupid case, when we have some delegate with good `getValue` and bad `setValue` that
+                     *   was provided by some function call with generic (e.g. var x by lazy { "" })
+                     * The problem is that we want to complete candidates for `getValue` and `setValue` separately, so diagnostics
+                     *   from `setValue` don't leak into resolved call of `getValue`, but both calls can have same
+                     *   atom for receiver (and type variables from it). After we complete first call, completion of
+                     *   second call fails because it's atoms don't contains type variable from receiver, because
+                     *   they was completed in first call
+                     * To fix that we add equality constraints from first call to system of second call and create
+                     *   stub atoms in order to call completer doesn't fail
+                     */
+                    if (callInfo === badCandidate) {
+                        val storage = allCandidates[0].resolutionResult.constraintSystem.getBuilder().currentStorage()
+                        for ((typeVariable, fixedType) in storage.fixedTypeVariables) {
+                            if (typeVariable in this.notFixedTypeVariables) {
+                                val type = (typeVariable as TypeConstructor).typeForTypeVariable()
+                                addEqualityConstraint(
+                                    type,
+                                    fixedType,
+                                    SimpleConstraintSystemConstraintPosition
+                                )
+                                atomsToAnalyze += StubResolvedAtom(typeVariable)
+                            }
+                        }
+                    }
+                }
+                runCompletion(system, atomsToAnalyze)
+                val resolutionResult = callInfo.asCallResolutionResult(diagnosticHolder, system)
+                allCandidates += ResolutionResultCallInfo(
+                    resolutionResult,
+                    psiCallResolver.convertToOverloadResolutionResults(
+                        callInfo.context,
+                        resolutionResult,
+                        callInfo.tracingStrategy
+                    )
+                )
+            }
+        } else {
+            val commonSystem = NewConstraintSystemImpl(
+                callComponents.constraintInjector,
+                builtIns,
+                callComponents.cangjieTypeRefiner,
+                callComponents.languageVersionSettings
+            ).apply {
+                addOtherSystem(currentConstraintSystem())
+            }
+
+            prepareForCompletion(commonSystem, resolvedCallsInfo)
+            runCompletion(commonSystem, resolvedCallsInfo.map { it.callResolutionResult })
+            resolvedCallsInfo.mapTo(allCandidates) {
+                val resolutionResult = it.asCallResolutionResult(diagnosticHolder, commonSystem)
+                ResolutionResultCallInfo(
+                    resolutionResult,
+                    psiCallResolver.convertToOverloadResolutionResults(it.context, resolutionResult, it.tracingStrategy)
+                )
+            }
+        }
+
+        val results = allCandidates.map { it.resolutionResult }
+        errorCallsInfo.filter { it.callResolutionResult !in results }.mapTo(allCandidates) {
+            ResolutionResultCallInfo(it.callResolutionResult, it.result)
+        }
+        return allCandidates
+    }
+
+    override fun computeCompletionMode(candidate: ResolutionCandidate): ConstraintSystemCompletionMode? = null
+
+    override fun resolveReceiverIndependently(): Boolean = false
+
+    private fun PartialCallInfo.asCallResolutionResult(
+        diagnosticsHolder: CangJieDiagnosticsHolder.SimpleHolder,
+        commonSystem: NewConstraintSystem
+    ): CallResolutionResult {
+        val diagnostics =
+            diagnosticsHolder.getDiagnostics() + callResolutionResult.diagnostics + commonSystem.errors.asDiagnostics()
+        return CompletedCallResolutionResult(callResolutionResult.resultCallAtom, diagnostics, commonSystem)
+    }
+}
+data class ResolutionResultCallInfo<D : CallableDescriptor>(
+    val resolutionResult: CallResolutionResult,
+    val overloadResolutionResults: OverloadResolutionResults<D>
+)
