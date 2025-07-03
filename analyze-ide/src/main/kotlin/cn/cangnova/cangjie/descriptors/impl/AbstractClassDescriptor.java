@@ -80,12 +80,12 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
                                 if (descriptor instanceof TypeAliasDescriptor) {
                                     return CangJieTypeFactory.computeExpandedType(
                                             (TypeAliasDescriptor) descriptor,
-                                            TypeUtils.getDefaultTypeProjections(descriptor.getTypeConstructor().getParameters())
+                                            TypeUtils.getDefaultTypeProjections(descriptor.typeConstructor.getParameters())
                                     );
                                 }
 
                                 if (descriptor instanceof ModuleAwareClassDescriptor) {
-                                    TypeConstructor refinedConstructor = descriptor.getTypeConstructor().refine(cangjieTypeRefiner);
+                                    TypeConstructor refinedConstructor = descriptor.typeConstructor.refine(cangjieTypeRefiner);
                                     return TypeUtils.makeUnsubstitutedType(
                                             refinedConstructor,
                                             ((ModuleAwareClassDescriptor) descriptor).getUnsubstitutedMemberScope(cangjieTypeRefiner),
@@ -93,7 +93,7 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
                                     );
                                 }
 
-                                return descriptor.getDefaultType();
+                                return descriptor.defaultType;
                             }
                         }
                 );
@@ -175,12 +175,12 @@ public abstract class AbstractClassDescriptor extends ModuleAwareClassDescriptor
     @NotNull
     @Override
     public MemberScope getMemberScope(@NotNull List<? extends TypeProjection> typeArguments, @NotNull CangJieTypeRefiner cangjieTypeRefiner) {
-        assert typeArguments.size() == getTypeConstructor().getParameters().size() : "Illegal number of type arguments: expected "
-                + getTypeConstructor().getParameters().size() + " but was " + typeArguments.size()
-                + " for " + getTypeConstructor() + " " + getTypeConstructor().getParameters();
+        assert typeArguments.size() == typeConstructor.getParameters().size() : "Illegal number of type arguments: expected "
+                + typeConstructor.getParameters().size() + " but was " + typeArguments.size()
+                + " for " + typeConstructor + " " + typeConstructor.getParameters();
         if (typeArguments.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner);
 
-        TypeSubstitutor substitutor = TypeConstructorSubstitution.create(getTypeConstructor(), typeArguments).buildSubstitutor();
+        TypeSubstitutor substitutor = TypeConstructorSubstitution.create(typeConstructor, typeArguments).buildSubstitutor();
         return new SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor);
     }
 

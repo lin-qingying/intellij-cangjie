@@ -70,7 +70,7 @@ public class EnumEntrySyntheticClassDescriptor extends ClassDescriptorBase {
         super(storageManager, containingClass, name, source, /* isExternal = */ false);
 
 
-        assert containingClass.getKind() == ClassKind.ENUM;
+        assert containingClass.kind == ClassKind.ENUM;
         this.primaryConstructor = new EnumEntryConstructorDescriptor(this, null, SourceElement.NO_SOURCE,
                 () -> types
 
@@ -99,7 +99,7 @@ public class EnumEntrySyntheticClassDescriptor extends ClassDescriptorBase {
             @NotNull Annotations annotations,
             @NotNull SourceElement source
     ) {
-        CangJieType enumType = enumClass.getDefaultType();
+        CangJieType enumType = enumClass.defaultType;
 
         return new EnumEntrySyntheticClassDescriptor(types, storageManager, enumClass, enumType, name, enumMemberNames, annotations, source);
     }

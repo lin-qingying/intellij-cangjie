@@ -98,12 +98,12 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
 
             val substitutedEnhancement: CangJieType? =
                 substitute(enhancement, originalProjection.projectionKind)
-            val resultingType: CangJieType = substitution.getType().unwrap()
+            val resultingType: CangJieType = substitution.type.unwrap()
                 .wrapEnhancement(
                     substitutedEnhancement
                 )
 
-            return TypeProjectionImpl(substitution.getProjectionKind(), resultingType)
+            return TypeProjectionImpl(substitution.projectionKind, resultingType)
         }
 
         if (type.isDynamic() || type.unwrap() is RawType) {
@@ -135,16 +135,16 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
                     recursionDepth + 1
                 )
 
-            val substitutedProjectionKind: Variance = substitutedLower.getProjectionKind()
+            val substitutedProjectionKind: Variance = substitutedLower.projectionKind
             assert(
-                (substitutedProjectionKind == substitutedUpper.getProjectionKind()) &&
+                (substitutedProjectionKind == substitutedUpper.projectionKind) &&
                         originalProjectionKind == Variance.INVARIANT || originalProjectionKind == substitutedProjectionKind
             ) { "Unexpected substituted projection kind: $substitutedProjectionKind; original: $originalProjectionKind" }
 
-            if (substitutedLower.getType() === flexibleType.lowerBound && substitutedUpper.getType() === flexibleType.upperBound) return originalProjection
+            if (substitutedLower.type === flexibleType.lowerBound && substitutedUpper.type === flexibleType.upperBound) return originalProjection
 
             val substitutedFlexibleType: CangJieType = flexibleType(
-                substitutedLower.getType().asSimpleType(), substitutedUpper.getType().asSimpleType()
+                substitutedLower.type.asSimpleType(), substitutedUpper.type.asSimpleType()
             )
             return TypeProjectionImpl(substitutedProjectionKind, substitutedFlexibleType)
         }
@@ -155,13 +155,13 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
             val varianceConflict: VarianceConflictType =
                 conflictType(
                     originalProjectionKind,
-                    replacement.getProjectionKind()
+                    replacement.projectionKind
                 )
 
 
             val customTypeParameter = type.getCustomTypeParameter()
-            val substitutedType: CangJieType = customTypeParameter?.substitutionResult(replacement.getType())
-                ?: replacement.getType()
+            val substitutedType: CangJieType = customTypeParameter?.substitutionResult(replacement.type)
+                ?: replacement.type
 
             // substitutionType.annotations = replacement.annotations ++ type.annotations
 //            if (!type.annotations.isEmpty()) {
@@ -182,7 +182,7 @@ class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarke
                 if (varianceConflict == VarianceConflictType.NO_CONFLICT
                 ) combine(
                     originalProjectionKind,
-                    replacement.getProjectionKind()
+                    replacement.projectionKind
                 )
                 else originalProjectionKind
             return TypeProjectionImpl(resultingProjectionKind, substitutedType)

@@ -719,7 +719,7 @@ object TypeUtils {
         argument: CangJieType,
         parameterDescriptor: TypeParameterDescriptor
     ): Boolean {
-        for (bound in parameterDescriptor.getUpperBounds()) {
+        for (bound in parameterDescriptor.upperBounds) {
             if (typeChecker.isSubtypeOf(argument, bound)) {
                 if (argument.constructor != bound.constructor) {
                     return true
@@ -751,10 +751,10 @@ object TypeUtils {
             val typeProjection: TypeProjection = arguments[i]
 
 
-            val projectionKind: Variance = typeProjection.getProjectionKind()
-            val argument: CangJieType = typeProjection.getType()
+            val projectionKind: Variance = typeProjection.projectionKind
+            val argument: CangJieType = typeProjection.type
 
-            when (parameterDescriptor.getVariance()) {
+            when (parameterDescriptor.variance) {
                 Variance.INVARIANT -> when (projectionKind) {
                     Variance.INVARIANT -> if (lowerThanBound(
                             typeChecker,
@@ -1010,7 +1010,7 @@ object TypeUtils {
     fun getDefaultTypeProjections(parameters: List<TypeParameterDescriptor>): List<TypeProjection> {
         val result: MutableList<TypeProjection> = mutableListOf()
         for (parameterDescriptor in parameters) {
-            result.add(TypeProjectionImpl(parameterDescriptor.getDefaultType()))
+            result.add(TypeProjectionImpl(parameterDescriptor.defaultType))
         }
         return result.toList()
     }
@@ -1055,7 +1055,7 @@ object TypeUtils {
                 classifierDescriptor.toString()
             )
         }
-        val typeConstructor: TypeConstructor = classifierDescriptor.getTypeConstructor()
+        val typeConstructor: TypeConstructor = classifierDescriptor.typeConstructor
         return makeUnsubstitutedType(
             typeConstructor,
             unsubstitutedMemberScope,
@@ -1113,7 +1113,7 @@ object TypeUtils {
 
         for (projection in type.arguments) {
 
-            if (contains(projection.getType(), isSpecialType, visited)) return true
+            if (contains(projection.type, isSpecialType, visited)) return true
         }
         return false
     }
@@ -1161,7 +1161,7 @@ object TypeUtils {
                 type.originalTypeVariable
             val typeParameter =
                 typeVariableConstructor.originalTypeParameter
-            return typeParameter == null || hasNullableSuperType(typeParameter.getDefaultType())
+            return typeParameter == null || hasNullableSuperType(typeParameter.defaultType)
         }
         val constructor: TypeConstructor = type.constructor
         if (constructor is IntersectionTypeConstructor) {

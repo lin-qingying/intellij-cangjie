@@ -312,7 +312,7 @@ class ModifiersChecker(
                 if (containingDescriptor is ClassDescriptor) {
                     val classOrInterface: ClassDescriptor =
                         containingDescriptor
-                    if (classOrInterface.getKind() == ClassKind.INTERFACE/* && classOrInterface.isExpect()*/) {
+                    if (classOrInterface.kind == ClassKind.INTERFACE/* && classOrInterface.isExpect()*/) {
                         return Modality.OPEN
                     }
                 }

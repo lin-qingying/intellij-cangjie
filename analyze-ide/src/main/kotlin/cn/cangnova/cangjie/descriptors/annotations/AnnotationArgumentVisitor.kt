@@ -21,78 +21,43 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors.annotations
 
-package cn.cangnova.cangjie.descriptors.annotations;
+import cn.cangnova.cangjie.resolve.constants.*
 
 
-import cn.cangnova.cangjie.resolve.constants.*;
+interface AnnotationArgumentVisitor<R, D> {
+    fun visitArrayValue(value: ArrayValue, data: D): R?
 
-public interface AnnotationArgumentVisitor<R, D> {
-    R visitArrayValue(ArrayValue value, D data);
+    fun visitStringValue(value: StringValue, data: D): R?
 
-    R visitStringValue(StringValue value, D data);
-    R visitUnitValue(UnitValue value, D data);
+    fun visitUnitValue(value: UnitValue, data: D): R?
 
-    R visitErrorValue(ErrorValue value, D data);
+    fun visitErrorValue(value: ErrorValue, data: D): R?
 
-    R visitInt32Value(Int32Value value, D data);
+    fun visitInt32Value(value: Int32Value, data: D): R?
 
-    R visitInt8Value(Int8Value value, D data);
+    fun visitInt8Value(value: Int8Value, data: D): R?
 
-    R visitInt64Value(Int64Value value, D data);
+    fun visitInt64Value(value: Int64Value, data: D): R?
 
-    R visitRuneValue(RuneValue value, D data);
+    fun visitRuneValue(value: RuneValue, data: D): R?
 
-    R visitInt16Value(Int16Value value, D data);
+    fun visitInt16Value(value: Int16Value, data: D): R?
 
-    R visitFloat64Value(Float64Value value, D data);
-    R visitFloat16Value(Float16Value value, D data);
+    fun visitFloat64Value(value: Float64Value, data: D): R?
 
-    R visitFloat32Value(Float32Value value, D data);
+    fun visitFloat16Value(value: Float16Value, data: D): R?
 
-    R visitBoolValue(BoolValue value, D data);
-    R visitUInt32Value(UInt32Value value, D data);
-    R visitUInt64Value(UInt64Value value, D data);
+    fun visitFloat32Value(value: Float32Value, data: D): R?
 
-    R visitUInt16Value(UInt16Value value, D data);
+    fun visitBoolValue(value: BoolValue, data: D): R?
 
-    R visitUInt8Value(UInt8Value value, D data);
+    fun visitUInt32Value(value: UInt32Value, data: D): R?
 
-//    R visitLongValue(@NotNull LongValue value, D data);
-//
-//    R visitIntValue(Int32Value value, D data);
-//
-//    R visitErrorValue(ErrorValue value, D data);
-//
-//    R visitShortValue(ShortValue value, D data);
-//
-//    R visitByteValue(ByteValue value, D data);
-//
-//    R visitDoubleValue(DoubleValue value, D data);
-//
-//    R visitFloatValue(FloatValue value, D data);
-//
-//    R visitBooleanValue(BooleanValue value, D data);
-//
-//    R visitCharValue(CharValue value, D data);
-//
-//    R visitStringValue(StringValue value, D data);
-//
-//    R visitNullValue(NullValue value, D data);
-//
-//    R visitEnumValue(EnumValue value, D data);
-//
-//    R visitArrayValue(ArrayValue value, D data);
-//
-//    R visitAnnotationValue(AnnotationValue value, D data);
-//
-//    R visitKClassValue(KClassValue value, D data);
-//
-//    R visitUByteValue(UByteValue value, D data);
-//
-//    R visitUShortValue(UShortValue value, D data);
-//
-//    R visitUIntValue(UIntValue value, D data);
-//
-//    R visitULongValue(ULongValue value, D data);
+    fun visitUInt64Value(value: UInt64Value, data: D): R?
+
+    fun visitUInt16Value(value: UInt16Value, data: D): R?
+
+    fun visitUInt8Value(value: UInt8Value, data: D): R?
 }

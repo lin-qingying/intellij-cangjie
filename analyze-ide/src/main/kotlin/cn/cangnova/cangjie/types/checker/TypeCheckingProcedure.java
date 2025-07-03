@@ -78,7 +78,7 @@ public class TypeCheckingProcedure {
             @NotNull TypeParameterDescriptor typeParameter,
             @NotNull TypeProjection typeArgument
     ) {
-        return getEffectiveProjectionKind(typeParameter.getVariance(), typeArgument.getProjectionKind());
+        return getEffectiveProjectionKind(typeParameter.variance, typeArgument.projectionKind);
     }
 
 
@@ -134,7 +134,7 @@ public class TypeCheckingProcedure {
                 return false;
             }
 
-            if (!constraints.assertEqualTypes(typeProjection1.getType(), typeProjection2.getType(), this)) {
+            if (!constraints.assertEqualTypes(typeProjection1.type, typeProjection2.type, this)) {
                 return false;
             }
         }
@@ -209,7 +209,7 @@ public class TypeCheckingProcedure {
                 return false;
             }
 
-            if (!constraints.assertEqualTypes(typeProjection1.getType(), typeProjection2.getType(), this)) {
+            if (!constraints.assertEqualTypes(typeProjection1.type, typeProjection2.type, this)) {
                 return false;
             }
         }
@@ -222,14 +222,14 @@ public class TypeCheckingProcedure {
             @NotNull TypeParameterDescriptor parameter
     ) {
         // Capturing makes sense only for invariant classes
-        if (parameter.getVariance() != Variance.INVARIANT) return false;
+        if (parameter.variance != Variance.INVARIANT) return false;
 
         // Now, both subtype and supertype relations transform to equality constraints on type arguments:
         // Array<out Int> is a subtype or equal to Array<T> then T captures a type that extends Int: 'Captured(out Int)'
         // Array<in Int> is a subtype or equal to Array<T> then T captures a type that extends Int: 'Captured(in Int)'
 
-        if (subtypeArgumentProjection.getProjectionKind() != Variance.INVARIANT && supertypeArgumentProjection.getProjectionKind() == Variance. INVARIANT) {
-            return constraints.capture(supertypeArgumentProjection.getType(), subtypeArgumentProjection);
+        if (subtypeArgumentProjection.projectionKind != Variance.INVARIANT && supertypeArgumentProjection.projectionKind == Variance. INVARIANT) {
+            return constraints.capture(supertypeArgumentProjection.type, subtypeArgumentProjection);
         }
         return false;
     }
@@ -280,10 +280,10 @@ public class TypeCheckingProcedure {
 
             if (capture(subArgument, superArgument, parameter)) continue;
 
-            boolean argumentIsErrorType = CangJieTypeKt.isError(subArgument.getType()) || CangJieTypeKt.isError(superArgument.getType());
-            if (!argumentIsErrorType && parameter.getVariance() == Variance.INVARIANT &&
-                    subArgument.getProjectionKind() == Variance.INVARIANT && superArgument.getProjectionKind() == Variance.INVARIANT) {
-                if (!constraints.assertEqualTypes(subArgument.getType(), superArgument.getType(), this)) return false;
+            boolean argumentIsErrorType = CangJieTypeKt.isError(subArgument.type) || CangJieTypeKt.isError(superArgument.type);
+            if (!argumentIsErrorType && parameter.variance == Variance.INVARIANT &&
+                    subArgument.projectionKind == Variance.INVARIANT && superArgument.projectionKind == Variance.INVARIANT) {
+                if (!constraints.assertEqualTypes(subArgument.type, superArgument.type, this)) return false;
                 continue;
             }
 

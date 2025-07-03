@@ -352,7 +352,7 @@ object DescriptorUtils {
 
         val container: DeclarationDescriptor = descriptor.containingDeclaration
         return container is PackageFragmentDescriptor ||
-                (container is ClassDescriptor && descriptor.getDispatchReceiverParameter() == null)
+                (container is ClassDescriptor && descriptor.dispatchReceiverParameter == null)
     }
 
     @JvmStatic
@@ -360,7 +360,7 @@ object DescriptorUtils {
         subClass: ClassDescriptor,
         superClass: ClassDescriptor
     ): Boolean {
-        for (superType in subClass.getTypeConstructor().getSupertypes()) {
+        for (superType in subClass.typeConstructor.getSupertypes()) {
             if (isSameClass(superType, superClass.original)) {
                 return true
             }
@@ -408,7 +408,7 @@ object DescriptorUtils {
         classDescriptor: ClassDescriptor,
         freedomForSealedInterfacesSupported: Boolean
     ): DescriptorVisibility {
-        val classKind: ClassKind = classDescriptor.getKind()
+        val classKind: ClassKind = classDescriptor.kind
         if (classKind == ClassKind.ENUM || classKind.isObject) {
             return DescriptorVisibilities.PRIVATE
         }
@@ -435,7 +435,7 @@ object DescriptorUtils {
      */
     fun <D : CallableMemberDescriptor> unwrapFakeOverride(descriptor: D): D {
         var descriptor = descriptor
-        while (descriptor.getKind() == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
+        while (descriptor.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
             val overridden: Collection<CallableMemberDescriptor?> =
                 descriptor.getOverriddenDescriptors()
             check(!overridden.isEmpty()) { "Fake override should have at least one overridden descriptor: $descriptor" }
@@ -480,11 +480,11 @@ object DescriptorUtils {
         ) || isKindOf(
             descriptor,
             ClassKind.INTERFACE
-        )) && (descriptor as ClassDescriptor).getModality() == Modality.SEALED
+        )) && (descriptor as ClassDescriptor).modality == Modality.SEALED
     }
 
     fun classCanHaveAbstractDeclaration(classDescriptor: ClassDescriptor): Boolean {
-        return classDescriptor.getModality() == Modality.ABSTRACT || isSealedClass(
+        return classDescriptor.modality == Modality.ABSTRACT || isSealedClass(
             classDescriptor
         ) /*|| classDescriptor.getKind() == ClassKind.ENUM*/
     }
@@ -520,7 +520,7 @@ object DescriptorUtils {
 
         if (descriptor is DeclarationDescriptorWithSource) {
             return descriptor.source
-                .getContainingFile()
+                .containingFile
         }
 
         return SourceFile.NO_SOURCE_FILE
@@ -549,7 +549,7 @@ object DescriptorUtils {
         result: MutableSet<D>
     ) {
         if (result.contains(current)) return
-        for (callableDescriptor in current.original.getOverriddenDescriptors()) {
+        for (callableDescriptor in current.original.overriddenDescriptors) {
             val descriptor = callableDescriptor.original as D
             collectAllOverriddenDescriptors(descriptor, result)
             result.add(descriptor)
@@ -641,7 +641,7 @@ object DescriptorUtils {
         if (descriptor != null) {
             val originalDescriptor: DeclarationDescriptor = descriptor.original
             if ((originalDescriptor is ClassifierDescriptor
-                        && other is ClassifierDescriptor) && other.getTypeConstructor() == originalDescriptor.getTypeConstructor()
+                        && other is ClassifierDescriptor) && other.typeConstructor == originalDescriptor.typeConstructor
             ) {
                 return true
             }
@@ -686,11 +686,11 @@ object DescriptorUtils {
     @JvmStatic
     fun getSuperClassType(classDescriptor: ClassDescriptor): CangJieType {
         val superclassTypes: Collection<CangJieType> =
-            classDescriptor.getTypeConstructor().getSupertypes()
+            classDescriptor.typeConstructor.getSupertypes()
         for (type in superclassTypes) {
             val superClassDescriptor: ClassDescriptor =
                 getClassDescriptorForType(type)
-            if (superClassDescriptor.getKind() != ClassKind.INTERFACE) {
+            if (superClassDescriptor.kind != ClassKind.INTERFACE) {
                 return type
             }
         }

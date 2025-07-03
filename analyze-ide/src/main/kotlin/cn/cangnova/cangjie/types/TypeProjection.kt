@@ -21,26 +21,21 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.types
 
-package cn.cangnova.cangjie.types;
+import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import cn.cangnova.cangjie.types.model.TypeArgumentMarker
 
-import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner;
-import cn.cangnova.cangjie.types.model.TypeArgumentMarker;
-import org.jetbrains.annotations.NotNull;
+interface TypeProjection : TypeArgumentMarker {
 
-public interface TypeProjection extends TypeArgumentMarker {
-    @NotNull
-    Variance getProjectionKind();
+    val projectionKind: Variance
 
-    @NotNull
-   CangJieType getType();
 
-//    boolean isStarProjection();
+    val type: CangJieType
 
-    @NotNull
+    //    boolean isStarProjection();
     @TypeRefinement
-    TypeProjection refine(@NotNull CangJieTypeRefiner cangjieTypeRefiner);
+    fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeProjection
 
-    @NotNull
-    TypeProjection replaceType(@NotNull CangJieType type);
+    fun replaceType(type: CangJieType): TypeProjection
 }

@@ -353,7 +353,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
         getUnsubstitutedInnerClassesScope();
         getTypeConstructor().getSupertypes();
         for (TypeParameterDescriptor typeParameterDescriptor : getTypeConstructor().getParameters()) {
-            typeParameterDescriptor.getUpperBounds();
+            typeParameterDescriptor.upperBounds;
         }
         getUnsubstitutedPrimaryConstructor();
         getVisibility();
@@ -454,7 +454,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
 
                 ,
                 descriptor -> (descriptor instanceof CallableMemberDescriptor
-                        && ((CallableMemberDescriptor) descriptor).getKind() != CallableMemberDescriptor.Kind.FAKE_OVERRIDE)
+                        && ((CallableMemberDescriptor) descriptor).kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE)
                         || descriptor instanceof VariableDescriptor
         );
     }
@@ -680,7 +680,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
                     CjTypeReference typeReference = delegationSpecifier.getTypeReference();
                     if (typeReference == null) continue;
                     CangJieType supertype = trace.get(TYPE, typeReference);
-                    if (supertype != null && supertype.getConstructor() == superclass.getTypeConstructor()) {
+                    if (supertype != null && supertype.getConstructor() == superclass.typeConstructor) {
                         elementToMark = typeReference;
                     }
                 }

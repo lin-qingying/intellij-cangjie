@@ -21,23 +21,17 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
+import cn.cangnova.cangjie.types.TypeSubstitutor
 
 
-import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue;
-import cn.cangnova.cangjie.types.TypeSubstitutor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+interface ReceiverParameterDescriptor : ParameterDescriptor {
 
-public interface ReceiverParameterDescriptor extends ParameterDescriptor {
-    @NotNull
-    ReceiverValue getValue();
+    val value: ReceiverValue
 
-    @Nullable
-    @Override
-    ReceiverParameterDescriptor substitute(@NotNull TypeSubstitutor substitutor);
+    override fun substitute(substitutor: TypeSubstitutor): ReceiverParameterDescriptor
 
-    @NotNull
-    ReceiverParameterDescriptor copy(@NotNull DeclarationDescriptor newOwner);
+    fun copy(newOwner: DeclarationDescriptor): ReceiverParameterDescriptor
 }

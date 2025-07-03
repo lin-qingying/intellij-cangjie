@@ -1117,10 +1117,10 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
                     )
 
                 if ((expectedType == null) && (function.typeReference != null || function.hasBlockBody())) {
-                    expectedType = descriptor.getReturnType()
+                    expectedType = descriptor.returnType
                 }
             } else {
-                expectedType = descriptor.getReturnType()
+                expectedType = descriptor.returnType
             }
             return expectedType ?: NO_EXPECTED_TYPE
         }

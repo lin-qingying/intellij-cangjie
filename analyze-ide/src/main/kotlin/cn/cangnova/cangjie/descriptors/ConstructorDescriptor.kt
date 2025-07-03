@@ -21,44 +21,35 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.TypeSubstitutor
 
-import cn.cangnova.cangjie.types.CangJieType;
-import cn.cangnova.cangjie.types.TypeSubstitutor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+interface ConstructorDescriptor : FunctionDescriptor {
 
-public interface ConstructorDescriptor extends FunctionDescriptor{
-    boolean isPrimary();
-    boolean isEnd();
+    val isPrimary: Boolean
+    val isEnd: Boolean
 
-    @NotNull
-    @Override
-    CangJieType getReturnType();
-    @NotNull
-    ClassDescriptor getConstructedClass();
+    override val returnType: CangJieType
+    val constructedClass: ClassDescriptor
 
-    @NotNull
-    @Override
-    ConstructorDescriptor copy(
-            DeclarationDescriptor newOwner,
-            Modality modality,
-            DescriptorVisibility visibility,
-            Kind kind,
-            boolean copyOverrides
-    );
-//    @NotNull
-//    @Override
-//    CangJieType getReturnType();
+    override fun copy(
+        newOwner: DeclarationDescriptor?,
+        modality: Modality?,
+        visibility: DescriptorVisibility?,
+        kind: CallableMemberDescriptor.Kind?,
+        copyOverrides: Boolean
+    ): ConstructorDescriptor
 
-    @Nullable
-    @Override
-    ConstructorDescriptor substitute(@NotNull TypeSubstitutor substitutor);
-    @NotNull
-    @Override
-    ConstructorDescriptor getOriginal();
-    @NotNull
-    @Override
-    ClassifierDescriptorWithTypeParameters getContainingDeclaration();
+    //    @NotNull
+    //    @Override
+    //    CangJieType getReturnType();
+    override fun substitute(substitutor: TypeSubstitutor): ConstructorDescriptor
+
+
+    override val original: ConstructorDescriptor
+
+
+    override val containingDeclaration: ClassifierDescriptorWithTypeParameters
 }

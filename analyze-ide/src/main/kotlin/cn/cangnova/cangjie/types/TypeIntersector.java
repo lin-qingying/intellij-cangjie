@@ -144,7 +144,7 @@ public class TypeIntersector {
 
     @NotNull
     public static CangJieType getUpperBoundsAsType(@NotNull TypeParameterDescriptor descriptor) {
-        return intersectUpperBounds(descriptor, descriptor.getUpperBounds());
+        return intersectUpperBounds(descriptor, descriptor.upperBounds);
     }
 
     public static CangJieType intersectUpperBounds(@NotNull TypeParameterDescriptor descriptor, @NotNull List<CangJieType> upperBounds) {
@@ -197,7 +197,7 @@ public class TypeIntersector {
             }
             for (TypeProjection projection : type.getArguments()) {
 
-                processAllTypeParameters(projection.getType(), projection.getProjectionKind(), result, containsParameter);
+                processAllTypeParameters(projection.type, projection.projectionKind, result, containsParameter);
             }
         }
 

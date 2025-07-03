@@ -21,30 +21,21 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+import cn.cangnova.cangjie.mpp.ClassLikeSymbolMarker
+import cn.cangnova.cangjie.mpp.ClassifierSymbolMarker
 
-import cn.cangnova.cangjie.mpp.ClassLikeSymbolMarker;
-import cn.cangnova.cangjie.mpp.ClassifierSymbolMarker;
-import cn.cangnova.cangjie.utils.ReadOnly;
-import org.jetbrains.annotations.NotNull;
+interface ClassifierDescriptorWithTypeParameters
 
-import java.util.List;
-
-
-
-public interface ClassifierDescriptorWithTypeParameters
-        extends ClassifierDescriptor, DeclarationDescriptorWithVisibility, MemberDescriptor,
-        Substitutable<ClassifierDescriptorWithTypeParameters>, ClassLikeSymbolMarker, ClassifierSymbolMarker {
-    /**
-     * @return <code>true</code> if this class contains a reference to its outer class (as opposed to static nested class)
-     */
-   default boolean isInner() {
-
-       return false;
-   }
+    : ClassifierDescriptor, DeclarationDescriptorWithVisibility, MemberDescriptor,
+    Substitutable<ClassifierDescriptorWithTypeParameters>, ClassLikeSymbolMarker, ClassifierSymbolMarker {
+    val isInner: Boolean
+        /**
+         * @return `true` if this class contains a reference to its outer class (as opposed to static nested class)
+         */
+        get() = false
 
 
-    @NotNull
-    List<TypeParameterDescriptor> getDeclaredTypeParameters();
+    val declaredTypeParameters: MutableList<TypeParameterDescriptor>
 }

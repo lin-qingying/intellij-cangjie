@@ -48,7 +48,6 @@ import cn.cangnova.cangjie.psi.psiUtil.contains
 import cn.cangnova.cangjie.resolve.ModuleResolutionFacadeImpl
 import cn.cangnova.cangjie.resolve.ResolutionFacade
 import cn.cangnova.cangjie.storage.ExceptionTracker
-import cn.cangnova.cangjie.storage.LockBasedStorageManager
 import cn.cangnova.cangjie.utils.CangJieExceptionWithAttachments
 import cn.cangnova.cangjie.utils.sumByLong
 import com.intellij.execution.Platform

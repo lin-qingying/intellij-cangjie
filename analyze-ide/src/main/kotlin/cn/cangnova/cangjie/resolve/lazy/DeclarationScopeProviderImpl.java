@@ -71,11 +71,11 @@ public class DeclarationScopeProviderImpl implements DeclarationScopeProvider {
             ClassDescriptorWithResolutionScopes parentClassDescriptor = (ClassDescriptorWithResolutionScopes) lazyDeclarationResolver.getClassDescriptor(parentClassOrStruct, NoLookupLocation.MATCH_GET_DECLARATION_SCOPE);
 
             if (cjDeclaration instanceof CjAnonymousInitializer || cjDeclaration instanceof CjProperty  || cjDeclaration instanceof CjVariable) {
-                return parentClassDescriptor.getScopeForInitializerResolution();
+                return parentClassDescriptor.scopeForInitializerResolution;
             }
 
 
-            return parentClassDescriptor.getScopeForMemberDeclarationResolution();
+            return parentClassDescriptor.scopeForMemberDeclarationResolution;
         }
         throw new IllegalStateException("Don't call this method for local declarations: " + cjDeclaration + "\n" +
                 PsiUtilsKt.getElementTextWithContext(cjDeclaration));

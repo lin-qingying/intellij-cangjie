@@ -21,23 +21,18 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+import cn.cangnova.cangjie.mpp.ClassifierSymbolMarker
+import cn.cangnova.cangjie.types.SimpleType
+import cn.cangnova.cangjie.types.TypeConstructor
 
-import cn.cangnova.cangjie.mpp.ClassifierSymbolMarker;
+interface ClassifierDescriptor : DeclarationDescriptorNonRoot, ClassifierSymbolMarker {
 
-import cn.cangnova.cangjie.types.SimpleType;
-import cn.cangnova.cangjie.types.TypeConstructor;
-import org.jetbrains.annotations.NotNull;
+    val typeConstructor: TypeConstructor
 
-public interface ClassifierDescriptor extends DeclarationDescriptorNonRoot, ClassifierSymbolMarker  {
-    @NotNull
-    TypeConstructor getTypeConstructor();
 
-    @NotNull
-    SimpleType getDefaultType();
+    val defaultType: SimpleType
 
-    @NotNull
-    @Override
-    ClassifierDescriptor getOriginal();
+    override val original: ClassifierDescriptor
 }

@@ -21,34 +21,33 @@
  * any damages or issues arising from its use.
  *
  */
-
-package cn.cangnova.cangjie.descriptors;
-
-import cn.cangnova.cangjie.types.TypeSubstitutor;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
+package cn.cangnova.cangjie.storage
 
 
 /**
- * 完整的变量声明
- */
-//public interface VariableCallableDescriptor extends CallableMemberDescriptor, VariableDescriptor {
-//    @Override
-//    CallableMemberDescriptor.@NotNull CopyBuilder<? extends VariableCallableDescriptor> newCopyBuilder();
-//
-//    @NotNull
-//    @Override
-//    VariableCallableDescriptor substitute(@NotNull TypeSubstitutor substitutor);
-//
-//    @Override
-//    void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors);
-//
-//    @Override
-//    @NotNull
-//    VariableCallableDescriptor getOriginal();
-//
-//    @Override
-//    @NotNull
-//    Collection<? extends VariableCallableDescriptor> getOverriddenDescriptors();
-//}
+ * A storage for the value that should exist and be accessible in the single thread.
+ *
+ * Unlike ThreadLocal, thread doesn't store a reference to the value that makes it inaccessible globally, but simplifies memory
+ * management.
+ *
+ * The other difference from ThreadLocal is inability to have different values per each thread, so SingleThreadValue instance
+ * should be protected with external lock from rewrites.
+ *
+ * @param <T>
+</T> */
+internal class SingleThreadValue<T>(private val value: T?) {
+    private val thread: Thread
+
+    init {
+        thread = Thread.currentThread()
+    }
+
+    fun hasValue(): Boolean {
+        return thread === Thread.currentThread()
+    }
+
+    fun getValue(): T? {
+        check(hasValue()) { "No value in this thread (hasValue should be checked before)" }
+        return value
+    }
+}

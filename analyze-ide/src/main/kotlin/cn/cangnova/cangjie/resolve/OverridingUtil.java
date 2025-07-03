@@ -91,7 +91,7 @@ public class OverridingUtil {
             @NotNull MemberDescriptor fromSuper,
             boolean useSpecialRulesForPrivateSealedConstructors
     ) {
-        return !DescriptorVisibilities.isPrivate(fromSuper.getVisibility()) &&
+        return !DescriptorVisibilities.isPrivate(fromSuper.visibility) &&
                 DescriptorVisibilities.isVisibleIgnoringReceiver(fromSuper, overriding, useSpecialRulesForPrivateSealedConstructors);
     }
 
@@ -106,8 +106,8 @@ public class OverridingUtil {
     private static boolean allHasSameContainingDeclaration(@NotNull Collection<CallableMemberDescriptor> notOverridden) {
         if (2 > notOverridden.size()) return true;
 
-        DeclarationDescriptor containingDeclaration = notOverridden.iterator().next().getContainingDeclaration();
-        return CollectionsKt.all(notOverridden, descriptor -> descriptor.getContainingDeclaration() == containingDeclaration);
+        DeclarationDescriptor containingDeclaration = notOverridden.iterator().next().containingDeclaration;
+        return CollectionsKt.all(notOverridden, descriptor -> descriptor.containingDeclaration == containingDeclaration);
     }
 
     @NotNull
@@ -194,20 +194,20 @@ public class OverridingUtil {
         // We're making their modality that of the containing class, because this is the least confusing behavior for the users.
         // However, it may cause problems if we reuse resolution results of common code when compiling platform code
         boolean transformAbstractToClassModality =
-                current.isExpect() && (Modality.ABSTRACT != current.getModality() && Modality.SEALED != current.getModality());
+                current.isExpect() && (Modality.ABSTRACT != current.modality && Modality.SEALED != current.modality);
 
         if (hasOpen && !hasAbstract) {
             return Modality.OPEN;
         }
         if (!hasOpen && hasAbstract) {
-            return transformAbstractToClassModality ? current.getModality() : Modality.ABSTRACT;
+            return transformAbstractToClassModality ? current.modality : Modality.ABSTRACT;
         }
 
         Set<CallableMemberDescriptor> allOverriddenDeclarations = new HashSet<>();
         for (CallableMemberDescriptor descriptor : descriptors) {
             allOverriddenDeclarations.addAll(getOverriddenDeclarations(descriptor));
         }
-        return getMinimalModality(filterOutOverridden(allOverriddenDeclarations), transformAbstractToClassModality, current.getModality());
+        return getMinimalModality(filterOutOverridden(allOverriddenDeclarations), transformAbstractToClassModality, current.modality);
     }
 
     @NotNull
@@ -236,7 +236,7 @@ public class OverridingUtil {
     ) {
         return CollectionsKt.filter(toFilter, descriptor -> {
             //nested class could capture private member, so check for private visibility added
-            return !DescriptorVisibilities.isPrivate(descriptor.getVisibility()) &&
+            return !DescriptorVisibilities.isPrivate(descriptor.visibility) &&
                     DescriptorVisibilities.isVisibleIgnoringReceiver(descriptor, current, false);
         });
     }
@@ -268,7 +268,7 @@ public class OverridingUtil {
         CallableMemberDescriptor fakeOverride =
                 mostSpecific.copy(current, modality, visibility, CallableMemberDescriptor.Kind.FAKE_OVERRIDE, false);
         strategy.setOverriddenDescriptors(fakeOverride, effectiveOverridden);
-        assert !fakeOverride.getOverriddenDescriptors().isEmpty()
+        assert !fakeOverride.overriddenDescriptors.isEmpty()
                 : "Overridden descriptors should be set for " + CallableMemberDescriptor.Kind.FAKE_OVERRIDE;
         strategy.addFakeOverride(fakeOverride);
     }
@@ -288,13 +288,13 @@ public class OverridingUtil {
             @NotNull CallableMemberDescriptor descriptor,
             @NotNull Set<CallableMemberDescriptor> result
     ) {
-        if (descriptor.getKind().isReal()) {
+        if (descriptor.kind.isReal()) {
             result.add(descriptor);
         } else {
-            if (descriptor.getOverriddenDescriptors().isEmpty()) {
+            if (descriptor.overriddenDescriptors.isEmpty()) {
                 throw new IllegalStateException("No overridden descriptors found for (fake override) " + descriptor);
             }
-            for (CallableMemberDescriptor overridden : descriptor.getOverriddenDescriptors()) {
+            for (CallableMemberDescriptor overridden : descriptor.overriddenDescriptors) {
                 collectOverriddenDeclarations(overridden, result);
             }
         }
@@ -319,8 +319,8 @@ public class OverridingUtil {
         // Note that this is needed for the usage of this function in the IDE code
         if (!f.equals(g)
                 && DescriptorEquivalenceForOverrides.INSTANCE.areEquivalent(
-                f.getOriginal(),
-                g.getOriginal(),
+                f.original,
+                g.original,
                 allowDeclarationCopies,
                 distinguishExpectsAndNonExpects
         )
@@ -328,7 +328,7 @@ public class OverridingUtil {
             return true;
         }
 
-        CallableDescriptor originalG = g.getOriginal();
+        CallableDescriptor originalG = g.original;
         for (D overriddenFunction : DescriptorUtils.getAllOverriddenDescriptors(f)) {
             if (DescriptorEquivalenceForOverrides.INSTANCE.areEquivalent(
                     originalG,
@@ -380,7 +380,7 @@ public class OverridingUtil {
             @NotNull DeclarationDescriptorWithVisibility a,
             @NotNull DeclarationDescriptorWithVisibility b
     ) {
-        Integer result = DescriptorVisibilities.compare(a.getVisibility(), b.getVisibility());
+        Integer result = DescriptorVisibilities.compare(a.visibility, b.visibility);
         return null == result || 0 <= result;
     }
 
@@ -395,8 +395,8 @@ public class OverridingUtil {
     }
 
     public static boolean isMoreSpecific(@NotNull CallableDescriptor a, @NotNull CallableDescriptor b) {
-        CangJieType aReturnType = a.getReturnType();
-        CangJieType bReturnType = b.getReturnType();
+        CangJieType aReturnType = a.returnType;
+        CangJieType bReturnType = b.returnType;
 
         assert null != aReturnType : "Return type of " + a + " is null";
         assert null != bReturnType : "Return type of " + b + " is null";
@@ -405,7 +405,7 @@ public class OverridingUtil {
 
 
         TypeCheckerState checkerState =
-                DEFAULT.createTypeCheckerState(a.getTypeParameters(), b.getTypeParameters());
+                DEFAULT.createTypeCheckerState(a.typeParameters, b.typeParameters);
 
         if (a instanceof FunctionDescriptor) {
             assert b instanceof FunctionDescriptor : "b is " + b.getClass();
@@ -482,7 +482,7 @@ public class OverridingUtil {
         H firstNonFlexible = null;
         for (H candidate : candidates) {
             //noinspection ConstantConditions
-            if (!FlexibleTypesKt.isFlexible(descriptorByHandle.invoke(candidate).getReturnType())) {
+            if (!FlexibleTypesKt.isFlexible(descriptorByHandle.invoke(candidate).returnType)) {
                 firstNonFlexible = candidate;
                 break;
             }
@@ -535,8 +535,8 @@ public class OverridingUtil {
 //        if (receiverParameter != null) {
 //            parameters.add(receiverParameter.getType());
 //        }
-        for (ValueParameterDescriptor valueParameterDescriptor : callableDescriptor.getValueParameters()) {
-            parameters.add(valueParameterDescriptor.getType());
+        for (ValueParameterDescriptor valueParameterDescriptor : callableDescriptor.valueParameters) {
+            parameters.add(valueParameterDescriptor.type);
         }
         return parameters;
     }
@@ -611,7 +611,7 @@ public class OverridingUtil {
 //        }
 
         // 检查参数数量是否匹配，如果不匹配，则返回一个 OverrideCompatibilityInfo 对象
-        if (superDescriptor.getValueParameters().size() != subDescriptor.getValueParameters().size()) {
+        if (superDescriptor.valueParameters.size() != subDescriptor.valueParameters.size()) {
             return OverrideCompatibilityInfo.incompatible("Value parameter number mismatch");
         }
 
@@ -649,8 +649,8 @@ public class OverridingUtil {
             @NotNull TypeParameterDescriptor subTypeParameter,
             @NotNull TypeCheckerState typeCheckerState
     ) {
-        List<CangJieType> superBounds = superTypeParameter.getUpperBounds();
-        List<CangJieType> subBounds = new ArrayList<>(subTypeParameter.getUpperBounds());
+        List<CangJieType> superBounds = superTypeParameter.upperBounds;
+        List<CangJieType> subBounds = new ArrayList<>(subTypeParameter.upperBounds);
         if (superBounds.size() != subBounds.size()) return false;
 
         outer:
@@ -705,13 +705,13 @@ public class OverridingUtil {
             @NotNull CallableMemberDescriptor memberDescriptor,
             @Nullable Function1<CallableMemberDescriptor, Unit> cannotInferVisibility
     ) {
-        for (CallableMemberDescriptor descriptor : memberDescriptor.getOverriddenDescriptors()) {
-            if (descriptor.getVisibility() == DescriptorVisibilities.INHERITED) {
+        for (CallableMemberDescriptor descriptor : memberDescriptor.overriddenDescriptors) {
+            if (descriptor.visibility == DescriptorVisibilities.INHERITED) {
                 resolveUnknownVisibilityForMember(descriptor, cannotInferVisibility);
             }
         }
 
-        if (memberDescriptor.getVisibility() != DescriptorVisibilities.INHERITED) {
+        if (memberDescriptor.visibility != DescriptorVisibilities.INHERITED) {
             return;
         }
 
@@ -728,7 +728,7 @@ public class OverridingUtil {
 
         if (memberDescriptor instanceof PropertyDescriptorImpl) {
             ((PropertyDescriptorImpl) memberDescriptor).setVisibility(visibilityToInherit);
-            for (PropertyAccessorDescriptor accessor : ((PropertyDescriptor) memberDescriptor).getAccessors()) {
+            for (PropertyAccessorDescriptor accessor : ((PropertyDescriptor) memberDescriptor).accessors) {
                 // If we couldn't infer visibility for property, the diagnostic is already reported, no need to report it again on accessors
                 resolveUnknownVisibilityForMember(accessor, null == maxVisibility ? null : cannotInferVisibility);
             }
@@ -741,7 +741,7 @@ public class OverridingUtil {
             assert memberDescriptor instanceof PropertyAccessorDescriptorImpl;
             PropertyAccessorDescriptorImpl propertyAccessorDescriptor = (PropertyAccessorDescriptorImpl) memberDescriptor;
             propertyAccessorDescriptor.setVisibility(visibilityToInherit);
-            if (visibilityToInherit != propertyAccessorDescriptor.getCorrespondingProperty().getVisibility()) {
+            if (visibilityToInherit != propertyAccessorDescriptor.getCorrespondingProperty().visibility) {
                 propertyAccessorDescriptor.setDefault(false);
             }
         }
@@ -754,7 +754,7 @@ public class OverridingUtil {
         }
         DescriptorVisibility maxVisibility = null;
         for (CallableMemberDescriptor descriptor : descriptors) {
-            DescriptorVisibility visibility = descriptor.getVisibility();
+            DescriptorVisibility visibility = descriptor.visibility;
             assert visibility != DescriptorVisibilities.INHERITED : "Visibility should have been computed for " + descriptor;
             if (null == maxVisibility) {
                 maxVisibility = visibility;
@@ -771,7 +771,7 @@ public class OverridingUtil {
             return null;
         }
         for (CallableMemberDescriptor descriptor : descriptors) {
-            Integer compareResult = DescriptorVisibilities.compare(maxVisibility, descriptor.getVisibility());
+            Integer compareResult = DescriptorVisibilities.compare(maxVisibility, descriptor.visibility);
             if (null == compareResult || 0 > compareResult) {
                 return null;
             }
@@ -781,15 +781,15 @@ public class OverridingUtil {
 
     @Nullable
     private static DescriptorVisibility computeVisibilityToInherit(@NotNull CallableMemberDescriptor memberDescriptor) {
-        Collection<? extends CallableMemberDescriptor> overriddenDescriptors = memberDescriptor.getOverriddenDescriptors();
+        Collection<? extends CallableMemberDescriptor> overriddenDescriptors = memberDescriptor.overriddenDescriptors;
         DescriptorVisibility maxVisibility = findMaxVisibility(overriddenDescriptors);
         if (null == maxVisibility) {
             return null;
         }
-        if (CallableMemberDescriptor.Kind.FAKE_OVERRIDE == memberDescriptor.getKind()) {
+        if (CallableMemberDescriptor.Kind.FAKE_OVERRIDE == memberDescriptor.kind) {
             for (CallableMemberDescriptor overridden : overriddenDescriptors) {
                 // An implementation (a non-abstract overridden member) of a fake override should have the maximum possible visibility
-                if (Modality.ABSTRACT != overridden.getModality() && !overridden.getVisibility().equals(maxVisibility)) {
+                if (Modality.ABSTRACT != overridden.getModality() && !overridden.visibility.equals(maxVisibility)) {
                     return null;
                 }
             }
@@ -899,7 +899,7 @@ public class OverridingUtil {
         for (CallableMemberDescriptor member : notOverridden) {
             if (member instanceof FunctionDescriptor) {
                 {
-                    if (((FunctionDescriptor) member).getIsExtend()) {
+                    if (((FunctionDescriptor) member).isExtend) {
                         membersFromCurrent.add((T) member);
                     }
                 }
@@ -933,7 +933,7 @@ public class OverridingUtil {
 
         Map<TypeConstructor, TypeConstructor> matchingTypeConstructors = new HashMap<>();
         for (int i = 0; i < firstParameters.size(); i++) {
-            matchingTypeConstructors.put(firstParameters.get(i).getTypeConstructor(), secondParameters.get(i).getTypeConstructor());
+            matchingTypeConstructors.put(firstParameters.get(i).typeConstructor, secondParameters.get(i).typeConstructor);
         }
 
         return new OverridingUtilTypeSystemContext(
@@ -966,7 +966,7 @@ public class OverridingUtil {
         List<CangJieType> subValueParameters = compiledValueParameters(subDescriptor);
 
         // 获取超类方法的类型参数列表
-        List<TypeParameterDescriptor> superTypeParameters = superDescriptor.getTypeParameters();
+        List<TypeParameterDescriptor> superTypeParameters = superDescriptor.typeParameters;
 
         // 当成员为扩展时，有且只有一个类型参数，并且为扩展类型中的泛型时，需特殊处理
         List<TypeParameterDescriptor> subTypeParameters = subDescriptor.getTypeParametersNotExtend();
@@ -1010,8 +1010,8 @@ public class OverridingUtil {
 
         // 检查返回类型是否兼容，如果需要检查返回类型的话
         if (checkReturnType) {
-            CangJieType superReturnType = superDescriptor.getReturnType();
-            CangJieType subReturnType = subDescriptor.getReturnType();
+            CangJieType superReturnType = superDescriptor.returnType;
+            CangJieType subReturnType = subDescriptor.returnType;
 
             if (null != superReturnType && null != subReturnType) {
                 boolean bothErrors = CangJieTypeKt.isError(subReturnType) && CangJieTypeKt.isError(superReturnType);

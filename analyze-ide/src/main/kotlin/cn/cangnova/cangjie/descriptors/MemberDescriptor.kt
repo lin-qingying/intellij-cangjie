@@ -21,31 +21,20 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+interface MemberDescriptor : DeclarationDescriptorNonRoot, DeclarationDescriptorWithVisibility {
+    var modality: Modality
 
-import org.jetbrains.annotations.NotNull;
 
-public interface MemberDescriptor extends DeclarationDescriptorNonRoot, DeclarationDescriptorWithVisibility {
-    @NotNull
-    Modality getModality();
+    override val visibility: DescriptorVisibility
 
-   default void setModality(@NotNull Modality modality){
+    val isExpect: Boolean
+        get() = false
 
-   }
-
-    @Override
-    @NotNull
-    DescriptorVisibility getVisibility();
-
-    default boolean isExpect() {
-        return false;
-    }
-    default boolean isUnsafe(){
-        return false;
-}
+    val isUnsafe: Boolean
+        get() = false //
+    //    bool isActual();
     //
-//    bool isActual();
-//
-//    bool isExternal();
+    //    bool isExternal();
 }

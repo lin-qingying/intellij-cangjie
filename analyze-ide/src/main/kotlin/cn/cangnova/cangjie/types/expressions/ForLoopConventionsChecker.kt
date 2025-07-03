@@ -123,8 +123,8 @@ class ForLoopConventionsChecker(
     ) {
         if (isError(descriptor)) return
         val extensionReceiverParameter =
-            descriptor.getExtensionReceiverParameter()
-        if ((extensionReceiverParameter != null) && (extensionReceiverParameter.getType().isDynamic())) return
+            descriptor.extensionReceiverParameter
+        if ((extensionReceiverParameter != null) && (extensionReceiverParameter.type.isDynamic())) return
 
 //        if (!descriptor.isOperator()) {
 //            OperatorCallChecker.report(

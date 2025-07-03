@@ -71,23 +71,23 @@ object ForceResolveUtil {
         else if (any is CallableDescriptor) {
 
 
-            any.getContextReceiverParameters()
+            any.contextReceiverParameters
                 .forEach {
-                    forceResolveAllContents(it.getType())
+                    forceResolveAllContents(it.type)
                 }
-            val parameter = any.getExtensionReceiverParameter()
+            val parameter = any.extensionReceiverParameter
             if (parameter != null) {
-                forceResolveAllContents(parameter.getType())
+                forceResolveAllContents(parameter.type)
             }
-            for (parameterDescriptor in any.getValueParameters()) {
+            for (parameterDescriptor in any.valueParameters) {
                 forceResolveAllContents<ValueParameterDescriptor>(
                     parameterDescriptor
                 )
             }
-            for (typeParameterDescriptor in any.getTypeParameters()) {
-                forceResolveAllContents(typeParameterDescriptor.getUpperBounds())
+            for (typeParameterDescriptor in any.typeParameters) {
+                forceResolveAllContents(typeParameterDescriptor.upperBounds)
             }
-            forceResolveAllContents(any.getReturnType())
+            forceResolveAllContents(any.returnType)
             forceResolveAllContents(any.annotations)
         } else if (any is TypeAliasDescriptor) {
             val typeAliasDescriptor: TypeAliasDescriptor =
@@ -116,7 +116,7 @@ object ForceResolveUtil {
             forceResolveAllContents(type.constructor)
             for (projection in type.arguments) {
 
-                    forceResolveAllContents(projection.getType())
+                    forceResolveAllContents(projection.type)
 
             }
         }

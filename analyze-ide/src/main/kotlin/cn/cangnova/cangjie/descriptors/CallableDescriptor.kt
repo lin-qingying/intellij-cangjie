@@ -21,65 +21,49 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+import cn.cangnova.cangjie.mpp.CallableSymbolMarker
+import cn.cangnova.cangjie.types.CangJieType
 
 
-import cn.cangnova.cangjie.mpp.CallableSymbolMarker;
-import cn.cangnova.cangjie.types.CangJieType;
-import cn.cangnova.cangjie.utils.ReadOnly;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+interface CallableDescriptor : DeclarationDescriptorWithVisibility, DeclarationDescriptorNonRoot,
+    Substitutable<CallableDescriptor>, CallableSymbolMarker {
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+    val valueParameters: MutableList<ValueParameterDescriptor>
 
-public interface CallableDescriptor extends DeclarationDescriptorWithVisibility, DeclarationDescriptorNonRoot,
-        Substitutable<CallableDescriptor>, CallableSymbolMarker {
-    @NotNull
-    List<ValueParameterDescriptor> getValueParameters();
 
-    @NotNull
-    @Override
-    CallableDescriptor getOriginal();
+    override val original: CallableDescriptor
 
-    @NotNull
-    @ReadOnly
-    List<ReceiverParameterDescriptor> getContextReceiverParameters();
+
+    val contextReceiverParameters: MutableList<ReceiverParameterDescriptor>
 
     /**
      * Method may return null for not yet fully initialized object or if error occurred.
      */
-    @Nullable
-    CangJieType getReturnType();
 
-    @Nullable
-    ReceiverParameterDescriptor getExtensionReceiverParameter();
+    val returnType: CangJieType?
 
-    @NotNull
-    Collection<? extends CallableDescriptor> getOverriddenDescriptors();
 
-    @Nullable
-    ReceiverParameterDescriptor getDispatchReceiverParameter();
+    val extensionReceiverParameter: ReceiverParameterDescriptor?
+
+    val overriddenDescriptors: MutableCollection<out CallableDescriptor>
+
+    val dispatchReceiverParameter: ReceiverParameterDescriptor?
+
     /**
      * Sometimes parameter names are not available at all .
      * In this case, getName() returns synthetic names such as "p0", "p1" etc.
      */
-    boolean hasSynthesizedParameterNames();
-    @NotNull
-    @ReadOnly
-    List<TypeParameterDescriptor> getTypeParameters();
-    @NotNull
-    @ReadOnly
-   default List<TypeParameterDescriptor> getTypeParametersNotExtend(){
-        return Collections.emptyList();
-    }
-    @NotNull
+    fun hasSynthesizedParameterNames(): Boolean
 
-    boolean hasStableParameterNames();
 
-    interface UserDataKey<V> {
-    }
+    val typeParameters: MutableList<TypeParameterDescriptor?>
 
+    val typeParametersNotExtend: MutableList<TypeParameterDescriptor>
+        get() = mutableListOf()
+
+    fun hasStableParameterNames(): Boolean
+
+    interface UserDataKey<V>
 }

@@ -165,7 +165,7 @@ public class BodyResolver {
         return new LexicalScopeImpl(originalScope, unsubstitutedPrimaryConstructor, false, null,
                 Collections.emptyList(), LexicalScopeKind.DEFAULT_VALUE, LocalRedeclarationChecker.DO_NOTHING.INSTANCE,
                 handler -> {
-                    for (ValueParameterDescriptor valueParameter : unsubstitutedPrimaryConstructor.getValueParameters()) {
+                    for (ValueParameterDescriptor valueParameter : unsubstitutedPrimaryConstructor.valueParameters) {
                         handler.addVariableDescriptor(valueParameter);
                     }
                     return Unit.INSTANCE;
@@ -178,7 +178,7 @@ public class BodyResolver {
         LexicalScope accessorDeclaringScope = c.getDeclaringScope(accessor);
         assert accessorDeclaringScope != null : "Scope for accessor " + accessor.getText() + " should exists";
         LexicalScope headerScope = ScopeUtils.makeScopeForPropertyHeader(accessorDeclaringScope, descriptor);
-        return new LexicalScopeImpl(headerScope, descriptor, true, descriptor.getExtensionReceiverParameter(), descriptor.getContextReceiverParameters(),
+        return new LexicalScopeImpl(headerScope, descriptor, true, descriptor.extensionReceiverParameter, descriptor.contextReceiverParameters,
                 LexicalScopeKind.PROPERTY_ACCESSOR_BODY);
     }
 
@@ -277,21 +277,21 @@ public class BodyResolver {
 //                    trace.report(SUPERTYPE_IS_KSUSPEND_FUNCTION_TYPE.on(typeReference));
 //                }
 
-                if (classDescriptor.getKind() != ClassKind.INTERFACE) {
+                if (classDescriptor.kind != ClassKind.INTERFACE) {
                     /*if (supertypeOwner.getKind() == ClassKind.ENUM) {
                         trace.report(CLASS_IN_SUPERTYPE_FOR_ENUM.on(typeReference));
                         addSupertype = false;
                     } else*/
-                    if (supertypeOwner.getKind() == ClassKind.INTERFACE &&
+                    if (supertypeOwner.kind == ClassKind.INTERFACE &&
                             !classAppeared && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
                         trace.report(INTERFACE_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
-                    } else if (supertypeOwner.getKind() == ClassKind.EXTEND &&
+                    } else if (supertypeOwner.kind == ClassKind.EXTEND &&
                             !hasExtendSourceMap.get(typeReference) && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
                         trace.report(EXTEND_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
                         return;
-                    } else if (supertypeOwner.getKind() == ClassKind.STRUCT &&
+                    } else if (supertypeOwner.kind == ClassKind.STRUCT &&
                             !classAppeared && !DynamicTypesKt.isDynamic(supertype) /* avoid duplicate diagnostics */) {
                         trace.report(STRUCT_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
@@ -299,7 +299,7 @@ public class BodyResolver {
                     }
 
 
-                    if (classAppeared && supertypeOwner.getKind() != ClassKind.EXTEND) {
+                    if (classAppeared && supertypeOwner.kind != ClassKind.EXTEND) {
                         trace.report(MANY_CLASSES_IN_SUPERTYPE_LIST.on(typeReference));
                     } else {
                         classAppeared = true;
@@ -322,17 +322,17 @@ public class BodyResolver {
             }
 
             if (classDescriptor == null) return;
-            if (classDescriptor.getKind().isEnum()) {
+            if (classDescriptor.kind.isEnum()) {
                 if (!DescriptorUtils.isEnumEntry(classDescriptor)) {
                     trace.report(ENUM_IN_SUPERTYPE.on(typeReference));
                 }
-            } else if (classDescriptor.getKind().isObject()) {
+            } else if (classDescriptor.kind.isObject()) {
                 if (!DescriptorUtils.isEnumEntry(classDescriptor)) {
                     trace.report(STRUCT_IN_SUPERTYPE.on(typeReference));
                 }
             } else if (!allowedFinalSupertypes.contains(constructor)) {
                 if (DescriptorUtils.isSealedClass(classDescriptor)) {
-                    DeclarationDescriptor containingDescriptor = supertypeOwner.getContainingDeclaration();
+                    DeclarationDescriptor containingDescriptor = supertypeOwner.containingDeclaration;
                     while (containingDescriptor != null && containingDescriptor != classDescriptor) {
                         containingDescriptor = containingDescriptor.getContainingDeclaration();
                     }
@@ -354,7 +354,7 @@ public class BodyResolver {
 //                        trace.report(SEALED_SUPERTYPE_IN_LOCAL_CLASS.on(typeReference, declarationName, classDescriptor.getKind()));
 //                    }
                 } else if (ModalityUtilsKt.isFinalOrEnum(classDescriptor)) {
-                    trace.report(FINAL_SUPERTYPE.on(typeReference, classDescriptor.getDefaultType()));
+                    trace.report(FINAL_SUPERTYPE.on(typeReference, classDescriptor.defaultType));
                 }
 //                else if (CangJieBuiltIns.isEnum(classDescriptor)) {
 //                    trace.report(CLASS_CANNOT_BE_EXTENDED_DIRECTLY.on(typeReference, classDescriptor));
@@ -413,7 +413,7 @@ public class BodyResolver {
             @NotNull ClassConstructorDescriptor descriptor,
             @Nullable InferenceSession inferenceSession
     ) {
-        if (descriptor.getContainingDeclaration().getKind() == ClassKind.STRUCT && descriptor.isPrimary() && constructor instanceof CjPrimaryConstructor) {
+        if (descriptor.getContainingDeclaration().kind == ClassKind.STRUCT && descriptor.isPrimary && constructor instanceof CjPrimaryConstructor) {
             return DataFlowInfo.Companion.getEMPTY();
         }
         if (descriptor.isExpect() || isEffectivelyExternal(descriptor)) {
@@ -518,7 +518,7 @@ public class BodyResolver {
             @Nullable InferenceSession inferenceSession
     ) {
         LexicalScope propertyDeclarationInnerScope = ScopeUtils.makeScopeForVariableInitializer(propertyHeader, variableDescriptor);
-        CangJieType expectedTypeForInitializer = variable.getTypeReference() != null ? variableDescriptor.getType() : NO_EXPECTED_TYPE;
+        CangJieType expectedTypeForInitializer = variable.getTypeReference() != null ? variableDescriptor.type : NO_EXPECTED_TYPE;
         if (variableDescriptor.getCompileTimeInitializer() == null) {
             expressionTypingServices.getType(
                     propertyDeclarationInnerScope, initializer, expectedTypeForInitializer,
@@ -536,7 +536,7 @@ public class BodyResolver {
             @Nullable InferenceSession inferenceSession
     ) {
         LexicalScope propertyDeclarationInnerScope = ScopeUtils.makeScopeForPropertyInitializer(propertyHeader, propertyDescriptor);
-        CangJieType expectedTypeForInitializer = property.getTypeReference() != null ? propertyDescriptor.getType() : NO_EXPECTED_TYPE;
+        CangJieType expectedTypeForInitializer = property.getTypeReference() != null ? propertyDescriptor.type : NO_EXPECTED_TYPE;
         if (propertyDescriptor.getCompileTimeInitializer() == null) {
             expressionTypingServices.getType(
                     propertyDeclarationInnerScope, initializer, expectedTypeForInitializer,
@@ -566,7 +566,7 @@ public class BodyResolver {
         ObservableBindingTrace fieldAccessTrackingTrace = createFieldTrackingTrace(propertyDescriptor);
 
         CjPropertyAccessor getter = property.getGetter();
-        PropertyGetterDescriptor getterDescriptor = propertyDescriptor.getGetter();
+        PropertyGetterDescriptor getterDescriptor = propertyDescriptor.getter;
 
         boolean forceResolveAnnotations = true;
         if (getterDescriptor != null) {
@@ -581,7 +581,7 @@ public class BodyResolver {
         }
 
         CjPropertyAccessor setter = property.getSetter();
-        PropertySetterDescriptor setterDescriptor = propertyDescriptor.getSetter();
+        PropertySetterDescriptor setterDescriptor = propertyDescriptor.setter;
 
         if (setterDescriptor != null) {
             if (setter != null) {
@@ -596,7 +596,7 @@ public class BodyResolver {
     }
 
     void resolveProperty(BodiesResolveContext c, CjProperty property, PropertyDescriptor propertyDescriptor) {
-        computeDeferredType(propertyDescriptor.getReturnType());
+        computeDeferredType(propertyDescriptor.returnType);
         PreliminaryDeclarationVisitor.Companion.createForDeclaration(property, trace, languageVersionSettings);
 //        CjExpression initializer = property.getInitializer();
 //        LexicalScope variableHeaderScope = ScopeUtils.makeScopeForPropertyHeader(getScopeForProperty(c, property), propertyDescriptor);
@@ -625,7 +625,7 @@ public class BodyResolver {
     }
 
     void resolveVariable(BodiesResolveContext c, CjVariable variable, VariableDescriptor variableDescriptor) {
-        computeDeferredType(variableDescriptor.getReturnType());
+        computeDeferredType(variableDescriptor.returnType);
         PreliminaryDeclarationVisitor.Companion.createForDeclaration(variable, trace, languageVersionSettings);
         CjExpression initializer = variable.getInitializer();
         LexicalScope variableHeaderScope = ScopeUtils.makeScopeForVariableHeader(getScopeForVariable(c, variable), variableDescriptor);
@@ -666,8 +666,8 @@ public class BodyResolver {
 
             resolveSuperTypeEntryList(c.getOuterDataFlowInfo(), typeStatement, descriptor,
                     descriptor.getUnsubstitutedPrimaryConstructor(),
-                    descriptor.getScopeForConstructorHeaderResolution(),
-                    descriptor.getScopeForMemberDeclarationResolution(),
+                    descriptor.scopeForConstructorHeaderResolution,
+                    descriptor.scopeForMemberDeclarationResolution,
                     localContext != null ? localContext.inferenceSession : null);
         }
     }
@@ -681,7 +681,7 @@ public class BodyResolver {
             @Nullable InferenceSession inferenceSession
     ) {
         List<CjParameter> valueParameters = constructor.getValueParameters();
-        List<ValueParameterDescriptor> valueParameterDescriptors = constructorDescriptor.getValueParameters();
+        List<ValueParameterDescriptor> valueParameterDescriptors = constructorDescriptor.valueParameters;
 
         LexicalScope scope = getPrimaryConstructorParametersScope(declaringScope, constructorDescriptor);
 
@@ -788,7 +788,7 @@ public class BodyResolver {
     @Nullable
     private ConstructorDescriptor getDelegatedConstructor(@NotNull ConstructorDescriptor constructor) {
         ResolvedCall<ConstructorDescriptor> call = trace.get(CONSTRUCTOR_RESOLVED_DELEGATION_CALL, constructor);
-        return call == null || !call.getStatus().isSuccess() ? null : call.getResultingDescriptor().getOriginal();
+        return call == null || !call.getStatus().isSuccess() ? null : call.getResultingDescriptor().original;
     }
 
     private void reportEachConstructorOnCycle(@NotNull ConstructorDescriptor startConstructor) {
@@ -826,8 +826,8 @@ public class BodyResolver {
             if (delegatedConstructorDescriptor == null) break;
 
             // if next delegation call is super or primary constructor or already visited
-            if (!constructorDescriptor.getContainingDeclaration().equals(delegatedConstructorDescriptor.getContainingDeclaration()) ||
-                    delegatedConstructorDescriptor.isPrimary() ||
+            if (!constructorDescriptor.containingDeclaration.equals(delegatedConstructorDescriptor.containingDeclaration) ||
+                    delegatedConstructorDescriptor.isPrimary ||
                     visitedConstructors.contains(delegatedConstructorDescriptor)) {
                 break;
             }
@@ -957,7 +957,7 @@ public class BodyResolver {
 
         resolveFunctionBody(outerDataFlowInfo, trace, function, functionDescriptor, declaringScope, null, null, localContext);
 //TODO 检查返回值
-        assert functionDescriptor.getReturnType() != null;
+        assert functionDescriptor.returnType != null;
     }
 
     private void resolveFunctionBody(
@@ -977,7 +977,7 @@ public class BodyResolver {
         PreliminaryDeclarationVisitor.Companion.createForDeclaration(function, trace, languageVersionSettings);
         LexicalScope innerScope = FunctionDescriptorUtil.getFunctionInnerScope(scope, functionDescriptor, trace, overloadChecker);
         List<CjParameter> valueParameters = function.getValueParameters();
-        List<ValueParameterDescriptor> valueParameterDescriptors = functionDescriptor.getValueParameters();
+        List<ValueParameterDescriptor> valueParameterDescriptors = functionDescriptor.valueParameters;
 
         LexicalScope headerScope = headerScopeFactory != null ? headerScopeFactory.invoke(innerScope) : innerScope;
         valueParameterResolver.resolveValueParameters(
@@ -986,8 +986,8 @@ public class BodyResolver {
         );
 
 
-        if (functionDescriptor instanceof PropertyAccessorDescriptor accessorDescriptor && functionDescriptor.getExtensionReceiverParameter() == null
-                && functionDescriptor.getContextReceiverParameters().isEmpty()) {
+        if (functionDescriptor instanceof PropertyAccessorDescriptor accessorDescriptor && functionDescriptor.extensionReceiverParameter == null
+                && functionDescriptor.contextReceiverParameters.isEmpty()) {
             CjProperty property = (CjProperty) function.getParent().getParent();
             SourceElement propertySourceElement = CangJieSourceElementKt.toSourceElement(property);
             SyntheticFieldDescriptor fieldDescriptor = new SyntheticFieldDescriptor(accessorDescriptor, propertySourceElement);
@@ -1016,10 +1016,10 @@ public class BodyResolver {
                     innerScope, function, functionDescriptor, dataFlowInfo != null ? dataFlowInfo : outerDataFlowInfo, null, trace, localContext
             );
         } else {
-            functionDescriptor.getReturnType();
+            functionDescriptor.returnType;
         }
 //TODO 检查返回值
-        assert functionDescriptor.getReturnType() != null;
+        assert functionDescriptor.returnType != null;
     }
 
     private void checkRedeclarationsInClassHeaderWithoutPrimaryConstructor(
@@ -1088,15 +1088,15 @@ public class BodyResolver {
                 if (supertype == null) return;
                 ClassDescriptor superClass = TypeUtils.getClassDescriptor(supertype);
                 if (superClass == null) return;
-                if (superClass.getKind().isObject()) {
+                if (superClass.kind.isObject()) {
 //                     A "singleton in supertype" diagnostic will be reported later
                     return;
                 }
-                if (descriptor.getKind() != ClassKind.INTERFACE &&
+                if (descriptor.kind != ClassKind.INTERFACE &&
 
                         checkPrimaryConstructor(descriptor.getUnsubstitutedPrimaryConstructor()) &&
 //                        descriptor.getConstructors().isEmpty() &&
-                        superClass.getKind() != ClassKind.INTERFACE &&
+                        superClass.kind != ClassKind.INTERFACE &&
                         !descriptor.isExpect() && !isEffectivelyExternal(descriptor) &&
                         !ErrorUtils.isError(superClass) && TypeUtils.checkConstructorsNotParameter(superClass)
                 ) {
@@ -1113,8 +1113,8 @@ public class BodyResolver {
         Set<CangJieType> sourceSuperClass = new HashSet<>();
         //   TODO      如果是扩展，将源类型加上，但是这里还缺少其他扩展
         if (typeStatement instanceof CjExtend && descriptor instanceof LazyExtendClassDescriptor) {
-            sourceSuperClass.addAll(((LazyExtendClassDescriptor) descriptor).getClassDescriptor().getTypeConstructor().getSupertypes());
-            sourceSuperClass.addAll(((LazyExtendClassDescriptor) descriptor).getClassDescriptor().getTypeConstructor().getExtendSupertypes(((LazyExtendClassDescriptor) descriptor).getTypeStatement().getExtendId()));
+            sourceSuperClass.addAll(((LazyExtendClassDescriptor) descriptor).getClassDescriptor().typeConstructor.getSupertypes());
+            sourceSuperClass.addAll(((LazyExtendClassDescriptor) descriptor).getClassDescriptor().typeConstructor.getExtendSupertypes(((LazyExtendClassDescriptor) descriptor).getTypeStatement().getExtendId()));
 
 //            List<CjSuperTypeListEntry> superTypeListEntries = descriptor.getSuperTypeListEntries();
 //            CjTypeStatement sourceClassElement = ((LazyExtendClassDescriptor) descriptor).getSourceClassElement();

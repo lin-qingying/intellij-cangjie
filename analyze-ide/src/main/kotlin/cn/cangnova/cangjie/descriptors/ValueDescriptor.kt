@@ -21,18 +21,14 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+import cn.cangnova.cangjie.types.CangJieType
 
 
-import cn.cangnova.cangjie.types.CangJieType;
-import org.jetbrains.annotations.NotNull;
+interface ValueDescriptor : CallableDescriptor {
 
-public interface ValueDescriptor extends CallableDescriptor {
-    @NotNull
-    CangJieType getType();
+    val type: CangJieType
 
-    @Override
-    @NotNull
-    DeclarationDescriptor getContainingDeclaration();
+    override val containingDeclaration: DeclarationDescriptor
 }

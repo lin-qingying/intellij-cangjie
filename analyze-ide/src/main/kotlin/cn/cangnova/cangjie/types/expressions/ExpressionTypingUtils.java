@@ -173,7 +173,7 @@ public class ExpressionTypingUtils {
         VariableDescriptor oldDescriptor = ScopeUtilsKt.findLocalVariable(scope, variableDescriptor.getName());
         if (oldDescriptor == null) return;
 
-        DeclarationDescriptor variableContainingDeclaration = variableDescriptor.getContainingDeclaration();
+        DeclarationDescriptor variableContainingDeclaration = variableDescriptor.containingDeclaration;
         if (!isLocal(variableContainingDeclaration, oldDescriptor)) return;
 
         if (variableDescriptor instanceof ParameterDescriptor) {
@@ -182,7 +182,7 @@ public class ExpressionTypingUtils {
             }
 
             // parameter of lambda
-            if (variableContainingDeclaration.getContainingDeclaration() != oldDescriptor.getContainingDeclaration()) {
+            if (variableContainingDeclaration.getContainingDeclaration() != oldDescriptor.containingDeclaration) {
                 return;
             }
         }

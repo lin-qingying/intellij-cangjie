@@ -68,7 +68,7 @@ public class DescriptorFactory {
     ) {
         return createSetter(
                 propertyDescriptor, annotations, parameterAnnotations, isDefault,
-                propertyDescriptor.getVisibility(), sourceElement
+                propertyDescriptor.visibility, sourceElement
         );
     }
 
@@ -87,7 +87,7 @@ public class DescriptorFactory {
                CallableMemberDescriptor.Kind.DECLARATION, null, sourceElement
         );
         ValueParameterDescriptorImpl parameter =
-                PropertySetterDescriptorImpl.createSetterParameter(setterDescriptor, propertyDescriptor.getType(), parameterAnnotations);
+                PropertySetterDescriptorImpl.createSetterParameter(setterDescriptor, propertyDescriptor.type, parameterAnnotations);
         setterDescriptor.initialize(parameter);
         return setterDescriptor;
     }
@@ -112,7 +112,7 @@ public class DescriptorFactory {
             @NotNull SourceElement sourceElement
     ) {
         return new PropertyGetterDescriptorImpl(
-                propertyDescriptor, annotations, propertyDescriptor.getModality(), propertyDescriptor.getVisibility(),
+                propertyDescriptor, annotations, propertyDescriptor.getModality(), propertyDescriptor.visibility,
                 isDefault, CallableMemberDescriptor.Kind.DECLARATION, null, sourceElement
         );
     }

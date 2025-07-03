@@ -109,12 +109,12 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         List<ValueParameterDescriptor> result = new ArrayList<>(unsubstitutedValueParameters.size());
         for (ValueParameterDescriptor unsubstitutedValueParameter : unsubstitutedValueParameters) {
             // TODO : Lazy?
-            CangJieType substitutedType = substitutor.substitute(unsubstitutedValueParameter.getType(), Variance.INVARIANT);
+            CangJieType substitutedType = substitutor.substitute(unsubstitutedValueParameter.type, Variance.INVARIANT);
             CangJieType varargElementType = unsubstitutedValueParameter.getVarargElementType();
             CangJieType substituteVarargElementType =
                     null == varargElementType ? null : substitutor.substitute(varargElementType, Variance.INVARIANT);
             if (null == substitutedType) return null;
-            if (substitutedType != unsubstitutedValueParameter.getType() || varargElementType != substituteVarargElementType) {
+            if (substitutedType != unsubstitutedValueParameter.type || varargElementType != substituteVarargElementType) {
                 if (null != wereChanges) {
                     wereChanges[0] = true;
                 }
@@ -215,8 +215,8 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
 
         for (int i = 0; i < typeParameters.size(); ++i) {
             TypeParameterDescriptor typeParameterDescriptor = typeParameters.get(i);
-            if (typeParameterDescriptor.getIndex() != i) {
-                throw new IllegalStateException(typeParameterDescriptor + " index is " + typeParameterDescriptor.getIndex() + " but position is " + i);
+            if (typeParameterDescriptor.index != i) {
+                throw new IllegalStateException(typeParameterDescriptor + " index is " + typeParameterDescriptor.index + " but position is " + i);
             }
         }
 
@@ -235,7 +235,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     @Override
     public boolean getIsExtend() {
         if (null == dispatchReceiverParameter) return false;
-        return dispatchReceiverParameter.getContainingDeclaration() instanceof LazyExtendClassDescriptor;
+        return dispatchReceiverParameter.containingDeclaration instanceof LazyExtendClassDescriptor;
 
     }
 
@@ -279,7 +279,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         overriddenFunctions = new ArrayList<>();
 
         for (FunctionDescriptor function : (Collection<? extends FunctionDescriptor>) overriddenDescriptors) {
-            if (!function.getIsExtend()) {
+            if (!function.isExtend) {
                 overriddenFunctions.add(function);
                 if (function.isHiddenForResolutionEverywhereBesideSupercalls()) {
                     isHiddenForResolutionEverywhereBesideSupercalls = true;
@@ -357,8 +357,8 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     public boolean isOperator() {
         if (isOperator) return true;
 
-        for (FunctionDescriptor descriptor : getOriginal().getOverriddenDescriptors()) {
-            if (descriptor.isOperator()) return true;
+        for (FunctionDescriptor descriptor : getOriginal().overriddenDescriptors) {
+            if (descriptor.isOperator) return true;
         }
 
         return false;
@@ -440,7 +440,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     @NotNull
     @Override
     public FunctionDescriptor getOriginal() {
-        return original == this ? this : original.getOriginal();
+        return original == this ? this : original.original;
     }
 
     @NotNull
@@ -465,7 +465,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     @Nullable
     private CangJieType getExtensionReceiverParameterType() {
         if (null == extensionReceiverParameter) return null;
-        return extensionReceiverParameter.getType();
+        return extensionReceiverParameter.type;
     }
 
     @Override
@@ -504,8 +504,8 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         // 合并原始注解和附加注解
         Annotations resultAnnotations =
                 null != configuration.additionalAnnotations
-                        ? AnnotationsKt.composeAnnotations(getAnnotations(), configuration.additionalAnnotations)
-                        : getAnnotations();
+                        ? AnnotationsKt.composeAnnotations(annotations, configuration.additionalAnnotations)
+                        : annotations;
 
         // 创建一个新的函数描述符副本
         FunctionDescriptorImpl substitutedDescriptor = createSubstitutedCopy(
@@ -532,19 +532,19 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
             int index = 0;
             for (ReceiverParameterDescriptor newContextReceiverParameter : configuration.newContextReceiverParameters) {
                 CangJieType substitutedContextReceiverType =
-                        substitutor.substitute(newContextReceiverParameter.getType(), Variance.INVARIANT);
+                        substitutor.substitute(newContextReceiverParameter.type, Variance.INVARIANT);
                 if (null == substitutedContextReceiverType) {
                     return null;
                 }
                 ReceiverParameterDescriptor substitutedContextReceiverParameter =
                         DescriptorFactory.createContextReceiverParameterForCallable(substitutedDescriptor, substitutedContextReceiverType,
-                                ((ImplicitContextReceiver) newContextReceiverParameter.getValue()).getCustomLabelName(),
+                                ((ImplicitContextReceiver) newContextReceiverParameter.value).getCustomLabelName(),
                                 newContextReceiverParameter.getAnnotations(),
                                 index);
                 index++;
                 substitutedContextReceiverParameters.add(substitutedContextReceiverParameter);
 
-                wereChanges[0] |= substitutedContextReceiverType != newContextReceiverParameter.getType();
+                wereChanges[0] |= substitutedContextReceiverType != newContextReceiverParameter.type;
             }
         }
 
@@ -552,19 +552,19 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         ReceiverParameterDescriptor substitutedReceiverParameter = null;
         if (null != configuration.newExtensionReceiverParameter) {
             CangJieType substitutedExtensionReceiverType =
-                    substitutor.substitute(configuration.newExtensionReceiverParameter.getType(), Variance.INVARIANT);
+                    substitutor.substitute(configuration.newExtensionReceiverParameter.type, Variance.INVARIANT);
             if (null == substitutedExtensionReceiverType) {
                 return null;
             }
             substitutedReceiverParameter = new ReceiverParameterDescriptorImpl(
                     substitutedDescriptor,
                     new ExtensionReceiver(
-                            substitutedDescriptor, substitutedExtensionReceiverType, configuration.newExtensionReceiverParameter.getValue()
+                            substitutedDescriptor, substitutedExtensionReceiverType, configuration.newExtensionReceiverParameter.value
                     ),
                     configuration.newExtensionReceiverParameter.getAnnotations()
             );
 
-            wereChanges[0] |= substitutedExtensionReceiverType != configuration.newExtensionReceiverParameter.getType();
+            wereChanges[0] |= substitutedExtensionReceiverType != configuration.newExtensionReceiverParameter.type;
         }
 
         // 替换分发接收者参数
@@ -657,7 +657,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
         }
 
         // 处理覆盖描述符
-        if (configuration.copyOverrides && !getOriginal().getOverriddenDescriptors().isEmpty()) {
+        if (configuration.copyOverrides && !getOriginal().overriddenDescriptors.isEmpty()) {
             if (configuration.substitution.isEmpty()) {
                 Function0<Collection<FunctionDescriptor>> overriddenFunctionsTask = lazyOverriddenFunctionsTask;
                 if (null != overriddenFunctionsTask) {

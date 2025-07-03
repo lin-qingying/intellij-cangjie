@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.types
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import cn.cangnova.cangjie.storage.LockBasedStorageManager
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.error.ErrorEntity
 import cn.cangnova.cangjie.types.error.ErrorTypeKind

@@ -57,7 +57,7 @@ public class OverloadResolutionResultsUtil {
             @NotNull ResolutionContext<?> context
     ) {
         ResolvedCall<D> resultingCall = getResultingCall(results, context);
-        return resultingCall != null ? resultingCall.getResultingDescriptor().getReturnType() : null;
+        return resultingCall != null ? resultingCall.getResultingDescriptor().returnType : null;
     }
 
     @Nullable

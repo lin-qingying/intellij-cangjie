@@ -72,7 +72,7 @@ public class ReceiverParameterDescriptorImpl extends AbstractReceiverParameterDe
 //    }
     @Override
     public @NotNull ReceiverParameterDescriptor copy(@NotNull DeclarationDescriptor newOwner) {
-        return new ReceiverParameterDescriptorImpl(newOwner, value, getAnnotations());
+        return new ReceiverParameterDescriptorImpl(newOwner, value, annotations);
 
     }
 

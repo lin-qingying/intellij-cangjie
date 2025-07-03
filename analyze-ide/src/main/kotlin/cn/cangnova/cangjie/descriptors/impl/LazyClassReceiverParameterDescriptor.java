@@ -64,7 +64,7 @@ public class LazyClassReceiverParameterDescriptor extends AbstractReceiverParame
 
     @Override
     public @NotNull String toString() {
-        return descriptor.getKind() + " " + descriptor.getName() + "::this";
+        return descriptor.kind + " " + descriptor.getName() + "::this";
     }
 
 

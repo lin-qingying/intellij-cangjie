@@ -21,22 +21,7 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors.annotations
 
-package cn.cangnova.cangjie.descriptors.annotations;
 
-
-import org.jetbrains.annotations.NotNull;
-
-public class AnnotatedImpl implements Annotated {
-    private final Annotations annotations;
-
-    public AnnotatedImpl(@NotNull Annotations annotations) {
-        this.annotations = annotations;
-    }
-
-    @NotNull
-    @Override
-    public Annotations getAnnotations() {
-        return annotations;
-    }
-}
+class AnnotatedImpl(override val annotations: Annotations) : Annotated

@@ -21,39 +21,31 @@
  * any damages or issues arising from its use.
  *
  */
-
-package cn.cangnova.cangjie.descriptors;
-
-
-import cn.cangnova.cangjie.mpp.TypeParameterSymbolMarker;
-import cn.cangnova.cangjie.storage.StorageManager;
-import cn.cangnova.cangjie.types.CangJieType;
-import cn.cangnova.cangjie.types.TypeConstructor;
-import cn.cangnova.cangjie.types.Variance;
-import cn.cangnova.cangjie.types.model.TypeParameterMarker;
-
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-public interface TypeParameterDescriptor extends ClassifierDescriptor, TypeParameterMarker, TypeParameterSymbolMarker {
-//    boolean isReified();
+package cn.cangnova.cangjie.descriptors
 
 
-    @NotNull
-    Variance getVariance();
-    @NotNull
-    List<CangJieType> getUpperBounds();
+import cn.cangnova.cangjie.mpp.TypeParameterSymbolMarker
+import cn.cangnova.cangjie.storage.StorageManager
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.TypeConstructor
+import cn.cangnova.cangjie.types.Variance
+import cn.cangnova.cangjie.types.model.TypeParameterMarker
 
-    @NotNull
-    @Override
-    TypeConstructor getTypeConstructor();
+interface TypeParameterDescriptor : ClassifierDescriptor, TypeParameterMarker, TypeParameterSymbolMarker {
+    //    boolean isReified();
 
-    @NotNull
-    @Override
-    TypeParameterDescriptor getOriginal();
+    val variance: Variance
 
-    int getIndex();
+
+    val upperBounds: MutableList<CangJieType>
+
+
+    override val typeConstructor: TypeConstructor
+
+    override val original: TypeParameterDescriptor
+
+
+    val index: Int
 
     /**
      * Is current parameter just a copy of another type parameter (getOriginal) from outer declaration
@@ -64,8 +56,8 @@ public interface TypeParameterDescriptor extends ClassifierDescriptor, TypeParam
      * 2. 'getOriginal' returns original type parameter from outer declaration
      * 3. 'getTypeConstructor' is the same as for original declaration (at least in means of 'equals')
      */
-    boolean isCapturedFromOuterDeclaration();
+    val isCapturedFromOuterDeclaration: Boolean
 
-    @NotNull
-    StorageManager getStorageManager();
+
+    val storageManager: StorageManager
 }

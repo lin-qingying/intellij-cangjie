@@ -32,10 +32,10 @@ public abstract class TypeProjectionBase implements TypeProjection {
 //        if (isStarProjection()) {
 //            return "*";
 //        }
-        if (getProjectionKind() == Variance.INVARIANT) {
-            return getType().toString();
+        if (projectionKind == Variance.INVARIANT) {
+            return type.toString();
         }
-        return getProjectionKind() + " " + getType();
+        return projectionKind + " " + type;
     }
 
     @Override
@@ -44,17 +44,17 @@ public abstract class TypeProjectionBase implements TypeProjection {
         if (!(o instanceof TypeProjection that)) return false;
 
 
-        if (getProjectionKind() != that.getProjectionKind()) return false;
-        return getType().equals(that.getType());
+        if (projectionKind != that.projectionKind) return false;
+        return type.equals(that.type);
     }
 
     @Override
     public int hashCode() {
-        int result = getProjectionKind().hashCode();
-        if (TypeUtils.noExpectedType(getType())) {
+        int result = projectionKind.hashCode();
+        if (TypeUtils.noExpectedType(type)) {
             result = 31 * result +19;
         } else {
-            result = 31 * result + ( getType().hashCode());
+            result = 31 * result + ( type.hashCode());
         }
         return result;
     }

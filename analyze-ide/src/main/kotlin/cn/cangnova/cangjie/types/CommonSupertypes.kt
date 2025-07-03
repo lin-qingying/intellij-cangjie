@@ -279,7 +279,7 @@ object CommonSupertypes {
         for (parameterDescriptor in parameters) {
             val typeProjections: MutableSet<TypeProjection> = LinkedHashSet()
             for (type in types) {
-                typeProjections.add(type.arguments[parameterDescriptor.getIndex()])
+                typeProjections.add(type.arguments[parameterDescriptor.index])
             }
             newProjections.add(
                 computeSupertypeProjection(
@@ -302,7 +302,7 @@ object CommonSupertypes {
             }
 
             is TypeParameterDescriptor -> {
-                classifier.getDefaultType().memberScope
+                classifier.defaultType.memberScope
             }
 
             else -> {
@@ -321,7 +321,7 @@ object CommonSupertypes {
     private fun depth(type: CangJieType): Int {
         return 1 + maxDepth(type.arguments.map { projection ->
 
-            projection.getType()
+            projection.type
         })
     }
 

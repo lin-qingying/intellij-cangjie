@@ -103,7 +103,7 @@ object CangJieTypeFactory {
         cangjieTypeRefiner: CangJieTypeRefiner? = null
     ): MemberScope {
         return when (val descriptor = constructor.declarationDescriptor) {
-            is TypeParameterDescriptor -> descriptor.getDefaultType().memberScope
+            is TypeParameterDescriptor -> descriptor.defaultType.memberScope
             is ClassDescriptor -> {
                 val refinerToUse = cangjieTypeRefiner ?: descriptor.module.getCangJieTypeRefiner()
                 if (arguments.isEmpty())

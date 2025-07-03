@@ -64,13 +64,13 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
                 } else if (descriptor is ConstructorDescriptor) {
                     return 7
                 } else if (descriptor is PropertyDescriptor) {
-                    return if (descriptor.getExtensionReceiverParameter() == null) {
+                    return if (descriptor.extensionReceiverParameter == null) {
                         6
                     } else {
                         5
                     }
                 } else if (descriptor is FunctionDescriptor) {
-                    return if (descriptor.getExtensionReceiverParameter() == null) {
+                    return if (descriptor.extensionReceiverParameter == null) {
                         4
                     } else {
                         3
@@ -136,15 +136,15 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
                 o2
 
             val c1ReceiverParameter =
-                c1.getExtensionReceiverParameter()
+                c1.extensionReceiverParameter
             val c2ReceiverParameter =
-                c2.getExtensionReceiverParameter()
+                c2.extensionReceiverParameter
             assert((c1ReceiverParameter != null) == (c2ReceiverParameter != null))
             if (c1ReceiverParameter != null) {
                 val r1: String =
-                    RENDERER.renderType(c1ReceiverParameter.getType())
+                    RENDERER.renderType(c1ReceiverParameter.type)
                 val r2: String =
-                    RENDERER.renderType(c2ReceiverParameter!!.getType())
+                    RENDERER.renderType(c2ReceiverParameter!!.type)
                 val receiversCompareTo = r1.compareTo(r2)
                 if (receiversCompareTo != 0) {
                     return receiversCompareTo
@@ -152,14 +152,14 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
             }
 
             val c1ValueParameters: List<ValueParameterDescriptor> =
-                c1.getValueParameters()
+                c1.valueParameters
             val c2ValueParameters: List<ValueParameterDescriptor> =
-                c2.getValueParameters()
+                c2.valueParameters
             for (i in 0 until min(c1ValueParameters.size.toDouble(), c2ValueParameters.size.toDouble()).toInt()) {
                 val p1: String =
-                    RENDERER.renderType(c1ValueParameters[i].getType())
+                    RENDERER.renderType(c1ValueParameters[i].type)
                 val p2: String =
-                    RENDERER.renderType(c2ValueParameters[i].getType())
+                    RENDERER.renderType(c2ValueParameters[i].type)
                 val parametersCompareTo = p1.compareTo(p2)
                 if (parametersCompareTo != 0) {
                     return parametersCompareTo
@@ -172,12 +172,12 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
             }
 
             val c1TypeParameters: List<TypeParameterDescriptor> =
-                c1.getTypeParameters()
+                c1.typeParameters
             val c2TypeParameters: List<TypeParameterDescriptor> =
-                c2.getTypeParameters()
+                c2.typeParameters
             for (i in 0 until min(c1TypeParameters.size.toDouble(), c2TypeParameters.size.toDouble()).toInt()) {
-                val c1Bounds: List<CangJieType> = c1TypeParameters[i].getUpperBounds()
-                val c2Bounds: List<CangJieType> = c2TypeParameters[i].getUpperBounds()
+                val c1Bounds: List<CangJieType> = c1TypeParameters[i].upperBounds
+                val c2Bounds: List<CangJieType> = c2TypeParameters[i].upperBounds
                 val boundsCountCompareTo = c1Bounds.size - c2Bounds.size
                 if (boundsCountCompareTo != 0) {
                     return boundsCountCompareTo
@@ -199,9 +199,9 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
 
             if (c1 is CallableMemberDescriptor && c2 is CallableMemberDescriptor) {
                 val c1Kind: CallableMemberDescriptor.Kind =
-                    c1.getKind()
+                    c1.kind
                 val c2Kind: CallableMemberDescriptor.Kind =
-                    c2.getKind()
+                    c2.kind
                 val kindsCompareTo: Int = c1Kind.ordinal - c2Kind.ordinal
                 if (kindsCompareTo != 0) {
                     return kindsCompareTo
@@ -213,8 +213,8 @@ object MemberComparator : Comparator<DeclarationDescriptor> {
             val class2: ClassDescriptor =
                 o2
 
-            if (class1.getKind().ordinal != class2.getKind().ordinal) {
-                return class1.getKind().ordinal - class2.getKind().ordinal
+            if (class1.kind.ordinal != class2.kind.ordinal) {
+                return class1.kind.ordinal - class2.kind.ordinal
             }
 
 

@@ -21,67 +21,54 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
-
-import cn.cangnova.cangjie.name.Name;
-import cn.cangnova.cangjie.types.CangJieType;
-import cn.cangnova.cangjie.types.TypeSubstitution;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.TypeSubstitution
 
 /**
  * 表示一个可调用成员的描述符，例如方法或属性，可以被调用。
  * 它扩展了 CallableDescriptor 和 MemberDescriptor，结合了可调用性和类成员的特性。
  */
-public interface CallableMemberDescriptor extends CallableDescriptor, MemberDescriptor {
+interface CallableMemberDescriptor : CallableDescriptor, MemberDescriptor {
     /**
      * 判断这是一个真实的方法还是方法投影。
      *
      * @return 返回此可调用成员的类型，指示其是真实方法还是投影。
      */
-    @NotNull
-    Kind getKind();
 
-    /**
-     * 设置被覆盖成员的描述符集合。
-     *
-     * @param overriddenDescriptors 被覆盖成员的描述符集合。
-     */
-    void setOverriddenDescriptors(@NotNull Collection<? extends CallableMemberDescriptor> overriddenDescriptors);
+    val kind: Kind
 
     /**
      * 获取原始的可调用成员描述符，用于追溯最初声明的成员。
      *
      * @return 原始的可调用成员描述符。
      */
-    @NotNull
-    @Override
-    CallableMemberDescriptor getOriginal();
+    override val original: CallableMemberDescriptor
 
     /**
      * 获取被覆盖成员的描述符集合。
      *
      * @return 被覆盖成员的描述符集合。
      */
-    @NotNull
-    @Override
-    Collection<? extends CallableMemberDescriptor> getOverriddenDescriptors();
+    /**
+     * 设置被覆盖成员的描述符集合。
+     *
+     * @param overriddenDescriptors 被覆盖成员的描述符集合。
+     */
+
+    override var overriddenDescriptors: MutableCollection<out CallableMemberDescriptor>
 
     // TODO: 将与 userdata 相关的成员提升到 DeclarationDescriptor，并使用更高效的实现（例如 THashMap）
-
     /**
      * 获取与此描述符关联的用户自定义数据。
      *
      * @param key 用于检索用户数据的键。
      * @param <V> 用户数据的类型。
      * @return 与给定键关联的用户数据，如果不存在则返回 null。
-     */
-    @Nullable
-    <V> V getUserData(UserDataKey<V> key);
+    </V> */
+    fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>?): V?
 
     /**
      * 创建一个新的可调用成员描述符副本，并设置新的属性。
@@ -93,48 +80,50 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
      * @param copyOverrides 是否复制被覆盖的描述符。
      * @return 具有指定属性的新 CallableMemberDescriptor 实例。
      */
-    @NotNull
-    CallableMemberDescriptor copy(DeclarationDescriptor newOwner, Modality modality, DescriptorVisibility visibility, Kind kind, boolean copyOverrides);
+    fun copy(
+        newOwner: DeclarationDescriptor?,
+        modality: Modality?,
+        visibility: DescriptorVisibility?,
+        kind: Kind?,
+        copyOverrides: Boolean
+    ): CallableMemberDescriptor
 
     /**
      * 创建一个新的可调用成员描述符副本生成器。
      *
      * @return 用于构建此描述符副本的新 CopyBuilder 实例。
      */
-    @NotNull
-    CopyBuilder<? extends CallableMemberDescriptor> newCopyBuilder();
+    fun newCopyBuilder(): CopyBuilder<out CallableMemberDescriptor>
 
     /**
      * 定义可调用成员的类型。
      */
-    enum Kind {
+    enum class Kind {
         DECLARATION,  // 声明
-        FAKE_OVERRIDE, // 伪重写，指在某些情况下并不真正重写父类的方法
-        DELEGATION, // 委托
+        FAKE_OVERRIDE,  // 伪重写，指在某些情况下并不真正重写父类的方法
+        DELEGATION,  // 委托
         SYNTHESIZED; // 合成，可能是指编译器或工具自动生成的代码或结构。
 
-        /**
-         * 检查此类型是否表示一个真实的可调用成员。
-         *
-         * @return 如果此类型不是 FAKE_OVERRIDE，则返回 true，表示它是一个真实的可调用成员；否则返回 false。
-         */
-        public boolean isReal() {
-            return this != FAKE_OVERRIDE;
-        }
+        val isReal: Boolean
+            /**
+             * 检查此类型是否表示一个真实的可调用成员。
+             *
+             * @return 如果此类型不是 FAKE_OVERRIDE，则返回 true，表示它是一个真实的可调用成员；否则返回 false。
+             */
+            get() = this != Kind.FAKE_OVERRIDE
     }
 
     /**
      * 定义用于复制可调用成员描述符的生成器接口。
      */
-    interface CopyBuilder<D extends CallableMemberDescriptor> {
+    interface CopyBuilder<D : CallableMemberDescriptor> {
         /**
          * 设置新描述符的所有者。
          *
          * @param owner 新描述符的所有者。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setOwner(@NotNull DeclarationDescriptor owner);
+        fun setOwner(owner: DeclarationDescriptor): CopyBuilder<D>
 
         /**
          * 设置新描述符的模态性。
@@ -142,8 +131,7 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param modality 新描述符的模态性。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setModality(@NotNull Modality modality);
+        fun setModality(modality: Modality): CopyBuilder<D>
 
         /**
          * 设置新描述符的可见性。
@@ -151,8 +139,7 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param visibility 新描述符的可见性。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setVisibility(@NotNull DescriptorVisibility visibility);
+        fun setVisibility(visibility: DescriptorVisibility): CopyBuilder<D>
 
         /**
          * 设置新描述符的类型。
@@ -160,8 +147,7 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param kind 新描述符的类型。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setKind(@NotNull Kind kind);
+        fun setKind(kind: Kind): CopyBuilder<D>
 
         /**
          * 设置新描述符的类型参数。
@@ -169,8 +155,7 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param parameters 新描述符的类型参数列表。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setTypeParameters(@NotNull List<TypeParameterDescriptor> parameters);
+        fun setTypeParameters(parameters: MutableList<TypeParameterDescriptor>): CopyBuilder<D>
 
         /**
          * 设置新描述符的调度接收参数。
@@ -178,8 +163,7 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param dispatchReceiverParameter 新描述符的调度接收参数。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setDispatchReceiverParameter(@Nullable ReceiverParameterDescriptor dispatchReceiverParameter);
+        fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
 
         /**
          * 设置新描述符的替换规则。
@@ -187,8 +171,7 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param substitution 新描述符的替换规则。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setSubstitution(@NotNull TypeSubstitution substitution);
+        fun setSubstitution(substitution: TypeSubstitution): CopyBuilder<D>
 
         /**
          * 设置是否复制被覆盖的描述符。
@@ -196,8 +179,7 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param copyOverrides 是否复制被覆盖的描述符。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setCopyOverrides(boolean copyOverrides);
+        fun setCopyOverrides(copyOverrides: Boolean): CopyBuilder<D>
 
         /**
          * 设置新描述符的名称。
@@ -205,8 +187,7 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param name 新描述符的名称。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setName(@NotNull Name name);
+        fun setName(name: Name): CopyBuilder<D>
 
         /**
          * 设置新描述符的原始描述符。
@@ -214,16 +195,14 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param original 新描述符的原始描述符。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setOriginal(@Nullable CallableMemberDescriptor original);
+        fun setOriginal(original: CallableMemberDescriptor?): CopyBuilder<D>
 
         /**
          * 设置是否保留源元素。
          *
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setPreserveSourceElement();
+        fun setPreserveSourceElement(): CopyBuilder<D>
 
         /**
          * 设置新描述符的返回类型。
@@ -231,15 +210,13 @@ public interface CallableMemberDescriptor extends CallableDescriptor, MemberDesc
          * @param type 新描述符的返回类型。
          * @return 当前生成器实例。
          */
-        @NotNull
-        CopyBuilder<D> setReturnType(@NotNull CangJieType type);
+        fun setReturnType(type: CangJieType): CopyBuilder<D>
 
         /**
          * 构建并返回新描述符实例。
          *
          * @return 新的 CallableMemberDescriptor 实例，如果构建失败则返回 null。
          */
-        @Nullable
-        D build();
+        fun build(): D?
     }
 }

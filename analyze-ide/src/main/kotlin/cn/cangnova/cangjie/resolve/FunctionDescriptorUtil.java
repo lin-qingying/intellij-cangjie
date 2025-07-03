@@ -42,13 +42,13 @@ public class FunctionDescriptorUtil {
 
 //        return outerScope;
         return new LexicalScopeImpl(
-                outerScope, descriptor, true, descriptor.getExtensionReceiverParameter(),
-                descriptor.getContextReceiverParameters(), LexicalScopeKind.FUNCTION_INNER_SCOPE, redeclarationChecker,
+                outerScope, descriptor, true, descriptor.extensionReceiverParameter,
+                descriptor.contextReceiverParameters, LexicalScopeKind.FUNCTION_INNER_SCOPE, redeclarationChecker,
                 handler -> {
 //                    for (TypeParameterDescriptor typeParameter : descriptor.getTypeParameters()) {
 //                        handler.addClassifierDescriptor(typeParameter);
 //                    }
-                    for (ValueParameterDescriptor valueParameterDescriptor : descriptor.getValueParameters()) {
+                    for (ValueParameterDescriptor valueParameterDescriptor : descriptor.valueParameters) {
                         if (valueParameterDescriptor instanceof ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
                             List<VariableDescriptor> entries =
                                     ((ValueParameterDescriptorImpl.WithDestructuringDeclaration) valueParameterDescriptor)

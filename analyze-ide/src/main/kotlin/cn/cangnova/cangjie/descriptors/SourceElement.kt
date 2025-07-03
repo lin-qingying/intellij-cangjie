@@ -21,25 +21,21 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+interface SourceElement {
+    val containingFile: SourceFile
 
-import org.jetbrains.annotations.NotNull;
+    companion object {
+        @JvmField
+        val NO_SOURCE: SourceElement = object : SourceElement {
+            override fun toString(): String {
+                return "NO_SOURCE"
+            }
 
-public interface SourceElement {
-    SourceElement NO_SOURCE = new SourceElement() {
-        @Override
-        public String toString() {
-            return "NO_SOURCE";
+            override val containingFile: SourceFile
+                get() = SourceFile.NO_SOURCE_FILE
+
         }
-
-        @NotNull
-        @Override
-        public SourceFile getContainingFile() {
-            return SourceFile.NO_SOURCE_FILE;
-        }
-    };
-
-    @NotNull
-    SourceFile getContainingFile();
+    }
 }

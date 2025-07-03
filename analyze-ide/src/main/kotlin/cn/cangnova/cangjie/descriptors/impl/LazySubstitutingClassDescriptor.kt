@@ -31,7 +31,6 @@ import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.resolve.scopes.SubstitutingScope
-import cn.cangnova.cangjie.storage.LockBasedStorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
@@ -60,7 +59,7 @@ class LazySubstitutingClassDescriptor(
                 )
 
                 myDeclaredTypeParameters =
-                    typeConstructorParameters.filter { descriptor: TypeParameterDescriptor -> !descriptor.isCapturedFromOuterDeclaration() }
+                    typeConstructorParameters.filter { descriptor: TypeParameterDescriptor -> !descriptor.isCapturedFromOuterDeclaration }
                         .toMutableList()
             }
         }
@@ -247,7 +246,7 @@ class LazySubstitutingClassDescriptor(
                 .setOriginal(constructor.original)
                 .setModality(constructor.getModality())
                 .setVisibility(constructor.visibility)
-                .setKind(constructor.getKind())
+                .setKind(constructor.kind)
                 .setCopyOverrides(false)
                 .build() as ClassConstructorDescriptor
             copy.substitute(getSubstitutor())?.let { result.add(it) }

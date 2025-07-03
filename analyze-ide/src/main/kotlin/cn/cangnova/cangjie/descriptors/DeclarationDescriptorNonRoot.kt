@@ -21,16 +21,10 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
 
+interface DeclarationDescriptorNonRoot : DeclarationDescriptorWithSource {
 
-import org.jetbrains.annotations.NotNull;
-
-public interface DeclarationDescriptorNonRoot extends DeclarationDescriptorWithSource {
-
-    @Override
-@NotNull
-    DeclarationDescriptor getContainingDeclaration();
-
+    override val containingDeclaration: DeclarationDescriptor
 }

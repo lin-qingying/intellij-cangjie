@@ -139,17 +139,17 @@ public class ResolvedCallImpl<D extends CallableDescriptor> implements MutableRe
 
     @NotNull
     private static Map<ValueParameterDescriptor, ResolvedValueArgument> createValueArgumentsMap(CallableDescriptor descriptor) {
-        return descriptor.getValueParameters().isEmpty() ? Collections.emptyMap() : new LinkedHashMap<>();
+        return descriptor.valueParameters.isEmpty() ? Collections.emptyMap() : new LinkedHashMap<>();
     }
 
     @NotNull
     private static Map<ValueArgument, ArgumentMatchImpl> createArgumentsToParameterMap(CallableDescriptor descriptor) {
-        return descriptor.getValueParameters().isEmpty() ? Collections.emptyMap() : new HashMap<>();
+        return descriptor.valueParameters.isEmpty() ? Collections.emptyMap() : new HashMap<>();
     }
 
     @NotNull
     private static Map<TypeParameterDescriptor, CangJieType> createTypeArgumentsMap(CallableDescriptor descriptor) {
-        return descriptor.getTypeParameters().isEmpty() ? Collections.emptyMap() : new LinkedHashMap<>();
+        return descriptor.typeParameters.isEmpty() ? Collections.emptyMap() : new LinkedHashMap<>();
     }
 
     @Override
@@ -210,15 +210,15 @@ public class ResolvedCallImpl<D extends CallableDescriptor> implements MutableRe
     }
 
     public void setResolvedCallSubstitutor(@NotNull TypeSubstitutor substitutor) {
-        for (TypeParameterDescriptor typeParameter : candidateDescriptor.getTypeParameters()) {
-            TypeProjection typeArgumentProjection = substitutor.getSubstitution().get(typeParameter.getDefaultType());
+        for (TypeParameterDescriptor typeParameter : candidateDescriptor.typeParameters) {
+            TypeProjection typeArgumentProjection = substitutor.getSubstitution().get(typeParameter.defaultType);
             if (typeArgumentProjection != null) {
-                typeArguments.put(typeParameter, typeArgumentProjection.getType());
+                typeArguments.put(typeParameter, typeArgumentProjection.type);
             }
         }
 
         typeArguments = typeArguments.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> substitutor.safeSubstitute(e.getValue(), e.getKey().getVariance())));
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> substitutor.safeSubstitute(e.getValue(), e.getKey().variance)));
 
         if (dispatchReceiver instanceof ExpressionReceiver) {
             dispatchReceiver = dispatchReceiver.replaceType(substitutor.safeSubstitute(dispatchReceiver.getType(), Variance.INVARIANT));
@@ -228,9 +228,9 @@ public class ResolvedCallImpl<D extends CallableDescriptor> implements MutableRe
                     extensionReceiver.replaceType(substitutor.safeSubstitute(extensionReceiver.getType(), Variance.INVARIANT));
         }
 
-        if (candidateDescriptor.getValueParameters().isEmpty()) return;
+        if (candidateDescriptor.valueParameters.isEmpty()) return;
 
-        List<ValueParameterDescriptor> substitutedParameters = resultingDescriptor.getValueParameters();
+        List<ValueParameterDescriptor> substitutedParameters = resultingDescriptor.valueParameters;
 
         Collection<Map.Entry<ValueParameterDescriptor, ResolvedValueArgument>> valueArgumentsBeforeSubstitution =
                 new SmartList<>(valueArguments.entrySet());
@@ -316,8 +316,8 @@ public class ResolvedCallImpl<D extends CallableDescriptor> implements MutableRe
     @Nullable
     @Override
     public List<ResolvedValueArgument> getValueArgumentsByIndex() {
-        List<ResolvedValueArgument> arguments = new ArrayList<>(candidateDescriptor.getValueParameters().size());
-        for (int i = 0; i < candidateDescriptor.getValueParameters().size(); ++i) {
+        List<ResolvedValueArgument> arguments = new ArrayList<>(candidateDescriptor.valueParameters.size());
+        for (int i = 0; i < candidateDescriptor.valueParameters.size(); ++i) {
             arguments.add(null);
         }
 

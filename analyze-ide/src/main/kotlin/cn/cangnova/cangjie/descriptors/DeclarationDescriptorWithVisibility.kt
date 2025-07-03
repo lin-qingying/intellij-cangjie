@@ -21,13 +21,10 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
 
+interface DeclarationDescriptorWithVisibility : DeclarationDescriptor {
 
-import org.jetbrains.annotations.NotNull;
-
-public interface DeclarationDescriptorWithVisibility extends DeclarationDescriptor {
-    @NotNull
-    DescriptorVisibility getVisibility();
+    override val visibility: DescriptorVisibility
 }

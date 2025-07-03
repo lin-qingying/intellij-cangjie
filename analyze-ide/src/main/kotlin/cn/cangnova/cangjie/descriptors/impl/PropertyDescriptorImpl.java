@@ -117,11 +117,11 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             PropertyDescriptor substitutedPropertyDescriptor,
             ReceiverParameterDescriptor receiverParameterDescriptor
     ) {
-        CangJieType substitutedType = substitutor.substitute(receiverParameterDescriptor.getType(), Variance.INVARIANT);
+        CangJieType substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT);
         if (substitutedType == null) return null;
         return new ReceiverParameterDescriptorImpl(
                 substitutedPropertyDescriptor,
-                new ExtensionReceiver(substitutedPropertyDescriptor, substitutedType, receiverParameterDescriptor.getValue()),
+                new ExtensionReceiver(substitutedPropertyDescriptor, substitutedType, receiverParameterDescriptor.value),
                 receiverParameterDescriptor.getAnnotations()
         );
     }
@@ -131,14 +131,14 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             PropertyDescriptor substitutedPropertyDescriptor,
             ReceiverParameterDescriptor receiverParameterDescriptor
     ) {
-        CangJieType substitutedType = substitutor.substitute(receiverParameterDescriptor.getType(), Variance.INVARIANT);
+        CangJieType substitutedType = substitutor.substitute(receiverParameterDescriptor.type, Variance.INVARIANT);
         if (substitutedType == null) return null;
         return new ReceiverParameterDescriptorImpl(
                 substitutedPropertyDescriptor,
                 new ContextReceiver(substitutedPropertyDescriptor,
                         substitutedType,
-                        ((ImplicitContextReceiver) receiverParameterDescriptor.getValue()).getCustomLabelName(),
-                        receiverParameterDescriptor.getValue()),
+                        ((ImplicitContextReceiver) receiverParameterDescriptor.value).getCustomLabelName(),
+                        receiverParameterDescriptor.value),
                 receiverParameterDescriptor.getAnnotations()
         );
     }
@@ -147,14 +147,14 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             @NotNull TypeSubstitutor substitutor,
             @NotNull PropertyAccessorDescriptor accessorDescriptor
     ) {
-        return accessorDescriptor.getInitialSignatureDescriptor() != null
-                ? accessorDescriptor.getInitialSignatureDescriptor().substitute(substitutor)
+        return accessorDescriptor.initialSignatureDescriptor != null
+                ? accessorDescriptor.initialSignatureDescriptor.substitute(substitutor)
                 : null;
     }
 
     @Override
     public CangJieType getInType() {
-        return setter != null ? setter.getValueParameters().get(0).getType() : null;
+        return setter != null ? setter.valueParameters.get(0).getType() : null;
 
     }
 
@@ -367,7 +367,7 @@ protected PropertyDescriptor doSubstitute(@NotNull CopyConfiguration copyConfigu
 
     // 创建并初始化替代的getter描述符
     PropertyGetterDescriptorImpl newGetter = getter == null ? null : new PropertyGetterDescriptorImpl(
-            substitutedDescriptor, getter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(getter.getVisibility(), copyConfiguration.kind),
+            substitutedDescriptor, getter.annotations, copyConfiguration.modality, normalizeVisibility(getter.getVisibility(), copyConfiguration.kind),
             getter.isDefault(), copyConfiguration.kind,
             copyConfiguration.getOriginalGetter(),
             SourceElement.NO_SOURCE
@@ -380,14 +380,14 @@ protected PropertyDescriptor doSubstitute(@NotNull CopyConfiguration copyConfigu
 
     // 创建并初始化替代的setter描述符
     PropertySetterDescriptorImpl newSetter = setter == null ? null : new PropertySetterDescriptorImpl(
-            substitutedDescriptor, setter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(setter.getVisibility(), copyConfiguration.kind),
+            substitutedDescriptor, setter.getAnnotations(), copyConfiguration.modality, normalizeVisibility(setter.visibility, copyConfiguration.kind),
             setter.isDefault(), copyConfiguration.kind,
             copyConfiguration.getOriginalSetter(),
             SourceElement.NO_SOURCE
     );
     if (newSetter != null) {
         List<ValueParameterDescriptor> substitutedValueParameters = FunctionDescriptorImpl.getSubstitutedValueParameters(
-                newSetter, setter.getValueParameters(), substitutor, /* dropOriginal = */ false,
+                newSetter, setter.valueParameters, substitutor, /* dropOriginal = */ false,
                 false, null
         );
         if (substitutedValueParameters == null) {
@@ -397,7 +397,7 @@ protected PropertyDescriptor doSubstitute(@NotNull CopyConfiguration copyConfigu
                     createSetterParameter(
                             newSetter,
                             getBuiltIns(copyConfiguration.owner).getNothingType(),
-                            setter.getValueParameters().get(0).getAnnotations()
+                            setter.valueParameters.get(0).getAnnotations()
                     )
             );
         }
@@ -448,7 +448,7 @@ protected PropertyDescriptor doSubstitute(@NotNull CopyConfiguration copyConfigu
             @NotNull SourceElement source
     ) {
         return new PropertyDescriptorImpl(
-                newOwner, original, getAnnotations(), newModality, newVisibility, isVar(), newName, kind, source
+                newOwner, original, annotations, newModality, newVisibility, isVar(), newName, kind, source
 //
 //                isLateInit(), isConst(), isExpect(), isActual(), isExternal()
 //                , isDelegated()
@@ -638,12 +638,12 @@ protected PropertyDescriptor doSubstitute(@NotNull CopyConfiguration copyConfigu
 
         PropertyGetterDescriptor getOriginalGetter() {
             if (original == null) return null;
-            return original.getGetter();
+            return original.getter;
         }
 
         PropertySetterDescriptor getOriginalSetter() {
             if (original == null) return null;
-            return original.getSetter();
+            return original.setter;
         }
     }
 }

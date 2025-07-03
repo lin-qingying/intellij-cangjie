@@ -95,12 +95,12 @@ object TypeUnifier {
         isVariable: Predicate<TypeConstructor>,
         result: UnificationResultImpl
     ) {
-        val known: CangJieType = knownProjection.getType()
-        val withVariables: CangJieType = projectWithVariables.getType()
+        val known: CangJieType = knownProjection.type
+        val withVariables: CangJieType = projectWithVariables.type
 
         // in Foo ~ in X  =>  Foo ~ X
-        val knownProjectionKind: Variance = knownProjection.getProjectionKind()
-        val withVariablesProjectionKind: Variance = projectWithVariables.getProjectionKind()
+        val knownProjectionKind: Variance = knownProjection.projectionKind
+        val withVariablesProjectionKind: Variance = projectWithVariables.projectionKind
         if (knownProjectionKind == withVariablesProjectionKind && knownProjectionKind != Variance.INVARIANT) {
             doUnify(
                 TypeProjectionImpl(known),

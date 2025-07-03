@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.scopes
 
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.storage.LockBasedStorageManager
 import cn.cangnova.cangjie.storage.StorageManager
 
 class LazyScopeAdapter @JvmOverloads constructor(

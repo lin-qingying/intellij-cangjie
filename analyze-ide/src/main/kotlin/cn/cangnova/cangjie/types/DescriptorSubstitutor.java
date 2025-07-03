@@ -76,14 +76,14 @@ public class DescriptorSubstitutor {
                     newContainingDeclaration,
                     descriptor.getAnnotations(),
 //                    descriptor.isReified(),
-                    descriptor.getVariance(),
+                    descriptor.variance,
                     descriptor.getName(),
                     index++,
                     SourceElement.NO_SOURCE,
-                    descriptor.getStorageManager()
+                    descriptor.storageManager
             );
 
-            mutableSubstitutionMap.put(descriptor.getTypeConstructor(), new TypeProjectionImpl(substituted.getDefaultType()));
+            mutableSubstitutionMap.put(descriptor.typeConstructor, new TypeProjectionImpl(substituted.getDefaultType()));
 
             substitutedMap.put(descriptor, substituted);
             result.add(substituted);
@@ -96,7 +96,7 @@ public class DescriptorSubstitutor {
 
         for (TypeParameterDescriptor descriptor : typeParameters) {
             TypeParameterDescriptorImpl substituted = substitutedMap.get(descriptor);
-            for (CangJieType upperBound : descriptor.getUpperBounds()) {
+            for (CangJieType upperBound : descriptor.upperBounds) {
                 ClassifierDescriptor upperBoundDeclaration = upperBound.getConstructor().getDeclarationDescriptor();
                 TypeSubstitutor boundSubstitutor = upperBoundDeclaration instanceof TypeParameterDescriptor &&  hasTypeParameterRecursiveBounds((TypeParameterDescriptor) upperBoundDeclaration)
                         ? substitutor

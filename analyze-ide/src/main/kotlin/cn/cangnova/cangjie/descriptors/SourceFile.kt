@@ -21,20 +21,17 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+interface SourceFile {
+    val name: String?
 
-import org.jetbrains.annotations.Nullable;
+    companion object {
+        val NO_SOURCE_FILE: SourceFile = object : SourceFile {
 
-public interface SourceFile {
-    SourceFile NO_SOURCE_FILE = new SourceFile() {
-        @Nullable
-        @Override
-        public String getName() {
-            return null;
+
+            override val name: String?
+                get() = null
         }
-    };
-
-    @Nullable
-    String getName();
+    }
 }

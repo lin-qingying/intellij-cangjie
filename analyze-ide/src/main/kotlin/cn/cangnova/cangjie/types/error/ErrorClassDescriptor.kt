@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.ClassDescriptorImpl
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
-import cn.cangnova.cangjie.storage.LockBasedStorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 

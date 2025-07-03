@@ -21,13 +21,8 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
-
-import org.jetbrains.annotations.NotNull;
-
-public interface ParameterDescriptor extends ValueDescriptor {
-    @NotNull
-    @Override
-    ParameterDescriptor getOriginal();
+interface ParameterDescriptor : ValueDescriptor {
+    override val original: ParameterDescriptor
 }

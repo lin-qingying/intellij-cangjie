@@ -1,58 +1,46 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * The use of this source code is governed by the Apache License 2.0,
- * which allows users to freely use, modify, and distribute the code,
- * provided they adhere to the terms of the license.
- *
- * The software is provided "as-is", and the authors are not responsible for
- * any damages or issues arising from its use.
- *
- */
+* Copyright 2024 LinQingYing. and contributors.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*
+* The use of this source code is governed by the Apache License 2.0,
+* which allows users to freely use, modify, and distribute the code,
+* provided they adhere to the terms of the license.
+*
+* The software is provided "as-is", and the authors are not responsible for
+* any damages or issues arising from its use.
+*
+*/
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.descriptors;
+import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.mpp.FunctionSymbolMarker
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.TypeSubstitution
+import cn.cangnova.cangjie.types.TypeSubstitutor
 
-import cn.cangnova.cangjie.descriptors.annotations.Annotations;
-import cn.cangnova.cangjie.mpp.FunctionSymbolMarker;
-import cn.cangnova.cangjie.name.Name;
-import cn.cangnova.cangjie.types.CangJieType;
-import cn.cangnova.cangjie.types.TypeSubstitution;
-import cn.cangnova.cangjie.types.TypeSubstitutor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+interface FunctionDescriptor : CallableMemberDescriptor, FunctionSymbolMarker {
 
-import java.util.Collection;
-import java.util.List;
+    val isExtend: Boolean
 
 
-public interface FunctionDescriptor extends CallableMemberDescriptor, FunctionSymbolMarker {
-    @NotNull
-    boolean getIsExtend();
+    override val containingDeclaration: DeclarationDescriptor
 
 
-    @Override
-    @NotNull
-    DeclarationDescriptor getContainingDeclaration();
+    override val original: FunctionDescriptor
 
-    @NotNull
-    @Override
-    FunctionDescriptor getOriginal();
-
-    @Nullable
-    @Override
-    FunctionDescriptor substitute(@NotNull TypeSubstitutor substitutor);
+    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor
 
     /**
      * This method should be used with a great care, because if descriptor is substituted one, calling 'getOverriddenDescriptors'
@@ -60,124 +48,88 @@ public interface FunctionDescriptor extends CallableMemberDescriptor, FunctionSy
      * So, if 'getOriginal().getOverriddenDescriptors()' is enough for you, please use it instead.
      * @return
      */
-    @Override
-    @NotNull
-    Collection<? extends FunctionDescriptor> getOverriddenDescriptors();
+
+    override var overriddenDescriptors: MutableCollection<out CallableMemberDescriptor>
 
     /**
      * @return descriptor that represents initial signature, e.g in case of result SimpleFunctionDescriptor.createRenamedCopy it returns
      * descriptor before rename
      */
-    @Nullable
-    FunctionDescriptor getInitialSignatureDescriptor();
+
+    val initialSignatureDescriptor: FunctionDescriptor?
 
     /**
      * @return true if descriptor signature clashed with some other signature and it's supposed to be legal
      * See java.nio.CharBuffer
      */
-    boolean isHiddenToOvercomeSignatureClash();
+    val isHiddenToOvercomeSignatureClash: Boolean
 
-    @NotNull
-    @Override
-    FunctionDescriptor copy(DeclarationDescriptor newOwner, Modality modality, DescriptorVisibility visibility, Kind kind, boolean copyOverrides);
+    override fun copy(
+        newOwner: DeclarationDescriptor?,
+        modality: Modality?,
+        visibility: DescriptorVisibility?,
+        kind: CallableMemberDescriptor.Kind?,
+        copyOverrides: Boolean
+    ): FunctionDescriptor
 
-    boolean isOperator();
-   default boolean isConst(){
-       return false;
-   }
 
-//    bool isInfix();
+    val isOperator: Boolean
+    val isConst: Boolean
+        get() = false
 
-//    bool isInline();
+    //    bool isInfix();
+    //    bool isInline();
+    //    bool isTailrec();
+    val isHiddenForResolutionEverywhereBesideSupercalls: Boolean
+        //    bool isInfix();
+        get
 
-//    bool isTailrec();
+    //    bool isSuspend();
+    override fun newCopyBuilder(): CopyBuilder<out FunctionDescriptor>
 
-    boolean isHiddenForResolutionEverywhereBesideSupercalls();
+    interface CopyBuilder<D : FunctionDescriptor> : CallableMemberDescriptor.CopyBuilder<D> {
+        override fun setOwner(owner: DeclarationDescriptor): CopyBuilder<D>
 
-//    bool isSuspend();
+        override fun setModality(modality: Modality): CopyBuilder<D>
 
-    @NotNull
-    @Override
-    CopyBuilder<? extends FunctionDescriptor> newCopyBuilder();
+        override fun setVisibility(visibility: DescriptorVisibility): CopyBuilder<D>
 
-    interface CopyBuilder<D extends FunctionDescriptor> extends CallableMemberDescriptor.CopyBuilder<D> {
-        @NotNull
-        @Override
-        CopyBuilder<D> setOwner(@NotNull DeclarationDescriptor owner);
+        override fun setKind(kind: CallableMemberDescriptor.Kind): CopyBuilder<D>
 
-        @NotNull
-        @Override
-        CopyBuilder<D> setModality(@NotNull Modality modality);
+        override fun setCopyOverrides(copyOverrides: Boolean): CopyBuilder<D>
 
-        @NotNull
-        @Override
-        CopyBuilder<D> setVisibility(@NotNull DescriptorVisibility visibility);
+        override fun setName(name: Name): CopyBuilder<D>
 
-        @NotNull
-        @Override
-        CopyBuilder<D> setKind(@NotNull Kind kind);
+        fun setValueParameters(parameters: MutableList<ValueParameterDescriptor>): CopyBuilder<D>
 
-        @NotNull
-        @Override
-        CopyBuilder<D> setCopyOverrides(boolean copyOverrides);
+        override fun setTypeParameters(parameters: MutableList<TypeParameterDescriptor>): CopyBuilder<D>
 
-        @Override
-        @NotNull
-        CopyBuilder<D> setName(@NotNull Name name);
+        override fun setReturnType(type: CangJieType): CopyBuilder<D>
 
-        @NotNull
-        CopyBuilder<D> setValueParameters(@NotNull List<ValueParameterDescriptor> parameters);
+        fun setContextReceiverParameters(contextReceiverParameters: MutableList<ReceiverParameterDescriptor>): CopyBuilder<D>
 
-        @NotNull
-        @Override
-        CopyBuilder<D> setTypeParameters(@NotNull List<TypeParameterDescriptor> parameters);
+        fun setExtensionReceiverParameter(extensionReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
 
-        @NotNull
-        @Override
-        CopyBuilder<D> setReturnType(@NotNull CangJieType type);
+        override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
 
-        @NotNull
-        CopyBuilder<D> setContextReceiverParameters(@NotNull List<ReceiverParameterDescriptor> contextReceiverParameters);
+        override fun setOriginal(original: CallableMemberDescriptor?): CopyBuilder<D>
 
-        @NotNull
-        CopyBuilder<D> setExtensionReceiverParameter(@Nullable ReceiverParameterDescriptor extensionReceiverParameter);
+        fun setSignatureChange(): CopyBuilder<D>
 
-        @NotNull
-        @Override
-        CopyBuilder<D> setDispatchReceiverParameter(@Nullable ReceiverParameterDescriptor dispatchReceiverParameter);
+        override fun setPreserveSourceElement(): CopyBuilder<D>
 
-        @NotNull
-        @Override
-        CopyBuilder<D> setOriginal(@Nullable CallableMemberDescriptor original);
+        fun setDropOriginalInContainingParts(): CopyBuilder<D>
 
-        @NotNull
-        CopyBuilder<D> setSignatureChange();
+        fun setHiddenToOvercomeSignatureClash(): CopyBuilder<D>
 
-        @NotNull
-        @Override
-        CopyBuilder<D> setPreserveSourceElement();
+        fun setHiddenForResolutionEverywhereBesideSupercalls(): CopyBuilder<D>
 
-        @NotNull
-        CopyBuilder<D> setDropOriginalInContainingParts();
+        fun setAdditionalAnnotations(additionalAnnotations: Annotations): CopyBuilder<D>
 
-        @NotNull
-        CopyBuilder<D> setHiddenToOvercomeSignatureClash();
+        override fun setSubstitution(substitution: TypeSubstitution): CopyBuilder<D>
 
-        @NotNull
-        CopyBuilder<D> setHiddenForResolutionEverywhereBesideSupercalls();
+        fun <V> putUserData(userDataKey: CallableDescriptor.UserDataKey<V>, value: V?): CopyBuilder<D>
 
-        @NotNull
-        CopyBuilder<D> setAdditionalAnnotations(@NotNull Annotations additionalAnnotations);
-
-        @NotNull
-        @Override
-        CopyBuilder<D> setSubstitution(@NotNull TypeSubstitution substitution);
-
-        @NotNull
-        <V> CopyBuilder<D> putUserData(@NotNull UserDataKey<V> userDataKey, V value);
-
-        @Nullable
-        @Override
-        D build();
+        override fun build(): D?
     }
 }

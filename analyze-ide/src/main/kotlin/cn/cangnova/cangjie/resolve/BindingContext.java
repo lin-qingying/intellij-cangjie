@@ -160,7 +160,7 @@ public interface BindingContext {
                 Boolean backingFieldRequired,
                 boolean valueNotFound
         ) {
-            if (propertyDescriptor.getKind() != CallableMemberDescriptor.Kind.DECLARATION) {
+            if (propertyDescriptor.kind != CallableMemberDescriptor.Kind.DECLARATION) {
                 return false;
             }
 //            PsiElement declarationPsiElement = DescriptorToSourceUtils.descriptorToDeclaration(propertyDescriptor);
