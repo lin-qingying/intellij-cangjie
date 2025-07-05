@@ -36,7 +36,7 @@ class CjTypeConstraintList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeCons
         CjStubElementTypes.TYPE_CONSTRAINT_LIST,
     )
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitTypeConstraintList(this, data)
     }
 

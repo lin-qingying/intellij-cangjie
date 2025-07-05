@@ -43,7 +43,7 @@ fun CjElement.getDebugText(): String {
         }
         return "package " + fqName.asString()
     }
-    return accept(DebugTextBuildingVisitor, Unit)
+    return accept(DebugTextBuildingVisitor, Unit).toString()
 }
 
 private object DebugTextBuildingVisitor : CjVisitor<String, Unit>()

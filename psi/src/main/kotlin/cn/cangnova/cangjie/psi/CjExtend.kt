@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.getChildrenOfType
 import cn.cangnova.cangjie.psi.psiUtil.identifier
 import cn.cangnova.cangjie.psi.stubs.CangJieExtendStub
@@ -38,7 +37,7 @@ class CjExtend : CjTypeStatement {
     private val _stub: CangJieExtendStub?
         get() = stub as? CangJieExtendStub
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitExtend(this, data)
     }
 

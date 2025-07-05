@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.stubs.CangJieVariableStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -53,7 +52,7 @@ class CjVariable : CjTypeParameterListOwnerStub<CangJieVariableStub>, CjVariable
     override val valueParameters: List<CjParameter>
         get() = emptyList()
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitVariable(this, data)
     }
 

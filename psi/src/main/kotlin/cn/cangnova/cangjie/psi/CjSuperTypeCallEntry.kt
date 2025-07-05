@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -37,7 +36,7 @@ class CjSuperTypeCallEntry : CjSuperTypeListEntry, CjCallElement {
         CjStubElementTypes.SUPER_TYPE_CALL_ENTRY,
     )
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitSuperTypeCallEntry(this, data)
     }
 

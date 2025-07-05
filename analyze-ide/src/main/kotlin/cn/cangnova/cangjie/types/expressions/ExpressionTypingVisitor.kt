@@ -21,20 +21,17 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.types.expressions
 
-package cn.cangnova.cangjie.types.expressions;
+import cn.cangnova.cangjie.psi.CjVisitor
+import cn.cangnova.cangjie.types.CangJieTypeInfo
 
-import cn.cangnova.cangjie.psi.CjVisitor;
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo;
-import org.jetbrains.annotations.NotNull;
+abstract class ExpressionTypingVisitor protected constructor(@JvmField protected val facade: ExpressionTypingInternals) :
+    CjVisitor<CangJieTypeInfo, ExpressionTypingContext>() {
+    @JvmField
+    protected val components: ExpressionTypingComponents
 
-public abstract class ExpressionTypingVisitor extends CjVisitor<CangJieTypeInfo, ExpressionTypingContext> {
-
-    protected final ExpressionTypingInternals facade;
-    protected final ExpressionTypingComponents components;
-
-    protected ExpressionTypingVisitor(@NotNull ExpressionTypingInternals facade) {
-        this.facade = facade;
-        this.components = facade.getComponents();
+    init {
+        this.components = facade.getComponents()
     }
 }

@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
@@ -42,7 +41,7 @@ class CjDestructuringDeclaration(node: ASTNode) :
             CjExpression::class.java,
         )
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitDestructuringDeclaration(this, data)
     }
 

@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.resolve.constants.evaluate
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.util.PsiTreeUtil
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.builtins.UnsignedTypes
 import cn.cangnova.cangjie.config.LanguageFeature

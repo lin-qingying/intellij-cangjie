@@ -25,8 +25,6 @@
 package cn.cangnova.cangjie.types.expressions.match
 
 import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.CjNodeTypes.BOOLEAN_CONSTANT
-import cn.cangnova.cangjie.CjNodeTypes.UNIT_CONSTANT
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.builtins.StandardNames.ITERABLE
 import cn.cangnova.cangjie.builtins.isBuiltinTupleType
@@ -36,7 +34,6 @@ import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import cn.cangnova.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors.*
 import cn.cangnova.cangjie.diagnostics.MatchMissingCase
-import cn.cangnova.cangjie.ide.codeinsight.toSourceElement
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.*
 import cn.cangnova.cangjie.psi.*
@@ -77,7 +74,6 @@ import cn.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import cn.cangnova.cangjie.types.util.*
 import cn.cangnova.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import cn.cangnova.cangjie.utils.addIfNotNull
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 import cn.cangnova.cangjie.utils.runIf
 import java.util.*
 
@@ -326,9 +322,9 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
 
     override fun visitMatchExpression(
         expression: CjMatchExpression,
-        context: ExpressionTypingContext
+        data: ExpressionTypingContext
     ): CangJieTypeInfo =
-        visitMatchExpression(expression, context, false)
+        visitMatchExpression(expression, data, false)
 
     fun visitMatchExpression(
         expression: CjMatchExpression,

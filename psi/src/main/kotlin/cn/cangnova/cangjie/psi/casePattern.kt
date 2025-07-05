@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -43,7 +42,7 @@ abstract class CjCasePattern(node: ASTNode) : CjElementImpl(node), ValueArgument
             return findChildByType(CjNodeTypes.DESTRUCTURING_DECLARATION)
         }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitCasePattern(this, data)
     }
 
@@ -77,7 +76,7 @@ class CjMatchConditionWithExpression(node: ASTNode) : CjCasePattern(node) {
     val expression
         get() = findChildByClass<CjExpression>(CjExpression::class.java)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitMatchConditionWithExpression(this, data)
     }
 }
@@ -180,7 +179,7 @@ class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node), CjSimp
     override val expression: CjSimpleNameExpression?
         get() = findChildByType(CjNodeTypes.REFERENCE_EXPRESSION)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitPatternByBinding(this, data)
     }
 
@@ -189,7 +188,7 @@ class CjBindingPattern(node: ASTNode) : PatternVariableDeclaration(node), CjSimp
 }
 
 class CjTypePattern(node: ASTNode) : PatternVariableDeclaration(node) {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitPatternByType(this, data)
     }
 
@@ -204,7 +203,7 @@ class CjTypePattern(node: ASTNode) : PatternVariableDeclaration(node) {
 }
 
 class CjTuplePattern(node: ASTNode) : CjCasePattern(node), CjEnumAndTuplePattern {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitPatternByTuple(this, data)
     }
 
@@ -216,7 +215,7 @@ interface CjEnumAndTuplePattern {
 }
 
 class CjEnumPattern(node: ASTNode) : CjCasePattern(node), CjEnumAndTuplePattern {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitPatternByEnum(this, data)
     }
 
@@ -231,13 +230,13 @@ class CjEnumPattern(node: ASTNode) : CjCasePattern(node), CjEnumAndTuplePattern 
 }
 
 class CjWildcardPattern(node: ASTNode) : CjCasePattern(node) {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitPatternByWildcard(this, data)
     }
 }
 
 class CjConstantPattern(node: ASTNode) : CjCasePattern(node) {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitPatternByConstant(this, data)
     }
 

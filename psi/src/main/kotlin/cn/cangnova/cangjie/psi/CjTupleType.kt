@@ -35,7 +35,7 @@ class CjTupleType : CjElementImplStub<CangJiePlaceHolderStub<CjTupleType>>, CjTy
     constructor(stub: CangJiePlaceHolderStub<CjTupleType>) : super(stub, CjStubElementTypes.TUPLE_TYPE)
 //    constructor(stub:CangJieTupleTypeStub):super(stub, CjStubElementTypes.TUPLE_TYPE)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitTupleType(this, data)
     }
 

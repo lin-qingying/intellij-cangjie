@@ -53,7 +53,7 @@ class CjTypeProjection : CjModifierListOwnerStub<CangJieTypeProjectionStub> {
             throw IllegalStateException(projectionToken!!.text)
         }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitTypeProjection(this, data)
     }
 

@@ -94,7 +94,7 @@ object CjPsiUtil {
         return parent.receiverExpression === expression || isLHSOfDot(parent)
     }
 
-    fun findRootExpressions(unreachableElements:  Collection<CjElement>): MutableSet<CjElement> {
+    fun findRootExpressions(unreachableElements: Collection<CjElement>): MutableSet<CjElement> {
         val rootElements: MutableSet<CjElement> = HashSet()
         val shadowedElements: MutableSet<CjElement> = HashSet<CjElement>()
         val shadowAllChildren: CjVisitorVoid = object : CjVisitorVoid() {
@@ -255,11 +255,11 @@ object CjPsiUtil {
         return false
     }
 
-    fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Void, D>, data: D?) {
+    fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Unit, D>, data: D?) {
         var child = element.firstChild
         while (child != null) {
             if (child is CjElement) {
-                child.accept<Void, D>(visitor, data)
+                child.accept(visitor, data)
             }
             child = child.nextSibling
         }

@@ -54,7 +54,6 @@ import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.util.TypeUtils
 import cn.cangnova.cangjie.types.util.replaceAnnotations
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 import java.util.*
 
 class ControlStructureTypingUtils(

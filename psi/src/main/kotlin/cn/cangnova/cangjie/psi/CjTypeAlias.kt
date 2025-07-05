@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.ClassIdCalculator
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
 import cn.cangnova.cangjie.psi.stubs.CangJieTypeAliasStub
@@ -53,7 +52,7 @@ class CjTypeAlias : CjTypeParameterListOwnerStub<CangJieTypeAliasStub>, CjNamedD
     fun getTypeAliasKeyword(): PsiElement? =
         findChildByType(CjTokens.TYPE_KEYWORD)
 
-    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R : Any?, D : Any?> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitTypeAlias(this, data)
     }
 

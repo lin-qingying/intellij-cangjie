@@ -113,7 +113,7 @@ class EnumClassQualifier(
         override val typeArgumentList: CjTypeArgumentList?
             get() = null
 
-        override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
+        override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
 
         }
 
@@ -121,7 +121,7 @@ class EnumClassQualifier(
 
         }
 
-        override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+        override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
             return referenceExpression.accept(visitor, data)
         }
 

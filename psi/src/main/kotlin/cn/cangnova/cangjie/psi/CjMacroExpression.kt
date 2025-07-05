@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.name.Name.Companion.identifier
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.stubs.CangJieMacroExpressionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
@@ -37,7 +36,7 @@ class CjMacroExpression : CjElementImplStub<CangJieMacroExpressionStub>, CjCallE
 
     constructor(stub: CangJieMacroExpressionStub) : super(stub, CjStubElementTypes.MACRO_EXPRESSION)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitMacroExpression(this, data)
     }
 

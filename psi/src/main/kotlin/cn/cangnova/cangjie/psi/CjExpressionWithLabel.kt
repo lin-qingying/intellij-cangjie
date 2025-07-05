@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import com.intellij.lang.ASTNode
 
 open class CjExpressionWithLabel(node: ASTNode) : CjExpressionImpl(node) {
@@ -39,5 +38,5 @@ open class CjExpressionWithLabel(node: ASTNode) : CjExpressionImpl(node) {
     fun getLabelName(): String? = getTargetLabel()?.referencedName
     fun getLabelNameAsName(): Name? = getTargetLabel()?.referencedNameAsName
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R = visitor.visitExpressionWithLabel(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? = visitor.visitExpressionWithLabel(this, data)
 }

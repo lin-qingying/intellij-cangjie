@@ -36,7 +36,7 @@ class CjSimpleNameStringTemplateEntry : CjStringTemplateEntryWithExpression {
         CjStubElementTypes.SHORT_STRING_TEMPLATE_ENTRY,
     )
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitSimpleNameStringTemplateEntry(this, data)
     }
 }

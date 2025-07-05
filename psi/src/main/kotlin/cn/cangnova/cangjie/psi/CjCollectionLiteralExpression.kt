@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
 import cn.cangnova.cangjie.psi.stubs.CangJieCollectionLiteralExpressionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -44,7 +43,7 @@ class CjCollectionLiteralExpression :
 
     constructor(node: ASTNode) : super(node)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitCollectionLiteralExpression(this, data)
     }
 

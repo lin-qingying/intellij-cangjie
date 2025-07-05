@@ -35,7 +35,6 @@ import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
-import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
 class CjSuperTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList>> {
@@ -49,7 +48,7 @@ class CjSuperTypeList : CjElementImplStub<CangJiePlaceHolderStub<CjSuperTypeList
         return node.elementType.toString()
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitSuperTypeList(this, data)
     }
 

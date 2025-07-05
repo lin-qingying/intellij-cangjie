@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile.Companion.FILE_DECLARATION_TYPES
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.stubs.CangJieFileStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -134,7 +133,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      * @param data 传递给访问者的附加数据
      * @return 访问者访问的结果
      */
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitCjCommonFile(this)
     }
     
@@ -144,7 +143,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      * @param visitor 要接受的访问者
      * @param data 传递给访问者的附加数据
      */
-    override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
+    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
         CjPsiUtil.visitChildren(this, visitor, data)
     }
     
@@ -369,7 +368,7 @@ open class CjFile(viewProvider: FileViewProvider, isCompiled: Boolean = false, v
      * @param data 传递给访问者的附加数据
      * @return 访问者访问的结果
      */
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R =
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? =
         visitor.visitCjFile(this, data)
 
     companion object {

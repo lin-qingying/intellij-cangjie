@@ -25,12 +25,11 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
 class CjIfExpression(node: ASTNode) : CjExpressionImpl(node), CjPatternEntryBlock {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitIfExpression(this, data)
     }
 

@@ -36,10 +36,10 @@ import cn.cangnova.cangjie.types.util.deccriptorClass
 import cn.cangnova.cangjie.types.util.isEnum
 import cn.cangnova.cangjie.types.util.isStruct
 import cn.cangnova.cangjie.types.util.source
-import cn.cangnova.cangjie.utils.CangJieExceptionWithAttachments
+import cn.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 
 
-class CheckMatchException(message: String) : CangJieExceptionWithAttachments(message)
+class CheckMatchException(message: String) : CangJieExceptionWithAttachmentsImpl(message)
 typealias Matrix = List<List<Pattern>>
 
 /** Calculates the pattern matrix by splitting or-patterns across different rows */

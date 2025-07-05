@@ -100,7 +100,7 @@ open class CjElementImplStub<T : StubElement<*>> :
         }
     }
 
-    override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
+    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
         var child = firstChild
         while (child != null) {
             if (child is CjElement) {
@@ -116,7 +116,7 @@ open class CjElementImplStub<T : StubElement<*>> :
         return listOf(*getStubOrPsiChildren(elementType, elementType.arrayFactory))
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitCjElement(this, data)
     }
 }

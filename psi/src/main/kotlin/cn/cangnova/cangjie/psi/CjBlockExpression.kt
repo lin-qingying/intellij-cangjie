@@ -25,7 +25,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lang.CangJieLanguage
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjNodeTypes
 import cn.cangnova.cangjie.psi.psiUtil.deleteSemicolon
 import cn.cangnova.cangjie.psi.psiUtil.parentSubstitute
 import com.intellij.lang.Language
@@ -64,11 +63,11 @@ open class CjBlockExpression : LazyParseablePsiElement, CjElement, CjExpression,
         return this.containingCjFile
     }
 
-    override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
+    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
         CjPsiUtil.visitChildren(this, visitor, data)
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitBlockExpression(this, data)
     }
 
