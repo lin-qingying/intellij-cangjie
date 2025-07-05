@@ -449,7 +449,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     }
 
     @Override
-    public FunctionDescriptor substitute(@NotNull TypeSubstitutor originalSubstitutor) {
+    public @NotNull CallableDescriptor substitute(@NotNull TypeSubstitutor originalSubstitutor) {
         if (originalSubstitutor.isEmpty()) {
             return this;
         }

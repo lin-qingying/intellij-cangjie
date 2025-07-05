@@ -40,5 +40,5 @@ interface Substitutable<out T : DeclarationDescriptorNonRoot> {
      * @param substitutor 类型替换器，用于执行类型替换操作
      * @return T 返回替换后的声明描述符，类型与接口泛型参数T相同
      */
-    fun substitute(substitutor: TypeSubstitutor): T?
+    fun substitute(substitutor: TypeSubstitutor): T
 }

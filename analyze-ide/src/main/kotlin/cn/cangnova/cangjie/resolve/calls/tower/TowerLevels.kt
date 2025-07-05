@@ -24,8 +24,6 @@
 
 package cn.cangnova.cangjie.resolve.calls.tower
 
-import com.intellij.util.SmartList
-import com.intellij.util.containers.addIfNotNull
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
@@ -39,6 +37,8 @@ import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastIn
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.ErrorUtils
 import cn.cangnova.cangjie.types.TypeSubstitutor
+import com.intellij.util.SmartList
+import com.intellij.util.containers.addIfNotNull
 
 internal class ImportingScopeBasedTowerLevel(
     scopeTower: ImplicitScopeTower,
@@ -417,11 +417,8 @@ class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDes
     }
 
 
-    override fun getValueParameters(): List<ValueParameterDescriptor> {
-
-        return constructor?.valueParameters ?: emptyList()
-    }
-
+    override val valueParameters: List<ValueParameterDescriptor>
+        get() = constructor?.valueParameters?.toList() ?: emptyList()
 
     override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
 
@@ -437,35 +434,32 @@ class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDes
         return this
     }
 
-    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        return emptyList()
-    }
+    override val contextReceiverParameters: List<ReceiverParameterDescriptor>
+        get() {
+            return emptyList()
+        }
 
-    override fun getReturnType(): CangJieType? {
 
-        return constructor?.returnType
-    }
+    override val returnType: CangJieType?
+        get() = constructor?.returnType
 
-    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-    }
+    override val extensionReceiverParameter: ReceiverParameterDescriptor?
+        get() = null
 
-    override fun getOverriddenDescriptors(): List<CallableDescriptor> {
-        return emptyList()
-    }
 
-    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
+    override val overriddenDescriptors: List<CallableDescriptor>
+        get() = emptyList()
 
-    }
+    override val dispatchReceiverParameter: ReceiverParameterDescriptor?
+        get() = null
 
     override fun hasSynthesizedParameterNames(): Boolean {
         return false
     }
 
-    override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        return constructors.firstOrNull()?.typeParameters ?: emptyList()
-    }
+
+    override val typeParameters: List<TypeParameterDescriptor>
+        get() = constructors.firstOrNull()?.typeParameters?.toList() ?: emptyList()
 
     override fun hasStableParameterNames(): Boolean {
         return false
@@ -490,10 +484,8 @@ class ClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDescrip
         return visitor.visitClassCallDescriptor(this, data)
     }
 
-    override fun getValueParameters(): List<ValueParameterDescriptor> {
-
-        return emptyList()
-    }
+    override val valueParameters: List<ValueParameterDescriptor>
+        get() = emptyList()
 
 
     override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
@@ -507,34 +499,26 @@ class ClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDescrip
         return this
     }
 
-    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        return emptyList()
-    }
+    override val contextReceiverParameters: Collection<ReceiverParameterDescriptor>
+        get() = emptyList()
+    override val returnType: CangJieType?
+        get() = null
 
-    override fun getReturnType(): CangJieType? {
-        return null
-    }
+    override val extensionReceiverParameter: ReceiverParameterDescriptor?
+        get() = null
+    override val overriddenDescriptors: List<CallableDescriptor>
+        get() = emptyList()
+    override val dispatchReceiverParameter: ReceiverParameterDescriptor?
+        get() = null
 
-    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-    }
-
-    override fun getOverriddenDescriptors(): List<CallableDescriptor> {
-        return emptyList()
-    }
-
-    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-
-    }
 
     override fun hasSynthesizedParameterNames(): Boolean {
         return false
     }
 
-    override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        return emptyList()
-    }
+
+    override val typeParameters: List<TypeParameterDescriptor>
+        get() = emptyList()
 
     override fun hasStableParameterNames(): Boolean {
         return false

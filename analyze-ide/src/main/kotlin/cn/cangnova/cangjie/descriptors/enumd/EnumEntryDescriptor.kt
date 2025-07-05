@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.descriptors.enumd
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.resolve.lazy.LazyClassContext
 import cn.cangnova.cangjie.resolve.lazy.data.CjEnmuEntryInfo
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
@@ -44,7 +43,7 @@ class EnumEntryCallableMemberDescriptor(
     }
 
     override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
-TODO()
+        TODO()
     }
 
     override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
@@ -141,7 +140,8 @@ class EnumEntryDescriptor(
     override val isStatic: Boolean
         get() = true
     override val visibility: DescriptorVisibility = containingDeclaration.visibility
-    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> = emptySet()
+    override val endConstructors: Collection<ClassConstructorDescriptor>
+        get() = emptySet()
 
     override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor {
         return (unsubstitutedMemberScope as LazyClassMemberScope).getEnumEntryPrimaryConstructor()!!
@@ -152,7 +152,7 @@ class EnumEntryDescriptor(
         return EnumEntryCallableMemberDescriptor(this)
     }
 
-    override fun getConstructors(): List<ClassConstructorDescriptor> {
-        return emptyList()
-    }
+    override val constructors: Collection<ClassConstructorDescriptor>
+        get() = emptyList()
+
 }

@@ -50,7 +50,7 @@ interface TypeAliasConstructorDescriptor : ConstructorDescriptor, DescriptorDeri
     override val containingDeclaration: TypeAliasDescriptor
 
 
-    override fun substitute(substitutor: TypeSubstitutor): TypeAliasConstructorDescriptor?
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor
 
     val withDispatchReceiver: TypeAliasConstructorDescriptor?
 
@@ -92,7 +92,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
         typeAliasDescriptor
 
 
-    override fun substitute(substitutor: TypeSubstitutor): TypeAliasConstructorDescriptor? {
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
         //    class C<T>(val x: T)
         //    typealias A<Q> = C<List<Q>>
         //

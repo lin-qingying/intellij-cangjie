@@ -129,7 +129,7 @@ public abstract class AbstractReceiverParameterDescriptor extends DeclarationDes
 
 
     @Override
-    public @Nullable ReceiverParameterDescriptor substitute(@NotNull TypeSubstitutor substitutor) {
+    public @NotNull CallableDescriptor substitute(@NotNull TypeSubstitutor substitutor) {
         if (substitutor.isEmpty()) return this;
 
         CangJieType substitutedType;

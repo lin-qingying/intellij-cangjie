@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.resolve.calls.context
 
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
-import cn.cangnova.cangjie.psi.Call
+import cn.cangnova.cangjie.descriptors.call.Call
 import cn.cangnova.cangjie.resolve.DelegatingBindingTrace
 import cn.cangnova.cangjie.resolve.calls.results.OverloadResolutionResultsImpl
 import cn.cangnova.cangjie.resolve.calls.tasks.TracingStrategy

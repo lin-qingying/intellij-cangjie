@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve.calls.tower
 
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
-import cn.cangnova.cangjie.descriptors.ClassKind
 import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.Name

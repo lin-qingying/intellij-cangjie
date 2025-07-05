@@ -48,7 +48,7 @@ interface VariableDescriptor : ValueDescriptor ,MemberDescriptor/*,
     //
     //    @Nullable
     //    FieldDescriptor getDelegateField();
-    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor?
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor
     val isConst: Boolean
 
     //    bool isActual();

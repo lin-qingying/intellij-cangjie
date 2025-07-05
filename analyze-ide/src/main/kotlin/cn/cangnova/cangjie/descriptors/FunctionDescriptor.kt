@@ -40,7 +40,7 @@ interface FunctionDescriptor : CallableMemberDescriptor, FunctionSymbolMarker {
 
     override val original: FunctionDescriptor
 
-    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor?
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor
 
     /**
      * This method should be used with a great care, because if descriptor is substituted one, calling 'getOverriddenDescriptors'

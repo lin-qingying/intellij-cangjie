@@ -45,6 +45,7 @@ import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo.Companion.EMPTY
 import cn.cangnova.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl
 import cn.cangnova.cangjie.resolve.scopes.*
 import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.CangJieTypeInfo
 import cn.cangnova.cangjie.types.ErrorUtils.createErrorType
 import cn.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
@@ -53,7 +54,6 @@ import cn.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import cn.cangnova.cangjie.types.util.TypeUtils.DONT_CARE
 import cn.cangnova.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import cn.cangnova.cangjie.types.util.TypeUtils.UNIT_EXPECTED_TYPE
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 import cn.cangnova.cangjie.utils.slicedMap.WritableSlice
 
 class ExpressionTypingServices(
@@ -392,10 +392,10 @@ class ExpressionTypingServices(
                 )
                 if (result.type != null && statement.parent is CjBlockExpression) {
                     val lastExpressionValue = expressionTypingComponents.dataFlowValueFactory.createDataFlowValue(
-                        statement, result.type!!, context
+                        statement, result.type, context
                     )
                     val blockExpressionValue = expressionTypingComponents.dataFlowValueFactory.createDataFlowValue(
-                        (statement.parent as CjBlockExpression), result.type!!, context
+                        (statement.parent as CjBlockExpression), result.type, context
                     )
                     result = result.replaceDataFlowInfo(
                         result.dataFlowInfo.assign(

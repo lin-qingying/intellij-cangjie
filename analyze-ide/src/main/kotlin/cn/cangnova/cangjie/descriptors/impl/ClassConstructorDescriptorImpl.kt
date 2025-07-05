@@ -132,7 +132,7 @@ open class ClassConstructorDescriptorImpl protected constructor(
     override val original: ClassConstructorDescriptor
         get() = super.original as ClassConstructorDescriptor
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor? {
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
         return super.substitute(substitutor) as ClassConstructorDescriptor?
     }
 

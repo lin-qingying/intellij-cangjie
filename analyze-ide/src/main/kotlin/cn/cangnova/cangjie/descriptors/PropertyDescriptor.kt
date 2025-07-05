@@ -63,7 +63,7 @@ interface PropertyDescriptor : PropertyDescriptorWithAccessors, PropertySymbolMa
     override fun getCompileTimeInitializer(): ConstantValue<*>?
 
 
-    override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor
 
     override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out PropertyDescriptor>
 

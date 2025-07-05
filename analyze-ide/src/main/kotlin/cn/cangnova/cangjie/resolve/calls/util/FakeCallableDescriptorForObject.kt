@@ -103,7 +103,7 @@ open class FakeCallableDescriptorForObject(
     }
 
 
-    override fun substitute(substitutor: TypeSubstitutor) = this
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor = this
 
 //    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>?): V? = null
 }

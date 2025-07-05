@@ -316,7 +316,7 @@ open class VariableDescriptorImpl(
 
     }
 
-    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptorImpl? {
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
         if (substitutor.isEmpty) {
             return this
         }

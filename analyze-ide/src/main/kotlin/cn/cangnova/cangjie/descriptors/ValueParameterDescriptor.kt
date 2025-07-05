@@ -50,7 +50,7 @@ interface ValueParameterDescriptor : VariableDescriptor, ParameterDescriptor, Va
      * a) their respective owners (function declarations) f1 override f2
      * b) p1 and p2 have the same indices in the owners' parameter lists
      */
-    override fun getOverriddenDescriptors(): Collection<ValueParameterDescriptor>
+    override val overriddenDescriptors: Collection<ValueParameterDescriptor>
 
     /**
      * @return true iff this parameter belongs to a declared function (not a fake override) and declares the default value,

@@ -183,7 +183,7 @@ abstract class AbstractClassDescriptor(
         return unsubstitutedInnerClassesScope.invoke()
     }
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {
         if (substitutor.isEmpty()) {
             return this
         }

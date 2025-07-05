@@ -24,8 +24,8 @@
 
 package cn.cangnova.cangjie.descriptors.impl
 
+import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
-import cn.cangnova.cangjie.descriptors.DeclarationDescriptorVisitor
 import cn.cangnova.cangjie.descriptors.DescriptorVisibilities
 import cn.cangnova.cangjie.descriptors.SourceElement
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
@@ -43,7 +43,7 @@ open class LocalVariableDescriptor
 
     source: SourceElement
 ) : VariableDescriptorImpl(containingDeclaration, name, type, mutable, source, DescriptorVisibilities.LOCAL) {
-    override fun substitute(substitutor: TypeSubstitutor): LocalVariableDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
         if (substitutor.isEmpty) return this
         throw UnsupportedOperationException() // TODO
     }

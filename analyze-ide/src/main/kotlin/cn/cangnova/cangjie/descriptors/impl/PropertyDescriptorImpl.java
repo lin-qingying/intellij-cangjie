@@ -277,7 +277,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
     }
 
     @Override
-    public PropertyDescriptor substitute(@NotNull TypeSubstitutor originalSubstitutor) {
+    public @NotNull CallableDescriptor substitute(@NotNull TypeSubstitutor originalSubstitutor) {
         if (originalSubstitutor.isEmpty()) {
             return this;
         }

@@ -44,7 +44,7 @@ interface ClassConstructorDescriptor : ConstructorDescriptor, ConstructorSymbolM
      * @param substitutor 类型替换器，用于执行类型替换。
      * @return 替换后的类构造器描述符，如果替换不可行则可能返回null。
      */
-    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor?
+    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor
 
     /**
      * 复制当前构造器描述符，但修改其所有者、模态性、可见性、种类和是否复制覆盖标志。

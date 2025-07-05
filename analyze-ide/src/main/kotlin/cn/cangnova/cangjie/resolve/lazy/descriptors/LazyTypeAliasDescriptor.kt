@@ -95,7 +95,7 @@ class LazyTypeAliasDescriptor(
     override fun getDefaultType(): SimpleType = defaultTypeImpl()
 
 
-    override fun substitute(substitutor: TypeSubstitutor): TypeAliasDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {
         if (substitutor.isEmpty) return this
         val substituted = LazyTypeAliasDescriptor(
             storageManager, trace,

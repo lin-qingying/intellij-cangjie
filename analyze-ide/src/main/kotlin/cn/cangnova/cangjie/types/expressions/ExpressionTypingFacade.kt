@@ -32,7 +32,7 @@ import cn.cangnova.cangjie.psi.ValueArgument
 import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope
 import cn.cangnova.cangjie.types.CangJieType
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
+import cn.cangnova.cangjie.types.CangJieTypeInfo
 /**
  * 表达式类型检查接口，提供多种类型信息获取方法
  */
@@ -105,6 +105,6 @@ interface ExpressionTypingFacade {
         expectedReturnType: CangJieType?,
         trace: BindingTrace,
         localContext: ExpressionTypingContext?
-    ):CangJieTypeInfo
+    ): CangJieTypeInfo
 
 }

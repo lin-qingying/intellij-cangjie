@@ -52,7 +52,7 @@ abstract class PropertyAccessorDescriptorImpl(
     }
 
 
-    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
         return this // no substitution since we work with originals of accessors in the backend anyway
     }
 

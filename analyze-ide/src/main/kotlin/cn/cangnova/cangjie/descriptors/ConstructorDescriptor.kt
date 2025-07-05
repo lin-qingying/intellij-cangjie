@@ -45,7 +45,7 @@ interface ConstructorDescriptor : FunctionDescriptor {
     //    @NotNull
     //    @Override
     //    CangJieType getReturnType();
-    override fun substitute(substitutor: TypeSubstitutor): ConstructorDescriptor?
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor
 
 
     override val original: ConstructorDescriptor

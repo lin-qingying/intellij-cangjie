@@ -47,7 +47,7 @@ interface CallableDescriptor : DeclarationDescriptorWithVisibility, DeclarationD
 
     val extensionReceiverParameter: ReceiverParameterDescriptor?
 
-    val overriddenDescriptors: MutableCollection<out CallableDescriptor>
+    val overriddenDescriptors:  Collection<  CallableDescriptor>
 
     val dispatchReceiverParameter: ReceiverParameterDescriptor?
 
