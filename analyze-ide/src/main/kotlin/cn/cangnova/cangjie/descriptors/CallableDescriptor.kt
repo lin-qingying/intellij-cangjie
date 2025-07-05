@@ -30,13 +30,13 @@ import cn.cangnova.cangjie.types.CangJieType
 interface CallableDescriptor : DeclarationDescriptorWithVisibility, DeclarationDescriptorNonRoot,
     Substitutable<CallableDescriptor>, CallableSymbolMarker {
 
-    val valueParameters: MutableList<ValueParameterDescriptor>
+    val valueParameters: Collection<ValueParameterDescriptor>
 
 
     override val original: CallableDescriptor
 
 
-    val contextReceiverParameters: MutableList<ReceiverParameterDescriptor>
+    val contextReceiverParameters: Collection<ReceiverParameterDescriptor>
 
     /**
      * Method may return null for not yet fully initialized object or if error occurred.
@@ -58,7 +58,7 @@ interface CallableDescriptor : DeclarationDescriptorWithVisibility, DeclarationD
     fun hasSynthesizedParameterNames(): Boolean
 
 
-    val typeParameters: MutableList<TypeParameterDescriptor?>
+    val typeParameters: Collection<TypeParameterDescriptor>
 
     val typeParametersNotExtend: MutableList<TypeParameterDescriptor>
         get() = mutableListOf()

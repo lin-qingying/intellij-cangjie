@@ -26,6 +26,23 @@ package cn.cangnova.cangjie.utils.slicedMap
 
 import com.intellij.openapi.util.Key
 
+/**
+ * 将键与切片关联的抽象类
+ * 
+ * 这个类扩展了IntelliJ平台的Key类，并将其与切片关联起来，
+ * 使得可以通过键直接访问对应的切片。这种设计允许在切片映射中
+ * 更方便地管理和访问特定类型的数据。
+ *
+ * @param K 键的类型参数
+ * @param V 值的类型参数
+ * @param Slice 切片的类型参数，必须是ReadOnlySlice的子类型
+ * @param debugName 用于调试的名称
+ */
 abstract class KeyWithSlice<K, V, out Slice : ReadOnlySlice<K, V>>(debugName: String) : Key<V>(debugName) {
+    /**
+     * 与此键关联的切片
+     * 
+     * @return 关联的切片实例
+     */
     abstract val slice: Slice
 }

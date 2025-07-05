@@ -27,46 +27,89 @@ package cn.cangnova.cangjie.utils.slicedMap
 import java.util.*
 import java.util.function.BiConsumer
 
-// binary representation of fractional part of phi = (sqrt(5) - 1) / 2
+/**
+ * 黄金分割比例的二进制表示：(sqrt(5) - 1) / 2
+ * 用于Knuth的乘法哈希算法
+ */
 private const val MAGIC: Int = 0x9E3779B9L.toInt() // ((sqrt(5.0) - 1) / 2 * pow(2.0, 32.0)).toLong().toString(16)
+
+/**
+ * 最大移位值，用于控制哈希表的初始大小
+ */
 private const val MAX_SHIFT = 27
+
+/**
+ * 负载因子阈值，当哈希表填充率达到50%时触发扩容
+ */
 private const val THRESHOLD = ((1L shl 31) - 1).toInt() // 50% fill factor for speed
+
+/**
+ * 空数组常量，用于初始化
+ */
 private val EMPTY_ARRAY = arrayOf<Any?>()
 
 
-// For more details see for Knuth's multiplicative hash with golden ratio
-// Shortly, we're trying to keep distribution of it uniform independently of input
-// It's necessary because we use very simple linear probing
+/**
+ * 计算哈希值的扩展函数
+ * 
+ * 使用Knuth的乘法哈希与黄金分割比例，使哈希分布更均匀，
+ * 这对于使用简单线性探测的哈希表非常重要。
+ * 
+ * @param shift 移位值
+ * @return 计算后的哈希值
+ */
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Any.computeHash(shift: Int) = ((hashCode() * MAGIC) ushr shift) shl 1
 
 /**
- * The main ideas that might lead to better locality:
- * - Storing values in the same array as keys
- * - Using linear probes to avoid jumping to to new random indices
+ * 开放寻址线性探测哈希表实现
+ * 
+ * 主要设计思想是提高局部性：
+ * - 在同一数组中存储键和值（键在偶数索引，值在奇数索引）
+ * - 使用线性探测避免跳转到新的随机索引
+ * 
+ * 注意：此Map实现不遵循某些Map接口的约定：
+ * - `put`不返回先前的值
+ * - 不支持`entries`（请改用forEach）
+ * - 不支持`remove`
  *
- * This Map implementation is not intended to follow some of the maps' contracts:
- * - `put` doesn't returns previous value
- * - `entries` is unsupported (use forEach instead)
- * - `remove` is unsupported
+ * @param K 键的类型，必须是非空类型
+ * @param V 值的类型，必须是非空类型
  */
 internal class OpenAddressLinearProbingHashTable<K : Any, V : Any> : AbstractMutableMap<K, V>() {
-    // fields be initialized later in `clear()`
-
-    // capacity = 1 << (32 - shift)
+    /**
+     * 移位值，用于控制哈希表容量
+     * 容量 = 1 << (32 - shift)
+     */
     private var shift = 0
 
-    // keys are stored in even elements, values are in odd ones
+    /**
+     * 存储键值对的数组
+     * 键存储在偶数索引位置，值存储在奇数索引位置
+     */
     private var array = EMPTY_ARRAY
+    
+    /**
+     * 哈希表中的条目数量
+     */
     private var size_ = 0
 
     init {
         clear()
     }
 
+    /**
+     * 获取哈希表中的条目数量
+     */
     override val size
         get() = size_
 
+    /**
+     * 获取指定键对应的值
+     *
+     * @param key 键
+     * @return 对应的值，如果不存在则返回null
+     */
     override fun get(key: K): V? {
         var i = key.computeHash(shift)
         var k = array[i]
@@ -84,7 +127,13 @@ internal class OpenAddressLinearProbingHashTable<K : Any, V : Any> : AbstractMut
     }
 
     /**
-     * Never returns previous values
+     * 将键值对放入哈希表
+     * 
+     * 注意：此方法不返回先前的值
+     *
+     * @param key 键
+     * @param value 值
+     * @return 始终返回null
      */
     override fun put(key: K, value: V): V? {
         if (put(array, shift, key, value)) {
@@ -96,6 +145,11 @@ internal class OpenAddressLinearProbingHashTable<K : Any, V : Any> : AbstractMut
         return null
     }
 
+    /**
+     * 重新哈希表以增加容量
+     * 
+     * 当哈希表填充率达到阈值时调用此方法
+     */
     private fun rehash() {
         val newShift = maxOf(shift - 3, 0)
         val newArraySize = 1 shl (33 - newShift)
@@ -115,6 +169,9 @@ internal class OpenAddressLinearProbingHashTable<K : Any, V : Any> : AbstractMut
         array = newArray
     }
 
+    /**
+     * 清空哈希表
+     */
     override fun clear() {
         shift = MAX_SHIFT
         array = arrayOfNulls(1 shl (33 - shift))
@@ -122,6 +179,11 @@ internal class OpenAddressLinearProbingHashTable<K : Any, V : Any> : AbstractMut
         size_ = 0
     }
 
+    /**
+     * 对哈希表中的每个条目执行给定操作
+     *
+     * @param action 要执行的操作
+     */
     override fun forEach(action: BiConsumer<in K, in V>) {
         var i = 0
         val arraySize = array.size
@@ -135,6 +197,14 @@ internal class OpenAddressLinearProbingHashTable<K : Any, V : Any> : AbstractMut
         }
     }
 
+    /**
+     * 获取所有条目的集合
+     * 
+     * 注意：此实现不支持entries，仅在调试模式下返回不可变集合
+     *
+     * @return 条目的集合
+     * @throws IllegalStateException 在非调试模式下抛出异常
+     */
     override val entries: MutableSet<MutableMap.MutableEntry<K, V>>
         get() {
             if (@Suppress("ConstantConditionIf") DEBUG) {
@@ -146,16 +216,42 @@ internal class OpenAddressLinearProbingHashTable<K : Any, V : Any> : AbstractMut
             throw IllegalStateException("OpenAddressLinearProbingHashTable::entries is not supported and hardly will be")
         }
 
+    /**
+     * 不可变条目实现
+     *
+     * @param K 键的类型
+     * @param V 值的类型
+     * @property key 键
+     * @property value 值
+     */
     private class Entry<K, V>(override val key: K, override val value: V) : MutableMap.MutableEntry<K, V> {
+        /**
+         * 不支持设置新值
+         * 
+         * @throws UnsupportedOperationException 总是抛出此异常
+         */
         override fun setValue(newValue: V): V = throw UnsupportedOperationException("This Entry is not mutable.")
     }
 
     companion object {
-        // Change to "true" to be able to see the contents of the map in debugger views
+        /**
+         * 调试标志，设置为true可在调试器视图中查看映射内容
+         */
         private const val DEBUG = false
     }
 }
 
+/**
+ * 将键值对放入数组
+ * 
+ * 使用线性探测解决哈希冲突
+ *
+ * @param array 目标数组
+ * @param aShift 移位值
+ * @param key 键
+ * @param value 值
+ * @return 如果是新键则返回true，如果是更新现有键则返回false
+ */
 private fun put(array: Array<Any?>, aShift: Int, key: Any, value: Any?): Boolean {
     var i = key.computeHash(aShift)
 

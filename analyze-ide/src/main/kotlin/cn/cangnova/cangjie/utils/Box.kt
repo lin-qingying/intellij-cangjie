@@ -23,11 +23,38 @@
  */
 package cn.cangnova.cangjie.utils
 
+/**
+ * 一个简单的包装类，用于包装任意类型的数据。
+ * 
+ * 这个类的主要目的是屏蔽被包装对象的hashCode和equals方法，
+ * 确保即使包装的对象重写了这些方法，Box实例也会使用默认的引用相等性比较。
+ * 这在需要基于引用而非内容比较对象的场景中特别有用，例如在某些缓存或标识场景中。
+ *
+ * @param T 被包装的数据类型
+ * @property data 被包装的数据实例
+ */
 class Box<T>(val data: T) {
+    /**
+     * 返回此对象的哈希码。
+     * 
+     * 此实现调用父类Object的hashCode方法，而不是委托给包装的数据对象，
+     * 这确保了即使包装的对象重写了hashCode方法，Box实例也会使用默认的引用哈希码。
+     *
+     * @return 此Box实例的哈希码
+     */
     override fun hashCode(): Int {
         return super.hashCode() // This class is needed to screen from calling data's hashCode()
     }
 
+    /**
+     * 比较此对象与指定对象是否相等。
+     * 
+     * 此实现调用父类Object的equals方法，而不是委托给包装的数据对象，
+     * 这确保了即使包装的对象重写了equals方法，Box实例也会使用默认的引用相等性比较。
+     *
+     * @param other 要与之比较的对象
+     * @return 如果此对象与指定对象引用相同，则返回true；否则返回false
+     */
     override fun equals(other: Any?): Boolean {
         return super.equals(other) // This class is needed to screen from calling data's equals()
     }

@@ -25,8 +25,6 @@
 package cn.cangnova.cangjie.resolve
 
 
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.builtins.StandardNames
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.fromByName
@@ -39,14 +37,13 @@ import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import cn.cangnova.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import cn.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
-import cn.cangnova.cangjie.ide.IdeDescriptorRenderers
-import cn.cangnova.cangjie.ide.codeinsight.toSourceElement
 import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.*
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.CjNamedFunctionForExtend
 import cn.cangnova.cangjie.references.util.DescriptorToSourceUtilsIde
+import cn.cangnova.cangjie.renderer.IdeDescriptorRenderers
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import cn.cangnova.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
@@ -62,6 +59,8 @@ import cn.cangnova.cangjie.types.checker.CangJieTypeChecker
 import cn.cangnova.cangjie.types.isError
 import cn.cangnova.cangjie.types.util.TypeUtils
 import cn.cangnova.cangjie.utils.DFS
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -77,8 +76,8 @@ fun DeclarationDescriptor.isPublishedApi(): Boolean {
 }
 
 val DeclarationDescriptor.isExtension: Boolean
-    get() =( this is CallableDescriptor && extensionReceiverParameter != null) || (
-            toSourceElement.getPsi()  is CjNamedFunctionForExtend
+    get() = (this is CallableDescriptor && extensionReceiverParameter != null) || (
+            toSourceElement.getPsi() is CjNamedFunctionForExtend
             )
 
 fun <D : CallableMemberDescriptor> D.getDirectlyOverriddenDeclarations(): Collection<D> {
@@ -139,15 +138,17 @@ private fun DeclarationDescriptorWithVisibility.isVisible(
 }
 
 val ClassDescriptor.hasClassValueDescriptor: Boolean get() = classValueDescriptor != null
-val ClassDescriptor.isEnumEntry:Boolean get() = when(this){
-    is EnumEntryDescriptor -> true
-    is LazySubstitutingClassDescriptor -> {
-        original is EnumEntryDescriptor
+val ClassDescriptor.isEnumEntry: Boolean
+    get() = when (this) {
+        is EnumEntryDescriptor -> true
+        is LazySubstitutingClassDescriptor -> {
+            original is EnumEntryDescriptor
+        }
+
+        else -> false
     }
-    else -> false
-}
 val ClassDescriptor.classValueDescriptor: ClassDescriptor?
-    get() =  null
+    get() = null
 //        if(kind.isSingleton && isEnumEntry){
 //            this
 //        }else{
@@ -188,10 +189,11 @@ fun CallableMemberDescriptor.firstOverridden(
     predicate: (CallableMemberDescriptor) -> Boolean
 ): CallableMemberDescriptor? {
     var result: CallableMemberDescriptor? = null
-    return DFS.dfs(listOf(this),
+    return DFS.dfs(
+        listOf(this),
         { current ->
-            val descriptor = if (useOriginal) current?.original else current
-            (descriptor?.overriddenDescriptors ?: emptyList()) as MutableIterable<CallableMemberDescriptor>
+            val descriptor = if (useOriginal) current.original else current
+            descriptor.overriddenDescriptors as MutableIterable<CallableMemberDescriptor>
         },
         object : DFS.AbstractNodeHandler<CallableMemberDescriptor, CallableMemberDescriptor?>() {
             override fun beforeChildren(current: CallableMemberDescriptor) = result == null
@@ -275,6 +277,7 @@ val AnnotationDescriptor.annotationClass: ClassDescriptor?
 
 val Annotated.nonSourceAnnotations: List<AnnotationDescriptor>
     get() = annotations.filterOutSourceAnnotations()
+
 fun Iterable<AnnotationDescriptor>.filterOutSourceAnnotations(): List<AnnotationDescriptor> =
     filterNot(AnnotationDescriptor::isSourceAnnotation)
 
@@ -283,6 +286,7 @@ val AnnotationDescriptor.isSourceAnnotation: Boolean
         val classDescriptor = annotationClass
         return classDescriptor == null /*|| classDescriptor.getAnnotationRetention() == KotlinRetention.SOURCE*/
     }
+
 fun DeclarationDescriptor.isAnnotationConstructor(): Boolean =
     this is ConstructorDescriptor && DescriptorUtils.isAnnotationClass(this.constructedClass)
 
@@ -296,20 +300,22 @@ object DescriptorUtils {
         }
         return getFqNameFromTopLevelClass(containingDeclaration).child(name)
     }
-    fun isAnnotationClass(descriptor:  DeclarationDescriptor ): Boolean {
-        return  isKindOf(
+
+    fun isAnnotationClass(descriptor: DeclarationDescriptor): Boolean {
+        return isKindOf(
             descriptor,
             ClassKind.ANNOTATION_CLASS
         )
     }
+
     fun isOverride(descriptor: CallableMemberDescriptor): Boolean {
-        return !descriptor.getOverriddenDescriptors().isEmpty()
+        return !descriptor.overriddenDescriptors.isEmpty()
     }
 
     fun <D : CallableMemberDescriptor?> getAllOverriddenDeclarations(memberDescriptor: D): Set<D> {
         val result: MutableSet<D> = HashSet()
-        for (overriddenDeclaration in memberDescriptor?.getOverriddenDescriptors() ?: emptyList()) {
-            val kind: CallableMemberDescriptor.Kind = overriddenDeclaration.getKind()
+        for (overriddenDeclaration in memberDescriptor?.overriddenDescriptors ?: emptyList()) {
+            val kind: CallableMemberDescriptor.Kind = overriddenDeclaration.kind
             if (kind == CallableMemberDescriptor.Kind.DECLARATION) {
                 result.add(overriddenDeclaration as D)
             } else if (kind == CallableMemberDescriptor.Kind.DELEGATION || kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE || kind == CallableMemberDescriptor.Kind.SYNTHESIZED) {
@@ -437,7 +443,7 @@ object DescriptorUtils {
         var descriptor = descriptor
         while (descriptor.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
             val overridden: Collection<CallableMemberDescriptor?> =
-                descriptor.getOverriddenDescriptors()
+                descriptor.overriddenDescriptors
             check(!overridden.isEmpty()) { "Fake override should have at least one overridden descriptor: $descriptor" }
             descriptor = overridden.iterator().next() as D
         }
@@ -655,7 +661,7 @@ object DescriptorUtils {
         superClass: ClassDescriptor
     ): Boolean {
         return isSubtypeOfClass(
-            subClass.getDefaultType(),
+            subClass.defaultType,
             superClass.original
         )
     }
@@ -732,7 +738,7 @@ object DescriptorUtils {
     private fun isKindOf(descriptor: DeclarationDescriptor?, classKind: ClassKind): Boolean {
         return when (descriptor) {
             is ClassDescriptor -> descriptor.kind == classKind
-            is EnumClassCallableDescriptor ->  isKindOf(descriptor.type,classKind)
+            is EnumClassCallableDescriptor -> isKindOf(descriptor.type, classKind)
             else -> false
         }
 
@@ -822,7 +828,7 @@ object DescriptorUtils {
 object DeserializedDeclarationsFromSupertypeConflictDataKey : CallableDescriptor.UserDataKey<CallableMemberDescriptor>
 
 fun CallableMemberDescriptor.setSingleOverridden(overridden: CallableMemberDescriptor) {
-    overriddenDescriptors = listOf(overridden)
+    overriddenDescriptors = mutableSetOf(overridden)
 }
 
 
@@ -906,4 +912,5 @@ private fun compareDescriptorsText(project: Project, d1: DeclarationDescriptor, 
     val declarations2 = DescriptorToSourceUtilsIde.getAllDeclarations(project, d2)
     return declarations1 == declarations2 && declarations1.isNotEmpty()
 }
+
 fun CallableDescriptor.hasDynamicExtensionAnnotation(): Boolean = false

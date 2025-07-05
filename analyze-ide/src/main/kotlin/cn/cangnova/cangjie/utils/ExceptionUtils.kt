@@ -25,16 +25,30 @@
 package cn.cangnova.cangjie.utils
 
 /**
- * Translate exception to unchecked exception.
- *
- * Return type is specified to make it possible to use it like this:
- *     throw ExceptionUtils.rethrow(e);
- * In this case compiler knows that code after this rethrowing won't be executed.
+ * 将异常转换为非受检异常并重新抛出。
+ * 
+ * 此函数的返回类型被指定为RuntimeException，使得可以按如下方式使用：
+ * ```
+ * throw rethrow(e)
+ * ```
+ * 在这种情况下，编译器知道在重新抛出异常之后的代码不会被执行。
+ * 
+ * @param e 需要重新抛出的异常
+ * @return 此函数实际上不会返回，因为它总是抛出异常
+ * @throws Throwable 总是抛出传入的异常
  */
 fun rethrow(e: Throwable): RuntimeException {
     throw e
 }
 
+/**
+ * 检查当前异常是否为ProcessCanceledException或其子类。
+ * 
+ * 此函数通过检查异常的类名来判断，而不是直接依赖于类型检查，
+ * 这允许在不直接依赖于IntelliJ平台API的情况下检测ProcessCanceledException。
+ * 
+ * @return 如果异常是ProcessCanceledException或其子类，则返回true；否则返回false
+ */
 fun Throwable.isProcessCanceledException(): Boolean {
     var klass: Class<out Any?> = this.javaClass
     while (true) {

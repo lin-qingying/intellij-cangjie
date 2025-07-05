@@ -104,7 +104,7 @@ public abstract class AbstractReceiverParameterDescriptor extends DeclarationDes
     }
 
     @Override
-    public @NotNull List<TypeParameterDescriptor> getTypeParameters() {
+    public @NotNull Collection<? extends @NotNull TypeParameterDescriptor> getTypeParameters() {
         return Collections.emptyList();
 
     }

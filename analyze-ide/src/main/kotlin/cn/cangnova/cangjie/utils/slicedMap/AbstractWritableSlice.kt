@@ -24,14 +24,35 @@
 
 package cn.cangnova.cangjie.utils.slicedMap
 
-
+/**
+ * 可写切片的抽象实现类
+ * 
+ * 这个类同时实现了KeyWithSlice和WritableSlice接口，为可写切片提供了基础实现。
+ * 它简化了可写切片的创建过程，通过将自身同时作为键和切片使用。
+ *
+ * @param K 键的类型
+ * @param V 值的类型
+ * @param debugName 用于调试的名称
+ */
 abstract class AbstractWritableSlice<K, V>(debugName: String) : KeyWithSlice<K, V, WritableSlice<K, V>>(debugName),
     WritableSlice<K, V> {
+    /**
+     * 获取与此键关联的切片
+     * 
+     * 在此实现中，切片就是当前对象自身
+     * 
+     * @return 当前对象作为切片
+     */
     override val slice: WritableSlice<K, V>
         get() = this
 
+    /**
+     * 获取与此切片关联的键
+     * 
+     * 在此实现中，键就是当前对象自身
+     * 
+     * @return 当前对象作为键
+     */
     override val key: KeyWithSlice<K, V, WritableSlice<K, V>>
         get() = this
-
-
 }

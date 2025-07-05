@@ -207,6 +207,19 @@ open class LockBasedStorageManager(
         onRecursiveCall: (K, Boolean) -> V,
         map: ConcurrentMap<K, Any>
     ): MemoizedFunctionToNotNull<K, V> {
+        return object : MapBasedMemoizedFunctionToNotNull<K, V>(this, map, compute) {
+            override fun recursionDetected(
+                input: K,
+                firstTime: Boolean
+            ): RecursionDetectedResult<V> {
+                return RecursionDetectedResult.value(
+                    onRecursiveCall.invoke(
+                        input,
+                        firstTime
+                    )
+                )
+            }
+        }
 
     }
 
@@ -224,7 +237,14 @@ open class LockBasedStorageManager(
     }
 
     override fun <T> compute(computable: () -> T): T {
-        TODO("Not yet implemented")
+        lock.lock()
+        try {
+            return computable.invoke()
+        } catch (throwable: Throwable) {
+            throw exceptionHandlingStrategy.handleException(throwable)
+        } finally {
+            lock.unlock()
+        }
     }
 }
 
@@ -418,7 +438,7 @@ internal abstract class MapBasedMemoizedFunction<K, V : Any>(
     }
 
     protected open fun recursionDetected(
-        input: K?,
+        input: K,
         firstTime: Boolean
     ): RecursionDetectedResult<V> {
         return storageManager.recursionDetectedDefault("", input)
@@ -653,12 +673,15 @@ internal open class MapBasedMemoizedFunctionToNull<K, V : Any>(
 ), MemoizedFunctionToNullable<K, V>
 
 internal open class MapBasedMemoizedFunctionToNotNull<K, V : Any>(
-
     storageManager: LockBasedStorageManager,
     map: ConcurrentMap<K, Any>,
     compute: (K) -> V
-
 ) : MapBasedMemoizedFunction<K, V>(
     storageManager, map, compute
-),
-    MemoizedFunctionToNotNull<K, V>
+), MemoizedFunctionToNotNull<K, V> {
+    override fun invoke(input: K): V {
+        val result = super.invoke(input)
+        checkNotNull(result) { "compute() returned null under " + storageManager }
+        return result
+    }
+}

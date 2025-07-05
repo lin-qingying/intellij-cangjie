@@ -386,8 +386,7 @@ public abstract class FunctionDescriptorImpl extends DeclarationDescriptorNonRoo
     }
 
     @Override
-    @NotNull
-    public List<TypeParameterDescriptor> getTypeParameters() {
+    public @NotNull Collection<? extends @NotNull TypeParameterDescriptor> getTypeParameters() {
         List<TypeParameterDescriptor> parameters = typeParameters;
         // Diagnostics for EA-141456
         if (null == parameters) {

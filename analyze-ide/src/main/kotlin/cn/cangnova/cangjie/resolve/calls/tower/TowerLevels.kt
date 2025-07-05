@@ -28,7 +28,6 @@ import com.intellij.util.SmartList
 import com.intellij.util.containers.addIfNotNull
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
-import cn.cangnova.cangjie.ide.codeinsight.toSourceElement
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils

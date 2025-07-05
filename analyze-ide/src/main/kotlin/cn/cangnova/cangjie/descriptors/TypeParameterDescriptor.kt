@@ -25,6 +25,7 @@ package cn.cangnova.cangjie.descriptors
 
 
 import cn.cangnova.cangjie.mpp.TypeParameterSymbolMarker
+import cn.cangnova.cangjie.storage.NotNullLazyValue
 import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeConstructor
@@ -37,10 +38,10 @@ interface TypeParameterDescriptor : ClassifierDescriptor, TypeParameterMarker, T
     val variance: Variance
 
 
-    val upperBounds: MutableList<CangJieType>
+    val upperBounds: Collection<CangJieType>
 
 
-    override val typeConstructor: TypeConstructor
+    override val typeConstructor:  TypeConstructor
 
     override val original: TypeParameterDescriptor
 

@@ -41,30 +41,34 @@ import cn.cangnova.cangjie.types.error.ErrorTypeKind
 
 
 abstract class AbstractTypeParameterDescriptor protected constructor(
-    private val storageManager: StorageManager,
+    override val storageManager: StorageManager,
     containingDeclaration: DeclarationDescriptor,
     annotations: Annotations,
     name: Name,
-    private val variance: Variance,
+    override val variance: Variance,
 
-    private val index: Int,
+    override val index: Int,
     source: SourceElement,
     supertypeLoopChecker: SupertypeLoopChecker
 ) : DeclarationDescriptorNonRootImpl(containingDeclaration, annotations, name, source),
     TypeParameterDescriptor {
 
-    private val typeConstructor: NotNullLazyValue<TypeConstructor> = storageManager.createLazyValue<TypeConstructor> {
+
+    private val _typeConstructor: NotNullLazyValue<TypeConstructor> = storageManager.createLazyValue<TypeConstructor> {
         TypeParameterTypeConstructor(
             storageManager, supertypeLoopChecker
         )
     }
-    private val defaultType: NotNullLazyValue<SimpleType>
+
+    override val typeConstructor: TypeConstructor
+        get() = _typeConstructor.invoke()
+    private val _defaultType: NotNullLazyValue<SimpleType>
 
     init {
-        this.defaultType = storageManager.createLazyValue {
+        this._defaultType = storageManager.createLazyValue {
             simpleTypeWithNonTrivialMemberScope(
                 Empty,
-                getTypeConstructor(), emptyList(), false,
+                typeConstructor, emptyList(), false,
                 LazyScopeAdapter {
                     create(
                         "Scope for type parameter " + name.asString(),
@@ -78,38 +82,22 @@ abstract class AbstractTypeParameterDescriptor protected constructor(
     override val original: TypeParameterDescriptor
         get() = super.original as TypeParameterDescriptor
 
-    override fun getDefaultType(): SimpleType {
-        return defaultType.invoke()
-    }
 
-    override fun getVariance(): Variance {
-        return variance
-    }
+    override val defaultType: SimpleType
+        get() = _defaultType.invoke()
+
 
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
         return visitor.visitTypeParameterDescriptor(this, data)
     }
 
 
-    override fun getUpperBounds(): List<CangJieType> {
-        return (getTypeConstructor() as TypeParameterTypeConstructor).supertypes
-    }
+    override val upperBounds: List<CangJieType>
+        get() = (typeConstructor as? TypeParameterTypeConstructor)?.supertypes ?: emptyList()
 
-    override fun getTypeConstructor(): TypeConstructor {
-        return typeConstructor.invoke()
-    }
 
-    override fun getIndex(): Int {
-        return index
-    }
-
-    override fun isCapturedFromOuterDeclaration(): Boolean {
-        return false
-    }
-
-    override fun getStorageManager(): StorageManager {
-        return storageManager
-    }
+    override val isCapturedFromOuterDeclaration: Boolean
+        get() = false
 
     protected abstract fun reportSupertypeLoopError(type: CangJieType)
 

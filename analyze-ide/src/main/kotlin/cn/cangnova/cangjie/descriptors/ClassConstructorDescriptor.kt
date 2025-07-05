@@ -61,5 +61,5 @@ interface ClassConstructorDescriptor : ConstructorDescriptor, ConstructorSymbolM
         visibility: DescriptorVisibility,
         kind: CallableMemberDescriptor.Kind,
         copyOverrides: Boolean
-    ): ClassConstructorDescriptor
+    ): CallableMemberDescriptor
 }

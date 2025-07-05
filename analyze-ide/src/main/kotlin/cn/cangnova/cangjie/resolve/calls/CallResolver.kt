@@ -35,7 +35,6 @@ import cn.cangnova.cangjie.diagnostics.Errors
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus.checkCanceled
 import cn.cangnova.cangjie.psi.*
-import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getSuperClassType
 import cn.cangnova.cangjie.resolve.ModifierCheckerCore.check
@@ -45,14 +44,12 @@ import cn.cangnova.cangjie.resolve.calls.components.InferenceSession
 import cn.cangnova.cangjie.resolve.calls.components.InferenceSession.Companion.default
 import cn.cangnova.cangjie.resolve.calls.context.*
 import cn.cangnova.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments
-import cn.cangnova.cangjie.resolve.calls.results.ManyCandidates
 import cn.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
 import cn.cangnova.cangjie.resolve.calls.results.OverloadResolutionResultsImpl
 import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
 import cn.cangnova.cangjie.resolve.calls.tasks.*
 import cn.cangnova.cangjie.resolve.calls.tasks.TracingStrategyImpl.Companion.create
-import cn.cangnova.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import cn.cangnova.cangjie.resolve.calls.tower.NewResolutionOldInference
 import cn.cangnova.cangjie.resolve.calls.tower.PSICallResolver
 import cn.cangnova.cangjie.resolve.calls.util.*

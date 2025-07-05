@@ -40,7 +40,7 @@ interface FunctionDescriptor : CallableMemberDescriptor, FunctionSymbolMarker {
 
     override val original: FunctionDescriptor
 
-    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor
+    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor?
 
     /**
      * This method should be used with a great care, because if descriptor is substituted one, calling 'getOverriddenDescriptors'
@@ -65,12 +65,12 @@ interface FunctionDescriptor : CallableMemberDescriptor, FunctionSymbolMarker {
     val isHiddenToOvercomeSignatureClash: Boolean
 
     override fun copy(
-        newOwner: DeclarationDescriptor?,
-        modality: Modality?,
-        visibility: DescriptorVisibility?,
-        kind: CallableMemberDescriptor.Kind?,
+        newOwner: DeclarationDescriptor,
+        modality: Modality,
+        visibility: DescriptorVisibility,
+        kind: CallableMemberDescriptor.Kind,
         copyOverrides: Boolean
-    ): FunctionDescriptor
+    ): CallableMemberDescriptor
 
 
     val isOperator: Boolean

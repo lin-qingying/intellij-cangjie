@@ -24,7 +24,7 @@
 package cn.cangnova.cangjie.descriptors
 
 interface MemberDescriptor : DeclarationDescriptorNonRoot, DeclarationDescriptorWithVisibility {
-    var modality: Modality
+    val  modality: Modality
 
 
     override val visibility: DescriptorVisibility

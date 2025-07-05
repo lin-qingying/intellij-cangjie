@@ -31,10 +31,9 @@ import cn.cangnova.cangjie.psi.CjVariableDeclaration
 import cn.cangnova.cangjie.resolve.source.getPsi
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.util.shouldBeUpdated
-import cn.cangnova.cangjie.utils.ReadOnly
 
 
-    abstract class AbstractVariableDescriptor(
+abstract class AbstractVariableDescriptor(
     containingDeclaration: DeclarationDescriptor,
     annotations: Annotations,
     name: Name,
@@ -48,28 +47,31 @@ import cn.cangnova.cangjie.utils.ReadOnly
     private var _dispatchReceiverParameter: ReceiverParameterDescriptor? = null
     private var _extensionReceiverParameter: ReceiverParameterDescriptor? = null
     override val original: VariableDescriptor = super.original as VariableDescriptor
-    override fun getModality(): Modality {
-        return Modality.FINAL
-    }
+
+    override val modality: Modality
+        get() = Modality.FINAL
+
     override val isStatic: Boolean
         get() {
 
             val element = source.getPsi()
-            if(element is CjVariableDeclaration){
+            if (element is CjVariableDeclaration) {
                 return element.isStatic
             }
 
             return false
         }
+
     open fun setOutType(outType: CangJieType) {
         assert(this._outType == null || this._outType.shouldBeUpdated())
         this._outType = outType
     }
-    override fun hasSynthesizedParameterNames(): Boolean  = false
+
+    override fun hasSynthesizedParameterNames(): Boolean = false
 
     open fun setType(
         outType: CangJieType,
-        @ReadOnly typeParameters: List<TypeParameterDescriptor>,
+        typeParameters: List<TypeParameterDescriptor>,
         dispatchReceiverParameter: ReceiverParameterDescriptor?,
         extensionReceiverParameter: ReceiverParameterDescriptor?,
         contextReceiverParameters: List<ReceiverParameterDescriptor>
@@ -83,24 +85,24 @@ import cn.cangnova.cangjie.utils.ReadOnly
         this._contextReceiverParameters = contextReceiverParameters
     }
 
-    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        return _contextReceiverParameters
-    }
+
+    override val contextReceiverParameters: List<ReceiverParameterDescriptor>
+        get() = _contextReceiverParameters
 
 
     override var visibility: DescriptorVisibility = DescriptorVisibilities.LOCAL
 
-    override fun getReturnType(): CangJieType {
-        return type
-    }
 
-    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
-        return _extensionReceiverParameter
-    }
+    override val returnType: CangJieType?
+        get() = type
 
-    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
-        return _dispatchReceiverParameter
-    }
+
+    override val extensionReceiverParameter: ReceiverParameterDescriptor?
+        get() = _extensionReceiverParameter
+
+
+    override val dispatchReceiverParameter: ReceiverParameterDescriptor?
+        get() = _dispatchReceiverParameter
 
     override val isConst: Boolean
         get() {
@@ -111,7 +113,6 @@ import cn.cangnova.cangjie.utils.ReadOnly
     override fun hasStableParameterNames(): Boolean {
         return false
     }
-
 
 
     companion object {
@@ -140,20 +141,20 @@ import cn.cangnova.cangjie.utils.ReadOnly
 
     }
 
-    override fun getType(): CangJieType {
-        return _outType!!
-    }
+
+    override val type: CangJieType
+        get() = _outType!!
 
 
-    override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        return _typeParameters
-    }
+    override val typeParameters: List<TypeParameterDescriptor>
+        get() = _typeParameters
 
     //    override fun getOverriddenDescriptors(): Collection<CallableDescriptor> {
 //        return emptySet ()
 //    }
-    override fun getValueParameters(): List<ValueParameterDescriptor> {
-        return emptyList()
-    }
+
+
+    override val valueParameters: List<ValueParameterDescriptor>
+        get() = emptyList()
 
 }

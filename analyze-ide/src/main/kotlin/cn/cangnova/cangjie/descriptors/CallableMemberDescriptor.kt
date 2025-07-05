@@ -81,10 +81,10 @@ interface CallableMemberDescriptor : CallableDescriptor, MemberDescriptor {
      * @return 具有指定属性的新 CallableMemberDescriptor 实例。
      */
     fun copy(
-        newOwner: DeclarationDescriptor?,
-        modality: Modality?,
-        visibility: DescriptorVisibility?,
-        kind: Kind?,
+        newOwner: DeclarationDescriptor,
+        modality: Modality,
+        visibility: DescriptorVisibility,
+        kind: Kind,
         copyOverrides: Boolean
     ): CallableMemberDescriptor
 

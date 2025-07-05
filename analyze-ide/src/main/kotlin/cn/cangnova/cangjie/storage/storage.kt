@@ -34,7 +34,7 @@ import kotlin.reflect.KProperty
  * @param P 输入参数类型，可以是任何类型。
  * @param R 输出结果类型，必须是 Any 的子类型且不能为 null。
  */
-interface MemoizedFunctionToNotNull<in P, out R : Any> : MemoizedFunction<P, R>, (P) -> R {
+interface MemoizedFunctionToNotNull<in P, out R : Any> :MemoizedFunction<P, R>,  (P) -> R {
 
     /**
      * 检查给定键的计算结果是否已经存在。
@@ -43,6 +43,8 @@ interface MemoizedFunctionToNotNull<in P, out R : Any> : MemoizedFunction<P, R>,
      * @return 如果键的计算结果已存在则返回 true，否则返回 false。
      */
     override fun isComputed(key: P): Boolean
+
+    override fun invoke(input: P): R
 }
 
 /**
@@ -62,7 +64,7 @@ interface MemoizedFunctionToNullable<in P, out R : Any> : MemoizedFunction<P, R>
     override fun isComputed(key: P): Boolean
 }
 
-interface MemoizedFunction<in P, out R : Any>{
+interface MemoizedFunction<in P, out R : Any> {
     /**
      * 检查给定键的结果是否已计算。
      *
@@ -70,7 +72,10 @@ interface MemoizedFunction<in P, out R : Any>{
      * @return 如果结果已计算则返回 `true`，否则返回 `false`。
      */
     fun isComputed(key: P): Boolean
+
+    fun invoke(input: P): R?
 }
+
 interface LazyValue<out T : Any> {
     /**
      * 检查值是否已计算。

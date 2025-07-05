@@ -113,7 +113,7 @@ values = mutableListOf()
     override val visibility: DescriptorVisibility
         get() = containingDeclaration.visibility
 
-    override fun getTypeParameters(): List<TypeParameterDescriptor> {
+    override fun getTypeParameters(): Collection<TypeParameterDescriptor> {
 //        if(values ?.isEmpty() == true) return emptyList()
         val typeParameters = getEnumTypeParameters()
 //        val tempTypeParameters = mutableListOf<TypeParameterDescriptor>()

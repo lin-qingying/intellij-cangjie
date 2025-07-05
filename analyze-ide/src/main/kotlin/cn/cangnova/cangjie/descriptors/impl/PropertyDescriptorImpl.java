@@ -186,9 +186,8 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
 
     }
 
-    @NotNull
     @Override
-    public List<TypeParameterDescriptor> getTypeParameters() {
+    public @NotNull Collection<? extends @NotNull TypeParameterDescriptor> getTypeParameters() {
         List<TypeParameterDescriptor> parameters = super.getTypeParameters();
         // Diagnostics for EA-212070
         if (parameters == null) {

@@ -36,7 +36,6 @@ import cn.cangnova.cangjie.descriptors.impl.CallableDescriptorForExtend
 import cn.cangnova.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjCallExpression
-import cn.cangnova.cangjie.psi.CjNameReferenceExpression
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import cn.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
@@ -49,7 +48,6 @@ import cn.cangnova.cangjie.resolve.calls.tower.*
 import cn.cangnova.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
 import cn.cangnova.cangjie.resolve.isExtension
 import cn.cangnova.cangjie.resolve.isInsideInterface
-import cn.cangnova.cangjie.resolve.isStatic
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope
 import cn.cangnova.cangjie.resolve.scopes.receivers.ClassQualifier
 import cn.cangnova.cangjie.resolve.scopes.receivers.ClassValueReceiver
@@ -59,7 +57,6 @@ import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker
 import cn.cangnova.cangjie.types.model.CangJieTypeMarker
 import cn.cangnova.cangjie.types.model.TypeConstructorMarker
-import cn.cangnova.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import cn.cangnova.cangjie.types.util.TypeUtils.noExpectedType
 import cn.cangnova.cangjie.types.util.contains
 import cn.cangnova.cangjie.types.util.makeNotNullable

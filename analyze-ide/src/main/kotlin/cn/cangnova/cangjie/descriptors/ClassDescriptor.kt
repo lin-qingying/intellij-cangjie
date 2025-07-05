@@ -132,7 +132,7 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
         val constructors =
             this.constructors
         for (constructor in constructors) {
-            if (constructor.isConst()) {
+            if (constructor.isConst) {
                 return true
             }
         }

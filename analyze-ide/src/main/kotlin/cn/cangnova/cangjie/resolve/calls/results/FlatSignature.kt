@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.resolve.calls.results
 import cn.cangnova.cangjie.builtins.getValueParameterTypesFromCallableReflectionType
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.descriptors.MemberDescriptor
-import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import cn.cangnova.cangjie.descriptors.VariableDescriptor
 import cn.cangnova.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import cn.cangnova.cangjie.resolve.calls.components.hasDefaultValue

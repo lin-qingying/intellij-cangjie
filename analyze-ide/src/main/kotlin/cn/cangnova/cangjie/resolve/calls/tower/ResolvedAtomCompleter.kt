@@ -25,16 +25,13 @@
 package cn.cangnova.cangjie.resolve.calls.tower
 
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
-import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.diagnostics.Errors
-import cn.cangnova.cangjie.diagnostics.Errors.UNSUPPORTED_FEATURE
 import cn.cangnova.cangjie.diagnostics.reportDiagnosticOnce
 import cn.cangnova.cangjie.psi.CjCallableReference
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.ValueArgument
 import cn.cangnova.cangjie.resolve.BindingContext
-import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.DoubleColonExpressionResolver
 import cn.cangnova.cangjie.resolve.MissingSupertypesResolver
 import cn.cangnova.cangjie.resolve.caches.MissingDependencySupertypeChecker

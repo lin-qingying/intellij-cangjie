@@ -35,17 +35,17 @@ interface ConstructorDescriptor : FunctionDescriptor {
     val constructedClass: ClassDescriptor
 
     override fun copy(
-        newOwner: DeclarationDescriptor?,
-        modality: Modality?,
-        visibility: DescriptorVisibility?,
-        kind: CallableMemberDescriptor.Kind?,
+        newOwner: DeclarationDescriptor,
+        modality: Modality,
+        visibility: DescriptorVisibility,
+        kind: CallableMemberDescriptor.Kind,
         copyOverrides: Boolean
-    ): ConstructorDescriptor
+    ): CallableMemberDescriptor
 
     //    @NotNull
     //    @Override
     //    CangJieType getReturnType();
-    override fun substitute(substitutor: TypeSubstitutor): ConstructorDescriptor
+    override fun substitute(substitutor: TypeSubstitutor): ConstructorDescriptor?
 
 
     override val original: ConstructorDescriptor

@@ -25,9 +25,13 @@ package cn.cangnova.cangjie.descriptors
 
 import cn.cangnova.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import cn.cangnova.cangjie.resolve.DescriptorUtils
+import cn.cangnova.cangjie.resolve.isSameModule
 import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.utils.ModuleVisibilityHelper
+import cn.cangnova.cangjie.utils.newHashMapWithExpectedSize
+import java.util.*
+import java.util.Collections.unmodifiableMap
 
 object DescriptorVisibilities {
     /**
@@ -47,6 +51,7 @@ object DescriptorVisibilities {
             return this
         }
     }
+
     @JvmField
     val INHERITED: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Inherited) {
         public override fun isVisible(
@@ -93,12 +98,12 @@ object DescriptorVisibilities {
 
             if (what is ConstructorDescriptor) {
                 val classDescriptor: ClassifierDescriptorWithTypeParameters? = what.containingDeclaration
-                if (useSpecialRulesForPrivateSealedConstructors
-                    && DescriptorUtils.isSealedClass(classDescriptor)
-                    && DescriptorUtils.isTopLevelDeclaration(classDescriptor)
-                    && from is ConstructorDescriptor
-                    && DescriptorUtils.isTopLevelDeclaration(from.containingDeclaration)
-                    && inSameFile(what, from)
+                if (useSpecialRulesForPrivateSealedConstructors && DescriptorUtils.isSealedClass(classDescriptor) && DescriptorUtils.isTopLevelDeclaration(
+                        classDescriptor
+                    ) && from is ConstructorDescriptor && DescriptorUtils.isTopLevelDeclaration(from.containingDeclaration) && inSameFile(
+                        what,
+                        from
+                    )
                 ) {
                     return true
                 }
@@ -107,9 +112,7 @@ object DescriptorVisibilities {
             var parent: DeclarationDescriptor? = what
             while (parent != null) {
                 parent = parent.containingDeclaration
-                if ((parent is ClassDescriptor) ||
-                    parent is PackageFragmentDescriptor
-                ) {
+                if ((parent is ClassDescriptor) || parent is PackageFragmentDescriptor) {
                     break
                 }
             }
@@ -122,9 +125,10 @@ object DescriptorVisibilities {
                     return true
                 }
                 if (fromParent is PackageFragmentDescriptor) {
-                    return parent is PackageFragmentDescriptor
-                            && parent.fqName.equals(fromParent.fqName)
-                            && DescriptorUtils.areInSameModule(fromParent, parent)
+                    return parent is PackageFragmentDescriptor && parent.fqName.equals(fromParent.fqName) && DescriptorUtils.areInSameModule(
+                        fromParent,
+                        parent
+                    )
                 }
                 fromParent = fromParent.containingDeclaration
             }
@@ -144,6 +148,7 @@ object DescriptorVisibilities {
             return true
         }
     }
+
     @JvmField
     val DEFAULT_VISIBILITY: DescriptorVisibility = PUBLIC
 
@@ -178,6 +183,7 @@ object DescriptorVisibilities {
             return false
         }
     }
+
     @JvmField
     val LOCAL: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Local) {
         public override fun isVisible(
@@ -216,7 +222,15 @@ object DescriptorVisibilities {
         //            return false;
         //        }
     }
-    private val MODULE_VISIBILITY_HELPER: ModuleVisibilityHelper? = null
+    private val MODULE_VISIBILITY_HELPER: ModuleVisibilityHelper
+
+    init {
+        val iterator = ServiceLoader.load<ModuleVisibilityHelper?>(
+            ModuleVisibilityHelper::class.java, ModuleVisibilityHelper::class.java.getClassLoader()
+        ).iterator()
+        MODULE_VISIBILITY_HELPER = if (iterator.hasNext()) iterator.next() else ModuleVisibilityHelper.EMPTY
+
+    }
 
     // 文件  包以及子包可见
     @JvmField
@@ -287,7 +301,7 @@ object DescriptorVisibilities {
     }
     private val visibilitiesMapping: MutableMap<Visibility?, DescriptorVisibility> =
         HashMap<Visibility?, DescriptorVisibility>()
-    private val ORDERED_VISIBILITIES: MutableMap<DescriptorVisibility?, Int?>? = null
+    private val ORDERED_VISIBILITIES: MutableMap<DescriptorVisibility, Int>
 
     init {
         recordVisibilityMapping(PRIVATE)
@@ -301,23 +315,15 @@ object DescriptorVisibilities {
         recordVisibilityMapping(UNKNOWN)
     }
 
-    init {
-        val iterator: MutableIterator<ModuleVisibilityHelper?> = ServiceLoader.load<ModuleVisibilityHelper?>(
-            ModuleVisibilityHelper::class.java,
-            ModuleVisibilityHelper::class.java.getClassLoader()
-        ).iterator()
-        MODULE_VISIBILITY_HELPER = if (iterator.hasNext()) iterator.next() else ModuleVisibilityHelper.EMPTY.INSTANCE
-    }
 
     init {
-        val visibilities: MutableMap<DescriptorVisibility?, Int?> =
-            newHashMapWithExpectedSize<DescriptorVisibility?, Int?>(4)
+        val visibilities = newHashMapWithExpectedSize<DescriptorVisibility?, Int?>(4)
         visibilities.put(PRIVATE_TO_THIS, 0)
         visibilities.put(PRIVATE, 0)
         visibilities.put(INTERNAL, 1)
         visibilities.put(PROTECTED, 1)
         visibilities.put(PUBLIC, 2)
-        ORDERED_VISIBILITIES = Collections.unmodifiableMap<DescriptorVisibility?, Int?>(visibilities)
+        ORDERED_VISIBILITIES = unmodifiableMap(visibilities)
     }
 
     private fun recordVisibilityMapping(visibility: DescriptorVisibility) {
@@ -374,22 +380,15 @@ object DescriptorVisibilities {
 
     @JvmStatic
     fun isVisibleIgnoringReceiver(
-        what: DeclarationDescriptor,
-        from: DeclarationDescriptor,
-        useSpecialRulesForPrivateSealedConstructors: Boolean
+        what: DeclarationDescriptor, from: DeclarationDescriptor, useSpecialRulesForPrivateSealedConstructors: Boolean
     ): Boolean {
         return findInvisibleMember(
-            ALWAYS_SUITABLE_RECEIVER,
-            what,
-            from,
-            useSpecialRulesForPrivateSealedConstructors
+            ALWAYS_SUITABLE_RECEIVER, what, from, useSpecialRulesForPrivateSealedConstructors
         ) == null
     }
 
     fun isVisibleWithAnyReceiver(
-        what: DeclarationDescriptor,
-        from: DeclarationDescriptor,
-        useSpecialRulesForPrivateSealedConstructors: Boolean
+        what: DeclarationDescriptor, from: DeclarationDescriptor, useSpecialRulesForPrivateSealedConstructors: Boolean
     ): Boolean {
         return findInvisibleMember(IRRELEVANT_RECEIVER, what, from, useSpecialRulesForPrivateSealedConstructors) == null
     }
@@ -442,20 +441,15 @@ object DescriptorVisibilities {
             if (!parent.visibility.isVisible(receiver, parent, from, useSpecialRulesForPrivateSealedConstructors)) {
                 return parent
             }
-            parent = DescriptorUtils.getParentOfType<DeclarationDescriptorWithVisibility?>(
-                parent,
-                DeclarationDescriptorWithVisibility::class.java
+            parent = DescriptorUtils.getParentOfType(
+                parent, DeclarationDescriptorWithVisibility::class.java
             )
         }
 
         if (what is TypeAliasConstructorDescriptor) {
-            val invisibleUnderlying =
-                findInvisibleMember(
-                    receiver,
-                    what.underlyingConstructorDescriptor,
-                    from,
-                    useSpecialRulesForPrivateSealedConstructors
-                )
+            val invisibleUnderlying = findInvisibleMember(
+                receiver, what.underlyingConstructorDescriptor, from, useSpecialRulesForPrivateSealedConstructors
+            )
             return invisibleUnderlying
         }
 
