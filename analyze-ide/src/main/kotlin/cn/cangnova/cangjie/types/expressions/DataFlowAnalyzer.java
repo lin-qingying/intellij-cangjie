@@ -152,7 +152,7 @@ public class DataFlowAnalyzer {
     public boolean typeHasEqualsFromAny(@NotNull CangJieType type, @NotNull CjElement lookupElement) {
         TypeConstructor constructor = type.getConstructor();
         // Subtypes can override equals for non-final types
-        if (!constructor.isFinal()) return false;
+        if (!constructor.isFinal) return false;
         // check whether 'equals' is overriden
         return !typeHasOverriddenEquals(type, lookupElement);
     }
@@ -338,7 +338,7 @@ public class DataFlowAnalyzer {
 //            }
 //        }
 
-        if (noExpectedType(c.expectedType) || !c.expectedType.getConstructor().isDenotable() ||
+        if (noExpectedType(c.expectedType) || !c.expectedType.getConstructor().isDenotable ||
                 cangjieTypeChecker.isSubtypeOf(expressionType, c.expectedType)) {
             return expressionType;
         }

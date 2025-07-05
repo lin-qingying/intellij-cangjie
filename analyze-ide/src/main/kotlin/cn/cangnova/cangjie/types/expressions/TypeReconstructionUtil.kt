@@ -40,10 +40,10 @@ import cn.cangnova.cangjie.types.error.ErrorTypeKind
 object TypeReconstructionUtil {
 
     private fun allProjectionsString(constructor: TypeConstructor): String {
-        val size: Int = constructor.getParameters().size
+        val size: Int = constructor.parameters.size
         assert(size != 0) { "No projections possible for a nilary type constructor$constructor" }
         val declarationDescriptor: ClassifierDescriptor =
-            checkNotNull(constructor.getDeclarationDescriptor()) { "No declaration descriptor for type constructor $constructor" }
+            checkNotNull(constructor.declarationDescriptor) { "No declaration descriptor for type constructor $constructor" }
         val name: String = declarationDescriptor.name.asString()
 
         return getTypeNameAndProjectionsString(
@@ -85,7 +85,7 @@ object TypeReconstructionUtil {
             trace.report(
                 Errors.NO_TYPE_ARGUMENTS_ON_RHS.on(
                     right,
-                    typeConstructor.getParameters().size,
+                    typeConstructor.parameters.size,
                     allProjectionsString(
                         typeConstructor
                     )

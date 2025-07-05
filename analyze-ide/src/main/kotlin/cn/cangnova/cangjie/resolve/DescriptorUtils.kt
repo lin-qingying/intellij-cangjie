@@ -366,7 +366,7 @@ object DescriptorUtils {
         subClass: ClassDescriptor,
         superClass: ClassDescriptor
     ): Boolean {
-        for (superType in subClass.typeConstructor.getSupertypes()) {
+        for (superType in subClass.typeConstructor.supertypes) {
             if (isSameClass(superType, superClass.original)) {
                 return true
             }
@@ -630,7 +630,7 @@ object DescriptorUtils {
         superClass: DeclarationDescriptor
     ): Boolean {
         if (isSameClass(type, superClass)) return true
-        for (superType in type.constructor.getSupertypes()) {
+        for (superType in type.constructor.supertypes) {
             if (isSubtypeOfClass(superType, superClass)) {
                 return true
             }
@@ -643,7 +643,7 @@ object DescriptorUtils {
         other: DeclarationDescriptor
     ): Boolean {
         val descriptor =
-            type.constructor.getDeclarationDescriptor()
+            type.constructor.declarationDescriptor
         if (descriptor != null) {
             val originalDescriptor: DeclarationDescriptor = descriptor.original
             if ((originalDescriptor is ClassifierDescriptor
@@ -678,7 +678,7 @@ object DescriptorUtils {
 
     fun getClassDescriptorForTypeConstructor(typeConstructor: TypeConstructor): ClassDescriptor {
         val descriptor =
-            typeConstructor.getDeclarationDescriptor()
+            typeConstructor.declarationDescriptor
         assert(
             descriptor is ClassDescriptor
         ) { "Classifier descriptor of a type should be of type ClassDescriptor: $typeConstructor" }
@@ -692,7 +692,7 @@ object DescriptorUtils {
     @JvmStatic
     fun getSuperClassType(classDescriptor: ClassDescriptor): CangJieType {
         val superclassTypes: Collection<CangJieType> =
-            classDescriptor.typeConstructor.getSupertypes()
+            classDescriptor.typeConstructor.supertypes
         for (type in superclassTypes) {
             val superClassDescriptor: ClassDescriptor =
                 getClassDescriptorForType(type)
@@ -818,7 +818,7 @@ object DescriptorUtils {
 
     fun getContainingModuleOrNull(cangjieType: CangJieType): ModuleDescriptor? {
         val descriptor: ClassifierDescriptor =
-            cangjieType.constructor.getDeclarationDescriptor()
+            cangjieType.constructor.declarationDescriptor
                 ?: return null
 
         return getContainingModuleOrNull(descriptor)

@@ -21,21 +21,19 @@
  * any damages or issues arising from its use.
  *
  */
-package cn.cangnova.cangjie.descriptors
 
-import cn.cangnova.cangjie.mpp.ClassLikeSymbolMarker
-import cn.cangnova.cangjie.mpp.ClassifierSymbolMarker
+package cn.cangnova.cangjie.utils
 
-interface ClassifierDescriptorWithTypeParameters
+abstract class AbstractArrayMapOwner<K : Any, V : Any> : Iterable<V>{
+    protected abstract val arrayMap: ArrayMap<V>
+    abstract class AbstractArrayMapAccessor<K : Any, V : Any, T : V>(
+        protected val id: Int
+    ) {
+        protected fun extractValue(thisRef: AbstractArrayMapOwner<K, V>): T? {
+            @Suppress("UNCHECKED_CAST")
+            return thisRef.arrayMap[id] as T?
+        }
+    }
 
-    : ClassifierDescriptor, DeclarationDescriptorWithVisibility, MemberDescriptor,
-    Substitutable<ClassifierDescriptorWithTypeParameters>, ClassLikeSymbolMarker, ClassifierSymbolMarker {
-    val isInner: Boolean
-        /**
-         * @return `true` if this class contains a reference to its outer class (as opposed to static nested class)
-         */
-        get() = false
-
-
-    val declaredTypeParameters: Collection<TypeParameterDescriptor>
+    final override fun iterator(): Iterator<V> = arrayMap.iterator()
 }

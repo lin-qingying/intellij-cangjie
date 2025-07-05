@@ -97,7 +97,7 @@ public class DescriptorSubstitutor {
         for (TypeParameterDescriptor descriptor : typeParameters) {
             TypeParameterDescriptorImpl substituted = substitutedMap.get(descriptor);
             for (CangJieType upperBound : descriptor.upperBounds) {
-                ClassifierDescriptor upperBoundDeclaration = upperBound.getConstructor().getDeclarationDescriptor();
+                ClassifierDescriptor upperBoundDeclaration = upperBound.getConstructor().declarationDescriptor;
                 TypeSubstitutor boundSubstitutor = upperBoundDeclaration instanceof TypeParameterDescriptor &&  hasTypeParameterRecursiveBounds((TypeParameterDescriptor) upperBoundDeclaration)
                         ? substitutor
                         : nonApproximatingSubstitutor;

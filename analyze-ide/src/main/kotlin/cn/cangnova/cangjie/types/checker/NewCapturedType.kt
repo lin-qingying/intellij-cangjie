@@ -62,13 +62,19 @@ class NewCapturedTypeConstructor(
         this.supertypesComputation = { supertypes }
     }
 
-    override fun getSupertypes() = _supertypes ?: emptyList()
-    override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
+    override val supertypes
+        get() = _supertypes ?: emptyList()
 
-        override fun isFinal() = false
-    override fun isDenotable() = false
-    override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
-    override fun getBuiltIns(): CangJieBuiltIns = projection.type.builtIns
+    override val parameters: List<TypeParameterDescriptor>
+        get() = emptyList()
+    override val isFinal: Boolean
+        get() = false
+    override val isDenotable: Boolean
+        get() = false
+    override val declarationDescriptor: ClassifierDescriptor?
+        get() = null
+    override val builtIns: CangJieBuiltIns
+        get() = projection.type.builtIns
 
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
@@ -294,6 +300,7 @@ private fun captureArgumentsForIntersectionType(type: CangJieType): List<Capture
 
     return capturedArgumentsByTypes
 }
+
 private class CapturedArguments(val capturedArguments: List<TypeProjection>, private val originalType: CangJieType) {
     fun isSuitableForType(type: CangJieType): Boolean {
         val areArgumentsMatched = type.arguments.withIndex().all { (i, typeArgumentsType) ->

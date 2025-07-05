@@ -33,16 +33,17 @@ import cn.cangnova.cangjie.descriptors.impl.ClassDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.OperatorNameConventions
 import cn.cangnova.cangjie.resolve.descriptorUtil.module
 import cn.cangnova.cangjie.resolve.scopes.GivenFunctionsMemberScope
 import cn.cangnova.cangjie.storage.NotNullLazyValue
 import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.SimpleType
 import cn.cangnova.cangjie.types.VArrayType
 import cn.cangnova.cangjie.types.Variance
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.util.asTypeProjection
-import cn.cangnova.cangjie.utils.OperatorNameConventions
 
 class VArrayTypeDescriptor(
 
@@ -130,11 +131,11 @@ class VArrayTypeDescriptor(
 
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner) = memberScope
 
-    override fun getDeclaredTypeParameters(): List<TypeParameterDescriptor> {
-
-        checkInitialized()
-        return typeParameters
-    }
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
+        get() {
+            checkInitialized()
+            return typeParameters
+        }
 
     private val defaultTypeVarrayType: NotNullLazyValue<VArrayType> = storageManager.createLazyValue {
         checkInitialized()
@@ -145,14 +146,17 @@ class VArrayTypeDescriptor(
         }
     }
 
-    override fun getDefaultType(): VArrayType {
-        checkInitialized()
-        return this.defaultTypeVarrayType.invoke()
-    }
 
-    override fun getConstructors(): List<ClassConstructorDescriptor> {
-        return _constructors
-    }
+
+    override val defaultType: VArrayType
+        get() {
+
+            checkInitialized()
+            return this.defaultTypeVarrayType.invoke()
+        }
+
+    override val constructors: Collection<ClassConstructorDescriptor>
+        get() = _constructors
 
 }
 

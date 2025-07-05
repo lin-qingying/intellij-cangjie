@@ -28,7 +28,6 @@ package cn.cangnova.cangjie.types.model
 //import cn.cangnova.cangjie.resolve.checkers.EmptyIntersectionTypeInfo
 import cn.cangnova.cangjie.builtins.functions.FunctionTypeKind
 import cn.cangnova.cangjie.psi.CjProjectionKind
-import cn.cangnova.cangjie.psi.stubs.impl.CangJieTypeArgumentBean
 import cn.cangnova.cangjie.resolve.caches.EmptyIntersectionTypeChecker
 import cn.cangnova.cangjie.resolve.calls.inference.EmptyIntersectionTypeInfo
 import cn.cangnova.cangjie.types.TypeCheckerState

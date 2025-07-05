@@ -124,8 +124,8 @@ public class TypeCheckingProcedure {
             TypeProjection typeProjection1 = type1Arguments.get(i);
             TypeProjection typeProjection2 = type2Arguments.get(i);
 
-            TypeParameterDescriptor typeParameter1 = constructor1.getParameters().get(i);
-            TypeParameterDescriptor typeParameter2 = constructor2.getParameters().get(i);
+            TypeParameterDescriptor typeParameter1 = constructor1.parameters.get(i);
+            TypeParameterDescriptor typeParameter2 = constructor2.parameters.get(i);
 
             if (capture(typeProjection1, typeProjection2, typeParameter1)) {
                 continue;
@@ -199,8 +199,8 @@ public class TypeCheckingProcedure {
             TypeProjection typeProjection1 = type1Arguments.get(i);
             TypeProjection typeProjection2 = type2Arguments.get(i);
 
-            TypeParameterDescriptor typeParameter1 = constructor1.getParameters().get(i);
-            TypeParameterDescriptor typeParameter2 = constructor2.getParameters().get(i);
+            TypeParameterDescriptor typeParameter1 = constructor1.parameters.get(i);
+            TypeParameterDescriptor typeParameter2 = constructor2.parameters.get(i);
 
             if (capture(typeProjection1, typeProjection2, typeParameter1)) {
                 continue;
@@ -269,7 +269,7 @@ public class TypeCheckingProcedure {
         List<TypeProjection> superArguments = supertype.getArguments();
         if (subArguments.size() != superArguments.size()) return false;
 
-        List<TypeParameterDescriptor> parameters = constructor.getParameters();
+        List<TypeParameterDescriptor> parameters = constructor.parameters;
         for (int i = 0; i < parameters.size(); i++) {
             TypeParameterDescriptor parameter = parameters.get(i);
 

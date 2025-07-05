@@ -104,7 +104,7 @@ public class AnnotationResolverImpl extends AnnotationResolver{
         }
 
         CangJieType type = typeResolver.resolveType(scope, typeReference, trace, true);
-        if (!(type.getConstructor().getDeclarationDescriptor() instanceof ClassDescriptor)) {
+        if (!(type.getConstructor().declarationDescriptor instanceof ClassDescriptor)) {
             return ErrorUtils.createErrorType(ErrorTypeKind.NOT_ANNOTATION_TYPE_IN_ANNOTATION_CONTEXT, type.toString());
         }
         return type;

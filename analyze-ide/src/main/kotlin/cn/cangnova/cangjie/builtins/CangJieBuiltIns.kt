@@ -183,7 +183,7 @@ open class CangJieBuiltIns(
 
         fun isPrimitiveArray(type: CangJieType): Boolean {
             val descriptor =
-                type.constructor.getDeclarationDescriptor()
+                type.constructor.declarationDescriptor
             return descriptor != null && getPrimitiveArrayType(descriptor) != null
         }
 

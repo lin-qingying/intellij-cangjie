@@ -156,7 +156,7 @@ class LazySubstitutingClassDescriptor(
             val substitutor: TypeSubstitutor = getSubstitutor()
 
             val originalSupertypes: Collection<CangJieType> =
-                originalTypeConstructor.getSupertypes()
+                originalTypeConstructor.supertypes
             val supertypes: MutableCollection<CangJieType> =
                 java.util.ArrayList<CangJieType>(originalSupertypes.size)
             for (supertype in originalSupertypes) {

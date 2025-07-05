@@ -243,7 +243,7 @@ public class EnumEntrySyntheticClassDescriptor extends ClassDescriptorBase {
 
         @NotNull
         private MemberScope getSupertypeScope() {
-            Collection<CangJieType> supertype = getTypeConstructor().getSupertypes();
+            Collection<CangJieType> supertype = getTypeConstructor().supertypes;
             assert supertype.size() == 1 : "Enum entry and its companion object both should have exactly one supertype: " + supertype;
             return supertype.iterator().next().getMemberScope();
         }

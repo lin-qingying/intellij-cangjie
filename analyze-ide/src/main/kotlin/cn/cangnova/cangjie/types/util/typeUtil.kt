@@ -233,7 +233,7 @@ fun SimpleType.unCapture(): UnwrappedType {
 private fun NewCapturedType.unCaptureTopLevelType(): UnwrappedType {
     if (lowerType != null) return lowerType
 
-    val supertypes = constructor.supertypes
+    val supertypes = constructor.supertypes.toList()
     if (supertypes.isNotEmpty()) return intersectTypes(supertypes)
 
     return constructor.projection.type.unwrap()
@@ -307,7 +307,7 @@ private fun CangJieType.containsSelfTypeParameter(
     if (this.constructor == baseConstructor) return true
 
     val typeParameters =
-        (constructor.declarationDescriptor as? ClassifierDescriptorWithTypeParameters)?.declaredTypeParameters
+        (constructor.declarationDescriptor as? ClassifierDescriptorWithTypeParameters)?.declaredTypeParameters?.toList()
     return arguments.withIndex().any { (i, argument) ->
         val typeParameter = typeParameters?.getOrNull(i)
         val isTypeParameterVisited =
@@ -381,22 +381,24 @@ fun CangJieType.isGenericArrayOfTypeParameter(): Boolean {
 /**
  * 如果是Option类型，获取原类型
  */
-val CangJieType.optionOriginalType : CangJieType get()    {
+val CangJieType.optionOriginalType: CangJieType
+    get() {
 
-    if (isOptionType) {
-        return arguments[0].type.optionOriginalType
+        if (isOptionType) {
+            return arguments[0].type.optionOriginalType
 
+        }
+        return this
     }
-    return this
-}
-val CangJieTypeMarker.optionOriginalType : CangJieTypeMarker get()    {
-this as CangJieType
-    if (isOptionType) {
-        return arguments[0].type.optionOriginalType
+val CangJieTypeMarker.optionOriginalType: CangJieTypeMarker
+    get() {
+        this as CangJieType
+        if (isOptionType) {
+            return arguments[0].type.optionOriginalType
 
+        }
+        return this
     }
-    return this
-}
 val CangJieType.isOptionType get() = CangJieBuiltIns.isOptionType(this)
 val CangJieTypeMarker.isOptionType get() = CangJieBuiltIns.isOptionType(this as CangJieType)
 
@@ -463,7 +465,7 @@ private fun CangJieType.extractTypeParametersFromUpperBounds(
         }
     } else {
         val typeParameters =
-            (constructor.declarationDescriptor as? ClassifierDescriptorWithTypeParameters)?.declaredTypeParameters
+            (constructor.declarationDescriptor as? ClassifierDescriptorWithTypeParameters)?.declaredTypeParameters?.toList()
         for ((i, argument) in arguments.withIndex()) {
             val typeParameter = typeParameters?.getOrNull(i) // TODO: support inner classes' type parameters
             val isTypeParameterVisited =
@@ -657,7 +659,7 @@ object TypeUtils {
     }
 
     fun hasNullableSuperType(type: CangJieType): Boolean {
-        if (type.constructor.getDeclarationDescriptor() is ClassDescriptor) {
+        if (type.constructor.declarationDescriptor is ClassDescriptor) {
             // A class/trait cannot have a nullable supertype
             return false
         }
@@ -674,8 +676,8 @@ object TypeUtils {
     }
 
     fun getTypeParameterDescriptorOrNull(type: CangJieType): TypeParameterDescriptor? {
-        if (type.constructor.getDeclarationDescriptor() is TypeParameterDescriptor) {
-            return type.constructor.getDeclarationDescriptor() as TypeParameterDescriptor
+        if (type.constructor.declarationDescriptor is TypeParameterDescriptor) {
+            return type.constructor.declarationDescriptor as TypeParameterDescriptor
         }
         return null
     }
@@ -741,8 +743,8 @@ object TypeUtils {
 //            return true
 //        }
 
-        val parameters: List<TypeParameterDescriptor> =
-            type.constructor.getParameters()
+        val parameters =
+            type.constructor.parameters.toList()
         val arguments: List<TypeProjection> = type.arguments
         var i = 0
         val parametersSize = parameters.size
@@ -779,7 +781,7 @@ object TypeUtils {
     @JvmStatic
     fun getClassDescriptor(type: CangJieType): ClassDescriptor? {
         val declarationDescriptor =
-            type.constructor.getDeclarationDescriptor()
+            type.constructor.declarationDescriptor
         if (declarationDescriptor is ClassDescriptor) {
             return declarationDescriptor
         }
@@ -793,7 +795,7 @@ object TypeUtils {
     fun getImmediateSupertypes(type: CangJieType): List<CangJieType> {
 
         val substitutor: TypeSubstitutor = TypeSubstitutor.create(type)
-        val originalSupertypes: Collection<CangJieType> = type.constructor.getSupertypes()
+        val originalSupertypes: Collection<CangJieType> = type.constructor.supertypes
         val result = ArrayList<CangJieType>(originalSupertypes.size)
         for (supertype in originalSupertypes) {
             val substitutedType =
@@ -865,7 +867,7 @@ object TypeUtils {
     ): CangJieType? {
         for (supertype in supertypes) {
             val descriptor: ClassifierDescriptor =
-                supertype.constructor.getDeclarationDescriptor()
+                supertype.constructor.declarationDescriptor
                     ?: continue
 
             val descriptorFqName: FqNameUnsafe =
@@ -888,6 +890,7 @@ object TypeUtils {
                 )
         return type
     }
+
     @JvmStatic
 
     fun getPrimitiveNumberType(
@@ -916,6 +919,7 @@ object TypeUtils {
         }
         return literalTypeConstructor.getApproximatedType()
     }
+
     @JvmStatic
 
     fun getPrimitiveNumberType(
@@ -1028,10 +1032,10 @@ object TypeUtils {
     fun makeUnsubstitutedType(
         typeConstructor: TypeConstructor,
         unsubstitutedMemberScope: MemberScope,
-        refinedTypeFactory: Function1<CangJieTypeRefiner, SimpleType?>
+        refinedTypeFactory: (CangJieTypeRefiner) -> SimpleType?
     ): SimpleType {
-        val arguments: List<TypeProjection> =
-            getDefaultTypeProjections(typeConstructor.getParameters())
+        val arguments =
+            getDefaultTypeProjections(typeConstructor.parameters.toList())
         return simpleTypeWithNonTrivialMemberScope(
             TypeAttributes.Empty,
             typeConstructor,
@@ -1047,7 +1051,7 @@ object TypeUtils {
     fun makeUnsubstitutedType(
         classifierDescriptor: ClassifierDescriptor,
         unsubstitutedMemberScope: MemberScope,
-        refinedTypeFactory: (CangJieTypeRefiner?) -> SimpleType?
+        refinedTypeFactory: (CangJieTypeRefiner) -> SimpleType?
     ): SimpleType {
         if (ErrorUtils.isError(classifierDescriptor)) {
             return ErrorUtils.createErrorType(
@@ -1268,7 +1272,7 @@ fun isTypeConstructorForGivenClass(
 ): Boolean {
 
     val descriptor =
-        typeConstructor.getDeclarationDescriptor()
+        typeConstructor.declarationDescriptor
     return descriptor is ClassDescriptor && classFqNameEquals(
         descriptor,
         fqName
@@ -1379,7 +1383,7 @@ internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): Cang
     }
 }
 
-fun CangJieType.toOptionalType():CangJieType{
+fun CangJieType.toOptionalType(): CangJieType {
 
     return addTypeParameterToStub(builtIns.optionType, this)
 

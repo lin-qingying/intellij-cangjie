@@ -21,21 +21,37 @@
  * any damages or issues arising from its use.
  *
  */
-package cn.cangnova.cangjie.descriptors
 
-import cn.cangnova.cangjie.mpp.ClassLikeSymbolMarker
-import cn.cangnova.cangjie.mpp.ClassifierSymbolMarker
+package cn.cangnova.cangjie.utils
 
-interface ClassifierDescriptorWithTypeParameters
+sealed class ArrayMap<T : Any> : Iterable<T> {
+    abstract val size: Int
 
-    : ClassifierDescriptor, DeclarationDescriptorWithVisibility, MemberDescriptor,
-    Substitutable<ClassifierDescriptorWithTypeParameters>, ClassLikeSymbolMarker, ClassifierSymbolMarker {
-    val isInner: Boolean
-        /**
-         * @return `true` if this class contains a reference to its outer class (as opposed to static nested class)
-         */
-        get() = false
+    abstract operator fun set(index: Int, value: T)
+    abstract operator fun get(index: Int): T?
 
+    abstract fun copy(): ArrayMap<T>
+}
 
-    val declaredTypeParameters: Collection<TypeParameterDescriptor>
+internal object EmptyArrayMap : ArrayMap<Nothing>() {
+    override val size: Int
+        get() = 0
+
+    override fun set(index: Int, value: Nothing) {
+        throw IllegalStateException()
+    }
+
+    override fun get(index: Int): Nothing? {
+        return null
+    }
+
+    override fun copy(): ArrayMap<Nothing> = this
+
+    override fun iterator(): Iterator<Nothing> {
+        return object : Iterator<Nothing> {
+            override fun hasNext(): Boolean = false
+
+            override fun next(): Nothing = throw NoSuchElementException()
+        }
+    }
 }

@@ -76,7 +76,7 @@ object CommonSupertypes {
             listOf(type),
             { current ->
                 val substitutor: TypeSubstitutor = TypeSubstitutor.create(current)
-                val supertypes: Collection<CangJieType> = current.constructor.getSupertypes()
+                val supertypes: Collection<CangJieType> = current.constructor.supertypes
                 val result: MutableList<SimpleType> = ArrayList(supertypes.size)
                 for (supertype in supertypes) {
                     if (visited.contains(supertype.constructor)) {
@@ -160,7 +160,7 @@ object CommonSupertypes {
     }
 
     private fun classOfDeclarationDescriptor(type: CangJieType): Class<*>? {
-        val descriptor = type.constructor.getDeclarationDescriptor()
+        val descriptor = type.constructor.declarationDescriptor
         if (descriptor != null) {
             return descriptor::class.java
         }
@@ -195,7 +195,7 @@ object CommonSupertypes {
         // Everything deleted => it's Nothing or Nothing?
         if (typeSet.isEmpty()) {
             // TODO : attributes
-            val builtIns = types.iterator().next().constructor.getBuiltIns()
+            val builtIns = types.iterator().next().constructor.builtIns
             return /*if (nullable) builtIns.nullableNothingType else */builtIns.nothingType
         }
 
@@ -394,7 +394,7 @@ object CommonSupertypes {
         if (types.size == 1) {
             val type: CangJieType = types.iterator().next()
             if (type.constructor is IntersectionTypeConstructor) {
-                return commonSupertypeForNonDenotableTypes(type.constructor.getSupertypes())
+                return commonSupertypeForNonDenotableTypes(type.constructor.supertypes)
             }
         }
         return commonSupertype(types)

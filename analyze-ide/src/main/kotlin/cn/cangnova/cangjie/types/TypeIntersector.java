@@ -185,13 +185,13 @@ public class TypeIntersector {
                 Function1<TypeParameterUsage, Unit> result,
                 Function1<TypeParameterDescriptor, Boolean> containsParameter
         ) {
-            ClassifierDescriptor descriptor = type.getConstructor().getDeclarationDescriptor();
+            ClassifierDescriptor descriptor = type.getConstructor().declarationDescriptor;
             if (descriptor instanceof TypeParameterDescriptor) {
                 if (containsParameter.invoke((TypeParameterDescriptor) descriptor)) return;
 
                 result.invoke(new TypeParameterUsage((TypeParameterDescriptor) descriptor, howThisTypeIsUsed));
 
-                for (CangJieType superType : type.getConstructor().getSupertypes()) {
+                for (CangJieType superType : type.getConstructor().supertypes) {
                     processAllTypeParameters(superType, howThisTypeIsUsed, result, containsParameter);
                 }
             }

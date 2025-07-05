@@ -38,7 +38,7 @@ object SubstitutionUtils {
         typeParameterMapping: Multimap< TypeParameterDescriptor,  TypeProjection>?
     ) {
         val parameters: List< TypeParameterDescriptor> =
-            context.constructor.getParameters()
+            context.constructor.parameters
         val arguments: List< TypeProjection> = context.arguments
 
         check(parameters.size == arguments.size)
@@ -52,7 +52,7 @@ object SubstitutionUtils {
             typeParameterMapping?.put(parameter, substitute)
         }
         if (CangJieBuiltIns.isNothing (context)) return
-        for (supertype in context.constructor.getSupertypes()) {
+        for (supertype in context.constructor.supertypes) {
             fillInDeepSubstitutor(supertype, substitutor, substitution, typeParameterMapping)
         }
     }

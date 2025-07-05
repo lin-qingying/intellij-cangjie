@@ -351,8 +351,8 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
         DescriptorUtils.getAllDescriptors(getUnsubstitutedMemberScope());
         getScopeForInitializerResolution();
         getUnsubstitutedInnerClassesScope();
-        getTypeConstructor().getSupertypes();
-        for (TypeParameterDescriptor typeParameterDescriptor : getTypeConstructor().getParameters()) {
+        getTypeConstructor().supertypes;
+        for (TypeParameterDescriptor typeParameterDescriptor : getTypeConstructor().parameters) {
             typeParameterDescriptor.upperBounds;
         }
         getUnsubstitutedPrimaryConstructor();
@@ -594,7 +594,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
         getExtendClassDescriptors().forEach(it -> {
 
             if (!it.getTypeStatement().getExtendId().equals(extendId))
-                result.addAll(it.getTypeConstructor().getSupertypes());
+                result.addAll(it.getTypeConstructor().supertypes);
         });
         return result;
 
@@ -642,7 +642,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
 
         @Override
         protected void reportSupertypeLoopError(@NotNull CangJieType type) {
-            ClassifierDescriptor supertypeDescriptor = type.getConstructor().getDeclarationDescriptor();
+            ClassifierDescriptor supertypeDescriptor = type.getConstructor().declarationDescriptor;
             if (supertypeDescriptor instanceof ClassDescriptor superclass) {
                 reportCyclicInheritanceHierarchyError(c.getTrace(), LazyClassDescriptor.this, superclass);
             }
@@ -656,7 +656,7 @@ public class LazyClassDescriptor extends LazyClassDescriptorBase implements /*Cl
 
         @Override
         protected void reportScopesLoopError(@NotNull CangJieType type) {
-            PsiElement reportOn = DescriptorToSourceUtils.getSourceFromDescriptor(type.getConstructor().getDeclarationDescriptor());
+            PsiElement reportOn = DescriptorToSourceUtils.getSourceFromDescriptor(type.getConstructor().declarationDescriptor);
 
             if (reportOn instanceof CjClass) {
                 reportOn = ((CjClass) reportOn).getNameIdentifier();

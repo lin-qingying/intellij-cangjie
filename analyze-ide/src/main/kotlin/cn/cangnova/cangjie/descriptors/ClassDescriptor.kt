@@ -34,12 +34,12 @@ import cn.cangnova.cangjie.types.expressions.match.ClassAndEnumConstructorDescri
 
 interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor,
     RegularClassSymbolMarker, ClassAndEnumConstructorDescriptor {
-    fun getMemberScope(typeArguments: MutableList<out TypeProjection>): MemberScope
+    fun getMemberScope(typeArguments: Collection<out TypeProjection>): MemberScope
 
     val thisAsReceiverParameter: ReceiverParameterDescriptor
 
 
-    val contextReceivers: MutableList<ReceiverParameterDescriptor>
+    val contextReceivers: Collection<ReceiverParameterDescriptor>
 
     fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
 
@@ -53,10 +53,10 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
     val staticScope: MemberScope
 
 
-    val constructors: MutableCollection<ClassConstructorDescriptor>
+    val constructors: Collection<ClassConstructorDescriptor>
 
 
-    val endConstructors: MutableCollection<ClassConstructorDescriptor>
+    val endConstructors: Collection<ClassConstructorDescriptor>
 
 
     override val containingDeclaration: DeclarationDescriptor
@@ -99,13 +99,13 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
      */
 
 
-    override val declaredTypeParameters: MutableList<TypeParameterDescriptor>
+    override val declaredTypeParameters: Collection<TypeParameterDescriptor>
 
     /**
      * @return direct subclasses of this class if it's a sealed class, empty list otherwise
      */
 
-    fun getSealedSubclasses(): MutableCollection<ClassDescriptor>
+    fun getSealedSubclasses(): Collection<ClassDescriptor>
 
     override val original: ClassifierDescriptor
 
