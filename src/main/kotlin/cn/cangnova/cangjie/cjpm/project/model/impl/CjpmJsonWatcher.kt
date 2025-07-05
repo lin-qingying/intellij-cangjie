@@ -27,19 +27,17 @@ package cn.cangnova.cangjie.cjpm.project.model.impl
 import com.google.common.annotations.VisibleForTesting
 import cn.cangnova.cangjie.cjpm.CjpmConstants
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
-import cn.cangnova.cangjie.cjpm.project.pathAsPath
 import cn.cangnova.cangjie.lang.CjConstants.MAIN_CJ_FILE
+import cn.cangnova.cangjie.utils.pathAsPath
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileContentChangeEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
 import com.intellij.util.PathUtil
-import java.nio.file.Paths
 
 /**
  *文件更改监听器，检测`cjpm.toml`文件内部的更改

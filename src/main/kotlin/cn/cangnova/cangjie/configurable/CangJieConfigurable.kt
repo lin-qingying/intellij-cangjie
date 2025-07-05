@@ -26,18 +26,16 @@ package cn.cangnova.cangjie.configurable
 
 import cn.cangnova.cangjie.cjpm.project.configurable.CjConfigurableBase
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.cjpm.project.pathAsPath
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.cjpm.project.settings.ui.CangJieProjectSettingsPanel
-import cn.cangnova.cangjie.configurable.state.PluginLanguageState
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.toolchain.CjToolchainBase
+import cn.cangnova.cangjie.utils.pathAsPath
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.panel
 import java.nio.file.Paths
 import javax.swing.SwingUtilities

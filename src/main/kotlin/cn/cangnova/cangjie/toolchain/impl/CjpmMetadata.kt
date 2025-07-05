@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,11 +30,8 @@ import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import cn.cangnova.cangjie.cjpm.CjpmConstants
 import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
-import cn.cangnova.cangjie.cjpm.resolve
-import cn.cangnova.cangjie.toolchain.tools.Cjpm
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.util.PathUtil
 import com.intellij.util.io.systemIndependentPath
@@ -45,6 +42,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspaceData
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 
 class CjpmMetadataException(message: String) : IllegalStateException(message)
 
@@ -189,7 +187,7 @@ object CjpmMetadata {
 
 
     private class PackageListDeserializer :
-        com.fasterxml.jackson.databind.deser.std.StdDeserializer<List<Package>>(List::class.java) {
+        StdDeserializer<List<Package>>(List::class.java) {
         override fun deserialize(p: JsonParser?, ctxt: DeserializationContext?): List<Package> {
             val packages = mutableListOf<Package>()
             val node: JsonNode = p!!.codec.readTree(p)

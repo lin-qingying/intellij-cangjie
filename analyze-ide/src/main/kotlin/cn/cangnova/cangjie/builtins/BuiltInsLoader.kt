@@ -33,12 +33,12 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import cn.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
+import cn.cangnova.cangjie.contracts.ContractDeserializer
 
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.descriptors.NotFoundClasses
 import cn.cangnova.cangjie.descriptors.PackageFragmentProvider
 import cn.cangnova.cangjie.descriptors.PackageFragmentProviderImpl
-import cn.cangnova.cangjie.ide.run.cjpm.toolchain
 import cn.cangnova.cangjie.incremental.components.LookupTracker
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.resolve.lazy.declarations.impl.AbstractPackageFragmentDescriptorBuiltlnImpl

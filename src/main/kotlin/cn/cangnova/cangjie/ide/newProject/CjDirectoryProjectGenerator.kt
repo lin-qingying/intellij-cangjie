@@ -29,10 +29,10 @@ import cn.cangnova.cangjie.icon.CangJieIcons
 import cn.cangnova.cangjie.ide.module.makeProject
 import cn.cangnova.cangjie.ide.module.openFiles
 import cn.cangnova.cangjie.ide.newProject.ui.ConfigurationData
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.computeWithCancelableProgress
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.unwrapOrThrow
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.toolchain.cjpm
+import cn.cangnova.cangjie.utils.computeWithCancelableProgress
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.ide.util.projectWizard.AbstractNewProjectStep
 import com.intellij.ide.util.projectWizard.CustomStepProjectGenerator

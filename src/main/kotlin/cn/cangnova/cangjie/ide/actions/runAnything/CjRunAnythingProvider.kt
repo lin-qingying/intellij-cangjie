@@ -26,10 +26,10 @@ package cn.cangnova.cangjie.ide.actions.runAnything
 
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.cjpm.project.toPath
 import cn.cangnova.cangjie.cjpm.project.toolwindow.CjpmToolWindow
 import cn.cangnova.cangjie.cjpm.project.toolwindow.hasCjpmProject
 import cn.cangnova.cangjie.ide.run.cjpm.CjCommandCompletionProvider
+import cn.cangnova.cangjie.utils.toPath
 import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.ide.actions.runAnything.RunAnythingAction

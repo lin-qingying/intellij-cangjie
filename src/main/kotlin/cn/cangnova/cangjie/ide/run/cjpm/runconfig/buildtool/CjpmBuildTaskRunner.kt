@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool
 
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.findChild
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration.Companion.findCjpmProject
@@ -35,7 +34,6 @@ import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandLine
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandRunner
 import cn.cangnova.cangjie.ide.run.cjpm.createCjpmCommandRunConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.cjpmProjectRoot
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultRunExecutor

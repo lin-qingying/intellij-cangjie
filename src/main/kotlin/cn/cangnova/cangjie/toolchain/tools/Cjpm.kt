@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.toolchain.tools
 
 
 import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.pathAsPath
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspaceData
 import cn.cangnova.cangjie.ide.experiments.CjExperiments
 import cn.cangnova.cangjie.ide.module.CjProcessResult
@@ -38,6 +37,7 @@ import cn.cangnova.cangjie.lang.CjConstants.LIB_CJ_FILE
 import cn.cangnova.cangjie.lang.CjConstants.MAIN_CJ_FILE
 import cn.cangnova.cangjie.toolchain.parseSemVer
 import cn.cangnova.cangjie.utils.buildList
+import cn.cangnova.cangjie.utils.pathAsPath
 import com.fasterxml.jackson.core.JacksonException
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -60,7 +60,11 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.text.SemVer
 import java.io.IOException
 import java.nio.file.Path
+import kotlin.collections.orEmpty
 import kotlin.io.path.exists
+import kotlin.text.contains
+import kotlin.text.get
+import kotlin.text.startsWith
 
 
 fun fullyRefreshDirectory(directory: VirtualFile) {

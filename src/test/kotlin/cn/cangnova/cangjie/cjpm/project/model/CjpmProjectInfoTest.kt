@@ -1,7 +1,6 @@
 package cn.cangnova.cangjie.cjpm.project.model
 
 import cn.cangnova.cangjie.CangJieNoPlatformTestBase
-import cn.cangnova.cangjie.CangJieTestBase
 import org.junit.jupiter.api.assertDoesNotThrow
 
 import java.io.File

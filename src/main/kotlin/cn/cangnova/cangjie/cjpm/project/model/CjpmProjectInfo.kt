@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.cjpm.project.model
 
 //import com.akuleshov7.ktoml.file.TomlFileReader
-import cn.cangnova.cangjie.cjpm.project.model.toml.PackageConfigurationInfo
 import cn.cangnova.cangjie.toolchain.tools.Cjpm
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser
@@ -305,7 +304,7 @@ data class PackageConfigurationInfo(
 
 data class PackageConfiguration(
     val packageName: String,
-    val configuration: PackageConfigurationInfo
+    val configuration: cn.cangnova.cangjie.cjpm.project.model.PackageConfigurationInfo
 ) {
     class ListDeserializer : StdDeserializer<List<PackageConfiguration>>(List::class.java) {
         override fun deserialize(p0: JsonParser?, p1: DeserializationContext?): List<PackageConfiguration> {
@@ -315,7 +314,7 @@ data class PackageConfiguration(
                 val packageNode = value as JsonNode
                 val packageObject = PackageConfiguration(
                     packageName = key,
-                    configuration = Cjpm.JSON_MAPPER.convertValue(packageNode, PackageConfigurationInfo::class.java)
+                    configuration = Cjpm.JSON_MAPPER.convertValue(packageNode, cn.cangnova.cangjie.cjpm.project.model.PackageConfigurationInfo::class.java)
 
                 )
                 packageConfiguration.add(packageObject)
@@ -338,7 +337,7 @@ enum class OutPutType {
     class EnumDeserializer : StdDeserializer<OutPutType>(OutPutType::class.java) {
         override fun deserialize(p0: JsonParser?, p1: DeserializationContext?): OutPutType {
             val node: JsonNode = p0!!.codec.readTree(p0)
-            return OutPutType.valueOf(node.asText().uppercase(Locale.getDefault()))
+            return valueOf(node.asText().uppercase(Locale.getDefault()))
         }
     }
 }

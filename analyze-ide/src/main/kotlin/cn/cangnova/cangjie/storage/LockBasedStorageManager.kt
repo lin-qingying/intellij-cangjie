@@ -67,6 +67,20 @@ open class LockBasedStorageManager(
             throwable.setStackTrace(list.toTypedArray<StackTraceElement?>())
             return throwable
         }
+
+
+        fun createWithExceptionHandling(
+
+            debugText: String,
+            exceptionHandlingStrategy: ExceptionHandlingStrategy,
+            checkCancelled: Runnable?,
+            interruptedExceptionHandler: (InterruptedException) -> Unit
+        ): LockBasedStorageManager {
+            return LockBasedStorageManager(
+                debugText, exceptionHandlingStrategy,
+                SimpleLock.Companion.simpleLock(checkCancelled, interruptedExceptionHandler)
+            )
+        }
     }
 
 

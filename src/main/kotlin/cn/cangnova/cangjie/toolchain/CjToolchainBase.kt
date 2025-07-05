@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,29 +24,18 @@
 
 package cn.cangnova.cangjie.toolchain
 
+
+import cn.cangnova.cangjie.toolchain.flavors.CjToolchainFlavor
+import cn.cangnova.cangjie.toolchain.tools.*
+import cn.cangnova.cangjie.toolchain.wsl.getHomePathCandidates
+import cn.cangnova.cangjie.utils.toPath
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.PtyCommandLine
 import com.intellij.execution.wsl.WslPath
-import com.intellij.openapi.application.readAction
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.SystemInfo
-import com.intellij.util.io.systemIndependentPath
-
-
 import com.intellij.util.text.SemVer
-import cn.cangnova.cangjie.cjpm.project.toPath
-
-import cn.cangnova.cangjie.toolchain.tools.*
-import cn.cangnova.cangjie.toolchain.wsl.getHomePathCandidates
-import cn.cangnova.cangjie.toolchain.flavors.CjToolchainFlavor
-import cn.cangnova.cangjie.toolchain.tools.CjFmt
-import cn.cangnova.cangjie.toolchain.tools.Cjc
-import cn.cangnova.cangjie.toolchain.tools.Cjpm
-import cn.cangnova.cangjie.toolchain.tools.withWorkDirectory
-import cn.cangnova.cangjie.toolchain.wsl.getHomePathCandidates
 import java.io.File
-import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -291,7 +280,6 @@ sealed interface ScriptHandler {
         }
     }
 }
-
 
 
 abstract class CjToolchainBase(var location: Path = "".toPath()) {

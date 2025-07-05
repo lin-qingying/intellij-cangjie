@@ -27,6 +27,9 @@ package cn.cangnova.cangjie.cjpm.project
 import cn.cangnova.cangjie.cjpm.project.CjToolchainPathChoosingComboBox.Companion.LOG
 import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.ide.project.settings.ui.addTextChangeListener
+import cn.cangnova.cangjie.utils.pathAsPath
+import cn.cangnova.cangjie.utils.toPath
+import cn.cangnova.cangjie.utils.toPathOrNull
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileChooser.FileChooser
@@ -164,21 +167,3 @@ class CjToolchainPathChoosingComboBox(onTextChanged: () -> Unit = {}) :
 }
 
 
-// 将字符串转换为Path对象
-fun String.toPath(): Path = Paths.get(this)
-
-// 将字符串转换为Path对象，如果转换失败则返回null
-fun String.toPathOrNull(): Path? = pathOrNull(this::toPath)
-
-// 将字符串转换为Path对象，如果转换失败则记录日志并返回null
-private inline fun pathOrNull(block: () -> Path): Path? {
-    return try {
-        block()
-    } catch (e: InvalidPathException) {
-        LOG.warn(e)
-        null
-    }
-}
-
-// 获取VirtualFile对象的路径，并转换为Path对象
-val VirtualFile.pathAsPath: Path get() = Paths.get(path)

@@ -31,7 +31,8 @@ package cn.cangnova.cangjie.cjpm.project.settings.ui
 
 import cn.cangnova.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
 import cn.cangnova.cangjie.cjpm.project.settings.CangJieProjectSettingsService
-import cn.cangnova.cangjie.cjpm.project.toPath
+import cn.cangnova.cangjie.utils.pathAsPath
+
 import cn.cangnova.cangjie.ide.project.settings.ui.UiDebouncer
 import cn.cangnova.cangjie.ide.project.settings.ui.fullWidthCell
 import cn.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp
@@ -41,6 +42,7 @@ import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.toolchain.CjToolchainProvider
 import cn.cangnova.cangjie.toolchain.CjToolchainServices
 import cn.cangnova.cangjie.toolchain.cjc
+import cn.cangnova.cangjie.utils.toPath
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager

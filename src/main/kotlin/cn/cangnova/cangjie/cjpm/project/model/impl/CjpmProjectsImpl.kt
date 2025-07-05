@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.cjpm.project.model.impl
 
-import cn.cangnova.cangjie.cjpm.project.model.impl.TaskResult
 import cn.cangnova.cangjie.cjpm.project.model.CjcInfo
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace

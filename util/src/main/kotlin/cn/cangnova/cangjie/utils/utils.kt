@@ -105,3 +105,5 @@ fun checkReadAccessAllowed() {
 inline fun <reified T: Configurable> Project.showSettingsDialog() {
     ShowSettingsUtil.getInstance().showSettingsDialog(this, T::class.java)
 }
+
+

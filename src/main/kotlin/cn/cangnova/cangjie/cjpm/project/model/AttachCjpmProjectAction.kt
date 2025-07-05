@@ -25,13 +25,13 @@
 package cn.cangnova.cangjie.cjpm.project.model
 
 import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.pathAsPath
 import cn.cangnova.cangjie.cjpm.project.toolwindow.CjpmToolWindow
 import cn.cangnova.cangjie.ide.notifications.CjEditorNotificationPanel
 import cn.cangnova.cangjie.ide.notifications.isCjpmToml
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.saveAllDocuments
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.utils.isUnitTestMode
+import cn.cangnova.cangjie.utils.pathAsPath
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -52,7 +52,7 @@ abstract class CjpmProjectActionBase : DumbAwareAction() {
 }
 
 /**
- * 将CJPM项目添加到[CjpmProjectsService]
+ * 将CJPM项目添加到[cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService]
  *
  * 可以从Project View、[CjpmToolWindow]和[CjEditorNotificationPanel]调用
  */

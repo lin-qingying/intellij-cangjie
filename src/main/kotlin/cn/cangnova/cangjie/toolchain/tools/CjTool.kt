@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.toolchain.tools
 
 import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.ElevationService
 import com.intellij.util.io.systemIndependentPath
 import java.nio.file.Path
 
@@ -61,7 +60,7 @@ abstract class CjTool(toolName: String, val toolchain: cn.cangnova.cangjie.toolc
 
 @Suppress("FunctionName", "UnstableApiUsage")
 fun GeneralCommandLine(path: Path, withSudo: Boolean = false, vararg args: String) =
-    object : com.intellij.execution.configurations.GeneralCommandLine(path.systemIndependentPath, *args) {
+    object : GeneralCommandLine(path.systemIndependentPath, *args) {
 //        override fun createProcess(): Process = if (withSudo) {
 //            ElevationService.getInstance().createProcess(this)
 //        } else {

@@ -24,10 +24,8 @@
 
 package cn.cangnova.cangjie.cjpm.project.model.impl
 
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
-import com.intellij.util.io.systemIndependentPath
 import org.jdom.Element
 import java.nio.file.Path
 

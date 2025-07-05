@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/plugin" />
             <option value="$PROJECT_DIR$/psi" />
             <option value="$PROJECT_DIR$/telemetry" />
+            <option value="$PROJECT_DIR$/toolchain" />
             <option value="$PROJECT_DIR$/util" />
           </set>
         </option>

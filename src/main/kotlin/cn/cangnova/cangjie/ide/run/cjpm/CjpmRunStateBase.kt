@@ -34,7 +34,6 @@ import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjProcessHandler
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.startProcess
 import com.intellij.execution.configurations.CommandLineState
-import com.intellij.execution.filters.TextConsoleBuilder
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessTerminatedListener

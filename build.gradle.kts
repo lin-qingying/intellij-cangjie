@@ -350,7 +350,7 @@ project(":plugin") {
                     indexViewPlugin,
                     chinesePlugin/*, nativeDebugPlugin*/
                 )
-                bundledPlugins(tomlPlugin,copyright)
+                bundledPlugins(tomlPlugin, copyright)
             }
         }
         implementation(project(":"))
@@ -492,13 +492,14 @@ project(":") {
 
     dependencies {
         intellijPlatform {
-            bundledPlugins(tomlPlugin,copyright)
+            bundledPlugins(tomlPlugin, copyright)
         }
         implementation("org.fusesource.jansi:jansi:2.4.1")
 
         implementation("io.hotmoka:toml4j:0.7.3")
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+        implementation(project(":toolchain"))
 
         implementation(project(":util"))
         implementation(project(":icon"))

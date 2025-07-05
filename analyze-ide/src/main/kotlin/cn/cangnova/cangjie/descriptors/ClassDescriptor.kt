@@ -34,7 +34,7 @@ import cn.cangnova.cangjie.types.expressions.match.ClassAndEnumConstructorDescri
 
 interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor,
     RegularClassSymbolMarker, ClassAndEnumConstructorDescriptor {
-    fun getMemberScope(typeArguments: Collection<out TypeProjection>): MemberScope
+    fun getMemberScope(typeArguments: Collection<TypeProjection>): MemberScope
 
     val thisAsReceiverParameter: ReceiverParameterDescriptor
 

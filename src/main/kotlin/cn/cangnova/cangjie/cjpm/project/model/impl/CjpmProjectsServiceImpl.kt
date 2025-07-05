@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
 import cn.cangnova.cangjie.cjpm.project.model.ContentEntryWrapper
 import cn.cangnova.cangjie.cjpm.project.model.setup
-import cn.cangnova.cangjie.cjpm.project.pathAsPath
 import cn.cangnova.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase
 import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
@@ -77,6 +76,7 @@ import cn.cangnova.cangjie.task.taskQueue
 import cn.cangnova.cangjie.utils.AsyncValue
 import cn.cangnova.cangjie.utils.invokeAndWaitIfNeeded
 import cn.cangnova.cangjie.utils.isUnitTestMode
+import cn.cangnova.cangjie.utils.pathAsPath
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths

@@ -26,6 +26,7 @@
 package cn.cangnova.cangjie.ide.run.cjpm.runconfig
 
 import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.utils.computeWithCancelableProgress
 
 import cn.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.execution.ExecutionException
@@ -48,31 +49,6 @@ private val LOG: Logger = Logger.getInstance("cn.cangnova.cangjie.ide.run.cjpm.r
 
 
 
-
-/**
- * 在一个带有取消进度的项目中计算给定的任务
- *
- * 此函数用于在可能需要长时间运行的任务中显示一个带有取消功能的进度条
- * 它根据环境是否是单元测试模式来决定任务的执行方式
- *
- * @param title 进度条的标题，用于向用户显示当前任务的简短描述
- * @param supplier 一个提供任务结果的lambda表达式，它会在一个带有进度条的环境中执行
- * @return 任务的结果，类型由调用者指定
- *
- * 注意：此函数使用了`ProgressManager`来管理进度条的显示和取消逻辑，这是JetBrains IDEA和其他IntelliJ平台产品中的一个组件
- * 在单元测试模式下，进度条将被跳过，任务将直接执行，以避免在测试环境中显示UI元素
- */
-fun <T> Project.computeWithCancelableProgress(
-    @Suppress("UnstableApiUsage") @NlsContexts.ProgressTitle title: String,
-    supplier: () -> T
-): T {
-    // 如果是单元测试模式，直接执行任务并返回结果，不显示进度条
-    if (isUnitTestMode) {
-        return supplier()
-    }
-    // 在非单元测试模式下，使用ProgressManager运行任务，并显示带有取消功能的进度条
-    return ProgressManager.getInstance().runProcessWithProgressSynchronously<T, Exception>(supplier, title, true, this)
-}
 
 
 fun GeneralCommandLine.startProcess(

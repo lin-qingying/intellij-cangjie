@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,16 @@
 
 package cn.cangnova.cangjie.toolchain.wsl
 
+import cn.cangnova.cangjie.messages.CangJieBundle
+import cn.cangnova.cangjie.toolchain.flavors.CjToolchainFlavor
+import cn.cangnova.cangjie.utils.computeWithCancelableProgress
+import cn.cangnova.cangjie.utils.isDispatchThread
 import com.intellij.execution.wsl.WSLDistribution
 import com.intellij.execution.wsl.WSLUtil
 import com.intellij.execution.wsl.WslDistributionManager
 import com.intellij.execution.wsl.WslPath.Companion.isWslUncPath
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.NlsContexts
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.toolchain.flavors.CjToolchainFlavor
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.computeWithCancelableProgress
-import cn.cangnova.cangjie.utils.isDispatchThread
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
@@ -57,6 +57,7 @@ internal class CjWslToolchainFlavor : CjToolchainFlavor() {
 
 
     }
+
     override fun hasExecutable(path: Path, toolName: String): Boolean {
         return path.hasExecutableOnWsl(toolName)
 
