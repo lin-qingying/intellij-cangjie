@@ -22,56 +22,17 @@
  *
  */
 
-package cn.cangnova.cangjie.toolchain.api
+package cn.cangnova.cangjie.toolchain.impl
 
-import java.nio.file.Path
+import cn.cangnova.cangjie.toolchain.api.CjPackageInfo
+import cn.cangnova.cangjie.toolchain.api.CjPackageOptions
 
 /**
- * CangJie格式化结果
+ * 官方CangJie包信息实现
  */
-interface CjFormatResult {
-    /**
-     * 格式化是否成功
-     */
-    val success: Boolean
-
-    /**
-     * 格式化的文件列表
-     */
-    val formattedFiles: List<Path>
-
-    /**
-     * 格式化工具输出信息
-     */
-    val output: String
-
-    /**
-     * 格式化状态
-     */
-    val status: FormatStatus
-
-    /**
-     * 格式化状态枚举
-     */
-    enum class FormatStatus {
-        /**
-         * 成功
-         */
-        SUCCESS,
-
-        /**
-         * 部分成功
-         */
-        PARTIAL_SUCCESS,
-
-        /**
-         * 失败
-         */
-        FAILURE,
-
-        /**
-         * 无变化
-         */
-        NO_CHANGE
-    }
-}
+data class OfficialCjPackageInfo(
+    override val name: String,
+    override val version: String,
+    override val dependencyType: CjPackageOptions.DependencyType,
+    override val status: CjPackageInfo.PackageStatus
+) : CjPackageInfo 

@@ -22,45 +22,19 @@
  *
  */
 
-package cn.cangnova.cangjie.toolchain.api
+package cn.cangnova.cangjie.toolchain.impl
 
+import cn.cangnova.cangjie.toolchain.api.CjCompileResult
+import cn.cangnova.cangjie.toolchain.api.CjDiagnostic
 import java.nio.file.Path
 
 /**
- * CangJie代码格式化工具接口
+ * 官方CangJie编译结果实现
  */
-interface CjFormatter : CjTool {
-    /**
-     * 格式化文件
-     *
-     * @param filePath 文件路径
-     * @param options 格式化选项
-     * @return 格式化结果
-     */
-    fun format(filePath: Path, options: CjFormatOptions): CjFormatResult
-
-    /**
-     * 格式化多个文件
-     *
-     * @param filePaths 文件路径列表
-     * @param options 格式化选项
-     * @return 格式化结果
-     */
-    fun formatFiles(filePaths: List<Path>, options: CjFormatOptions): CjFormatResult
-
-    /**
-     * 格式化项目
-     *
-     * @param projectPath 项目路径
-     * @param options 格式化选项
-     * @return 格式化结果
-     */
-    fun formatProject(projectPath: Path, options: CjFormatOptions): CjFormatResult
-
-    companion object {
-        /**
-         * 格式化工具名称
-         */
-        const val NAME = "formatter"
-    }
-}
+data class OfficialCjCompileResult(
+    override val success: Boolean,
+    override val outputFiles: List<Path>,
+    override val diagnostics: List<CjDiagnostic>,
+    override val output: String,
+    override val status: CjCompileResult.CompilationStatus
+) : CjCompileResult 

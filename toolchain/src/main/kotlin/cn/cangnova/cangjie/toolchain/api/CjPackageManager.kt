@@ -31,6 +31,57 @@ import java.nio.file.Path
  */
 interface CjPackageManager : CjTool {
     /**
+     * 初始化新项目
+     *
+     * @param name 项目名称
+     * @param path 项目路径
+     * @param outputType 输出类型
+     * @param options 包管理选项
+     * @return 操作结果
+     */
+    fun init(name: String, path: Path?, outputType: OutputType?, options: CjPackageOptions): CjPackageResult
+
+    /**
+     * 构建项目
+     *
+     * @param projectPath 项目路径
+     * @param target 目标平台
+     * @param options 包管理选项
+     * @return 构建结果
+     */
+    fun build(projectPath: Path, target: String?, options: CjPackageOptions): CjPackageResult
+    
+    /**
+     * 运行项目
+     *
+     * @param projectPath 项目路径
+     * @param args 运行参数
+     * @param options 包管理选项
+     * @return 运行结果
+     */
+    fun run(projectPath: Path, args: List<String>, options: CjPackageOptions): CjPackageResult
+    
+    /**
+     * 运行测试
+     *
+     * @param projectPath 项目路径
+     * @param testPaths 测试路径列表
+     * @param target 目标平台
+     * @param options 包管理选项
+     * @return 测试结果
+     */
+    fun test(projectPath: Path, testPaths: List<Path>?, target: String?, options: CjPackageOptions): CjPackageResult
+    
+    /**
+     * 清理项目
+     *
+     * @param projectPath 项目路径
+     * @param options 包管理选项
+     * @return 清理结果
+     */
+    fun clean(projectPath: Path, options: CjPackageOptions): CjPackageResult
+
+    /**
      * 安装依赖包
      *
      * @param packageName 包名称
@@ -66,11 +117,31 @@ interface CjPackageManager : CjTool {
      * @return 移除结果
      */
     fun uninstall(packageName: String, options: CjPackageOptions): CjPackageResult
+    
+    /**
+     * 项目输出类型
+     */
+    enum class OutputType {
+        /**
+         * 可执行文件
+         */
+        EXECUTABLE,
+        
+        /**
+         * 静态库
+         */
+        STATIC,
+        
+        /**
+         * 动态库
+         */
+        DYNAMIC
+    }
 
     companion object {
         /**
          * 包管理器名称
          */
-        const val NAME = "packageManager"
+        const val NAME = "cjpm"
     }
 }

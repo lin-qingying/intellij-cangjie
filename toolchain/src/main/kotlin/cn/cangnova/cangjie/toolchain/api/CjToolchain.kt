@@ -128,13 +128,6 @@ interface CjToolchain {
     fun getPackageManager(): CjPackageManager
 
     /**
-     * 获取代码格式化工具实例
-     *
-     * @return 代码格式化工具实例
-     */
-    fun getFormatter(): CjFormatter
-
-    /**
      * 注册自定义工具
      *
      * @param toolId 工具ID
@@ -150,33 +143,35 @@ interface CjToolchain {
      */
     fun <T : CjTool> getTool(toolId: String): T?
 
+
+}
+
+/**
+ * 平台类型枚举
+ */
+enum class PlatformType {
     /**
-     * 平台类型枚举
+     * 本地平台
      */
-    enum class PlatformType {
-        /**
-         * 本地平台
-         */
-        LOCAL,
+    LOCAL,
 
-        /**
-         * 远程平台
-         */
-        REMOTE,
+    /**
+     * 远程平台
+     */
+    REMOTE,
 
-        /**
-         * WSL (Windows Subsystem for Linux)
-         */
-        WSL,
+    /**
+     * WSL (Windows Subsystem for Linux)
+     */
+    WSL,
 
-        /**
-         * Docker 容器
-         */
-        DOCKER,
+    /**
+     * Docker 容器
+     */
+    DOCKER,
 
-        /**
-         * 自定义平台
-         */
-        CUSTOM
-    }
+    /**
+     * 自定义平台
+     */
+    CUSTOM
 }

@@ -22,38 +22,18 @@
  *
  */
 
-package cn.cangnova.cangjie.toolchain.api
+package cn.cangnova.cangjie.toolchain.impl
 
-import java.nio.file.Path
+import cn.cangnova.cangjie.toolchain.api.CjPackageInfo
+import cn.cangnova.cangjie.toolchain.api.CjPackageResult
 
 /**
- * CangJie工具链提供者接口
- *
- * 用于发现和创建工具链实例
+ * 官方CangJie包管理结果实现
  */
-interface CjToolchainProvider {
-    /**
-     * 提供者唯一标识符
-     */
-    val id: String
-    
-    /**
-     * 提供者显示名称
-     */
-    val displayName: String
-    
-    /**
-     * 自动检测系统中可用的工具链
-     *
-     * @return 检测到的工具链列表
-     */
-    fun detectToolchains(): List<CjToolchain>
-    
-    /**
-     * 根据路径创建工具链实例
-     *
-     * @param homePath 工具链主目录
-     * @return 工具链实例，如果路径无效则返回null
-     */
-    fun createToolchain(homePath: Path): CjToolchain?
-}
+data class OfficialCjPackageResult(
+    override val success: Boolean,
+    override val packages: List<CjPackageInfo>,
+    override val output: String,
+    override val operationType: CjPackageResult.OperationType,
+    override val status: CjPackageResult.OperationStatus
+) : CjPackageResult 

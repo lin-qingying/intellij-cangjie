@@ -41,6 +41,31 @@ interface CjPackageOptions {
      * 是否保存到项目配置
      */
     val saveMode: SaveMode
+    
+    /**
+     * 目标目录
+     */
+    val targetDir: String?
+    
+    /**
+     * 目标平台
+     */
+    val target: String?
+    
+    /**
+     * 是否为发布模式
+     */
+    val release: Boolean
+    
+    /**
+     * 是否启用交叉编译
+     */
+    val crossCompile: Boolean
+    
+    /**
+     * 工作目录
+     */
+    val workingDirectory: String?
 
     /**
      * 额外的包管理器参数

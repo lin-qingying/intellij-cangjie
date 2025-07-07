@@ -58,6 +58,31 @@ interface CjPackageResult {
      */
     enum class OperationType {
         /**
+         * 初始化项目
+         */
+        INIT,
+        
+        /**
+         * 构建项目
+         */
+        BUILD,
+        
+        /**
+         * 运行项目
+         */
+        RUN,
+        
+        /**
+         * 测试项目
+         */
+        TEST,
+        
+        /**
+         * 清理项目
+         */
+        CLEAN,
+
+        /**
          * 安装
          */
         INSTALL,

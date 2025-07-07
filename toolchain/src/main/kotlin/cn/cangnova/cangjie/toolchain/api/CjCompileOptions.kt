@@ -47,6 +47,26 @@ interface CjCompileOptions {
      * 目标平台
      */
     val targetPlatform: TargetPlatform?
+    
+    /**
+     * 是否启用实验性功能
+     */
+    val experimental: Boolean
+    
+    /**
+     * 是否启用增量编译
+     */
+    val incrementalCompile: Boolean
+    
+    /**
+     * 链接器选项
+     */
+    val linkOptions: List<String>
+    
+    /**
+     * 代码覆盖率选项
+     */
+    val sanitizerCoverage: SanitizerCoverage?
 
     /**
      * 额外的编译器参数
@@ -127,4 +147,49 @@ interface CjCompileOptions {
          */
         JS
     }
+    
+    /**
+     * 代码覆盖率选项
+     */
+    data class SanitizerCoverage(
+        /**
+         * 是否启用基本块覆盖率
+         */
+        val basicBlockCoverage: Boolean = false,
+        
+        /**
+         * 是否启用边缘覆盖率
+         */
+        val edgeCoverage: Boolean = false,
+        
+        /**
+         * 是否启用8位计数器覆盖率
+         */
+        val eightBitCounters: Boolean = false,
+        
+        /**
+         * 是否启用追踪PC表
+         */
+        val tracePcGuard: Boolean = false,
+        
+        /**
+         * 是否启用函数入口覆盖率
+         */
+        val functionEntryCoverage: Boolean = false,
+        
+        /**
+         * 是否启用堆栈深度覆盖率
+         */
+        val stackDepthCoverage: Boolean = false,
+        
+        /**
+         * 是否启用比较追踪
+         */
+        val traceCompares: Boolean = false,
+        
+        /**
+         * 是否启用内存比较追踪
+         */
+        val traceMemcmp: Boolean = false
+    )
 }
