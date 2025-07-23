@@ -121,15 +121,21 @@ class OfficialCjToolchainProvider : CjToolchainProvider {
         if (!Files.isDirectory(binDir)) {
             return false
         }
-        
+        val toolDir = path.resolve("tools")
+        if (!Files.isDirectory(toolDir)) {
+            return false
+        }
         // 检查编译器可执行文件
         val compiler = binDir.resolve(getExecutableName("cjc"))
         if (!Files.exists(compiler) || !Files.isExecutable(compiler)) {
             return false
         }
-        
+        val toolsDirBin = toolDir.resolve("bin")
+        if (!Files.isDirectory(toolsDirBin)) {
+            return false
+        }
         // 检查包管理器可执行文件
-        val packageManager = binDir.resolve(getExecutableName("cjpm"))
+        val packageManager = toolsDirBin.resolve(getExecutableName("cjpm"))
         if (!Files.exists(packageManager) || !Files.isExecutable(packageManager)) {
             return false
         }

@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.toolchain.api
 
+import com.intellij.openapi.extensions.ExtensionPointName
 import java.nio.file.Path
 
 /**
@@ -36,19 +37,19 @@ interface CjToolchainProvider {
      * 提供者唯一标识符
      */
     val id: String
-    
+
     /**
      * 提供者显示名称
      */
     val displayName: String
-    
+
     /**
      * 自动检测系统中可用的工具链
      *
      * @return 检测到的工具链列表
      */
     fun detectToolchains(): List<CjToolchain>
-    
+
     /**
      * 根据路径创建工具链实例
      *
@@ -56,4 +57,19 @@ interface CjToolchainProvider {
      * @return 工具链实例，如果路径无效则返回null
      */
     fun createToolchain(homePath: Path): CjToolchain?
+
+
+    companion object {
+        private val EP_NAME: ExtensionPointName<CjToolchainProvider> =
+            ExtensionPointName.create("cn.cangnova.cangjie.toolchain.toolchainProvider")
+
+        fun getToolchains(): List<CjToolchain> {
+            return EP_NAME.extensionList.flatMap { it.detectToolchains() }
+        }
+
+        fun getToolchain(homePath: Path): CjToolchain? =
+            EP_NAME.extensionList.asSequence()
+                .mapNotNull { it.createToolchain(homePath) }
+                .firstOrNull()
+    }
 }

@@ -24,6 +24,9 @@
 
 package cn.cangnova.cangjie.toolchain
 
+import cn.cangnova.cangjie.toolchain.impl.DefaultCjCompileOptions
+import cn.cangnova.cangjie.toolchain.impl.DefaultCjPackageOptions
+import cn.cangnova.cangjie.utils.toPath
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.util.SystemInfo
 import java.nio.file.Path
@@ -39,6 +42,7 @@ internal class CjLocalToolchainProvider : CjToolchainProvider {
 
 
     override fun getToolchain(homePath: Path): CjToolchainBase? {
+
         if (SystemInfo.isWindows && WslPath.isWslUncPath(homePath.toString())) return null
         return CjLocalToolchain(homePath)
     }

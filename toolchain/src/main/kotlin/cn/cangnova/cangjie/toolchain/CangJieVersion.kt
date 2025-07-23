@@ -22,26 +22,14 @@
  *
  */
 
-package cn.cangnova.cangjie.toolchain.api
+package cn.cangnova.cangjie.toolchain
 
-import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.util.text.SemVer
+import java.nio.file.Path
+import java.util.concurrent.ConcurrentHashMap
 
-/**
- * CangJie工具工厂接口
- */
-interface CjToolFactory<T : CjTool> {
-    /**
-     * 创建工具实例
-     *
-     * @param toolchain 工具链实例
-     * @return 工具实例
-     */
-    fun create(toolchain: CjToolchain): T
-
-    companion object {
-        private val EP_NAME: ExtensionPointName<CjToolFactory<*>> =
-            ExtensionPointName.create("cn.cangnova.cangjie.toolchain.toolFactory")
-
-        fun getFactories(): List<CjToolFactory<*>> = EP_NAME.extensionList
-    }
-}
+data class CangJieVersion(
+    val semver: SemVer,
+    val host: String,
+    val type: String?
+)

@@ -505,6 +505,7 @@ project(":") {
         implementation(project(":icon"))
         implementation(project(":psi"))
         implementation(project(":messages"))
+//        implementation(project(":toolchain"))
 
     }
     tasks {

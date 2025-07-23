@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.toolchain.api
 
+import cn.cangnova.cangjie.toolchain.CangJieVersion
 import java.nio.file.Path
 
 /**
@@ -45,5 +46,5 @@ interface CjTool {
      *
      * @return 工具版本信息
      */
-    fun getVersion(): String
+    fun getVersion(): CangJieVersion?
 }

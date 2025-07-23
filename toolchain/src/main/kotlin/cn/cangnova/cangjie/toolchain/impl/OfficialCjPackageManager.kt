@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.toolchain.impl
 
+import cn.cangnova.cangjie.toolchain.CangJieVersion
 import cn.cangnova.cangjie.toolchain.api.*
 import cn.cangnova.cangjie.toolchain.api.CjPackageManager.Companion.NAME
 import java.nio.file.Path
@@ -35,24 +36,25 @@ import java.util.regex.Pattern
  */
 class OfficialCjPackageManager(override val toolchain: CjToolchain) : CjPackageManager {
 
-    override val executable: Path = toolchain.pathToExecutable(NAME)
+    override val executable: Path = toolchain.homePath.resolve("tools").resolve("bin").resolve(NAME)
 
-    override fun getVersion(): String {
-        val process = ProcessBuilder(executable.toString(), "--version")
-            .redirectErrorStream(true)
-            .start()
-
-        val output = process.inputStream.bufferedReader().readText()
-        process.waitFor(toolchain.executionTimeoutInMilliseconds.toLong(), TimeUnit.MILLISECONDS)
-
-        // 解析版本号，假设输出格式为 "CangJie Package Manager vX.Y.Z"
-        val versionPattern = Pattern.compile("CangJie Package Manager v(\\d+\\.\\d+\\.\\d+)")
-        val matcher = versionPattern.matcher(output)
-        return if (matcher.find()) {
-            matcher.group(1)
-        } else {
-            "unknown"
-        }
+    override fun getVersion(): CangJieVersion? {
+        return null
+//        val process = ProcessBuilder(executable.toString(), "--version")
+//            .redirectErrorStream(true)
+//            .start()
+//
+//        val output = process.inputStream.bufferedReader().readText()
+//        process.waitFor(toolchain.executionTimeoutInMilliseconds.toLong(), TimeUnit.MILLISECONDS)
+//
+//        // 解析版本号，假设输出格式为 "CangJie Package Manager vX.Y.Z"
+//        val versionPattern = Pattern.compile("CangJie Package Manager v(\\d+\\.\\d+\\.\\d+)")
+//        val matcher = versionPattern.matcher(output)
+//        return if (matcher.find()) {
+//            matcher.group(1)
+//        } else {
+//            "unknown"
+//        }
     }
 
     override fun init(

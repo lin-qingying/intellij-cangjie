@@ -24,11 +24,12 @@
 
 package cn.cangnova.cangjie.toolchain.impl
 
+import cn.cangnova.cangjie.toolchain.CangJieVersion
 import cn.cangnova.cangjie.toolchain.api.*
 import cn.cangnova.cangjie.toolchain.api.CjCompiler.Companion.NAME
-import java.nio.file.Path
-import java.io.File
+import com.intellij.util.text.SemVer
 import java.nio.file.Files
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
@@ -39,22 +40,43 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
 
     override val executable: Path = toolchain.pathToExecutable(NAME)
 
-    override fun getVersion(): String {
+    override fun getVersion(): CangJieVersion? {
         val process = ProcessBuilder(executable.toString(), "--version")
             .redirectErrorStream(true)
             .start()
 
-        val output = process.inputStream.bufferedReader().readText()
+        val lines = process.inputStream.bufferedReader().readLines()
         process.waitFor(toolchain.executionTimeoutInMilliseconds.toLong(), TimeUnit.MILLISECONDS)
 
-        // 解析版本号，假设输出格式为 "CangJie Compiler vX.Y.Z"
-        val versionPattern = Pattern.compile("CangJie Compiler v(\\d+\\.\\d+\\.\\d+)")
-        val matcher = versionPattern.matcher(output)
-        return if (matcher.find()) {
-            matcher.group(1)
-        } else {
-            "unknown"
+
+        val cangjieComiler = """Cangjie Compiler: (\d+\.\d+\.\d+.*)""".toRegex()
+
+
+        val find = { re: Regex -> lines.firstNotNullOfOrNull { re.matchEntire(it) } }
+        val releaseMatch = find(cangjieComiler) ?: return null
+
+        val hostRe = "Target:(.*)".toRegex()
+        val hostText = find(hostRe)?.groups?.get(1)?.value?.trim() ?: return null
+        var versionText = releaseMatch.groups[1]?.value ?: return null
+
+
+//    分割
+        var type: String? = null
+        return try {
+
+//去掉括号
+            val typeRegex = Regex("\\(([^()]*)\\)")
+
+            type = typeRegex.find(versionText.split(" ")[1])?.groups?.get(1)?.value
+            versionText = versionText.split(" ")[0]
+
+            val semVer = SemVer.parseFromText(versionText) ?: return null
+            CangJieVersion(semVer, hostText, type)
+
+        } catch (iex: IndexOutOfBoundsException) {
+            null
         }
+
     }
 
     override fun compile(sourcePath: Path, outputPath: Path, options: CjCompileOptions): CjCompileResult {
@@ -66,17 +88,17 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
         Files.createDirectories(outputPath)
 
         val command = mutableListOf(executable.toString())
-        
+
         // 添加源文件路径
         sourcePaths.forEach { command.add(it.toString()) }
-        
+
         // 添加输出路径
         command.add("-o")
         command.add(outputPath.toString())
-        
+
         // 添加编译选项
         addCompileOptions(command, options)
-        
+
         return executeCompileCommand(command, outputPath)
     }
 
@@ -85,26 +107,26 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
         if (!Files.exists(projectPath) || !Files.isDirectory(projectPath)) {
             return createErrorResult("Project directory does not exist: $projectPath")
         }
-        
+
         // 查找项目配置文件
-        val configFile = projectPath.resolve("cangjie.json")
-        if (!Files.exists(configFile)) {
-            return createErrorResult("Project configuration file not found: $configFile")
-        }
-        
+//        val configFile = projectPath.resolve("cangjie.json")
+//        if (!Files.exists(configFile)) {
+//            return createErrorResult("Project configuration file not found: $configFile")
+//        }
+
         val command = mutableListOf(executable.toString(), "build")
-        
+
         // 添加项目路径
         command.add("--project")
         command.add(projectPath.toString())
-        
+
         // 添加编译选项
         addCompileOptions(command, options)
-        
+
         // 项目构建通常会输出到项目目录下的build或dist目录
         val outputPath = projectPath.resolve("build")
         Files.createDirectories(outputPath)
-        
+
         return executeCompileCommand(command, outputPath)
     }
 
@@ -116,20 +138,20 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
 
             val output = process.inputStream.bufferedReader().readText()
             val completed = process.waitFor(toolchain.executionTimeoutInMilliseconds.toLong(), TimeUnit.MILLISECONDS)
-            
+
             if (!completed) {
                 process.destroyForcibly()
                 return createTimeoutResult(output)
             }
-            
+
             val exitCode = process.exitValue()
-            
+
             // 解析编译器输出，获取诊断信息
             val diagnostics = parseDiagnostics(output)
-            
+
             // 查找生成的输出文件
             val outputFiles = findOutputFiles(outputPath)
-            
+
             return when {
                 exitCode == 0 && diagnostics.none { it.level == CjDiagnostic.Level.ERROR } -> {
                     if (diagnostics.any { it.level == CjDiagnostic.Level.WARNING }) {
@@ -138,6 +160,7 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
                         createSuccessResult(outputFiles, diagnostics, output)
                     }
                 }
+
                 else -> createFailureResult(diagnostics, output)
             }
         } catch (e: Exception) {
@@ -147,10 +170,10 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
 
     private fun parseDiagnostics(output: String): List<CjDiagnostic> {
         val diagnostics = mutableListOf<CjDiagnostic>()
-        
+
         // 假设编译器输出格式为：[ERROR|WARNING|INFO] file:line:column: message
         val pattern = Pattern.compile("\\[(ERROR|WARNING|INFO|HINT)\\] ([^:]+):(\\d+):(\\d+): (.*)")
-        
+
         output.lines().forEach { line ->
             val matcher = pattern.matcher(line)
             if (matcher.find()) {
@@ -161,23 +184,25 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
                     "HINT" -> CjDiagnostic.Level.HINT
                     else -> CjDiagnostic.Level.INFO
                 }
-                
+
                 val filePath = matcher.group(2)
                 val lineNum = matcher.group(3).toIntOrNull()
                 val column = matcher.group(4).toIntOrNull()
                 val message = matcher.group(5)
-                
-                diagnostics.add(OfficialCjDiagnostic(
-                    level = level,
-                    message = message,
-                    filePath = Path.of(filePath),
-                    line = lineNum,
-                    column = column,
-                    type = determineType(message)
-                ))
+
+                diagnostics.add(
+                    OfficialCjDiagnostic(
+                        level = level,
+                        message = message,
+                        filePath = Path.of(filePath),
+                        line = lineNum,
+                        column = column,
+                        type = determineType(message)
+                    )
+                )
             }
         }
-        
+
         return diagnostics
     }
 
@@ -198,7 +223,11 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
             .toList()
     }
 
-    private fun createSuccessResult(outputFiles: List<Path>, diagnostics: List<CjDiagnostic>, output: String): CjCompileResult {
+    private fun createSuccessResult(
+        outputFiles: List<Path>,
+        diagnostics: List<CjDiagnostic>,
+        output: String
+    ): CjCompileResult {
         return OfficialCjCompileResult(
             success = true,
             outputFiles = outputFiles,
@@ -208,7 +237,11 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
         )
     }
 
-    private fun createSuccessResultWithWarnings(outputFiles: List<Path>, diagnostics: List<CjDiagnostic>, output: String): CjCompileResult {
+    private fun createSuccessResultWithWarnings(
+        outputFiles: List<Path>,
+        diagnostics: List<CjDiagnostic>,
+        output: String
+    ): CjCompileResult {
         return OfficialCjCompileResult(
             success = true,
             outputFiles = outputFiles,
@@ -237,7 +270,7 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
             column = null,
             type = CjDiagnostic.DiagnosticType.OTHER
         )
-        
+
         return OfficialCjCompileResult(
             success = false,
             outputFiles = emptyList(),
@@ -256,7 +289,7 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
             column = null,
             type = CjDiagnostic.DiagnosticType.OTHER
         )
-        
+
         return OfficialCjCompileResult(
             success = false,
             outputFiles = emptyList(),
@@ -274,7 +307,7 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
         if (options.debug) {
             command.add("--debug")
         }
-        
+
         // 优化级别
         when (options.optimizationLevel) {
             CjCompileOptions.OptimizationLevel.NONE -> command.add("-O0")
@@ -282,7 +315,7 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
             CjCompileOptions.OptimizationLevel.MEDIUM -> command.add("-O2")
             CjCompileOptions.OptimizationLevel.FULL -> command.add("-O3")
         }
-        
+
         // 警告级别
         when (options.warningLevel) {
             CjCompileOptions.WarningLevel.NONE -> command.add("-w")
@@ -290,7 +323,7 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
             CjCompileOptions.WarningLevel.ALL -> command.add("-Wall")
             CjCompileOptions.WarningLevel.ERROR -> command.add("-Werror")
         }
-        
+
         // 目标平台
         options.targetPlatform?.let {
             when (it) {
@@ -300,17 +333,17 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
                 CjCompileOptions.TargetPlatform.JS -> command.add("--target=js")
             }
         }
-        
+
         // 实验性功能
         if (options.experimental) {
             command.add("--experimental")
         }
-        
+
         // 增量编译（需要实验性功能支持）
         if (options.incrementalCompile) {
             command.add("--incremental-compile")
         }
-        
+
         // 链接器选项
         if (options.linkOptions.isNotEmpty()) {
             options.linkOptions.forEach { option ->
@@ -318,42 +351,42 @@ class OfficialCjCompiler(override val toolchain: CjToolchain) : CjCompiler {
                 command.add(option)
             }
         }
-        
+
         // 代码覆盖率选项
         options.sanitizerCoverage?.let { coverage ->
             if (coverage.basicBlockCoverage) {
                 command.add("--sanitizer-coverage=bb")
             }
-            
+
             if (coverage.edgeCoverage) {
                 command.add("--sanitizer-coverage=edge")
             }
-            
+
             if (coverage.eightBitCounters) {
                 command.add("--sanitizer-coverage=8bit-counters")
             }
-            
+
             if (coverage.tracePcGuard) {
                 command.add("--sanitizer-coverage=trace-pc-guard")
             }
-            
+
             if (coverage.functionEntryCoverage) {
                 command.add("--sanitizer-coverage=function")
             }
-            
+
             if (coverage.stackDepthCoverage) {
                 command.add("--sanitizer-coverage-stack-depth")
             }
-            
+
             if (coverage.traceCompares) {
                 command.add("--sanitizer-coverage-trace-compares")
             }
-            
+
             if (coverage.traceMemcmp) {
                 command.add("--sanitizer-coverage-trace-memcmp")
             }
         }
-        
+
         // 添加额外参数
         command.addAll(options.extraArgs)
     }

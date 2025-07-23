@@ -7,6 +7,7 @@
         <extensionPoint qualifiedName="cn.cangnova.cangjie.toolchainProvider"
                         interface="cn.cangnova.cangjie.toolchain.CjToolchainProvider"
                         dynamic="true"/>
+
         <extensionPoint qualifiedName="cn.cangnova.cangjie.toolchainFlavor"
                         interface="cn.cangnova.cangjie.toolchain.flavors.CjToolchainFlavor"
                         dynamic="true"/>

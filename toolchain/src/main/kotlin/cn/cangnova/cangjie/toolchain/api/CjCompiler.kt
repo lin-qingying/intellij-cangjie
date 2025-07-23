@@ -38,7 +38,7 @@ interface CjCompiler : CjTool {
      * @param options 编译选项
      * @return 编译结果
      */
-    fun compile(sourcePath: Path, outputPath: Path, options: CjCompileOptions): CjCompileResult
+    fun compile(sourcePath: Path, outputPath: Path , options: CjCompileOptions): CjCompileResult
 
     /**
      * 编译多个文件

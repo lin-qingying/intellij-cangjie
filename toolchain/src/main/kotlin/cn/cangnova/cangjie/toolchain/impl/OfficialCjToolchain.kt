@@ -25,9 +25,8 @@
 package cn.cangnova.cangjie.toolchain.impl
 
 import cn.cangnova.cangjie.toolchain.api.*
-import java.nio.file.Path
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -40,17 +39,18 @@ class OfficialCjToolchain(
 ) : CjToolchain {
 
     override val toolsPath: Path = homePath.resolve("bin")
-    
+
     override val version: String by lazy {
         try {
             val compiler = getCompiler()
-            compiler.getVersion()
+            compiler.getVersion()?.semver?.rawVersion ?: "unknown"
         } catch (e: Exception) {
             "unknown"
         }
     }
 
-    override val fileSeparator: String = if (platformType == PlatformType.WSL) "/" else System.getProperty("file.separator")
+    override val fileSeparator: String =
+        if (platformType == PlatformType.WSL) "/" else System.getProperty("file.separator")
 
     private val toolCache = ConcurrentHashMap<String, CjTool>()
     private val customTools = ConcurrentHashMap<String, CjToolFactory<*>>()
@@ -75,10 +75,12 @@ class OfficialCjToolchain(
                     remotePath
                 }
             }
+
             PlatformType.DOCKER -> {
                 // 对于Docker，这里可能需要更复杂的逻辑
                 remotePath
             }
+
             else -> remotePath
         }
     }
@@ -93,22 +95,24 @@ class OfficialCjToolchain(
                     localPath
                 }
             }
+
             PlatformType.DOCKER -> {
                 // 对于Docker，这里可能需要更复杂的逻辑
                 localPath
             }
+
             else -> localPath
         }
     }
 
     override fun expandUserHome(remotePath: String): String {
         if (!remotePath.startsWith("~")) return remotePath
-        
+
         val userHome = when (platformType) {
             PlatformType.WSL -> "/home/user" // 这里可能需要从WSL获取实际用户主目录
             else -> System.getProperty("user.home")
         }
-        
+
         return if (remotePath == "~") {
             userHome
         } else if (remotePath.startsWith("~/")) {
@@ -127,6 +131,7 @@ class OfficialCjToolchain(
                     ""
                 }
             }
+
             PlatformType.WSL -> ""
             else -> ""
         }
