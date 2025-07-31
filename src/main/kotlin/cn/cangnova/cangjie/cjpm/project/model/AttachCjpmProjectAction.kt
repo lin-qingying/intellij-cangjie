@@ -26,8 +26,8 @@ package cn.cangnova.cangjie.cjpm.project.model
 
 import cn.cangnova.cangjie.cjpm.CjpmConstants
 import cn.cangnova.cangjie.cjpm.project.toolwindow.CjpmToolWindow
-import cn.cangnova.cangjie.ide.notifications.CjEditorNotificationPanel
-import cn.cangnova.cangjie.ide.notifications.isCjpmToml
+import cn.cangnova.cangjie.notifications.CjEditorNotificationPanel
+
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.saveAllDocuments
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.utils.isUnitTestMode
@@ -50,11 +50,12 @@ import java.nio.file.Path
 abstract class CjpmProjectActionBase : DumbAwareAction() {
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 }
+val VirtualFile.isCjpmToml: Boolean get() = name ==  CjpmConstants.MANIFEST_FILE
 
 /**
  * 将CJPM项目添加到[cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService]
  *
- * 可以从Project View、[CjpmToolWindow]和[CjEditorNotificationPanel]调用
+ * 可以从Project View、[CjpmToolWindow]和[cn.cangnova.cangjie.notifications.CjEditorNotificationPanel]调用
  */
 class AttachCjpmProjectAction : CjpmProjectActionBase() {
     override fun actionPerformed(e: AnActionEvent) {

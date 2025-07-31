@@ -26,8 +26,8 @@ package cn.cangnova.cangjie.lsp4ij
 
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
+import cn.cangnova.cangjie.ide.project.settings.cangjieSettings
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.toPath
 import cn.cangnova.cangjie.lsp.replacePathBySystem
 import com.intellij.openapi.project.Project

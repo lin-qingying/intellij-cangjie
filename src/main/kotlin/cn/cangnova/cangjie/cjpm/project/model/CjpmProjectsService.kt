@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.cjpm.project.model
 
 import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
 import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.toolchain.impl.CangJieVersion
@@ -41,6 +40,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
 import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
+import cn.cangnova.cangjie.ide.project.settings.cangjieSettings
 import cn.cangnova.cangjie.utils.pathAsPath
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture

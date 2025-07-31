@@ -505,6 +505,10 @@ project(":") {
         implementation(project(":icon"))
         implementation(project(":psi"))
         implementation(project(":messages"))
+//        implementation(project(":build-system"))
+        implementation(project(":notifications"))
+        implementation(project(":state"))
+
 //        implementation(project(":toolchain"))
 
     }

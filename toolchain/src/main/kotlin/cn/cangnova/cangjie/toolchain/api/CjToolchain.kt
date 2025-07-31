@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.toolchain.api
 
+import com.intellij.util.text.SemVer
 import java.nio.file.Path
 
 /**
@@ -145,6 +146,7 @@ interface CjToolchain {
 
 
 }
+
 
 /**
  * 平台类型枚举

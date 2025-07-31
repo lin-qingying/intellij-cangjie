@@ -29,7 +29,7 @@ import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import cn.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
-import cn.cangnova.cangjie.ide.notifications.CjNotifications
+import cn.cangnova.cangjie.notifications.CjNotifications
 import cn.cangnova.cangjie.ide.run.CjCommandConfiguration.Companion.emulateTerminalDefault
 import com.intellij.execution.*
 import com.intellij.execution.configuration.EnvironmentVariablesData

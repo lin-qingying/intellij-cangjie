@@ -24,11 +24,11 @@
 
 package cn.cangnova.cangjie.ide.newProject
 
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.icon.CangJieIcons
 import cn.cangnova.cangjie.ide.module.makeProject
 import cn.cangnova.cangjie.ide.module.openFiles
 import cn.cangnova.cangjie.ide.newProject.ui.ConfigurationData
+import cn.cangnova.cangjie.ide.project.settings.cangjieSettings
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.unwrapOrThrow
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.toolchain.cjpm

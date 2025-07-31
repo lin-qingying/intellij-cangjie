@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.configurable
 
 import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.cjpm.project.configurable.CjConfigurableBase
+import cn.cangnova.cangjie.configurable.CjConfigurableBase
 import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
 import cn.cangnova.cangjie.messages.CangJieUiBundle
 import com.intellij.openapi.application.ApplicationManager

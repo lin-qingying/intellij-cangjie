@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.ide.newProject.ui
 
-import cn.cangnova.cangjie.cjpm.project.settings.ui.CangJieProjectSettingsPanel
+import cn.cangnova.cangjie.ide.project.settings.ui.CangJieProjectSettingsPanel
 import cn.cangnova.cangjie.ide.project.settings.ui.UiDebouncer
 import cn.cangnova.cangjie.ide.project.tools.projectWizard.CangJieProjectTypeItem
 import cn.cangnova.cangjie.messages.CangJieBundle

@@ -24,6 +24,7 @@
 
 package cn.cangnova.cangjie.cjpm.project.configurable
 
+import cn.cangnova.cangjie.configurable.CjConfigurableBase
 import cn.cangnova.cangjie.messages.CangJieBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel

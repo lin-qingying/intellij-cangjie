@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.ide.project.structure.download
 
 
-import cn.cangnova.cangjie.cjpm.project.CjToolchainPathChoosingComboBox
+import cn.cangnova.cangjie.configurable.CjToolchainPathChoosingComboBox
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.messages.CangJieUiBundle
 import cn.cangnova.cangjie.task.AbstractForegroundTask

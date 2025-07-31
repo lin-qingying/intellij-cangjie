@@ -10,12 +10,15 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/analyze-ide" />
+            <option value="$PROJECT_DIR$/build-system" />
             <option value="$PROJECT_DIR$/dap-debugger" />
             <option value="$PROJECT_DIR$/icon" />
             <option value="$PROJECT_DIR$/lsp4ij" />
             <option value="$PROJECT_DIR$/messages" />
+            <option value="$PROJECT_DIR$/notifications" />
             <option value="$PROJECT_DIR$/plugin" />
             <option value="$PROJECT_DIR$/psi" />
+            <option value="$PROJECT_DIR$/state" />
             <option value="$PROJECT_DIR$/telemetry" />
             <option value="$PROJECT_DIR$/toolchain" />
             <option value="$PROJECT_DIR$/util" />

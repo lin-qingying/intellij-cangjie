@@ -86,6 +86,7 @@
     <xi:include href="/META-INF/cangjie-copyright.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
-    <xi:include href="/META-INF/toolchain.xml" xpointer="xpointer(/idea-plugin/*)"/>
+<!--    <xi:include href="/META-INF/toolchain.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+<!--    <xi:include href="/META-INF/build-system.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
 </idea-plugin>

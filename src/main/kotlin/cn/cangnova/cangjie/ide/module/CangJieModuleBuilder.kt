@@ -26,8 +26,8 @@ package cn.cangnova.cangjie.ide.module
 
 
 import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.ide.newProject.ui.ConfigurationData
+import cn.cangnova.cangjie.ide.project.settings.cangjieSettings
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjProcessExecutionException

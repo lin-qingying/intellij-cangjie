@@ -81,23 +81,6 @@ abstract class CjExecutableRunner(
         super.execute(environment, state)
     }
 
-
-//    override fun execute(environment: ExecutionEnvironment) {
-////        val state = environment.state as CjpmRunStateBase
-//        val project = environment.project
-//
-//        if (!checkToolchainConfigured(project)) return
-////        val toolchainError = checkToolchainSupported(project, host)
-////        if (toolchainError != null) {
-////            processInvalidToolchain(project, toolchainError)
-////            return
-////        }
-//
-//        environment.putUserData(ARTIFACTS, CompletableFuture())
-//        super.execute(environment)
-//
-//    }
-
     override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
         if (state !is CjpmRunStateBase) return null
 

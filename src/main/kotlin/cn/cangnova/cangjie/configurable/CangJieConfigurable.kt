@@ -24,10 +24,10 @@
 
 package cn.cangnova.cangjie.configurable
 
-import cn.cangnova.cangjie.cjpm.project.configurable.CjConfigurableBase
+import cn.cangnova.cangjie.configurable.CjConfigurableBase
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
-import cn.cangnova.cangjie.cjpm.project.settings.ui.CangJieProjectSettingsPanel
+import cn.cangnova.cangjie.ide.project.settings.cangjieSettings
+import cn.cangnova.cangjie.ide.project.settings.ui.CangJieProjectSettingsPanel
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.utils.pathAsPath

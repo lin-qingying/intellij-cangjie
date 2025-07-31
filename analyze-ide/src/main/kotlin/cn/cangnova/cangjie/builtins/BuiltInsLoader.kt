@@ -115,14 +115,7 @@ fun craetePackageFragmentDescriptor(
 class BuiltInsLoaderImpl : BuiltInsLoader {
 
 
-    private fun getURL(project: Project, resourcePath: String): URL {
-//        val toolchainVsrsion = runReadAction {
-//            project.toolchain?.cjc()?.version?.semver?.rawVersion ?: ""
-//        }
-//        val stdlibPathByVersion: Path = CjToolchainBase.stdlibPath.resolve(toolchainVsrsion)
 
-        return CjToolchainBase.stdlibPath.resolve(resourcePath).toUri().toURL()
-    }
 
     fun createBuiltInPackageFragmentProvider(
         storageManager: StorageManager,

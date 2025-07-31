@@ -30,14 +30,11 @@ import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
 import cn.cangnova.cangjie.cjpm.project.model.ContentEntryWrapper
 import cn.cangnova.cangjie.cjpm.project.model.setup
-import cn.cangnova.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
 import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
 import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
 import cn.cangnova.cangjie.cjpm.project.workspace.additionalRoots
 import cn.cangnova.cangjie.toolchain.CjToolchainBase
 import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
-import cn.cangnova.cangjie.ide.notifications.CjNotifications
 
 import cn.cangnova.cangjie.lang.CangJieFileType
 import com.intellij.openapi.module.Module
@@ -72,6 +69,9 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.indexing.LightDirectoryIndex
 import com.intellij.util.io.systemIndependentPath
 import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
+import cn.cangnova.cangjie.ide.project.settings.CjProjectSettingsServiceBase
+import cn.cangnova.cangjie.ide.project.settings.cangjieSettings
+import cn.cangnova.cangjie.notifications.CjNotifications
 import cn.cangnova.cangjie.task.taskQueue
 import cn.cangnova.cangjie.utils.AsyncValue
 import cn.cangnova.cangjie.utils.invokeAndWaitIfNeeded
@@ -432,7 +432,7 @@ class CjpmProjectsServiceImpl(
     override fun noStateLoaded() {
 
 
-        // 显示在 [cn.cangnova.cangjie.ide.notifications.MissingToolchainNotificationProvider]
+        // 显示在 [cn.cangnova.cangjie.notifications.MissingToolchainNotificationProvider]
 
         initialized = true // 不需要锁定B/C的服务初始时间
 

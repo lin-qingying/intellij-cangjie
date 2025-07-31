@@ -26,7 +26,7 @@ package cn.cangnova.cangjie.ide.run.cjpm
 
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
+import cn.cangnova.cangjie.ide.project.settings.cangjieSettings
 import cn.cangnova.cangjie.ide.run.CjCommandConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeType

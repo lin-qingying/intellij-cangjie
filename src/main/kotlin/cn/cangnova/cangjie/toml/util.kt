@@ -8,7 +8,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
-import cn.cangnova.cangjie.ide.notifications.showBalloonWithoutProject
+import cn.cangnova.cangjie.notifications.showBalloonWithoutProject
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.psi.psiUtil.ancestorOrSelf
 import cn.cangnova.cangjie.psi.psiUtil.elementType

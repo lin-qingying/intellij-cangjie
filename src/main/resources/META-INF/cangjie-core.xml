@@ -40,6 +40,13 @@
         <!--                             id="language.cangjie.languageServer.ast"-->
         <!--                             bundle="messages.CangJieBundle" key="CangJie.languageServer.astanalyzer"/>-->
 
+
+<!--                <projectConfigurable instance="cn.cangnova.cangjie.configurable.BuildSystemConfigurable"-->
+<!--                                     parentId="language.cangjie"-->
+<!--                                     groupId="language.cangjie.buildSystem"-->
+<!--                                     id="language.cangjie.buildSystem"-->
+<!--                                     bundle="messages.CangJieBundle" key="CangJie.buildSystem"/>-->
+
         <!-- 5. 服务注册 -->
         <projectService serviceInterface="cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService"
                         serviceImplementation="cn.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"/>

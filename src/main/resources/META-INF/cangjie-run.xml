@@ -30,7 +30,7 @@
 
         <!-- 3. 构建任务配置 -->
         <!-- 项目构建任务运行器 -->
-        <projectTaskRunner
-                implementation="cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskRunner"/>
+<!--        <projectTaskRunner-->
+<!--                implementation="cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildTaskRunner"/>-->
     </extensions>
 </idea-plugin> 

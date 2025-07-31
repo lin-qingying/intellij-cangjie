@@ -12,7 +12,7 @@ package cn.cangnova.cangjie.configurable//package cn.cangnova.cangjie.configurab
 //import com.intellij.ui.dsl.builder.panel
 //import com.intellij.util.xmlb.XmlSerializerUtil
 //import cn.cangnova.cangjie.messages.CangJieBundle
-//import cn.cangnova.cangjie.cjpm.project.configurable.CjConfigurableBase
+//import cn.cangnova.cangjie.configurable.CjConfigurableBase
 //import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
 //import cn.cangnova.cangjie.configurable.state.PluginLanguageState
 //import java.util.Locale

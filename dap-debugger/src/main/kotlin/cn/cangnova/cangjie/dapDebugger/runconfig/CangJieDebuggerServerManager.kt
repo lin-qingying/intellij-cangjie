@@ -1,6 +1,6 @@
 package cn.cangnova.cangjie.dapDebugger.runconfig
 
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
+import cn.cangnova.cangjie.ide.project.settings.cangjieSettings
 import cn.cangnova.cangjie.utils.getSavePluginVersion
 import cn.cangnova.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine

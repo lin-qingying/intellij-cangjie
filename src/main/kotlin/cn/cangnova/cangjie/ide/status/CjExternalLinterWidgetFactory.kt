@@ -26,9 +26,9 @@ package cn.cangnova.cangjie.ide.status
 
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
 import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
-import cn.cangnova.cangjie.cjpm.project.settings.externalLinterSettings
 import cn.cangnova.cangjie.cjpm.project.toolwindow.hasCjpmProject
 import cn.cangnova.cangjie.icon.CangJieIcons
+import cn.cangnova.cangjie.ide.project.settings.externalLinterSettings
 import cn.cangnova.cangjie.messages.CangJieBundle
 import cn.cangnova.cangjie.toolchain.ExternalLinter
 import com.intellij.openapi.components.service

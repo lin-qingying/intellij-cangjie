@@ -24,8 +24,6 @@
 
 package cn.cangnova.cangjie.builtins
 
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectEx
 import cn.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import cn.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.anyFqName
@@ -94,6 +92,8 @@ import cn.cangnova.cangjie.types.util.TypeUtils
 import cn.cangnova.cangjie.types.util.classFqNameEquals
 import cn.cangnova.cangjie.types.util.isConstructedFromGivenClass
 import cn.cangnova.cangjie.types.util.isNotNullConstructedFromGivenClass
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectEx
 import java.util.*
 
 open class CangJieBuiltIns(
@@ -604,6 +604,7 @@ open class CangJieBuiltIns(
 
     var myBuiltInsModule: ModuleDescriptorImpl? = null
 
+
     val builtInsModule: ModuleDescriptorImpl
         get() {
 
@@ -617,7 +618,7 @@ open class CangJieBuiltIns(
         null
 
     fun getPrimitiveBasicCangJieType(type: PrimitiveType): SimpleType {
-        return getPrimitiveClassBasicDescriptor(type).getDefaultType()
+        return getPrimitiveClassBasicDescriptor(type).defaultType
     }
 
     //    获取内置类型
@@ -636,7 +637,7 @@ open class CangJieBuiltIns(
     }
 
     fun getPrimitiveCangJieType(type: PrimitiveType): SimpleType {
-        return getPrimitiveClassDescriptor(type).getDefaultType()
+        return getPrimitiveClassDescriptor(type).defaultType
     }
 
     fun getBuiltInClassByFqName(fqName: FqName): ClassDescriptor {
@@ -651,7 +652,7 @@ open class CangJieBuiltIns(
 
 
     val nothingType: SimpleType
-        get() = nothing.getDefaultType()
+        get() = nothing.defaultType
 
 
     protected fun createBuiltInsModule(isFallback: Boolean) {
@@ -687,7 +688,8 @@ open class CangJieBuiltIns(
     fun setPostponedBuiltinsModuleComputation(computation: () -> ModuleDescriptorImpl) {
         postponedBuiltInsModule = storageManager.createLazyValue(computation)
     }
-//    protected open fun getClassDescriptorFactories(): Iterable<ClassDescriptorFactory> {
+
+    //    protected open fun getClassDescriptorFactories(): Iterable<ClassDescriptorFactory> {
 //        return listOf< ClassDescriptorFactory>(
 //           BuiltInFictitiousFunctionClassFactory(
 //                storageManager,
@@ -695,10 +697,11 @@ open class CangJieBuiltIns(
 //            )
 //        )
 //    }
-fun getStdSyncBuiltInsPackageScope(): MemberScope {
-    return builtInsModule.getPackage(STD_SYNC_PACKAGE_FQ_NAME).memberScope
+    fun getStdSyncBuiltInsPackageScope(): MemberScope {
+        return builtInsModule.getPackage(STD_SYNC_PACKAGE_FQ_NAME).memberScope
 
-}
+    }
+
     fun getStdAstBuiltInsPackageScope(): MemberScope {
         return builtInsModule.getPackage(STD_AST_PACKAGE_FQ_NAME).memberScope
 
@@ -727,6 +730,7 @@ fun getStdSyncBuiltInsPackageScope(): MemberScope {
     private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
         return myStdCoreBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
+
     private fun getStdSyncClassByName(simpleName: String): ClassDescriptor {
         return myStdSyncBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
@@ -819,13 +823,13 @@ fun getStdSyncBuiltInsPackageScope(): MemberScope {
         }
     val anyType: SimpleType
         get() {
-            return any.getDefaultType()
+            return any.defaultType
         }
     val countable: ClassDescriptor
         get() = findClassDescriptorByFqName(project ?: storageManager.project, countableFqName)!!
     val countableType: SimpleType
         get() {
-            return countable.getDefaultType()
+            return countable.defaultType
         }
     val equatable: ClassDescriptor
         get() = findClassDescriptorByFqName(project ?: storageManager.project, equatableFqName)!!
@@ -873,11 +877,11 @@ fun getStdSyncBuiltInsPackageScope(): MemberScope {
         get() = findClassDescriptorByFqName(project ?: storageManager.project, arrayFqName)!!
     val arrayType: SimpleType
         get() {
-            return array.getDefaultType()
+            return array.defaultType
         }
     val stringType: SimpleType
         get() {
-            return string.getDefaultType()
+            return string.defaultType
         }
     val option: ClassDescriptor
         get() {

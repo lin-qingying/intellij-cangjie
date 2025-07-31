@@ -3,7 +3,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- 1. 文件类型图标提供器 -->
         <!-- CJPM项目文件图标提供器 -->
-        <fileIconProvider implementation="cn.cangnova.cangjie.icon.CjpmIconProvider"/>
+        <fileIconProvider implementation="cn.cangnova.cangjie.cjpm.icon.CjpmIconProvider"/>
 
         <!-- 2. 文件类型定义 -->
         <!-- 仓颉语言文件类型 -->

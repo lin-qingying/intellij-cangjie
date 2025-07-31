@@ -36,12 +36,16 @@ class CangJiePluginDisposable : Disposable {
     @Volatile
     var disposed: Boolean = false
 
+
+
+
     companion object {
         @JvmStatic
         fun getInstance(project: Project): CangJiePluginDisposable = project.service<CangJiePluginDisposable>()
     }
 
     override fun dispose() {
+
         disposed = true
     }
 }
