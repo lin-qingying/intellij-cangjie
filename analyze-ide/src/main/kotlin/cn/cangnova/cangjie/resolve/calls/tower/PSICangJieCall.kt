@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.calls.tower
 
 import cn.cangnova.cangjie.descriptors.BindingTrace
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.Call
 import cn.cangnova.cangjie.resolve.calls.CallTransformer
 import cn.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate

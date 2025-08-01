@@ -23,8 +23,8 @@
  */
 
 package cn.cangnova.cangjie.psi.stubs.elements
+import cn.cangnova.cangjie.name.*
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjProperty
 import cn.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
 import cn.cangnova.cangjie.psi.stubs.CangJiePropertyStub

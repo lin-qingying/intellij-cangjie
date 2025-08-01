@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.builtins.functions.FunctionTypeKind
 import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
 import cn.cangnova.cangjie.descriptors.impl.FunctionInvokeDescriptor
-import cn.cangnova.cangjie.storage.StorageManager
 
 
 class FunctionClassScope(

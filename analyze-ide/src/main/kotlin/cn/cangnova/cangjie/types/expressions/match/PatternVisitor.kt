@@ -24,19 +24,3 @@
 
 package cn.cangnova.cangjie.types.expressions.match
 
-import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
-import cn.cangnova.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
-import cn.cangnova.cangjie.diagnostics.Errors.NOT_ENUM_MATCH
-import cn.cangnova.cangjie.diagnostics.Errors.NOT_ENUM_PARAMETER_CONSTRUCTOR
-import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.CjBindingPattern
-import cn.cangnova.cangjie.psi.CjConstantPattern
-import cn.cangnova.cangjie.psi.CjEnum
-import cn.cangnova.cangjie.psi.CjVisitor
-import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
-import cn.cangnova.cangjie.resolve.BindingContext.REFERENCE_TARGET
-import cn.cangnova.cangjie.resolve.DescriptorUtils
-import cn.cangnova.cangjie.resolve.calls.CallExpressionResolver
-import cn.cangnova.cangjie.resolve.scopes.findClassifier
-import cn.cangnova.cangjie.types.util.isEnum

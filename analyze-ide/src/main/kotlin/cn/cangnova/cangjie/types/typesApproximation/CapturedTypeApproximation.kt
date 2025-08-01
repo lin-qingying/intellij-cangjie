@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.renderer.ClassifierNamePolicy
 import cn.cangnova.cangjie.renderer.DescriptorRenderer
 import cn.cangnova.cangjie.resolve.calls.inference.CapturedTypeConstructor
 import cn.cangnova.cangjie.resolve.calls.inference.isCaptured
-import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker
 import cn.cangnova.cangjie.types.util.TypeUtils

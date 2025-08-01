@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve
 
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors
 import cn.cangnova.cangjie.resolve.descriptorUtil.classValueDescriptor
 import cn.cangnova.cangjie.resolve.descriptorUtil.classValueTypeDescriptor

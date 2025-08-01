@@ -33,8 +33,6 @@ import cn.cangnova.cangjie.diagnostics.Errors.REDECLARATION
 import cn.cangnova.cangjie.diagnostics.reportOnDeclaration
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.psi.CjPackageDirective
 import cn.cangnova.cangjie.resolve.lazy.TopLevelDescriptorProvider

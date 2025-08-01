@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.psi.stubs.impl
 
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjExtend
 import cn.cangnova.cangjie.psi.stubs.CangJieExtendStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjExtendElementType
@@ -33,6 +32,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 import java.util.ArrayList
+import cn.cangnova.cangjie.name.*
 
 open class CangJieExtendStubImpl(
     type: CjExtendElementType,

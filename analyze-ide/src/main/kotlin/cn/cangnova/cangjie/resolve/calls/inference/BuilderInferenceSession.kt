@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.calls.inference
 
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
-import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.descriptors.BindingTrace
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor

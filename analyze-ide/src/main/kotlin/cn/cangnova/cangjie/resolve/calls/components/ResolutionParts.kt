@@ -34,7 +34,6 @@ import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import cn.cangnova.cangjie.descriptors.enumd.LazyEnumDescriptor
 import cn.cangnova.cangjie.descriptors.impl.CallableDescriptorForExtend
 import cn.cangnova.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjCallExpression
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate

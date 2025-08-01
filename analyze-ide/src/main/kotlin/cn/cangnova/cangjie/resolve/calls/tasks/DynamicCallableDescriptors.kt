@@ -32,12 +32,9 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.*
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
-import cn.cangnova.cangjie.resolve.DescriptorFactory
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
 import cn.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.storage.getValue
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.util.TypeUtils

@@ -36,7 +36,6 @@ import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import cn.cangnova.cangjie.utils.slicedMap.*
-import com.intellij.util.keyFMap.KeyFMap
 import org.jetbrains.annotations.TestOnly
 
 open class DelegatingBindingTrace(

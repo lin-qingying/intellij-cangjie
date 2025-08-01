@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.scopes
 
 import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
-import cn.cangnova.cangjie.storage.StorageManager
 
 class TupleClassScope(
     storageManager: StorageManager,

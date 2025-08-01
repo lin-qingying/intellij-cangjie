@@ -32,22 +32,13 @@ enum class Variance(
     private val superpositionFactor: Int
 ) {
     INVARIANT("", true, true, 0),
-//    IN_VARIANCE("in", true, false, -1),
-//    OUT_VARIANCE("out", false, true, +1);
+
     ;
 
-//    fun allowsPosition(position: Variance): Boolean
-//            = when (position) {
-//        IN_VARIANCE -> allowsInPosition
-//        OUT_VARIANCE -> allowsOutPosition
-//
-//        INVARIANT -> allowsInPosition && allowsOutPosition
-//    }
 
     fun superpose(other: Variance): Variance {
         return when (val r = this.superpositionFactor * other.superpositionFactor) {
             0 -> INVARIANT
-//            -1 -> IN_VARIANCE
 
             else -> throw IllegalStateException("Illegal factor: $r")
         }
@@ -56,8 +47,6 @@ enum class Variance(
     fun opposite(): Variance {
         return when (this) {
             INVARIANT -> INVARIANT
-//            IN_VARIANCE -> OUT_VARIANCE
-//            OUT_VARIANCE -> IN_VARIANCE
         }
     }
 

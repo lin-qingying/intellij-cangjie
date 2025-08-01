@@ -27,8 +27,6 @@ package cn.cangnova.cangjie.resolve.calls.inference.model
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.name.SpecialNames
 import cn.cangnova.cangjie.resolve.calls.inference.CallHandle
 import cn.cangnova.cangjie.resolve.calls.model.PostponableCangJieCallArgument
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns

@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve.calls.tower
 
 import cn.cangnova.cangjie.builtins.isBuiltinExtensionFunctionalType
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import cn.cangnova.cangjie.resolve.calls.tasks.createSynthesizedInvokes
 import cn.cangnova.cangjie.resolve.scopes.receivers.DetailedReceiver

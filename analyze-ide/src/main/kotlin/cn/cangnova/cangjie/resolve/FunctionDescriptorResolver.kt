@@ -40,7 +40,6 @@ import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptorImpl
 import cn.cangnova.cangjie.diagnostics.Errors.*
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.isEmptyBody
 import cn.cangnova.cangjie.resolve.DescriptorResolver.Companion.getDefaultModality
@@ -60,7 +59,6 @@ import cn.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import cn.cangnova.cangjie.resolve.scopes.LexicalWritableScope
 import cn.cangnova.cangjie.resolve.scopes.TraceBasedLocalRedeclarationChecker
 import cn.cangnova.cangjie.resolve.source.toSourceElement
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.ErrorUtils
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker

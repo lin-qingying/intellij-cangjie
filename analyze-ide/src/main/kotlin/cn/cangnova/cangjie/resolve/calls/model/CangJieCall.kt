@@ -24,8 +24,6 @@
 
 package cn.cangnova.cangjie.resolve.calls.model
 
-import cn.cangnova.cangjie.name.Name
-
 
 interface CangJieCall : ResolutionAtom {
     val callKind: CangJieCallKind

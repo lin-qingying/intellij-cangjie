@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.resolve.calls.smartcasts
 
-import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.psi.Call
@@ -34,7 +33,6 @@ import cn.cangnova.cangjie.resolve.calls.ArgumentTypeResolver
 import cn.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import cn.cangnova.cangjie.types.CangJieType
-import cn.cangnova.cangjie.types.util.expandIntersectionTypeIfNecessary
 
 
 class SmartCastManager(private val argumentTypeResolver: ArgumentTypeResolver) {

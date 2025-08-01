@@ -38,7 +38,6 @@ import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.resolve.FunctionDescriptorResolver
 import cn.cangnova.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
-import cn.cangnova.cangjie.storage.LockBasedLazyResolveStorageManager
 import jakarta.inject.Inject
 
 open class LazyDeclarationResolver(

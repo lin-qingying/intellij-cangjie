@@ -34,8 +34,6 @@ import cn.cangnova.cangjie.descriptors.DescriptorVisibilityUtils.isVisibleIgnori
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.resolve.LazyExplicitImportScope
@@ -47,7 +45,6 @@ import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import cn.cangnova.cangjie.resolve.scopes.ImportingScope
 import cn.cangnova.cangjie.resolve.scopes.concat
 import cn.cangnova.cangjie.storage.NotNullLazyValue
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.storage.getValue
 import cn.cangnova.cangjie.utils.Printer
 import cn.cangnova.cangjie.utils.exceptions.OperatorConventions

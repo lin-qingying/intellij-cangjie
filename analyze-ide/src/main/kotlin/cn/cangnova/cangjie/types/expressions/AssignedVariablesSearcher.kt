@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.types.expressions
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.SetMultimap
 import cn.cangnova.cangjie.descriptors.VariableDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjBinaryExpression
 import cn.cangnova.cangjie.psi.CjDeclaration
 import cn.cangnova.cangjie.psi.CjTreeVisitorVoid

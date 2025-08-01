@@ -32,7 +32,6 @@ import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.psi.CjCallableReference
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.CjPsiUtil
 import cn.cangnova.cangjie.psi.CjReturnExpression
@@ -65,12 +64,10 @@ import cn.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
 import cn.cangnova.cangjie.resolve.descriptorUtil.isFunctionForExpectTypeFromCastFeature
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope
-import cn.cangnova.cangjie.resolve.scopes.receivers.QualifierReceiver
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
 import cn.cangnova.cangjie.types.expressions.ExpressionTypingServices
 import cn.cangnova.cangjie.types.util.TypeUtils
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 
 data class LambdaContextInfo(
     var typeInfo: CangJieTypeInfo? = null,

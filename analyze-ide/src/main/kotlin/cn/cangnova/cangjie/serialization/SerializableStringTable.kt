@@ -32,7 +32,6 @@ import cn.cangnova.cangjie.metadata.deserialization.NameResolverImpl
 import cn.cangnova.cangjie.metadata.serialization.Interner
 import cn.cangnova.cangjie.metadata.serialization.StringTable
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 
 open class SerializableStringTable : StringTable {

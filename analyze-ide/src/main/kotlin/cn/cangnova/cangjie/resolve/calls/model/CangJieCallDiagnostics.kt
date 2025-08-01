@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve.calls.model
 
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.calls.components.DescriptorKind
 import cn.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import cn.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate

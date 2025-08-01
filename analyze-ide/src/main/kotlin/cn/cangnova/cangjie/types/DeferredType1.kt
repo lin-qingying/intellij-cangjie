@@ -27,13 +27,10 @@ import cn.cangnova.cangjie.descriptors.BindingTrace
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.storage.NotNullLazyValue
 import cn.cangnova.cangjie.storage.ReenteringLazyValueComputationException
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.ErrorUtils.createErrorType
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
 import cn.cangnova.cangjie.utils.Box
-import kotlin.jvm.functions.Function0
-import kotlin.jvm.functions.Function1
 
 
 /**

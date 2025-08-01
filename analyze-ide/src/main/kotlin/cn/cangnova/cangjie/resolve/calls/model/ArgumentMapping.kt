@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve.calls.model
 
 import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
-import cn.cangnova.cangjie.resolve.calls.components.ArgumentsToParametersMapper
 import cn.cangnova.cangjie.types.ErrorUtils
 
 

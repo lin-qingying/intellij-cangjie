@@ -29,13 +29,10 @@ import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptorImpl
-import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.deserialization.NameResolver
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.types.ErrorUtils
-import cn.cangnova.cangjie.metadata.ProtoBuf.Annotation
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.metadata.ProtoBuf.Annotation.Argument.Value.Type
 import cn.cangnova.cangjie.metadata.deserialization.Flags

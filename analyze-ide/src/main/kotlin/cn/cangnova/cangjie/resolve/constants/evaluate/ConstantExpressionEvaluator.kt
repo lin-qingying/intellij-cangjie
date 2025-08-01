@@ -36,7 +36,6 @@ import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.parsing.*
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType

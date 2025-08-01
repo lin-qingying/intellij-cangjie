@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.deserialization.*
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedTypeParameterDescriptor
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.error.ErrorTypeKind

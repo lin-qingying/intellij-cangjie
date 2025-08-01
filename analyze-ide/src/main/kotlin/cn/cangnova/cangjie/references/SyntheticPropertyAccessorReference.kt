@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.references
 
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjNameReferenceExpression
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement

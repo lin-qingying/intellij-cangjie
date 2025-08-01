@@ -24,8 +24,6 @@
 
 package cn.cangnova.cangjie.resolve
 
-import cn.cangnova.cangjie.descriptors.PackageFragmentDescriptor
-
 
 //fun PackageFragmentDescriptor.shouldSeeInternalsOf(whatPakage:PackageFragmentDescriptor):Boolean{
 //

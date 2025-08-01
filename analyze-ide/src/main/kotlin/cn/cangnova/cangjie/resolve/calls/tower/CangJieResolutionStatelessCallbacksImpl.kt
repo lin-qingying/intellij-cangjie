@@ -42,8 +42,6 @@ import cn.cangnova.cangjie.resolve.calls.model.CangJieCall
 import cn.cangnova.cangjie.resolve.calls.model.CangJieCallArgument
 import cn.cangnova.cangjie.resolve.calls.model.SimpleCangJieCallArgument
 import cn.cangnova.cangjie.resolve.calls.results.SimpleConstraintSystem
-import cn.cangnova.cangjie.resolve.calls.util.isInfixCall
-import cn.cangnova.cangjie.resolve.calls.util.isSuperOrDelegatingConstructorCall
 import cn.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner

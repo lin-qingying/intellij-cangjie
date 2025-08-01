@@ -24,8 +24,6 @@
 
 package cn.cangnova.cangjie.resolve
 
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.renderer.render
 
 

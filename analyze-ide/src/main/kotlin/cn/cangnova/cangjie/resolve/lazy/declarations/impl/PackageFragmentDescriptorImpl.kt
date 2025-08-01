@@ -37,17 +37,12 @@ import cn.cangnova.cangjie.descriptors.impl.DeclarationDescriptorNonRootImpl
 import cn.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import cn.cangnova.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
-import cn.cangnova.cangjie.descriptors.impl.basic.VArrayTypeDescriptor
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.lazy.declarations.DeclarationProvider
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.Variance
 import cn.cangnova.cangjie.utils.Printer
 import kotlin.reflect.full.memberProperties

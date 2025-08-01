@@ -27,8 +27,6 @@ package cn.cangnova.cangjie.resolve.scopes
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 

@@ -24,7 +24,4 @@
 
 package cn.cangnova.cangjie.serialization
 
-import cn.cangnova.cangjie.descriptors.ClassDescriptor
-import cn.cangnova.cangjie.descriptors.Modality
-
 class SerializationDescriptorSerializerPlugin : DescriptorSerializerPlugin

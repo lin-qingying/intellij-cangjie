@@ -36,7 +36,6 @@ import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import cn.cangnova.cangjie.diagnostics.Diagnostic
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.getQualifiedElementSelector
 import cn.cangnova.cangjie.references.mainReference

@@ -24,10 +24,7 @@
 
 package cn.cangnova.cangjie.resolve.descriptorUtil
 
-import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
-import cn.cangnova.cangjie.types.CangJieType
 
 //fun CangJieType.hasExactAnnotation(): Boolean = annotations.hasAnnotation(EXACT_ANNOTATION_FQ_NAME)
 

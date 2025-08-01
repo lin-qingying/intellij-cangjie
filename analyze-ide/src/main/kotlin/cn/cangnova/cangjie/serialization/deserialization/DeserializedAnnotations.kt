@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.serialization.deserialization
 
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.storage.getValue
 
 open class DeserializedAnnotations(

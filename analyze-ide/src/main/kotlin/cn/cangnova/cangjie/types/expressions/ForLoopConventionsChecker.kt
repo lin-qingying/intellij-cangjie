@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.diagnostics.DiagnosticSink
 import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.diagnostics.DiagnosticFactory1
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.resolve.BindingContext.LOOP_RANGE_ITERATOR_RESOLVED_CALL
 import cn.cangnova.cangjie.resolve.calls.model.ResolvedCall

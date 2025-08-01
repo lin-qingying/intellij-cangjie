@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.serialization.deserialization
 import cn.cangnova.cangjie.builtins.StandardNames
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
-import cn.cangnova.cangjie.name.FqName
 
 interface PlatformDependentDeclarationFilter {
 

@@ -23,12 +23,11 @@
  */
 
 package cn.cangnova.cangjie.psi
+import cn.cangnova.cangjie.name.*
 
 import cn.cangnova.cangjie.psi.cdoc.psi.CDoc
 import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement

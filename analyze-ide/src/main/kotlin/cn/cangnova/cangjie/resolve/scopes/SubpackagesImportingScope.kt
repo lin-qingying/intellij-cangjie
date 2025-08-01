@@ -27,8 +27,6 @@ package cn.cangnova.cangjie.resolve.scopes
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.impl.SubpackagesScope
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.utils.Printer
 
 

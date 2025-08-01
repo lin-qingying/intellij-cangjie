@@ -27,8 +27,6 @@ package cn.cangnova.cangjie.types
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.SourceElement
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.constants.ConstantValue
 
 class BuiltInAnnotationDescriptor(

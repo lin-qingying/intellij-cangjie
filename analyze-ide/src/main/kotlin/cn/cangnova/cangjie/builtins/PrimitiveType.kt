@@ -24,9 +24,6 @@
 
 package cn.cangnova.cangjie.builtins
 
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
-
 enum class PrimitiveType(typeName: String) {
     BOOL("Bool"),
     Rune("Rune"),

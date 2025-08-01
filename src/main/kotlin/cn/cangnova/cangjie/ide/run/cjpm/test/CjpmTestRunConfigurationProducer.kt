@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.ide.run.cjpm.test
 import cn.cangnova.cangjie.ide.run.CangJieRunConfigurationProducer
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
 import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType
-import cn.cangnova.cangjie.name.Name.Companion.identifier
 import cn.cangnova.cangjie.psi.CjMacroExpression
 import cn.cangnova.cangjie.psi.CjNamedDeclaration
 import cn.cangnova.cangjie.psi.CjNamedFunction
@@ -37,6 +36,8 @@ import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
+import cn.cangnova.cangjie.name.*
+import cn.cangnova.cangjie.name.Name.Companion.identifier
 
 internal class CjpmTestRunConfigurationProducer : CangJieRunConfigurationProducer<CjpmCommandConfiguration>() {
     override fun getConfigurationFactory(): ConfigurationFactory {

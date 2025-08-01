@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.resolve.scopes.receivers
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.lang.CangJieLanguage
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
 import cn.cangnova.cangjie.resolve.DescriptorUtils

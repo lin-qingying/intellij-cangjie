@@ -34,8 +34,6 @@ import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import cn.cangnova.cangjie.resolve.constants.Int32Value

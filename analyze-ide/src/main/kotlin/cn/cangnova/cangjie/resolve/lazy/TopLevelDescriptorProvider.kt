@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.lazy
 
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.lazy.declarations.LazyPackageDescriptor
 

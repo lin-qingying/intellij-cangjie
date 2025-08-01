@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.references
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.doc.psi.impl.CDocLink
 import cn.cangnova.cangjie.doc.psi.impl.CDocName
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType

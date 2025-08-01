@@ -24,9 +24,6 @@
 
 package cn.cangnova.cangjie.resolve
 
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
-
 
 object RequireCangJieConstants {
     val FQ_NAME: FqName = FqName("cangjie.internal.RequireCangJie")

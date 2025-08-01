@@ -32,7 +32,6 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.MemberComparator
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import cn.cangnova.cangjie.resolve.source.MemberScopeImpl

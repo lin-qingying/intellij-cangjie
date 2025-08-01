@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.types
 
-import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors

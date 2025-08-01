@@ -34,12 +34,10 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
 import cn.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjSpawnExpression
 import cn.cangnova.cangjie.resolve.calls.CallResolver
 import cn.cangnova.cangjie.resolve.calls.util.CallMaker
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeConstructor
 import cn.cangnova.cangjie.types.TypeRefinement

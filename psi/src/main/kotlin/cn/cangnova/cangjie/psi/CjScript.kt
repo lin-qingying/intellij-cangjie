@@ -1,8 +1,6 @@
 package cn.cangnova.cangjie.psi
 
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.name.NameUtils
+import cn.cangnova.cangjie.name.*
 import cn.cangnova.cangjie.psi.stubs.CangJieScriptStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode

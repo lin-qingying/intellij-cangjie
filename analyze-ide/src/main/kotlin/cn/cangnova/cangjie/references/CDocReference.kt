@@ -33,7 +33,6 @@ import cn.cangnova.cangjie.ide.cdoc.CDocLinkResolutionService
 import cn.cangnova.cangjie.ide.util.substituteExtensionIfCallable
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.CjPsiFactory

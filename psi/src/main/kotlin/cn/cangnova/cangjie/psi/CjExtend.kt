@@ -23,9 +23,9 @@
  */
 
 package cn.cangnova.cangjie.psi
+import cn.cangnova.cangjie.name.*
 
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.psiUtil.getChildrenOfType
 import cn.cangnova.cangjie.psi.psiUtil.identifier
 import cn.cangnova.cangjie.psi.stubs.CangJieExtendStub

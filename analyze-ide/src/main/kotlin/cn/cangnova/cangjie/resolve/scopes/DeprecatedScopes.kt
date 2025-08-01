@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.resolve.scopes
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
 import cn.cangnova.cangjie.descriptors.DescriptorWithDeprecation
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.Name
 
 
 class DeprecatedLexicalScope(private val workerScope: LexicalScope) : LexicalScope by workerScope {

@@ -23,9 +23,7 @@
  */
 
 package cn.cangnova.cangjie.psi
-
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.*
 
 /**
  * CjImportInfo接口定义了导入信息的数据结构，用于在代码中表示和操作导入语句。

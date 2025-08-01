@@ -32,7 +32,6 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjBinaryExpression
 import cn.cangnova.cangjie.resolve.calls.CallResolver
 import cn.cangnova.cangjie.resolve.calls.util.CallMaker

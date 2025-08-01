@@ -26,8 +26,6 @@ package cn.cangnova.cangjie.resolve.calls.inference.components
 
 import cn.cangnova.cangjie.builtins.functions.FunctionTypeKind
 import cn.cangnova.cangjie.builtins.functions.isBasicFunction
-import cn.cangnova.cangjie.config.LanguageFeature
-import cn.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
 import cn.cangnova.cangjie.resolve.calls.inference.model.Constraint
 import cn.cangnova.cangjie.resolve.calls.inference.model.ConstraintKind
 import cn.cangnova.cangjie.resolve.calls.inference.model.VariableWithConstraints

@@ -25,8 +25,6 @@
 package cn.cangnova.cangjie.resolve.calls.components
 
 import cn.cangnova.cangjie.builtins.*
-import cn.cangnova.cangjie.config.LanguageFeature
-import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.ParameterDescriptor
 import cn.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import cn.cangnova.cangjie.resolve.calls.inference.ConstraintSystemOperation

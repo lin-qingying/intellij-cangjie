@@ -23,6 +23,7 @@
  */
 
 package cn.cangnova.cangjie.psi
+import cn.cangnova.cangjie.name.*
 
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub

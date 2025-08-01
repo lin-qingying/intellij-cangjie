@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve.scopes.receivers
 
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.CangJieType
 
 

@@ -33,8 +33,6 @@ import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
 import cn.cangnova.cangjie.descriptors.isFinalClass
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.SpecialNames
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.calls.inference.CapturedType
 import cn.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor

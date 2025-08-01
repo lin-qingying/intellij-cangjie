@@ -30,8 +30,6 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.*
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.deserialization.*
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 
 

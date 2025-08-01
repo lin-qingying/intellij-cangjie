@@ -27,9 +27,7 @@ package cn.cangnova.cangjie.resolve.calls.tasks;
 
 import cn.cangnova.cangjie.descriptors.*;
 import cn.cangnova.cangjie.psi.Call;
-import cn.cangnova.cangjie.resolve.calls.context.ResolutionContext;
 import cn.cangnova.cangjie.resolve.calls.model.ResolvedCall;
-import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue;
 import cn.cangnova.cangjie.types.CangJieType;
 import org.jetbrains.annotations.NotNull;
 

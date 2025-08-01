@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.resolve.descriptorUtil.classId
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.util.supertypes
 
 class MissingSupertypesResolver(

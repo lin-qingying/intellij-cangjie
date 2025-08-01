@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.diagnostics.Errors.ENUM_REDECLARATION
 import cn.cangnova.cangjie.diagnostics.Errors.REDECLARATION
 import cn.cangnova.cangjie.diagnostics.reportOnDeclaration
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjEnumEntry
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.lazy.LazyClassContext

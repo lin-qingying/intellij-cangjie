@@ -38,8 +38,6 @@ import cn.cangnova.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger
 import cn.cangnova.cangjie.ide.projectStructure.moduleInfo
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjAbstractClassBody
 import cn.cangnova.cangjie.psi.CjCodeFragment
 import cn.cangnova.cangjie.psi.CjElement

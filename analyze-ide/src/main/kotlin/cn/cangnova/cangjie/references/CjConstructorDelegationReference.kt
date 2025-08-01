@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.references
 
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjConstructorDelegationReferenceExpression
 import cn.cangnova.cangjie.psi.CjImportAlias
 import cn.cangnova.cangjie.resolve.BindingContext

@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.getParentOfType
 import cn.cangnova.cangjie.psi.psiUtil.isFunctionalExpression

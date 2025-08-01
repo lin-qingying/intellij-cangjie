@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.resolve.calls.tower
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import cn.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import cn.cangnova.cangjie.resolve.calls.inference.model.LowerPriorityToPreserveCompatibility

@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve.calls.inference.components
 
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
-import cn.cangnova.cangjie.resolve.calls.components.CreateFreshVariablesSubstitutor.shouldBeFlexible
 import cn.cangnova.cangjie.resolve.calls.inference.components.PostponedArgumentInputTypesResolver.Companion.TYPE_VARIABLE_NAME_FOR_CR_RETURN_TYPE
 import cn.cangnova.cangjie.resolve.calls.inference.components.PostponedArgumentInputTypesResolver.Companion.TYPE_VARIABLE_NAME_FOR_LAMBDA_RETURN_TYPE
 import cn.cangnova.cangjie.resolve.calls.inference.components.PostponedArgumentInputTypesResolver.Companion.TYPE_VARIABLE_NAME_PREFIX_FOR_CR_PARAMETER_TYPE

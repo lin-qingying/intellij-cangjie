@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.lazy.descriptors
 
 import com.google.common.collect.ArrayListMultimap
 import cn.cangnova.cangjie.builtins.StandardNames.MAIN
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.safeNameForLazyResolve
 import cn.cangnova.cangjie.psi.stubs.elements.getAllBindings
@@ -35,7 +34,6 @@ import cn.cangnova.cangjie.resolve.lazy.data.CjClassLikeInfo
 import cn.cangnova.cangjie.resolve.lazy.data.CjTypeStatementInfo
 import cn.cangnova.cangjie.resolve.lazy.declarations.DeclarationProvider
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
-import cn.cangnova.cangjie.storage.StorageManager
 
 
 class PsiBasedClassMemberDeclarationProvider(

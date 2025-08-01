@@ -23,8 +23,9 @@
  */
 
 package cn.cangnova.cangjie.psi
+import cn.cangnova.cangjie.name.*
+import cn.cangnova.cangjie.name.*
 
-import cn.cangnova.cangjie.name.Name
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 
 interface ValueArgument {

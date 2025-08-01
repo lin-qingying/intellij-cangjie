@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import cn.cangnova.cangjie.descriptors.ClassKind
 import cn.cangnova.cangjie.descriptors.Modality
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjCallExpression
 import cn.cangnova.cangjie.psi.CjDotQualifiedExpression
 import cn.cangnova.cangjie.psi.CjSimpleNameExpression

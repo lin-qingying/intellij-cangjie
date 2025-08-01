@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.annotations.Annotations.Companion.EMPTY
 import cn.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.ErrorUtils
 import cn.cangnova.cangjie.types.TypeSubstitution

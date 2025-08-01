@@ -25,9 +25,6 @@
 package cn.cangnova.cangjie.builtins
 
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.utils.newHashMapWithExpectedSize
 import cn.cangnova.cangjie.utils.newHashSetWithExpectedSize
 

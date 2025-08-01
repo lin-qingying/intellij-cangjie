@@ -40,8 +40,6 @@ import cn.cangnova.cangjie.metadata.deserialization.VersionRequirement
 import cn.cangnova.cangjie.metadata.serialization.Interner
 import cn.cangnova.cangjie.metadata.serialization.MutableTypeTable
 import cn.cangnova.cangjie.metadata.serialization.MutableVersionRequirementTable
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.DescriptorUtils.isEnumEntry
 import cn.cangnova.cangjie.resolve.MemberComparator

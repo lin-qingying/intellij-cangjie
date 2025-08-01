@@ -25,8 +25,6 @@
 package cn.cangnova.cangjie.types.expressions
 
 import cn.cangnova.cangjie.descriptors.BindingTrace
-import cn.cangnova.cangjie.descriptors.FunctionDescriptor
-import cn.cangnova.cangjie.psi.CjDeclarationWithBody
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.ValueArgument
 import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo

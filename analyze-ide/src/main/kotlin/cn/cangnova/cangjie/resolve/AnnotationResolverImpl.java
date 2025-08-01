@@ -34,7 +34,6 @@ import cn.cangnova.cangjie.psi.CjAnnotationEntry;
 import cn.cangnova.cangjie.psi.CjTypeReference;
 import cn.cangnova.cangjie.resolve.calls.CallResolver;
 import cn.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator;
-import cn.cangnova.cangjie.resolve.lazy.ForceResolveUtil;
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope;
 import cn.cangnova.cangjie.storage.StorageManager;
 import cn.cangnova.cangjie.types.CangJieType;
@@ -42,7 +41,6 @@ import cn.cangnova.cangjie.types.ErrorUtils;
 import cn.cangnova.cangjie.types.error.ErrorTypeKind;
 
 import kotlin.collections.CollectionsKt;
-import kotlin.jvm.JvmSuppressWildcards;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

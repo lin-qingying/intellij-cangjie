@@ -2,7 +2,6 @@ package cn.cangnova.cangjie.resolve
 
 import cn.cangnova.cangjie.descriptors.BindingTrace
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
-import cn.cangnova.cangjie.descriptors.PackageViewDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors.PACKAGE_ACCESS_VIOLATION
 import cn.cangnova.cangjie.psi.CjFile
 

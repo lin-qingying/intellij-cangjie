@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.resolve.lazy.declarations
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.lazy.data.CjClassLikeInfo
 import cn.cangnova.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider

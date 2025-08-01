@@ -25,12 +25,10 @@
 package cn.cangnova.cangjie.resolve
 import java.util.ArrayDeque
 import cn.cangnova.cangjie.builtins.ReflectionTypes
-import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.AnonymousFunctionDescriptor
-import cn.cangnova.cangjie.diagnostics.Errors.UNSUPPORTED_FEATURE
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.getQualifiedElementSelector
@@ -40,7 +38,6 @@ import cn.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import cn.cangnova.cangjie.resolve.calls.context.TemporaryTraceAndCache
 import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
-import cn.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import cn.cangnova.cangjie.resolve.calls.util.createValueParametersForInvokeInFunctionType
 import cn.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import cn.cangnova.cangjie.resolve.source.toSourceElement
@@ -52,8 +49,6 @@ import cn.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import cn.cangnova.cangjie.types.expressions.ExpressionTypingServices
 import cn.cangnova.cangjie.types.util.TypeUtils
 import cn.cangnova.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
-import cn.cangnova.cangjie.types.util.makeOptional
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 import jakarta.inject.Inject
 
 

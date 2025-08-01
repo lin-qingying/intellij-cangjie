@@ -35,12 +35,10 @@ import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.CjParameter
 import cn.cangnova.cangjie.psi.CjPsiUtil
 import cn.cangnova.cangjie.resolve.DescriptorUtils.isEnum
-import cn.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import cn.cangnova.cangjie.resolve.constants.BoolValue
 import cn.cangnova.cangjie.resolve.constants.TypedCompileTimeConstant
 import cn.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import cn.cangnova.cangjie.types.CangJieType
-import cn.cangnova.cangjie.types.ErrorUtils.isError
 import cn.cangnova.cangjie.types.isError
 import cn.cangnova.cangjie.types.util.TypeUtils
 

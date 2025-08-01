@@ -24,8 +24,6 @@
 
 package cn.cangnova.cangjie.resolve.lazy.declarations
 
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjFile
 
 interface PackageMemberDeclarationProvider : DeclarationProvider {

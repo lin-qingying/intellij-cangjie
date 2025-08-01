@@ -33,6 +33,7 @@ import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
 import java.io.DataInput
 import java.io.DataOutput
+import cn.cangnova.cangjie.name.*
 
 
 private   val CANGJIE_DOT_FILE_EXTENSION = ".${CangJieFileType.EXTENSION}"

@@ -28,8 +28,6 @@ import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.descriptors.BindingTrace
 import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import cn.cangnova.cangjie.psi.CjParameter
-import cn.cangnova.cangjie.resolve.DescriptorResolver
-import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.calls.checkers.NewSchemeOfIntegerOperatorResolutionChecker
 import cn.cangnova.cangjie.resolve.calls.components.InferenceSession
 import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo

@@ -34,6 +34,7 @@ import cn.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
 import com.intellij.util.indexing.*
 import com.intellij.util.indexing.impl.CollectionDataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
+import cn.cangnova.cangjie.name.*
 
 
 class CangJieShortClassNameFileIndex : FileBasedIndexExtension<String, Collection<String>>() {

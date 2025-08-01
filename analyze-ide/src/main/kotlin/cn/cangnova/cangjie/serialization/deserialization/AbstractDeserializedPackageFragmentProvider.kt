@@ -28,9 +28,6 @@ import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.descriptors.PackageFragmentDescriptor
 import cn.cangnova.cangjie.descriptors.PackageFragmentProviderOptimized
 import cn.cangnova.cangjie.metadata.decompiler.CangJieMetadataFinder
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.utils.addIfNotNull
 
 abstract class AbstractDeserializedPackageFragmentProvider(

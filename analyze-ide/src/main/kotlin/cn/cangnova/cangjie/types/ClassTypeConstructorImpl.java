@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.types;
 
 import cn.cangnova.cangjie.descriptors.ClassDescriptor;
-import cn.cangnova.cangjie.descriptors.ClassifierDescriptor;
 import cn.cangnova.cangjie.descriptors.SupertypeLoopChecker;
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor;
 import cn.cangnova.cangjie.resolve.DescriptorUtils;
@@ -33,7 +32,6 @@ import cn.cangnova.cangjie.storage.StorageManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;

@@ -49,9 +49,6 @@ import cn.cangnova.cangjie.incremental.components.NoLookupLocation
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.name.ClassId.Companion.fromString
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.name.Name.Companion.special
-import cn.cangnova.cangjie.name.SpecialNames.anonymousParameterName
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getDispatchReceiverParameterIfNeeded
@@ -77,7 +74,6 @@ import cn.cangnova.cangjie.resolve.scopes.*
 import cn.cangnova.cangjie.resolve.scopes.ScopeUtils.makeScopeForPropertyInitializer
 import cn.cangnova.cangjie.resolve.scopes.ScopeUtils.makeScopeForVariableInitializer
 import cn.cangnova.cangjie.resolve.source.toSourceElement
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.ErrorUtils.createErrorType
 import cn.cangnova.cangjie.types.ErrorUtils.invalidType

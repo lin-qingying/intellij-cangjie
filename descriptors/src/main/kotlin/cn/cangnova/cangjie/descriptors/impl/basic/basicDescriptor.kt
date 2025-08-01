@@ -34,14 +34,12 @@ import cn.cangnova.cangjie.descriptors.impl.*
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjSuperTypeListEntry
 import cn.cangnova.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.utils.OperatorNameConventions.AND

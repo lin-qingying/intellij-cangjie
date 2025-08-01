@@ -24,10 +24,6 @@
 
 package cn.cangnova.cangjie.renderer
 
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
-
 
 fun Name.render(): String {
     return if (this.shouldBeEscaped()) '`' + asString() + '`' else asString()

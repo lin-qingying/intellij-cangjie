@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.resolve.lazy.data
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.*
 import com.intellij.psi.PsiElement
 

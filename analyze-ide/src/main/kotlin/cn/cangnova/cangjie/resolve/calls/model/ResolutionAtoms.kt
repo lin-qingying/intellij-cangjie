@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.calls.model
 
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.calls.components.ReturnArgumentsInfo
 import cn.cangnova.cangjie.resolve.calls.components.TypeArgumentsToParametersMapper
 import cn.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate

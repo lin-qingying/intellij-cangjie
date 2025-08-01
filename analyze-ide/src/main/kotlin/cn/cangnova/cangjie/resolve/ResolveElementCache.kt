@@ -45,9 +45,7 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.frontend.createContainerForBodyResolve
 import cn.cangnova.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
-import cn.cangnova.cangjie.ide.projectStructure.languageVersionSettings
 import cn.cangnova.cangjie.ide.stubindex.resolve.isUnitTestMode
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.findElementOfAdditionalResolve
 import cn.cangnova.cangjie.psi.psiUtil.forEachDescendantOfType

@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.descriptors.ModuleCapability
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
-import cn.cangnova.cangjie.name.FqName
 
 object ImplicitIntegerCoercion {
 

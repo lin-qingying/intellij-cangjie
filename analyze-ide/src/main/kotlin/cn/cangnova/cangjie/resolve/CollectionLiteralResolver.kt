@@ -37,13 +37,11 @@ import cn.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import cn.cangnova.cangjie.diagnostics.DiagnosticFactory1
 import cn.cangnova.cangjie.diagnostics.Errors.VARRAY_SIZE_MISMATCH
 import cn.cangnova.cangjie.incremental.CangJieLookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjCollectionLiteralExpression
 import cn.cangnova.cangjie.resolve.BindingContext.COLLECTION_LITERAL_CALL
 import cn.cangnova.cangjie.resolve.calls.CallResolver
 import cn.cangnova.cangjie.resolve.calls.util.CallMaker
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.expressions.ExpressionTypingContext
@@ -52,7 +50,6 @@ import cn.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import cn.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import cn.cangnova.cangjie.types.util.isVArray
 import cn.cangnova.cangjie.types.util.replaceArgument
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 import jakarta.inject.Inject
 
 class CollectionLiteralResolver(

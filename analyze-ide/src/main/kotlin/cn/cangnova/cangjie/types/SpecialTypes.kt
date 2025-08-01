@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.types
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.checker.NewCapturedType
 import cn.cangnova.cangjie.types.checker.NewTypeVariableConstructor

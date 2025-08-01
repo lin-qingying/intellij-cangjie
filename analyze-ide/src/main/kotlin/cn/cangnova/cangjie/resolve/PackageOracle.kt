@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.descriptors.ModuleOrigin
 import cn.cangnova.cangjie.descriptors.projectSourceModules
 import cn.cangnova.cangjie.ide.cache.PerModulePackageCacheService
-import cn.cangnova.cangjie.name.FqName
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project

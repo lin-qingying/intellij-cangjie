@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.deserialization.TypeTable
 import cn.cangnova.cangjie.serialization.deserialization.DeserializationConfiguration
 import cn.cangnova.cangjie.serialization.deserialization.TypeDeserializer
-import cn.cangnova.cangjie.storage.StorageManager
 
 
 class ContractDeserializerImpl(

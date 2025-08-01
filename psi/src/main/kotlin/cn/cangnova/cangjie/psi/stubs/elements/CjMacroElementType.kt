@@ -23,7 +23,6 @@
  */
 package cn.cangnova.cangjie.psi.stubs.elements
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.CjMacroDeclaration
 import cn.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
@@ -40,6 +39,7 @@ import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
+import cn.cangnova.cangjie.name.*
 
 class CjMacroElementType(debugName: @NonNls String) :
     CjStubElementType<CangJieFunctionStub, CjMacroDeclaration>(

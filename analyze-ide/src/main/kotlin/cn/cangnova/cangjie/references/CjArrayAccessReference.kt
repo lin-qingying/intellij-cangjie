@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.references
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjArrayAccessExpression
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.utils.OperatorNameConventions

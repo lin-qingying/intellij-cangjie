@@ -23,13 +23,14 @@
  */
 
 package cn.cangnova.cangjie.psi
+import cn.cangnova.cangjie.name.*
 
 import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.*
 import cn.cangnova.cangjie.name.FqName.Companion.topLevel
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.name.Name.Companion.identifier
+
 import cn.cangnova.cangjie.psi.CjImportDirective.Companion.fqNameFromExpression
 import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import cn.cangnova.cangjie.psi.stubs.CangJieImportDirectiveItemStub

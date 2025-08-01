@@ -30,8 +30,6 @@ import cn.cangnova.cangjie.ide.formatter.cangjieCustomSettings
 import cn.cangnova.cangjie.ide.util.ClassImportFilter
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.resolve.*
 import cn.cangnova.cangjie.resolve.caches.getResolutionFacade

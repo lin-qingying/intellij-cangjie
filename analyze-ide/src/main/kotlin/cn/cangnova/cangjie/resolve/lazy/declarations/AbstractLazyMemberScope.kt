@@ -33,11 +33,9 @@ import cn.cangnova.cangjie.descriptors.enumd.LazyEnumDescriptor
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.findParentOfType
 import cn.cangnova.cangjie.resolve.calls.components.InferenceSession
-import cn.cangnova.cangjie.resolve.calls.components.getDescriptorKind
 import cn.cangnova.cangjie.resolve.descriptorUtil.fqNameSafe
 import cn.cangnova.cangjie.resolve.lazy.LazyClassContext
 import cn.cangnova.cangjie.resolve.lazy.data.CjClassInfoUtil
@@ -50,7 +48,6 @@ import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope
 import cn.cangnova.cangjie.resolve.source.MemberScopeImpl
 import cn.cangnova.cangjie.storage.MemoizedFunctionToNotNull
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.utils.Printer
 
 abstract class AbstractLazyMemberScope<out D : DeclarationDescriptor, out DP : DeclarationProvider>

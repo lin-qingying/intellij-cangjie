@@ -27,14 +27,12 @@ package cn.cangnova.cangjie.resolve.lazy.descriptors
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjAnnotationEntry
 import cn.cangnova.cangjie.resolve.AnnotationResolver
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.resolve.constants.ConstantValue
 import cn.cangnova.cangjie.resolve.lazy.LazyEntity
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.AbbreviatedType
 import cn.cangnova.cangjie.storage.getValue
 import cn.cangnova.cangjie.types.ErrorUtils

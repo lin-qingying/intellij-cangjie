@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.calls.tower
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemError
 import cn.cangnova.cangjie.resolve.calls.model.CangJieCallArgument
 import cn.cangnova.cangjie.resolve.calls.model.CangJieCallDiagnostic

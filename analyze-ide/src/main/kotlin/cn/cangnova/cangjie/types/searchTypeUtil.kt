@@ -32,12 +32,8 @@ import cn.cangnova.cangjie.descriptors.PackageViewDescriptor
 import cn.cangnova.cangjie.ide.projectStructure.moduleInfo
 import cn.cangnova.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.caches.CangJieCacheService
-import cn.cangnova.cangjie.resolve.descriptorUtil.module
-import cn.cangnova.cangjie.resolve.scopes.LexicalScope
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 
 /**

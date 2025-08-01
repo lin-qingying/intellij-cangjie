@@ -36,7 +36,6 @@ import cn.cangnova.cangjie.diagnostics.Errors.CONSTRUCTOR_IN_INTERFACE
 import cn.cangnova.cangjie.diagnostics.Errors.PACKAGE_ACCESS_VIOLATION
 import cn.cangnova.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import cn.cangnova.cangjie.incremental.CangJieLookupLocation
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import cn.cangnova.cangjie.resolve.lazy.*

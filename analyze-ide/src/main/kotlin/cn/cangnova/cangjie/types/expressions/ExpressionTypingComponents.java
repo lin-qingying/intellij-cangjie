@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.config.LanguageVersionSettings;
 import cn.cangnova.cangjie.contracts.EffectSystem;
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor;
 import cn.cangnova.cangjie.extensions.TypeResolutionInterceptor;
-import cn.cangnova.cangjie.resolve.*;
 import cn.cangnova.cangjie.resolve.calls.CallExpressionResolver;
 import cn.cangnova.cangjie.resolve.calls.CallResolver;
 import cn.cangnova.cangjie.resolve.calls.checkers.AssignmentChecker;

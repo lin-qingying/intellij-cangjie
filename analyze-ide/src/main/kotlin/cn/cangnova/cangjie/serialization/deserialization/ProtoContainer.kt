@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.metadata.deserialization.Flags
 import cn.cangnova.cangjie.metadata.deserialization.NameResolver
 import cn.cangnova.cangjie.metadata.deserialization.TypeTable
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
 
 
 sealed class ProtoContainer(

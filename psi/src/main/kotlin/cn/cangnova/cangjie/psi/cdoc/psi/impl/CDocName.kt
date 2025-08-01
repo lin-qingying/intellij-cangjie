@@ -26,12 +26,12 @@ package cn.cangnova.cangjie.psi.cdoc.psi.impl
 
 import cn.cangnova.cangjie.psi.cdoc.psi.CDoc
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjElementImpl
 import cn.cangnova.cangjie.psi.psiUtil.getChildOfType
 import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
+import cn.cangnova.cangjie.name.*
 
 /**
  * 标签主题或链接中限定名称的单个部分。

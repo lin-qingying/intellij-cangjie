@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.resolve.calls.model
 
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import cn.cangnova.cangjie.resolve.scopes.receivers.prepareReceiverRegardingCaptureTypes
 

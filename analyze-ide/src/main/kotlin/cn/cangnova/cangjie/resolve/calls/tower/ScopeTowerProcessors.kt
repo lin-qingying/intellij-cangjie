@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.calls.tower
 
 import cn.cangnova.cangjie.descriptors.ClassKind
 import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import cn.cangnova.cangjie.resolve.calls.model.CangJieCall
 import cn.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind

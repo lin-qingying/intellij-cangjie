@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.psi.Call
 import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.storage.MemoizedFunctionToNotNull
-import cn.cangnova.cangjie.storage.StorageManager
 
 
 class DeprecationResolver(

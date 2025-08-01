@@ -24,13 +24,13 @@
 
 package cn.cangnova.cangjie.ide.stubindex
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjImportDirectiveItem
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
+import cn.cangnova.cangjie.name.*
 
 class CangJieImportFqNameForPackageNameIndex internal constructor() : StringStubIndexExtension<CjImportDirectiveItem>() {
     companion object Helper : CangJieStringStubIndexHelper<CjImportDirectiveItem>(CjImportDirectiveItem::class.java) {

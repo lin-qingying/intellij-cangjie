@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import cn.cangnova.cangjie.extensions.internal.CandidateInterceptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.Call
 import cn.cangnova.cangjie.psi.psiUtil.sure
 import cn.cangnova.cangjie.resolve.BindingContext

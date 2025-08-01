@@ -30,8 +30,6 @@ import cn.cangnova.cangjie.descriptors.ScopesHolderForClass.Companion.create
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.ClassDescriptorBase
 import cn.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.name.Name.Companion.special
 import cn.cangnova.cangjie.psi.CjExtend
 import cn.cangnova.cangjie.psi.CjSuperTypeListEntry
 import cn.cangnova.cangjie.psi.CjTypeParameterList
@@ -45,8 +43,6 @@ import cn.cangnova.cangjie.resolve.lazy.LazyClassContext
 import cn.cangnova.cangjie.resolve.lazy.data.CjClassLikeInfo
 import cn.cangnova.cangjie.resolve.scopes.*
 import cn.cangnova.cangjie.resolve.source.toSourceElement
-import cn.cangnova.cangjie.storage.NotNullLazyValue
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.util.TypeUtils.getClassDescriptor

@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.types
 
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.error.*
 import cn.cangnova.cangjie.types.util.contains
 import cn.cangnova.cangjie.types.util.isUnresolvedType

@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve.calls.tower
 
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.calls.tower.WrongResolutionToClassifier.*
 import cn.cangnova.cangjie.resolve.scopes.findClassifier
 import cn.cangnova.cangjie.resolve.scopes.receivers.DetailedReceiver

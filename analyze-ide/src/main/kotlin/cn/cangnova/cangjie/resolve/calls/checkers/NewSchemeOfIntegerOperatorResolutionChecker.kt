@@ -26,9 +26,7 @@ package cn.cangnova.cangjie.resolve.calls.checkers
 
 import cn.cangnova.cangjie.descriptors.BindingTrace
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
-import cn.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjConstantExpression
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.CjPsiUtil
@@ -40,7 +38,6 @@ import cn.cangnova.cangjie.resolve.constants.ErrorValue
 import cn.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import cn.cangnova.cangjie.resolve.constants.IntegerValueTypeConstant
 import cn.cangnova.cangjie.resolve.constants.TypedCompileTimeConstant
-import cn.cangnova.cangjie.resolve.descriptorUtil.fqNameSafe
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.SimpleType
 import cn.cangnova.cangjie.types.lowerIfFlexible

@@ -37,8 +37,6 @@ import cn.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.platform.CommonPlatforms
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.resolve.CompilerEnvironment

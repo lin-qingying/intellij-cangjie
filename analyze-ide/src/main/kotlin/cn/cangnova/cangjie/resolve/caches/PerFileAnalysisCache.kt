@@ -55,7 +55,6 @@ import cn.cangnova.cangjie.frontend.createContainerForLazyBodyResolve
 import cn.cangnova.cangjie.ide.cache.trackers.clearInBlockModifications
 import cn.cangnova.cangjie.ide.cache.trackers.inBlockModifications
 import cn.cangnova.cangjie.ide.cache.trackers.removeInBlockModifications
-import cn.cangnova.cangjie.ide.projectStructure.languageVersionSettings
 import cn.cangnova.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactory
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.parentsWithSelf

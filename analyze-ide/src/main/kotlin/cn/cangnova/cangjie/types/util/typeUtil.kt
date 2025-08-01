@@ -31,9 +31,6 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.basic.VArrayTypeDescriptor
 import cn.cangnova.cangjie.ide.imports.canBeReferencedViaImport
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjBlockExpression
 import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.resolve.DescriptorUtils

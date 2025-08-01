@@ -29,9 +29,7 @@ import cn.cangnova.cangjie.descriptors.BindingTrace
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.UserDataProperty
 import cn.cangnova.cangjie.resolve.recordScope
-import cn.cangnova.cangjie.resolve.scopes.ImportingScope
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope
-import cn.cangnova.cangjie.storage.StorageManager
 import com.intellij.openapi.util.Key
 
 @DefaultImplementation(FileScopeProviderImpl::class)

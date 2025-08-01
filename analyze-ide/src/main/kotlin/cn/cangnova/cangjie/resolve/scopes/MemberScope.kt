@@ -27,8 +27,6 @@ package cn.cangnova.cangjie.resolve.scopes
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import cn.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER

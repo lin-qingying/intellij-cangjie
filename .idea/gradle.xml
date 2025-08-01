@@ -10,6 +10,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/analyze-ide" />
+            <option value="$PROJECT_DIR$/analyze-ide/descriptors" />
             <option value="$PROJECT_DIR$/build-system" />
             <option value="$PROJECT_DIR$/dap-debugger" />
             <option value="$PROJECT_DIR$/icon" />

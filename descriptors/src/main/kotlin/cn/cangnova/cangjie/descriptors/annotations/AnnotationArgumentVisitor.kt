@@ -27,37 +27,37 @@ import cn.cangnova.cangjie.resolve.constants.*
 
 
 interface AnnotationArgumentVisitor<R, D> {
-    fun visitArrayValue(value: ArrayValue, data: D): R?
+    fun visitArrayValue(value: ArrayValue, data: D): R
 
-    fun visitStringValue(value: StringValue, data: D): R?
+    fun visitStringValue(value: StringValue, data: D): R
 
-    fun visitUnitValue(value: UnitValue, data: D): R?
+    fun visitUnitValue(value: UnitValue, data: D): R
 
-    fun visitErrorValue(value: ErrorValue, data: D): R?
+    fun visitErrorValue(value: ErrorValue, data: D): R
 
-    fun visitInt32Value(value: Int32Value, data: D): R?
+    fun visitInt32Value(value: Int32Value, data: D): R
 
-    fun visitInt8Value(value: Int8Value, data: D): R?
+    fun visitInt8Value(value: Int8Value, data: D): R
 
-    fun visitInt64Value(value: Int64Value, data: D): R?
+    fun visitInt64Value(value: Int64Value, data: D): R
 
-    fun visitRuneValue(value: RuneValue, data: D): R?
+    fun visitRuneValue(value: RuneValue, data: D): R
 
-    fun visitInt16Value(value: Int16Value, data: D): R?
+    fun visitInt16Value(value: Int16Value, data: D): R
 
-    fun visitFloat64Value(value: Float64Value, data: D): R?
+    fun visitFloat64Value(value: Float64Value, data: D): R
 
-    fun visitFloat16Value(value: Float16Value, data: D): R?
+    fun visitFloat16Value(value: Float16Value, data: D): R
 
-    fun visitFloat32Value(value: Float32Value, data: D): R?
+    fun visitFloat32Value(value: Float32Value, data: D): R
 
-    fun visitBoolValue(value: BoolValue, data: D): R?
+    fun visitBoolValue(value: BoolValue, data: D): R
 
-    fun visitUInt32Value(value: UInt32Value, data: D): R?
+    fun visitUInt32Value(value: UInt32Value, data: D): R
 
-    fun visitUInt64Value(value: UInt64Value, data: D): R?
+    fun visitUInt64Value(value: UInt64Value, data: D): R
 
-    fun visitUInt16Value(value: UInt16Value, data: D): R?
+    fun visitUInt16Value(value: UInt16Value, data: D): R
 
-    fun visitUInt8Value(value: UInt8Value, data: D): R?
+    fun visitUInt8Value(value: UInt8Value, data: D): R
 }

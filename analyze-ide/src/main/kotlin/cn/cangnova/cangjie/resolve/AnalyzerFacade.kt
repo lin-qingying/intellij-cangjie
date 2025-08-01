@@ -43,7 +43,6 @@ import cn.cangnova.cangjie.resolve.lazy.AbsentDescriptorHandler
 import cn.cangnova.cangjie.resolve.lazy.ResolveSession
 import cn.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService
 import cn.cangnova.cangjie.resolve.scopes.optimization.OptimizingOptions
-import cn.cangnova.cangjie.storage.StorageManager
 
 interface TrackableModuleInfo : ModuleInfo {
     fun createModificationTracker(): ModificationTracker

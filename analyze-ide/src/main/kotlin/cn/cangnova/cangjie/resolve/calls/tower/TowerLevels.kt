@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.resolve.calls.tower
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import cn.cangnova.cangjie.resolve.hasClassValueDescriptor

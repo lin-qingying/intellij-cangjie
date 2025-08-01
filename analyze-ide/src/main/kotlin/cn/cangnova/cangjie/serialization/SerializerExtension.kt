@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import cn.cangnova.cangjie.metadata.serialization.MutableVersionRequirementTable
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.FlexibleType
 

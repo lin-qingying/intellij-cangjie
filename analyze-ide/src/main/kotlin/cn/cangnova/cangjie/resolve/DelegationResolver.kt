@@ -33,7 +33,6 @@ import cn.cangnova.cangjie.psi.CjPureTypeStatement
 import cn.cangnova.cangjie.psi.CjTypeReference
 import cn.cangnova.cangjie.resolve.lazy.DelegationFilter
 import cn.cangnova.cangjie.types.CangJieType
-import cn.cangnova.cangjie.types.isError
 
 //委托
 class DelegationResolver<T : CallableMemberDescriptor> private constructor(

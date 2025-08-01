@@ -742,11 +742,11 @@ object AbstractTypeChecker {
 
 /**
  * Context that defines how type-checker operates, stores type-checker state,
- * created by [TypeCheckerProviderContext.newTypeCheckerState] in most cases
+ * created by [cn.cangnova.cangjie.types.model.TypeCheckerProviderContext.newTypeCheckerState] in most cases
  *
  * Stateful and shouldn't be reused
  *
- * Once some type-checker operation is performed using a [TypeCheckerProviderContext], for example a [AbstractTypeChecker.isSubtypeOf],
+ * Once some type-checker operation is performed using a [cn.cangnova.cangjie.types.model.TypeCheckerProviderContext], for example a [AbstractTypeChecker.isSubtypeOf],
  * new instance of particular [TypeCheckerState] should be created, with properly specified type system context
  */
 open class TypeCheckerState(

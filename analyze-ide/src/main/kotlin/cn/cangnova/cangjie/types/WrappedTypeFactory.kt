@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.types
 
 import cn.cangnova.cangjie.descriptors.BindingTrace
-import cn.cangnova.cangjie.storage.StorageManager
 
 
 open class WrappedTypeFactory(private val storageManager: StorageManager) {

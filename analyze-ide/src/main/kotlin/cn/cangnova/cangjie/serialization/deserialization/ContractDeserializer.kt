@@ -24,9 +24,4 @@
 
 package cn.cangnova.cangjie.serialization.deserialization
 
-import cn.cangnova.cangjie.descriptors.CallableDescriptor
-import cn.cangnova.cangjie.descriptors.FunctionDescriptor
-import cn.cangnova.cangjie.metadata.ProtoBuf
-import cn.cangnova.cangjie.metadata.deserialization.TypeTable
-
 

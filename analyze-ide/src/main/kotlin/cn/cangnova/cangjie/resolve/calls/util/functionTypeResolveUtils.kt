@@ -31,7 +31,6 @@ import cn.cangnova.cangjie.descriptors.SourceElement
 import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeProjection
 

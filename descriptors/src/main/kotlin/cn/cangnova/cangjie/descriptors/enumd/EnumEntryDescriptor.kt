@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.descriptors.enumd
 
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.lazy.LazyClassContext
 import cn.cangnova.cangjie.resolve.lazy.data.CjEnmuEntryInfo
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptor

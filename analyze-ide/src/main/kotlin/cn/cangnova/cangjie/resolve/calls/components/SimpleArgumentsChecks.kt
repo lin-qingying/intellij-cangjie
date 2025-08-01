@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.calls.components
 
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import cn.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import cn.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilder
 import cn.cangnova.cangjie.resolve.calls.inference.addSubtypeConstraintIfCompatible
 import cn.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstitutor
@@ -39,7 +38,6 @@ import cn.cangnova.cangjie.types.checker.captureFromExpression
 import cn.cangnova.cangjie.types.checker.hasSupertypeWithGivenTypeConstructor
 import cn.cangnova.cangjie.types.util.makeNotNullable
 import cn.cangnova.cangjie.types.util.supertypes
-import cn.cangnova.cangjie.utils.exceptions.OperatorConventions
 
 fun checkSimpleArgument(
     csBuilder: ConstraintSystemBuilder,

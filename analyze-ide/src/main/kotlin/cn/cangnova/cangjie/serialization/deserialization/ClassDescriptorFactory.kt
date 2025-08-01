@@ -31,11 +31,8 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.ClassDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
 import cn.cangnova.cangjie.resolve.scopes.GivenFunctionsMemberScope
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.storage.getValue
 
 interface ClassDescriptorFactory {

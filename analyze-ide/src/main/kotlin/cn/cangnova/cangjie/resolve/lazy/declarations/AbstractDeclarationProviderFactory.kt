@@ -24,10 +24,8 @@
 
 package cn.cangnova.cangjie.resolve.lazy.declarations
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.storage.MemoizedFunctionToNullable
-import cn.cangnova.cangjie.storage.StorageManager
 
 abstract class AbstractDeclarationProviderFactory(
 

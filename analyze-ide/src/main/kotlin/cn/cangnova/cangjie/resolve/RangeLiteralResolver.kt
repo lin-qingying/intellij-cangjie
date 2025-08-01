@@ -33,20 +33,17 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
 import cn.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjRangeExpression
 import cn.cangnova.cangjie.resolve.BindingContext.RANGE_LITERAL_CALL
 import cn.cangnova.cangjie.resolve.calls.CallResolver
 import cn.cangnova.cangjie.resolve.calls.util.CallMaker
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import cn.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import cn.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 
 
 class RangeLiteralResolver(

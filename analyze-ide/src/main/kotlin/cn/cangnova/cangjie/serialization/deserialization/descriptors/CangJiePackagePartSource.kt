@@ -27,9 +27,7 @@ package cn.cangnova.cangjie.serialization.deserialization.descriptors
 import cn.cangnova.cangjie.descriptors.SourceFile
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.deserialization.NameResolver
-import cn.cangnova.cangjie.name.CangJieClassName
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.serialization.CangJieMetadataVersion
 
 interface FacadeClassSource {

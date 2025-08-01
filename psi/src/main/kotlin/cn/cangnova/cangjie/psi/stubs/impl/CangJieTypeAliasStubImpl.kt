@@ -23,9 +23,9 @@
  */
 
 package cn.cangnova.cangjie.psi.stubs.impl
+import cn.cangnova.cangjie.name.*
 
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjTypeAlias
 import cn.cangnova.cangjie.psi.stubs.CangJieTypeAliasStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes

@@ -26,13 +26,8 @@ package cn.cangnova.cangjie.references
 
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.Call
 import cn.cangnova.cangjie.psi.CjCallExpression
-import cn.cangnova.cangjie.psi.CjConstructor
-import cn.cangnova.cangjie.psi.CjImportAlias
-import cn.cangnova.cangjie.psi.psiUtil.containingTypeStatement
-import cn.cangnova.cangjie.references.util.unwrappedTargets
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.resolve.calls.model.VariableAsFunctionResolvedCall
 import cn.cangnova.cangjie.resolve.calls.util.getCall

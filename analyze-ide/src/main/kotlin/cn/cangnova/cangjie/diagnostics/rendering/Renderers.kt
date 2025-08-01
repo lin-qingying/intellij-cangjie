@@ -27,9 +27,6 @@ package cn.cangnova.cangjie.diagnostics.rendering
 import cn.cangnova.cangjie.builtins.fqNameUnsafe
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.diagnostics.MatchMissingCase
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.identifier
 import cn.cangnova.cangjie.renderer.ClassifierNamePolicy

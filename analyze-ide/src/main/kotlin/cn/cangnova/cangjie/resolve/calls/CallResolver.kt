@@ -32,7 +32,6 @@ import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.diagnostics.Errors
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus.checkCanceled
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.resolve.BindingContext

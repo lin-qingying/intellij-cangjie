@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.descriptors.Substitutable
 import cn.cangnova.cangjie.descriptors.VariableDescriptor
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.psiUtil.sure
 import cn.cangnova.cangjie.resolve.calls.inference.wrapWithCapturingSubstitution
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor

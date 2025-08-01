@@ -24,9 +24,7 @@
 
 package cn.cangnova.cangjie.descriptors.annotations
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.resolve.lazy.LazyEntity
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.storage.getValue
 
 class AnnotationSplitter(

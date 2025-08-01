@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.types.checker
 
 import cn.cangnova.cangjie.container.DefaultImplementation
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.model.CangJieTypeMarker

@@ -32,7 +32,6 @@ import cn.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilder
 import cn.cangnova.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
 import cn.cangnova.cangjie.resolve.calls.inference.model.SimpleConstraintSystemConstraintPosition
 import cn.cangnova.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
-import cn.cangnova.cangjie.resolve.calls.inference.substitute
 
 import cn.cangnova.cangjie.resolve.calls.results.SimpleConstraintSystem
 import cn.cangnova.cangjie.types.TypeConstructorSubstitution

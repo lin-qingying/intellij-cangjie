@@ -25,13 +25,13 @@
 package cn.cangnova.cangjie.ide.intentions
 
 import cn.cangnova.cangjie.NotPropertiesService
-import cn.cangnova.cangjie.name.FqNameUnsafe
 import cn.cangnova.cangjie.psi.CjCallExpression
 import cn.cangnova.cangjie.psi.CjCallableReferenceExpression
 import cn.cangnova.cangjie.psi.CjExpression
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 
+import cn.cangnova.cangjie.name.*
 
 class NotPropertiesServiceImpl(private val project: Project) : NotPropertiesService {
     override fun getNotProperties(element: PsiElement): Set<FqNameUnsafe> {

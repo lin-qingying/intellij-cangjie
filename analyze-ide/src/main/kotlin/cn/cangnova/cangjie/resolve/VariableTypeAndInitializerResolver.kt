@@ -37,7 +37,6 @@ import cn.cangnova.cangjie.resolve.calls.components.InferenceSession
 import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import cn.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
 import cn.cangnova.cangjie.types.expressions.ExpressionTypingServices

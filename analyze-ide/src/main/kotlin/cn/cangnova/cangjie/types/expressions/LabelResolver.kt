@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.descriptors.ReceiverParameterDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors.*
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.parents
 import cn.cangnova.cangjie.resolve.BindingContext.*

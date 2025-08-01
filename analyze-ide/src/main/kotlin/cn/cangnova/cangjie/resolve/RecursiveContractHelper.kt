@@ -24,13 +24,6 @@
 
 package cn.cangnova.cangjie.resolve
 
-import cn.cangnova.cangjie.descriptors.CallableDescriptor
-import cn.cangnova.cangjie.descriptors.FunctionDescriptor
-import cn.cangnova.cangjie.psi.Call
-import cn.cangnova.cangjie.psi.CjExpression
-import cn.cangnova.cangjie.psi.psiUtil.isContractDescriptionCallPsiCheck
-import cn.cangnova.cangjie.resolve.scopes.LexicalScope
-
 
 //fun disableContractsInsideContractsBlock(call: Call, descriptor: CallableDescriptor?, scope: LexicalScope, trace: BindingTrace) {
 //    (call.callElement as? CjExpression)?.let { callExpression ->

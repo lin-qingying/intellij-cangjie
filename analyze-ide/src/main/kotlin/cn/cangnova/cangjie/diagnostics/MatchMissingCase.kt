@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.diagnostics
 
-import cn.cangnova.cangjie.name.CallableId
 import cn.cangnova.cangjie.name.ClassId
 import cn.cangnova.cangjie.name.IClassId
 

@@ -51,7 +51,6 @@ import cn.cangnova.cangjie.types.CangJieTypeKt;
 import cn.cangnova.cangjie.types.TypeConstructor;
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker;
 import cn.cangnova.cangjie.types.expressions.typeInfoFactory.TypeInfoFactoryKt;
-import cn.cangnova.cangjie.types.util.TypeUtils;
 import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo;
 import cn.cangnova.cangjie.utils.exceptions.OperatorConventions;
 import org.jetbrains.annotations.NotNull;

@@ -2,8 +2,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.CangJieTestBase
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 
 class CjPsiFactoryTest : CangJieTestBase() {
 

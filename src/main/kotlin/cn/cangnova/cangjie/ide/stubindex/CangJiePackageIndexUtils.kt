@@ -24,12 +24,11 @@
 
 package cn.cangnova.cangjie.ide.stubindex
 
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjFile
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.FileBasedIndex
+import cn.cangnova.cangjie.name.*
 
 
 object CangJiePackageIndexUtils {

@@ -31,7 +31,6 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.diagnostics.Errors
 import cn.cangnova.cangjie.extensions.internal.CandidateInterceptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.resolve.*
 import cn.cangnova.cangjie.resolve.BindingContext.*

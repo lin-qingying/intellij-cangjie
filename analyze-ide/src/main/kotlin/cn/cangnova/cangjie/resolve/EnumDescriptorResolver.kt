@@ -34,7 +34,6 @@ import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import cn.cangnova.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.EnumEntryConstructorDescriptor
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjEnum
 import cn.cangnova.cangjie.psi.CjEnumEntry
 import cn.cangnova.cangjie.resolve.calls.components.InferenceSession
@@ -46,7 +45,6 @@ import cn.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import cn.cangnova.cangjie.resolve.scopes.LexicalWritableScope
 import cn.cangnova.cangjie.resolve.scopes.LocalRedeclarationChecker
 import cn.cangnova.cangjie.resolve.source.toSourceElement
-import cn.cangnova.cangjie.storage.StorageManager
 
 class EnumDescriptorResolver(
     private val typeResolver: TypeResolver,

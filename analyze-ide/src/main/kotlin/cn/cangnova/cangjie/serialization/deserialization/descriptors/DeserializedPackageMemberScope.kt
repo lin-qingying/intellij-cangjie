@@ -35,10 +35,8 @@ import cn.cangnova.cangjie.metadata.deserialization.NameResolver
 import cn.cangnova.cangjie.metadata.deserialization.TypeTable
 import cn.cangnova.cangjie.metadata.deserialization.VersionRequirementTable
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import cn.cangnova.cangjie.serialization.deserialization.DeserializationComponents
-import cn.cangnova.cangjie.utils.Printer
 import cn.cangnova.cangjie.incremental.record
 
 open class DeserializedPackageMemberScope(

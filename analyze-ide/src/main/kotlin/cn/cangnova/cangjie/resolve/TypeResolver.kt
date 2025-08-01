@@ -37,8 +37,6 @@ import cn.cangnova.cangjie.descriptors.impl.AbstractVariableDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors.*
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.name.SpecialNames.OPTION
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.debugtext.getDebugText
 import cn.cangnova.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComments

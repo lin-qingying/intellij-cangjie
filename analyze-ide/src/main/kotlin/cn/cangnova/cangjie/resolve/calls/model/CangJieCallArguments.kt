@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.calls.model
 
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.TypeAliasDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.calls.components.InferenceSession
 import cn.cangnova.cangjie.resolve.scopes.receivers.DetailedReceiver
 import cn.cangnova.cangjie.resolve.scopes.receivers.QualifierReceiver

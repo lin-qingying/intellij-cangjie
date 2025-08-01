@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.calls.model.*
 import cn.cangnova.cangjie.utils.compactIfPossible
 

@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens.*
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.stubs.CangJieNameBasicReferenceExpressionStub
 import cn.cangnova.cangjie.psi.stubs.CangJieNameReferenceExpressionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -33,6 +32,7 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
+import cn.cangnova.cangjie.name.*
 
 interface CjCallableReference : CjReferenceExpression {
     val callableReference: CjSimpleNameExpression

@@ -34,14 +34,11 @@ import cn.cangnova.cangjie.metadata.decompiler.CangJieClassFinder
 import cn.cangnova.cangjie.metadata.decompiler.CangJieMetadataFinder
 import cn.cangnova.cangjie.metadata.deserialization.NameResolverImpl
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.sam.SamConversionResolver
 import cn.cangnova.cangjie.resolve.scopes.ChainedMemberScope
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.serialization.deserialization.builtins.BuiltInsPackageFragmentImpl
 import cn.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedPackageMemberScope
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.checker.NewCangJieTypeChecker
 import cn.cangnova.cangjie.types.expressions.TypeAttributeTranslators
 

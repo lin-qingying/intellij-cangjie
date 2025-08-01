@@ -24,11 +24,11 @@
 
 package cn.cangnova.cangjie.psi.psiUtil
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile
 import com.intellij.openapi.roots.SingleFileSourcesTracker
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
+import cn.cangnova.cangjie.name.*
 
 /**
  * 检查文件的包名是否与目录结构匹配，或者隐式匹配

@@ -34,7 +34,6 @@ import cn.cangnova.cangjie.descriptors.isLibraryClasses
 import cn.cangnova.cangjie.context.GlobalContext
 import cn.cangnova.cangjie.context.GlobalContextImpl
 import cn.cangnova.cangjie.ide.base.projectStructure.RootKindFilter
-import cn.cangnova.cangjie.ide.base.projectStructure.matches
 
 import cn.cangnova.cangjie.ide.cache.project.getDependentModules
 import cn.cangnova.cangjie.ide.projectStructure.moduleInfo

@@ -24,6 +24,4 @@
 
 package cn.cangnova.cangjie.types
 
-import cn.cangnova.cangjie.types.model.CangJieTypeMarker
-
 

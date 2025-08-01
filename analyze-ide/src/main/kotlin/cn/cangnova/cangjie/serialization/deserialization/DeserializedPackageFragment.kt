@@ -25,11 +25,8 @@
 package cn.cangnova.cangjie.serialization.deserialization
 
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorImpl
 import cn.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedMemberScope
-import cn.cangnova.cangjie.storage.StorageManager
 
 abstract class DeserializedPackageFragment(
     fqName: FqName,

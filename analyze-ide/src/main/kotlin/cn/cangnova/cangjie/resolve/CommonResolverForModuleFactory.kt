@@ -45,7 +45,6 @@ import cn.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import cn.cangnova.cangjie.frontend.configureModule
 import cn.cangnova.cangjie.frontend.configureStandardResolveComponents
 import cn.cangnova.cangjie.ide.vfilefinder.VirtualFileFinderFactory
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.platform.TargetPlatform
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.caches.ModuleContent

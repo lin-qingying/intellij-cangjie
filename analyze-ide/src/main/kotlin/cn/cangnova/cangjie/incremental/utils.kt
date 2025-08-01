@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.LookupTracker
 import cn.cangnova.cangjie.incremental.components.Position
 import cn.cangnova.cangjie.incremental.components.ScopeKind
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 
 

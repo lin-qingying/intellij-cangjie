@@ -25,8 +25,6 @@
 package cn.cangnova.cangjie.ide.imports
 
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.getLineCount
 import cn.cangnova.cangjie.psi.psiUtil.isMultiLine

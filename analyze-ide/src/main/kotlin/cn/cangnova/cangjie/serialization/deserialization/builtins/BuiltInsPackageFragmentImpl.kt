@@ -30,10 +30,8 @@ import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
 import cn.cangnova.cangjie.metadata.builtins.readBuiltinsPackageFragment
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.serialization.deserialization.DeserializedPackageFragmentImpl
-import cn.cangnova.cangjie.storage.StorageManager
 import java.io.InputStream
 
 class BuiltInsPackageFragmentImpl private constructor(

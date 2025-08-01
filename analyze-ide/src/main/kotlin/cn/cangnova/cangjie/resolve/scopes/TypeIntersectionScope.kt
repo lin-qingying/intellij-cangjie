@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.descriptors.VariableDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.selectMostSpecificInEachOverridableGroup
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.utils.Printer

@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.extensions
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.extensions.ProjectExtensionDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.resolve.lazy.LazyClassContext
 import cn.cangnova.cangjie.resolve.lazy.declarations.PackageMemberDeclarationProvider

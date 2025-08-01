@@ -28,8 +28,6 @@ package cn.cangnova.cangjie.ide.stubindex
 import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
 import cn.cangnova.cangjie.lang.declarations.CjDeclarationsFile
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.name.parentOrNull
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.utils.safeAs
@@ -43,6 +41,7 @@ import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.IOUtil
 import java.io.DataInput
 import java.io.DataOutput
+import cn.cangnova.cangjie.name.*
 
 private val LOG = logger<CangJiePartialPackageNamesIndex>()
 val NAME: ID<FqName, Name?> = ID.create(CangJiePartialPackageNamesIndex::class.java.simpleName)

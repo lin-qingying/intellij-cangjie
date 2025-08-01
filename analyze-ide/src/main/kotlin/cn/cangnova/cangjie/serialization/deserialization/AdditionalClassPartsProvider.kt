@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.serialization.deserialization
 import cn.cangnova.cangjie.descriptors.ClassConstructorDescriptor
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.CangJieType
 
 interface AdditionalClassPartsProvider {

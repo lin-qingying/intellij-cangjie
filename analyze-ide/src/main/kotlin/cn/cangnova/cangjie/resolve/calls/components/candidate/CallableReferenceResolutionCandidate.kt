@@ -33,7 +33,6 @@ import cn.cangnova.cangjie.resolve.calls.inference.components.FreshVariableNewTy
 import cn.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import cn.cangnova.cangjie.resolve.calls.model.*
 import cn.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
-import cn.cangnova.cangjie.resolve.calls.tower.CandidateApplicability
 import cn.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
 import cn.cangnova.cangjie.types.TypeSubstitutor
 import cn.cangnova.cangjie.types.UnwrappedType

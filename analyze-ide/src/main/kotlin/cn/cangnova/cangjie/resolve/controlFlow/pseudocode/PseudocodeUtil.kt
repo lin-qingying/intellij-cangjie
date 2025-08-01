@@ -47,7 +47,6 @@ import cn.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.special.V
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.utils.slicedMap.ReadOnlySlice
 import cn.cangnova.cangjie.utils.slicedMap.WritableSlice
-import com.intellij.openapi.project.Project
 
 object PseudocodeUtil {
     fun generatePseudocode(declaration: CjDeclaration, bindingContext: BindingContext): Pseudocode {

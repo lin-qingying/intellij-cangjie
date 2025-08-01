@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.scopes.receivers
 
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.CangJieType
 
 class ContextClassReceiver(

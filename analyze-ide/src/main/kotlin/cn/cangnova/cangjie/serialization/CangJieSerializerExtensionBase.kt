@@ -29,7 +29,6 @@ import com.google.protobuf.GeneratedMessageV3
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.serialization.MutableVersionRequirementTable
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.resolve.nonSourceAnnotations
 import cn.cangnova.cangjie.types.CangJieType
 

@@ -35,15 +35,11 @@ import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import cn.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import cn.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorForExtendImpl
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.calls.tower.ClassCallableDescriptor
 import cn.cangnova.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import cn.cangnova.cangjie.resolve.constants.ArrayValue
 import cn.cangnova.cangjie.resolve.constants.ConstantValue
-import cn.cangnova.cangjie.resolve.descriptorUtil.annotationClass
 import cn.cangnova.cangjie.resolve.descriptorUtil.declaresOrInheritsDefaultValue
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.error.ErrorType
@@ -271,7 +267,6 @@ abstract class DescriptorRenderer {
                     INTERFACE -> "interface"
                     ENUM -> "enum"
                     EXTEND -> "extend"
-                    ANNOTATION_CLASS -> "annotation class"
                     ENUM_ENTRY -> "enum entry"
                     BASIC -> "basic type"
                     TUPLE -> "tuple"

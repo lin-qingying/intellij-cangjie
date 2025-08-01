@@ -24,8 +24,6 @@
 
 package cn.cangnova.cangjie.types
 
-import cn.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.types.util.TypeUtils
 import cn.cangnova.cangjie.utils.newHashMapWithExpectedSize
 import cn.cangnova.cangjie.utils.newHashSetWithExpectedSize

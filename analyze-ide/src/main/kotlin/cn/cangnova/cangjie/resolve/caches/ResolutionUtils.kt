@@ -34,7 +34,6 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import cn.cangnova.cangjie.diagnostics.Diagnostic
 import cn.cangnova.cangjie.ide.FrontendInternals
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.*
 
 import cn.cangnova.cangjie.psi.psiUtil.getNonStrictParentOfType

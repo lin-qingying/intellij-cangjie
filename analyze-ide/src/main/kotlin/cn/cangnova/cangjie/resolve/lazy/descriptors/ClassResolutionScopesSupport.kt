@@ -30,7 +30,6 @@ import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.psi.CjParameter
 import cn.cangnova.cangjie.resolve.descriptorUtil.getAllSuperclassesWithoutAny
 import cn.cangnova.cangjie.resolve.scopes.*
-import cn.cangnova.cangjie.storage.StorageManager
 
 class ClassResolutionScopesSupport(
     private val classDescriptor: ClassDescriptor,

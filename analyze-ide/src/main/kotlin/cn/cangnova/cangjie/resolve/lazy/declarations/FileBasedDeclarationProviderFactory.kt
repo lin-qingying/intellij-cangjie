@@ -26,13 +26,11 @@ package cn.cangnova.cangjie.resolve.lazy.declarations
 
 import com.google.common.collect.LinkedHashMultimap
 import com.google.common.collect.Multimap
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.lazy.data.CjClassLikeInfo
 import cn.cangnova.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
 import cn.cangnova.cangjie.resolve.lazy.descriptors.PsiBasedClassMemberDeclarationProvider
 import cn.cangnova.cangjie.storage.NotNullLazyValue
-import cn.cangnova.cangjie.storage.StorageManager
 
 
 class FileBasedDeclarationProviderFactory(

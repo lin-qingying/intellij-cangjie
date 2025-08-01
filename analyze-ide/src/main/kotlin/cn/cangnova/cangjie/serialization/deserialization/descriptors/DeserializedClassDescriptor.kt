@@ -35,7 +35,6 @@ import cn.cangnova.cangjie.incremental.components.NoLookupLocation
 import cn.cangnova.cangjie.incremental.record
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.deserialization.*
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.*
 import cn.cangnova.cangjie.resolve.descriptorUtil.classId
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter

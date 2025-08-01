@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.serialization.deserialization
 
 import com.google.protobuf.ExtensionRegistryLite
 import cn.cangnova.cangjie.metadata.builtins.BuiltInsProtoBuf
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.serialization.SerializerExtensionProtocol
 
 object BuiltInSerializerProtocol   : SerializerExtensionProtocol(

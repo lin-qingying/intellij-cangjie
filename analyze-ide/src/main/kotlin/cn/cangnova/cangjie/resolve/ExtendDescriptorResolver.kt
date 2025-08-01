@@ -35,7 +35,6 @@ import cn.cangnova.cangjie.resolve.lazy.FileScopeProvider
 import cn.cangnova.cangjie.resolve.lazy.LazyDeclarationResolver
 import cn.cangnova.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
-import cn.cangnova.cangjie.storage.StorageManager
 
 class ExtendDescriptorResolver(
     private val trace: BindingTrace,

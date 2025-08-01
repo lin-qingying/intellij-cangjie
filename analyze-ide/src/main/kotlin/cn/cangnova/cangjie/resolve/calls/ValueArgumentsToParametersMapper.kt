@@ -31,7 +31,6 @@ import cn.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import cn.cangnova.cangjie.diagnostics.Diagnostic
 import cn.cangnova.cangjie.diagnostics.Errors.*
 import cn.cangnova.cangjie.descriptors.ValueParameterDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.Call
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.CjLambdaExpression

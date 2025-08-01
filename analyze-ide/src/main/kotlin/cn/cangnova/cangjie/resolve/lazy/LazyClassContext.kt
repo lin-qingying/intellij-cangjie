@@ -33,7 +33,6 @@ import cn.cangnova.cangjie.resolve.*
 import cn.cangnova.cangjie.resolve.calls.components.InferenceSession
 import cn.cangnova.cangjie.resolve.extensions.SyntheticResolveExtension
 import cn.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.WrappedTypeFactory
 import cn.cangnova.cangjie.types.checker.NewCangJieTypeChecker
 

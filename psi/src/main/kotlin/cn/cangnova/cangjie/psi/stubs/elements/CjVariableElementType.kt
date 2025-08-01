@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.psi.stubs.elements
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
 import cn.cangnova.cangjie.psi.stubs.CangJieVariableStub
@@ -39,6 +38,7 @@ import com.intellij.psi.stubs.StubOutputStream
 import com.intellij.util.io.StringRef
 import org.jetbrains.annotations.NonNls
 import java.io.IOException
+import cn.cangnova.cangjie.name.*
 
 //        根据单一模式返回所有绑定模式
 fun CjCasePattern?.getAllBindings(): List<CjBindingPattern> {

@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.lang.CangJieLanguage
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjFile.Companion.FILE_DECLARATION_TYPES
 import cn.cangnova.cangjie.psi.stubs.CangJieFileStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjPlaceHolderStubElementType
@@ -40,6 +39,7 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ArrayFactory
+import cn.cangnova.cangjie.name.*
 
 /**
  * 仓颉语言文件的基础接口。

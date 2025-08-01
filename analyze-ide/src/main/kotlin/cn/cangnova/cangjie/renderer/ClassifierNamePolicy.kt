@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.renderer
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getFqName
 
 interface ClassifierNamePolicy {

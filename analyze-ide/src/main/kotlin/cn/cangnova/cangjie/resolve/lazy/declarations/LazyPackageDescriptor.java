@@ -25,8 +25,6 @@
 package cn.cangnova.cangjie.resolve.lazy.declarations;
 
 
-import cn.cangnova.cangjie.descriptors.DeclarationDescriptorVisitor;
-import cn.cangnova.cangjie.descriptors.DeclarationDescriptorWithSource;
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor;
 import cn.cangnova.cangjie.name.FqName;
 import cn.cangnova.cangjie.resolve.lazy.LazyEntity;
@@ -34,7 +32,6 @@ import cn.cangnova.cangjie.resolve.lazy.ResolveSession;
 import cn.cangnova.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorImpl;
 import cn.cangnova.cangjie.resolve.scopes.MemberScope;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import cn.cangnova.cangjie.resolve.lazy.ForceResolveUtil;
 
 public class LazyPackageDescriptor extends PackageFragmentDescriptorImpl implements LazyEntity {

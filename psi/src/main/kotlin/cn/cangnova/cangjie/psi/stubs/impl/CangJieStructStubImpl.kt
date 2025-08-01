@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.psi.stubs.impl
 
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjStruct
 import cn.cangnova.cangjie.psi.stubs.CangJieStructStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStructElementType
@@ -33,6 +32,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.StubElement
 import com.intellij.util.io.StringRef
 import java.util.ArrayList
+import cn.cangnova.cangjie.name.*
 
 open class CangJieStructStubImpl(
     type: CjStructElementType,

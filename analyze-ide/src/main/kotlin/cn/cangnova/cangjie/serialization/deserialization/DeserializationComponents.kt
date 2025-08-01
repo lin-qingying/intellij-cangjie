@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.serialization.deserialization
 import com.google.protobuf.ExtensionRegistryLite
 import cn.cangnova.cangjie.contracts.ContractDeserializer
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupTracker
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.deserialization.BinaryVersion
@@ -35,10 +34,8 @@ import cn.cangnova.cangjie.metadata.deserialization.NameResolver
 import cn.cangnova.cangjie.metadata.deserialization.TypeTable
 import cn.cangnova.cangjie.metadata.deserialization.VersionRequirementTable
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.resolve.constants.ConstantValue
 import cn.cangnova.cangjie.resolve.sam.SamConversionResolver
 import cn.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedContainerSource
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.DefaultTypeAttributeTranslator
 import cn.cangnova.cangjie.types.SimpleType
 import cn.cangnova.cangjie.types.TypeAttributeTranslator
@@ -58,7 +55,6 @@ class DeserializationComponents(
     val moduleDescriptor: ModuleDescriptor,
     val configuration: DeserializationConfiguration,
     val classDataFinder: ClassDataFinder,
-    val annotationAndConstantLoader: AnnotationAndConstantLoader<AnnotationDescriptor, ConstantValue<*>>,
     val packageFragmentProvider: PackageFragmentProvider,
     val localClassifierTypeSettings: LocalClassifierTypeSettings,
     val errorReporter: ErrorReporter,

@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.serialization.deserialization
 
 import cn.cangnova.cangjie.metadata.deserialization.NameResolver
 import cn.cangnova.cangjie.name.ClassId
-import cn.cangnova.cangjie.name.Name
 
 fun NameResolver.getClassId(index: Int): ClassId {
     return ClassId.fromString(getQualifiedClassName(index), isLocalClassName(index))

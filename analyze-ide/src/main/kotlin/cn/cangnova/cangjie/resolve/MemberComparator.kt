@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve
 
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.renderer.AnnotationArgumentsRenderingPolicy
 import cn.cangnova.cangjie.renderer.DescriptorRenderer
 import cn.cangnova.cangjie.renderer.DescriptorRendererModifier.Companion.ALL

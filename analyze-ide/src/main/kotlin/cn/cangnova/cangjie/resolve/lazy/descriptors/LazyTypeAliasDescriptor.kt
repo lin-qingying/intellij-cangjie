@@ -28,10 +28,8 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.AbstractTypeAliasDescriptor
 import cn.cangnova.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.storage.NotNullLazyValue
 import cn.cangnova.cangjie.storage.NullableLazyValue
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.storage.getValue
 import cn.cangnova.cangjie.types.*
 

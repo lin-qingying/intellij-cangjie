@@ -24,8 +24,8 @@
 
 package cn.cangnova.cangjie
 
+import cn.cangnova.cangjie.name.*
 
-import cn.cangnova.cangjie.name.FqNameUnsafe
 import com.intellij.openapi.components.serviceOrNull
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key

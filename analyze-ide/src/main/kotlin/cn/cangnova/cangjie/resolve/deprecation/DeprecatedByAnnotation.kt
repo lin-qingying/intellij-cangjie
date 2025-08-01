@@ -24,15 +24,12 @@
 
 package cn.cangnova.cangjie.resolve.deprecation
 
-import com.google.protobuf.EnumValue
 import cn.cangnova.cangjie.config.ApiVersion
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import cn.cangnova.cangjie.resolve.argumentValue
-import cn.cangnova.cangjie.resolve.constants.ConstantValue
 import cn.cangnova.cangjie.resolve.constants.StringValue
 import cn.cangnova.cangjie.types.BuiltInAnnotationDescriptor
-import cn.cangnova.cangjie.utils.rethrow
 
 internal sealed class DeprecatedByAnnotation(
     val annotation: AnnotationDescriptor,

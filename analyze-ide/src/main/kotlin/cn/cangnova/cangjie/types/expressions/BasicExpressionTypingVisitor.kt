@@ -31,7 +31,6 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
-import cn.cangnova.cangjie.CjNodeTypes
 import cn.cangnova.cangjie.CjNodeTypes.INTEGER_CONSTANT
 import cn.cangnova.cangjie.builtins.BinaryOperatorRuleResultType
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.isFloat
@@ -51,7 +50,6 @@ import cn.cangnova.cangjie.lexer.CjSingleValueToken
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.lexer.CjTokens.AS_KEYWORD
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.parsing.hasIllegalUnderscore
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.resolve.*

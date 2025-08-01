@@ -24,8 +24,8 @@
 package cn.cangnova.cangjie.ide.stubindex
 
 
+import cn.cangnova.cangjie.name.*
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CangJiePsiHeuristics
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.psi.CjTypeReference

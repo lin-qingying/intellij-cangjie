@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.references
 
-import cn.cangnova.cangjie.name.FqName
 import com.intellij.psi.PsiElement
 
 /**

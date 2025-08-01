@@ -24,11 +24,9 @@
 
 package cn.cangnova.cangjie.builtins
 
-import cn.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.descriptors.NotFoundClasses
-import cn.cangnova.cangjie.name.FqNameUnsafe
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeConstructor

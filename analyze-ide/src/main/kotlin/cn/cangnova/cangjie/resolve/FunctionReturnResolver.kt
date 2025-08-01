@@ -34,7 +34,6 @@ import cn.cangnova.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
 import cn.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import cn.cangnova.cangjie.diagnostics.Errors.TYPE_MISMATCH_MULTIPLE_SUPERTYPES
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjBlockExpression
 import cn.cangnova.cangjie.psi.CjFunction
 import cn.cangnova.cangjie.psi.CjThisExpression
@@ -42,7 +41,6 @@ import cn.cangnova.cangjie.resolve.calls.CallResolver
 import cn.cangnova.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
 import cn.cangnova.cangjie.resolve.calls.util.CallMaker
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext
@@ -50,7 +48,6 @@ import cn.cangnova.cangjie.types.error.ErrorType
 import cn.cangnova.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
 import cn.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import cn.cangnova.cangjie.types.expressions.ExpressionTypingServices
-import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 
 
 //分析方法返回值

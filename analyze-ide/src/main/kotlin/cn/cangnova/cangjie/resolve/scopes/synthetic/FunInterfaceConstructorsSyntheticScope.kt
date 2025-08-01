@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.LookupTracker
 import cn.cangnova.cangjie.resolve.scopes.SyntheticScope
 import cn.cangnova.cangjie.resolve.scopes.SyntheticScopes
-import cn.cangnova.cangjie.storage.StorageManager
 
 
 class FunInterfaceConstructorsScopeProvider(

@@ -28,7 +28,6 @@ package cn.cangnova.cangjie.context
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.storage.ExceptionTracker
 import cn.cangnova.cangjie.storage.LockBasedStorageManager
-import cn.cangnova.cangjie.storage.StorageManager
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project

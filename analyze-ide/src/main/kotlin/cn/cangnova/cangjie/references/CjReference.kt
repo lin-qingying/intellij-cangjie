@@ -25,13 +25,11 @@
 package cn.cangnova.cangjie.references
 
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjElement
 import cn.cangnova.cangjie.psi.CjReferenceExpression
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.utils.slicedMap.ReadOnlySlice
 import cn.cangnova.cangjie.utils.slicedMap.Slices
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.impl.source.resolve.ResolveCache
 

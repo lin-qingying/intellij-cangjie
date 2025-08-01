@@ -23,8 +23,8 @@
  */
 
 package cn.cangnova.cangjie.psi.stubs.impl
+import cn.cangnova.cangjie.name.*
 
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjImportDirective
 import cn.cangnova.cangjie.psi.CjImportDirectiveItem
 import cn.cangnova.cangjie.psi.stubs.CangJieImportDirectiveItemStub

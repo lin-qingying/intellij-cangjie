@@ -24,6 +24,4 @@
 
 package cn.cangnova.cangjie.resolve.descriptorUtil
 
-import cn.cangnova.cangjie.name.FqName
-
 val ONLY_INPUT_TYPES_FQ_NAME = FqName("cangjie.internal.OnlyInputTypes")

@@ -31,7 +31,6 @@ import cn.cangnova.cangjie.descriptors.impl.CallableDescriptorForExtend
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import cn.cangnova.cangjie.resolve.scopes.BaseImportingScope

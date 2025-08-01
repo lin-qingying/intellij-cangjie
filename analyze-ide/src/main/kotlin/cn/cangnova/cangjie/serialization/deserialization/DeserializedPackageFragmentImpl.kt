@@ -29,11 +29,9 @@ import cn.cangnova.cangjie.descriptors.SourceElement
 import cn.cangnova.cangjie.metadata.ProtoBuf
 import cn.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import cn.cangnova.cangjie.metadata.deserialization.NameResolverImpl
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedContainerSource
 import cn.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedPackageMemberScope
-import cn.cangnova.cangjie.storage.StorageManager
 
 
 abstract class DeserializedPackageFragmentImpl(

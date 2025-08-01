@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.resolve.calls.inference.components
 
 import cn.cangnova.cangjie.resolve.calls.inference.isCaptured
 import cn.cangnova.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
-import cn.cangnova.cangjie.resolve.calls.inference.substitute
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.NewCapturedType
 import cn.cangnova.cangjie.types.checker.NewCapturedTypeConstructor

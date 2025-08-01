@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve
 
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.constants.ConstantValue
 import cn.cangnova.cangjie.resolve.constants.ErrorValue
 

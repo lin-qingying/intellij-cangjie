@@ -76,15 +76,12 @@ import cn.cangnova.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.caches.IdeaResolverForProject
 import cn.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import cn.cangnova.cangjie.resolve.descriptorUtil.resolveClassByFqName
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.storage.NotNullLazyValue
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.storage.getValue
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker

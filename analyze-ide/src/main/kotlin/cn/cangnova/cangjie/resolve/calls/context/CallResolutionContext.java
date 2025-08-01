@@ -38,7 +38,6 @@ import cn.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory;
 import cn.cangnova.cangjie.resolve.scopes.LexicalScope;
 import cn.cangnova.cangjie.types.CangJieType;
 import cn.cangnova.cangjie.types.expressions.ContextConfig;
-import cn.cangnova.cangjie.types.expressions.ProcessingMode;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -24,10 +24,6 @@
 
 package cn.cangnova.cangjie.types.checker
 
-import cn.cangnova.cangjie.builtins.PrimitiveType
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.model.*
 
 

@@ -37,7 +37,6 @@ import cn.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.resolve.BindingContext
 import cn.cangnova.cangjie.resolve.BindingContextUtils
@@ -50,7 +49,6 @@ import cn.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import cn.cangnova.cangjie.resolve.calls.util.CallMaker
 import cn.cangnova.cangjie.resolve.scopes.receivers.Receiver
 import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.util.TypeUtils
 import cn.cangnova.cangjie.types.util.replaceAnnotations

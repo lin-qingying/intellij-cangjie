@@ -27,7 +27,6 @@ package cn.cangnova.cangjie.resolve.scopes
 import cn.cangnova.cangjie.container.DefaultImplementation
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.synthetic.FunInterfaceConstructorsScopeProvider
 import cn.cangnova.cangjie.types.CangJieType
 

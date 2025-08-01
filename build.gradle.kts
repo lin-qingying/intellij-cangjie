@@ -507,7 +507,8 @@ project(":") {
         implementation(project(":messages"))
 //        implementation(project(":build-system"))
         implementation(project(":notifications"))
-        implementation(project(":state"))
+
+        implementation(project(":common"))
 
 //        implementation(project(":toolchain"))
 

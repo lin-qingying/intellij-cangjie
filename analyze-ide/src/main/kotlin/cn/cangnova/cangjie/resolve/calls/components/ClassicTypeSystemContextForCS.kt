@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.resolve.calls.components
 
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
-import cn.cangnova.cangjie.builtins.functions.FunctionTypeKind
 import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.resolve.calls.inference.components.ConstraintInjector
 import cn.cangnova.cangjie.resolve.calls.inference.components.EmptySubstitutor

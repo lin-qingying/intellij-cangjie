@@ -25,7 +25,6 @@
 package cn.cangnova.cangjie.references.util
 
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
-import cn.cangnova.cangjie.references.CjReferenceResolutionHelper
 import cn.cangnova.cangjie.resolve.DescriptorToSourceUtils
 import cn.cangnova.cangjie.utils.sequenceOfLazyValues
 import com.intellij.openapi.project.Project

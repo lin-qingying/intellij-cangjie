@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
 import cn.cangnova.cangjie.incremental.record
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjDeclaration
 import cn.cangnova.cangjie.resolve.lazy.ResolveSession
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter

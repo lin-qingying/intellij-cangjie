@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.descriptors.CallableDescriptor
 import cn.cangnova.cangjie.diagnostics.Errors
 import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.diagnostics.Severity
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.*
 import cn.cangnova.cangjie.resolve.TemporaryBindingTrace
 import cn.cangnova.cangjie.resolve.TraceEntryFilter

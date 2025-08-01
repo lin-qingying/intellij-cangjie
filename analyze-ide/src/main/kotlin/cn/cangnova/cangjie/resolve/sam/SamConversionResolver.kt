@@ -29,12 +29,9 @@ import cn.cangnova.cangjie.container.DefaultImplementation
 import cn.cangnova.cangjie.container.PlatformSpecificExtension
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.name.SpecialNames
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
 import cn.cangnova.cangjie.resolve.descriptorUtil.fqNameSafe
-import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.SimpleType
 

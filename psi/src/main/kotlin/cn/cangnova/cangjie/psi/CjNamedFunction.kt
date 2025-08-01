@@ -25,8 +25,6 @@
 package cn.cangnova.cangjie.psi
 
 import cn.cangnova.cangjie.lexer.CjTokens
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import cn.cangnova.cangjie.psi.stubs.CangJieFunctionStub
 import cn.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
@@ -36,6 +34,7 @@ import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.ItemPresentationProviders
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import cn.cangnova.cangjie.name.*
 
 /**
  * 来自扩展的方法

@@ -36,8 +36,6 @@ import cn.cangnova.cangjie.diagnostics.DiagnosticFactory1
 import cn.cangnova.cangjie.diagnostics.Errors
 import cn.cangnova.cangjie.diagnostics.reportOnDeclaration
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 

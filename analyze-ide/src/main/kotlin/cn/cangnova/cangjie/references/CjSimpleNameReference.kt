@@ -25,8 +25,6 @@
 package cn.cangnova.cangjie.references
 
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.CjLabelReferenceExpression
 import cn.cangnova.cangjie.psi.CjReferenceExpression

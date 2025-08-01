@@ -29,9 +29,7 @@ package cn.cangnova.cangjie.builtins
 //import cn.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
 //import cn.cangnova.cangjie.metadata.builtins.BuiltInsProtoBuf
 
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import cn.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import cn.cangnova.cangjie.contracts.ContractDeserializer
 
@@ -40,18 +38,14 @@ import cn.cangnova.cangjie.descriptors.NotFoundClasses
 import cn.cangnova.cangjie.descriptors.PackageFragmentProvider
 import cn.cangnova.cangjie.descriptors.PackageFragmentProviderImpl
 import cn.cangnova.cangjie.incremental.components.LookupTracker
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.resolve.lazy.declarations.impl.AbstractPackageFragmentDescriptorBuiltlnImpl
 import cn.cangnova.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorBasicImpl
 import cn.cangnova.cangjie.resolve.sam.SamConversionResolverImpl
 import cn.cangnova.cangjie.serialization.deserialization.*
 import cn.cangnova.cangjie.serialization.deserialization.builtins.BuiltInsPackageFragmentImpl
-import cn.cangnova.cangjie.storage.StorageManager
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.InputStream
-import java.net.URL
-import java.nio.file.Path
 import java.util.*
 
 

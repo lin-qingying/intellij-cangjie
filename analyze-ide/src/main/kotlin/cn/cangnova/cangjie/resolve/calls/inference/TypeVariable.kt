@@ -24,12 +24,6 @@
 
 package cn.cangnova.cangjie.resolve.calls.inference
 
-import cn.cangnova.cangjie.builtins.CangJieBuiltIns
-import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.resolve.calls.inference.model.NewTypeVariable
-import cn.cangnova.cangjie.resolve.descriptorUtil.hasOnlyInputTypesAnnotation
-import cn.cangnova.cangjie.types.CangJieType
 interface CallHandle {
     object NONE : CallHandle
 }

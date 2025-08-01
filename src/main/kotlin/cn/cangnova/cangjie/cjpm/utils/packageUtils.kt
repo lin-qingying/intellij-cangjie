@@ -25,9 +25,8 @@
 package cn.cangnova.cangjie.cjpm.utils
 
 import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import kotlin.io.path.Path
+import cn.cangnova.cangjie.name.*
 
 import com.intellij.psi.PsiDirectory
 

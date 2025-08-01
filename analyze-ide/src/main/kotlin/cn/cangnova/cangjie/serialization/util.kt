@@ -24,9 +24,3 @@
 
 package cn.cangnova.cangjie.serialization
 
-import cn.cangnova.cangjie.descriptors.PackageFragmentDescriptor
-import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.incremental.components.LookupTracker
-import cn.cangnova.cangjie.incremental.recordPackageLookup
-import cn.cangnova.cangjie.name.Name
-

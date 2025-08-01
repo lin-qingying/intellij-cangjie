@@ -24,39 +24,3 @@
 
 package cn.cangnova.cangjie.serialization.deserialization
 
-import cn.cangnova.cangjie.descriptors.ModuleDescriptor
-import cn.cangnova.cangjie.descriptors.NotFoundClasses
-import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
-import cn.cangnova.cangjie.metadata.ProtoBuf
-import cn.cangnova.cangjie.metadata.deserialization.NameResolver
-import cn.cangnova.cangjie.metadata.deserialization.getExtensionOrNull
-import cn.cangnova.cangjie.resolve.constants.ConstantValue
-import cn.cangnova.cangjie.serialization.SerializerExtensionProtocol
-import cn.cangnova.cangjie.types.CangJieType
-
-class AnnotationAndConstantLoaderImpl(
-    module: ModuleDescriptor,
-    notFoundClasses: NotFoundClasses,
-    protocol: SerializerExtensionProtocol,
-) : AbstractAnnotationLoader<AnnotationDescriptor>(protocol),
-    AnnotationAndConstantLoader<AnnotationDescriptor, ConstantValue<*>> {
-    private val deserializer = AnnotationDeserializer(module, notFoundClasses)
-
-    override fun loadAnnotation(proto: ProtoBuf.Annotation, nameResolver: NameResolver): AnnotationDescriptor {
-        return deserializer.deserializeAnnotation(proto, nameResolver)
-    }
-
-    override fun loadPropertyConstant(container: ProtoContainer, proto: ProtoBuf.Property, expectedType: CangJieType): ConstantValue<*>? {
-        val value = proto.getExtensionOrNull(protocol.compileTimeValue) ?: return null
-        return deserializer.resolveValue(expectedType, value, container.nameResolver)
-    }
-
-    override fun loadAnnotationDefaultValue(
-        container: ProtoContainer,
-        proto: ProtoBuf.Property,
-        expectedType: CangJieType
-    ): ConstantValue<*>? {
-        // Implement this method to properly support Annotations Instantiation feature
-        return null
-    }
-}

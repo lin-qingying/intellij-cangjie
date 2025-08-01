@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.descriptors.ModuleInfo
 import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.config.LanguageVersionSettings
 import cn.cangnova.cangjie.container.StorageComponentContainer
-import cn.cangnova.cangjie.name.FqName
 
 interface PlatformConfigurator {
     val platformSpecificContainer: StorageComponentContainer

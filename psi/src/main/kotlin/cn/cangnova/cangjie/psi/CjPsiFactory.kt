@@ -23,11 +23,11 @@
  */
 
 package cn.cangnova.cangjie.psi
+import cn.cangnova.cangjie.name.*
 
 import cn.cangnova.cangjie.lang.CangJieFileType
 import cn.cangnova.cangjie.lexer.CjKeywordToken
 import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
-import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.utils.exceptions.checkWithAttachment
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key

@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.ide.stubindex
 
-import cn.cangnova.cangjie.name.FqName
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.ThrowableComputable
@@ -36,6 +35,7 @@ import com.intellij.util.io.KeyDescriptor
 import java.io.DataInput
 import java.io.DataOutput
 import java.util.*
+import cn.cangnova.cangjie.name.*
 
 fun hasSomethingInPackage(indexId: ID<FqName, Void>, fqName: FqName, scope: GlobalSearchScope): Boolean {
     return DumbModeAccessType.RELIABLE_DATA_ONLY.ignoreDumbMode(ThrowableComputable {

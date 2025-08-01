@@ -31,8 +31,6 @@ import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
 import cn.cangnova.cangjie.context.ProjectContext
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.caches.ModuleContent
 import cn.cangnova.cangjie.utils.CangJieExceptionWithAttachments
 import cn.cangnova.cangjie.utils.checkWithAttachment

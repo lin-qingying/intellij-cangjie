@@ -24,14 +24,6 @@
 
 package cn.cangnova.cangjie.types
 
-import cn.cangnova.cangjie.builtins.CangJieBuiltIns
-import cn.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import cn.cangnova.cangjie.descriptors.FunctionDescriptor
-import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
-import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import cn.cangnova.cangjie.types.util.TypeUtils
-
 
 //class StarProjectionImpl(
 //    private val typeParameter: TypeParameterDescriptor
