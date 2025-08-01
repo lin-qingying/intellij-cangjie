@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,19 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.descriptors
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+class InvalidModuleException(message: String) : IllegalStateException(message)
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+interface InvalidModuleNotifier {
+    fun notifyModuleInvalidated(moduleDescriptor: ModuleDescriptor)
+}
+
+fun ModuleDescriptor.moduleInvalidated() {
+    val capability = getCapability(INVALID_MODULE_NOTIFIER_CAPABILITY)
+    capability?.notifyModuleInvalidated(this) ?: run {
+        throw InvalidModuleException("Accessing invalid module descriptor $this")
+    }
+}
+
+val INVALID_MODULE_NOTIFIER_CAPABILITY = ModuleCapability<InvalidModuleNotifier>("InvalidModuleNotifier")

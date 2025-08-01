@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,23 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.types
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+import cn.cangnova.cangjie.builtins.CangJieBuiltIns
+import cn.cangnova.cangjie.descriptors.SourceElement
+import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
+import cn.cangnova.cangjie.resolve.constants.ConstantValue
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+class BuiltInAnnotationDescriptor(
+    private val builtIns: CangJieBuiltIns,
+    override val fqName: FqName,
+    override val allValueArguments: Map<Name, ConstantValue<*>>,
+    val forcePropagationDeprecationToOverrides: Boolean = false,
+) : AnnotationDescriptor {
+    override val type: CangJieType by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        builtIns.getBuiltInClassByFqName(fqName).defaultType
+    }
+
+    override val source: SourceElement
+        get() = SourceElement.NO_SOURCE
+}

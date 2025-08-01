@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,16 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors
 
-package cn.cangnova.cangjie.types.model
+interface MemberDescriptor : DeclarationDescriptorNonRoot, DeclarationDescriptorWithVisibility {
+    val  modality: Modality
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+    override val visibility: DescriptorVisibility
+
+
+    val isUnsafe: Boolean
+        get() = false //
+
+}

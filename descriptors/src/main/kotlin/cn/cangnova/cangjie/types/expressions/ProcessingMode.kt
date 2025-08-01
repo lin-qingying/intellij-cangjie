@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,28 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.types.expressions
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+import com.intellij.psi.PsiElement
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+enum class ProcessingMode {
+    CHILD,       // 子类处理
+
+    PARENT,      // 父类处理
+    DEFAULT       // 默认值（正常处理）
+}
+
+data class ContextConfig(
+    val processingMode: ProcessingMode = ProcessingMode.DEFAULT,
+
+
+    ) {
+    var addVariableDescriptor: MutableMap<PsiElement,MutableList< (context: Any) -> Unit>> = mutableMapOf()
+    var getEnumEntryType = false
+    var isDotEnumGetType:Boolean = false
+
+    companion object {
+        @JvmField
+        val DEFAULT = ContextConfig()
+    }
+}

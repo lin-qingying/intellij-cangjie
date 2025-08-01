@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,21 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.types
 
-package cn.cangnova.cangjie.types.model
+import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import cn.cangnova.cangjie.types.model.TypeArgumentMarker
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+interface TypeProjection : TypeArgumentMarker {
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+    val projectionKind: Variance
+
+
+    val type: CangJieType
+
+    //    boolean isStarProjection();
+    @TypeRefinement
+    fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeProjection
+
+    fun replaceType(type: CangJieType): TypeProjection
+}

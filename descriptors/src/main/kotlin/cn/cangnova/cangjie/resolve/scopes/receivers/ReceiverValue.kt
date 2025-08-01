@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,14 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.resolve.scopes.receivers
 
-package cn.cangnova.cangjie.types.model
+import cn.cangnova.cangjie.types.CangJieType
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+interface ReceiverValue : Receiver {
+    val type: CangJieType
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+    fun replaceType(newType: CangJieType): ReceiverValue
+
+    val original: ReceiverValue
+}

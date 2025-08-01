@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,28 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.descriptors.library
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+import cn.cangnova.cangjie.descriptors.PackageFragmentDescriptor
+import cn.cangnova.cangjie.descriptors.PackageFragmentProviderOptimized
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+class CangJieLibraryPackageFragmentProvider: PackageFragmentProviderOptimized {
+    override fun collectPackageFragments(
+        fqName: FqName,
+        packageFragments: MutableCollection<PackageFragmentDescriptor>
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override fun isEmpty(fqName: FqName): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
+        TODO("Not yet implemented")
+    }
+
+    override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
+        TODO("Not yet implemented")
+    }
+}

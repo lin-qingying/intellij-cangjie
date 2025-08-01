@@ -21,11 +21,3 @@
  * any damages or issues arising from its use.
  *
  */
-
-package cn.cangnova.cangjie.types.model
-
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
-
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }

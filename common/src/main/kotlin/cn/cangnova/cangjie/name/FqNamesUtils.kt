@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.name
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+fun FqName.parentOrNull(): FqName? = if (this.isRoot) null else parent()
+
+
+fun FqName.isOneSegmentFQN(): Boolean = !isRoot && parent().isRoot
+fun FqName.isChildOf(packageName: FqName): Boolean = parentOrNull() == packageName

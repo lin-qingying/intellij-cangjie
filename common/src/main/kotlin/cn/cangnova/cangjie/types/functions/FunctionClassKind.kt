@@ -22,10 +22,19 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.types.functions
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+enum class FunctionClassKind {
+    Function,
+
+    UNKNOWN;
+
+    companion object {
+        fun getFunctionClassKind(functionTypeKind: FunctionTypeKind): FunctionClassKind = when (functionTypeKind) {
+            FunctionTypeKind.Function -> Function
+
+            else -> UNKNOWN
+        }
+    }
+}

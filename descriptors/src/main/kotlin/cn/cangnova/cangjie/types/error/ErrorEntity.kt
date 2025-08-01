@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,15 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.types.error
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
-
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+enum class ErrorEntity(val debugText: String) {
+    ERROR_CLASS("<Error class: %s>"),
+    ERROR_FUNCTION("<Error function>"),
+    ERROR_SCOPE("<Error scope>"),
+    ERROR_MODULE("<Error module>"),
+    ERROR_PROPERTY("<Error property>"),
+    ERROR_VARIABLE("<Error variable>"),
+    ERROR_TYPE("[Error type: %s]"),
+    PARENT_OF_ERROR_SCOPE("<Fake parent for error lexical scope>"),
+}

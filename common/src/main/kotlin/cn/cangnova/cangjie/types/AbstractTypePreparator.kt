@@ -22,10 +22,16 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.types
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+import cn.cangnova.cangjie.types.model.CangJieTypeMarker
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+abstract class AbstractTypePreparator {
+    abstract fun prepareType(type: CangJieTypeMarker): CangJieTypeMarker
+
+    object Default : AbstractTypePreparator() {
+        override fun prepareType(type: CangJieTypeMarker): CangJieTypeMarker {
+            return type
+        }
+    }
+}

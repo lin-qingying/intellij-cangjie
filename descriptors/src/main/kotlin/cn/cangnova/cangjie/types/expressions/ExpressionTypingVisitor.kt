@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,17 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.types.expressions
 
-package cn.cangnova.cangjie.types.model
+import cn.cangnova.cangjie.psi.CjVisitor
+import cn.cangnova.cangjie.types.CangJieTypeInfo
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+abstract class ExpressionTypingVisitor protected constructor(@JvmField protected val facade: ExpressionTypingInternals) :
+    CjVisitor<CangJieTypeInfo, ExpressionTypingContext>() {
+    @JvmField
+    protected val components: ExpressionTypingComponents
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+    init {
+        this.components = facade.getComponents()
+    }
+}

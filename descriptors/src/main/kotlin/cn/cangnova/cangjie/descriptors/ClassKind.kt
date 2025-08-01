@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,33 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.descriptors
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+enum class ClassKind(val codeRepresentation: String?) {
+    STRUCT("struct"),
+    CLASS("class"),
+    INTERFACE("interface"),
+    TUPLE("tuple"),
+    ENUM("enum"),
+    EXTEND("extend"),
+    ENUM_ENTRY(null),
+    BASIC(null);
+
+    val isStruct: Boolean
+        get() = this == STRUCT
+    val isEnumEntry: Boolean
+        get() = this == ENUM_ENTRY
+    val isObject: Boolean
+        get() =  isEnumEntry
+    val isEnum: Boolean
+        get() = this == ENUM || this == ENUM_ENTRY
+
+    val isSingleton: Boolean
+        get() =  this == ENUM_ENTRY
+}
+inline val ClassKind.isInterface: Boolean
+    get() = this == ClassKind.INTERFACE
+
+inline val ClassKind.isClass: Boolean
+    get() = this == ClassKind.CLASS

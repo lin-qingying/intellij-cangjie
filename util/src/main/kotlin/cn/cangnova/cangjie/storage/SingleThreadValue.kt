@@ -21,11 +21,32 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.storage
 
-package cn.cangnova.cangjie.types.model
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+/**
+ * A storage for the value that should exist and be accessible in the single thread.
+ *
+ *
+ * Unlike ThreadLocal, thread doesn't store a reference to the value that makes it inaccessible globally, but simplifies memory
+ * management.
+ *
+ *
+ * The other difference from ThreadLocal is inability to have different values per each thread, so SingleThreadValue instance
+ * should be protected with external lock from rewrites.
+ *
+ * @param <T>
+</T> */
+internal class SingleThreadValue<T>(  val value: T) {
+    private val thread: Thread
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+    init {
+        thread = Thread.currentThread()
+    }
+
+    fun hasValue(): Boolean {
+        return thread === Thread.currentThread()
+    }
+
+
+}

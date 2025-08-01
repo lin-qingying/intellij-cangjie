@@ -22,10 +22,25 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.descriptors
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+// For sealed classes, isOverridable is false but isOverridableByMembers is true
+enum class Modality {
+    // THE ORDER OF ENTRIES MATTERS HERE
+    FINAL,
+    // NB: class can be sealed but not function or property
+    SEALED,
+    OPEN,
+    ABSTRACT;
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+    companion object {
+        fun convertFromFlags(sealed: Boolean, abstract: Boolean, open: Boolean): Modality {
+            return when {
+                sealed -> SEALED
+                abstract -> ABSTRACT
+                open -> OPEN
+                else -> FINAL
+            }
+        }
+    }
+}

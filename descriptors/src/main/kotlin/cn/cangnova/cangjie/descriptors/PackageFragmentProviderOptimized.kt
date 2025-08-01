@@ -22,10 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.descriptors
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+import cn.cangnova.cangjie.name.FqName
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+interface PackageFragmentProviderOptimized : PackageFragmentProvider {
+    fun collectPackageFragments(fqName: FqName, packageFragments: Collection<PackageFragmentDescriptor>)
+    fun isEmpty(fqName: FqName): Boolean
+}

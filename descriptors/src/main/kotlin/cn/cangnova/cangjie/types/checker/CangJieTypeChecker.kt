@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,26 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.types.checker
 
-package cn.cangnova.cangjie.types.model
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.TypeConstructor
+import cn.cangnova.cangjie.types.checker.NewCangJieTypeChecker.Companion.Default
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+interface CangJieTypeChecker {
+    interface TypeConstructorEquality {
+        fun equals(a: TypeConstructor, b: TypeConstructor): Boolean
+    }
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+    /**
+     * 比较两个类型，但是不比较泛型
+     */
+    fun equalsIgnoringGenerics(a: CangJieType, b: CangJieType): Boolean
+
+    fun isSubtypeOf(subtype: CangJieType, supertype: CangJieType): Boolean
+    fun equalTypes(a: CangJieType, b: CangJieType): Boolean
+
+    companion object {
+        val DEFAULT: CangJieTypeChecker = Default
+    }
+}

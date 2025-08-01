@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,27 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.types.checker
 
-package cn.cangnova.cangjie.types.model
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.TypeConstructor
+import cn.cangnova.cangjie.types.TypeProjection
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+/**
+ * Methods of this class return true to continue type checking and false to fail
+ */
+interface TypeCheckingProcedureCallbacks {
+    fun assertEqualTypes(a: CangJieType, b: CangJieType, typeCheckingProcedure: TypeCheckingProcedure): Boolean
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+    fun assertEqualTypeConstructors(a: TypeConstructor, b: TypeConstructor): Boolean
+
+    fun assertSubtype(
+        subtype: CangJieType,
+        supertype: CangJieType,
+        typeCheckingProcedure: TypeCheckingProcedure
+    ): Boolean
+
+    fun capture(type: CangJieType, typeProjection: TypeProjection): Boolean
+
+    fun noCorrespondingSupertype(subtype: CangJieType, supertype: CangJieType): Boolean
+}

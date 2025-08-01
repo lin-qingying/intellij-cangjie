@@ -22,10 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.types
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
-
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+enum class EmptyIntersectionTypeKind(val description: String, val isDefinitelyEmpty: Boolean) {
+    MULTIPLE_CLASSES("multiple incompatible classes", isDefinitelyEmpty = true),
+    FINAL_CLASS_AND_INTERFACE("final class and interface", isDefinitelyEmpty = false)
+}

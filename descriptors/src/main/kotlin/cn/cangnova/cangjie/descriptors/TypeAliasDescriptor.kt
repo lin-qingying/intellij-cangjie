@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,26 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.descriptors
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+import cn.cangnova.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
+import cn.cangnova.cangjie.types.SimpleType
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+
+interface TypeAliasDescriptor : ClassifierDescriptorWithTypeParameters {
+    /// Right-hand side of the type alias definition.
+    /// May contain type aliases.
+    val underlyingType: SimpleType
+
+    /// Fully expanded type with non-substituted type parameters.
+    /// May not contain type aliases.
+    val expandedType: SimpleType
+
+    val classDescriptor: ClassDescriptor?
+
+
+    override val original: TypeAliasDescriptor
+
+
+    val constructors: Collection<TypeAliasConstructorDescriptor>
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,33 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.types
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+enum class Variance(
+    val label: String,
+    val allowsInPosition: Boolean,
+    val allowsOutPosition: Boolean,
+    private val superpositionFactor: Int
+) {
+    INVARIANT("", true, true, 0),
+
+    ;
+
+
+    fun superpose(other: Variance): Variance {
+        return when (val r = this.superpositionFactor * other.superpositionFactor) {
+            0 -> INVARIANT
+
+            else -> throw IllegalStateException("Illegal factor: $r")
+        }
+    }
+
+    fun opposite(): Variance {
+        return when (this) {
+            INVARIANT -> INVARIANT
+        }
+    }
+
+    override fun toString() = label
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,26 @@
  *
  */
 
-package cn.cangnova.cangjie.types.model
+package cn.cangnova.cangjie.resolve
 
-fun CangJieTypeMarker.typeConstructor(context: TypeSystemContext): TypeConstructorMarker =
-    with(context) { typeConstructor() }
+import cn.cangnova.cangjie.descriptors.CallableMemberDescriptor
+import cn.cangnova.cangjie.descriptors.DescriptorVisibilities
 
-fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(context: TypeSystemContext): Boolean =
-    with(context) { isIntegerLiteralTypeConstructor() }
+fun findMemberWithMaxVisibility(descriptors: Collection<CallableMemberDescriptor>): CallableMemberDescriptor {
+    assert(descriptors.isNotEmpty())
+
+    var descriptor: CallableMemberDescriptor? = null
+    for (candidate in descriptors) {
+        if (descriptor == null) {
+            descriptor = candidate
+            continue
+        }
+
+        val result = DescriptorVisibilities.compare(descriptor.visibility, candidate.visibility)
+        if (result != null && result < 0) {
+            descriptor = candidate
+        }
+    }
+    return descriptor!!
+}
+

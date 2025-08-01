@@ -25,9 +25,11 @@
 package cn.cangnova.cangjie.types.model
 
 
-import cn.cangnova.cangjie.resolve.caches.EmptyIntersectionTypeChecker
-import cn.cangnova.cangjie.resolve.calls.inference.EmptyIntersectionTypeInfo
+import cn.cangnova.cangjie.resolve.checkers.EmptyIntersectionTypeChecker
+import cn.cangnova.cangjie.resolve.checkers.EmptyIntersectionTypeInfo
 import cn.cangnova.cangjie.types.TypeCheckerState
+import cn.cangnova.cangjie.types.Variance
+import cn.cangnova.cangjie.types.functions.FunctionTypeKind
 
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -370,7 +372,7 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
      */
     fun CangJieTypeMarker.convertToNonRaw(): CangJieTypeMarker
 
-    @COnly
+
     fun createSubstitutionFromSubtypingStubTypesToTypeVariables(): TypeSubstitutorMarker
 
 //    fun createCapturedStarProjectionForSelfType(
@@ -576,7 +578,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeArgumentListMarker.size(): Int {
         return when (this) {
             is SimpleTypeMarker -> argumentsCount()
-            is ArgumentList -> java.util.ArrayList.size
+            is ArgumentList ->  size
             else -> error("unknown type argument list type: $this, ${this::class}")
         }
     }
@@ -666,8 +668,7 @@ fun requireOrDescribe(condition: Boolean, value: Any?) {
 @RequiresOptIn("This kinds of type is obsolete and should not be used until you really need it")
 annotation class ObsoleteTypeKind
 
-@RequiresOptIn
-annotation class COnly
+
 
 fun Variance.convertVariance(): TypeVariance {
     return when (this) {
