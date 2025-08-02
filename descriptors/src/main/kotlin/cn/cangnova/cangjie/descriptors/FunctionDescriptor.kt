@@ -100,13 +100,13 @@ interface FunctionDescriptor : CallableMemberDescriptor {
 
         override fun setName(name: Name): CopyBuilder<D>
 
-        fun setValueParameters(parameters: MutableList<ValueParameterDescriptor>): CopyBuilder<D>
+        fun setValueParameters(parameters: Collection<ValueParameterDescriptor>): CopyBuilder<D>
 
-        override fun setTypeParameters(parameters: MutableList<TypeParameterDescriptor>): CopyBuilder<D>
+        override fun setTypeParameters(parameters: Collection<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<D>
 
         override fun setReturnType(type: CangJieType): CopyBuilder<D>
 
-        fun setContextReceiverParameters(contextReceiverParameters: MutableList<ReceiverParameterDescriptor>): CopyBuilder<D>
+        fun setContextReceiverParameters(contextReceiverParameters: Collection<ReceiverParameterDescriptor>): CopyBuilder<D>
 
         fun setExtensionReceiverParameter(extensionReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
 

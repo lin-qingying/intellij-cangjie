@@ -21,168 +21,87 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors.impl
 
-package cn.cangnova.cangjie.descriptors.impl;
+import cn.cangnova.cangjie.descriptors.*
+import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.resolve.scopes.InstanceMemberScope
+import cn.cangnova.cangjie.resolve.scopes.MemberScope
+import cn.cangnova.cangjie.resolve.scopes.StaticMemberScope
+import cn.cangnova.cangjie.storage.StorageManager
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.ClassTypeConstructorImpl
+import cn.cangnova.cangjie.types.TypeConstructor
+import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 
-import cn.cangnova.cangjie.descriptors.*;
-import cn.cangnova.cangjie.descriptors.annotations.Annotations;
-import cn.cangnova.cangjie.name.Name;
-import cn.cangnova.cangjie.resolve.scopes.InstanceMemberScope;
-import cn.cangnova.cangjie.resolve.scopes.MemberScope;
-import cn.cangnova.cangjie.resolve.scopes.StaticMemberScope;
-import cn.cangnova.cangjie.storage.StorageManager;
-import cn.cangnova.cangjie.types.*;
-import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner;
+open class ClassDescriptorImpl(
+    containingDeclaration: DeclarationDescriptor,
+    name: Name,
+    override val modality: Modality,
+    override val kind: ClassKind,
+    supertypes: MutableCollection<CangJieType?>,
+    source: SourceElement,
+    isExternal: Boolean,
+    storageManager: StorageManager
+) : ClassDescriptorBase(storageManager, containingDeclaration, name, source) {
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+    override val typeConstructor: TypeConstructor =
+        ClassTypeConstructorImpl(this, mutableListOf(), supertypes, storageManager)
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+    override lateinit var unsubstitutedMemberScope: MemberScope
+    override lateinit var constructors: MutableSet<ClassConstructorDescriptor>
+    override var unsubstitutedPrimaryConstructor: ClassConstructorDescriptor? = null
 
-public class ClassDescriptorImpl extends ClassDescriptorBase {
-    private final Modality modality;
-    private final ClassKind kind;
-    private final TypeConstructor typeConstructor;
+    override lateinit var endConstructors: MutableSet<ClassConstructorDescriptor>
 
-    private MemberScope unsubstitutedMemberScope;
-    private Set<ClassConstructorDescriptor> constructors;
-    private ClassConstructorDescriptor primaryConstructor;
-    private Set<ClassConstructorDescriptor> endConstructors;
+    init {
+        assert(modality != Modality.SEALED) { "Implement getSealedSubclasses() for this class: " + javaClass }
 
-    public ClassDescriptorImpl(
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @NotNull Name name,
-            @NotNull Modality modality,
-            @NotNull ClassKind kind,
-            @NotNull Collection<CangJieType> supertypes,
-            @NotNull SourceElement source,
-            boolean isExternal,
-            @NotNull StorageManager storageManager
+
+    }
+
+    public override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
+        return unsubstitutedMemberScope
+    }
+
+    fun initialize(
+        unsubstitutedMemberScope: MemberScope,
+        constructors: MutableSet<ClassConstructorDescriptor>,
+        primaryConstructor: ClassConstructorDescriptor?,
+        endConstructors: MutableSet<ClassConstructorDescriptor>
     ) {
-        super(storageManager, containingDeclaration, name, source, isExternal);
-        assert modality != Modality.SEALED : "Implement getSealedSubclasses() for this class: " + getClass();
-        this.modality = modality;
-        this.kind = kind;
-
-        this.typeConstructor = new ClassTypeConstructorImpl(this, Collections.emptyList(), supertypes, storageManager);
-    }
-    @NotNull
-    @Override
-    public MemberScope getUnsubstitutedMemberScope(@NotNull CangJieTypeRefiner cangjieTypeRefiner) {
-        return unsubstitutedMemberScope;
-    }
-    public final void initialize(
-            @NotNull MemberScope unsubstitutedMemberScope,
-            @NotNull Set<ClassConstructorDescriptor> constructors,
-            @Nullable ClassConstructorDescriptor primaryConstructor,
-            @NotNull Set<ClassConstructorDescriptor> endConstructors
-    ) {
-        this.unsubstitutedMemberScope = unsubstitutedMemberScope;
-        this.constructors = constructors;
-        this.primaryConstructor = primaryConstructor;
-        this.endConstructors = endConstructors;
-    }
-
-    @Override
-    public ClassConstructorDescriptor getUnsubstitutedPrimaryConstructor() {
-        return primaryConstructor;
+        this.unsubstitutedMemberScope = unsubstitutedMemberScope
+        this.constructors = constructors
+        this.unsubstitutedPrimaryConstructor = primaryConstructor
+        this.endConstructors = endConstructors
     }
 
 
+    override val staticScope: MemberScope
+        get() = StaticMemberScope(unsubstitutedMemberScope)
 
-    @Override
-    public @NotNull MemberScope getUnsubstitutedMemberScope() {
-        return unsubstitutedMemberScope;
+    override val instanceScope: MemberScope
+        get() = InstanceMemberScope(unsubstitutedMemberScope)
 
+
+    override val visibility: DescriptorVisibility
+        get() = DescriptorVisibilities.PUBLIC
+
+
+    override fun toString(): String {
+        return "class " + name
     }
 
-    @Override
-    public @NotNull MemberScope getStaticScope() {
-        return new StaticMemberScope(unsubstitutedMemberScope);
-    }
+    override val declaredTypeParameters: MutableList<TypeParameterDescriptor>
+        get() = mutableListOf()
 
-    @Override
-    public @NotNull MemberScope getInstanceScope() {
-        return new InstanceMemberScope(unsubstitutedMemberScope);
-    }
-
-    @Override
-    public @NotNull Collection<ClassConstructorDescriptor> getConstructors() {
-        return constructors;
-
-    }
-
-    @Override
-    @NotNull
-    public Set<ClassConstructorDescriptor> getEndConstructors() {
-        return endConstructors;
-    }
-
-    @Override
-    public @NotNull ClassKind getKind() {
-        return kind;
-    }
-
-    @Override
-    @NotNull
-    public Modality getModality() {
-        return modality;
-    }
-
-    @NotNull
-    @Override
-    public DescriptorVisibility getVisibility() {
-        return DescriptorVisibilities.PUBLIC;
-
-
-    }
-
-    @Override
-    public boolean isFun() {
-        return false;
-    }
-
-    @Override
-    public boolean isValue() {
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return "class " + getName();
-    }
-
-    @NotNull
-    @Override
-    public List<TypeParameterDescriptor> getDeclaredTypeParameters() {
-        return Collections.emptyList();
-    }
-
-    @NotNull
-    @Override
-    public Collection<ClassDescriptor> getSealedSubclasses() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public @NotNull TypeConstructor getTypeConstructor() {
-        return typeConstructor;
-
+    override fun getSealedSubclasses(): MutableCollection<ClassDescriptor> {
+        return mutableListOf()
     }
 
 
-
-    @NotNull
-    @Override
-    public Annotations getAnnotations() {
-        return Annotations.EMPTY;
-    }
-
-
-
-
+    override val annotations: Annotations
+        get() = Annotations.EMPTY
 }

@@ -45,7 +45,7 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
 
     val unsubstitutedMemberScope: MemberScope
 
-    val unsubstitutedInnerClassesScope: MemberScope
+//    val unsubstitutedInnerClassesScope: MemberScope
 
     val instanceScope: MemberScope
         get() = MemberScope.Empty
@@ -74,7 +74,7 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
     val kind: ClassKind
 
 
-    override var modality: Modality
+    override val modality: Modality
 
     override val visibility: DescriptorVisibility
 
@@ -82,7 +82,7 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
 
 
 
-    fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor?
+    val  unsubstitutedPrimaryConstructor : ClassConstructorDescriptor?
 
     /**
      * It may differ from 'typeConstructor.parameters' in current class is inner, 'typeConstructor.parameters' contains

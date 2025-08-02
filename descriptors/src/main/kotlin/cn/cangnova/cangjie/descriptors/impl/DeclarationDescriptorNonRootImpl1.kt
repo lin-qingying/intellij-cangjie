@@ -29,6 +29,7 @@ import cn.cangnova.cangjie.descriptors.DeclarationDescriptorNonRoot
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptorWithSource
 import cn.cangnova.cangjie.descriptors.SourceElement
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
 
 abstract class DeclarationDescriptorNonRootImpl protected constructor(
     override val containingDeclaration: DeclarationDescriptor,

@@ -26,6 +26,7 @@ package cn.cangnova.cangjie.descriptors.macro
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.ErrorUtils
 import cn.cangnova.cangjie.types.TypeSubstitution
@@ -72,7 +73,7 @@ class ErrorMacroDescriptor(containingDeclaration: ClassDescriptor) : MacroDescri
 
 
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
-        object : FunctionDescriptor.CopyBuilder<MacroDescriptor > {
+        object : FunctionDescriptor.CopyBuilder<MacroDescriptor> {
             override fun setOwner(owner: DeclarationDescriptor): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
                 this
 
@@ -93,23 +94,22 @@ class ErrorMacroDescriptor(containingDeclaration: ClassDescriptor) : MacroDescri
                 this
 
             override fun setValueParameters(
-                parameters: List<ValueParameterDescriptor>
+                parameters: Collection<ValueParameterDescriptor>
             ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
 
             override fun <V> putUserData(
-                userDataKey: CallableDescriptor.UserDataKey<V>, value: V
+                userDataKey: CallableDescriptor.UserDataKey<V>, value: V?
             ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
 
             override fun setTypeParameters(
-                parameters: List<TypeParameterDescriptor>
+                parameters: Collection<TypeParameterDescriptor>
             ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
 
             override fun setReturnType(type: CangJieType): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
                 this
 
-            override fun setContextReceiverParameters(
-                contextReceiverParameters: List<ReceiverParameterDescriptor>
-            ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
+            override fun setContextReceiverParameters(contextReceiverParameters: Collection<ReceiverParameterDescriptor>): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
+                this
 
             override fun setExtensionReceiverParameter(
                 extensionReceiverParameter: ReceiverParameterDescriptor?
@@ -141,8 +141,7 @@ class ErrorMacroDescriptor(containingDeclaration: ClassDescriptor) : MacroDescri
         }
 
 
-
     //    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? = null
-    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor?>) {}
+//    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor?>) {}
     override fun <V : Any?> getUserData(key: CallableDescriptor.UserDataKey<V>?): V? = null
 }

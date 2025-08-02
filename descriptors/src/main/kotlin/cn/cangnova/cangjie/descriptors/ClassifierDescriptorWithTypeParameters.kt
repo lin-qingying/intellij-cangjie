@@ -27,11 +27,7 @@ interface ClassifierDescriptorWithTypeParameters
 
     : ClassifierDescriptor, DeclarationDescriptorWithVisibility, MemberDescriptor,
     Substitutable<ClassifierDescriptorWithTypeParameters> {
-    val isInner: Boolean
-        /**
-         * @return `true` if this class contains a reference to its outer class (as opposed to static nested class)
-         */
-        get() = false
+
 
 
     val declaredTypeParameters: Collection<TypeParameterDescriptor>

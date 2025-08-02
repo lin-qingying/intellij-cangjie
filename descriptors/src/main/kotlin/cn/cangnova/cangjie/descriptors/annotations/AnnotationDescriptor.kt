@@ -26,7 +26,11 @@ package cn.cangnova.cangjie.descriptors.annotations
 
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.descriptors.SourceElement
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.FqNameUnsafe
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
+import cn.cangnova.cangjie.resolve.annotationClass
 import cn.cangnova.cangjie.resolve.constants.ConstantValue
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.ErrorUtils

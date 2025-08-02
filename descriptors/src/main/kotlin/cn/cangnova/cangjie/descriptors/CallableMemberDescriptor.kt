@@ -155,7 +155,7 @@ interface CallableMemberDescriptor : CallableDescriptor, MemberDescriptor {
          * @param parameters 新描述符的类型参数列表。
          * @return 当前生成器实例。
          */
-        fun setTypeParameters(parameters: MutableList<TypeParameterDescriptor>): CopyBuilder<D>
+        fun setTypeParameters(parameters: Collection<TypeParameterDescriptor>): CopyBuilder<D>
 
         /**
          * 设置新描述符的调度接收参数。

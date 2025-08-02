@@ -26,17 +26,16 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.DescriptorUtils
-import cn.cangnova.cangjie.resolve.scopes.*
+import cn.cangnova.cangjie.resolve.getCangJieTypeRefiner
+import cn.cangnova.cangjie.resolve.scopes.MemberScope
+import cn.cangnova.cangjie.resolve.scopes.SubstitutingScope
 import cn.cangnova.cangjie.storage.NotNullLazyValue
 import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.CangJieTypeFactory.computeExpandedType
+import cn.cangnova.cangjie.types.TypeUtils.makeUnsubstitutedType
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.psi.PsiDocumentManager
-import java.util.*
 
 /**
  * 抽象类描述符基类
@@ -48,48 +47,53 @@ abstract class AbstractClassDescriptor(
     override val name: Name
 ) : ModuleAwareClassDescriptor() {
 
+    @OptIn(TypeRefinement::class)
     protected val _defaultType: NotNullLazyValue<SimpleType> = storageManager.createLazyValue {
         TypeUtils.makeUnsubstitutedType(
             this, unsubstitutedMemberScope,
-            { cangjieTypeRefiner ->
-                val descriptor = cangjieTypeRefiner.refineDescriptor(this@AbstractClassDescriptor)
-                // If we've refined descriptor
-                if (descriptor == null) return@makeUnsubstitutedType _defaultType.invoke()
 
-                if (descriptor is TypeAliasDescriptor) {
-                    return@makeUnsubstitutedType descriptor.computeExpandedType(
-                        TypeUtils.getDefaultTypeProjections(descriptor.typeConstructor.parameters)
-                    )
+            object : (CangJieTypeRefiner) -> SimpleType? {
+                override fun invoke(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType? {
+                    val descriptor = cangjieTypeRefiner.refineDescriptor(this@AbstractClassDescriptor)
+                    // If we've refined descriptor
+                    if (descriptor == null) return _defaultType.invoke()
+
+                    if (descriptor is TypeAliasDescriptor) {
+                        return descriptor.computeExpandedType(
+                            TypeUtils.getDefaultTypeProjections(descriptor.typeConstructor.parameters)
+                        )
+                    }
+
+                    if (descriptor is ModuleAwareClassDescriptor) {
+                        val refinedConstructor = descriptor.typeConstructor.refine(cangjieTypeRefiner)
+                        return makeUnsubstitutedType(
+                            refinedConstructor,
+                            descriptor.getUnsubstitutedMemberScope(cangjieTypeRefiner),
+                            this
+
+                        )
+                    }
+
+                    return descriptor.defaultType
                 }
 
-                if (descriptor is ModuleAwareClassDescriptor) {
-                    val refinedConstructor = descriptor.typeConstructor.refine(cangjieTypeRefiner)
-                    return@makeUnsubstitutedType TypeUtils.makeUnsubstitutedType(
-                        refinedConstructor,
-                        descriptor.getUnsubstitutedMemberScope(cangjieTypeRefiner),
-                        this
-                    )
-                }
-
-                descriptor.defaultType
             }
+
+
         )
     }
 
-    private val _unsubstitutedInnerClassesScope: NotNullLazyValue<MemberScope> = storageManager.createLazyValue {
-        InnerClassesScopeWrapper(unsubstitutedMemberScope)
-    }
+//    private val _unsubstitutedInnerClassesScope: NotNullLazyValue<MemberScope> = storageManager.createLazyValue {
+//        InnerClassesScopeWrapper(unsubstitutedMemberScope)
+//    }
 
-    private val thisAsReceiverParameter: NotNullLazyValue<ReceiverParameterDescriptor> =
+    private val _thisAsReceiverParameter: NotNullLazyValue<ReceiverParameterDescriptor> =
         storageManager.createLazyValue {
             LazyClassReceiverParameterDescriptor(this@AbstractClassDescriptor)
         }
 
-    private var extendClassDescriptor: Set<LazyExtendClassDescriptor>? = null
-
-    override fun getThisAsReceiverParameter(): ReceiverParameterDescriptor {
-        return thisAsReceiverParameter.invoke()
-    }
+    override val thisAsReceiverParameter: ReceiverParameterDescriptor
+        get() = _thisAsReceiverParameter.invoke()
 
 
     override val contextReceivers: Collection<ReceiverParameterDescriptor>
@@ -98,25 +102,10 @@ abstract class AbstractClassDescriptor(
         get() = DescriptorVisibilities.PUBLIC
 
 
-
+    @OptIn(TypeRefinement::class)
     override val unsubstitutedMemberScope: MemberScope
         get() = getUnsubstitutedMemberScope(DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
 
-
-    /**
-     * 获取相对于活动编辑的 LexicalScope（权宜之计）
-     *
-     * @return 词法作用域，如果无法获取则返回null
-     */
-    fun getCurrentEditorScope(): LexicalScope? {
-        val fileEditorManager = FileEditorManager.getInstance(storageManager.project)
-        val editor = fileEditorManager.selectedTextEditor
-        val file = editor?.let { PsiDocumentManager.getInstance(storageManager.project).getPsiFile(it.document) }
-        if (file is CjFile) {
-            return ScopeUtilsKt.getScope()
-        }
-        return null
-    }
 
     override fun getMemberScope(
         typeArguments: List<TypeProjection>,
@@ -142,12 +131,14 @@ abstract class AbstractClassDescriptor(
     }
 
 
+    @OptIn(TypeRefinement::class)
     override fun getMemberScope(typeArguments: Collection<TypeProjection>): MemberScope {
-        return getMemberScope(typeArguments, DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
+        return getMemberScope(typeArguments.toList(), DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
 
     }
 
 
+    @OptIn(TypeRefinement::class)
     override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
         return getMemberScope(typeSubstitution, DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
     }
@@ -157,10 +148,11 @@ abstract class AbstractClassDescriptor(
         get() = this
 
 
-    override val unsubstitutedInnerClassesScope: MemberScope
-        get() = _unsubstitutedInnerClassesScope.invoke()
+//    override val unsubstitutedInnerClassesScope: MemberScope
+//        get() = _unsubstitutedInnerClassesScope.invoke()
+
     override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {
-        if (substitutor.isEmpty()) {
+        if (substitutor.isEmpty) {
             return this
         }
         return LazySubstitutingClassDescriptor(this, substitutor)

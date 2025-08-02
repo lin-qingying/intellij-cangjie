@@ -48,7 +48,11 @@ import cn.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.ErrorUtils.isError
 import cn.cangnova.cangjie.types.TypeConstructor
+import cn.cangnova.cangjie.types.TypeRefinement
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker
+import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import cn.cangnova.cangjie.types.checker.REFINER_CAPABILITY
+import cn.cangnova.cangjie.types.checker.TypeRefinementSupport
 import cn.cangnova.cangjie.types.isError
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -677,3 +681,11 @@ val DeclarationDescriptor.parents: Sequence<DeclarationDescriptor>
 
 val DeclarationDescriptor.parentsWithSelf: Sequence<DeclarationDescriptor>
     get() = generateSequence(this, { it.containingDeclaration })
+val AnnotationDescriptor.annotationClass: ClassDescriptor?
+    get() = type.constructor.declarationDescriptor as? ClassDescriptor
+@TypeRefinement
+fun ModuleDescriptor.getCangJieTypeRefiner(): CangJieTypeRefiner =
+    when (val refinerCapability = getCapability(REFINER_CAPABILITY)?.value) {
+        is TypeRefinementSupport.Enabled -> refinerCapability.typeRefiner
+        else -> CangJieTypeRefiner.Default
+    }

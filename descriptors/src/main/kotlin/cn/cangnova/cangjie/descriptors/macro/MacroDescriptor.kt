@@ -27,11 +27,13 @@ package cn.cangnova.cangjie.descriptors.macro
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.CangJieType
 
 
 interface MacroDescriptor : FunctionDescriptor {
 
+    override val isExtend: Boolean get() =  false
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<MacroDescriptor>
     fun initialize(
         dispatchReceiverParameterIfNeeded: ReceiverParameterDescriptor?,

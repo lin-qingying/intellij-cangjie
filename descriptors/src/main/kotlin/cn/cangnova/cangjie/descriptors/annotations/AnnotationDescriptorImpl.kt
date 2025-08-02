@@ -24,6 +24,7 @@
 package cn.cangnova.cangjie.descriptors.annotations
 
 import cn.cangnova.cangjie.descriptors.SourceElement
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.renderer.DescriptorRenderer
 import cn.cangnova.cangjie.resolve.constants.ConstantValue
 import cn.cangnova.cangjie.types.CangJieType

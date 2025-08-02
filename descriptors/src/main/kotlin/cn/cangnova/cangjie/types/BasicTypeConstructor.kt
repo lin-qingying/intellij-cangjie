@@ -30,6 +30,7 @@ import cn.cangnova.cangjie.descriptors.SupertypeLoopChecker
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
 import cn.cangnova.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
+import cn.cangnova.cangjie.storage.StorageManager
 
 class BuiltInTypeConstructor(
 

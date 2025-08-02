@@ -23,11 +23,10 @@
  */
 package cn.cangnova.cangjie.descriptors
 
-import cn.cangnova.cangjie.mpp.ClassifierSymbolMarker
 import cn.cangnova.cangjie.types.SimpleType
 import cn.cangnova.cangjie.types.TypeConstructor
 
-interface ClassifierDescriptor : DeclarationDescriptorNonRoot, ClassifierSymbolMarker {
+interface ClassifierDescriptor : DeclarationDescriptorNonRoot {
 
     val typeConstructor: TypeConstructor
 

@@ -21,50 +21,22 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors.impl
 
-package cn.cangnova.cangjie.descriptors.impl;
+import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
+import cn.cangnova.cangjie.descriptors.SourceElement
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.storage.StorageManager
 
 
-import cn.cangnova.cangjie.descriptors.DeclarationDescriptor;
-import cn.cangnova.cangjie.descriptors.SourceElement;
-import cn.cangnova.cangjie.storage.StorageManager;
-
-import org.jetbrains.annotations.NotNull;
-import cn.cangnova.cangjie.name.Name;
-
-public abstract class ClassDescriptorBase extends AbstractClassDescriptor {
-
-    private final DeclarationDescriptor containingDeclaration;
-    private final SourceElement source;
-    private final boolean isExternal;
-
-    protected ClassDescriptorBase(
-            @NotNull StorageManager storageManager,
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @NotNull Name name,
-            @NotNull SourceElement source,
-            boolean isExternal
-    ) {
-        super(storageManager, name);
-        this.containingDeclaration = containingDeclaration;
-        this.source = source;
-        this.isExternal = isExternal;
-    }
-
+abstract class ClassDescriptorBase protected constructor(
+    storageManager: StorageManager,
 //    @Override
-//    public bool isExternal() {
-//        return isExternal;
-//    }
+    //    public bool isExternal() {
+    //        return isExternal;
+    //    }
+    override val containingDeclaration: DeclarationDescriptor,
+    name: Name,
+    override val source: SourceElement,
 
-    @NotNull
-    @Override
-    public DeclarationDescriptor getContainingDeclaration() {
-        return containingDeclaration;
-    }
-
-    @NotNull
-    @Override
-    public SourceElement getSource() {
-        return source;
-    }
-}
+) : AbstractClassDescriptor(storageManager, name)
