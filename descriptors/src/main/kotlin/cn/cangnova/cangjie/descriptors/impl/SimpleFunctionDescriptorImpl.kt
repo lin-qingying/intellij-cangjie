@@ -21,150 +21,145 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors.impl
 
-package cn.cangnova.cangjie.descriptors.impl;
+import cn.cangnova.cangjie.descriptors.*
+import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.types.CangJieType
 
 
-import cn.cangnova.cangjie.descriptors.*;
-import cn.cangnova.cangjie.descriptors.annotations.Annotations;
-import cn.cangnova.cangjie.name.Name;
-import cn.cangnova.cangjie.types.CangJieType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
-
-public class SimpleFunctionDescriptorImpl extends FunctionDescriptorImpl implements SimpleFunctionDescriptor {
-    protected SimpleFunctionDescriptorImpl(
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @Nullable SimpleFunctionDescriptor original,
-            @NotNull Annotations annotations,
-            @NotNull Name name,
-            @NotNull Kind kind,
-            @NotNull SourceElement source
-    ) {
-        super(containingDeclaration, original, annotations, name, kind, source);
+open class SimpleFunctionDescriptorImpl protected constructor(
+    containingDeclaration: DeclarationDescriptor,
+    original: SimpleFunctionDescriptor?,
+    annotations: Annotations,
+    name: Name,
+    kind: CallableMemberDescriptor.Kind,
+    source: SourceElement
+) : FunctionDescriptorImpl(containingDeclaration, original, annotations, name, kind, source), SimpleFunctionDescriptor {
+    @Deprecated(message = "This method is left for binary compatibility with android.nav.safearg plugin. Used in SafeArgSyntheticDescriptorGenerator.kt")
+    fun initialize(
+        extensionReceiverParameter: ReceiverParameterDescriptor?,
+        dispatchReceiverParameter: ReceiverParameterDescriptor?,
+        typeParameters: List<TypeParameterDescriptor>,
+        unsubstitutedValueParameters: List<ValueParameterDescriptor>,
+        unsubstitutedReturnType: CangJieType?,
+        modality: Modality?,
+        visibility: DescriptorVisibility
+    ): SimpleFunctionDescriptorImpl {
+        return initialize(
+            extensionReceiverParameter,
+            dispatchReceiverParameter,
+            mutableListOf(),
+            typeParameters,
+            unsubstitutedValueParameters,
+            unsubstitutedReturnType,
+            modality,
+            visibility,
+            null
+        )
     }
 
-    @NotNull
-    public static SimpleFunctionDescriptorImpl create(
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @NotNull Annotations annotations,
-            @NotNull Name name,
-            @NotNull Kind kind,
-            @NotNull SourceElement source
-    ) {
-        return new SimpleFunctionDescriptorImpl(containingDeclaration, null, annotations, name, kind, source);
+    public override fun initialize(
+        extensionReceiverParameter: ReceiverParameterDescriptor?,
+        dispatchReceiverParameter: ReceiverParameterDescriptor?,
+        contextReceiverParameters: List<ReceiverParameterDescriptor>,
+        typeParameters: List<TypeParameterDescriptor>,
+        unsubstitutedValueParameters: List<ValueParameterDescriptor>,
+        unsubstitutedReturnType: CangJieType?,
+        modality: Modality?,
+        visibility: DescriptorVisibility
+    ): SimpleFunctionDescriptorImpl {
+        return initialize(
+            extensionReceiverParameter,
+            dispatchReceiverParameter,
+            contextReceiverParameters,
+            typeParameters,
+            unsubstitutedValueParameters,
+            unsubstitutedReturnType,
+            modality,
+            visibility,
+            null
+        )
     }
 
-    @NotNull
-    @kotlin.Deprecated(message = "This method is left for binary compatibility with android.nav.safearg plugin. Used in SafeArgSyntheticDescriptorGenerator.kt")
-    public SimpleFunctionDescriptorImpl initialize(
-            @Nullable ReceiverParameterDescriptor extensionReceiverParameter,
-            @Nullable ReceiverParameterDescriptor dispatchReceiverParameter,
-            @NotNull List<? extends TypeParameterDescriptor> typeParameters,
-            @NotNull List<ValueParameterDescriptor> unsubstitutedValueParameters,
-            @Nullable CangJieType unsubstitutedReturnType,
-            @Nullable Modality modality,
-            @NotNull DescriptorVisibility visibility
-    ) {
-        return initialize(extensionReceiverParameter, dispatchReceiverParameter, Collections.emptyList(),
-                typeParameters, unsubstitutedValueParameters, unsubstitutedReturnType, modality, visibility, null);
-    }
-
-    @NotNull
-    @Override
-    public SimpleFunctionDescriptorImpl initialize(
-            @Nullable ReceiverParameterDescriptor extensionReceiverParameter,
-            @Nullable ReceiverParameterDescriptor dispatchReceiverParameter,
-            @NotNull List<ReceiverParameterDescriptor> contextReceiverParameters,
-            @NotNull List<? extends TypeParameterDescriptor> typeParameters,
-            @NotNull List<ValueParameterDescriptor> unsubstitutedValueParameters,
-            @Nullable CangJieType unsubstitutedReturnType,
-            @Nullable Modality modality,
-            @NotNull DescriptorVisibility visibility
-    ) {
-        return initialize(extensionReceiverParameter, dispatchReceiverParameter, contextReceiverParameters, typeParameters, unsubstitutedValueParameters,
-                unsubstitutedReturnType, modality, visibility, null);
-    }
-
-    @NotNull
-    public SimpleFunctionDescriptorImpl initialize(
-            @Nullable ReceiverParameterDescriptor extensionReceiverParameter,
-            @Nullable ReceiverParameterDescriptor dispatchReceiverParameter,
-            @NotNull List<ReceiverParameterDescriptor> contextReceiverParameters,
-            @NotNull List<? extends TypeParameterDescriptor> typeParameters,
-            @NotNull List<ValueParameterDescriptor> unsubstitutedValueParameters,
-            @Nullable CangJieType unsubstitutedReturnType,
-            @Nullable Modality modality,
-            @NotNull DescriptorVisibility visibility,
-            @Nullable Map<? extends UserDataKey<?>, ?> userData
-    ) {
-        super.initialize(extensionReceiverParameter, dispatchReceiverParameter, contextReceiverParameters, typeParameters, unsubstitutedValueParameters,
-                unsubstitutedReturnType, modality, visibility);
+    open fun initialize(
+        extensionReceiverParameter: ReceiverParameterDescriptor?,
+        dispatchReceiverParameter: ReceiverParameterDescriptor?,
+        contextReceiverParameters: List<ReceiverParameterDescriptor>,
+        typeParameters: List<TypeParameterDescriptor>,
+        unsubstitutedValueParameters: List<ValueParameterDescriptor>,
+        unsubstitutedReturnType: CangJieType?,
+        modality: Modality?,
+        visibility: DescriptorVisibility,
+        userData: Map<out CallableDescriptor.UserDataKey<*>, Any>?
+    ): SimpleFunctionDescriptorImpl {
+        super.initialize(
+            extensionReceiverParameter,
+            dispatchReceiverParameter,
+            contextReceiverParameters,
+            typeParameters,
+            unsubstitutedValueParameters,
+            unsubstitutedReturnType,
+            modality,
+            visibility
+        )
 
         if (userData != null && !userData.isEmpty()) {
-            userDataMap = new LinkedHashMap<UserDataKey<?>, Object>(userData);
+            userDataMap = LinkedHashMap(userData)
         }
-//        internal func <T : std.core.Countable<T>> a(a: T, b: T, c: std.core.Int /* = Int64 */): std.core.Range<T> where T : std.core.Comparable<T>, T : std.core.Equatable<T> defined in untitled3 in file ab.cj[SimpleFunctionDescriptorImpl@1eddf18d]
+
+        //        internal func <T : std.core.Countable<T>> a(a: T, b: T, c: std.core.Int /* = Int64 */): std.core.Range<T> where T : std.core.Comparable<T>, T : std.core.Equatable<T> defined in untitled3 in file ab.cj[SimpleFunctionDescriptorImpl@1eddf18d]
 //        public func <T : std.core.Countable<T>> rangeOf(start: T, end: T, layer: Int64): std.core.Range<T> where T : std.core.Comparable<T>, T : std.core.Equatable<T>[RangeOfFunctionDescriptor@2e666b6b]
-
-        return this;
+        return this
     }
 
-    @NotNull
-    @Override
-    public SimpleFunctionDescriptor getOriginal() {
-        return (SimpleFunctionDescriptor) super.getOriginal();
-    }
+    override val original: SimpleFunctionDescriptor
+        get() = super.original as SimpleFunctionDescriptor
 
-    @NotNull
-    @Override
-    protected FunctionDescriptorImpl createSubstitutedCopy(
-            @NotNull DeclarationDescriptor newOwner,
-            @Nullable FunctionDescriptor original,
-            @NotNull Kind kind,
-            @Nullable Name newName,
-            @NotNull Annotations annotations,
-            @NotNull SourceElement source
-    ) {
-        return new SimpleFunctionDescriptorImpl(
-                newOwner,
+    override fun createSubstitutedCopy(
+        newOwner: DeclarationDescriptor,
+        original: FunctionDescriptor?,
+        kind: CallableMemberDescriptor.Kind,
+        newName: Name?,
+        annotations: Annotations,
+        source: SourceElement
+    ): FunctionDescriptorImpl {
+        return SimpleFunctionDescriptorImpl(
+            newOwner,
 
-                (SimpleFunctionDescriptor) original,
-                annotations,
-                newName != null ? newName : getName(),
-                kind,
-                source
-        );
+            original as SimpleFunctionDescriptor?, annotations, if (newName != null) newName else name, kind, source
+        )
     }
 
 
-    @NotNull
-    @Override
-    public SimpleFunctionDescriptor copy(
-            DeclarationDescriptor newOwner,
-            Modality modality,
-            DescriptorVisibility visibility,
-            Kind kind,
-            boolean copyOverrides
-    ) {
-        return (SimpleFunctionDescriptor) super.copy(newOwner, modality, visibility, kind, copyOverrides);
+    override fun copy(
+        newOwner: DeclarationDescriptor,
+        modality: Modality,
+        visibility: DescriptorVisibility,
+        kind: CallableMemberDescriptor.Kind,
+        copyOverrides: Boolean
+    ): SimpleFunctionDescriptor {
+        return super.copy(newOwner, modality, visibility, kind, copyOverrides) as SimpleFunctionDescriptor
     }
 
 
-
-
-
-
-
-    @NotNull
-    @Override
-    @SuppressWarnings("unchecked")
-    public CopyBuilder<? extends SimpleFunctionDescriptor> newCopyBuilder() {
-        return (CopyBuilder<? extends SimpleFunctionDescriptor>) super.newCopyBuilder();
+    //    override fun newCopyBuilder():  CopyBuilder< SimpleFunctionDescriptor> {
+//        return super.newCopyBuilder() as FunctionDescriptor.CopyBuilder<out SimpleFunctionDescriptor>
+//    }
+    override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> {
+        return super.newCopyBuilder() as FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor>
     }
 
-
-
+    companion object {
+        fun create(
+            containingDeclaration: DeclarationDescriptor,
+            annotations: Annotations,
+            name: Name,
+            kind: CallableMemberDescriptor.Kind,
+            source: SourceElement
+        ): SimpleFunctionDescriptorImpl {
+            return SimpleFunctionDescriptorImpl(containingDeclaration, null, annotations, name, kind, source)
+        }
+    }
 }

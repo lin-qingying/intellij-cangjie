@@ -53,7 +53,7 @@ abstract class FunctionDescriptorImpl(
         get() = if (_original == this) this else _original.original
 
 
-    protected var userDataMap: Map<CallableDescriptor.UserDataKey<*>, Any>? = null
+    protected var userDataMap: Map<out CallableDescriptor.UserDataKey<*>, Any>? = null
     override lateinit var typeParameters: List<TypeParameterDescriptor>
     private var unsubstitutedValueParameters: List<ValueParameterDescriptor> = ArrayList()
     private var unsubstitutedReturnType: CangJieType? = null
@@ -175,7 +175,7 @@ abstract class FunctionDescriptorImpl(
 
         get() = false
 
-    fun initialize(
+open fun initialize(
         extensionReceiverParameter: ReceiverParameterDescriptor?,
         dispatchReceiverParameter: ReceiverParameterDescriptor?,
         contextReceiverParameters: List<ReceiverParameterDescriptor>,
@@ -342,7 +342,7 @@ abstract class FunctionDescriptorImpl(
     }
 
 
-    override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<FunctionDescriptor> {
+    override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<out FunctionDescriptor> {
         return newCopyBuilder(TypeSubstitutor.EMPTY)
     }
 
