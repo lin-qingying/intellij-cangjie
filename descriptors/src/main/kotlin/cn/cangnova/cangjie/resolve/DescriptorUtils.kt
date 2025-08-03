@@ -26,36 +26,24 @@ package cn.cangnova.cangjie.resolve
 
 
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
-import cn.cangnova.cangjie.builtins.StandardNames
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.fromByName
+import cn.cangnova.cangjie.builtins.UnsignedTypes
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.descriptors.annotations.Annotated
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
-import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
-import cn.cangnova.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import cn.cangnova.cangjie.descriptors.impl.PackageFragmentDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
-import cn.cangnova.cangjie.lexer.CjModifierKeywordToken
-import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.*
-import cn.cangnova.cangjie.psi.CjExpression
-import cn.cangnova.cangjie.psi.CjNamedFunctionForExtend
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
-import cn.cangnova.cangjie.resolve.descriptorUtil.module
-import cn.cangnova.cangjie.resolve.scopes.*
+import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
+import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
-import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.ErrorUtils.isError
-import cn.cangnova.cangjie.types.TypeConstructor
-import cn.cangnova.cangjie.types.TypeRefinement
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.checker.REFINER_CAPABILITY
 import cn.cangnova.cangjie.types.checker.TypeRefinementSupport
-import cn.cangnova.cangjie.types.isError
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -191,7 +179,7 @@ object DescriptorUtils {
 //        if (  isAnonymousObject(classDescriptor)) {
 //            return  DescriptorVisibilities.DEFAULT_VISIBILITY
 //        }
-        assert(classKind == ClassKind.CLASS || classKind == ClassKind.EXTEND || classKind == ClassKind.STRUCT || classKind == ClassKind.INTERFACE || classKind == ClassKind.ANNOTATION_CLASS) {
+        assert(classKind == ClassKind.CLASS || classKind == ClassKind.EXTEND || classKind == ClassKind.STRUCT || classKind == ClassKind.INTERFACE) {
             "Unexpected class kind: $classKind"
         }
         return DescriptorVisibilities.PUBLIC
@@ -253,7 +241,7 @@ object DescriptorUtils {
     }
 
     fun classCanHaveAbstractDeclaration(classDescriptor: ClassDescriptor): Boolean {
-        return classDescriptor.modality== Modality.ABSTRACT || isSealedClass(
+        return classDescriptor.modality == Modality.ABSTRACT || isSealedClass(
             classDescriptor
         ) /*|| classDescriptor.getKind() == ClassKind.ENUM*/
     }
@@ -289,7 +277,7 @@ object DescriptorUtils {
 
         if (descriptor is DeclarationDescriptorWithSource) {
             return descriptor.source
-                .getContainingFile()
+                .containingFile
         }
 
         return SourceFile.NO_SOURCE_FILE
@@ -318,7 +306,7 @@ object DescriptorUtils {
         result: MutableSet<D>
     ) {
         if (result.contains(current)) return
-        for (callableDescriptor in current.original.getOverriddenDescriptors()) {
+        for (callableDescriptor in current.original.overriddenDescriptors) {
             val descriptor = callableDescriptor.original as D
             collectAllOverriddenDescriptors(descriptor, result)
             result.add(descriptor)
@@ -393,7 +381,7 @@ object DescriptorUtils {
         superClass: DeclarationDescriptor
     ): Boolean {
         if (isSameClass(type, superClass)) return true
-        for (superType in type.constructor.getSupertypes()) {
+        for (superType in type.constructor.supertypes) {
             if (isSubtypeOfClass(superType, superClass)) {
                 return true
             }
@@ -406,11 +394,11 @@ object DescriptorUtils {
         other: DeclarationDescriptor
     ): Boolean {
         val descriptor =
-            type.constructor.getDeclarationDescriptor()
+            type.constructor.declarationDescriptor
         if (descriptor != null) {
             val originalDescriptor: DeclarationDescriptor = descriptor.original
             if ((originalDescriptor is ClassifierDescriptor
-                        && other is ClassifierDescriptor) && other.getTypeConstructor() == originalDescriptor.getTypeConstructor()
+                        && other is ClassifierDescriptor) && other.typeConstructor == originalDescriptor.typeConstructor
             ) {
                 return true
             }
@@ -424,7 +412,7 @@ object DescriptorUtils {
         superClass: ClassDescriptor
     ): Boolean {
         return isSubtypeOfClass(
-            subClass.getDefaultType(),
+            subClass.defaultType,
             superClass.original
         )
     }
@@ -441,7 +429,7 @@ object DescriptorUtils {
 
     fun getClassDescriptorForTypeConstructor(typeConstructor: TypeConstructor): ClassDescriptor {
         val descriptor =
-            typeConstructor.getDeclarationDescriptor()
+            typeConstructor.declarationDescriptor
         assert(
             descriptor is ClassDescriptor
         ) { "Classifier descriptor of a type should be of type ClassDescriptor: $typeConstructor" }
@@ -455,11 +443,11 @@ object DescriptorUtils {
     @JvmStatic
     fun getSuperClassType(classDescriptor: ClassDescriptor): CangJieType {
         val superclassTypes: Collection<CangJieType> =
-            classDescriptor.getTypeConstructor().getSupertypes()
+            classDescriptor.typeConstructor.supertypes
         for (type in superclassTypes) {
             val superClassDescriptor: ClassDescriptor =
                 getClassDescriptorForType(type)
-            if (superClassDescriptor.getKind() != ClassKind.INTERFACE) {
+            if (superClassDescriptor.kind != ClassKind.INTERFACE) {
                 return type
             }
         }
@@ -501,7 +489,7 @@ object DescriptorUtils {
     private fun isKindOf(descriptor: DeclarationDescriptor?, classKind: ClassKind): Boolean {
         return when (descriptor) {
             is ClassDescriptor -> descriptor.kind == classKind
-            is EnumClassCallableDescriptor ->  isKindOf(descriptor.type,classKind)
+//            is EnumClassCallableDescriptor ->  isKindOf(descriptor.type,classKind)
             else -> false
         }
 
@@ -581,7 +569,7 @@ object DescriptorUtils {
 
     fun getContainingModuleOrNull(cangjieType: CangJieType): ModuleDescriptor? {
         val descriptor: ClassifierDescriptor =
-            cangjieType.constructor.getDeclarationDescriptor()
+            cangjieType.constructor.declarationDescriptor
                 ?: return null
 
         return getContainingModuleOrNull(descriptor)
@@ -591,7 +579,7 @@ object DescriptorUtils {
 object DeserializedDeclarationsFromSupertypeConflictDataKey : CallableDescriptor.UserDataKey<CallableMemberDescriptor>
 
 fun CallableMemberDescriptor.setSingleOverridden(overridden: CallableMemberDescriptor) {
-    overriddenDescriptors = listOf(overridden)
+    setOverriddenDescriptors(listOf(overridden))
 }
 
 
@@ -625,7 +613,7 @@ fun DeclarationDescriptor.isSealed(): Boolean {
 
 fun DeclarationDescriptor.isStatic(): Boolean {
     return when (this) {
-        is EnumClassCallableDescriptor -> isStatic
+//        is EnumClassCallableDescriptor -> isStatic
         is FunctionDescriptor -> isStatic
         is VariableDescriptor -> isStatic
 
@@ -637,44 +625,7 @@ fun DeclarationDescriptor.isStatic(): Boolean {
 fun DeclarationDescriptor.isAncestorOf(descriptor: DeclarationDescriptor, strict: Boolean): Boolean =
     DescriptorUtils.isAncestor(this, descriptor, strict)
 
-fun compareDescriptors(
-    project: Project,
-    currentDescriptor: DeclarationDescriptor?,
-    originalDescriptor: DeclarationDescriptor?
-): Boolean {
-    if (currentDescriptor == originalDescriptor) return true
-    if (currentDescriptor == null || originalDescriptor == null) return false
 
-    if (currentDescriptor.name != originalDescriptor.name) return false
-
-
-    if (compareDescriptorsText(project, currentDescriptor, originalDescriptor)) return true
-
-    if (originalDescriptor is CallableDescriptor && currentDescriptor is CallableDescriptor) {
-        val overriddenOriginalDescriptor = originalDescriptor.findOriginalTopMostOverriddenDescriptors()
-        val overriddenCurrentDescriptor = currentDescriptor.findOriginalTopMostOverriddenDescriptors()
-
-        if (overriddenOriginalDescriptor.size != overriddenCurrentDescriptor.size) return false
-        return overriddenCurrentDescriptor.zip(overriddenOriginalDescriptor).all {
-            compareDescriptorsText(project, it.first, it.second)
-        }
-    }
-
-    return false
-}
-
-private fun compareDescriptorsText(project: Project, d1: DeclarationDescriptor, d2: DeclarationDescriptor): Boolean {
-    if (d1 == d2) return true
-    if (d1.name != d2.name) return false
-
-    val renderedD1 = IdeDescriptorRenderers.SOURCE_CODE.render(d1)
-    val renderedD2 = IdeDescriptorRenderers.SOURCE_CODE.render(d2)
-    if (renderedD1 == renderedD2) return true
-
-    val declarations1 = DescriptorToSourceUtilsIde.getAllDeclarations(project, d1)
-    val declarations2 = DescriptorToSourceUtilsIde.getAllDeclarations(project, d2)
-    return declarations1 == declarations2 && declarations1.isNotEmpty()
-}
 fun CallableDescriptor.hasDynamicExtensionAnnotation(): Boolean = false
 val DeclarationDescriptor.module: ModuleDescriptor
     get() = DescriptorUtils.getContainingModule(this)
@@ -685,13 +636,13 @@ val DeclarationDescriptor.parentsWithSelf: Sequence<DeclarationDescriptor>
     get() = generateSequence(this, { it.containingDeclaration })
 val AnnotationDescriptor.annotationClass: ClassDescriptor?
     get() = type.constructor.declarationDescriptor as? ClassDescriptor
+
 @TypeRefinement
 fun ModuleDescriptor.getCangJieTypeRefiner(): CangJieTypeRefiner =
     when (val refinerCapability = getCapability(REFINER_CAPABILITY)?.value) {
         is TypeRefinementSupport.Enabled -> refinerCapability.typeRefiner
         else -> CangJieTypeRefiner.Default
     }
-
 
 
 val DeclarationDescriptor.builtIns: CangJieBuiltIns

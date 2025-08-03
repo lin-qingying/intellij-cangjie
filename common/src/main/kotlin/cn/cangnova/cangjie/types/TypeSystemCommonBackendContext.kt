@@ -21,18 +21,28 @@
  * any damages or issues arising from its use.
  *
  */
-package cn.cangnova.cangjie.descriptors
 
-import cn.cangnova.cangjie.types.SimpleType
-import cn.cangnova.cangjie.types.TypeConstructor
+package cn.cangnova.cangjie.types
 
-interface ClassifierDescriptor : DeclarationDescriptorNonRoot {
+import cn.cangnova.cangjie.builtins.PrimitiveType
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.FqNameUnsafe
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.types.model.*
 
 
-    val typeConstructor: TypeConstructor
+interface TypeSystemCommonBackendContext : TypeSystemContext {
+
+    fun CangJieTypeMarker.hasAnnotation(fqName: FqName): Boolean
 
 
-    val defaultType: SimpleType
 
-    override val original: ClassifierDescriptor
+    fun CangJieTypeMarker.makeNullable(): CangJieTypeMarker =
+        asSimpleType()?.withNullability(true) ?: this
+
+}
+
+interface TypeSystemCommonBackendContextForTypeMapping : TypeSystemCommonBackendContext {
+    fun TypeConstructorMarker.defaultType(): CangJieTypeMarker
+
 }

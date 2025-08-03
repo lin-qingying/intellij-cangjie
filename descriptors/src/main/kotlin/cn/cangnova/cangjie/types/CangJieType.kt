@@ -37,8 +37,6 @@ import cn.cangnova.cangjie.types.model.CangJieTypeMarker
 import cn.cangnova.cangjie.types.model.FlexibleTypeMarker
 import cn.cangnova.cangjie.types.model.SimpleTypeMarker
 import cn.cangnova.cangjie.types.model.TypeArgumentListMarker
-import cn.cangnova.cangjie.types.util.TypeUtils
-import cn.cangnova.cangjie.types.util.toOptionalType
 
 fun CangJieType.isNullable(): Boolean = TypeUtils.isNullableType(this)
 
@@ -141,7 +139,7 @@ class BasicType(
 
     override fun makeOptionalAsSpecified(newNullability: Boolean) = when {
         newNullability == isMarkedOption -> this
-        newNullability -> OptionalSimpleType(this.toOptionalType() as SimpleType)
+//        newNullability -> OptionalSimpleType(this.toOptionalType() as SimpleType)
         else -> NotNullSimpleType(this)
     }
     override fun replaceAttributes(newAttributes: TypeAttributes) = this

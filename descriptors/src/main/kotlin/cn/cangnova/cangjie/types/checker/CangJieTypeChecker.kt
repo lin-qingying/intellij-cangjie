@@ -25,10 +25,9 @@ package cn.cangnova.cangjie.types.checker
 
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeConstructor
-import cn.cangnova.cangjie.types.checker.NewCangJieTypeChecker.Companion.Default
 
 interface CangJieTypeChecker {
-    interface TypeConstructorEquality {
+   fun interface TypeConstructorEquality {
         fun equals(a: TypeConstructor, b: TypeConstructor): Boolean
     }
 
@@ -41,6 +40,6 @@ interface CangJieTypeChecker {
     fun equalTypes(a: CangJieType, b: CangJieType): Boolean
 
     companion object {
-        val DEFAULT: CangJieTypeChecker = Default
+        val DEFAULT: CangJieTypeChecker =  NewCangJieTypeChecker.Default
     }
 }

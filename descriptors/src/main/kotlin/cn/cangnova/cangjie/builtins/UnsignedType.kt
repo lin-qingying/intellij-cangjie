@@ -21,18 +21,20 @@
  * any damages or issues arising from its use.
  *
  */
-package cn.cangnova.cangjie.descriptors
 
-import cn.cangnova.cangjie.types.SimpleType
-import cn.cangnova.cangjie.types.TypeConstructor
+package cn.cangnova.cangjie.builtins
 
-interface ClassifierDescriptor : DeclarationDescriptorNonRoot {
-
-
-    val typeConstructor: TypeConstructor
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.TypeUtils
 
 
-    val defaultType: SimpleType
+object UnsignedTypes {
 
-    override val original: ClassifierDescriptor
+    @JvmStatic
+    fun isUnsignedType(type: CangJieType): Boolean {
+        if (TypeUtils.noExpectedType(type)) return false
+
+        return CangJieBuiltIns.isUnsignedNumber(type)
+
+    }
 }

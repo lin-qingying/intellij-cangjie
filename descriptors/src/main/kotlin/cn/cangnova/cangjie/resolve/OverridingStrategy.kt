@@ -48,13 +48,18 @@ abstract class OverridingStrategy {
      * @param fromCurrent 当前类中的描述符。
      */
     abstract fun overrideConflict(fromSuper: CallableMemberDescriptor, fromCurrent: CallableMemberDescriptor)
-     /**
+
+    /**
      * 处理静态冲突,子类与父类中的静态成员与非静态成员不能重名
      *
      * @param fromSuper 超类中的描述符。
      * @param fromCurrent 当前类中的描述符。
-    */
-    abstract fun staticConflict(fromSuper: CallableMemberDescriptor, fromCurrent: CallableMemberDescriptor,  message:String )
+     */
+    abstract fun staticConflict(
+        fromSuper: CallableMemberDescriptor,
+        fromCurrent: CallableMemberDescriptor,
+        message: String
+    )
 
     /**
      * 处理继承冲突。此方法用于处理继承自超类的成员冲突。
@@ -76,7 +81,7 @@ abstract class OverridingStrategy {
         member: CallableMemberDescriptor,
         overridden: Collection<CallableMemberDescriptor>
     ) {
-        member.overriddenDescriptors = overridden
+        member.setOverriddenDescriptors(overridden)
     }
 }
 
@@ -94,6 +99,7 @@ abstract class NonReportingOverrideStrategy : OverridingStrategy() {
         conflict(fromSuper, fromCurrent)
 
     }
+
     override fun inheritanceConflict(first: CallableMemberDescriptor, second: CallableMemberDescriptor) {
         conflict(first, second)
     }

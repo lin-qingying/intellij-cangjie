@@ -36,7 +36,7 @@ fun UnwrappedType.hasSupertypeWithGivenTypeConstructor(typeConstructor: TypeCons
         it.constructor == typeConstructor
     }, { TypeCheckerState.SupertypesPolicy.LowerIfFlexible })
 
-interface NewCangJieTypeChecker {
+interface NewCangJieTypeChecker : CangJieTypeChecker {
     val cangjieTypeRefiner: CangJieTypeRefiner
     val cangjieTypePreparator: CangJieTypePreparator
     val overridingUtil: OverridingUtil

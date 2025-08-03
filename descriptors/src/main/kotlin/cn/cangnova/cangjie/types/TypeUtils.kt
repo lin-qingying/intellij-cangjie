@@ -25,11 +25,21 @@
 package cn.cangnova.cangjie.types
 
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
+import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
+import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.FqNameUnsafe
+import cn.cangnova.cangjie.resolve.DescriptorUtils
+import cn.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
+import cn.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
+import cn.cangnova.cangjie.resolve.constants.IntegerValueTypeConstructor
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
-import cn.cangnova.cangjie.types.TypeUtils.getDefaultPrimitiveNumberType
+import cn.cangnova.cangjie.types.checker.CangJieTypeChecker
+import cn.cangnova.cangjie.types.checker.CangJieTypeChecker.Companion.DEFAULT
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import cn.cangnova.cangjie.types.checker.NewTypeVariableConstructor
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
 import cn.cangnova.cangjie.types.isError
 import cn.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker
@@ -82,7 +92,7 @@ object TypeUtils {
     }
 
     fun hasNullableSuperType(type: CangJieType): Boolean {
-        if (type.constructor.getDeclarationDescriptor() is ClassDescriptor) {
+        if (type.constructor.declarationDescriptor is ClassDescriptor) {
             // A class/trait cannot have a nullable supertype
             return false
         }
@@ -99,8 +109,8 @@ object TypeUtils {
     }
 
     fun getTypeParameterDescriptorOrNull(type: CangJieType): TypeParameterDescriptor? {
-        if (type.constructor.getDeclarationDescriptor() is TypeParameterDescriptor) {
-            return type.constructor.getDeclarationDescriptor() as TypeParameterDescriptor
+        if (type.constructor.declarationDescriptor is TypeParameterDescriptor) {
+            return type.constructor.declarationDescriptor as TypeParameterDescriptor
         }
         return null
     }
@@ -144,7 +154,7 @@ object TypeUtils {
         argument: CangJieType,
         parameterDescriptor: TypeParameterDescriptor
     ): Boolean {
-        for (bound in parameterDescriptor.getUpperBounds()) {
+        for (bound in parameterDescriptor.upperBounds) {
             if (typeChecker.isSubtypeOf(argument, bound)) {
                 if (argument.constructor != bound.constructor) {
                     return true
@@ -167,7 +177,7 @@ object TypeUtils {
 //        }
 
         val parameters: List<TypeParameterDescriptor> =
-            type.constructor.getParameters()
+            type.constructor.parameters
         val arguments: List<TypeProjection> = type.arguments
         var i = 0
         val parametersSize = parameters.size
@@ -176,10 +186,10 @@ object TypeUtils {
             val typeProjection: TypeProjection = arguments[i]
 
 
-            val projectionKind: Variance = typeProjection.getProjectionKind()
-            val argument: CangJieType = typeProjection.getType()
+            val projectionKind: Variance = typeProjection.projectionKind
+            val argument: CangJieType = typeProjection.type
 
-            when (parameterDescriptor.getVariance()) {
+            when (parameterDescriptor.variance) {
                 Variance.INVARIANT -> when (projectionKind) {
                     Variance.INVARIANT -> if (lowerThanBound(
                             typeChecker,
@@ -204,7 +214,7 @@ object TypeUtils {
     @JvmStatic
     fun getClassDescriptor(type: CangJieType): ClassDescriptor? {
         val declarationDescriptor =
-            type.constructor.getDeclarationDescriptor()
+            type.constructor.declarationDescriptor
         if (declarationDescriptor is ClassDescriptor) {
             return declarationDescriptor
         }
@@ -218,7 +228,7 @@ object TypeUtils {
     fun getImmediateSupertypes(type: CangJieType): List<CangJieType> {
 
         val substitutor: TypeSubstitutor = TypeSubstitutor.create(type)
-        val originalSupertypes: Collection<CangJieType> = type.constructor.getSupertypes()
+        val originalSupertypes: Collection<CangJieType> = type.constructor.supertypes
         val result = ArrayList<CangJieType>(originalSupertypes.size)
         for (supertype in originalSupertypes) {
             val substitutedType =
@@ -290,7 +300,7 @@ object TypeUtils {
     ): CangJieType? {
         for (supertype in supertypes) {
             val descriptor: ClassifierDescriptor =
-                supertype.constructor.getDeclarationDescriptor()
+                supertype.constructor.declarationDescriptor
                     ?: continue
 
             val descriptorFqName: FqNameUnsafe =
@@ -437,7 +447,7 @@ object TypeUtils {
     fun getDefaultTypeProjections(parameters: List<TypeParameterDescriptor>): List<TypeProjection> {
         val result: MutableList<TypeProjection> = mutableListOf()
         for (parameterDescriptor in parameters) {
-            result.add(TypeProjectionImpl(parameterDescriptor.getDefaultType()))
+            result.add(TypeProjectionImpl(parameterDescriptor.defaultType))
         }
         return result.toList()
     }
@@ -540,7 +550,7 @@ object TypeUtils {
 
         for (projection in type.arguments) {
 
-            if (contains(projection.getType(), isSpecialType, visited)) return true
+            if (contains(projection.type, isSpecialType, visited)) return true
         }
         return false
     }
@@ -588,7 +598,7 @@ object TypeUtils {
                 type.originalTypeVariable
             val typeParameter =
                 typeVariableConstructor.originalTypeParameter
-            return typeParameter == null || hasNullableSuperType(typeParameter.getDefaultType())
+            return typeParameter == null || hasNullableSuperType(typeParameter.defaultType)
         }
         val constructor: TypeConstructor = type.constructor
         if (constructor is IntersectionTypeConstructor) {
@@ -669,9 +679,8 @@ object TypeUtils {
 }
 
 
-
-
 //=======================================================
+fun CangJieType.contains(predicate: (UnwrappedType) -> Boolean) =  TypeUtils.contains(this, predicate)
 
 fun CangJieType?.shouldBeUpdated() =
     this == null || contains { it is StubTypeForBuilderInference || it.constructor is TypeVariableTypeConstructorMarker || it.isError }

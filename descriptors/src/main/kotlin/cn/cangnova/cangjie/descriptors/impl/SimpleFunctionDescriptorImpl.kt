@@ -144,9 +144,6 @@ open class SimpleFunctionDescriptorImpl protected constructor(
     }
 
 
-    //    override fun newCopyBuilder():  CopyBuilder< SimpleFunctionDescriptor> {
-//        return super.newCopyBuilder() as FunctionDescriptor.CopyBuilder<out SimpleFunctionDescriptor>
-//    }
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> {
         return super.newCopyBuilder() as FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor>
     }

@@ -25,7 +25,10 @@
 package cn.cangnova.cangjie.resolve
 
 import cn.cangnova.cangjie.descriptors.CallableDescriptor
+import cn.cangnova.cangjie.utils.DFS
 import cn.cangnova.cangjie.utils.SmartSet
+import java.util.ArrayList
+import java.util.LinkedHashSet
 import java.util.LinkedList
 
 
@@ -66,4 +69,25 @@ fun <H : Any> Collection<H>.selectMostSpecificInEachOverridableGroup(
         result.add(mostSpecific)
     }
     return result
+}
+
+fun <D : CallableDescriptor> D.findTopMostOverriddenDescriptors(): List<D> {
+    return DFS.dfs(
+        listOf(this),
+        { current -> current.overriddenDescriptors },
+        object : DFS.CollectingNodeHandler<CallableDescriptor, CallableDescriptor, java.util.ArrayList<D>>(ArrayList<D>()) {
+            override fun afterChildren(current: CallableDescriptor) {
+                if (current.overriddenDescriptors.isEmpty()) {
+                    @Suppress("UNCHECKED_CAST")
+                    result.add(current as D)
+                }
+            }
+        })
+}
+
+fun <D : CallableDescriptor> D.findOriginalTopMostOverriddenDescriptors(): Set<D> {
+    return findTopMostOverriddenDescriptors().mapTo(LinkedHashSet<D>()) {
+        @Suppress("UNCHECKED_CAST")
+        (it.original as D)
+    }
 }
