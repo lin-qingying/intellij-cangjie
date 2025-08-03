@@ -22,23 +22,27 @@
  *
  */
 
-package cn.cangnova.cangjie.descriptors
+package cn.cangnova.cangjie.resolve.source
 
-import cn.cangnova.cangjie.types.TypeSubstitutor
+import cn.cangnova.cangjie.descriptors.SourceElement
+import cn.cangnova.cangjie.descriptors.SourceFile
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 
-/**
- * Substitutable接口定义了能够进行类型替换的声明描述符的通用行为
- * 它允许在给定类型替换器的情况下，替换类型参数或类型引用
- *
- * @param <out T> 泛型参数，表示实现此接口的声明描述符类型，限定为DeclarationDescriptorNonRoot的子类型
- *                使用out关键字表示此泛型参数是协变的，即可以作为函数返回值类型，但不能作为参数类型
- */
-interface Substitutable<out T : DeclarationDescriptorNonRoot> {
-    /**
-     * 使用给定的类型替换器对此声明描述符进行类型替换
-     *
-     * @param substitutor 类型替换器，用于执行类型替换操作
-     * @return T 返回替换后的声明描述符，类型与接口泛型参数T相同
-     */
-    fun substitute(substitutor: TypeSubstitutor): T?
+interface PsiSourceElement : SourceElement {
+    val psi: PsiElement?
+    override val containingFile: SourceFile
+        get() = psi?.containingFile?.let(::PsiSourceFile) ?: SourceFile.NO_SOURCE_FILE
 }
+
+class PsiSourceFile(val psiFile: PsiFile) : SourceFile {
+    override fun equals(other: Any?): Boolean = other is PsiSourceFile && psiFile == other.psiFile
+
+    override fun hashCode(): Int = psiFile.hashCode()
+
+    override fun toString(): String = psiFile.virtualFile.path
+    override val name: String?
+        get() =  psiFile.virtualFile?.name
+
+}
+fun SourceElement.getPsi(): PsiElement? = (this as? PsiSourceElement)?.psi

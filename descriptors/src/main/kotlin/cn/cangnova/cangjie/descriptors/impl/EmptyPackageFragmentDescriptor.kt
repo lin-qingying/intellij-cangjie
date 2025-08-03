@@ -25,7 +25,7 @@
 package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
-import cn.cangnova.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorImpl
+import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 
 

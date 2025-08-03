@@ -26,9 +26,7 @@ package cn.cangnova.cangjie.types.expressions
 
 import com.google.common.collect.Lists
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
-import cn.cangnova.cangjie.builtins.createFunctionType
 import cn.cangnova.cangjie.builtins.getReturnTypeFromFunctionType
-import cn.cangnova.cangjie.builtins.isBuiltinFunctionalType
 import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import cn.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
@@ -54,7 +52,6 @@ import cn.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import cn.cangnova.cangjie.types.util.TypeUtils.CANNOT_INFER_FUNCTION_PARAM_TYPE
 import cn.cangnova.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
 import cn.cangnova.cangjie.types.util.TypeUtils.noExpectedType
-import cn.cangnova.cangjie.types.util.contains
 import cn.cangnova.cangjie.types.util.isUnit
 import cn.cangnova.cangjie.utils.addIfNotNull
 import cn.cangnova.cangjie.utils.exceptions.CangJieTypeInfo

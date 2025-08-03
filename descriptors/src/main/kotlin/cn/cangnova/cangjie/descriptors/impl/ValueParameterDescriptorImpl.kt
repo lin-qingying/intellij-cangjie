@@ -27,6 +27,7 @@ package cn.cangnova.cangjie.descriptors.impl
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.constants.ConstantValue
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeSubstitutor
@@ -112,6 +113,8 @@ open class ValueParameterDescriptorImpl(
                 SourceElement.NO_SOURCE
             ) { destructuringVariables }
         }
+
+
     }
 
     override val varargElementType: CangJieType?
@@ -167,12 +170,10 @@ open class ValueParameterDescriptorImpl(
         throw UnsupportedOperationException() // TODO
     }
 
-
-    override fun getOverriddenDescriptors(): Collection<ValueParameterDescriptor> {
-        return containingDeclaration.overriddenDescriptors.map {
-            it.valueParameters[index]
+    override val overriddenDescriptors: Collection<ValueParameterDescriptor>
+        get() = containingDeclaration.overriddenDescriptors.map {
+            it.valueParameters [index]
         }
-    }
 
 
     override val containingDeclaration

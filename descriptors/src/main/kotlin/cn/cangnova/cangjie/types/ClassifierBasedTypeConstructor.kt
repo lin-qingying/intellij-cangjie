@@ -35,8 +35,7 @@ import cn.cangnova.cangjie.resolve.DescriptorUtils
 abstract class ClassifierBasedTypeConstructor : TypeConstructor {
     private var hashCode = 0
 
-    abstract override fun getDeclarationDescriptor(): ClassifierDescriptor
-
+    abstract override val declarationDescriptor: ClassifierDescriptor
     override fun hashCode(): Int {
         val cachedHashCode = hashCode
         if (cachedHashCode != 0) return cachedHashCode

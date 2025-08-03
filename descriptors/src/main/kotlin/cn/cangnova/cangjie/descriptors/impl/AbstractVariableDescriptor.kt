@@ -26,10 +26,11 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjVariableDeclaration
 import cn.cangnova.cangjie.resolve.source.getPsi
 import cn.cangnova.cangjie.types.CangJieType
-import cn.cangnova.cangjie.types.util.shouldBeUpdated
+import cn.cangnova.cangjie.types.shouldBeUpdated
 
 
 abstract class AbstractVariableDescriptor(
@@ -151,7 +152,9 @@ abstract class AbstractVariableDescriptor(
     //    override fun getOverriddenDescriptors(): Collection<CallableDescriptor> {
 //        return emptySet ()
 //    }
-
+    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? {
+        return null
+    }
 
     override val valueParameters: List<ValueParameterDescriptor>
         get() = emptyList()

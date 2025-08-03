@@ -28,6 +28,8 @@ import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.descriptors.SourceElement
 import cn.cangnova.cangjie.descriptors.SupertypeLoopChecker
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.Variance
 
 abstract class AbstractLazyTypeParameterDescriptor(

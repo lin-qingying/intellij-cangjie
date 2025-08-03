@@ -27,6 +27,6 @@ package cn.cangnova.cangjie.descriptors
 import cn.cangnova.cangjie.name.FqName
 
 interface PackageFragmentProviderOptimized : PackageFragmentProvider {
-    fun collectPackageFragments(fqName: FqName, packageFragments: Collection<PackageFragmentDescriptor>)
+    fun collectPackageFragments(fqName: FqName, packageFragments: MutableCollection<PackageFragmentDescriptor>)
     fun isEmpty(fqName: FqName): Boolean
 }

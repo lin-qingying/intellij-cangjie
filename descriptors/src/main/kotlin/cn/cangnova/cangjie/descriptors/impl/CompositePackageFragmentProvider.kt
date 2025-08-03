@@ -23,10 +23,17 @@
  */
 
 package cn.cangnova.cangjie.descriptors.impl
+
+import cn.cangnova.cangjie.descriptors.*
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.Name
+
 class CompositePackageFragmentProvider(// can be modified from outside
     private val providers: List<PackageFragmentProvider>,
     private val debugName: String
 ) : PackageFragmentProviderOptimized {
+
+
     override fun collectPackageFragments(
         fqName: FqName,
         packageFragments: MutableCollection<PackageFragmentDescriptor>
@@ -57,5 +64,6 @@ class CompositePackageFragmentProvider(// can be modified from outside
         }
         return result
     }
+
     override fun toString(): String = debugName
 }

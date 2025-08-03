@@ -31,7 +31,7 @@ interface ReceiverParameterDescriptor : ParameterDescriptor {
 
     val value: ReceiverValue
 
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor
+    override fun substitute(substitutor: TypeSubstitutor): ReceiverParameterDescriptor?
 
     fun copy(newOwner: DeclarationDescriptor): ReceiverParameterDescriptor
 }

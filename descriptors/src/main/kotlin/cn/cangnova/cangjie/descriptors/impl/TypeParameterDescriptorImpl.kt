@@ -29,8 +29,10 @@ import cn.cangnova.cangjie.descriptors.SourceElement
 import cn.cangnova.cangjie.descriptors.SupertypeLoopChecker
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getFqName
-import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
+import cn.cangnova.cangjie.resolve.builtIns
+import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.Variance
 import cn.cangnova.cangjie.types.isError
@@ -58,7 +60,7 @@ class TypeParameterDescriptorImpl private constructor(
 ) {
     var isInitialized: Boolean = false
         private set
-    private val upperBounds: MutableList<CangJieType> = ArrayList(1)
+    private val _upperBounds: MutableList<CangJieType> = ArrayList(1)
 
     fun addUpperBound(bound: CangJieType) {
         checkUninitialized()
@@ -67,13 +69,13 @@ class TypeParameterDescriptorImpl private constructor(
 
     private fun doAddUpperBound(bound: CangJieType) {
         if (bound.isError) return
-        upperBounds.add(bound) // TODO : Duplicates?
+        _upperBounds.add(bound) // TODO : Duplicates?
     }
 
     fun addDefaultUpperBound() {
         checkUninitialized()
 
-        if (upperBounds.isEmpty()) {
+        if (_upperBounds.isEmpty()) {
             doAddUpperBound(containingDeclaration.builtIns.defaultBound)
         }
     }
@@ -104,7 +106,7 @@ class TypeParameterDescriptorImpl private constructor(
 
     override fun resolveUpperBounds(): List<CangJieType> {
         checkInitialized()
-        return upperBounds
+        return _upperBounds
     }
 
 

@@ -31,6 +31,8 @@ import cn.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemb
 import cn.cangnova.cangjie.types.TypeUtils.getDefaultPrimitiveNumberType
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
+import cn.cangnova.cangjie.types.isError
+import cn.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker
 import cn.cangnova.cangjie.utils.SmartSet
 
 val CangJieType.builtIns: CangJieBuiltIns
@@ -665,3 +667,11 @@ object TypeUtils {
         SpecialType("NO_EXPECTED_TYPE")
 
 }
+
+
+
+
+//=======================================================
+
+fun CangJieType?.shouldBeUpdated() =
+    this == null || contains { it is StubTypeForBuilderInference || it.constructor is TypeVariableTypeConstructorMarker || it.isError }

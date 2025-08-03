@@ -25,6 +25,7 @@
 package cn.cangnova.cangjie.resolve
 
 
+import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import cn.cangnova.cangjie.builtins.StandardNames
@@ -43,6 +44,7 @@ import cn.cangnova.cangjie.name.*
 import cn.cangnova.cangjie.psi.CjExpression
 import cn.cangnova.cangjie.psi.CjNamedFunctionForExtend
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
+import cn.cangnova.cangjie.resolve.descriptorUtil.module
 import cn.cangnova.cangjie.resolve.scopes.*
 import cn.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import cn.cangnova.cangjie.types.CangJieType
@@ -689,3 +691,8 @@ fun ModuleDescriptor.getCangJieTypeRefiner(): CangJieTypeRefiner =
         is TypeRefinementSupport.Enabled -> refinerCapability.typeRefiner
         else -> CangJieTypeRefiner.Default
     }
+
+
+
+val DeclarationDescriptor.builtIns: CangJieBuiltIns
+    get() = module.builtIns

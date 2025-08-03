@@ -39,7 +39,7 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
     val thisAsReceiverParameter: ReceiverParameterDescriptor
 
 
-    val contextReceivers: Collection<ReceiverParameterDescriptor>
+    val contextReceivers: List<ReceiverParameterDescriptor>
 
     fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
 
@@ -92,7 +92,7 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
      */
 
 
-    override val declaredTypeParameters: Collection<TypeParameterDescriptor>
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
 
     /**
      * @return direct subclasses of this class if it's a sealed class, empty list otherwise

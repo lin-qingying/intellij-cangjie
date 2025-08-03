@@ -22,23 +22,26 @@
  *
  */
 
-package cn.cangnova.cangjie.descriptors
+package cn.cangnova.cangjie.resolve.scopes
 
-import cn.cangnova.cangjie.types.TypeSubstitutor
+import cn.cangnova.cangjie.descriptors.ClassDescriptor
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.storage.LockBasedStorageManager
+import cn.cangnova.cangjie.storage.StorageManager
 
-/**
- * Substitutable接口定义了能够进行类型替换的声明描述符的通用行为
- * 它允许在给定类型替换器的情况下，替换类型参数或类型引用
- *
- * @param <out T> 泛型参数，表示实现此接口的声明描述符类型，限定为DeclarationDescriptorNonRoot的子类型
- *                使用out关键字表示此泛型参数是协变的，即可以作为函数返回值类型，但不能作为参数类型
- */
-interface Substitutable<out T : DeclarationDescriptorNonRoot> {
-    /**
-     * 使用给定的类型替换器对此声明描述符进行类型替换
-     *
-     * @param substitutor 类型替换器，用于执行类型替换操作
-     * @return T 返回替换后的声明描述符，类型与接口泛型参数T相同
-     */
-    fun substitute(substitutor: TypeSubstitutor): T?
+class LazyScopeAdapter @JvmOverloads constructor(
+    storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS,
+    getScope: () -> MemberScope
+) : AbstractScopeAdapter() {
+
+    private val lazyScope = storageManager.createLazyValue{
+        getScope().let {
+            if (it is AbstractScopeAdapter) it.getActualScope() else it
+        }
+    }
+
+    override val workerScope: MemberScope
+        get() = lazyScope()
+
+
 }

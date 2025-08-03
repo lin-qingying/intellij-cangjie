@@ -31,12 +31,9 @@ import cn.cangnova.cangjie.storage.StorageManager
 
 abstract class ClassDescriptorBase protected constructor(
     storageManager: StorageManager,
-//    @Override
-    //    public bool isExternal() {
-    //        return isExternal;
-    //    }
+
     override val containingDeclaration: DeclarationDescriptor,
     name: Name,
     override val source: SourceElement,
 
-) : AbstractClassDescriptor(storageManager, name)
+    ) : AbstractClassDescriptor(storageManager, name)

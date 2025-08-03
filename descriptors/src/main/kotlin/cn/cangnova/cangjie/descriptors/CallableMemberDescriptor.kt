@@ -58,17 +58,10 @@ interface CallableMemberDescriptor : CallableDescriptor, MemberDescriptor {
      * @param overriddenDescriptors 被覆盖成员的描述符集合。
      */
 
-    override var overriddenDescriptors: Collection<  CallableMemberDescriptor>
+    override val overriddenDescriptors: Collection<CallableMemberDescriptor>
+    fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor>)
 
-    // TODO: 将与 userdata 相关的成员提升到 DeclarationDescriptor，并使用更高效的实现（例如 THashMap）
-    /**
-     * 获取与此描述符关联的用户自定义数据。
-     *
-     * @param key 用于检索用户数据的键。
-     * @param <V> 用户数据的类型。
-     * @return 与给定键关联的用户数据，如果不存在则返回 null。
-    </V> */
-    fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>?): V?
+
 
     /**
      * 创建一个新的可调用成员描述符副本，并设置新的属性。
@@ -155,7 +148,7 @@ interface CallableMemberDescriptor : CallableDescriptor, MemberDescriptor {
          * @param parameters 新描述符的类型参数列表。
          * @return 当前生成器实例。
          */
-        fun setTypeParameters(parameters: Collection<TypeParameterDescriptor>): CopyBuilder<D>
+        fun setTypeParameters(parameters: List<TypeParameterDescriptor>): CopyBuilder<D>
 
         /**
          * 设置新描述符的调度接收参数。

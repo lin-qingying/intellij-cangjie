@@ -98,7 +98,7 @@ class ErrorMacroDescriptor(containingDeclaration: ClassDescriptor) : MacroDescri
             ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
 
             override fun <V> putUserData(
-                userDataKey: CallableDescriptor.UserDataKey<V>, value: V?
+                userDataKey: CallableDescriptor.UserDataKey<V>, value: V
             ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
 
             override fun setTypeParameters(

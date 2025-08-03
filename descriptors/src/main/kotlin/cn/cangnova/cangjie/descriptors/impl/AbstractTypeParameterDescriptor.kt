@@ -27,10 +27,12 @@ package cn.cangnova.cangjie.descriptors.impl
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
-import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.resolve.builtIns
 import cn.cangnova.cangjie.resolve.scopes.LazyScopeAdapter
-import cn.cangnova.cangjie.resolve.scopes.TypeIntersectionScope.Companion.create
+import cn.cangnova.cangjie.resolve.scopes.TypeIntersectionScope
 import cn.cangnova.cangjie.storage.NotNullLazyValue
+import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import cn.cangnova.cangjie.types.ErrorUtils.createErrorType
@@ -68,7 +70,7 @@ abstract class AbstractTypeParameterDescriptor protected constructor(
                 Empty,
                 typeConstructor, emptyList(), false,
                 LazyScopeAdapter {
-                    create(
+                    TypeIntersectionScope. create(
                         "Scope for type parameter " + name.asString(),
                         upperBounds
                     )
@@ -122,25 +124,24 @@ abstract class AbstractTypeParameterDescriptor protected constructor(
             return listOf()
         }
 
-        override fun getParameters(): List<TypeParameterDescriptor> {
-            return emptyList()
-        }
 
-        override fun isFinal(): Boolean {
-            return false
-        }
 
-        override fun isDenotable(): Boolean {
-            return true
-        }
+        override val parameters: List<TypeParameterDescriptor>
+            get() = emptyList()
 
-        override fun getDeclarationDescriptor(): ClassifierDescriptor {
-            return this@AbstractTypeParameterDescriptor
-        }
 
-        override fun getBuiltIns(): CangJieBuiltIns {
-            return this@AbstractTypeParameterDescriptor.builtIns
-        }
+        override val isFinal: Boolean
+            get() = false
+        override val isDenotable: Boolean
+            get() = true
+
+        override val declarationDescriptor: ClassifierDescriptor
+            get() =  this@AbstractTypeParameterDescriptor
+
+        override val builtIns: CangJieBuiltIns
+            get() = this@AbstractTypeParameterDescriptor.builtIns
+
+
 
         override fun toString(): String {
             return name.toString()

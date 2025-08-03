@@ -21,128 +21,80 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors.impl
 
-package cn.cangnova.cangjie.descriptors.impl;
+import cn.cangnova.cangjie.descriptors.*
+import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.SpecialNames
+import cn.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
+import cn.cangnova.cangjie.types.CangJieType
+import cn.cangnova.cangjie.types.TypeSubstitutor
+import cn.cangnova.cangjie.types.Variance
 
-import cn.cangnova.cangjie.descriptors.*;
-import cn.cangnova.cangjie.descriptors.annotations.Annotations;
-import cn.cangnova.cangjie.name.Name;
-import cn.cangnova.cangjie.name.SpecialNames;
-import cn.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver;
-import cn.cangnova.cangjie.types.CangJieType;
-import cn.cangnova.cangjie.types.TypeSubstitutor;
-import cn.cangnova.cangjie.types.Variance;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+abstract class AbstractReceiverParameterDescriptor(annotations: Annotations, name: Name = SpecialNames.THIS) :
+    DeclarationDescriptorImpl(annotations, name), ReceiverParameterDescriptor {
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+    override val original: ParameterDescriptor
+        get() = this
 
-public abstract class AbstractReceiverParameterDescriptor extends DeclarationDescriptorImpl implements ReceiverParameterDescriptor {
-    public AbstractReceiverParameterDescriptor(@NotNull Annotations annotations) {
-        super(annotations, SpecialNames.THIS);
-    }
 
-    public AbstractReceiverParameterDescriptor(@NotNull Annotations annotations, @NotNull Name name) {
-        super(annotations, name);
-    }
-
-    @NotNull
-    @Override
-    public ParameterDescriptor getOriginal() {
-        return this;
-    }
-
-    @Override
-    public <R, D> R accept(DeclarationDescriptorVisitor<R, D> visitor, D data) {
-        return visitor.visitReceiverParameterDescriptor(this, data);
-    }
-    @Override
-    public boolean hasSynthesizedParameterNames() {
-        return false;
-    }
-
-    @Override
-    public boolean hasStableParameterNames() {
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public ReceiverParameterDescriptor getDispatchReceiverParameter() {
-        return null;
-    }
-
-    @NotNull
-    @Override
-    public List<ValueParameterDescriptor> getValueParameters() {
-        return Collections.emptyList();
-    }
-
-    @NotNull
-    @Override
-    public List<ReceiverParameterDescriptor> getContextReceiverParameters() {
-        return Collections.emptyList();
-    }
-
-    @Nullable
-    @Override
-    public CangJieType getReturnType() {
-        return getType();
-    }
-
-    @Override
-    public @Nullable ReceiverParameterDescriptor getExtensionReceiverParameter() {
-        return null;
-    }
-
-    @Override
-    public @NotNull Collection<? extends CallableDescriptor> getOverriddenDescriptors() {
-        return Collections.emptySet();
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+        return visitor.visitReceiverParameterDescriptor(this, data)
 
     }
 
-    @Override
-    public @NotNull Collection<? extends @NotNull TypeParameterDescriptor> getTypeParameters() {
-        return Collections.emptyList();
-
+    override fun hasSynthesizedParameterNames(): Boolean {
+        return false
     }
 
-    @Override
-    public @NotNull CangJieType getType() {
-        return value.getType();
+    override fun hasStableParameterNames(): Boolean {
+        return false
     }
 
+    override val dispatchReceiverParameter: ReceiverParameterDescriptor?
+        get() = null
 
-    @Override
-    public @NotNull SourceElement getSource() {
-        return SourceElement.NO_SOURCE;
+    override val valueParameters: List<ValueParameterDescriptor>
+        get() = emptyList()
 
+    override val contextReceiverParameters: List<ReceiverParameterDescriptor>
+        get() = emptyList()
+
+    override val returnType: CangJieType?
+        get() = type
+
+    override val extensionReceiverParameter: ReceiverParameterDescriptor?
+        get() = null
+
+    override val overriddenDescriptors: Collection<CallableDescriptor>
+        get() = emptySet()
+
+    override val typeParameters: Collection<TypeParameterDescriptor>
+        get() = emptyList()
+
+    override val type: CangJieType
+        get() = value.type
+
+
+    override val source: SourceElement
+        get() = SourceElement.NO_SOURCE
+
+    override val visibility: DescriptorVisibility
+        get() = DescriptorVisibilities.LOCAL
+
+
+    override fun substitute(substitutor: TypeSubstitutor): ReceiverParameterDescriptor? {
+        if (substitutor.isEmpty) return this
+
+        val substitutedType: CangJieType?
+
+        substitutedType = substitutor.substitute(type, Variance.INVARIANT)
+
+
+        if (substitutedType == null) return null
+        if (substitutedType === type) return this
+
+        return ReceiverParameterDescriptorImpl(containingDeclaration, TransientReceiver(substitutedType), annotations)
     }
-
-    @Override
-    public @NotNull DescriptorVisibility getVisibility() {
-        return DescriptorVisibilities.LOCAL;
-
-    }
-
-
-    @Override
-    public @NotNull CallableDescriptor substitute(@NotNull TypeSubstitutor substitutor) {
-        if (substitutor.isEmpty()) return this;
-
-        CangJieType substitutedType;
-
-        substitutedType = substitutor.substitute(getType(), Variance.INVARIANT);
-
-
-        if (substitutedType == null) return null;
-        if (substitutedType == getType()) return this;
-
-        return new ReceiverParameterDescriptorImpl(containingDeclaration, new TransientReceiver(substitutedType), annotations);
-
-    }
-
-
 }

@@ -24,4 +24,4 @@
 package cn.cangnova.cangjie.descriptors.annotations
 
 
-class AnnotatedImpl(override val annotations: Annotations) : Annotated
+open class AnnotatedImpl(override val annotations: Annotations) : Annotated

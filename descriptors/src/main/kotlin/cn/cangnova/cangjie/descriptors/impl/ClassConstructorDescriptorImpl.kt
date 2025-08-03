@@ -26,6 +26,8 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.SpecialNames
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeSubstitutor
 
@@ -34,10 +36,10 @@ open class ClassConstructorDescriptorImpl protected constructor(
     containingDeclaration: ClassDescriptor,
     original: ConstructorDescriptor?,
     annotations: Annotations,
-    private val isPrimary: Boolean,
+    override val isPrimary: Boolean,
     kind: CallableMemberDescriptor.Kind,
     source: SourceElement,
-    private val isEnd: Boolean = false
+    override val isEnd: Boolean = false
 ) : FunctionDescriptorImpl(
     containingDeclaration, original, annotations, if (isEnd) {
         SpecialNames.END_INIT
@@ -56,14 +58,16 @@ open class ClassConstructorDescriptorImpl protected constructor(
         source: SourceElement,
     ) : this(containingDeclaration, original, annotations, isPrimary, kind, source, false)
 
-    override fun getReturnType(): CangJieType {
-        return super.getReturnType()!!
-    }
+
+    override val returnType: CangJieType
+        get() = super.returnType!!
+    override val constructedClass: ClassDescriptor
+        get() = containingDeclaration
 
     fun initialize(
         unsubstitutedValueParameters: List<ValueParameterDescriptor>,
         visibility: DescriptorVisibility,
-        typeParameterDescriptors: List<TypeParameterDescriptor?>,
+        typeParameterDescriptors: List<TypeParameterDescriptor>,
         returnType: CangJieType? = null
 
     ): ClassConstructorDescriptorImpl {
@@ -77,6 +81,7 @@ open class ClassConstructorDescriptorImpl protected constructor(
         )
         return this
     }
+
     fun initialize(
         unsubstitutedValueParameters: List<ValueParameterDescriptor>,
         returnType: CangJieType
@@ -89,6 +94,7 @@ open class ClassConstructorDescriptorImpl protected constructor(
         )
         return this
     }
+
     fun initialize(
         unsubstitutedValueParameters: List<ValueParameterDescriptor>
     ): ClassConstructorDescriptorImpl {
@@ -120,18 +126,16 @@ open class ClassConstructorDescriptorImpl protected constructor(
         return emptyList()
     }
 
+
     override val containingDeclaration: ClassDescriptor
         get() = super.containingDeclaration as ClassDescriptor
 
-    override fun getConstructedClass(): ClassDescriptor {
-        return containingDeclaration
-    }
 
     override val original: ClassConstructorDescriptor
         get() = super.original as ClassConstructorDescriptor
 
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
-        return super.substitute(substitutor) as ClassConstructorDescriptor?
+    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor {
+        return super.substitute(substitutor) as ClassConstructorDescriptor
     }
 
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
@@ -139,21 +143,11 @@ open class ClassConstructorDescriptorImpl protected constructor(
     }
 
 
-
-    override fun isEnd(): Boolean {
-        return isEnd
-    }
-
-    override fun isPrimary(): Boolean {
-        return isPrimary
-    }
+    override val overriddenDescriptors: Collection<FunctionDescriptor>
+        get() = emptySet()
 
 
-    override fun getOverriddenDescriptors(): Collection<FunctionDescriptor> {
-        return emptySet()
-    }
-
-    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor?>) {
+    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor>) {
         assert(overriddenDescriptors.isEmpty()) { "Constructors cannot override anything" }
     }
 

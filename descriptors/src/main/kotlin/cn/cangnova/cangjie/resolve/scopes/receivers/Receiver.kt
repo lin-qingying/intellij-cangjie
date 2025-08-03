@@ -21,8 +21,6 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.resolve.scopes.receivers
 
-package cn.cangnova.cangjie.resolve.scopes.receivers;
-
-public interface Receiver {
-}
+interface Receiver 

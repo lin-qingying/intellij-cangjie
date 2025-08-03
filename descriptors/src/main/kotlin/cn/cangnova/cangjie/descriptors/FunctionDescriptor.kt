@@ -40,7 +40,7 @@ interface FunctionDescriptor : CallableMemberDescriptor {
 
     override val original: FunctionDescriptor
 
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor
+    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor?
 
     /**
      * This method should be used with a great care, because if descriptor is substituted one, calling 'getOverriddenDescriptors'
@@ -49,8 +49,7 @@ interface FunctionDescriptor : CallableMemberDescriptor {
      * @return
      */
 
-    override var overriddenDescriptors: Collection<  CallableMemberDescriptor>
-
+    override val overriddenDescriptors: Collection<FunctionDescriptor>
     /**
      * @return descriptor that represents initial signature, e.g in case of result SimpleFunctionDescriptor.createRenamedCopy it returns
      * descriptor before rename
@@ -100,13 +99,13 @@ interface FunctionDescriptor : CallableMemberDescriptor {
 
         override fun setName(name: Name): CopyBuilder<D>
 
-        fun setValueParameters(parameters: Collection<ValueParameterDescriptor>): CopyBuilder<D>
+        fun setValueParameters(parameters: List<ValueParameterDescriptor>): CopyBuilder<D>
 
-        override fun setTypeParameters(parameters: Collection<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<D>
+        override fun setTypeParameters(parameters: List<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<D>
 
         override fun setReturnType(type: CangJieType): CopyBuilder<D>
 
-        fun setContextReceiverParameters(contextReceiverParameters: Collection<ReceiverParameterDescriptor>): CopyBuilder<D>
+        fun setContextReceiverParameters(contextReceiverParameters: List<ReceiverParameterDescriptor>): CopyBuilder<D>
 
         fun setExtensionReceiverParameter(extensionReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
 
@@ -128,7 +127,7 @@ interface FunctionDescriptor : CallableMemberDescriptor {
 
         override fun setSubstitution(substitution: TypeSubstitution): CopyBuilder<D>
 
-        fun <V> putUserData(userDataKey: CallableDescriptor.UserDataKey<V>, value: V?): CopyBuilder<D>
+        fun <V> putUserData(userDataKey: CallableDescriptor.UserDataKey<V>, value: V): CopyBuilder<D>
 
         override fun build(): D?
     }
