@@ -172,7 +172,7 @@ object AbstractTypeChecker {
     ): Boolean =
         with(state.typeSystemContext) {
             if (type.isNothing()) return true
-            if (type.isMarkedNullable()) return false
+            if (type.isMarkedOption()) return false
 
             if (state.isStubTypeEqualsToAnything && type.isStubType()) return true
 
@@ -184,7 +184,7 @@ object AbstractTypeChecker {
             state.anySupertype(
                 start,
                 { isApplicableAsEndNode(state, it, end) },
-                { if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
+                { if (it.isMarkedOption()) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
             )
         }
 
@@ -942,20 +942,20 @@ object AbstractNullabilityChecker {
 //            if (subType is OptionType) return true
 
             // 如果超类型是可空的，直接返回 true
-            if (superType.isMarkedNullable()) return true
+            if (superType.isMarkedOption()) return true
 
             // 如果子类型肯定是非空的，直接返回 true
             @OptIn(ObsoleteTypeKind::class)
-            if (subType.isDefinitelyNotNullType() || subType.isNotNullTypeParameter()) return true
+            if (subType.isDefinitelyNonOptionType() || subType.isNonOptionTypeParameter()) return true
 
             // 如果子类型是捕获类型且投影是非空的，直接返回 true
-            if (subType is CapturedTypeMarker && subType.isProjectionNotNull()) return true
+            if (subType is CapturedTypeMarker && subType.isProjectionNonOption()) return true
 
             // 如果子类型有非空地超类型，直接返回 true
             if (state.hasNotNullSupertype(subType, TypeCheckerState.SupertypesPolicy.LowerIfFlexible)) return true
 
             // 如果子类型没有非空地超类型且不是肯定非空的，但超类型肯定是非空的，直接返回 false
-            if (superType.isDefinitelyNotNullType()) return false
+            if (superType.isDefinitelyNonOptionType()) return false
 
             // 如果子类型没有非空地超类型，但超类型有非空地超类型，直接返回 false
             if (state.hasNotNullSupertype(superType, TypeCheckerState.SupertypesPolicy.UpperIfFlexible)) return false
@@ -1000,7 +1000,7 @@ object AbstractNullabilityChecker {
     ): Boolean =
         with(state.typeSystemContext) {
             if (type.isNothing()) return true
-            if (type.isMarkedNullable()) return false
+            if (type.isMarkedOption()) return false
 
             if (state.isStubTypeEqualsToAnything && type.isStubType()) return true
 
@@ -1013,9 +1013,9 @@ object AbstractNullabilityChecker {
     ) =
         with(typeSystemContext) {
             anySupertype(type, {
-                (it.isClassType() && !it.isMarkedNullable()) || it.isDefinitelyNotNullType()
+                (it.isClassType() && !it.isMarkedOption()) || it.isDefinitelyNonOptionType()
             }) {
-                if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else supertypesPolicy
+                if (it.isMarkedOption()) TypeCheckerState.SupertypesPolicy.None else supertypesPolicy
             }
         }
 
@@ -1042,7 +1042,7 @@ object AbstractNullabilityChecker {
                 // 判断当前超类型是否符合路径终点的条件
                 { isApplicableAsEndNode(state, it, end) },
                 // 确定处理超类型的策略：如果类型被标记为可空，则不进一步遍历其超类型
-                { if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
+                { if (it.isMarkedOption()) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
             )
         }
 

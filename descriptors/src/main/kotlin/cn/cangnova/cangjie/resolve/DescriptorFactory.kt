@@ -38,7 +38,7 @@ import cn.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
 import cn.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
 import cn.cangnova.cangjie.types.CangJieType
 
-object DescriptorFactory {
+object   DescriptorFactory {
     fun createDefaultSetter(
         propertyDescriptor: PropertyDescriptor,
         annotations: Annotations,

@@ -252,7 +252,7 @@ object DescriptorUtils {
     ): Boolean {
         if (variable.isVar || type.isError) return false
 
-        if (TypeUtils.acceptsNullable(type)) return true
+        if (TypeUtils.acceptsOption(type)) return true
 
         val builtIns: CangJieBuiltIns = variable.builtIns
         return CangJieBuiltIns.isPrimitiveType(type) ||

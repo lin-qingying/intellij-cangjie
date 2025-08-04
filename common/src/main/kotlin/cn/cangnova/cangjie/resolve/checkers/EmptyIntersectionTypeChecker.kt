@@ -85,14 +85,14 @@ object EmptyIntersectionTypeChecker {
         var possibleEmptyIntersectionKind: EmptyIntersectionTypeInfo? = null
 
         for (i in expandedTypes.indices) {
-            val firstType = expandedTypes[i].withNullability(false)
+            val firstType = expandedTypes[i].withOption(false)
             val firstTypeConstructor = firstType.typeConstructor()
 
             if (!mayCauseEmptyIntersection(firstType))
                 continue
 
             for (j in i + 1 until expandedTypes.size) {
-                val secondType = expandedTypes[j].withNullability(false)
+                val secondType = expandedTypes[j].withOption(false)
                 val secondTypeConstructor = secondType.typeConstructor()
 
                 when {

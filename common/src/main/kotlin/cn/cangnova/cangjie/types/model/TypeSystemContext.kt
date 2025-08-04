@@ -312,15 +312,34 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun CangJieTypeMarker.isCapturedType() = asSimpleType()?.asCapturedType() != null
     fun SimpleTypeMarker.asDefinitelyNonOptionType(): DefinitelyNonOptionTypeMarker?
     fun DefinitelyNonOptionTypeMarker.original(): SimpleTypeMarker
+    fun TypeParameterMarker.getTypeConstructor(): TypeConstructorMarker
+
+    fun CangJieTypeMarker.isNonOptionTypeParameter(): Boolean = false
+
     fun SimpleTypeMarker.originalIfDefinitelyNonOption(): SimpleTypeMarker =
         asDefinitelyNonOptionType()?.original() ?: this
+
     fun TypeConstructorMarker.isTypeParameterTypeConstructor(): Boolean
+    fun CangJieTypeMarker.upperBoundIfFlexible(): SimpleTypeMarker =
+        this.asFlexibleType()?.upperBound() ?: this.asSimpleType()!!
+
+    fun TypeConstructorMarker.isIntersection(): Boolean
+    fun CangJieTypeMarker.isNothing() = this.typeConstructor().isNothingConstructor() && !this.isOptionType()
+    fun CangJieTypeMarker.isOptionType(): Boolean
+    val TypeVariableTypeConstructorMarker.typeParameter: TypeParameterMarker?
+    fun TypeParameterMarker.hasRecursiveBounds(selfConstructor: TypeConstructorMarker? = null): Boolean
+    fun TypeParameterMarker.getVariance(): TypeVariance
+    fun CangJieTypeMarker.isDefinitelyNonOptionType(): Boolean = asSimpleType()?.asDefinitelyNonOptionType() != null
+
 
     fun CangJieTypeMarker.makeDefinitelyNonOptionOrNonOption(): CangJieTypeMarker
     fun SimpleTypeMarker.makeSimpleTypeDefinitelyNonOptionOrNonOption(): SimpleTypeMarker
     fun SimpleTypeMarker.isMarkedOption(): Boolean
     fun CangJieTypeMarker.isMarkedOption(): Boolean =
         this is SimpleTypeMarker && isMarkedOption()
+
+    fun TypeConstructorMarker.isInterface(): Boolean
+    fun CangJieTypeMarker.isFlexible(): Boolean = asFlexibleType() != null
 
     fun SimpleTypeMarker.withOption(isOption: Boolean): SimpleTypeMarker
     fun SimpleTypeMarker.typeConstructor(): TypeConstructorMarker
