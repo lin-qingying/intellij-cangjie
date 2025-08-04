@@ -28,6 +28,7 @@ import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.FqNameUnsafe
 import cn.cangnova.cangjie.resolve.DescriptorUtils
@@ -604,7 +605,17 @@ object TypeUtils {
     fun equalTypes(a: CangJieType, b: CangJieType): Boolean {
         return DEFAULT.equalTypes(a, b)
     }
+    @JvmStatic
 
+    fun getDefaultPrimitiveNumberType(numberValueTypeConstructor: IntegerValueTypeConstructor): CangJieType {
+        val type =
+           getDefaultPrimitiveNumberType(numberValueTypeConstructor.getSupertypes())
+                ?: error(
+                    "Strange number value type constructor: " + numberValueTypeConstructor + ". " +
+                            "Super types doesn't contain double, int or long: " + numberValueTypeConstructor.getSupertypes()
+                )
+        return type
+    }
     /**
      * 从超类型集合中获取默认的原始数字类型
      * 
@@ -912,14 +923,15 @@ object TypeUtils {
      */
     @JvmStatic
     fun makeOptionalIfNeeded(
-        type: SimpleType,
+        type: CangJieType,
         optional: Boolean
-    ): SimpleType {
+    ): CangJieType {
         if (optional) {
-            return type.makeOptionAsSpecified(true) as SimpleType
+            return makeOptional(type)
         }
         return type
     }
+
 
     /**
      * 获取类型参数的默认类型投影列表
@@ -1087,9 +1099,9 @@ object TypeUtils {
 //            return true
 //        }
 
-//        if (unwrappedType is  DefinitelyNotNullType &&
+//        if (unwrappedType is  DefinitelyNonOptionType &&
 //            contains(
-//                (unwrappedType as  DefinitelyNotNullType).original,
+//                (unwrappedType as  DefinitelyNonOptionType).original,
 //                isSpecialType,
 //                visited
 //            )
@@ -1203,7 +1215,7 @@ object TypeUtils {
         if (type.isFlexible() && isOptionType(type.asFlexibleType().upperBound)) {
             return true
         }
-        if (type.isDefinitelyNotNullType) {
+        if (type.isDefinitelyNonOptionType) {
             return false
         }
         if (isTypeParameter(type)) {
@@ -1266,15 +1278,15 @@ object TypeUtils {
                 throw IllegalStateException(name)
             }
 
-        //
-//        override fun replaceAttributes(newAttributes:  TypeAttributes):  SimpleType {
-//            throw IllegalStateException(name)
-//        }
-//
-        // 使用扩展方法，不需要在这里实现
-        // override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
-        //     throw IllegalStateException(name)
-        // }
+
+
+
+        override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
+            throw IllegalStateException(name)
+
+        }
+
+
 
         override fun toString(): String {
             return name
@@ -1596,7 +1608,11 @@ fun optionTypeToSugarString(type: CangJieType): String {
         else -> type.toString()
     }
 }
+fun CangJieType.replaceAnnotations(newAnnotations: Annotations): CangJieType {
+    if (annotations.isEmpty() && newAnnotations.isEmpty()) return this
+    return unwrap().replaceAttributes(attributes.replaceAnnotations(newAnnotations))
+}
+fun CangJieType.asTypeProjection(): TypeProjection = TypeProjectionImpl(this)
 
-// 删除所有复杂的语法糖处理功能
-// 删除：desugarOptionType, resugarOptionType, parseSugarOptionType 等
 
+fun CangJieType.supertypes(): Collection<CangJieType> = TypeUtils.getAllSupertypes(this)

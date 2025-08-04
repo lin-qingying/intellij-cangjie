@@ -22,27 +22,36 @@
  *
  */
 
-package cn.cangnova.cangjie.types
+package cn.cangnova.cangjie.utils
 
-import cn.cangnova.cangjie.builtins.PrimitiveType
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.types.model.*
+sealed class ArrayMap<T : Any> : Iterable<T> {
+    abstract val size: Int
 
+    abstract operator fun set(index: Int, value: T)
+    abstract operator fun get(index: Int): T?
 
-interface TypeSystemCommonBackendContext : TypeSystemContext {
-
-    fun CangJieTypeMarker.hasAnnotation(fqName: FqName): Boolean
-
-
-
-    fun CangJieTypeMarker.makeOption(): CangJieTypeMarker =
-        asSimpleType()?.withOption(true) ?: this
-
+    abstract fun copy(): ArrayMap<T>
 }
 
-interface TypeSystemCommonBackendContextForTypeMapping : TypeSystemCommonBackendContext {
-    fun TypeConstructorMarker.defaultType(): CangJieTypeMarker
+internal object EmptyArrayMap : ArrayMap<Nothing>() {
+    override val size: Int
+        get() = 0
 
+    override fun set(index: Int, value: Nothing) {
+        throw IllegalStateException()
+    }
+
+    override fun get(index: Int): Nothing? {
+        return null
+    }
+
+    override fun copy(): ArrayMap<Nothing> = this
+
+    override fun iterator(): Iterator<Nothing> {
+        return object : Iterator<Nothing> {
+            override fun hasNext(): Boolean = false
+
+            override fun next(): Nothing = throw NoSuchElementException()
+        }
+    }
 }

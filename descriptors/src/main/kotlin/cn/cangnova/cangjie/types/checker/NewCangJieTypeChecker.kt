@@ -61,7 +61,7 @@ object StrictEqualityTypeChecker {
     }
 
 }
-object ErrorTypesAreEqualToAnything {
+object ErrorTypesAreEqualToAnything : CangJieTypeChecker {
     override fun equalsIgnoringGenerics(a: CangJieType, b: CangJieType): Boolean =
         NewCangJieTypeChecker.Default.run {
             createClassicTypeCheckerState(isErrorTypeEqualsToAnything = true).equalsIgnoringGenerics(
@@ -117,7 +117,7 @@ class NewCangJieTypeCheckerImpl(
     }
 }
 
-object NullabilityChecker {
+object OptionChecker {
     fun isSubtypeOfAny(type: UnwrappedType): Boolean =
         SimpleClassicTypeSystemContext
             .newTypeCheckerState(errorTypesEqualToAnything = false, stubTypesEqualToAnything = true)

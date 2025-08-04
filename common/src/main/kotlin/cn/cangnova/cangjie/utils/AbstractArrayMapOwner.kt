@@ -22,27 +22,18 @@
  *
  */
 
-package cn.cangnova.cangjie.types
+package cn.cangnova.cangjie.utils
 
-import cn.cangnova.cangjie.builtins.PrimitiveType
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
-import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.types.model.*
+abstract class AbstractArrayMapOwner<K : Any, V : Any> : Iterable<V>{
+    protected abstract val arrayMap: ArrayMap<V>
+    abstract class AbstractArrayMapAccessor<K : Any, V : Any, T : V>(
+        protected val id: Int
+    ) {
+        protected fun extractValue(thisRef: AbstractArrayMapOwner<K, V>): T? {
+            @Suppress("UNCHECKED_CAST")
+            return thisRef.arrayMap[id] as T?
+        }
+    }
 
-
-interface TypeSystemCommonBackendContext : TypeSystemContext {
-
-    fun CangJieTypeMarker.hasAnnotation(fqName: FqName): Boolean
-
-
-
-    fun CangJieTypeMarker.makeOption(): CangJieTypeMarker =
-        asSimpleType()?.withOption(true) ?: this
-
-}
-
-interface TypeSystemCommonBackendContextForTypeMapping : TypeSystemCommonBackendContext {
-    fun TypeConstructorMarker.defaultType(): CangJieTypeMarker
-
+    final override fun iterator(): Iterator<V> = arrayMap.iterator()
 }

@@ -55,10 +55,10 @@ class CangJieTypeCheckerImpl protected constructor(procedure: TypeCheckingProced
             return CangJieTypeCheckerImpl(  TypeCheckingProcedure(object :
                 TypeCheckerProcedureCallbacksImpl() {
                 override fun assertEqualTypeConstructors(
-                    constructor1: TypeConstructor,
-                    constructor2:  TypeConstructor
+                    a: TypeConstructor,
+                    b:  TypeConstructor
                 ): Boolean {
-                    return constructor1 == constructor2 || equalityAxioms.equals(constructor1, constructor2)
+                    return a == b || equalityAxioms.equals(a, b)
                 }
             }))
         }

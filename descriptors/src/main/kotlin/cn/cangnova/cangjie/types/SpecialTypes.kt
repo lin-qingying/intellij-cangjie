@@ -1,25 +1,14 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+<html>None of the following candidates is applicable:<br/>constructor(captureStatus: CaptureStatus, constructor: NewCapturedTypeConstructor, lowerType: UnwrappedType?, attributes: TypeAttributes = ..., isOption: Boolean = ..., isProjectionNotNull: Boolean = ...): NewCapturedType<br/>constructor(captureStatus: CaptureStatus, lowerType: UnwrappedType?, projection: TypeProjection, typeParameter: TypeParameterDescriptor): NewCapturedType * 仓颉类型系统特殊类型定义
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * 本文件定义了仓颉语言类型系统中的特殊类型，包括：
+ * - 类型缩写（AbbreviatedType）
+ * - 明确非Option类型（DefinitelyNonOptionType）
+ * - 各种类型包装与委托类型
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * 主要用于类型推断、类型检查、类型属性替换、Option判定等场景。
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * The use of this source code is governed by the Apache License 2.0,
- * which allows users to freely use, modify, and distribute the code,
- * provided they adhere to the terms of the license.
- *
- * The software is provided "as-is", and the authors are not responsible for
- * any damages or issues arising from its use.
- *
+ * 仓颉语言无null/nullable概念，所有“可选”相关逻辑均用Option表达。
  */
 
 package cn.cangnova.cangjie.types
@@ -31,71 +20,106 @@ import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.checker.NewCapturedType
 import cn.cangnova.cangjie.types.checker.NewTypeVariableConstructor
-import cn.cangnova.cangjie.types.checker.NullabilityChecker
+import cn.cangnova.cangjie.types.checker.OptionChecker
+import cn.cangnova.cangjie.types.model.DefinitelyNonOptionTypeMarker
 
-import cn.cangnova.cangjie.types.model.DefinitelyNotNullTypeMarker
-import cn.cangnova.cangjie.types.util.TypeUtils
-
+/**
+ * 类型缩写（如类型别名）
+ * 用于表示类型的缩写形式和展开形式
+ * 例如：类型别名、简化类型显示等
+ */
 fun SimpleType.withAbbreviation(abbreviatedType: SimpleType): SimpleType {
     if (isError) return this
     return AbbreviatedType(this, abbreviatedType)
 }
-val CangJieType.isDefinitelyNotNullType: Boolean
-    get() = unwrap() is DefinitelyNotNullType
+
+/**
+ * 判断类型是否为明确非Option类型
+ * 例如：类型推断、类型检查时用于判定类型是否绝不为Option
+ */
+val CangJieType.isDefinitelyNonOptionType: Boolean
+    get() = unwrap() is DefinitelyNonOptionType
+
+/**
+ * 获取类型的缩写形式
+ */
 fun CangJieType.getAbbreviation(): SimpleType? = getAbbreviatedType()?.abbreviation
+/**
+ * 获取类型的缩写类型对象
+ */
 fun CangJieType.getAbbreviatedType(): AbbreviatedType? = unwrap() as? AbbreviatedType
 
+/**
+ * 类型缩写类型
+ * @property delegate 展开后的类型
+ * @property abbreviation 缩写形式
+ */
 class AbbreviatedType(override val delegate: SimpleType, val abbreviation: SimpleType) : DelegatingSimpleType() {
     val expandedType: SimpleType get() = delegate
 
+    /**
+     * 替换类型属性，返回新的缩写类型
+     */
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
         AbbreviatedType(delegate.replaceAttributes(newAttributes), abbreviation)
 
-    override fun makeOptionalAsSpecified(newNullability: Boolean) =
+    /**
+     * 按指定Option状态转换类型
+     */
+    override fun makeOptionAsSpecified(isOption: Boolean) =
         AbbreviatedType(
-            delegate.makeOptionalAsSpecified(newNullability),
-            abbreviation.makeOptionalAsSpecified(newNullability)
+            delegate.makeOptionAsSpecified(isOption),
+            abbreviation.makeOptionAsSpecified(isOption)
         )
-
+    /**
+     * 替换委托类型
+     */
     @TypeRefinement
     override fun replaceDelegate(delegate: SimpleType) = AbbreviatedType(delegate, abbreviation)
-
-//    @TypeRefinement
-//    @OptIn(TypeRefinement::class)
-//    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): AbbreviatedType =
-//        AbbreviatedType(
-//            cangjieTypeRefiner.refineType(delegate) as SimpleType,
-//            cangjieTypeRefiner.refineType(abbreviation) as SimpleType
-//        )
 }
 
+/**
+ * 委托简单类型基类
+ * 用于实现类型包装、属性委托等
+ */
 abstract class DelegatingSimpleType : SimpleType() {
     protected abstract val delegate: SimpleType
-
     override val constructor: TypeConstructor get() = delegate.constructor
     override val arguments: List<TypeProjection> get() = delegate.arguments
     override val isOption: Boolean get() = delegate.isOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
 
+    /**
+     * 替换委托类型
+     */
     @TypeRefinement
     abstract fun replaceDelegate(delegate: SimpleType): DelegatingSimpleType
 
+    /**
+     * 类型精化，返回新的委托类型
+     */
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType =
         replaceDelegate(cangjieTypeRefiner.refineType(delegate) as SimpleType)
 }
 
+/**
+ * 类型包装基类
+ * 用于实现类型的延迟计算、属性委托等
+ */
 abstract class WrappedType : CangJieType() {
     open fun isComputed(): Boolean = true
     protected abstract val delegate: CangJieType
-
     override val constructor: TypeConstructor get() = delegate.constructor
     override val arguments: List<TypeProjection> get() = delegate.arguments
     override val isOption: Boolean get() = delegate.isOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
 
+    /**
+     * 解包类型，返回最内层未包装类型
+     */
     final override fun unwrap(): UnwrappedType {
         var result = delegate
         while (result is WrappedType) {
@@ -113,17 +137,20 @@ abstract class WrappedType : CangJieType() {
     }
 }
 
+/**
+ * 延迟类型包装
+ * 用于实现类型的惰性计算
+ */
 class LazyWrappedType(
     private val storageManager: StorageManager,
     private val computation: () -> CangJieType
 ) : WrappedType() {
     private val lazyValue = storageManager.createLazyValue(computation)
-
     override val delegate: CangJieType get() = lazyValue()
-
     override fun isComputed(): Boolean = lazyValue.isComputed()
-
-    //
+    /**
+     * 类型精化，返回新的延迟包装类型
+     */
     @TypeRefinement
     @OptIn(TypeRefinement::class)
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) = LazyWrappedType(storageManager) {
@@ -131,127 +158,136 @@ class LazyWrappedType(
     }
 }
 
-class DefinitelyNotNullType private constructor(
+/**
+ * 明确非Option类型
+ * 用于标记类型系统中明确不是Option的类型
+ * 主要用于类型推断、类型检查、类型属性替换等场景
+ */
+class DefinitelyNonOptionType private constructor(
     val original: SimpleType,
-    private val useCorrectedNullabilityForTypeParameters: Boolean
+    private val useCorrectedOptionForTypeParameters: Boolean
 ) : DelegatingSimpleType(), CustomTypeParameter,
-    DefinitelyNotNullTypeMarker {
+    DefinitelyNonOptionTypeMarker {
 
     companion object {
-        // Having `@JvmOverloads` just to make sure we don't break ABI compatibility
+        /**
+         * 创建明确非Option类型
+         * @param type 原始类型
+         * @param useCorrectedOptionForTypeParameters 是否修正类型参数的Option状态
+         * @param avoidCheckingActualTypeOption 是否跳过实际Option检查
+         */
         @JvmOverloads
-        fun makeDefinitelyNotNull(
+        fun makeDefinitelyNonOption(
             type: UnwrappedType,
-            useCorrectedNullabilityForTypeParameters: Boolean = false,
-            // Should be used when we are sure that original type is nullable, i.e. makesSenseToBeDefinitelyNotNull would return true,
-            // but we can't actually call it because otherwise we would fail with StackOverFlow because supertypes are being computed recursively
-            // and there's no easy way to prevent recursion.
-            // NB: makesSenseToBeDefinitelyNotNull is mostly needed as an optimization because nothing really bad would happen even if we
-            // create DNN for a type parameter with non-nullable bound.
-            avoidCheckingActualTypeNullability: Boolean = false,
-        ): DefinitelyNotNullType? {
+            useCorrectedOptionForTypeParameters: Boolean = false,
+            avoidCheckingActualTypeOption: Boolean = false,
+        ): DefinitelyNonOptionType? {
             return when {
-                type is DefinitelyNotNullType -> type
-
-                avoidCheckingActualTypeNullability || makesSenseToBeDefinitelyNotNull(
+                type is DefinitelyNonOptionType -> type
+                avoidCheckingActualTypeOption || makesSenseToBeDefinitelyNonOption(
                     type,
-                    useCorrectedNullabilityForTypeParameters
+                    useCorrectedOptionForTypeParameters
                 ) -> {
                     if (type is FlexibleType) {
                         assert(type.lowerBound.constructor == type.upperBound.constructor) {
-                            "DefinitelyNotNullType for flexible type ($type) can be created only from type variable with the same constructor for bounds"
+                            "DefinitelyNonOptionType 只能用于上下界构造器一致的灵活类型"
                         }
                     }
-
-
-                    DefinitelyNotNullType(
-                        type.lowerIfFlexible().makeOptionalAsSpecified(false),
-                        useCorrectedNullabilityForTypeParameters
+                    DefinitelyNonOptionType(
+                        type.lowerIfFlexible().makeOptionAsSpecified(false),
+                        useCorrectedOptionForTypeParameters
                     )
                 }
-
                 else -> null
             }
         }
-
-        private fun makesSenseToBeDefinitelyNotNull(
+        /**
+         * 判断类型是否适合被标记为明确非Option
+         */
+        private fun makesSenseToBeDefinitelyNonOption(
             type: UnwrappedType,
-            useCorrectedNullabilityForFlexibleTypeParameters: Boolean
+            useCorrectedOptionForFlexibleTypeParameters: Boolean
         ): Boolean {
-            if (!type.canHaveUndefinedNullability()) return false
-
+            if (!type.canHaveUndefinedOption()) return false
             if (type is StubTypeForBuilderInference) return TypeUtils.isOptionType(type)
-
             if ((type.constructor.declarationDescriptor as? TypeParameterDescriptorImpl)?.isInitialized == false) {
                 return true
             }
-
-
-            if (useCorrectedNullabilityForFlexibleTypeParameters && type.constructor.declarationDescriptor is TypeParameterDescriptor) {
-                            // Effectively checks if the type is flexible or has option bound
-            return TypeUtils.isOptionType(type)
+            if (useCorrectedOptionForFlexibleTypeParameters && type.constructor.declarationDescriptor is TypeParameterDescriptor) {
+                return TypeUtils.isOptionType(type)
             }
-
-            // Actually, this code should work for type parameters as well, but it breaks some cases
-
-            return !NullabilityChecker.isSubtypeOfAny(type)
+            return !OptionChecker.isSubtypeOfAny(type)
         }
-
-        private fun UnwrappedType.canHaveUndefinedNullability(): Boolean =
+        /**
+         * 判断类型是否可能为未确定Option状态
+         */
+        private fun UnwrappedType.canHaveUndefinedOption(): Boolean =
             constructor is NewTypeVariableConstructor
                     || constructor.declarationDescriptor is TypeParameterDescriptor
                     || this is NewCapturedType
                     || this is StubTypeForBuilderInference
-
     }
-
     override val delegate: SimpleType
         get() = original
-
     override val isOption: Boolean
         get() = false
-
     override val isTypeParameter: Boolean
         get() = delegate.constructor is NewTypeVariableConstructor ||
                 delegate.constructor.declarationDescriptor is TypeParameterDescriptor
-
+    /**
+     * 类型替换，返回新的明确非Option类型
+     */
     override fun substitutionResult(replacement: CangJieType): CangJieType =
-        replacement.unwrap().makeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters)
-
+        replacement.unwrap().makeDefinitelyNonOptionOrNonOption(useCorrectedOptionForTypeParameters)
+    /**
+     * 替换类型属性，返回新的明确非Option类型
+     */
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
-        DefinitelyNotNullType(delegate.replaceAttributes(newAttributes), useCorrectedNullabilityForTypeParameters)
-
-    override fun makeOptionalAsSpecified(newOption: Boolean): SimpleType =
-        if (newOption) delegate.makeOptionalAsSpecified(newOption) else this
-
+        DefinitelyNonOptionType(delegate.replaceAttributes(newAttributes), useCorrectedOptionForTypeParameters)
+    /**
+     * 按指定Option状态转换类型
+     */
+    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType =
+        if (isOption) delegate.makeOptionAsSpecified(isOption) else this
     override fun toString(): String = "$delegate & Any"
-
+    /**
+     * 替换委托类型
+     */
     @TypeRefinement
     override fun replaceDelegate(delegate: SimpleType) =
-        DefinitelyNotNullType(delegate, useCorrectedNullabilityForTypeParameters)
+        DefinitelyNonOptionType(delegate, useCorrectedOptionForTypeParameters)
 }
 
-fun SimpleType.makeSimpleTypeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters: Boolean = false): SimpleType =
-    DefinitelyNotNullType.makeDefinitelyNotNull(this, useCorrectedNullabilityForTypeParameters)
-        ?: makeIntersectionTypeDefinitelyNotNullOrNotNull()
-        ?: makeOptionalAsSpecified(false)
+/**
+ * 将类型转换为明确非Option类型
+ */
+fun SimpleType.makeSimpleTypeDefinitelyNonOptionOrNonOption(useCorrectedOptionForTypeParameters: Boolean = false): SimpleType =
+    DefinitelyNonOptionType.makeDefinitelyNonOption(this, useCorrectedOptionForTypeParameters)
+        ?: makeIntersectionTypeDefinitelyNonOptionOrNonOption()
+        ?: makeOptionAsSpecified(false)
 
-fun NewCapturedType.withNotNullProjection() =
-    NewCapturedType(captureStatus, constructor, lowerType, attributes, isOption, isProjectionNotNull = true)
 
-fun UnwrappedType.makeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters: Boolean = false): UnwrappedType =
-    DefinitelyNotNullType.makeDefinitelyNotNull(this, useCorrectedNullabilityForTypeParameters)
-        ?: makeIntersectionTypeDefinitelyNotNullOrNotNull()
-        ?: makeOptionalAsSpecified(false)
+/**
+ * 将类型转换为明确非Option类型（适用于未包装类型）
+ */
+fun UnwrappedType.makeDefinitelyNonOptionOrNonOption(useCorrectedOptionForTypeParameters: Boolean = false): UnwrappedType =
+    DefinitelyNonOptionType.makeDefinitelyNonOption(this, useCorrectedOptionForTypeParameters)
+        ?: makeIntersectionTypeDefinitelyNonOptionOrNonOption()
+        ?: makeOptionAsSpecified(false)
 
-private fun IntersectionTypeConstructor.makeDefinitelyNotNullOrNotNull(): IntersectionTypeConstructor? {
-            return transformComponents({ TypeUtils.isOptionType(it) }, { it.unwrap().makeDefinitelyNotNullOrNotNull() })
+/**
+ * 交集类型转换为明确非Option类型
+ */
+private fun IntersectionTypeConstructor.makeDefinitelyNonOptionOrNonOption(): IntersectionTypeConstructor? {
+    return transformComponents({ TypeUtils.isOptionType(it) }, { it.unwrap().makeDefinitelyNonOptionOrNonOption() })
 }
 
-private fun CangJieType.makeIntersectionTypeDefinitelyNotNullOrNotNull(): SimpleType? {
+/**
+ * 将类型转换为交集类型的明确非Option类型
+ */
+private fun CangJieType.makeIntersectionTypeDefinitelyNonOptionOrNonOption(): SimpleType? {
     val typeConstructor = constructor as? IntersectionTypeConstructor ?: return null
-    val definitelyNotNullConstructor = typeConstructor.makeDefinitelyNotNullOrNotNull() ?: return null
-
-    return definitelyNotNullConstructor.createType()
+    val definitelyNonOptionConstructor = typeConstructor.makeDefinitelyNonOptionOrNonOption() ?: return null
+    return definitelyNonOptionConstructor.createType()
 }
 

@@ -27,15 +27,13 @@ package cn.cangnova.cangjie.types.checker
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import cn.cangnova.cangjie.resolve.calls.inference.CapturedTypeConstructor
+import cn.cangnova.cangjie.resolve.call.inference.CapturedTypeConstructor
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.*
 
 import cn.cangnova.cangjie.types.error.ErrorScopeKind
 import cn.cangnova.cangjie.types.model.CaptureStatus
 import cn.cangnova.cangjie.types.model.CapturedTypeMarker
-import cn.cangnova.cangjie.types.util.asTypeProjection
-import cn.cangnova.cangjie.types.util.builtIns
 
 
 class NewCapturedTypeConstructor(
@@ -263,14 +261,14 @@ fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
     return if (type is FlexibleType) {
         val lowerIntersectedType =
             intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.lowerBound))
-                .makeOptionalAsSpecified(type.lowerBound.isOption)
+                .makeOptionAsSpecified(type.lowerBound.isOption)
         val upperIntersectedType =
             intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type.upperBound))
-                .makeOptionalAsSpecified(type.upperBound.isOption)
+                .makeOptionAsSpecified(type.upperBound.isOption)
 
         CangJieTypeFactory.flexibleType(lowerIntersectedType, upperIntersectedType)
     } else {
-        intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type)).makeOptionalAsSpecified(type.isOption)
+        intersectTypes(replaceArgumentsWithCapturedArgumentsByIntersectionComponents(type)).makeOptionAsSpecified(type.isOption)
     }
 }
 

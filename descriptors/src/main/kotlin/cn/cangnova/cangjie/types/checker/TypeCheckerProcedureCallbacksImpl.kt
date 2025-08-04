@@ -27,7 +27,7 @@ import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeConstructor
 import cn.cangnova.cangjie.types.TypeProjection
 
-internal class TypeCheckerProcedureCallbacksImpl : TypeCheckingProcedureCallbacks {
+internal open class TypeCheckerProcedureCallbacksImpl : TypeCheckingProcedureCallbacks {
     override fun assertEqualTypes(
         a: CangJieType,
         b: CangJieType,

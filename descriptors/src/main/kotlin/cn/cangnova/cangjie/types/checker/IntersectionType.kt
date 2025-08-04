@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import cn.cangnova.cangjie.types.*
 
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
-import cn.cangnova.cangjie.types.util.TypeUtils
 
 fun intersectTypes(types: List<SimpleType>) = intersectTypes(types as List<UnwrappedType>) as SimpleType
 
@@ -94,7 +93,7 @@ object TypeIntersector {
                 nothingOrNullableNothing = type
             }
             allNullable = allNullable and type.isOption
-            nullabilityStripped.add(TypeUtils.makeNotNullable(type))
+            nullabilityStripped.add(TypeUtils.makeNonOption(type))
         }
 
         if (nothingOrNullableNothing != null) {
@@ -176,7 +175,7 @@ object TypeIntersector {
         for (type in types) {
             if (type.constructor is IntersectionTypeConstructor) {
                 inputTypes.addAll(type.constructor.supertypes.map {
-                    it.upperIfFlexible().let { if (type.isOption) it.makeOptionalAsSpecified(true) else it }
+                    it.upperIfFlexible().let { if (type.isOption) it.makeOptionAsSpecified(true) else it }
                 })
             } else {
                 inputTypes.add(type)

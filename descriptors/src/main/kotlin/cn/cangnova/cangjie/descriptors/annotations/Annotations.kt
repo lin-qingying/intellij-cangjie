@@ -24,6 +24,8 @@
 
 package cn.cangnova.cangjie.descriptors.annotations
 
+import cn.cangnova.cangjie.name.FqName
+
 interface Annotated {
     val annotations: Annotations get() = Annotations.EMPTY
 }

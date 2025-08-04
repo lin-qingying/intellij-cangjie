@@ -387,7 +387,7 @@ abstract class AbstractTypeApproximator(
         // C = out Number, C <: Number => C? <: Number?
         return when {
             type.isOption -> baseResult.withOption(true)
-            type.isProjectionNotNull() -> baseResult.withNullability(false)
+            type.isProjectionNonOption() -> baseResult.withOption(false)
             else -> baseResult
         }.let {
             when {
@@ -420,9 +420,9 @@ abstract class AbstractTypeApproximator(
             return approximateParametrizedType(type, conf, toSuper, depth + 1)
         }
 
-        val definitelyNotNullType = type.asDefinitelyNotNullType()
-        if (definitelyNotNullType != null) {
-            return approximateDefinitelyNotNullType(definitelyNotNullType, conf, toSuper, depth)
+        val definitelyNonOptionType = type.asDefinitelyNonOptionType()
+        if (definitelyNonOptionType != null) {
+            return approximateDefinitelyNonOptionType(definitelyNonOptionType, conf, toSuper, depth)
         }
 
         val typeConstructor = type.typeConstructor()
@@ -460,8 +460,8 @@ abstract class AbstractTypeApproximator(
         return approximateLocalTypes(type, conf, toSuper, depth) // simple classifier type
     }
 
-    private fun approximateDefinitelyNotNullType(
-        type: DefinitelyNotNullTypeMarker,
+    private fun approximateDefinitelyNonOptionType(
+        type: DefinitelyNonOptionTypeMarker,
         conf: TypeApproximatorConfiguration,
         toSuper: Boolean,
         depth: Int
@@ -482,8 +482,8 @@ abstract class AbstractTypeApproximator(
             return typeWithErasedOption
         }
 
-        return if (conf.definitelyNotNullType || languageVersionSettings.supportsFeature(LanguageFeature.DefinitelyNonNullableTypes)) {
-            approximatedOriginalType?.makeDefinitelyNotNullOrNotNull()
+        return if (conf.definitelyNonOptionType || languageVersionSettings.supportsFeature(LanguageFeature.DefinitelyNonOptionTypes)) {
+            approximatedOriginalType?.makeDefinitelyNonOptionOrNonOption()
         } else {
             if (toSuper)
                 (approximatedOriginalType ?: originalType).withOption(false)

@@ -334,7 +334,7 @@ object AbstractTypeChecker {
             }
         }
 
-        if (!AbstractNullabilityChecker.isPossibleSubtype(state, subType, superType)) return false
+        if (!AbstractOptionChecker.isPossibleSubtype(state, subType, superType)) return false
         checkSubtypeForFloatLiteralType(
             state,
             subType.lowerBoundIfFlexible(),
@@ -906,7 +906,7 @@ open class TypeCheckerState(
     }
 }
 
-object AbstractNullabilityChecker {
+object AbstractOptionChecker {
     // this method checks only nullability
     fun isPossibleSubtype(state: TypeCheckerState, subType: SimpleTypeMarker, superType: SimpleTypeMarker): Boolean =
         runIsPossibleSubtype(state, subType, superType)
@@ -950,16 +950,16 @@ object AbstractNullabilityChecker {
 
             // 如果子类型肯定是非空的，直接返回 true
             @OptIn(ObsoleteTypeKind::class)
-            if (subType.isDefinitelyNotNullType() || subType.isNotNullTypeParameter()) return true
+            if (subType.isDefinitelyNonOptionType() || subType.isNonOptionTypeParameter()) return true
 
             // 如果子类型是捕获类型且投影是非空的，直接返回 true
-            if (subType is CapturedTypeMarker && subType.isProjectionNotNull()) return true
+            if (subType is CapturedTypeMarker && subType.isProjectionNonOption()) return true
 
             // 如果子类型有非空地超类型，直接返回 true
             if (state.hasNotNullSupertype(subType, TypeCheckerState.SupertypesPolicy.LowerIfFlexible)) return true
 
             // 如果子类型没有非空地超类型且不是肯定非空的，但超类型肯定是非空的，直接返回 false
-            if (superType.isDefinitelyNotNullType()) return false
+            if (superType.isDefinitelyNonOptionType()) return false
 
             // 如果子类型没有非空地超类型，但超类型有非空地超类型，直接返回 false
             if (state.hasNotNullSupertype(superType, TypeCheckerState.SupertypesPolicy.UpperIfFlexible)) return false
@@ -1017,7 +1017,7 @@ object AbstractNullabilityChecker {
     ) =
         with(typeSystemContext) {
             anySupertype(type, {
-                (it.isClassType() && !it.isOption) || it.isDefinitelyNotNullType()
+                (it.isClassType() && !it.isOption) || it.isDefinitelyNonOptionType()
             }) {
                 if (it.isOption) TypeCheckerState.SupertypesPolicy.None else supertypesPolicy
             }
