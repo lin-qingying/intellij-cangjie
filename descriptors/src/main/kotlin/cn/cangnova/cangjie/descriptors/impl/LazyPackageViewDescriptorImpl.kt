@@ -31,6 +31,7 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.ide.stubindex.CangJieExactPackagesIndex
 import cn.cangnova.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
+import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.psi.CjImportInfo
 import cn.cangnova.cangjie.psi.CjPackageDirective
 import cn.cangnova.cangjie.resolve.LazyExplicitImportScope
@@ -38,6 +39,7 @@ import cn.cangnova.cangjie.resolve.lazy.declarations.impl.ReexportPackageFragmen
 import cn.cangnova.cangjie.resolve.scopes.ChainedMemberScope
 import cn.cangnova.cangjie.resolve.scopes.LazyScopeAdapter
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
+import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.storage.getValue
 import cn.cangnova.cangjie.utils.CallOnceFunction
 

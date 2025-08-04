@@ -65,7 +65,7 @@ interface CallableDescriptor : DeclarationDescriptorWithVisibility, DeclarationD
     fun hasSynthesizedParameterNames(): Boolean
 
 
-    val typeParameters: Collection<TypeParameterDescriptor>
+    val typeParameters: List<TypeParameterDescriptor>
 
     val typeParametersNotExtend: MutableList<TypeParameterDescriptor>
         get() = mutableListOf()

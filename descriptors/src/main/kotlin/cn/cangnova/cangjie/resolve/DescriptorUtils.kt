@@ -30,9 +30,12 @@ import cn.cangnova.cangjie.builtins.StandardNames.FqNames.fromByName
 import cn.cangnova.cangjie.builtins.UnsignedTypes
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
+import cn.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
 import cn.cangnova.cangjie.descriptors.impl.PackageFragmentDescriptorImpl
+import cn.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
 import cn.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
-import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import cn.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
+import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.*
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
@@ -510,7 +513,7 @@ object DescriptorUtils {
         if (descriptor is ModuleDescriptor || isError(descriptor)) {
             return FqName.ROOT
         }
-        if (descriptor is BasicTypeDescriptor) {
+        if (descriptor is PrimitiveClassDescriptor) {
 
             return fromByName(descriptor.name)
         }
@@ -644,6 +647,35 @@ fun ModuleDescriptor.getCangJieTypeRefiner(): CangJieTypeRefiner =
         else -> CangJieTypeRefiner.Default
     }
 
+fun ModuleDescriptor.resolveClassByFqName(fqName: FqName, lookupLocation: LookupLocation): ClassDescriptor? {
+    if (fqName.isRoot) return null
+
+    (getPackage(fqName.parent())
+        .memberScope.getContributedClassifier(fqName.shortName(), lookupLocation) as? ClassDescriptor)?.let { return it }
+
+    return resolveClassByFqName(fqName.parent(), lookupLocation)
+        ?.unsubstitutedMemberScope
+        ?.getContributedClassifier(fqName.shortName(), lookupLocation) as? ClassDescriptor
+}
 
 val DeclarationDescriptor.builtIns: CangJieBuiltIns
     get() = module.builtIns
+
+val ClassifierDescriptor?.classId: ClassId?
+    get() {
+        if (this is PrimitiveClassDescriptor) {
+            return ClassId(FqName.ROOT, name)
+        } else if (this is FunctionClassDescriptor) {
+            return ClassId(FqName.ROOT, name)
+        } else if (this is TupleClassDescriptor) {
+            return ClassId(FqName.ROOT, name)
+
+        }
+        return this?.containingDeclaration?.let { owner ->
+            when (owner) {
+                is PackageFragmentDescriptor -> ClassId(owner.fqName, name)
+                is ClassifierDescriptorWithTypeParameters -> owner.classId?.createNestedClassId(name)
+                else -> null
+            }
+        }
+    }

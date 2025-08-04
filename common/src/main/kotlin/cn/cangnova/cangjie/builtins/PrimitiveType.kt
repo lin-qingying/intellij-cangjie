@@ -46,6 +46,8 @@ enum class PrimitiveType(typeName: String) {
     FLOAT32("Float32"),
     FLOAT16("Float16"),
 
+    Unit("Unit"),
+    Nothing("Nothing")
     ;
 
     val typeName: Name = Name.identifier(typeName)
@@ -62,6 +64,18 @@ enum class PrimitiveType(typeName: String) {
         StandardNames.BUILT_INS_PACKAGE_FQ_NAME.child(
             arrayTypeName,
         )
+    }
+
+    /**
+     * 检查是否为数值类型
+     */
+    fun isNumeric(): Boolean {
+        return when (this) {
+            INT8, INT16, INT32, INT64, INTNATIVE,
+            UINT8, UINT16, UINT32, UINT64, UINTNATIVE,
+            FLOAT16, FLOAT32, FLOAT64 -> true
+            else -> false
+        }
     }
 
     companion object {
@@ -87,15 +101,6 @@ enum class PrimitiveType(typeName: String) {
             else -> null
         }
 
-//        @JvmStatic
-//        fun getByShortArrayName(name: String): PrimitiveType? = when (name) {
-//            "BooleanArray" -> BOOLEAN
-//            "CharArray" -> CHAR
-//
-//            "IntArray" -> INT64
-//            "FloatArray" -> FLOAT
-//
-//            else -> null
-//        }
+
     }
 }

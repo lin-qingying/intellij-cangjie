@@ -27,17 +27,16 @@ package cn.cangnova.cangjie.types
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import cn.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
 import cn.cangnova.cangjie.descriptors.impl.getRefinedMemberScopeIfPossible
 import cn.cangnova.cangjie.descriptors.impl.getRefinedUnsubstitutedMemberScopeIfPossible
 import cn.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import cn.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
-import cn.cangnova.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
-import cn.cangnova.cangjie.resolve.descriptorUtil.module
+import cn.cangnova.cangjie.resolve.getCangJieTypeRefiner
+import cn.cangnova.cangjie.resolve.module
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.error.ErrorScopeKind
-import cn.cangnova.cangjie.types.util.toOptionalType
 
 private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, val refinedConstructor: TypeConstructor?)
 
@@ -116,10 +115,10 @@ object CangJieTypeFactory {
      * @return 基础类型
      */
     @JvmStatic
-    fun basicType(descriptor: BasicTypeDescriptor): BasicType {
+    fun basicType(descriptor: PrimitiveClassDescriptor): BasicType {
         return BasicType(
             descriptor.typeConstructor,
-            descriptor.basicTypeMemberScope
+            descriptor.unsubstitutedMemberScope
         )
     }
 
@@ -377,9 +376,9 @@ abstract class DelegatingSimpleTypeImpl(override val delegate: SimpleType) : Del
         else
             this
 
-    override fun makeOptionalAsSpecified(newOption: Boolean): SimpleType {
+    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
 //        if (newOption == isOption) return this
-        return delegate.makeOptionalAsSpecified(newOption).replaceAttributes(attributes)
+        return delegate.makeOptionAsSpecified(isOption).replaceAttributes(attributes)
     }
 }
 
@@ -422,9 +421,11 @@ open class SimpleTypeImpl(
     override val memberScope: MemberScope,
     protected val refinedTypeFactory: RefinedTypeFactory
 ) : SimpleType() {
-    override fun makeOptionalAsSpecified(newOption: Boolean) = when {
-        newOption == isOption -> this
-        newOption -> OptionalSimpleType(this.toOptionalType() as SimpleType)
+
+
+    override fun makeOptionAsSpecified(isOption: Boolean) = when {
+        isOption == isOption -> this
+        isOption -> OptionalSimpleType(this )
         else -> NotNullSimpleType(this)
     }
 

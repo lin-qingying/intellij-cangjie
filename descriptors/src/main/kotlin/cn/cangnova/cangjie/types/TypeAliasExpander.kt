@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
-import cn.cangnova.cangjie.types.util.TypeUtils
 
 
 class TypeAliasExpander(

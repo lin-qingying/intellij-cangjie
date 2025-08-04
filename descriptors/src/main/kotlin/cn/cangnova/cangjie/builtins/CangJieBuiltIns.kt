@@ -24,69 +24,51 @@
 
 package cn.cangnova.cangjie.builtins
 
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectEx
 import cn.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
 import cn.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.anyFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.anyUFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.arrayClassFqNameToPrimitiveType
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.arrayFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.arrayUFqName
+import cn.cangnova.cangjie.builtins.StandardNames.FqNames.ast
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.boolUFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.comparableFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.countableFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.equatableFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.exceptionFqName
+import cn.cangnova.cangjie.builtins.StandardNames.FqNames.core
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.float16UFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.float32UFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.float64UFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.futureFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.int16UFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.int32UFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.int64UFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.int8UFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.iterableFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.nothingUFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.objectFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.optionFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.optionUFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.primitiveArrayTypeShortNames
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.rangeFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.reentrantMutexFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.resourceFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.runeUFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.stringFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.stringUFqName
-import cn.cangnova.cangjie.builtins.StandardNames.FqNames.tokensFqName
+import cn.cangnova.cangjie.builtins.StandardNames.FqNames.sync
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.uint16UFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.uint32UFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.uint8UFqName
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames.unitUFqName
-import cn.cangnova.cangjie.builtins.StandardNames.STD_AST_PACKAGE_FQ_NAME
-import cn.cangnova.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
-import cn.cangnova.cangjie.builtins.StandardNames.STD_SYNC_PACKAGE_FQ_NAME
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
 import cn.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
+import cn.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
 import cn.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
-import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
-import cn.cangnova.cangjie.descriptors.impl.basic.BuiltInTypeDescriptor
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.FqNameUnsafe
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
-import cn.cangnova.cangjie.resolve.scopes.MemberScope
+import cn.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
+import cn.cangnova.cangjie.resolve.resolveClassByFqName
 import cn.cangnova.cangjie.storage.NotNullLazyValue
 import cn.cangnova.cangjie.storage.StorageManager
-import cn.cangnova.cangjie.storage.getValue
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker
-import java.util.*
+import cn.cangnova.cangjie.types.functions.FunctionTypeKind
+import com.intellij.openapi.project.Project
 
 open class CangJieBuiltIns(
     val project: Project? = null,
@@ -150,9 +132,9 @@ open class CangJieBuiltIns(
             )
         }
 
-        fun isNullableNothing(type: CangJieType): Boolean {
+        fun isOptionNothing(type: CangJieType): Boolean {
             return isNothing(type)
-                    && TypeUtils.isNullableType(type)
+                    && TypeUtils.isOptionType(type)
         }
 
         fun getPrimitiveArrayType(descriptor: DeclarationDescriptor): PrimitiveType? {
@@ -164,7 +146,7 @@ open class CangJieBuiltIns(
 
         fun isPrimitiveArray(type: CangJieType): Boolean {
             val descriptor =
-                type.constructor.getDeclarationDescriptor()
+                type.constructor.declarationDescriptor
             return descriptor != null && getPrimitiveArrayType(descriptor) != null
         }
 
@@ -396,32 +378,7 @@ open class CangJieBuiltIns(
         }
 
 
-//        fun isNullableNothing(type: CangJieType): Boolean {
-//            return (isNothingOrNullableNothing(type)
-//                    && TypeUtils.isNullableType(type))
-//        }
-
-//        private fun isConstructedFromGivenClassAndNotNullable(
-//            type: CangJieType,
-//            fqName: FqNameUnsafe
-//        ): Boolean {
-//            return isConstructedFromGivenClass(
-//                type,
-//                fqName
-//            ) && !type.isMarkedOption
-//        }
-
-
     }
-
-    val builtInPackagesImportedByDefault: NotNullLazyValue<List<PackageViewDescriptor>> =
-        storageManager.createLazyValue {
-            listOf(
-                builtInsModule.getPackage(BUILT_INS_PACKAGE_FQ_NAME)
-
-            )
-
-        }
 
 
     init {
@@ -429,9 +386,6 @@ open class CangJieBuiltIns(
         createBuiltInsModule(true)
     }
 
-    fun getBuiltInPackagesImportedByDefault(): Collection<PackageViewDescriptor> {
-        return builtInPackagesImportedByDefault.invoke()
-    }
 
     val defaultBound: SimpleType get() = anyType
 
@@ -448,10 +402,6 @@ open class CangJieBuiltIns(
 
     }
 
-
-    private fun getPrimitiveClassBasicDescriptor(type: PrimitiveType): ClassDescriptor {
-        return getBuiltInBasicTypeByName(type.typeName.asString())
-    }
 
     fun getArrayType(
         projectionType: Variance,
@@ -472,35 +422,9 @@ open class CangJieBuiltIns(
         )
     }
 
-    private class Primitives(
-        val primitiveTypeToArrayCangJieType: Map<PrimitiveType, SimpleType>,
-        val primitiveCangJieTypeToCangJieArrayType: Map<CangJieType, SimpleType>,
-        val cangjieArrayTypeToPrimitiveCangJieType: Map<SimpleType, SimpleType>
-    )
 
-    private val primitives: NotNullLazyValue<Primitives> = storageManager.createLazyValue {
-        val primitiveTypeToArrayCangJieType = EnumMap<PrimitiveType, SimpleType>(PrimitiveType::class.java)
-        val primitiveCangJieTypeToCangJieArrayType = HashMap<CangJieType, SimpleType>()
-        val cangjieArrayTypeToPrimitiveCangJieType = HashMap<SimpleType, SimpleType>()
-
-        for (primitive in PrimitiveType.entries) {
-            val type = getPrimitiveBuiltInCangJieType(primitive.typeName)
-            val arrayType = getPrimitiveBuiltInCangJieType(primitive.arrayTypeName)
-
-            primitiveTypeToArrayCangJieType[primitive] = arrayType
-            primitiveCangJieTypeToCangJieArrayType[type] = arrayType
-            cangjieArrayTypeToPrimitiveCangJieType[arrayType] = type
-        }
-
-        Primitives(
-            primitiveTypeToArrayCangJieType,
-            primitiveCangJieTypeToCangJieArrayType,
-            cangjieArrayTypeToPrimitiveCangJieType
-        )
-    }
-
-    fun getNullableNothingType(): SimpleType {
-        return nothingType.makeOptionalAsSpecified(true)
+    fun geOptionNothingType(): SimpleType {
+        return nothingType.makeOptionAsSpecified(true)
     }
 
     fun isMemberOfAny(descriptor: DeclarationDescriptor): Boolean {
@@ -518,17 +442,9 @@ open class CangJieBuiltIns(
         )
     }
 
-    private fun getPrimitiveClassDescriptor(type: PrimitiveType): ClassDescriptor {
-        return getBuiltInClassByName(type.typeName.asString())
-    }
 
-    val customizer: CangJieBuiltInsCustomizer by storageManager.createLazyValue {
-        CangJieBuiltInsCustomizer(
-            builtInsModule, storageManager
-        )
-    }
     private val myStdSyncBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
-        val classifier = getStdSyncBuiltInsPackageScope().getContributedClassifier(
+        val classifier = STD_SYNC_SCOPE.getContributedClassifier(
             name,
             NoLookupLocation.FROM_BUILTINS
         )
@@ -541,7 +457,7 @@ open class CangJieBuiltIns(
         classifier
     }
     private val myStdAstBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
-        val classifier = getStdAstBuiltInsPackageScope().getContributedClassifier(
+        val classifier = STD_AST_SCOPE.getContributedClassifier(
             name,
             NoLookupLocation.FROM_BUILTINS
         )
@@ -554,20 +470,7 @@ open class CangJieBuiltIns(
         classifier
     }
     private val myStdCoreBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
-        val classifier = getStdCoreBuiltInsPackageScope().getContributedClassifier(
-            name,
-            NoLookupLocation.FROM_BUILTINS
-        )
-        if (classifier == null) {
-            throw AssertionError("Built-in class " + BUILT_INS_PACKAGE_FQ_NAME.child(name) + " is not found")
-        }
-        if (classifier !is ClassDescriptor) {
-            throw AssertionError("Must be a class descriptor $name, but was $classifier")
-        }
-        classifier
-    }
-    private val myBuiltInClassesByName = storageManager.createMemoizedFunction { name: Name ->
-        val classifier = getBuiltInsPackageScope().getContributedClassifier(
+        val classifier = STD_CORE_SCOPE.getContributedClassifier(
             name,
             NoLookupLocation.FROM_BUILTINS
         )
@@ -580,8 +483,6 @@ open class CangJieBuiltIns(
         classifier
     }
 
-
-    var sourcesModuleDescriptor: ModuleDescriptor? = null
 
     var myBuiltInsModule: ModuleDescriptorImpl? = null
 
@@ -597,28 +498,6 @@ open class CangJieBuiltIns(
     private var postponedBuiltInsModule: NotNullLazyValue<ModuleDescriptorImpl>? =
         null
 
-    fun getPrimitiveBasicCangJieType(type: PrimitiveType): SimpleType {
-        return getPrimitiveClassBasicDescriptor(type).getDefaultType()
-    }
-
-    //    获取内置类型
-    fun getPrimitiveBuiltInCangJieType(name: Name): SimpleType {
-        return getPrimitiveClassBuiltInDescriptor(name).defaultType
-
-    }
-
-    fun getPrimitiveClassBuiltInDescriptor(type: Name): BuiltInTypeDescriptor {
-        return getBuiltInTypeByName(type.asString())
-    }
-
-    private fun getBuiltInTypeByName(name: String): BuiltInTypeDescriptor {
-        return getBuiltInClassByName(name) as BuiltInTypeDescriptor
-
-    }
-
-    fun getPrimitiveCangJieType(type: PrimitiveType): SimpleType {
-        return getPrimitiveClassDescriptor(type).getDefaultType()
-    }
 
     fun getBuiltInClassByFqName(fqName: FqName): ClassDescriptor {
         val descriptor: ClassDescriptor =
@@ -631,13 +510,9 @@ open class CangJieBuiltIns(
     }
 
 
-    val nothingType: SimpleType
-        get() = nothing.getDefaultType()
-
-
     protected fun createBuiltInsModule(isFallback: Boolean) {
         myBuiltInsModule = ModuleDescriptorImpl(
-            project as? ProjectEx,
+
             BUILTINS_MODULE_NAME, storageManager,
             this,
 //            null
@@ -647,67 +522,32 @@ open class CangJieBuiltIns(
             BuiltInsLoader.Instance.createPackageFragmentProvider(
                 storageManager,
                 builtInsModule,
-//                                getClassDescriptorFactories(),
-//                                getPlatformDependentDeclarationFilter(),
-//                                getAdditionalClassPartsProvider(),
                 isFallback,
-                project
-            )
+
+                )
         )
         builtInsModule.setDependencies(builtInsModule)
     }
 
-//    fun getBuiltInsModule(): ModuleDescriptorImpl {
-//        assert(builtInsModule != null || postponedBuiltInsModule != null) { "Uninitialized built-ins module" }
-//        if (builtInsModule == null) {
-//            builtInsModule = postponedBuiltInsModule?.invoke()
-//        }
-//        return builtInsModule
-//    }
-
     fun setPostponedBuiltinsModuleComputation(computation: () -> ModuleDescriptorImpl) {
         postponedBuiltInsModule = storageManager.createLazyValue(computation)
     }
-//    protected open fun getClassDescriptorFactories(): Iterable<ClassDescriptorFactory> {
-//        return listOf< ClassDescriptorFactory>(
-//           BuiltInFictitiousFunctionClassFactory(
-//                storageManager,
-//                getBuiltInsModule()
-//            )
-//        )
-//    }
-fun getStdSyncBuiltInsPackageScope(): MemberScope {
-    return builtInsModule.getPackage(STD_SYNC_PACKAGE_FQ_NAME).memberScope
 
-}
-    fun getStdAstBuiltInsPackageScope(): MemberScope {
-        return builtInsModule.getPackage(STD_AST_PACKAGE_FQ_NAME).memberScope
 
-    }
+    val STD_SYNC_SCOPE get() = builtInsModule.getPackage(sync).memberScope
 
-    fun getStdCoreBuiltInsPackageScope(): MemberScope {
-        return builtInsModule.getPackage(STD_CORE_PACKAGE_FQ_NAME).memberScope
-
-//        return getBuiltInsStdCoreScope()
-    }
-
-    fun getBuiltInsPackageScope(): MemberScope {
-        return builtInsModule.getPackage(BUILT_INS_PACKAGE_FQ_NAME).memberScope
-
-//        return getBuiltInsStdCoreScope()
-    }
+    val STD_CORE_SCOPE get() = builtInsModule.getPackage(core).memberScope
+    val STD_AST_SCOPE get() = builtInsModule.getPackage(ast).memberScope
 
     fun isBooleanOrSubtype(type: CangJieType): Boolean {
         return CangJieTypeChecker.DEFAULT.isSubtypeOf(type, boolType)
     }
 
-    private fun getBuiltInClassByName(simpleName: String): ClassDescriptor {
-        return myBuiltInClassesByName.invoke(Name.identifier(simpleName))
-    }
 
     private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
         return myStdCoreBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
+
     private fun getStdSyncClassByName(simpleName: String): ClassDescriptor {
         return myStdSyncBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
@@ -717,196 +557,34 @@ fun getStdSyncBuiltInsPackageScope(): MemberScope {
     }
 
 
-    fun getBuiltInBasicTypeByName(simpleName: String): BasicTypeDescriptor {
-        return getBuiltInClassByName(simpleName) as BasicTypeDescriptor
+    fun createPrimitiveClassDescriptor(type: PrimitiveType): PrimitiveClassDescriptor {
+        return PrimitiveClassDescriptor(type, storageManager, builtInsModule, this)
     }
 
-
-    val unit: BasicTypeDescriptor get() = getBuiltInBasicTypeByName("Unit")
-    val unitType: BasicType get() = unit.defaultType
-    val nothing: ClassDescriptor get() = getBuiltInClassByName("Nothing")
-
-    val resource: ClassDescriptor
-        get() {
-
-            return try {
-                getStdCoreClassByName("Resource")
-            } catch (e: AssertionError) {
-                findClassDescriptorByFqName(project ?: storageManager.project, resourceFqName)!!
-            }
-        }
-    val throwable: ClassDescriptor
-        get() {
-            return try {
-                getStdCoreClassByName("Exception")
-            } catch (e: AssertionError) {
-                findClassDescriptorByFqName(project ?: storageManager.project, exceptionFqName)!!
-            }
-        }
-    val throwableType: CangJieType
-        get() = throwable.defaultType
-    val `object`: ClassDescriptor
-        get() {
-            return try {
-                getStdCoreClassByName("Object")
-            } catch (e: AssertionError) {
-                findClassDescriptorByFqName(project ?: storageManager.project, objectFqName)!!
-            }
-
-        }
-    val objectType: CangJieType
-        get() {
-            return `object`.defaultType
-        }
-
     //    int
-    val int64Type get() = getPrimitiveBasicCangJieType(PrimitiveType.INT64)
-    val int32Type get() = getPrimitiveBasicCangJieType(PrimitiveType.INT32)
-    val int16Type get() = getPrimitiveBasicCangJieType(PrimitiveType.INT16)
-    val int8Type get() = getPrimitiveBasicCangJieType(PrimitiveType.INT8)
-    val intNativeType get() = getPrimitiveBasicCangJieType(PrimitiveType.INTNATIVE)
+    val int64Type get() = createPrimitiveClassDescriptor(PrimitiveType.INT64).defaultType
+    val int32Type get() = createPrimitiveClassDescriptor(PrimitiveType.INT32).defaultType
+    val int16Type get() = createPrimitiveClassDescriptor(PrimitiveType.INT16).defaultType
+    val int8Type get() = createPrimitiveClassDescriptor(PrimitiveType.INT8).defaultType
+    val intNativeType get() = createPrimitiveClassDescriptor(PrimitiveType.INTNATIVE).defaultType
 
-    val uint64Type = getPrimitiveBasicCangJieType(PrimitiveType.UINT64)
-    val uint32Type = getPrimitiveBasicCangJieType(PrimitiveType.UINT32)
-    val uint16Type = getPrimitiveBasicCangJieType(PrimitiveType.UINT16)
-    val uint8Type = getPrimitiveBasicCangJieType(PrimitiveType.UINT8)
-    val uintNativeType get() = getPrimitiveBasicCangJieType(PrimitiveType.UINTNATIVE)
+    val uint64Type = createPrimitiveClassDescriptor(PrimitiveType.UINT64).defaultType
+    val uint32Type = createPrimitiveClassDescriptor(PrimitiveType.UINT32).defaultType
+    val uint16Type = createPrimitiveClassDescriptor(PrimitiveType.UINT16).defaultType
+    val uint8Type = createPrimitiveClassDescriptor(PrimitiveType.UINT8).defaultType
+    val uintNativeType get() = createPrimitiveClassDescriptor(PrimitiveType.UINTNATIVE).defaultType
 
 
     //    float
-    val float64Type get() = getPrimitiveBasicCangJieType(PrimitiveType.FLOAT64)
-    val float32Type get() = getPrimitiveBasicCangJieType(PrimitiveType.FLOAT32)
-    val float16Type get() = getPrimitiveBasicCangJieType(PrimitiveType.FLOAT16)
-    val runeType get() = getPrimitiveBasicCangJieType(PrimitiveType.Rune)
+    val float64Type get() = createPrimitiveClassDescriptor(PrimitiveType.FLOAT64).defaultType
+    val float32Type get() = createPrimitiveClassDescriptor(PrimitiveType.FLOAT32).defaultType
+    val float16Type get() = createPrimitiveClassDescriptor(PrimitiveType.FLOAT16).defaultType
+    val runeType get() = createPrimitiveClassDescriptor(PrimitiveType.Rune).defaultType
 
-    val boolType get() = getPrimitiveBasicCangJieType(PrimitiveType.BOOL)
+    val boolType get() = createPrimitiveClassDescriptor(PrimitiveType.BOOL).defaultType
+    val nothingType get() = createPrimitiveClassDescriptor(PrimitiveType.Nothing).defaultType
 
-
-    //    内置类型
-//    这两个内置类型是std.core包中的，如果有必要，需要加上包名，现在没有加
-    val CPointerType get() = getPrimitiveBuiltInCangJieType(BuiltCangJieTypeName.CPOINTER.typeName)
-    val CStringType get() = getPrimitiveBuiltInCangJieType(BuiltCangJieTypeName.CSTRING.typeName)
-
-
-    //    标准库
-    val any: ClassDescriptor
-        get() {
-            return try {
-                getStdCoreClassByName("Any")
-            } catch (e: AssertionError) {
-                findClassDescriptorByFqName(project ?: storageManager.project, anyFqName)!!
-            }
-
-        }
-    val anyType: SimpleType
-        get() {
-            return any.getDefaultType()
-        }
-    val countable: ClassDescriptor
-        get() = findClassDescriptorByFqName(project ?: storageManager.project, countableFqName)!!
-    val countableType: SimpleType
-        get() {
-            return countable.getDefaultType()
-        }
-    val equatable: ClassDescriptor
-        get() = findClassDescriptorByFqName(project ?: storageManager.project, equatableFqName)!!
-    val equatableType: SimpleType
-        get() {
-            return equatable.getDefaultType()
-        }
-    val iterable: ClassDescriptor
-        get() = findClassDescriptorByFqName(project ?: storageManager.project, iterableFqName)!!
-    val iterableType: SimpleType
-        get() {
-            return iterable.getDefaultType()
-        }
-
-    val comparable: ClassDescriptor
-        get() = findClassDescriptorByFqName(project ?: storageManager.project, comparableFqName)!!
-    val ccomparableType: SimpleType
-        get() {
-            return comparable.getDefaultType()
-        }
-    val future: ClassDescriptor
-        get() = findClassDescriptorByFqName(project ?: storageManager.project, futureFqName)!!
-    val futureType: SimpleType
-        get() {
-            return future.getDefaultType()
-        }
-    val range: ClassDescriptor
-        get() = findClassDescriptorByFqName(project ?: storageManager.project, rangeFqName)!!
-    val rangeType: SimpleType
-        get() {
-            return range.getDefaultType()
-        }
-    val string: ClassDescriptor
-        get() {
-
-
-            return try {
-                getStdCoreClassByName("String")
-            } catch (e: AssertionError) {
-                findClassDescriptorByFqName(project ?: storageManager.project, stringFqName)!!
-
-            }
-        }
-    val array: ClassDescriptor
-        get() = findClassDescriptorByFqName(project ?: storageManager.project, arrayFqName)!!
-    val arrayType: SimpleType
-        get() {
-            return array.getDefaultType()
-        }
-    val stringType: SimpleType
-        get() {
-            return string.getDefaultType()
-        }
-    val option: ClassDescriptor
-        get() {
-            return try {
-                getStdCoreClassByName("Option")
-            } catch (e: AssertionError) {
-                findClassDescriptorByFqName(project ?: storageManager.project, optionFqName)!!
-            }
-
-        }
-    val optionType: SimpleType
-        get() {
-            return option.defaultType
-
-        }
-
-    //sync
-    val reentrantMutex: ClassDescriptor
-        get() {
-            return try {
-                getStdSyncClassByName("ReentrantMutex")
-            } catch (e: AssertionError) {
-                findClassDescriptorByFqName(project ?: storageManager.project, reentrantMutexFqName)!!
-            }
-
-        }
-    val reentrantMutexType: SimpleType
-        get() {
-            return reentrantMutex.defaultType
-
-        }
-
-    //ast
-//ast
-    val tokens: ClassDescriptor
-        get() {
-            return try {
-                getStdAstClassByName("Tokens")
-            } catch (e: AssertionError) {
-                findClassDescriptorByFqName(project ?: storageManager.project, tokensFqName)!!
-            }
-
-        }
-    val tokensType: SimpleType
-        get() {
-            return tokens.defaultType
-
-        }
+    val unitType get() = createPrimitiveClassDescriptor(PrimitiveType.Unit).defaultType
 
     //    二进制运算规则
     val binaryOperatorRules: MutableMap<CjToken, List<BinaryOperatorRule>> = mutableMapOf()
@@ -1029,6 +707,33 @@ fun getStdSyncBuiltInsPackageScope(): MemberScope {
         )
     }
 
+    //标准库
+    /*======================================core========================================================*/
+    val string: ClassDescriptor
+        get() = getStdCoreClassByName("Any")
+    val stringType: SimpleType
+        get() {
+            return string.defaultType
+        }
+    val array: ClassDescriptor
+        get() = getStdCoreClassByName("Array")
+    val arrayType: SimpleType
+        get() {
+            return array.defaultType
+        }
+
+    //    标准库
+    val any: ClassDescriptor
+        get() {
+
+            return getStdCoreClassByName("Any")
+
+
+        }
+    val anyType: SimpleType
+        get() {
+            return any.defaultType
+        }
 
 }
 

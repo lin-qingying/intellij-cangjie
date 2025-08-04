@@ -24,17 +24,17 @@
 
 package cn.cangnova.cangjie.descriptors.impl
 
-import com.intellij.openapi.project.Project
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.psiUtil.sure
-
-//
+import cn.cangnova.cangjie.storage.StorageManager
 
 
 class ModuleDescriptorImpl(
-    val project: Project? = null,
+
     moduleName: Name,
     private val storageManager: StorageManager,
     override val builtIns: CangJieBuiltIns,
@@ -45,16 +45,6 @@ class ModuleDescriptorImpl(
     isBuiltInsModule: Boolean = false
 ) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName),
     ModuleDescriptor {
-    constructor(
-        moduleName: Name,
-        storageManager: StorageManager,
-        builtIns: CangJieBuiltIns,
-
-        capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
-        stableName: Name? = null,
-
-        isBuiltInsModule: Boolean = false
-    ) : this(null, moduleName, storageManager, builtIns, capabilities, stableName, isBuiltInsModule)
 
     private val capabilities: Map<ModuleCapability<*>, Any?>
     private var packageFragmentProviderForModuleContent: PackageFragmentProvider? = null
@@ -63,17 +53,12 @@ class ModuleDescriptorImpl(
     private val packageViewDescriptorFactory: PackageViewDescriptorFactory
 
     init {
-//        if (!moduleName.isSpecial) {
-//            throw IllegalArgumentException("Module name must be special: $moduleName")
-//        }
+
         this.capabilities = capabilities
 
         packageViewDescriptorFactory =
             getCapability(PackageViewDescriptorFactory.CAPABILITY) ?: PackageViewDescriptorFactory.Default
-//
-//        if (!isBuiltInsModule){
-//            builtIns.sourcesModuleDescriptor = this
-//        }
+
 
     }
 

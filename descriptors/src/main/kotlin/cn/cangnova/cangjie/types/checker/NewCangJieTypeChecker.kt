@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.types.checker
 
-import cn.cangnova.cangjie.resolve.OverridingUtil
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.AbstractNullabilityChecker.hasNotNullSupertype
 

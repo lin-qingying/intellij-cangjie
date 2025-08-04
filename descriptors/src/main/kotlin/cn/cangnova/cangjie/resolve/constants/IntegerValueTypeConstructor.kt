@@ -26,6 +26,7 @@ package cn.cangnova.cangjie.resolve.constants
 
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.builtins.StandardNames
+import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.types.CangJieType
@@ -37,7 +38,7 @@ class FloatValueTypeConstructor(
     private val module: ModuleDescriptor,
     parameters: CompileTimeConstant.Parameters
 ) : TypeConstructor {
-    private val supertypes = ArrayList<CangJieType>(4)
+    override val supertypes = ArrayList<CangJieType>(4)
 
     init {
 
@@ -75,22 +76,16 @@ class FloatValueTypeConstructor(
         }
     }
 
-    override fun getSupertypes(): Collection<CangJieType> = supertypes
+    override val parameters: List<TypeParameterDescriptor> = emptyList()
 
-    override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
-
-    override fun isFinal() = false
-
-    override fun isDenotable() = false
-
-    override fun getDeclarationDescriptor() = null
-
+    override val isFinal: Boolean = false
+    override val isDenotable: Boolean = false
+    override val declarationDescriptor: ClassifierDescriptor? = null
     fun getValue(): Double = value
 
-    override fun getBuiltIns(): CangJieBuiltIns {
-        return module.builtIns
-    }
 
+    override val builtIns: CangJieBuiltIns
+        get() = module.builtIns
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 
@@ -103,7 +98,7 @@ class IntegerValueTypeConstructor(
     private val module: ModuleDescriptor,
     parameters: CompileTimeConstant.Parameters
 ) : TypeConstructor {
-    private val supertypes = ArrayList<CangJieType>(4)
+    override val supertypes = ArrayList<CangJieType>(4)
 
     init {
         // order of types matters
@@ -150,21 +145,17 @@ class IntegerValueTypeConstructor(
         }
     }
 
-    override fun getSupertypes(): Collection<CangJieType> = supertypes
-
-    override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
-
-    override fun isFinal() = false
-
-    override fun isDenotable() = false
-
-    override fun getDeclarationDescriptor() = null
+    override val parameters: List<TypeParameterDescriptor> = emptyList()
+    override val isFinal: Boolean  = false
+    override val isDenotable: Boolean = false
+    override val declarationDescriptor: ClassifierDescriptor? = null
 
     fun getValue(): Long = value
 
-    override fun getBuiltIns(): CangJieBuiltIns {
-        return module.builtIns
-    }
+
+
+    override val builtIns: CangJieBuiltIns
+        get() = module.builtIns
 
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this

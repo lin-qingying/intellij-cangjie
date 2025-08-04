@@ -148,11 +148,13 @@ class CapturedType(
 
     override fun toString() = "Captured($typeProjection)" + if (isOption) "?" else ""
 
-    override fun makeOptionalAsSpecified(newOption: Boolean): CapturedType {
-        if (newOption == isOption) return this
-        return CapturedType(typeProjection, constructor, newOption, attributes)
-    }
 
+
+    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
+        if (isOption == this.isOption) return this
+        return CapturedType(typeProjection, constructor, isOption, attributes)
+
+    }
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
         CapturedType(typeProjection, constructor, isOption, newAttributes)
 

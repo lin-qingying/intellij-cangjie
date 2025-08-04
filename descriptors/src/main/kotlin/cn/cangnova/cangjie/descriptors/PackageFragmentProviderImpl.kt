@@ -32,7 +32,7 @@ class PackageFragmentProviderImpl(
 ) : PackageFragmentProviderOptimized {
     override fun collectPackageFragments(
         fqName: FqName,
-        packageFragments: Collection<PackageFragmentDescriptor>
+        packageFragments: MutableCollection<PackageFragmentDescriptor>
     ) {
         this.packageFragments.filterTo(packageFragments.toMutableList()) { it.fqName == fqName }
 

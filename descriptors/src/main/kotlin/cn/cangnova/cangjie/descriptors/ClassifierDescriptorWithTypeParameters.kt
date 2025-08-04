@@ -30,5 +30,5 @@ interface ClassifierDescriptorWithTypeParameters
 
 
 
-    val declaredTypeParameters: Collection<TypeParameterDescriptor>
+    val declaredTypeParameters: List<TypeParameterDescriptor>
 }

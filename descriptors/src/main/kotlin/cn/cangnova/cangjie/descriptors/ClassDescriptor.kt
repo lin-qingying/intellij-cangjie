@@ -30,7 +30,7 @@ import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.SimpleType
 import cn.cangnova.cangjie.types.TypeProjection
 import cn.cangnova.cangjie.types.TypeSubstitution
-import cn.cangnova.cangjie.types.expressions.match.ClassAndEnumConstructorDescriptor
+interface ClassAndEnumConstructorDescriptor
 
 interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor,
      ClassAndEnumConstructorDescriptor {

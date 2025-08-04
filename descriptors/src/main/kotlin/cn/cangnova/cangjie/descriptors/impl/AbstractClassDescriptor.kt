@@ -96,7 +96,7 @@ abstract class AbstractClassDescriptor(
         get() = _thisAsReceiverParameter.invoke()
 
 
-    override val contextReceivers: Collection<ReceiverParameterDescriptor>
+    override val contextReceivers: List<ReceiverParameterDescriptor>
         get() = emptyList()
     override val visibility: DescriptorVisibility
         get() = DescriptorVisibilities.PUBLIC

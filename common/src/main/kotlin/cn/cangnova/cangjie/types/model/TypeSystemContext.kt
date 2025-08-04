@@ -305,6 +305,14 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun FlexibleTypeMarker.asDynamicType(): DynamicTypeMarker?
     fun CangJieTypeMarker.hasCustomAttributes(): Boolean
     fun CangJieTypeMarker.isRawType(): Boolean
+
+    fun TypeConstructorMarker.isIntegerLiteralConstantTypeConstructor(): Boolean
+    fun TypeConstructorMarker.isIntegerConstantOperatorTypeConstructor(): Boolean
+    fun TypeConstructorMarker.isLocalType(): Boolean
+    fun captureFromExpression(type: CangJieTypeMarker): CangJieTypeMarker?
+    fun TypeConstructorMarker.isAnonymous(): Boolean
+    fun TypeParameterMarker.getUpperBound(index: Int): CangJieTypeMarker
+    fun TypeParameterMarker.getUpperBounds(): List<CangJieTypeMarker>
     fun FlexibleTypeMarker.upperBound(): SimpleTypeMarker
     fun FlexibleTypeMarker.lowerBound(): SimpleTypeMarker
     fun SimpleTypeMarker.asCapturedType(): CapturedTypeMarker?
@@ -337,6 +345,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun SimpleTypeMarker.isMarkedOption(): Boolean
     fun CangJieTypeMarker.isMarkedOption(): Boolean =
         this is SimpleTypeMarker && isMarkedOption()
+    fun TypeParameterMarker.upperBoundCount(): Int
 
     fun TypeConstructorMarker.isInterface(): Boolean
     fun CangJieTypeMarker.isFlexible(): Boolean = asFlexibleType() != null

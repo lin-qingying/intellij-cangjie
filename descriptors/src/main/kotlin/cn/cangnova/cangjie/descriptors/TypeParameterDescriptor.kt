@@ -36,7 +36,7 @@ interface TypeParameterDescriptor : ClassifierDescriptor, TypeParameterMarker {
     val variance: Variance
 
 
-    val upperBounds: Collection<CangJieType>
+    val upperBounds: List<CangJieType>
 
 
     override val typeConstructor:  TypeConstructor

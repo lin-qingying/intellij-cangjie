@@ -37,7 +37,7 @@ interface CustomTypeParameter {
 // That interface is needed to provide information about definitely not null
 
 //   type parameters (e.g. from @NotNull annotation) to type system
-interface NotNullTypeParameter : CustomTypeParameter
+interface NonOptionTypeParameter : CustomTypeParameter
 fun CangJieType.getCustomTypeParameter(): CustomTypeParameter? =
     (unwrap() as? CustomTypeParameter)?.let {
         if (it.isTypeParameter) it else null

@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.types.checker
 
-import cn.cangnova.cangjie.builtins.*
+import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.builtins.StandardNames.FqNames
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.TypeAliasDescriptor
@@ -35,15 +35,21 @@ import cn.cangnova.cangjie.descriptors.isFinalClass
 import cn.cangnova.cangjie.name.FqName
 import cn.cangnova.cangjie.name.SpecialNames
 import cn.cangnova.cangjie.resolve.DescriptorUtils
+import cn.cangnova.cangjie.resolve.call.inference.CapturedType
+import cn.cangnova.cangjie.resolve.classId
+import cn.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import cn.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import cn.cangnova.cangjie.resolve.scopes.SubstitutingScope
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
+import cn.cangnova.cangjie.types.functions.FunctionTypeKind
 import cn.cangnova.cangjie.types.model.*
 import cn.cangnova.cangjie.utils.firstIsInstanceOrNull
 import com.intellij.util.containers.addIfNotNull
-import cn.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
-import cn.cangnova.cangjie.types.functions.FunctionTypeKind
+import cn.cangnova.cangjie.types.isSignedOrUnsignedNumberType as classicIsSignedOrUnsignedNumberType
+import cn.cangnova.cangjie.types.isStubType as isSimpleTypeStubType
+import cn.cangnova.cangjie.types.isStubTypeForBuilderInference as isSimpleTypeStubTypeForBuilderInference
+import cn.cangnova.cangjie.types.isStubTypeForVariableInSubtyping as isSimpleTypeStubTypeForVariableInSubtyping
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Any.errorMessage(): String {
@@ -61,27 +67,31 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         get() = throw UnsupportedOperationException("Not supported")
 
 
-
     override fun TypeConstructorMarker.isFloatLiteralTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return this is FloatLiteralTypeConstructor
     }
+
     override fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return this is IntegerLiteralTypeConstructor
     }
+
     override fun CangJieTypeMarker.extractArgumentsForFunctionTypeOrSubtype(): List<CangJieTypeMarker> {
         require(this is CangJieType, this::errorMessage)
         return this.getPureArgumentsForFunctionalTypeOrSubtype()
     }
+
     override fun CangJieTypeMarker.getCustomAttributes(): List<AnnotationMarker> {
         require(this is CangJieType, this::errorMessage)
         return this.attributes.filterNot { it is AnnotationsTypeAttribute }
     }
+
     override fun CangJieTypeMarker.hasCustomAttributes(): Boolean {
         require(this is CangJieType, this::errorMessage)
         return !this.attributes.isEmpty() && this.getCustomAttributes().size > 0
     }
+
     override fun createTypeWithUpperBoundForIntersectionResult(
         firstCandidate: CangJieTypeMarker,
         secondCandidate: CangJieTypeMarker,
@@ -100,6 +110,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun TypeConstructorMarker.isIntegerLiteralConstantTypeConstructor(): Boolean {
         return isIntegerLiteralTypeConstructor()
     }
+
 
     override fun TypeConstructorMarker.isIntegerConstantOperatorTypeConstructor(): Boolean {
         return false
@@ -124,6 +135,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             require(this is NewTypeVariableConstructor, this::errorMessage)
             return this.originalTypeParameter
         }
+
     override fun SimpleTypeMarker.possibleFloatTypes(): Collection<CangJieTypeMarker> {
         val typeConstructor = typeConstructor()
         require(typeConstructor is FloatLiteralTypeConstructor, this::errorMessage)
@@ -136,9 +148,9 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return typeConstructor.possibleTypes
     }
 
-    override fun SimpleTypeMarker.withOption(option: Boolean): SimpleTypeMarker {
+    override fun SimpleTypeMarker.withOption(isOption: Boolean): SimpleTypeMarker {
         require(this is SimpleType, this::errorMessage)
-        return this.makeOptionAsSpecified(option)
+        return this.makeOptionAsSpecified(isOption)
     }
 
     override fun CangJieTypeMarker.isError(): Boolean {
@@ -181,7 +193,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
     override fun CapturedTypeMarker.lowerType(): CangJieTypeMarker? {
-             require(this is NewCapturedType, this::errorMessage)
+        require(this is NewCapturedType, this::errorMessage)
         return this.lowerType
     }
 
@@ -243,7 +255,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     @OptIn(ObsoleteTypeKind::class)
     override fun CangJieTypeMarker.isNonOptionTypeParameter(): Boolean = this is NonOptionTypeParameter
 
-    override fun SimpleTypeMarker.isOption(): Boolean {
+    override fun SimpleTypeMarker.isMarkedOption(): Boolean {
         require(this is SimpleType, this::errorMessage)
         return this.isOption
     }
@@ -374,21 +386,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
 
-
-//    override fun TypeConstructorMarker.isCommonFinalClassConstructor(): Boolean {
-//        require(this is TypeConstructor, this::errorMessage)
-//        val classDescriptor = declarationDescriptor as? ClassDescriptor ?: return false
-//        return classDescriptor.isFinalClass &&
-//                classDescriptor.kind != ClassKind.ENUM_ENTRY &&
-//                classDescriptor.kind != ClassKind.ANNOTATION_CLASS
-//    }
-
-//    override fun TypeConstructorMarker.isFinalClassOrEnumEntryOrAnnotationClassConstructor(): Boolean {
-//        require(this is TypeConstructor, this::errorMessage)
-//        val classDescriptor = declarationDescriptor
-//        return classDescriptor is ClassDescriptor && classDescriptor.isFinalClass
-//    }
-
     override fun SimpleTypeMarker.asArgumentList(): TypeArgumentListMarker {
         require(this is SimpleType, this::errorMessage)
         return this
@@ -401,17 +398,17 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun TypeConstructorMarker.isAnyConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return  isTypeConstructorForGivenClass(this, FqNames.anyUFqName)
+        return isTypeConstructorForGivenClass(this, FqNames.anyUFqName)
     }
 
     override fun TypeConstructorMarker.isNothingConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return  isTypeConstructorForGivenClass(this, FqNames.nothingUFqName)
+        return isTypeConstructorForGivenClass(this, FqNames.nothingUFqName)
     }
 
     override fun TypeConstructorMarker.isArrayConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return  isTypeConstructorForGivenClass(this, FqNames.arrayUFqName)
+        return isTypeConstructorForGivenClass(this, FqNames.arrayUFqName)
     }
 
     override fun CangJieTypeMarker.asTypeArgument(): TypeArgumentMarker {
@@ -421,7 +418,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
     override fun TypeConstructorMarker.isUnitTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
-        return  isTypeConstructorForGivenClass(this, FqNames.unitUFqName)
+        return isTypeConstructorForGivenClass(this, FqNames.unitUFqName)
     }
 
     /**
@@ -447,11 +444,13 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is CangJieType, this::errorMessage)
         return containsInternal(this, predicate)
     }
+
     override fun TypeConstructorMarker.isFinalClassConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         val classDescriptor = declarationDescriptor as? ClassDescriptor ?: return false
         return classDescriptor.isFinalClass
     }
+
     //
     override fun SimpleTypeMarker.typeDepth(): Int {
         require(this is SimpleType, this::errorMessage)
@@ -495,12 +494,12 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return CangJieTypeFactory.flexibleType(lowerBound, upperBound)
     }
 
-    override fun CangJieTypeMarker.withOption(option: Boolean): CangJieTypeMarker {
+    override fun CangJieTypeMarker.withOption(isOption: Boolean): CangJieTypeMarker {
         return when (this) {
-            is SimpleTypeMarker -> this.withOption(option)
+            is SimpleTypeMarker -> this.withOption(isOption)
             is FlexibleTypeMarker -> createFlexibleType(
-                lowerBound().withOption(option),
-                upperBound().withOption(option)
+                lowerBound().withOption(isOption),
+                upperBound().withOption(isOption)
             )
 
             else -> error("sealed")
@@ -518,7 +517,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             typeSystemContext = this
         )
     }
- 
+
     override fun nothingType(): SimpleTypeMarker {
         return builtIns.nothingType
     }
@@ -599,7 +598,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun createSimpleType(
         constructor: TypeConstructorMarker,
         arguments: List<TypeArgumentMarker>,
-        option: Boolean,
+        isOption: Boolean,
         isExtensionFunction: Boolean,
         attributes: List<AnnotationMarker>?
     ): SimpleTypeMarker {
@@ -627,7 +626,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             DefaultTypeAttributeTranslator.toAttributes(resultingAnnotations),
             constructor,
             arguments as List<TypeProjection>,
-            option
+            isOption
         )
     }
 
@@ -682,7 +681,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         errorSupportedOnlyInTypeInference()
     }
 
-    @COnly
+
     override fun createSubstitutionFromSubtypingStubTypesToTypeVariables(): TypeSubstitutorMarker {
         error("Only for K2")
     }
@@ -857,7 +856,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
             val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
-            return if (firstCandidate.isOption) intersectionTypeWithAlternative.makeOptionalAsSpecified(true)
+            return if (firstCandidate.isOption) intersectionTypeWithAlternative.makeOptionAsSpecified(true)
             else intersectionTypeWithAlternative
 
         } ?: error("Expected intersection type, found $firstCandidate")
@@ -887,6 +886,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         require(this is CangJieType)
         return this.functionTypeKind
     }
+
     override fun CangJieTypeMarker.isFunctionWithAny(): Boolean {
         require(this is CangJieType, this::errorMessage)
         return this.isFunctionType
@@ -911,7 +911,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             builtIns,
             parametersNumber,
 
-        ).typeConstructor
+            ).typeConstructor
     }
 
     override fun createSubstitutorForSuperTypes(baseType: CangJieTypeMarker): TypeSubstitutorMarker? {

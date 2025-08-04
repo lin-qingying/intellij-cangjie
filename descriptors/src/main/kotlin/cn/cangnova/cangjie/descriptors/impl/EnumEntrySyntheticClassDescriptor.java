@@ -175,9 +175,8 @@ public class EnumEntrySyntheticClassDescriptor extends ClassDescriptorBase {
         return "enum entry " + getName();
     }
 
-    @NotNull
     @Override
-    public List<TypeParameterDescriptor> getDeclaredTypeParameters() {
+    public @NotNull List<? extends @NotNull TypeParameterDescriptor> getDeclaredTypeParameters() {
         return Collections.emptyList();
     }
 

@@ -26,7 +26,6 @@ package cn.cangnova.cangjie.types
 
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import cn.cangnova.cangjie.storage.isProcessCanceledException
 import cn.cangnova.cangjie.types.CangJieTypeFactory.flexibleType
 import cn.cangnova.cangjie.types.DisjointKeysUnionTypeSubstitution.Companion.create
 import cn.cangnova.cangjie.types.ErrorUtils.createErrorType
@@ -35,7 +34,7 @@ import cn.cangnova.cangjie.types.TypeConstructorSubstitution.Companion.createByC
 
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
 import cn.cangnova.cangjie.types.model.TypeSubstitutorMarker
-import cn.cangnova.cangjie.types.typesApproximation.approximateCapturedTypesIfNecessary
+import cn.cangnova.cangjie.utils.isProcessCanceledException
 
 
 class TypeSubstitutor(val substitution: TypeSubstitution) : TypeSubstitutorMarker {

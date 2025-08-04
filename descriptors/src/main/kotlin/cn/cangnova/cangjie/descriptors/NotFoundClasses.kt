@@ -76,7 +76,7 @@ class NotFoundClasses(private val storageManager: StorageManager, private val mo
 
         numberOfDeclaredTypeParameters: Int
     ) : ClassDescriptorBase(storageManager, container, name, SourceElement.NO_SOURCE, /* isExternal = */ false) {
-        override val declaredTypeParameters = (0 until numberOfDeclaredTypeParameters).map { index ->
+        override val declaredTypeParameters: List<TypeParameterDescriptor> = (0 until numberOfDeclaredTypeParameters).map { index ->
             TypeParameterDescriptorImpl.createWithDefaultBound(
                 this,
                 Annotations.EMPTY, /*false,*/
