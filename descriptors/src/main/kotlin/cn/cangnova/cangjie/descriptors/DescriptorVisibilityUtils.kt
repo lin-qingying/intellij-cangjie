@@ -25,9 +25,11 @@
 package cn.cangnova.cangjie.descriptors
 
 
-import cn.cangnova.cangjie.config.LanguageFeature
 import cn.cangnova.cangjie.config.LanguageVersionSettings
-import cn.cangnova.cangjie.descriptors.DescriptorVisibilities.*
+import cn.cangnova.cangjie.descriptors.DescriptorVisibilities.findInvisibleMember
+import cn.cangnova.cangjie.descriptors.DescriptorVisibilities.isVisible
+import cn.cangnova.cangjie.descriptors.DescriptorVisibilities.isVisibleIgnoringReceiver
+import cn.cangnova.cangjie.descriptors.DescriptorVisibilities.isVisibleWithAnyReceiver
 import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 
@@ -39,7 +41,12 @@ object DescriptorVisibilityUtils {
         from: DeclarationDescriptor,
         languageVersionSettings: LanguageVersionSettings
     ): DeclarationDescriptor? {
-        return findInvisibleMember(receiver, what, from, languageVersionSettings.useSpecialRulesForPrivateSealedConstructors)
+        return findInvisibleMember(
+            receiver,
+            what,
+            from,
+            languageVersionSettings.useSpecialRulesForPrivateSealedConstructors
+        )
     }
 
     @JvmStatic
@@ -58,7 +65,11 @@ object DescriptorVisibilityUtils {
         from: DeclarationDescriptor,
         languageVersionSettings: LanguageVersionSettings
     ): Boolean {
-        return isVisibleIgnoringReceiver(what, from, languageVersionSettings.useSpecialRulesForPrivateSealedConstructors)
+        return isVisibleIgnoringReceiver(
+            what,
+            from,
+            languageVersionSettings.useSpecialRulesForPrivateSealedConstructors
+        )
     }
 
     @JvmStatic
@@ -71,7 +82,6 @@ object DescriptorVisibilityUtils {
     }
 
     val LanguageVersionSettings.useSpecialRulesForPrivateSealedConstructors: Boolean
-        get() = !supportsFeature(LanguageFeature.AllowSealedInheritorsInDifferentFilesOfSamePackage) ||
-                !supportsFeature(LanguageFeature.UseConsistentRulesForPrivateConstructorsOfSealedClasses)
+        get() = false
 }
 
