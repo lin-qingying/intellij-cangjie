@@ -48,7 +48,7 @@ fun checkEnumsForCompatibility(context: ResolutionContext<*>, reportOn: CjElemen
 }
 private fun isIncompatibleEnums(typeA: CangJieType, typeB: CangJieType): Boolean {
     if (!typeA.isEnum() && !typeB.isEnum()) return false
-    if (TypeUtils.isNullableType(typeA) && TypeUtils.isNullableType(typeB)) return false
+            if (TypeUtils.isOptionType(typeA) && TypeUtils.isOptionType(typeB)) return false
 
 
     // For now, this check is needed as isSubClass contains bug wrt Nothing

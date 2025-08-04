@@ -34,7 +34,7 @@ import cn.cangnova.cangjie.types.model.StubTypeMarker
 
 abstract class AbstractStubType(
     val originalTypeVariable: NewTypeVariableConstructor,
-    override val isMarkedOption: Boolean
+    override val isOption: Boolean
 ) : SimpleType() {
     override val memberScope: MemberScope =
         ErrorUtils.createErrorScope(ErrorScopeKind.STUB_TYPE_SCOPE, originalTypeVariable.toString())
@@ -47,14 +47,14 @@ abstract class AbstractStubType(
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType = this
 
-    override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
-        return if (newNullability == isMarkedOption) this else materialize(newNullability)
+    override fun makeOptionalAsSpecified(newOption: Boolean): SimpleType {
+        return if (newOption == isOption) this else materialize(newOption)
     }
 
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) = this
 
-    abstract fun materialize(newNullability: Boolean): AbstractStubType
+    abstract fun materialize(newOption: Boolean): AbstractStubType
 
     companion object {
         fun createConstructor(originalTypeVariable: NewTypeVariableConstructor) =
@@ -64,30 +64,30 @@ abstract class AbstractStubType(
 
 class StubTypeForTypeVariablesInSubtyping(
     originalTypeVariable: NewTypeVariableConstructor,
-    isMarkedNullable: Boolean,
+    isOption: Boolean,
     override val constructor: TypeConstructor = createConstructor(originalTypeVariable)
-) : AbstractStubType(originalTypeVariable, isMarkedNullable), StubTypeMarker {
-    override fun materialize(newNullability: Boolean): AbstractStubType =
-        StubTypeForTypeVariablesInSubtyping(originalTypeVariable, newNullability, constructor)
+) : AbstractStubType(originalTypeVariable, isOption), StubTypeMarker {
+    override fun materialize(newOption: Boolean): AbstractStubType =
+        StubTypeForTypeVariablesInSubtyping(originalTypeVariable, newOption, constructor)
 
     override fun toString(): String {
-        return "Stub (subtyping): $originalTypeVariable${if (isMarkedOption) "?" else ""}"
+        return "Stub (subtyping): $originalTypeVariable${if (isOption) "?" else ""}"
     }
 }
 
 
 class StubTypeForBuilderInference(
     originalTypeVariable: NewTypeVariableConstructor,
-    isMarkedNullable: Boolean,
+    isOption: Boolean,
     override val constructor: TypeConstructor = createConstructor(originalTypeVariable)
-) : AbstractStubType(originalTypeVariable, isMarkedNullable), StubTypeMarker {
-    override fun materialize(newNullability: Boolean): AbstractStubType =
-        StubTypeForBuilderInference(originalTypeVariable, newNullability, constructor)
+) : AbstractStubType(originalTypeVariable, isOption), StubTypeMarker {
+    override fun materialize(newOption: Boolean): AbstractStubType =
+        StubTypeForBuilderInference(originalTypeVariable, newOption, constructor)
 
     override val memberScope: MemberScope = originalTypeVariable.builtIns.anyType.memberScope
 
     override fun toString(): String {
         // BI means builder inference
-        return "Stub (BI): $originalTypeVariable${if (isMarkedOption) "?" else ""}"
+        return "Stub (BI): $originalTypeVariable${if (isOption) "?" else ""}"
     }
 }

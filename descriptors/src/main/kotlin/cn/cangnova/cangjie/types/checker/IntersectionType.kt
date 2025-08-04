@@ -93,7 +93,7 @@ object TypeIntersector {
             if (CangJieBuiltIns.isNothing (type)) {
                 nothingOrNullableNothing = type
             }
-            allNullable = allNullable and type.isMarkedOption
+            allNullable = allNullable and type.isOption
             nullabilityStripped.add(TypeUtils.makeNotNullable(type))
         }
 
@@ -176,7 +176,7 @@ object TypeIntersector {
         for (type in types) {
             if (type.constructor is IntersectionTypeConstructor) {
                 inputTypes.addAll(type.constructor.supertypes.map {
-                    it.upperIfFlexible().let { if (type.isMarkedOption) it.makeOptionalAsSpecified(true) else it }
+                    it.upperIfFlexible().let { if (type.isOption) it.makeOptionalAsSpecified(true) else it }
                 })
             } else {
                 inputTypes.add(type)
@@ -272,7 +272,7 @@ object TypeIntersector {
 
         protected val UnwrappedType.resultNullability: ResultNullability
             get() = when {
-                isMarkedOption -> ACCEPT_NULL
+                isOption -> ACCEPT_NULL
                 this is DefinitelyNotNullType && this.original is StubTypeForBuilderInference -> NOT_NULL
                 this is StubTypeForBuilderInference -> UNKNOWN
                 NullabilityChecker.isSubtypeOfAny(this) -> NOT_NULL

@@ -39,7 +39,7 @@ class TypeAliasExpander(
     fun expandWithoutAbbreviation(typeAliasExpansion: TypeAliasExpansion, attributes: TypeAttributes) =
         expandRecursively(
             typeAliasExpansion, attributes,
-            isNullable = false, recursionDepth = 0, withAbbreviatedType = false
+            isOption = false, recursionDepth = 0, withAbbreviatedType = false
         )
 
     private fun expandNonArgumentTypeProjection(
@@ -85,7 +85,7 @@ class TypeAliasExpander(
 
                 val nestedExpandedType = expandRecursively(
                     nestedExpansion, type.attributes,
-                    isNullable = type.isMarkedOption,
+                    isOption = type.isOption,
                     recursionDepth = recursionDepth + 1,
                     withAbbreviatedType = false
                 )
@@ -117,7 +117,7 @@ class TypeAliasExpander(
 
               TypeProjectionImpl(
                 projection.projectionKind,
-                TypeUtils.makeOptionalIfNeeded(projection.type, originalArgument.type.isMarkedOption)
+                TypeUtils.makeOptionalIfNeeded(projection.type, originalArgument.type.isOption)
             )
         }
 
@@ -185,7 +185,7 @@ class TypeAliasExpander(
         return TypeProjectionImpl(resultingVariance, substitutedType)
     }
     private fun SimpleType.combineNullability(fromType: CangJieType) =
-        TypeUtils.makeOptionalIfNeeded(this, fromType.isMarkedOption)
+        TypeUtils.makeOptionalIfNeeded(this, fromType.isOption)
 
     private fun SimpleType.combineNullabilityAndAnnotations(fromType: CangJieType) =
         combineNullability(fromType).combineAttributes(fromType.attributes)
@@ -204,7 +204,7 @@ class TypeAliasExpander(
     private fun expandRecursively(
         typeAliasExpansion: TypeAliasExpansion,
         attributes: TypeAttributes,
-        isNullable: Boolean,
+        isOption: Boolean,
         recursionDepth: Int,
         withAbbreviatedType: Boolean
     ): SimpleType {
@@ -223,27 +223,27 @@ class TypeAliasExpander(
 
 //        checkRepeatedAnnotations(expandedType.annotations, attributes.annotations)
         val expandedTypeWithExtraAnnotations =
-            expandedType.combineAttributes(attributes).let { TypeUtils.makeOptionalIfNeeded(it, isNullable) }
+            expandedType.combineAttributes(attributes).let { TypeUtils.makeOptionalIfNeeded(it, isOption) }
 
         return if (withAbbreviatedType)
-            expandedTypeWithExtraAnnotations.withAbbreviation(typeAliasExpansion.createAbbreviation(attributes, isNullable))
+            expandedTypeWithExtraAnnotations.withAbbreviation(typeAliasExpansion.createAbbreviation(attributes, isOption))
         else
             expandedTypeWithExtraAnnotations
     }
 
-    private fun TypeAliasExpansion.createAbbreviation(attributes: TypeAttributes, isNullable: Boolean) =
+    private fun TypeAliasExpansion.createAbbreviation(attributes: TypeAttributes, isOption: Boolean) =
        CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
             attributes,
             descriptor.typeConstructor,
             arguments,
-            isNullable,
+            isOption,
             MemberScope.Empty
         )
 
     fun expand(typeAliasExpansion: TypeAliasExpansion, attributes: TypeAttributes) =
         expandRecursively(
             typeAliasExpansion, attributes,
-            isNullable = false, recursionDepth = 0, withAbbreviatedType = true
+            isOption = false, recursionDepth = 0, withAbbreviatedType = true
         )
 
     companion object{

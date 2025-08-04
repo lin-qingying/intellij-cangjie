@@ -177,7 +177,7 @@ abstract class AbstractTypeApproximator(
                     val upperResult =
                         if (!type.isRawType() && !shouldApproximateUpperBoundSeparately(lowerBound, upperBound, conf)) {
                             // We skip approximating the upper bound if the type constructors match as an optimization.
-                            lowerResult?.withNullability(upperBound.isMarkedNullable())
+                            lowerResult?.withOption(upperBound.isOption)
                         } else {
                             approximateTo(upperBound, conf, depth)
                         }
@@ -240,7 +240,7 @@ abstract class AbstractTypeApproximator(
         )
         val result = AbstractTypeChecker.findCorrespondingSupertypes(typeCheckerContext, type, superConstructor)
             .firstOrNull()
-            ?.withNullability(type.isMarkedNullable())
+            ?.withOption(type.isOption)
             ?: return null
         /*
          * AbstractTypeChecker captures any projections in the super type by default, which may lead to the situation, when some local
@@ -268,7 +268,7 @@ abstract class AbstractTypeApproximator(
         // It's intentional we're not trying to prove population of some type as it was in OI
 
         return constructor.supertypes().any {
-            !it.isMarkedNullable() && it.isSignedOrUnsignedNumberType()
+            !it.isOption && it.isSignedOrUnsignedNumberType()
         }
     }
 
@@ -320,7 +320,7 @@ abstract class AbstractTypeApproximator(
             }
         }
 
-        return if (type.isMarkedNullable()) baseResult.withNullability(true) else baseResult
+        return if (type.isOption) baseResult.withOption(true) else baseResult
     }
 
     private fun approximateCapturedType(
@@ -386,7 +386,7 @@ abstract class AbstractTypeApproximator(
         // C = in Int, Int <: C => Int? <: C?
         // C = out Number, C <: Number => C? <: Number?
         return when {
-            type.isMarkedNullable() -> baseResult.withNullability(true)
+            type.isOption -> baseResult.withOption(true)
             type.isProjectionNotNull() -> baseResult.withNullability(false)
             else -> baseResult
         }.let {
@@ -447,13 +447,13 @@ abstract class AbstractTypeApproximator(
 
         if (typeConstructor.isIntegerLiteralConstantTypeConstructor()) {
             return runIf(conf.integerLiteralConstantType) {
-                typeConstructor.getApproximatedIntegerLiteralType().withNullability(type.isMarkedNullable())
+                typeConstructor.getApproximatedIntegerLiteralType().withOption(type.isOption)
             }
         }
 
         if (typeConstructor.isIntegerConstantOperatorTypeConstructor()) {
             return runIf(conf.integerConstantOperatorType) {
-                typeConstructor.getApproximatedIntegerLiteralType().withNullability(type.isMarkedNullable())
+                typeConstructor.getApproximatedIntegerLiteralType().withOption(type.isOption)
             }
         }
 
@@ -473,20 +473,20 @@ abstract class AbstractTypeApproximator(
                 conf,
                 depth
             )
-        val typeWithErasedNullability = originalType.withNullability(false)
+        val typeWithErasedOption = originalType.withOption(false)
 
-        // Approximate T!! into T if T is already not-null (has not-null upper bounds)
+        // Approximate T!! into T if T is already not-option (has not-option upper bounds)
         if (originalType.typeConstructor()
-                .isTypeParameterTypeConstructor() && !typeWithErasedNullability.isNullableType()
+                .isTypeParameterTypeConstructor() && !typeWithErasedOption.isOptionType()
         ) {
-            return typeWithErasedNullability
+            return typeWithErasedOption
         }
 
         return if (conf.definitelyNotNullType || languageVersionSettings.supportsFeature(LanguageFeature.DefinitelyNonNullableTypes)) {
             approximatedOriginalType?.makeDefinitelyNotNullOrNotNull()
         } else {
             if (toSuper)
-                (approximatedOriginalType ?: originalType).withNullability(false)
+                (approximatedOriginalType ?: originalType).withOption(false)
             else
                 type.defaultResult(toSuper)
         }
@@ -634,19 +634,19 @@ abstract class AbstractTypeApproximator(
         // But it seems that now it looks a bit more clear and probably performant, thus first two if's are basically fast paths
 
         // If it's not `Nothing?`, then the lower bound is indeed non-trivial
-        if (!subType.lowerBoundIfFlexible().isNullableNothing()) return true
+        if (!subType.lowerBoundIfFlexible().isOptionNothing()) return true
 
         // Here the subType is `Nothing?`, and it might be trivial only in cause the nullability is caused by nullability of captured type itself
 
-        // If captured type is not marked as nullable, then nullability of subType came from the lower bound of the captured type.
+        // If captured type is not marked as option, then option of subType came from the lower bound of the captured type.
         // Thus, the lower bound is non-trivial for sure
-        if (!capturedArgumentType.isMarkedNullable()) return true
+        if (!capturedArgumentType.isOption) return true
 
-        val notMarkedNullableSubType =
-            approximateToSubType(capturedArgumentType.withNullability(false), conf, depth)
-                ?: error("Not-marked-nullable version of captured type approximation should also return not-null")
+        val notMarkedOptionSubType =
+            approximateToSubType(capturedArgumentType.withOption(false), conf, depth)
+                ?: error("Not-marked-option version of captured type approximation should also return not-option")
 
-        return !notMarkedNullableSubType.isTrivialSub()
+        return !notMarkedOptionSubType.isTrivialSub()
     }
 
     private fun CangJieTypeMarker.defaultResult(toSuper: Boolean) = if (toSuper) anyType() else {
@@ -654,7 +654,7 @@ abstract class AbstractTypeApproximator(
     }
 
     // Any? or Any!
-    private fun CangJieTypeMarker.isTrivialSuper() = upperBoundIfFlexible().isNullableAny()
+    private fun CangJieTypeMarker.isTrivialSuper() = upperBoundIfFlexible().isOptionAny()
 
     // Nothing or Nothing!
     private fun CangJieTypeMarker.isTrivialSub() = lowerBoundIfFlexible().isNothing()

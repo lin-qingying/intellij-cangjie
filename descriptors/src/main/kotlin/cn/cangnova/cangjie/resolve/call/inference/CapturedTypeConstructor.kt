@@ -118,7 +118,7 @@ class CapturedTypeConstructorImpl(
 class CapturedType(
     val typeProjection: TypeProjection,
     override val constructor: CapturedTypeConstructor = CapturedTypeConstructorImpl(typeProjection),
-    override val isMarkedOption: Boolean = false,
+    override val isOption: Boolean = false,
     override val attributes: TypeAttributes = TypeAttributes.Empty
 ) : SimpleType(), SubtypingRepresentatives, CapturedTypeMarker {
 
@@ -133,7 +133,7 @@ class CapturedType(
 
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
-        CapturedType(typeProjection.refine(cangjieTypeRefiner), constructor, isMarkedOption, attributes)
+        CapturedType(typeProjection.refine(cangjieTypeRefiner), constructor, isOption, attributes)
 
     override val subTypeRepresentative: CangJieType
         get() = representative(Variance.INVARIANT, builtIns.anyType)
@@ -146,15 +146,15 @@ class CapturedType(
 
     override fun sameTypeConstructor(type: CangJieType) = constructor === type.constructor
 
-    override fun toString() = "Captured($typeProjection)" + if (isMarkedOption) "?" else ""
+    override fun toString() = "Captured($typeProjection)" + if (isOption) "?" else ""
 
-    override fun makeOptionalAsSpecified(newNullability: Boolean): CapturedType {
-        if (newNullability == isMarkedOption) return this
-        return CapturedType(typeProjection, constructor, newNullability, attributes)
+    override fun makeOptionalAsSpecified(newOption: Boolean): CapturedType {
+        if (newOption == isOption) return this
+        return CapturedType(typeProjection, constructor, newOption, attributes)
     }
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
-        CapturedType(typeProjection, constructor, isMarkedOption, newAttributes)
+        CapturedType(typeProjection, constructor, isOption, newAttributes)
 
 
 }

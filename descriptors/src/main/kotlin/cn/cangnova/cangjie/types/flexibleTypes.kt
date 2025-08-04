@@ -52,7 +52,7 @@ fun CangJieType.asFlexibleType(): FlexibleType = unwrap() as FlexibleType
 
 fun CangJieType.isNullabilityFlexible(): Boolean {
     val flexibility = unwrap() as? FlexibleType ?: return false
-    return flexibility.lowerBound.isMarkedOption != flexibility.upperBound.isMarkedOption
+            return flexibility.lowerBound.isOption != flexibility.upperBound.isOption
 }
 
 // This function is intended primarily for sets: since CangJieType.equals() represents _syntactical_ equality of types,
@@ -159,9 +159,9 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
 
     override fun toString() = "($lowerBound..$upperBound)"
 
-    override fun makeOptionalAsSpecified(newNullability: Boolean): UnwrappedType = CangJieTypeFactory.flexibleType(
-        lowerBound.makeOptionalAsSpecified(newNullability),
-        upperBound.makeOptionalAsSpecified(newNullability)
+    override fun makeOptionAsSpecified(isOption: Boolean): UnwrappedType = CangJieTypeFactory.flexibleType(
+        lowerBound.makeOptionAsSpecified(isOption),
+        upperBound.makeOptionAsSpecified(isOption)
     )
 
     @TypeRefinement

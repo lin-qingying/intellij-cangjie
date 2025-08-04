@@ -41,7 +41,58 @@ import cn.cangnova.cangjie.types.util.toOptionalType
 
 private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, val refinedConstructor: TypeConstructor?)
 
+/**
+ * 仓颉类型工厂
+ * 
+ * 提供创建各种仓颉语言类型的工厂方法，包括：
+ * - 简单类型（SimpleType）
+ * - 基础类型（BasicType）
+ * - 灵活类型（FlexibleType）
+ * - 字面量类型（FloatLiteralType、IntegerLiteralType）
+ * - 数组类型（VArrayType）
+ * 
+ * 核心功能：
+ * - simpleType：创建简单类型
+ * - flexibleType：创建灵活类型
+ * - basicType：创建基础类型
+ * - arrayType：创建数组类型
+ * 
+ * 示例：
+ * ```kotlin
+ * // 创建简单类型
+ * val simpleType = CangJieTypeFactory.simpleType(attributes, constructor, arguments, false)
+ * 
+ * // 创建灵活类型
+ * val flexibleType = CangJieTypeFactory.flexibleType(lowerBound, upperBound)
+ * 
+ * // 创建基础类型
+ * val basicType = CangJieTypeFactory.basicType(descriptor)
+ * 
+ * // 创建数组类型
+ * val arrayType = CangJieTypeFactory.arrayType(elementType)
+ * ```
+ */
 object CangJieTypeFactory {
+
+    /**
+     * 创建非空的简单类型
+     * 
+     * 使用类描述符创建非Option的简单类型。
+     * 
+     * 示例：
+     * ```kotlin
+     * val attributes = TypeAttributes.Empty
+     * val descriptor: ClassDescriptor = ...
+     * val arguments = listOf(...)
+     * val simpleType = CangJieTypeFactory.simpleNotNullType(attributes, descriptor, arguments)
+     * // 创建非Option的简单类型
+     * ```
+     * 
+     * @param attributes 类型属性
+     * @param descriptor 类描述符
+     * @param arguments 类型参数列表
+     * @return 非空的简单类型
+     */
     @JvmStatic
     fun simpleNotNullType(
         attributes: TypeAttributes,
@@ -49,6 +100,21 @@ object CangJieTypeFactory {
         arguments: List<TypeProjection>
     ): SimpleType = simpleType(attributes, descriptor.typeConstructor, arguments, option = false)
 
+    /**
+     * 创建基础类型
+     * 
+     * 使用基础类型描述符创建基础类型。
+     * 
+     * 示例：
+     * ```kotlin
+     * val descriptor: BasicTypeDescriptor = ...
+     * val basicType = CangJieTypeFactory.basicType(descriptor)
+     * // 创建基础类型，如Int、String等
+     * ```
+     * 
+     * @param descriptor 基础类型描述符
+     * @return 基础类型
+     */
     @JvmStatic
     fun basicType(descriptor: BasicTypeDescriptor): BasicType {
         return BasicType(
@@ -56,16 +122,35 @@ object CangJieTypeFactory {
             descriptor.basicTypeMemberScope
         )
     }
+
+    /**
+     * 创建浮点数字面量类型
+     * 
+     * 创建表示浮点数字面量的类型，使用错误作用域。
+     * 
+     * 示例：
+     * ```kotlin
+     * val attributes = TypeAttributes.Empty
+     * val constructor = FloatLiteralTypeConstructor(...)
+     * val floatLiteralType = CangJieTypeFactory.floatLiteralType(attributes, constructor, false)
+     * // 创建浮点数字面量类型
+     * ```
+     * 
+     * @param attributes 类型属性
+     * @param constructor 浮点数字面量类型构造器
+     * @param option 是否为Option类型
+     * @return 浮点数字面量类型
+     */
     @JvmStatic
     fun floatLiteralType(
         attributes: TypeAttributes,
         constructor: FloatLiteralTypeConstructor,
-        nullable: Boolean
+        option: Boolean
     ): SimpleType = simpleTypeWithNonTrivialMemberScope(
         attributes,
         constructor,
         emptyList(),
-        nullable,
+        option,
         ErrorUtils.createErrorScope(
             ErrorScopeKind.FLOAT_LITERAL_TYPE_SCOPE,
             throwExceptions = true,
@@ -73,16 +158,34 @@ object CangJieTypeFactory {
         )
     )
 
+    /**
+     * 创建整数字面量类型
+     * 
+     * 创建表示整数字面量的类型，使用错误作用域。
+     * 
+     * 示例：
+     * ```kotlin
+     * val attributes = TypeAttributes.Empty
+     * val constructor = IntegerLiteralTypeConstructor(...)
+     * val integerLiteralType = CangJieTypeFactory.integerLiteralType(attributes, constructor, false)
+     * // 创建整数字面量类型
+     * ```
+     * 
+     * @param attributes 类型属性
+     * @param constructor 整数字面量类型构造器
+     * @param option 是否为Option类型
+     * @return 整数字面量类型
+     */
     @JvmStatic
     fun integerLiteralType(
         attributes: TypeAttributes,
         constructor: IntegerLiteralTypeConstructor,
-        nullable: Boolean
+        option: Boolean
     ): SimpleType = simpleTypeWithNonTrivialMemberScope(
         attributes,
         constructor,
         emptyList(),
-        nullable,
+        option,
         ErrorUtils.createErrorScope(
             ErrorScopeKind.INTEGER_LITERAL_TYPE_SCOPE,
             throwExceptions = true,
@@ -90,6 +193,23 @@ object CangJieTypeFactory {
         )
     )
 
+    /**
+     * 创建灵活类型
+     * 
+     * 创建包含下界和上界的灵活类型。如果下界和上界相同，则返回下界。
+     * 
+     * 示例：
+     * ```kotlin
+     * val lowerBound: SimpleType = Int类型
+     * val upperBound: SimpleType = Number类型
+     * val flexibleType = CangJieTypeFactory.flexibleType(lowerBound, upperBound)
+     * // 创建灵活类型，表示类型范围
+     * ```
+     * 
+     * @param lowerBound 下界类型
+     * @param upperBound 上界类型
+     * @return 灵活类型
+     */
     @JvmStatic
     fun flexibleType(lowerBound: SimpleType, upperBound: SimpleType): UnwrappedType {
         if (lowerBound == upperBound) return lowerBound
@@ -138,14 +258,14 @@ object CangJieTypeFactory {
     ): SimpleType {
         return OptionType(type)
     }
-  @JvmStatic
+      @JvmStatic
     fun simpleType(
         baseType: SimpleType,
         annotations: TypeAttributes = baseType.attributes,
         constructor: TypeConstructor = baseType.constructor,
         arguments: List<TypeProjection> = baseType.arguments,
-        nullable: Boolean = baseType.isMarkedOption
-    ): SimpleType = simpleType(annotations, constructor, arguments, nullable)
+        option: Boolean = baseType.isOption
+    ): SimpleType = simpleType(annotations, constructor, arguments, option)
 
     @JvmStatic
     @JvmOverloads
@@ -207,11 +327,11 @@ object CangJieTypeFactory {
         attributes: TypeAttributes,
         constructor: TypeConstructor,
         arguments: List<TypeProjection>,
-        nullable: Boolean,
+        option: Boolean,
         memberScope: MemberScope,
         refinedTypeFactory: RefinedTypeFactory
     ): SimpleType =
-        SimpleTypeImpl(constructor, arguments, nullable, memberScope, refinedTypeFactory)
+        SimpleTypeImpl(constructor, arguments, option, memberScope, refinedTypeFactory)
             .let {
                 if (attributes.isEmpty())
                     it
@@ -225,10 +345,10 @@ object CangJieTypeFactory {
         attributes: TypeAttributes,
         constructor: TypeConstructor,
         arguments: List<TypeProjection>,
-        nullable: Boolean,
+        option: Boolean,
         memberScope: MemberScope
     ): SimpleType =
-        SimpleTypeImpl(constructor, arguments, nullable, memberScope) { cangjieTypeRefiner ->
+        SimpleTypeImpl(constructor, arguments, option, memberScope) { cangjieTypeRefiner ->
             val expandedTypeOrRefinedConstructor =
                 refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@SimpleTypeImpl null
             expandedTypeOrRefinedConstructor.expandedType?.let { return@SimpleTypeImpl it }
@@ -237,7 +357,7 @@ object CangJieTypeFactory {
                 attributes,
                 expandedTypeOrRefinedConstructor.refinedConstructor!!,
                 arguments,
-                nullable,
+                option,
                 memberScope
             )
         }.let {
@@ -257,9 +377,9 @@ abstract class DelegatingSimpleTypeImpl(override val delegate: SimpleType) : Del
         else
             this
 
-    override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType {
-//        if (newNullability == isMarkedOption) return this
-        return delegate.makeOptionalAsSpecified(newNullability).replaceAttributes(attributes)
+    override fun makeOptionalAsSpecified(newOption: Boolean): SimpleType {
+//        if (newOption == isOption) return this
+        return delegate.makeOptionalAsSpecified(newOption).replaceAttributes(attributes)
     }
 }
 
@@ -277,12 +397,12 @@ class VArrayType(
     argument : TypeProjection ,
 
     constructor: TypeConstructor,
-    isMarkedOption: Boolean,
+    isOption: Boolean,
     memberScope: MemberScope,
     refinedTypeFactory: RefinedTypeFactory
 ) : SimpleTypeImpl(
 
-    constructor, listOf(argument), isMarkedOption, memberScope, refinedTypeFactory
+    constructor, listOf(argument), isOption, memberScope, refinedTypeFactory
 ) {
 
 val typeName = "VArray"
@@ -298,13 +418,13 @@ val typeName = "VArray"
 open class SimpleTypeImpl(
     override val constructor: TypeConstructor,
     override val arguments: List<TypeProjection>,
-    override val isMarkedOption: Boolean,
+    override val isOption: Boolean,
     override val memberScope: MemberScope,
     protected val refinedTypeFactory: RefinedTypeFactory
 ) : SimpleType() {
-    override fun makeOptionalAsSpecified(newNullability: Boolean) = when {
-        newNullability == isMarkedOption -> this
-        newNullability -> OptionalSimpleType(this.toOptionalType() as SimpleType)
+    override fun makeOptionalAsSpecified(newOption: Boolean) = when {
+        newOption == isOption -> this
+        newOption -> OptionalSimpleType(this.toOptionalType() as SimpleType)
         else -> NotNullSimpleType(this)
     }
 
@@ -324,7 +444,7 @@ open class SimpleTypeImpl(
 }
 
 class OptionalSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
-    override val isMarkedOption: Boolean
+    override val isOption: Boolean
         get() = true
 
     @TypeRefinement
@@ -332,7 +452,7 @@ class OptionalSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delega
 }
 
 class NotNullSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegate) {
-    override val isMarkedOption: Boolean
+    override val isOption: Boolean
         get() = false
 
     @TypeRefinement

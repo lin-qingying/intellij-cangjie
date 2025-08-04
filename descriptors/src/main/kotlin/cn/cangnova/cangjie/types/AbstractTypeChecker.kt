@@ -176,28 +176,28 @@ object AbstractTypeChecker {
     ): Boolean =
         with(state.typeSystemContext) {
             if (type.isNothing()) return true
-            if (type.isMarkedNullable()) return false
+            if (type.isOption) return false
 
             if (state.isStubTypeEqualsToAnything && type.isStubType()) return true
 
             return areEqualTypeConstructors(type.typeConstructor(), end)
         }
 
-    fun hasPathByNotMarkedNullableNodes(state: TypeCheckerState, start: SimpleTypeMarker, end: TypeConstructorMarker) =
+    fun hasPathByNotMarkedOptionNodes(state: TypeCheckerState, start: SimpleTypeMarker, end: TypeConstructorMarker) =
         with(state.typeSystemContext) {
             state.anySupertype(
                 start,
                 { isApplicableAsEndNode(state, it, end) },
-                { if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
+                { if (it.isOption) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
             )
         }
 
 
-    fun TypeCheckerProviderContext.hasPathByNotMarkedNullableNodes(
+    fun TypeCheckerProviderContext.hasPathByNotMarkedOptionNodes(
         start: SimpleTypeMarker,
         end: TypeConstructorMarker
     ) =
-        hasPathByNotMarkedNullableNodes(
+        hasPathByNotMarkedOptionNodes(
             newTypeCheckerState(errorTypesEqualToAnything = false, stubTypesEqualToAnything = true), start, end
         )
 
@@ -945,8 +945,8 @@ object AbstractNullabilityChecker {
             // 如果子类型是 OptionType，直接返回 true
             if (subType is OptionType) return true
 
-            // 如果超类型是可空的，直接返回 true
-            if (superType.isMarkedNullable()) return true
+            // 如果超类型是Option的，直接返回 true
+            if (superType.isOption) return true
 
             // 如果子类型肯定是非空的，直接返回 true
             @OptIn(ObsoleteTypeKind::class)
@@ -979,7 +979,7 @@ object AbstractNullabilityChecker {
             if (subType.isClassType()) return false
 
             // 最后检查是否存在一条路径，使得子类型和超类型之间的关系成立
-            return hasPathByNotMarkedNullableNodes(state, subType, superType.typeConstructor())
+            return hasPathByNotMarkedOptionNodes(state, subType, superType.typeConstructor())
         }
 
 
@@ -1004,7 +1004,7 @@ object AbstractNullabilityChecker {
     ): Boolean =
         with(state.typeSystemContext) {
             if (type.isNothing()) return true
-            if (type.isMarkedNullable()) return false
+            if (type.isOption) return false
 
             if (state.isStubTypeEqualsToAnything && type.isStubType()) return true
 
@@ -1017,24 +1017,24 @@ object AbstractNullabilityChecker {
     ) =
         with(typeSystemContext) {
             anySupertype(type, {
-                (it.isClassType() && !it.isMarkedNullable()) || it.isDefinitelyNotNullType()
+                (it.isClassType() && !it.isOption) || it.isDefinitelyNotNullType()
             }) {
-                if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else supertypesPolicy
+                if (it.isOption) TypeCheckerState.SupertypesPolicy.None else supertypesPolicy
             }
         }
 
     /**
-     * 检查是否存在一条通过未标记为可空的节点的路径
+     * 检查是否存在一条通过未标记为Option的节点的路径
      * 此函数用于在类型检查过程中，判断从一个简单类型到一个类型构造器是否存在一条路径，
-     * 该路径仅通过那些未被标记为可空的类型节点此方法主要用于避免在类型推断时，
-     * 通过可空类型的路径，以确保类型安全性
+     * 该路径仅通过那些未被标记为Option的类型节点此方法主要用于避免在类型推断时，
+     * 通过Option类型的路径，以确保类型安全性
      *
      * @param state 类型检查的状态，包含类型检查过程中的上下文信息
      * @param start 路径的起始点，表示一个简单类型
      * @param end 路径的终点，表示一个类型构造器
-     * @return 如果存在一条通过未标记为可空的节点的路径，则返回true；否则返回false
+     * @return 如果存在一条通过未标记为Option的节点的路径，则返回true；否则返回false
      */
-    private fun hasPathByNotMarkedNullableNodes(
+    private fun hasPathByNotMarkedOptionNodes(
         state: TypeCheckerState,
         start: SimpleTypeMarker,
         end: TypeConstructorMarker
@@ -1045,8 +1045,8 @@ object AbstractNullabilityChecker {
                 start,
                 // 判断当前超类型是否符合路径终点的条件
                 { isApplicableAsEndNode(state, it, end) },
-                // 确定处理超类型的策略：如果类型被标记为可空，则不进一步遍历其超类型
-                { if (it.isMarkedNullable()) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
+                // 确定处理超类型的策略：如果类型被标记为Option，则不进一步遍历其超类型
+                { if (it.isOption) TypeCheckerState.SupertypesPolicy.None else TypeCheckerState.SupertypesPolicy.LowerIfFlexible }
             )
         }
 

@@ -53,7 +53,7 @@ include("dap-debugger")
 include("lsp4ij")
 
 include("telemetry")
-include("analyze-ide")
+//include("analyze-ide")
 include("psi")
 include("util")
 include("icon")

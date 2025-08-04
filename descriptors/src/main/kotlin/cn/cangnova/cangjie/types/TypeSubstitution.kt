@@ -151,7 +151,7 @@ fun SimpleType.replace(
         newAttributes,
         constructor,
         newArguments,
-        isMarkedOption
+        isOption
     )
 }
 

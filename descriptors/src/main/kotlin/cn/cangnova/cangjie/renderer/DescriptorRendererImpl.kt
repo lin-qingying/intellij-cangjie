@@ -395,9 +395,9 @@ open class DescriptorRendererImpl(
         val contextReceiversTypes = type.getContextReceiverTypesFromFunctionType()
 
 
-        val isNullable = type.isMarkedOption
+        val isOption = type.isOption
 
-        val needParenthesis = isNullable || (hasAnnotations && receiverType != null)
+        val needParenthesis = isOption || (hasAnnotations && receiverType != null)
         if (needParenthesis) {
 
             if (hasAnnotations) {
@@ -425,7 +425,7 @@ open class DescriptorRendererImpl(
 
 
         if (receiverType != null) {
-            val surroundReceiver = shouldRenderAsPrettyFunctionType(receiverType) && !receiverType.isMarkedOption ||
+            val surroundReceiver = shouldRenderAsPrettyFunctionType(receiverType) && !receiverType.isOption ||
 //                    receiverType.hasModifiersOrAnnotations() ||
                     receiverType is DefinitelyNotNullType
             if (surroundReceiver) {
@@ -463,7 +463,7 @@ open class DescriptorRendererImpl(
 
         if (needParenthesis) append(")")
 
-        if (isNullable) append("?")
+        if (isOption) append("?")
     }
 
 
@@ -832,7 +832,7 @@ open class DescriptorRendererImpl(
 
     private fun CangJieType.renderForReceiver(): String {
         var result = renderType(this)
-        if ((shouldRenderAsPrettyFunctionType(this) && !TypeUtils.isNullableType(this)) || this is DefinitelyNotNullType) {
+        if ((shouldRenderAsPrettyFunctionType(this) && !TypeUtils.isOptionType(this)) || this is DefinitelyNotNullType) {
             result = "($result)"
         }
         return result

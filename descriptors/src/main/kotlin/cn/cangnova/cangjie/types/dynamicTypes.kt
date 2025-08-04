@@ -56,14 +56,14 @@ class DynamicType(
     override val delegate: SimpleType get() = upperBound
 
 
-    override val isMarkedOption: Boolean get() = false
+    override val isOption: Boolean get() = false
 
     override fun replaceAttributes(newAttributes: TypeAttributes): DynamicType =
         DynamicType(delegate.builtIns, newAttributes)
 
 
-    // Nullability has no effect on dynamics
-    override fun makeOptionalAsSpecified(newNullability: Boolean): DynamicType = this
+    // Option has no effect on dynamics
+    override fun makeOptionAsSpecified(isOption: Boolean): UnwrappedType = this
 
 
     override fun render(renderer: DescriptorRenderer, options: DescriptorRendererOptions): String = "dynamic"

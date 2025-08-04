@@ -77,6 +77,7 @@ import cn.cangnova.cangjie.incremental.components.NoLookupLocation
 import cn.cangnova.cangjie.lexer.CjToken
 import cn.cangnova.cangjie.lexer.CjTokens
 import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.FqNameUnsafe
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
@@ -124,17 +125,6 @@ open class CangJieBuiltIns(
                 }
         }
 
-        fun isBooleanOrNullableBoolean(type: CangJieType): Boolean {
-            return isConstructedFromGivenClass(type, boolUFqName)
-        }
-
-        fun isUnitOrNullableUnit(type: CangJieType): Boolean {
-            return isConstructedFromGivenClass(type, unitUFqName)
-        }
-
-        fun isAnyOrNullableAny(type: CangJieType): Boolean {
-            return isConstructedFromGivenClass(type, anyUFqName)
-        }
 
         /**
          * @return true if the containing package of the descriptor is "cangjie" or any subpackage of "cangjie"
@@ -1052,14 +1042,3 @@ data class BinaryOperatorRule(
     val resultType: BinaryOperatorRuleResultType
 )
 
-fun createBuiltIns(projectContext: ProjectContext): CangJieBuiltIns {
-
-
-    return CangJieBuiltIns(projectContext.project, projectContext.storageManager)
-}
-
-fun createBuiltIns(projectContext: ProjectContext, resolver: IdeaResolverForProject): CangJieBuiltIns {
-
-
-    return CangJieBuiltIns(projectContext.project, projectContext.storageManager)
-}

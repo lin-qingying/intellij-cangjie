@@ -167,7 +167,7 @@ fun FuzzyType.isAlmostEverything(): Boolean {
     if (freeParameters.isEmpty()) return false
     val typeParameter = type.constructor.declarationDescriptor as? TypeParameterDescriptor ?: return false
     if (typeParameter !in freeParameters) return false
-    return typeParameter.upperBounds.singleOrNull()?.isAnyOrNullableAny() ?: false
+            return typeParameter.upperBounds.singleOrNull()?.isAnyOrOptionAny() ?: false
 }
-fun FuzzyType.makeNotNullable() = type.makeNotNullable().toFuzzyType(freeParameters)
+fun FuzzyType.makeNonOption() = type.makeNonOption().toFuzzyType(freeParameters)
 fun CallableDescriptor.fuzzyExtensionReceiverType() = extensionReceiverParameter?.type?.toFuzzyType(typeParameters)

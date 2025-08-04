@@ -27,6 +27,7 @@ package cn.cangnova.cangjie.types
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
+import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.checker.NewCapturedType
 import cn.cangnova.cangjie.types.checker.NewTypeVariableConstructor
@@ -73,7 +74,7 @@ abstract class DelegatingSimpleType : SimpleType() {
 
     override val constructor: TypeConstructor get() = delegate.constructor
     override val arguments: List<TypeProjection> get() = delegate.arguments
-    override val isMarkedOption: Boolean get() = delegate.isMarkedOption
+    override val isOption: Boolean get() = delegate.isOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
 
@@ -91,7 +92,7 @@ abstract class WrappedType : CangJieType() {
 
     override val constructor: TypeConstructor get() = delegate.constructor
     override val arguments: List<TypeProjection> get() = delegate.arguments
-    override val isMarkedOption: Boolean get() = delegate.isMarkedOption
+    override val isOption: Boolean get() = delegate.isOption
     override val memberScope: MemberScope get() = delegate.memberScope
     override val attributes: TypeAttributes get() = delegate.attributes
 
@@ -179,7 +180,7 @@ class DefinitelyNotNullType private constructor(
         ): Boolean {
             if (!type.canHaveUndefinedNullability()) return false
 
-            if (type is StubTypeForBuilderInference) return TypeUtils.isNullableType(type)
+            if (type is StubTypeForBuilderInference) return TypeUtils.isOptionType(type)
 
             if ((type.constructor.declarationDescriptor as? TypeParameterDescriptorImpl)?.isInitialized == false) {
                 return true
@@ -187,8 +188,8 @@ class DefinitelyNotNullType private constructor(
 
 
             if (useCorrectedNullabilityForFlexibleTypeParameters && type.constructor.declarationDescriptor is TypeParameterDescriptor) {
-                // Effectively checks if the type is flexible or has nullable bound
-                return TypeUtils.isNullableType(type)
+                            // Effectively checks if the type is flexible or has option bound
+            return TypeUtils.isOptionType(type)
             }
 
             // Actually, this code should work for type parameters as well, but it breaks some cases
@@ -207,7 +208,7 @@ class DefinitelyNotNullType private constructor(
     override val delegate: SimpleType
         get() = original
 
-    override val isMarkedOption: Boolean
+    override val isOption: Boolean
         get() = false
 
     override val isTypeParameter: Boolean
@@ -220,8 +221,8 @@ class DefinitelyNotNullType private constructor(
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType =
         DefinitelyNotNullType(delegate.replaceAttributes(newAttributes), useCorrectedNullabilityForTypeParameters)
 
-    override fun makeOptionalAsSpecified(newNullability: Boolean): SimpleType =
-        if (newNullability) delegate.makeOptionalAsSpecified(newNullability) else this
+    override fun makeOptionalAsSpecified(newOption: Boolean): SimpleType =
+        if (newOption) delegate.makeOptionalAsSpecified(newOption) else this
 
     override fun toString(): String = "$delegate & Any"
 
@@ -236,7 +237,7 @@ fun SimpleType.makeSimpleTypeDefinitelyNotNullOrNotNull(useCorrectedNullabilityF
         ?: makeOptionalAsSpecified(false)
 
 fun NewCapturedType.withNotNullProjection() =
-    NewCapturedType(captureStatus, constructor, lowerType, attributes, isMarkedOption, isProjectionNotNull = true)
+    NewCapturedType(captureStatus, constructor, lowerType, attributes, isOption, isProjectionNotNull = true)
 
 fun UnwrappedType.makeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeParameters: Boolean = false): UnwrappedType =
     DefinitelyNotNullType.makeDefinitelyNotNull(this, useCorrectedNullabilityForTypeParameters)
@@ -244,7 +245,7 @@ fun UnwrappedType.makeDefinitelyNotNullOrNotNull(useCorrectedNullabilityForTypeP
         ?: makeOptionalAsSpecified(false)
 
 private fun IntersectionTypeConstructor.makeDefinitelyNotNullOrNotNull(): IntersectionTypeConstructor? {
-    return transformComponents({ TypeUtils.isNullableType(it) }, { it.unwrap().makeDefinitelyNotNullOrNotNull() })
+            return transformComponents({ TypeUtils.isOptionType(it) }, { it.unwrap().makeDefinitelyNotNullOrNotNull() })
 }
 
 private fun CangJieType.makeIntersectionTypeDefinitelyNotNullOrNotNull(): SimpleType? {

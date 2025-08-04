@@ -34,7 +34,7 @@ import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.types.checker.TypeCheckingProcedure
 import cn.cangnova.cangjie.types.util.TypeUtils
-import cn.cangnova.cangjie.types.util.makeNotNullable
+import cn.cangnova.cangjie.types.util.makeNonOption
 
 object CastDiagnosticsUtil {
     /**
@@ -104,13 +104,13 @@ object CastDiagnosticsUtil {
         if (typeConstructor is IntersectionTypeConstructor) {
             return typeConstructor.supertypes.any { isCastPossible(it, rhsType, platformToCangJieClassMapper) }
         }
-        val rhsNullable = TypeUtils.isNullableType(rhsType)
-        val lhsNullable = TypeUtils.isNullableType(lhsType)
+        val rhsOption = TypeUtils.isOptionType(rhsType)
+        val lhsOption = TypeUtils.isOptionType(lhsType)
         if (CangJieBuiltIns.isNothing(lhsType)) return true
-        if (CangJieBuiltIns.isNullableNothing(lhsType) && !rhsNullable) return false
+        if (CangJieBuiltIns.isOptionNothing(lhsType) && !rhsOption) return false
         if (CangJieBuiltIns.isNothing(rhsType)) return false
-        if (CangJieBuiltIns.isNullableNothing(rhsType)) return lhsNullable
-        if (lhsNullable && rhsNullable) return true
+        if (CangJieBuiltIns.isOptionNothing(rhsType)) return lhsOption
+        if (lhsOption && rhsOption) return true
         if (lhsType.isError) return true
         if (isRelated(lhsType, rhsType, platformToCangJieClassMapper)) return true
         if (TypeUtils.isTypeParameter(lhsType) || TypeUtils.isTypeParameter(rhsType)) return true
@@ -171,18 +171,18 @@ object CastDiagnosticsUtil {
         val isNonReifiedTypeParameter = TypeUtils.isNonReifiedTypeParameter(subtype)
         val isUpcast = typeChecker.isSubtypeOf(supertype, subtype)
 
-        // 这里我们希望限制类似 `x is T` 的情况，其中 x = ?T，而 T 可能有可空的上界
+        // 这里我们希望限制类似 `x is T` 的情况，其中 x = ?T，而 T 可能有Option的上界
         if (isNonReifiedTypeParameter && !isUpcast) {
-            val nullableToDefinitelyNotNull =
-                !TypeUtils.isNullableType(subtype) && supertype.makeNotNullable() == subtype
-            if (!nullableToDefinitelyNotNull) {
+            val optionToDefinitelyNotNull =
+                !TypeUtils.isOptionType(subtype) && supertype.makeNonOption() == subtype
+            if (!optionToDefinitelyNotNull) {
                 return true
             }
         }
 
         // 在 `is` 语句中这是错误，在 `as` 语句中这是警告
-        if (supertype.isMarkedOption || subtype.isMarkedOption) {
-            return isCastErased(TypeUtils.makeNotNullable(supertype), TypeUtils.makeNotNullable(subtype), typeChecker)
+        if (supertype.isOption || subtype.isOption) {
+            return isCastErased(TypeUtils.makeNonOption(supertype), TypeUtils.makeNonOption(subtype), typeChecker)
         }
 
         // 如果是向上转型，永远不会被擦除
@@ -214,7 +214,7 @@ object CastDiagnosticsUtil {
         supertype: CangJieType,
         subtypeConstructor: TypeConstructor
     ): TypeReconstructionResult {
-        assert(!supertype.isMarkedOption) { "此方法仅适用于非可空类型" }
+        assert(!supertype.isOption) { "此方法仅适用于非可空类型" }
 
         // 假设我们将表达式类型为 Collection<Foo> 的表达式转换为 List<Bar>
         // 首先，让我们创建 List<T>，其中 T 是类型变量

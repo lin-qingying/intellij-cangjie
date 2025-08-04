@@ -119,7 +119,7 @@ object ErrorUtils {
         vararg formatParams: String
     ): ErrorType = ErrorType(
         typeConstructor, createErrorScope(ErrorScopeKind.ERROR_TYPE_SCOPE, typeConstructor.toString()),
-        kind, arguments, isMarkedOption = false, *formatParams
+        kind, arguments, isOption = false, *formatParams
     )
 
     private fun isErrorClass(candidate: DeclarationDescriptor?): Boolean = candidate is ErrorClassDescriptor

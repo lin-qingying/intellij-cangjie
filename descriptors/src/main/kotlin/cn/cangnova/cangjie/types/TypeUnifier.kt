@@ -110,15 +110,15 @@ object TypeUnifier {
         }
 
         // Foo? ~ X?  =>  Foo ~ X
-        if (known.isMarkedOption && withVariables.isMarkedOption) {
+        if (known.isOption && withVariables.isOption) {
             doUnify(
                 TypeProjectionImpl(
                     knownProjectionKind,
-                    TypeUtils.makeNotNullable(known)
+                    TypeUtils.makeNonOption(known)
                 ),
                 TypeProjectionImpl(
                     withVariablesProjectionKind,
-                    TypeUtils.makeNotNullable(withVariables)
+                    TypeUtils.makeNonOption(withVariables)
                 ),
                 isVariable,
                 result
@@ -134,7 +134,7 @@ object TypeUnifier {
         }
 
         // Foo ~ X? => fail
-        if (!known.isMarkedOption && withVariables.isMarkedOption) {
+        if (!known.isOption && withVariables.isOption) {
             result.fail()
             return
         }
@@ -149,7 +149,7 @@ object TypeUnifier {
 
         // Foo? ~ Foo || in Foo ~ Foo || Foo ~ Bar
         val structuralMismatch =
-            known.isMarkedOption != withVariables.isMarkedOption || knownProjectionKind != withVariablesProjectionKind || known.constructor != withVariables.constructor
+            known.isOption != withVariables.isOption || knownProjectionKind != withVariablesProjectionKind || known.constructor != withVariables.constructor
         if (structuralMismatch) {
             result.fail()
             return

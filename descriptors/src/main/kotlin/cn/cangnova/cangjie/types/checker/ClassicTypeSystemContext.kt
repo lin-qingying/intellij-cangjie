@@ -99,7 +99,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
             val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
-            return if (firstCandidate.isMarkedOption) intersectionTypeWithAlternative.makeOptionalAsSpecified(true)
+            return if (firstCandidate.isOption) intersectionTypeWithAlternative.makeOptionalAsSpecified(true)
             else intersectionTypeWithAlternative
 
         } ?: error("Expected intersection type, found $firstCandidate")
@@ -144,9 +144,9 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return typeConstructor.possibleTypes
     }
 
-    override fun SimpleTypeMarker.withNullability(nullable: Boolean): SimpleTypeMarker {
+    override fun SimpleTypeMarker.withOption(option: Boolean): SimpleTypeMarker {
         require(this is SimpleType, this::errorMessage)
-        return this.makeOptionalAsSpecified(nullable)
+        return this.makeOptionalAsSpecified(option)
     }
 
     override fun CangJieTypeMarker.isError(): Boolean {
@@ -251,9 +251,9 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     @OptIn(ObsoleteTypeKind::class)
     override fun CangJieTypeMarker.isNotNullTypeParameter(): Boolean = this is NotNullTypeParameter
 
-    override fun SimpleTypeMarker.isMarkedNullable(): Boolean {
+    override fun SimpleTypeMarker.isOption(): Boolean {
         require(this is SimpleType, this::errorMessage)
-        return this.isMarkedOption
+        return this.isOption
     }
 
     override fun SimpleTypeMarker.typeConstructor(): TypeConstructorMarker {
@@ -503,12 +503,12 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return CangJieTypeFactory.flexibleType(lowerBound, upperBound)
     }
 
-    override fun CangJieTypeMarker.withNullability(nullable: Boolean): CangJieTypeMarker {
+    override fun CangJieTypeMarker.withOption(option: Boolean): CangJieTypeMarker {
         return when (this) {
-            is SimpleTypeMarker -> this.withNullability(nullable)
+            is SimpleTypeMarker -> this.withOption(option)
             is FlexibleTypeMarker -> createFlexibleType(
-                lowerBound().withNullability(nullable),
-                upperBound().withNullability(nullable)
+                lowerBound().withOption(option),
+                upperBound().withOption(option)
             )
 
             else -> error("sealed")
@@ -596,7 +596,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
             constructor,
             lowerType,
             attributes,
-            isMarkedOption,
+            isOption,
             isProjectionNotNull = true
         )
     }
@@ -622,9 +622,9 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         error("Is not expected to be called in K1")
     }
 
-    override fun CangJieTypeMarker.isNullableType(): Boolean {
+    override fun CangJieTypeMarker.isOptionType(): Boolean {
         require(this is CangJieType, this::errorMessage)
-        return TypeUtils.isNullableType(this)
+        return TypeUtils.isOptionType(this)
     }
 
     override fun createSimpleType(
@@ -668,7 +668,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     }
 
 
-    override fun CangJieTypeMarker.canHaveUndefinedNullability(): Boolean {
+    override fun CangJieTypeMarker.canHaveUndefinedOption(): Boolean {
         require(this is UnwrappedType, this::errorMessage)
         return constructor is NewTypeVariableConstructor ||
                 constructor.declarationDescriptor is TypeParameterDescriptor ||
@@ -958,7 +958,7 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
 
         (firstCandidate.constructor as? IntersectionTypeConstructor)?.let { intersectionConstructor ->
             val intersectionTypeWithAlternative = intersectionConstructor.setAlternative(secondCandidate).createType()
-            return if (firstCandidate.isMarkedOption) intersectionTypeWithAlternative.makeOptionalAsSpecified(true)
+            return if (firstCandidate.isOption) intersectionTypeWithAlternative.makeOptionalAsSpecified(true)
             else intersectionTypeWithAlternative
 
         } ?: error("Expected intersection type, found $firstCandidate")

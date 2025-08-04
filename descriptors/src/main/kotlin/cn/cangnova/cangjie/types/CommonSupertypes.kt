@@ -176,9 +176,9 @@ object CommonSupertypes {
         assert(!types.isEmpty())
         val typeSet: MutableCollection<SimpleType> = mutableSetOf()
 
-        // If any of the types is nullable, the result must be nullable
+        // If any of the types is option, the result must be option
         // This also removed Nothing and Nothing? because they are subtypes of everything else
-        var nullable = false
+        var option = false
         val iterator = typeSet.iterator()
         while (iterator.hasNext()) {
             val type: CangJieType = checkNotNull(iterator.next())
@@ -189,18 +189,18 @@ object CommonSupertypes {
             if (type.isError) {
                 return ErrorUtils.createErrorType(ErrorTypeKind.SUPER_TYPE_FOR_ERROR_TYPE, type.toString())
             }
-            nullable = nullable or type.isMarkedOption
+            option = option or type.isOption
         }
 
         // Everything deleted => it's Nothing or Nothing?
         if (typeSet.isEmpty()) {
             // TODO : attributes
             val builtIns = types.iterator().next().constructor.builtIns
-            return /*if (nullable) builtIns.nullableNothingType else */builtIns.nothingType
+            return /*if (option) builtIns.optionNothingType else */builtIns.nothingType
         }
 
         if (typeSet.size == 1) {
-            return TypeUtils.makeOptionalIfNeeded(typeSet.iterator().next(), nullable)
+            return TypeUtils.makeOptionalIfNeeded(typeSet.iterator().next(), option)
         }
 
         // constructor of the supertype -> all of its instantiations occurring as supertypes
@@ -238,7 +238,7 @@ object CommonSupertypes {
         // Reconstructing type arguments if possible
         val result: SimpleType =
             computeSupertypeProjections(entry.key, entry.value, recursionDepth, maxDepth)
-        return TypeUtils.makeOptionalIfNeeded(result, nullable)
+        return TypeUtils.makeOptionalIfNeeded(result, option)
     }
 
     private fun renderTypeFully(type: CangJieType): String {
@@ -291,9 +291,9 @@ object CommonSupertypes {
             )
         }
 
-        var nullable = false
+        var option = false
         for (type in types) {
-            nullable = nullable or type.isMarkedOption
+            option = option or type.isOption
         }
 
         val newScope: MemberScope = when (val classifier: ClassifierDescriptor? = constructor.declarationDescriptor) {
@@ -313,7 +313,7 @@ object CommonSupertypes {
             TypeAttributes.Empty,
             constructor,
             newProjections,
-            nullable,
+            option,
             newScope
         )
     }
