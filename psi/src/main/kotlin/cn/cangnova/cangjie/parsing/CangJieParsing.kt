@@ -1372,6 +1372,13 @@ class CangJieParsing private constructor(
 
     private fun parseEnumList() {
         while (true) {
+            // 检查是否为非穷举枚举的省略号
+            if (at(ELLIPSIS)) {
+                advance() // ELLIPSIS
+                // 省略号必须是最后一个构造器
+                break
+            }
+            
             parseEnumEntry()
             when {
                 at(RBRACE) -> break

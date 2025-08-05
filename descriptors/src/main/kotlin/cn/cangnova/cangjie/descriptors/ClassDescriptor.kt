@@ -30,10 +30,9 @@ import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.SimpleType
 import cn.cangnova.cangjie.types.TypeProjection
 import cn.cangnova.cangjie.types.TypeSubstitution
-interface ClassAndEnumConstructorDescriptor
 
-interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor,
-     ClassAndEnumConstructorDescriptor {
+interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor
+   {
     fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
 
     val thisAsReceiverParameter: ReceiverParameterDescriptor

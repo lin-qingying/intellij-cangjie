@@ -100,6 +100,7 @@ package cn.cangnova.cangjie.lexer;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
+import com.intellij.lexer.FlexLexer;
 
 %%
 
@@ -879,7 +880,7 @@ EXPONENT_PART=[Ee][+-]?{DIGITS}      // 科学计数法的指数部分，如e10,
 "?["         { return CjTokens.SAFE_INDEXEX; }
 "?{"         { return CjTokens.SAFE_LAMBDA; }
 "?"          { return CjTokens.QUEST; }
-
+"..."        { return CjTokens.ELLIPSIS; }
 // 分隔符
 "["          { return CjTokens.LBRACKET; }
 "]"          { return CjTokens.RBRACKET; }
