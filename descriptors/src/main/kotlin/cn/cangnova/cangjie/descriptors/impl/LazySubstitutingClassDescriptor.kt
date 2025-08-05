@@ -92,7 +92,7 @@ class LazySubstitutingClassDescriptor(
     }
 
     @OptIn(TypeRefinement::class)
-    override fun getMemberScope(typeArguments: List<  TypeProjection>): MemberScope {
+    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
         return getMemberScope(
             typeArguments, DescriptorUtils.getContainingModule(
                 this
@@ -146,7 +146,7 @@ class LazySubstitutingClassDescriptor(
         TODO("Not yet implemented")
     }
 
-    override val source: SourceElement  = SourceElement.NO_SOURCE
+    override val source: SourceElement = SourceElement.NO_SOURCE
 
     override val typeConstructor: TypeConstructor
         get() {
@@ -160,8 +160,8 @@ class LazySubstitutingClassDescriptor(
 
                 val originalSupertypes: Collection<CangJieType> =
                     originalTypeConstructor.supertypes
-                val supertypes: MutableCollection<CangJieType> =
-                    java.util.ArrayList<CangJieType>(originalSupertypes.size)
+                val supertypes =
+                    ArrayList<CangJieType>(originalSupertypes.size)
                 for (supertype in originalSupertypes) {
                     substitutor.substitute(supertype, Variance.INVARIANT)?.let { supertypes.add(it) }
                 }
@@ -193,14 +193,12 @@ class LazySubstitutingClassDescriptor(
         }
 
 
-
-
     override val visibility: DescriptorVisibility
-        get() =original.visibility
+        get() = original.visibility
 
 
     override val modality: Modality
-        get() =original.modality
+        get() = original.modality
 
 
     override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {
@@ -223,13 +221,11 @@ class LazySubstitutingClassDescriptor(
         }
 
 
-
-
     override val thisAsReceiverParameter: ReceiverParameterDescriptor
         get() = TODO("Not yet implemented")
 
     override val contextReceivers: List<ReceiverParameterDescriptor>
-        get() =emptyList()
+        get() = emptyList()
 
     override val staticScope: MemberScope
         get() = original.staticScope
@@ -259,8 +255,6 @@ class LazySubstitutingClassDescriptor(
         get() = emptySet()
 
 
-
-
     override val kind: ClassKind
         get() = original.kind
 
@@ -273,7 +267,6 @@ class LazySubstitutingClassDescriptor(
         get() = original.sealedSubclasses
     override val defaultFunctionTypeForSamInterface: SimpleType?
         get() = substituteSimpleType(original.defaultFunctionTypeForSamInterface)
-
 
 
     private fun substituteSimpleType(type: SimpleType?): SimpleType? {
@@ -293,7 +286,7 @@ class LazySubstitutingClassDescriptor(
     }
 
     override val isDefinitelyNotSamInterface: Boolean
-        get() =  original.isDefinitelyNotSamInterface
+        get() = original.isDefinitelyNotSamInterface
 
     override val containingDeclaration: DeclarationDescriptor
         get() = original.containingDeclaration

@@ -29,6 +29,7 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.model.CangJieTypeMarker
+import cn.cangnova.cangjie.types.EnumType
 
 
 sealed class TypeRefinementSupport(val isEnabled: Boolean) {
@@ -60,6 +61,15 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
     abstract fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean
     @TypeRefinement
     abstract fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S
+    
+    /**
+     * 精化枚举类型
+     * 
+     * @param enumType 要精化的枚举类型
+     * @return 精化后的枚举类型
+     */
+    @TypeRefinement
+    abstract fun refineEnumType(enumType: EnumType): EnumType
 
     object Default : CangJieTypeRefiner() {
         @TypeRefinement
@@ -99,6 +109,11 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
         @TypeRefinement
         override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S {
             return compute()
+        }
+        
+        @TypeRefinement
+        override fun refineEnumType(enumType: EnumType): EnumType {
+            return enumType
         }
     }
 }

@@ -91,7 +91,7 @@ class NotFoundClasses(private val storageManager: StorageManager, private val mo
             ClassTypeConstructorImpl(
                 this,
                 computeConstructorTypeParameters(),
-                setOf(module.builtIns.anyType),
+                listOf(module.builtIns.anyType),
                 storageManager
             )
 

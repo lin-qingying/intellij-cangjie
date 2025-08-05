@@ -1211,6 +1211,20 @@ open class DescriptorRendererImpl(
             builder?.append(descriptor.name) // renders <this>
         }
 
+        override fun visitEnumDescriptor(
+            descriptor: EnumDescriptor,
+            builder: StringBuilder?
+        ) {
+            TODO("Not yet implemented")
+        }
+
+        override fun visitEnumConstructorDescriptor(
+            descriptor: EnumConstructorDescriptor,
+            builder: StringBuilder?
+        ) {
+            TODO("Not yet implemented")
+        }
+
 
         override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, builder: StringBuilder?) {
             builder?.let { renderTypeParameter(descriptor, it, true) }

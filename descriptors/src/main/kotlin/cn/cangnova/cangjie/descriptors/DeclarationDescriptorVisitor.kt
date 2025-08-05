@@ -66,5 +66,23 @@ interface DeclarationDescriptorVisitor<R, D> {
         descriptor: ReceiverParameterDescriptor,
         builder: D?
     ): R
+    
+    /**
+     * 访问枚举描述符
+     * 
+     * @param descriptor 枚举描述符
+     * @param builder 构建器
+     * @return 访问结果
+     */
+    fun visitEnumDescriptor(descriptor: EnumDescriptor, builder: D?): R
+    
+    /**
+     * 访问枚举构造函数描述符
+     * 
+     * @param descriptor 枚举构造函数描述符
+     * @param builder 构建器
+     * @return 访问结果
+     */
+    fun visitEnumConstructorDescriptor(descriptor: EnumConstructorDescriptor, builder: D?): R
 
 }

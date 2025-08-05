@@ -90,7 +90,7 @@ plugins {
     kotlin("jvm") version "2.1.0"
     id("org.jetbrains.intellij.platform") version "2.6.0"
     id("org.jetbrains.changelog") version "2.2.1"
-
+    id("java-test-fixtures")
     kotlin("plugin.serialization") version "2.1.0"
     id("org.gradle.test-retry") version "1.5.3"
 
@@ -122,7 +122,7 @@ allprojects {
         plugin("idea")
         plugin("kotlin")
         plugin("org.jetbrains.intellij.platform")
-
+//        plugin("java-test-fixtures")
         plugin("org.gradle.test-retry")
     }
 
@@ -164,10 +164,10 @@ allprojects {
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
         // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit
         testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.0")
-
-        implementation(kotlin("stdlib"))
         implementation(kotlin("test"))
         implementation(kotlin("test-junit"))
+        implementation(kotlin("stdlib"))
+
 
     }
 
