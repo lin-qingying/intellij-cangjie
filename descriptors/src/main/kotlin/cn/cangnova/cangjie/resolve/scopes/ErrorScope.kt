@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,24 +22,30 @@
  *
  */
 
-package cn.cangnova.cangjie.types.error
+package cn.cangnova.cangjie.resolve.scopes
 
-import cn.cangnova.cangjie.descriptors.*
+import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
+import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
+import cn.cangnova.cangjie.descriptors.DescriptorWithDeprecation
+import cn.cangnova.cangjie.descriptors.PropertyDescriptor
+import cn.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
+import cn.cangnova.cangjie.descriptors.VariableDescriptor
 import cn.cangnova.cangjie.descriptors.macro.ErrorMacroDescriptor
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
-import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.ErrorUtils
+import cn.cangnova.cangjie.types.error.ErrorClassDescriptor
+import cn.cangnova.cangjie.types.error.ErrorEntity
+import cn.cangnova.cangjie.types.error.ErrorFunctionDescriptor
+import cn.cangnova.cangjie.types.error.ErrorScopeKind
 import cn.cangnova.cangjie.utils.Printer
-
 
 open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : MemberScope {
     protected val debugMessage = kind.debugMessage.format(*formatParams)
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor =
-        ErrorClassDescriptor(Name.special(ErrorEntity.ERROR_CLASS.debugText.format(name)))
+        ErrorClassDescriptor(Name.Companion.special(ErrorEntity.ERROR_CLASS.debugText.format(name)))
 
 
     override fun getContributedClassifierIncludeDeprecated(
@@ -58,15 +64,15 @@ open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : M
 
 
     override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
-    setOf( ErrorMacroDescriptor(ErrorUtils.errorClass))
+    setOf(ErrorMacroDescriptor(ErrorUtils.errorClass))
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter, nameFilter: Function1<Name, Boolean>
     ): Collection<DeclarationDescriptor> = emptyList()
 
-    override fun getFunctionNames(): Set<Name> = emptySet()
-    override fun getVariableNames(): Set<Name> = emptySet()
-    override fun getClassifierNames(): Set<Name> = emptySet()
-    override fun getPropertyNames(): Set<Name> = emptySet()
+    override val functionNames: Set<Name> = emptySet()
+    override val variableNames: Set<Name> = emptySet()
+    override val classifierNames: Set<Name>? = emptySet()
+    override val propertyNames: Set<Name> = emptySet()
     override fun recordLookup(name: Name, location: LookupLocation) {}
     override fun definitelyDoesNotContainName(name: Name): Boolean = false
 

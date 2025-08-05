@@ -40,7 +40,7 @@ class LazySubstitutingClassDescriptor(
     override val original: ModuleAwareClassDescriptor, private val originalSubstitutor: TypeSubstitutor
 ) : ModuleAwareClassDescriptor() {
     private var newSubstitutor: TypeSubstitutor? = null
-    private lateinit var typeConstructorParameters: List<TypeParameterDescriptor>
+    private lateinit var typeConstructorParameters: MutableList<TypeParameterDescriptor>
     private lateinit var myDeclaredTypeParameters: MutableList<TypeParameterDescriptor>
     private var myTypeConstructor: TypeConstructor? = null
 
@@ -50,7 +50,7 @@ class LazySubstitutingClassDescriptor(
             if (originalSubstitutor.isEmpty) {
                 newSubstitutor = originalSubstitutor
             } else {
-                val originalTypeParameters: List<TypeParameterDescriptor> =
+                val originalTypeParameters =
                     original.typeConstructor.parameters
                 typeConstructorParameters =
                     ArrayList(originalTypeParameters.size)
@@ -249,7 +249,7 @@ class LazySubstitutingClassDescriptor(
                     .setKind(constructor.kind)
                     .setCopyOverrides(false)
                     .build() as ClassConstructorDescriptor
-                copy.substitute(getSubstitutor())?.let { result.add(it) }
+                copy.substitute(getSubstitutor()).let { result.add(it) }
             }
             return result
         }

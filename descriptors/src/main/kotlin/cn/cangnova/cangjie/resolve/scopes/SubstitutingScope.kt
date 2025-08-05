@@ -46,10 +46,14 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
     private var substitutedDescriptors: MutableMap<DeclarationDescriptor, DeclarationDescriptor>? = null
 
     private val _allDescriptors by lazy { substitute(workerScope.getContributedDescriptors()) }
-    override fun getFunctionNames() = workerScope.getFunctionNames()
-    override fun getVariableNames() = workerScope.getVariableNames()
-    override fun getClassifierNames() = workerScope.getClassifierNames()
-    override fun getPropertyNames() = workerScope.getPropertyNames()
+    override val functionNames: Set<Name>
+        get() = workerScope.functionNames
+    override val variableNames: Set<Name>
+        get() = workerScope.variableNames
+    override val classifierNames: Set<Name>?
+        get() = workerScope.classifierNames
+    override val propertyNames: Set<Name>
+        get() = workerScope.propertyNames
     fun substitute(type: CangJieType): CangJieType {
         if (capturingSubstitutor.isEmpty) return type
         return capturingSubstitutor.safeSubstitute(type) as CangJieType
@@ -121,7 +125,7 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
 
 //    override fun getFunctionNames() = workerScope.getFunctionNames()
 //    override fun getVariableNames() = workerScope.getVariableNames()
-//    override fun getClassifierNames() = workerScope.getClassifierNames()
+//    override fun classifierNames() = workerScope.classifierNames()
 
     override fun definitelyDoesNotContainName(name: Name) = workerScope.definitelyDoesNotContainName(name)
 

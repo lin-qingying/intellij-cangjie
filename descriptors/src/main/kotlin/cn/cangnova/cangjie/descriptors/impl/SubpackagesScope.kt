@@ -51,14 +51,13 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         return packageViewDescriptor
     }
 
-    override fun getClassifierNames(): Set<Name> {
-        return   emptySet()
-    }
 
 
+    override val classifierNames: Set<Name>
+        get() =  emptySet()
 
     override fun definitelyDoesNotContainName(name: Name): Boolean {
-        return getClassifierNames().contains(name)
+        return classifierNames.contains(name)
 
     }
 

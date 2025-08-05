@@ -21,41 +21,35 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.types
 
-package cn.cangnova.cangjie.types;
-
-import cn.cangnova.cangjie.types.util.TypeUtils;
-
-public abstract class TypeProjectionBase implements TypeProjection {
-    @Override
-    public String toString() {
+abstract class TypeProjectionBase : TypeProjection {
+    override fun toString(): String {
 //        if (isStarProjection()) {
 //            return "*";
 //        }
-        if (projectionKind == Variance.INVARIANT) {
-            return type.toString();
+        if (projectionKind === Variance.INVARIANT) {
+            return type.toString()
         }
-        return projectionKind + " " + type;
+        return projectionKind.toString() + " " + type
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TypeProjection that)) return false;
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is TypeProjection) return false
 
 
-        if (projectionKind != that.projectionKind) return false;
-        return type.equals(that.type);
+        if (projectionKind !== other.projectionKind) return false
+        return type.equals(other.type)
     }
 
-    @Override
-    public int hashCode() {
-        int result = projectionKind.hashCode();
+    override fun hashCode(): Int {
+        var result = projectionKind.hashCode()
         if (TypeUtils.noExpectedType(type)) {
-            result = 31 * result +19;
+            result = 31 * result + 19
         } else {
-            result = 31 * result + ( type.hashCode());
+            result = 31 * result + (type.hashCode())
         }
-        return result;
+        return result
     }
 }

@@ -97,9 +97,10 @@ open class ClassDescriptorImpl(
     override val declaredTypeParameters: List<TypeParameterDescriptor>
         get() = mutableListOf()
 
-    override fun getSealedSubclasses(): MutableCollection<ClassDescriptor> {
-        return mutableListOf()
-    }
+
+
+    override val sealedSubclasses: Collection<ClassDescriptor>
+        get() = emptyList()
 
 
     override val annotations: Annotations

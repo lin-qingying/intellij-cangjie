@@ -149,13 +149,6 @@ abstract class AbstractVariableDescriptor(
     override val typeParameters: List<TypeParameterDescriptor>
         get() = _typeParameters
 
-    //    override fun getOverriddenDescriptors(): Collection<CallableDescriptor> {
-//        return emptySet ()
-//    }
-    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? {
-        return null
-    }
-
     override val valueParameters: List<ValueParameterDescriptor>
         get() = emptyList()
 

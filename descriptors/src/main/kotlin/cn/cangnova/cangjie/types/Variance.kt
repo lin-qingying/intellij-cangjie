@@ -25,7 +25,8 @@
 package cn.cangnova.cangjie.types
 
 
-enum class Variance(
+enum class
+Variance(
     val label: String,
     val allowsInPosition: Boolean,
     val allowsOutPosition: Boolean,

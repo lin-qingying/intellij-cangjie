@@ -36,10 +36,16 @@ import cn.cangnova.cangjie.utils.Printer
  */
 abstract class AbstractScopeAdapter : MemberScope {
     protected abstract val workerScope: MemberScope
-    override fun getFunctionNames() = workerScope.getFunctionNames()
-    override fun getVariableNames() = workerScope.getVariableNames()
-    override fun getClassifierNames() = workerScope.getClassifierNames()
-    override fun getPropertyNames() = workerScope.getPropertyNames()
+
+
+    override val functionNames: Set<Name>
+        get() = workerScope.functionNames
+    override val variableNames: Set<Name>
+        get() = workerScope.variableNames
+    override val classifierNames
+        get() = workerScope.classifierNames
+    override val propertyNames: Set<Name>
+        get() = workerScope.propertyNames
     fun getActualScope(): MemberScope =
         if (workerScope is AbstractScopeAdapter)
             (workerScope as AbstractScopeAdapter).getActualScope()
@@ -81,7 +87,7 @@ abstract class AbstractScopeAdapter : MemberScope {
 /*
     override fun getFunctionNames() = workerScope.getFunctionNames()
     override fun getVariableNames() = workerScope.getVariableNames()
-    override fun getClassifierNames() = workerScope.getClassifierNames()
+    override fun classifierNames() = workerScope.classifierNames()
 */
 
     override fun recordLookup(name: Name, location: LookupLocation) {

@@ -21,41 +21,30 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.types
 
-package cn.cangnova.cangjie.types;
+import cn.cangnova.cangjie.builtins.CangJieBuiltIns
+import cn.cangnova.cangjie.descriptors.ClassDescriptor
+import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
+import cn.cangnova.cangjie.descriptors.isFinalClass
+import cn.cangnova.cangjie.resolve.builtIns
+import cn.cangnova.cangjie.storage.StorageManager
 
 
-import cn.cangnova.cangjie.builtins.CangJieBuiltIns;
-import cn.cangnova.cangjie.descriptors.ClassDescriptor;
-import cn.cangnova.cangjie.descriptors.ClassifierDescriptor;
-import cn.cangnova.cangjie.descriptors.ModalityUtilsKt;
-import cn.cangnova.cangjie.resolve.descriptorUtil.DescriptorUtilsKt;
-import cn.cangnova.cangjie.storage.StorageManager;
-import org.jetbrains.annotations.NotNull;
+abstract class AbstractClassTypeConstructor(storageManager: StorageManager) : AbstractTypeConstructor(storageManager),
+    TypeConstructor {
+    abstract override val declarationDescriptor: ClassDescriptor
 
-public abstract class AbstractClassTypeConstructor extends AbstractTypeConstructor implements TypeConstructor {
-    public AbstractClassTypeConstructor(@NotNull StorageManager storageManager) {
-        super(storageManager);
+
+    override fun isSameClassifier(classifier: ClassifierDescriptor): Boolean {
+        return classifier is ClassDescriptor && areFqNamesEqual(declarationDescriptor, classifier)
     }
 
-    @NotNull
-    @Override
-    public abstract ClassDescriptor getDeclarationDescriptor();
-
-
-    @Override
-    protected boolean isSameClassifier(@NotNull ClassifierDescriptor classifier) {
-        return classifier instanceof ClassDescriptor && areFqNamesEqual(getDeclarationDescriptor(), classifier);
-    }
-    @Override
-    public final boolean isFinal() {
-        ClassDescriptor descriptor = getDeclarationDescriptor();
-        return ModalityUtilsKt.isFinalClass(descriptor) && !descriptor.isExpect();
-    }
-    @NotNull
-    @Override
-    public CangJieBuiltIns getBuiltIns() {
-        return DescriptorUtilsKt.getBuiltIns(getDeclarationDescriptor());
-    }
-
+    override val isFinal: Boolean
+        get() {
+            val descriptor = declarationDescriptor
+            return descriptor.isFinalClass
+        }
+    override val builtIns: CangJieBuiltIns
+        get() = declarationDescriptor.builtIns
 }

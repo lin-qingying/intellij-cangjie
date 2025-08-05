@@ -215,12 +215,7 @@ open fun initialize(
     }
 
 
-    @Nullable
 
-
-    fun setExtensionReceiverParameter(extensionReceiverParameter: ReceiverParameterDescriptor) {
-        this.extensionReceiverParameter = extensionReceiverParameter
-    }
 
 
     override val overriddenDescriptors: Collection<FunctionDescriptor>
@@ -301,9 +296,7 @@ open fun initialize(
         }
 
 
-    private fun setHiddenToOvercomeSignatureClash(hiddenToOvercomeSignatureClash: Boolean) {
-        isHiddenToOvercomeSignatureClash = hiddenToOvercomeSignatureClash
-    }
+
 
     override fun hasSynthesizedParameterNames(): Boolean {
         return hasSynthesizedParameterNames
@@ -372,8 +365,8 @@ open fun initialize(
 
         // 创建一个新的函数描述符副本
         val substitutedDescriptor = createSubstitutedCopy(
-            configuration.newOwner, configuration.original, configuration.kind, configuration.name, resultAnnotations,
-            getSourceToUseForCopy(configuration.preserveSourceElement, configuration.original)
+            configuration.newOwner, configuration.getOriginal(), configuration.kind, configuration.name, resultAnnotations,
+            getSourceToUseForCopy(configuration.preserveSourceElement, configuration.getOriginal())
         )
 
         // 获取未替换的类型参数
@@ -386,7 +379,7 @@ open fun initialize(
         val substitutedTypeParameters = ArrayList<TypeParameterDescriptor>(unsubstitutedTypeParameters.size)
         val substitutor = DescriptorSubstitutor.substituteTypeParameters(
             unsubstitutedTypeParameters,
-            configuration.substitution,
+            configuration.getSubstitution(),
             substitutedDescriptor,
             substitutedTypeParameters,
             wereChanges
@@ -534,7 +527,7 @@ open fun initialize(
 
         // 处理覆盖描述符
         if (configuration.copyOverrides && original.overriddenDescriptors.isNotEmpty()) {
-            if (configuration.substitution.isEmpty()) {
+            if (configuration.getSubstitution().isEmpty()) {
                 val overriddenFunctionsTask = lazyOverriddenFunctionsTask.get()
                 if (overriddenFunctionsTask != null) {
                     substitutedDescriptor.lazyOverriddenFunctionsTask.set(overriddenFunctionsTask)
@@ -609,7 +602,7 @@ open fun initialize(
     }
 
     inner class CopyConfiguration(
-        var substitution: TypeSubstitution,
+        private var _substitution: TypeSubstitution,
         var newOwner: DeclarationDescriptor,
         var newModality: Modality,
         var newVisibility: DescriptorVisibility,
@@ -622,7 +615,7 @@ open fun initialize(
     ) : FunctionDescriptor.CopyBuilder<FunctionDescriptor> {
 
         val userDataMap: MutableMap<CallableDescriptor.UserDataKey<*>, Any> = LinkedHashMap()
-        var original: FunctionDescriptor? = null
+     private   var _original: FunctionDescriptor? = null
         var dispatchReceiverParameter: ReceiverParameterDescriptor? =
             this@FunctionDescriptorImpl.dispatchReceiverParameter
         var copyOverrides: Boolean = true
@@ -739,11 +732,11 @@ open fun initialize(
         }
 
         fun getOriginal(): FunctionDescriptor? {
-            return original
+            return _original
         }
 
         override fun setOriginal(original: CallableMemberDescriptor?): CopyConfiguration {
-            this.original = original as? FunctionDescriptor
+            this._original = original as? FunctionDescriptor
             return this
         }
 
@@ -756,11 +749,11 @@ open fun initialize(
         }
 
         fun getSubstitution(): TypeSubstitution {
-            return substitution
+            return _substitution
         }
 
         override fun setSubstitution(substitution: TypeSubstitution): CopyConfiguration {
-            this.substitution = substitution
+            this._substitution = substitution
             return this
         }
 

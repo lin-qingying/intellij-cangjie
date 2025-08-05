@@ -30,8 +30,8 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotated
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import cn.cangnova.cangjie.descriptors.annotations.AnnotationUseSiteTarget
-import cn.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import cn.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
+
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.name.*
 import cn.cangnova.cangjie.name.OperatorNameConventions.asOperatorString
@@ -1068,31 +1068,6 @@ open class DescriptorRendererImpl(
         }
     }
 
-    private fun StringBuilder.renderEnumEntry(enumEntry: EnumEntryDescriptor) {
-//        append(renderKeyword("enum "))
-//        append(renderKeyword("entry "))
-//
-//
-//        renderName(enumEntry, this, false)
-//
-//        if (!enumEntry.hasUnsubstitutedPrimaryConstructor()) {
-//
-//            append("(")
-//
-//            append(enumEntry.unsubstitutedPrimaryConstructor.valueParameters.map {
-//                it.type
-//            }.joinToString(" , ") {
-//                val temp = StringBuilder()
-//                renderDefaultType(it)
-//
-//                temp.toString()
-//            })
-//            append(")")
-//
-//        }
-
-
-    }
 
     /* CLASSES */
     private fun renderClass(cclass: ClassDescriptor, builder: StringBuilder) {

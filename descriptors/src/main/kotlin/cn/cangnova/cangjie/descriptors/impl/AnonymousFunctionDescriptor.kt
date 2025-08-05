@@ -21,65 +21,47 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors.impl
 
-package cn.cangnova.cangjie.descriptors.impl;
+import cn.cangnova.cangjie.descriptors.*
+import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.SpecialNames
 
 
-import cn.cangnova.cangjie.descriptors.DeclarationDescriptor;
-import cn.cangnova.cangjie.descriptors.FunctionDescriptor;
-import cn.cangnova.cangjie.descriptors.SimpleFunctionDescriptor;
-import cn.cangnova.cangjie.descriptors.SourceElement;
-import cn.cangnova.cangjie.descriptors.annotations.Annotations;
-import cn.cangnova.cangjie.name.Name;
-import cn.cangnova.cangjie.name.SpecialNames;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+class AnonymousFunctionDescriptor private constructor(
+    declarationDescriptor: DeclarationDescriptor,
+    original: SimpleFunctionDescriptor?,
+    annotations: Annotations,
+    name: Name,
+    kind: CallableMemberDescriptor.Kind,
+    source: SourceElement
 
-public class AnonymousFunctionDescriptor extends SimpleFunctionDescriptorImpl {
+) : SimpleFunctionDescriptorImpl(declarationDescriptor, original, annotations, name, kind, source) {
+    constructor(
+        containingDeclaration: DeclarationDescriptor,
+        annotations: Annotations,
+        kind: CallableMemberDescriptor.Kind,
+        source: SourceElement
 
-    public AnonymousFunctionDescriptor(
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @NotNull Annotations annotations,
-            @NotNull Kind kind,
-            @NotNull SourceElement source
+    ) : this(containingDeclaration, null, annotations, SpecialNames.ANONYMOUS, kind, source)
 
-    ) {
-        this(containingDeclaration, null, annotations, SpecialNames.ANONYMOUS, kind, source );
+    protected override fun createSubstitutedCopy(
+        newOwner: DeclarationDescriptor,
+        original: FunctionDescriptor?,
+        kind: CallableMemberDescriptor.Kind,
+        newName: Name?,
+        annotations: Annotations,
+        source: SourceElement
+    ): FunctionDescriptorImpl {
+        return AnonymousFunctionDescriptor(
+            newOwner,
+            original as SimpleFunctionDescriptor?,
+            annotations,
+            if (newName != null) newName else name,
+            kind,
+            source
+
+        )
     }
-
-    private AnonymousFunctionDescriptor(
-            @NotNull DeclarationDescriptor declarationDescriptor,
-            @Nullable SimpleFunctionDescriptor original,
-            @NotNull Annotations annotations,
-            @NotNull Name name,
-            @NotNull Kind kind,
-            @NotNull SourceElement source
-
-    ) {
-        super(declarationDescriptor, original, annotations, name, kind, source);
-
-    }
-
-    @NotNull
-    @Override
-    protected FunctionDescriptorImpl createSubstitutedCopy(
-            @NotNull DeclarationDescriptor newOwner,
-            @Nullable FunctionDescriptor original,
-            @NotNull Kind kind,
-            @Nullable Name newName,
-            @NotNull Annotations annotations,
-            @NotNull SourceElement source
-    ) {
-        return new AnonymousFunctionDescriptor(
-                newOwner,
-                (SimpleFunctionDescriptor) original,
-                annotations,
-                newName != null ? newName : getName(),
-                kind,
-                source
-
-        );
-    }
-
-
 }

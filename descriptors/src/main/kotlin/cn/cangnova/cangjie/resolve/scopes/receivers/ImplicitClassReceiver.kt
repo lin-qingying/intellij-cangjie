@@ -21,39 +21,42 @@
  * any damages or issues arising from its use.
  *
  */
-package cn.cangnova.cangjie.descriptors.impl
 
-import cn.cangnova.cangjie.descriptors.CallableDescriptor
+package cn.cangnova.cangjie.resolve.scopes.receivers
+
 import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
-import cn.cangnova.cangjie.descriptors.ReceiverParameterDescriptor
-import cn.cangnova.cangjie.descriptors.annotations.Annotations
-import cn.cangnova.cangjie.resolve.scopes.receivers.ImplicitClassReceiver
-import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
+import cn.cangnova.cangjie.types.CangJieType
+import java.lang.UnsupportedOperationException
 
-class LazyClassReceiverParameterDescriptor(private val descriptor: ClassDescriptor) :
-    AbstractReceiverParameterDescriptor(
-        Annotations.EMPTY
-    ) {
-    private val receiverValue =  ImplicitClassReceiver(descriptor, null)
+/**
+ * Describes any "this" receiver inside a class
+ */
+interface ThisClassReceiver : ReceiverValue {
+    val classDescriptor: ClassDescriptor
+}
+/**
+ * Same but implicit only
+ */
+open class ImplicitClassReceiver(
+    final override val classDescriptor: ClassDescriptor,
+    original: ImplicitClassReceiver? = null
+) : ThisClassReceiver, ImplicitReceiver {
 
+    override val original = original ?: this
 
+    override val type: CangJieType
+        get() = classDescriptor.defaultType
+    override val declarationDescriptor = classDescriptor
 
-    override val value: ReceiverValue
-        get() = receiverValue
+    override fun equals(other: Any?) = classDescriptor == (other as? ImplicitClassReceiver)?.classDescriptor
 
-    override val containingDeclaration: DeclarationDescriptor
-        get() = descriptor
+    override fun hashCode() = classDescriptor.hashCode()
 
-    override fun copy(newOwner: DeclarationDescriptor): ReceiverParameterDescriptor {
-        throw UnsupportedOperationException()
-    }
+    override fun toString() = "Class{$type}"
 
-    public override fun toString(): String {
-        return descriptor.kind.toString() + " " + descriptor.name + "::this"
-    }
-
-
+    override fun replaceType(newType: CangJieType) =
+        throw UnsupportedOperationException("Replace type should not be called for this receiver")
 
 
 }

@@ -287,6 +287,7 @@ class OverridingUtil private constructor(
 
             when (memberDescriptor) {
                 is PropertyDescriptorImpl -> {
+
                     memberDescriptor.visibility = visibilityToInherit
                     (memberDescriptor as PropertyDescriptor).accessors.forEach { accessor ->
                         resolveUnknownVisibilityForMember(

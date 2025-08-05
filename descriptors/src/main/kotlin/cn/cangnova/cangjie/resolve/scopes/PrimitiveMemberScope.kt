@@ -52,7 +52,7 @@ class PrimitiveMemberScope(
     /**
      * 所有函数名称集合
      */
-    private val functionNames: Set<Name> by lazy {
+    override val functionNames: Set<Name> by lazy {
         operatorFunctions.keys
     }
 
@@ -110,25 +110,21 @@ class PrimitiveMemberScope(
         return result
     }
 
-    /**
-     * 获取函数名称集合
-     */
-    override fun getFunctionNames(): Set<Name> = functionNames
 
     /**
      * 获取变量名称集合（基本类型没有变量）
      */
-    override fun getVariableNames(): Set<Name> = emptySet()
+    override val variableNames: Set<Name> = emptySet()
 
     /**
      * 获取属性名称集合（基本类型没有属性）
      */
-    override fun getPropertyNames(): Set<Name> = emptySet()
+    override val propertyNames: Set<Name> = emptySet()
 
     /**
      * 获取分类器名称集合（基本类型没有嵌套分类器）
      */
-    override fun getClassifierNames(): Set<Name>? = null
+    override val classifierNames: Set<Name>? = null
 
     /**
      * 获取所有函数

@@ -36,10 +36,14 @@ class ChainedMemberScope private constructor(
     private val debugName: String,
     private val scopes: Array<out MemberScope>
 ) : MemberScope {
-    override fun getFunctionNames() = scopes.flatMapTo(mutableSetOf()) { it.getFunctionNames() }
-    override fun getVariableNames() = scopes.flatMapTo(mutableSetOf()) { it.getVariableNames() }
-    override fun getPropertyNames()  = scopes.flatMapTo(mutableSetOf()) { it.getPropertyNames() }
-    override fun getClassifierNames(): Set<Name>? = scopes.asIterable().flatMapClassifierNamesOrNull()
+    override val functionNames: Set<Name>
+        get() = scopes.flatMapTo(mutableSetOf()) { it.functionNames }
+    override val variableNames: Set<Name>
+        get() = scopes.flatMapTo(mutableSetOf()) { it.variableNames }
+    override val propertyNames: Set<Name>
+        get() = scopes.flatMapTo(mutableSetOf()) { it.propertyNames }
+    override val classifierNames: Set<Name>?
+        get() = scopes.asIterable().flatMapClassifierNamesOrNull()
     override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? =
         getFirstFromAllScopes(scopes) { it.getContributedPackageView(name, location) }
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
@@ -69,7 +73,7 @@ class ChainedMemberScope private constructor(
 
 //    override fun getFunctionNames() = scopes.flatMapTo(mutableSetOf()) { it.getFunctionNames() }
 //    override fun getVariableNames() = scopes.flatMapTo(mutableSetOf()) { it.getVariableNames() }
-//    override fun getClassifierNames(): Set<Name>? = scopes.asIterable().flatMapClassifierNamesOrNull()
+//    override fun classifierNames(): Set<Name>? = scopes.asIterable().flatMapClassifierNamesOrNull()
 
     override fun recordLookup(name: Name, location: LookupLocation) {
         scopes.forEach { it.recordLookup(name, location) }

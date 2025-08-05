@@ -273,7 +273,7 @@ open class VariableDescriptorImpl(
         val originalTypeParameters =
             if (copyConfiguration._newTypeParameters == null) typeParameters else copyConfiguration._newTypeParameters
                 ?: emptyList()
-        val substitutedTypeParameters: List<TypeParameterDescriptor> = ArrayList(originalTypeParameters.size)
+        val substitutedTypeParameters  = ArrayList<TypeParameterDescriptor>(originalTypeParameters.size)
         val substitutor = DescriptorSubstitutor.substituteTypeParameters(
             originalTypeParameters, copyConfiguration._substitution, substitutedDescriptor, substitutedTypeParameters
         )

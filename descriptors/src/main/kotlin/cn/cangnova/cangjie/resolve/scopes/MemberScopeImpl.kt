@@ -28,10 +28,8 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
-import cn.cangnova.cangjie.resolve.scopes.MemberScope
-import cn.cangnova.cangjie.utils.alwaysTrue
 import cn.cangnova.cangjie.utils.Printer
+import cn.cangnova.cangjie.utils.alwaysTrue
 import cn.cangnova.cangjie.utils.filterIsInstanceMapTo
 
 
@@ -51,33 +49,40 @@ abstract class MemberScopeImpl : MemberScope {
         return emptyList()
 
     }
+
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         return emptyList()
     }
 
 
     abstract override fun printScopeStructure(p: Printer)
-    override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor>  = emptyList()
-    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor>  = emptyList()
+    override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
+        emptyList()
 
-//    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor?  = null
+    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
+        emptyList()
+
+    //    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor?  = null
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-    override fun getFunctionNames(): Set<Name> =
-        getContributedDescriptors(
-            DescriptorKindFilter.FUNCTIONS, alwaysTrue()
-        ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
+    override val functionNames: Set<Name>
+        get() =
+            getContributedDescriptors(
+                DescriptorKindFilter.FUNCTIONS, alwaysTrue()
+            ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
 
-    override fun getVariableNames(): Set<Name> =
-        getContributedDescriptors(
+
+    override val classifierNames : Set<Name>? = null
+    override val variableNames: Set<Name>
+        get() =  getContributedDescriptors(
             DescriptorKindFilter.VARIABLES, alwaysTrue()
         ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
 
-    override fun getClassifierNames(): Set<Name>? = null
-    override fun getPropertyNames(): Set<Name> {
-        return getContributedDescriptors(
+
+    override val propertyNames: Set<Name>
+        get() = getContributedDescriptors(
             DescriptorKindFilter.PROPERTYS, alwaysTrue()
         ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
-    }
+
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,

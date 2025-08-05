@@ -51,7 +51,7 @@
 //
 //    override fun getFunctionNames() = workerScope.getFunctionNames()
 //    override fun getVariableNames() = workerScope.getVariableNames()
-//    override fun getClassifierNames() = workerScope.getClassifierNames()
+//    override fun classifierNames() = workerScope.classifierNames()
 //
 //    override fun definitelyDoesNotContainName(name: Name) = workerScope.definitelyDoesNotContainName(name)
 //

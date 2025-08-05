@@ -171,12 +171,11 @@ abstract class AbstractClassDescriptor(
 
     }
 
+    override val defaultFunctionTypeForSamInterface: SimpleType?
+        get() = null
 
-    override fun getDefaultFunctionTypeForSamInterface(): SimpleType? {
-        return null
-    }
 
-    override fun isDefinitelyNotSamInterface(): Boolean {
-        return false
-    }
+
+    override val isDefinitelyNotSamInterface: Boolean
+        get() = false
 } 

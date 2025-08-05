@@ -25,18 +25,16 @@
 package cn.cangnova.cangjie.resolve.scopes
 
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import cn.cangnova.cangjie.utils.Printer
 import cn.cangnova.cangjie.utils.flatMapToNullable
 import java.lang.reflect.Modifier
 
-fun MemberScope.computeAllNames() = getClassifierNames()?.let { classifierNames ->
-    getFunctionNames().toMutableSet().also {
-        it.addAll(getVariableNames())
+fun MemberScope.computeAllNames() = classifierNames?.let { classifierNames ->
+    functionNames.toMutableSet().also {
+        it.addAll(variableNames)
         it.addAll(classifierNames)
     }
 }
@@ -53,8 +51,7 @@ fun MemberScope.getDescriptorsFiltered(
 }
 
 fun Iterable<MemberScope>.flatMapClassifierNamesOrNull(): MutableSet<Name>? =
-    flatMapToNullable(hashSetOf(), MemberScope::getClassifierNames)
-
+    flatMapToNullable(hashSetOf(), MemberScope::classifierNames)
 
 
 interface MemberScope : ResolutionScope {
@@ -71,10 +68,10 @@ interface MemberScope : ResolutionScope {
     /**
      * These methods may return a superset of an actual names' set
      */
-    fun getFunctionNames(): Set<Name>
-    fun getVariableNames(): Set<Name>
-    fun getClassifierNames(): Set<Name>?
-    fun getPropertyNames(): Set<Name>
+    val functionNames: Set<Name>
+    val variableNames: Set<Name>
+    val classifierNames: Set<Name>?
+    val propertyNames: Set<Name>
 
     override fun getContributedFunctions(
         name: Name,
@@ -96,11 +93,15 @@ interface MemberScope : ResolutionScope {
         }
 
         override fun definitelyDoesNotContainName(name: Name): Boolean = true
-        override fun getPropertyNames() = emptySet<Name>()
+        override val propertyNames: Set<Name>
+            get() = emptySet<Name>()
+        override val functionNames: Set<Name>
+            get() = emptySet<Name>()
 
-        override fun getFunctionNames() = emptySet<Name>()
-        override fun getVariableNames() = emptySet<Name>()
-        override fun getClassifierNames() = emptySet<Name>()
+        override val classifierNames: Set<Name>?
+            get() = emptySet()
+        override val variableNames = emptySet<Name>()
+
     }
 }
 

@@ -23,7 +23,6 @@
  */
 
 package cn.cangnova.cangjie.resolve.scopes
-
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
@@ -31,17 +30,13 @@ import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.utils.Printer
 
-class InstanceMemberScope(private val memberScope: MemberScope) : MemberScope {
+class StaticMemberScope(val memberScope: MemberScope) : MemberScope {
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
-        return memberScope.getContributedVariables(name, location).filter { !it.isStatic }
+        return memberScope.getContributedVariables(name, location).filter { it.isStatic }
     }
 
     override fun getContributedPropertys(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
-        return memberScope.getContributedPropertys(name, location).filter { !it.isStatic }
-    }
-
-    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
-        return emptyList()
+        return memberScope.getContributedPropertys(name, location).filter { it.isStatic }
     }
 
     override val functionNames: Set<Name>
@@ -57,7 +52,11 @@ class InstanceMemberScope(private val memberScope: MemberScope) : MemberScope {
         get() = memberScope.propertyNames
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
-        return memberScope.getContributedFunctions(name, location).filter { !it.isStatic } // 过滤非静态函数
+        return memberScope.getContributedFunctions(name, location).filter { it.isStatic } // 过滤非静态函数
+    }
+
+    override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
+        return emptyList()
     }
 
     override fun printScopeStructure(p: Printer) {
@@ -66,14 +65,29 @@ class InstanceMemberScope(private val memberScope: MemberScope) : MemberScope {
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        return memberScope.getContributedClassifier(name, location)?.takeIf { !it.isStatic } // 过滤非静态分类器
+        return memberScope.getContributedClassifier(name, location)
+            ?.takeIf { it.isStatic || DescriptorUtils.isEnumEntry(it) } // 过滤非静态分类器
     }
+
+    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+        return memberScope.getContributedEnumEntrys(name, location).filter {
+            it.isStatic || DescriptorUtils.isEnumEntry(it)
+        }
+
+    }
+
+    override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
+        return memberScope.getContributedClassifiers(name, location).filter {
+            it.isStatic || DescriptorUtils.isEnumEntry(it)
+        }
+
+    }
+
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        return memberScope.getContributedDescriptors(kindFilter, nameFilter).filter { !it.isStatic } // 过滤非静态描述符
+        return memberScope.getContributedDescriptors(kindFilter, nameFilter).filter { it.isStatic } // 过滤非静态描述符
     }
 }
-

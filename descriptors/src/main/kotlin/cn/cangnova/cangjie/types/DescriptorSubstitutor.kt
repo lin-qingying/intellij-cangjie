@@ -21,99 +21,90 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.types
 
-package cn.cangnova.cangjie.types;
+import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
+import cn.cangnova.cangjie.descriptors.SourceElement
+import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import cn.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl
+import cn.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl.Companion.createForFurtherModification
+import cn.cangnova.cangjie.types.TypeSubstitutor.Companion.createChainedSubstitutor
 
 
-import cn.cangnova.cangjie.descriptors.ClassifierDescriptor;
-import cn.cangnova.cangjie.descriptors.DeclarationDescriptor;
-import cn.cangnova.cangjie.descriptors.SourceElement;
-import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor;
-import cn.cangnova.cangjie.descriptors.impl.TypeParameterDescriptorImpl;
-import cn.cangnova.cangjie.utils.ReadOnly;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static cn.cangnova.cangjie.types.util.TypeUtilKt.hasTypeParameterRecursiveBounds;
-
-public class DescriptorSubstitutor {
-    private DescriptorSubstitutor() {
+object DescriptorSubstitutor {
+    fun substituteTypeParameters(
+        typeParameters: List<TypeParameterDescriptor>,
+        originalSubstitution: TypeSubstitution,
+        newContainingDeclaration: DeclarationDescriptor,
+        result: MutableList<TypeParameterDescriptor >
+    ): TypeSubstitutor {
+        val substitutor = DescriptorSubstitutor.substituteTypeParameters(
+            typeParameters, originalSubstitution, newContainingDeclaration, result, null
+        )
+        if (substitutor == null) throw AssertionError("Substitution failed")
+        return substitutor
     }
 
-    @NotNull
-    public static TypeSubstitutor substituteTypeParameters(
-            @ReadOnly @NotNull List<TypeParameterDescriptor> typeParameters,
-            @NotNull TypeSubstitution originalSubstitution,
-            @NotNull DeclarationDescriptor newContainingDeclaration,
-            @NotNull List<TypeParameterDescriptor> result
-    ) {
-        TypeSubstitutor substitutor = substituteTypeParameters(
-                typeParameters, originalSubstitution, newContainingDeclaration, result, null
-        );
-        if (substitutor == null) throw new AssertionError("Substitution failed");
-        return substitutor;
-    }
+    fun substituteTypeParameters(
+        typeParameters: List<TypeParameterDescriptor>,
+        originalSubstitution: TypeSubstitution,
+        newContainingDeclaration: DeclarationDescriptor,
+        result: MutableList<TypeParameterDescriptor>,
+        wereChanges: BooleanArray?
+    ): TypeSubstitutor? {
+        val mutableSubstitutionMap: MutableMap<TypeConstructor, TypeProjection> =
+            HashMap()
 
-    @Nullable
-    public static TypeSubstitutor substituteTypeParameters(
-            @ReadOnly @NotNull List<TypeParameterDescriptor> typeParameters,
-            @NotNull TypeSubstitution originalSubstitution,
-            @NotNull DeclarationDescriptor newContainingDeclaration,
-            @NotNull List<TypeParameterDescriptor> result,
-            @Nullable boolean[] wereChanges
-    ) {
-        Map<TypeConstructor, TypeProjection> mutableSubstitutionMap = new HashMap<TypeConstructor, TypeProjection>();
+        val substitutedMap: MutableMap<TypeParameterDescriptor?, TypeParameterDescriptorImpl> =
+            HashMap<TypeParameterDescriptor?, TypeParameterDescriptorImpl>()
+        var index = 0
+        for (descriptor in typeParameters) {
+            val substituted = createForFurtherModification(
+                newContainingDeclaration,
+                descriptor.annotations,  //                    descriptor.isReified(),
+                descriptor.variance,
+                descriptor.name,
+                index++,
+                SourceElement.NO_SOURCE,
+                descriptor.storageManager
+            )
 
-        Map<TypeParameterDescriptor, TypeParameterDescriptorImpl> substitutedMap = new HashMap<TypeParameterDescriptor, TypeParameterDescriptorImpl>();
-        int index = 0;
-        for (TypeParameterDescriptor descriptor : typeParameters) {
-            TypeParameterDescriptorImpl substituted = TypeParameterDescriptorImpl.createForFurtherModification(
-                    newContainingDeclaration,
-                    descriptor.getAnnotations(),
-//                    descriptor.isReified(),
-                    descriptor.variance,
-                    descriptor.getName(),
-                    index++,
-                    SourceElement.NO_SOURCE,
-                    descriptor.storageManager
-            );
+            mutableSubstitutionMap.put(descriptor.typeConstructor, TypeProjectionImpl(substituted.defaultType))
 
-            mutableSubstitutionMap.put(descriptor.typeConstructor, new TypeProjectionImpl(substituted.getDefaultType()));
-
-            substitutedMap.put(descriptor, substituted);
-            result.add(substituted);
+            substitutedMap.put(descriptor, substituted)
+            result.add(substituted)
         }
 
-        TypeConstructorSubstitution mutableSubstitution = TypeConstructorSubstitution.createByConstructorsMap(mutableSubstitutionMap);
-        TypeSubstitutor substitutor = TypeSubstitutor.createChainedSubstitutor(originalSubstitution, mutableSubstitution);
-        TypeSubstitutor nonApproximatingSubstitutor =
-                TypeSubstitutor.createChainedSubstitutor(originalSubstitution.replaceWithNonApproximating(), mutableSubstitution);
+        val mutableSubstitution = TypeConstructorSubstitution.createByConstructorsMap(mutableSubstitutionMap)
+        val substitutor = createChainedSubstitutor(originalSubstitution, mutableSubstitution)
+        val nonApproximatingSubstitutor =
+            createChainedSubstitutor(originalSubstitution.replaceWithNonApproximating(), mutableSubstitution)
 
-        for (TypeParameterDescriptor descriptor : typeParameters) {
-            TypeParameterDescriptorImpl substituted = substitutedMap.get(descriptor);
-            for (CangJieType upperBound : descriptor.upperBounds) {
-                ClassifierDescriptor upperBoundDeclaration = upperBound.getConstructor().declarationDescriptor;
-                TypeSubstitutor boundSubstitutor = upperBoundDeclaration instanceof TypeParameterDescriptor &&  hasTypeParameterRecursiveBounds((TypeParameterDescriptor) upperBoundDeclaration)
-                        ? substitutor
-                        : nonApproximatingSubstitutor;
+        for (descriptor in typeParameters) {
+            val substituted: TypeParameterDescriptorImpl = substitutedMap.get(descriptor)!!
+            for (upperBound in descriptor.upperBounds) {
+                val upperBoundDeclaration = upperBound.constructor.declarationDescriptor
+                val boundSubstitutor =
+                    if (upperBoundDeclaration is TypeParameterDescriptor && hasTypeParameterRecursiveBounds(
+                            upperBoundDeclaration
+                        )
+                    )
+                        substitutor
+                    else
+                        nonApproximatingSubstitutor
 
-                CangJieType substitutedBound = boundSubstitutor.substitute(upperBound, Variance.INVARIANT);
-                if (substitutedBound == null) return null;
+                val substitutedBound = boundSubstitutor.substitute(upperBound, Variance.INVARIANT)
+                if (substitutedBound == null) return null
 
-                if (substitutedBound != upperBound && wereChanges != null) {
-                    wereChanges[0] = true;
+                if (substitutedBound !== upperBound && wereChanges != null) {
+                    wereChanges[0] = true
                 }
 
-                substituted.addUpperBound(substitutedBound);
+                substituted.addUpperBound(substitutedBound)
             }
-            substituted.setInitialized();
+            substituted.setInitialized()
         }
 
-        return substitutor;
+        return substitutor
     }
 }

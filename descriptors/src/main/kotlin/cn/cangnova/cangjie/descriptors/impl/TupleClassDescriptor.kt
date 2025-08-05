@@ -162,5 +162,5 @@ class TupleClassDescriptor(
     }
 
 
-    override fun getSealedSubclasses() = emptyList<ClassDescriptor>()
+    override val sealedSubclasses = emptyList<ClassDescriptor>()
 }

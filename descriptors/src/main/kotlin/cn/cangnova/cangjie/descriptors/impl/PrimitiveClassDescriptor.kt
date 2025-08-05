@@ -82,8 +82,8 @@ class PrimitiveClassDescriptor(
     /**
      * 获取密封子类（基本类型没有子类）
      */
-    override fun getSealedSubclasses(): Collection<ClassDescriptor> = emptyList()
-
+    override val sealedSubclasses: Collection<ClassDescriptor>
+        get() = emptyList()
 
     /**
      * 获取声明的可调用成员

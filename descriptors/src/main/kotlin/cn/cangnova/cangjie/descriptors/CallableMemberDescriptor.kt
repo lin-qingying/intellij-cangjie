@@ -62,7 +62,6 @@ interface CallableMemberDescriptor : CallableDescriptor, MemberDescriptor {
     fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor>)
 
 
-
     /**
      * 创建一个新的可调用成员描述符副本，并设置新的属性。
      *
@@ -105,6 +104,15 @@ interface CallableMemberDescriptor : CallableDescriptor, MemberDescriptor {
              */
             get() = this != Kind.FAKE_OVERRIDE
     }
+    // TODO: 将与 userdata 相关的成员提升到 DeclarationDescriptor，并使用更高效的实现（例如 THashMap）
+    /**
+     * 获取与此描述符关联的用户自定义数据。
+     *
+     * @param key 用于检索用户数据的键。
+     * @param <V> 用户数据的类型。
+     * @return 与给定键关联的用户数据，如果不存在则返回 null。
+    </V> */
+    fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V?
 
     /**
      * 定义用于复制可调用成员描述符的生成器接口。

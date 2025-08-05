@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@
  *
  */
 
-package cn.cangnova.cangjie.types.error
+package cn.cangnova.cangjie.resolve.scopes
+
+import cn.cangnova.cangjie.types.error.ErrorScopeKind
 
 class ThrowingScope(kind: ErrorScopeKind, vararg formatParams: String) : ErrorScope(kind, *formatParams)

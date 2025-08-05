@@ -37,7 +37,7 @@ interface PropertyDescriptor : PropertyDescriptorWithAccessors, CallableMemberDe
     override val setter: PropertySetterDescriptor?
 
 
-    val accessors: MutableList<PropertyAccessorDescriptor>
+    val accessors: List<PropertyAccessorDescriptor>
 
     /**
      * In the following case, the setter is projected out:
@@ -57,14 +57,14 @@ interface PropertyDescriptor : PropertyDescriptorWithAccessors, CallableMemberDe
     override val original: PropertyDescriptor
 
 
-    override var overriddenDescriptors: Collection<  PropertyDescriptor>
+    override val overriddenDescriptors: Collection<PropertyDescriptor>
 
-    override fun getCompileTimeInitializer():  ConstantValue<*>?
+    override fun getCompileTimeInitializer(): ConstantValue<*>?
 
 
     override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor
 
     override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out PropertyDescriptor>
 
-    fun getInType(): CangJieType?
+    val inType: CangJieType?
 }

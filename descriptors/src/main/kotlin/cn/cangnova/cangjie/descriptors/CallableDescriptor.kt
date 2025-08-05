@@ -31,14 +31,6 @@ interface CallableDescriptor : DeclarationDescriptorWithVisibility, DeclarationD
 
     val valueParameters: List<ValueParameterDescriptor>
 
-    /**
-     * 获取与此描述符关联的用户自定义数据。
-     *
-     * @param key 用于检索用户数据的键。
-     * @param <V> 用户数据的类型。
-     * @return 与给定键关联的用户数据，如果不存在则返回 null。
-    </V> */
-    fun <V> getUserData(key: UserDataKey<V>): V?
 
     override val original: CallableDescriptor
 

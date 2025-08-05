@@ -103,8 +103,8 @@ class FunctionClassDescriptor(
     override val annotations: Annotations get() = Annotations.EMPTY
 
     override val source: SourceElement = SourceElement.NO_SOURCE
-    override fun getSealedSubclasses() = emptyList<ClassDescriptor>()
-
+    override val sealedSubclasses: Collection<ClassDescriptor>
+        get() = emptyList()
     override val declaredTypeParameters: List<TypeParameterDescriptor>
         get() = parameters
 

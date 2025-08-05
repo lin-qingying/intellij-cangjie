@@ -21,58 +21,23 @@
  * any damages or issues arising from its use.
  *
  */
+package cn.cangnova.cangjie.descriptors.impl
 
-package cn.cangnova.cangjie.descriptors.impl;
+import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
+import cn.cangnova.cangjie.descriptors.ReceiverParameterDescriptor
+import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.SpecialNames
+import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
-import cn.cangnova.cangjie.descriptors.DeclarationDescriptor;
-import cn.cangnova.cangjie.descriptors.ReceiverParameterDescriptor;
-import cn.cangnova.cangjie.descriptors.annotations.Annotations;
-import cn.cangnova.cangjie.name.Name;
-import cn.cangnova.cangjie.name.SpecialNames;
-import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue;
-import org.jetbrains.annotations.NotNull;
+class ReceiverParameterDescriptorImpl @JvmOverloads constructor(
+    override val containingDeclaration: DeclarationDescriptor,
+    override val value: ReceiverValue,
+    annotations: Annotations,
+    name: Name = SpecialNames.THIS
+) : AbstractReceiverParameterDescriptor(annotations, name) {
 
-public class ReceiverParameterDescriptorImpl extends AbstractReceiverParameterDescriptor{
-
-    private final DeclarationDescriptor containingDeclaration;
-    private final ReceiverValue value;
-    public ReceiverParameterDescriptorImpl(
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @NotNull ReceiverValue value,
-            @NotNull Annotations annotations
-    ) {
-        this(containingDeclaration, value, annotations, SpecialNames.THIS);
+    override fun copy(newOwner: DeclarationDescriptor): ReceiverParameterDescriptor {
+        return ReceiverParameterDescriptorImpl(newOwner, value, annotations)
     }
-    public ReceiverParameterDescriptorImpl(
-            @NotNull DeclarationDescriptor containingDeclaration,
-            @NotNull ReceiverValue value,
-            @NotNull Annotations annotations,
-            @NotNull Name name
-    ) {
-        super(annotations, name);
-        this.containingDeclaration = containingDeclaration;
-        this.value = value;
-    }
-    @Override
-    public @NotNull DeclarationDescriptor getContainingDeclaration() {
-        return containingDeclaration;
-
-    }
-
-    @Override
-    public @NotNull ReceiverValue getValue() {
-        return value;
-
-    }
-//    public void setOutType(@NotNull CangJieType outType) {
-//        assert TypeUtilsKt.shouldBeUpdated(this.value.getType());
-//        this.value = value.replaceType(outType);
-//    }
-    @Override
-    public @NotNull ReceiverParameterDescriptor copy(@NotNull DeclarationDescriptor newOwner) {
-        return new ReceiverParameterDescriptorImpl(newOwner, value, annotations);
-
-    }
-
-
 }
