@@ -21,18 +21,20 @@
  * any damages or issues arising from its use.
  *
  */
-package cn.cangnova.cangjie.descriptors.impl
+package cn.cangnova.cangjie.types
 
-import cn.cangnova.cangjie.descriptors.CallableMemberDescriptor
-import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
-import cn.cangnova.cangjie.descriptors.SourceElement
-import cn.cangnova.cangjie.descriptors.annotations.Annotations
-import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
-class FunctionExpressionDescriptor(
-    containingDeclaration: DeclarationDescriptor,
-    annotations: Annotations,
-    name: Name,
-    kind: CallableMemberDescriptor.Kind,
-    source: SourceElement
-) : SimpleFunctionDescriptorImpl(containingDeclaration, null, annotations, name, kind, source)
+class TypeProjectionImpl(override val projectionKind: Variance, override val type: CangJieType) : TypeProjectionBase() {
+    constructor(type: CangJieType) : this(Variance.INVARIANT, type)
+
+
+    @TypeRefinement
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeProjection {
+        return TypeProjectionImpl(this.projectionKind, cangjieTypeRefiner.refineType(type))
+    }
+
+    override fun replaceType(type: CangJieType): TypeProjection {
+        return TypeProjectionImpl(this.projectionKind, type)
+    }
+}

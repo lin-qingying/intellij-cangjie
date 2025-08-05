@@ -171,9 +171,7 @@ abstract class FunctionDescriptorImpl(
         this.isOperator = isOperator
     }
 
-    override val isExtend: Boolean
 
-        get() = false
 
 open fun initialize(
         extensionReceiverParameter: ReceiverParameterDescriptor?,
