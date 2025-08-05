@@ -1,0 +1,111 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+// This source file is part of the Cangjie project, licensed under Apache-2.0
+// with Runtime Library Exception.
+//
+// See https://cangjie-lang.cn/pages/LICENSE for license information.
+
+namespace cn.cangnova.cangjie.metadata.MacroMsgFormat;
+
+struct Position {
+  file_id: uint32;
+  line: int32;
+  column: int32;
+}
+
+table Token {
+  kind: uint8;
+  value: string;
+  begin: Position;
+  end: Position;
+  delimiterNum : uint32 = 1;
+}
+
+table IdInfo {
+  name : string;
+  pos : Position;
+}
+
+struct IntValue {
+  val : int64;
+}
+
+struct BoolValue {
+  val : bool;
+}
+
+table TokensValue {
+  val: [Token];
+}
+
+union OptionValue {
+  sValue : string,
+  iValue : IntValue,
+  bValue : BoolValue,
+  tValue : TokensValue
+}
+
+table ItemInfo {
+  key : string;
+  value : OptionValue;
+}
+
+table ChildMsg {
+  childName : string;
+  items : [ItemInfo];
+}
+
+table DefLib {
+  paths : [string];
+}
+
+table Diagnostic {
+  diagSeverity : int32;
+  begin : Position;
+  end : Position;
+  errorMessage : string;
+  mainHint: string;
+}
+
+table MacroCall {
+  id : IdInfo;
+  hasAttrs : bool;
+  args : [Token];
+  attrs : [Token];
+  parentNames : [string];
+  childMsges : [ChildMsg];
+  methodName : string;
+  packageName : string;
+  libPath : string;
+  begin : Position;
+  end : Position;
+}
+
+table MacroResult {
+  id : IdInfo;
+  status : uint8;
+  tks : [Token];
+  items : [ItemInfo];
+  assertParents : [string];
+  diags : [Diagnostic];
+}
+
+table MultiMacroCalls {
+  calls : [MacroCall];
+}
+
+struct ExitTask {
+  flag : bool;
+}
+
+union MsgContent {
+  defLib : DefLib,
+  multiCalls : MultiMacroCalls,
+  macroResult : MacroResult,
+  exitTask : ExitTask
+}
+
+table MacroMsg {
+  content : MsgContent;
+}
+
+root_type MacroMsg;
