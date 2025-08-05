@@ -27,6 +27,7 @@ package cn.cangnova.cangjie.types
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import cn.cangnova.cangjie.storage.LockBasedStorageManager
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.error.ErrorEntity
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
@@ -38,11 +39,11 @@ class ErrorTypeConstructor(val kind: ErrorTypeKind, vararg val formatParams: Str
 
     fun getParam(i: Int): String = formatParams[i]
 
-
-    override fun getSupertypes(): Collection<CangJieType> = emptyList()
-    override fun isFinal(): Boolean = false
-    override fun isDenotable(): Boolean = false
-    override fun getDeclarationDescriptor(): ClassifierDescriptor = ErrorUtils.errorClass
+    override val supertypes: Collection<CangJieType>
+        get() = emptyList()
+    override val isDenotable: Boolean = false
+    override val declarationDescriptor: ClassifierDescriptor?
+        get() = ErrorUtils.errorClass
 
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
@@ -50,15 +51,19 @@ class ErrorTypeConstructor(val kind: ErrorTypeKind, vararg val formatParams: Str
         return this
     }
 
-    override fun getParameters(): MutableList<TypeParameterDescriptor> = mutableListOf()
+    override val isFinal: Boolean
+        get() = false
+
+    override val parameters: List<TypeParameterDescriptor>
+        get() = emptyList()
 
     //    override fun getBuiltIns(): CangJieBuiltIns = DefaultBuiltIns.Instance
     override fun toString(): String = debugText
-    override fun getBuiltIns(): CangJieBuiltIns {
-        return DefaultBuiltIns
 
-    }
- }
+
+    override val builtIns: CangJieBuiltIns
+        get() = DefaultBuiltIns
+}
 
 
 object DefaultBuiltIns : CangJieBuiltIns(null, LockBasedStorageManager("DefaultBuiltIns"))

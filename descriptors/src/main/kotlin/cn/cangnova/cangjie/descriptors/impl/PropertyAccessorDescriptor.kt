@@ -31,7 +31,7 @@ interface PropertyAccessorDescriptor : FunctionDescriptor {
 
     override val original: PropertyAccessorDescriptor
 
-    override fun getOverriddenDescriptors(): Collection<PropertyAccessorDescriptor >
+    override val overriddenDescriptors: Collection<PropertyAccessorDescriptor>
 
     val correspondingProperty: PropertyDescriptor
 

@@ -38,7 +38,7 @@ fun ModuleDescriptor.findClassifierAcrossModuleDependencies(classId: ClassId): C
     var result = topLevelClass
     for (name in segments.subList(1, segments.size)) {
         if (result !is ClassDescriptor) return@withResolutionAnchor null
-        result = result.unsubstitutedInnerClassesScope
+        result = result.unsubstitutedMemberScope
             .getContributedClassifier(name, NoLookupLocation.FROM_DESERIALIZATION) as? ClassDescriptor
             ?: return@withResolutionAnchor null
     }

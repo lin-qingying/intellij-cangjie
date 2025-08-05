@@ -51,8 +51,7 @@ object SpecialNames {
     @JvmField
     val ANONYMOUS_FQ_NAME = FqName.topLevel(Name.special(ANONYMOUS_STRING))
 
-    @JvmField
-    val OPTION = Name.identifier("Option")
+
 
     @JvmField
     val UNARY = Name.special("<unary>")

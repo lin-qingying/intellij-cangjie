@@ -28,7 +28,7 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.macro.ErrorMacroDescriptor
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
-import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.ErrorUtils
@@ -41,9 +41,6 @@ open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : M
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor =
         ErrorClassDescriptor(Name.special(ErrorEntity.ERROR_CLASS.debugText.format(name)))
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-        return emptyList()
-    }
 
     override fun getContributedClassifierIncludeDeprecated(
         name: Name, location: LookupLocation
@@ -57,6 +54,8 @@ open class ErrorScope(val kind: ErrorScopeKind, vararg formatParams: String) : M
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Set<SimpleFunctionDescriptor> =
         setOf(ErrorFunctionDescriptor(ErrorUtils.errorClass))
+
+
 
     override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
     setOf( ErrorMacroDescriptor(ErrorUtils.errorClass))

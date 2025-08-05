@@ -25,12 +25,18 @@ package cn.cangnova.cangjie.types.checker
 
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import cn.cangnova.cangjie.resolve.builtIns
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.EnrichedProjectionKind
 import cn.cangnova.cangjie.types.TypeProjection
 import cn.cangnova.cangjie.types.Variance
+import cn.cangnova.cangjie.types.asFlexibleType
+import cn.cangnova.cangjie.types.getSubtypeRepresentative
+import cn.cangnova.cangjie.types.getSupertypeRepresentative
+import cn.cangnova.cangjie.types.isError
 import cn.cangnova.cangjie.types.isFlexible
-import cn.cangnova.cangjie.types.util.TypeUtils
+import cn.cangnova.cangjie.types.sameTypeConstructors
+import cn.cangnova.cangjie.types.unwrapOption
 
 /**
  * 类型检查过程
@@ -113,8 +119,8 @@ class TypeCheckingProcedure(private val constraints: TypeCheckingProcedureCallba
             return false
         }
 
-        val type1Arguments: MutableList<TypeProjection> = type1.arguments
-        val type2Arguments: MutableList<TypeProjection> = type2.arguments
+        val type1Arguments  = type1.arguments
+        val type2Arguments  = type2.arguments
         if (type1Arguments.size != type2Arguments.size) {
             return false
         }
@@ -224,8 +230,8 @@ class TypeCheckingProcedure(private val constraints: TypeCheckingProcedureCallba
             return false
         }
 
-        val type1Arguments: MutableList<TypeProjection> = type1.arguments
-        val type2Arguments: MutableList<TypeProjection> = type2.arguments
+        val type1Arguments  = type1.arguments
+        val type2Arguments  = type2.arguments
         if (type1Arguments.size != type2Arguments.size) {
             return false
         }
@@ -302,11 +308,11 @@ class TypeCheckingProcedure(private val constraints: TypeCheckingProcedureCallba
 
         // this assert was moved to checker/utils.cj
         //assert constraints.assertEqualTypeConstructors(constructor, supertype.getConstructor()) : constructor + " is not " + supertype.getConstructor();
-        val subArguments: MutableList<TypeProjection> = subtype.arguments
-        val superArguments: MutableList<TypeProjection> = supertype.arguments
+        val subArguments = subtype.arguments
+        val superArguments = supertype.arguments
         if (subArguments.size != superArguments.size) return false
 
-        val parameters: MutableList<TypeParameterDescriptor> = constructor.parameters
+        val parameters  = constructor.parameters
         for (i in parameters.indices) {
             val parameter = parameters.get(i)
 
@@ -375,7 +381,7 @@ class TypeCheckingProcedure(private val constraints: TypeCheckingProcedureCallba
 
 
         private fun getOutType(parameter: TypeParameterDescriptor, argument: TypeProjection): CangJieType {
-            return parameter.builtIns.getAnyType()
+            return parameter.builtIns.anyType
         }
     }
 }

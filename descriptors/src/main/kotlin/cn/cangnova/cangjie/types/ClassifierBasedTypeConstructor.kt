@@ -28,7 +28,7 @@ import cn.cangnova.cangjie.descriptors.ClassifierDescriptor
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.descriptors.ModuleDescriptor
 import cn.cangnova.cangjie.descriptors.PackageFragmentDescriptor
-import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import cn.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 
 
@@ -81,14 +81,15 @@ abstract class ClassifierBasedTypeConstructor : TypeConstructor {
         var b: DeclarationDescriptor? = second.containingDeclaration
         while (a != null && b != null) {
             when {
+
+
                 a is ModuleDescriptor -> return b is ModuleDescriptor
                 b is ModuleDescriptor -> return false
                 a is PackageFragmentDescriptor -> return b is PackageFragmentDescriptor && a.fqName == b.fqName
                 b is PackageFragmentDescriptor -> return false
 
-                a is BasicTypeDescriptor -> return b is BasicTypeDescriptor && a.name == b.name
-                b is BasicTypeDescriptor -> return false
-
+                a is PrimitiveClassDescriptor -> return b is PrimitiveClassDescriptor && a.name == b.name
+                b is PrimitiveClassDescriptor -> return false
 
                 a.name != b.name -> return false
                 else -> {

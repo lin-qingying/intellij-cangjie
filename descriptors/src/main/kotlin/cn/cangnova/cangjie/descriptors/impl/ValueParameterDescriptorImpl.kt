@@ -165,7 +165,7 @@ open class ValueParameterDescriptorImpl(
         return declaresDefaultValue && (containingDeclaration as CallableMemberDescriptor).kind.isReal
     }
 
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): ValueParameterDescriptorImpl {
         if (substitutor.isEmpty) return this
         throw UnsupportedOperationException() // TODO
     }

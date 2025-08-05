@@ -30,6 +30,7 @@ import cn.cangnova.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.ClassDescriptorImpl
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
+import cn.cangnova.cangjie.storage.LockBasedStorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
@@ -57,12 +58,13 @@ class ErrorClassDescriptor(name: Name) : ClassDescriptorImpl(
                 )
             }
         val memberScope = ErrorUtils.createErrorScope(ErrorScopeKind.SCOPE_FOR_ERROR_CLASS, errorConstructor.name.toString(), "")
-        errorConstructor.returnType = ErrorType(
-            ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.ERROR_CLASS),
-            memberScope,
-            ErrorTypeKind.ERROR_CLASS
-        )
-        initialize(memberScope, setOf(errorConstructor), errorConstructor, emptySet())
+       errorConstructor.setReturnType(ErrorType(
+           ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.ERROR_CLASS),
+           memberScope,
+           ErrorTypeKind.ERROR_CLASS
+       ))
+
+        initialize(memberScope, listOf(errorConstructor), errorConstructor, emptyList())
     }
 
 

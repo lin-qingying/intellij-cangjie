@@ -26,7 +26,9 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
-import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.SpecialNames
+import cn.cangnova.cangjie.resolve.builtIns
 import cn.cangnova.cangjie.types.CangJieType
 
 
@@ -75,21 +77,19 @@ class PropertySetterDescriptorImpl(
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
 
-    override fun getOverriddenDescriptors(): Collection<PropertySetterDescriptor> {
-        return super.getOverriddenDescriptors(false) as Collection<PropertySetterDescriptor>
-    }
+    override val overriddenDescriptors: Collection<PropertySetterDescriptor>
+        get() = super.getOverriddenDescriptors(false) as Collection<PropertySetterDescriptor>
 
 
-    override fun getValueParameters(): List<ValueParameterDescriptor> {
-        return parameter?.let { listOf(it) } ?: throw IllegalStateException("Parameter is not initialized")
-    }
+
+    override val valueParameters: List<ValueParameterDescriptor>
+        get() = parameter?.let { listOf(it) } ?: throw IllegalStateException("Parameter is not initialized")
 
 
-    override fun getReturnType(): CangJieType {
-        return builtIns.unitType
-    }
+
+    override val returnType: CangJieType?
+        get() = builtIns.unitType
 
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
         return visitor.visitPropertySetterDescriptor(this, data)

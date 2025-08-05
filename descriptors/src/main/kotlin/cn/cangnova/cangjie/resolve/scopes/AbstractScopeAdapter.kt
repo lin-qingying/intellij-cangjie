@@ -28,7 +28,7 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.Name
-import cn.cangnova.cangjie.utils.exceptions.Printer
+import cn.cangnova.cangjie.utils.Printer
 
 
 /**

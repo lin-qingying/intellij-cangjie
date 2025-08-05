@@ -23,7 +23,6 @@
  */
 package cn.cangnova.cangjie.descriptors
 
-import cn.cangnova.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import cn.cangnova.cangjie.resolve.DescriptorUtils
 import cn.cangnova.cangjie.resolve.isSameModule
 import cn.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue

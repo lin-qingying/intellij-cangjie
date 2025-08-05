@@ -28,15 +28,7 @@ import cn.cangnova.cangjie.container.DefaultImplementation
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.model.CangJieTypeMarker
 
-abstract class AbstractTypePreparator {
-    abstract fun prepareType(type: CangJieTypeMarker): CangJieTypeMarker
 
-    object Default : AbstractTypePreparator() {
-        override fun prepareType(type: CangJieTypeMarker): CangJieTypeMarker {
-            return type
-        }
-    }
-}
 
 @DefaultImplementation(impl = CangJiePreparator.Default::class)
 abstract class CangJiePreparator : AbstractTypePreparator() {

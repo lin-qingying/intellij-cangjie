@@ -86,7 +86,8 @@ private class CapturedTypeParameterDescriptor(
         get() = declarationDescriptor
 
     override val index: Int
-        get() =  declaredTypeParametersCount + originalDescriptor.index
+        get() = declaredTypeParametersCount + originalDescriptor.index
+
     override fun toString() = "$originalDescriptor[inner-copy]"
 }
 
@@ -97,12 +98,12 @@ private fun CangJieType.buildPossiblyInnerType(
     if (classifierDescriptor == null || ErrorUtils.isError(classifierDescriptor)) return null
 
     val toIndex = classifierDescriptor.declaredTypeParameters.size + index
-    if (!classifierDescriptor.isInner) {
+
     assert(toIndex == arguments.size || DescriptorUtils.isLocal(classifierDescriptor)) {
         "${arguments.size - toIndex} trailing arguments were found in $this type"
-    }
 
-    return PossiblyInnerType(classifierDescriptor, arguments.subList(index, arguments.size), null)
+
+        return PossiblyInnerType(classifierDescriptor, arguments.subList(index, arguments.size), null)
     }
 
     val argumentsSubList = arguments.subList(index, toIndex)

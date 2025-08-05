@@ -27,11 +27,14 @@ package cn.cangnova.cangjie.descriptors.impl
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.incremental.components.NoLookupLocation
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindExclude
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
-import cn.cangnova.cangjie.resolve.source.MemberScopeImpl
+import cn.cangnova.cangjie.resolve.scopes.MemberScopeImpl
 import cn.cangnova.cangjie.utils.Printer
 import com.intellij.util.containers.addIfNotNull
+import java.util.ArrayList
 
 
 open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, private val fqName: FqName) :
@@ -48,14 +51,11 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         return packageViewDescriptor
     }
 
-    val builtinsPackageScope = moduleDescriptor.builtIns.getBuiltInsPackageScope()
     override fun getClassifierNames(): Set<Name> {
-        return builtinsPackageScope.getClassifierNames() ?: emptySet()
+        return   emptySet()
     }
 
-    override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        return builtinsPackageScope.getContributedClassifier(name, location)
-    }
+
 
     override fun definitelyDoesNotContainName(name: Name): Boolean {
         return getClassifierNames().contains(name)
@@ -66,22 +66,11 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        val result = mutableListOf<DeclarationDescriptor>()
-        val basicTypeNames = builtinsPackageScope.getClassifierNames()
-
-        if (basicTypeNames != null) {
-            for (name in basicTypeNames) {
-                if (nameFilter(name))
-                    result.addIfNotNull(getContributedClassifier(name, NoLookupLocation.FROM_BUILTINS))
-            }
-        }
-
-        if (!kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) return result
-        result.clear()
+        if (!kindFilter.acceptsKinds(DescriptorKindFilter.PACKAGES_MASK)) return listOf()
         if (fqName.isRoot && kindFilter.excludes.contains(DescriptorKindExclude.TopLevelPackages)) return listOf()
 
         val subFqNames = moduleDescriptor.getSubPackagesOf(fqName, nameFilter)
-
+        val result = ArrayList<DeclarationDescriptor>(subFqNames.size)
         for (subFqName in subFqNames) {
             val shortName = subFqName.shortName()
             if (nameFilter(shortName)) {
@@ -97,8 +86,7 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
     }
 
 
-    //    override fun getClassifierNames(): Set<Name> = emptySet()
-//
+
     override fun printScopeStructure(p: Printer) {
         p.println(this::class.java.simpleName, " {")
         p.pushIndent()

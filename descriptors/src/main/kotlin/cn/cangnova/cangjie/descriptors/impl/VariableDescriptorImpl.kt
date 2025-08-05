@@ -26,6 +26,7 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjVariable
 import cn.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
 import cn.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
@@ -63,35 +64,37 @@ open class VariableDescriptorImpl(
         )
     }
 
-    private var overriddenProperties: Collection<VariableDescriptorImpl>? = null
+    private var _overriddenDescriptors: Collection<VariableDescriptorImpl> = emptyList()
 
-    override fun getOverriddenDescriptors(): Collection<VariableDescriptorImpl> {
-        return overriddenProperties ?: emptyList()
-    }
 
-    override fun getModality(): Modality {
-        return Modality.FINAL
-    }
+
+    override val overriddenDescriptors: Collection<VariableDescriptorImpl>
+        get() = _overriddenDescriptors
+
+    override val modality: Modality
+        get() = Modality.FINAL
 
     override val isTopLevel: Boolean
         get() = (source.getPsi() as? CjVariable)?.isTopLevel == true
-    override fun getKind(): CallableMemberDescriptor.Kind {
-        return CallableMemberDescriptor.Kind.DECLARATION
+
+
+    override val kind: CallableMemberDescriptor.Kind
+        get() = CallableMemberDescriptor.Kind.DECLARATION
+
+    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<  CallableMemberDescriptor>) {
+//        this._overriddenDescriptors = overriddenDescriptors
     }
 
-    override fun setOverriddenDescriptors(overriddenDescriptors: MutableCollection<out CallableMemberDescriptor>) {
 
-    }
 
-    override fun <V : Any?> getUserData(key: CallableDescriptor.UserDataKey<V>?): V? {
+    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? {
         return null
     }
-
     override fun copy(
-        newOwner: DeclarationDescriptor?,
-        modality: Modality?,
-        visibility: DescriptorVisibility?,
-        kind: CallableMemberDescriptor.Kind?,
+        newOwner: DeclarationDescriptor,
+        modality: Modality,
+        visibility: DescriptorVisibility,
+        kind: CallableMemberDescriptor.Kind,
         copyOverrides: Boolean
     ): CallableMemberDescriptor {
         return this
@@ -172,7 +175,7 @@ open class VariableDescriptorImpl(
 
     override var visibility: DescriptorVisibility = _visibility
 
-    inner class CopyConfiguration : CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl?> {
+    inner class CopyConfiguration : CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl> {
         var _owner: DeclarationDescriptor = containingDeclaration
         var _modality: Modality = modality
         var _visibility = this@VariableDescriptorImpl.visibility
@@ -182,7 +185,7 @@ open class VariableDescriptorImpl(
         var _substitution = TypeSubstitution.EMPTY
         var _copyOverrides = true
         var _dispatchReceiverParameter: ReceiverParameterDescriptor? =
-            this@VariableDescriptorImpl.getDispatchReceiverParameter()
+            this@VariableDescriptorImpl.dispatchReceiverParameter
         var _newTypeParameters: List<TypeParameterDescriptor>? = null
         var _name = this@VariableDescriptorImpl.name
         var _returnType: CangJieType = type
@@ -202,7 +205,7 @@ open class VariableDescriptorImpl(
             return this
         }
 
-        override fun setReturnType(type: CangJieType): CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl?> {
+        override fun setReturnType(type: CangJieType): CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl> {
             _returnType = type
             return this
         }
@@ -222,8 +225,8 @@ open class VariableDescriptorImpl(
             return this
         }
 
-        override fun setTypeParameters(typeParameters: List<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl?> {
-            this._newTypeParameters = typeParameters
+        override fun setTypeParameters(parameters: List<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl> {
+            this._newTypeParameters = parameters
             return this
         }
 
@@ -242,7 +245,7 @@ open class VariableDescriptorImpl(
             return this
         }
 
-        override fun setName(name: Name): CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl?> {
+        override fun setName(name: Name): CallableMemberDescriptor.CopyBuilder<VariableDescriptorImpl > {
             this._name = name
             return this
         }
@@ -315,7 +318,7 @@ open class VariableDescriptorImpl(
 
     }
 
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptorImpl? {
         if (substitutor.isEmpty) {
             return this
         }

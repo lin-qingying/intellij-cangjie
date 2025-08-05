@@ -31,7 +31,7 @@ import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.selectMostSpecificInEachOverridableGroup
 import cn.cangnova.cangjie.types.CangJieType
-import cn.cangnova.cangjie.utils.exceptions.Printer
+import cn.cangnova.cangjie.utils.Printer
 
 
 class TypeIntersectionScope private constructor(private val debugName: String, override val workerScope: MemberScope) : AbstractScopeAdapter() {

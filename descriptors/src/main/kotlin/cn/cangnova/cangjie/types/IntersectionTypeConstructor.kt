@@ -53,23 +53,23 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<CangJieType>) : T
     private val intersectedTypes = LinkedHashSet(typesToIntersect)
     private val hashCode = intersectedTypes.hashCode()
 
-    override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
-
-    override fun getSupertypes(): Collection<CangJieType> = intersectedTypes
-
+    override val parameters: List<TypeParameterDescriptor>
+        get() = emptyList()
+    override val supertypes: Collection<CangJieType>
+        get() = intersectedTypes
     // Type should not be rendered in scope's debug name. This may cause performance issues in case of complicated intersection types.
     fun createScopeForCangJieType(): MemberScope =
         TypeIntersectionScope.create("member scope for intersection type", intersectedTypes)
 
-    override fun isFinal(): Boolean = false
+    override val isFinal : Boolean = false
 
-    override fun isDenotable(): Boolean = false
+    override val isDenotable : Boolean = false
 
-    override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
+    override val declarationDescriptor: ClassifierDescriptor?
+        get() = null
 
-    override fun getBuiltIns(): CangJieBuiltIns =
-        intersectedTypes.iterator().next().constructor.builtIns
-
+    override val builtIns: CangJieBuiltIns
+        get() = intersectedTypes.iterator().next().constructor.builtIns
 
     override fun toString(): String = makeDebugNameForIntersectionType()
 

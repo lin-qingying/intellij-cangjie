@@ -29,6 +29,7 @@ import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.annotations.Annotations.Companion.EMPTY
 import cn.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.ErrorUtils
 import cn.cangnova.cangjie.types.TypeSubstitution
@@ -73,71 +74,71 @@ class ErrorFunctionDescriptor(containingDeclaration: ClassDescriptor) : SimpleFu
     ): SimpleFunctionDescriptor = this
 
 
-    override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
-        object : FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> {
-            override fun setOwner(owner: DeclarationDescriptor): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+    override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor > =
+        object : FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor > {
+            override fun setOwner(owner: DeclarationDescriptor): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor > =
                 this
 
-            override fun setModality(modality: Modality): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setModality(modality: Modality): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
-            override fun setVisibility(visibility: DescriptorVisibility): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setVisibility(visibility: DescriptorVisibility): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
-            override fun setKind(kind: CallableMemberDescriptor.Kind): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setKind(kind: CallableMemberDescriptor.Kind): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
-            override fun setCopyOverrides(copyOverrides: Boolean): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setCopyOverrides(copyOverrides: Boolean): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
-            override fun setName(name: Name): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
-            override fun setSubstitution(substitution: TypeSubstitution): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setName(name: Name): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
+            override fun setSubstitution(substitution: TypeSubstitution): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
             override fun setValueParameters(
                 parameters: List<ValueParameterDescriptor>
-            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
+            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
 
             override fun <V> putUserData(
                 userDataKey: CallableDescriptor.UserDataKey<V>, value: V
-            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
+            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
 
             override fun setTypeParameters(
                 parameters: List<TypeParameterDescriptor>
-            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
+            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
 
-            override fun setReturnType(type: CangJieType): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setReturnType(type: CangJieType): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
             override fun setContextReceiverParameters(
                 contextReceiverParameters: List<ReceiverParameterDescriptor>
-            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
+            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
 
             override fun setExtensionReceiverParameter(
                 extensionReceiverParameter: ReceiverParameterDescriptor?
-            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
+            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
 
             override fun setDispatchReceiverParameter(
                 dispatchReceiverParameter: ReceiverParameterDescriptor?
-            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
+            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
 
-            override fun setOriginal(original: CallableMemberDescriptor?): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setOriginal(original: CallableMemberDescriptor?): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
-            override fun setSignatureChange(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
-            override fun setPreserveSourceElement(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
-            override fun setDropOriginalInContainingParts(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setSignatureChange(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
+            override fun setPreserveSourceElement(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
+            override fun setDropOriginalInContainingParts(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
-            override fun setHiddenToOvercomeSignatureClash(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setHiddenToOvercomeSignatureClash(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
-            override fun setHiddenForResolutionEverywhereBesideSupercalls(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> =
+            override fun setHiddenForResolutionEverywhereBesideSupercalls(): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> =
                 this
 
             override fun setAdditionalAnnotations(
                 additionalAnnotations: Annotations
-            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor?> = this
+            ): FunctionDescriptor.CopyBuilder<SimpleFunctionDescriptor> = this
 
             override fun build(): SimpleFunctionDescriptor = this@ErrorFunctionDescriptor
         }
@@ -145,6 +146,8 @@ class ErrorFunctionDescriptor(containingDeclaration: ClassDescriptor) : SimpleFu
 
 
     //    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? = null
-    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor?>) {}
-    override fun <V : Any?> getUserData(key: CallableDescriptor.UserDataKey<V>?): V? = null
+    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor>) {}
+    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? {
+        return null
+    }
 }

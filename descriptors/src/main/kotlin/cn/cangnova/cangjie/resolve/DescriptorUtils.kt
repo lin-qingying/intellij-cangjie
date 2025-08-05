@@ -47,6 +47,7 @@ import cn.cangnova.cangjie.types.checker.CangJieTypeChecker
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.checker.REFINER_CAPABILITY
 import cn.cangnova.cangjie.types.checker.TypeRefinementSupport
+import cn.cangnova.cangjie.utils.DFS
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -679,3 +680,11 @@ val ClassifierDescriptor?.classId: ClassId?
             }
         }
     }
+fun ValueParameterDescriptor.declaresOrInheritsDefaultValue(): Boolean {
+    return DFS.ifAny(
+        listOf(this),
+        { current -> current.overriddenDescriptors.map(ValueParameterDescriptor::original) },
+        ValueParameterDescriptor::declaresDefaultValue
+    )
+}
+

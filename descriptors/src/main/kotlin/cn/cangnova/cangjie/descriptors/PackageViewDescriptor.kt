@@ -50,7 +50,6 @@ import cn.cangnova.cangjie.resolve.scopes.MemberScope
 interface PackageViewDescriptor : PackageData ,DeclarationDescriptorWithVisibility{
 
 
-    val reexportTop: Boolean get() =  true
     override val containingDeclaration: PackageViewDescriptor?
 
     val memberScope: MemberScope

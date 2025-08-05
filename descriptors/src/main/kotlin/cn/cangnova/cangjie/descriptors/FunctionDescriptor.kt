@@ -32,7 +32,7 @@ import cn.cangnova.cangjie.types.TypeSubstitutor
 
 interface FunctionDescriptor : CallableMemberDescriptor {
 
-    val isExtend: Boolean
+    val isExtend: Boolean get() = false
 
 
     override val containingDeclaration: DeclarationDescriptor

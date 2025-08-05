@@ -33,7 +33,6 @@ import cn.cangnova.cangjie.types.CangJieType
 
 interface MacroDescriptor : FunctionDescriptor {
 
-    override val isExtend: Boolean get() =  false
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<MacroDescriptor>
     fun initialize(
         dispatchReceiverParameterIfNeeded: ReceiverParameterDescriptor?,
@@ -64,6 +63,8 @@ open class MacroDescriptorImpl(
 
         return this
     }
+
+
 
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<MacroDescriptor> {
         return super.newCopyBuilder() as FunctionDescriptor.CopyBuilder<MacroDescriptor>

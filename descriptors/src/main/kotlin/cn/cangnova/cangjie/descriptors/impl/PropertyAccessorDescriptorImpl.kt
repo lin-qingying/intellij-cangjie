@@ -26,74 +26,65 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
-import cn.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.TypeSubstitutor
 
 
 abstract class PropertyAccessorDescriptorImpl(
-  private val  modality: Modality,
+    override val  modality: Modality,
     override var  visibility: DescriptorVisibility,
     override val  correspondingProperty: PropertyDescriptor,
     annotations: Annotations,
     name: Name,
     override var isDefault: Boolean,
 
-  private  val kind: CallableMemberDescriptor.Kind,
+    override val kind: CallableMemberDescriptor.Kind,
     source: SourceElement
 ) : DeclarationDescriptorNonRootImpl(correspondingProperty.containingDeclaration, annotations, name, source), PropertyAccessorDescriptor {
 
 
-    private var initialSignatureDescriptor: FunctionDescriptor? = null
+    override var initialSignatureDescriptor: FunctionDescriptor? = null
 
 
-    override fun getModality():  Modality {
-        return modality
-    }
 
 
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
+
+    override fun substitute(substitutor: TypeSubstitutor): FunctionDescriptor {
         return this // no substitution since we work with originals of accessors in the backend anyway
     }
 
+    override val typeParameters: List<TypeParameterDescriptor>
+        get() =   emptyList()
 
-    override fun getTypeParameters(): List<TypeParameterDescriptor> = emptyList()
 
     override fun hasStableParameterNames(): Boolean = false
 
     override fun hasSynthesizedParameterNames(): Boolean = false
 
 
-    override fun getKind():  CallableMemberDescriptor.Kind {
-        return kind
-    }
 
 
 
 
 
 
-    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        return correspondingProperty.contextReceiverParameters
-    }
 
 
-    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
-        return correspondingProperty.extensionReceiverParameter
-    }
 
-    override fun getIsExtend(): Boolean {
-        if (dispatchReceiverParameter == null) return false
-        return dispatchReceiverParameter!!.containingDeclaration is LazyExtendClassDescriptor
+    override val contextReceiverParameters: List<ReceiverParameterDescriptor>
+        get() = correspondingProperty.contextReceiverParameters
 
-    }
+    override val extensionReceiverParameter: ReceiverParameterDescriptor?
+        get() = correspondingProperty.extensionReceiverParameter
 
 
-    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
-        return correspondingProperty.dispatchReceiverParameter
-    }
-    override fun isOperator(): Boolean {
-        return false
-    }
+    override val dispatchReceiverParameter: ReceiverParameterDescriptor?
+        get() = correspondingProperty.dispatchReceiverParameter
+
+    override val isOperator: Boolean
+        get() = false
+
+
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<out FunctionDescriptor> {
         throw UnsupportedOperationException("Accessors must be copied by the corresponding property")
     }
@@ -108,7 +99,6 @@ abstract class PropertyAccessorDescriptorImpl(
     ): PropertyAccessorDescriptor {
         throw UnsupportedOperationException("Accessors must be copied by the corresponding property")
     }
-
 
     protected fun getOverriddenDescriptors(isGetter: Boolean): Collection<PropertyAccessorDescriptor> {
         val result = mutableListOf<PropertyAccessorDescriptor>()
@@ -128,15 +118,11 @@ abstract class PropertyAccessorDescriptorImpl(
     abstract override val original: PropertyAccessorDescriptor
 
 
-    override fun getInitialSignatureDescriptor(): FunctionDescriptor? = initialSignatureDescriptor
+    override val isHiddenToOvercomeSignatureClash: Boolean
+        get() = false
 
-    fun setInitialSignatureDescriptor(initialSignatureDescriptor: FunctionDescriptor?) {
-        this.initialSignatureDescriptor = initialSignatureDescriptor
-    }
-
-    override fun isHiddenToOvercomeSignatureClash(): Boolean = false
-
-    override fun isHiddenForResolutionEverywhereBesideSupercalls(): Boolean = false
+    override val isHiddenForResolutionEverywhereBesideSupercalls: Boolean
+        get() = false
 
 
     override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? = null

@@ -47,8 +47,11 @@ abstract class AbstractStubType(
 
     override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType = this
 
-    override fun makeOptionalAsSpecified(newOption: Boolean): SimpleType {
-        return if (newOption == isOption) this else materialize(newOption)
+
+
+    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
+        return if (isOption == isOption) this else materialize(isOption)
+
     }
 
     @TypeRefinement

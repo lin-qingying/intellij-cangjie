@@ -26,6 +26,8 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.ModuleCapability
 import cn.cangnova.cangjie.descriptors.PackageViewDescriptor
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.storage.StorageManager
 
 interface PackageViewDescriptorFactory {
     fun compute(

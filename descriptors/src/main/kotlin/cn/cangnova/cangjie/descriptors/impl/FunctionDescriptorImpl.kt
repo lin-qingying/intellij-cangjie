@@ -53,7 +53,7 @@ abstract class FunctionDescriptorImpl(
         get() = if (_original == this) this else _original.original
 
 
-    protected var userDataMap: Map<out CallableDescriptor.UserDataKey<*>, Any>? = null
+    protected var userDataMap: Map<  CallableDescriptor.UserDataKey<*>, Any>? = null
     override lateinit var typeParameters: List<TypeParameterDescriptor>
     private var unsubstitutedValueParameters: List<ValueParameterDescriptor> = ArrayList()
     private var unsubstitutedReturnType: CangJieType? = null
@@ -362,7 +362,7 @@ open fun initialize(
      * @return 替换后的函数描述符，如果替换过程中出现错误则返回 null。
      */
     @Nullable
-    protected fun doSubstitute(configuration: CopyConfiguration): FunctionDescriptor? {
+    protected open fun doSubstitute(configuration: CopyConfiguration): FunctionDescriptor? {
         val wereChanges = BooleanArray(1)
 
         // 合并原始注解和附加注解

@@ -29,7 +29,7 @@ import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
-import cn.cangnova.cangjie.utils.exceptions.Printer
+import cn.cangnova.cangjie.utils.Printer
 
 class InstanceMemberScope(private val memberScope: MemberScope) : MemberScope {
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {

@@ -27,7 +27,6 @@ import cn.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
 import cn.cangnova.cangjie.resolve.constants.ConstantValue
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeSubstitutor
-import cn.cangnova.cangjie.types.expressions.match.Constructor
 
 
 interface PropertyDescriptor : PropertyDescriptorWithAccessors, CallableMemberDescriptor {
@@ -58,12 +57,12 @@ interface PropertyDescriptor : PropertyDescriptorWithAccessors, CallableMemberDe
     override val original: PropertyDescriptor
 
 
-    override var overriddenDescriptors: Collection<  CallableMemberDescriptor>
+    override var overriddenDescriptors: Collection<  PropertyDescriptor>
 
     override fun getCompileTimeInitializer():  ConstantValue<*>?
 
 
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor
+    override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor
 
     override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out PropertyDescriptor>
 

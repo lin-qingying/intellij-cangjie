@@ -27,7 +27,7 @@ import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.name.OperatorNameConventions
 import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.CangJieType
-import cn.cangnova.cangjie.utils.exceptions.Printer
+import cn.cangnova.cangjie.utils.Printer
 
 /**
  * 基本类型成员作用域

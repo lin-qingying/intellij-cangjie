@@ -36,7 +36,7 @@ import cn.cangnova.cangjie.resolve.call.inference.wrapWithCapturingSubstitution
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeSubstitutor
 import cn.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.safeSubstitute
-import cn.cangnova.cangjie.utils.exceptions.Printer
+import cn.cangnova.cangjie.utils.Printer
 import cn.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
 
 class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: TypeSubstitutor) : MemberScope {

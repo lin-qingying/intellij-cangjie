@@ -21,7 +21,8 @@
  * any damages or issues arising from its use.
  *
  */
-package cn.cangnova.cangjie.utils.exceptions
+
+package cn.cangnova.cangjie.utils
 
 import java.io.IOException
 

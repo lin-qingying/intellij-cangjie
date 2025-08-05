@@ -93,22 +93,18 @@ class ErrorMacroDescriptor(containingDeclaration: ClassDescriptor) : MacroDescri
             override fun setSubstitution(substitution: TypeSubstitution): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
                 this
 
-            override fun setValueParameters(
-                parameters: Collection<ValueParameterDescriptor>
-            ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
+            override fun setValueParameters(parameters: List<ValueParameterDescriptor>): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
 
             override fun <V> putUserData(
                 userDataKey: CallableDescriptor.UserDataKey<V>, value: V
             ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
 
-            override fun setTypeParameters(
-                parameters: Collection<TypeParameterDescriptor>
-            ): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
+            override fun setTypeParameters(parameters: List<TypeParameterDescriptor>): FunctionDescriptor.CopyBuilder<MacroDescriptor> = this
 
             override fun setReturnType(type: CangJieType): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
                 this
 
-            override fun setContextReceiverParameters(contextReceiverParameters: Collection<ReceiverParameterDescriptor>): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
+            override fun setContextReceiverParameters(contextReceiverParameters: List<ReceiverParameterDescriptor>): FunctionDescriptor.CopyBuilder<MacroDescriptor> =
                 this
 
             override fun setExtensionReceiverParameter(
@@ -140,8 +136,7 @@ class ErrorMacroDescriptor(containingDeclaration: ClassDescriptor) : MacroDescri
             override fun build(): MacroDescriptor = this@ErrorMacroDescriptor
         }
 
-
-    //    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? = null
-//    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor?>) {}
-    override fun <V : Any?> getUserData(key: CallableDescriptor.UserDataKey<V>?): V? = null
+    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? {
+        return null
+    }
 }

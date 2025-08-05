@@ -28,7 +28,6 @@ import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.renderer.DescriptorRenderer
 import cn.cangnova.cangjie.renderer.DescriptorRendererOptions
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import cn.cangnova.cangjie.types.util.builtIns
 
 /*
  * Copyright 2010-2016 JetBrains s.r.o.
@@ -143,7 +142,7 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
         val unwrapped = replacement.unwrap()
         return when (unwrapped) {
             is FlexibleType -> unwrapped
-            is SimpleType -> CangJieTypeFactory.flexibleType(unwrapped, unwrapped.makeOptionalAsSpecified(true))
+            is SimpleType -> CangJieTypeFactory.flexibleType(unwrapped, unwrapped.makeOptionAsSpecified(true))
         }.inheritEnhancement(unwrapped)
     }
 

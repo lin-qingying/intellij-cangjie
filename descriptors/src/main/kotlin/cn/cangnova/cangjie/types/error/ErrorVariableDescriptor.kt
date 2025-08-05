@@ -28,6 +28,7 @@ import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.descriptors.impl.PropertyDescriptorImpl
 import cn.cangnova.cangjie.descriptors.impl.VariableDescriptorImpl
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.ErrorUtils
 
 class ErrorPropertyDescriptor : PropertyDescriptor

@@ -26,18 +26,20 @@ package cn.cangnova.cangjie.descriptors.impl
 
 
 import cn.cangnova.cangjie.builtins.StandardNames
-import cn.cangnova.cangjie.builtins.functions.FunctionClassKind
-import cn.cangnova.cangjie.builtins.functions.FunctionTypeKind
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 import cn.cangnova.cangjie.name.ClassId
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.FunctionClassScope
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
+import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.AbstractClassTypeConstructor
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeConstructor
 import cn.cangnova.cangjie.types.Variance
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import cn.cangnova.cangjie.types.functions.FunctionClassKind
+import cn.cangnova.cangjie.types.functions.FunctionTypeKind
 
 
 class FunctionClassDescriptor(
@@ -47,9 +49,10 @@ class FunctionClassDescriptor(
     val arity: Int
 ) : AbstractClassDescriptor(storageManager, functionTypeKind.numberedClassName(arity)) {
 
-    private val typeConstructor = FunctionTypeConstructor()
+    private val _typeConstructor = FunctionTypeConstructor()
     private val memberScope = FunctionClassScope(storageManager, this)
-
+    override val typeConstructor: TypeConstructor
+        get() = _typeConstructor
     private val parameters: List<TypeParameterDescriptor>
 
     init {
@@ -79,32 +82,31 @@ class FunctionClassDescriptor(
     }
 
 
-    override fun getStaticScope() = MemberScope.Empty
-
-    override fun getTypeConstructor(): TypeConstructor = typeConstructor
+    override val staticScope: MemberScope
+        get() = MemberScope.Empty
 
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner) = memberScope
-
-    override fun getConstructors() = emptyList<ClassConstructorDescriptor>()
-    override fun getKind() = ClassKind.INTERFACE
-    override fun getModality() = Modality.ABSTRACT
-    override fun getUnsubstitutedPrimaryConstructor() = null
-    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
-
+    override val constructors: Collection<ClassConstructorDescriptor>
+        get() = emptyList<ClassConstructorDescriptor>()
+    override val kind: ClassKind
+        get() = ClassKind.INTERFACE
+    override val modality: Modality
+        get() = Modality.ABSTRACT
+    override val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
+        get() = null
+    override val endConstructors: Collection<ClassConstructorDescriptor>
+        get() = emptySet()
 
     override val visibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC
 
-    override fun isFun() = false
-    override fun isValue() = false
-    override fun isExpect() = false
 
     override val annotations: Annotations get() = Annotations.EMPTY
 
-    override val source: SourceElement  = SourceElement.NO_SOURCE
+    override val source: SourceElement = SourceElement.NO_SOURCE
     override fun getSealedSubclasses() = emptyList<ClassDescriptor>()
 
-
-    override fun getDeclaredTypeParameters() = parameters
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
+        get() = parameters
 
     private inner class FunctionTypeConstructor : AbstractClassTypeConstructor(storageManager) {
         override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
@@ -136,11 +138,12 @@ class FunctionClassDescriptor(
             return listOf(builtIns.anyType)
         }
 
-        override fun getParameters() = this@FunctionClassDescriptor.parameters
-
-        override fun getDeclarationDescriptor() = this@FunctionClassDescriptor
-        override fun isDenotable() = true
-
+        override val parameters: List<TypeParameterDescriptor>
+            get() = this@FunctionClassDescriptor.parameters
+        override val isDenotable: Boolean
+            get() = true
+        override val declarationDescriptor: ClassDescriptor
+            get() = this@FunctionClassDescriptor
 
         override fun toString() = declarationDescriptor.toString()
 

@@ -31,7 +31,6 @@ import cn.cangnova.cangjie.renderer.DescriptorRenderer
 import cn.cangnova.cangjie.renderer.DescriptorRendererOptions
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.model.DynamicTypeMarker
-import cn.cangnova.cangjie.types.util.builtIns
 
 
 @DefaultImplementation(impl = DynamicTypesSettings::class)

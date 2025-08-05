@@ -39,14 +39,19 @@ import cn.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import cn.cangnova.cangjie.resolve.constants.IntegerValueTypeConstructor
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
+import cn.cangnova.cangjie.types.TypeUtils.contains
+import cn.cangnova.cangjie.types.TypeUtils.makeProjection
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker
 import cn.cangnova.cangjie.types.checker.CangJieTypeChecker.Companion.DEFAULT
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import cn.cangnova.cangjie.types.checker.NewTypeVariableConstructor
+import cn.cangnova.cangjie.types.error.ErrorType
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
 import cn.cangnova.cangjie.types.model.TypeArgumentMarker
 import cn.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker
 import cn.cangnova.cangjie.utils.SmartSet
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 /**
  * 仓颉语言类型工具类
@@ -899,14 +904,24 @@ object TypeUtils {
      */
     @JvmStatic
     fun makeOptionalIfNeeded(
-        type: CangJieType, optional: Boolean
+        type: SimpleType, optional: Boolean
+    ): SimpleType {
+        if (optional) {
+            return type.makeOptionAsSpecified(true)
+        }
+        return type
+    }
+
+    @JvmStatic
+    fun makeOptionalIfNeeded(
+        type: CangJieType,
+        optional: Boolean
     ): CangJieType {
         if (optional) {
             return makeOptional(type)
         }
         return type
     }
-
 
     /**
      * 获取类型参数的默认类型投影列表
@@ -1190,7 +1205,7 @@ object TypeUtils {
         }
         val constructor: TypeConstructor = type.constructor
         if (constructor is IntersectionTypeConstructor) {
-            for (supertype in constructor.getSupertypes()) {
+            for (supertype in constructor.supertypes) {
                 if (isOptionType(supertype)) return true
             }
         }
@@ -1601,8 +1616,7 @@ fun isNotNullConstructedFromGivenClass(
 }
 
 fun isConstructedFromGivenClass(
-    type: CangJieType,
-    fqName: FqNameUnsafe
+    type: CangJieType, fqName: FqNameUnsafe
 ): Boolean {
     if (isSpecialType(type)) return false
     return if (isTypeConstructorForGivenClass(type.constructor, fqName)) {
@@ -1627,8 +1641,7 @@ fun isTypeConstructorForGivenClass(
 }
 
 private fun CangJieType.containsSelfTypeParameter(
-    baseConstructor: TypeConstructor,
-    visitedTypeParameters: Set<TypeParameterDescriptor>?
+    baseConstructor: TypeConstructor, visitedTypeParameters: Set<TypeParameterDescriptor>?
 ): Boolean {
     if (this.constructor == baseConstructor) return true
 
@@ -1648,27 +1661,98 @@ fun hasTypeParameterRecursiveBounds(
     typeParameter: TypeParameterDescriptor,
     selfConstructor: TypeConstructor? = null,
     visitedTypeParameters: Set<TypeParameterDescriptor>? = null
-): Boolean =
-    typeParameter.upperBounds.any { upperBound ->
-        upperBound.containsSelfTypeParameter(typeParameter.defaultType.constructor, visitedTypeParameters)
-                && (selfConstructor == null || upperBound.constructor == selfConstructor)
-    }
+): Boolean = typeParameter.upperBounds.any { upperBound ->
+    upperBound.containsSelfTypeParameter(
+        typeParameter.defaultType.constructor,
+        visitedTypeParameters
+    ) && (selfConstructor == null || upperBound.constructor == selfConstructor)
+}
 
+@OptIn(ExperimentalContracts::class)
+fun isUnresolvedType(type: CangJieType): Boolean {
+    contract {
+        returns(true) implies (type is ErrorType)
+    }
+    return type is ErrorType && type.kind.isUnresolved
+}
 
 fun CangJieType.isStubType() = this is AbstractStubType || isDefNonOptionStubType<AbstractStubType>()
 private inline fun <reified S : AbstractStubType> CangJieType.isDefNonOptionStubType() =
     this is DefinitelyNonOptionType && this.original is S
+
 fun CangJieType.isStubTypeForBuilderInference(): Boolean =
     this is StubTypeForBuilderInference || isDefNonOptionStubType<StubTypeForBuilderInference>()
 
 fun CangJieType.isStubTypeForVariableInSubtyping(): Boolean =
     this is StubTypeForTypeVariablesInSubtyping || isDefNonOptionStubType<StubTypeForTypeVariablesInSubtyping>()
+
 fun CangJieType.isSignedOrUnsignedNumberType(): Boolean = isPrimitiveNumberType() /*|| isUnsignedNumberType()*/
 
 fun CangJieType.isPrimitiveNumberType(): Boolean = CangJieBuiltIns.isPrimitiveType(this) && !isBoolean()
 fun CangJieType.isBoolean(): Boolean = CangJieBuiltIns.isBoolean(this)
+fun CangJieType.replaceArgumentsWithProjections() = replaceArgumentsByParametersWith(::makeProjection)
 
 inline fun SimpleType.replaceArgumentsByExistingArgumentsWith(replacement: (TypeArgumentMarker) -> TypeArgumentMarker): SimpleType {
     if (arguments.isEmpty()) return this
     return replace(newArguments = arguments.map { replacement(it) as TypeProjection })
 }
+
+inline fun CangJieType.replaceArgumentsByParametersWith(replacement: (TypeParameterDescriptor) -> TypeProjection): CangJieType {
+    val unwrapped = unwrap()
+    return when (unwrapped) {
+        is FlexibleType -> CangJieTypeFactory.flexibleType(
+            unwrapped.lowerBound.replaceArgumentsByParametersWith(replacement),
+            unwrapped.upperBound.replaceArgumentsByParametersWith(replacement)
+        )
+
+        is SimpleType -> unwrapped.replaceArgumentsByParametersWith(replacement)
+    }.inheritEnhancement(unwrapped)
+}
+
+inline fun SimpleType.replaceArgumentsByParametersWith(replacement: (TypeParameterDescriptor) -> TypeProjection): SimpleType {
+    if (constructor.parameters.isEmpty() || constructor.declarationDescriptor == null) return this
+
+    val newArguments = constructor.parameters.map(replacement)
+
+    return replace(newArguments)
+}
+
+fun CangJieType.extractTypeParametersFromUpperBounds(visitedTypeParameters: Set<TypeParameterDescriptor>?): Set<TypeParameterDescriptor> =
+    mutableSetOf<TypeParameterDescriptor>().also {
+        extractTypeParametersFromUpperBounds(
+            this,
+            it,
+            visitedTypeParameters
+        )
+    }
+
+private fun CangJieType.extractTypeParametersFromUpperBounds(
+    baseType: CangJieType,
+    to: MutableSet<TypeParameterDescriptor>,
+    visitedTypeParameters: Set<TypeParameterDescriptor>?
+) {
+    val declarationDescriptor = constructor.declarationDescriptor
+
+    if (declarationDescriptor is TypeParameterDescriptor) {
+        if (constructor != baseType.constructor) {
+            to += declarationDescriptor
+        } else {
+            for (upperBound in declarationDescriptor.upperBounds) {
+                upperBound.extractTypeParametersFromUpperBounds(baseType, to, visitedTypeParameters)
+            }
+        }
+    } else {
+        val typeParameters =
+            (constructor.declarationDescriptor as? ClassifierDescriptorWithTypeParameters)?.declaredTypeParameters
+        for ((i, argument) in arguments.withIndex()) {
+            val typeParameter = typeParameters?.getOrNull(i) // TODO: support inner classes' type parameters
+            val isTypeParameterVisited =
+                typeParameter != null && visitedTypeParameters != null && typeParameter in visitedTypeParameters
+            if (isTypeParameterVisited) continue
+            if (argument.type.constructor.declarationDescriptor in to || argument.type.constructor == baseType.constructor) continue
+            argument.type.extractTypeParametersFromUpperBounds(baseType, to, visitedTypeParameters)
+        }
+    }
+}
+
+fun CangJieType.containsTypeParameter(): Boolean = contains(this) { t -> TypeUtils.isTypeParameter(t) }

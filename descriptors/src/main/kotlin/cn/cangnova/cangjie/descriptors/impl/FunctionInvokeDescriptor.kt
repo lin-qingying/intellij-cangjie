@@ -26,11 +26,12 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
 
-import cn.cangnova.cangjie.builtins.extractParameterNameFromFunctionTypeArgument
 import cn.cangnova.cangjie.descriptors.*
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.OperatorNameConventions
 
 import cn.cangnova.cangjie.types.TypeSubstitutor
-import cn.cangnova.cangjie.utils.OperatorNameConventions
+import cn.cangnova.cangjie.types.extractParameterNameFromFunctionTypeArgument
 
 class FunctionInvokeDescriptor private constructor(
     container: DeclarationDescriptor,

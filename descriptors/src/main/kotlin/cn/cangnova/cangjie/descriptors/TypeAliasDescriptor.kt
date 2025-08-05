@@ -24,7 +24,6 @@
 
 package cn.cangnova.cangjie.descriptors
 
-import cn.cangnova.cangjie.descriptors.impl.TypeAliasConstructorDescriptor
 import cn.cangnova.cangjie.types.SimpleType
 
 

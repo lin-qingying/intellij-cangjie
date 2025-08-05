@@ -38,7 +38,6 @@ abstract class PackageFragmentDescriptorImpl(
     PackageFragmentDescriptor {
     // Not inlined in order to not capture ref on 'module'
     private val debugString: String = "package $fqName of $module"
-    override val declarationProvider: DeclarationProvider = DeclarationProvider.EMPTY
 
     override val containingDeclaration: ModuleDescriptor
         get() = super.containingDeclaration as ModuleDescriptor

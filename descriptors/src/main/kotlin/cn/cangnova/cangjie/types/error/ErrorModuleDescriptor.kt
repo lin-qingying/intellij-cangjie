@@ -27,6 +27,8 @@ package cn.cangnova.cangjie.types.error
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.FqName
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.DefaultBuiltIns
 
 object ErrorModuleDescriptor: ModuleDescriptor {

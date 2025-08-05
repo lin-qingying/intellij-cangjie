@@ -36,8 +36,10 @@ import cn.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import cn.cangnova.cangjie.name.*
 import cn.cangnova.cangjie.name.OperatorNameConventions.asOperatorString
 import cn.cangnova.cangjie.resolve.DescriptorUtils
+import cn.cangnova.cangjie.resolve.annotationClass
 import cn.cangnova.cangjie.resolve.constants.ArrayValue
 import cn.cangnova.cangjie.resolve.constants.ConstantValue
+import cn.cangnova.cangjie.resolve.declaresOrInheritsDefaultValue
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.TypeUtils.CANNOT_INFER_FUNCTION_PARAM_TYPE
 import cn.cangnova.cangjie.types.error.ErrorType
@@ -302,14 +304,14 @@ open class DescriptorRendererImpl(
     private fun StringBuilder.renderDefaultType(type: CangJieType) {
         this.renderAnnotations(type)
 
-        val originalTypeOfDefNotNullType = (type as? DefinitelyNotNullType)?.original
+        val originalTypeOfDefNotNullType = (type as? DefinitelyNonOptionType)?.original
 
         if (type is OptionType) {
             append("?")
         }
 
         when {
-            type is OptionType -> renderSimpleType(type.getType() as SimpleType)
+            type is OptionType -> renderSimpleType(type.innerType as SimpleType)
 //            type.isMarkedOption -> renderSimpleType(type.arguments[0].type as SimpleType)
 
             type.isError -> {
@@ -337,7 +339,7 @@ open class DescriptorRendererImpl(
 
 
 
-        if (type.isDefinitelyNotNullType) {
+        if (type.isDefinitelyNonOptionType) {
             append(" & Any")
         }
     }
@@ -427,7 +429,7 @@ open class DescriptorRendererImpl(
         if (receiverType != null) {
             val surroundReceiver = shouldRenderAsPrettyFunctionType(receiverType) && !receiverType.isOption ||
 //                    receiverType.hasModifiersOrAnnotations() ||
-                    receiverType is DefinitelyNotNullType
+                    receiverType is DefinitelyNonOptionType
             if (surroundReceiver) {
                 append("(")
             }
@@ -792,12 +794,12 @@ open class DescriptorRendererImpl(
                 builder.append("static ")
             }
 
-            if (function is SimpleFunctionDescriptorForExtendImpl) {
-
-                renderTypeParameters(function.typeParametersForExtend, builder, true)
-                renderWhereSuffix(function.typeParametersForExtend, builder)
-
-            }
+//            if (function is SimpleFunctionDescriptorForExtendImpl) {
+//
+//                renderTypeParameters(function.typeParametersForExtend, builder, true)
+//                renderWhereSuffix(function.typeParametersForExtend, builder)
+//
+//            }
             if (function is MacroDescriptor) {
                 builder.append(renderKeyword("macro"))
             } else {
@@ -832,7 +834,7 @@ open class DescriptorRendererImpl(
 
     private fun CangJieType.renderForReceiver(): String {
         var result = renderType(this)
-        if ((shouldRenderAsPrettyFunctionType(this) && !TypeUtils.isOptionType(this)) || this is DefinitelyNotNullType) {
+        if ((shouldRenderAsPrettyFunctionType(this) && !TypeUtils.isOptionType(this)) || this is DefinitelyNonOptionType) {
             result = "($result)"
         }
         return result
@@ -1067,38 +1069,38 @@ open class DescriptorRendererImpl(
     }
 
     private fun StringBuilder.renderEnumEntry(enumEntry: EnumEntryDescriptor) {
-        append(renderKeyword("enum "))
-        append(renderKeyword("entry "))
-
-
-        renderName(enumEntry, this, false)
-
-        if (!enumEntry.hasUnsubstitutedPrimaryConstructor()) {
-
-            append("(")
-
-            append(enumEntry.unsubstitutedPrimaryConstructor.valueParameters.map {
-                it.type
-            }.joinToString(" , ") {
-                val temp = StringBuilder()
-                renderDefaultType(it)
-
-                temp.toString()
-            })
-            append(")")
-
-        }
+//        append(renderKeyword("enum "))
+//        append(renderKeyword("entry "))
+//
+//
+//        renderName(enumEntry, this, false)
+//
+//        if (!enumEntry.hasUnsubstitutedPrimaryConstructor()) {
+//
+//            append("(")
+//
+//            append(enumEntry.unsubstitutedPrimaryConstructor.valueParameters.map {
+//                it.type
+//            }.joinToString(" , ") {
+//                val temp = StringBuilder()
+//                renderDefaultType(it)
+//
+//                temp.toString()
+//            })
+//            append(")")
+//
+//        }
 
 
     }
 
     /* CLASSES */
     private fun renderClass(cclass: ClassDescriptor, builder: StringBuilder) {
-        val isEnumEntry = cclass.kind == ClassKind.ENUM_ENTRY
-        if (isEnumEntry) {
-            builder.renderEnumEntry(cclass as EnumEntryDescriptor)
-            return
-        }
+//        val isEnumEntry = cclass.kind == ClassKind.ENUM_ENTRY
+//        if (isEnumEntry) {
+//            builder.renderEnumEntry(cclass as EnumEntryDescriptor)
+//            return
+//        }
         if (!startFromName) {
 //            renderContextReceivers(cclass.contextReceivers, builder)
             builder.renderAnnotations(cclass)
@@ -1111,8 +1113,6 @@ open class DescriptorRendererImpl(
                 renderModality(cclass.modality, builder, cclass.implicitModalityWithoutExtensions())
             }
             renderMemberModifiers(cclass, builder)
-            renderModifier(builder, DescriptorRendererModifier.VALUE in modifiers && cclass.isValue, "value")
-            renderModifier(builder, DescriptorRendererModifier.FUNC in modifiers && cclass.isFun, "fun")
             renderClassKindPrefix(cclass, builder)
         }
 

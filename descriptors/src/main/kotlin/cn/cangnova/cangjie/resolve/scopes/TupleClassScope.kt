@@ -22,14 +22,15 @@
  *
  */
 
-package cn.cangnova.cangjie.types
+package cn.cangnova.cangjie.resolve.scopes
 
+import cn.cangnova.cangjie.descriptors.FunctionDescriptor
+import cn.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
+import cn.cangnova.cangjie.storage.StorageManager
 
-open class WrappedTypeFactory(private val storageManager: StorageManager) {
-    open fun createDeferredType(trace: BindingTrace, computation: () -> CangJieType): CangJieType =
-        DeferredType.create(storageManager, trace, computation)
-    open fun createRecursionIntolerantDeferredTypeNotCache(trace: BindingTrace, computation: () -> CangJieType): CangJieType =
-        DeferredTypeNoCache.createRecursionIntolerant(storageManager, trace, computation)
-    open fun createRecursionIntolerantDeferredType(trace: BindingTrace, computation: () -> CangJieType): CangJieType =
-        DeferredType.createRecursionIntolerant(storageManager, trace, computation)
+class TupleClassScope(
+    storageManager: StorageManager,
+    containingClass: TupleClassDescriptor
+) : GivenFunctionsMemberScope(storageManager, containingClass) {
+    override fun computeDeclaredFunctions(): List<FunctionDescriptor> = emptyList()
 }

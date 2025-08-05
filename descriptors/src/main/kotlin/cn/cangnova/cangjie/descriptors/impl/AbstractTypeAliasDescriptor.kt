@@ -27,13 +27,13 @@ package cn.cangnova.cangjie.descriptors.impl
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
-import cn.cangnova.cangjie.resolve.descriptorUtil.builtIns
-
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.resolve.builtIns
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
+import cn.cangnova.cangjie.storage.StorageManager
+import cn.cangnova.cangjie.storage.getValue
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import cn.cangnova.cangjie.types.util.TypeUtils
-import cn.cangnova.cangjie.storage.getValue
 
 abstract class AbstractTypeAliasDescriptor(
     protected val storageManager: StorageManager,
@@ -80,24 +80,16 @@ abstract class AbstractTypeAliasDescriptor(
         }
     }
 
-    override fun getDeclaredTypeParameters(): List<TypeParameterDescriptor> =
-        declaredTypeParametersImpl
 
-    override fun getModality() = Modality.FINAL
-    override fun setModality(modality: Modality) {
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
+        get() = declaredTypeParametersImpl
 
-    }
+
+    override val modality: Modality = Modality.FINAL
 
     override val visibility: DescriptorVisibility
         get() = visibilityImpl
-//    override fun isExpect(): Boolean = false
-//
-//    override fun isActual(): Boolean = false
-//
-//    override fun isExternal() = false
 
-    override fun getTypeConstructor(): TypeConstructor =
-        typeConstructor
 
     override fun toString(): String = "typealias ${name.asString()}"
 
@@ -116,24 +108,27 @@ abstract class AbstractTypeAliasDescriptor(
             cangjieTypeRefiner?.refineDescriptor(this)?.defaultType
         }
 
-    private val typeConstructor = object : TypeConstructor {
-        override fun getDeclarationDescriptor(): TypeAliasDescriptor =
-            this@AbstractTypeAliasDescriptor
+    override val typeConstructor = object : TypeConstructor {
 
-        override fun getParameters(): List<TypeParameterDescriptor> =
-            getTypeConstructorTypeParameters()
+        override val declarationDescriptor: TypeAliasDescriptor
+            get() =
+                this@AbstractTypeAliasDescriptor
 
-        override fun getSupertypes(): Collection<CangJieType> =
-            declarationDescriptor.underlyingType.constructor.supertypes
 
-        override fun isFinal(): Boolean =
-            declarationDescriptor.underlyingType.constructor.isFinal
+        override val parameters: List<TypeParameterDescriptor>
+            get() = getTypeConstructorTypeParameters()
 
-        override fun isDenotable(): Boolean =
-            true
+        override val supertypes: Collection<CangJieType>
+            get() = declarationDescriptor.underlyingType.constructor.supertypes
 
-        override fun getBuiltIns(): CangJieBuiltIns =
-            declarationDescriptor.builtIns
+        override val isFinal: Boolean
+            get() = declarationDescriptor.underlyingType.constructor.isFinal
+
+
+        override val isDenotable: Boolean = true
+
+        override val builtIns: CangJieBuiltIns
+            get() = declarationDescriptor.builtIns
 
         override fun toString(): String = "[typealias ${declarationDescriptor.name.asString()}]"
 

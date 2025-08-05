@@ -22,28 +22,22 @@
  *
  */
 
-package cn.cangnova.cangjie.descriptors.impl
+package cn.cangnova.cangjie.resolve.scopes
 
-import cn.cangnova.cangjie.descriptors.PropertyDescriptor
-import cn.cangnova.cangjie.descriptors.SourceElement
-import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.descriptors.FunctionDescriptor
+import cn.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
+import cn.cangnova.cangjie.descriptors.impl.FunctionInvokeDescriptor
+import cn.cangnova.cangjie.storage.StorageManager
+import cn.cangnova.cangjie.types.functions.FunctionTypeKind
 
-class SyntheticFieldDescriptor(
-    val propertyDescriptor: PropertyDescriptor,
-    accessorDescriptor: PropertyAccessorDescriptor,
-    sourceElement: SourceElement
-) : LocalVariableDescriptor(
-    accessorDescriptor, Annotations.EMPTY, NAME,
-    propertyDescriptor.type, propertyDescriptor.isVar,
-    sourceElement
-)  {
-    constructor(
-        accessorDescriptor: PropertyAccessorDescriptor,
-        sourceElement: SourceElement
-    ) : this(accessorDescriptor.correspondingProperty, accessorDescriptor, sourceElement)
 
-    companion object {
-        @JvmField
-        val NAME = Name.identifier("field")
-    }
+class FunctionClassScope(
+    storageManager: StorageManager,
+    containingClass: FunctionClassDescriptor
+) : GivenFunctionsMemberScope(storageManager, containingClass) {
+    override fun computeDeclaredFunctions(): List<FunctionDescriptor> =
+        when ((containingClass as FunctionClassDescriptor).functionTypeKind) {
+            FunctionTypeKind.Function -> listOf(FunctionInvokeDescriptor.create(containingClass))
+            else -> emptyList()
+        }
 }

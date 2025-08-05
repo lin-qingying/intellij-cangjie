@@ -41,7 +41,7 @@ open class ClassDescriptorImpl(
     name: Name,
     override val modality: Modality,
     override val kind: ClassKind,
-    supertypes: MutableCollection<CangJieType?>,
+    supertypes: List<CangJieType>,
     source: SourceElement,
     isExternal: Boolean,
     storageManager: StorageManager
@@ -51,10 +51,10 @@ open class ClassDescriptorImpl(
         ClassTypeConstructorImpl(this, mutableListOf(), supertypes, storageManager)
 
     override lateinit var unsubstitutedMemberScope: MemberScope
-    override lateinit var constructors: MutableSet<ClassConstructorDescriptor>
+    override lateinit var constructors: List<ClassConstructorDescriptor>
     override var unsubstitutedPrimaryConstructor: ClassConstructorDescriptor? = null
 
-    override lateinit var endConstructors: MutableSet<ClassConstructorDescriptor>
+    override lateinit var endConstructors: List<ClassConstructorDescriptor>
 
     init {
         assert(modality != Modality.SEALED) { "Implement getSealedSubclasses() for this class: " + javaClass }
@@ -68,9 +68,9 @@ open class ClassDescriptorImpl(
 
     fun initialize(
         unsubstitutedMemberScope: MemberScope,
-        constructors: MutableSet<ClassConstructorDescriptor>,
+        constructors: List<ClassConstructorDescriptor>,
         primaryConstructor: ClassConstructorDescriptor?,
-        endConstructors: MutableSet<ClassConstructorDescriptor>
+        endConstructors: List<ClassConstructorDescriptor>
     ) {
         this.unsubstitutedMemberScope = unsubstitutedMemberScope
         this.constructors = constructors

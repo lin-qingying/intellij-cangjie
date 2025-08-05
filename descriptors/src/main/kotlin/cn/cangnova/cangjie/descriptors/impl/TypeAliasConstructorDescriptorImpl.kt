@@ -26,39 +26,16 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
+import cn.cangnova.cangjie.name.SpecialNames
 import cn.cangnova.cangjie.resolve.DescriptorFactory
 import cn.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
+import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.storage.getValue
 import cn.cangnova.cangjie.types.*
 
 
-interface DescriptorDerivedFromTypeAlias {
-    val typeAliasDescriptor: TypeAliasDescriptor
-}
 
-interface TypeAliasConstructorDescriptor : ConstructorDescriptor, DescriptorDerivedFromTypeAlias {
-    val underlyingConstructorDescriptor: ClassConstructorDescriptor
-
-
-    override fun getReturnType(): CangJieType
-    override val original: TypeAliasConstructorDescriptor
-
-
-    override val containingDeclaration: TypeAliasDescriptor
-
-
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor
-
-    val withDispatchReceiver: TypeAliasConstructorDescriptor?
-
-    override fun copy(
-        newOwner: DeclarationDescriptor,
-        modality: Modality,
-        visibility: DescriptorVisibility,
-        kind: CallableMemberDescriptor.Kind,
-        copyOverrides: Boolean
-    ): TypeAliasConstructorDescriptor
-}
 
 class TypeAliasConstructorDescriptorImpl private constructor(
     val storageManager: StorageManager,
@@ -70,18 +47,20 @@ class TypeAliasConstructorDescriptorImpl private constructor(
     source: SourceElement
 ) : FunctionDescriptorImpl(typeAliasDescriptor, original, annotations, SpecialNames.INIT, kind, source),
     TypeAliasConstructorDescriptor {
-    override fun isPrimary(): Boolean =
-        underlyingConstructorDescriptor.isPrimary
 
-    override fun isEnd(): Boolean {
-        return underlyingConstructorDescriptor.isEnd
-    }
+    override val isPrimary: Boolean
+        get() =  underlyingConstructorDescriptor.isPrimary
+
+
+    override val isEnd: Boolean
+        get() =  underlyingConstructorDescriptor.isEnd
 
     override var underlyingConstructorDescriptor: ClassConstructorDescriptor = underlyingConstructorDescriptor
         private set
 
-    override fun getReturnType(): CangJieType =
-        super.getReturnType()!!
+
+    override val returnType: CangJieType
+        get() = super.returnType!!
 
     override val original: TypeAliasConstructorDescriptor =
         super.original as TypeAliasConstructorDescriptor
@@ -89,7 +68,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
         typeAliasDescriptor
 
 
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): TypeAliasConstructorDescriptorImpl? {
         //    class C<T>(val x: T)
         //    typealias A<Q> = C<List<Q>>
         //
@@ -103,7 +82,6 @@ class TypeAliasConstructorDescriptorImpl private constructor(
         val underlyingConstructorSubstitutor = TypeSubstitutor.create(substitutedTypeAliasConstructor.returnType)
         val substitutedUnderlyingConstructor =
             underlyingConstructorDescriptor.original.substitute(underlyingConstructorSubstitutor)
-                ?: return null
         substitutedTypeAliasConstructor.underlyingConstructorDescriptor = substitutedUnderlyingConstructor
         return substitutedTypeAliasConstructor
     }
@@ -129,7 +107,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
             typeAliasConstructor.initialize(
                 null,
                 underlyingConstructorDescriptor.dispatchReceiverParameter?.substitute(substitutorForUnderlyingClass),
-                underlyingConstructorDescriptor.contextReceiverParameters.map {
+                underlyingConstructorDescriptor.contextReceiverParameters.mapNotNull {
                     it.substitute(
                         substitutorForUnderlyingClass
                     )
@@ -160,9 +138,8 @@ class TypeAliasConstructorDescriptorImpl private constructor(
 
     override fun hasSynthesizedParameterNames(): Boolean = false
 
-
-    override fun getConstructedClass(): ClassDescriptor =
-        underlyingConstructorDescriptor.constructedClass
+    override val constructedClass: ClassDescriptor
+        get() =  underlyingConstructorDescriptor.constructedClass
 
     override fun createSubstitutedCopy(
         newOwner: DeclarationDescriptor,
@@ -227,7 +204,7 @@ class TypeAliasConstructorDescriptorImpl private constructor(
 
             val classDescriptor = typeAliasDescriptor.classDescriptor
             val contextReceiverParameters = classDescriptor?.let {
-                constructor.contextReceiverParameters.mapIndexed { index, contextReceiver ->
+                constructor.contextReceiverParameters.mapIndexedNotNull { index, contextReceiver ->
                     DescriptorFactory.createContextReceiverParameterForClass(
                         classDescriptor,
                         substitutorForUnderlyingClass.safeSubstitute(contextReceiver.type, Variance.INVARIANT),

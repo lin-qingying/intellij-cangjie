@@ -24,7 +24,7 @@
 
 package cn.cangnova.cangjie.renderer
 import cn.cangnova.cangjie.descriptors.*
-import cn.cangnova.cangjie.descriptors.impl.basic.BasicTypeDescriptor
+import cn.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils.getFqName
 
@@ -69,7 +69,7 @@ interface ClassifierNamePolicy {
         }
 
         private fun qualifierName(descriptor: DeclarationDescriptor): String? = when (descriptor) {
-            is BasicTypeDescriptor -> null
+            is PrimitiveClassDescriptor -> null
 
             is ClassDescriptor -> qualifiedNameForSourceCode(descriptor)
             is PackageFragmentDescriptor -> descriptor.fqName.toUnsafe().render()

@@ -27,8 +27,6 @@ package cn.cangnova.cangjie.types.error
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import cn.cangnova.cangjie.types.util.replaceAnnotations
-import cn.cangnova.cangjie.types.util.supertypes
 
 
 //class MultipleSupertypeTypeInferenceFailure (

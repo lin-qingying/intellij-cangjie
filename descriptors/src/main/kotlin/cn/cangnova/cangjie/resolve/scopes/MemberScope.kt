@@ -30,7 +30,7 @@ import cn.cangnova.cangjie.incremental.components.LookupLocation
 import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.psi.CjFile
 import cn.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
-import cn.cangnova.cangjie.utils.exceptions.Printer
+import cn.cangnova.cangjie.utils.Printer
 import cn.cangnova.cangjie.utils.flatMapToNullable
 import java.lang.reflect.Modifier
 

@@ -29,12 +29,12 @@ import cn.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
 
 interface   PropertyGetterDescriptor : PropertyAccessorDescriptor {
     override val original: PropertyGetterDescriptor
-    override fun getOverriddenDescriptors(): Collection<PropertyGetterDescriptor>
+    override val overriddenDescriptors: Collection<PropertyAccessorDescriptor>
 
 }
 
 interface PropertySetterDescriptor : PropertyAccessorDescriptor {
     override val original: PropertySetterDescriptor
 
-    override fun getOverriddenDescriptors(): Collection<PropertySetterDescriptor>
+    override val overriddenDescriptors: Collection<PropertySetterDescriptor>
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,25 @@
  * any damages or issues arising from its use.
  *
  */
+
 package cn.cangnova.cangjie.descriptors
 
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeSubstitutor
 
-interface ConstructorDescriptor : FunctionDescriptor {
-
-    val isPrimary: Boolean
-    val isEnd: Boolean
+interface TypeAliasConstructorDescriptor : ConstructorDescriptor, DescriptorDerivedFromTypeAlias {
+    val underlyingConstructorDescriptor: ClassConstructorDescriptor
 
     override val returnType: CangJieType
-    val constructedClass: ClassDescriptor
+    override val original: TypeAliasConstructorDescriptor
+
+
+    override val containingDeclaration: TypeAliasDescriptor
+
+
+    override fun substitute(substitutor: TypeSubstitutor): TypeAliasConstructorDescriptor?
+
+    val withDispatchReceiver: TypeAliasConstructorDescriptor?
 
     override fun copy(
         newOwner: DeclarationDescriptor,
@@ -40,16 +47,5 @@ interface ConstructorDescriptor : FunctionDescriptor {
         visibility: DescriptorVisibility,
         kind: CallableMemberDescriptor.Kind,
         copyOverrides: Boolean
-    ): CallableMemberDescriptor
-
-    //    @NotNull
-    //    @Override
-    //    CangJieType getReturnType();
-    override fun substitute(substitutor: TypeSubstitutor): ConstructorDescriptor?
-
-
-    override val original: ConstructorDescriptor
-
-
-    override val containingDeclaration: ClassifierDescriptorWithTypeParameters
+    ): TypeAliasConstructorDescriptor
 }

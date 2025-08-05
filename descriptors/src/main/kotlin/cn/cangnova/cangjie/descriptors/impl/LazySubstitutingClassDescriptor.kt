@@ -26,14 +26,15 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.DescriptorUtils
-import cn.cangnova.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
+import cn.cangnova.cangjie.resolve.getCangJieTypeRefiner
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.resolve.scopes.SubstitutingScope
+import cn.cangnova.cangjie.storage.LockBasedStorageManager
 import cn.cangnova.cangjie.types.*
 import cn.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import cn.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import cn.cangnova.cangjie.types.util.TypeUtils
 
 class LazySubstitutingClassDescriptor(
     override val original: ModuleAwareClassDescriptor, private val originalSubstitutor: TypeSubstitutor
@@ -91,7 +92,7 @@ class LazySubstitutingClassDescriptor(
     }
 
     @OptIn(TypeRefinement::class)
-    override fun getMemberScope(typeArguments: MutableList<out TypeProjection>): MemberScope {
+    override fun getMemberScope(typeArguments: List<  TypeProjection>): MemberScope {
         return getMemberScope(
             typeArguments, DescriptorUtils.getContainingModule(
                 this
@@ -125,13 +126,16 @@ class LazySubstitutingClassDescriptor(
     }
 
     @OptIn(TypeRefinement::class)
-    override fun getUnsubstitutedMemberScope(): MemberScope {
-        return getUnsubstitutedMemberScope(
-            DescriptorUtils.getContainingModule(
-                original
-            ).getCangJieTypeRefiner()
-        )
-    }
+
+
+    override val unsubstitutedMemberScope: MemberScope
+        get() {
+            return getUnsubstitutedMemberScope(
+                DescriptorUtils.getContainingModule(
+                    original
+                ).getCangJieTypeRefiner()
+            )
+        }
 
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
         return visitor.visitClassDescriptor(this, data!!)
@@ -144,61 +148,60 @@ class LazySubstitutingClassDescriptor(
 
     override val source: SourceElement  = SourceElement.NO_SOURCE
 
-
-    override fun getTypeConstructor(): TypeConstructor {
-        val originalTypeConstructor: TypeConstructor = original.typeConstructor
-        if (originalSubstitutor.isEmpty) {
-            return originalTypeConstructor
-        }
-
-        if (myTypeConstructor == null) {
-            val substitutor: TypeSubstitutor = getSubstitutor()
-
-            val originalSupertypes: Collection<CangJieType> =
-                originalTypeConstructor.supertypes
-            val supertypes: MutableCollection<CangJieType> =
-                java.util.ArrayList<CangJieType>(originalSupertypes.size)
-            for (supertype in originalSupertypes) {
-                substitutor.substitute(supertype, Variance.INVARIANT)?.let { supertypes.add(it) }
+    override val typeConstructor: TypeConstructor
+        get() {
+            val originalTypeConstructor: TypeConstructor = original.typeConstructor
+            if (originalSubstitutor.isEmpty) {
+                return originalTypeConstructor
             }
 
-            myTypeConstructor = ClassTypeConstructorImpl(
-                this,
-                typeConstructorParameters,
-                supertypes,
-                LockBasedStorageManager.NO_LOCKS
+            if (myTypeConstructor == null) {
+                val substitutor: TypeSubstitutor = getSubstitutor()
+
+                val originalSupertypes: Collection<CangJieType> =
+                    originalTypeConstructor.supertypes
+                val supertypes: MutableCollection<CangJieType> =
+                    java.util.ArrayList<CangJieType>(originalSupertypes.size)
+                for (supertype in originalSupertypes) {
+                    substitutor.substitute(supertype, Variance.INVARIANT)?.let { supertypes.add(it) }
+                }
+
+                myTypeConstructor = ClassTypeConstructorImpl(
+                    this,
+                    typeConstructorParameters,
+                    supertypes,
+                    LockBasedStorageManager.NO_LOCKS
+                )
+            }
+
+            return myTypeConstructor!!
+        }
+    override val defaultType: SimpleType
+        get() {
+
+            val typeProjections: List<TypeProjection> =
+                TypeUtils.getDefaultTypeProjections(
+                    typeConstructor.parameters
+                )
+            return simpleTypeWithNonTrivialMemberScope(
+                DefaultTypeAttributeTranslator.toAttributes(annotations, null, null),
+                typeConstructor,
+                typeProjections,
+                false,
+                unsubstitutedMemberScope
             )
         }
 
-        return myTypeConstructor!!
-    }
-
-    override fun getDefaultType(): SimpleType {
-        val typeProjections: List<TypeProjection> =
-            TypeUtils.getDefaultTypeProjections(
-                typeConstructor.parameters
-            )
-        return simpleTypeWithNonTrivialMemberScope(
-            DefaultTypeAttributeTranslator.toAttributes(annotations, null, null),
-            typeConstructor,
-            typeProjections,
-            false,
-            unsubstitutedMemberScope
-        )
-    }
 
 
 
     override val visibility: DescriptorVisibility
         get() =original.visibility
 
-    override fun getModality(): Modality {
-        return original.modality
-    }
 
-    override fun setModality(modality: Modality) {
-        original.modality = modality
-    }
+    override val modality: Modality
+        get() =original.modality
+
 
     override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {
         if (substitutor.isEmpty) return this
@@ -212,78 +215,66 @@ class LazySubstitutingClassDescriptor(
 
     }
 
-    override fun getDeclaredTypeParameters(): MutableList<TypeParameterDescriptor> {
-        getSubstitutor()
-        return myDeclaredTypeParameters
-    }
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
+        get() {
 
-    override fun getThisAsReceiverParameter(): ReceiverParameterDescriptor {
-        TODO("Not yet implemented")
-    }
-
-    override fun getContextReceivers(): List<ReceiverParameterDescriptor> {
-        return emptyList()
-    }
-
-    override fun getUnsubstitutedInnerClassesScope(): MemberScope {
-        return original.unsubstitutedInnerClassesScope
-
-    }
-
-    override fun getStaticScope(): MemberScope {
-        return original.staticScope
-
-    }
-
-    override fun getConstructors(): MutableCollection<ClassConstructorDescriptor> {
-        val originalConstructors: Collection<ClassConstructorDescriptor> =
-            original.constructors
-        val result: MutableCollection<ClassConstructorDescriptor> =
-            java.util.ArrayList<ClassConstructorDescriptor>(originalConstructors.size)
-        for (constructor in originalConstructors) {
-            val copy: ClassConstructorDescriptor = constructor.newCopyBuilder()
-                .setOriginal(constructor.original)
-                .setModality(constructor.getModality())
-                .setVisibility(constructor.visibility)
-                .setKind(constructor.kind)
-                .setCopyOverrides(false)
-                .build() as ClassConstructorDescriptor
-            copy.substitute(getSubstitutor())?.let { result.add(it) }
+            getSubstitutor()
+            return myDeclaredTypeParameters
         }
-        return result
-    }
-    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
 
 
-    override fun getKind(): ClassKind {
-        return original.kind
 
-    }
 
-    override fun isFun(): Boolean {
-        return original.isFun
+    override val thisAsReceiverParameter: ReceiverParameterDescriptor
+        get() = TODO("Not yet implemented")
 
-    }
+    override val contextReceivers: List<ReceiverParameterDescriptor>
+        get() =emptyList()
 
-    override fun isValue(): Boolean {
-        return original.isValue
+    override val staticScope: MemberScope
+        get() = original.staticScope
 
-    }
+    override val constructors: Collection<ClassConstructorDescriptor>
+        get() {
 
-    override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? {
-        return original.unsubstitutedPrimaryConstructor
+            val originalConstructors: Collection<ClassConstructorDescriptor> =
+                original.constructors
+            val result: MutableCollection<ClassConstructorDescriptor> =
+                java.util.ArrayList<ClassConstructorDescriptor>(originalConstructors.size)
+            for (constructor in originalConstructors) {
+                val copy: ClassConstructorDescriptor = constructor.newCopyBuilder()
+                    .setOriginal(constructor.original)
+                    .setModality(constructor.modality)
+                    .setVisibility(constructor.visibility)
+                    .setKind(constructor.kind)
+                    .setCopyOverrides(false)
+                    .build() as ClassConstructorDescriptor
+                copy.substitute(getSubstitutor())?.let { result.add(it) }
+            }
+            return result
+        }
 
-    }
 
-    override fun getSealedSubclasses(): MutableCollection<ClassDescriptor> {
-        return original.sealedSubclasses
+    override val endConstructors: Collection<ClassConstructorDescriptor>
+        get() = emptySet()
 
-    }
 
-    override fun getDefaultFunctionTypeForSamInterface(): SimpleType? {
-        return substituteSimpleType(original.defaultFunctionTypeForSamInterface)
 
-    }
+
+    override val kind: ClassKind
+        get() = original.kind
+
+
+    override val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
+        get() = original.unsubstitutedPrimaryConstructor
+
+
+    override val sealedSubclasses: Collection<ClassDescriptor>
+        get() = original.sealedSubclasses
+    override val defaultFunctionTypeForSamInterface: SimpleType?
+        get() = substituteSimpleType(original.defaultFunctionTypeForSamInterface)
+
+
 
     private fun substituteSimpleType(type: SimpleType?): SimpleType? {
         if (type == null || originalSubstitutor.isEmpty) return type
@@ -301,10 +292,8 @@ class LazySubstitutingClassDescriptor(
         return substitutedType as SimpleType
     }
 
-    override fun isDefinitelyNotSamInterface(): Boolean {
-        return original.isDefinitelyNotSamInterface
-
-    }
+    override val isDefinitelyNotSamInterface: Boolean
+        get() =  original.isDefinitelyNotSamInterface
 
     override val containingDeclaration: DeclarationDescriptor
         get() = original.containingDeclaration

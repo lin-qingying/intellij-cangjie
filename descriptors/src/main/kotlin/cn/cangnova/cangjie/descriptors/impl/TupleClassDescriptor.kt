@@ -26,8 +26,10 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.resolve.scopes.TupleClassScope
+import cn.cangnova.cangjie.storage.StorageManager
 import cn.cangnova.cangjie.types.AbstractClassTypeConstructor
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeConstructor
@@ -40,7 +42,7 @@ class TupleClassDescriptor(
 
     val arity: Int
 ) : AbstractClassDescriptor(storageManager, numberedClassName(arity)) {
-    private val typeConstructor = TupleTypeConstructor()
+    private val _typeConstructor = TupleTypeConstructor()
     private val memberScope = TupleClassScope(storageManager, this)
 
     companion object {
@@ -117,45 +119,48 @@ class TupleClassDescriptor(
             return listOf(builtIns.anyType)
         }
 
-        override fun getParameters() = this@TupleClassDescriptor.parameters
+        override val parameters: List<TypeParameterDescriptor>
+            get() = this@TupleClassDescriptor.parameters
 
-        override fun getDeclarationDescriptor() = this@TupleClassDescriptor
-        override fun isDenotable() = true
+        override val declarationDescriptor: ClassDescriptor
+            get() = this@TupleClassDescriptor
 
+        override val isDenotable: Boolean
+            get() = true
         override fun toString() = declarationDescriptor.toString()
 
         override val supertypeLoopChecker: SupertypeLoopChecker
             get() = SupertypeLoopChecker.EMPTY
     }
 
-    override fun getStaticScope() = MemberScope.Empty
-
-    override fun getTypeConstructor(): TypeConstructor = typeConstructor
-
+    override val staticScope: MemberScope
+        get() = MemberScope.Empty
+    override val typeConstructor: TypeConstructor
+        get() = _typeConstructor
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner) = memberScope
 
 
     override val source: SourceElement = SourceElement.NO_SOURCE
 
+    override val constructors: Collection<ClassConstructorDescriptor>
+        get() = emptyList()
 
-    override fun getConstructors() = emptyList<ClassConstructorDescriptor>()
-    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =emptySet()
+    override val endConstructors: Collection<ClassConstructorDescriptor>
+        get() = emptyList()
 
+    override val kind: ClassKind
+        get() =  ClassKind.TUPLE
+    override val modality: Modality
+        get() =  Modality.FINAL
+    override val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
+        get() = null
 
-    override fun getKind() = ClassKind.TUPLE
-    override fun getModality() = Modality.FINAL
-    override fun getUnsubstitutedPrimaryConstructor() = null
-
-
-    override fun getDeclaredTypeParameters() = parameters
-
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
+        get() = parameters
     override fun toString(): String {
         return "Tuple$arity"
     }
 
-    override fun isFun() = false
-    override fun isValue() = false
-    override fun isExpect() = false
 
     override fun getSealedSubclasses() = emptyList<ClassDescriptor>()
 }

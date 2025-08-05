@@ -27,13 +27,13 @@ package cn.cangnova.cangjie.types.checker
 import cn.cangnova.cangjie.descriptors.DeclarationDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import cn.cangnova.cangjie.renderer.DescriptorRenderer
-import cn.cangnova.cangjie.resolve.calls.inference.wrapWithCapturingSubstitution
+import cn.cangnova.cangjie.resolve.call.inference.wrapWithCapturingSubstitution
 import cn.cangnova.cangjie.types.CangJieType
 import cn.cangnova.cangjie.types.TypeConstructor
 import cn.cangnova.cangjie.types.TypeConstructorSubstitution
+import cn.cangnova.cangjie.types.TypeUtils
 import cn.cangnova.cangjie.types.Variance
-import cn.cangnova.cangjie.types.typesApproximation.approximateCapturedTypes
-import cn.cangnova.cangjie.types.util.TypeUtils
+import cn.cangnova.cangjie.types.approximateCapturedTypes
 import java.util.ArrayDeque
 
 interface NewTypeVariableConstructor : TypeConstructor {

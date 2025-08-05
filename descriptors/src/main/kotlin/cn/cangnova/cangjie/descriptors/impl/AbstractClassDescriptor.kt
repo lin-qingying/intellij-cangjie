@@ -132,7 +132,7 @@ abstract class AbstractClassDescriptor(
 
 
     @OptIn(TypeRefinement::class)
-    override fun getMemberScope(typeArguments: Collection<TypeProjection>): MemberScope {
+    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
         return getMemberScope(typeArguments.toList(), DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
 
     }

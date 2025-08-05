@@ -26,6 +26,7 @@ package cn.cangnova.cangjie.descriptors.impl
 
 import cn.cangnova.cangjie.descriptors.*
 import cn.cangnova.cangjie.descriptors.annotations.Annotations
+import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.types.CangJieType
 
 
@@ -43,7 +44,7 @@ class PropertyGetterDescriptorImpl(
     modality, visibility, correspondingProperty, annotations,
     Name.special("<get-${correspondingProperty.name}>"), isDefault, kind, source
 ), PropertyGetterDescriptor {
-    private var returnType: CangJieType? = null
+    override var returnType: CangJieType? = null
 
     override val original: PropertyGetterDescriptor = original ?: this
 
@@ -51,19 +52,13 @@ class PropertyGetterDescriptorImpl(
         this.returnType = returnType ?: correspondingProperty.type
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun getOverriddenDescriptors(): Collection<PropertyGetterDescriptor> {
-        return super.getOverriddenDescriptors(true) as Collection<PropertyGetterDescriptor>
-    }
+    override val overriddenDescriptors: Collection<PropertyAccessorDescriptor>
+        get() =  super.getOverriddenDescriptors(true) as Collection<PropertyGetterDescriptor>
+
+    override val valueParameters: List<ValueParameterDescriptor>
+        get() =emptyList()
 
 
-    override fun getValueParameters(): List<ValueParameterDescriptor> {
-        return emptyList()
-    }
-
-    override fun getReturnType(): CangJieType? {
-        return returnType
-    }
 
 
 

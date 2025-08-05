@@ -43,7 +43,7 @@ interface CallableDescriptor : DeclarationDescriptorWithVisibility, DeclarationD
     override val original: CallableDescriptor
 
 
-    val contextReceiverParameters: Collection<ReceiverParameterDescriptor>
+    val contextReceiverParameters: List<ReceiverParameterDescriptor>
 
     /**
      * Method may return null for not yet fully initialized object or if error occurred.

@@ -29,11 +29,11 @@ import cn.cangnova.cangjie.descriptors.ClassDescriptor
 import cn.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
 import cn.cangnova.cangjie.descriptors.FunctionDescriptor
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import cn.cangnova.cangjie.storage.LockBasedStorageManager
+import cn.cangnova.cangjie.types.TypeUtils.makeProjection
 import cn.cangnova.cangjie.types.checker.intersectTypes
 import cn.cangnova.cangjie.types.error.ErrorModuleDescriptor.builtIns
 import cn.cangnova.cangjie.types.error.ErrorTypeKind
-import cn.cangnova.cangjie.types.util.*
-import cn.cangnova.cangjie.types.util.TypeUtils.makeProjection
 
 open class ErasureProjectionComputer {
     open fun computeProjection(

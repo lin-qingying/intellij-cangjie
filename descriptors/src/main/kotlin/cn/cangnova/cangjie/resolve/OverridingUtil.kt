@@ -751,7 +751,7 @@ class OverridingUtil private constructor(
     fun <T : CallableMemberDescriptor> generateOverridesInFunctionGroup(
         name: Name, // 确保所有描述符有相同名称
         membersFromSupertypes: Collection<T>,
-        membersFromCurrent: MutableCollection<T>,
+        membersFromCurrent: Collection<T>,
         current: ClassDescriptor,
         strategy: OverridingStrategy
     ) {

@@ -257,6 +257,8 @@ class DefinitelyNonOptionType private constructor(
     override fun replaceDelegate(delegate: SimpleType) =
         DefinitelyNonOptionType(delegate, useCorrectedOptionForTypeParameters)
 }
+fun NewCapturedType.withNonOptionProjection() =
+    NewCapturedType(captureStatus, constructor, lowerType, attributes, isOption, isProjectionNotNull = true)
 
 /**
  * 将类型转换为明确非Option类型

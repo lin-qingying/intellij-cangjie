@@ -34,7 +34,7 @@ interface ClassAndEnumConstructorDescriptor
 
 interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor,
      ClassAndEnumConstructorDescriptor {
-    fun getMemberScope(typeArguments: Collection<TypeProjection>): MemberScope
+    fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
 
     val thisAsReceiverParameter: ReceiverParameterDescriptor
 
@@ -98,18 +98,18 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
      * @return direct subclasses of this class if it's a sealed class, empty list otherwise
      */
 
-    fun getSealedSubclasses(): Collection<ClassDescriptor>
+    val sealedSubclasses : Collection<ClassDescriptor>
 
     override val original: ClassifierDescriptor
 
     // Use SingleAbstractMethodUtils.getFunctionTypeForSamInterface() where possible. This is only a fallback
-    fun getDefaultFunctionTypeForSamInterface(): SimpleType?
+    val defaultFunctionTypeForSamInterface : SimpleType?
 
     /**
      * May return false even in case when the class is not SAM interface, but returns true only if it's definitely not a SAM.
      * But it should work much faster than the exact check.
      */
-    fun isDefinitelyNotSamInterface(): Boolean
+    val isDefinitelyNotSamInterface : Boolean
 
     /**
      * 获取所有SuperTypeListEntry 包含扩展

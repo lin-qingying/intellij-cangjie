@@ -42,34 +42,33 @@ class FunctionPlaceholderTypeConstructor(
     private val errorTypeConstructor: TypeConstructor =
         ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.FUNCTION_PLACEHOLDER_TYPE, argumentTypes.toString())
 
-    override fun getParameters(): List<TypeParameterDescriptor> {
-        return errorTypeConstructor.parameters
-    }
-    override fun isFinal(): Boolean {
+    override val parameters: List<TypeParameterDescriptor>
+        get() = errorTypeConstructor.parameters
+
+    override val isFinal : Boolean get()  {
         return errorTypeConstructor.isFinal
     }
 
-    override fun getSupertypes(): Collection<CangJieType> {
-        return errorTypeConstructor.supertypes
-    }
 
 
-    override fun isDenotable(): Boolean {
+    override val supertypes: Collection<CangJieType>
+        get() = errorTypeConstructor.supertypes
+
+    override val isDenotable : Boolean get() {
         return errorTypeConstructor.isDenotable
     }
 
-    override fun getDeclarationDescriptor(): ClassifierDescriptor? {
-        return errorTypeConstructor.declarationDescriptor
-    }
+    override val declarationDescriptor: ClassifierDescriptor?
+        get() = errorTypeConstructor.declarationDescriptor
 
     override fun toString(): String {
         return errorTypeConstructor.toString()
     }
 
-    override fun getBuiltIns(): CangJieBuiltIns {
-        return cangjieBuiltIns
-    }
 
+
+    override val builtIns: CangJieBuiltIns
+        get() = cangjieBuiltIns
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 }

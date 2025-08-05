@@ -24,38 +24,39 @@
 
 package cn.cangnova.cangjie.types
 
-import com.google.common.collect.LinkedHashMultimap
-import com.google.common.collect.Multimap
 import cn.cangnova.cangjie.builtins.CangJieBuiltIns
 import cn.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import com.google.common.collect.LinkedHashMultimap
+import com.google.common.collect.Multimap
 
 object SubstitutionUtils {
     // we use the mutability of the substitution map here
     private fun fillInDeepSubstitutor(
-        context:  CangJieType,
-        substitutor:  TypeSubstitutor,
-        substitution: MutableMap< TypeConstructor,  TypeProjection>,
-        typeParameterMapping: Multimap< TypeParameterDescriptor,  TypeProjection>?
+        context: CangJieType,
+        substitutor: TypeSubstitutor,
+        substitution: MutableMap<TypeConstructor, TypeProjection>,
+        typeParameterMapping: Multimap<TypeParameterDescriptor, TypeProjection>?
     ) {
-        val parameters: List< TypeParameterDescriptor> =
+        val parameters: List<TypeParameterDescriptor> =
             context.constructor.parameters
-        val arguments: List< TypeProjection> = context.arguments
+        val arguments: List<TypeProjection> = context.arguments
 
         check(parameters.size == arguments.size)
 
         for (i in arguments.indices) {
-            val argument:  TypeProjection = arguments[i]
-            val parameter:  TypeParameterDescriptor = parameters[i]
+            val argument: TypeProjection = arguments[i]
+            val parameter: TypeParameterDescriptor = parameters[i]
 
-            val substitute:  TypeProjection = checkNotNull(substitutor.substitute(argument))
-            substitution[parameter.getTypeConstructor()] = substitute
+            val substitute: TypeProjection = checkNotNull(substitutor.substitute(argument))
+            substitution[parameter.typeConstructor] = substitute
             typeParameterMapping?.put(parameter, substitute)
         }
-        if (CangJieBuiltIns.isNothing (context)) return
+        if (CangJieBuiltIns.isNothing(context)) return
         for (supertype in context.constructor.supertypes) {
             fillInDeepSubstitutor(supertype, substitutor, substitution, typeParameterMapping)
         }
     }
+
     /**
      * For each supertype of a given type, we map type parameters to type arguments.
      *

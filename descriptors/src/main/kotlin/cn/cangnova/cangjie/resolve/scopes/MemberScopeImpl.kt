@@ -31,7 +31,7 @@ import cn.cangnova.cangjie.name.Name
 import cn.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import cn.cangnova.cangjie.resolve.scopes.MemberScope
 import cn.cangnova.cangjie.utils.alwaysTrue
-import cn.cangnova.cangjie.utils.exceptions.Printer
+import cn.cangnova.cangjie.utils.Printer
 import cn.cangnova.cangjie.utils.filterIsInstanceMapTo
 
 

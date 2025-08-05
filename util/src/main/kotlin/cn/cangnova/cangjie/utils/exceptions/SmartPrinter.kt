@@ -24,6 +24,8 @@
 
 package cn.cangnova.cangjie.utils.exceptions
 
+import cn.cangnova.cangjie.utils.Printer
+
 class SmartPrinter(appendable: Appendable, indent: String = DEFAULT_INDENT) {
     companion object {
         private const val DEFAULT_INDENT = "    "
