@@ -33,6 +33,7 @@ import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
 import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
+import org.cangnova.cangjie.metadata.deserialization.TypeTable
 import org.cangnova.cangjie.metadata.model.Package
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedContainerSource
@@ -109,11 +110,12 @@ class DeserializationComponents(
     fun createContext(
         descriptor: PackageFragmentDescriptor,
 
+        `package`: Package,
         metadataVersion: BinaryVersion,
         containerSource: DeserializedContainerSource?
     ): DeserializationContext =
         DeserializationContext(
-            this, descriptor, metadataVersion, containerSource,
+            this, descriptor,  `package`, metadataVersion, containerSource,
 //            parentTypeDeserializer = null/*, typeParameters = listOf()*/
         )
 }
@@ -141,6 +143,7 @@ class DeserializationContext(
 
     val containingDeclaration: DeclarationDescriptor,
 
+    val `package`: Package,
 
     val metadataVersion: BinaryVersion,
     val containerSource: DeserializedContainerSource?,
@@ -154,6 +157,7 @@ class DeserializationContext(
 //    )
 
     val declarationDeserializer: DeclarationDeserializer = DeclarationDeserializer(this)
+    val typeTable: TypeTable = TypeTable(`package`.types)
 
     //
     val storageManager: StorageManager get() = components.storageManager
@@ -163,10 +167,12 @@ class DeserializationContext(
         descriptor: DeclarationDescriptor,
 //        typeParameterParams: List<TypeParameter>,
 
+        `package`: Package = this.`package`,
         metadataVersion: BinaryVersion = this.metadataVersion
     ): DeserializationContext = DeserializationContext(
         components, descriptor,
 
+        `package`,
         metadataVersion, this.containerSource,
 //        parentTypeDeserializer = this.typeDeserializer,
     )

@@ -48,7 +48,7 @@ open class DeserializedPackageMemberScope(
     classNames: () -> Collection<Name>,
 ) : DeserializedMemberScope(
     components.createContext(
-        packageDescriptor,
+        packageDescriptor, `package`,
         metadataVersion, containerSource
     ),
     `package`.decls
