@@ -1,0 +1,34 @@
+<idea-plugin package="org.cangnova.cangjie.lsp4ij">
+
+
+    <actions>
+        <action class="org.cangnova.cangjie.lsp4ij.CangJieDebugLSPCommandAction" id ="cangjie.test.debug"/>
+
+        <action class="org.cangnova.cangjie.lsp4ij.CangJieRunLSPCommandAction" id ="cangjie.test.run"/>
+    </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- LSP textDocument/documentSymbol -->
+        <lang.psiStructureViewFactory
+                language="CangJie"
+                implementationClass="com.redhat.devtools.lsp4ij.features.documentSymbol.LSPDocumentSymbolStructureViewFactory"/>
+        <!-- LSP textDocument/signatureHelp -->
+        <codeInsight.parameterInfo
+                language="CangJie"
+                implementationClass="com.redhat.devtools.lsp4ij.features.signatureHelp.LSPParameterInfoHandler"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+
+        <semanticTokensColorsProvider
+                serverId="CangJie"
+                class="org.cangnova.cangjie.lsp4ij.CangJieSemanticTokensColorsProvider" />
+        <server
+                name="CangJie Language Server" factoryClass="org.cangnova.cangjie.lsp4ij.CangJieLanguageServerFactory"
+                id="CangJie">
+            <description><![CDATA[
+        CangJie Language Protocol Server  ]]>
+            </description>
+        </server>
+        <languageMapping language="CangJie" serverId="CangJie" languageId="Cangjie"/>
+    </extensions>
+</idea-plugin>

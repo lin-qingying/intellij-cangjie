@@ -1,0 +1,13 @@
+<ide-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <projectService
+                serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInDecompilationInterceptor"
+                serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeCangJieBuiltInDecompilationInterceptor"
+        />
+        <applicationService serviceInterface="org.cangnova.cangjie.analysis.decompiler.psi.BuiltinsVirtualFileProvider"
+                        serviceImplementation="org.cangnova.cangjie.analysis.decompiler.psi.IdeBuiltInsVirtualFileProviderImpl"/>
+
+    </extensions>
+
+
+</ide-plugin>
