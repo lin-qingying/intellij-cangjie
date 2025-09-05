@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
-import cn.cangnova.cangjie.ide.run.CjCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.createFilters
-import cn.cangnova.cangjie.ide.run.hasRemoteTarget
+import org.cangnova.cangjie.ide.run.CjCommandConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.createFilters
+import org.cangnova.cangjie.ide.run.hasRemoteTarget
 
 import com.intellij.execution.filters.TextConsoleBuilderImpl
 import com.intellij.execution.impl.ConsoleViewImpl

@@ -1,7 +1,7 @@
-package cn.cangnova.cangjie.buildsystem
+package org.cangnova.cangjie.buildsystem
 
 
-import cn.cangnova.cangjie.messages.AbstractCangJieBundle
+import org.cangnova.cangjie.messages.AbstractCangJieBundle
 import com.intellij.AbstractBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls

@@ -3,7 +3,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- 1. 文件类型图标提供器 -->
         <!-- CJPM项目文件图标提供器 -->
-        <fileIconProvider implementation="cn.cangnova.cangjie.cjpm.icon.CjpmIconProvider"/>
+        <fileIconProvider implementation="org.cangnova.cangjie.cjpm.icon.CjpmIconProvider"/>
 
         <!-- 2. 文件类型定义 -->
         <!-- 仓颉语言文件类型 -->
@@ -11,28 +11,41 @@
         <fileType name="CangJie"
 
                   language="CangJie"
-                  implementationClass="cn.cangnova.cangjie.lang.CangJieFileType"
+                  implementationClass="org.cangnova.cangjie.lang.CangJieFileType"
                   extensions="cj"
                   fieldName="INSTANCE"/>
 
         <fileType name="cj.macrocall"
                   language="CangJie"
-                  implementationClass="cn.cangnova.cangjie.macro.file.CangJieMacroCallFileType"
+                  implementationClass="org.cangnova.cangjie.macro.file.CangJieMacroCallFileType"
                   extensions="cj.macrocall"
 
                   patterns="*.cj.macrocall"
         />
-        <fileType name="cjd" fieldName="INSTANCE" extensions="cjd"
-                  language="CangJie"
-                  implementationClass="cn.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType"/>
+<!--        <fileType name="cjd" fieldName="INSTANCE" extensions="cjd"-->
+<!--                  language="CangJie"-->
+<!--                  implementationClass="org.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType"/>-->
 
-        <!--<fileTypeFactory implementation="cn.cangnova.cangjie.macro.file.MacroCallFileTypeFactory"/>-->
+
+        <filetype.decompiler filetype="cjo" implementationClass="org.cangnova.cangjie.psi.compiled.ClassFileDecompiler"/>
+        <fileType name="cjo" fieldName="INSTANCE" extensions="cjo"
+                  implementationClass="org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType"/>
+
+
+        <fileType.fileViewProviderFactory filetype="cjo" implementationClass="org.cangnova.cangjie.psi.ClassFileViewProviderFactory"/>
+
+
+<!--        <fileTypeFactory implementation="org.cangnova.cangjie.macro.file.MacroCallFileTypeFactory"/>-->
     </extensions>
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
 
+        <classFileDecompiler implementation="org.cangnova.cangjie.analysis.decompiler.psi.CangJieBuiltInDecompiler"/>
+
+    </extensions>
     <extensionPoints>
         <extensionPoint
-                qualifiedName="cn.cangnova.cangjie.binaryExtension"
-                interface="cn.cangnova.cangjie.ide.project.structure.CangJieBinaryExtension"
+                qualifiedName="org.cangnova.cangjie.binaryExtension"
+                interface="org.cangnova.cangjie.ide.project.structure.CangJieBinaryExtension"
                 dynamic="true"/>
     </extensionPoints>
 

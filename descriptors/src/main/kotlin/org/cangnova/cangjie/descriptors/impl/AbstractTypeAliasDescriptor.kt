@@ -38,10 +38,11 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 abstract class AbstractTypeAliasDescriptor(
     protected val storageManager: StorageManager,
     containingDeclaration: DeclarationDescriptor,
-    annotations: Annotations = Annotations.EMPTY,
+
     name: Name,
     sourceElement: SourceElement,
-    private val visibilityImpl: DescriptorVisibility
+    private val visibilityImpl: DescriptorVisibility,
+    annotations: Annotations = Annotations.EMPTY,
 ) : DeclarationDescriptorNonRootImpl(containingDeclaration, annotations, name, sourceElement),
     TypeAliasDescriptor {
     override val constructors: Collection<TypeAliasConstructorDescriptor> by storageManager.createLazyValue {

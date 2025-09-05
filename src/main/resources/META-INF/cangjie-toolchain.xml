@@ -7,24 +7,24 @@
                  description="Allow to reuse locally installed with the SDK Downloader SDK instead of download it again"/>
     <registryKey key="sdk.downloader.reuse.downloading" defaultValue="true"
                  description="Allow to reuse currently downloading with the SDK Downloader SDK instead of downloading it again"/>
-    <registryKey key="cn.cangnova.cangjie.cjpm.test.nocapture" defaultValue="false" restartRequired="false"
+    <registryKey key="org.cangnova.cangjie.cjpm.test.nocapture" defaultValue="false" restartRequired="false"
                  description="Add `--nocapture` flag to the test command line and show test results in
                      Run Tool Window instead of raw console"/>
 
 </extensions>
-    <extensions defaultExtensionNs="cn.cangnova.cangjie">
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
         <!-- Toolchains -->
         <toolchainFlavor id="cangjie.cangjieHomeToolchainFlavor"
-                         implementation="cn.cangnova.cangjie.toolchain.flavors.CangJieHomeToolchainFlavor"
+                         implementation="org.cangnova.cangjie.toolchain.flavors.CangJieHomeToolchainFlavor"
                          order="first"/>
         <toolchainFlavor id="cangjie.winToolchainFlavor"
-                         implementation="cn.cangnova.cangjie.toolchain.flavors.CjWinToolchainFlavor"/>
+                         implementation="org.cangnova.cangjie.toolchain.flavors.CjWinToolchainFlavor"/>
         <toolchainFlavor id="cangjie.linuxToolchainFlavor"
-                         implementation="cn.cangnova.cangjie.toolchain.flavors.CjLinuxToolchainFlavor"
+                         implementation="org.cangnova.cangjie.toolchain.flavors.CjLinuxToolchainFlavor"
                          order="first"/>
         <toolchainFlavor id="cangjie.wslToolchainFlavor"
-                         implementation="cn.cangnova.cangjie.toolchain.wsl.CjWslToolchainFlavor"/>
-        <toolchainProvider implementation="cn.cangnova.cangjie.toolchain.CjLocalToolchainProvider"/>
-        <sdkDownload implementation="cn.cangnova.cangjie.ide.project.structure.download.SdkDownloader"/>
+                         implementation="org.cangnova.cangjie.toolchain.wsl.CjWslToolchainFlavor"/>
+        <toolchainProvider implementation="org.cangnova.cangjie.toolchain.CjLocalToolchainProvider"/>
+        <sdkDownload implementation="org.cangnova.cangjie.ide.project.structure.download.SdkDownloader"/>
     </extensions>
 </idea-plugin>

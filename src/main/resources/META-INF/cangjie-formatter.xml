@@ -1,31 +1,31 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
         <lang.formatter language="CangJie"
-                        implementationClass="cn.cangnova.cangjie.ide.formatter.CangJieFormattingModelBuilder"/>
+                        implementationClass="org.cangnova.cangjie.ide.formatter.CangJieFormattingModelBuilder"/>
         <!--        <formattingService id="LspFormattingService"-->
-        <!--                           implementation="cn.cangnova.cangjie.ide.formatter.CangJieFormattingService"/>-->
+        <!--                           implementation="org.cangnova.cangjie.ide.formatter.CangJieFormattingService"/>-->
 
         <!--自动缩进-->
-        <lineIndentProvider implementation="cn.cangnova.cangjie.ide.formatter.CangJieLineIndentProvider"/>
+        <lineIndentProvider implementation="org.cangnova.cangjie.ide.formatter.CangJieLineIndentProvider"/>
 
 
         <!--        格式化预处理-->
-        <!--        <preFormatProcessor implementation="cn.cangnova.cangjie.ide.formatter.CangJiePreFormatProcessor"/>-->
+        <!--        <preFormatProcessor implementation="org.cangnova.cangjie.ide.formatter.CangJiePreFormatProcessor"/>-->
 
         <!--后格式化处理器 尾随逗号-->
-        <!--        <postFormatProcessor implementation="cn.cangnova.cangjie.ide.formatter.TrailingCommaPostFormatProcessor"/>-->
+        <!--        <postFormatProcessor implementation="org.cangnova.cangjie.ide.formatter.TrailingCommaPostFormatProcessor"/>-->
 
         <!--代码样式设置-->
         <langCodeStyleSettingsProvider
-                implementation="cn.cangnova.cangjie.ide.formatter.CangJieLanguageCodeStyleSettingsProvider"/>
+                implementation="org.cangnova.cangjie.ide.formatter.CangJieLanguageCodeStyleSettingsProvider"/>
 
         <!--代码生成-->
         <codeStyleSettingsProvider
-                implementation="cn.cangnova.cangjie.ide.formatter.CangJieGenerationSettingsProvider"/>
+                implementation="org.cangnova.cangjie.ide.formatter.CangJieGenerationSettingsProvider"/>
 
 
         <!--符合标准风格的代码样式设置-->
-        <predefinedCodeStyle implementation="cn.cangnova.cangjie.ide.formatter.CangJieStyleGuideCodeStyle"/>
+        <predefinedCodeStyle implementation="org.cangnova.cangjie.ide.formatter.CangJieStyleGuideCodeStyle"/>
 
 
         <registryKey

@@ -55,10 +55,10 @@
 
     <content>
 
-        <module name="cn.cangnova.cangjie.dapDebugger"/>
+        <module name="org.cangnova.cangjie.dapDebugger"/>
 
-        <module name="cn.cangnova.cangjie.lsp4ij"/>
-<!--        <module name="cn.cangnova.cangjie.lsp4intellij"/>-->
+        <module name="org.cangnova.cangjie.lsp4ij"/>
+<!--        <module name="org.cangnova.cangjie.lsp4intellij"/>-->
 
 
 

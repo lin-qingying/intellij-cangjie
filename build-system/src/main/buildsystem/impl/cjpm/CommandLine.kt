@@ -22,15 +22,15 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
 
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
-import cn.cangnova.cangjie.ide.notifications.CjNotifications
-import cn.cangnova.cangjie.ide.run.CjCommandConfiguration.Companion.emulateTerminalDefault
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
+import org.cangnova.cangjie.ide.notifications.CjNotifications
+import org.cangnova.cangjie.ide.run.CjCommandConfiguration.Companion.emulateTerminalDefault
 import com.intellij.execution.*
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.GeneralCommandLine

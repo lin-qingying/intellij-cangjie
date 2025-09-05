@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
-import cn.cangnova.cangjie.ide.run.cjpm.util.executeActionCjpmCommand
+import org.cangnova.cangjie.ide.run.cjpm.util.executeActionCjpmCommand
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 

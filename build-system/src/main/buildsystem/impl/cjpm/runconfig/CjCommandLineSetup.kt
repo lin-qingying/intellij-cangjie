@@ -22,10 +22,10 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
 
 
-import cn.cangnova.cangjie.utils.isDispatchThread
+import org.cangnova.cangjie.utils.isDispatchThread
 import com.intellij.execution.target.*
 import com.intellij.execution.target.local.LocalTargetEnvironment
 import com.intellij.execution.target.value.DeferredTargetValue

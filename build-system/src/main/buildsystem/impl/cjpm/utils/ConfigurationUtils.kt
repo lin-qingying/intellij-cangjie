@@ -22,12 +22,12 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.utils
+package org.cangnova.cangjie.buildsystem.impl.cjpm.utils
 
-import cn.cangnova.cangjie.ide.run.CjCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmRunConfigurationProducer
-import cn.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.ide.run.CjCommandConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType
+import org.cangnova.cangjie.ide.run.cjpm.CjpmRunConfigurationProducer
+import org.cangnova.cangjie.psi.CjFile
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.RunManager
 import com.intellij.execution.RunnerAndConfigurationSettings

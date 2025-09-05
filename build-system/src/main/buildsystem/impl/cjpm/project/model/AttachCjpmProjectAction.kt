@@ -22,13 +22,13 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model
 
-import cn.cangnova.cangjie.buildsystem.impl.cjpm.CjpmConstants
-import cn.cangnova.cangjie.buildsystem.impl.cjpm.project.toolwindow.CjpmToolWindow
-import cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool.saveAllDocuments
-import cn.cangnova.cangjie.utils.isUnitTestMode
-import cn.cangnova.cangjie.utils.pathAsPath
+import org.cangnova.cangjie.buildsystem.impl.cjpm.CjpmConstants
+import org.cangnova.cangjie.buildsystem.impl.cjpm.project.toolwindow.CjpmToolWindow
+import org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool.saveAllDocuments
+import org.cangnova.cangjie.utils.isUnitTestMode
+import org.cangnova.cangjie.utils.pathAsPath
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -50,7 +50,7 @@ abstract class CjpmProjectActionBase : DumbAwareAction() {
 val VirtualFile.isCjpmToml: Boolean get() = name == CjpmConstants.MANIFEST_FILE
 
 /**
- * 将CJPM项目添加到[cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService]
+ * 将CJPM项目添加到[org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService]
  *
  * 可以从Project View、[CjpmToolWindow]和[CjEditorNotificationPanel]调用
  */

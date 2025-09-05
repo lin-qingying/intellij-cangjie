@@ -22,10 +22,10 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
 
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.ConfigurationExtensionContext
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.ConfigurationExtensionContext
 import com.intellij.execution.configuration.RunConfigurationExtensionsManager
 import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.GeneralCommandLine

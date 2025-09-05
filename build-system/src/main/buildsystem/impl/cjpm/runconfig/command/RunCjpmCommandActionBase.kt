@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.command
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.command
 
-import cn.cangnova.cangjie.cjpm.project.toolwindow.hasCjpmProject
+import org.cangnova.cangjie.cjpm.project.toolwindow.hasCjpmProject
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction

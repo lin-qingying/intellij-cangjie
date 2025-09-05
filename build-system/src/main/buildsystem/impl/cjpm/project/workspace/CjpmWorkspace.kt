@@ -22,22 +22,22 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
 
 
 import com.fasterxml.jackson.core.JacksonException
-import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.model.CjcInfo
-import cn.cangnova.cangjie.cjpm.project.model.Require
-import cn.cangnova.cangjie.cjpm.project.model.impl.CachedVirtualFile
+import org.cangnova.cangjie.cjpm.CjpmConstants
+import org.cangnova.cangjie.cjpm.project.model.CjcInfo
+import org.cangnova.cangjie.cjpm.project.model.Require
+import org.cangnova.cangjie.cjpm.project.model.impl.CachedVirtualFile
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
-import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
-import cn.cangnova.cangjie.utils.pathAsPath
+import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
+import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
+import org.cangnova.cangjie.utils.pathAsPath
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.exists

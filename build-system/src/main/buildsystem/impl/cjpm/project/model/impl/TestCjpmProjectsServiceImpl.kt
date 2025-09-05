@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
 
 import com.intellij.openapi.project.Project
 

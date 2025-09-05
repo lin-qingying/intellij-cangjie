@@ -5,7 +5,7 @@
 // See https://cangjie-lang.cn/pages/LICENSE for license information.
 
 // This is actually a package format
-namespace cn.cangnova.cangjie.metadata.PackageFormat;
+namespace org.cangnova.cangjie.metadata.PackageFormat;
 
 // Module
 file_identifier "CJOF";
@@ -96,18 +96,18 @@ union ConstValue {
   StringValue:string,
   CompositeValue:CompositeValueIndex,
 }
-struct Int8Value { val:int8; }
-struct UInt8Value { val:uint8; }
-struct Int16Value { val:int16; } // alse represents Float16
-struct UInt16Value { val:uint16; }
-struct Int32Value { val:int32; }
-struct UInt32Value { val:uint32; }
-struct Int64Value { val:int64; }
-struct UInt64Value { val:uint64; }
-struct Float32Value { val:float32; }
-struct Float64Value { val:float64; }
+table Int8Value { val:int8; }
+table UInt8Value { val:uint8; }
+table Int16Value { val:int16; } // alse represents Float16
+table UInt16Value { val:uint16; }
+table Int32Value { val:int32; }
+table UInt32Value { val:uint32; }
+table Int64Value { val:int64; }
+table UInt64Value { val:uint64; }
+table Float32Value { val:float32; }
+table Float64Value { val:float64; }
 table ArrayValue { val:[ConstValue]; }
-struct CompositeValueIndex { idx:uint32; }
+table CompositeValueIndex { idx:uint32; }
 table MemberValue {
   field:string;
   type:uint32;

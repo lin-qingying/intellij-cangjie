@@ -3,14 +3,14 @@
     <actions>
         <!-- 运行主程序的动作 
              扩展类型: AnAction -->
-        <action id="CjpmRunMain" class="cn.cangnova.cangjie.ide.run.cjpm.RunMainAction"/>
+        <action id="CjpmRunMain" class="org.cangnova.cangjie.ide.run.cjpm.RunMainAction"/>
 
         <!-- 创建新的仓颉文件的动作
              扩展类型: AnAction
              添加到 IDE 的 New 菜单组中 -->
-        <action id="CangJie.NewFile" class="cn.cangnova.cangjie.ide.actions.NewCangJieFileAction"
+        <action id="CangJie.NewFile" class="org.cangnova.cangjie.ide.actions.NewCangJieFileAction"
                 text="Cangjie File"
-                icon="cn.cangnova.cangjie.icon.CangJieIcons.CANGJIE">
+                icon="org.cangnova.cangjie.icon.CangJieIcons.CANGJIE">
             <add-to-group group-id="NewGroup"   anchor="before" relative-to-action="NewFile" />
         </action>
 
@@ -19,26 +19,26 @@
         <!-- 附加 CJPM 项目的动作
              扩展类型: AnAction -->
         <action id="Cjpm.AttachCjpmProject"
-                class="cn.cangnova.cangjie.cjpm.project.model.AttachCjpmProjectAction"
+                class="org.cangnova.cangjie.cjpm.project.model.AttachCjpmProjectAction"
                 icon="AllIcons.General.Add"/>
 
         <!-- 刷新 CJPM 项目结构的动作
              扩展类型: AnAction -->
         <action id="Cjpm.RefreshCjpmProject"
-                class="cn.cangnova.cangjie.ide.actions.RefreshCjpmProjectsAction"
+                class="org.cangnova.cangjie.ide.actions.RefreshCjpmProjectsAction"
                 icon="AllIcons.Actions.Refresh"/>
 
         <!-- 显示 CJPM 设置的动作
              扩展类型: AnAction -->
         <action id="Cjpm.ShowSettings"
-                class="cn.cangnova.cangjie.ide.actions.CjpmEditSettingsAction"
+                class="org.cangnova.cangjie.ide.actions.CjpmEditSettingsAction"
                 icon="AllIcons.General.Settings">
         </action>
 
         <!-- 运行 CJPM 命令的动作
              扩展类型: AnAction -->
         <action id="Cjpm.RunCjpmCommand"
-                class="cn.cangnova.cangjie.cjpm.runconfig.command.RunCjpmCommandAction"
+                class="org.cangnova.cangjie.cjpm.runconfig.command.RunCjpmCommandAction"
         />
 
         <!-- CJPM 动作组，将相关动作组织在一起

@@ -22,10 +22,10 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model
 
-import cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl.UserDisabledFeatures
-import cn.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace.CjpmWorkspace
+import org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl.UserDisabledFeatures
+import org.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace.CjpmWorkspace
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.UserDataHolderEx

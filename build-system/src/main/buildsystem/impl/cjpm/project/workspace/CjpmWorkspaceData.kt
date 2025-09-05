@@ -1,4 +1,4 @@
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
 import java.nio.file.Path
 
 

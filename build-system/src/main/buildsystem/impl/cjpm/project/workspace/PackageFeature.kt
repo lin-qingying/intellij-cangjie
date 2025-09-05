@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
 
-import cn.cangnova.cangjie.utils.PresentableNodeData
+import org.cangnova.cangjie.utils.PresentableNodeData
 
 data class PackageFeature(val pkg: CjpmWorkspace.Package, val name: FeatureName) : PresentableNodeData {
     override val text: String

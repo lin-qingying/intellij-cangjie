@@ -35,7 +35,7 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.utils.SmartSet
 
-class PropertyDescriptorImpl(
+open class PropertyDescriptorImpl(
     containingDeclaration: DeclarationDescriptor,
     original: PropertyDescriptor?,
     annotations: Annotations,

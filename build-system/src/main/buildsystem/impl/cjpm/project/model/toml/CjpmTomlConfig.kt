@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.toml
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.toml
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser

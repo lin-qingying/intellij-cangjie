@@ -22,16 +22,16 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
-import cn.cangnova.cangjie.cjpm.CjpmCommands
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
-import cn.cangnova.cangjie.ide.project.settings.ui.fullWidthCell
-import cn.cangnova.cangjie.messages.CangJieUiBundle
-import cn.cangnova.cangjie.ide.run.CjCommandConfiguration
+import org.cangnova.cangjie.cjpm.CjpmCommands
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
+import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
+import org.cangnova.cangjie.ide.project.settings.ui.fullWidthCell
+import org.cangnova.cangjie.messages.CangJieUiBundle
+import org.cangnova.cangjie.ide.run.CjCommandConfiguration
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType

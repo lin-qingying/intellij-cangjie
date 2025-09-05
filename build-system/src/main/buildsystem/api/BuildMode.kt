@@ -22,5 +22,5 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.api
+package org.cangnova.cangjie.buildsystem.api
 

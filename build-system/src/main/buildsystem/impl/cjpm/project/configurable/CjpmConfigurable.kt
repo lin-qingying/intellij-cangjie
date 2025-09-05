@@ -22,10 +22,10 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.configurable
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.configurable
 
-import cn.cangnova.cangjie.configurable.CjConfigurableBase
-import cn.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.configurable.CjConfigurableBase
+import org.cangnova.cangjie.messages.CangJieBundle
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.dsl.builder.panel

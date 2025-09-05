@@ -510,6 +510,7 @@ project(":") {
 
         implementation(project(":common"))
 
+        implementation(project(":analysis"))
 //        implementation(project(":toolchain"))
 
     }

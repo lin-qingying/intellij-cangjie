@@ -22,14 +22,14 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
 
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
-import cn.cangnova.cangjie.ide.run.cjpm.CjExecutableRunner.Companion.artifacts
-import cn.cangnova.cangjie.ide.run.cjpm.CompilerArtifactMessage
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.showBuildNotification
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
+import org.cangnova.cangjie.ide.run.cjpm.CjExecutableRunner.Companion.artifacts
+import org.cangnova.cangjie.ide.run.cjpm.CompilerArtifactMessage
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.showBuildNotification
 import com.intellij.execution.ExecutionListener
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.process.ProcessHandler

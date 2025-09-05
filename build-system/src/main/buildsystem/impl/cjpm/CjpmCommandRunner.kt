@@ -22,16 +22,16 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
 
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.startProcess
-import cn.cangnova.cangjie.ide.run.hasRemoteTarget
-import cn.cangnova.cangjie.toolchain.impl.PathConverter
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.CjRunConfigurationExtensionManager
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.getBuildConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.startProcess
+import org.cangnova.cangjie.ide.run.hasRemoteTarget
+import org.cangnova.cangjie.toolchain.impl.PathConverter
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellij.execution.DefaultExecutionResult

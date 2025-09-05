@@ -6,7 +6,7 @@
 
 include "ModuleFormat.fbs";
 
-namespace cn.cangnova.cangjie.metadata.BCHIRFormat;
+namespace org.cangnova.cangjie.metadata.BCHIRFormat;
 
 file_identifier "BIR2";
 

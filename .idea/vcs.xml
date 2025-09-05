@@ -2,10 +2,5 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cangjie_compiler" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cangjie_compiler/cmake-build-debug-mingw-64/third_party/flatbuffers-prefix/src/flatbuffers" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cangjie_compiler/cmake-build-debug-mingw-64/utils_dep/third_party_llvm-project" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cangjie_compiler/third_party/boundscheck-v1.1.16" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/cangjie_compiler/third_party/llvm-project" vcs="Git" />
   </component>
 </project>

@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.toolwindow
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.toolwindow
 
-import cn.cangnova.cangjie.icon.CjpmIcons
+import org.cangnova.cangjie.icon.CjpmIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -37,13 +37,13 @@ import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
 import com.intellij.ui.treeStructure.SimpleTree
 import com.intellij.ui.treeStructure.SimpleTreeStructure
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
-import cn.cangnova.cangjie.cjpm.project.toolwindow.CjpmProjectTreeStructure.CjpmSimpleNode
-import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
-import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandLine
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
+import org.cangnova.cangjie.cjpm.project.toolwindow.CjpmProjectTreeStructure.CjpmSimpleNode
+import org.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
+import org.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandLine
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.SwingUtilities

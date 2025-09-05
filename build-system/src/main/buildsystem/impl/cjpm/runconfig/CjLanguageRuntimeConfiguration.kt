@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
 
 import com.intellij.execution.target.LanguageRuntimeConfiguration
 import com.intellij.openapi.components.BaseState

@@ -2,7 +2,7 @@ plugins {
     id("java")
 }
 
-group = "cn.cangnova"
+group = "org.cangnova"
 version = "unspecified"
 
 repositories {

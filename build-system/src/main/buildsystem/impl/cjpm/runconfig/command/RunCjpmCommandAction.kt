@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.command
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.command
 
-import cn.cangnova.cangjie.ide.actions.runAnything.cjpm.CjpmRunAnythingProvider.Companion.HELP_COMMAND
+import org.cangnova.cangjie.ide.actions.runAnything.cjpm.CjpmRunAnythingProvider.Companion.HELP_COMMAND
 import com.intellij.ide.actions.runAnything.RunAnythingManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 

@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
 
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService.Companion.CJPM_PROJECTS_TOPIC
-import cn.cangnova.cangjie.utils.mapToSet
+import org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
+import org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService.Companion.CJPM_PROJECTS_TOPIC
+import org.cangnova.cangjie.utils.mapToSet
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project

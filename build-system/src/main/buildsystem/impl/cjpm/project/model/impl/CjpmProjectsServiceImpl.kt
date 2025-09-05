@@ -22,24 +22,24 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
 
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
-import cn.cangnova.cangjie.cjpm.project.model.ContentEntryWrapper
-import cn.cangnova.cangjie.cjpm.project.model.setup
-import cn.cangnova.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
-import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
-import cn.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
-import cn.cangnova.cangjie.cjpm.project.workspace.additionalRoots
-import cn.cangnova.cangjie.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
-import cn.cangnova.cangjie.ide.notifications.CjNotifications
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.cjpm.CjpmConstants
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
+import org.cangnova.cangjie.cjpm.project.model.ContentEntryWrapper
+import org.cangnova.cangjie.cjpm.project.model.setup
+import org.cangnova.cangjie.cjpm.project.settings.CjProjectSettingsServiceBase
+import org.cangnova.cangjie.cjpm.project.settings.cangjieSettings
+import org.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
+import org.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
+import org.cangnova.cangjie.cjpm.project.workspace.additionalRoots
+import org.cangnova.cangjie.toolchain.CjToolchainBase
+import org.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
+import org.cangnova.cangjie.ide.notifications.CjNotifications
 
-import cn.cangnova.cangjie.lang.CangJieFileType
+import org.cangnova.cangjie.lang.CangJieFileType
 import com.intellij.openapi.module.Module
 import com.intellij.execution.RunManager
 import com.intellij.ide.impl.isTrusted
@@ -71,12 +71,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.indexing.LightDirectoryIndex
 import com.intellij.util.io.systemIndependentPath
-import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
-import cn.cangnova.cangjie.task.taskQueue
-import cn.cangnova.cangjie.utils.AsyncValue
-import cn.cangnova.cangjie.utils.invokeAndWaitIfNeeded
-import cn.cangnova.cangjie.utils.isUnitTestMode
-import cn.cangnova.cangjie.utils.pathAsPath
+import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
+import org.cangnova.cangjie.task.taskQueue
+import org.cangnova.cangjie.utils.AsyncValue
+import org.cangnova.cangjie.utils.invokeAndWaitIfNeeded
+import org.cangnova.cangjie.utils.isUnitTestMode
+import org.cangnova.cangjie.utils.pathAsPath
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -432,7 +432,7 @@ class CjpmProjectsServiceImpl(
     override fun noStateLoaded() {
 
 
-        // 显示在 [cn.cangnova.cangjie.ide.notifications.MissingToolchainNotificationProvider]
+        // 显示在 [org.cangnova.cangjie.ide.notifications.MissingToolchainNotificationProvider]
 
         initialized = true // 不需要锁定B/C的服务初始时间
 

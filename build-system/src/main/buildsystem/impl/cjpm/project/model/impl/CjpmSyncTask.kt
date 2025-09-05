@@ -22,30 +22,30 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
 
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.toolchain.cjc
-import cn.cangnova.cangjie.toolchain.cjpm
-import cn.cangnova.cangjie.toolchain.impl.CangJieVersion
-import cn.cangnova.cangjie.toolchain.tools.CjpmCallType
-import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.model.CjcInfo
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.model.ProcessProgressListener
-import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
-import cn.cangnova.cangjie.cjpm.project.workspace.StandardLibrary
-import cn.cangnova.cangjie.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.toolchain.tools.unwrapOrElse
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildAdapterBase
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildContextBase
-import cn.cangnova.cangjie.ide.run.cjpm.toolchain
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.toolchain.cjc
+import org.cangnova.cangjie.toolchain.cjpm
+import org.cangnova.cangjie.toolchain.impl.CangJieVersion
+import org.cangnova.cangjie.toolchain.tools.CjpmCallType
+import org.cangnova.cangjie.cjpm.CjpmConstants
+import org.cangnova.cangjie.cjpm.project.model.CjcInfo
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.model.ProcessProgressListener
+import org.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
+import org.cangnova.cangjie.cjpm.project.workspace.StandardLibrary
+import org.cangnova.cangjie.toolchain.CjToolchainBase
+import org.cangnova.cangjie.toolchain.tools.unwrapOrElse
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildAdapterBase
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildContextBase
+import org.cangnova.cangjie.ide.run.cjpm.toolchain
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
-import cn.cangnova.cangjie.download.stdlib.fetchStdlib
+import org.cangnova.cangjie.download.stdlib.fetchStdlib
 import kotlin.io.path.exists
 
-import cn.cangnova.cangjie.task.CangJieTask
+import org.cangnova.cangjie.task.CangJieTask
 import com.intellij.build.BuildContentDescriptor
 import com.intellij.build.BuildDescriptor
 import com.intellij.build.DefaultBuildDescriptor

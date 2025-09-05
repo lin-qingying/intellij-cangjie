@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.api
+package org.cangnova.cangjie.buildsystem.api
 
 import CangJieBuildResult
 import com.intellij.openapi.extensions.ExtensionPointName
@@ -33,7 +33,7 @@ import com.intellij.task.ProjectTask
 interface CangJieBuildSystem {
 
     companion object {
-        val EP_NAME = ExtensionPointName.create<CangJieBuildSystem>("cn.cangnova.cangjie.buildSystem")
+        val EP_NAME = ExtensionPointName.create<CangJieBuildSystem>("org.cangnova.cangjie.buildSystem")
     }
 
     val id: String

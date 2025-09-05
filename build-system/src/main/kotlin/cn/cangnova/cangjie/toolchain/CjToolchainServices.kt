@@ -22,7 +22,7 @@
 // *
 // */
 //
-//package cn.cangnova.cangjie.toolchain
+//package org.cangnova.cangjie.toolchain
 //
 //import com.intellij.openapi.application.ApplicationManager
 //import com.intellij.openapi.components.*

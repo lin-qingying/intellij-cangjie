@@ -5,18 +5,18 @@
         <!-- CJPM工具窗口 - 显示项目管理相关功能 -->
         <toolWindow id="Cjpm"
                     anchor="right"
-                    factoryClass="cn.cangnova.cangjie.cjpm.project.toolwindow.CjpmToolWindowFactory"/>
+                    factoryClass="org.cangnova.cangjie.cjpm.project.toolwindow.CjpmToolWindowFactory"/>
 
         <!-- 2. 文档工具窗口 -->
         <!-- 仓颉文档窗口 - 显示语言相关文档 -->
         <toolWindow id="cangjie_doc"
                     anchor="right"
-                    factoryClass="cn.cangnova.cangjie.ide.toolwindow.doc.CangJieDocWindowFactory"/>
+                    factoryClass="org.cangnova.cangjie.ide.toolwindow.doc.CangJieDocWindowFactory"/>
 
         <!-- 3. 状态栏部件 -->
         <!-- 外部Linter状态显示部件 -->
         <statusBarWidgetFactory id="cangjieExternalLinterWidget"
-                                implementation="cn.cangnova.cangjie.ide.status.CjExternalLinterWidgetFactory"
+                                implementation="org.cangnova.cangjie.ide.status.CjExternalLinterWidgetFactory"
                                 order="first"/>
 
 

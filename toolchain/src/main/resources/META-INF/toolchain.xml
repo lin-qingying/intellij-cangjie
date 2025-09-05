@@ -26,20 +26,20 @@
     <extensionPoints>
         <extensionPoint
                 name="toolchainProvider"
-                qualifiedName="cn.cangnova.cangjie.toolchain.toolchainProvider"
-                interface="cn.cangnova.cangjie.toolchain.api.CjToolchainProvider"
+                qualifiedName="org.cangnova.cangjie.toolchain.toolchainProvider"
+                interface="org.cangnova.cangjie.toolchain.api.CjToolchainProvider"
                 dynamic="true"/>
         <extensionPoint
                 name="toolFactory"
-                qualifiedName="cn.cangnova.cangjie.toolchain.toolFactory"
+                qualifiedName="org.cangnova.cangjie.toolchain.toolFactory"
 
-                interface="cn.cangnova.cangjie.toolchain.api.CjToolFactory"
+                interface="org.cangnova.cangjie.toolchain.api.CjToolFactory"
                 dynamic="true"/>
     </extensionPoints>
 
-    <extensions defaultExtensionNs="cn.cangnova.cangjie.toolchain">
-        <toolchainProvider implementation="cn.cangnova.cangjie.toolchain.impl.OfficialCjToolchainProvider"/>
+    <extensions defaultExtensionNs="org.cangnova.cangjie.toolchain">
+        <toolchainProvider implementation="org.cangnova.cangjie.toolchain.impl.OfficialCjToolchainProvider"/>
         <!-- 如有其它 provider 也在此注册 -->
-        <!-- <toolFactory implementation="cn.cangnova.cangjie.toolchain.impl.YourToolFactoryImpl"/> -->
+        <!-- <toolFactory implementation="org.cangnova.cangjie.toolchain.impl.YourToolFactoryImpl"/> -->
     </extensions>
 </idea-plugin>

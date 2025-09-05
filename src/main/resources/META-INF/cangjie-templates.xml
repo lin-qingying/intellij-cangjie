@@ -1,19 +1,19 @@
-<idea-plugin package="cn.cangnova.cangjie.ide.liveTemplates">
+<idea-plugin package="org.cangnova.cangjie.ide.liveTemplates">
   <extensions defaultExtensionNs="com.intellij">
     <defaultLiveTemplates file="liveTemplates/CangJie.xml"/>
 
 
     <codeInsight.template.postfixTemplateProvider
             language="CangJie"
-            implementationClass="cn.cangnova.cangjie.ide.codeInsight.template.template.CangJiePostfixTemplateProvider"/>
+            implementationClass="org.cangnova.cangjie.ide.codeInsight.template.template.CangJiePostfixTemplateProvider"/>
 
-    <liveTemplateContext contextId="CANGJIE" implementation="cn.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Generic"/>
-    <liveTemplateContext contextId="CANGJIE_TOPLEVEL" baseContextId="CANGJIE" implementation="cn.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$TopLevel"/>
-    <liveTemplateContext contextId="CANGJIE_STATEMENT" baseContextId="CANGJIE" implementation="cn.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Statement"/>
-    <liveTemplateContext contextId="CANGJIE_CLASS" baseContextId="CANGJIE" implementation="cn.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Class"/>
-    <liveTemplateContext contextId="CANGJIE_EXPRESSION" baseContextId="CANGJIE" implementation="cn.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Expression"/>
-    <liveTemplateContext contextId="CANGJIE_COMMENT" baseContextId="CANGJIE" implementation="cn.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Comment"/>
+    <liveTemplateContext contextId="CANGJIE" implementation="org.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Generic"/>
+    <liveTemplateContext contextId="CANGJIE_TOPLEVEL" baseContextId="CANGJIE" implementation="org.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$TopLevel"/>
+    <liveTemplateContext contextId="CANGJIE_STATEMENT" baseContextId="CANGJIE" implementation="org.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Statement"/>
+    <liveTemplateContext contextId="CANGJIE_CLASS" baseContextId="CANGJIE" implementation="org.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Class"/>
+    <liveTemplateContext contextId="CANGJIE_EXPRESSION" baseContextId="CANGJIE" implementation="org.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Expression"/>
+    <liveTemplateContext contextId="CANGJIE_COMMENT" baseContextId="CANGJIE" implementation="org.cangnova.cangjie.ide.liveTemplates.CangJieTemplateContextType$Comment"/>
 
-<!--    <liveTemplateOptionalProcessor implementation="cn.cangnova.cangjie.ide.liveTemplates.CangJieShortenFQNamesProcessor"/>-->
+<!--    <liveTemplateOptionalProcessor implementation="org.cangnova.cangjie.ide.liveTemplates.CangJieShortenFQNamesProcessor"/>-->
   </extensions>
 </idea-plugin>

@@ -32,24 +32,24 @@
                            key="notification.group.title.enable.telemetry"/>
 
         <!-- Telemetry Settings -->
-        <applicationService serviceImplementation="cn.cangnova.telemetry.TelemetrySettings"/>
+        <applicationService serviceImplementation="org.cangnova.telemetry.TelemetrySettings"/>
         <applicationConfigurable
                 parentId="tools"
                 key="settings.telemetry.display.name"
-                instance="cn.cangnova.telemetry.ui.TelemetrySettingsPanel"
-                id="cn.cangnova.telemetry.settings"
+                instance="org.cangnova.telemetry.ui.TelemetrySettingsPanel"
+                id="org.cangnova.telemetry.settings"
                 bundle="messages.TelemetryBundle"
 
         />
 
         <!-- Telemetry Services -->
-        <applicationService serviceImplementation="cn.cangnova.telemetry.data.TelemetryDataCollector"/>
-        <applicationService serviceImplementation="cn.cangnova.telemetry.sender.TelemetryDataSender"/>
-        <applicationService serviceImplementation="cn.cangnova.telemetry.impl.DefaultTelemetryService"
-                            serviceInterface="cn.cangnova.telemetry.api.TelemetryService"/>
+        <applicationService serviceImplementation="org.cangnova.telemetry.data.TelemetryDataCollector"/>
+        <applicationService serviceImplementation="org.cangnova.telemetry.sender.TelemetryDataSender"/>
+        <applicationService serviceImplementation="org.cangnova.telemetry.impl.DefaultTelemetryService"
+                            serviceInterface="org.cangnova.telemetry.api.TelemetryService"/>
 
         <!-- Startup Activities -->
-        <postStartupActivity implementation="cn.cangnova.telemetry.TelemetryStartupActivity"/>
+        <postStartupActivity implementation="org.cangnova.telemetry.TelemetryStartupActivity"/>
 
         <!-- Notification Groups -->
         <notificationGroup id="CangJie.Telemetry"
@@ -60,14 +60,14 @@
 
     <actions>
         <!-- Add Telemetry Settings to the toolbar -->
-        <action id="cn.cangnova.telemetry.TelemetrySettingsAction"
-                class="cn.cangnova.telemetry.ui.TelemetrySettingsAction">
+        <action id="org.cangnova.telemetry.TelemetrySettingsAction"
+                class="org.cangnova.telemetry.ui.TelemetrySettingsAction">
             <add-to-group group-id="MainToolBar" anchor="last"/>
         </action>
 
         <!-- Add Immediate Send Telemetry Action -->
-        <action id="cn.cangnova.telemetry.actions.SendImmediatelyTelemetryAction"
-                class="cn.cangnova.telemetry.actions.SendImmediatelyTelemetryAction">
+        <action id="org.cangnova.telemetry.actions.SendImmediatelyTelemetryAction"
+                class="org.cangnova.telemetry.actions.SendImmediatelyTelemetryAction">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
     </actions>

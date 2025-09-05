@@ -26,6 +26,6 @@
 
 
     <extensions defaultExtensionNs="com.intellij.copyright">
-        <updater filetype="CangJie" implementationClass="cn.cangnova.cangjie.ide.copyright.CangJieCopyrightsProvider"/>
+        <updater filetype="CangJie" implementationClass="org.cangnova.cangjie.ide.copyright.CangJieCopyrightsProvider"/>
     </extensions>
 </idea-plugin>

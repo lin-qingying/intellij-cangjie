@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
 import com.intellij.execution.configurations.RunConfigurationOptions
 

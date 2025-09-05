@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
 
-import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.cjpm.CjpmConstants
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project

@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
 
-import cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.toolchain.SdkVersion
+import org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.toolchain.SdkVersion
 import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction

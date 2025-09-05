@@ -7,7 +7,7 @@
                   fileNames="cjpm.lock"
         />
         <completion.contributor language="TOML"
-                                implementationClass="cn.cangnova.cangjie.toml.completion.CjpmTomlCompletionContributor"/>
+                                implementationClass="org.cangnova.cangjie.toml.completion.CjpmTomlCompletionContributor"/>
 
 
     </extensions>

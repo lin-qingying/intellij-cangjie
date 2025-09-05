@@ -22,13 +22,13 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model
 
-import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
-import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
-import cn.cangnova.cangjie.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.toolchain.impl.CangJieVersion
+import org.cangnova.cangjie.cjpm.CjpmConstants
+import org.cangnova.cangjie.cjpm.project.settings.cangjieSettings
+import org.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
+import org.cangnova.cangjie.toolchain.CjToolchainBase
+import org.cangnova.cangjie.toolchain.impl.CangJieVersion
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
@@ -40,8 +40,8 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
-import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
-import cn.cangnova.cangjie.utils.pathAsPath
+import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
+import org.cangnova.cangjie.utils.pathAsPath
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 
@@ -136,7 +136,7 @@ data class CjcInfo(
 fun guessAndSetupCangJieProject(project: Project, explicitRequest: Boolean = false): Boolean {
     if (!explicitRequest) {
         val alreadyTried = run {
-            val key = "cn.cangnova.cangjie.cjpm.project.model.PROJECT_DISCOVERY"
+            val key = "org.cangnova.cangjie.cjpm.project.model.PROJECT_DISCOVERY"
             val properties = PropertiesComponent.getInstance(project)
             val alreadyTried = properties.getBoolean(key)
             properties.setValue(key, true)

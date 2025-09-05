@@ -22,18 +22,18 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.cjpm.project.settings.cangjieSettings
-import cn.cangnova.cangjie.ide.run.CjCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeType
-import cn.cangnova.cangjie.ide.run.hasRemoteTarget
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.toolchain.CjToolchainBase
-import cn.cangnova.cangjie.toolchain.tools.Cjpm
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.cjpm.project.settings.cangjieSettings
+import org.cangnova.cangjie.ide.run.CjCommandConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.CjLanguageRuntimeType
+import org.cangnova.cangjie.ide.run.hasRemoteTarget
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.toolchain.CjToolchainBase
+import org.cangnova.cangjie.toolchain.tools.Cjpm
 import com.intellij.execution.Executor
 import com.intellij.execution.InputRedirectAware
 import com.intellij.execution.configuration.EnvironmentVariablesData

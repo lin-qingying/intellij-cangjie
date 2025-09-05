@@ -22,13 +22,13 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model
 
-import cn.cangnova.cangjie.cjpm.CjpmConstants
+import org.cangnova.cangjie.cjpm.CjpmConstants
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.OrderEntry
 import com.intellij.openapi.vfs.VirtualFile
-import cn.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
+import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
 
 class OrderEntryWrapper(private val orderEntry: OrderEntry)
 

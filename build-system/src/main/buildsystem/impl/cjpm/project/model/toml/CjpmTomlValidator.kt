@@ -1,4 +1,4 @@
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.toml
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.toml
 
 /**
  * CJPM TOML 配置验证器

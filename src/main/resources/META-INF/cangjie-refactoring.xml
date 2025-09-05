@@ -3,16 +3,16 @@
     <extensions defaultExtensionNs="com.intellij">
         <lang.refactoringSupport
                 language="CangJie"
-                implementationClass="cn.cangnova.cangjie.ide.refactoring.CangJieRefactoringSupportProvider"/>
-        <projectService serviceInterface="cn.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableService"
-                        serviceImplementation="cn.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableService$Default"
+                implementationClass="org.cangnova.cangjie.ide.refactoring.CangJieRefactoringSupportProvider"/>
+        <projectService serviceInterface="org.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableService"
+                        serviceImplementation="org.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableService$Default"
         />
 
 
-        <applicationService serviceImplementation="cn.cangnova.cangjie.ide.refactoring.CangJieCommonRefactoringSettingsImpl"
-                            serviceInterface="cn.cangnova.cangjie.ide.refactoring.CangJieCommonRefactoringSettings"/>
+        <applicationService serviceImplementation="org.cangnova.cangjie.ide.refactoring.CangJieCommonRefactoringSettingsImpl"
+                            serviceInterface="org.cangnova.cangjie.ide.refactoring.CangJieCommonRefactoringSettings"/>
 
-        <applicationService serviceImplementation="cn.cangnova.cangjie.ide.refactoring.CangJieRefactoringSettings"/>
+        <applicationService serviceImplementation="org.cangnova.cangjie.ide.refactoring.CangJieRefactoringSettings"/>
 
     </extensions>
 </idea-plugin>

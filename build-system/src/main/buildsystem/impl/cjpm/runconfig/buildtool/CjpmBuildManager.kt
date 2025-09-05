@@ -22,18 +22,18 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
 
 
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.ide.notifications.CjNotifications
-import cn.cangnova.cangjie.ide.run.CjCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.*
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmArgsParser.Companion.parseArgs
-import cn.cangnova.cangjie.ide.run.hasRemoteTarget
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.utils.isUnitTestMode
-import cn.cangnova.cangjie.utils.toSystemIndependentPath
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.ide.notifications.CjNotifications
+import org.cangnova.cangjie.ide.run.CjCommandConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.*
+import org.cangnova.cangjie.ide.run.cjpm.CjpmArgsParser.Companion.parseArgs
+import org.cangnova.cangjie.ide.run.hasRemoteTarget
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.utils.isUnitTestMode
+import org.cangnova.cangjie.utils.toSystemIndependentPath
 import com.intellij.build.BuildContentManager
 import com.intellij.build.BuildViewManager
 import com.intellij.execution.ExecutorRegistry

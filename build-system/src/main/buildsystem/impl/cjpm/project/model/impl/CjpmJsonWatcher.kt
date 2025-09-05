@@ -22,13 +22,13 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
 
 import com.google.common.annotations.VisibleForTesting
-import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
-import cn.cangnova.cangjie.lang.CjConstants.MAIN_CJ_FILE
-import cn.cangnova.cangjie.utils.pathAsPath
+import org.cangnova.cangjie.cjpm.CjpmConstants
+import org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
+import org.cangnova.cangjie.lang.CjConstants.MAIN_CJ_FILE
+import org.cangnova.cangjie.utils.pathAsPath
 
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project

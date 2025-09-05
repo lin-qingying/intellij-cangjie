@@ -22,10 +22,10 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model
 
 //import com.akuleshov7.ktoml.file.TomlFileReader
-import cn.cangnova.cangjie.toolchain.tools.Cjpm
+import org.cangnova.cangjie.toolchain.tools.Cjpm
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.DeserializationContext
@@ -304,7 +304,7 @@ data class PackageConfigurationInfo(
 
 data class PackageConfiguration(
     val packageName: String,
-    val configuration: cn.cangnova.cangjie.cjpm.project.model.PackageConfigurationInfo
+    val configuration: org.cangnova.cangjie.cjpm.project.model.PackageConfigurationInfo
 ) {
     class ListDeserializer : StdDeserializer<List<PackageConfiguration>>(List::class.java) {
         override fun deserialize(p0: JsonParser?, p1: DeserializationContext?): List<PackageConfiguration> {
@@ -314,7 +314,7 @@ data class PackageConfiguration(
                 val packageNode = value as JsonNode
                 val packageObject = PackageConfiguration(
                     packageName = key,
-                    configuration = Cjpm.JSON_MAPPER.convertValue(packageNode, cn.cangnova.cangjie.cjpm.project.model.PackageConfigurationInfo::class.java)
+                    configuration = Cjpm.JSON_MAPPER.convertValue(packageNode, org.cangnova.cangjie.cjpm.project.model.PackageConfigurationInfo::class.java)
 
                 )
                 packageConfiguration.add(packageObject)

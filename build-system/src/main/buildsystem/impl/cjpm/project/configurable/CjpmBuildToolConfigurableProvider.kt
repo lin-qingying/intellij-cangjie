@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.configurable
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.configurable
 
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider

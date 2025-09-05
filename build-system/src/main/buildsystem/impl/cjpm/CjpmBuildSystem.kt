@@ -22,16 +22,16 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
 import CangJieBuildResult
-import cn.cangnova.cangjie.buildsystem.api.BuildMode
-import cn.cangnova.cangjie.buildsystem.api.CangJieBuildSystem
-import cn.cangnova.cangjie.buildsystem.api.CangJieCompileContext
-import cn.cangnova.cangjie.buildsystem.api.CangJieProjectBuilder
-import cn.cangnova.cangjie.buildsystem.state.BuildSettingsState
-import cn.cangnova.cangjie.toolchain.CangJieToolchain
-import cn.cangnova.cangjie.toolchain.toPath
+import org.cangnova.cangjie.buildsystem.api.BuildMode
+import org.cangnova.cangjie.buildsystem.api.CangJieBuildSystem
+import org.cangnova.cangjie.buildsystem.api.CangJieCompileContext
+import org.cangnova.cangjie.buildsystem.api.CangJieProjectBuilder
+import org.cangnova.cangjie.buildsystem.state.BuildSettingsState
+import org.cangnova.cangjie.toolchain.CangJieToolchain
+import org.cangnova.cangjie.toolchain.toPath
 import com.intellij.openapi.module.Module.ELEMENT_TYPE
 import com.intellij.openapi.project.Project
 import com.intellij.task.ModuleBuildTask

@@ -17,12 +17,12 @@ JFlex 文件由三个主要部分组成，以 `%%` 分隔：
 ### 包和导入声明
 
 ```java
-package cn.cangnova.cangjie.lexer;
+package org.cangnova.cangjie.lexer;
 import com.intellij.psi.*;
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
-import cn.cangnova.cangjie.lexer.CjTokens;
+import org.cangnova.cangjie.lexer.CjTokens;
 ```
 
 ### State 类

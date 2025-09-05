@@ -1,4 +1,4 @@
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.toml
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.toml
 
 import java.io.File
 import java.nio.file.Path

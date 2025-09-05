@@ -4,42 +4,42 @@
 
 
         <!--        工具链  多平台支持-->
-        <extensionPoint qualifiedName="cn.cangnova.cangjie.toolchainProvider"
-                        interface="cn.cangnova.cangjie.toolchain.CjToolchainProvider"
+        <extensionPoint qualifiedName="org.cangnova.cangjie.toolchainProvider"
+                        interface="org.cangnova.cangjie.toolchain.CjToolchainProvider"
                         dynamic="true"/>
 
-        <extensionPoint qualifiedName="cn.cangnova.cangjie.toolchainFlavor"
-                        interface="cn.cangnova.cangjie.toolchain.flavors.CjToolchainFlavor"
+        <extensionPoint qualifiedName="org.cangnova.cangjie.toolchainFlavor"
+                        interface="org.cangnova.cangjie.toolchain.flavors.CjToolchainFlavor"
                         dynamic="true"/>
 
 
         <!--        Cjpm 运行配置-->
-        <extensionPoint qualifiedName="cn.cangnova.cangjie.runConfigurationExtension"
-                        interface="cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjpmCommandConfigurationExtension"
+        <extensionPoint qualifiedName="org.cangnova.cangjie.runConfigurationExtension"
+                        interface="org.cangnova.cangjie.ide.run.cjpm.runconfig.CjpmCommandConfigurationExtension"
                         dynamic="true"/>
         <!--文件被创建后的处理-->
         <extensionPoint
-                qualifiedName="cn.cangnova.cangjie.newFileHook"
-                interface="cn.cangnova.cangjie.ide.actions.NewCangJieFileHook"
+                qualifiedName="org.cangnova.cangjie.newFileHook"
+                interface="org.cangnova.cangjie.ide.actions.NewCangJieFileHook"
                 dynamic="true"/>
         <!--         项目配置-->
         <extensionPoint
-                qualifiedName="cn.cangnova.cangjie.projectConfigurator"
-                interface="cn.cangnova.cangjie.ide.configuration.CangJieProjectConfigurator"
+                qualifiedName="org.cangnova.cangjie.projectConfigurator"
+                interface="org.cangnova.cangjie.ide.configuration.CangJieProjectConfigurator"
                 dynamic="true"/>
 
         <!--        解析范围-->
-        <extensionPoint qualifiedName="cn.cangnova.cangjie.resolveScopeEnlarger"
+        <extensionPoint qualifiedName="org.cangnova.cangjie.resolveScopeEnlarger"
                         dynamic="true"
-                        interface="cn.cangnova.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger"/>
+                        interface="org.cangnova.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger"/>
 
 
-        <extensionPoint qualifiedName="cn.cangnova.cangjie.classFileDecompiler"
-                        interface="cn.cangnova.cangjie.psi.compiled.ClassFileDecompilers$Decompiler"
+        <extensionPoint qualifiedName="org.cangnova.cangjie.classFileDecompiler"
+                        interface="org.cangnova.cangjie.psi.compiled.ClassFileDecompilers$Decompiler"
                         dynamic="true"/>
 
-        <extensionPoint qualifiedName="cn.cangnova.cangjie.sdkDownload"
-                        interface="cn.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp"/>
+        <extensionPoint qualifiedName="org.cangnova.cangjie.sdkDownload"
+                        interface="org.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp"/>
 
 
     </extensionPoints>

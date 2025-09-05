@@ -4,7 +4,7 @@
 //
 // See https://cangjie-lang.cn/pages/LICENSE for license information.
 
-namespace cn.cangnova.cangjie.metadata.MacroMsgFormat;
+namespace org.cangnova.cangjie.metadata.MacroMsgFormat;
 
 struct Position {
   file_id: uint32;

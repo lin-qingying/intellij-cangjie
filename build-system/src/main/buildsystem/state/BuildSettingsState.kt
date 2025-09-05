@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.state
+package org.cangnova.cangjie.buildsystem.state
 
 
 import com.intellij.openapi.components.PersistentStateComponent

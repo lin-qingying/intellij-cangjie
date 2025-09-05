@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation("com.google.flatbuffers:flatbuffers-java:25.2.10")
-
+    implementation(project(":common"))
 }
 
 // FlatBuffers配置
@@ -16,7 +16,7 @@ flatbuffers {
 }
 tasks.register<io.netifi.flatbuffers.plugin.tasks.FlatBuffers>("generateKotlinFlatBuffers") {
     inputDir = file("flatbuffers")
-    outputDir = file(project(":metadata").projectDir .path + "/gen")
+    outputDir = file(project(":metadata").projectDir.path + "/gen")
     language = "kotlin"
     extraArgs = "--gen-mutable --gen-object-api"
 }

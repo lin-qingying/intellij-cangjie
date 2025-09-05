@@ -22,13 +22,13 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
 
-import cn.cangnova.cangjie.cjpm.project.model.currentCjpmProject
-import cn.cangnova.cangjie.ide.run.CangJieRunConfigurationProducer
-import cn.cangnova.cangjie.ide.run.cjpm.test.isTestCase
-import cn.cangnova.cangjie.lang.CangJieFileType
+import org.cangnova.cangjie.cjpm.project.model.currentCjpmProject
+import org.cangnova.cangjie.ide.run.CangJieRunConfigurationProducer
+import org.cangnova.cangjie.ide.run.cjpm.test.isTestCase
+import org.cangnova.cangjie.lang.CangJieFileType
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.util.Ref

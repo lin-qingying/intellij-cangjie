@@ -22,10 +22,10 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
 
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.ConfigurationExtensionContext
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.ConfigurationExtensionContext
 import com.intellij.execution.configuration.RunConfigurationExtensionBase
 import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -73,7 +73,7 @@ abstract class CjpmCommandConfigurationExtension: RunConfigurationExtensionBase<
         context: ConfigurationExtensionContext
     )
     companion object{
-        val EP_NAME = ExtensionPointName.create<CjpmCommandConfigurationExtension>("cn.cangnova.cangjie.runConfigurationExtension")
+        val EP_NAME = ExtensionPointName.create<CjpmCommandConfigurationExtension>("org.cangnova.cangjie.runConfigurationExtension")
 
         private val LOG: Logger = logger<CjpmCommandConfigurationExtension>()
     }

@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.icon
+package org.cangnova.cangjie.buildsystem.impl.cjpm.icon
 
-import cn.cangnova.cangjie.cjpm.CjpmConstants
+import org.cangnova.cangjie.cjpm.CjpmConstants
 import com.intellij.ide.FileIconProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile

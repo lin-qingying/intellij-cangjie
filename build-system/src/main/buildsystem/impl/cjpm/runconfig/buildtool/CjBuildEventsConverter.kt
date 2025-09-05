@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
 
-import cn.cangnova.cangjie.ide.run.cjpm.CompilerArtifactMessage
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.CjAnsiEscapeDecoder.Companion.quantizeAnsiColors
-import cn.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.ide.run.cjpm.CompilerArtifactMessage
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.CjAnsiEscapeDecoder.Companion.quantizeAnsiColors
+import org.cangnova.cangjie.messages.CangJieBundle
 import com.intellij.build.FilePosition
 import com.intellij.build.events.BuildEvent
 import com.intellij.build.events.BuildEventsNls

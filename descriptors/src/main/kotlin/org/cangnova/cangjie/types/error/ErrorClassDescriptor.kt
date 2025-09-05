@@ -34,7 +34,7 @@ import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
-class ErrorClassDescriptor(name: Name) : ClassDescriptorImpl(
+class ErrorClassDescriptor(name: Name = Name.ERROR_NAME) : ClassDescriptorImpl(
     ErrorUtils.errorModule, name, Modality.OPEN, ClassKind.CLASS, emptyList(), SourceElement.NO_SOURCE, false, LockBasedStorageManager.NO_LOCKS
 
 ) {

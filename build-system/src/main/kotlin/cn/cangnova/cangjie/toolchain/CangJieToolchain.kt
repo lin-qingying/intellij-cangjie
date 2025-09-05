@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.toolchain
+package org.cangnova.cangjie.toolchain
 
-import cn.cangnova.cangjie.toolchain.state.ToolchainSettingsState
+import org.cangnova.cangjie.toolchain.state.ToolchainSettingsState
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.text.SemVer

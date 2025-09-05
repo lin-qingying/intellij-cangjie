@@ -3,50 +3,50 @@
     <extensions defaultExtensionNs="com.intellij">
         <!--      PSI解析-->
         <lang.parserDefinition language="CangJie"
-                               implementationClass="cn.cangnova.cangjie.parsing.CangJieParserDefinition"/>
+                               implementationClass="org.cangnova.cangjie.parsing.CangJieParserDefinition"/>
 
         <!-- 1. 编辑器基础功能配置 -->
         <!-- 编辑器智能键配置 -->
-        <editorSmartKeysConfigurable instance="cn.cangnova.cangjie.ide.editor.CangJieEditorOptionsConfigurable"/>
+        <editorSmartKeysConfigurable instance="org.cangnova.cangjie.ide.editor.CangJieEditorOptionsConfigurable"/>
         <!-- 代码折叠构建器 -->
         <lang.foldingBuilder language="CangJie"
-                           implementationClass="cn.cangnova.cangjie.ide.editor.folding.CangJieFoldingBuilder"/>
+                           implementationClass="org.cangnova.cangjie.ide.editor.folding.CangJieFoldingBuilder"/>
 
         <!-- 2. 编辑器输入处理配置 -->
         <!-- 输入处理器 -->
-        <typedHandler implementation="cn.cangnova.cangjie.ide.editor.CangJieTypedHandler"/>
-        <typedHandler implementation="cn.cangnova.cangjie.ide.editor.CDocTypedHandler"/>
-        <typedHandler implementation="cn.cangnova.cangjie.ide.editor.CangJieRawStringTypedHandler"/>
+        <typedHandler implementation="org.cangnova.cangjie.ide.editor.CangJieTypedHandler"/>
+        <typedHandler implementation="org.cangnova.cangjie.ide.editor.CDocTypedHandler"/>
+        <typedHandler implementation="org.cangnova.cangjie.ide.editor.CangJieRawStringTypedHandler"/>
         
         <!-- 退格键处理器 -->
-        <backspaceHandlerDelegate implementation="cn.cangnova.cangjie.ide.editor.CangJieBackspaceHandlerDelegate"/>
-        <backspaceHandlerDelegate implementation="cn.cangnova.cangjie.ide.editor.CangJieRawStringBackspaceHandler"/>
-        <backspaceHandlerDelegate implementation="cn.cangnova.cangjie.ide.editor.CangJieStringTemplateBackspaceHandler"/>
+        <backspaceHandlerDelegate implementation="org.cangnova.cangjie.ide.editor.CangJieBackspaceHandlerDelegate"/>
+        <backspaceHandlerDelegate implementation="org.cangnova.cangjie.ide.editor.CangJieRawStringBackspaceHandler"/>
+        <backspaceHandlerDelegate implementation="org.cangnova.cangjie.ide.editor.CangJieStringTemplateBackspaceHandler"/>
 
         <!-- 3. 编辑器符号处理配置 -->
         <!-- 括号匹配器 -->
-        <lang.braceMatcher implementationClass="cn.cangnova.cangjie.ide.editor.CangJiePairedBraceMatcher"
+        <lang.braceMatcher implementationClass="org.cangnova.cangjie.ide.editor.CangJiePairedBraceMatcher"
                          language="CangJie"/>
         <!-- 引号处理器 -->
-        <quoteHandler fileType="CangJie" className="cn.cangnova.cangjie.ide.editor.CangJieQuoteHandler"/>
+        <quoteHandler fileType="CangJie" className="org.cangnova.cangjie.ide.editor.CangJieQuoteHandler"/>
 
         <!-- 4. 代码结构功能 -->
         <!-- 注释器 -->
-        <lang.commenter language="CangJie" implementationClass="cn.cangnova.cangjie.ide.commenter.CjCommenter"/>
+        <lang.commenter language="CangJie" implementationClass="org.cangnova.cangjie.ide.commenter.CjCommenter"/>
 
         <!-- 5. PSI服务配置 -->
 
-        <projectService serviceInterface="cn.cangnova.cangjie.references.CangJieReferenceProviderContributor"
-                        serviceImplementation="cn.cangnova.cangjie.references.CangJieReferenceContributor"/>
+        <projectService serviceInterface="org.cangnova.cangjie.references.CangJieReferenceProviderContributor"
+                        serviceImplementation="org.cangnova.cangjie.references.CangJieReferenceContributor"/>
 
         <!--        引用搜索-->
         <projectService
-                serviceInterface="cn.cangnova.cangjie.psi.CangJieReferenceProvidersService"
-                serviceImplementation="cn.cangnova.cangjie.references.CjIdeReferenceProviderService"/>
+                serviceInterface="org.cangnova.cangjie.psi.CangJieReferenceProvidersService"
+                serviceImplementation="org.cangnova.cangjie.references.CjIdeReferenceProviderService"/>
 
         <enterHandlerDelegate
                 id="CangJieMultilineStringEnterHandler"
                 order="before EnterBetweenBracesHandler, before xmlEnter"
-                implementation="cn.cangnova.cangjie.ide.editor.CangJieMultilineStringEnterHandler"/>
+                implementation="org.cangnova.cangjie.ide.editor.CangJieMultilineStringEnterHandler"/>
     </extensions>
 </idea-plugin>

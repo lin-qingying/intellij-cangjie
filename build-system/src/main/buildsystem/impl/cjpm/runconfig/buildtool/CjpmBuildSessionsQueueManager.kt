@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
 
-import cn.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.messages.CangJieBundle
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.BackgroundTaskQueue

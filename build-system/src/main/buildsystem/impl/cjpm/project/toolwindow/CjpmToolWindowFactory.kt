@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.toolwindow
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.toolwindow
 
 import com.intellij.openapi.actionSystem.PlatformDataKeys
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.cjpm.project.model.guessAndSetupCangJieProject
+import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.cjpm.project.model.guessAndSetupCangJieProject
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel

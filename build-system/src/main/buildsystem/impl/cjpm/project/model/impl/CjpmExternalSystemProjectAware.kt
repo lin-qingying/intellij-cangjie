@@ -22,10 +22,10 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
 
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
+import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.autoimport.*
 import com.intellij.openapi.externalSystem.model.ProjectSystemId

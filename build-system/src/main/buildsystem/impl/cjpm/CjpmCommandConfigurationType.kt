@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm
+package org.cangnova.cangjie.buildsystem.impl.cjpm
 
-import cn.cangnova.cangjie.icon.CangJieIcons
+import org.cangnova.cangjie.icon.CangJieIcons
 import com.intellij.execution.configurations.*
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NotNullLazyValue

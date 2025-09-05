@@ -22,13 +22,13 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.task
+package org.cangnova.cangjie.buildsystem.task
 
-import cn.cangnova.cangjie.buildsystem.CangJieBuildSystemBundle
-import cn.cangnova.cangjie.buildsystem.api.BuildMode
-import cn.cangnova.cangjie.buildsystem.api.CangJieBuildSystem
-import cn.cangnova.cangjie.buildsystem.api.CangJieCompileContext
-import cn.cangnova.cangjie.buildsystem.api.MessageLevel
+import org.cangnova.cangjie.buildsystem.CangJieBuildSystemBundle
+import org.cangnova.cangjie.buildsystem.api.BuildMode
+import org.cangnova.cangjie.buildsystem.api.CangJieBuildSystem
+import org.cangnova.cangjie.buildsystem.api.CangJieCompileContext
+import org.cangnova.cangjie.buildsystem.api.MessageLevel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger

@@ -22,18 +22,18 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
 
 
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.cjpm.CjpmConstants
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration.Companion.findCjpmProject
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandLine
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandRunner
-import cn.cangnova.cangjie.ide.run.cjpm.createCjpmCommandRunConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.cjpm.CjpmConstants
+import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration.Companion.findCjpmProject
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandLine
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandRunner
+import org.cangnova.cangjie.ide.run.cjpm.createCjpmCommandRunConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultRunExecutor

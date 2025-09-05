@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.runconfig
+package org.cangnova.cangjie.runconfig
 
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.roots.ProjectModelBuildableElement

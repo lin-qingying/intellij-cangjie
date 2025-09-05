@@ -22,28 +22,28 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
 
-import cn.cangnova.cangjie.cjpm.project.model.CjcInfo
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
-import cn.cangnova.cangjie.cjpm.project.workspace.StandardLibrary
+import org.cangnova.cangjie.cjpm.project.model.CjcInfo
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.workspace.CjpmWorkspace
+import org.cangnova.cangjie.cjpm.project.workspace.StandardLibrary
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject.UpdateStatus
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject.UpdateStatus.NeedsUpdate
-import cn.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject.UpdateStatus
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject.UpdateStatus.NeedsUpdate
+import org.cangnova.cangjie.configurable.services.CangJieLanguageServerServices
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KProperty
 
 // 获取是否启用新项目模型导入的值
 val isNewProjectModelImportEnabled: Boolean
-    get() = Registry.`is`("cn.cangnova.cangjie.cjpm.new.auto.import", false)
+    get() = Registry.`is`("org.cangnova.cangjie.cjpm.new.auto.import", false)
 
 
 // 定义CjpmProjectImpl类，实现CjpmProject接口

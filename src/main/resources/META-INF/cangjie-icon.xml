@@ -24,7 +24,7 @@
 
 <idea-plugin allow-bundled-update="true" xmlns:xi="http://www.w3.org/2001/XInclude">
     <extensions defaultExtensionNs="com.intellij">
-        <iconProvider implementation="cn.cangnova.cangjie.ide.CangJieIconProvider"/>
+        <iconProvider implementation="org.cangnova.cangjie.ide.CangJieIconProvider"/>
 
     </extensions>
 </idea-plugin>

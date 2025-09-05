@@ -22,9 +22,9 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
 
-import cn.cangnova.cangjie.icon.CangJieIcons
+import org.cangnova.cangjie.icon.CangJieIcons
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.target.LanguageRuntimeType
 import com.intellij.execution.target.TargetEnvironmentConfiguration

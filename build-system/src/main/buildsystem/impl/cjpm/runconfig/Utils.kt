@@ -23,12 +23,12 @@
  */
 
 @file:Suppress("UnstableApiUsage")
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig
 
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.utils.computeWithCancelableProgress
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.utils.computeWithCancelableProgress
 
-import cn.cangnova.cangjie.utils.isUnitTestMode
+import org.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessHandler
@@ -44,7 +44,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
 
-private val LOG: Logger = Logger.getInstance("cn.cangnova.cangjie.ide.run.cjpm.runconfig.Utils")
+private val LOG: Logger = Logger.getInstance("org.cangnova.cangjie.ide.run.cjpm.runconfig.Utils")
 
 
 

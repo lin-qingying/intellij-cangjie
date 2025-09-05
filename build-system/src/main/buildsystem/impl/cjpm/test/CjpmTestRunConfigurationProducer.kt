@@ -22,17 +22,17 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.test
+package org.cangnova.cangjie.buildsystem.impl.cjpm.test
 
-import cn.cangnova.cangjie.ide.run.CangJieRunConfigurationProducer
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType
-import cn.cangnova.cangjie.name.Name.Companion.identifier
-import cn.cangnova.cangjie.psi.CjMacroExpression
-import cn.cangnova.cangjie.psi.CjNamedDeclaration
-import cn.cangnova.cangjie.psi.CjNamedFunction
-import cn.cangnova.cangjie.psi.CjTypeStatement
-import cn.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
+import org.cangnova.cangjie.ide.run.CangJieRunConfigurationProducer
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfigurationType
+import org.cangnova.cangjie.name.Name.Companion.identifier
+import org.cangnova.cangjie.psi.CjMacroExpression
+import org.cangnova.cangjie.psi.CjNamedDeclaration
+import org.cangnova.cangjie.psi.CjNamedFunction
+import org.cangnova.cangjie.psi.CjTypeStatement
+import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.util.Ref

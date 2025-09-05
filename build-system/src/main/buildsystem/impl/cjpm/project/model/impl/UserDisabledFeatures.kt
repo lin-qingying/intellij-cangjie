@@ -22,12 +22,12 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model.impl
 
-import cn.cangnova.cangjie.cjpm.project.workspace.FeatureName
-import cn.cangnova.cangjie.cjpm.project.workspace.FeatureState
-import cn.cangnova.cangjie.cjpm.project.workspace.PackageFeature
-import cn.cangnova.cangjie.cjpm.project.workspace.PackageRoot
+import org.cangnova.cangjie.cjpm.project.workspace.FeatureName
+import org.cangnova.cangjie.cjpm.project.workspace.FeatureState
+import org.cangnova.cangjie.cjpm.project.workspace.PackageFeature
+import org.cangnova.cangjie.cjpm.project.workspace.PackageRoot
 
 
 abstract class UserDisabledFeatures {

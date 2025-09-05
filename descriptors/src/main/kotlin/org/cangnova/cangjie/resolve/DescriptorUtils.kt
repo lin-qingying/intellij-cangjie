@@ -688,3 +688,5 @@ fun ValueParameterDescriptor.declaresOrInheritsDefaultValue(): Boolean {
     )
 }
 
+val ClassDescriptor.secondaryConstructors: List<ClassConstructorDescriptor>
+    get() = constructors.filterNot { it.isPrimary }

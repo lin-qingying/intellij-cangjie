@@ -22,10 +22,10 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.workspace
 
-import cn.cangnova.cangjie.utils.FileUtils
-import cn.cangnova.cangjie.utils.FileUtils.getTopLevelDirectories
+import org.cangnova.cangjie.utils.FileUtils
+import org.cangnova.cangjie.utils.FileUtils.getTopLevelDirectories
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 

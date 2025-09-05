@@ -22,13 +22,13 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.toolwindow
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.toolwindow
 
 import com.intellij.ide.DefaultTreeExpander
 import com.intellij.ide.TreeExpander
-import cn.cangnova.cangjie.messages.CangJieBundle
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProject
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.cjpm.project.model.CjpmProject
+import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataKey
@@ -41,8 +41,8 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.ColorUtil
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.util.ui.UIUtil
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
-import cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService.CjpmProjectsListener
+import org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
+import org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService.CjpmProjectsListener
 import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
 import javax.swing.JEditorPane

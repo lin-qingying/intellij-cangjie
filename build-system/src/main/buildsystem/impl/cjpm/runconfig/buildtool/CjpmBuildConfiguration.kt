@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
+package org.cangnova.cangjie.buildsystem.impl.cjpm.runconfig.buildtool
 
-import cn.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
-import cn.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
+import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildConfiguration
+import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.CjpmBuildManager.isBuildToolWindowAvailable
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.roots.ProjectModelBuildableElement
 import com.intellij.openapi.roots.ProjectModelExternalSource

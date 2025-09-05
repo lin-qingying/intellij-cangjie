@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.runconfig
+package org.cangnova.cangjie.runconfig
 
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.LocatableConfigurationBase

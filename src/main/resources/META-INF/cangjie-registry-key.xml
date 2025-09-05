@@ -24,7 +24,7 @@
 
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
-        <registryKey key="cn.cangnova.cangjie.cjpm.new.auto.import"
+        <registryKey key="org.cangnova.cangjie.cjpm.new.auto.import"
                      defaultValue="true"
                      description="Enable new Cjpm project model reloading"
                      restartRequired="true"/>

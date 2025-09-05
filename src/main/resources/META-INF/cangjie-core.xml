@@ -3,53 +3,53 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- 1. 启动配置 -->
         <!-- 插件启动后执行的活动 -->
-        <postStartupActivity implementation="cn.cangnova.cangjie.CangJieStartupActivity"/>
+        <postStartupActivity implementation="org.cangnova.cangjie.CangJieStartupActivity"/>
 
         <!-- 2. 项目相关配置 -->
         <!-- 新项目向导 -->
         <newProjectWizard.languageGenerator
-                implementation="cn.cangnova.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
-        <directoryProjectGenerator implementation="cn.cangnova.cangjie.ide.newProject.CjDirectoryProjectGenerator"/>
+                implementation="org.cangnova.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
+        <directoryProjectGenerator implementation="org.cangnova.cangjie.ide.newProject.CjDirectoryProjectGenerator"/>
 
         <!-- 模块构建器 -->
         <moduleBuilder
-                builderClass="cn.cangnova.cangjie.ide.module.CangJieModuleBuilder"/>
+                builderClass="org.cangnova.cangjie.ide.module.CangJieModuleBuilder"/>
 
         <!-- 3. 项目设置配置 -->
         <!-- 主设置页面 -->
-        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieConfigurable"
+        <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieConfigurable"
                              groupId="language"
                              id="language.cangjie"
                              bundle="messages.CangJieBundle" key="CangJie"/>
         <!-- 语言服务器设置页面 -->
-        <!--        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieLanguageServerConfigurable"-->
+        <!--        <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieLanguageServerConfigurable"-->
         <!--                             parentId="language.cangjie"-->
         <!--                             groupId="language.cangjie"-->
         <!--                             id="language.cangjie.languageServer"-->
         <!--                             bundle="messages.CangJieBundle" key="CangJie.languageServer"/>-->
         <!-- LSP设置页面 -->
-        <!--        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieLspConfigurable"-->
+        <!--        <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieLspConfigurable"-->
         <!--                             parentId="language.cangjie.languageServer"-->
         <!--                             groupId="language.cangjie.languageServer"-->
         <!--                             id="language.cangjie.languageServer.lsp"-->
         <!--                             bundle="messages.CangJieBundle" key="CangJie.languageServer.lsp"/>-->
         <!-- AST分析器设置页面 -->
-        <!--        <projectConfigurable instance="cn.cangnova.cangjie.configurable.CangJieAstAnalyzerConfigurable"-->
+        <!--        <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieAstAnalyzerConfigurable"-->
         <!--                             parentId="language.cangjie.languageServer"-->
         <!--                             groupId="language.cangjie.languageServer"-->
         <!--                             id="language.cangjie.languageServer.ast"-->
         <!--                             bundle="messages.CangJieBundle" key="CangJie.languageServer.astanalyzer"/>-->
 
 
-<!--                <projectConfigurable instance="cn.cangnova.cangjie.configurable.BuildSystemConfigurable"-->
+<!--                <projectConfigurable instance="org.cangnova.cangjie.configurable.BuildSystemConfigurable"-->
 <!--                                     parentId="language.cangjie"-->
 <!--                                     groupId="language.cangjie.buildSystem"-->
 <!--                                     id="language.cangjie.buildSystem"-->
 <!--                                     bundle="messages.CangJieBundle" key="CangJie.buildSystem"/>-->
 
         <!-- 5. 服务注册 -->
-        <projectService serviceInterface="cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService"
-                        serviceImplementation="cn.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"/>
+        <projectService serviceInterface="org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService"
+                        serviceImplementation="org.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"/>
     </extensions>
 
 

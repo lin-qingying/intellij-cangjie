@@ -22,7 +22,7 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.project.model
+package org.cangnova.cangjie.buildsystem.impl.cjpm.project.model
 
 import com.intellij.build.events.BuildEventsNls
 import com.intellij.execution.process.ProcessListener

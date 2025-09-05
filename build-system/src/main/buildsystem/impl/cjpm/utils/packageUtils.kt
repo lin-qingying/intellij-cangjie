@@ -22,11 +22,11 @@
  *
  */
 
-package cn.cangnova.cangjie.buildsystem.impl.cjpm.utils
+package org.cangnova.cangjie.buildsystem.impl.cjpm.utils
 
-import cn.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import cn.cangnova.cangjie.name.FqName
-import cn.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.name.Name
 import kotlin.io.path.Path
 
 import com.intellij.psi.PsiDirectory

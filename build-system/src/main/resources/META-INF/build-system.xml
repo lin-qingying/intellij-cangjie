@@ -25,18 +25,18 @@
 <idea-plugin>
     <extensionPoints>
         <extensionPoint name="buildSystem"
-                        qualifiedName="cn.cangnova.cangjie.buildSystem"
-                        interface="cn.cangnova.cangjie.buildsystem.api.CangJieBuildSystem"
+                        qualifiedName="org.cangnova.cangjie.buildSystem"
+                        interface="org.cangnova.cangjie.buildsystem.api.CangJieBuildSystem"
                         dynamic="true"/>
     </extensionPoints>
 
-    <extensions defaultExtensionNs="cn.cangnova.cangjie">
-<!--        <buildSystem implementation="cn.cangnova.cangjie.buildsystem.impl.cjc.CjcBuildSystem"/>-->
-        <buildSystem implementation="cn.cangnova.cangjie.buildsystem.impl.cjpm.CjpmBuildSystem"/>
+    <extensions defaultExtensionNs="org.cangnova.cangjie">
+<!--        <buildSystem implementation="org.cangnova.cangjie.buildsystem.impl.cjc.CjcBuildSystem"/>-->
+        <buildSystem implementation="org.cangnova.cangjie.buildsystem.impl.cjpm.CjpmBuildSystem"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
         <projectTaskRunner
-                implementation="cn.cangnova.cangjie.buildsystem.task.CangJieBuildTaskRunner"/>
+                implementation="org.cangnova.cangjie.buildsystem.task.CangJieBuildTaskRunner"/>
 
 
     </extensions>
