@@ -358,7 +358,7 @@ abstract class DeserializedMemberScope protected constructor(
         private fun computeFunctions(name: Name) =
             computeDescriptors(
                 functionDecls[name] ?: emptyList(),
-                { c.declarationDeserializer.loadFunction(it).takeIf(::isDeclaredFunctionAvailable) },
+                { c.declDeserializer.loadFunction(it).takeIf(::isDeclaredFunctionAvailable) },
                 { computeNonDeclaredFunctions(name, it) }
             )
 
@@ -384,7 +384,7 @@ abstract class DeserializedMemberScope protected constructor(
         private fun computeVariables(name: Name) =
             computeDescriptors(
                 variableDecls[name] ?: emptyList(),
-                { c.declarationDeserializer.loadVariable(it) },
+                { c.declDeserializer.loadVariable(it) },
                 { computeNonDeclaredVariables(name, it) }
             )
 
@@ -400,7 +400,7 @@ abstract class DeserializedMemberScope protected constructor(
         private fun computeProperties(name: Name) =
             computeDescriptors(
                 propertyDecls[name] ?: emptyList(),
-                { c.declarationDeserializer.loadProperty(it) },
+                { c.declDeserializer.loadProperty(it) },
                 { computeNonDeclaredProperties(name, it) }
             )
 
@@ -416,7 +416,7 @@ abstract class DeserializedMemberScope protected constructor(
         private fun createTypeAlias(name: Name): TypeAliasDescriptor? {
             val decls = typeAliases[name] ?: return null
             val decl = decls.firstOrNull() ?: return null
-            return c.declarationDeserializer.loadTypeAlias(decl)
+            return c.declDeserializer.loadTypeAlias(decl)
         }
 
         /**
@@ -431,7 +431,7 @@ abstract class DeserializedMemberScope protected constructor(
         private fun createClasss(name: Name): ClassDescriptor? {
             val decls = classs[name] ?: return null
             val decl = decls.firstOrNull() ?: return null
-            return c.declarationDeserializer.loadClass(decl)
+            return c.declDeserializer.loadClass(decl)
         }
 
         override fun getContributedFunctions(
@@ -961,7 +961,7 @@ abstract class DeserializedMemberScope protected constructor(
         private inline fun <K : MemberDescriptor> List<Decl>.mapWithDeserializer(
             deserialize: DeclarationDeserializer.(Decl) -> K?
         ): List<K> {
-            return mapNotNull { c.declarationDeserializer.deserialize(it) }
+            return mapNotNull { c.declDeserializer.deserialize(it) }
         }
     }
 

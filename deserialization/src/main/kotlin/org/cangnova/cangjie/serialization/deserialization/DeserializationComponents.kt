@@ -24,8 +24,6 @@
 
 package org.cangnova.cangjie.serialization.deserialization
 
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer
-import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.NotFoundClasses
@@ -33,9 +31,10 @@ import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
 import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
+import org.cangnova.cangjie.metadata.deserialization.DeclTable
 import org.cangnova.cangjie.metadata.deserialization.TypeTable
 import org.cangnova.cangjie.metadata.model.Package
-import org.cangnova.cangjie.name.ClassId
+import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.DefaultTypeAttributeTranslator
@@ -115,8 +114,8 @@ class DeserializationComponents(
         containerSource: DeserializedContainerSource?
     ): DeserializationContext =
         DeserializationContext(
-            this, descriptor,  `package`, metadataVersion, containerSource,
-//            parentTypeDeserializer = null/*, typeParameters = listOf()*/
+            this, descriptor, `package`, metadataVersion, containerSource,
+            parentTypeDeserializer = null/*, typeParameters = listOf()*/
         )
 }
 
@@ -147,20 +146,21 @@ class DeserializationContext(
 
     val metadataVersion: BinaryVersion,
     val containerSource: DeserializedContainerSource?,
-//    parentTypeDeserializer: TypeDeserializer?,
+    parentTypeDeserializer: TypeDeserializer?,
 //    typeParameters: List<TypeParameter>
 ) {
-//        val typeDeserializer: TypeDeserializer = TypeDeserializer(
-//        this, parentTypeDeserializer, typeParameters,
-//        "Deserializer for \"${containingDeclaration.name}\"",
-//        containerSource?.presentableString ?: "[container not found]"
-//    )
+    val typeDeserializer: TypeDeserializer = TypeDeserializer(
+        this, parentTypeDeserializer,
+        "Deserializer for \"${containingDeclaration.name}\"",
+        containerSource?.presentableString ?: "[container not found]"
+    )
 
-    val declarationDeserializer: DeclarationDeserializer = DeclarationDeserializer(this)
+    val declDeserializer: DeclarationDeserializer = DeclarationDeserializer(this)
     val typeTable: TypeTable = TypeTable(`package`.types)
+    val declType = DeclTable(`package`.decls)
 
-    //
     val storageManager: StorageManager get() = components.storageManager
+    val builtIns = containingDeclaration.builtIns
 
     //
     fun childContext(
@@ -174,7 +174,7 @@ class DeserializationContext(
 
         `package`,
         metadataVersion, this.containerSource,
-//        parentTypeDeserializer = this.typeDeserializer,
+        parentTypeDeserializer = this.typeDeserializer,
     )
 }
 

@@ -129,6 +129,7 @@ class FqName {
         return fqName.hashCode()
     }
 
+
     companion object {
         @JvmField
         val ROOT: FqName = FqName("")
@@ -140,6 +141,7 @@ class FqName {
         fun topLevel(shortName: Name): FqName {
             return FqName(FqNameUnsafe.topLevel(shortName))
         }
+
 
         @JvmStatic
         fun fromString(fqName: String): FqName {
@@ -154,3 +156,4 @@ class FqName {
         }
     }
 }
+

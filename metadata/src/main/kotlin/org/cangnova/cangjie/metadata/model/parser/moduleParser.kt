@@ -24,7 +24,7 @@ fun ByteArrayInputStream.toPackage(): org.cangnova.cangjie.metadata.model.Packag
 }
 
 fun org.cangnova.cangjie.metadata.PackageFormat.Package.parser(): org.cangnova.cangjie.metadata.model.Package {
-
+//TODO 低版本可能没有fullPkgName
     return org.cangnova.cangjie.metadata.model.Package(
         cjcVersion = this.version ?: "0.0.0",
         cjoVersion = this.cjoVersion?.toBinaryVersion() ?: BuiltInsBinaryVersion.INSTANCE,

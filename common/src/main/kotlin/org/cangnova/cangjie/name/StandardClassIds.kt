@@ -25,18 +25,18 @@
 package org.cangnova.cangjie.name
 
 import org.cangnova.cangjie.builtins.StandardNames
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.arrayFqName
 
 
 object StandardClassIds {
     val BASE_CANGJIE_PACKAGE = FqName("cangjie")
     val BASE_STD_PACKAGE = FqName("std")
-    val BASE_STD_CORE_PACKAGE =  BASE_STD_PACKAGE.child( Name.identifier("core"))
+    val BASE_STD_CORE_PACKAGE = BASE_STD_PACKAGE.child(Name.identifier("core"))
 
 
+    val BASE_STD_PACKAGES = setOf(BASE_STD_PACKAGE, BASE_STD_CORE_PACKAGE)
 
-    val BASE_STD_PACKAGES = setOf(BASE_STD_PACKAGE,BASE_STD_CORE_PACKAGE)
-
-    val builtInsPackagesWithDefaultNamedImport:Set<FqName> = setOf(
+    val builtInsPackagesWithDefaultNamedImport: Set<FqName> = setOf(
 
     )
 
@@ -46,20 +46,16 @@ object StandardClassIds {
     )
 
 
-
     fun byName(name: String) = name.baseId()
 
 
-
-
     @Suppress("FunctionName")
-    fun FunctionN(n: Int):  ClassId {
+    fun FunctionN(n: Int): ClassId {
         return "Function$n".baseId()
     }
 
 
-
-
+    val ArrayClassId = arrayFqName.toClassId()
 
 
     object Annotations {
@@ -73,4 +69,5 @@ object StandardClassIds {
 
 
 }
+
 private fun String.baseId() = ClassId(StandardClassIds.BASE_CANGJIE_PACKAGE, Name.identifier(this))

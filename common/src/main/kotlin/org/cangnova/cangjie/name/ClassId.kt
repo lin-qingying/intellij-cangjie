@@ -151,3 +151,5 @@ data class ClassId(
         }
     }
 }
+
+fun FqName.toClassId(): ClassId = ClassId.topLevel(this)

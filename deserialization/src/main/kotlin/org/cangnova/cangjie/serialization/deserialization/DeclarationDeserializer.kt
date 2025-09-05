@@ -32,6 +32,7 @@ import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptorImpl
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.*
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedClassDescriptor
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.error.ErrorClassDescriptor
@@ -75,6 +76,9 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
     }
 
     fun loadClass(decl: Decl): ClassDescriptor? {
+
+        DeserializedClassDescriptor
+
         return ErrorClassDescriptor()
     }
 
@@ -103,8 +107,8 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
     }
 
     fun loadFunction(decl: Decl): SimpleFunctionDescriptor {
-        if (decl.kind != DeclKind.FuncDecl) error("Expected function, but $decl found")
-
+        assert(decl.kind == DeclKind.FuncDecl) { "Expected function, but $decl found" }
+        val info = (decl.info as DeclInfo.Func).info
 
         val annotations = getAnnotations(decl.annotations)
 
@@ -123,12 +127,39 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
 
         val local = c.childContext(function)
         function.initializeWithCoroutinesExperimentalityStatus(
-
+            unsubstitutedValueParameters = local.declDeserializer.valueParameters(c.declType.get(info.funcBody.params)),
+            unsubstitutedReturnType = local.typeDeserializer.type(c.typeTable.get(info.funcBody.retType)),
             userDataMap = emptyMap()
         )
 
 //        function.isOperator =
 
         return function
+    }
+
+
+    private fun valueParameters(
+        valueParameters: List<Decl>,
+
+        ): List<ValueParameterDescriptor> {
+        if (valueParameters.isEmpty()) return emptyList()
+        assert(valueParameters.any { it.kind == DeclKind.FuncParam }) { "Expected value parameters, but $valueParameters found" }
+        val callableDescriptor = c.containingDeclaration as CallableDescriptor
+
+        return valueParameters.mapIndexed { i, decl ->
+
+            val info = (decl.info as DeclInfo.Param).info
+            ValueParameterDescriptorImpl(
+                callableDescriptor, null, i,
+                getAnnotations(decl.annotations),
+                decl.name, info.isNamedParam,
+                c.typeDeserializer.type(c.typeTable.get(decl.type)),
+
+                info.defaultVal != 0,
+                SourceElement.NO_SOURCE
+            )
+
+
+        }.toList()
     }
 }

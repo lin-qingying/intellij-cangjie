@@ -34,7 +34,7 @@ class PackageFragmentProviderImpl(
         fqName: FqName,
         packageFragments: MutableCollection<PackageFragmentDescriptor>
     ) {
-        this.packageFragments.filterTo(packageFragments.toMutableList()) { it.fqName == fqName }
+        this.packageFragments.filterTo(packageFragments ) { it.fqName == fqName }
 
     }
 

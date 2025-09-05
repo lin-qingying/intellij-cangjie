@@ -675,7 +675,10 @@ data class FuncBody(
     val body: Int,
     val always: Boolean,
     val captureKind: UByte
-)
+){
+    val params: List<Int> = paramLists.flatMap { it.params }
+    val desugars: List<Int> = paramLists.flatMap { it.desugars }
+}
 
 /**
  * // 函数信息表
