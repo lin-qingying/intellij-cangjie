@@ -40,8 +40,14 @@ class TypeTable(val types: List<SemaTy>) {
      * @param index 索引
      * @return 对应索引的类型
      */
-    operator fun get(index: Int) = types[index]
+    operator fun get(index: Int): SemaTy {
+        if (index == 0) error("Index must be non-zero")
+        return types[index - 1]
+    }
 
+    operator fun get(index: UInt): SemaTy {
+        return this[index.toInt()]
+    }
 
     /**
      * 根据TypeKind分组

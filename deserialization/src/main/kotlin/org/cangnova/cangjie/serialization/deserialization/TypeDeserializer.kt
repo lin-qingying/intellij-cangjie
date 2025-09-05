@@ -25,10 +25,30 @@
 package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.descriptors.*
-
+import org.cangnova.cangjie.descriptors.annotations.Annotations
+import org.cangnova.cangjie.metadata.model.*
+import org.cangnova.cangjie.metadata.deserialization.TypeTable
+import org.cangnova.cangjie.name.ClassId
+import org.cangnova.cangjie.name.StandardClassIds.ArrayClassId
+import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.CangJieTypeFactory
+import org.cangnova.cangjie.types.ErrorUtils
+import org.cangnova.cangjie.types.SimpleType
+import org.cangnova.cangjie.types.TypeAttributeTranslator
+import org.cangnova.cangjie.types.TypeAttributes
+import org.cangnova.cangjie.types.*
+import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeProjectionImpl
+import org.cangnova.cangjie.types.builtIns
+import org.cangnova.cangjie.types.createFunctionType
+import org.cangnova.cangjie.types.error.ErrorTypeKind
+import org.cangnova.cangjie.types.getContextReceiverTypesFromFunctionType
+import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
+import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
+import org.cangnova.cangjie.types.isFunctionType
 
 /**
- * 类型反序列化器，负责将ProtoBuf格式的类型信息转换为CangJieType对象。
+ * 类型反序列化器，负责将flatbuffer格式的类型信息转换为CangJieType对象。
  *
  * 该类是CangJie语言反序列化系统的核心组件，处理以下类型的反序列化：
  * - 类和接口类型
@@ -41,55 +61,49 @@ import org.cangnova.cangjie.descriptors.*
  *
  * @param c 反序列化上下文，提供必要的反序列化组件和配置
  * @param parent 父类型反序列化器，用于处理嵌套作用域中的类型参数
- * @param typeParameterProtos 类型参数原型列表，定义当前作用域中的类型参数
+ * @param generic 泛型信息，定义当前作用域中的类型参数和约束
  * @param debugName 调试名称，用于日志和调试输出
  * @param containerPresentableName 容器的可展示名称，用于错误消息和调试信息
  */
 class TypeDeserializer(
     private val c: DeserializationContext,
     private val parent: TypeDeserializer?,
-    typeParameterProtos: List<ProtoBuf.TypeParameter>,
+//    generic: Generic?,
     private val debugName: String,
     private val containerPresentableName: String
 ) {
-    /**
-     * 类描述符缓存，根据类名索引缓存已解析的类描述符。
-     *
-     * 使用memoized函数实现延迟加载和缓存，避免重复解析相同的类名。
-     * 返回null表示找不到对应的类描述符。
-     */
-    private val classifierDescriptors: (Int) -> ClassifierDescriptor? =
-        c.storageManager.createMemoizedFunctionWithNullableValues { fqNameIndex ->
-            computeClassifierDescriptor(fqNameIndex)
+    private val classifierDescriptors: (ClassId) -> ClassifierDescriptor? =
+        c.storageManager.createMemoizedFunctionWithNullableValues { id ->
+            computeClassifierDescriptor(id)
         }
 
-    /**
-     * 类型别名描述符缓存，根据类型别名索引缓存已解析的类型别名描述符。
-     *
-     * 使用memoized函数实现延迟加载和缓存，避免重复解析相同的类型别名。
-     * 返回null表示找不到对应的类型别名描述符。
-     */
-    private val typeAliasDescriptors: (Int) -> ClassifierDescriptor? =
-        c.storageManager.createMemoizedFunctionWithNullableValues { fqNameIndex ->
-            computeTypeAliasDescriptor(fqNameIndex)
-        }
+    private fun computeClassifierDescriptor(id: ClassId): ClassifierDescriptor? {
+
+//        if (id.isLocal) {
+//            // Local classes can't be found in scopes
+//            return c.components.deserializeClass(id)
+//        }
+        return c.components.moduleDescriptor.findClassifierAcrossModuleDependencies(id)
+    }
 
     /**
      * 类型参数描述符映射，将类型参数ID映射到对应的类型参数描述符。
      *
-     * 根据ProtoBuf中的类型参数原型创建对应的类型参数描述符，
+     * 根据Generic中的类型参数信息创建对应的类型参数描述符，
      * 用于处理泛型类型中的类型参数引用。
      */
-    private val typeParameterDescriptors: Map<Int, TypeParameterDescriptor> =
-        if (typeParameterProtos.isEmpty()) {
-            emptyMap()
-        } else {
-            val result = LinkedHashMap<Int, TypeParameterDescriptor>()
-            for ((index, proto) in typeParameterProtos.withIndex()) {
-                result[proto.id] = DeserializedTypeParameterDescriptor(c, proto, index)
-            }
-            result
-        }
+    private val typeParameterDescriptors: Map<Int, TypeParameterDescriptor> = emptyMap()
+//        if (generic?.typeParameters?.isEmpty() != false) {
+//            emptyMap()
+//        } else {
+//            val result = LinkedHashMap<Int, TypeParameterDescriptor>()
+//            for ((index, typeParameterId) in generic.typeParameters.withIndex()) {
+//                // Find corresponding constraint for this type parameter
+//                val constraint = generic.constraints.find { it.type.toInt() == typeParameterId }
+//                result[typeParameterId] = DeserializedTypeParameterDescriptor(c, typeParameterId, index, constraint)
+//            }
+//            result
+//        }
 
     /**
      * 当前作用域中定义的所有类型参数列表。
@@ -100,32 +114,23 @@ class TypeDeserializer(
         get() = typeParameterDescriptors.values.toList()
 
     /**
-     * 将ProtoBuf类型转换为CangJieType对象。
-     * 
-     * 这是类型反序列化的主入口方法，处理以下情况：
-     * - 灵活类型（Flexible Type）：具有上下界的类型
-     * - 简单类型：通过simpleType方法处理
-     * 
-     * @param proto ProtoBuf格式的类型定义
+     * 将SemaTy类型转换为CangJieType对象。
+     *
+     * 这是类型反序列化的主入口方法，处理各种类型的转换。
+     *
+     * @param semaTy flatbuffer格式的语义类型定义
      * @return 转换后的CangJieType对象
      */
     // TODO: don't load identical types from TypeTable more than once
-    fun type(proto: ProtoBuf.Type): CangJieType {
-        if (proto.hasFlexibleTypeCapabilitiesId()) {
-            val id = c.nameResolver.getString(proto.flexibleTypeCapabilitiesId)
-            val lowerBound = simpleType(proto)
-            val upperBound = simpleType(proto.flexibleUpperBound(c.typeTable)!!)
-            return c.components.flexibleTypeDeserializer.create(proto, id, lowerBound, upperBound)
-        }
-
-        return simpleType(proto, expandTypeAliases = true)
+    fun type(semaTy: SemaTy): CangJieType {
+        return simpleType(semaTy, expandTypeAliases = true)
     }
 
     /**
      * 将类型注解转换为类型属性。
-     * 
+     *
      * 这个扩展函数将类型注解列表转换为类型属性集合，用于构建类型时附加元数据。
-     * 
+     *
      * @param annotations 类型的注解集合
      * @param constructor 类型构造器
      * @param containingDeclaration 包含该类型的声明描述符
@@ -143,30 +148,21 @@ class TypeDeserializer(
     }
 
     /**
-     * 将ProtoBuf类型转换为SimpleType对象。
-     * 
+     * 将SemaTy类型转换为SimpleType对象。
+     *
      * 处理各种类型的反序列化，包括：
-     * - 本地类型替换
+     * - 基本类型处理
      * - 类型构造器解析
      * - 类型参数处理
      * - 类型别名展开
-     * - 挂起函数类型处理
-     * - 非空类型处理
-     * 
-     * @param proto ProtoBuf格式的类型定义
+     * - 函数类型处理
+     *
+     * @param semaTy flatbuffer格式的语义类型定义
      * @param expandTypeAliases 是否展开类型别名，默认为true
      * @return 转换后的SimpleType对象
      */
-    fun simpleType(proto: ProtoBuf.Type, expandTypeAliases: Boolean = true): SimpleType {
-        val localClassifierType = when {
-            proto.hasClassName() -> computeLocalClassifierReplacementType(proto.className)
-            proto.hasTypeAliasName() -> computeLocalClassifierReplacementType(proto.typeAliasName)
-            else -> null
-        }
-
-        if (localClassifierType != null) return localClassifierType
-
-        val constructor = typeConstructor(proto)
+    fun simpleType(semaTy: SemaTy, expandTypeAliases: Boolean = true): SimpleType {
+        val constructor = typeConstructor(semaTy)
         if (ErrorUtils.isError(constructor.declarationDescriptor)) {
             return ErrorUtils.createErrorType(
                 ErrorTypeKind.TYPE_FOR_ERROR_TYPE_CONSTRUCTOR,
@@ -175,73 +171,60 @@ class TypeDeserializer(
             )
         }
 
-        val annotations = DeserializedAnnotations(c.storageManager) {
-            c.components.annotationAndConstantLoader.loadTypeAnnotations(proto, c.nameResolver)
+        // For now, use empty annotations since the new model doesn't have annotation loading yet
+        val annotations = Annotations.EMPTY
+        val attributes = TypeAttributes.Empty
+
+        // Convert type arguments from indices to TypeProjection objects
+        val arguments = semaTy.typeArgs.mapIndexed { index, typeIndex ->
+            val typeArg = c.typeTable[typeIndex]
+            TypeProjectionImpl(type(typeArg))
         }
-
-        val attributes =
-            c.components.typeAttributeTranslators.toAttributes(annotations, constructor, c.containingDeclaration)
-
-        fun ProtoBuf.Type.collectAllArguments(): List<ProtoBuf.Type.Argument> =
-            argumentList + outerType(c.typeTable)?.collectAllArguments().orEmpty()
-
-        val arguments = proto.collectAllArguments().mapIndexed { index, argumentProto ->
-            typeArgument(constructor.parameters.getOrNull(index), argumentProto)
-        }.toList()
 
         val declarationDescriptor = constructor.declarationDescriptor
 
         val simpleType = when {
             expandTypeAliases && declarationDescriptor is TypeAliasDescriptor -> {
                 val expandedType = with(CangJieTypeFactory) { declarationDescriptor.computeExpandedType(arguments) }
-                val expandedAttributes = c.components.typeAttributeTranslators.toAttributes(
-                    Annotations.create(annotations + expandedType.annotations),
-                    constructor,
-                    c.containingDeclaration
-                )
-                expandedType
-                    .makeOptionalAsSpecified(expandedType.isNullable() || proto.nullable)
-                    .replaceAttributes(expandedAttributes)
+                expandedType.replaceAttributes(attributes)
             }
 
-            Flags.SUSPEND_TYPE.get(proto.flags) ->
-                createSuspendFunctionType(attributes, constructor, arguments, proto.nullable)
+            semaTy.kind == TypeKind.Func -> {
+                // Handle function types
+                val nullable = false // TODO: Extract nullability from semaTy
+                CangJieTypeFactory.simpleType(attributes, constructor, arguments, nullable)
+            }
 
-            else ->
-                CangJieTypeFactory.simpleType(attributes, constructor, arguments, proto.nullable).let {
-                    if (Flags.DEFINITELY_NOT_NULL_TYPE.get(proto.flags))
-                        DefinitelyNotNullType.makeDefinitelyNotNull(it, useCorrectedNullabilityForTypeParameters = true)
-                            ?: error("null DefinitelyNotNullType for '$it'")
-                    else
-                        it
-                }
+            else -> {
+                val nullable = false // TODO: Extract nullability from semaTy  
+                CangJieTypeFactory.simpleType(attributes, constructor, arguments, nullable)
+            }
         }
 
-        val computedType = proto.abbreviatedType(c.typeTable)?.let {
-            // The abbreviation type is expected to be a typealias, and it should not get expanded, we need to keep it
-            simpleType.withAbbreviation(simpleType(it, expandTypeAliases = false))
-        } ?: simpleType
-
-        return computedType
+        return simpleType
     }
 
     /**
-     * 从ProtoBuf类型中提取类型构造器。
-     * 
-     * 根据ProtoBuf类型中的信息，解析并返回对应的类型构造器。处理以下情况：
-     * - 类名引用：解析为类描述符的类型构造器
-     * - 类型参数引用：解析为类型参数的类型构造器
-     * - 类型别名引用：解析为类型别名的类型构造器
-     * - 未找到的类：创建占位符类描述符
-     * 
-     * @param proto ProtoBuf格式的类型定义
+     * 从SemaTy类型中提取类型构造器。
+     *
+     * 根据SemaTy类型中的信息，解析并返回对应的类型构造器。处理以下情况：
+     * - 基本类型：返回内置类型构造器
+     * - 复合类型：解析为类描述符的类型构造器
+     * - 泛型类型：解析为类型参数的类型构造器
+     * - 函数类型：返回函数类型构造器
+     *
+     * @param semaTy flatbuffer格式的语义类型定义
      * @return 对应的类型构造器
      */
-    private fun typeConstructor(proto: ProtoBuf.Type): TypeConstructor {
-        fun notFoundClass(classIdIndex: Int): ClassDescriptor {
-            val classId = c.nameResolver.getClassId(classIdIndex)
+    private fun typeConstructor(semaTy: SemaTy): TypeConstructor {
+
+
+        fun notFoundClass(classId: ClassId): ClassDescriptor {
+
             val typeParametersCount =
-                generateSequence(proto) { it.outerType(c.typeTable) }.map { it.argumentCount }.toMutableList()
+                listOf(semaTy)  .map { it.typeArgs.size }.toMutableList()
+
+//                generateSequence(semaTy) { it/*.outerType(c.typeTable)*/ }.map { it.typeArgs.size }.toMutableList()
             val classNestingLevel = generateSequence(classId, ClassId::outerClassId).count()
             while (typeParametersCount.size < classNestingLevel) {
                 typeParametersCount.add(0)
@@ -249,42 +232,102 @@ class TypeDeserializer(
             return c.components.notFoundClasses.getClass(classId, typeParametersCount)
         }
 
-        val classifier = when {
-            proto.hasClassName() ->
-                classifierDescriptors(proto.className) ?: notFoundClass(proto.className)
+        return when (semaTy.kind) {
+            // 基本类型
+            TypeKind.Unit -> c.builtIns.unitType.constructor
+            TypeKind.Bool -> c.builtIns.boolType.constructor
+            TypeKind.Int8 -> c.builtIns.int8Type.constructor
+            TypeKind.Int16 -> c.builtIns.int16Type.constructor
+            TypeKind.Int32 -> c.builtIns.int32Type.constructor
+            TypeKind.Int64 -> c.builtIns.int64Type.constructor
+            TypeKind.IntNative ->
+                c.builtIns.intNativeType.constructor
 
-            proto.hasTypeParameter() ->
-                loadTypeParameter(proto.typeParameter)
-                    ?: return ErrorUtils.createErrorTypeConstructor(
-                        ErrorTypeKind.CANNOT_LOAD_DESERIALIZE_TYPE_PARAMETER,
-                        proto.typeParameter.toString(),
-                        containerPresentableName
-                    )
+            TypeKind.UInt8 -> c.builtIns.uint8Type.constructor
+            TypeKind.UInt16 -> c.builtIns.uint16Type.constructor
+            TypeKind.UInt32 -> c.builtIns.uint32Type.constructor
+            TypeKind.UInt64 -> c.builtIns.uint64Type.constructor
+            TypeKind.UIntNative ->
+                c.builtIns.uintNativeType.constructor // TODO: Add unsigned int support
+            TypeKind.Float16 -> c.builtIns.float16Type.constructor
+            TypeKind.Float32 -> c.builtIns.float32Type.constructor
+            TypeKind.Float64 ->
+                c.builtIns.float64Type.constructor
 
-            proto.hasTypeParameterName() -> {
-                val name = c.nameResolver.getString(proto.typeParameterName)
-                ownTypeParameters.find { it.name.asString() == name }
-                    ?: return ErrorUtils.createErrorTypeConstructor(
-                        ErrorTypeKind.CANNOT_LOAD_DESERIALIZE_TYPE_PARAMETER_BY_NAME,
-                        name,
-                        c.containingDeclaration.toString()
-                    )
+            TypeKind.Rune -> c.builtIns.runeType.constructor
+            TypeKind.Nothing -> c.builtIns.nothingType.constructor
+
+//如果是Array，说明该包是std.core，那么Array的声明只会在同一包中出现，所以直接在本包中查找声明，通过name的方法
+            TypeKind.Array -> {
+                val info = (semaTy.info as SemaTyInfo.Array).info
+                (classifierDescriptors(ArrayClassId) ?: notFoundClass(ArrayClassId)).typeConstructor
             }
 
-            proto.hasTypeAliasName() ->
-                typeAliasDescriptors(proto.typeAliasName) ?: notFoundClass(proto.typeAliasName)
+            // 复合类型 (Class, Interface, Struct, Enum)
+           TypeKind.Class, TypeKind.Interface, TypeKind.Struct, TypeKind.Enum -> {
+                when (val info = semaTy.info) {
 
-            else -> return ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+
+                    else -> ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+                }
+            }
+//
+//            // 泛型类型
+//            TypeKind.Generic -> {
+//                when (val info = semaTy.info) {
+//                    is SemaTyInfo.Generic -> {
+//                        if (info.info.declPtr != null) {
+//                            val decl = c.declResolver.resolve(info.info.declPtr)
+//                            (decl as? ClassifierDescriptor)?.typeConstructor
+//                                ?: ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+//                        } else {
+//                            // 可能是类型参数引用
+//                            ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+//                        }
+//                    }
+//
+//                    else -> ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+//                }
+//            }
+
+            // 函数类型
+            TypeKind.Func -> {
+                when (val info = semaTy.info) {
+                    is SemaTyInfo.Func -> {
+                        val arity = semaTy.typeArgs.size - 1 // 减去返回类型
+                        if (arity >= 0) {
+                            c.builtIns.getFunction(arity).typeConstructor
+                        } else {
+                            ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+                        }
+                    }
+
+                    else -> ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+                }
+            }
+
+            // 数组类型
+//            TypeKind.VArray -> {
+//                c.builtIns.array.typeConstructor
+//            }
+
+            // 元组类型
+            TypeKind.Tuple -> {
+                // TODO: 实现元组类型支持
+                ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+            }
+
+            // 其他类型
+            else -> ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
         }
-        return classifier.typeConstructor
     }
 
     /**
      * 创建挂起函数类型。
-     * 
+     *
      * 根据提供的类型属性、函数类型构造器和类型参数，创建表示挂起函数的类型。
      * 处理不同版本编译器生成的挂起函数类型格式。
-     * 
+     *
      * @param attributes 类型属性
      * @param functionTypeConstructor 函数类型构造器
      * @param arguments 类型参数列表
@@ -323,9 +366,9 @@ class TypeDeserializer(
 
     /**
      * 为基本情况创建挂起函数类型。
-     * 
+     *
      * 处理标准情况下的挂起函数类型创建，验证类型是否为函数类型。
-     * 
+     *
      * @param attributes 类型属性
      * @param functionTypeConstructor 函数类型构造器
      * @param arguments 类型参数列表
@@ -366,10 +409,10 @@ class TypeDeserializer(
 
     /**
      * 创建简单的挂起函数类型。
-     * 
+     *
      * 从现有函数类型和挂起返回类型创建挂起函数类型。
      * 处理挂起函数的特殊返回类型转换。
-     * 
+     *
      * @param funType 原始函数类型
      * @param suspendReturnType 挂起函数的返回类型
      * @return 创建的挂起函数类型
@@ -383,20 +426,20 @@ class TypeDeserializer(
             funType.annotations,
             funType.getReceiverTypeFromFunctionType(),
             funType.getContextReceiverTypesFromFunctionType(),
-            funType.getValueParameterTypesFromFunctionType().dropLast(1).map(TypeProjection::getType),
+            funType.getValueParameterTypesFromFunctionType().dropLast(1).map(TypeProjection::type),
             // TODO: names
             null,
             suspendReturnType,
 
-            ).makeOptionalAsSpecified(funType.isMarkedOption)
+            ).makeOptionAsSpecified(funType.isOption)
     }
 
     /**
      * 加载类型参数描述符。
-     * 
+     *
      * 根据类型参数ID查找对应的类型参数描述符。首先在当前作用域查找，
      * 如果未找到则在父作用域中继续查找。
-     * 
+     *
      * @param typeParameterId 类型参数ID
      * @return 找到的类型参数描述符，未找到则返回null
      */
@@ -404,91 +447,10 @@ class TypeDeserializer(
         typeParameterDescriptors[typeParameterId] ?: parent?.loadTypeParameter(typeParameterId)
 
     /**
-     * 计算分类器描述符。
-     * 
-     * 根据全限定名索引查找对应的分类器描述符。处理本地类和跨模块依赖的类。
-     * 
-     * @param fqNameIndex 全限定名索引
-     * @return 找到的分类器描述符，未找到则返回null
-     */
-    private fun computeClassifierDescriptor(fqNameIndex: Int): ClassifierDescriptor? {
-        val id = c.nameResolver.getClassId(fqNameIndex)
-        if (id.isLocal) {
-            // Local classes can't be found in scopes
-            return c.components.deserializeClass(id)
-        }
-        return c.components.moduleDescriptor.findClassifierAcrossModuleDependencies(id)
-    }
-
-    /**
-     * 计算本地分类器的替代类型。
-     * 
-     * 对于本地类，返回配置的替代类型。这通常用于处理无法直接序列化的本地类。
-     * 
-     * @param className 类名索引
-     * @return 本地分类器的替代类型，如果不是本地类则返回null
-     */
-    private fun computeLocalClassifierReplacementType(className: Int): SimpleType? {
-        if (c.nameResolver.getClassId(className).isLocal) {
-            return c.components.localClassifierTypeSettings.replacementTypeForLocalClassifiers
-        }
-        return null
-    }
-
-    /**
-     * 创建类型反序列化器函数，用于将ProtoBuf类型转换为Kotlin类型。
-     *
-     * @param typeTable 类型表，用于解析类型引用
-     * @return 类型反序列化函数，接收ProtoBuf类型并返回对应的Kotlin类型
-     *
-     * 处理流程：
-     * 1. 加载类型注解
-     * 2. 处理缩写类型（如类型别名）
-     * 3. 提取类型构造器（包括分类器和类型参数）
-     * 4. 创建最终的Kotlin类型实例
-     */
-    private fun computeTypeAliasDescriptor(fqNameIndex: Int): ClassifierDescriptor? {
-        val id = c.nameResolver.getClassId(fqNameIndex)
-        return if (id.isLocal) {
-
-            return null
-        } else {
-            c.components.moduleDescriptor.findTypeAliasAcrossModuleDependencies(id)
-        }
-    }
-
-    /**
-     * 将ProtoBuf类型参数转换为类型投影。
-     * 
-     * 处理类型参数的变型（协变、逆变或不变）和类型转换。
-     * 
-     * @param parameter 对应的类型参数描述符，可能为null
-     * @param typeArgumentProto ProtoBuf格式的类型参数
-     * @return 转换后的类型投影
-     */
-    private fun typeArgument(
-        parameter: TypeParameterDescriptor?,
-        typeArgumentProto: ProtoBuf.Type.Argument
-    ): TypeProjection {
-
-
-        val projection = ProtoEnumFlags.variance(typeArgumentProto.projection)
-        val type = typeArgumentProto.type(c.typeTable)
-            ?: return TypeProjectionImpl(
-                ErrorUtils.createErrorType(
-                    ErrorTypeKind.NO_RECORDED_TYPE,
-                    typeArgumentProto.toString()
-                )
-            )
-
-        return TypeProjectionImpl(projection, type(type))
-    }
-
-    /**
      * 返回类型反序列化器的字符串表示。
-     * 
+     *
      * 包含调试名称和父反序列化器的信息（如果存在）。
-     * 
+     *
      * @return 类型反序列化器的字符串表示
      */
     override fun toString() = debugName + (if (parent == null) "" else ". Child of ${parent.debugName}")
