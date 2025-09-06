@@ -4,1374 +4,709 @@
 //
 // See https://cangjie-lang.cn/pages/LICENSE for license information.
 
+// 这是包格式定义文件
+// This is actually a package format
 namespace org.cangnova.cangjie.metadata.PackageFormat;
 
-file_identifier "CHIR";
+// 模块文件标识符
+// Module
+file_identifier "CJOF";
 
-// Using 'uint32' as type of 'Type/Value/Expression/CustomTypeDef' 's table index.
+// 我们期望加载器重新构建符号表
+// 但不重新进行类型推断/检查
+// We expect the loader to redo the symbol table
+// but not type inference / check within a loaded module
+
+// 使用 uint32 作为 SemaTy/Decl/Expr 的表索引类型
+// 0 是无效索引，有效索引从 1 开始，即表偏移量加 1
+// 由于 AST 节点和 Ty 的大小，uint32 的长度足够，在溢出前会先发生内存不足
+// Using 'uint32' as type of 'SemaTy/Decl/Expr' 's table index.
 // 0 is invalid index, valid index start from 1, which is the offset of table plus 1.
-enum CHIRTypeKind: int16 {
-	INVALID,
-	// integer
-	INT8,
-	INT16,
-	INT32,
-	INT64,
-	INT_NATIVE,
-	// unsigned integer
-	UINT8,
-	UINT16,
-	UINT32,
-	UINT64,
-	UINT_NATIVE,
-	// float
-	FLOAT16,
-	FLOAT32,
-	FLOAT64,
-	// other primitive type
-	RUNE,
-	BOOLEAN,
-	UNIT,
-	NOTHING,
-	// Void type
-	VOID,
-	// composite type
-	TUPLE,
-	CLOSURE,
-	STRUCT,
-	ENUM,
-	FUNC,
-	CLASS,
-	// Built-in array related type
-	RAWARRAY,
-	VARRAY,
-	// Built-in CFFI related type
-	C_POINTER,
-	C_STRING,
-	// Generic type
-	GENERIC,
-	// Referece to an value with abritray type
-	REFTYPE,
-}
-
-enum SourceExpr: int8 {
-    IF_EXPR,
-    WHILE_EXPR,
-    DO_WHILE_EXPR,
-    MATCH_EXPR,
-    IF_LET_OR_WHILE_LET,
-    QUEST,
-    BINARY,
-    FOR_IN_EXPR,
-    OTHER
-}
-
-table Type {
-kind: CHIRTypeKind;
-typeID: uint32;
-argTys: [uint32]; // use typeID
-refDims: uint64 = 0;
-}
-
-table RuneType {
-base: Type;
-}
-
-table BooleanType {
-base: Type;
-}
-
-table UnitType {
-base: Type;
-}
-
-table NothingType {
-base: Type;
-}
-
-table NumericType {
-base: Type;
-}
-
-table IntType {
-base: NumericType;
-}
-
-table FloatType {
-base: NumericType;
-}
-
-table TupleType {
-base: Type;
-}
-
-table ClosureType {
-base: Type;
-}
-
-table RawArrayType {
-base: Type;
-dims: uint64;
-}
-
-table VArrayType {
-base: Type;
-size: int64;
-}
-
-table FuncType {
-base: Type;
-isCFuncType: bool;
-hasVarArg: bool;
-}
-
-table CustomType {
-base: Type;
-customTypeDef: uint32; // use customTypeDefID
-}
-
-table EnumType {
-base: CustomType;
-isBoxed: bool;
-}
-
-table StructType {
-base: CustomType;
-}
-
-table ClassType {
-base: CustomType;
-}
-
-table CStringType {
-base: Type;
-}
-
-table CPointerType {
-base: Type;
-}
-
-table GenericType {
-base: Type;
-identifier: string;
-upperBounds: [uint32]; // use typeID
-}
-
-table RefType {
-base: Type;
-}
-
-table BoxType {
-base: Type;
-}
-
-table VoidType {
-base: Type;
-}
-
-enum Linkage: int16 {
-  WEAK_ODR,
-  EXTERNAL,
-  INTERNAL,
-  LINKONCE_ODR,
-  EXTERNAL_WEAK,
-}
-
-table Pos {
-line: uint64;
-column: uint64;
-}
-
-table DebugLocation {
-filePath: string;
-fileId: uint32;
-beginPos: Pos;
-endPos: Pos;
-scope: [int32];
-}
-
-table LinkTypeInfo {
-    linkage: Linkage;
-}
-
-enum SkipKind : uint8 {
-    NO_SKIP,
-    SKIP_DCE_WARNING,
-    SKIP_CODEGEN,
-}
-
-table SkipCheck {
-    skipKind: SkipKind;
-}
-
-table NeedCheckArrayBound {
-    need: bool;
-}
-
-table NeedCheckCast {
-    need: bool;
-}
-
-enum OverflowStrategy: int16 {
-	NA,
-	CHECKED,
-	WRAPPING,
-	THROWING,
-	SATURATING
-}
-
-enum Inline: int8 {
-    ALWAYS, NEVER, DEFAULT
-}
-
-table InlineInfo {
-    kind: Inline;
-}
-
-table NeverOverflowInfo {
-    neverOverflow: bool;
-}
-
-union Annotation {
-needCheckArrayBound: NeedCheckArrayBound,
-needCheckCast: NeedCheckCast,
-debugLocationInfo: DebugLocation,
-debugLocationInfoForWarning: DebugLocation,
-linkTypeInfo: LinkTypeInfo,
-skipCheck: SkipCheck,
-inlineInfo: InlineInfo,
-neverOverflowInfo: NeverOverflowInfo,
-}
-
-table Base {
-    annos: [Annotation];
-}
-
-enum ValueKind: int16 {
-	LITERAL,
-	GLOBALVAR,
-	PARAMETER,
-	IMPORTED_FUNC,
-	IMPORTED_VAR,
-	LOCALVAR,
-	FUNC,
-	BLOCK,
-	BLOCK_GROUP
-}
-
-table Value {
-base: Base;
-type: uint32; // use typeID
-identifier: string;
-kind: ValueKind;
-valueID: uint32;
-users: [uint32]; // use expressionID
-attributes: uint64;
-}
-
-enum ConstantValueKind: int16 {
-	BOOL,
-	RUNE,
-	INT,
-	FLOAT,
-	STRING,
-	UNIT,
-	NULL,
-	FUNC
-}
-
-table LiteralValue {
-base: Value;
-literalKind: ConstantValueKind;
-}
-
-table BoolLiteral {
-base: LiteralValue;
-val: bool;
-}
-
-table StringLiteral {
-base: LiteralValue;
-val: string;
-isJString: bool;
-}
-
-table RuneLiteral {
-base: LiteralValue;
-val: uint64; // coding of `rune`
-}
-
-table IntLiteral {
-base: LiteralValue;
-val: uint64;
-}
-
-table FloatLiteral {
-base: LiteralValue;
-val: double;
-}
-
-table UnitLiteral {
-base: LiteralValue;
-}
-
-table NullLiteral {
-base: LiteralValue;
-}
-
-table Parameter {
-base: Value;
-ownedFunc: uint32;  // use valueID
-ownedLambda: uint32;  // use expressionID
-associatedDebug: uint32;  // use expressionID
-annoInfo: AnnoInfo;
-}
-
-table LocalVar {
-base: Value;
-associatedExpr: uint32; // use expressionID
-isRetVal: bool = false;
-debug: uint32; // use expressionID(Debug)
-accurateEnvObjTy: uint32; // use typeID
-}
-
-table GlobalVar {
-base: Value;
-rawMangledName: string;
-srcCodeIdentifier: string;
-packageName: string;
-defaultInitVal: uint32; // use valueID
-associatedInitFunc: uint32; // use valueID
-declaredParent: uint32; // use customTypeDefID
-annoInfo: AnnoInfo;
-}
-
-enum ImportedValueKind: int16 {
-	VARIABLE,
-	FUNC
-}
-
-enum FuncKind: int16 {
-	DEFAULT,
-	GETTER,
-	SETTER,
-    LAMBDA,
-	CLASS_CONSTRUCTOR,
-	PRIMAL_CLASS_CONSTRUCTOR,
-	STRUCT_CONSTRUCTOR,
-	PRIMAL_STRUCT_CONSTRUCTOR,
-	GLOBALVAR_INIT,
-	FINALIZER,
-	MAIN_ENTRY,
-	ANNOFACTORY_FUNC,
-	MACRO_FUNC,
-    MACRO_INVOKE_FUNC,
-    DEFAULT_PARAMETER_FUNC
-}
-
-table ImportedValue {
-base: Value;
-packageName: string;
-}
-
-table ImportedFunc {
-base: ImportedValue;
-srcCodeIdentifier: string;
-funcKind: FuncKind;
-genericTypeParams: [uint32];  // use typeID
-implicitedImported: bool;
-ownerFunc: uint32;  // use valueID
-rawMangledName: string;
-packageName: string;
-paramInfo: [AbstractMethodParam];
-declaredParent: uint32; // use customTypeDefID
-extendedParent: uint32; // use customTypeDefID
-genericDecl: uint32; // use valueID
-annoInfo: AnnoInfo;
-isFastNative: bool;
-isCFFIWrapper: bool;
-}
-
-table ImportedVar {
-base: ImportedValue;
-srcCodeIdentifier: string;
-annoInfo: AnnoInfo;
-}
-
-table Block {
-base: Value;
-parentGroup: uint32; // use valueID
-exprs: [uint32];  // use expressionID
-predecessors: [uint32];  // use valueID
-isLandingPadBlock: bool;
-exceptionCatchList: [uint32];  // use typeID
-predecessorTerminal: uint32; // use expressionID (Terminator)
-}
-
-table BlockGroup {
-base: Value;
-entryBlock: uint32;  // use valueID
-blocks: [uint32];  // use valueID
-ownedFunc: uint32;  // use valueID
-ownedLambda: uint32;  // use expressionID
-}
-
-table Func {
-base: Value;
-srcCodeIdentifier: string;
-packageName: string;
-body: uint32; // use valueID
-params: [uint32]; // use valueID
-funcKind: FuncKind;
-genericTypeParams: [uint32]; // use typeID
-retVal: uint32; // use valueID
-rawMangledName: string;
-declaredParent: uint32; // use customTypeDefID
-extendedParent: uint32; // use customTypeDefID
-genericDecl: uint32; // use valueID
-annoInfo: AnnoInfo;
-parentName: string;
-propLoc: DebugLocation;
-isFastNative: bool;
-isCFFIWrapper: bool;
-ownerFunc: uint32; // use valueID
-}
-
-enum CustomTypeKind: int16 {
-	STRUCT,
-	ENUM,
-	CLASS
-}
-
-table AnnoInfo {
-mangledName: string;
-}
-
-table MemberVarInfo {
-name: string;
-rawMangledName: string;
-type: uint32; // use typeID
-attributes: uint64;
-loc: DebugLocation;
-annoInfo : AnnoInfo;
-}
-
-table CustomTypeDef {
-base: Base;
-kind: CustomTypeKind;
-identifier: string;
-srcCodeIdentifier: string;
-packageName: string;
-customTypeDefID: uint32;
-type: uint32; // use typeID
-genericTypeParams: [uint32]; // use typeID
-methods: [uint32]; // use valueID
-instanceMemberVars: [MemberVarInfo];
-staticMemberVars: [uint32]; // use valueID
-attributes: uint64;
-implementedInterfaces: [uint32]; // use customTypeDefID
-extendedInterfaces: [uint32]; // use customTypeDefID
-extendedMethods: [uint32]; // use valueID
-genericDecl: uint32;  // use customTypeDefID
-annoInfo: AnnoInfo;
-}
-
-table EnumCtorInfo {
-identifier: string;
-mangledName: string;
-funcType: uint32; // use typeID
-}
-
-table EnumDef {
-base: CustomTypeDef;
-ctors: [EnumCtorInfo];
-nonExhaustive: bool;
-}
-
-table StructDef {
-base: CustomTypeDef;
-isCStruct: bool;
-}
-
-enum ClassDefKind: int16 {
-	CLASS,
-	INTERFACE
-}
-
-table AbstractMethodParam {
-paramName: string;
-paramType: uint32; // use typeID
-annoInfo : AnnoInfo;
-}
-
-table VTableElement {
-virtualMethodName: string;
-virtualMethodType: uint32; // use typeID
-dispatchedFunc: uint32; // use valueID
-}
-
-table AbstractMethodInfo {
-methodName: string;
-mangledName: string;
-methodType: uint32; // use typeID
-paramsInfo: [AbstractMethodParam];
-attributes: uint64;
-annoInfo : AnnoInfo;
-}
-
-table ClassDef {
-base: CustomTypeDef;
-kind: ClassDefKind;
-isAnnotation: bool = false;
-isJavaClass: bool = false;
-superClass: uint32; // use customTypeDefID
-finalizer: uint32; // use valueID
-vtable: [VTableElement];
-abstractMethods: [AbstractMethodInfo];
-isVtableMerged: bool;
-isBoxedByCC: bool;
-}
-
-enum CHIRExprKind: int16 {
-	INVALID,
-	// Terminator
-	GOTO,
-	BRANCH,
-	MULTIBRANCH,
-	EXIT,
-	APPLY_WITH_EXCEPTION,
-	INVOKE_WITH_EXCEPTION,
-	RAISE_EXCEPTION,
-	INT_OP_WITH_EXCEPTION,
-	SPAWN_WITH_EXCEPTION,
-	TYPECAST_WITH_EXCEPTION,
-	INTRINSIC_WITH_EXCEPTION,
-	ALLOCATE_WITH_EXCEPTION,
-	RAW_ARRAY_ALLOCATE_WITH_EXCEPTION,
-	RAW_ARRAY_LITERAL_ALLOCATE_WITH_EXCEPTION,
-	// Unary
-	NEG,
-	NOT,
-	BITNOT,
-	// Binary
-	ADD,
-	SUB,
-	MUL,
-	DIV,
-	MOD,
-	EXP,
-	LSHIFT,
-	RSHIFT,
-	BITAND,
-	BITOR,
-	BITXOR,
-	LT,
-	GT,
-	LE,
-	GE,
-	EQUAL,
-	NOTEQUAL,
-	AND,
-	OR,
-	// Memory
-	ALLOCATE,
-	LOAD,
-	STORE,
-	GET_ELEMENT_REF,
-	// Complext
-	IF,
-	LOOP,
-	FORIN_RANGE,
-    FORIN_ITER,
-    FORIN_CLOSED_RANGE,
-	LAMBDA,
-	// Others
-	CONSTANT,
-	DEBUG,
-	TUPLE,
-	FIELD,
-	APPLY,
-	INVOKE,
-	INVOKE_STATIC,
-	INSTANCEOF,
-	BOX,
-	UNBOX,
-	TYPECAST,
-	GET_EXCEPTION,
-	RAW_ARRAY_ALLOCATE,
-	RAW_ARRAY_LITERAL_ALLOCATE,
-	RAW_ARRAY_INIT_BY_VALUE,
-	VARRAY,
-	VARRAY_BUILDER,
-	INTRINSIC,
-	SPAWN
-}
-
-enum IntrinsicKind: int16 {
-    NOT_INTRINSIC,
-    NOT_IMPLEMENTED,
-
-    // For hoisting, but we should later split arraybuilder
-    // into allocation and initialisation
-    ARRAY_INIT,
-
-    // CORE
-    SIZE_OF,
-    ALIGN_OF,
-    ARRAY_ACQUIRE_RAW_DATA,
-    ARRAY_RELEASE_RAW_DATA,
-    ARRAY_BUILT_IN_COPY_TO,
-    ARRAY_GET,
-    ARRAY_SET,
-    ARRAY_GET_UNCHECKED,
-    ARRAY_GET_REF_UNCHECKED,
-    ARRAY_SET_UNCHECKED,
-    ARRAY_SIZE,
-    ARRAY_CLONE,
-    ARRAY_SLICE_INIT,
-    ARRAY_SLICE,
-    ARRAY_SLICE_RAWARRAY,
-    ARRAY_SLICE_START,
-    ARRAY_SLICE_SIZE,
-    ARRAY_SLICE_GET_ELEMENT,
-    ARRAY_SLICE_SET_ELEMENT,
-    FILL_IN_STACK_TRACE,
-    DECODE_STACK_TRACE,
-
-    CHR,
-    ORD,
-
-    CPOINTER_GET_POINTER_ADDRESS,
-    CPOINTER_INIT0, // CPointer constructor with no arguments
-    CPOINTER_INIT1, // CPointer constructor with one argument
-    CPOINTER_READ,
-    CPOINTER_WRITE,
-    CPOINTER_ADD,
-
-    CSTRING_INIT,
-    CSTRING_CONVERT_CSTR_TO_PTR,
-
-    INOUT_PARAM,
-
-    REGISTER_WATCHED_OBJECT,
-
-    OBJECT_REFEQ,
-
-    RAW_ARRAY_REFEQ,  // cjnative only
-
-    OBJECT_ZERO_VALUE,
-
-    INVOKE_GC,
-    SET_GC_THRESHOLD,
-    GET_MAX_HEAP_SIZE,
-    GET_ALLOCATE_HEAP_SIZE,
-    DUMP_CJ_HEAP_DATA,
-    GET_GC_COUNT,
-    GET_GC_TIME_US,
-    GET_GC_FREED_SIZE,
-    START_CJ_CPU_PROFILING,
-    STOP_CJ_CPU_PROFILING,
-    GET_REAL_HEAP_SIZE,
-    GET_THREAD_NUMBER,
-    GET_BLOCKING_THREAD_NUMBER,
-    GET_NATIVE_THREAD_NUMBER,
-
-    VARRAY_SET,
-    VARRAY_GET,
-
-    // About Future
-    FUTURE_INIT,
-
-    FUTURE_IS_COMPLETE,  // cjnative only
-    FUTURE_WAIT,  // cjnative only
-    FUTURE_NOTIFYALL,  // cjnative only
-
-    GET_THREAD_OBJECT,
-    SET_THREAD_OBJECT,
-
-    OVERFLOW_CHECKED_ADD,
-    OVERFLOW_CHECKED_SUB,
-    OVERFLOW_CHECKED_MUL,
-    OVERFLOW_CHECKED_DIV,
-    OVERFLOW_CHECKED_MOD,
-    OVERFLOW_CHECKED_POW,
-    OVERFLOW_CHECKED_INC,
-    OVERFLOW_CHECKED_DEC,
-    OVERFLOW_CHECKED_NEG,
-    OVERFLOW_THROWING_ADD,
-    OVERFLOW_THROWING_SUB,
-    OVERFLOW_THROWING_MUL,
-    OVERFLOW_THROWING_DIV,
-    OVERFLOW_THROWING_MOD,
-    OVERFLOW_THROWING_POW,
-    OVERFLOW_THROWING_INC,
-    OVERFLOW_THROWING_DEC,
-    OVERFLOW_THROWING_NEG,
-    OVERFLOW_SATURATING_ADD,
-    OVERFLOW_SATURATING_SUB,
-    OVERFLOW_SATURATING_MUL,
-    OVERFLOW_SATURATING_DIV,
-    OVERFLOW_SATURATING_MOD,
-    OVERFLOW_SATURATING_POW,
-    OVERFLOW_SATURATING_INC,
-    OVERFLOW_SATURATING_DEC,
-    OVERFLOW_SATURATING_NEG,
-    OVERFLOW_WRAPPING_ADD,
-    OVERFLOW_WRAPPING_SUB,
-    OVERFLOW_WRAPPING_MUL,
-    OVERFLOW_WRAPPING_DIV,
-    OVERFLOW_WRAPPING_MOD,
-    OVERFLOW_WRAPPING_POW,
-    OVERFLOW_WRAPPING_INC,
-    OVERFLOW_WRAPPING_DEC,
-    OVERFLOW_WRAPPING_NEG,
-
-    // llvm vector instructions for string optimization
-
-    VECTOR_COMPARE_32,  // cjnative only
-    VECTOR_INDEX_BYTE_32,  // cjnative only
-
-    // Foreign functions translated to intrinsic functions in the interpreter,
-    // These functions are not not marked as intrinsic in Cangjie but they are translated to intrinsics in BCHIR
-
-    CJ_CORE_CAN_USE_SIMD,  // cjnative only
-
-    CJ_TLS_DYN_SET_SESSION_CALLBACK,
-    CJ_TLS_DYN_SSL_INIT,
-
-    // ============================ cjnative only start =================
-    REFLECTION_INTRINSIC_START_FLAG,
-
-    IS_INTERFACE,
-    IS_CLASS,
-    IS_PRIMITIVE,
-    IS_STRUCT,
-    IS_GENERIC,
-    GET_OR_CREATE_TYPEINFO_FOR_REFLECT,
-    GET_TYPETEMPLATE,
-    CHECK_METHOD_ACTUAL_ARGS,
-    METHOD_ENTRYPOINT_IS_NULL,
-    IS_RELECT_UNSUPPORTED_TYPE,
-    GET_TYPE_FOR_ANY,
-    GET_TYPE_BY_MANGLED_NAME,
-    GET_TYPE_NAME,
-    GET_TYPE_BY_QUALIFIED_NAME,
-    GET_TYPE_QUALIFIED_NAME_LENGTH,
-    GET_TYPE_QUALIFIED_NAME,
-    GET_NUM_OF_INTERFACE,
-    GET_INTERFACE,
-    IS_SUBTYPE,
-    GET_TYPE_INFO_MODIFIER,
-    GET_TYPE_INFO_ANNOTATIONS,
-    GET_OBJ_CLASS,
-    GET_SUPER_TYPE_INFO,
-
-    GET_NUM_OF_INSTANCE_METHOD_INFOS,
-    GET_INSTANCE_METHOD_INFO,
-    GET_NUM_OF_STATIC_METHOD_INFOS,
-    GET_STATIC_METHOD_INFO,
-    GET_METHOD_NAME,
-    GET_METHOD_RETURN_TYPE,
-    GET_METHOD_MODIFIER,
-    GET_METHOD_ANNOTATIONS,
-    APPLY_CJ_METHOD,
-    APPLY_CJ_STATIC_METHOD,
-    APPLY_CJ_GENERIC_METHOD,
-    APPLY_CJ_GENERIC_STATIC_METHOD,
-    GET_NUM_OF_ACTUAL_PARAMETERS,
-    GET_NUM_OF_GENERIC_PARAMETERS,
-    GET_ACTUAL_PARAMETER_INFO,
-    GET_GENERIC_PARAMETER_INFO,
-
-    GET_NUM_OF_INSTANCE_FIELD_INFOS,
-    GET_INSTANCE_FIELD_INFO,
-    GET_NUM_OF_STATIC_FIELD_INFOS,
-    GET_STATIC_FIELD_INFO,
-    GET_STATIC_FIELD_NAME,
-    GET_STATIC_FIELD_TYPE,
-    GET_STATIC_FIELD_ANNOTATIONS,
-    GET_FIELD_NAME,
-    GET_FIELD_TYPE,
-    GET_FIELD_ANNOTATIONS,
-    GET_FIELD_MODIFIER,
-    GET_STATIC_FIELD_MODIFIER,
-    GET_FIELD_VALUE,
-    SET_FIELD_VALUE,
-    GET_STATIC_FIELD_VALUE,
-    SET_STATIC_FIELD_VALUE,
-    GET_FIELD_DECLARING_TYPE,
-
-    GET_PARAMETER_INDEX,
-    GET_PARAMETER_NAME,
-    GET_PARAMETER_TYPE,
-    GET_PARAMETER_ANNOTATIONS,
-
-    GET_RELATED_PACKAGE_INF,
-    GET_PACKAGE_NAME,
-    GET_PACKAGE_NUM_OF_TYPE_INFOS,
-    GET_PACKAGE_TYPE_INFO,
-    GET_PACKAGE_NUM_OF_GLOBAL_METHODS,
-    GET_PACKAGE_GLOBAL_METHOD_INFO,
-    GET_PACKAGE_NUM_OF_GLOBAL_FIELD_INFOS,
-    GET_PACKAGE_GLOBAL_FIELD_INFO,
-    LOAD_PACKAGE,
-    GET_PACKAGE_BY_QUALIFIEDNAME,
-    GET_PACKAGE_VERSION,
-    GET_SUB_PACKAGES,
-
-    REFLECTION_INTRINSIC_END_FLAG,
-    // ============================ cjnative only end =================
-
-    SLEEP,
-
-    SOURCE_FILE,
-    SOURCE_LINE,
-
-    IDENTITY_HASHCODE,
-    IDENTITY_HASHCODE_FOR_ARRAY,
-
-    // ============================ cjnative only start =================
-    // SYNC
-    ATOMIC_LOAD,
-    ATOMIC_STORE,
-    ATOMIC_SWAP,
-    ATOMIC_COMPARE_AND_SWAP,
-    ATOMIC_FETCH_ADD,
-    ATOMIC_FETCH_SUB,
-    ATOMIC_FETCH_AND,
-    ATOMIC_FETCH_OR,
-    ATOMIC_FETCH_XOR,
-    MUTEX_INIT,
-    CJ_MUTEX_LOCK,
-    MUTEX_TRY_LOCK,
-    MUTEX_CHECK_STATUS,
-    MUTEX_UNLOCK,
-    WAITQUEUE_INIT,
-    MONITOR_INIT,
-    MOITIOR_WAIT,
-    MOITIOR_NOTIFY,
-    MOITIOR_NOTIFY_ALL,
-    MULTICONDITION_WAIT,
-    MULTICONDITION_NOTIFY,
-    MULTICONDITION_NOTIFY_ALL,
-    // ============================ cjnative only end =================
-
-    // Syscall
-
-    // AST lib FFI
-    FFI_CJ_AST_LEX,
-    FFI_CJ_AST_PARSEEXPR,
-    FFI_CJ_AST_PARSEDECL,
-    FFI_CJ_AST_PARSE_PROPMEMBERDECL,
-    FFI_CJ_AST_PARSE_PRICONSTRUCTOR,
-    FFI_CJ_AST_PARSE_PATTERN,
-    FFI_CJ_AST_PARSE_TYPE,
-    FFI_CJ_AST_PARSETOPLEVEL,
-    FFI_CJ_AST_DIAGREPORT,
-
-    // Macro With Context FFI
-    FFI_CJ_PARENT_CONTEXT,
-    FFI_CJ_MACRO_ITEM_INFO,
-    FFI_CJ_GET_CHILD_MESSAGES,
-    FFI_CJ_CHECK_ADD_SPACE,
-    // CodeGen
-    CG_UNSAFE_BEGIN,
-    CG_UNSAFE_END,
-
-    // C FFI funcs
-    STRLEN,
-    MEMCPY_S,
-    MEMSET_S,
-    FREE,
-    MALLOC,
-    STRCMP,
-    MEMCMP,
-    STRNCMP,
-    STRCASECMP,
-
-    // The interpreter is using these for cjnative backend as well
-    ATOMIC_INT8_LOAD,
-    ATOMIC_INT8_STORE,
-    ATOMIC_INT8_SWAP,
-    ATOMIC_INT8_CAS,
-    ATOMIC_INT8_FETCH_ADD,
-    ATOMIC_INT8_FETCH_SUB,
-    ATOMIC_INT8_FETCH_AND,
-    ATOMIC_INT8_FETCH_OR,
-    ATOMIC_INT8_FETCH_XOR,
-
-    ATOMIC_INT16_LOAD,
-    ATOMIC_INT16_STORE,
-    ATOMIC_INT16_SWAP,
-    ATOMIC_INT16_CAS,
-    ATOMIC_INT16_FETCH_ADD,
-    ATOMIC_INT16_FETCH_SUB,
-    ATOMIC_INT16_FETCH_AND,
-    ATOMIC_INT16_FETCH_OR,
-    ATOMIC_INT16_FETCH_XOR,
-
-    ATOMIC_INT32_LOAD,
-    ATOMIC_INT32_STORE,
-    ATOMIC_INT32_SWAP,
-    ATOMIC_INT32_CAS,
-    ATOMIC_INT32_FETCH_ADD,
-    ATOMIC_INT32_FETCH_SUB,
-    ATOMIC_INT32_FETCH_AND,
-    ATOMIC_INT32_FETCH_OR,
-    ATOMIC_INT32_FETCH_XOR,
-
-    ATOMIC_INT64_LOAD,
-    ATOMIC_INT64_STORE,
-    ATOMIC_INT64_SWAP,
-    ATOMIC_INT64_CAS,
-    ATOMIC_INT64_FETCH_ADD,
-    ATOMIC_INT64_FETCH_SUB,
-    ATOMIC_INT64_FETCH_AND,
-    ATOMIC_INT64_FETCH_OR,
-    ATOMIC_INT64_FETCH_XOR,
-
-    ATOMIC_UINT8_LOAD,
-    ATOMIC_UINT8_STORE,
-    ATOMIC_UINT8_SWAP,
-    ATOMIC_UINT8_CAS,
-    ATOMIC_UINT8_FETCH_ADD,
-    ATOMIC_UINT8_FETCH_SUB,
-    ATOMIC_UINT8_FETCH_AND,
-    ATOMIC_UINT8_FETCH_OR,
-    ATOMIC_UINT8_FETCH_XOR,
-
-    ATOMIC_UINT16_LOAD,
-    ATOMIC_UINT16_STORE,
-    ATOMIC_UINT16_SWAP,
-    ATOMIC_UINT16_CAS,
-    ATOMIC_UINT16_FETCH_ADD,
-    ATOMIC_UINT16_FETCH_SUB,
-    ATOMIC_UINT16_FETCH_AND,
-    ATOMIC_UINT16_FETCH_OR,
-    ATOMIC_UINT16_FETCH_XOR,
-
-    ATOMIC_UINT32_LOAD,
-    ATOMIC_UINT32_STORE,
-    ATOMIC_UINT32_SWAP,
-    ATOMIC_UINT32_CAS,
-    ATOMIC_UINT32_FETCH_ADD,
-    ATOMIC_UINT32_FETCH_SUB,
-    ATOMIC_UINT32_FETCH_AND,
-    ATOMIC_UINT32_FETCH_OR,
-    ATOMIC_UINT32_FETCH_XOR,
-
-    ATOMIC_UINT64_LOAD,
-    ATOMIC_UINT64_STORE,
-    ATOMIC_UINT64_SWAP,
-    ATOMIC_UINT64_CAS,
-    ATOMIC_UINT64_FETCH_ADD,
-    ATOMIC_UINT64_FETCH_SUB,
-    ATOMIC_UINT64_FETCH_AND,
-    ATOMIC_UINT64_FETCH_OR,
-    ATOMIC_UINT64_FETCH_XOR,
-
-    ATOMIC_BOOL_LOAD,
-    ATOMIC_BOOL_STORE,
-    ATOMIC_BOOL_SWAP,
-    ATOMIC_BOOL_CAS,
-
-    ATOMIC_REFERENCEBASE_LOAD,
-    ATOMIC_REFERENCEBASE_STORE,
-    ATOMIC_REFERENCEBASE_SWAP,
-    ATOMIC_REFERENCEBASE_CAS,
-
-    ATOMIC_OPTIONREFERENCE_LOAD,
-    ATOMIC_OPTIONREFERENCE_STORE,
-    ATOMIC_OPTIONREFERENCE_SWAP,
-    ATOMIC_OPTIONREFERENCE_CAS,
-
-    // CHIR 2: Exception intrinsic
-    BEGIN_CATCH,
-
-    // CHIR 2: Math intrinsic
-    ABS,
-    FABS,
-    FLOOR,
-    CEIL,
-    TRUNC,
-    SIN,
-    COS,
-    EXP,
-    EXP2,
-    LOG,
-    LOG2,
-    LOG10,
-    SQRT,
-    ROUND,
-    POW,
-    POWI,
-    BIT_CAST,
-}
-
-table Expression {
-base: Base;
-kind: CHIRExprKind;
-expressionID: uint32;
-operands: [uint32]; // use valueID
-blockGroups: [uint32]; // use valueID
-parentBlock: uint32; // use valueID
-resultLocalVar: uint32; // use valueID
-resultTy: uint32; // use typeID
-}
-
-table UnaryExpression {
-base: Expression;
-overflowStrategy: OverflowStrategy;
-}
-
-table BinaryExpression {
-base: Expression;
-overflowStrategy: OverflowStrategy;
-}
-
-table Constant {
-base: Expression;
-genericArgs: [uint32]; // use typeID
-}
-
-table Allocate {
-base: Expression;
-targetType: uint32; // use typeID
-}
-
-table Load {
-base: Expression;
-}
-
-table Store {
-base: Expression;
-}
-
-table GetElementRef {
-base: Expression;
-path: [uint64];
-}
-
-table StoreElementRef {
-base: Expression;
-path: [uint64];
-}
-
-table Apply {
-base: Expression;
-genericArgs: [uint32]; // use typeID
-isSuperCall: bool;
-}
-
-table Invoke {
-base: Expression;
-methodName: string;
-methodType: uint32; // use typeID
-}
-
-table TypeCast {
-base: Expression;
-targetType: uint32; // use typeID
-overflowStrategy: OverflowStrategy;
-}
-
-table InstanceOf {
-base: Expression;
-targetType: uint32; // use typeID
-}
-
-table Box {
-base: Expression;
-targetType: uint64; // use typeID
-}
-
-table UnBox {
-base: Expression;
-targetType: uint64; // use typeID
-}
-
-table Terminator {
-base: Expression;
-successors: [uint32]; // use valueID
-}
-
-table GoTo {
-base: Terminator;
-}
-
-table Branch {
-base: Terminator;
-sourceExpr: SourceExpr;
-}
-
-table MultiBranch {
-base: Terminator;
-caseVals: [uint64];
-}
-
-table Exit {
-base: Terminator;
-}
-
-table RaiseException {
-base: Terminator;
-}
-
-table ApplyWithException {
-base: Terminator;
-genericArgs: [uint32]; // use typeID
-}
-
-table InvokeWithException {
-base: Terminator;
-methodName: string;
-methodType: uint32; // use typeID
-}
-
-table IntOpWithException {
-base: Terminator;
-opKind: CHIRExprKind;
-}
-
-table TypeCastWithException {
-base: Terminator;
-targetType: uint32; // use typeID
-}
-
-table IntrinsicWithException {
-base: Terminator;
-intrinsicKind: IntrinsicKind;
-genericArgs: [uint32]; // use typeID
-}
-
-table AllocateWithException {
-base: Terminator;
-targetType: uint32; // use typeID
-}
-
-table RawArrayAllocateWithException {
-base: Terminator;
-elementType: uint32; // use typeID
-}
-
-table RawArrayLiteralAllocateWithException {
-base: Terminator;
-elementType: uint32; // use typeID
-}
-
-table SpawnWithException {
-base: Terminator;
-isExecuteClosure: bool;
-executeClosure: uint32;  // use valueID
-}
-
-table Tuple {
-base: Expression;
-}
-
-table Field {
-base: Expression;
-path: [uint64];
-}
-
-table RawArrayAllocate {
-base: Expression;
-elementType: uint32; // use typeID
-}
-
-table RawArrayLiteralAllocate {
-base: Expression;
-elementType: uint32; // use typeID
-}
-
-table RawArrayLiteralInit {
-base: Expression;
-}
-
-table RawArrayInitByValue {
-base: Expression;
-}
-
-table VArray {
-base: Expression;
-}
-
-table VArrayBd {
-base: Expression;
-}
-
-table GetException {
-base: Expression;
-}
-
-table Intrinsic {
-base: Expression;
-intrinsicKind: IntrinsicKind;
-genericArgs: [uint32]; // use typeID
-}
-
-table If {
-base: Expression;
-}
-
-table Loop {
-base: Expression;
-}
-
-table ForInRange {
-base: Expression;
-}
-
-table ForInIter {
-base: Expression;
-}
-
-table ForInClosedRange {
-base: Expression;
-}
-
-table Debug {
-base: Expression;
-srcCodeIdentifier: string;
-accurateEnvObjTy: uint32; // use typeID
-}
-
-table Spawn {
-base: Expression;
-isExecuteClosure: bool;
-executeClosure: uint32;  // use valueID
-}
-
-table Lambda {
-base: Expression;
-funcTy: uint32; // use typeID
-isLocalFunc: bool;
-identifier: string;
-srcCodeIdentifier: string;
-params: [uint32];  // use valueID
-genericTypeParams: [uint32]; // use typeID
-capturedVars: [uint32];  // use valueID
-}
-
-table InvokeStatic {
-base: Expression;
-methodName: string;
-methodType: uint32; // use typeID
-classType: uint32; // use typeID
-}
-
-table InvokeStaticWithException {
-base: Terminator;
-methodName: string;
-methodType: uint32; // use typeID
-classType: uint32; // use typeID
-}
-
-union TypeElem {
-	RuneType,
-	BooleanType,
-	UnitType,
-	NothingType,
-	IntType,
-	FloatType,
-	TupleType,
-	ClosureType,
-	RawArrayType,
-	VArrayType,
-	FuncType,
-	EnumType,
-	StructType,
-	ClassType,
-	CStringType,
-	CPointerType,
-	GenericType,
-	RefType,
-    BoxType,
-	VoidType,
-}
-
-union CustomTypeDefElem {
-	EnumDef,
-	StructDef,
-	ClassDef,
-}
-
-union ExpressionElem {
-	UnaryExpression,
-	BinaryExpression,
-	Constant,
-	Allocate,
-	Load,
-	Store,
-	GetElementRef,
-	StoreElementRef,
-	Apply,
-	Invoke,
-	TypeCast,
-	InstanceOf,
-	Box,
-	UnBox,
-	GoTo,
-	Branch,
-	MultiBranch,
-	Exit,
-	RaiseException,
-	ApplyWithException,
-	InvokeWithException,
-	IntOpWithException,
-	TypeCastWithException,
-	IntrinsicWithException,
-	AllocateWithException,
-	RawArrayAllocateWithException,
-	SpawnWithException,
-	Tuple,
-	Field,
-	RawArrayAllocate,
-	RawArrayLiteralInit,
-	RawArrayInitByValue,
-	VArray,
-	VArrayBd,
-	GetException,
-	Intrinsic,
-	If,
-	Loop,
-	ForInRange,
-    ForInIter,
-    ForInClosedRange,
-	Debug,
-	Spawn,
-	Lambda,
-	InvokeStatic,
-	InvokeStaticWithException,
-}
-
-union ValueElem {
-	BoolLiteral,
-	RuneLiteral,
-	StringLiteral,
-	IntLiteral,
-	FloatLiteral,
-	UnitLiteral,
-	NullLiteral,
-	Parameter,
-	LocalVar,
-	GlobalVar,
-	Func,
-	ImportedVar,
-	ImportedFunc,
-	Block,
-	BlockGroup,
-}
-
-table CHIRPackage {
-name: string;
-path: string;
-pkgAccessLevel: string;
-types: [TypeElem];
-values: [ValueElem];
-exprs: [ExpressionElem];
-defs: [CustomTypeDefElem];
-globalInitFunc: uint32;  // use valueID (Func)
-}
-
-root_type CHIRPackage;
+// Because of the size of AST node and 'Ty', length of uint32 is enough that oom will occurred before out-of-range.
+// 声明类型枚举
+enum DeclKind : uint16 {
+  InvalidDecl,       // 无效声明
+  ClassDecl,         // 类声明
+  InterfaceDecl,     // 接口声明
+  FuncDecl,          // 函数声明
+  PropDecl,          // 属性声明
+  VarDecl,           // 变量声明
+  VarWithPatternDecl,// 带模式的变量声明
+  FuncParam,         // 函数参数
+  StructDecl,        // 结构体声明
+  EnumDecl,          // 枚举声明
+  ExtendDecl,        // 扩展声明
+  TypeAliasDecl,     // 类型别名声明
+  GenericParamDecl,  // 泛型参数声明
+  BuiltInDecl,       // 内置声明
+}
+
+// 位置成员的最大长度与 'struct Position' 的定义相同
+// Position member's max length same as 'struct Position''s definition.
+struct Position {
+  file:uint32;   // 文件索引
+  pkgId:uint32;  // 文件所属包的索引，0 表示当前包
+  line:int32;    // 行号
+  column:int32;  // 列号
+  ignore:bool;   // 是否忽略
+}
+
+// 完整标识符表
+table FullId {
+  pkgId:int32;  // 声明所属的包
+  decl:string;  // 其他包中被引用节点的导出ID
+  index:uint32; // 同一包中被引用声明的索引
+}
+
+// 约束表
+table Constraint {
+  begin:Position;   // 开始位置
+  end:Position;     // 结束位置
+  type:uint32;      // 对应类型参数的类型
+  uppers:[uint32];  // 上界
+}
+
+// 泛型表
+table Generic{
+  typeParameters:[uint32]; // 泛型参数声明
+  constraints:[Constraint]; // 约束列表
+}
+
+// 函数参数列表表
+table FuncParamList {
+  params:[uint32];   // 参数列表
+  desugars:[uint32]; // 去语法糖后的参数
+}
+
+// 函数体表
+table FuncBody {
+  paramLists:[FuncParamList]; // 参数列表集合
+  retType:uint32;             // 返回类型
+  body:uint32;                // 函数体表达式索引
+  always:bool;                // 是否总是执行
+  captureKind:uint8;          // 捕获类型
+}
+
+// 声明哈希结构
+struct DeclHash {
+  instVar:uint64;  // 实例变量哈希
+  virt:uint64;     // 虚拟哈希
+  sig:uint64;      // 签名哈希
+  srcUse:uint64;   // 源码使用哈希
+  bodyHash:uint64; // 函数体哈希
+}
+
+// 常量值联合体
+union ConstValue {
+  Int8Value,    // 8位有符号整数值
+  UInt8Value,   // 8位无符号整数值
+  Int16Value,   // 16位有符号整数值
+  UInt16Value,  // 16位无符号整数值
+  Int32Value,   // 32位有符号整数值
+  UInt32Value,  // 32位无符号整数值
+  Int64Value,   // 64位有符号整数值
+  UInt64Value,  // 64位无符号整数值
+  Float32Value, // 32位浮点值
+  Float64Value, // 64位浮点值
+  ArrayValue,   // 数组值
+  StringValue:string,              // 字符串值
+  CompositeValue:CompositeValueIndex, // 复合值
+}
+table Int8Value { val:int8; }
+table UInt8Value { val:uint8; }
+table Int16Value { val:int16; } // 也表示 Float16
+table UInt16Value { val:uint16; }
+table Int32Value { val:int32; }
+table UInt32Value { val:uint32; }
+table Int64Value { val:int64; }
+table UInt64Value { val:uint64; }
+table Float32Value { val:float32; }
+table Float64Value { val:float64; }
+table ArrayValue { val:[ConstValue]; }
+table CompositeValueIndex { idx:uint32; }
+// 成员值表
+table MemberValue {
+  field:string;      // 字段名
+  type:uint32;       // 字段类型
+  value:ConstValue;  // 字段值
+}
+// 复合值表 - 表示类、结构体、元组、枚举
+table CompositeValue {
+  type:uint32;           // 类型
+  fields:[MemberValue];  // 成员字段
+}
+
+// 自动微分信息表
+table AutoDiffInfo {
+  isDiff:bool;         // 是否可微分
+  isAdj:bool;          // 是否伴随
+  primal:string;       // 原始函数
+  excepts:[string];    // 排除项
+  includes:[string];   // 包含项
+  stage:uint64;        // 阶段
+}
+// 类信息表
+table ClassInfo {
+  inheritedTypes:[uint32]; // 继承的类型
+  body:[uint32];           // 类体
+  adInfo:AutoDiffInfo;     // 自动微分信息
+  isAnno:bool = false;     // 指示当前类是否为自定义注解
+  annoTargets:uint8;       // 自定义注解的目标（如果是注解类）
+  runtimeVisible:bool;     // 运行时可见性
+  annoTargets2:uint8;      // 注解目标扩展
+}
+// 接口信息表
+table InterfaceInfo {
+  inheritedTypes:[uint32]; // 继承的类型
+  body:[uint32];           // 接口体
+}
+// 结构体信息表
+table StructInfo {
+  inheritedTypes:[uint32]; // 继承的类型
+  body:[uint32];           // 结构体体
+  adInfo:AutoDiffInfo;     // 自动微分信息
+}
+// 枚举信息表
+table EnumInfo {
+  inheritedTypes:[uint32]; // 继承的类型
+  body:[uint32];           // 枚举体
+  adInfo:AutoDiffInfo;     // 自动微分信息
+  hasArguments:bool;       // 是否有参数
+  nonExhaustive:bool;      // 是否非穷尽
+  ellipsisPos:Position;    // 省略号位置
+}
+// 扩展信息表
+table ExtendInfo {
+  inheritedTypes:[uint32]; // 继承的类型
+  body:[uint32];           // 扩展体
+}
+// 变量信息表
+table VarInfo {
+  isVar:bool;           // 是否可变
+  isConst:bool;         // 是否常量
+  isMemberParam:bool;   // 是否成员参数
+  initializer:uint32;   // 初始化表达式索引
+  value:ConstValue;     // 如果是常量则有值
+}
+// 带模式的变量信息表
+table VarWithPatternInfo {
+  isVar:bool;                 // 是否可变
+  isConst:bool;               // 是否常量
+  irrefutablePattern:Pattern; // 不可反驳模式（仅存在于表达式子节点）
+  initializer:uint32;         // 初始化表达式索引
+}
+// 溢出策略枚举
+enum OverflowPolicy : uint8 {
+  NA,         // 无
+  Checked,    // 检查
+  Wrapping,   // 环绕
+  Throwing,   // 抛出异常
+  Saturating, // 饱和
+}
+// 操作符类型枚举
+enum OperatorKind : uint8 {
+  NA,
+  // 可重载操作符
+  Index, // []    索引
+  Call,  // ()    调用
+  Not,   // !     非
+  Power,     // **    幂运算
+  Multiply,  // *     乘法
+  Divide,    // /     除法
+  Remainder, // %     取余
+  Add,       // +     加法
+  Subtract,  // -     减法
+  BitLeftShift,  // <<    左移
+  BitRightShift, // >>    右移
+  LT,       // <     小于
+  LE,       // <=    小于等于
+  GT,       // >     大于
+  GE,       // >=    大于等于
+  Equal,    // ==    相等
+  NotEqual, // !=    不等
+  BitAnd,   // &     按位与
+  BitXor,   // ^     按位异或
+  BitOr,    // |     按位或
+
+  // 其他操作符
+  PostInc,     // ++    后缀递增
+  PostDec,     // --    后缀递减
+  Is,          // is    类型检查
+  As,          // as    类型转换
+  LogicAnd,    // &&    逻辑与
+  LogicOr,     // ||    逻辑或
+  Coalescing,  // ??    空值合并
+  Pipeline,    // |>    管道
+  Composition, // ~>    组合
+  Assign,      // =     赋值
+  PowerAssign,      // **=   幂赋值
+  MultiplyAssign,   // *=    乘法赋值
+  DivideAssign,     // /=    除法赋值
+  RemainderAssign,  // %=    取余赋值
+  AddAssign,        // +=    加法赋值
+  SubtractAssign,   // -=    减法赋值
+  LeftShiftAssign,  // <<=   左移赋值
+  RightShiftAssign, // >>=   右移赋值
+  BitAndAssign,     // &=    按位与赋值
+  BitXorAssign,     // ^=    按位异或赋值
+  BitOrAssign,      // |=    按位或赋值
+  LogicAndAssign,   // &&=   逻辑与赋值
+  LogicOrAssign,    // ||=   逻辑或赋值
+}
+// 函数信息表
+table FuncInfo {
+  funcBody:FuncBody;           // 函数体
+  overflowPolicy:OverflowPolicy; // 溢出策略
+  op:OperatorKind = NA;        // 操作符类型
+  adInfo:AutoDiffInfo;         // 自动微分信息
+  isConst:bool;                // 是否常量函数
+  isInline:bool;               // 是否内联函数
+  isFastNative:bool;           // 是否快速原生函数
+}
+// 参数信息表
+table ParamInfo {
+  isNamedParam:bool;   // 是否命名参数
+  isMemberParam:bool;  // 是否成员参数
+  defaultVal:uint32;   // 默认值表达式索引
+}
+// 属性信息表
+table PropInfo {
+  isConst:bool;       // 是否常量
+  isMutable:bool;     // 是否可变
+  setters:[uint32];   // 设置器列表
+  getters:[uint32];   // 获取器列表
+}
+// 内置类型枚举
+enum BuiltInType : uint8 {
+  Array,     // 数组
+  VArray,    // 可变数组
+  CPointer,  // C指针
+  CString,   // C字符串
+  CFunc,     // C函数
+}
+// 内置类型信息表
+table BuiltInInfo {
+  builtInType:BuiltInType; // 内置类型
+}
+// 类型别名信息表
+table AliasInfo {
+  aliasedTy:uint32; // 被别名化的语义类型索引
+}
+// 声明信息联合体
+union DeclInfo {
+  ClassInfo,           // 类信息
+  InterfaceInfo,       // 接口信息
+  StructInfo,          // 结构体信息
+  EnumInfo,            // 枚举信息
+  ExtendInfo,          // 扩展信息
+  PropInfo,            // 属性信息
+  VarInfo,             // 变量信息
+  VarWithPatternInfo,  // 带模式的变量信息
+  ParamInfo,           // 参数信息
+  FuncInfo,            // 函数信息
+  BuiltInInfo,         // 内置类型信息
+  AliasInfo,           // 类型别名信息
+}
+
+table Decl {
+  kind:DeclKind = InvalidDecl;  // 声明类型，默认为无效声明
+  isTopLevel:bool = false; // whether the decl is toplevel  // 是否为顶层声明
+  fullPkgName:string;  // 完整包名，包含命名空间路径
+  genericDecl:FullId;  // 泛型声明的完整标识符
+  generic:Generic;  // 泛型参数信息
+  begin:Position;  // 声明在源代码中的起始位置
+  end:Position;  // 声明在源代码中的结束位置
+  identifier:string;  // 声明的标识符名称
+  identifierPos:Position;  // 标识符在源代码中的位置
+  attributes:[uint64];  // 声明的属性集合（位掩码）
+  annotations:[Anno];  // 声明的注解列表
+
+  // Semantic & CodeGen info
+  type: uint32;  // 声明的类型索引，用于语义分析
+  mangledName: string; // mangledName for CodeGen  // 用于代码生成的混淆名称
+  exportId: string;    // exportId for import  // 用于导入导出的唯一标识符
+
+  // info used in ast diff
+  mangledBeforeSema:string;  // 语义分析前的混淆名称，用于AST差异比较
+  hash:DeclHash;  // 声明的哈希值，用于增量编译
+  // Specific information for each specific kind of declaration
+  info:DeclInfo;  // 特定声明类型的详细信息联合体
+}
+
+
+// 注解类型枚举
+enum AnnoKind : uint16 {
+  Deprecated,        // 已弃用
+  TestRegistration,  // 测试注册  
+  Frozen,            // 冻结
+  Custom             // 自定义
+}
+
+// 当前注解表示是 @Deprecated 需求和其他注解潜在通用化之间的平衡
+// 注解表（简称 Anno，以避免与 CHIRFormat.fbs 中的 Annotation 冲突）
+table Anno {
+  kind:AnnoKind;      // 注解类型
+  identifier:string;  // 标识符
+  args:[AnnoArg];     // 参数列表
+}
+
+// 注解参数表
+table AnnoArg {
+  name:string;  // 参数名
+  expr:uint32;  // 表达式索引（LitConstExpr）
+}
+
+enum ExprKind : uint16 {
+  InvalidExpr,
+  WildcardExpr,
+  PrimitiveTypeExpr,
+  ReturnExpr,
+  JumpExpr,
+  MemberAccess,
+  RefExpr,
+  CallExpr,
+  UnaryExpr,
+  IncOrDecExpr,
+  LitConstExpr,
+  BinaryExpr,
+  SubscriptExpr,
+  AssignExpr,
+  ArrayExpr,
+  PointerExpr,
+  TypeConvExpr,
+  ThrowExpr,
+  SpawnExpr,
+  ArrayLit,
+  TupleLit,
+  MatchExpr,
+  LetPatternDestructor,
+  IfExpr,
+  TryExpr,
+  WhileExpr,
+  DoWhileExpr,
+  LambdaExpr,
+  Block,
+  MatchCase,
+  MatchCaseOther,
+  AdjointExpr,
+  GradExpr,
+  ValWithGradExpr,
+  VJPExpr,
+  ForInExpr,
+  IfAvailableExpr,
+}
+
+enum CallKind : uint8 {
+  NA,                    // 不适用
+  CallDeclaredFunction,  // 调用声明的函数
+  CallObjectCreation,    // 调用对象创建
+  CallStructCreation,    // 调用结构体创建
+  CallSuperFunction,     // 调用父类函数
+  CallVariadicFunction,  // 调用变参函数
+  CallFunctionPtr,       // 调用函数指针
+  CallAnnotation,        // 调用注解
+  CallBuiltinFunction,   // 调用内置函数
+  CallIntrinsicFunction, // 调用内部函数
+}
+
+enum LitConstKind : uint8 {
+  Integer,  // 整数
+  RuneByte, // 字节
+  Float,    // 浮点数
+  Rune,     // 字符
+  String,   // 字符串
+  JString,  // J字符串
+  Bool,     // 布尔值
+  Unit,     // 单元值
+}
+enum StringKind : uint8 {
+  Normal,       // 普通字符串
+  JString,      // J字符串
+  MultiLine,    // 多行字符串
+  MultiLineRaw, // 多行原始字符串
+}
+
+enum ForInKind : uint8 {
+  NA,       // 不适用
+  Range,    // 范围
+  String,   // 字符串
+  Iterator, // 迭代器
+}
+
+union ExprInfo {
+  CallInfo,                 // 调用信息
+  UnaryInfo,                // 一元操作信息
+  BinaryInfo,               // 二元操作信息
+  IncOrDecInfo,             // 自增或自减信息
+  LitConstInfo,             // 字面常量信息
+  ReferenceInfo,            // 引用信息
+  LambdaInfo,               // Lambda表达式信息
+  AssignInfo,               // 赋值信息
+  ArrayInfo,                // 数组信息
+  JumpInfo,                 // 跳转信息
+  FuncArgInfo,              // 函数参数信息
+  SubscriptInfo,            // 下标信息
+  MatchInfo,                // 匹配信息
+  BlockInfo,                // 块信息
+  TryInfo,                  // Try信息
+  LetPatternDestructorInfo, // Let模式解构信息
+  ForInInfo,                // For-In信息
+  MatchCaseInfo,            // 匹配分支信息
+  SpawnInfo,                // 协程创建信息
+}
+table CallInfo {
+  hasSideEffect:bool;      // 是否有副作用
+  callKind:CallKind = NA;  // 调用类型，默认为NA
+}
+table UnaryInfo {
+  op:OperatorKind;  // 操作符类型
+}
+table BinaryInfo {
+  op:OperatorKind;  // 操作符类型
+}
+table IncOrDecInfo {
+  op:OperatorKind;  // 操作符类型（自增或自减）
+}
+table LitConstInfo {
+  strValue:string;        // 字符串值
+  constKind:LitConstKind; // 常量类型
+  strKind:StringKind;     // 字符串类型
+}
+table ReferenceInfo {
+  // For RefExpr/MemberAccess
+  reference:string; // 引用名称，也用于LitConstExpr字符串值
+  target:FullId;    // 目标标识符
+  instTys:[uint32]; // 实例化类型索引向量
+  matchedParentTy:uint32; // 用于实例化重排
+}
+table LambdaInfo {
+  funcBody:FuncBody (required); // Lambda表达式的函数体
+  supportMock:bool;            // 是否支持模拟
+}
+table AssignInfo {
+  isCompound:bool;   // 是否为复合赋值
+  op:OperatorKind;   // 操作符类型
+}
+table ArrayInfo {
+  initFunc:FullId;    // 初始化函数
+  isValueArray:bool;  // 是否为值数组
+}
+table JumpInfo {
+  isBreak:bool;  // 是否为break语句（否则为continue）
+}
+table FuncArgInfo {
+  withInout:bool;    // 是否带有inout修饰符
+  isDefaultVal:bool; // 是否为默认值
+}
+table SubscriptInfo {
+  isTupleAccess:bool; // 是否为元组访问
+}
+table MatchInfo {
+  matchMode:bool; // 匹配模式
+}
+table BlockInfo {
+  isExpr:[bool]; // 是否为表达式块
+}
+table TryInfo {
+  resources:[FullId]; // 用于try-with-resource的资源
+  patterns:[Pattern]; // 匹配模式列表
+}
+table LetPatternDestructorInfo {
+  patterns:[Pattern]; // 解构模式列表
+}
+table ForInInfo {
+  pattern:Pattern;           // 迭代变量模式
+  forInKind:ForInKind = NA; // for-in类型
+}
+table MatchCaseInfo {
+  patterns:[Pattern]; // 匹配分支模式列表
+}
+table SpawnInfo {
+  future:FullId; // Future类型标识符
+}
+
+// 表达式表
+table Expr {
+  kind:ExprKind = InvalidExpr; // 表达式类型
+  begin:Position;              // 开始位置
+  end:Position;                // 结束位置
+  mapExpr:uint32;              // 处理副作用的表达式索引
+  operands:[uint32];           // 子表达式索引
+  type:uint32;                 // 类型
+  overflowPolicy:OverflowPolicy; // 溢出策略
+  info:ExprInfo;               // 表达式信息
+}
+
+// 模式类型枚举
+enum PatternKind:int8 {
+  InvalidPattern,    // 无效模式
+  ConstPattern,      // 常量模式
+  WildcardPattern,   // 通配符模式
+  VarPattern,        // 变量模式
+  TuplePattern,      // 元组模式
+  TypePattern,       // 类型模式
+  EnumPattern,       // 枚举模式
+  ExceptTypePattern, // 异常类型模式
+}
+
+// 模式表
+table Pattern {
+  kind:PatternKind = InvalidPattern; // 模式类型
+  begin:Position;                    // 开始位置
+  end:Position;                      // 结束位置
+  patterns:[Pattern];                // 子模式列表
+  types:[uint32];                    // 语义类型索引
+  exprs:[uint32];                    // 表达式索引
+  values:[ConstValue];               // 常量值列表
+  matchBeforeRuntime:bool;           // 运行时前匹配
+  needRuntimeTypeCheck:bool;         // 需要运行时类型检查
+}
+
+// 为了兼容性，任何新的类型种类必须只能在最后添加
+// 类型种类枚举
+enum TypeKind : uint16 {
+  Invalid, // 无效类型
+
+  // 原始类型
+  Unit, // 单元类型
+  // 整数类型
+  Int8,     // 8位整数
+  Int16,    // 16位整数
+  Int32,    // 32位整数
+  Int64,    // 64位整数
+  IntNative, // 原生整数
+
+  // 无符号整数类型
+  UInt8,      // 8位无符号整数
+  UInt16,     // 16位无符号整数
+  UInt32,     // 32位无符号整数
+  UInt64,     // 64位无符号整数
+  UIntNative, // 原生无符号整数
+  // 浮点类型
+  Float16, // 16位浮点数
+  Float32, // 32位浮点数
+  Float64, // 64位浮点数
+
+  Rune,    // 字符类型
+  Nothing, // 空类型
+  Bool,    // 布尔类型
+
+  // 复合类型
+  Tuple,  // 元组类型
+  Enum,   // 枚举类型
+  Func,   // 函数类型
+  Struct, // 结构体类型
+
+  // 引用类型
+  Array,     // 数组类型
+  VArray,    // 可变数组类型
+  CPointer,  // C指针类型
+  CString,   // C字符串类型
+  Class,     // 类类型
+  Interface, // 接口类型
+
+  Type,    // 类型别名
+  Generic, // 泛型
+}
+
+// 语义类型信息联合体
+union SemaTyInfo {
+  FuncTyInfo,      // 函数类型信息
+  CompositeTyInfo, // 复合类型信息
+  GenericTyInfo,   // 泛型类型信息
+  ArrayTyInfo,     // 数组类型信息
+}
+// 函数类型信息表
+table FuncTyInfo {
+  retType:uint32;         // 函数返回类型
+  isC:bool;               // 是否C函数或@C函数类型
+  hasVariableLenArg:bool; // 是否有变长参数
+}
+// 复合类型信息表
+table CompositeTyInfo {
+  declPtr:FullId;         // 声明指针
+  isThisTy:bool=false;    // 是否this类型
+}
+// 泛型类型信息表
+table GenericTyInfo {
+  declPtr:FullId;       // 声明指针
+  upperBounds:[uint32]; // 上界列表
+}
+// 数组类型信息表
+table ArrayTyInfo {
+  dimsOrSize:int64; // 维度或大小
+}
+
+// 语义类型表
+table SemaTy {
+  kind:TypeKind=Unit;     // 类型种类，默认为Unit
+  // 类型参数，也用于函数类型的参数类型
+  typeArgs:[uint32];      // 类型参数列表
+  info:SemaTyInfo;        // 类型信息
+}
+
+// 访问修饰符枚举
+enum AccessModifier : uint8 {
+  Private,   // 私有
+  Internal,  // 内部
+  Protected, // 受保护
+  Public,    // 公共
+}
+
+// 导入规范表
+table ImportSpec {
+  begin:Position;                     // 开始位置
+  end:Position;                       // 结束位置
+  prefixPaths:[string];               // 前缀路径
+  identifier:string;                  // 标识符
+  asIdentifier:string;                // 别名标识符
+  reExport:AccessModifier = Private;  // 重新导出级别
+}
+
+// 导入列表表
+table Imports {
+  importSpecs:[ImportSpec]; // 导入规范列表
+}
+
+// 包类型枚举
+enum PackageKind : uint8 {
+  Normal,  // 普通包
+  Macro,   // 宏包
+  Foreign, // 外部语言包
+  Mock,    // 支持模拟的包
+}
+
+// 访问级别枚举
+enum AccessLevel : uint8 {
+  Public,    // 公共
+  Protected, // 受保护
+  Internal,  // 内部
+}
+
+// CJO版本结构
+struct CjoVersion {
+  major_num:uint8; // 主版本号
+  minor_num:uint8; // 次版本号
+  patch_num:uint8; // 补丁版本号
+}
+
+// 所有语义类型、声明都保存在这里，并被其他节点索引
+// 包表
+table Package {
+  version:string;              // cjc版本
+  cjoVersion:CjoVersion;       // cjo格式版本
+  fullPkgName:string;          // 完整包名
+  pkgDepInfo:string;           // 包依赖信息
+  imports:[string];            // 所有导入的包
+  allFiles:[string];           // 包中的所有文件
+  allFileImports:[Imports];    // 包中所有文件的导入
+  allTypes:[SemaTy];           // 所有保存的语义类型
+  allDecls:[Decl];             // 所有保存的声明
+  allExprs:[Expr];             // 所有保存的表达式
+  allValues:[CompositeValue];  // 所有保存的常量复合值
+  kind:PackageKind = Normal;   // 包类型
+  access:AccessLevel = Public; // 访问级别
+  moduleName:string;           // 模块名
+}
+
+root_type Package;

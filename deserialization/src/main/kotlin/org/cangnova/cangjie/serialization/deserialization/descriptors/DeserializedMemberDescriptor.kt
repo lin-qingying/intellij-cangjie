@@ -33,8 +33,8 @@ import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.isError
-import org.cangnova.cangjie.metadata.model.*
-import org.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
+import org.cangnova.cangjie.metadata.model.fb.FbDecl
+import org.cangnova.cangjie.metadata.model.fb.FbDeclInfo
 import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.asSimpleType
 
@@ -44,7 +44,7 @@ interface DescriptorWithContainerSource : MemberDescriptor {
 }
 
 interface DeserializedMemberDescriptor : DeserializedDescriptor, MemberDescriptor, DescriptorWithContainerSource {
-    val decl: Decl
+    val decl: FbDecl
 
 
     // Information about the origin of this callable's container (class or package part on JVM) or null if there's no such information.
@@ -60,7 +60,7 @@ class DeserializedSimpleFunctionDescriptor(
     annotations: Annotations,
     name: Name,
     kind: CallableMemberDescriptor.Kind,
-    override val decl: Decl,
+    override val decl: FbDecl,
 
     override val containerSource: DeserializedContainerSource?,
     source: SourceElement? = null
@@ -70,8 +70,8 @@ class DeserializedSimpleFunctionDescriptor(
         source ?: SourceElement.NO_SOURCE
     ) {
 
-    private val funcInfo: FuncInfo
-        get() = (decl.info as? DeclInfo.Func)?.info
+    private val funcInfo: FbDeclInfo.FuncInfo
+        get() = (decl.info as? FbDeclInfo.FuncInfo)
             ?: throw IllegalStateException("Expected FuncInfo but got ${decl.info}")
 
     override fun createSubstitutedCopy(
@@ -99,15 +99,15 @@ class DeserializedVariableDescriptor(
     isVar: Boolean,
     name: Name,
     kind: CallableMemberDescriptor.Kind,
-    override val decl: Decl,
+    override val decl: FbDecl,
 
     override val containerSource: DeserializedContainerSource?
 ) : DeserializedCallableMemberDescriptor, VariableDescriptorImpl(
     containingDeclaration, name, null, isVar, SourceElement.NO_SOURCE, visibility
 ) {
 
-    private val varInfo: VarInfo
-        get() = (decl.info as? DeclInfo.Var)?.info
+    private val varInfo: FbDeclInfo.VarInfo
+        get() = (decl.info as? FbDeclInfo.VarInfo)
             ?: throw IllegalStateException("Expected VarInfo but got ${decl.info}")
 
     override fun createSubstitutedCopy(
@@ -134,15 +134,15 @@ class DeserializedPropertyDescriptor(
     isVar: Boolean,
     name: Name,
     kind: CallableMemberDescriptor.Kind,
-    override val decl: Decl,
+    override val decl: FbDecl,
 
     override val containerSource: DeserializedContainerSource?
 ) : DeserializedCallableMemberDescriptor, PropertyDescriptorImpl(
     containingDeclaration, original, annotations, modality, visibility, isVar, name, kind, SourceElement.NO_SOURCE
 ) {
 
-    private val propInfo: PropInfo
-        get() = (decl.info as? DeclInfo.Prop)?.info
+    private val propInfo: FbDeclInfo.PropInfo
+        get() = (decl.info as? FbDeclInfo.PropInfo)
             ?: throw IllegalStateException("Expected PropInfo but got ${decl.info}")
 
     override fun createSubstitutedCopy(
@@ -167,15 +167,15 @@ class DeserializedClassConstructorDescriptor(
     annotations: Annotations,
     isPrimary: Boolean,
     kind: CallableMemberDescriptor.Kind,
-    override val decl: Decl,
+    override val decl: FbDecl,
 
     override val containerSource: DeserializedContainerSource?,
     source: SourceElement? = null
 ) : DeserializedCallableMemberDescriptor,
     ClassConstructorDescriptorImpl(containingDeclaration, original, annotations, isPrimary, kind, source ?: SourceElement.NO_SOURCE) {
 
-    private val funcInfo: FuncInfo
-        get() = (decl.info as? DeclInfo.Func)?.info
+    private val funcInfo: FbDeclInfo.FuncInfo
+        get() = (decl.info as? FbDeclInfo.FuncInfo)
             ?: throw IllegalStateException("Expected FuncInfo for constructor but got ${decl.info}")
 
     override fun createSubstitutedCopy(
@@ -201,14 +201,14 @@ class DeserializedTypeAliasDescriptor(
     annotations: Annotations,
     name: Name,
     visibility: DescriptorVisibility,
-    override val decl: Decl,
+    override val decl: FbDecl,
 
     override val containerSource: DeserializedContainerSource?
 ) : AbstractTypeAliasDescriptor(storageManager, containingDeclaration,  name, SourceElement.NO_SOURCE, visibility,annotations,),
     DeserializedMemberDescriptor {
 
-    private val aliasInfo: AliasInfo
-        get() = (decl.info as? DeclInfo.Alias)?.info
+    private val aliasInfo: FbDeclInfo.AliasInfo
+        get() = (decl.info as? FbDeclInfo.AliasInfo)
             ?: throw IllegalStateException("Expected AliasInfo but got ${decl.info}")
 
     override lateinit var underlyingType: SimpleType private set

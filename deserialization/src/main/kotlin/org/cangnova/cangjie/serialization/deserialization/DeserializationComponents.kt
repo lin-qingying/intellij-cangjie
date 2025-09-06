@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.serialization.deserialization
 
+import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.NotFoundClasses
@@ -33,7 +34,8 @@ import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.deserialization.DeclTable
 import org.cangnova.cangjie.metadata.deserialization.TypeTable
-import org.cangnova.cangjie.metadata.model.Package
+import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedContainerSource
 import org.cangnova.cangjie.storage.StorageManager
@@ -94,22 +96,22 @@ class DeserializationComponents(
     val fictitiousClassDescriptorFactories: Iterable<ClassDescriptorFactory>,
     val notFoundClasses: NotFoundClasses,
 //    val contractDeserializer: ContractDeserializer,
-//    val additionalClassPartsProvider: AdditionalClassPartsProvider = AdditionalClassPartsProvider.None,
-//    val platformDependentDeclarationFilter: PlatformDependentDeclarationFilter = PlatformDependentDeclarationFilter.All,
+    val additionalClassPartsProvider: AdditionalClassPartsProvider = AdditionalClassPartsProvider.None,
+    val platformDependentDeclarationFilter: PlatformDependentDeclarationFilter = PlatformDependentDeclarationFilter.All,
 //    val extensionRegistryLite: ExtensionRegistryLite,
     val cangjieTypeChecker: NewCangJieTypeChecker = NewCangJieTypeChecker.Default,
 //    val samConversionResolver: SamConversionResolver,
     val typeAttributeTranslators: List<TypeAttributeTranslator> = listOf(DefaultTypeAttributeTranslator),
 //    val enumEntriesDeserializationSupport: EnumEntriesDeserializationSupport = EnumEntriesDeserializationSupport.Default,
 ) {
-    //    val classDeserializer: ClassDeserializer = ClassDeserializer(this)
-//
-//    fun deserializeClass(classId: ClassId): ClassDescriptor? = classDeserializer.deserializeClass(classId)
-//
+        val classDeserializer: ClassDeserializer = ClassDeserializer(this)
+
+    fun deserializeClass(classId: ClassId): ClassDescriptor? = classDeserializer.deserializeClass(classId)
+
     fun createContext(
         descriptor: PackageFragmentDescriptor,
 
-        `package`: Package,
+        `package`: FbPackage,
         metadataVersion: BinaryVersion,
         containerSource: DeserializedContainerSource?
     ): DeserializationContext =
@@ -142,13 +144,23 @@ class DeserializationContext(
 
     val containingDeclaration: DeclarationDescriptor,
 
-    val `package`: Package,
+    val `package`: FbPackage,
 
     val metadataVersion: BinaryVersion,
     val containerSource: DeserializedContainerSource?,
     parentTypeDeserializer: TypeDeserializer?,
 //    typeParameters: List<TypeParameter>
 ) {
+
+
+
+
+
+
+
+
+
+
     val typeDeserializer: TypeDeserializer = TypeDeserializer(
         this, parentTypeDeserializer,
         "Deserializer for \"${containingDeclaration.name}\"",
@@ -157,7 +169,7 @@ class DeserializationContext(
 
     val declDeserializer: DeclarationDeserializer = DeclarationDeserializer(this)
     val typeTable: TypeTable = TypeTable(`package`.types)
-    val declType = DeclTable(`package`.decls)
+    val declTable = DeclTable(`package`.decls)
 
     val storageManager: StorageManager get() = components.storageManager
     val builtIns = containingDeclaration.builtIns
@@ -167,7 +179,7 @@ class DeserializationContext(
         descriptor: DeclarationDescriptor,
 //        typeParameterParams: List<TypeParameter>,
 
-        `package`: Package = this.`package`,
+        `package`: FbPackage = this.`package`,
         metadataVersion: BinaryVersion = this.metadataVersion
     ): DeserializationContext = DeserializationContext(
         components, descriptor,

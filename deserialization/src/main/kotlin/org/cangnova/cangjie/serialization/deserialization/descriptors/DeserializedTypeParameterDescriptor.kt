@@ -28,7 +28,7 @@ import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.descriptors.SupertypeLoopChecker
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.AbstractLazyTypeParameterDescriptor
-import org.cangnova.cangjie.metadata.model.Constraint
+import org.cangnova.cangjie.metadata.model.fb.FbConstraint
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
@@ -39,7 +39,7 @@ class DeserializedTypeParameterDescriptor(
     private val c: DeserializationContext,
     private val typeParameterId: Int,
     index: Int,
-    private val constraint: Constraint?
+    private val constraint: FbConstraint?
 ) : AbstractLazyTypeParameterDescriptor(
     c.storageManager, 
     c.containingDeclaration,

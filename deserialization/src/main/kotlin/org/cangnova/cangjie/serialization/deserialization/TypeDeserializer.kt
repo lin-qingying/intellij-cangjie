@@ -26,8 +26,9 @@ package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
-import org.cangnova.cangjie.metadata.model.*
-import org.cangnova.cangjie.metadata.deserialization.TypeTable
+import org.cangnova.cangjie.metadata.model.fb.FbSemaTy
+import org.cangnova.cangjie.metadata.model.fb.FbSemaTyInfo
+import org.cangnova.cangjie.metadata.model.fb.FbTypeKind
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.StandardClassIds.ArrayClassId
 import org.cangnova.cangjie.types.CangJieType
@@ -122,7 +123,7 @@ class TypeDeserializer(
      * @return 转换后的CangJieType对象
      */
     // TODO: don't load identical types from TypeTable more than once
-    fun type(semaTy: SemaTy): CangJieType {
+    fun type(semaTy: FbSemaTy): CangJieType {
         return simpleType(semaTy, expandTypeAliases = true)
     }
 
@@ -161,7 +162,7 @@ class TypeDeserializer(
      * @param expandTypeAliases 是否展开类型别名，默认为true
      * @return 转换后的SimpleType对象
      */
-    fun simpleType(semaTy: SemaTy, expandTypeAliases: Boolean = true): SimpleType {
+    fun simpleType(semaTy: FbSemaTy, expandTypeAliases: Boolean = true): SimpleType {
         val constructor = typeConstructor(semaTy)
         if (ErrorUtils.isError(constructor.declarationDescriptor)) {
             return ErrorUtils.createErrorType(
@@ -189,7 +190,7 @@ class TypeDeserializer(
                 expandedType.replaceAttributes(attributes)
             }
 
-            semaTy.kind == TypeKind.Func -> {
+            semaTy.kind == FbTypeKind.Func -> {
                 // Handle function types
                 val nullable = false // TODO: Extract nullability from semaTy
                 CangJieTypeFactory.simpleType(attributes, constructor, arguments, nullable)
@@ -216,7 +217,7 @@ class TypeDeserializer(
      * @param semaTy flatbuffer格式的语义类型定义
      * @return 对应的类型构造器
      */
-    private fun typeConstructor(semaTy: SemaTy): TypeConstructor {
+    private fun typeConstructor(semaTy: FbSemaTy): TypeConstructor {
 
 
         fun notFoundClass(classId: ClassId): ClassDescriptor {
@@ -234,37 +235,37 @@ class TypeDeserializer(
 
         return when (semaTy.kind) {
             // 基本类型
-            TypeKind.Unit -> c.builtIns.unitType.constructor
-            TypeKind.Bool -> c.builtIns.boolType.constructor
-            TypeKind.Int8 -> c.builtIns.int8Type.constructor
-            TypeKind.Int16 -> c.builtIns.int16Type.constructor
-            TypeKind.Int32 -> c.builtIns.int32Type.constructor
-            TypeKind.Int64 -> c.builtIns.int64Type.constructor
-            TypeKind.IntNative ->
+            FbTypeKind.Unit -> c.builtIns.unitType.constructor
+            FbTypeKind.Bool -> c.builtIns.boolType.constructor
+            FbTypeKind.Int8 -> c.builtIns.int8Type.constructor
+            FbTypeKind.Int16 -> c.builtIns.int16Type.constructor
+            FbTypeKind.Int32 -> c.builtIns.int32Type.constructor
+            FbTypeKind.Int64 -> c.builtIns.int64Type.constructor
+            FbTypeKind.IntNative ->
                 c.builtIns.intNativeType.constructor
 
-            TypeKind.UInt8 -> c.builtIns.uint8Type.constructor
-            TypeKind.UInt16 -> c.builtIns.uint16Type.constructor
-            TypeKind.UInt32 -> c.builtIns.uint32Type.constructor
-            TypeKind.UInt64 -> c.builtIns.uint64Type.constructor
-            TypeKind.UIntNative ->
+            FbTypeKind.UInt8 -> c.builtIns.uint8Type.constructor
+            FbTypeKind.UInt16 -> c.builtIns.uint16Type.constructor
+            FbTypeKind.UInt32 -> c.builtIns.uint32Type.constructor
+            FbTypeKind.UInt64 -> c.builtIns.uint64Type.constructor
+            FbTypeKind.UIntNative ->
                 c.builtIns.uintNativeType.constructor // TODO: Add unsigned int support
-            TypeKind.Float16 -> c.builtIns.float16Type.constructor
-            TypeKind.Float32 -> c.builtIns.float32Type.constructor
-            TypeKind.Float64 ->
+            FbTypeKind.Float16 -> c.builtIns.float16Type.constructor
+            FbTypeKind.Float32 -> c.builtIns.float32Type.constructor
+            FbTypeKind.Float64 ->
                 c.builtIns.float64Type.constructor
 
-            TypeKind.Rune -> c.builtIns.runeType.constructor
-            TypeKind.Nothing -> c.builtIns.nothingType.constructor
+            FbTypeKind.Rune -> c.builtIns.runeType.constructor
+            FbTypeKind.Nothing -> c.builtIns.nothingType.constructor
 
 //如果是Array，说明该包是std.core，那么Array的声明只会在同一包中出现，所以直接在本包中查找声明，通过name的方法
-            TypeKind.Array -> {
-                val info = (semaTy.info as SemaTyInfo.Array).info
+            FbTypeKind.Array -> {
+                val info = (semaTy.info as FbSemaTyInfo.Array).info
                 (classifierDescriptors(ArrayClassId) ?: notFoundClass(ArrayClassId)).typeConstructor
             }
 
             // 复合类型 (Class, Interface, Struct, Enum)
-           TypeKind.Class, TypeKind.Interface, TypeKind.Struct, TypeKind.Enum -> {
+            FbTypeKind.Class, FbTypeKind.Interface, FbTypeKind.Struct, FbTypeKind.Enum -> {
                 when (val info = semaTy.info) {
 
 
@@ -291,9 +292,9 @@ class TypeDeserializer(
 //            }
 
             // 函数类型
-            TypeKind.Func -> {
+            FbTypeKind.Func -> {
                 when (val info = semaTy.info) {
-                    is SemaTyInfo.Func -> {
+                    is FbSemaTyInfo.Func -> {
                         val arity = semaTy.typeArgs.size - 1 // 减去返回类型
                         if (arity >= 0) {
                             c.builtIns.getFunction(arity).typeConstructor
@@ -312,7 +313,7 @@ class TypeDeserializer(
 //            }
 
             // 元组类型
-            TypeKind.Tuple -> {
+            FbTypeKind.Tuple -> {
                 // TODO: 实现元组类型支持
                 ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
             }

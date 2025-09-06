@@ -4,9 +4,9 @@
 //
 // See https://cangjie-lang.cn/pages/LICENSE for license information.
 
-include "ModuleFormat.fbs";
+include "PackageFormat.fbs";
 
-namespace org.cangnova.cangjie.metadata.BCHIRFormat;
+namespace BCHIRFormat;
 
 file_identifier "BIR2";
 

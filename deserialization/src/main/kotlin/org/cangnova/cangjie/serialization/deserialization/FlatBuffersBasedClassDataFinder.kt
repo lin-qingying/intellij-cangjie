@@ -26,23 +26,25 @@ package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.metadata.model.*
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.descriptors.SourceElement
+import org.cangnova.cangjie.metadata.model.fb.FbDecl
+import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
+import org.cangnova.cangjie.metadata.model.fb.FbPackage
 
 /**
  * FlatBuffers-based implementation of ClassDataFinder.
  * This class finds class data from FlatBuffers serialized metadata instead of Protocol Buffers.
  */
 class FlatBuffersBasedClassDataFinder(
-    private val packageData: Package,
+    private val packageData: FbPackage,
     private val metadataVersion: BinaryVersion,
     private val sourceElementProvider: () -> SourceElement = {
         SourceElement.NO_SOURCE
     }
 ) : ClassDataFinder {
 
-    private val classDeclarations: Map<ClassId, Decl> by lazy {
+    private val classDeclarations: Map<ClassId, FbDecl> by lazy {
         buildClassDeclarationMap()
     }
 
@@ -54,21 +56,22 @@ class FlatBuffersBasedClassDataFinder(
         val classDecl = classDeclarations[classId] ?: return null
         return ClassData(
             classDecl = classDecl,
+            `package` =  packageData,
             metadataVersion = metadataVersion,
             sourceElement = sourceElementProvider()
         )
     }
 
-    private fun buildClassDeclarationMap(): Map<ClassId, Decl> {
-        val result = mutableMapOf<ClassId, Decl>()
+    private fun buildClassDeclarationMap(): Map<ClassId, FbDecl> {
+        val result = mutableMapOf<ClassId, FbDecl>()
         
         // Extract class declarations from the package
         for (decl in packageData.decls) {
             when (decl.kind) {
-                DeclKind.ClassDecl, 
-                DeclKind.InterfaceDecl, 
-                DeclKind.StructDecl, 
-                DeclKind.EnumDecl -> {
+                FbDeclKind.ClassDecl,
+                FbDeclKind.InterfaceDecl,
+                FbDeclKind.StructDecl,
+                FbDeclKind.EnumDecl -> {
                     val classId = createClassId(decl)
                     result[classId] = decl
                 }
@@ -81,7 +84,7 @@ class FlatBuffersBasedClassDataFinder(
         return result
     }
 
-    private fun createClassId(decl: Decl): ClassId {
+    private fun createClassId(decl: FbDecl): ClassId {
         val packageFqName = org.cangnova.cangjie.name.FqName(packageData.fullPkgName)
         val className = Name.identifier(decl.identifier)
         return ClassId(packageFqName, className)

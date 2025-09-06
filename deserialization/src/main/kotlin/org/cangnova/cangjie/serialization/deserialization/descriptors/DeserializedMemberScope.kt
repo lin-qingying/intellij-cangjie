@@ -30,8 +30,8 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
-import org.cangnova.cangjie.metadata.model.Decl
-import org.cangnova.cangjie.metadata.model.DeclKind
+import org.cangnova.cangjie.metadata.model.fb.FbDecl
+import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.MemberComparator
@@ -65,24 +65,25 @@ import org.cangnova.cangjie.utils.compact
  */
 abstract class DeserializedMemberScope protected constructor(
     protected val c: DeserializationContext,
-    functionList: List<Decl>,
-    variableList: List<Decl>,
-    propertyList: List<Decl>,
-    typeAliasList: List<Decl>,
-    classList: List<Decl>,
+    functionList: List<FbDecl>,
+    variableList: List<FbDecl>,
+    propertyList: List<FbDecl>,
+    typeAliasList: List<FbDecl>,
+    classList: List<FbDecl>,
 
     ) : MemberScopeImpl() {
+    internal val classNames by c.storageManager.createLazyValue { classList.map{it.name}.toSet() }
 
-    constructor(c: DeserializationContext, decls: List<Decl>) : this(
+    constructor(c: DeserializationContext, decls: List<FbDecl>) : this(
         c,
-        decls.filter { it.kind == DeclKind.FuncDecl },
-        decls.filter { it.kind == DeclKind.VarDecl },
-        decls.filter { it.kind == DeclKind.PropDecl },
-        decls.filter { it.kind == DeclKind.TypeAliasDecl },
+        decls.filter { it.kind == FbDeclKind.FuncDecl },
+        decls.filter { it.kind == FbDeclKind.VarDecl },
+        decls.filter { it.kind == FbDeclKind.PropDecl },
+        decls.filter { it.kind == FbDeclKind.TypeAliasDecl },
         decls.filter {
-            it.kind == DeclKind.ClassDecl || it.kind == DeclKind.StructDecl ||
-                    it.kind == DeclKind.InterfaceDecl || it.kind == DeclKind.EnumDecl ||
-                    it.kind == DeclKind.ExtendDecl
+            it.kind == FbDeclKind.ClassDecl || it.kind == FbDeclKind.StructDecl ||
+                    it.kind == FbDeclKind.InterfaceDecl || it.kind == FbDeclKind.EnumDecl ||
+                    it.kind == FbDeclKind.ExtendDecl
         }
     )
 
@@ -226,11 +227,11 @@ abstract class DeserializedMemberScope protected constructor(
      * @return 适合当前配置的Implementation实现
      */
     private fun createImplementation(
-        functionList: List<Decl>,
-        variableList: List<Decl>,
-        propertyList: List<Decl>,
-        typeAliasList: List<Decl>,
-        classList: List<Decl>
+        functionList: List<FbDecl>,
+        variableList: List<FbDecl>,
+        propertyList: List<FbDecl>,
+        typeAliasList: List<FbDecl>,
+        classList: List<FbDecl>
     ): Implementation =
         if (c.components.configuration.preserveDeclarationsOrdering)
             NoReorderImplementation(functionList, variableList, propertyList, typeAliasList, classList)
@@ -251,12 +252,12 @@ abstract class DeserializedMemberScope protected constructor(
      * @param typeAliasList 类型别名声明列表
      */
     private inner class OptimizedImplementation(
-        functionList: List<Decl>,
-        variableList: List<Decl>,
+        functionList: List<FbDecl>,
+        variableList: List<FbDecl>,
 
-        propertyList: List<Decl>,
-        typeAliasList: List<Decl>,
-        classList: List<Decl>
+        propertyList: List<FbDecl>,
+        typeAliasList: List<FbDecl>,
+        classList: List<FbDecl>
     ) : Implementation {
         /**
          * 按名称分组的函数声明映射
@@ -363,8 +364,8 @@ abstract class DeserializedMemberScope protected constructor(
             )
 
         private inline fun <D : DeclarationDescriptor> computeDescriptors(
-            decls: Collection<Decl>,
-            factory: (Decl) -> D?,
+            decls: Collection<FbDecl>,
+            factory: (FbDecl) -> D?,
             computeNonDeclared: (MutableList<D>) -> Unit
         ): Collection<D> {
             val descriptors = decls.mapNotNullTo(ArrayList(decls.size), factory)
@@ -637,12 +638,12 @@ abstract class DeserializedMemberScope protected constructor(
      * @param classList 类声明列表，保持原始顺序
      */
     private inner class NoReorderImplementation(
-        private val functionList: List<Decl>,
-        private val variableList: List<Decl>,
+        private val functionList: List<FbDecl>,
+        private val variableList: List<FbDecl>,
 
-        private val propertyList: List<Decl>,
-        typeAliasList: List<Decl>,
-        private val classList: List<Decl>
+        private val propertyList: List<FbDecl>,
+        typeAliasList: List<FbDecl>,
+        private val classList: List<FbDecl>
     ) : Implementation {
 
         /**
@@ -958,8 +959,8 @@ abstract class DeserializedMemberScope protected constructor(
          * @param deserialize 反序列化函数，将声明转换为描述符
          * @return 保持原始顺序的描述符列表
          */
-        private inline fun <K : MemberDescriptor> List<Decl>.mapWithDeserializer(
-            deserialize: DeclarationDeserializer.(Decl) -> K?
+        private inline fun <K : MemberDescriptor> List<FbDecl>.mapWithDeserializer(
+            deserialize: DeclarationDeserializer.(FbDecl) -> K?
         ): List<K> {
             return mapNotNull { c.declDeserializer.deserialize(it) }
         }
@@ -1015,7 +1016,6 @@ abstract class DeserializedMemberScope protected constructor(
      * @return 非声明分类器名称集合，如果没有则返回null
      */
     protected abstract fun getNonDeclaredClassifierNames(): Set<Name>?
-
 
 
     /**
@@ -1100,6 +1100,9 @@ abstract class DeserializedMemberScope protected constructor(
         return name !in impl.functionNames && name !in impl.variableNames && name !in impl.classNames && name !in impl.typeAliasNames
     }
 
+    private fun deserializeClass(name: Name): ClassDescriptor? =
+        c.components.deserializeClass(createClassId(name))
+
     /**
      * 检查作用域是否包含指定名称的类
      *
@@ -1125,7 +1128,7 @@ abstract class DeserializedMemberScope protected constructor(
      */
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         when {
-            hasClass(name) -> getClassByName(name)
+            hasClass(name) -> deserializeClass(name)
             name in impl.typeAliasNames -> getTypeAliasByName(name)
             else -> null
         }
@@ -1163,7 +1166,9 @@ abstract class DeserializedMemberScope protected constructor(
         if (kindFilter.acceptsKinds(DescriptorKindFilter.CLASSIFIERS_MASK)) {
             for (className in impl.classNames) {
                 if (nameFilter(className)) {
-                    result.addIfNotNull(getClassByName(className))
+                    result.addIfNotNull(deserializeClass(className))
+
+//                    result.addIfNotNull(getClassByName(className))
                 }
             }
         }

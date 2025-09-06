@@ -25,13 +25,12 @@
 package org.cangnova.cangjie.serialization.deserialization.descriptors
 
 import org.cangnova.cangjie.descriptors.ClassifierDescriptor
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.Package
+import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
@@ -39,7 +38,7 @@ import org.cangnova.cangjie.serialization.deserialization.DeserializationCompone
 
 open class DeserializedPackageMemberScope(
     private val packageDescriptor: PackageFragmentDescriptor,
-    `package`: Package,
+    `package`: FbPackage,
 
     metadataVersion: BinaryVersion,
     containerSource: DeserializedContainerSource?,

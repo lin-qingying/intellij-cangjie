@@ -1,32 +1,38 @@
-package org.cangnova.cangjie.metadata.model
+package org.cangnova.cangjie.metadata.model.fb
 
 import org.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
-import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
+import org.cangnova.cangjie.metadata.model.AttributePack
 import org.cangnova.cangjie.metadata.model.util.toName
+import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
+import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 
 
-data class Package(
+data class FbPackage(
     val cjcVersion: String,
     val cjoVersion: BuiltInsBinaryVersion,
     val fullPkgName: String,//完整包名
     val pkgDepInfo: String,
     val imports: List<String>,
     val files: List<String>,
-    val fileImports: List<Imports>,
-    val types: List<SemaTy>,
-    val decls: List<Decl>,
-    val exprs: List<Expr>,
-    val values: List<CompositeValue>,
+    val fileImports: List<FbImports>,
+    val types: List<FbSemaTy>,
+    val decls: List<FbDecl>,
+    val exprs: List<FbExpr>,
+    val values: List<FbCompositeValue>,
     val moduleName: String,   // 模块名称
-    val kind: PackageKind = PackageKind.Normal, // 包类型
-    val access: AccessLevel = AccessLevel.Public, // 访问级别
+    val kind: FbPackageKind = FbPackageKind.Normal, // 包类型
+    val access: FbAccessLevel = FbAccessLevel.Public, // 访问级别
 
 
-)
+) {
+    val packageName = FqName.fromString(this.fullPkgName)
 
-data class Imports(
-    val importSpecs: List<ImportSpec>
+    val packageWrapper = PackageWrapper(this)
+}
+
+data class FbImports(
+    val importSpecs: List<FbImportSpec>
 )
 
 /**
@@ -41,13 +47,13 @@ data class Imports(
  *   reExport:AccessModifier = Private; // 重新导出
  * }
  */
-data class ImportSpec(
-    val begin: Position?,
-    val end: Position?,
+data class FbImportSpec(
+    val begin: FbPosition?,
+    val end: FbPosition?,
     val prefixPaths: List<String>,
     val identifier: String?,
     val asIdentifier: String?,
-    val reExport: AccessModifier?
+    val reExport: FbAccessModifier?
 )
 
 /**
@@ -60,7 +66,7 @@ column:int32;       // 列号
 ignore:bool;        // 是否忽略
 }
  */
-data class Position(
+data class FbPosition(
     val file: Int,
     val pkgId: Int,
     val line: Int,
@@ -70,14 +76,14 @@ data class Position(
 
 // 访问修饰符枚举
 // 定义访问修饰符
-enum class AccessModifier(val value: UByte) {
+enum class FbAccessModifier(val value: UByte) {
     Private(0u),    // 私有
     Internal(1u),   // 内部
     Protected(2u),  // 受保护
     Public(3u);     // 公共
 
     companion object {
-        fun fromUByte(value: UByte): AccessModifier =
+        fun fromUByte(value: UByte): FbAccessModifier =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown AccessModifier value: $value")
     }
@@ -134,7 +140,7 @@ enum class AccessModifier(val value: UByte) {
  */
 
 // 类型种类枚举
-enum class TypeKind(val value: UShort) {
+enum class FbTypeKind(val value: UShort) {
     Invalid(0u),
 
     // 原始类型
@@ -181,7 +187,7 @@ enum class TypeKind(val value: UShort) {
     Generic(29u);
 
     companion object {
-        fun fromUShort(value: UShort): TypeKind =
+        fun fromUShort(value: UShort): FbTypeKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown TypeKind value: $value")
     }
@@ -196,7 +202,7 @@ enum class TypeKind(val value: UShort) {
  *   index:uint32;       // 同一包中被引用声明的索引
  * }
  */
-data class FullId(
+data class FbFullId(
     val pkgId: Int,
     val decl: String,
     val index: Int
@@ -211,7 +217,7 @@ data class FullId(
  *   hasVariableLenArg:bool; // 是否具有可变长度参数
  * }
  */
-data class FuncTyInfo(
+data class FbFuncTyInfo(
     val retType: Int,
     val isC: Boolean,
     val hasVariableLenArg: Boolean
@@ -225,8 +231,8 @@ data class FuncTyInfo(
  *   isThisTy:bool=false; // 是否是This类型
  * }
  */
-data class CompositeTyInfo(
-    val declPtr: FullId?,
+data class FbCompositeTyInfo(
+    val declPtr: FbFullId?,
     val isThisTy: Boolean = false
 )
 
@@ -238,8 +244,8 @@ data class CompositeTyInfo(
  *   upperBounds:[uint32]; // 上界列表
  * }
  */
-data class GenericTyInfo(
-    val declPtr: FullId?,
+data class FbGenericTyInfo(
+    val declPtr: FbFullId?,
     val upperBounds: List<Int>
 )
 
@@ -250,7 +256,7 @@ data class GenericTyInfo(
  *   dimsOrSize:int64;   // 维度或大小
  * }
  */
-data class ArrayTyInfo(
+data class FbArrayTyInfo(
     val dimsOrSize: Long
 )
 
@@ -264,12 +270,12 @@ data class ArrayTyInfo(
  *   ArrayTyInfo,        // 数组类型信息
  * }
  */
-sealed class SemaTyInfo {
-    data class Func(val info: FuncTyInfo) : SemaTyInfo()
-    data class Composite(val info: CompositeTyInfo) : SemaTyInfo()
-    data class Generic(val info: GenericTyInfo) : SemaTyInfo()
-    data class Array(val info: ArrayTyInfo) : SemaTyInfo()
-    object None : SemaTyInfo()
+sealed class FbSemaTyInfo {
+    data class Func(val info: FbFuncTyInfo) : FbSemaTyInfo()
+    data class Composite(val info: FbCompositeTyInfo) : FbSemaTyInfo()
+    data class FbGeneric(val info: FbGenericTyInfo) : FbSemaTyInfo()
+    data class Array(val info: FbArrayTyInfo) : FbSemaTyInfo()
+    object None : FbSemaTyInfo()
 }
 
 /**
@@ -282,10 +288,10 @@ sealed class SemaTyInfo {
  *   info:SemaTyInfo;    // 语义类型信息
  * }
  */
-data class SemaTy(
-    val kind: TypeKind = TypeKind.Unit,
+data class FbSemaTy(
+    val kind: FbTypeKind = FbTypeKind.Unit,
     val typeArgs: List<Int> = emptyList(),
-    val info: SemaTyInfo = SemaTyInfo.None
+    val info: FbSemaTyInfo = FbSemaTyInfo.None
 )
 
 /**
@@ -300,7 +306,7 @@ data class SemaTy(
  *   stage:uint64;       // 阶段
  * }
  */
-data class AutoDiffInfo(
+data class FbAutoDiffInfo(
     val isDiff: Boolean,
     val isAdj: Boolean,
     val primal: String?,
@@ -309,109 +315,6 @@ data class AutoDiffInfo(
     val stage: ULong
 )
 
-/**
- * // 类信息表
- * // 定义类信息
- * table ClassInfo {
- *   inheritedTypes:[uint32]; // 继承的类型列表
- *   body:[uint32];           // 主体表达式索引列表
- *   adInfo:AutoDiffInfo;     // 自动微分信息
- *   isAnno:bool = false;     // 是否当前类是自定义注解
- *   annoTargets:uint8;       // 当前类是自定义注解时可用
- *   runtimeVisible:bool;     // 运行时可见
- *   annoTargets2:uint8;
- * }
- */
-data class ClassInfo(
-    val inheritedTypes: List<Int>,
-    val body: List<Int>,
-    val adInfo: AutoDiffInfo?,
-    val isAnno: Boolean = false,
-    val annoTargets: UByte,
-    val runtimeVisible: Boolean,
-    val annoTargets2: UByte
-)
-
-/**
- * // 接口信息表
- * // 定义接口信息
- * table InterfaceInfo {
- *   inheritedTypes:[uint32]; // 继承的类型列表
- *   body:[uint32];           // 主体表达式索引列表
- * }
- */
-data class InterfaceInfo(
-    val inheritedTypes: List<Int>,
-    val body: List<Int>
-)
-
-/**
- * 结构体信息表
- * 定义结构体信息
- * table StructInfo {
- *   inheritedTypes:[uint32]; // 继承的类型列表
- *   body:[uint32];          // 主体表达式索引列表
- *   adInfo:AutoDiffInfo;   // 自动微分信息
- * }
- */
-data class StructInfo(
-    val inheritedTypes: List<Int>,
-    val body: List<Int>,
-    val adInfo: AutoDiffInfo
-)
-
-/**
- * 枚举信息表
- * 定义枚举信息
- * table EnumInfo {
- *   inheritedTypes:[uint32]; // 继承的类型列表
- *   body:[uint32];          // 主体表达式索引列表
- *   adInfo:AutoDiffInfo;   // 自动微分信息
- *   hasArguments:bool;     // 是否有参数
- *   nonExhaustive:bool;   // 是否非穷尽
- *   ellipsisPos:Position; // 省略号位置
- * }
- */
-data class EnumInfo(
-    val inheritedTypes: List<Int>,
-    val body: List<Int>,
-    val adInfo: AutoDiffInfo,
-    val hasArguments: Boolean,
-    val nonExhaustive: Boolean,
-    val ellipsisPos: Position
-)
-
-/**
- * 扩展信息表
- * 定义扩展信息
-// * table ExtendInfo {
- *   inheritedTypes:[uint32]; // 继承的类型列表
- *   body:[uint32];          // 主体表达式索引列表
- * }
- */
-data class ExtendInfo(
-    val inheritedTypes: List<Int>,
-    val body: List<Int>
-)
-
-/**
- * 变量信息表
- * 定义变量信息
- * table VarInfo {
- *   isVar:bool;           // 是否是变量
- *   isConst:bool;         // 是否是常量
- *   isMemberParam:bool;  // 是否是成员参数
- *   initializer:uint32;   // 表达式索引
- *   value:ConstValue;     // 如果有值则是常量
- * }
- */
-data class VarInfo(
-    val isVar: Boolean,
-    val isConst: Boolean,
-    val isMemberParam: Boolean,
-    val initializer: Int,
-    val value: ConstValue?
-)
 
 /**
  * 常量值联合体
@@ -432,21 +335,21 @@ data class VarInfo(
  *   CompositeValue:CompositeValueIndex, // 复合值索引
  * }
  */
-sealed class ConstValue {
-    data object None : ConstValue() // 无效常量值
-    data class Int8Value(val value: Byte) : ConstValue()
-    data class UInt8Value(val value: UByte) : ConstValue()
-    data class Int16Value(val value: Short) : ConstValue()
-    data class UInt16Value(val value: UShort) : ConstValue()
-    data class Int32Value(val value: Int) : ConstValue()
-    data class UInt32Value(val value: UInt) : ConstValue()
-    data class Int64Value(val value: Long) : ConstValue()
-    data class UInt64Value(val value: ULong) : ConstValue()
-    data class Float32Value(val value: Float) : ConstValue()
-    data class Float64Value(val value: Double) : ConstValue()
-    data class ArrayValue(val value: List<ConstValue>) : ConstValue()
-    data class StringValue(val value: String) : ConstValue()
-    data class CompositeValue(val value: CompositeValueIndex) : ConstValue() // CompositeValueIndex
+sealed class FbConstValue {
+    data object None : FbConstValue() // 无效常量值
+    data class Int8Value(val value: Byte) : FbConstValue()
+    data class UInt8Value(val value: UByte) : FbConstValue()
+    data class Int16Value(val value: Short) : FbConstValue()
+    data class UInt16Value(val value: UShort) : FbConstValue()
+    data class Int32Value(val value: Int) : FbConstValue()
+    data class UInt32Value(val value: UInt) : FbConstValue()
+    data class Int64Value(val value: Long) : FbConstValue()
+    data class UInt64Value(val value: ULong) : FbConstValue()
+    data class Float32Value(val value: Float) : FbConstValue()
+    data class Float64Value(val value: Double) : FbConstValue()
+    data class ArrayValue(val value: List<FbConstValue>) : FbConstValue()
+    data class StringValue(val value: String) : FbConstValue()
+    data class FbCompositeValue(val value: FbCompositeValueIndex) : FbConstValue() // CompositeValueIndex
 }
 
 /**
@@ -515,7 +418,7 @@ sealed class ConstValue {
  *   idx:uint32;         // 索引
  * }
  */
-data class CompositeValueIndex(
+data class FbCompositeValueIndex(
     val idx: UInt
 )
 
@@ -539,7 +442,7 @@ data class CompositeValueIndex(
  *   BuiltInDecl,        // 内置声明
  * }
  */
-enum class DeclKind(val value: UShort) {
+enum class FbDeclKind(val value: UShort) {
     InvalidDecl(0u),        // 无效声明
     ClassDecl(1u),          // 类声明
     InterfaceDecl(2u),      // 接口声明
@@ -556,7 +459,7 @@ enum class DeclKind(val value: UShort) {
     BuiltInDecl(13u);       // 内置声明
 
     companion object {
-        fun fromUShort(value: UShort): DeclKind =
+        fun fromUShort(value: UShort): FbDeclKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown DeclKind value: $value")
     }
@@ -574,7 +477,7 @@ enum class DeclKind(val value: UShort) {
  *   Saturating,          // 饱和
  * }
  */
-enum class OverflowPolicy(val value: UByte) {
+enum class FbOverflowPolicy(val value: UByte) {
     NA(0u),         // 不适用
     Checked(1u),    // 检查
     Wrapping(2u),   // 环绕
@@ -582,7 +485,7 @@ enum class OverflowPolicy(val value: UByte) {
     Saturating(4u); // 饱和
 
     companion object {
-        fun fromUByte(value: UByte): OverflowPolicy =
+        fun fromUByte(value: UByte): FbOverflowPolicy =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown OverflowPolicy value: $value")
     }
@@ -592,7 +495,7 @@ enum class OverflowPolicy(val value: UByte) {
  * 运算符类型枚举
  * 定义运算符类型
  */
-enum class OperatorKind(val value: UByte) {
+enum class FbOperatorKind(val value: UByte) {
     NA(0u),                 // 不适用
     Index(1u),              // []
     Call(2u),               // ()
@@ -639,7 +542,7 @@ enum class OperatorKind(val value: UByte) {
     LogicOrAssign(43u);     // ||=
 
     companion object {
-        fun fromUByte(value: UByte): OperatorKind =
+        fun fromUByte(value: UByte): FbOperatorKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown OperatorKind value: $value")
     }
@@ -653,7 +556,7 @@ enum class OperatorKind(val value: UByte) {
  *   desugars:[uint32];  // 脱糖列表
  * }
  */
-data class FuncParamList(
+data class FbFuncParamList(
     val params: List<Int>,
     val desugars: List<Int>
 )
@@ -669,82 +572,17 @@ data class FuncParamList(
  *   captureKind:uint8;  // 捕获类型
  * }
  */
-data class FuncBody(
-    val paramLists: List<FuncParamList>,
+data class FbFuncBody(
+    val paramLists: List<FbFuncParamList>,
     val retType: Int,
     val body: Int,
     val always: Boolean,
     val captureKind: UByte
-){
+) {
     val params: List<Int> = paramLists.flatMap { it.params }
     val desugars: List<Int> = paramLists.flatMap { it.desugars }
 }
 
-/**
- * // 函数信息表
- * // 定义函数信息
- * table FuncInfo {
- *   funcBody:FuncBody;   // 函数体
- *   overflowPolicy:OverflowPolicy; // 溢出策略
- *   op:OperatorKind = NA; // 运算符类型
- *   adInfo:AutoDiffInfo; // 自动微分信息
- *   isConst:bool;        // 是否是常量
- *   isInline:bool;       // 是否是内联函数
- *   isFastNative:bool;   // 是否是快速本地函数
- * }
- */
-data class FuncInfo(
-    val funcBody: FuncBody,
-    val overflowPolicy: OverflowPolicy,
-    val op: OperatorKind = OperatorKind.NA,
-    val adInfo: AutoDiffInfo,
-    val isConst: Boolean,
-    val isInline: Boolean,
-    val isFastNative: Boolean
-)
-
-/**
- * // 参数信息表
- * // 定义参数信息
- * table ParamInfo {
- *   isNamedParam:bool;   // 是否是命名参数
- *   isMemberParam:bool;  // 是否是成员参数
- *   defaultVal:uint32;   // 表达式索引
- * }
- */
-data class ParamInfo(
-    val isNamedParam: Boolean,
-    val isMemberParam: Boolean,
-    val defaultVal: Int
-)
-
-/**
- * // 别名信息表
- * // 定义别名信息
- * table AliasInfo {
- *   aliasedTy:uint32;    // 语义类型索引
- * }
- */
-data class AliasInfo(
-    val aliasedTy: Int
-)
-
-/**
- * // 属性信息表
- * // 定义属性信息
- * table PropInfo {
- *   isConst:bool;        // 是否是常量
- *   isMutable:bool;      // 是否可变
- *   setters:[uint32];    // 设置器索引列表
- *   getters:[uint32];    // 获取器索引列表
- * }
- */
-data class PropInfo(
-    val isConst: Boolean,
-    val isMutable: Boolean,
-    val setters: List<UInt>,
-    val getters: List<UInt>
-)
 
 /**
  * // 内置类型枚举
@@ -757,7 +595,7 @@ data class PropInfo(
  *   CFunc,               // C函数
  * }
  */
-enum class BuiltInType(val value: UByte) {
+enum class FbBuiltInType(val value: UByte) {
     Array(0u),      // 数组
     VArray(1u),     // 可变数组
     CPointer(2u),   // C指针
@@ -765,22 +603,12 @@ enum class BuiltInType(val value: UByte) {
     CFunc(4u);      // C函数
 
     companion object {
-        fun fromUByte(value: UByte): BuiltInType =
+        fun fromUByte(value: UByte): FbBuiltInType =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown BuiltInType value: $value")
     }
 }
 
-/**
- * // 内置信息表
- * // 定义内置信息
- * table BuiltInInfo {
- *   builtInType:BuiltInType; // 内置类型
- * }
- */
-data class BuiltInInfo(
-    val builtInType: BuiltInType
-)
 
 /**
  * // 模式类型枚举
@@ -796,7 +624,7 @@ data class BuiltInInfo(
  *   ExceptTypePattern,   // 异常类型模式
  * }
  */
-enum class PatternKind(val value: Byte) {
+enum class FbPatternKind(val value: Byte) {
     InvalidPattern(0),      // 无效模式
     ConstPattern(1),        // 常量模式
     WildcardPattern(2),     // 通配符模式
@@ -807,7 +635,7 @@ enum class PatternKind(val value: Byte) {
     ExceptTypePattern(7);   // 异常类型模式
 
     companion object {
-        fun fromByte(value: Byte): PatternKind =
+        fun fromByte(value: Byte): FbPatternKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown PatternKind value: $value")
     }
@@ -828,34 +656,18 @@ enum class PatternKind(val value: Byte) {
  *   needRuntimeTypeCheck:bool; // 是否需要运行时类型检查
  * }
  */
-data class Pattern(
-    val kind: PatternKind = PatternKind.InvalidPattern,
-    val begin: Position,
-    val end: Position,
-    val patterns: List<Pattern> = emptyList(),
+data class FbPattern(
+    val kind: FbPatternKind = FbPatternKind.InvalidPattern,
+    val begin: FbPosition,
+    val end: FbPosition,
+    val patterns: List<FbPattern> = emptyList(),
     val types: List<Int> = emptyList(),
     val exprs: List<Int> = emptyList(),
-    val values: List<ConstValue> = emptyList(),
+    val values: List<FbConstValue> = emptyList(),
     val matchBeforeRuntime: Boolean = false,
     val needRuntimeTypeCheck: Boolean = false
 )
 
-/**
- * // 带模式的变量信息表
- * // 定义带模式的变量信息
- * table VarWithPatternInfo {
- *   isVar:bool;           // 是否是变量
- *   isConst:bool;         // 是否是常量
- *   irrefutablePattern:Pattern; // 仅存在于表达式子节点中
- *   initializer:uint32;   // 表达式索引
- * }
- */
-data class VarWithPatternInfo(
-    val isVar: Boolean,
-    val isConst: Boolean,
-    val irrefutablePattern: Pattern,
-    val initializer: Int
-)
 
 /**
  * // 声明信息联合体
@@ -877,20 +689,216 @@ data class VarWithPatternInfo(
  */
 
 // 声明信息联合体的密封类定义
-sealed class DeclInfo {
-    data class Class(val info: ClassInfo) : DeclInfo()
-    data class Interface(val info: InterfaceInfo) : DeclInfo()
-    data class Struct(val info: StructInfo) : DeclInfo()
-    data class Enum(val info: EnumInfo) : DeclInfo()
-    data class Extend(val info: ExtendInfo) : DeclInfo()
-    data class Prop(val info: PropInfo) : DeclInfo()
-    data class Var(val info: VarInfo) : DeclInfo()
-    data class VarWithPattern(val info: VarWithPatternInfo) : DeclInfo()
-    data class Param(val info: ParamInfo) : DeclInfo()
-    data class Func(val info: FuncInfo) : DeclInfo()
-    data class BuiltIn(val info: BuiltInInfo) : DeclInfo()
-    data class Alias(val info: AliasInfo) : DeclInfo()
-    data object None : DeclInfo() // 无效声明信息
+sealed interface FbDeclInfo {
+    val body: List<Int> get() = emptyList()
+    val inheritedTypes: List<Int> get() = emptyList()
+
+    /**
+     * // 类信息表
+     * // 定义类信息
+     * table ClassInfo {
+     *   inheritedTypes:[uint32]; // 继承的类型列表
+     *   body:[uint32];           // 主体表达式索引列表
+     *   adInfo:AutoDiffInfo;     // 自动微分信息
+     *   isAnno:bool = false;     // 是否当前类是自定义注解
+     *   annoTargets:uint8;       // 当前类是自定义注解时可用
+     *   runtimeVisible:bool;     // 运行时可见
+     *   annoTargets2:uint8;
+     * }
+     */
+    data class ClassInfo(
+        override val inheritedTypes: List<Int>,
+        override val body: List<Int>,
+        val adInfo: FbAutoDiffInfo?,
+        val isAnno: Boolean = false,
+        val annoTargets: UByte,
+        val runtimeVisible: Boolean,
+        val annoTargets2: UByte
+    ) : FbDeclInfo
+
+    /**
+     * // 接口信息表
+     * // 定义接口信息
+     * table InterfaceInfo {
+     *   inheritedTypes:[uint32]; // 继承的类型列表
+     *   body:[uint32];           // 主体表达式索引列表
+     * }
+     */
+    data class InterfaceInfo(
+        override val inheritedTypes: List<Int>,
+        override val body: List<Int>
+    ) : FbDeclInfo
+
+
+    /**
+     * 结构体信息表
+     * 定义结构体信息
+     * table StructInfo {
+     *   inheritedTypes:[uint32]; // 继承的类型列表
+     *   body:[uint32];          // 主体表达式索引列表
+     *   adInfo:AutoDiffInfo;   // 自动微分信息
+     * }
+     */
+    data class StructInfo(
+        override val inheritedTypes: List<Int>,
+        override val body: List<Int>,
+        val adInfo: FbAutoDiffInfo
+    ) : FbDeclInfo
+
+
+    /**
+     * 枚举信息表
+     * 定义枚举信息
+     * table EnumInfo {
+     *   inheritedTypes:[uint32]; // 继承的类型列表
+     *   body:[uint32];          // 主体表达式索引列表
+     *   adInfo:AutoDiffInfo;   // 自动微分信息
+     *   hasArguments:bool;     // 是否有参数
+     *   nonExhaustive:bool;   // 是否非穷尽
+     *   ellipsisPos:Position; // 省略号位置
+     * }
+     */
+    data class EnumInfo(
+        override val inheritedTypes: List<Int>,
+        override val body: List<Int>,
+        val adInfo: FbAutoDiffInfo,
+        val hasArguments: Boolean,
+        val nonExhaustive: Boolean,
+        val ellipsisPos: FbPosition
+    ) : FbDeclInfo
+
+    /**
+     * 扩展信息表
+     * 定义扩展信息
+    // * table ExtendInfo {
+     *   inheritedTypes:[uint32]; // 继承的类型列表
+     *   body:[uint32];          // 主体表达式索引列表
+     * }
+     */
+    data class ExtendInfo(
+        override val inheritedTypes: List<Int>,
+        override val body: List<Int>
+    ) : FbDeclInfo
+
+
+    /**
+     * // 属性信息表
+     * // 定义属性信息
+     * table PropInfo {
+     *   isConst:bool;        // 是否是常量
+     *   isMutable:bool;      // 是否可变
+     *   setters:[uint32];    // 设置器索引列表
+     *   getters:[uint32];    // 获取器索引列表
+     * }
+     */
+    data class PropInfo(
+        val isConst: Boolean,
+        val isMutable: Boolean,
+        val setters: List<UInt>,
+        val getters: List<UInt>
+    ) : FbDeclInfo {
+        val getter = getters.firstOrNull()
+        val setter = setters.firstOrNull()
+    }
+
+    /**
+     * 变量信息表
+     * 定义变量信息
+     * table VarInfo {
+     *   isVar:bool;           // 是否是变量
+     *   isConst:bool;         // 是否是常量
+     *   isMemberParam:bool;  // 是否是成员参数
+     *   initializer:uint32;   // 表达式索引
+     *   value:ConstValue;     // 如果有值则是常量
+     * }
+     */
+    data class VarInfo(
+        val isVar: Boolean,
+        val isConst: Boolean,
+        val isMemberParam: Boolean,
+        val initializer: Int,
+        val value: FbConstValue?
+    ) : FbDeclInfo
+
+    /**
+     * // 带模式的变量信息表
+     * // 定义带模式的变量信息
+     * table VarWithPatternInfo {
+     *   isVar:bool;           // 是否是变量
+     *   isConst:bool;         // 是否是常量
+     *   irrefutablePattern:Pattern; // 仅存在于表达式子节点中
+     *   initializer:uint32;   // 表达式索引
+     * }
+     */
+    data class VarWithPatternInfo(
+        val isVar: Boolean,
+        val isConst: Boolean,
+        val irrefutablePattern: FbPattern,
+        val initializer: Int
+    ) : FbDeclInfo
+
+    /**
+     * // 参数信息表
+     * // 定义参数信息
+     * table ParamInfo {
+     *   isNamedParam:bool;   // 是否是命名参数
+     *   isMemberParam:bool;  // 是否是成员参数
+     *   defaultVal:uint32;   // 表达式索引
+     * }
+     */
+    data class ParamInfo(
+        val isNamedParam: Boolean,
+        val isMemberParam: Boolean,
+        val defaultVal: Int
+    ) : FbDeclInfo
+
+    /**
+     * // 函数信息表
+     * // 定义函数信息
+     * table FuncInfo {
+     *   funcBody:FuncBody;   // 函数体
+     *   overflowPolicy:OverflowPolicy; // 溢出策略
+     *   op:OperatorKind = NA; // 运算符类型
+     *   adInfo:AutoDiffInfo; // 自动微分信息
+     *   isConst:bool;        // 是否是常量
+     *   isInline:bool;       // 是否是内联函数
+     *   isFastNative:bool;   // 是否是快速本地函数
+     * }
+     */
+    data class FuncInfo(
+        val funcBody: FbFuncBody,
+        val overflowPolicy: FbOverflowPolicy,
+        val op: FbOperatorKind = FbOperatorKind.NA,
+        val adInfo: FbAutoDiffInfo,
+        val isConst: Boolean,
+        val isInline: Boolean,
+        val isFastNative: Boolean
+    ) : FbDeclInfo
+
+
+    /**
+     * // 内置信息表
+     * // 定义内置信息
+     * table BuiltInInfo {
+     *   builtInType:BuiltInType; // 内置类型
+     * }
+     */
+    data class BuiltInInfo(
+        val builtInType: FbBuiltInType
+    ) : FbDeclInfo
+
+    /**
+     * // 别名信息表
+     * // 定义别名信息
+     * table AliasInfo {
+     *   aliasedTy:uint32;    // 语义类型索引
+     * }
+     */
+    data class AliasInfo(
+        val aliasedTy: Int
+    ) : FbDeclInfo
+
+    data object None : FbDeclInfo// 无效声明信息
 }
 
 /**
@@ -901,9 +909,9 @@ sealed class DeclInfo {
  *   constraints:[Constraint]; // 约束列表
  * }
  */
-data class Generic(
+data class FbGeneric(
     val typeParameters: List<Int>, // 泛型参数声明列表
-    val constraints: List<Constraint> // 约束列表
+    val constraints: List<FbConstraint> // 约束列表
 )
 
 /**
@@ -916,9 +924,9 @@ data class Generic(
  *   uppers:[uint32];    // 上界列表
  * }
  */
-data class Constraint(
-    val begin: Position?,      // 开始位置
-    val end: Position?,        // 结束位置
+data class FbConstraint(
+    val begin: FbPosition?,      // 开始位置
+    val end: FbPosition?,        // 结束位置
     val type: UInt,            // 对应类型参数的类型
     val uppers: List<Int>     // 上界列表
 )
@@ -926,7 +934,7 @@ data class Constraint(
 
 // 声明哈希结构体
 // 用于声明的一致性检查
-data class DeclHash(
+data class FbDeclHash(
     val instVar: ULong,   // 实例变量哈希
     val virt: ULong,      // 虚拟方法哈希
     val sig: ULong,       // 签名哈希
@@ -944,14 +952,14 @@ data class DeclHash(
  *   Custom               // 自定义
  * }
  */
-enum class AnnoKind(val value: UShort) {
+enum class FbAnnoKind(val value: UShort) {
     Deprecated(0u),          // 已废弃
     TestRegistration(1u),    // 测试注册
     Frozen(2u),              // 冻结
     Custom(3u);              // 自定义
 
     companion object {
-        fun fromUShort(value: UShort): AnnoKind =
+        fun fromUShort(value: UShort): FbAnnoKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown AnnoKind value: $value")
     }
@@ -965,7 +973,7 @@ enum class AnnoKind(val value: UShort) {
  *   expr:uint32;        // 表达式索引 (LitConstExpr)
  * }
  */
-data class AnnoArg(
+data class FbAnnoArg(
     val name: String,    // 名称
     val expr: UInt        // 表达式索引 (LitConstExpr)
 )
@@ -973,36 +981,39 @@ data class AnnoArg(
 /**
  * 注解表
  * 定义注解
- * table Anno { // 短名称 "Anno" 因为与 "PackageFormat.fbs" 中的 "Annotation" 冲突
+ * table Anno { // 短名称 "Anno" 因为与 "CHIRFormat.fbs" 中的 "Annotation" 冲突
  *   kind:AnnoKind;      // 注解类型
  *   identifier:string;  // 标识符
  *   args:[AnnoArg];     // 参数
  * }
  */
-data class Anno(
-    val kind: AnnoKind,         // 注解类型
+data class FbAnno(
+    val kind: FbAnnoKind,         // 注解类型
     val identifier: String?,     // 标识符
-    val args: List<AnnoArg>     // 参数
-)
+    val args: List<FbAnnoArg>     // 参数
+) {
+    val name: Name = identifier?.toName() ?: Name.ERROR_NAME
+
+}
 
 
 /**
  * 声明表
  * 定义声明
  */
-data class Decl(
-    val kind: DeclKind = DeclKind.InvalidDecl, // 声明类型
+data class FbDecl(
+    val kind: FbDeclKind = FbDeclKind.InvalidDecl, // 声明类型
     val isTopLevel: Boolean = false,           // 是否是顶层声明
     val fullPkgName: String,                   // 完整包名
-    val genericDecl: FullId?,                   // 泛型声明ID
-    val generic: Generic?,                      // 泛型信息
-    val begin: Position?,                       // 开始位置
-    val end: Position?,                         // 结束位置
+    val genericDecl: FbFullId?,                   // 泛型声明ID
+    val generic: FbGeneric?,                      // 泛型信息
+    val begin: FbPosition?,                       // 开始位置
+    val end: FbPosition?,                         // 结束位置
     val identifier: String,                    // 标识符
 
-    val identifierPos: Position?,               // 标识符位置
+    val identifierPos: FbPosition?,               // 标识符位置
     val attributes: List<ULong>,               // 属性
-    val annotations: List<Anno>,               // 注解
+    val annotations: List<FbAnno>,               // 注解
 
     // 语义和代码生成信息
     val type: UInt,                             // 类型索引
@@ -1011,13 +1022,15 @@ data class Decl(
 
     // 用于AST差异的哈希
     val mangledBeforeSema: String?,
-    val hash: DeclHash?,
+    val hash: FbDeclHash?,
 
     // 特定声明类型的详细信息
-    val info: DeclInfo
+    val info: FbDeclInfo
 ) {
-
     val name: Name = identifier.toName()
+    val fqName = FqName.fromString(fullPkgName).child(name)
+
+    val attributePack = AttributePack(attributes)
 }
 
 
@@ -1025,7 +1038,7 @@ data class Decl(
  * 表达式类型枚举
  * 定义表达式类型
  */
-enum class ExprKind(val value: UShort) {
+enum class FbExprKind(val value: UShort) {
     InvalidExpr(0u),         // 无效表达式
     WildcardExpr(1u),        // 通配符表达式
     PrimitiveTypeExpr(2u),   // 原始类型表达式
@@ -1065,7 +1078,7 @@ enum class ExprKind(val value: UShort) {
     IfAvailableExpr(36u);    // 条件表达式
 
     companion object {
-        fun fromUShort(value: UShort): ExprKind =
+        fun fromUShort(value: UShort): FbExprKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown ExprKind value: $value")
     }
@@ -1075,7 +1088,7 @@ enum class ExprKind(val value: UShort) {
  * 字面常量类型枚举
  * 定义字面常量类型
  */
-enum class LitConstKind(val value: UByte) {
+enum class FbLitConstKind(val value: UByte) {
     Integer(0u),    // 整数
     RuneByte(1u),   // 字符
     Float(2u),      // 浮点数
@@ -1086,7 +1099,7 @@ enum class LitConstKind(val value: UByte) {
     Unit(7u);       // 单元值
 
     companion object {
-        fun fromUByte(value: UByte): LitConstKind =
+        fun fromUByte(value: UByte): FbLitConstKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown LitConstKind value: $value")
     }
@@ -1096,14 +1109,14 @@ enum class LitConstKind(val value: UByte) {
  * 字符串类型枚举
  * 定义字符串类型
  */
-enum class StringKind(val value: UByte) {
+enum class FbStringKind(val value: UByte) {
     Normal(0u),         // 普通字符串
     JString(1u),        // JSON字符串
     MultiLine(2u),      // 多行字符串
     MultiLineRaw(3u);   // 多行原始字符串
 
     companion object {
-        fun fromUByte(value: UByte): StringKind =
+        fun fromUByte(value: UByte): FbStringKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown StringKind value: $value")
     }
@@ -1113,7 +1126,7 @@ enum class StringKind(val value: UByte) {
  * 调用类型枚举
  * 定义调用类型
  */
-enum class CallKind(val value: UByte) {
+enum class FbCallKind(val value: UByte) {
     NA(0u),                     // 不适用
     CallDeclaredFunction(1u),   // 调用声明函数
     CallObjectCreation(2u),     // 调用对象创建
@@ -1126,7 +1139,7 @@ enum class CallKind(val value: UByte) {
     CallIntrinsicFunction(9u);  // 调用固有函数
 
     companion object {
-        fun fromUByte(value: UByte): CallKind =
+        fun fromUByte(value: UByte): FbCallKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown CallKind value: $value")
     }
@@ -1136,14 +1149,14 @@ enum class CallKind(val value: UByte) {
  * 循环类型枚举
  * 定义循环类型
  */
-enum class ForInKind(val value: UByte) {
+enum class FbForInKind(val value: UByte) {
     NA(0u),         // 不适用
     Range(1u),      // 范围
     String(2u),     // 字符串
     Iterator(3u);   // 迭代器
 
     companion object {
-        fun fromUByte(value: UByte): ForInKind =
+        fun fromUByte(value: UByte): FbForInKind =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown ForInKind value: $value")
     }
@@ -1152,130 +1165,130 @@ enum class ForInKind(val value: UByte) {
 /**
  * 表达式信息联合体的密封类定义
  */
-sealed class ExprInfo {
-    data class Call(val info: CallInfo) : ExprInfo()
-    data class Unary(val info: UnaryInfo) : ExprInfo()
-    data class Binary(val info: BinaryInfo) : ExprInfo()
-    data class IncOrDec(val info: IncOrDecInfo) : ExprInfo()
-    data class LitConst(val info: LitConstInfo) : ExprInfo()
-    data class Reference(val info: ReferenceInfo) : ExprInfo()
-    data class Lambda(val info: LambdaInfo) : ExprInfo()
-    data class Assign(val info: AssignInfo) : ExprInfo()
-    data class Array(val info: ArrayInfo) : ExprInfo()
-    data class Jump(val info: JumpInfo) : ExprInfo()
-    data class FuncArg(val info: FuncArgInfo) : ExprInfo()
-    data class Subscript(val info: SubscriptInfo) : ExprInfo()
-    data class Match(val info: MatchInfo) : ExprInfo()
-    data class Block(val info: BlockInfo) : ExprInfo()
-    data class Try(val info: TryInfo) : ExprInfo()
-    data class LetPatternDestructor(val info: LetPatternDestructorInfo) : ExprInfo()
-    data class ForIn(val info: ForInInfo) : ExprInfo()
-    data class MatchCase(val info: MatchCaseInfo) : ExprInfo()
-    data class Spawn(val info: SpawnInfo) : ExprInfo()
+sealed class FbExprInfo {
+    data class Call(val info: FbCallInfo) : FbExprInfo()
+    data class Unary(val info: FbUnaryInfo) : FbExprInfo()
+    data class Binary(val info: FbBinaryInfo) : FbExprInfo()
+    data class IncOrDec(val info: FbIncOrDecInfo) : FbExprInfo()
+    data class LitConst(val info: FbLitConstInfo) : FbExprInfo()
+    data class Reference(val info: FbReferenceInfo) : FbExprInfo()
+    data class Lambda(val info: FbLambdaInfo) : FbExprInfo()
+    data class Assign(val info: FbAssignInfo) : FbExprInfo()
+    data class Array(val info: FbArrayInfo) : FbExprInfo()
+    data class Jump(val info: FbJumpInfo) : FbExprInfo()
+    data class FuncArg(val info: FbFuncArgInfo) : FbExprInfo()
+    data class Subscript(val info: FbSubscriptInfo) : FbExprInfo()
+    data class Match(val info: FbMatchInfo) : FbExprInfo()
+    data class Block(val info: FbBlockInfo) : FbExprInfo()
+    data class Try(val info: FbTryInfo) : FbExprInfo()
+    data class LetPatternDestructor(val info: FbLetPatternDestructorInfo) : FbExprInfo()
+    data class ForIn(val info: FbForInInfo) : FbExprInfo()
+    data class MatchCase(val info: FbMatchCaseInfo) : FbExprInfo()
+    data class Spawn(val info: FbSpawnInfo) : FbExprInfo()
 
-    data object None : ExprInfo()
+    data object None : FbExprInfo()
 }
 
-data class CallInfo(
+data class FbCallInfo(
     val hasSideEffect: Boolean,
-    val callKind: CallKind = CallKind.NA
+    val callKind: FbCallKind = FbCallKind.NA
 )
 
-data class UnaryInfo(
-    val op: OperatorKind
+data class FbUnaryInfo(
+    val op: FbOperatorKind
 )
 
-data class BinaryInfo(
-    val op: OperatorKind
+data class FbBinaryInfo(
+    val op: FbOperatorKind
 )
 
-data class IncOrDecInfo(
-    val op: OperatorKind
+data class FbIncOrDecInfo(
+    val op: FbOperatorKind
 )
 
-data class LitConstInfo(
+data class FbLitConstInfo(
     val strValue: String,
-    val constKind: LitConstKind,
-    val strKind: StringKind
+    val constKind: FbLitConstKind,
+    val strKind: FbStringKind
 )
 
-data class ReferenceInfo(
+data class FbReferenceInfo(
     val reference: String,
-    val target: FullId,
+    val target: FbFullId,
     val instTys: List<UInt>,
     val matchedParentTy: UInt
 )
 
-data class LambdaInfo(
-    val funcBody: FuncBody,
+data class FbLambdaInfo(
+    val funcBody: FbFuncBody,
     val supportMock: Boolean
 )
 
-data class AssignInfo(
+data class FbAssignInfo(
     val isCompound: Boolean,
-    val op: OperatorKind
+    val op: FbOperatorKind
 )
 
-data class ArrayInfo(
-    val initFunc: FullId,
+data class FbArrayInfo(
+    val initFunc: FbFullId,
     val isValueArray: Boolean
 )
 
-data class JumpInfo(
+data class FbJumpInfo(
     val isBreak: Boolean
 )
 
-data class FuncArgInfo(
+data class FbFuncArgInfo(
     val withInout: Boolean,
     val isDefaultVal: Boolean
 )
 
-data class SubscriptInfo(
+data class FbSubscriptInfo(
     val isTupleAccess: Boolean
 )
 
-data class MatchInfo(
+data class FbMatchInfo(
     val matchMode: Boolean
 )
 
-data class BlockInfo(
+data class FbBlockInfo(
     val isExpr: List<Boolean>
 )
 
-data class TryInfo(
-    val resources: List<FullId>,
-    val patterns: List<Pattern>
+data class FbTryInfo(
+    val resources: List<FbFullId>,
+    val patterns: List<FbPattern>
 )
 
-data class LetPatternDestructorInfo(
-    val patterns: List<Pattern>
+data class FbLetPatternDestructorInfo(
+    val patterns: List<FbPattern>
 )
 
-data class ForInInfo(
-    val pattern: Pattern,
-    val forInKind: ForInKind = ForInKind.NA
+data class FbForInInfo(
+    val pattern: FbPattern,
+    val forInKind: FbForInKind = FbForInKind.NA
 )
 
-data class MatchCaseInfo(
-    val patterns: List<Pattern>
+data class FbMatchCaseInfo(
+    val patterns: List<FbPattern>
 )
 
-data class SpawnInfo(
-    val future: FullId
+data class FbSpawnInfo(
+    val future: FbFullId
 )
 
 /**
  * 表达式表中的一行，定义表达式的结构。
  */
-data class Expr(
-    val kind: ExprKind = ExprKind.InvalidExpr, // 表达式类型
-    val begin: Position?,                       // 开始位置
-    val end: Position?,                         // 结束位置
+data class FbExpr(
+    val kind: FbExprKind = FbExprKind.InvalidExpr, // 表达式类型
+    val begin: FbPosition?,                       // 开始位置
+    val end: FbPosition?,                         // 结束位置
     val mapExpr: UInt,                         // 处理副作用的表达式索引
     val operands: List<UInt>,                  // 子表达式索引列表
     val type: UInt,                            // 类型索引
-    val overflowPolicy: OverflowPolicy,        // 溢出策略
-    val info: ExprInfo                         // 表达式信息
+    val overflowPolicy: FbOverflowPolicy,        // 溢出策略
+    val info: FbExprInfo                         // 表达式信息
 )
 
 /**
@@ -1286,9 +1299,9 @@ data class Expr(
  *   fields:[MemberValue]; // 成员列表
  * }
  */
-data class CompositeValue(
+data class FbCompositeValue(
     val type: UInt,
-    val fields: List<MemberValue>
+    val fields: List<FbMemberValue>
 )
 
 /**
@@ -1300,24 +1313,24 @@ data class CompositeValue(
  *   value:ConstValue;   // 值
  * }
  */
-data class MemberValue(
+data class FbMemberValue(
     val field: String,
     val type: UInt,
-    val value: ConstValue?
+    val value: FbConstValue?
 )
 
 /**
  * 包类型枚举
  * 定义包类型
  */
-enum class PackageKind(val value: UByte) {
+enum class FbPackageKind(val value: UByte) {
     Normal(0u),    // 普通包
     Macro(1u),     // 宏包
     Foreign(2u),   // 外部语言包
     Mock(3u);      // 带有模拟支持的包
 
     companion object {
-        fun fromUByte(value: UByte): PackageKind =
+        fun fromUByte(value: UByte): FbPackageKind =
             values().find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown PackageKind value: $value")
     }
@@ -1327,13 +1340,13 @@ enum class PackageKind(val value: UByte) {
  * 访问级别枚举
  * 定义访问级别
  */
-enum class AccessLevel(val value: UByte) {
+enum class FbAccessLevel(val value: UByte) {
     Public(0u),      // 公共
     Protected(1u),   // 受保护
     Internal(2u);    // 内部
 
     companion object {
-        fun fromUByte(value: UByte): AccessLevel =
+        fun fromUByte(value: UByte): FbAccessLevel =
             entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Unknown AccessLevel value: $value")
     }

@@ -24,22 +24,20 @@
 
 package org.cangnova.cangjie.serialization.deserialization
 
-import org.cangnova.cangjie.descriptors.annotations.AnnotationsImpl
-import com.google.protobuf.MessageLite
-import org.cangnova.cangjie.metadata.model.*
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptorImpl
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.*
-import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedClassDescriptor
+import org.cangnova.cangjie.metadata.model.fb.FbAnno
+import org.cangnova.cangjie.metadata.model.fb.FbDecl
+import org.cangnova.cangjie.metadata.model.fb.FbDeclInfo
+import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
+import org.cangnova.cangjie.name.ClassId
+import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedClassConstructorDescriptor
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.error.ErrorClassDescriptor
 import org.cangnova.cangjie.types.error.ErrorPropertyDescriptor
 import org.cangnova.cangjie.types.error.ErrorTypeAliasDescriptor
 import org.cangnova.cangjie.types.error.ErrorVariableDescriptor
-import kotlin.collections.get
 
 enum class AnnotatedCallableKind {
     FUNCTION,
@@ -51,35 +49,78 @@ enum class AnnotatedCallableKind {
 
 
 class DeclarationDeserializer(private val c: DeserializationContext) {
-    private fun getAnnotations(a: List<Anno>): Annotations {
+    private fun getAnnotations(a: List<FbAnno>): Annotations {
         return Annotations.EMPTY
     }
 
-    private fun getCallableMemberDescriptorKind(decl: Decl): CallableMemberDescriptor.Kind {
+    private fun getCallableMemberDescriptorKind(decl: FbDecl): CallableMemberDescriptor.Kind {
 
 //        TODO 暂时返回固定值
         return CallableMemberDescriptor.Kind.DECLARATION
     }
 
-    fun loadProperty(decl: Decl): PropertyDescriptor {
+    fun loadConstructor(decl: FbDecl): ClassConstructorDescriptor {
+
+        val info = decl.info as FbDeclInfo.FuncInfo
+
+        val classDescriptor = c.containingDeclaration as ClassDescriptor
+        val descriptor = DeserializedClassConstructorDescriptor(
+            classDescriptor,
+            null,
+            getAnnotations(
+                decl.annotations
+            ),
+            false,
+            CallableMemberDescriptor.Kind.DECLARATION,
+            decl,
+
+
+            c.containerSource
+        )
+
+        val local = c.childContext(descriptor)
+        descriptor.initialize(
+            local.declDeserializer.valueParameters(
+                c.declTable.get(info.funcBody.params),
+            ),
+        )
+        descriptor.setReturnType(classDescriptor.defaultType)
+
+//        descriptor.setHasStableParameterNames(!Flags.IS_CONSTRUCTOR_WITH_NON_STABLE_PARAMETER_NAMES.get(proto.flags))
+
+        return descriptor
+    }
+
+    fun loadProperty(decl: FbDecl): PropertyDescriptor {
 
         return ErrorPropertyDescriptor()
     }
 
-    fun loadTypeAlias(decl: Decl): TypeAliasDescriptor {
+    fun loadTypeAlias(decl: FbDecl): TypeAliasDescriptor {
         return ErrorTypeAliasDescriptor()
     }
 
-    fun loadVariable(decl: Decl): VariableDescriptor {
+    fun loadVariable(decl: FbDecl): VariableDescriptor {
 
         return ErrorVariableDescriptor()
     }
 
-    fun loadClass(decl: Decl): ClassDescriptor? {
+    fun loadClass(decl: FbDecl): ClassDescriptor? {
+        val classId = ClassId(c.`package`.packageName, decl.name)
+//        val fragments = c.components.packageFragmentProvider.packageFragments(classId.packageFqName)
+//        val fragment = fragments.firstOrNull { it !is DeserializedPackageFragment /*|| it.hasTopLevelClass(classId.shortClassName)*/ }
+//            ?: return null
+////
+//    c.    components.createContext(
+//            fragment, c.`package`,
+//
+//
+//            metadataVersion,
+//            containerSource = null
+//        )
+//        DeserializedClassDescriptor(c, decl)
 
-        DeserializedClassDescriptor
-
-        return ErrorClassDescriptor()
+        return c.components.deserializeClass(classId)
     }
 
     private fun DeserializedSimpleFunctionDescriptor.initializeWithCoroutinesExperimentalityStatus(
@@ -106,9 +147,10 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         )
     }
 
-    fun loadFunction(decl: Decl): SimpleFunctionDescriptor {
-        assert(decl.kind == DeclKind.FuncDecl) { "Expected function, but $decl found" }
-        val info = (decl.info as DeclInfo.Func).info
+    fun loadFunction(decl: FbDecl): SimpleFunctionDescriptor {
+        assert(decl.kind == FbDeclKind.FuncDecl) { "Expected function, but $decl found" }
+        val info = decl.info as FbDeclInfo.FuncInfo
+
 
         val annotations = getAnnotations(decl.annotations)
 
@@ -127,7 +169,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
 
         val local = c.childContext(function)
         function.initializeWithCoroutinesExperimentalityStatus(
-            unsubstitutedValueParameters = local.declDeserializer.valueParameters(c.declType.get(info.funcBody.params)),
+            unsubstitutedValueParameters = local.declDeserializer.valueParameters(c.declTable.get(info.funcBody.params)),
             unsubstitutedReturnType = local.typeDeserializer.type(c.typeTable.get(info.funcBody.retType)),
             userDataMap = emptyMap()
         )
@@ -139,16 +181,16 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
 
 
     private fun valueParameters(
-        valueParameters: List<Decl>,
+        valueParameters: List<FbDecl>,
 
         ): List<ValueParameterDescriptor> {
         if (valueParameters.isEmpty()) return emptyList()
-        assert(valueParameters.any { it.kind == DeclKind.FuncParam }) { "Expected value parameters, but $valueParameters found" }
+        assert(valueParameters.any { it.kind == FbDeclKind.FuncParam }) { "Expected value parameters, but $valueParameters found" }
         val callableDescriptor = c.containingDeclaration as CallableDescriptor
 
         return valueParameters.mapIndexed { i, decl ->
 
-            val info = (decl.info as DeclInfo.Param).info
+            val info = decl.info as FbDeclInfo.ParamInfo
             ValueParameterDescriptorImpl(
                 callableDescriptor, null, i,
                 getAnnotations(decl.annotations),

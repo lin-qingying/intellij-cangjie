@@ -35,7 +35,7 @@ import org.cangnova.cangjie.descriptors.impl.MutablePackageFragmentDescriptor
 import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.Package
+import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.serialization.deserialization.DeserializationComponents
@@ -51,7 +51,7 @@ import org.cangnova.cangjie.types.SimpleType
 class CangJieMetadataDeserializerForDecompiler(
     project: Project,
     packageFqName: FqName,
-    private val `package`: Package,
+    private val `package`: FbPackage,
 
     private val metadataVersion: BinaryVersion,
     serializerProtocol: SerializerExtensionFlatbuffers,

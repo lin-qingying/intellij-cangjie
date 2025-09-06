@@ -6,10 +6,10 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.descriptors.packageFragments
 import org.cangnova.cangjie.name.ClassId
-import org.cangnova.cangjie.metadata.model.Decl
+import org.cangnova.cangjie.metadata.model.fb.FbDecl
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
+import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedClassDescriptor
-import kotlin.hashCode
 
 interface ClassDataFinder {
     fun findClassData(classId: ClassId): ClassData?
@@ -17,7 +17,8 @@ interface ClassDataFinder {
 }
 
 data class ClassData(
-    val classDecl: Decl,
+    val classDecl: FbDecl,
+    val `package`: FbPackage,
     val metadataVersion: BinaryVersion,
     val sourceElement: SourceElement
 )
@@ -34,6 +35,54 @@ class ClassDeserializer(private val components: DeserializationComponents) {
         val BLACK_LIST = setOf(
             ClassId.topLevel(StandardNames.FqNames.cloneable.toSafe())
         )
+    }
+
+    private val classes: (ClassDeserializer.ClassKey) -> ClassDescriptor? =
+        components.storageManager.createMemoizedFunctionWithNullableValues { key -> createClass(key) }
+
+    // Additional ClassData parameter is needed to avoid calling ClassDataFinder#findClassData()
+    // if it is already computed at the call site
+    fun deserializeClass(
+        classId: ClassId,
+        classData: ClassData? = null
+    ): ClassDescriptor? =
+        classes(ClassKey(classId, classData))
+
+    private fun createClass(key: ClassDeserializer.ClassKey): ClassDescriptor? {
+        val classId = key.classId
+        for (factory in components.fictitiousClassDescriptorFactories) {
+            factory.createClass(classId)?.let { return it }
+        }
+        if (classId in ClassDeserializer.Companion.BLACK_LIST) return null
+
+        val (decl, `package`, metadataVersion, sourceElement) = key.classData
+            ?: components.classDataFinder.findClassData(classId)
+            ?: return null
+
+        val outerClassId = classId.outerClassId
+        val outerContext = if (outerClassId != null) {
+            val outerClass = deserializeClass(outerClassId) as? DeserializedClassDescriptor ?: return null
+
+            // Find the outer class first and check if he knows anything about the nested class we're looking for
+            if (!outerClass.hasNestedClass(classId.shortClassName)) return null
+
+            outerClass.c
+        } else {
+            val fragments = components.packageFragmentProvider.packageFragments(classId.packageFqName)
+            val fragment = fragments.firstOrNull { it !is DeserializedPackageFragment  || it.hasTopLevelClass(classId.shortClassName)  }
+                    ?: return null
+
+            components.createContext(
+                fragment, `package`,
+
+
+                metadataVersion,
+                containerSource = null
+            )
+        }
+
+        return DeserializedClassDescriptor(outerContext, decl, metadataVersion, sourceElement)
+
     }
 
     private class ClassKey(val classId: ClassId, val classData: ClassData?) {

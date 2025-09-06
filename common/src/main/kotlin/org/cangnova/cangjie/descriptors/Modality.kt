@@ -31,7 +31,8 @@ enum class Modality {
     // NB: class can be sealed but not function or property
     SEALED,
     OPEN,
-    ABSTRACT;
+    ABSTRACT,
+    ;
 
     companion object {
         fun convertFromFlags(sealed: Boolean, abstract: Boolean, open: Boolean): Modality {

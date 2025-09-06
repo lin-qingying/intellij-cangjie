@@ -2,17 +2,14 @@ package org.cangnova.cangjie.analysis.decompiler.psi
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.declarations.CangJieBuiltInFileType
 import org.cangnova.cangjie.metadata.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
-import org.cangnova.cangjie.metadata.model.Decl
-import org.cangnova.cangjie.metadata.model.Package
-import org.cangnova.cangjie.metadata.model.parser.toPackage
-import org.cangnova.cangjie.name.CangJieClassName
+import org.cangnova.cangjie.metadata.model.fb.FbDecl
+import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.metadata.model.fb.parser.toFbPackage
 import org.cangnova.cangjie.name.ClassId
-import org.cangnova.cangjie.psi.compiled.ClsStubBuilder
 import org.cangnova.cangjie.psi.stubs.CangJieStubVersions
 import org.cangnova.cangjie.serialization.deserialization.BuiltInSerializerFlatbuffers
 import org.jetbrains.annotations.TestOnly
@@ -48,7 +45,7 @@ class CangJieBuiltInDecompiler : CangJieMetadataDecompiler<BuiltInsBinaryVersion
 }
 
 class BuiltInDefinitionFile(
-    `package`: Package,
+    `package`: FbPackage,
     version: BuiltInsBinaryVersion,
     /**
      * Directory where the VirtualFile is situated. Can be null in the case when the builtin file is created in the air.
@@ -69,7 +66,7 @@ class BuiltInDefinitionFile(
 //                shouldDecompileBuiltInClass(nameResolver.getClassId(classProto.fqName), packageDirectory)
 //            }
 //        }
-    override val declToDecompile: List<Decl>
+    override val declToDecompile: List<FbDecl>
         get() = super.declToDecompile
 
     private fun shouldDecompileBuiltInClass(classId: ClassId, packageDirectory: VirtualFile): Boolean {
@@ -90,7 +87,7 @@ class BuiltInDefinitionFile(
              val stream = ByteArrayInputStream(contents)
 
 
-            val `package` = stream.toPackage()
+            val `package` = stream.toFbPackage()
             val version = `package`.cjoVersion
 //            if (!version.isCompatibleWithCurrentCompilerVersion()) {
 //                return Incompatible(version)

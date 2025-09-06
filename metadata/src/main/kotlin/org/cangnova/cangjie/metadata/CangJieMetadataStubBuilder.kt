@@ -7,7 +7,8 @@ import com.intellij.psi.stubs.PsiFileStub
 import com.intellij.util.indexing.FileContent
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.*
+import org.cangnova.cangjie.metadata.model.fb.FbDecl
+import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.compiled.ClsStubBuilder
 import org.cangnova.cangjie.psi.compiled.impl.ClassFileStubBuilder
@@ -33,14 +34,14 @@ open class CangJieMetadataStubBuilder(
     sealed class FileWithMetadata {
         class Incompatible(val version: BinaryVersion) : FileWithMetadata()
         open class Compatible(
-            val `package`: Package,
+            val `package`: FbPackage,
             val version: BinaryVersion,
             serializerProtocol: SerializerExtensionFlatbuffers
         ) : FileWithMetadata() {
             val packageFqName =
                 FqName(`package`.fullPkgName)
 
-            open val declToDecompile: List<Decl> = `package`.decls
+            open val declToDecompile: List<FbDecl> = `package`.decls
 
         }
     }

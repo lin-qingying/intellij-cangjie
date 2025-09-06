@@ -24,7 +24,8 @@
 
 package org.cangnova.cangjie.metadata.deserialization
 
-import org.cangnova.cangjie.metadata.model.SemaTy
+import org.cangnova.cangjie.metadata.model.fb.FbDecl
+import org.cangnova.cangjie.metadata.model.fb.FbSemaTy
 
 
 /**
@@ -32,7 +33,7 @@ import org.cangnova.cangjie.metadata.model.SemaTy
  *
  * @param typeTable
  */
-class TypeTable(val types: List<SemaTy>) {
+class TypeTable(val types: List<FbSemaTy>) {
 
     /**
      * 通过索引获取类型。
@@ -40,12 +41,16 @@ class TypeTable(val types: List<SemaTy>) {
      * @param index 索引
      * @return 对应索引的类型
      */
-    operator fun get(index: Int): SemaTy {
+    operator fun get(index: Int): FbSemaTy {
         if (index == 0) error("Index must be non-zero")
         return types[index - 1]
     }
-
-    operator fun get(index: UInt): SemaTy {
+    operator fun get(indexs: List<Int>): List<FbSemaTy> {
+        if(indexs.isEmpty()) return emptyList()
+        assert(indexs.any { it != 0 })
+        return indexs.map { this[it] }
+    }
+    operator fun get(index: UInt): FbSemaTy {
         return this[index.toInt()]
     }
 

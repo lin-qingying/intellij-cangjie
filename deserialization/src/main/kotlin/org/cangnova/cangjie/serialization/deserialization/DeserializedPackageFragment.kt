@@ -43,6 +43,9 @@ abstract class DeserializedPackageFragment(
     abstract fun initialize(components: DeserializationComponents)
 
     abstract val classDataFinder: ClassDataFinder
-
+    open fun hasTopLevelClass(name: Name): Boolean {
+        val scope = getMemberScope()
+        return scope is DeserializedMemberScope && name in scope.classNames
+    }
 
 }

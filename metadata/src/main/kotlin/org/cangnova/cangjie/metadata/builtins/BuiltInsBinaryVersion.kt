@@ -31,7 +31,7 @@ import java.io.InputStream
  * 存储 `.cjo` 文件的格式版本。
  *
  * 当以下情况发生时，必须提升此版本：
- * - 在 `PackageFormat.fbs` 中进行了不兼容的更改
+ * - 在 `CHIRFormat.fbs` 中进行了不兼容的更改
  * - 在内置序列化/反序列化逻辑中进行了不兼容的更改
  *
  * 版本提升必须遵守 [org.cangnova.cangjie.metadata.deserialization.BinaryVersion] 规则（参见 `BinaryVersion` KDoc）。

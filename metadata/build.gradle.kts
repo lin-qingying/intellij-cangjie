@@ -6,6 +6,8 @@ plugins {
 dependencies {
     implementation("com.google.flatbuffers:flatbuffers-java:25.2.10")
     implementation(project(":common"))
+    implementation(project(":descriptors"))
+
 }
 
 // FlatBuffers配置

@@ -2,5 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cangjie_compiler" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/cangjie_compiler/cmake-build-debug/utils_dep/third_party_llvm-project" vcs="Git" />
   </component>
 </project>
