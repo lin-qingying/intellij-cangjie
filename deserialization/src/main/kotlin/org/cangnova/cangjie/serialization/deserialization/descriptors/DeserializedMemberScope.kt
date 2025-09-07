@@ -25,14 +25,11 @@
 package org.cangnova.cangjie.serialization.deserialization.descriptors
 
 
-import com.intellij.configurationStore.Property
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 
 
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
-import org.cangnova.cangjie.metadata.model.fb.FbDecl
-import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
 import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.FunctionWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.PropertyWrapper
@@ -78,9 +75,22 @@ abstract class DeserializedMemberScope protected constructor(
     classList: List<ClassDeclWrapper>,
 
     ) : MemberScopeImpl() {
-    internal val classNames by c.storageManager.createLazyValue { classList.map{it.name}.toSet() }
+    internal val classNames by c.storageManager.createLazyValue { classList.map { it.name }.toSet() }
+    private val classNameByExportId = c.storageManager.createMemoizedFunction<String, Name> {
+        computeNameByExportId(it)
+    }
 
+    private val classNameByIndex = c.storageManager.createMemoizedFunction<Int, Name> {
+        computeNameByIndex(it)
+    }
 
+    private fun computeNameByExportId(exportId: String): Name {
+        return c.`package`.declTable.decls.find { it.exportId == exportId }?.name ?: Name.ERROR_NAME
+    }
+
+    private fun computeNameByIndex(index: Int): Name {
+        return c.`package`.declTable[index].name
+    }
 
     /**
      * 成员作用域实现策略说明
@@ -246,13 +256,11 @@ abstract class DeserializedMemberScope protected constructor(
      * @param typeAliasList 类型别名声明列表
      */
     private inner class OptimizedImplementation(
-       functionList: List<FunctionWrapper>,
-         variableList: List<VariableWrapper>,
-
-         propertyList: List<PropertyWrapper>,
+        functionList: List<FunctionWrapper>,
+        variableList: List<VariableWrapper>,
+        propertyList: List<PropertyWrapper>,
         typeAliasList: List<TypeAliasWrapper>,
         classList: List<ClassDeclWrapper>
-
     ) : Implementation {
         /**
          * 按名称分组的函数声明映射
@@ -264,13 +272,13 @@ abstract class DeserializedMemberScope protected constructor(
          * 按名称分组的变量声明映射
          * 将变量声明列表按标识符分组，便于快速查找
          */
-        private val variableDecls = variableList.groupByName {it.name }
+        private val variableDecls = variableList.groupByName { it.name }
 
         /**
          * 按名称分组的属性声明映射
          * 将属性声明列表按标识符分组，便于快速查找
          */
-        private val propertyDecls = propertyList.groupByName { it.name}
+        private val propertyDecls = propertyList.groupByName { it.name }
 
         /**
          * 按名称分组的类型别名声明映射
@@ -340,7 +348,7 @@ abstract class DeserializedMemberScope protected constructor(
 
         private inline fun <T> Collection<T>.groupByName(
             getName: (T) -> Name
-        ) = groupBy {  getName(it)  }
+        ) = groupBy { getName(it) }
 
         /**
          * 计算指定名称的函数描述符列表
@@ -358,7 +366,7 @@ abstract class DeserializedMemberScope protected constructor(
                 { computeNonDeclaredFunctions(name, it) }
             )
 
-        private inline fun <M,D : DeclarationDescriptor> computeDescriptors(
+        private inline fun <M, D : DeclarationDescriptor> computeDescriptors(
             decls: Collection<M>,
             factory: (M) -> D?,
             computeNonDeclared: (MutableList<D>) -> Unit
@@ -943,7 +951,7 @@ abstract class DeserializedMemberScope protected constructor(
          */
         private inline fun <T> List<T>.mapToNames(getName: (T) -> Name): Set<Name> {
             // `mutableSetOf` returns `LinkedHashSet`, it is important to preserve the order of the declarations.
-            return mapTo(mutableSetOf()) {  getName(it)  }
+            return mapTo(mutableSetOf()) { getName(it) }
         }
 
         /**
@@ -954,7 +962,7 @@ abstract class DeserializedMemberScope protected constructor(
          * @param deserialize 反序列化函数，将声明转换为描述符
          * @return 保持原始顺序的描述符列表
          */
-        private inline fun <T,K : MemberDescriptor> List<T>.mapWithDeserializer(
+        private inline fun <T, K : MemberDescriptor> List<T>.mapWithDeserializer(
             deserialize: DeclarationDeserializer.(T) -> K?
         ): List<K> {
             return mapNotNull { c.declDeserializer.deserialize(it) }
@@ -1127,6 +1135,16 @@ abstract class DeserializedMemberScope protected constructor(
             name in impl.typeAliasNames -> getTypeAliasByName(name)
             else -> null
         }
+
+    override fun getContributedClassifierByExportId(exportId: String, location: LookupLocation): ClassifierDescriptor? {
+        val name = classNameByExportId(exportId)
+        return getContributedClassifier(name, location)
+    }
+
+    override fun getContributedClassifierByIndex(index: Int, location: LookupLocation): ClassifierDescriptor? {
+        val name = classNameByIndex(index)
+        return getContributedClassifier(name, location)
+    }
 
     /**
      * 计算符合条件的描述符集合

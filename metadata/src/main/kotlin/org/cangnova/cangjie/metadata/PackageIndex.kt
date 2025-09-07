@@ -19,8 +19,17 @@ enum class PackageIndex(val value: Int) {
      * 包引用索引 (-3)
      * 用于引用整个包时
      */
-    PKG_REFERENCE_INDEX(-3);
-    
+    PKG_REFERENCE_INDEX(-3),
+
+//
+//    /**
+//     * 包引用索引(n)
+//     * 用于引用导入的包，n为非负整数
+//     */
+//    IMPORTED_PKG_INDEX( ) // 占位符，实际导入包索引为非负整数
+//
+    ;
+
     companion object {
         /**
          * 将整数值转换为PackageIndex枚举

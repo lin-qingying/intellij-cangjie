@@ -47,7 +47,7 @@ fun ModuleDescriptor.findClassifierAcrossModuleDependencies(classId: ClassId): C
 
 fun ModuleDescriptor.findClassAcrossModuleDependencies(classId: ClassId): ClassDescriptor? =
     findClassifierAcrossModuleDependencies(classId) as? ClassDescriptor
-private inline fun ModuleDescriptor.withResolutionAnchor(
+inline fun ModuleDescriptor.withResolutionAnchor(
     crossinline doSearch: ModuleDescriptor.() -> ClassifierDescriptor?
 ): ClassifierDescriptor? {
     val anchor = getResolutionAnchorIfAny()

@@ -99,7 +99,7 @@ abstract class FunctionTypeKind internal constructor(
     // ------------------------------------------- Builtin functional kinds -------------------------------------------
 
     object Function : FunctionTypeKind(
-        StandardNames.BUILT_INS_PACKAGE_FQ_NAME,
+        StandardNames.BASIC_PACKAGE_FQ_NAME,
         "Function",
         isReflectType = false,
         annotationOnInvokeClassId = null

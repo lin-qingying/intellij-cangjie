@@ -33,6 +33,7 @@ import org.cangnova.cangjie.descriptors.ClassifierDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.DeserializedDescriptor
 import org.cangnova.cangjie.descriptors.Modality
+import org.cangnova.cangjie.descriptors.NotFoundClasses
 import org.cangnova.cangjie.descriptors.PropertyDescriptor
 import org.cangnova.cangjie.descriptors.ScopesHolderForClass
 import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
@@ -60,6 +61,7 @@ import org.cangnova.cangjie.resolve.DescriptorFactory
 import org.cangnova.cangjie.resolve.DeserializedDeclarationsFromSupertypeConflictDataKey
 import org.cangnova.cangjie.resolve.NonReportingOverrideStrategy
 import org.cangnova.cangjie.resolve.OverridingUtil
+import org.cangnova.cangjie.resolve.classId
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
@@ -92,7 +94,7 @@ class DeserializedClassDescriptor(
 
 
     val c = outerContext.childContext(
-        this, outerContext.`package`,
+        this, `class`.typeParameters, outerContext.`package`,
         metadataVersion
     )
     private val memberScopeHolder =
@@ -246,6 +248,7 @@ class DeserializedClassDescriptor(
             return super.getContributedClassifier(name, location)
         }
 
+
         override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
             recordLookup(name, location)
             return super.getContributedClassifiers(name, location)
@@ -275,9 +278,8 @@ class DeserializedClassDescriptor(
     internal fun hasNestedClass(name: Name): Boolean =
         name in memberScope.classNames
 
-    override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
-        TODO("Not yet implemented")
-    }
+    override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
+        memberScopeHolder.getScope(cangjieTypeRefiner)
 
     override val staticScope: MemberScope
         get() = MemberScope.Empty
@@ -347,7 +349,22 @@ class DeserializedClassDescriptor(
 
         override fun computeSupertypes(): Collection<CangJieType> {
 
-            TODO()
+            val result = `class`.superTypes.toSet().map { supertype ->
+                c.typeDeserializer.type(supertype)
+            } + c.components.additionalClassPartsProvider.getSupertypes(this@DeserializedClassDescriptor)
+
+            val unresolved = result.mapNotNull { supertype ->
+                supertype.constructor.declarationDescriptor as? NotFoundClasses.MockClassDescriptor
+            }
+
+            if (unresolved.isNotEmpty()) {
+                c.components.errorReporter.reportIncompleteHierarchy(
+                    this@DeserializedClassDescriptor,
+                    unresolved.map { it.classId?.asSingleFqName()?.asString() ?: it.name.asString() }
+                )
+            }
+
+            return result.toList()
         }
 
 

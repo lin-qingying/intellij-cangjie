@@ -33,6 +33,7 @@ fun DescriptorRendererOptions.defaultDecompilerRendererOptions() {
 
 private const val FLEXIBLE_TYPE_COMMENT = "/* platform type */"
 private const val DECOMPILED_CODE_COMMENT = "/* compiled code */"
+private const val DECOMPILED_COMMENT_FOR_PARAMETER = "/* = compiled code */"
 
 fun buildDecompiledText(
     packageFqName: FqName,
@@ -76,7 +77,7 @@ fun buildDecompiledText(
 //
 //            builder.append(if (lastEnumEntry!!) ";" else "|")
 //        } else {
-//            builder.append(descriptorRenderer.render(descriptor).replace("= ...", DECOMPILED_COMMENT_FOR_PARAMETER))
+            builder.append(descriptorRenderer.render(descriptor).replace("= ...", DECOMPILED_COMMENT_FOR_PARAMETER))
 //        }
 
         if (descriptor is CallableDescriptor) {
@@ -105,7 +106,7 @@ fun buildDecompiledText(
                 builder.append("{")
 
                 for (accessor in descriptor.accessors) {
-                    if (accessor.isDefault) continue
+//                    if (accessor.isDefault) continue
                     builder.append("\n$indent    ")
 
 
@@ -178,7 +179,6 @@ fun buildDecompiledText(
 
             builder.append(indent).append("}")
         }
-
         builder.append("\n")
     }
 

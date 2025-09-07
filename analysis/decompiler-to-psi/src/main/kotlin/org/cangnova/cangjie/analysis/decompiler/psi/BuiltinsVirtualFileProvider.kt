@@ -7,6 +7,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
 import io.ktor.http.Url
+import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.builtins.StandardNames.ALL_NAMES
 import org.cangnova.cangjie.name.StandardClassIds
 import org.cangnova.cangjie.serialization.deserialization.BuiltInSerializerFlatbuffers
@@ -27,7 +28,7 @@ abstract class BuiltinsVirtualFileProvider {
 
 abstract class BuiltinsVirtualFileProviderBaseImpl : BuiltinsVirtualFileProvider() {
     private val builtInUrls: Set<Path> by lazy {
-        ALL_NAMES.mapTo(mutableSetOf()) { builtInPackageFqName ->
+        ALL_NAMES.filter { it != StandardNames.BASIC_PACKAGE_FQ_NAME }.mapTo(mutableSetOf()) { builtInPackageFqName ->
             val resourcePath = BuiltInSerializerFlatbuffers.getBuiltInsFilePath(builtInPackageFqName)
             Path(resourcePath)
         }

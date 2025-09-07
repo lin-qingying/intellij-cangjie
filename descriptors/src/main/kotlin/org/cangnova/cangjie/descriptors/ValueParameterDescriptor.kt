@@ -55,7 +55,7 @@ interface ValueParameterDescriptor : VariableDescriptor, ParameterDescriptor {
      * @return true iff this parameter belongs to a declared function (not a fake override) and declares the default value,
      * i.e. explicitly specifies it in the function signature. Also see 'hasDefaultValue' extension in DescriptorUtils.cj
      */
-    fun declaresDefaultValue(): Boolean
+//    fun declaresDefaultValue(): Boolean
     fun copy(newOwner: CallableDescriptor, newName: Name, newIndex: Int): ValueParameterDescriptor
 
 }

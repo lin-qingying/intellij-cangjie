@@ -42,31 +42,31 @@ private class ExpandedTypeOrRefinedConstructor(val expandedType: SimpleType?, va
 
 /**
  * 仓颉类型工厂
- * 
+ *
  * 提供创建各种仓颉语言类型的工厂方法，包括：
  * - 简单类型（SimpleType）
  * - 基础类型（BasicType）
  * - 灵活类型（FlexibleType）
  * - 字面量类型（FloatLiteralType、IntegerLiteralType）
  * - 数组类型（VArrayType）
- * 
+ *
  * 核心功能：
  * - simpleType：创建简单类型
  * - flexibleType：创建灵活类型
  * - basicType：创建基础类型
  * - arrayType：创建数组类型
- * 
+ *
  * 示例：
  * ```kotlin
  * // 创建简单类型
  * val simpleType = CangJieTypeFactory.simpleType(attributes, constructor, arguments, false)
- * 
+ *
  * // 创建灵活类型
  * val flexibleType = CangJieTypeFactory.flexibleType(lowerBound, upperBound)
- * 
+ *
  * // 创建基础类型
  * val basicType = CangJieTypeFactory.basicType(descriptor)
- * 
+ *
  * // 创建数组类型
  * val arrayType = CangJieTypeFactory.arrayType(elementType)
  * ```
@@ -75,9 +75,9 @@ object CangJieTypeFactory {
 
     /**
      * 创建非空的简单类型
-     * 
+     *
      * 使用类描述符创建非Option的简单类型。
-     * 
+     *
      * 示例：
      * ```kotlin
      * val attributes = TypeAttributes.Empty
@@ -86,7 +86,7 @@ object CangJieTypeFactory {
      * val simpleType = CangJieTypeFactory.simpleNotNullType(attributes, descriptor, arguments)
      * // 创建非Option的简单类型
      * ```
-     * 
+     *
      * @param attributes 类型属性
      * @param descriptor 类描述符
      * @param arguments 类型参数列表
@@ -101,16 +101,16 @@ object CangJieTypeFactory {
 
     /**
      * 创建基础类型
-     * 
+     *
      * 使用基础类型描述符创建基础类型。
-     * 
+     *
      * 示例：
      * ```kotlin
      * val descriptor: BasicTypeDescriptor = ...
      * val basicType = CangJieTypeFactory.basicType(descriptor)
      * // 创建基础类型，如Int、String等
      * ```
-     * 
+     *
      * @param descriptor 基础类型描述符
      * @return 基础类型
      */
@@ -124,9 +124,9 @@ object CangJieTypeFactory {
 
     /**
      * 创建浮点数字面量类型
-     * 
+     *
      * 创建表示浮点数字面量的类型，使用错误作用域。
-     * 
+     *
      * 示例：
      * ```kotlin
      * val attributes = TypeAttributes.Empty
@@ -134,7 +134,7 @@ object CangJieTypeFactory {
      * val floatLiteralType = CangJieTypeFactory.floatLiteralType(attributes, constructor, false)
      * // 创建浮点数字面量类型
      * ```
-     * 
+     *
      * @param attributes 类型属性
      * @param constructor 浮点数字面量类型构造器
      * @param option 是否为Option类型
@@ -159,9 +159,9 @@ object CangJieTypeFactory {
 
     /**
      * 创建整数字面量类型
-     * 
+     *
      * 创建表示整数字面量的类型，使用错误作用域。
-     * 
+     *
      * 示例：
      * ```kotlin
      * val attributes = TypeAttributes.Empty
@@ -169,7 +169,7 @@ object CangJieTypeFactory {
      * val integerLiteralType = CangJieTypeFactory.integerLiteralType(attributes, constructor, false)
      * // 创建整数字面量类型
      * ```
-     * 
+     *
      * @param attributes 类型属性
      * @param constructor 整数字面量类型构造器
      * @param option 是否为Option类型
@@ -194,9 +194,9 @@ object CangJieTypeFactory {
 
     /**
      * 创建灵活类型
-     * 
+     *
      * 创建包含下界和上界的灵活类型。如果下界和上界相同，则返回下界。
-     * 
+     *
      * 示例：
      * ```kotlin
      * val lowerBound: SimpleType = Int类型
@@ -204,7 +204,7 @@ object CangJieTypeFactory {
      * val flexibleType = CangJieTypeFactory.flexibleType(lowerBound, upperBound)
      * // 创建灵活类型，表示类型范围
      * ```
-     * 
+     *
      * @param lowerBound 下界类型
      * @param upperBound 上界类型
      * @return 灵活类型
@@ -257,7 +257,8 @@ object CangJieTypeFactory {
     ): SimpleType {
         return OptionType(type)
     }
-      @JvmStatic
+
+    @JvmStatic
     fun simpleType(
         baseType: SimpleType,
         annotations: TypeAttributes = baseType.attributes,
@@ -392,8 +393,8 @@ private class SimpleTypeWithAttributes(
 }
 
 class VArrayType(
-    val size : Int,
-    argument : TypeProjection ,
+    val size: Int,
+    argument: TypeProjection,
 
     constructor: TypeConstructor,
     isOption: Boolean,
@@ -404,7 +405,8 @@ class VArrayType(
     constructor, listOf(argument), isOption, memberScope, refinedTypeFactory
 ) {
 
-val typeName = "VArray"
+    val typeName = "VArray"
+
     @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType {
         return refinedTypeFactory(cangjieTypeRefiner) ?: this
@@ -425,7 +427,7 @@ open class SimpleTypeImpl(
 
     override fun makeOptionAsSpecified(isOption: Boolean) = when {
         isOption == isOption -> this
-        isOption -> OptionalSimpleType(this )
+        isOption -> OptionalSimpleType(this)
         else -> NotNullSimpleType(this)
     }
 

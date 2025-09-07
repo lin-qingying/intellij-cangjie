@@ -78,7 +78,7 @@ object   DescriptorFactory {
         sourceElement: SourceElement
     ): PropertySetterDescriptorImpl {
         val setterDescriptor = PropertySetterDescriptorImpl(
-            propertyDescriptor, annotations, propertyDescriptor.modality, visibility, isDefault,
+            propertyDescriptor, annotations, propertyDescriptor.modality, visibility, /*isDefault,*/
             CallableMemberDescriptor.Kind.DECLARATION, null, sourceElement
         )
         val parameter =
@@ -98,7 +98,7 @@ object   DescriptorFactory {
     ): PropertyGetterDescriptorImpl {
         return PropertyGetterDescriptorImpl(
             propertyDescriptor, annotations, propertyDescriptor.modality, propertyDescriptor.visibility,
-            isDefault, CallableMemberDescriptor.Kind.DECLARATION, null, sourceElement
+            /*isDefault, */CallableMemberDescriptor.Kind.DECLARATION, null, sourceElement
         )
     }
 

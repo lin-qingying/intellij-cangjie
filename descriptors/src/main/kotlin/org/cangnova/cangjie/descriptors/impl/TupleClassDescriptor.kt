@@ -30,18 +30,15 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.TupleClassScope
 import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.types.AbstractClassTypeConstructor
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.Variance
+import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class TupleClassDescriptor(
     private val storageManager: StorageManager,
     override val containingDeclaration: DeclarationDescriptor,
-
     val arity: Int
 ) : AbstractClassDescriptor(storageManager, numberedClassName(arity)) {
+    
     private val _typeConstructor = TupleTypeConstructor()
     private val memberScope = TupleClassScope(storageManager, this)
 
@@ -51,15 +48,11 @@ class TupleClassDescriptor(
         fun create(
             storageManager: StorageManager,
             containingDeclaration: DeclarationDescriptor,
-
             arity: Int
         ): TupleClassDescriptor {
             return TupleClassDescriptor(storageManager, containingDeclaration, arity)
         }
     }
-
-//    private val typeConstructor = TupleTypeConstructor()
-//    private val memberScope = FunctionClassScope(storageManager, this)
 
     private val parameters: List<TypeParameterDescriptor>
 
@@ -71,7 +64,6 @@ class TupleClassDescriptor(
                 TypeParameterDescriptorImpl.createWithDefaultBound(
                     this@TupleClassDescriptor,
                     Annotations.EMPTY,
-//                    false,
                     variance,
                     Name.identifier(name),
                     result.size,
@@ -84,49 +76,27 @@ class TupleClassDescriptor(
             typeParameter(Variance.INVARIANT, "T$i")
         }
 
-
         parameters = result.toList()
     }
 
-
-    private inner class TupleTypeConstructor : AbstractClassTypeConstructor(storageManager) {
+    inner class TupleTypeConstructor : AbstractClassTypeConstructor(storageManager) {
         override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-
             return emptyList()
         }
 
         override fun computeSupertypes(): Collection<CangJieType> {
-//                 val supertypes = when (functionTypeKind) {
-//                FunctionTypeKind.Function -> // Function$N <: Function
-//                    listOf(functionClassId)
-//
-//
-//                else -> shouldNotBeCalled()
-//            }
-//
-//            val moduleDescriptor = containingDeclaration.containingDeclaration
-//            return supertypes.map { id ->
-//                val descriptor =
-//                    moduleDescriptor.findClassAcrossModuleDependencies(id) ?: error("Built-in class $id not found")
-//
-//                // Substitute all type parameters of the super class with our last type parameters
-//                val arguments = parameters.takeLast(descriptor.typeConstructor.parameters.size).map {
-//                    TypeProjectionImpl(it.defaultType)
-//                }
-//
-//                CangJieTypeFactory.simpleNotNullType(TypeAttributes.Empty, descriptor, arguments)
-//            }.toList()
             return listOf(builtIns.anyType)
         }
 
         override val parameters: List<TypeParameterDescriptor>
             get() = this@TupleClassDescriptor.parameters
 
-        override val declarationDescriptor: ClassDescriptor
+        override val declarationDescriptor: TupleClassDescriptor
             get() = this@TupleClassDescriptor
 
         override val isDenotable: Boolean
             get() = true
+            
         override fun toString() = declarationDescriptor.toString()
 
         override val supertypeLoopChecker: SupertypeLoopChecker
@@ -135,10 +105,11 @@ class TupleClassDescriptor(
 
     override val staticScope: MemberScope
         get() = MemberScope.Empty
-    override val typeConstructor: TypeConstructor
+        
+    override val typeConstructor: TupleTypeConstructor
         get() = _typeConstructor
+        
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner) = memberScope
-
 
     override val source: SourceElement = SourceElement.NO_SOURCE
 
@@ -149,18 +120,53 @@ class TupleClassDescriptor(
         get() = emptyList()
 
     override val kind: ClassKind
-        get() =  ClassKind.TUPLE
+        get() = ClassKind.TUPLE
+        
     override val modality: Modality
-        get() =  Modality.FINAL
+        get() = Modality.FINAL
+        
+    override val visibility: DescriptorVisibility 
+        get() = DescriptorVisibilities.PUBLIC
+        
+    override val annotations: Annotations 
+        get() = Annotations.EMPTY
+        
     override val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
         get() = null
 
     override val declaredTypeParameters: List<TypeParameterDescriptor>
         get() = parameters
+        
+    override val sealedSubclasses: Collection<ClassDescriptor>
+        get() = emptyList()
+
     override fun toString(): String {
         return "Tuple$arity"
     }
 
-
-    override val sealedSubclasses = emptyList<ClassDescriptor>()
+    /**
+     * 创建元组类型实例
+     *
+     * 基于当前元组类描述符创建对应的TupleType实例。
+     *
+     * @param elementTypes 元组元素类型列表
+     * @param attributes 类型属性
+     * @param isOption 是否为Option类型
+     * @return 创建的TupleType实例
+     */
+    fun createTupleType(
+        elementTypes: List<CangJieType>,
+        attributes: TypeAttributes = TypeAttributes.Empty,
+        isOption: Boolean = false
+    ): TupleType {
+        require(elementTypes.size == arity) { 
+            "Element types count (${elementTypes.size}) must match tuple arity ($arity)" 
+        }
+        return TupleType(
+            constructor = typeConstructor,
+            attributes = attributes,
+            elementTypes = elementTypes,
+            isOption = isOption
+        )
+    }
 }

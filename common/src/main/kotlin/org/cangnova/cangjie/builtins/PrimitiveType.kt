@@ -55,13 +55,13 @@ enum class PrimitiveType(typeName: String) {
     val arrayTypeName: Name = Name.identifier("${typeName}Array")
 
     val typeFqName: FqName by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        StandardNames.BUILT_INS_PACKAGE_FQ_NAME.child(
+        StandardNames.BASIC_PACKAGE_FQ_NAME.child(
             this.typeName,
         )
     }
 
     val arrayTypeFqName: FqName by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        StandardNames.BUILT_INS_PACKAGE_FQ_NAME.child(
+        StandardNames.BASIC_PACKAGE_FQ_NAME.child(
             arrayTypeName,
         )
     }

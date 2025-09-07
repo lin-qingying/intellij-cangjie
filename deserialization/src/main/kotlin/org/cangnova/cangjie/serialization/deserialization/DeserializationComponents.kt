@@ -36,6 +36,7 @@ import org.cangnova.cangjie.metadata.deserialization.DeclTable
 import org.cangnova.cangjie.metadata.deserialization.TypeTable
 import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.TypeParameterWrapper
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedContainerSource
@@ -104,9 +105,9 @@ class DeserializationComponents(
 //    val samConversionResolver: SamConversionResolver,
     val typeAttributeTranslators: List<TypeAttributeTranslator> = listOf(DefaultTypeAttributeTranslator),
 //    val enumEntriesDeserializationSupport: EnumEntriesDeserializationSupport = EnumEntriesDeserializationSupport.Default,
-) {
-        val classDeserializer: ClassDeserializer = ClassDeserializer(this)
 
+) {
+    val classDeserializer: ClassDeserializer = ClassDeserializer(this)
     fun deserializeClass(classId: ClassId): ClassDescriptor? = classDeserializer.deserializeClass(classId)
 
     fun createContext(
@@ -118,7 +119,7 @@ class DeserializationComponents(
     ): DeserializationContext =
         DeserializationContext(
             this, descriptor, `package`, metadataVersion, containerSource,
-            parentTypeDeserializer = null/*, typeParameters = listOf()*/
+            parentTypeDeserializer = null, typeParameters = listOf()
         )
 }
 
@@ -150,20 +151,13 @@ class DeserializationContext(
     val metadataVersion: BinaryVersion,
     val containerSource: DeserializedContainerSource?,
     parentTypeDeserializer: TypeDeserializer?,
-//    typeParameters: List<TypeParameter>
+    typeParameters: List<TypeParameterWrapper>
 ) {
 
-
-
-
-
-
-
-
-
+    val fullIdFinder: FullIdFinder = FullIdFinderImpl(components.moduleDescriptor, `package`)
 
     val typeDeserializer: TypeDeserializer = TypeDeserializer(
-        this, parentTypeDeserializer,
+        this, parentTypeDeserializer,typeParameters,
         "Deserializer for \"${containingDeclaration.name}\"",
         containerSource?.presentableString ?: "[container not found]"
     )
@@ -173,12 +167,12 @@ class DeserializationContext(
     val declTable = `package`.declTable
 
     val storageManager: StorageManager get() = components.storageManager
-    val builtIns = containingDeclaration.builtIns
+    val builtIns get() = containingDeclaration.builtIns
 
     //
     fun childContext(
         descriptor: DeclarationDescriptor,
-//        typeParameterParams: List<TypeParameter>,
+        typeParameterParams: List<TypeParameterWrapper>,
 
         `package`: PackageWrapper = this.`package`,
         metadataVersion: BinaryVersion = this.metadataVersion
@@ -187,7 +181,7 @@ class DeserializationContext(
 
         `package`,
         metadataVersion, this.containerSource,
-        parentTypeDeserializer = this.typeDeserializer,
+        parentTypeDeserializer = this.typeDeserializer,typeParameterParams,
     )
 }
 

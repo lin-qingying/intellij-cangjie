@@ -33,10 +33,7 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.FunctionClassScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.types.AbstractClassTypeConstructor
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.Variance
+import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.functions.FunctionClassKind
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
@@ -51,7 +48,7 @@ class FunctionClassDescriptor(
 
     private val _typeConstructor = FunctionTypeConstructor()
     private val memberScope = FunctionClassScope(storageManager, this)
-    override val typeConstructor: TypeConstructor
+    override val typeConstructor: FunctionTypeConstructor
         get() = _typeConstructor
     private val parameters: List<TypeParameterDescriptor>
 
@@ -85,7 +82,7 @@ class FunctionClassDescriptor(
     override val staticScope: MemberScope
         get() = MemberScope.Empty
 
-    override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner) = memberScope
+    override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner  ) = memberScope
     override val constructors: Collection<ClassConstructorDescriptor>
         get() = emptyList<ClassConstructorDescriptor>()
     override val kind: ClassKind
@@ -108,7 +105,7 @@ class FunctionClassDescriptor(
     override val declaredTypeParameters: List<TypeParameterDescriptor>
         get() = parameters
 
-    private inner class FunctionTypeConstructor : AbstractClassTypeConstructor(storageManager) {
+      inner class FunctionTypeConstructor : AbstractClassTypeConstructor(storageManager) {
         override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
 
             return emptyList()
@@ -142,7 +139,7 @@ class FunctionClassDescriptor(
             get() = this@FunctionClassDescriptor.parameters
         override val isDenotable: Boolean
             get() = true
-        override val declarationDescriptor: ClassDescriptor
+        override val declarationDescriptor: FunctionClassDescriptor
             get() = this@FunctionClassDescriptor
 
         override fun toString() = declarationDescriptor.toString()
@@ -174,10 +171,38 @@ class FunctionClassDescriptor(
 //            )
 //        }
 
-        private val functionClassId = ClassId(StandardNames.BUILT_INS_PACKAGE_FQ_NAME, Name.identifier("Function"))
+        private val functionClassId = ClassId(StandardNames.BASIC_PACKAGE_FQ_NAME, Name.identifier("Function"))
 //        private val kFunctionClassId = ClassId(CANGJIE_REFLECT_FQ_NAME, Name.identifier("KFunction"))
     }
 
 
     val functionKind: FunctionClassKind = FunctionClassKind.getFunctionClassKind(functionTypeKind)
+
+    /**
+     * 创建函数类型实例
+     *
+     * 基于当前函数类描述符创建对应的FunctionType实例。
+     *
+     * @param receiverType 接收者类型（可选）
+     * @param contextReceiverTypes 上下文接收者类型列表
+     * @param parameterTypes 参数类型列表
+     * @param returnType 返回类型
+     * @param attributes 类型属性
+     * @param isOption 是否为Option类型
+     * @return 创建的FunctionType实例
+     */
+    fun createFunctionType(
+        parameterTypes: List<CangJieType>,
+        returnType: CangJieType,
+
+        isOption: Boolean = false
+    ): FunctionType {
+        return FunctionType(
+            constructor = typeConstructor,
+
+            parameterTypes = parameterTypes,
+            returnType = returnType,
+            isOption = isOption
+        )
+    }
 }

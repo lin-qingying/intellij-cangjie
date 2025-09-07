@@ -124,7 +124,7 @@ abstract class FunctionDescriptorImpl(
                         unsubstitutedValueParameter.name,
                         unsubstitutedValueParameter.isNamed,
                         substitutedType,
-                        unsubstitutedValueParameter.declaresDefaultValue(),
+                        unsubstitutedValueParameter.declaresDefaultValue,
                         if (preserveSourceElement) unsubstitutedValueParameter.source else SourceElement.NO_SOURCE,
                         destructuringVariablesAction
                     )

@@ -55,4 +55,5 @@ interface VariableDescriptor : ValueDescriptor, MemberDescriptor/*,
     //
     //    bool isExternal();
     val isVar: Boolean
+    val declaresDefaultValue:Boolean get() = false
 }

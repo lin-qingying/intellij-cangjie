@@ -16,7 +16,9 @@ class DeclTable(val decls: List<FbDecl>) {
         return get(index.toInt())
     }
     operator fun get(index: Int): FbDecl {
-        if (index == 0) error("Index must be non-zero")
+        if (index == 0) {
+            error("Index must be non-zero")
+        }
         return decls[index - 1]
     }
 

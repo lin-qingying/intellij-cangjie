@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.builtins
 
-import org.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
+import org.cangnova.cangjie.builtins.StandardNames.BASIC_PACKAGE_FQ_NAME
 import org.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.anyUFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.arrayClassFqNameToPrimitiveType
@@ -56,12 +56,9 @@ import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
 import org.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
-import org.cangnova.cangjie.lexer.CjToken
-import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.resolveClassByFqName
 import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.storage.StorageManager
@@ -76,6 +73,8 @@ open class CangJieBuiltIns(
 //    val cangJieModuleInfo: CangJieModuleInfo
 //    val moduleInfo: ModuleInfo? = null
 ) {
+
+
     companion object {
         // This function only checks presence of Deprecated annotation at declaration-site, it doesn't take into account @DeprecatedSinceCangJie
         // To check that a referenced descriptor is actually deprecated at call-site, use DeprecationResolver
@@ -397,7 +396,7 @@ open class CangJieBuiltIns(
 
     }
 
-    fun getFunction(parameterCount: Int): ClassDescriptor {
+    fun getFunction(parameterCount: Int): FunctionClassDescriptor {
         return FunctionClassDescriptor.create(storageManager, builtInsModule, FunctionTypeKind.Function, parameterCount)
 
     }
@@ -449,7 +448,7 @@ open class CangJieBuiltIns(
             NoLookupLocation.FROM_BUILTINS
         )
         if (classifier == null) {
-            throw AssertionError("Built-in class " + BUILT_INS_PACKAGE_FQ_NAME.child(name) + " is not found")
+            throw AssertionError("Built-in class " + BASIC_PACKAGE_FQ_NAME.child(name) + " is not found")
         }
         if (classifier !is ClassDescriptor) {
             throw AssertionError("Must be a class descriptor $name, but was $classifier")
@@ -462,7 +461,7 @@ open class CangJieBuiltIns(
             NoLookupLocation.FROM_BUILTINS
         )
         if (classifier == null) {
-            throw AssertionError("Built-in class " + BUILT_INS_PACKAGE_FQ_NAME.child(name) + " is not found")
+            throw AssertionError("Built-in class " + BASIC_PACKAGE_FQ_NAME.child(name) + " is not found")
         }
         if (classifier !is ClassDescriptor) {
             throw AssertionError("Must be a class descriptor $name, but was $classifier")
@@ -475,7 +474,7 @@ open class CangJieBuiltIns(
             NoLookupLocation.FROM_BUILTINS
         )
         if (classifier == null) {
-            throw AssertionError("Built-in class " + BUILT_INS_PACKAGE_FQ_NAME.child(name) + " is not found")
+            throw AssertionError("Built-in class " + BASIC_PACKAGE_FQ_NAME.child(name) + " is not found")
         }
         if (classifier !is ClassDescriptor) {
             throw AssertionError("Must be a class descriptor $name, but was $classifier")
@@ -483,6 +482,19 @@ open class CangJieBuiltIns(
         classifier
     }
 
+    private val myBasicClassesByName = storageManager.createMemoizedFunction { name: Name ->
+        val classifier = BASIC_SCOPE.getContributedClassifier(
+            name,
+            NoLookupLocation.FROM_BASIC
+        )
+        if (classifier == null) {
+            throw AssertionError("Basic class " + BASIC_PACKAGE_FQ_NAME.child(name) + " is not found")
+        }
+        if (classifier !is ClassDescriptor) {
+            throw AssertionError("Must be a class descriptor $name, but was $classifier")
+        }
+        classifier
+    }
 
     var myBuiltInsModule: ModuleDescriptorImpl? = null
 
@@ -539,6 +551,7 @@ open class CangJieBuiltIns(
     val STD_CORE_SCOPE get() = builtInsModule.getPackage(core).memberScope
     val STD_AST_SCOPE get() = builtInsModule.getPackage(ast).memberScope
 
+    val BASIC_SCOPE get() = builtInsModule.getPackage(BASIC_PACKAGE_FQ_NAME).memberScope
     fun isBooleanOrSubtype(type: CangJieType): Boolean {
         return CangJieTypeChecker.DEFAULT.isSubtypeOf(type, boolType)
     }
@@ -546,6 +559,9 @@ open class CangJieBuiltIns(
 
     private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
         return myStdCoreBuiltInClassesByName.invoke(Name.identifier(simpleName))
+    }
+    private fun getBasicClassByName(simpleName: Name): ClassDescriptor {
+        return myBasicClassesByName.invoke( simpleName )
     }
 
     private fun getStdSyncClassByName(simpleName: String): ClassDescriptor {
@@ -562,150 +578,29 @@ open class CangJieBuiltIns(
     }
 
     //    int
-    val int64Type get() = createPrimitiveClassDescriptor(PrimitiveType.INT64).defaultType
-    val int32Type get() = createPrimitiveClassDescriptor(PrimitiveType.INT32).defaultType
-    val int16Type get() = createPrimitiveClassDescriptor(PrimitiveType.INT16).defaultType
-    val int8Type get() = createPrimitiveClassDescriptor(PrimitiveType.INT8).defaultType
-    val intNativeType get() = createPrimitiveClassDescriptor(PrimitiveType.INTNATIVE).defaultType
+    val int64Type get() = getBasicClassByName(StandardNames.INT64).defaultType
+    val int32Type get() = getBasicClassByName(StandardNames.INT32).defaultType
+    val int16Type get() = getBasicClassByName(StandardNames.INT16).defaultType
+    val int8Type get() = getBasicClassByName(StandardNames.INT8).defaultType
+    val intNativeType get() = getBasicClassByName(StandardNames.INT_NATIVE).defaultType
 
-    val uint64Type = createPrimitiveClassDescriptor(PrimitiveType.UINT64).defaultType
-    val uint32Type = createPrimitiveClassDescriptor(PrimitiveType.UINT32).defaultType
-    val uint16Type = createPrimitiveClassDescriptor(PrimitiveType.UINT16).defaultType
-    val uint8Type = createPrimitiveClassDescriptor(PrimitiveType.UINT8).defaultType
-    val uintNativeType get() = createPrimitiveClassDescriptor(PrimitiveType.UINTNATIVE).defaultType
+    val uint64Type get() = getBasicClassByName(StandardNames.UINT64).defaultType
+    val uint32Type get() = getBasicClassByName(StandardNames.UINT32).defaultType
+    val uint16Type get() = getBasicClassByName(StandardNames.UINT16).defaultType
+    val uint8Type get() = getBasicClassByName(StandardNames.UINT8).defaultType
+    val uintNativeType get() = getBasicClassByName(StandardNames.UINT_NATIVE).defaultType
 
 
     //    float
-    val float64Type get() = createPrimitiveClassDescriptor(PrimitiveType.FLOAT64).defaultType
-    val float32Type get() = createPrimitiveClassDescriptor(PrimitiveType.FLOAT32).defaultType
-    val float16Type get() = createPrimitiveClassDescriptor(PrimitiveType.FLOAT16).defaultType
-    val runeType get() = createPrimitiveClassDescriptor(PrimitiveType.Rune).defaultType
+    val float64Type get() = getBasicClassByName(StandardNames.FLOAT64).defaultType
+    val float32Type get() = getBasicClassByName(StandardNames.FLOAT32).defaultType
+    val float16Type get() = getBasicClassByName(StandardNames.FLOAT16).defaultType
+    val runeType get() = getBasicClassByName(StandardNames.RUNE).defaultType
 
-    val boolType get() = createPrimitiveClassDescriptor(PrimitiveType.BOOL).defaultType
-    val nothingType get() = createPrimitiveClassDescriptor(PrimitiveType.Nothing).defaultType
+    val boolType get() = getBasicClassByName(StandardNames.BOOL).defaultType
+    val nothingType get() = getBasicClassByName(StandardNames.NOTHING).defaultType
 
-    val unitType get() = createPrimitiveClassDescriptor(PrimitiveType.Unit).defaultType
-
-    //    二进制运算规则
-    val binaryOperatorRules: MutableMap<CjToken, List<BinaryOperatorRule>> = mutableMapOf()
-
-    //    匹配规则
-    fun matchBinaryOperatorRule(token: CjToken, leftType: CangJieType?, rightType: CangJieType?): BinaryOperatorRule {
-        if (leftType == null || rightType == null) {
-            return BinaryOperatorRule(leftType, rightType, BinaryOperatorRuleResultType.ERROR)
-        }
-
-        if (binaryOperatorRules.isEmpty()) {
-            fillBinaryOperatorRules()
-        }
-
-        val leftType = if (leftType.constructor is IntersectionTypeConstructor) {
-            (leftType.constructor as IntersectionTypeConstructor).getAlternativeType()
-        } else {
-            leftType
-        }
-        val rightType = if (rightType.constructor is IntegerLiteralTypeConstructor) {
-            (rightType.constructor as IntegerLiteralTypeConstructor).getApproximatedType()
-        } else {
-            rightType
-        }
-
-//        查询规则
-        val rule = binaryOperatorRules[token]
-            ?: return BinaryOperatorRule(leftType, rightType, BinaryOperatorRuleResultType.ERROR)
-//根据类型匹配
-        for (r in rule) {
-            if (r.leftType == leftType && r.rightType == rightType) {
-                return r
-            }
-        }
-
-        return BinaryOperatorRule(leftType, rightType, BinaryOperatorRuleResultType.ERROR)
-    }
-
-    //    填充规则
-    private fun fillBinaryOperatorRules() {
-
-        binaryOperatorRules[CjTokens.PLUS] = listOf(
-            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
-
-
-            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
-        )
-        binaryOperatorRules[CjTokens.MINUS] = listOf(
-            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
-
-
-            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
-        )
-        binaryOperatorRules[CjTokens.MUL] = listOf(
-            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
-
-
-            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
-        )
-        binaryOperatorRules[CjTokens.DIV] = listOf(
-            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
-
-
-            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
-        )
-        binaryOperatorRules[CjTokens.MULMUL] = listOf(
-            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
-
-            BinaryOperatorRule(float64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
-        )
-        binaryOperatorRules[CjTokens.PERC] = listOf(
-            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
-
-
-            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
-        )
-        binaryOperatorRules[CjTokens.GT] = listOf(
-            BinaryOperatorRule(boolType, boolType, BinaryOperatorRuleResultType.LEFT),
-        )
-
-        binaryOperatorRules[CjTokens.GTEQ] = listOf(
-            BinaryOperatorRule(boolType, boolType, BinaryOperatorRuleResultType.LEFT),
-        )
-        binaryOperatorRules[CjTokens.LT] = listOf(
-            BinaryOperatorRule(boolType, boolType, BinaryOperatorRuleResultType.LEFT),
-        )
-        binaryOperatorRules[CjTokens.LTEQ] = listOf(
-            BinaryOperatorRule(boolType, boolType, BinaryOperatorRuleResultType.LEFT),
-        )
-    }
+    val unitType get() = getBasicClassByName(StandardNames.UNIT).defaultType
 
     //标准库
     /*======================================core========================================================*/

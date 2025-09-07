@@ -77,12 +77,7 @@ class PrimitiveMemberScope(
         return emptyList()
     }
 
-    override fun getContributedMacros(
-        name: Name,
-        location: LookupLocation
-    ): Collection<@JvmWildcard MacroDescriptor> {
-        TODO("Not yet implemented")
-    }
+
 
     /**
      * 获取贡献的分类器（基本类型没有嵌套分类器）

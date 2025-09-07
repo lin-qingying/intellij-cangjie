@@ -546,7 +546,7 @@ open class DescriptorRendererImpl(
         val allValueArguments = descriptor.allValueArguments
         val classDescriptor = if (renderDefaultAnnotationArguments) descriptor.annotationClass else null
         val parameterDescriptorsWithDefaultValue = classDescriptor?.unsubstitutedPrimaryConstructor?.valueParameters
-            ?.filter { it.declaresDefaultValue() }
+            ?.filter { it.declaresDefaultValue  }
             ?.map { it.name }
             .orEmpty()
         val defaultList =
@@ -952,7 +952,7 @@ open class DescriptorRendererImpl(
 
         val withDefaultValue =
             defaultParameterValueRenderer != null &&
-                    (if (debugMode) valueParameter.declaresDefaultValue() else valueParameter.declaresOrInheritsDefaultValue())
+                    (if (debugMode) valueParameter.declaresDefaultValue  else valueParameter.declaresOrInheritsDefaultValue())
         if (withDefaultValue) {
             builder.append(" = ${defaultParameterValueRenderer!!(valueParameter)}")
         }
@@ -1315,7 +1315,7 @@ open class DescriptorRendererImpl(
                 val primaryConstructor = classDescriptor.unsubstitutedPrimaryConstructor
                 if (primaryConstructor != null) {
                     val parametersWithoutDefault = primaryConstructor.valueParameters.filter {
-                        !it.declaresDefaultValue() && it.varargElementType == null
+                        !it.declaresDefaultValue  && it.varargElementType == null
                     }
                     if (parametersWithoutDefault.isNotEmpty()) {
                         builder.append(" : ").append(renderKeyword("this"))

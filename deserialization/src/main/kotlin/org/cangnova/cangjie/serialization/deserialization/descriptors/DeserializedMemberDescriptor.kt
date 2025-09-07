@@ -81,6 +81,7 @@ class DeserializedSimpleFunctionDescriptor(
         newOwner: DeclarationDescriptor,
         original: FunctionDescriptor?,
         kind: CallableMemberDescriptor.Kind,
+
         newName: Name?,
         annotations: Annotations,
         source: SourceElement
@@ -102,6 +103,7 @@ class DeserializedVariableDescriptor(
     isVar: Boolean,
     name: Name,
     kind: CallableMemberDescriptor.Kind,
+    override val declaresDefaultValue: Boolean,
     override val decl: VariableWrapper,
 
     override val containerSource: DeserializedContainerSource?
@@ -116,12 +118,13 @@ class DeserializedVariableDescriptor(
         newVisibility: DescriptorVisibility,
         original: VariableDescriptor?,
         kind: CallableMemberDescriptor.Kind,
+
         newName: Name,
         source: SourceElement
     ): VariableDescriptorImpl {
         return DeserializedVariableDescriptor(
             newOwner, original, annotations, newModality, newVisibility, isVar, newName, kind,
-            decl,  containerSource
+            this.declaresDefaultValue,decl,  containerSource
         )
     }
 }

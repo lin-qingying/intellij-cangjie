@@ -55,6 +55,7 @@ open class VariableDescriptorImpl(
         newVisibility: DescriptorVisibility,
         original: VariableDescriptor?,
         kind: CallableMemberDescriptor.Kind,
+
         newName: Name,
         source: SourceElement
     ): VariableDescriptorImpl {
@@ -267,7 +268,7 @@ open class VariableDescriptorImpl(
     protected fun doSubstitute(copyConfiguration: CopyConfiguration): VariableDescriptorImpl? {
         val substitutedDescriptor = createSubstitutedCopy(
             copyConfiguration._owner, copyConfiguration._modality, copyConfiguration._visibility,
-            copyConfiguration._original, copyConfiguration._kind, copyConfiguration._name,
+            copyConfiguration._original, copyConfiguration._kind,copyConfiguration._name,
             getSourceToUseForCopy(copyConfiguration._preserveSourceElement, copyConfiguration._original)
         )
         val originalTypeParameters =

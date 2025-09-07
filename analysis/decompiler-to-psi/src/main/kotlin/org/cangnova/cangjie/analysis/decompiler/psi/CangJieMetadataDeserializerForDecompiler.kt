@@ -37,6 +37,7 @@ import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
+import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.serialization.deserialization.DeserializationComponents
@@ -129,6 +130,7 @@ abstract class DeserializerForDecompilerBase(val directoryPackageFqName: FqName,
     protected val storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
 
     protected val moduleDescriptor: ModuleDescriptorImpl = createDummyModule("module for building decompiled sources")
+    override fun resolveTopLevelClass(classId: ClassId) = deserializationComponents.deserializeClass(classId)
 
     protected val packageFragmentProvider: PackageFragmentProvider = object : PackageFragmentProviderOptimized {
         override fun collectPackageFragments(

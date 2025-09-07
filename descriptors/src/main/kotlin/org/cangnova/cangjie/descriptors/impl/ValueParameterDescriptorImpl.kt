@@ -40,7 +40,7 @@ open class ValueParameterDescriptorImpl(
     name: Name,
     override val isNamed: Boolean,
     outType: CangJieType,
-    private val declaresDefaultValue: Boolean,
+     private val    isDefaultValue: Boolean,
 
     source: SourceElement,
 
@@ -109,7 +109,7 @@ open class ValueParameterDescriptorImpl(
                 newName,
                 isNamed,
                 type,
-                declaresDefaultValue(),
+                declaresDefaultValue ,
                 SourceElement.NO_SOURCE
             ) { destructuringVariables }
         }
@@ -150,7 +150,7 @@ open class ValueParameterDescriptorImpl(
             newName,
             isNamed,
             type,
-            declaresDefaultValue(),
+            declaresDefaultValue,
             SourceElement.NO_SOURCE
         )
     }
@@ -161,9 +161,9 @@ open class ValueParameterDescriptorImpl(
 
     }
 
-    override fun declaresDefaultValue(): Boolean {
-        return declaresDefaultValue && (containingDeclaration as CallableMemberDescriptor).kind.isReal
-    }
+    override val declaresDefaultValue: Boolean
+        get() = isDefaultValue && (containingDeclaration as CallableMemberDescriptor).kind.isReal
+
 
     override fun substitute(substitutor: TypeSubstitutor): ValueParameterDescriptorImpl {
         if (substitutor.isEmpty) return this

@@ -85,7 +85,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
             c.containerSource
         )
 
-        val local = c.childContext(descriptor)
+        val local = c.childContext(descriptor,listOf())
         descriptor.initialize(
             local.declDeserializer.valueParameters(
                 decl.valueParameters,
@@ -118,7 +118,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
             c.containerSource
         )
 
-        val local = c.childContext(property)
+        val local = c.childContext(property,emptyList())
 
         val receiverAnnotations = Annotations.EMPTY
 
@@ -172,7 +172,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
 */
                 property.kind, null, SourceElement.NO_SOURCE
             )
-            val setterLocal = local.childContext(setter)
+            val setterLocal = local.childContext(setter,listOf())
             val valueParameters = setterLocal.declDeserializer.valueParameters(
                 decl.setter!!.valueParameters,
             )
@@ -200,7 +200,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
             visibility, decl, c.containerSource
         )
 
-        val local = c.childContext(typeAlias)
+        val local = c.childContext(typeAlias,listOf())
         typeAlias.initialize(
             local.typeDeserializer.ownTypeParameters,
             local.typeDeserializer.simpleType(decl.underlyingType, expandTypeAliases = false),
@@ -222,13 +222,14 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
             decl.isVar,
             decl.name,
             decl.kind,
-
-
+            decl.declaresDefaultValue,
             decl,
+
 
             c.containerSource
         )
-        val local = c.childContext(variable)
+
+        val local = c.childContext(variable,listOf())
         val receiverAnnotations =
             Annotations.EMPTY
         variable.setType(
@@ -305,7 +306,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
 
         )
 
-        val local = c.childContext(function)
+        val local = c.childContext(function,decl.typeParameters)
         function.initializeWithCoroutinesExperimentalityStatus(
             unsubstitutedValueParameters = local.declDeserializer.valueParameters(decl.valueParameters),
             unsubstitutedReturnType = local.typeDeserializer.type(decl.returnType),

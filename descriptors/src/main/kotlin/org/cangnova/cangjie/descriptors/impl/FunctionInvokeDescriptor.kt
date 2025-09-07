@@ -142,7 +142,7 @@ class FunctionInvokeDescriptor private constructor(
                 Name.identifier(name),
                 false,
                 typeParameter.defaultType,
-                declaresDefaultValue = false,
+                isDefaultValue = false,
 
                 SourceElement.NO_SOURCE
             )

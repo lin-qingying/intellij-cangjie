@@ -219,7 +219,7 @@ object StandardNames {
     val TOSTRING = Name.identifier("ToString")
 
     @JvmField
-    val BUILT_INS_PACKAGE_FQ_NAME = FqName("")
+    val BASIC_PACKAGE_FQ_NAME = FqName("")
 
     object FqNames {
         @JvmField
@@ -497,7 +497,7 @@ object StandardNames {
         }
 
         private fun fqName(name: Name): FqName {
-            return BUILT_INS_PACKAGE_FQ_NAME.child(name)
+            return BASIC_PACKAGE_FQ_NAME.child(name)
         }
 
         private fun fqName(simpleName: String): FqName {
@@ -556,11 +556,14 @@ object StandardNames {
 
     private fun namesToSetOf(): Set<FqName> {
         val set = mutableSetOf<FqName>()
-//        set.add(BUILT_INS_PACKAGE_FQ_NAME)
+        set.add(BASIC_PACKAGE_FQ_NAME)
         set.add(STD_PACKAGE_FQ_NAME)
 
         set.add(STD_CORE_PACKAGE_FQ_NAME)
         set.add(STD_COLLECTION_PACKAGE_FQ_NAME)
+        set.add(STD_AST_PACKAGE_FQ_NAME)
+        set.add(STD_SYNC_PACKAGE_FQ_NAME)
+
 //        set.add(STD_CORE_PACKAGE_FQ_NAME)
 
 //        STDLIB_PACKAGE_FQ_NAMES.map {
@@ -573,4 +576,5 @@ object StandardNames {
 
     @JvmField
     val ALL_NAMES = namesToSetOf()
+
 }

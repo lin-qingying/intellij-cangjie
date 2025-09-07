@@ -52,6 +52,7 @@ enum class NoLookupLocation : LookupLocation {
     FROM_BACKEND,
     FROM_TEST,
     FROM_BUILTINS,
+    FROM_BASIC,
     MATCH_CHECK_DECLARATION_CONFLICTS,
     MATCH_CHECK_OVERRIDES,
 

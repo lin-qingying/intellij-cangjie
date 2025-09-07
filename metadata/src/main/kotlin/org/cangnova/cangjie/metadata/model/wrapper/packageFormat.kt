@@ -440,7 +440,7 @@ class TypeWrapper(
     val kind = original.kind
     val info = original.info
 
-    val typeArgs get() = original.typeArgs.map { TypeWrapper(original, declTable, typeTable) }
+    val typeArgs get() = original.typeArgs.map { TypeWrapper(typeTable.get(it), declTable, typeTable) }
 
     fun hasTypeAlias(): Boolean {
         return original.kind == FbTypeKind.Type
@@ -480,6 +480,7 @@ class VariableWrapper(
 
         else -> CallableMemberDescriptor.Kind.DECLARATION
     }
+    val declaresDefaultValue = info.initializer != 0
 
 }
 

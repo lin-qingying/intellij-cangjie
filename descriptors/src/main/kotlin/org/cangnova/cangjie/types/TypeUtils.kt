@@ -1624,6 +1624,7 @@ fun isConstructedFromGivenClass(
     } else if (type.constructor.declarationDescriptor is ClassDescriptor && DescriptorUtils.getFqName(type.constructor.declarationDescriptor!!) == optionUFqName) {
 
         isConstructedFromGivenClass(type.arguments[0].type, fqName)
+
     } else {
         false
     }

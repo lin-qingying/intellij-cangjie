@@ -27,6 +27,7 @@ package org.cangnova.cangjie.resolve.scopes
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
+import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 
@@ -66,7 +67,9 @@ interface ResolutionScope {
     fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor>
     fun getContributedPropertys(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor>
     fun getContributedMacros(name: Name, location: LookupLocation): Collection<@JvmWildcard MacroDescriptor>
-
+    {
+        return emptyList()
+    }
     fun getContributedFunctions(name: Name, location: LookupLocation): Collection<@JvmWildcard FunctionDescriptor>
     fun getContributedPackages(
         name: Name,
@@ -106,5 +109,20 @@ interface ResolutionScope {
         return null
     }
 
+    /**
+     * 仅适用与反序列化
+     */
+    fun getContributedClassifierByIndex(
+        index: Int,
+        location: LookupLocation = NoLookupLocation.FROM_DESERIALIZATION
+    ): ClassifierDescriptor? {
+        return null
+    }
+    fun getContributedClassifierByExportId(
+        exportId: String,
+        location: LookupLocation = NoLookupLocation.FROM_DESERIALIZATION
+    ): ClassifierDescriptor? {
+        return null
+    }
 
 }

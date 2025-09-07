@@ -26,6 +26,23 @@ package org.cangnova.cangjie.name
 
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.arrayFqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.boolFqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.float16FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.float32FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.float64FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.int16FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.int32FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.int64FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.int8FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.int_nativeFqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.nothingFqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.runeFqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint16FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint32FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint64FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint8FqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint_nativeFqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.unitFqName
 
 
 object StandardClassIds {
@@ -56,6 +73,31 @@ object StandardClassIds {
 
 
     val ArrayClassId = arrayFqName.toClassId()
+
+    // Int types
+    val INT8ClassId = int8FqName.toClassId()
+    val INT16ClassId = int16FqName.toClassId()
+    val INT32ClassId = int32FqName.toClassId()
+    val INT64ClassId = int64FqName.toClassId()
+    val INTNATIVEClassId = int_nativeFqName.toClassId()
+
+    // UInt types
+    val UINT8ClassId = uint8FqName.toClassId()
+    val UINT16ClassId = uint16FqName.toClassId()
+    val UINT32ClassId = uint32FqName.toClassId()
+    val UINT64ClassId = uint64FqName.toClassId()
+    val UINTNATIVEClassId = uint_nativeFqName.toClassId()
+
+    // Float types
+    val FLOAT16ClassId = float16FqName.toClassId()
+    val FLOAT32ClassId = float32FqName.toClassId()
+    val FLOAT64ClassId = float64FqName.toClassId()
+
+    // Other primitive types
+    val BOOLClassId = boolFqName.toClassId()
+    val RUNEClassId = runeFqName.toClassId()
+    val UNITClassId = unitFqName.toClassId()
+    val NOTHINGClassId = nothingFqName.toClassId()
 
 
     object Annotations {

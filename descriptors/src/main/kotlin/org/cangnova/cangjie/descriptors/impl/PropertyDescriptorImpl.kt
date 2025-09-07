@@ -211,7 +211,7 @@ open class PropertyDescriptorImpl(
                 it.annotations,
                 copyConfiguration.modality,
                 normalizeVisibility(it.visibility, copyConfiguration.kind),
-                it.isDefault,
+                /*it.isDefault,*/
                 copyConfiguration.kind,
                 copyConfiguration.originalSetter,
                 SourceElement.NO_SOURCE
@@ -456,7 +456,7 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
             SpecialNames.IMPLICIT_SET_PARAMETER,
             false,
             type,
-            declaresDefaultValue = false,
+            isDefaultValue = false,
             source = SourceElement.NO_SOURCE
         )
     }

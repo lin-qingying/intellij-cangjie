@@ -87,7 +87,10 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
                 )
                 val declarations = arrayListOf<DeclarationDescriptor>()
                 declarations.addAll(resolver.resolveAllDeclarationsInPackage(packageFqName))
-
+                for (`class` in file.classesToDecompile) {
+                    val classId = `class`.classId
+                    declarations.addIfNotNull(resolver.resolveTopLevelClass(classId))
+                }
                 buildDecompiledText(packageFqName, declarations, renderer)
             }
         }

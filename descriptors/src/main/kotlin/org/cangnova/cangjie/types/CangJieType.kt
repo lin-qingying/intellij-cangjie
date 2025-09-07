@@ -25,6 +25,9 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.descriptors.annotations.Annotated
+import org.cangnova.cangjie.descriptors.annotations.Annotations
+import org.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
+import org.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.renderer.DescriptorRendererOptions
 import org.cangnova.cangjie.resolve.scopes.MemberScope
@@ -613,7 +616,7 @@ abstract class SimpleType : UnwrappedType(), SimpleTypeMarker, TypeArgumentListM
      * 返回简单类型的字符串表示，包括注解、Option标记和类型参数。
      *
      * 格式：
-     * - 注解：[@注解名] 
+     * - 注解：[@注解名]
      * - Option标记：?（如果isOption为true）
      * - 类型名：constructor
      * - 类型参数：<参数1, 参数2, ...>
@@ -837,6 +840,315 @@ class OptionType(val innerType: CangJieType) : SimpleType() {
         } else {
             innerType.unwrap() as SimpleType
         }
+    }
+}
+
+/**
+ * Function类型
+ *
+ * 表示仓颉语言中的函数类型，如 (Int, String) -> Bool。
+ * 函数类型包含参数类型列表和返回类型。
+ *
+ * 特点：
+ * - 包含参数类型列表（parameterTypes）
+ * - 包含返回类型（returnType）
+ * - 支持接收者类型（receiverType，可选）
+ * - 支持上下文接收者类型列表（contextReceiverTypes，可选）
+ *
+ * 示例：
+ * ```kotlin
+ * // (Int, String) -> Bool 类型
+ * val paramTypes = listOf(intType, stringType)
+ * val returnType = boolType
+ * val functionType = FunctionType(
+ *     constructor = functionConstructor,
+ *     attributes = TypeAttributes.Empty,
+ *     parameterTypes = paramTypes,
+ *     returnType = returnType
+ * )
+ * functionType.toString() // "(Int, String) -> Bool"
+ *
+ * // 带接收者的函数类型：Int.(String) -> Bool
+ * val receiverFunctionType = FunctionType(
+ *     constructor = functionConstructor,
+ *     attributes = TypeAttributes.Empty,
+ *     receiverType = intType,
+ *     parameterTypes = listOf(stringType),
+ *     returnType = boolType
+ * )
+ * receiverFunctionType.toString() // "Int.(String) -> Bool"
+ * ```
+ */
+class FunctionType(
+    override val constructor: FunctionClassDescriptor.FunctionTypeConstructor,
+
+
+    val parameterTypes: List<CangJieType>,
+    val returnType: CangJieType,
+    override val isOption: Boolean = false,
+    override val attributes: TypeAttributes = TypeAttributes.Empty,
+) : SimpleType() {
+
+
+    /**
+     * 类型参数列表（函数类型）
+     *
+     * 返回包含接收者类型、参数类型和返回类型的类型参数列表。
+     * 顺序：[...parameterTypes, returnType]
+     */
+    override val arguments: List<TypeProjection>
+        get() = buildList {
+
+            parameterTypes.forEach { add(TypeProjectionImpl(it)) }
+            add(TypeProjectionImpl(returnType))
+        }
+
+    /**
+     * 成员作用域（函数类型）
+     *
+     * 使用Function类型的成员作用域。
+     */
+    override val memberScope: MemberScope
+        get() = constructor.declarationDescriptor.getUnsubstitutedMemberScope(CangJieTypeRefiner.Default)
+
+
+    /**
+     * 替换类型属性（函数类型）
+     */
+    override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType {
+        if (newAttributes == attributes) return this
+        return FunctionType(
+            constructor = constructor,
+            attributes = newAttributes,
+
+            parameterTypes = parameterTypes,
+            returnType = returnType,
+            isOption = isOption
+        )
+    }
+
+    /**
+     * 类型精化（函数类型）
+     */
+    @TypeRefinement
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
+        val refinedParameterTypes = parameterTypes.map { it.refine(cangjieTypeRefiner) }
+        val refinedReturnType = returnType.refine(cangjieTypeRefiner)
+
+        return FunctionType(
+            constructor = constructor,
+            attributes = attributes,
+            parameterTypes = refinedParameterTypes,
+            returnType = refinedReturnType,
+            isOption = isOption
+        )
+    }
+
+    /**
+     * 转换为指定的Option状态（函数类型）
+     */
+    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
+        if (this.isOption == isOption) return this
+        return FunctionType(
+            constructor = constructor,
+            attributes = attributes,
+            parameterTypes = parameterTypes,
+            returnType = returnType,
+            isOption = isOption
+        )
+    }
+
+    /**
+     * 字符串表示（函数类型）
+     *
+     * 格式：
+     * - 无接收者：(P1, P2, ...) -> R
+     * - 有接收者：Receiver.(P1, P2, ...) -> R
+     * - 有上下文接收者：context(C1, C2) Receiver.(P1, P2, ...) -> R
+     */
+    override fun toString(): String {
+        return buildString {
+
+            if (isOption) append("?")
+
+
+            // 添加参数类型
+            append("(")
+            parameterTypes.joinTo(this, separator = ", ")
+            append(")")
+
+            // 添加返回类型
+            append(" -> ")
+            append(returnType)
+        }
+    }
+}
+
+/**
+ * Tuple类型
+ *
+ * 表示仓颉语言中的元组类型，如 (Int, String, Bool)。
+ * 元组类型包含一组有序的元素类型。
+ *
+ * 特点：
+ * - 包含元素类型列表（elementTypes）
+ * - 元素数量固定且有序
+ * - 支持嵌套元组（如 (Int, (String, Bool))）
+ * - 支持任意数量的元素
+ *
+ * 示例：
+ * ```kotlin
+ * // (Int, String) 类型
+ * val elementTypes = listOf(intType, stringType)
+ * val tupleType = TupleType(
+ *     constructor = tupleConstructor,
+ *     attributes = TypeAttributes.Empty,
+ *     elementTypes = elementTypes
+ * )
+ * tupleType.toString() // "(Int, String)"
+ *
+ * // 嵌套元组类型：(Int, (String, Bool))
+ * val innerTuple = TupleType(
+ *     constructor = innerTupleConstructor,
+ *     attributes = TypeAttributes.Empty,
+ *     elementTypes = listOf(stringType, boolType)
+ * )
+ * val nestedTupleType = TupleType(
+ *     constructor = tupleConstructor,
+ *     attributes = TypeAttributes.Empty,
+ *     elementTypes = listOf(intType, innerTuple)
+ * )
+ * nestedTupleType.toString() // "(Int, (String, Bool))"
+ * ```
+ */
+class TupleType(
+    override val constructor: TupleClassDescriptor.TupleTypeConstructor,
+
+    val elementTypes: List<CangJieType>,
+    override val isOption: Boolean = false,
+    override val attributes: TypeAttributes = TypeAttributes.Empty
+) : SimpleType() {
+
+    /**
+     * 类型参数列表（元组类型）
+     *
+     * 返回包含所有元素类型的类型参数列表。
+     */
+    override val arguments: List<TypeProjection>
+        get() = elementTypes.map { TypeProjectionImpl(it) }
+
+    /**
+     * 成员作用域（元组类型）
+     *
+     * 使用Tuple类型的成员作用域。
+     */
+    override val memberScope: MemberScope
+        get() = constructor.declarationDescriptor.getUnsubstitutedMemberScope(CangJieTypeRefiner.Default)
+
+    /**
+     * 替换类型属性（元组类型）
+     */
+    override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType {
+        if (newAttributes == attributes) return this
+        return TupleType(
+            constructor = constructor,
+            attributes = newAttributes,
+            elementTypes = elementTypes,
+            isOption = isOption
+        )
+    }
+
+    /**
+     * 类型精化（元组类型）
+     */
+    @TypeRefinement
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
+        val refinedElementTypes = elementTypes.map { it.refine(cangjieTypeRefiner) }
+        
+        return TupleType(
+            constructor = constructor,
+            attributes = attributes,
+            elementTypes = refinedElementTypes,
+            isOption = isOption
+        )
+    }
+
+    /**
+     * 转换为指定的Option状态（元组类型）
+     */
+    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
+        if (this.isOption == isOption) return this
+        return TupleType(
+            constructor = constructor,
+            attributes = attributes,
+            elementTypes = elementTypes,
+            isOption = isOption
+        )
+    }
+
+    /**
+     * 字符串表示（元组类型）
+     *
+     * 格式：(T1, T2, T3, ...)
+     */
+    override fun toString(): String {
+        return buildString {
+            // 添加注解
+
+            if (isOption) append("?")
+
+            // 添加元素类型
+            append("(")
+            elementTypes.joinTo(this, separator = ", ")
+            append(")")
+        }
+    }
+
+    /**
+     * 获取指定位置的元素类型
+     *
+     * @param index 元素位置索引（从0开始）
+     * @return 指定位置的元素类型
+     * @throws IndexOutOfBoundsException 如果索引超出范围
+     */
+    fun getElementType(index: Int): CangJieType {
+        return elementTypes[index]
+    }
+
+    /**
+     * 元组的元素数量
+     */
+    val arity: Int
+        get() = elementTypes.size
+
+    /**
+     * 检查是否为空元组
+     */
+    val isEmpty: Boolean
+        get() = elementTypes.isEmpty()
+
+    /**
+     * 相等性比较
+     */
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is TupleType) return false
+        
+        return constructor == other.constructor &&
+                attributes == other.attributes &&
+                elementTypes == other.elementTypes &&
+                isOption == other.isOption
+    }
+
+    /**
+     * 哈希码计算
+     */
+    override fun hashCode(): Int {
+        var result = constructor.hashCode()
+        result = 31 * result + attributes.hashCode()
+        result = 31 * result + elementTypes.hashCode()
+        result = 31 * result + isOption.hashCode()
+        return result
     }
 }
 

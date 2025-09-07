@@ -1,10 +1,10 @@
 package org.cangnova.cangjie.serialization.deserialization.builtins
 
 import cn.cangnova.cangjie.serialization.deserialization.DeserializedPackageFragment
-import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.builtins.BuiltInsLoader
 import org.cangnova.cangjie.builtins.StandardNames
-import org.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_FQ_NAME
+import org.cangnova.cangjie.builtins.StandardNames.BASIC_PACKAGE_FQ_NAME
+import org.cangnova.cangjie.builtins.basic.BasicTypesPackageFragmentProvider
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.NotFoundClasses
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
@@ -16,7 +16,6 @@ import org.cangnova.cangjie.serialization.deserialization.DeserializationCompone
 import org.cangnova.cangjie.serialization.deserialization.DeserializationConfiguration
 import org.cangnova.cangjie.serialization.deserialization.DeserializedClassDataFinder
 import org.cangnova.cangjie.serialization.deserialization.ErrorReporter
-import org.cangnova.cangjie.serialization.deserialization.FlatBuffersBasedClassDataFinder
 import org.cangnova.cangjie.serialization.deserialization.LocalClassifierTypeSettings
 import org.cangnova.cangjie.storage.StorageManager
 import java.io.FileInputStream
@@ -61,6 +60,17 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
             )
     }
 
+    private fun createBasicPackageFragmentDescriptor(
+        storageManager: StorageManager,
+        module: ModuleDescriptor
+    ): BasicTypesPackageFragmentProvider {
+
+        return BasicTypesPackageFragmentProvider(
+            storageManager, module,
+        )
+    }
+
+
     fun createBuiltInPackageFragmentProvider(
         storageManager: StorageManager,
         module: ModuleDescriptor,
@@ -74,15 +84,15 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         ): PackageFragmentProvider {
         val packageFragments = packageFqNames.mapNotNull { fqName ->
 
-            if (fqName == BUILT_INS_PACKAGE_FQ_NAME) {
-//                craetePackageFragmentDescriptor(storageManager, module, fqName)
+            if (fqName == BASIC_PACKAGE_FQ_NAME) {
+
+                createBasicPackageFragmentDescriptor(storageManager, module)
                 null
             } else {
 
                 val resourcePath = BuiltInSerializerFlatbuffers.getBuiltInsFilePath(fqName)
 
                 try {
-//                    val inputStream = getURL(project, resourcePath).openStream()
 
                     val inputStream = loadResource(resourcePath)
                         ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")

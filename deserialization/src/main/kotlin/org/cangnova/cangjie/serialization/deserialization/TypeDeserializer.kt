@@ -26,12 +26,19 @@ package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
+import org.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
+import org.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
 import org.cangnova.cangjie.metadata.model.fb.FbSemaTy
 import org.cangnova.cangjie.metadata.model.fb.FbSemaTyInfo
 import org.cangnova.cangjie.metadata.model.fb.FbTypeKind
+import org.cangnova.cangjie.metadata.model.fb.FbFullId
+import org.cangnova.cangjie.metadata.PackageIndex
+import org.cangnova.cangjie.metadata.model.wrapper.TypeParameterWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.TypeWrapper
 import org.cangnova.cangjie.name.ClassId
+import org.cangnova.cangjie.name.StandardClassIds
 import org.cangnova.cangjie.name.StandardClassIds.ArrayClassId
+import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedTypeParameterDescriptor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.CangJieTypeFactory
 import org.cangnova.cangjie.types.ErrorUtils
@@ -71,7 +78,7 @@ import kotlin.toString
 class TypeDeserializer(
     private val c: DeserializationContext,
     private val parent: TypeDeserializer?,
-//    generic: Generic?,
+    typeParameters: List<TypeParameterWrapper>,
     private val debugName: String,
     private val containerPresentableName: String
 ) {
@@ -85,15 +92,29 @@ class TypeDeserializer(
         }
 
     private fun computeTypeAliasDescriptor(id: ClassId): ClassifierDescriptor? {
-
         return c.components.moduleDescriptor.findTypeAliasAcrossModuleDependencies(id)
-
     }
 
     private fun computeClassifierDescriptor(id: ClassId): ClassifierDescriptor? {
-
-
         return c.components.moduleDescriptor.findClassifierAcrossModuleDependencies(id)
+    }
+
+
+    private val classifierDescriptorsByFullId: (FbFullId) -> ClassifierDescriptor? =
+        c.storageManager.createMemoizedFunctionWithNullableValues { id ->
+            computeClassifierDescriptorByFullId(id)
+        }
+    private val typeAliasDescriptorsByFullId: (FbFullId) -> ClassifierDescriptor? =
+        c.storageManager.createMemoizedFunctionWithNullableValues { fqNameIndex ->
+            computeTypeAliasDescriptorByFullId(fqNameIndex)
+        }
+
+    private fun computeTypeAliasDescriptorByFullId(id: FbFullId): TypeAliasDescriptor? {
+        return c.fullIdFinder.findTypeAliasDescriptorByFullId(id)
+    }
+
+    private fun computeClassifierDescriptorByFullId(id: FbFullId): ClassifierDescriptor? {
+        return c.fullIdFinder.findClassifierDescriptorByFullId(id)
     }
 
     /**
@@ -102,18 +123,16 @@ class TypeDeserializer(
      * 根据Generic中的类型参数信息创建对应的类型参数描述符，
      * 用于处理泛型类型中的类型参数引用。
      */
-    private val typeParameterDescriptors: Map<Int, TypeParameterDescriptor> = emptyMap()
-//        if (generic?.typeParameters?.isEmpty() != false) {
-//            emptyMap()
-//        } else {
-//            val result = LinkedHashMap<Int, TypeParameterDescriptor>()
-//            for ((index, typeParameterId) in generic.typeParameters.withIndex()) {
-//                // Find corresponding constraint for this type parameter
-//                val constraint = generic.constraints.find { it.type.toInt() == typeParameterId }
-//                result[typeParameterId] = DeserializedTypeParameterDescriptor(c, typeParameterId, index, constraint)
-//            }
-//            result
-//        }
+    private val typeParameterDescriptors: Map<FbSemaTy, TypeParameterDescriptor> =
+        if (typeParameters.isEmpty()) {
+            emptyMap()
+        } else {
+            val result = LinkedHashMap<FbSemaTy, TypeParameterDescriptor>()
+            for ((index, type) in typeParameters.withIndex()) {
+                result[type.ownType.original] = DeserializedTypeParameterDescriptor(c, type, index)
+            }
+            result
+        }
 
     /**
      * 当前作用域中定义的所有类型参数列表。
@@ -157,6 +176,7 @@ class TypeDeserializer(
         return TypeAttributes.create(translated)
     }
 
+
     /**
      * 将SemaTy类型转换为SimpleType对象。
      *
@@ -199,10 +219,32 @@ class TypeDeserializer(
                 expandedType.replaceAttributes(attributes)
             }
 
+            semaTy.kind == FbTypeKind.Tuple -> {
+                // Handle function types
+                val nullable = false // TODO: Extract nullability from semaTy
+                constructor as TupleClassDescriptor.TupleTypeConstructor
+
+
+
+                constructor.declarationDescriptor.createTupleType(
+                    semaTy.typeArgs.map { type(it) },
+
+                    )
+            }
+
             semaTy.kind == FbTypeKind.Func -> {
                 // Handle function types
                 val nullable = false // TODO: Extract nullability from semaTy
-                CangJieTypeFactory.simpleType(attributes, constructor, arguments, nullable)
+                constructor as FunctionClassDescriptor.FunctionTypeConstructor
+                semaTy.info as FbSemaTyInfo.FbFuncTyInfo
+                constructor.declarationDescriptor.createFunctionType(
+                    semaTy.typeArgs.map { type(it) },
+
+                    type(
+                        c.`package`.typeTable.get((semaTy.info as FbSemaTyInfo.FbFuncTyInfo).retType)
+                            .let { TypeWrapper(it, c.declTable, c.typeTable) },
+                    )
+                )
             }
 
             else -> {
@@ -242,79 +284,113 @@ class TypeDeserializer(
             return c.components.notFoundClasses.getClass(classId, typeParametersCount)
         }
 
-        return when (semaTy.kind) {
+        fun getBasicClassId(kind: FbTypeKind) = when (kind) {
+            FbTypeKind.Unit -> StandardClassIds.UNITClassId
+            FbTypeKind.Bool -> StandardClassIds.BOOLClassId
+
+            // Int types
+            FbTypeKind.Int8 -> StandardClassIds.INT8ClassId
+            FbTypeKind.Int16 -> StandardClassIds.INT16ClassId
+            FbTypeKind.Int32 -> StandardClassIds.INT32ClassId
+            FbTypeKind.Int64 -> StandardClassIds.INT64ClassId
+            FbTypeKind.IntNative -> StandardClassIds.INTNATIVEClassId
+
+            // UInt types
+            FbTypeKind.UInt8 -> StandardClassIds.UINT8ClassId
+            FbTypeKind.UInt16 -> StandardClassIds.UINT16ClassId
+            FbTypeKind.UInt32 -> StandardClassIds.UINT32ClassId
+            FbTypeKind.UInt64 -> StandardClassIds.UINT64ClassId
+            FbTypeKind.UIntNative -> StandardClassIds.UINTNATIVEClassId
+
+            // Float types
+            FbTypeKind.Float16 -> StandardClassIds.FLOAT16ClassId
+            FbTypeKind.Float32 -> StandardClassIds.FLOAT32ClassId
+            FbTypeKind.Float64 -> StandardClassIds.FLOAT64ClassId
+
+            // Other primitive types
+            FbTypeKind.Rune -> StandardClassIds.RUNEClassId
+            FbTypeKind.Nothing -> StandardClassIds.NOTHINGClassId
+
+            else -> error("Unsupported classId: $kind")
+        }
+
+        val decl: ClassifierDescriptor? = when (semaTy.kind) {
             // 基本类型
-            FbTypeKind.Unit -> c.builtIns.unitType.constructor
-            FbTypeKind.Bool -> c.builtIns.boolType.constructor
-            FbTypeKind.Int8 -> c.builtIns.int8Type.constructor
-            FbTypeKind.Int16 -> c.builtIns.int16Type.constructor
-            FbTypeKind.Int32 -> c.builtIns.int32Type.constructor
-            FbTypeKind.Int64 -> c.builtIns.int64Type.constructor
-            FbTypeKind.IntNative -> c.builtIns.intNativeType.constructor
-
-            FbTypeKind.UInt8 -> c.builtIns.uint8Type.constructor
-            FbTypeKind.UInt16 -> c.builtIns.uint16Type.constructor
-            FbTypeKind.UInt32 -> c.builtIns.uint32Type.constructor
-            FbTypeKind.UInt64 -> c.builtIns.uint64Type.constructor
-            FbTypeKind.UIntNative -> c.builtIns.uintNativeType.constructor // TODO: Add unsigned int support
-            FbTypeKind.Float16 -> c.builtIns.float16Type.constructor
-            FbTypeKind.Float32 -> c.builtIns.float32Type.constructor
-            FbTypeKind.Float64 -> c.builtIns.float64Type.constructor
-
-            FbTypeKind.Rune -> c.builtIns.runeType.constructor
-            FbTypeKind.Nothing -> c.builtIns.nothingType.constructor
-
+            FbTypeKind.Unit,
+            FbTypeKind.Bool,
+            FbTypeKind.Int8,
+            FbTypeKind.Int16,
+            FbTypeKind.Int32,
+            FbTypeKind.Int64,
+            FbTypeKind.IntNative,
+            FbTypeKind.UInt8,
+            FbTypeKind.UInt16,
+            FbTypeKind.UInt32,
+            FbTypeKind.UInt64,
+            FbTypeKind.UIntNative,
+            FbTypeKind.Float16,
+            FbTypeKind.Float32,
+            FbTypeKind.Float64,
+            FbTypeKind.Rune,
+            FbTypeKind.Nothing -> (classifierDescriptors(getBasicClassId(kind = semaTy.kind)) ?: notFoundClass(
+                getBasicClassId(kind = semaTy.kind)
+            ))
 //如果是Array，说明该包是std.core，那么Array的声明只会在同一包中出现，所以直接在本包中查找声明，通过name的方法
             FbTypeKind.Array -> {
-
-                (classifierDescriptors(ArrayClassId) ?: notFoundClass(ArrayClassId)).typeConstructor
+                (classifierDescriptors(ArrayClassId) ?: notFoundClass(ArrayClassId))
             }
-
 //            对于Type,Class, Interface, Struct, Enum,Generic 需要去查找对应的声明
-            FbTypeKind.Type -> {
-                TODO()
-            }
-
             // 复合类型 (Class, Interface, Struct, Enum)
-            FbTypeKind.Class, FbTypeKind.Interface, FbTypeKind.Struct, FbTypeKind.Enum -> {
+            FbTypeKind.Class, FbTypeKind.Interface, FbTypeKind.Struct, FbTypeKind.Enum ->
                 when (val info = semaTy.info) {
+                    is FbSemaTyInfo.FbCompositeTyInfo -> {
+
+                        info.declPtr?.let { classifierDescriptorsByFullId(it) }
+
+                    }
+
+                    else -> null
+                }
 
 
-                    else -> ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+            FbTypeKind.Type ->
+                when (val info = semaTy.info) {
+                    is FbSemaTyInfo.FbCompositeTyInfo -> {
+
+                        info.declPtr?.let { typeAliasDescriptorsByFullId(it) }
+
+                    }
+
+                    else -> null
+
+                }
+
+//            // 泛型类型
+            FbTypeKind.Generic -> {
+                when (val info = semaTy.info) {
+                    is FbSemaTyInfo.FbGenericTyInfo -> {
+//                        info.declPtr?.let { classifierDescriptorsByFullId(it) }
+                        loadTypeParameter(semaTy.original)
+
+                    }
+
+                    else -> null
                 }
             }
-//
-//            // 泛型类型
-//            TypeKind.Generic -> {
-//                when (val info = semaTy.info) {
-//                    is SemaTyInfo.Generic -> {
-//                        if (info.info.declPtr != null) {
-//                            val decl = c.declResolver.resolve(info.info.declPtr)
-//                            (decl as? ClassifierDescriptor)?.typeConstructor
-//                                ?: ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
-//                        } else {
-//                            // 可能是类型参数引用
-//                            ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
-//                        }
-//                    }
-//
-//                    else -> ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
-//                }
-//            }
 
             // 函数类型
             FbTypeKind.Func -> {
                 when (val info = semaTy.info) {
                     is FbSemaTyInfo.FbFuncTyInfo -> {
-                        val arity = semaTy.typeArgs.size - 1 // 减去返回类型
+                        val arity = semaTy.typeArgs.size
                         if (arity >= 0) {
-                            c.builtIns.getFunction(arity).typeConstructor
+                            c.builtIns.getFunction(arity)
                         } else {
-                            ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+                            null
                         }
                     }
 
-                    else -> ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+                    else -> null
                 }
             }
 
@@ -325,13 +401,18 @@ class TypeDeserializer(
 
             // 元组类型
             FbTypeKind.Tuple -> {
-                // TODO: 实现元组类型支持
-                ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+                val arity = semaTy.typeArgs.size
+                if (arity >= 0) {
+                    c.builtIns.getTuple(arity)
+                } else {
+                    null
+                }
             }
 
             // 其他类型
-            else -> ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
+            else -> null
         }
+        return decl?.typeConstructor ?: ErrorUtils.createErrorTypeConstructor(ErrorTypeKind.UNKNOWN_TYPE)
     }
 
 
@@ -344,7 +425,7 @@ class TypeDeserializer(
      * @param typeParameterId 类型参数ID
      * @return 找到的类型参数描述符，未找到则返回null
      */
-    private fun loadTypeParameter(typeParameterId: Int): TypeParameterDescriptor? =
+    private fun loadTypeParameter(typeParameterId: FbSemaTy): TypeParameterDescriptor? =
         typeParameterDescriptors[typeParameterId] ?: parent?.loadTypeParameter(typeParameterId)
 
     /**

@@ -99,7 +99,7 @@ class CangJieBuiltInClassDescriptorFactory(
         }
 
     companion object {
-        private val CANGJIE_FQ_NAME = StandardNames.BUILT_INS_PACKAGE_FQ_NAME
+        private val CANGJIE_FQ_NAME = StandardNames.BASIC_PACKAGE_FQ_NAME
         private val CLONEABLE_NAME = StandardNames.FqNames.cloneable.shortName()
         val CLONEABLE_CLASS_ID = ClassId.topLevel(StandardNames.FqNames.cloneable.toSafe())
     }

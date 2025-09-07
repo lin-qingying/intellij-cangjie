@@ -44,15 +44,24 @@ class ChainedMemberScope private constructor(
         get() = scopes.flatMapTo(mutableSetOf()) { it.propertyNames }
     override val classifierNames: Set<Name>?
         get() = scopes.asIterable().flatMapClassifierNamesOrNull()
+
     override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? =
         getFirstFromAllScopes(scopes) { it.getContributedPackageView(name, location) }
+
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         getFirstClassifierDiscriminateHeaders(scopes) { it.getContributedClassifier(name, location) }
+
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
         getListClassifierDiscriminateHeaders(scopes) { it.getContributedClassifiers(name, location) }
+
     override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
         getListClassifierDiscriminateHeaders(scopes) { it.getContributedEnumEntrys(name, location) }
 
+    override fun getContributedClassifierByIndex(index: Int, location: LookupLocation): ClassifierDescriptor? =
+        getFirstClassifierDiscriminateHeaders(scopes) { it.getContributedClassifierByIndex(index, location) }
+
+    override fun getContributedClassifierByExportId(exportId: String, location: LookupLocation): ClassifierDescriptor? =
+        getFirstClassifierDiscriminateHeaders(scopes) { it.getContributedClassifierByExportId(exportId, location) }
 
     override fun getContributedVariables(
         name: Name,
@@ -65,6 +74,7 @@ class ChainedMemberScope private constructor(
 
     override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
         getFromAllScopes(scopes) { it.getContributedMacros(name, location) }
+
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> =
         getFromAllScopes(scopes) { it.getContributedFunctions(name, location) }
 
