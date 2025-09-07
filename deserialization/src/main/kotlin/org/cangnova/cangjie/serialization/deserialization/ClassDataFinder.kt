@@ -9,6 +9,8 @@ import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.metadata.model.fb.FbDecl
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedClassDescriptor
 
 interface ClassDataFinder {
@@ -17,8 +19,8 @@ interface ClassDataFinder {
 }
 
 data class ClassData(
-    val classDecl: FbDecl,
-    val `package`: FbPackage,
+    val classDecl: ClassDeclWrapper,
+    val `package`: PackageWrapper,
     val metadataVersion: BinaryVersion,
     val sourceElement: SourceElement
 )

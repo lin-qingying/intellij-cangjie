@@ -11,7 +11,7 @@ import org.cangnova.cangjie.analysis.decompiler.psi.text.buildDecompiledText
 import org.cangnova.cangjie.analysis.decompiler.psi.text.createIncompatibleMetadataVersionDecompiledText
 import org.cangnova.cangjie.analysis.decompiler.psi.text.defaultDecompilerRendererOptions
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.metadata.CangJieMetadataStubBuilder
+import org.cangnova.cangjie.analysis.decompiler.stub.file.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.psi.compiled.ClassFileDecompilers

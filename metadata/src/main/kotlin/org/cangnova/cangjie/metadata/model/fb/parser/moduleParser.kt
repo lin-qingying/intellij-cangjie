@@ -77,7 +77,6 @@ import org.cangnova.cangjie.metadata.model.fb.FbAnno
 import org.cangnova.cangjie.metadata.model.fb.FbAnnoArg
 import org.cangnova.cangjie.metadata.model.fb.FbAnnoKind
 import org.cangnova.cangjie.metadata.model.fb.FbArrayInfo
-import org.cangnova.cangjie.metadata.model.fb.FbArrayTyInfo
 import org.cangnova.cangjie.metadata.model.fb.FbAssignInfo
 import org.cangnova.cangjie.metadata.model.fb.FbAutoDiffInfo
 import org.cangnova.cangjie.metadata.model.fb.FbBinaryInfo
@@ -85,7 +84,6 @@ import org.cangnova.cangjie.metadata.model.fb.FbBlockInfo
 import org.cangnova.cangjie.metadata.model.fb.FbBuiltInType
 import org.cangnova.cangjie.metadata.model.fb.FbCallInfo
 import org.cangnova.cangjie.metadata.model.fb.FbCallKind
-import org.cangnova.cangjie.metadata.model.fb.FbCompositeTyInfo
 import org.cangnova.cangjie.metadata.model.fb.FbCompositeValue
 import org.cangnova.cangjie.metadata.model.fb.FbCompositeValueIndex
 import org.cangnova.cangjie.metadata.model.fb.FbConstValue
@@ -103,9 +101,7 @@ import org.cangnova.cangjie.metadata.model.fb.FbFullId
 import org.cangnova.cangjie.metadata.model.fb.FbFuncArgInfo
 import org.cangnova.cangjie.metadata.model.fb.FbFuncBody
 import org.cangnova.cangjie.metadata.model.fb.FbFuncParamList
-import org.cangnova.cangjie.metadata.model.fb.FbFuncTyInfo
 import org.cangnova.cangjie.metadata.model.fb.FbGeneric
-import org.cangnova.cangjie.metadata.model.fb.FbGenericTyInfo
 import org.cangnova.cangjie.metadata.model.fb.FbImportSpec
 import org.cangnova.cangjie.metadata.model.fb.FbImports
 import org.cangnova.cangjie.metadata.model.fb.FbIncOrDecInfo
@@ -717,23 +713,23 @@ fun CallInfo.parser(): FbExprInfo.Call {
 }
 
 
-fun ArrayTyInfo.parser(): FbSemaTyInfo.Array {
-    return FbSemaTyInfo.Array(
-        FbArrayTyInfo(
-            dimsOrSize = this.dimsOrSize
+fun ArrayTyInfo.parser(): FbSemaTyInfo.FbArrayTyInfo {
+    return FbSemaTyInfo.FbArrayTyInfo(
 
-        )
+        dimsOrSize = this.dimsOrSize
+
+
     )
 }
 
-fun GenericTyInfo.parser(): FbSemaTyInfo.FbGeneric {
-    return FbSemaTyInfo.FbGeneric(
-        FbGenericTyInfo(
-            declPtr = this.declPtr?.parser(),
-            upperBounds = this.upperBounds
+fun GenericTyInfo.parser(): FbSemaTyInfo.FbGenericTyInfo {
+    return FbSemaTyInfo.FbGenericTyInfo(
 
-        )
+        declPtr = this.declPtr?.parser(),
+        upperBounds = this.upperBounds
+
     )
+
 }
 
 val GenericTyInfo.upperBounds: List<Int>
@@ -741,14 +737,14 @@ val GenericTyInfo.upperBounds: List<Int>
         return (0 until this.upperBoundsLength).mapNotNull { this.upperBounds(it).toInt() }
     }
 
-fun FuncTyInfo.parser(): FbSemaTyInfo.Func {
-    return FbSemaTyInfo.Func(
-        FbFuncTyInfo(
-            retType = this.retType.toInt(),
-            isC = this.isC,
-            hasVariableLenArg = this.hasVariableLenArg,
+fun FuncTyInfo.parser(): FbSemaTyInfo.FbFuncTyInfo {
+    return FbSemaTyInfo.FbFuncTyInfo(
+
+        retType = this.retType.toInt(),
+        isC = this.isC,
+        hasVariableLenArg = this.hasVariableLenArg,
+
         )
-    )
 }
 
 fun Generic.parser(): FbGeneric {
@@ -792,12 +788,12 @@ fun FullId.parser(): FbFullId {
     )
 }
 
-fun CompositeTyInfo.parser(): FbSemaTyInfo.Composite {
-    return FbSemaTyInfo.Composite(
-        FbCompositeTyInfo(
-            declPtr = this.declPtr?.parser(),
-            isThisTy = this.isThisTy
-        )
+fun CompositeTyInfo.parser(): FbSemaTyInfo.FbCompositeTyInfo {
+    return FbSemaTyInfo.FbCompositeTyInfo(
+
+        declPtr = this.declPtr?.parser(),
+        isThisTy = this.isThisTy
+
     )
 }
 

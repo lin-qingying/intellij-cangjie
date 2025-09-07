@@ -36,6 +36,7 @@ import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.serialization.deserialization.DeserializationComponents
@@ -51,7 +52,7 @@ import org.cangnova.cangjie.types.SimpleType
 class CangJieMetadataDeserializerForDecompiler(
     project: Project,
     packageFqName: FqName,
-    private val `package`: FbPackage,
+    private val `package`: PackageWrapper,
 
     private val metadataVersion: BinaryVersion,
     serializerProtocol: SerializerExtensionFlatbuffers,

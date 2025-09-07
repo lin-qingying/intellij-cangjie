@@ -27,7 +27,7 @@ package org.cangnova.cangjie.descriptors.impl
 import org.cangnova.cangjie.descriptors.*
 
 interface PropertyAccessorDescriptor : FunctionDescriptor {
-    val isDefault: Boolean
+//    val isDefault: Boolean
 
     override val original: PropertyAccessorDescriptor
 

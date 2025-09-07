@@ -31,6 +31,7 @@ import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
@@ -38,7 +39,7 @@ import org.cangnova.cangjie.serialization.deserialization.DeserializationCompone
 
 open class DeserializedPackageMemberScope(
     private val packageDescriptor: PackageFragmentDescriptor,
-    `package`: FbPackage,
+    `package`: PackageWrapper,
 
     metadataVersion: BinaryVersion,
     containerSource: DeserializedContainerSource?,
@@ -50,7 +51,7 @@ open class DeserializedPackageMemberScope(
         packageDescriptor, `package`,
         metadataVersion, containerSource
     ),
-    `package`.decls
+    `package`.functions, `package`.variables, emptyList(), `package`.typeAliass, `package`.allClassDecls
 ) {
     private val packageFqName = packageDescriptor.fqName
 

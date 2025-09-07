@@ -35,6 +35,7 @@ import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.deserialization.DeclTable
 import org.cangnova.cangjie.metadata.deserialization.TypeTable
 import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedContainerSource
@@ -111,7 +112,7 @@ class DeserializationComponents(
     fun createContext(
         descriptor: PackageFragmentDescriptor,
 
-        `package`: FbPackage,
+        `package`: PackageWrapper,
         metadataVersion: BinaryVersion,
         containerSource: DeserializedContainerSource?
     ): DeserializationContext =
@@ -144,7 +145,7 @@ class DeserializationContext(
 
     val containingDeclaration: DeclarationDescriptor,
 
-    val `package`: FbPackage,
+    val `package`: PackageWrapper,
 
     val metadataVersion: BinaryVersion,
     val containerSource: DeserializedContainerSource?,
@@ -168,8 +169,8 @@ class DeserializationContext(
     )
 
     val declDeserializer: DeclarationDeserializer = DeclarationDeserializer(this)
-    val typeTable: TypeTable = TypeTable(`package`.types)
-    val declTable = DeclTable(`package`.decls)
+    val typeTable: TypeTable = `package`.typeTable
+    val declTable = `package`.declTable
 
     val storageManager: StorageManager get() = components.storageManager
     val builtIns = containingDeclaration.builtIns
@@ -179,7 +180,7 @@ class DeserializationContext(
         descriptor: DeclarationDescriptor,
 //        typeParameterParams: List<TypeParameter>,
 
-        `package`: FbPackage = this.`package`,
+        `package`: PackageWrapper = this.`package`,
         metadataVersion: BinaryVersion = this.metadataVersion
     ): DeserializationContext = DeserializationContext(
         components, descriptor,

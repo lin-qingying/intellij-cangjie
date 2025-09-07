@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.serialization.deserialization.descriptors
 
+import com.github.weisj.jsvg.h
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import org.cangnova.cangjie.descriptors.ClassConstructorDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
@@ -49,8 +50,13 @@ import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.fb.FbDecl
 import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
 import org.cangnova.cangjie.metadata.model.fb.FbDeclKind.*
+import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.FunctionWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.PropertyWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.VariableWrapper
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.toClassId
+import org.cangnova.cangjie.resolve.DescriptorFactory
 import org.cangnova.cangjie.resolve.DeserializedDeclarationsFromSupertypeConflictDataKey
 import org.cangnova.cangjie.resolve.NonReportingOverrideStrategy
 import org.cangnova.cangjie.resolve.OverridingUtil
@@ -69,7 +75,7 @@ import kotlin.collections.plus
 
 class DeserializedClassDescriptor(
     outerContext: DeserializationContext,
-    val `class`: FbDecl,
+    val `class`: ClassDeclWrapper,
 
     val metadataVersion: BinaryVersion,
     override val source: SourceElement
@@ -77,52 +83,12 @@ class DeserializedClassDescriptor(
     outerContext.storageManager,
     `class`.name
 ), DeserializedDescriptor {
-    private val classId = `class`.fqName.toClassId()
+    private val classId = `class`.classId
 
-    private val funcList: MutableList<FbDecl> = mutableListOf()
-    private val varList: MutableList<FbDecl> = mutableListOf()
-    private val propList: MutableList<FbDecl> = mutableListOf()
+    private val funcList = `class`.functions
+    private val varList = `class`.variables
+    private val propList = `class`.propertys
     private val secondaryConstructors: MutableList<FbDecl> = mutableListOf()
-
-    init {
-        val bodyIndex: List<Int> = `class`.info.body
-
-        val allDecl = outerContext.declTable.get(bodyIndex)
-
-        for (decl in allDecl) {
-            when (decl.kind) {
-                FbDeclKind.FuncDecl -> funcList.add(decl)
-                FbDeclKind.VarDecl -> varList.add(decl)
-                FbDeclKind.PropDecl -> propList.add(decl)
-                else -> {} // Ignore other declaration kinds
-            }
-        }
-
-
-        // 删除funcList中名称等于init的方法，并加入到[secondaryConstructors]中
-        val initFuncs = funcList.filter { it.identifier == "init" }
-        initFuncs.forEach { func ->
-            funcList.remove(func)
-            secondaryConstructors.add(func)
-        }
-
-
-//        when (val info =  `class`.info) {
-//
-//            is DeclInfo.ClassInfo -> {
-//                info .body
-//            }
-//            is DeclInfo.EnumInfo -> TODO()
-//
-//
-//            is DeclInfo.InterfaceInfo -> TODO()
-//
-//            is DeclInfo.StructInfo -> TODO()
-//
-//            else -> error("Unknown class: ${`class`.info}")
-//        }
-
-    }
 
 
     val c = outerContext.childContext(
@@ -320,11 +286,10 @@ class DeserializedClassDescriptor(
         computeSecondaryConstructors() + listOfNotNull(unsubstitutedPrimaryConstructor) +
                 c.components.additionalClassPartsProvider.getConstructors(this)
 
-    private fun computeSecondaryConstructors(): List<ClassConstructorDescriptor> {
-        return secondaryConstructors.map {
-            c.declDeserializer.loadConstructor(it)
+    private fun computeSecondaryConstructors(): List<ClassConstructorDescriptor> =
+        `class`.constructors.filter { !it.isPrimary }.map {
+            c.declDeserializer.loadConstructor(it, false)
         }
-    }
 
     override val constructors: Collection<ClassConstructorDescriptor>
         get() = constructorsValue()
@@ -333,24 +298,25 @@ class DeserializedClassDescriptor(
 
     override val containingDeclaration = outerContext.containingDeclaration
 
-    override val kind: ClassKind = when (`class`.kind) {
-        ClassDecl -> ClassKind.CLASS
-
-        InterfaceDecl -> ClassKind.INTERFACE
-
-
-        StructDecl -> ClassKind.STRUCT
-        EnumDecl -> ClassKind.ENUM
-//        ExtendDecl -> ClassKind.EXTEND
-        else -> error("Unknown kind ${`class`.kind}")
-    }
-    override val modality: Modality
-        get() = TODO("Not yet implemented")
+    override val kind: ClassKind = `class`.kind
+    override val modality: Modality = `class`.modality
 
     //    由于序列化文件中不区分主副构造函数
     override val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
-        get() = null
+        get() = primaryConstructor()
+    private val primaryConstructor = c.storageManager.createNullableLazyValue { computePrimaryConstructor() }
 
+    private fun computePrimaryConstructor(): ClassConstructorDescriptor? {
+        if (kind.isSingleton) {
+            return DescriptorFactory.createPrimaryConstructorForObject(this, SourceElement.NO_SOURCE).apply {
+                setReturnType(defaultType)
+            }
+        }
+
+        return `class`.constructors.firstOrNull { it.isPrimary }?.let { constructor ->
+            c.declDeserializer.loadConstructor(constructor, true)
+        }
+    }
 
     override val declaredTypeParameters: List<TypeParameterDescriptor>
         get() = c.typeDeserializer.ownTypeParameters

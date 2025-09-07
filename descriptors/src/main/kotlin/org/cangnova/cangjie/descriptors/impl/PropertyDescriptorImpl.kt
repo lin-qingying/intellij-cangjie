@@ -193,7 +193,7 @@ open class PropertyDescriptorImpl(
                 it.annotations,
                 copyConfiguration.modality,
                 normalizeVisibility(it.visibility, copyConfiguration.kind),
-                it.isDefault,
+
                 copyConfiguration.kind,
                 copyConfiguration.originalGetter,
                 SourceElement.NO_SOURCE

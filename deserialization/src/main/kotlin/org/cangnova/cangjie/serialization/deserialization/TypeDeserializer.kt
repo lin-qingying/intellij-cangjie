@@ -29,6 +29,7 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.metadata.model.fb.FbSemaTy
 import org.cangnova.cangjie.metadata.model.fb.FbSemaTyInfo
 import org.cangnova.cangjie.metadata.model.fb.FbTypeKind
+import org.cangnova.cangjie.metadata.model.wrapper.TypeWrapper
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.StandardClassIds.ArrayClassId
 import org.cangnova.cangjie.types.CangJieType
@@ -47,6 +48,7 @@ import org.cangnova.cangjie.types.getContextReceiverTypesFromFunctionType
 import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
 import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isFunctionType
+import kotlin.toString
 
 /**
  * 类型反序列化器，负责将flatbuffer格式的类型信息转换为CangJieType对象。
@@ -77,13 +79,20 @@ class TypeDeserializer(
         c.storageManager.createMemoizedFunctionWithNullableValues { id ->
             computeClassifierDescriptor(id)
         }
+    private val typeAliasDescriptors: (ClassId) -> ClassifierDescriptor? =
+        c.storageManager.createMemoizedFunctionWithNullableValues { fqNameIndex ->
+            computeTypeAliasDescriptor(fqNameIndex)
+        }
+
+    private fun computeTypeAliasDescriptor(id: ClassId): ClassifierDescriptor? {
+
+        return c.components.moduleDescriptor.findTypeAliasAcrossModuleDependencies(id)
+
+    }
 
     private fun computeClassifierDescriptor(id: ClassId): ClassifierDescriptor? {
 
-//        if (id.isLocal) {
-//            // Local classes can't be found in scopes
-//            return c.components.deserializeClass(id)
-//        }
+
         return c.components.moduleDescriptor.findClassifierAcrossModuleDependencies(id)
     }
 
@@ -123,7 +132,7 @@ class TypeDeserializer(
      * @return 转换后的CangJieType对象
      */
     // TODO: don't load identical types from TypeTable more than once
-    fun type(semaTy: FbSemaTy): CangJieType {
+    fun type(semaTy: TypeWrapper): CangJieType {
         return simpleType(semaTy, expandTypeAliases = true)
     }
 
@@ -162,7 +171,7 @@ class TypeDeserializer(
      * @param expandTypeAliases 是否展开类型别名，默认为true
      * @return 转换后的SimpleType对象
      */
-    fun simpleType(semaTy: FbSemaTy, expandTypeAliases: Boolean = true): SimpleType {
+    fun simpleType(semaTy: TypeWrapper, expandTypeAliases: Boolean = true): SimpleType {
         val constructor = typeConstructor(semaTy)
         if (ErrorUtils.isError(constructor.declarationDescriptor)) {
             return ErrorUtils.createErrorType(
@@ -177,9 +186,9 @@ class TypeDeserializer(
         val attributes = TypeAttributes.Empty
 
         // Convert type arguments from indices to TypeProjection objects
-        val arguments = semaTy.typeArgs.mapIndexed { index, typeIndex ->
-            val typeArg = c.typeTable[typeIndex]
-            TypeProjectionImpl(type(typeArg))
+        val arguments = semaTy.typeArgs.mapIndexed { index, type ->
+
+            TypeProjectionImpl(type(type))
         }
 
         val declarationDescriptor = constructor.declarationDescriptor
@@ -217,13 +226,13 @@ class TypeDeserializer(
      * @param semaTy flatbuffer格式的语义类型定义
      * @return 对应的类型构造器
      */
-    private fun typeConstructor(semaTy: FbSemaTy): TypeConstructor {
+    private fun typeConstructor(semaTy: TypeWrapper): TypeConstructor {
 
 
         fun notFoundClass(classId: ClassId): ClassDescriptor {
 
             val typeParametersCount =
-                listOf(semaTy)  .map { it.typeArgs.size }.toMutableList()
+                listOf(semaTy).map { it.typeArgs.size }.toMutableList()
 
 //                generateSequence(semaTy) { it/*.outerType(c.typeTable)*/ }.map { it.typeArgs.size }.toMutableList()
             val classNestingLevel = generateSequence(classId, ClassId::outerClassId).count()
@@ -241,27 +250,29 @@ class TypeDeserializer(
             FbTypeKind.Int16 -> c.builtIns.int16Type.constructor
             FbTypeKind.Int32 -> c.builtIns.int32Type.constructor
             FbTypeKind.Int64 -> c.builtIns.int64Type.constructor
-            FbTypeKind.IntNative ->
-                c.builtIns.intNativeType.constructor
+            FbTypeKind.IntNative -> c.builtIns.intNativeType.constructor
 
             FbTypeKind.UInt8 -> c.builtIns.uint8Type.constructor
             FbTypeKind.UInt16 -> c.builtIns.uint16Type.constructor
             FbTypeKind.UInt32 -> c.builtIns.uint32Type.constructor
             FbTypeKind.UInt64 -> c.builtIns.uint64Type.constructor
-            FbTypeKind.UIntNative ->
-                c.builtIns.uintNativeType.constructor // TODO: Add unsigned int support
+            FbTypeKind.UIntNative -> c.builtIns.uintNativeType.constructor // TODO: Add unsigned int support
             FbTypeKind.Float16 -> c.builtIns.float16Type.constructor
             FbTypeKind.Float32 -> c.builtIns.float32Type.constructor
-            FbTypeKind.Float64 ->
-                c.builtIns.float64Type.constructor
+            FbTypeKind.Float64 -> c.builtIns.float64Type.constructor
 
             FbTypeKind.Rune -> c.builtIns.runeType.constructor
             FbTypeKind.Nothing -> c.builtIns.nothingType.constructor
 
 //如果是Array，说明该包是std.core，那么Array的声明只会在同一包中出现，所以直接在本包中查找声明，通过name的方法
             FbTypeKind.Array -> {
-                val info = (semaTy.info as FbSemaTyInfo.Array).info
+
                 (classifierDescriptors(ArrayClassId) ?: notFoundClass(ArrayClassId)).typeConstructor
+            }
+
+//            对于Type,Class, Interface, Struct, Enum,Generic 需要去查找对应的声明
+            FbTypeKind.Type -> {
+                TODO()
             }
 
             // 复合类型 (Class, Interface, Struct, Enum)
@@ -294,7 +305,7 @@ class TypeDeserializer(
             // 函数类型
             FbTypeKind.Func -> {
                 when (val info = semaTy.info) {
-                    is FbSemaTyInfo.Func -> {
+                    is FbSemaTyInfo.FbFuncTyInfo -> {
                         val arity = semaTy.typeArgs.size - 1 // 减去返回类型
                         if (arity >= 0) {
                             c.builtIns.getFunction(arity).typeConstructor
@@ -323,117 +334,6 @@ class TypeDeserializer(
         }
     }
 
-    /**
-     * 创建挂起函数类型。
-     *
-     * 根据提供的类型属性、函数类型构造器和类型参数，创建表示挂起函数的类型。
-     * 处理不同版本编译器生成的挂起函数类型格式。
-     *
-     * @param attributes 类型属性
-     * @param functionTypeConstructor 函数类型构造器
-     * @param arguments 类型参数列表
-     * @param nullable 类型是否可空
-     * @return 创建的挂起函数类型
-     */
-    private fun createSuspendFunctionType(
-        attributes: TypeAttributes,
-        functionTypeConstructor: TypeConstructor,
-        arguments: List<TypeProjection>,
-        nullable: Boolean
-    ): SimpleType {
-        val result = when (functionTypeConstructor.parameters.size - arguments.size) {
-            0 -> createSuspendFunctionTypeForBasicCase(attributes, functionTypeConstructor, arguments, nullable)
-            // This case for types written by eap compiler 1.1
-            1 -> {
-                val arity = arguments.size - 1
-                if (arity >= 0) {
-                    CangJieTypeFactory.simpleType(
-                        attributes,
-                        functionTypeConstructor.builtIns.getFunction(arity).typeConstructor,
-                        arguments,
-                        nullable
-                    )
-                } else {
-                    null
-                }
-            }
-
-            else -> null
-        }
-        return result ?: ErrorUtils.createErrorTypeWithArguments(
-            ErrorTypeKind.INCONSISTENT_SUSPEND_FUNCTION, arguments, functionTypeConstructor
-        )
-    }
-
-    /**
-     * 为基本情况创建挂起函数类型。
-     *
-     * 处理标准情况下的挂起函数类型创建，验证类型是否为函数类型。
-     *
-     * @param attributes 类型属性
-     * @param functionTypeConstructor 函数类型构造器
-     * @param arguments 类型参数列表
-     * @param nullable 类型是否可空
-     * @return 创建的挂起函数类型，如果不是函数类型则返回null
-     */
-    private fun createSuspendFunctionTypeForBasicCase(
-        attributes: TypeAttributes,
-        functionTypeConstructor: TypeConstructor,
-        arguments: List<TypeProjection>,
-        nullable: Boolean
-    ): SimpleType? {
-        val functionType = CangJieTypeFactory.simpleType(attributes, functionTypeConstructor, arguments, nullable)
-        return if (!functionType.isFunctionType) null
-        else functionType
-    }
-
-//    private fun transformRuntimeFunctionTypeToSuspendFunction(funType: CangJieType): SimpleType? {
-//        val continuationArgumentType = funType.getValueParameterTypesFromFunctionType().lastOrNull()?.type ?: return null
-//        val continuationArgumentFqName = continuationArgumentType.constructor.declarationDescriptor?.fqNameSafe
-//        // Before 1.6 we put experimental continuation as last parameter of suspend functional types to .kotlin_metadata files.
-//        // Read them as suspend functional types instead of ordinary types with experimental continuation parameter.
-//        if (continuationArgumentType.arguments.size != 1 ||
-//            !(continuationArgumentFqName == CONTINUATION_INTERFACE_FQ_NAME || continuationArgumentFqName == EXPERIMENTAL_CONTINUATION_FQ_NAME)
-//        ) {
-//            return funType as SimpleType?
-//        }
-//
-//        val suspendReturnType = continuationArgumentType.arguments.single().type
-//
-//        // Load kotlin.suspend as accepting and returning suspend function type independent of its version requirement
-//        if ((c.containingDeclaration as? CallableDescriptor)?.fqNameOrNull() == CANGJIE_SUSPEND_BUILT_IN_FUNCTION_FQ_NAME) {
-//            return createSimpleSuspendFunctionType(funType, suspendReturnType)
-//        }
-//
-//        return createSimpleSuspendFunctionType(funType, suspendReturnType)
-//    }
-
-    /**
-     * 创建简单的挂起函数类型。
-     *
-     * 从现有函数类型和挂起返回类型创建挂起函数类型。
-     * 处理挂起函数的特殊返回类型转换。
-     *
-     * @param funType 原始函数类型
-     * @param suspendReturnType 挂起函数的返回类型
-     * @return 创建的挂起函数类型
-     */
-    private fun createSimpleSuspendFunctionType(
-        funType: CangJieType,
-        suspendReturnType: CangJieType
-    ): SimpleType {
-        return createFunctionType(
-            funType.builtIns,
-            funType.annotations,
-            funType.getReceiverTypeFromFunctionType(),
-            funType.getContextReceiverTypesFromFunctionType(),
-            funType.getValueParameterTypesFromFunctionType().dropLast(1).map(TypeProjection::type),
-            // TODO: names
-            null,
-            suspendReturnType,
-
-            ).makeOptionAsSpecified(funType.isOption)
-    }
 
     /**
      * 加载类型参数描述符。

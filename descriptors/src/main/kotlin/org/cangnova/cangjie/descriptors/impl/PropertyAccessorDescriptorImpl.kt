@@ -36,7 +36,7 @@ abstract class PropertyAccessorDescriptorImpl(
     override val  correspondingProperty: PropertyDescriptor,
     annotations: Annotations,
     name: Name,
-    override var isDefault: Boolean,
+//    override var isDefault: Boolean,
 
     override val kind: CallableMemberDescriptor.Kind,
     source: SourceElement

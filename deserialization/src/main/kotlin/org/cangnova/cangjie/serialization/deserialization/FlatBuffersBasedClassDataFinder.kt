@@ -31,20 +31,24 @@ import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.metadata.model.fb.FbDecl
 import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
 import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
+import org.cangnova.cangjie.utils.keysToMap
+import org.cangnova.cangjie.utils.valuesToMap
 
 /**
  * FlatBuffers-based implementation of ClassDataFinder.
  * This class finds class data from FlatBuffers serialized metadata instead of Protocol Buffers.
  */
 class FlatBuffersBasedClassDataFinder(
-    private val packageData: FbPackage,
+    private val packageData: PackageWrapper,
     private val metadataVersion: BinaryVersion,
     private val sourceElementProvider: () -> SourceElement = {
         SourceElement.NO_SOURCE
     }
 ) : ClassDataFinder {
 
-    private val classDeclarations: Map<ClassId, FbDecl> by lazy {
+    private val classDeclarations: Map<ClassId, ClassDeclWrapper> by lazy {
         buildClassDeclarationMap()
     }
 
@@ -56,37 +60,18 @@ class FlatBuffersBasedClassDataFinder(
         val classDecl = classDeclarations[classId] ?: return null
         return ClassData(
             classDecl = classDecl,
-            `package` =  packageData,
+            `package` = packageData,
             metadataVersion = metadataVersion,
             sourceElement = sourceElementProvider()
         )
     }
 
-    private fun buildClassDeclarationMap(): Map<ClassId, FbDecl> {
-        val result = mutableMapOf<ClassId, FbDecl>()
-        
-        // Extract class declarations from the package
-        for (decl in packageData.decls) {
-            when (decl.kind) {
-                FbDeclKind.ClassDecl,
-                FbDeclKind.InterfaceDecl,
-                FbDeclKind.StructDecl,
-                FbDeclKind.EnumDecl -> {
-                    val classId = createClassId(decl)
-                    result[classId] = decl
-                }
-                else -> {
-                    // Skip non-class declarations
-                }
-            }
+    private fun buildClassDeclarationMap(): Map<ClassId, ClassDeclWrapper> {
+
+        return packageData.allClassDecls.valuesToMap {
+            it.classId
         }
-        
-        return result
     }
 
-    private fun createClassId(decl: FbDecl): ClassId {
-        val packageFqName = org.cangnova.cangjie.name.FqName(packageData.fullPkgName)
-        val className = Name.identifier(decl.identifier)
-        return ClassId(packageFqName, className)
-    }
+
 }

@@ -300,9 +300,9 @@ class OverridingUtil private constructor(
                 is FunctionDescriptorImpl -> memberDescriptor.visibility = visibilityToInherit
                 is PropertyAccessorDescriptorImpl -> {
                     memberDescriptor.visibility = visibilityToInherit
-                    if (visibilityToInherit != memberDescriptor.correspondingProperty.visibility) {
-                        memberDescriptor.isDefault = false
-                    }
+//                    if (visibilityToInherit != memberDescriptor.correspondingProperty.visibility) {
+//                        memberDescriptor.isDefault = false
+//                    }
                 }
             }
         }

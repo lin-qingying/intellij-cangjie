@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.serialization.deserialization.descriptors
 
 
+import com.intellij.configurationStore.Property
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 
 
@@ -32,6 +33,11 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.metadata.model.fb.FbDecl
 import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
+import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.FunctionWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.PropertyWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.TypeAliasWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.VariableWrapper
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.MemberComparator
@@ -65,27 +71,15 @@ import org.cangnova.cangjie.utils.compact
  */
 abstract class DeserializedMemberScope protected constructor(
     protected val c: DeserializationContext,
-    functionList: List<FbDecl>,
-    variableList: List<FbDecl>,
-    propertyList: List<FbDecl>,
-    typeAliasList: List<FbDecl>,
-    classList: List<FbDecl>,
+    functionList: List<FunctionWrapper>,
+    variableList: List<VariableWrapper>,
+    propertyList: List<PropertyWrapper>,
+    typeAliasList: List<TypeAliasWrapper>,
+    classList: List<ClassDeclWrapper>,
 
     ) : MemberScopeImpl() {
     internal val classNames by c.storageManager.createLazyValue { classList.map{it.name}.toSet() }
 
-    constructor(c: DeserializationContext, decls: List<FbDecl>) : this(
-        c,
-        decls.filter { it.kind == FbDeclKind.FuncDecl },
-        decls.filter { it.kind == FbDeclKind.VarDecl },
-        decls.filter { it.kind == FbDeclKind.PropDecl },
-        decls.filter { it.kind == FbDeclKind.TypeAliasDecl },
-        decls.filter {
-            it.kind == FbDeclKind.ClassDecl || it.kind == FbDeclKind.StructDecl ||
-                    it.kind == FbDeclKind.InterfaceDecl || it.kind == FbDeclKind.EnumDecl ||
-                    it.kind == FbDeclKind.ExtendDecl
-        }
-    )
 
 
     /**
@@ -227,11 +221,11 @@ abstract class DeserializedMemberScope protected constructor(
      * @return 适合当前配置的Implementation实现
      */
     private fun createImplementation(
-        functionList: List<FbDecl>,
-        variableList: List<FbDecl>,
-        propertyList: List<FbDecl>,
-        typeAliasList: List<FbDecl>,
-        classList: List<FbDecl>
+        functionList: List<FunctionWrapper>,
+        variableList: List<VariableWrapper>,
+        propertyList: List<PropertyWrapper>,
+        typeAliasList: List<TypeAliasWrapper>,
+        classList: List<ClassDeclWrapper>
     ): Implementation =
         if (c.components.configuration.preserveDeclarationsOrdering)
             NoReorderImplementation(functionList, variableList, propertyList, typeAliasList, classList)
@@ -252,30 +246,31 @@ abstract class DeserializedMemberScope protected constructor(
      * @param typeAliasList 类型别名声明列表
      */
     private inner class OptimizedImplementation(
-        functionList: List<FbDecl>,
-        variableList: List<FbDecl>,
+       functionList: List<FunctionWrapper>,
+         variableList: List<VariableWrapper>,
 
-        propertyList: List<FbDecl>,
-        typeAliasList: List<FbDecl>,
-        classList: List<FbDecl>
+         propertyList: List<PropertyWrapper>,
+        typeAliasList: List<TypeAliasWrapper>,
+        classList: List<ClassDeclWrapper>
+
     ) : Implementation {
         /**
          * 按名称分组的函数声明映射
          * 将函数声明列表按标识符分组，便于快速查找
          */
-        private val functionDecls = functionList.groupByName { it.identifier }
+        private val functionDecls = functionList.groupByName { it.name }
 
         /**
          * 按名称分组的变量声明映射
          * 将变量声明列表按标识符分组，便于快速查找
          */
-        private val variableDecls = variableList.groupByName { it.identifier }
+        private val variableDecls = variableList.groupByName {it.name }
 
         /**
          * 按名称分组的属性声明映射
          * 将属性声明列表按标识符分组，便于快速查找
          */
-        private val propertyDecls = propertyList.groupByName { it.identifier }
+        private val propertyDecls = propertyList.groupByName { it.name}
 
         /**
          * 按名称分组的类型别名声明映射
@@ -283,7 +278,7 @@ abstract class DeserializedMemberScope protected constructor(
          */
         private val typeAliases =
             if (c.components.configuration.typeAliasesAllowed)
-                typeAliasList.groupByName { it.identifier }
+                typeAliasList.groupByName { it.name }
             else
                 emptyMap()
 
@@ -291,7 +286,7 @@ abstract class DeserializedMemberScope protected constructor(
          * 按名称分组的类声明映射
          * 将类声明列表按标识符分组，便于快速查找
          */
-        private val classs = classList.groupByName { it.identifier }
+        private val classs = classList.groupByName { it.name }
 
         /**
          * 函数描述符缓存
@@ -344,8 +339,8 @@ abstract class DeserializedMemberScope protected constructor(
             get() = classs.keys
 
         private inline fun <T> Collection<T>.groupByName(
-            getName: (T) -> String
-        ) = groupBy { Name.identifier(getName(it)) }
+            getName: (T) -> Name
+        ) = groupBy {  getName(it)  }
 
         /**
          * 计算指定名称的函数描述符列表
@@ -363,9 +358,9 @@ abstract class DeserializedMemberScope protected constructor(
                 { computeNonDeclaredFunctions(name, it) }
             )
 
-        private inline fun <D : DeclarationDescriptor> computeDescriptors(
-            decls: Collection<FbDecl>,
-            factory: (FbDecl) -> D?,
+        private inline fun <M,D : DeclarationDescriptor> computeDescriptors(
+            decls: Collection<M>,
+            factory: (M) -> D?,
             computeNonDeclared: (MutableList<D>) -> Unit
         ): Collection<D> {
             val descriptors = decls.mapNotNullTo(ArrayList(decls.size), factory)
@@ -638,12 +633,12 @@ abstract class DeserializedMemberScope protected constructor(
      * @param classList 类声明列表，保持原始顺序
      */
     private inner class NoReorderImplementation(
-        private val functionList: List<FbDecl>,
-        private val variableList: List<FbDecl>,
+        private val functionList: List<FunctionWrapper>,
+        private val variableList: List<VariableWrapper>,
 
-        private val propertyList: List<FbDecl>,
-        typeAliasList: List<FbDecl>,
-        private val classList: List<FbDecl>
+        private val propertyList: List<PropertyWrapper>,
+        typeAliasList: List<TypeAliasWrapper>,
+        private val classList: List<ClassDeclWrapper>
     ) : Implementation {
 
         /**
@@ -748,7 +743,7 @@ abstract class DeserializedMemberScope protected constructor(
          * 懒加载计算所有函数的名称集合，包括已声明和非声明的函数名称
          */
         override val functionNames by c.storageManager.createLazyValue {
-            functionList.mapToNames { it.identifier } + getNonDeclaredFunctionNames()
+            functionList.mapToNames { it.name } + getNonDeclaredFunctionNames()
         }
 
         /**
@@ -756,7 +751,7 @@ abstract class DeserializedMemberScope protected constructor(
          * 懒加载计算所有属性的名称集合，包括已声明和非声明的属性名称
          */
         override val propertyNames by c.storageManager.createLazyValue {
-            propertyList.mapToNames { it.identifier } + getNonDeclaredPropertyNames()
+            propertyList.mapToNames { it.name } + getNonDeclaredPropertyNames()
         }
 
         /**
@@ -764,7 +759,7 @@ abstract class DeserializedMemberScope protected constructor(
          * 懒加载计算所有变量的名称集合，包括已声明和非声明的变量名称
          */
         override val variableNames by c.storageManager.createLazyValue {
-            variableList.mapToNames { it.identifier } + getNonDeclaredVariableNames()
+            variableList.mapToNames { it.name } + getNonDeclaredVariableNames()
         }
 
         /**
@@ -772,14 +767,14 @@ abstract class DeserializedMemberScope protected constructor(
          * 计算所有类型别名的名称集合
          */
         override val typeAliasNames: Set<Name>
-            get() = typeAliasList.mapToNames { it.identifier }
+            get() = typeAliasList.mapToNames { it.name }
 
         /**
          * 类名称集合
          * 计算所有类的名称集合
          */
         override val classNames: Set<Name>
-            get() = classList.mapToNames { it.identifier }
+            get() = classList.mapToNames { it.name }
 
         /**
          * 计算所有函数描述符列表
@@ -946,9 +941,9 @@ abstract class DeserializedMemberScope protected constructor(
          * @param getName 从元素中提取名称字符串的函数
          * @return 保持原始顺序的名称集合
          */
-        private inline fun <T> List<T>.mapToNames(getName: (T) -> String): Set<Name> {
+        private inline fun <T> List<T>.mapToNames(getName: (T) -> Name): Set<Name> {
             // `mutableSetOf` returns `LinkedHashSet`, it is important to preserve the order of the declarations.
-            return mapTo(mutableSetOf()) { Name.identifier(getName(it)) }
+            return mapTo(mutableSetOf()) {  getName(it)  }
         }
 
         /**
@@ -959,8 +954,8 @@ abstract class DeserializedMemberScope protected constructor(
          * @param deserialize 反序列化函数，将声明转换为描述符
          * @return 保持原始顺序的描述符列表
          */
-        private inline fun <K : MemberDescriptor> List<FbDecl>.mapWithDeserializer(
-            deserialize: DeclarationDeserializer.(FbDecl) -> K?
+        private inline fun <T,K : MemberDescriptor> List<T>.mapWithDeserializer(
+            deserialize: DeclarationDeserializer.(T) -> K?
         ): List<K> {
             return mapNotNull { c.declDeserializer.deserialize(it) }
         }

@@ -208,57 +208,6 @@ data class FbFullId(
     val index: Int
 )
 
-/**
- * // 函数类型信息表
- * // 定义函数类型信息
- * table FuncTyInfo {
- *   retType:uint32;      // 函数返回类型
- *   isC:bool;           // 是否是CFunc或@C函数类型
- *   hasVariableLenArg:bool; // 是否具有可变长度参数
- * }
- */
-data class FbFuncTyInfo(
-    val retType: Int,
-    val isC: Boolean,
-    val hasVariableLenArg: Boolean
-)
-
-/**
- * // 复合类型信息表
- * // 定义复合类型信息
- * table CompositeTyInfo {
- *   declPtr:FullId;     // 声明ID
- *   isThisTy:bool=false; // 是否是This类型
- * }
- */
-data class FbCompositeTyInfo(
-    val declPtr: FbFullId?,
-    val isThisTy: Boolean = false
-)
-
-/**
- * // 泛型类型信息表
- * // 定义泛型类型信息
- * table GenericTyInfo {
- *   declPtr:FullId;     // 声明ID
- *   upperBounds:[uint32]; // 上界列表
- * }
- */
-data class FbGenericTyInfo(
-    val declPtr: FbFullId?,
-    val upperBounds: List<Int>
-)
-
-/**
- * // 数组类型信息表
- * // 定义数组类型信息
- * table ArrayTyInfo {
- *   dimsOrSize:int64;   // 维度或大小
- * }
- */
-data class FbArrayTyInfo(
-    val dimsOrSize: Long
-)
 
 /**
  * // 语义类型联合体
@@ -270,12 +219,60 @@ data class FbArrayTyInfo(
  *   ArrayTyInfo,        // 数组类型信息
  * }
  */
-sealed class FbSemaTyInfo {
-    data class Func(val info: FbFuncTyInfo) : FbSemaTyInfo()
-    data class Composite(val info: FbCompositeTyInfo) : FbSemaTyInfo()
-    data class FbGeneric(val info: FbGenericTyInfo) : FbSemaTyInfo()
-    data class Array(val info: FbArrayTyInfo) : FbSemaTyInfo()
-    object None : FbSemaTyInfo()
+sealed interface FbSemaTyInfo {
+    /**
+     * // 函数类型信息表
+     * // 定义函数类型信息
+     * table FuncTyInfo {
+     *   retType:uint32;      // 函数返回类型
+     *   isC:bool;           // 是否是CFunc或@C函数类型
+     *   hasVariableLenArg:bool; // 是否具有可变长度参数
+     * }
+     */
+    data class FbFuncTyInfo(
+        val retType: Int,
+        val isC: Boolean,
+        val hasVariableLenArg: Boolean
+    ) : FbSemaTyInfo
+
+    /**
+     * // 复合类型信息表
+     * // 定义复合类型信息
+     * table CompositeTyInfo {
+     *   declPtr:FullId;     // 声明ID
+     *   isThisTy:bool=false; // 是否是This类型
+     * }
+     */
+    data class FbCompositeTyInfo(
+        val declPtr: FbFullId?,
+        val isThisTy: Boolean = false
+    ) : FbSemaTyInfo
+
+    /**
+     * // 泛型类型信息表
+     * // 定义泛型类型信息
+     * table GenericTyInfo {
+     *   declPtr:FullId;     // 声明ID
+     *   upperBounds:[uint32]; // 上界列表
+     * }
+     */
+    data class FbGenericTyInfo(
+        val declPtr: FbFullId?,
+        val upperBounds: List<Int>
+    ) : FbSemaTyInfo
+
+    /**
+     * // 数组类型信息表
+     * // 定义数组类型信息
+     * table ArrayTyInfo {
+     *   dimsOrSize:int64;   // 维度或大小
+     * }
+     */
+    data class FbArrayTyInfo(
+        val dimsOrSize: Long
+    ) : FbSemaTyInfo
+
+    object None : FbSemaTyInfo
 }
 
 /**

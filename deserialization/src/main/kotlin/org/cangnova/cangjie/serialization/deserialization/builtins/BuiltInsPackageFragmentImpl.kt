@@ -30,6 +30,7 @@ import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
 import org.cangnova.cangjie.metadata.builtins.readBuiltinsPackageFragment
 import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.serialization.deserialization.DeserializedPackageFragmentImpl
@@ -40,7 +41,7 @@ class BuiltInsPackageFragmentImpl private constructor(
     fqName: FqName,
     storageManager: StorageManager,
     module: ModuleDescriptor,
-    `package`: FbPackage,
+    `package`: PackageWrapper,
     metadataVersion: BuiltInsBinaryVersion,
     override val isFallback: Boolean
 ) : BuiltInsPackageFragment, DeserializedPackageFragmentImpl(

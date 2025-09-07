@@ -31,13 +31,26 @@ import org.cangnova.cangjie.metadata.model.fb.FbAnno
 import org.cangnova.cangjie.metadata.model.fb.FbDecl
 import org.cangnova.cangjie.metadata.model.fb.FbDeclInfo
 import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
+import org.cangnova.cangjie.metadata.model.wrapper.AnnotationWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.ConstructorWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.FunctionWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.PropertyWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.TypeAliasWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.ValueParameterWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.VariableWrapper
 import org.cangnova.cangjie.name.ClassId
+import org.cangnova.cangjie.resolve.DescriptorFactory
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedClassConstructorDescriptor
+import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedPropertyDescriptor
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
+import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedTypeAliasDescriptor
+import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedVariableDescriptor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.error.ErrorPropertyDescriptor
 import org.cangnova.cangjie.types.error.ErrorTypeAliasDescriptor
 import org.cangnova.cangjie.types.error.ErrorVariableDescriptor
+import kotlin.collections.get
 
 enum class AnnotatedCallableKind {
     FUNCTION,
@@ -49,19 +62,13 @@ enum class AnnotatedCallableKind {
 
 
 class DeclarationDeserializer(private val c: DeserializationContext) {
-    private fun getAnnotations(a: List<FbAnno>): Annotations {
+    private fun getAnnotations(a: List<AnnotationWrapper>): Annotations {
         return Annotations.EMPTY
     }
 
-    private fun getCallableMemberDescriptorKind(decl: FbDecl): CallableMemberDescriptor.Kind {
 
-//        TODO 暂时返回固定值
-        return CallableMemberDescriptor.Kind.DECLARATION
-    }
+    fun loadConstructor(decl: ConstructorWrapper, isPrimary: Boolean): ClassConstructorDescriptor {
 
-    fun loadConstructor(decl: FbDecl): ClassConstructorDescriptor {
-
-        val info = decl.info as FbDeclInfo.FuncInfo
 
         val classDescriptor = c.containingDeclaration as ClassDescriptor
         val descriptor = DeserializedClassConstructorDescriptor(
@@ -70,7 +77,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
             getAnnotations(
                 decl.annotations
             ),
-            false,
+            isPrimary,
             CallableMemberDescriptor.Kind.DECLARATION,
             decl,
 
@@ -81,7 +88,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         val local = c.childContext(descriptor)
         descriptor.initialize(
             local.declDeserializer.valueParameters(
-                c.declTable.get(info.funcBody.params),
+                decl.valueParameters,
             ),
         )
         descriptor.setReturnType(classDescriptor.defaultType)
@@ -91,22 +98,155 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         return descriptor
     }
 
-    fun loadProperty(decl: FbDecl): PropertyDescriptor {
+    fun loadProperty(decl: PropertyWrapper): PropertyDescriptor {
 
-        return ErrorPropertyDescriptor()
+        val property = DeserializedPropertyDescriptor(
+            c.containingDeclaration, null,
+            getAnnotations(
+
+                decl.annotations
+            ),
+            decl.modality,
+            decl.visibility,
+            decl.isVar,
+            decl.name,
+            decl.kind,
+
+
+            decl,
+
+            c.containerSource
+        )
+
+        val local = c.childContext(property)
+
+        val receiverAnnotations = Annotations.EMPTY
+
+        property.setType(
+            local.typeDeserializer.type(decl.returnType),
+            local.typeDeserializer.ownTypeParameters,
+            getDispatchReceiverParameter(),
+            null,
+            emptyList()
+
+        )
+
+
+        val getter = if (decl.getter != null) {
+
+            val isExternal = false
+            val isInline = decl.getter!!.isInLine
+            val annotations = getAnnotations(decl.getter!!.annotations)
+            val getter =
+                PropertyGetterDescriptorImpl(
+                    property,
+                    annotations,
+                    decl.getter!!.modality,
+                    decl.getter!!.visibility,
+                    /* isDefault = */
+
+
+                    property.kind, null, SourceElement.NO_SOURCE
+                )
+
+            getter.initialize(property.returnType)
+            getter
+        } else {
+            null
+        }
+
+        val setter = if (decl.setter != null) {
+
+            val isInline = decl.setter!!.isInLine
+            val annotations = getAnnotations(
+
+                decl.setter!!.annotations
+            )
+
+            val setter = PropertySetterDescriptorImpl(
+                property,
+                annotations,
+                decl.setter!!.modality,
+                decl.setter!!.visibility,
+                /*        *//* isDefault = *//* !isNotDefault,
+*/
+                property.kind, null, SourceElement.NO_SOURCE
+            )
+            val setterLocal = local.childContext(setter)
+            val valueParameters = setterLocal.declDeserializer.valueParameters(
+                decl.setter!!.valueParameters,
+            )
+            setter.initialize(valueParameters.single())
+            setter
+
+        } else {
+            null
+        }
+
+
+        property.initialize(
+            getter, setter,
+
+            )
+
+        return property
     }
 
-    fun loadTypeAlias(decl: FbDecl): TypeAliasDescriptor {
-        return ErrorTypeAliasDescriptor()
+    fun loadTypeAlias(decl: TypeAliasWrapper): TypeAliasDescriptor {
+        val annotations = getAnnotations(decl.annotations)
+        val visibility = decl.visibility
+        val typeAlias = DeserializedTypeAliasDescriptor(
+            c.storageManager, c.containingDeclaration, annotations, decl.name,
+            visibility, decl, c.containerSource
+        )
+
+        val local = c.childContext(typeAlias)
+        typeAlias.initialize(
+            local.typeDeserializer.ownTypeParameters,
+            local.typeDeserializer.simpleType(decl.underlyingType, expandTypeAliases = false),
+            local.typeDeserializer.simpleType(decl.expandedType, expandTypeAliases = false)
+        )
+
+        return typeAlias
     }
 
-    fun loadVariable(decl: FbDecl): VariableDescriptor {
+    fun loadVariable(decl: VariableWrapper): VariableDescriptor {
+        val variable = DeserializedVariableDescriptor(
+            c.containingDeclaration, null,
+            getAnnotations(
 
-        return ErrorVariableDescriptor()
+                decl.annotations
+            ),
+            decl.modality,
+            decl.visibility,
+            decl.isVar,
+            decl.name,
+            decl.kind,
+
+
+            decl,
+
+            c.containerSource
+        )
+        val local = c.childContext(variable)
+        val receiverAnnotations =
+            Annotations.EMPTY
+        variable.setType(
+            local.typeDeserializer.type(decl.returnType),
+            local.typeDeserializer.ownTypeParameters,
+            getDispatchReceiverParameter(),
+            null,
+            emptyList()
+        )
+        return variable
     }
 
-    fun loadClass(decl: FbDecl): ClassDescriptor? {
-        val classId = ClassId(c.`package`.packageName, decl.name)
+    private fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
+        return (c.containingDeclaration as? ClassDescriptor)?.thisAsReceiverParameter
+    }
+
+    fun loadClass(decl: ClassDeclWrapper): ClassDescriptor? {
+//        val classId = ClassId(c.`package`.packageName, decl.name)
 //        val fragments = c.components.packageFragmentProvider.packageFragments(classId.packageFqName)
 //        val fragment = fragments.firstOrNull { it !is DeserializedPackageFragment /*|| it.hasTopLevelClass(classId.shortClassName)*/ }
 //            ?: return null
@@ -120,7 +260,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
 //        )
 //        DeserializedClassDescriptor(c, decl)
 
-        return c.components.deserializeClass(classId)
+        return c.components.deserializeClass(decl.classId)
     }
 
     private fun DeserializedSimpleFunctionDescriptor.initializeWithCoroutinesExperimentalityStatus(
@@ -147,14 +287,12 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         )
     }
 
-    fun loadFunction(decl: FbDecl): SimpleFunctionDescriptor {
-        assert(decl.kind == FbDeclKind.FuncDecl) { "Expected function, but $decl found" }
-        val info = decl.info as FbDeclInfo.FuncInfo
+    fun loadFunction(decl: FunctionWrapper): SimpleFunctionDescriptor {
 
 
         val annotations = getAnnotations(decl.annotations)
 
-        val callableMemberDescriptorKind = getCallableMemberDescriptorKind(decl)
+        val callableMemberDescriptorKind = decl.kind
         val function = DeserializedSimpleFunctionDescriptor(
             c.containingDeclaration, /* original = */
             null,
@@ -169,35 +307,35 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
 
         val local = c.childContext(function)
         function.initializeWithCoroutinesExperimentalityStatus(
-            unsubstitutedValueParameters = local.declDeserializer.valueParameters(c.declTable.get(info.funcBody.params)),
-            unsubstitutedReturnType = local.typeDeserializer.type(c.typeTable.get(info.funcBody.retType)),
+            unsubstitutedValueParameters = local.declDeserializer.valueParameters(decl.valueParameters),
+            unsubstitutedReturnType = local.typeDeserializer.type(decl.returnType),
             userDataMap = emptyMap()
         )
 
-//        function.isOperator =
+        function.isOperator = decl.isOperator
+        function.isStatic = decl.isStatic
+        function.isConst = decl.isConst
 
         return function
     }
 
 
     private fun valueParameters(
-        valueParameters: List<FbDecl>,
+        valueParameters: List<ValueParameterWrapper>,
 
         ): List<ValueParameterDescriptor> {
         if (valueParameters.isEmpty()) return emptyList()
-        assert(valueParameters.any { it.kind == FbDeclKind.FuncParam }) { "Expected value parameters, but $valueParameters found" }
         val callableDescriptor = c.containingDeclaration as CallableDescriptor
 
         return valueParameters.mapIndexed { i, decl ->
 
-            val info = decl.info as FbDeclInfo.ParamInfo
             ValueParameterDescriptorImpl(
                 callableDescriptor, null, i,
                 getAnnotations(decl.annotations),
-                decl.name, info.isNamedParam,
-                c.typeDeserializer.type(c.typeTable.get(decl.type)),
+                decl.name, decl.isNamedParam,
+                c.typeDeserializer.type(decl.type),
 
-                info.defaultVal != 0,
+                decl.declaresDefaultValue,
                 SourceElement.NO_SOURCE
             )
 

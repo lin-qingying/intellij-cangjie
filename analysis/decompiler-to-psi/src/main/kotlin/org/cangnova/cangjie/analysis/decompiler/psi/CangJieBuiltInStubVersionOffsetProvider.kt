@@ -4,7 +4,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.metadata.CangJieMetadataStubBuilder
+import org.cangnova.cangjie.analysis.decompiler.stub.file.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.analysis.decompiler.psi.BuiltinsVirtualFileProvider
 interface CangJieBuiltInStubVersionOffsetProvider {
     fun getVersionOffset(): Int

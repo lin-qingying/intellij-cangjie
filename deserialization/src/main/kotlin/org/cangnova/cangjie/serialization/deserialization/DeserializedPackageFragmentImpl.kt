@@ -30,6 +30,7 @@ import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedContainerSource
@@ -41,7 +42,7 @@ abstract class DeserializedPackageFragmentImpl(
     fqName: FqName,
     storageManager: StorageManager,
     module: ModuleDescriptor,
-    protected val packageData: FbPackage,
+    protected val packageData: PackageWrapper,
     private val metadataVersion: BinaryVersion,
     private val containerSource: DeserializedContainerSource?
 ) : DeserializedPackageFragment(fqName, storageManager, module) {

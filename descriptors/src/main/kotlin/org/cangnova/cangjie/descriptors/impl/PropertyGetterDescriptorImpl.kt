@@ -35,14 +35,14 @@ class PropertyGetterDescriptorImpl(
     annotations: Annotations,
     modality: Modality,
     visibility: DescriptorVisibility,
-    isDefault: Boolean,
+//    isDefault: Boolean,
 
     kind: CallableMemberDescriptor.Kind,
     original: PropertyGetterDescriptor?,
     source: SourceElement
 ) : PropertyAccessorDescriptorImpl(
     modality, visibility, correspondingProperty, annotations,
-    Name.special("<get-${correspondingProperty.name}>"), isDefault, kind, source
+    Name.special("<get-${correspondingProperty.name}>"), /*isDefault, */kind, source
 ), PropertyGetterDescriptor {
     override var returnType: CangJieType? = null
 

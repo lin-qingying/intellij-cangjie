@@ -37,14 +37,14 @@ class PropertySetterDescriptorImpl(
     annotations: Annotations,
     modality: Modality,
     visibility: DescriptorVisibility,
-    isDefault: Boolean,
+//    isDefault: Boolean,
 
     kind: CallableMemberDescriptor.Kind,
     original: PropertySetterDescriptor?,
     source: SourceElement
 ) : PropertyAccessorDescriptorImpl(
     modality, visibility, correspondingProperty, annotations,
-    Name.special("<set-${correspondingProperty.name}>"), isDefault,  kind, source
+    Name.special("<set-${correspondingProperty.name}>"), /*isDefault,  */kind, source
 ) , PropertySetterDescriptor{
     private var parameter: ValueParameterDescriptor? = null
 
