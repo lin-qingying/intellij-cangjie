@@ -45,3 +45,5 @@ bin/
 /.intellijPlatform/
 /.kotlin/
 /.cache/
+
+/metadata/gen
