@@ -23,6 +23,7 @@
  */
 package org.cangnova.cangjie.descriptors
 
+import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.CangJieType
@@ -61,7 +62,7 @@ import org.cangnova.cangjie.types.TypeSubstitution
  * }
  * ```
  */
-interface EnumDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor {
+interface EnumDescriptor :ClassifierDescriptorWithKind, ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor {
 
     /**
      * 获取枚举的成员作用域
@@ -69,7 +70,7 @@ interface EnumDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackag
      * @param typeArguments 类型参数列表
      * @return 成员作用域
      */
-    fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
+    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
 
     /**
      * 获取枚举的成员作用域（使用类型替换）
@@ -77,26 +78,26 @@ interface EnumDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackag
      * @param typeSubstitution 类型替换
      * @return 成员作用域
      */
-    fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
+    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
 
     /**
      * 未替换的成员作用域
      */
-    val unsubstitutedMemberScope: MemberScope
+    override  val unsubstitutedMemberScope: MemberScope
 
-    val isOptionType: Boolean
+    val isOptionType: Boolean get() = false
 
 
     /**
      * 实例作用域
      */
-    val instanceScope: MemberScope
+    override  val instanceScope: MemberScope
         get() = MemberScope.Empty
 
     /**
      * 静态作用域
      */
-    val staticScope: MemberScope
+    override val staticScope: MemberScope
 
     /**
      * 枚举构造函数列表
@@ -107,12 +108,6 @@ interface EnumDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackag
      */
     val constructors: Collection<EnumConstructorDescriptor>
 
-    /**
-     * 枚举成员函数列表
-     *
-     * 枚举中定义的函数成员
-     */
-    val members: Collection<FunctionDescriptor>
 
     /**
      * 是否有关联值
@@ -146,11 +141,13 @@ interface EnumDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackag
      * 默认类型
      */
     override val defaultType: SimpleType
-
+    override val kind: ClassKind
+        get() = ClassKind.ENUM
     /**
      * 枚举类型
      */
-    val enumKind: EnumKind
+    val enumKind: EnumKind get() = if (isNonExhaustive) EnumKind.NON_EXHAUSTIVE else EnumKind.ENUM
+
 
     /**
      * 模态性
@@ -176,13 +173,6 @@ interface EnumDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackag
     fun getAllConstructors(): Collection<EnumConstructorDescriptor>
 
     /**
-     * 获取所有成员
-     *
-     * @return 所有成员（包括继承的）
-     */
-    fun getAllMembers(): Collection<DeclarationDescriptor>
-
-    /**
      * 检查是否为非穷尽性枚举
      *
      * @return true如果是非穷尽性枚举
@@ -202,22 +192,19 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
     /**
      * 所属的枚举
      */
-    val containingEnum: EnumDescriptor
+    override val containingDeclaration: EnumDescriptor
 
     /**
      * 构造函数名称
      */
     override val name: Name
 
+
+
     /**
      * 是否有关联值
      */
-    val hasArguments: Boolean
-
-    /**
-     * 关联值类型列表
-     */
-    val argumentTypes: List<CangJieType>
+    val hasArguments: Boolean get() = valueParameters.isEmpty()
 
     /**
      * 构造函数参数
@@ -227,12 +214,8 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
     /**
      * 返回类型（通常是枚举本身）
      */
-    override val returnType: CangJieType
+    override val returnType: CangJieType?
 
-    /**
-     * 构造函数类型
-     */
-    val constructorType: CangJieType
 
     /**
      * 是否为简单构造函数（无关联值）
@@ -245,6 +228,55 @@ interface EnumConstructorDescriptor : CallableMemberDescriptor {
      */
     val isFunctionConstructor: Boolean
         get() = hasArguments
+
+
+
+
+
+    interface CopyBuilder<D : EnumConstructorDescriptor> : CallableMemberDescriptor.CopyBuilder<D> {
+        override fun setOwner(owner: DeclarationDescriptor): CopyBuilder<D>
+
+        override fun setModality(modality: Modality): CopyBuilder<D>
+
+        override fun setVisibility(visibility: DescriptorVisibility): CopyBuilder<D>
+
+        override fun setKind(kind: CallableMemberDescriptor.Kind): CopyBuilder<D>
+
+        override fun setCopyOverrides(copyOverrides: Boolean): CopyBuilder<D>
+
+        override fun setName(name: Name): CopyBuilder<D>
+
+        fun setValueParameters(parameters: List<ValueParameterDescriptor>): CopyBuilder<D>
+
+        override fun setTypeParameters(parameters: List<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<D>
+
+        override fun setReturnType(type: CangJieType): CopyBuilder<D>
+
+        fun setContextReceiverParameters(contextReceiverParameters: List<ReceiverParameterDescriptor>): CopyBuilder<D>
+
+        fun setExtensionReceiverParameter(extensionReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
+
+        override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CopyBuilder<D>
+
+        override fun setOriginal(original: CallableMemberDescriptor?): CopyBuilder<D>
+
+        fun setSignatureChange(): CopyBuilder<D>
+
+        override fun setPreserveSourceElement(): CopyBuilder<D>
+
+        fun setDropOriginalInContainingParts(): CopyBuilder<D>
+
+
+
+        fun setAdditionalAnnotations(additionalAnnotations: Annotations): CopyBuilder<D>
+
+        override fun setSubstitution(substitution: TypeSubstitution): CopyBuilder<D>
+
+        fun <V> putUserData(userDataKey: CallableDescriptor.UserDataKey<V>, value: V): CopyBuilder<D>
+
+        override fun build(): D?
+    }
+
 }
 
 /**

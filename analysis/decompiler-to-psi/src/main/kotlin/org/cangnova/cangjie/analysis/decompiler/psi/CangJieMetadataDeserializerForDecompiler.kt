@@ -131,6 +131,8 @@ abstract class DeserializerForDecompilerBase(val directoryPackageFqName: FqName,
 
     protected val moduleDescriptor: ModuleDescriptorImpl = createDummyModule("module for building decompiled sources")
     override fun resolveTopLevelClass(classId: ClassId) = deserializationComponents.deserializeClass(classId)
+    override fun resolveTopLevelEnum(classId: ClassId): EnumDescriptor? =
+        deserializationComponents.deserializeEnum(classId)
 
     protected val packageFragmentProvider: PackageFragmentProvider = object : PackageFragmentProviderOptimized {
         override fun collectPackageFragments(

@@ -51,34 +51,38 @@ fun buildDecompiledText(
         }
     }
 
-    fun appendDescriptor(descriptor: DeclarationDescriptor, indent: String, lastEnumEntry: Boolean? = null) {
-//        if (isEnumEntry(descriptor)) {
-//            for (annotation in descriptor.annotations) {
-//                builder.append(descriptorRenderer.renderAnnotation(annotation))
-//                builder.append(" ")
-//            }
-//
-//            builder.append(descriptor.name.asString().quoteIfNeeded())
-//            (descriptor as? ClassDescriptor)?.let {
-//                if (descriptor.unsubstitutedPrimaryConstructor is EnumEntryConstructorDescriptor && (descriptor.unsubstitutedPrimaryConstructor as EnumEntryConstructorDescriptor).getConstructorTypes()
-//                        .isNotEmpty()
-//                ) {
-//                    builder.append("(")
-//                    builder.append(
-//                        (descriptor.unsubstitutedPrimaryConstructor as EnumEntryConstructorDescriptor).getConstructorTypes()
-//                            .joinToString(",") {
-//                                descriptorRenderer.renderType(it)
-//
-//                            }
-//                    )
-//                    builder.append(")")
-//                }
-//            }
-//
-//            builder.append(if (lastEnumEntry!!) ";" else "|")
-//        } else {
-            builder.append(descriptorRenderer.render(descriptor).replace("= ...", DECOMPILED_COMMENT_FOR_PARAMETER))
-//        }
+    fun appendDescriptor(descriptor: DeclarationDescriptor, indent: String, lastEnumEntry: Boolean = false) {
+
+        if (descriptor is EnumConstructorDescriptor) {
+            for (annotation in descriptor.annotations) {
+                builder.append(descriptorRenderer.renderAnnotation(annotation))
+                builder.append(" ")
+            }
+
+            builder.append(descriptor.name.asString().quoteIfNeeded())
+            if (!descriptor.valueParameters.isEmpty()) {
+
+
+                builder.append(descriptorRenderer.renderValueParameters(descriptor.valueParameters, true))
+
+
+            }
+            if (descriptor.containingDeclaration.isNonExhaustive && lastEnumEntry) {
+                val subindent = "$indent    "
+                builder.append("|\n")
+
+                builder.append(subindent)
+                builder.append("...")
+            }
+            builder.append(if (lastEnumEntry) ";" else "|")
+        } else {
+            builder.append(
+                descriptorRenderer.render(descriptor).replace(
+                    "= ...",
+                    DECOMPILED_COMMENT_FOR_PARAMETER
+                )
+            )
+        }
 
         if (descriptor is CallableDescriptor) {
             //NOTE: assuming that only return types can be flexible
@@ -99,7 +103,7 @@ fun buildDecompiledText(
                     }
                 } else {
                     // descriptor instanceof PropertyDescriptor
-                    builder.append(" ").append(DECOMPILED_CODE_COMMENT)
+//                    builder.append(" ").append(DECOMPILED_CODE_COMMENT)
                 }
             }
             if (descriptor is PropertyDescriptor) {
@@ -122,8 +126,9 @@ fun buildDecompiledText(
                             builder.append(" ")
                         }
                         val parameterName = computeParameterName(parameterDescriptor.name)
-                        builder.append(parameterName.asString()).append("<: ")
-                            .append(descriptorRenderer.renderType(parameterDescriptor.type))
+                        builder.append(parameterName.asString())
+//                            .append("<: ")
+//                            .append(descriptorRenderer.renderType(parameterDescriptor.type))
                         builder.append(")")
                         builder.append(" {").append(DECOMPILED_CODE_COMMENT).append(" }")
                     }
@@ -151,20 +156,13 @@ fun buildDecompiledText(
                         } else {
                             listOf()
                         }
-            val (enumEntries, members) = allDescriptors.partition(::isEnumEntry)
-
-            for ((index, enumEntry) in enumEntries.withIndex()) {
-                newlineExceptFirst()
-                builder.append(subindent)
-                appendDescriptor(enumEntry, subindent, index == enumEntries.lastIndex)
-            }
 
 
 
-            for (member in members) {
-                if (DescriptorUtils.isEnum(descriptor) && member is ConstructorDescriptor) {
-                    continue
-                }
+
+
+            for (member in allDescriptors) {
+
                 if (member.containingDeclaration != descriptor) {
                     continue
                 }
@@ -178,6 +176,51 @@ fun buildDecompiledText(
             }
 
             builder.append(indent).append("}")
+        } else if (descriptor is EnumDescriptor) {
+
+            builder.append(" {\n")
+
+            val subindent = "$indent    "
+
+            var firstPassed = false
+
+
+            fun newlineExceptFirst() {
+                if (firstPassed) {
+                    builder.append("\n")
+                } else {
+                    firstPassed = true
+                }
+            }
+
+            val allDescriptors =
+                descriptor.defaultType.memberScope.getContributedDescriptors()
+
+            val enumEntries = descriptor.constructors.toList()
+            for ((index, enumEntry) in enumEntries.withIndex()) {
+                newlineExceptFirst()
+                builder.append(subindent)
+                appendDescriptor(enumEntry, subindent, index == enumEntries.lastIndex)
+            }
+
+
+
+            for (member in allDescriptors) {
+
+                if (member.containingDeclaration != descriptor) {
+                    continue
+                }
+
+                if (member is CallableMemberDescriptor && member.mustNotBeWrittenToDecompiledText()) {
+                    continue
+                }
+                newlineExceptFirst()
+                builder.append(subindent)
+                appendDescriptor(member, subindent)
+            }
+
+            builder.append(indent).append("}")
+
         }
         builder.append("\n")
     }

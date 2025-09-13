@@ -45,7 +45,7 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 abstract class AbstractClassDescriptor(
     private val storageManager: StorageManager,
     override val name: Name
-) : ModuleAwareClassDescriptor() {
+) : ModuleAwareClassDescriptor() ,ClassDescriptor{
 
     @OptIn(TypeRefinement::class)
     protected val _defaultType: NotNullLazyValue<SimpleType> = storageManager.createLazyValue {

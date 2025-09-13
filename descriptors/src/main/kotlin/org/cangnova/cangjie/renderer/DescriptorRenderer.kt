@@ -209,9 +209,9 @@ abstract class DescriptorRenderer {
             is TypeAliasDescriptor ->
                 "type"
 
-            is ClassDescriptor ->
+            is ClassifierDescriptorWithKind ->
                 when (classifier.kind) {
-                    ClassKind.STRUCT -> "struct"
+                    STRUCT -> "struct"
                     CLASS -> "class"
                     INTERFACE -> "interface"
                     ENUM -> "enum"
@@ -220,6 +220,7 @@ abstract class DescriptorRenderer {
                     ENUM_ENTRY -> "enum entry"
                     BASIC -> "basic type"
                     TUPLE -> "tuple"
+                    BUILTIN -> "builtIn type"
                 }
 
             else ->
@@ -229,10 +230,13 @@ abstract class DescriptorRenderer {
 }
 
 
+/**
+ * 参数名称渲染策略枚举
+ */
 enum class ParameterNameRenderingPolicy {
-    ALL,
-    ONLY_NON_SYNTHESIZED,
-    NONE
+    ALL, // 渲染所有参数名称
+    ONLY_NON_SYNTHESIZED, // 仅渲染非合成的参数名称
+    NONE // 不渲染参数名称
 }
 
 enum class DescriptorRendererModifier(val includeByDefault: Boolean) {

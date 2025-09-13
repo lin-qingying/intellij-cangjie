@@ -27,6 +27,7 @@ package org.cangnova.cangjie.serialization.deserialization
 import org.cangnova.cangjie.container.DefaultImplementation
 import org.cangnova.cangjie.descriptors.ClassConstructorDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptor
 import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
@@ -34,18 +35,18 @@ import org.cangnova.cangjie.types.CangJieType
 @DefaultImplementation(impl = AdditionalClassPartsProvider.None::class)
 
 interface AdditionalClassPartsProvider {
-    fun getSupertypes(classDescriptor: ClassDescriptor): Collection<CangJieType>
-    fun getFunctions(name: Name, classDescriptor: ClassDescriptor): Collection<SimpleFunctionDescriptor>
-    fun getConstructors(classDescriptor: ClassDescriptor): Collection<ClassConstructorDescriptor>
-    fun getFunctionsNames(classDescriptor: ClassDescriptor): Collection<Name>
+    fun getSupertypes(classDescriptor: ClassifierDescriptor): Collection<CangJieType>
+    fun getFunctions(name: Name, classDescriptor: ClassifierDescriptor): Collection<SimpleFunctionDescriptor>
+    fun getConstructors(classDescriptor: ClassifierDescriptor): Collection<ClassConstructorDescriptor>
+    fun getFunctionsNames(classDescriptor: ClassifierDescriptor): Collection<Name>
 
     object None : AdditionalClassPartsProvider {
-        override fun getSupertypes(classDescriptor: ClassDescriptor): Collection<CangJieType> = emptyList()
-        override fun getFunctions(name: Name, classDescriptor: ClassDescriptor): Collection<SimpleFunctionDescriptor> =
+        override fun getSupertypes(classDescriptor: ClassifierDescriptor): Collection<CangJieType> = emptyList()
+        override fun getFunctions(name: Name, classDescriptor: ClassifierDescriptor): Collection<SimpleFunctionDescriptor> =
             emptyList()
 
-        override fun getFunctionsNames(classDescriptor: ClassDescriptor): Collection<Name> = emptyList()
-        override fun getConstructors(classDescriptor: ClassDescriptor): Collection<ClassConstructorDescriptor> =
+        override fun getFunctionsNames(classDescriptor: ClassifierDescriptor): Collection<Name> = emptyList()
+        override fun getConstructors(classDescriptor: ClassifierDescriptor): Collection<ClassConstructorDescriptor> =
             emptyList()
     }
 }

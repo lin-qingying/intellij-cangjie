@@ -30,7 +30,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeSubstitution
 import org.cangnova.cangjie.types.TypeSubstitutor
 
-interface FunctionDescriptor : CallableMemberDescriptor {
+interface FunctionDescriptor : CallableMemberDescriptor ,EnumMember{
 
 
 

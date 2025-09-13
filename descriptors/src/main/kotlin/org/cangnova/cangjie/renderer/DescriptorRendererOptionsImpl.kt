@@ -106,7 +106,7 @@ open class DescriptorRendererOptionsImpl : DescriptorRendererOptions {
     override var overrideRenderingPolicy by property(OverrideRenderingPolicy.RENDER_OPEN)
     override var valueParametersHandler: DescriptorRenderer.ValueParametersHandler by property(DescriptorRenderer.ValueParametersHandler.DEFAULT)
     override var textFormat by property(RenderingFormat.PLAIN)
-    override var parameterNameRenderingPolicy by property(ParameterNameRenderingPolicy.ALL)
+    override var parameterNameRenderingPolicy by property(ParameterNameRenderingPolicy.ONLY_NON_SYNTHESIZED)
     override var receiverAfterName by property(false)
     override var renderCompanionObjectName by property(false)
     override var propertyAccessorRenderingPolicy by property(PropertyAccessorRenderingPolicy.DEBUG)

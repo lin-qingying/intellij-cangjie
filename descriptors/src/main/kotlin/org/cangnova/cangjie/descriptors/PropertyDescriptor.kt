@@ -29,7 +29,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeSubstitutor
 
 
-interface PropertyDescriptor : PropertyDescriptorWithAccessors, CallableMemberDescriptor {
+interface PropertyDescriptor :EnumMember, PropertyDescriptorWithAccessors, CallableMemberDescriptor {
 
     override val getter: PropertyGetterDescriptor?
 

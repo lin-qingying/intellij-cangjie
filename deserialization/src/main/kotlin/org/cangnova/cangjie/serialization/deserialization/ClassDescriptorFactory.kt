@@ -41,6 +41,7 @@ import org.cangnova.cangjie.storage.getValue
 
 interface ClassDescriptorFactory {
     fun shouldCreateClass(packageFqName: FqName, name: Name): Boolean
+    fun createEnum(classId: ClassId): EnumDescriptor?
 
     fun createClass(classId: ClassId): ClassDescriptor?
 
@@ -53,10 +54,22 @@ class CloneableClassScope(
     containingClass: ClassDescriptor
 ) : GivenFunctionsMemberScope(storageManager, containingClass) {
     override fun computeDeclaredFunctions(): List<FunctionDescriptor> = listOf(
-        SimpleFunctionDescriptorImpl.create(containingClass, Annotations.EMPTY, CLONE_NAME, CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE).apply {
+        SimpleFunctionDescriptorImpl.create(
+            containingClass,
+            Annotations.EMPTY,
+            CLONE_NAME,
+            CallableMemberDescriptor.Kind.DECLARATION,
+            SourceElement.NO_SOURCE
+        ).apply {
             initialize(
-                null, containingClass.thisAsReceiverParameter, emptyList(), emptyList(), emptyList(), containingClass.builtIns.anyType,
-                Modality.OPEN, DescriptorVisibilities.PROTECTED
+                null,
+                containingClass.thisAsReceiverParameter,
+                emptyList(),
+                emptyList(),
+                emptyList(),
+                containingClass.builtIns.anyType,
+                Modality.OPEN,
+                DescriptorVisibilities.PROTECTED
             )
         }
     )
@@ -86,6 +99,12 @@ class CangJieBuiltInClassDescriptorFactory(
     override fun shouldCreateClass(packageFqName: FqName, name: Name): Boolean =
         name == CLONEABLE_NAME && packageFqName == CANGJIE_FQ_NAME
 
+    override fun createEnum(classId: ClassId): EnumDescriptor? =
+        when (classId) {
+
+            else -> null
+        }
+
     override fun createClass(classId: ClassId): ClassDescriptor? =
         when (classId) {
             CLONEABLE_CLASS_ID -> cloneable
@@ -102,5 +121,6 @@ class CangJieBuiltInClassDescriptorFactory(
         private val CANGJIE_FQ_NAME = StandardNames.BASIC_PACKAGE_FQ_NAME
         private val CLONEABLE_NAME = StandardNames.FqNames.cloneable.shortName()
         val CLONEABLE_CLASS_ID = ClassId.topLevel(StandardNames.FqNames.cloneable.toSafe())
+
     }
 }

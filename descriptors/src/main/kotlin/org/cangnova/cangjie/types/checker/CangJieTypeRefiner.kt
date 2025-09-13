@@ -51,7 +51,7 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
     abstract override fun refineType(type: CangJieTypeMarker): CangJieType
 
     @TypeRefinement
-    abstract fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<CangJieType>
+    abstract fun refineSupertypes(classDescriptor: ClassifierDescriptorWithKind): Collection<CangJieType>
 
     @TypeRefinement
     abstract fun refineDescriptor(descriptor: DeclarationDescriptor): ClassifierDescriptor?
@@ -60,7 +60,7 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
     @TypeRefinement
     abstract fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean
     @TypeRefinement
-    abstract fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S
+    abstract fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassifierDescriptor, compute: () -> S): S
     
     /**
      * 精化枚举类型
@@ -82,7 +82,7 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
         }
 //
         @TypeRefinement
-        override fun refineSupertypes(classDescriptor: ClassDescriptor): Collection<CangJieType> {
+        override fun refineSupertypes(classDescriptor: ClassifierDescriptorWithKind): Collection<CangJieType> {
             return classDescriptor.typeConstructor.supertypes
         }
 //
@@ -107,7 +107,7 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
         }
 
         @TypeRefinement
-        override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassDescriptor, compute: () -> S): S {
+        override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassifierDescriptor, compute: () -> S): S {
             return compute()
         }
         

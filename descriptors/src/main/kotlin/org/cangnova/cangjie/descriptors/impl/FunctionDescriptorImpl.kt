@@ -53,7 +53,7 @@ abstract class FunctionDescriptorImpl(
         get() = if (_original == this) this else _original.original
 
 
-    protected var userDataMap: Map<  CallableDescriptor.UserDataKey<*>, Any>? = null
+    protected var userDataMap: Map<CallableDescriptor.UserDataKey<*>, Any>? = null
     override lateinit var typeParameters: List<TypeParameterDescriptor>
     private var unsubstitutedValueParameters: List<ValueParameterDescriptor> = ArrayList()
     private var unsubstitutedReturnType: CangJieType? = null
@@ -172,8 +172,7 @@ abstract class FunctionDescriptorImpl(
     }
 
 
-
-open fun initialize(
+    open fun initialize(
         extensionReceiverParameter: ReceiverParameterDescriptor?,
         dispatchReceiverParameter: ReceiverParameterDescriptor?,
         contextReceiverParameters: List<ReceiverParameterDescriptor>,
@@ -211,9 +210,6 @@ open fun initialize(
 
         return this
     }
-
-
-
 
 
     override val overriddenDescriptors: Collection<FunctionDescriptor>
@@ -294,8 +290,6 @@ open fun initialize(
         }
 
 
-
-
     override fun hasSynthesizedParameterNames(): Boolean {
         return hasSynthesizedParameterNames
     }
@@ -363,7 +357,11 @@ open fun initialize(
 
         // 创建一个新的函数描述符副本
         val substitutedDescriptor = createSubstitutedCopy(
-            configuration.newOwner, configuration.getOriginal(), configuration.kind, configuration.name, resultAnnotations,
+            configuration.newOwner,
+            configuration.getOriginal(),
+            configuration.kind,
+            configuration.name,
+            resultAnnotations,
             getSourceToUseForCopy(configuration.preserveSourceElement, configuration.getOriginal())
         )
 
@@ -613,7 +611,7 @@ open fun initialize(
     ) : FunctionDescriptor.CopyBuilder<FunctionDescriptor> {
 
         val userDataMap: MutableMap<CallableDescriptor.UserDataKey<*>, Any> = LinkedHashMap()
-     private   var _original: FunctionDescriptor? = null
+        private var _original: FunctionDescriptor? = null
         var dispatchReceiverParameter: ReceiverParameterDescriptor? =
             this@FunctionDescriptorImpl.dispatchReceiverParameter
         var copyOverrides: Boolean = true

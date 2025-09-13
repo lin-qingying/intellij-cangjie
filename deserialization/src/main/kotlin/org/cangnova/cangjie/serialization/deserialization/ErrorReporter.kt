@@ -26,10 +26,11 @@ package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
 
 interface ErrorReporter {
     fun reportIncompleteHierarchy(
-        descriptor: ClassDescriptor,
+        descriptor: ClassifierDescriptorWithKind,
         unresolvedSuperClasses: List<String >
     )
 
@@ -38,7 +39,7 @@ interface ErrorReporter {
     companion object {
         val DO_NOTHING: ErrorReporter = object : ErrorReporter {
             override fun reportIncompleteHierarchy(
-                descriptor: ClassDescriptor,
+                descriptor: ClassifierDescriptorWithKind,
                 unresolvedSuperClasses: List<String >
             ) {
             }

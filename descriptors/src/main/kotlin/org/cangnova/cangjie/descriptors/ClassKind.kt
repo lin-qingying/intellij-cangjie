@@ -33,7 +33,10 @@ enum class ClassKind(val codeRepresentation: String?) {
     ENUM("enum"),
     EXTEND("extend"),
     ENUM_ENTRY(null),
-    BASIC(null);
+    BASIC(null),
+    BUILTIN(null),
+
+    ;
 
     val isStruct: Boolean
         get() = this == STRUCT

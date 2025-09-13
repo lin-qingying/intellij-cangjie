@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
 import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
@@ -223,7 +224,7 @@ object CangJieTypeFactory {
     ): MemberScope {
         return when (val descriptor = constructor.declarationDescriptor) {
             is TypeParameterDescriptor -> descriptor.defaultType.memberScope
-            is ClassDescriptor -> {
+            is ClassifierDescriptorWithKind -> {
                 val refinerToUse = cangjieTypeRefiner ?: descriptor.module.getCangJieTypeRefiner()
                 if (arguments.isEmpty())
                     descriptor.getRefinedUnsubstitutedMemberScopeIfPossible(refinerToUse)
@@ -367,6 +368,34 @@ object CangJieTypeFactory {
                 SimpleTypeWithAttributes(it, attributes)
         }
 
+    @JvmStatic
+    @OptIn(TypeRefinement::class)
+    fun enumTypeWithNonTrivialMemberScope(
+        attributes: TypeAttributes,
+        constructor: EnumTypeConstructor,
+        arguments: List<TypeProjection>,
+        option: Boolean,
+        memberScope: MemberScope
+    ): SimpleType=
+        EnumType(constructor, arguments, memberScope, option) { cangjieTypeRefiner ->
+            val expandedTypeOrRefinedConstructor =
+                refineConstructor(constructor, cangjieTypeRefiner, arguments) ?: return@EnumType null
+            expandedTypeOrRefinedConstructor.expandedType?.let { return@EnumType it }
+
+            enumTypeWithNonTrivialMemberScope(
+                attributes,
+                expandedTypeOrRefinedConstructor.refinedConstructor!! as EnumTypeConstructor,
+                arguments,
+
+                option,
+                memberScope,
+                )
+        }.let {
+            if (attributes.isEmpty())
+                it
+            else
+                SimpleTypeWithAttributes(it, attributes)
+        }
 }
 typealias RefinedTypeFactory = (CangJieTypeRefiner) -> SimpleType?
 
@@ -382,6 +411,7 @@ abstract class DelegatingSimpleTypeImpl(override val delegate: SimpleType) : Del
         return delegate.makeOptionAsSpecified(isOption).replaceAttributes(attributes)
     }
 }
+
 
 private class SimpleTypeWithAttributes(
     delegate: SimpleType,

@@ -37,3 +37,6 @@ abstract class ClassDescriptorBase protected constructor(
     override val source: SourceElement,
 
     ) : AbstractClassDescriptor(storageManager, name)
+{
+
+    }

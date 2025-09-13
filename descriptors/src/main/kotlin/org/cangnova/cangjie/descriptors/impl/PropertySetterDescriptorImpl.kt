@@ -77,6 +77,9 @@ class PropertySetterDescriptorImpl(
         }
     }
 
+    override fun hasSynthesizedParameterNames(): Boolean {
+        return true
+    }
 
     override val overriddenDescriptors: Collection<PropertySetterDescriptor>
         get() = super.getOverriddenDescriptors(false) as Collection<PropertySetterDescriptor>

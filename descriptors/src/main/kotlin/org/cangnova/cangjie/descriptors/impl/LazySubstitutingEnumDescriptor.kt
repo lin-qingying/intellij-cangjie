@@ -33,20 +33,21 @@ import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.SubstitutingScope
 import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.types.*
+import org.cangnova.cangjie.types.CangJieTypeFactory.enumTypeWithNonTrivialMemberScope
 import org.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
-class LazySubstitutingClassDescriptor(
+class LazySubstitutingEnumDescriptor(
     override val original: ModuleAwareClassDescriptor, private val originalSubstitutor: TypeSubstitutor
-) : ModuleAwareClassDescriptor(), ClassDescriptor {
+) : ModuleAwareClassDescriptor(), EnumDescriptor {
 
     init {
-        assert(original is ClassDescriptor) {
-            "ClassDescriptor expected to be a ClassDescriptor"
+        assert(original is EnumDescriptor) {
+            "EnumDescriptor expected to be a EnumDescriptor"
         }
-
     }
 
+    val originalEnum = original as EnumDescriptor
     private var newSubstitutor: TypeSubstitutor? = null
     private lateinit var typeConstructorParameters: MutableList<TypeParameterDescriptor>
     private lateinit var myDeclaredTypeParameters: MutableList<TypeParameterDescriptor>
@@ -99,6 +100,7 @@ class LazySubstitutingClassDescriptor(
         return SubstitutingScope(memberScope, getSubstitutor())
     }
 
+
     @OptIn(TypeRefinement::class)
     override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
         return getMemberScope(
@@ -146,7 +148,7 @@ class LazySubstitutingClassDescriptor(
         }
 
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
-        return visitor.visitClassDescriptor(this, data!!)
+        return visitor.visitEnumDescriptor(this, data!!)
 
     }
 
@@ -174,7 +176,7 @@ class LazySubstitutingClassDescriptor(
                     substitutor.substitute(supertype, Variance.INVARIANT)?.let { supertypes.add(it) }
                 }
 
-                myTypeConstructor = ClassTypeConstructorImpl(
+                myTypeConstructor = EnumTypeConstructorImpl(
                     this,
                     typeConstructorParameters,
                     supertypes,
@@ -191,9 +193,9 @@ class LazySubstitutingClassDescriptor(
                 TypeUtils.getDefaultTypeProjections(
                     typeConstructor.parameters
                 )
-            return simpleTypeWithNonTrivialMemberScope(
+            return enumTypeWithNonTrivialMemberScope(
                 DefaultTypeAttributeTranslator.toAttributes(annotations, null, null),
-                typeConstructor,
+                typeConstructor as EnumTypeConstructor,
                 typeProjections,
                 false,
                 unsubstitutedMemberScope
@@ -211,7 +213,7 @@ class LazySubstitutingClassDescriptor(
 
     override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {
         if (substitutor.isEmpty) return this
-        return LazySubstitutingClassDescriptor(
+        return LazySubstitutingEnumDescriptor(
             this,
             TypeSubstitutor.createChainedSubstitutor(
                 substitutor.substitution,
@@ -228,53 +230,20 @@ class LazySubstitutingClassDescriptor(
             return myDeclaredTypeParameters
         }
 
+    override fun getAllConstructors(): Collection<EnumConstructorDescriptor> {
+        return originalEnum.getAllConstructors()
+    }
 
-    override val thisAsReceiverParameter: ReceiverParameterDescriptor
-        get() = TODO("Not yet implemented")
-
-    override val contextReceivers: List<ReceiverParameterDescriptor>
-        get() = emptyList()
 
     override val staticScope: MemberScope
         get() = original.staticScope
+    override val constructors: Collection<EnumConstructorDescriptor>
+        get() = originalEnum.constructors
 
-    override val constructors: Collection<ClassConstructorDescriptor>
-        get() {
-
-            val originalConstructors: Collection<ClassConstructorDescriptor> =
-                (original as ClassDescriptor).constructors
-            val result: MutableCollection<ClassConstructorDescriptor> =
-                java.util.ArrayList<ClassConstructorDescriptor>(originalConstructors.size)
-            for (constructor in originalConstructors) {
-                val copy: ClassConstructorDescriptor = constructor.newCopyBuilder()
-                    .setOriginal(constructor.original)
-                    .setModality(constructor.modality)
-                    .setVisibility(constructor.visibility)
-                    .setKind(constructor.kind)
-                    .setCopyOverrides(false)
-                    .build() as ClassConstructorDescriptor
-                copy.substitute(getSubstitutor()).let { result.add(it) }
-            }
-            return result
-        }
-
-
-    override val endConstructors: Collection<ClassConstructorDescriptor>
-        get() = emptySet()
-
-
-    override val kind: ClassKind
-        get() = (original as ClassDescriptor).kind
-
-
-    override val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
-        get() = (original as ClassDescriptor).unsubstitutedPrimaryConstructor
-
-
-    override val sealedSubclasses: Collection<ClassDescriptor>
-        get() = (original as ClassDescriptor).sealedSubclasses
-    override val defaultFunctionTypeForSamInterface: SimpleType?
-        get() = substituteSimpleType((original as ClassDescriptor).defaultFunctionTypeForSamInterface)
+    override val hasArguments: Boolean
+        get() = originalEnum.hasArguments
+    override val isNonExhaustive: Boolean
+        get() = originalEnum.isNonExhaustive
 
 
     private fun substituteSimpleType(type: SimpleType?): SimpleType? {
@@ -293,8 +262,6 @@ class LazySubstitutingClassDescriptor(
         return substitutedType as SimpleType
     }
 
-    override val isDefinitelyNotSamInterface: Boolean
-        get() = (original as ClassDescriptor).isDefinitelyNotSamInterface
 
     override val containingDeclaration: DeclarationDescriptor
         get() = original.containingDeclaration

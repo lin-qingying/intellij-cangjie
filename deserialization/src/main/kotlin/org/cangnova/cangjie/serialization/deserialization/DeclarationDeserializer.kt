@@ -34,6 +34,7 @@ import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
 import org.cangnova.cangjie.metadata.model.wrapper.AnnotationWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.ConstructorWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.EnumEntryWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.FunctionWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.PropertyWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.TypeAliasWrapper
@@ -42,6 +43,7 @@ import org.cangnova.cangjie.metadata.model.wrapper.VariableWrapper
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.resolve.DescriptorFactory
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedClassConstructorDescriptor
+import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedEnumConstructorDescriptor
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedPropertyDescriptor
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedTypeAliasDescriptor
@@ -66,6 +68,33 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
         return Annotations.EMPTY
     }
 
+    fun loadEnumConstructor(decl: EnumEntryWrapper): EnumConstructorDescriptor {
+
+
+        val classDescriptor = c.containingDeclaration as EnumDescriptor
+        val descriptor = DeserializedEnumConstructorDescriptor(
+            classDescriptor,
+            null,
+            getAnnotations(
+                decl.annotations
+            ),
+            decl,
+
+
+            c.containerSource
+        )
+
+        val local = c.childContext(descriptor, listOf())
+        descriptor.initialize(
+            unsubstitutedValueParameters =  local.declDeserializer.valueParameters(
+               decl.valueParameters,
+           ),
+            visibility = decl.visibility,
+            unsubstitutedReturnType = classDescriptor.defaultType
+        )
+
+        return descriptor
+    }
 
     fun loadConstructor(decl: ConstructorWrapper, isPrimary: Boolean): ClassConstructorDescriptor {
 
@@ -85,11 +114,12 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
             c.containerSource
         )
 
-        val local = c.childContext(descriptor,listOf())
+        val local = c.childContext(descriptor, listOf())
         descriptor.initialize(
             local.declDeserializer.valueParameters(
                 decl.valueParameters,
             ),
+            visibility = decl.visibility
         )
         descriptor.setReturnType(classDescriptor.defaultType)
 
@@ -118,7 +148,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
             c.containerSource
         )
 
-        val local = c.childContext(property,emptyList())
+        val local = c.childContext(property, emptyList())
 
         val receiverAnnotations = Annotations.EMPTY
 
@@ -172,7 +202,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
 */
                 property.kind, null, SourceElement.NO_SOURCE
             )
-            val setterLocal = local.childContext(setter,listOf())
+            val setterLocal = local.childContext(setter, listOf())
             val valueParameters = setterLocal.declDeserializer.valueParameters(
                 decl.setter!!.valueParameters,
             )
@@ -200,7 +230,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
             visibility, decl, c.containerSource
         )
 
-        val local = c.childContext(typeAlias,listOf())
+        val local = c.childContext(typeAlias, listOf())
         typeAlias.initialize(
             local.typeDeserializer.ownTypeParameters,
             local.typeDeserializer.simpleType(decl.underlyingType, expandTypeAliases = false),
@@ -229,7 +259,7 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
             c.containerSource
         )
 
-        val local = c.childContext(variable,listOf())
+        val local = c.childContext(variable, listOf())
         val receiverAnnotations =
             Annotations.EMPTY
         variable.setType(
@@ -306,11 +336,15 @@ class DeclarationDeserializer(private val c: DeserializationContext) {
 
         )
 
-        val local = c.childContext(function,decl.typeParameters)
+        val local = c.childContext(function, decl.typeParameters)
         function.initializeWithCoroutinesExperimentalityStatus(
             unsubstitutedValueParameters = local.declDeserializer.valueParameters(decl.valueParameters),
             unsubstitutedReturnType = local.typeDeserializer.type(decl.returnType),
-            userDataMap = emptyMap()
+            userDataMap = emptyMap(),
+            typeParameters = local.typeDeserializer.ownTypeParameters,
+            modality = decl.modality,
+            visibility = decl.visibility,
+            dispatchReceiverParameter = getDispatchReceiverParameter(),
         )
 
         function.isOperator = decl.isOperator

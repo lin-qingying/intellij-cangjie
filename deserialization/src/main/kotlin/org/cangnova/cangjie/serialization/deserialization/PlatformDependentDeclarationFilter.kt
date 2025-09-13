@@ -26,19 +26,20 @@ package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
 import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
 import org.cangnova.cangjie.name.FqName
 
 interface PlatformDependentDeclarationFilter {
 
-    fun isFunctionAvailable(classDescriptor: ClassDescriptor, functionDescriptor: SimpleFunctionDescriptor): Boolean
+    fun isFunctionAvailable(classDescriptor: ClassifierDescriptorWithKind, functionDescriptor: SimpleFunctionDescriptor): Boolean
 
     object All : PlatformDependentDeclarationFilter {
-        override fun isFunctionAvailable(classDescriptor: ClassDescriptor, functionDescriptor: SimpleFunctionDescriptor) = true
+        override fun isFunctionAvailable(classDescriptor: ClassifierDescriptorWithKind, functionDescriptor: SimpleFunctionDescriptor) = true
     }
 
     object NoPlatformDependent : PlatformDependentDeclarationFilter {
-        override fun isFunctionAvailable(classDescriptor: ClassDescriptor, functionDescriptor: SimpleFunctionDescriptor) =
+        override fun isFunctionAvailable(classDescriptor: ClassifierDescriptorWithKind, functionDescriptor: SimpleFunctionDescriptor) =
             !functionDescriptor.annotations.hasAnnotation(PLATFORM_DEPENDENT_ANNOTATION_FQ_NAME)
     }
 }

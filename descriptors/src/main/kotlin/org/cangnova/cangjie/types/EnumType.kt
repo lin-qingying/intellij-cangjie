@@ -27,6 +27,7 @@ import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.EnumConstructorDescriptor
 import org.cangnova.cangjie.descriptors.EnumDescriptor
 import org.cangnova.cangjie.descriptors.EnumKind
+import org.cangnova.cangjie.descriptors.EnumMember
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.builtIns
@@ -79,93 +80,53 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
  * - memberScope 对应 枚举成员作用域
  */
 class EnumType(
-    private val enumDescriptor: EnumDescriptor,
-    typeArguments: List<TypeProjection> = emptyList(),
-    override val isOption: Boolean = false,
-    attributes: TypeAttributes = TypeAttributes.Empty
-) : SimpleType() {
+    override val constructor: EnumTypeConstructor,
+    arguments: List<TypeProjection>,
+    memberScope: MemberScope,
 
-    /**
-     * 类型构造函数
-     */
-    override val constructor: TypeConstructor = EnumTypeConstructor(enumDescriptor)
-
-    /**
-     * 类型参数
-     */
-    override val arguments: List<TypeProjection> = typeArguments
-
-    /**
-     * 类型属性
-     */
-    override val attributes: TypeAttributes = attributes
-
-    /**
-     * 成员作用域
-     *
-     * 委托给枚举描述符的成员作用域
-     */
-    override val memberScope: MemberScope
-        get() = enumDescriptor.unsubstitutedMemberScope
-
-    /**
-     * 枚举描述符
-     */
-    val descriptor: EnumDescriptor = enumDescriptor
+    isOption: Boolean = false,
+    refinedTypeFactory: RefinedTypeFactory
+) : SimpleTypeImpl(
+    constructor, arguments, isOption, memberScope, refinedTypeFactory
+) {
 
     /**
      * 枚举名称
      */
     val name: Name
-        get() = enumDescriptor.name
+        get() = constructor.declarationDescriptor.name
 
     /**
      * 枚举类型
      */
     val enumKind: EnumKind
-        get() = enumDescriptor.enumKind
+        get() = constructor.declarationDescriptor.enumKind
 
     /**
      * 是否有关联值
      */
     val hasArguments: Boolean
-        get() = enumDescriptor.hasArguments
+        get() = constructor.declarationDescriptor.hasArguments
 
     /**
      * 是否为非穷尽性枚举
      */
     val isNonExhaustive: Boolean
-        get() = enumDescriptor.isNonExhaustive
+        get() = constructor.declarationDescriptor.isNonExhaustive
 
     /**
      * 是否为Option类型
      */
     val isOptionType: Boolean
-        get() = enumDescriptor.isOptionType
+        get() = constructor.declarationDescriptor.isOptionType
 
     /**
      * 枚举构造函数列表
      */
     val constructors: Collection<EnumConstructorDescriptor>
-        get() = enumDescriptor.constructors
+        get() = constructor.declarationDescriptor.constructors
 
-    /**
-     * 枚举成员函数列表
-     */
-    val members: Collection<FunctionDescriptor>
-        get() = enumDescriptor.members
 
-    /**
-     * 替换类型属性
-     *
-     * 创建具有新属性的枚举类型副本
-     *
-     * @param newAttributes 新的类型属性
-     * @return 具有新属性的枚举类型
-     */
-    override fun replaceAttributes(newAttributes: TypeAttributes): EnumType {
-        return EnumType(enumDescriptor, arguments, isOption, newAttributes)
-    }
 
 
     /**
@@ -178,7 +139,7 @@ class EnumType(
         return if (isOption == this.isOption) {
             this
         } else {
-            EnumType(enumDescriptor, arguments, isOption, attributes)
+            EnumType(constructor, arguments, memberScope, isOption, refinedTypeFactory)
         }
     }
 
@@ -243,7 +204,7 @@ class EnumType(
         if (this === other) return true
         if (other !is EnumType) return false
 
-        return enumDescriptor == other.enumDescriptor &&
+        return constructor == other.constructor &&
                 arguments == other.arguments &&
                 isOption == other.isOption &&
                 attributes == other.attributes
@@ -255,7 +216,7 @@ class EnumType(
      * @return 哈希码
      */
     override fun hashCode(): Int {
-        var result = enumDescriptor.hashCode()
+        var result = constructor.hashCode()
         result = 31 * result + arguments.hashCode()
         result = 31 * result + isOption.hashCode()
         result = 31 * result + attributes.hashCode()
@@ -263,103 +224,3 @@ class EnumType(
     }
 }
 
-/**
- * 枚举类型构造函数
- *
- * 表示枚举类型的构造函数，负责创建枚举类型实例。
- *
- * 特点：
- * - 包含枚举描述符
- * - 支持类型参数
- * - 支持类型参数声明
- * - 支持声明描述符
- *
- * 示例：
- * ```kotlin
- * val enumConstructor = EnumTypeConstructor(enumDescriptor)
- * val enumType = enumConstructor.createType(typeArguments)
- * ```
- */
-class EnumTypeConstructor(
-    private val enumDescriptor: EnumDescriptor
-) : TypeConstructor {
-
-    /**
-     * 声明描述符
-     */
-    override val declarationDescriptor: EnumDescriptor = enumDescriptor
-
-    /**
-     * 内置类型信息
-     */
-    override val builtIns: CangJieBuiltIns
-        get() = enumDescriptor.builtIns
-
-    @TypeRefinement
-    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
-        return this
-    }
-
-    /**
-     * 类型参数声明
-     */
-    override val parameters: List<org.cangnova.cangjie.descriptors.TypeParameterDescriptor>
-        get() = enumDescriptor.declaredTypeParameters
-
-    /**
-     * 超类型
-     */
-    override val supertypes: Collection<CangJieType>
-        get() = emptyList() // 枚举类型没有超类型
-
-    /**
-     * 是否最终
-     */
-    override val isFinal: Boolean = true
-
-    /**
-     * 是否拒绝
-     */
-    override val isDenotable: Boolean = true
-
-    /**
-     * 创建类型
-     *
-     * @param arguments 类型参数
-     * @return 枚举类型
-     */
-    fun createType(arguments: List<TypeProjection>): EnumType {
-        return EnumType(enumDescriptor, arguments)
-    }
-
-    /**
-     * 字符串表示
-     *
-     * @return 枚举类型构造函数的字符串表示
-     */
-    override fun toString(): String {
-        return "EnumTypeConstructor(${enumDescriptor.name})"
-    }
-
-    /**
-     * 相等性比较
-     *
-     * @param other 要比较的对象
-     * @return true如果相等
-     */
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is EnumTypeConstructor) return false
-
-        return enumDescriptor == other.enumDescriptor
-    }
-
-    /**
-     * 哈希码
-     *
-     * @return 哈希码
-     */
-    override fun hashCode(): Int {
-        return enumDescriptor.hashCode()
-    }
-} 

@@ -66,6 +66,7 @@ import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
 import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.descriptors.impl.BuiltinsClassDescriptor
 
 open class CangJieBuiltIns(
     val project: Project? = null,
@@ -94,17 +95,6 @@ open class CangJieBuiltIns(
             return false
         }
 
-        //    内置类型名称
-        enum class BuiltCangJieTypeName(private val _typeName: String) {
-            CPOINTER("CPointer"),
-            CSTRING("CString");
-
-            val typeName: Name
-                get() {
-                    return Name.identifier(_typeName)
-
-                }
-        }
 
 
         /**
@@ -573,6 +563,9 @@ open class CangJieBuiltIns(
     }
 
 
+    fun createBuiltInsClassDescriptor(type: BuiltinsType): BuiltinsClassDescriptor {
+        return BuiltinsClassDescriptor(type, storageManager, builtInsModule, this)
+    }
     fun createPrimitiveClassDescriptor(type: PrimitiveType): PrimitiveClassDescriptor {
         return PrimitiveClassDescriptor(type, storageManager, builtInsModule, this)
     }
@@ -609,6 +602,12 @@ open class CangJieBuiltIns(
     val stringType: SimpleType
         get() {
             return string.defaultType
+        }
+    val ctype: ClassDescriptor
+        get() = getStdCoreClassByName("CType")
+    val ctypeType: SimpleType
+        get() {
+            return ctype.defaultType
         }
     val array: ClassDescriptor
         get() = getStdCoreClassByName("Array")

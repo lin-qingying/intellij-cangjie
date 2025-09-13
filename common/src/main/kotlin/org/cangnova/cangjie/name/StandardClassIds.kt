@@ -27,6 +27,8 @@ package org.cangnova.cangjie.name
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.arrayFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.boolFqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.cpointerFqName
+import org.cangnova.cangjie.builtins.StandardNames.FqNames.cstringFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.float16FqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.float32FqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.float64FqName
@@ -71,7 +73,8 @@ object StandardClassIds {
         return "Function$n".baseId()
     }
 
-
+    val CStringClassId = cstringFqName.toClassId()
+    val CPointerClassId = cpointerFqName.toClassId()
     val ArrayClassId = arrayFqName.toClassId()
 
     // Int types

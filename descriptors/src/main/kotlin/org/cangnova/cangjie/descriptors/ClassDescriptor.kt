@@ -24,32 +24,46 @@
 package org.cangnova.cangjie.descriptors
 
 
-
 import org.cangnova.cangjie.psi.CjSuperTypeListEntry
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.types.TypeProjection
 import org.cangnova.cangjie.types.TypeSubstitution
 
-interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor
-   {
+interface ClassifierDescriptorWithKind  : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor {
+    val kind: ClassKind
+
     fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
+    fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
+    val unsubstitutedMemberScope: MemberScope
+
+    val instanceScope: MemberScope
+        get() = MemberScope.Empty
+
+    val staticScope: MemberScope
+
+
+}
+
+interface ClassDescriptor : ClassifierDescriptorWithKind, ClassifierDescriptorWithTypeParameters,
+    ClassOrPackageFragmentDescriptor {
+    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
+    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
 
     val thisAsReceiverParameter: ReceiverParameterDescriptor
 
 
     val contextReceivers: List<ReceiverParameterDescriptor>
 
-    fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
 
-    val unsubstitutedMemberScope: MemberScope
+    override val unsubstitutedMemberScope: MemberScope
 
 //    val unsubstitutedInnerClassesScope: MemberScope
 
-    val instanceScope: MemberScope
+    override val instanceScope: MemberScope
         get() = MemberScope.Empty
 
-    val staticScope: MemberScope
+    override val staticScope: MemberScope
 
 
     val constructors: Collection<ClassConstructorDescriptor>
@@ -70,7 +84,7 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
      * @return nested object declared as 'companion' if one is present.
      */
 
-    val kind: ClassKind
+    override val kind: ClassKind
 
 
     override val modality: Modality
@@ -78,10 +92,7 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
     override val visibility: DescriptorVisibility
 
 
-
-
-
-    val  unsubstitutedPrimaryConstructor : ClassConstructorDescriptor?
+    val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
 
     /**
      * It may differ from 'typeConstructor.parameters' in current class is inner, 'typeConstructor.parameters' contains
@@ -97,18 +108,18 @@ interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, ClassOrPacka
      * @return direct subclasses of this class if it's a sealed class, empty list otherwise
      */
 
-    val sealedSubclasses : Collection<ClassDescriptor>
+    val sealedSubclasses: Collection<ClassDescriptor>
 
     override val original: ClassifierDescriptor
 
     // Use SingleAbstractMethodUtils.getFunctionTypeForSamInterface() where possible. This is only a fallback
-    val defaultFunctionTypeForSamInterface : SimpleType?
+    val defaultFunctionTypeForSamInterface: SimpleType?
 
     /**
      * May return false even in case when the class is not SAM interface, but returns true only if it's definitely not a SAM.
      * But it should work much faster than the exact check.
      */
-    val isDefinitelyNotSamInterface : Boolean
+    val isDefinitelyNotSamInterface: Boolean
 
     /**
      * 获取所有SuperTypeListEntry 包含扩展

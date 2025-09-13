@@ -34,19 +34,22 @@ class FullIdFinderImpl(val moduleDescriptor: ModuleDescriptor, val `package`: Pa
                 getClassifierByIndex(`package`.packageName, fullId.index)
             }
 
-            null -> if (fullId.pkgId > 0) {
+            null -> {
+
 
 //                引用其他包的声明
                 val packageFqName = `package`.importPackageFqNames[fullId.pkgId]
 
-                if(fullId.index > 0){
+                if (fullId.index > 0) {
                     getClassifierByIndex(packageFqName, fullId.index)
 
-                }else{
-                    getClassifierByExportId(packageFqName, fullId.decl)
+                } else {
+                    if (fullId.decl.isEmpty()) null else
+                        getClassifierByExportId(packageFqName, fullId.decl)
 
                 }
-            } else null
+            }
+
 
             else -> null
         }
@@ -55,6 +58,7 @@ class FullIdFinderImpl(val moduleDescriptor: ModuleDescriptor, val `package`: Pa
     override fun findTypeAliasDescriptorByFullId(fullId: FbFullId): TypeAliasDescriptor? {
         return findClassifierDescriptorByFullId(fullId) as? TypeAliasDescriptor
     }
+
     private fun getClassifierByExportId(packageName: FqName, exportId: String): ClassifierDescriptor? =
         moduleDescriptor.withResolutionAnchor {
             val packageViewDescriptor = moduleDescriptor.getPackage(packageName)
@@ -63,6 +67,7 @@ class FullIdFinderImpl(val moduleDescriptor: ModuleDescriptor, val `package`: Pa
 
             )
         }
+
     private fun getClassifierByIndex(packageName: FqName, index: Int): ClassifierDescriptor? =
         moduleDescriptor.withResolutionAnchor {
             val packageViewDescriptor = moduleDescriptor.getPackage(packageName)

@@ -356,7 +356,10 @@ open class DescriptorRendererImpl(
 
     override fun renderTypeConstructor(typeConstructor: TypeConstructor): String =
         when (val cd = typeConstructor.declarationDescriptor) {
-            is TypeParameterDescriptor, is ClassDescriptor, is TypeAliasDescriptor -> renderClassifierName(cd)
+            is TypeParameterDescriptor, is ClassifierDescriptorWithKind, is TypeAliasDescriptor -> renderClassifierName(
+                cd
+            )
+
             null -> {
                 if (typeConstructor is IntersectionTypeConstructor) {
                     typeConstructor.makeDebugNameForIntersectionType { if (it is StubTypeForBuilderInference) it.originalTypeVariable else it }
@@ -393,7 +396,7 @@ open class DescriptorRendererImpl(
         }
         val hasAnnotations = length != lengthBefore
 
-        val receiverType = type.  getReceiverTypeFromFunctionType()
+        val receiverType = type.getReceiverTypeFromFunctionType()
         val contextReceiversTypes = type.getContextReceiverTypesFromFunctionType()
 
 
@@ -546,7 +549,7 @@ open class DescriptorRendererImpl(
         val allValueArguments = descriptor.allValueArguments
         val classDescriptor = if (renderDefaultAnnotationArguments) descriptor.annotationClass else null
         val parameterDescriptorsWithDefaultValue = classDescriptor?.unsubstitutedPrimaryConstructor?.valueParameters
-            ?.filter { it.declaresDefaultValue  }
+            ?.filter { it.declaresDefaultValue }
             ?.map { it.name }
             .orEmpty()
         val defaultList =
@@ -811,7 +814,7 @@ open class DescriptorRendererImpl(
         renderName(function, builder, true)
         renderTypeParameters(function.typeParameters, builder, true)
 
-        renderValueParameters(function.valueParameters, false/*function.hasSynthesizedParameterNames()*/, builder)
+        renderValueParameters(function.valueParameters, builder, false/*function.hasSynthesizedParameterNames()*/)
 
         renderReceiverAfterName(function, builder)
 
@@ -897,13 +900,14 @@ open class DescriptorRendererImpl(
         parameters: Collection<ValueParameterDescriptor>,
         synthesizedParameterNames: Boolean
     ) = buildString {
-        renderValueParameters(parameters, synthesizedParameterNames, this)
+        renderValueParameters(parameters, this, synthesizedParameterNames)
     }
 
     private fun renderValueParameters(
         parameters: Collection<ValueParameterDescriptor>,
-        synthesizedParameterNames: Boolean,
-        builder: StringBuilder
+
+        builder: StringBuilder,
+        synthesizedParameterNames: Boolean = false,
     ) {
         val includeNames = shouldRenderParameterNames(synthesizedParameterNames)
         val parameterCount = parameters.size
@@ -916,11 +920,16 @@ open class DescriptorRendererImpl(
         valueParametersHandler.appendAfterValueParameters(parameterCount, builder)
     }
 
+    /**
+     * 判断是否应该渲染参数名称
+     * @param synthesizedParameterNames 参数名称是否为合成的
+     * @return 是否应该渲染参数名称
+     */
     private fun shouldRenderParameterNames(synthesizedParameterNames: Boolean): Boolean =
         when (parameterNameRenderingPolicy) {
-            ParameterNameRenderingPolicy.ALL -> true
-            ParameterNameRenderingPolicy.ONLY_NON_SYNTHESIZED -> !synthesizedParameterNames
-            ParameterNameRenderingPolicy.NONE -> false
+            ParameterNameRenderingPolicy.ALL -> true // 渲染所有参数名称
+            ParameterNameRenderingPolicy.ONLY_NON_SYNTHESIZED -> !synthesizedParameterNames // 仅渲染非合成的参数名称
+            ParameterNameRenderingPolicy.NONE -> false // 不渲染参数名称
         }
 
     /* VARIABLES */
@@ -952,7 +961,7 @@ open class DescriptorRendererImpl(
 
         val withDefaultValue =
             defaultParameterValueRenderer != null &&
-                    (if (debugMode) valueParameter.declaresDefaultValue  else valueParameter.declaresOrInheritsDefaultValue())
+                    (if (debugMode) valueParameter.declaresDefaultValue else valueParameter.declaresOrInheritsDefaultValue())
         if (withDefaultValue) {
             builder.append(" = ${defaultParameterValueRenderer!!(valueParameter)}")
         }
@@ -1070,14 +1079,10 @@ open class DescriptorRendererImpl(
 
 
     /* CLASSES */
-    private fun renderClass(cclass: ClassDescriptor, builder: StringBuilder) {
-//        val isEnumEntry = cclass.kind == ClassKind.ENUM_ENTRY
-//        if (isEnumEntry) {
-//            builder.renderEnumEntry(cclass as EnumEntryDescriptor)
-//            return
-//        }
+    private fun renderClass(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
+
         if (!startFromName) {
-//            renderContextReceivers(cclass.contextReceivers, builder)
+//
             builder.renderAnnotations(cclass)
 
             renderVisibility(cclass.visibility, builder)
@@ -1091,39 +1096,21 @@ open class DescriptorRendererImpl(
             renderClassKindPrefix(cclass, builder)
         }
 
-//        if (!isCompanionObject(cclass)) {
-//            if (!startFromName) renderSpaceIfNeeded(builder)
+
         renderName(cclass, builder, true)
-//        } else {
-//            renderCompanionObjectName(cclass, builder)
-//        }
 
 
         val typeParameters = cclass.declaredTypeParameters
         renderTypeParameters(typeParameters, builder, false)
         renderCapturedTypeParametersIfRequired(cclass, builder)
 
-//        if (!cclass.kind.isObject && classWithPrimaryConstructor) {
-//            val primaryConstructor = cclass.unsubstitutedPrimaryConstructor
-//            if (primaryConstructor != null) {
-//                builder.append(" ")
-//                builder.renderAnnotations(primaryConstructor)
-//                renderVisibility(primaryConstructor.visibility, builder)
-//                builder.append(renderKeyword("constructor"))
-//                renderValueParameters(
-//                    primaryConstructor.valueParameters,
-//                    false,
-////                    primaryConstructor.hasSynthesizedParameterNames(),
-//                    builder
-//                )
-//            }
-//        }
+
 
         renderSuperTypes(cclass, builder)
         renderWhereSuffix(typeParameters, builder)
     }
 
-    private fun renderSuperTypes(cclass: ClassDescriptor, builder: StringBuilder) {
+    private fun renderSuperTypes(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
         if (withoutSuperTypes) return
 
         if (CangJieBuiltIns.isNothing(cclass.defaultType)) return
@@ -1139,7 +1126,7 @@ open class DescriptorRendererImpl(
         supertypes.joinTo(builder, "& ") { renderType(it) }
     }
 
-    private fun renderClassKindPrefix(cclass: ClassDescriptor, builder: StringBuilder) {
+    private fun renderClassKindPrefix(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
         builder.append(renderKeyword(getClassifierKindPrefix(cclass)))
         builder.append("  ")
     }
@@ -1211,20 +1198,6 @@ open class DescriptorRendererImpl(
             builder?.append(descriptor.name) // renders <this>
         }
 
-        override fun visitEnumDescriptor(
-            descriptor: EnumDescriptor,
-            builder: StringBuilder?
-        ) {
-            TODO("Not yet implemented")
-        }
-
-        override fun visitEnumConstructorDescriptor(
-            descriptor: EnumConstructorDescriptor,
-            builder: StringBuilder?
-        ) {
-            TODO("Not yet implemented")
-        }
-
 
         override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, builder: StringBuilder?) {
             builder?.let { renderTypeParameter(descriptor, it, true) }
@@ -1256,6 +1229,13 @@ open class DescriptorRendererImpl(
             builder?.let { renderClass(descriptor, it) }
         }
 
+        override fun visitEnumDescriptor(
+            descriptor: EnumDescriptor,
+            builder: StringBuilder?
+        ) {
+            builder?.let { renderClass(descriptor, it) }
+        }
+
 
         override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, builder: StringBuilder?) {
             builder?.let { renderTypeAlias(descriptor, it) }
@@ -1263,27 +1243,35 @@ open class DescriptorRendererImpl(
         }
 
         private fun renderPrimaryConstructor(constructor: ConstructorDescriptor, builder: StringBuilder) {
-
-
             builder.append(" ")
             builder.renderAnnotations(constructor)
             renderVisibility(constructor.visibility, builder)
             builder.append(constructor.constructedClass.name)
             renderValueParameters(
                 constructor.valueParameters,
-                false,
 //                    primaryConstructor.hasSynthesizedParameterNames(),
-                builder
+                builder,
+                false
             )
 
 
         }
 
+        private fun renderEnumConstructor(constructor: EnumConstructorDescriptor, builder: StringBuilder) {
+
+            builder.append(renderName(constructor.name, false))
+            if (!constructor.valueParameters.isEmpty()) {
+
+                renderValueParameters(
+                    constructor.valueParameters, builder, true
+                )
+
+
+            }
+
+        }
+
         private fun renderConstructor(constructor: ConstructorDescriptor, builder: StringBuilder) {
-//            if (DescriptorUtils.isEnum(constructor.constructedClass) /*|| DescriptorUtils.isEnumEntry(constructor.constructedClass)*/) {
-//
-//                return
-//            }
             if (constructor.isPrimary) {
                 renderPrimaryConstructor(constructor, builder)
                 return
@@ -1309,13 +1297,13 @@ open class DescriptorRendererImpl(
                 renderTypeParameters(constructor.typeParameters, builder, false)
             }
 
-            renderValueParameters(constructor.valueParameters, constructor.hasSynthesizedParameterNames(), builder)
+            renderValueParameters(constructor.valueParameters, builder, constructor.hasSynthesizedParameterNames())
 
             if (renderConstructorDelegation && !constructor.isPrimary && classDescriptor is ClassDescriptor) {
                 val primaryConstructor = classDescriptor.unsubstitutedPrimaryConstructor
                 if (primaryConstructor != null) {
                     val parametersWithoutDefault = primaryConstructor.valueParameters.filter {
-                        !it.declaresDefaultValue  && it.varargElementType == null
+                        !it.declaresDefaultValue && it.varargElementType == null
                     }
                     if (parametersWithoutDefault.isNotEmpty()) {
                         builder.append(" : ").append(renderKeyword("this"))
@@ -1334,6 +1322,14 @@ open class DescriptorRendererImpl(
             }
         }
 
+        override fun visitEnumConstructorDescriptor(
+            descriptor: EnumConstructorDescriptor,
+            builder: StringBuilder?
+        ) {
+            builder?.let { renderEnumConstructor(descriptor, it) }
+
+        }
+
         override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, builder: StringBuilder?) {
             builder?.let { renderConstructor(constructorDescriptor, it) }
 
@@ -1342,7 +1338,7 @@ open class DescriptorRendererImpl(
         private fun renderProperty(property: PropertyDescriptor, builder: StringBuilder) {
             if (!startFromName) {
                 if (!startFromDeclarationKeyword) {
-                    renderContextReceivers(property.contextReceiverParameters, builder)
+//                    renderContextReceivers(property.contextReceiverParameters, builder)
 //                    renderPropertyAnnotations(property, builder)
                     renderVisibility(property.visibility, builder)
                     renderModifier(builder, DescriptorRendererModifier.CONST in modifiers && property.isConst, "const")

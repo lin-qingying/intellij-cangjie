@@ -24,8 +24,10 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.ClassifierDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
 import org.cangnova.cangjie.descriptors.isFinalClass
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.storage.StorageManager
@@ -33,11 +35,11 @@ import org.cangnova.cangjie.storage.StorageManager
 
 abstract class AbstractClassTypeConstructor(storageManager: StorageManager) : AbstractTypeConstructor(storageManager),
     TypeConstructor {
-    abstract override val declarationDescriptor: ClassDescriptor
+    abstract override val declarationDescriptor: ClassifierDescriptorWithKind
 
 
     override fun isSameClassifier(classifier: ClassifierDescriptor): Boolean {
-        return classifier is ClassDescriptor && areFqNamesEqual(declarationDescriptor, classifier)
+        return classifier is ClassifierDescriptorWithKind && areFqNamesEqual(declarationDescriptor, classifier)
     }
 
     override val isFinal: Boolean

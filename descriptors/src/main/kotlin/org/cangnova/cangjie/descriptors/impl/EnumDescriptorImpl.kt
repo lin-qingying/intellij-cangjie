@@ -23,21 +23,290 @@
  */
 package org.cangnova.cangjie.descriptors.impl
 
+import com.intellij.util.SmartList
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.annotations.Annotations
+import org.cangnova.cangjie.descriptors.annotations.composeAnnotations
+
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.resolve.DescriptorFactory
+import org.cangnova.cangjie.resolve.DescriptorUtils
+import org.cangnova.cangjie.resolve.getCangJieTypeRefiner
+import org.cangnova.cangjie.resolve.scopes.InstanceMemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
+import org.cangnova.cangjie.resolve.scopes.StaticMemberScope
+import org.cangnova.cangjie.resolve.scopes.SubstitutingScope
+import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
+import org.cangnova.cangjie.storage.NotNullLazyValue
+import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.*
+import org.cangnova.cangjie.types.CangJieTypeFactory.computeExpandedType
+import org.cangnova.cangjie.types.TypeUtils.makeUnsubstitutedType
+import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import org.jetbrains.annotations.NotNull
+import org.jetbrains.annotations.Nullable
+import kotlin.collections.component1
+import kotlin.collections.component2
 
 /**
- * 枚举描述符实现
+ * 抽象枚举描述符基类
  *
- * 提供枚举描述符的基本实现，支持：
+ * 提供枚举描述符的通用实现，子类可以根据具体需求进行定制。
+ * 支持：
  * - 枚举构造函数管理
  * - 枚举成员函数管理
- * - 类型参数支持（如 Option<T>）
+ * - 类型参数支持
  * - 成员作用域管理
  * - 非穷尽性枚举支持
  * - 类型替换支持
+ *
+ * 该抽象类定义了枚举的核心行为和状态，子类可以：
+ * - 自定义成员作用域创建策略
+ * - 定制类型替换逻辑
+ * - 扩展构造函数和成员管理
+ * - 实现特殊的枚举类型（如Option）
+ */
+abstract class AbstractEnumDescriptor(
+    protected val storageManager: StorageManager,
+    override val name: Name,
+
+
+    ) : ModuleAwareClassDescriptor(), EnumDescriptor {
+
+    /**
+     * 原始描述符（自身）
+     */
+    override val original: ClassifierDescriptor = this
+
+    /**
+     * 默认类型（懒加载）
+     */
+    override val defaultType: SimpleType by lazy {
+        _defaultType()
+    }
+
+    @OptIn(TypeRefinement::class)
+    protected val _defaultType: NotNullLazyValue<SimpleType> = storageManager.createLazyValue {
+        makeUnsubstitutedType(
+            this, unsubstitutedMemberScope,
+
+            object : (CangJieTypeRefiner) -> SimpleType? {
+                override fun invoke(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType? {
+                    val descriptor = cangjieTypeRefiner.refineDescriptor(this@AbstractEnumDescriptor)
+                    // If we've refined descriptor
+                    if (descriptor == null) return _defaultType.invoke()
+
+                    if (descriptor is TypeAliasDescriptor) {
+                        return descriptor.computeExpandedType(
+                            TypeUtils.getDefaultTypeProjections(descriptor.typeConstructor.parameters)
+                        )
+                    }
+
+
+                    return descriptor.defaultType
+                }
+
+            }
+
+
+        )
+    }
+
+    @OptIn(TypeRefinement::class)
+    override val unsubstitutedMemberScope: MemberScope
+        get() = getUnsubstitutedMemberScope(DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
+
+    abstract override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope
+
+
+    /**
+     * 是否为Option类型
+     */
+    override val isOptionType: Boolean
+        get() = name.asString() == "Option"
+
+    /**
+     * 静态作用域（默认为空，子类可重写）
+     */
+    override val staticScope: MemberScope
+        get() = MemberScope.Empty
+
+    /**
+     * 实例作用域（默认为空，子类可重写）
+     */
+    override val instanceScope: MemberScope
+        get() = MemberScope.Empty
+
+    /**
+     * 抽象属性 - 枚举构造函数列表
+     * 子类必须实现此属性
+     */
+    abstract override val constructors: Collection<EnumConstructorDescriptor>
+
+
+    /**
+     * 获取成员作用域（带类型参数）
+     *
+     * 对于泛型枚举（如 Option<T>），需要根据类型参数创建相应的成员作用域。
+     * 子类可重写以提供自定义的成员作用域创建逻辑。
+     *
+     * @param typeArguments 类型参数列表
+     * @return 成员作用域
+     */
+    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
+        // 如果没有类型参数，返回未替换的成员作用域
+        if (typeArguments.isEmpty()) {
+            return unsubstitutedMemberScope
+        }
+
+        // 如果有类型参数，需要创建类型替换
+        val typeSubstitution = TypeConstructorSubstitution.createByParametersMap(
+            declaredTypeParameters.zip(typeArguments).toMap()
+        )
+
+        return getMemberScope(typeSubstitution)
+    }
+
+    /**
+     * 获取成员作用域（带类型替换）
+     *
+     * 根据类型替换创建成员作用域，支持泛型枚举的类型参数替换。
+     * 子类可重写以提供自定义的类型替换逻辑。
+     *
+     * @param typeSubstitution 类型替换
+     * @return 成员作用域
+     */
+    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
+        // 如果没有类型替换，返回未替换的成员作用域
+        if (typeSubstitution.isEmpty()) {
+            return unsubstitutedMemberScope
+        }
+
+        // 创建替换后的成员作用域
+        return createSubstitutedMemberScope(typeSubstitution)
+    }
+
+    /**
+     * 创建替换后的成员作用域
+     * 子类可重写以提供自定义的类型替换成员作用域创建逻辑
+     *
+     * @param typeSubstitution 类型替换
+     * @return 替换后的成员作用域
+     */
+    protected open fun createSubstitutedMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
+        // 默认实现：返回未替换的成员作用域
+        // 子类可以扩展为更复杂的实现，比如替换构造函数和成员函数的类型
+        return unsubstitutedMemberScope
+    }
+
+    /**
+     * 获取所有枚举构造函数
+     *
+     * 默认实现返回所有构造函数，子类可重写以包含继承的构造函数
+     *
+     * @return 所有构造函数（包括继承的）
+     */
+    override fun getAllConstructors(): Collection<EnumConstructorDescriptor> {
+        return constructors
+    }
+
+
+    /**
+     * 接受访问者
+     *
+     * @param visitor 声明描述符访问者
+     * @param data 数据
+     * @return 访问结果
+     */
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+        return visitor.visitEnumDescriptor(this, data)
+    }
+
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+        visitor.visitEnumDescriptor(this, null)
+    }
+
+    /**
+     * 类型替换
+     *
+     * 对于泛型枚举，支持类型参数替换。
+     * 子类可重写以提供自定义的类型替换逻辑。
+     *
+     * @param substitutor 类型替换器
+     * @return 替换后的分类器描述符
+     */
+    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
+        if (substitutor.isEmpty) {
+            return this
+        }
+        return LazySubstitutingEnumDescriptor(this, substitutor)
+
+    }
+
+
+    /**
+     * 字符串表示
+     *
+     * @return 枚举描述符的字符串表示
+     */
+    override fun toString(): String {
+        return buildString {
+            append("enum ")
+            append(name.asString())
+
+            if (declaredTypeParameters.isNotEmpty()) {
+                append("<")
+                declaredTypeParameters.joinTo(this, separator = ", ") { it.name.asString() }
+                append(">")
+            }
+
+            if (hasArguments) {
+                append(" (with arguments)")
+            }
+
+            if (isNonExhaustive) {
+                append(" (non-exhaustive)")
+            }
+
+            append(" [")
+            append(enumKind.name.lowercase())
+            append("]")
+        }
+    }
+
+    override fun getMemberScope(
+        typeSubstitution: TypeSubstitution,
+        cangjieTypeRefiner: CangJieTypeRefiner
+    ): MemberScope {
+        if (typeSubstitution.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
+
+        val substitutor = TypeSubstitutor.create(typeSubstitution)
+        return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
+
+    }
+
+    override val kind: ClassKind = ClassKind.ENUM
+
+    override fun getMemberScope(
+        typeArguments: List<TypeProjection>,
+        cangjieTypeRefiner: CangJieTypeRefiner
+    ): MemberScope {
+        assert(typeArguments.size == typeConstructor.parameters.size) {
+            "Illegal number of type arguments: expected ${typeConstructor.parameters.size} but was ${typeArguments.size} for $typeConstructor ${typeConstructor.parameters}"
+        }
+        if (typeArguments.isEmpty()) return getUnsubstitutedMemberScope(cangjieTypeRefiner)
+
+        val substitutor = TypeConstructorSubstitution.create(typeConstructor, typeArguments).buildSubstitutor()
+        return SubstitutingScope(getUnsubstitutedMemberScope(cangjieTypeRefiner), substitutor)
+    }
+}
+
+/**
+ * 具体的枚举描述符实现
+ *
+ * 继承自抽象基类，提供完整的枚举描述符实现。
+ * 这是原来的 EnumDescriptorImpl 的重构版本。
  *
  * 示例：
  * ```kotlin
@@ -64,126 +333,624 @@ import org.cangnova.cangjie.types.*
  * ```
  */
 class EnumDescriptorImpl(
-    override val name: Name,
+    storageManager: StorageManager,
+    name: Name,
     override val containingDeclaration: DeclarationDescriptor,
-    private val enumConstructors: Collection<EnumConstructorDescriptor>,
-    private val enumMembers: Collection<FunctionDescriptor>,
+    override val constructors: Collection<EnumConstructorDescriptor>,
+    private val enumMembers: Collection<EnumMember>,
     override val hasArguments: Boolean,
     override val isNonExhaustive: Boolean,
     override val source: SourceElement,
+    supertypes: List<CangJieType>,
     override val enumKind: EnumKind = EnumKind.ENUM,
     override val modality: Modality = Modality.FINAL,
     override val visibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC,
     override val declaredTypeParameters: List<TypeParameterDescriptor> = emptyList(),
-    private val memberScope: MemberScope = MemberScope.Empty
-) : EnumDescriptor {
+    override val unsubstitutedMemberScope: MemberScope
+) : AbstractEnumDescriptor(
+    storageManager,
+    name = name,
 
-    /**
-     * 原始描述符（自身）
-     */
-    override val original: ClassifierDescriptor = this
+    ) {
 
-    /**
-     * 默认类型
-     */
-    override val defaultType: SimpleType
-        get() = EnumType(this)
 
-    /**
-     * 类型构造函数
-     */
-    override val typeConstructor: org.cangnova.cangjie.types.TypeConstructor
-        get() = EnumTypeConstructor(this)
+    public override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope {
+        return unsubstitutedMemberScope
+    }
 
-    /**
-     * 枚举构造函数列表
-     */
-    override val constructors: Collection<EnumConstructorDescriptor> = enumConstructors
+    override val typeConstructor: TypeConstructor =
+        EnumTypeConstructorImpl(this, mutableListOf(), supertypes, storageManager)
 
-    /**
-     * 枚举成员函数列表
-     */
-    override val members: Collection<FunctionDescriptor> = enumMembers
-
-    /**
-     * 未替换的成员作用域
-     */
-    override val unsubstitutedMemberScope: MemberScope = memberScope
-    
-    /**
-     * 是否为Option类型
-     */
-    override val isOptionType: Boolean
-        get() = name.asString() == "Option"
 
     /**
      * 静态作用域
      */
-    override val staticScope: MemberScope = memberScope
+    override val staticScope: MemberScope
+        get() = StaticMemberScope(unsubstitutedMemberScope)
+
 
     /**
      * 实例作用域
      */
-    override val instanceScope: MemberScope = memberScope
+    override val instanceScope: MemberScope
+        get() = InstanceMemberScope(unsubstitutedMemberScope)
+
 
     /**
-     * 获取成员作用域（带类型参数）
-     *
-     * 对于泛型枚举（如 Option<T>），需要根据类型参数创建相应的成员作用域。
-     *
-     * @param typeArguments 类型参数列表
-     * @return 成员作用域
-     */
-    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
-        // 如果没有类型参数，返回未替换的成员作用域
-        if (typeArguments.isEmpty()) {
-            return unsubstitutedMemberScope
-        }
-        
-        // 如果有类型参数，需要创建类型替换
-        val typeSubstitution = TypeConstructorSubstitution.createByParametersMap(
-            declaredTypeParameters.zip(typeArguments).toMap()
-        )
-        
-        return getMemberScope(typeSubstitution)
-    }
-
-    /**
-     * 获取成员作用域（带类型替换）
-     *
-     * 根据类型替换创建成员作用域，支持泛型枚举的类型参数替换。
+     * 创建替换后的成员作用域
      *
      * @param typeSubstitution 类型替换
-     * @return 成员作用域
+     * @return 替换后的成员作用域
      */
-    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
-        // 如果没有类型替换，返回未替换的成员作用域
-        if (typeSubstitution.isEmpty()) {
-            return unsubstitutedMemberScope
+    override fun createSubstitutedMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
+        /*
+        TODO
+        对于具体实现，可以在这里添加更复杂的类型替换逻辑
+         例如，替换构造函数和成员函数的类型
+         */
+
+        return unsubstitutedMemberScope
+    }
+
+}
+
+
+/**
+ * 抽象枚举构造函数描述符基类
+ *
+ * 提供枚举构造函数描述符的通用实现，子类可以根据具体需求进行定制。
+ * 支持：
+ * - 简单构造函数（无关联值）
+ * - 函数构造函数（有关联值）
+ * - 参数管理
+ * - 类型管理
+ * - 泛型支持
+ * - 类型替换
+ *
+ * 该抽象类定义了枚举构造函数的核心行为和状态，子类可以：
+ * - 自定义参数和类型管理
+ * - 定制类型替换逻辑
+ * - 扩展构造函数特定行为
+ * - 实现特殊的构造函数类型
+ */
+abstract class AbstractEnumConstructorDescriptor(
+    override val name: Name,
+    override val containingDeclaration: EnumDescriptor,
+
+    override val source: SourceElement,
+
+    ) : EnumConstructorDescriptor {
+    protected var userDataMap: Map<CallableDescriptor.UserDataKey<*>, Any>? = null
+
+    /**
+     * 调用成员类型（默认为声明）
+     */
+    override val kind: CallableMemberDescriptor.Kind = CallableMemberDescriptor.Kind.DECLARATION
+    override var visibility: DescriptorVisibility = DescriptorVisibilities.INTERNAL
+
+    override var modality: Modality = Modality.FINAL
+
+    /**
+     * 原始描述符（自身）
+     */
+    override val original: CallableMemberDescriptor = this
+    private var unsubstitutedReturnType: CangJieType? = null
+    private var unsubstitutedValueParameters: List<ValueParameterDescriptor> = ArrayList()
+    override val valueParameters: List<ValueParameterDescriptor>
+        get() = unsubstitutedValueParameters
+    override val returnType: CangJieType?
+        get() = unsubstitutedReturnType
+
+    /**
+     * 扩展接收器参数（枚举构造函数不支持）
+     */
+    override var extensionReceiverParameter: ReceiverParameterDescriptor? = null
+
+    /**
+     * 上下文接收器参数（枚举构造函数通常不支持）
+     */
+    override var contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList()
+
+    /**
+     * 调度接收器参数（枚举构造函数不支持）
+     */
+    override var dispatchReceiverParameter: ReceiverParameterDescriptor? = null
+
+    /**
+     * 重写的描述符（枚举构造函数不支持重写）
+     */
+    override val overriddenDescriptors: Collection<CallableMemberDescriptor>
+        get() = emptyList()
+
+
+    /**
+     * 类型参数(枚举构造器通常不需要)
+     */
+    override var typeParameters: List<TypeParameterDescriptor> = emptyList()
+
+
+    /**
+     * 是否有稳定的参数名称
+     * 子类可重写
+     */
+    override fun hasStableParameterNames(): Boolean {
+        return false
+    }
+
+    /**
+     * 是否有合成的参数名称
+     * 子类可重写
+     */
+    override fun hasSynthesizedParameterNames(): Boolean {
+        return true
+    }
+
+    /**
+     * 设置重写的描述符
+     * 枚举构造函数不支持重写，默认实现为空
+     *
+     * @param overriddenDescriptors 重写的描述符列表
+     */
+    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor>) {
+        // 枚举构造函数不支持重写，所以这里不做任何操作
+    }
+
+    /**
+     * 复制构造函数描述符
+     * 子类可重写以提供自定义的复制逻辑
+     *
+     * @param newOwner 新的拥有者
+     * @param modality 模态性
+     * @param visibility 可见性
+     * @param kind 调用成员类型
+     * @param copyOverrides 是否复制重写信息
+     * @return 复制的调用成员描述符
+     */
+    override fun copy(
+        newOwner: DeclarationDescriptor,
+        modality: Modality,
+        visibility: DescriptorVisibility,
+        kind: CallableMemberDescriptor.Kind,
+        copyOverrides: Boolean
+    ): CallableMemberDescriptor {
+        return newCopyBuilder()
+            .setOwner(newOwner)
+            .setModality(modality)
+            .setVisibility(visibility)
+            .setKind(kind)
+            .setCopyOverrides(copyOverrides)
+            .build() ?: throw IllegalStateException("Copy builder returned null")
+    }
+
+
+    /**
+     * 创建新的复制构建器
+     * 提供流式API用于复制构造函数描述符
+     *
+     * @return 复制构建器
+     */
+    override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out CallableMemberDescriptor> {
+        return newCopyBuilder(TypeSubstitutor.EMPTY)
+    }
+
+    /**
+     * 获取用户数据
+     * 默认实现返回null，子类可重写
+     *
+     * @param key 用户数据键
+     * @return 用户数据值
+     */
+    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? {
+        return null
+    }
+
+    inner class CopyConfiguration(
+        private var _substitution: TypeSubstitution,
+        var newOwner: DeclarationDescriptor,
+        var newModality: Modality,
+        var newVisibility: DescriptorVisibility,
+        var kind: CallableMemberDescriptor.Kind,
+        var newValueParameterDescriptors: List<ValueParameterDescriptor>,
+        var newContextReceiverParameters: List<ReceiverParameterDescriptor>,
+        var newExtensionReceiverParameter: ReceiverParameterDescriptor?,
+        var newReturnType: CangJieType,
+        var name: Name?
+    ) : EnumConstructorDescriptor.CopyBuilder<EnumConstructorDescriptor> {
+
+        val userDataMap: MutableMap<CallableDescriptor.UserDataKey<*>, Any> = LinkedHashMap()
+        private var _original: EnumConstructorDescriptor? = null
+        var dispatchReceiverParameter: ReceiverParameterDescriptor? =
+            this@AbstractEnumConstructorDescriptor.dispatchReceiverParameter
+        var copyOverrides: Boolean = true
+        var signatureChange: Boolean = false
+        var preserveSourceElement: Boolean = false
+        var dropOriginalInContainingParts: Boolean = false
+        var justForTypeSubstitution: Boolean = false
+
+        var additionalAnnotations: Annotations? = null
+        var newTypeParameters: List<TypeParameterDescriptor>? = null
+        var newHasSynthesizedParameterNames: Boolean? = null
+
+        override fun setOwner(owner: DeclarationDescriptor): CopyConfiguration {
+            newOwner = owner
+            return this
         }
-        
-        // 创建替换后的成员作用域
-        // 这里可以扩展为更复杂的实现，比如替换构造函数和成员函数的类型
-        return memberScope
+
+        override fun setModality(modality: Modality): CopyConfiguration {
+            newModality = modality
+            return this
+        }
+
+        override fun setVisibility(visibility: DescriptorVisibility): CopyConfiguration {
+            newVisibility = visibility
+            return this
+        }
+
+        override fun setKind(kind: CallableMemberDescriptor.Kind): CopyConfiguration {
+            this.kind = kind
+            return this
+        }
+
+        override fun setCopyOverrides(copyOverrides: Boolean): CopyConfiguration {
+            this.copyOverrides = copyOverrides
+            return this
+        }
+
+        override fun setName(name: Name): CopyConfiguration {
+            this.name = name
+            return this
+        }
+
+
+        override fun setValueParameters(parameters: List<ValueParameterDescriptor>): CopyConfiguration {
+            newValueParameterDescriptors = parameters.toList()
+            return this
+        }
+
+        override fun setTypeParameters(parameters: List<TypeParameterDescriptor>): CopyConfiguration {
+            newTypeParameters = parameters
+            return this
+        }
+
+        override fun setReturnType(type: CangJieType): CopyConfiguration {
+            newReturnType = type
+            return this
+        }
+
+
+        override fun setContextReceiverParameters(contextReceiverParameters: List<ReceiverParameterDescriptor>): EnumConstructorDescriptor.CopyBuilder<EnumConstructorDescriptor> {
+            newContextReceiverParameters = contextReceiverParameters
+            return this
+        }
+
+        override fun setExtensionReceiverParameter(extensionReceiverParameter: ReceiverParameterDescriptor?): CopyConfiguration {
+            newExtensionReceiverParameter = extensionReceiverParameter
+            return this
+        }
+
+        override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CopyConfiguration {
+            this.dispatchReceiverParameter = dispatchReceiverParameter
+            return this
+        }
+
+        override fun setPreserveSourceElement(): CopyConfiguration {
+            preserveSourceElement = true
+            return this
+        }
+
+        override fun setSignatureChange(): CopyConfiguration {
+            signatureChange = true
+            return this
+        }
+
+        fun setHasSynthesizedParameterNames(value: Boolean): CopyConfiguration {
+            newHasSynthesizedParameterNames = value
+            return this
+        }
+
+        override fun setDropOriginalInContainingParts(): CopyConfiguration {
+            dropOriginalInContainingParts = true
+            return this
+        }
+
+
+        override fun setAdditionalAnnotations(additionalAnnotations: Annotations): CopyConfiguration {
+            this.additionalAnnotations = additionalAnnotations
+            return this
+        }
+
+        override fun build(): EnumConstructorDescriptor? {
+            return doSubstitute(this)
+        }
+
+        fun getOriginal(): EnumConstructorDescriptor? {
+            return _original
+        }
+
+        override fun setOriginal(original: CallableMemberDescriptor?): CopyConfiguration {
+            this._original = original as? EnumConstructorDescriptor
+            return this
+        }
+
+        override fun <V> putUserData(
+            userDataKey: CallableDescriptor.UserDataKey<V>,
+            value: V
+        ): EnumConstructorDescriptor.CopyBuilder<EnumConstructorDescriptor> {
+            userDataMap[userDataKey] = value as Any
+            return this
+        }
+
+        fun getSubstitution(): TypeSubstitution {
+            return _substitution
+        }
+
+        override fun setSubstitution(substitution: TypeSubstitution): CopyConfiguration {
+            this._substitution = substitution
+            return this
+        }
+
+
+        fun setJustForTypeSubstitution(value: Boolean): CopyConfiguration {
+            justForTypeSubstitution = value
+            return this
+        }
+    }
+
+    protected fun newCopyBuilder(substitutor: TypeSubstitutor): CopyConfiguration {
+        return CopyConfiguration(
+            substitutor.substitution,
+            containingDeclaration, modality, visibility, kind, valueParameters, contextReceiverParameters,
+            extensionReceiverParameter, returnType!!, null
+        )
+    }
+
+    @NotNull
+    protected abstract fun createSubstitutedCopy(
+        newOwner: DeclarationDescriptor,
+        original: EnumConstructorDescriptor?,
+        kind: CallableMemberDescriptor.Kind,
+        newName: Name,
+        annotations: Annotations,
+        source: SourceElement
+    ): AbstractEnumConstructorDescriptor
+
+    @NotNull
+    private fun getSourceToUseForCopy(preserveSource: Boolean, original: EnumConstructorDescriptor?): SourceElement {
+        return if (preserveSource) {
+            (original ?: this.original).source
+        } else {
+            SourceElement.NO_SOURCE
+        }
+    }
+
+    open fun initialize(
+        extensionReceiverParameter: ReceiverParameterDescriptor? = null,
+        dispatchReceiverParameter: ReceiverParameterDescriptor?= null,
+        contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList(),
+        typeParameters: List<TypeParameterDescriptor> = emptyList(),
+
+        unsubstitutedValueParameters: List<ValueParameterDescriptor> = emptyList(),
+        unsubstitutedReturnType: CangJieType? = null,
+        modality: Modality  = Modality.FINAL,
+        visibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC,
+    ): AbstractEnumConstructorDescriptor {
+        this.typeParameters = typeParameters.toList()
+
+        this.unsubstitutedValueParameters = unsubstitutedValueParameters.toList()
+
+        this.unsubstitutedReturnType = unsubstitutedReturnType
+        this.modality = modality
+        this.visibility = visibility
+        this.extensionReceiverParameter = extensionReceiverParameter
+        this.dispatchReceiverParameter = dispatchReceiverParameter
+        this.contextReceiverParameters = contextReceiverParameters
+
+
+        for (i in unsubstitutedValueParameters.indices) {
+            // TODO fill me
+            val firstValueParameterOffset = 0 // receiverParameter.exists() ? 1 : 0;
+            val valueParameterDescriptor = unsubstitutedValueParameters[i]
+            if (valueParameterDescriptor.index != i + firstValueParameterOffset) {
+                throw IllegalStateException("${valueParameterDescriptor}index is ${valueParameterDescriptor.index} but position is $i")
+            }
+        }
+
+        return this
     }
 
     /**
-     * 获取所有枚举构造函数
+     * 替换函数描述符中的各种参数和类型。
      *
-     * @return 所有构造函数（包括继承的）
+     * @param configuration 替换配置对象，包含新的扩展接收者参数、分发接收者参数、值参数描述符等。
+     * @return 替换后的函数描述符，如果替换过程中出现错误则返回 null。
      */
-    override fun getAllConstructors(): Collection<EnumConstructorDescriptor> {
-        return constructors
+    @Nullable
+    protected open fun doSubstitute(configuration: CopyConfiguration): EnumConstructorDescriptor? {
+        val wereChanges = BooleanArray(1)
+
+        // 合并原始注解和附加注解
+        val resultAnnotations =
+            configuration.additionalAnnotations?.let { composeAnnotations(annotations, it) }
+                ?: annotations
+
+        // 创建一个新的函数描述符副本
+        val substitutedDescriptor = createSubstitutedCopy(
+            configuration.newOwner,
+            configuration.getOriginal(),
+            configuration.kind,
+            configuration.name ?: Name.ERROR_NAME,
+            resultAnnotations,
+            getSourceToUseForCopy(configuration.preserveSourceElement, configuration.getOriginal())
+        )
+
+        // 获取未替换的类型参数
+        val unsubstitutedTypeParameters =
+            configuration.newTypeParameters ?: typeParameters
+
+        wereChanges[0] = wereChanges[0] or unsubstitutedTypeParameters.isNotEmpty()
+
+        // 替换类型参数
+        val substitutedTypeParameters = ArrayList<TypeParameterDescriptor>(unsubstitutedTypeParameters.size)
+        val substitutor = DescriptorSubstitutor.substituteTypeParameters(
+            unsubstitutedTypeParameters,
+            configuration.getSubstitution(),
+            substitutedDescriptor,
+            substitutedTypeParameters,
+            wereChanges
+        )
+        if (substitutor == null) return null
+
+        // 替换上下文接收者参数
+        val substitutedContextReceiverParameters = mutableListOf<ReceiverParameterDescriptor>()
+
+        if (configuration.newContextReceiverParameters.isNotEmpty()) {
+            var index = 0
+            for (newContextReceiverParameter in configuration.newContextReceiverParameters) {
+                val substitutedContextReceiverType =
+                    substitutor.substitute(newContextReceiverParameter.type, Variance.INVARIANT)
+                if (substitutedContextReceiverType == null) {
+                    return null
+                }
+                val substitutedContextReceiverParameter =
+                    DescriptorFactory.createContextReceiverParameterForCallable(
+                        substitutedDescriptor, substitutedContextReceiverType,
+                        (newContextReceiverParameter.value as ImplicitContextReceiver).customLabelName,
+                        newContextReceiverParameter.annotations,
+                        index
+                    )
+                index++
+//                substitutedContextReceiverParameters方法是根据substitutedContextReceiverType是否返回null的，所以这里已经判断过substitutedContextReceiverType，所以这里一定不为null，使用?let是为了好看
+                substitutedContextReceiverParameter?.let { substitutedContextReceiverParameters.add(it) }
+
+                wereChanges[0] = wereChanges[0] or (substitutedContextReceiverType != newContextReceiverParameter.type)
+            }
+        }
+
+        // 替换扩展接收者参数
+        var substitutedReceiverParameter: ReceiverParameterDescriptor? = null
+        configuration.newExtensionReceiverParameter?.let { newExtensionReceiverParameter ->
+            val substitutedExtensionReceiverType =
+                substitutor.substitute(newExtensionReceiverParameter.type, Variance.INVARIANT)
+            if (substitutedExtensionReceiverType == null) {
+                return null
+            }
+            substitutedReceiverParameter = ReceiverParameterDescriptorImpl(
+                substitutedDescriptor,
+                ExtensionReceiver(
+                    substitutedDescriptor, substitutedExtensionReceiverType, newExtensionReceiverParameter.value
+                ),
+                newExtensionReceiverParameter.annotations
+            )
+
+            wereChanges[0] = wereChanges[0] or (substitutedExtensionReceiverType != newExtensionReceiverParameter.type)
+        }
+
+        // 替换分发接收者参数
+        var substitutedExpectedThis: ReceiverParameterDescriptor? = null
+        configuration.dispatchReceiverParameter?.let { dispatchReceiverParameter ->
+            // 当生成假覆盖成员时，其分发接收者参数类型应为基类类型，这是正确的。
+            // 例如：
+            // class Base { fun foo() }
+            // class Derived <: Base
+            // let x: Base
+            // if (x is Derived) {
+            //    // `x` 不应被标记为智能转换
+            //    // 但如果假覆盖的 `foo` 有 `Derived` 作为其分发接收者参数类型，则会标记为智能转换
+            //    x.foo()
+            // }
+            substitutedExpectedThis = dispatchReceiverParameter.substitute(substitutor)
+            if (substitutedExpectedThis == null) {
+                return null
+            }
+
+            wereChanges[0] = wereChanges[0] or (substitutedExpectedThis != dispatchReceiverParameter)
+        }
+
+        // 替换值参数
+        val substitutedValueParameters = getSubstitutedValueParameters(
+            substitutedDescriptor,
+            configuration.newValueParameterDescriptors,
+            substitutor,
+            configuration.dropOriginalInContainingParts,
+            configuration.preserveSourceElement,
+            wereChanges
+        )
+        if (substitutedValueParameters == null) {
+            return null
+        }
+
+        // 替换返回类型
+        val substitutedReturnType = substitutor.substitute(configuration.newReturnType, Variance.INVARIANT)
+        if (substitutedReturnType == null) {
+            return null
+        }
+
+        wereChanges[0] = wereChanges[0] or (substitutedReturnType != configuration.newReturnType)
+
+        // 如果没有变化且仅用于类型替换，则返回当前描述符
+        if (!wereChanges[0] && configuration.justForTypeSubstitution) {
+            return this
+        }
+
+        // 初始化替换后的描述符
+        substitutedDescriptor.initialize(
+            substitutedReceiverParameter, substitutedExpectedThis, substitutedContextReceiverParameters,
+            substitutedTypeParameters,
+            substitutedValueParameters,
+            substitutedReturnType,
+            configuration.newModality,
+            configuration.newVisibility
+        )
+
+
+        // 处理用户数据映射
+        if (configuration.userDataMap.isNotEmpty() || userDataMap != null) {
+            val newMap = configuration.userDataMap.toMutableMap()
+
+            userDataMap?.forEach { (key, value) ->
+                if (!newMap.containsKey(key)) {
+                    newMap[key] = value
+                }
+            }
+
+            substitutedDescriptor.userDataMap = when {
+                newMap.size == 1 -> {
+                    val entry = newMap.entries.first()
+                    mapOf(entry.key to entry.value)
+                }
+
+                else -> newMap
+            }
+        }
+
+
+
+
+
+        return substitutedDescriptor
     }
 
+
     /**
-     * 获取所有成员
+     * 类型替换
+     * 支持枚举构造函数的类型参数替换
+     * 子类可重写以提供自定义的类型替换逻辑
      *
-     * @return 所有成员（包括继承的）
+     * @param substitutor 类型替换器
+     * @return 替换后的可调用描述符
      */
-    override fun getAllMembers(): Collection<DeclarationDescriptor> {
-        return (constructors + members).toList()
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor? {
+        if (substitutor.isEmpty) {
+            return this
+        }
+
+        return newCopyBuilder(substitutor)
+            .setOriginal(original)
+            .setPreserveSourceElement()
+            .setJustForTypeSubstitution(true)
+            .build()
     }
+
 
     /**
      * 接受访问者
@@ -193,97 +960,83 @@ class EnumDescriptorImpl(
      * @return 访问结果
      */
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
-        return visitor.visitEnumDescriptor(this, data)
+        return visitor.visitEnumConstructorDescriptor(this, data)
     }
 
     override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
-        visitor.visitEnumDescriptor(this, null)
+        visitor.visitEnumConstructorDescriptor(this, null)
     }
 
-    /**
-     * 字符串表示
-     *
-     * @return 枚举描述符的字符串表示
-     */
-    override fun toString(): String {
-        return buildString {
-            append("enum ")
-            append(name.asString())
 
-            if (declaredTypeParameters.isNotEmpty()) {
-                append("<")
-                declaredTypeParameters.joinTo(this, separator = ", ") { it.name.asString() }
-                append(">")
-            }
-
-            if (hasArguments) {
-                append(" (with arguments)")
-            }
-
-            if (isNonExhaustive) {
-                append(" (non-exhaustive)")
-            }
-        }
-    }
-
-    /**
-     * 类型替换
-     *
-     * 对于泛型枚举，支持类型参数替换。
-     * 例如：Option<T> 可以替换为 Option<Int>
-     *
-     * @param substitutor 类型替换器
-     * @return 替换后的分类器描述符
-     */
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
-        // 如果没有类型参数，返回自身
-        if (declaredTypeParameters.isEmpty()) {
-            return this
-        }
-        
-        // 检查是否有有效的类型替换
-        val substitutedTypeParameters = declaredTypeParameters.mapNotNull { typeParam ->
-            val substitutedType = substitutor.safeSubstitute(typeParam.defaultType, Variance.INVARIANT)
-            if (substitutedType != typeParam.defaultType) {
-                // 创建替换后的类型参数
-                // 这里可以扩展为更复杂的实现
-                typeParam
-            } else {
-                null
-            }
-        }
-        
-        // 如果有替换，创建新的枚举描述符
-        if (substitutedTypeParameters.isNotEmpty()) {
-            return EnumDescriptorImpl(
-                name = name,
-                containingDeclaration = containingDeclaration,
-                enumConstructors = enumConstructors,
-                enumMembers = enumMembers,
-                hasArguments = hasArguments,
-                isNonExhaustive = isNonExhaustive,
-                source = source,
-                enumKind = enumKind,
-                modality = modality,
-                visibility = visibility,
-                declaredTypeParameters = substitutedTypeParameters,
-                memberScope = memberScope
+    companion object {
+        @Nullable
+        fun getSubstitutedValueParameters(
+            substitutedDescriptor: EnumConstructorDescriptor,
+            unsubstitutedValueParameters: List<ValueParameterDescriptor>,
+            substitutor: TypeSubstitutor
+        ): List<ValueParameterDescriptor>? {
+            return getSubstitutedValueParameters(
+                substitutedDescriptor, unsubstitutedValueParameters, substitutor, false, false, null
             )
         }
-        
-        return this
+
+        @Nullable
+        fun getSubstitutedValueParameters(
+            substitutedDescriptor: EnumConstructorDescriptor,
+            unsubstitutedValueParameters: List<ValueParameterDescriptor>,
+            substitutor: TypeSubstitutor,
+            dropOriginal: Boolean,
+            preserveSourceElement: Boolean,
+            wereChanges: BooleanArray?
+        ): List<ValueParameterDescriptor>? {
+            val result = ArrayList<ValueParameterDescriptor>(unsubstitutedValueParameters.size)
+            for (unsubstitutedValueParameter in unsubstitutedValueParameters) {
+                // TODO : Lazy?
+                val substitutedType = substitutor.substitute(unsubstitutedValueParameter.type, Variance.INVARIANT)
+                val varargElementType = unsubstitutedValueParameter.varargElementType
+                val substituteVarargElementType =
+                    varargElementType?.let { substitutor.substitute(it, Variance.INVARIANT) }
+                if (substitutedType == null) return null
+                if (substitutedType != unsubstitutedValueParameter.type || varargElementType != substituteVarargElementType) {
+                    wereChanges?.set(0, true)
+                }
+
+                val destructuringVariablesAction = getDestructuringVariablesAction(unsubstitutedValueParameter)
+
+                result.add(
+                    ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                        substitutedDescriptor,
+                        if (dropOriginal) null else unsubstitutedValueParameter,
+                        unsubstitutedValueParameter.index,
+                        unsubstitutedValueParameter.annotations,
+                        unsubstitutedValueParameter.name,
+                        unsubstitutedValueParameter.isNamed,
+                        substitutedType,
+                        unsubstitutedValueParameter.declaresDefaultValue,
+                        if (preserveSourceElement) unsubstitutedValueParameter.source else SourceElement.NO_SOURCE,
+                        destructuringVariablesAction
+                    )
+                )
+            }
+            return result
+        }
+
+        private fun getDestructuringVariablesAction(unsubstitutedValueParameter: ValueParameterDescriptor): (() -> List<VariableDescriptor>)? {
+            return if (unsubstitutedValueParameter is ValueParameterDescriptorImpl.WithDestructuringDeclaration) {
+                val destructuringVariables = unsubstitutedValueParameter.destructuringVariables
+                { destructuringVariables }
+            } else null
+        }
     }
+
 }
 
+
 /**
- * 枚举构造函数描述符实现
+ * 具体的枚举构造函数描述符实现
  *
- * 表示枚举中的单个case，支持：
- * - 简单构造函数（无关联值）
- * - 函数构造函数（有关联值）
- * - 参数管理
- * - 类型管理
- * - 泛型支持
+ * 继承自抽象基类，提供完整的枚举构造函数描述符实现。
+ * 这是原来的 EnumConstructorDescriptorImpl 的重构版本。
  *
  * 示例：
  * ```kotlin
@@ -311,246 +1064,49 @@ class EnumDescriptorImpl(
  * )
  * ```
  */
-class EnumConstructorDescriptorImpl(
-    override val name: Name,
-    override val containingEnum: EnumDescriptor,
-    override val hasArguments: Boolean,
-    override val returnType: CangJieType,
-    override val source: SourceElement,
-    override val argumentTypes: List<CangJieType> = emptyList(),
-    override val valueParameters: List<ValueParameterDescriptor> = emptyList(),
-    override val constructorType: CangJieType
-) : EnumConstructorDescriptor {
+open class EnumConstructorDescriptorImpl(
+    name: Name,
+    containingDeclaration: EnumDescriptor,
+    original: EnumConstructorDescriptor?,
+    annotations: Annotations,
 
-    override val kind: CallableMemberDescriptor.Kind = CallableMemberDescriptor.Kind.DECLARATION
+    source: SourceElement,
 
-    /**
-     * 原始描述符（自身）
-     */
-    override val original: CallableMemberDescriptor = this
-    
-    override val overriddenDescriptors: Collection<CallableMemberDescriptor>
-        get() = emptyList()
 
-    override fun setOverriddenDescriptors(overriddenDescriptors: Collection<CallableMemberDescriptor>) {
-        // 枚举构造函数不支持重写，所以这里不做任何操作
-    }
+    ) : AbstractEnumConstructorDescriptor(
+    name = name,
+    containingDeclaration = containingDeclaration,
 
-    override fun copy(
+    source = source,
+
+    ) {
+
+
+    override fun createSubstitutedCopy(
         newOwner: DeclarationDescriptor,
-        modality: Modality,
-        visibility: DescriptorVisibility,
+        original: EnumConstructorDescriptor?,
         kind: CallableMemberDescriptor.Kind,
-        copyOverrides: Boolean
-    ): CallableMemberDescriptor {
+        newName: Name,
+        annotations: Annotations,
+        source: SourceElement
+    ): EnumConstructorDescriptorImpl {
+        check(!(kind != CallableMemberDescriptor.Kind.DECLARATION && kind != CallableMemberDescriptor.Kind.SYNTHESIZED)) {
+            """
+                Attempt at creating a constructor that is not a declaration: 
+                copy from: $this
+                newOwner: $newOwner
+                kind: $kind
+                """.trimIndent()
+        }
+
         return EnumConstructorDescriptorImpl(
-            name = name,
-            containingEnum = newOwner as? EnumDescriptor ?: containingEnum,
-            hasArguments = hasArguments,
-            returnType = returnType,
-            source = source,
-            argumentTypes = argumentTypes,
-            valueParameters = valueParameters,
-            constructorType = constructorType
-        )
-    }
+            newName,
+            newOwner as EnumDescriptor,
+            this,
+            annotations,
+            source,
 
-    override fun newCopyBuilder(): CallableMemberDescriptor.CopyBuilder<out CallableMemberDescriptor> {
-        return object : CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-            private var newOwner: DeclarationDescriptor = containingEnum
-            private var newModality: Modality = Modality.FINAL
-            private var newVisibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC
-            private var newKind: CallableMemberDescriptor.Kind = CallableMemberDescriptor.Kind.DECLARATION
-            private var newTypeParameters: List<TypeParameterDescriptor> = emptyList()
-
-            override fun setOwner(owner: DeclarationDescriptor): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                newOwner = owner
-                return this
-            }
-
-            override fun setModality(modality: Modality): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                newModality = modality
-                return this
-            }
-
-            override fun setVisibility(visibility: DescriptorVisibility): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                newVisibility = visibility
-                return this
-            }
-
-            override fun setKind(kind: CallableMemberDescriptor.Kind): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                newKind = kind
-                return this
-            }
-
-            override fun setTypeParameters(parameters: List<TypeParameterDescriptor>): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                newTypeParameters = parameters
-                return this
-            }
-
-            override fun setDispatchReceiverParameter(dispatchReceiverParameter: ReceiverParameterDescriptor?): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-            }
-
-            override fun setSubstitution(substitution: TypeSubstitution): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-            }
-
-            override fun setCopyOverrides(copyOverrides: Boolean): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-            }
-
-            override fun setName(name: Name): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-            }
-
-            override fun setOriginal(original: CallableMemberDescriptor?): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-            }
-
-            override fun setPreserveSourceElement(): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-            }
-
-            override fun setReturnType(type: CangJieType): CallableMemberDescriptor.CopyBuilder<CallableMemberDescriptor> {
-                return this
-            }
-
-            override fun build(): CallableMemberDescriptor {
-                return EnumConstructorDescriptorImpl(
-                    name = name,
-                    containingEnum = newOwner as? EnumDescriptor ?: containingEnum,
-                    hasArguments = hasArguments,
-                    returnType = returnType,
-                    source = source,
-                    argumentTypes = argumentTypes,
-                    valueParameters = valueParameters,
-                    constructorType = constructorType
-                )
-            }
-        }
-    }
-
-    override fun <V> getUserData(key: CallableDescriptor.UserDataKey<V>): V? {
-        return null
-    }
-
-    /**
-     * 包含声明
-     */
-    override val containingDeclaration: DeclarationDescriptor = containingEnum
-
-    /**
-     * 模态性
-     */
-    override val modality: Modality = Modality.FINAL
-
-    /**
-     * 可见性
-     */
-    override val visibility: DescriptorVisibility = DescriptorVisibilities.PUBLIC
-
-    /**
-     * 类型参数
-     */
-    override val typeParameters: List<TypeParameterDescriptor> = emptyList()
-    
-    override fun hasStableParameterNames(): Boolean {
-        return false
-    }
-
-    /**
-     * 扩展接收器参数
-     */
-    override val extensionReceiverParameter: ReceiverParameterDescriptor? = null
-
-    /**
-     * 上下文接收器参数
-     */
-    override val contextReceiverParameters: List<ReceiverParameterDescriptor> = emptyList()
-
-    /**
-     * 调度接收器参数
-     */
-    override val dispatchReceiverParameter: ReceiverParameterDescriptor? = null
-    
-    override fun hasSynthesizedParameterNames(): Boolean {
-        return false
-    }
-
-    /**
-     * 接受访问者
-     *
-     * @param visitor 声明描述符访问者
-     * @param data 数据
-     * @return 访问结果
-     */
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
-        return visitor.visitEnumConstructorDescriptor(this, data)
-    }
-
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
-        visitor.visitEnumConstructorDescriptor(this, null)
-    }
-
-    /**
-     * 字符串表示
-     *
-     * @return 枚举构造函数描述符的字符串表示
-     */
-    override fun toString(): String {
-        return buildString {
-            append(name.asString())
-
-            if (hasArguments) {
-                append("(")
-                argumentTypes.joinTo(this, separator = ", ") { it.toString() }
-                append(")")
-            }
-        }
-    }
-
-    /**
-     * 类型替换
-     *
-     * 支持枚举构造函数的类型参数替换。
-     *
-     * @param substitutor 类型替换器
-     * @return 替换后的可调用描述符
-     */
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor? {
-        // 如果没有类型参数，返回自身
-        if (typeParameters.isEmpty() && argumentTypes.isEmpty()) {
-            return this
-        }
-        
-        // 替换参数类型
-        val substitutedArgumentTypes = argumentTypes.map { argType ->
-            substitutor.safeSubstitute(argType, Variance.INVARIANT)
-        }
-        
-        // 替换返回类型
-        val substitutedReturnType = substitutor.safeSubstitute(returnType, Variance.INVARIANT)
-        
-        // 替换构造函数类型
-        val substitutedConstructorType = substitutor.safeSubstitute(constructorType, Variance.INVARIANT)
-        
-        // 如果有替换，创建新的构造函数描述符
-        if (substitutedArgumentTypes != argumentTypes || 
-            substitutedReturnType != returnType || 
-            substitutedConstructorType != constructorType) {
-            return EnumConstructorDescriptorImpl(
-                name = name,
-                containingEnum = containingEnum,
-                hasArguments = hasArguments,
-                returnType = substitutedReturnType,
-                source = source,
-                argumentTypes = substitutedArgumentTypes,
-                valueParameters = valueParameters,
-                constructorType = substitutedConstructorType
             )
-        }
-        
-        return this
     }
-} 
+
+}

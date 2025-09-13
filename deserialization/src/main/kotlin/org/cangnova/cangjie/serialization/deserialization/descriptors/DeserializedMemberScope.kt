@@ -31,6 +31,7 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.FunctionWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.PropertyWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.TypeAliasWrapper
@@ -75,7 +76,13 @@ abstract class DeserializedMemberScope protected constructor(
     classList: List<ClassDeclWrapper>,
 
     ) : MemberScopeImpl() {
-    internal val classNames by c.storageManager.createLazyValue { classList.map { it.name }.toSet() }
+    internal val enumNames by c.storageManager.createLazyValue {
+        classList.filter { it is EnumWrapper }.map { it.name }.toSet()
+    }
+
+    internal val classNames by c.storageManager.createLazyValue {
+        classList.filter { it !is EnumWrapper }.map { it.name }.toSet()
+    }
     private val classNameByExportId = c.storageManager.createMemoizedFunction<String, Name> {
         computeNameByExportId(it)
     }
@@ -149,7 +156,7 @@ abstract class DeserializedMemberScope protected constructor(
          * 类型别名名称集合
          */
         val typeAliasNames: Set<Name>
-        val classNames: Set<Name>
+//        val classNames: Set<Name>
 
         /**
          * 属性名称集合
@@ -343,8 +350,8 @@ abstract class DeserializedMemberScope protected constructor(
         }
 
         override val typeAliasNames: Set<Name> get() = typeAliases.keys
-        override val classNames: Set<Name>
-            get() = classs.keys
+//        override val classNames: Set<Name>
+//            get() = classs.keys
 
         private inline fun <T> Collection<T>.groupByName(
             getName: (T) -> Name
@@ -781,8 +788,8 @@ abstract class DeserializedMemberScope protected constructor(
          * 类名称集合
          * 计算所有类的名称集合
          */
-        override val classNames: Set<Name>
-            get() = classList.mapToNames { it.name }
+//        override val classNames: Set<Name>
+//            get() = classList.mapToNames { it.name }
 
         /**
          * 计算所有函数描述符列表
@@ -1030,7 +1037,7 @@ abstract class DeserializedMemberScope protected constructor(
      */
     private val classifierNamesLazy by c.storageManager.createNullableLazyValue {
         val nonDeclaredNames = getNonDeclaredClassifierNames() ?: return@createNullableLazyValue null
-        impl.classNames + impl.typeAliasNames + nonDeclaredNames
+     enumNames +   classNames + impl.typeAliasNames + nonDeclaredNames
     }
 
     /**
@@ -1100,8 +1107,10 @@ abstract class DeserializedMemberScope protected constructor(
      * @return 如果作用域绝对不包含该名称，则返回true；否则返回false
      */
     override fun definitelyDoesNotContainName(name: Name): Boolean {
-        return name !in impl.functionNames && name !in impl.variableNames && name !in impl.classNames && name !in impl.typeAliasNames
+        return name !in impl.functionNames && name !in impl.variableNames && name !in  classNames  && name !in  enumNames && name !in impl.typeAliasNames
     }
+    private fun deserializeEnum(name: Name): EnumDescriptor? =
+        c.components.deserializeEnum(createClassId(name))
 
     private fun deserializeClass(name: Name): ClassDescriptor? =
         c.components.deserializeClass(createClassId(name))
@@ -1116,7 +1125,9 @@ abstract class DeserializedMemberScope protected constructor(
      * @return 如果作用域包含该名称的类，则返回true；否则返回false
      */
     protected open fun hasClass(name: Name): Boolean =
-        name in impl.classNames
+        name in classNames
+    protected open fun hasEnum(name: Name): Boolean =
+        name in enumNames
 
     /**
      * 获取指定名称的贡献分类器
@@ -1131,6 +1142,7 @@ abstract class DeserializedMemberScope protected constructor(
      */
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         when {
+            hasEnum(name) -> deserializeEnum(name)
             hasClass(name) -> deserializeClass(name)
             name in impl.typeAliasNames -> getTypeAliasByName(name)
             else -> null
@@ -1177,10 +1189,15 @@ abstract class DeserializedMemberScope protected constructor(
         impl.addFunctionsAndPropertiesTo(result, kindFilter, nameFilter, location)
 
         if (kindFilter.acceptsKinds(DescriptorKindFilter.CLASSIFIERS_MASK)) {
-            for (className in impl.classNames) {
+            for (className in  classNames) {
                 if (nameFilter(className)) {
                     result.addIfNotNull(deserializeClass(className))
-
+//                    result.addIfNotNull(getClassByName(className))
+                }
+            }
+            for (className in  enumNames) {
+                if (nameFilter(className)) {
+                    result.addIfNotNull(deserializeEnum(className))
 //                    result.addIfNotNull(getClassByName(className))
                 }
             }

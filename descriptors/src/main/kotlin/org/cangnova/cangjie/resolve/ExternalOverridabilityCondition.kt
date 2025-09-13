@@ -25,6 +25,7 @@ package org.cangnova.cangjie.resolve
 
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
 
 interface ExternalOverridabilityCondition {
     enum class Result {
@@ -38,7 +39,7 @@ interface ExternalOverridabilityCondition {
     fun isOverridable(
         superDescriptor: CallableDescriptor,
         subDescriptor: CallableDescriptor,
-        subClassDescriptor: ClassDescriptor?
+        subClassDescriptor: ClassifierDescriptorWithKind?
     ): Result
 
 

@@ -38,6 +38,8 @@ import org.cangnova.cangjie.metadata.model.wrapper.TypeWrapper
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.StandardClassIds
 import org.cangnova.cangjie.name.StandardClassIds.ArrayClassId
+import org.cangnova.cangjie.name.StandardClassIds.CPointerClassId
+import org.cangnova.cangjie.name.StandardClassIds.CStringClassId
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedTypeParameterDescriptor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.CangJieTypeFactory
@@ -129,7 +131,7 @@ class TypeDeserializer(
         } else {
             val result = LinkedHashMap<FbSemaTy, TypeParameterDescriptor>()
             for ((index, type) in typeParameters.withIndex()) {
-                result[type.ownType.original] = DeserializedTypeParameterDescriptor(c, type, index)
+                result[type.type.original] = DeserializedTypeParameterDescriptor(c, type, index)
             }
             result
         }
@@ -338,6 +340,15 @@ class TypeDeserializer(
 //如果是Array，说明该包是std.core，那么Array的声明只会在同一包中出现，所以直接在本包中查找声明，通过name的方法
             FbTypeKind.Array -> {
                 (classifierDescriptors(ArrayClassId) ?: notFoundClass(ArrayClassId))
+            }
+
+            FbTypeKind.CPointer -> {
+                1
+                (classifierDescriptors(CPointerClassId) ?: notFoundClass(CPointerClassId))
+            }
+
+            FbTypeKind.CString -> {
+                (classifierDescriptors(CStringClassId) ?: notFoundClass(CStringClassId))
             }
 //            对于Type,Class, Interface, Struct, Enum,Generic 需要去查找对应的声明
             // 复合类型 (Class, Interface, Struct, Enum)

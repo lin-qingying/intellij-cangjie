@@ -14,6 +14,7 @@ import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.analysis.decompiler.stub.file.CangJieMetadataStubBuilder
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
+import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
 import org.cangnova.cangjie.psi.compiled.ClassFileDecompilers
 import org.cangnova.cangjie.psi.compiled.ClsStubBuilder
 import org.cangnova.cangjie.renderer.DescriptorRenderer
@@ -87,10 +88,13 @@ abstract class CangJieMetadataDecompiler<out V : BinaryVersion>(
                 )
                 val declarations = arrayListOf<DeclarationDescriptor>()
                 declarations.addAll(resolver.resolveAllDeclarationsInPackage(packageFqName))
-                for (`class` in file.classesToDecompile) {
-                    val classId = `class`.classId
-                    declarations.addIfNotNull(resolver.resolveTopLevelClass(classId))
-                }
+//                for (`class` in file.classesToDecompile) {
+//                    val classId = `class`.classId
+//                    if(`class` is EnumWrapper)
+//                        declarations.addIfNotNull(resolver.resolveTopLevelEnum(classId))
+//                        else
+//                    declarations.addIfNotNull(resolver.resolveTopLevelClass(classId))
+//                }
                 buildDecompiledText(packageFqName, declarations, renderer)
             }
         }

@@ -25,11 +25,11 @@
 package org.cangnova.cangjie.descriptors
 
 
-val ClassDescriptor.isFinalOrEnum: Boolean
+val ClassifierDescriptorWithKind.isFinalOrEnum: Boolean
     get() = modality == Modality.FINAL
 val CallableMemberDescriptor.isOverridable: Boolean
     get() = visibility != DescriptorVisibilities.PRIVATE
             && modality != Modality.FINAL
             && (containingDeclaration as? ClassDescriptor)?.isFinalClass != true
-val ClassDescriptor.isFinalClass: Boolean
+val ClassifierDescriptorWithKind.isFinalClass: Boolean
     get() = modality == Modality.FINAL && kind != ClassKind.ENUM

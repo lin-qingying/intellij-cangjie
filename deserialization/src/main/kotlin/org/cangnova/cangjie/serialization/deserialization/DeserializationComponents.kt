@@ -26,6 +26,7 @@ package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
+import org.cangnova.cangjie.descriptors.EnumDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.NotFoundClasses
 import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
@@ -107,8 +108,10 @@ class DeserializationComponents(
 //    val enumEntriesDeserializationSupport: EnumEntriesDeserializationSupport = EnumEntriesDeserializationSupport.Default,
 
 ) {
+    val enumDeserializer: EnumDeserializer = EnumDeserializer(this)
     val classDeserializer: ClassDeserializer = ClassDeserializer(this)
     fun deserializeClass(classId: ClassId): ClassDescriptor? = classDeserializer.deserializeClass(classId)
+    fun deserializeEnum(classId: ClassId): EnumDescriptor? = enumDeserializer.deserializeEnum(classId)
 
     fun createContext(
         descriptor: PackageFragmentDescriptor,
@@ -157,7 +160,7 @@ class DeserializationContext(
     val fullIdFinder: FullIdFinder = FullIdFinderImpl(components.moduleDescriptor, `package`)
 
     val typeDeserializer: TypeDeserializer = TypeDeserializer(
-        this, parentTypeDeserializer,typeParameters,
+        this, parentTypeDeserializer, typeParameters,
         "Deserializer for \"${containingDeclaration.name}\"",
         containerSource?.presentableString ?: "[container not found]"
     )
@@ -181,7 +184,7 @@ class DeserializationContext(
 
         `package`,
         metadataVersion, this.containerSource,
-        parentTypeDeserializer = this.typeDeserializer,typeParameterParams,
+        parentTypeDeserializer = this.typeDeserializer, typeParameterParams,
     )
 }
 

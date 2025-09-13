@@ -92,12 +92,11 @@ class PackageWrapper(
         ?.map { TypeAliasWrapper(it, declTable, typeTable) } ?: emptyList()
 }
 
-interface ClassDeclWrapper : DeclarationWrapper {
+interface ClassDeclWrapper : DeclarationWrapper, TypeParameter {
     val constructors: List<ConstructorWrapper> get() = emptyList()
     val functions: List<FunctionWrapper> get() = emptyList()
     val variables: List<VariableWrapper> get() = emptyList()
-    val typeParameters: List<TypeParameterWrapper> get() = emptyList()
-    val contracts: List<ContractWrapper> get() = emptyList()
+    override val typeParameters: List<TypeParameterWrapper> get() = emptyList()
     val propertys: List<PropertyWrapper> get() = emptyList()
     val superTypes: List<TypeWrapper> get() = emptyList()
     override val annotations: List<AnnotationWrapper> get() = emptyList()
@@ -175,13 +174,16 @@ class EnumWrapper(
 
     override val typeParameters: List<TypeParameterWrapper> = if (original.generic == null) emptyList()
     else {
-        original.generic.typeParameters.map { TypeParameterWrapper(declTable.get(it), declTable, typeTable) }
+        original.generic.typeParameters.map {
+            TypeParameterWrapper(
+                declTable.get(it),
+                original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) },
+                declTable,
+                typeTable
+            )
+        }
     }
 
-    override val contracts: List<ContractWrapper> = if (original.generic == null) emptyList()
-    else {
-        original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) }
-    }
 
     override val superTypes = typeTable.get(original.info.inheritedTypes).map { TypeWrapper(it, declTable, typeTable) }
     val isNonExhaustive = info.nonExhaustive
@@ -195,6 +197,18 @@ class EnumEntryWrapper(
 ) : DeclarationWrapper {
     val kind: ClassKind = ClassKind.ENUM
     val name = original.name
+
+    val visibility: DescriptorVisibility = when {
+        original.attributePack.testAttr(Attribute.PUBLIC) -> DescriptorVisibilities.PUBLIC
+        original.attributePack.testAttr(Attribute.INTERNAL) -> DescriptorVisibilities.INTERNAL
+        original.attributePack.testAttr(Attribute.PRIVATE) -> DescriptorVisibilities.PRIVATE
+        original.attributePack.testAttr(Attribute.PROTECTED) -> DescriptorVisibilities.PROTECTED
+
+        else -> DescriptorVisibilities.INTERNAL
+    }
+    val valueParameters = if (original.kind == FbDeclKind.FuncDecl) {
+        FunctionWrapper(original, declTable, typeTable).valueParameters
+    } else emptyList()
 
 
 }
@@ -250,14 +264,22 @@ class InterfaceWrapper(
     } ?: emptyList()
     override val typeParameters: List<TypeParameterWrapper> = if (original.generic == null) emptyList()
     else {
-        original.generic.typeParameters.map { TypeParameterWrapper(declTable.get(it), declTable, typeTable) }
+        original.generic.typeParameters.map {
+            TypeParameterWrapper(
+                declTable.get(it),
+                original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) },
+                declTable,
+                typeTable
+            )
+        }
     }
-    override val contracts: List<ContractWrapper> = if (original.generic == null) emptyList()
-    else {
-        original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) }
-    }
+
     override val superTypes = typeTable.get(original.info.inheritedTypes).map { TypeWrapper(it, declTable, typeTable) }
 
+}
+
+interface TypeParameter {
+    val typeParameters: List<TypeParameterWrapper>
 }
 
 class StructWrapper(
@@ -311,12 +333,16 @@ class StructWrapper(
     } ?: emptyList()
     override val typeParameters: List<TypeParameterWrapper> = if (original.generic == null) emptyList()
     else {
-        original.generic.typeParameters.map { TypeParameterWrapper(declTable.get(it), declTable, typeTable) }
+        original.generic.typeParameters.map {
+            TypeParameterWrapper(
+                declTable.get(it),
+                original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) },
+                declTable,
+                typeTable
+            )
+        }
     }
-    override val contracts: List<ContractWrapper> = if (original.generic == null) emptyList()
-    else {
-        original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) }
-    }
+
     override val superTypes = typeTable.get(original.info.inheritedTypes).map { TypeWrapper(it, declTable, typeTable) }
 }
 
@@ -370,11 +396,14 @@ class ClassWrapper(
     } ?: emptyList()
     override val typeParameters: List<TypeParameterWrapper> = if (original.generic == null) emptyList()
     else {
-        original.generic.typeParameters.map { TypeParameterWrapper(declTable.get(it), declTable, typeTable) }
-    }
-    override val contracts: List<ContractWrapper> = if (original.generic == null) emptyList()
-    else {
-        original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) }
+        original.generic.typeParameters.map {
+            TypeParameterWrapper(
+                declTable.get(it),
+                original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) },
+                declTable,
+                typeTable
+            )
+        }
     }
     override val superTypes = typeTable.get(original.info.inheritedTypes).map { TypeWrapper(it, declTable, typeTable) }
     val isAnnotations = info.isAnno
@@ -521,22 +550,36 @@ class ConstructorWrapper(
     val original: FbDecl,
     val declTable: DeclTable,
     val typeTable: TypeTable,
-) : DeclarationWrapper {
+) : DeclarationWrapper, TypeParameter {
     private val info = original.info as FbDeclInfo.FuncInfo
 
     val isPrimary = original.attributePack.testAttr(Attribute.PRIMARY_CONSTRUCTOR)
     val returnType = typeTable.get(info.funcBody.retType).let { TypeWrapper(it, declTable, typeTable) }
     val ownType = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
+    val visibility: DescriptorVisibility = when {
+        original.attributePack.testAttr(Attribute.PUBLIC) -> DescriptorVisibilities.PUBLIC
+        original.attributePack.testAttr(Attribute.INTERNAL) -> DescriptorVisibilities.INTERNAL
+        original.attributePack.testAttr(Attribute.PRIVATE) -> DescriptorVisibilities.PRIVATE
+        original.attributePack.testAttr(Attribute.PROTECTED) -> DescriptorVisibilities.PROTECTED
 
-    val typeParameters: List<TypeParameterWrapper> = if (original.generic == null) emptyList()
+        else -> DescriptorVisibilities.INTERNAL
+    }
+    override val typeParameters: List<TypeParameterWrapper> = if (original.generic == null) emptyList()
     else {
-        original.generic.typeParameters.map { TypeParameterWrapper(declTable.get(it), declTable, typeTable) }
+        original.generic.typeParameters.map {
+            TypeParameterWrapper(
+                declTable.get(it),
+                original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) },
+                declTable,
+                typeTable
+            )
+        }
     }
 
-    val contracts: List<ContractWrapper> = if (original.generic == null) emptyList()
-    else {
-        original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) }
-    }
+//    val contracts: List<ContractWrapper> = if (original.generic == null) emptyList()
+//    else {
+//        original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) }
+//    }
 
     val valueParameters: List<ValueParameterWrapper> = info.funcBody.params.map {
         ValueParameterWrapper(declTable.get(it), declTable, typeTable)
@@ -544,14 +587,50 @@ class ConstructorWrapper(
 
 }
 
+//class ContractWrapper(
+//    val original: FbConstraint,
+//    val declTable: DeclTable,
+//    val typeTable: TypeTable,
+//) : DeclarationWrapper {
+//    val type = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
+//    val uppers = typeTable.get(original.uppers).map { TypeWrapper(it, declTable, typeTable) }
+//}
+class ContractWrapper(
+    val original: FbConstraint,
+    val declTable: DeclTable,
+    val typeTable: TypeTable,
+) {
+    val type = typeTable.get(original.type)
+    val uppers = typeTable.get(original.uppers).map { TypeWrapper(it, declTable, typeTable) }
+
+}
+
 class TypeParameterWrapper(
+
     val original: FbDecl,
+    contracts: List<ContractWrapper>,
     val declTable: DeclTable,
     val typeTable: TypeTable,
 ) : DeclarationWrapper {
-    val name: Name = original.name
+    val name = original.name
+    val type = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
 
-    val ownType = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
+    //    val name: Name = original.name
+    val uppers = mutableListOf<TypeWrapper>()
+
+    init {
+//        查找对应的约束
+
+        val contract = contracts.find { it.original.type == original.type }
+        if (contract != null) {
+            uppers.addAll(contract.uppers)
+        }
+
+
+    }
+
+
+//    val ownType = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
 
 }
 
@@ -560,7 +639,7 @@ class FunctionWrapper(
     val original: FbDecl,
     val declTable: DeclTable,
     val typeTable: TypeTable,
-) : DeclarationWrapper {
+) : DeclarationWrapper, TypeParameter {
 
     private val info = original.info as FbDeclInfo.FuncInfo
 
@@ -602,14 +681,16 @@ class FunctionWrapper(
     val returnType = typeTable.get(info.funcBody.retType).let { TypeWrapper(it, declTable, typeTable) }
     val ownType = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
 
-    val typeParameters: List<TypeParameterWrapper> = if (original.generic == null) emptyList()
+    override val typeParameters: List<TypeParameterWrapper> = if (original.generic == null) emptyList()
     else {
-        original.generic.typeParameters.map { TypeParameterWrapper(declTable.get(it), declTable, typeTable) }
-    }
-
-    val contracts: List<ContractWrapper> = if (original.generic == null) emptyList()
-    else {
-        original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) }
+        original.generic.typeParameters.map {
+            TypeParameterWrapper(
+                declTable.get(it),
+                original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) },
+                declTable,
+                typeTable
+            )
+        }
     }
 
     val valueParameters: List<ValueParameterWrapper> = info.funcBody.params.map {
@@ -621,14 +702,6 @@ class FunctionWrapper(
     val isInInterfaceAndDefault = original.attributePack.testAttr(Attribute.DEFAULT)
 }
 
-class ContractWrapper(
-    val original: FbConstraint,
-    val declTable: DeclTable,
-    val typeTable: TypeTable,
-) : DeclarationWrapper {
-    val type = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
-    val uppers = typeTable.get(original.uppers).map { TypeWrapper(it, declTable, typeTable) }
-}
 
 class AnnotationWrapper(
     val original: FbAnno,

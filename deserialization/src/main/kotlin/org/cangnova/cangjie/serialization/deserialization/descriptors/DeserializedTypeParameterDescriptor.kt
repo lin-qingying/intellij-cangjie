@@ -29,7 +29,6 @@ import org.cangnova.cangjie.descriptors.SupertypeLoopChecker
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.AbstractLazyTypeParameterDescriptor
 import org.cangnova.cangjie.metadata.model.fb.FbConstraint
-import org.cangnova.cangjie.metadata.model.wrapper.ContractWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.TypeParameterWrapper
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.builtIns
@@ -41,12 +40,11 @@ class DeserializedTypeParameterDescriptor(
     private val c: DeserializationContext,
     private val typeParameter: TypeParameterWrapper,
     index: Int,
-    private val constraint: ContractWrapper? = null
 ) : AbstractLazyTypeParameterDescriptor(
     c.storageManager,
     c.containingDeclaration,
     Annotations.EMPTY,
-    typeParameter.name, // Generate a name based on ID
+     typeParameter.name  , // Generate a name based on ID
     Variance.INVARIANT, // TODO: Extract variance from constraint if available
     index,
     SourceElement.NO_SOURCE,
@@ -55,11 +53,11 @@ class DeserializedTypeParameterDescriptor(
     override val annotations = Annotations.EMPTY // TODO: Load annotations from constraint if needed
 
     override fun resolveUpperBounds(): List<CangJieType> {
-        if (constraint == null || constraint.uppers.isEmpty()) {
+        if (typeParameter.uppers.isEmpty()) {
             return listOf(this.builtIns.defaultBound)
         }
 
-        return constraint.uppers.map { upperBound ->
+        return typeParameter.uppers.map { upperBound ->
             c.typeDeserializer.type(upperBound)
         }
     }
