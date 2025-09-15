@@ -50,21 +50,8 @@ class LazyPackageViewDescriptorImpl(
     override fun isEmpty(): Boolean = empty
 
 
-    private val reexportPackageView: MutableMap<CjImportInfo, PackageViewDescriptor> = mutableMapOf()
-    var packageDirectives: MutableList<CjPackageDirective> = mutableListOf(
-
-
-    )
-
-
-    private var _visibility: DescriptorVisibility? = null
-
-
     override val visibility: DescriptorVisibility
         get() {
-            if (_visibility != null) {
-                return _visibility!!
-            }
 
             return DescriptorVisibilities.PUBLIC
         }
@@ -76,15 +63,7 @@ class LazyPackageViewDescriptorImpl(
         if (isEmpty()) {
             MemberScope.Empty
         } else {
-            // Packages from SubpackagesScope are got via getContributedDescriptors(DescriptorKindFilter.PACKAGES, MemberScope.ALL_NAME_FILTER)
-//            val scopes =
-//                fragments.map { it.getMemberScope() } /*+  SubpackagesScope(module, fqName)*/ +
-//                        if (this.module.name.asString() != "<built-ins module>") {
-//                            SubpackagesScope(module, fqName)
-//                        } else {
-//                            MemberScope.Empty
-//
-//                        }
+
             val scopes = fragments.map { it.getMemberScope() } + SubpackagesScope(module, fqName)
 
             ChainedMemberScope.create("package view scope for $fqName in ${module.name}", scopes)

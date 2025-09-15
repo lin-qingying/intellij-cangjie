@@ -32,6 +32,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.ExtendWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.FunctionWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.PropertyWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.TypeAliasWrapper

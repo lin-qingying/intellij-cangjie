@@ -609,6 +609,20 @@ open class CangJieBuiltIns(
         get() {
             return ctype.defaultType
         }
+
+    val cpointer: ClassDescriptor
+        get() = getStdCoreClassByName("CPointer")
+    val cpointerType: SimpleType
+        get() {
+            return cpointer.defaultType
+        }
+    val cfunc: ClassDescriptor
+        get() = getStdCoreClassByName("CFunc")
+    val cfuncType: SimpleType
+        get() {
+            return cfunc.defaultType
+        }
+
     val array: ClassDescriptor
         get() = getStdCoreClassByName("Array")
     val arrayType: SimpleType

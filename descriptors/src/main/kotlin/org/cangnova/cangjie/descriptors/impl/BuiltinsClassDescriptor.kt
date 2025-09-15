@@ -32,8 +32,11 @@ import org.cangnova.cangjie.types.BuiltInsTypeConstructor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.PrimitiveTypeConstructor
 import org.cangnova.cangjie.types.TypeConstructor
+import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeProjectionImpl
 import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import org.cangnova.cangjie.types.replace
 
 /**
  * 内置类型类描述符
@@ -129,7 +132,8 @@ class BuiltinsClassDescriptor(
         // 从 builtIns 获取对应的基本类型
         return builtIns.createBuiltInsClassDescriptor(builtinsType).defaultType
     }
-    private fun getCStringConstructor():List<ClassConstructorDescriptor>{
+
+    private fun getCStringConstructor(): List<ClassConstructorDescriptor> {
 
         val result = mutableListOf<ClassConstructorDescriptor>()
         result.add(
@@ -144,7 +148,9 @@ class BuiltinsClassDescriptor(
                 init {
                     val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
                         this, null, 0, Annotations.EMPTY, Name.identifier("pointer"),
-                        false, createBuiltinsType(BuiltinsType.CPOINTER), false, SourceElement.NO_SOURCE, null
+                        false, createBuiltinsType(BuiltinsType.CPOINTER).replace(
+                            newArguments = listOf(TypeProjectionImpl(builtIns.uint8Type))
+                        ), false, SourceElement.NO_SOURCE, null
                     )
                     initialize(listOf(parameter))
                     setReturnType(this@BuiltinsClassDescriptor.defaultType)
@@ -155,6 +161,7 @@ class BuiltinsClassDescriptor(
 
         return result
     }
+
     private fun getCPointerConstructor(): List<ClassConstructorDescriptor> {
 
         val result = mutableListOf<ClassConstructorDescriptor>()
@@ -178,7 +185,25 @@ class BuiltinsClassDescriptor(
             }
         )
 
-
+        result.add(
+            object : ClassConstructorDescriptorImpl(
+                this@BuiltinsClassDescriptor,
+                null,
+                Annotations.EMPTY,
+                false,
+                CallableMemberDescriptor.Kind.DECLARATION,
+                SourceElement.NO_SOURCE
+            ) {
+                init {
+                    val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                        this, null, 0, Annotations.EMPTY, Name.identifier("fun"),
+                        false, builtIns.cfuncType, false, SourceElement.NO_SOURCE, null
+                    )
+                    initialize(listOf(parameter))
+                    setReturnType(this@BuiltinsClassDescriptor.defaultType)
+                }
+            }
+        )
         return result
     }
 
@@ -194,8 +219,11 @@ class BuiltinsClassDescriptor(
                 getCPointerConstructor().forEach { result.add(it) }
             }
 
-            CSTRING -> TODO()
+            CSTRING -> {
+                getCStringConstructor().forEach { result.add(it) }
+            }
 
+            else -> {}
         }
 
 

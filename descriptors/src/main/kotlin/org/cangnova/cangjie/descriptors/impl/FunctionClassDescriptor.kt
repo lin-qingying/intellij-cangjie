@@ -25,11 +25,13 @@
 package org.cangnova.cangjie.descriptors.impl
 
 
+import org.cangnova.cangjie.builtins.BuiltinsType
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.resolve.scopes.FunctionClassScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.StorageManager
@@ -38,13 +40,65 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.functions.FunctionClassKind
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
 
+//通过委托给父类实现
+class CFunctionClassDescriptor(
+    storageManager: StorageManager,
+    containingDeclaration: DeclarationDescriptor,
+) : FunctionClassDescriptor(
+    storageManager, containingDeclaration, FunctionTypeKind.CFunction, 0
 
-class FunctionClassDescriptor(
+) {
+
+    private val parameters: List<TypeParameterDescriptor> = listOf(
+        TypeParameterDescriptorImpl.createWithDefaultBound(
+            this@CFunctionClassDescriptor,
+            Annotations.EMPTY,
+
+            Variance.INVARIANT,
+            Name.identifier("T"),
+            0,
+
+            storageManager
+        )
+    )
+
+
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
+        get() = parameters
+
+
+    override val constructors: Collection<ClassConstructorDescriptor>
+        get() {
+            return listOf(
+                object : ClassConstructorDescriptorImpl(
+                    this@CFunctionClassDescriptor,
+                    null,
+                    Annotations.EMPTY,
+                    false,
+                    CallableMemberDescriptor.Kind.DECLARATION,
+                    SourceElement.NO_SOURCE
+                ) {
+                    init {
+                        val parameter = ValueParameterDescriptorImpl.createWithDestructuringDeclarations(
+                            this, null, 0, Annotations.EMPTY, Name.identifier("pointer"),
+                            false, builtIns.cpointerType, false, SourceElement.NO_SOURCE, null
+                        )
+                        initialize(listOf(parameter))
+                        setReturnType(this@CFunctionClassDescriptor.defaultType)
+                    }
+                }
+            )
+        }
+
+}
+
+open class FunctionClassDescriptor(
     private val storageManager: StorageManager,
     override val containingDeclaration: DeclarationDescriptor,
     val functionTypeKind: FunctionTypeKind,
-    val arity: Int
-) : AbstractClassDescriptor(storageManager, functionTypeKind.numberedClassName(arity)) {
+    val arity: Int,
+    name: Name = functionTypeKind.numberedClassName(arity)
+) : AbstractClassDescriptor(storageManager, name) {
 
     private val _typeConstructor = FunctionTypeConstructor()
     private val memberScope = FunctionClassScope(storageManager, this)
@@ -82,7 +136,7 @@ class FunctionClassDescriptor(
     override val staticScope: MemberScope
         get() = MemberScope.Empty
 
-    override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner  ) = memberScope
+    override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner) = memberScope
     override val constructors: Collection<ClassConstructorDescriptor>
         get() = emptyList<ClassConstructorDescriptor>()
     override val kind: ClassKind
@@ -105,7 +159,7 @@ class FunctionClassDescriptor(
     override val declaredTypeParameters: List<TypeParameterDescriptor>
         get() = parameters
 
-      inner class FunctionTypeConstructor : AbstractClassTypeConstructor(storageManager) {
+    inner class FunctionTypeConstructor : AbstractClassTypeConstructor(storageManager) {
         override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
 
             return emptyList()

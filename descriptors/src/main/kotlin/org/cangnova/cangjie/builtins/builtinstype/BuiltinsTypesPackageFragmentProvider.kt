@@ -30,7 +30,9 @@ import org.cangnova.cangjie.builtins.BuiltinsType
 import org.cangnova.cangjie.builtins.PrimitiveType
 import org.cangnova.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.impl.AbstractClassDescriptor
 import org.cangnova.cangjie.descriptors.impl.BuiltinsClassDescriptor
+import org.cangnova.cangjie.descriptors.impl.CFunctionClassDescriptor
 import org.cangnova.cangjie.descriptors.impl.PackageFragmentDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
@@ -56,7 +58,7 @@ class BuiltinsTypesPackageFragmentProvider(
     private val builtInsModule: ModuleDescriptor
 ) : PackageFragmentProvider {
 
-    private val builtinsClassDescriptors = mutableMapOf<BuiltinsType, BuiltinsClassDescriptor>()
+    private val builtinsClassDescriptors = mutableMapOf<BuiltinsType, AbstractClassDescriptor>()
 
     // 基本包片段，用于承载所有的基本类型
     private val builtinsTypesPackageFragment: PackageFragmentDescriptor by lazy {
@@ -80,15 +82,21 @@ class BuiltinsTypesPackageFragmentProvider(
         return BuiltinsTypesPackageFragmentDescriptor(builtInsModule, this)
     }
 
-    fun createBuiltinsClassDescriptor(type: BuiltinsType): BuiltinsClassDescriptor {
+    fun createBuiltinsClassDescriptor(type: BuiltinsType): AbstractClassDescriptor {
         return builtinsClassDescriptors.getOrPut(type) {
-            BuiltinsClassDescriptor(type, storageManager, builtInsModule, builtInsModule.builtIns)
+            if (BuiltinsType.CFUNC == type) {
+                CFunctionClassDescriptor(
+                    storageManager, builtInsModule
+                )
+            } else
+                BuiltinsClassDescriptor(type, storageManager, builtInsModule, builtInsModule.builtIns)
         }
     }
 
     // 基本类型访问器
     val cpointertype: SimpleType get() = createBuiltinsClassDescriptor(BuiltinsType.CPOINTER).defaultType
     val cstringtype: SimpleType get() = createBuiltinsClassDescriptor(BuiltinsType.CSTRING).defaultType
+    val cunctype: SimpleType get() = createBuiltinsClassDescriptor(BuiltinsType.CFUNC).defaultType
 
 
 }
@@ -117,7 +125,7 @@ private class BuiltinsTypesPackageFragmentDescriptor(
 }
 
 /**
- * 基本类型的成员作用域
+ * 内置类型的成员作用域
  */
 private class BuiltinsTypesMemberScope(
     private val packageFragment: PackageFragmentDescriptor,

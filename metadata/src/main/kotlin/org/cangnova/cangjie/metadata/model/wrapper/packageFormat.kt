@@ -48,7 +48,8 @@ class PackageWrapper(
     // 预定义需要的声明类型集合，避免重复创建
     private val targetDeclKinds = setOf(
         FbDeclKind.ClassDecl, FbDeclKind.InterfaceDecl, FbDeclKind.StructDecl,
-        FbDeclKind.EnumDecl, FbDeclKind.TypeAliasDecl, FbDeclKind.FuncDecl, FbDeclKind.VarDecl
+        FbDeclKind.EnumDecl, FbDeclKind.TypeAliasDecl, FbDeclKind.FuncDecl, FbDeclKind.VarDecl,
+        FbDeclKind.ExtendDecl
     )
 
     private val classDeclKinds = setOf(
@@ -80,6 +81,9 @@ class PackageWrapper(
             ?: emptyList()
 
 
+    val extends: List<ExtendWrapper> =
+        allToplevelDecl[FbDeclKind.ExtendDecl]?.map { decl -> ExtendWrapper(decl, declTable, typeTable) }
+            ?: emptyList()
     val allClassDecls: List<ClassDeclWrapper> = classs + interfaces + structs + enums
 
     val functions: List<FunctionWrapper> = allToplevelDecl[FbDeclKind.FuncDecl]
@@ -90,6 +94,8 @@ class PackageWrapper(
 
     val typeAliass: List<TypeAliasWrapper> = allToplevelDecl[FbDeclKind.TypeAliasDecl]
         ?.map { TypeAliasWrapper(it, declTable, typeTable) } ?: emptyList()
+
+
 }
 
 interface ClassDeclWrapper : DeclarationWrapper, TypeParameter {
@@ -107,6 +113,7 @@ interface ClassDeclWrapper : DeclarationWrapper, TypeParameter {
 
     val classId: ClassId
 }
+
 
 class EnumWrapper(
     val original: FbDecl,
@@ -362,7 +369,7 @@ class ClassWrapper(
 
         else -> DescriptorVisibilities.INTERNAL
     }
-    val info = original.info as FbDeclInfo.ClassInfo
+    private val info = original.info as FbDeclInfo.ClassInfo
     val bodyDecls: List<FbDecl> = declTable.get(original.info.body)
     val declByTypeKind = bodyDecls.groupBy { it.kind }
     override val modality: Modality = when {
@@ -407,6 +414,46 @@ class ClassWrapper(
     }
     override val superTypes = typeTable.get(original.info.inheritedTypes).map { TypeWrapper(it, declTable, typeTable) }
     val isAnnotations = info.isAnno
+}
+
+class ExtendWrapper(
+    val original: FbDecl,
+    val declTable: DeclTable,
+    val typeTable: TypeTable,
+) {
+    //    被扩展类型
+    val type = typeTable.get(original.type).let { TypeWrapper(it, declTable, typeTable) }
+    private val info = original.info as FbDeclInfo.ExtendInfo
+
+    //继承列表
+    val superTypes = typeTable.get(info.inheritedTypes)
+
+    val bodyDecls: List<FbDecl> = declTable.get(original.info.body)
+    val declByTypeKind = bodyDecls.groupBy { it.kind }
+    val functions: List<FunctionWrapper> = declByTypeKind[FbDeclKind.FuncDecl]?.filter {
+        !it.attributePack.testAttr(Attribute.CONSTRUCTOR) && !it.attributePack.testAttr(Attribute.PRIMARY_CONSTRUCTOR)
+    }?.map {
+        FunctionWrapper(it, declTable, typeTable)
+    } ?: emptyList()
+    val variables: List<VariableWrapper> = declByTypeKind[FbDeclKind.VarDecl]?.map {
+        VariableWrapper(it, declTable, typeTable)
+    } ?: emptyList()
+    val propertys: List<PropertyWrapper> = declByTypeKind[FbDeclKind.PropDecl]?.map {
+        PropertyWrapper(it, declTable, typeTable)
+    } ?: emptyList()
+    val typeParameters: List<TypeParameterWrapper> = if (original.generic == null) emptyList()
+    else {
+        original.generic.typeParameters.map {
+            TypeParameterWrapper(
+                declTable.get(it),
+                original.generic.constraints.map { ContractWrapper(it, declTable, typeTable) },
+                declTable,
+                typeTable
+            )
+        }
+    }
+
+    val id = original.exportId!!
 }
 
 class PropertyWrapper(

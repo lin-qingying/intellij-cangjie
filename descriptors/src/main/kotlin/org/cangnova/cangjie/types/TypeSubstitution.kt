@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.types
 
+import org.cangnova.cangjie.builtins.BuiltinsType
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.annotations.FilteredAnnotations
@@ -186,6 +187,7 @@ fun CangJieType.replace(
             unwrapped.upperBound.replace(newArgumentsForUpperBound, newAttributes)
         )
         is SimpleType -> unwrapped.replace(newArguments, newAttributes)
+
     }
 }
 

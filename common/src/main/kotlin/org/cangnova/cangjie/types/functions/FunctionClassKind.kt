@@ -27,12 +27,13 @@ package org.cangnova.cangjie.types.functions
 
 enum class FunctionClassKind {
     Function,
-
+CFunction,
     UNKNOWN;
 
     companion object {
         fun getFunctionClassKind(functionTypeKind: FunctionTypeKind): FunctionClassKind = when (functionTypeKind) {
             FunctionTypeKind.Function -> Function
+            FunctionTypeKind.CFunction -> CFunction
 
             else -> UNKNOWN
         }
