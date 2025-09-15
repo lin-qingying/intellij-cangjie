@@ -50,6 +50,10 @@
         <!-- 5. 服务注册 -->
         <projectService serviceInterface="org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService"
                         serviceImplementation="org.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"/>
+        <projectOpenProcessor id="Cjpm" implementation="org.cangnova.cangjie.cjpm.project.CjpmProjectOpenProcessor"/>
+<!--        <externalIconProvider key="Cjpm"-->
+<!--                              implementationClass="org.cangnova.cangjie.cjpm.project.model.impl.CjpmExternalSystemIconProvider"/>-->
+
     </extensions>
 
 

@@ -343,7 +343,7 @@ class TypeDeserializer(
             }
 
             FbTypeKind.CPointer -> {
-                1
+
                 (classifierDescriptors(CPointerClassId) ?: notFoundClass(CPointerClassId))
             }
 

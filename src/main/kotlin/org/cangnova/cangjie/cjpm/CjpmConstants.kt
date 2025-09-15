@@ -34,6 +34,9 @@ object CjpmConstants {
     val LOCK_FILE =  "cjpm.lock"
     const val BUILD_FILE = "build.cj"
     val MANIFEST_FILE = "cjpm.toml"
+    const val CONFIG_FILE = "config"
+    const val CONFIG_TOML_FILE = "config.toml"
+
     object ProjectLayout {
         val sources = listOf("src", "examples")
         val tests = listOf("tests", "benches")

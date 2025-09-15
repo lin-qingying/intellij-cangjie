@@ -51,15 +51,13 @@ class CjpmSettingsFilesService(private val project: Project) {
     private fun CjpmProject.collectSettingsFiles(out: MutableMap<String, SettingFileType>) {
         val rootPath = rootDir?.path
         if (rootPath != null) {
-            CjpmConstants.MANIFEST_FILE.forEach {
-                out["$rootPath/$it"] = SettingFileType.CONFIG
-            }
-            CjpmConstants.LOCK_FILE.forEach {
-                out["$rootPath/$it"] = SettingFileType.CONFIG
-            }
 
-//            out["$rootPath/${CjpmConstants.MANIFEST_FILE}"] = SettingFileType.CONFIG
-//            out["$rootPath/${CjpmConstants.LOCK_FILE}"] = SettingFileType.CONFIG
+
+            out["$rootPath/${CjpmConstants.MANIFEST_FILE}"] = SettingFileType.CONFIG
+            out["$rootPath/${CjpmConstants.LOCK_FILE}"] = SettingFileType.CONFIG
+            out["$rootPath/.cjpm/${CjpmConstants.CONFIG_FILE}"] = SettingFileType.CONFIG
+            out["$rootPath/.cjpm/${CjpmConstants.CONFIG_TOML_FILE}"] = SettingFileType.CONFIG
+
 
         }
 

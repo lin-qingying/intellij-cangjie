@@ -28,9 +28,12 @@ import org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService
 import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.autoimport.*
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemSettingsFilesModificationContext.ReloadStatus
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.util.PathUtil
+import org.cangnova.cangjie.cjpm.CjpmConstants
 
 @Suppress("UnstableApiUsage")
 class CjpmExternalSystemProjectAware(
@@ -48,6 +51,30 @@ class CjpmExternalSystemProjectAware(
     override fun reloadProject(context: ExternalSystemProjectReloadContext) {
         FileDocumentManager.getInstance().saveAllDocuments()
         project.cjpmProjects.refreshAllProjects()
+    }
+
+    override fun isIgnoredSettingsFileEvent(
+        path: String,
+        context: ExternalSystemSettingsFilesModificationContext
+    ): Boolean {
+        if (super.isIgnoredSettingsFileEvent(path, context)) return true
+        // We consider any external change of `Cargo.lock` during project reloading is made by `Cargo`
+        // and it shouldn't trigger new project reloading
+        val fileName = PathUtil.getFileName(path)
+        if (fileName == CjpmConstants.LOCK_FILE &&
+            context.modificationType == ExternalSystemModificationType.EXTERNAL &&
+            (context.reloadStatus == ReloadStatus.IN_PROGRESS || context.reloadStatus == ReloadStatus.JUST_FINISHED)
+        ) return true
+
+        if (context.event != ExternalSystemSettingsFilesModificationContext.Event.UPDATE) return false
+
+        // `isIgnoredSettingsFileEvent` is called just to filter settings files already detected by `settingsFiles` call,
+        // so we don't need to collect fresh settings file list, and we can use cached value.
+        // Also, `isIgnoredSettingsFileEvent` is called from EDT so using cache should make it much faster
+        val settingsFiles = CjpmSettingsFilesService.getInstance(project).collectSettingsFiles(useCache = true)
+        val settingFileType = settingsFiles[path]
+        return settingFileType == null || settingFileType == CjpmSettingsFilesService.SettingFileType.IMPLICIT_TARGET
+
     }
 
     override fun subscribe(listener: ExternalSystemProjectListener, parentDisposable: Disposable) {

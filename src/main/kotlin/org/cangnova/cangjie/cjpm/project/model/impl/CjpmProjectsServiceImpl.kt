@@ -68,6 +68,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.indexing.LightDirectoryIndex
 import com.intellij.util.io.systemIndependentPath
+import com.redhat.devtools.lsp4ij.LanguageServerManager
 import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
 import org.cangnova.cangjie.ide.project.settings.CjProjectSettingsServiceBase
 import org.cangnova.cangjie.ide.project.settings.cangjieSettings
@@ -530,6 +531,7 @@ private fun doRefresh(project: Project, projects: List<CjpmProjectImpl>): Comple
 
             if (CangJieLanguageServerServices.getInstance().lspConfig.enabled) {
                 //TODO 重启lsp服务器
+                LanguageServerManager.getInstance(project).start("CangJie")
             }
         }
         updatedProjects
