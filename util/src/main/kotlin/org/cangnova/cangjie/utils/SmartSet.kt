@@ -27,24 +27,31 @@ package org.cangnova.cangjie.utils
 import java.util.Collections
 
 /**
- * A set which is optimized for small sizes and maintains the order in which the elements were added.
- * This set is not synchronized and it does not support removal operations such as [MutableSet.remove],
- * [MutableSet.removeAll] and [MutableSet.retainAll].
- * Also, [iterator] returns an iterator which does not support [MutableIterator.remove].
+ * 针对小规模集合进行优化的 Set 实现，保持元素插入顺序。
+ * 该集合非线程安全，且不支持诸如 [MutableSet.remove]、[MutableSet.removeAll] 和 [MutableSet.retainAll] 的删除操作。
+ * 其迭代器也不支持 [MutableIterator.remove]。
  */
 @Suppress("UNCHECKED_CAST")
 class SmartSet<T> private constructor() : AbstractMutableSet<T>() {
     companion object {
         private const val ARRAY_THRESHOLD = 5
 
+        /**
+         * 创建一个空的 SmartSet 实例。
+         */
         @JvmStatic
         fun <T> create() = SmartSet<T>()
 
+        /**
+         * 基于已有集合创建一个 SmartSet 实例，并将集合中的元素添加到新集合中。
+         *
+         * @param set 要复制的集合
+         */
         @JvmStatic
         fun <T> create(set: Collection<T>) = SmartSet<T>().apply { this.addAll(set) }
     }
 
-    // null if size = 0, object if size = 1, array of objects if size < threshold, linked hash set otherwise
+    // 当 size = 0 时为 null，size = 1 时为单个对象；当 size < 阈值时为对象数组；否则使用 LinkedHashSet
     private var data: Any? = null
 
     override var size: Int = 0

@@ -24,6 +24,14 @@
 
 package org.cangnova.cangjie.descriptors
 
+/**
+ * 可验证描述符接口
+ * 该接口定义了描述符的验证功能，实现该接口的描述符可以进行自我验证
+ */
 interface ValidateableDescriptor {
+    /**
+     * 验证描述符的有效性
+     * 默认实现为空，子类可以根据需要重写该方法来实现具体的验证逻辑
+     */
     fun validate() {}
 }

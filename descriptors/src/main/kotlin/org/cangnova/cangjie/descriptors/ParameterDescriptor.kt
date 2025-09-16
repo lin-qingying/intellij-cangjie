@@ -23,6 +23,16 @@
  */
 package org.cangnova.cangjie.descriptors
 
+/**
+ * 参数描述符接口
+ * 表示函数或构造函数的形式参数
+ * 
+ * 继承自 ValueDescriptor，表示参数是具有类型和值的语言元素
+ */
 interface ParameterDescriptor : ValueDescriptor {
+    /**
+     * 原始参数描述符
+     * 在类型替换或泛型实例化时，指向原始的未替换参数描述符
+     */
     override val original: ParameterDescriptor
 }

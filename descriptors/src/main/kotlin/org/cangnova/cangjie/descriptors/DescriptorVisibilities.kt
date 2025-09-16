@@ -34,8 +34,7 @@ import java.util.Collections.unmodifiableMap
 
 object DescriptorVisibilities {
     /**
-     * This value should be used for receiverValue parameter of Visibility.isVisible
-     * iff there is intention to determine if member is visible without receiver related checks being performed.
+     * 该值应在需要忽略接收器相关检查的情况下用于Visibility.isVisible的receiverValue参数
      */
     val ALWAYS_SUITABLE_RECEIVER: ReceiverValue = object : ReceiverValue {
 
@@ -60,11 +59,11 @@ object DescriptorVisibilities {
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
-            throw IllegalStateException("Visibility is unknown yet") //This method shouldn't be invoked for INHERITED visibility
+            throw IllegalStateException("Visibility is unknown yet") // 此方法不应在继承可见性(INHERITED)的情况下被调用
         }
     }
 
-    /* Visibility for fake override invisible members (they are created for better error reporting) */
+    /* 用于虚假覆盖不可见成员的可见性（为更好的错误报告创建） */
     @JvmField
     val INVISIBLE_FAKE: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.InvisibleFake) {
         public override fun isVisible(
@@ -78,9 +77,8 @@ object DescriptorVisibilities {
     }
 
     /**
-     * private*****可见*******************可见********************可见**********************可见
+     * private可见性仅在当前文件内有效
      */
-    //    当前文件可见
     @JvmField
     val PRIVATE: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Private) {
         //        private boolean hasContainingSourceFile(@NotNull DeclarationDescriptor descriptor) {
@@ -136,7 +134,7 @@ object DescriptorVisibilities {
         }
     }
 
-    //所有可见
+    //对所有地方可见
     @JvmField
     val PUBLIC: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Public) {
         public override fun isVisible(
@@ -153,26 +151,31 @@ object DescriptorVisibilities {
     val DEFAULT_VISIBILITY: DescriptorVisibility = PUBLIC
 
 
-    /***********************************************访问修饰符规则 */
-    /**************文件****************包 & 子包*******************模块************************所有包 */
-    /**private*****可见******************不可见********************不可见**********************不可见 */
-    /**internal****可见*******************可见********************不可见**********************不可见 */
-    /**private*****可见*******************可见*********************可见**********************不可见 */
     /**
-     * This visibility is needed for the next case:
-     * class A<in T>(t: T) {
-     * private val t: T = t // visibility for t is PRIVATE_TO_THIS
-     *
-     *
-     * fun test() {
-     * val x: T = t // correct
-     * val y: T = this.t // also correct
+     * 访问修饰符规则
+     * 文件        包 & 子包        模块        所有包
+     * private     可见            不可见      不可见      不可见
+     * internal    可见            可见        不可见      不可见
+     * protected   可见            可见        可见        不可见
+     */
+
+
+
+    /**
+     * 此可见性用于以下场景：
+     * class A<T> {
+     *   init(t: T){}
+     *   private let t: T = t // t的可见性为PRIVATE_TO_THIS
+     *   
+     *   func test() {
+     *     let x: T = t       // 正确
+     *     let y: T = this.t  // 也正确
+     *   }
+     *   func foo(a: A<String>) {
+     *     let x: String = a.t // 错误，因为a.t可能是Any
+     *   }
      * }
-     * fun foo(a: A<String>) {
-     * val x: String = a.t // incorrect, because a.t can be Any
-     * }
-     * }
-    </String></in> */
+     */
     val PRIVATE_TO_THIS: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.PrivateToThis) {
         public override fun isVisible(
             receiver: ReceiverValue?,
@@ -204,8 +207,8 @@ object DescriptorVisibilities {
         //        }
     }
 
-    // Currently used as default visibility of FunctionDescriptor
-    // It's needed to prevent NPE when requesting non-nullable visibility of descriptor before `initialize` has been called
+    // 当前用作FunctionDescriptor的默认可见性
+    // 防止在调用`initialize`前请求非空可见性时出现NPE
     val UNKNOWN: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Unknown) {
         public override fun isVisible(
             receiver: ReceiverValue?,
@@ -232,7 +235,7 @@ object DescriptorVisibilities {
 
     }
 
-    // 文件  包以及子包可见
+    // 在文件、包及子包中可见
     @JvmField
     val INTERNAL: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Internal) {
         public override fun isVisible(
@@ -266,7 +269,7 @@ object DescriptorVisibilities {
         }
     }
 
-    //    模块内可见
+    // 仅在模块内可见
     val PROTECTED: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Protected) {
         public override fun isVisible(
             receiver: ReceiverValue?,
@@ -283,8 +286,7 @@ object DescriptorVisibilities {
     }
 
     /**
-     * This value should be used for receiverValue parameter of Visibility.isVisible
-     * iff there is intention to determine if member is visible for any receiver.
+     * 该值应在需要判断成员是否对任意接收器可见的情况下用于Visibility.isVisible的receiverValue参数
      */
     private val IRRELEVANT_RECEIVER: ReceiverValue = object : ReceiverValue {
 
@@ -332,8 +334,8 @@ object DescriptorVisibilities {
         visibilitiesMapping.put(visibility.delegate, visibility)
     }
 
-    // Note that this method returns false if `from` declaration is `init` initializer
-    // because initializer does not have source element
+    // 注意：如果`from`声明是`init`初始化器，则返回false
+    // 因为初始化器没有源元素
     fun inSameFile(what: DeclarationDescriptor, from: DeclarationDescriptor): Boolean {
         val fromContainingFile = DescriptorUtils.getContainingSourceFile(from)
         if (fromContainingFile !== SourceFile.NO_SOURCE_FILE) {

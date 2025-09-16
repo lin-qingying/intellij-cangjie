@@ -109,7 +109,7 @@ abstract class AbstractTypeAliasDescriptor(
             cangjieTypeRefiner?.refineDescriptor(this)?.defaultType
         }
 
-    override val typeConstructor = object : TypeConstructor {
+            cangjieTypeRefiner.refineDescriptor(this)?.defaultType
 
         override val declarationDescriptor: TypeAliasDescriptor
             get() =

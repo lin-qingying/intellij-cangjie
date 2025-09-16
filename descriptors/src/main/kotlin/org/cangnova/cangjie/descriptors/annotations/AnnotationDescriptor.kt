@@ -36,27 +36,37 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.model.AnnotationMarker
 
-
+/**
+ * 扩展属性：获取声明描述符的不安全完全限定名（可能包含错误信息）。
+ */
 val DeclarationDescriptor.fqNameUnsafe: FqNameUnsafe
     get() = DescriptorUtils.getFqName(this)
 
+/**
+ * 扩展方法：返回安全的完全限定名或 null（当 fqNameUnsafe 不安全时）。
+ */
 fun DeclarationDescriptor.fqNameOrNull(): FqName? = fqNameUnsafe.takeIf { it.isSafe }?.toSafe()
 
+/**
+ * 注解描述符接口，表示一个注解实例的元信息。
+ *
+ * 该接口提供注解的类型、完全限定名（如可获取）、所有的值参数以及源信息。
+ */
 interface AnnotationDescriptor : AnnotationMarker {
+    /** 注解的类型 */
     val type: CangJieType
 
+    /**
+     * 注解的完全限定名（如果可解析且非错误类型），否则为 null
+     */
     val fqName: FqName?
         get() = annotationClass?.takeUnless(ErrorUtils::isError)?.fqNameOrNull()
 
+    /** 注解的所有值参数映射，键为参数名，值为常量值 */
     val allValueArguments: Map<Name, ConstantValue<*>>
 
+    /** 注解的源信息，用于导航和错误报告 */
     val source: SourceElement
 
 
-
 }
-//fun CangJieType.getAbbreviation(): SimpleType? = getAbbreviatedType()?.abbreviation
-//fun CangJieType.getAbbreviatedType(): AbbreviatedType? = unwrap() as? AbbreviatedType
-//
-//val AnnotationDescriptor.abbreviationFqName: FqName?
-//    get() = type.getAbbreviation()?.constructor?.declarationDescriptor?.fqNameOrNull()

@@ -24,4 +24,10 @@
 
 package org.cangnova.cangjie.descriptors
 
+/**
+ * 反序列化描述符标记接口，表示该描述符是从二进制/外部表示（如编译产物或序列化数据）反序列化而来。
+ *
+ * 该接口通常用于区分源代码中声明的描述符与从已编译模块或元数据中加载的描述符，
+ * 便于在处理符号解析、序列化/反序列化以及跨模块边界分析时应用不同的逻辑或优化。
+ */
 interface DeserializedDescriptor : DeclarationDescriptor

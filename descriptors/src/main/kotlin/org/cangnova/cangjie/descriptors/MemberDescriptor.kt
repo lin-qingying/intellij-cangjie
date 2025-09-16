@@ -23,14 +23,35 @@
  */
 package org.cangnova.cangjie.descriptors
 
+/**
+ * 成员描述符接口，表示类、对象、接口或枚举中的成员（字段、方法、属性等）
+ * 
+ * 继承自 DeclarationDescriptorNonRoot 和 DeclarationDescriptorWithVisibility，
+ * 提供成员的可见性和修饰符信息
+ */
 interface MemberDescriptor : DeclarationDescriptorNonRoot, DeclarationDescriptorWithVisibility {
+    /**
+     * 成员的修饰符（如 abstract、final、open 等）
+     * 用于描述成员的访问控制和继承特性
+     */
     val  modality: Modality
 
 
+    /**
+     * 成员的可见性（如 public、protected、private、internal 等）
+     * 控制成员在代码中的访问范围
+     */
     override val visibility: DescriptorVisibility
 
 
+
+    /**
+     * 判断成员是否为不安全操作
+     * 默认返回 false，需要在具体实现中根据业务逻辑重写
+     * 
+     * @return 如果成员包含可能引发运行时错误的不安全操作，返回 true
+     */
     val isUnsafe: Boolean
-        get() = false //
+        get() = false // 默认实现，由具体子类根据需要重写
 
 }

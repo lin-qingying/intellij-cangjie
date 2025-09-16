@@ -25,7 +25,20 @@
 package org.cangnova.cangjie.descriptors
 
 
+/**
+ * 简单函数描述符接口，继承自`FunctionDescriptor`，用于描述普通函数（非扩展、非操作符等）的元信息。
+ */
 interface SimpleFunctionDescriptor : FunctionDescriptor {
+    /**
+     * 创建当前简单函数描述符的副本，并指定新的所有者、模态、可见性、种类和是否复制覆盖关系。
+     *
+     * @param newOwner 新的所有者描述符
+     * @param modality 新的模态
+     * @param visibility 新的可见性
+     * @param kind 新的种类
+     * @param copyOverrides 是否复制覆盖关系
+     * @return 新的简单函数描述符副本
+     */
     override fun copy(
         newOwner: DeclarationDescriptor,
         modality: Modality,
@@ -34,7 +47,17 @@ interface SimpleFunctionDescriptor : FunctionDescriptor {
         copyOverrides: Boolean
     ): SimpleFunctionDescriptor
 
+    /**
+     * 获取原始简单函数描述符，通常是当前描述符或其覆盖的版本。
+     *
+     * @return 原始简单函数描述符
+     */
     override val original: SimpleFunctionDescriptor
 
+    /**
+     * 创建一个新的简单函数描述符副本构建器，用于生成简单函数描述符的副本。
+     *
+     * @return 副本构建器
+     */
     override fun newCopyBuilder(): FunctionDescriptor.CopyBuilder<out SimpleFunctionDescriptor>
 }

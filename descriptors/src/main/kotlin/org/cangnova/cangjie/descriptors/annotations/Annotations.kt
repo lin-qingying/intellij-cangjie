@@ -26,10 +26,22 @@ package org.cangnova.cangjie.descriptors.annotations
 
 import org.cangnova.cangjie.name.FqName
 
+/**
+ * 可注解接口，表示可以被注解修饰的声明
+ * 提供默认的注解集合实现（空注解）
+ */
 interface Annotated {
+    /**
+     * 获取该声明的注解集合
+     * 默认返回空注解集合
+     */
     val annotations: Annotations get() = Annotations.EMPTY
 }
 
+/**
+ * 组合注解类，将多个注解集合组合成一个统一的注解视图
+ * 用于处理继承、组合或其他需要合并注解的场景
+ */
 class CompositeAnnotations(
     private val delegates: List<Annotations>
 ) : Annotations {
@@ -49,6 +61,10 @@ class CompositeAnnotations(
 }
 
 
+/**
+ * 基于谓词过滤的注解类
+ * 根据指定的过滤条件筛选注解集合
+ */
 class FilteredByPredicateAnnotations(
     private val delegate: Annotations,
     private val filter: (AnnotationDescriptor) -> Boolean
@@ -66,6 +82,10 @@ class FilteredByPredicateAnnotations(
     }
 }
 
+/**
+ * 注解集合接口，表示一组注解描述符
+ * 提供了注解的查找、判断和遍历功能
+ */
 interface Annotations : Iterable<AnnotationDescriptor> {
     fun isEmpty(): Boolean
 
@@ -78,6 +98,9 @@ interface Annotations : Iterable<AnnotationDescriptor> {
     fun getUseSiteTargetedAnnotations(): List<AnnotationWithTarget> = emptyList()
 
     companion object {
+        /**
+         * 空的注解集合实例
+         */
         @JvmField
         val EMPTY: Annotations = object : Annotations {
             override fun isEmpty() = true
@@ -89,11 +112,21 @@ interface Annotations : Iterable<AnnotationDescriptor> {
             override fun toString() = "EMPTY"
         }
 
+        /**
+         * 创建注解集合的工厂方法
+         * @param annotations 注解描述符列表
+         * @return 如果列表为空返回EMPTY，否则创建新的AnnotationsImpl实例
+         */
         fun create(annotations: List<AnnotationDescriptor>): Annotations =
             if (annotations.isEmpty()) EMPTY else AnnotationsImpl(annotations)
     }
 }
 
+/**
+ * 基于完全限定名过滤的注解类
+ * 根据注解的完全限定名进行过滤
+ * @param isDefinitelyNewInference 是否使用新的类型推断逻辑
+ */
 class FilteredAnnotations(
     private val delegate: Annotations,
     private val isDefinitelyNewInference: Boolean,
@@ -124,6 +157,11 @@ class FilteredAnnotations(
         }
 }
 
+/**
+ * 组合两个注解集合
+ * 如果其中一个为空，则返回另一个
+ * 如果两个都非空，则创建组合注解
+ */
 fun composeAnnotations(first: Annotations, second: Annotations) =
     when {
         first.isEmpty() -> second

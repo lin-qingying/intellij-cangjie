@@ -24,6 +24,13 @@
 
 package org.cangnova.cangjie.descriptors
 
+/**
+ * 表示从类型别名派生的描述符接口
+ */
 interface DescriptorDerivedFromTypeAlias {
+    /**
+     * 获取派生自的类型别名描述符
+     * @return 返回关联的TypeAliasDescriptor对象
+     */
     val typeAliasDescriptor: TypeAliasDescriptor
 }

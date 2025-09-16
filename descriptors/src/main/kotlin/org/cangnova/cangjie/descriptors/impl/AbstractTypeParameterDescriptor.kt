@@ -39,7 +39,21 @@ import org.cangnova.cangjie.types.ErrorUtils.createErrorType
 import org.cangnova.cangjie.types.TypeAttributes.Companion.Empty
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 
-
+/**
+ * 抽象类型参数描述符基类。
+ *
+ * 该类为实现类型参数（泛型参数）描述符提供公共逻辑，包括类型构造器的延迟计算、默认类型的创建、
+ * 上界解析与超类型循环检查的支持。子类需要实现上界解析与循环错误报告的具体逻辑。
+ *
+ * @param storageManager 存储管理器，用于延迟缓存等功能
+ * @param containingDeclaration 类型参数所在的声明描述符
+ * @param annotations 注解集合
+ * @param name 类型参数名称
+ * @param variance 方差（in/out/invariant）
+ * @param index 在声明中的位置索引（0 基）
+ * @param source 源信息
+ * @param supertypeLoopChecker 超类型循环检测器
+ */
 abstract class AbstractTypeParameterDescriptor protected constructor(
     override val storageManager: StorageManager,
     containingDeclaration: DeclarationDescriptor,
@@ -52,7 +66,6 @@ abstract class AbstractTypeParameterDescriptor protected constructor(
     supertypeLoopChecker: SupertypeLoopChecker
 ) : DeclarationDescriptorNonRootImpl(containingDeclaration, annotations, name, source),
     TypeParameterDescriptor {
-
 
     private val _typeConstructor: NotNullLazyValue<TypeConstructor> = storageManager.createLazyValue<TypeConstructor> {
         TypeParameterTypeConstructor(

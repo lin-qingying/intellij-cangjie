@@ -25,33 +25,53 @@
 package org.cangnova.cangjie.descriptors
 
 
+/**
+ * 类类型枚举
+ * @property codeRepresentation 代码中的表示形式(可能为null)
+ */
 enum class ClassKind(val codeRepresentation: String?) {
+    /** 结构体类型 */
     STRUCT("struct"),
+    /** 类类型 */
     CLASS("class"),
+    /** 接口类型 */
     INTERFACE("interface"),
+    /** 元组类型 */
     TUPLE("tuple"),
+    /** 枚举类型 */
     ENUM("enum"),
+    /** 扩展类型 */
     EXTEND("extend"),
+    /** 枚举条目类型(无代码表示) */
     ENUM_ENTRY(null),
+    /** 基本类型(无代码表示) */
     BASIC(null),
+    /** 内置类型(无代码表示) */
     BUILTIN(null),
 
     ;
 
+    /** 是否是结构体类型 */
     val isStruct: Boolean
         get() = this == STRUCT
+    /** 是否是枚举条目类型 */
     val isEnumEntry: Boolean
         get() = this == ENUM_ENTRY
+    /** 是否是对象类型 */
     val isObject: Boolean
-        get() =  isEnumEntry
+        get() = isEnumEntry
+    /** 是否是枚举类型 */
     val isEnum: Boolean
         get() = this == ENUM || this == ENUM_ENTRY
 
+    /** 是否是单例类型 */
     val isSingleton: Boolean
-        get() =  this == ENUM_ENTRY
+        get() = this == ENUM_ENTRY
 }
+/** 是否是接口类型 */
 inline val ClassKind.isInterface: Boolean
     get() = this == ClassKind.INTERFACE
 
+/** 是否是类类型 */
 inline val ClassKind.isClass: Boolean
-    get() = this == ClassKind.CLASS
+    get() = this == Classkind.CLASS

@@ -28,7 +28,18 @@ import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.storage.StorageManager
 
-
+ /**
+ * 类描述符的基础抽象实现。
+ *
+ * 该类作为具体类描述符的基类，接收存储管理器和包含声明等通用参数，
+ * 并将这些信息传递给上层的 AbstractClassDescriptor 实现公共行为。
+ * 子类可以基于此提供更具体的类语义和成员管理。
+ *
+ * @param storageManager 存储管理器，用于缓存与延迟计算
+ * @param containingDeclaration 包含该类的声明描述符（如包或另一个类）
+ * @param name 类名
+ * @param source 源信息
+ */
 abstract class ClassDescriptorBase protected constructor(
     storageManager: StorageManager,
 

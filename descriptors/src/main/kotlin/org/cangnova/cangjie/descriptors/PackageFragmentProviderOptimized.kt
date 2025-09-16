@@ -26,7 +26,22 @@ package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.name.FqName
 
+/**
+ * 优化实现的包片段提供者接口，继承自 `PackageFragmentProvider`，提供更高效的包片段收集和空状态检查。
+ */
 interface PackageFragmentProviderOptimized : PackageFragmentProvider {
+    /**
+     * 收集指定完全限定名对应的包片段到传入的集合中（优化实现）。
+     *
+     * @param fqName 完全限定名
+     * @param packageFragments 用于存储收集结果的包片段集合
+     */
     fun collectPackageFragments(fqName: FqName, packageFragments: MutableCollection<PackageFragmentDescriptor>)
+    /**
+     * 检查指定完全限定名的包片段是否为空（优化实现）。
+     *
+     * @param fqName 完全限定名
+     * @return 如果为空则返回 `true`
+     */
     fun isEmpty(fqName: FqName): Boolean
 }

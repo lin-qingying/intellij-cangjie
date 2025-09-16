@@ -27,32 +27,38 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.types.TypeSubstitutor
 
 /**
- * ClassConstructorDescriptor接口继承自ConstructorDescriptor和ConstructorSymbolMarker，
- * 主要用于描述类的构造器相关的信息。
+ * 表示类构造函数的描述符接口，扩展自 ConstructorDescriptor。
+ * 用于提供类构造函数的元信息（包含所属类、原始构造函数、类型替换与复制功能）。
  */
 interface ClassConstructorDescriptor : ConstructorDescriptor {
 
-    // 获取包含此构造器声明的类描述符。
+    /**
+     * 获取包含此构造函数声明的类描述符。
+     */
     override val containingDeclaration: ClassDescriptor
 
-    // 获取原始的类构造器描述符，用于处理派生描述符的情况。
+    /**
+     * 指向原始（未替换或未变换）版本的构造函数描述符。
+     */
     override val original: ClassConstructorDescriptor
 
     /**
-     * 使用给定的类型替换器来替换此构造器描述符中的类型。
-     * @param substitutor 类型替换器，用于执行类型替换。
-     * @return 替换后的类构造器描述符，如果替换不可行则可能返回null。
+     * 使用给定的类型替换器对构造函数所涉及的类型执行替换，返回替换后的构造函数描述符（可能为 null）。
+     *
+     * @param substitutor 类型替换器
+     * @return 替换后的 ClassConstructorDescriptor（若替换不可行可返回 null）
      */
     override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor
 
     /**
-     * 复制当前构造器描述符，但修改其所有者、模态性、可见性、种类和是否复制覆盖标志。
-     * @param newOwner 新的声明所有者。
-     * @param modality 新的模态性。
-     * @param visibility 新的可见性。
-     * @param kind 新的成员描述符种类。
-     * @param copyOverrides 是否复制覆盖标志。
-     * @return 复制并修改后的类构造器描述符。
+     * 复制当前构造函数描述符并可修改其属性（拥有者、模态性、可见性、成员种类以及是否复制覆盖关系）。
+     *
+     * @param newOwner 新的声明所有者
+     * @param modality 新的模态性
+     * @param visibility 新的可见性
+     * @param kind 新的成员种类
+     * @param copyOverrides 是否复制覆盖关系
+     * @return 复制后的 CallableMemberDescriptor
      */
     override fun copy(
         newOwner: DeclarationDescriptor,

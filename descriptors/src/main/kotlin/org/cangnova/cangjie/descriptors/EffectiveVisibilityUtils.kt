@@ -30,6 +30,12 @@ import org.cangnova.cangjie.resolve.DescriptorUtils
 import  org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext
 import org.cangnova.cangjie.types.CangJieType
 
+/**
+ * 计算描述符的有效可见性
+ * @param visibility 指定的可见性（默认为当前描述符的可见性）
+ * @param checkPublishedApi 是否检查PublishedApi注解
+ * @return 返回计算后的EffectiveVisibility
+ */
 fun DeclarationDescriptorWithVisibility.effectiveVisibility(
     visibility: DescriptorVisibility = this.visibility,
     checkPublishedApi: Boolean = false
@@ -41,6 +47,11 @@ fun DeclarationDescriptorWithVisibility.effectiveVisibility(
     )
 
 
+/**
+ * 表示一个分类器描述符及其与类型的关系
+ * @param descriptor 分类器描述符
+ * @param relation 描述符与类型的关系
+ */
 data class DescriptorWithRelation(val descriptor: ClassifierDescriptor, private val relation: RelationToType) {
     fun effectiveVisibility() =
         (descriptor as? ClassDescriptor)?.visibility?.effectiveVisibility(descriptor, false) ?: EffectiveVisibility.Public
@@ -48,6 +59,12 @@ data class DescriptorWithRelation(val descriptor: ClassifierDescriptor, private 
     override fun toString() = "$relation ${descriptor.name}"
 }
 
+/**
+ * 计算类描述符的有效可见性
+ * @param classes 已处理的类描述符集合
+ * @param checkPublishedApi 是否检查PublishedApi注解
+ * @return 返回计算后的EffectiveVisibility
+ */
 private fun ClassDescriptor.effectiveVisibility(classes: Set<ClassDescriptor>, checkPublishedApi: Boolean): EffectiveVisibility =
     if (this in classes) EffectiveVisibility.Public
     else with(this.containingDeclaration as? ClassDescriptor) {
@@ -56,6 +73,12 @@ private fun ClassDescriptor.effectiveVisibility(classes: Set<ClassDescriptor>, c
             this?.effectiveVisibility(classes + this@effectiveVisibility, checkPublishedApi) ?: EffectiveVisibility.Public
         )
     }
+/**
+ * 计算描述符可见性的有效可见性
+ * @param descriptor 声明描述符
+ * @param checkPublishedApi 是否检查PublishedApi注解
+ * @return 返回计算后的EffectiveVisibility
+ */
 fun DescriptorVisibility.effectiveVisibility(
     descriptor: DeclarationDescriptor,
     checkPublishedApi: Boolean = false
@@ -63,13 +86,30 @@ fun DescriptorVisibility.effectiveVisibility(
     return customEffectiveVisibility() ?: normalize().forVisibility(descriptor, checkPublishedApi)
 }
 
+/**
+ * 计算两个有效可见性的下限
+ * @param first 第一个有效可见性
+ * @param second 第二个有效可见性
+ * @return 返回下限后的EffectiveVisibility
+ */
 private fun lowerBound(first: EffectiveVisibility, second: EffectiveVisibility): EffectiveVisibility {
     return first.lowerBound(second, SimpleClassicTypeSystemContext)
 }
 
+/**
+ * 计算类描述符的有效可见性
+ * @param checkPublishedApi 是否检查PublishedApi注解
+ * @return 返回计算后的EffectiveVisibility
+ */
 fun ClassDescriptor.effectiveVisibility(checkPublishedApi: Boolean = false) =
     effectiveVisibility(emptySet(), checkPublishedApi)
 
+/**
+ * 根据描述符的可见性计算有效可见性
+ * @param descriptor 声明描述符
+ * @param checkPublishedApi 是否检查PublishedApi注解
+ * @return 返回计算后的EffectiveVisibility
+ */
 private fun DescriptorVisibility.forVisibility(
     descriptor: DeclarationDescriptor,
     checkPublishedApi: Boolean = false
@@ -93,15 +133,31 @@ private fun DescriptorVisibility.forVisibility(
         // NB: visibility must be already normalized here, so e.g. no JavaVisibilities are possible at this point
         else -> throw AssertionError("Visibility $name is not allowed in forVisibility")
     }
+/**
+ * 计算CangJieType的最小允许描述符
+ * @param base 基础有效可见性
+ * @return 返回最小允许描述符
+ */
 fun CangJieType.leastPermissiveDescriptor(base: EffectiveVisibility) = dependentDescriptors().leastPermissive(base)
 // Should collect all dependent classifier descriptors, to get verbose diagnostic
 private fun CangJieType.dependentDescriptors() = dependentDescriptors(emptySet(), RelationToType.CONSTRUCTOR)
+/**
+ * 收集CangJieType的依赖描述符
+ * @param types 已处理的类型集合
+ * @param ownRelation 当前类型的关系
+ * @return 返回依赖描述符集合
+ */
 private fun CangJieType.dependentDescriptors(types: Set<CangJieType>, ownRelation: RelationToType): Set<DescriptorWithRelation> {
     if (this in types) return emptySet()
     val ownDependent = constructor.declarationDescriptor?.dependentDescriptors(ownRelation) ?: emptySet()
     val argumentDependent = arguments.map { it.type.dependentDescriptors(types + this, RelationToType.ARGUMENT) }.flatten()
     return ownDependent + argumentDependent
 }
+/**
+ * 收集分类器描述符的依赖描述符
+ * @param ownRelation 当前分类器描述符的关系
+ * @return 返回依赖描述符集合
+ */
 private fun ClassifierDescriptor.dependentDescriptors(ownRelation: RelationToType): Set<DescriptorWithRelation> =
     setOf(DescriptorWithRelation(this, ownRelation)) +
             ((this.containingDeclaration as? ClassifierDescriptor)?.dependentDescriptors(ownRelation.containerRelation()) ?: emptySet())

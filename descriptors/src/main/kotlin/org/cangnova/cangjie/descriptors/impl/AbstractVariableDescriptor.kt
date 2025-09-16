@@ -32,7 +32,18 @@ import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.shouldBeUpdated
 
-
+/**
+ * 抽象变量描述符基类。
+ *
+ * 提供变量/属性描述符的通用实现，包括类型与类型参数管理、接收者与上下文接收器支持、
+ * 可见性与静态性判断以及初始化器相关的辅助方法。子类可根据具体声明（如字段、局部变量、属性实现）
+ * 扩展或覆盖特定行为。
+ *
+ * 主要职责：
+ * - 管理变量的输出类型（outType）与延迟初始化逻辑；
+ * - 管理类型参数、派发接收者、扩展接收者与上下文接收者列表；
+ * - 提供对常量、静态性与可见性的默认实现。
+ */
 abstract class AbstractVariableDescriptor(
     containingDeclaration: DeclarationDescriptor,
     annotations: Annotations,

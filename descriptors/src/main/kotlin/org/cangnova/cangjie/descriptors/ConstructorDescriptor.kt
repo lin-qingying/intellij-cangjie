@@ -26,14 +26,38 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeSubstitutor
 
+/**
+ * 构造函数描述符接口
+ */
 interface ConstructorDescriptor : FunctionDescriptor {
 
+    /**
+     * 是否为主构造函数
+     */
     val isPrimary: Boolean
+    /**
+     * 是否为最终构造函数
+     */
     val isEnd: Boolean
 
+    /**
+     * 获取返回类型
+     */
     override val returnType: CangJieType
+    /**
+     * 获取构造的类描述符
+     */
     val constructedClass: ClassDescriptor
 
+    /**
+     * 复制构造函数描述符
+     * @param newOwner 新所有者描述符
+     * @param modality 模态
+     * @param visibility 可见性
+     * @param kind 成员种类
+     * @param copyOverrides 是否复制覆盖
+     * @return 复制后的可调用成员描述符
+     */
     override fun copy(
         newOwner: DeclarationDescriptor,
         modality: Modality,
@@ -42,14 +66,23 @@ interface ConstructorDescriptor : FunctionDescriptor {
         copyOverrides: Boolean
     ): CallableMemberDescriptor
 
-    //    @NotNull
-    //    @Override
-    //    CangJieType getReturnType();
+
+    /**
+     * 类型替换
+     * @param substitutor 类型替换器
+     * @return 替换后的构造函数描述符(可能为null)
+     */
     override fun substitute(substitutor: TypeSubstitutor): ConstructorDescriptor?
 
 
+    /**
+     * 获取原始构造函数描述符
+     */
     override val original: ConstructorDescriptor
 
 
+    /**
+     * 获取包含声明的分类器描述符(带类型参数)
+     */
     override val containingDeclaration: ClassifierDescriptorWithTypeParameters
 }

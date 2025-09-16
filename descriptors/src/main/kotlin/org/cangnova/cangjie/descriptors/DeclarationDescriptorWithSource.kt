@@ -24,9 +24,31 @@
 
 package org.cangnova.cangjie.descriptors
 
+/**
+ * 带有源码信息的声明描述符接口
+ * 
+ * 继承自 DeclarationDescriptor，提供源码位置信息和原始描述符引用
+ * 用于支持代码导航、错误报告、重构等IDE功能
+ */
 interface DeclarationDescriptorWithSource : DeclarationDescriptor {
 
+    /**
+     * 获取此声明的源码元素信息
+     * 
+     * 包含源码文件、行号、列号等位置信息
+     * 用于错误报告、代码导航和源代码映射
+     * 
+     * @return 描述源码位置的 SourceElement 对象
+     */
     val source: SourceElement
 
+    /**
+     * 获取此描述符的原始（未经过加工或修改的）版本
+     * 
+     * 在处理泛型、类型参数替换或其他变换时，保持对原始声明的引用
+     * 用于类型检查和符号解析的正确性
+     * 
+     * @return 原始的 DeclarationDescriptorWithSource 实例
+     */
     override val original: DeclarationDescriptorWithSource
 }

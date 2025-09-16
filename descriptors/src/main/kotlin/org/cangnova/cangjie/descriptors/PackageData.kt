@@ -27,9 +27,21 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.name.FqName
 
 interface PackageData : DeclarationDescriptor {
+    /**
+     * 表示包的完全限定名（Fully Qualified Name）
+     */
+    /**
+     * 获取包的完全限定名
+     * @return 返回包的FqName对象
+     */
     val fqName: FqName
 
 
+    /**
+     * 判断当前包是否可以访问另一个包的内部成员
+     * @param whatPackage 目标包
+     * @return 如果当前包是目标包或其子包则返回true，否则返回false
+     */
     fun shouldSeeInternalsOf(whatPackage: PackageData): Boolean {
 //判断自己是不是 whatPackage 的子包或本包
 
@@ -42,6 +54,11 @@ interface PackageData : DeclarationDescriptor {
 
     }
 
+    /**
+     * 判断当前包是否可以访问包片段的内部成员
+     * @param whatPackage 目标包片段
+     * @return 如果当前包是目标包片段的子包则返回true，否则返回false
+     */
     fun shouldSeeInternalsOf(whatPackage: PackageFragmentDescriptor): Boolean {
 //判断自己是不是 whatPackage 的子包或本包
 
@@ -53,6 +70,11 @@ interface PackageData : DeclarationDescriptor {
 
     }
 
+    /**
+     * 判断当前包是否可以访问另一个包的保护成员
+     * @param whatPackage 目标包
+     * @return 如果当前包与目标包同属一个模块则返回true，否则返回false
+     */
     fun shouldProtectedsOf(whatPackage: PackageData): Boolean {
 // 判断模块名是否相同
         return this.fqName.moduleName == whatPackage.fqName.moduleName

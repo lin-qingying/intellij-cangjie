@@ -29,6 +29,17 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.TypeSubstitutor
 
+/**
+ * 属性访问器描述符的抽象实现。
+ *
+ * 该类为属性的 getter/setter 提供通用行为：
+ * - 与对应属性（correspondingProperty）关联；
+ * - 继承包含声明的作用域并复用属性的接收者/上下文接收器信息；
+ * - 在子类中实现具体的访问器复制与替换逻辑；
+ *
+ * 注意：访问器通常不单独进行复制或替换操作，应由对应的属性在复制时一并处理，因此
+ * newCopyBuilder() 与 copy() 在默认实现中抛出 UnsupportedOperationException。
+ */
 
 abstract class PropertyAccessorDescriptorImpl(
     override val  modality: Modality,

@@ -29,13 +29,31 @@ import org.cangnova.cangjie.descriptors.PackageViewDescriptor
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.storage.StorageManager
 
+/**
+ * 提供 PackageViewDescriptor 实例的工厂接口。
+ *
+ * 实现此接口可以定制如何为给定模块和包名创建或获取 PackageViewDescriptor。
+ */
 interface PackageViewDescriptorFactory {
+    /**
+     * 计算并返回指定模块中给定包的 PackageViewDescriptor。
+     *
+     * 实现可以选择即时创建、缓存或返回惰性计算的描述器实例。
+     *
+     * @param module 要创建描述器的模块（实现类型为 ModuleDescriptorImpl）
+     * @param fqName 包的全限定名
+     * @param storageManager 用于惰性计算或缓存的存储管理器
+     * @return 对应的 PackageViewDescriptor 实例
+     */
     fun compute(
         module: ModuleDescriptorImpl,
         fqName: FqName,
         storageManager: StorageManager
     ): PackageViewDescriptor
 
+    /**
+     * 默认工厂实现，返回 LazyPackageViewDescriptorImpl 的实例。
+     */
     object Default: PackageViewDescriptorFactory {
         override fun compute(module: ModuleDescriptorImpl, fqName: FqName, storageManager: StorageManager): PackageViewDescriptor {
             return LazyPackageViewDescriptorImpl(module, fqName, storageManager)
@@ -43,6 +61,9 @@ interface PackageViewDescriptorFactory {
     }
 
     companion object {
+        /**
+         * 在 ModuleDescriptor 中注册或查找 PackageViewDescriptorFactory 的能力标识。
+         */
         val CAPABILITY = ModuleCapability<PackageViewDescriptorFactory>("PackageViewDescriptorFactory")
     }
 }

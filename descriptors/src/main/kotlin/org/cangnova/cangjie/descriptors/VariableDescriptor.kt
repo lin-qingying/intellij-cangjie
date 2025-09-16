@@ -27,33 +27,56 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.resolve.constants.ConstantValue
 import org.cangnova.cangjie.types.TypeSubstitutor
 
+/**
+ * 变量描述符接口，继承自`ValueDescriptor`和`MemberDescriptor`，用于描述变量的元信息，如编译时常量、是否为`const`或`var`等。
+ */
 interface VariableDescriptor : ValueDescriptor, MemberDescriptor/*,
-   CallableMemberDescriptor, VariableSymbolMarker*/ {
+   CallableMemberDescriptor */ {
 
 
+    /**
+     * 获取变量的编译时常量初始值，如果变量没有编译时常量初始值则返回`null`。
+     *
+     * @return 编译时常量初始值，可能为`null`
+     */
     fun getCompileTimeInitializer(): ConstantValue<*>? = null
 
     /**
-     * ONLY FOR IDE USE! Please don't use the method inside the compiler
+     * 清除编译时常量初始值的缓存（仅限IDE使用，编译器内部请勿调用）。
+     *
+     * 注意：此方法仅供IDE使用。
      */
     fun cleanCompileTimeInitializerCache() {}
 
 
+
     /**
-     * @return true if iff original declaration has appropriate flags and type, e.g. `const` modifier in CangJie.
-     * It completely does not means that if isConst then `getCompileTimeInitializer` is not null
+     * 使用类型替换器替换当前变量的类型，返回替换后的变量描述符（可能为`null`）。
+     *
+     * @param substitutor 类型替换器
+     * @return 替换后的变量描述符，可能为`null`
      */
-    //    @Nullable
-    //    FieldDescriptor getBackingField();
-    //
-    //    @Nullable
-    //    FieldDescriptor getDelegateField();
     override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor?
+    /**
+     * 检查是否为`const`变量（与`isVar`互斥）。
+     *
+     * @return `true`表示是`const`变量
+     */
     val isConst: Boolean
 
     //    bool isActual();
     //
     //    bool isExternal();
+    /**
+     * 检查是否为`var`变量（与`isConst`互斥）。
+     *
+     * @return `true`表示是`var`变量
+     */
     val isVar: Boolean
+    /**
+     * 检查是否声明了默认值。
+     *
+     * @return `true`表示声明了默认值
+     */
     val declaresDefaultValue:Boolean get() = false
 }

@@ -27,9 +27,12 @@ package org.cangnova.cangjie.storage
 
 import com.intellij.openapi.project.Project
 import java.util.concurrent.ConcurrentMap
+
 /**
- * Interface for managing various types of storage and caching mechanisms within a project.
- * 它提供了创建备忘函数、惰性值和缓存的不同功能。
+ * 存储管理器接口，用于在工程范围内管理各种存储与缓存机制。
+ * 提供创建备忘函数、惰性值、递归容错惰性值以及不同类型缓存的方法。
+ *
+ * 此接口用于统一管理和创建线程安全的缓存与惰性计算工具，方便在不同组件间复用。
  */
 interface StorageManager {
 
@@ -38,8 +41,7 @@ interface StorageManager {
      * 创建一个备忘函数，该函数会缓存 [compute] 函数的结果。
      *
      * @param compute 计算函数，接受一个参数并返回结果。
-     * @param onRecursiveCall 递归调用时的处理函数。如果计算函数递归调用自身，此函数将被调用。
-     *                       参数表示是否是第一次递归调用。
+     * @param onRecursiveCall 递归调用时的处理函数。参数表示是否是第一次递归调用。
      * @return 备忘函数，返回类型为 [MemoizedFunctionToNotNull]。
      */
     fun <K : Any, V : Any> createMemoizedFunction(

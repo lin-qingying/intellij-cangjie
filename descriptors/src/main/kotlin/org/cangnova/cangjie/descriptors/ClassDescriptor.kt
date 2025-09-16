@@ -1,4 +1,4 @@
-/*
+﻿/*
 * Copyright 2024 LinQingYing. and contributors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,106 +30,188 @@ import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.types.TypeProjection
 import org.cangnova.cangjie.types.TypeSubstitution
 
-interface ClassifierDescriptorWithKind  : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor {
+/**
+ * 描述具有种类与作用域信息的分类器（通常为类或接口）。
+ */
+interface ClassifierDescriptorWithKind : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor {
+    /**
+     * 表示此分类器的种类，例如 class、interface、enum 等。
+     */
     val kind: ClassKind
 
+    /**
+     * 根据指定的类型实参列表返回对应的成员作用域。
+     *
+     * @param typeArguments 类型实参列表
+     * @return 返回计算后的成员作用域
+     */
     fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
+
+    /**
+     * 根据指定的类型替换规则返回对应的成员作用域。
+     *
+     * @param typeSubstitution 类型替换映射
+     * @return 返回计算后的成员作用域
+     */
     fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
+
+    /**
+     * 未进行类型替换时的成员作用域（原始作用域）。
+     */
     val unsubstitutedMemberScope: MemberScope
 
+    /**
+     * 实例级成员作用域，默认返回空作用域。
+     */
     val instanceScope: MemberScope
         get() = MemberScope.Empty
 
+    /**
+     * 静态成员作用域（如伴生对象或静态成员的作用域）。
+     */
     val staticScope: MemberScope
 
 
 }
 
+/**
+ * 表示类（Class）的描述符，提供类的作用域、构造函数、修饰符、可见性等元信息。
+ */
 interface ClassDescriptor : ClassifierDescriptorWithKind, ClassifierDescriptorWithTypeParameters,
     ClassOrPackageFragmentDescriptor {
+    /**
+     * 根据指定的类型实参列表返回对应的成员作用域。
+     *
+     * @param typeArguments 类型实参列表
+     * @return 返回计算后的成员作用域
+     */
     override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
+
+    /**
+     * 根据指定的类型替换规则返回对应的成员作用域。
+     *
+     * @param typeSubstitution 类型替换映射
+     * @return 返回计算后的成员作用域
+     */
     override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
 
+    /**
+     * 类的 this 接收者参数描述符，用于表示类的接收者类型。
+     */
     val thisAsReceiverParameter: ReceiverParameterDescriptor
 
-
+    /**
+     * 类的上下文接收者列表（如上下文接收者参数）。
+     */
     val contextReceivers: List<ReceiverParameterDescriptor>
 
-
+    /**
+     * 未进行类型替换时的成员作用域（原始作用域）。
+     */
     override val unsubstitutedMemberScope: MemberScope
 
 //    val unsubstitutedInnerClassesScope: MemberScope
 
+    /**
+     * 实例级成员作用域，默认返回空作用域。
+     */
     override val instanceScope: MemberScope
         get() = MemberScope.Empty
 
+    /**
+     * 静态成员作用域。
+     */
     override val staticScope: MemberScope
 
 
+    /**
+     * 类的所有构造函数集合。
+     */
     val constructors: Collection<ClassConstructorDescriptor>
 
 
+    /**
+     * 在类结尾处执行的构造函数集合（项目特定语义）。
+     */
     val endConstructors: Collection<ClassConstructorDescriptor>
 
 
+    /**
+     * 包含该类的声明描述符。
+     */
     override val containingDeclaration: DeclarationDescriptor
 
     /**
-     * @return type A&lt;T&gt; for the class A&lt;T&gt;
+     * 获取类的默认类型；对于泛型类返回 A<T> 形式的类型。
      */
-
     override val defaultType: SimpleType
 
     /**
-     * @return nested object declared as 'companion' if one is present.
+     * 此描述符对应的类的种类。
      */
-
     override val kind: ClassKind
 
 
+    /**
+     * 类的调度性（如 final、open 等）。
+     */
     override val modality: Modality
 
+    /**
+     * 类的可见性（如 public、private 等）。
+     */
     override val visibility: DescriptorVisibility
 
 
+    /**
+     * 未替换的主构造函数（如果有）。
+     */
     val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
 
     /**
-     * It may differ from 'typeConstructor.parameters' in current class is inner, 'typeConstructor.parameters' contains
-     * captured parameters from outer declaration.
+     * 如果当前类是 inner 类，则该列表可能与 typeConstructor.parameters 不同；
+     * typeConstructor.parameters 可能包含从外部声明捕获的类型参数。
      *
-     * @return list of type parameters actually declared type parameters in current class
+     * @return 返回当前类实际声明的类型参数列表
      */
 
 
     override val declaredTypeParameters: List<TypeParameterDescriptor>
 
     /**
-     * @return direct subclasses of this class if it's a sealed class, empty list otherwise
+     * 如果这是一个 sealed 类，则返回其直接子类；否则返回空集合。
      */
 
     val sealedSubclasses: Collection<ClassDescriptor>
 
+    /**
+     * 原始的分类符描述符（用于引用未替换的原始描述符）。
+     */
     override val original: ClassifierDescriptor
 
-    // Use SingleAbstractMethodUtils.getFunctionTypeForSamInterface() where possible. This is only a fallback
+    /**
+     * 对于 SAM 接口的备选函数类型（如无法通过更优方式获取时使用）。
+     */
     val defaultFunctionTypeForSamInterface: SimpleType?
 
     /**
-     * May return false even in case when the class is not SAM interface, but returns true only if it's definitely not a SAM.
-     * But it should work much faster than the exact check.
+     * 快速判定该类是否肯定不是 SAM 接口。可能在某些情况下返回 false，但只有在确定不是 SAM 时才返回 true。
      */
     val isDefinitelyNotSamInterface: Boolean
 
     /**
-     * 获取所有SuperTypeListEntry 包含扩展
+     * 获取所有的 SuperTypeListEntry，包括扩展的条目。
+     *
+     * @return 可变列表，包含所有 SuperTypeListEntry
      */
     fun getSuperTypeListEntries(): MutableList<CjSuperTypeListEntry> {
         return mutableListOf<CjSuperTypeListEntry>()
     }
 
     /**
-     * 是否具有const 构造函数
+     * 判断类是否包含 const 构造函数。
+     *
+     * @return 如果存在 const 构造函数则返回 true，否则返回 false
      */
     fun hasConstConstructor(): Boolean {
         val constructors =

@@ -26,25 +26,57 @@ package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.descriptors.annotations.Annotated
 
+/**
+ * 声明描述符接口
+ * 该接口是所有声明描述符的基接口，提供了声明的基本信息和访问方法
+ */
 interface DeclarationDescriptor : Annotated,
     Named,
     ValidateableDescriptor {
     /**
-     * @return The descriptor that corresponds to the original declaration of this element.
-     * A descriptor can be obtained from its original by substituting type arguments (of the declaring class
-     * or of the element itself).
-     * returns `this` object if the current descriptor is original itself
+     * 获取原始声明描述符
+     * @return 对应于该元素原始声明的描述符
+     * 通过替换类型参数（声明类或元素本身的参数）可以从原始描述符获得描述符
+     * 如果当前描述符本身就是原始描述符，则返回 `this` 对象
      */
     val original: DeclarationDescriptor
-
-    val containingDeclaration: DeclarationDescriptor?
-
-    val visibility: DescriptorVisibility get() = DescriptorVisibilities.PUBLIC
-    val isTopLevel: Boolean get() = false
-    val isLocal get() = visibility == DescriptorVisibilities.LOCAL
-    fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R?
-
     val isStatic: Boolean get() = false
 
+    /**
+     * 获取包含声明的描述符
+     * @return 包含当前声明的声明描述符，如果是顶层声明则返回null
+     */
+    val containingDeclaration: DeclarationDescriptor?
+
+    /**
+     * 获取可见性
+     * @return 声明的可见性，默认为PUBLIC
+     */
+    val visibility: DescriptorVisibility get() = DescriptorVisibilities.PUBLIC
+    
+    /**
+     * 判断是否为顶层声明
+     * @return 如果是顶层声明返回true，否则返回false，默认为false
+     */
+    val isTopLevel: Boolean get() = false
+    
+    /**
+     * 判断是否为局部声明
+     * @return 如果可见性为LOCAL则返回true，否则返回false
+     */
+    val isLocal get() = visibility == DescriptorVisibilities.LOCAL
+    
+    /**
+     * 接受访问者模式的访问
+     * @param visitor 访问者对象
+     * @param data 传递给访问者的数据
+     * @return 访问结果
+     */
+    fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R?
+
+    /**
+     * 接受无返回值访问者模式的访问
+     * @param visitor 无返回值的访问者对象
+     */
     fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>)
 }

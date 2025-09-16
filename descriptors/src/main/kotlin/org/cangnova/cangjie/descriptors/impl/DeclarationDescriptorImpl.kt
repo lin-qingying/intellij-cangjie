@@ -31,6 +31,15 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 
+/**
+ * 声明描述符的抽象基础实现类。
+ *
+ * 为具体的声明描述符提供通用的基础功能：
+ * - 保存名称与注解；
+ * - 提供 original 引用（默认指向自身）；
+ * - 提供统一的字符串渲染工具，便于调试与日志记录；
+ * - 提供对无返回值访问者的适配方法。
+ */
 abstract class DeclarationDescriptorImpl(
     annotations: Annotations,
     override val name: Name
@@ -42,6 +51,9 @@ abstract class DeclarationDescriptorImpl(
         return toString(this)
     }
 
+    /**
+     * 渲染描述符为调试字符串，优先使用 DescriptorRenderer；在渲染失败时回退为简单类名和名称。
+     */
     fun toString(descriptor: DeclarationDescriptor): String {
         return try {
             DescriptorRenderer.DEBUG_TEXT.render(descriptor) +

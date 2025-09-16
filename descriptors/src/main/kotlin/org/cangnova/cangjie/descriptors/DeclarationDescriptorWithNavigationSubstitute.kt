@@ -24,6 +24,15 @@
 
 package org.cangnova.cangjie.descriptors
 
+/**
+ * 带有导航替代的声明描述符接口。
+ *
+ * 此接口用于表示在代码导航或编辑器跳转时，当前描述符可能有用于导航的替代目标（substitute）。
+ * 例如在某些重构或别名场景下，导航应该定位到替代的目标而非当前描述符本身。
+ */
 interface DeclarationDescriptorWithNavigationSubstitute : DeclarationDescriptor {
+    /**
+     * 导航时应替代使用的声明描述符。
+     */
     val substitute: DeclarationDescriptor
 }

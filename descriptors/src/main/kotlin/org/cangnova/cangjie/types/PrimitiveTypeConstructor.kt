@@ -63,7 +63,10 @@ class PrimitiveTypeConstructor(
     }
 
     override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-        TODO("Not yet implemented")
+        val module = builtIns.builtInsModule
+        val mgr = module.getCapability(org.cangnova.cangjie.resolve.extend.ExtendManager.CAPABILITY)
+            ?: return emptyList()
+        return mgr.getExtendSupertypes(this, emptyList(), extendId)
     }
 
 
@@ -75,9 +78,8 @@ class PrimitiveTypeConstructor(
     /**
      * 计算扩展超类型（基本类型暂时不考虑扩展）
      */
-    override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> {
-        return emptyList()
-    }
+    override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> =
+        super.getExtendSupertypes(extendId)
 
     override val isDenotable: Boolean = true
 

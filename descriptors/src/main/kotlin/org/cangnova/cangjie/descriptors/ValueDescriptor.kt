@@ -26,9 +26,19 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.types.CangJieType
 
 
+/**
+ * 值描述符接口，表示具有类型和包含声明的值
+ * 用于描述变量、常量、属性等具有具体值的语言元素
+ */
 interface ValueDescriptor : CallableDescriptor {
 
+    /**
+     * 值的类型，表示这个值在仓颉语言中的数据类型
+     */
     val type: CangJieType
 
+    /**
+     * 包含声明，表示这个值所属的声明范围（如类、函数、模块等）
+     */
     override val containingDeclaration: DeclarationDescriptor
 }

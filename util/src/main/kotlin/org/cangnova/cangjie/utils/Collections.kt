@@ -263,9 +263,11 @@ private class WithNextIterator<T : Any>(private val iterator: Iterator<T>) : Ite
 }
 
 /**
- * Removes an element from the list.
- * The removed element is replaced by the last element of the list.
- * Like [MutableList.removeAt], but `O(1)` at the cost of not preserving the list order
+ * 从列表中删除一个元素。
+ * 被删除的元素会被列表的最后一个元素替换。
+ * 该操作类似于 [MutableList.removeAt]，但牺牲了列表顺序以获得 O(1) 的删除复杂度。
+ *
+ * @param index 要删除元素的索引
  */
 fun <T> MutableList<T>.swapRemoveAt(index: Int) {
     if (index == lastIndex) {

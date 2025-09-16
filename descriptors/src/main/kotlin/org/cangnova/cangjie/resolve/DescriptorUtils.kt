@@ -190,9 +190,9 @@ object DescriptorUtils {
     }
 
     /**
-     * Given a fake override, finds any declaration of it in the overridden descriptors. Keep in mind that there may be many declarations
-     * of the fake override in the supertypes, this method finds just only one of them.
-     * TODO: probably some call-sites of this method are wrong, they should handle all super-declarations
+     * 给定一个虚假覆盖（fake override），在其被覆盖的描述符中查找任意一个声明。
+     * 请注意在超类型中可能存在多个该虚假覆盖的声明，此方法仅返回其中的一个。
+     * TODO: 可能此方法的某些调用站点存在问题，应处理所有超声明。
      */
     fun <D : CallableMemberDescriptor> unwrapFakeOverride(descriptor: D): D {
         var descriptor = descriptor
@@ -206,8 +206,8 @@ object DescriptorUtils {
     }
 
     @JvmStatic
-// WARNING! Don't use this method in JVM backend, use JvmCodegenUtil.isCallInsideSameModuleAsDeclared() instead.
-// The latter handles compilation against compiled part of our module correctly.
+// 警告：不要在 JVM 后端使用此方法，应该使用 JvmCodegenUtil.isCallInsideSameModuleAsDeclared()。
+// 后者可以正确处理针对已编译部分模块的编译情况。
     fun areInSameModule(
         first: DeclarationDescriptor,
         second: DeclarationDescriptor

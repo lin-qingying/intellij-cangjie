@@ -27,14 +27,40 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
 
 
-interface   PropertyGetterDescriptor : PropertyAccessorDescriptor {
+/**
+ * 属性 Getter 描述符接口，继承自 `PropertyAccessorDescriptor`，用于描述属性的 `getter` 方法的元信息。
+ */
+interface PropertyGetterDescriptor : PropertyAccessorDescriptor {
+    /**
+     * 获取原始的 Getter 描述符（通常是当前描述符或其覆盖的版本）。
+     *
+     * @return 原始的 Getter 描述符
+     */
     override val original: PropertyGetterDescriptor
+    /**
+     * 获取当前 Getter 描述符覆盖的所有访问器描述符集合。
+     *
+     * @return 覆盖的访问器描述符集合
+     */
     override val overriddenDescriptors: Collection<PropertyAccessorDescriptor>
 
 }
 
+/**
+ * 属性 Setter 描述符接口，继承自 `PropertyAccessorDescriptor`，用于描述属性的 `setter` 方法的元信息。
+ */
 interface PropertySetterDescriptor : PropertyAccessorDescriptor {
+    /**
+     * 获取原始的 Setter 描述符（通常是当前描述符或其覆盖的版本）。
+     *
+     * @return 原始的 Setter 描述符
+     */
     override val original: PropertySetterDescriptor
 
+    /**
+     * 获取当前 Setter 描述符覆盖的所有 Setter 描述符集合。
+     *
+     * @return 覆盖的 Setter 描述符集合
+     */
     override val overriddenDescriptors: Collection<PropertySetterDescriptor>
 }

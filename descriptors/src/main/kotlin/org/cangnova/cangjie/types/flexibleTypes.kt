@@ -54,21 +54,21 @@ fun CangJieType.isNullabilityFlexible(): Boolean {
             return flexibility.lowerBound.isOption != flexibility.upperBound.isOption
 }
 
-// This function is intended primarily for sets: since CangJieType.equals() represents _syntactical_ equality of types,
-// whereas CangJieTypeChecker.DEFAULT.equalsTypes() represents semantic equality
-// A set of types (e.g. exact bounds etc) may contain, for example, X, X? and X!
-// These are not equal syntactically (by CangJieType.equals()), but X! is _compatible_ with others as exact bounds,
-// moreover, X! is a better fit.
+// 该函数主要用于集合：因为 CangJieType.equals() 表示类型的语法等价性，
+// 而 CangJieTypeChecker.DEFAULT.equalsTypes() 表示语义等价性。
+// 集合中的类型（例如精确上界等）可能包含例如 X、X? 和 X!。
+// 这些在语法上不相等（按 CangJieType.equals()），但 X! 在语义上与其他类型兼容，
+// 而且作为精确上界它更合适。
 //
-// So, we are looking for a type among this set such that it is equal to all others semantically
-// (by CangJieTypeChecker.DEFAULT.equalsTypes()), and fits at least as well as they do.
+// 因此，我们在集合中寻找一个类型，使其在语义上等于所有其他类型
+// （按 CangJieTypeChecker.DEFAULT.equalsTypes()），并且至少与它们一样合适。
 fun Collection<CangJieType>.singleBestRepresentative(): CangJieType? {
     if (this.size == 1) return this.first()
 
     return this.firstOrNull { candidate ->
         this.all { other ->
-            // We consider error types equal to anything here, so that intersections like
-            // {Array<String>, Array<[ERROR]>} work correctly
+            // 在此处我们认为错误类型与任何类型都相等，以便类似
+            // {Array<String>, Array<[ERROR]>} 的交集正常工作
             candidate == other
 //                    || ErrorTypesAreEqualToAnything.equalTypes(candidate, other)
         }
@@ -107,12 +107,12 @@ class FlexibleTypeImpl(lowerBound: SimpleType, upperBound: SimpleType) : Flexibl
         var RUN_SLOW_ASSERTIONS = false
     }
 
-    // These assertions are needed for checking invariants of flexible types.
+    // 这些断言用于检查可变类型的约束。
     //
-    // Unfortunately isSubtypeOf is running resolve for lazy types.
-    // Because of this we can't run these assertions when we are creating this type. See EA-74904
+    // 不幸的是 isSubtypeOf 会对延迟类型进行解析。
+    // 因此在创建此类型时不能运行这些断言。详见 EA-74904
     //
-    // Also isSubtypeOf is not a very fast operation, so we are running assertions only if ASSERTIONS_ENABLED.
+    // 此外 isSubtypeOf 不是一个很快的操作，因此我们只在 ASSERTIONS_ENABLED 时运行断言。
     private var assertionsDone = false
 
     private fun runAssertions() {

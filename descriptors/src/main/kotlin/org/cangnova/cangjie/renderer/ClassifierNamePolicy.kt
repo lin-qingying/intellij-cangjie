@@ -28,7 +28,17 @@ import org.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils.getFqName
 
+/**
+ * Classifier 名称渲染策略接口。
+ *
+ * 不同实现决定如何将 ClassifierDescriptor（类、接口、类型参数等）渲染为字符串。
+ */
 interface ClassifierNamePolicy {
+    /**
+     * 简短名称策略：对嵌套类使用限定名（只到外部类），对类型参数渲染为其简单名称。
+     *
+     * 适用于在简洁输出中保留必要的上下文（例如嵌套关系）时使用。
+     */
     object SHORT : ClassifierNamePolicy {
         override fun renderClassifier(classifier: ClassifierDescriptor, renderer: DescriptorRenderer): String {
             if (classifier is TypeParameterDescriptor) return renderer.renderName(classifier.name, false)
@@ -46,6 +56,11 @@ interface ClassifierNamePolicy {
         }
     }
 
+    /**
+     * 完全限定名策略：始终使用完整的包 + 类路径进行渲染。
+     *
+     * 对类型参数同样仅渲染其名称。适用于需要唯一标识类型的场景。
+     */
     object FULLY_QUALIFIED : ClassifierNamePolicy {
         override fun renderClassifier(classifier: ClassifierDescriptor, renderer: DescriptorRenderer): String {
             if (classifier is TypeParameterDescriptor) return renderer.renderName(classifier.name, false)
@@ -55,6 +70,11 @@ interface ClassifierNamePolicy {
     }
 
     // for local declarations qualified up to function scope
+    /**
+     * 源代码限定名策略：对于局部声明（例如在函数内部声明的类），渲染到函数/源代码可见的限定范围。
+     *
+     * 主要用于在将渲染结果与源代码对齐时显示足够的限定信息，但避免过度使用完整包名。
+     */
     object SOURCE_CODE_QUALIFIED : ClassifierNamePolicy {
         override fun renderClassifier(classifier: ClassifierDescriptor, renderer: DescriptorRenderer): String =
             qualifiedNameForSourceCode(classifier)
@@ -77,5 +97,12 @@ interface ClassifierNamePolicy {
         }
     }
 
+    /**
+     * 将指定的 ClassifierDescriptor 渲染为字符串。
+     *
+     * @param classifier 要渲染的分类器描述符（类、接口、类型参数等）
+     * @param renderer 用于渲染名称和限定名的 DescriptorRenderer 实例
+     * @return 渲染后的字符串表示
+     */
     fun renderClassifier(classifier: ClassifierDescriptor, renderer: DescriptorRenderer): String
 }

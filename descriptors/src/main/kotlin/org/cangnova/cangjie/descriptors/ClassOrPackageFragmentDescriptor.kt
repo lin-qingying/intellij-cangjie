@@ -24,4 +24,10 @@
 
 package org.cangnova.cangjie.descriptors
 
+/**
+ * 表示类或包片段的描述符接口。
+ *
+ * 该描述符用于表示顶层声明的片段（例如一个包下的一组声明）或者类的片段，
+ * 包含此片段范围内的成员和元信息。通常用于组织与定位声明的上下文。
+ */
 interface ClassOrPackageFragmentDescriptor : DeclarationDescriptorNonRoot

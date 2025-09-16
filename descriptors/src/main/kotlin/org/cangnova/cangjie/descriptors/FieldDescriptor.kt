@@ -25,7 +25,14 @@
 package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.descriptors.annotations.Annotated
-//元数据
+
+/**
+ * 字段描述符接口，表示类或对象中的字段元信息。
+ * 该接口扩展了 Annotated 以支持注解信息。
+ */
 interface FieldDescriptor : Annotated {
+    /**
+     * 对应的变量描述符基类（通常用于属性与字段之间的关联）。
+     */
     val correspondingVariableBase: VariableDescriptor
 }

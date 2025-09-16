@@ -27,11 +27,31 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.TypeSubstitutor
 
 
+/**
+ * 接收器参数描述符接口，继承自`ParameterDescriptor`，用于描述扩展函数或属性的接收器参数。
+ */
 interface ReceiverParameterDescriptor : ParameterDescriptor {
 
+    /**
+     * 获取接收器参数的值，表示该接收器的实际值或引用。
+     *
+     * @return 接收器参数的值
+     */
     val value: ReceiverValue
 
+    /**
+     * 使用类型替换器替换当前接收器参数的类型，返回替换后的接收器参数描述符（可能为`null`）。
+     *
+     * @param substitutor 类型替换器
+     * @return 替换后的接收器参数描述符，可能为`null`
+     */
     override fun substitute(substitutor: TypeSubstitutor): ReceiverParameterDescriptor?
 
+    /**
+     * 创建当前接收器参数描述符的副本，并指定新的所有者。
+     *
+     * @param newOwner 新的所有者描述符
+     * @return 新的接收器参数描述符副本
+     */
     fun copy(newOwner: DeclarationDescriptor): ReceiverParameterDescriptor
 }

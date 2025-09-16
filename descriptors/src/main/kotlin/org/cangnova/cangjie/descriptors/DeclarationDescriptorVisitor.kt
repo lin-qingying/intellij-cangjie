@@ -24,65 +24,72 @@
 
 package org.cangnova.cangjie.descriptors
 
-
+/**
+ * 声明描述符访问者接口，采用访问者模式用于对不同类型的声明描述符执行操作。
+ *
+ * 各 visitXXX 方法用于访问对应类型的描述符，并可通过返回值传递处理结果。
+ * @param R 访问返回值类型
+ * @param D 传递给访问者的可选数据类型
+ */
 interface DeclarationDescriptorVisitor<R, D> {
+    /** 访问包视图描述符 */
     fun visitPackageViewDescriptor(descriptor: PackageViewDescriptor, builder: D?): R
+    /** 访问类型参数描述符 */
     fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, builder: D?): R
 
+    /** 访问值参数描述符 */
     fun visitValueParameterDescriptor(
         descriptor: ValueParameterDescriptor,
         builder: D?
     ): R
 
+    /** 访问属性描述符 */
     fun visitPropertyDescriptor(descriptor: PropertyDescriptor, builder: D?): R
+    /** 访问属性 getter 描述符 */
     fun visitPropertyGetterDescriptor(
         descriptor:  PropertyGetterDescriptor ,
         builder: D?
     ): R
+    /** 访问属性 setter 描述符 */
     fun visitPropertySetterDescriptor(
         descriptor:  PropertySetterDescriptor ,
         builder: D?
     ): R
 
+    /** 访问模块声明描述符 */
     fun visitModuleDeclaration(descriptor: ModuleDescriptor, builder: D?): R
+    /** 访问类型别名描述符 */
     fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, builder: D?): R
+    /** 访问构造函数描述符 */
     fun visitConstructorDescriptor(
         constructorDescriptor: ConstructorDescriptor,
         builder: D?
     ): R
 
+    /** 访问类描述符 */
     fun visitClassDescriptor(descriptor: ClassDescriptor, builder: D?): R
+    /** 访问变量描述符基类（抽象变量） */
     fun visitVariableDescriptorBase(descriptor: VariableDescriptor, builder: D?): R
+    /** 访问具体变量描述符 */
     fun visitVariableDescriptor(descriptor: VariableDescriptor, builder: D?): R
 
-    //    fun visitVariableDescriptor(descriptor: VariableDescriptor, builder: D?): R
+   /** 访问包片段描述符 */
     fun visitPackageFragmentDescriptor(
         descriptor: PackageFragmentDescriptor,
         builder: D?
     ): R
 
+    /** 访问函数描述符 */
     fun visitFunctionDescriptor(descriptor: FunctionDescriptor, builder: D?): R
+    /** 访问接收者参数描述符 */
     fun visitReceiverParameterDescriptor(
         descriptor: ReceiverParameterDescriptor,
         builder: D?
     ): R
     
-    /**
-     * 访问枚举描述符
-     * 
-     * @param descriptor 枚举描述符
-     * @param builder 构建器
-     * @return 访问结果
-     */
+    /** 访问枚举描述符 */
     fun visitEnumDescriptor(descriptor: EnumDescriptor, builder: D?): R
-    
-    /**
-     * 访问枚举构造函数描述符
-     * 
-     * @param descriptor 枚举构造函数描述符
-     * @param builder 构建器
-     * @return 访问结果
-     */
+    /** 访问枚举构造函数描述符 */
     fun visitEnumConstructorDescriptor(descriptor: EnumConstructorDescriptor, builder: D?): R
 
 }

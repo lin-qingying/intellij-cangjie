@@ -27,20 +27,44 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.types.SimpleType
 
 
+/**
+ * 类型别名描述符接口，继承自`ClassifierDescriptorWithTypeParameters`，用于描述类型别名的元信息，如底层类型、展开类型等。
+ */
 interface TypeAliasDescriptor : ClassifierDescriptorWithTypeParameters {
-    /// Right-hand side of the type alias definition.
-    /// May contain type aliases.
+    /**
+     * 获取类型别名的底层类型（即别名定义的右侧类型），该类型可能包含其他类型别名。
+     *
+     * @return 底层类型
+     */
     val underlyingType: SimpleType
 
-    /// Fully expanded type with non-substituted type parameters.
-    /// May not contain type aliases.
+    /**
+     * 获取完全展开的类型（未替换类型参数），该类型不包含任何类型别名。
+     *
+     * @return 完全展开的类型
+     */
     val expandedType: SimpleType
 
+    /**
+     * 获取与该类型别名关联的类描述符（如果存在）。
+     *
+     * @return 关联的类描述符，可能为`null`
+     */
     val classDescriptor: ClassDescriptor?
 
 
+    /**
+     * 获取原始类型别名描述符，通常是当前描述符或其覆盖的版本。
+     *
+     * @return 原始类型别名描述符
+     */
     override val original: TypeAliasDescriptor
 
 
+    /**
+     * 获取该类型别名关联的所有构造器描述符集合。
+     *
+     * @return 构造器描述符集合
+     */
     val constructors: Collection<TypeAliasConstructorDescriptor>
 }

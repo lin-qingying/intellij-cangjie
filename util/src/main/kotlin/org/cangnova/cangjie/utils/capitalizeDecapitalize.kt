@@ -56,11 +56,13 @@ fun String.toLowerCaseAsciiOnly(): String {
 }
 
 /**
- * "FooBar" -> "fooBar"
- * "FOOBar" -> "fooBar"
- * "FOO" -> "foo"
- * "FOO_BAR" -> "fooBar"
- * "__F_BAR" -> "fBar"
+ * 将字符串以智能方式首字母小写（处理驼峰与下划线等情况）。
+ * 示例：
+ * - "FooBar" -> "fooBar"
+ * - "FOOBar" -> "fooBar"
+ * - "FOO" -> "foo"
+ * - "FOO_BAR" -> "fooBar"
+ * - "__F_BAR" -> "fBar"
  */
 fun String.decapitalizeSmart(asciiOnly: Boolean = false): String {
     return decapitalizeWithUnderscores(this, asciiOnly)
@@ -68,12 +70,11 @@ fun String.decapitalizeSmart(asciiOnly: Boolean = false): String {
 }
 
 /**
- * FOOBAR -> null
- * FOO_BAR -> "fooBar"
- * FOO_BAR_BAZ -> "fooBarBaz"
- * "__F_BAR" -> "fBar"
- * "_F_BAR" -> "fBar"
- * "F_BAR" -> "fBar"
+ * 根据下划线分隔的单词列表进行智能小写化转换；如果字符串不包含下划线或只有一个词则返回 null。
+ * 示例：
+ * - "FOO_BAR" -> "fooBar"
+ * - "FOO_BAR_BAZ" -> "fooBarBaz"
+ * - "__F_BAR" -> "fBar"
  */
 private fun decapitalizeWithUnderscores(str: String, asciiOnly: Boolean): String? {
     val words = str.split("_").filter { it.isNotEmpty() }
@@ -93,6 +94,7 @@ private fun decapitalizeWithUnderscores(str: String, asciiOnly: Boolean): String
 
     return builder.toString()
 }
+
 private fun toLowerCase(string: String, asciiOnly: Boolean): String {
     return if (asciiOnly) string.toLowerCaseAsciiOnly() else string.lowercase()
 }
@@ -102,10 +104,11 @@ private fun toUpperCase(string: String, asciiOnly: Boolean): String {
 }
 
 /**
- * "FooBar" -> "fooBar"
- * "FOOBar" -> "fooBar"
- * "FOO" -> "foo"
- * "FOO_BAR" -> "foO_BAR"
+ * 为编译器提供的智能小写化处理：当字符串以大写字母序列开头时，保留语义正确的分界并小写前缀。
+ * 示例：
+ * - "FooBar" -> "fooBar"
+ * - "FOOBar" -> "fooBar"
+ * - "FOO" -> "foo"
  */
 fun String.decapitalizeSmartForCompiler(asciiOnly: Boolean = false): String {
     if (isEmpty() || !isUpperCaseCharAt(0, asciiOnly)) return this

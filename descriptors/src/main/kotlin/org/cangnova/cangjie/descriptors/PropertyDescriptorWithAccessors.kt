@@ -27,18 +27,31 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
 
 
+/**
+ * 带有访问器的属性描述符接口，继承自 `VariableDescriptor`，用于描述具有 getter/setter 的属性的元信息。
+ */
 interface PropertyDescriptorWithAccessors : VariableDescriptor {
+    /**
+     * 获取该属性的 getter 描述符（如果存在）。
+     *
+     * @return getter 描述符，可能为 `null`
+     */
     val getter: PropertyAccessorDescriptor?
 
+    /**
+     * 获取该属性的 setter 描述符（如果存在）。
+     *
+     * @return setter 描述符，可能为 `null`
+     */
     val setter: PropertyAccessorDescriptor?
 
     /**
-     * Please be careful with this method. Depending on the fact that a property is delegated may be dangerous in the compiler.
-     * Whether or not a property is delegated is neither the API or the ABI of that property, and one should be able to recompile a library
-     * in a way that makes some non-delegated properties delegated or vice versa, without any problems at compilation time or at runtime.
-     * So this method should not be used in the compiler frontend in a way that would significantly alter the compilation result.
+     * 注意：由于属性是否为委托属性不属于其 API 或 ABI，请谨慎依赖此标志。
+     * 在编译器前端使用此标志可能会显著影响编译结果，因此不建议在可能影响编译结果的地方使用。
      *
-     * This flag is needed for reflection however, that's why it's serialized to metadata and is exposed in this interface.
+     * 此标志主要用于反射场景，因此会被序列化到元数据中。
+     *
+     * 注意：当前已注释掉此属性。
      */
 //    val isDelegated: Boolean
 }

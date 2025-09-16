@@ -32,13 +32,28 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.Variance
 
+/**
+ * 抽象接收者参数描述符的基类实现。
+ *
+ * 该类实现了 ReceiverParameterDescriptor 的大部分通用逻辑，作为具体接收者参数描述符（如方法的 this 接收者）的基类。
+ * 它封装了与接收者相关的类型、注解、所属声明以及类型替换（substitute）逻辑。
+ * 子类可根据需要扩展或覆盖部分行为。
+ *
+ * @param annotations 接收者的注解集合
+ * @param name 接收者的名称，默认为 SpecialNames.THIS
+ */
 abstract class AbstractReceiverParameterDescriptor(annotations: Annotations, name: Name = SpecialNames.THIS) :
     DeclarationDescriptorImpl(annotations, name), ReceiverParameterDescriptor {
 
+    /**
+     * 返回原始参数描述符（用于替换/回溯），此处指向自身。
+     */
     override val original: ParameterDescriptor
         get() = this
 
-
+    /**
+     * 接受访问者模式的实现，用于把当前接收者描述符派发给访问者处理。
+     */
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
         return visitor.visitReceiverParameterDescriptor(this, data)
 
@@ -84,6 +99,14 @@ abstract class AbstractReceiverParameterDescriptor(annotations: Annotations, nam
         get() = DescriptorVisibilities.LOCAL
 
 
+    /**
+     * 使用给定的类型替换器对接收者类型进行替换。
+     * 若替换器为空则直接返回当前实例；若替换后类型与原类型相同则返回当前实例；
+     * 若替换失败或结果为 null 则返回 null；否则返回新的 ReceiverParameterDescriptorImpl 实例。
+     *
+     * @param substitutor 类型替换器
+     * @return 替换后的 ReceiverParameterDescriptor 或 null
+     */
     override fun substitute(substitutor: TypeSubstitutor): ReceiverParameterDescriptor? {
         if (substitutor.isEmpty) return this
 

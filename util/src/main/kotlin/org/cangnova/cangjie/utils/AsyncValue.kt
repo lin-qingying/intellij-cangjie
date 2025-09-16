@@ -38,9 +38,12 @@ import kotlin.reflect.KProperty
 
 
 /**
- * 一个包含不可变值的容器，允许安全并发地读取和更新值。
- * [AsyncValue] 类似于Clojure的atom。
- * [updateAsync] 方法用于调度形式为(T) -> Promise<T>的修改。保证所有更新都是串行化的。
+ * 一个线程安全的可变容器，封装了当前值并支持异步或同步的更新操作。
+ * 更新操作会被串行化处理，确保并发场景下的顺序一致性。
+ *
+ * 该类类似于 Clojure 的 atom，提供了 updateAsync 与 updateSync 两种更新方式。
+ *
+ * @param T 容器内保存的值的类型。实例化时传入初始值。
  */
 class AsyncValue<T>(initial: T) {
     @Volatile
@@ -53,8 +56,9 @@ class AsyncValue<T>(initial: T) {
 
     /**
      * 异步更新当前值。
-     * @param updater 一个函数，接收当前值并返回一个完成后的未来值。
-     * @return 一个完成后的未来值。
+     *
+     * @param updater 接收当前值并返回一个在完成时包含新值的 CompletableFuture。
+     * @return 返回表示更新完成的新值的 CompletableFuture。
      */
     fun updateAsync(updater: (T) -> CompletableFuture<T>): CompletableFuture<T> {
         val result = CompletableFuture<T>()
@@ -65,7 +69,7 @@ class AsyncValue<T>(initial: T) {
                         this.current = next
                         result.complete(next)
                     } else {
-                        // Do not log `ProcessCanceledException`
+                        // 不记录 ProcessCanceledException 的日志
                         if (!(err is ProcessCanceledException || err is CompletionException && err.cause is ProcessCanceledException)) {
                             LOG.error(err)
                         }
@@ -78,16 +82,16 @@ class AsyncValue<T>(initial: T) {
     }
 
     /**
-     * 同步更新当前值。
-     * @param updater 一个函数，接收当前值并返回一个新值。
-     * @return 一个完成后的未来值。
+     * 同步更新当前值，通过将同步计算封装为已完成的 CompletableFuture 实现。
+     *
+     * @param updater 接收当前值并返回新值。
+     * @return 返回表示更新完成的新值的 CompletableFuture。
      */
     fun updateSync(updater: (T) -> T): CompletableFuture<T> =
         updateAsync { CompletableFuture.completedFuture(updater(it)) }
 
     /**
-     * 开始处理更新。
-     * 如果已经有更新在处理中或者没有待处理的更新，则直接返回。
+     * 开始处理队列中的更新。如果已经在运行或队列为空则立即返回。
      */
     @Synchronized
     private fun startUpdateProcessing() {
@@ -102,8 +106,7 @@ class AsyncValue<T>(initial: T) {
     }
 
     /**
-     * 停止处理更新。
-     * 检查是否确实有更新在处理中，并将其标记为停止。
+     * 停止处理更新，确保当前处于运行状态后将其置为停止。
      */
     @Synchronized
     private fun stopUpdateProcessing() {
@@ -117,8 +120,9 @@ class AsyncValue<T>(initial: T) {
 }
 
 /**
- * 提供基于ThreadLocal的属性委托，用于在每个线程之间隔离属性值。
- * @param initializer 初始化函数，每个线程首次访问属性时调用。
+ * 基于 ThreadLocal 的属性委托，用于为每个线程维护独立的属性值。
+ *
+ * @param initializer 当线程首次访问该属性时调用以初始化值。
  */
 class ThreadLocalDelegate<T>(initializer: () -> T) {
     private val tl: ThreadLocal<T> = ThreadLocal.withInitial(initializer)
@@ -133,13 +137,12 @@ class ThreadLocalDelegate<T>(initializer: () -> T) {
 }
 
 /**
- * 获取Future的值，同时检查是否被取消。
- * 如果被取消，则抛出TimeoutException。
- * @param timeoutMillis 超时时间，单位为毫秒。
- * @return Future的值。
- * @throws TimeoutException 如果在指定时间内未完成且被取消。
- * @throws ExecutionException 如果计算完成，但是以异常结束。
- * @throws InterruptedException 如果在等待时被中断。
+ * 从 Future 中获取值，同时检查是否被取消；如果超时且已取消则抛出 TimeoutException。
+ *
+ * @param timeoutMillis 超时时间（毫秒）。
+ * @throws TimeoutException 如果在截止时间未完成且被取消。
+ * @throws ExecutionException 如果计算以异常结束。
+ * @throws InterruptedException 如果在等待过程中被中断。
  */
 @Throws(TimeoutException::class, ExecutionException::class, InterruptedException::class)
 fun <V> Future<V>.getWithCheckCanceled(timeoutMillis: Long): V {
@@ -157,15 +160,14 @@ fun <V> Future<V>.getWithCheckCanceled(timeoutMillis: Long): V {
 }
 
 /**
- * 执行给定的操作，同时检查是否被取消，并处理锁。
- * @param action 要执行的操作。
- * @return 操作的结果。
+ * 在获取锁时执行操作，并在执行过程中检查是否已取消。
+ * 该函数会以短超时循环尝试获取锁并执行给定操作。
  */
 fun <T> Lock.withLockAndCheckingCancelled(action: () -> T): T =
     ProgressIndicatorUtils.computeWithLockAndCheckingCanceled<T, Exception>(this, 10, TimeUnit.MILLISECONDS, action)
 
 /**
- * 等待条件满足，同时检查是否被取消。
+ * 在等待条件满足时检查是否被取消。
  */
 fun Condition.awaitWithCheckCancelled() {
     ProgressIndicatorUtils.awaitWithCheckCanceled(this)

@@ -31,12 +31,31 @@ import java.util.HashSet
 
 
 
+/**
+ * 包片段提供者接口，用于提供包片段（PackageFragment）的查询功能，包括获取包片段和子包。
+ */
 interface PackageFragmentProvider {
+    /**
+     * 获取指定完全限定名对应的包片段列表（已弃用，建议使用 `packageFragments` 或 `collectPackageFragments` 替代）。
+     *
+     * @param fqName 完全限定名
+     * @return 包片段列表
+     */
     @Deprecated("for usages use #packageFragments(FqName) at final point, for impl use #collectPackageFragments(FqName, MutableCollection<PackageFragmentDescriptor>)")
     fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor>
 
+    /**
+     * 获取指定完全限定名的子包集合（过滤后的）。
+     *
+     * @param fqName 父包的完全限定名
+     * @param nameFilter 子包名称过滤器
+     * @return 子包的完全限定名集合
+     */
     fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName>
 
+    /**
+     * 空实现的包片段提供者，用于表示不包含任何包片段或子包的提供者。
+     */
     object Empty : PackageFragmentProvider {
         @Deprecated("for usages use #packageFragments(FqName) at final point, for impl use #collectPackageFragments(FqName, MutableCollection<PackageFragmentDescriptor>)",
             ReplaceWith("emptyList<PackageFragmentDescriptor>()")
@@ -47,6 +66,12 @@ interface PackageFragmentProvider {
     }
 }
 
+/**
+ * 尽可能优化地收集指定完全限定名对应的包片段（如果提供者是优化实现的）。
+ *
+ * @param fqName 完全限定名
+ * @param packageFragments 用于存储收集结果的包片段集合
+ */
 fun PackageFragmentProvider.collectPackageFragmentsOptimizedIfPossible(
     fqName: FqName,
     packageFragments: MutableCollection<PackageFragmentDescriptor>
@@ -58,11 +83,23 @@ fun PackageFragmentProvider.collectPackageFragmentsOptimizedIfPossible(
 }
 
 
+/**
+ * 获取指定完全限定名对应的包片段列表（优化实现优先）。
+ *
+ * @param fqName 完全限定名
+ * @return 包片段列表
+ */
 fun PackageFragmentProvider.packageFragments(fqName: FqName): List<PackageFragmentDescriptor> {
     val packageFragments = mutableListOf<PackageFragmentDescriptor>()
     collectPackageFragmentsOptimizedIfPossible(fqName, packageFragments)
     return packageFragments
 }
+/**
+ * 检查指定完全限定名的包片段是否为空（优化实现优先）。
+ *
+ * @param fqName 完全限定名
+ * @return 如果为空则返回 `true`
+ */
 fun PackageFragmentProvider.isEmpty(fqName: FqName): Boolean {
     return when (this) {
         is PackageFragmentProviderOptimized -> isEmpty(fqName)

@@ -24,7 +24,20 @@
 package org.cangnova.cangjie.descriptors
 
 
+/**
+ * 非根声明描述符接口，表示具有包含声明的描述符
+ * 
+ * 继承自 DeclarationDescriptorWithSource，表示这些描述符位于某个作用域内（如类中的方法、属性等）
+ * 与根声明（如包、顶层函数、顶层属性）相对
+ */
 interface DeclarationDescriptorNonRoot : DeclarationDescriptorWithSource {
 
+    /**
+     * 获取包含此声明的父级声明描述符
+     * 
+     * 例如：方法的包含声明是类，属性的包含声明是类或对象等
+     * 
+     * @return 包含当前声明的父级 DeclarationDescriptor
+     */
     override val containingDeclaration: DeclarationDescriptor
 }

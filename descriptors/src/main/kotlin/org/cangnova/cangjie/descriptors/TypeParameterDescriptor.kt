@@ -30,33 +30,69 @@ import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.model.TypeParameterMarker
 
+/**
+ * 类型参数描述符接口，继承自`ClassifierDescriptor`和`TypeParameterMarker`，用于描述泛型类型参数的元信息，如方差、上界等。
+ */
 interface TypeParameterDescriptor : ClassifierDescriptor, TypeParameterMarker {
     //    boolean isReified();
 
+    /**
+     * 获取类型参数的方差（`Variance`），如协变（`out`）、逆变（`in`）或不变。
+     *
+     * @return 类型参数的方差
+     */
     val variance: Variance
 
 
+    /**
+     * 获取类型参数的上界列表，返回包含所有上界类型的列表。
+     *
+     * @return 上界类型列表
+     */
     val upperBounds: List<CangJieType>
 
 
+    /**
+     * 获取类型参数的构造器，返回表示该类型参数构造的`TypeConstructor`。
+     *
+     * @return 类型构造器
+     */
     override val typeConstructor:  TypeConstructor
 
+    /**
+     * 获取原始类型参数描述符，通常是当前描述符或其覆盖的版本。
+     *
+     * @return 原始类型参数描述符
+     */
     override val original: TypeParameterDescriptor
 
 
+    /**
+     * 获取类型参数在其声明列表中的索引（0基）。
+     *
+     * @return 类型参数的索引
+     */
     val index: Int
 
     /**
-     * Is current parameter just a copy of another type parameter (getOriginal) from outer declaration
-     * to be used for type constructor of inner declaration (i.e. inner class).
+     * 检查当前类型参数是否是从外部声明捕获的类型参数的副本（通常用于内部类的类型构造器）。
+     * 如果返回`true`，则表示满足以下条件：
+     * 1. 当前参数的所属声明是内部声明；
+     * 2. `original`返回外部声明的原始类型参数；
+     * 3. `typeConstructor`与原始声明的类型构造器一致（至少通过`equals`判断）。
+     */
+    /**
+     * 检查当前类型参数是否是从外部声明捕获的副本。
      *
-     * If this method returns true:
-     * 1. Containing declaration for current parameter is the inner one
-     * 2. 'getOriginal' returns original type parameter from outer declaration
-     * 3. 'getTypeConstructor' is the same as for original declaration (at least in means of 'equals')
+     * @return `true`表示是捕获的副本
      */
     val isCapturedFromOuterDeclaration: Boolean
 
 
+    /**
+     * 获取存储管理器，通常用于管理类型参数的存储或缓存。
+     *
+     * @return 存储管理器
+     */
     val storageManager: StorageManager
 }
