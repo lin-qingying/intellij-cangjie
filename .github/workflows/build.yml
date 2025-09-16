@@ -30,7 +30,7 @@ jobs:
       - name: Download and setup FlatBuffers compiler
         run: |
           mkdir -p metadata/flatbuffers  # 确保目录存在
-          wget https://github.com/google/flatbuffers/releases/download/v23.5.26/flatc-linux-x86_64 -O metadata/flatbuffers/flatc
+          wget https://github.com/google/flatbuffers/releases/download/v25.2.10/Linux.flatc.binary.clang++-18.zip -O metadata/flatbuffers/flatc
           chmod +x metadata/flatbuffers/flatc  # 添加执行权限
 
       - name: Setup Gradle
