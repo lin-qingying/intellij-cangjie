@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,7 @@ import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.findClassAcrossModuleDependencies
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.CangJieTypeFactory
-import org.cangnova.cangjie.types.ErrorUtils
-import org.cangnova.cangjie.types.TypeAttributes
-import org.cangnova.cangjie.types.TypeUtils
+import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.error.ErrorScopeKind
 
 fun hasUnsignedTypesInModuleDependencies(module: ModuleDescriptor): Boolean {

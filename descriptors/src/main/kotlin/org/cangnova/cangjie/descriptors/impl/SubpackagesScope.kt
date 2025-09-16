@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,18 @@
 
 package org.cangnova.cangjie.descriptors.impl
 
-import org.cangnova.cangjie.descriptors.*
+import com.intellij.util.containers.addIfNotNull
+import org.cangnova.cangjie.descriptors.DeclarationDescriptor
+import org.cangnova.cangjie.descriptors.ModuleDescriptor
+import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
+import org.cangnova.cangjie.descriptors.PackageViewDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
-import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindExclude
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScopeImpl
 import org.cangnova.cangjie.utils.Printer
-import com.intellij.util.containers.addIfNotNull
-import java.util.ArrayList
 
 
 open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, private val fqName: FqName) :

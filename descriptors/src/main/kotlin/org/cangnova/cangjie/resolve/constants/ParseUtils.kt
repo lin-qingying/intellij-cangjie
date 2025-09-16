@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,11 @@
 
 package org.cangnova.cangjie.resolve.constants
 
-import org.cangnova.cangjie.parsing.extractRadix
-import org.cangnova.cangjie.psi.CjNodeTypes
 import com.intellij.openapi.util.text.CharFilter
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.tree.IElementType
-import org.cangnova.cangjie.resolve.constants.Float32
-import org.cangnova.cangjie.resolve.constants.Float64
+import org.cangnova.cangjie.parsing.extractRadix
+import org.cangnova.cangjie.psi.CjNodeTypes
 import java.util.*
 
 

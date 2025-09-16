@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,20 +23,9 @@
  */
 package org.cangnova.cangjie.types.checker
 
-import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.builtIns
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.EnrichedProjectionKind
-import org.cangnova.cangjie.types.TypeProjection
-import org.cangnova.cangjie.types.Variance
-import org.cangnova.cangjie.types.asFlexibleType
-import org.cangnova.cangjie.types.getSubtypeRepresentative
-import org.cangnova.cangjie.types.getSupertypeRepresentative
-import org.cangnova.cangjie.types.isError
-import org.cangnova.cangjie.types.isFlexible
-import org.cangnova.cangjie.types.sameTypeConstructors
-import org.cangnova.cangjie.types.unwrapOption
+import org.cangnova.cangjie.types.*
 
 /**
  * 类型检查过程

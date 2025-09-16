@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,31 +12,30 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.descriptors.impl
 
-import com.github.weisj.jsvg.B
 import org.cangnova.cangjie.builtins.BuiltinsType
-import org.cangnova.cangjie.builtins.BuiltinsType.*
+import org.cangnova.cangjie.builtins.BuiltinsType.CPOINTER
+import org.cangnova.cangjie.builtins.BuiltinsType.CSTRING
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.builtins.PrimitiveType
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.BuiltInsMemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
-import org.cangnova.cangjie.resolve.scopes.PrimitiveMemberScope
 import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.types.BuiltInsTypeConstructor
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.PrimitiveTypeConstructor
-import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeProjection
-import org.cangnova.cangjie.types.TypeProjectionImpl
-import org.cangnova.cangjie.types.Variance
+import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.types.replace
 
 /**
  * 内置类型类描述符

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.descriptors.impl
 
 
-import org.cangnova.cangjie.builtins.BuiltinsType
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
@@ -35,7 +34,10 @@ import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.resolve.scopes.FunctionClassScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.types.*
+import org.cangnova.cangjie.types.AbstractClassTypeConstructor
+import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.FunctionType
+import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.functions.FunctionClassKind
 import org.cangnova.cangjie.types.functions.FunctionTypeKind

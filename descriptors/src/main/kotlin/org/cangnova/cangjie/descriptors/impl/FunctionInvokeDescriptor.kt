@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,10 @@
 
 package org.cangnova.cangjie.descriptors.impl
 
-import org.cangnova.cangjie.descriptors.annotations.Annotations
-
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
-
 import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.extractParameterNameFromFunctionTypeArgument
 

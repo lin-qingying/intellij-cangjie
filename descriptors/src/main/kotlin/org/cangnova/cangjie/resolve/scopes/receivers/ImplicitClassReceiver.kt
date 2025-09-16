@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,7 @@
 package org.cangnova.cangjie.resolve.scopes.receivers
 
 import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.types.CangJieType
-import java.lang.UnsupportedOperationException
 
 /**
  * Describes any "this" receiver inside a class

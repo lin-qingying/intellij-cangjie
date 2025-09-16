@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,6 @@ package org.cangnova.cangjie.descriptors.impl
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.FqName
-import org.cangnova.cangjie.psi.CjImportInfo
-import org.cangnova.cangjie.psi.CjPackageDirective
 import org.cangnova.cangjie.resolve.scopes.ChainedMemberScope
 import org.cangnova.cangjie.resolve.scopes.LazyScopeAdapter
 import org.cangnova.cangjie.resolve.scopes.MemberScope

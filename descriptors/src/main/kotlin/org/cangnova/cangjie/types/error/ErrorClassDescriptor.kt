@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,10 @@ import org.cangnova.cangjie.descriptors.impl.ClassDescriptorImpl
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.LockBasedStorageManager
-import org.cangnova.cangjie.types.*
+import org.cangnova.cangjie.types.ErrorUtils
+import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeSubstitution
+import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class ErrorClassDescriptor(name: Name = Name.ERROR_NAME) : ClassDescriptorImpl(

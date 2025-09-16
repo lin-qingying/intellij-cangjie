@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,14 @@
 
 package org.cangnova.cangjie.incremental
 
-import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
 import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
+import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.incremental.components.Position
 import org.cangnova.cangjie.incremental.components.ScopeKind
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.incremental.components.LookupLocation
 
 
 fun LookupTracker.record(from: LookupLocation, scopeOwner: PackageFragmentDescriptor, name: Name) {

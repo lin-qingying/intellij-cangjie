@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,8 @@ import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.resolve.call.inference.wrapWithCapturingSubstitution
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeConstructorSubstitution
-import org.cangnova.cangjie.types.TypeUtils
-import org.cangnova.cangjie.types.Variance
-import org.cangnova.cangjie.types.approximateCapturedTypes
-import java.util.ArrayDeque
+import org.cangnova.cangjie.types.*
+import java.util.*
 
 interface NewTypeVariableConstructor : TypeConstructor {
     val originalTypeParameter: TypeParameterDescriptor?

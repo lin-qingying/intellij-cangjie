@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.cangnova.cangjie.renderer.ClassifierNamePolicy
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.resolve.call.inference.CapturedTypeConstructor
 import org.cangnova.cangjie.resolve.call.inference.isCaptured
-import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 
 

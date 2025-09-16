@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.types
 
+import com.intellij.util.containers.addIfNotNull
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
@@ -38,13 +39,10 @@ import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import org.cangnova.cangjie.resolve.constants.Int32Value
 import org.cangnova.cangjie.resolve.constants.StringValue
-import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
 import org.cangnova.cangjie.types.functions.FunctionTypeKindExtractor
 import org.cangnova.cangjie.utils.DFS
-import com.intellij.util.containers.addIfNotNull
 
-import org.cangnova.cangjie.types.asTypeProjection
 /**
  * 函数类型作为内置类型实现
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.types.checker
 
+import com.intellij.util.containers.addIfNotNull
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames.FqNames
 import org.cangnova.cangjie.descriptors.ClassDescriptor
@@ -45,7 +46,6 @@ import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
 import org.cangnova.cangjie.types.model.*
 import org.cangnova.cangjie.utils.firstIsInstanceOrNull
-import com.intellij.util.containers.addIfNotNull
 import org.cangnova.cangjie.types.isSignedOrUnsignedNumberType as classicIsSignedOrUnsignedNumberType
 import org.cangnova.cangjie.types.isStubType as isSimpleTypeStubType
 import org.cangnova.cangjie.types.isStubTypeForBuilderInference as isSimpleTypeStubTypeForBuilderInference

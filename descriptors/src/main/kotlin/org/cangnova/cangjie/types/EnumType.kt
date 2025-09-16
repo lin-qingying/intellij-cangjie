@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,9 @@
  */
 package org.cangnova.cangjie.types
 
-import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.EnumConstructorDescriptor
-import org.cangnova.cangjie.descriptors.EnumDescriptor
 import org.cangnova.cangjie.descriptors.EnumKind
-import org.cangnova.cangjie.descriptors.EnumMember
-import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 

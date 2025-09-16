@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ package org.cangnova.cangjie.descriptors
 
 import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.resolve.scopes.MemberScope
+import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.storage.getValue
 import org.cangnova.cangjie.types.TypeRefinement
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.storage.getValue
-import org.cangnova.cangjie.storage.StorageManager
 
 /**
  * 类作用域持有者 (Class Scopes Holder)

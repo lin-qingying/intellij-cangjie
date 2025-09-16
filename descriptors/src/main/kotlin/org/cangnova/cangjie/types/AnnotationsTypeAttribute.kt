@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,9 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.descriptors.annotations.Annotations
-import kotlin.reflect.KClass
 import org.cangnova.cangjie.descriptors.annotations.composeAnnotations
+import kotlin.reflect.KClass
+
 val TypeAttributes.annotations: Annotations get() = annotationsAttribute?.annotations ?: Annotations.EMPTY
 val TypeAttributes.annotationsAttribute: AnnotationsTypeAttribute? by TypeAttributes.attributeAccessor<AnnotationsTypeAttribute>()
 

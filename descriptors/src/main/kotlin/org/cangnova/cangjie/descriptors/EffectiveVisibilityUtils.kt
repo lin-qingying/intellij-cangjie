@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ package org.cangnova.cangjie.descriptors
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.descriptors.Visibilities.Inherited.customEffectiveVisibility
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import  org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext
 
 /**
  * 计算描述符的有效可见性

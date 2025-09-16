@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,28 +24,19 @@
 
 package org.cangnova.cangjie.builtins.builtinstype
 
-import org.cangnova.cangjie.builtins.BinaryOperatorRule
-import org.cangnova.cangjie.builtins.BinaryOperatorRuleResultType
 import org.cangnova.cangjie.builtins.BuiltinsType
-import org.cangnova.cangjie.builtins.PrimitiveType
 import org.cangnova.cangjie.builtins.StandardNames.STD_CORE_PACKAGE_FQ_NAME
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.impl.AbstractClassDescriptor
 import org.cangnova.cangjie.descriptors.impl.BuiltinsClassDescriptor
 import org.cangnova.cangjie.descriptors.impl.CFunctionClassDescriptor
 import org.cangnova.cangjie.descriptors.impl.PackageFragmentDescriptorImpl
-import org.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
-import org.cangnova.cangjie.lexer.CjToken
-import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.IntersectionTypeConstructor
 import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.utils.Printer
 

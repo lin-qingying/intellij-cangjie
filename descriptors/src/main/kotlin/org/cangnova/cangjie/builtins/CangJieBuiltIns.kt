@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.builtins
 
+import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.builtins.StandardNames.BASIC_PACKAGE_FQ_NAME
 import org.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.anyUFqName
@@ -51,10 +52,7 @@ import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint8UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.unitUFqName
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
-import org.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
-import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
-import org.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
-import org.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
+import org.cangnova.cangjie.descriptors.impl.*
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
@@ -65,8 +63,6 @@ import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
-import com.intellij.openapi.project.Project
-import org.cangnova.cangjie.descriptors.impl.BuiltinsClassDescriptor
 
 open class CangJieBuiltIns(
     val project: Project? = null,
