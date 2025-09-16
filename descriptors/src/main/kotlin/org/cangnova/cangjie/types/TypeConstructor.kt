@@ -32,22 +32,13 @@ import org.cangnova.cangjie.types.model.TypeConstructorMarker
 /**
  * 类型构造器接口，扩展了 TypeConstructorMarker 接口。
  * 该接口定义了类型系统中类型构造器的基本操作和属性。
+ * 对于类型，它是唯一的
  */
 interface TypeConstructor : TypeConstructorMarker {
 
 
     val supertypes: Collection<CangJieType>
 
-    /**
-     * 获取扩展的父类型集合，可以根据提供的扩展 ID 进行排除。
-     *
-     * @param extendId 需要排除的扩展 ID，可以为 null
-     * @return 扩展的父类型集合，不能为空且只读
-     */
-
-    fun getExtendSupertypes(extendId: String?): Collection<CangJieType> {
-        return mutableListOf<CangJieType>()
-    }
 
     /**
      * 获取内置类型信息。

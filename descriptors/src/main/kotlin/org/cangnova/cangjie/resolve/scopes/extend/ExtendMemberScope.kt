@@ -21,26 +21,6 @@
  * any damages or issues arising from its use.
  *
  */
-package org.cangnova.cangjie.resolve
 
-import org.cangnova.cangjie.descriptors.CallableDescriptor
-import org.cangnova.cangjie.descriptors.TypeDescriptor
+package org.cangnova.cangjie.resolve.scopes.extend
 
-interface ExternalOverridabilityCondition {
-    enum class Result {
-        OVERRIDABLE, INCOMPATIBLE, UNKNOWN
-    }
-
-    enum class Contract {
-        CONFLICTS_ONLY, SUCCESS_ONLY, BOTH
-    }
-
-    fun isOverridable(
-        superDescriptor: CallableDescriptor,
-        subDescriptor: CallableDescriptor,
-        subClassDescriptor: TypeDescriptor?
-    ): Result
-
-
-    val contract: Contract
-}

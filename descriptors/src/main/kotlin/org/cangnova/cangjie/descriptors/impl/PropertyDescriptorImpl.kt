@@ -101,7 +101,6 @@ open class PropertyDescriptorImpl(
 
     override val setter: PropertySetterDescriptor? get() = _setter
 
-    override val isSetterProjectedOut: Boolean get() = _setterProjectedOut
 
     fun setSetterProjectedOut(setterProjectedOut: Boolean) {
         this._setterProjectedOut = setterProjectedOut

@@ -28,8 +28,18 @@ import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.annotations.FilteredAnnotations
 
+/**
+ * 类型替换抽象类
+ *
+ * 定义了类型替换的基本接口和功能，用于在泛型类型系统中进行类型参数的替换操作。
+ * 类型替换是类型系统中的核心机制，用于将泛型类型的类型参数替换为具体的类型。
+ */
 abstract class TypeSubstitution{
     companion object {
+        /**
+         * 空类型替换实例
+         * 表示不进行任何类型替换的默认实例
+         */
         @JvmField
         val EMPTY: TypeSubstitution = object : TypeSubstitution() {
             override fun get(key: CangJieType): Nothing? = null
@@ -37,12 +47,47 @@ abstract class TypeSubstitution{
             override fun toString() = "Empty TypeSubstitution"
         }
     }
-    // This can be used to perform preliminary manipulations with top-level types
+
+    /**
+     * 预处理顶级类型
+     * 可以用于对顶级类型执行初步的操作
+     *
+     * @param topLevelType 顶级类型
+     * @param position 类型的变异位置
+     * @return 处理后的类型
+     */
     open fun prepareTopLevelType(topLevelType: CangJieType, position: Variance): CangJieType = topLevelType
+
+    /**
+     * 过滤注解
+     * 对类型上的注解进行过滤处理
+     *
+     * @param annotations 要过滤的注解
+     * @return 过滤后的注解
+     */
     open fun filterAnnotations(annotations: Annotations) = annotations
 
+    /**
+     * 根据给定的类型键获取对应的类型投影
+     *
+     * @param key 要替换的类型键
+     * @return 对应的类型投影，如果没有替换则返回null
+     */
     abstract operator fun get(key: CangJieType): TypeProjection?
+
+    /**
+     * 构建类型替换器
+     *
+     * @return 基于当前替换的类型替换器
+     */
     fun buildSubstitutor(): TypeSubstitutor = TypeSubstitutor.create(this)
+
+    /**
+     * 创建非近似的替换
+     * 返回一个不进行捕获类型近似的新替换实例
+     *
+     * @return 非近似的类型替换
+     */
     fun replaceWithNonApproximating() = object : TypeSubstitution() {
         override fun get(key: CangJieType) = this@TypeSubstitution[key]
         override fun approximateCapturedTypes() = false
@@ -53,9 +98,26 @@ abstract class TypeSubstitution{
 
         override fun isEmpty() = this@TypeSubstitution.isEmpty()
     }
+
+    /**
+     * 检查替换是否为空
+     *
+     * @return 如果没有任何类型替换则返回true
+     */
     open fun isEmpty(): Boolean = false
 
+    /**
+     * 是否对捕获类型进行近似
+     *
+     * @return 如果需要对捕获类型进行近似则返回true
+     */
     open fun approximateCapturedTypes(): Boolean = false
+
+    /**
+     * 是否对逆变捕获类型进行近似
+     *
+     * @return 如果需要对逆变捕获类型进行近似则返回true
+     */
     open fun approximateContravariantCapturedTypes(): Boolean = false
 }
 

@@ -21,26 +21,14 @@
  * any damages or issues arising from its use.
  *
  */
-package org.cangnova.cangjie.resolve
 
-import org.cangnova.cangjie.descriptors.CallableDescriptor
-import org.cangnova.cangjie.descriptors.TypeDescriptor
+package org.cangnova.cangjie.serialization.deserialization
 
-interface ExternalOverridabilityCondition {
-    enum class Result {
-        OVERRIDABLE, INCOMPATIBLE, UNKNOWN
-    }
+import org.cangnova.cangjie.name.ClassId
 
-    enum class Contract {
-        CONFLICTS_ONLY, SUCCESS_ONLY, BOTH
-    }
+internal class ClassKey(val classId: ClassId, val classData: ClassData?) {
+    // classData *intentionally* not used in equals() / hashCode()
+    override fun equals(other: Any?) = other is ClassKey && classId == other.classId
 
-    fun isOverridable(
-        superDescriptor: CallableDescriptor,
-        subDescriptor: CallableDescriptor,
-        subClassDescriptor: TypeDescriptor?
-    ): Result
-
-
-    val contract: Contract
+    override fun hashCode() = classId.hashCode()
 }

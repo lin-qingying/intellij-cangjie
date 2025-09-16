@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
@@ -51,7 +50,12 @@ open class DeserializedPackageMemberScope(
         packageDescriptor, `package`,
         metadataVersion, containerSource
     ),
-    `package`.functions, `package`.variables, emptyList(), `package`.typeAliass, `package`.allClassDecls
+    `package`.functions,
+    `package`.variables,
+    emptyList(),
+    `package`.typeAliass,
+    `package`.allClassDecls,
+    `package`.extends
 ) {
     private val packageFqName = packageDescriptor.fqName
 

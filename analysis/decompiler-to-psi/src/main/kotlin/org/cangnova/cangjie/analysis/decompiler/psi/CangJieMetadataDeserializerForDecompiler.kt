@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,12 @@ package org.cangnova.cangjie.analysis.decompiler.psi
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.MutablePackageFragmentDescriptor
-
 import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.FqName
@@ -85,6 +82,7 @@ class CangJieMetadataDeserializerForDecompiler(
                 metadataVersion,
 
                 ),
+
 //            AnnotationAndConstantLoaderImpl(moduleDescriptor, notFoundClasses, serializerProtocol),
             packageFragmentProvider,
             ResolveEverythingToCangJieAnyLocalClassifierResolver(builtIns),

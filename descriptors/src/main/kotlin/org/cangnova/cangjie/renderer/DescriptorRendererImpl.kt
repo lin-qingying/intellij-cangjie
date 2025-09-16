@@ -30,10 +30,12 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotated
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import org.cangnova.cangjie.descriptors.annotations.AnnotationUseSiteTarget
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptor
-
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
-import org.cangnova.cangjie.name.*
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.name.FqNameUnsafe
+import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions.asOperatorString
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.annotationClass
@@ -726,7 +728,7 @@ open class DescriptorRendererImpl(
     private fun renderTypeParameters(
         typeParameters: List<TypeParameterDescriptor>,
         builder: StringBuilder,
-        withSpace: Boolean
+        withSpace: Boolean = false
     ) {
         if (withoutTypeParameters) return
 
@@ -1076,6 +1078,18 @@ open class DescriptorRendererImpl(
     }
 
 
+    private fun renderExtend(extend: ExtendDescriptor, builder: StringBuilder) {
+        builder.append(renderKeyword("extend"))
+        renderTypeParameters(extend.declaredTypeParameters, builder)
+        builder.append("  ")
+
+//        被扩展类型
+        builder.append(renderType(extend.extendType))
+
+        renderSuperTypes(extend.superTypes.toList(), builder)
+        renderWhereSuffix(extend.declaredTypeParameters, builder)
+    }
+
     /* CLASSES */
     private fun renderClass(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
 
@@ -1108,20 +1122,28 @@ open class DescriptorRendererImpl(
         renderWhereSuffix(typeParameters, builder)
     }
 
-    private fun renderSuperTypes(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
+    private fun renderSuperTypes(types: List<CangJieType>, builder: StringBuilder) {
         if (withoutSuperTypes) return
 
-        if (CangJieBuiltIns.isNothing(cclass.defaultType)) return
 
-        val supertypes = cclass.typeConstructor.supertypes
-        if (supertypes.isEmpty() || supertypes.size == 1 && CangJieBuiltIns.isAny(
-                supertypes.iterator().next()
+
+        if (types.isEmpty() || types.size == 1 && CangJieBuiltIns.isAny(
+                types.iterator().next()
             )
         ) return
 
         renderSpaceIfNeeded(builder)
         builder.append("<: ")
-        supertypes.joinTo(builder, "& ") { renderType(it) }
+        types.joinTo(builder, "& ") { renderType(it) }
+    }
+
+    private fun renderSuperTypes(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
+        if (withoutSuperTypes) return
+
+        if (CangJieBuiltIns.isNothing(cclass.defaultType)) return
+
+        val supertypes = cclass.typeConstructor.supertypes.toList()
+        renderSuperTypes(supertypes, builder)
     }
 
     private fun renderClassKindPrefix(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
@@ -1269,6 +1291,7 @@ open class DescriptorRendererImpl(
 
         }
 
+
         private fun renderConstructor(constructor: ConstructorDescriptor, builder: StringBuilder) {
             if (constructor.isPrimary) {
                 renderPrimaryConstructor(constructor, builder)
@@ -1330,6 +1353,15 @@ open class DescriptorRendererImpl(
 
         override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, builder: StringBuilder?) {
             builder?.let { renderConstructor(constructorDescriptor, it) }
+
+        }
+
+        override fun visitExtendDescriptor(
+            descriptor: ExtendDescriptor,
+            builder: StringBuilder?
+        ) {
+            builder?.let { renderExtend(descriptor, it) }
+
 
         }
 

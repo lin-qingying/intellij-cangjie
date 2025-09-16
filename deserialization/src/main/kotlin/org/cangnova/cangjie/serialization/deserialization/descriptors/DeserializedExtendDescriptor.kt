@@ -25,61 +25,51 @@
 package org.cangnova.cangjie.serialization.deserialization.descriptors
 
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.impl.AbstractClassDescriptor
+import org.cangnova.cangjie.descriptors.extend.AbstractExtendDescriptor
 import org.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.fb.FbDecl
-import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.ExtendWrapper
+import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.*
+import org.cangnova.cangjie.resolve.DeserializedDeclarationsFromSupertypeConflictDataKey
+import org.cangnova.cangjie.resolve.NonReportingOverrideStrategy
+import org.cangnova.cangjie.resolve.OverridingUtil
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
-import org.cangnova.cangjie.types.AbstractClassTypeConstructor
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.TypeRefinement
-import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.utils.flatMapToNullable
 
-
-class DeserializedClassDescriptor(
+class DeserializedExtendDescriptor(
     outerContext: DeserializationContext,
-    val `class`: ClassDeclWrapper,
+    val `extend`: ExtendWrapper,
 
     val metadataVersion: BinaryVersion,
     override val source: SourceElement
-) : AbstractClassDescriptor(
+) : AbstractExtendDescriptor(
     outerContext.storageManager,
-    `class`.name
-), DeserializedDescriptor {
-    private val classId = `class`.classId
 
-    private val funcList = `class`.functions
-    private val varList = `class`.variables
-    private val propList = `class`.propertys
-    private val secondaryConstructors: MutableList<FbDecl> = mutableListOf()
-
-
+    ) {
+    private val funcList = `extend`.functions
+    private val varList = `extend`.variables
+    private val propList = `extend`.propertys
     val c = outerContext.childContext(
-        this, `class`.typeParameters, outerContext.`package`,
+        this, `extend`.typeParameters, outerContext.`package`,
         metadataVersion
     )
-    private val memberScopeHolder =
-        ScopesHolderForClass.create(
-            this,
-            c.storageManager,
-            c.components.cangjieTypeChecker.cangjieTypeRefiner,
-            this::DeserializedClassMemberScope
+    override val unsubstitutedMemberScope: MemberScope = DeserializedExtendMemberScope()
+
+    private inner class DeserializedExtendMemberScope() :
+        DeserializedMemberScope(c, funcList, varList, propList, emptyList(), emptyList()) {
+        override fun createClassId(name: Name) = ClassId(
+            c.`package`.packageName, name
         )
 
-    private inner class DeserializedClassMemberScope(private val cangjieTypeRefiner: CangJieTypeRefiner) :
-        DeserializedMemberScope(c, funcList, varList, propList, emptyList(), emptyList()) {
-        override fun createClassId(name: Name) = classId.createNestedClassId(name)
-        private val classDescriptor: DeserializedClassDescriptor get() = this@DeserializedClassDescriptor
+        private val extendDescriptor: DeserializedExtendDescriptor get() = this@DeserializedExtendDescriptor
         private val allDescriptors = c.storageManager.createLazyValue {
             computeDescriptors(
                 DescriptorKindFilter.ALL,
@@ -89,7 +79,7 @@ class DeserializedClassDescriptor(
         }
         private val refinedSupertypes = c.storageManager.createLazyValue {
             @OptIn(TypeRefinement::class)
-            cangjieTypeRefiner.refineSupertypes(classDescriptor)
+            this@DeserializedExtendDescriptor.superTypes
         }
 
         override fun getContributedDescriptors(
@@ -116,7 +106,7 @@ class DeserializedClassDescriptor(
 
         override fun isDeclaredFunctionAvailable(function: SimpleFunctionDescriptor): Boolean {
             return c.components.platformDependentDeclarationFilter.isFunctionAvailable(
-                this@DeserializedClassDescriptor,
+                this@DeserializedExtendDescriptor,
                 function
             )
         }
@@ -135,7 +125,7 @@ class DeserializedClassDescriptor(
             functions.addAll(
                 c.components.additionalClassPartsProvider.getFunctions(
                     name,
-                    this@DeserializedClassDescriptor
+                    this@DeserializedExtendDescriptor
                 )
             )
             generateFakeOverrides(name, fromSupertypes, functions)
@@ -177,7 +167,7 @@ class DeserializedClassDescriptor(
                 name,
                 fromSupertypes,
                 fromCurrent,
-                classDescriptor,
+                extendDescriptor,
                 object : NonReportingOverrideStrategy() {
                     override fun addFakeOverride(fakeOverride: CallableMemberDescriptor) {
                         // TODO: report "cannot infer visibility"
@@ -202,14 +192,14 @@ class DeserializedClassDescriptor(
 
         override fun getNonDeclaredFunctionNames(): Set<Name> {
 
-            return classDescriptor.typeConstructor.supertypes.flatMapTo(LinkedHashSet()) {
+            return extendDescriptor.superTypes.flatMapTo(LinkedHashSet()) {
                 it.memberScope.functionNames
             }
-                .apply { addAll(c.components.additionalClassPartsProvider.getFunctionsNames(this@DeserializedClassDescriptor)) }
+                .apply { addAll(c.components.additionalClassPartsProvider.getFunctionsNames(this@DeserializedExtendDescriptor)) }
         }
 
         override fun getNonDeclaredVariableNames(): Set<Name> {
-            return classDescriptor.typeConstructor.supertypes.flatMapTo(LinkedHashSet()) {
+            return extendDescriptor.superTypes.flatMapTo(LinkedHashSet()) {
                 it.memberScope.variableNames
             }
         }
@@ -226,131 +216,33 @@ class DeserializedClassDescriptor(
         }
 
         override fun getNonDeclaredPropertyNames(): Set<Name> {
-            return classDescriptor.typeConstructor.supertypes.flatMapTo(LinkedHashSet()) {
+            return extendDescriptor.superTypes.flatMapTo(LinkedHashSet()) {
                 it.memberScope.propertyNames
             }
 
         }
 
         override fun recordLookup(name: Name, location: LookupLocation) {
-            c.components.lookupTracker.record(location, classDescriptor, name)
+            c.components.lookupTracker.record(location, extendDescriptor, name)
         }
 
         override fun getNonDeclaredClassifierNames(): Set<Name>? {
-            return classDescriptor.typeConstructor.supertypes.flatMapToNullable(LinkedHashSet()) {
+            return extendDescriptor.superTypes.flatMapToNullable(LinkedHashSet()) {
                 it.memberScope.classifierNames
             }
         }
 
     }
 
-    private val memberScope get() = memberScopeHolder.getScope(c.components.cangjieTypeChecker.cangjieTypeRefiner)
-
-    internal fun hasNestedClass(name: Name): Boolean =
-        name in memberScope.classNames
-
-    override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
-        memberScopeHolder.getScope(cangjieTypeRefiner)
-
-    override val staticScope: MemberScope
-        get() = MemberScope.Empty
-    private val constructorsValue = c.storageManager.createLazyValue { computeConstructors() }
-    private fun computeConstructors(): Collection<ClassConstructorDescriptor> =
-        computeSecondaryConstructors() + listOfNotNull(unsubstitutedPrimaryConstructor) +
-                c.components.additionalClassPartsProvider.getConstructors(this)
-
-    private fun computeSecondaryConstructors(): List<ClassConstructorDescriptor> =
-        `class`.constructors.filter { !it.isPrimary }.map {
-            c.declDeserializer.loadConstructor(it, false)
-        }
-
-    override val constructors: Collection<ClassConstructorDescriptor>
-        get() = constructorsValue()
-    override val endConstructors: Collection<ClassConstructorDescriptor>
-        get() = emptyList()
-
-    override val containingDeclaration = outerContext.containingDeclaration
-
-    override val kind: ClassKind = `class`.kind
-
-    override val modality: Modality = `class`.modality
-
-    //    由于序列化文件中不区分主副构造函数
-    override val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
-        get() = primaryConstructor()
-    private val primaryConstructor = c.storageManager.createNullableLazyValue { computePrimaryConstructor() }
-
-    private fun computePrimaryConstructor(): ClassConstructorDescriptor? {
-        if (kind.isSingleton) {
-            return DescriptorFactory.createPrimaryConstructorForObject(this, SourceElement.NO_SOURCE).apply {
-                setReturnType(defaultType)
-            }
-        }
-
-        return `class`.constructors.firstOrNull { it.isPrimary }?.let { constructor ->
-            c.declDeserializer.loadConstructor(constructor, true)
-        }
-    }
-
+    override val extendId: String
+        get() = extend.id
     override val declaredTypeParameters: List<TypeParameterDescriptor>
         get() = c.typeDeserializer.ownTypeParameters
-    private val _sealedSubclasses = c.storageManager.createLazyValue { computeSubclassesForSealedClass() }
+    override val extendType: CangJieType
+        get() = c.typeDeserializer.type(extend.type)
+    override val superTypes: List<CangJieType>
+        get() = extend.superTypes.map { c.typeDeserializer.type(it) }
 
-    private fun computeSubclassesForSealedClass(): Collection<ClassDescriptor> {
-        return emptyList()
-    }
-
-    override fun toString() =
-        "deserialized ${kind} $name" // not using descriptor renderer to preserve laziness
-
-
-    override val sealedSubclasses: Collection<ClassDescriptor>
-        get() = _sealedSubclasses()
-
-
-    override val typeConstructor: TypeConstructor = DeserializedClassTypeConstructor()
-
-    private inner class DeserializedClassTypeConstructor : AbstractClassTypeConstructor(c.storageManager) {
-        private val _parameters = c.storageManager.createLazyValue {
-            this@DeserializedClassDescriptor.computeConstructorTypeParameters()
-        }
-
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-            return emptyList()
-        }
-
-        override fun computeSupertypes(): Collection<CangJieType> {
-
-            val result = `class`.superTypes.toSet().map { supertype ->
-                c.typeDeserializer.type(supertype)
-            } + c.components.additionalClassPartsProvider.getSupertypes(this@DeserializedClassDescriptor)
-
-            val unresolved = result.mapNotNull { supertype ->
-                supertype.constructor.declarationDescriptor as? NotFoundClasses.MockClassDescriptor
-            }
-
-            if (unresolved.isNotEmpty()) {
-                c.components.errorReporter.reportIncompleteHierarchy(
-                    this@DeserializedClassDescriptor,
-                    unresolved.map { it.classId?.asSingleFqName()?.asString() ?: it.name.asString() }
-                )
-            }
-
-            return result.toList()
-        }
-
-
-        override val parameters: List<TypeParameterDescriptor>
-            get() = _parameters()
-        override val isDenotable: Boolean
-            get() = true
-        override val declarationDescriptor: ClassDescriptor = this@DeserializedClassDescriptor
-        override fun toString() = name.toString()
-
-        override val supertypeLoopChecker: SupertypeLoopChecker
-            // TODO: inject implementation
-            get() = SupertypeLoopChecker.EMPTY
-    }
-
+    override val containingDeclaration = outerContext.containingDeclaration
 
 }

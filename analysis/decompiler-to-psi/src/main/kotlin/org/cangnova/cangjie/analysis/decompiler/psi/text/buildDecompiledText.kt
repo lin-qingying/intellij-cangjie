@@ -1,18 +1,40 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.analysis.decompiler.psi.text
 
 import org.cangnova.cangjie.analysis.decompiler.stub.COMPILED_DEFAULT_INITIALIZER
 import org.cangnova.cangjie.analysis.decompiler.stub.COMPILED_DEFAULT_PARAMETER_VALUE
 import org.cangnova.cangjie.analysis.decompiler.stub.computeParameterName
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.psiUtil.quoteIfNeeded
 import org.cangnova.cangjie.renderer.DescriptorRenderer
 import org.cangnova.cangjie.renderer.DescriptorRendererModifier
 import org.cangnova.cangjie.renderer.DescriptorRendererOptions
 import org.cangnova.cangjie.renderer.render
-import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.DescriptorUtils.isEnumEntry
 import org.cangnova.cangjie.resolve.secondaryConstructors
 import org.cangnova.cangjie.types.isFlexible
 
@@ -135,7 +157,7 @@ fun buildDecompiledText(
                 }
                 builder.append("}")
             }
-        } else if (descriptor is ClassDescriptor && !isEnumEntry(descriptor)) {
+        } else if (descriptor is ClassDescriptor) {
             builder.append(" {\n")
 
             val subindent = "$indent    "
@@ -221,6 +243,41 @@ fun buildDecompiledText(
 
             builder.append(indent).append("}")
 
+        } else if (descriptor is ExtendDescriptor) {
+            builder.append(" {\n")
+
+            val subindent = "$indent    "
+
+            var firstPassed = false
+            fun newlineExceptFirst() {
+                if (firstPassed) {
+                    builder.append("\n")
+                } else {
+                    firstPassed = true
+                }
+            }
+
+            val allDescriptors =
+                descriptor.memberScope.getContributedDescriptors()
+
+
+
+
+            for (member in allDescriptors) {
+
+                if (member.containingDeclaration != descriptor) {
+                    continue
+                }
+
+                if (member is CallableMemberDescriptor && member.mustNotBeWrittenToDecompiledText()) {
+                    continue
+                }
+                newlineExceptFirst()
+                builder.append(subindent)
+                appendDescriptor(member, subindent)
+            }
+
+            builder.append(indent).append("}")
         }
         builder.append("\n")
     }

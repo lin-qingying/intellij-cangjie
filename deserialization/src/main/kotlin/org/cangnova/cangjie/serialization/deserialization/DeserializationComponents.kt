@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,11 @@
 
 package org.cangnova.cangjie.serialization.deserialization
 
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.descriptors.EnumDescriptor
-import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.descriptors.NotFoundClasses
-import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
-import org.cangnova.cangjie.descriptors.PackageFragmentProvider
+import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.deserialization.DeclTable
 import org.cangnova.cangjie.metadata.deserialization.TypeTable
-import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.TypeParameterWrapper
 import org.cangnova.cangjie.name.ClassId
@@ -90,6 +83,7 @@ class DeserializationComponents(
     val moduleDescriptor: ModuleDescriptor,
     val configuration: DeserializationConfiguration,
     val classDataFinder: ClassDataFinder,
+
 //    val annotationAndConstantLoader: AnnotationAndConstantLoader<AnnotationDescriptor, ConstantValue<*>>,
     val packageFragmentProvider: PackageFragmentProvider,
     val localClassifierTypeSettings: LocalClassifierTypeSettings,
@@ -108,10 +102,13 @@ class DeserializationComponents(
 //    val enumEntriesDeserializationSupport: EnumEntriesDeserializationSupport = EnumEntriesDeserializationSupport.Default,
 
 ) {
+    val extendDeserializer: ExtendDeserializer = ExtendDeserializer(this)
+
     val enumDeserializer: EnumDeserializer = EnumDeserializer(this)
     val classDeserializer: ClassDeserializer = ClassDeserializer(this)
     fun deserializeClass(classId: ClassId): ClassDescriptor? = classDeserializer.deserializeClass(classId)
     fun deserializeEnum(classId: ClassId): EnumDescriptor? = enumDeserializer.deserializeEnum(classId)
+    fun deserializeExtend(extendId: String): ExtendDescriptor? = extendDeserializer.deserializeExtend(extendId)
 
     fun createContext(
         descriptor: PackageFragmentDescriptor,
@@ -157,7 +154,7 @@ class DeserializationContext(
     typeParameters: List<TypeParameterWrapper>
 ) {
 
-    val fullIdFinder: FullIdFinder = FullIdFinderImpl(components.moduleDescriptor, `package`)
+    val fullIdFinder: FullIdFinder = FullIdFinderImpl(components.moduleDescriptor, `package`, this)
 
     val typeDeserializer: TypeDeserializer = TypeDeserializer(
         this, parentTypeDeserializer, typeParameters,

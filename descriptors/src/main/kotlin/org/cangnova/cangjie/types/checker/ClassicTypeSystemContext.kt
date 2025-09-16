@@ -327,15 +327,6 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this.supertypes
     }
 
-    override fun TypeConstructorMarker.extendSupertypes(): Collection<CangJieTypeMarker> {
-        require(this is TypeConstructor, this::errorMessage)
-        return this.getExtendSupertypes(null)
-
-    }
-
-    override fun TypeConstructorMarker.supertypesAndExtend(): Collection<CangJieTypeMarker> {
-        return supertypes() + extendSupertypes()
-    }
 
     override fun TypeParameterMarker.getVariance(): TypeVariance {
         require(this is TypeParameterDescriptor, this::errorMessage)

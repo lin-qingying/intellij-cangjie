@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@
 
 package org.cangnova.cangjie.ide.stubindex
 
-import org.cangnova.cangjie.psi.CjTypeStatement
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndexKey
+import org.cangnova.cangjie.psi.CjTypeStatement
 
 
 class CangJieFullClassNameIndex internal constructor() : StringStubIndexExtension<CjTypeStatement>() {
@@ -51,7 +51,7 @@ class CangJieFullClassNameIndex internal constructor() : StringStubIndexExtensio
 
     override fun getKey(): StubIndexKey<String, CjTypeStatement> = indexKey
 
-    @Deprecated("Base method is deprecated", ReplaceWith("CangJieFullClassNameIndex[fqName, project, scope]"))
+    @Deprecated("Base method is deprecated", ReplaceWith("CangJieFullClassNameIndex[packagefqName, project, scope]"))
     override fun get(fqName: String, project: Project, scope: GlobalSearchScope): Collection<CjTypeStatement> {
         return Helper[fqName, project, scope]
     }

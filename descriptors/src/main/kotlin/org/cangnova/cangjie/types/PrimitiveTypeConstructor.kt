@@ -83,11 +83,6 @@ class PrimitiveTypeConstructor(
      */
     override val supertypeLoopChecker: SupertypeLoopChecker = SupertypeLoopChecker.EMPTY
 
-    /**
-     * 计算扩展超类型（基本类型暂时不考虑扩展）
-     */
-    override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> =
-        super.getExtendSupertypes(extendId)
 
     override val isDenotable: Boolean = true
 

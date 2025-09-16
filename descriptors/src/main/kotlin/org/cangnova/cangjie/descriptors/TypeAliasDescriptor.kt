@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.descriptors
 
+import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.SimpleType
 
 
@@ -37,7 +38,8 @@ interface TypeAliasDescriptor : ClassifierDescriptorWithTypeParameters {
      * @return 底层类型
      */
     val underlyingType: SimpleType
-
+    override val superTypes: Collection<CangJieType>
+        get() = error("Should not be called")
     /**
      * 获取完全展开的类型（未替换类型参数），该类型不包含任何类型别名。
      *
@@ -67,4 +69,6 @@ interface TypeAliasDescriptor : ClassifierDescriptorWithTypeParameters {
      * @return 构造器描述符集合
      */
     val constructors: Collection<TypeAliasConstructorDescriptor>
+
+
 }

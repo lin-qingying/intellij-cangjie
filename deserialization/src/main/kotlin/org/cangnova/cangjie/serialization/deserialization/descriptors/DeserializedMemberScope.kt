@@ -25,25 +25,17 @@
 package org.cangnova.cangjie.serialization.deserialization.descriptors
 
 
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-
-
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
-import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
-import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
-import org.cangnova.cangjie.metadata.model.wrapper.ExtendWrapper
-import org.cangnova.cangjie.metadata.model.wrapper.FunctionWrapper
-import org.cangnova.cangjie.metadata.model.wrapper.PropertyWrapper
-import org.cangnova.cangjie.metadata.model.wrapper.TypeAliasWrapper
-import org.cangnova.cangjie.metadata.model.wrapper.VariableWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.*
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.MemberComparator
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScopeImpl
-import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
 import org.cangnova.cangjie.serialization.deserialization.DeclarationDeserializer
+import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
 import org.cangnova.cangjie.storage.getValue
 import org.cangnova.cangjie.utils.Printer
 import org.cangnova.cangjie.utils.addIfNotNull
@@ -75,12 +67,16 @@ abstract class DeserializedMemberScope protected constructor(
     propertyList: List<PropertyWrapper>,
     typeAliasList: List<TypeAliasWrapper>,
     classList: List<ClassDeclWrapper>,
-
-    ) : MemberScopeImpl() {
+    extendList: List<ExtendWrapper> = emptyList()
+) : MemberScopeImpl() {
     internal val enumNames by c.storageManager.createLazyValue {
         classList.filter { it is EnumWrapper }.map { it.name }.toSet()
     }
-
+    internal val extendIds by c.storageManager.createLazyValue {
+        extendList.map {
+            it.id
+        }
+    }
     internal val classNames by c.storageManager.createLazyValue {
         classList.filter { it !is EnumWrapper }.map { it.name }.toSet()
     }
@@ -189,7 +185,6 @@ abstract class DeserializedMemberScope protected constructor(
          * @return 类型别名描述符，如果不存在则返回null
          */
         fun getTypeAliasByName(name: Name): TypeAliasDescriptor?
-        fun getClassByName(name: Name): ClassDescriptor?
 
         /**
          * 获取指定名称的变量描述符集合
@@ -246,9 +241,9 @@ abstract class DeserializedMemberScope protected constructor(
         classList: List<ClassDeclWrapper>
     ): Implementation =
         if (c.components.configuration.preserveDeclarationsOrdering)
-            NoReorderImplementation(functionList, variableList, propertyList, typeAliasList, classList)
+            NoReorderImplementation(functionList, variableList, propertyList, typeAliasList)
         else
-            OptimizedImplementation(functionList, variableList, propertyList, typeAliasList, classList)
+            OptimizedImplementation(functionList, variableList, propertyList, typeAliasList)
 
 
     /**
@@ -268,7 +263,7 @@ abstract class DeserializedMemberScope protected constructor(
         variableList: List<VariableWrapper>,
         propertyList: List<PropertyWrapper>,
         typeAliasList: List<TypeAliasWrapper>,
-        classList: List<ClassDeclWrapper>
+
     ) : Implementation {
         /**
          * 按名称分组的函数声明映射
@@ -298,11 +293,6 @@ abstract class DeserializedMemberScope protected constructor(
             else
                 emptyMap()
 
-        /**
-         * 按名称分组的类声明映射
-         * 将类声明列表按标识符分组，便于快速查找
-         */
-        private val classs = classList.groupByName { it.name }
 
         /**
          * 函数描述符缓存
@@ -324,13 +314,6 @@ abstract class DeserializedMemberScope protected constructor(
          */
         private val typeAliasByName =
             c.storageManager.createMemoizedFunctionWithNullableValues<Name, TypeAliasDescriptor> { createTypeAlias(it) }
-
-        /**
-         * 类描述符缓存
-         * 使用存储管理器创建的记忆化函数，根据名称计算并缓存类描述符
-         */
-        private val classByName =
-            c.storageManager.createMemoizedFunctionWithNullableValues<Name, ClassDescriptor> { createClasss(it) }
 
 
         /**
@@ -431,20 +414,6 @@ abstract class DeserializedMemberScope protected constructor(
             return c.declDeserializer.loadTypeAlias(decl)
         }
 
-        /**
-         * 创建指定名称的类描述符
-         *
-         * 根据给定名称查找并创建对应的类描述符。如果找不到对应名称的类声明，
-         * 或者声明列表为空，则返回null。否则返回通过反序列化器加载的类描述符。
-         *
-         * @param name 要查找的类名称
-         * @return 对应名称的类描述符，如果不存在则返回null
-         */
-        private fun createClasss(name: Name): ClassDescriptor? {
-            val decls = classs[name] ?: return null
-            val decl = decls.firstOrNull() ?: return null
-            return c.declDeserializer.loadClass(decl)
-        }
 
         override fun getContributedFunctions(
             name: Name,
@@ -457,10 +426,6 @@ abstract class DeserializedMemberScope protected constructor(
 
         override fun getTypeAliasByName(name: Name): TypeAliasDescriptor? {
             return typeAliasByName(name)
-        }
-
-        override fun getClassByName(name: Name): ClassDescriptor? {
-            return classByName(name)
         }
 
         override fun getContributedVariables(name: Name, location: LookupLocation): Collection<VariableDescriptor> {
@@ -646,7 +611,6 @@ abstract class DeserializedMemberScope protected constructor(
      * @param variableList 变量声明列表，保持原始顺序
      * @param propertyList 属性声明列表，保持原始顺序
      * @param typeAliasList 类型别名声明列表，保持原始顺序
-     * @param classList 类声明列表，保持原始顺序
      */
     private inner class NoReorderImplementation(
         private val functionList: List<FunctionWrapper>,
@@ -654,7 +618,7 @@ abstract class DeserializedMemberScope protected constructor(
 
         private val propertyList: List<PropertyWrapper>,
         typeAliasList: List<TypeAliasWrapper>,
-        private val classList: List<ClassDeclWrapper>
+
     ) : Implementation {
 
         /**
@@ -684,12 +648,6 @@ abstract class DeserializedMemberScope protected constructor(
         private val declaredProperties: List<PropertyDescriptor>
                 by c.storageManager.createLazyValue { computeProperties() }
 
-        /**
-         * 所有类描述符列表
-         * 懒加载计算所有类描述符
-         */
-        private val allClass: List<ClassDescriptor>
-                by c.storageManager.createLazyValue { computeClasss() }
 
         /**
          * 所有类型别名描述符列表
@@ -719,12 +677,6 @@ abstract class DeserializedMemberScope protected constructor(
         private val allProperties: List<PropertyDescriptor>
                 by c.storageManager.createLazyValue { declaredProperties + computeAllNonDeclaredProperties() }
 
-        /**
-         * 按名称索引的类描述符映射
-         * 懒加载计算所有类描述符的名称映射
-         */
-        private val classByName: Map<Name, ClassDescriptor>
-                by c.storageManager.createLazyValue { allClass.associateBy { it.name } }
 
         /**
          * 按名称索引的类型别名描述符映射
@@ -785,12 +737,6 @@ abstract class DeserializedMemberScope protected constructor(
         override val typeAliasNames: Set<Name>
             get() = typeAliasList.mapToNames { it.name }
 
-        /**
-         * 类名称集合
-         * 计算所有类的名称集合
-         */
-//        override val classNames: Set<Name>
-//            get() = classList.mapToNames { it.name }
 
         /**
          * 计算所有函数描述符列表
@@ -832,8 +778,6 @@ abstract class DeserializedMemberScope protected constructor(
         private fun computeTypeAliases(): List<TypeAliasDescriptor> =
             typeAliasList.mapWithDeserializer { loadTypeAlias(it) }
 
-        private fun computeClasss(): List<ClassDescriptor> =
-            classList.mapWithDeserializer { loadClass(it) }
 
         private fun computeAllNonDeclaredFunctions(): List<SimpleFunctionDescriptor> =
             getNonDeclaredFunctionNames().flatMap { computeNonDeclaredFunctionsForName(it) }
@@ -879,9 +823,7 @@ abstract class DeserializedMemberScope protected constructor(
             return functionsByName[name].orEmpty()
         }
 
-        override fun getClassByName(name: Name): ClassDescriptor? {
-            return classByName[name]
-        }
+
 
         override fun getTypeAliasByName(name: Name): TypeAliasDescriptor? {
             return typeAliasesByName[name]
@@ -1038,7 +980,7 @@ abstract class DeserializedMemberScope protected constructor(
      */
     private val classifierNamesLazy by c.storageManager.createNullableLazyValue {
         val nonDeclaredNames = getNonDeclaredClassifierNames() ?: return@createNullableLazyValue null
-     enumNames +   classNames + impl.typeAliasNames + nonDeclaredNames
+        enumNames + classNames + impl.typeAliasNames + nonDeclaredNames
     }
 
     /**
@@ -1054,19 +996,7 @@ abstract class DeserializedMemberScope protected constructor(
         return impl.getTypeAliasByName(name)
     }
 
-    /**
-     * 获取指定名称的类描述符
-     *
-     * 根据给定名称创建类ID，然后通过组件的类反序列化器获取对应的类描述符。
-     * 这是一个内部辅助方法，用于从类名获取完整的类描述符。
-     *
-     * @param name 要查找的类名称
-     * @return 对应名称的类描述符，如果不存在则返回null
-     */
-    private fun getClassByName(name: Name): ClassDescriptor? {
-        return impl.getClassByName(name)
 
-    }
 
     /**
      * 获取所有变量名称集合
@@ -1108,10 +1038,14 @@ abstract class DeserializedMemberScope protected constructor(
      * @return 如果作用域绝对不包含该名称，则返回true；否则返回false
      */
     override fun definitelyDoesNotContainName(name: Name): Boolean {
-        return name !in impl.functionNames && name !in impl.variableNames && name !in  classNames  && name !in  enumNames && name !in impl.typeAliasNames
+        return name !in impl.functionNames && name !in impl.variableNames && name !in classNames && name !in enumNames && name !in impl.typeAliasNames
     }
+
     private fun deserializeEnum(name: Name): EnumDescriptor? =
         c.components.deserializeEnum(createClassId(name))
+
+    private fun deserializeExtend(extendId: String): ExtendDescriptor? =
+        c.components.deserializeExtend(extendId)
 
     private fun deserializeClass(name: Name): ClassDescriptor? =
         c.components.deserializeClass(createClassId(name))
@@ -1127,6 +1061,7 @@ abstract class DeserializedMemberScope protected constructor(
      */
     protected open fun hasClass(name: Name): Boolean =
         name in classNames
+
     protected open fun hasEnum(name: Name): Boolean =
         name in enumNames
 
@@ -1148,6 +1083,10 @@ abstract class DeserializedMemberScope protected constructor(
             name in impl.typeAliasNames -> getTypeAliasByName(name)
             else -> null
         }
+
+    override fun getContributedExtend(extendId: String, location: LookupLocation): ExtendDescriptor? {
+        return deserializeExtend(extendId)
+    }
 
     override fun getContributedClassifierByExportId(exportId: String, location: LookupLocation): ClassifierDescriptor? {
         val name = classNameByExportId(exportId)
@@ -1190,13 +1129,13 @@ abstract class DeserializedMemberScope protected constructor(
         impl.addFunctionsAndPropertiesTo(result, kindFilter, nameFilter, location)
 
         if (kindFilter.acceptsKinds(DescriptorKindFilter.CLASSIFIERS_MASK)) {
-            for (className in  classNames) {
+            for (className in classNames) {
                 if (nameFilter(className)) {
                     result.addIfNotNull(deserializeClass(className))
 //                    result.addIfNotNull(getClassByName(className))
                 }
             }
-            for (className in  enumNames) {
+            for (className in enumNames) {
                 if (nameFilter(className)) {
                     result.addIfNotNull(deserializeEnum(className))
 //                    result.addIfNotNull(getClassByName(className))
@@ -1209,6 +1148,13 @@ abstract class DeserializedMemberScope protected constructor(
                 if (nameFilter(typeAliasName)) {
                     result.addIfNotNull(impl.getTypeAliasByName(typeAliasName))
                 }
+            }
+        }
+
+        if (kindFilter.acceptsKinds(DescriptorKindFilter.EXTENDS_MASK)) {
+            for (extendId in extendIds) {
+                result.addIfNotNull(deserializeExtend(extendId))
+
             }
         }
 

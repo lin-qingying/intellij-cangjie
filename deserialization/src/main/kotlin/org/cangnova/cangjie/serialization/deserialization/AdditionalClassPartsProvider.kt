@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,27 +26,58 @@ package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.container.DefaultImplementation
 import org.cangnova.cangjie.descriptors.ClassConstructorDescriptor
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.ClassifierDescriptor
 import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
+import org.cangnova.cangjie.descriptors.TypeDescriptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
 
 @DefaultImplementation(impl = AdditionalClassPartsProvider.None::class)
 
+/**
+ * 附加类部件提供器接口
+ * 用于为类描述符提供额外的类成员信息，如超类型、函数、构造器等
+ */
 interface AdditionalClassPartsProvider {
-    fun getSupertypes(classDescriptor: ClassifierDescriptor): Collection<CangJieType>
-    fun getFunctions(name: Name, classDescriptor: ClassifierDescriptor): Collection<SimpleFunctionDescriptor>
-    fun getConstructors(classDescriptor: ClassifierDescriptor): Collection<ClassConstructorDescriptor>
-    fun getFunctionsNames(classDescriptor: ClassifierDescriptor): Collection<Name>
+    /**
+     * 获取类的超类型集合
+     * @param classDescriptor 类描述符
+     * @return 超类型集合
+     */
+    fun getSupertypes(classDescriptor: TypeDescriptor): Collection<CangJieType>
 
+    /**
+     * 根据函数名获取类中的函数集合
+     * @param name 函数名
+     * @param classDescriptor 类描述符
+     * @return 简单函数描述符集合
+     */
+    fun getFunctions(name: Name, classDescriptor: TypeDescriptor): Collection<SimpleFunctionDescriptor>
+
+    /**
+     * 获取类的构造器集合
+     * @param classDescriptor 类描述符
+     * @return 类构造器描述符集合
+     */
+    fun getConstructors(classDescriptor: TypeDescriptor): Collection<ClassConstructorDescriptor>
+
+    /**
+     * 获取类中所有函数的名称集合
+     * @param classDescriptor 类描述符
+     * @return 函数名称集合
+     */
+    fun getFunctionsNames(classDescriptor: TypeDescriptor): Collection<Name>
+
+    /**
+     * 默认空实现对象
+     * 所有方法都返回空集合
+     */
     object None : AdditionalClassPartsProvider {
-        override fun getSupertypes(classDescriptor: ClassifierDescriptor): Collection<CangJieType> = emptyList()
-        override fun getFunctions(name: Name, classDescriptor: ClassifierDescriptor): Collection<SimpleFunctionDescriptor> =
+        override fun getSupertypes(classDescriptor: TypeDescriptor): Collection<CangJieType> = emptyList()
+        override fun getFunctions(name: Name, classDescriptor: TypeDescriptor): Collection<SimpleFunctionDescriptor> =
             emptyList()
 
-        override fun getFunctionsNames(classDescriptor: ClassifierDescriptor): Collection<Name> = emptyList()
-        override fun getConstructors(classDescriptor: ClassifierDescriptor): Collection<ClassConstructorDescriptor> =
+        override fun getFunctionsNames(classDescriptor: TypeDescriptor): Collection<Name> = emptyList()
+        override fun getConstructors(classDescriptor: TypeDescriptor): Collection<ClassConstructorDescriptor> =
             emptyList()
     }
 }

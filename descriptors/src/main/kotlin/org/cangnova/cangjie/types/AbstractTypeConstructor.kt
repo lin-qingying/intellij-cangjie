@@ -75,7 +75,6 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : Classif
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor =
         ModuleViewTypeConstructor(cangjieTypeRefiner)
 
-    override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> = computeExtendSuperTypes(extendId)
 
     @TypeRefinement
     private inner class ModuleViewTypeConstructor(

@@ -74,4 +74,4 @@ inline val ClassKind.isInterface: Boolean
 
 /** 是否是类类型 */
 inline val ClassKind.isClass: Boolean
-    get() = this == Classkind.CLASS
+    get() = this == ClassKind.CLASS

@@ -54,7 +54,8 @@ interface EnumDescriptor : ClassifierDescriptorWithTypeParameters {
 - **Option类型支持**: 特殊处理Option<T>语法糖
 
 #### 示例用法
-```kotlin
+
+```cangjie
 // 简单枚举
 enum Color {
     Red,

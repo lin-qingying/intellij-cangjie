@@ -21,26 +21,35 @@
  * any damages or issues arising from its use.
  *
  */
-package org.cangnova.cangjie.resolve
 
-import org.cangnova.cangjie.descriptors.CallableDescriptor
-import org.cangnova.cangjie.descriptors.TypeDescriptor
 
-interface ExternalOverridabilityCondition {
-    enum class Result {
-        OVERRIDABLE, INCOMPATIBLE, UNKNOWN
+package org.cangnova.cangjie.resolve.extend
+
+import org.cangnova.cangjie.descriptors.ModuleCapability
+import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeConstructor
+
+interface ExtendManager {
+    data class ExtensionDef(
+        val id: String,
+        val extendedConstructor: TypeConstructor,
+        val typeParameters: List<TypeParameterDescriptor>,
+        val interfaces: List<CangJieType>,
+    )
+
+    fun getExtendSupertypes(
+        forConstructor: TypeConstructor,
+        forTypeArgs: List<CangJieType> = emptyList(),
+        excludeExtendId: String? = null,
+    ): Collection<CangJieType>
+
+    fun rebuild(defs: Collection<ExtensionDef>)
+
+    fun invalidate()
+
+    companion object {
+        val CAPABILITY = ModuleCapability<ExtendManager>("ExtendManager")
     }
-
-    enum class Contract {
-        CONFLICTS_ONLY, SUCCESS_ONLY, BOTH
-    }
-
-    fun isOverridable(
-        superDescriptor: CallableDescriptor,
-        subDescriptor: CallableDescriptor,
-        subClassDescriptor: TypeDescriptor?
-    ): Result
-
-
-    val contract: Contract
 }
+

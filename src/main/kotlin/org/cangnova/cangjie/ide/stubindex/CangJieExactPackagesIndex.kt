@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@
 
 package org.cangnova.cangjie.ide.stubindex
 
-import org.cangnova.cangjie.psi.CjFile
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.stubs.StringStubIndexExtension
 import com.intellij.psi.stubs.StubIndex
 import com.intellij.psi.stubs.StubIndexKey
+import org.cangnova.cangjie.psi.CjFile
 
 class CangJieExactPackagesIndex internal constructor() : StringStubIndexExtension<CjFile>() {
     companion object {
@@ -52,7 +52,10 @@ class CangJieExactPackagesIndex internal constructor() : StringStubIndexExtensio
 
     override fun getKey(): StubIndexKey<String, CjFile> = NAME
 
-    @Deprecated("Base method is deprecated", ReplaceWith("CangJieExactPackagesIndex.get(fqName, project, scope)"))
+    @Deprecated(
+        "Base method is deprecated",
+        ReplaceWith("CangJieExactPackagesIndex.get(packagefqName, project, scope)")
+    )
     override fun get(fqName: String, project: Project, scope: GlobalSearchScope): Collection<CjFile> {
         return Companion.get(fqName, project, scope)
     }

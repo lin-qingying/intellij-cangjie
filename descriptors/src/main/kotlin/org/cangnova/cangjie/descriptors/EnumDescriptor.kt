@@ -71,7 +71,8 @@ interface EnumDescriptor :ClassifierDescriptorWithKind, ClassifierDescriptorWith
      * @return 成员作用域
      */
     override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
-
+    override val superTypes: Collection<CangJieType>
+        get() = typeConstructor.supertypes
     /**
      * 获取枚举的成员作用域（使用类型替换）
      *

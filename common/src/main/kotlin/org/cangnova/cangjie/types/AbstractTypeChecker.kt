@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -866,7 +866,7 @@ open class TypeCheckerState(
             if (!visitedSupertypes.add(current)) continue
 
             val policy = supertypesPolicy(current).takeIf { it != SupertypesPolicy.None } ?: continue
-            val supertypes = with(typeSystemContext) { current.typeConstructor().supertypesAndExtend() }
+            val supertypes = with(typeSystemContext) { current.typeConstructor().supertypes() }
             for (supertype in supertypes) {
                 val newType = policy.transformType(this, supertype)
                 if (predicate(newType)) {

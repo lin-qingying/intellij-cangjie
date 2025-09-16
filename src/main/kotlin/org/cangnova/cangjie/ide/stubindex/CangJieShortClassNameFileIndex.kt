@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,9 @@
 
 package org.cangnova.cangjie.ide.stubindex
 
+import com.intellij.util.indexing.*
+import com.intellij.util.indexing.impl.CollectionDataExternalizer
+import com.intellij.util.io.EnumeratorStringDescriptor
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.declarations.CangJieDeclarationsFileType
 import org.cangnova.cangjie.psi.CjEnumEntry
@@ -31,10 +34,6 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjTreeVisitorVoid
 import org.cangnova.cangjie.psi.CjTypeStatement
 import org.cangnova.cangjie.psi.psiUtil.safeFqNameForLazyResolve
-import com.intellij.util.indexing.*
-import com.intellij.util.indexing.impl.CollectionDataExternalizer
-import com.intellij.util.io.EnumeratorStringDescriptor
-import org.cangnova.cangjie.name.*
 
 
 class CangJieShortClassNameFileIndex : FileBasedIndexExtension<String, Collection<String>>() {
@@ -69,7 +68,7 @@ class CangJieShortClassNameFileIndex : FileBasedIndexExtension<String, Collectio
 //                val builtins = readCangJieMetadataDefinition(fileContent)
 //                if (builtins != null) {
 //                    for (classProto in builtins.classesToDecompile) {
-//                        val classId = builtins.nameResolver.getClassId(classProto.fqName)
+//                        val classId = builtins.nameResolver.getClassId(classProto.packagefqName)
 //                        map[classId.shortClassName.asString()] = listOf(classId.asFqNameString())
 //                    }
 //                }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,21 +25,26 @@
 package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.builtins.StandardNames
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
 import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
+import org.cangnova.cangjie.descriptors.TypeDescriptor
 import org.cangnova.cangjie.name.FqName
 
 interface PlatformDependentDeclarationFilter {
 
-    fun isFunctionAvailable(classDescriptor: ClassifierDescriptorWithKind, functionDescriptor: SimpleFunctionDescriptor): Boolean
+    fun isFunctionAvailable(classDescriptor: TypeDescriptor, functionDescriptor: SimpleFunctionDescriptor): Boolean
 
     object All : PlatformDependentDeclarationFilter {
-        override fun isFunctionAvailable(classDescriptor: ClassifierDescriptorWithKind, functionDescriptor: SimpleFunctionDescriptor) = true
+        override fun isFunctionAvailable(
+            classDescriptor: TypeDescriptor,
+            functionDescriptor: SimpleFunctionDescriptor
+        ) = true
     }
 
     object NoPlatformDependent : PlatformDependentDeclarationFilter {
-        override fun isFunctionAvailable(classDescriptor: ClassifierDescriptorWithKind, functionDescriptor: SimpleFunctionDescriptor) =
+        override fun isFunctionAvailable(
+            classDescriptor: TypeDescriptor,
+            functionDescriptor: SimpleFunctionDescriptor
+        ) =
             !functionDescriptor.annotations.hasAnnotation(PLATFORM_DEPENDENT_ANNOTATION_FQ_NAME)
     }
 }

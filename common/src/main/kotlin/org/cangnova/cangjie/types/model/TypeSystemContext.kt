@@ -379,8 +379,6 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeConstructorMarker.getParameter(index: Int): TypeParameterMarker
     fun TypeConstructorMarker.getParameters(): List<TypeParameterMarker>
     fun TypeConstructorMarker.supertypes(): Collection<CangJieTypeMarker>
-    fun TypeConstructorMarker.extendSupertypes(): Collection<CangJieTypeMarker>
-    fun TypeConstructorMarker.supertypesAndExtend(): Collection<CangJieTypeMarker>
     fun SimpleTypeMarker.isClassType(): Boolean = typeConstructor().isClassTypeConstructor()
     fun TypeConstructorMarker.isClassTypeConstructor(): Boolean
     fun TypeConstructorMarker.isFloatLiteralTypeConstructor(): Boolean

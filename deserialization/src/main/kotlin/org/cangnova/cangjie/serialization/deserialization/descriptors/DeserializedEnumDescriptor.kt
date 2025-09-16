@@ -1,47 +1,41 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.serialization.deserialization.descriptors
 
 
-import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
-import org.cangnova.cangjie.descriptors.ClassConstructorDescriptor
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.ClassKind
-import org.cangnova.cangjie.descriptors.ClassifierDescriptor
-import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
-import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import org.cangnova.cangjie.descriptors.ConstructorDescriptor
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.descriptors.DescriptorVisibility
-import org.cangnova.cangjie.descriptors.EnumConstructorDescriptor
-import org.cangnova.cangjie.descriptors.EnumDescriptor
-import org.cangnova.cangjie.descriptors.EnumKind
-import org.cangnova.cangjie.descriptors.EnumMember
-import org.cangnova.cangjie.descriptors.FunctionDescriptor
-import org.cangnova.cangjie.descriptors.Modality
-import org.cangnova.cangjie.descriptors.NotFoundClasses
-import org.cangnova.cangjie.descriptors.PropertyDescriptor
-import org.cangnova.cangjie.descriptors.ScopesHolderForClass
-import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
-import org.cangnova.cangjie.descriptors.SourceElement
-import org.cangnova.cangjie.descriptors.SupertypeLoopChecker
-import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
-import org.cangnova.cangjie.descriptors.VariableDescriptor
+import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
-import org.cangnova.cangjie.descriptors.computeConstructorTypeParameters
-import org.cangnova.cangjie.descriptors.impl.AbstractClassDescriptor
 import org.cangnova.cangjie.descriptors.impl.AbstractEnumDescriptor
-import org.cangnova.cangjie.descriptors.impl.ClassConstructorDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.EnumConstructorDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
-import org.cangnova.cangjie.descriptors.impl.LazySubstitutingClassDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.incremental.record
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
-import org.cangnova.cangjie.metadata.model.wrapper.ConstructorWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.EnumEntryWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.EnumWrapper
-import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DeserializedDeclarationsFromSupertypeConflictDataKey
 import org.cangnova.cangjie.resolve.NonReportingOverrideStrategy
@@ -54,15 +48,10 @@ import org.cangnova.cangjie.types.AbstractClassTypeConstructor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.TypeRefinement
-import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.utils.flatMapToNullable
-import java.util.LinkedHashSet
-import kotlin.collections.mapNotNull
-import kotlin.collections.plus
-import kotlin.collections.toList
 
-class DeserializedEnumescriptor(
+class DeserializedEnumDescriptor(
     outerContext: DeserializationContext,
     val `enum`: EnumWrapper,
 
@@ -112,9 +101,9 @@ class DeserializedEnumescriptor(
         )
 
     private inner class DeserializedEnumMemberScope(private val cangjieTypeRefiner: CangJieTypeRefiner) :
-        DeserializedMemberScope(c, funcList, varList, propList, emptyList(), emptyList()) {
+        DeserializedMemberScope(c, funcList, varList, propList, emptyList(), emptyList(), emptyList()) {
 
-        private val enumDescriptor: DeserializedEnumescriptor get() = this@DeserializedEnumescriptor
+        private val enumDescriptor: DeserializedEnumDescriptor get() = this@DeserializedEnumDescriptor
 
         private val allDescriptors = c.storageManager.createLazyValue {
             computeDescriptors(
@@ -152,7 +141,7 @@ class DeserializedEnumescriptor(
 
         override fun isDeclaredFunctionAvailable(function: SimpleFunctionDescriptor): Boolean {
             return c.components.platformDependentDeclarationFilter.isFunctionAvailable(
-                this@DeserializedEnumescriptor,
+                this@DeserializedEnumDescriptor,
                 function
             )
         }
@@ -171,7 +160,7 @@ class DeserializedEnumescriptor(
             functions.addAll(
                 c.components.additionalClassPartsProvider.getFunctions(
                     name,
-                    this@DeserializedEnumescriptor
+                    this@DeserializedEnumDescriptor
                 )
             )
             generateFakeOverrides(name, fromSupertypes, functions)
@@ -244,7 +233,7 @@ class DeserializedEnumescriptor(
             return enumDescriptor.typeConstructor.supertypes.flatMapTo(LinkedHashSet()) {
                 it.memberScope.functionNames
             }
-                .apply { addAll(c.components.additionalClassPartsProvider.getFunctionsNames(this@DeserializedEnumescriptor)) }
+                .apply { addAll(c.components.additionalClassPartsProvider.getFunctionsNames(this@DeserializedEnumDescriptor)) }
         }
 
         override fun getNonDeclaredVariableNames(): Set<Name> {
@@ -292,7 +281,7 @@ class DeserializedEnumescriptor(
 
     private inner class DeserializedEnumTypeConstructor : AbstractClassTypeConstructor(c.storageManager) {
         private val _parameters = c.storageManager.createLazyValue {
-            this@DeserializedEnumescriptor.computeConstructorTypeParameters()
+            this@DeserializedEnumDescriptor.computeConstructorTypeParameters()
         }
 
         override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
@@ -303,7 +292,7 @@ class DeserializedEnumescriptor(
 
             val result = `enum`.superTypes.toSet().map { supertype ->
                 c.typeDeserializer.type(supertype)
-            } + c.components.additionalClassPartsProvider.getSupertypes(this@DeserializedEnumescriptor)
+            } + c.components.additionalClassPartsProvider.getSupertypes(this@DeserializedEnumDescriptor)
 
             val unresolved = result.mapNotNull { supertype ->
                 supertype.constructor.declarationDescriptor as? NotFoundClasses.MockClassDescriptor
@@ -311,7 +300,7 @@ class DeserializedEnumescriptor(
 
             if (unresolved.isNotEmpty()) {
                 c.components.errorReporter.reportIncompleteHierarchy(
-                    this@DeserializedEnumescriptor,
+                    this@DeserializedEnumDescriptor,
                     unresolved.map { it.classId?.asSingleFqName()?.asString() ?: it.name.asString() }
                 )
             }
@@ -324,7 +313,7 @@ class DeserializedEnumescriptor(
             get() = _parameters()
         override val isDenotable: Boolean
             get() = true
-        override val declarationDescriptor: ClassifierDescriptorWithKind = this@DeserializedEnumescriptor
+        override val declarationDescriptor: ClassifierDescriptorWithKind = this@DeserializedEnumDescriptor
         override fun toString() = name.toString()
 
         override val supertypeLoopChecker: SupertypeLoopChecker

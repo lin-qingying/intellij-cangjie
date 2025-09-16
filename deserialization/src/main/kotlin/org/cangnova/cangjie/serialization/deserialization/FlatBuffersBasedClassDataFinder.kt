@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,12 @@
 
 package org.cangnova.cangjie.serialization.deserialization
 
-import org.cangnova.cangjie.name.ClassId
-import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.descriptors.SourceElement
-import org.cangnova.cangjie.metadata.model.fb.FbDecl
-import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
-import org.cangnova.cangjie.metadata.model.fb.FbPackage
+import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
 import org.cangnova.cangjie.metadata.model.wrapper.ClassDeclWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.ExtendWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
-import org.cangnova.cangjie.utils.keysToMap
+import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.utils.valuesToMap
 
 /**
@@ -47,7 +43,9 @@ class FlatBuffersBasedClassDataFinder(
         SourceElement.NO_SOURCE
     }
 ) : ClassDataFinder {
-
+    private val extendDeclarations: Map<String, ExtendWrapper> by lazy {
+        buildExtendDeclarationMap()
+    }
     private val classDeclarations: Map<ClassId, ClassDeclWrapper> by lazy {
         buildClassDeclarationMap()
     }
@@ -66,11 +64,32 @@ class FlatBuffersBasedClassDataFinder(
         )
     }
 
+    private fun buildExtendDeclarationMap(): Map<String, ExtendWrapper> {
+
+        return packageData.extends.valuesToMap {
+            it.id
+        }
+    }
+
     private fun buildClassDeclarationMap(): Map<ClassId, ClassDeclWrapper> {
 
         return packageData.allClassDecls.valuesToMap {
             it.classId
         }
+    }
+
+    override fun findExtendData(extendID: String): ExtendData? {
+        val extendDecl = extendDeclarations[extendID] ?: return null
+        return ExtendData(
+            extendDecl = extendDecl,
+            `package` = packageData,
+            metadataVersion = metadataVersion,
+            sourceElement = sourceElementProvider()
+        )
+    }
+
+    override val allExtendIds: Collection<String> by lazy {
+        extendDeclarations.keys
     }
 
 

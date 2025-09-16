@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,12 @@
 
 package org.cangnova.cangjie.ide.stubindex
 
-import org.cangnova.cangjie.psi.CjFile
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.FileBasedIndex
-import org.cangnova.cangjie.name.*
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.psi.CjFile
 
 
 object CangJiePackageIndexUtils {
@@ -55,7 +56,7 @@ object CangJiePackageIndexUtils {
     /**
      * Return all direct subpackages of package [fqName].
      *
-     * I.e. if there are packages `a.b`, `a.b.c`, `a.c`, `a.c.b` for `fqName` = `a` it returns
+     * I.e. if there are packages `a.b`, `a.b.c`, `a.c`, `a.c.b` for `packagefqName` = `a` it returns
      * `a.b` and `a.c`
      *
      * Follow the contract of [com.intellij.psi.PsiElementFinder#getSubPackages]

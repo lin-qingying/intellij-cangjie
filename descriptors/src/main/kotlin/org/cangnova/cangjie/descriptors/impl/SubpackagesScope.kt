@@ -27,9 +27,7 @@ package org.cangnova.cangjie.descriptors.impl
 import com.intellij.util.containers.addIfNotNull
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.descriptors.PackageFragmentDescriptor
 import org.cangnova.cangjie.descriptors.PackageViewDescriptor
-import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindExclude
@@ -79,12 +77,6 @@ open class SubpackagesScope(private val moduleDescriptor: ModuleDescriptor, priv
         }
         return result
     }
-
-
-    override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> {
-        TODO("Not yet implemented")
-    }
-
 
 
     override fun printScopeStructure(p: Printer) {

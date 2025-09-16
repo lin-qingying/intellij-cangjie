@@ -24,6 +24,8 @@
 
 package org.cangnova.cangjie.descriptors
 
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
+
 /**
  * 声明描述符访问者接口，采用访问者模式用于对不同类型的声明描述符执行操作。
  *
@@ -65,6 +67,27 @@ interface DeclarationDescriptorVisitor<R, D> {
         constructorDescriptor: ConstructorDescriptor,
         builder: D?
     ): R
+
+    /** 访问类型描述符（统一的类型相关描述符入口） */
+    fun visitTypeDescriptor(descriptor: TypeDescriptor, builder: D?): R {
+        return when (descriptor) {
+            is ClassifierDescriptor -> visitClassifierDescriptor(descriptor, builder)
+            is ExtendDescriptor -> visitExtendDescriptor(descriptor, builder)
+            else -> throw IllegalArgumentException("Unknown TypeDescriptor implementation: ${descriptor::class}")
+        }
+    }
+
+    /** 访问分类器描述符 */
+    fun visitClassifierDescriptor(descriptor: ClassifierDescriptor, builder: D?): R {
+        return when (descriptor) {
+            is ClassDescriptor -> visitClassDescriptor(descriptor, builder)
+            is EnumDescriptor -> visitEnumDescriptor(descriptor, builder)
+            else -> throw IllegalArgumentException("Unknown ClassifierDescriptor implementation: ${descriptor::class}")
+        }
+    }
+
+    /** 扩展描述符 */
+    fun visitExtendDescriptor(descriptor: ExtendDescriptor, builder: D?): R
 
     /** 访问类描述符 */
     fun visitClassDescriptor(descriptor: ClassDescriptor, builder: D?): R

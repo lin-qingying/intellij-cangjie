@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve.scopes
 
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
@@ -33,24 +34,34 @@ import org.cangnova.cangjie.name.Name
 
 interface ResolutionScope {
     /**
-     * Returns only non-deprecated classifiers.
+     * 获取非弃用的分类器
      *
-     * See [getContributedClassifierIncludeDeprecated] to get all classifiers.
+     * 参见 [getContributedClassifierIncludeDeprecated] 获取所有分类器
      */
     fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor?
+
+    /**
+     * 获取贡献的包视图
+     */
     fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? = null
 
+    /**
+     * 获取指定名称的所有分类器列表
+     */
     fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> = emptyList()
-    fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> = emptyList()
+
+    /**
+     * 根据扩展ID获取扩展描述符
+     */
+    fun getContributedExtend(extendId: String, location: LookupLocation): ExtendDescriptor? = null
 
 
     /**
-     * Returns contributed classifier, but discriminates deprecated
+     * 获取贡献的分类器，包括弃用的分类器
      *
-     * This method can return some classifier where [getContributedClassifier] haven't returned any,
-     * but it should never return different one, even if it is deprecated.
-     * Note that implementors are encouraged to provide non-deprecated classifier if it doesn't contradict
-     * contract above.
+     * 此方法可能返回 [getContributedClassifier] 未返回的分类器，
+     * 但不应返回不同的分类器，即使它已被弃用。
+     * 建议实现者在不违反上述约定的情况下提供非弃用的分类器。
      */
     fun getContributedClassifierIncludeDeprecated(
         name: Name,
@@ -58,33 +69,51 @@ interface ResolutionScope {
     ): DescriptorWithDeprecation<ClassifierDescriptor>? =
         getContributedClassifier(name, location)?.let { DescriptorWithDeprecation.createNonDeprecated(it) }
 
+    /**
+     * 获取指定名称的所有分类器列表，包括弃用的分类器
+     */
     fun getContributedClassifierIncludeDeprecateds(
         name: Name,
         location: LookupLocation
     ): List<DescriptorWithDeprecation<ClassifierDescriptor>>? =
         getContributedClassifiers(name, location).map { DescriptorWithDeprecation.createNonDeprecated(it) }
 
+    /**
+     * 获取指定名称的变量描述符集合
+     */
     fun getContributedVariables(name: Name, location: LookupLocation): Collection<@JvmWildcard VariableDescriptor>
+
+    /**
+     * 获取指定名称的属性描述符集合
+     */
     fun getContributedPropertys(name: Name, location: LookupLocation): Collection<@JvmWildcard PropertyDescriptor>
+
+    /**
+     * 获取指定名称的宏描述符集合
+     */
     fun getContributedMacros(name: Name, location: LookupLocation): Collection<@JvmWildcard MacroDescriptor>
     {
         return emptyList()
     }
-    fun getContributedFunctions(name: Name, location: LookupLocation): Collection<@JvmWildcard FunctionDescriptor>
-    fun getContributedPackages(
-        name: Name,
-        location: LookupLocation
-    ): Collection<@JvmWildcard PackageFragmentDescriptor> = emptyList()
 
     /**
-     * All visible descriptors from current scope possibly filtered by the given name and kind filters
-     * (that means that the implementation is not obliged to use the filters but may do so when it gives any performance advantage).
+     * 获取指定名称的函数描述符集合
+     */
+    fun getContributedFunctions(name: Name, location: LookupLocation): Collection<@JvmWildcard FunctionDescriptor>
+
+
+    /**
+     * 从当前作用域获取所有可见的描述符，可能通过给定的名称和类型过滤器进行过滤
+     * （这意味着实现不一定要使用过滤器，但在能够提供性能优势时可以使用）
      */
     fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter = DescriptorKindFilter.ALL,
         nameFilter: (Name) -> Boolean = MemberScope.ALL_NAME_FILTER
     ): Collection<DeclarationDescriptor>
 
+    /**
+     * 确定是否绝对不包含指定名称
+     */
     fun definitelyDoesNotContainName(name: Name): Boolean = false
 
     /**
@@ -110,7 +139,8 @@ interface ResolutionScope {
     }
 
     /**
-     * 仅适用与反序列化
+     * 根据索引获取分类器描述符
+     * 仅适用于反序列化
      */
     fun getContributedClassifierByIndex(
         index: Int,
@@ -118,6 +148,11 @@ interface ResolutionScope {
     ): ClassifierDescriptor? {
         return null
     }
+
+    /**
+     * 根据导出ID获取分类器描述符
+     * 仅适用于反序列化
+     */
     fun getContributedClassifierByExportId(
         exportId: String,
         location: LookupLocation = NoLookupLocation.FROM_DESERIALIZATION

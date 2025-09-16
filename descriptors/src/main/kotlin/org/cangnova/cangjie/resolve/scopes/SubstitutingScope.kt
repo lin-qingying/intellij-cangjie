@@ -101,8 +101,6 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
         substitute(workerScope.getContributedPropertys(name, location))
     override fun getContributedClassifiers( name: Name, location: LookupLocation): List<ClassifierDescriptor> =
         workerScope.getContributedClassifiers(name, location) .map { substitute(it) }
-    override fun getContributedEnumEntrys( name: Name, location: LookupLocation): List<ClassifierDescriptor> =
-        workerScope.getContributedEnumEntrys(name, location) .map { substitute(it) }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         workerScope.getContributedClassifier(name, location)?.let { substitute(it) }

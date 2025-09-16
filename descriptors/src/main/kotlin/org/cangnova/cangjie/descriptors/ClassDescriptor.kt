@@ -24,8 +24,8 @@
 package org.cangnova.cangjie.descriptors
 
 
-import org.cangnova.cangjie.psi.CjSuperTypeListEntry
 import org.cangnova.cangjie.resolve.scopes.MemberScope
+import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.types.TypeProjection
 import org.cangnova.cangjie.types.TypeSubstitution
@@ -45,7 +45,7 @@ interface ClassifierDescriptorWithKind : ClassifierDescriptorWithTypeParameters,
      * @param typeArguments 类型实参列表
      * @return 返回计算后的成员作用域
      */
-    fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
+    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
 
     /**
      * 根据指定的类型替换规则返回对应的成员作用域。
@@ -53,12 +53,12 @@ interface ClassifierDescriptorWithKind : ClassifierDescriptorWithTypeParameters,
      * @param typeSubstitution 类型替换映射
      * @return 返回计算后的成员作用域
      */
-    fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
+    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
 
     /**
      * 未进行类型替换时的成员作用域（原始作用域）。
      */
-    val unsubstitutedMemberScope: MemberScope
+    override val unsubstitutedMemberScope: MemberScope
 
     /**
      * 实例级成员作用域，默认返回空作用域。
@@ -69,7 +69,7 @@ interface ClassifierDescriptorWithKind : ClassifierDescriptorWithTypeParameters,
     /**
      * 静态成员作用域（如伴生对象或静态成员的作用域）。
      */
-    val staticScope: MemberScope
+    override val staticScope: MemberScope
 
 
 }
@@ -86,6 +86,8 @@ interface ClassDescriptor : ClassifierDescriptorWithKind, ClassifierDescriptorWi
      * @return 返回计算后的成员作用域
      */
     override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
+    override val superTypes: Collection<CangJieType>
+        get() = typeConstructor.supertypes
 
     /**
      * 根据指定的类型替换规则返回对应的成员作用域。
@@ -199,14 +201,6 @@ interface ClassDescriptor : ClassifierDescriptorWithKind, ClassifierDescriptorWi
      */
     val isDefinitelyNotSamInterface: Boolean
 
-    /**
-     * 获取所有的 SuperTypeListEntry，包括扩展的条目。
-     *
-     * @return 可变列表，包含所有 SuperTypeListEntry
-     */
-    fun getSuperTypeListEntries(): MutableList<CjSuperTypeListEntry> {
-        return mutableListOf<CjSuperTypeListEntry>()
-    }
 
     /**
      * 判断类是否包含 const 构造函数。

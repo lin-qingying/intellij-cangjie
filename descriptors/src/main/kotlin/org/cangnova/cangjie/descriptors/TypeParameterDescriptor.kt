@@ -42,7 +42,8 @@ interface TypeParameterDescriptor : ClassifierDescriptor, TypeParameterMarker {
      * @return 类型参数的方差
      */
     val variance: Variance
-
+    override val superTypes: Collection<CangJieType>
+        get() = error("Should not be called")
 
     /**
      * 获取类型参数的上界列表，返回包含所有上界类型的列表。
@@ -95,4 +96,8 @@ interface TypeParameterDescriptor : ClassifierDescriptor, TypeParameterMarker {
      * @return 存储管理器
      */
     val storageManager: StorageManager
+
+
+    override val visibility: DescriptorVisibility
+        get() = DescriptorVisibilities.LOCAL
 }

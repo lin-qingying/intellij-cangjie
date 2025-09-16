@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import cn.cangnova.cangjie.serialization.deserialization.DeserializedPackageFrag
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.metadata.deserialization.BinaryVersion
-import org.cangnova.cangjie.metadata.model.fb.FbPackage
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.resolve.scopes.MemberScope
@@ -58,7 +57,7 @@ abstract class DeserializedPackageFragmentImpl(
             "scope of $this"
         ) {
             classDataFinder.allClassIds.filter { classId ->
-                !classId.isNestedClass && classId !in ClassDeserializer.BLACK_LIST
+                !classId.isNestedClass && classId !in BLACK_LIST
             }.map { it.shortClassName }
         }
     }
