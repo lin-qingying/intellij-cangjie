@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [ main, master,psi ]
+    branches: [ main, master, psi ]
   pull_request:
-    branches: [ main, master,psi ]
+    branches: [ main, master, psi ]
 
 jobs:
   build:
@@ -22,8 +22,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # 确保gradlew有执行权限
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+
+      # 下载并设置Linux版的FlatBuffers编译器
+      - name: Download and setup FlatBuffers compiler
+        run: |
+          mkdir -p metadata/flatbuffers  # 确保目录存在
+          wget https://github.com/google/flatbuffers/releases/download/v23.5.26/flatc-linux-x86_64 -O metadata/flatbuffers/flatc
+          chmod +x metadata/flatbuffers/flatc  # 添加执行权限
+
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
@@ -35,5 +44,3 @@ jobs:
 
       - name: Build Plugin
         run: ./gradlew buildPlugin
-
- 
