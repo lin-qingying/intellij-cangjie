@@ -29,4 +29,4 @@ package org.cangnova.cangjie.descriptors
  *
  * 该接口作为类型标记，便于在处理描述符时区分普通声明与枚举相关声明。
  */
-interface EnumMember : DeclarationDescriptor
+interface EnumMember : DeclarationDescriptor,MemberDescriptor

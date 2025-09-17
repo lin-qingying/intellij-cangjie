@@ -264,7 +264,7 @@ abstract class DeserializedMemberScope protected constructor(
         propertyList: List<PropertyWrapper>,
         typeAliasList: List<TypeAliasWrapper>,
 
-    ) : Implementation {
+        ) : Implementation {
         /**
          * 按名称分组的函数声明映射
          * 将函数声明列表按标识符分组，便于快速查找
@@ -619,7 +619,7 @@ abstract class DeserializedMemberScope protected constructor(
         private val propertyList: List<PropertyWrapper>,
         typeAliasList: List<TypeAliasWrapper>,
 
-    ) : Implementation {
+        ) : Implementation {
 
         /**
          * 类型别名列表
@@ -824,7 +824,6 @@ abstract class DeserializedMemberScope protected constructor(
         }
 
 
-
         override fun getTypeAliasByName(name: Name): TypeAliasDescriptor? {
             return typeAliasesByName[name]
         }
@@ -912,7 +911,7 @@ abstract class DeserializedMemberScope protected constructor(
          * @param deserialize 反序列化函数，将声明转换为描述符
          * @return 保持原始顺序的描述符列表
          */
-        private inline fun <T, K : MemberDescriptor> List<T>.mapWithDeserializer(
+        private inline fun <T, K : DeclarationDescriptor> List<T>.mapWithDeserializer(
             deserialize: DeclarationDeserializer.(T) -> K?
         ): List<K> {
             return mapNotNull { c.declDeserializer.deserialize(it) }
@@ -995,7 +994,6 @@ abstract class DeserializedMemberScope protected constructor(
     private fun getTypeAliasByName(name: Name): TypeAliasDescriptor? {
         return impl.getTypeAliasByName(name)
     }
-
 
 
     /**

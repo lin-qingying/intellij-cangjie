@@ -55,7 +55,7 @@ object DescriptorVisibilities {
     val INHERITED: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Inherited) {
         public override fun isVisible(
             receiver: ReceiverValue?,
-            what: DeclarationDescriptor,
+            what: DeclarationDescriptorWithVisibility,
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
@@ -68,7 +68,7 @@ object DescriptorVisibilities {
     val INVISIBLE_FAKE: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.InvisibleFake) {
         public override fun isVisible(
             receiver: ReceiverValue?,
-            what: DeclarationDescriptor,
+            what: DeclarationDescriptorWithVisibility,
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
@@ -86,7 +86,7 @@ object DescriptorVisibilities {
         //        }
         public override fun isVisible(
             receiver: ReceiverValue?,
-            what: DeclarationDescriptor,
+            what: DeclarationDescriptorWithVisibility,
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
@@ -95,7 +95,7 @@ object DescriptorVisibilities {
             }
 
             if (what is ConstructorDescriptor) {
-                val classDescriptor: ClassifierDescriptorWithTypeParameters? = what.containingDeclaration
+                val classDescriptor  = what.containingDeclaration
                 if (useSpecialRulesForPrivateSealedConstructors && DescriptorUtils.isSealedClass(classDescriptor) && DescriptorUtils.isTopLevelDeclaration(
                         classDescriptor
                     ) && from is ConstructorDescriptor && DescriptorUtils.isTopLevelDeclaration(from.containingDeclaration) && inSameFile(
@@ -139,7 +139,7 @@ object DescriptorVisibilities {
     val PUBLIC: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Public) {
         public override fun isVisible(
             receiver: ReceiverValue?,
-            what: DeclarationDescriptor,
+            what: DeclarationDescriptorWithVisibility,
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
@@ -179,7 +179,7 @@ object DescriptorVisibilities {
     val PRIVATE_TO_THIS: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.PrivateToThis) {
         public override fun isVisible(
             receiver: ReceiverValue?,
-            what: DeclarationDescriptor,
+            what: DeclarationDescriptorWithVisibility,
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
@@ -191,7 +191,7 @@ object DescriptorVisibilities {
     val LOCAL: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Local) {
         public override fun isVisible(
             receiver: ReceiverValue?,
-            what: DeclarationDescriptor,
+            what: DeclarationDescriptorWithVisibility,
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
@@ -212,7 +212,7 @@ object DescriptorVisibilities {
     val UNKNOWN: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Unknown) {
         public override fun isVisible(
             receiver: ReceiverValue?,
-            what: DeclarationDescriptor,
+            what: DeclarationDescriptorWithVisibility,
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
@@ -240,7 +240,7 @@ object DescriptorVisibilities {
     val INTERNAL: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Internal) {
         public override fun isVisible(
             receiver: ReceiverValue?,
-            what: DeclarationDescriptor,
+            what: DeclarationDescriptorWithVisibility,
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
@@ -273,7 +273,7 @@ object DescriptorVisibilities {
     val PROTECTED: DescriptorVisibility = object : DelegatedDescriptorVisibility(Visibilities.Protected) {
         public override fun isVisible(
             receiver: ReceiverValue?,
-            what: DeclarationDescriptor,
+            what: DeclarationDescriptorWithVisibility,
             from: DeclarationDescriptor,
             useSpecialRulesForPrivateSealedConstructors: Boolean
         ): Boolean {
@@ -322,16 +322,16 @@ object DescriptorVisibilities {
 
     init {
         val visibilities = newHashMapWithExpectedSize<DescriptorVisibility?, Int?>(4)
-        visibilities.put(PRIVATE_TO_THIS, 0)
-        visibilities.put(PRIVATE, 0)
-        visibilities.put(INTERNAL, 1)
-        visibilities.put(PROTECTED, 1)
-        visibilities.put(PUBLIC, 2)
+        visibilities[PRIVATE_TO_THIS] = 0
+        visibilities[PRIVATE] = 0
+        visibilities[INTERNAL] = 1
+        visibilities[PROTECTED] = 1
+        visibilities[PUBLIC] = 2
         ORDERED_VISIBILITIES = unmodifiableMap(visibilities)
     }
 
     private fun recordVisibilityMapping(visibility: DescriptorVisibility) {
-        visibilitiesMapping.put(visibility.delegate, visibility)
+        visibilitiesMapping[visibility.delegate] = visibility
     }
 
     // 注意：如果`from`声明是`init`初始化器，则返回false
@@ -384,7 +384,7 @@ object DescriptorVisibilities {
 
     @JvmStatic
     fun isVisibleIgnoringReceiver(
-        what: DeclarationDescriptor, from: DeclarationDescriptor, useSpecialRulesForPrivateSealedConstructors: Boolean
+        what: DeclarationDescriptorWithVisibility, from: DeclarationDescriptor, useSpecialRulesForPrivateSealedConstructors: Boolean
     ): Boolean {
         return findInvisibleMember(
             ALWAYS_SUITABLE_RECEIVER, what, from, useSpecialRulesForPrivateSealedConstructors
@@ -392,7 +392,7 @@ object DescriptorVisibilities {
     }
 
     fun isVisibleWithAnyReceiver(
-        what: DeclarationDescriptor, from: DeclarationDescriptor, useSpecialRulesForPrivateSealedConstructors: Boolean
+        what: DeclarationDescriptorWithVisibility, from: DeclarationDescriptor, useSpecialRulesForPrivateSealedConstructors: Boolean
     ): Boolean {
         return findInvisibleMember(IRRELEVANT_RECEIVER, what, from, useSpecialRulesForPrivateSealedConstructors) == null
     }
@@ -434,22 +434,35 @@ object DescriptorVisibilities {
     //
     //        return null;
     //    }
+    /**
+     * 查找从指定位置无法访问的成员声明
+     * 
+     * @param receiver 接收者值，用于检查可见性
+     * @param what 要检查的声明描述符
+     * @param from 访问声明的位置
+     * @param useSpecialRulesForPrivateSealedConstructors 是否对私有密封类构造函数使用特殊规则
+     * @return 返回第一个不可见的父级声明，如果都可见则返回null
+     */
     fun findInvisibleMember(
         receiver: ReceiverValue?,
-        what: DeclarationDescriptor,
+        what: DeclarationDescriptorWithVisibility,
         from: DeclarationDescriptor,
         useSpecialRulesForPrivateSealedConstructors: Boolean
     ): DeclarationDescriptor? {
-        var parent: DeclarationDescriptor? = what.original
+        // 从原始声明开始向上遍历父级声明
+        var parent: DeclarationDescriptorWithVisibility? = what.original as? DeclarationDescriptorWithVisibility
         while (parent != null && parent.visibility !== LOCAL) {
+            // 检查当前父级是否可见，如果不可见则返回该父级
             if (!parent.visibility.isVisible(receiver, parent, from, useSpecialRulesForPrivateSealedConstructors)) {
                 return parent
             }
+            // 获取下一个具有可见性的父级声明
             parent = DescriptorUtils.getParentOfType(
                 parent, DeclarationDescriptorWithVisibility::class.java
             )
         }
 
+        // 特殊处理类型别名构造函数：递归检查底层构造函数的可见性
         if (what is TypeAliasConstructorDescriptor) {
             val invisibleUnderlying = findInvisibleMember(
                 receiver, what.underlyingConstructorDescriptor, from, useSpecialRulesForPrivateSealedConstructors
@@ -457,6 +470,7 @@ object DescriptorVisibilities {
             return invisibleUnderlying
         }
 
+        // 所有父级声明都可见
         return null
     }
 
@@ -467,7 +481,6 @@ object DescriptorVisibilities {
 
     fun toDescriptorVisibility(visibility: Visibility): DescriptorVisibility {
         val correspondingVisibility: DescriptorVisibility = visibilitiesMapping.get(visibility)!!
-        requireNotNull(correspondingVisibility) { "Inapplicable visibility: " + visibility }
         return correspondingVisibility
     }
 }

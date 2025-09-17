@@ -23,87 +23,33 @@
  */
 package org.cangnova.cangjie.descriptors
 
-
-import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.SimpleType
-import org.cangnova.cangjie.types.TypeProjection
-import org.cangnova.cangjie.types.TypeSubstitution
 
-val ScopedDescriptor.modality
-    get() = when (this) {
-        is ClassDescriptor -> this.modality
-        is EnumDescriptor -> this.modality
-
-        else -> Modality.FINAL
-    }
 
 /**
- * 具有作用域的描述符接口。
+ * 类描述符接口
  *
- * 表示那些具有成员作用域的声明，能够包含其他声明作为成员。
- * 主要用于类、接口、枚举等可以包含成员的类型声明。
+ * 表示类（Class）、接口（Interface）、结构体（Struct）等类型声明。
+ * 这些声明同时具有：
+ * - 类型能力（可以作为类型使用）
+ * - 继承能力（可以继承其他类型或被继承）
+ * - 作用域（包含成员声明）
+ *
+ * 设计原则：
+ * - 通过组合多个功能接口，清晰表达类的多重职责
+ * - ClassifierDescriptor提供类型系统支持
+ * - Inheritable提供继承机制
+ * - HasScope提供成员管理
+ * - ClassifierDescriptorWithTypeParameters提供泛型支持
+ *
+ * 使用场景：
+ * - 类型检查和类型推导
+ * - 成员解析和访问控制
+ * - 继承层次分析
+ * - 泛型实例化
  */
-interface ScopedDescriptor : ClassOrPackageFragmentDescriptor {
-    /**
-     * 表示此分类器的种类，例如 class、interface、enum 等。
-     */
-    val kind: ClassKind
-
-    /**
-     * 根据指定的类型实参列表返回对应的成员作用域。
-     *
-     * @param typeArguments 类型实参列表
-     * @return 返回计算后的成员作用域
-     */
-    fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
-
-    /**
-     * 根据指定的类型替换规则返回对应的成员作用域。
-     *
-     * @param typeSubstitution 类型替换映射
-     * @return 返回计算后的成员作用域
-     */
-    fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
-
-    /**
-     * 未进行类型替换时的成员作用域（原始作用域）。
-     */
-    val unsubstitutedMemberScope: MemberScope
-
-    /**
-     * 实例级成员作用域，默认返回空作用域。
-     */
-    val instanceScope: MemberScope
-        get() = MemberScope.Empty
-
-    /**
-     * 静态成员作用域（如伴生对象或静态成员的作用域）。
-     */
-    val staticScope: MemberScope
-
-
-}
-
-/**
- * 表示类（Class）的描述符，提供类的作用域、构造函数、修饰符、可见性等元信息。
- */
-interface ClassDescriptor : ScopedDescriptor, ClassifierDescriptorWithTypeParameters,
-    ClassOrPackageFragmentDescriptor {
-    /**
-     * 根据指定的类型实参列表返回对应的成员作用域。
-     *
-     * @param typeArguments 类型实参列表
-     * @return 返回计算后的成员作用域
-     */
-    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
-
-    /**
-     * 根据指定的类型替换规则返回对应的成员作用域。
-     *
-     * @param typeSubstitution 类型替换映射
-     * @return 返回计算后的成员作用域
-     */
-    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
+interface ClassDescriptor : ClassifierDescriptorWithTypeParameters, InheritableDescriptor, HasScopeDescriptor,
+    ClassOrPackageFragmentDescriptor, DeclarationDescriptorWithVisibility,ClassifierDescriptorWithTypeConstructor {
 
     /**
      * 类的 this 接收者参数描述符，用于表示类的接收者类型。
@@ -114,24 +60,6 @@ interface ClassDescriptor : ScopedDescriptor, ClassifierDescriptorWithTypeParame
      * 类的上下文接收者列表（如上下文接收者参数）。
      */
     val contextReceivers: List<ReceiverParameterDescriptor>
-
-    /**
-     * 未进行类型替换时的成员作用域（原始作用域）。
-     */
-    override val unsubstitutedMemberScope: MemberScope
-
-//    val unsubstitutedInnerClassesScope: MemberScope
-
-    /**
-     * 实例级成员作用域，默认返回空作用域。
-     */
-    override val instanceScope: MemberScope
-        get() = MemberScope.Empty
-
-    /**
-     * 静态成员作用域。
-     */
-    override val staticScope: MemberScope
 
 
     /**
@@ -156,22 +84,6 @@ interface ClassDescriptor : ScopedDescriptor, ClassifierDescriptorWithTypeParame
      */
     override val defaultType: SimpleType
 
-    /**
-     * 此描述符对应的类的种类。
-     */
-    override val kind: ClassKind
-
-
-    /**
-     * 类的调度性（如 final、open 等）。
-     */
-    override val modality: Modality
-
-    /**
-     * 类的可见性（如 public、private 等）。
-     */
-    override val visibility: DescriptorVisibility
-
 
     /**
      * 未替换的主构造函数（如果有）。
@@ -195,9 +107,13 @@ interface ClassDescriptor : ScopedDescriptor, ClassifierDescriptorWithTypeParame
     val sealedSubclasses: Collection<ClassDescriptor>
 
     /**
-     * 原始的分类符描述符（用于引用未替换的原始描述符）。
+     * 原始的类描述符
+     *
+     * 在类型替换场景中，指向未替换的原始类描述符。
+     * 注意：这里返回类型是ClassDescriptor而不是ClassifierDescriptor，
+     * 以保持类型的精确性。
      */
-    override val original: ClassifierDescriptor
+    override val original: ClassDescriptor
 
     /**
      * 对于 SAM 接口的备选函数类型（如无法通过更优方式获取时使用）。

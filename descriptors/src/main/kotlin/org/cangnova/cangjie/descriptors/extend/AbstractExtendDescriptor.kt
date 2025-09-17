@@ -98,6 +98,9 @@ class ExtendDescriptorImpl(
 ) {
     override val unsubstitutedMemberScope: MemberScope
         get() = TODO("Not yet implemented")
+    override val modality: Modality
+        get() = TODO("Not yet implemented")
+
 
 
 }

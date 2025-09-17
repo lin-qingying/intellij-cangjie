@@ -23,6 +23,7 @@
  */
 
 package org.cangnova.cangjie.resolve.scopes
+
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
@@ -66,14 +67,12 @@ class StaticMemberScope(val memberScope: MemberScope) : MemberScope {
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         return memberScope.getContributedClassifier(name, location)
-            ?.takeIf { it.isStatic || DescriptorUtils.isEnumEntry(it) } // 过滤非静态分类器
+        // 过滤非静态分类器
     }
 
 
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-        return memberScope.getContributedClassifiers(name, location).filter {
-            it.isStatic || DescriptorUtils.isEnumEntry(it)
-        }
+        return memberScope.getContributedClassifiers(name, location)
 
     }
 
@@ -82,6 +81,6 @@ class StaticMemberScope(val memberScope: MemberScope) : MemberScope {
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        return memberScope.getContributedDescriptors(kindFilter, nameFilter).filter { it.isStatic } // 过滤非静态描述符
+        return memberScope.getContributedDescriptors(kindFilter, nameFilter)
     }
 }

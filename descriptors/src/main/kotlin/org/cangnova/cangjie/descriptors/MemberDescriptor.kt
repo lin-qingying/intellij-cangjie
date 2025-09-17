@@ -54,4 +54,8 @@ interface MemberDescriptor : DeclarationDescriptorNonRoot, DeclarationDescriptor
     val isUnsafe: Boolean
         get() = false // 默认实现，由具体子类根据需要重写
 
+
+
+    val isStatic: Boolean get() = false
+
 }

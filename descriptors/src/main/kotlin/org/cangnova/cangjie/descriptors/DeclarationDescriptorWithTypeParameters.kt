@@ -24,24 +24,35 @@
 package org.cangnova.cangjie.descriptors
 
 /**
- * 带类型参数的分类器描述符接口
- * 表示具有类型参数（泛型参数）的分类器，如泛型类、泛型接口等
+ * 具有类型参数的声明描述符接口
  * 
- * 该接口组合了多个功能：
- * - ClassifierDescriptor: 基本的分类器功能
- * - DeclarationDescriptorWithVisibility: 具有可见性声明的描述符
- * - MemberDescriptor: 成员描述符功能
- * - Substitutable: 支持类型替换的功能
+ * 这是一个纯粹的功能接口，表示任何可以具有类型参数（泛型参数）的声明。
+ * 
+ * 主要实现者：
+ * - ClassDescriptor: 泛型类/接口/结构体
+ * - EnumDescriptor: 泛型枚举  
+ * - TypeAliasDescriptor: 泛型类型别名
+ * - ExtendDescriptor: 泛型扩展
+ * - FunctionDescriptor: 泛型函数
+ * - PropertyDescriptor: 泛型属性
+ * 
+ * 设计原则：
+ * - 作为独立的功能接口，不依赖于其他接口
+ * - 只关注类型参数的声明和管理
+ * - 可以被任何需要类型参数的描述符实现
  */
-interface ClassifierDescriptorWithTypeParameters
-
-    : ClassifierDescriptor, DeclarationDescriptorWithVisibility, MemberDescriptor,
-    Substitutable<ClassifierDescriptorWithTypeParameters> {
+interface DeclarationDescriptorWithTypeParameters : DeclarationDescriptor {
 
     /**
      * 声明的类型参数列表
-     * 表示该分类器定义的类型参数（泛型参数）
-     * 例如：class MyClass<T, U> 中的 T 和 U
+     * 
+     * 表示该声明定义的类型参数（泛型参数）。
+     * 例如：
+     * - class MyClass<T, U> 中的 T 和 U
+     * - extend Type<T> 中的 T
+     * - func foo<T>() 中的 T
+     * 
+     * 注意：这是声明时定义的类型参数，不是使用时的类型实参。
      */
     val declaredTypeParameters: List<TypeParameterDescriptor>
 }

@@ -34,13 +34,19 @@ import org.cangnova.cangjie.types.TypeSubstitution
 /**
  * 枚举描述符接口
  *
- * 基于编译器中的EnumDecl实现，提供枚举类型的完整描述。
- * 枚举在仓颉语言中是一种特殊的类型，支持：
+ * 表示枚举类型的声明。枚举在仓颉语言中是一种特殊的类型，支持：
  * - 枚举构造函数（cases）
  * - 枚举成员函数
  * - 继承接口
  * - 泛型支持
  * - 非穷尽性枚举（带...）
+ *
+ * 设计原则：
+ * - 枚举同时具有类型、继承和作用域能力
+ * - ClassifierDescriptor提供类型系统支持
+ * - Inheritable提供继承机制（枚举可以实现接口）
+ * - HasScope提供成员管理
+ * - ClassifierDescriptorWithTypeParameters提供泛型支持
  *
  * 示例：
  * ```cangjie
@@ -62,43 +68,15 @@ import org.cangnova.cangjie.types.TypeSubstitution
  * }
  * ```
  */
-interface EnumDescriptor : InheritableDescriptor, ScopedDescriptor, ClassifierDescriptorWithTypeParameters,
-    ClassOrPackageFragmentDescriptor {
+interface EnumDescriptor : ClassifierDescriptorWithTypeParameters, InheritableDescriptor, HasScopeDescriptor,
+     ClassOrPackageFragmentDescriptor, DeclarationDescriptorWithVisibility ,ClassifierDescriptorWithTypeConstructor {
+    override val original: EnumDescriptor
 
-    /**
-     * 获取枚举的成员作用域
-     *
-     * @param typeArguments 类型参数列表
-     * @return 成员作用域
-     */
-    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
-
-    /**
-     * 获取枚举的成员作用域（使用类型替换）
-     *
-     * @param typeSubstitution 类型替换
-     * @return 成员作用域
-     */
-    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
-
-    /**
-     * 未替换的成员作用域
-     */
-    override  val unsubstitutedMemberScope: MemberScope
 
     val isOptionType: Boolean get() = false
 
 
-    /**
-     * 实例作用域
-     */
-    override  val instanceScope: MemberScope
-        get() = MemberScope.Empty
 
-    /**
-     * 静态作用域
-     */
-    override val staticScope: MemberScope
 
     /**
      * 枚举构造函数列表

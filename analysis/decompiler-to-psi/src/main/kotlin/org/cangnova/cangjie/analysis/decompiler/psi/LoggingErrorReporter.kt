@@ -27,11 +27,11 @@ package org.cangnova.cangjie.analysis.decompiler.psi
 import com.intellij.openapi.diagnostic.Logger
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeConstructor
 import org.cangnova.cangjie.serialization.deserialization.ErrorReporter
 
 class LoggingErrorReporter(private val log: Logger) : ErrorReporter {
-    override fun reportIncompleteHierarchy(descriptor: ClassifierDescriptorWithKind, unresolvedSuperClasses: List<String>) {
+    override fun reportIncompleteHierarchy(descriptor: ClassifierDescriptorWithTypeConstructor, unresolvedSuperClasses: List<String>) {
         // This is absolutely fine for the decompiler
     }
 

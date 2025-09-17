@@ -40,7 +40,6 @@ interface DeclarationDescriptor : Annotated,
      * 如果当前描述符本身就是原始描述符，则返回 `this` 对象
      */
     val original: DeclarationDescriptor
-    val isStatic: Boolean get() = false
 
     /**
      * 获取包含声明的描述符
@@ -48,24 +47,9 @@ interface DeclarationDescriptor : Annotated,
      */
     val containingDeclaration: DeclarationDescriptor?
 
-    /**
-     * 获取可见性
-     * @return 声明的可见性，默认为PUBLIC
-     */
-    val visibility: DescriptorVisibility get() = DescriptorVisibilities.PUBLIC
-    
-    /**
-     * 判断是否为顶层声明
-     * @return 如果是顶层声明返回true，否则返回false，默认为false
-     */
-    val isTopLevel: Boolean get() = false
-    
-    /**
-     * 判断是否为局部声明
-     * @return 如果可见性为LOCAL则返回true，否则返回false
-     */
-    val isLocal get() = visibility == DescriptorVisibilities.LOCAL
-    
+
+
+
     /**
      * 接受访问者模式的访问
      * @param visitor 访问者对象

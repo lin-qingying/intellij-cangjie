@@ -37,7 +37,7 @@ object DescriptorVisibilityUtils {
     @JvmStatic
     fun findInvisibleMember(
         receiver: ReceiverValue?,
-        what: DeclarationDescriptor,
+        what: DeclarationDescriptorWithVisibility,
         from: DeclarationDescriptor,
         languageVersionSettings: LanguageVersionSettings
     ): DeclarationDescriptor? {
@@ -61,7 +61,7 @@ object DescriptorVisibilityUtils {
 
     @JvmStatic
     fun isVisibleIgnoringReceiver(
-        what: DeclarationDescriptor,
+        what: DeclarationDescriptorWithVisibility,
         from: DeclarationDescriptor,
         languageVersionSettings: LanguageVersionSettings
     ): Boolean {
@@ -74,7 +74,7 @@ object DescriptorVisibilityUtils {
 
     @JvmStatic
     fun isVisibleWithAnyReceiver(
-        what: DeclarationDescriptor,
+        what: DeclarationDescriptorWithVisibility,
         from: DeclarationDescriptor,
         languageVersionSettings: LanguageVersionSettings
     ): Boolean {

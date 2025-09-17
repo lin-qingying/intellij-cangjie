@@ -29,8 +29,31 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.*
 
-
-interface ExtendDescriptor : InheritableDescriptor, ScopedDescriptor {
+/**
+ * 扩展描述符接口
+ *
+ * 表示扩展声明，用于为现有类型添加新的接口实现和成员。
+ * 扩展是仓颉语言的特殊功能，允许在不修改原始类型定义的情况下扩展其能力。
+ *
+ * 示例：
+ * ```cangjie
+ * extend Type <: Interface1, Interface2 {
+ *     func method1() {}
+ * }
+ * ```
+ *
+ * 设计原则：
+ * - ExtendDescriptor不产生新的类型（不是ClassifierDescriptor）
+ * - 但具有继承能力（可以让类型实现新的接口）
+ * - 具有作用域（可以包含成员声明）
+ * - 支持类型参数（可以是泛型扩展）
+ *
+ * 关键区别：
+ * - ClassDescriptor: 既是类型又可继承
+ * - ExtendDescriptor: 不是类型但可继承
+ * - 这就是为什么需要分离ClassifierDescriptor和Inheritable的原因
+ */
+interface ExtendDescriptor : InheritableDescriptor, HasScopeDescriptor {
 
 
     /**
@@ -63,7 +86,7 @@ interface ExtendDescriptor : InheritableDescriptor, ScopedDescriptor {
     /**
      * 获取与此扩展相关的超类型集合，即扩展的接口列表
      */
-    val superTypes: Collection<CangJieType>
+    override val superTypes: Collection<CangJieType>
 
 
     /**
@@ -119,5 +142,9 @@ interface ExtendDescriptor : InheritableDescriptor, ScopedDescriptor {
      * 原始的分类符描述符（用于引用未替换的原始描述符）。
      */
     override val original: ExtendDescriptor
+
+
+
+    override val modality: Modality get() = Modality.FINAL
 }
 

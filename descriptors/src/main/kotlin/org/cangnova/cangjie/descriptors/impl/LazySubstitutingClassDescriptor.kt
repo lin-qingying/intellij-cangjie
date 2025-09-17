@@ -37,15 +37,11 @@ import org.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMem
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class LazySubstitutingClassDescriptor(
-    override val original: ModuleAwareClassDescriptor, private val originalSubstitutor: TypeSubstitutor
+    override val original: ModuleAwareClassDescriptor,
+    private val originalSubstitutor: TypeSubstitutor
 ) : ModuleAwareClassDescriptor(), ClassDescriptor {
 
-    init {
-        assert(original is ClassDescriptor) {
-            "ClassDescriptor expected to be a ClassDescriptor"
-        }
 
-    }
 
     private var newSubstitutor: TypeSubstitutor? = null
     private lateinit var typeConstructorParameters: MutableList<TypeParameterDescriptor>

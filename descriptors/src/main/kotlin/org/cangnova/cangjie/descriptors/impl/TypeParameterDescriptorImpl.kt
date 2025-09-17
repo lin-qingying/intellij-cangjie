@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.descriptors.impl
 
+import org.cangnova.cangjie.descriptors.ClassifierDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.descriptors.SupertypeLoopChecker
@@ -34,6 +35,7 @@ import org.cangnova.cangjie.resolve.DescriptorUtils.getFqName
 import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.isError
 
@@ -108,6 +110,8 @@ class TypeParameterDescriptorImpl private constructor(
         checkInitialized()
         return _upperBounds
     }
+
+
 
 
     companion object {

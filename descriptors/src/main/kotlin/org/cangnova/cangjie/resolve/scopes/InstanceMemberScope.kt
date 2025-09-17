@@ -66,14 +66,14 @@ class InstanceMemberScope(private val memberScope: MemberScope) : MemberScope {
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        return memberScope.getContributedClassifier(name, location)?.takeIf { !it.isStatic } // 过滤非静态分类器
+        return memberScope.getContributedClassifier(name, location) // 过滤非静态分类器
     }
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        return memberScope.getContributedDescriptors(kindFilter, nameFilter).filter { !it.isStatic } // 过滤非静态描述符
+        return memberScope.getContributedDescriptors(kindFilter, nameFilter)  // 过滤非静态描述符
     }
 }
 

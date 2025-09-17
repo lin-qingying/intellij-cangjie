@@ -73,6 +73,7 @@ abstract class AbstractTypeParameterDescriptor protected constructor(
         )
     }
 
+
     override val typeConstructor: TypeConstructor
         get() = _typeConstructor.invoke()
     private val _defaultType: NotNullLazyValue<SimpleType>

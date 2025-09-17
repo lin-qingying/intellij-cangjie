@@ -27,31 +27,67 @@ import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.types.TypeConstructor
 
 /**
- * 分类器描述符接口。
+ * 分类器描述符接口
  *
- * 分类器是语言中可以作为类型使用的构造体，例如类、接口、类型参数、类型别名、结构体、枚举等。
- * 该接口为编译器类型系统提供统一的抽象，用于类型构造、泛型参数管理、类型实例化与子类型关系等功能。
+ * 分类器是语言中可以作为类型使用的构造体，包括：
+ * - 类（Class）
+ * - 接口（Interface）
+ * - 结构体（Struct）
+ * - 枚举（Enum）
+ * - 类型参数（TypeParameter）
+ * - 类型别名（TypeAlias）
+ *
+ * 该接口为编译器类型系统提供统一的抽象，专注于类型相关的功能。
+ *
+ * 设计原则：
+ * - ClassifierDescriptor只关注类型系统，不涉及继承和作用域
+ * - 继承功能由Inheritable接口提供
+ * - 作用域功能由HasScope接口提供
+ * - 不是所有ClassifierDescriptor都可以被继承（如TypeParameterDescriptor）
+ * - 不是所有ClassifierDescriptor都有作用域（如TypeParameterDescriptor）
  *
  * 主要职责：
- * - 提供类型构造器（typeConstructor），描述类型参数和构造过程；
- * - 提供默认类型（defaultType），作为该分类器的简单类型表示；
- * - 保持对原始描述符（original）的引用，便于在类型替换和变换中追溯源声明；
- * - 为类型检查、类型等价性判断和 IDE 展示提供元信息支持。
+ * - 提供类型构造器（typeConstructor），描述如何构造此类型
+ * - 提供默认类型（defaultType），作为该分类器的基础类型表示
+ * - 管理类型参数和类型替换
+ * - 支持类型等价性判断和子类型关系检查
  */
-interface ClassifierDescriptor : InheritableDescriptor {
+interface ClassifierDescriptor : DeclarationDescriptorNonRoot {
 
     /**
-     * 类型构造器，用于封装创建该分类器类型实例所需的信息（例如泛型参数和边界）。
+     * 类型构造器
+     *
+     * 封装了创建该分类器类型实例所需的信息，包括：
+     * - 类型参数及其边界
+     * - 超类型信息（如果适用）
+     * - 类型构造规则
      */
     val typeConstructor: TypeConstructor
 
     /**
-     * 分类器的默认简单类型表示（不包含具体类型参数绑定）。
+     * 分类器的默认简单类型
+     *
+     * 这是不带具体类型参数绑定的基础类型表示。
+     * 对于泛型类型，这通常使用类型参数的默认边界。
+     * 例如：List<T> 的 defaultType 是 List<*>
      */
     val defaultType: SimpleType
 
     /**
-     * 指向该描述符的原始版本，通常用于在描述符替换或变换中追溯最初的声明。
+     * 原始分类器描述符
+     *
+     * 在类型替换场景中，指向未替换的原始描述符。
+     * 对于非替换的描述符，返回自身。
      */
     override val original: ClassifierDescriptor
+
+
+}
+
+interface ClassifierDescriptorWithTypeParameters : ClassifierDescriptor, DeclarationDescriptorWithTypeParameters,
+    Substitutable<ClassifierDescriptorWithTypeParameters>
+
+
+interface ClassifierDescriptorWithTypeConstructor:ClassifierDescriptorWithTypeParameters,InheritableDescriptor, MemberDescriptor{
+    override val original: ClassifierDescriptorWithTypeConstructor
 }

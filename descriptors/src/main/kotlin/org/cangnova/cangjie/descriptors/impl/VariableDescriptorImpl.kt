@@ -75,8 +75,6 @@ open class VariableDescriptorImpl(
     override val modality: Modality
         get() = Modality.FINAL
 
-    override val isTopLevel: Boolean
-        get() = (source.getPsi() as? CjVariable)?.isTopLevel == true
 
 
     override val kind: CallableMemberDescriptor.Kind

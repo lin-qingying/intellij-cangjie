@@ -50,7 +50,7 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
     abstract override fun refineType(type: CangJieTypeMarker): CangJieType
 
     @TypeRefinement
-    abstract fun refineSupertypes(classDescriptor: ScopedDescriptor): Collection<CangJieType>
+    abstract fun refineSupertypes(classDescriptor: ClassifierDescriptorWithTypeConstructor): Collection<CangJieType>
 
     @TypeRefinement
     abstract fun refineDescriptor(descriptor: DeclarationDescriptor): ClassifierDescriptor?
@@ -81,7 +81,7 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
         }
 //
         @TypeRefinement
-        override fun refineSupertypes(classDescriptor: ScopedDescriptor): Collection<CangJieType> {
+        override fun refineSupertypes(classDescriptor: ClassifierDescriptorWithTypeConstructor): Collection<CangJieType> {
             return classDescriptor.typeConstructor.supertypes
         }
 //

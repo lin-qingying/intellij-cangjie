@@ -37,14 +37,10 @@ import org.cangnova.cangjie.types.CangJieTypeFactory.enumTypeWithNonTrivialMembe
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 class LazySubstitutingEnumDescriptor(
-    override val original: ModuleAwareClassDescriptor, private val originalSubstitutor: TypeSubstitutor
-) : ModuleAwareClassDescriptor(), EnumDescriptor {
+    override val original: ModuleAwareEnumDescriptor, private val originalSubstitutor: TypeSubstitutor
+) : ModuleAwareEnumDescriptor(), EnumDescriptor {
 
-    init {
-        assert(original is EnumDescriptor) {
-            "EnumDescriptor expected to be a EnumDescriptor"
-        }
-    }
+
 
     val originalEnum = original as EnumDescriptor
     private var newSubstitutor: TypeSubstitutor? = null

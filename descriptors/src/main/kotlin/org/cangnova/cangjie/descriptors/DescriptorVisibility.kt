@@ -84,7 +84,7 @@ abstract class DescriptorVisibility protected constructor(){
      */
     abstract fun isVisible(
         receiver: ReceiverValue?,
-        what: DeclarationDescriptor,
+        what: DeclarationDescriptorWithVisibility,
         from: DeclarationDescriptor,
         useSpecialRulesForPrivateSealedConstructors: Boolean
     ): Boolean

@@ -25,24 +25,25 @@
 package org.cangnova.cangjie.serialization.deserialization
 
 import org.cangnova.cangjie.builtins.StandardNames
+import org.cangnova.cangjie.descriptors.InheritableDescriptor
 import org.cangnova.cangjie.descriptors.SimpleFunctionDescriptor
-import org.cangnova.cangjie.descriptors.TypeDescriptor
+
 import org.cangnova.cangjie.name.FqName
 
 interface PlatformDependentDeclarationFilter {
 
-    fun isFunctionAvailable(classDescriptor: TypeDescriptor, functionDescriptor: SimpleFunctionDescriptor): Boolean
+    fun isFunctionAvailable(classDescriptor: InheritableDescriptor, functionDescriptor: SimpleFunctionDescriptor): Boolean
 
     object All : PlatformDependentDeclarationFilter {
         override fun isFunctionAvailable(
-            classDescriptor: TypeDescriptor,
+            classDescriptor: InheritableDescriptor,
             functionDescriptor: SimpleFunctionDescriptor
         ) = true
     }
 
     object NoPlatformDependent : PlatformDependentDeclarationFilter {
         override fun isFunctionAvailable(
-            classDescriptor: TypeDescriptor,
+            classDescriptor: InheritableDescriptor,
             functionDescriptor: SimpleFunctionDescriptor
         ) =
             !functionDescriptor.annotations.hasAnnotation(PLATFORM_DEPENDENT_ANNOTATION_FQ_NAME)

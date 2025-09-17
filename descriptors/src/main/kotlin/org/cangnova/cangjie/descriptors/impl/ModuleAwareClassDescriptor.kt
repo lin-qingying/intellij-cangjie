@@ -25,10 +25,13 @@
 package org.cangnova.cangjie.descriptors.impl
 
 
+import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptor
 import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import org.cangnova.cangjie.descriptors.ScopedDescriptor
-import org.cangnova.cangjie.descriptors.impl.ModuleAwareClassDescriptor.Companion.getRefinedMemberScopeIfPossible
-import org.cangnova.cangjie.descriptors.impl.ModuleAwareClassDescriptor.Companion.getRefinedUnsubstitutedMemberScopeIfPossible
+import org.cangnova.cangjie.descriptors.EnumDescriptor
+import org.cangnova.cangjie.descriptors.HasScopeDescriptor
+import org.cangnova.cangjie.descriptors.impl.ModuleAwareDescriptorBase.Companion.getRefinedMemberScopeIfPossible
+import org.cangnova.cangjie.descriptors.impl.ModuleAwareDescriptorBase.Companion.getRefinedUnsubstitutedMemberScopeIfPossible
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.TypeProjection
 import org.cangnova.cangjie.types.TypeSubstitution
@@ -49,27 +52,17 @@ interface ModuleAwareDescriptor {
     fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope
 
 }
-
 /**
- * 模块感知的类描述符 (Module-Aware Class Descriptor)
+ * 模块感知描述符的通用基类
  *
- * 这是一个抽象基类，为类描述符提供了模块感知的成员作用域管理能力。
- * 与普通的ClassDescriptor相比，该类能够根据不同的类型细化器(CangJieTypeRefiner)
- * 提供不同版本的成员作用域，这对于支持模块化编译和类型细化非常重要。
+ * 提供了模块感知描述符的通用实现，消除了ModuleAwareClassDescriptor和ModuleAwareEnumDescriptor之间的代码重复。
+ * 该基类定义了类型细化相关的核心方法和扩展函数。
  *
- * 主要特性：
- * 1. **类型细化支持**: 能够根据类型细化器调整成员作用域的行为
- * 2. **类型替换感知**: 支持泛型类型参数的替换操作
- * 3. **模块化编译**: 在多模块项目中提供正确的类型解析
- * 4. **向后兼容**: 通过扩展函数为现有ClassDescriptor提供细化能力
- *
- * 使用场景：
- * - 处理跨模块的类型引用时
- * - 进行泛型类型实例化时
- * - 需要根据编译上下文调整类型行为时
+ * @param T 具体的分类器描述符类型（ClassDescriptor或EnumDescriptor）
  */
-abstract class ModuleAwareClassDescriptor : ScopedDescriptor, ClassifierDescriptorWithTypeParameters,
-    ModuleAwareDescriptor {
+abstract class ModuleAwareDescriptorBase<T : ClassifierDescriptor> :
+    HasScopeDescriptor, ClassifierDescriptorWithTypeParameters, ModuleAwareDescriptor {
+
     /**
      * 获取带有类型替换的成员作用域
      *
@@ -112,42 +105,59 @@ abstract class ModuleAwareClassDescriptor : ScopedDescriptor, ClassifierDescript
         /**
          * 尝试获取细化的未替换成员作用域
          *
-         * 这是一个内部扩展函数，用于为任意ClassDescriptor提供类型细化能力。
-         * 如果目标描述符是ModuleAwareClassDescriptor的实例，则使用其细化方法；
+         * 这是一个内部扩展函数，用于为任意HasScopeDescriptor提供类型细化能力。
+         * 如果目标描述符是ModuleAwareDescriptorBase的实例，则使用其细化方法；
          * 否则回退到标准的未替换成员作用域。
          *
          * @param cangjieTypeRefiner 类型细化器
          * @return MemberScope 细化后的成员作用域或标准成员作用域
          */
-        internal fun ScopedDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
+        internal fun HasScopeDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
             cangjieTypeRefiner: CangJieTypeRefiner
         ): MemberScope =
-            (this as? ModuleAwareClassDescriptor)?.getUnsubstitutedMemberScope(cangjieTypeRefiner)
+            (this as? ModuleAwareDescriptorBase<*>)?.getUnsubstitutedMemberScope(cangjieTypeRefiner)
                 ?: this.unsubstitutedMemberScope
 
         /**
          * 尝试获取细化的替换成员作用域
          *
-         * 这是一个内部扩展函数，用于为任意ClassDescriptor提供类型替换和细化能力。
-         * 如果目标描述符是ModuleAwareClassDescriptor的实例，则使用其细化方法；
+         * 这是一个内部扩展函数，用于为任意HasScopeDescriptor提供类型替换和细化能力。
+         * 如果目标描述符是ModuleAwareDescriptorBase的实例，则使用其细化方法；
          * 否则回退到标准的类型替换成员作用域。
          *
          * @param typeSubstitution 类型替换映射
          * @param cangjieTypeRefiner 类型细化器
          * @return MemberScope 细化后的成员作用域或标准替换成员作用域
          */
-        internal fun ScopedDescriptor.getRefinedMemberScopeIfPossible(
+        internal fun HasScopeDescriptor.getRefinedMemberScopeIfPossible(
             typeSubstitution: TypeSubstitution,
             cangjieTypeRefiner: CangJieTypeRefiner
         ): MemberScope =
-            (this as? ModuleAwareClassDescriptor)?.getMemberScope(typeSubstitution, cangjieTypeRefiner)
-                ?: this.getMemberScope(
-                    typeSubstitution
-                )
+            (this as? ModuleAwareDescriptorBase<*>)?.getMemberScope(typeSubstitution, cangjieTypeRefiner)
+                ?: this.getMemberScope(typeSubstitution)
     }
-
 }
 
+/**
+ * 模块感知的类描述符 (Module-Aware Class Descriptor)
+ *
+ * 这是一个抽象基类，为类描述符提供了模块感知的成员作用域管理能力。
+ * 与普通的ClassDescriptor相比，该类能够根据不同的类型细化器(CangJieTypeRefiner)
+ * 提供不同版本的成员作用域，这对于支持模块化编译和类型细化非常重要。
+ *
+ * 主要特性：
+ * 1. **类型细化支持**: 能够根据类型细化器调整成员作用域的行为
+ * 2. **类型替换感知**: 支持泛型类型参数的替换操作
+ * 3. **模块化编译**: 在多模块项目中提供正确的类型解析
+ * 4. **向后兼容**: 通过扩展函数为现有ClassDescriptor提供细化能力
+ *
+ * 使用场景：
+ * - 处理跨模块的类型引用时
+ * - 进行泛型类型实例化时
+ * - 需要根据编译上下文调整类型行为时
+ */
+abstract class ModuleAwareClassDescriptor : ModuleAwareDescriptorBase<ClassDescriptor>(), ClassDescriptor
+abstract class ModuleAwareEnumDescriptor : ModuleAwareDescriptorBase<EnumDescriptor>(), EnumDescriptor
 /**
  * ClassDescriptor的扩展函数：获取细化的未替换成员作用域
  *
@@ -157,7 +167,7 @@ abstract class ModuleAwareClassDescriptor : ScopedDescriptor, ClassifierDescript
  * @param cangjieTypeRefiner 类型细化器
  * @return MemberScope 细化后的成员作用域
  */
-fun ScopedDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
+fun HasScopeDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
     cangjieTypeRefiner: CangJieTypeRefiner
 ): MemberScope = getRefinedUnsubstitutedMemberScopeIfPossible(cangjieTypeRefiner)
 
@@ -171,7 +181,7 @@ fun ScopedDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
  * @param cangjieTypeRefiner 类型细化器
  * @return MemberScope 细化后的成员作用域
  */
-fun ScopedDescriptor.getRefinedMemberScopeIfPossible(
+fun HasScopeDescriptor.getRefinedMemberScopeIfPossible(
     typeSubstitution: TypeSubstitution,
     cangjieTypeRefiner: CangJieTypeRefiner
 ): MemberScope = getRefinedMemberScopeIfPossible(typeSubstitution, cangjieTypeRefiner)

@@ -313,7 +313,7 @@ class DeserializedEnumDescriptor(
             get() = _parameters()
         override val isDenotable: Boolean
             get() = true
-        override val declarationDescriptor: ClassifierDescriptorWithKind = this@DeserializedEnumDescriptor
+        override val declarationDescriptor: ClassifierDescriptorWithTypeConstructor = this@DeserializedEnumDescriptor
         override fun toString() = name.toString()
 
         override val supertypeLoopChecker: SupertypeLoopChecker

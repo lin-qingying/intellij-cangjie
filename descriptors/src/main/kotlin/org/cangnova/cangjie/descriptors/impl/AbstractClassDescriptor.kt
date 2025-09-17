@@ -144,14 +144,14 @@ abstract class AbstractClassDescriptor(
     }
 
 
-    override val original: ClassifierDescriptor
+    override val original: ClassDescriptor
         get() = this
 
 
 //    override val unsubstitutedInnerClassesScope: MemberScope
 //        get() = _unsubstitutedInnerClassesScope.invoke()
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {
+    override fun substitute(substitutor: TypeSubstitutor): ClassDescriptor {
         if (substitutor.isEmpty) {
             return this
         }

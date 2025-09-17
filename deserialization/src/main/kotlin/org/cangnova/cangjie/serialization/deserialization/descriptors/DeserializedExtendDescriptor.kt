@@ -240,6 +240,7 @@ class DeserializedExtendDescriptor(
         get() = c.typeDeserializer.ownTypeParameters
     override val extendType: CangJieType
         get() = c.typeDeserializer.type(extend.type)
+
     override val superTypes: List<CangJieType>
         get() = extend.superTypes.map { c.typeDeserializer.type(it) }
 

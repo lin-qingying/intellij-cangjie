@@ -23,6 +23,16 @@
  */
 package org.cangnova.cangjie.descriptors
 
+import java.awt.Dialog
+
+interface DeclarationDescriptorWithModality : DeclarationDescriptor {
+
+    /**
+     * 获取描述符的可见性属性
+     * @return 返回描述符的可见性
+     */
+    val modality: Modality
+}
 
 /**
  * 带有可见性属性的声明描述符接口
@@ -33,5 +43,5 @@ interface DeclarationDescriptorWithVisibility : DeclarationDescriptor {
      * 获取描述符的可见性属性
      * @return 返回描述符的可见性
      */
-    override val visibility: DescriptorVisibility
+      val visibility: DescriptorVisibility
 }

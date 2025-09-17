@@ -30,7 +30,7 @@ import org.cangnova.cangjie.types.SimpleType
 /**
  * 类型别名描述符接口，继承自`ClassifierDescriptorWithTypeParameters`，用于描述类型别名的元信息，如底层类型、展开类型等。
  */
-interface TypeAliasDescriptor : ClassifierDescriptorWithTypeParameters {
+interface TypeAliasDescriptor :DeclarationDescriptorWithVisibility,DeclarationDescriptorWithModality, ClassifierDescriptorWithTypeParameters {
     /**
      * 获取类型别名的底层类型（即别名定义的右侧类型），该类型可能包含其他类型别名。
      *

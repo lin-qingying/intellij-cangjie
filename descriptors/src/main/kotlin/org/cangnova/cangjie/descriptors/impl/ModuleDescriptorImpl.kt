@@ -167,8 +167,7 @@ class ModuleDescriptorImpl(
         return capabilities[capability] as? T
     }
 
-    override val visibility: DescriptorVisibility
-        get() = DescriptorVisibilities.PUBLIC
+
 }
 
 class ModuleDependenciesImpl(
