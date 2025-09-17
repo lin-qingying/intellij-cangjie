@@ -24,12 +24,15 @@
 
 package org.cangnova.cangjie.descriptors
 
+import org.cangnova.cangjie.resolve.kind
+import org.cangnova.cangjie.resolve.modality
 
-val ClassifierDescriptorWithKind.isFinalOrEnum: Boolean
+
+val InheritableDescriptor.isFinalOrEnum: Boolean
     get() = modality == Modality.FINAL
 val CallableMemberDescriptor.isOverridable: Boolean
     get() = visibility != DescriptorVisibilities.PRIVATE
             && modality != Modality.FINAL
             && (containingDeclaration as? ClassDescriptor)?.isFinalClass != true
-val ClassifierDescriptorWithKind.isFinalClass: Boolean
+val InheritableDescriptor.isFinalClass: Boolean
     get() = modality == Modality.FINAL && kind != ClassKind.ENUM

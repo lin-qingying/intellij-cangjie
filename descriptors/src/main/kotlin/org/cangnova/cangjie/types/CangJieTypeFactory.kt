@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
+import org.cangnova.cangjie.descriptors.ScopedDescriptor
 import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.impl.PrimitiveClassDescriptor
@@ -224,7 +224,7 @@ object CangJieTypeFactory {
     ): MemberScope {
         return when (val descriptor = constructor.declarationDescriptor) {
             is TypeParameterDescriptor -> descriptor.defaultType.memberScope
-            is ClassifierDescriptorWithKind -> {
+            is ScopedDescriptor -> {
                 val refinerToUse = cangjieTypeRefiner ?: descriptor.module.getCangJieTypeRefiner()
                 if (arguments.isEmpty())
                     descriptor.getRefinedUnsubstitutedMemberScopeIfPossible(refinerToUse)

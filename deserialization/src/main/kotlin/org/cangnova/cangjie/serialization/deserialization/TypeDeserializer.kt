@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,10 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
 import org.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
+import org.cangnova.cangjie.metadata.model.fb.FbFullId
 import org.cangnova.cangjie.metadata.model.fb.FbSemaTy
 import org.cangnova.cangjie.metadata.model.fb.FbSemaTyInfo
 import org.cangnova.cangjie.metadata.model.fb.FbTypeKind
-import org.cangnova.cangjie.metadata.model.fb.FbFullId
-import org.cangnova.cangjie.metadata.PackageIndex
 import org.cangnova.cangjie.metadata.model.wrapper.TypeParameterWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.TypeWrapper
 import org.cangnova.cangjie.name.ClassId
@@ -41,23 +40,8 @@ import org.cangnova.cangjie.name.StandardClassIds.ArrayClassId
 import org.cangnova.cangjie.name.StandardClassIds.CPointerClassId
 import org.cangnova.cangjie.name.StandardClassIds.CStringClassId
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedTypeParameterDescriptor
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.CangJieTypeFactory
-import org.cangnova.cangjie.types.ErrorUtils
-import org.cangnova.cangjie.types.SimpleType
-import org.cangnova.cangjie.types.TypeAttributeTranslator
-import org.cangnova.cangjie.types.TypeAttributes
 import org.cangnova.cangjie.types.*
-import org.cangnova.cangjie.types.TypeProjection
-import org.cangnova.cangjie.types.TypeProjectionImpl
-import org.cangnova.cangjie.types.builtIns
-import org.cangnova.cangjie.types.createFunctionType
 import org.cangnova.cangjie.types.error.ErrorTypeKind
-import org.cangnova.cangjie.types.getContextReceiverTypesFromFunctionType
-import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
-import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
-import org.cangnova.cangjie.types.isFunctionType
-import kotlin.toString
 
 /**
  * 类型反序列化器，负责将flatbuffer格式的类型信息转换为CangJieType对象。

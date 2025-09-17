@@ -38,7 +38,7 @@ import org.cangnova.cangjie.types.TypeConstructor
  * - 保持对原始描述符（original）的引用，便于在类型替换和变换中追溯源声明；
  * - 为类型检查、类型等价性判断和 IDE 展示提供元信息支持。
  */
-interface ClassifierDescriptor : TypeDescriptor, DeclarationDescriptorNonRoot {
+interface ClassifierDescriptor : InheritableDescriptor {
 
     /**
      * 类型构造器，用于封装创建该分类器类型实例所需的信息（例如泛型参数和边界）。

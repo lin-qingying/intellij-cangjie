@@ -47,6 +47,12 @@ import org.cangnova.cangjie.types.TypeUtils.CANNOT_INFER_FUNCTION_PARAM_TYPE
 import org.cangnova.cangjie.types.error.ErrorType
 import org.cangnova.cangjie.utils.toLowerCaseAsciiOnly
 
+private val ScopedDescriptor.declaredTypeParameter
+    get() = when (this) {
+        is ClassifierDescriptorWithTypeParameters -> (this as ClassifierDescriptorWithTypeParameters).declaredTypeParameters
+        else -> emptyList()
+    }
+
 open class DescriptorRendererImpl(
     val options: DescriptorRendererOptionsImpl
 ) : DescriptorRenderer(), DescriptorRendererOptions by options/* this gives access to options without qualifier */ {
@@ -358,7 +364,7 @@ open class DescriptorRendererImpl(
 
     override fun renderTypeConstructor(typeConstructor: TypeConstructor): String =
         when (val cd = typeConstructor.declarationDescriptor) {
-            is TypeParameterDescriptor, is ClassifierDescriptorWithKind, is TypeAliasDescriptor -> renderClassifierName(
+            is TypeParameterDescriptor, is ScopedDescriptor, is TypeAliasDescriptor -> renderClassifierName(
                 cd
             )
 
@@ -591,6 +597,14 @@ open class DescriptorRendererImpl(
         renderModifier(builder, DescriptorRendererModifier.MODALITY in modifiers, modality.name.toLowerCaseAsciiOnly())
     }
 
+    private fun ScopedDescriptor.implicitModalityWithoutExtensions(): Modality {
+        return if (this is MemberDescriptor) {
+            (this as MemberDescriptor).implicitModalityWithoutExtensions()
+        } else {
+            Modality.FINAL
+        }
+    }
+
     private fun MemberDescriptor.implicitModalityWithoutExtensions(): Modality {
         if (this is ClassDescriptor) {
             return if (kind == ClassKind.INTERFACE) Modality.ABSTRACT else Modality.FINAL
@@ -646,6 +660,12 @@ open class DescriptorRendererImpl(
         if (value) {
             builder.append(renderKeyword(modifier))
             builder.append(" ")
+        }
+    }
+
+    private fun renderMemberModifiers(descriptor: ScopedDescriptor, builder: StringBuilder) {
+        if (descriptor is MemberDescriptor) {
+            renderMemberModifiers(descriptor as MemberDescriptor, builder)
         }
     }
 
@@ -1091,7 +1111,7 @@ open class DescriptorRendererImpl(
     }
 
     /* CLASSES */
-    private fun renderClass(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
+    private fun renderClass(cclass: ScopedDescriptor, builder: StringBuilder) {
 
         if (!startFromName) {
 //
@@ -1137,7 +1157,7 @@ open class DescriptorRendererImpl(
         types.joinTo(builder, "& ") { renderType(it) }
     }
 
-    private fun renderSuperTypes(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
+    private fun renderSuperTypes(cclass: ScopedDescriptor, builder: StringBuilder) {
         if (withoutSuperTypes) return
 
         if (CangJieBuiltIns.isNothing(cclass.defaultType)) return
@@ -1146,7 +1166,7 @@ open class DescriptorRendererImpl(
         renderSuperTypes(supertypes, builder)
     }
 
-    private fun renderClassKindPrefix(cclass: ClassifierDescriptorWithKind, builder: StringBuilder) {
+    private fun renderClassKindPrefix(cclass: ScopedDescriptor, builder: StringBuilder) {
         builder.append(renderKeyword(getClassifierKindPrefix(cclass)))
         builder.append("  ")
     }

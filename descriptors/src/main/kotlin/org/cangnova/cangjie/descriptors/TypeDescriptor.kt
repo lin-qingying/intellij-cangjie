@@ -24,80 +24,28 @@
 
 package org.cangnova.cangjie.descriptors
 
-import org.cangnova.cangjie.resolve.scopes.MemberScope
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeProjection
-import org.cangnova.cangjie.types.TypeSubstitution
-
 /**
- * 类型描述符接口，用于统一表示所有与类型相关的描述符。
+ * 可继承声明描述符接口，表示具有继承语义的声明。
  *
- * 这是一个更高层的抽象，统一了分类器（ClassifierDescriptor）和扩展（ExtendDescriptor）
- * 等类型相关的概念，为类型系统提供统一的处理接口。
+ * 该接口专门用于表示那些可以参与继承关系的声明，包括：
+ * - 可以有父类/超类的声明
+ * - 可以被其他类型继承的声明
+ * - 具有继承语义的类型构造体
  *
  * 主要职责：
- * - 提供类型相关的成员作用域访问
- * - 支持类型参数和类型替换
- * - 统一类型相关描述符的访问模式
- * - 为类型检查和IDE功能提供抽象层
+ * - 定义继承关系和超类型访问
+ * - 提供继承相关的类型信息
+ * - 支持继承层次结构的类型检查
+ * - 为继承相关的IDE功能提供基础
  *
  * 适用于：
- * - 类、接口、枚举等分类器
- * - 扩展声明
- * - 其他具有类型语义的构造体
+ * - 类（Class）- 可以继承其他类和实现接口
+ * - 接口（Interface）- 可以继承其他接口
+ * - 枚举（Enum）- 可以实现接口
+ * - 扩展（Extend）- 为类型添加新的继承关系
  */
-interface TypeDescriptor : DeclarationDescriptorNonRoot, MemberDescriptor {
-
-    /**
-     * 获取与此类型相关的超类型集合。
-     *
-     * 对于分类器，返回父类和实现的接口；
-     * 对于扩展，返回扩展的接口列表。
-     *
-     * @return 超类型的集合
-     */
-    val superTypes: Collection<CangJieType>
-
-    /**
-     * 根据指定的类型实参列表返回对应的成员作用域。
-     *
-     * @param typeArguments 类型实参列表
-     * @return 返回计算后的成员作用域
-     */
-    fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
-        return MemberScope.Empty
-    }
-
-    /**
-     * 根据指定的类型替换规则返回对应的成员作用域。
-     *
-     * @param typeSubstitution 类型替换映射
-     * @return 返回计算后的成员作用域
-     */
-    fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
-        return MemberScope.Empty
-    }
-
-    /**
-     * 未进行类型替换时的成员作用域（原始作用域）。
-     */
-    val unsubstitutedMemberScope: MemberScope
-        get() = MemberScope.Empty
-
-    /**
-     * 静态成员作用域。
-     *
-     * 对于不支持静态成员的类型，返回空作用域。
-     */
-    val staticScope: MemberScope
-        get() = MemberScope.Empty
-
-    /**
-     * 指向该描述符的原始版本，通常用于在描述符替换或变换中追溯最初的声明。
-     */
-    override val original: TypeDescriptor
+interface InheritableDescriptor : DeclarationDescriptorNonRoot {
 
 
-    override val modality: Modality
-        get() = Modality.FINAL
+
 }

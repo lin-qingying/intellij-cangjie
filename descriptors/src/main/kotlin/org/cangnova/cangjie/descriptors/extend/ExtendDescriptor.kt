@@ -30,14 +30,13 @@ import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.types.*
 
 
-interface ExtendDescriptor : DeclarationDescriptorWithSource, TypeDescriptor {
+interface ExtendDescriptor : InheritableDescriptor, ScopedDescriptor {
 
 
     /**
      * 扩展的id
      */
     val extendId: String
-    override val modality: Modality get() = Modality.FINAL
 
     override val name: Name
         get() = Name.identifier(extendId)
@@ -64,7 +63,7 @@ interface ExtendDescriptor : DeclarationDescriptorWithSource, TypeDescriptor {
     /**
      * 获取与此扩展相关的超类型集合，即扩展的接口列表
      */
-    override val superTypes: Collection<CangJieType>
+    val superTypes: Collection<CangJieType>
 
 
     /**
@@ -96,7 +95,7 @@ interface ExtendDescriptor : DeclarationDescriptorWithSource, TypeDescriptor {
     /**
      * 实例级成员作用域，默认返回空作用域。
      */
-    val instanceScope: MemberScope
+    override val instanceScope: MemberScope
         get() = MemberScope.Empty
 
     /**
@@ -112,7 +111,7 @@ interface ExtendDescriptor : DeclarationDescriptorWithSource, TypeDescriptor {
     /**
      * 此描述符对应的类的种类。
      */
-    val kind: ClassKind get() = ClassKind.EXTEND
+    override val kind: ClassKind get() = ClassKind.EXTEND
 
     override val visibility: DescriptorVisibility
 

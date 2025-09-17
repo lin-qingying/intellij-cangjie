@@ -209,7 +209,7 @@ abstract class DescriptorRenderer {
             is TypeAliasDescriptor ->
                 "type"
 
-            is ClassifierDescriptorWithKind ->
+            is ScopedDescriptor ->
                 when (classifier.kind) {
                     STRUCT -> "struct"
                     CLASS -> "class"

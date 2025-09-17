@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve
 
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.extend.ExtendDescriptor
 import org.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.PropertyAccessorDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.PropertyDescriptorImpl
@@ -35,6 +36,22 @@ import org.cangnova.cangjie.types.checker.CangJieTypePreparator
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.utils.SmartSet
 import java.util.*
+
+val InheritableDescriptor.kind
+    get() = when (this) {
+        is ClassDescriptor -> this.kind
+        is EnumDescriptor -> this.kind
+        is ExtendDescriptor -> ClassKind.EXTEND
+        else -> error("$this is not a class")
+    }
+
+val InheritableDescriptor.modality
+    get() = when (this) {
+        is ClassDescriptor -> this.modality
+        is EnumDescriptor -> this.modality
+
+        else -> Modality.FINAL
+    }
 
 /**
  * 覆盖工具类
@@ -123,7 +140,7 @@ class OverridingUtil private constructor(
          * 过滤可见的假覆盖
          */
         fun filterVisibleFakeOverrides(
-            current: TypeDescriptor,
+            current: InheritableDescriptor,
             toFilter: Collection<CallableMemberDescriptor>
         ): Collection<CallableMemberDescriptor> = toFilter.filter { descriptor ->
             !DescriptorVisibilities.isPrivate(descriptor.visibility) &&
@@ -615,7 +632,7 @@ class OverridingUtil private constructor(
          * 创建并绑定假覆盖
          */
         private fun createAndBindFakeOverrides(
-            current: TypeDescriptor,
+            current: InheritableDescriptor,
             notOverridden: Collection<CallableMemberDescriptor>,
             strategy: OverridingStrategy
         ) {
@@ -644,7 +661,7 @@ class OverridingUtil private constructor(
          */
         private fun createAndBindFakeOverride(
             overridables: Collection<CallableMemberDescriptor>,
-            current: TypeDescriptor,
+            current: InheritableDescriptor,
             strategy: OverridingStrategy
         ) {
             val visibleOverridables = filterVisibleFakeOverrides(current, overridables)
@@ -676,7 +693,7 @@ class OverridingUtil private constructor(
          */
         private fun determineModalityForFakeOverride(
             descriptors: Collection<CallableMemberDescriptor>,
-            current: TypeDescriptor
+            current: InheritableDescriptor
         ): Modality {
             // 优化：在常见情况下避免创建哈希集合
             var hasOpen = false
@@ -692,7 +709,7 @@ class OverridingUtil private constructor(
             }
 
             val transformAbstractToClassModality =
-                    current.modality != Modality.ABSTRACT && current.modality != Modality.SEALED
+                current.modality != Modality.ABSTRACT && current.modality != Modality.SEALED
 
             return when {
                 hasOpen && !hasAbstract -> Modality.OPEN
@@ -753,7 +770,7 @@ class OverridingUtil private constructor(
         name: Name, // 确保所有描述符有相同名称
         membersFromSupertypes: Collection<T>,
         membersFromCurrent: Collection<T>,
-        current: TypeDescriptor,
+        current: InheritableDescriptor,
         strategy: OverridingStrategy
     ) {
         val notOverridden = LinkedHashSet(membersFromSupertypes)
@@ -873,7 +890,7 @@ class OverridingUtil private constructor(
     fun isOverridableBy(
         superDescriptor: CallableDescriptor,
         subDescriptor: CallableDescriptor,
-        subClassDescriptor: TypeDescriptor?,
+        subClassDescriptor: InheritableDescriptor?,
         checkReturnType: Boolean = false
     ): OverrideCompatibilityInfo {
         val basicResult = isOverridableByWithoutExternalConditions(superDescriptor, subDescriptor, checkReturnType)
@@ -923,7 +940,7 @@ class OverridingUtil private constructor(
     fun isOverridableBy(
         superDescriptor: CallableDescriptor,
         subDescriptor: CallableDescriptor,
-        subClassDescriptor: TypeDescriptor?
+        subClassDescriptor: InheritableDescriptor?
     ): OverrideCompatibilityInfo = isOverridableBy(superDescriptor, subDescriptor, subClassDescriptor, false)
 
     /**
@@ -932,7 +949,7 @@ class OverridingUtil private constructor(
     private fun extractAndBindOverridesForMember(
         fromCurrent: CallableMemberDescriptor,
         descriptorsFromSuper: Collection<CallableMemberDescriptor>,
-        current: TypeDescriptor,
+        current: InheritableDescriptor,
         strategy: OverridingStrategy
     ): Collection<CallableMemberDescriptor> {
         val bound = mutableListOf<CallableMemberDescriptor>()

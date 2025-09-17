@@ -69,7 +69,7 @@ interface DeclarationDescriptorVisitor<R, D> {
     ): R
 
     /** 访问类型描述符（统一的类型相关描述符入口） */
-    fun visitTypeDescriptor(descriptor: TypeDescriptor, builder: D?): R {
+    fun visitInheritableDescriptor(descriptor: InheritableDescriptor, builder: D?): R {
         return when (descriptor) {
             is ClassifierDescriptor -> visitClassifierDescriptor(descriptor, builder)
             is ExtendDescriptor -> visitExtendDescriptor(descriptor, builder)

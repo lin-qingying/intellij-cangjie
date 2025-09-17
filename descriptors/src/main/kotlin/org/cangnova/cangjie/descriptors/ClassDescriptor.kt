@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,15 +25,25 @@ package org.cangnova.cangjie.descriptors
 
 
 import org.cangnova.cangjie.resolve.scopes.MemberScope
-import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.types.TypeProjection
 import org.cangnova.cangjie.types.TypeSubstitution
 
+val ScopedDescriptor.modality
+    get() = when (this) {
+        is ClassDescriptor -> this.modality
+        is EnumDescriptor -> this.modality
+
+        else -> Modality.FINAL
+    }
+
 /**
- * 描述具有种类与作用域信息的分类器（通常为类或接口）。
+ * 具有作用域的描述符接口。
+ *
+ * 表示那些具有成员作用域的声明，能够包含其他声明作为成员。
+ * 主要用于类、接口、枚举等可以包含成员的类型声明。
  */
-interface ClassifierDescriptorWithKind : ClassifierDescriptorWithTypeParameters, ClassOrPackageFragmentDescriptor {
+interface ScopedDescriptor : ClassOrPackageFragmentDescriptor {
     /**
      * 表示此分类器的种类，例如 class、interface、enum 等。
      */
@@ -45,7 +55,7 @@ interface ClassifierDescriptorWithKind : ClassifierDescriptorWithTypeParameters,
      * @param typeArguments 类型实参列表
      * @return 返回计算后的成员作用域
      */
-    override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
+    fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
 
     /**
      * 根据指定的类型替换规则返回对应的成员作用域。
@@ -53,12 +63,12 @@ interface ClassifierDescriptorWithKind : ClassifierDescriptorWithTypeParameters,
      * @param typeSubstitution 类型替换映射
      * @return 返回计算后的成员作用域
      */
-    override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
+    fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope
 
     /**
      * 未进行类型替换时的成员作用域（原始作用域）。
      */
-    override val unsubstitutedMemberScope: MemberScope
+    val unsubstitutedMemberScope: MemberScope
 
     /**
      * 实例级成员作用域，默认返回空作用域。
@@ -69,7 +79,7 @@ interface ClassifierDescriptorWithKind : ClassifierDescriptorWithTypeParameters,
     /**
      * 静态成员作用域（如伴生对象或静态成员的作用域）。
      */
-    override val staticScope: MemberScope
+    val staticScope: MemberScope
 
 
 }
@@ -77,7 +87,7 @@ interface ClassifierDescriptorWithKind : ClassifierDescriptorWithTypeParameters,
 /**
  * 表示类（Class）的描述符，提供类的作用域、构造函数、修饰符、可见性等元信息。
  */
-interface ClassDescriptor : ClassifierDescriptorWithKind, ClassifierDescriptorWithTypeParameters,
+interface ClassDescriptor : ScopedDescriptor, ClassifierDescriptorWithTypeParameters,
     ClassOrPackageFragmentDescriptor {
     /**
      * 根据指定的类型实参列表返回对应的成员作用域。
@@ -86,8 +96,6 @@ interface ClassDescriptor : ClassifierDescriptorWithKind, ClassifierDescriptorWi
      * @return 返回计算后的成员作用域
      */
     override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope
-    override val superTypes: Collection<CangJieType>
-        get() = typeConstructor.supertypes
 
     /**
      * 根据指定的类型替换规则返回对应的成员作用域。

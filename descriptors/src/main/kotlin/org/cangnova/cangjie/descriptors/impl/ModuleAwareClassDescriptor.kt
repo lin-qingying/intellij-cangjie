@@ -24,7 +24,9 @@
 
 package org.cangnova.cangjie.descriptors.impl
 
-import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithKind
+
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
+import org.cangnova.cangjie.descriptors.ScopedDescriptor
 import org.cangnova.cangjie.descriptors.impl.ModuleAwareClassDescriptor.Companion.getRefinedMemberScopeIfPossible
 import org.cangnova.cangjie.descriptors.impl.ModuleAwareClassDescriptor.Companion.getRefinedUnsubstitutedMemberScopeIfPossible
 import org.cangnova.cangjie.resolve.scopes.MemberScope
@@ -66,7 +68,8 @@ interface ModuleAwareDescriptor {
  * - 进行泛型类型实例化时
  * - 需要根据编译上下文调整类型行为时
  */
-abstract class ModuleAwareClassDescriptor : ClassifierDescriptorWithKind, ModuleAwareDescriptor {
+abstract class ModuleAwareClassDescriptor : ScopedDescriptor, ClassifierDescriptorWithTypeParameters,
+    ModuleAwareDescriptor {
     /**
      * 获取带有类型替换的成员作用域
      *
@@ -116,7 +119,7 @@ abstract class ModuleAwareClassDescriptor : ClassifierDescriptorWithKind, Module
          * @param cangjieTypeRefiner 类型细化器
          * @return MemberScope 细化后的成员作用域或标准成员作用域
          */
-        internal fun ClassifierDescriptorWithKind.getRefinedUnsubstitutedMemberScopeIfPossible(
+        internal fun ScopedDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
             cangjieTypeRefiner: CangJieTypeRefiner
         ): MemberScope =
             (this as? ModuleAwareClassDescriptor)?.getUnsubstitutedMemberScope(cangjieTypeRefiner)
@@ -133,7 +136,7 @@ abstract class ModuleAwareClassDescriptor : ClassifierDescriptorWithKind, Module
          * @param cangjieTypeRefiner 类型细化器
          * @return MemberScope 细化后的成员作用域或标准替换成员作用域
          */
-        internal fun ClassifierDescriptorWithKind.getRefinedMemberScopeIfPossible(
+        internal fun ScopedDescriptor.getRefinedMemberScopeIfPossible(
             typeSubstitution: TypeSubstitution,
             cangjieTypeRefiner: CangJieTypeRefiner
         ): MemberScope =
@@ -154,7 +157,7 @@ abstract class ModuleAwareClassDescriptor : ClassifierDescriptorWithKind, Module
  * @param cangjieTypeRefiner 类型细化器
  * @return MemberScope 细化后的成员作用域
  */
-fun ClassifierDescriptorWithKind.getRefinedUnsubstitutedMemberScopeIfPossible(
+fun ScopedDescriptor.getRefinedUnsubstitutedMemberScopeIfPossible(
     cangjieTypeRefiner: CangJieTypeRefiner
 ): MemberScope = getRefinedUnsubstitutedMemberScopeIfPossible(cangjieTypeRefiner)
 
@@ -168,7 +171,7 @@ fun ClassifierDescriptorWithKind.getRefinedUnsubstitutedMemberScopeIfPossible(
  * @param cangjieTypeRefiner 类型细化器
  * @return MemberScope 细化后的成员作用域
  */
-fun ClassifierDescriptorWithKind.getRefinedMemberScopeIfPossible(
+fun ScopedDescriptor.getRefinedMemberScopeIfPossible(
     typeSubstitution: TypeSubstitution,
     cangjieTypeRefiner: CangJieTypeRefiner
 ): MemberScope = getRefinedMemberScopeIfPossible(typeSubstitution, cangjieTypeRefiner)
