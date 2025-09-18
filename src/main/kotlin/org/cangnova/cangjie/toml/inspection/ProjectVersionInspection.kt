@@ -48,6 +48,11 @@ val semverRegex by lazy{
     Regex("^((0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*))(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?\$")
 }
 
+/**
+ * 检查 project > version 值
+ *
+ * @author <a href="mailto:yms_hi@Outlook.com" rel="nofollow">yms</a>
+ */
 class ProjectVersionInspection : LocalInspectionTool() {
     override fun isAvailableForFile(file: PsiFile) = StringUtil.equalsIgnoreCase("cjpm.toml",file.name)
 

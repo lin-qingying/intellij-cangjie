@@ -28,6 +28,11 @@ import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider
 import com.jetbrains.jsonSchema.extension.JsonSchemaProviderFactory
 import org.cangnova.cangjie.utils.jsonSchema.SimpleJsonSchemaFileProvider
 
+/**
+ * 提供 cjpm.toml 的 json schema
+ *
+ * @author <a href="mailto:yms_hi@Outlook.com" rel="nofollow">yms</a>
+ */
 class SimpleJsonShemaProviderFactory : JsonSchemaProviderFactory {
     override fun getProviders(project: Project): List<JsonSchemaFileProvider?> {
         val providers = arrayListOf<JsonSchemaFileProvider?>()

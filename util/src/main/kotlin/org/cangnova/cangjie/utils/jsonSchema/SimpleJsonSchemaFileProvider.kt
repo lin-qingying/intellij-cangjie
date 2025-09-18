@@ -41,6 +41,7 @@ import org.jetbrains.annotations.Nls
  * @param fileName 匹配的文件名称
  * @param jsonSchemaPath schema文件资源路径
  *
+ * @author <a href="mailto:yms_hi@Outlook.com" rel="nofollow">yms</a>
  * */
 class SimpleJsonSchemaFileProvider(val fileName: String, val jsonSchemaPath: String,val schemaName:String = fileName) : JsonSchemaFileProvider{
     val _schemaFile: VirtualFile by lazy {

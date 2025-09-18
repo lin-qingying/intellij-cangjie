@@ -21,6 +21,10 @@
  * any damages or issues arising from its use.
  *
  */
+
+/**
+ * @author <a href="mailto:yms_hi@Outlook.com" rel="nofollow">yms</a>
+ */
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.kotlin.dsl.register
 import java.io.ByteArrayOutputStream

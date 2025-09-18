@@ -31,6 +31,8 @@ import org.toml.lang.psi.TomlPsiFactory
 
 /**
  * 对 `v1.0.0` 形式提供快速修复
+ *
+ * @author <a href="mailto:yms_hi@Outlook.com" rel="nofollow">yms</a>
  */
 class RemoveVPrefixQuickFix: LocalQuickFix {
     override fun getFamilyName() = CJPMConfigInspectionBundle.message("quickfix.remove.prefix.desc")
