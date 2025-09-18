@@ -1,0 +1,221 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cangjie-lang.cn/schemas/cjpm.schema.json",
+  "title": "Cangjie Package Manager manifest",
+  "description": "JSON Schema for cjpm.toml according to https://docs.cangjie-lang.cn",
+  "type": "object",
+  "additionalProperties": false,
+
+  "properties": {
+
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cjc-version":     { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "name":            { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_]*$" },
+        "description":     { "type": "string" },
+        "version":         { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "compile-option":  { "type": "string", "default": "" },
+        "override-compile-option": { "type": "string","default": "" },
+        "link-option":     { "type": "string","default": "" },
+        "output-type":     { "enum": ["executable", "static", "dynamic"],
+          "default": "executable"
+        },
+        "src-dir":         { "type": "string" },
+        "target-dir":      { "type": "string" },
+        "package-configuration": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "output-type":     { "enum": ["executable", "static", "dynamic"] },
+              "compile-option":  { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["cjc-version", "name", "version", "output-type"]
+    },
+
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "members":       { "type": "array", "items": { "type": "string" } },
+        "build-members": { "type": "array", "items": { "type": "string" } },
+        "test-members":  { "type": "array", "items": { "type": "string" } },
+        "compile-option":        { "type": "string" },
+        "override-compile-option": { "type": "string" },
+        "link-option":           { "type": "string" },
+        "target-dir":            { "type": "string" }
+      },
+      "required": ["members"]
+    },
+
+    "dependencies":         { "$ref": "#/$defs/depTable" },
+    "test-dependencies":    { "$ref": "#/$defs/depTable" },
+    "script-dependencies":  { "$ref": "#/$defs/depTable" },
+    "replace":              { "$ref": "#/$defs/depTable" },
+
+    "ffi": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "c": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "path": { "type": "string" }
+            },
+            "required": ["path"]
+          }
+        }
+      },
+      "required": ["c"]
+    },
+
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "build": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "lto":      { "enum": ["full", "thin"] },
+            "incremental": { "type": "boolean" },
+            "performance_analysis": { "type": "boolean" },
+            "combined": {
+              "type": "object",
+              "additionalProperties": { "enum": ["dynamic"] }
+            }
+          }
+        },
+        "test": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "filter":       { "type": "string" },
+            "timeout-each": { "type": "string" },
+            "parallel":     {},
+            "no-color":     { "type": "boolean" },
+            "verbose":      { "type": "boolean" },
+            "random-seed":  { "type": "integer" },
+            "report-path":  { "type": "string" },
+            "report-format": { "enum": ["xml"] },
+            "build": {
+              "type": "object",
+              "properties": {
+                "compile-option": { "type": "string" },
+                "lto": { "enum": ["full", "thin"] },
+                "mock": { "enum": ["on", "off", "runtime-error"] }
+              }
+            },
+            "env": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "value": { "type": "string" },
+                  "splice-type": { "enum": ["absent", "replace", "prepend", "append"] }
+                }
+              }
+            }
+          }
+        },
+        "bench": { "$ref": "#/properties/profile/properties/test" },
+        "run": {
+          "type": "object",
+          "properties": {
+            "env": { "$ref": "#/properties/profile/properties/test/properties/env" }
+          }
+        },
+        "customized-option": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+
+    "target": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "compile-option":  { "type": "string" },
+          "override-compile-option": { "type": "string" },
+          "link-option":     { "type": "string" },
+          "compile-macros-for-target": { "oneOf": [
+            { "enum": ["", "all"] },
+            { "type": "array", "items": { "type": "string" } }
+          ]},
+          "dependencies":    { "$ref": "#/$defs/depTable" },
+          "test-dependencies": { "$ref": "#/$defs/depTable" },
+          "bin-dependencies": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "path-option": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "package-option": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "depTable": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "^[A-Za-z][A-Za-z0-9_]*$": {
+          "allOf": [
+            {
+              "type": "object",
+              "additionalPropertieAs": false,
+              "properties": {
+                "path":     { "type": "string" },
+                "git":      { "type": "string" },
+                "branch":   { "type": "string" },
+                "tag":      { "type": "string" },
+                "version":  { "type": "string", "pattern": "^(\\d+\\.\\d+\\.\\d+|)$" },
+                "output-type": { "enum": ["static", "dynamic"] }
+              }
+            },
+            {
+              "oneOf": [
+                { "required": ["path"] },
+                {
+                  "required": ["git"],
+                  "not": { "required": ["path"] },
+                  "oneOf": [
+                    { "required": ["branch"], "not": { "required": ["tag"] } },
+                    { "required": ["tag"],    "not": { "required": ["branch"] } }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+
+
+  "oneOf": [
+    { "required": ["package"] },
+    { "required": ["workspace"] }
+  ]
+}
