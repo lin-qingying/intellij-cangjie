@@ -8,7 +8,16 @@
         />
         <completion.contributor language="TOML"
                                 implementationClass="org.cangnova.cangjie.toml.completion.CjpmTomlCompletionContributor"/>
-
+        <localInspection language="TOML"
+                         bundle="messages.CJPMConfigInspectionBundle"
+                         key="inspection.cjpm.config.check.value.version.display.name"
+                         groupPath="Cangjie"
+                         groupBundle="messages.InspectionsBundle"
+                         groupKey="group.names.probable.bugs"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         implementationClass="org.cangnova.cangjie.toml.inspection.ProjectVersionInspection"
+        />
 
     </extensions>
 
