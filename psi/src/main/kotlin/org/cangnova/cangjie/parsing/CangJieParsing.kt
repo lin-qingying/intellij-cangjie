@@ -807,7 +807,15 @@ class CangJieParsing private constructor(
     }
 
     fun parseLambdaExpression() {
-        expressionParsing.parseFunctionLiteral(preferBlock = false, collapse = false, false)
+        with(
+            CangJieExpressionParsing.ExpressionParseContext(
+                preferBlock = false,
+                collapse = false,
+                isDoubleArrow = false
+            )
+        ) {
+            expressionParsing.parseFunctionLiteral()
+        }
     }
 
     /*
@@ -917,7 +925,9 @@ class CangJieParsing private constructor(
         detector: ModifierDetector
     ): IElementType? {
         return when (getTokenId()) {
-            AT_Id -> expressionParsing.parseMacroExpression(true)
+            AT_Id -> with(CangJieExpressionParsing.ExpressionParseContext.MACRO_BACK_TOKEN) {
+                expressionParsing.parseMacroExpression()
+            }
             FUNC_KEYWORD_Id -> if (tokenId != null) {
                 if (tokenId == INTERFACE_KEYWORD_Id) {
                     parseFunction(true, classdetector, detector, topTokenId = tokenId)
@@ -1001,11 +1011,7 @@ class CangJieParsing private constructor(
             parseIdentifierByTitle("variable", PROPERTY_NAME_FOLLOW_SET, true)
         } else {
             expressionParsing.parsePattern(
-                PatternConfig(true),
-                Pattern.Wildcard,
-                Pattern.Binding,
-                Pattern.Tuple,
-                Pattern.Enum
+                CangJieExpressionParsing.PatternParseContext.VARIABLE_DECL
             )
         }
 
@@ -1076,7 +1082,9 @@ class CangJieParsing private constructor(
                 DeclarationParsingMode.TOPLEVEL -> parseTypeAlias()
             }
 
-            AT_Id -> expressionParsing.parseMacroExpression(true)
+            AT_Id -> with(CangJieExpressionParsing.ExpressionParseContext.MACRO_BACK_TOKEN) {
+                expressionParsing.parseMacroExpression()
+            }
 
             FOREIGN_KEYWORD_Id -> when (declarationParsingMode) {
                 DeclarationParsingMode.ALL,
@@ -2662,29 +2670,31 @@ class CangJieParsing private constructor(
         }
     }
 
-    enum class MacroType {
-        MACRO_CALL,
-        ANNOTATION,
-    }
-
-    enum class DeclarationParsingMode(
-        val destructuringAllowed: Boolean,
-        val accessorsAllowed: Boolean,
-        val canBeEnumUsedAsSoftKeyword: Boolean
-    ) {
-        ALL(false, true, true),
-        TOPLEVEL(false, true, true),
-        MEMBER(false, true, true),
-        MEMBER_OR_TOPLEVEL(false, true, true),
-        LOCAL(true, false, false)
-        // SCRIPT_TOPLEVEL(true, true, false) // 如需使用可以取消注释
-    }
-
-    enum class NameParsingMode {
-        REQUIRED,
-        ALLOWED,
-        PROHIBITED
-    }
 
 
+
+}
+
+enum class MacroType {
+    MACRO_CALL,
+    ANNOTATION,
+}
+
+enum class DeclarationParsingMode(
+    val destructuringAllowed: Boolean,
+    val accessorsAllowed: Boolean,
+    val canBeEnumUsedAsSoftKeyword: Boolean
+) {
+    ALL(false, true, true),
+    TOPLEVEL(false, true, true),
+    MEMBER(false, true, true),
+    MEMBER_OR_TOPLEVEL(false, true, true),
+    LOCAL(true, false, false)
+    // SCRIPT_TOPLEVEL(true, true, false) // 如需使用可以取消注释
+}
+
+enum class NameParsingMode {
+    REQUIRED,
+    ALLOWED,
+    PROHIBITED
 }
