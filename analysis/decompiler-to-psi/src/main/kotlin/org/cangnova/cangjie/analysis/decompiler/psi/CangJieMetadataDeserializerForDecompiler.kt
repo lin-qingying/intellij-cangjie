@@ -45,6 +45,7 @@ import org.cangnova.cangjie.serialization.deserialization.descriptors.Deserializ
 import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.SimpleType
+import org.cangnova.telemetry.error.ErrorTelemetry
 
 
 class CangJieMetadataDeserializerForDecompiler(
@@ -99,19 +100,31 @@ class CangJieMetadataDeserializerForDecompiler(
     }
 
     override fun resolveAllDeclarationsInPackage(packageFqName: FqName): List<DeclarationDescriptor> {
-        assert(packageFqName == directoryPackageFqName) {
-            "Was called for $packageFqName; only members of $directoryPackageFqName package are expected."
+        try {
+            assert(packageFqName == directoryPackageFqName) {
+                "Was called for $packageFqName; only members of $directoryPackageFqName package are expected."
+            }
+            val dummyPackageFragment = createDummyPackageFragment(packageFqName)
+            val membersScope = DeserializedPackageMemberScope(
+                dummyPackageFragment, `package`, metadataVersion, containerSource = null,
+                components = deserializationComponents,
+                debugName = "scope of dummyPackageFragment ${dummyPackageFragment.fqName} in module " +
+                        "${deserializationComponents.moduleDescriptor} @CangJieMetadataDeserializerForDecompiler"
+            ) { emptyList() }
+
+            return membersScope.getContributedDescriptors().toList()
+        } catch (e: Exception) {
+            ErrorTelemetry.sendException(
+                e,
+                "CangJieMetadataDeserializerForDecompiler.resolveAllDeclarationsInPackage",
+                mapOf(
+                    "package_name" to packageFqName.toString(),
+                    "metadata_version" to metadataVersion.toString()
+                )
+            )
+            LOG.error("Failed to resolve declarations in package $packageFqName", e)
+            return emptyList()
         }
-        val dummyPackageFragment = createDummyPackageFragment(packageFqName)
-        val membersScope = DeserializedPackageMemberScope(
-            dummyPackageFragment, `package`, metadataVersion, containerSource = null,
-            components = deserializationComponents,
-            debugName = "scope of dummyPackageFragment ${dummyPackageFragment.fqName} in module " +
-                    "${deserializationComponents.moduleDescriptor} @CangJieMetadataDeserializerForDecompiler"
-        ) { emptyList() }
-
-        return membersScope.getContributedDescriptors().toList()
-
     }
 
     companion object {

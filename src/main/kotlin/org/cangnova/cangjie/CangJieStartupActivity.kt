@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,6 @@
 package org.cangnova.cangjie
 
 
-import org.cangnova.telemetry.api.EventCategories.IDE_OPEN
-import org.cangnova.telemetry.api.TelemetryService
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
@@ -41,10 +39,10 @@ class CangJieStartupActivity : ProjectActivity {
 
 
 //        插件打开时发送遥测事件
-        val telemetryService = TelemetryService.getInstance()
-        telemetryService.sendEvent(
-            IDE_OPEN, "ide_open", 0
-        )
+//        val telemetryService = TelemetryService.getInstance()
+//        telemetryService.sendEvent(
+//            IDE_OPEN, "ide_open", 0
+//        )
 
 
 //        TelemetryNotifications.showNotification()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,12 @@
 package org.cangnova.cangjie.ide.stubindex
 
 
-import org.cangnova.cangjie.utils.isInternal
-import org.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.stubs.StubIndexKey
+import org.cangnova.cangjie.utils.isInternal
+import org.cangnova.cangjie.utils.isUnitTestMode
+import org.cangnova.telemetry.performance.IndexingPerformanceTelemetry
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
@@ -50,15 +51,57 @@ inline fun <T> measureIndexCall(
     log: Logger,
     crossinline block: () -> T
 ): T {
+    val operationId = IndexingPerformanceTelemetry.startIndexing("stub_index_${prefix}")
     val mark = TimeSource.Monotonic.markNow()
-    val t = block()
-    val elapsed = mark.elapsedNow()
-    if (elapsed > threshold) {
-        if (isInternal && !isUnitTestMode && Registry.`is`("cangjie.indices.timing.enabled")) {
-            log.error("${index.name} $prefix took $elapsed more than expected $threshold")
+
+    try {
+        val t = block()
+        val elapsed = mark.elapsedNow()
+        val elapsedMs = elapsed.inWholeMilliseconds
+
+        // 发送性能遥测事件
+        IndexingPerformanceTelemetry.endIndexing(
+            operationId,
+            fileCount = 0, // Stub索引操作通常不直接对应文件数量
+            mapOf(
+                "index_name" to index.name,
+                "operation_type" to prefix,
+                "threshold_ms" to threshold.inWholeMilliseconds.toString()
+            )
+        )
+
+        if (elapsed > threshold) {
+            if (isInternal && !isUnitTestMode && Registry.`is`("cangjie.indices.timing.enabled")) {
+                log.error("${index.name} $prefix took $elapsed more than expected $threshold")
+            }
+
+            // 发送性能警告遥测事件
+            org.cangnova.telemetry.error.ErrorTelemetry.sendPerformanceWarning(
+                "stub_index_operation",
+                elapsedMs,
+                threshold.inWholeMilliseconds,
+                "stub_index_${prefix}",
+                mapOf(
+                    "index_name" to index.name,
+                    "operation_type" to prefix
+                )
+            )
         }
+
+        return t
+    } catch (e: Exception) {
+        // 发送索引错误遥测事件
+        IndexingPerformanceTelemetry.sendIndexingError(
+            "stub_index_${prefix}",
+            "Error during ${index.name} $prefix operation",
+            e,
+            mapOf(
+                "index_name" to index.name,
+                "operation_type" to prefix
+            )
+        )
+        throw e
     }
-    return t
 }
 
 inline fun <T> processElementsAndMeasure(index: StubIndexKey<*, *>, log: Logger, crossinline block: () -> T): T =

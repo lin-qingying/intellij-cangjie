@@ -88,11 +88,11 @@ fun String.toValidDirectoryName(): String {
 plugins {
     idea
     id("net.saliman.properties") version "1.5.2"
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.2.0"
     id("org.jetbrains.intellij.platform") version "2.6.0"
     id("org.jetbrains.changelog") version "2.2.1"
     id("java-test-fixtures")
-    kotlin("plugin.serialization") version "2.1.0"
+    kotlin("plugin.serialization") version "2.2.0"
     id("org.gradle.test-retry") version "1.5.3"
 
 
@@ -164,7 +164,7 @@ allprojects {
 
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
         // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit
-        testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.0")
+        testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.2.0")
         implementation(kotlin("test"))
         implementation(kotlin("test-junit"))
         implementation(kotlin("stdlib"))
@@ -235,7 +235,11 @@ allprojects {
 
             compilerOptions {
                 jvmTarget.set(JvmTarget.JVM_17)
-                freeCompilerArgs.set(listOf("-Xjvm-default=all", "-Xcontext-receivers"))
+                freeCompilerArgs.add("-Xjvm-default=all")
+
+                freeCompilerArgs.add("-Xcontext-parameters")
+
+
             }
         }
 
@@ -351,7 +355,7 @@ project(":plugin") {
                     indexViewPlugin,
                     chinesePlugin/*, nativeDebugPlugin*/
                 )
-                bundledPlugins(tomlPlugin, copyright,jsonPlugin)
+                bundledPlugins(tomlPlugin, copyright, jsonPlugin)
             }
         }
         implementation(project(":"))
@@ -493,7 +497,7 @@ project(":") {
 
     dependencies {
         intellijPlatform {
-            bundledPlugins(tomlPlugin, copyright,jsonPlugin)
+            bundledPlugins(tomlPlugin, copyright, jsonPlugin)
         }
         implementation("org.fusesource.jansi:jansi:2.4.1")
 
@@ -501,6 +505,7 @@ project(":") {
         implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
         implementation(project(":toolchain"))
+        implementation(project(":telemetry"))
 
         implementation(project(":util"))
         implementation(project(":icon"))
