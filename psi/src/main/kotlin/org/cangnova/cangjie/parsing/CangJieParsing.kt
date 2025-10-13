@@ -152,54 +152,52 @@ class CangJieParsing private constructor(
         }
 
 
-   public class ModifierDetector : ((IElementType?) -> Unit) {
+    enum class ModifierKind {
+        ABSTRACT, MUT, PUBLIC, PRIVATE, PROTECTED, OPERATOR,
+        FOREIGN, CONST, UNSAFE, SEALED, REDEF, OPEN, STATIC
+    }
 
-          var isAbstractDetected = false
-          var isMutDetected = false
-          var isPublicDetected = false
-          var isPrivateDetected = false
-          var isProtectedDetected = false
-          var isOperatorDetected = false
-          var isForeignDetected = false
-          var isConstDetected = false
-          var isUnsafeDetected = false
-          var isSealedDetected = false
-          var isRedefDetected = false
-          var isOpenDetected = false
-          var isStaticDetected = false
-        // private var annotationCount = 0
+    public class ModifierDetector : ((IElementType?) -> Unit) {
+        private val modifiers = mutableSetOf<ModifierKind>()
 
-        /**
-         * 返回修饰符的数量
-         */
-        fun getSize(): Int {
-            return ModifierDetector::class.members
-                .filterIsInstance<kotlin.reflect.KProperty1<ModifierDetector, *>>()
-                .count { prop ->
-                    prop.get(this) == true
-                }
-        }
+        val count: Int get() = modifiers.size
+
+        fun has(kind: ModifierKind): Boolean = modifiers.contains(kind)
+
+        val isAbstractDetected: Boolean get() = has(ModifierKind.ABSTRACT)
+        val isMutDetected: Boolean get() = has(ModifierKind.MUT)
+        val isPublicDetected: Boolean get() = has(ModifierKind.PUBLIC)
+        val isPrivateDetected: Boolean get() = has(ModifierKind.PRIVATE)
+        val isProtectedDetected: Boolean get() = has(ModifierKind.PROTECTED)
+        val isOperatorDetected: Boolean get() = has(ModifierKind.OPERATOR)
+        val isForeignDetected: Boolean get() = has(ModifierKind.FOREIGN)
+        val isConstDetected: Boolean get() = has(ModifierKind.CONST)
+        val isUnsafeDetected: Boolean get() = has(ModifierKind.UNSAFE)
+        val isSealedDetected: Boolean get() = has(ModifierKind.SEALED)
+        val isRedefDetected: Boolean get() = has(ModifierKind.REDEF)
+        val isOpenDetected: Boolean get() = has(ModifierKind.OPEN)
+        val isStaticDetected: Boolean get() = has(ModifierKind.STATIC)
+
+        @Deprecated("Use count property", ReplaceWith("count"))
+        fun getSize(): Int = count
 
         override fun invoke(item: IElementType?) {
             when (item) {
-                PUBLIC_KEYWORD -> isPublicDetected = true
-                PRIVATE_KEYWORD -> isPrivateDetected = true
-                PROTECTED_KEYWORD -> isProtectedDetected = true
-                ABSTRACT_KEYWORD -> isAbstractDetected = true
-                MUT_KEYWORD -> isMutDetected = true
-                OPERATOR_KEYWORD -> isOperatorDetected = true
-                FOREIGN_KEYWORD -> isForeignDetected = true
-                CONST_KEYWORD -> isConstDetected = true
-                UNSAFE_KEYWORD -> isUnsafeDetected = true
-                OPEN_KEYWORD -> isOpenDetected = true
-                STATIC_KEYWORD -> isStaticDetected = true
-                SEALED_KEYWORD -> isSealedDetected = true
-                REDEF_KEYWORD -> isRedefDetected = true
-                // ANNOTATION_ENTRY -> annotationCount++
+                PUBLIC_KEYWORD -> modifiers.add(ModifierKind.PUBLIC)
+                PRIVATE_KEYWORD -> modifiers.add(ModifierKind.PRIVATE)
+                PROTECTED_KEYWORD -> modifiers.add(ModifierKind.PROTECTED)
+                ABSTRACT_KEYWORD -> modifiers.add(ModifierKind.ABSTRACT)
+                MUT_KEYWORD -> modifiers.add(ModifierKind.MUT)
+                OPERATOR_KEYWORD -> modifiers.add(ModifierKind.OPERATOR)
+                FOREIGN_KEYWORD -> modifiers.add(ModifierKind.FOREIGN)
+                CONST_KEYWORD -> modifiers.add(ModifierKind.CONST)
+                UNSAFE_KEYWORD -> modifiers.add(ModifierKind.UNSAFE)
+                OPEN_KEYWORD -> modifiers.add(ModifierKind.OPEN)
+                STATIC_KEYWORD -> modifiers.add(ModifierKind.STATIC)
+                SEALED_KEYWORD -> modifiers.add(ModifierKind.SEALED)
+                REDEF_KEYWORD -> modifiers.add(ModifierKind.REDEF)
             }
         }
-
-
     }
 
 
@@ -1063,73 +1061,182 @@ class CangJieParsing private constructor(
         marker.done(BLOCK_CODE_FRAGMENT)
     }
 
+    private interface DeclarationParser {
+        fun isValidInScope(scope: DeclarationParsingMode): Boolean
+        
+        fun parse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType?
+    }
+
+    private abstract class ScopedDeclarationParser(
+        private val validScopes: Set<DeclarationParsingMode>
+    ) : DeclarationParser {
+        override fun isValidInScope(scope: DeclarationParsingMode): Boolean {
+            return validScopes.contains(scope)
+        }
+        
+        override fun parse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            if (!isValidInScope(scope)) {
+                return null
+            }
+            return doParse(parser, detector, nameParsingMode, scope)
+        }
+        
+        protected abstract fun doParse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType?
+    }
+
+    private class TypeAliasParser : ScopedDeclarationParser(
+        setOf(DeclarationParsingMode.ALL, DeclarationParsingMode.TOPLEVEL)
+    ) {
+        override fun doParse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            return parser.parseTypeAlias()
+        }
+    }
+
+    private class ForeignParser : ScopedDeclarationParser(
+        setOf(DeclarationParsingMode.ALL, DeclarationParsingMode.TOPLEVEL)
+    ) {
+        override fun doParse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            return parser.parseForeign()
+        }
+    }
+
+    private class MainFuncParser : ScopedDeclarationParser(
+        setOf(DeclarationParsingMode.ALL, DeclarationParsingMode.TOPLEVEL)
+    ) {
+        override fun doParse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            return parser.parseMainFunc()
+        }
+    }
+
+    private class ClassParser : ScopedDeclarationParser(
+        setOf(DeclarationParsingMode.ALL, DeclarationParsingMode.TOPLEVEL)
+    ) {
+        override fun doParse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            return parser.parseClass(detector)
+        }
+    }
+
+    private class MacroParser : DeclarationParser {
+        override fun isValidInScope(scope: DeclarationParsingMode): Boolean = true
+        
+        override fun parse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            return parser.parseMacro()
+        }
+    }
+
+    private class FunctionParser : DeclarationParser {
+        override fun isValidInScope(scope: DeclarationParsingMode): Boolean = true
+        
+        override fun parse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            return parser.parseFunction(detector = detector)
+        }
+    }
+
+    private class VariableParser : DeclarationParser {
+        override fun isValidInScope(scope: DeclarationParsingMode): Boolean = true
+        
+        override fun parse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            return parser.parseVariable(detector, scope)
+        }
+    }
+
+    private class MacroExpressionParser(private val expressionParsing: CangJieExpressionParsing) : DeclarationParser {
+        override fun isValidInScope(scope: DeclarationParsingMode): Boolean = true
+        
+        override fun parse(
+            parser: CangJieParsing,
+            detector: ModifierDetector,
+            nameParsingMode: NameParsingMode,
+            scope: DeclarationParsingMode
+        ): IElementType? {
+            return with(CangJieExpressionParsing.ExpressionParseContext.MACRO_BACK_TOKEN) {
+                expressionParsing.parseMacroExpression()
+            }
+        }
+    }
+
+    private val declarationParsers: Map<Int, DeclarationParser> by lazy {
+        mapOf(
+            TYPE_KEYWORD_Id to TypeAliasParser(),
+            AT_Id to MacroExpressionParser(expressionParsing),
+            FOREIGN_KEYWORD_Id to ForeignParser(),
+            MACRO_KEYWORD_Id to MacroParser(),
+            FUNC_KEYWORD_Id to FunctionParser(),
+            MAIN_KEYWORD_Id to MainFuncParser(),
+            EXTEND_KEYWORD_Id to ClassParser(),
+            ENUM_KEYWORD_Id to ClassParser(),
+            STRUCT_KEYWORD_Id to ClassParser(),
+            INTERFACE_KEYWORD_Id to ClassParser(),
+            CLASS_KEYWORD_Id to ClassParser(),
+            LET_KEYWORD_Id to VariableParser(),
+            VAR_KEYWORD_Id to VariableParser(),
+            CONST_KEYWORD_Id to VariableParser()
+        )
+    }
+
     fun parseCommonDeclaration(
         detector: ModifierDetector,
         nameParsingMode: NameParsingMode,
         declarationParsingMode: DeclarationParsingMode
     ): IElementType? {
-
-        return when (getTokenId()) {
-            TYPE_KEYWORD_Id -> when (declarationParsingMode) {
-                DeclarationParsingMode.LOCAL,
-                DeclarationParsingMode.MEMBER,
-                DeclarationParsingMode.MEMBER_OR_TOPLEVEL -> {
-                    parseTypeAlias()
-                    INVALID_DECLARATION
-                }
-
-                DeclarationParsingMode.ALL,
-                DeclarationParsingMode.TOPLEVEL -> parseTypeAlias()
-            }
-
-            AT_Id -> with(CangJieExpressionParsing.ExpressionParseContext.MACRO_BACK_TOKEN) {
-                expressionParsing.parseMacroExpression()
-            }
-
-            FOREIGN_KEYWORD_Id -> when (declarationParsingMode) {
-                DeclarationParsingMode.ALL,
-                DeclarationParsingMode.TOPLEVEL -> parseForeign()
-
-                DeclarationParsingMode.MEMBER,
-                DeclarationParsingMode.MEMBER_OR_TOPLEVEL,
-                DeclarationParsingMode.LOCAL -> {
-                    parseForeign()
-                    INVALID_DECLARATION
-                }
-            }
-
-            MACRO_KEYWORD_Id -> parseMacro()
-
-            FUNC_KEYWORD_Id -> parseFunction(detector = detector)
-
-            MAIN_KEYWORD_Id -> when (declarationParsingMode) {
-                DeclarationParsingMode.ALL,
-                DeclarationParsingMode.TOPLEVEL -> parseMainFunc()
-
-                DeclarationParsingMode.MEMBER,
-                DeclarationParsingMode.MEMBER_OR_TOPLEVEL,
-                DeclarationParsingMode.LOCAL -> {
-                    parseMainFunc()
-                    INVALID_DECLARATION
-                }
-            }
-
-            EXTEND_KEYWORD_Id, ENUM_KEYWORD_Id, STRUCT_KEYWORD_Id, INTERFACE_KEYWORD_Id, CLASS_KEYWORD_Id -> when (declarationParsingMode) {
-                DeclarationParsingMode.ALL,
-                DeclarationParsingMode.TOPLEVEL -> parseClass(detector)
-
-                DeclarationParsingMode.MEMBER,
-                DeclarationParsingMode.MEMBER_OR_TOPLEVEL,
-                DeclarationParsingMode.LOCAL -> {
-                    parseClass(detector)
-                    INVALID_DECLARATION
-                }
-            }
-
-            LET_KEYWORD_Id, VAR_KEYWORD_Id, CONST_KEYWORD_Id -> parseVariable(detector, declarationParsingMode)
-
-            else -> null
+        val tokenId = getTokenId() ?: return null
+        val parser = declarationParsers[tokenId] ?: return null
+        
+        if (!parser.isValidInScope(declarationParsingMode)) {
+            return INVALID_DECLARATION
         }
+        
+        return parser.parse(this, detector, nameParsingMode, declarationParsingMode)
     }
 
     /**
