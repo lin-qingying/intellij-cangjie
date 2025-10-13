@@ -24,15 +24,14 @@
 
 package org.cangnova.cangjie.parsing
 
-import org.cangnova.cangjie.lexer.CjTokens.*
-import org.cangnova.cangjie.psi.CjNodeTypes.*
-import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.WhitespacesBinders
-
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
+import org.cangnova.cangjie.lexer.CjTokens.*
+import org.cangnova.cangjie.psi.CjNodeTypes.*
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE
 import org.jetbrains.annotations.Contract
 
 class CangJieParsing private constructor(
@@ -951,7 +950,9 @@ class CangJieParsing private constructor(
     private fun parsePropertyDelegateOrAssignment(): Boolean {
         if (at(EQ)) {
             advance() // consume EQ token
-            expressionParsing.parseExpression()
+            with(CangJieExpressionParsing.ExpressionParseContext.DEFAULT) {
+                expressionParsing.parseExpression()
+            }
             return true
         }
         return false
@@ -1019,7 +1020,9 @@ class CangJieParsing private constructor(
 
         if (at(EQ)) {
             advance() // EQ
-            expressionParsing.parseExpression()
+            with(CangJieExpressionParsing.ExpressionParseContext.DEFAULT) {
+                expressionParsing.parseExpression()
+            }
         }
 
         return VARIABLE
@@ -1027,7 +1030,9 @@ class CangJieParsing private constructor(
 
     fun parseExpressionCodeFragment() {
         val marker = mark()
-        expressionParsing.parseExpression()
+        with(CangJieExpressionParsing.ExpressionParseContext.DEFAULT) {
+            expressionParsing.parseExpression()
+        }
 
         checkForUnexpectedSymbols()
 
@@ -1982,7 +1987,9 @@ class CangJieParsing private constructor(
 
         if (at(LPAR)) {
             advance()
-            expressionParsing.parseExpression()
+            with(CangJieExpressionParsing.ExpressionParseContext.DEFAULT) {
+                expressionParsing.parseExpression()
+            }
             expect(RPAR, "Expecting ')'")
         } else {
             error("Expecting '('")
@@ -2283,7 +2290,9 @@ class CangJieParsing private constructor(
                 noErrors = false
             }
 
-            expressionParsing.parseExpression()
+            with(CangJieExpressionParsing.ExpressionParseContext.DEFAULT) {
+                expressionParsing.parseExpression()
+            }
         }
 
         return noErrors
