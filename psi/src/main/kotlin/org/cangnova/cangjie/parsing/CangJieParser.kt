@@ -48,7 +48,9 @@ class CangJieParser(project: Project) : PsiParser {
                 createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder),
                 )
-            cjParsing.parseLambdaExpression()
+            with(AbstractCangJieParsing.ErrorReportContext.REPORT) {
+                cjParsing.parseLambdaExpression()
+            }
             return psiBuilder.treeBuilt
         }
 
@@ -58,7 +60,10 @@ class CangJieParser(project: Project) : PsiParser {
                 createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder),
                 )
-            cjParsing.parseBlockCodeFragment()
+            with(AbstractCangJieParsing.ErrorReportContext.REPORT) {
+
+                cjParsing.parseBlockCodeFragment()
+            }
             return psiBuilder.treeBuilt
         }
 
@@ -68,7 +73,10 @@ class CangJieParser(project: Project) : PsiParser {
                 createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder),
                 )
-            cjParsing.parseExpressionCodeFragment()
+            with(AbstractCangJieParsing.ErrorReportContext.REPORT) {
+                cjParsing.parseExpressionCodeFragment()
+            }
+
             return psiBuilder.treeBuilt
         }
 
@@ -78,7 +86,10 @@ class CangJieParser(project: Project) : PsiParser {
                 createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder),
                 )
-            cjParsing.parseTypeCodeFragment()
+            with(AbstractCangJieParsing.ErrorReportContext.REPORT) {
+
+                cjParsing.parseTypeCodeFragment()
+            }
             return psiBuilder.treeBuilt
         }
 
@@ -129,8 +140,10 @@ class CangJieParser(project: Project) : PsiParser {
                 createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder),
                 )
-            cjParsing.parseInitFunctionBody()
+            with(AbstractCangJieParsing.ErrorReportContext.REPORT) {
 
+                cjParsing.parseInitFunctionBody()
+            }
             return psiBuilder.treeBuilt
         }
 
@@ -141,8 +154,10 @@ class CangJieParser(project: Project) : PsiParser {
                 createForTopLevel(
                     SemanticWhitespaceAwarePsiBuilderImpl(psiBuilder),
                 )
-            cjParsing.parseBlockExpression()
+            with(AbstractCangJieParsing.ErrorReportContext.REPORT) {
 
+                cjParsing.parseBlockExpression()
+            }
             return psiBuilder.treeBuilt
         }
     }

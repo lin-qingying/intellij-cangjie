@@ -22,13 +22,13 @@
         <semanticTokensColorsProvider
                 serverId="CangJie"
                 class="org.cangnova.cangjie.lsp4ij.CangJieSemanticTokensColorsProvider" />
-        <server
-                name="CangJie Language Server" factoryClass="org.cangnova.cangjie.lsp4ij.CangJieLanguageServerFactory"
-                id="CangJie">
-            <description><![CDATA[
-        CangJie Language Protocol Server  ]]>
-            </description>
-        </server>
+<!--        <server-->
+<!--                name="CangJie Language Server" factoryClass="org.cangnova.cangjie.lsp4ij.CangJieLanguageServerFactory"-->
+<!--                id="CangJie">-->
+<!--            <description><![CDATA[-->
+<!--        CangJie Language Protocol Server  ]]>-->
+<!--            </description>-->
+<!--        </server>-->
         <languageMapping language="CangJie" serverId="CangJie" languageId="Cangjie"/>
     </extensions>
 </idea-plugin>

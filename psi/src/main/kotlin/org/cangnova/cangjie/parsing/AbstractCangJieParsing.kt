@@ -26,6 +26,7 @@ package org.cangnova.cangjie.parsing
 
 import com.intellij.lang.*
 import com.intellij.lang.impl.PsiBuilderImpl
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 import com.intellij.util.containers.Stack
@@ -45,6 +46,20 @@ abstract class AbstractCangJieParsing(
 ) {
 
     var isDeclarationsFile: Boolean = false
+
+    /**
+     * 错误报告上下文
+     *
+     * @param shouldReportError 是否应该报告错误。true表示报告错误，false表示只标记token不报告错误
+     */
+    data class ErrorReportContext(
+        val shouldReportError: Boolean = true
+    ) {
+        companion object {
+            val REPORT = ErrorReportContext(true)
+            val SILENT = ErrorReportContext(false)
+        }
+    }
 
     fun interface Parser {
         fun parse(builder: PsiBuilder, level: Int): Boolean
@@ -78,8 +93,29 @@ abstract class AbstractCangJieParsing(
      */
     protected fun mark(): PsiBuilder.Marker = builder.mark()
 
+    /**
+     * 可选标记类,用于在解析过程中创建可选的语法树标记
+     *
+     * 该类封装了标记的创建和管理,支持条件性地创建标记。当actuallyMark为true时创建实际的标记,
+     * 否则不创建标记但仍提供相同的API接口。这对于在某些条件下需要跳过标记创建的场景非常有用。
+     *
+     * @param actuallyMark 是否实际创建标记。true表示创建真实标记,false表示跳过标记创建
+     *
+     * 示例:
+     * ```kotlin
+     * // 创建一个实际的标记
+     * val marker = OptionalMarker(true)
+     * parseExpression()
+     * marker.done(CjElementTypes.EXPRESSION)
+     *
+     * // 创建一个不实际标记的实例(用于跳过某些条件下的标记)
+     * val noMarker = OptionalMarker(false)
+     * parseOptionalElement()
+     * noMarker.drop() // 不会有任何效果
+     * ```
+     */
     protected inner class OptionalMarker(actuallyMark: Boolean) {
-        private val marker: PsiBuilder.Marker? = if (actuallyMark) mark() else null
+        val marker: PsiBuilder.Marker? = if (actuallyMark) mark() else null
         private val offset: Int = builder.currentOffset
 
         /**
@@ -94,14 +130,17 @@ abstract class AbstractCangJieParsing(
         /**
          * 报告解析错误
          *
-         * @param message
+         * @param message 错误消息
          */
+        context(context: ErrorReportContext)
         fun error(message: String) {
-            marker?.let {
-                if (offset == builder.currentOffset) {
-                    it.drop()
-                } else {
-                    it.error(message)
+            if (context.shouldReportError) {
+                marker?.let {
+                    if (offset == builder.currentOffset) {
+                        it.drop()
+                    } else {
+                        it.error(message)
+                    }
                 }
             }
         }
@@ -118,11 +157,7 @@ abstract class AbstractCangJieParsing(
 ////////////////////////////////静态类/////////////////////////////////////////////////////////////////
 
 
-
-
-
     companion object {
-
 
 
         private
@@ -420,27 +455,36 @@ abstract class AbstractCangJieParsing(
     /**
      * 报告解析错误并停止解析过程
      *
-     * @param message
+     * @param message 错误消息
      */
+    context(context: ErrorReportContext)
     protected fun error(message: String) {
-        builder.error(message)
+        if (context.shouldReportError) {
+            builder.error(message)
+        }
     }
 
+    /**
+     * 在指定标记之前报告错误
+     *
+     * @param message 错误消息
+     * @param marker 标记位置
+     */
+    context(context: ErrorReportContext)
     protected fun errorBefore(message: String, marker: PsiBuilder.Marker) {
-        val err = marker.precede()
-        //
-        marker.error(message)
-
-
-//      err.done(ERROR_ELEMENT);
+        if (context.shouldReportError) {
+            val err = marker.precede()
+            marker.error(message)
+        }
     }
 
 
     /**
      * 报告解析错误并消耗当前标记
      *
-     * @param message
+     * @param message 错误消息
      */
+    context(context: ErrorReportContext)
     protected fun errorAndAdvance(message: String) {
         errorAndAdvance(message, 1)
     }
@@ -448,23 +492,29 @@ abstract class AbstractCangJieParsing(
     /**
      * 报告解析错误并消耗指定数量的标记
      *
-     * @param message
-     * @param advanceTokenCount
+     * @param message 错误消息
+     * @param advanceTokenCount 要消耗的标记数量
      */
+    context(context: ErrorReportContext)
     protected fun errorAndAdvance(message: String, advanceTokenCount: Int) {
-        val err = mark()
-        advance(advanceTokenCount)
-        err.error(message)
+        if (context.shouldReportError) {
+            val err = mark()
+            advance(advanceTokenCount)
+            err.error(message)
+        } else {
+            advance(advanceTokenCount)
+        }
     }
 
 
     /**
      * 检查当前标记是否为指定的 CjToken 类型，并在标记不匹配时报告错误
      *
-     * @param expectation
-     * @param message
-     * @return
+     * @param expectation 期望的标记类型
+     * @param message 错误消息
+     * @return 是否匹配成功
      */
+    context(context: ErrorReportContext)
     protected fun expect(expectation: IElementType, message: String): Boolean {
         return expect(expectation, message, null)
     }
@@ -472,11 +522,12 @@ abstract class AbstractCangJieParsing(
     /**
      * 检查当前标记是否为指定的复杂标记类型，并在标记不匹配时报告错误
      *
-     * @param expectation
-     * @param message
-     * @param recoverySet
-     * @return
+     * @param expectation 期望的标记类型
+     * @param message 错误消息
+     * @param recoverySet 恢复标记集合
+     * @return 是否匹配成功
      */
+    context(context: ErrorReportContext)
     protected fun expect(expectation: IElementType, message: String, recoverySet: TokenSet?): Boolean {
         if (expect(expectation)) {
             return true
@@ -497,6 +548,15 @@ abstract class AbstractCangJieParsing(
         return false
     }
 
+    /**
+     * 检查当前标记是否在指定的标记集合中，并在不匹配时报告错误
+     *
+     * @param expectationSet 期望的标记集合
+     * @param message 错误消息
+     * @param recoverySet 恢复标记集合
+     * @return 是否匹配成功
+     */
+    context(context: ErrorReportContext)
     protected fun expect(expectationSet: TokenSet, message: String, recoverySet: TokenSet?): Boolean {
         if (expect(expectationSet)) {
             return true
@@ -510,13 +570,14 @@ abstract class AbstractCangJieParsing(
     /**
      * 报告解析错误并尝试恢复解析过程
      *
-     * @param message
-     * @param recoverySet
+     * @param message 错误消息
+     * @param recoverySet 恢复标记集合
      */
+    context(context: ErrorReportContext)
     protected fun errorWithRecovery(message: String, recoverySet: TokenSet?) {
         val tt = tt()
         if (null == recoverySet ||
-            recoverySet.contains(tt) ||  //                tt == LBRACE || tt == RBRACE ||
+            recoverySet.contains(tt) ||
             (recoverySet.contains(CjTokens.EOL_OR_SEMICOLON) && (eof() || tt === CjTokens.SEMICOLON || builder.newlineBeforeCurrentToken()))
         ) {
             error(message)
@@ -556,12 +617,23 @@ abstract class AbstractCangJieParsing(
         }
     }
 
+    /**
+     * 报告错误直到遇到指定的标记集合
+     *
+     * @param message 错误消息
+     * @param tokenSet 停止标记集合
+     */
+    context(context: ErrorReportContext)
     protected fun errorUntil(message: String, tokenSet: TokenSet) {
         assert(tokenSet.contains(CjTokens.LBRACE)) { "Cannot include LBRACE into error element!" }
         assert(tokenSet.contains(CjTokens.RBRACE)) { "Cannot include RBRACE into error element!" }
-        val error = mark()
-        skipUntil(tokenSet)
-        error.error(message)
+        if (context.shouldReportError) {
+            val error = mark()
+            skipUntil(tokenSet)
+            error.error(message)
+        } else {
+            skipUntil(tokenSet)
+        }
     }
 
     /**
@@ -586,9 +658,14 @@ abstract class AbstractCangJieParsing(
 
     /**
      * 报告错误，但不消耗标记
+     *
+     * @param message 错误消息
      */
+    context(context: ErrorReportContext)
     protected fun errorWithoutAdvancing(message: String) {
-        mark().error(message)
+        if (context.shouldReportError) {
+            mark().error(message)
+        }
     }
 
     protected fun rawLookup(steps: Int): IElementType? {
@@ -636,6 +713,8 @@ abstract class AbstractCangJieParsing(
     protected fun createTruncatedBuilder(eofPosition: Int): CangJieParsing {
         return create(TruncatedSemanticWhitespaceAwarePsiBuilder(builder, eofPosition))
     }
+
+    context(context: ErrorReportContext)
 
     protected fun expectSafeCall(expectationSet: TokenSet, message: String, recoverySet: TokenSet?): Boolean {
         val tokenType = getSafeTokenType()
@@ -793,6 +872,8 @@ abstract class AbstractCangJieParsing(
         this.block()
     }
 
+    context(context: ErrorReportContext)
+
     protected fun withRecoveryContext(recoverySet: TokenSet, block: () -> Unit) {
         try {
             block()
@@ -910,6 +991,8 @@ abstract class AbstractCangJieParsing(
      *     }
      * ```
      */
+    context(context: ErrorReportContext)
+
     protected fun expectWithRecovery(expectation: CjToken, recoverySet: TokenSet?): Result<Unit> = runCatching {
         if (!expect(expectation)) {
             val message = "Expected ${expectation.toString()}"
@@ -1129,6 +1212,8 @@ abstract class AbstractCangJieParsing(
         }
     }
 
+    context(context: ErrorReportContext)
+
     protected fun withRecovery(recoverySet: TokenSet, block: () -> Unit): RecoveryScope {
         var error: Throwable? = null
         try {
@@ -1174,6 +1259,8 @@ abstract class AbstractCangJieParsing(
      * }
      * ```
      */
+    context(context: ErrorReportContext)
+
     protected fun parseBlock(block: () -> Unit): RecoveryScope {
         val blockMarker = mark()
         var error: Throwable? = null
@@ -1202,6 +1289,8 @@ abstract class AbstractCangJieParsing(
      * }
      * ```
      */
+    context(context: ErrorReportContext)
+
     protected fun parseExpression(priority: Int = 0, block: () -> Unit): PsiBuilder.Marker {
         val expressionMarker = mark()
         try {
@@ -1279,6 +1368,7 @@ abstract class AbstractCangJieParsing(
         block(modifiers)
     }
 
+    context(context: ErrorReportContext)
 
     protected fun expect(tokenType: IElementType, message: String = "", block: () -> Unit) {
         if (expect(tokenType, message)) {
@@ -1444,6 +1534,13 @@ abstract class AbstractCangJieParsing(
 
         internal fun handleFinally() {
             finallyBlock?.invoke()
+        }
+    }
+
+    context(context: ErrorReportContext)
+    fun error(mark: PsiBuilder.Marker, @NlsContexts.ParsingError message: String) {
+        if (context.shouldReportError) {
+            mark.error(message)
         }
     }
 

@@ -21,6 +21,8 @@
                 serviceInterface="org.cangnova.cangjie.psi.CangJieDeclarationNavigationPolicy"
                 serviceImplementation="org.cangnova.cangjie.ide.navigation.CangJieDeclarationNavigationPolicyImpl"/>
 
+<!--        <annotator language="CangJie" implementationClass="org.cangnova.cangjie.annotator.CangJieAnnotator"/>-->
+
     </extensions>
 
     <!-- 自定义扩展点定义 -->
