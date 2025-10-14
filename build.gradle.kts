@@ -248,8 +248,7 @@ allprojects {
 //        插件上传推送配置
         withType<PublishPluginTask> {
 //           先构建
-//            dependsOn("clean")
-            dependsOn("buildPlugin")
+            dependsOn(":plugin:buildPlugin")
 
             channels.set(props("channel").map { listOf(it) })
 
