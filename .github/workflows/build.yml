@@ -1,10 +1,7 @@
-name: Build
+name: Build (Disabled)
 
 on:
-  push:
-    branches: [ psi ]
-  pull_request:
-    branches: [ psi ]
+  workflow_dispatch:
 
 jobs:
   build:

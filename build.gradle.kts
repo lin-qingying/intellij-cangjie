@@ -161,6 +161,7 @@ allprojects {
         testImplementation("junit:junit:4.13.2")
 // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.12.0")
+        testImplementation(testFixtures(project(":test-common")))
 
         implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
         // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-test-junit

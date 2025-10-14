@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 dependencies {
     testImplementation(kotlin("test"))
+    testImplementation(testFixtures(project(":test-common")))
 
     implementation(project(":util"))
     implementation(project(":icon"))
