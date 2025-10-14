@@ -257,8 +257,8 @@ allprojects {
                     "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
                 ),
             )
-            token = "perm-TGluUWluZ1lpbmc=.OTItMTM3MTY=.Sdwef9GEeYik6FRDN5IB3AaTG57mt9"
-//            token = environment("PUBLISH_TOKEN")
+
+            token = environment("PUBLISH_TOKEN")
         }
 
 

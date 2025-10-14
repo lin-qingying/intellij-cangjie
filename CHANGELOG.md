@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 1.2.0
+
+### Fixed
+
+- [gitcode@issue#19](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie/issues/19)
+- 优化psi错误报告形式
+
+## 1.1.0
+
 ## 1.0.9
 
 ### Fixed
