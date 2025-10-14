@@ -34,6 +34,7 @@ import com.intellij.psi.tree.TokenSet
 import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.lexer.CjTokens.*
+import org.cangnova.cangjie.messages.CangJieParsingBundle
 import org.cangnova.cangjie.parsing.CangJieParsing.Companion.PARAMETER_NAME_RECOVERY_SET
 import org.cangnova.cangjie.psi.CjNodeTypes
 import org.cangnova.cangjie.psi.CjNodeTypes.*
@@ -441,7 +442,7 @@ open class CangJieExpressionParsing(
             cangJieParsing.parseSynchronizedExpression()
             return
         } else if (!atSet(context.expressionFirst)) {
-            error("Expecting an expression")
+            error(CangJieParsingBundle.message("parsing.error.expecting.expression"))
             return
         }
         parseBinaryExpression(Precedence.ASSIGNMENT)
@@ -498,7 +499,12 @@ open class CangJieExpressionParsing(
             expression.done(PREFIX_EXPRESSION)
         } else {
             if (at(MINUSMINUS) || at(PLUSPLUS) || at(PLUS)) {
-                errorAndAdvance("expected expression or declaration, found '${builder.tokenText}'")
+                errorAndAdvance(
+                    CangJieParsingBundle.message(
+                        "parsing.error.expected.expression.or.declaration",
+                        builder.tokenText ?: "<unknown>"
+                    )
+                )
             }
             builder.restoreJoiningComplexTokensState()
             parsePostfixExpression()
@@ -538,29 +544,34 @@ open class CangJieExpressionParsing(
                     advance()
 
                     val typeArgumentList = mark()
-                    expect(LT, "Should be '<'")
+                    expect(LT, CangJieParsingBundle.message("parsing.error.expecting.symbol", "<"))
                     val projection = mark()
 
                     cangJieParsing.parseTypeRef(TYPE_ARGUMENT_LIST_STOPPERS)
 
                     projection.done(TYPE_PROJECTION)
 
-                    expect(COMMA, "Should be ','")
-                    expect(DOLLAR, "Should be '$'")
+                    expect(COMMA, CangJieParsingBundle.message("parsing.error.expecting.symbol", ","))
+                    expect(DOLLAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", "$"))
 
-                    expect(INTEGER_LITERAL, "Should be integer literal")
-                    expect(GT, "Should be '>'")
+                    expect(INTEGER_LITERAL, CangJieParsingBundle.message("parsing.error.expecting", "integer literal"))
+                    expect(GT, CangJieParsingBundle.message("parsing.error.expecting.symbol", ">"))
 
                     typeArgumentList.done(TYPE_ARGUMENT_LIST)
 
                     mark.done(REFERENCE_EXPRESSION)
                     if (!at(LPAR)) {
-                        error("Should be '('")
+                        error(CangJieParsingBundle.message("parsing.error.should.be.left.paren"))
                     }
 
                     false
                 } else if (atSet(BASICTYPES)) {
-                    errorAndAdvance("expected expression or declaration, found keyword ${builder.tokenText}")
+                    errorAndAdvance(
+                        CangJieParsingBundle.message(
+                            "parsing.error.expected.expression.or.declaration.keyword",
+                            builder.tokenText ?: "<unknown>"
+                        )
+                    )
                     false
                 } else {
                     parseAtomicExpression()
@@ -729,7 +740,7 @@ open class CangJieExpressionParsing(
             LET_KEYWORD_Id -> if (context.allowLetExpression) {
                 parseLetExpression()
             } else {
-                error("let-expression can only be used in if/while conditions")
+                error(CangJieParsingBundle.message("parsing.error.let.expression.only.in.conditions"))
                 ok = false
             }
             IDENTIFIER_Id -> parseSimpleNameExpression()
@@ -778,7 +789,7 @@ open class CangJieExpressionParsing(
     context(context: ExpressionParseContext)
     fun parseSimpleNameExpression() {
         val simpleName = mark()
-        expect(IDENTIFIER, "Expecting an identifier")
+        expect(IDENTIFIER, CangJieParsingBundle.message("parsing.error.expecting", "an identifier"))
 
         if (at(LT) && context.parseTypeArguments) {
             val typeArgumentList = mark()
@@ -855,7 +866,7 @@ open class CangJieExpressionParsing(
                 parseExpression()
             }
         }
-        expect(RPAR, "Expecting ')'")
+        expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
         builder.restoreNewlinesState()
 
         when {
@@ -893,9 +904,9 @@ open class CangJieExpressionParsing(
                 if (at(RPAR)) {
                     break
                 }
-                expect(COMMA, "Expecting ','")
+                expect(COMMA, CangJieParsingBundle.message("parsing.error.expecting.symbol", ","))
             }
-            expect(RPAR, "Expecting ')'")
+            expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
         }
         tuple.done(TUPLE_EXPRESSION)
     }
@@ -991,7 +1002,7 @@ open class CangJieExpressionParsing(
         } else {
             parseInnerExpressions(missingElementErrorMessage)
         }
-        expect(RBRACKET, "Expecting ']'")
+        expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
         builder.restoreNewlinesState()
         innerExpressions.done(nodeType)
     }
@@ -1079,9 +1090,9 @@ open class CangJieExpressionParsing(
             parseStringTemplateElement()
         }
         if (at(DANGLING_NEWLINE)) {
-            errorAndAdvance("Expecting '\"'")
+            errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.double.quote"))
         } else {
-            expect(CLOSING_QUOTE, "Expecting '\"'")
+            expect(CLOSING_QUOTE, CangJieParsingBundle.message("parsing.error.expecting.symbol", "\""))
         }
         template.done(STRING_TEMPLATE)
     }
@@ -1121,10 +1132,10 @@ open class CangJieExpressionParsing(
                 val keyword: CjToken? = KEYWORD_TEXTS.get(builder.tokenText)
                 if (keyword != null) {
                     builder.remapCurrentToken(keyword)
-                    errorAndAdvance("Keyword cannot be used as a reference")
+                    errorAndAdvance(CangJieParsingBundle.message("parsing.error.keyword.cannot.be.reference"))
                 } else {
                     val reference = mark()
-                    expect(IDENTIFIER, "Expecting a name")
+                    expect(IDENTIFIER, CangJieParsingBundle.message("parsing.error.expecting", "a name"))
                     reference.done(REFERENCE_EXPRESSION)
                 }
             }
@@ -1139,7 +1150,7 @@ open class CangJieExpressionParsing(
                     advance()
                     break
                 } else {
-                    error("Expecting '}'")
+                    error(CangJieParsingBundle.message("parsing.error.expecting.right.brace"))
                     if (offset == builder.currentOffset) {
                         advance()
                     }
@@ -1147,7 +1158,7 @@ open class CangJieExpressionParsing(
             }
             longTemplateEntry.done(LONG_STRING_TEMPLATE_ENTRY)
         } else {
-            errorAndAdvance("Unexpected token in a string template")
+            errorAndAdvance(CangJieParsingBundle.message("parsing.error.unexpected.token.string.template"))
         }
     }
 
@@ -1193,7 +1204,7 @@ open class CangJieExpressionParsing(
             val elseBranch = mark()
             if (!at(SEMICOLON)) {
                 if (!at(LBRACE) && !at(IF_KEYWORD)) {
-                    error("Expecting code block or if")
+                    error(CangJieParsingBundle.message("parsing.error.code.block.or.if"))
                 } else if (at(IF_KEYWORD)) {
                     with(ExpressionParseContext.DEFAULT) {
                         parseBlockLevelExpression()
@@ -1234,21 +1245,17 @@ open class CangJieExpressionParsing(
         builder.restoreNewlinesState()
 
         builder.enableNewlines()
-        if (expect(LBRACE, "Expecting '{'")) {
-            if (!at(CASE_KEYWORD)) {
-                error("Expecting 'case'")
-            }
-
+        if (expect(LBRACE, CangJieParsingBundle.message("parsing.error.expecting.symbol", "{"))) {
             while (!eof() && !at(RBRACE)) {
                 if (!at(CASE_KEYWORD)) {
-                    errorAndAdvance("Expecting 'case'")
+                    errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.keyword", "case"))
                 } else {
                     with(matchContext) {
                         parseMatchEntry()
                     }
                 }
             }
-            expect(RBRACE, "Expecting '}'")
+            expect(RBRACE, CangJieParsingBundle.message("parsing.error.expecting.symbol", "}"))
         }
         builder.restoreNewlinesState()
         match.done(MATCH)
@@ -1276,10 +1283,10 @@ open class CangJieExpressionParsing(
                 advance()
                 parseCasePattern()
             }
-            expect(DOUBLE_ARROW, "Expecting '=>'")
+            expect(DOUBLE_ARROW, CangJieParsingBundle.message("parsing.error.expecting.symbol", "=>"))
             parseCaseBody()
         } else {
-            error("Expecting 'case'")
+            error(CangJieParsingBundle.message("parsing.error.expecting.keyword", "case"))
         }
 
         entry.done(MATCH_ENTRY)
@@ -1299,7 +1306,7 @@ open class CangJieExpressionParsing(
         val body = mark()
         if (!at(SEMICOLON)) {
             if (at(RBRACE) || at(CASE_KEYWORD)) {
-                error("match case cannot be empty")
+                error(CangJieParsingBundle.message("parsing.error.match.case.cannot.be.empty"))
                 body.drop()
                 return
             } else {
@@ -1351,10 +1358,15 @@ open class CangJieExpressionParsing(
                 val resource = mark()
 
                 val valueParameter = mark()
-                expect(IDENTIFIER, "Expecting resource name")
+                expect(IDENTIFIER, CangJieParsingBundle.message("parsing.error.expecting", "resource name"))
                 valueParameter.done(VALUE_PARAMETER)
 
-                if (expect(EQ, "Expecting '='", TRY_CATCH_RECOVERY_TOKEN_SET)) {
+                if (expect(
+                        EQ,
+                        CangJieParsingBundle.message("parsing.error.expecting.symbol", "="),
+                        TRY_CATCH_RECOVERY_TOKEN_SET
+                    )
+                ) {
                     with(ExpressionParseContext.DEFAULT) {
                         parseExpression()
                     }
@@ -1364,7 +1376,7 @@ open class CangJieExpressionParsing(
             } while (at(COMMA))
 
             resourceList.done(TRY_RESOURCE_LIST)
-            expect(RPAR, "Expecting ')'")
+            expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
         }
 
         cangJieParsing.parseBlock()
@@ -1373,11 +1385,13 @@ open class CangJieExpressionParsing(
             catchOrFinally = true
             val catchBlock = mark()
             advance()
-            if (atSet(TRY_CATCH_RECOVERY_TOKEN_SET)) {
-                error("Expecting exception variable declaration")
-            } else {
-                val parameter = mark()
-                expect(LPAR, "Expecting '('", TRY_CATCH_RECOVERY_TOKEN_SET)
+            val parameter = mark()
+            if (expect(
+                    LPAR,
+                    CangJieParsingBundle.message("parsing.error.expecting.symbol", "("),
+                    TRY_CATCH_RECOVERY_TOKEN_SET
+                )
+            ) {
                 if (!atSet(TRY_CATCH_RECOVERY_TOKEN_SET)) {
                     if (at(UNDERLINE)) {
                         advance()
@@ -1386,24 +1400,31 @@ open class CangJieExpressionParsing(
                             parseTypeReferencesByOr()
                         }
                     } else {
-                        expect(IDENTIFIER, "Expecting exception variable name")
+                        expect(
+                            IDENTIFIER,
+                            CangJieParsingBundle.message("parsing.error.expecting", "exception variable name")
+                        )
 
-                        if (expect(COLON, "Expecting ':'")) {
+                        if (expect(COLON, CangJieParsingBundle.message("parsing.error.expecting.symbol", ":"))) {
                             parseTypeReferencesByOr()
                         }
                     }
 
-                    expect(RPAR, "Expecting ')'", TRY_CATCH_RECOVERY_TOKEN_SET)
+                    expect(
+                        RPAR,
+                        CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"),
+                        TRY_CATCH_RECOVERY_TOKEN_SET
+                    )
                 } else {
-                    error("Expecting exception variable declaration")
+                    error(CangJieParsingBundle.message("parsing.error.exception.variable.declaration"))
                 }
-
-                parameter.done(CATCH_PARAMETER)
             }
+
+            parameter.done(CATCH_PARAMETER)
             if (at(LBRACE)) {
                 cangJieParsing.parseBlock()
             } else {
-                error("Expecting a block: { ... }")
+                error(CangJieParsingBundle.message("parsing.error.block"))
             }
             catchBlock.done(CATCH)
         }
@@ -1415,7 +1436,7 @@ open class CangJieExpressionParsing(
             finallyBlock.done(FINALLY)
         }
         if (!catchOrFinally && !isTryWithResources) {
-            error("Expecting 'catch' or 'finally'")
+            error(CangJieParsingBundle.message("parsing.error.catch.or.finally"))
         }
         tryExpression.done(TRY)
     }
@@ -1453,7 +1474,7 @@ open class CangJieExpressionParsing(
         assert(_at(FOR_KEYWORD))
         val loop = mark()
         advance()
-        if (expect(LPAR, "Expecting '(' to open a loop range", EXPRESSION_FIRST)) {
+        if (expect(LPAR, CangJieParsingBundle.message("parsing.error.loop.range"), EXPRESSION_FIRST)) {
             builder.disableNewlines()
             if (!at(RPAR)) {
                 if (!at(IN_KEYWORD)) {
@@ -1462,7 +1483,12 @@ open class CangJieExpressionParsing(
 
                 PatternParser(PatternParseContext.DEFAULT).parsePattern()
 
-                if (expect(IN_KEYWORD, "Expecting 'in'", L_PAR_L_BRACE_R_PAR_SET)) {
+                if (expect(
+                        IN_KEYWORD,
+                        CangJieParsingBundle.message("parsing.error.expecting.in"),
+                        L_PAR_L_BRACE_R_PAR_SET
+                    )
+                ) {
                     val range = mark()
                     with(ExpressionParseContext.DEFAULT) {
                         parseExpression()
@@ -1474,9 +1500,9 @@ open class CangJieExpressionParsing(
                     parsePatternGuard()
                 }
             } else {
-                error("Expecting a variable name")
+                error(CangJieParsingBundle.message("parsing.error.variable.name"))
             }
-            expectNoAdvance(RPAR, "Expecting ')'")
+            expectNoAdvance(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
             builder.restoreNewlinesState()
         }
         parseLoopBody()
@@ -1519,7 +1545,7 @@ open class CangJieExpressionParsing(
         if (!at(WHILE_KEYWORD)) {
             parseLoopBody()
         }
-        if (expect(WHILE_KEYWORD, "Expecting 'while' followed by a post-condition")) {
+        if (expect(WHILE_KEYWORD, CangJieParsingBundle.message("parsing.error.while.post.condition"))) {
             parseCondition()
         }
         loop.done(DO_WHILE)
@@ -1568,7 +1594,7 @@ open class CangJieExpressionParsing(
             }
 
             condition.done(CONDITION)
-            expect(RPAR, "Expecting ')")
+            expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
         }
         builder.restoreNewlinesState()
     }
@@ -1660,7 +1686,7 @@ open class CangJieExpressionParsing(
         if (at(LEFT_ARROW)) {
             advance()
         } else {
-            error("Expecting '<-' in let expression")
+            error(CangJieParsingBundle.message("parsing.error.left.arrow.in.let"))
         }
 
         with(ExpressionParseContext.DEFAULT) {
@@ -1812,7 +1838,7 @@ open class CangJieExpressionParsing(
                 }
 
                 else -> {
-                    error("Expecting a pattern expression")
+                    error(CangJieParsingBundle.message("parsing.error.pattern.expression"))
                     constantPattern.drop()
                 }
             }
@@ -1887,7 +1913,7 @@ open class CangJieExpressionParsing(
                 val nestedParser = PatternParser(nestedContext)
                 nestedParser.parseTuplePatternElements()
             }
-            expect(RPAR, "Expecting ')'")
+            expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
 
             when {
                 isUnit -> {
@@ -1915,7 +1941,7 @@ open class CangJieExpressionParsing(
                     parsePattern()
                 }
             } else {
-                error("Expecting Tuple expression")
+                error(CangJieParsingBundle.message("parsing.error.tuple.expression"))
             }
         }
 
@@ -1930,7 +1956,7 @@ open class CangJieExpressionParsing(
                     parseExpression()
                 }
             }
-            expect(RPAR, "Expecting ')'")
+            expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
         }
 
         private fun validateAndDonePattern(
@@ -1941,7 +1967,12 @@ open class CangJieExpressionParsing(
             if (context.isPatternAllowed(patternType) || context.nestingLevel > 0) {
                 marker.done(nodeType)
             } else {
-                marker.error("${patternType.displayName} are not supported here")
+                marker.error(
+                    CangJieParsingBundle.message(
+                        "parsing.error.pattern.not.supported",
+                        patternType.displayName
+                    )
+                )
             }
         }
 
@@ -2054,13 +2085,13 @@ open class CangJieExpressionParsing(
                 rollbackOrDropAt(rollbackMarker, DOUBLE_ARROW)
             }
         } else if (context.isDoubleArrow) {
-            error("expected '=>' in lambda expression, found '${builder.tokenText}'")
+            error(CangJieParsingBundle.message("parsing.error.lambda.arrow.expected", builder.tokenText ?: ""))
         }
 
         if (!paramsFound && context.preferBlock) {
             literal.drop()
             parseStatements()
-            expect(RBRACE, "Expecting '}'")
+            expect(RBRACE, CangJieParsingBundle.message("parsing.error.expecting.symbol", "}"))
             literalExpression.done(BLOCK)
             builder.restoreNewlinesState()
             return
@@ -2077,7 +2108,7 @@ open class CangJieExpressionParsing(
             body.done(BLOCK)
             body.setCustomEdgeTokenBinders(PRECEDING_ALL_COMMENTS_BINDER, TRAILING_ALL_COMMENTS_BINDER)
 
-            expect(RBRACE, "Expecting '}'")
+            expect(RBRACE, CangJieParsingBundle.message("parsing.error.expecting.symbol", "}"))
             literal.done(FUNCTION_LITERAL)
             literalExpression.done(LAMBDA_EXPRESSION)
         }
@@ -2108,7 +2139,7 @@ open class CangJieExpressionParsing(
             val parameter = mark()
 
             if (at(COLON)) {
-                error("Expecting parameter name")
+                error(CangJieParsingBundle.message("parsing.error.parameter.name"))
             } else {
                 expect(
                     IDENTIFIER_RECOVERY_SET,
@@ -2128,7 +2159,7 @@ open class CangJieExpressionParsing(
             } else if (at(COMMA)) {
                 advance()
             } else {
-                error("Expecting '->' or ','")
+                error(CangJieParsingBundle.message("parsing.error.arrow.or.comma"))
                 break
             }
         }
@@ -2310,14 +2341,14 @@ open class CangJieExpressionParsing(
         if (expectSafeCall(sturctStart, "Expecting an argument list", EXPRESSION_FOLLOW)) {
             if (!at(sturctEnd)) {
                 while (true) {
-                    while (at(COMMA)) errorAndAdvance("Expecting an argument")
+                    while (at(COMMA)) errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.element.argument"))
                     parseValueArgument()
                     if (at(COLON) && lookahead(1) === IDENTIFIER) {
-                        errorAndAdvance("Unexpected type specification", 2)
+                        errorAndAdvance(CangJieParsingBundle.message("parsing.error.unexpected.type.specification"), 2)
                     }
                     if (!at(COMMA)) {
                         if (atSet(EXPRESSION_FIRST)) {
-                            error("Expecting ','")
+                            error(CangJieParsingBundle.message("parsing.error.expecting.symbol", ","))
                             continue
                         } else {
                             break
@@ -2329,7 +2360,11 @@ open class CangJieExpressionParsing(
                     }
                 }
             }
-            expect(sturctEnd, "Expecting '${sturctEnd.name}'", EXPRESSION_FOLLOW)
+            expect(
+                sturctEnd,
+                CangJieParsingBundle.message("parsing.error.expecting.symbol", sturctEnd.name ?: ")"),
+                EXPRESSION_FOLLOW
+            )
         }
         builder.restoreNewlinesState()
         list.done(VALUE_ARGUMENT_LIST)
@@ -2353,7 +2388,7 @@ open class CangJieExpressionParsing(
         while (at(SEMICOLON)) advance()
         while (!eof() && !at(RBRACE) && !at(type)) {
             if (!atSet(STATEMENT_FIRST)) {
-                errorAndAdvance("Expecting an element")
+                errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.element.element"))
             }
             if (atSet(STATEMENT_FIRST)) {
                 with(ExpressionParseContext.DEFAULT) {
@@ -2394,7 +2429,7 @@ open class CangJieExpressionParsing(
         while (at(SEMICOLON)) advance()
         while (!eof() && !at(RBRACE)) {
             if (!atSet(STATEMENT_FIRST)) {
-                errorAndAdvance("Expecting an element")
+                errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.element.element"))
             }
 
             if (atSet(STATEMENT_FIRST)) {
@@ -2428,7 +2463,7 @@ open class CangJieExpressionParsing(
         while (at(SEMICOLON)) advance()
         while (!eof() && !at(LONG_TEMPLATE_ENTRY_END)) {
             if (!atSet(STATEMENT_FIRST)) {
-                errorAndAdvance("Expecting an element")
+                errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.element.element"))
             }
 
             if (atSet(STATEMENT_FIRST)) {
@@ -2468,7 +2503,7 @@ open class CangJieExpressionParsing(
     fun parseStatement() {
         if (!parseLocalDeclaration(false)) {
             if (!atSet(context.expressionFirst)) {
-                errorAndAdvance("Expecting a statement")
+                errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.element.statement"))
             } else {
                 parseBlockLevelExpression()
             }
@@ -2483,7 +2518,7 @@ open class CangJieExpressionParsing(
     fun parseStatementByScope(scope: DeclarationParsingMode) {
         if (!parseDeclaration(scope, false)) {
             if (!atSet(EXPRESSION_FIRST)) {
-                errorAndAdvance("Expecting a statement")
+                errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.element.statement"))
             } else {
                 with(ExpressionParseContext.DEFAULT) {
                     parseBlockLevelExpression()
@@ -2531,7 +2566,7 @@ open class CangJieExpressionParsing(
 
         parseStatements()
 
-        expect(RBRACE, "Expecting '}'")
+        expect(RBRACE, CangJieParsingBundle.message("parsing.error.expecting.symbol", "}"))
 
         block.done(BLOCK)
     }
@@ -2565,11 +2600,11 @@ open class CangJieExpressionParsing(
             advance()
             parseStatements()
 
-            expect(RBRACE, "Expecting '}'")
+            expect(RBRACE, CangJieParsingBundle.message("parsing.error.expecting.symbol", "}"))
 
             body.done(BLOCK)
         } else {
-            error("Expecting '{'")
+            error(CangJieParsingBundle.message("parsing.error.expecting.symbol", "{"))
         }
     }
 
@@ -2605,7 +2640,7 @@ open class CangJieExpressionParsing(
             decl.rollbackTo()
             return parseLocalDeclaration(rollbackIfDefinitelyNotExpression, true)
         } else if (declType == INVALID_DECLARATION) {
-            decl.error("Invalid declaration in scope")
+            decl.error(CangJieParsingBundle.message("parsing.error.invalid.declaration.scope"))
             true
         } else if (declType != null) {
             closeDeclarationWithCommentBinders(
@@ -2720,10 +2755,10 @@ open class CangJieExpressionParsing(
         val quoteExpression = mark()
         advance()
 
-        expect(LPAR, "expected '(' after 'quote'") {
+        expect(LPAR, CangJieParsingBundle.message("parsing.error.quote.after.paren")) {
             parseQuoteParameters()
         }
-        expect(RPAR, "expected ')' ")
+        expect(RPAR, CangJieParsingBundle.message("parsing.error.close.paren"))
         quoteExpression.done(QUOTE_EXPRESSION)
 
         quoteExpressionParsing.parseQuoteExpression()
@@ -2758,7 +2793,7 @@ open class CangJieExpressionParsing(
                         break
                     }
                 } else if (at(DOLLAR)) {
-                    errorAndAdvance("expected identifier or '(' after '$'")
+                    errorAndAdvance(CangJieParsingBundle.message("parsing.error.expected.identifier.after.dollar"))
                 } else if (at(ESCAPE_LBRACKET) || at(ESCAPE_RBRACKET)) {
                     errorAndAdvance("Illegal Token")
                 }
@@ -2939,7 +2974,7 @@ open class CangJieExpressionParsing(
         var declType = parseMacroInputExprWithoutParensDeclaration(modifiterDetector)
 
         if (declType == null) {
-            if (at(IDENTIFIER) && modifiterDetector.getSize() <= 0) {
+            if (at(IDENTIFIER) && modifiterDetector.count <= 0) {
                 advance()
                 if (at(LPAR)) {
                     if (lookahead(1) == IDENTIFIER && lookahead(2) === COLON || lookahead(1) == RPAR) {
@@ -3030,7 +3065,7 @@ open class CangJieExpressionParsing(
                         break
                     }
                 } else if (at(DOLLAR)) {
-                    errorAndAdvance("expected identifier or '(' after '$'")
+                    errorAndAdvance(CangJieParsingBundle.message("parsing.error.expected.identifier.after.dollar"))
                 } else if (at(ESCAPE_LBRACKET) || at(ESCAPE_RBRACKET)) {
                     errorAndAdvance("Illegal Token")
                 }
@@ -3039,7 +3074,7 @@ open class CangJieExpressionParsing(
         }
         tokens.done(CjNodeTypes.QUOTE_TOKENS)
 
-        expect(RPAR, "expected ')'")
+        expect(RPAR, CangJieParsingBundle.message("parsing.error.close.paren"))
     }
 
     /**
@@ -3072,14 +3107,14 @@ open class CangJieExpressionParsing(
                     parseStringTemplate()
                     break
                 } else if (at(DOLLAR)) {
-                    errorAndAdvance("expected identifier or '(' after '$'")
+                    errorAndAdvance(CangJieParsingBundle.message("parsing.error.expected.identifier.after.dollar"))
                 } else if (at(ESCAPE_LPAR) || at(ESCAPE_RPAR)) {
                     errorAndAdvance("Illegal Token")
                 }
                 advance()
             }
             tokens.done(CjNodeTypes.QUOTE_TOKENS)
-            expect(RBRACKET, "expected ']'")
+            expect(RBRACKET, CangJieParsingBundle.message("parsing.error.close.bracket"))
         } else {
             error("expected '['")
         }

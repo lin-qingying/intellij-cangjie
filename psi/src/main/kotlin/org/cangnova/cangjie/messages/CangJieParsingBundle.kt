@@ -22,21 +22,28 @@
  *
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+package org.cangnova.cangjie.messages
 
-dependencies {
-    testImplementation(kotlin("test"))
+import org.jetbrains.annotations.Nls
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.PropertyKey
 
-    implementation(project(":util"))
-    implementation(project(":icon"))
-    implementation(project(":messages"))
+@NonNls
+const val PARSING_BUNDLE = "messages.CangJieParsingBundle"
 
-    implementation(project(":common"))
-    implementation(project(":telemetry"))
+object CangJieParsingBundle : AbstractCangJieBundle(PARSING_BUNDLE) {
+    @Nls
+    @JvmStatic
+    fun message(@NonNls @PropertyKey(resourceBundle = PARSING_BUNDLE) key: String, vararg params: Any): String =
+        getMessage(key, *params)
 
-}
+    @Nls
+    @JvmStatic
+    fun htmlMessage(@NonNls @PropertyKey(resourceBundle = PARSING_BUNDLE) key: String, vararg params: Any): String =
+        getMessage(key, *params).withHtml()
 
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.compilerOptions {
-    freeCompilerArgs.set(listOf("-Xcontext-parameters"))
+    @Nls
+    @JvmStatic
+    fun lazyMessage(@PropertyKey(resourceBundle = PARSING_BUNDLE) key: String, vararg params: Any): () -> String =
+        { getMessage(key, *params) }
 }
