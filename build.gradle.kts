@@ -27,7 +27,6 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
-import org.jetbrains.intellij.platform.gradle.tasks.PublishPluginTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.LocalDate
@@ -184,7 +183,7 @@ allprojects {
                     types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
                     channels = listOf(ProductRelease.Channel.RELEASE)
                     sinceBuild = "241"
-                    untilBuild = "253.*"
+//                    untilBuild = "253.*"
                 }
             }
         }
@@ -246,8 +245,9 @@ allprojects {
 
 
 //        插件上传推送配置
-        withType<PublishPluginTask> {
-//           先构建
+
+        publishPlugin {
+            //           先构建
             dependsOn(":plugin:buildPlugin")
 
             channels.set(props("channel").map { listOf(it) })
@@ -257,9 +257,9 @@ allprojects {
                     "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
                 ),
             )
-            token = environment("PUBLISH_TOKEN")
+            token = "perm-TGluUWluZ1lpbmc=.OTItMTM3MTY=.Sdwef9GEeYik6FRDN5IB3AaTG57mt9"
+//            token = environment("PUBLISH_TOKEN")
         }
-
 
 
         runIde { enabled = false }
@@ -417,7 +417,10 @@ project(":plugin") {
 //            pluginVersion.set(cangjiePluginVersion)
 //
             sinceBuild.set(prop("sinceBuild"))
-            untilBuild.set(prop("untilBuild"))
+            val untilBuildValue = prop("untilBuild")
+            if (untilBuildValue.isNotEmpty()) {
+                untilBuild.set(untilBuildValue)
+            }
             pluginVersion.set(cangjiePluginVersion)
 
 
