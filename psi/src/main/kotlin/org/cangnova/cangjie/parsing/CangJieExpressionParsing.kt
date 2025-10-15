@@ -1102,7 +1102,7 @@ open class CangJieExpressionParsing(
             parseStringTemplateElement()
         }
         if (at(DANGLING_NEWLINE)) {
-            errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.double.quote"))
+            errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.symbol", "\""))
         } else {
             expect(CLOSING_QUOTE, CangJieParsingBundle.message("parsing.error.expecting.symbol", "\""))
         }
@@ -1162,7 +1162,7 @@ open class CangJieExpressionParsing(
                     advance()
                     break
                 } else {
-                    error(CangJieParsingBundle.message("parsing.error.expecting.right.brace"))
+                    error(CangJieParsingBundle.message("parsing.error.expecting.symbol", "}"))
                     if (offset == builder.currentOffset) {
                         advance()
                     }
@@ -2421,7 +2421,7 @@ open class CangJieExpressionParsing(
             } else if (at(type)) {
                 break
             } else if (!builder.newlineBeforeCurrentToken()) {
-                val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
+                val severalStatementsError = CangJieParsingBundle.message("parsing.error.unexpected.tokens.same.line")
                 if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
                     error(severalStatementsError)
                 } else {
@@ -2462,7 +2462,7 @@ open class CangJieExpressionParsing(
             } else if (at(RBRACE)) {
                 break
             } else if (!builder.newlineBeforeCurrentToken()) {
-                val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
+                val severalStatementsError = CangJieParsingBundle.message("parsing.error.unexpected.tokens.same.line")
                 if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
                     error(severalStatementsError)
                 } else {
@@ -2496,7 +2496,7 @@ open class CangJieExpressionParsing(
             } else if (at(LONG_TEMPLATE_ENTRY_END)) {
                 break
             } else if (!builder.newlineBeforeCurrentToken()) {
-                val severalStatementsError = "Unexpected tokens (use ';' to separate expressions on the same line)"
+                val severalStatementsError = CangJieParsingBundle.message("parsing.error.unexpected.tokens.same.line")
                 if (atSet(STATEMENT_NEW_LINE_QUICK_RECOVERY_SET)) {
                     error(severalStatementsError)
                 } else {
@@ -2774,10 +2774,10 @@ open class CangJieExpressionParsing(
         val quoteExpression = mark()
         advance()
 
-        expect(LPAR, CangJieParsingBundle.message("parsing.error.quote.after.paren")) {
+        expect(LPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", "(")) {
             parseQuoteParameters()
         }
-        expect(RPAR, CangJieParsingBundle.message("parsing.error.close.paren"))
+        expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
         quoteExpression.done(QUOTE_EXPRESSION)
 
         quoteExpressionParsing.parseQuoteExpression()
@@ -2793,7 +2793,9 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseQuoteParameters() {
+    context(errContext: ErrorReportContext)
+    private fun parseQuoteParameters() {
+//        TODO 后期可能要根据实际代码解析为对应结构
         val quoteParameters = mark()
 
         var lparCount = 0
@@ -3093,7 +3095,7 @@ open class CangJieExpressionParsing(
         }
         tokens.done(CjNodeTypes.QUOTE_TOKENS)
 
-        expect(RPAR, CangJieParsingBundle.message("parsing.error.close.paren"))
+        expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
     }
 
     /**
@@ -3120,11 +3122,9 @@ open class CangJieExpressionParsing(
                     if (lparCount < 0) {
                         break
                     }
-                } else if (
-                    at(OPEN_QUOTE)
-                ) {
+                } else if (at(OPEN_QUOTE)) {
                     parseStringTemplate()
-                    break
+continue
                 } else if (at(DOLLAR)) {
                     errorAndAdvance(CangJieParsingBundle.message("parsing.error.expected.identifier.after.dollar"))
                 } else if (at(ESCAPE_LPAR) || at(ESCAPE_RPAR)) {
@@ -3133,7 +3133,7 @@ open class CangJieExpressionParsing(
                 advance()
             }
             tokens.done(CjNodeTypes.QUOTE_TOKENS)
-            expect(RBRACKET, CangJieParsingBundle.message("parsing.error.close.bracket"))
+            expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
         } else {
             error("expected '['")
         }
@@ -3286,6 +3286,7 @@ open class CangJieExpressionParsing(
 
         val QUOTE_TOKENS = TokenSet.orSet(
             TokenSet.create(
+                ESCAPE_SEQUENCE,
                 STRING_TEMPLATE,
                 REGULAR_STRING_PART,
                 OPEN_QUOTE,
@@ -3309,8 +3310,8 @@ open class CangJieExpressionParsing(
                 COMPOSITION,
                 PLUSPLUS,
                 MINUSMINUS,
-                AND,
-                OR,
+                ANDAND,
+                OROR,
                 EXCL,
                 AND,
                 OR,

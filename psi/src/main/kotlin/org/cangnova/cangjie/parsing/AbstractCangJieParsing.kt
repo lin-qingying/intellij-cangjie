@@ -1068,13 +1068,19 @@ abstract class AbstractCangJieParsing(
      * @param expectation
      * @param message
      */
+    context(context: ErrorReportContext)
+
     protected fun expectNoAdvance(expectation: CjToken, message: String) {
+
         if (at(expectation)) {
             advance()
             return
         }
+        if(context.shouldReportError){
+             error(message)
+        }
 
-        error(message)
+
     }
 
     protected fun advanceOperationToken(type: IElementType?) {

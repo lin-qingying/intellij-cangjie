@@ -26,7 +26,6 @@ package org.cangnova.cangjie.parsing
 
 import com.intellij.lang.PsiBuilder
 import com.intellij.lang.WhitespacesBinders
-import com.intellij.lang.impl.PsiBuilderImpl
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
@@ -34,6 +33,7 @@ import org.cangnova.cangjie.lexer.CjTokens.*
 import org.cangnova.cangjie.messages.CangJieParsingBundle
 import org.cangnova.cangjie.psi.CjNodeTypes.*
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE
+
 
 class CangJieParsing private constructor(
     builder: SemanticWhitespaceAwarePsiBuilder, isTopLevel: Boolean, isLazy: Boolean
@@ -54,7 +54,7 @@ class CangJieParsing private constructor(
             TokenSet.orSet(TokenSet.create(LT, EQ, SEMICOLON), TOP_LEVEL_DECLARATION_FIRST)
 
         private val CLASS_NAME_RECOVERY_SET =
-            TokenSet.orSet(TokenSet.create(LT, LPAR, COLON, LBRACE), TOP_LEVEL_DECLARATION_FIRST)
+            TokenSet.orSet(TokenSet.create(LT, LPAR, LTCOLON, LBRACE), TOP_LEVEL_DECLARATION_FIRST)
         private val TYPE_PARAMETER_GT_RECOVERY_SET = TokenSet.create(WHERE_KEYWORD, LPAR, COLON, LBRACE, GT)
         private val PACKAGE_NAME_RECOVERY_SET = TokenSet.create(DOT, EOL_OR_SEMICOLON)
         private val IMPORT_RECOVERY_SET = TokenSet.create(AS_KEYWORD, DOT, EOL_OR_SEMICOLON)
@@ -2073,7 +2073,11 @@ class CangJieParsing private constructor(
      * @param detector 修饰符检测器
      * @return 解析结果的节点类型
      */
-    context(context: ErrorReportContext) fun parseClass(detector: ModifierDetector): IElementType {
+    context(context: ErrorReportContext)
+    fun parseClass(
+        detector: ModifierDetector,
+        nameParsingMode: NameParsingMode = NameParsingMode.REQUIRED
+    ): IElementType {
         val tokenId = getTokenId()
         val token = builder.tokenType
 
@@ -2090,7 +2094,10 @@ class CangJieParsing private constructor(
             }
             parseTypeRef()
         } else {
-            parseIdentifier() // 类名
+
+            parseIdentifier(recoverySet = CLASS_NAME_RECOVERY_SET) // 类名
+
+
             typeParametersDeclared = parseTypeParameterList(TYPE_PARAMETER_GT_RECOVERY_SET)
         }
 
@@ -2656,22 +2663,35 @@ class CangJieParsing private constructor(
     /**
      * 解析标识符
      *
-     * 解析一个简单的标识符，并处理错误情况。
      */
-    context(context: ErrorReportContext) private fun parseIdentifier() {
-        if (expect(IDENTIFIER)) return
+    context(context: ErrorReportContext)
+    private fun parseIdentifier(
+        nameParsingMode: NameParsingMode = NameParsingMode.REQUIRED,
+        recoverySet: TokenSet? = TokenSet.EMPTY
+    ) {
 
         if (atSet(KEYWORDS)) {
             error(CangJieParsingBundle.message("parsing.error.cannot.be.used", "Keywords")) // 关键字不能使用
             return
         }
 
-        if (!at(LPAR)) {
-            errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting", "CangJie identifier"))
-            return
-        }
+        if (nameParsingMode == NameParsingMode.REQUIRED) {
+            expect(
+                IDENTIFIER,
+                CangJieParsingBundle.message("parsing.error.expecting.cangjie.identifier"),
+                recoverySet
+            ) // 应该为标识符
+        } else {
+            if (at(IDENTIFIER)) {
+                if (nameParsingMode == NameParsingMode.PROHIBITED) {
+// TODO 禁止出现标识符，目前应该用不到
 
-        error(CangJieParsingBundle.message("parsing.error.expecting", "a CangJie identifier")) // 应该为标识符
+                } else {
+                    assert(nameParsingMode == NameParsingMode.ALLOWED)
+                    advance()
+                }
+            }
+        }
     }
 
 
@@ -3612,6 +3632,13 @@ enum class DeclarationParsingMode(
     // SCRIPT_TOPLEVEL(true, true, false) // 如需使用可以取消注释
 }
 
+/**
+ * 控制在解析声明时对名称标识符的处理方式。
+ *
+ * - [REQUIRED]：必须出现标识符，缺失时会报错。
+ * - [ALLOWED]：标识符可选，存在则消费，不存在也不会报错。
+ * - [PROHIBITED]：禁止出现标识符，出现时会报错并前进。
+ */
 enum class NameParsingMode {
     REQUIRED, ALLOWED, PROHIBITED
 }

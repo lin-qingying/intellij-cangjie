@@ -8,6 +8,8 @@
 
 - [gitcode@issue#19](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie/issues/19)
 - 优化psi错误报告形式
+- 修复宏表达式属性的错误解析
+- 修复数字字面量处理_时的解析错误
 
 ## 1.1.0
 
