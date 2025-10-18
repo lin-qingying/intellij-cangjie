@@ -42,24 +42,111 @@ import org.jetbrains.annotations.TestOnly
 
 abstract class AbstractCangJieParsing(
     protected val builder: SemanticWhitespaceAwarePsiBuilder,
-    protected val isLazy: Boolean = true
-) {
+    protected val isLazy: Boolean = true,
+
+    ) {
 
     var isDeclarationsFile: Boolean = false
 
     /**
-     * 错误报告上下文
+     * 统一的解析上下文
      *
-     * @param shouldReportError 是否应该报告错误。true表示报告错误，false表示只标记token不报告错误
+     * 用于控制解析器的行为，包含解析控制、错误报告和表达式解析三个方面的配置
+     *
+     * ## 解析控制相关属性
+     * @property disableMacroParsing 是否禁用宏解析，如果为true，所有@符号后的内容都将被解析为注解而不是宏
+     * @property allowMacroCallEverywhere 是否允许在所有位置进行宏调用
+     * @property enableCustomAnnotation 是否启用自定义注解
+     *
+     * ## 错误报告相关属性
+     * @property shouldReportError 是否应该报告错误。true表示报告错误，false表示只标记token不报告错误
+     *
+     * ## 表达式解析相关属性
+     * @property allowLetExpression 是否允许let表达式
+     * @property parseTypeArguments 是否解析类型参数
+     * @property isParseOperator 是否解析操作符
+     * @property isExpression 是否为表达式模式
+     * @property preferBlock 是否优先解析为代码块
+     * @property collapse 是否折叠
+     * @property isDoubleArrow 是否使用双箭头
+     * @property backToken 宏表达式是否返回token
+     * @property processStringInterpolation 是否处理字符串插值
      */
-    data class ErrorReportContext(
-        val shouldReportError: Boolean = true
+    data class ParsingContext(
+        // ==================== 解析控制相关 ====================
+        val disableMacroParsing: Boolean = false,
+        @Deprecated("请使用更具体的配置选项来控制宏调用的位置")
+        val allowMacroCallEverywhere: Boolean = false,
+        val enableCustomAnnotation: Boolean = false,
+//        val strictMode: Boolean = false
+
+        // ==================== 错误报告相关 ====================
+        val shouldReportError: Boolean = true,
+
+        // ==================== 表达式解析相关 ====================
+        val allowLetExpression: Boolean = false,
+        val parseTypeArguments: Boolean = true,
+        val isParseOperator: Boolean = true,
+        val isExpression: Boolean = false,
+        val preferBlock: Boolean = false,
+        val collapse: Boolean = true,
+        val isDoubleArrow: Boolean = true,
+        val backToken: Boolean = false,
+        val processStringInterpolation: Boolean = true,
     ) {
         companion object {
-            val REPORT = ErrorReportContext(true)
-            val SILENT = ErrorReportContext(false)
+            // ==================== 通用上下文 ====================
+            /** 默认上下文 */
+            val DEFAULT = ParsingContext()
+
+            /** 仅注解模式（禁用宏解析） */
+            val ANNOTATION_ONLY = ParsingContext(disableMacroParsing = true, enableCustomAnnotation = true)
+
+            /** 宏优先模式（允许所有位置的宏调用） */
+            val MACRO_ENABLED = ParsingContext(allowMacroCallEverywhere = true)
+
+//            /** 严格模式 */
+//            val STRICT = ParsingContext(strictMode = true)
+//
+//            /** 遗留模式（禁用自定义注解） */
+            val LEGACY = ParsingContext(enableCustomAnnotation = false)
+
+            // ==================== 错误报告相关 ====================
+            /** 报告错误 */
+            val REPORT = ParsingContext(shouldReportError = true)
+
+            /** 静默模式（不报告错误） */
+            val SILENT = ParsingContext(shouldReportError = false)
+
+            // ==================== 表达式解析相关 ====================
+            /** if/while条件上下文 */
+            val IF_WHILE_CONDITION = ParsingContext(allowLetExpression = true)
+
+            /** match表达式模式 */
+            val MATCH_EXPRESSION_MODE = ParsingContext(isExpression = true)
+
+            /** 函数字面量块模式 */
+            val FUNCTION_LITERAL_BLOCK = ParsingContext(preferBlock = true)
+
+            /** 函数字面量折叠模式 */
+            val FUNCTION_LITERAL_COLLAPSED = ParsingContext(collapse = true, isDoubleArrow = false)
+
+            /** 宏返回token模式 */
+            val MACRO_BACK_TOKEN = ParsingContext(backToken = true)
+
+            /** 不处理字符串插值 */
+            val NO_STRING_INTERPOLATION = ParsingContext(processStringInterpolation = false)
         }
+
+        val expressionFirst: TokenSet
+            get() = if (allowLetExpression) {
+                CangJieExpressionParsing.EXPRESSION_FIRST_WITH_LET
+            } else {
+                CangJieExpressionParsing.EXPRESSION_FIRST
+            }
     }
+
+
 
     fun interface Parser {
         fun parse(builder: PsiBuilder, level: Int): Boolean
@@ -132,7 +219,7 @@ abstract class AbstractCangJieParsing(
          *
          * @param message 错误消息
          */
-        context(context: ErrorReportContext)
+        context(context: ParsingContext)
         fun error(message: String) {
             if (context.shouldReportError) {
                 marker?.let {
@@ -348,6 +435,10 @@ abstract class AbstractCangJieParsing(
         return false
     }
 
+    protected fun _atSet(vararg set: IElementType): Boolean {
+        return _atSet(TokenSet.create(*set))
+    }
+
     /**
      * 检查当前标记是否与预期标记匹配
      *
@@ -457,7 +548,7 @@ abstract class AbstractCangJieParsing(
      *
      * @param message 错误消息
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun error(message: String) {
         if (context.shouldReportError) {
             builder.error(message)
@@ -470,7 +561,7 @@ abstract class AbstractCangJieParsing(
      * @param message 错误消息
      * @param marker 标记位置
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun errorBefore(message: String, marker: PsiBuilder.Marker) {
         if (context.shouldReportError) {
             val err = marker.precede()
@@ -484,7 +575,7 @@ abstract class AbstractCangJieParsing(
      *
      * @param message 错误消息
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun errorAndAdvance(message: String) {
         errorAndAdvance(message, 1)
     }
@@ -495,7 +586,7 @@ abstract class AbstractCangJieParsing(
      * @param message 错误消息
      * @param advanceTokenCount 要消耗的标记数量
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun errorAndAdvance(message: String, advanceTokenCount: Int) {
         if (context.shouldReportError) {
             val err = mark()
@@ -514,7 +605,7 @@ abstract class AbstractCangJieParsing(
      * @param message 错误消息
      * @return 是否匹配成功
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun expect(expectation: IElementType, message: String): Boolean {
         return expect(expectation, message, null)
     }
@@ -527,7 +618,7 @@ abstract class AbstractCangJieParsing(
      * @param recoverySet 恢复标记集合
      * @return 是否匹配成功
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun expect(expectation: IElementType, message: String, recoverySet: TokenSet?): Boolean {
         if (expect(expectation)) {
             return true
@@ -556,7 +647,7 @@ abstract class AbstractCangJieParsing(
      * @param recoverySet 恢复标记集合
      * @return 是否匹配成功
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun expect(expectationSet: TokenSet, message: String, recoverySet: TokenSet?): Boolean {
         if (expect(expectationSet)) {
             return true
@@ -573,7 +664,7 @@ abstract class AbstractCangJieParsing(
      * @param message 错误消息
      * @param recoverySet 恢复标记集合
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun errorWithRecovery(message: String, recoverySet: TokenSet?) {
         val tt = tt()
         if (null == recoverySet ||
@@ -623,7 +714,7 @@ abstract class AbstractCangJieParsing(
      * @param message 错误消息
      * @param tokenSet 停止标记集合
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun errorUntil(message: String, tokenSet: TokenSet) {
         assert(tokenSet.contains(CjTokens.LBRACE)) { "Cannot include LBRACE into error element!" }
         assert(tokenSet.contains(CjTokens.RBRACE)) { "Cannot include RBRACE into error element!" }
@@ -661,7 +752,7 @@ abstract class AbstractCangJieParsing(
      *
      * @param message 错误消息
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     protected fun errorWithoutAdvancing(message: String) {
         if (context.shouldReportError) {
             mark().error(message)
@@ -714,7 +805,7 @@ abstract class AbstractCangJieParsing(
         return create(TruncatedSemanticWhitespaceAwarePsiBuilder(builder, eofPosition))
     }
 
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
 
     protected fun expectSafeCall(expectationSet: TokenSet, message: String, recoverySet: TokenSet?): Boolean {
         val tokenType = getSafeTokenType()
@@ -872,7 +963,7 @@ abstract class AbstractCangJieParsing(
         this.block()
     }
 
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
 
     protected fun withRecoveryContext(recoverySet: TokenSet, block: () -> Unit) {
         try {
@@ -991,7 +1082,7 @@ abstract class AbstractCangJieParsing(
      *     }
      * ```
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
 
     protected fun expectWithRecovery(expectation: CjToken, recoverySet: TokenSet?): Result<Unit> = runCatching {
         if (!expect(expectation)) {
@@ -1068,7 +1159,7 @@ abstract class AbstractCangJieParsing(
      * @param expectation
      * @param message
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
 
     protected fun expectNoAdvance(expectation: CjToken, message: String) {
 
@@ -1076,8 +1167,8 @@ abstract class AbstractCangJieParsing(
             advance()
             return
         }
-        if(context.shouldReportError){
-             error(message)
+        if (context.shouldReportError) {
+            error(message)
         }
 
 
@@ -1218,7 +1309,7 @@ abstract class AbstractCangJieParsing(
         }
     }
 
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
 
     protected fun withRecovery(recoverySet: TokenSet, block: () -> Unit): RecoveryScope {
         var error: Throwable? = null
@@ -1265,7 +1356,7 @@ abstract class AbstractCangJieParsing(
      * }
      * ```
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
 
     protected fun parseBlock(block: () -> Unit): RecoveryScope {
         val blockMarker = mark()
@@ -1295,7 +1386,7 @@ abstract class AbstractCangJieParsing(
      * }
      * ```
      */
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
 
     protected fun parseExpression(priority: Int = 0, block: () -> Unit): PsiBuilder.Marker {
         val expressionMarker = mark()
@@ -1374,7 +1465,7 @@ abstract class AbstractCangJieParsing(
         block(modifiers)
     }
 
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
 
     protected fun expect(tokenType: IElementType, message: String = "", block: () -> Unit) {
         if (expect(tokenType, message)) {
@@ -1543,7 +1634,7 @@ abstract class AbstractCangJieParsing(
         }
     }
 
-    context(context: ErrorReportContext)
+    context(context: ParsingContext)
     fun error(mark: PsiBuilder.Marker, @NlsContexts.ParsingError message: String) {
         if (context.shouldReportError) {
             mark.error(message)

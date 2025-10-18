@@ -143,7 +143,7 @@ public interface CjTokens {
     int ELVIS_Id = 98;
     int PIPELINE_Id = 99;
     int WHERE_KEYWORD_Id = 106;
-    //    int BY_KEYWORD_Id = 107;
+        int ATEXCL_Id = 107;
     int GET_KEYWORD_Id = 108;
     int SET_KEYWORD_Id = 109;
 int COALESCING_Id = 110;
@@ -372,6 +372,7 @@ int COALESCING_Id = 110;
     };
     CjSingleValueToken LTEQ = new CjSingleValueToken("LTEQ", "<=", LTEQ_Id);
     CjSingleValueToken AT = new CjSingleValueToken("AT", "@", AT_Id);
+    CjSingleValueToken ATEXCL = new CjSingleValueToken("ATEXCL", "@!", ATEXCL_Id);
     CjSingleValueToken GTEQ = new CjSingleValueToken("GTEQ", ">=", GTEQ_Id);
 
     CjSingleValueToken LTCOLON = new CjSingleValueToken("LT_COLON", "<:", LTCOLON_Id);

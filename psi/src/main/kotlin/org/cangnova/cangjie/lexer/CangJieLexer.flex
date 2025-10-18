@@ -899,6 +899,7 @@ EXPONENT_PART=[Ee][-]?{DIGITS_WITH_TRAILING_UNDERSCORE}      // 科学计数法�
 ";"          { return CjTokens.SEMICOLON; }
 ","          { return CjTokens.COMMA; }
 "@"          { return CjTokens.AT; }
+"@!"          { return CjTokens.ATEXCL; }
 "$"          { return CjTokens.DOLLAR; }
 
 /* 错误处理规则

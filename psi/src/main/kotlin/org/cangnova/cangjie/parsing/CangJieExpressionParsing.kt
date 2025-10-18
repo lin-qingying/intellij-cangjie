@@ -35,6 +35,8 @@ import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.lexer.CjTokens.*
 import org.cangnova.cangjie.messages.CangJieParsingBundle
+import org.cangnova.cangjie.parsing.AbstractCangJieParsing.ParsingContext.Companion.DEFAULT
+import org.cangnova.cangjie.parsing.AbstractCangJieParsing.ParsingContext.Companion.MATCH_EXPRESSION_MODE
 import org.cangnova.cangjie.parsing.CangJieParsing.Companion.PARAMETER_NAME_RECOVERY_SET
 import org.cangnova.cangjie.psi.CjNodeTypes
 import org.cangnova.cangjie.psi.CjNodeTypes.*
@@ -60,48 +62,6 @@ open class CangJieExpressionParsing(
     public override fun create(builder: SemanticWhitespaceAwarePsiBuilder): CangJieParsing =
         cangJieParsing.create(builder)
 
-    // ==================== 表达式解析上下文 ====================
-
-    /**
-     * 表达式解析上下文
-     *
-     * 用于控制表达式解析过程中的各种行为
-     *
-     * @property allowLetExpression 是否允许let表达式
-     * @property parseTypeArguments 是否解析类型参数
-     * @property isParseOperator 是否解析操作符
-     * @property isExpression 是否为表达式模式
-     * @property preferBlock 是否优先解析为代码块
-     * @property collapse 是否折叠
-     * @property isDoubleArrow 是否使用双箭头
-     * @property backToken 宏表达式是否返回token
-     */
-    data class ExpressionParseContext(
-        val allowLetExpression: Boolean = false,
-        val parseTypeArguments: Boolean = true,
-        val isParseOperator: Boolean = true,
-        val isExpression: Boolean = false,
-        val preferBlock: Boolean = false,
-        val collapse: Boolean = true,
-        val isDoubleArrow: Boolean = true,
-        val backToken: Boolean = false,
-    ) {
-        companion object {
-            val DEFAULT = ExpressionParseContext()
-            val IF_WHILE_CONDITION = ExpressionParseContext(allowLetExpression = true)
-            val MATCH_EXPRESSION_MODE = ExpressionParseContext(isExpression = true)
-            val FUNCTION_LITERAL_BLOCK = ExpressionParseContext(preferBlock = true)
-            val FUNCTION_LITERAL_COLLAPSED = ExpressionParseContext(collapse = true, isDoubleArrow = false)
-            val MACRO_BACK_TOKEN = ExpressionParseContext(backToken = true)
-        }
-
-        val expressionFirst: TokenSet
-            get() = if (allowLetExpression) {
-                EXPRESSION_FIRST_WITH_LET
-            } else {
-                EXPRESSION_FIRST
-            }
-    }
 
     // ==================== 运算符优先级定义 ====================
 
@@ -159,7 +119,7 @@ open class CangJieExpressionParsing(
          * 而是直接在parsePrefixExpression中处理。
          */
         PREFIX(MINUS, /*PLUS,*/ EXCL) {
-            context(context: ExpressionParseContext, errContext: ErrorReportContext)
+            context(context: ParsingContext)
             override fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
                 throw IllegalStateException("Don't call this method")
             }
@@ -174,7 +134,7 @@ open class CangJieExpressionParsing(
          * 右侧解析类型引用而非表达式。
          */
         AS(AS_KEYWORD) {
-            context(context: ExpressionParseContext, errContext: ErrorReportContext)
+            context(context: ParsingContext)
 
 
             override fun parseRightHandSide(
@@ -187,7 +147,7 @@ open class CangJieExpressionParsing(
                 return BINARY_WITH_TYPE
             }
 
-            context(context: ExpressionParseContext, errContext: ErrorReportContext)
+            context(context: ParsingContext)
             override fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
                 with(context) {
                     parser.parsePrefixExpression()
@@ -225,7 +185,7 @@ open class CangJieExpressionParsing(
          * 解析为RANGE_EXPRESSION节点。
          */
         RANGE(CjTokens.RANGE, RANGEEQ) {
-            context(context: ExpressionParseContext, errContext: ErrorReportContext)
+            context(context: ParsingContext)
             override fun parseRightHandSide(
                 operation: IElementType,
                 parser: CangJieExpressionParsing,
@@ -250,7 +210,7 @@ open class CangJieExpressionParsing(
          * 用于处理可选类型，当左侧为None时使用右侧值。
          */
         COALESCING(CjTokens.COALESCING) {
-            context(context: ExpressionParseContext, errContext: ErrorReportContext)
+            context(context: ParsingContext)
             override fun parseRightHandSide(
                 operation: IElementType,
                 parser: CangJieExpressionParsing,
@@ -275,7 +235,7 @@ open class CangJieExpressionParsing(
          * 右侧解析类型引用，生成IS_EXPRESSION节点。
          */
         IS(IS_KEYWORD) {
-            context(context: ExpressionParseContext, errContext: ErrorReportContext)
+            context(context: ParsingContext)
             override fun parseRightHandSide(
                 operation: IElementType,
                 parser: CangJieExpressionParsing,
@@ -408,7 +368,7 @@ open class CangJieExpressionParsing(
             return operations
         }
 
-        context(context: ExpressionParseContext, errContext: ErrorReportContext)
+        context(context: ParsingContext)
         open fun parseRightHandSide(
             operation: IElementType,
             parser: CangJieExpressionParsing,
@@ -418,7 +378,7 @@ open class CangJieExpressionParsing(
             return BINARY_EXPRESSION
         }
 
-        context(context: ExpressionParseContext, errContext: ErrorReportContext)
+        context(context: ParsingContext)
         open fun parseHigherPrecedence(parser: CangJieExpressionParsing) {
             assert(higher != null)
             higher?.let {
@@ -443,7 +403,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     fun parseExpression() {
         if (at(AT)) {
             parseMacroExpression()
@@ -470,7 +430,7 @@ open class CangJieExpressionParsing(
      *
      * @param precedence 运算符优先级
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parseBinaryExpression(precedence: Precedence) {
         var expression = mark()
         precedence.parseHigherPrecedence(this)
@@ -498,7 +458,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     fun parsePrefixExpression() {
         builder.disableJoiningComplexTokens()
         if (atSet(Precedence.PREFIX.getOperations())) {
@@ -538,7 +498,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parsePostfixExpression() {
         var expression = mark()
 
@@ -636,7 +596,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parseRangeExpression() {
         parseExpression()
         if (at(COLON)) {
@@ -656,7 +616,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parseBlockLevelExpression() {
         parseExpression()
     }
@@ -666,7 +626,7 @@ open class CangJieExpressionParsing(
      *
      * @param type 操作符类型
      */
-    context(errContext: ErrorReportContext) private fun parseOperationReference(type: IElementType) {
+    context(context: ParsingContext) private fun parseOperationReference(type: IElementType) {
         val operationReference = mark()
         getGtTokenType()?.let { advanceGtToken(it) }
         operationReference.done(OPERATION_REFERENCE)
@@ -675,7 +635,7 @@ open class CangJieExpressionParsing(
     /**
      * 解析操作符引用
      */
-    context(errContext: ErrorReportContext) private fun parseOperationReference() {
+    context(context: ParsingContext) private fun parseOperationReference() {
         val operationReference = mark()
         getGtTokenType()?.let { advanceGtToken(it) }
         operationReference.done(OPERATION_REFERENCE)
@@ -686,7 +646,7 @@ open class CangJieExpressionParsing(
      *
      * @return 如果当前操作被换行中断则返回true
      */
-    context(errContext: ErrorReportContext) private fun interruptedWithNewLine(): Boolean {
+    context(context: ParsingContext) private fun interruptedWithNewLine(): Boolean {
         return !ALLOW_NEWLINE_OPERATIONS.contains(tt()) && builder.newlineBeforeCurrentToken()
     }
 
@@ -725,7 +685,7 @@ open class CangJieExpressionParsing(
      *
      * @return 是否成功解析了原子表达式
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parseAtomicExpression(): Boolean {
         var ok = true
 
@@ -781,7 +741,7 @@ open class CangJieExpressionParsing(
      *
      * @param type 表达式节点类型
      */
-    context(errContext: ErrorReportContext) private fun parseOneTokenExpression(type: IElementType) {
+    context(context: ParsingContext) private fun parseOneTokenExpression(type: IElementType) {
         val mark = mark()
         advance()
         mark.done(type)
@@ -797,7 +757,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     fun parseSimpleNameExpression() {
         val simpleName = mark()
         expect(IDENTIFIER, CangJieParsingBundle.message("parsing.error.expecting", "an identifier"))
@@ -824,8 +784,8 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
-    private fun parseReferenceExpression() {
+    context(context: ParsingContext)
+    fun parseReferenceExpression() {
         var reference = mark()
 
         parseSimpleNameExpression()
@@ -853,7 +813,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parseParenthesizedExpression() {
         assert(_at(LPAR))
 
@@ -864,18 +824,18 @@ open class CangJieExpressionParsing(
         builder.disableNewlines()
         advance()
         if (!at(RPAR) && context.isParseOperator && !at(COMMA)) {
-            with(ExpressionParseContext.DEFAULT) {
-                parseExpression()
-            }
+
+            parseExpression()
+
         } else {
             isUnit = true
         }
         while (at(COMMA)) {
             isTuple = true
             advance()
-            with(ExpressionParseContext.DEFAULT) {
-                parseExpression()
-            }
+
+            parseExpression()
+
         }
         expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
         builder.restoreNewlinesState()
@@ -898,7 +858,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext)
+    context(context: ParsingContext)
     fun parseTupleLiteralExpression() {
         assert(_at(TUPLE_LITERAL))
         val tuple = mark()
@@ -910,9 +870,9 @@ open class CangJieExpressionParsing(
                 if (at(RPAR)) {
                     break
                 }
-                with(ExpressionParseContext.DEFAULT) {
-                    parseExpression()
-                }
+
+                parseExpression()
+
                 if (at(RPAR)) {
                     break
                 }
@@ -935,7 +895,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseThisExpression() {
+    context(context: ParsingContext) private fun parseThisExpression() {
         assert(_at(THIS_KEYWORD))
         val mark = mark()
         val thisReference = mark()
@@ -954,7 +914,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseSuperExpression() {
+    context(context: ParsingContext) private fun parseSuperExpression() {
         assert(_at(SUPER_KEYWORD))
         val mark = mark()
         val superReference = mark()
@@ -989,7 +949,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseCollectionLiteralExpression() {
+    context(context: ParsingContext) private fun parseCollectionLiteralExpression() {
         parseAsCollectionLiteralExpression(COLLECTION_LITERAL_EXPRESSION, true, "Expecting an element")
     }
 
@@ -1000,7 +960,7 @@ open class CangJieExpressionParsing(
      * @param canBeEmpty 是否可以为空
      * @param missingElementErrorMessage 缺失元素时的错误消息
      */
-    context(errContext: ErrorReportContext) private fun parseAsCollectionLiteralExpression(
+    context(context: ParsingContext) private fun parseAsCollectionLiteralExpression(
         nodeType: IElementType,
         canBeEmpty: Boolean,
         missingElementErrorMessage: String,
@@ -1024,7 +984,9 @@ open class CangJieExpressionParsing(
      *
      * @param missingElementErrorMessage 缺失元素时的错误消息
      */
-    context(errContext: ErrorReportContext) private fun parseInnerExpressions(missingElementErrorMessage: String) {
+    context(context: ParsingContext) private fun parseInnerExpressions(
+        missingElementErrorMessage: String
+    ) {
         while (true) {
             if (at(COMMA)) errorAndAdvance(missingElementErrorMessage)
             if (at(RBRACKET)) {
@@ -1034,9 +996,9 @@ open class CangJieExpressionParsing(
             if (at(RANGE)) {
                 parsePefixSliceExpression()
             } else {
-                with(ExpressionParseContext.DEFAULT) {
-                    parseExpression()
-                }
+
+                parseExpression()
+
             }
 
             if (!at(COMMA)) break
@@ -1054,13 +1016,11 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parsePefixSliceExpression() {
+    context(context: ParsingContext) private fun parsePefixSliceExpression() {
         val mark = mark()
         advance()
         if (!at(RBRACKET)) {
-            with(ExpressionParseContext.DEFAULT) {
-                parseExpression()
-            }
+            parseExpression()
         }
         mark.done(SLICE_EXPRESSION)
     }
@@ -1075,7 +1035,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseArrayAccess() {
+    context(context: ParsingContext) private fun parseArrayAccess() {
         parseAsCollectionLiteralExpression(INDICES, false, "Expecting an index element")
     }
 
@@ -1091,7 +1051,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) fun parseStringTemplate() {
+    context(context: ParsingContext) fun parseStringTemplate() {
         assert(_at(OPEN_QUOTE))
         val template = mark()
         advance()
@@ -1099,7 +1059,9 @@ open class CangJieExpressionParsing(
             if (at(CLOSING_QUOTE) || at(DANGLING_NEWLINE)) {
                 break
             }
+
             parseStringTemplateElement()
+
         }
         if (at(DANGLING_NEWLINE)) {
             errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.symbol", "\""))
@@ -1122,7 +1084,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseStringTemplateElement() {
+    context(context: ParsingContext) private fun parseStringTemplateElement() {
         if (at(REGULAR_STRING_PART)) {
             val mark = mark()
             advance()
@@ -1132,43 +1094,76 @@ open class CangJieExpressionParsing(
             advance()
             mark.done(ESCAPE_STRING_TEMPLATE_ENTRY)
         } else if (at(SHORT_TEMPLATE_ENTRY_START)) {
-            val entry = mark()
-            advance()
-            if (at(THIS_KEYWORD)) {
-                val thisExpression = mark()
-                val reference = mark()
+            if (context.processStringInterpolation) {
+                val entry = mark()
                 advance()
-                reference.done(REFERENCE_EXPRESSION)
-                thisExpression.done(THIS_EXPRESSION)
-            } else {
-                val keyword: CjToken? = KEYWORD_TEXTS.get(builder.tokenText)
-                if (keyword != null) {
-                    builder.remapCurrentToken(keyword)
-                    errorAndAdvance(CangJieParsingBundle.message("parsing.error.keyword.cannot.be.reference"))
-                } else {
+                if (at(THIS_KEYWORD)) {
+                    val thisExpression = mark()
                     val reference = mark()
-                    expect(IDENTIFIER, CangJieParsingBundle.message("parsing.error.expecting", "a name"))
-                    reference.done(REFERENCE_EXPRESSION)
-                }
-            }
-            entry.done(SHORT_STRING_TEMPLATE_ENTRY)
-        } else if (at(LONG_TEMPLATE_ENTRY_START)) {
-            val longTemplateEntry = mark()
-            advance()
-            while (!eof()) {
-                val offset = builder.currentOffset
-                parseStatementsByStringTemplate()
-                if (_at(LONG_TEMPLATE_ENTRY_END)) {
                     advance()
-                    break
+                    reference.done(REFERENCE_EXPRESSION)
+                    thisExpression.done(THIS_EXPRESSION)
                 } else {
-                    error(CangJieParsingBundle.message("parsing.error.expecting.symbol", "}"))
-                    if (offset == builder.currentOffset) {
+                    val keyword: CjToken? = KEYWORD_TEXTS.get(builder.tokenText)
+                    if (keyword != null) {
+                        builder.remapCurrentToken(keyword)
+                        errorAndAdvance(CangJieParsingBundle.message("parsing.error.keyword.cannot.be.reference"))
+                    } else {
+                        val reference = mark()
+                        expect(IDENTIFIER, CangJieParsingBundle.message("parsing.error.expecting", "a name"))
+                        reference.done(REFERENCE_EXPRESSION)
+                    }
+                }
+                entry.done(SHORT_STRING_TEMPLATE_ENTRY)
+            } else {
+                // 当不处理插值时，将其作为普通字符串部分消耗
+                val mark = mark()
+                advance()
+                // 跳过标识符或 this
+                if (at(THIS_KEYWORD) || at(IDENTIFIER)) {
+                    advance()
+                }
+                mark.done(LITERAL_STRING_TEMPLATE_ENTRY)
+            }
+        } else if (at(LONG_TEMPLATE_ENTRY_START)) {
+            if (context.processStringInterpolation) {
+                val longTemplateEntry = mark()
+                advance()
+                while (!eof()) {
+                    val offset = builder.currentOffset
+                    parseStatementsByStringTemplate()
+                    if (_at(LONG_TEMPLATE_ENTRY_END)) {
+                        advance()
+                        break
+                    } else {
+                        error(CangJieParsingBundle.message("parsing.error.expecting.symbol", "}"))
+                        if (offset == builder.currentOffset) {
+                            advance()
+                        }
+                    }
+                }
+                longTemplateEntry.done(LONG_STRING_TEMPLATE_ENTRY)
+            } else {
+                // 当不处理插值时，将其作为普通字符串部分消耗
+                val mark = mark()
+                advance()
+                // 跳过所有内容直到遇到结束符
+                var braceCount = 1
+                while (!eof() && braceCount > 0) {
+                    if (at(LBRACE)) {
+                        braceCount++
+                    } else if (at(LONG_TEMPLATE_ENTRY_END)) {
+                        braceCount--
+                    }
+                    if (braceCount > 0) {
                         advance()
                     }
                 }
+                if (at(LONG_TEMPLATE_ENTRY_END)) {
+                    advance()
+                }
+                mark.done(LITERAL_STRING_TEMPLATE_ENTRY)
             }
-            longTemplateEntry.done(LONG_STRING_TEMPLATE_ENTRY)
         } else {
             errorAndAdvance(CangJieParsingBundle.message("parsing.error.unexpected.token.string.template"))
         }
@@ -1195,7 +1190,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseIf() {
+    context(context: ParsingContext) private fun parseIf() {
         assert(_at(IF_KEYWORD))
         val marker = mark()
         advance()
@@ -1218,9 +1213,9 @@ open class CangJieExpressionParsing(
                 if (!at(LBRACE) && !at(IF_KEYWORD)) {
                     error(CangJieParsingBundle.message("parsing.error.code.block.or.if"))
                 } else if (at(IF_KEYWORD)) {
-                    with(ExpressionParseContext.DEFAULT) {
-                        parseBlockLevelExpression()
-                    }
+
+                    parseBlockLevelExpression()
+
                 } else {
                     parseControlStructureBody()
                 }
@@ -1241,7 +1236,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseMatch() {
+    context(context: ParsingContext) private fun parseMatch() {
         assert(_at(MATCH_KEYWORD))
         val match = mark()
         advance()
@@ -1249,9 +1244,9 @@ open class CangJieExpressionParsing(
         builder.disableNewlines()
         val matchContext = if (at(LPAR)) {
             parseCondition()
-            ExpressionParseContext.DEFAULT
+            context
         } else {
-            ExpressionParseContext.MATCH_EXPRESSION_MODE
+            context.copy(isExpression = true)
         }
 
         builder.restoreNewlinesState()
@@ -1283,7 +1278,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parseMatchEntry() {
         val entry = mark()
 
@@ -1314,7 +1309,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseCaseBody() {
+    context(context: ParsingContext) private fun parseCaseBody() {
         val body = mark()
         if (!at(SEMICOLON)) {
             if (at(RBRACE) || at(CASE_KEYWORD)) {
@@ -1354,7 +1349,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseTry() {
+    context(context: ParsingContext) private fun parseTry() {
         assert(_at(TRY_KEYWORD))
         val tryExpression = mark()
         advance()
@@ -1379,9 +1374,9 @@ open class CangJieExpressionParsing(
                         TRY_CATCH_RECOVERY_TOKEN_SET
                     )
                 ) {
-                    with(ExpressionParseContext.DEFAULT) {
-                        parseExpression()
-                    }
+
+                    parseExpression()
+
                 }
 
                 resource.done(TRY_RESOURCE)
@@ -1463,7 +1458,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseTypeReferencesByOr() {
+    context(context: ParsingContext) private fun parseTypeReferencesByOr() {
         do {
             if (at(OR)) advance()
             cangJieParsing.parseTypeRef()
@@ -1482,7 +1477,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseFor() {
+    context(context: ParsingContext) private fun parseFor() {
         assert(_at(FOR_KEYWORD))
         val loop = mark()
         advance()
@@ -1502,9 +1497,9 @@ open class CangJieExpressionParsing(
                     )
                 ) {
                     val range = mark()
-                    with(ExpressionParseContext.DEFAULT) {
-                        parseExpression()
-                    }
+
+                    parseExpression()
+
                     range.done(LOOP_RANGE)
                 }
 
@@ -1531,7 +1526,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseWhile() {
+    context(context: ParsingContext) private fun parseWhile() {
         assert(_at(WHILE_KEYWORD))
         val loop = mark()
         advance()
@@ -1550,7 +1545,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseDoWhile() {
+    context(context: ParsingContext) private fun parseDoWhile() {
         assert(_at(DO_KEYWORD))
         val loop = mark()
         advance()
@@ -1573,7 +1568,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseLoopBody() {
+    context(context: ParsingContext) private fun parseLoopBody() {
         val body = mark()
         if (!at(SEMICOLON)) {
             parseControlStructureBody()
@@ -1591,7 +1586,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseCondition() {
+    context(context: ParsingContext) private fun parseCondition() {
         builder.disableNewlines()
         if (expect(
                 LPAR,
@@ -1601,7 +1596,7 @@ open class CangJieExpressionParsing(
         ) {
             val condition = mark()
 
-            with(ExpressionParseContext.IF_WHILE_CONDITION) {
+            with(context.copy(allowLetExpression = true)) {
                 parseExpression()
             }
 
@@ -1623,13 +1618,11 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseThrow() {
+    context(context: ParsingContext) private fun parseThrow() {
         assert(_at(THROW_KEYWORD))
         val marker = mark()
         advance()
-        with(ExpressionParseContext.DEFAULT) {
-            parseExpression()
-        }
+        parseExpression()
         marker.done(THROW)
     }
 
@@ -1643,14 +1636,12 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseReturn() {
+    context(context: ParsingContext) private fun parseReturn() {
         assert(_at(RETURN_KEYWORD))
         val returnExpression = mark()
         advance()
         if (atSet(EXPRESSION_FIRST) && !at(EOL_OR_SEMICOLON)) {
-            with(ExpressionParseContext.DEFAULT) {
-                parseExpression()
-            }
+            parseExpression()
         }
         returnExpression.done(RETURN)
     }
@@ -1668,7 +1659,7 @@ open class CangJieExpressionParsing(
      *
      * @param type 跳转类型(BREAK或CONTINUE)
      */
-    context(errContext: ErrorReportContext) private fun parseJump(type: IElementType) {
+    context(context: ParsingContext) private fun parseJump(type: IElementType) {
         assert(_at(BREAK_KEYWORD) || _at(CONTINUE_KEYWORD))
         val marker = mark()
         advance()
@@ -1687,7 +1678,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseLetExpression() {
+    context(context: ParsingContext) private fun parseLetExpression() {
         assert(_at(LET_KEYWORD))
         val expr = mark()
 
@@ -1701,9 +1692,7 @@ open class CangJieExpressionParsing(
             error(CangJieParsingBundle.message("parsing.error.left.arrow.in.let"))
         }
 
-        with(ExpressionParseContext.DEFAULT) {
-            parseExpression()
-        }
+        parseExpression()
 
         expr.done(LET_EXPRESSION)
     }
@@ -1711,10 +1700,12 @@ open class CangJieExpressionParsing(
     /**
      * 解析解构模式
      */
-    context(errContext: ErrorReportContext) private fun parseDeconstructPattern() {
-        with(ExpressionParseContext.DEFAULT) {
+    context(context: ParsingContext) private fun parseDeconstructPattern() {
+
+        do {
             parseCasePattern()
-        }
+        } while (expect(OR))
+
     }
 
     // ==================== 模式解析 ====================
@@ -1800,7 +1791,7 @@ open class CangJieExpressionParsing(
     inner class PatternParser(
         private val context: PatternParseContext
     ) {
-        context(errContext: ErrorReportContext) fun parsePattern() {
+        context(context: ParsingContext) fun parsePattern() {
             val constantPattern = mark()
 
             when (getTokenId()) {
@@ -1856,24 +1847,24 @@ open class CangJieExpressionParsing(
             }
         }
 
-        context(errContext: ErrorReportContext) fun parseIdentifierPattern() {
+        context(parsingcontext: ParsingContext) fun parseIdentifierPattern() {
             assert(_at(IDENTIFIER))
             var mark = mark()
             var recognized = RecognizedPattern.BINDING
 
             if (lookahead(1) == DOT || lookahead(1) == LT) {
-                with(ExpressionParseContext.DEFAULT) {
-                    parseReferenceExpression()
-                }
+
+                parseReferenceExpression()
+
                 recognized = RecognizedPattern.ENUM
 
                 if (at(LPAR)) {
                     parseEnumPatternArguments()
                 }
             } else {
-                with(ExpressionParseContext.DEFAULT) {
-                    parseReferenceExpression()
-                }
+
+                parseReferenceExpression()
+
 
                 if (at(COLON) && (!context.isVariableDeclaration || context.nestingLevel > 0)) {
                     advance()
@@ -1882,9 +1873,9 @@ open class CangJieExpressionParsing(
                 } else if (at(LPAR)) {
                     mark.rollbackTo()
                     mark = mark()
-                    with(ExpressionParseContext.DEFAULT) {
-                        parseReferenceExpression()
-                    }
+
+                    parseReferenceExpression()
+
                     recognized = RecognizedPattern.ENUM
                     parseEnumPatternArguments()
                 }
@@ -1893,7 +1884,7 @@ open class CangJieExpressionParsing(
             validateAndDonePattern(mark, recognized.toPatternType(), recognized.toNodeType())
         }
 
-        context(errContext: ErrorReportContext) fun parseUnderlinePattern() {
+        context(parsingcontext: ParsingContext) fun parseUnderlinePattern() {
             val pattern = mark()
             assert(_at(UNDERLINE))
             advance()
@@ -1907,7 +1898,7 @@ open class CangJieExpressionParsing(
             }
         }
 
-        context(errContext: ErrorReportContext) fun parseParenthesizedPattern() {
+        context(parsingcontext: ParsingContext) fun parseParenthesizedPattern() {
             assert(_at(LPAR))
 
             var isUnit = false
@@ -1943,7 +1934,7 @@ open class CangJieExpressionParsing(
             builder.restoreNewlinesState()
         }
 
-        context(errContext: ErrorReportContext) private fun parseTuplePatternElements() {
+        context(parsingcontext: ParsingContext) private fun parseTuplePatternElements() {
             parsePattern()
             if (at(COMMA)) {
                 advance()
@@ -1957,16 +1948,12 @@ open class CangJieExpressionParsing(
             }
         }
 
-        context(errContext: ErrorReportContext) private fun parseEnumPatternArguments() {
+        context(parsingcontext: ParsingContext) private fun parseEnumPatternArguments() {
             advance()
-            with(ExpressionParseContext.DEFAULT) {
-                parseExpression()
-            }
+            parseExpression()
             while (at(COMMA)) {
                 advance()
-                with(ExpressionParseContext.DEFAULT) {
-                    parseExpression()
-                }
+                parseExpression()
             }
             expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
         }
@@ -1998,7 +1985,7 @@ open class CangJieExpressionParsing(
      *
      * @param context 模式解析上下文
      */
-    context(errContext: ErrorReportContext) fun parsePattern(context: PatternParseContext = PatternParseContext.DEFAULT) {
+    context(parsingcontext: ParsingContext) fun parsePattern(context: PatternParseContext = PatternParseContext.DEFAULT) {
         val parser = PatternParser(context)
         parser.parsePattern()
     }
@@ -2006,7 +1993,7 @@ open class CangJieExpressionParsing(
     /**
      * 解析case模式
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parseCasePattern() {
         val parser = PatternParser(PatternParseContext.DEFAULT)
 
@@ -2015,9 +2002,7 @@ open class CangJieExpressionParsing(
                 parser.parseUnderlinePattern()
             } else {
                 val expr = mark()
-                with(ExpressionParseContext.DEFAULT) {
-                    parseExpression()
-                }
+                parseExpression()
                 expr.done(MATCH_CONDITION_EXPRESSION)
             }
         } else {
@@ -2039,15 +2024,13 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) fun parsePatternGuard() {
+    context(context: ParsingContext) fun parsePatternGuard() {
         assert(_at(WHERE_KEYWORD))
         val marker = mark()
 
         advance()
 
-        with(ExpressionParseContext.DEFAULT) {
-            parseExpression()
-        }
+        parseExpression()
 
         marker.done(PATTERN_GUARD)
     }
@@ -2066,7 +2049,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     fun parseFunctionLiteral() {
         assert(_at(LBRACE))
         val literalExpression = mark()
@@ -2141,7 +2124,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseFunctionLiteralParameterList() {
+    context(context: ParsingContext) private fun parseFunctionLiteralParameterList() {
         val parameterList = mark()
 
         while (!eof()) {
@@ -2184,7 +2167,7 @@ open class CangJieExpressionParsing(
      *
      * @return 是否成功解析
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parseAnnotatedLambda(): Boolean {
         if (!at(LBRACE)) {
             return false
@@ -2207,13 +2190,13 @@ open class CangJieExpressionParsing(
      *
      * @return 是否成功解析
      */
-    context(errContext: ErrorReportContext) protected fun parseCallWithClosure(): Boolean {
+    context(context: ParsingContext) protected fun parseCallWithClosure(): Boolean {
         var success = false
 
         while (true) {
             val argument = mark()
 
-            with(ExpressionParseContext.FUNCTION_LITERAL_COLLAPSED) {
+            with(context.copy(collapse = true, isDoubleArrow = false)) {
                 if (!parseAnnotatedLambda()) {
                     argument.drop()
                     break
@@ -2242,7 +2225,7 @@ open class CangJieExpressionParsing(
      *
      * @return 是否成功解析了调用后缀
      */
-    context(errContext: ErrorReportContext) private fun parseCallSuffix(): Boolean {
+    context(context: ParsingContext) private fun parseCallSuffix(): Boolean {
         val tokenType = getSafeTokenType()
 
         if (parseCallWithClosure()) {
@@ -2264,11 +2247,11 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseSelectorCallExpression() {
+    context(context: ParsingContext) private fun parseSelectorCallExpression() {
         val mark = mark()
-        with(ExpressionParseContext.DEFAULT) {
-            parseAtomicExpression()
-        }
+
+        parseAtomicExpression()
+
         if (!builder.newlineBeforeCurrentToken() && parseCallSuffix()) {
             mark.done(CALL_EXPRESSION)
         } else {
@@ -2298,7 +2281,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseValueArgument() {
+    context(context: ParsingContext) private fun parseValueArgument() {
         val argument = mark()
         if (at(IDENTIFIER) && lookahead(1) === COLON) {
             val argName = mark()
@@ -2308,16 +2291,14 @@ open class CangJieExpressionParsing(
             argName.done(VALUE_ARGUMENT_NAME)
             advance()
         }
-        with(ExpressionParseContext.DEFAULT) {
-            parseExpression()
-        }
+        parseExpression()
         argument.done(VALUE_ARGUMENT)
     }
 
     /**
      * 解析值参数列表(使用默认括号)
      */
-    context(errContext: ErrorReportContext) fun parseValueArgumentList() {
+    context(context: ParsingContext) fun parseValueArgumentList() {
         parseValueArgumentList(LPAR, RPAR)
     }
 
@@ -2327,7 +2308,10 @@ open class CangJieExpressionParsing(
      * @param start 开始token
      * @param end 结束token
      */
-    context(errContext: ErrorReportContext) fun parseValueArgumentList(start: CjToken = LPAR, end: CjToken = RPAR) {
+    context(context: ParsingContext) fun parseValueArgumentList(
+        start: CjToken = LPAR,
+        end: CjToken = RPAR
+    ) {
         parseValueArgumentList(Pair.create(TokenSet.create(start), end))
     }
 
@@ -2343,7 +2327,7 @@ open class CangJieExpressionParsing(
      *
      * @param struct 参数列表的起止符号对
      */
-    context(errContext: ErrorReportContext) fun parseValueArgumentList(
+    context(context: ParsingContext) fun parseValueArgumentList(
         struct: Pair<TokenSet, CjToken> = Pair(
             TokenSet.create(
                 LPAR,
@@ -2403,16 +2387,16 @@ open class CangJieExpressionParsing(
      *
      * @param type 结束符类型
      */
-    context(errContext: ErrorReportContext) fun parseStatements(type: IElementType) {
+    context(context: ParsingContext) fun parseStatements(type: IElementType) {
         while (at(SEMICOLON)) advance()
         while (!eof() && !at(RBRACE) && !at(type)) {
             if (!atSet(STATEMENT_FIRST)) {
                 errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.element.element"))
             }
             if (atSet(STATEMENT_FIRST)) {
-                with(ExpressionParseContext.DEFAULT) {
-                    parseStatement()
-                }
+
+                parseStatement()
+
             }
             if (at(SEMICOLON)) {
                 while (at(SEMICOLON)) advance()
@@ -2444,7 +2428,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) fun parseStatements() {
+    context(context: ParsingContext) fun parseStatements() {
         while (at(SEMICOLON)) advance()
         while (!eof() && !at(RBRACE)) {
             if (!atSet(STATEMENT_FIRST)) {
@@ -2452,9 +2436,9 @@ open class CangJieExpressionParsing(
             }
 
             if (atSet(STATEMENT_FIRST)) {
-                with(ExpressionParseContext.DEFAULT) {
-                    parseStatement()
-                }
+
+                parseStatement()
+
             }
 
             if (at(SEMICOLON)) {
@@ -2478,7 +2462,7 @@ open class CangJieExpressionParsing(
     /**
      * 解析字符串模板中的语句序列
      */
-    context(errContext: ErrorReportContext) private fun parseStatementsByStringTemplate() {
+    context(context: ParsingContext) private fun parseStatementsByStringTemplate() {
         while (at(SEMICOLON)) advance()
         while (!eof() && !at(LONG_TEMPLATE_ENTRY_END)) {
             if (!atSet(STATEMENT_FIRST)) {
@@ -2486,9 +2470,9 @@ open class CangJieExpressionParsing(
             }
 
             if (atSet(STATEMENT_FIRST)) {
-                with(ExpressionParseContext.DEFAULT) {
-                    parseStatement()
-                }
+
+                parseStatement()
+
             }
 
             if (at(SEMICOLON)) {
@@ -2518,7 +2502,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     fun parseStatement() {
         if (!parseLocalDeclaration(false)) {
             if (!atSet(context.expressionFirst)) {
@@ -2534,14 +2518,14 @@ open class CangJieExpressionParsing(
      *
      * @param scope 声明解析模式
      */
-    context(errContext: ErrorReportContext) fun parseStatementByScope(scope: DeclarationParsingMode) {
+    context(context: ParsingContext) fun parseStatementByScope(scope: DeclarationParsingMode) {
         if (!parseDeclaration(scope, false)) {
             if (!atSet(EXPRESSION_FIRST)) {
                 errorAndAdvance(CangJieParsingBundle.message("parsing.error.expecting.element.statement"))
             } else {
-                with(ExpressionParseContext.DEFAULT) {
-                    parseBlockLevelExpression()
-                }
+
+                parseBlockLevelExpression()
+
             }
         }
     }
@@ -2560,11 +2544,11 @@ open class CangJieExpressionParsing(
      *
      * @param type 结束符类型
      */
-    context(errContext: ErrorReportContext) fun parseBlock(type: IElementType) {
+    context(context: ParsingContext) fun parseBlock(type: IElementType) {
         while (!at(type) && !eof() && !at(RBRACE)) {
-            with(ExpressionParseContext.DEFAULT) {
-                parseBlockLevelExpression()
-            }
+
+            parseBlockLevelExpression()
+
         }
     }
 
@@ -2578,7 +2562,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) fun parseBlock() {
+    context(context: ParsingContext) fun parseBlock() {
         assert(_at(LBRACE))
         advance()
         val block = mark()
@@ -2593,12 +2577,12 @@ open class CangJieExpressionParsing(
     /**
      * 解析控制结构或主体
      */
-    context(errContext: ErrorReportContext) private fun parseControlStructureOrBody() {
-        with(ExpressionParseContext.FUNCTION_LITERAL_BLOCK) {
+    context(context: ParsingContext) private fun parseControlStructureOrBody() {
+        with(context.copy(preferBlock = true)) {
             if (!parseAnnotatedLambda()) {
-                with(ExpressionParseContext.DEFAULT) {
-                    parseBlockLevelExpression()
-                }
+
+                parseBlockLevelExpression()
+
             }
         }
     }
@@ -2613,7 +2597,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseControlStructureBody() {
+    context(context: ParsingContext) private fun parseControlStructureBody() {
         if (at(LBRACE)) {
             val body = mark()
             advance()
@@ -2644,7 +2628,7 @@ open class CangJieExpressionParsing(
      * @param rollbackMacro 是否回滚宏
      * @return 是否成功解析声明
      */
-    context(errContext: ErrorReportContext) fun parseDeclaration(
+    context(context: ParsingContext) fun parseDeclaration(
         scope: DeclarationParsingMode,
         rollbackIfDefinitelyNotExpression: Boolean,
         rollbackMacro: Boolean = false,
@@ -2681,7 +2665,7 @@ open class CangJieExpressionParsing(
      * @param rollbackMacro 是否回滚宏
      * @return 是否成功解析声明
      */
-    context(errContext: ErrorReportContext) private fun parseLocalDeclaration(
+    context(context: ParsingContext) private fun parseLocalDeclaration(
         rollbackIfDefinitelyNotExpression: Boolean,
         rollbackMacro: Boolean = false,
     ): Boolean {
@@ -2696,7 +2680,7 @@ open class CangJieExpressionParsing(
      * @param scope 声明解析模式
      * @return 声明类型,如果解析失败则返回null
      */
-    context(errContext: ErrorReportContext) private fun parseDeclarationRest(
+    context(context: ParsingContext) private fun parseDeclarationRest(
         detector: CangJieParsing.ModifierDetector,
         failIfDefinitelyNotExpression: Boolean,
         scope: DeclarationParsingMode,
@@ -2726,7 +2710,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) fun parseUnsafeExpression() {
+    context(context: ParsingContext) fun parseUnsafeExpression() {
         assert(_at(UNSAFE_KEYWORD))
         val unsafe = mark()
 
@@ -2746,7 +2730,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) fun parseSpawnExpression() {
+    context(context: ParsingContext) fun parseSpawnExpression() {
         assert(_at(SPAWN_KEYWORD))
         val spawn = mark()
         advance()
@@ -2768,7 +2752,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) fun parseQuoteExpression() {
+    context(context: ParsingContext) fun parseQuoteExpression() {
         assert(_at(QUOTE_KEYWORD))
 
         val quoteExpression = mark()
@@ -2780,7 +2764,7 @@ open class CangJieExpressionParsing(
         expect(RPAR, CangJieParsingBundle.message("parsing.error.expecting.symbol", ")"))
         quoteExpression.done(QUOTE_EXPRESSION)
 
-        quoteExpressionParsing.parseQuoteExpression()
+//        quoteExpressionParsing.parseQuoteExpression()
     }
 
     /**
@@ -2793,7 +2777,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext)
+    context(context: ParsingContext)
     private fun parseQuoteParameters() {
 //        TODO 后期可能要根据实际代码解析为对应结构
         val quoteParameters = mark()
@@ -2834,15 +2818,13 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseQuoteInterpolate() {
+    context(context: ParsingContext) private fun parseQuoteInterpolate() {
         assert(_at(DOLLAR) && lookahead(1) == LPAR)
         val mark = mark()
 
         advance()
         advance()
-        with(ExpressionParseContext.DEFAULT) {
-            parseExpression()
-        }
+        parseExpression()
 
         if (at(RPAR)) {
             advance()
@@ -2865,7 +2847,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) fun parseMacroExpressionByQuoteParameters() {
+    context(context: ParsingContext) fun parseMacroExpressionByQuoteParameters() {
         assert(_at(AT))
 
         val macroExpression = mark()
@@ -2933,8 +2915,10 @@ open class CangJieExpressionParsing(
      *
      * @return 宏表达式类型,如果解析失败则返回null
      */
-    context(context: ExpressionParseContext, errContext: ErrorReportContext)
+    context(context: ParsingContext)
     fun parseMacroExpression(): IElementType? {
+
+
         assert(_at(AT))
 
         val macroExpression = mark()
@@ -2991,7 +2975,9 @@ open class CangJieExpressionParsing(
      * @param modifiterDetector 修饰符检测器
      * @return 声明类型,如果解析失败则返回null
      */
-    context(errContext: ErrorReportContext) private fun parseMacroInputExprWithoutParens(modifiterDetector: CangJieParsing.ModifierDetector): IElementType? {
+    context(context: ParsingContext) private fun parseMacroInputExprWithoutParens(
+        modifiterDetector: CangJieParsing.ModifierDetector
+    ): IElementType? {
         var declType = parseMacroInputExprWithoutParensDeclaration(modifiterDetector)
 
         if (declType == null) {
@@ -3037,9 +3023,11 @@ open class CangJieExpressionParsing(
      * @param modifiterDetector 修饰符检测器
      * @return 声明类型,如果解析失败则返回null
      */
-    context(errContext: ErrorReportContext) private fun parseMacroInputExprWithoutParensDeclaration(modifiterDetector: CangJieParsing.ModifierDetector): IElementType? {
+    context(context: ParsingContext) private fun parseMacroInputExprWithoutParensDeclaration(
+        modifiterDetector: CangJieParsing.ModifierDetector
+    ): IElementType? {
         return when (getTokenId()) {
-            AT_Id -> with(ExpressionParseContext.MACRO_BACK_TOKEN) { parseMacroExpression() }
+            AT_Id -> with(context.copy(backToken = true)) { parseMacroExpression() }
             FUNC_KEYWORD_Id -> cangJieParsing.parseFunction(detector = modifiterDetector)
             EXTEND_KEYWORD_Id, ENUM_KEYWORD_Id, STRUCT_KEYWORD_Id, INTERFACE_KEYWORD_Id, CLASS_KEYWORD_Id ->
                 cangJieParsing.parseClass(modifiterDetector)
@@ -3066,7 +3054,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseMacroInputExprWithParens() {
+    context(context: ParsingContext) private fun parseMacroInputExprWithParens() {
         assert(_at(LPAR))
         advance()
 
@@ -3074,9 +3062,9 @@ open class CangJieExpressionParsing(
         val tokens = mark()
         while (atSet(QUOTE_TOKENS)) {
             if (at(AT) && lookahead(1) == IDENTIFIER) {
-                with(ExpressionParseContext.DEFAULT) {
-                    parseMacroExpression()
-                }
+
+                parseMacroExpression()
+
             } else {
                 if (at(LPAR)) {
                     lparCount++
@@ -3108,7 +3096,7 @@ open class CangJieExpressionParsing(
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseMacroAttrExpression() {
+    context(context: ParsingContext) private fun parseMacroAttrExpression() {
         val attr = mark()
         if (at(LBRACKET)) {
             advance()
@@ -3124,7 +3112,7 @@ open class CangJieExpressionParsing(
                     }
                 } else if (at(OPEN_QUOTE)) {
                     parseStringTemplate()
-continue
+                    continue
                 } else if (at(DOLLAR)) {
                     errorAndAdvance(CangJieParsingBundle.message("parsing.error.expected.identifier.after.dollar"))
                 } else if (at(ESCAPE_LPAR) || at(ESCAPE_RPAR)) {
@@ -3152,7 +3140,7 @@ continue
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseLabelReferenceWithNoWhitespace() {
+    context(context: ParsingContext) private fun parseLabelReferenceWithNoWhitespace() {
         if (at(AT) && !builder.newlineBeforeCurrentToken()) {
             if (WHITE_SPACE_OR_COMMENT_BIT_SET.contains(builder.rawLookup(-1))) {
                 error("There should be no space or comments before '@' in label reference")
@@ -3171,7 +3159,7 @@ continue
      *   ;
      * ```
      */
-    context(errContext: ErrorReportContext) private fun parseLabelReference() {
+    context(context: ParsingContext) private fun parseLabelReference() {
         assert(_at(AT))
         val labelWrap = mark()
         val mark = mark()
@@ -3198,7 +3186,7 @@ continue
      * @param validForDrop 有效丢弃类型
      * @return 是否成功
      */
-    context(errContext: ErrorReportContext) private fun rollbackOrDrop(
+    context(context: ParsingContext) private fun rollbackOrDrop(
         rollbackMarker: PsiBuilder.Marker,
         expected: CjToken,
         expectMessage: String,
@@ -3225,7 +3213,7 @@ continue
      * @param dropAt 丢弃位置类型
      * @return 是否成功
      */
-    context(errContext: ErrorReportContext) private fun rollbackOrDropAt(
+    context(context: ParsingContext) private fun rollbackOrDropAt(
         rollbackMarker: PsiBuilder.Marker,
         dropAt: IElementType
     ): Boolean {
@@ -3474,7 +3462,7 @@ continue
             BASICTYPES,
         )
 
-        private val EXPRESSION_FIRST_WITH_LET = TokenSet.orSet(
+        val EXPRESSION_FIRST_WITH_LET = TokenSet.orSet(
             EXPRESSION_FIRST,
             TokenSet.create(LET_KEYWORD)
         )
