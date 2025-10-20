@@ -31,6 +31,8 @@ import org.cangnova.cangjie.psi.psiUtil.findDocComment
 import org.cangnova.cangjie.psi.psiUtil.removeModifier
 import com.intellij.lang.ASTNode
 import com.intellij.psi.util.PsiTreeUtil
+import org.cangnova.cangjie.psi.psiUtil.collectAnnotationEntriesFromStubOrPsi
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 
 abstract class CjDeclarationImpl(node: ASTNode) : CjExpressionImpl(node), CjDeclaration {
     override val modifierList: CjModifierList? get() =
@@ -46,17 +48,14 @@ abstract class CjDeclarationImpl(node: ASTNode) : CjExpressionImpl(node), CjDecl
             this,
             CjExpression::class.java,
         )
+
     override val annotations: List<CjAnnotation>
-        get() {
-            val modifierList: CjModifierList = modifierList ?: return emptyList()
-            return modifierList.annotations
-        }
+        get() = findChildrenByType(CjStubElementTypes.ANNOTATION)
 
     override val annotationEntries: List<CjAnnotationEntry>
-        get() {
-            val modifierList: CjModifierList = modifierList ?: return emptyList()
-            return modifierList.annotationEntries
-        }
+        get() = this.collectAnnotationEntriesFromStubOrPsi()
+
+
 
     override fun addModifier(modifier: CjKeywordToken) {
         addModifier(this, modifier)

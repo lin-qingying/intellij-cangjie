@@ -67,6 +67,8 @@
     <!-- 引入通知相关配置 -->
     <xi:include href="/META-INF/cangjie-notifications.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/cangjie-extensionPoints.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
+
     <xi:include href="/META-INF/cangjie-toml.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
@@ -88,7 +90,6 @@
 
     <!-- 引入 json schema 相关 -->
     <xi:include href="/META-INF/cangjie-json.xml" xpointer="xpointer(/idea-plugin/*)" />
-<!--    <xi:include href="/META-INF/toolchain.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 <!--    <xi:include href="/META-INF/build-system.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
 </idea-plugin>

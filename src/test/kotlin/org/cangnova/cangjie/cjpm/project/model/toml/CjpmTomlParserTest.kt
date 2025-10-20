@@ -1,10 +1,14 @@
 package org.cangnova.cangjie.cjpm.project.model.toml
 
 import org.cangnova.cangjie.CangJieTestBase
+import org.cangnova.cangjie.psi.CjPsiFactory
 import org.junit.jupiter.api.assertThrows
 import java.io.File
 
 class CjpmTomlParserTest : CangJieTestBase() {
+
+    private lateinit var factory: CjPsiFactory
+
 
 
     fun `test parse basic package config`() {

@@ -28,11 +28,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.jetbrains.grammarkit") version "2022.3.2.2"
+//    `java-test-fixtures`
 }
+val tomlPlugin = "org.toml.lang"
+val jsonPlugin = "com.intellij.modules.json"
+val copyright = "com.intellij.copyright"
 
 dependencies {
     testImplementation(kotlin("test"))
-    testImplementation(testFixtures(project(":test-common")))
 
     implementation(project(":util"))
     implementation(project(":icon"))
@@ -40,7 +43,9 @@ dependencies {
 
     implementation(project(":common"))
     implementation(project(":telemetry"))
-
+//    intellijPlatform {
+//        bundledPlugins(tomlPlugin, copyright, jsonPlugin)
+//    }
 }
 
 // 配置 Lexer 生成任务

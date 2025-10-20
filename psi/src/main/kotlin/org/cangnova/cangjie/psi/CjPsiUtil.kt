@@ -47,16 +47,15 @@ object CjPsiUtil {
     }
 
     fun isDeprecated(owner: CjModifierListOwner): Boolean {
-        val modifierList = owner.modifierList
-        if (modifierList != null) {
-            val annotationEntries = modifierList.annotationEntries
+
+            val annotationEntries = owner.annotationEntries
             for (annotation in annotationEntries) {
                 val shortName = annotation.shortName
                 if (StandardNames.FqNames.deprecated.shortName() == shortName) {
                     return true
                 }
             }
-        }
+
         return false
     }
 

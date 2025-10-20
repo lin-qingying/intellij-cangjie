@@ -37,9 +37,8 @@ import org.cangnova.cangjie.psi.CallingConvention
 import org.cangnova.cangjie.psi.CjBuiltInAnnotation
 import org.cangnova.cangjie.psi.CjBuiltInAnnotation.*
 import org.cangnova.cangjie.psi.CjNodeTypes.*
+import org.cangnova.cangjie.psi.OverflowStrategy
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.ANNOTATION
-import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE
-import org.cangnova.cangjie.utils.withs
 
 
 class CangJieParsing private constructor(
@@ -533,7 +532,7 @@ class CangJieParsing private constructor(
             return
         }
 
-        advance() // 消耗 When
+        parseTypeRef()// 消耗 When
 
 
         expect(LBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "["))
@@ -579,7 +578,7 @@ class CangJieParsing private constructor(
             return
         }
 
-        advance() // 消耗 Attribute
+        parseTypeRef()// 消耗 Attribute
 
 
         expect(LBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "["))
@@ -1195,10 +1194,10 @@ class CangJieParsing private constructor(
         }
 
         if (parseContext.disableMacroParsing) {
-            assert(_atSet(AT, ATEXCL))
+            if(!_atSet(AT, ATEXCL)) return
 
         } else {
-            assert(_atSet(ATEXCL))
+            if(!_atSet(ATEXCL)) return
         }
 
         val mark = mark()
@@ -1208,8 +1207,8 @@ class CangJieParsing private constructor(
 
 //        注解名称
 
-        expressionParsing.parseReferenceExpression()
-
+        parseTypeRef()
+//        parseTypeRef()
         if (at(LBRACKET)) {
             expressionParsing.parseValueArgumentList(LBRACKET, RBRACKET)
         }
@@ -1218,36 +1217,48 @@ class CangJieParsing private constructor(
     }
 
     context(parseContext: ParsingContext)
-    fun parseDeprecatedAnnotation() {
+            /**
+             * 解析带可选参数的注解
+             *
+             * 解析标准格式的注解，支持可选的参数列表（使用方括号 `[...]`）。
+             * 适用于多种内置注解，如 @Deprecated, @Java, @C, @Annotation 等。
+             *
+             * Grammar:
+             * ```
+             * annotationWithOptionalArguments
+             *   : "@" IDENTIFIER ("[" valueArguments "]")?
+             *   ;
+             * ```
+             *
+             * 支持的注解示例：
+             * ```cangjie
+             * @Deprecated                           // 无参数
+             * @Deprecated["Use newMethod instead"]  // 带参数
+             * @Java                                 // 无参数
+             * @Annotation                           // 无参数
+             * ```
+             */
+    fun parseAnnotationWithOptionalArguments() {
         assert(_at(AT))
 
         val mark = mark()
         advance() // 消耗 @
 
-        // 解析 Deprecated 标识符
+        // 解析注解名称标识符
         if (!at(IDENTIFIER)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
             mark.done(ANNOTATION_ENTRY)
             return
         }
 
-        val annotationName = builder.tokenText
-        if (annotationName != "Deprecated") {
-            error(CangJieParsingBundle.message("parsing.error.expecting.annotation", "Deprecated"))
-            mark.done(ANNOTATION_ENTRY)
-            return
+        parseTypeRef()  // 消耗注解名称
+
+        // 解析可选的参数列表 [...]
+        if (at(LBRACKET)) {
+            expressionParsing.parseValueArgumentList(LBRACKET, RBRACKET)
         }
 
-        advance() // 消耗 Deprecated
-
-
-        expressionParsing.parseValueArgumentList(LBRACKET, RBRACKET)
-
-
-
-
         mark.done(ANNOTATION_ENTRY)
-
     }
 
     context(parseContext: ParsingContext) fun parseAnnotations() {
@@ -1336,25 +1347,24 @@ class CangJieParsing private constructor(
                 parseCallingConvAnnotation()
             }
 
-            JAVA -> TODO()
-            JAVA_MIRROR -> TODO()
-            JAVA_IMPL -> TODO()
-            OBJ_C_MIRROR -> TODO()
-            OBJ_C_IMPL -> TODO()
-            FOREIGN_NAME -> TODO()
             ATTRIBUTE -> {
                 parseAttributeAnnotation()
             }
 
-            NUMERIC_OVERFLOW -> TODO()
+            OVERFLOW_THROWING, OVERFLOW_WRAPPING, OVERFLOW_SATURATING -> {
+                parseOverflowAnnotation(builtInAnnotation)
+            }
+
             WHEN ->
                 parseWhenAnnotation()
 
 
-            CjBuiltInAnnotation.ANNOTATION -> TODO()
-            DEPRECATED -> {
-                parseDeprecatedAnnotation()
+            CjBuiltInAnnotation.ANNOTATION, JAVA_IMPL, OBJ_C_MIRROR, OBJ_C_IMPL, JAVA_MIRROR, FOREIGN_NAME,
+            JAVA, DEPRECATED -> {
+                parseAnnotationWithOptionalArguments()
             }
+
+
         }
 
     }
@@ -1403,7 +1413,7 @@ class CangJieParsing private constructor(
             return
         }
 
-        advance() // 消耗 CallingConv
+        parseTypeRef()// 消耗 CallingConv
 
         // 解析参数: [CDECL] 或 [STDCALL]
         if (!expect(LBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "["))) {
@@ -1426,6 +1436,153 @@ class CangJieParsing private constructor(
         advance() // 消耗调用约定标识符
 
         expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
+
+        mark.done(ANNOTATION_ENTRY)
+    }
+
+    /**
+     * 解析 @Java 注解
+     *
+     * @Java 注解用于与Java代码进行互操作,只接受一个字符串参数。
+     *
+     * Grammar:
+     * ```
+     * javaAnnotation
+     *   : "@" "Java" ("[" stringLiteral "]")?
+     *   ;
+     * ```
+     *
+     * 示例:
+     * ```cangjie
+     * @Java["java.lang.String"]
+     * @Java
+     * ```
+     */
+    context(parseContext: ParsingContext) private fun parseJavaAnnotation(
+
+    ) {
+        assert(_atSet(AT))
+
+        val mark = mark()
+        advance() // 消耗 @
+
+        //
+        if (!at(IDENTIFIER)) {
+            error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
+            mark.done(ANNOTATION_ENTRY)
+            return
+        }
+
+        val annotationName = builder.tokenText
+        if (annotationName != "Java") {
+            error(CangJieParsingBundle.message("parsing.error.expecting.annotation", "Java"))
+            mark.done(ANNOTATION_ENTRY)
+            return
+        }
+
+        advance() // 消耗 Java
+
+        // 检查是否有参数
+        if (!at(LBRACKET)) {
+            // @Java 注解可以不带参数
+            mark.done(ANNOTATION_ENTRY)
+            return
+        }
+
+        advance() // 消耗 [
+
+        builder.disableNewlines()
+
+        // @Java 注解只接受一个字符串参数
+        if (at(OPEN_QUOTE)) {
+            with(parseContext.copy(processStringInterpolation = false)) {
+                expressionParsing.parseStringTemplate()
+            }
+        } else {
+            error(CangJieParsingBundle.message("parsing.error.expecting.string.literal"))
+        }
+
+        builder.enableNewlines()
+
+        expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
+
+        mark.done(ANNOTATION_ENTRY)
+    }
+
+    /**
+     * 解析溢出注解
+     *
+     * 解析 @OverflowThrowing, @OverflowWrapping, @OverflowSaturating 注解。
+     * 这些注解可以带可选参数来指定具体的溢出策略。
+     *
+     * Grammar:
+     * ```
+     * overflowAnnotation
+     *   : "@" ("OverflowThrowing" | "OverflowWrapping" | "OverflowSaturating") ("[" identifier "]")?
+     *   ;
+     * ```
+     *
+     * 示例:
+     * ```cangjie
+     * @OverflowThrowing
+     * @OverflowThrowing[checked]
+     * @OverflowWrapping[wrapping]
+     * @OverflowSaturating[saturating]
+     * ```
+     *
+     * @param builtInAnnotation 内置注解类型
+     */
+    context(parseContext: ParsingContext) private fun parseOverflowAnnotation(
+        builtInAnnotation: CjBuiltInAnnotation
+    ) {
+        assert(_atSet(AT))
+
+        val mark = mark()
+        advance() // 消耗 @
+
+        // 解析注解标识符
+        if (!at(IDENTIFIER)) {
+            error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
+            mark.done(ANNOTATION_ENTRY)
+            return
+        }
+
+        val annotationName = builder.tokenText
+        if (annotationName != builtInAnnotation.annotationName) {
+            error(CangJieParsingBundle.message("parsing.error.expecting.annotation", builtInAnnotation.annotationName))
+            mark.done(ANNOTATION_ENTRY)
+            return
+        }
+
+        parseTypeRef()// 消耗注解名称
+
+        // 检查是否有参数
+        if (at(LBRACKET)) {
+            advance() // 消耗 [
+
+            builder.disableNewlines()
+
+            // 解析溢出策略标识符
+            if (at(IDENTIFIER)) {
+                val strategyName = builder.tokenText?.toString()
+                if (strategyName != null && !OverflowStrategy.isValid(strategyName)) {
+                    error(
+                        CangJieParsingBundle.message(
+                            "parsing.error.invalid.overflow.strategy",
+                            strategyName
+                        )
+                    )
+                }
+                advance() // 消耗策略标识符
+            } else {
+                error(CangJieParsingBundle.message("parsing.error.expecting.overflow.strategy"))
+            }
+
+            builder.enableNewlines()
+
+            expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
+        }
+        // 如果没有参数,从注解名称中提取策略(如 OverflowThrowing -> throwing)
 
         mark.done(ANNOTATION_ENTRY)
     }
@@ -1472,7 +1629,7 @@ class CangJieParsing private constructor(
             return
         }
 
-        advance() // 消耗注解名称
+        parseTypeRef()
 
         mark.done(ANNOTATION_ENTRY)
     }
@@ -1833,8 +1990,11 @@ class CangJieParsing private constructor(
             detector: ModifierDetector,
             nameParsingMode: NameParsingMode,
             scope: DeclarationParsingMode
-        ): IElementType? {
-            return parser.parseMacro()
+        ): IElementType {
+            return with(parseContext.copy(disableMacroParsing = false, allowParseAnnotationsInValueParameter = false)) {
+                parser.parseMacro()
+            }
+
         }
     }
 
@@ -2723,7 +2883,7 @@ class CangJieParsing private constructor(
 
                 at(IDENTIFIER) && lookahead(1) == LPAR -> {
                     // 主构造函数
-                    parseMainInitFunc()
+                    parsePrimaryInitFunc()
                     declType = PRIMARY_CONSTRUCTOR
                 }
 
@@ -2749,7 +2909,7 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) fun parseMainInitFunc() {
+    context(parseContext: ParsingContext) fun parsePrimaryInitFunc() {
         assert(_at(IDENTIFIER))
         advance() // IDENTIFIER
 
@@ -2761,7 +2921,7 @@ class CangJieParsing private constructor(
         builder.disableJoiningComplexTokens()
         // 类型参数
         if (at(LPAR)) {
-            parseInitFuncValueParameterList()
+            parsePrimaryInitFuncValueParameterList()
         } else {
             // error("Expecting '(' ")  // 应该为'('
             errorAndAdvance(
@@ -2796,7 +2956,7 @@ class CangJieParsing private constructor(
         builder.disableJoiningComplexTokens()
         // 类型参数
         if (at(LPAR)) {
-            parseInitFuncValueParameterList()
+            parseValueParameterList()
         } else {
             // error("Expecting '(' ")  // 应该为'('
             errorAndAdvance(
@@ -2905,7 +3065,7 @@ class CangJieParsing private constructor(
         builder.disableJoiningComplexTokens()
         // 类型参数
         if (at(LPAR)) {
-            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET)
+            parseValueParameterList(false, VALUE_PARAMETERS_FOLLOW_SET)
         } else {
             error(CangJieParsingBundle.message("parsing.error.expecting.symbol", "("))
         }
@@ -2996,7 +3156,7 @@ class CangJieParsing private constructor(
 
         // 参数列表
         if (at(LPAR)) {
-            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET)
+            parseValueParameterList(false, VALUE_PARAMETERS_FOLLOW_SET)
         } else {
             error(CangJieParsingBundle.message("parsing.error.expecting.symbol", "(")) // 应该为'('
         }
@@ -3236,16 +3396,16 @@ class CangJieParsing private constructor(
 
         // 函数名
         parseIdentifier()
-
+        // 类型参数
         var typeParameterListOccurred = false
         if (at(LT)) {
             parseTypeParameterList(LBRACKET_LBRACE_RBRACE_LPAR_SET)
             typeParameterListOccurred = true
         }
 
-        // 类型参数
+
         if (at(LPAR)) {
-            parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET)
+            parseValueParameterList(false, VALUE_PARAMETERS_FOLLOW_SET)
         } else {
             error(CangJieParsingBundle.message("parsing.error.expecting.symbol", "(")) // 应该为'('
         }
@@ -3332,12 +3492,206 @@ class CangJieParsing private constructor(
         return parseValueParameter(true, typeRequired)
     }
 
-    context(parseContext: ParsingContext) fun parseInitFuncValueParameterList() {
-        parseValueParameterList(false, false, VALUE_PARAMETERS_FOLLOW_SET, true)
+    /**
+     * 解析主构造函数的值参数列表
+     *
+     * 专门用于解析主构造函数的参数列表，支持注解、修饰符和属性声明（let/var）。
+     * 这是一个便捷方法，内部调用 `parseValueParameterList` 并传入 `isPrimaryInitFunc=true`。
+     *
+     * Grammar:
+     * ```
+     * primaryConstructorParameterList
+     *   : "(" (primaryConstructorParameter ("," primaryConstructorParameter)*)? ")"
+     *   ;
+     *
+     * primaryConstructorParameter
+     *   : annotations? modifiers? ("let" | "var") IDENTIFIER ":" type ("=" expression)?
+     *   ;
+     * ```
+     *
+     * 特点：
+     * - 参数可以有注解（如 `@Serializable`, `@Deprecated`）
+     * - 参数可以有访问修饰符（如 `public`, `private`, `protected`）
+     * - 参数可以声明为属性（使用 `let` 或 `var`）
+     * - 参数不能使用宏调用
+     * - 所有参数必须有名称和类型
+     *
+     * 示例：
+     * ```cangjie
+     * class Person(
+     *     // 公开的不可变属性
+     *     public let name: String,
+     *
+     *     // 私有的可变属性，带默认值
+     *     private var age: Int = 0,
+     *
+     *     // 带注解的属性
+     *     @Deprecated("Use fullAddress instead")
+     *     let address: String
+     * )
+     * ```
+     *
+     * @see parseValueParameterList 底层参数列表解析方法
+     * @see parseValueParameter 单个参数解析方法
+     */
+    context(parseContext: ParsingContext) fun parsePrimaryInitFuncValueParameterList() {
+        parseValueParameterList(false, VALUE_PARAMETERS_FOLLOW_SET, true)
     }
 
+    /**
+     * 解析值参数列表
+     *
+     * 解析函数或函数类型的参数列表，包括括号内的所有参数声明。
+     * 支持两种模式：
+     * 1. 函数类型内容模式（isFunctionTypeContents = true）：解析函数类型的参数列表，参数可以省略名称
+     * 2. 普通函数模式（isFunctionTypeContents = false）：解析函数定义的参数列表，参数必须有名称
+     *
+     * Grammar:
+     * ```
+     * valueParameterList
+     *   : "(" (valueParameter ("," valueParameter)*)? ")"
+     *   ;
+     *
+     * valueParameter
+     *   : annotations? modifiers? (("let" | "var"))? IDENTIFIER ":" type ("=" expression)?  // 普通函数参数
+     *   | type                                                                               // 函数类型参数（可省略名称）
+     *   ;
+     * ```
+     *
+     * @param isFunctionTypeContents 是否为函数类型内容。
+     *        - true: 解析函数类型的参数列表，例如 `(Int, String) -> Unit` 中的 `(Int, String)`
+     *        - false: 解析函数定义的参数列表，例如 `func foo(x: Int, y: String)` 中的 `(x: Int, y: String)`
+     * @param typeRequired 参数是否必须有类型注解。
+     *        - true: 参数必须显式声明类型
+     *        - false: 参数类型可以省略（根据上下文推断）
+     * @param recoverySet 用于错误恢复的token集合。当遇到语法错误时，解析器会跳过token直到遇到此集合中的token
+     * @param isPrimaryInitFunc 是否为主构造函数的参数列表。
+     *        - true: 解析主构造函数参数，支持 `let`/`var` 关键字和注解
+     *        - false: 解析普通函数参数
+     *
+     * 解析流程：
+     * 1. 消费左括号 `(`
+     * 2. 循环解析参数，参数之间用逗号分隔
+     * 3. 对于函数类型内容模式，参数可以是简单的类型引用或完整的参数声明
+     * 4. 对于普通函数模式，参数必须包含名称和类型
+     * 5. 消费右括号 `)`
+     * 6. 验证参数列表的一致性（不允许混合命名参数和匿名参数）
+     *
+     * 错误处理：
+     * - 遇到连续的逗号会报错
+     * - 右括号前的逗号会报错
+     * - 缺少逗号或右括号会报错
+     * - 混合使用命名参数和匿名参数会报错
+     *
+     * 示例：
+     * ```cangjie
+     * // 普通函数参数列表
+     * func foo(x: Int, y: String = "default")
+     *
+     * // 主构造函数参数列表
+     * class Person(public let name: String, var age: Int)
+     *
+     * // 函数类型参数列表
+     * let f: (Int, String) -> Unit
+     * ```
+     */
+    /**
+     * 解析函数定义的值参数列表
+     *
+     * 用于解析普通函数或主构造函数的参数列表，所有参数必须有名称。
+     *
+     * Grammar:
+     * ```
+     * valueParameterList
+     *   : "(" (valueParameter ("," valueParameter)*)? ")"
+     *   ;
+     *
+     * valueParameter
+     *   : annotations? modifiers? (("let" | "var"))? IDENTIFIER ":" type ("=" expression)?
+     *   ;
+     * ```
+     *
+     * @param typeRequired 参数是否必须有类型注解
+     * @param recoverySet 用于错误恢复的token集合
+     * @param isPrimaryInitFunc 是否为主构造函数的参数列表
+     *
+     * 示例：
+     * ```cangjie
+     * // 普通函数参数列表
+     * func foo(x: Int, y: String = "default")
+     *
+     * // 主构造函数参数列表
+     * class Person(public let name: String, var age: Int)
+     * ```
+     */
     context(parseContext: ParsingContext) fun parseValueParameterList(
-        isFunctionTypeContents: Boolean, typeRequired: Boolean, recoverySet: TokenSet, isInitFunc: Boolean = false
+        typeRequired: Boolean = false,
+        recoverySet: TokenSet = TokenSet.EMPTY,
+        isPrimaryInitFunc: Boolean = false
+    ) {
+        parseParameterListCore(
+            parseParameter = { parseValueParameter(false, typeRequired, isPrimaryInitFunc); null },
+            checkMixedParameters = false,
+            recoverySet = recoverySet
+        )
+    }
+
+    /**
+     * 解析函数类型的参数列表
+     *
+     * 用于解析函数类型声明中的参数列表，参���可以省略名称（仅类型）。
+     * 不允许混合使用命名参数和匿名参数。
+     *
+     * Grammar:
+     * ```
+     * functionTypeParameterList
+     *   : "(" (functionTypeParameter ("," functionTypeParameter)*)? ")"
+     *   ;
+     *
+     * functionTypeParameter
+     *   : IDENTIFIER ":" type    // 命名参数
+     *   | type                   // 匿名参数
+     *   ;
+     * ```
+     *
+     * @param typeRequired 参数是否必须有类型注解
+     *
+     * 示例：
+     * ```cangjie
+     * // 只有类型（匿名参数）
+     * let callback: (Int, String) -> Unit
+     *
+     * // 带名称（命名参数）
+     * let handler: (count: Int, message: String) -> Bool
+     * ```
+     */
+    context(parseContext: ParsingContext) fun parseFunctionTypeParameterList(
+        typeRequired: Boolean = true
+    ) {
+//   不允许处理注解和宏
+        with(parseContext.copy(disableMacroParsing = true, allowParseAnnotationsInValueParameter = false)) {
+            parseParameterListCore(
+                parseParameter = { parseFunctionTypeParameter(typeRequired) },
+                checkMixedParameters = true,
+                recoverySet = TokenSet.EMPTY
+            )
+        }
+    }
+
+    /**
+     * 参数列表解析的核心逻辑
+     *
+     * 提取公共的参数列表解析逻辑，避免代码重复。
+     *
+     * @param parseParameter 参数解析函数，返回 null（不检查混合）或 Boolean（是否为命名参数）
+     * @param checkMixedParameters 是否检查混合命名/匿名参数
+     * @param recoverySet 错误恢复token集合
+     */
+    context(parseContext: ParsingContext)
+    private fun parseParameterListCore(
+        parseParameter: () -> Boolean?,
+        checkMixedParameters: Boolean,
+        recoverySet: TokenSet
     ) {
         assert(at(LPAR))
         val parameters = mark()
@@ -3345,66 +3699,248 @@ class CangJieParsing private constructor(
         builder.disableNewlines()
         advance() // consume '('
 
-        val isNamedParameters = mutableListOf<Boolean>()
+        // 只在需要时追踪命名参数状态
+        var hasNamedParameters: Boolean? = null
+        var hasMixedParameters = false
 
         while (!at(RPAR) && !atSet(recoverySet) && !eof()) {
+            // 处理连续逗号错误
             if (at(COMMA)) {
                 errorAndAdvance(
-                    CangJieParsingBundle.message(
-                        "parsing.error.expecting", "parameter declaration"
-                    )
-                ) // 应该为参数声明
+                    CangJieParsingBundle.message("parsing.error.expecting", "parameter declaration")
+                )
+                continue
             }
 
-            if (isFunctionTypeContents) {
-                if (!tryParseValueParameter(typeRequired)) {
-                    val valueParameter = mark()
-                    // 你原来注释掉的parseFunctionTypeValueParameterModifierList()可根据需求添加
-                    parseTypeRef()
-                    closeDeclarationWithCommentBinders(valueParameter, VALUE_PARAMETER, false)
-                    isNamedParameters.add(false)
-                } else {
-                    isNamedParameters.add(true)
+            // 解析参数
+            val isNamed = parseParameter()
+
+            // 检测混合参数（仅当需要时）
+            if (checkMixedParameters && isNamed != null && !hasMixedParameters) {
+                when (hasNamedParameters) {
+                    null -> hasNamedParameters = isNamed
+                    isNamed -> { /* 一致，继续 */
+                    }
+
+                    else -> hasMixedParameters = true  // 检测到混合
                 }
-            } else {
-                parseValueParameter(false, typeRequired, isInitFunc)
             }
 
-            if (at(COMMA)) {
-                advance() // consume ','
-
-                if (at(RPAR)) {
-                    error(CangJieParsingBundle.message("parsing.error.expecting", "a parameter declaration")) // 应该为参数声明
-                }
-            } else {
-                if (!at(RPAR)) {
-                    errorAndAdvance(
-                        CangJieParsingBundle.message(
-                            "parsing.error.expecting.found", "',' or ')'", "${builder.tokenText}"
-                        )
-                    )
-                }
+            // 处理分隔符
+            if (!parseParameterSeparator()) {
+                break
             }
         }
 
         expect(RPAR, "Expecting ')'", recoverySet)
         builder.restoreNewlinesState()
 
-        if (isNamedParameters.contains(true) && isNamedParameters.contains(false)) {
-            // 要么全为 true,要么全为 false,混合是不允许的
+        // 完成或报错
+        if (hasMixedParameters) {
             parameters.error(CangJieParsingBundle.message("parsing.error.mixed.named.parameters"))
         } else {
             parameters.done(VALUE_PARAMETER_LIST)
         }
     }
+//    context(parseContext: ParsingContext) fun parseValueParameterList(
+//        isFunctionTypeContents: Boolean,
+//        typeRequired: Boolean,
+//        recoverySet: TokenSet = TokenSet.EMPTY,
+//        isPrimaryInitFunc: Boolean = false
+//    ) {
+//        assert(at(LPAR))
+//        val parameters = mark()
+//
+//
+//        builder.disableNewlines()
+//        advance() // consume '('
+//
+//        val isNamedParameters = mutableListOf<Boolean>()
+//
+//        while (!at(RPAR) && !atSet(recoverySet) && !eof()) {
+//            if (at(COMMA)) {
+//                errorAndAdvance(
+//                    CangJieParsingBundle.message(
+//                        "parsing.error.expecting", "parameter declaration"
+//                    )
+//                ) // 应该为参数声明
+//            }
+//
+//            if (isFunctionTypeContents) {
+//                if (!tryParseValueParameter(typeRequired)) {
+//                    val valueParameter = mark()
+//                    // 你原来注释掉的parseFunctionTypeValueParameterModifierList()可根据需求添加
+//                    parseTypeRef()
+//                    closeDeclarationWithCommentBinders(valueParameter, VALUE_PARAMETER, false)
+//                    isNamedParameters.add(false)
+//                } else {
+//                    isNamedParameters.add(true)
+//                }
+//            } else {
+//                parseValueParameter(false, typeRequired, isPrimaryInitFunc)
+//            }
+//
+//            if (at(COMMA)) {
+//                advance() // consume ','
+//
+//                if (at(RPAR)) {
+//                    error(CangJieParsingBundle.message("parsing.error.expecting", "a parameter declaration")) // 应该为参数声明
+//                }
+//            } else {
+//                if (!at(RPAR)) {
+//                    errorAndAdvance(
+//                        CangJieParsingBundle.message(
+//                            "parsing.error.expecting.found", "',' or ')'", "${builder.tokenText}"
+//                        )
+//                    )
+//                }
+//            }
+//        }
+//
+//        expect(RPAR, "Expecting ')'", recoverySet)
+//        builder.restoreNewlinesState()
+//
+//        if (isNamedParameters.contains(true) && isNamedParameters.contains(false)) {
+//            // 要么全为 true,要么全为 false,混合是不允许的
+//            parameters.error(CangJieParsingBundle.message("parsing.error.mixed.named.parameters"))
+//        } else {
+//            parameters.done(VALUE_PARAMETER_LIST)
+//        }
+//    }
+
+    /**
+     * 解析函数类型参数
+     *
+     * @param typeRequired 是否要求类型注解
+     * @return true 如果是命名参数，false 如果是匿名参数（仅类型）
+     */
+    context(parseContext: ParsingContext)
+    private fun parseFunctionTypeParameter(typeRequired: Boolean): Boolean {
+        return if (!tryParseValueParameter(typeRequired)) {
+            // 匿名参数：只有类型
+            val valueParameter = mark()
+            parseTypeRef()
+            closeDeclarationWithCommentBinders(valueParameter, VALUE_PARAMETER, false)
+            false
+        } else {
+            // 命名参数
+            true
+        }
+    }
+
+    /**
+     * 解析参数分隔符（逗号）
+     *
+     * @return true 如果应该继续解析下一个参数，false 如果应该结束
+     */
+    context(parseContext: ParsingContext)
+    private fun parseParameterSeparator(): Boolean {
+        if (at(COMMA)) {
+            advance() // consume ','
+
+            if (at(RPAR)) {
+                error(CangJieParsingBundle.message("parsing.error.expecting", "a parameter declaration"))
+                return false
+            }
+            return true
+        } else if (!at(RPAR)) {
+            errorAndAdvance(
+                CangJieParsingBundle.message(
+                    "parsing.error.expecting.found", "',' or ')'", "${builder.tokenText}"
+                )
+            )
+            return false
+        }
+        return false
+    }
 
 
+    /**
+     * 解析单个值参数
+     *
+     * 解析函数或构造函数的单个参数声明，包括注解、修饰符、参数名、类型和默认值。
+     * 根据上下文不同，支持普通函数参数和主构造函数参数两种模式。
+     *
+     * Grammar:
+     * ```
+     * valueParameter
+     *   : annotations? modifiers? (("let" | "var"))? IDENTIFIER ("!" | ":")? type? ("=" expression)?
+     *   ;
+     * ```
+     *
+     * @param rollbackOnFailure 解析失败时是否回滚。
+     *        - true: 如果解析失败，回滚到参数开始位置并返回 false（用于尝试性解析）
+     *        - false: 即使解析失败也完成参数节点并返回 true（默认行为）
+     * @param typeRequired 是否必须有类型注解。
+     *        - true: 参数必须显式声明类型，否则报错
+     *        - false: 参数类型可以省略（根据上下文推断）
+     * @param isPrimaryInitFunc 是否为主构造函数参数。
+     *        - true: 解析主构造函数参数，支持：
+     *            - 注解（如 `@Serializable`）
+     *            - 访问修饰符（如 `public`, `private`）
+     *            - 属性关键字（`let` 或 `var`）
+     *            - 禁止宏调用
+     *        - false: 解析普通函数参数
+     * @return 是否成功解析参数
+     *        - true: 解析成功或虽有错误但不回滚
+     *        - false: 仅当 rollbackOnFailure=true 且解析失败时返回
+     *
+     * 解析流程：
+     * 1. 如果是主构造函数参数（isPrimaryInitFunc=true）：
+     *    - 解析注解（如 `@Deprecated`）
+     *    - 解析修饰符（如 `public`, `private`, `protected`）
+     *    - 期望 `let` 或 `var` 关键字（如果有修饰符）
+     * 2. 解析参数的剩余部��：
+     *    - 参数名
+     *    - 类型注解（可选，取决于 typeRequired）
+     *    - 默认值（可选）
+     * 3. 完成参数节点或回滚
+     *
+     * 示例：
+     * ```cangjie
+     * // 普通函数参数（isPrimaryInitFunc=false）
+     * func foo(x: Int, y: String = "default")
+     *         ^^^^^^  ^^^^^^^^^^^^^^^^^^^^
+     *         参数1    参数2（带默认值）
+     *
+     * // 主构造函数参数（isPrimaryInitFunc=true）
+     * class Person(
+     *     @Serializable public let name: String,
+     *     ^^^^^^^^^^^^^ ^^^^^^ ^^^ ^^^^^^^^^^^^
+     *     注解          修饰符  let  参数声明
+     *
+     *     private var age: Int = 0
+     *     ^^^^^^^ ^^^ ^^^^^^^^^^^
+     *     修饰符   var  参数声明（带默认值）
+     * )
+     *
+     * // 可选类型参数（typeRequired=false）
+     * func infer(x) { ... }  // 类型由上下文推断
+     *
+     * // 必需类型参数（typeRequired=true）
+     * func explicit(x: Int) { ... }  // 必须显式声明类型
+     * ```
+     *
+     * 错误处理：
+     * - 缺少参数名：报错但继续解析
+     * - 主构造函数中缺少 let/var：报错
+     * - 类型声明错误：根据 rollbackOnFailure 决定是否回滚
+     */
     context(parseContext: ParsingContext) fun parseValueParameter(
-        rollbackOnFailure: Boolean = false, typeRequired: Boolean = false, isInitFunc: Boolean = false
+        rollbackOnFailure: Boolean = false, typeRequired: Boolean = false, isPrimaryInitFunc: Boolean = false
     ): Boolean {
         val parameter = mark()
+        if (!parseContext.disableMacroParsing && at(AT)) {
+            expressionParsing.parseMacroExpression()
+            return true
+        }
+        //            可以注解
+        if (parseContext.allowParseAnnotationsInValueParameter) {
+            parseAnnotations()
+        }
+        if (isPrimaryInitFunc) {
+//            主构造方法不可以宏调用
 
-        if (isInitFunc) {
             val detector = ModifierDetector()
             parseModifierList(detector, TokenSet.EMPTY, true)
 
@@ -3420,6 +3956,7 @@ class CangJieParsing private constructor(
         }
 
         closeDeclarationWithCommentBinders(parameter, VALUE_PARAMETER, false)
+
         return true
     }
 
@@ -3614,7 +4151,7 @@ class CangJieParsing private constructor(
     private fun parseFunctionTypeContents(functionType: PsiBuilder.Marker): PsiBuilder.Marker {
         assert(_at(LPAR)) { tt()!! }
 
-        parseValueParameterList(isFunctionTypeContents = true, typeRequired = true, recoverySet = TokenSet.EMPTY)
+        parseFunctionTypeParameterList(typeRequired = true)
 
         expect(ARROW, "Expecting '->' to specify return type of a function type", TYPE_REF_FIRST)
         parseTypeRef()

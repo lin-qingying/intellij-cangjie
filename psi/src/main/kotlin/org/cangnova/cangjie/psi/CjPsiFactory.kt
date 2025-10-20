@@ -107,7 +107,11 @@ class CjPsiFactory private constructor(
     ): CjProperty {
         return createProperty(null, name, type, isMut, initializer)
     }
+    fun createAnnotation(text:String): CjAnnotation{
+        val function = createFunction(" $text func foo() { }")
 
+        return function.annotations[0]
+    }
     fun createMatchEntry(@NonNls entryText: String): CjMatchEntry {
         val function = createFunction("func foo() { match(12) { $entryText } }")
         val matchEntry = PsiTreeUtil.findChildOfType(function, CjMatchEntry::class.java)
@@ -452,4 +456,7 @@ class CjPsiFactory private constructor(
     fun createIdentifier(toString: String): PsiElement? {
         return createClass("class $toString").nameIdentifier
     }
+
+
+
 }

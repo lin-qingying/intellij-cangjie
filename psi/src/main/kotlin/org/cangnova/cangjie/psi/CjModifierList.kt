@@ -33,20 +33,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.tree.TokenSet
 
-abstract class CjModifierList : CjElementImplStub<CangJieModifierListStub>, CjAnnotationsContainer {
+abstract class CjModifierList : CjElementImplStub<CangJieModifierListStub>{
     constructor(stub: CangJieModifierListStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
-
-    val annotations: List<CjAnnotation>
-        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.ANNOTATION)
 
     constructor(node: ASTNode) : super(node)
 
     override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
         return visitor.visitModifierList(this, data)
     }
-
-    val annotationEntries: List<CjAnnotationEntry>
-        get() = this.collectAnnotationEntriesFromStubOrPsi()
 
     fun hasModifier(tokenType: CjKeywordToken): Boolean {
         val stub = stub

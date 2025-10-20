@@ -144,15 +144,37 @@ enum class CjBuiltInAnnotation(
     ),
 
     /**
-     * 数值溢出行为控制注解
+     * 数值溢出行为控制注解 - 抛出异常模式
      *
-     * 用于控制数值运算溢出时的行为(如溢出检查、环绕等)。
+     * 用于控制数值运算溢出时抛出异常。
      *
      * 注意: 避免使用 OVERFLOW 作为标识符以兼容旧版本 glibc。
      */
-    NUMERIC_OVERFLOW(
-        annotationName = "NumericOverflow",
-        description = "数值溢出行为控制",
+    OVERFLOW_THROWING(
+        annotationName = "OverflowThrowing",
+        description = "数值溢出抛出异常",
+        category = AnnotationCategory.COMPILER_DIRECTIVE
+    ),
+
+    /**
+     * 数值溢出行为控制注解 - 环绕模式
+     *
+     * 用于控制数值运算溢出时进行环绕处理。
+     */
+    OVERFLOW_WRAPPING(
+        annotationName = "OverflowWrapping",
+        description = "数值溢出环绕",
+        category = AnnotationCategory.COMPILER_DIRECTIVE
+    ),
+
+    /**
+     * 数值溢出行为控制注解 - 饱和模式
+     *
+     * 用于控制数值运算溢出时进行饱和处理(限制在最大/最小值)。
+     */
+    OVERFLOW_SATURATING(
+        annotationName = "OverflowSaturating",
+        description = "数值溢出饱和",
         category = AnnotationCategory.COMPILER_DIRECTIVE
     ),
 
@@ -500,6 +522,94 @@ enum class CjAnnotationTarget(
          */
         fun isValidTarget(name: String): Boolean {
             return name in ALL_TARGET_NAMES
+        }
+    }
+}
+/**
+ * 溢出策略枚举
+ *
+ * 定义了数值运算溢出时的处理策略,对应C++编译器中的OverflowStrategy枚举。
+ *
+ * @property strategyName 策略在注解中使用的名称
+ * @property description 策略的描述
+ */
+enum class OverflowStrategy(
+    val strategyName: String,
+    val description: String
+) {
+    /**
+     * 无策略
+     */
+    NA(
+        strategyName = "no",
+        description = "无溢出策略"
+    ),
+
+    /**
+     * 检查策略
+     *
+     * 在运行时检查溢出。
+     */
+    CHECKED(
+        strategyName = "checked",
+        description = "检查溢出"
+    ),
+
+    /**
+     * 环绕策略
+     *
+     * 溢出时进行环绕处理(wrap around)。
+     */
+    WRAPPING(
+        strategyName = "wrapping",
+        description = "溢出环绕"
+    ),
+
+    /**
+     * 抛出异常策略
+     *
+     * 溢出时抛出异常。
+     */
+    THROWING(
+        strategyName = "throwing",
+        description = "溢出抛出异常"
+    ),
+
+    /**
+     * 饱和策略
+     *
+     * 溢出时饱和处理,限制在最大/最小值。
+     */
+    SATURATING(
+        strategyName = "saturating",
+        description = "溢出饱和"
+    );
+
+    companion object {
+        /**
+         * 所有策略名称的集合
+         */
+        val ALL_STRATEGY_NAMES: Set<String> = entries.map { it.strategyName }.toSet()
+
+        /**
+         * 根据策略名称查找对应的枚举值
+         *
+         * @param name 策略名称(不区分大小写)
+         * @return 对应的枚举值,如果不存在则返回null
+         */
+        fun fromName(name: String): OverflowStrategy? {
+            val lowerName = name.lowercase()
+            return entries.find { it.strategyName == lowerName }
+        }
+
+        /**
+         * 检查给定的策略名称是否有效
+         *
+         * @param name 策略名称
+         * @return 如果是有效的策略名称返回true,否则返回false
+         */
+        fun isValid(name: String): Boolean {
+            return name.lowercase() in ALL_STRATEGY_NAMES
         }
     }
 }

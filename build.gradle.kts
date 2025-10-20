@@ -154,7 +154,9 @@ allprojects {
 
             create(IntelliJPlatformType.fromCode(ideToRunType), ideRunVersion)
 
-
+            intellijPlatform {
+                bundledPlugins(tomlPlugin, copyright, jsonPlugin)
+            }
         }
 
         testImplementation("junit:junit:4.13.2")
@@ -499,9 +501,7 @@ project(":plugin") {
 project(":") {
 
     dependencies {
-        intellijPlatform {
-            bundledPlugins(tomlPlugin, copyright, jsonPlugin)
-        }
+
         implementation("org.fusesource.jansi:jansi:2.4.1")
 
         implementation("io.hotmoka:toml4j:0.7.3")

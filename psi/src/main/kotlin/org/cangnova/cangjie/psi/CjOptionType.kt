@@ -63,8 +63,4 @@ class CjOptionType : CjElementImplStub<CangJiePlaceHolderStub<CjOptionType>>, Cj
         return getStubOrPsiChild(CjStubElementTypes.MODIFIER_LIST)
     }
 
-    fun getAnnotationEntries(): List<CjAnnotationEntry> {
-        val modifierList: CjModifierList? = getModifierList()
-        return modifierList?.annotationEntries ?: emptyList()
-    }
 }

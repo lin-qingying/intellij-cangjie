@@ -35,8 +35,6 @@ import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.lexer.CjTokens.*
 import org.cangnova.cangjie.messages.CangJieParsingBundle
-import org.cangnova.cangjie.parsing.AbstractCangJieParsing.ParsingContext.Companion.DEFAULT
-import org.cangnova.cangjie.parsing.AbstractCangJieParsing.ParsingContext.Companion.MATCH_EXPRESSION_MODE
 import org.cangnova.cangjie.parsing.CangJieParsing.Companion.PARAMETER_NAME_RECOVERY_SET
 import org.cangnova.cangjie.psi.CjNodeTypes
 import org.cangnova.cangjie.psi.CjNodeTypes.*
@@ -2985,7 +2983,7 @@ open class CangJieExpressionParsing(
                 advance()
                 if (at(LPAR)) {
                     if (lookahead(1) == IDENTIFIER && lookahead(2) === COLON || lookahead(1) == RPAR) {
-                        cangJieParsing.parseInitFuncValueParameterList()
+                        cangJieParsing.parsePrimaryInitFuncValueParameterList()
 
                         if (at(LBRACE)) {
                             cangJieParsing.parseFunctionBody()
@@ -2997,7 +2995,7 @@ open class CangJieExpressionParsing(
                     }
                 }
             } else if (at(IDENTIFIER) && lookahead(1) === LPAR) {
-                cangJieParsing.parseMainInitFunc()
+                cangJieParsing.parsePrimaryInitFunc()
                 declType = CLASS_MAIN_INIT
             }
         }

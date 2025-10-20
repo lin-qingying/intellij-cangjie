@@ -23,6 +23,13 @@
  */
 
 package org.cangnova.cangjie
+
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.LightProjectDescriptor
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import junit.framework.Test
 import org.junit.internal.MethodSorter
@@ -104,9 +111,57 @@ abstract class CangJieNoPlatformTestBase : junit.framework.TestCase() {
 abstract class CangJieTestBase : BasePlatformTestCase(), CangJieTestCase {
     open val dataPath: String = ""
 
+    override fun getProjectDescriptor(): LightProjectDescriptor = CangJieLightProjectDescriptor
+
+    private object CangJieLightProjectDescriptor : LightProjectDescriptor()
+
+    private fun setupCangJieProject() {
+        if (projectDescriptor != CangJieLightProjectDescriptor) {
+         CangJieProjectDescriptorHolder.disposePreviousDescriptor()
+            return
+        }
+    }
+
+    /**
+     * Holds a static instance of [RustProjectDescriptorBase] between tests in order to speed up tests.
+     *
+     * (This is similar to [com.intellij.testFramework.LightPlatformTestCase.ourProject], see
+     * [com.intellij.testFramework.LightPlatformTestCase.doSetup])
+     */
+    private object CangJieProjectDescriptorHolder {
+//        var previousDescriptorKey: CangJieProjectDescriptorKey? = null
+        var disposable: Disposable? = null
+
+        fun disposePreviousDescriptor() {
+//            previousDescriptorKey = null
+            val disposable = disposable
+            if (disposable != null) {
+                Disposer.dispose(disposable)
+                this.disposable = null
+
+            }
+        }
+    }
+    private data class CangJieProjectDescriptorKey(
+        val project: Project,
+        val projectDir: VirtualFile,
+
+    )
+
     override fun getTestDataPath(): String = "${TestCase.testResourcesPath}/$dataPath"
+
+
     protected val fileName: String
         get() = "$testName.cj"
+
+
+
+    override fun setUp() {
+        super.setUp()
+//   setupCangJieProject()
+
+
+    }
 
     /** Asserts that the [actual] value is not `null`, with an optional [message]. */
     @OptIn(ExperimentalContracts::class)
@@ -127,12 +182,13 @@ abstract class CangJieTestBase : BasePlatformTestCase(), CangJieTestCase {
 
 interface TestCase {
     val testFileExtension: String
-    fun getTestDataPath(): String
+
+    //    fun getTestDataPath(): String
     fun getTestName(lowercaseFirstLetter: Boolean): String
 
     companion object {
-        const val testResourcesPath = "testFixtures"
-
+//        const val testResourcesPath = "testFixtures"
+        const val testResourcesPath = "src/test/resources"
         @JvmStatic
         fun camelOrWordsToSnake(name: String): String {
             if (' ' in name) return name.trim().replace(" ", "_")

@@ -33,6 +33,58 @@ import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
+/**
+ * 注解条目 (Annotation Entry)
+ *
+ * 表示源代码中单个注解的使用,是注解应用的基本单位。
+ * 每个注解条目对应一个以 `@` 开头的注解使用,可能包含参数。
+ *
+ * ## 语法结构
+ * ```
+ * annotationEntry ::= '@' constructorCalleeExpression valueArgumentList?
+ * ```
+ *
+ * ## 示例
+ * ```cangjie
+ * @Deprecated                              // 简单注解条目
+ * @ForeignName(name: "native_function")   // 带参数的注解条目
+ * @CallingConv(convention: CDECL)         // 带枚举参数的注解条目
+ * ```
+ *
+ * ## 与 CjAnnotation 的关系
+ * - **CjAnnotationEntry**: 单个注解的使用 (例如: `@Deprecated`)
+ * - **CjAnnotation**: 注解容器,可包含多个连续的注解条目
+ *
+ * 在语法树中:
+ * ```
+ * CjAnnotation (注解容器)
+ *   └─ CjAnnotationEntry (@Deprecated)
+ *   └─ CjAnnotationEntry (@Frozen)
+ *   └─ CjAnnotationEntry (@ConstSafe)
+ * ```
+ *
+ * ## 作为 CjCallElement
+ * 注解条目继承 [CjCallElement],因为注解的使用本质上是对注解类构造函数的调用:
+ * - [calleeExpression]: 注解名称及类型引用
+ * - [valueArgumentList]: 注解参数列表
+ * - [valueArguments]: 具体的参数值
+ *
+ * ## 主要属性
+ * - [atSymbol]: `@` 符号
+ * - [typeReference]: 注解类型引用
+ * - [shortName]: 注解的简短名称
+ * - [valueArguments]: 注解参数列表
+ *
+ * ## 常见用途
+ * - FFI 互操作: `@C`, `@Java`, `@JavaImpl`
+ * - 编译器指令: `@Intrinsic`, `@OverflowThrowing`
+ * - 语义标记: `@Deprecated`, `@Frozen`
+ * - 条件编译: `@When`
+ *
+ * @see CjAnnotation 注解容器
+ * @see CjCallElement 调用表达式接口
+ * @see CjBuiltInAnnotation 内置注解枚举
+ */
 class CjAnnotationEntry : CjElementImplStub<CangJieAnnotationEntryStub>, CjCallElement {
     constructor(node: ASTNode) : super(node)
 

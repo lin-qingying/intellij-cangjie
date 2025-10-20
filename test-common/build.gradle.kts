@@ -24,6 +24,7 @@
 
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
+
 plugins {
     kotlin("jvm")
     `java-test-fixtures`
@@ -34,6 +35,7 @@ sourceSets {
     }
     test {
         none()
+
     }
     testFixtures {
         projectDefault()
@@ -58,7 +60,7 @@ val SourceSet.projectDefault: Project.() -> Unit
 
             "test" -> {
                 this@projectDefault.java.srcDirs("test", "tests")
-                this@projectDefault.resources.srcDir("testResources")
+                this@projectDefault.resources.srcDir("resources")
             }
 
             "testFixtures" -> {
@@ -85,5 +87,6 @@ dependencies {
     testFixturesImplementation(kotlin("test"))
     testFixturesImplementation(kotlin("test-junit"))
     testFixturesImplementation(project(":"))
+
 
 }

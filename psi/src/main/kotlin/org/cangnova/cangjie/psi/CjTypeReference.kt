@@ -48,8 +48,7 @@ class CjTypeReference :
         return visitor.visitTypeReference(this, data)
     }
 
-    override val annotationEntries: List<CjAnnotationEntry>
-        get() = modifierList?.annotationEntries.orEmpty()
+
     val isPlaceholder: Boolean
         get() = ((typeElement as? CjUserType)?.referenceExpression as? CjNameReferenceExpression)?.isPlaceholder == true
 

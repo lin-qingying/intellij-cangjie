@@ -55,8 +55,8 @@ abstract class AbstractCangJieParsing(
      *
      * ## 解析控制相关属性
      * @property disableMacroParsing 是否禁用宏解析，如果为true，所有@符号后的内容都将被解析为注解而不是宏
-     * @property allowMacroCallEverywhere 是否允许在所有位置进行宏调用
      * @property enableCustomAnnotation 是否启用自定义注解
+     * @property parseAnnotations 是否解析注解，默认为true。如果为false，则跳过注解的解析
      *
      * ## 错误报告相关属性
      * @property shouldReportError 是否应该报告错误。true表示报告错误，false表示只标记token不报告错误
@@ -75,9 +75,10 @@ abstract class AbstractCangJieParsing(
     data class ParsingContext(
         // ==================== 解析控制相关 ====================
         val disableMacroParsing: Boolean = false,
-        @Deprecated("请使用更具体的配置选项来控制宏调用的位置")
-        val allowMacroCallEverywhere: Boolean = false,
+
         val enableCustomAnnotation: Boolean = false,
+
+        val allowParseAnnotationsInValueParameter: Boolean = true,
 //        val strictMode: Boolean = false
 
         // ==================== 错误报告相关 ====================
@@ -102,14 +103,13 @@ abstract class AbstractCangJieParsing(
             /** 仅注解模式（禁用宏解析） */
             val ANNOTATION_ONLY = ParsingContext(disableMacroParsing = true, enableCustomAnnotation = true)
 
-            /** 宏优先模式（允许所有位置的宏调用） */
-            val MACRO_ENABLED = ParsingContext(allowMacroCallEverywhere = true)
 
 //            /** 严格模式 */
 //            val STRICT = ParsingContext(strictMode = true)
 //
 //            /** 遗留模式（禁用自定义注解） */
             val LEGACY = ParsingContext(enableCustomAnnotation = false)
+
 
             // ==================== 错误报告相关 ====================
             /** 报告错误 */

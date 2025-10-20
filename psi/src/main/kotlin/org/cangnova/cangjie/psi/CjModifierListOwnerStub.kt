@@ -31,6 +31,7 @@ import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import com.intellij.lang.ASTNode
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.stubs.StubElement
+import org.cangnova.cangjie.psi.psiUtil.collectAnnotationEntriesFromStubOrPsi
 
 open class CjModifierListOwnerStub<T : StubElement<*>> :
     CjElementImplStub<T>,
@@ -38,6 +39,11 @@ open class CjModifierListOwnerStub<T : StubElement<*>> :
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
+    override val annotations: List<CjAnnotation>
+        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.ANNOTATION)
+
+    override val annotationEntries: List<CjAnnotationEntry>
+        get() = this.collectAnnotationEntriesFromStubOrPsi()
 
     override val modifierList: CjModifierList?
         get() = getStubOrPsiChild(CjStubElementTypes.MODIFIER_LIST)
@@ -47,17 +53,9 @@ open class CjModifierListOwnerStub<T : StubElement<*>> :
         return modifierList != null && modifierList.hasModifier(modifier)
     }
 
-    override val annotations: List<CjAnnotation>
-        get() {
-            val modifierList = modifierList ?: return emptyList()
-            return modifierList.annotations
-        }
 
-    override val annotationEntries: List<CjAnnotationEntry>
-        get() {
-            val modifierList = modifierList ?: return emptyList()
-            return modifierList.annotationEntries
-        }
+
+
 
     override fun addModifier(modifier: CjKeywordToken) {
         addModifier(this, modifier)
