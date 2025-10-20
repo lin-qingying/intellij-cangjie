@@ -28,9 +28,9 @@ import org.cangnova.cangjie.highlighter.visitor.AbstractHighlightingVisitor
 import org.cangnova.cangjie.lang.CangJieLanguage
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.cdoc.parser.CDocKnownTag
-import org.cangnova.cangjie.psi.cdoc.psi.impl.CDocLink
-import org.cangnova.cangjie.psi.cdoc.psi.impl.CDocTag
+import org.cangnova.cangjie.lexer.cdoc.parser.CDocKnownTag
+import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocLink
+import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocTag
 import com.intellij.codeHighlighting.RainbowHighlighter
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.openapi.editor.colors.EditorColorsManager

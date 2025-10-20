@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.psi.cdoc
+package org.cangnova.cangjie.lexer.cdoc
 
 /**
  * A template that expands inside [TOuter]

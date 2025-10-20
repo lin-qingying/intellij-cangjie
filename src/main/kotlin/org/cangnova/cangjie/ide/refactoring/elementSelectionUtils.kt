@@ -28,7 +28,7 @@ import org.cangnova.cangjie.ide.refactoring.introduce.CangJieIntroduceVariableSe
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.cdoc.psi.CDoc
+import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
 import org.cangnova.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComments
 import org.cangnova.cangjie.psi.psiUtil.getParentOfType
 import org.cangnova.cangjie.psi.psiUtil.getParentOfTypeAndBranch

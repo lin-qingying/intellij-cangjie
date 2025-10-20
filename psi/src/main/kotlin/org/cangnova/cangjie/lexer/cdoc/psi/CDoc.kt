@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@
  *
  */
 
-package org.cangnova.cangjie.psi.cdoc.psi
+package org.cangnova.cangjie.lexer.cdoc.psi
 
-import org.cangnova.cangjie.psi.cdoc.parser.CDocKnownTag
-import org.cangnova.cangjie.psi.cdoc.psi.impl.CDocSection
+import org.cangnova.cangjie.lexer.cdoc.parser.CDocKnownTag
+import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocSection
 import org.cangnova.cangjie.psi.CjDeclaration
 import com.intellij.psi.PsiDocCommentBase
 

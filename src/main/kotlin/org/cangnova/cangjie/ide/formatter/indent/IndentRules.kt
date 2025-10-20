@@ -29,7 +29,7 @@ import org.cangnova.cangjie.ide.formatter.NodeIndentStrategy.Companion.strategy
 import org.cangnova.cangjie.lexer.CjTokens.*
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.CjNodeTypes.*
-import org.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
+import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens
 import org.cangnova.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import com.intellij.formatting.Indent
 import com.intellij.psi.PsiComment

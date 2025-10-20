@@ -28,7 +28,7 @@ import org.cangnova.cangjie.ide.formatter.adjustLineIndent
 import org.cangnova.cangjie.ide.project.tools.projectWizard.core.safeAs
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
+import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens
 import org.cangnova.cangjie.psi.psiUtil.startOffset
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.CodeInsightSettings

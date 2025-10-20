@@ -29,7 +29,7 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions.asOperatorName
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.parsing.CangJieExpressionParsing
-import org.cangnova.cangjie.psi.cdoc.psi.CDocElement
+import org.cangnova.cangjie.lexer.cdoc.psi.CDocElement
 import org.cangnova.cangjie.psi.psiUtil.getQualifiedElement
 import org.cangnova.cangjie.psi.psiUtil.getQualifiedElementSelector
 import org.cangnova.cangjie.psi.psiUtil.getQualifiedExpressionForSelector

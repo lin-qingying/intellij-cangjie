@@ -30,8 +30,8 @@ import org.cangnova.cangjie.ide.formatter.util.addTrailingCommaIsAllowedFor
 import org.cangnova.cangjie.lexer.CjTokens.*
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.CjNodeTypes.*
-import org.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
-import org.cangnova.cangjie.psi.cdoc.parser.CDocElementTypes
+import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens
+import org.cangnova.cangjie.lexer.cdoc.parser.CDocElementTypes
 import org.cangnova.cangjie.psi.psiUtil.*
 import org.cangnova.cangjie.utils.safeAs
 import com.intellij.formatting.*

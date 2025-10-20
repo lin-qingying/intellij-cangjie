@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.psi.cdoc.lexer
+package org.cangnova.cangjie.lexer.cdoc.lexer
 
 import org.cangnova.cangjie.lexer.CjToken
 import org.jetbrains.annotations.NonNls

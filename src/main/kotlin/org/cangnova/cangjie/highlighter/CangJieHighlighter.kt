@@ -24,8 +24,8 @@
 
 package org.cangnova.cangjie.highlighter
 
-import org.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
-import org.cangnova.cangjie.psi.cdoc.lexer.CDocTokens.CDOC_HIGHLIGHT_TOKENS
+import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens
+import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens.CDOC_HIGHLIGHT_TOKENS
 import org.cangnova.cangjie.lexer.CjTokens
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.editor.colors.TextAttributesKey

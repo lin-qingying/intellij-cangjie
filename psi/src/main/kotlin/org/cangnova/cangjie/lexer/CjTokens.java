@@ -29,7 +29,7 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.cangnova.cangjie.psi.CjNodeTypes;
-import org.cangnova.cangjie.psi.cdoc.lexer.CDocTokens;
+import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens;
 
 public interface CjTokens {
     int INVALID_Id = 0;

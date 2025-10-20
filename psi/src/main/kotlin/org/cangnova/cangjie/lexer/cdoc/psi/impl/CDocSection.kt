@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.psi.cdoc.psi.impl
+package org.cangnova.cangjie.lexer.cdoc.psi.impl
 
 import org.cangnova.cangjie.psi.psiUtil.getChildrenOfType
 import com.intellij.lang.ASTNode

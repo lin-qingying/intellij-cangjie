@@ -27,7 +27,7 @@ package org.cangnova.cangjie.ide.copyright
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lexer.CjTokens.SHEBANG_COMMENT
 import org.cangnova.cangjie.psi.CjDeclaration
-import org.cangnova.cangjie.psi.cdoc.psi.CDoc
+import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project

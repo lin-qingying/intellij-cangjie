@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@
  *
  */
 
-package org.cangnova.cangjie.psi.cdoc.psi.impl
+package org.cangnova.cangjie.lexer.cdoc.psi.impl
 
-import org.cangnova.cangjie.psi.cdoc.psi.CDoc
+import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.CjElementImpl
 import org.cangnova.cangjie.psi.psiUtil.getChildOfType

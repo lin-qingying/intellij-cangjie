@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.psi.cdoc.parser
+package org.cangnova.cangjie.lexer.cdoc.parser
 
 import org.cangnova.cangjie.lang.CangJieLanguage
 import com.intellij.lang.ASTNode

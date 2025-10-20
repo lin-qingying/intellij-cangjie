@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.ide.commenter
 
-import org.cangnova.cangjie.psi.cdoc.psi.CDoc
+import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
 import org.cangnova.cangjie.lang.CangJieLanguage
 import org.cangnova.cangjie.lexer.CjTokens.BLOCK_COMMENT
 import org.cangnova.cangjie.lexer.CjTokens.DOC_COMMENT

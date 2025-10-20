@@ -36,9 +36,9 @@ import org.cangnova.cangjie.macro.file.CjMacroCallFile
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjNodeType
 import org.cangnova.cangjie.psi.CjNodeTypes
-import org.cangnova.cangjie.psi.cdoc.lexer.CDocTokens
-import org.cangnova.cangjie.psi.cdoc.parser.CDocElementType
-import org.cangnova.cangjie.psi.cdoc.psi.impl.CDocLink
+import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens
+import org.cangnova.cangjie.lexer.cdoc.parser.CDocElementType
+import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocLink
 import org.cangnova.cangjie.psi.stubs.elements.CjFileElementType
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementType
 import com.intellij.extapi.psi.ASTWrapperPsiElement

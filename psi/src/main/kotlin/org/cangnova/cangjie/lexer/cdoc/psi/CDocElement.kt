@@ -22,7 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.psi.cdoc.psi
+package org.cangnova.cangjie.lexer.cdoc.psi
 
 import com.intellij.psi.PsiElement
 

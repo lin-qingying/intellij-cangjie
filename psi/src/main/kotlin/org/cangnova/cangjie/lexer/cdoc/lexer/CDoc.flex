@@ -1,11 +1,11 @@
-package org.cangnova.cangjie.cdoc.lexer;
+package org.cangnova.cangjie.lexer.cdoc.lexer;
 import com.intellij.lexer.FlexLexer;
-import org.cangnova.cangjie.psi.cdoc.lexer.CDocTokens;
+import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.text.CharArrayUtil;
 import java.lang.Character;
-import org.cangnova.cangjie.psi.cdoc.parser.CDocKnownTag;
+import org.cangnova.cangjie.lexer.cdoc.parser.CDocKnownTag;
 
 %%
 

@@ -586,14 +586,3 @@ tasks.compileKotlin {
     dependsOn("createIdeVersionSourceDir")
 }
 
-
-//project(":lsp"){
-//    dependencies{
-//        // https://mvnrepository.com/artifact/com.github.nipunaranasinghe/lsp4intellij
-////    implementation("com.github.ballerina-platform:lsp4intellij:0.96.2")
-//// https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j
-//        implementation  ("org.eclipse.lsp4j:org.eclipse.lsp4j:0.24.0")
-//        implementation(project(":"))
-//
-//    }
-//}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@
  *
  */
 
-package org.cangnova.cangjie.psi.cdoc.lexer;
+package org.cangnova.cangjie.lexer.cdoc.lexer;
 
-import org.cangnova.cangjie.psi.cdoc.parser.CDocLinkParser;
-import org.cangnova.cangjie.psi.cdoc.parser.CDocParser;
-import org.cangnova.cangjie.psi.cdoc.psi.impl.CDocImpl;
+import org.cangnova.cangjie.lexer.cdoc.parser.CDocLinkParser;
+import org.cangnova.cangjie.lexer.cdoc.parser.CDocParser;
+import org.cangnova.cangjie.lexer.cdoc.psi.impl.CDocImpl;
 import org.cangnova.cangjie.lang.CangJieLanguage;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;

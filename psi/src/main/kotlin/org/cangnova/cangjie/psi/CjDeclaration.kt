@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.psi
 
-import org.cangnova.cangjie.psi.cdoc.psi.CDoc
+import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
 import com.intellij.util.ArrayFactory
 
 interface CjDeclaration : CjExpression, CjModifierListOwner {
