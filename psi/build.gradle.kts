@@ -22,7 +22,13 @@
  *
  */
 
+import org.gradle.kotlin.dsl.register
+import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id("org.jetbrains.grammarkit") version "2022.3.2.2"
+}
 
 dependencies {
     testImplementation(kotlin("test"))
@@ -35,6 +41,37 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":telemetry"))
 
+}
+
+// 配置 Lexer 生成任务
+tasks.register<GenerateLexerTask>("generateCangJieLexer") {
+    sourceFile.set(file("src/main/kotlin/org/cangnova/cangjie/lexer/CangJieLexer.flex"))
+    targetOutputDir.set(file("src/gen/org/cangnova/cangjie/lexer"))
+    purgeOldFiles.set(true)
+}
+
+tasks.register<GenerateLexerTask>("generateCDocLexer") {
+    sourceFile.set(file("src/main/kotlin/org/cangnova/cangjie/lexer/cdoc/lexer/CDoc.flex"))
+    targetOutputDir.set(file("src/gen/org/cangnova/cangjie/lexer/cdoc/lexer"))
+    purgeOldFiles.set(true)
+}
+
+// 创建一个组合任务来生成所有 Lexer
+
+tasks.register<Task>("generateLexers") {
+    dependsOn("generateCangJieLexer", "generateCDocLexer")
+    group = "build"
+    description = "Generate all lexers for the project"
+}
+
+// 确保在编译 Java 之前生成 Lexer
+tasks.compileJava {
+    dependsOn("generateLexers")
+}
+
+// 确保在编译 Kotlin 之前也生成 Lexer（如果 Kotlin 代码依赖 Lexer）
+tasks.compileKotlin {
+    dependsOn("generateLexers")
 }
 
 val compileKotlin: KotlinCompile by tasks

@@ -1,5 +1,5 @@
-package org.cangnova.cangjie.doc.lexer;
-
+package org.cangnova.cangjie.cdoc.lexer;
+import com.intellij.lexer.FlexLexer;
 import org.cangnova.cangjie.psi.cdoc.lexer.CDocTokens;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
