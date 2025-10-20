@@ -74,6 +74,15 @@ tasks.compileKotlin {
     dependsOn("generateLexers")
 }
 
+// 将生成的代码目录添加到源码路径
+sourceSets {
+    main {
+        java {
+            srcDirs("src/gen")
+        }
+    }
+}
+
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.compilerOptions {
     freeCompilerArgs.set(listOf("-Xcontext-parameters"))

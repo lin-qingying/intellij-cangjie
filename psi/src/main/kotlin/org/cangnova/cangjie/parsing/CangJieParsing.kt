@@ -621,6 +621,9 @@ class CangJieParsing private constructor(
             if (at(RBRACKET)) {
                 break
             }
+            if (eof()) {
+                break
+            }
         }
 
         builder.enableNewlines()
@@ -950,20 +953,20 @@ class CangJieParsing private constructor(
      */
     fun parseFile() {
 
-            with(ParsingContext.DEFAULT) {
-                val fileMarker = mark()
+        with(ParsingContext.DEFAULT) {
+            val fileMarker = mark()
 
-                // 处理开头 package
-                parsePreamble()
+            // 处理开头 package
+            parsePreamble()
 
-                // 处理声明式语句
-                while (!eof()) {
-                    parseTopLevelDeclaration()
-                }
-
-                checkUnclosedBlockComment()
-                fileMarker.done(CJ_FILE)
+            // 处理声明式语句
+            while (!eof()) {
+                parseTopLevelDeclaration()
             }
+
+            checkUnclosedBlockComment()
+            fileMarker.done(CJ_FILE)
+        }
 
     }
 
@@ -1157,7 +1160,7 @@ class CangJieParsing private constructor(
      */
     context(parseContext: ParsingContext) fun parseLambdaExpression() {
         with(
-            parseContext.copy(  preferBlock = false, collapse = false, isDoubleArrow = false)
+            parseContext.copy(preferBlock = false, collapse = false, isDoubleArrow = false)
         ) {
             expressionParsing.parseFunctionLiteral()
         }
@@ -1205,7 +1208,7 @@ class CangJieParsing private constructor(
 
 //        注解名称
 
-            expressionParsing.parseReferenceExpression()
+        expressionParsing.parseReferenceExpression()
 
         if (at(LBRACKET)) {
             expressionParsing.parseValueArgumentList(LBRACKET, RBRACKET)
@@ -1214,7 +1217,7 @@ class CangJieParsing private constructor(
         mark.done(ANNOTATION_ENTRY)
     }
 
-    context( parseContext: ParsingContext)
+    context(parseContext: ParsingContext)
     fun parseDeprecatedAnnotation() {
         assert(_at(AT))
 
@@ -1599,7 +1602,7 @@ class CangJieParsing private constructor(
         if (at(EQ)) {
             advance() // consume EQ token
 
-                expressionParsing.parseExpression()
+            expressionParsing.parseExpression()
 
             return true
         }
@@ -1683,7 +1686,7 @@ class CangJieParsing private constructor(
         if (at(EQ)) {
             advance() // EQ
 
-                expressionParsing.parseExpression()
+            expressionParsing.parseExpression()
 
         }
 
@@ -1697,7 +1700,7 @@ class CangJieParsing private constructor(
      */
     context(parseContext: ParsingContext) fun parseExpressionCodeFragment() {
         val marker = mark()
-            expressionParsing.parseExpression()
+        expressionParsing.parseExpression()
 
 
         checkForUnexpectedSymbols()
@@ -3131,7 +3134,7 @@ class CangJieParsing private constructor(
         if (at(LPAR)) {
             advance()
 
-                expressionParsing.parseExpression()
+            expressionParsing.parseExpression()
 
             expect(RPAR, "Expecting ')'")
         } else {
@@ -3492,7 +3495,7 @@ class CangJieParsing private constructor(
             }
 
 
-                expressionParsing.parseExpression()
+            expressionParsing.parseExpression()
 
         }
 
