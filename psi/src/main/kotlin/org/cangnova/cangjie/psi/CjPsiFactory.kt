@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,7 @@
  */
 
 package org.cangnova.cangjie.psi
-import org.cangnova.cangjie.name.*
 
-import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.lexer.CjKeywordToken
-import org.cangnova.cangjie.lexer.CjModifierKeywordToken
-import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiComment
@@ -37,6 +32,11 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.LocalTimeCounter
+import org.cangnova.cangjie.lang.CangJieFileType
+import org.cangnova.cangjie.lexer.CjKeywordToken
+import org.cangnova.cangjie.lexer.CjModifierKeywordToken
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 import org.jetbrains.annotations.NonNls
 
 var CjFile.doNotAnalyze: String? by UserDataProperty(Key.create("DO_NOT_ANALYZE"))
@@ -107,10 +107,10 @@ class CjPsiFactory private constructor(
     ): CjProperty {
         return createProperty(null, name, type, isMut, initializer)
     }
-    fun createAnnotation(text:String): CjAnnotation{
+    fun createAnnotations(text: String): CjAnnotations {
         val function = createFunction(" $text func foo() { }")
 
-        return function.annotations[0]
+        return function.annotations
     }
     fun createMatchEntry(@NonNls entryText: String): CjMatchEntry {
         val function = createFunction("func foo() { match(12) { $entryText } }")

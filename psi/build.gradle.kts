@@ -22,7 +22,6 @@
  *
  */
 
-import org.gradle.kotlin.dsl.register
 import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -52,13 +51,14 @@ dependencies {
 tasks.register<GenerateLexerTask>("generateCangJieLexer") {
     sourceFile.set(file("src/main/kotlin/org/cangnova/cangjie/lexer/CangJieLexer.flex"))
     targetOutputDir.set(file("src/gen/org/cangnova/cangjie/lexer"))
-    purgeOldFiles.set(true)
+//    purgeOldFiles.set(true)
 }
 
 tasks.register<GenerateLexerTask>("generateCDocLexer") {
     sourceFile.set(file("src/main/kotlin/org/cangnova/cangjie/lexer/cdoc/lexer/CDoc.flex"))
     targetOutputDir.set(file("src/gen/org/cangnova/cangjie/lexer/cdoc/lexer"))
-    purgeOldFiles.set(true)
+//    要确保generateCangJieLexer在generateCDocLexer之前执行
+//    purgeOldFiles.set(true)
 }
 
 // 创建一个组合任务来生成所有 Lexer

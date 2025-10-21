@@ -24,13 +24,6 @@
 
 package org.cangnova.cangjie.ide.editor
 
-import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.psiUtil.firstIsInstanceOrNull
-import org.cangnova.cangjie.psi.psiUtil.getCallNameExpression
-import org.cangnova.cangjie.psi.psiUtil.isSingleQuoted
-import org.cangnova.cangjie.psi.psiUtil.parents
 import com.intellij.application.options.CodeStyle
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegate
@@ -50,6 +43,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import org.cangnova.cangjie.lang.CangJieFileType
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.psiUtil.firstIsInstanceOrNull
+import org.cangnova.cangjie.psi.psiUtil.getCallNameExpression
+import org.cangnova.cangjie.psi.psiUtil.isSingleQuoted
+import org.cangnova.cangjie.psi.psiUtil.parents
 
 class CangJieMultilineStringEnterHandler : EnterHandlerDelegate {
 
@@ -387,7 +387,7 @@ class CangJieMultilineStringEnterHandler : EnterHandlerDelegate {
 
         fun insertTrimCall(document: Document, literal: CjStringTemplateExpression, marginChar: Char?) {
             if (hasTrimIndentCallInChain(literal) || getMarginCharFromTrimMarginCallsInChain(literal) != null) return
-            if (literal.parents.any { it is CjAnnotationEntry || (it as? CjProperty)?.hasModifier(CjTokens.CONST_KEYWORD) == true }) return
+            if (literal.parents.any { it is CjAnnotation || (it as? CjProperty)?.hasModifier(CjTokens.CONST_KEYWORD) == true }) return
 
             if (marginChar == null) {
                 document.insertString(literal.textRange.endOffset, ".${TRIM_INDENT_CALL}()")

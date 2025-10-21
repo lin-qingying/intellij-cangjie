@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.psi
 
 
-import com.intellij.openapi.fileTypes.FileTypeManager
 import org.cangnova.cangjie.CangJieTestBase
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.FqName
@@ -20207,7 +20206,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建简单的 @Deprecated 注解
     fun `test create Deprecated annotation`() {
-        val annotation = factory.createAnnotation("@Deprecated")
+        val annotation = factory.createAnnotations("@Deprecated")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20217,7 +20216,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @Frozen 注解
     fun `test create Frozen annotation`() {
-        val annotation = factory.createAnnotation("@Frozen")
+        val annotation = factory.createAnnotations("@Frozen")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20226,7 +20225,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @ConstSafe 注解
     fun `test create ConstSafe annotation`() {
-        val annotation = factory.createAnnotation("@ConstSafe")
+        val annotation = factory.createAnnotations("@ConstSafe")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20235,7 +20234,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @C 注解
     fun `test create C annotation for FFI`() {
-        val annotation = factory.createAnnotation("@C")
+        val annotation = factory.createAnnotations("@C")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20244,7 +20243,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @Java 注解
     fun `test create Java annotation for FFI`() {
-        val annotation = factory.createAnnotation("@Java")
+        val annotation = factory.createAnnotations("@Java")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20253,7 +20252,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建带参数的 @ForeignName 注解
     fun `test create ForeignName annotation with arguments`() {
-        val annotation = factory.createAnnotation("@ForeignName[name: \"native_method\"]")
+        val annotation = factory.createAnnotations("@ForeignName[name: \"native_method\"]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20263,7 +20262,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @CallingConv 注解
     fun `test create CallingConv annotation`() {
-        val annotation = factory.createAnnotation("@CallingConv[convention: CallingConvention.CDECL]")
+        val annotation = factory.createAnnotations("@CallingConv[convention: CallingConvention.CDECL]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20273,7 +20272,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @OverflowThrowing 注解
     fun `test create OverflowThrowing annotation`() {
-        val annotation = factory.createAnnotation("@OverflowThrowing")
+        val annotation = factory.createAnnotations("@OverflowThrowing")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20282,7 +20281,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @OverflowWrapping 注解
     fun `test create OverflowWrapping annotation`() {
-        val annotation = factory.createAnnotation("@OverflowWrapping")
+        val annotation = factory.createAnnotations("@OverflowWrapping")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20291,7 +20290,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @OverflowSaturating 注解
     fun `test create OverflowSaturating annotation`() {
-        val annotation = factory.createAnnotation("@OverflowSaturating")
+        val annotation = factory.createAnnotations("@OverflowSaturating")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20300,7 +20299,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @Intrinsic 注解
     fun `test create Intrinsic annotation`() {
-        val annotation = factory.createAnnotation("@Intrinsic")
+        val annotation = factory.createAnnotations("@Intrinsic")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20309,7 +20308,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @When 条件编译注解
     fun `test create When annotation for conditional compilation`() {
-        val annotation = factory.createAnnotation("@When[condition: \"DEBUG\"]")
+        val annotation = factory.createAnnotations("@When[os == \"windows\"]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20319,7 +20318,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @Attribute 注解
     fun `test create Attribute annotation`() {
-        val annotation = factory.createAnnotation("@Attribute[name: \"inline\"]")
+        val annotation = factory.createAnnotations("@Attribute[name: \"inline\"]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20328,7 +20327,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @FastNative 注解
     fun `test create FastNative annotation`() {
-        val annotation = factory.createAnnotation("@FastNative")
+        val annotation = factory.createAnnotations("@FastNative")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20337,7 +20336,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @Annotation 元注解
     fun `test create Annotation meta-annotation`() {
-        val annotation = factory.createAnnotation("@Annotation[target: [AnnotationTarget.TYPE]]")
+        val annotation = factory.createAnnotations("@Annotation[target: [AnnotationTarget.TYPE]]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20347,7 +20346,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @EnsurePreparedToMock 注解
     fun `test create EnsurePreparedToMock annotation`() {
-        val annotation = factory.createAnnotation("@EnsurePreparedToMock")
+        val annotation = factory.createAnnotations("@EnsurePreparedToMock")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20356,7 +20355,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @JavaMirror 注解
     fun `test create JavaMirror annotation`() {
-        val annotation = factory.createAnnotation("@JavaMirror[name: \"java.lang.String\"]")
+        val annotation = factory.createAnnotations("@JavaMirror[name: \"java.lang.String\"]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20366,7 +20365,8 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @JavaImpl 注解
     fun `test create JavaImpl annotation`() {
-        val annotation = factory.createAnnotation("@JavaImpl[className: \"com.example.Utils\", methodName: \"process\"]")
+        val annotation =
+            factory.createAnnotations("@JavaImpl[className: \"com.example.Utils\", methodName: \"process\"]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20376,7 +20376,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @ObjCMirror 注解
     fun `test create ObjCMirror annotation`() {
-        val annotation = factory.createAnnotation("@ObjCMirror[name: \"NSString\"]")
+        val annotation = factory.createAnnotations("@ObjCMirror[name: \"NSString\"]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20386,7 +20386,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @ObjCImpl 注解
     fun `test create ObjCImpl annotation`() {
-        val annotation = factory.createAnnotation("@ObjCImpl[className: \"MyClass\", methodName: \"init\"]")
+        val annotation = factory.createAnnotations("@ObjCImpl[className: \"MyClass\", methodName: \"init\"]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
@@ -20396,7 +20396,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建多个注解
     fun `test create multiple annotations`() {
-        val annotation = factory.createAnnotation(
+        val annotation = factory.createAnnotations(
             """
             @Deprecated
             @Frozen
@@ -20415,10 +20415,12 @@ class CjPsiFactoryTest : CangJieTestBase() {
         val ffiAnnotations = listOf("C", "Java", "JavaMirror", "JavaImpl", "ObjCMirror", "ObjCImpl", "CallingConv", "ForeignName")
 
         for (annotationName in ffiAnnotations) {
-            val annotation = if (annotationName in setOf("CallingConv", "ForeignName", "JavaMirror", "JavaImpl", "ObjCMirror", "ObjCImpl")) {
-                factory.createAnnotation("@$annotationName[name: \"test\"]")
-            } else {
-                factory.createAnnotation("@$annotationName")
+            val annotation = when (annotationName) {
+                "CallingConv" -> factory.createAnnotations("@$annotationName[CDECL]")
+                "ForeignName", "JavaMirror", "JavaImpl", "ObjCMirror", "ObjCImpl" ->
+                    factory.createAnnotations("@$annotationName[name: \"test\"]")
+
+                else -> factory.createAnnotations("@$annotationName")
             }
 
             check(annotation.entries.isNotEmpty())
@@ -20431,7 +20433,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
         val overflowAnnotations = listOf("OverflowThrowing", "OverflowWrapping", "OverflowSaturating")
 
         for (annotationName in overflowAnnotations) {
-            val annotation = factory.createAnnotation("@$annotationName")
+            val annotation = factory.createAnnotations("@$annotationName")
 
             check(annotation.entries.isNotEmpty())
             check(annotation.entries.first().shortName?.asString() == annotationName)
@@ -20444,9 +20446,9 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
         for (annotationName in compilerAnnotations) {
             val annotation = if (annotationName == "Attribute") {
-                factory.createAnnotation("@$annotationName[name: \"test\"]")
+                factory.createAnnotations("@$annotationName[name: \"test\"]")
             } else {
-                factory.createAnnotation("@$annotationName")
+                factory.createAnnotations("@$annotationName")
             }
 
             check(annotation.entries.isNotEmpty())
@@ -20459,7 +20461,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
         val semanticAnnotations = listOf("Deprecated", "Frozen")
 
         for (annotationName in semanticAnnotations) {
-            val annotation = factory.createAnnotation("@$annotationName")
+            val annotation = factory.createAnnotations("@$annotationName")
 
             check(annotation.entries.isNotEmpty())
             check(annotation.entries.first().shortName?.asString() == annotationName)
@@ -20474,12 +20476,19 @@ class CjPsiFactoryTest : CangJieTestBase() {
         for (annotationName in allBuiltInNames) {
             try {
                 val annotation = when (annotationName) {
-                    "ForeignName", "CallingConv", "Attribute", "When",
-                    "JavaMirror", "JavaImpl", "ObjCMirror", "ObjCImpl" -> {
-                        factory.createAnnotation("@$annotationName[name: \"test\"]")
+                    "ForeignName", "CallingConv", "JavaMirror", "JavaImpl", "ObjCMirror", "ObjCImpl" -> {
+                        factory.createAnnotations("@$annotationName[name: \"test\"]")
+                    }
+
+                    "Attribute" -> {
+                        factory.createAnnotations("@$annotationName[\"test\"]")
+                    }
+
+                    "When" -> {
+                        factory.createAnnotations("@$annotationName[DEBUG]")
                     }
                     else -> {
-                        factory.createAnnotation("@$annotationName")
+                        factory.createAnnotations("@$annotationName")
                     }
                 }
 
@@ -20494,7 +20503,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试注解参数访问
     fun `test annotation argument access`() {
-        val annotation = factory.createAnnotation("@ForeignName[name: \"test_function\"]")
+        val annotation = factory.createAnnotations("@ForeignName[name: \"test_function\"]")
 
         val entry = annotation.entries.first()
         check(entry.shortName?.asString() == "ForeignName")
@@ -20554,5 +20563,321 @@ class CjPsiFactoryTest : CangJieTestBase() {
         check(struct.name == "Point")
         check(struct.annotationEntries.size == 1)
         check(struct.annotationEntries.first().shortName?.asString() == "Frozen")
+    }
+
+    // ========== 测试内置注解识别和属性访问 ==========
+
+    // 测试 isBuiltInAnnotation 属性
+    fun `test isBuiltInAnnotation property`() {
+        // 测试内置注解
+        val deprecatedAnnotation = factory.createAnnotations("@Deprecated")
+        val deprecatedEntry = deprecatedAnnotation.entries.first()
+        check(deprecatedEntry.isBuiltInAnnotation) { "Deprecated should be a built-in annotation" }
+
+        val cAnnotation = factory.createAnnotations("@C")
+        val cEntry = cAnnotation.entries.first()
+        check(cEntry.isBuiltInAnnotation) { "C should be a built-in annotation" }
+
+        val javaAnnotation = factory.createAnnotations("@Java")
+        val javaEntry = javaAnnotation.entries.first()
+        check(javaEntry.isBuiltInAnnotation) { "Java should be a built-in annotation" }
+
+        // 测试自定义注解（非内置）
+        val customAnnotation = factory.createAnnotations("@CustomAnnotation")
+        val customEntry = customAnnotation.entries.first()
+        check(!customEntry.isBuiltInAnnotation) { "CustomAnnotation should not be a built-in annotation" }
+    }
+
+    // 测试 builtInAnnotation 属性
+    fun `test builtInAnnotation property`() {
+        val deprecatedAnnotation = factory.createAnnotations("@Deprecated")
+        val deprecatedEntry = deprecatedAnnotation.entries.first()
+        check(deprecatedEntry.builtInAnnotation == CjBuiltInAnnotation.DEPRECATED) {
+            "Should return DEPRECATED enum value"
+        }
+
+        val frozenAnnotation = factory.createAnnotations("@Frozen")
+        val frozenEntry = frozenAnnotation.entries.first()
+        check(frozenEntry.builtInAnnotation == CjBuiltInAnnotation.FROZEN) {
+            "Should return FROZEN enum value"
+        }
+
+
+    }
+
+    // 测试 callingConvention 属性
+    fun `test callingConvention property`() {
+        val annotation = factory.createAnnotations("@CallingConv[CDECL]")
+        val entry = annotation.entries.first()
+
+        check(entry.isBuiltInAnnotation) { "CallingConv should be a built-in annotation" }
+        check(entry.builtInAnnotation == CjBuiltInAnnotation.CALLING_CONV) {
+            "Should be CALLING_CONV annotation"
+        }
+
+        val convention = entry.callingConvention
+        check(convention == CallingConvention.CDECL) {
+            "Should extract CDECL calling convention, got: $convention"
+        }
+
+        // 测试 STDCALL
+        val stdcallAnnotation = factory.createAnnotations("@CallingConv[STDCALL]")
+        val stdcallEntry = stdcallAnnotation.entries.first()
+        check(stdcallEntry.callingConvention == CallingConvention.STDCALL) {
+            "Should extract STDCALL calling convention"
+        }
+
+        // 测试非 CallingConv 注解
+        val otherAnnotation = factory.createAnnotations("@Deprecated")
+        val otherEntry = otherAnnotation.entries.first()
+        check(otherEntry.callingConvention == null) {
+            "Non-CallingConv annotation should return null"
+        }
+    }
+
+    // 测试 whenCondition 属性
+    fun `test whenCondition property`() {
+        // 测试简单条件
+        val annotation1 = factory.createAnnotations("@When[os == \"windows\"]")
+        val entry1 = annotation1.entries.first()
+
+        check(entry1.isBuiltInAnnotation) { "When should be a built-in annotation" }
+        check(entry1.builtInAnnotation == CjBuiltInAnnotation.WHEN) {
+            "Should be WHEN annotation"
+        }
+
+        val condition1 = entry1.whenCondition
+        check(condition1 != null) {
+            "Should have a condition"
+        }
+        check(condition1.contains("os") && condition1.contains("windows")) {
+            "Condition should contain 'os' and 'windows', got: $condition1"
+        }
+
+        // 测试另一个条件
+        val annotation2 = factory.createAnnotations("@When[target == \"x86_64\"]")
+        val entry2 = annotation2.entries.first()
+        val condition2 = entry2.whenCondition
+        check(condition2 != null && condition2.contains("target")) {
+            "Condition should contain 'target', got: $condition2"
+        }
+
+        // 测试布尔条件
+        val annotation3 = factory.createAnnotations("@When[debug]")
+        val entry3 = annotation3.entries.first()
+        val condition3 = entry3.whenCondition
+        check(condition3 != null && condition3.contains("debug")) {
+            "Condition should contain 'debug', got: $condition3"
+        }
+
+        // 测试非 When 注解
+        val otherAnnotation = factory.createAnnotations("@Deprecated")
+        val otherEntry = otherAnnotation.entries.first()
+        check(otherEntry.whenCondition == null) {
+            "Non-When annotation should return null"
+        }
+    }
+
+    // 测试 overflowStrategy 属性
+    fun `test overflowStrategy property`() {
+        // 测试 OverflowThrowing
+        val throwingAnnotation = factory.createAnnotations("@OverflowThrowing")
+        val throwingEntry = throwingAnnotation.entries.first()
+        check(throwingEntry.overflowStrategy == OverflowStrategy.THROWING) {
+            "OverflowThrowing should return THROWING strategy"
+        }
+
+        // 测试 OverflowWrapping
+        val wrappingAnnotation = factory.createAnnotations("@OverflowWrapping")
+        val wrappingEntry = wrappingAnnotation.entries.first()
+        check(wrappingEntry.overflowStrategy == OverflowStrategy.WRAPPING) {
+            "OverflowWrapping should return WRAPPING strategy"
+        }
+
+        // 测试 OverflowSaturating
+        val saturatingAnnotation = factory.createAnnotations("@OverflowSaturating")
+        val saturatingEntry = saturatingAnnotation.entries.first()
+        check(saturatingEntry.overflowStrategy == OverflowStrategy.SATURATING) {
+            "OverflowSaturating should return SATURATING strategy"
+        }
+
+        // 测试非溢出注解
+        val otherAnnotation = factory.createAnnotations("@Deprecated")
+        val otherEntry = otherAnnotation.entries.first()
+        check(otherEntry.overflowStrategy == null) {
+            "Non-overflow annotation should return null"
+        }
+    }
+
+    // 测试 FFI 注解分类
+    fun `test isFFIAnnotation property`() {
+        // 测试 FFI 注解
+        val ffiAnnotations = listOf(
+            "@C",
+            "@Java",
+            "@JavaMirror",
+            "@JavaImpl",
+            "@ObjCMirror",
+            "@ObjCImpl",
+            "@ForeignName[name: \"test\"]",
+            "@CallingConv[CDECL]"
+        )
+
+        for (annotationText in ffiAnnotations) {
+            val annotation = factory.createAnnotations(annotationText)
+            val entry = annotation.entries.first()
+            check(entry.isFFIAnnotation) {
+                "$annotationText should be an FFI annotation"
+            }
+        }
+
+        // 测试非 FFI 注解
+        val nonFFIAnnotations = listOf("@Deprecated", "@Frozen", "@Intrinsic", "@When[os == \"windows\"]")
+
+        for (annotationText in nonFFIAnnotations) {
+            val annotation = factory.createAnnotations(annotationText)
+            val entry = annotation.entries.first()
+            check(!entry.isFFIAnnotation) {
+                "$annotationText should not be an FFI annotation"
+            }
+        }
+    }
+
+    // 测试编译器指令注解分类
+    fun `test isCompilerDirectiveAnnotation property`() {
+        // 测试编译器指令注解
+        val compilerDirectiveAnnotations = listOf(
+            "@Intrinsic",
+            "@When[os == \"windows\"]",
+            "@ConstSafe",
+            "@FastNative",
+            "@Attribute",
+            "@OverflowThrowing",
+            "@OverflowWrapping",
+            "@OverflowSaturating"
+        )
+
+        for (annotationText in compilerDirectiveAnnotations) {
+            val annotation = factory.createAnnotations(annotationText)
+            val entry = annotation.entries.first()
+            check(entry.isCompilerDirectiveAnnotation) {
+                "$annotationText should be a compiler directive annotation"
+            }
+        }
+
+        // 测试非编译器指令注解
+        val nonCompilerDirectiveAnnotations = listOf("@Deprecated", "@Frozen", "@C", "@Java")
+
+        for (annotationText in nonCompilerDirectiveAnnotations) {
+            val annotation = factory.createAnnotations(annotationText)
+            val entry = annotation.entries.first()
+            check(!entry.isCompilerDirectiveAnnotation) {
+                "$annotationText should not be a compiler directive annotation"
+            }
+        }
+    }
+
+    // 测试语义标记注解分类
+    fun `test isSemanticAnnotation property`() {
+        // 测试语义标记注解
+        val semanticAnnotations = listOf("@Deprecated", "@Frozen")
+
+        for (annotationText in semanticAnnotations) {
+            val annotation = factory.createAnnotations(annotationText)
+            val entry = annotation.entries.first()
+            check(entry.isSemanticAnnotation) {
+                "$annotationText should be a semantic annotation"
+            }
+        }
+
+        // 测试非语义标记注解
+        val nonSemanticAnnotations = listOf("@C", "@Java", "@Intrinsic", "@When[os == \"windows\"]")
+
+        for (annotationText in nonSemanticAnnotations) {
+            val annotation = factory.createAnnotations(annotationText)
+            val entry = annotation.entries.first()
+            check(!entry.isSemanticAnnotation) {
+                "$annotationText should not be a semantic annotation"
+            }
+        }
+    }
+
+    // 综合测试：混合注解识别
+    fun `test mixed annotations recognition`() {
+        val function = factory.createFunction(
+            """
+            @Deprecated
+            @C
+            @CallingConv[CDECL]
+            @OverflowThrowing
+            func complexFunction(): Unit {}
+            """.trimIndent()
+        )
+
+        check(function.annotationEntries.size == 4) {
+            "Should have 4 annotations"
+        }
+
+        val annotations = function.annotationEntries
+
+        // @Deprecated - 语义标记注解
+        val deprecated = annotations[0]
+        check(deprecated.isBuiltInAnnotation)
+        check(deprecated.isSemanticAnnotation)
+        check(!deprecated.isFFIAnnotation)
+        check(!deprecated.isCompilerDirectiveAnnotation)
+
+        // @C - FFI 注解
+        val cAnnotation = annotations[1]
+        check(cAnnotation.isBuiltInAnnotation)
+        check(cAnnotation.isFFIAnnotation)
+        check(!cAnnotation.isSemanticAnnotation)
+        check(!cAnnotation.isCompilerDirectiveAnnotation)
+
+        // @CallingConv - FFI 注解
+        val callingConv = annotations[2]
+        check(callingConv.isBuiltInAnnotation)
+        check(callingConv.isFFIAnnotation)
+        check(callingConv.builtInAnnotation == CjBuiltInAnnotation.CALLING_CONV)
+        check(callingConv.callingConvention == CallingConvention.CDECL) {
+            "Should extract CDECL calling convention"
+        }
+
+        // @OverflowThrowing - 编译器指令注解
+        val overflowThrowing = annotations[3]
+        check(overflowThrowing.isBuiltInAnnotation)
+        check(overflowThrowing.isCompilerDirectiveAnnotation)
+        check(overflowThrowing.overflowStrategy == OverflowStrategy.THROWING)
+        check(!overflowThrowing.isFFIAnnotation)
+        check(!overflowThrowing.isSemanticAnnotation)
+    }
+
+    // 测试所有内置注解的识别完整性
+    fun `test all built-in annotations are recognized`() {
+        val allBuiltInAnnotations = CjBuiltInAnnotation.entries
+
+        for (builtIn in allBuiltInAnnotations) {
+            val annotationText = when (builtIn) {
+                CjBuiltInAnnotation.CALLING_CONV -> "@CallingConv[CDECL]"
+                CjBuiltInAnnotation.WHEN -> "@When[os == \"windows\"]"
+                CjBuiltInAnnotation.FOREIGN_NAME -> "@ForeignName[name: \"test\"]"
+                else -> "@${builtIn.annotationName}"
+            }
+
+            val annotation = factory.createAnnotations(annotationText)
+            val entry = annotation.entries.first()
+
+            check(entry.isBuiltInAnnotation) {
+                "${builtIn.annotationName} should be recognized as built-in"
+            }
+
+            check(entry.builtInAnnotation == builtIn) {
+                "${builtIn.annotationName} should map to correct enum value"
+            }
+
+            check(entry.shortName?.asString() == builtIn.annotationName) {
+                "${builtIn.annotationName} shortName should match"
+            }
+        }
     }
 }

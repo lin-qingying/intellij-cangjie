@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,23 +22,26 @@
  *
  */
 
-package org.cangnova.cangjie.psi.stubs.impl
+package org.cangnova.cangjie.psi
 
-import org.cangnova.cangjie.psi.CjAnnotationEntry
-import org.cangnova.cangjie.psi.stubs.CangJieAnnotationEntryStub
-import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.intellij.psi.PsiElement
-import com.intellij.psi.stubs.StubElement
-import com.intellij.util.io.StringRef
+import com.intellij.lang.ASTNode
 
-class CangJieAnnotationEntryStubImpl(
-    parent: StubElement<out PsiElement>?,
-    private val shortName: StringRef?,
-    private val hasValueArguments: Boolean,
-//    val valueArguments: Map<Name, ConstantValue<*>>?
-) : CangJieStubBaseImpl<CjAnnotationEntry>(parent, CjStubElementTypes.ANNOTATION_ENTRY), CangJieAnnotationEntryStub {
-
-    override fun getShortName() = shortName?.string
-
-    override fun hasValueArguments() = hasValueArguments
+/**
+ * PSI元素类,表示@CallingConv注解的调用约定参数部分
+ *
+ * 示例:
+ * ```cangjie
+ * @CallingConv[CDECL]  // CDECL是调用约定参数
+ * @CallingConv[STDCALL]  // STDCALL是调用约定参数
+ * ```
+ *
+ * 此类用于封装@CallingConv注解中方括号内的调用约定标识符,
+ * 支持的调用约定包括: CDECL, STDCALL
+ */
+class CjAnnotationCallingConv(node: ASTNode) : CjElementImpl(node) {
+    /**
+     * 获取调用约定的文本值
+     * @return 调用约定字符串,如 "CDECL" 或 "STDCALL"
+     */
+    fun getCallingConventionText(): String? = text
 }

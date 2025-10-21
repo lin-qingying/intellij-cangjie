@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,19 @@
 
 package org.cangnova.cangjie.psi
 
-import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
+import com.intellij.lang.ASTNode
+import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.lexer.CjKeywordToken
+import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
 import org.cangnova.cangjie.psi.psiUtil.addModifier
 import org.cangnova.cangjie.psi.psiUtil.findDocComment
 import org.cangnova.cangjie.psi.psiUtil.removeModifier
-import com.intellij.lang.ASTNode
-import com.intellij.psi.util.PsiTreeUtil
-import org.cangnova.cangjie.psi.psiUtil.collectAnnotationEntriesFromStubOrPsi
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 
 abstract class CjDeclarationImpl(node: ASTNode) : CjExpressionImpl(node), CjDeclaration {
-    override val modifierList: CjModifierList? get() =
-        findChildByType(CjNodeTypes.MODIFIER_LIST)
+    override val modifierList: CjModifierList?
+        get() =
+            findChildByType(CjNodeTypes.MODIFIER_LIST)
 
     override fun hasModifier(modifier: CjKeywordToken): Boolean {
         val modifierList: CjModifierList? = modifierList
@@ -49,12 +49,11 @@ abstract class CjDeclarationImpl(node: ASTNode) : CjExpressionImpl(node), CjDecl
             CjExpression::class.java,
         )
 
-    override val annotations: List<CjAnnotation>
-        get() = findChildrenByType(CjStubElementTypes.ANNOTATION)
+    override val annotations: CjAnnotations?
+        get() = findChildByType<CjAnnotations>(CjStubElementTypes.ANNOTATIONS)
 
-    override val annotationEntries: List<CjAnnotationEntry>
-        get() = this.collectAnnotationEntriesFromStubOrPsi()
-
+    override val annotationEntries: List<CjAnnotation>
+        get() = annotations?.entries ?: emptyList()
 
 
     override fun addModifier(modifier: CjKeywordToken) {

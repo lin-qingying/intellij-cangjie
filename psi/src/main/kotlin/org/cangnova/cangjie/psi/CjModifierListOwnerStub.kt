@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,13 @@
 
 package org.cangnova.cangjie.psi
 
+import com.intellij.lang.ASTNode
+import com.intellij.psi.stubs.IStubElementType
+import com.intellij.psi.stubs.StubElement
 import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.psi.psiUtil.addModifier
 import org.cangnova.cangjie.psi.psiUtil.removeModifier
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
-import com.intellij.lang.ASTNode
-import com.intellij.psi.stubs.IStubElementType
-import com.intellij.psi.stubs.StubElement
-import org.cangnova.cangjie.psi.psiUtil.collectAnnotationEntriesFromStubOrPsi
 
 open class CjModifierListOwnerStub<T : StubElement<*>> :
     CjElementImplStub<T>,
@@ -39,11 +38,12 @@ open class CjModifierListOwnerStub<T : StubElement<*>> :
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: T, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
-    override val annotations: List<CjAnnotation>
-        get() = getStubOrPsiChildrenAsList(CjStubElementTypes.ANNOTATION)
 
-    override val annotationEntries: List<CjAnnotationEntry>
-        get() = this.collectAnnotationEntriesFromStubOrPsi()
+    override val annotations: CjAnnotations
+        get() = findChildByType<CjAnnotations>(CjStubElementTypes.ANNOTATIONS)!!
+
+    override val annotationEntries: List<CjAnnotation>
+        get() = annotations.entries
 
     override val modifierList: CjModifierList?
         get() = getStubOrPsiChild(CjStubElementTypes.MODIFIER_LIST)
@@ -52,9 +52,6 @@ open class CjModifierListOwnerStub<T : StubElement<*>> :
         val modifierList = modifierList
         return modifierList != null && modifierList.hasModifier(modifier)
     }
-
-
-
 
 
     override fun addModifier(modifier: CjKeywordToken) {

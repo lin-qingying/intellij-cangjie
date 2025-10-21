@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -550,7 +550,7 @@ open class CjVisitor<R, D> : PsiElementVisitor() {
         return visitNamedDeclaration(typeStatement, data)
     }
 
-    open fun visitAnnotation(annotation: CjAnnotation, data: D?): R? {
+    open fun visitAnnotation(annotation: CjAnnotations, data: D?): R? {
         return visitCjElement(annotation, data)
     }
 

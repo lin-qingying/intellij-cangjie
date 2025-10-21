@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@
 
 package org.cangnova.cangjie.psi
 
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
-import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.*
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.stubs.IStubElementType
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.psi.stubs.CangJiePlaceHolderStub
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.*
 
 class CjInterfaceBody : CjAbstractClassBody {
     constructor(node: ASTNode) : super(node)
@@ -79,7 +79,7 @@ abstract class CjAbstractClassBody :
     /**
      * @return annotations that do not belong to any declaration due to incomplete code or syntax errors
      */
-//    val danglingAnnotations: List<CjAnnotationEntry>
+//    val danglingAnnotations: List<CjAnnotation>
 //        get() = danglingModifierLists.flatMap { it.annotationEntries }
 
     override fun toString(): String {

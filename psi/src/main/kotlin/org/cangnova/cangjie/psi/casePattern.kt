@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,16 @@
  */
 
 package org.cangnova.cangjie.psi
-import org.cangnova.cangjie.name.*
 
-import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
-import org.cangnova.cangjie.lexer.CjKeywordToken
-import org.cangnova.cangjie.lexer.CjTokens
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.tree.IElementType
+import org.cangnova.cangjie.lexer.CjKeywordToken
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.lexer.cdoc.psi.CDoc
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.name.Name
 
 abstract class CjCasePattern(node: ASTNode) : CjElementImpl(node), ValueArgument, CjExpression {
 
@@ -123,8 +124,8 @@ abstract class PatternVariableDeclaration(node: ASTNode) : CjCasePattern(node), 
     override fun removeModifier(modifier: CjKeywordToken) {
     }
 
-    override val annotations: List<CjAnnotation> = emptyList()
-    override val annotationEntries: List<CjAnnotationEntry> = emptyList()
+    override val annotations: CjAnnotations? = null
+    override val annotationEntries: List<CjAnnotation> = emptyList()
 
     override fun setName(name: String): PsiElement {
         return this

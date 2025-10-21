@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ package org.cangnova.cangjie.psi
  * - **[CjAnnotated]**: 所有可被注解修饰的元素接口
  *   - 通过该接口,所有声明和类型引用都自动成为注解容器
  * - **[CjModifierList]**: 修饰符列表(间接实现,作为注解的直接容器)
- * - **[CjAnnotation]**: 注解容器本身(可能间接实现)
+ * - **[CjAnnotations]**: 注解容器本身(可能间接实现)
  *
  * ## 相关扩展函数
  *
@@ -51,7 +51,7 @@ package org.cangnova.cangjie.psi
  *
  * ### collectAnnotationEntriesFromStubOrPsi()
  * ```kotlin
- * fun CjAnnotationsContainer.collectAnnotationEntriesFromStubOrPsi(): List<CjAnnotationEntry>
+ * fun CjAnnotationsContainer.collectAnnotationEntriesFromStubOrPsi(): List<CjAnnotation>
  * ```
  * 智能地从 Stub 或 PSI 中收集注解条目:
  * - 如果有 Stub,从 Stub 中读取(高效)
@@ -59,16 +59,16 @@ package org.cangnova.cangjie.psi
  *
  * ### collectAnnotationEntriesFromPsi()
  * ```kotlin
- * private fun CjAnnotationsContainer.collectAnnotationEntriesFromPsi(): List<CjAnnotationEntry>
+ * private fun CjAnnotationsContainer.collectAnnotationEntriesFromPsi(): List<CjAnnotation>
  * ```
- * 从 PSI 树的子节点中收集所有 [CjAnnotationEntry]
+ * 从 PSI 树的子节点中收集所有 [CjAnnotation]
  *
  * ## 使用场景
  *
  * ### 场景 1: 在 CjModifierList 中收集注解
  * ```kotlin
  * class CjModifierList : CjElementImplStub<...> {
- *     val annotationEntries: List<CjAnnotationEntry>
+ *     val annotationEntries: List<CjAnnotation>
  *         get() = this.collectAnnotationEntriesFromStubOrPsi()
  * }
  * ```
@@ -76,7 +76,7 @@ package org.cangnova.cangjie.psi
  * ### 场景 2: 在 CjAnnotated 实现中使用
  * ```kotlin
  * interface CjAnnotated : CjElement, CjAnnotationsContainer {
- *     val annotationEntries: List<CjAnnotationEntry>
+ *     val annotationEntries: List<CjAnnotation>
  *         get() = modifierList?.annotationEntries ?: emptyList()
  * }
  * ```
@@ -114,7 +114,7 @@ package org.cangnova.cangjie.psi
  * interface CjModifierListOwner : CjAnnotated {
  *     val modifierList: CjModifierList?
  *
- *     override val annotationEntries: List<CjAnnotationEntry>
+ *     override val annotationEntries: List<CjAnnotation>
  *         get() = modifierList?.annotationEntries ?: emptyList()
  * }
  * ```
@@ -122,13 +122,13 @@ package org.cangnova.cangjie.psi
  * ### 内部实现示例
  * ```kotlin
  * // 在 CjModifierList 中使用
- * val annotationEntries: List<CjAnnotationEntry>
+ * val annotationEntries: List<CjAnnotation>
  *     get() = this.collectAnnotationEntriesFromStubOrPsi()
  * ```
  *
  * @see CjAnnotated 可被注解修饰的元素接口(业务层)
- * @see CjAnnotation 注解容器
- * @see CjAnnotationEntry 注解条目
+ * @see CjAnnotations 注解容器
+ * @see CjAnnotation 注解条目
  * @see CjModifierList 修饰符列表
  */
 interface CjAnnotationsContainer : CjElement

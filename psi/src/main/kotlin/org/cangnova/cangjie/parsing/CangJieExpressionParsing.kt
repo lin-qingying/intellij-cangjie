@@ -2637,7 +2637,7 @@ open class CangJieExpressionParsing(
         cangJieParsing.parseModifierList(detector, TokenSet.EMPTY, rollbackMacro)
         val declType: IElementType? = parseDeclarationRest(detector, rollbackIfDefinitelyNotExpression, scope)
 
-        return if (declType == ANNOTATION_ENTRY) {
+        return if (declType == ANNOTATION) {
             decl.rollbackTo()
             return parseLocalDeclaration(rollbackIfDefinitelyNotExpression, true)
         } else if (declType == INVALID_DECLARATION) {

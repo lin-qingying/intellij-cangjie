@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,11 @@
 
 package org.cangnova.cangjie.psi;
 
-import org.cangnova.cangjie.psi.stubs.elements.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.cangnova.cangjie.lang.CangJieLanguage;
+import org.cangnova.cangjie.psi.stubs.elements.*;
 
 public interface CjNodeTypes {
 
@@ -162,7 +162,22 @@ public interface CjNodeTypes {
     IElementType IMPORT_DIRECTIVE = CjStubElementTypes.IMPORT_DIRECTIVE;
 
     //    IElementType IMPORT_DIRECTIVE_ITEM = CjStubElementTypes.IMPORT_DIRECTIVE_ITEM;
-    IElementType ANNOTATION_ENTRY = CjStubElementTypes.ANNOTATION_ENTRY;
+    IElementType ANNOTATION = CjStubElementTypes.ANNOTATION;
+
+    //    只属于Attribute内置注解的参数
+    IElementType ANNTATION_ATTR_ATTRIBUTE = new CjNodeType("ANNTATION_ATTR_ATTRIBUTE", CjAnntationAttrInAttrbute.class);
+
+    //    只属于CallingConv内置注解的调用约定参数
+    IElementType ANNOTATION_CALLING_CONV = new CjNodeType("ANNOTATION_CALLING_CONV", CjAnnotationCallingConv.class);
+
+    //    只属于Overflow系列内置注解的溢出策略参数
+    IElementType ANNOTATION_OVERFLOW_STRATEGY = new CjNodeType("ANNOTATION_OVERFLOW_STRATEGY", CjAnnotationOverflowStrategy.class);
+
+    //    只属于When内置注解的条件参数
+    IElementType ANNOTATION_WHEN_CONDITION = new CjNodeType("ANNOTATION_WHEN_CONDITION", CjAnnotationWhenCondition.class);
+
+
+
     IElementType MACRO_EXPRESSION = CjStubElementTypes.MACRO_EXPRESSION;
     IElementType MACRO_INPUT = new CjNodeType("MACRO_INPUT", CjMacroInput.class);
     IElementType MACRO_ATTR = new CjNodeType("MACRO_ATTR", CjMacroAttr.class);

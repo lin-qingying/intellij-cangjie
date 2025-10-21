@@ -32,13 +32,15 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 import org.cangnova.cangjie.lexer.CjTokens.*
 import org.cangnova.cangjie.messages.CangJieParsingBundle
-
+import org.cangnova.cangjie.parsing.NameParsingMode.*
 import org.cangnova.cangjie.psi.CallingConvention
 import org.cangnova.cangjie.psi.CjBuiltInAnnotation
 import org.cangnova.cangjie.psi.CjBuiltInAnnotation.*
 import org.cangnova.cangjie.psi.CjNodeTypes.*
 import org.cangnova.cangjie.psi.OverflowStrategy
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.ANNOTATION
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.ANNOTATIONS
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CONSTRUCTOR_CALLEE
 
 
 class CangJieParsing private constructor(
@@ -468,9 +470,10 @@ class CangJieParsing private constructor(
 //            importList.setCustomEdgeTokenBinders(DoNotBindAnything, null)
 //        }
 
-        while (at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && lookahead(1) == IMPORT_KEYWORD || isWhenAnnotation()
-        ) {
-            parseImportDirective()
+        while (at(IMPORT_KEYWORD) || atSet(IMPORT_ACCESS_MODIFIER_SET) && lookahead(1) == IMPORT_KEYWORD || isWhenAnnotation()) {
+            if (!parseImportDirective()) {
+                break
+            }
         }
 
         importList.done(IMPORT_LIST)
@@ -507,7 +510,7 @@ class CangJieParsing private constructor(
     context(parseContext: ParsingContext) private fun parseWhenAnnotation(
 
 
-        isCreateAnnotation: Boolean = false
+        isCreateAnnotations: Boolean = false
 
     ) {
         assert(at(AT))
@@ -521,30 +524,38 @@ class CangJieParsing private constructor(
         // 解析 When 标识符
         if (!at(IDENTIFIER)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
         val annotationName = builder.tokenText
         if (annotationName != "When") {
             error(CangJieParsingBundle.message("parsing.error.expecting.annotation", "When"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
-        parseTypeRef()// 消耗 When
+        parseConstructorCallee()// 消耗 When
 
 
         expect(LBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "["))
 
+        // 使用专用节点类型封装 When 条件
+        val whenConditionMark = mark()
         expressionParsing.parseExpression()
+        whenConditionMark.done(ANNOTATION_WHEN_CONDITION)
 
         expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
 
-        mark.done(ANNOTATION_ENTRY)
 
-        if (isCreateAnnotation) {
-            annotationMark.done(ANNOTATION)
+//        if (at(LBRACKET)) {
+//            expressionParsing.parseValueArgumentList(LBRACKET, RBRACKET)
+//        }
+
+        mark.done(ANNOTATION)
+
+        if (isCreateAnnotations) {
+            annotationMark.done(ANNOTATIONS)
         } else {
             annotationMark.drop()
         }
@@ -553,7 +564,7 @@ class CangJieParsing private constructor(
     context(parseContext: ParsingContext) private fun parseAttributeAnnotation(
 
 
-        isCreateAnnotation: Boolean = false
+        isCreateAnnotations: Boolean = false
 
     ) {
         assert(at(AT))
@@ -567,21 +578,24 @@ class CangJieParsing private constructor(
         // 解析 Attribute 标识符
         if (!at(IDENTIFIER)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
         val annotationName = builder.tokenText
         if (annotationName != "Attribute") {
             error(CangJieParsingBundle.message("parsing.error.expecting.annotation", "Attribute"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
-        parseTypeRef()// 消耗 Attribute
+        parseConstructorCallee()// 消耗 Attribute
 
 
         expect(LBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "["))
+
+        val attr = mark()
+
 
         // 处理标识符或字符串，使用逗号分隔，允许多个连续逗号
         // 例如: @Attribute[State, aaa,,,,,,sdfsd,,,,,,,ssss]
@@ -626,13 +640,13 @@ class CangJieParsing private constructor(
         }
 
         builder.enableNewlines()
-
+        attr.done(ANNTATION_ATTR_ATTRIBUTE)
         expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
 
-        mark.done(ANNOTATION_ENTRY)
+        mark.done(ANNOTATION)
 
-        if (isCreateAnnotation) {
-            annotationMark.done(ANNOTATION)
+        if (isCreateAnnotations) {
+            annotationMark.done(ANNOTATIONS)
         } else {
             annotationMark.drop()
         }
@@ -806,7 +820,7 @@ class CangJieParsing private constructor(
      *   ;
      * ```
      */
-    context(parseContext: ParsingContext) private fun parseImportDirective() {
+    context(parseContext: ParsingContext) private fun parseImportDirective(): Boolean {
         assert(_at(IMPORT_KEYWORD) || _atSet(IMPORT_ACCESS_MODIFIER_SET) || isWhenAnnotation())
 
         val doneType = IMPORT_DIRECTIVE
@@ -826,14 +840,14 @@ class CangJieParsing private constructor(
 
         if (!at(IMPORT_KEYWORD)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.keyword", "import"))
-            importDirective.done(doneType)
-            return
+            importDirective.rollbackTo()
+            return false
         }
 
         advance() // IMPORT_KEYWORD
 
         if (closeImportWithErrorIfNewline(importDirective, null, "Expecting qualified name")) {
-            return
+            return true
         }
 
         if (at(LBRACE)) {
@@ -856,6 +870,7 @@ class CangJieParsing private constructor(
         consumeIf(SEMICOLON)
         importDirective.done(doneType)
         importDirective.setCustomEdgeTokenBinders(null, TrailingCommentsBinder)
+        return true
     }
 
 
@@ -1194,10 +1209,10 @@ class CangJieParsing private constructor(
         }
 
         if (parseContext.disableMacroParsing) {
-            if(!_atSet(AT, ATEXCL)) return
+            if (!_atSet(AT, ATEXCL)) return
 
         } else {
-            if(!_atSet(ATEXCL)) return
+            if (!_atSet(ATEXCL)) return
         }
 
         val mark = mark()
@@ -1207,13 +1222,13 @@ class CangJieParsing private constructor(
 
 //        注解名称
 
-        parseTypeRef()
-//        parseTypeRef()
+        parseConstructorCallee()
+
         if (at(LBRACKET)) {
             expressionParsing.parseValueArgumentList(LBRACKET, RBRACKET)
         }
 
-        mark.done(ANNOTATION_ENTRY)
+        mark.done(ANNOTATION)
     }
 
     context(parseContext: ParsingContext)
@@ -1247,18 +1262,18 @@ class CangJieParsing private constructor(
         // 解析注解名称标识符
         if (!at(IDENTIFIER)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
-        parseTypeRef()  // 消耗注解名称
+        parseConstructorCallee() // 消耗注解名称
 
         // 解析可选的参数列表 [...]
         if (at(LBRACKET)) {
             expressionParsing.parseValueArgumentList(LBRACKET, RBRACKET)
         }
 
-        mark.done(ANNOTATION_ENTRY)
+        mark.done(ANNOTATION)
     }
 
     context(parseContext: ParsingContext) fun parseAnnotations() {
@@ -1272,7 +1287,7 @@ class CangJieParsing private constructor(
         while (_atSet(set) || isBuiltInAnnotation()) {
             parseAnnotation()
         }
-        mark.done(ANNOTATION)
+        mark.done(ANNOTATIONS)
     }
 
     /**
@@ -1402,29 +1417,33 @@ class CangJieParsing private constructor(
         // 解析 CallingConv 标识符
         if (!at(IDENTIFIER)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
         val annotationName = builder.tokenText
         if (annotationName != "CallingConv") {
             error(CangJieParsingBundle.message("parsing.error.expecting.annotation", "CallingConv"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
-        parseTypeRef()// 消耗 CallingConv
+        parseConstructorCallee()// 消耗 CallingConv
 
         // 解析参数: [CDECL] 或 [STDCALL]
         if (!expect(LBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "["))) {
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
+
+        // 使用专用节点类型封装调用约定参数
+        val callingConvMark = mark()
 
         // 解析调用约定标识符
         if (!at(IDENTIFIER)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.calling.convention"))
-            mark.done(ANNOTATION_ENTRY)
+            callingConvMark.drop()
+            mark.done(ANNOTATION)
             return
         }
 
@@ -1435,9 +1454,11 @@ class CangJieParsing private constructor(
 
         advance() // 消耗调用约定标识符
 
+        callingConvMark.done(ANNOTATION_CALLING_CONV)
+
         expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
 
-        mark.done(ANNOTATION_ENTRY)
+        mark.done(ANNOTATION)
     }
 
     /**
@@ -1469,14 +1490,14 @@ class CangJieParsing private constructor(
         //
         if (!at(IDENTIFIER)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
         val annotationName = builder.tokenText
         if (annotationName != "Java") {
             error(CangJieParsingBundle.message("parsing.error.expecting.annotation", "Java"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
@@ -1485,7 +1506,7 @@ class CangJieParsing private constructor(
         // 检查是否有参数
         if (!at(LBRACKET)) {
             // @Java 注解可以不带参数
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
@@ -1506,8 +1527,17 @@ class CangJieParsing private constructor(
 
         expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
 
-        mark.done(ANNOTATION_ENTRY)
+        mark.done(ANNOTATION)
     }
+
+
+    context(parseContext: ParsingContext)
+    fun parseConstructorCallee() {
+        val reference = mark()
+        parseTypeRef()
+        reference.done(CONSTRUCTOR_CALLEE)
+    }
+
 
     /**
      * 解析溢出注解
@@ -1543,23 +1573,24 @@ class CangJieParsing private constructor(
         // 解析注解标识符
         if (!at(IDENTIFIER)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
         val annotationName = builder.tokenText
         if (annotationName != builtInAnnotation.annotationName) {
             error(CangJieParsingBundle.message("parsing.error.expecting.annotation", builtInAnnotation.annotationName))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
-        parseTypeRef()// 消耗注解名称
+        parseConstructorCallee()// 消耗注解名称
 
         // 检查是否有参数
         if (at(LBRACKET)) {
             advance() // 消耗 [
-
+            // 使用专用节点类型封装调用约定参数
+            val overflow = mark()
             builder.disableNewlines()
 
             // 解析溢出策略标识符
@@ -1579,12 +1610,12 @@ class CangJieParsing private constructor(
             }
 
             builder.enableNewlines()
-
+            overflow.done(ANNOTATION_OVERFLOW_STRATEGY)
             expect(RBRACKET, CangJieParsingBundle.message("parsing.error.expecting.symbol", "]"))
         }
         // 如果没有参数,从注解名称中提取策略(如 OverflowThrowing -> throwing)
 
-        mark.done(ANNOTATION_ENTRY)
+        mark.done(ANNOTATION)
     }
 
     /**
@@ -1618,20 +1649,20 @@ class CangJieParsing private constructor(
         // 解析注解标识符
         if (!at(IDENTIFIER)) {
             error(CangJieParsingBundle.message("parsing.error.expecting.identifier"))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
 
         val annotationName = builder.tokenText
         if (annotationName != builtInAnnotation.annotationName) {
             error(CangJieParsingBundle.message("parsing.error.expecting.annotation", builtInAnnotation.annotationName))
-            mark.done(ANNOTATION_ENTRY)
+            mark.done(ANNOTATION)
             return
         }
+        parseConstructorCallee()
 
-        parseTypeRef()
 
-        mark.done(ANNOTATION_ENTRY)
+        mark.done(ANNOTATION)
     }
 
     /**

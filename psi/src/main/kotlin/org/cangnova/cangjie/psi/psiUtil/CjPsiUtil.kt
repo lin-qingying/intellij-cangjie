@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,6 @@
 
 package org.cangnova.cangjie.psi.psiUtil
 
-import org.cangnova.cangjie.psi.CjNodeTypes
-import org.cangnova.cangjie.lexer.CangJieLexer
-import org.cangnova.cangjie.lexer.CjModifierKeywordToken
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.name.FqName
-import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.name.SpecialNames
-import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.stubs.CangJieTypeStatementStub
 import com.intellij.extapi.psi.StubBasedPsiElementBase
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.TextRange
@@ -42,6 +33,14 @@ import com.intellij.psi.stubs.StubElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.findTopmostParentInFile
 import com.intellij.util.codeInsight.CommentUtilCore
+import org.cangnova.cangjie.lexer.CangJieLexer
+import org.cangnova.cangjie.lexer.CjModifierKeywordToken
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.name.SpecialNames
+import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.stubs.CangJieTypeStatementStub
 import java.util.*
 
 // fun CjDeclaration.isExpectDeclaration(): Boolean =
@@ -112,7 +111,7 @@ fun CjFunctionLiteral.findLabelAndCall(): Pair<Name?, CjCallExpression?> {
 }
 
 // Annotations on labeled expression lies on it's base expression
-fun CjExpression.getAnnotationEntries(): List<CjAnnotationEntry> {
+fun CjExpression.getAnnotationEntries(): List<CjAnnotation> {
     return when (val parent = parent) {
 //        is CjAnnotatedExpression -> parent.annotationEntries
 //        is CjLabeledExpression -> parent.getAnnotationEntries()
@@ -267,27 +266,27 @@ fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Void, D>, data: D) 
     }
 }
 
-private fun StubElement<*>.collectAnnotationEntriesFromStubElement(): List<CjAnnotationEntry> {
+private fun StubElement<*>.collectAnnotationEntriesFromStubElement(): List<CjAnnotation> {
     return childrenStubs.flatMap { child ->
         when (child.stubType) {
-            CjNodeTypes.ANNOTATION_ENTRY -> listOf(child.psi as CjAnnotationEntry)
+            CjNodeTypes.ANNOTATION -> listOf(child.psi as CjAnnotation)
 
             else -> emptyList()
         }
     }
 }
 
-private fun CjAnnotationsContainer.collectAnnotationEntriesFromPsi(): List<CjAnnotationEntry> {
+private fun CjAnnotationsContainer.collectAnnotationEntriesFromPsi(): List<CjAnnotation> {
     return children.flatMap { child ->
         when (child) {
-            is CjAnnotationEntry -> listOf(child)
+            is CjAnnotation -> listOf(child)
 
             else -> emptyList()
         }
     }
 }
 
-fun CjAnnotationsContainer.collectAnnotationEntriesFromStubOrPsi(): List<CjAnnotationEntry> {
+fun CjAnnotationsContainer.collectAnnotationEntriesFromStubOrPsi(): List<CjAnnotation> {
     return when (this) {
         is StubBasedPsiElementBase<*> -> stub?.collectAnnotationEntriesFromStubElement()
             ?: collectAnnotationEntriesFromPsi()
@@ -502,7 +501,7 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
             it is CjSuperTypeList ||
 
             it is CjImportList ||
-            it is CjAnnotationEntry ||
+                it is CjAnnotation ||
             it is CjTypeParameter ||
             it is CjTypeConstraint ||
             it is CjPackageDirective ||
@@ -513,7 +512,7 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
 
     when (elementOfAdditionalResolve) {
         null -> {
-            if (this is CjAnnotationEntry) {
+            if (this is CjAnnotation) {
                 return this
             }
 

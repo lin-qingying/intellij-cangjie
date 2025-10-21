@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,13 @@
 
 package org.cangnova.cangjie.psi.stubs
 
-import org.cangnova.cangjie.lang.declarations.CjDeclarationsFile
+import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.stubs.*
+import com.intellij.util.io.StringRef
 import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.name.ClassId
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.*
-import com.intellij.psi.PsiNamedElement
-import com.intellij.psi.stubs.*
-import com.intellij.util.io.StringRef
 import java.io.IOException
 
 enum class ConstantValueKind {
@@ -74,7 +73,7 @@ interface CangJieFileStub : PsiFileStub<CjFile>, CangJieFilesStub
  */
 interface CangJiePlaceHolderStub<T : CjElement> : StubElement<T>
 
-interface CangJieAnnotationEntryStub : StubElement<CjAnnotationEntry> {
+interface CangJieAnnotationStub : StubElement<CjAnnotation> {
     fun getShortName(): String?
     fun hasValueArguments(): Boolean
 }

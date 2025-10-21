@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,13 +47,13 @@ package org.cangnova.cangjie.psi
  * ## 接口属性
  *
  * ### [annotations]
- * 返回 [CjAnnotation] 容器列表。每个容器可能包含一个或多个连续的注解条目。
+ * 返回 [CjAnnotations] 容器列表。每个容器可能包含一个或多个连续的注解条目。
  * 这个属性返回的是 PSI 树中的组织节点。
  *
  * **使用场景**: 需要操作注解容器本身时使用,如批量删除、重组注解等。
  *
  * ### [annotationEntries]
- * 返回所有 [CjAnnotationEntry] 的扁平列表,即实际使用的注解条目。
+ * 返回所有 [CjAnnotation] 的扁平列表,即实际使用的注解条目。
  * 这是最常用的属性,直接提供对所有注解使用的访问。
  *
  * **使用场景**:
@@ -74,7 +74,7 @@ package org.cangnova.cangjie.psi
  *
  * ### 示例 2: 获取所有 FFI 相关注解
  * ```kotlin
- * fun getFfiAnnotations(element: CjAnnotated): List<CjAnnotationEntry> {
+ * fun getFfiAnnotations(element: CjAnnotated): List<CjAnnotation> {
  *     return element.annotationEntries.filter { entry ->
  *         entry.shortName?.asString() in setOf("C", "Java", "ForeignName")
  *     }
@@ -103,8 +103,8 @@ package org.cangnova.cangjie.psi
  * ```
  *
  * 对于上述函数:
- * - `annotations`: 返回包含这些注解条目的 [CjAnnotation] 容器列表
- * - `annotationEntries`: 返回 3 个 [CjAnnotationEntry] 的列表
+ * - `annotations`: 返回包含这些注解条目的 [CjAnnotations] 容器列表
+ * - `annotationEntries`: 返回 3 个 [CjAnnotation] 的列表
  *   - `@Deprecated`
  *   - `@ForeignName(name: "native_function")`
  *   - `@C`
@@ -124,8 +124,8 @@ package org.cangnova.cangjie.psi
  * ```
  *
  * ## 相关接口和类
- * @see CjAnnotation 注解容器,用于在 PSI 树中组织多个注解条目
- * @see CjAnnotationEntry 单个注解使用,表示实际的注解应用
+ * @see CjAnnotations 注解容器,用于在 PSI 树中组织多个注解条目
+ * @see CjAnnotation 单个注解使用,表示实际的注解应用
  * @see CjModifierListOwner 带修饰符列表的元素接口
  * @see CjModifierList 修饰符列表,包含修饰符和注解
  * @see CjBuiltInAnnotation 内置注解枚举定义
@@ -139,18 +139,18 @@ interface CjAnnotated : CjElement , CjAnnotationsContainer {
     /**
      * 获取注解容器列表
      *
-     * 返回 PSI 树中的 [CjAnnotation] 容器节点列表。
+     * 返回 PSI 树中的 [CjAnnotations] 容器节点列表。
      * 每个容器可能包含一个或多个连续的注解条目。
      *
      * @return 注解容器列表,如果没有注解则返回空列表
-     * @see CjAnnotation
+     * @see CjAnnotations
      */
-    val annotations: List<CjAnnotation>
+    val annotations: CjAnnotations?
 
     /**
      * 获取所有注解条目的扁平列表
      *
-     * 返回元素上应用的所有 [CjAnnotationEntry] 的列表,
+     * 返回元素上应用的所有 [CjAnnotation] 的列表,
      * 这是实际源代码中使用的注解。这是最常用的属性。
      *
      * 示例:
@@ -162,7 +162,7 @@ interface CjAnnotated : CjElement , CjAnnotationsContainer {
      * 对于上述函数,此属性返回包含 2 个注解条目的列表。
      *
      * @return 注解条目列表,如果没有注解则返回空列表
-     * @see CjAnnotationEntry
+     * @see CjAnnotation
      */
-    val annotationEntries: List<CjAnnotationEntry>
+    val annotationEntries: List<CjAnnotation>
 }

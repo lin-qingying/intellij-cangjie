@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@
 
 package org.cangnova.cangjie.psi.psiUtil
 
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.psi.*
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
@@ -41,6 +39,8 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.psi.util.parentOfType
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.psi.*
 
 fun CjBlockStringTemplateEntry.dropCurlyBrackets(): CjSimpleNameStringTemplateEntry {
     val name = when (expression) {
@@ -55,7 +55,7 @@ inline fun <reified I : PsiElement> psiElement(): PsiElementPattern.Capture<I> {
     return PlatformPatterns.psiElement(I::class.java)
 }
 fun PsiElement.isInsideAnnotationEntryArgumentList(): Boolean =
-    parentOfType<CjValueArgumentList>()?.parent is CjAnnotationEntry
+    parentOfType<CjValueArgumentList>()?.parent is CjAnnotation
 
 fun CjBlockStringTemplateEntry.canDropCurlyBrackets(): Boolean {
     val expression = this.expression

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,14 @@
 
 package org.cangnova.cangjie.psi.stubs.elements
 
-import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.psi.stubs.*
-import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.stubs.IndexSink
 import com.intellij.psi.stubs.StubInputStream
 import com.intellij.psi.stubs.StubOutputStream
+import org.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.psi.stubs.*
+import org.cangnova.cangjie.psi.stubs.impl.CangJieFileStubImpl
 import java.io.IOException
-import org.cangnova.cangjie.name.*
 
 open class StubIndexService protected constructor() {
     open fun indexFile(stub: CangJieFileStub, sink: IndexSink) {
@@ -81,7 +80,7 @@ open class StubIndexService protected constructor() {
     open fun indexInterface(stub: CangJieInterfaceStub, sink: IndexSink) {
     }
 
-    open fun indexAnnotation(stub: CangJieAnnotationEntryStub, sink: IndexSink) {
+    open fun indexAnnotation(stub: CangJieAnnotationStub, sink: IndexSink) {
     }
 
     open fun createFileStub(file: CjFile): CangJieFileStub {

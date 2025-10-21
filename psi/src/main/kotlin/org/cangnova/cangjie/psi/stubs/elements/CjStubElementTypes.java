@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,9 +61,9 @@ public interface CjStubElementTypes {
     CjPlaceHolderStubElementType<CjTypeParameterList> TYPE_PARAMETER_LIST =
             new CjPlaceHolderStubElementType<>("TYPE_PARAMETER_LIST", CjTypeParameterList.class);
     @NotNull
-    CjAnnotationEntryElementType ANNOTATION_ENTRY = new CjAnnotationEntryElementType("ANNOTATION_ENTRY");
-    CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
-            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
+    CjAnnotationElementType ANNOTATION = new CjAnnotationElementType("ANNOTATION");
+    CjPlaceHolderStubElementType<CjAnnotations> ANNOTATIONS =
+            new CjPlaceHolderStubElementType<>("ANNOTATIONS", CjAnnotations.class);
 
     //    CjAnnotationUseSiteTargetElementType ANNOTATION_TARGET = new CjAnnotationUseSiteTargetElementType("ANNOTATION_TARGET");
     CjPlaceHolderStubElementType<CjEnumBody> ENUM_BODY =

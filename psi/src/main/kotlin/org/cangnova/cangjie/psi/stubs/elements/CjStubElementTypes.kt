@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,12 +83,12 @@
 //    )
 //
 //    @JvmField
-//    val ANNOTATION_ENTRY: CjAnnotationEntryElementType = CjAnnotationEntryElementType("ANNOTATION_ENTRY")
+//    val ANNOTATION_ENTRY: CjAnnotationElementType = CjAnnotationElementType("ANNOTATION_ENTRY")
 //
 //    @JvmField
-//    val ANNOTATION: CjPlaceHolderStubElementType<CjAnnotation> = CjPlaceHolderStubElementType(
+//    val ANNOTATION: CjPlaceHolderStubElementType<CjAnnotations> = CjPlaceHolderStubElementType(
 //        "ANNOTATION",
-//        CjAnnotation::class.java
+//        CjAnnotations::class.java
 //    )
 //
 //
@@ -317,11 +317,11 @@
 //    val UNIT_CONSTANT: CjConstantExpressionElementType = CjConstantExpressionElementType("UNIT_CONSTANT")
 //
 //    @JvmField
-//    val MACRO_EXPRESSION: CjAnnotationEntryElementType = CjAnnotationEntryElementType("MACRO_EXPRESSION")
+//    val MACRO_EXPRESSION: CjAnnotationElementType = CjAnnotationElementType("MACRO_EXPRESSION")
 //
 //
-//    //    CjPlaceHolderStubElementType<CjAnnotation> ANNOTATION =
-//    //            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotation.class);
+//    //    CjPlaceHolderStubElementType<CjAnnotations> ANNOTATION =
+//    //            new CjPlaceHolderStubElementType<>("ANNOTATION", CjAnnotations.class);
 //    @JvmField
 //    val RUNE_CONSTANT: CjConstantExpressionElementType = CjConstantExpressionElementType("RUNE_CONSTANT")
 //
