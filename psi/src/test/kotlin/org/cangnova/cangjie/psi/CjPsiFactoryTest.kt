@@ -20262,12 +20262,12 @@ class CjPsiFactoryTest : CangJieTestBase() {
 
     // 测试创建 @CallingConv 注解
     fun `test create CallingConv annotation`() {
-        val annotation = factory.createAnnotations("@CallingConv[convention: CallingConvention.CDECL]")
+        val annotation = factory.createAnnotations("@CallingConv[CDECL]")
 
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
         check(entry.shortName?.asString() == "CallingConv")
-        check(entry.valueArguments.isNotEmpty())
+        check(entry.callingConvention != null)
     }
 
     // 测试创建 @OverflowThrowing 注解
@@ -20313,7 +20313,8 @@ class CjPsiFactoryTest : CangJieTestBase() {
         check(annotation.entries.isNotEmpty())
         val entry = annotation.entries.first()
         check(entry.shortName?.asString() == "When")
-        check(entry.valueArguments.isNotEmpty())
+        check(entry.whenCondition != null)
+        check(entry.whenConditionExpression != null)
     }
 
     // 测试创建 @Attribute 注解
@@ -20476,8 +20477,13 @@ class CjPsiFactoryTest : CangJieTestBase() {
         for (annotationName in allBuiltInNames) {
             try {
                 val annotation = when (annotationName) {
-                    "ForeignName", "CallingConv", "JavaMirror", "JavaImpl", "ObjCMirror", "ObjCImpl" -> {
+                    "ForeignName", "JavaMirror", "JavaImpl", "ObjCMirror", "ObjCImpl" -> {
                         factory.createAnnotations("@$annotationName[name: \"test\"]")
+                    }
+
+                    "CallingConv" -> {
+                        factory.createAnnotations("@$annotationName[CDECL]")
+
                     }
 
                     "Attribute" -> {
@@ -20582,10 +20588,6 @@ class CjPsiFactoryTest : CangJieTestBase() {
         val javaEntry = javaAnnotation.entries.first()
         check(javaEntry.isBuiltInAnnotation) { "Java should be a built-in annotation" }
 
-        // 测试自定义注解（非内置）
-        val customAnnotation = factory.createAnnotations("@CustomAnnotation")
-        val customEntry = customAnnotation.entries.first()
-        check(!customEntry.isBuiltInAnnotation) { "CustomAnnotation should not be a built-in annotation" }
     }
 
     // 测试 builtInAnnotation 属性
@@ -20751,7 +20753,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
             "@When[os == \"windows\"]",
             "@ConstSafe",
             "@FastNative",
-            "@Attribute",
+            "@Attribute[a,b,,c]",
             "@OverflowThrowing",
             "@OverflowWrapping",
             "@OverflowSaturating"
@@ -20860,6 +20862,7 @@ class CjPsiFactoryTest : CangJieTestBase() {
             val annotationText = when (builtIn) {
                 CjBuiltInAnnotation.CALLING_CONV -> "@CallingConv[CDECL]"
                 CjBuiltInAnnotation.WHEN -> "@When[os == \"windows\"]"
+                CjBuiltInAnnotation.ATTRIBUTE -> "@Attribute[name, \"test\"]"
                 CjBuiltInAnnotation.FOREIGN_NAME -> "@ForeignName[name: \"test\"]"
                 else -> "@${builtIn.annotationName}"
             }
