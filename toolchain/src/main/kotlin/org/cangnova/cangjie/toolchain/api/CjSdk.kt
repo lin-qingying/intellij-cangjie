@@ -24,45 +24,54 @@
 
 package org.cangnova.cangjie.toolchain.api
 
+import org.cangnova.cangjie.toolchain.CangJieSdkVersion
 import java.nio.file.Path
 
 /**
- * CangJie编译器工具接口
+ * 仓颉 SDK 信息
+ *
+ * 表示一个已注册的仓颉 SDK 实例,包含 SDK 的路径和版本信息
  */
-interface CjCompiler : CjTool {
+data class CjSdk(
     /**
-     * 编译文件
-     *
-     * @param sourcePath 源文件路径
-     * @param outputPath 输出路径
-     * @param options 编译选项
-     * @return 编译结果
+     * SDK 的唯一标识符
+     * 通常使用 "CangJie-{version}" 格式
      */
-    fun compile(sourcePath: Path, outputPath: Path , options: CjCompileOptions): CjCompileResult
+    val id: String,
 
     /**
-     * 编译多个文件
-     *
-     * @param sourcePaths 源文件路径列表
-     * @param outputPath 输出路径
-     * @param options 编译选项
-     * @return 编译结果
+     * SDK 的显示名称
      */
-    fun compileFiles(sourcePaths: List<Path>, outputPath: Path, options: CjCompileOptions): CjCompileResult
+    val name: String,
 
     /**
-     * 编译项目
-     *
-     * @param projectPath 项目路径
-     * @param options 编译选项
-     * @return 编译结果
+     * SDK 的根目录路径
      */
-    fun compileProject(projectPath: Path, options: CjCompileOptions): CjCompileResult
+    val homePath: Path,
 
-    companion object {
-        /**
-         * 编译器名称
-         */
-        const val NAME = "cjc"
-    }
+    /**
+     * SDK 版本信息
+     * 如果无法解析版本则为 null
+     */
+    val version: CangJieSdkVersion?,
+
+    /**
+     * SDK 是否有效
+     * 检查必要的可执行文件是否存在
+     */
+    val isValid: Boolean
+) {
+    /**
+     * 获取 SDK 的工具目录路径
+     */
+    val binPath: Path
+        get() = homePath.resolve("bin")
+
+    /**
+     * 获取标准库路径
+     */
+    val stdlibPath: Path
+        get() = homePath.resolve("modules")
+
+    override fun toString(): String = "$name ($version) at $homePath"
 }

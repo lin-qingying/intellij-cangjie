@@ -22,66 +22,19 @@
  *
  */
 
-package org.cangnova.cangjie.toolchain.api
+package org.cangnova.cangjie.toolchain
 
-import java.nio.file.Path
+import com.intellij.util.text.SemVer
 
 /**
- * CangJie编译结果
+ * 仓颉 SDK 版本信息
+ *
+ * @property semver 语义化版本号
+ * @property target 目标平台（如 x86_64-w64-mingw32）
+ * @property type SDK 类型（如 cjnative），可选
  */
-interface CjCompileResult {
-    /**
-     * 编译是否成功
-     */
-    val success: Boolean
-
-    /**
-     * 编译输出的文件路径
-     */
-    val outputFiles: List<Path>
-
-    /**
-     * 编译过程中的诊断信息
-     */
-    val diagnostics: List<CjDiagnostic>
-
-    /**
-     * 编译器输出信息
-     */
-    val output: String
-
-    /**
-     * 编译结果状态
-     */
-    val status: CompilationStatus
-
-    /**
-     * 编译结果状态枚举
-     */
-    enum class CompilationStatus {
-        /**
-         * 成功
-         */
-        SUCCESS,
-
-        /**
-         * 有警告
-         */
-        WARNING,
-
-        /**
-         * 失败
-         */
-        FAILURE,
-
-        /**
-         * 取消
-         */
-        CANCELLED,
-
-        /**
-         * 超时
-         */
-        TIMEOUT
-    }
-}
+data class CangJieSdkVersion(
+    val semver: SemVer,
+    val target: String,
+    val type: String? = null
+)

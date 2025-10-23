@@ -23,23 +23,35 @@
   -->
 
 <idea-plugin>
-    <extensionPoints>
-        <extensionPoint
-                name="toolchainProvider"
-                qualifiedName="org.cangnova.cangjie.toolchain.toolchainProvider"
-                interface="org.cangnova.cangjie.toolchain.api.CjToolchainProvider"
-                dynamic="true"/>
-        <extensionPoint
-                name="toolFactory"
-                qualifiedName="org.cangnova.cangjie.toolchain.toolFactory"
+    <!-- 服务定义 -->
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- SDK 注册中心服务 -->
+        <applicationService
+                serviceImplementation="org.cangnova.cangjie.toolchain.impl.CjSdkRegistryImpl"/>
+    </extensions>
 
-                interface="org.cangnova.cangjie.toolchain.api.CjToolFactory"
-                dynamic="true"/>
+    <!-- 扩展点定义 -->
+    <extensionPoints>
+        <!-- SDK 检测器扩展点 -->
+        <extensionPoint
+                        qualifiedName="org.cangnova.cangjie.toolchain.sdkDetector"
+                        interface="org.cangnova.cangjie.toolchain.api.CjSdkDetector"
+                        dynamic="true"/>
+
+        <!-- SDK 发现器扩展点 -->
+        <extensionPoint
+                        qualifiedName="org.cangnova.cangjie.toolchain.sdkDiscoverer"
+                        interface="org.cangnova.cangjie.toolchain.api.CjSdkDiscoverer"
+                        dynamic="true"/>
     </extensionPoints>
 
+    <!-- 默认扩展实现 -->
     <extensions defaultExtensionNs="org.cangnova.cangjie.toolchain">
-        <toolchainProvider implementation="org.cangnova.cangjie.toolchain.impl.OfficialCjToolchainProvider"/>
-        <!-- 如有其它 provider 也在此注册 -->
-        <!-- <toolFactory implementation="org.cangnova.cangjie.toolchain.impl.YourToolFactoryImpl"/> -->
+
+        <!-- 默认 SDK 检测器 -->
+        <sdkDetector implementation="org.cangnova.cangjie.toolchain.impl.CjSdkDetectorImpl"/>
+
+        <!-- 默认 SDK 发现器 -->
+        <sdkDiscoverer implementation="org.cangnova.cangjie.toolchain.impl.CjSdkDiscovererImpl"/>
     </extensions>
 </idea-plugin>
