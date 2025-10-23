@@ -34,19 +34,23 @@ import org.cangnova.cangjie.storage.StorageManager
 
 
 class ModuleDescriptorImpl(
-
+    /**
+     * 所属的仓颉项目
+     */
+    override val cangJieProject: CangJieProject,
     moduleName: Name,
     private val storageManager: StorageManager,
-    override val builtIns: CangJieBuiltIns,
 
-    capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
+    private val  capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
     override val stableName: Name? = null,
 
-    isBuiltInsModule: Boolean = false
+    isBuiltInsModule: Boolean = false,
+
+
 ) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName),
     ModuleDescriptor {
 
-    private val capabilities: Map<ModuleCapability<*>, Any?>
+
     private var packageFragmentProviderForModuleContent: PackageFragmentProvider? = null
     private var dependencies: ModuleDependencies? = null
 
@@ -54,7 +58,7 @@ class ModuleDescriptorImpl(
 
     init {
 
-        this.capabilities = capabilities
+
 
         packageViewDescriptorFactory =
             getCapability(PackageViewDescriptorFactory.CAPABILITY) ?: PackageViewDescriptorFactory.Default

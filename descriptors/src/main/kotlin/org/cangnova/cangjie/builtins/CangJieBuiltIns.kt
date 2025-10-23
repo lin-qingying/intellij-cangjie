@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.builtins
 
-import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.builtins.StandardNames.BASIC_PACKAGE_FQ_NAME
 import org.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.anyUFqName
@@ -60,37 +59,19 @@ import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.resolveClassByFqName
 import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
+import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
 
 open class CangJieBuiltIns(
-    val project: Project? = null,
+    val cangJieProject: CangJieProject,
     val storageManager: StorageManager,
-//    val cangJieModuleInfo: CangJieModuleInfo
-//    val moduleInfo: ModuleInfo? = null
-) {
+    ) {
 
 
     companion object {
-        // This function only checks presence of Deprecated annotation at declaration-site, it doesn't take into account @DeprecatedSinceCangJie
-        // To check that a referenced descriptor is actually deprecated at call-site, use DeprecationResolver
-        fun isDeprecated(declarationDescriptor: DeclarationDescriptor): Boolean {
-            if (declarationDescriptor.original.annotations.hasAnnotation(StandardNames.FqNames.deprecated)) return true
-
-            if (declarationDescriptor is PropertyDescriptor) {
-                val isVar: Boolean =
-                    declarationDescriptor.isVar
-                val getter =
-                    declarationDescriptor.getter
-                val setter =
-                    declarationDescriptor.setter
-                return getter != null && isDeprecated(getter) && (!isVar || setter != null && isDeprecated(setter))
-            }
-
-            return false
-        }
-
 
 
         /**
@@ -508,12 +489,12 @@ open class CangJieBuiltIns(
     }
 
 
-    protected fun createBuiltInsModule(isFallback: Boolean) {
+    fun createBuiltInsModule(isFallback: Boolean) {
         myBuiltInsModule = ModuleDescriptorImpl(
-
+            cangJieProject,
             BUILTINS_MODULE_NAME, storageManager,
-            this,
-//            null
+
+
             isBuiltInsModule = true
         )
         builtInsModule.initialize(
@@ -521,8 +502,8 @@ open class CangJieBuiltIns(
                 storageManager,
                 builtInsModule,
                 isFallback,
-
-                )
+                CjProjectSdkConfig.getInstance(cangJieProject.project).getProjectSdk()
+            )
         )
         builtInsModule.setDependencies(builtInsModule)
     }
@@ -546,8 +527,9 @@ open class CangJieBuiltIns(
     private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
         return myStdCoreBuiltInClassesByName.invoke(Name.identifier(simpleName))
     }
+
     private fun getBasicClassByName(simpleName: Name): ClassDescriptor {
-        return myBasicClassesByName.invoke( simpleName )
+        return myBasicClassesByName.invoke(simpleName)
     }
 
     private fun getStdSyncClassByName(simpleName: String): ClassDescriptor {
@@ -562,6 +544,7 @@ open class CangJieBuiltIns(
     fun createBuiltInsClassDescriptor(type: BuiltinsType): BuiltinsClassDescriptor {
         return BuiltinsClassDescriptor(type, storageManager, builtInsModule, this)
     }
+
     fun createPrimitiveClassDescriptor(type: PrimitiveType): PrimitiveClassDescriptor {
         return PrimitiveClassDescriptor(type, storageManager, builtInsModule, this)
     }

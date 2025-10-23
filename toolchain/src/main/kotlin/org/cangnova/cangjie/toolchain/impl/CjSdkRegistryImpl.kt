@@ -59,7 +59,7 @@ internal data class CjSdkRegistryState(
  */
 @State(
     name = "CangJieSdkRegistry",
-    storages = [Storage("cangjie-sdk.xml")]
+    storages = [Storage("cangjie-sdks.xml")]
 )
 internal class CjSdkRegistryImpl : CjSdkRegistry, PersistentStateComponent<CjSdkRegistryState> {
 

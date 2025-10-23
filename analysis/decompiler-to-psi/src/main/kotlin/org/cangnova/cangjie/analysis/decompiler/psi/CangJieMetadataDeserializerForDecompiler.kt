@@ -28,6 +28,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.descriptors.impl.CangJieProjectImpl
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.MutablePackageFragmentDescriptor
 import org.cangnova.cangjie.incremental.components.LookupTracker
@@ -44,6 +45,7 @@ import org.cangnova.cangjie.serialization.deserialization.LocalClassifierTypeSet
 import org.cangnova.cangjie.serialization.deserialization.descriptors.DeserializedPackageMemberScope
 import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.telemetry.error.ErrorTelemetry
 
@@ -57,11 +59,11 @@ class CangJieMetadataDeserializerForDecompiler(
     serializerProtocol: SerializerExtensionFlatbuffers,
 
     ) : DeserializerForDecompilerBase(packageFqName, project) {
+    val cangjieProject = CangJieProjectImpl(
+        Name.identifier("BuiltIns"), project, LockBasedStorageManager(project, "BuiltIns"),
+    )
     override val builtIns: CangJieBuiltIns
-        get() = CangJieBuiltIns(
-            project,
-            LockBasedStorageManager(project, "BuiltIns")
-        )
+        get() = cangjieProject.builtIns
 
     override val deserializationComponents: DeserializationComponents
 
@@ -139,6 +141,8 @@ abstract class DeserializerForDecompilerBase(val directoryPackageFqName: FqName,
     protected abstract val builtIns: CangJieBuiltIns
 
     protected val storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
+    protected val cangjieProjectDescriptor: CangJieProjectImpl =
+        createDummyCangJieProject("project for building decompiled sources")
 
     protected val moduleDescriptor: ModuleDescriptorImpl = createDummyModule("module for building decompiled sources")
     override fun resolveTopLevelClass(classId: ClassId) = deserializationComponents.deserializeClass(classId)
@@ -168,8 +172,13 @@ abstract class DeserializerForDecompilerBase(val directoryPackageFqName: FqName,
     protected fun createDummyPackageFragment(fqName: FqName): MutablePackageFragmentDescriptor =
         MutablePackageFragmentDescriptor(moduleDescriptor, fqName)
 
+    private fun createDummyCangJieProject(name: String) = CangJieProjectImpl(
+        Name.special("<$name>"), project, storageManager
+    )
+
+
     private fun createDummyModule(name: String) =
-        ModuleDescriptorImpl(Name.special("<$name>"), storageManager, builtIns)
+        ModuleDescriptorImpl(cangjieProjectDescriptor, Name.special("<$name>"), storageManager)
 
     init {
         moduleDescriptor.initialize(packageFragmentProvider)

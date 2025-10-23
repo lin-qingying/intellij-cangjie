@@ -30,7 +30,7 @@ dependencies {
     implementation(project(":psi"))
     implementation(project(":metadata"))
     implementation(project(":telemetry"))
-
+    implementation(project(":toolchain"))
     implementation(project(":util"))
     implementation(project(":descriptors"))
     implementation(project(":deserialization"))

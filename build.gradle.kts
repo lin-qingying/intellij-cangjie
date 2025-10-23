@@ -88,7 +88,7 @@ plugins {
     idea
     id("net.saliman.properties") version "1.5.2"
     kotlin("jvm") version "2.2.0"
-    id("org.jetbrains.intellij.platform") version "2.6.0"
+    id("org.jetbrains.intellij.platform") version "2.10.2"
     id("org.jetbrains.changelog") version "2.2.1"
     id("java-test-fixtures")
     kotlin("plugin.serialization") version "2.2.0"
@@ -132,8 +132,8 @@ allprojects {
 
             intellijDependencies()
             defaultRepositories()
-
-//            nightly()
+            localPlatformArtifacts()
+            marketplace()
         }
         maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
 
@@ -154,9 +154,7 @@ allprojects {
 
             create(IntelliJPlatformType.fromCode(ideToRunType), ideRunVersion)
 
-            intellijPlatform {
-                bundledPlugins(tomlPlugin, copyright, jsonPlugin)
-            }
+
         }
 
         testImplementation("junit:junit:4.13.2")
@@ -501,6 +499,10 @@ project(":plugin") {
 project(":") {
 
     dependencies {
+
+        intellijPlatform{
+            bundledPlugins(tomlPlugin, copyright, jsonPlugin)
+        }
 
         implementation("org.fusesource.jansi:jansi:2.4.1")
 

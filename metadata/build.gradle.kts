@@ -28,12 +28,11 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.kotlin.dsl.register
 import java.io.ByteArrayOutputStream
-import java.net.URL
+import java.net.URI
 import java.nio.file.Files
 
 plugins {
     kotlin("jvm")
-    id("io.netifi.flatbuffers") version "1.0.7"
 }
 
 dependencies {
@@ -84,14 +83,11 @@ val locateFlatc = tasks.register<Task>("locateFlatc") {
 
         val systemFlatc = candidates.firstOrNull { exe ->
             try {
-                val result = ByteArrayOutputStream().use { bos ->
-                    project.exec {
-                        commandLine(exe.absolutePath, "--version")
-                        standardOutput = bos
-                        isIgnoreExitValue = true
-                    }
-                    bos.toString().trim()
-                }
+                val process = ProcessBuilder(exe.absolutePath, "--version")
+                    .redirectErrorStream(true)
+                    .start()
+                val result = process.inputStream.bufferedReader().use { it.readText() }.trim()
+                process.waitFor()
                 result.contains("flatc version") && result.contains(flatcVersion)
             } catch (e: Exception) {
                 false
@@ -113,10 +109,9 @@ val locateFlatc = tasks.register<Task>("locateFlatc") {
             if (!cacheDir.exists()) cacheDir.mkdirs()
 
             if (!zipFile.exists()) {
-                val url = URL(
-                    "https://github.com/google/flatbuffers/releases/download" +
-                            "/v$flatcVersion/$assetName"
-                )
+                val urlString = "https://github.com/google/flatbuffers/releases/download" +
+                        "/v$flatcVersion/$assetName"
+                val url = URI(urlString).toURL()
                 logger.lifecycle("从网络下载 flatc: $url")
                 try {
                     url.openStream().use { input ->
@@ -137,14 +132,16 @@ val locateFlatc = tasks.register<Task>("locateFlatc") {
                     include { it.name == flatcExeName }
                 }
                 into(cacheDir)
-                fileMode = 0b111101101 // 755 权限
             }
-            
+
             // 确认flatc文件存在且可执行
             if (!_flatcPath.exists()) {
                 throw GradleException("flatc 文件解压失败")
             }
-            _flatcPath.setExecutable(true)
+            // 设置可执行权限 (755)
+            _flatcPath.setExecutable(true, false)
+            _flatcPath.setReadable(true, false)
+            _flatcPath.setWritable(true, false)
             
             logger.lifecycle("成功部署 flatc 到: ${_flatcPath.absolutePath}")
         }
@@ -163,20 +160,28 @@ val ensureFlatc = tasks.register<Task>("ensureFlatc") {
     }
 }
 
-// FlatBuffers配置 - 使用我们确定的路径
-flatbuffers {
-    flatcPath = _flatcPath.toString()
-    language = "kotlin"
-    flatBuffersVersion = flatcVersion
-}
+// FlatBuffers configuration - 使用我们确定的路径
+val inputDir = file("flatbuffers")
+val outputDir = file("$projectDir/gen")
 
-tasks.register<io.netifi.flatbuffers.plugin.tasks.FlatBuffers>("generateKotlinFlatBuffers") {
+tasks.register<Exec>("generateKotlinFlatBuffers") {
     dependsOn(ensureFlatc)
-    
-    inputDir = file("flatbuffers")
-    outputDir = file("$projectDir/gen")
-    language = "kotlin"
-    extraArgs = "--gen-mutable --gen-object-api"
+
+    inputs.dir(inputDir)
+    outputs.dir(outputDir)
+
+    doFirst {
+        outputDir.mkdirs()
+    }
+
+    commandLine(
+        _flatcPath.absolutePath,
+        "--kotlin",
+        "--gen-mutable",
+        "--gen-object-api",
+        "-o", outputDir.absolutePath,
+        *fileTree(inputDir).filter { it.extension == "fbs" }.map { it.absolutePath }.toTypedArray()
+    )
 }
 
 tasks.compileKotlin {

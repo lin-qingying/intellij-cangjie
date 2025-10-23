@@ -22,15 +22,7 @@
  *
  */
 
+package org.cangnova.cangjie.descriptors
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    implementation(project(":telemetry"))
-    implementation(project(":toolchain"))
-
-
-    api(project(":analysis:decompiler-to-psi"))
-}
+import com.intellij.openapi.project.Project
 

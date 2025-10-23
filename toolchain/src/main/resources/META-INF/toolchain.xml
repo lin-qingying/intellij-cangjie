@@ -28,6 +28,11 @@
         <!-- SDK 注册中心服务 -->
         <applicationService
                 serviceImplementation="org.cangnova.cangjie.toolchain.impl.CjSdkRegistryImpl"/>
+
+        <!-- 项目 SDK 配置服务 -->
+        <projectService
+                serviceInterface="org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig"
+                serviceImplementation="org.cangnova.cangjie.toolchain.impl.CjProjectSdkConfigImpl"/>
     </extensions>
 
     <!-- 扩展点定义 -->

@@ -29,6 +29,7 @@ dependencies {
 
     implementation(project(":psi"))
     implementation(project(":util"))
+    implementation(project(":toolchain"))
 
     implementation(project(":common"))
 

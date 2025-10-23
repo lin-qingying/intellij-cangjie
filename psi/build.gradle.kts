@@ -42,9 +42,9 @@ dependencies {
 
     implementation(project(":common"))
     implementation(project(":telemetry"))
-//    intellijPlatform {
-//        bundledPlugins(tomlPlugin, copyright, jsonPlugin)
-//    }
+    intellijPlatform {
+        bundledPlugins(tomlPlugin, copyright, jsonPlugin)
+    }
 }
 
 // 配置 Lexer 生成任务

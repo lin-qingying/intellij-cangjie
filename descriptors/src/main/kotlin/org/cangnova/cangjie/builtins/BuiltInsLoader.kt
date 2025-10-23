@@ -27,6 +27,7 @@ package org.cangnova.cangjie.builtins
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
 import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.toolchain.api.CjSdk
 import java.util.*
 
 
@@ -36,6 +37,7 @@ interface BuiltInsLoader {
         builtInsModule: ModuleDescriptor,
 
         isFallback: Boolean,
+        sdk: CjSdk?
 
     ): PackageFragmentProvider
 

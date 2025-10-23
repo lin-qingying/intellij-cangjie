@@ -38,13 +38,12 @@ interface CangJieBuiltInDecompilationInterceptor {
             file: VirtualFile
         ): CangJieMetadataStubBuilder.FileWithMetadata? =
             project.service<CangJieBuiltInDecompilationInterceptor>().readFile(bytes, file)
-//            ApplicationManager.getApplication().getService(CangJieBuiltInDecompilationInterceptor::class.java)
-//                ?.readFile(bytes, file)
+
     }
 }
-internal class IdeCangJieBuiltInDecompilationInterceptor : CangJieBuiltInDecompilationInterceptor {
+internal class IdeCangJieBuiltInDecompilationInterceptor(private val project: Project) : CangJieBuiltInDecompilationInterceptor {
     override fun readFile(bytes: ByteArray, file: VirtualFile): CangJieMetadataStubBuilder.FileWithMetadata? {
-        if (file in BuiltinsVirtualFileProvider.getInstance().getBuiltinVirtualFiles())
+        if (file in BuiltinsVirtualFileProvider.getInstance(project).getBuiltinVirtualFiles(project))
             return BuiltInDefinitionFile.read(bytes, file, filterOutClassesExistingAsClassFiles = false)
         else return null
     }

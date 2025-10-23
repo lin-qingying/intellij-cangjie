@@ -29,9 +29,65 @@ import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 
 /**
- * 模块能力类，用于表示模块的特定功能或特性
- * @param T 能力的类型参数
- * @param name 能力的名称
+ * 模块能力（Module Capability）
+ *
+ * 模块能力是一种扩展机制，允许向 [ModuleDescriptor] 附加额外的元数据和功能，
+ * 而无需修改 [ModuleDescriptor] 接口本身。每个能力都由一个唯一的类型和名称标识。
+ *
+ * ## 设计目的
+ *
+ * 1. **解耦扩展**: 允许不同的子系统向模块添加特定的元数据，而不影响核心模块描述符接口
+ * 2. **类型安全**: 通过泛型参数 [T] 提供编译时类型检查
+ * 3. **灵活性**: 支持任意类型的能力数据，从简单的标志到复杂的对象
+ *
+ * ## 使用示例
+ *
+ * ### 定义一个新的能力
+ * ```kotlin
+ * // 定义一个存储项目引用的能力
+ * object ProjectCapability : ModuleCapability<Project>("Project")
+ *
+ * // 定义一个存储编译配置的能力
+ * object CompilerConfigCapability : ModuleCapability<CompilerConfig>("CompilerConfig")
+ * ```
+ *
+ * ### 在创建模块时设置能力
+ * ```kotlin
+ * val module = ModuleDescriptorImpl(
+ *     moduleName = Name.identifier("myModule"),
+ *     storageManager = storageManager,
+ *     builtIns = builtIns,
+ *     capabilities = mapOf(
+ *         ProjectCapability to project,
+ *         CompilerConfigCapability to compilerConfig
+ *     )
+ * )
+ * ```
+ *
+ * ### 从模块中获取能力
+ * ```kotlin
+ * val project: Project? = module.getCapability(ProjectCapability)
+ * if (project != null) {
+ *     // 使用 project 进行操作
+ * }
+ * ```
+ *
+ * ## 内置能力
+ *
+ * - [ProjectCapability]: 存储关联的 IntelliJ [Project] 实例
+ * - `PackageViewDescriptorFactory.CAPABILITY`: 自定义包视图描述符工厂
+ *
+ * ## 注意事项
+ *
+ * - 能力对象应该定义为单例 (object)，以确保类型唯一性
+ * - 能力的名称应该具有描述性，便于调试和日志记录
+ * - 能力数据一旦设置后通常不应该修改（遵循不可变性原则）
+ *
+ * @param T 能力所存储的数据类型
+ * @param name 能力的名称，用于调试和日志记录
+ *
+ * @see ModuleDescriptor.getCapability
+ * @see ProjectCapability
  */
 class ModuleCapability<T>(val name: String) {
     override fun toString() = name
@@ -40,8 +96,18 @@ class ModuleCapability<T>(val name: String) {
 /**
  * 模块描述符接口，继承自声明描述符
  * 用于描述和管理仓颉语言的模块信息
+ *
+ * 模块是仓颉项目的组成部分，一个 [CangJieProject] 包含多个 [ModuleDescriptor]。
+ * 每个模块拥有自己的包结构、类型定义和依赖关系。
  */
 interface ModuleDescriptor : DeclarationDescriptor{
+
+    /**
+     * 所属的仓颉项目
+     * 每个模块都属于一个仓颉项目，模块不能独立存在
+     */
+    val cangJieProject: CangJieProject
+
     /** 模块是否有效 */
     val isValid: Boolean
 
@@ -53,7 +119,11 @@ interface ModuleDescriptor : DeclarationDescriptor{
     fun getPackage(fqName: FqName): PackageViewDescriptor
 
     /** 仓颉内置类型和函数集合 */
+    /**
+     * 便捷访问 BuiltIns
+     */
     val builtIns: CangJieBuiltIns
+        get() = cangJieProject.builtIns
 
     /**
      * 获取指定包名下的所有子包
@@ -63,9 +133,9 @@ interface ModuleDescriptor : DeclarationDescriptor{
      */
     fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName>
 
-    /** 包含此声明的父声明描述符，对于模块来说总是null */
+    /** 包含此声明的父声明描述符，对于模块来说是它所属的 CangJieProject */
     override val containingDeclaration: DeclarationDescriptor?
-        get() = null
+        get() = cangJieProject as? DeclarationDescriptor
 
     /**
      * 接受访问者模式的访问

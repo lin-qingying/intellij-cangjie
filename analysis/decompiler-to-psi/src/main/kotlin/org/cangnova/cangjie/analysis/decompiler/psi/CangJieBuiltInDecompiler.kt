@@ -119,20 +119,5 @@ private class CangJieBuiltInMetadataStubBuilder(
     { BuiltInSerializerFlatbuffers },
     readFile
 ) {
-//    override fun createCallableSource(file: FileWithMetadata.Compatible, filename: String): SourceElement {
-//        val fileNameForFacade =
-//            when (val withoutExtension = filename.removeSuffix(BuiltInSerializerFlatbuffers.DOT_DEFAULT_EXTENSION)) {
-//                // this is the filename used in stdlib, others should match
-//                "cangjie" -> "library"
-//                else -> withoutExtension
-//            }
-//
-//        val facadeFqName = PackagePartClassUtils.getPackagePartFqName(file.packageFqName, fileNameForFacade)
-//        return CangJiePackagePartSource(
-//            CangJieClassName.byClassId(ClassId.topLevel(facadeFqName)),
-//            null,
-//            file. `package`,
-//
-//        )
-//    }
+
 }
