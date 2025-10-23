@@ -24,8 +24,6 @@
 
 package org.cangnova.cangjie.toolchain
 
-import org.cangnova.cangjie.toolchain.impl.DefaultCjCompileOptions
-import org.cangnova.cangjie.toolchain.impl.DefaultCjPackageOptions
 import org.cangnova.cangjie.utils.toPath
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.util.SystemInfo

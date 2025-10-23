@@ -302,14 +302,14 @@ allprojects {
             include("**/*Spec.class")
         }
 
-        processTestResources {
-
-            // 保持现有的配置
-            from("$rootDir/bin") {
-                into("bin")
-                include("**")
-            }
-        }
+//        processTestResources {
+//
+//            // 保持现有的配置
+//            from("$rootDir/bin") {
+//                into("bin")
+//                include("**")
+//            }
+//        }
 
 
     }

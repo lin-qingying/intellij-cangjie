@@ -74,6 +74,8 @@
 
     <xi:include href="/META-INF/cangjie-debugger.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/cangjie-toolchain.xml" xpointer="xpointer(/idea-plugin/*)"/>
+    <xi:include href="/META-INF/toolchain.xml" xpointer="xpointer(/idea-plugin/*)"/>
+
 
 
     <xi:include href="/META-INF/cangjie-templates.xml" xpointer="xpointer(/idea-plugin/*)"/>

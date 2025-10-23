@@ -90,6 +90,8 @@ class CjFunctionType : CjElementImplStub<CangJiePlaceHolderStub<CjFunctionType>>
     val returnTypeReference: CjTypeReference?
         get() = getStubOrPsiChild(CjStubElementTypes.TYPE_REFERENCE)
 
+
+
     companion object {
         val RETURN_TYPE_SEPARATOR: CjToken = CjTokens.ARROW
     }

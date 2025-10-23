@@ -117,9 +117,7 @@ abstract class CjCodeFragment(
     private var forcedResolveScope: GlobalSearchScope? = null
     override fun getForcedResolveScope(): GlobalSearchScope? = forcedResolveScope
 
-    final override fun init(elementType: IElementType, contentElementType: IElementType?) {
-        super.init(elementType, contentElementType)
-    }
+
 
     override fun forceResolveScope(scope: GlobalSearchScope?) {
         forcedResolveScope = scope
