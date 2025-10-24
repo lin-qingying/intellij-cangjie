@@ -64,17 +64,9 @@ import org.cangnova.cangjie.name.Name
  * )
  * ```
  *
- * ### 从模块中获取能力
- * ```kotlin
- * val project: Project? = module.getCapability(ProjectCapability)
- * if (project != null) {
- *     // 使用 project 进行操作
- * }
- * ```
  *
  * ## 内置能力
  *
- * - [ProjectCapability]: 存储关联的 IntelliJ [Project] 实例
  * - `PackageViewDescriptorFactory.CAPABILITY`: 自定义包视图描述符工厂
  *
  * ## 注意事项
