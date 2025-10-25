@@ -25,7 +25,12 @@
 package org.cangnova.cangjie.cjpm.project
 
 import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.cjpm.config.CjpmTomlParserAdapter
+import org.cangnova.cangjie.cjpm.model.DependencyConfig
 import org.cangnova.cangjie.cjpm.model.PackageConfig
+import org.cangnova.cangjie.dependency.model.CjDependency
+import org.cangnova.cangjie.dependency.model.CjDependencyScope
+import org.cangnova.cangjie.dependency.model.CjDependencyType
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.CjSourceSet
@@ -44,6 +49,9 @@ class CjpmModuleImpl(
     override val version: String
         get() = packageConfig.version
 
+    override val configFile: VirtualFile?
+        get() = rootDir.findChild("cjpm.toml")
+
     override val sourceSets: List<CjSourceSet> by lazy {
         buildSourceSets()
     }
@@ -52,9 +60,49 @@ class CjpmModuleImpl(
         buildTargets()
     }
 
-    override val dependencies: List<String> by lazy {
-        // 依赖将通过 CjpmDependencyResolver 解析
-        emptyList()
+    override val dependencies: List<CjDependency> by lazy {
+        buildDependencies()
+    }
+
+    private fun buildDependencies(): List<CjDependency> {
+        val manifestFile = configFile ?: return emptyList()
+        val config = CjpmTomlParserAdapter.parse(manifestFile) ?: return emptyList()
+
+        val result = mutableListOf<CjDependency>()
+
+        // Parse compile dependencies
+        config.dependencies.forEach { (name, depConfig) ->
+            result.add(createDependency(name, depConfig, CjDependencyScope.COMPILE))
+        }
+
+        // Parse test dependencies
+        config.testDependencies.forEach { (name, depConfig) ->
+            result.add(createDependency(name, depConfig, CjDependencyScope.TEST))
+        }
+
+        return result
+    }
+
+    private fun createDependency(
+        name: String,
+        config: DependencyConfig,
+        scope: CjDependencyScope
+    ): CjDependency {
+        return CjpmDependency(
+            name = name,
+            version = config.version ?: "latest",
+            scope = scope,
+            type = when {
+                config.path != null -> CjDependencyType.MODULE
+                config.git != null -> CjDependencyType.LIBRARY
+                else -> CjDependencyType.LIBRARY
+            },
+            path = config.path,
+            git = config.git,
+            branch = config.branch,
+            tag = config.tag,
+            rev = config.rev
+        )
     }
 
     private fun buildSourceSets(): List<CjSourceSet> {

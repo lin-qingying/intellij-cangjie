@@ -22,50 +22,30 @@
  *
  */
 
-package org.cangnova.cangjie.project.model
+package org.cangnova.cangjie.cjpm.project
 
-import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.dependency.model.CjDependency
+import org.cangnova.cangjie.dependency.model.CjDependencyScope
+import org.cangnova.cangjie.dependency.model.CjDependencyType
+import org.cangnova.cangjie.dependency.model.CjVersion
 
 /**
- * 模块抽象
- *
- * 代表项目中的一个模块/包
+ * CJPM 依赖实现
  */
-interface CjModule {
-    /**
-     * 模块名称
-     */
-    val name: String
+data class CjpmDependency(
+    override val name: String,
+    val versionString: String,
+    override val scope: CjDependencyScope,
+    override val type: CjDependencyType,
+    val path: String? = null,
+    val git: String? = null,
+    val branch: String? = null,
+    val tag: String? = null,
+    val rev: String? = null
+) : CjDependency {
 
-    /**
-     * 模块根目录
-     */
-    val rootDir: VirtualFile
+    override val group: String? = null
 
-    /**
-     * 所属项目
-     */
-    val project: CjProject
-
-    /**
-     * 模块配置文件
-     */
-    val configFile: VirtualFile?
-
-    /**
-     * 构建目标列表
-     */
-    val targets: List<CjTarget>
-
-    /**
-     * 源码集列表
-     */
-    val sourceSets: List<CjSourceSet>
-
-    /**
-     * 模块依赖列表
-     */
-    val dependencies: List<CjDependency>
-        get() = emptyList()
+    override val version: CjVersion
+        get() = CjVersion(versionString)
 }
