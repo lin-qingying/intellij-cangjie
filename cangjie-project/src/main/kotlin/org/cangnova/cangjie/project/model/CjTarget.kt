@@ -22,17 +22,56 @@
  *
  */
 
+package org.cangnova.cangjie.project.model
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+/**
+ * 构建目标类型
+ */
+enum class CjTargetType {
+    /**
+     * 可执行文件
+     */
+    EXECUTABLE,
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+    /**
+     * 静态库
+     */
+    STATIC_LIBRARY,
 
+    /**
+     * 动态库
+     */
+    DYNAMIC_LIBRARY,
+
+    /**
+     * 测试目标
+     */
+    TEST
 }
 
+/**
+ * 构建目标抽象
+ *
+ * 代表一个可构建的目标(如可执行文件、库等)
+ */
+interface CjTarget {
+    /**
+     * 目标名称
+     */
+    val name: String
+
+    /**
+     * 目标类型
+     */
+    val type: CjTargetType
+
+    /**
+     * 所属模块
+     */
+    val module: CjModule
+
+    /**
+     * 源码集
+     */
+    val sourceSets: List<CjSourceSet>
+}

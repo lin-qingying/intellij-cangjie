@@ -24,15 +24,25 @@
 
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
-
-    implementation(project(":psi"))
+    // 依赖核心模块
     implementation(project(":cangjie-project"))
+    implementation(project(":cangjie-dependency"))
+    implementation(project(":build-system"))
+    implementation(project(":util"))
+    implementation(project(":messages"))
+    implementation(project(":notifications"))
+    implementation(project(":toolchain"))
 
+    implementation(project(":"))
+    // TOML 解析
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+
+    testImplementation(kotlin("test"))
 }
+project(":plugin") {
+    dependencies {
+        implementation(project(":cjpm"))
 
+    }
+}

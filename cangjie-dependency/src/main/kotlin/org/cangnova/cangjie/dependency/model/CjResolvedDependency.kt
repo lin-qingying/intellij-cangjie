@@ -22,17 +22,42 @@
  *
  */
 
+package org.cangnova.cangjie.dependency.model
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+/**
+ * 已解析的依赖
+ *
+ * 包含依赖的完整解析信息
+ */
+interface CjResolvedDependency {
+    /**
+     * 原始依赖
+     */
+    val dependency: CjDependency
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+    /**
+     * 解析后的包
+     */
+    val resolvedPackage: CjPackage?
 
+    /**
+     * 解析后的库
+     */
+    val resolvedLibrary: CjLibrary?
+
+    /**
+     * 传递依赖列表
+     */
+    val transitiveDependencies: List<CjDependency>
+
+    /**
+     * 解析是否成功
+     */
+    val isResolved: Boolean
+        get() = resolvedPackage != null || resolvedLibrary != null
+
+    /**
+     * 解析错误信息
+     */
+    val errorMessage: String?
 }
-

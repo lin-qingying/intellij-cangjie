@@ -22,17 +22,17 @@
  *
  */
 
+package org.cangnova.cangjie.cjpm.project
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.project.model.CjProject
+import org.cangnova.cangjie.project.model.CjWorkspace
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
-
-}
-
+/**
+ * CJPM 工作空间实现
+ */
+class CjpmWorkspaceImpl(
+    override val name: String,
+    override val rootDir: VirtualFile,
+    override val projects: List<CjProject>
+) : CjWorkspace

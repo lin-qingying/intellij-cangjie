@@ -22,17 +22,38 @@
  *
  */
 
+package org.cangnova.cangjie.project.model
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+import com.intellij.openapi.vfs.VirtualFile
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+/**
+ * 工作空间抽象
+ *
+ * 代表一个包含多个项目/模块的工作空间
+ */
+interface CjWorkspace {
+    /**
+     * 工作空间名称
+     */
+    val name: String
 
+    /**
+     * 工作空间根目录
+     */
+    val rootDir: VirtualFile
+
+    /**
+     * 工作空间配置文件
+     */
+    val configFile: VirtualFile?
+
+    /**
+     * 工作空间中的所有项目
+     */
+    val projects: List<CjProject>
+
+    /**
+     * 查找指定名称的项目
+     */
+    fun findProject(name: String): CjProject?
 }
-

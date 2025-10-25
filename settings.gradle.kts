@@ -70,3 +70,14 @@ include("metadata")
 include("analysis")
 include("analysis:decompiler-to-psi")
 include("deserialization")
+
+
+
+
+
+include("cangjie-dependency")
+
+include("cangjie-project")
+
+
+include("cjpm")

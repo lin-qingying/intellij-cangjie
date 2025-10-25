@@ -22,17 +22,28 @@
  *
  */
 
+package org.cangnova.cangjie.build.event
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+import com.intellij.util.messages.Topic
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+/**
+ * 构建监听器接口
+ */
+interface CjBuildListener {
+    companion object {
+        /**
+         * 消息总线主题
+         */
+        val TOPIC = Topic.create(
+            "Cangjie Build Events",
+            CjBuildListener::class.java
+        )
+    }
 
+    /**
+     * 构建事件回调
+     *
+     * @param event 构建事件
+     */
+    fun onBuildEvent(event: CjBuildEvent)
 }
-

@@ -22,17 +22,56 @@
  *
  */
 
+package org.cangnova.cangjie.dependency.model
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+import java.nio.file.Path
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+/**
+ * 包抽象接口
+ */
+interface CjPackage {
+    /**
+     * 包名称
+     */
+    val name: String
 
+    /**
+     * 包组 (可选)
+     */
+    val group: String?
+
+    /**
+     * 包版本
+     */
+    val version: CjVersion
+
+    /**
+     * 包描述
+     */
+    val description: String?
+
+    /**
+     * 包作者
+     */
+    val authors: List<String>
+
+    /**
+     * 包许可证
+     */
+    val license: String?
+
+    /**
+     * 包仓库URL
+     */
+    val repositoryUrl: String?
+
+    /**
+     * 包依赖列表
+     */
+    val dependencies: List<CjDependency>
+
+    /**
+     * 包的本地路径 (如果已下载)
+     */
+    val localPath: Path?
 }
-

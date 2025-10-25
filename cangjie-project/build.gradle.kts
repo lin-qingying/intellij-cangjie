@@ -22,17 +22,11 @@
  *
  */
 
-
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
     implementation(project(":util"))
-    implementation(project(":icon"))
-
+    implementation(project(":messages"))
+    implementation(project(":notifications"))
     implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
-
+    implementation(project(":toolchain"))
 }
 

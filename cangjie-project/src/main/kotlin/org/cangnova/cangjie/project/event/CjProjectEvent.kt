@@ -22,17 +22,54 @@
  *
  */
 
+package org.cangnova.cangjie.project.event
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+import org.cangnova.cangjie.project.model.CjProject
+import java.util.*
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+/**
+ * 项目事件类型
+ */
+enum class CjProjectEventType {
+    /**
+     * 项目创建
+     */
+    CREATED,
 
+    /**
+     * 项目更新/刷新
+     */
+    UPDATED,
+
+    /**
+     * 项目删除
+     */
+    REMOVED,
+
+    /**
+     * 项目配置变更
+     */
+    CONFIG_CHANGED
 }
 
+/**
+ * 仓颉项目事件
+ *
+ * 当项目发生变化时触发
+ */
+class CjProjectEvent(
+    /**
+     * 发生变化的项目
+     */
+    val project: CjProject,
+
+    /**
+     * 事件类型
+     */
+    val eventType: CjProjectEventType
+) : EventObject(project) {
+
+    override fun toString(): String {
+        return "CjProjectEvent(project=${project.name}, type=$eventType)"
+    }
+}

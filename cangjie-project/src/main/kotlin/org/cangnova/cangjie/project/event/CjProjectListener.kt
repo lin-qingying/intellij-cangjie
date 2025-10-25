@@ -22,17 +22,44 @@
  *
  */
 
+package org.cangnova.cangjie.project.event
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+import com.intellij.util.messages.Topic
+import java.util.*
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+/**
+ * 仓颉项目监听器
+ *
+ * 监听项目的各种变化事件
+ */
+interface CjProjectListener : EventListener {
+    companion object {
+        /**
+         * 消息总线主题
+         */
+        val TOPIC = Topic.create(
+            "CangJie Project Events",
+            CjProjectListener::class.java
+        )
+    }
 
+    /**
+     * 项目创建时调用
+     */
+    fun projectCreated(event: CjProjectEvent) {}
+
+    /**
+     * 项目更新时调用
+     */
+    fun projectUpdated(event: CjProjectEvent) {}
+
+    /**
+     * 项目删除时调用
+     */
+    fun projectRemoved(event: CjProjectEvent) {}
+
+    /**
+     * 项目配置变更时调用
+     */
+    fun projectConfigChanged(event: CjProjectEvent) {}
 }
-

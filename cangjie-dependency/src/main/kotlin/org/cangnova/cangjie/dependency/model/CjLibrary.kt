@@ -22,17 +22,63 @@
  *
  */
 
+package org.cangnova.cangjie.dependency.model
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+import java.nio.file.Path
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+/**
+ * 库抽象接口
+ *
+ * 代表一个已解析的库文件
+ */
+interface CjLibrary {
+    /**
+     * 库名称
+     */
+    val name: String
 
+    /**
+     * 库版本
+     */
+    val version: CjVersion
+
+    /**
+     * 库文件路径
+     */
+    val libraryPath: Path
+
+    /**
+     * 库类型 (静态库/动态库等)
+     */
+    val libraryType: CjLibraryType
+
+    /**
+     * 源码路径 (可选)
+     */
+    val sourcePath: Path?
+
+    /**
+     * 文档路径 (可选)
+     */
+    val documentationPath: Path?
 }
 
+/**
+ * 库类型
+ */
+enum class CjLibraryType {
+    /**
+     * 静态库
+     */
+    STATIC,
+
+    /**
+     * 动态库
+     */
+    DYNAMIC,
+
+    /**
+     * 编译产物 (如 .cjo 文件)
+     */
+    COMPILED
+}

@@ -22,17 +22,43 @@
  *
  */
 
+package org.cangnova.cangjie.project.model
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+import com.intellij.openapi.vfs.VirtualFile
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+/**
+ * 模块抽象
+ *
+ * 代表项目中的一个模块/包
+ */
+interface CjModule {
+    /**
+     * 模块名称
+     */
+    val name: String
 
+    /**
+     * 模块根目录
+     */
+    val rootDir: VirtualFile
+
+    /**
+     * 所属项目
+     */
+    val project: CjProject
+
+    /**
+     * 模块配置文件
+     */
+    val configFile: VirtualFile?
+
+    /**
+     * 构建目标列表
+     */
+    val targets: List<CjTarget>
+
+    /**
+     * 源码集列表
+     */
+    val sourceSets: List<CjSourceSet>
 }
-

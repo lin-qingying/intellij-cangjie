@@ -24,29 +24,34 @@
 
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
+        <!-- Application-level services -->
+        <applicationService
+                serviceInterface="org.cangnova.cangjie.dependency.service.CjDependencyService"
+                serviceImplementation="org.cangnova.cangjie.dependency.service.impl.CjDependencyServiceImpl"/>
+
         <!-- Project-level services -->
         <projectService
-                serviceInterface="org.cangnova.cangjie.build.service.CjBuildTaskManager"
-                serviceImplementation="org.cangnova.cangjie.build.service.impl.CjBuildTaskManagerImpl"/>
+                serviceInterface="org.cangnova.cangjie.dependency.registry.CjPackageRegistry"
+                serviceImplementation="org.cangnova.cangjie.dependency.registry.impl.CjPackageRegistryImpl"/>
     </extensions>
 
     <extensionPoints>
-        <!-- Build System Provider Extension Point -->
+        <!-- Dependency Resolver Extension Point -->
         <extensionPoint
-                name="buildSystemProvider"
-                interface="org.cangnova.cangjie.build.extension.CjBuildSystemProvider"
+                name="dependencyResolver"
+                interface="org.cangnova.cangjie.dependency.extension.CjDependencyResolver"
                 dynamic="true"/>
 
-        <!-- Build Task Executor Extension Point -->
+        <!-- Package Manager Extension Point -->
         <extensionPoint
-                name="buildTaskExecutor"
-                interface="org.cangnova.cangjie.build.extension.CjBuildTaskExecutor"
+                name="packageManager"
+                interface="org.cangnova.cangjie.dependency.extension.CjPackageManager"
                 dynamic="true"/>
 
-        <!-- Build Configuration Provider Extension Point -->
+        <!-- Repository Provider Extension Point -->
         <extensionPoint
-                name="buildConfigurationProvider"
-                interface="org.cangnova.cangjie.build.extension.CjBuildConfigurationProvider"
+                name="repositoryProvider"
+                interface="org.cangnova.cangjie.dependency.extension.CjRepositoryProvider"
                 dynamic="true"/>
     </extensionPoints>
 </idea-plugin>

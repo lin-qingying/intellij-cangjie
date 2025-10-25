@@ -22,17 +22,33 @@
  *
  */
 
+package org.cangnova.cangjie.project.model
 
-dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    implementation(project(":notifications"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-    implementation(project(":icon"))
+import com.intellij.openapi.vfs.VirtualFile
 
-    implementation(project(":psi"))
-    implementation(project(":cangjie-project"))
+/**
+ * 源码集抽象
+ *
+ * 代表项目中的一组源代码文件
+ */
+interface CjSourceSet {
+    /**
+     * 源码集名称
+     */
+    val name: String
 
+    /**
+     * 源码根目录列表
+     */
+    val sourceRoots: List<VirtualFile>
+
+    /**
+     * 资源根目录列表
+     */
+    val resourceRoots: List<VirtualFile>
+
+    /**
+     * 是否为测试源码集
+     */
+    val isTest: Boolean
 }
-
