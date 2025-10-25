@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.descriptors.impl
 
-import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.FqName
@@ -37,7 +36,7 @@ class ModuleDescriptorImpl(
     /**
      * 所属的仓颉项目
      */
-    override val cangJieProject: CangJieProject,
+    override val projectDescriptor: ProjectDescriptor,
     moduleName: Name,
     private val storageManager: StorageManager,
 
@@ -47,7 +46,7 @@ class ModuleDescriptorImpl(
     isBuiltInsModule: Boolean = false,
 
 
-) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName),
+    ) : DeclarationDescriptorImpl(Annotations.EMPTY, moduleName),
     ModuleDescriptor {
 
 

@@ -89,7 +89,7 @@ class ModuleCapability<T>(val name: String) {
  * 模块描述符接口，继承自声明描述符
  * 用于描述和管理仓颉语言的模块信息
  *
- * 模块是仓颉项目的组成部分，一个 [CangJieProject] 包含多个 [ModuleDescriptor]。
+ * 模块是仓颉项目的组成部分，一个 [ProjectDescriptor] 包含多个 [ModuleDescriptor]。
  * 每个模块拥有自己的包结构、类型定义和依赖关系。
  */
 interface ModuleDescriptor : DeclarationDescriptor{
@@ -98,7 +98,7 @@ interface ModuleDescriptor : DeclarationDescriptor{
      * 所属的仓颉项目
      * 每个模块都属于一个仓颉项目，模块不能独立存在
      */
-    val cangJieProject: CangJieProject
+    val projectDescriptor: ProjectDescriptor
 
     /** 模块是否有效 */
     val isValid: Boolean
@@ -115,7 +115,7 @@ interface ModuleDescriptor : DeclarationDescriptor{
      * 便捷访问 BuiltIns
      */
     val builtIns: CangJieBuiltIns
-        get() = cangJieProject.builtIns
+        get() = projectDescriptor.builtIns
 
     /**
      * 获取指定包名下的所有子包
@@ -125,9 +125,9 @@ interface ModuleDescriptor : DeclarationDescriptor{
      */
     fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName>
 
-    /** 包含此声明的父声明描述符，对于模块来说是它所属的 CangJieProject */
+    /** 包含此声明的父声明描述符，对于模块来说是它所属的 ProjectDescriptor */
     override val containingDeclaration: DeclarationDescriptor?
-        get() = cangJieProject as? DeclarationDescriptor
+        get() = projectDescriptor as? DeclarationDescriptor
 
     /**
      * 接受访问者模式的访问

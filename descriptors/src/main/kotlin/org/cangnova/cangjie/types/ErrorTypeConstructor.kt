@@ -25,8 +25,8 @@
 package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.descriptors.CangJieProject
 import org.cangnova.cangjie.descriptors.ClassifierDescriptor
+import org.cangnova.cangjie.descriptors.ProjectDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.storage.LockBasedStorageManager
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
@@ -67,4 +67,4 @@ class ErrorTypeConstructor(val kind: ErrorTypeKind, vararg val formatParams: Str
 }
 
 
-object DefaultBuiltIns : CangJieBuiltIns(CangJieProject.ERROR, LockBasedStorageManager("DefaultBuiltIns"))
+object DefaultBuiltIns : CangJieBuiltIns(ProjectDescriptor.ERROR, LockBasedStorageManager("DefaultBuiltIns"))

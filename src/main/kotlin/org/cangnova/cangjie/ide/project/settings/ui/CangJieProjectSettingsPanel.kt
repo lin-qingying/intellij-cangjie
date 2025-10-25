@@ -29,34 +29,27 @@
 
 package org.cangnova.cangjie.ide.project.settings.ui
 
-import org.cangnova.cangjie.configurable.CjToolchainPathChoosingComboBox
-import org.cangnova.cangjie.ide.project.settings.CangJieProjectSettingsService
-import org.cangnova.cangjie.utils.pathAsPath
-
-import org.cangnova.cangjie.ide.project.settings.ui.UiDebouncer
-import org.cangnova.cangjie.ide.project.settings.ui.fullWidthCell
-import org.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp
-import org.cangnova.cangjie.ide.project.structure.download.addDownloadItem
-import org.cangnova.cangjie.messages.CangJieBundle
-import org.cangnova.cangjie.state.ToolchainSettingsState
-import org.cangnova.cangjie.toolchain.CjToolchainBase
-import org.cangnova.cangjie.toolchain.CjToolchainProvider
-import org.cangnova.cangjie.toolchain.CjToolchainServices
-import org.cangnova.cangjie.toolchain.cjc
-import org.cangnova.cangjie.utils.toPath
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.Panel
+import org.cangnova.cangjie.configurable.CjToolchainPathChoosingComboBox
+import org.cangnova.cangjie.ide.project.settings.CangJieProjectSettingsService
+import org.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp
+import org.cangnova.cangjie.ide.project.structure.download.addDownloadItem
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.toolchain.CjToolchainBase
+import org.cangnova.cangjie.toolchain.CjToolchainProvider
+import org.cangnova.cangjie.toolchain.api.CjSdk
+import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
+import org.cangnova.cangjie.toolchain.cjc
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.swing.JButton
 import javax.swing.JLabel
-import kotlin.toString
 
 
 class CangJieProjectSettingsPanel(
@@ -99,10 +92,11 @@ class CangJieProjectSettingsPanel(
     private val compilerType = JLabel()
 
 
-    //    所有历史工具链路径
-    private val toolchainsService = ApplicationManager.getApplication().getService(CjToolchainServices::class.java)
+    //    SDK注册中心
+    private val sdkRegistry = CjSdkRegistry.getInstance()
 
-    private val toolchainPaths: List<String> = toolchainsService.getToolchainPaths()
+    private val allSdks: List<CjSdk>
+        get() = sdkRegistry.getAllSdks()
 
     // 抛出ConfigurationException异常
     @Throws(ConfigurationException::class)
@@ -111,8 +105,9 @@ class CangJieProjectSettingsPanel(
         val toolchain = data.toolchain ?: return
         // 如果toolchain不是有效的toolchain，则移除toolchain并抛出ConfigurationException异常
         if (!toolchain.looksLikeValidToolchain()) {
-            toolchainsService.removeToolchain(toolchain.location.toString())
-            ToolchainSettingsState.getInstance().path = ""
+            // 从注册中心移除无效的SDK
+            val sdk = sdkRegistry.getSdkByPath(toolchain.location)
+            sdk?.let { sdkRegistry.unregisterSdk(it.id) }
 
             throw ConfigurationException(
                 CangJieBundle.message(
@@ -129,7 +124,7 @@ class CangJieProjectSettingsPanel(
                 .getService(CangJieProjectSettingsService::class.java)?.toolchain
                 ?: CjToolchainBase.suggest(
                     cjpmProjectDir
-                ) ?: toolchainPaths.getOrNull(0)?.toPath()?.let { CjToolchainProvider.getToolchain(it) }
+                ) ?: allSdks.firstOrNull()?.homePath?.let { CjToolchainProvider.getToolchain(it) }
 
 
         )
@@ -141,7 +136,7 @@ class CangJieProjectSettingsPanel(
 //            显示下载按钮
             val downloadEp = SdkDownloadEp.EP_NAME.findFirstSafe { it.supportsDownload() }
 
-            if (/*toolchainPaths.isEmpty() &&*/ downloadEp != null) {
+            if (downloadEp != null) {
                 val downloadButton = JButton(CangJieBundle.message("settings.cangjie.download.toolchain.button"))
                 downloadButton.addActionListener {
 
@@ -163,7 +158,7 @@ class CangJieProjectSettingsPanel(
         }
 
         pathToToolchainComboBox.addToolchainsAsync {
-            toolchainPaths
+            allSdks.map { it.homePath.toString() }
         }
 
 
@@ -196,8 +191,12 @@ class CangJieProjectSettingsPanel(
                 compilerType.text = type
                 compilerType.foreground = JBColor.foreground()
 
-
-                ToolchainSettingsState.getInstance().path = pathToToolchain.toString()
+                // 注册SDK到注册中心
+                pathToToolchain?.let { path ->
+                    if (!sdkRegistry.isSdkPathRegistered(path)) {
+                        sdkRegistry.registerSdkPath(path)
+                    }
+                }
 
             }
             updateListener?.invoke()

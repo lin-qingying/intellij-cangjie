@@ -26,11 +26,7 @@ package org.cangnova.cangjie.descriptors.impl
 
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.descriptors.CangJieProject
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.descriptors.DeclarationDescriptorVisitor
-import org.cangnova.cangjie.descriptors.InvalidModuleException
-import org.cangnova.cangjie.descriptors.ModuleDescriptor
+import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
@@ -39,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * 仓颉项目描述符的默认实现
  *
- * 提供了 [CangJieProject] 接口的标准实现，管理项目中的所有模块。
+ * 提供了 [ProjectDescriptor] 接口的标准实现，管理项目中的所有模块。
  *
  * ## 特性
  *
@@ -51,14 +47,14 @@ import java.util.concurrent.ConcurrentHashMap
  * @param intellijProject 关联的 IntelliJ 项目实例
  * @param storageManager 存储管理器，用于管理缓存和懒加载
  *
- * @see CangJieProject
+ * @see ProjectDescriptor
  * @see ModuleDescriptor
  */
-class CangJieProjectImpl(
+class ProjectDescriptorImpl(
     private val projectName: Name,
     override val project: Project,
     private val storageManager: StorageManager
-) : CangJieProject {
+) : ProjectDescriptor {
 
     /**
      * 模块映射表，使用线程安全的 ConcurrentHashMap
@@ -155,7 +151,7 @@ class CangJieProjectImpl(
     }
 
     override fun toString(): String {
-        return "CangJieProject($projectName, modules=${moduleMap.keys.joinToString()})"
+        return "ProjectDescriptor($projectName, modules=${moduleMap.keys.joinToString()})"
     }
 
     override val original: DeclarationDescriptor

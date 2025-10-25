@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,17 @@
 
 package org.cangnova.cangjie.ide.project.settings
 
+import com.intellij.openapi.components.*
+import com.intellij.openapi.project.Project
+import com.intellij.util.xmlb.annotations.Transient
 import org.cangnova.cangjie.configurable.CangJieConfigurable
 import org.cangnova.cangjie.toolchain.CjToolchainBase
 import org.cangnova.cangjie.toolchain.CjToolchainProvider
-import org.cangnova.cangjie.toolchain.CjToolchainServices
 import org.cangnova.cangjie.toolchain.ExternalLinter
+import org.cangnova.cangjie.toolchain.api.CjSdk
+import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
 import org.cangnova.cangjie.utils.isUnitTestMode
-
 import org.cangnova.cangjie.utils.showSettingsDialog
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.*
-import com.intellij.openapi.project.Project
-import com.intellij.util.io.systemIndependentPath
-import com.intellij.util.xmlb.annotations.Transient
-import java.nio.file.Paths
 
 private const val SERVICE_NAME: String = "CangJieProjectSettings"
 val Project.toolchain: CjToolchainBase?
@@ -74,13 +71,13 @@ class CangJieProjectSettingsService(
 
     class CangJieProjectSettings : CjProjectSettingsBase<CangJieProjectSettings>() {
 
-        private val toolchainsService = ApplicationManager.getApplication().getService(CjToolchainServices::class.java)
+        private val sdkRegistry = CjSdkRegistry.getInstance()
 
         @AffectsHighlighting
         var compileAllTargets by property(true)
 
         @AffectsCjpmMetadata
-        var toolchainHomeDirectory by string()
+        var sdkId by string()
         var externalLinter by enum(ExternalLinter.DEFAULT)
 
         var externalLinterArguments by property("") { it.isEmpty() }
@@ -98,12 +95,26 @@ class CangJieProjectSettingsService(
         @get:Transient
         @set:Transient
         var toolchain: CjToolchainBase?
-            get() = toolchainHomeDirectory?.let { CjToolchainProvider.getToolchain(Paths.get(it)) }
+            get() = sdkId?.let { id ->
+                sdkRegistry.getSdk(id)?.homePath?.let { CjToolchainProvider.getToolchain(it) }
+            }
             set(value) {
+                val path = value?.location
+                if (path != null) {
+                    // 注册SDK并保存ID
+                    val sdk = sdkRegistry.getSdkByPath(path) ?: sdkRegistry.registerSdkPath(path)
+                    sdkId = sdk?.id
+                } else {
+                    sdkId = null
+                }
+            }
 
-                toolchainHomeDirectory = value?.location?.systemIndependentPath
-
-                toolchainHomeDirectory?.let { toolchainsService.putToolchainPath(it) }
+        @get:Transient
+        @set:Transient
+        var sdk: CjSdk?
+            get() = sdkId?.let { sdkRegistry.getSdk(it) }
+            set(value) {
+                sdkId = value?.id
             }
 
     }

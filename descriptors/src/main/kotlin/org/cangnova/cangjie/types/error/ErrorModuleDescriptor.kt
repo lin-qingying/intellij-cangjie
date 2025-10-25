@@ -32,8 +32,8 @@ import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.DefaultBuiltIns
 
 object ErrorModuleDescriptor: ModuleDescriptor {
-    override val cangJieProject: CangJieProject
-        get() = CangJieProject.ERROR
+    override val projectDescriptor: ProjectDescriptor
+        get() = ProjectDescriptor.ERROR
     override val isValid: Boolean = false
     override fun getPackage(fqName: FqName): PackageViewDescriptor  = throw IllegalStateException("Should not be called!")
     override val builtIns: CangJieBuiltIns  by lazy { DefaultBuiltIns }

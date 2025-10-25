@@ -33,12 +33,12 @@ import org.cangnova.cangjie.types.DefaultBuiltIns
 /**
  * 仓颉项目描述符接口
  *
- * `CangJieProject` 是整个仓颉项目的最顶层根对象，代表一个完整的仓颉项目。
+ * `ProjectDescriptor` 是整个仓颉项目的最顶层根对象，代表一个完整的仓颉项目。
  * 一个仓颉项目可以包含多个模块（Module），每个模块由 [ModuleDescriptor] 描述。
  *
  * ## 设计目的
  *
- * 1. **层次结构**: 建立清晰的项目层次：CangJieProject -> ModuleDescriptor -> Package -> Class
+ * 1. **层次结构**: 建立清晰的项目层次：ProjectDescriptor -> ModuleDescriptor -> Package -> Class
  * 2. **模块管理**: 统一管理项目中的所有模块，处理模块间的依赖关系
  * 3. **项目级配置**: 提供项目级别的配置和能力，如全局设置、项目范围的缓存等
  * 4. **跨模块操作**: 支持跨模块的查找、解析和类型检查
@@ -54,23 +54,23 @@ import org.cangnova.cangjie.types.DefaultBuiltIns
  *
  * ```kotlin
  * // 创建仓颉项目
- * val cangJieProject = CangJieProjectImpl(
+ * val projectDescriptor = ProjectDescriptorImpl(
  *     projectName = Name.identifier("MyProject"),
  *     storageManager = storageManager
  * )
  *
  * // 添加模块
  * val mainModule = ModuleDescriptorImpl(...)
- * cangJieProject.addModule(mainModule)
+ * projectDescriptor.addModule(mainModule)
  *
  * // 查找模块
- * val module = cangJieProject.getModule(Name.identifier("main"))
+ * val module = projectDescriptor.getModule(Name.identifier("main"))
  * ```
  *
  * @see ModuleDescriptor
  * @see PackageViewDescriptor
  */
-interface CangJieProject:DeclarationDescriptor {
+interface ProjectDescriptor : DeclarationDescriptor {
 
     /**
      * 项目名称
@@ -112,7 +112,7 @@ interface CangJieProject:DeclarationDescriptor {
     fun assertValid()
 
     companion object {
-        val ERROR = object : CangJieProject {
+        val ERROR = object : ProjectDescriptor {
             override val name: Name
                 get() = Name.ERROR_NAME
             override val builtIns: CangJieBuiltIns

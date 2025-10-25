@@ -60,13 +60,12 @@ import org.cangnova.cangjie.resolve.resolveClassByFqName
 import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
-import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.functions.FunctionTypeKind
 
 open class CangJieBuiltIns(
-    val cangJieProject: CangJieProject,
+    val projectDescriptor: ProjectDescriptor,
     val storageManager: StorageManager,
     ) {
 
@@ -491,7 +490,7 @@ open class CangJieBuiltIns(
 
     fun createBuiltInsModule(isFallback: Boolean) {
         myBuiltInsModule = ModuleDescriptorImpl(
-            cangJieProject,
+            projectDescriptor,
             BUILTINS_MODULE_NAME, storageManager,
 
 
@@ -502,7 +501,7 @@ open class CangJieBuiltIns(
                 storageManager,
                 builtInsModule,
                 isFallback,
-                CjProjectSdkConfig.getInstance(cangJieProject.project).getProjectSdk()
+                CjProjectSdkConfig.getInstance(projectDescriptor.project).getProjectSdk()
             )
         )
         builtInsModule.setDependencies(builtInsModule)
