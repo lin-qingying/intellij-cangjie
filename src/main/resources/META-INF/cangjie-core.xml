@@ -1,3 +1,27 @@
+<!--
+  ~ Copyright 2025 LinQingYing. and contributors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~ The use of this source code is governed by the Apache License 2.0,
+  ~ which allows users to freely use, modify, and distribute the code,
+  ~ provided they adhere to the terms of the license.
+  ~
+  ~ The software is provided "as-is", and the authors are not responsible for
+  ~ any damages or issues arising from its use.
+  ~
+  -->
+
 <idea-plugin allow-bundled-update="true">
     <!-- IntelliJ 平台扩展点配置 -->
     <extensions defaultExtensionNs="com.intellij">
@@ -11,16 +35,13 @@
                 implementation="org.cangnova.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
         <directoryProjectGenerator implementation="org.cangnova.cangjie.ide.newProject.CjDirectoryProjectGenerator"/>
 
-        <!-- 模块构建器 -->
-        <moduleBuilder
-                builderClass="org.cangnova.cangjie.ide.module.CangJieModuleBuilder"/>
 
         <!-- 3. 项目设置配置 -->
         <!-- 主设置页面 -->
-        <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieConfigurable"
-                             groupId="language"
-                             id="language.cangjie"
-                             bundle="messages.CangJieBundle" key="CangJie"/>
+        <!--        <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieConfigurable"-->
+        <!--                             groupId="language"-->
+        <!--                             id="language.cangjie"-->
+        <!--                             bundle="messages.CangJieBundle" key="CangJie"/>-->
         <!-- 语言服务器设置页面 -->
         <!--        <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieLanguageServerConfigurable"-->
         <!--                             parentId="language.cangjie"-->
@@ -48,11 +69,12 @@
 <!--                                     bundle="messages.CangJieBundle" key="CangJie.buildSystem"/>-->
 
         <!-- 5. 服务注册 -->
-        <projectService serviceInterface="org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService"
-                        serviceImplementation="org.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"/>
-        <projectOpenProcessor id="Cjpm" implementation="org.cangnova.cangjie.cjpm.project.CjpmProjectOpenProcessor"/>
+        <!--        <projectService serviceInterface="org.cangnova.cangjie.cjpm.project.model.CjpmProjectsService"-->
+        <!--                        serviceImplementation="org.cangnova.cangjie.cjpm.project.model.impl.CjpmProjectsServiceImpl"/>-->
+        <!--        <projectOpenProcessor id="Cjpm" implementation="org.cangnova.cangjie.cjpm.project.CjpmProjectOpenProcessor"/>-->
 <!--        <externalIconProvider key="Cjpm"-->
 <!--                              implementationClass="org.cangnova.cangjie.cjpm.project.model.impl.CjpmExternalSystemIconProvider"/>-->
+        <projectOpenProcessor id="CangJie" implementation="org.cangnova.cangjie.project.CangJieProjectOpenProcessor"/>
 
     </extensions>
 

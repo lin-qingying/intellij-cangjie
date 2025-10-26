@@ -24,10 +24,12 @@
 
 package org.cangnova.cangjie.project.service
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.project.model.CjProject
+import org.cangnova.cangjie.result.CjProcessResult
 
 /**
  * 仓颉项目管理服务接口
@@ -101,4 +103,28 @@ interface CjProjectsService {
      * @param project 要刷新的项目
      */
     fun refreshProject(project: CjProject)
+
+    /**
+     * 根据文件查找所属项目
+     *
+     * @param file 要查找的文件
+     * @return 文件所属的项目，如果不属于任何项目返回 null
+     */
+    fun findProjectForFile(file: VirtualFile): CjProject?
+
+
+    /**
+     * 创建项目
+     */
+    fun createProject(
+        sdkId: String,
+        owner: Disposable,
+        directory: VirtualFile,
+        projectType: String = "executable",
+    ): CjProcessResult<GeneratedFilesHolder>
+
+
 }
+
+
+data class GeneratedFilesHolder(val manifest: VirtualFile, val sourceFiles: List<VirtualFile>)

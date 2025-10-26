@@ -43,18 +43,21 @@
         <!-- Dependency Resolver Extension Point -->
         <extensionPoint
                 name="dependencyResolver"
+                qualifiedName="org.cangnova.cangjie.dependency.dependencyResolver"
                 interface="org.cangnova.cangjie.dependency.extension.CjDependencyResolver"
                 dynamic="true"/>
 
         <!-- Package Manager Extension Point -->
         <extensionPoint
                 name="packageManager"
+                qualifiedName="org.cangnova.cangjie.dependency.packageManager"
                 interface="org.cangnova.cangjie.dependency.extension.CjPackageManager"
                 dynamic="true"/>
 
         <!-- Repository Provider Extension Point -->
         <extensionPoint
                 name="repositoryProvider"
+                qualifiedName="org.cangnova.cangjie.dependency.repositoryProvider"
                 interface="org.cangnova.cangjie.dependency.extension.CjRepositoryProvider"
                 dynamic="true"/>
     </extensionPoints>

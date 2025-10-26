@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,8 @@
 package org.cangnova.cangjie.ide.experiments
 
 object  CjExperiments {
-    @EnabledInStable
-    const val BUILD_TOOL_WINDOW = "org.cangnova.cangjie.cjpm.build.tool.window"
 
-    @EnabledInStable
-    const val EVALUATE_BUILD_SCRIPTS = "org.cangnova.cangjie.cjpm.evaluate.build.scripts"
 
-    const val CJPM_FEATURES_SETTINGS_GUTTER = "org.cangnova.cangjie.cjpm.features.settings.gutter"
 
     const val PROC_MACROS = "org.cangnova.cangjie.macros.proc"
     @EnabledInStable
@@ -41,15 +36,12 @@ object  CjExperiments {
     const val ATTR_PROC_MACROS = "org.cangnova.cangjie.macros.proc.attr"
 
     @EnabledInStable
-    const val FETCH_ACTUAL_STDLIB_METADATA = "org.cangnova.cangjie.cjpm.fetch.actual.stdlib.metadata"
-
-    @EnabledInStable
     const val CRATES_LOCAL_INDEX = "org.cangnova.cangjie.crates.local.index"
 
     @EnabledInStable
     const val WSL_TOOLCHAIN = "org.cangnova.cangjie.wsl"
 
-    const val EMULATE_TERMINAL = "org.cangnova.cangjie.cjpm.emulate.terminal"
+    const val EMULATE_TERMINAL = "org.cangnova.cangjie.emulate.terminal"
 
     const val INTENTIONS_IN_FN_LIKE_MACROS = "org.cangnova.cangjie.ide.intentions.macros.function-like"
 

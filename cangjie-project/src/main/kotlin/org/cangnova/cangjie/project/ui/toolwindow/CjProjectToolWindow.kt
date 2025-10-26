@@ -31,8 +31,9 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ScrollPaneFactory
+import org.cangnova.cangjie.project.event.CjProjectEvent
+import org.cangnova.cangjie.project.event.CjProjectListener
 import org.cangnova.cangjie.project.model.CjProject
-import org.cangnova.cangjie.project.service.CjProjectsListener
 import org.cangnova.cangjie.project.service.CjProjectsService
 import javax.swing.JComponent
 
@@ -65,9 +66,19 @@ class CjProjectToolWindow(private val project: Project) {
     init {
         // 订阅项目变更事件
         with(project.messageBus.connect()) {
-            subscribe(CjProjectsService.CJ_PROJECTS_TOPIC, CjProjectsListener { _, projects ->
-                invokeLater {
-                    projectTree.updateProjects(projects.toList())
+            subscribe(CjProjectListener.TOPIC, object : CjProjectListener {
+                override fun projectCreated(event: CjProjectEvent) = updateTree()
+                override fun projectUpdated(event: CjProjectEvent) = updateTree()
+                override fun projectRemoved(event: CjProjectEvent) = updateTree()
+                override fun projectConfigChanged(event: CjProjectEvent) = updateTree()
+
+                private fun updateTree() {
+                    val projectsService = project.getService(CjProjectsService::class.java)
+                    if (projectsService != null) {
+                        invokeLater {
+                            projectTree.updateProjects(projectsService.allProjects.toList())
+                        }
+                    }
                 }
             })
         }

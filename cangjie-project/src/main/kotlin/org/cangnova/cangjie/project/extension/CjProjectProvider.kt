@@ -24,10 +24,13 @@
 
 package org.cangnova.cangjie.project.extension
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.project.model.CjProject
+import org.cangnova.cangjie.project.service.GeneratedFilesHolder
+import org.cangnova.cangjie.result.CjProcessResult
 
 /**
  * 项目提供者扩展点
@@ -41,12 +44,6 @@ interface CjProjectProvider {
             "org.cangnova.cangjie.project.projectProvider"
         )
     }
-
-    /**
-     * 提供者优先级 (数值越小优先级越高)
-     */
-    val priority: Int
-        get() = 100
 
     /**
      * 判断是否可以处理该目录
@@ -64,6 +61,18 @@ interface CjProjectProvider {
      * @return 创建的仓颉项目，如果无法创建返回 null
      */
     fun createProject(dir: VirtualFile, project: Project): CjProject?
+
+    /**
+     * 物理文件中创建项目，它和createProject是有区别的，createProject是基于已经存在的文件夹创建项目
+     * 而这个方法是基于物理文件创建项目文件夹，然后在创建
+     */
+    fun createProjectFromPhysicalFile(
+        sdkId: String,
+        project: Project, owner: Disposable,
+        directory: VirtualFile,
+        projectType: String
+    ): CjProcessResult<GeneratedFilesHolder>
+
 
     /**
      * 项目提供者名称

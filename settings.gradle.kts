@@ -47,7 +47,7 @@ buildCache {
 rootProject.name = "intellij-cangjie"
 
 include("plugin")
-include("dap-debugger")
+//include("dap-debugger")
 
 
 include("lsp4ij")

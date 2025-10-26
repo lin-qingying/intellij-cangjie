@@ -26,9 +26,9 @@ package org.cangnova.cangjie.project.ui.toolwindow
 
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
-import com.intellij.ui.SimpleToolWindowPanel
 import com.intellij.ui.content.ContentFactory
 import org.cangnova.cangjie.project.service.CjProjectsService
 
@@ -46,7 +46,15 @@ class CjProjectToolWindowFactory : ToolWindowFactory, DumbAware {
         toolWindow.contentManager.addContent(tab)
     }
 
+    override suspend fun isApplicableAsync(project: Project): Boolean {
+        // 仅当存在仓颉项目时显示工具窗口
+        val service = project.getService(CjProjectsService::class.java) ?: return false
+        return service.allProjects.isNotEmpty()
+    }
+
+    @Deprecated("Use isApplicableAsync")
     override fun isApplicable(project: Project): Boolean {
+
         // 仅当存在仓颉项目时显示工具窗口
         val service = project.getService(CjProjectsService::class.java) ?: return false
         return service.allProjects.isNotEmpty()

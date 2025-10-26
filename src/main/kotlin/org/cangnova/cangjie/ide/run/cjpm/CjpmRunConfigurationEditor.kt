@@ -1,1 +1,0 @@
-package org.cangnova.cangjie.ide.run.cjpm

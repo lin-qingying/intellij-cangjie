@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.task
 
 
-import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.isHeadlessEnvironment
 import com.intellij.ide.plugins.PluginManagerCore.isUnitTestMode
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -157,7 +156,7 @@ class CjBackgroundTaskQueue {
             }
 
             val indicator = when {
-                isHeadlessEnvironment -> EmptyProgressIndicator()
+//                isHeadlessEnvironment -> EmptyProgressIndicator()
 
                 task is CangJieTask && task.progressBarShowDelay > 0 ->
                     DelayedBackgroundableProcessIndicator(task, task.progressBarShowDelay)

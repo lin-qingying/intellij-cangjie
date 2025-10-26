@@ -45,6 +45,13 @@
                 qualifiedName="org.cangnova.cangjie.project.projectOpenProcessor"
                 interface="org.cangnova.cangjie.project.extension.CjProjectOpenProcessor"
                 dynamic="true"/>
+
+        <!-- 模块构建器提供者:提供新项目创建的 ModuleBuilder -->
+        <extensionPoint
+                name="moduleBuilderProvider"
+                qualifiedName="org.cangnova.cangjie.project.moduleBuilderProvider"
+                interface="org.cangnova.cangjie.project.extension.CjModuleBuilderProvider"
+                dynamic="true"/>
     </extensionPoints>
 
     <!-- 服务注册 -->

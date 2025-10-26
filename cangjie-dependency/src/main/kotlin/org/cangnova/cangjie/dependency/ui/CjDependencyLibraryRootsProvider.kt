@@ -31,6 +31,7 @@ import com.intellij.openapi.roots.AdditionalLibraryRootsProvider
 import com.intellij.openapi.roots.SyntheticLibrary
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import org.cangnova.cangjie.dependency.extensions.dependencies
 import org.cangnova.cangjie.dependency.model.CjDependency
 import org.cangnova.cangjie.dependency.model.CjResolvedDependency
 import org.cangnova.cangjie.dependency.service.CjDependencyService
@@ -85,18 +86,18 @@ private class CjDependencyLibrary(
         val vfsManager = VirtualFileManager.getInstance()
 
         // 添加已解析包的源码根
-        resolved.resolvedPackage?.let { pkg ->
-            pkg.sourcePaths.forEach { path ->
-                vfsManager.findFileByNioPath(path)?.let { roots.add(it) }
-            }
-        }
-
-        // 添加已解析库的源码根
-        resolved.resolvedLibrary?.let { lib ->
-            lib.sourcePaths.forEach { path ->
-                vfsManager.findFileByNioPath(path)?.let { roots.add(it) }
-            }
-        }
+//        resolved.resolvedPackage?.let { pkg ->
+//            pkg.sourcePaths.forEach { path ->
+//                vfsManager.findFileByNioPath(path)?.let { roots.add(it) }
+//            }
+//        }
+//
+//        // 添加已解析库的源码根
+//        resolved.resolvedLibrary?.let { lib ->
+//            lib.sourcePaths.forEach { path ->
+//                vfsManager.findFileByNioPath(path)?.let { roots.add(it) }
+//            }
+//        }
 
         return roots
     }
@@ -106,18 +107,18 @@ private class CjDependencyLibrary(
         val vfsManager = VirtualFileManager.getInstance()
 
         // 添加已解析包的二进制根
-        resolved.resolvedPackage?.let { pkg ->
-            pkg.binaryPaths.forEach { path ->
-                vfsManager.findFileByNioPath(path)?.let { roots.add(it) }
-            }
-        }
-
-        // 添加已解析库的二进制根
-        resolved.resolvedLibrary?.let { lib ->
-            lib.binaryPaths.forEach { path ->
-                vfsManager.findFileByNioPath(path)?.let { roots.add(it) }
-            }
-        }
+//        resolved.resolvedPackage?.let { pkg ->
+//            pkg.binaryPaths.forEach { path ->
+//                vfsManager.findFileByNioPath(path)?.let { roots.add(it) }
+//            }
+//        }
+//
+//        // 添加已解析库的二进制根
+//        resolved.resolvedLibrary?.let { lib ->
+//            lib.binaryPaths.forEach { path ->
+//                vfsManager.findFileByNioPath(path)?.let { roots.add(it) }
+//            }
+//        }
 
         return roots
     }

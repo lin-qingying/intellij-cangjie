@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":util"))
     implementation(project(":psi"))
     implementation(project(":messages"))
+    implementation(project(":toolchain"))
 
 }
 

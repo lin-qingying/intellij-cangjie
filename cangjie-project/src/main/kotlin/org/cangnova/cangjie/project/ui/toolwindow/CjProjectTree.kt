@@ -28,6 +28,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.ide.util.treeView.NodeDescriptor
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.ui.tree.AsyncTreeModel
@@ -46,7 +47,7 @@ import javax.swing.Icon
  *
  * 显示项目层次结构: Root → Workspace → Project → Module
  */
-class CjProjectTree(private val project: Project) : SimpleTree(), DataProvider {
+class CjProjectTree(private val project: Project) : SimpleTree(), DataProvider, Disposable {
 
     private val treeStructure: CjProjectTreeStructure = CjProjectTreeStructure(project)
     private val structureModel: StructureTreeModel<CjProjectTreeStructure>
@@ -78,6 +79,10 @@ class CjProjectTree(private val project: Project) : SimpleTree(), DataProvider {
         }
         return null
     }
+
+    override fun dispose() {
+        // Cleanup resources if needed
+    }
 }
 
 /**
@@ -95,7 +100,7 @@ private class CjProjectTreeStructure(private val project: Project) : AbstractTre
 
     override fun getChildElements(element: Any): Array<Any> {
         return when (element) {
-            is SimpleNode -> element.children
+            is SimpleNode -> element.children.map { it as Any }.toTypedArray()
             else -> emptyArray()
         }
     }
@@ -108,7 +113,7 @@ private class CjProjectTreeStructure(private val project: Project) : AbstractTre
         return when (element) {
             is SimpleNode -> element
             else -> object : NodeDescriptor<Any>(project, parentDescriptor) {
-                override fun update(presentation: PresentationData): Boolean {
+                override fun update(): Boolean {
                     return false
                 }
 
@@ -125,7 +130,7 @@ private class CjProjectTreeStructure(private val project: Project) : AbstractTre
 /**
  * 根节点
  */
-private class RootNode(project: Project) : CachingSimpleNode(project) {
+private class RootNode(project: Project) : CachingSimpleNode(project, null) {
 
     private var projects: List<CjProject> = emptyList()
 
@@ -185,10 +190,10 @@ private class WorkspaceNode(
  * 项目节点
  */
 private class CjProjectNode(
-    project: Project,
+    intellijProject: Project,
     parent: SimpleNode,
     val project: CjProject
-) : CachingSimpleNode(project, parent) {
+) : CachingSimpleNode(intellijProject, parent) {
 
     override fun buildChildren(): Array<SimpleNode> {
         return this.project.modules.map { ModuleNode(myProject, this, it) }.toTypedArray()

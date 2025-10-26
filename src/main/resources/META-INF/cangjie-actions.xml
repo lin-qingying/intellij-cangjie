@@ -1,9 +1,33 @@
+<!--
+  ~ Copyright 2025 LinQingYing. and contributors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  ~ The use of this source code is governed by the Apache License 2.0,
+  ~ which allows users to freely use, modify, and distribute the code,
+  ~ provided they adhere to the terms of the license.
+  ~
+  ~ The software is provided "as-is", and the authors are not responsible for
+  ~ any damages or issues arising from its use.
+  ~
+  -->
+
 <idea-plugin>
     <!-- Actions 扩展点用于定义插件的操作和菜单项 -->
     <actions>
         <!-- 运行主程序的动作 
              扩展类型: AnAction -->
-        <action id="CjpmRunMain" class="org.cangnova.cangjie.ide.run.cjpm.RunMainAction"/>
+        <!--        <action id="CjpmRunMain" class="org.cangnova.cangjie.ide.run.cjpm.RunMainAction"/>-->
 
         <!-- 创建新的仓颉文件的动作
              扩展类型: AnAction
@@ -18,45 +42,45 @@
 
         <!-- 附加 CJPM 项目的动作
              扩展类型: AnAction -->
-        <action id="Cjpm.AttachCjpmProject"
-                class="org.cangnova.cangjie.cjpm.project.model.AttachCjpmProjectAction"
-                icon="AllIcons.General.Add"/>
+        <!--        <action id="Cjpm.AttachCjpmProject"-->
+        <!--                class="org.cangnova.cangjie.cjpm.project.model.AttachCjpmProjectAction"-->
+        <!--                icon="AllIcons.General.Add"/>-->
 
         <!-- 刷新 CJPM 项目结构的动作
              扩展类型: AnAction -->
-        <action id="Cjpm.RefreshCjpmProject"
-                class="org.cangnova.cangjie.ide.actions.RefreshCjpmProjectsAction"
-                icon="AllIcons.Actions.Refresh"/>
+        <!--        <action id="Cjpm.RefreshCjpmProject"-->
+        <!--                class="org.cangnova.cangjie.ide.actions.RefreshCjpmProjectsAction"-->
+        <!--                icon="AllIcons.Actions.Refresh"/>-->
 
         <!-- 显示 CJPM 设置的动作
              扩展类型: AnAction -->
-        <action id="Cjpm.ShowSettings"
-                class="org.cangnova.cangjie.ide.actions.CjpmEditSettingsAction"
-                icon="AllIcons.General.Settings">
-        </action>
+        <!--        <action id="Cjpm.ShowSettings"-->
+        <!--                class="org.cangnova.cangjie.ide.actions.CjpmEditSettingsAction"-->
+        <!--                icon="AllIcons.General.Settings">-->
+        <!--        </action>-->
 
         <!-- 运行 CJPM 命令的动作
              扩展类型: AnAction -->
-        <action id="Cjpm.RunCjpmCommand"
-                class="org.cangnova.cangjie.cjpm.runconfig.command.RunCjpmCommandAction"
-        />
+        <!--        <action id="Cjpm.RunCjpmCommand"-->
+        <!--                class="org.cangnova.cangjie.cjpm.runconfig.command.RunCjpmCommandAction"-->
+        <!--        />-->
 
         <!-- CJPM 动作组，将相关动作组织在一起
              扩展类型: ActionGroup -->
-        <group id="CangJie.Cjpm">
-            <reference id="Cjpm.RefreshCjpmProject"/>
-            <reference id="Cjpm.AttachCjpmProject"/>
-            <!--            <reference id="Cjpm.DetachCjpmProject"/>-->
-            <separator/>
-            <reference id="Cjpm.RunCjpmCommand"/>
-            <!--            <reference id="Cjpm.RunExternalLinter"/>-->
-            <!--            <reference id="Cjpm.CangJiefmtCjpmProject"/>-->
-            <separator/>
-            <reference id="ExpandAll"/>
-            <reference id="CollapseAll"/>
-            <separator/>
-            <reference id="Cjpm.ShowSettings"/>
-        </group>
+        <!--        <group id="CangJie.Cjpm">-->
+        <!--            <reference id="Cjpm.RefreshCjpmProject"/>-->
+        <!--            <reference id="Cjpm.AttachCjpmProject"/>-->
+        <!--            &lt;!&ndash;            <reference id="Cjpm.DetachCjpmProject"/>&ndash;&gt;-->
+        <!--            <separator/>-->
+        <!--            <reference id="Cjpm.RunCjpmCommand"/>-->
+        <!--            &lt;!&ndash;            <reference id="Cjpm.RunExternalLinter"/>&ndash;&gt;-->
+        <!--            &lt;!&ndash;            <reference id="Cjpm.CangJiefmtCjpmProject"/>&ndash;&gt;-->
+        <!--            <separator/>-->
+        <!--            <reference id="ExpandAll"/>-->
+        <!--            <reference id="CollapseAll"/>-->
+        <!--            <separator/>-->
+        <!--            <reference id="Cjpm.ShowSettings"/>-->
+        <!--        </group>-->
 
     </actions>
 </idea-plugin>

@@ -25,11 +25,6 @@
 package org.cangnova.cangjie.ide.project.structure.download
 
 
-import org.cangnova.cangjie.configurable.CjToolchainPathChoosingComboBox
-import org.cangnova.cangjie.messages.CangJieBundle
-import org.cangnova.cangjie.messages.CangJieUiBundle
-import org.cangnova.cangjie.task.AbstractForegroundTask
-import org.cangnova.cangjie.toolchain.CjToolchainBase
 import com.google.common.hash.Hashing
 import com.intellij.execution.process.ProcessOutput
 import com.intellij.execution.wsl.WSLDistribution
@@ -78,6 +73,11 @@ import com.intellij.ui.dsl.listCellRenderer.textListCellRenderer
 import com.intellij.util.Urls
 import com.intellij.util.io.HttpRequests
 import com.intellij.util.io.delete
+import org.cangnova.cangjie.ide.project.CjToolchainPathChoosingComboBox
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.messages.CangJieUiBundle
+import org.cangnova.cangjie.task.AbstractForegroundTask
+import org.cangnova.cangjie.toolchain.api.CjSdkDetector
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import java.awt.Component
@@ -561,6 +561,7 @@ abstract class SdkInstallerBase {
         feedItem: SdkItem,
         distribution: WSLDistributionForSdkInstaller?
     ): SdkInstallRequest? {
+
         try {
             val localRoots = run {
                 val defaultInstallDir = defaultInstallDir(distribution)
@@ -581,7 +582,8 @@ abstract class SdkInstallerBase {
                 if (run {
                         arrayOf<LinkOption>()
                         sdkHome.isDirectory()
-                    } && CjToolchainBase.checkForSdk(sdkHome) && wslDistributionFromPath(sdkHome) == distribution) {
+                    } && CjSdkDetector.getInstance()
+                        ?.isValidSdk(sdkHome) == true && wslDistributionFromPath(sdkHome) == distribution) {
                     return LocallyFoundSdk(feedItem, installDir, sdkHome)
                 }
             }
@@ -820,6 +822,7 @@ private fun selectSdkAndPath(
 
 }
 
+
 fun addDownloadItem(
     extension: SdkDownloadEp,
     pathToToolchainComboBox: CjToolchainPathChoosingComboBox,
@@ -871,7 +874,6 @@ fun addDownloadItem(
 
 
 }
-
 
 private data class LocallyFoundSdk(
     override val item: SdkItem,

@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.project.model
 
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.dependency.model.CjDependency
 
 /**
  * 模块抽象
@@ -62,10 +61,4 @@ interface CjModule {
      * 源码集列表
      */
     val sourceSets: List<CjSourceSet>
-
-    /**
-     * 模块依赖列表
-     */
-    val dependencies: List<CjDependency>
-        get() = emptyList()
 }

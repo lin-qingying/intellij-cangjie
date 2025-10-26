@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.project.service.impl
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
@@ -34,6 +35,8 @@ import org.cangnova.cangjie.project.event.CjProjectListener
 import org.cangnova.cangjie.project.extension.CjProjectProvider
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.service.CjProjectsService
+import org.cangnova.cangjie.project.service.GeneratedFilesHolder
+import org.cangnova.cangjie.result.CjProcessResult
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -51,6 +54,11 @@ class CjProjectsServiceImpl(
      */
     private val projectCache = ConcurrentHashMap<VirtualFile, CjProject>()
 
+
+    private val providerCache =
+        CjProjectProvider.EP_NAME.extensionList.firstOrNull() ?: error("CJProjectProvider not found")
+
+
     override val allProjects: List<CjProject>
         get() = projectCache.values.toList()
 
@@ -67,18 +75,16 @@ class CjProjectsServiceImpl(
         projectCache[rootDir]?.let { return it }
 
         // 获取所有项目提供者，按优先级排序
-        val providers = CjProjectProvider.EP_NAME.extensionList
-            .sortedBy { it.priority }
+        val provider = providerCache
 
         // 尝试使用每个提供者创建项目
-        for (provider in providers) {
-            if (provider.canHandle(rootDir)) {
-                log.info("Found project provider: ${provider.providerName} for $rootDir")
-                val project = provider.createProject(rootDir, intellijProject)
-                if (project != null) {
-                    addProject(project)
-                    return project
-                }
+
+        if (provider.canHandle(rootDir)) {
+            log.info("Found project provider: ${provider.providerName} for $rootDir")
+            val project = provider.createProject(rootDir, intellijProject)
+            if (project != null) {
+                addProject(project)
+                return project
             }
         }
 
@@ -114,6 +120,25 @@ class CjProjectsServiceImpl(
         project.refresh()
         // 发布项目更新事件
         publishEvent(CjProjectEvent(project, CjProjectEventType.UPDATED))
+    }
+
+    override fun findProjectForFile(file: VirtualFile): CjProject? {
+        // 遍历项目，检查文件是否在项目根目录下
+        var current: VirtualFile? = file
+        while (current != null) {
+            projectCache[current]?.let { return it }
+            current = current.parent
+        }
+        return null
+    }
+
+    override fun createProject(
+        sdkId: String,
+        owner: Disposable,
+        directory: VirtualFile,
+        projectType: String
+    ): CjProcessResult<GeneratedFilesHolder> {
+        return providerCache.createProjectFromPhysicalFile(sdkId, intellijProject, owner, directory, projectType)
     }
 
     /**

@@ -24,12 +24,6 @@
 
 package org.cangnova.cangjie.lsp4ij
 
-import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import org.cangnova.cangjie.cjpm.project.model.currentCjpmProject
-import org.cangnova.cangjie.cjpm.project.workspace.PackageOrigin
-import org.cangnova.cangjie.ide.project.settings.cangjieSettings
-import org.cangnova.cangjie.ide.run.cjpm.runconfig.toPath
-import org.cangnova.cangjie.lsp.replacePathBySystem
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -39,6 +33,8 @@ import com.redhat.devtools.lsp4ij.LanguageServerFactory
 import com.redhat.devtools.lsp4ij.client.features.FileUriSupport
 import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
+import org.cangnova.cangjie.lsp.replacePathBySystem
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.eclipse.lsp4j.*
 import kotlin.io.path.exists
 
@@ -484,9 +480,8 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
     override fun initializeParams(initializeParams: InitializeParams) {
 
-        val toolchain = project.cangjieSettings.toolchain
 
-
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
 //        initializeParams.rootPath = project.guessProjectDir()?.path
 //        initializeParams.rootUri = toString(project.guessProjectDir()!!)
 
@@ -498,17 +493,17 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
         initializeParams.trace = "off"
 
 
-        if (toolchain != null) {
+        if (sdk != null) {
 
             var projectName = project.name
 
             fun getMap(): Map<String, Any> {
                 return mapOf(
-                    "targetLib" to (project.basePath?.toPath()?.resolve(".cache")
-                        ?.resolve("lsp")?.systemIndependentPath?.replacePathBySystem() ?: ""),
+//                    "targetLib" to (project.basePath?.toPath()?.resolve(".cache")
+//                        ?.resolve("lsp")?.systemIndependentPath?.replacePathBySystem() ?: ""),
 
 
-                    "modulesHomeOption" to toolchain.location.systemIndependentPath.replacePathBySystem(),
+                    "modulesHomeOption" to sdk.homePath.systemIndependentPath.replacePathBySystem(),
 
 
                     "multiModuleOption" to mutableMapOf<String, Any>(
@@ -519,65 +514,65 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
                                 "path_option" to project.findPathOptions(),
                                 "package_option" to mapOf<String, String>()
                             ),
-                            "requires" to mutableMapOf<String, Any>().apply {
-
-                                if (project.cjpmProjects.currentCjpmProject?.isWorkspace == true) {
-                                    if (project.currentCjpmProject?.workspace?.packages != null) {
-                                        for (`package` in project.currentCjpmProject?.workspace?.packages!!) {
-
-                                            if (`package`.origin == PackageOrigin.DEPENDENCY) {
-                                                put(
-                                                    `package`.name, mapOf(
-                                                        "path" to `package`.contentRoot?.let {
-                                                            toString(
-                                                                it
-                                                            ).toString()
-                                                        }
-                                                    )
-                                                )
-                                            }
-
-                                        }
-                                    }
-
-                                }
-                            },
+//                            "requires" to mutableMapOf<String, Any>().apply {
+//
+//                                if (project.cjpmProjects.currentCjpmProject?.isWorkspace == true) {
+//                                    if (project.currentCjpmProject?.workspace?.packages != null) {
+//                                        for (`package` in project.currentCjpmProject?.workspace?.packages!!) {
+//
+//                                            if (`package`.origin == PackageOrigin.DEPENDENCY) {
+//                                                put(
+//                                                    `package`.name, mapOf(
+//                                                        "path" to `package`.contentRoot?.let {
+//                                                            toString(
+//                                                                it
+//                                                            ).toString()
+//                                                        }
+//                                                    )
+//                                                )
+//                                            }
+//
+//                                        }
+//                                    }
+//
+//                                }
+//                            },
                         )
                     ).apply {
-                        if (project.cjpmProjects.currentCjpmProject?.isWorkspace == true) {
-                            if (project.currentCjpmProject?.workspace?.packages != null) {
-                                for (`package` in project.currentCjpmProject?.workspace?.packages!!) {
-
-                                    if (`package`.origin == PackageOrigin.DEPENDENCY) {
-                                        `package`.contentRoot?.let {
-                                            toString(
-                                                it
-                                            ).toString()
-                                        }?.let {
-                                            put(
-                                                it,
-                                                mapOf(
-                                                    "name" to `package`.name,
-                                                    "package_requires" to mapOf(
-                                                        "path_option" to listOf<String>(),
-                                                        "package_option" to mapOf<String, String>()
-                                                    ),
-                                                    "requires" to mutableMapOf<String, Any>()
-                                                )
-                                            )
-                                        }
-                                    } else if (`package`.origin == PackageOrigin.WORKSPACE) {
-                                        if (`package`.name != projectName) {
-                                            projectName = `package`.name
-
-                                            return getMap()
-                                        }
-                                    }
-
-                                }
-                            }
-
-                        }
+//                        if (project.cjpmProjects.currentCjpmProject?.isWorkspace == true) {
+//                            if (project.currentCjpmProject?.workspace?.packages != null) {
+//                                for (`package` in project.currentCjpmProject?.workspace?.packages!!) {
+//
+//                                    if (`package`.origin == PackageOrigin.DEPENDENCY) {
+//                                        `package`.contentRoot?.let {
+//                                            toString(
+//                                                it
+//                                            ).toString()
+//                                        }?.let {
+//                                            put(
+//                                                it,
+//                                                mapOf(
+//                                                    "name" to `package`.name,
+//                                                    "package_requires" to mapOf(
+//                                                        "path_option" to listOf<String>(),
+//                                                        "package_option" to mapOf<String, String>()
+//                                                    ),
+//                                                    "requires" to mutableMapOf<String, Any>()
+//                                                )
+//                                            )
+//                                        }
+//                                    } else if (`package`.origin == PackageOrigin.WORKSPACE) {
+//                                        if (`package`.name != projectName) {
+//                                            projectName = `package`.name
+//
+//                                            return getMap()
+//                                        }
+//                                    }
+//
+//                                }
+//                            }
+//
+//                        }
                     }
                 )
 

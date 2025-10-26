@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,6 @@
 package org.cangnova.cangjie.ide.run
 
 
-import org.cangnova.cangjie.cjpm.project.model.cjpmProjects
-import org.cangnova.cangjie.cjpm.project.model.impl.workingDirectory
-import org.cangnova.cangjie.ide.experiments.CjExperiments
-import org.cangnova.cangjie.ide.run.cjpm.CjpmCommandConfiguration
-import org.cangnova.cangjie.ide.run.cjpm.runconfig.buildtool.isHeadlessEnvironment
-import org.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.execution.Executor
 import com.intellij.execution.ExternalizablePath
 import com.intellij.execution.configurations.*
@@ -40,12 +34,12 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.options.SettingsEditorGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import org.cangnova.cangjie.ide.experiments.CjExperiments
+import org.cangnova.cangjie.utils.isUnitTestMode
+import org.cangnova.cangjie.utils.toPath
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths
-
-val CjCommandConfiguration.hasRemoteTarget: Boolean
-    get() = if (this is CjpmCommandConfiguration) defaultTargetName != null else false
 
 
 abstract class CjCommandConfiguration(
@@ -100,7 +94,7 @@ abstract class CjCommandConfiguration(
     var emulateTerminal: Boolean = emulateTerminalDefault
 
     var workingDirectory: Path? = if (!project.isDefault) {
-        project.cjpmProjects.allProjects.firstOrNull()?.workingDirectory
+        project.basePath?.toPath()
     } else {
         null
     }
@@ -186,10 +180,10 @@ inline fun <reified E : Enum<E>> Element.readEnum(name: String): E? {
 fun isFeatureEnabled(featureId: String): Boolean {
     // Hack to pass values of experimental features in headless IDE run
     // Should help to configure IDE-based tools like Qodana
-    if (isHeadlessEnvironment) {
-        val value = System.getProperty(featureId)?.toBooleanStrictOrNull()
-        if (value != null) return value
-    }
+//    if (isHeadlessEnvironment) {
+//        val value = System.getProperty(featureId)?.toBooleanStrictOrNull()
+//        if (value != null) return value
+//    }
 
     return Experiments.getInstance().isFeatureEnabled(featureId)
 }

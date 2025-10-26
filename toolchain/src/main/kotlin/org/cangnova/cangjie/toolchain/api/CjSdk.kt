@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.toolchain.api
 
 import org.cangnova.cangjie.toolchain.CangJieSdkVersion
+import org.cangnova.cangjie.toolchain.env.CangJieEnv
 import java.nio.file.Path
 
 /**
@@ -74,4 +75,8 @@ data class CjSdk(
         get() = homePath.resolve("modules")
 
     override fun toString(): String = "$name ($version) at $homePath"
+
+
+    fun getEnvironment(): Map<String, String> = CangJieEnv.getInstance(homePath).getEnvVars()
+
 }

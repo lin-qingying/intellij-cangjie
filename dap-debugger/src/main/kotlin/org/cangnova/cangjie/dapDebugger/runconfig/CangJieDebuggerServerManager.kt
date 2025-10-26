@@ -1,6 +1,30 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.dapDebugger.runconfig
 
-import org.cangnova.cangjie.ide.project.settings.cangjieSettings
+
 import org.cangnova.cangjie.utils.getSavePluginVersion
 import org.cangnova.cangjie.utils.savePluginVersion
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -9,6 +33,7 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 
 import java.io.FileOutputStream
 import java.nio.file.Files
@@ -88,9 +113,7 @@ object CangJieDebuggerServerManager {
     fun getCommandLine(project:Project): GeneralCommandLine {
 
 
-
-        val cangjieSettings = project.cangjieSettings
-
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
 
         return GeneralCommandLine().apply {
             withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
@@ -102,11 +125,11 @@ object CangJieDebuggerServerManager {
 //            addParameter("--logpath=$LOGPATH".toSystemPath())
             addParameter("--logpath=${project.basePath}/.idea/log")
             addParameter("--debuggertype=$DEBUGGERTYPE")
-            cangjieSettings.toolchain?.getEnvironment()?.let { environment.putAll(it) }
+            sdk?.getEnvironment()?.let { environment.putAll(it) }
 //            environment["LD_LIBRARY_PATH"] =
 //                (cangjieSettings.toolchain?.location?.systemIndependentPath + DEFUALTLIBLLDBPATH).toSystemPath()
             environment["LD_LIBRARY_PATH"] =
-                (cangjieSettings.toolchain?.location?.systemIndependentPath + DEFUALTLIBLLDBPATH)
+                (sdk?.homePath?.systemIndependentPath + DEFUALTLIBLLDBPATH)
 //            //                        TODO runtime路径需要判读系统
 
         }

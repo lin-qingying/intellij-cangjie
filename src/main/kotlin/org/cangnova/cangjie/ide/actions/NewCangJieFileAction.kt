@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,6 @@
 package org.cangnova.cangjie.ide.actions
 
 
-import org.cangnova.cangjie.icon.CangJieIcons
-import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.messages.CangJieBundle
-import org.cangnova.cangjie.parsing.CangJieParserDefinition.Util.STD_SCRIPT_SUFFIX
-import org.cangnova.cangjie.psi.CjClass
-import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.psi.CjNamedDeclaration
-import org.cangnova.cangjie.psi.psiUtil.startOffset
-import org.cangnova.cangjie.cjpm.utils.getCjpmProjectDirectory
-import org.cangnova.cangjie.utils.toCamelCase
 import com.intellij.ide.actions.CreateFileFromTemplateAction
 import com.intellij.ide.actions.CreateFileFromTemplateDialog
 import com.intellij.ide.actions.CreateFromTemplateAction
@@ -63,8 +52,16 @@ import com.intellij.openapi.ui.InputValidatorEx
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.util.IncorrectOperationException
-
-
+import org.cangnova.cangjie.icon.CangJieIcons
+import org.cangnova.cangjie.lang.CangJieFileType
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.parsing.CangJieParserDefinition.Util.STD_SCRIPT_SUFFIX
+import org.cangnova.cangjie.psi.CjClass
+import org.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.psi.CjNamedDeclaration
+import org.cangnova.cangjie.psi.psiUtil.startOffset
+import org.cangnova.cangjie.utils.toCamelCase
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes
 import java.util.*
 
@@ -416,10 +413,10 @@ private fun removeCangJieExtensionIfPresent(name: String): String = when {
  */
 fun getTemplateProperties(project: Project, dir: PsiDirectory): Properties {
     val defaultProperties = FileTemplateManager.getInstance(project).defaultProperties
-    val cjpmProjectDirectory = dir.getCjpmProjectDirectory()
+    val projectDirectory = dir.toString()
     // 设置模板属性
     val properties = Properties(defaultProperties)
-    properties.setProperty("CANGJIE_MODULE_NAME", cjpmProjectDirectory.first)
+    properties.setProperty("CANGJIE_MODULE_NAME", projectDirectory)
 
 
     return properties
