@@ -45,7 +45,7 @@ import javax.swing.Icon
 /**
  * 仓颉项目树形视图
  *
- * 显示项目层次结构: Root → Workspace → Project → Module
+ * 显示项目层次结构: Root → Project → Workspace → Module
  */
 class CjProjectTree(private val project: Project) : SimpleTree(), DataProvider, Disposable {
 
@@ -140,24 +140,8 @@ private class RootNode(project: Project) : CachingSimpleNode(project, null) {
     }
 
     override fun buildChildren(): Array<SimpleNode> {
-        // 按工作空间分组
-        val workspaceProjects = projects.filter { it.workspace != null }
-            .groupBy { it.workspace!! }
-        val standaloneProjects = projects.filter { it.workspace == null }
-
-        val nodes = mutableListOf<SimpleNode>()
-
-        // 添加工作空间节点
-        workspaceProjects.forEach { (workspace, projectsInWorkspace) ->
-            nodes.add(WorkspaceNode(myProject, this, workspace, projectsInWorkspace))
-        }
-
-        // 添加独立项目节点
-        standaloneProjects.forEach { project ->
-            nodes.add(CjProjectNode(myProject, this, project))
-        }
-
-        return nodes.toTypedArray()
+        // 直接返回所有项目作为根节点的子节点
+        return projects.map { CjProjectNode(myProject, this, it) }.toTypedArray()
     }
 
     override fun getName(): String = "Root"
@@ -170,16 +154,16 @@ private class WorkspaceNode(
     project: Project,
     parent: SimpleNode,
     private val workspace: CjWorkspace,
-    private val projects: List<CjProject>
+    private val modules: List<CjModule>
 ) : CachingSimpleNode(project, parent) {
 
     override fun buildChildren(): Array<SimpleNode> {
-        return projects.map { CjProjectNode(myProject, this, it) }.toTypedArray()
+        return modules.map { ModuleNode(myProject, this, it) }.toTypedArray()
     }
 
     override fun update(presentation: PresentationData) {
         presentation.presentableText = workspace.name
-        presentation.setIcon(AllIcons.Nodes.ModuleGroup)
+        presentation.setIcon(AllIcons.Nodes.Folder)
         presentation.tooltip = "Workspace: ${workspace.rootDir.path}"
     }
 
@@ -196,7 +180,17 @@ private class CjProjectNode(
 ) : CachingSimpleNode(intellijProject, parent) {
 
     override fun buildChildren(): Array<SimpleNode> {
-        return this.project.modules.map { ModuleNode(myProject, this, it) }.toTypedArray()
+        val nodes = mutableListOf<SimpleNode>()
+
+        // 如果项目有工作空间，则添加工作空间节点
+        project.workspace?.let { workspace ->
+            nodes.add(WorkspaceNode(myProject, this, workspace, project.modules))
+        } ?: run {
+            // 如果没有工作空间，直接添加模块节点
+            nodes.addAll(project.modules.map { ModuleNode(myProject, this, it) })
+        }
+
+        return nodes.toTypedArray()
     }
 
     override fun update(presentation: PresentationData) {

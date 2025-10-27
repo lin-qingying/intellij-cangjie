@@ -22,39 +22,42 @@
  *
  */
 
-package org.cangnova.cangjie.project.model
+package org.cangnova.cangjie.cjpm.dependency
 
-import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.dependency.extension.CjPackageManager
+import org.cangnova.cangjie.dependency.model.CjDependency
+import java.nio.file.Path
 
 /**
- * 源码集抽象
- *
- * 代表项目中的一组源代码文件
+ * CJPM 包管理器实现
  */
-interface CjSourceSet {
-    /**
-     * 源码集名称
-     */
-    val name: String
+class CjpmPackageManager : CjPackageManager {
 
-    /**
-     * 源码根目录列表
-     */
-    val sourceRoots: List<VirtualFile>
+    override val name: String = "CJPM Package Manager"
 
-    /**
-     * 资源根目录列表
-     */
-    val resourceRoots: List<VirtualFile>
+    override val priority: Int = 100
+    override fun downloadPackage(
+        dependency: CjDependency,
+        targetDir: Path
+    ): Boolean {
+        TODO("Not yet implemented")
+    }
 
-    /**
-     * 是否为测试源码集
-     */
-    val isTest: Boolean
+    override fun isPackageDownloaded(dependency: CjDependency): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun getPackagePath(dependency: CjDependency): Path? {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearCache() {
+        TODO("Not yet implemented")
+    }
+
+    override fun getCacheDirectory(): Path {
+        TODO("Not yet implemented")
+    }
+
+
 }
-
-/**
- * 获取所有根目录（源码根 + 资源根）
- */
-val CjSourceSet.roots: List<VirtualFile>
-    get() = sourceRoots + resourceRoots

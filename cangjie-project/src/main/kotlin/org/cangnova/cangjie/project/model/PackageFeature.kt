@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,37 +24,28 @@
 
 package org.cangnova.cangjie.project.model
 
-import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.project.service.impl.FeatureName
+import org.cangnova.cangjie.utils.PresentableNodeData
 
-/**
- * 源码集抽象
- *
- * 代表项目中的一组源代码文件
- */
-interface CjSourceSet {
-    /**
-     * 源码集名称
-     */
-    val name: String
+data class PackageFeature(val model: CjModule, val name: FeatureName) : PresentableNodeData {
+    override val text: String
+        get() = "${model.name}/$name"
 
-    /**
-     * 源码根目录列表
-     */
-    val sourceRoots: List<VirtualFile>
-
-    /**
-     * 资源根目录列表
-     */
-    val resourceRoots: List<VirtualFile>
-
-    /**
-     * 是否为测试源码集
-     */
-    val isTest: Boolean
+    override fun toString(): String = text
 }
 
-/**
- * 获取所有根目录（源码根 + 资源根）
- */
-val CjSourceSet.roots: List<VirtualFile>
-    get() = sourceRoots + resourceRoots
+enum class FeatureState {
+    Enabled,
+    Disabled;
+
+    val isEnabled: Boolean
+        get() = when (this) {
+            Enabled -> true
+            Disabled -> false
+        }
+
+    operator fun not(): FeatureState = when (this) {
+        Enabled -> Disabled
+        Disabled -> Enabled
+    }
+}

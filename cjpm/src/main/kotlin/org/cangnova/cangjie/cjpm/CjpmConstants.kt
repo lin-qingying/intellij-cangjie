@@ -22,39 +22,27 @@
  *
  */
 
-package org.cangnova.cangjie.project.model
+package org.cangnova.cangjie.cjpm
 
-import com.intellij.openapi.vfs.VirtualFile
+object CjpmConstants {
 
-/**
- * 源码集抽象
- *
- * 代表项目中的一组源代码文件
- */
-interface CjSourceSet {
-    /**
-     * 源码集名称
-     */
-    val name: String
 
-    /**
-     * 源码根目录列表
-     */
-    val sourceRoots: List<VirtualFile>
+    val LOCK_FILE = listOf("cjpm.lock", "module-lock.json")
+//        get() {
+//            return CjpmConstantsService.getInstance().LOCK_FILE
+//        }
 
-    /**
-     * 资源根目录列表
-     */
-    val resourceRoots: List<VirtualFile>
 
-    /**
-     * 是否为测试源码集
-     */
-    val isTest: Boolean
+    const val BUILD_FILE = "build.cj"
+
+
+    val MANIFEST_FILE = "cjpm.toml"
+
+
+    object ProjectLayout {
+        val sources = listOf("src", "examples")
+        val tests = listOf("tests", "benches")
+        const val target = "target"
+    }
 }
 
-/**
- * 获取所有根目录（源码根 + 资源根）
- */
-val CjSourceSet.roots: List<VirtualFile>
-    get() = sourceRoots + resourceRoots

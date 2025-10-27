@@ -28,8 +28,13 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.messages.Topic
+import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.result.CjProcessResult
+
+
+val Project.cangjieProjectService: CjProjectsService get() = CjProjectsService.getInstance(this)
 
 /**
  * 仓颉项目管理服务接口
@@ -38,6 +43,7 @@ import org.cangnova.cangjie.result.CjProcessResult
  */
 @Service(Service.Level.PROJECT)
 interface CjProjectsService {
+val intellijProject: Project
     companion object {
         /**
          * 获取服务实例
@@ -45,10 +51,36 @@ interface CjProjectsService {
         fun getInstance(project: Project): CjProjectsService {
             return project.getService(CjProjectsService::class.java)
         }
+
+        val CANGJIE_PROJECTS_TOPIC: Topic<CangJieProjectsListener> = Topic(
+            "CangJie projects changes",
+            CangJieProjectsListener::class.java
+        )
+        val CANGJIE_PROJECTS_REFRESH_TOPIC: Topic<CangJieProjectsRefreshListener> = Topic(
+            "CangJie refresh",
+            CangJieProjectsRefreshListener::class.java
+        )
+
+    }
+
+    enum class RefreshStatus {
+        SUCCESS,
+        FAILURE,
+        CANCEL
+    }
+
+    interface CangJieProjectsRefreshListener {
+        fun onRefreshStarted()
+        fun onRefreshFinished(status: RefreshStatus)
+    }
+
+    fun interface CangJieProjectsListener {
+        fun cangjieProjectsUpdated(service: CjProjectsService, projects: Collection<CjProject>)
     }
 
     /**
      * 获取所有仓颉项目
+     * 一般情况下，只有一个CjProject，但是当出现在同一个窗口打开多个项目时，才会有多个
      */
     val allProjects: List<CjProject>
 
@@ -111,6 +143,16 @@ interface CjProjectsService {
      * @return 文件所属的项目，如果不属于任何项目返回 null
      */
     fun findProjectForFile(file: VirtualFile): CjProject?
+
+    /**
+     * 根据文件查找所属模块
+     *
+     * @param file 要查找的文件
+     * @return 文件所属的模块，如果不属于任何模块返回 null
+     */
+    fun findModuleForFile(file: VirtualFile): CjModule?
+
+    val initialized: Boolean
 
 
     /**

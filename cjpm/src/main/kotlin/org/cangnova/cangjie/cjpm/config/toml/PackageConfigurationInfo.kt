@@ -22,39 +22,21 @@
  *
  */
 
-package org.cangnova.cangjie.project.model
+package org.cangnova.cangjie.cjpm.project.model.toml
 
-import com.intellij.openapi.vfs.VirtualFile
-
-/**
- * 源码集抽象
- *
- * 代表项目中的一组源代码文件
- */
-interface CjSourceSet {
-    /**
-     * 源码集名称
-     */
-    val name: String
-
-    /**
-     * 源码根目录列表
-     */
-    val sourceRoots: List<VirtualFile>
-
-    /**
-     * 资源根目录列表
-     */
-    val resourceRoots: List<VirtualFile>
-
-    /**
-     * 是否为测试源码集
-     */
-    val isTest: Boolean
-}
+import com.fasterxml.jackson.annotation.JsonProperty
+import kotlinx.serialization.Serializable
 
 /**
- * 获取所有根目录（源码根 + 资源根）
+ * 单包配置信息
  */
-val CjSourceSet.roots: List<VirtualFile>
-    get() = sourceRoots + resourceRoots
+@Serializable
+data class PackageConfigurationInfo(
+    /** 包的输出类型 */
+    @field:JsonProperty("output-type")
+    val outputType: OutputType? = null,
+    
+    /** 包的编译选项 */
+    @field:JsonProperty("compile-option")
+    val compileOption: String? = null
+)

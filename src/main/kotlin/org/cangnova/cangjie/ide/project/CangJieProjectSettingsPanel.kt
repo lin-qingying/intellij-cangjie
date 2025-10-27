@@ -49,7 +49,7 @@ import javax.swing.JLabel
 
 class CangJieProjectSettingsPanel(
 
-    private val cjpmProjectDir: Path = Paths.get("."), private val updateListener: (() -> Unit)? = null
+    private val  projectDir: Path = Paths.get("."), private val updateListener: (() -> Unit)? = null
 ) : Disposable {
 
 

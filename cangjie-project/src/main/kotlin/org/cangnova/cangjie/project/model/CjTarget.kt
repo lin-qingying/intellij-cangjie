@@ -24,6 +24,8 @@
 
 package org.cangnova.cangjie.project.model
 
+import com.intellij.openapi.vfs.VirtualFile
+
 /**
  * 构建目标类型
  */
@@ -74,4 +76,10 @@ interface CjTarget {
      * 源码集
      */
     val sourceSets: List<CjSourceSet>
+
+    /**
+     * 输出目录（如果有）
+     */
+    val outputDirectory: VirtualFile?
+        get() = null
 }

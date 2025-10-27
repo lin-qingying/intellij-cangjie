@@ -22,39 +22,22 @@
  *
  */
 
-package org.cangnova.cangjie.project.model
+package org.cangnova.cangjie.cjpm.project
 
 import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.project.model.CjModule
+import org.cangnova.cangjie.project.model.CjWorkspace
 
 /**
- * 源码集抽象
- *
- * 代表项目中的一组源代码文件
+ * CJPM 工作空间实现
  */
-interface CjSourceSet {
-    /**
-     * 源码集名称
-     */
-    val name: String
+class CjpmWorkspaceImpl(
+    override val name: String,
+    override val rootDir: VirtualFile,
+    override val modules: List<CjModule>
+) : CjWorkspace {
 
-    /**
-     * 源码根目录列表
-     */
-    val sourceRoots: List<VirtualFile>
-
-    /**
-     * 资源根目录列表
-     */
-    val resourceRoots: List<VirtualFile>
-
-    /**
-     * 是否为测试源码集
-     */
-    val isTest: Boolean
+    override fun findModule(name: String): CjModule? {
+        return modules.find { it.name == name }
+    }
 }
-
-/**
- * 获取所有根目录（源码根 + 资源根）
- */
-val CjSourceSet.roots: List<VirtualFile>
-    get() = sourceRoots + resourceRoots

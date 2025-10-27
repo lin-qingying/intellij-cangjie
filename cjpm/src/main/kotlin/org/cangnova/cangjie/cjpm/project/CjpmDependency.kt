@@ -22,39 +22,30 @@
  *
  */
 
-package org.cangnova.cangjie.project.model
+package org.cangnova.cangjie.cjpm.project
 
-import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.dependency.model.CjDependency
+import org.cangnova.cangjie.dependency.model.CjDependencyScope
+import org.cangnova.cangjie.dependency.model.CjDependencyType
+import org.cangnova.cangjie.dependency.model.CjVersion
 
 /**
- * 源码集抽象
- *
- * 代表项目中的一组源代码文件
+ * CJPM 依赖实现
  */
-interface CjSourceSet {
-    /**
-     * 源码集名称
-     */
-    val name: String
+data class CjpmDependency(
+    override val name: String,
+    val versionString: String,
+    override val scope: CjDependencyScope,
+    override val type: CjDependencyType,
+    val path: String? = null,
+    val git: String? = null,
+    val branch: String? = null,
+    val tag: String? = null,
+    val rev: String? = null
+) : CjDependency {
 
-    /**
-     * 源码根目录列表
-     */
-    val sourceRoots: List<VirtualFile>
+    override val group: String? = null
 
-    /**
-     * 资源根目录列表
-     */
-    val resourceRoots: List<VirtualFile>
-
-    /**
-     * 是否为测试源码集
-     */
-    val isTest: Boolean
+    override val version: CjVersion
+        get() = CjVersion(versionString)
 }
-
-/**
- * 获取所有根目录（源码根 + 资源根）
- */
-val CjSourceSet.roots: List<VirtualFile>
-    get() = sourceRoots + resourceRoots

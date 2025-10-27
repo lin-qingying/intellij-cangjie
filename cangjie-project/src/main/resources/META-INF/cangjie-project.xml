@@ -47,6 +47,13 @@
                 dynamic="true"/>
 
         <!-- 模块构建器提供者:提供新项目创建的 ModuleBuilder -->
+
+        <!-- 命令提供者:提供仓颉项目相关的命令执行功能 -->
+        <extensionPoint
+                name="commandProvider"
+                qualifiedName="org.cangnova.cangjie.commandProvider"
+                interface="org.cangnova.cangjie.project.ui.actions.CjCommandProvider"
+                dynamic="true"/>
         <extensionPoint
                 name="moduleBuilderProvider"
                 qualifiedName="org.cangnova.cangjie.project.moduleBuilderProvider"
@@ -67,14 +74,67 @@
                 factoryClass="org.cangnova.cangjie.project.ui.toolwindow.CjProjectToolWindowFactory"
                 anchor="right"
                 icon="AllIcons.Nodes.Module"/>
+
+
+        <registryKey key="org.cangnova.cangjie.project.new.auto.import"
+                     defaultValue="true"
+                     description="Enable new project model reloading"
+                     restartRequired="true"/>
     </extensions>
+
+    <projectListeners>
+
+
+        <listener class="org.cangnova.cangjie.ide.status.CjExternalLinterWidgetUpdater"
+                  topic="cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService$CjpmProjectsListener"/>
+    </projectListeners>
 
     <!-- 动作定义 -->
     <actions>
-        <!-- 仓颉项目工具窗口工具栏动作组 -->
-        <group id="CangJie.CjProject"
-               class="com.intellij.openapi.actionSystem.DefaultActionGroup">
-            <!-- 未来在这里添加工具栏动作 -->
+
+        <!-- 仓颉项目相关动作 -->
+
+        <!-- 刷新仓颉项目的动作
+             扩展类型: CangJieProjectActionBase -->
+        <action id="CjProject.RefreshProject"
+                class="org.cangnova.cangjie.project.ui.actions.RefreshProjectAction"
+                text="Refresh Projects"
+                icon="AllIcons.Actions.Refresh"/>
+
+        <!-- 附加仓颉项目的动作
+             扩展类型: CangJieProjectActionBase -->
+        <action id="CjProject.AttachProject"
+                class="org.cangnova.cangjie.project.ui.actions.AttachProjectAction"
+                text="Attach CangJie Project"
+                icon="AllIcons.General.Add"/>
+
+        <!-- 运行仓颉命令的动作
+             扩展类型: CangJieProjectActionBase -->
+        <action id="CjProject.RunCommand"
+                class="org.cangnova.cangjie.project.ui.actions.RunCommandAction"
+                text="Run CJPM Command"
+                icon="AllIcons.Actions.Execute"/>
+
+        <!-- 显示仓颉设置的动作
+             扩展类型: CangJieProjectActionBase -->
+<!--        <action id="CjProject.ShowSettings"-->
+<!--                class="org.cangnova.cangjie.project.ui.actions.ShowSettingsAction"-->
+<!--                text="CangJie Settings"-->
+<!--                icon="AllIcons.General.Settings"/>-->
+
+
+        <group id="CangJie.CjProject">
+            <reference id="CjProject.RefreshProject"/>
+            <reference id="CjProject.AttachProject"/>
+
+            <separator/>
+            <reference id="CjProject.RunCommand"/>
+
+            <separator/>
+            <reference id="ExpandAll"/>
+            <reference id="CollapseAll"/>
+            <separator/>
+<!--            <reference id="CjProject.ShowSettings"/>-->
         </group>
     </actions>
 </idea-plugin>

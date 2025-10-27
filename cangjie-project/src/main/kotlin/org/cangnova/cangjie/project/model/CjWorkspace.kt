@@ -29,7 +29,7 @@ import com.intellij.openapi.vfs.VirtualFile
 /**
  * 工作空间抽象
  *
- * 代表一个包含多个项目/模块的工作空间
+ * 代表一个包含多个模块的工作空间
  */
 interface CjWorkspace {
     /**
@@ -42,18 +42,14 @@ interface CjWorkspace {
      */
     val rootDir: VirtualFile
 
+    
     /**
-     * 工作空间配置文件
+     * 工作空间中的所有模块
      */
-    val configFile: VirtualFile?
+    val modules: List<CjModule>
 
     /**
-     * 工作空间中的所有项目
+     * 查找指定名称的模块
      */
-    val projects: List<CjProject>
-
-    /**
-     * 查找指定名称的项目
-     */
-    fun findProject(name: String): CjProject?
+    fun findModule(name: String): CjModule?
 }

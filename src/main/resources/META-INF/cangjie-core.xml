@@ -38,10 +38,10 @@
 
         <!-- 3. 项目设置配置 -->
         <!-- 主设置页面 -->
-        <!--        <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieConfigurable"-->
-        <!--                             groupId="language"-->
-        <!--                             id="language.cangjie"-->
-        <!--                             bundle="messages.CangJieBundle" key="CangJie"/>-->
+                <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieConfigurable"
+                                     groupId="language"
+                                     id="language.cangjie"
+                                     bundle="messages.CangJieBundle" key="CangJie"/>
         <!-- 语言服务器设置页面 -->
         <!--        <projectConfigurable instance="org.cangnova.cangjie.configurable.CangJieLanguageServerConfigurable"-->
         <!--                             parentId="language.cangjie"-->

@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":notifications"))
     implementation(project(":toolchain"))
     implementation(project(":common"))
+    implementation(project(":icon"))
 
     implementation(project(":"))
     // TOML 解析

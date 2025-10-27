@@ -22,39 +22,23 @@
  *
  */
 
-package org.cangnova.cangjie.project.model
+package org.cangnova.cangjie.cjpm.wizard
 
-import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.project.extension.CjModuleBuilderProvider
+import org.cangnova.cangjie.project.wizard.CjModuleBuilder
 
 /**
- * 源码集抽象
+ * CJPM 模块构建器提供者
  *
- * 代表项目中的一组源代码文件
+ * 提供基于 CJPM 的项目创建能力
  */
-interface CjSourceSet {
-    /**
-     * 源码集名称
-     */
-    val name: String
+class CjpmModuleBuilderProvider : CjModuleBuilderProvider {
 
-    /**
-     * 源码根目录列表
-     */
-    val sourceRoots: List<VirtualFile>
+    override val providerName: String = "CJPM"
 
-    /**
-     * 资源根目录列表
-     */
-    val resourceRoots: List<VirtualFile>
+    override val priority: Int = 10 // 高优先级，作为默认选项
 
-    /**
-     * 是否为测试源码集
-     */
-    val isTest: Boolean
+    override fun createModuleBuilder(): CjModuleBuilder {
+        return CjpmModuleBuilder()
+    }
 }
-
-/**
- * 获取所有根目录（源码根 + 资源根）
- */
-val CjSourceSet.roots: List<VirtualFile>
-    get() = sourceRoots + resourceRoots

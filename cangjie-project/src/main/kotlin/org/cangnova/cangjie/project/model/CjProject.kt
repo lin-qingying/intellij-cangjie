@@ -26,6 +26,13 @@ package org.cangnova.cangjie.project.model
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.project.service.CjProjectsService
+
+
+val Project.allCjProject: List<CjProject>
+    get() {
+        return CjProjectsService.getInstance(this).allProjects
+    }
 
 /**
  * 仓颉项目抽象接口
@@ -74,6 +81,21 @@ interface CjProject {
      * 项目是否有效
      */
     val isValid: Boolean
+
+    /**
+     * 获取所有需要索引的目录
+     *
+     * 返回项目中所有需要建立目录索引的目录列表，用于快速查找文件所属的项目。
+     * 默认实现返回空列表，由具体的项目类型覆盖此属性。
+     *
+     * 这些目录通常包括：
+     * - 项目根目录
+     * - 源码目录
+     * - 输出目录
+     * - 依赖库目录
+     */
+    val indexableDirectories: List<VirtualFile>
+        get() = emptyList()
 
     /**
      * 刷新项目模型
