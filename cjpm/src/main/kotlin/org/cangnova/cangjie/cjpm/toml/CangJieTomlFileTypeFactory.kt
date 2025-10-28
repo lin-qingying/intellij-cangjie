@@ -21,16 +21,12 @@
  * any damages or issues arising from its use.
  *
  */
+package org.cangnova.cangjie.cjpm.toml
 
-dependencies {
-    implementation(project(":util"))
-    implementation(project(":messages"))
-    implementation(project(":notifications"))
-    implementation(project(":psi"))
-    implementation(project(":icon"))
-    implementation(project(":common"))
+import com.intellij.openapi.fileTypes.FileTypeConsumer
+import com.intellij.openapi.fileTypes.FileTypeFactory
 
-
-    implementation(project(":toolchain"))
+class CangJieTomlFileTypeFactory : FileTypeFactory() {
+    override fun createFileTypes(fileTypeConsumer: FileTypeConsumer) {
+    }
 }
-

@@ -80,6 +80,8 @@ import org.cangnova.cangjie.project.service.CjProjectsService.Companion.CANGJIE_
 import org.cangnova.cangjie.project.service.GeneratedFilesHolder
 import org.cangnova.cangjie.project.service.cangjieProjectService
 import org.cangnova.cangjie.result.CjProcessResult
+import org.cangnova.cangjie.project.task.CangJieSyncTask
+import org.cangnova.cangjie.task.taskQueue
 import org.cangnova.cangjie.utils.AsyncValue
 import org.cangnova.cangjie.utils.checkReadAccessAllowed
 import org.cangnova.cangjie.utils.checkWriteAccessAllowed
@@ -320,6 +322,7 @@ class CjProjectsServiceImpl(
         override val version: String? = null
         override val isValid: Boolean = false
         override val indexableDirectories: List<VirtualFile> = emptyList()
+        @Throws(Exception::class)
         override fun refresh() {}
         override fun findModule(name: String): CjModule? = null
     }
@@ -506,12 +509,14 @@ class CjProjectsServiceImpl(
     }
 
     override fun refreshAllProjects() {
-        log.info("Refreshing all projects...")
+        log.info("Refreshing all projects using CangJieSyncTask...")
 
         // 使用 modifyProjectsSync 确保正确的事件发布和索引更新
         modifyProjectsSync(ModifyProjectsOptions.DEFAULT) { currentProjects ->
-            // 刷新每个项目（会触发 refresh() 和发布 UPDATED 事件）
-            currentProjects.forEach { refreshProject(it) }
+            // 使用 CangJieSyncTask 进行项目刷新，提供更好的进度显示和错误处理
+            val syncTask = CangJieSyncTask(intellijProject, currentProjects)
+            intellijProject.taskQueue.run(syncTask)
+
             // 返回未修改的项目列表（刷新不改变列表本身）
             currentProjects
         }
@@ -631,101 +636,6 @@ class CjProjectsServiceImpl(
 }
 
 
-/**
- * 仓颉外部系统项目感知器
- *
- * 实现 IntelliJ 的 [ExternalSystemProjectAware] 接口，用于集成仓颉项目管理(CJPM)到 IDE 的外部系统框架中。
- * 该类负责：
- * - 监听项目配置文件的变更
- * - 触发项目的重新加载和同步
- * - 管理项目自动导入功能
- *
- * 通过 [ExternalSystemProjectTracker] 注册后，IDE 会自动监听配置文件变更并触发项目刷新，
- * 确保 IDE 的项目模型与实际的 CangJie 项目配置保持同步。
- *
- * @property project IntelliJ 项目实例
- * @see ExternalSystemProjectAware
- * @see ExternalSystemProjectTracker
- */
-@Suppress("UnstableApiUsage")
-class CangJieExternalSystemProjectAware(
-    private val project: Project
-) : ExternalSystemProjectAware {
-    /**
-     * 外部系统项目标识符
-     *
-     * 返回仓颉项目在 IntelliJ 外部系统框架中的唯一标识，由系统 ID 和项目名称组成。
-     */
-    override val projectId: ExternalSystemProjectId
-        get() = ExternalSystemProjectId(CANGJIE_SYSTEM_ID, project.name)
-
-    /**
-     * 需要监听的配置文件路径集合
-     *
-     * 返回所有影响项目结构的配置文件路径（如 cjpm.toml）。
-     * 当这些文件发生变更时，IDE 会自动触发项目重新加载。
-     *
-     * @return 配置文件路径的集合
-     */
-
-    override val settingsFiles: Set<String>
-        get() {
-            val settingsFilesService = CangJieSettingsFilesService.getInstance(project)
-            // Always collect fresh settings files
-            return settingsFilesService.collectSettingsFiles(useCache = false).keys
-        }
-
-    /**
-     * 重新加载项目
-     *
-     * 当检测到配置文件变更或用户手动触发刷新时调用此方法，
-     * 负责重新解析项目配置、更新依赖关系和刷新项目结构。
-     *
-     * @param context 项目重新加载的上下文信息，包含刷新状态和相关设置
-     */
-    override fun reloadProject(context: ExternalSystemProjectReloadContext) {
-
-        FileDocumentManager.getInstance().saveAllDocuments()
-        project.cangjieProjectService.refreshAllProjects()
-
-    }
-
-    /**
-     * 订阅项目事件
-     *
-     * 注册项目事件监听器，用于接收项目状态变更通知（如项目加载完成、刷新失败等）。
-     *
-     * @param listener 外部系统项目事件监听器
-     * @param parentDisposable 父级 Disposable，用于管理监听器的生命周期
-     */
-    override fun subscribe(listener: ExternalSystemProjectListener, parentDisposable: Disposable) {
-        project.messageBus.connect(parentDisposable).subscribe(
-            CANGJIE_PROJECTS_REFRESH_TOPIC,
-            object : CjProjectsService.CangJieProjectsRefreshListener {
-                override fun onRefreshStarted() {
-                    listener.onProjectReloadStart()
-                }
-
-                override fun onRefreshFinished(status: CjProjectsService.RefreshStatus) {
-                    val externalStatus = when (status) {
-                        CjProjectsService.RefreshStatus.SUCCESS -> ExternalSystemRefreshStatus.SUCCESS
-                        CjProjectsService.RefreshStatus.FAILURE -> ExternalSystemRefreshStatus.FAILURE
-                        CjProjectsService.RefreshStatus.CANCEL -> ExternalSystemRefreshStatus.CANCEL
-                    }
-                    listener.onProjectReloadFinish(externalStatus)
-                }
-            })
-    }
-
-    companion object {
-        /**
-         * 仓颉项目系统标识符
-         *
-         * 在 IntelliJ 的外部系统框架中标识仓颉项目管理系统。
-         */
-        val CANGJIE_SYSTEM_ID: ProjectSystemId = ProjectSystemId("CangJie")
-    }
-}
 
 /**
  * 在非轻量级项目上执行操作

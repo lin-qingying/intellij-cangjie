@@ -21,16 +21,25 @@
  * any damages or issues arising from its use.
  *
  */
+package org.cangnova.cangjie.cjpm.toml.jsonSchema
 
-dependencies {
-    implementation(project(":util"))
-    implementation(project(":messages"))
-    implementation(project(":notifications"))
-    implementation(project(":psi"))
-    implementation(project(":icon"))
-    implementation(project(":common"))
+import com.intellij.openapi.project.Project
+import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider
+import com.jetbrains.jsonSchema.extension.JsonSchemaProviderFactory
+import org.cangnova.cangjie.utils.jsonSchema.SimpleJsonSchemaFileProvider
 
+/**
+ * 提供 cjpm.toml 的 json schema
+ *
+ * @author <a href="mailto:yms_hi@Outlook.com" rel="nofollow">yms</a>
+ */
+class SimpleJsonShemaProviderFactory : JsonSchemaProviderFactory {
+    override fun getProviders(project: Project): List<JsonSchemaFileProvider?> {
+        val providers = arrayListOf<JsonSchemaFileProvider?>()
 
-    implementation(project(":toolchain"))
+        providers.add(SimpleJsonSchemaFileProvider("cjpm.toml",
+            "/jsonSchema/cjpmProjectConfig.schema.json","CJPM Package Config"))
+
+        return providers
+    }
 }
-

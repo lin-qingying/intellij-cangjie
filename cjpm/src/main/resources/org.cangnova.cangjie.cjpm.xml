@@ -22,11 +22,49 @@
   ~
   -->
 
-<idea-plugin package="org.cangnova.cangjie.cjpm">
+<idea-plugin package="org.cangnova.cangjie.cjpm" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <dependencies>
+
+
+        <plugin id="com.intellij.modules.json"/>
+        <plugin id="org.toml.lang"/>
+
+
+    </dependencies>
+
+
     <!-- 注册 CJPM 项目提供者 -->
     <extensions defaultExtensionNs="org.cangnova.cangjie.project">
         <projectProvider implementation="org.cangnova.cangjie.cjpm.project.CjpmProjectProvider"/>
         <moduleBuilderProvider implementation="org.cangnova.cangjie.cjpm.wizard.CjpmModuleBuilderProvider"/>
+    </extensions>
+    <extensions defaultExtensionNs="com.intellij">
+
+
+        <fileType name="TOML"
+                  language="TOML"
+                  fileNames="cjpm.lock"
+        />
+        <completion.contributor language="TOML"
+                                implementationClass="org.cangnova.cangjie.cjpm.toml.completion.CjpmTomlCompletionContributor"/>
+        <localInspection language="TOML"
+                         shortName="CJPMProjectConfigVersionValueCheck"
+                         bundle="messages.CJPMConfigInspectionBundle"
+                         key="inspection.cjpm.config.check.value.version.display.name"
+                         groupPath="Cangjie"
+                         groupBundle="messages.InspectionsBundle"
+                         groupKey="group.names.probable.bugs"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         implementationClass="org.cangnova.cangjie.cjpm.toml.inspection.ProjectVersionInspection"
+        />
+
+    </extensions>
+
+
+    <extensions defaultExtensionNs="JavaScript.JsonSchema">
+        <ProviderFactory
+                implementation="org.cangnova.cangjie.cjpm.toml.jsonSchema.SimpleJsonShemaProviderFactory"/>
     </extensions>
 
     <!-- 注册 CJPM 依赖管理扩展 -->

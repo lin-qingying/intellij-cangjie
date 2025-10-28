@@ -21,15 +21,25 @@
  * any damages or issues arising from its use.
  *
  */
+val tomlPlugin = "org.toml.lang"
 
+val jsonPlugin = "com.intellij.modules.json"
 
 dependencies {
+
+    intellijPlatform {
+        bundledPlugins(tomlPlugin,jsonPlugin)
+
+    }
+
     // 依赖核心模块
     implementation(project(":cangjie-project"))
     implementation(project(":cangjie-dependency"))
     implementation(project(":build-system"))
     implementation(project(":util"))
     implementation(project(":messages"))
+    implementation(project(":psi"))
+
     implementation(project(":notifications"))
     implementation(project(":toolchain"))
     implementation(project(":common"))

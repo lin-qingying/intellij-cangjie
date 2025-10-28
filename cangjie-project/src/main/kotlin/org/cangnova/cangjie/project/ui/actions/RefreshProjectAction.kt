@@ -27,9 +27,11 @@ package org.cangnova.cangjie.project.ui.actions
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.service.cangjieProjectService
 import org.cangnova.cangjie.project.ui.toolwindow.CjProjectToolWindow
+import org.cangnova.cangjie.task.taskQueue
 
 /**
  * 刷新仓颉项目的动作
@@ -46,10 +48,14 @@ class RefreshProjectAction : CangJieProjectActionBase() {
     }
 
     override fun actionPerformed(e: AnActionEvent) {
-        val project: Project = e.project ?: return
 
-        // 调用项目服务刷新所有项目
-        project.cangjieProjectService.refreshAllProjects()
+        val project: Project = e.project ?: return
+        // 保存所有文档，确保文件系统与内存中的内容同步
+//        可以立马刷新项目模型
+        FileDocumentManager.getInstance().saveAllDocuments()
+
+project.cangjieProjectService.refreshAllProjects()
+
     }
 
     override fun updatePresentation(e: AnActionEvent, presentation: Presentation) {

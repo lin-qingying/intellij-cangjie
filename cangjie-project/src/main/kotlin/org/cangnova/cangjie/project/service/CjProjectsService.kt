@@ -125,7 +125,15 @@ val intellijProject: Project
     fun removeProject(project: CjProject)
 
     /**
-     * 刷新所有项目
+     * 刷新所有项目（完整刷新，包括索引重建和根目录更新）
+     *
+     * 注意：此方法会触发完整的项目更新流程，包括：
+     * - 重新加载所有项目配置
+     * - 重置索引
+     * - 更新项目根目录（触发全量扫描）
+     * - 发布项目更新事件
+     *
+     * 仅在项目列表结构发生变化时使用。
      */
     fun refreshAllProjects()
 

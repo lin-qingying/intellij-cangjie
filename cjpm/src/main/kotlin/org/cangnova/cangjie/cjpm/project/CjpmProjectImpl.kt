@@ -24,14 +24,38 @@
 
 package org.cangnova.cangjie.cjpm.project
 
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.components.service
+
 import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
+import org.cangnova.cangjie.cjpm.project.CjpmDependency
+import org.cangnova.cangjie.dependency.service.CjDependencyService
+import org.cangnova.cangjie.dependency.model.CjDependencyScope
+import org.cangnova.cangjie.dependency.model.CjDependencyType
+
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.CjWorkspace
 import org.cangnova.cangjie.project.model.roots
+import org.cangnova.cangjie.result.CjResult
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
+import org.cangnova.cangjie.toolchain.command.ToolchainCommandLine
+
+import org.cangnova.cangjie.utils.pathAsPath
+
+/**
+ * CJPM 更新异常
+ *
+ * 当 CJPM update 命令执行失败时抛出此异常
+ */
+class CjpmUpdateException(
+    message: String,
+    val details: String? = null,
+    cause: Throwable? = null
+) : Exception(message, cause)
 
 /**
  * 可重置的 Lazy 委托，支持缓存重置
@@ -87,13 +111,17 @@ class CjpmProjectImpl(
     private val manifestFile: VirtualFile
 ) : CjProject {
 
+    companion object {
+        private val LOG = logger<CjpmProjectImpl>()
+    }
+
     private val config = resettableLazy {
         val fullConfig = CjpmTomlParser.parse(manifestFile)
         fullConfig?.let { CjpmConfigConverter.convertToSimpleConfig(it) }
     }
 
     override val name: String
-        get() = config.value?.`package`?.name ?: config.value?.workspace?.name ?: rootDir.name
+        get() = intellijProject.name
 
     override val configFile: VirtualFile
         get() = manifestFile
@@ -125,18 +153,72 @@ class CjpmProjectImpl(
     override val indexableDirectories: List<VirtualFile>
         get() = indexableDirectoriesCache.value
 
-    override fun refresh() {
-        // 清除配置缓存，强制重新加载
-        config.reset()
+    @Throws(Exception::class)
+override fun refresh() {
+    LOG.info("Refreshing CJPM project: $name")
 
-        // 清除模块列表缓存，强制重新构建
-        modulesCache.reset()
+    // 执行 cjpm update 命令来更新依赖
+    executeCjpmUpdate()
 
-        // 清除工作空间缓存，强制重新构建
-        workspaceCache.reset()
+    // 清除配置缓存，强制重新解析 TOML
+    config.reset()
 
-        // 清除索引目录缓存，强制重新计算
-        indexableDirectoriesCache.reset()
+    // 清除模块列表缓存，强制重新构建模块结构
+    modulesCache.reset()
+
+    // 清除工作空间缓存，强制重新构建工作空间信息
+    workspaceCache.reset()
+
+    // 清除索引目录缓存，强制重新计算可索引目录
+    indexableDirectoriesCache.reset()
+
+    LOG.info("Successfully refreshed CJPM project: $name")
+}
+
+    /**
+     * 执行 cjpm update 命令
+     * @throws CjpmUpdateException 当 CJPM 更新失败时抛出异常
+     */
+    private fun executeCjpmUpdate() {
+        try {
+            // 获取项目关联的 SDK
+            val sdkConfig =  CjProjectSdkConfig.getInstance(intellijProject)
+            val sdk = sdkConfig.getProjectSdk()
+
+            if (sdk == null) {
+                val message = "No SDK configured for project $name"
+                LOG.warn("$message, skipping cjpm update")
+                throw CjpmUpdateException(message)
+            }
+
+            // 创建 cjpm update 命令
+            val commandLine = ToolchainCommandLine(
+                sdkId = sdk.id,
+                executable = "tools/bin/cjpm",
+                command = "update",
+                workingDirectory = rootDir.pathAsPath
+            )
+
+            // 执行命令
+            LOG.info("Executing cjpm update in $rootDir")
+            when (val result = commandLine.execute(intellijProject)) {
+                is  CjResult.Ok -> {
+                    LOG.info("cjpm update completed successfully for project $name")
+                }
+                is  CjResult.Err -> {
+                    val errorMessage = "cjpm update failed for project $name: ${result.err}"
+//                    LOG.error(errorMessage)
+                    throw CjpmUpdateException(errorMessage, result.err.toString(), result.err)
+                }
+            }
+        } catch (e: CjpmUpdateException) {
+            // 重新抛出 CjpmUpdateException
+            throw e
+        } catch (e: Exception) {
+            val errorMessage = "Failed to execute cjpm update for project $name"
+//            LOG.error(errorMessage, e)
+            throw CjpmUpdateException(errorMessage, e.message, e)
+        }
     }
 
     override fun findModule(name: String): CjModule? {

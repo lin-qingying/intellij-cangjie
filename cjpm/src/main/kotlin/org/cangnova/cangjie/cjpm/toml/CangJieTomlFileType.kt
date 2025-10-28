@@ -22,15 +22,31 @@
  *
  */
 
-dependencies {
-    implementation(project(":util"))
-    implementation(project(":messages"))
-    implementation(project(":notifications"))
-    implementation(project(":psi"))
-    implementation(project(":icon"))
-    implementation(project(":common"))
+package org.cangnova.cangjie.cjpm.toml
 
+import com.intellij.openapi.fileTypes.LanguageFileType
+import org.toml.TomlBundle.message
+import org.toml.TomlIcons
+import org.toml.lang.TomlLanguage
+import javax.swing.Icon
 
-    implementation(project(":toolchain"))
+object CangJieTomlFileType : LanguageFileType(TomlLanguage) {
+    override fun getName(): String {
+        return "TOML"
+
+    }
+
+    override fun getDescription(): String {
+        return message("filetype.toml.description")
+
+    }
+
+    override fun getDefaultExtension(): String {
+        return "toml"
+
+    }
+
+    override fun getIcon(): Icon {
+        return TomlIcons.TomlFile
+    }
 }
-

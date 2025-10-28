@@ -115,7 +115,11 @@ sealed class CjProcessExecutionException : CjProcessExecutionOrDeserializationEx
     class ProcessAborted(
         override val commandLineString: String,
         val output: ProcessOutput,
-    ) : CjProcessExecutionException(errorMessage(commandLineString, output))
+    ) : CjProcessExecutionException(errorMessage(commandLineString, output)){
+        override fun toString(): String {
+            return output.toString()
+        }
+    }
 
     companion object {
         fun errorMessage(commandLineString: String, output: ProcessOutput): String = """

@@ -27,6 +27,8 @@ package org.cangnova.cangjie.project.model
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.project.service.CjProjectsService
+import java.lang.Exception
+import kotlin.Throws
 
 
 val Project.allCjProject: List<CjProject>
@@ -99,8 +101,23 @@ interface CjProject {
 
     /**
      * 刷新项目模型
+     *
+     * 此方法用于在项目同步过程中执行刷新操作，当遇到错误时会抛出异常，
+     * 允许调用方（如 CangJieSyncTask）捕获并处理错误信息。
+     *
+     * 建议在以下场景使用此方法：
+     * - 项目同步任务中 (CangJieSyncTask)
+     * - 需要向用户显示具体错误信息的UI操作
+     * - 批量项目处理中的错误处理
+     * - 自动化脚本或CI/CD流程中的错误检测
+     *
+     * @throws Exception 当项目刷新过程中遇到任何错误时抛出异常，
+     *                    包括TOML解析错误、CJPM命令执行错误等
      */
+    @Throws(Exception::class)
     fun refresh()
+
+
 
     /**
      * 查找指定名称的模块

@@ -21,16 +21,20 @@
  * any damages or issues arising from its use.
  *
  */
+package org.cangnova.cangjie.cjpm
 
-dependencies {
-    implementation(project(":util"))
-    implementation(project(":messages"))
-    implementation(project(":notifications"))
-    implementation(project(":psi"))
-    implementation(project(":icon"))
-    implementation(project(":common"))
+import com.intellij.AbstractBundle
+import com.intellij.DynamicBundle
+import org.cangnova.cangjie.messages.AbstractCangJieBundle
+import org.jetbrains.annotations.Nls
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.annotations.PropertyKey
 
+private const val BUNDLE: String = "CJPMConfigInspectionBundle"
 
-    implementation(project(":toolchain"))
+object CJPMConfigInspectionBundle : AbstractCangJieBundle(BUNDLE) {
+    @Nls
+    @JvmStatic
+    fun message(@NonNls @PropertyKey(resourceBundle =  BUNDLE) key: String, vararg params: Any): String = getMessage(key, *params)
+
 }
-

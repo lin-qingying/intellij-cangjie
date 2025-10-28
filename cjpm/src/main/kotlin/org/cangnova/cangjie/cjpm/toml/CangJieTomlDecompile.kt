@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,13 @@
  * any damages or issues arising from its use.
  *
  */
+package org.cangnova.cangjie.cjpm.toml
 
-dependencies {
-    implementation(project(":util"))
-    implementation(project(":messages"))
-    implementation(project(":notifications"))
-    implementation(project(":psi"))
-    implementation(project(":icon"))
-    implementation(project(":common"))
+import com.intellij.openapi.fileTypes.BinaryFileDecompiler
+import com.intellij.openapi.vfs.VirtualFile
 
-
-    implementation(project(":toolchain"))
+class CangJieTomlDecompile : BinaryFileDecompiler {
+    override fun decompile(virtualFile: VirtualFile): CharSequence {
+        TODO()
+    }
 }
-

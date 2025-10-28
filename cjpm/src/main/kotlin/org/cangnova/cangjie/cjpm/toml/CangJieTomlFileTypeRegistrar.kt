@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 LinQingYing. and contributors.
+ * Copyright 2024 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,12 @@
  * any damages or issues arising from its use.
  *
  */
+package org.cangnova.cangjie.cjpm.toml
 
-dependencies {
-    implementation(project(":util"))
-    implementation(project(":messages"))
-    implementation(project(":notifications"))
-    implementation(project(":psi"))
-    implementation(project(":icon"))
-    implementation(project(":common"))
+import com.intellij.ide.highlighter.FileTypeRegistrar
+import com.intellij.openapi.fileTypes.FileType
 
-
-    implementation(project(":toolchain"))
+class CangJieTomlFileTypeRegistrar : FileTypeRegistrar {
+    override fun initFileType(fileType: FileType) {
+    }
 }
-
