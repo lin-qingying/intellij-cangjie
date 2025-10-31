@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.project.model
 
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
@@ -42,11 +43,21 @@ interface CjWorkspace {
      */
     val rootDir: VirtualFile
 
-    
+    val project: CjProject
     /**
      * 工作空间中的所有模块
      */
     val modules: List<CjModule>
+    /**
+     * 模块配置文件
+     */
+    val configFile: VirtualFile?
+
+    /**
+     * 工作空间的源码集（仅包含输出目录信息）
+     * 用于在 Workspace Model 中配置主模块的排除目录
+     */
+    val sourceSets: List<CjSourceSet>
 
     /**
      * 查找指定名称的模块

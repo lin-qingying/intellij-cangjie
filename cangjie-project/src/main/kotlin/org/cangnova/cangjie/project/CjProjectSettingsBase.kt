@@ -26,6 +26,7 @@ package org.cangnova.cangjie.project
 
 import com.intellij.openapi.components.BaseState
 import com.intellij.util.messages.Topic
+import org.cangnova.cangjie.project.service.CjProjectsService.CangJieProjectsListener
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
@@ -42,12 +43,15 @@ abstract class CjProjectSettingsBase<T : CjProjectSettingsBase<T>> : BaseState()
     abstract fun copy(): T
 }
 
-
-    val CANGJIE_SETTINGS_TOPIC: Topic<CjSettingsListener> = Topic.create(
-        "cangjie settings changes",
-        CjSettingsListener::class.java,
-        Topic.BroadcastDirection.TO_PARENT
-    )
+val CANGJIE_PROJECTS_TOPIC: Topic<CangJieProjectsListener> = Topic(
+    "CangJie projects changes",
+    CangJieProjectsListener::class.java
+)
+val CANGJIE_SETTINGS_TOPIC: Topic<CjSettingsListener> = Topic.create(
+    "cangjie settings changes",
+    CjSettingsListener::class.java,
+    Topic.BroadcastDirection.TO_PARENT
+)
 
 abstract class SettingsChangedEventBase<T : CjProjectSettingsBase<T>>(val oldState: T, val newState: T) {
     private val highlightingAffectingProps: List<KProperty1<T, *>> =

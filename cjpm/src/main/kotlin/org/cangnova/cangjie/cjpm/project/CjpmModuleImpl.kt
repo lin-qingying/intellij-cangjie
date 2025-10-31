@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.cjpm.project
 
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.workspace.jps.entities.ModuleEntity
 import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
 import org.cangnova.cangjie.cjpm.model.DependencyConfig
@@ -41,6 +42,7 @@ class CjpmModuleImpl(
     override val name: String,
     override val rootDir: VirtualFile,
     override val project: CjProject,
+
     val packageConfig: PackageConfig
 ) : CjModule {
 
@@ -54,6 +56,59 @@ class CjpmModuleImpl(
 
     override val targets: List<CjTarget> by lazy {
         buildTargets()
+    }
+
+    /**
+     * 模块依赖列表
+     *
+     * 从 cjpm.toml 中解析路径依赖(path dependencies)，
+     * 将它们转换为模块依赖关系
+     */
+    override val dependencies: List<CjModuleDependency> by lazy {
+        buildModuleDependencies()
+    }
+
+    /**
+     * 构建模块依赖列表
+     *
+     * 从 cjpm.toml 配置中提取路径依赖(path dependencies)，
+     * 这些依赖通常指向同一工作空间中的其他模块。
+     */
+    private fun buildModuleDependencies(): List<CjModuleDependency> {
+        val manifestFile = configFile ?: return emptyList()
+        val fullConfig = CjpmTomlParser.parse(manifestFile) ?: return emptyList()
+        val config = CjpmConfigConverter.convertToSimpleConfig(fullConfig)
+
+        val result = mutableListOf<CjModuleDependency>()
+
+        // 解析编译时依赖
+        config.dependencies.forEach { (name, depConfig) ->
+            // 只处理路径依赖(path dependencies)，这些通常是模块依赖
+            if (depConfig.path != null) {
+                result.add(
+                    CjModuleDependency(
+                        moduleName = name,
+                        scope = org.cangnova.cangjie.project.model.CjDependencyScope.COMPILE,
+                        exported = false
+                    )
+                )
+            }
+        }
+
+        // 解析测试时依赖
+        config.testDependencies.forEach { (name, depConfig) ->
+            if (depConfig.path != null) {
+                result.add(
+                    CjModuleDependency(
+                        moduleName = name,
+                        scope = org.cangnova.cangjie.project.model.CjDependencyScope.TEST,
+                        exported = false
+                    )
+                )
+            }
+        }
+
+        return result
     }
 
 
@@ -101,7 +156,8 @@ class CjpmModuleImpl(
     }
 
     private fun buildSourceSets(): List<CjSourceSet> {
-        val srcDir = packageConfig.srcDir ?: "src"
+        val srcDir = packageConfig.srcDir
+        val targetDir = packageConfig.targetDir
         val srcFile = rootDir.findFileByRelativePath(srcDir)
 
         return if (srcFile != null) {
@@ -110,6 +166,7 @@ class CjpmModuleImpl(
                     name = "main",
                     rootDir = rootDir,
                     srcDir = srcDir,
+                    targetDir = targetDir,
                     isTest = false
                 )
             )
@@ -131,7 +188,8 @@ class CjpmModuleImpl(
                 name = name,
                 sourceSets = sourceSets,
                 type = targetType,
-                module = this
+                module = this,
+                targetDir = packageConfig.targetDir
             )
         )
     }
@@ -144,6 +202,7 @@ class CjpmSourceSetImpl(
     override val name: String,
     private val rootDir: VirtualFile,
     private val srcDir: String,
+    private val targetDir: String,
     override val isTest: Boolean
 ) : CjSourceSet {
 
@@ -166,6 +225,16 @@ class CjpmSourceSetImpl(
                 emptyList()
             }
         }
+
+    override val outputDirectory: List<VirtualFile>
+        get() {
+            val targetDirFile = rootDir.findFileByRelativePath(targetDir)
+            return if (targetDirFile != null && targetDirFile.isDirectory) {
+                listOf(targetDirFile)
+            } else {
+                emptyList()
+            }
+        }
 }
 
 /**
@@ -175,12 +244,12 @@ class CjpmTargetImpl(
     override val name: String,
     override val type: CjTargetType,
     override val sourceSets: List<CjSourceSet>,
-    override val module: CjModule
+    override val module: CjModule,
+    private val targetDir: String
 ) : CjTarget {
 
     override val outputDirectory: VirtualFile?
         get() {
-            val targetDir = "target"
             val buildDir = module.rootDir.findFileByRelativePath(targetDir)
             return if (buildDir != null && buildDir.isDirectory) {
                 buildDir

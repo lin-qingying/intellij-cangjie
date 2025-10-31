@@ -158,18 +158,19 @@ abstract class CjRunAnythingProvider : RunAnythingProviderBase<String>() {
 
     /**
      * 获取适合的仓颉项目
-     * 优先级：选中的项目 > 文件所属项目 > 第一个项目
+     *
+     * 在单项目模型中，直接返回当前 IntelliJ 项目对应的仓颉项目。
+     * 优先使用工具窗口选中的项目（如果有），否则返回当前项目。
      */
     private fun getAppropriateCjProject(dataContext: DataContext): CjProject? {
-        val cjProjects = dataContext.getData(CommonDataKeys.PROJECT)?.cangjieProjectService ?: return null
-        cjProjects.allProjects.singleOrNull()?.let { return it }
+        val projectService = dataContext.getData(CommonDataKeys.PROJECT)?.cangjieProjectService ?: return null
+        val cjProject = projectService.cjProject
 
-        dataContext.getData(CommonDataKeys.VIRTUAL_FILE)
-            ?.let { cjProjects.findProjectForFile(it) }
-            ?.let { return it }
+        // 如果项目无效，返回 null
+        if (!cjProject.isValid) return null
 
-        return dataContext.getData(CjProjectToolWindow.SELECTED_CJ_PROJECT)
-            ?: cjProjects.allProjects.firstOrNull()
+        // 优先使用工具窗口选中的项目（通常就是当前项目）
+        return dataContext.getData(CjProjectToolWindow.SELECTED_CJ_PROJECT) ?: cjProject
     }
 }
 
@@ -177,5 +178,5 @@ abstract class CjRunAnythingProvider : RunAnythingProviderBase<String>() {
  * 项目扩展属性：检查项目是否有仓颉项目
  */
 private val Project.hasCjProject: Boolean
-    get() = this.cangjieProjectService.allProjects.isNotEmpty()
+    get() = this.cangjieProjectService.cjProject.isValid
 

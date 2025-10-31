@@ -40,8 +40,8 @@ data class PackageConfig(
     val version: String,
     val cjcVersion: String,
     val outputType: OutputType,
-    val srcDir: String? = "src",
-    val targetDir: String? = "target",
+    val srcDir: String  = "src",
+    val targetDir: String  = "target",
     val description: String? = null,
     val compileOption: String? = null,
     val linkOption: String? = null

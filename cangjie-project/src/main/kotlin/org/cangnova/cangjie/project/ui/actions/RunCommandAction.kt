@@ -104,6 +104,6 @@ class RunCommandAction : CangJieProjectActionBase() {
         val project = e.project
 
         // 只要有项目就启用
-        presentation.isEnabled = project != null && project.cangjieProjectService.allProjects.isNotEmpty()
+        presentation.isEnabled = project != null && project.cangjieProjectService.cjProject.isValid
     }
 }

@@ -21,3 +21,120 @@
  * any damages or issues arising from its use.
  *
  */
+
+package org.cangnova.cangjie.notifications
+
+
+import org.cangnova.cangjie.lang.CangJieFileType
+import org.cangnova.cangjie.utils.isUnitTestMode
+import com.intellij.ide.impl.isTrusted
+import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileTypes.FileTypeRegistry
+import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.ide.project.cangjieSettings
+import org.cangnova.cangjie.messages.CangJieBundle
+import org.cangnova.cangjie.project.CANGJIE_PROJECTS_TOPIC
+import org.cangnova.cangjie.project.CANGJIE_SETTINGS_TOPIC
+import org.cangnova.cangjie.project.CjProjectBundle
+import org.cangnova.cangjie.project.CjProjectSettingsBase
+import org.cangnova.cangjie.project.CjSettingsListener
+import org.cangnova.cangjie.project.SettingsChangedEventBase
+
+import org.cangnova.cangjie.project.service.CjProjectsService
+import org.cangnova.cangjie.project.service.cangjieProjectService
+import org.cangnova.cangjie.toolchain.api.CjSdk
+import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
+import kotlin.apply
+import kotlin.text.endsWith
+
+
+class MissingToolchainNotificationProvider(project: Project) : CjNotificationProvider(project), DumbAware {
+
+    override val VirtualFile.disablingKey: String get() = NOTIFICATION_STATUS_KEY
+
+    init {
+        project.messageBus.connect().apply {
+            subscribe(
+                CANGJIE_SETTINGS_TOPIC,
+                object : CjSettingsListener {
+                    override fun <T : CjProjectSettingsBase<T>> settingsChanged(e: SettingsChangedEventBase<T>) {
+                        updateAllNotifications()
+                    }
+                })
+
+            subscribe(
+                CANGJIE_PROJECTS_TOPIC,
+                CjProjectsService.CangJieProjectsListener { _, _ ->
+                    updateAllNotifications()
+                })
+        }
+    }
+
+    override fun createNotificationPanel(
+        file: VirtualFile,
+        editor: FileEditor,
+        project: Project
+    ): CjEditorNotificationPanel? {
+        if (isUnitTestMode) return null
+        if (!(file.isCangJieFile) || isNotificationDisabled(file)) return null
+        @Suppress("UnstableApiUsage")
+        if (!project.isTrusted()) return null
+//        if (guessAndSetupCangJieProject(project)) return null
+
+        val toolchain = project.toolchain
+        if (toolchain == null || !toolchain.isValid) {
+            return createBadToolchainPanel(file)
+        }
+
+        val cangjieProjectService = project.cangjieProjectService
+
+        if (!cangjieProjectService.initialized) return null
+
+
+        return null
+    }
+
+    private fun createBadToolchainPanel(file: VirtualFile): CjEditorNotificationPanel =
+        CjEditorNotificationPanel(NO_CANGJIE_TOOLCHAIN).apply {
+            text = CangJieBundle.message("notification.no.toolchain.configured")
+            createActionLabel(CangJieBundle.message("notification.action.set.up.toolchain.text")) {
+                project.cangjieSettings.configureToolchain()
+            }
+            createActionLabel(CangJieBundle.message("notification.action.do.not.show.again.text")) {
+                disableNotification(file)
+                updateAllNotifications()
+            }
+        }
+
+
+    companion object {
+        private const val NOTIFICATION_STATUS_KEY = "org.cangnova.cangjie.hideToolchainNotifications"
+        const val NO_CANGJIE_TOOLCHAIN = "NoCangjieToolchain"
+
+    }
+}
+
+val VirtualFile.isCangJieFile: Boolean get() = fileType == CangJieFileType.INSTANCE
+fun VirtualFile.isCangJieFileType(): Boolean {
+    val nameSequence = nameSequence
+    if (nameSequence.endsWith(CangJieFileType.DOT_DEFAULT_EXTENSION)) return true
+
+
+    return FileTypeRegistry.getInstance().isFileOfType(this, CangJieFileType.INSTANCE)
+}
+
+
+
+
+val Project.toolchain: CjSdk?
+    get() {
+        val toolchain = cangjieSettings.state.toolchain
+        return when {
+            toolchain != null -> toolchain
+
+            else -> null
+        }
+    }

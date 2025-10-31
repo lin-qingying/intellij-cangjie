@@ -48,6 +48,12 @@ interface CjSourceSet {
     val resourceRoots: List<VirtualFile>
 
     /**
+     * 输出目录
+     */
+    val outputDirectory:  List<VirtualFile>
+
+
+    /**
      * 是否为测试源码集
      */
     val isTest: Boolean

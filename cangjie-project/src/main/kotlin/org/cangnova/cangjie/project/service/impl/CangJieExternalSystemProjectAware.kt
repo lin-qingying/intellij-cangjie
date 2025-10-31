@@ -32,6 +32,8 @@ import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectReloa
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemRefreshStatus
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.CangJieSettingsFilesService
 import org.cangnova.cangjie.project.service.CjProjectsService
@@ -81,7 +83,7 @@ class CangJieExternalSystemProjectAware(
         get() {
             // 检查是否存在有效的仓颉项目
             val projectService = project.cangjieProjectService
-            if (projectService.allProjects.isEmpty()) {
+            if (!projectService.cjProject.isValid) {
                 return emptySet()
             }
 
@@ -102,7 +104,7 @@ class CangJieExternalSystemProjectAware(
     override fun reloadProject(context: ExternalSystemProjectReloadContext) {
         // 保存所有文档，确保文件系统与内存中的内容同步
         FileDocumentManager.getInstance().saveAllDocuments()
-        project.cangjieProjectService.refreshAllProjects()
+        project.cangjieProjectService.refreshProject()
 
 
     }

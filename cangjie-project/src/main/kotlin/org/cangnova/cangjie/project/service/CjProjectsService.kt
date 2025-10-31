@@ -27,10 +27,15 @@ package org.cangnova.cangjie.project.service
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
+import org.cangnova.cangjie.project.model.CjSourceSet
+import org.cangnova.cangjie.project.model.CjTarget
+import org.cangnova.cangjie.project.model.CjWorkspace
 import org.cangnova.cangjie.result.CjProcessResult
 
 
@@ -39,12 +44,83 @@ val Project.cangjieProjectService: CjProjectsService get() = CjProjectsService.g
 /**
  * 仓颉项目管理服务接口
  *
- * 提供项目的发现、创建、缓存和管理功能
+ * ## 架构设计：Project Model 优先，Workspace Model 补充
+ *
+ * 该服务实现了"Project Model 优先，Workspace Model 补充"的架构：
+ * - **Project Model（主）**：基于 CjProject/CjModule 的自定义模型，作为唯一数据源
+ * - **Workspace Model（辅）**：仅在必要时同步，为 IDE 子系统提供补充元数据（当前已禁用）
+ *
+ * ## 核心职责
+ * - 项目的发现、创建和生命周期管理
+ * - 模块索引和快速查找（O(1) 文件到模块映射）
+ * - 项目事件发布（CREATED、OPENED、UPDATED、REMOVED、CONFIG_CHANGED）
+ * - 与外部系统框架集成（通过 CangJieExternalSystemProjectAware）
+ * - 项目配置变更的监听和自动刷新
+ *
+ * ## 单项目模型
+ * 每个 IntelliJ 项目对应一个仓颉项目（cjProject），项目内部可以包含多个模块。
+ * 这简化了项目管理，与 IntelliJ 平台的项目模型保持一致。
+ *
+ * ## 项目自动导入机制
+ * 服务支持两种项目导入模式：
+ * - **新模式（推荐）**：基于 [ExternalSystemProjectTracker] 的自动导入，通过 Registry 配置
+ *   `org.cangnova.cangjie.project.new.auto.import` 启用。支持配置文件变更自动刷新。
+ * - **旧模式**：基于文件监听的手动刷新机制，需手动触发项目刷新。
+ *
+ * 服务作用域为 PROJECT 级别，每个 IntelliJ 项目对应一个服务实例。
+ *
+ * @see CjProjectsServiceImpl
+ * @see CangJieExternalSystemProjectAware
  */
 @Service(Service.Level.PROJECT)
 interface CjProjectsService {
-val intellijProject: Project
+    val intellijProject: Project
+    /**
+     * 无项目标记对象
+     * 用作 LightDirectoryIndex 的默认值，表示文件不属于任何仓颉项目
+     */
+    public val noProjectMarker: CjProject
+        get() {
+            return object : CjProject {
+                override val intellijProject: Project = this@CjProjectsService.intellijProject
+
+                override val name: String = "<no project>"
+                override val rootDir: VirtualFile
+                    get() = intellijProject.guessProjectDir() ?: error("No project dir")
+                override val isWorkspace: Boolean
+                    get() = false
+                override val module: CjModule = object : CjModule {
+                    override val name: String = "<no module>"
+                    override val rootDir: VirtualFile = intellijProject.guessProjectDir() ?: error("No project dir")
+                    override val project: CjProject
+                        get() = noProjectMarker
+                    override val configFile: VirtualFile?
+                        get() = null
+                    override val targets: List<CjTarget>
+                        get() = emptyList()
+                    override val sourceSets: List<CjSourceSet>
+                        get() = emptyList()
+
+                }
+
+
+                override val workspace: CjWorkspace? = null
+
+                override val isValid: Boolean = false
+                override val indexableDirectories: List<VirtualFile> = emptyList()
+
+                @Throws(Exception::class)
+                override fun refresh() {
+                }
+
+                override fun findModule(name: String): CjModule? = null
+            }
+        }
+
     companion object {
+
+
+
         /**
          * 获取服务实例
          */
@@ -52,10 +128,7 @@ val intellijProject: Project
             return project.getService(CjProjectsService::class.java)
         }
 
-        val CANGJIE_PROJECTS_TOPIC: Topic<CangJieProjectsListener> = Topic(
-            "CangJie projects changes",
-            CangJieProjectsListener::class.java
-        )
+
         val CANGJIE_PROJECTS_REFRESH_TOPIC: Topic<CangJieProjectsRefreshListener> = Topic(
             "CangJie refresh",
             CangJieProjectsRefreshListener::class.java
@@ -78,27 +151,9 @@ val intellijProject: Project
         fun cangjieProjectsUpdated(service: CjProjectsService, projects: Collection<CjProject>)
     }
 
-    /**
-     * 获取所有仓颉项目
-     * 一般情况下，只有一个CjProject，但是当出现在同一个窗口打开多个项目时，才会有多个
-     */
-    val allProjects: List<CjProject>
 
-    /**
-     * 根据根目录查找项目
-     *
-     * @param rootDir 项目根目录
-     * @return 找到的项目，如果不存在返回 null
-     */
-    fun findProject(rootDir: VirtualFile): CjProject?
+    val cjProject: CjProject
 
-    /**
-     * 根据名称查找项目
-     *
-     * @param name 项目名称
-     * @return 找到的项目，如果不存在返回 null
-     */
-    fun findProjectByName(name: String): CjProject?
 
     /**
      * 发现并创建项目
@@ -108,49 +163,30 @@ val intellijProject: Project
      * @param rootDir 项目根目录
      * @return 创建的项目，如果无法识别返回 null
      */
-    fun discoverProject(rootDir: VirtualFile): CjProject?
+    fun discoverProject(rootDir: VirtualFile)
 
     /**
      * 添加项目到缓存
      *
      * @param project 要添加的项目
      */
-    fun addProject(project: CjProject)
+    fun addModule(module: CjModule)
 
     /**
      * 从缓存中移除项目
      *
      * @param project 要移除的项目
      */
-    fun removeProject(project: CjProject)
+    fun removeModule(module: CjModule)
 
-    /**
-     * 刷新所有项目（完整刷新，包括索引重建和根目录更新）
-     *
-     * 注意：此方法会触发完整的项目更新流程，包括：
-     * - 重新加载所有项目配置
-     * - 重置索引
-     * - 更新项目根目录（触发全量扫描）
-     * - 发布项目更新事件
-     *
-     * 仅在项目列表结构发生变化时使用。
-     */
-    fun refreshAllProjects()
 
     /**
      * 刷新指定项目
      *
      * @param project 要刷新的项目
      */
-    fun refreshProject(project: CjProject)
+    fun refreshProject()
 
-    /**
-     * 根据文件查找所属项目
-     *
-     * @param file 要查找的文件
-     * @return 文件所属的项目，如果不属于任何项目返回 null
-     */
-    fun findProjectForFile(file: VirtualFile): CjProject?
 
     /**
      * 根据文件查找所属模块

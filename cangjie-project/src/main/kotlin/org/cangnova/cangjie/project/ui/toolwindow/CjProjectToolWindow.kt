@@ -29,6 +29,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ScrollPaneFactory
 import org.cangnova.cangjie.project.event.CjProjectEvent
@@ -67,17 +68,15 @@ class CjProjectToolWindow(private val project: Project) {
         // 订阅项目变更事件
         with(project.messageBus.connect()) {
             subscribe(CjProjectListener.TOPIC, object : CjProjectListener {
-                override fun projectCreated(event: CjProjectEvent) = updateTree()
-                override fun projectUpdated(event: CjProjectEvent) = updateTree()
-                override fun projectRemoved(event: CjProjectEvent) = updateTree()
-                override fun projectConfigChanged(event: CjProjectEvent) = updateTree()
+                override fun projectCreated(event: CjProjectEvent) = updateTree(event)
+                override fun projectUpdated(event: CjProjectEvent) = updateTree(event)
+                override fun projectRemoved(event: CjProjectEvent) = updateTree(event)
+                override fun projectConfigChanged(event: CjProjectEvent) = updateTree(event)
 
-                private fun updateTree() {
-                    val projectsService = project.getService(CjProjectsService::class.java)
-                    if (projectsService != null) {
-                        invokeLater {
-                            projectTree.updateProjects(projectsService.allProjects.toList())
-                        }
+                private fun updateTree(event: CjProjectEvent) {
+                    // 直接使用事件中的项目对象，避免时序问题
+                    invokeLater {
+                        projectTree.updateProjects(event.project)
                     }
                 }
             })
@@ -87,7 +86,7 @@ class CjProjectToolWindow(private val project: Project) {
         val projectsService = project.getService(CjProjectsService::class.java)
         if (projectsService != null) {
             invokeLater {
-                projectTree.updateProjects(projectsService.allProjects.toList())
+                projectTree.updateProjects(projectsService.cjProject )
             }
         }
     }

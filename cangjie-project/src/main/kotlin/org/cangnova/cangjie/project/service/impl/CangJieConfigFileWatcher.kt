@@ -143,9 +143,8 @@ class CangJieConfigFileWatcher(
         val fileParentPath = file.pathAsPath.parent
 
         // 检查文件是否属于任何已管理的项目
-        return projectService.allProjects.any { it.configFile?.parent == fileParentPath }
-        // TODO: 未来可能需要检查工作区包
-        // ||   cjpmProjects.findPackageForFile(file)?.origin == PackageOrigin.WORKSPACE
+       return true
+
     }
 
     companion object {

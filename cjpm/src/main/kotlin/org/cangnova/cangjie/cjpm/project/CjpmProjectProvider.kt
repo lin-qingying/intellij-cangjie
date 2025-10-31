@@ -112,12 +112,24 @@ class CjpmProjectProvider : CjProjectProvider {
         // 添加项目根目录
         directories.add(project.rootDir)
 
-        // 添加所有模块的源码目录和输出目录
-        for (module in project.modules) {
-            for (sourceSet in module.sourceSets) {
+
+
+        if(project.isWorkspace){
+            // 添加所有模块的源码目录和输出目录
+            for (module in project.workspace!!.modules) {
+                for (sourceSet in module.sourceSets) {
+                    directories.addAll(sourceSet.roots)
+                }
+                for (target in module.targets) {
+                    target.outputDirectory?.let { directories.add(it) }
+                }
+            }
+
+        }else{
+            for (sourceSet in project.module!!.sourceSets) {
                 directories.addAll(sourceSet.roots)
             }
-            for (target in module.targets) {
+            for (target in project.module!!.targets) {
                 target.outputDirectory?.let { directories.add(it) }
             }
         }

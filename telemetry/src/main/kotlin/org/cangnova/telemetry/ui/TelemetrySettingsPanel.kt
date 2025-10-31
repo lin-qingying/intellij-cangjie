@@ -63,7 +63,7 @@ class TelemetrySettingsPanel : SearchableConfigurable, Configurable {
                 row {
                     // 使用从配置文件获取的隐私政策URL，如果为空则使用默认值
                     val privacyPolicyUrl = telemetryDataSender.getPrivacyPolicyUrl().takeIf { it.isNotEmpty() } 
-                        ?: "https://gitcode.com/OpenCangjieCommunity/intellij-cangjie"
+                        ?: "https://telemetry.cangnova.cn/privacy-policy"
                     
                     browserLink(
                         TelemetryBundle.message("settings.telemetry.privacy.link.text"),

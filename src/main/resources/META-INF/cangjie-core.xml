@@ -33,7 +33,7 @@
         <!-- 新项目向导 -->
         <newProjectWizard.languageGenerator
                 implementation="org.cangnova.cangjie.ide.project.tools.projectWizard.CangJieGeneratorNewProjectWizard"/>
-        <directoryProjectGenerator implementation="org.cangnova.cangjie.ide.newProject.CjDirectoryProjectGenerator"/>
+        <directoryProjectGenerator implementation="org.cangnova.cangjie.ide.project.tools.projectWizard.CjDirectoryProjectGenerator"/>
 
 
         <!-- 3. 项目设置配置 -->
@@ -74,7 +74,7 @@
         <!--        <projectOpenProcessor id="Cjpm" implementation="org.cangnova.cangjie.cjpm.project.CjpmProjectOpenProcessor"/>-->
 <!--        <externalIconProvider key="Cjpm"-->
 <!--                              implementationClass="org.cangnova.cangjie.cjpm.project.model.impl.CjpmExternalSystemIconProvider"/>-->
-        <projectOpenProcessor id="CangJie" implementation="org.cangnova.cangjie.project.CangJieProjectOpenProcessor"/>
+<!--        <projectOpenProcessor id="CangJie" implementation="org.cangnova.cangjie.project.CangJieProjectOpenProcessor"/>-->
 
     </extensions>
 

@@ -37,6 +37,11 @@ enum class CjProjectEventType {
     CREATED,
 
     /**
+     * 项目打开
+     */
+    OPENED,
+
+    /**
      * 项目更新/刷新
      */
     UPDATED,

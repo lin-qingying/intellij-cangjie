@@ -63,6 +63,7 @@
 
     <!-- 服务注册 -->
     <extensions defaultExtensionNs="com.intellij">
+
         <!-- 项目级服务: 项目管理服务 -->
         <projectService
                 serviceInterface="org.cangnova.cangjie.project.service.CjProjectsService"
@@ -80,10 +81,16 @@
                      defaultValue="true"
                      description="Enable new project model reloading"
                      restartRequired="true"/>
+
+        <!-- 额外的库根目录提供者: 为 IDE 提供仓颉项目的可索引目录 -->
+<!--        <additionalLibraryRootsProvider-->
+<!--                implementation="org.cangnova.cangjie.project.roots.CangJieAdditionalLibraryRootsProvider"/>-->
     </extensions>
 
     <projectListeners>
-
+        <!-- Cangjie项目配置监听器 -->
+        <listener class="org.cangnova.cangjie.project.listener.CjProjectConfigurationListener"
+                  topic="org.cangnova.cangjie.project.event.CjProjectListener"/>
 
         <listener class="org.cangnova.cangjie.ide.status.CjExternalLinterWidgetUpdater"
                   topic="cn.cangnova.cangjie.cjpm.project.model.CjpmProjectsService$CjpmProjectsListener"/>
@@ -103,10 +110,10 @@
 
         <!-- 附加仓颉项目的动作
              扩展类型: CangJieProjectActionBase -->
-        <action id="CjProject.AttachProject"
-                class="org.cangnova.cangjie.project.ui.actions.AttachProjectAction"
-                text="Attach CangJie Project"
-                icon="AllIcons.General.Add"/>
+<!--        <action id="CjProject.AttachProject"-->
+<!--                class="org.cangnova.cangjie.project.ui.actions.AttachProjectAction"-->
+<!--                text="Attach CangJie Project"-->
+<!--                icon="AllIcons.General.Add"/>-->
 
         <!-- 运行仓颉命令的动作
              扩展类型: CangJieProjectActionBase -->
@@ -125,7 +132,7 @@
 
         <group id="CangJie.CjProject">
             <reference id="CjProject.RefreshProject"/>
-            <reference id="CjProject.AttachProject"/>
+<!--            <reference id="CjProject.AttachProject"/>-->
 
             <separator/>
             <reference id="CjProject.RunCommand"/>

@@ -43,7 +43,7 @@ object TelemetryNotifications {
             TelemetryBundle.message("notification.group.cangjie.title"),
             TelemetryBundle.message(
                 "notification.group.message",
-                "<a href=\"https://developers.redhat.com/article/tool-data-collection\">${TelemetryBundle.message("notification.group.privacy.link")}</a>",
+                "<a href=\"https://telemetry.cangnova.cn/privacy-policy\">${TelemetryBundle.message("notification.group.privacy.link")}</a>",
                 "<a href=\"\">${TelemetryBundle.message("notification.group.opt.out.link")}</a>"
             ),
             NotificationType.INFORMATION

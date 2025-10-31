@@ -28,7 +28,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.model.CjProject
-import org.cangnova.cangjie.project.model.allCjProject
+import org.cangnova.cangjie.project.model.cjProject
 import org.cangnova.cangjie.project.service.CjProjectsService
 
 @Service
@@ -40,9 +40,10 @@ class CangJieSettingsFilesService(private val project: Project) {
     private fun collectSettingsFiles(): Map<String, SettingFileType> {
 
         val result = mutableMapOf<String, SettingFileType>()
-        for (cjProject in project.allCjProject) {
-            cjProject.collectSettingsFiles(result)
-        }
+
+        project
+            .cjProject.collectSettingsFiles(result)
+
 
         settingsFilesCache = result
 
@@ -52,17 +53,26 @@ class CangJieSettingsFilesService(private val project: Project) {
     private fun CjProject.collectSettingsFiles(out: MutableMap<String, SettingFileType>) {
         val rootPath = rootDir.path
 
-        this.configFile?.path?.let {
-            out[it] = SettingFileType.CONFIG
+
+        if (this.isWorkspace) {
+            workspace!!.configFile?.let{
+                out[it.path] =
+                    SettingFileType.CONFIG
+            }
+            workspace!!.modules.forEach {
+                it.configFile?.let {
+                    out[it.path] =
+                        SettingFileType.CONFIG
+                }
+            }
+
+        } else {
+            this.module!!.configFile?.let {
+                out[it.path] =
+                    SettingFileType.CONFIG
+            }
+
         }
-
-
-//            CjpmConstants.LOCK_FILE.forEach {
-//                out["$rootPath/$it"] = SettingFileType.CONFIG
-//            }
-
-//            out["$rootPath/${CjpmConstants.MANIFEST_FILE}"] = SettingFileType.CONFIG
-//            out["$rootPath/${CjpmConstants.LOCK_FILE}"] = SettingFileType.CONFIG
 
 
     }

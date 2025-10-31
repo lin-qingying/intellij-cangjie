@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.project.wizard
 
 import com.intellij.ide.util.projectWizard.ModuleBuilder
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.vfs.VirtualFile
@@ -47,6 +48,10 @@ data class ConfigurationData(
  * 提供创建新项目/模块的通用框架，具体实现由子类提供
  */
 abstract class CjModuleBuilder : ModuleBuilder() {
+    companion object {
+        val LOG = Logger.getInstance(CjModuleBuilder::class.java)
+
+    }
 
     /**
      * 项目配置数据，由 UI 层设置
@@ -76,6 +81,8 @@ abstract class CjModuleBuilder : ModuleBuilder() {
 
             // 发现并注册新创建的项目
             projectsService.discoverProject(rootDir)
+
+
         }
     }
 
@@ -97,6 +104,7 @@ abstract class CjModuleBuilder : ModuleBuilder() {
     open override fun getModuleType(): ModuleType<*> {
         return CangJieModuleType()
     }
+
 
     /**
      * 是否可用

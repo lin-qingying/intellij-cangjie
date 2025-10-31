@@ -355,6 +355,7 @@ project(":plugin") {
                     indexViewPlugin,
                     chinesePlugin/*, nativeDebugPlugin*/
                 )
+
                 bundledPlugins(tomlPlugin, copyright, jsonPlugin)
             }
         }
@@ -503,7 +504,7 @@ project(":") {
         intellijPlatform{
             bundledPlugins(tomlPlugin, copyright, jsonPlugin)
         }
-
+        implementation(project(":common"))
         implementation("org.fusesource.jansi:jansi:2.4.1")
 
         implementation("io.hotmoka:toml4j:0.7.3")
@@ -519,7 +520,7 @@ project(":") {
 
         implementation(project(":notifications"))
 
-        implementation(project(":common"))
+
 
         implementation(project(":analysis"))
         implementation(project(":build-system"))

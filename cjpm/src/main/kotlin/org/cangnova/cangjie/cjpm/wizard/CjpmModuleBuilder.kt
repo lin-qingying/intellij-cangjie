@@ -49,7 +49,8 @@ class CjpmModuleBuilder : CjModuleBuilder() {
      */
     override var configurationData: ConfigurationData? = null
 
-    override fun createProjectStructure(
+    override fun
+            createProjectStructure(
         rootDir: VirtualFile,
         model: ModifiableRootModel
     ): Boolean {

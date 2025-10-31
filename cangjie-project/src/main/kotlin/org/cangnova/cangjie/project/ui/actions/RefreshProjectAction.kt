@@ -54,12 +54,12 @@ class RefreshProjectAction : CangJieProjectActionBase() {
 //        可以立马刷新项目模型
         FileDocumentManager.getInstance().saveAllDocuments()
 
-project.cangjieProjectService.refreshAllProjects()
+project.cangjieProjectService.refreshProject()
 
     }
 
     override fun updatePresentation(e: AnActionEvent, presentation: Presentation) {
         val project = e.project
-        presentation.isEnabled = project != null && project.cangjieProjectService.allProjects.isNotEmpty()
+        presentation.isEnabled = project != null && project.cangjieProjectService.cjProject.isValid
     }
 }

@@ -95,18 +95,20 @@ class CjpmRunAnythingProvider : CjRunAnythingProvider() {
 
     /**
      * 获取适合的仓颉项目
+     *
+     * 在单项目模型中，直接返回当前 IntelliJ 项目对应的仓颉项目。
+     * 优先使用工具窗口选中的项目（如果有），否则返回当前项目。
      */
     private fun getAppropriateCjProject(dataContext: DataContext): CjProject? {
         val project = dataContext.getData(com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT) ?: return null
-        val cjProjects = project.cangjieProjectService
-        cjProjects.allProjects.singleOrNull()?.let { return it }
+        val projectService = project.cangjieProjectService
+        val cjProject = projectService.cjProject
 
-        dataContext.getData(com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE)
-            ?.let { cjProjects.findProjectForFile(it) }
-            ?.let { return it }
+        // 如果项目无效，返回 null
+        if (!cjProject.isValid) return null
 
-        return dataContext.getData(CjProjectToolWindow.SELECTED_CJ_PROJECT)
-            ?: cjProjects.allProjects.firstOrNull()
+        // 优先使用工具窗口选中的项目（通常就是当前项目）
+        return dataContext.getData(CjProjectToolWindow.SELECTED_CJ_PROJECT) ?: cjProject
     }
 }
 

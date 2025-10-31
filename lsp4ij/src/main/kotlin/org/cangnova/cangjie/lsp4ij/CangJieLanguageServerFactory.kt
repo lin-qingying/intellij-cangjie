@@ -26,6 +26,7 @@ package org.cangnova.cangjie.lsp4ij
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.util.io.systemIndependentPath
@@ -34,8 +35,15 @@ import com.redhat.devtools.lsp4ij.client.features.FileUriSupport
 import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 import org.cangnova.cangjie.lsp.replacePathBySystem
+import org.cangnova.cangjie.project.model.CjProject
+import org.cangnova.cangjie.project.model.CjModule
+import org.cangnova.cangjie.project.model.cjProject
+
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
+import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.eclipse.lsp4j.*
+import java.net.URI
+import java.nio.file.Paths
 import kotlin.io.path.exists
 
 class CangJieLanguageServerFactory : LanguageServerFactory {
@@ -49,34 +57,21 @@ class CangJieLanguageServerFactory : LanguageServerFactory {
 }
 
 
-//fun getFilePath(file: VirtualFile) = file.path
-//fun getFileUri(file: VirtualFile): String {
-//    val escapedPath = URLUtil.encodePath(getFilePath(file))
-//    val url = VirtualFileManager.constructUrl(URLUtil.FILE_PROTOCOL, escapedPath)
-//    val uri = VfsUtil.toUri(url)?.toString() ?: url
-//    return lowercaseWindowsDriveAndEscapeColon(uri)
-//}
+
 
 /**
- * The LSP specification [requires](https://microsoft.github.io/language-server-protocol/specification/#uri)
- * all servers to handle two URI formats correctly: `file:///C:/foo` and `file:///c%3A/foo`.
- *
- *
- * VS Code always sends lowercase Windows drive letters and always escapes colons
- * (see this [issue](https://github.com/microsoft/vscode-languageserver-node/issues/1280)
- * and related [pull request](https://github.com/microsoft/language-server-protocol/pull/1786)).
- *
- *
- * Some LSP servers only support VS Code friendly URI format (`file:///c%3A/foo`),
- * so it's safer to use this format by default.
+ * 将VirtualFile转换为URI字符串
  */
-//fun lowercaseWindowsDriveAndEscapeColon(uri: String): String {
-//    val prefix = "file:///"
-//    if (uri.startsWith(prefix) && OSAgnosticPathUtil.startsWithWindowsDrive(uri.substring(prefix.length))) {
-//        return prefix + uri[prefix.length].lowercase() + "%3A" + uri.substring(prefix.length + 2)
-//    }
-//    return uri
-//}
+fun toString(virtualFile: VirtualFile): String {
+    val path = virtualFile.toNioPathOrNull()
+    return if (path != null) {
+        path.toUri().toString()
+    } else {
+        // Fallback for when toNioPathOrNull returns null
+        val uri = URI.create("file://" + virtualFile.path.replace("\\", "/"))
+        uri.toString()
+    }
+}
 
 class CangJieLSPClientFeatures : LSPClientFeatures() {
 
@@ -479,112 +474,114 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
     }
 
     override fun initializeParams(initializeParams: InitializeParams) {
-
-
         val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
-//        initializeParams.rootPath = project.guessProjectDir()?.path
-//        initializeParams.rootUri = toString(project.guessProjectDir()!!)
 
         initializeParams.clientInfo = ClientInfo("Intellij CangJie", "1.0.0")
-
         initializeParams.processId = ProcessHandle.current().pid().toInt()
         initializeParams.capabilities = getCapabilities()
         initializeParams.locale = "zh_cn"
         initializeParams.trace = "off"
 
-
         if (sdk != null) {
-
-            var projectName = project.name
-
-            fun getMap(): Map<String, Any> {
-                return mapOf(
-//                    "targetLib" to (project.basePath?.toPath()?.resolve(".cache")
-//                        ?.resolve("lsp")?.systemIndependentPath?.replacePathBySystem() ?: ""),
-
-
-                    "modulesHomeOption" to sdk.homePath.systemIndependentPath.replacePathBySystem(),
-
-
-                    "multiModuleOption" to mutableMapOf<String, Any>(
-                        toString(project.guessProjectDir()!!).toString() to mapOf(
-                            "name" to projectName,
-
-                            "package_requires" to mapOf(
-                                "path_option" to project.findPathOptions(),
-                                "package_option" to mapOf<String, String>()
-                            ),
-//                            "requires" to mutableMapOf<String, Any>().apply {
-//
-//                                if (project.cjpmProjects.currentCjpmProject?.isWorkspace == true) {
-//                                    if (project.currentCjpmProject?.workspace?.packages != null) {
-//                                        for (`package` in project.currentCjpmProject?.workspace?.packages!!) {
-//
-//                                            if (`package`.origin == PackageOrigin.DEPENDENCY) {
-//                                                put(
-//                                                    `package`.name, mapOf(
-//                                                        "path" to `package`.contentRoot?.let {
-//                                                            toString(
-//                                                                it
-//                                                            ).toString()
-//                                                        }
-//                                                    )
-//                                                )
-//                                            }
-//
-//                                        }
-//                                    }
-//
-//                                }
-//                            },
-                        )
-                    ).apply {
-//                        if (project.cjpmProjects.currentCjpmProject?.isWorkspace == true) {
-//                            if (project.currentCjpmProject?.workspace?.packages != null) {
-//                                for (`package` in project.currentCjpmProject?.workspace?.packages!!) {
-//
-//                                    if (`package`.origin == PackageOrigin.DEPENDENCY) {
-//                                        `package`.contentRoot?.let {
-//                                            toString(
-//                                                it
-//                                            ).toString()
-//                                        }?.let {
-//                                            put(
-//                                                it,
-//                                                mapOf(
-//                                                    "name" to `package`.name,
-//                                                    "package_requires" to mapOf(
-//                                                        "path_option" to listOf<String>(),
-//                                                        "package_option" to mapOf<String, String>()
-//                                                    ),
-//                                                    "requires" to mutableMapOf<String, Any>()
-//                                                )
-//                                            )
-//                                        }
-//                                    } else if (`package`.origin == PackageOrigin.WORKSPACE) {
-//                                        if (`package`.name != projectName) {
-//                                            projectName = `package`.name
-//
-//                                            return getMap()
-//                                        }
-//                                    }
-//
-//                                }
-//                            }
-//
-//                        }
-                    }
-                )
-
-            }
-
-
-            val map = getMap()
-
-            initializeParams.initializationOptions = map
-
-
+            // 使用cangjie-project模型创建initializationOptions
+            initializeParams.initializationOptions = createInitializationOptions(sdk)
         }
+    }
+
+    /**
+     * 使用cangjie-project模型创建initializationOptions
+     * 根据LSP服务器的要求格式化配置选项
+     *
+     * 注意：LSP服务器是单项目单实例模式，一个CjProject对应一个LSP服务器
+     */
+    private fun createInitializationOptions(sdk: CjSdk): Map<String, Any> {
+
+//仓颉lsp不支持同时处理多个项目
+        // 获取当前项目（每个LSP服务器实例应该只对应一个CjProject）
+        val currentProject = project.cjProject
+
+        return mutableMapOf<String, Any>().apply {
+            // 核心配置选项
+            put("modulesHomeOption", sdk.homePath.systemIndependentPath.replacePathBySystem())
+
+            // 标准库路径（如果SDK有提供）
+            put("stdLibPathOption", getStdLibPath(sdk))
+
+            // 目标库路径（用于宏库路径）
+            put("targetLib", getTargetLibPath(currentProject))
+
+            // 多模块配置 - 基于当前项目的模块
+            put(
+                "multiModuleOption",
+                currentProject?.let { createMultiModuleOption(it) } ?: mutableMapOf<String, Any>())
+
+            // 条件编译配置
+            put("conditionCompileOption", mutableMapOf<String, String>())
+            put("singleConditionCompileOption", mutableMapOf<String, Map<String, String>>())
+            put("conditionCompilePaths", getConditionCompilePaths(currentProject))
+
+            // DevEco IDE专用配置（如果需要）
+            put("cjdCachePathOption", getCjdCachePath(currentProject))
+        }
+    }
+
+    /**
+     * 获取标准库路径
+     */
+    private fun getStdLibPath(sdk: CjSdk): String {
+        return sdk.homePath.systemIndependentPath.replacePathBySystem() + "/stdlib"
+    }
+
+    /**
+     * 获取目标库路径
+     */
+    private fun getTargetLibPath(project: CjProject?): String {
+        return project?.rootDir?.path?.let {
+            "$it/.cache/lsp"
+        } ?: ""
+    }
+
+
+    /**
+     * 为模块列表创建配置选项
+     */
+    private fun createMultiModuleOption(cjProject: CjProject): Map<String, Any> {
+        val modules = if (cjProject.isWorkspace) {
+            cjProject.workspace?.modules ?: emptyList()
+        } else {
+            cjProject.module?.let { listOf(it) } ?: emptyList()
+        }
+
+        if (modules.isEmpty()) return mutableMapOf<String, Any>()
+
+        return mutableMapOf<String, Any>().apply {
+            for (module in modules) {
+                val moduleUri = toString(module.rootDir)
+                put(moduleUri, mutableMapOf<String, Any>().apply {
+                    put("name", module.name)
+                    put("package_requires", mutableMapOf<String, Any>().apply {
+                        put("path_option", project.findPathOptions())
+                        put("package_option", mutableMapOf<String, String>())
+                    })
+                })
+            }
+        }
+    }
+
+    /**
+     * 获取条件编译路径
+     */
+    private fun getConditionCompilePaths(project: CjProject?): List<String> {
+        return project?.let { listOf(it.rootDir.path) } ?: emptyList()
+    }
+
+    /**
+     * 获取CJD缓存路径
+     */
+    private fun getCjdCachePath(project: CjProject?): String {
+        return project?.rootDir?.path?.let {
+            "$it/.idea/cjdIdx"
+        } ?: ""
     }
 }
 

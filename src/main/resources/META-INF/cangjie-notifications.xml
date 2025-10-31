@@ -27,8 +27,8 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- 1. 编辑器通知提供器 -->
         <!-- 缺失工具链通知 - 当未找到必要的工具链时显示通知 -->
-        <!--        <editorNotificationProvider-->
-        <!--                implementation="org.cangnova.cangjie.notifications.MissingToolchainNotificationProvider"/>-->
+                <editorNotificationProvider
+                        implementation="org.cangnova.cangjie.notifications.MissingToolchainNotificationProvider"/>
 
         <!-- 无CJPM项目通知 - 当打开文件不在CJPM项目中时显示通知 -->
         <!--        <editorNotificationProvider-->

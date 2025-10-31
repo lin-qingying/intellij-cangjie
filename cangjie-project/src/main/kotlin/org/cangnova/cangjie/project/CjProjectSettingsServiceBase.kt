@@ -33,14 +33,8 @@ import com.intellij.util.messages.Topic
 abstract class CjProjectSettingsServiceBase<T :  CjProjectSettingsBase<T>>(
     val project: Project,
     state: T
-) : SimplePersistentStateComponent<T>(state) {
-    companion object {
-        val CANGJIE_SETTINGS_TOPIC: Topic<CjSettingsListener> = Topic.create(
-            "cangjie settings changes",
-            CjSettingsListener::class.java,
-            Topic.BroadcastDirection.TO_PARENT
-        )
-    }
+) : SimplePersistentStateComponent<T>(state)  {
+
 
 
     fun modify(action: (T) -> Unit) {

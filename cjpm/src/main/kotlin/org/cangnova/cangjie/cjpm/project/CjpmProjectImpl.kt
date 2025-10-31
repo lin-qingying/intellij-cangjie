@@ -27,14 +27,11 @@ package org.cangnova.cangjie.cjpm.project
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.components.service
+
 
 import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
-import org.cangnova.cangjie.cjpm.project.CjpmDependency
-import org.cangnova.cangjie.dependency.service.CjDependencyService
-import org.cangnova.cangjie.dependency.model.CjDependencyScope
-import org.cangnova.cangjie.dependency.model.CjDependencyType
+import org.cangnova.cangjie.messages.CangJieBundle
 
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
@@ -122,16 +119,16 @@ class CjpmProjectImpl(
 
     override val name: String
         get() = intellijProject.name
+    override val isWorkspace: Boolean
+        get() = workspace != null
+    override val module: CjModule?
+        get() = modulesCache.value
 
-    override val configFile: VirtualFile
-        get() = manifestFile
 
     private val modulesCache = resettableLazy {
-        buildModulesList()
+        buildModule()
     }
 
-    override val modules: List<CjModule>
-        get() = modulesCache.value
 
     private val workspaceCache = resettableLazy {
         buildWorkspace()
@@ -140,8 +137,6 @@ class CjpmProjectImpl(
     override val workspace: CjWorkspace?
         get() = workspaceCache.value
 
-    override val version: String?
-        get() = config.value?.`package`?.version
 
     override val isValid: Boolean
         get() = config.value != null
@@ -154,26 +149,26 @@ class CjpmProjectImpl(
         get() = indexableDirectoriesCache.value
 
     @Throws(Exception::class)
-override fun refresh() {
-    LOG.info("Refreshing CJPM project: $name")
+    override fun refresh() {
+        LOG.info("Refreshing CJPM project: $name")
 
-    // 执行 cjpm update 命令来更新依赖
-    executeCjpmUpdate()
+        // 执行 cjpm update 命令来更新依赖
+        executeCjpmUpdate()
 
-    // 清除配置缓存，强制重新解析 TOML
-    config.reset()
+        // 清除配置缓存，强制重新解析 TOML
+        config.reset()
 
-    // 清除模块列表缓存，强制重新构建模块结构
-    modulesCache.reset()
+        // 清除模块列表缓存，强制重新构建模块结构
+        modulesCache.reset()
 
-    // 清除工作空间缓存，强制重新构建工作空间信息
-    workspaceCache.reset()
+        // 清除工作空间缓存，强制重新构建工作空间信息
+        workspaceCache.reset()
 
-    // 清除索引目录缓存，强制重新计算可索引目录
-    indexableDirectoriesCache.reset()
+        // 清除索引目录缓存，强制重新计算可索引目录
+        indexableDirectoriesCache.reset()
 
-    LOG.info("Successfully refreshed CJPM project: $name")
-}
+        LOG.info("Successfully refreshed CJPM project: $name")
+    }
 
     /**
      * 执行 cjpm update 命令
@@ -182,13 +177,15 @@ override fun refresh() {
     private fun executeCjpmUpdate() {
         try {
             // 获取项目关联的 SDK
-            val sdkConfig =  CjProjectSdkConfig.getInstance(intellijProject)
+            val sdkConfig = CjProjectSdkConfig.getInstance(intellijProject)
             val sdk = sdkConfig.getProjectSdk()
 
-            if (sdk == null) {
-                val message = "No SDK configured for project $name"
-                LOG.warn("$message, skipping cjpm update")
-                throw CjpmUpdateException(message)
+            if (sdk == null || !sdk.isValid) {
+
+                throw CjpmUpdateException( CangJieBundle.message(
+                    "invalid.cangjie.toolchain.02",
+                    "cjpm"
+                ))
             }
 
             // 创建 cjpm update 命令
@@ -199,13 +196,26 @@ override fun refresh() {
                 workingDirectory = rootDir.pathAsPath
             )
 
-            // 执行命令
+            // 执行命令，使用当前 progress indicator 而非全局 indicator 以避免 EDT 阻塞
             LOG.info("Executing cjpm update in $rootDir")
-            when (val result = commandLine.execute(intellijProject)) {
-                is  CjResult.Ok -> {
+            when (val result = with(commandLine) {
+                val generalCommandLine = toGeneralCommandLine(intellijProject)
+                generalCommandLine.execute(
+                    owner = intellijProject,
+                    stdIn = null,
+                    runner = {
+                        // 使用当前的 progress indicator 而非全局 indicator
+                        val indicator = com.intellij.openapi.progress.ProgressManager.getInstance().progressIndicator
+                        runProcess(indicator, null)
+                    },
+                    listener = null
+                )
+            }) {
+                is CjResult.Ok -> {
                     LOG.info("cjpm update completed successfully for project $name")
                 }
-                is  CjResult.Err -> {
+
+                is CjResult.Err -> {
                     val errorMessage = "cjpm update failed for project $name: ${result.err}"
 //                    LOG.error(errorMessage)
                     throw CjpmUpdateException(errorMessage, result.err.toString(), result.err)
@@ -222,47 +232,27 @@ override fun refresh() {
     }
 
     override fun findModule(name: String): CjModule? {
-        return modules.find { it.name == name }
+        return if (isWorkspace) workspace?.modules?.find { it.name == name }
+        else if (module?.name == name) {
+            modulesCache.value
+        } else null
     }
 
-    private fun buildModulesList(): List<CjModule> {
-        val config = this.config.value ?: return emptyList()
-        val result = mutableListOf<CjModule>()
+    private fun buildModule(): CjModule? {
+        val config = this.config.value ?: return null
+        var result: CjModule? = null
 
         // 如果是单模块项目
         config.`package`?.let { packageConfig ->
-            result.add(
-                CjpmModuleImpl(
-                    name = packageConfig.name,
-                    rootDir = rootDir,
-                    project = this,
-                    packageConfig = packageConfig
-                )
+
+            result = CjpmModuleImpl(
+                name = packageConfig.name,
+                rootDir = rootDir,
+                project = this,
+                packageConfig = packageConfig
             )
         }
 
-        // 如果是工作空间项目
-        config.workspace?.let { workspaceConfig ->
-            workspaceConfig.members.forEach { memberPath ->
-                val memberDir = rootDir.findFileByRelativePath(memberPath)
-                val memberManifest = memberDir?.findChild("cjpm.toml")
-
-                if (memberDir != null && memberManifest != null) {
-                    val fullMemberConfig = CjpmTomlParser.parse(memberManifest)
-                    val memberConfig = fullMemberConfig?.let { CjpmConfigConverter.convertToSimpleConfig(it) }
-                    memberConfig?.`package`?.let { packageConfig ->
-                        result.add(
-                            CjpmModuleImpl(
-                                name = packageConfig.name,
-                                rootDir = memberDir,
-                                project = this,
-                                packageConfig = packageConfig
-                            )
-                        )
-                    }
-                }
-            }
-        }
 
         return result
     }
@@ -272,9 +262,9 @@ override fun refresh() {
 
         return if (config.workspace != null) {
             CjpmWorkspaceImpl(
-                name = config.workspace.name ?: name,
+                project = this,
                 rootDir = rootDir,
-                modules = modules
+                workspace = config.workspace
             )
         } else {
             null
@@ -287,12 +277,24 @@ override fun refresh() {
         // 添加项目根目录
         directories.add(rootDir)
 
-        // 添加所有模块的源码目录和输出目录
-        for (module in modules) {
-            for (sourceSet in module.sourceSets) {
+
+        if (isWorkspace) {
+
+            // 添加所有模块的源码目录和输出目录
+            for (module in workspace!!.modules) {
+                for (sourceSet in module.sourceSets) {
+                    directories.addAll(sourceSet.roots)
+                }
+                for (target in module.targets) {
+                    target.outputDirectory?.let { directories.add(it) }
+                }
+            }
+
+        } else {
+            for (sourceSet in module!!.sourceSets) {
                 directories.addAll(sourceSet.roots)
             }
-            for (target in module.targets) {
+            for (target in module!!.targets) {
                 target.outputDirectory?.let { directories.add(it) }
             }
         }
@@ -300,3 +302,5 @@ override fun refresh() {
         return directories
     }
 }
+
+

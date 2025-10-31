@@ -49,6 +49,11 @@ interface CjProjectListener : EventListener {
     fun projectCreated(event: CjProjectEvent) {}
 
     /**
+     * 项目打开时调用
+     */
+    fun projectOpened(event: CjProjectEvent) {}
+
+    /**
      * 项目更新时调用
      */
     fun projectUpdated(event: CjProjectEvent) {}

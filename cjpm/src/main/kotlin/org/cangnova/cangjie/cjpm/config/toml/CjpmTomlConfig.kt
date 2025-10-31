@@ -95,6 +95,26 @@ class EmptyStringToFfiConfigDeserializer : com.fasterxml.jackson.databind.JsonDe
 }
 
 /**
+ * 自定义反序列化器，将空字符串转换为默认值 "src"
+ */
+class EmptyStringToSrcDirDeserializer : JsonDeserializer<String>() {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): String {
+        val value = p.valueAsString
+        return if (value.isNullOrEmpty()) "src" else value
+    }
+}
+
+/**
+ * 自定义反序列化器，将空字符串转换为默认值 "target"
+ */
+class EmptyStringToTargetDirDeserializer : JsonDeserializer<String>() {
+    override fun deserialize(p: JsonParser, ctxt: DeserializationContext): String {
+        val value = p.valueAsString
+        return if (value.isNullOrEmpty()) "target" else value
+    }
+}
+
+/**
  * 单模块配置
  */
 @Serializable
@@ -124,10 +144,14 @@ data class PackageConfig(
     @field:JsonProperty("output-type") val outputType: OutputType,
 
     /** 指定源码存放路径 */
-    @field:JsonProperty("src-dir") val srcDir: String = "src",
+    @field:JsonProperty("src-dir")
+    @field:JsonDeserialize(using = EmptyStringToSrcDirDeserializer::class)
+    val srcDir: String = "src",
 
     /** 指定产物存放路径 */
-    @field:JsonProperty("target-dir") val targetDir: String = "target",
+    @field:JsonProperty("target-dir")
+    @field:JsonDeserialize(using = EmptyStringToTargetDirDeserializer::class)
+    val targetDir: String = "target",
 
     /** 单包配置选项 */
     @field:JsonProperty("package-configuration") val packageConfiguration: Map<String, PackageConfigurationInfo> = mapOf()

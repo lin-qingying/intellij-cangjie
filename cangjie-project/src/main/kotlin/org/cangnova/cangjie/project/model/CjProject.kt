@@ -25,15 +25,16 @@
 package org.cangnova.cangjie.project.model
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.project.service.CjProjectsService
 import java.lang.Exception
 import kotlin.Throws
 
 
-val Project.allCjProject: List<CjProject>
+val Project.cjProject: CjProject
     get() {
-        return CjProjectsService.getInstance(this).allProjects
+        return CjProjectsService.getInstance(this).cjProject
     }
 
 /**
@@ -59,25 +60,26 @@ interface CjProject {
      */
     val intellijProject: Project
 
-    /**
-     * 项目配置文件 (如 cjpm.toml)
-     */
-    val configFile: VirtualFile?
 
     /**
-     * 项目中的模块列表
+     * 项目类型标识：是否为工作空间项目
+     * - true: 工作空间项目（多模块）
+     * - false: 单模块项目
      */
-    val modules: List<CjModule>
+    val isWorkspace: Boolean
+
+    /**
+     * 项目的主模块（单模块项目）或工作空间（多模块项目）
+     * - 单模块项目：返回该项目的唯一模块
+     * - 工作空间项目：返回 null（使用 workspace 访问所有模块）
+     */
+    val module: CjModule?
 
     /**
      * 所属工作空间 (如果有)
      */
     val workspace: CjWorkspace?
 
-    /**
-     * 项目版本
-     */
-    val version: String?
 
     /**
      * 项目是否有效
@@ -118,9 +120,11 @@ interface CjProject {
     fun refresh()
 
 
-
     /**
      * 查找指定名称的模块
      */
     fun findModule(name: String): CjModule?
+
+
+
 }

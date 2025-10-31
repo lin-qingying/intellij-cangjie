@@ -73,6 +73,11 @@ sealed class CjResult<out T, out E> {
 
 
 }
+
+fun <T, E : Throwable>  CjResult<T, E>.unwrapOrThrow(): T = when (this) {
+    is  CjResult.Ok -> ok
+    is  CjResult.Err -> throw err
+}
 typealias CjProcessResult<T> = CjResult<T, CjProcessExecutionException>
 
 class CjCapturingProcessHandler(commandLine: GeneralCommandLine) : CapturingProcessHandler(commandLine) {

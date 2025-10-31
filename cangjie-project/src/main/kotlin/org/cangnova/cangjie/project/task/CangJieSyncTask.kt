@@ -40,29 +40,37 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.CjProjectBundle
+import org.cangnova.cangjie.project.event.CjProjectEvent
+import org.cangnova.cangjie.project.event.CjProjectEventType
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.service.cangjieProjectService
+import org.cangnova.cangjie.project.workspace.CjWorkspaceModelSync
 import org.cangnova.cangjie.task.CangJieTask
 import javax.swing.JComponent
 
 /**
  * 仓颉项目同步任务
  *
- * 该任务是一个带有进度条的任务执行器，负责刷新指定的仓颉项目。
+ * 该任务是一个带有进度条的任务执行器，负责刷新仓颉项目。
  * 所有从UI/感知层触发的项目刷新都应该通过这个类开始。
  *
  * 实现了CangJieTask接口，可以通过任务队列服务进行管理。
+ * 采用单项目模型，每个IntelliJ项目对应一个仓颉项目。
  *
  * @param project IntelliJ 项目实例
- * @param projectsToSync 需要同步的仓颉项目列表，如果为空则同步所有项目
  */
 class CangJieSyncTask(
     project: Project,
-    private val projectsToSync: List<CjProject> = emptyList()
+
+//    刷新完成回调
+    val onFinished: ((CjProject) -> Unit)  =   {
+
+    }
 ) : Task.Backgroundable(project, CjProjectBundle.message("progress.title.reloading.cangjie.project"), true),
     CangJieTask {
 
@@ -106,7 +114,7 @@ class CangJieSyncTask(
             syncProgress.cancel()
             throw e
         } catch (e: Exception) {
-            LOG.error("Error during CangJie sync task", e)
+//            LOG.error("Error during CangJie sync task", e)
             syncProgress.fail()
             throw e
         }
@@ -115,7 +123,7 @@ class CangJieSyncTask(
     /**
      * 执行实际的同步逻辑
      *
-     * 直接调用每个 CjProject.refresh() 执行刷新。
+     * 直接调用 CjProject.refresh() 执行刷新。
      * 该方法负责进度显示和状态更新。
      *
      * @param indicator 进度指示器
@@ -124,74 +132,88 @@ class CangJieSyncTask(
     private fun doSync(indicator: ProgressIndicator, syncProgress: BuildProgress<BuildProgressDescriptor>) {
         val projectService = project.cangjieProjectService
 
-        // 确定要同步的项目列表
-        val projects = if (projectsToSync.isEmpty()) {
-            projectService.allProjects
-        } else {
-            projectsToSync
-        }
+        // 获取当前仓颉项目
+        val cjProject = projectService.cjProject
 
-        if (projects.isEmpty()) {
-            LOG.info("No CangJie projects found to sync")
+        if (!cjProject.isValid) {
+            LOG.info("No CangJie project found to sync")
             indicator.text = CjProjectBundle.message("progress.text.no.projects.found")
             syncProgress.output(CjProjectBundle.message("progress.text.no.projects.found"), true)
             return
         }
 
-        LOG.info("Syncing ${projects.size} CangJie projects")
+        // 检查是否被取消
+        indicator.checkCanceled()
 
-        // 为每个项目创建子进度并刷新
-        projects.forEachIndexed { index, cjProject ->
-            // 检查是否被取消
-            indicator.checkCanceled()
+        // 更新进度指示器
+        indicator.text = CjProjectBundle.message(
+            "progress.text.refreshing.project",
+            cjProject.name
+        )
 
-            // 更新进度指示器
-            indicator.fraction = index.toDouble() / projects.size
-            indicator.text = CjProjectBundle.message(
-                "progress.text.refreshing.project.concurrent",
-                cjProject.name,
-                index + 1,
-                projects.size
-            )
+        LOG.info("Syncing project: ${cjProject.name}")
 
-            LOG.info("Syncing project: ${cjProject.name} (${index + 1}/${projects.size})")
-
-            // 使用子进度显示每个项目的刷新过程
-            syncProgress.runWithChildProgress(
-                CjProjectBundle.message("build.event.title.sync.project", cjProject.name),
-                createContext = { it },
-                action = { childProgress ->
-                    try {
-                        // 执行项目刷新（会调用 CjpmProjectImpl.refresh() 等具体实现）
-                        cjProject.refresh()
-
-                        // 发布项目更新事件
-                        projectService.refreshProject(cjProject)
-
-                        childProgress.finish()
-                    } catch (e: ProcessCanceledException) {
-                        childProgress.cancel()
-                        throw e
-                    } catch (e: Exception) {
-//                        LOG.error("Failed to sync project: ${cjProject.name}", e)
-                        childProgress.message(
-                            CjProjectBundle.message("build.event.title.failed.to.refresh.project", cjProject.name),
-                            e.message ?: CjProjectBundle.message("error.unknown.error"),
-                            MessageEvent.Kind.ERROR,
-                            null
-                        )
-                        childProgress.fail()
-                        // 继续处理其他项目
-                    }
+        // 使用子进度显示项目的刷新过程
+        syncProgress.runWithChildProgress(
+            CjProjectBundle.message("build.event.title.sync.project", cjProject.name),
+            createContext = { it },
+            action = { childProgress ->
+                try {
+                    // 调用项目服务的刷新方法，触发完整的刷新流程
+                    cjProject.refresh()
+                    onFinished(cjProject)
+                    childProgress.finish()
+                } catch (e: ProcessCanceledException) {
+                    childProgress.cancel()
+                    throw e
+                } catch (e: Exception) {
+//                    LOG.error("Failed to sync project: ${cjProject.name}", e)
+                    childProgress.message(
+                        CjProjectBundle.message("build.event.title.failed.to.refresh.project", cjProject.name),
+                        e.message ?: CjProjectBundle.message("error.unknown.error"),
+                        MessageEvent.Kind.ERROR,
+                        null
+                    )
+                    childProgress.fail()
+//                    throw e
                 }
-            )
-        }
+            }
+        )
+
+        // 同步到 Workspace Model
+        syncProgress.runWithChildProgress(
+            "Sync to Workspace Model",
+            createContext = { it },
+            action = { childProgress ->
+                try {
+                    // 使用 runBlockingCancellable 在当前协程上下文中执行 suspend 函数
+                    runBlockingCancellable {
+                        val workspaceSync = projectService.intellijProject.service<CjWorkspaceModelSync>()
+                        workspaceSync.syncProjects(cjProject)
+                    }
+
+                    childProgress.finish()
+                } catch (e: ProcessCanceledException) {
+                    childProgress.cancel()
+                    throw e
+                } catch (e: Exception) {
+                    LOG.error("Failed to sync workspace model for project: ${cjProject.name}", e)
+                    childProgress.message(
+                        "Failed to sync Workspace Model",
+                        e.message ?: "Unknown error",
+                        MessageEvent.Kind.ERROR,
+                        null
+                    )
+                    childProgress.fail()
+                    throw e
+                }
+            }
+        )
 
         // 更新进度显示
         indicator.fraction = 1.0
         indicator.text = CjProjectBundle.message(
-            "progress.text.refreshing.completed",
-            projects.size
+            "progress.text.refreshing.completed.single"
         )
     }
 
