@@ -40,6 +40,8 @@ import com.intellij.util.ui.tree.TreeUtil
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.CjWorkspace
+import org.cangnova.cangjie.project.service.CjProjectsService
+import org.cangnova.cangjie.project.service.impl.CjProjectsServiceImpl
 import javax.swing.Icon
 
 /**
@@ -67,9 +69,10 @@ class CjProjectTree(private val project: Project) : SimpleTree(), DataProvider, 
     /**
      * 更新显示的项目列表
      */
-    fun updateProjects(projects: List<CjProject>) {
+    fun updateProjects(projects:  CjProject ) {
         treeStructure.updateProjects(projects)
-        structureModel.invalidate()
+        // 强制刷新整个树结构，递归清除所有子节点的缓存
+        structureModel.invalidateAsync(treeStructure.rootElement, true)
     }
 
     override fun getData(dataId: String): Any? {
@@ -92,7 +95,7 @@ private class CjProjectTreeStructure(private val project: Project) : AbstractTre
 
     private val rootElement = RootNode(project)
 
-    fun updateProjects(projects: List<CjProject>) {
+    fun updateProjects(projects:  CjProject ) {
         rootElement.updateProjects(projects)
     }
 
@@ -132,16 +135,16 @@ private class CjProjectTreeStructure(private val project: Project) : AbstractTre
  */
 private class RootNode(project: Project) : CachingSimpleNode(project, null) {
 
-    private var projects: List<CjProject> = emptyList()
+    private var projects:  CjProject   = CjProjectsService.getInstance(project).noProjectMarker
 
-    fun updateProjects(newProjects: List<CjProject>) {
+    fun updateProjects(newProjects: CjProject ) {
         projects = newProjects
         cleanUpCache()
     }
 
     override fun buildChildren(): Array<SimpleNode> {
         // 直接返回所有项目作为根节点的子节点
-        return projects.map { CjProjectNode(myProject, this, it) }.toTypedArray()
+        return listOf(  CjProjectNode(myProject, this, projects)) .toTypedArray()
     }
 
     override fun getName(): String = "Root"
@@ -182,12 +185,16 @@ private class CjProjectNode(
     override fun buildChildren(): Array<SimpleNode> {
         val nodes = mutableListOf<SimpleNode>()
 
-        // 如果项目有工作空间，则添加工作空间节点
-        project.workspace?.let { workspace ->
-            nodes.add(WorkspaceNode(myProject, this, workspace, project.modules))
-        } ?: run {
-            // 如果没有工作空间，直接添加模块节点
-            nodes.addAll(project.modules.map { ModuleNode(myProject, this, it) })
+        if(project.isWorkspace){
+            // 如果是工作空间项目，添加工作空间节点
+            project.workspace?.let { workspace ->
+                nodes.add(WorkspaceNode(myProject, this, workspace, project.workspace!!.modules))
+            }
+        }else{
+            // 如果是单模块项目，直接添加模块节点
+
+                nodes.add(ModuleNode(myProject, this, project.module!!))
+
         }
 
         return nodes.toTypedArray()

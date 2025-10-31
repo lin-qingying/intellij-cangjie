@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.project
 
 import com.intellij.openapi.components.*
+import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings
 import com.intellij.openapi.project.Project
 import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.xmlb.annotations.Transient
@@ -50,7 +51,7 @@ class CangJieProjectSettingsService(
     ) : CjProjectSettingsServiceBase<CangJieProjectSettingsService.CangJieProjectSettings>(
     project,
     CangJieProjectSettings()
-) {
+)  {
 
     val toolchain: CjSdk? get() = state.toolchain
     val useOffline: Boolean get() = state.useOffline
@@ -58,7 +59,9 @@ class CangJieProjectSettingsService(
 
 
     val autoUpdateEnabled: Boolean get() = state.autoUpdateEnabled
-
+    fun configureToolchain() {
+        project.showSettingsDialog<CangJieConfigurable>()
+    }
     class CangJieProjectSettings : CjProjectSettingsBase<CangJieProjectSettings>() {
 
 
