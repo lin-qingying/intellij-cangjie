@@ -24,23 +24,23 @@
 
 package org.cangnova.cangjie.cjpm.project
 
+
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-
-
-import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
+import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import org.cangnova.cangjie.messages.CangJieBundle
-
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.CjWorkspace
 import org.cangnova.cangjie.project.model.roots
+import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.result.CjResult
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.command.ToolchainCommandLine
-
 import org.cangnova.cangjie.utils.pathAsPath
 
 /**
@@ -152,8 +152,6 @@ class CjpmProjectImpl(
     override fun refresh() {
         LOG.info("Refreshing CJPM project: $name")
 
-        // 执行 cjpm update 命令来更新依赖
-        executeCjpmUpdate()
 
         // 清除配置缓存，强制重新解析 TOML
         config.reset()
@@ -164,8 +162,17 @@ class CjpmProjectImpl(
         // 清除工作空间缓存，强制重新构建工作空间信息
         workspaceCache.reset()
 
+
         // 清除索引目录缓存，强制重新计算可索引目录
         indexableDirectoriesCache.reset()
+
+
+        // 检查模块目录情况
+        checkAndCreateModuleDirectories()
+
+
+        // 执行 cjpm update 命令来更新依赖
+        executeCjpmUpdate()
 
         LOG.info("Successfully refreshed CJPM project: $name")
     }
@@ -182,10 +189,12 @@ class CjpmProjectImpl(
 
             if (sdk == null || !sdk.isValid) {
 
-                throw CjpmUpdateException( CangJieBundle.message(
-                    "invalid.cangjie.toolchain.02",
-                    "cjpm"
-                ))
+                throw CjpmUpdateException(
+                    CangJieBundle.message(
+                        "invalid.cangjie.toolchain.02",
+                        "cjpm"
+                    )
+                )
             }
 
             // 创建 cjpm update 命令
@@ -228,6 +237,79 @@ class CjpmProjectImpl(
             val errorMessage = "Failed to execute cjpm update for project $name"
 //            LOG.error(errorMessage, e)
             throw CjpmUpdateException(errorMessage, e.message, e)
+        }
+    }
+
+    /**
+     * 检查并创建模块目录
+     *
+     * 对于工作空间项目，检查每个模块是否有对应的物理目录，
+     * 如果目录不存在，则调用 createProject 创建该模块
+     */
+    private fun checkAndCreateModuleDirectories() {
+        if (isWorkspace) {
+
+
+            val workspaceConfig = config.value?.workspace ?: return
+            val sdkConfig = CjProjectSdkConfig.getInstance(intellijProject)
+            val sdk = sdkConfig.getProjectSdk()
+
+            if (sdk == null || !sdk.isValid) {
+                LOG.warn("No valid SDK found, skipping module directory creation")
+                return
+            }
+
+            workspaceConfig.members.forEach { memberPath ->
+                val memberDir = rootDir.findFileByRelativePath(memberPath)
+
+                if (memberDir == null || !memberDir.exists()) {
+
+
+                    val parentPath = memberPath.substringBeforeLast('/', "")
+                    val parentDir = if (parentPath.isEmpty()) {
+                        rootDir
+                    } else {
+                        rootDir.findFileByRelativePath(parentPath) ?: rootDir
+                    }
+
+                    LOG.info("Module directory not found at $memberPath, creating project")
+
+                    // 创建模块目录
+                    val moduleName = memberPath.substringAfterLast('/')
+                    val targetDir = try {
+
+                        runWriteAction<VirtualFile> {
+                            if (parentDir.findChild(moduleName) == null) {
+                                parentDir.createChildDirectory(this, moduleName)
+                            } else {
+                                parentDir.findChild(moduleName)!!
+                            }
+                        }
+                    } catch (e: Exception) {
+                        LOG.warn("Failed to create directory for module at $memberPath: ${e.message}")
+                        return@forEach
+                    }
+
+
+                    val projectType = "static"
+
+
+                    invokeLater {
+                        val result = CjProjectsService.getInstance(intellijProject)
+                            .createProject(sdk.id, intellijProject, targetDir, projectType, moduleName)
+
+                        when (result) {
+                            is CjResult.Ok -> {
+                                LOG.info("Successfully created module at $memberPath")
+                            }
+
+                            is CjResult.Err -> {
+                                LOG.warn("Failed to create module at $memberPath: ${result.err}")
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -285,18 +367,14 @@ class CjpmProjectImpl(
                 for (sourceSet in module.sourceSets) {
                     directories.addAll(sourceSet.roots)
                 }
-                for (target in module.targets) {
-                    target.outputDirectory?.let { directories.add(it) }
-                }
+
             }
 
         } else {
             for (sourceSet in module!!.sourceSets) {
                 directories.addAll(sourceSet.roots)
             }
-            for (target in module!!.targets) {
-                target.outputDirectory?.let { directories.add(it) }
-            }
+
         }
 
         return directories

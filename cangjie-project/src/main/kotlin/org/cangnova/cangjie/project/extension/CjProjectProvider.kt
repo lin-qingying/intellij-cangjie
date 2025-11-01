@@ -70,7 +70,8 @@ interface CjProjectProvider {
         sdkId: String,
         project: Project, owner: Disposable,
         directory: VirtualFile,
-        projectType: String
+        projectType: String,
+        name: String? = null
     ): CjProcessResult<GeneratedFilesHolder>
 
 

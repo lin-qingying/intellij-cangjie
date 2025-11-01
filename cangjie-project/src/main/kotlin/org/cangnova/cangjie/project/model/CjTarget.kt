@@ -24,8 +24,6 @@
 
 package org.cangnova.cangjie.project.model
 
-import com.intellij.openapi.vfs.VirtualFile
-
 /**
  * 构建目标类型
  */
@@ -49,37 +47,4 @@ enum class CjTargetType {
      * 测试目标
      */
     TEST
-}
-
-/**
- * 构建目标抽象
- *
- * 代表一个可构建的目标(如可执行文件、库等)
- */
-interface CjTarget {
-    /**
-     * 目标名称
-     */
-    val name: String
-
-    /**
-     * 目标类型
-     */
-    val type: CjTargetType
-
-    /**
-     * 所属模块
-     */
-    val module: CjModule
-
-    /**
-     * 源码集
-     */
-    val sourceSets: List<CjSourceSet>
-
-    /**
-     * 输出目录（如果有）
-     */
-    val outputDirectory: VirtualFile?
-        get() = null
 }

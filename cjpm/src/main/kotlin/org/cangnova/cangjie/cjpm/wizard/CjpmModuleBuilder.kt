@@ -76,8 +76,8 @@ class CjpmModuleBuilder : CjModuleBuilder() {
             // 调用 cjpm init 创建项目
             val result = CjProjectsService.getInstance(project).createProject(
                 toolchain.id,
-                directory = rootDir,
                 owner = model.module,
+                directory = rootDir,
                 projectType = projectType
 
             )

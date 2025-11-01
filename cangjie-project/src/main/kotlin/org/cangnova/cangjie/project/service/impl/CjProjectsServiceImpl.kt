@@ -24,18 +24,16 @@
 
 package org.cangnova.cangjie.project.service.impl
 
+
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
-import com.intellij.openapi.components.StoragePathMacros
-import com.intellij.openapi.components.service
+import com.intellij.openapi.components.*
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
 import com.intellij.openapi.fileTypes.FileTypeManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.RootsChangeRescanningInfo
 import com.intellij.openapi.project.ex.ProjectEx
@@ -43,22 +41,12 @@ import com.intellij.openapi.roots.ex.ProjectRootManagerEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.registry.Registry
-
-import java.util.Optional
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.util.Function
 import com.intellij.util.indexing.LightDirectoryIndex
 import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.project.CANGJIE_PROJECTS_TOPIC
-import org.cangnova.cangjie.project.CANGJIE_SETTINGS_TOPIC
-
-import org.cangnova.cangjie.project.CjProjectSettingsBase
-import org.cangnova.cangjie.project.CjSettingsListener
-import org.cangnova.cangjie.project.SettingsChangedEventBase
-
-import org.cangnova.cangjie.project.cangjieSettingsData
-
-
+import org.cangnova.cangjie.project.*
 import org.cangnova.cangjie.project.event.CjProjectEvent
 import org.cangnova.cangjie.project.event.CjProjectEventType
 import org.cangnova.cangjie.project.event.CjProjectListener
@@ -67,22 +55,18 @@ import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.roots
 import org.cangnova.cangjie.project.service.CjProjectsService
-import org.cangnova.cangjie.project.workspace.CjWorkspaceModelSync
 import org.cangnova.cangjie.project.service.CjProjectsService.Companion.CANGJIE_PROJECTS_REFRESH_TOPIC
-
 import org.cangnova.cangjie.project.service.GeneratedFilesHolder
-import org.cangnova.cangjie.result.CjProcessResult
 import org.cangnova.cangjie.project.task.CangJieSyncTask
+import org.cangnova.cangjie.project.workspace.CjWorkspaceModelSync
+import org.cangnova.cangjie.result.CjProcessResult
 import org.cangnova.cangjie.task.taskQueue
-import org.cangnova.cangjie.utils.AsyncValue
-import org.cangnova.cangjie.utils.checkReadAccessAllowed
-import org.cangnova.cangjie.utils.checkWriteAccessAllowed
-import org.cangnova.cangjie.utils.invokeAndWaitIfNeeded
-import org.cangnova.cangjie.utils.isUnitTestMode
-import org.cangnova.cangjie.utils.toPath
+import org.cangnova.cangjie.utils.*
 import org.jdom.Element
+import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletionException
+
 
 /**
  * 是否启用新项目模型导入
@@ -282,7 +266,21 @@ class CjProjectsServiceImpl(
                         }
                     })
             }
+            subscribe(
+                ModuleListener.TOPIC,
+                object : ModuleListener {
+                    override fun moduleRemoved(project: Project, module: Module) {
+                        super.moduleRemoved(project, module)
+                    }
 
+                    override fun modulesRenamed(
+                        project: Project,
+                        modules: List<Module>,
+                        oldNameProvider: Function<in Module, String?>
+                    ) {
+                        super.modulesRenamed(project, modules, oldNameProvider)
+                    }
+                })
 
         }
 
@@ -371,6 +369,7 @@ class CjProjectsServiceImpl(
             )
         }
     }
+
 
     /**
      * 项目模型修改的统一入口（异步版本）
@@ -524,9 +523,10 @@ class CjProjectsServiceImpl(
         sdkId: String,
         owner: Disposable,
         directory: VirtualFile,
-        projectType: String
+        projectType: String,
+        name: String?
     ): CjProcessResult<GeneratedFilesHolder> {
-        return providerCache.createProjectFromPhysicalFile(sdkId, intellijProject, owner, directory, projectType)
+        return providerCache.createProjectFromPhysicalFile(sdkId, intellijProject, owner, directory, projectType, name)
     }
 
     /**
@@ -765,11 +765,7 @@ class CangJieModuleIndex(
                     }
 
                     // 索引所有目标的输出目录
-                    for (target in module.targets) {
-                        target.outputDirectory?.let { outDir ->
-                            index.putInfo(outDir, moduleInfo)
-                        }
-                    }
+
                 }
             } else {
                 val moduleInfo = Optional.of(cjProject.module!!)
@@ -785,11 +781,7 @@ class CangJieModuleIndex(
                 }
 
                 // 索引所有目标的输出目录
-                for (target in cjProject.module!!.targets) {
-                    target.outputDirectory?.let { outDir ->
-                        index.putInfo(outDir, moduleInfo)
-                    }
-                }
+
             }
         }
 

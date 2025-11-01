@@ -77,7 +77,8 @@ class CjpmProjectProvider : CjProjectProvider {
         project: Project,
         owner: Disposable,
         directory: VirtualFile,
-        projectType: String
+        projectType: String,
+        name: String?
     ): CjProcessResult<GeneratedFilesHolder> = runWriteAction {
 //调用init命令创建
 
@@ -86,8 +87,8 @@ class CjpmProjectProvider : CjProjectProvider {
         val args = mutableListOf<String>()
 
         args.add(crateType)
-
-        args.add("--name=${project.name}")
+        val projectName = name ?: project.name
+        args.add("--name=${projectName}")
 
 
         ToolchainCommandLine(sdkId, "tools/bin/cjpm", "init", path, args).execute(project, owner)
@@ -120,18 +121,14 @@ class CjpmProjectProvider : CjProjectProvider {
                 for (sourceSet in module.sourceSets) {
                     directories.addAll(sourceSet.roots)
                 }
-                for (target in module.targets) {
-                    target.outputDirectory?.let { directories.add(it) }
-                }
+
             }
 
         }else{
             for (sourceSet in project.module!!.sourceSets) {
                 directories.addAll(sourceSet.roots)
             }
-            for (target in project.module!!.targets) {
-                target.outputDirectory?.let { directories.add(it) }
-            }
+
         }
 
         return directories

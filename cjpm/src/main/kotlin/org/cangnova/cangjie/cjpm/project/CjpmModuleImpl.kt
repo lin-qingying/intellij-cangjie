@@ -25,15 +25,17 @@
 package org.cangnova.cangjie.cjpm.project
 
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.workspace.jps.entities.ModuleEntity
-import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
 import org.cangnova.cangjie.cjpm.model.DependencyConfig
 import org.cangnova.cangjie.cjpm.model.PackageConfig
+import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import org.cangnova.cangjie.dependency.model.CjDependency
 import org.cangnova.cangjie.dependency.model.CjDependencyScope
 import org.cangnova.cangjie.dependency.model.CjDependencyType
-import org.cangnova.cangjie.project.model.*
+import org.cangnova.cangjie.project.model.CjModule
+import org.cangnova.cangjie.project.model.CjModuleDependency
+import org.cangnova.cangjie.project.model.CjProject
+import org.cangnova.cangjie.project.model.CjSourceSet
 
 /**
  * CJPM 模块实现
@@ -54,9 +56,7 @@ class CjpmModuleImpl(
         buildSourceSets()
     }
 
-    override val targets: List<CjTarget> by lazy {
-        buildTargets()
-    }
+
 
     /**
      * 模块依赖列表
@@ -175,24 +175,7 @@ class CjpmModuleImpl(
         }
     }
 
-    private fun buildTargets(): List<CjTarget> {
-        val targetType = when (packageConfig.outputType) {
-            org.cangnova.cangjie.cjpm.model.OutputType.EXECUTABLE -> CjTargetType.EXECUTABLE
-            org.cangnova.cangjie.cjpm.model.OutputType.STATIC -> CjTargetType.STATIC_LIBRARY
-            org.cangnova.cangjie.cjpm.model.OutputType.DYNAMIC -> CjTargetType.DYNAMIC_LIBRARY
-            null -> CjTargetType.EXECUTABLE // 默认为可执行文件
-        }
 
-        return listOf(
-            CjpmTargetImpl(
-                name = name,
-                sourceSets = sourceSets,
-                type = targetType,
-                module = this,
-                targetDir = packageConfig.targetDir
-            )
-        )
-    }
 }
 
 /**
@@ -208,8 +191,9 @@ class CjpmSourceSetImpl(
 
     override val sourceRoots: List<VirtualFile>
         get() {
+            if (!rootDir.isValid) return emptyList()
             val srcFile = rootDir.findFileByRelativePath(srcDir)
-            return if (srcFile != null && srcFile.isDirectory) {
+            return if (srcFile != null && srcFile.isValid && srcFile.isDirectory) {
                 listOf(srcFile)
             } else {
                 emptyList()
@@ -218,8 +202,9 @@ class CjpmSourceSetImpl(
 
     override val resourceRoots: List<VirtualFile>
         get() {
+            if (!rootDir.isValid) return emptyList()
             val resourcesDir = rootDir.findFileByRelativePath("resources")
-            return if (resourcesDir != null && resourcesDir.isDirectory) {
+            return if (resourcesDir != null && resourcesDir.isValid && resourcesDir.isDirectory) {
                 listOf(resourcesDir)
             } else {
                 emptyList()
@@ -228,8 +213,9 @@ class CjpmSourceSetImpl(
 
     override val outputDirectory: List<VirtualFile>
         get() {
+            if (!rootDir.isValid) return emptyList()
             val targetDirFile = rootDir.findFileByRelativePath(targetDir)
-            return if (targetDirFile != null && targetDirFile.isDirectory) {
+            return if (targetDirFile != null && targetDirFile.isValid && targetDirFile.isDirectory) {
                 listOf(targetDirFile)
             } else {
                 emptyList()
@@ -237,24 +223,4 @@ class CjpmSourceSetImpl(
         }
 }
 
-/**
- * CJPM 目标实现
- */
-class CjpmTargetImpl(
-    override val name: String,
-    override val type: CjTargetType,
-    override val sourceSets: List<CjSourceSet>,
-    override val module: CjModule,
-    private val targetDir: String
-) : CjTarget {
-
-    override val outputDirectory: VirtualFile?
-        get() {
-            val buildDir = module.rootDir.findFileByRelativePath(targetDir)
-            return if (buildDir != null && buildDir.isDirectory) {
-                buildDir
-            } else {
-                null
-            }
-        }
-}
+ 

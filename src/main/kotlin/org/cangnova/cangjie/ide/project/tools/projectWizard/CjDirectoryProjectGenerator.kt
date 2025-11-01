@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,12 @@
 
 package org.cangnova.cangjie.ide.project.tools.projectWizard
 
-import org.cangnova.cangjie.icon.CangJieIcons
-import org.cangnova.cangjie.messages.CangJieBundle
-import org.cangnova.cangjie.utils.computeWithCancelableProgress
 import com.intellij.facet.ui.ValidationResult
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.ide.util.projectWizard.AbstractNewProjectStep
 import com.intellij.ide.util.projectWizard.CustomStepProjectGenerator
 import com.intellij.ide.util.projectWizard.ProjectSettingsStepBase
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -40,12 +38,14 @@ import com.intellij.openapi.wm.impl.welcomeScreen.AbstractActionWithPanel
 import com.intellij.platform.DirectoryProjectGenerator
 import com.intellij.platform.DirectoryProjectGeneratorBase
 import com.intellij.platform.ProjectGeneratorPeer
+import org.cangnova.cangjie.icon.CangJieIcons
 import org.cangnova.cangjie.ide.project.cangjieSettings
+import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.project.service.GeneratedFilesHolder
 import org.cangnova.cangjie.project.wizard.ConfigurationData
 import org.cangnova.cangjie.result.unwrapOrThrow
-import com.intellij.openapi.application.ApplicationManager
+import org.cangnova.cangjie.utils.computeWithCancelableProgress
 import javax.swing.Icon
 
 open class CjProjectSettingsStep(generator: DirectoryProjectGenerator<ConfigurationData>) :
@@ -82,8 +82,8 @@ class CjDirectoryProjectGenerator : DirectoryProjectGeneratorBase<ConfigurationD
         project.computeWithCancelableProgress(CangJieBundle.message("progress.title.generating.cangjie.project")) {
             CjProjectsService.getInstance(project).createProject(
                 toolchain.id,
-                directory = baseDir,
                 owner =  module,
+                directory = baseDir,
                 projectType = projectType
 
             ) .unwrapOrThrow() // TODO throw? really??

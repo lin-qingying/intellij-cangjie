@@ -27,14 +27,12 @@ package org.cangnova.cangjie.project.service
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.CjSourceSet
-import org.cangnova.cangjie.project.model.CjTarget
 import org.cangnova.cangjie.project.model.CjWorkspace
 import org.cangnova.cangjie.result.CjProcessResult
 
@@ -96,8 +94,7 @@ interface CjProjectsService {
                         get() = noProjectMarker
                     override val configFile: VirtualFile?
                         get() = null
-                    override val targets: List<CjTarget>
-                        get() = emptyList()
+
                     override val sourceSets: List<CjSourceSet>
                         get() = emptyList()
 
@@ -207,6 +204,7 @@ interface CjProjectsService {
         owner: Disposable,
         directory: VirtualFile,
         projectType: String = "executable",
+        name: String? = null,
     ): CjProcessResult<GeneratedFilesHolder>
 
 

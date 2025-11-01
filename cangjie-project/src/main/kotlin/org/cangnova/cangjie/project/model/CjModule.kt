@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.project.model
 
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.workspace.jps.entities.ModuleEntity
 
 /**
  * 模块抽象
@@ -54,10 +53,6 @@ interface CjModule {
     val configFile: VirtualFile?
 
 
-    /**
-     * 构建目标列表
-     */
-    val targets: List<CjTarget>
 
     /**
      * 源码集列表
