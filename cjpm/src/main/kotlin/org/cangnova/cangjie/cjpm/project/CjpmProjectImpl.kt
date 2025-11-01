@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.cjpm.project
 
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.logger
@@ -149,7 +150,7 @@ class CjpmProjectImpl(
         get() = indexableDirectoriesCache.value
 
     @Throws(Exception::class)
-    override fun refresh() {
+    override fun refresh(onComplete: (() -> Unit)?) {
         LOG.info("Refreshing CJPM project: $name")
 
 
@@ -167,14 +168,34 @@ class CjpmProjectImpl(
         indexableDirectoriesCache.reset()
 
 
-        // 检查模块目录情况
-        checkAndCreateModuleDirectories()
+        // 检查模块目录情况,完成后执行 cjpm update
+        checkAndCreateModuleDirectories {
+            // 刷新 IntelliJ 文件系统
+            rootDir.refresh(/* asynchronous = */ false, /* recursive = */ true)
 
 
-        // 执行 cjpm update 命令来更新依赖
-        executeCjpmUpdate()
+            try {
 
-        LOG.info("Successfully refreshed CJPM project: $name")
+                // 执行 cjpm update 命令来更新依赖
+                executeCjpmUpdate()
+
+                LOG.info("Successfully refreshed CJPM project: $name")
+
+            } catch (e: Exception) {
+
+
+                throw e
+            } finally {
+                //            // 清除工作空间缓存，强制重新构建工作空间信息
+                workspaceCache.reset()
+
+                // 调用完成回调
+                onComplete?.invoke()
+            }
+
+
+        }
+
     }
 
     /**
@@ -245,67 +266,102 @@ class CjpmProjectImpl(
      *
      * 对于工作空间项目，检查每个模块是否有对应的物理目录，
      * 如果目录不存在，则调用 createProject 创建该模块
+     *
+     * @param onComplete 所有模块创建完成后的回调函数
      */
-    private fun checkAndCreateModuleDirectories() {
-        if (isWorkspace) {
+    private fun checkAndCreateModuleDirectories(onComplete: () -> Unit) {
 
 
-            val workspaceConfig = config.value?.workspace ?: return
-            val sdkConfig = CjProjectSdkConfig.getInstance(intellijProject)
-            val sdk = sdkConfig.getProjectSdk()
+        val workspaceConfig = config.value?.workspace
+        if (workspaceConfig == null) {
+            onComplete()
+            return
+        }
 
-            if (sdk == null || !sdk.isValid) {
-                LOG.warn("No valid SDK found, skipping module directory creation")
-                return
+        val sdkConfig = CjProjectSdkConfig.getInstance(intellijProject)
+        val sdk = sdkConfig.getProjectSdk()
+
+        if (sdk == null || !sdk.isValid) {
+            LOG.warn("No valid SDK found, skipping module directory creation")
+            onComplete()
+            return
+        }
+
+        // 收集需要创建的模块
+        val modulesToCreate = mutableListOf<Pair<String, VirtualFile>>()
+
+        workspaceConfig.members.forEach { memberPath ->
+            val memberDir = rootDir.findFileByRelativePath(memberPath)
+
+            if (memberDir == null || !memberDir.exists()) {
+                val parentPath = memberPath.substringBeforeLast('/', "")
+                val parentDir = if (parentPath.isEmpty()) {
+                    rootDir
+                } else {
+                    rootDir.findFileByRelativePath(parentPath) ?: rootDir
+                }
+
+                val moduleName = memberPath.substringAfterLast('/')
+                modulesToCreate.add(moduleName to parentDir)
             }
+        }
 
-            workspaceConfig.members.forEach { memberPath ->
-                val memberDir = rootDir.findFileByRelativePath(memberPath)
+        // 如果没有需要创建的模块，直接执行回调
+        if (modulesToCreate.isEmpty()) {
+            onComplete()
+            return
+        }
 
-                if (memberDir == null || !memberDir.exists()) {
+        LOG.info("Found ${modulesToCreate.size} modules to create")
 
+        // 使用计数器跟踪完成的任务数
+        val remainingTasks = java.util.concurrent.atomic.AtomicInteger(modulesToCreate.size)
 
-                    val parentPath = memberPath.substringBeforeLast('/', "")
-                    val parentDir = if (parentPath.isEmpty()) {
-                        rootDir
-                    } else {
-                        rootDir.findFileByRelativePath(parentPath) ?: rootDir
-                    }
+        modulesToCreate.forEach { (moduleName, parentDir) ->
+            val projectType = "static"
 
-                    LOG.info("Module directory not found at $memberPath, creating project")
+            LOG.info("Creating module: $moduleName")
 
-                    // 创建模块目录
-                    val moduleName = memberPath.substringAfterLast('/')
-                    val targetDir = try {
-
-                        runWriteAction<VirtualFile> {
-                            if (parentDir.findChild(moduleName) == null) {
-                                parentDir.createChildDirectory(this, moduleName)
-                            } else {
-                                parentDir.findChild(moduleName)!!
-                            }
+            // 分两步: 先在EDT创建目录,然后在后台线程执行cjpm init
+            invokeLater {
+                val targetDir = try {
+                    runWriteAction<VirtualFile> {
+                        if (parentDir.findChild(moduleName) == null) {
+                            parentDir.createChildDirectory(this, moduleName)
+                        } else {
+                            parentDir.findChild(moduleName)!!
                         }
-                    } catch (e: Exception) {
-                        LOG.warn("Failed to create directory for module at $memberPath: ${e.message}")
-                        return@forEach
                     }
+                } catch (e: Exception) {
+                    LOG.warn("Failed to create directory for module $moduleName: ${e.message}")
 
+                    // 即使失败也要减少计数器
+                    if (remainingTasks.decrementAndGet() == 0) {
+                        onComplete()
+                    }
+                    return@invokeLater
+                }
 
-                    val projectType = "static"
-
-
-                    invokeLater {
+                // 在后台线程执行耗时的 cjpm init 操作
+                ApplicationManager.getApplication().executeOnPooledThread {
+                    try {
                         val result = CjProjectsService.getInstance(intellijProject)
                             .createProject(sdk.id, intellijProject, targetDir, projectType, moduleName)
 
                         when (result) {
                             is CjResult.Ok -> {
-                                LOG.info("Successfully created module at $memberPath")
+                                LOG.info("Successfully created module at $moduleName")
                             }
 
                             is CjResult.Err -> {
-                                LOG.warn("Failed to create module at $memberPath: ${result.err}")
+                                LOG.warn("Failed to create module at $moduleName: ${result.err}")
                             }
+                        }
+                    } finally {
+                        // 完成一个任务，检查是否所有任务都完成
+                        if (remainingTasks.decrementAndGet() == 0) {
+                            LOG.info("All modules created, executing completion callback")
+                            onComplete()
                         }
                     }
                 }

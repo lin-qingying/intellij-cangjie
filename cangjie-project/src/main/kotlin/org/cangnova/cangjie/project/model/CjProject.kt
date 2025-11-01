@@ -25,11 +25,8 @@
 package org.cangnova.cangjie.project.model
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.project.service.CjProjectsService
-import java.lang.Exception
-import kotlin.Throws
 
 
 val Project.cjProject: CjProject
@@ -113,11 +110,12 @@ interface CjProject {
      * - 批量项目处理中的错误处理
      * - 自动化脚本或CI/CD流程中的错误检测
      *
+     * @param onComplete 可选的完成回调,在所有异步操作完成后调用
      * @throws Exception 当项目刷新过程中遇到任何错误时抛出异常，
      *                    包括TOML解析错误、CJPM命令执行错误等
      */
     @Throws(Exception::class)
-    fun refresh()
+    fun refresh(onComplete: (() -> Unit)? = null)
 
 
     /**

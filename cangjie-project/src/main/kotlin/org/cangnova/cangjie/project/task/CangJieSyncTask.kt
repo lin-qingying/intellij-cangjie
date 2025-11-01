@@ -38,15 +38,12 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.CjProjectBundle
-import org.cangnova.cangjie.project.event.CjProjectEvent
-import org.cangnova.cangjie.project.event.CjProjectEventType
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.service.cangjieProjectService
 import org.cangnova.cangjie.project.workspace.CjWorkspaceModelSync
@@ -160,9 +157,33 @@ class CangJieSyncTask(
             action = { childProgress ->
                 try {
                     // 调用项目服务的刷新方法，触发完整的刷新流程
-                    cjProject.refresh()
-                    onFinished(cjProject)
-                    childProgress.finish()
+                    // 使用回调确保在所有异步操作完成后才执行后续操作
+                    cjProject.refresh {
+                        // 刷新完成后,同步到 Workspace Model
+                        try {
+                            val workspaceSync = projectService.intellijProject.service<CjWorkspaceModelSync>()
+
+                            // 使用 runBlocking 而非 runBlockingCancellable,因为我们在后台线程池中
+                            kotlinx.coroutines.runBlocking {
+                                workspaceSync.syncProjects(cjProject)
+                            }
+
+                            LOG.info("Successfully synced workspace model for project: ${cjProject.name}")
+                        } catch (e: Exception) {
+                            LOG.error("Failed to sync workspace model for project: ${cjProject.name}", e)
+                            // 不抛出异常,允许后续操作继续
+                        }
+
+                        // 所有操作完成后调用 onFinished
+                        onFinished(cjProject)
+                        childProgress.finish()
+
+                        // 更新进度显示
+                        indicator.fraction = 1.0
+                        indicator.text = CjProjectBundle.message(
+                            "progress.text.refreshing.completed.single"
+                        )
+                    }
                 } catch (e: ProcessCanceledException) {
                     childProgress.cancel()
                     throw e
@@ -178,42 +199,6 @@ class CangJieSyncTask(
 //                    throw e
                 }
             }
-        )
-
-        // 同步到 Workspace Model
-        syncProgress.runWithChildProgress(
-            "Sync to Workspace Model",
-            createContext = { it },
-            action = { childProgress ->
-                try {
-                    // 使用 runBlockingCancellable 在当前协程上下文中执行 suspend 函数
-                    runBlockingCancellable {
-                        val workspaceSync = projectService.intellijProject.service<CjWorkspaceModelSync>()
-                        workspaceSync.syncProjects(cjProject)
-                    }
-
-                    childProgress.finish()
-                } catch (e: ProcessCanceledException) {
-                    childProgress.cancel()
-                    throw e
-                } catch (e: Exception) {
-                    LOG.error("Failed to sync workspace model for project: ${cjProject.name}", e)
-                    childProgress.message(
-                        "Failed to sync Workspace Model",
-                        e.message ?: "Unknown error",
-                        MessageEvent.Kind.ERROR,
-                        null
-                    )
-                    childProgress.fail()
-                    throw e
-                }
-            }
-        )
-
-        // 更新进度显示
-        indicator.fraction = 1.0
-        indicator.text = CjProjectBundle.message(
-            "progress.text.refreshing.completed.single"
         )
     }
 

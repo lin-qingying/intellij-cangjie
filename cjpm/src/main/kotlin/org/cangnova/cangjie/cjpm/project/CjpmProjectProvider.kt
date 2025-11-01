@@ -38,7 +38,6 @@ import org.cangnova.cangjie.result.CjProcessResult
 import org.cangnova.cangjie.result.CjResult
 import org.cangnova.cangjie.result.unwrapOrElse
 import org.cangnova.cangjie.toolchain.command.ToolchainCommandLine
-import org.cangnova.cangjie.utils.fullyRefreshDirectory
 import org.cangnova.cangjie.utils.pathAsPath
 
 /**
@@ -79,8 +78,8 @@ class CjpmProjectProvider : CjProjectProvider {
         directory: VirtualFile,
         projectType: String,
         name: String?
-    ): CjProcessResult<GeneratedFilesHolder> = runWriteAction {
-//调用init命令创建
+    ): CjProcessResult<GeneratedFilesHolder> {
+        //调用init命令创建
 
         val path = directory.pathAsPath
         val crateType = "--type=$projectType"
@@ -90,21 +89,35 @@ class CjpmProjectProvider : CjProjectProvider {
         val projectName = name ?: project.name
         args.add("--name=${projectName}")
 
+        // 执行命令时不阻塞EDT线程
+        val commandLine = ToolchainCommandLine(sdkId, "tools/bin/cjpm", "init", path, args)
+        val result = with(commandLine) {
+            val generalCommandLine = toGeneralCommandLine(project)
+            generalCommandLine.execute(
+                owner = owner,
+                stdIn = null,
+                runner = {
+                    // 使用当前的 progress indicator 而非全局 indicator
+                    val indicator = com.intellij.openapi.progress.ProgressManager.getInstance().progressIndicator
+                    runProcess(indicator, null)
+                },
+                listener = null
+            )
+        }.unwrapOrElse { return CjResult.Err(it) }
 
-        ToolchainCommandLine(sdkId, "tools/bin/cjpm", "init", path, args).execute(project, owner)
-            .unwrapOrElse { return@runWriteAction CjResult.Err(it) }
-        fullyRefreshDirectory(directory)
+        // 同步刷新目录,确保文件可见
+        directory.refresh(/* asynchronous = */ false, /* recursive = */ true)
 
-        val manifest =
+        val manifest = runWriteAction {
             checkNotNull(directory.findChild(CjpmConstants.MANIFEST_FILE)) { "Can't find the manifest file" }
-
+        }
 
         val fileName = CjConstants.MAIN_CJ_FILE
-        val sourceFiles =
+        val sourceFiles = runWriteAction {
             listOfNotNull(directory.findFileByRelativePath("src/$fileName"))
+        }
 
-        CjResult.Ok(GeneratedFilesHolder(manifest, sourceFiles))
-
+        return CjResult.Ok(GeneratedFilesHolder(manifest, sourceFiles))
     }
 
     override fun getIndexableDirectories(project: CjProject): List<VirtualFile> {

@@ -130,5 +130,5 @@ object FileUtils {
 
 
 fun fullyRefreshDirectory(directory: VirtualFile) {
-    VfsUtil.markDirtyAndRefresh(/* async = */ false, /* recursive = */ true, /* reloadChildren = */ true, directory)
+    VfsUtil.markDirtyAndRefresh(/* async = */ true, /* recursive = */ true, /* reloadChildren = */ true, directory)
 }
