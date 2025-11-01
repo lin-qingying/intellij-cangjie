@@ -24,14 +24,17 @@
 
 package org.cangnova.cangjie.project.ui.actions
 
+import com.intellij.ide.actions.runAnything.items.RunAnythingItem
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 import org.cangnova.cangjie.project.model.CjProject
+import javax.swing.Icon
 
 /**
  * 仓颉命令提供者接口
  *
- * 扩展此接口可以为仓颉项目提供自定义的命令执行功能。
+ * 扩展此接口可以为仓颉项目提供自定义的命令执行功能和 RunAnything 集成。
  * 每个提供者可以定义一组可执行的命令以及它们的执行逻辑。
  */
 interface CjCommandProvider {
@@ -43,6 +46,13 @@ interface CjCommandProvider {
         val EP_NAME: ExtensionPointName<CjCommandProvider> =
             ExtensionPointName.create("org.cangnova.cangjie.commandProvider")
     }
+
+    /**
+     * 获取此提供者关联的构建系统 ID
+     *
+     * @return 构建系统 ID
+     */
+    fun getBuildSystemId(): ProjectBuildSystemId
 
     /**
      * 获取提供者的名称
@@ -72,6 +82,39 @@ interface CjCommandProvider {
      * @param args 命令参数
      */
     fun executeCommand(project: Project, cjProject: CjProject, command: CjCommand, args: List<String> = emptyList())
+
+    /**
+     * 获取图标（用于 RunAnything）
+     * @param value 命令值
+     * @return 图标
+     */
+    fun getIcon(value: String): Icon
+
+    /**
+     * 创建 RunAnything 列表项
+     * @param command 命令字符串
+     * @param icon 图标
+     * @return RunAnything 列表项
+     */
+    fun createRunAnythingItem(command: String, icon: Icon): RunAnythingItem
+
+    /**
+     * 获取帮助描述（用于 RunAnything）
+     * @return 帮助描述字符串
+     */
+    fun getHelpDescription(): String
+
+    /**
+     * 获取命令补全组标题（用于 RunAnything）
+     * @return 命令补全组标题
+     */
+    fun getCompletionGroupTitle(): String
+
+    /**
+     * 获取帮助组标题（用于 RunAnything）
+     * @return 帮助组标题
+     */
+    fun getHelpGroupTitle(): String
 }
 
 /**
@@ -79,34 +122,40 @@ interface CjCommandProvider {
  *
  * 描述一个可执行的仓颉命令的基本信息
  */
-data class CjCommand(
+interface CjCommand {
     /**
      * 命令标识符
      */
-    val id: String,
+    val id: String
 
     /**
      * 命令显示名称
      */
-    val displayName: String,
+    val displayName: String
 
     /**
      * 命令描述
      */
-    val description: String,
+    val description: String
 
     /**
      * 命令图标资源路径（可选）
      */
-    val icon: String? = null,
+    val icon: String?
 
     /**
      * 是否需要参数
      */
-    val requiresArgs: Boolean = false,
+    val requiresArgs: Boolean
 
     /**
      * 参数提示文本（当需要参数时）
      */
-    val argPrompt: String? = null
-)
+    val argPrompt: String?
+
+    /**
+     * 获取命令的选项列表（用于补全）
+     * 返回格式: Map<选项名, 选项描述>
+     */
+    fun getOptions(): Map<String, String> = emptyMap()
+}

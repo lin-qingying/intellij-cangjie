@@ -25,30 +25,21 @@
 package org.cangnova.cangjie.notifications
 
 
-import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.utils.isUnitTestMode
 import com.intellij.ide.impl.isTrusted
-import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileTypes.FileTypeRegistry
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.ide.project.cangjieSettings
+import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.messages.CangJieBundle
-import org.cangnova.cangjie.project.CANGJIE_PROJECTS_TOPIC
-import org.cangnova.cangjie.project.CANGJIE_SETTINGS_TOPIC
-import org.cangnova.cangjie.project.CjProjectBundle
-import org.cangnova.cangjie.project.CjProjectSettingsBase
-import org.cangnova.cangjie.project.CjSettingsListener
-import org.cangnova.cangjie.project.SettingsChangedEventBase
-
+import org.cangnova.cangjie.project.*
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.project.service.cangjieProjectService
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
-import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
-import kotlin.apply
-import kotlin.text.endsWith
+import org.cangnova.cangjie.utils.isUnitTestMode
 
 
 class MissingToolchainNotificationProvider(project: Project) : CjNotificationProvider(project), DumbAware {
@@ -131,7 +122,7 @@ fun VirtualFile.isCangJieFileType(): Boolean {
 
 val Project.toolchain: CjSdk?
     get() {
-        val toolchain = cangjieSettings.state.toolchain
+        val toolchain = CjProjectSdkConfig.getInstance(this).getProjectSdk()
         return when {
             toolchain != null -> toolchain
 

@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.project.ui.actions
 
 import com.intellij.icons.AllIcons
+import com.intellij.ide.actions.runAnything.RunAnythingManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.project.Project
@@ -84,20 +85,13 @@ class RunCommandAction : CangJieProjectActionBase() {
      * @param e 动作事件
      */
     private fun openRunAnything(project: Project, helpCommand: String, e: AnActionEvent) {
-        try {
-            // 尝试获取 RunAnythingManager
-            val runAnythingManagerClass = Class.forName("com.intellij.ide.actions.runAnything.RunAnythingManager")
-            val getInstanceMethod = runAnythingManagerClass.getMethod("getInstance", Project::class.java)
-            val runAnythingManager = getInstanceMethod.invoke(null, project)
 
-            // 调用 show 方法
-            val showMethod = runAnythingManagerClass.getMethod("show", String::class.java, Boolean::class.java, AnActionEvent::class.java)
-            showMethod.invoke(runAnythingManager, "$helpCommand ", false, e)
 
-        } catch (e: Exception) {
-            // 如果 RunAnything 不可用，静默处理
-            // 可以考虑在这里添加回退方案
-        }
+        val runAnythingManager = RunAnythingManager.getInstance(project)
+
+        runAnythingManager.show("$helpCommand ", false, e)
+
+
     }
 
     override fun updatePresentation(e: AnActionEvent, presentation: Presentation) {

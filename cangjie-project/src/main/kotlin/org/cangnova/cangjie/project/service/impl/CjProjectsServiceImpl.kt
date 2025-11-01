@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.project.service.impl
 
 
+
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.*
@@ -45,6 +46,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.Function
 import com.intellij.util.indexing.LightDirectoryIndex
+import com.redhat.devtools.lsp4ij.LanguageServerManager
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.project.*
 import org.cangnova.cangjie.project.event.CjProjectEvent
@@ -54,6 +56,7 @@ import org.cangnova.cangjie.project.extension.CjProjectProvider
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.roots
+import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.project.service.CjProjectsService.Companion.CANGJIE_PROJECTS_REFRESH_TOPIC
 import org.cangnova.cangjie.project.service.GeneratedFilesHolder
@@ -122,11 +125,18 @@ class CjProjectsServiceImpl(
     /**
      * 项目提供者缓存
      *
-     * 从扩展点获取的第一个可用的 [CjProjectProvider] 实例。
+     * 从扩展点获取匹配当前构建系统的 [CjProjectProvider] 实例。
      * 负责处理项目的创建和识别逻辑。
      */
-    private val providerCache =
-        CjProjectProvider.EP_NAME.extensionList.firstOrNull() ?: error("CJProjectProvider not found")
+    private val providerCache: CjProjectProvider by lazy {
+        val buildSystemService = CjProjectBuildSystemService.getInstance()
+        val buildSystemId = buildSystemService.getBuildSystemId()
+
+        CjProjectProvider.EP_NAME.extensionList.find { provider ->
+            buildSystemId == null || provider.getBuildSystemId().id == buildSystemId
+        } ?: CjProjectProvider.EP_NAME.extensionList.firstOrNull()
+        ?: error("CJProjectProvider not found")
+    }
 
 
     /**
@@ -298,6 +308,7 @@ class CjProjectsServiceImpl(
             if (newProject != null) {
                 // 使用 modifyProjectSync 设置项目并触发相关事件
                 modifyProjectSync(ModifyProjectsOptions.DEFAULT) { newProject }
+                refreshProject()
                 log.info("Project initialized: ${newProject.name} at ${newProject.rootDir}")
 
                 // 发布项目创建事件
@@ -497,6 +508,7 @@ class CjProjectsServiceImpl(
      * 3. 通过 modifyProjectSync 确保正确的事件发布和索引更新
      */
     override fun refreshProject() {
+
         log.info("Refreshing project: ${cjProject.name}")
 
         // 使用 modifyProjectSync 确保正确的事件发布和索引更新
@@ -508,7 +520,9 @@ class CjProjectsServiceImpl(
             )
             intellijProject.taskQueue.run(syncTask)
 
-
+            val options: LanguageServerManager.StartOptions = LanguageServerManager.StartOptions()
+            options.setForceRestart(true)
+            LanguageServerManager.getInstance(intellijProject).start("CangJie", options);
             currentProject
         }
     }
@@ -528,6 +542,14 @@ class CjProjectsServiceImpl(
     ): CjProcessResult<GeneratedFilesHolder> {
         return providerCache.createProjectFromPhysicalFile(sdkId, intellijProject, owner, directory, projectType, name)
     }
+
+//    override fun createProjectFilesDirectly(
+//        directory: VirtualFile,
+//        projectType: String,
+//        name: String
+//    ): CjProcessResult<GeneratedFilesHolder> {
+//        return providerCache.createProjectFilesDirectly(intellijProject, directory, projectType, name)
+//    }
 
     /**
      * 发布项目事件

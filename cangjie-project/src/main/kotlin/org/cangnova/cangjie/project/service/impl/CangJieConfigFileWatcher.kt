@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,6 @@
 package org.cangnova.cangjie.project.service.impl
 
 import com.google.common.annotations.VisibleForTesting
-
-import org.cangnova.cangjie.utils.pathAsPath
-
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -39,9 +36,9 @@ import com.intellij.util.PathUtil
 import org.cangnova.cangjie.CjConstants.MAIN_CJ_FILE
 import org.cangnova.cangjie.project.extension.CjProjectProvider
 import org.cangnova.cangjie.project.extension.WatchedFilePatterns
+import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
 import org.cangnova.cangjie.project.service.CjProjectsService
-import kotlin.collections.any
-import kotlin.text.endsWith
+import org.cangnova.cangjie.utils.pathAsPath
 
 /**
  * 仓颉配置文件监听器
@@ -81,28 +78,20 @@ class CangJieConfigFileWatcher(
 ) : BulkFileListener {
 
     /**
-     * 从所有扩展点收集的监听规则
+     * 从扩展点收集的监听规则
      *
-     * 延迟初始化，合并所有 [CjProjectProvider] 提供的 [WatchedFilePatterns]。
+     * 延迟初始化，获取与当前构建系统匹配的 [CjProjectProvider] 的 [WatchedFilePatterns]。
      * 如果没有扩展点提供规则，则使用默认的硬编码规则（向后兼容）。
      */
     private val watchedPatterns: WatchedFilePatterns by lazy {
-        val providers = CjProjectProvider.EP_NAME.extensionList
-        if (providers.isEmpty()) {
-            // 没有扩展点时使用默认规则
-            WatchedFilePatterns.EMPTY
-        } else {
-            // 合并所有提供者的规则
-            providers
-                .map { it.getWatchedFilePatterns() }
-                .fold(WatchedFilePatterns.EMPTY) { acc, patterns ->
-                    WatchedFilePatterns(
-                        configFiles = (acc.configFiles + patterns.configFiles).distinct(),
-                        implicitTargetFiles = (acc.implicitTargetFiles + patterns.implicitTargetFiles).distinct(),
-                        implicitTargetDirs = (acc.implicitTargetDirs + patterns.implicitTargetDirs).distinct()
-                    )
-                }
+        val buildSystemService = CjProjectBuildSystemService.getInstance()
+        val buildSystemId = buildSystemService.getBuildSystemId()
+
+        val provider = CjProjectProvider.EP_NAME.extensionList.find { provider ->
+            buildSystemId == null || provider.getBuildSystemId().id == buildSystemId
         }
+
+        provider?.getWatchedFilePatterns() ?: WatchedFilePatterns.EMPTY
     }
 
     /**

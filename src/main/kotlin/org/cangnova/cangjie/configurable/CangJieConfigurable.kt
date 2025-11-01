@@ -32,14 +32,11 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.panel
 import org.cangnova.cangjie.ide.project.CangJieProjectSettingsPanel
-import org.cangnova.cangjie.ide.project.CangJieProjectSettingsService
 import org.cangnova.cangjie.ide.project.cangjieSettings
-
 import org.cangnova.cangjie.messages.CangJieBundle
-
-
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.project.wizard.ConfigurationData
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
 import org.cangnova.cangjie.utils.pathAsPath
 import java.nio.file.Paths
@@ -52,7 +49,7 @@ class CangJieConfigurable(override val project: Project) :
     private val projectDir =
         CjProjectsService.getInstance(project).cjProject.takeIf { it.isValid }?.rootDir?.pathAsPath ?: Paths.get(".")
 
-    private val cangjieProjectSettings by lazy { CangJieProjectSettingsPanel(projectDir) }
+    private val cangjieProjectSettings by lazy { CangJieProjectSettingsPanel(project) }
 
     @Throws(ConfigurationException::class)
     override fun apply() {
@@ -83,17 +80,20 @@ class CangJieConfigurable(override val project: Project) :
 
 
                     onApply {
-                        settings.modify {
 
+
+                    settings.modify {
                             it.toolchain = cangjieProjectSettings.data.toolchain
                         }
-
 
                     }
 
                     onReset {
+                        val sdkConfig = CjProjectSdkConfig.getInstance(project)
+                        val currentSdk =
+                            sdkConfig.getProjectSdk() ?: CjSdkRegistry.getInstance().getSdkByPath(projectDir)
                         val newData = ConfigurationData.Data(
-                            toolchain = settings.toolchain ?: CjSdkRegistry.getInstance().getSdkByPath(projectDir)
+                            toolchain = currentSdk
                         )
                         if (cangjieProjectSettings.data != newData) {
                             cangjieProjectSettings.data = newData
@@ -101,8 +101,10 @@ class CangJieConfigurable(override val project: Project) :
                     }
 
                     onIsModified {
+                        val sdkConfig = CjProjectSdkConfig.getInstance(project)
+                        val currentSdk = sdkConfig.getProjectSdk()
                         val data = cangjieProjectSettings.data
-                        data.toolchain?.homePath != settings.toolchain?.homePath
+                        data.toolchain?.homePath != currentSdk?.homePath
 
                     }
 

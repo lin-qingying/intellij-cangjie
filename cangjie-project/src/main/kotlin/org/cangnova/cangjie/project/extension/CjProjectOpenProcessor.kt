@@ -40,11 +40,6 @@ interface CjProjectOpenProcessor {
         )
     }
 
-    /**
-     * 处理器优先级 (数值越小优先级越高)
-     */
-    val priority: Int
-        get() = 100
 
     /**
      * 判断是否可以处理该项目

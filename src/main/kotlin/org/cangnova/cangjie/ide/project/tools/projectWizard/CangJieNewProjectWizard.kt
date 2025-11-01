@@ -72,11 +72,10 @@ internal class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWiz
 
         override fun setupProject(project: Project) {
             // 通过扩展点获取 ModuleBuilder，按优先级排序
-            val providers = CjModuleBuilderProvider.EP_NAME.extensionList
-                .sortedBy { it.priority }
+            val providers = CjModuleBuilderProvider.getModuleBuilderProvider()
 
             // 使用第一个可用的 ModuleBuilder
-            val builder = providers.firstNotNullOfOrNull { it.createModuleBuilder() }
+            val builder = providers?.createModuleBuilder()
                 ?: throw IllegalStateException("No ModuleBuilder provider available")
 
             builder.configurationData = peer.settings

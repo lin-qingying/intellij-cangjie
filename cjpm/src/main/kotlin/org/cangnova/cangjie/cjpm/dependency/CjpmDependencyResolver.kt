@@ -25,18 +25,20 @@
 package org.cangnova.cangjie.cjpm.dependency
 
 import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
 import org.cangnova.cangjie.dependency.extension.CjDependencyResolver
 import org.cangnova.cangjie.dependency.model.CjDependency
 import org.cangnova.cangjie.dependency.model.CjResolvedDependency
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 
 /**
  * CJPM 依赖解析器实现
  */
 class CjpmDependencyResolver : CjDependencyResolver {
+    override fun getBuildSystemId(): ProjectBuildSystemId = CjpmBuildSystemId
 
     override val resolverName: String = "CJPM Dependency Resolver"
 
-    override val priority: Int = 100
 
     override fun canResolve(dependency: CjDependency): Boolean {
         // CJPM 可以解析所有类型的依赖

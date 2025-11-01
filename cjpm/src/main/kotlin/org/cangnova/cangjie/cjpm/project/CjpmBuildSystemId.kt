@@ -22,40 +22,23 @@
  *
  */
 
-dependencies {
-    intellijPlatform {
-        plugins("com.redhat.devtools.lsp4ij:0.17.0")
-    }
-    implementation(project(":"))
-    implementation(project(":telemetry"))
-    implementation(project(":toolchain"))
+package org.cangnova.cangjie.cjpm.project
 
-    implementation(project(":cangjie-project"))
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
+
+/**
+ * CJPM 构建系统标识符
+ *
+ * 定义 CJPM 构建系统的唯一标识和显示信息
+ */
+object CjpmBuildSystemId : ProjectBuildSystemId {
+
+    override val id: String = "cjpm"
+
+    override val displayName: String = "CJPM"
+
+    override val description: String =
+        "CangJie Package Manager - Official build system and package manager for CangJie language"
 
 
-}
-project(":") {
-    dependencies {
-
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.17.0")
-        }
-    }
-}
-project(":cangjie-project") {
-    dependencies {
-
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.17.0")
-        }
-    }
-}
-
-project(":plugin") {
-    dependencies {
-        implementation(project(":lsp4ij"))
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.17.0")
-        }
-    }
 }

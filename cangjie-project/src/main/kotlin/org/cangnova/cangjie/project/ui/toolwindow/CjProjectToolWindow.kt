@@ -24,19 +24,25 @@
 
 package org.cangnova.cangjie.project.ui.toolwindow
 
+import com.intellij.ide.DefaultTreeExpander
+import com.intellij.ide.TreeExpander
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ScrollPaneFactory
 import org.cangnova.cangjie.project.event.CjProjectEvent
 import org.cangnova.cangjie.project.event.CjProjectListener
 import org.cangnova.cangjie.project.model.CjProject
+import org.cangnova.cangjie.project.model.cjProject
 import org.cangnova.cangjie.project.service.CjProjectsService
 import javax.swing.JComponent
+
+// 获取项目是否包含Cjpm项目的属性
+val Project.hasCjProject: Boolean get() = cjProject.isValid
+
 
 /**
  * 仓颉项目工具窗口主类
@@ -59,6 +65,11 @@ class CjProjectToolWindow(private val project: Project) {
         )
     }
 
+
+    val treeExpander: TreeExpander = object : DefaultTreeExpander(projectTree) {
+        override fun isCollapseAllVisible(): Boolean = project.hasCjProject
+        override fun isExpandAllVisible(): Boolean = project.hasCjProject
+    }
     /**
      * 主内容面板
      */

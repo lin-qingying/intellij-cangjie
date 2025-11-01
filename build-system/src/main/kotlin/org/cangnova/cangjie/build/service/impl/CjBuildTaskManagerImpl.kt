@@ -34,6 +34,7 @@ import org.cangnova.cangjie.build.model.CjBuildContext
 import org.cangnova.cangjie.build.model.CjBuildResult
 import org.cangnova.cangjie.build.model.CjBuildTask
 import org.cangnova.cangjie.build.service.CjBuildTaskManager
+import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -141,8 +142,14 @@ class CjBuildTaskManagerImpl(
      * 查找任务执行器
      */
     private fun findExecutor(task: CjBuildTask): CjBuildTaskExecutor? {
+        val buildSystemService = CjProjectBuildSystemService.getInstance()
+        val buildSystemId = buildSystemService.getBuildSystemId()
+
         return CjBuildTaskExecutor.EP_NAME.extensionList
-            .sortedBy { it.priority }
+            .filter { executor ->
+                buildSystemId == null || executor.getBuildSystemId().id == buildSystemId
+            }
+
             .firstOrNull { it.canExecute(task) }
     }
 

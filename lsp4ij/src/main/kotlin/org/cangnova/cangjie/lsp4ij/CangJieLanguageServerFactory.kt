@@ -36,14 +36,11 @@ import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 import org.cangnova.cangjie.lsp.replacePathBySystem
 import org.cangnova.cangjie.project.model.CjProject
-import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.cjProject
-
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.eclipse.lsp4j.*
 import java.net.URI
-import java.nio.file.Paths
 import kotlin.io.path.exists
 
 class CangJieLanguageServerFactory : LanguageServerFactory {
@@ -55,8 +52,6 @@ class CangJieLanguageServerFactory : LanguageServerFactory {
         return CangJieLSPClientFeatures()
     }
 }
-
-
 
 
 /**
@@ -482,6 +477,18 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
         initializeParams.locale = "zh_cn"
         initializeParams.trace = "off"
 
+        if (initializeParams.rootUri == null) {
+            toString(project.baseDir)?.let {
+                initializeParams.rootUri = it
+            }
+
+        }
+        if (initializeParams.rootPath == null) {
+            initializeParams.rootPath = project.basePath
+
+
+        }
+
         if (sdk != null) {
             // 使用cangjie-project模型创建initializationOptions
             initializeParams.initializationOptions = createInitializationOptions(sdk)
@@ -504,7 +511,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
             // 核心配置选项
             put("modulesHomeOption", sdk.homePath.systemIndependentPath.replacePathBySystem())
 
-            // 标准库路径（如果SDK有提供）
+//            // 标准库路径（如果SDK有提供）
             put("stdLibPathOption", getStdLibPath(sdk))
 
             // 目标库路径（用于宏库路径）
@@ -513,8 +520,8 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
             // 多模块配置 - 基于当前项目的模块
             put(
                 "multiModuleOption",
-                currentProject?.let { createMultiModuleOption(it) } ?: mutableMapOf<String, Any>())
-
+                currentProject.let { createMultiModuleOption(it) })
+//
             // 条件编译配置
             put("conditionCompileOption", mutableMapOf<String, String>())
             put("singleConditionCompileOption", mutableMapOf<String, Map<String, String>>())
@@ -529,7 +536,7 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
      * 获取标准库路径
      */
     private fun getStdLibPath(sdk: CjSdk): String {
-        return sdk.homePath.systemIndependentPath.replacePathBySystem() + "/stdlib"
+        return sdk.stdlibPath.systemIndependentPath
     }
 
     /**

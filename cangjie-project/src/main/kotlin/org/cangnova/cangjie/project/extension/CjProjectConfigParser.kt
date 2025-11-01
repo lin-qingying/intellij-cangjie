@@ -40,10 +40,12 @@ interface CjProjectConfigParser {
     }
 
     /**
-     * 解析器优先级 (数值越小优先级越高)
+     * 获取此解析器关联的构建系统 ID
+     *
+     * @return 构建系统 ID
      */
-    val priority: Int
-        get() = 100
+    fun getBuildSystemId(): ProjectBuildSystemId
+
 
     /**
      * 判断是否可以解析该配置文件

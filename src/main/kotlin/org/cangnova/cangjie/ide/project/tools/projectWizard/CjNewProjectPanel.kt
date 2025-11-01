@@ -43,7 +43,7 @@ import java.nio.file.Paths
 class CjNewProjectPanel(
 
     private val showProjectTypeSelection: Boolean,
-    cjpmProjectDir: Path = Paths.get("."),
+    projectDir: Path = Paths.get("."),
     private val updateListener: (() -> Unit)? = null
 ) : Disposable {
     //        项目类型
@@ -58,7 +58,8 @@ class CjNewProjectPanel(
     }
     private val cangjieProjectSettings = CangJieProjectSettingsPanel(
 
-        cjpmProjectDir, updateListener)
+        updateListener = updateListener
+    )
 
 
     private val updateDebouncer = UiDebouncer(this)

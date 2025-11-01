@@ -31,6 +31,7 @@ import org.cangnova.cangjie.dependency.extension.CjDependencyResolver
 import org.cangnova.cangjie.dependency.model.CjDependency
 import org.cangnova.cangjie.dependency.model.CjResolvedDependency
 import org.cangnova.cangjie.dependency.service.CjDependencyService
+import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
 
 /**
  * 依赖服务实现
@@ -40,21 +41,32 @@ class CjDependencyServiceImpl : CjDependencyService {
 
     private val log = logger<CjDependencyServiceImpl>()
 
+
+    //获取解析器
+    private fun getDependencyResolver(): CjDependencyResolver? {
+
+        val buildSystemService = CjProjectBuildSystemService.getInstance()
+        val buildSystemId = buildSystemService.getBuildSystemId()
+
+        return CjDependencyResolver.EP_NAME.extensionList.find { provider ->
+            buildSystemId == null || provider.getBuildSystemId().id == buildSystemId
+        }
+    }
+
     override fun resolveDependency(dependency: CjDependency, project: Project): CjResolvedDependency? {
         // 获取所有依赖解析器，按优先级排序
-        val resolvers = CjDependencyResolver.EP_NAME.extensionList
-            .sortedBy { it.priority }
+        val resolver = getDependencyResolver() ?: return null
 
         // 尝试使用每个解析器解析依赖
-        for (resolver in resolvers) {
-            if (resolver.canResolve(dependency)) {
+
+        if (resolver.canResolve(dependency)) {
                 log.info("Using resolver: ${resolver.resolverName} for dependency: ${dependency.name}")
                 val resolved = resolver.resolve(dependency, project)
                 if (resolved != null && resolved.isResolved) {
                     return resolved
                 }
             }
-        }
+
 
         log.warn("Failed to resolve dependency: ${dependency.name}")
         return null

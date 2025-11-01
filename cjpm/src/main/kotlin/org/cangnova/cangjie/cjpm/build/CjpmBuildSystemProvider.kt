@@ -28,15 +28,17 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.build.extension.CjBuildSystemProvider
 import org.cangnova.cangjie.build.model.CjBuildSystem
+import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 
 /**
  * CJPM 构建系统提供者
  */
 class CjpmBuildSystemProvider : CjBuildSystemProvider {
+    override fun getBuildSystemId(): ProjectBuildSystemId = CjpmBuildSystemId
 
     override val providerName: String = "CJPM Build System"
 
-    override val priority: Int = 100
 
     override fun canHandle(projectDir: VirtualFile): Boolean {
         // 检查是否存在 cjpm.toml

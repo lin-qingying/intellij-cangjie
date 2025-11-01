@@ -24,7 +24,9 @@
 
 package org.cangnova.cangjie.cjpm.wizard
 
+import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
 import org.cangnova.cangjie.project.extension.CjModuleBuilderProvider
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 import org.cangnova.cangjie.project.wizard.CjModuleBuilder
 
 /**
@@ -33,10 +35,10 @@ import org.cangnova.cangjie.project.wizard.CjModuleBuilder
  * 提供基于 CJPM 的项目创建能力
  */
 class CjpmModuleBuilderProvider : CjModuleBuilderProvider {
+    override fun getBuildSystemId(): ProjectBuildSystemId = CjpmBuildSystemId
 
     override val providerName: String = "CJPM"
 
-    override val priority: Int = 10 // 高优先级，作为默认选项
 
     override fun createModuleBuilder(): CjModuleBuilder {
         return CjpmModuleBuilder()

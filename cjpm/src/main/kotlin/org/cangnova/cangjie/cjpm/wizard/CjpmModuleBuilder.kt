@@ -28,12 +28,12 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.ide.project.cangjieSettings
 import org.cangnova.cangjie.project.service.CjProjectsService
-
 import org.cangnova.cangjie.project.wizard.CjModuleBuilder
 import org.cangnova.cangjie.project.wizard.ConfigurationData
+import org.cangnova.cangjie.project.wizard.openFiles
 import org.cangnova.cangjie.result.CjResult
-import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 
 /**
  * CJPM 项目模块构建器
@@ -88,11 +88,17 @@ class CjpmModuleBuilder : CjModuleBuilder() {
 
                     // 设置项目工具链
 
-                    CjProjectSdkConfig.getInstance(project).setProjectSdkId(toolchain.id)
 
+//            设置工具链
+                    project.cangjieSettings.modify {
+                        it.toolchain = toolchain
+                    }
 
                     // 刷新文件系统
                     rootDir.refresh(false, true)
+
+                    project.openFiles(result.ok)
+
                     true
                 }
 

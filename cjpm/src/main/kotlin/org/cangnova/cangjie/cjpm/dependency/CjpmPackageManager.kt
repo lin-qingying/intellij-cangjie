@@ -24,18 +24,21 @@
 
 package org.cangnova.cangjie.cjpm.dependency
 
+import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
 import org.cangnova.cangjie.dependency.extension.CjPackageManager
 import org.cangnova.cangjie.dependency.model.CjDependency
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 import java.nio.file.Path
 
 /**
  * CJPM 包管理器实现
  */
 class CjpmPackageManager : CjPackageManager {
+    override fun getBuildSystemId(): ProjectBuildSystemId = CjpmBuildSystemId
 
     override val name: String = "CJPM Package Manager"
 
-    override val priority: Int = 100
+
     override fun downloadPackage(
         dependency: CjDependency,
         targetDir: Path

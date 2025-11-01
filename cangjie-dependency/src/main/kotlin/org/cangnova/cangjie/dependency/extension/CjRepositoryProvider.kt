@@ -27,6 +27,7 @@ package org.cangnova.cangjie.dependency.extension
 import com.intellij.openapi.extensions.ExtensionPointName
 import org.cangnova.cangjie.dependency.model.CjPackage
 import org.cangnova.cangjie.dependency.model.CjVersion
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 import java.nio.file.Path
 
 /**
@@ -42,6 +43,13 @@ interface CjRepositoryProvider {
     }
 
     /**
+     * 获取此解析器关联的构建系统 ID
+     *
+     * @return 构建系统 ID
+     */
+    fun getBuildSystemId(): ProjectBuildSystemId
+
+    /**
      * 仓库名称
      */
     val repositoryName: String
@@ -51,11 +59,6 @@ interface CjRepositoryProvider {
      */
     val repositoryUrl: String
 
-    /**
-     * 提供者优先级
-     */
-    val priority: Int
-        get() = 100
 
     /**
      * 搜索包

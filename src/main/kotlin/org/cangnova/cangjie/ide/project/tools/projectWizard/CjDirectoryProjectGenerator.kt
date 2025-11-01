@@ -25,12 +25,9 @@
 package org.cangnova.cangjie.ide.project.tools.projectWizard
 
 import com.intellij.facet.ui.ValidationResult
-import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.ide.util.projectWizard.AbstractNewProjectStep
 import com.intellij.ide.util.projectWizard.CustomStepProjectGenerator
 import com.intellij.ide.util.projectWizard.ProjectSettingsStepBase
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -42,8 +39,8 @@ import org.cangnova.cangjie.icon.CangJieIcons
 import org.cangnova.cangjie.ide.project.cangjieSettings
 import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.project.service.CjProjectsService
-import org.cangnova.cangjie.project.service.GeneratedFilesHolder
 import org.cangnova.cangjie.project.wizard.ConfigurationData
+import org.cangnova.cangjie.project.wizard.openFiles
 import org.cangnova.cangjie.result.unwrapOrThrow
 import org.cangnova.cangjie.utils.computeWithCancelableProgress
 import javax.swing.Icon
@@ -91,10 +88,10 @@ class CjDirectoryProjectGenerator : DirectoryProjectGeneratorBase<ConfigurationD
 
 
 
+
         project.cangjieSettings.modify {
             it.toolchain = settings.toolchain
         }
-
 
         project.openFiles(generatedFiles)
     }
@@ -114,14 +111,4 @@ class CjDirectoryProjectGenerator : DirectoryProjectGeneratorBase<ConfigurationD
         callback: AbstractNewProjectStep.AbstractCallback<ConfigurationData>
     ): AbstractActionWithPanel = CjProjectSettingsStep(projectGenerator)
 
-}
-
-fun Project.openFiles(files: GeneratedFilesHolder) = invokeLater {
-    if (!ApplicationManager.getApplication().isHeadlessEnvironment) {
-        val navigation = PsiNavigationSupport.getInstance()
-        navigation.createNavigatable(this, files.manifest, -1).navigate(false)
-        for (file in files.sourceFiles) {
-            navigation.createNavigatable(this, file, -1).navigate(true)
-        }
-    }
 }

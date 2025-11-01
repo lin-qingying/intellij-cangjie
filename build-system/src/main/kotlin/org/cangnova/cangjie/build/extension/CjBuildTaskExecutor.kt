@@ -28,6 +28,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import org.cangnova.cangjie.build.model.CjBuildContext
 import org.cangnova.cangjie.build.model.CjBuildResult
 import org.cangnova.cangjie.build.model.CjBuildTask
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 
 /**
  * 构建任务执行器扩展点
@@ -42,15 +43,17 @@ interface CjBuildTaskExecutor {
     }
 
     /**
+     * 获取此解析器关联的构建系统 ID
+     *
+     * @return 构建系统 ID
+     */
+    fun getBuildSystemId(): ProjectBuildSystemId
+
+    /**
      * 执行器名称
      */
     val executorName: String
 
-    /**
-     * 执行器优先级
-     */
-    val priority: Int
-        get() = 100
 
     /**
      * 检查是否可以执行指定的任务

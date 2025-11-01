@@ -24,8 +24,6 @@
 
 package org.cangnova.cangjie.lsp
 
- 
-
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.plugins.PluginManagerCore
@@ -33,6 +31,7 @@ import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
+import okio.Path.Companion.toPath
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 
 import org.cangnova.cangjie.utils.getSavePluginVersion
@@ -121,6 +120,11 @@ object CangJieLspServerManager {
 //        CangJieLspServerManager.shutdownAllServers()
 
 
+        val path = "${project.basePath}/.idea/log".toPath()
+        if (!path.toFile().exists()) {
+            path.toFile().mkdirs()
+        }
+
         val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
         val homePath = sdk?.homePath
         return GeneralCommandLine().apply {
@@ -136,6 +140,7 @@ object CangJieLspServerManager {
                 setWorkDirectory(binaryPath.parent.toAbsolutePath().toString())
             }
             addParameter("src")
+            addParameter("--enable-log=true")
             addParameter("--log-path=${project.basePath}/.idea/log")
 //            addParameter("--log-path=${binaryPath.parent.toAbsolutePath().toString()}")
 //            withEnvironment(getWindowsPath())

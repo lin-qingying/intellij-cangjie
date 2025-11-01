@@ -26,14 +26,17 @@ package org.cangnova.cangjie.cjpm.project
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.CjConstants
 import org.cangnova.cangjie.cjpm.CjpmConstants
 import org.cangnova.cangjie.project.extension.CjProjectProvider
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.roots
 import org.cangnova.cangjie.project.service.GeneratedFilesHolder
+import org.cangnova.cangjie.result.CjProcessExecutionException
 import org.cangnova.cangjie.result.CjProcessResult
 import org.cangnova.cangjie.result.CjResult
 import org.cangnova.cangjie.result.unwrapOrElse
@@ -47,6 +50,8 @@ class CjpmProjectProvider : CjProjectProvider {
     companion object {
         private const val MANIFEST_FILE = "cjpm.toml"
     }
+
+    override fun getBuildSystemId(): ProjectBuildSystemId = CjpmBuildSystemId
 
     override val providerName: String = "CJPM"
 
@@ -79,6 +84,12 @@ class CjpmProjectProvider : CjProjectProvider {
         projectType: String,
         name: String?
     ): CjProcessResult<GeneratedFilesHolder> {
+
+
+        return createProjectFilesDirectly(
+            project, directory, projectType, name, sdkId
+        )
+
         //调用init命令创建
 
         val path = directory.pathAsPath
@@ -98,7 +109,7 @@ class CjpmProjectProvider : CjProjectProvider {
                 stdIn = null,
                 runner = {
                     // 使用当前的 progress indicator 而非全局 indicator
-                    val indicator = com.intellij.openapi.progress.ProgressManager.getInstance().progressIndicator
+                    val indicator = ProgressManager.getInstance().progressIndicator
                     runProcess(indicator, null)
                 },
                 listener = null
@@ -120,6 +131,76 @@ class CjpmProjectProvider : CjProjectProvider {
         return CjResult.Ok(GeneratedFilesHolder(manifest, sourceFiles))
     }
 
+    private fun createProjectFilesDirectly(
+        project: Project,
+        directory: VirtualFile,
+        projectType: String,
+        name: String?,
+        sdkId: String
+    ): CjProcessResult<GeneratedFilesHolder> {
+        val projectName = name ?: project.name
+
+        // 获取SDK版本
+        val sdk = org.cangnova.cangjie.toolchain.api.CjSdkRegistry.getInstance().getSdk(sdkId)
+        val cjcVersion = sdk?.version?.semver?.toString() ?: "0.25.1"
+
+        return try {
+            val holder = runWriteAction {
+                // 创建 cjpm.toml 文件
+                val tomlContent = """
+                    [package]
+                      cjc-version = "$cjcVersion"
+                      name = "$projectName"
+                      description = "nothing here"
+                      version = "1.0.0"
+                      target-dir = "target"
+                      src-dir = "src"
+                      output-type = "$projectType"
+                      compile-option = ""
+                      override-compile-option = ""
+                      link-option = ""
+                      package-configuration = {}
+
+                    [dependencies]
+
+                """.trimIndent()
+
+                val manifestFile = directory.findOrCreateChildData(this, CjpmConstants.MANIFEST_FILE)
+                manifestFile.setBinaryContent(tomlContent.toByteArray(Charsets.UTF_8))
+
+                // 创建 src 目录
+                val srcDir = directory.findChild("src") ?: directory.createChildDirectory(this, "src")
+
+                // 如果是可执行项目，创建 main.cj
+                val sourceFiles = if (projectType == "executable") {
+                    val mainContent = """
+                        package $projectName
+
+                        main(): Int64 {
+                            println("hello world")
+                            return 0
+                        }
+
+                    """.trimIndent()
+
+                    val mainFile = srcDir.findOrCreateChildData(this, "main.cj")
+                    mainFile.setBinaryContent(mainContent.toByteArray(Charsets.UTF_8))
+                    listOf(mainFile)
+                } else {
+                    emptyList()
+                }
+
+                // 刷新目录
+                directory.refresh(false, true)
+
+                GeneratedFilesHolder(manifestFile, sourceFiles)
+            }
+            CjResult.Ok(holder)
+        } catch (e: Exception) {
+            CjResult.Err(CjProcessExecutionException.FileCreation(e))
+        }
+    }
+
     override fun getIndexableDirectories(project: CjProject): List<VirtualFile> {
         val directories = mutableListOf<VirtualFile>()
 
@@ -128,7 +209,7 @@ class CjpmProjectProvider : CjProjectProvider {
 
 
 
-        if(project.isWorkspace){
+        if (project.isWorkspace) {
             // 添加所有模块的源码目录和输出目录
             for (module in project.workspace!!.modules) {
                 for (sourceSet in module.sourceSets) {
@@ -137,7 +218,7 @@ class CjpmProjectProvider : CjProjectProvider {
 
             }
 
-        }else{
+        } else {
             for (sourceSet in project.module!!.sourceSets) {
                 directories.addAll(sourceSet.roots)
             }

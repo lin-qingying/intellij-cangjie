@@ -32,6 +32,7 @@ package org.cangnova.cangjie.ide.project
 import com.intellij.execution.wsl.WslPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.options.ConfigurationException
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.Panel
@@ -39,17 +40,16 @@ import org.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp
 import org.cangnova.cangjie.ide.project.structure.download.addDownloadItem
 import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.project.wizard.ConfigurationData
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
-import java.nio.file.Path
-import java.nio.file.Paths
 import javax.swing.JButton
 import javax.swing.JLabel
 
 
 class CangJieProjectSettingsPanel(
-
-    private val  projectDir: Path = Paths.get("."), private val updateListener: (() -> Unit)? = null
+    private val project: Project? = null,
+    private val updateListener: (() -> Unit)? = null
 ) : Disposable {
 
 
@@ -111,7 +111,13 @@ class CangJieProjectSettingsPanel(
 
     fun attachTo(panel: Panel) = with(panel) {
         data = ConfigurationData.Data(
-            toolchain = allSdks.firstOrNull()
+            toolchain = project?.let {
+                CjProjectSdkConfig.getInstance(it).getProjectSdk()
+            } ?: if (project == null) {
+                allSdks.firstOrNull()
+            } else {
+                null
+            }
         )
 
         row(CangJieBundle.message("settings.cangjie.sdk.home.label")) {

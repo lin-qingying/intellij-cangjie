@@ -46,11 +46,6 @@ interface CjBuildConfigurationProvider {
      */
     val providerName: String
 
-    /**
-     * 提供者优先级
-     */
-    val priority: Int
-        get() = 100
 
     /**
      * 检查是否可以处理指定的配置文件

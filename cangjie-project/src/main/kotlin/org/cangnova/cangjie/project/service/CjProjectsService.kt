@@ -107,7 +107,7 @@ interface CjProjectsService {
                 override val indexableDirectories: List<VirtualFile> = emptyList()
 
                 @Throws(Exception::class)
-                override fun refresh() {
+                override fun refresh(onComplete: (() -> Unit)?) {
                 }
 
                 override fun findModule(name: String): CjModule? = null
@@ -197,7 +197,7 @@ interface CjProjectsService {
 
 
     /**
-     * 创建项目
+     * 创建项目（通过工具链命令）
      */
     fun createProject(
         sdkId: String,
@@ -206,6 +206,23 @@ interface CjProjectsService {
         projectType: String = "executable",
         name: String? = null,
     ): CjProcessResult<GeneratedFilesHolder>
+
+    /**
+     * 直接创建项目文件，不调用工具链命令
+     *
+     * 通过插件直接生成项目所需的文件和目录结构。
+     * 适用于快速创建项目或工具链不可用的场景。
+     *
+     * @param directory 项目根目录
+     * @param projectType 项目类型（如 "executable", "static" 等）
+     * @param name 项目名称
+     * @return 创建结果，包含生成的文件
+     */
+//    fun createProjectFilesDirectly(
+//        directory: VirtualFile,
+//        projectType: String = "executable",
+//        name: String
+//    ): CjProcessResult<GeneratedFilesHolder>
 
 
 }

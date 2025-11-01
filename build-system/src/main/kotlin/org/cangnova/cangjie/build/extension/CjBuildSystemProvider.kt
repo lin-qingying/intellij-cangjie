@@ -28,6 +28,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.build.model.CjBuildSystem
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 
 /**
  * 构建系统提供者扩展点
@@ -42,15 +43,17 @@ interface CjBuildSystemProvider {
     }
 
     /**
+     * 获取此解析器关联的构建系统 ID
+     *
+     * @return 构建系统 ID
+     */
+    fun getBuildSystemId(): ProjectBuildSystemId
+
+    /**
      * 提供者名称
      */
     val providerName: String
 
-    /**
-     * 提供者优先级
-     */
-    val priority: Int
-        get() = 100
 
     /**
      * 检查是否可以处理指定的项目

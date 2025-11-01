@@ -24,21 +24,23 @@
 
 package org.cangnova.cangjie.cjpm.dependency
 
+import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
 import org.cangnova.cangjie.dependency.extension.CjRepositoryProvider
 import org.cangnova.cangjie.dependency.model.CjPackage
 import org.cangnova.cangjie.dependency.model.CjVersion
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 import java.nio.file.Path
 
 /**
  * CJPM 仓库提供者实现
  */
 class CjpmRepositoryProvider : CjRepositoryProvider {
+    override fun getBuildSystemId(): ProjectBuildSystemId = CjpmBuildSystemId
 
     override val repositoryName: String = "CJPM Official Repository"
 
     override val repositoryUrl: String = "https://repo.cangjie.org"
 
-    override val priority: Int = 100
 
     override fun searchPackage(name: String): List<CjPackage> {
         // TODO: 实现包搜索逻辑

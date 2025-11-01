@@ -24,12 +24,17 @@
 
 package org.cangnova.cangjie.project.wizard
 
+import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.ide.util.projectWizard.ModuleBuilder
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleType
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.project.service.CjProjectsService
+import org.cangnova.cangjie.project.service.GeneratedFilesHolder
 import org.cangnova.cangjie.toolchain.api.CjSdk
 
 data class ConfigurationData(
@@ -110,4 +115,14 @@ abstract class CjModuleBuilder : ModuleBuilder() {
      * 是否可用
      */
     override fun isAvailable(): Boolean = false
+}
+
+fun Project.openFiles(files: GeneratedFilesHolder) = invokeLater {
+    if (!ApplicationManager.getApplication().isHeadlessEnvironment) {
+        val navigation = PsiNavigationSupport.getInstance()
+        navigation.createNavigatable(this, files.manifest, -1).navigate(false)
+        for (file in files.sourceFiles) {
+            navigation.createNavigatable(this, file, -1).navigate(true)
+        }
+    }
 }

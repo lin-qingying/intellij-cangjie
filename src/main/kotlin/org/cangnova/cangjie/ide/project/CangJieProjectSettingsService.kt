@@ -26,21 +26,12 @@ package org.cangnova.cangjie.ide.project
 
 import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
-import com.intellij.util.io.systemIndependentPath
 import com.intellij.util.xmlb.annotations.Transient
 import org.cangnova.cangjie.configurable.CangJieConfigurable
-import org.cangnova.cangjie.project.AffectsHighlighting
-import org.cangnova.cangjie.project.AffectsMetadata
-import org.cangnova.cangjie.project.CjProjectSettingsBase
-import org.cangnova.cangjie.project.CjProjectSettingsServiceBase
-import org.cangnova.cangjie.project.SettingsChangedEventBase
-
+import org.cangnova.cangjie.project.*
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
-import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
 import org.cangnova.cangjie.utils.showSettingsDialog
-import org.cangnova.cangjie.utils.toPath
-import org.cangnova.cangjie.project.cangjieSettingsData
-import org.cangnova.cangjie.project.CjSettingsListener
 
 private const val SERVICE_NAME: String = "CangJieProjectSettings"
 
@@ -57,15 +48,13 @@ class CangJieProjectSettingsService(
 
     ) : CjProjectSettingsServiceBase<CangJieProjectSettingsService.CangJieProjectSettings>(
     project,
-    CangJieProjectSettings()
-)  {
+    CangJieProjectSettings(project)
+) {
 
     init {
         // 初始化时同步设置到 CangJieSettingsData
         syncToCangJieSettingsData()
     }
-
-    val toolchain: CjSdk? get() = state.toolchain
 
     fun configureToolchain() {
         project.showSettingsDialog<CangJieConfigurable>()
@@ -87,38 +76,36 @@ class CangJieProjectSettingsService(
         // 设置变更时同步到 CangJieSettingsData
         syncToCangJieSettingsData()
     }
-    class CangJieProjectSettings : CjProjectSettingsBase<CangJieProjectSettings>() {
+
+    class CangJieProjectSettings(
+        private val project: Project
+    ) : CjProjectSettingsBase<CangJieProjectSettings>() {
 
 
         @AffectsHighlighting
         var compileAllTargets by property(true)
-
-        @AffectsMetadata
-        var toolchainHomeDirectory by string()
 
         var externalLinterArguments by property("") { it.isEmpty() }
         var autoUpdateEnabled by property(true)
 
         var runExternalLinterOnTheFly by property(false)
         override fun copy(): CangJieProjectSettings {
-            val state = CangJieProjectSettings()
+            val state = CangJieProjectSettings(project)
             state.copyFrom(this)
             return state
         }
 
         var useOffline by property(false)
 
+
         @get:Transient
         @set:Transient
         var toolchain: CjSdk?
-            get() = toolchainHomeDirectory?.let { CjSdkRegistry.getInstance().registerSdkPath(it.toPath()) }
+            get() = CjProjectSdkConfig.getInstance(project = project).getProjectSdk()
             set(value) {
+                CjProjectSdkConfig.getInstance(project).setProjectSdkId(value?.id)
 
-                toolchainHomeDirectory = value?.homePath?.systemIndependentPath
-
-                toolchainHomeDirectory?.let {  CjSdkRegistry.getInstance() .registerSdkPath(it.toPath()) }
             }
-
     }
 
     class SettingsChangedEvent(
@@ -132,10 +119,10 @@ class CangJieProjectSettingsService(
     ): SettingsChangedEvent = SettingsChangedEvent(oldEvent, newEvent)
 
 
-
 }
-val Project.cangjieSettings:  CangJieProjectSettingsService
-    get() = service< CangJieProjectSettingsService>()
+
+val Project.cangjieSettings: CangJieProjectSettingsService
+    get() = service<CangJieProjectSettingsService>()
 
 
 

@@ -37,11 +37,12 @@
     <extensions defaultExtensionNs="org.cangnova.cangjie.project">
         <projectProvider implementation="org.cangnova.cangjie.cjpm.project.CjpmProjectProvider"/>
         <moduleBuilderProvider implementation="org.cangnova.cangjie.cjpm.wizard.CjpmModuleBuilderProvider"/>
+        <buildSystemId implementation="org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId"/>
     </extensions>
     <extensions defaultExtensionNs="com.intellij">
 
 
-        <fileType name="TOML"
+    <fileType name="TOML"
                   language="TOML"
                   fileNames="cjpm.lock"
         />

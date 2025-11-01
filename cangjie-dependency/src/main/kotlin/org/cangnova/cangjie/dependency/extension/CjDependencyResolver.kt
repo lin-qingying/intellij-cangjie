@@ -28,6 +28,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.dependency.model.CjDependency
 import org.cangnova.cangjie.dependency.model.CjResolvedDependency
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 
 /**
  * 依赖解析器扩展点
@@ -42,10 +43,13 @@ interface CjDependencyResolver {
     }
 
     /**
-     * 解析器优先级 (数值越小优先级越高)
+     * 获取此解析器关联的构建系统 ID
+     *
+     * @return 构建系统 ID
      */
-    val priority: Int
-        get() = 100
+    fun getBuildSystemId(): ProjectBuildSystemId
+
+
 
     /**
      * 判断是否可以解析该依赖

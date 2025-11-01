@@ -46,6 +46,13 @@ interface CjProjectProvider {
     }
 
     /**
+     * 获取此提供者关联的构建系统 ID
+     *
+     * @return 构建系统 ID
+     */
+    fun getBuildSystemId(): ProjectBuildSystemId
+
+    /**
      * 判断是否可以处理该目录
      *
      * @param dir 待检测的目录
@@ -64,7 +71,7 @@ interface CjProjectProvider {
 
     /**
      * 物理文件中创建项目，它和createProject是有区别的，createProject是基于已经存在的文件夹创建项目
-     * 而这个方法是基于物理文件创建项目文件夹，然后在创建
+     * 而这个方法是基于物理文件创建项目文件夹，然后在创建（通过工具链命令创建）
      */
     fun createProjectFromPhysicalFile(
         sdkId: String,
@@ -74,6 +81,24 @@ interface CjProjectProvider {
         name: String? = null
     ): CjProcessResult<GeneratedFilesHolder>
 
+    /**
+     * 直接创建项目文件，不调用工具链命令
+     *
+     * 通过插件直接生成项目所需的文件和目录结构，避免调用外部工具链。
+     * 适用于快速创建项目或工具链不可用的场景。
+     *
+     * @param project IntelliJ 项目实例
+     * @param directory 项目根目录
+     * @param projectType 项目类型（如 "executable", "static" 等）
+     * @param name 项目名称
+     * @return 创建结果，包含生成的文件
+     */
+//    fun createProjectFilesDirectly(
+//        project: Project,
+//        directory: VirtualFile,
+//        projectType: String,
+//        name: String
+//    ): CjProcessResult<GeneratedFilesHolder>
 
     /**
      * 项目提供者名称

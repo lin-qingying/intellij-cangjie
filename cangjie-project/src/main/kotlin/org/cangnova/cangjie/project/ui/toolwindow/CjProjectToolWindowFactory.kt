@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.project.ui.toolwindow
 
+import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
@@ -75,4 +76,11 @@ private class CjProjectToolWindowPanel(project: Project) : SimpleToolWindowPanel
         cjProjectWindow.toolbar.targetComponent = this
         setContent(cjProjectWindow.content)
     }
+
+    @Deprecated("Migrate to [uiDataSnapshot] ASAP")
+    override fun getData(dataId: String): Any? =
+        when {
+            PlatformDataKeys.TREE_EXPANDER.`is`(dataId) -> cjProjectWindow.treeExpander
+            else -> super.getData(dataId)
+        }
 }

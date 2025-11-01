@@ -54,10 +54,19 @@
                 qualifiedName="org.cangnova.cangjie.commandProvider"
                 interface="org.cangnova.cangjie.project.ui.actions.CjCommandProvider"
                 dynamic="true"/>
+
+        <!-- 模块构建器提供者:提供新项目创建的 ModuleBuilder -->
         <extensionPoint
                 name="moduleBuilderProvider"
                 qualifiedName="org.cangnova.cangjie.project.moduleBuilderProvider"
                 interface="org.cangnova.cangjie.project.extension.CjModuleBuilderProvider"
+                dynamic="true"/>
+
+        <!-- 构建系统标识符:定义构建系统、项目模块和依赖管理的统一标识 -->
+        <extensionPoint
+                name="buildSystemId"
+                qualifiedName="org.cangnova.cangjie.project.buildSystemId"
+                interface="org.cangnova.cangjie.project.extension.ProjectBuildSystemId"
                 dynamic="true"/>
     </extensionPoints>
 
@@ -69,6 +78,7 @@
                 serviceInterface="org.cangnova.cangjie.project.service.CjProjectsService"
                 serviceImplementation="org.cangnova.cangjie.project.service.impl.CjProjectsServiceImpl"/>
 
+
         <!-- 工具窗口: 显示仓颉项目结构 -->
         <toolWindow
                 id="CangJie Projects"
@@ -76,6 +86,10 @@
                 anchor="right"
                 icon="AllIcons.Nodes.Module"/>
 
+        <!-- RunAnything 提供者: 统一的命令执行入口 -->
+        <runAnything.executionProvider
+                order="after RunAnythingRunConfigurationProvider"
+                implementation="org.cangnova.cangjie.project.ui.actions.CjRunAnythingProviderImpl"/>
 
         <registryKey key="org.cangnova.cangjie.project.new.auto.import"
                      defaultValue="true"
@@ -131,17 +145,16 @@
 
 
         <group id="CangJie.CjProject">
-            <reference id="CjProject.RefreshProject"/>
-<!--            <reference id="CjProject.AttachProject"/>-->
+            <reference ref="CjProject.RefreshProject"/>
 
             <separator/>
-            <reference id="CjProject.RunCommand"/>
+            <reference ref="CjProject.RunCommand"/>
 
             <separator/>
-            <reference id="ExpandAll"/>
-            <reference id="CollapseAll"/>
+            <reference ref="ExpandAll"/>
+            <reference ref="CollapseAll"/>
             <separator/>
-<!--            <reference id="CjProject.ShowSettings"/>-->
+
         </group>
     </actions>
 </idea-plugin>

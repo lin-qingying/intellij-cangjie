@@ -25,54 +25,53 @@
 package org.cangnova.cangjie.project.extension
 
 import com.intellij.openapi.extensions.ExtensionPointName
-import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
-import org.cangnova.cangjie.project.wizard.CjModuleBuilder
 
 /**
- * 模块构建器提供者接口
+ * 构建系统标识符接口
  *
- * 用于提供创建新项目的 ModuleBuilder 实例。
- * 不同的构建系统（如 CJPM）可以实现此接口来提供自己的 ModuleBuilder。
+ * 用于定义构建系统、项目模块和依赖管理的统一标识符。
+ * 每个构建系统（如 CJPM）应提供唯一的 ID 和显示名称。
  */
-interface CjModuleBuilderProvider {
+interface ProjectBuildSystemId {
 
     companion object {
-        val EP_NAME = ExtensionPointName<CjModuleBuilderProvider>(
-            "org.cangnova.cangjie.project.moduleBuilderProvider"
-        )
+        /**
+         * 扩展点名称，用于注册构建系统标识符
+         */
+        val EP_NAME: ExtensionPointName<ProjectBuildSystemId> =
+            ExtensionPointName.create("org.cangnova.cangjie.project.buildSystemId")
 
-
-        fun getModuleBuilderProvider(): CjModuleBuilderProvider? {
-
-            val buildSystemId = CjProjectBuildSystemService.getInstance().getBuildSystemId()
-
-
-            return EP_NAME.extensionList.find {
-
-                it.getBuildSystemId().id == buildSystemId
-            }
-
-        }
 
     }
 
     /**
-     * 获取此解析器关联的构建系统 ID
+     * 构建系统的唯一标识符
      *
-     * @return 构建系统 ID
+     * 应使用小写字母和连字符，例如 "cjpm", "gradle", "maven"
+     * @return 构建系统的唯一 ID
      */
-    fun getBuildSystemId(): ProjectBuildSystemId
+    val id: String
 
     /**
-     * 提供者名称
+     * 构建系统的显示名称
+     *
+     * 用于在 UI 中展示，例如 "CJPM", "Gradle", "Maven"
+     * @return 构建系统的显示名称
      */
-    val providerName: String
-
+    val displayName: String
 
     /**
-     * 创建 ModuleBuilder 实例
+     * 构建系统的描述信息
      *
-     * @return ModuleBuilder 实例，如果无法创建则返回 null
+     * 简要描述该构建系统的功能和特点
+     * @return 构建系统的描述
      */
-    fun createModuleBuilder(): CjModuleBuilder?
+    val description: String get() = ""
+
+    /**
+     * 构建系统的版本信息（可选）
+     *
+     * @return 构建系统的版本号，如果不适用则返回 null
+     */
+    val version: String? get() = null
 }

@@ -28,15 +28,17 @@ import org.cangnova.cangjie.build.extension.CjBuildTaskExecutor
 import org.cangnova.cangjie.build.model.CjBuildContext
 import org.cangnova.cangjie.build.model.CjBuildResult
 import org.cangnova.cangjie.build.model.CjBuildTask
+import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 
 /**
  * CJPM 构建任务执行器
  */
 class CjpmBuildTaskExecutor : CjBuildTaskExecutor {
+    override fun getBuildSystemId(): ProjectBuildSystemId = CjpmBuildSystemId
 
     override val executorName: String = "CJPM Task Executor"
 
-    override val priority: Int = 100
 
     override fun canExecute(task: CjBuildTask): Boolean {
         // CJPM 执行器可以执行所有 CJPM 任务

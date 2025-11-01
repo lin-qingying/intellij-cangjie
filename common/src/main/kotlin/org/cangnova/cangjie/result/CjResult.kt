@@ -126,6 +126,13 @@ sealed class CjProcessExecutionException : CjProcessExecutionOrDeserializationEx
         }
     }
 
+    /** File creation failed without executing a process */
+    class FileCreation(
+        cause: Throwable,
+    ) : CjProcessExecutionException(cause) {
+        override val commandLineString: String = "Direct file creation (no command line)"
+    }
+
     companion object {
         fun errorMessage(commandLineString: String, output: ProcessOutput): String = """
             |Execution failed (exit code ${output.exitCode}).
