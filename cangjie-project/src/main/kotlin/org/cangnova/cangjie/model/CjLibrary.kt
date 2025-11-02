@@ -22,30 +22,63 @@
  *
  */
 
-package org.cangnova.cangjie.cjpm.project
+package org.cangnova.cangjie.model
 
-import org.cangnova.cangjie.model.CjDependency
-import org.cangnova.cangjie.model.CjDependencyScope
-import org.cangnova.cangjie.model.CjDependencyType
-import org.cangnova.cangjie.model.CjVersion
+import java.nio.file.Path
 
 /**
- * CJPM 依赖实现
+ * 库抽象接口
+ *
+ * 代表一个已解析的库文件
  */
-data class CjpmDependency(
-    override val name: String,
-    val versionString: String,
-    override val scope: CjDependencyScope,
-    override val type: CjDependencyType,
-    val path: String? = null,
-    val git: String? = null,
-    val branch: String? = null,
-    val tag: String? = null,
-    val rev: String? = null
-) : CjDependency {
+interface CjLibrary {
+    /**
+     * 库名称
+     */
+    val name: String
 
-    override val group: String? = null
+    /**
+     * 库版本
+     */
+    val version: CjVersion
 
-    override val version: CjVersion
-        get() = CjVersion(versionString)
+    /**
+     * 库文件路径
+     */
+    val libraryPath: Path
+
+    /**
+     * 库类型 (静态库/动态库等)
+     */
+    val libraryType: CjLibraryType
+
+    /**
+     * 源码路径 (可选)
+     */
+    val sourcePath: Path?
+
+    /**
+     * 文档路径 (可选)
+     */
+    val documentationPath: Path?
+}
+
+/**
+ * 库类型
+ */
+enum class CjLibraryType {
+    /**
+     * 静态库
+     */
+    STATIC,
+
+    /**
+     * 动态库
+     */
+    DYNAMIC,
+
+    /**
+     * 编译产物 (如 .cjo 文件)
+     */
+    COMPILED
 }

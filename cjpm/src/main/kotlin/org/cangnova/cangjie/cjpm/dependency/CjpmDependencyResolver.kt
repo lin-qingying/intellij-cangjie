@@ -26,9 +26,9 @@ package org.cangnova.cangjie.cjpm.dependency
 
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
-import org.cangnova.cangjie.dependency.extension.CjDependencyResolver
-import org.cangnova.cangjie.dependency.model.CjDependency
-import org.cangnova.cangjie.dependency.model.CjResolvedDependency
+import org.cangnova.cangjie.extension.CjDependencyResolver
+import org.cangnova.cangjie.model.CjDependency
+import org.cangnova.cangjie.model.CjResolvedDependency
 import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 
 /**

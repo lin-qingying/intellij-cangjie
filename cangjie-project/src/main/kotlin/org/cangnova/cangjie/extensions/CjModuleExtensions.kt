@@ -22,30 +22,16 @@
  *
  */
 
-package org.cangnova.cangjie.cjpm.project
+package org.cangnova.cangjie.extensions
 
 import org.cangnova.cangjie.model.CjDependency
-import org.cangnova.cangjie.model.CjDependencyScope
-import org.cangnova.cangjie.model.CjDependencyType
-import org.cangnova.cangjie.model.CjVersion
+import org.cangnova.cangjie.project.model.CjModule
 
 /**
- * CJPM 依赖实现
+ * 获取模块的依赖列表
+ *
+ * 这是一个扩展属性，用于在 cangjie-dependency 模块中访问模块依赖
+ * 避免在 cangjie-project 模块中引入对 cangjie-dependency 的循环依赖
  */
-data class CjpmDependency(
-    override val name: String,
-    val versionString: String,
-    override val scope: CjDependencyScope,
-    override val type: CjDependencyType,
-    val path: String? = null,
-    val git: String? = null,
-    val branch: String? = null,
-    val tag: String? = null,
-    val rev: String? = null
-) : CjDependency {
-
-    override val group: String? = null
-
-    override val version: CjVersion
-        get() = CjVersion(versionString)
-}
+val CjModule.dependencies: List<CjDependency>
+    get() = emptyList() // 默认返回空列表，具体实现可以在子类中覆盖

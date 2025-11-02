@@ -11,8 +11,6 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/analysis" />
             <option value="$PROJECT_DIR$/analysis/decompiler-to-psi" />
-            <option value="$PROJECT_DIR$/build-system" />
-            <option value="$PROJECT_DIR$/cangjie-dependency" />
             <option value="$PROJECT_DIR$/cangjie-project" />
             <option value="$PROJECT_DIR$/cjpm" />
             <option value="$PROJECT_DIR$/common" />

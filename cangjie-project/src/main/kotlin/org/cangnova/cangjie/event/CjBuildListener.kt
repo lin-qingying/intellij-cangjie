@@ -22,30 +22,28 @@
  *
  */
 
-package org.cangnova.cangjie.cjpm.project
+package org.cangnova.cangjie.event
 
-import org.cangnova.cangjie.model.CjDependency
-import org.cangnova.cangjie.model.CjDependencyScope
-import org.cangnova.cangjie.model.CjDependencyType
-import org.cangnova.cangjie.model.CjVersion
+import com.intellij.util.messages.Topic
 
 /**
- * CJPM 依赖实现
+ * 构建监听器接口
  */
-data class CjpmDependency(
-    override val name: String,
-    val versionString: String,
-    override val scope: CjDependencyScope,
-    override val type: CjDependencyType,
-    val path: String? = null,
-    val git: String? = null,
-    val branch: String? = null,
-    val tag: String? = null,
-    val rev: String? = null
-) : CjDependency {
+interface CjBuildListener {
+    companion object {
+        /**
+         * 消息总线主题
+         */
+        val TOPIC = Topic.create(
+            "Cangjie Build Events",
+            CjBuildListener::class.java
+        )
+    }
 
-    override val group: String? = null
-
-    override val version: CjVersion
-        get() = CjVersion(versionString)
+    /**
+     * 构建事件回调
+     *
+     * @param event 构建事件
+     */
+    fun onBuildEvent(event: CjBuildEvent)
 }

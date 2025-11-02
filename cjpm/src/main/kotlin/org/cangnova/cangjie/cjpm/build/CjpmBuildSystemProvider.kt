@@ -26,8 +26,8 @@ package org.cangnova.cangjie.cjpm.build
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.build.extension.CjBuildSystemProvider
-import org.cangnova.cangjie.build.model.CjBuildSystem
+import org.cangnova.cangjie.extension.CjBuildSystemProvider
+import org.cangnova.cangjie.model.CjBuildSystem
 import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
 import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 

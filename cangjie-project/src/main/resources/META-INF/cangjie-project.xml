@@ -46,8 +46,6 @@
                 interface="org.cangnova.cangjie.project.extension.CjProjectOpenProcessor"
                 dynamic="true"/>
 
-        <!-- 模块构建器提供者:提供新项目创建的 ModuleBuilder -->
-
         <!-- 命令提供者:提供仓颉项目相关的命令执行功能 -->
         <extensionPoint
                 name="commandProvider"
@@ -68,10 +66,64 @@
                 qualifiedName="org.cangnova.cangjie.project.buildSystemId"
                 interface="org.cangnova.cangjie.project.extension.ProjectBuildSystemId"
                 dynamic="true"/>
+
+        <!-- 运行配置编辑器提供者:子系统提供自定义UI编辑器 -->
+        <extensionPoint
+                name="runConfigurationEditorProvider"
+                qualifiedName="org.cangnova.cangjie.run.editorProvider"
+                interface="org.cangnova.cangjie.run.CangJieRunConfigurationEditorProvider"
+                dynamic="true"/>
+
+        <!-- 命令执行器:子系统提供命令执行逻辑 -->
+        <extensionPoint
+                name="commandExecutor"
+                qualifiedName="org.cangnova.cangjie.run.commandExecutor"
+                interface="org.cangnova.cangjie.run.CangJieCommandExecutor"
+                dynamic="true"/>
+
+        <!-- 构建系统检测器:子系统提供构建系统识别逻辑 -->
+        <extensionPoint
+                name="buildSystemDetector"
+                qualifiedName="org.cangnova.cangjie.run.buildSystemDetector"
+                interface="org.cangnova.cangjie.run.CangJieBuildSystemDetector"
+                dynamic="true"/>
     </extensionPoints>
 
     <!-- 服务注册 -->
     <extensions defaultExtensionNs="com.intellij">
+
+        <!-- 运行配置 -->
+        <!-- 运行配置类型 - 命令配置 -->
+        <configurationType
+                implementation="org.cangnova.cangjie.run.CangJieCommandRunConfigurationType"
+                id="CangJieCommandRunConfigurationType"/>
+
+        <!-- 运行配置类型 - 程序配置 -->
+        <configurationType
+                implementation="org.cangnova.cangjie.run.CangJieProgramRunConfigurationType"
+                id="CangJieProgramRunConfigurationType"/>
+
+        <!-- 运行配置生成器 -->
+        <runConfigurationProducer
+                implementation="org.cangnova.cangjie.run.CangJieRunConfigurationProducer"
+                id="CangJieRunConfigurationProducer"/>
+
+        <!-- 程序运行配置生成器 -->
+        <runConfigurationProducer
+                implementation="org.cangnova.cangjie.run.CangJieProgramRunConfigurationProducer"
+                id="CangJieProgramRunConfigurationProducer"/>
+
+        <!-- 程序运行器 -->
+        <programRunner
+                implementation="org.cangnova.cangjie.run.CangJieCommandRunner"
+                id="CangJieCommandRunner"/>
+
+        <!-- 子系统需要实现以下扩展点:
+             1. editorProvider - 提供自定义UI编辑器
+             2. commandExecutor - 提供命令执行逻辑
+             3. buildSystemDetector - 提供构建系统检测
+        -->
+
 
         <!-- 项目级服务: 项目管理服务 -->
         <projectService

@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.cjpm.build
 
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.build.model.CjBuildConfiguration
+import org.cangnova.cangjie.model.CjBuildConfiguration
 import java.nio.file.Path
 import kotlin.io.path.Path
 

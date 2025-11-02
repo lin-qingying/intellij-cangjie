@@ -22,30 +22,42 @@
  *
  */
 
-package org.cangnova.cangjie.cjpm.project
-
-import org.cangnova.cangjie.model.CjDependency
-import org.cangnova.cangjie.model.CjDependencyScope
-import org.cangnova.cangjie.model.CjDependencyType
-import org.cangnova.cangjie.model.CjVersion
+package org.cangnova.cangjie.model
 
 /**
- * CJPM 依赖实现
+ * 已解析的依赖
+ *
+ * 包含依赖的完整解析信息
  */
-data class CjpmDependency(
-    override val name: String,
-    val versionString: String,
-    override val scope: CjDependencyScope,
-    override val type: CjDependencyType,
-    val path: String? = null,
-    val git: String? = null,
-    val branch: String? = null,
-    val tag: String? = null,
-    val rev: String? = null
-) : CjDependency {
+interface CjResolvedDependency {
+    /**
+     * 原始依赖
+     */
+    val dependency: CjDependency
 
-    override val group: String? = null
+    /**
+     * 解析后的包
+     */
+    val resolvedPackage: CjPackage?
 
-    override val version: CjVersion
-        get() = CjVersion(versionString)
+    /**
+     * 解析后的库
+     */
+    val resolvedLibrary: CjLibrary?
+
+    /**
+     * 传递依赖列表
+     */
+    val transitiveDependencies: List<CjDependency>
+
+    /**
+     * 解析是否成功
+     */
+    val isResolved: Boolean
+        get() = resolvedPackage != null || resolvedLibrary != null
+
+    /**
+     * 解析错误信息
+     */
+    val errorMessage: String?
 }

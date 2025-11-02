@@ -26,7 +26,7 @@ package org.cangnova.cangjie.cjpm.build
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.build.model.*
+import org.cangnova.cangjie.model.*
 import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
 

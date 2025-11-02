@@ -29,9 +29,9 @@ import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
 import org.cangnova.cangjie.cjpm.model.DependencyConfig
 import org.cangnova.cangjie.cjpm.model.PackageConfig
 import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
-import org.cangnova.cangjie.dependency.model.CjDependency
-import org.cangnova.cangjie.dependency.model.CjDependencyScope
-import org.cangnova.cangjie.dependency.model.CjDependencyType
+import org.cangnova.cangjie.model.CjDependency
+import org.cangnova.cangjie.model.CjDependencyScope
+import org.cangnova.cangjie.model.CjDependencyType
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjModuleDependency
 import org.cangnova.cangjie.project.model.CjProject

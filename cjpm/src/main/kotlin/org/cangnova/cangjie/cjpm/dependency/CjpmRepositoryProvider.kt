@@ -25,9 +25,9 @@
 package org.cangnova.cangjie.cjpm.dependency
 
 import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
-import org.cangnova.cangjie.dependency.extension.CjRepositoryProvider
-import org.cangnova.cangjie.dependency.model.CjPackage
-import org.cangnova.cangjie.dependency.model.CjVersion
+import org.cangnova.cangjie.extension.CjRepositoryProvider
+import org.cangnova.cangjie.model.CjPackage
+import org.cangnova.cangjie.model.CjVersion
 import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 import java.nio.file.Path
 

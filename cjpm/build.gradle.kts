@@ -34,8 +34,8 @@ dependencies {
 
     // 依赖核心模块
     implementation(project(":cangjie-project"))
-    implementation(project(":cangjie-dependency"))
-    implementation(project(":build-system"))
+
+
     implementation(project(":util"))
     implementation(project(":messages"))
     implementation(project(":psi"))

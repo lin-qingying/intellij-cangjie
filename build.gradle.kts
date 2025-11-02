@@ -523,9 +523,9 @@ project(":") {
 
 
         implementation(project(":analysis"))
-        implementation(project(":build-system"))
+
         implementation(project(":cangjie-project"))
-        implementation(project(":cangjie-dependency"))
+
 
     }
     tasks {

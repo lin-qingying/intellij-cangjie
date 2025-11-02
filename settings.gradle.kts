@@ -59,7 +59,7 @@ include("util")
 include("icon")
 include("messages")
 include("toolchain")
-include("build-system")
+
 include("notifications")
 include("descriptors")
 include("common")
@@ -75,7 +75,7 @@ include("deserialization")
 
 
 
-include("cangjie-dependency")
+
 
 include("cangjie-project")
 

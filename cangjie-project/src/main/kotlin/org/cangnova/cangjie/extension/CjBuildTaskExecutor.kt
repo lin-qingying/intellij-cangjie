@@ -22,39 +22,60 @@
  *
  */
 
-package org.cangnova.cangjie.cjpm.build
+package org.cangnova.cangjie.extension
 
-import org.cangnova.cangjie.extension.CjBuildTaskExecutor
+import com.intellij.openapi.extensions.ExtensionPointName
 import org.cangnova.cangjie.model.CjBuildContext
 import org.cangnova.cangjie.model.CjBuildResult
 import org.cangnova.cangjie.model.CjBuildTask
-import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
 import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 
 /**
- * CJPM 构建任务执行器
+ * 构建任务执行器扩展点
+ *
+ * 用于执行不同类型的构建任务
  */
-class CjpmBuildTaskExecutor : CjBuildTaskExecutor {
-    override fun getBuildSystemId(): ProjectBuildSystemId = CjpmBuildSystemId
-
-    override val executorName: String = "CJPM Task Executor"
-
-
-    override fun canExecute(task: CjBuildTask): Boolean {
-        // CJPM 执行器可以执行所有 CJPM 任务
-        return task is CjpmBuildTaskImpl
+interface CjBuildTaskExecutor {
+    companion object {
+        val EP_NAME = ExtensionPointName<CjBuildTaskExecutor>(
+            "org.cangnova.cangjie.build.buildTaskExecutor"
+        )
     }
 
-    override fun execute(task: CjBuildTask, context: CjBuildContext): CjBuildResult {
-        // TODO: 实现任务执行逻辑
-        // 1. 构建命令行
-        // 2. 执行 cjpm 命令
-        // 3. 解析输出
-        // 4. 返回结果
-        throw NotImplementedError("Task execution not implemented yet")
-    }
+    /**
+     * 获取此解析器关联的构建系统 ID
+     *
+     * @return 构建系统 ID
+     */
+    fun getBuildSystemId(): ProjectBuildSystemId
 
-    override fun cancel(task: CjBuildTask) {
-        // TODO: 取消任务执行
-    }
+    /**
+     * 执行器名称
+     */
+    val executorName: String
+
+
+    /**
+     * 检查是否可以执行指定的任务
+     *
+     * @param task 构建任务
+     * @return 如果可以执行返回 true
+     */
+    fun canExecute(task: CjBuildTask): Boolean
+
+    /**
+     * 执行构建任务
+     *
+     * @param task 构建任务
+     * @param context 构建上下文
+     * @return 构建结果
+     */
+    fun execute(task: CjBuildTask, context: CjBuildContext): CjBuildResult
+
+    /**
+     * 取消正在执行的任务
+     *
+     * @param task 构建任务
+     */
+    fun cancel(task: CjBuildTask)
 }
