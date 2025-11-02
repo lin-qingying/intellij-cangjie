@@ -59,7 +59,7 @@ data class ToolchainCommandLine(
     val withSudo: Boolean = false
 ) {
 
-    val sdk = CjSdkRegistry.getInstance().getSdk(sdkId) ?: error("sdk $sdkId not found")
+    val sdk = CjSdkRegistry.getInstance().getSdk(sdkId) ?: error("CangJie SDK not found: $sdkId")
     fun splitOnDoubleDash(arguments: List<String>): Pair<List<String>, List<String>> {
         val idx = arguments.indexOf("--")
 
