@@ -25,17 +25,15 @@
 package org.cangnova.cangjie.run
 
 import com.intellij.execution.configurations.ConfigurationFactory
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RuntimeConfigurationError
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
 import org.cangnova.cangjie.project.CjProjectBundle
-import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.service.CjProjectsService
-import java.nio.file.Paths
+import org.jdom.Element
 
 /**
  * Run configuration for executing CangJie modules.
@@ -45,19 +43,12 @@ class CangJieProgramRunConfiguration(
     project: Project,
     factory: ConfigurationFactory,
     name: String
-) : AbstractCangJieRunConfiguration(project, factory, name) {
-
-    override var command: String = "run"
+) : CangJieRunConfigurationBase(project, factory, name) {
 
     /**
      * Target module to run
      */
     var moduleName: String? = null
-
-    /**
-     * Target main function or entry point
-     */
-    var mainFunction: String? = null
 
     /**
      * Program arguments
@@ -106,14 +97,16 @@ class CangJieProgramRunConfiguration(
         return ModuleManager.getInstance(project).findModuleByName(moduleName)
     }
 
-    override fun suggestedName(): String? {
+    override fun createRunState(
+        environment: ExecutionEnvironment,
+        commandExecutor: CangJieCommandExecutor
+    ) = CangJieProgramRunState(environment, this)
+
+    override fun getConfigurationEditor() = CangJieProgramRunConfigurationEditor(project)
+
+    override fun suggestedName(): String {
         val module = getCjModule()
         return module?.name ?: project.name
-//        return if (module != null) {
-//            CjProjectBundle.message("run.configuration.type.program.display.name") + " ${module.name}"
-//        } else {
-//            CjProjectBundle.message("run.configuration.type.program.display.name")
-//        }
     }
 
     override fun checkConfiguration() {
@@ -124,22 +117,33 @@ class CangJieProgramRunConfiguration(
             throw RuntimeConfigurationError(CjProjectBundle.message("run.configuration.error.no.module.selected"))
         }
 
-        if (mainFunction.isNullOrBlank()) {
-            throw RuntimeConfigurationError(CjProjectBundle.message("run.configuration.error.no.main.function"))
+        val systemId = org.cangnova.cangjie.project.service.CjProjectBuildSystemService.getInstance().getBuildSystem()
+            ?: throw RuntimeConfigurationError(CjProjectBundle.message("run.configuration.error.cannot.detect.build.system"))
+
+        val executor = CangJieCommandExecutor.findExecutor()
+            ?: throw RuntimeConfigurationError(
+                CjProjectBundle.message(
+                    "run.configuration.error.no.command.executor",
+                    systemId.id
+                )
+            )
+
+        // Validate using subsystem executor
+        val error = executor.validateConfiguration(this)
+        if (error != null) {
+            throw RuntimeConfigurationError(error)
         }
     }
 
-    override fun writeExternal(element: org.jdom.Element) {
+    override fun writeExternal(element: Element) {
         super.writeExternal(element)
         moduleName?.let { element.writeString("moduleName", it) }
-        mainFunction?.let { element.writeString("mainFunction", it) }
         programArgs?.let { element.writeString("programArgs", it) }
     }
 
-    override fun readExternal(element: org.jdom.Element) {
+    override fun readExternal(element: Element) {
         super.readExternal(element)
         element.readString("moduleName")?.let { moduleName = it }
-        element.readString("mainFunction")?.let { mainFunction = it }
         element.readString("programArgs")?.let { programArgs = it }
     }
 }

@@ -75,14 +75,18 @@
         <repositoryProvider implementation="org.cangnova.cangjie.cjpm.dependency.CjpmRepositoryProvider"/>
     </extensions>
 
-    <!-- 注册 CJPM 构建系统扩展 -->
-    <extensions defaultExtensionNs="org.cangnova.cangjie.build">
-        <buildSystemProvider implementation="org.cangnova.cangjie.cjpm.build.CjpmBuildSystemProvider"/>
-        <buildTaskExecutor implementation="org.cangnova.cangjie.cjpm.build.CjpmBuildTaskExecutor"/>
-    </extensions>
-
     <!-- 注册 CJPM 命令提供者 -->
     <extensions defaultExtensionNs="org.cangnova.cangjie">
         <commandProvider implementation="org.cangnova.cangjie.cjpm.actions.CjpmCommandProvider"/>
+    </extensions>
+
+    <!-- 注册 CJPM 运行配置扩展 -->
+    <extensions defaultExtensionNs="org.cangnova.cangjie.run">
+        <!-- 命令执行器 -->
+        <commandExecutor implementation="org.cangnova.cangjie.cjpm.run.CjpmCommandExecutor"/>
+        <!-- 项目任务运行器 -->
+        <projectTaskRunner implementation="org.cangnova.cangjie.cjpm.run.CjpmProjectTaskRunner"/>
+        <!-- 构建输出解析器 -->
+        <buildOutputParser implementation="org.cangnova.cangjie.cjpm.build.CjpmBuildOutputParser"/>
     </extensions>
 </idea-plugin>

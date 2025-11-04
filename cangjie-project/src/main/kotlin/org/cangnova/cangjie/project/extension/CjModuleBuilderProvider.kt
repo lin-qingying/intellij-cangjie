@@ -44,7 +44,7 @@ interface CjModuleBuilderProvider {
 
         fun getModuleBuilderProvider(): CjModuleBuilderProvider? {
 
-            val buildSystemId = CjProjectBuildSystemService.getInstance().getBuildSystemId()
+            val buildSystemId = CjProjectBuildSystemService.getInstance().getBuildSystem()?.id
 
 
             return EP_NAME.extensionList.find {

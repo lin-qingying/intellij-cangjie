@@ -46,7 +46,6 @@ import javax.swing.*
 class CangJieProgramRunConfigurationEditor(private val project: Project) : SettingsEditor<CangJieProgramRunConfiguration>() {
 
     private val moduleComboBox = ComboBox<String>()
-    private val mainFunctionField = JBTextField()
     private val programArgsField = JBTextField()
     private val workingDirectoryField = com.intellij.openapi.ui.TextFieldWithBrowseButton()
     private val envVarsComponent = EnvironmentVariablesComponent()
@@ -74,11 +73,6 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
     private fun createMainPanel(): JComponent = panel {
         row(CjProjectBundle.message("run.configuration.editor.module.label")) {
             cell(moduleComboBox)
-                .align(AlignX.FILL)
-        }
-
-        row(CjProjectBundle.message("run.configuration.editor.main.function.label")) {
-            cell(mainFunctionField)
                 .align(AlignX.FILL)
         }
 
@@ -184,7 +178,6 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
             }
         }
 
-        mainFunctionField.text = configuration.mainFunction.orEmpty()
         programArgsField.text = configuration.programArgs.orEmpty()
         workingDirectoryField.text = configuration.workingDirectory?.toString().orEmpty()
         envVarsComponent.envData = configuration.env
@@ -203,7 +196,6 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
             else -> selectedModuleName
         }
 
-        configuration.mainFunction = mainFunctionField.text.takeIf { it.isNotBlank() }
         configuration.programArgs = programArgsField.text.takeIf { it.isNotBlank() }
         configuration.workingDirectory = workingDirectoryField.text
             .takeIf { it.isNotBlank() }?.let { java.nio.file.Paths.get(it) }

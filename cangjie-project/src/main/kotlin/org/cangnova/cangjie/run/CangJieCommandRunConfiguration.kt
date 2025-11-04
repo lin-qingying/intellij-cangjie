@@ -26,8 +26,12 @@ package org.cangnova.cangjie.run
 
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.configurations.RuntimeConfigurationError
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.CjProjectBundle
+import org.jdom.Element
 
 /**
  * Run configuration for executing CangJie build commands.
@@ -37,11 +41,63 @@ class CangJieCommandRunConfiguration(
     project: Project,
     factory: ConfigurationFactory,
     name: String
-) : AbstractCangJieRunConfiguration(project, factory, name) {
+) : CangJieRunConfigurationBase(project, factory, name) {
 
-    override var command: String = "run"
+    /**
+     * The command to execute (e.g., "run", "build", "test")
+     */
+    var command: String = "run"
+
+    /**
+     * Additional arguments for the command
+     */
+    var args: String? = null
+
+    override fun createRunState(
+        environment: ExecutionEnvironment,
+        commandExecutor: CangJieCommandExecutor
+    ) = CangJieCommandRunState(environment, this, commandExecutor)
+
+    override fun getConfigurationEditor() = CangJieRunConfigurationEditor(project)
 
     override fun suggestedName(): String {
-        return project.name
+        return "$command ${project.name}"
+    }
+
+    override fun checkConfiguration() {
+        super.checkConfiguration()
+
+        if (command.isBlank()) {
+            throw RuntimeConfigurationError(CjProjectBundle.message("run.configuration.error.command.empty"))
+        }
+
+        val systemId = org.cangnova.cangjie.project.service.CjProjectBuildSystemService.getInstance().getBuildSystem()
+            ?: throw RuntimeConfigurationError(CjProjectBundle.message("run.configuration.error.cannot.detect.build.system"))
+
+        val executor = CangJieCommandExecutor.findExecutor()
+            ?: throw RuntimeConfigurationError(
+                CjProjectBundle.message(
+                    "run.configuration.error.no.command.executor",
+                    systemId.id
+                )
+            )
+
+        // Validate using subsystem executor
+        val error = executor.validateConfiguration(this)
+        if (error != null) {
+            throw RuntimeConfigurationError(error)
+        }
+    }
+
+    override fun writeExternal(element: Element) {
+        super.writeExternal(element)
+        element.writeString("command", command)
+        args?.let { element.writeString("args", it) }
+    }
+
+    override fun readExternal(element: Element) {
+        super.readExternal(element)
+        element.readString("command")?.let { command = it }
+        element.readString("args")?.let { args = it }
     }
 }

@@ -35,26 +35,19 @@ import java.nio.file.Paths
  * Run configuration producer for CangJie projects.
  * Automatically creates run configurations based on project context.
  */
-class CangJieRunConfigurationProducer : LazyRunConfigurationProducer<AbstractCangJieRunConfiguration>() {
+class CangJieRunConfigurationProducer : LazyRunConfigurationProducer<CangJieCommandRunConfiguration>() {
 
     override fun getConfigurationFactory(): ConfigurationFactory {
         return CangJieCommandRunConfigurationType.instance.factory
     }
 
     override fun setupConfigurationFromContext(
-        configuration: AbstractCangJieRunConfiguration,
+        configuration: CangJieCommandRunConfiguration,
         context: ConfigurationContext,
         sourceElement: Ref<PsiElement>
     ): Boolean {
         val project = context.project
 
-        // Auto-detect build system
-        val buildSystemId = CangJieBuildSystemDetector.detectBuildSystem(project)
-        if (buildSystemId == null) {
-            return false
-        }
-
-        configuration.buildSystemId = buildSystemId
         configuration.name = "Run ${project.name}"
         configuration.command = "run"
         configuration.workingDirectory = project.basePath?.let { Paths.get(it) }
@@ -63,11 +56,10 @@ class CangJieRunConfigurationProducer : LazyRunConfigurationProducer<AbstractCan
     }
 
     override fun isConfigurationFromContext(
-        configuration: AbstractCangJieRunConfiguration,
+        configuration: CangJieCommandRunConfiguration,
         context: ConfigurationContext
     ): Boolean {
         val project = context.project
-        return configuration.workingDirectory?.toString() == project.basePath &&
-                configuration.buildSystemId == CangJieBuildSystemDetector.detectBuildSystem(project)
+        return configuration.workingDirectory?.toString() == project.basePath
     }
 }

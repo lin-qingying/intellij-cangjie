@@ -92,12 +92,9 @@
 
     <!-- 引入 json schema 相关 -->
     <xi:include href="/META-INF/cangjie-json.xml" xpointer="xpointer(/idea-plugin/*)" />
-<!--    <xi:include href="/META-INF/build-system.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
-
 
     <xi:include href="/META-INF/cangjie-project.xml" xpointer="xpointer(/idea-plugin/*)"/>
     <xi:include href="/META-INF/cangjie-dependency.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <xi:include href="/META-INF/build-system.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
 </idea-plugin>

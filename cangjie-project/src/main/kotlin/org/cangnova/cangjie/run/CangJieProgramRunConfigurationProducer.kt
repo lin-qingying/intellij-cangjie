@@ -28,19 +28,15 @@ import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.openapi.util.Ref
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.util.PsiTreeUtil
-import org.cangnova.cangjie.psi.CjFunction
 import org.cangnova.cangjie.psi.CjFile
-import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.service.CjProjectsService
 import java.nio.file.Paths
 
 /**
  * Run configuration producer for CangJie modules.
- * Automatically creates run configurations when right-clicking on CangJie files or main functions.
+ * Automatically creates run configurations when right-clicking on CangJie files.
  */
 class CangJieProgramRunConfigurationProducer : LazyRunConfigurationProducer<CangJieProgramRunConfiguration>() {
 
@@ -65,15 +61,8 @@ class CangJieProgramRunConfigurationProducer : LazyRunConfigurationProducer<Cang
         val moduleName = psiFile.virtualFile.parent.name // Simplified logic
         configuration.moduleName = moduleName
 
-        // Try to find the main function
-        val mainFunction = findMainFunction(psiFile)
-        if (mainFunction != null) {
-            configuration.mainFunction = mainFunction.name
-            configuration.name = "Run ${moduleName}"
-        } else {
-            configuration.mainFunction = "main"
-            configuration.name = "Run ${moduleName}"
-        }
+        // Set configuration name
+        configuration.name = "Run ${moduleName}"
 
         // Set working directory to file directory
         configuration.workingDirectory = Paths.get(psiFile.virtualFile.parent.path)
@@ -92,32 +81,4 @@ class CangJieProgramRunConfigurationProducer : LazyRunConfigurationProducer<Cang
         return configuration.moduleName == moduleName &&
                 configuration.workingDirectory?.toString() == psiFile.virtualFile.parent.path
     }
-
-    /**
-     * Find main function in the given file
-     */
-    private fun findMainFunction(psiFile: CjFile): CjFunction? {
-        return PsiTreeUtil.findChildrenOfType(psiFile, CjFunction::class.java)
-            .find { function ->
-                function.name == "main" && function.hasMainFunctionSignature()
-            }
-    }
-
-    /**
-     * Find main function in the module (searches all files)
-     */
-    private fun findMainFunctionInModule(cjModule: CjModule): CjFunction? {
-        // This would need to be implemented based on how files are accessed in the module
-        // For now, return null - this can be extended later
-        return null
-    }
-}
-
-/**
- * Extension function to check if a function has main function signature
- */
-private fun CjFunction.hasMainFunctionSignature(): Boolean {
-    // Check if the function has no parameters or appropriate signature for main
-    // This depends on the actual PSI structure of CangJie functions
-    return true // Simplified for now
 }

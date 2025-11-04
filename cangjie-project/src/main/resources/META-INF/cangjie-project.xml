@@ -67,13 +67,6 @@
                 interface="org.cangnova.cangjie.project.extension.ProjectBuildSystemId"
                 dynamic="true"/>
 
-        <!-- 运行配置编辑器提供者:子系统提供自定义UI编辑器 -->
-        <extensionPoint
-                name="runConfigurationEditorProvider"
-                qualifiedName="org.cangnova.cangjie.run.editorProvider"
-                interface="org.cangnova.cangjie.run.CangJieRunConfigurationEditorProvider"
-                dynamic="true"/>
-
         <!-- 命令执行器:子系统提供命令执行逻辑 -->
         <extensionPoint
                 name="commandExecutor"
@@ -81,12 +74,27 @@
                 interface="org.cangnova.cangjie.run.CangJieCommandExecutor"
                 dynamic="true"/>
 
-        <!-- 构建系统检测器:子系统提供构建系统识别逻辑 -->
+        <!-- 项目任务运行器:子系统提供构建任务执行逻辑 -->
         <extensionPoint
-                name="buildSystemDetector"
-                qualifiedName="org.cangnova.cangjie.run.buildSystemDetector"
-                interface="org.cangnova.cangjie.run.CangJieBuildSystemDetector"
+                name="projectTaskRunner"
+                qualifiedName="org.cangnova.cangjie.run.projectTaskRunner"
+                interface="org.cangnova.cangjie.run.CangJieProjectTaskRunner"
                 dynamic="true"/>
+
+        <!-- 运行配置扩展:允许插件扩展运行配置行为 -->
+        <extensionPoint
+                name="runConfigurationExtension"
+                qualifiedName="org.cangnova.cangjie.run.runConfigurationExtension"
+                interface="org.cangnova.cangjie.run.CangJieRunConfigurationExtension"
+                dynamic="true"/>
+
+        <!-- 构建输出解析器:允许不同构建系统提供自己的输出解析逻辑 -->
+        <extensionPoint
+                name="buildOutputParser"
+                qualifiedName="org.cangnova.cangjie.run.buildOutputParser"
+                interface="org.cangnova.cangjie.run.CangJieBuildOutputParser"
+                dynamic="true"/>
+
     </extensionPoints>
 
     <!-- 服务注册 -->
@@ -115,15 +123,27 @@
 
         <!-- 程序运行器 -->
         <programRunner
-                implementation="org.cangnova.cangjie.run.CangJieCommandRunner"
-                id="CangJieCommandRunner"/>
+                implementation="org.cangnova.cangjie.run.CangJieProgramRunner"
+                id="CangJieProgramRunner"/>
 
-        <!-- 子系统需要实现以下扩展点:
-             1. editorProvider - 提供自定义UI编辑器
-             2. commandExecutor - 提供命令执行逻辑
-             3. buildSystemDetector - 提供构建系统检测
-        -->
+        <!-- 远程目标环境支持 -->
+        <executionTargetLanguageRuntimeType
+                implementation="org.cangnova.cangjie.run.target.CjLanguageRuntimeType"/>
 
+        <!-- 项目任务运行器 -->
+        <projectTaskRunner
+                implementation="org.cangnova.cangjie.run.CangJieBuildTaskRunner"
+                id="CangJieBuildTaskRunner"
+                order="first"/>
+
+        <!-- 项目级服务: 构建会话队列管理器 -->
+        <projectService
+                serviceImplementation="org.cangnova.cangjie.run.CangJieBuildSessionsQueueManager"/>
+
+        <!-- 通知组 -->
+        <notificationGroup
+                id="CangJie Build"
+                displayType="BALLOON"/>
 
         <!-- 项目级服务: 项目管理服务 -->
         <projectService

@@ -27,12 +27,12 @@
         <!-- Application-level services -->
         <applicationService
                 serviceInterface="org.cangnova.cangjie.dependency.service.CjDependencyService"
-                serviceImplementation="org.cangnova.cangjie.dependency.service.impl.CjDependencyServiceImpl"/>
+                serviceImplementation="org.cangnova.cangjie.service.impl.CjDependencyServiceImpl"/>
 
         <!-- Project-level services -->
         <projectService
                 serviceInterface="org.cangnova.cangjie.dependency.registry.CjPackageRegistry"
-                serviceImplementation="org.cangnova.cangjie.dependency.registry.impl.CjPackageRegistryImpl"/>
+                serviceImplementation="org.cangnova.cangjie.registry.impl.CjPackageRegistryImpl"/>
 
         <!-- External Library Roots Provider: Display dependencies in project view -->
 <!--        <additionalLibraryRootsProvider-->
@@ -44,21 +44,21 @@
         <extensionPoint
                 name="dependencyResolver"
                 qualifiedName="org.cangnova.cangjie.dependency.dependencyResolver"
-                interface="org.cangnova.cangjie.dependency.extension.CjDependencyResolver"
+                interface="org.cangnova.cangjie.extension.CjDependencyResolver"
                 dynamic="true"/>
 
         <!-- Package Manager Extension Point -->
         <extensionPoint
                 name="packageManager"
                 qualifiedName="org.cangnova.cangjie.dependency.packageManager"
-                interface="org.cangnova.cangjie.dependency.extension.CjPackageManager"
+                interface="org.cangnova.cangjie.extension.CjPackageManager"
                 dynamic="true"/>
 
         <!-- Repository Provider Extension Point -->
         <extensionPoint
                 name="repositoryProvider"
                 qualifiedName="org.cangnova.cangjie.dependency.repositoryProvider"
-                interface="org.cangnova.cangjie.dependency.extension.CjRepositoryProvider"
+                interface="org.cangnova.cangjie.extension.CjRepositoryProvider"
                 dynamic="true"/>
     </extensionPoints>
 </idea-plugin>

@@ -219,7 +219,7 @@ class CjRunAnythingProviderImpl : CjRunAnythingProvider() {
     private fun getCommandProvider(): CjCommandProvider? {
 
         val buildSystemService = CjProjectBuildSystemService.getInstance()
-        val buildSystemId = buildSystemService.getBuildSystemId()
+        val buildSystemId = buildSystemService.getBuildSystem()?.id
 
         return CjCommandProvider.EP_NAME.extensionList.find { provider ->
             buildSystemId == null || provider.getBuildSystemId().id == buildSystemId

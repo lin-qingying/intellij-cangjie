@@ -1,0 +1,184 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+package org.cangnova.cangjie.run
+
+import com.intellij.build.BuildProgressListener
+import com.intellij.build.BuildViewManager
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageType
+import org.cangnova.cangjie.run.CjExecutableRunner.Companion.initializeArtifactsFuture
+import java.nio.file.Path
+import java.util.concurrent.CompletableFuture
+
+/**
+ * Manager for CangJie build operations.
+ * Provides utilities for executing builds with Build Tool Window integration.
+ */
+object CangJieBuildManager {
+
+    private const val NOTIFICATION_GROUP_ID = "CangJie Build"
+
+    /**
+     * Execute a build with Build Tool Window integration
+     */
+    fun executeBuild(
+        project: Project,
+        taskName: String,
+        workingDirectory: Path,
+        environment: ExecutionEnvironment,
+        buildAction: (CangJieBuildContext) -> Unit
+    ): CompletableFuture<Boolean> {
+        val future = CompletableFuture<Boolean>()
+        val buildViewManager = project.service<BuildViewManager>()
+        val buildProgressListener = buildViewManager as BuildProgressListener
+
+        val buildId = Any()
+        val context = CangJieBuildContext(
+            buildId = buildId,
+            parentId = null,
+            taskName = taskName,
+            workingDirectory = workingDirectory,
+            environment = environment
+        )
+
+        context.onFinished { success ->
+            future.complete(success)
+        }
+
+        try {
+            buildAction(context)
+        } catch (e: Exception) {
+            future.completeExceptionally(e)
+        }
+
+        return future
+    }
+
+    /**
+     * Create a build adapter for a process handler
+     */
+    fun createBuildAdapter(
+        context: CangJieBuildContext,
+        buildProgressListener: BuildProgressListener
+    ): CangJieBuildAdapter {
+        return CangJieBuildAdapter(context, buildProgressListener)
+    }
+
+    /**
+     * Attach build adapter to process handler with Build Tool Window integration
+     */
+    fun attachBuildAdapter(
+        project: Project,
+        taskName: String,
+        workingDirectory: Path,
+        environment: ExecutionEnvironment,
+        processHandler: com.intellij.execution.process.ProcessHandler,
+        buildProfile: BuildProfile = BuildProfile.RELEASE  // Default to RELEASE
+    ): CangJieBuildContext {
+        val buildViewManager = project.service<BuildViewManager>()
+        val buildProgressListener = buildViewManager as BuildProgressListener
+
+        val buildId = Any()
+        val context = CangJieBuildContext(
+            buildId = buildId,
+            parentId = null,
+            taskName = taskName,
+            workingDirectory = workingDirectory,
+            environment = environment,
+            buildProfile = buildProfile
+        )
+
+        context.processHandler = processHandler
+
+        // Initialize artifacts future for this environment
+        // This signals that we expect artifacts to be produced
+        environment.initializeArtifactsFuture()
+
+        val adapter = createBuildAdapter(context, buildProgressListener)
+        processHandler.addProcessListener(adapter)
+
+        return context
+    }
+
+    /**
+     * Show a build notification
+     */
+    fun showBuildNotification(
+        project: Project,
+        messageType: MessageType,
+        message: String,
+        details: String?,
+        duration: Long
+    ) {
+        val notificationType = when (messageType) {
+            MessageType.ERROR -> NotificationType.ERROR
+            MessageType.WARNING -> NotificationType.WARNING
+            else -> NotificationType.INFORMATION
+        }
+
+        val content = buildString {
+            append(message)
+            if (details != null) {
+                append("\n")
+                append(details)
+            }
+            append("\n")
+            append("Duration: ${formatDuration(duration)}")
+        }
+
+        try {
+            NotificationGroupManager.getInstance()
+                .getNotificationGroup(NOTIFICATION_GROUP_ID)
+                .createNotification(content, notificationType)
+                .notify(project)
+        } catch (e: Exception) {
+            // Fallback if notification group is not registered
+            com.intellij.notification.Notifications.Bus.notify(
+                com.intellij.notification.Notification(
+                    NOTIFICATION_GROUP_ID,
+                    message,
+                    content,
+                    notificationType
+                ),
+                project
+            )
+        }
+    }
+
+    private fun formatDuration(millis: Long): String {
+        val seconds = millis / 1000
+        val minutes = seconds / 60
+        val remainingSeconds = seconds % 60
+
+        return when {
+            minutes > 0 -> "${minutes}m ${remainingSeconds}s"
+            else -> "${seconds}s"
+        }
+    }
+}

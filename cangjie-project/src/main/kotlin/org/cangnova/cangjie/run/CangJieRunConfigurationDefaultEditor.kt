@@ -39,15 +39,14 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
- * Default settings editor for CangJie run configuration.
- * Provides basic fields when no subsystem-specific editor is available.
+ * Settings editor for CangJie run configuration.
+ * Provides fields for command, arguments, working directory, and environment variables.
  */
-class CangJieRunConfigurationDefaultEditor(private val project: Project) : SettingsEditor<AbstractCangJieRunConfiguration>() {
+class CangJieRunConfigurationEditor(private val project: Project) : SettingsEditor<CangJieCommandRunConfiguration>() {
 
     private val commandField = RawCommandLineEditor()
     private val argsField = JBTextField()
     private val workingDirectoryField = TextFieldWithBrowseButton()
-//    private val buildSystemField = JBTextField()
     private val envVarsComponent = EnvironmentVariablesComponent()
 
     init {
@@ -59,20 +58,16 @@ class CangJieRunConfigurationDefaultEditor(private val project: Project) : Setti
             project,
             FileChooserDescriptorFactory.createSingleFolderDescriptor()
         )
-
-//        buildSystemField.isEditable = false
-//        buildSystemField.toolTipText = CjProjectBundle.message("run.configuration.editor.default.build.system.tooltip")
     }
 
-    override fun resetEditorFrom(configuration: AbstractCangJieRunConfiguration) {
+    override fun resetEditorFrom(configuration: CangJieCommandRunConfiguration) {
         commandField.text = configuration.command
         argsField.text = configuration.args ?: ""
         workingDirectoryField.text = configuration.workingDirectory?.toString() ?: ""
-//        buildSystemField.text = configuration.buildSystemId ?: CjProjectBundle.message("run.configuration.editor.default.build.system.auto.detect")
         envVarsComponent.envData = configuration.env
     }
 
-    override fun applyEditorTo(configuration: AbstractCangJieRunConfiguration) {
+    override fun applyEditorTo(configuration: CangJieCommandRunConfiguration) {
         configuration.command = commandField.text
         configuration.args = argsField.text.takeIf { it.isNotBlank() }
         configuration.workingDirectory = workingDirectoryField.text.takeIf { it.isNotBlank() }?.let { Paths.get(it) }

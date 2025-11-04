@@ -43,13 +43,13 @@ abstract class CjDefaultProgramRunnerBase : GenericProgramRunner<RunnerSettings>
 }
 
 /**
- * Program runner for CangJie run configurations
+ * Program runner for all CangJie run configurations.
+ * Handles execution of both command and program configurations.
  */
-class CangJieCommandRunner : CjDefaultProgramRunnerBase() {
+class CangJieProgramRunner : CjExecutableRunner(
+    DefaultRunExecutor.EXECUTOR_ID,
+    "CangJie Run Error"
+) {
 
-    override fun getRunnerId(): String = "CangJieCommandRunner"
-
-    override fun canRun(executorId: String, profile: RunProfile): Boolean {
-        return executorId == DefaultRunExecutor.EXECUTOR_ID && profile is AbstractCangJieRunConfiguration
-    }
+    override fun getRunnerId(): String = "CangJieProgramRunner"
 }

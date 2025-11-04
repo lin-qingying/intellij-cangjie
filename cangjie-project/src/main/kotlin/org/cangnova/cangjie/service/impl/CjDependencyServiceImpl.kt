@@ -46,7 +46,7 @@ class CjDependencyServiceImpl : CjDependencyService {
     private fun getDependencyResolver(): CjDependencyResolver? {
 
         val buildSystemService = CjProjectBuildSystemService.getInstance()
-        val buildSystemId = buildSystemService.getBuildSystemId()
+        val buildSystemId = buildSystemService.getBuildSystem()?.id
 
         return CjDependencyResolver.EP_NAME.extensionList.find { provider ->
             buildSystemId == null || provider.getBuildSystemId().id == buildSystemId

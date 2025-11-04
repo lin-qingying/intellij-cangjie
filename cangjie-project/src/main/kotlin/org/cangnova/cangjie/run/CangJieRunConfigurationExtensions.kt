@@ -25,75 +25,42 @@
 package org.cangnova.cangjie.run
 
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.options.SettingsEditor
-import com.intellij.openapi.project.Project
-import javax.swing.JComponent
+import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
+import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
 
 /**
- * Extension point for providing UI editors for run configurations.
- * Subsystems (e.g., CJPM, CJC) implement this to provide custom UI.
- */
-interface CangJieRunConfigurationEditorProvider {
-    /**
-     * Returns the ID of the build system this provider supports (e.g., "cjpm", "cjc")
-     */
-    fun getBuildSystemId(): String
-
-    /**
-     * Creates a settings editor for the given configuration
-     */
-    fun createEditor(project: Project, configuration: AbstractCangJieRunConfiguration): SettingsEditor<AbstractCangJieRunConfiguration>
-
-    /**
-     * Returns the priority of this provider (higher = preferred)
-     */
-    fun getPriority(): Int = 0
-
-    companion object {
-        val EP_NAME = ExtensionPointName<CangJieRunConfigurationEditorProvider>(
-            "org.cangnova.cangjie.run.editorProvider"
-        )
-
-        /**
-         * Finds the appropriate editor provider for the given build system
-         */
-        fun findProvider(buildSystemId: String): CangJieRunConfigurationEditorProvider? {
-            return EP_NAME.extensionList
-                .filter { it.getBuildSystemId() == buildSystemId }
-                .maxByOrNull { it.getPriority() }
-        }
-    }
-}
-
-/**
- * Extension point for executing commands.
- * Subsystems implement this to provide command execution logic.
+ * 命令执行扩展点。
+ * 子系统实现此接口以提供命令执行逻辑。
  */
 interface CangJieCommandExecutor {
     /**
-     * Returns the ID of the build system this executor supports (e.g., "cjpm", "cjc")
+     * 返回此执行器支持的构建系统ID（例如："cjpm", "cjc"）
      */
-    fun getBuildSystemId(): String
+    fun getBuildSystemId(): ProjectBuildSystemId
 
     /**
-     * Creates a command line for execution
-     * @param configuration The run configuration
-     * @return GeneralCommandLine ready to execute, or null if cannot execute
+     * 创建用于执行的命令行
+     * @param configuration 运行配置
+     * @return 准备执行的GeneralCommandLine，如果无法执行则返回null
      */
-    fun createCommandLine(configuration: AbstractCangJieRunConfiguration): GeneralCommandLine?
+    fun createCommandLine(configuration: CangJieRunConfigurationBase): GeneralCommandLine?
 
     /**
-     * Validates the configuration before execution
-     * @return Error message if invalid, null if valid
+     * 在执行前验证配置
+     * @return 如果无效则返回错误消息，如果有效则返回null
      */
-    fun validateConfiguration(configuration: AbstractCangJieRunConfiguration): String? = null
+    fun validateConfiguration(configuration: CangJieRunConfigurationBase): String? = null
 
     /**
-     * Returns the priority of this executor (higher = preferred)
+     * 判断命令是否需要附加构建适配器
+     * 只有会产生构建产物的命令(如 build, run)才需要构建适配器
+     * 其他命令(如 clean, check)不需要
+     * @param configuration 运行配置
+     * @return 如果需要构建适配器则返回true，否则返回false
      */
-    fun getPriority(): Int = 0
+    fun shouldAttachBuildAdapter(configuration: CangJieRunConfigurationBase): Boolean = false
+
 
     companion object {
         val EP_NAME = ExtensionPointName<CangJieCommandExecutor>(
@@ -101,51 +68,12 @@ interface CangJieCommandExecutor {
         )
 
         /**
-         * Finds the appropriate executor for the given build system
+         * 查找给定构建系统的适当执行器
          */
-        fun findExecutor(buildSystemId: String): CangJieCommandExecutor? {
+        fun findExecutor(): CangJieCommandExecutor? {
+            val buildSystemId = CjProjectBuildSystemService.getInstance().getBuildSystem()?.id ?: return null
             return EP_NAME.extensionList
-                .filter { it.getBuildSystemId() == buildSystemId }
-                .maxByOrNull { it.getPriority() }
-        }
-    }
-}
-
-/**
- * Extension point for detecting build system type from project.
- * Subsystems implement this to identify their projects.
- */
-interface CangJieBuildSystemDetector {
-    /**
-     * Returns the ID of the build system (e.g., "cjpm", "cjc")
-     */
-    fun getBuildSystemId(): String
-
-    /**
-     * Detects if this build system is used in the project
-     * @return true if this build system is detected
-     */
-    fun detectBuildSystem(project: Project): Boolean
-
-    /**
-     * Returns the priority of this detector (higher = preferred)
-     */
-    fun getPriority(): Int = 0
-
-    companion object {
-        val EP_NAME = ExtensionPointName<CangJieBuildSystemDetector>(
-            "org.cangnova.cangjie.run.buildSystemDetector"
-        )
-
-        /**
-         * Detects the build system used in the project
-         * @return Build system ID, or null if none detected
-         */
-        fun detectBuildSystem(project: Project): String? {
-            return EP_NAME.extensionList
-                .filter { it.detectBuildSystem(project) }
-                .maxByOrNull { it.getPriority() }
-                ?.getBuildSystemId()
+                .find { it.getBuildSystemId().id == buildSystemId }
         }
     }
 }

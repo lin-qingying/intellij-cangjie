@@ -130,7 +130,7 @@ class CjProjectsServiceImpl(
      */
     private val providerCache: CjProjectProvider by lazy {
         val buildSystemService = CjProjectBuildSystemService.getInstance()
-        val buildSystemId = buildSystemService.getBuildSystemId()
+        val buildSystemId = buildSystemService.getBuildSystem()?.id
 
         CjProjectProvider.EP_NAME.extensionList.find { provider ->
             buildSystemId == null || provider.getBuildSystemId().id == buildSystemId

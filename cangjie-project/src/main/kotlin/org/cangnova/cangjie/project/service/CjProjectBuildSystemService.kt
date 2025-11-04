@@ -62,7 +62,7 @@ class CjProjectBuildSystemService : PersistentStateComponent<CjProjectBuildSyste
     /**
      * 获取当前项目的构建系统 ID
      */
-    fun getBuildSystemId(): String? = myState.buildSystemId
+   private fun getBuildSystemId(): String? = myState.buildSystemId
 
     /**
      * 设置当前项目的构建系统 ID
