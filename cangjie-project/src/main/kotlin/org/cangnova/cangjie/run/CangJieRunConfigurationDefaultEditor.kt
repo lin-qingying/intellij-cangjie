@@ -36,7 +36,6 @@ import com.intellij.ui.dsl.builder.panel
 import org.cangnova.cangjie.project.CjProjectBundle
 import java.nio.file.Paths
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 /**
  * Settings editor for CangJie run configuration.
@@ -64,6 +63,7 @@ class CangJieRunConfigurationEditor(private val project: Project) : SettingsEdit
         commandField.text = configuration.command
         argsField.text = configuration.args
         workingDirectoryField.text = configuration.workingDirectory?.toString() ?: ""
+
         envVarsComponent.envData = configuration.env
     }
 

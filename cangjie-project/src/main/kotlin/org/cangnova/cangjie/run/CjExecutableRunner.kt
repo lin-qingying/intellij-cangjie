@@ -27,24 +27,20 @@ package org.cangnova.cangjie.run
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.intellij.execution.DefaultExecutionResult
-import com.intellij.execution.runners.showRunContent
-
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.UserDataHolderBase
-import org.cangnova.cangjie.process.CjProcessHandler
 import org.cangnova.cangjie.project.CjProjectBundle
 import org.cangnova.cangjie.run.CompilerArtifact.Companion.REASON
-
 import org.cangnova.cangjie.run.target.startProcess
-import java.io.File
 import java.util.concurrent.CompletableFuture
 
 /**
@@ -87,10 +83,13 @@ abstract class CjExecutableRunner(
         state: CangJieRunState<T>,
         environment: ExecutionEnvironment,
         runExecutable: GeneralCommandLine
-    ): RunContentDescriptor? {
-        val executionResult = state.executeCommandLine(runExecutable, environment)
-        return showRunContent(executionResult, environment)
-    }
+    ): RunContentDescriptor? = showRunContent(executeCommandLine(state, runExecutable, environment), environment)
+
+    private fun <T : CangJieRunConfigurationBase> executeCommandLine(
+        state: CangJieRunState<T>,
+        commandLine: GeneralCommandLine,
+        environment: ExecutionEnvironment
+    ): DefaultExecutionResult = state.executeCommandLine(commandLine, environment)
 
     /**
      * Check if the toolchain is supported for the given host
@@ -270,5 +269,4 @@ fun <T:CangJieRunConfigurationBase> CangJieRunState<T>.executeCommandLine(
     val console = consoleBuilder.console
     console.attachToProcess(handler)
     return DefaultExecutionResult(console, handler)
-
 }

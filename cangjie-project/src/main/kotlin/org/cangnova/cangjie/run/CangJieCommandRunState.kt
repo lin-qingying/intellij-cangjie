@@ -43,6 +43,7 @@ abstract class CangJieRunState<T : CangJieRunConfigurationBase>(
 ) : CommandLineState(environment) {
     val project: Project = environment.project
 
+
 }
 
 /**

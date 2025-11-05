@@ -27,8 +27,13 @@ package org.cangnova.cangjie.project.model
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.project.service.CjProjectsService
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
+import org.cangnova.cangjie.toolchain.api.CjSdk
 
-
+val Project.cjSdk: CjSdk?
+    get() {
+        return CjProjectSdkConfig.getInstance(this).getProjectSdk()
+    }
 val Project.cjProject: CjProject
     get() {
         return CjProjectsService.getInstance(this).cjProject

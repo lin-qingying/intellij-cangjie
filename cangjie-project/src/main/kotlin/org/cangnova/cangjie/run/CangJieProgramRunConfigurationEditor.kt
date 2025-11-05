@@ -26,18 +26,16 @@ package org.cangnova.cangjie.run
 
 import com.intellij.execution.configuration.EnvironmentVariablesComponent
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
-import org.cangnova.cangjie.project.service.CjProjectsService
-import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.CjProjectBundle
-import javax.swing.*
+import org.cangnova.cangjie.project.model.CjModule
+import org.cangnova.cangjie.project.service.CjProjectsService
+import javax.swing.JComponent
 
 /**
  * Settings editor for CangJie program run configurations.
@@ -181,6 +179,7 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
         programArgsField.text = configuration.programArgs.orEmpty()
         workingDirectoryField.text = configuration.workingDirectory?.toString().orEmpty()
         envVarsComponent.envData = configuration.env
+
     }
 
     override fun applyEditorTo(configuration: CangJieProgramRunConfiguration) {

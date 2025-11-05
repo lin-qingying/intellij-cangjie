@@ -29,11 +29,11 @@ import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
 import com.intellij.execution.executors.DefaultRunExecutor
-import com.intellij.execution.runners.DefaultProgramRunner
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.GenericProgramRunner
 import com.intellij.execution.runners.executeState
 import com.intellij.execution.ui.RunContentDescriptor
+import org.cangnova.cangjie.project.model.cjSdk
 import java.io.File
 
 abstract class CjDefaultProgramRunnerBase : GenericProgramRunner<RunnerSettings>() {
@@ -78,7 +78,8 @@ class CangJieProgramRunner : CjExecutableRunner(
             workDirectory = state.configuration.workingDirectory?.toFile() ?: File(environment.project.basePath ?: ".")
 
             // Add environment variables
-            withEnvironment(state.configuration.env.envs)
+            val sdkEnv = environment.project.cjSdk?.getEnvironment() ?: emptyMap()
+            withEnvironment(state.configuration.env.envs + sdkEnv)
         }
 
         return showRunContent(state, environment, runExecutable)
