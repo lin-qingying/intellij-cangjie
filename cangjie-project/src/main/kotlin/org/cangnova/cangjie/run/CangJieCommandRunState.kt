@@ -26,6 +26,7 @@ package org.cangnova.cangjie.run
 
 import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -39,7 +40,7 @@ abstract class CangJieRunState<T : CangJieRunConfigurationBase>(
     environment: ExecutionEnvironment,
 
     val configuration: T,
-): CommandLineState(environment){
+) : CommandLineState(environment) {
     val project: Project = environment.project
 
 }
@@ -50,9 +51,9 @@ abstract class CangJieRunState<T : CangJieRunConfigurationBase>(
  */
 class CangJieCommandRunState(
     environment: ExecutionEnvironment,
-        configuration: CangJieCommandRunConfiguration,
+    configuration: CangJieCommandRunConfiguration,
     private val commandExecutor: CangJieCommandExecutor
-) : CangJieRunState<CangJieCommandRunConfiguration>(environment,configuration) {
+) : CangJieRunState<CangJieCommandRunConfiguration>(environment, configuration) {
 
     override fun startProcess(): ProcessHandler {
         return startProcess(processColors = true)
@@ -91,9 +92,11 @@ class CangJieCommandRunState(
             CangJieBuildManager.attachBuildAdapter(
                 project = environment.project,
                 taskName = "${configuration.name}",
-                workingDirectory = configuration.workingDirectory ?: java.nio.file.Paths.get(environment.project.basePath ?: "."),
+                workingDirectory = configuration.workingDirectory
+                    ?: java.nio.file.Paths.get(environment.project.basePath ?: "."),
                 environment = environment,
-                processHandler = processHandler
+                processHandler = processHandler,
+                buildProfile = if (environment.isDebug) BuildProfile.DEBUG else BuildProfile.RELEASE
             )
         }
 
@@ -120,9 +123,13 @@ class CangJieCommandRunState(
         return commandLine
     }
 
-    companion object
-    {
+    companion object {
         private val LOG: Logger = logger<CangJieCommandRunState>()
 
     }
 }
+
+val ExecutionEnvironment.isDebug: Boolean
+    get() {
+        return this.executor.id == DefaultDebugExecutor.EXECUTOR_ID
+    }

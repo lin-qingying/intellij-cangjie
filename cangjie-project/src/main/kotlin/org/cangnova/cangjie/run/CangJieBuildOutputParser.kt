@@ -93,7 +93,7 @@ sealed class ParseResult {
     object Handled : ParseResult()
 
     /** Line contains error message, start collecting error context */
-    data class ErrorStart(val message: String) : ParseResult()
+    data class ErrorStart(val message: String, val isWarning: Boolean = false) : ParseResult()
 
     /** Line is part of error context */
     object ErrorContext : ParseResult()

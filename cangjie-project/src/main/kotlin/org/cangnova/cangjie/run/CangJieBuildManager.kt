@@ -28,6 +28,7 @@ import com.intellij.build.BuildProgressListener
 import com.intellij.build.BuildViewManager
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.RunManager
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.RunManagerImpl
 import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
@@ -41,6 +42,7 @@ import com.intellij.openapi.ui.MessageType
 import org.cangnova.cangjie.run.CjExecutableRunner.Companion.initializeArtifactsFuture
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
+
 val ExecutionEnvironment?.isActivateToolWindowBeforeRun: Boolean
     get() = this?.runnerAndConfigurationSettings?.isActivateToolWindowBeforeRun != false
 
@@ -51,42 +53,6 @@ val ExecutionEnvironment?.isActivateToolWindowBeforeRun: Boolean
 object CangJieBuildManager {
 
     private const val NOTIFICATION_GROUP_ID = "CangJie Build"
-
-    /**
-     * Execute a build with Build Tool Window integration
-     */
-    fun executeBuild(
-        project: Project,
-        taskName: String,
-        workingDirectory: Path,
-        environment: ExecutionEnvironment,
-        buildAction: (CangJieBuildContext) -> Unit
-    ): CompletableFuture<Boolean> {
-        val future = CompletableFuture<Boolean>()
-        val buildViewManager = project.service<BuildViewManager>()
-        val buildProgressListener = buildViewManager as BuildProgressListener
-
-        val buildId = Any()
-        val context = CangJieBuildContext(
-            buildId = buildId,
-            parentId = null,
-            taskName = taskName,
-            workingDirectory = workingDirectory,
-            environment = environment
-        )
-
-        context.onFinished { success ->
-            future.complete(success)
-        }
-
-        try {
-            buildAction(context)
-        } catch (e: Exception) {
-            future.completeExceptionally(e)
-        }
-
-        return future
-    }
 
     /**
      * Create a build adapter for a process handler
@@ -144,6 +110,7 @@ object CangJieBuildManager {
                     buildConfig
                 }
             }
+
             is CangJieProgramRunConfiguration -> {
 
                 // Create a build configuration for the program
@@ -157,25 +124,34 @@ object CangJieBuildManager {
                 buildConfig.env = configuration.env
                 buildConfig
             }
+
             else -> null
         }
     }
 
     fun createBuildEnvironment(
         buildConfiguration: CangJieRunConfigurationBase,
-        environment: ExecutionEnvironment? = null
+        environment: ExecutionEnvironment
     ): ExecutionEnvironment? {
         require(isBuildConfiguration(buildConfiguration))
         val project = buildConfiguration.project
         val runManager = RunManager.getInstance(project) as? RunManagerImpl ?: return null
-        val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return null
+        val executor = ExecutorRegistry.getInstance().getExecutorById(
+            if (environment.isDebug)
+                DefaultDebugExecutor.EXECUTOR_ID
+            else
+                DefaultRunExecutor.EXECUTOR_ID
+
+
+        ) ?: return null
         val runner = ProgramRunner.findRunnerById(CangJieProgramRunner.RUNNER_ID) ?: return null
         val settings = RunnerAndConfigurationSettingsImpl(runManager, buildConfiguration)
         settings.isActivateToolWindowBeforeRun = environment.isActivateToolWindowBeforeRun
         val buildEnvironment = ExecutionEnvironment(executor, runner, settings, project)
-        environment?.copyUserDataTo(buildEnvironment)
+        environment.copyUserDataTo(buildEnvironment)
         return buildEnvironment
     }
+
     /**
      * Attach build adapter to process handler with Build Tool Window integration
      */

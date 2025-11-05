@@ -82,7 +82,9 @@ class CangJieProgramRunState(
                 environment.project.basePath ?: "."
             ),
             environment = environment,
-            processHandler = processHandler
+            processHandler = processHandler,
+            buildProfile = if (environment.isDebug) BuildProfile.DEBUG else BuildProfile.RELEASE
+
         )
 
         return processHandler

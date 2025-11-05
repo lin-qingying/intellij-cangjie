@@ -62,14 +62,14 @@ class CangJieRunConfigurationEditor(private val project: Project) : SettingsEdit
 
     override fun resetEditorFrom(configuration: CangJieCommandRunConfiguration) {
         commandField.text = configuration.command
-        argsField.text = configuration.args ?: ""
+        argsField.text = configuration.args
         workingDirectoryField.text = configuration.workingDirectory?.toString() ?: ""
         envVarsComponent.envData = configuration.env
     }
 
     override fun applyEditorTo(configuration: CangJieCommandRunConfiguration) {
         configuration.command = commandField.text
-        configuration.args = argsField.text.takeIf { it.isNotBlank() }
+        configuration.args = argsField.text.takeIf { it.isNotBlank() }.toString()
         configuration.workingDirectory = workingDirectoryField.text.takeIf { it.isNotBlank() }?.let { Paths.get(it) }
         configuration.env = envVarsComponent.envData
     }

@@ -27,6 +27,7 @@ package org.cangnova.cangjie.run.build
 import com.intellij.execution.BeforeRunTask
 import com.intellij.execution.BeforeRunTaskProvider
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.roots.ProjectModelBuildableElement
@@ -63,7 +64,13 @@ class CangJieBuildTaskProvider : CjBuildTaskProvider<CangJieBuildTaskProvider.Bu
         task: BuildTask
     ): Boolean {
         if (configuration !is CangJieProgramRunConfiguration) return false
+        val isDebug = environment.executor.id == DefaultDebugExecutor.EXECUTOR_ID
+
+
         val buildConfiguration = getBuildConfiguration(configuration) ?: return true
+        if(isDebug) {
+            buildConfiguration.args += "-g"
+        }
         configuration.buildConfiguration = buildConfiguration
 
 

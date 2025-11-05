@@ -51,7 +51,7 @@ class CangJieCommandRunConfiguration(
     /**
      * Additional arguments for the command
      */
-    var args: String? = null
+    var args: String  = ""
 
     override fun createRunState(
         environment: ExecutionEnvironment,
@@ -92,7 +92,7 @@ class CangJieCommandRunConfiguration(
     override fun writeExternal(element: Element) {
         super.writeExternal(element)
         element.writeString("command", command)
-        args?.let { element.writeString("args", it) }
+        args.let { element.writeString("args", it) }
     }
 
     override fun readExternal(element: Element) {

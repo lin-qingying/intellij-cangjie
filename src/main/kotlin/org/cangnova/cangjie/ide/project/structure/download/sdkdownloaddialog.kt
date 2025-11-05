@@ -826,7 +826,7 @@ private fun selectSdkAndPath(
 fun addDownloadItem(
     extension: SdkDownloadEp,
     pathToToolchainComboBox: CjToolchainPathChoosingComboBox,
-    update: (Any?) -> Unit = {}
+    update: ( ) -> Unit = {}
 ) {
     val task = extension.pickSdk(pathToToolchainComboBox) as? CangJieSdkDownloadTask ?: return
 
@@ -864,7 +864,7 @@ fun addDownloadItem(
             }
 
             override fun handleSuccess(result: Unit) {
-
+                update()
             }
 
         }

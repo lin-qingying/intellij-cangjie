@@ -55,13 +55,13 @@ class CjpmBuildOutputParser : CangJieBuildOutputParser {
             // Error message start
             cleanLine.startsWith("error:") -> {
                 val message = cleanLine.substringAfter(":").trim()
-                ParseResult.ErrorStart(message)
+                ParseResult.ErrorStart(message, isWarning = false)
             }
 
             // Warning message
             cleanLine.startsWith("warning:") -> {
                 val message = cleanLine.substringAfter(":").trim()
-                ParseResult.ErrorStart(message)
+                ParseResult.ErrorStart(message, isWarning = true)
             }
 
             // Error file location: " ==> path/to/file.cj:4:27:"

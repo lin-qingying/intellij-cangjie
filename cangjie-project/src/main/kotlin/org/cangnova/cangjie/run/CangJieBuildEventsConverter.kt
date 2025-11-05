@@ -87,11 +87,11 @@ class CangJieBuildEventsConverter(private val context: CangJieBuildContext) : Bu
                         strBuffer.clear()
                         errorContext = null
                     }
-                    // Start recording new error
+                    // Start recording new error or warning
                     errorMessage = result.message
                     isRecordError = true
                     strBuffer.append(line.withNewLine())
-                    kind = MessageEvent.Kind.ERROR
+                    kind = if (result.isWarning) MessageEvent.Kind.WARNING else MessageEvent.Kind.ERROR
                 }
 
                 is ParseResult.ErrorContext -> {

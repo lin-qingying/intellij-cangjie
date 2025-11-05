@@ -70,7 +70,7 @@ class CjpmCommandExecutor : CangJieCommandExecutor {
             .withWorkDirectory(workingDir.toFile())
 
         // Add additional arguments if present
-        configuration.args?.let { args ->
+        configuration.args.let { args ->
             if (args.isNotBlank()) {
                 commandLine.addParameters(args.split("\\s+".toRegex()))
             }

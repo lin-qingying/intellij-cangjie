@@ -30,8 +30,6 @@
                 <programRunner id="CjDAPDebugRunner"
                                implementation="org.cangnova.cangjie.dapDebugger.runconfig.CjDAPDebugRunner"/>
 
-        <programRunner id="CjpmTestDebugRunner"
-                       implementation="org.cangnova.cangjie.dapDebugger.runconfig.CjpmTestDebugRunner"/>
 
 
                 <xdebugger.breakpointType
@@ -42,11 +40,13 @@
 
 
     </extensions>
-    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
-        <debugAdapterServer
-                id="CangJie"
-                name="CangJie"
-                factoryClass="org.cangnova.cangjie.dapDebugger.CangJieDebugAdapterDescriptorFactory" />
-    </extensions>
+
+<!--    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">-->
+
+<!--        <debugAdapterServer-->
+<!--                id="CangJie"-->
+<!--                name="CangJie"-->
+<!--                factoryClass="org.cangnova.cangjie.dapDebugger.CangJieDebugAdapterDescriptorFactory" />-->
+<!--    </extensions>-->
 
 </idea-plugin>

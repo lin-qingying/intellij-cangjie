@@ -133,7 +133,7 @@ class CangJieProjectSettingsPanel(
 
                     addDownloadItem(downloadEp, pathToToolchainComboBox) {
 
-//                        update()
+                        update()
                     }
 
                 }
@@ -160,7 +160,7 @@ class CangJieProjectSettingsPanel(
         val pathToToolchain = pathToToolchainComboBox.selectedPath
 
         versionUpdateDebouncer.run(onPooledThread = {
-            val toolchain = pathToToolchain?.let { sdkRegistry.getSdkByPath(it) }
+            val toolchain = pathToToolchain?.let { sdkRegistry.registerSdkPath(it) }
             val cjcVersion = toolchain?.version
 
             Triple(cjcVersion?.semver, cjcVersion?.type, false)
