@@ -31,8 +31,18 @@ import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.process.CjProcessHandler
 import org.cangnova.cangjie.run.target.startProcess
+
+abstract class CangJieRunState<T : CangJieRunConfigurationBase>(
+    environment: ExecutionEnvironment,
+
+    val configuration: T,
+): CommandLineState(environment){
+    val project: Project = environment.project
+
+}
 
 /**
  * Run state for executing CangJie commands.
@@ -40,9 +50,9 @@ import org.cangnova.cangjie.run.target.startProcess
  */
 class CangJieCommandRunState(
     environment: ExecutionEnvironment,
-      val configuration: CangJieCommandRunConfiguration,
+        configuration: CangJieCommandRunConfiguration,
     private val commandExecutor: CangJieCommandExecutor
-) : CommandLineState(environment) {
+) : CangJieRunState<CangJieCommandRunConfiguration>(environment,configuration) {
 
     override fun startProcess(): ProcessHandler {
         return startProcess(processColors = true)

@@ -45,6 +45,7 @@ import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
 import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.run.*
+import org.cangnova.cangjie.run.build.CangjieBuildConfiguration
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
@@ -72,7 +73,7 @@ class CjpmProjectTaskRunner : CangJieProjectTaskRunner {
 
             is ProjectModelBuildTaskImpl<*> -> {
                 val buildableElement = projectTask.buildableElement
-                buildableElement is CjpmBuildConfiguration
+                buildableElement is CangjieBuildConfiguration
             }
 
             else -> false
@@ -103,7 +104,7 @@ class CjpmProjectTaskRunner : CangJieProjectTaskRunner {
         configuration.workingDirectory = Paths.get(cjProject.rootDir.path)
 
         val environment = ExecutionEnvironment(executor, runner, settings, project)
-        val buildableElement = CjpmBuildConfiguration(configuration, environment)
+        val buildableElement = CangjieBuildConfiguration(configuration, environment)
 
         return listOf(ProjectModelBuildTaskImpl(buildableElement, task.isIncrementalBuild))
     }
@@ -118,7 +119,7 @@ class CjpmProjectTaskRunner : CangJieProjectTaskRunner {
             return resolvedPromise(TaskRunnerResults.ABORTED)
         }
 
-        val buildConfiguration = task.buildableElement as? CjpmBuildConfiguration
+        val buildConfiguration = task.buildableElement as? CangjieBuildConfiguration
             ?: return resolvedPromise(TaskRunnerResults.FAILURE)
 
         return executeBuild(project, buildConfiguration, task.isIncrementalBuild)
@@ -126,7 +127,7 @@ class CjpmProjectTaskRunner : CangJieProjectTaskRunner {
 
     private fun executeBuild(
         project: Project,
-        buildConfiguration: CjpmBuildConfiguration,
+        buildConfiguration: CangjieBuildConfiguration,
         isIncremental: Boolean
     ): Promise<ProjectTaskRunner.Result> {
         val promise = AsyncPromise<ProjectTaskRunner.Result>()
@@ -156,13 +157,13 @@ class CjpmProjectTaskRunner : CangJieProjectTaskRunner {
         return promise
     }
 
-    private fun runClean(project: Project, buildConfiguration: CjpmBuildConfiguration): Boolean {
+    private fun runClean(project: Project, buildConfiguration: CangjieBuildConfiguration): Boolean {
         // TODO: Implement clean logic
         // This should execute "cjpm clean" command
         return true
     }
 
-    private fun runBuild(buildConfiguration: CjpmBuildConfiguration): Boolean {
+    private fun runBuild(buildConfiguration: CangjieBuildConfiguration): Boolean {
         // TODO: Implement build logic
         // This should execute the build command through the configuration's environment
         val environment = buildConfiguration.environment
@@ -184,14 +185,3 @@ class CjpmProjectTaskRunner : CangJieProjectTaskRunner {
     }
 }
 
-/**
- * Build configuration for CJPM projects
- */
-data class CjpmBuildConfiguration(
-    val configuration: CangJieCommandRunConfiguration,
-    val environment: ExecutionEnvironment
-) : ProjectModelBuildableElement {
-    override fun getExternalSource(): ProjectModelExternalSource? {
-        return null
-    }
-}

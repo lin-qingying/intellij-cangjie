@@ -239,7 +239,7 @@ class CangJieSyncTask(
             null,
             null,
             object : JComponent() {},
-            CjProjectBundle.message("build.event.title.cjpm")
+            CjProjectBundle.message("build.event.title.cangjie")
         )
         buildContentDescriptor.isActivateToolWindowWhenFailed = true
         buildContentDescriptor.isActivateToolWindowWhenAdded = false
@@ -247,7 +247,7 @@ class CangJieSyncTask(
         val refreshAction = ActionManager.getInstance().getAction("CjProject.RefreshProject")
         val descriptor = DefaultBuildDescriptor(
             Any(),
-            CjProjectBundle.message("build.event.title.cjpm"),
+            CjProjectBundle.message("build.event.title.cangjie"),
             project.basePath!!,
             System.currentTimeMillis()
         )

@@ -26,7 +26,13 @@ package org.cangnova.cangjie.run
 
 import com.intellij.build.BuildProgressListener
 import com.intellij.build.BuildViewManager
+import com.intellij.execution.ExecutorRegistry
+import com.intellij.execution.RunManager
+import com.intellij.execution.executors.DefaultRunExecutor
+import com.intellij.execution.impl.RunManagerImpl
+import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.runners.ProgramRunner
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.components.service
@@ -35,6 +41,8 @@ import com.intellij.openapi.ui.MessageType
 import org.cangnova.cangjie.run.CjExecutableRunner.Companion.initializeArtifactsFuture
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
+val ExecutionEnvironment?.isActivateToolWindowBeforeRun: Boolean
+    get() = this?.runnerAndConfigurationSettings?.isActivateToolWindowBeforeRun != false
 
 /**
  * Manager for CangJie build operations.
@@ -90,6 +98,84 @@ object CangJieBuildManager {
         return CangJieBuildAdapter(context, buildProgressListener)
     }
 
+    /**
+     * Check if a configuration is a build configuration.
+     * A configuration is considered a build configuration if:
+     * - It's a CangJieCommandRunConfiguration with command "build"
+     * - It's a CangJieProgramRunConfiguration (which requires building the program)
+     */
+    fun isBuildConfiguration(configuration: CangJieRunConfigurationBase): Boolean {
+        return when (configuration) {
+            is CangJieCommandRunConfiguration -> configuration.command == "build"
+            is CangJieProgramRunConfiguration -> true
+            else -> false
+        }
+    }
+
+    /**
+     * Get or create a build configuration for the given run configuration.
+     *
+     * For CangJieCommandRunConfiguration with command "build", returns the configuration itself.
+     * For CangJieProgramRunConfiguration, creates a new build configuration.
+     * For other configurations, returns null.
+     *
+     * @param configuration The run configuration to get build configuration for
+     * @return A build configuration, or null if the configuration doesn't require building
+     */
+    fun getBuildConfiguration(configuration: CangJieRunConfigurationBase): CangJieCommandRunConfiguration? {
+
+
+        return when (configuration) {
+            is CangJieCommandRunConfiguration -> {
+
+                if (configuration.command == "build") {
+                    // Already a build configuration
+                    configuration
+                } else {
+                    // Create a build configuration for other commands
+                    val buildConfig = CangJieCommandRunConfiguration(
+                        configuration.project,
+                        configuration.factory!!,
+                        "Build ${configuration.name}"
+                    )
+                    buildConfig.command = "build"
+                    buildConfig.workingDirectory = configuration.workingDirectory
+                    buildConfig.env = configuration.env
+                    buildConfig
+                }
+            }
+            is CangJieProgramRunConfiguration -> {
+
+                // Create a build configuration for the program
+                val buildConfig = CangJieCommandRunConfiguration(
+                    configuration.project,
+                    configuration.factory!!,
+                    "Build ${configuration.name}"
+                )
+                buildConfig.command = "build"
+                buildConfig.workingDirectory = configuration.workingDirectory
+                buildConfig.env = configuration.env
+                buildConfig
+            }
+            else -> null
+        }
+    }
+
+    fun createBuildEnvironment(
+        buildConfiguration: CangJieRunConfigurationBase,
+        environment: ExecutionEnvironment? = null
+    ): ExecutionEnvironment? {
+        require(isBuildConfiguration(buildConfiguration))
+        val project = buildConfiguration.project
+        val runManager = RunManager.getInstance(project) as? RunManagerImpl ?: return null
+        val executor = ExecutorRegistry.getInstance().getExecutorById(DefaultRunExecutor.EXECUTOR_ID) ?: return null
+        val runner = ProgramRunner.findRunnerById(CangJieProgramRunner.RUNNER_ID) ?: return null
+        val settings = RunnerAndConfigurationSettingsImpl(runManager, buildConfiguration)
+        settings.isActivateToolWindowBeforeRun = environment.isActivateToolWindowBeforeRun
+        val buildEnvironment = ExecutionEnvironment(executor, runner, settings, project)
+        environment?.copyUserDataTo(buildEnvironment)
+        return buildEnvironment
+    }
     /**
      * Attach build adapter to process handler with Build Tool Window integration
      */

@@ -2,7 +2,6 @@ package org.cangnova.cangjie.dapDebugger.runconfig
 
 
 
-import org.cangnova.cangjie.ide.run.cjpm.CjpmRunStateBase
 import org.cangnova.cangjie.messages.CangJieBundle
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfileState
@@ -13,6 +12,9 @@ import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
+import org.cangnova.cangjie.run.CangJieProgramRunState
+import org.cangnova.cangjie.run.CangJieRunConfigurationBase
+import org.cangnova.cangjie.run.CangJieRunState
 import org.jetbrains.annotations.Nls
 
 data class RunParameters(
@@ -27,8 +29,8 @@ object CjDebugRunnerUtils {
     val ERROR_MESSAGE_TITLE: String = CangJieBundle.message("unable.to.run.debugger")
 
 
-    fun showRunContent(
-        state: CjpmRunStateBase,
+    fun <T : CangJieRunConfigurationBase> showRunContent(
+        state: CangJieRunState<T>,
         environment: ExecutionEnvironment,
         runExecutable: GeneralCommandLine
     ): RunContentDescriptor {

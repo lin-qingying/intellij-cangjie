@@ -40,12 +40,14 @@ import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths
+
 val CangJieRunConfigurationBase.targetEnvironment: TargetEnvironmentConfiguration?
     get() {
         if (!RunTargetsEnabled.get()) return null
         val targetName = defaultTargetName ?: return null
         return TargetEnvironmentsManager.getInstance(project).targets.findByName(targetName)
     }
+
 /**
  * Base class for CangJie run configurations.
  * Provides common functionality for both command and program run configurations.
@@ -55,8 +57,8 @@ abstract class CangJieRunConfigurationBase(
     factory: ConfigurationFactory,
     name: String
 ) : LocatableConfigurationBase<RunProfileState>(project, factory, name),
-    RunConfigurationWithSuppressedDefaultDebugAction ,
-    TargetEnvironmentAwareRunProfile{
+    RunConfigurationWithSuppressedDefaultDebugAction,
+    TargetEnvironmentAwareRunProfile {
 
     /**
      * Working directory for command execution
@@ -66,6 +68,7 @@ abstract class CangJieRunConfigurationBase(
     } else {
         null
     }
+
     override fun getDefaultTargetName(): String? = options.remoteTarget
 
     override fun setDefaultTargetName(targetName: String?) {
@@ -86,10 +89,21 @@ abstract class CangJieRunConfigurationBase(
      */
     var env: EnvironmentVariablesData = EnvironmentVariablesData.DEFAULT
 
+    private var _runState: CangJieRunState<CangJieRunConfigurationBase>? = null
+
+    val runState: CangJieRunState<CangJieRunConfigurationBase>?
+        get() = _runState
+
     override fun getState(executor: Executor, environment: ExecutionEnvironment): RunProfileState? {
         val commandExecutor = CangJieCommandExecutor.findExecutor() ?: return null
-        return createRunState(environment, commandExecutor)
+        val state = createRunState(environment, commandExecutor)
+        if (state is CangJieRunState<*>) {
+            @Suppress("UNCHECKED_CAST")
+            _runState = state as CangJieRunState<CangJieRunConfigurationBase>
+        }
+        return state
     }
+
 
     /**
      * Create the run state for this configuration.

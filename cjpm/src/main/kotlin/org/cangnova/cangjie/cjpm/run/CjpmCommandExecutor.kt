@@ -83,10 +83,7 @@ class CjpmCommandExecutor : CangJieCommandExecutor {
     }
 
     override fun validateConfiguration(configuration: CangJieRunConfigurationBase): String? {
-        // Only validate CangJieCommandRunConfiguration
-        if (configuration !is CangJieCommandRunConfiguration) {
-            return "Invalid configuration type for CJPM executor"
-        }
+
 
         val workingDir = configuration.workingDirectory
         if (workingDir == null || !workingDir.toFile().exists()) {

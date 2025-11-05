@@ -45,6 +45,10 @@ class CangJieProgramRunConfiguration(
     name: String
 ) : CangJieRunConfigurationBase(project, factory, name) {
 
+
+    var buildConfiguration: CangJieCommandRunConfiguration? = null
+
+
     /**
      * Target module to run
      */

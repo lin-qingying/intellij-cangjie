@@ -27,25 +27,26 @@
     <module value="org.cangnova.cangjie.dapDebugger"/>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!--        <programRunner id="CjDebugRunner"-->
-        <!--                       implementation="org.cangnova.cangjie.dapDebugger.runconfig.CjDebugRunner"/>-->
+                <programRunner id="CjDAPDebugRunner"
+                               implementation="org.cangnova.cangjie.dapDebugger.runconfig.CjDAPDebugRunner"/>
 
-<!--        <programRunner id="CjpmTestDebugRunner"-->
-<!--                       implementation="org.cangnova.cangjie.dapDebugger.runconfig.CjpmTestDebugRunner"/>-->
-
-
-        <!--        <xdebugger.breakpointType-->
-        <!--                implementation="org.cangnova.cangjie.dapDebugger.runconfig.breakpoint.CangJieLineBreakpointType"-->
-        <!--                order="first"/>-->
+        <programRunner id="CjpmTestDebugRunner"
+                       implementation="org.cangnova.cangjie.dapDebugger.runconfig.CjpmTestDebugRunner"/>
 
 
-        <!--                <toolWindow factoryClass="org.cangnova.cangjie.dapDebugger.runconfig.MyToolWindowFactory" id="1"/>-->
+                <xdebugger.breakpointType
+                        implementation="org.cangnova.cangjie.dapDebugger.runconfig.breakpoint.CangJieLineBreakpointType"
+                        order="first"/>
 
-        <!--   重构内容如下-->
-        <!--        <programRunner implementation="com.debug.CjDebugRunner" id="CjDebugRunner"/>-->
+
 
 
     </extensions>
-
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
+        <debugAdapterServer
+                id="CangJie"
+                name="CangJie"
+                factoryClass="org.cangnova.cangjie.dapDebugger.CangJieDebugAdapterDescriptorFactory" />
+    </extensions>
 
 </idea-plugin>

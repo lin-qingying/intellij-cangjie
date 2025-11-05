@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.run
 
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
@@ -33,6 +34,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.GenericProgramRunner
 import com.intellij.execution.runners.executeState
 import com.intellij.execution.ui.RunContentDescriptor
+import java.io.File
 
 abstract class CjDefaultProgramRunnerBase : GenericProgramRunner<RunnerSettings>() {
 
@@ -50,6 +52,66 @@ class CangJieProgramRunner : CjExecutableRunner(
     DefaultRunExecutor.EXECUTOR_ID,
     "CangJie Run Error"
 ) {
+    override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
+        if (state !is CangJieProgramRunState) return null
 
-    override fun getRunnerId(): String = "CangJieProgramRunner"
+
+        if(state.configuration.buildConfiguration?.runState == null) return null
+
+        val buildEnvironment = state.configuration.buildConfiguration?.runState!!.environment
+
+        val artifacts = buildEnvironment.artifacts.orEmpty()
+        if (artifacts.isEmpty()) {
+            // No artifacts available, run the configuration directly
+            return super.doExecute(state, environment)
+        }
+
+        val artifact = artifacts.firstOrNull() ?: return null
+        val binaries = artifact.executables
+
+        if (binaries.isEmpty()) {
+            return super.doExecute(state, environment)
+        }
+
+        val runExecutable = GeneralCommandLine().apply {
+            exePath = binaries.first()
+            workDirectory = state.configuration.workingDirectory?.toFile() ?: File(environment.project.basePath ?: ".")
+
+            // Add environment variables
+            withEnvironment(state.configuration.env.envs)
+        }
+
+        return showRunContent(state, environment, runExecutable)
+    }
+
+    override fun canRun(executorId: String, profile: RunProfile): Boolean {
+
+        return profile is CangJieProgramRunConfiguration && super.canRun(executorId, profile)
+    }
+    companion object {
+
+        val RUNNER_ID: String = "CangJieProgramRunner"
+
+    }
+    override fun getRunnerId(): String = RUNNER_ID
+}
+
+class CangJieCommondRunner : CjExecutableRunner(
+    DefaultRunExecutor.EXECUTOR_ID,
+    "CangJie Run Error"
+) {
+    override fun canRun(executorId: String, profile: RunProfile): Boolean {
+
+        return profile is CangJieCommandRunConfiguration && super.canRun(executorId, profile)
+    }
+
+    override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
+
+        if (state !is CangJieCommandRunState) return null
+
+
+        return super.doExecute(state, environment)
+    }
+
+    override fun getRunnerId(): String = "CangJieCommondRunner"
 }

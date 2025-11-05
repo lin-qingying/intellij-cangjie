@@ -81,35 +81,10 @@ abstract class CjExecutableRunner(
         super.execute(environment, state)
     }
 
-    override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
-        if (state !is CangJieCommandRunState) return null
 
-        val artifacts = environment.artifacts.orEmpty()
-        if (artifacts.isEmpty()) {
-            // No artifacts available, run the configuration directly
-            return super.doExecute(state, environment)
-        }
 
-        val artifact = artifacts.firstOrNull() ?: return null
-        val binaries = artifact.executables
-
-        if (binaries.isEmpty()) {
-            return super.doExecute(state, environment)
-        }
-
-        val runExecutable = GeneralCommandLine().apply {
-            exePath = binaries.first()
-            workDirectory = state.configuration.workingDirectory?.toFile() ?: File(environment.project.basePath ?: ".")
-
-            // Add environment variables
-            withEnvironment(state.configuration.env.envs)
-        }
-
-        return showRunContent(state, environment, runExecutable)
-    }
-
-    protected open fun showRunContent(
-        state: CangJieCommandRunState,
+    protected open fun <T : CangJieRunConfigurationBase>  showRunContent(
+        state: CangJieRunState<T>,
         environment: ExecutionEnvironment,
         runExecutable: GeneralCommandLine
     ): RunContentDescriptor? {
@@ -149,21 +124,12 @@ abstract class CjExecutableRunner(
         fun ExecutionEnvironment.initializeArtifactsFuture() {
             putUserData(ARTIFACTS, CompletableFuture())
         }
-
         var ExecutionEnvironment.artifacts: List<CompilerArtifact>?
-            get() {
-                val future = getUserData(ARTIFACTS) ?: return null
-                // If future exists, it means we expect artifacts
-                // Block and wait for them to be ready
-                return try {
-                    future.get()
-                } catch (e: Exception) {
-                    null
-                }
-            }
+            get() = getUserData(ARTIFACTS)?.get()
             set(value) {
                 getUserData(ARTIFACTS)?.complete(value)
             }
+
     }
 }
 
@@ -286,7 +252,7 @@ class ConfigurationExtensionContext : UserDataHolderBase()
  * Extension function to execute a command line and return execution result
  */
 
-fun CangJieCommandRunState.executeCommandLine(
+fun <T:CangJieRunConfigurationBase> CangJieRunState<T>.executeCommandLine(
     commandLine: GeneralCommandLine,
     environment: ExecutionEnvironment
 ): DefaultExecutionResult {

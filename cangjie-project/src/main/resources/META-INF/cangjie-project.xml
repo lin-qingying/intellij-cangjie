@@ -125,6 +125,13 @@
         <programRunner
                 implementation="org.cangnova.cangjie.run.CangJieProgramRunner"
                 id="CangJieProgramRunner"/>
+        <programRunner
+                implementation="org.cangnova.cangjie.run.CangJieCommondRunner"
+                id="CangJieProgramRunner"/>
+
+        <!--    行配置之前执行的步骤   -->
+        <stepsBeforeRunProvider
+                implementation="org.cangnova.cangjie.run.build.CangJieBuildTaskProvider"/>
 
         <!-- 远程目标环境支持 -->
         <executionTargetLanguageRuntimeType

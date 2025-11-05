@@ -40,8 +40,8 @@ import org.cangnova.cangjie.run.target.startProcess
  */
 class CangJieProgramRunState(
     environment: ExecutionEnvironment,
-    val configuration: CangJieProgramRunConfiguration
-) : CommandLineState(environment) {
+    configuration: CangJieProgramRunConfiguration
+) : CangJieRunState<CangJieProgramRunConfiguration>(environment, configuration) {
 
     override fun startProcess(): ProcessHandler {
         return startProcess(processColors = true)
@@ -78,7 +78,9 @@ class CangJieProgramRunState(
         CangJieBuildManager.attachBuildAdapter(
             project = environment.project,
             taskName = "Run ${configuration.name}",
-            workingDirectory = configuration.workingDirectory ?: java.nio.file.Paths.get(environment.project.basePath ?: "."),
+            workingDirectory = configuration.workingDirectory ?: java.nio.file.Paths.get(
+                environment.project.basePath ?: "."
+            ),
             environment = environment,
             processHandler = processHandler
         )

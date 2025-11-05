@@ -22,19 +22,45 @@
  *
  */
 
+
+
 dependencies {
+    intellijPlatform {
+        plugins("com.redhat.devtools.lsp4ij:0.17.0")
+    }
     implementation(project(":"))
-    implementation(project(":util"))
     implementation(project(":psi"))
-    implementation(project(":messages"))
+
+    implementation(project(":telemetry"))
     implementation(project(":toolchain"))
 
+    implementation(project(":cangjie-project"))
+
+
+}
+project(":") {
+    dependencies {
+
+        intellijPlatform {
+            plugins("com.redhat.devtools.lsp4ij:0.17.0")
+        }
+    }
+}
+project(":cangjie-project") {
+    dependencies {
+
+        intellijPlatform {
+            plugins("com.redhat.devtools.lsp4ij:0.17.0")
+        }
+    }
 }
 
 
 project(":plugin") {
     dependencies {
         implementation(project(":dap-debugger"))
-
+        intellijPlatform {
+            plugins("com.redhat.devtools.lsp4ij:0.17.0")
+        }
     }
 }
