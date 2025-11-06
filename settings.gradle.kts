@@ -81,3 +81,8 @@ include("cangjie-project")
 
 
 include("cjpm")
+
+
+
+
+include("debugger")

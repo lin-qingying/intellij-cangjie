@@ -56,9 +56,9 @@ class CjProcessHandler : KillableProcessHandler, AnsiEscapeDecoder.ColoredTextAc
     override fun notifyTextAvailable(text: String, outputType: Key<*>) {
         var textN = text
 
-        if (!textN.contains("\r\n")) {
-            textN = textN.replace("\n", "\r\n")
-        }
+//        if (!textN.contains("\r\n")) {
+//            textN = textN.replace("\n", "\r\n")
+//        }
         decoder?.escapeText(textN, outputType, this) ?: super.notifyTextAvailable(textN, outputType)
 
     }
