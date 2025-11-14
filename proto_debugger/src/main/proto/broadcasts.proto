@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+import "model.proto";
+
+package proto;
+
+// ============================================================================
+// System Events
+// ============================================================================
+
+message InitializedEvent {
+  string version = 1;
+  string original_version = 2;
+  uint64 capabilities = 3;
+}
+
+message ReadyForCommandsEvent {
+  bool is_ready = 1;
+}
+
+message PromptChangedEvent {
+  string new_prompt = 1;
+}
+
+message CommandInterpreterMessageEvent {
+  string message = 1;
+}
+
+message LogMessageEvent {
+  LogLevel level = 1;
+  string message = 2;
+}
+
+// ============================================================================
+// Process Events
+// ============================================================================
+
+message ProcessInterruptedEvent {
+  Thread interrupted_thread = 1;
+  StackFrame current_frame = 2;
+}
+
+message ProcessRunningEvent {}
+
+message ProcessExitedEvent {
+  int32 exit_code = 1;
+  optional string exit_description = 2;
+}
+
+message ProcessOutputEvent {
+  string text = 1;
+  OutputType output_type = 2;
+}
+
+// ============================================================================
+// Thread and Frame Events
+// ============================================================================
+
+message SelectedFrameChangedEvent {
+  Thread thread = 1;
+  StackFrame frame = 2;
+}
+
+// ============================================================================
+// Breakpoint Events
+// ============================================================================
+
+message BreakpointAddedEvent {
+  Breakpoint breakpoint = 1;
+  repeated BreakpointLocation locations = 2;
+}
+
+message BreakpointRemovedEvent {
+  int32 breakpoint_id = 1;
+}
+
+message BreakpointLocationsAddedEvent {
+  int32 breakpoint_id = 1;
+  repeated BreakpointLocation locations = 2;
+}
+
+message BreakpointLocationsRemovedEvent {
+  int32 breakpoint_id = 1;
+  repeated int32 location_ids = 2;
+}
+
+message BreakpointLocationsResolvedEvent {
+  int32 breakpoint_id = 1;
+  repeated BreakpointLocation locations = 2;
+}
+
+message BreakpointChangedEvent {
+  BreakpointEventType event_type = 1;
+  Breakpoint breakpoint = 2;
+  repeated BreakpointLocation locations = 3;
+}
+
+// ============================================================================
+// Module Events
+// ============================================================================
+
+message ModulesLoadedEvent {
+  repeated string module_names = 1;
+}
+
+message ModulesUnloadedEvent {
+  repeated string module_names = 1;
+}
+
+// ============================================================================
+// Symbol Download Events
+// ============================================================================
+
+message SymbolsDownloadStartedEvent {
+  string title = 1;
+  string details = 2;
+}
+
+message SymbolsDownloadProgressEvent {
+  uint32 progress_percent = 1;
+}
+
+message SymbolsDownloadFinishedEvent {}
+
+// ============================================================================
+// Composite Broadcast (for batching multiple events)
+// ============================================================================
+
+message CompositeBroadcast {
+  optional ProcessInterruptedEvent process_interrupted = 1;
+  optional ProcessRunningEvent process_running = 2;
+  optional ProcessExitedEvent process_exited = 3;
+  optional LogMessageEvent log_message = 4;
+  optional PromptChangedEvent prompt_changed = 5;
+  optional ReadyForCommandsEvent ready_for_commands = 6;
+  optional CommandInterpreterMessageEvent interpreter_message = 7;
+  optional ProcessOutputEvent process_output = 8;
+  optional ModulesLoadedEvent modules_loaded = 9;
+  optional InitializedEvent initialized = 10;
+  optional BreakpointChangedEvent breakpoint_changed = 11;
+  optional ModulesUnloadedEvent modules_unloaded = 12;
+  optional SymbolsDownloadStartedEvent symbols_download_started = 13;
+  optional SymbolsDownloadProgressEvent symbols_download_progress = 14;
+  optional SymbolsDownloadFinishedEvent symbols_download_finished = 15;
+  optional SelectedFrameChangedEvent selected_frame_changed = 16;
+  optional BreakpointAddedEvent breakpoint_added = 17;
+  optional BreakpointRemovedEvent breakpoint_removed = 18;
+  optional BreakpointLocationsAddedEvent breakpoint_locations_added = 19;
+  optional BreakpointLocationsRemovedEvent breakpoint_locations_removed = 20;
+  optional BreakpointLocationsResolvedEvent breakpoint_locations_resolved = 21;
+}

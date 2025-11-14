@@ -1,0 +1,237 @@
+syntax = "proto3";
+
+package proto;
+
+// ============================================================================
+// Enumerations
+// ============================================================================
+
+enum OutputType {
+  OUTPUT_TYPE_STDOUT = 0;
+  OUTPUT_TYPE_STDERR = 1;
+}
+
+enum DispatchTarget {
+  DISPATCH_TARGET_PROCESS = 0;
+  DISPATCH_TARGET_DEBUGGER = 1;
+}
+
+enum LogLevel {
+  LOG_LEVEL_UNKNOWN = 0;
+  LOG_LEVEL_DEBUG = 1;
+  LOG_LEVEL_ERROR = 2;
+  LOG_LEVEL_INFO = 3;
+}
+
+enum ConsoleMode {
+  CONSOLE_MODE_PARENT = 0;
+  CONSOLE_MODE_EXTERNAL = 1;
+  CONSOLE_MODE_PSEUDO = 2;
+}
+
+enum StopReason {
+  STOP_REASON_INVALID = 0;
+  STOP_REASON_NONE = 1;
+  STOP_REASON_TRACE = 2;
+  STOP_REASON_BREAKPOINT = 3;
+  STOP_REASON_WATCHPOINT = 4;
+  STOP_REASON_SIGNAL = 5;
+  STOP_REASON_EXCEPTION = 6;
+  STOP_REASON_EXEC = 7;
+  STOP_REASON_PLAN_COMPLETE = 8;
+  STOP_REASON_THREAD_EXITING = 9;
+}
+
+enum ValueTypeClass {
+  VALUE_TYPE_ARRAY = 0;
+  VALUE_TYPE_BLOCK_POINTER = 1;
+  VALUE_TYPE_BUILTIN = 2;
+  VALUE_TYPE_CLASS = 3;
+  VALUE_TYPE_COMPLEX_FLOAT = 4;
+  VALUE_TYPE_COMPLEX_INTEGER = 5;
+  VALUE_TYPE_ENUMERATION = 6;
+  VALUE_TYPE_FUNCTION = 7;
+  VALUE_TYPE_MEMBER_POINTER = 8;
+  VALUE_TYPE_OBJC_OBJECT = 9;
+  VALUE_TYPE_OBJC_INTERFACE = 10;
+  VALUE_TYPE_OBJC_OBJECT_POINTER = 11;
+  VALUE_TYPE_POINTER = 12;
+  VALUE_TYPE_REFERENCE = 13;
+  VALUE_TYPE_STRUCT = 14;
+  VALUE_TYPE_TYPEDEF = 15;
+  VALUE_TYPE_UNION = 16;
+  VALUE_TYPE_VECTOR = 17;
+  VALUE_TYPE_OTHER = 18;
+  VALUE_TYPE_ANY = 19;
+}
+
+enum BreakpointEventType {
+  BREAKPOINT_EVENT_INVALID = 0;
+  BREAKPOINT_EVENT_ADDED = 1;
+  BREAKPOINT_EVENT_REMOVED = 2;
+  BREAKPOINT_EVENT_LOCATIONS_ADDED = 3;
+  BREAKPOINT_EVENT_LOCATIONS_REMOVED = 4;
+  BREAKPOINT_EVENT_LOCATIONS_RESOLVED = 5;
+  BREAKPOINT_EVENT_ENABLED = 6;
+  BREAKPOINT_EVENT_DISABLED = 7;
+  BREAKPOINT_EVENT_COMMAND_CHANGED = 8;
+  BREAKPOINT_EVENT_CONDITION_CHANGED = 9;
+  BREAKPOINT_EVENT_IGNORE_CHANGED = 10;
+  BREAKPOINT_EVENT_THREAD_CHANGED = 11;
+}
+
+enum HashAlgorithm {
+  HASH_ALGORITHM_NONE = 0;
+  HASH_ALGORITHM_MD5 = 1;
+  HASH_ALGORITHM_SHA1 = 2;
+  HASH_ALGORITHM_SHA256 = 3;
+}
+
+// ============================================================================
+// Basic Types
+// ============================================================================
+
+message EnvironmentVariable {
+  string name = 1;
+  string value = 2;
+}
+
+message ProcessLaunchInfo {
+  repeated EnvironmentVariable environment = 1;
+  string executable_path = 2;
+  string working_directory = 3;
+  repeated string arguments = 4;
+  string stdin_path = 5;
+  string stdout_path = 6;
+  string stderr_path = 7;
+}
+
+message SourceLocation {
+  string file_path = 1;
+  uint32 line = 2;
+  HashAlgorithm hash_algorithm = 3;
+  string hash_value = 4;
+}
+
+// ============================================================================
+// Thread and Execution State
+// ============================================================================
+
+message ThreadStopInfo {
+  StopReason reason = 1;
+  string description = 2;
+  int32 signal_number = 3;
+  string signal_name = 4;
+  int32 exception_code = 5;
+  uint64 address = 6;
+  SourceLocation location = 7;
+  Value return_value = 8;
+}
+
+message Thread {
+  uint32 index = 1;
+  uint64 thread_id = 2;
+  string name = 3;
+  string queue_name = 4;
+  ThreadStopInfo stop_info = 5;
+  bool is_frozen = 6;
+}
+
+message StackFrame {
+  uint32 index = 1;
+  string function_name = 2;
+  SourceLocation location = 3;
+  uint64 program_counter = 4;
+  bool is_optimized = 5;
+  bool is_inlined = 6;
+  string module_name = 7;
+}
+
+// ============================================================================
+// Values and Types
+// ============================================================================
+
+message Value {
+  int32 id = 1;
+  string name = 2;
+  string type_name = 3;
+  ValueTypeClass type_class = 4;
+  uint64 address = 5;
+  string display_type = 6;
+}
+
+message ValueData {
+  string value = 1;
+  string summary = 2;
+  bool has_extended_description = 3;
+  bool has_children = 4;
+  bool is_synthetic = 5;
+}
+
+// ============================================================================
+// Memory and Disassembly
+// ============================================================================
+
+message Instruction {
+  uint64 address = 1;
+  bytes opcode_bytes = 2;
+  string mnemonic = 3;
+  string operands = 4;
+  string comment = 5;
+}
+
+message MemoryRegion {
+  string name = 1;
+  uint64 start_address = 2;
+  uint64 end_address = 3;
+  repeated string permissions = 4;
+}
+
+message ContextRegion {
+  string name = 1;
+  uint64 start_address = 2;
+  uint64 end_address = 3;
+  bool is_gap = 4;
+}
+
+// ============================================================================
+// Modules and Symbols
+// ============================================================================
+
+message Module {
+  string name = 1;
+  repeated MemoryRegion sections = 2;
+}
+
+// ============================================================================
+// Registers
+// ============================================================================
+
+message Register {
+  string name = 1;
+  string raw_value = 2;
+  string formatted_value = 3;
+}
+
+message RegisterSet {
+  string name = 1;
+  repeated string register_names = 2;
+}
+
+// ============================================================================
+// Breakpoints and Watchpoints
+// ============================================================================
+
+message BreakpointLocation {
+  int32 id = 1;
+  uint64 address = 2;
+  bool is_resolved = 3;
+  SourceLocation location = 4;
+  string module_path = 5;
+}
+
+message Breakpoint {
+  int32 id = 1;
+  SourceLocation original_location = 2;
+  string condition = 3;
+}

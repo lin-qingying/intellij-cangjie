@@ -1,0 +1,86 @@
+目标与范围
+
+- 完全重构并整理 proto_debugger/src/main/kotlin/org/cangnova/cangjie/protodebugger ，提升可维护性、解耦、并发一致性与测试可用性
+- 保持现有功能：断点、步进/继续、求值、内存读写、协议收发、IDE 调试集成
+- 限制范围：仅该模块；与其他子模块的公共 API 将通过抽象接口稳定化
+现状诊断
+
+- 超大而高耦合的核心类： core/DebuggerDriver.kt:120 负责进程、IPC、协议构造、断点/步进/求值、内存、日志，职责过载
+- IDE 接入未实现： core/CangJieDebugProcess.kt:78, 92, 108, 118, 128 全是未实现； core/CjDebugRunnerUtils.kt:140 存在 consoleBuilder = TODO()
+- 并发与超时分散：自定义线程队列 QueueProcessor 、 Semaphore 、协程混用，策略不统一
+- 协议/传输与业务耦合： ipc/* 与 protocol/* 直接被业务层频繁调用
+- 代码质量待改进： memory/MemoryData.kt:364 、 memory/MemoryDoc.kt:191 、 path/PathManager.kt:192 存在未完成项与待决策略
+- 代表性文件：符号断点模型清晰但风格偏 Java 命名（ myPattern 等），例如 breakpoint/SymbolicBreakpoint.kt:34
+分层架构提案
+
+- UI/IDE 接入层： CangJieDebugProcess 、 CjDebugRunnerUtils 、 settings/DebuggerSettings ，仅依赖驱动服务接口
+- 驱动服务层（按职责拆分接口与实现）
+  - BreakpointService ：新增/移除/查询断点
+  - SteppingService ： stepInto / stepOver / stepOut / resume
+  - EvalService ：表达式求值与变量读取
+  - MemoryService ：内存读写、区域缓存与文档视图（协调 MemoryData/MemoryDoc ）
+  - DisasmService ：反汇编、架构信息
+  - SessionService ：会话生命周期、线程选择、状态机（ TargetState ）
+- 协议与传输层：
+  - Transport 抽象：Socket/命名管道统一接口，封装超时与序列化
+  - MessageBus ：请求/响应路由、广播处理（ Protocol , ProtocolResponses , Broadcasts ）
+  - ProtobufMessageFactory 仅负责消息构建，不触及业务策略
+- 平台适配层： process/* 、 output/* 、 path/* 抽象主机与输出读取、路径映射，驱动通过接口注入
+- 领域模型层： data/* 、 execution/* 、 exception/* 、 settings/* 、 symbol/* 仅包含数据与配置，无逻辑
+- 事件与遥测：统一 EventTracer 使用，整合 IDE Logger 与 telemetry ，可切换后端（包含 Chrome Tracing）
+并发与超时策略
+
+- 统一协程作用域：会话级 CoroutineScope 管理所有异步作业，结构化并发
+- IPC/请求执行： RequestExecutor 封装超时、取消、重试，返回统一 ExecutionResult
+- 路由与流：用 Channel / Flow 替换部分 QueueProcessor ，保证背压与资源清理一致
+- 资源管理：作用域关闭即释放传输、读者、缓存，避免泄漏
+异常与日志策略
+
+- 异常分层：协议/传输异常、命令执行异常、求值超时、致命错误（保留现有类型并统一消息）
+- 日志与事件：区分用户可见日志、开发调试日志与事件追踪；驱动层只打结构化日志，UI 层负责展示
+包与命名重组
+
+- 新增包： org.cangnova.cangjie.protodebugger.services.* （各服务接口+实现）
+- 现有包迁移： ipc/* 与 protocol/* 组成 transport/* 与 protocol/* 两子层
+- 风格统一：Kotlin 属性命名（去除 my* 前缀），数据类/不可变模型优先，接口命名以动词+Service，减少 Java 风格
+接口草案示例（仅说明，不改代码）
+
+- BreakpointService ： add(request: BreakpointRequest): AddBreakpointResult ， remove(id: BreakpointId): Boolean
+- SteppingService ： stepInto(thread: ThreadId, byInstruction: Boolean) 等返回 ExecutionResult
+- EvalService ： evaluate(ctx: EvalContext, expr: String): LLValue
+- MemoryService ： read(range: AddressRange): ByteList ， write(address: Address, bytes: ByteArray): ExecutionResult
+- Transport ： send(message: ProtoMessage): ProtoResponse ， broadcasts(): Flow<Broadcasts.Event>
+重构里程碑
+
+- 阶段 1：可用性修复与最小拆分
+  - 完成 IDE 接入骨架：实现 CangJieDebugProcess 必需方法（类定义起于 core/CangJieDebugProcess.kt:45 ），替换 CjDebugRunnerUtils.kt:140 的 consoleBuilder 占位
+  - 将 DebuggerDriver.kt 拆分为内部私有类/文件，按服务职责切块，维持对外 API 不变
+  - 引入 RequestExecutor ，统一 IPC 调用超时与错误返回
+- 阶段 2：接口化与模块化
+  - 定义并落地 BreakpointService 、 SteppingService 、 EvalService 、 MemoryService 、 SessionService ； DebuggerDriver 改为组合各服务
+  - 抽象 Transport 与 MessageBus ，迁移 ipc/* 、 protocol/* ，形成清晰层次
+  - 整理平台适配层（ process/* 、 output/* 、 path/* ），通过接口注入驱动
+- 阶段 3：并发统一与事件追踪
+  - 用协程 + Channel/Flow 统一请求路由与内存加载；替换部分 QueueProcessor
+  - 统一事件追踪接入，提供可配置后端（包含 Chrome Tracing）；规范日志分级
+- 阶段 4：测试与质量
+  - 建立单元/集成测试：协议构造、断点/步进、求值、内存读写、状态机迁移
+  - 添加端到端脚本与回归用例；引入基础性能基线（断点设置与单步耗时）
+风险与回滚
+
+- 风险：接口拆分导致现有调用需要适配；并发策略改变影响时序与超时敏感路径
+- 降低风险：逐步替换，保留旧 API 过渡层；请求执行/传输层优先稳定；加入回归测试与日志对比
+- 回滚策略：每阶段形成可运行里程碑，若失败可回退到上一稳定层次
+优先修复清单（从易到难）
+
+- 实现 IDE 调试入口： core/CangJieDebugProcess.kt:78, 92, 108, 118, 128 与 core/CjDebugRunnerUtils.kt:140
+- 在驱动中引入 RequestExecutor 并统一使用
+- 将协议构造与传输访问改为通过 Transport / MessageBus 抽象
+- 拆分 DebuggerDriver 的断点/步进/求值/内存子服务
+- 统一 memory/* 的协程作用域与取消/超时策略（参考 MemoryData.kt:364 、 MemoryDoc.kt:191 ）
+- 清理路径判定逻辑并补足 IDE 环境判断（ path/PathManager.kt:192 ）
+附注与参考
+
+- 符号断点模型示例： breakpoint/SymbolicBreakpoint.kt:34 ，建议按 Kotlin 习惯统一属性命名与不可变偏好
+- 调试核心类位置： core/DebuggerDriver.kt:120
+- IDE 调试进程类定义位置： core/CangJieDebugProcess.kt:45
