@@ -340,6 +340,9 @@ class CangJieDebugProcess(
             block()
         }
     }
+    override fun handleTargetOutput(text: String, type: Key<*>) {
+        this.processHandler.notifyTextAvailable(text, type)
+    }
 
     private val processHandler: ExeProcessHandler =
         ExeProcessHandler()

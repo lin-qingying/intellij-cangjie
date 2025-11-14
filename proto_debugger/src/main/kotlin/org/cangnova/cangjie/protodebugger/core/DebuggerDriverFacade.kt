@@ -3,6 +3,11 @@ package org.cangnova.cangjie.protodebugger.core
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.BaseProcessHandler
+import com.intellij.execution.process.OSProcessHandler
+import com.intellij.execution.process.OSProcessUtil
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -41,6 +46,7 @@ import java.io.IOException
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 
 /**
  * 调试器驱动门面
@@ -72,7 +78,7 @@ class DebuggerDriverFacade(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // 传输层
-    private val transport: SocketTransport =   SocketTransport()
+    private val transport: SocketTransport = SocketTransport()
 
     val messageBus: MessageBus = MessageBus(transport)
 
@@ -96,7 +102,7 @@ class DebuggerDriverFacade(
 
     // 进程处理器
     private val commandLine = configuration.createDriverCommandLine(this, architectureType)
-      lateinit var frontendHandler: BaseProcessHandler<*>
+    lateinit var frontendHandler: BaseProcessHandler<*>
 
     init {
 
@@ -124,8 +130,6 @@ class DebuggerDriverFacade(
             // 启动前端进程
             startFrontend()
         }
-
-
 
 
     }
@@ -171,34 +175,64 @@ class DebuggerDriverFacade(
         }
     }
 
+    fun doExit(): Boolean {
+
+        executeCommand {
+
+sessionService.exit()
+        }
+        return stateManager.isInitialized()
+
+    }
+
     private fun createDebugProcessHandler(
         commandLine: GeneralCommandLine,
         configuration: DebuggerDriverConfiguration
     ): BaseProcessHandler<*> {
 
 
-        val process = commandLine.createProcess()
-        return object : BaseProcessHandler<Process>(process, commandLine.commandLineString, null) {
-            override fun detachIsDefault(): Boolean = false
+        val handler = configuration.createDebugProcessHandler(commandLine)
+        val process = handler.process
 
-            override fun detachProcessImpl() {
-                destroyProcessImpl()
+        handler.addProcessListener(object : ProcessAdapter() {
+            override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+
+                if (process.isAlive && willBeDestroyed) {
+                    try {
+                        if (!doExit()) {
+                            return
+                        }
+                    } catch (e: ExecutionException) {
+                        LOG.warn(e)
+                        return
+                    }
+
+                    try {
+                        process.waitFor(1500L, TimeUnit.MILLISECONDS)
+                    } catch (e: InterruptedException) {
+                    }
+                }
             }
 
-            override fun destroyProcessImpl() {
-                process.destroy()
-            }
+            override fun processTerminated(event: ProcessEvent) {
 
-            override fun getProcessInput(): OutputStream {
-                return process.outputStream
-            }
 
-            override fun executeTask(task: Runnable): Future<*> {
-                return scope.async {
-                    task.run()
-                }.asCompletableFuture()
+                val exitCodeString =
+                    ProcessTerminatedListener.stringifyExitCode(
+                        configuration.hostMachine.osType.toOS(),
+                        event.exitCode
+                    )
+                LOG.info("[PID ${process.pid()}] Debugger exited with code $exitCodeString")
+
+                if (process.isAlive && OSProcessHandler.processCanBeKilledByOS(process)) {
+                    OSProcessUtil.killProcess(process)
+                }
             }
-        }
+        })
+
+
+
+        return handler
     }
 
     override fun close() {
@@ -376,8 +410,6 @@ class DebuggerDriverFacade(
     }
 
 
-
-
     /**
      * 获取当前调试器状态
      */
@@ -397,9 +429,9 @@ class DebuggerDriverFacade(
      * 获取调试器版本
      */
     fun getVersion() = stateManager.getVersion()
-   suspend fun resize(columns: Int, rows: Int) {
+    suspend fun resize(columns: Int, rows: Int) {
 
 
-   }
+    }
 }
 

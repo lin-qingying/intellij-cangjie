@@ -69,7 +69,7 @@ class CangJieProgramRunConfiguration(
         val cjProject = projectsService.cjProject
 
         // Debug information
-        println("Debug: Looking for module '$moduleName' in project '${cjProject.name}'")
+//        println("Debug: Looking for module '$moduleName' in project '${cjProject.name}'")
 
         if (!cjProject.isValid) {
             println("Debug: CangJie project is not valid")
@@ -78,9 +78,9 @@ class CangJieProgramRunConfiguration(
 
         val module = cjProject.findModule(moduleName)
         if (module != null) {
-            println("Debug: Found module '${module.name}' at ${module.rootDir.path}")
+//            println("Debug: Found module '${module.name}' at ${module.rootDir.path}")
         } else {
-            println("Debug: Module '$moduleName' not found")
+//            println("Debug: Module '$moduleName' not found")
             // List available modules for debugging
             val availableModules = if (cjProject.isWorkspace && cjProject.workspace != null) {
                 cjProject.workspace!!.modules

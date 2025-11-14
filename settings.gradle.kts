@@ -86,3 +86,5 @@ include("cjpm")
 
 
 include("debugger")
+
+include("proto_debugger")
