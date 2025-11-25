@@ -27,15 +27,12 @@ package org.cangnova.cangjie.protodebugger.core
 import com.intellij.openapi.diagnostic.Logger
 import java.util.EventListener
 import com.intellij.openapi.util.Key
-import com.intellij.util.ReflectionUtil
-import com.intellij.util.concurrency.QueueProcessor
 import org.cangnova.cangjie.protodebugger.breakpoint.StopPlace
 import org.cangnova.cangjie.protodebugger.data.*
 import org.cangnova.cangjie.protodebugger.execution.ExitStatus
 import org.cangnova.cangjie.protodebugger.memory.Address
 import org.cangnova.cangjie.protodebugger.notification.NotificationType
 import org.cangnova.cangjie.protodebugger.util.DebuggerSourceFileHash
-import java.lang.reflect.InvocationTargetException
 
 /**
  * 调试器事件处理器接口
@@ -57,7 +54,7 @@ import java.lang.reflect.InvocationTargetException
  * - 异常和信号事件处理
  * - 输出和通知信息处理
  */
-interface Handler : EventListener {
+interface TargetHandler : EventListener {
 
     /**
      * 处理程序运行事件
@@ -267,7 +264,7 @@ interface Handler : EventListener {
         /**
          * 日志记录器，用于调试和问题排查
          */
-        val LOG = Logger.getInstance("#" + Handler::class.java.getPackage().name)
+        val LOG = Logger.getInstance("#" + TargetHandler::class.java.getPackage().name)
 
     }
 }

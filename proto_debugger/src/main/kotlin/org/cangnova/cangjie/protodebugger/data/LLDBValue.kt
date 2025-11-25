@@ -50,7 +50,7 @@ import java.math.BigInteger
  * @param mayHaveChildren 是否可能有子项（如数组元素、结构体字段等）
  * @param isSynthetic 是否为合成值（由调试器生成的值，非实际的程序变量）
  */
-class LLValueData(
+class LLDBValueData(
     val value: String,
   val description: String?,
     private val hasLongerDescription: Boolean,
@@ -373,7 +373,7 @@ class LLValueData(
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
 
-        val valueData = other as LLValueData
+        val valueData = other as LLDBValueData
         if (mayHaveChildren != valueData.mayHaveChildren) return false
         if (isSynthetic != valueData.isSynthetic) return false
         if (value != valueData.value) return false

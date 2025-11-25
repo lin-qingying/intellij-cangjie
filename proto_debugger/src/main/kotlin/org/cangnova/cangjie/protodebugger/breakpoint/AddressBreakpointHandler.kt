@@ -25,11 +25,12 @@
 package org.cangnova.cangjie.protodebugger.breakpoint
 
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.xdebugger.breakpoints.XBreakpointHandler
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.xdebugger.breakpoints.XBreakpoint
+import com.intellij.xdebugger.breakpoints.XLineBreakpoint
 import org.cangnova.cangjie.protodebugger.core.CangJieDebugProcess
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ConcurrentHashMap
+import org.cangnova.cangjie.protodebugger.memory.vfs.MemoryViewFile
 
 /**
  * 仓颉语言地址断点处理器
@@ -40,179 +41,110 @@ import java.util.concurrent.ConcurrentHashMap
  * @param debugProcess 调试进程实例，用于访问调试器服务
  */
 class AddressBreakpointHandler(
-    private val debugProcess: CangJieDebugProcess
-) : XBreakpointHandler<AddressBreakpoint>(
-    AddressBreakpointType::class.java
+    debugProcess: CangJieDebugProcess
+) : BaseBreakpointHandler<XLineBreakpoint<AddressBreakpointType.Properties>, AddressBreakpointType, AddressBreakpointType.Properties>(
+    AddressBreakpointType::class.java,
+    debugProcess
 ) {
 
     companion object {
         private val LOG = Logger.getInstance(AddressBreakpointHandler::class.java)
     }
 
-    /** 活跃的地址断点集合 */
-    private val activeBreakpoints =
-        ConcurrentHashMap<String, MutableSet<XBreakpoint<AddressBreakpointType.Properties>>>()
-
-    /** 断点ID映射，用于跟踪调试器返回的断点ID */
-    private val breakpointIds = ConcurrentHashMap<XBreakpoint<*>, Int>()
-
-    /**
-     * 注册地址断点
-     *
-     * 当用户在IDE中设置地址断点时调用此方法。
-     * 将地址断点信息发送到调试器服务器。
-     */
-    override fun registerBreakpoint(breakpoint: AddressBreakpoint) {
-        val properties = breakpoint.properties
-        val address = properties.address
-
-        LOG.debug("Registering address breakpoint: $address, enabled: ${breakpoint.isEnabled}")
-
-        // 添加到活跃断点集合
-        activeBreakpoints.computeIfAbsent(address) { mutableSetOf() }.add(breakpoint)
-
-        // 如果断点启用，发送到调试器
-        if (breakpoint.isEnabled && properties.isValidAddress()) {
-            sendBreakpointToDebugger(breakpoint)
-        }
+    override fun getBreakpointIdentifier(breakpoint: XLineBreakpoint<AddressBreakpointType.Properties>): String {
+        val file = getFileFromBreakpoint(breakpoint) ?: return "unknown"
+        return "${file.path}:${breakpoint.line}"
     }
 
-    /**
-     * 移除地址断点
-     *
-     * 当用户在IDE中移除地址断点时调用此方法。
-     * 从调试器服务器中移除对应的地址断点。
-     */
-    override fun unregisterBreakpoint(breakpoint: AddressBreakpoint, temporary: Boolean) {
-        val properties = breakpoint.properties
-        val address = properties.address
-
-        LOG.debug("Unregistering address breakpoint: $address (temporary: $temporary)")
-
-        // 从活跃断点集合中移除
-        activeBreakpoints[address]?.remove(breakpoint)
-
-        // 从调试器中移除断点
-        val breakpointId = breakpointIds.remove(breakpoint)
-        if (breakpointId != null) {
-            removeBreakpointFromDebugger(breakpointId)
-        }
+    override fun isValidBreakpoint(breakpoint: XLineBreakpoint<AddressBreakpointType.Properties>): Boolean {
+        return getAddressFromBreakpoint(breakpoint) != null
     }
 
-    /**
-     * 发送地址断点到调试器服务器
-     */
-    private fun sendBreakpointToDebugger(breakpoint: XBreakpoint<AddressBreakpointType.Properties>) {
-        val properties = breakpoint.properties ?: return
+    override fun sendBreakpointToDebugger(breakpoint: XLineBreakpoint<AddressBreakpointType.Properties>): Any {
+        val address = getAddressFromBreakpoint(breakpoint)
+            ?: throw IllegalArgumentException("Failed to get address from breakpoint")
 
-        if (!properties.isValidAddress()) {
-            LOG.error("Invalid address for breakpoint: ${properties.address}")
-            return
-        }
-
-        val address = properties.parseAddress() ?: return
-        val condition = properties.condition
+        val condition = breakpoint.conditionExpression?.expression
 
         LOG.debug("Sending address breakpoint to debugger: ${address.toString()}")
 
-        debugProcess.executeCommand {
-            try {
-                val result = debugProcess.debuggerDriver.breakpointService.addAddressBreakpoint(
-                    address = address,
-                    condition = condition
-                )
-
-                // 存储断点ID
-                breakpointIds[breakpoint] = result.breakpoint.id
-
-                LOG.debug("Address breakpoint registered successfully with ID: ${result.breakpoint.id}")
-
-            } catch (e: Exception) {
-                LOG.error("Failed to register address breakpoint: ${address.toString()}", e)
-                throw e
-            }
-        }
+        return debugProcess.executeCommand {
+            val result = debugProcess.facade.breakpointService.addAddressBreakpoint(
+                address = address,
+                condition = condition
+            )
+            result.breakpoint.id
+        }.get() // 等待异步结果
     }
 
-    /**
-     * 从调试器服务器移除断点
-     */
-    private fun removeBreakpointFromDebugger(breakpointId: Int) {
+    override fun removeBreakpointFromDebugger(debuggerIdentifier: Any) {
+        val breakpointId = when (debuggerIdentifier) {
+            is Long -> debuggerIdentifier
+            is Number -> debuggerIdentifier.toLong()
+            else -> throw IllegalArgumentException("Invalid debugger identifier type: ${debuggerIdentifier::class.java}")
+        }
+
         LOG.debug("Removing address breakpoint from debugger: ID $breakpointId")
 
         debugProcess.executeCommand {
-            try {
-                debugProcess.debuggerDriver.breakpointService.removeBreakpoints(listOf(breakpointId))
-                LOG.debug("Address breakpoint removed successfully: ID $breakpointId")
+            debugProcess.facade.breakpointService.removeBreakpoints(listOf(breakpointId))
+            Unit
+        }.get() // 等待异步结果
+    }
 
-            } catch (e: Exception) {
-                LOG.error("Failed to remove address breakpoint: ID $breakpointId", e)
-                throw e
-            }
+    override fun getBreakpointTypeName(): String = "Address Breakpoint"
+
+    override fun shouldBreakpointBeRemoved(breakpoint: XLineBreakpoint<AddressBreakpointType.Properties>): Boolean {
+        val file = getFileFromBreakpoint(breakpoint)
+        val line = breakpoint.line
+
+        // 移除文件不存在或行号无效的断点
+        if (file == null || !file.exists()) {
+            return true
         }
+
+        if (line < 0) {
+            return true
+        }
+
+        // 如果无法获取地址，移除断点
+        if (getAddressFromBreakpoint(breakpoint) == null) {
+            return true
+        }
+
+        return false
     }
 
     /**
-     * 获取断点ID
+     * 从断点获取虚拟文件
+     *
+     * 使用 fileUrl 和 VirtualFileManager 获取文件，
+     * 因为地址断点的 sourcePosition 始终为 null
      */
-    fun getBreakpointId(breakpoint: XBreakpoint<*>): Int? {
-        return breakpointIds[breakpoint]
+    private fun getFileFromBreakpoint(breakpoint: XLineBreakpoint<AddressBreakpointType.Properties>):  VirtualFile? {
+        val fileUrl = breakpoint.fileUrl ?: return null
+        return VirtualFileManager.getInstance().findFileByUrl(fileUrl)
     }
 
     /**
-     * 获取所有活跃断点
+     * 从断点获取地址
+     *
+     * 通过 MemoryViewFile 的 store 获取断点所在行对应的内存地址
      */
-    fun getActiveBreakpoints(): Map<String, Set<XBreakpoint<AddressBreakpointType.Properties>>> {
-        return activeBreakpoints.toMap()
-    }
+    private fun getAddressFromBreakpoint(breakpoint: XLineBreakpoint<AddressBreakpointType.Properties>): org.cangnova.cangjie.protodebugger.memory.Address? {
+        val file = getFileFromBreakpoint(breakpoint) ?: return null
+        val line = breakpoint.line
 
-    /**
-     * 启用所有断点
-     */
-    fun enableAllBreakpoints() {
-        activeBreakpoints.values.flatten().forEach { breakpoint ->
-            if (!breakpoint.isEnabled && breakpoint.properties?.isValidAddress() == true) {
-                breakpoint.isEnabled = true
-                sendBreakpointToDebugger(breakpoint)
-            }
-        }
-    }
-
-    /**
-     * 禁用所有断点
-     */
-    fun disableAllBreakpoints() {
-        val idsToDisable = mutableListOf<Int>()
-
-        activeBreakpoints.values.flatten().forEach { breakpoint ->
-            if (breakpoint.isEnabled) {
-                breakpoint.isEnabled = false
-                breakpointIds[breakpoint]?.let { id ->
-                    idsToDisable.add(id)
-                }
-            }
+        // 从 MemoryViewFile 获取 MemoryStore
+        if (file !is MemoryViewFile<*>) {
+            return null
         }
 
-        if (idsToDisable.isNotEmpty()) {
-            debugProcess.executeCommand {
-                debugProcess.debuggerDriver.breakpointService.removeBreakpoints(idsToDisable)
-                Unit
-            }
-        }
-    }
+        @Suppress("UNCHECKED_CAST")
+        val store = file.store as? org.cangnova.cangjie.protodebugger.memory.state.MemoryStore<org.cangnova.cangjie.protodebugger.memory.MemoryCell.InstructionCell>
+            ?: return null
 
-    /**
-     * 切换断点状态
-     */
-    fun toggleBreakpoint(breakpoint: XBreakpoint<AddressBreakpointType.Properties>) {
-        breakpoint.isEnabled = !breakpoint.isEnabled
-
-        if (breakpoint.isEnabled && breakpoint.properties?.isValidAddress() == true) {
-            sendBreakpointToDebugger(breakpoint)
-        } else {
-            breakpointIds.remove(breakpoint)?.let { id ->
-                removeBreakpointFromDebugger(id)
-            }
-        }
+        // 通过 store 的行号映射获取地址
+        return store.getAddressForLine(line)
     }
 }

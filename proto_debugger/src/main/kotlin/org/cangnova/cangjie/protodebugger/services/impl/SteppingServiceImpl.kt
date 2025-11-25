@@ -1,61 +1,60 @@
 package org.cangnova.cangjie.protodebugger.services.impl
 
 import com.intellij.execution.ExecutionException
+import lldbprotobuf.ResponseOuterClass
 import org.cangnova.cangjie.messages.DebuggerBundle
-import org.cangnova.cangjie.protodebugger.breakpoint.StopPlace
-import org.cangnova.cangjie.protodebugger.core.DebuggerDriverConfiguration
-import org.cangnova.cangjie.protodebugger.data.LLFrame
-import org.cangnova.cangjie.protodebugger.data.LLThread
-import org.cangnova.cangjie.protodebugger.data.newLLFrame
-import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
+import org.cangnova.cangjie.protodebugger.breakpoint.DebugPausePoint
+import org.cangnova.cangjie.protodebugger.data.LLDBThread
+import org.cangnova.cangjie.protodebugger.core.DebuggerDriverFacade
 import org.cangnova.cangjie.protodebugger.memory.Address
-import org.cangnova.cangjie.protodebugger.protocol.ProtobufMessageFactory
+import org.cangnova.cangjie.protodebugger.protocol.ProtobufFactory
 import org.cangnova.cangjie.protodebugger.services.SteppingService
 import org.cangnova.cangjie.protodebugger.transport.MessageBus
-import org.cangnova.cangjie.protodebugger.util.DebuggerSourceFileHash
-import proto.Model
-import proto.ProtocolResponses
+
 
 /**
  * 步进控制服务实现
  */
 class SteppingServiceImpl(
     private val messageBus: MessageBus,
-    private val configuration: DebuggerDriverConfiguration,
+    private val driverFacade: DebuggerDriverFacade,
     private val capabilities: Long
 ) : SteppingService {
 
     override suspend fun resume(): Boolean {
-        val request = ProtobufMessageFactory.resume()
+
+        val request = ProtobufFactory.resume()
         val response = messageBus.request(
             request,
-            ProtocolResponses.ContinueResponse::class.java
+             ResponseOuterClass.ContinueResponse::class.java
         )
         return response.status.success
     }
 
-    override suspend fun interrupt(): Boolean {
-        val request = ProtobufMessageFactory.suspend()
+    override suspend fun suspend(): Boolean {
+        TODO()
+        val request = ProtobufFactory.suspend()
         val response = messageBus.request(
             request,
-            ProtocolResponses.SuspendResponse::class.java
+             ResponseOuterClass.SuspendResponse::class.java
         )
         return response.status.success
     }
 
     override suspend fun stepInto(
-        thread: LLThread,
+        thread: LLDBThread,
         forceStepIntoFramesWithNoDebugInfo: Boolean,
         stepByInstruction: Boolean
     ) {
-        val request = ProtobufMessageFactory.stepInto(
+
+        val request = ProtobufFactory.step(
             thread.id,
             stepByInstruction
         )
 
         val response = messageBus.request(
             request,
-            ProtocolResponses.StepIntoResponse::class.java
+             ResponseOuterClass.StepIntoResponse::class.java
         )
 
         if (!response.status.success) {
@@ -66,14 +65,15 @@ class SteppingServiceImpl(
     }
 
     override suspend fun stepOver(
-        thread: LLThread,
+        thread: LLDBThread,
         stepByInstruction: Boolean
     ) {
-        val request = ProtobufMessageFactory.stepOver(thread.id, stepByInstruction)
+
+        val request = ProtobufFactory.stepOver(thread.id, stepByInstruction)
 
         val response = messageBus.request(
             request,
-            ProtocolResponses.StepOverResponse::class.java
+            ResponseOuterClass.StepOverResponse::class.java
         )
 
         if (!response.status.success) {
@@ -84,14 +84,15 @@ class SteppingServiceImpl(
     }
 
     override suspend fun stepOut(
-        thread: LLThread,
+        thread: LLDBThread,
         stopInFramesWithNoDebugInfo: Boolean
     ) {
-        val request = ProtobufMessageFactory.stepOut(thread.id)
+
+        val request = ProtobufFactory.stepOut(thread.id)
 
         val response = messageBus.request(
             request,
-            ProtocolResponses.StepOutResponse::class.java
+             ResponseOuterClass.StepOutResponse::class.java
         )
 
         if (!response.status.success) {
@@ -102,112 +103,119 @@ class SteppingServiceImpl(
     }
 
     override suspend fun runToAddress(address: Address) {
-        val request = ProtobufMessageFactory.addBreakpoint(address.unsignedLongValue, null)
+        val thread = driverFacade.stateManager.getStoppedThread()
+            ?: throw ExecutionException(
+                DebuggerBundle.message("error.no.stopped.thread")
+            )
+
+        val request = ProtobufFactory.runToAddress(thread.id, address.value)
+
         val response = messageBus.request(
             request,
-            ProtocolResponses.AddBreakpointResponse::class.java
+            ResponseOuterClass.RunToCursorResponse::class.java
         )
 
-        // 临时断点，执行后需要移除
-        val breakpointId = response.breakpoint.id
-
-        if (!resume()) {
+        if (!response.status.success) {
             throw ExecutionException(
-                DebuggerBundle.message("error.cannot.resume.program")
+                DebuggerBundle.message("error.cannot.run.to.address")
             )
         }
     }
 
+
     override suspend fun runToLine(path: String, line: Int) {
-        val convertedPath = configuration.convertToProjectModelPath(path)
-        val request = ProtobufMessageFactory.addBreakpoint(convertedPath, line + 1, false, null)
+        val thread = driverFacade.stateManager.getStoppedThread()
+            ?: throw ExecutionException(
+                DebuggerBundle.message("error.no.stopped.thread")
+            )
+
+        val request = ProtobufFactory.runToLine(thread.id, path, line)
 
         val response = messageBus.request(
             request,
-            ProtocolResponses.AddBreakpointResponse::class.java
+            ResponseOuterClass.RunToCursorResponse::class.java
         )
 
-        // 临时断点，执行后需要移除
-        val breakpointId = response.breakpoint.id
-
-        if (!resume()) {
+        if (!response.status.success) {
             throw ExecutionException(
-                DebuggerBundle.message("error.cannot.resume.program")
+                DebuggerBundle.message("error.cannot.run.to.line")
             )
         }
     }
 
     override suspend fun jumpToAddress(
-        thread: LLThread,
+        thread: LLDBThread,
         address: Address,
         canLeaveFunction: Boolean
-    ): StopPlace {
-        val request = ProtobufMessageFactory.jumpToAddress(
-            thread.id,
-            address.unsignedLongValue,
-            canLeaveFunction
-        )
-
-        val response = messageBus.request(
-            request,
-            ProtocolResponses.JumpToAddressResponse::class.java
-        )
-
-        if (!response.status.success) {
-            throw DebuggerCommandException(
-                DebuggerBundle.message("error.invalid.response")
-            )
-        }
-
-        val newFrame = newLLFrame(response.currentFrame)
-        return StopPlace(thread, newFrame)
+    ): DebugPausePoint {
+        TODO()
+//        val request = ProtobufFactory.jumpToAddress(
+//            thread.id,
+//            address.unsignedLongValue,
+//            canLeaveFunction
+//        )
+//
+//        val response = messageBus.request(
+//            request,
+//            ProtocolResponses.JumpToAddressResponse::class.java
+//        )
+//
+//        if (!response.status.success) {
+//            throw DebuggerCommandException(
+//                DebuggerBundle.message("error.invalid.response")
+//            )
+//        }
+//
+//        val newFrame = newLLDBFrame(response.currentFrame)
+//        return DebugPausePoint(thread, newFrame)
     }
 
     override suspend fun jumpToLine(
-        thread: LLThread,
+        thread: LLDBThread,
         path: String,
         line: Int,
         canLeaveFunction: Boolean
-    ): StopPlace {
-        val convertedPath = configuration.convertToProjectModelPath(path)
-        val request = ProtobufMessageFactory.jumpToLine(
-            thread.id,
-            convertedPath,
-            line + 1,
-            canLeaveFunction
-        )
-
-        val response = messageBus.request(
-            request,
-            ProtocolResponses.JumpToLineResponse::class.java
-        )
-
-        if (!response.status.success) {
-            throw DebuggerCommandException(
-                DebuggerBundle.message("error.invalid.response")
-            )
-        }
-
-        val newFrame = newLLFrame(response.currentFrame)
-        return StopPlace(thread, newFrame)
+    ): DebugPausePoint {
+        TODO()
+//        val convertedPath = configuration.convertToProjectModelPath(path)
+//        val request = ProtobufFactory.jumpToLine(
+//            thread.id,
+//            convertedPath,
+//            line + 1,
+//            canLeaveFunction
+//        )
+//
+//        val response = messageBus.request(
+//            request,
+//            ProtocolResponses.JumpToLineResponse::class.java
+//        )
+//
+//        if (!response.status.success) {
+//            throw DebuggerCommandException(
+//                DebuggerBundle.message("error.invalid.response")
+//            )
+//        }
+//
+//        val newFrame = newLLDBFrame(response.currentFrame)
+//        return DebugPausePoint(thread, newFrame)
     }
 
-    override suspend fun freezeThread(thread: LLThread) {
-        val request = ProtobufMessageFactory.freezeThread(thread.id)
+    override suspend fun freezeThread(thread: LLDBThread) {
+        val request = ProtobufFactory.freezeThread(thread.id)
         messageBus.send(request)
     }
 
-    override suspend fun unfreezeThread(thread: LLThread) {
-        val request = ProtobufMessageFactory.unfreezeThread(thread.id)
+    override suspend fun unfreezeThread(thread: LLDBThread) {
+        val request = ProtobufFactory.unfreezeThread(thread.id)
         messageBus.send(request)
     }
 
-    override suspend fun freezeOtherThreads(thread: LLThread) {
+    override suspend fun freezeOtherThreads(thread: LLDBThread) {
         // TODO: Implement when protocol supports freezeOtherThreads
         throw UnsupportedOperationException("freezeOtherThreads not yet implemented")
     }
 
-    override suspend fun unfreezeAllThreads(thread: LLThread) {
+    override suspend fun unfreezeAllThreads(thread: LLDBThread) {
         // TODO: Implement when protocol supports unfreezeAllThreads
         throw UnsupportedOperationException("unfreezeAllThreads not yet implemented")
     }

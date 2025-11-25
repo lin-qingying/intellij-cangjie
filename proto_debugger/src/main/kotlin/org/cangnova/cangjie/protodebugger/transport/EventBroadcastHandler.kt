@@ -5,23 +5,16 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.cangnova.cangjie.protodebugger.core.DebuggerStateManager
-import org.cangnova.cangjie.protodebugger.core.Handler
-import org.cangnova.cangjie.protodebugger.data.LLBreakpoint
-import org.cangnova.cangjie.protodebugger.data.LLBreakpointLocation
-import org.cangnova.cangjie.protodebugger.data.LLFrame
-import org.cangnova.cangjie.protodebugger.data.LLThread
+import org.cangnova.cangjie.protodebugger.core.DebuggerHandler
 import org.cangnova.cangjie.protodebugger.data.convertBreakpointLocation
 import org.cangnova.cangjie.protodebugger.data.makeBreakpoint
-import org.cangnova.cangjie.protodebugger.data.newLLFrame
+import org.cangnova.cangjie.protodebugger.data.newLLDBFrame
 import org.cangnova.cangjie.protodebugger.data.newLLThread
 import org.cangnova.cangjie.protodebugger.execution.ExitStatus
 import org.cangnova.cangjie.protodebugger.execution.TargetState
-import org.cangnova.cangjie.protodebugger.util.DebuggerSourceFileHash
 import proto.Broadcasts
-import proto.Model
 
 /**
  * 广播事件处理器
@@ -31,12 +24,12 @@ import proto.Model
  * - 监听 MessageBus 的广播消息
  * - 解析不同类型的广播事件
  * - 更新 DebuggerStateManager 的状态
- * - 调用 Handler 接口通知 UI 层
+ * - 调用 DebuggerHandler 接口通知 UI 层
  */
 class BroadcastHandler(
     private val messageBus: MessageBus,
     private val stateManager: DebuggerStateManager,
-    private val handler: Handler,
+    private val debuggerHandler: DebuggerHandler,
     private val scope: CoroutineScope
 ) {
     companion object {
@@ -111,7 +104,7 @@ class BroadcastHandler(
 
     private fun handlePromptChanged(event: Broadcasts.PromptChangedEvent) {
         LOG.debug("Prompt changed: ${event.newPrompt}")
-        handler.handlePrompt(event.newPrompt)
+        debuggerHandler.handlePrompt(event.newPrompt)
     }
 
     private fun handleInterpreterMessage(event: Broadcasts.CommandInterpreterMessageEvent) {
@@ -138,8 +131,8 @@ class BroadcastHandler(
 
         thread?.let { t ->
             event.currentFrame?.let { frame ->
-                val llFrame = newLLFrame(frame)
-                handler.handleInterrupted(org.cangnova.cangjie.protodebugger.breakpoint.StopPlace(t, llFrame))
+                val LLDBFrame = newLLDBFrame(frame)
+                debuggerHandler.handleInterrupted(org.cangnova.cangjie.protodebugger.breakpoint.StopPlace(t, LLDBFrame))
             }
         }
     }
@@ -148,7 +141,7 @@ class BroadcastHandler(
         stateManager.updateState(TargetState.RUNNING)
         stateManager.updateStoppedThread(null)
         LOG.debug("Process running")
-        handler.handleRunning()
+        debuggerHandler.handleRunning()
     }
 
     private fun handleProcessExited(event: Broadcasts.ProcessExitedEvent) {
@@ -166,7 +159,7 @@ class BroadcastHandler(
                 exitStatus = ExitStatus.fromSignal(signal)
             }
         }
-        handler.handleTargetTerminated(exitStatus)
+        debuggerHandler.handleTargetTerminated(exitStatus)
     }
 
     private fun handleProcessOutput(event: Broadcasts.ProcessOutputEvent) {
@@ -175,7 +168,7 @@ class BroadcastHandler(
             proto.Model.OutputType.OUTPUT_TYPE_STDERR -> com.intellij.execution.process.ProcessOutputTypes.STDERR
             else -> com.intellij.execution.process.ProcessOutputTypes.SYSTEM
         }
-        handler.handleTargetOutput(event.text, outputKey)
+        debuggerHandler.handleTargetOutput(event.text, outputKey)
     }
 
     // 断点事件处理
@@ -185,14 +178,14 @@ class BroadcastHandler(
         val bRes = makeBreakpoint(event.breakpoint, event.locationsList)
 
 
-        handler.handleBreakpointAdded(bRes.breakpoint)
-        handler.handleBreakpointLocationsUpdated(bRes.breakpoint.id, bRes.breakpointLocations)
+        debuggerHandler.handleBreakpointAdded(bRes.breakpoint)
+        debuggerHandler.handleBreakpointLocationsUpdated(bRes.breakpoint.id, bRes.breakpointLocations)
 
     }
 
     private fun handleBreakpointRemoved(event: Broadcasts.BreakpointRemovedEvent) {
         LOG.debug("Breakpoint removed: id=${event.breakpointId}")
-        handler.handleBreakpointRemoved(event.breakpointId)
+        debuggerHandler.handleBreakpointRemoved(event.breakpointId)
     }
 
     private fun handleBreakpointChanged(event: Broadcasts.BreakpointChangedEvent) {
@@ -203,26 +196,26 @@ class BroadcastHandler(
 
 
 
-        handler.handleBreakpointUpdated(bRes.breakpoint)
-        handler.handleBreakpointLocationsReplaced(bRes.breakpoint.id, bRes.breakpointLocations)
+        debuggerHandler.handleBreakpointUpdated(bRes.breakpoint)
+        debuggerHandler.handleBreakpointLocationsReplaced(bRes.breakpoint.id, bRes.breakpointLocations)
 
     }
 
     private fun handleBreakpointLocationsAdded(event: Broadcasts.BreakpointLocationsAddedEvent) {
         LOG.debug("Breakpoint locations added: id=${event.breakpointId}, count=${event.locationsList.size}")
         val locations = event.locationsList.map { convertBreakpointLocation(it) }
-        handler.handleBreakpointLocationsUpdated(event.breakpointId, locations)
+        debuggerHandler.handleBreakpointLocationsUpdated(event.breakpointId, locations)
     }
 
     private fun handleBreakpointLocationsRemoved(event: Broadcasts.BreakpointLocationsRemovedEvent) {
         LOG.debug("Breakpoint locations removed: id=${event.breakpointId}, count=${event.locationIdsList.size}")
-        handler.handleBreakpointLocationsRemoved(event.breakpointId, event.locationIdsList.map { it.toString() })
+        debuggerHandler.handleBreakpointLocationsRemoved(event.breakpointId, event.locationIdsList.map { it.toString() })
     }
 
     private fun handleBreakpointLocationsResolved(event: Broadcasts.BreakpointLocationsResolvedEvent) {
         LOG.debug("Breakpoint locations resolved: id=${event.breakpointId}, count=${event.locationsList.size}")
         val locations = event.locationsList.map { convertBreakpointLocation(it) }
-        handler.handleBreakpointLocationsReplaced(event.breakpointId, locations)
+        debuggerHandler.handleBreakpointLocationsReplaced(event.breakpointId, locations)
     }
 
     // 帧选择事件处理
@@ -230,7 +223,7 @@ class BroadcastHandler(
         LOG.debug("Selected frame changed: thread=${event.thread?.index}, frame=${event.frame?.index}")
         event.thread?.let { thread ->
             event.frame?.let { frame ->
-                handler.handleSelectedFrameChanged(newLLThread(thread), newLLFrame(frame))
+                debuggerHandler.handleSelectedFrameChanged(newLLThread(thread), newLLDBFrame(frame))
             }
         }
     }
@@ -251,17 +244,17 @@ class BroadcastHandler(
     // 符号下载事件处理
     private fun handleSymbolsDownloadStarted(event: Broadcasts.SymbolsDownloadStartedEvent) {
         LOG.debug("Symbols download started: ${event.title}")
-        handler.handleSymbolsDownloadStarted(event.title, event.details)
+        debuggerHandler.handleSymbolsDownloadStarted(event.title, event.details)
     }
 
     private fun handleSymbolsDownloadProgress(event: Broadcasts.SymbolsDownloadProgressEvent) {
         LOG.debug("Symbols download progress: ${event.progressPercent}%")
-        handler.handleSymbolsDownloadProgress(event.progressPercent.toInt())
+        debuggerHandler.handleSymbolsDownloadProgress(event.progressPercent.toInt())
     }
 
     private fun handleSymbolsDownloadFinished(event: Broadcasts.SymbolsDownloadFinishedEvent) {
         LOG.debug("Symbols download finished")
-        handler.handleSymbolsDownloadFinished()
+        debuggerHandler.handleSymbolsDownloadFinished()
     }
 
     suspend fun waitForInitialization() {

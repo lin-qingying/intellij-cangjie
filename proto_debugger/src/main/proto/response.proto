@@ -1,0 +1,318 @@
+syntax = "proto3";
+
+
+package lldbprotobuf;
+import "model.proto";
+import "event.proto";
+
+//  变量响应
+message VariablesResponse {
+  Status status = 2;
+  repeated Variable variables = 1;
+}
+
+/**
+ * 获取寄存器组列表响应
+ */
+message RegisterGroupsResponse {
+  Status status = 1;
+  repeated RegisterGroup groups = 2;
+}
+/**
+ * 获取寄存器响应
+ */
+message RegistersResponse {
+  Status status = 1;
+  repeated Register registers = 2;
+}
+// 获取变量值响应
+message GetValueResponse {
+  Status status = 1;
+
+  // 变量值
+  Value value = 2;
+
+  // 关联的变量信息（可选，用于提供完整的变量上下文）
+  Variable variable = 3;
+}
+
+// 设置变量值响应
+message SetVariableValueResponse {
+  Status status = 1;
+
+  // 设置后的变量值（可选，用于确认设置结果）
+  Value value = 2;
+
+  // 关联的变量信息（可选，用于提供完整的变量上下文）
+  Variable variable = 3;
+}
+
+// 获取变量子元素响应
+message VariablesChildrenResponse {
+  Status status = 1;
+
+  // 子变量列表
+  repeated Variable children = 2;
+
+  // 总子元素数量（用于分页）
+  uint32 total_children = 3;
+
+  // 起始偏移量
+  uint32 offset = 4;
+
+  // 是否还有更多子元素
+  bool has_more = 5;
+}
+
+message EvaluateResponse {
+  Status status = 2;
+  // 求值结果作为 Variable 返回（包含 id，便于后续展开）
+  Variable result = 1;
+}
+
+
+
+
+// 创建 Target 响应
+message CreateTargetResponse {
+
+  Status status = 2;
+  // 返回创建的 target Id（协议层 Id，后端应映射到 SBTarget 实例）
+  Id target = 1;
+}
+// 启动响应
+message LaunchResponse {
+  Status status = 2;
+  // 创建的 process Id（映射到 LLDB 的 SBProcess）
+  Id process = 1;
+}
+
+
+// 附加响应
+message AttachResponse {
+  Status status = 2;
+  Id process = 1;
+}
+
+// 响应线程列表
+message ThreadsResponse {
+  Status status = 2;
+  repeated Thread threads = 1;
+}
+
+
+
+message LineBreakpointResult {
+
+  // 创建的断点
+  Breakpoint breakpoint = 1;
+
+  // 断点所对应的实际内存位置列表（SBBreakpointLocation）
+  repeated BreakpointLocation locations = 2;
+}
+
+message AddressBreakpointResult {
+
+  Breakpoint breakpoint = 1;
+  repeated BreakpointLocation locations = 2;
+}
+
+message FunctionBreakpointResult {
+
+  Breakpoint breakpoint = 1;
+  repeated BreakpointLocation locations = 2;
+}
+message SymbolBreakpointResult{
+  // 新创建的断点
+  Breakpoint breakpoint = 2;
+
+  // 断点对应的内存位置列表
+  repeated BreakpointLocation locations = 3;
+}
+message WatchBreakpointResult {
+  Id break_point_id = 1;
+}
+
+// 返回栈帧
+message FramesResponse {
+  Status status = 2;
+  repeated Frame  frames = 1;
+  // 该线程的总帧数量（可能大于 frames.length，当需要分页时有用）
+  uint32 total_frames = 3;
+
+
+}
+// 添加断点响应，使用 oneof 返回具体结果类型
+message AddBreakpointResponse {
+  Status status = 6;
+
+  Id break_point_id = 1;
+  oneof breakpoint {
+    LineBreakpointResult line_breakpoint = 2;
+    AddressBreakpointResult address_breakpoint = 3;
+    FunctionBreakpointResult function_breakpoint = 4;
+    WatchBreakpointResult watchpoint = 5;
+    SymbolBreakpointResult symbol_breakpoint = 7;
+
+  }
+}
+// 删除断点请求 / 响应
+
+message RemoveBreakpointResponse {
+  Status status = 2;
+
+}
+
+
+
+
+message ReadMemoryResponse {
+  Status status = 2;
+  // 读取到的字节数据
+  bytes data = 1;
+  // 失败时的人类可读错误描述
+  string error = 3;
+}
+
+// 写入内存响应
+message WriteMemoryResponse {
+  Status status = 2;
+  // 成功写入的字节数
+  uint32 bytes_written = 1;
+  // 失败时的人类可读错误描述
+  string error = 3;
+}
+
+/**
+ * 反汇编响应
+ *
+ * 返回指定地址范围的汇编指令列表。
+ */
+message DisassembleResponse {
+  // 操作状态
+  Status status = 1;
+
+  // 反汇编结果列表
+  repeated DisassembleInstruction instructions = 2;
+
+  // 实际反汇编的字节数
+  uint32 bytes_disassembled = 3;
+
+  // 对齐验证结果（仅 until_pivot 模式使用）
+  // true 表示反汇编正确对齐到 pivot 地址
+  bool alignment_verified = 4;
+
+  // 如果对齐失败，实际到达的地址
+  uint64 actual_end_address = 5;
+}
+
+// 获取函数信息响应
+message GetFunctionInfoResponse {
+  // 操作状态
+  Status status = 1;
+
+  // 函数信息（如果找到）
+  FunctionInfo function = 2;
+
+  // 按名称查询时可能返回多个匹配结果
+  repeated FunctionInfo functions = 3;
+}
+
+
+/* =========================================================================
+ * 执行控制（Continue / Step / Pause 等）
+ * ========================================================================= */
+
+message ContinueResponse {Status status = 2;}
+
+
+message TerminateResponse{Status status = 2;}
+message DetachResponse{Status status = 2;}
+message ExitResponse{Status status = 2;}
+
+/**
+ * 单步进入响应
+ *
+ * 返回单步进入命令的结果。
+ */
+message StepIntoResponse {
+  // 操作状态
+  Status status = 1;
+}
+
+/**
+ * 单步跳过响应
+ *
+ * 返回单步跳过命令的结果。
+ */
+message StepOverResponse {
+  // 操作状态
+  Status status = 1;
+}
+/**
+ * 暂停执行响应
+ *
+ * 返回暂停命令的结果。
+ * 成功后，进程会尽快暂停，后续会收到 ProcessInterruptedEvent。
+ */
+message SuspendResponse {
+  // 操作状态
+  Status status = 1;
+}
+
+/**
+ * 单步跳出响应
+ *
+ * 返回单步跳出命令的结果。
+ */
+message StepOutResponse {
+  // 操作状态
+  Status status = 1;
+}
+/* =========================================================================
+ * 顶层响应（调试后端 → 客户端）
+ * =========================================================================
+ */
+message Response {
+  // 对应请求的哈希值，用于匹配请求和响应
+  // 调试器必须返回与请求相同的 hash 值
+  HashId hash = 1;
+
+  oneof response {
+    CreateTargetResponse create_target = 3;
+    LaunchResponse launch = 4;
+    AttachResponse attach = 5;
+
+    ThreadsResponse threads = 6;
+    FramesResponse frames = 7;
+
+    AddBreakpointResponse add_breakpoint = 8;
+    RemoveBreakpointResponse remove_breakpoint = 9;
+
+    VariablesResponse variables = 12;
+    RegistersResponse registers = 30;
+    RegisterGroupsResponse register_groups = 31;
+    GetValueResponse get_value = 27;
+    SetVariableValueResponse set_variable_value = 29;
+    VariablesChildrenResponse get_variables_children = 28;
+    EvaluateResponse evaluate = 13;
+
+    ReadMemoryResponse read_memory = 15;
+    WriteMemoryResponse write_memory = 16;
+    DisassembleResponse disassemble = 17;
+
+    Event event = 18;
+
+    TerminateResponse kill = 19;
+    DetachResponse detach = 20;
+    ExitResponse exit = 21;
+
+    StepIntoResponse step_into = 22;
+    StepOverResponse step_over = 23;
+    StepOutResponse step_out = 24;
+    ContinueResponse continue = 25;
+    SuspendResponse suspend = 26;
+
+    GetFunctionInfoResponse get_function_info = 32;
+  }
+}

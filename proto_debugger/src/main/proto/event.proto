@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package lldbprotobuf;
+import "model.proto";
+
+
+
+/* =========================================================================
+ * 调试事件（Event）—— 服务端异步推送到客户端
+ * ========================================================================= */
+
+
+
+message Initialized {
+  // 可选说明文本，例如 "Debugger initialized"
+  uint64 capabilities = 3;
+}
+/**
+ * 进程中断事件
+ *
+ * 当被调试进程因断点、单步、信号等原因暂停执行时发送。
+ * 这是最重要的事件之一，前端需要据此更新所有调试视图。
+ */
+message ProcessStopped  {
+  // 停止的线程（触发暂停的线程）
+  Thread stopped_thread = 1;
+  // 当前栈帧（被中断线程的顶层栈帧）
+  Frame current_frame = 2;
+}
+
+/**
+ * 进程运行事件
+ *
+ * 当进程从暂停状态恢复执行时发送（如执行 continue、step 命令后）。
+ */
+message ProcessRunning  {
+  Id thread = 2;
+}
+
+message ProcessExited {
+  int32 exit_code = 2;
+
+  // 退出描述（可选，如"被信号终止"）
+  optional string exit_description = 3;}
+
+
+
+
+message  ProcessOutput {
+
+  string text = 1;
+  OutputType output_type = 2;
+}
+
+/**
+ * 模块事件
+ *
+ * 当模块被加载或卸载时发送
+ */
+message ModuleEvent {
+
+  EventType event_type = 1;
+  repeated Module modules = 2;
+}
+
+/**
+ * 断点变更事件
+ *
+ * 当断点状态发生变化时发送
+ */
+message BreakpointChangedEvent {
+  // 断点信息
+  Breakpoint breakpoint = 1;
+
+  // 变更类型
+  BreakpointEventType change_type = 2;
+
+  // 变更描述（可选）
+  optional string description = 3;
+}
+
+/**
+ * 线程状态变更事件
+ *
+ * 当线程状态发生变化时发送
+ */
+message ThreadStateChangedEvent {
+  // 线程信息
+  Thread thread = 1;
+
+  // 状态变更类型
+  ThreadStateChangeType change_type = 2;
+
+  // 变更描述（可选）
+  optional string description = 3;
+}
+
+/**
+ * 符号加载事件
+ *
+ * 当调试符号被加载时发送
+ */
+message SymbolsLoadedEvent {
+  // 模块信息
+  Module module = 1;
+
+  // 加载的符号数量
+  uint32 symbol_count = 2;
+
+  // 符号文件路径（可选）
+  optional string symbol_file_path = 3;
+}
+
+
+
+/* =========================================================================
+ * 服务端事件（调试后端异步 → 客户端）
+ * =========================================================================
+ */
+message Event {
+  // 每种事件都是单独的结构
+  oneof body {
+    Initialized initialized = 1;
+
+    // 进程生命周期相关
+    ProcessStopped process_stopped = 2;
+    ProcessRunning  process_running = 3;
+    ProcessExited process_exited = 4;
+
+    // 控制台输出
+    ProcessOutput process_output = 7;
+
+    // 模块事件
+    ModuleEvent module_event = 8;
+
+    // 断点事件
+    BreakpointChangedEvent breakpoint_changed_event = 9;
+
+    // 线程状态事件
+    ThreadStateChangedEvent thread_state_changed_event = 10;
+
+    // 符号加载事件
+    SymbolsLoadedEvent symbols_loaded_event = 11;
+  }
+}
+

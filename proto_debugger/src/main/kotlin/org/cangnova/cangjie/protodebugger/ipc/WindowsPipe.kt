@@ -22,7 +22,7 @@ class WinPipe private constructor(
     private val namedPipe: com.pty4j.windows.winpty.NamedPipe
 
     init {
-        pipeName = "\\\\.\\pipe\\cangjie-${Kernel32.INSTANCE.GetCurrentProcessId()}-${processCounter.getAndIncrement()}-$nameSuffix"
+        pipeName = "\\\\.\\pipe\\cangjie-debugger-${Kernel32.INSTANCE.GetCurrentProcessId()}-${processCounter.getAndIncrement()}-$nameSuffix"
         val openMode = direction.flag or 0x40000000
 
         handle = Kernel32.INSTANCE.CreateNamedPipe(
@@ -61,7 +61,7 @@ class WinPipe private constructor(
      * 返回true表示成功连接，false表示关闭中断。
      */
     @Throws(IOException::class)
-    fun waitForConnection(): Boolean {
+    override fun waitForConnection(): Boolean {
         val shutdownEvent = Kernel32.INSTANCE.CreateEvent(null, true, false, null)
             ?: throw IOException("Failed to create shutdown event")
 
@@ -85,6 +85,7 @@ class WinPipe private constructor(
                 waitHandles.size,
                 waitHandles,
                 false,
+
                 WinBase.INFINITE
             )
 
