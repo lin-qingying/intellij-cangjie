@@ -22,47 +22,5 @@
  *
  */
 
+package org.cangnova.cangjie.dapDebugger
 
-
-dependencies {
-    intellijPlatform {
-        plugins("com.redhat.devtools.lsp4ij:0.18.0")
-    }
-    implementation(project(":"))
-    implementation(project(":psi"))
-
-    implementation(project(":telemetry"))
-    implementation(project(":toolchain"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-
-    implementation(project(":cangjie-project"))
-
-
-}
-project(":") {
-    dependencies {
-
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-        }
-    }
-}
-project(":cangjie-project") {
-    dependencies {
-
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-        }
-    }
-}
-
-
-project(":plugin") {
-    dependencies {
-        implementation(project(":dap-debugger"))
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-        }
-    }
-}

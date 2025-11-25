@@ -51,18 +51,17 @@
     <xi:include href="/META-INF/cangjie-all.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
-<!--    <xi:include href="/META-INF/cangjie-lsp4ij.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+    <!--    <xi:include href="/META-INF/cangjie-lsp4ij.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
     <content>
 
-        <!--                <module name="org.cangnova.cangjie.dapDebugger"/>-->
-<!--        <module name="org.cangnova.cangjie.debugger"/>-->
-        <module name="org.cangnova.cangjie.protodebugger"/>
+        <module name="org.cangnova.cangjie.dapDebugger"/>
+
+        <!--        <module name="org.cangnova.cangjie.protodebugger"/>-->
 
         <module name="org.cangnova.cangjie.lsp4ij"/>
         <module name="org.cangnova.cangjie.cjpm"/>
-<!--        <module name="org.cangnova.cangjie.lsp4intellij"/>-->
-
+        <!--        <module name="org.cangnova.cangjie.lsp4intellij"/>-->
 
 
     </content>

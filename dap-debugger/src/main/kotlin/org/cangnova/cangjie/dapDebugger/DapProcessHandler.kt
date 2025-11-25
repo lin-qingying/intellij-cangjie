@@ -22,47 +22,25 @@
  *
  */
 
+package org.cangnova.cangjie.dapDebugger
+
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.process.OSProcessHandler
+import com.intellij.util.io.BaseOutputReader
+import com.pty4j.PtyProcess
 
 
-dependencies {
-    intellijPlatform {
-        plugins("com.redhat.devtools.lsp4ij:0.18.0")
+class DapProcessHandler : OSProcessHandler {
+    override fun readerOptions(): BaseOutputReader.Options {
+        return BaseOutputReader.Options.forMostlySilentProcess()
     }
-    implementation(project(":"))
-    implementation(project(":psi"))
-
-    implementation(project(":telemetry"))
-    implementation(project(":toolchain"))
-    implementation(project(":messages"))
-    implementation(project(":util"))
-
-    implementation(project(":cangjie-project"))
 
 
-}
-project(":") {
-    dependencies {
+    constructor(generalCommandLine: GeneralCommandLine) : super(generalCommandLine)
 
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-        }
-    }
-}
-project(":cangjie-project") {
-    dependencies {
-
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-        }
-    }
-}
+    constructor(process: Process, commandLine: String) : super(process, commandLine, Charsets.UTF_8)
 
 
-project(":plugin") {
-    dependencies {
-        implementation(project(":dap-debugger"))
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-        }
-    }
+
+    val press :PtyProcess get() = process as PtyProcess
 }

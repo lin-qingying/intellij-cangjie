@@ -28,12 +28,12 @@
 
     <extensions defaultExtensionNs="com.intellij">
                 <programRunner id="CjDAPDebugRunner"
-                               implementation="org.cangnova.cangjie.dapDebugger.runconfig.CjDAPDebugRunner"/>
+                               implementation="org.cangnova.cangjie.dapDebugger.CjDAPDebugRunner"/>
 
 
 
                 <xdebugger.breakpointType
-                        implementation="org.cangnova.cangjie.dapDebugger.runconfig.breakpoint.CangJieLineBreakpointType"
+                        implementation="org.cangnova.cangjie.dapDebugger.breakpoint.CangJieLineBreakpointType"
                         order="first"/>
 
 
@@ -41,12 +41,12 @@
 
     </extensions>
 
-<!--    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">-->
+    <extensions defaultExtensionNs="com.redhat.devtools.lsp4ij">
 
-<!--        <debugAdapterServer-->
-<!--                id="CangJie"-->
-<!--                name="CangJie"-->
-<!--                factoryClass="org.cangnova.cangjie.dapDebugger.CangJieDebugAdapterDescriptorFactory" />-->
-<!--    </extensions>-->
+        <debugAdapterServer
+                id="CangJie"
+                name="CangJie"
+                factoryClass="org.cangnova.cangjie.dapDebugger.CangJieDebugAdapterDescriptorFactory"/>
+    </extensions>
 
 </idea-plugin>

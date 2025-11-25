@@ -42352,3 +42352,1479 @@ get_value {
   }
 }
 
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:39
+event {
+  initialized {
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-26 01:40:39
+hash: 1
+create_target {
+  file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:40
+hash {
+  hash: 1
+}
+create_target {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-26 01:40:40
+hash: 2
+launch {
+  launch_info {
+    executable_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+    env {
+      name: "CommonProgramFiles"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "PNPM_HOME"
+      value: "C:\\Users\\lin17\\AppData\\Local\\pnpm"
+    }
+    env {
+      name: "=::"
+      value: "::\\"
+    }
+    env {
+      name: "ProgramData"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "COMPUTERNAME"
+      value: "LIN"
+    }
+    env {
+      name: "SystemDrive"
+      value: "C:"
+    }
+    env {
+      name: "USERDOMAIN"
+      value: "LIN"
+    }
+    env {
+      name: "OneDriveConsumer"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "OneDrive"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "CommonProgramFiles(x86)"
+      value: "C:\\Program Files (x86)\\Common Files"
+    }
+    env {
+      name: "TEMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "TMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "CANGJIE_HOME"
+      value: "C:\\Users\\lin17\\sdk\\cangjie-sdk-windows-x64-1.0.1\\cangjie"
+    }
+    env {
+      name: "ProgramFiles"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "USERDOMAIN_ROAMINGPROFILE"
+      value: "LIN"
+    }
+    env {
+      name: "windir"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "JAVA_HOME"
+      value: "C:\\Users\\lin17\\.jdks\\corretto-21.0.8"
+    }
+    env {
+      name: "PROCESSOR_LEVEL"
+      value: "25"
+    }
+    env {
+      name: "PROCESS_OPTIONS"
+      value: "-javaagent:C:\\Users\\lin17\\AppData\\Local\\Temp\\captureAgent187923jars\\debugger-agent.jar=file:///C:/Users/lin17/AppData/Local/Temp/capture10643943962536435809.props, -Dkotlinx.coroutines.debug.enable.creation.stack.trace=false, -Ddebugger.agent.enable.coroutines=true, -Dkotlinx.coroutines.debug.enable.flows.stack.trace=true, -Dkotlinx.coroutines.debug.enable.mutable.state.flows.stack.trace=true"
+    }
+    env {
+      name: "ComSpec"
+      value: "C:\\WINDOWS\\system32\\cmd.exe"
+    }
+    env {
+      name: "NUMBER_OF_PROCESSORS"
+      value: "16"
+    }
+    env {
+      name: "PROCESSOR_ARCHITECTURE"
+      value: "AMD64"
+    }
+    env {
+      name: "OS"
+      value: "Windows_NT"
+    }
+    env {
+      name: "EFC_14288_1592913036"
+      value: "1"
+    }
+    env {
+      name: "DEBUGGER_ID"
+      value: "Gradle JVM"
+    }
+    env {
+      name: "ProgramFiles(x86)"
+      value: "C:\\Program Files (x86)"
+    }
+    env {
+      name: "PSModulePath"
+      value: "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules"
+    }
+    env {
+      name: "PATHEXT"
+      value: ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC"
+    }
+    env {
+      name: "PROCESSOR_IDENTIFIER"
+      value: "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD"
+    }
+    env {
+      name: "APPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Roaming"
+    }
+    env {
+      name: "ACSetupSvcPort"
+      value: "23210"
+    }
+    env {
+      name: "LOCALAPPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Local"
+    }
+    env {
+      name: "RlsSvcPort"
+      value: "22112"
+    }
+    env {
+      name: "DEBUGGER_ENABLED"
+      value: "true"
+    }
+    env {
+      name: "HOMEPATH"
+      value: "\\Users\\lin17"
+    }
+    env {
+      name: "SystemRoot"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "LOGONSERVER"
+      value: "\\\\LIN"
+    }
+    env {
+      name: "SESSIONNAME"
+      value: "Console"
+    }
+    env {
+      name: "HOMEDRIVE"
+      value: "C:"
+    }
+    env {
+      name: "DriverData"
+      value: "C:\\Windows\\System32\\Drivers\\DriverData"
+    }
+    env {
+      name: "PUBLIC"
+      value: "C:\\Users\\Public"
+    }
+    env {
+      name: "Path"
+      value: "C:\\Users\\lin17\\sdk\\cangjie-sdk-windows-x64-1.0.1\\cangjie\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\sdk\\cangjie-sdk-windows-x64-1.0.1\\cangjie\\bin;C:\\Users\\lin17\\sdk\\cangjie-sdk-windows-x64-1.0.1\\cangjie\\tools\\bin;C:\\Users\\lin17\\sdk\\cangjie-sdk-windows-x64-1.0.1\\cangjie\\tools\\lib;C:\\Users\\lin17\\.cjpm\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\nodejs\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Tencent\\\345\276\256\344\277\241web\345\274\200\345\217\221\350\200\205\345\267\245\345\205\267\\dll;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\cursor\\resources\\app\\bin;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Users\\lin17\\.cargo\\bin;C:\\Users\\lin17\\.local\\bin;C:\\Users\\lin17\\AppData\\Local\\pnpm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\lin17\\AppData\\Local\\JetBrains\\Toolbox\\scripts;C:\\Users\\lin17\\AppData\\Roaming\\npm;C:\\Users\\lin17\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\lin17\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\lin17\\.bun\\bin;C:\\Users\\lin17\\sdk\\cangjie-sdk-windows-x64-1.0.1\\cangjie\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Google.Protobuf_Microsoft.Winget.Source_8wekyb3d8bbwe\\bin;"
+    }
+    env {
+      name: "PROCESSOR_REVISION"
+      value: "4401"
+    }
+    env {
+      name: "ALLUSERSPROFILE"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "USERPROFILE"
+      value: "C:\\Users\\lin17"
+    }
+    env {
+      name: "USERNAME"
+      value: "lin17"
+    }
+    env {
+      name: "ProgramW6432"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "CommonProgramW6432"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "PROCESS_PARAMETERS"
+    }
+    working_directory: "C:\\Users\\lin17\\IdeaProjects\\untitled36"
+    stdin_path: "\\\\.\\pipe\\cangjie-debugger-12740-0-stdin"
+    stdout_path: "\\\\.\\pipe\\cangjie-debugger-12740-1-stdout"
+    stderr_path: "\\\\.\\pipe\\cangjie-debugger-12740-2-stderr"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:40
+hash {
+  hash: 2
+}
+launch {
+  process {
+    id: 28072
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:40
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140729835388928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140729835388928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140729825034240
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140729825034240
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140729833684992
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140729833684992
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140729845809152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140729845809152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+event {
+  process_stopped {
+    stopped_thread {
+      thread_id {
+        id: 32572
+      }
+      stop_info {
+        reason: STOP_REASON_EXCEPTION
+        description: "Exception 0xc0000005 encountered at address 0x7ffdbfa2c79e: Access violation reading location 0xffffffffffffffff\000"
+        exception_stop_info {
+          exception_code: -1
+          exception_name: "Access Violation"
+          exception_address: 18446744073709551615
+          exception_type: "access_violation"
+          message: "Exception 0xc0000005 encountered at address 0x7ffdbfa2c79e: Access violation reading location 0xffffffffffffffff\000"
+        }
+      }
+      index: 8
+    }
+    current_frame {
+      id {
+      }
+      function_name: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+      module: "libcangjie-runtime.dll"
+      location {
+      }
+      program_counter: 140727818569630
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-26 01:40:41
+hash: 3
+get_function_info {
+  address: 140727818569630
+}
+
+
+Direction: 发送消息
+Time: 2025-11-26 01:40:41
+hash: 4
+frames {
+  thread_id {
+    id: 32572
+  }
+  count: 100
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+
+Direction: 发送消息
+Time: 2025-11-26 01:40:41
+hash {
+  hash: 3
+}
+get_function_info {
+  status {
+    success: true
+  }
+  function {
+    name: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+    mangled_name: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+    start_address: 140727818569424
+    end_address: 140727818569808
+    size: 384
+    location {
+      hash {
+      }
+    }
+    module_name: "libcangjie-runtime.dll"
+    is_external: true
+    language: "unknown"
+  }
+  functions {
+    name: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+    mangled_name: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+    start_address: 140727818569424
+    end_address: 140727818569808
+    size: 384
+    location {
+      hash {
+      }
+    }
+    module_name: "libcangjie-runtime.dll"
+    is_external: true
+    language: "unknown"
+  }
+}
+
+hash: 5
+variables {
+  thread_id {
+    id: 32572
+  }
+  include_arguments: true
+  include_locals: true
+  include_statics: true
+  in_scope_only: true
+  include_runtime_support_values: true
+  include_recognized_arguments: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+hash {
+  hash: 4
+}
+frames {
+  frames {
+    id {
+    }
+    function_name: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140727818569630
+  }
+  frames {
+    id {
+      id: 1
+    }
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140727818518528
+    index: 1
+  }
+  frames {
+    id {
+      id: 2
+    }
+    function_name: "LoadLibraryExW"
+    module: "kernel32.dll"
+    location {
+    }
+    program_counter: 140729880790560
+    index: 2
+  }
+  frames {
+    id {
+      id: 3
+    }
+    function_name: "CJ_GLogLevel"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140727819768592
+    index: 3
+  }
+  frames {
+    id {
+      id: 4
+    }
+    function_name: "_ZN12MapleRuntime8TimeUtil12GetTimestampEv"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140727818974588
+    index: 4
+  }
+  frames {
+    id {
+      id: 5
+    }
+    function_name: "CJ_SemaGetValue"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140727818649345
+    index: 5
+  }
+  frames {
+    id {
+      id: 6
+    }
+    function_name: "CJ_SemaGetValue"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140727818649795
+    index: 6
+  }
+  frames {
+    id {
+      id: 7
+    }
+    function_name: "_beginthreadex"
+    module: "msvcrt.dll"
+    location {
+    }
+    program_counter: 140729880080557
+    index: 7
+  }
+  frames {
+    id {
+      id: 8
+    }
+    function_name: "_endthreadex"
+    module: "msvcrt.dll"
+    location {
+    }
+    program_counter: 140729880080764
+    index: 8
+  }
+  frames {
+    id {
+      id: 9
+    }
+    function_name: "BaseThreadInitThunk"
+    module: "kernel32.dll"
+    location {
+    }
+    program_counter: 140729880733911
+    index: 9
+  }
+  frames {
+    id {
+      id: 10
+    }
+    function_name: "RtlUserThreadStart"
+    module: "ntdll.dll"
+    location {
+    }
+    program_counter: 140729894618428
+    index: 10
+  }
+  status {
+    success: true
+  }
+  total_frames: 11
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+hash {
+  hash: 5
+}
+variables {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-26 01:40:41
+hash: 6
+disassemble {
+  range {
+    start_address: 140727818569630
+    end_address: 140727818569807
+  }
+  options {
+    show_machine_code: true
+    symbolize_addresses: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+hash {
+  hash: 6
+}
+disassemble {
+  status {
+    success: true
+  }
+  instructions {
+    address: 140727818569630
+    machine_code: "H\213\2018\001\000\000"
+    instruction: "movq 0x138(%rcx), %rax"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569637
+    machine_code: "\203x(\002"
+    instruction: "cmpl $0x2, 0x28(%rax)"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569641
+    machine_code: "t\'"
+    instruction: "je 0x7ffdbfa2c7d2"
+    comment: "<+258>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569643
+    machine_code: "H\215\005ct\023\000"
+    instruction: "leaq 0x137463(%rip), %rax"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569650
+    machine_code: "H\211D$ "
+    instruction: "movq %rax, 0x20(%rsp)"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569655
+    machine_code: "L\215\005\262o\023\000"
+    instruction: "leaq 0x136fb2(%rip), %r8"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569662
+    machine_code: "\271\006\000\000\000"
+    instruction: "movl $0x6, %ecx"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569667
+    machine_code: "\272\004\005\004\020"
+    instruction: "movl $0x10040504, %edx"
+    comment: "imm = 0x10040504 "
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569672
+    machine_code: "fA\271\207\b"
+    instruction: "movw $0x887, %r9w"
+    comment: "imm = 0x887 "
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569677
+    machine_code: "\350\336\030\000\000"
+    instruction: "callq 0x7ffdbfa2e0b0"
+    comment: "CJ_LogWrite"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569682
+    machine_code: "H\213\2060\001\000\000"
+    instruction: "movq 0x130(%rsi), %rax"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569689
+    machine_code: "H\205\300"
+    instruction: "testq %rax, %rax"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569692
+    machine_code: "t\020"
+    instruction: "je 0x7ffdbfa2c7ee"
+    comment: "<+286>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569694
+    machine_code: "\200\270X\001\000\000\000"
+    instruction: "cmpb $0x0, 0x158(%rax)"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569701
+    machine_code: "t\a"
+    instruction: "je 0x7ffdbfa2c7ee"
+    comment: "<+286>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569703
+    machine_code: "\306\200Y\001\000\000\001"
+    instruction: "movb $0x1, 0x159(%rax)"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569710
+    machine_code: "H\203\304("
+    instruction: "addq $0x28, %rsp"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569714
+    machine_code: "^"
+    instruction: "popq %rsi"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569715
+    machine_code: "]"
+    instruction: "popq %rbp"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569716
+    machine_code: "\303"
+    instruction: "retq"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569717
+    machine_code: "f.\017\037\204\000\000\000\000\000"
+    instruction: "nopw %cs:(%rax,%rax)"
+    size: 10
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569727
+    machine_code: "\220"
+    instruction: "nop"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569728
+    machine_code: "U"
+    instruction: "pushq %rbp"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569729
+    machine_code: "V"
+    instruction: "pushq %rsi"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569730
+    machine_code: "H\203\354X"
+    instruction: "subq $0x58, %rsp"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569734
+    machine_code: "H\215l$P"
+    instruction: "leaq 0x50(%rsp), %rbp"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569739
+    machine_code: "H\2135\036\227\023\000"
+    instruction: "movq 0x13971e(%rip), %rsi"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569746
+    machine_code: "H\213\006"
+    instruction: "movq (%rsi), %rax"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569749
+    machine_code: "H1\350"
+    instruction: "xorq %rbp, %rax"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569752
+    machine_code: "H\211E\000"
+    instruction: "movq %rax, (%rbp)"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569756
+    machine_code: "H\215M\320"
+    instruction: "leaq -0x30(%rbp), %rcx"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569760
+    machine_code: "\377\025\022\237\027\000"
+    instruction: "callq *0x179f12(%rip)"
+    size: 6
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569766
+    machine_code: "\213E\324"
+    instruction: "movl -0x2c(%rbp), %eax"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569769
+    machine_code: "H\213\r\330\213\023\000"
+    instruction: "movq 0x138bd8(%rip), %rcx"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569776
+    machine_code: "H\211\001"
+    instruction: "movq %rax, (%rcx)"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569779
+    machine_code: "H\213E\000"
+    instruction: "movq (%rbp), %rax"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569783
+    machine_code: "H1\350"
+    instruction: "xorq %rbp, %rax"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569786
+    machine_code: "H\213\016"
+    instruction: "movq (%rsi), %rcx"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569789
+    machine_code: "H9\301"
+    instruction: "cmpq %rax, %rcx"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569792
+    machine_code: "u\a"
+    instruction: "jne 0x7ffdbfa2c849"
+    comment: "<+377>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569794
+    machine_code: "H\203\304X"
+    instruction: "addq $0x58, %rsp"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569798
+    machine_code: "^"
+    instruction: "popq %rsi"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569799
+    machine_code: "]"
+    instruction: "popq %rbp"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569800
+    machine_code: "\303"
+    instruction: "retq"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569801
+    machine_code: "\350rV\000\000"
+    instruction: "callq 0x7ffdbfa31ec0"
+    comment: "CJ_SemaGetValue + 736"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569806
+    machine_code: "\314"
+    instruction: "int3"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  bytes_disassembled: 177
+}
+
+
+Direction: 发送消息
+Time: 2025-11-26 01:40:41
+hash: 7
+disassemble {
+  options {
+    show_machine_code: true
+    symbolize_addresses: true
+  }
+  until_pivot {
+    start_address: 140727818569424
+    pivot_address: 140727818569630
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-26 01:40:41
+hash {
+  hash: 7
+}
+disassemble {
+  status {
+    success: true
+  }
+  instructions {
+    address: 140727818569424
+    machine_code: "U"
+    instruction: "pushq %rbp"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569425
+    machine_code: "AW"
+    instruction: "pushq %r15"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569427
+    machine_code: "AV"
+    instruction: "pushq %r14"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569429
+    machine_code: "V"
+    instruction: "pushq %rsi"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569430
+    machine_code: "W"
+    instruction: "pushq %rdi"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569431
+    machine_code: "S"
+    instruction: "pushq %rbx"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569432
+    machine_code: "H\203\354("
+    instruction: "subq $0x28, %rsp"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569436
+    machine_code: "H\215l$ "
+    instruction: "leaq 0x20(%rsp), %rbp"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569441
+    machine_code: "\211\327"
+    instruction: "movl %edx, %edi"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569443
+    machine_code: "I\211\316"
+    instruction: "movq %rcx, %r14"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569446
+    machine_code: "\377\025\3040\027\000"
+    instruction: "callq *0x1730c4(%rip)"
+    comment: "CJ_GGetTlsFunc"
+    size: 6
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569452
+    machine_code: "H\203x\030\000"
+    instruction: "cmpq $0x0, 0x18(%rax)"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569457
+    machine_code: "t]"
+    instruction: "je 0x7ffdbfa2c750"
+    comment: "<+128>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569459
+    machine_code: "\377\025\2670\027\000"
+    instruction: "callq *0x1730b7(%rip)"
+    comment: "CJ_GGetTlsFunc"
+    size: 6
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569465
+    machine_code: "1\366"
+    instruction: "xorl %esi, %esi"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569467
+    machine_code: "M\205\366"
+    instruction: "testq %r14, %r14"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569470
+    machine_code: "ty"
+    instruction: "je 0x7ffdbfa2c779"
+    comment: "<+169>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569472
+    machine_code: "H\203x\020\000"
+    instruction: "cmpq $0x0, 0x10(%rax)"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569477
+    machine_code: "tr"
+    instruction: "je 0x7ffdbfa2c779"
+    comment: "<+169>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569479
+    machine_code: "H\213\035\3620\027\000"
+    instruction: "movq 0x1730f2(%rip), %rbx"
+    comment: "CJ_GScheduleManager + 72"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569486
+    machine_code: "L\215=\3430\027\000"
+    instruction: "leaq 0x1730e3(%rip), %r15"
+    comment: "CJ_GScheduleManager + 64"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569493
+    machine_code: "L9\373"
+    instruction: "cmpq %r15, %rbx"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569496
+    machine_code: "t_"
+    instruction: "je 0x7ffdbfa2c779"
+    comment: "<+169>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569498
+    machine_code: "\205\377"
+    instruction: "testl %edi, %edi"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569500
+    machine_code: "t["
+    instruction: "je 0x7ffdbfa2c779"
+    comment: "<+169>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569502
+    machine_code: "1\366"
+    instruction: "xorl %esi, %esi"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569504
+    machine_code: "\213C\350"
+    instruction: "movl -0x18(%rbx), %eax"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569507
+    machine_code: "\205\300"
+    instruction: "testl %eax, %eax"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569509
+    machine_code: "t\032"
+    instruction: "je 0x7ffdbfa2c741"
+    comment: "<+113>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569511
+    machine_code: "H\215\213\300\376\377\377"
+    instruction: "leaq -0x140(%rbx), %rcx"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569518
+    machine_code: "\211\360"
+    instruction: "movl %esi, %eax"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569520
+    machine_code: "Hi\320`\001\000\000"
+    instruction: "imulq $0x160, %rax, %rdx"
+    comment: "imm = 0x160 "
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569527
+    machine_code: "L\001\362"
+    instruction: "addq %r14, %rdx"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569530
+    machine_code: "\350\261\201\377\377"
+    instruction: "callq 0x7ffdbfa248f0"
+    comment: "CJ_CJThreadGetInfo"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569535
+    machine_code: "\377\306"
+    instruction: "incl %esi"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569537
+    machine_code: "H\213[\b"
+    instruction: "movq 0x8(%rbx), %rbx"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569541
+    machine_code: "L9\373"
+    instruction: "cmpq %r15, %rbx"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569544
+    machine_code: "t/"
+    instruction: "je 0x7ffdbfa2c779"
+    comment: "<+169>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569546
+    machine_code: "9\376"
+    instruction: "cmpl %edi, %esi"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569548
+    machine_code: "u\322"
+    instruction: "jne 0x7ffdbfa2c720"
+    comment: "<+80>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569550
+    machine_code: "\353)"
+    instruction: "jmp 0x7ffdbfa2c779"
+    comment: "<+169>"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569552
+    machine_code: "H\215\005ds\023\000"
+    instruction: "leaq 0x137364(%rip), %rax"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569559
+    machine_code: "H\211D$ "
+    instruction: "movq %rax, 0x20(%rsp)"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569564
+    machine_code: "L\215\005\rp\023\000"
+    instruction: "leaq 0x13700d(%rip), %r8"
+    size: 7
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569571
+    machine_code: "\271\004\000\000\000"
+    instruction: "movl $0x4, %ecx"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569576
+    machine_code: "\272\005\000\004\020"
+    instruction: "movl $0x10040005, %edx"
+    comment: "imm = 0x10040005 "
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569581
+    machine_code: "fA\271m\b"
+    instruction: "movw $0x86d, %r9w"
+    comment: "imm = 0x86D "
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569586
+    machine_code: "\3509\031\000\000"
+    instruction: "callq 0x7ffdbfa2e0b0"
+    comment: "CJ_LogWrite"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569591
+    machine_code: "1\366"
+    instruction: "xorl %esi, %esi"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569593
+    machine_code: "\211\360"
+    instruction: "movl %esi, %eax"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569595
+    machine_code: "H\203\304("
+    instruction: "addq $0x28, %rsp"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569599
+    machine_code: "["
+    instruction: "popq %rbx"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569600
+    machine_code: "_"
+    instruction: "popq %rdi"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569601
+    machine_code: "^"
+    instruction: "popq %rsi"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569602
+    machine_code: "A^"
+    instruction: "popq %r14"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569604
+    machine_code: "A_"
+    instruction: "popq %r15"
+    size: 2
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569606
+    machine_code: "]"
+    instruction: "popq %rbp"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569607
+    machine_code: "\303"
+    instruction: "retq"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569608
+    machine_code: "\017\037\204\000\000\000\000\000"
+    instruction: "nopl (%rax,%rax)"
+    size: 8
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569616
+    machine_code: "U"
+    instruction: "pushq %rbp"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569617
+    machine_code: "V"
+    instruction: "pushq %rsi"
+    size: 1
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569618
+    machine_code: "H\203\354("
+    instruction: "subq $0x28, %rsp"
+    size: 4
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569622
+    machine_code: "H\215l$ "
+    instruction: "leaq 0x20(%rsp), %rbp"
+    size: 5
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  instructions {
+    address: 140727818569627
+    machine_code: "H\211\316"
+    instruction: "movq %rcx, %rsi"
+    size: 3
+    symbol: "_Z25CJ_MRT_GetAllCJThreadInfoPvj"
+  }
+  bytes_disassembled: 206
+}
+
