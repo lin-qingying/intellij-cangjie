@@ -82,13 +82,13 @@ interface Installer {
     val executableFile: File
 }
 
-class  InstallerImpl(private val myCl: GeneralCommandLine) : Installer {
+class  InstallerImpl(private val cl: GeneralCommandLine) : Installer {
     override fun install(): GeneralCommandLine {
-        return myCl
+        return cl
     }
 
     override val executableFile: File
-        get() = File(this.myCl.exePath)
+        get() = File(this.cl.exePath)
 
 
 }

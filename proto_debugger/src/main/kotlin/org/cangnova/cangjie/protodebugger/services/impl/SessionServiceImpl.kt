@@ -1,40 +1,42 @@
 package org.cangnova.cangjie.protodebugger.services.impl
 
+import com.intellij.execution.CommandLineUtil
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
-
+import com.intellij.execution.process.ProcessOutputTypes
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.SystemInfo
 import com.pty4j.unix.Pty
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import lldbprotobuf.Model
+import lldbprotobuf.RequestOuterClass
+import lldbprotobuf.ResponseOuterClass
 import org.cangnova.cangjie.messages.DebuggerBundle
-import org.cangnova.cangjie.protodebugger.core.DebuggerDriverConfiguration
-import org.cangnova.cangjie.protodebugger.data.LLFrame
-import org.cangnova.cangjie.protodebugger.data.LLThread
-import org.cangnova.cangjie.protodebugger.data.newLLFrame
+import org.cangnova.cangjie.protodebugger.data.LLDBFrame
+import org.cangnova.cangjie.protodebugger.data.LLDBThread
+import org.cangnova.cangjie.protodebugger.data.newLLDBFrame
 import org.cangnova.cangjie.protodebugger.data.newLLThread
 import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
-import org.cangnova.cangjie.protodebugger.execution.ExecutionResult
-import org.cangnova.cangjie.protodebugger.execution.TargetState
-import org.cangnova.cangjie.protodebugger.ipc.WinPipe
+import org.cangnova.cangjie.protodebugger.execution.async.AsyncResult
+import org.cangnova.cangjie.protodebugger.execution.state.TargetState
+import org.cangnova.cangjie.protodebugger.ipc.WindowsPipe
 import org.cangnova.cangjie.protodebugger.path.PathMapping
 import org.cangnova.cangjie.protodebugger.process.HostMachine
 import org.cangnova.cangjie.protodebugger.process.LocalHost
 import org.cangnova.cangjie.protodebugger.process.ProcessOutputReaders
-import org.cangnova.cangjie.protodebugger.protocol.ProtobufMessageFactory
+import org.cangnova.cangjie.protodebugger.protocol.ProtobufFactory
 import org.cangnova.cangjie.protodebugger.services.SessionService
 import org.cangnova.cangjie.protodebugger.transport.MessageBus
-import org.cangnova.cangjie.protodebugger.util.DebuggerSourceFileHash
+import org.cangnova.cangjie.protodebugger.util.SourceFileHash
 import org.cangnova.cangjie.protodebugger.util.Installer
-import proto.Model
-import proto.Protocol
-import proto.ProtocolResponses
+import org.cangnova.cangjie.protodebugger.core.DebuggerHandler
+
+import lldbprotobuf.ResponseOuterClass.*
+import org.cangnova.cangjie.protodebugger.core.DebuggerDriverFacade
 import java.io.File
-import java.io.IOException
 import java.io.OutputStream
-import com.intellij.openapi.diagnostic.Logger
 
 /**
  * 调试会话服务的现代化实现
@@ -42,18 +44,22 @@ import com.intellij.openapi.diagnostic.Logger
  * 负责管理调试目标的生命周期，包括启动、附加、加载 core dump 等操作
  */
 class SessionServiceImpl(
+    val debuggerHandler: DebuggerHandler,
     private val messageBus: MessageBus,
-    private val configuration: DebuggerDriverConfiguration,
+
+    private val facade: DebuggerDriverFacade,
     private val capabilities: DebuggerCapabilities,
-    private val stateProvider: () -> TargetState = { TargetState.NOT_READY },
-    private val stoppedThreadProvider: () -> LLThread? = { null }
-) : SessionService {
+    private val stateProvider: () -> TargetState = { TargetState.Idle },
+    private val stoppedThreadProvider: () -> LLDBThread? = { null }
+) : SessionService, AutoCloseable {
 
     private val socketLock = Mutex()
-    private val inferiorResult = ExecutionResult<SessionService.Inferior>()
+    private val inferiorResult = AsyncResult.create<SessionService.Inferior>()
 
     // I/O 资源管理
-    private val ioResources = IOResourceManager()
+    private val ioResources = IOResourceManager(
+        debuggerHandler = debuggerHandler
+    )
 
     override fun getProcessInput(): OutputStream? = ioResources.processInput
 
@@ -62,13 +68,14 @@ class SessionServiceImpl(
     override suspend fun loadForLaunch(installer: Installer, architecture: String?) {
         runCatching {
             val inferior = createLaunchInferior(installer, architecture)
-            inferiorResult.set(inferior)
+            inferiorResult.complete(inferior)
         }.onFailure { ex ->
             when (ex) {
                 is ExecutionException -> {
-                    inferiorResult.setException(ex)
+                    inferiorResult.completeExceptionally(ex)
                     throw ex
                 }
+
                 else -> throw ExecutionException("Failed to load target", ex)
             }
         }
@@ -76,18 +83,9 @@ class SessionServiceImpl(
 
     override suspend fun loadForAttach(processId: Int): SessionService.Inferior {
         createEmptyTarget()
-        return AttachInferior(processId, configuration, messageBus, this)
+        return AttachInferior(processId,  messageBus, this,)
     }
 
-    override suspend fun loadCoreDump(
-        exePath: String,
-        corePath: String,
-        architecture: String?
-    ): SessionService.Inferior {
-        createTarget(exePath, architecture)
-        loadCoreFile(corePath)
-        return CoreDumpInferior
-    }
 
     override suspend fun loadForRemote(
         installer: Installer,
@@ -98,42 +96,51 @@ class SessionServiceImpl(
         val targetCommandLine = installer.install()
         createRemoteTarget(installer, architecture, platform, targetCommandLine)
         connectToRemotePlatform(platform, url)
-        return LaunchInferior(targetCommandLine, installer, configuration, messageBus, ioResources)
+        return LaunchInferior(targetCommandLine, installer,   messageBus, this, ioResources,facade.emulateTerminal)
     }
 
     // ==================== 目标控制 ====================
 
     override suspend fun startTarget() {
-        inferiorResult.get().start()
+        inferiorResult.asCompletableFuture().get().start()
     }
 
     override suspend fun detach(): Boolean {
         val response = messageBus.request(
-            ProtobufMessageFactory.detach(),
-            ProtocolResponses.DetachResponse::class.java
+            ProtobufFactory.detach(),
+            DetachResponse::class.java
         )
         return response.status.success
     }
 
-    override suspend fun kill(): Boolean {
+    override suspend fun terminate(): Boolean {
         val response = messageBus.request(
-            ProtobufMessageFactory.kill(),
-            ProtocolResponses.KillResponse::class.java
+            ProtobufFactory.terminate(),
+            TerminateResponse::class.java
         )
         return response.status.success
+    }
+
+    override suspend fun disconnectTarget(shouldDestroy: Boolean) {
+        val inferior = inferiorResult.asCompletableFuture().get()
+        if (shouldDestroy) {
+            inferior.destroy()
+        } else {
+            inferior.detach()
+        }
     }
 
     override suspend fun exit(): Boolean {
-        messageBus.send(ProtobufMessageFactory.exit())
+        messageBus.send(ProtobufFactory.exit())
         return true
     }
 
     // ==================== 线程和帧信息 ====================
 
-    override suspend fun getThreads(): List<LLThread> {
+    override suspend fun getThreads(): List<LLDBThread> {
         val response = messageBus.request(
-            ProtobufMessageFactory.getThreads(),
-            ProtocolResponses.GetThreadsResponse::class.java
+            ProtobufFactory.getThreads(),
+            ThreadsResponse::class.java
         )
 
         response.status.ensureSuccess()
@@ -141,56 +148,26 @@ class SessionServiceImpl(
     }
 
     override suspend fun getFrames(
-        thread: LLThread,
+        thread: LLDBThread,
         startFrame: Int,
         maxFrames: Int
-    ): List<LLFrame> {
+    ): List<LLDBFrame> {
         val response = messageBus.request(
-            ProtobufMessageFactory.getFrames(thread.id, startFrame, maxFrames),
-            ProtocolResponses.GetFramesResponse::class.java
+            ProtobufFactory.getFrames(thread.id, startFrame, maxFrames),
+            FramesResponse::class.java
         )
 
         response.status.ensureSuccess()
-        return response.framesList.map(::newLLFrame)
+        return response.framesList.map(::newLLDBFrame)
     }
 
-    override fun getStoppedThread(): LLThread? = stoppedThreadProvider()
+
+    override fun getStoppedThread(): LLDBThread? = stoppedThreadProvider()
     override fun getState(): TargetState = stateProvider()
 
-    // ==================== 路径映射 ====================
 
-    override suspend fun addPathMapping(index: Int, from: String, to: String) {
-        val mapping = PathMapping(
-            configuration.convertToProjectModelPath(from),
-            configuration.convertToProjectModelPath(to)
-        )
-        executePathMappingCommand(index, listOf(mapping), useTargetSourceMap = true)
-    }
 
-    override suspend fun addForcedFileMapping(
-        index: Int,
-        from: String,
-        hash: DebuggerSourceFileHash?,
-        to: String
-    ) {
-        val sourcePath = if (capabilities.supportsFileHashing && hash != null) {
-            "${hash.type}:${hash.hash}"
-        } else {
-            from
-        }
-        addPathMapping(index, sourcePath, to)
-    }
 
-    // ==================== 符号管理 ====================
-
-    override suspend fun addSymbolsFile(symbols: File, module: File?) {
-        val command = buildSymbolCommand(symbols, module)
-        executeConsoleCommand(command)
-    }
-
-    override suspend fun cancelSymbolsDownload(details: String) {
-        messageBus.send(ProtobufMessageFactory.cancelSymbolsDownload(details))
-    }
 
     // ==================== 控制台命令 ====================
 
@@ -199,30 +176,31 @@ class SessionServiceImpl(
         frameIndex: Int,
         command: String
     ): String {
-        val response = messageBus.request(
-            ProtobufMessageFactory.handleConsoleCommand(threadId, frameIndex, command),
-            ProtocolResponses.HandleConsoleCommandResponse::class.java
-        )
-
-        response.status.ensureSuccess()
-        return response.standardOutput
+        TODO()
+//        val response = messageBus.request(
+//            ProtobufFactory.handleConsoleCommand(threadId, frameIndex, command),
+//            HandleConsoleCommandResponse::class.java
+//        )
+//
+//        response.status.ensureSuccess()
+//        return response.standardOutput
     }
 
-    override suspend fun getPromptText(): String = "lldb"
 
     override fun isInPromptMode(): Boolean =
-        stateProvider() == TargetState.SUSPENDED
+        stateProvider() == TargetState.Paused
 
     override suspend fun completeConsoleCommand(command: String, pos: Int): List<String> {
-        val response = messageBus.request(
-            ProtobufMessageFactory.handleCompletion(command, pos),
-            ProtocolResponses.HandleCompletionResponse::class.java
-        )
-        return response.completionsList
+//        val response = messageBus.request(
+//            ProtobufFactory.handleCompletion(command, pos),
+//            ProtocolResponses.HandleCompletionResponse::class.java
+//        )
+//        return response.completionsList
+        return emptyList()
     }
 
     override suspend fun resize(columns: Int, rows: Int) {
-        messageBus.send(ProtobufMessageFactory.resizeConsole(columns, rows))
+        messageBus.send(ProtobufFactory.resizeConsole(columns, rows))
     }
 
     // ==================== 功能检查 ====================
@@ -237,7 +215,6 @@ class SessionServiceImpl(
     // ==================== 进程退出处理 ====================
 
 
-
     // ==================== 私有辅助方法 ====================
 
     private suspend fun createLaunchInferior(
@@ -247,11 +224,11 @@ class SessionServiceImpl(
         val targetCommandLine = installer.install()
         createTarget(installer.executableFile.path, architecture)
         configureTarget()
-        return LaunchInferior(targetCommandLine, installer, configuration, messageBus, ioResources)
+        return LaunchInferior(targetCommandLine, installer,  messageBus, this, ioResources,facade.emulateTerminal)
     }
 
     private suspend fun createTarget(executablePath: String, architecture: String?) {
-        val request = ProtobufMessageFactory.createTarget(
+        val request = ProtobufFactory.createTarget(
             executablePath,
             architecture.orEmpty()
         )
@@ -260,7 +237,7 @@ class SessionServiceImpl(
     }
 
     private suspend fun createEmptyTarget() {
-        sendCreateTargetRequest(ProtobufMessageFactory.createTarget("", ""))
+        sendCreateTargetRequest(ProtobufFactory.createTarget("", ""))
         configureTarget()
     }
 
@@ -270,7 +247,7 @@ class SessionServiceImpl(
         platform: String,
         targetCommandLine: GeneralCommandLine
     ) {
-        val request = ProtobufMessageFactory.createRemoteTarget(
+        val request = ProtobufFactory.createRemoteTarget(
             installer.executableFile.path,
             platform,
             targetCommandLine.exePath,
@@ -282,31 +259,31 @@ class SessionServiceImpl(
     }
 
     private suspend fun loadCoreFile(corePath: String) {
-        val response = messageBus.request(
-            ProtobufMessageFactory.loadCoreDump(corePath),
-            ProtocolResponses.LoadCoreResponse::class.java
-        )
-
-        if (!response.status.success) {
-            throw ExecutionException(DebuggerBundle.message("error.cannot.load.core.dump"))
-        }
+//        val response = messageBus.request(
+//            ProtobufFactory.loadCoreDump(corePath),
+//            ProtocolResponses.LoadCoreResponse::class.java
+//        )
+//
+//        if (!response.status.success) {
+//            throw ExecutionException(DebuggerBundle.message("error.cannot.load.core.dump"))
+//        }
     }
 
     private suspend fun connectToRemotePlatform(platform: String, url: String) {
-        val response = messageBus.request(
-            ProtobufMessageFactory.connectPlatform(platform, url),
-            ProtocolResponses.ConnectPlatformResponse::class.java
-        )
-
-        if (!response.status.success) {
-            throw ExecutionException(DebuggerBundle.message("error.cannot.connect.remote"))
-        }
+//        val response = messageBus.request(
+//            ProtobufFactory.connectPlatform(platform, url),
+//            ProtocolResponses.ConnectPlatformResponse::class.java
+//        )
+//
+//        if (!response.status.success) {
+//            throw ExecutionException(DebuggerBundle.message("error.cannot.connect.remote"))
+//        }
     }
 
-    private suspend fun sendCreateTargetRequest(request: Protocol.CompositeRequest) {
+    private suspend fun sendCreateTargetRequest(request: RequestOuterClass.Request) {
         val response = messageBus.request(
             request,
-            ProtocolResponses.CreateTargetResponse::class.java
+            ResponseOuterClass.CreateTargetResponse::class.java
         )
 
         if (!response.status.success) {
@@ -357,20 +334,33 @@ class SessionServiceImpl(
         }
 
     private suspend fun executeConsoleCommand(command: String) {
-        val response = messageBus.request(
-            ProtobufMessageFactory.handleConsoleCommand(-1L, -1, command),
-            ProtocolResponses.HandleConsoleCommandResponse::class.java
-        )
+//        val response = messageBus.request(
+//            ProtobufFactory.handleConsoleCommand(-1L, -1, command),
+//            ProtocolResponses.HandleConsoleCommandResponse::class.java
+//        )
+//
+//        if (!response.status.success) {
+//            throw DebuggerCommandException(response.status.errorMessage)
+//        }
+    }
 
-        if (!response.status.success) {
-            throw DebuggerCommandException(response.status.errorMessage)
+    private fun Model.Status.ensureSuccess() {
+        if (!success) {
+            throw DebuggerCommandException(message)
         }
     }
 
-    private fun ProtocolResponses.ResponseStatus.ensureSuccess() {
-        if (!success) {
-            throw DebuggerCommandException(errorMessage)
-        }
+    // ==================== 资源清理 ====================
+
+    /**
+     * 关闭会话服务并清理所有I/O资源
+     *
+     * 该方法会关闭所有打开的I/O流（PTY、管道、输出读取器），
+     * 确保在调试会话结束时释放所有系统资源。
+     */
+    override fun close() {
+        LOG.debug("Closing SessionService and cleaning up I/O resources")
+        ioResources.close()
     }
 
     companion object {
@@ -402,7 +392,9 @@ value class DebuggerCapabilities(private val flags: Long) {
  * I/O 资源管理器
  * 统一管理 PTY、管道和输出读取器
  */
-class IOResourceManager : AutoCloseable {
+class IOResourceManager(
+    val debuggerHandler: DebuggerHandler
+) : AutoCloseable {
     private var pty: Pty? = null
     private var outputReader: ProcessOutputReaders? = null
     private var input: OutputStream? = null
@@ -421,9 +413,9 @@ class IOResourceManager : AutoCloseable {
         }
     }
 
-    fun setupWindowsPipe(name: String): WinPipe {
+    fun setupWindowsPipe(name: String): WindowsPipe {
         cleanup()
-        return WinPipe.createOutboundPipe(name).also {
+        return WindowsPipe.createOutboundPipe(name).also {
             input = it.outputStream
         }
     }
@@ -432,9 +424,11 @@ class IOResourceManager : AutoCloseable {
         host: HostMachine,
         commandLine: GeneralCommandLine,
         usePty: Boolean,
-        onOutput: (String, Key<*>) -> Unit
-    ): ProcessOutputReaders {
-        val presentableName = commandLine.commandLineString
+        emulateTerminal: Boolean,
+
+        ): ProcessOutputReaders {
+        val presentableName = CommandLineUtil.extractPresentableName(commandLine.commandLineString)
+
             .split(" ")
             .firstOrNull { it.isNotEmpty() }
             ?: "Debug Process"
@@ -444,10 +438,10 @@ class IOResourceManager : AutoCloseable {
             presentableName,
             commandLine.charset,
             usePty,
-            usePty
+            emulateTerminal
         ) {
             override fun onTextAvailable(text: @NlsSafe String, key: Key<*>) {
-                onOutput(text, key)
+                debuggerHandler.handleTargetOutput(text, key)
             }
         }.also { outputReader = it }
     }
@@ -510,43 +504,53 @@ class IOResourceManager : AutoCloseable {
 private class LaunchInferior(
     private val commandLine: GeneralCommandLine,
     private val installer: Installer,
-    private val config: DebuggerDriverConfiguration,
     private val messageBus: MessageBus,
-    private val ioResources: IOResourceManager
+    private val sessionService: SessionServiceImpl,
+    private val ioResources: IOResourceManager,
+    private val emulateTerminal: Boolean
 ) : SessionService.Inferior {
 
     override fun getId(): Int = -1
 
     override suspend fun start(): Long {
-        val streamConfig = StreamConfiguration.from(commandLine, config)
+
+        sessionService.debuggerHandler.handleTargetOutput(
+            commandLine.commandLineString + "\n",
+            ProcessOutputTypes.SYSTEM
+        )
+        val streamConfig = StreamConfiguration.from(commandLine, emulateTerminal)
         val streams = streamConfig.setup(ioResources)
 
         val response = messageBus.request(
-            ProtobufMessageFactory.launch(
+            ProtobufFactory.launch(
                 commandLine,
                 streamConfig.useExternalConsole,
-                config.emulateTerminal,
+                emulateTerminal,
                 streams.stdin,
                 streams.stdout,
                 streams.stderr
             ),
-            ProtocolResponses.LaunchResponse::class.java
+            LaunchResponse::class.java
         )
 
         if (!response.status.success) {
             throw ExecutionException(DebuggerBundle.message("error.cannot.launch"))
         }
 
-        return response.processId
+        return response.process.id.toLong()
     }
 
     override suspend fun detach() {
-        // 实现通过外部引用实现
+
+        sessionService.detach()
     }
 
     override suspend fun destroy(): Boolean {
+
+
         ioResources.close()
-        return true
+        return sessionService.terminate()
+
     }
 }
 
@@ -555,7 +559,6 @@ private class LaunchInferior(
  */
 private class AttachInferior(
     private val processId: Int,
-    private val config: DebuggerDriverConfiguration,
     private val messageBus: MessageBus,
     private val sessionService: SessionServiceImpl
 ) : SessionService.Inferior {
@@ -563,9 +566,12 @@ private class AttachInferior(
     override fun getId(): Int = processId
 
     override suspend fun start(): Long {
+        // 构建附加选项
+        val options =  emptyMap<String,String>()
+
         val response = messageBus.request(
-            ProtobufMessageFactory.attach(processId, config.isContinueAfterAttachNeeded),
-            ProtocolResponses.AttachResponse::class.java
+            ProtobufFactory.attach(processId.toLong(), options),
+            AttachResponse::class.java
         )
 
         if (!response.status.success) {
@@ -580,20 +586,11 @@ private class AttachInferior(
     }
 
     override suspend fun destroy(): Boolean {
-        sessionService.kill()
+        sessionService.terminate()
         return true
     }
 }
 
-/**
- * Core Dump 类型的调试目标
- */
-private object CoreDumpInferior : SessionService.Inferior {
-    override fun getId(): Int = -1
-    override suspend fun start(): Long = -1
-    override suspend fun detach() {}
-    override suspend fun destroy(): Boolean = true
-}
 
 // ==================== 流配置 ====================
 
@@ -603,23 +600,41 @@ private object CoreDumpInferior : SessionService.Inferior {
 private data class StreamConfiguration(
     val useExternalConsole: Boolean,
     val emulateTerminal: Boolean,
-    val inputFile: File?
+    val inputFile: File?,
+    val commandLine: GeneralCommandLine
 ) {
     companion object {
-        fun from(commandLine: GeneralCommandLine, config: DebuggerDriverConfiguration) =
+        fun from(commandLine: GeneralCommandLine, emulateTerminal: Boolean) =
             StreamConfiguration(
                 useExternalConsole = commandLine.getUserData(SessionServiceImpl.USE_EXTERNAL_CONSOLE_KEY) == true,
-                emulateTerminal = config.emulateTerminal,
-                inputFile = commandLine.inputFile
+                emulateTerminal =  emulateTerminal,
+                inputFile = commandLine.inputFile,
+                commandLine = commandLine
             )
     }
 
     fun setup(ioResources: IOResourceManager): StreamPaths {
-        return when {
+        var paths = when {
             inputFile != null -> setupWithInputFile(ioResources)
             !useExternalConsole -> setupInteractiveStreams(ioResources)
             else -> StreamPaths()
         }
+        if (paths.stdout == null && !useExternalConsole) {
+
+            val readers = ioResources.setupOutputReader(
+                LocalHost,
+                commandLine,
+                !SystemInfo.isWindows, false
+            )
+            paths = paths.copy(
+                stdout = readers.getOutFileAbsolutePath(), stderr = readers.getErrFileAbsolutePath()
+            )
+
+        }
+
+
+
+        return paths
     }
 
     private fun setupWithInputFile(ioResources: IOResourceManager): StreamPaths {
@@ -636,6 +651,7 @@ private data class StreamConfiguration(
                 val pty = ioResources.setupPty()
                 StreamPaths(file.path, pty.slaveName, pty.slaveName)
             }
+
             else -> StreamPaths(stdin = file.path)
         }
     }
@@ -643,10 +659,23 @@ private data class StreamConfiguration(
     private fun setupInteractiveStreams(ioResources: IOResourceManager): StreamPaths {
         return if (SystemInfo.isWindows) {
             val pipe = ioResources.setupWindowsPipe("stdin")
-            StreamPaths(stdin = pipe.name)
+            val (stdout, stderr) = if (emulateTerminal) {
+                val readers = ioResources.setupOutputReader(
+                    LocalHost,
+                    commandLine,
+                    false,
+                    emulateTerminal
+                )
+                readers.getOutFileAbsolutePath() to null
+            } else {
+                null to null
+            }
+            StreamPaths(stdin = pipe.name, stdout = stdout, stderr = stderr)
         } else {
             val pty = ioResources.setupPty()
+
             val (stdout, stderr) = if (emulateTerminal) {
+
                 pty.slaveName to pty.slaveName
             } else {
                 null to null
@@ -654,6 +683,8 @@ private data class StreamConfiguration(
             StreamPaths(pty.slaveName, stdout, stderr)
         }
     }
+
+
 }
 
 /**

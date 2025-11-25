@@ -1,25 +1,22 @@
 package org.cangnova.cangjie.protodebugger.services.impl
 
 import com.intellij.openapi.util.Ref
-import kotlinx.coroutines.CompletableDeferred
+import lldbprotobuf.ResponseOuterClass
 import org.cangnova.cangjie.messages.DebuggerBundle
 import org.cangnova.cangjie.protodebugger.breakpoint.AddBreakpointResult
 import org.cangnova.cangjie.protodebugger.breakpoint.SymbolicBreakpoint
-import org.cangnova.cangjie.protodebugger.core.DebuggerDriverConfiguration
 import org.cangnova.cangjie.protodebugger.core.DebuggerDriverFacade
-import org.cangnova.cangjie.protodebugger.services.SessionService
-import org.cangnova.cangjie.protodebugger.data.LLSymbolicBreakpoint
-import org.cangnova.cangjie.protodebugger.data.LLValue
-import org.cangnova.cangjie.protodebugger.data.LLWatchpoint
+import org.cangnova.cangjie.protodebugger.data.LLDBSymbolicBreakpoint
+import org.cangnova.cangjie.protodebugger.data.LLDBVariable
+import org.cangnova.cangjie.protodebugger.data.LLDBWatchpoint
 import org.cangnova.cangjie.protodebugger.data.getValueId
 import org.cangnova.cangjie.protodebugger.data.makeBreakpoint
 import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
 import org.cangnova.cangjie.protodebugger.memory.Address
-import org.cangnova.cangjie.protodebugger.protocol.ProtobufMessageFactory
+import org.cangnova.cangjie.protodebugger.protocol.ProtobufFactory
 import org.cangnova.cangjie.protodebugger.services.BreakpointService
 import org.cangnova.cangjie.protodebugger.transport.MessageBus
-import proto.Protocol
-import proto.ProtocolResponses
+
 
 /**
  * 断点服务实现
@@ -27,7 +24,7 @@ import proto.ProtocolResponses
 class BreakpointServiceImpl(
     private val facade: DebuggerDriverFacade,
     private val messageBus: MessageBus,
-    private val configuration: DebuggerDriverConfiguration,
+    private val driverFacade: DebuggerDriverFacade,
     private val capabilities: Long
 ) : BreakpointService {
 
@@ -51,20 +48,21 @@ class BreakpointServiceImpl(
         // 等待目标创建完成
         waitForTargetCreation()
 
-        val convertedPath = configuration.convertToProjectModelPath(path)
-        val request = ProtobufMessageFactory.addBreakpoint(
-            convertedPath,
-            line + 1,
-            false,
-            condition
+
+        val request = ProtobufFactory.addLineBreakpoint(
+            path = path,
+            line = line + 1,
+
+            condition = condition
         )
 
         val response = messageBus.request(
             request,
-            ProtocolResponses.AddBreakpointResponse::class.java
+            ResponseOuterClass.AddBreakpointResponse::class.java
         )
 
-        return makeBreakpoint(response.breakpoint, response.locationsList)
+
+        return makeBreakpoint(response.lineBreakpoint.breakpoint, response.lineBreakpoint.locationsList)
     }
 
     override suspend fun addAddressBreakpoint(
@@ -74,21 +72,21 @@ class BreakpointServiceImpl(
         // 等待目标创建完成
         waitForTargetCreation()
 
-        val request = ProtobufMessageFactory.addBreakpoint(address.unsignedLongValue, condition)
+        val request = ProtobufFactory.addAddressBreakpoint(address.asLong , condition)
 
         val response = messageBus.request(
             request,
-            ProtocolResponses.AddBreakpointResponse::class.java
+             ResponseOuterClass.AddBreakpointResponse::class.java
         )
 
-        return makeBreakpoint(response.breakpoint, response.locationsList)
+        return makeBreakpoint(response.addressBreakpoint.breakpoint, response.addressBreakpoint.locationsList)
     }
 
     override suspend fun addSymbolicBreakpoint(
         symbolPattern: String,
         module: String?,
         condition: String?
-    ): LLSymbolicBreakpoint {
+    ): LLDBSymbolicBreakpoint {
         // 等待目标创建完成
         waitForTargetCreation()
 
@@ -102,11 +100,11 @@ class BreakpointServiceImpl(
 
     override suspend fun addSymbolicBreakpoint(
         breakpoint: SymbolicBreakpoint
-    ): LLSymbolicBreakpoint {
+    ): LLDBSymbolicBreakpoint {
         // 等待目标创建完成
         waitForTargetCreation()
 
-        val request = ProtobufMessageFactory.addBreakpoint(
+        val request = ProtobufFactory.addSymbolBreakpoint(
             breakpoint.pattern,
             breakpoint.isRegexpPattern,
             breakpoint.module,
@@ -116,11 +114,11 @@ class BreakpointServiceImpl(
 
         val response = messageBus.request(
             request,
-            ProtocolResponses.AddBreakpointResponse::class.java
+            ResponseOuterClass.AddBreakpointResponse::class.java
         )
 
-        return LLSymbolicBreakpoint(
-            id = response.breakpoint.id,
+        return LLDBSymbolicBreakpoint(
+            id = response.symbolBreakpoint.breakpoint.id.id,
             symbolPattern = breakpoint.pattern,
             condition = breakpoint.condition,
             enabled = true
@@ -130,47 +128,47 @@ class BreakpointServiceImpl(
     override suspend fun addWatchpoint(
         threadId: Long,
         frameIndex: Int,
-        value: LLValue,
+        value: LLDBVariable,
         expr: String,
-        lifetime: LLWatchpoint.Lifetime?,
-        accessType: LLWatchpoint.AccessType
-    ): LLWatchpoint {
+        lifetime: LLDBWatchpoint.Lifetime?,
+        accessType: LLDBWatchpoint.AccessType
+    ): LLDBWatchpoint {
         // 等待目标创建完成
         waitForTargetCreation()
 
         val expression: String = value.referenceExpression
 
-        val request: Protocol.CompositeRequest = ProtobufMessageFactory.addWatchpoint(
+        val request = ProtobufFactory.addWatchpoint(
             getValueId(value),
 
-            accessType === LLWatchpoint.AccessType.ANY || accessType === LLWatchpoint.AccessType.READ,
-            accessType === LLWatchpoint.AccessType.ANY || accessType === LLWatchpoint.AccessType.WRITE,
+            accessType === LLDBWatchpoint.AccessType.ANY || accessType === LLDBWatchpoint.AccessType.READ,
+            accessType === LLDBWatchpoint.AccessType.ANY || accessType === LLDBWatchpoint.AccessType.WRITE,
             true
         )
-        val result = Ref<LLWatchpoint>()
+        val result = Ref<LLDBWatchpoint>()
         val error = Ref<DebuggerCommandException>()
 
         val response = messageBus.request(
             request,
-            ProtocolResponses.AddWatchpointResponse::class.java
+            ResponseOuterClass.AddBreakpointResponse::class.java
         )
 
         if (!response.status.success) {
-            throw DebuggerCommandException(response.status.errorMessage)
+            throw DebuggerCommandException(response.status.message)
         }
 
-        return LLWatchpoint(response.watchpointId, expression)
+        return LLDBWatchpoint(response.breakPointId.id, expression)
     }
 
-    override suspend fun removeBreakpoints(ids: Collection<Int>) {
+    override suspend fun removeBreakpoints(ids: Collection<Long>) {
         // 等待目标创建完成
         waitForTargetCreation()
 
         for (id in ids) {
-            val request = ProtobufMessageFactory.removeBreakpoint(id)
+            val request = ProtobufFactory.removeBreakpoint(id)
             val response = messageBus.request(
                 request,
-                ProtocolResponses.RemoveBreakpointResponse::class.java
+                 ResponseOuterClass.RemoveBreakpointResponse::class.java
             )
 
             if (!response.status.success) {
@@ -181,24 +179,7 @@ class BreakpointServiceImpl(
         }
     }
 
-    override suspend fun removeWatchpoints(ids: List<Int>) {
-        // 等待目标创建完成
-        waitForTargetCreation()
 
-        for (id in ids) {
-            val request = ProtobufMessageFactory.removeWatchpoint(id)
-            val response = messageBus.request(
-                request,
-                ProtocolResponses.RemoveWatchpointResponse::class.java
-            )
-
-            if (!response.status.success) {
-                throw DebuggerCommandException(
-                    DebuggerBundle.message("error.cannot.remove.watchpoint")
-                )
-            }
-        }
-    }
 
     override fun supportsWatchpoints(): Boolean {
         return (capabilities and CAPABILITY_WATCHPOINTS) != 0L
@@ -206,6 +187,10 @@ class BreakpointServiceImpl(
 
     override fun supportsWatchpointLifetime(): Boolean {
         return (capabilities and CAPABILITY_WATCHPOINT_LIFETIME) != 0L
+    }
+
+    override fun close() {
+
     }
 
 

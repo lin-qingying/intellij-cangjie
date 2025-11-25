@@ -27,32 +27,155 @@
     <module value="org.cangnova.cangjie.protodebugger"/>
 
     <extensions defaultExtensionNs="com.intellij">
-                <programRunner id="CjProtoDebugRunner"
-                               implementation="org.cangnova.cangjie.protodebugger.runconfig.CjDebugRunner"/>
+        <programRunner id="CjProtoDebugRunner"
+                       implementation="org.cangnova.cangjie.protodebugger.runconfig.CjDebugRunner"/>
 
 
-
-                <xdebugger.breakpointType
-                        implementation="org.cangnova.cangjie.protodebugger.breakpoint.CangJieDebuggerLineBreakpointType"
-                        order="first"/>
+        <xdebugger.breakpointType
+                implementation="org.cangnova.cangjie.protodebugger.breakpoint.LineBreakpointType"
+                order="first"/>
 
         <xdebugger.breakpointType
                 implementation="org.cangnova.cangjie.protodebugger.breakpoint.AddressBreakpointType"
-               />
+        />
 
         <xdebugger.breakpointType
                 implementation="org.cangnova.cangjie.protodebugger.breakpoint.SymbolicBreakpointType"
-               />
+        />
 
         <xdebugger.breakpointType
                 implementation="org.cangnova.cangjie.protodebugger.breakpoint.WatchpointBreakpointType"
-               />
+        />
 
         <xdebugger.settings implementation="org.cangnova.cangjie.protodebugger.settings.DebuggerSettings"/>
 
+        <fileEditorProvider
+                implementation="org.cangnova.cangjie.protodebugger.memory.editor.MemoryViewFileEditorProvider"/>
+        <readerModeMatcher
+                implementation="org.cangnova.cangjie.protodebugger.memory.editor.MemoryViewReaderModeMatcher"/>
+
+        <!-- 虚拟文件系统 -->
+        <virtualFileSystem
+                key="cangjie_debugger_memory"
+                implementationClass="org.cangnova.cangjie.protodebugger.memory.vfs.MemoryViewVirtualFileSystem"/>
+
+        <!-- 文件类型 -->
+        <fileType
+                name="CangJieMemoryHexdump"
+                implementationClass="org.cangnova.cangjie.protodebugger.memory.vfs.HexdumpFileType"
+                extensions="cj-hex"/>
+        <fileType
+                name="CangJieMemoryDisassembly"
+                implementationClass="org.cangnova.cangjie.protodebugger.memory.vfs.DisasmFileType"
+                extensions="cj-disasm"/>
+
+        <!-- 语言支持 -->
+        <lang.parserDefinition
+                language="Hexdump"
+                implementationClass="org.cangnova.cangjie.protodebugger.memory.language.HexdumpParserDefinition"/>
+        <lang.syntaxHighlighterFactory
+                language="Hexdump"
+                implementationClass="org.cangnova.cangjie.protodebugger.memory.language.HexdumpSyntaxHighlighterFactory"/>
+        <lang.foldingBuilder
+                language="Hexdump"
+                implementationClass="org.cangnova.cangjie.protodebugger.memory.language.HexdumpFoldingBuilder"/>
+        <!--        <colorSettingsPage-->
+        <!--                implementationClass="org.cangnova.cangjie.protodebugger.memory.language.HexdumpColorSettingsPage"/>-->
+
+        <!-- 输入处理 -->
+        <typedHandler
+                implementation="org.cangnova.cangjie.protodebugger.memory.input.HexdumpTypedHandler"/>
+        <typedHandler
+                implementation="org.cangnova.cangjie.protodebugger.memory.input.MemoryFileRawTypedHandler"/>
+
+        <!-- Inlay提示 -->
+<!--        <codeInsight.inlayProvider-->
+<!--                language="Hexdump"-->
+<!--                implementationClass="org.cangnova.cangjie.protodebugger.memory.inlay.MemoryInlayHintsProvider"/>-->
+
+        <!-- Gutter标记 -->
+        <codeInsight.lineMarkerProvider
+                language="Hexdump"
+                implementationClass="org.cangnova.cangjie.protodebugger.memory.gutter.MemoryGutterIconProvider"/>
+
+        <!-- 写入访问控制 -->
+        <writingAccessProvider
+                implementation="org.cangnova.cangjie.protodebugger.memory.vfs.MemoryViewFileWritingAccessProvider"/>
+
+        <editorTabTitleProvider implementation="org.cangnova.cangjie.protodebugger.memory.editor.MemoryViewTabTitleProvider"/>
 
     </extensions>
 
+    <actions>
+        <!-- 内存视图 Actions -->
+        <group id="MemoryView.Actions" text="Memory View" popup="true">
+            <!-- 导航 Actions -->
+            <action id="MemoryView.GoToAddress"
+                    class="org.cangnova.cangjie.protodebugger.memory.actions.GoToAddressAction"
+                    text="Go to Address..."
+                    description="Navigate to a specific memory address"
+                    icon="AllIcons.General.Locate">
+                <keyboard-shortcut first-keystroke="ctrl G" keymap="$default"/>
+            </action>
+
+
+
+
+
+
+            <separator/>
+
+            <!-- 实用工具 Actions -->
+            <action id="MemoryView.CopyAddress"
+                    class="org.cangnova.cangjie.protodebugger.memory.actions.CopyAddressAction"
+                    text="Copy Address"
+                    description="Copy current address to clipboard"
+                    icon="AllIcons.Actions.Copy">
+                <keyboard-shortcut first-keystroke="ctrl C" keymap="$default"/>
+            </action>
+
+
+
+
+
+            <action id="MemoryView.DisassembleFunction"
+                    class="org.cangnova.cangjie.protodebugger.memory.actions.DisassembleFunctionAction"
+                    text="Disassemble Function"
+                    description="Disassemble function at selected address"
+                    icon="AllIcons.Debugger.Console"/>
+
+
+        </group>
+
+        <!-- 添加到主菜单 -->
+        <group id="MemoryView.MainMenu">
+            <reference ref="MemoryView.Actions"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </group>
+
+        <!-- 添加到工具窗口工具栏 -->
+        <group id="MemoryView.Toolbar">
+            <reference ref="MemoryView.GoToAddress"/>
+
+
+
+        </group>
+
+        <!-- 调试器栈帧上下文菜单 -->
+        <action id="CangJie.Debugger.DisassembleFrame"
+                class="org.cangnova.cangjie.protodebugger.memory.actions.DisassembleFunctionAction"
+                text="Disassemble Function"
+                description="Disassemble function at current frame">
+            <add-to-group group-id="XDebugger.Frames.Tree.Popup" anchor="first"/>
+        </action>
+
+        <action id="CangJie.Debugger.ViewMemory"
+                class="org.cangnova.cangjie.protodebugger.memory.actions.ViewMemoryAction"
+                text="View Memory"
+                description="View memory at current frame address">
+            <add-to-group group-id="XDebugger.Frames.Tree.Popup" anchor="after" relative-to-action="CangJie.Debugger.DisassembleFrame"/>
+        </action>
+    </actions>
 
 
 </idea-plugin>

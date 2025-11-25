@@ -22,7 +22,7 @@ dependencies {
 
     implementation("com.google.protobuf:protobuf-java:3.24.4")
     implementation("com.google.protobuf:protobuf-kotlin:3.24.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+
     testImplementation(kotlin("test"))
 }
 
@@ -51,8 +51,6 @@ protobuf {
 project(":plugin") {
     dependencies {
         implementation(project(":proto_debugger"))
-//        intellijPlatform {
-//            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-//        }
+
     }
 }

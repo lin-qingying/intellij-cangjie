@@ -25,11 +25,8 @@
 package org.cangnova.cangjie.protodebugger.breakpoint
 
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.xdebugger.breakpoints.XBreakpointHandler
 import com.intellij.xdebugger.breakpoints.XBreakpoint
 import org.cangnova.cangjie.protodebugger.core.CangJieDebugProcess
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 仓颉语言观察点处理器
@@ -40,176 +37,68 @@ import java.util.concurrent.ConcurrentHashMap
  * @param debugProcess 调试进程实例，用于访问调试器服务
  */
 class WatchpointBreakpointHandler(
-    private val debugProcess: CangJieDebugProcess
-) : XBreakpointHandler<WatchpointBreakpoint>(
-    WatchpointBreakpointType::class.java
+    debugProcess: CangJieDebugProcess
+) : BaseBreakpointHandler<WatchpointBreakpoint, WatchpointBreakpointType, WatchpointBreakpointType.Properties>(
+    WatchpointBreakpointType::class.java,
+    debugProcess
 ) {
 
     companion object {
         private val LOG = Logger.getInstance(WatchpointBreakpointHandler::class.java)
     }
 
-    /** 活跃的观察点集合 */
-    private val activeBreakpoints = ConcurrentHashMap<String, MutableSet<XBreakpoint<WatchpointBreakpointType.Properties>>>()
+    override fun getBreakpointIdentifier(breakpoint: WatchpointBreakpoint): String {
+        return breakpoint.properties.getExpression()
+    }
 
-    /** 观察点ID映射，用于跟踪调试器返回的观察点ID */
-    private val breakpointIds = ConcurrentHashMap<XBreakpoint<*>, Int>()
+    override fun isValidBreakpoint(breakpoint: WatchpointBreakpoint): Boolean {
+        return breakpoint.properties.isValidExpression()
+    }
 
-    /**
-     * 注册观察点
-     *
-     * 当用户在IDE中设置观察点时调用此方法。
-     * 将观察点信息发送到调试器服务器。
-     */
-    override fun registerBreakpoint(breakpoint: WatchpointBreakpoint) {
+    override fun sendBreakpointToDebugger(breakpoint: WatchpointBreakpoint): Long {
         val properties = breakpoint.properties
-        val expression = properties.getExpression()
-
-        LOG.debug("Registering watchpoint: $expression, enabled: ${breakpoint.isEnabled}")
-
-        // 添加到活跃观察点集合
-        activeBreakpoints.computeIfAbsent(expression) { mutableSetOf() }.add(breakpoint)
-
-        // 如果观察点启用，发送到调试器
-        if (breakpoint.isEnabled && properties.isValidExpression()) {
-            sendBreakpointToDebugger(breakpoint)
-        }
-    }
-
-    /**
-     * 移除观察点
-     *
-     * 当用户在IDE中移除观察点时调用此方法。
-     * 从调试器服务器中移除对应的观察点。
-     */
-    override fun unregisterBreakpoint(breakpoint: WatchpointBreakpoint, temporary: Boolean) {
-        val properties = breakpoint.properties ?: return
-        val expression = properties.getExpression()
-
-        LOG.debug("Unregistering watchpoint: $expression (temporary: $temporary)")
-
-        // 从活跃观察点集合中移除
-        activeBreakpoints[expression]?.remove(breakpoint)
-
-        // 从调试器中移除观察点
-        val breakpointId = breakpointIds.remove(breakpoint)
-        if (breakpointId != null) {
-            removeBreakpointFromDebugger(breakpointId)
-        }
-    }
-
-    /**
-     * 发送观察到调试器服务器
-     */
-    private fun sendBreakpointToDebugger(breakpoint: XBreakpoint<WatchpointBreakpointType.Properties>)  {
-        val properties = breakpoint.properties ?: return
 
         if (!properties.isValidExpression()) {
-            LOG.error("Invalid expression for watchpoint: ${properties.getExpression()}")
+            throw IllegalArgumentException("Invalid expression for watchpoint: ${properties.getExpression()}")
+        }
+
+        // 注意：观察点创建需要有效的LLDBVariable对象
+        // 这里返回0表示暂未创建，实际实现需要在运行时获取正确的变量
+        LOG.warn("Cannot create watchpoint without valid LLDBVariable for expression: ${properties.getExpression()}")
+        return 0L
+    }
+
+    override fun removeBreakpointFromDebugger(debuggerIdentifier: Any) {
+        val breakpointId = when (debuggerIdentifier) {
+            is Long -> debuggerIdentifier
+            is Number -> debuggerIdentifier.toLong()
+            else -> throw IllegalArgumentException("Invalid debugger identifier type: ${debuggerIdentifier::class.java}")
+        }
+
+        if (breakpointId == 0L) {
+            LOG.debug("Skipping removal of watchpoint with ID 0 (not created)")
             return
         }
 
-        val expression = properties.getExpression()
-        val accessType = properties.toLLAccessType()
-        val threadId = properties.getThreadId()
-
-        LOG.debug("Sending watchpoint to debugger: $expression, access: $accessType")
-
-          debugProcess.executeCommand {
-            try {
-                // 观察点需要在特定线程和帧中设置，这里使用默认值
-                // 注意：实际使用时需要在运行时获取正确的LLValue对象
-                // 这里暂时跳过观察点创建，因为需要有效的LLValue
-                LOG.warn("Cannot create watchpoint without valid LLValue for expression: $expression")
-
-                // 目前跳过观察点创建，因为需要有效的LLValue对象
-                LOG.debug("Watchpoint creation skipped - requires valid LLValue")
-            } catch (e: Exception) {
-                LOG.error("Failed to register watchpoint: $expression", e)
-                throw e
-            }
-        }
-    }
-
-    /**
-     * 从调试器服务器移除观察点
-     */
-    private fun removeBreakpointFromDebugger(breakpointId: Int)  {
         LOG.debug("Removing watchpoint from debugger: ID $breakpointId")
 
-          debugProcess.executeCommand {
-            try {
-                debugProcess.debuggerDriver.breakpointService.removeWatchpoints(listOf(breakpointId))
-                LOG.debug("Watchpoint removed successfully: ID $breakpointId")
-
-            } catch (e: Exception) {
-                LOG.error("Failed to remove watchpoint: ID $breakpointId", e)
-                throw e
-            }
-        }
+        debugProcess.executeCommand {
+            debugProcess.facade.breakpointService.removeBreakpoints(listOf(breakpointId))
+            Unit
+        }.get() // 等待异步结果
     }
 
-    /**
-     * 获取观察点ID
-     */
-    fun getBreakpointId(breakpoint: XBreakpoint<*>): Int? {
-        return breakpointIds[breakpoint]
-    }
+    override fun getBreakpointTypeName(): String = "Watchpoint"
 
-    /**
-     * 获取所有活跃观察点
-     */
-    fun getActiveBreakpoints(): Map<String, Set<XBreakpoint<WatchpointBreakpointType.Properties>>> {
-        return activeBreakpoints.toMap()
-    }
-
-    /**
-     * 启用所有观察点
-     */
-    fun enableAllBreakpoints() {
-        activeBreakpoints.values.flatten().forEach { breakpoint ->
-            if (!breakpoint.isEnabled && breakpoint.properties?.isValidExpression() == true) {
-                breakpoint.isEnabled = true
-                sendBreakpointToDebugger(breakpoint)
-            }
-        }
-    }
-
-    /**
-     * 禁用所有观察点
-     */
-    fun disableAllBreakpoints() {
-        val idsToDisable = mutableListOf<Int>()
-
-        activeBreakpoints.values.flatten().forEach { breakpoint ->
-            if (breakpoint.isEnabled) {
-                breakpoint.isEnabled = false
-                breakpointIds[breakpoint]?.let { id ->
-                    idsToDisable.add(id)
-                }
-            }
+    override fun shouldBreakpointBeRemoved(breakpoint: WatchpointBreakpoint): Boolean {
+        // 移除表达式无效的观察点
+        if (!breakpoint.properties.isValidExpression()) {
+            return true
         }
 
-        if (idsToDisable.isNotEmpty()) {
-            debugProcess.executeCommand {
-                debugProcess.debuggerDriver.breakpointService.removeWatchpoints(idsToDisable)
-                Unit
-            }
-        }
-    }
+        // 可以添加更多观察点特定的清理逻辑
+        // 比如移除指向已删除变量的观察点等
 
-    /**
-     * 切换观察点状态
-     */
-    fun toggleBreakpoint(breakpoint: XBreakpoint<WatchpointBreakpointType.Properties>) {
-        breakpoint.isEnabled = !breakpoint.isEnabled
-
-        if (breakpoint.isEnabled && breakpoint.properties?.isValidExpression() == true) {
-            sendBreakpointToDebugger(breakpoint)
-        } else {
-            breakpointIds.remove(breakpoint)?.let { id ->
-                removeBreakpointFromDebugger(id)
-            }
-        }
+        return false
     }
 }

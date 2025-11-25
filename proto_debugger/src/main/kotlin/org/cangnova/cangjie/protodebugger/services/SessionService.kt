@@ -1,15 +1,12 @@
 package org.cangnova.cangjie.protodebugger.services
 
-import org.cangnova.cangjie.protodebugger.data.LLFrame
-import org.cangnova.cangjie.protodebugger.data.LLThread
-import org.cangnova.cangjie.protodebugger.execution.ExitStatus
-import org.cangnova.cangjie.protodebugger.execution.TargetState
-import org.cangnova.cangjie.protodebugger.path.PathMapping
-import org.cangnova.cangjie.protodebugger.util.DebuggerSourceFileHash
+import org.cangnova.cangjie.protodebugger.data.LLDBFrame
+import org.cangnova.cangjie.protodebugger.data.LLDBThread
+import org.cangnova.cangjie.protodebugger.execution.state.TargetState
+import org.cangnova.cangjie.protodebugger.util.SourceFileHash
 import org.cangnova.cangjie.protodebugger.util.Installer
 import java.io.File
 import java.io.OutputStream
-import kotlinx.coroutines.CompletableDeferred
 
 /**
  * 会话服务接口
@@ -40,19 +37,6 @@ interface SessionService {
      */
     suspend fun loadForAttach(processId: Int): Inferior
 
-    /**
-     * 加载核心转储
-     *
-     * @param exePath 可执行文件路径
-     * @param corePath 核心转储文件路径
-     * @param architecture 目标架构
-     * @return Inferior对象
-     */
-    suspend fun loadCoreDump(
-        exePath: String,
-        corePath: String,
-        architecture: String?
-    ): Inferior
 
     /**
      * 加载远程调试
@@ -82,7 +66,7 @@ interface SessionService {
      *
      * @return 是否成功
      */
-    suspend fun kill(): Boolean
+    suspend fun terminate(): Boolean
 
     /**
      * 退出调试会话
@@ -92,11 +76,22 @@ interface SessionService {
     suspend fun exit(): Boolean
 
     /**
+     * 断开与调试目标的连接
+     *
+     * 终止与当前调试目标的连接，可选择是否销毁目标进程。
+     * 此方法用于清理调试会话并释放相关资源。
+     *
+     * @param shouldDestroy 是否应该销毁目标进程
+     *                     - true: 销毁目标进程，强制终止
+     *                     - false: 仅断开连接，保持目标进程运行
+     */
+    suspend fun disconnectTarget(shouldDestroy:Boolean): Unit
+    /**
      * 获取所有线程
      *
      * @return 线程列表
      */
-    suspend fun getThreads(): List<LLThread>
+    suspend fun getThreads(): List<LLDBThread>
 
     /**
      * 获取栈帧
@@ -107,17 +102,17 @@ interface SessionService {
      * @return 栈帧列表
      */
     suspend fun getFrames(
-        thread: LLThread,
+        thread: LLDBThread,
         startFrame: Int,
         maxFrames: Int
-    ): List<LLFrame>
+    ): List<LLDBFrame>
 
     /**
      * 获取当前停止的线程
      *
      * @return 停止的线程，如果没有则返回null
      */
-    fun getStoppedThread(): LLThread?
+    fun getStoppedThread(): LLDBThread?
 
     /**
      * 获取调试器状态
@@ -133,44 +128,9 @@ interface SessionService {
      */
     fun getProcessInput(): OutputStream?
 
-    /**
-     * 添加路径映射
-     *
-     * @param index 插入位置
-     * @param from 源路径
-     * @param to 目标路径
-     */
-    suspend fun addPathMapping(index: Int, from: String, to: String)
 
-    /**
-     * 添加强制文件映射
-     *
-     * @param index 插入位置
-     * @param from 源路径
-     * @param hash 文件哈希
-     * @param to 目标路径
-     */
-    suspend fun addForcedFileMapping(
-        index: Int,
-        from: String,
-        hash: DebuggerSourceFileHash?,
-        to: String
-    )
 
-    /**
-     * 添加符号文件
-     *
-     * @param symbols 符号文件
-     * @param module 模块文件（可选）
-     */
-    suspend fun addSymbolsFile(symbols: File, module: File?)
 
-    /**
-     * 取消符号下载
-     *
-     * @param details 详细信息
-     */
-    suspend fun cancelSymbolsDownload(details: String)
 
     /**
      * 执行解释器命令
@@ -186,12 +146,6 @@ interface SessionService {
         command: String
     ): String
 
-    /**
-     * 获取提示文本
-     *
-     * @return 提示文本
-     */
-    suspend fun getPromptText(): String
 
     /**
      * 是否处于提示模式

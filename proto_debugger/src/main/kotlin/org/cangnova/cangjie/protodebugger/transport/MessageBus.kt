@@ -1,8 +1,11 @@
 package org.cangnova.cangjie.protodebugger.transport
 
+
 import com.google.protobuf.Message
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withTimeout
+
 
 /**
  * 消息总线
@@ -31,7 +34,7 @@ class MessageBus(private val transport: Transport) : AutoCloseable {
             withTimeout(timeoutMs) {
                 transport.sendAndWait(request, responseClass, timeoutMs)
             }
-        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+        } catch (e: TimeoutCancellationException) {
             throw TransportTimeoutException("Request timed out after ${timeoutMs}ms")
         }
     }

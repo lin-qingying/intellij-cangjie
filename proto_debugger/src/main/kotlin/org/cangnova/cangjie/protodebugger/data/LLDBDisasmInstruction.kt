@@ -1,12 +1,10 @@
 package org.cangnova.cangjie.protodebugger.data
 
+import org.cangnova.cangjie.protodebugger.location.SourceLocation
 import org.cangnova.cangjie.protodebugger.memory.Address
 import org.cangnova.cangjie.protodebugger.memory.AddressRange
-import org.cangnova.cangjie.protodebugger.util.ByteList
 
 import org.cangnova.cangjie.protodebugger.memory.rangeTo
-
-import java.util.ArrayList
 
 /**
  * LLDB 反汇编指令类 (LLDBDisasmInstruction)
@@ -43,7 +41,7 @@ data class LLDBDisasmInstruction(
     val instruction: String,
     val comment: String,
     val size: Int,
-    val sourceLocation: FileLocation?,
+    val sourceLocation: SourceLocation?,
     val symbol: String?,
     val functionOffset: LLDBSymbolOffset? = null  // 保持向后兼容
 ) {
@@ -72,7 +70,7 @@ data class LLDBDisasmInstruction(
             instruction: String,
             comment: String = "",
             size: Int,
-            sourceLocation: FileLocation? = null,
+            sourceLocation: SourceLocation? = null,
             symbol: String? = null,
             functionOffset: LLDBSymbolOffset? = null
         ): LLDBDisasmInstruction {
@@ -116,7 +114,7 @@ data class LLDBDisasmInstruction(
             mnemonic: String,
             operands: String,
             comment: String? = null,
-            sourceLocation: FileLocation? = null,
+            sourceLocation: SourceLocation? = null,
             symbol: String? = null,
             functionOffset: LLDBSymbolOffset? = null
         ): LLDBDisasmInstruction {
@@ -157,7 +155,7 @@ data class LLDBDisasmInstruction(
      * 如果注释不为空，则在指令文本后添加注释。
      *
      * 格式规则：
-     * - 如果有注释：指令文本（33字符宽度对齐） + " ; " + 注释
+     * - 如果有注释：指令文本（33字符宽度对齐，使用空格填充） + " ; " + 注释
      * - 如果无注释：仅显示指令文本
      * - 最终结果会去除首尾空白字符
      *
@@ -170,7 +168,7 @@ data class LLDBDisasmInstruction(
      */
     val disassembly: String = ((if ((comment as CharSequence).isNotBlank()) instruction.padEnd(
         33,
-        '\u0000',
+        ' ',  // 使用空格而不是 null 字符
     ) + " ; " + comment else instruction) as CharSequence).trim().toString()
 
     /**
@@ -203,7 +201,7 @@ data class LLDBDisasmInstruction(
      */
     fun toDetailedString(): String {
         return buildString {
-            appendLine("地址: 0x${address.unsignedLongValue.toString(16).uppercase()}")
+            appendLine("地址: 0x${address.value.toString(16).uppercase()}")
             appendLine("机器码: $machineCodeHex")
             appendLine("指令: $instruction")
             if (comment.isNotBlank()) {
@@ -228,9 +226,9 @@ data class LLDBDisasmInstruction(
  * @return 转换后的 LLDBDisasmInstruction 对象
  */
 fun lldbprotobuf.Model.DisassembleInstruction.toLLDBInstruction(): LLDBDisasmInstruction {
-    val address = Address.fromUnsignedLong(this.address)
+    val address = Address.Companion.Factory.fromLong(this.address)
     val sourceLocation = if (this.hasSourceLocation()) {
-        FileLocation(
+        SourceLocation(
             path = this.sourceLocation.filePath,
             line = this.sourceLocation.line.toInt()
         )

@@ -33,9 +33,11 @@ import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XBreakpointType
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint
 import com.intellij.xdebugger.breakpoints.ui.XBreakpointCustomPropertiesPanel
+import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 import org.cangnova.cangjie.messages.DebuggerBundle
 import org.cangnova.cangjie.protodebugger.breakpoint.SymbolicBreakpointType.ID
-import org.cangnova.cangjie.protodebugger.data.LLSymbolicBreakpoint
+import org.cangnova.cangjie.protodebugger.core.CangJieDebuggerEditorsProvider
+import org.cangnova.cangjie.protodebugger.data.LLDBSymbolicBreakpoint
 import org.jetbrains.annotations.Nls
 import javax.swing.Icon
 
@@ -49,7 +51,12 @@ object SymbolicBreakpointType : XBreakpointType<SymbolicBreakpointXBreakpoint, S
     ID,
     DebuggerBundle.message("breakpoint.symbolic.title")
 ) {
-
+    override fun getEditorsProvider(
+        breakpoint: SymbolicBreakpointXBreakpoint,
+        project: Project
+    ): XDebuggerEditorsProvider? {
+        return CangJieDebuggerEditorsProvider()
+    }
     /**
      * 符号断点属性类
      *
@@ -180,8 +187,8 @@ object SymbolicBreakpointType : XBreakpointType<SymbolicBreakpointXBreakpoint, S
          * 转换为调试器服务的符号断点格式
          * 注意：这里的 id=0 是占位符，实际ID会在服务端分配
          */
-        fun toLLSymbolicBreakpoint(): LLSymbolicBreakpoint {
-            return LLSymbolicBreakpoint(
+        fun toLLDBSymbolicBreakpoint(): LLDBSymbolicBreakpoint {
+            return LLDBSymbolicBreakpoint(
                 id = 0, // ID will be assigned by the debugger service
                 symbolPattern = myState.symbolPattern,
                 condition = myState.condition,

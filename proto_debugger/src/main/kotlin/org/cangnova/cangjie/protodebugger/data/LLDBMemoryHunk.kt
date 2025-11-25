@@ -39,7 +39,7 @@ import kotlin.jvm.internal.Intrinsics
  * @see AddressRange 内存地址范围类
  * @see ByteList 字节列表工具类
  */
-data class LLMemoryHunk(
+data class LLDBMemoryHunk(
     val range: AddressRange,
     val bytes: List<Byte>
 ) {
@@ -52,7 +52,7 @@ data class LLMemoryHunk(
     override operator fun equals(other: Any?): Boolean {
         return if (this === other) {
             true
-        } else if (other !is LLMemoryHunk) {
+        } else if (other !is LLDBMemoryHunk) {
             false
         } else {
             val (range1, bytes1) = other

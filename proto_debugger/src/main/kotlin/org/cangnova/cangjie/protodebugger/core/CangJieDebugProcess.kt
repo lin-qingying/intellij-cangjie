@@ -16,365 +16,985 @@
 
 package org.cangnova.cangjie.protodebugger.core
 
-import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.console.ConsoleViewWrapperBase
+import com.intellij.execution.console.LanguageConsoleImpl
+import com.intellij.execution.console.LanguageConsoleView
 import com.intellij.execution.filters.TextConsoleBuilder
-import com.intellij.execution.process.AnsiEscapeDecoder
-import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessIOExecutorService
-import com.intellij.execution.process.ProcessOutputTypes
+import com.intellij.execution.impl.ConsoleViewImpl
+import com.intellij.execution.process.*
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.execution.ui.ExecutionConsole
+import com.intellij.execution.ui.RunnerLayoutUi
+import com.intellij.execution.ui.layout.PlaceInGrid
+import com.intellij.lang.Language
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.intellij.terminal.ProcessHandlerTtyConnector
 import com.intellij.terminal.TerminalExecutionConsole
-import com.intellij.xdebugger.XDebugProcess
-import com.intellij.xdebugger.XDebugSession
-import com.intellij.xdebugger.XSourcePosition
+import com.intellij.ui.content.Content
+import com.intellij.util.ModalityUiUtil
+import com.intellij.xdebugger.*
+import com.intellij.xdebugger.breakpoints.SuspendPolicy
+import com.intellij.xdebugger.breakpoints.XBreakpoint
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler
 import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
-import com.intellij.xdebugger.frame.XSuspendContext
+import com.intellij.xdebugger.evaluation.XDebuggerEditorsProviderBase
+import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
+import com.intellij.xdebugger.frame.*
+import com.intellij.xdebugger.frame.presentation.XValuePresentation
+import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodePresentationConfigurator
+import com.intellij.xdebugger.ui.XDebugTabLayouter
 import com.jediterm.core.util.TermSize
-import kotlinx.coroutines.*
-import kotlinx.coroutines.future.asCompletableFuture
+import org.cangnova.cangjie.ide.debugger.CodeFragmentContextTuner
 import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.protodebugger.breakpoint.AddressBreakpointHandler
-import org.cangnova.cangjie.protodebugger.breakpoint.CangJieDebuggerLineBreakpointHandler
-import org.cangnova.cangjie.protodebugger.breakpoint.SymbolicBreakpointHandler
-import org.cangnova.cangjie.protodebugger.breakpoint.WatchpointBreakpointHandler
-import org.cangnova.cangjie.protodebugger.data.LLThread
-import org.cangnova.cangjie.protodebugger.execution.ExitStatus
+import org.cangnova.cangjie.lang.CangJieLanguage
+import org.cangnova.cangjie.protodebugger.breakpoint.*
+import org.cangnova.cangjie.protodebugger.execution.exit.ExitStatus
 import org.cangnova.cangjie.protodebugger.services.DisasmService
 import org.cangnova.cangjie.protodebugger.settings.ArchitectureType
+import org.cangnova.cangjie.protodebugger.settings.DebuggerSettings
+import org.cangnova.cangjie.protodebugger.transport.isTest
 import org.cangnova.cangjie.protodebugger.util.InstallerImpl
-import org.jetbrains.concurrency.Promise
+import org.cangnova.cangjie.psi.CjPsiFactory
+import org.jetbrains.annotations.NonNls
+import org.jetbrains.debugger.SuspendContext
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.code
+import javax.swing.Icon
 
 /**
- * 仓颉语言调试进程类
+ * 仓颉语言调试进程核心类
  *
- * 负责管理仓颉语言的调试会话，包括与调试器的通信、执行控制、断点管理等功能。
- * 实现了 IntelliJ 平台的 XDebugProcess 接口，以集成到 IntelliJ 的调试框架中。
+ * 负责管理整个调试会话的生命周期，协调各个子模块完成调试任务。
+ * 采用组合模式将功能分散到专门的管理器中，保持职责边界清晰。
  *
- * @property parameters 运行参数，包含启动调试会话所需的配置信息
- * @property emulateTerminal 是否模拟终端环境
+ * 主要功能模块：
+ * - 状态管理：跟踪调试会话的各个状态
+ * - 生命周期管理：处理调试会话的启动、运行、停止
+ * - 断点管理：管理各种类型的断点
+ * - 控制台管理：处理输出和终端交互
+ *
+ * @property parameters 运行配置参数，包含可执行文件路径等信息
+ * @property session 调试会话对象，提供调试API
+ * @property consoleBuilder 控制台构建器，用于创建输出视图
  */
 class CangJieDebugProcess(
-    val parameters: RunParameters,
+    private val parameters: RunParameters,
     session: XDebugSession,
-    consoleBuilder: TextConsoleBuilder,
-    val emulateTerminal: Boolean = false
-) : XDebugProcess(session), Handler, UserDataHolderEx, Disposable {
+    consoleBuilder: TextConsoleBuilder
+) : XDebugProcess(session), UserDataHolderEx {
 
     // ==================== 核心组件 ====================
 
+    /** 用户数据存储器，用于存储与调试会话相关的临时数据 */
+    private val userDataHolder = UserDataHolderBase()
+
+    /** 控制台视图，展示程序输出和调试信息 */
     private val consoleView: ConsoleView = consoleBuilder.console
-    private val configuration = DebuggerDriverConfiguration()
 
-    val debuggerDriver: DebuggerDriverFacade = DebuggerDriverFacade(
-        handler = this,
-        configuration = configuration,
-        architectureType = ArchitectureType.X86_64,
-        this
-    )
-    private val userDataHolder: UserDataHolderBase = UserDataHolderBase()
-    private val editorsProvider: XDebuggerEditorsProvider = createEditorsProvider(session.runProfile)
+    /** 状态管理器，维护调试会话的状态机 */
+    private val stateManager = DebugStateManager()
 
-    // 独立的断点处理器实例
-    private val lineBreakpointHandler = CangJieDebuggerLineBreakpointHandler(this)
-    private val symbolicBreakpointHandler = SymbolicBreakpointHandler(this)
-    private val addressBreakpointHandler = AddressBreakpointHandler(this)
-    private val watchpointBreakpointHandler = WatchpointBreakpointHandler(this)
+    /** UI管理器，管理调试相关的所有UI面板 */
+    private val uiManager = DebugUIManager(this)
+
+    /** 生命周期管理器，控制调试会话的启动和停止 */
+    private val lifecycleManager = DebugLifecycleManager()
+
+    /** 断点管理器，统一管理所有类型的断点处理器 */
+    private val breakpointManager = BreakpointManager()
 
 
-    @Volatile
-    private var state: DebugState = DebugState.INITIALIZED
+    /** 项目引用 */
+    val project: Project get() = session.project
 
-    // 保存 loadForLaunch 的 Future，用于在 sessionInitialized 中等待
-    @Volatile
-    private var loadFuture: java.util.concurrent.CompletableFuture<Unit>? = null
 
-    // ==================== 属性访问器 ====================
+    /** 反汇编服务，用于查看底层汇编代码 */
+    val disasmService: DisasmService get() = facade.disasmService
 
-    val project: Project
-        get() = session.project
+    // ==================== 调试器事件处理器 ====================
 
-    // RequestExecutor 已移除，直接使用 debuggerDriver 的服务接口
+    /**
+     * 调试器事件处理器实现
+     *
+     * 处理来自调试器后端的各种事件，包括：
+     * - 目标程序输出
+     * - 调试器诊断信息
+     * - 程序终止事件
+     * - 断点命中事件
+     */
+    val debuggerHandler = object : DebuggerHandler {
 
-    val disasmService: DisasmService
-        get() = debuggerDriver.disasmService
+        /** 处理目标程序的标准输出和错误输出 */
+        override fun handleTargetOutput(text: String, type: Key<*>) {
+            consoleManager.notifyTextAvailable(text, type)
+        }
 
-    // ==================== 调试状态 ====================
-
-    enum class DebugState {
-        INITIALIZED,
-        STARTING,
-        STARTED,
-        FINISHED
-    }
-
-    // ==================== 编辑器提供者 ====================
-
-    private fun createEditorsProvider(profile: RunProfile?): XDebuggerEditorsProvider {
-        return object : XDebuggerEditorsProvider() {
-            override fun createDocument(
-                project: Project,
-                expression: com.intellij.xdebugger.XExpression,
-                sourcePosition: XSourcePosition?,
-                mode: EvaluationMode
-            ): Document {
-                return EditorFactory.getInstance().createDocument(expression.expression)
+        /**
+         * 根据 suspendPolicy 处理断点暂停
+         */
+        private fun processSuspendPolicy(
+            breakpoint: XBreakpoint<*>,
+            evaluatedLogExpression: String?,
+            suspendContext: CangJieSuspendContext
+        ) {
+            // 如果策略是 NONE，直接恢复执行
+            if (breakpoint.suspendPolicy == SuspendPolicy.NONE) {
+                executeCommand { facade.steppingService.resume() }
+                return
             }
 
-            override fun getFileType(): FileType = CangJieFileType.INSTANCE
+            // 其他策略（THREAD/ALL）：通知会话到达断点
+            val shouldSuspend = session.breakpointReached(breakpoint, evaluatedLogExpression, suspendContext)
+            if (!shouldSuspend) {
+                // 条件不满足或其他原因不需要暂停
+                executeCommand { facade.steppingService.resume() }
+            }
+            // shouldSuspend == true 时，调试器会自动暂停，无需额外处理
+        }
+
+        override fun handleBreakpoint(debugPausePoint: DebugPausePoint) {
+            val breakpointInfo = debugPausePoint.getBreakpointInfo()
+                ?: return handleStopped(debugPausePoint)
+
+            // 根据断点 ID 和类型查找对应断点
+            val breakpoint = breakpointManager.findBreakpointAt(
+                breakpointInfo.breakpointId,
+                breakpointInfo.type
+            )
+
+            val suspendContext = debugPausePoint.toCangJieSuspendContext(facade)
+
+            if (breakpoint == null) {
+                LOG.warn("Breakpoint not found for ID: ${breakpointInfo.breakpointId}, type: ${breakpointInfo.type}")
+                handleStopped(debugPausePoint)
+                return
+            }
+
+            val logExpr = breakpoint.logExpressionObject
+
+            // ============================================================
+            // 1. 日志表达式求值
+            // ============================================================
+            if (logExpr != null) {
+                val activeExecutionStack = suspendContext.activeExecutionStack
+
+                val frame = activeExecutionStack.topFrame
+                val sourcePosition = frame?.sourcePosition
+                val evaluator = frame?.evaluator
+                executeCommand {
+
+
+                    if (evaluator == null) {
+                        // 求值器不可用，直接处理暂停逻辑
+                        executeCommand {
+                            session.reportMessage("[Log Expression Error] Evaluator not available", MessageType.ERROR)
+                        }.whenComplete { _, _ ->
+                            processSuspendPolicy(breakpoint, null, suspendContext)
+                        }
+                    } else {
+                        evaluator.evaluate(
+                            logExpr,
+                            object : XDebuggerEvaluator.XEvaluationCallback {
+                                override fun evaluated(result: XValue) {
+                                    result.computePresentation(
+                                        object : XValueNode {
+
+                                            override fun setPresentation(
+                                                icon: Icon?,
+                                                type: @NonNls String?,
+                                                value: @NonNls String,
+                                                hasChildren: Boolean
+                                            ) {
+                                                session.reportMessage("[Log] $value", MessageType.INFO)
+
+                                                // ✅ 在这里，日志输出完成，传递求值结果
+                                                processSuspendPolicy(breakpoint, value, suspendContext)
+
+                                            }
+
+                                            override fun setPresentation(
+                                                icon: Icon?,
+                                                presentation: XValuePresentation,
+                                                hasChildren: Boolean
+                                            ) {
+
+                                            }
+
+                                            override fun setFullValueEvaluator(fullValueEvaluator: XFullValueEvaluator) {
+
+                                            }
+
+
+                                        },
+                                        XValuePlace.TOOLTIP
+
+
+                                    )
+                                }
+
+                                override fun errorOccurred(errorMessage: String) {
+                                    session.reportMessage("[Log Expression Error] $errorMessage", MessageType.ERROR)
+                                    // ✅ 求值出错，传递 null 或错误信息
+                                    processSuspendPolicy(breakpoint, null, suspendContext)
+
+                                }
+                            },
+                            breakpoint.sourcePosition
+                        )
+                    }
+                }
+            } else {
+                // ============================================================
+                // 2. 普通断点处理
+                // ============================================================
+
+                processSuspendPolicy(breakpoint, null, suspendContext)
+            }
+
+
+        }
+
+        /** 处理调试器自身的诊断输出 */
+        override fun handleDebuggerOutput(text: String, type: Key<*>) {
+            consoleManager.printToDebugConsole(text, type)
+        }
+
+        /** 处理目标程序终止事件 */
+        override fun handleTargetTerminated(exitStatus: ExitStatus) {
+            consoleManager.handleTermination(exitStatus)
+            session.stop()
+        }
+
+
+        /** 处理调试器退出事件 */
+        override fun handleExited(code: Int) {
+            session.stop()
+        }
+
+        /** 处理程序暂停事件（断点命中、单步等） */
+        override fun handleStopped(debugPausePoint: DebugPausePoint) {
+            session.positionReached(
+                debugPausePoint.toCangJieSuspendContext(facade)
+            )
         }
     }
 
-    override fun getEditorsProvider(): XDebuggerEditorsProvider = editorsProvider
+    /** 调试器驱动门面，提供统一的调试器操作接口 */
+    val facade: DebuggerDriverFacade = createFacade()
+
+    /** 控制台管理器，处理输出重定向和终端模拟 */
+    val consoleManager = ConsoleManager(this, consoleView)
+
+    // ==================== 初始化方法 ====================
 
     /**
-     * 获取所有断点处理器
+     * 创建调试器驱动门面
+     *
+     * 配置并初始化调试器驱动，设置架构类型和事件处理器
+     *
+     * @return 配置好的调试器驱动门面实例
+     */
+    private fun createFacade(): DebuggerDriverFacade {
+
+        return DebuggerDriverFacade(
+            session = session,
+            debuggerHandler = debuggerHandler,
+
+            architectureType = ArchitectureType.X86_64,
+
+            )
+    }
+
+    // ==================== XDebugProcess 核心方法 ====================
+
+    /**
+     * 创建额外的调试器UI标签页
+     *
+     * 注册调试器相关的附加UI面板，如调试控制台、内存视图等
+     *
+     * @return UI内容数组，每个元素代表一个标签页
+     */
+    override fun createTabLayouter(): XDebugTabLayouter {
+        return uiManager.createTabLayouter()
+    }
+
+    /**
+     * 提供编辑器支持，用于表达式求值等功能
+     */
+    override fun getEditorsProvider(): XDebuggerEditorsProvider {
+        return CangJieDebuggerEditorsProvider()
+    }
+
+    /**
+     * 注册断点处理器
+     *
+     * @return 所有支持的断点类型处理器数组
      */
     override fun getBreakpointHandlers(): Array<XBreakpointHandler<*>> {
-        return arrayOf(
-            lineBreakpointHandler,
-            symbolicBreakpointHandler,
-            addressBreakpointHandler,
-            watchpointBreakpointHandler
-        )
+        return breakpointManager.getAllHandlers()
+    }
+
+
+    /**
+     * 获取进程处理器，用于控制台集成
+     */
+    override fun doGetProcessHandler(): ProcessHandler {
+        return consoleManager.processHandler
+    }
+
+    /**
+     * 创建控制台视图
+     */
+    override fun createConsole(): ConsoleView {
+        return consoleManager.createConsole()
     }
 
     // ==================== 用户数据管理 ====================
 
-    override fun <T : Any?> putUserDataIfAbsent(key: Key<T?>, value: T & Any): T & Any {
-        return userDataHolder.putUserDataIfAbsent(key, value)
-    }
+    override fun <T : Any?> getUserData(key: Key<T?>): T? = userDataHolder.getUserData(key)
 
-    override fun <T : Any?> replace(key: Key<T?>, oldValue: T?, newValue: T?): Boolean {
-        return userDataHolder.replace(key, oldValue, newValue)
-    }
+    override fun <T : Any?> putUserData(key: Key<T?>, value: T?) = userDataHolder.putUserData(key, value)
 
-    override fun <T : Any?> getUserData(key: Key<T?>): T? {
-        return userDataHolder.getUserData(key)
-    }
+    override fun <T : Any?> putUserDataIfAbsent(key: Key<T?>, value: T & Any): T & Any =
+        userDataHolder.putUserDataIfAbsent(key, value)
 
-    override fun <T : Any?> putUserData(key: Key<T?>, value: T?) {
-        userDataHolder.putUserData(key, value)
-    }
+    override fun <T : Any?> replace(key: Key<T?>, oldValue: T?, newValue: T?): Boolean =
+        userDataHolder.replace(key, oldValue, newValue)
 
-
-    // ==================== 生命周期管理 ====================
+    // ==================== 生命周期控制 ====================
 
     /**
-     * 启动调试进程
+     * 启动调试会话
+     *
+     * 加载目标程序并准备调试环境
      */
-    fun start() {
-        try {
-            state = DebugState.STARTING
-
-            // executeCommand 会自动等待初始化完成
-            parameters.runExecutable?.let { executable ->
-                loadFuture = executeCommand {
-                    debuggerDriver.sessionService.loadForLaunch(
-                        InstallerImpl(executable),
-                        ArchitectureType.X86_64.getId()
-                    )
-                    state = DebugState.STARTED
-                    logInfo("Target loaded successfully")
-                }.whenComplete { _, error ->
-                    if (error != null) {
-                        logError("Failed to load target: ${error.message}")
-                        state = DebugState.FINISHED
-                    }
-                }
-            }
-
-        } catch (e: Exception) {
-            state = DebugState.FINISHED
-            logError("Failed to start debug process: ${e.message}")
-            throw e
-        }
-    }
-
-    override fun sessionInitialized() {
-        // sessionInitialized 在 IDE 准备好后调用
-        // 此时断点已注册，可以发送启动命令
-        // 等待 loadForLaunch 完成后再发送启动命令
-        val future = loadFuture
-        if (future != null) {
-            future.thenCompose { _ ->
-                executeCommand {
-                    if (state == DebugState.STARTED) {
-                        // 发送启动命令
-                        debuggerDriver.sessionService.startTarget()
-                        this.session.rebuildViews()
-                        logInfo("Target started successfully")
-                    }
-                }
-            }.whenComplete { _, error ->
-                if (error != null) {
-                    logError("Failed to start target: ${error.message}")
-                }
-            }
-        } else {
-            // 如果没有 loadFuture，说明没有可执行文件，直接返回
-            logInfo("No executable to start")
-        }
-    }
+    fun start() = lifecycleManager.start()
 
     /**
-     * 停止调试
+     * 会话初始化完成回调
+     *
+     * 在调试环境准备好后启动目标程序
      */
-    override fun stop() {
-        try {
-            debuggerDriver.close()
-            state = DebugState.FINISHED
-        } catch (e: Exception) {
-            logError("Error stopping debugger: ${e.message}")
-        }
-    }
-
-    // ==================== 暂停上下文 ====================
+    override fun sessionInitialized() = lifecycleManager.onSessionInitialized()
 
     /**
-     * 构建暂停上下文
+     * 停止调试会话
+     *
+     * 清理资源并终止目标程序
      */
-    private fun buildSuspendContext(): XSuspendContext? {
-        return debuggerDriver.getStoppedThread()?.let { thread ->
-            CangJieSuspendContext(thread, debuggerDriver)
-        }
-    }
+    override fun stop() = lifecycleManager.stop()
+
 
     // ==================== 步进操作 ====================
 
     /**
-     * 单步跳过
+     * 单步跳过（Step Over）
+     *
+     * 执行当前行，如果是函数调用则不进入函数内部
      */
     override fun startStepOver(context: XSuspendContext?) {
-        executeStepCommand(context, "step over") { thread ->
-            debuggerDriver.steppingService.stepOver(thread, false)
+        if (context is CangJieSuspendContext) {
+            executeCommand {
+                facade.sessionService.getStoppedThread()?.let { thread ->
+                    facade.steppingService.stepOver(thread)
+                }
+            }
         }
     }
 
     /**
-     * 单步进入
+     * 单步进入（Step Into）
+     *
+     * 执行当前行，如果是函数调用则进入函数内部
      */
     override fun startStepInto(context: XSuspendContext?) {
-        executeStepCommand(context, "step into") { thread ->
-            debuggerDriver.steppingService.stepInto(thread, false, false)
+        if (context is CangJieSuspendContext) {
+            executeCommand {
+                facade.sessionService.getStoppedThread()?.let { thread ->
+                    facade.steppingService.stepInto(thread)
+                }
+            }
         }
     }
 
     /**
-     * 单步跳出
+     * 单步跳出（Step Out）
+     *
+     * 执行完当前函数并返回到调用处
      */
     override fun startStepOut(context: XSuspendContext?) {
-        executeStepCommand(context, "step out") { thread ->
-            debuggerDriver.steppingService.stepOut(thread, false)
+        if (context is CangJieSuspendContext) {
+            executeCommand {
+                facade.sessionService.getStoppedThread()?.let { thread ->
+                    facade.steppingService.stepOut(thread)
+                }
+            }
         }
     }
 
     /**
-     * 继续执行
+     * 暂停程序执行
+     */
+    override fun startPausing() {
+        executeCommand {
+            facade.steppingService.suspend()
+        }
+    }
+
+    /**
+     * 恢复程序执行
      */
     override fun resume(context: XSuspendContext?) {
         executeCommand {
-            debuggerDriver.steppingService.resume()
-        }.whenComplete { _, error ->
-            if (error != null) {
-                logError("Resume failed: ${error.message}")
-            } else {
-                logInfo("Resume executed")
-            }
-        }
+            facade.steppingService.resume()
+        }.handleResult("Resume")
     }
 
+    override fun runToPosition(position: XSourcePosition, context: XSuspendContext?) {
+        executeCommand {
+            val address = facade.memoryViewFacade.getDisasmStore().getAddressAtSourcePosition(position)
+            if (address != null) {
+                facade.steppingService.runToAddress(address)
+            } else {
+                facade.steppingService.runToLine(position.file.path, position.line - 1)
+            }
+
+        }.handleResult("Run to Position")
+
+    }
+
+
+    override fun getAlternativeSourceHandler(): XAlternativeSourceHandler {
+        return CangJieAlternativeSourceHandler(facade)
+    }
     // ==================== 辅助方法 ====================
 
     /**
-     * 执行步进命令的通用方法
+     * 在调试器上下文中异步执行命令
+     *
+     * @param block 要执行的挂起函数
+     * @return CompletableFuture，用于跟踪执行结果
      */
-    private fun executeStepCommand(
-        context: XSuspendContext?,
-        operationName: String,
-        stepAction: suspend (LLThread) -> Unit
-    ) {
-        val thread = (context as? CangJieSuspendContext)?.thread
-            ?: debuggerDriver.getStoppedThread()
+    fun <T> executeCommand(block: suspend () -> T): CompletableFuture<T> {
+        return facade.executeCommand { block() }
+    }
 
-        if (thread == null) {
-            logError("No active thread for $operationName")
-            return
+    /**
+     * 处理异步操作结果，记录日志
+     */
+    private fun <T> CompletableFuture<T>.handleResult(operationName: String) =
+        whenComplete { _, error ->
+            when {
+                error != null -> LOG.error("$operationName failed", error)
+                else -> LOG.info("$operationName completed successfully")
+            }
         }
 
-        executeCommand {
-            stepAction(thread)
-        }.whenComplete { _, error ->
-            if (error != null) {
-                logError("$operationName failed: ${error.message}")
-            } else {
-                logInfo("$operationName executed")
+    // ==================== 内部类：状态管理器 ====================
+
+    /**
+     * 调试状态管理器
+     *
+     * 维护调试会话的状态机，确保状态转换的有效性。
+     * 状态流转：INITIALIZED -> LOADING -> LOADED -> RUNNING <-> STOPPED -> TERMINATED
+     */
+    private class DebugStateManager {
+
+        @Volatile
+        private var currentState: State = State.INITIALIZED
+
+        /**
+         * 调试会话状态枚举
+         */
+        enum class State {
+            /** 已初始化，尚未开始加载 */
+            INITIALIZED,
+
+            /** 正在加载目标程序 */
+            LOADING,
+
+            /** 目标程序已加载，尚未运行 */
+            LOADED,
+
+            /** 目标程序正在运行 */
+            RUNNING,
+
+            /** 目标程序已暂停（断点/单步） */
+            STOPPED,
+
+            /** 调试会话已终止 */
+            TERMINATED
+        }
+
+        /**
+         * 尝试转换到新状态
+         *
+         * @param newState 目标状态
+         * @return 转换是否成功
+         */
+        fun transitionTo(newState: State): Boolean {
+            val oldState = currentState
+            if (!isValidTransition(oldState, newState)) {
+                LOG.warn("Invalid state transition: $oldState -> $newState")
+                return false
+            }
+            currentState = newState
+            LOG.info("State transition: $oldState -> $newState")
+            return true
+        }
+
+        /**
+         * 获取当前状态
+         */
+        fun getCurrent(): State = currentState
+
+        /**
+         * 检查状态转换是否合法
+         */
+        private fun isValidTransition(from: State, to: State): Boolean {
+            return when (from) {
+                State.INITIALIZED -> to in setOf(State.LOADING, State.TERMINATED)
+                State.LOADING -> to in setOf(State.LOADED, State.TERMINATED)
+                State.LOADED -> to in setOf(State.RUNNING, State.TERMINATED)
+                State.RUNNING -> to in setOf(State.STOPPED, State.TERMINATED)
+                State.STOPPED -> to in setOf(State.RUNNING, State.TERMINATED)
+                State.TERMINATED -> false // 终止状态是最终状态
             }
         }
     }
 
-    fun <T> executeCommand(
-        block: suspend () -> T
-    ): CompletableFuture<T> {
+    // ==================== 内部类：生命周期管理器 ====================
 
-        return debuggerDriver.executeCommand {
-            block()
+    /**
+     * 调试生命周期管理器
+     *
+     * 负责协调调试会话的启动、运行和停止流程。
+     * 使用 CompletableFuture 处理异步加载和启动过程。
+     */
+    private inner class DebugLifecycleManager {
+
+        /** 目标程序加载的 Future */
+        private val loadFuture = AtomicReference<CompletableFuture<Unit>?>()
+
+        /**
+         * 启动调试会话
+         *
+         * 加载目标可执行文件并准备调试环境
+         */
+        fun start() {
+            if (!stateManager.transitionTo(DebugStateManager.State.LOADING)) {
+                return
+            }
+
+            val executable = parameters.runExecutable ?: run {
+                LOG.warn("No executable specified")
+                stateManager.transitionTo(DebugStateManager.State.TERMINATED)
+                return
+            }
+
+            val future = executeCommand {
+                facade.sessionService.loadForLaunch(
+                    InstallerImpl(executable),
+                    ArchitectureType.X86_64.getId()
+                )
+            }.thenApply {
+                stateManager.transitionTo(DebugStateManager.State.LOADED)
+                LOG.info("Target loaded successfully")
+            }.exceptionally { error ->
+                stateManager.transitionTo(DebugStateManager.State.TERMINATED)
+
+            }
+
+            loadFuture.set(future)
+        }
+
+        /**
+         * 会话初始化完成后启动目标程序
+         */
+        fun onSessionInitialized() {
+            loadFuture.get()?.thenCompose {
+                if (stateManager.getCurrent() == DebugStateManager.State.LOADED) {
+                    executeCommand {
+                        facade.sessionService.startTarget()
+                        stateManager.transitionTo(DebugStateManager.State.RUNNING)
+                    }.thenApply {
+                        session.rebuildViews()
+                        LOG.info("Target started successfully")
+                    }
+                } else {
+                    CompletableFuture.completedFuture(Unit)
+                }
+            }
+        }
+
+        /**
+         * 停止调试会话并清理资源
+         */
+        fun stop() {
+            try {
+                // 在 UI 线程中清理断点
+                ModalityUiUtil.invokeLaterIfNeeded(ModalityState.defaultModalityState()) {
+                    if (!project.isDisposed) {
+                        breakpointManager.cleanup()
+                    }
+                }
+
+                // 终止进程
+                processHandler.destroyProcess()
+
+                // 测试模式下立即停止会话
+                if (isTest) {
+                    session.stop()
+                }
+
+                stateManager.transitionTo(DebugStateManager.State.TERMINATED)
+            } catch (e: Exception) {
+                LOG.error("Error stopping debugger", e)
+            }
         }
     }
-    override fun handleTargetOutput(text: String, type: Key<*>) {
-        this.processHandler.notifyTextAvailable(text, type)
+
+    // ==================== 内部类：断点管理器 ====================
+
+    /**
+     * 断点管理器
+     *
+     * 统一管理所有类型的断点处理器：
+     * - 行断点：在源代码特定行设置断点
+     * - 符号断点：在函数名处设置断点
+     * - 地址断点：在内存地址处设置断点
+     * - 监视点：监视内存位置的读写
+     */
+    private inner class BreakpointManager {
+
+        private val handlers = listOf(
+            LineBreakpointHandler(this@CangJieDebugProcess),
+            SymbolicBreakpointHandler(this@CangJieDebugProcess),
+            AddressBreakpointHandler(this@CangJieDebugProcess),
+            WatchpointBreakpointHandler(this@CangJieDebugProcess)
+        )
+
+        /**
+         * 清理所有断点
+         */
+        fun cleanup() {
+            handlers.forEach { it.cleanup() }
+        }
+
+        /**
+         * 获取所有断点处理器
+         */
+        fun getAllHandlers(): Array<XBreakpointHandler<*>> = handlers.toTypedArray()
+
+        /**
+         * 在指定位置查找断点
+         *
+         * @param filePosition 文件位置信息
+         * @return 找到的断点信息，如果没有找到则返回 null
+         */
+        fun findBreakpointAt(filePosition: XSourcePosition): XBreakpoint<*>? {
+            return handlers.firstNotNullOfOrNull { handler ->
+                when (handler) {
+                    is LineBreakpointHandler -> handler.findBreakpointAt(filePosition)
+                    is SymbolicBreakpointHandler -> handler.findBreakpointAt(filePosition)
+                    is AddressBreakpointHandler -> handler.findBreakpointAt(filePosition)
+                    is WatchpointBreakpointHandler -> handler.findBreakpointAt(filePosition)
+                    else -> null
+                }
+            }
+        }
+
+        /**
+         * 根据断点ID和类型查找断点
+         *
+         * @param breakpointId 断点ID
+         * @param breakpointType 断点类型
+         * @return 找到的断点信息，如果没有找到则返回 null
+         */
+        fun findBreakpointAt(breakpointId: Long, breakpointType: lldbprotobuf.Model.BreakpointType): XBreakpoint<*>? {
+            return handlers.firstNotNullOfOrNull { handler ->
+                when (breakpointType) {
+                    lldbprotobuf.Model.BreakpointType.BREAKPOINT_TYPE_LINE ->
+                        if (handler is LineBreakpointHandler) handler.findBreakpointById(breakpointId) else null
+
+                    lldbprotobuf.Model.BreakpointType.BREAKPOINT_TYPE_SYMBOLIC ->
+                        if (handler is SymbolicBreakpointHandler) handler.findBreakpointById(breakpointId) else null
+
+                    lldbprotobuf.Model.BreakpointType.BREAKPOINT_TYPE_ADDRESS ->
+                        if (handler is AddressBreakpointHandler) handler.findBreakpointById(breakpointId) else null
+
+                    lldbprotobuf.Model.BreakpointType.BREAKPOINT_TYPE_WATCHPOINT ->
+                        if (handler is WatchpointBreakpointHandler) handler.findBreakpointById(breakpointId) else null
+
+                    else -> null
+                }
+            }
+        }
+
+        /**
+         * 根据断点ID查找断点（遍历所有处理器）
+         *
+         * @param breakpointId 断点ID
+         * @return 找到的断点信息，如果没有找到则返回 null
+         */
+        fun findBreakpointById(breakpointId: Long): XBreakpoint<*>? {
+            return handlers.firstNotNullOfOrNull { handler ->
+                when (handler) {
+                    is LineBreakpointHandler -> handler.findBreakpointById(breakpointId)
+                    is SymbolicBreakpointHandler -> handler.findBreakpointById(breakpointId)
+                    is AddressBreakpointHandler -> handler.findBreakpointById(breakpointId)
+                    is WatchpointBreakpointHandler -> handler.findBreakpointById(breakpointId)
+                    else -> null
+                }
+            }
+        }
     }
 
-    private val processHandler: ExeProcessHandler =
-        ExeProcessHandler()
+    companion object {
+        private val LOG = Logger.getInstance(CangJieDebugProcess::class.java)
+    }
+}
 
+// ==================== 控制台管理器 ====================
 
-    private inner class ExeProcessHandler : ProcessHandler() {
-        private val myExitCode = AtomicReference<Int>()
-        private val myAnsiEscapeDecoder = AnsiEscapeDecoder()
+/**
+ * 控制台管理器
+ *
+ * 负责管理调试会话的输出和交互，支持两种模式：
+ * 1. 标准控制台模式：简单的文本输出
+ * 2. 终端模拟模式：完整的终端仿真，支持颜色和控制序列
+ *
+ * @property debuggerProcess 调试进程引用
+ * @property consoleView 控制台视图
+ */
+class ConsoleManager(
+    val debuggerProcess: CangJieDebugProcess,
+    val consoleView: ConsoleView
+) {
 
-        fun setExitCode(exitCode: Int) {
-            myExitCode.set(exitCode)
+    /** 进程处理器，用于与 IntelliJ 平台集成 */
+    val processHandler = ConsoleProcessHandler()
+
+    /** 调试控制台，用于显示调试器日志信息 */
+    val debugConsole: ConsoleView by lazy {
+        ConsoleViewImpl(
+            debuggerProcess.project,
+            true
+        )
+    }
+    val cjdbConsole: LanguageConsoleView by lazy {
+        LanguageConsoleImpl(
+            debuggerProcess.project,
+            "CangJie Debug Cjdb Console",
+            CangJieLanguage
+        ).apply {
+            prompt = "cjdb> "
+        }
+    }
+
+    /**
+     * 创建并配置控制台视图
+     *
+     * 根据设置选择标准控制台或终端模拟模式
+     */
+    fun createConsole(): ConsoleView {
+        if (DebuggerSettings.getInstance().isEmulateTerminal()) {
+            setupTerminalConsole()
+        } else {
+            consoleView.attachToProcess(processHandler)
+        }
+        return consoleView
+    }
+
+    /**
+     * 配置终端模拟控制台
+     *
+     * 提供完整的终端仿真功能，支持 PTY 和窗口大小调整
+     */
+    private fun setupTerminalConsole() {
+        val terminal = findTerminalConsole(consoleView) ?: run {
+            LOG.error("Cannot retrieve TerminalExecutionConsole")
+            consoleView.attachToProcess(processHandler)
+            return
         }
 
-        override fun getExitCode(): Int {
-            return myExitCode.get() ?: 0
+        val connector = createTtyConnector()
+        terminal.attachToProcess(processHandler, connector, true)
+    }
+
+    /**
+     * 递归查找终端控制台实例
+     */
+    private fun findTerminalConsole(view: ConsoleView): TerminalExecutionConsole? {
+        return when (view) {
+            is TerminalExecutionConsole -> view
+            is ConsoleViewWrapperBase -> findTerminalConsole(view.delegate)
+            else -> null
+        }
+    }
+
+    /**
+     * 创建 TTY 连接器，支持窗口大小调整
+     */
+    private fun createTtyConnector(): ProcessHandlerTtyConnector {
+        return object : ProcessHandlerTtyConnector(
+            processHandler,
+            EncodingProjectManager.getInstance(debuggerProcess.project).defaultCharset
+        ) {
+            override fun resize(termSize: TermSize) {
+                this@ConsoleManager.resize(termSize.columns, termSize.rows)
+            }
+        }
+    }
+
+    /**
+     * 调整终端窗口大小
+     */
+    fun resize(columns: Int, rows: Int) {
+        debuggerProcess.executeCommand {
+            debuggerProcess.facade.resize(columns, rows)
+        }
+    }
+
+    /**
+     * 输出调试器诊断信息到调试控制台
+     */
+    fun printToDebugConsole(text: String, type: Key<*>) {
+        val contentType = when {
+            ProcessOutputType.isStdout(type) -> ConsoleViewContentType.NORMAL_OUTPUT
+            ProcessOutputType.isStderr(type) -> ConsoleViewContentType.ERROR_OUTPUT
+            else -> ConsoleViewContentType.SYSTEM_OUTPUT
         }
 
-        override fun destroyProcessImpl() {
-            doDestroyOrDetach(false)
+        ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any()) {
+            debugConsole.print(text, contentType)
+        }
+    }
+
+    /**
+     * 处理目标程序终止事件
+     */
+    fun handleTermination(exitStatus: ExitStatus) {
+        processHandler.handleTermination(exitStatus)
+    }
+
+    /**
+     * 转发目标程序输出到控制台
+     */
+    fun notifyTextAvailable(text: String, type: Key<*>) {
+        processHandler.notifyTextAvailable(text, type)
+    }
+
+    // ==================== 内部类：进程处理器 ====================
+
+    /**
+     * 控制台进程处理器
+     *
+     * 实现 ProcessHandler 接口，用于与 IntelliJ 平台的控制台系统集成。
+     * 处理进程生命周期、输出重定向和 ANSI 转义序列解码。
+     */
+    inner class ConsoleProcessHandler : ProcessHandler() {
+
+        private val exitCodeRef = AtomicReference<Int?>()
+        private val ansiDecoder = AnsiEscapeDecoder()
+
+        init {
+            // 监听进程终止事件，关闭调试器连接
+            addProcessListener(object : ProcessAdapter() {
+                override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+                    debuggerProcess.facade.close()
+
+                }
+            }, debuggerProcess.facade.facadeDisposable)
         }
 
-        override fun detachProcessImpl() {
-            doDestroyOrDetach(true)
+        /**
+         * 进程退出码
+         */
+        var exitCode: Int
+            get() = exitCodeRef.get() ?: 0
+            set(value) = exitCodeRef.set(value)
+
+        override fun getExitCode(): Int = exitCode
+
+        override fun destroyProcessImpl() = terminateProcess(detach = false)
+
+        override fun detachProcessImpl() = terminateProcess(detach = true)
+
+        override fun detachIsDefault(): Boolean = false
+
+        override fun getProcessInput(): OutputStream? = null
+
+        /**
+         * 处理文本输出
+         *
+         * 在终端模拟模式下，解码 ANSI 转义序列
+         */
+        override fun notifyTextAvailable(text: String, outputType: Key<*>) {
+            if (DebuggerSettings.getInstance().isEmulateTerminal()) {
+                super.notifyTextAvailable(text, outputType)
+            } else {
+                ansiDecoder.escapeText(text, outputType) { decodedText, decodedType ->
+                    super.notifyTextAvailable(decodedText, decodedType)
+                }
+            }
         }
 
-        protected fun waitForTermination(): Boolean {
-            return debuggerDriver.frontendHandler.waitFor()
+        /**
+         * 处理目标程序终止
+         */
+        fun handleTermination(exitStatus: ExitStatus) {
+            when (exitStatus) {
+                is ExitStatus.Normal -> {
+                    exitCode = exitStatus.code
+                    exitStatus.description?.let { description ->
+                        notifyTextAvailable("$description\n", ProcessOutputTypes.SYSTEM)
+                    }
+                }
+
+                is ExitStatus.Signal -> {
+                    exitCode = exitStatus.exitCode
+                    notifyTextAvailable(
+                        "进程被信号终止: ${exitStatus.signalName ?: exitStatus.signalNumber}\n",
+                        ProcessOutputTypes.SYSTEM
+                    )
+                }
+
+                ExitStatus.Unknown -> {
+                    exitCode = -1
+                }
+            }
         }
 
-        private fun doDestroyOrDetach(detach: Boolean) {
+        /**
+         * 终止进程
+         *
+         * @param detach 是否分离（detach）而非杀死进程
+         */
+        private fun terminateProcess(detach: Boolean) {
+            if (isTest) return
+
             ProcessIOExecutorService.INSTANCE.execute {
-                if (waitForTermination()) {
+                if (waitForDebuggerTermination()) {
                     if (detach) {
                         notifyProcessDetached()
                     } else {
@@ -384,98 +1004,146 @@ class CangJieDebugProcess(
             }
         }
 
-        fun isDetachDefault(): Boolean {
-            return false
+        /**
+         * 等待调试器完全终止
+         */
+        private fun waitForDebuggerTermination(): Boolean {
+            if (isTest) return true
+            return debuggerProcess.facade.frontendHandler.waitFor()
         }
-
-        override fun detachIsDefault(): Boolean {
-            return isDetachDefault()
-        }
-
-        override fun getProcessInput(): OutputStream? {
-            return null
-        }
-
-        override fun notifyTextAvailable(text: String, outputType: Key<*>) {
-            if (emulateTerminal) {
-                super.notifyTextAvailable(text, outputType)
-            } else {
-                myAnsiEscapeDecoder.escapeText(text, outputType) { x0, x1 ->
-                    super.notifyTextAvailable(x0, x1)
-                }
-            }
-        }
-    }
-
-    /**
-     * 输出错误日志
-     */
-    private fun logError(message: String) {
-        consoleView.print("$message\n", ConsoleViewContentType.ERROR_OUTPUT)
-    }
-
-    fun resize(columns: Int, rows: Int) {
-        executeCommand { debuggerDriver.resize(columns, rows) }
-    }
-
-    override fun createConsole(): ConsoleView {
-        if (emulateTerminal) {
-
-
-            val terminalExecutionConsole = getTerminalExecutionConsole(consoleView)
-            terminalExecutionConsole?.attachToProcess(processHandler, object : ProcessHandlerTtyConnector(
-                processHandler,
-                EncodingProjectManager.getInstance(project).defaultCharset
-            ) {
-                override fun resize(termSize: TermSize) {
-                    this@CangJieDebugProcess.resize(termSize.columns, termSize.rows)
-                }
-            }, true)
-        } else {
-            consoleView.attachToProcess(processHandler)
-        }
-
-        return consoleView
-    }
-
-    private fun getTerminalExecutionConsole(consoleView: ConsoleView): TerminalExecutionConsole? = when (consoleView) {
-        is TerminalExecutionConsole -> consoleView
-        is ConsoleViewWrapperBase -> getTerminalExecutionConsole(consoleView.delegate)
-        else -> {
-            LOG.error("Cannot retrieve TerminalExecutionConsole from ConsoleView")
-            null
-        }
-    }
-
-    /**
-     * 输出普通日志
-     */
-    private fun logInfo(message: String) {
-        consoleView.print("$message\n", ConsoleViewContentType.NORMAL_OUTPUT)
-    }
-
-    override fun dispose() {
-
-    }
-
-    override fun handleTargetTerminated(exitStatus: ExitStatus) {
-        if (exitStatus !== ExitStatus.UNKNOWN) {
-            this.processHandler.exitCode = exitStatus.code
-            if (exitStatus.description != null) {
-                this.processHandler.notifyTextAvailable(exitStatus.description + "\n", ProcessOutputTypes.SYSTEM)
-            }
-        } else {
-            this.processHandler.exitCode = -1
-        }
-        this.session.stop()
-    }
-
-    override fun handleExited(code: Int) {
-
-        this.session.stop()
     }
 
     companion object {
-        val LOG = Logger.getInstance(CangJieDebugProcess::class.java)
+        private val LOG = Logger.getInstance(ConsoleManager::class.java)
+
+
     }
 }
+
+
+// ==================== UI管理器 ====================
+
+/**
+ * 调试UI管理器
+ *
+ * 负责管理调试会话中的所有UI面板，包括：
+ * 1. 调试控制台（Debug Console）：显示调试器适配器的输出
+ * 2. 内存视图（Memory View）：查看和编辑内存内容
+ * 3. 反汇编视图（Disassembly View）：查看汇编代码
+ * 4. 寄存器视图（Registers View）：查看CPU寄存器状态
+ *
+ * @property debuggerProcess 调试进程引用
+ */
+class DebugUIManager(
+    private val debuggerProcess: CangJieDebugProcess
+) {
+
+    /** 内存视图实例（延迟初始化） */
+//    private var memoryView: MemoryViewConsole? = null
+
+    /**
+     * 创建调试标签页布局器
+     *
+     * 定义调试器窗口中各个标签页的布局和内容
+     */
+    fun createTabLayouter(): XDebugTabLayouter {
+        return object : XDebugTabLayouter() {
+
+            /**
+             * 注册额外的调试标签页
+             *
+             * @param info 布局信息对象，用于注册标签页
+             */
+            override fun registerAdditionalContent(ui: RunnerLayoutUi) {
+                registerCjdbConsoleTab(ui)
+                // 注册调试控制台标签页
+                registerDebugLogConsoleTab(ui)
+
+                // 注册内存视图标签页
+//                registerMemoryViewTab(ui)
+
+                // 可以继续添加其他标签页
+                // registerDisassemblyManagerTab(info)
+                // registerRegistersViewTab(info)
+            }
+
+            override fun registerConsoleContent(ui: RunnerLayoutUi, console: ExecutionConsole): Content {
+
+                val content = super.registerConsoleContent(ui, console)
+
+                return content
+            }
+
+            /**
+             * 注册调试控制台标签页
+             *
+             * 显示调试器适配器（LLDB）的原始输出，用于：
+             * - 查看调试器命令和响应
+             * - 诊断调试器问题
+             * - 手动输入调试器命令（高级用户）
+             */
+            private fun registerDebugLogConsoleTab(ui: RunnerLayoutUi) {
+                val debugConsole = debuggerProcess.consoleManager.debugConsole
+
+                val content = ui.createContent(
+                    DEBUG_LLDB_CONSOLE_LOG_ID,
+                    debugConsole.component,
+                    "Debug Log",
+                    null, // 可以使用 AllIcons.Debugger.Console
+                    null
+                )
+                content.isCloseable = false
+
+                ui.addContent(content, 1, PlaceInGrid.bottom, false)
+
+                LOG.info("Registered Debug Console tab")
+
+            }
+
+            private fun registerCjdbConsoleTab(ui: RunnerLayoutUi) {
+                val debugConsole = debuggerProcess.consoleManager.cjdbConsole
+
+                val content = ui.createContent(
+                    DEBUG_CJDB_CONSOLE_ID,
+                    debugConsole.component,
+                    "Cjdb",
+                    null, // 可以使用 AllIcons.Debugger.Console
+                    null
+                )
+                content.isCloseable = false
+
+                ui.addContent(content, 0, PlaceInGrid.center, false)
+
+                LOG.info("Registered Cjdb Console tab")
+            }
+
+
+        }
+    }
+
+    /**
+     * 清理资源
+     */
+    fun dispose() {
+//        memoryView?.dispose()
+//        memoryView = null
+    }
+
+    companion object {
+        private val LOG = Logger.getInstance(DebugUIManager::class.java)
+
+        /** 调试控制台内容ID */
+        private const val DEBUG_LLDB_CONSOLE_LOG_ID = "CangJieLLDBLog"
+        private const val DEBUG_CJDB_CONSOLE_ID = "CangJieCjdbConsole"
+
+        /** 内存视图内容ID */
+        private const val MEMORY_VIEW_CONTENT_ID = "CangJieMemoryView"
+
+        /** 反汇编视图内容ID */
+        private const val DISASSEMBLY_VIEW_CONTENT_ID = "CangJieDisassemblyManager"
+
+        /** 寄存器视图内容ID */
+        private const val REGISTERS_VIEW_CONTENT_ID = "CangJieRegistersView"
+    }
+}
+

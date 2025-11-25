@@ -94,5 +94,10 @@ interface NamedPipe {
      */
     @Throws(IOException::class)
     fun close()
+
+
+
+    @Throws(IOException::class)
+    fun waitForConnection(): Boolean
 }
 

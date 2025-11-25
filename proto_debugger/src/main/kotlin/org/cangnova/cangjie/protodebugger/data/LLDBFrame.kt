@@ -24,14 +24,13 @@
 
 package org.cangnova.cangjie.protodebugger.data
 
-import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.text.StringUtil
+import lldbprotobuf.Model
 import org.cangnova.cangjie.protodebugger.memory.Address
-import org.cangnova.cangjie.protodebugger.util.DebuggerSourceFileHash
-import proto.Model
+import org.cangnova.cangjie.protodebugger.util.SourceFileHash
 
 /**
- * 低级别栈帧（LLFrame）类
+ * 低级别栈帧（LLDBFrame）类
  *
  * 该类表示调试器调用栈中的一个栈帧，包含了函数调用的详细信息。
  * 栈帧是调试器显示调用栈和进行函数级别调试的基础数据结构。
@@ -59,31 +58,30 @@ import proto.Model
  * @param optimized 是否为优化代码，优化代码的调试可能受限
  * @param inlined 是否为内联函数，内联函数在调用栈中可能不可见
  */
-class LLFrame(
+class LLDBFrame(
     val index: Int,
-    private val function: String?,
+    val id: Long,
+    private val _function: String?,
     val module: String?,
     val file: String?,
-    val hash: DebuggerSourceFileHash?,
+    val hash: SourceFileHash?,
     val line: Int,
     val programCounter: Address,
 
-    private val optimized: Boolean,
-    val inlined: Boolean
-) {
+
+    ) {
     constructor(
         index: Int,
+        id: Long,
         function: String?,
         file: String?,
-        hash: DebuggerSourceFileHash?,
+        hash: SourceFileHash?,
         line: Int,
         pc: Long,
 
-        optimized: Boolean,
-        inlined: Boolean,
-        module: String?
-    ) : this(index, function, module, file, hash, line, Address.fromUnsignedLong(pc),  optimized, inlined)
 
+        module: String?
+    ) : this(index, id, function, module, file, hash, line, Address.Companion.Factory.fromLong(pc))
 
 
     /**
@@ -99,10 +97,11 @@ class LLFrame(
      *
      * @return 函数名称，如果未知则返回"<unknown>"
      */
-    @NlsSafe
-    fun getFunction(): String {
-        return StringUtil.notNullize(function, "<unknown>")
-    }
+
+    val function: String
+        get() {
+            return StringUtil.notNullize(_function, "<unknown>")
+        }
 
     /**
      * 检查是否具有符号信息
@@ -118,7 +117,7 @@ class LLFrame(
      * @return 如果有函数名信息返回true，否则返回false
      */
     fun hasSymbolInfo(): Boolean {
-        return this.function != null
+        return this._function != null
     }
 
     /**
@@ -137,23 +136,39 @@ class LLFrame(
     fun hasDebugInfo(): Boolean {
         return this.file != null
     }
-    override fun toString(): String {
-        return String.format(
-            "%d: %s %s@%s(%s):%d (%s)%s",
-            index,
-            programCounter,
-            function,
-            file,
-            hash,
-            line,
 
-            if (optimized) " [opt]" else ""
-        )
+    /**
+     * 返回栈帧的字符串表示
+     *
+     * 生成一个包含栈帧关键信息的字符串，格式为：
+     * "Frame {index}: {function} at {file}:{line} [pc={programCounter}]"
+     *
+     * 使用场景：
+     * - 调试日志记录
+     * - 调试器UI显示
+     * - 错误报告和诊断信息
+     *
+     * @return 格式化的栈帧信息字符串
+     */
+    override fun toString(): String {
+        val functionName = function
+        val fileName = file ?: "<unknown file>"
+        val moduleInfo = if (!module.isNullOrEmpty()) " in $module" else ""
+
+        return buildString {
+            append("Frame ").append(index)
+            append(": ").append(functionName)
+            append(" at ").append(fileName).append(":").append(line)
+            append(" [pc=").append(programCounter).append("]")
+            if (moduleInfo.isNotEmpty()) {
+                append(moduleInfo)
+            }
+        }
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is LLFrame) return false
+        if (other !is LLDBFrame) return false
 
         if (line != other.line) return false
         if (index != other.index) return false
@@ -162,47 +177,49 @@ class LLFrame(
         if (hash != other.hash) return false
         if (programCounter != other.programCounter) return false
 
-        if (optimized != other.optimized) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = index
+        var result = index.toInt()
         result = 31 * result + (function?.hashCode() ?: 0)
         result = 31 * result + (file?.hashCode() ?: 0)
         result = 31 * result + (hash?.hashCode() ?: 0)
         result = 31 * result + line
         result = 31 * result + programCounter.hashCode()
 
-        result = 31 * result + optimized.hashCode()
+
         return result
     }
 }
 
-private fun createSourceFileHash(type: Model.HashAlgorithm?, hash: String?): DebuggerSourceFileHash? {
+private fun createSourceFileHash(type: Model.HashAlgorithm?, hash: String?): SourceFileHash? {
     return if (type != null && hash != null) {
-        val t: DebuggerSourceFileHash.Type = when (type) {
-            Model.HashAlgorithm.HASH_ALGORITHM_MD5 -> DebuggerSourceFileHash.Type.MD5
-            Model.HashAlgorithm.HASH_ALGORITHM_SHA1 -> DebuggerSourceFileHash.Type.SHA1
-            Model.HashAlgorithm.HASH_ALGORITHM_SHA256 -> DebuggerSourceFileHash.Type.SHA256
+        val t: SourceFileHash.Type = when (type) {
+            Model.HashAlgorithm.HASH_ALGORITHM_MD5 -> SourceFileHash.Type.MD5
+            Model.HashAlgorithm.HASH_ALGORITHM_SHA1 -> SourceFileHash.Type.SHA1
+            Model.HashAlgorithm.HASH_ALGORITHM_SHA256 -> SourceFileHash.Type.SHA256
             else -> return null
         }
-        DebuggerSourceFileHash(t, hash)
+        SourceFileHash(t, hash)
     } else {
         null
     }
 }
-  fun newLLFrame(frame: proto.Model.StackFrame): LLFrame {
-    return LLFrame(
+
+fun newLLDBFrame(frame: Model.Frame): LLDBFrame {
+    return LLDBFrame(
         frame.index,
+        frame.id.id,
         frame.functionName,
+
         frame.location.filePath,
-        createSourceFileHash(frame.location.hashAlgorithm, frame.location.hashValue),
+        createSourceFileHash(frame.location.hash.hashAlgorithm, frame.location.hash.hashValue),
         frame.location.line - 1,
         frame.programCounter,
-        frame.isOptimized,
-        frame.isInlined,
-        frame.moduleName
-    )
+
+        frame.module,
+
+        )
 }

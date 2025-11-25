@@ -61,17 +61,17 @@ class CangJieClassName private constructor( // Internal name:  kotlin/Map$Entry
         get() {
             val lastSlash = internalName.lastIndexOf("/")
             if (lastSlash == -1) return FqName.ROOT
-            return FqName(internalName.substring(0, lastSlash).replace('/', '.'))
+            return FqName(internalName.take(lastSlash).replace('/', '.'))
         }
 
     override fun toString(): String {
         return internalName
     }
 
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-        return internalName == (o as CangJieClassName).internalName
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || javaClass != other.javaClass) return false
+        return internalName == (other as CangJieClassName).internalName
     }
 
     override fun hashCode(): Int {

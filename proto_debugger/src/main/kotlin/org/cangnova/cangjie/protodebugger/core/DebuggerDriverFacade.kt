@@ -2,51 +2,58 @@ package org.cangnova.cangjie.protodebugger.core
 
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.BaseProcessHandler
-import com.intellij.execution.process.OSProcessHandler
-import com.intellij.execution.process.OSProcessUtil
-import com.intellij.execution.process.ProcessAdapter
-import com.intellij.execution.process.ProcessEvent
-import com.intellij.execution.process.ProcessTerminatedListener
+import com.intellij.execution.process.*
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootUtil
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.PathUtil
+import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableJob
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExecutorCoroutineDispatcher
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.ensureActive
+import com.intellij.util.io.DigestUtil
+import com.intellij.util.system.CpuArch
+import com.intellij.xdebugger.XDebugSession
+import com.intellij.xdebugger.XDebuggerUtil
+import com.intellij.xdebugger.XSourcePosition
+import kotlinx.coroutines.*
 import kotlinx.coroutines.future.asCompletableFuture
-import kotlinx.coroutines.job
-import kotlinx.coroutines.withContext
-import org.cangnova.cangjie.process.CjProcessHandler
+import org.cangnova.cangjie.messages.DebuggerBundle
 import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
-import org.cangnova.cangjie.protodebugger.execution.TargetState
+import org.cangnova.cangjie.protodebugger.execution.state.TargetState
 import org.cangnova.cangjie.protodebugger.memory.Address
+import org.cangnova.cangjie.protodebugger.memory.MemoryViewFacade
+import org.cangnova.cangjie.protodebugger.path.getBinFile
+import org.cangnova.cangjie.protodebugger.process.DebuggerProcessFactory
+import org.cangnova.cangjie.protodebugger.process.HostMachine
+import org.cangnova.cangjie.protodebugger.process.LocalHost
 import org.cangnova.cangjie.protodebugger.services.*
 import org.cangnova.cangjie.protodebugger.services.impl.*
 import org.cangnova.cangjie.protodebugger.settings.ArchitectureType
-import org.cangnova.cangjie.protodebugger.transport.BroadcastHandler
+import org.cangnova.cangjie.protodebugger.settings.ArchitectureType.*
+import org.cangnova.cangjie.protodebugger.settings.DebuggerSettings
+import org.cangnova.cangjie.protodebugger.transport.EventBroadcastHandler
 import org.cangnova.cangjie.protodebugger.transport.MessageBus
-import org.cangnova.cangjie.protodebugger.transport.SocketTransport
+import org.cangnova.cangjie.protodebugger.transport.ServerSocketTransport
 import org.cangnova.cangjie.protodebugger.transport.isTest
-import proto.ProtocolResponses
+import org.cangnova.cangjie.protodebugger.util.SourceFileHash
+import org.cangnova.cangjie.protodebugger.util.ToolVersion
+import org.cangnova.cangjie.protodebugger.util.appendSearchPath
+import java.io.File
 import java.io.IOException
-import java.io.OutputStream
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 
 /**
  * 调试器驱动门面
@@ -55,42 +62,63 @@ import java.util.concurrent.TimeUnit
  * 这是重构后的DebuggerDriver的替代品
  */
 class DebuggerDriverFacade(
-    private val handler: Handler,
-    val configuration: DebuggerDriverConfiguration,
-    architectureType: ArchitectureType,
-    parentDisposable: Disposable
-) : AutoCloseable {
+
+    val session: XDebugSession,
+    private val debuggerHandler: DebuggerHandler,
+    private val architectureType: ArchitectureType,
+
+
+    ) : AutoCloseable {
     companion object {
         private val LOG = Logger.getInstance(DebuggerDriverFacade::class.java)
 
         @Throws(DebuggerCommandException::class)
         fun parseAddressSafe(str: String): Address {
-
-
             return try {
-                Address.parseHexString(str)
+                Address.Companion.Parser.hex(str)
             } catch (numberFormatException: NumberFormatException) {
                 throw DebuggerCommandException(numberFormatException)
             }
         }
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    /**
+     * 负责释放所有依托该类的子类资源，所有相关资源释放必须要要使用该属性注册
+     */
+    val facadeDisposable = Disposer.newDisposable()
+    val project get() = session.project
+
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     // 传输层
-    private val transport: SocketTransport = SocketTransport()
+    private val transport: ServerSocketTransport = ServerSocketTransport()
 
     val messageBus: MessageBus = MessageBus(transport)
 
     // 状态管理器 - 单一真实来源
-    private val stateManager: DebuggerStateManager = DebuggerStateManager()
+    val stateManager: DebuggerStateManager = DebuggerStateManager()
 
-    private val broadcastHandler: BroadcastHandler = BroadcastHandler(
+    private val eventBroadcastHandler: EventBroadcastHandler = EventBroadcastHandler(
         messageBus,
         stateManager,
-        handler,
+        debuggerHandler,
         scope
     )
+
+    // ==================== 配置属性 ====================
+
+    val isElevated: Boolean get() = false
+    val emulateTerminal: Boolean get() = DebuggerSettings.getInstance().isEmulateTerminal()
+    val isContinueAfterAttachNeeded: Boolean get() = true
+    val hostMachine: HostMachine get() = LocalHost
+    val useSTLRenderers: Boolean get() = DebuggerSettings.getInstance().isStlRenderersEnabled()
+    val disableASLR: Boolean get() = DebuggerSettings.getInstance().isDisableASLR()
+
+    fun isStaticVarsLoadingEnabled() = Registry.`is`("cangjie.debugger.lldb.statics")
+
+    fun convertToProjectModelPath(absolutePath: String?) = absolutePath ?: "null"
+    fun convertToLocalPath(absolutePath: String?) = absolutePath
+    fun convertToEnvPath(localPath: String?) = localPath
 
     // 服务层
     val breakpointService: BreakpointService
@@ -100,33 +128,91 @@ class DebuggerDriverFacade(
     val disasmService: DisasmService
     val sessionService: SessionService
 
+    // 内存视图门面
+    val memoryViewFacade: MemoryViewFacade
+
     // 进程处理器
-    private val commandLine = configuration.createDriverCommandLine(this, architectureType)
+    private val commandLine = DebuggerProcessFactory.createDriverCommandLine(port, architectureType)
     lateinit var frontendHandler: BaseProcessHandler<*>
+
 
     init {
 
 
-        broadcastHandler.start()
+        eventBroadcastHandler.start()
 
         // 初始化服务层（使用broadcastHandler获取capabilities）
         // 先创建 sessionService，因为其他服务可能需要依赖它
         sessionService = SessionServiceImpl(
+            debuggerHandler,
             messageBus,
-            configuration,
+            this,
             DebuggerCapabilities(0),
             stateProvider = { stateManager.getState() },
             stoppedThreadProvider = { stateManager.getStoppedThread() }
         )
-        breakpointService = BreakpointServiceImpl(this, messageBus, configuration, 0L)
-        steppingService = SteppingServiceImpl(messageBus, configuration, 0L)
-        evalService = EvalServiceImpl(messageBus, configuration)
+        breakpointService = BreakpointServiceImpl(this, messageBus, this, 0L)
+        steppingService = SteppingServiceImpl(messageBus, this, 0L)
+        evalService = EvalServiceImpl(messageBus, this)
         memoryService = MemoryServiceImpl(messageBus, 0L)
-        disasmService = DisasmServiceImpl(messageBus, 0L)
+        disasmService = DisasmServiceImpl(messageBus, 0L, session)
+
+        // 创建内存视图门面
+        memoryViewFacade = MemoryViewFacade(this)
+
         if (!isTest) {
             // 创建前端进程处理器
-            frontendHandler = createDebugProcessHandler(commandLine, configuration)
+            frontendHandler = DebuggerProcessFactory.createDebugProcessHandler(commandLine, isElevated, hostMachine)
+            frontendHandler.addProcessListener(
+                object : ProcessAdapter() {
 
+
+                    override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
+
+                        val text = event.text
+                        if (text != null) {
+                            if (ProcessOutputType.isStderr(outputType) || ProcessOutputType.isStdout(outputType)) {
+                                if (LOG.isDebugEnabled) {
+                                    LOG.debug(PathUtil.getFileName(commandLine.exePath) + " [" + outputType + "]: " + text)
+                                }
+                                debuggerHandler.handleDebuggerOutput(text, outputType)
+                            }
+                        }
+                    }
+
+                    override fun processTerminated(event: ProcessEvent) {
+                        val exitCode = event.exitCode
+                        LOG.info("Debugger frontend process terminated with exit code: $exitCode")
+
+
+                        // 清理I/O资源
+                        cleanupResources()
+
+                        // 通知handler进程已终止
+                        debuggerHandler.handleExited(exitCode)
+                    }
+
+
+                    private fun cleanupResources() {
+                        try {
+                            // 关闭服务
+                            messageBus.close()
+
+                            // 取消协程作用域
+                            // scope.cancel() 本身不会抛出异常，但会取消所有正在执行的协程
+                            scope.cancel()
+
+                            // 清理SessionService中的I/O资源
+                            sessionService.let { service ->
+                                // 关闭I/O资源管理器
+                                service.close()
+                            }
+                        } catch (e: Exception) {
+                            LOG.warn("Error cleaning up session service resources", e)
+                        }
+                    }
+                }, facadeDisposable
+            )
             // 启动前端进程
             startFrontend()
         }
@@ -156,7 +242,7 @@ class DebuggerDriverFacade(
      * @throws kotlinx.coroutines.TimeoutCancellationException 如果超时（30秒）
      */
     suspend fun waitForInitialization() {
-        broadcastHandler.waitForInitialization()
+        eventBroadcastHandler.waitForInitialization()
     }
 
     /**
@@ -175,81 +261,47 @@ class DebuggerDriverFacade(
         }
     }
 
-    fun doExit(): Boolean {
+    fun exit(): Boolean {
 
-        executeCommand {
+        return executeCommand {
 
-sessionService.exit()
-        }
-        return stateManager.isInitialized()
+            sessionService.exit()
+        }.get()
+
 
     }
 
-    private fun createDebugProcessHandler(
-        commandLine: GeneralCommandLine,
-        configuration: DebuggerDriverConfiguration
-    ): BaseProcessHandler<*> {
-
-
-        val handler = configuration.createDebugProcessHandler(commandLine)
-        val process = handler.process
-
-        handler.addProcessListener(object : ProcessAdapter() {
-            override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
-
-                if (process.isAlive && willBeDestroyed) {
-                    try {
-                        if (!doExit()) {
-                            return
-                        }
-                    } catch (e: ExecutionException) {
-                        LOG.warn(e)
-                        return
-                    }
-
-                    try {
-                        process.waitFor(1500L, TimeUnit.MILLISECONDS)
-                    } catch (e: InterruptedException) {
-                    }
+    private fun executeSyncCommand(block: suspend () -> Unit): Boolean {
+        return try {
+            runBlocking(coroutineDispatcher) {
+                withTimeout(2000L) {
+                    block()
                 }
             }
-
-            override fun processTerminated(event: ProcessEvent) {
-
-
-                val exitCodeString =
-                    ProcessTerminatedListener.stringifyExitCode(
-                        configuration.hostMachine.osType.toOS(),
-                        event.exitCode
-                    )
-                LOG.info("[PID ${process.pid()}] Debugger exited with code $exitCodeString")
-
-                if (process.isAlive && OSProcessHandler.processCanBeKilledByOS(process)) {
-                    OSProcessUtil.killProcess(process)
-                }
-            }
-        })
-
-
-
-        return handler
+            true
+        } catch (e: TimeoutCancellationException) {
+            LOG.warn("Command timeout")
+            false
+        } catch (e: Exception) {
+            LOG.warn("Command failed: ${e.message}")
+            false
+        }
     }
 
     override fun close() {
         try {
-            // 关闭服务
-            messageBus.close()
-
-            // 取消协程作用域
-            scope.cancel()
-
             if (!isTest) {
                 // 停止前端进程
                 if (!frontendHandler.isProcessTerminated) {
-                    frontendHandler.destroyProcess()
+                    hostMachine.destroyProcess(frontendHandler)
                 }
+            } else {
+                messageBus.close()
+                scope.cancel()
+
             }
 
+            Disposer.dispose(facadeDisposable)
 
             LOG.info("Debugger driver closed")
         } catch (e: Exception) {
@@ -289,11 +341,41 @@ sessionService.exit()
         this.alternativeCoroutineDispatcher = createBoundedApplicationPoolExecutor2.asCoroutineDispatcher()
 
         // 注册资源清理，确保IDE关闭时正确释放调度器资源
-        Disposer.register(parentDisposable) {
+        Disposer.register(facadeDisposable) {
             LOG.debug("Closing coroutine dispatchers")
             coroutineDispatcher.close()
             alternativeCoroutineDispatcher.close()
         }
+    }
+
+    fun locateFileByPath(
+        path: String,
+        hash: SourceFileHash?
+    ): VirtualFile? {
+        val file = LocalFileSystem.getInstance().findFileByPath(path)
+        return if (file == null || hash != null && !isHashMatched(file, hash)) null else file
+    }
+
+    private fun getDigest(type: SourceFileHash.Type): MessageDigest {
+        return when (type) {
+            SourceFileHash.Type.MD5 -> DigestUtil.md5()
+            SourceFileHash.Type.SHA1 -> DigestUtil.sha1()
+            SourceFileHash.Type.SHA256 -> DigestUtil.sha256()
+        }
+    }
+
+    private fun isHashMatched(
+        file: VirtualFile,
+        hash: SourceFileHash
+    ): Boolean {
+        ProgressManager.checkCanceled()
+        val digest = getDigest(hash.type)
+        try {
+            digest.update(file.contentsToByteArray())
+        } catch (e: IOException) {
+            return false
+        }
+        return DigestUtil.digestToHash(digest) == hash.hash
     }
 
     /**
@@ -314,7 +396,7 @@ sessionService.exit()
      * @param block 要执行的调试器命令 suspend 函数
      *
      * 状态检查逻辑：
-     * - 当 canExecuteWhileRunning = false 时，只允许在 TargetState.SUSPENDED 状态下执行
+     * - 当 canExecuteWhileRunning = false 时，只允许在 TargetState.Paused 状态下执行
      * - 当 canExecuteWhileRunning = true 时，允许在任何状态下执行
      * - 如果状态不允许执行命令，任务会被优雅地取消而不是抛出异常
      *
@@ -353,7 +435,7 @@ sessionService.exit()
             waitForInitialization()
 
             // 检查调试器状态，如果不允许在运行时执行且当前状态不是暂停，则取消任务
-            if (!canExecuteWhileRunning && stateManager.getState() !== TargetState.SUSPENDED) {
+            if (!canExecuteWhileRunning && stateManager.getState() !== TargetState.Paused) {
                 LOG.debug("Cannot execute command while debugger is running, cancelling task")
                 // 取消协程并返回取消的Future
                 coroutineContext.cancel()
@@ -363,6 +445,10 @@ sessionService.exit()
 
             try {
                 block()
+            } catch (e: CancellationException) {
+                // 协程取消是正常的流程控制，直接重新抛出，不包装
+                LOG.debug("Command execution cancelled")
+                throw e
             } catch (e: ExecutionException) {
                 throw e
             } catch (e: Exception) {
@@ -391,7 +477,7 @@ sessionService.exit()
 
         return scope.async(dispatcher) {
             // 检查调试器状态，如果不允许在运行时执行且当前状态不是暂停，则取消任务
-            if (!canExecuteWhileRunning && stateManager.getState() !== TargetState.SUSPENDED) {
+            if (!canExecuteWhileRunning && stateManager.getState() !== TargetState.Paused) {
                 LOG.debug("Cannot execute command while debugger is running, cancelling task")
                 // 取消协程并返回取消的Future
                 coroutineContext.cancel()
@@ -401,6 +487,10 @@ sessionService.exit()
 
             try {
                 block()
+            } catch (e: CancellationException) {
+                // 协程取消是正常的流程控制，直接重新抛出，不包装
+                LOG.debug("Command execution cancelled")
+                throw e
             } catch (e: ExecutionException) {
                 throw e
             } catch (e: Exception) {
@@ -409,6 +499,18 @@ sessionService.exit()
         }.asCompletableFuture()
     }
 
+    /**
+     * 异步执行命令，不等待结果返回
+     *
+     * @param block 要执行的挂起函数块
+     */
+    fun executeCommandAsync(
+        block: suspend () -> Unit
+    ) {
+        scope.launch {
+            block()
+        }
+    }
 
     /**
      * 获取当前调试器状态
@@ -419,19 +521,53 @@ sessionService.exit()
      * 获取当前停止的线程
      */
     fun getStoppedThread() = stateManager.getStoppedThread()
+    fun getStopPlace() = stateManager.getStopPlace()
 
     /**
      * 获取调试器能力标志
      */
     fun getCapabilities() = stateManager.getCapabilities()
 
-    /**
-     * 获取调试器版本
-     */
-    fun getVersion() = stateManager.getVersion()
+
     suspend fun resize(columns: Int, rows: Int) {
 
 
     }
+
+
+    /**
+     * 设置变量值
+     *
+     * @param variable 要修改的变量
+     * @param newValue 新的值
+     * @return 修改是否成功
+     */
+    suspend fun setVariableValue(
+        variable: org.cangnova.cangjie.protodebugger.data.LLDBVariable,
+        newValue: String
+    ): Boolean {
+        return evalService.setValue(variable, newValue)
+    }
+
+    /**
+     * 检查变量是否可修改
+     *
+     * @param variable 变量
+     * @return 如果变量可修改返回true，否则返回false
+     */
+    suspend fun isVariableMutable(variable: org.cangnova.cangjie.protodebugger.data.LLDBVariable): Boolean {
+        return evalService.isMutable(variable)
+    }
+
+    fun createSourcePosition(filePath: String, hash: SourceFileHash?, line: Int): XSourcePosition? {
+        val file = locateFileByPath(filePath, hash)
+        return file?.let {
+            XDebuggerUtil.getInstance().createPosition(it, line)
+        }
+
+    }
+
+
 }
+
 

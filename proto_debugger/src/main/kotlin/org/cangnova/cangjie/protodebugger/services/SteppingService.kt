@@ -1,8 +1,7 @@
 package org.cangnova.cangjie.protodebugger.services
 
-import org.cangnova.cangjie.protodebugger.breakpoint.StopPlace
-import org.cangnova.cangjie.protodebugger.data.LLThread
-import org.cangnova.cangjie.protodebugger.execution.ExecutionResult
+import org.cangnova.cangjie.protodebugger.breakpoint.DebugPausePoint
+import org.cangnova.cangjie.protodebugger.data.LLDBThread
 import org.cangnova.cangjie.protodebugger.memory.Address
 
 /**
@@ -19,11 +18,29 @@ interface SteppingService {
     suspend fun resume(): Boolean
 
     /**
+     * 运行到指定行
+     *
+     * @param path 源文件路径
+     * @param line 行号
+     */
+    suspend fun runToLine(path: String, line: Int)
+
+
+
+    /**
+     * 运行到指定地址
+     *
+     * @param address 目标地址
+     */
+    suspend fun runToAddress(address: Address)
+
+
+    /**
      * 中断程序执行
      *
      * @return 是否成功
      */
-    suspend fun interrupt(): Boolean
+    suspend fun suspend(): Boolean
 
     /**
      * 单步进入
@@ -33,7 +50,7 @@ interface SteppingService {
      * @param stepByInstruction 是否按指令单步
      */
     suspend fun stepInto(
-        thread: LLThread,
+        thread: LLDBThread,
         forceStepIntoFramesWithNoDebugInfo: Boolean = false,
         stepByInstruction: Boolean = false
     )
@@ -45,7 +62,7 @@ interface SteppingService {
      * @param stepByInstruction 是否按指令单步
      */
     suspend fun stepOver(
-        thread: LLThread,
+        thread: LLDBThread,
         stepByInstruction: Boolean = false
     )
 
@@ -56,24 +73,10 @@ interface SteppingService {
      * @param stopInFramesWithNoDebugInfo 是否在无调试信息的帧中停止
      */
     suspend fun stepOut(
-        thread: LLThread,
+        thread: LLDBThread,
         stopInFramesWithNoDebugInfo: Boolean = false
     )
 
-    /**
-     * 运行到指定地址
-     *
-     * @param address 目标地址
-     */
-    suspend fun runToAddress(address: Address)
-
-    /**
-     * 运行到指定行
-     *
-     * @param path 源文件路径
-     * @param line 行号
-     */
-    suspend fun runToLine(path: String, line: Int)
 
     /**
      * 跳转到指定地址
@@ -84,10 +87,10 @@ interface SteppingService {
      * @return 停止位置
      */
     suspend fun jumpToAddress(
-        thread: LLThread,
+        thread: LLDBThread,
         address: Address,
         canLeaveFunction: Boolean
-    ): StopPlace
+    ): DebugPausePoint
 
     /**
      * 跳转到指定行
@@ -99,39 +102,39 @@ interface SteppingService {
      * @return 停止位置
      */
     suspend fun jumpToLine(
-        thread: LLThread,
+        thread: LLDBThread,
         path: String,
         line: Int,
         canLeaveFunction: Boolean
-    ): StopPlace
+    ): DebugPausePoint
 
     /**
      * 冻结线程
      *
      * @param thread 要冻结的线程
      */
-    suspend fun freezeThread(thread: LLThread)
+    suspend fun freezeThread(thread: LLDBThread)
 
     /**
      * 解冻线程
      *
      * @param thread 要解冻的线程
      */
-    suspend fun unfreezeThread(thread: LLThread)
+    suspend fun unfreezeThread(thread: LLDBThread)
 
     /**
      * 冻结其他线程
      *
      * @param thread 不冻结的线程
      */
-    suspend fun freezeOtherThreads(thread: LLThread)
+    suspend fun freezeOtherThreads(thread: LLDBThread)
 
     /**
      * 解冻所有线程
      *
      * @param thread 参考线程
      */
-    suspend fun unfreezeAllThreads(thread: LLThread)
+    suspend fun unfreezeAllThreads(thread: LLDBThread)
 
     /**
      * 是否支持跳转到行

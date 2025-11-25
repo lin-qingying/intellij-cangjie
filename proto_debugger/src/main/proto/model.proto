@@ -4,7 +4,16 @@ package lldbprotobuf;
 
 /*
  * ========================================================================
- * LLDB 定制调试协议（Proto3）
+ * LLDB 定制调试协议 - 数据模型定义（Proto3）
+ *
+ * 文件说明：
+ *   本文件定义了调试协议的核心数据模型，包括：
+ *   - 基础类型（Id、Status、环境变量）
+ *   - 进程/线程/栈帧模型
+ *   - 断点/观察点模型
+ *   - 变量/类型/值模型
+ *   - 反汇编/寄存器模型
+ *   - 各种枚举类型
  *
  * 设计目标：
  *  - 以 LLDB 的核心对象（SBDebugger / SBTarget / SBProcess /
@@ -20,294 +29,524 @@ package lldbprotobuf;
 
 /* =========================================================================
  * 环境变量（EnvironmentVariable）
+ *
+ * 用于配置被调试进程的运行环境。
  * ========================================================================= */
 
-// 环境变量：键值对形式。对应 LLDB API：SBLaunchInfo::SetEnvironmentEntries / GetEnvironmentEntries
+/**
+ * 环境变量
+ *
+ * 键值对形式的环境变量定义。
+ *
+ * LLDB API 对应：
+ *   - SBLaunchInfo::SetEnvironmentEntries() - 设置环境变量列表
+ *   - SBLaunchInfo::GetEnvironmentEntries() - 获取环境变量列表
+ */
 message EnvironmentVariable {
-  // 环境变量名称，例如 "PATH"。
+  // 环境变量名称
+  // 示例: "PATH", "LD_LIBRARY_PATH", "HOME"
   string name = 1;
 
-  // 环境变量值，例如 "/usr/bin:/bin"。
+  // 环境变量值
+  // 示例: "/usr/bin:/bin", "/lib:/usr/lib"
   string value = 2;
 }
 
 
 /* =========================================================================
  * 通用 Id / 状态
+ *
+ * 协议层的基础类型，用于对象标识和操作结果返回。
  * ========================================================================= */
 
-// 通用 Id：协议使用无符号 64 位稳定 Id 映射到后端的 SB* 对象
+/**
+ * 通用标识符
+ *
+ * 协议使用 64 位有符号整数作为稳定 Id，映射到后端的 SB* 对象。
+ * 后端需维护 Id -> SB* 对象的映射表。
+ *
+ * 设计说明：
+ *   - Id 由后端生成并保持稳定（在对象生命周期内不变）
+ *   - 前端通过 Id 引用对象，避免直接传递指针
+ *   - 支持跨进程、跨网络的对象引用
+ */
 message Id {
   // 唯一标识符（由后端分配并保持稳定）
-  int64  id = 1;
+  // 值域：正整数表示有效 Id，负数或 0 可用于表示无效/空引用
+  int64 id = 1;
 }
 
-// 通用返回状态：语义与 LLDB 的 SBError 相近
+/**
+ * 通用返回状态
+ *
+ * 语义与 LLDB 的 SBError 相近，用于返回操作结果。
+ *
+ * LLDB API 对应：
+ *   - SBError::Success() - 对应 success = true
+ *   - SBError::GetCString() - 对应 message 字段
+ *   - SBError::Fail() - 对应 success = false
+ */
 message Status {
   // 操作是否成功
+  // true: 操作成功完成
+  // false: 操作失败，查看 message 获取错误详情
   bool success = 1;
 
-  // 失败或附带说明文本（成功时一般为空）
+  // 状态消息
+  // 成功时：可为空或包含附加信息
+  // 失败时：包含人类可读的错误描述
   string message = 2;
 }
 
 
-
-
-
 /* =========================================================================
  * 控制台模式（ConsoleMode）
+ *
+ * 定义被调试进程的终端/控制台配置方式。
  * ========================================================================= */
 
-// 控制台/终端的配置方式。对应 LLDB 的 SBLaunchInfo::SetPTY / Launch flags
+/**
+ * 控制台/终端配置模式
+ *
+ * 控制被调试进程如何与终端交互。
+ *
+ * LLDB API 对应：
+ *   - SBLaunchInfo::SetPTY() - PTY 模式
+ *   - SBLaunchInfo 的 launch flags - 其他模式
+ */
 enum ConsoleMode {
-  // 使用调试器父进程（或 IDE）提供的控制台（默认）。
+  // 使用调试器父进程（或 IDE）提供的控制台（默认）
+  // 进程的标准输入/输出/错误将连接到调试器
   CONSOLE_MODE_PARENT = 0;
 
-  // 在独立外部终端窗口中启动被调试程序（系统终端）。
+  // 在独立外部终端窗口中启动被调试程序
+  // 适用于需要独立窗口的 GUI 程序或需要完整终端的程序
   CONSOLE_MODE_EXTERNAL = 1;
 
-  // 使用伪终端（PTY），适合需要完整终端行为的程序（如 curses）。
+  // 使用伪终端（PTY）
+  // 适合需要完整终端行为的程序（如 curses、readline）
+  // 提供 tty 设备，支持终端控制字符
   CONSOLE_MODE_PSEUDO = 2;
 }
 
 
-
-
 /* =========================================================================
  * 进程 / 线程 / 栈帧
+ *
+ * 核心调试模型，对应 LLDB 的 SBProcess / SBThread / SBFrame。
  * ========================================================================= */
 
-// 进程信息：对应 SBProcess 的基本属性（GetProcessID / GetState / GetExitStatus）
+/**
+ * 进程信息
+ *
+ * 表示被调试进程的基本状态信息。
+ *
+ * LLDB API 对应：
+ *   - SBProcess::GetProcessID() - 系统进程 ID
+ *   - SBProcess::GetState() - 进程状态
+ *   - SBProcess::GetExitStatus() - 退出状态码
+ *   - SBProcess::IsAlive() - 进程是否存活
+ */
 message ProcessInfo {
-  // 协议层进程 Id（后端应映射到 SBProcess）
+  // 协议层进程 Id（后端映射到 SBProcess）
   Id process_id = 1;
 
-  // 若进程已退出则返回退出码（对应 SBProcess::GetExitStatus）
+  // 进程退出码
+  // 仅当进程已退出时有效
+  // LLDB API: SBProcess::GetExitStatus()
   int32 exit_code = 2;
 
-  // 进程是否仍然存活（对应 SBProcess::IsAlive 或 SBProcess::GetState）
+  // 进程是否仍然存活
+  // true: 进程正在运行或暂停
+  // false: 进程已退出或被终止
+  // LLDB API: SBProcess::IsAlive()
   bool alive = 3;
 }
+
 /**
- * 停止原因
+ * 停止原因枚举
  *
- * 描述线程或进程为什么进入暂停状态
+ * 描述线程或进程为什么进入暂停状态。
+ *
+ * LLDB API 对应：
+ *   - SBThread::GetStopReason() - 获取停止原因
+ *   - lldb::StopReason 枚举
  */
 enum StopReason {
-  // 无效/未知原因
+  // 无效/未知原因（默认值）
   STOP_REASON_INVALID = 0;
-  // 无停止原因（未暂停）
+
+  // 无停止原因（线程未暂停）
   STOP_REASON_NONE = 1;
+
   // 单步跟踪（trace）
+  // 执行了一条指令或一行代码后暂停
   STOP_REASON_TRACE = 2;
+
   // 命中断点
+  // 执行到断点位置时暂停
   STOP_REASON_BREAKPOINT = 3;
+
   // 命中观察点（数据断点）
+  // 被监视的内存地址被读取或写入
   STOP_REASON_WATCHPOINT = 4;
-  // 收到信号（如 SIGINT、SIGSEGV）
+
+  // 收到信号（如 SIGINT、SIGSEGV、SIGABRT）
+  // Unix/Linux 系统特有
   STOP_REASON_SIGNAL = 5;
+
   // 发生异常
+  // Windows 异常或 C++ 异常
   STOP_REASON_EXCEPTION = 6;
+
   // exec 系统调用（进程替换）
+  // 进程执行了 exec() 系列函数
   STOP_REASON_EXEC = 7;
-  // 进程分支创建
+
+  // 进程分支创建（fork）
+  // 进程执行了 fork() 系统调用
   STOP_REASON_FORK = 8;
+
   // vfork 系统调用
   STOP_REASON_VFORK = 9;
+
   // vfork 完成
+  // 子进程 exec 或 exit 后父进程恢复
   STOP_REASON_VFORK_DONE = 10;
-  // 执行计划完成（如单步执行完成）
+
+  // 执行计划完成
+  // 如单步执行完成、step out 完成等
   STOP_REASON_PLAN_COMPLETE = 11;
+
   // 线程即将退出
   STOP_REASON_THREAD_EXITING = 12;
+
   // 工具化事件
+  // 调试器插桩触发的事件
   STOP_REASON_INSTRUMENTATION = 13;
+
   // 未知原因
   STOP_REASON_UNKNOWN = 14;
 }
+
 /**
  * 线程停止信息
  *
- * 描述线程为什么暂停以及暂停时的详细状态
+ * 详细描述线程为什么暂停以及暂停时的状态。
+ * 使用 oneof 根据不同停止原因携带不同的详细信息。
+ *
+ * LLDB API 对应：
+ *   - SBThread::GetStopReason() - 停止原因
+ *   - SBThread::GetStopDescription() - 停止描述
+ *   - SBThread::GetStopReasonDataAtIndex() - 停止原因附加数据
  */
 message ThreadStopInfo {
-  // 停止原因
+  // 停止原因（枚举值）
   StopReason reason = 1;
+
   // 停止原因的文本描述
+  // 人类可读的说明，如 "breakpoint 1.1"
   string description = 2;
 
   // 特定停止原因的详细信息
+  // 根据 reason 字段选择对应的详细信息
   oneof stop_details {
-    // 断点信息
+    // 断点命中详情
     BreakpointStopInfo breakpoint_info = 3;
-    // 观察点信息
+
+    // 观察点命中详情
     WatchpointStopInfo watchpoint_info = 4;
-    // 信号信息
+
+    // 信号详情
     SignalStopInfo signal_info = 5;
-    // 异常信息
+
+    // 异常详情
     ExceptionStopInfo exception_stop_info = 6;
-    // 单步信息
+
+    // 单步完成详情
     StepStopInfo step_info = 7;
-    // 线程退出信息
+
+    // 线程退出详情
     ThreadExitStopInfo thread_exit_info = 8;
-    // 工具化事件信息
+
+    // 工具化事件详情
     InstrumentationStopInfo instrumentation_info = 9;
-    // 执行完成信息
+
+    // 执行计划完成详情
     PlanCompleteStopInfo plan_complete_info = 10;
   }
 }
 
-// 断点停止信息
+/**
+ * 断点停止信息
+ *
+ * 当线程因命中断点而暂停时的详细信息。
+ *
+ * LLDB API 对应：
+ *   - SBThread::GetStopReasonDataAtIndex(0) - 断点 ID
+ *   - SBBreakpoint::GetHitCount() - 命中次数
+ */
 message BreakpointStopInfo {
-  // 断点ID
+  // 触发的断点 ID
   uint64 breakpoint_id = 1;
-  // 断点类型
+
+  // 断点类型（行断点、地址断点、函数断点等）
   BreakpointType type = 2;
-  // 断点地址
+
+  // 断点所在的内存地址
   uint64 address = 3;
-  // 命中次数
+
+  // 断点总命中次数
   uint32 hit_count = 4;
-  // 条件表达式（如果有）
+
+  // 断点条件表达式（如果是条件断点）
   string condition = 5;
 }
 
-// 观察点停止信息
+/**
+ * 观察点停止信息
+ *
+ * 当线程因命中观察点（数据断点）而暂停时的详细信息。
+ *
+ * LLDB API 对应：
+ *   - SBWatchpoint::GetWatchAddress() - 被观察地址
+ *   - SBWatchpoint::GetWatchSize() - 观察大小
+ */
 message WatchpointStopInfo {
-  // 观察点ID
+  // 触发的观察点 ID
   uint64 watchpoint_id = 1;
+
   // 观察类型（读/写/读写）
   WatchType watch_type = 2;
+
   // 被观察的内存地址
   uint64 address = 3;
-  // 访问大小（字节数）
+
+  // 被观察的内存大小（字节数）
   uint32 size = 4;
-//  // 旧值
-//  Value old_value = 5;
-//  // 新值
-//  Value new_value = 6;
+
+  // 注：旧值和新值字段已注释，如需可启用
+  // Value old_value = 5;
+  // Value new_value = 6;
 }
 
-// 信号停止信息
+/**
+ * 信号停止信息
+ *
+ * 当线程因收到信号而暂停时的详细信息（Unix/Linux）。
+ *
+ * LLDB API 对应：
+ *   - SBThread::GetStopReasonDataAtIndex(0) - 信号编号
+ *   - SBUnixSignals::GetSignalAsCString() - 信号名称
+ */
 message SignalStopInfo {
-  // 信号编号
+  // 信号编号（如 SIGSEGV=11, SIGINT=2）
   int32 signal_number = 1;
-  // 信号名称（如 "SIGSEGV"、"SIGINT"）
-  string signal_name = 2;
 
+  // 信号名称（如 "SIGSEGV", "SIGINT", "SIGABRT"）
+  string signal_name = 2;
 }
 
-// 异常停止信息
+/**
+ * 异常停止信息
+ *
+ * 当线程因异常而暂停时的详细信息（主要用于 Windows）。
+ *
+ * LLDB API 对应：
+ *   - SBThread::GetStopReasonDataAtIndex() - 异常信息
+ */
 message ExceptionStopInfo {
-  // 异常代码
+  // 异常代码（平台相关）
   int32 exception_code = 1;
+
   // 异常名称
   string exception_name = 2;
-  // 异常发生地址
+
+  // 异常发生的内存地址
   uint64 exception_address = 3;
-  // 异常类型（如 "access_violation"、"divide_by_zero"）
+
+  // 异常类型描述
+  // 如 "access_violation", "divide_by_zero", "stack_overflow"
   string exception_type = 4;
-  // 异常描述
+
+  // 异常详细描述信息
   string message = 5;
-  // 源代码位置
+
+  // 异常发生的源代码位置（如果可用）
   SourceLocation location = 6;
 }
 
-// 单步停止信息
+/**
+ * 单步停止信息
+ *
+ * 当线程因单步执行完成而暂停时的详细信息。
+ */
 message StepStopInfo {
   // 单步类型（over/into/out）
   StepType step_type = 1;
+
   // 单步范围（instruction/line/statement）
   StepRange step_range = 2;
-  // 源代码位置
+
+  // 当前源代码位置
   SourceLocation location = 3;
-  // 是否完成函数调用
+
+  // 是否完成了函数调用（step out 时使用）
   bool finished_function_call = 4;
 }
 
-// 线程退出停止信息
+/**
+ * 线程退出停止信息
+ *
+ * 当线程即将退出时的详细信息。
+ */
 message ThreadExitStopInfo {
   // 线程退出码
   int32 exit_code = 1;
+
   // 退出原因描述
   string exit_reason = 2;
+
   // 是否为主线程
   bool is_main_thread = 3;
 }
 
-// 工具化事件停止信息
+/**
+ * 工具化事件停止信息
+ *
+ * 调试器插桩触发的事件详细信息。
+ */
 message InstrumentationStopInfo {
-  // 事件类型
+  // 事件类型标识
   string event_type = 1;
-  // 事件数据
+
+  // 事件数据（JSON 或自定义格式）
   string event_data = 2;
-  // 工具名称
+
+  // 触发事件的工具名称
   string tool_name = 3;
-  // 事件ID
+
+  // 事件唯一 ID
   uint64 event_id = 4;
 }
 
-// 执行计划完成停止信息
+/**
+ * 执行计划完成停止信息
+ *
+ * 当执行计划（如单步、step out）完成时的详细信息。
+ */
 message PlanCompleteStopInfo {
-  // 计划类型
+  // 计划类型（如 "step", "step_out", "run_to_address"）
   string plan_type = 1;
+
   // 完成状态
   CompletionStatus status = 2;
+
   // 结果描述
   string result_description = 3;
+
   // 执行的步骤数
   uint32 steps_executed = 4;
 }
-// 线程信息：对应 SBThread 的 Name / IndexID / ThreadID / StopReason 等
+
+/**
+ * 线程信息
+ *
+ * 表示一个被调试线程的完整信息。
+ *
+ * LLDB API 对应：
+ *   - SBThread::GetThreadID() - 线程 ID
+ *   - SBThread::GetIndexID() - 线程索引
+ *   - SBThread::GetName() - 线程名称
+ *   - SBThread::GetStopReason() - 停止原因
+ *   - SBThread::IsSuspended() - 是否被冻结
+ */
 message Thread {
-  // 线程索引（从 0 开始的序号）
+  // 线程索引（从 0 开始的序号，在进程内唯一）
+  // LLDB API: SBThread::GetIndexID()
   uint32 index = 6;
-  // 线程 Id（协议层唯一标识，可映射到 SBThread::GetThreadID 或 GetIndexID）
+
+  // 线程 Id（协议层唯一标识）
+  // 映射到 SBThread::GetThreadID() 或 GetIndexID()
   Id thread_id = 1;
 
-  // 操作系统线程 ID（若可获取，例如 pthread_t 或 Windows THREADID）
+  // 操作系统线程 ID
+  // Unix: pthread_t 的值
+  // Windows: 系统线程 ID
   uint64 os_thread_id = 2;
 
-  // 线程名称（SBThread::GetName）
+  // 线程名称
+  // LLDB API: SBThread::GetName()
+  // 可能为空（未命名线程）
   string name = 3;
+
   // 停止信息（如果线程已暂停）
+  // 包含停止原因和详细信息
   ThreadStopInfo stop_info = 5;
-  // 是否冻结
+
+  // 是否被冻结（挂起）
+  // true: 线程被调试器挂起，不会执行
+  // LLDB API: SBThread::IsSuspended()
   bool is_frozen = 4;
-
-
 }
 
-// 多个栈帧集合
-
-message Frames{
-
-
-  //  栈帧数量
+/**
+ * 栈帧集合
+ *
+ * 包含线程的调用栈信息。
+ */
+message Frames {
+  // 该线程的总栈帧数量
+  // 可能大于 frames 列表长度（当使用分页时）
   uint32 total_frames = 1;
 
   // 栈帧列表
+  // 索引 0 为栈顶（当前执行位置）
   repeated Frame frames = 2;
-
-
 }
-// 栈帧信息：对应 SBFrame（GetFunctionName/GetModule/GetLineEntry/GetPC）
+
+/**
+ * 栈帧信息
+ *
+ * 表示调用栈中的一个栈帧。
+ *
+ * LLDB API 对应：
+ *   - SBFrame::GetFunctionName() - 函数名
+ *   - SBFrame::GetModule() - 所属模块
+ *   - SBFrame::GetLineEntry() - 源码位置
+ *   - SBFrame::GetPC() - 程序计数器
+ *   - SBFrame::GetFrameID() - 帧 ID
+ */
 message Frame {
-  // 帧在协议层的唯一 Id（便于后续引用，如 Evaluate）
+  // 帧在协议层的唯一 Id
+  // 便于后续引用（如 Evaluate、Variables 请求）
   Id id = 1;
+
+  // 帧在调用栈中的索引
+  // 0 表示栈顶（当前执行位置）
   uint32 index = 6;
 
-  // 函数名（SBFrame::GetFunctionName 或 GetSymbol）
+  // 函数名
+  // LLDB API: SBFrame::GetFunctionName() 或 SBFrame::GetSymbol()
+  // 可能是修饰名或去修饰后的名称
   string function_name = 2;
 
-  // 模块名，例如二进制或库名（SBFrame::GetModule().GetFileSpec().GetFilename()）
+  // 所属模块名
+  // 例如 "a.out", "libtest.so", "kernel32.dll"
+  // LLDB API: SBFrame::GetModule().GetFileSpec().GetFilename()
   string module = 3;
-  // 程序计数器（指令地址）
+
+  // 程序计数器（当前指令地址）
+  // LLDB API: SBFrame::GetPC()
   uint64 program_counter = 5;
+
   // 源代码位置
+  // 包含文件路径、行号等信息
+  // LLDB API: SBFrame::GetLineEntry()
   SourceLocation location = 4;
 
-  // 是否允许重启该栈帧（如果后端 / 平台支持 restart frame）
+  // 是否支持重启该栈帧
+  // 某些平台/编译器支持将执行点重置到函数开头
   bool can_restart = 8;
 }
 
@@ -315,62 +554,107 @@ message Frame {
 /**
  * 进程启动信息
  *
- * 包含启动进程所需的完整配置信息
+ * 包含启动被调试进程所需的完整配置信息。
+ *
+ * LLDB API 对应：
+ *   - SBLaunchInfo - 整体对应
+ *   - SBTarget::Launch() - 使用此信息启动进程
  */
 message ProcessLaunchInfo {
   // 可执行文件的绝对路径
+  // 必须是完整路径，不支持相对路径
   string executable_path = 1;
 
+  // 命令行参数数组
+  // argv[0] 通常是程序名，后续为实际参数
+  // LLDB API: SBLaunchInfo::SetArguments()
   repeated string argv = 2;
 
-  // 启动时的环境变量列表（对应 SBLaunchInfo::SetEnvironmentEntries）
+  // 环境变量列表
+  // LLDB API: SBLaunchInfo::SetEnvironmentEntries()
   repeated EnvironmentVariable env = 3;
 
-  // 工作目录（对应 SBLaunchInfo::GetWorkingDirectory / SetWorkingDirectory）
+  // 工作目录
+  // 进程启动时的当前目录
+  // LLDB API: SBLaunchInfo::SetWorkingDirectory()
   string working_directory = 4;
 
-  // 标准输入重定向路径（SBLaunchInfo::SetStandardInputPath）
+  // 标准输入重定向路径
+  // LLDB API: SBLaunchInfo::AddOpenFileAction() 或 SetStandardInputPath()
   string stdin_path = 5;
 
-  // 标准输出重定向路径（SBLaunchInfo::SetStandardOutputPath）
+  // 标准输出重定向路径
+  // LLDB API: SBLaunchInfo::SetStandardOutputPath()
   string stdout_path = 6;
 
-  // 标准错误重定向路径（SBLaunchInfo::SetStandardErrorPath）
+  // 标准错误重定向路径
+  // LLDB API: SBLaunchInfo::SetStandardErrorPath()
   string stderr_path = 7;
-
 }
 
 
 /* =========================================================================
  * 断点 / Watchpoint
+ *
+ * 断点和观察点模型，对应 LLDB 的 SBBreakpoint / SBWatchpoint。
  * ========================================================================= */
 
-// 断点位置（对应 SBBreakpointLocation / address）
+/**
+ * 断点位置
+ *
+ * 表示断点解析后的具体内存位置。
+ * 一个断点可能对应多个位置（如内联函数、模板实例化）。
+ *
+ * LLDB API 对应：
+ *   - SBBreakpointLocation - 整体对应
+ *   - SBBreakpointLocation::GetAddress() - 地址
+ *   - SBBreakpointLocation::IsResolved() - 是否已解析
+ */
 message BreakpointLocation {
-  // 位置 Id（映射到 SBBreakpointLocation 或协议层生成的 Id）
+  // 位置 Id
+  // 映射到 SBBreakpointLocation 或协议层生成的 Id
   Id id = 1;
 
   // 内存地址（虚拟地址）
+  // LLDB API: SBBreakpointLocation::GetLoadAddress()
   uint64 address = 2;
 
-  // 是否已解析（符号地址是否被解析）
+  // 是否已解析
+  // true: 符号已解析到具体地址
+  // false: 待解析（如延迟加载的共享库）
   bool is_resolved = 3;
 
   // 源代码位置（如果可用）
   SourceLocation location = 4;
 
-  // 所属模块路径
+  // 所属模块的文件路径
   string module_path = 5;
 }
 
-// 哈希算法，用于源文件完整性校验（可选）
+/**
+ * 哈希算法枚举
+ *
+ * 用于源文件完整性校验。
+ */
 enum HashAlgorithm {
+  // 不使用哈希
   HASH_ALGORITHM_NONE = 0;
+
+  // MD5 算法（128位）
   HASH_ALGORITHM_MD5 = 1;
+
+  // SHA-1 算法（160位）
   HASH_ALGORITHM_SHA1 = 2;
+
+  // SHA-256 算法（256位）
   HASH_ALGORITHM_SHA256 = 3;
 }
 
+/**
+ * 文件哈希
+ *
+ * 用于验证源文件是否与调试符号匹配。
+ */
 message Hash {
   // 使用的哈希算法
   HashAlgorithm hash_algorithm = 3;
@@ -379,210 +663,421 @@ message Hash {
   string hash_value = 4;
 }
 
-// 精确的源代码位置
+/**
+ * 源代码位置
+ *
+ * 精确描述源文件中的位置。
+ *
+ * LLDB API 对应：
+ *   - SBLineEntry::GetFileSpec() - 文件
+ *   - SBLineEntry::GetLine() - 行号
+ */
 message SourceLocation {
-  // 源文件路径（相对于项目根或绝对路径）
+  // 源文件路径
+  // 可以是相对路径（相对于项目根）或绝对路径
   string file_path = 1;
 
   // 行号（从 1 开始）
   uint32 line = 2;
 
-  // 可选的文件哈希，用于检测源文件是否被修改（与上面的 Hash 一致）
+  // 可选的文件哈希
+  // 用于检测源文件是否被修改（与编译时不一致）
   Hash hash = 3;
 }
 
-// 断点对象（用户设置）
+/**
+ * 断点
+ *
+ * 表示用户设置的断点。
+ *
+ * LLDB API 对应：
+ *   - SBBreakpoint - 整体对应
+ *   - SBBreakpoint::GetID() - 断点 ID
+ *   - SBBreakpoint::GetCondition() - 条件表达式
+ */
 message Breakpoint {
   // 断点 Id（协议层，映射到 SBBreakpoint）
   Id id = 1;
 
-  // 用户原始设置位置
+  // 用户设置断点时的原始位置
   SourceLocation original_location = 2;
 
-  // 条件表达式（若为空表示无条件断点）
+  // 条件表达式
+  // 若为空表示无条件断点
+  // 断点命中时会评估此表达式，仅当结果为真时才暂停
+  // LLDB API: SBBreakpoint::GetCondition()
   string condition = 3;
 }
+
+
+/* =========================================================================
+ * 类型系统
+ *
+ * 变量类型和值类型的枚举定义。
+ * ========================================================================= */
+
+/**
+ * 类型分类枚举
+ *
+ * 描述变量的底层类型分类。
+ *
+ * LLDB API 对应：
+ *   - SBType::GetTypeClass() - 获取类型分类
+ *   - lldb::TypeClass 枚举
+ */
 enum TypeKind {
+  // 无效类型
   TYPE_INVALID = 0;
 
+  // 数组类型（如 int[10]）
   TYPE_ARRAY = 1;
+
+  // 块指针（Objective-C blocks）
   TYPE_BLOCK_POINTER = 2;
+
+  // 内置类型（如 int, float, double）
   TYPE_BUILTIN = 3;
+
+  // 类类型（C++ class）
   TYPE_CLASS = 4;
+
+  // 复数浮点类型
   TYPE_COMPLEX_FLOAT = 5;
+
+  // 复数整数类型
   TYPE_COMPLEX_INT = 6;
+
+  // 枚举类型
   TYPE_ENUM = 7;
+
+  // 函数类型
   TYPE_FUNCTION = 8;
+
+  // 成员指针（C++ 指向成员的指针）
   TYPE_MEMBER_POINTER = 9;
+
+  // Objective-C 对象
   TYPE_OBJC_OBJECT = 10;
+
+  // Objective-C 接口
   TYPE_OBJC_INTERFACE = 11;
+
+  // Objective-C 对象指针
   TYPE_OBJC_OBJECT_POINTER = 12;
+
+  // 指针类型
   TYPE_POINTER = 13;
+
+  // 引用类型（C++ 引用）
   TYPE_REFERENCE = 14;
+
+  // 结构体类型（C struct）
   TYPE_STRUCT = 15;
+
+  // 类型别名（typedef）
   TYPE_TYPEDEF = 16;
+
+  // 联合体类型（union）
   TYPE_UNION = 17;
+
+  // 向量类型（SIMD）
   TYPE_VECTOR = 18;
+
+  // 其他类型
   TYPE_OTHER = 19;
+
+  // 任意类型（通配符）
   TYPE_ANY = 20;
 }
+
+/**
+ * 值分类枚举
+ *
+ * 描述变量值的存储位置和生命周期。
+ *
+ * LLDB API 对应：
+ *   - SBValue::GetValueType() - 获取值类型
+ *   - lldb::ValueType 枚举
+ */
 enum ValueKind {
+  // 无效值
   VALUE_INVALID = 0;
 
+  // 全局变量
   VALUE_GLOBAL = 1;
+
+  // 静态变量（文件作用域或类静态成员）
   VALUE_STATIC = 2;
+
+  // 函数参数
   VALUE_ARGUMENT = 3;
+
+  // 局部变量
   VALUE_LOCAL = 4;
 
+  // 寄存器值
   VALUE_REGISTER = 5;
+
+  // 寄存器组
   VALUE_REGISTER_SET = 6;
 
+  // 表达式求值结果
   VALUE_CONST_RESULT = 7;
 
+  // 线程局部存储变量
   VALUE_THREAD_LOCAL = 8;
 }
-message Type{
-  // 类型名称（如 "int", "std::string"）
+
+/**
+ * 类型信息
+ *
+ * 描述变量的类型信息。
+ *
+ * LLDB API 对应：
+ *   - SBType::GetName() - 类型名称
+ *   - SBType::GetDisplayTypeName() - 显示名称
+ *   - SBType::GetTypeClass() - 类型分类
+ */
+message Type {
+  // 类型名称（如 "int", "std::string", "MyClass*"）
+  // LLDB API: SBType::GetName()
   string type_name = 3;
-  // 用于显示的类型名称（可能经过简化或美化）
+
+  // 用于显示的类型名称
+  // 可能经过简化或美化（如去除命名空间）
+  // LLDB API: SBType::GetDisplayTypeName()
   string display_type = 6;
+
   // 类型分类
   TypeKind type_kind = 4;
 }
 
+
+/* =========================================================================
+ * 反汇编相关
+ *
+ * 反汇编选项和结果模型。
+ * ========================================================================= */
+
 /**
  * 反汇编选项
+ *
+ * 控制反汇编输出的格式和内容。
+ *
+ * LLDB 设置对应：
+ *   - target.x86-disassembly-flavor - 反汇编风格
  */
 message DisassembleOptions {
-  // 是否显示机器码
+  // 是否在输出中包含机器码字节
+  // true: 显示原始机器码（如 "48 89 e5"）
   bool show_machine_code = 1;
 
-  // 是否显示地址
-  bool show_addresses = 2;
-
-  // 是否显示字节偏移
-  bool show_byte_offsets = 3;
-
-  // 反汇编 flavor（att, intel）
-  string flavor = 4;
-
-  // 是否使用符号化地址
+  // 是否将地址操作数符号化
+  // true: 将地址显示为符号名（如 "call printf" 而不是 "call 0x401000"）
   bool symbolize_addresses = 5;
 }
-message HashId{
+
+/**
+ * 哈希 ID
+ *
+ * 用于请求-响应匹配的哈希标识。
+ */
+message HashId {
+  // 哈希值（由请求方生成，响应方原样返回）
   uint64 hash = 1;
 }
+
 /**
  * 反汇编指令
  *
  * 表示一条汇编指令的完整信息。
+ *
+ * LLDB API 对应：
+ *   - SBInstruction::GetAddress() - 指令地址
+ *   - SBInstruction::GetMnemonic() - 助记符
+ *   - SBInstruction::GetOperands() - 操作数
+ *   - SBInstruction::GetByteSize() - 指令大小
+ *   - SBInstruction::GetData() - 机器码数据
+ *   - SBInstruction::GetComment() - 注释
  */
 message DisassembleInstruction {
   // 指令地址（虚拟地址）
+  // LLDB API: SBInstruction::GetAddress().GetLoadAddress()
   uint64 address = 1;
 
-  // 指令的机器码（十六进制）
+  // 指令的机器码（原始字节）
+  // 仅当请求 show_machine_code=true 时填充
+  // LLDB API: SBInstruction::GetData()
   bytes machine_code = 2;
 
   // 汇编指令文本
+  // 格式: "助记符 操作数"，如 "mov rax, rbx"
+  // LLDB API: SBInstruction::GetMnemonic() + GetOperands()
   string instruction = 3;
 
   // 指令的注释说明
+  // LLDB 自动生成的注释（如跳转目标符号名）
+  // LLDB API: SBInstruction::GetComment()
   string comment = 4;
 
   // 指令长度（字节数）
+  // x86 变长指令范围 1-15 字节
+  // LLDB API: SBInstruction::GetByteSize()
   uint32 size = 5;
 
   // 对应的源代码位置（如果可用）
+  // 有调试信息时可映射到源码
   SourceLocation source_location = 6;
 
-  // 符号信息（如果地址对应符号）
+  // 符号信息
+  // 如果指令地址对应某个符号（函数入口等）
+  // 仅当请求 symbolize_addresses=true 时填充
   string symbol = 7;
 }
-// 变量信息：对应 SBValue 的一组属性（GetName/GetTypeName/GetValue/GetAddress/MightHaveChildren）
+
+
+/* =========================================================================
+ * 变量和值
+ *
+ * 变量和值模型，对应 LLDB 的 SBValue。
+ * ========================================================================= */
+
+/**
+ * 变量信息
+ *
+ * 描述一个变量的元信息（不包含值）。
+ *
+ * LLDB API 对应：
+ *   - SBValue::GetName() - 变量名
+ *   - SBValue::GetType() - 类型信息
+ *   - SBValue::GetLoadAddress() - 内存地址
+ *   - SBValue::MightHaveChildren() - 是否有子元素
+ *   - SBValue::GetValueType() - 值类型分类
+ */
 message Variable {
   // 变量 Id（协议层，映射到 SBValue）
+  // 用于后续获取值、子元素等操作
   Id id = 1;
 
   // 变量名
+  // LLDB API: SBValue::GetName()
   string name = 2;
 
+  // 类型信息
   Type type = 6;
-  // 内存地址（如果有）
+
+  // 内存地址（如果变量在内存中）
+  // 寄存器变量或优化掉的变量可能没有地址
+  // LLDB API: SBValue::GetLoadAddress()
   uint64 address = 5;
 
-
+  // 值分类（局部变量、参数、全局变量等）
+  // LLDB API: SBValue::GetValueType()
   ValueKind value_kind = 7;
 
-  // 是否有子变量（对应 SBValue::MightHaveChildren()）
+  // 是否有子变量
+  // true: 复合类型，可以展开查看成员
+  // LLDB API: SBValue::MightHaveChildren()
   bool has_children = 8;
-
-}
-
-
-
-// 表示变量的值
-message Value {
-  // 属于的变量id
-  Id variable_id = 1;
-
-  // 值的字符串表示（对应 SBValue::GetValue()）
-  string value = 2;
-
-  // 值的摘要（对应 SBValue::GetSummary()，适用于复杂对象）
-  string summary = 3;
-
-
-
-  // 值是否发生了变化（对应 SBValue::GetValueDidChange()）
-  bool value_did_change = 5;
-
-  // 错误信息（对应 SBValue::GetError()）
-  string error = 6;
-
-
 }
 
 /**
+ * 变量值
+ *
+ * 表示变量的当前值。
+ *
+ * LLDB API 对应：
+ *   - SBValue::GetValue() - 值的字符串表示
+ *   - SBValue::GetSummary() - 值的摘要
+ *   - SBValue::GetValueDidChange() - 值是否变化
+ *   - SBValue::GetError() - 获取值时的错误
+ */
+message Value {
+  // 所属变量的 Id
+  Id variable_id = 1;
+
+  // 值的字符串表示
+  // LLDB API: SBValue::GetValue()
+  // 示例: "42", "0x7fff5fbff8c0", "\"hello\""
+  string value = 2;
+
+  // 值的摘要（适用于复杂对象）
+  // LLDB API: SBValue::GetSummary()
+  // 示例: "{size=3}", "\"hello world\"" (for std::string)
+  string summary = 3;
+
+  // 值是否发生了变化（相比上次获取）
+  // LLDB API: SBValue::GetValueDidChange()
+  // 用于在 UI 中高亮显示变化的值
+  bool value_did_change = 5;
+
+  // 错误信息（获取值失败时）
+  // LLDB API: SBValue::GetError().GetCString()
+  string error = 6;
+}
+
+
+/* =========================================================================
+ * 寄存器
+ *
+ * 寄存器模型，对应 LLDB 的 SBValue（寄存器也通过 SBValue 访问）。
+ * ========================================================================= */
+
+/**
  * 寄存器信息
+ *
+ * 表示一个 CPU 寄存器的完整信息。
+ *
+ * LLDB API 对应：
+ *   - SBFrame::GetRegisters() - 获取寄存器组
+ *   - SBValue（寄存器作为 SBValue 返回）
  */
 message Register {
-  // 寄存器名称
+  // 寄存器名称（如 "rax", "eip", "xmm0"）
   string name = 1;
 
   // 寄存器值（十六进制字符串）
+  // 示例: "0x00007fff5fbff8c0"
   string value = 2;
 
   // 无符号整数值
+  // 方便数值比较和运算
   uint64 value_unsigned = 3;
 
   // 寄存器大小（字节）
+  // 示例: 8 (64位), 4 (32位), 16 (XMM)
   uint32 size = 4;
 
-  // 类型名称
+  // 类型名称（如 "uint64_t", "float[4]"）
   string type_name = 5;
 
   // 值摘要
   string summary = 6;
 
-  // 所属组名
+  // 所属寄存器组名
+  // 示例: "General Purpose Registers", "Floating Point Registers"
   string group_name = 7;
 
-  // 是否有子元素
+  // 是否有子元素（如向量寄存器的各分量）
   bool has_children = 8;
 
-  // 值是否发生变化
+  // 值是否发生变化（相比上次获取）
+  // 用于在 UI 中高亮显示
   bool changed = 9;
 
   // 子元素（仅当 expand_children=true 且有子元素时填充）
+  // 用于展开向量寄存器等
   repeated Register children = 10;
 }
 
 /**
  * 寄存器组信息
+ *
+ * 描述一组相关寄存器。
  */
 message RegisterGroup {
-  // 组名称（如："General Purpose Registers"）
+  // 组名称
+  // 示例: "General Purpose Registers", "Floating Point Registers"
   string name = 1;
 
   // 该组中的寄存器数量
@@ -590,132 +1085,269 @@ message RegisterGroup {
 }
 
 
+/* =========================================================================
+ * 输出和事件类型
+ * ========================================================================= */
 
-
-enum OutputType{
-  //    value {
-  //  name: "OutputTypeStdout"
-  //  number: 0
-  //}
-  //value {
-  //  name: "OutputTypeStderr"
-  //  number: 1
-  //}
+/**
+ * 输出类型枚举
+ *
+ * 区分进程的标准输出和标准错误。
+ */
+enum OutputType {
+  // 标准输出 (stdout)
   OutputTypeStdout = 0;
+
+  // 标准错误 (stderr)
   OutputTypeStderr = 1;
 }
 
-// 动态值类型选项
-// 对应 LLDB 的 DynamicValueType 枚举
+/**
+ * 动态值类型选项
+ *
+ * 控制如何获取多态对象的动态类型。
+ *
+ * LLDB API 对应：
+ *   - lldb::DynamicValueType 枚举
+ *   - SBValue::GetDynamicValue()
+ */
 enum DynamicValueType {
-  // 无动态值 (eNoDynamicValues)
+  // 不获取动态值 (eNoDynamicValues)
+  // 返回静态类型的值
   DYNAMIC_VALUE_NONE = 0;
 
-  // 动态值但不运行目标 (eDynamicDontRunTarget)
+  // 获取动态值但不运行目标代码 (eDynamicDontRunTarget)
+  // 仅使用类型信息推断动态类型
   DYNAMIC_VALUE_DONT_RUN_TARGET = 1;
 
-  // 运行目标获取动态值 (eDynamicRunTarget)
+  // 运行目标代码获取动态值 (eDynamicRunTarget)
+  // 可能调用虚函数表等获取准确的动态类型
   DYNAMIC_VALUE_RUN_TARGET = 2;
 }
+
+/**
+ * 模块事件类型
+ */
 enum EventType {
+  // 模块已加载
   MODULE_LOADED = 0;
+
+  // 模块已卸载
   MODULE_UNLOADED = 1;
 }
+
+
 /* =========================================================================
  * 停止详情相关枚举
  * ========================================================================= */
 
-// 断点类型
+/**
+ * 断点类型枚举
+ */
 enum BreakpointType {
+  // 未知类型
   BREAKPOINT_TYPE_UNKNOWN = 0;
-  BREAKPOINT_TYPE_LINE = 1;      // 行断点
-  BREAKPOINT_TYPE_ADDRESS = 2;   // 地址断点
-  BREAKPOINT_TYPE_FUNCTION = 3;  // 函数断点
-  BREAKPOINT_TYPE_CONDITIONAL = 4; // 条件断点
-  BREAKPOINT_TYPE_EXCEPTION = 5;  // 异常断点
-    BREAKPOINT_TYPE_SYMBOLIC = 6;// 符号断点
-    BREAKPOINT_TYPE_WATCHPOINT = 7; //观察点
+
+  // 行断点（源代码行）
+  BREAKPOINT_TYPE_LINE = 1;
+
+  // 地址断点（指定内存地址）
+  BREAKPOINT_TYPE_ADDRESS = 2;
+
+  // 函数断点（函数入口）
+  BREAKPOINT_TYPE_FUNCTION = 3;
+
+  // 条件断点（带条件表达式）
+  BREAKPOINT_TYPE_CONDITIONAL = 4;
+
+  // 异常断点（捕获异常）
+  BREAKPOINT_TYPE_EXCEPTION = 5;
+
+  // 符号断点（按符号名/模式匹配）
+  BREAKPOINT_TYPE_SYMBOLIC = 6;
+
+  // 观察点（数据断点）
+  BREAKPOINT_TYPE_WATCHPOINT = 7;
 }
 
-// 观察点类型
+/**
+ * 观察点类型枚举
+ *
+ * 定义触发观察点的内存访问类型。
+ */
 enum WatchType {
+  // 未知类型
   WATCH_TYPE_UNKNOWN = 0;
-  WATCH_TYPE_READ = 1;      // 读观察点
-  WATCH_TYPE_WRITE = 2;     // 写观察点
-  WATCH_TYPE_READ_WRITE = 3; // 读写观察点
+
+  // 读观察点（内存被读取时触发）
+  WATCH_TYPE_READ = 1;
+
+  // 写观察点（内存被写入时触发）
+  WATCH_TYPE_WRITE = 2;
+
+  // 读写观察点（读取或写入都触发）
+  WATCH_TYPE_READ_WRITE = 3;
 }
 
-// 单步类型
+/**
+ * 单步类型枚举
+ */
 enum StepType {
+  // 未知类型
   STEP_TYPE_UNKNOWN = 0;
-  STEP_TYPE_OVER = 1;  // 单步跳过
-  STEP_TYPE_INTO = 2;  // 单步进入
-  STEP_TYPE_OUT = 3;   // 单步跳出
+
+  // 单步跳过（Step Over）
+  // 执行一行/一条指令，不进入函数调用
+  STEP_TYPE_OVER = 1;
+
+  // 单步进入（Step Into）
+  // 执行一行/一条指令，进入函数调用
+  STEP_TYPE_INTO = 2;
+
+  // 单步跳出（Step Out）
+  // 执行到当前函数返回
+  STEP_TYPE_OUT = 3;
 }
 
-// 单步范围
+/**
+ * 单步范围枚举
+ *
+ * 定义单步操作的粒度。
+ */
 enum StepRange {
+  // 未知范围
   STEP_RANGE_UNKNOWN = 0;
-  STEP_RANGE_INSTRUCTION = 1; // 指令级别
-  STEP_RANGE_LINE = 2;        // 行级别
-  STEP_RANGE_STATEMENT = 3;   // 语句级别
+
+  // 指令级别（单条机器指令）
+  STEP_RANGE_INSTRUCTION = 1;
+
+  // 行级别（源代码行）
+  STEP_RANGE_LINE = 2;
+
+  // 语句级别（源代码语句）
+  STEP_RANGE_STATEMENT = 3;
 }
 
-// 完成状态
+/**
+ * 完成状态枚举
+ */
 enum CompletionStatus {
+  // 未知状态
   COMPLETION_STATUS_UNKNOWN = 0;
-  COMPLETION_STATUS_SUCCESS = 1;    // 成功完成
-  COMPLETION_STATUS_FAILED = 2;      // 失败
-  COMPLETION_STATUS_INTERRUPTED = 3; // 被中断
-  COMPLETION_STATUS_TIMEOUT = 4;     // 超时
+
+  // 成功完成
+  COMPLETION_STATUS_SUCCESS = 1;
+
+  // 执行失败
+  COMPLETION_STATUS_FAILED = 2;
+
+  // 被用户中断
+  COMPLETION_STATUS_INTERRUPTED = 3;
+
+  // 执行超时
+  COMPLETION_STATUS_TIMEOUT = 4;
 }
+
 
 /* =========================================================================
  * 断点事件类型和线程状态变更类型
  * ========================================================================= */
 
-// 断点事件类型
+/**
+ * 断点事件类型枚举
+ *
+ * 描述断点状态变化的类型。
+ *
+ * LLDB API 对应：
+ *   - SBBreakpoint::EventIsBreakpointEvent()
+ *   - SBBreakpoint::GetBreakpointEventTypeFromEvent()
+ */
 enum BreakpointEventType {
+  // 未知事件
   BREAKPOINT_EVENT_TYPE_UNKNOWN = 0;
-  BREAKPOINT_EVENT_TYPE_ADDED = 1;           // 断点已添加
-  BREAKPOINT_EVENT_TYPE_REMOVED = 2;         // 断点已移除
-  BREAKPOINT_EVENT_TYPE_LOCATIONS_ADDED = 3; // 断点位置已添加
-  BREAKPOINT_EVENT_TYPE_LOCATIONS_REMOVED = 4; // 断点位置已移除
-  BREAKPOINT_EVENT_TYPE_LOCATIONS_RESOLVED = 5; // 断点位置已解析
-  BREAKPOINT_EVENT_TYPE_ENABLED = 6;         // 断点已启用
-  BREAKPOINT_EVENT_TYPE_DISABLED = 7;        // 断点已禁用
-  BREAKPOINT_EVENT_TYPE_COMMAND_CHANGED = 8; // 断点命令已变更
-  BREAKPOINT_EVENT_TYPE_CONDITION_CHANGED = 9; // 断点条件已变更
+
+  // 断点已添加
+  BREAKPOINT_EVENT_TYPE_ADDED = 1;
+
+  // 断点已移除
+  BREAKPOINT_EVENT_TYPE_REMOVED = 2;
+
+  // 断点位置已添加（如新模块加载导致新位置解析）
+  BREAKPOINT_EVENT_TYPE_LOCATIONS_ADDED = 3;
+
+  // 断点位置已移除（如模块卸载）
+  BREAKPOINT_EVENT_TYPE_LOCATIONS_REMOVED = 4;
+
+  // 断点位置已解析（从未解析变为已解析）
+  BREAKPOINT_EVENT_TYPE_LOCATIONS_RESOLVED = 5;
+
+  // 断点已启用
+  BREAKPOINT_EVENT_TYPE_ENABLED = 6;
+
+  // 断点已禁用
+  BREAKPOINT_EVENT_TYPE_DISABLED = 7;
+
+  // 断点命令已变更
+  BREAKPOINT_EVENT_TYPE_COMMAND_CHANGED = 8;
+
+  // 断点条件已变更
+  BREAKPOINT_EVENT_TYPE_CONDITION_CHANGED = 9;
 }
 
-// 线程状态变更类型
+/**
+ * 线程状态变更类型枚举
+ */
 enum ThreadStateChangeType {
+  // 未知变更
   THREAD_STATE_CHANGE_TYPE_UNKNOWN = 0;
-  THREAD_STATE_CHANGE_TYPE_STACK_CHANGED = 1;      // 调用栈变更
-  THREAD_STATE_CHANGE_TYPE_THREAD_SUSPENDED = 2;   // 线程挂起
-  THREAD_STATE_CHANGE_TYPE_THREAD_RESUMED = 3;     // 线程恢复
-  THREAD_STATE_CHANGE_TYPE_SELECTED_FRAME_CHANGED = 4; // 选中帧变更
-  THREAD_STATE_CHANGE_TYPE_THREAD_SELECTED = 5;    // 线程选中
+
+  // 调用栈变更
+  THREAD_STATE_CHANGE_TYPE_STACK_CHANGED = 1;
+
+  // 线程被挂起
+  THREAD_STATE_CHANGE_TYPE_THREAD_SUSPENDED = 2;
+
+  // 线程恢复执行
+  THREAD_STATE_CHANGE_TYPE_THREAD_RESUMED = 3;
+
+  // 选中帧变更（用户切换查看的栈帧）
+  THREAD_STATE_CHANGE_TYPE_SELECTED_FRAME_CHANGED = 4;
+
+  // 线程被选中（用户切换查看的线程）
+  THREAD_STATE_CHANGE_TYPE_THREAD_SELECTED = 5;
 }
 
-/* =========================================================================
- * 模块信息
- * ========================================================================= */
 
 /* =========================================================================
  * 函数/符号信息
+ *
+ * 函数和符号模型，对应 LLDB 的 SBFunction / SBSymbol。
  * ========================================================================= */
 
-// 函数信息：对应 SBFunction 或 SBSymbol 的属性
-// LLDB API: SBFunction::GetStartAddress/GetEndAddress, SBSymbol::GetStartAddress/GetSize
+/**
+ * 函数信息
+ *
+ * 表示一个函数或符号的完整信息。
+ *
+ * LLDB API 对应：
+ *   - SBFunction::GetName() - 函数名
+ *   - SBFunction::GetMangledName() - 修饰名
+ *   - SBFunction::GetStartAddress() - 起始地址
+ *   - SBFunction::GetEndAddress() - 结束地址
+ *   - SBSymbol - 符号信息（当没有调试信息时）
+ */
 message FunctionInfo {
-  // 函数名（SBFunction::GetName 或 SBSymbol::GetName）
+  // 函数名（去修饰后的名称）
+  // LLDB API: SBFunction::GetName() 或 SBSymbol::GetName()
   string name = 1;
 
-  // 修饰名/符号名（SBFunction::GetMangledName 或 SBSymbol::GetMangledName）
+  // 修饰名/符号名（编译器生成的原始名称）
+  // LLDB API: SBFunction::GetMangledName() 或 SBSymbol::GetMangledName()
+  // 示例: "_ZN9MyClassC2Ev" (C++ 构造函数)
   string mangled_name = 2;
 
-  // 函数起始地址（SBAddress::GetLoadAddress）
+  // 函数起始地址
+  // LLDB API: SBAddress::GetLoadAddress()
   uint64 start_address = 3;
 
   // 函数结束地址
@@ -727,49 +1359,79 @@ message FunctionInfo {
   // 源码位置（函数定义位置）
   SourceLocation location = 6;
 
-  // 所属模块名
+  // 所属模块名（如 "a.out", "libfoo.so"）
   string module_name = 7;
 
-  // 是否为外部符号（没有源码的库函数）
+  // 是否为外部符号
+  // true: 没有源码的库函数（只有符号信息）
+  // false: 有调试信息的函数
   bool is_external = 8;
 
-  // 函数语言类型（如 "c++", "c", "swift"）
+  // 函数语言类型
+  // 示例: "c++", "c", "swift", "rust"
   string language = 9;
 
-  // 是否为"空洞"（地址范围不包含有效可执行代码）
+  // 是否为"空洞"区域
+  // true: 地址范围不包含有效可执行代码
   // 例如：数据段、填充区域、对齐字节等
   bool is_hole = 10;
 }
 
-// 模块信息：对应 SBModule 的基本属性（GetFileSpec/GetUUID/GetObjectFile等）
+
+/* =========================================================================
+ * 模块信息
+ *
+ * 模块模型，对应 LLDB 的 SBModule。
+ * ========================================================================= */
+
+/**
+ * 模块信息
+ *
+ * 表示一个加载的可执行文件或共享库。
+ *
+ * LLDB API 对应：
+ *   - SBModule::GetFileSpec() - 文件路径
+ *   - SBModule::GetUUIDString() - UUID
+ *   - SBModule::GetObjectFileHeaderAddress() - 基地址
+ *   - SBModule::GetNumSymbols() - 符号数量
+ */
 message Module {
   // 模块在协议层的唯一 Id
   string id = 1;
 
-  // 模块文件路径（SBModule::GetFileSpec）
+  // 模块文件的完整路径
+  // LLDB API: SBModule::GetFileSpec().GetPath()
   string file_path = 2;
 
-  // 模块名称（文件名，如 "libtest.so"）
+  // 模块名称（仅文件名）
+  // 示例: "a.out", "libtest.so", "kernel32.dll"
   string name = 3;
 
-  // 模块 UUID（用于唯一标识模块版本）
+  // 模块 UUID
+  // 用于唯一标识模块版本，匹配调试符号
+  // LLDB API: SBModule::GetUUIDString()
   string uuid = 4;
 
-  // 模块是否已加载
+  // 模块是否已加载到进程地址空间
   bool is_loaded = 5;
 
   // 模块基地址（加载地址）
+  // LLDB API: SBModule::GetObjectFileHeaderAddress().GetLoadAddress()
   uint64 base_address = 6;
 
-  // 模块大小
+  // 模块大小（字节）
   uint64 size = 7;
 
   // 是否包含调试符号
+  // true: 有 DWARF/PDB 等调试信息
+  // false: 仅有符号表或无符号
   bool has_symbols = 8;
 
-  // 对象文件类型（如 Mach-O、ELF、PE）
+  // 对象文件类型
+  // 示例: "Mach-O", "ELF", "PE/COFF"
   string object_file_type = 9;
 
-  // 架构信息（如 x86_64、arm64）
+  // 架构信息
+  // 示例: "x86_64", "arm64", "i386"
   string architecture = 10;
 }

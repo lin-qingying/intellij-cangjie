@@ -117,7 +117,7 @@ class LLDBType(
 }
 
 /**
- * 低级别值（LLDBValue）类
+ * 低级别值（LLDBVariable）类
  *
  * 该类表示调试器中的一个值对象，包含了值的基本信息如名称、类型、地址等。
  * 它继承自UserDataHolderBase，可以存储额外的用户数据。
@@ -130,17 +130,19 @@ class LLDBType(
  * - 缓存调试过程中的数据
  *
  * @param name 值的名称，通常为变量名或表达式
- * @param type 值的数据类型名称
- * @param displayType 用于显示的类型名称，可能与type不同
+ * @param type 值的数据类型对象
+ * @param valueKind 值的种类（全局变量、局部变量、参数等）
  * @param address 值在内存中的地址，可能为null
- * @param typeClass 值的类型分类，用于区分不同类型的值
+ * @param hasChildren 是否有子变量（对应 SBValue::MightHaveChildren()）
  * @param referenceExpression 引用表达式，用于在调试器中重新获取该值
  */
-class LLDBValue(
+class LLDBVariable(
+    val id:Long,
     val name: String,
     val type: LLDBType,
-val valueKind: ValueKind,
+    val valueKind: ValueKind,
     val address: Long?,
+    val hasChildren: Boolean,
     val referenceExpression: String
 ) : UserDataHolderBase() {
     /**
@@ -255,6 +257,16 @@ val valueKind: ValueKind,
      */
     var valid: Boolean = true
 
+    /**
+     * 检查变量是否有子变量
+     *
+     * 对应 SBValue::MightHaveChildren()，用于判断变量是否为复合类型
+     *（如数组、结构体、对象等），这些类型可能包含子元素需要在调试器中展开显示。
+     *
+     * @return 如果变量可能有子项返回true，否则返回false
+     */
+    fun hasChildren(): Boolean = hasChildren
+
 
     /**
      * 返回值的字符串表示
@@ -272,20 +284,21 @@ val valueKind: ValueKind,
      * 比较两个LLValue对象是否相等
      *
      * 逐一比较所有字段，包括名称、类型、显示类型、地址、
-     * 类型分类、引用表达式和有效性标志。
+     * 类型分类、hasChildren、引用表达式和有效性标志。
      *
      * @param other 要比较的对象
      * @return 如果所有字段都相等返回true，否则返回false
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is LLDBValue) return false
+        if (other !is LLDBVariable) return false
 
         if (valid != other.valid) return false
         if (name != other.name) return false
         if (type != other.type) return false
-        if (type != other.type) return false
+        if (valueKind != other.valueKind) return false
         if (address != other.address) return false
+        if (hasChildren != other.hasChildren) return false
 
         return referenceExpression == other.referenceExpression
     }
@@ -301,9 +314,9 @@ val valueKind: ValueKind,
     override fun hashCode(): Int {
         var result = name.hashCode()
         result = 31 * result + type.hashCode()
-        result = 31 * result + type.hashCode()
+        result = 31 * result + valueKind.hashCode()
         result = 31 * result + (address?.hashCode() ?: 0)
-
+        result = 31 * result + hasChildren.hashCode()
         result = 31 * result + referenceExpression.hashCode()
         result = 31 * result + valid.hashCode()
         return result
@@ -311,12 +324,8 @@ val valueKind: ValueKind,
 
 
 }
-
-internal val LLVALUE_ID: Key<Long> = Key.create("CangJie.Debugger.LLDBVALUE_ID")
-internal val LLVALUE_DATA_LOADER: Key<(LLDBValue) -> LLDBValueData> =
-    Key.create("CangJie.Debugger..LLDBVALUE_DATA_LOADER")
-internal val LLVALUE_DATA: Key<LLDBValueData> = Key.create("CangJie.Debugger.LLDBVALUE_DATA")
-internal val CHILDREN_COUNT_CACHE: Key<Int> = Key.create("CangJie.Debugger.CHILDREN_COUNT_CACHE")
+internal val LLDBVARIABLE_VALUE :Key<LLDBValue> = Key.create("CangJie.Debugger.LLDBVARIABLE_VALUE")
+internal val LLDBVARIABLE_ID: Key<Long> = Key.create("CangJie.Debugger.LLDBVARIABLE_ID")
 fun createLLDBType(
     type: Model.Type
 ): LLDBType {
@@ -338,72 +347,43 @@ fun createLLDBType(
 }
 
 /**
- * Creates an LLDBValue from a protobuf Model.Value
+ * Creates an LLDBVariable from a protobuf Model.Variable
  *
- * @param lldbValue The protobuf value from LLDB
- * @param expression Optional expression string, defaults to value name
- * @param dataLoader Function to load value data lazily
- * @return Configured LLDBValue instance
+ * @param variable The protobuf variable from LLDB
+ * @param expression Optional expression string, defaults to variable name
+ * @return Configured LLDBVariable instance
  */
-fun createLLDBValue(
-    lldbValue: Model.Variable,
-    expression: String?,
-    dataLoader: (LLDBValue) -> LLDBValueData
-): LLDBValue {
-
-
-    val referenceExpression: String = lldbValue.getName()
-    val result = LLDBValue(
-        expression ?: lldbValue.getName(),
-        createLLDBType(lldbValue.getType()),
-LLDBValue.ValueKind.fromProto(lldbValue.valueKind),
-        lldbValue.address,
+fun createLLDBVariable(
+    variable: Model.Variable,
+    expression: String?
+): LLDBVariable {
+    val referenceExpression: String = variable.name
+    val result = LLDBVariable(
+        variable.id.id,
+        expression ?: variable.name,
+        createLLDBType(variable.type),
+        LLDBVariable.ValueKind.fromProto(variable.valueKind),
+        variable.address,
+        variable.hasChildren,
         referenceExpression
     )
 
-    result.putUserData(LLVALUE_ID, lldbValue.id.id)
-    result.putUserData(LLVALUE_DATA_LOADER, dataLoader)
-
+    result.putUserData(LLDBVARIABLE_ID, variable.id.id)
     return result
 }
 
+
+
 /**
- * Gets the LLDB value ID from an LLDBValue
+ * Gets the LLDB value ID from an LLDBVariable
  *
- * @param value The LLDBValue to extract ID from
+ * @param value The LLDBVariable to extract ID from
  * @return The LLDB value ID
  * @throws ExecutionException if the ID is not found
  */
 @Throws(ExecutionException::class)
-fun getValueId(value: LLDBValue): Long {
-    return value.getUserData(LLVALUE_ID)
+fun getValueId(value: LLDBVariable): Long {
+    return value.getUserData(LLDBVARIABLE_ID)
         ?: throw ExecutionException("Value ID not found for $value")
 }
 
-/**
- * Loads value data, using cached data if available
- *
- * @param value The LLDBValue to load data for
- * @return The loaded or cached LLValueData
- * @throws ExecutionException if data cannot be loaded
- */
-@Throws(ExecutionException::class, DebuggerCommandException::class)
-fun loadValueData(value: LLDBValue): LLDBValueData {
-    synchronized(value) {
-        // Check if data is already loaded
-        value.getUserData(LLVALUE_DATA)?.let { return it }
-
-        // Get the loader function
-        val loader = value.getUserData(LLVALUE_DATA_LOADER)
-            ?: throw ExecutionException("Value data loader not found for $value")
-
-        // Load the data outside synchronized block
-        val data = loader(value)
-
-        // Cache the data and remove the loader
-        value.putUserData(LLVALUE_DATA, data)
-        value.putUserData(LLVALUE_DATA_LOADER, null)
-
-        return data
-    }
-}

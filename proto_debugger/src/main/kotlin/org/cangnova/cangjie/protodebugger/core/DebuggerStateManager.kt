@@ -2,9 +2,10 @@ package org.cangnova.cangjie.protodebugger.core
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.withTimeout
-import org.cangnova.cangjie.protodebugger.data.LLThread
-import org.cangnova.cangjie.protodebugger.execution.TargetState
+import org.cangnova.cangjie.protodebugger.data.LLDBThread
+import org.cangnova.cangjie.protodebugger.execution.state.TargetState
 import com.intellij.openapi.diagnostic.Logger
+import org.cangnova.cangjie.protodebugger.breakpoint.DebugPausePoint
 
 /**
  * 调试器状态管理器
@@ -31,13 +32,16 @@ class DebuggerStateManager {
      * 当前调试器状态
      */
     @Volatile
-    private var currentState: TargetState = TargetState.NOT_READY
+    private var currentState: TargetState = TargetState.Idle
 
     /**
      * 当前停止的线程
      */
     @Volatile
-    private var stoppedThread: LLThread? = null
+    private var stoppedThread: LLDBThread? = null
+
+    @Volatile
+    private var debugPausePoint: DebugPausePoint? = null
 
     /**
      * 调试器能力标志
@@ -45,11 +49,6 @@ class DebuggerStateManager {
     @Volatile
     private var capabilities: Long = 0
 
-    /**
-     * 调试器版本
-     */
-    @Volatile
-    private var version: String? = null
 
     /**
      * 初始化完成信号
@@ -69,17 +68,14 @@ class DebuggerStateManager {
     /**
      * 获取当前停止的线程
      */
-    fun getStoppedThread(): LLThread? = stoppedThread
+    fun getStoppedThread(): LLDBThread? = stoppedThread
+    fun getStopPlace(): DebugPausePoint? = debugPausePoint
 
     /**
      * 获取调试器能力标志
      */
     fun getCapabilities(): Long = capabilities
 
-    /**
-     * 获取调试器版本
-     */
-    fun getVersion(): String? = version
 
     /**
      * 检查是否已初始化
@@ -101,17 +97,21 @@ class DebuggerStateManager {
     /**
      * 更新停止的线程
      */
-    fun updateStoppedThread(thread: LLThread?) {
+    fun updateStoppedThread(thread: LLDBThread?) {
         stoppedThread = thread
+    }
+
+    fun updateStopPlace(place: DebugPausePoint?) {
+        debugPausePoint = place
     }
 
     /**
      * 更新调试器能力和版本（通常在 InitializedEvent 时调用）
      */
-    fun updateCapabilitiesAndVersion(caps: Long, ver: String?) {
+    fun updateCapabilitiesAndVersion(caps: Long) {
         capabilities = caps
-        version = ver
-        LOG.info("Debugger capabilities updated: $caps, version: $ver")
+
+        LOG.info("Debugger capabilities updated: $caps ")
     }
 
     /**
@@ -152,38 +152,38 @@ class DebuggerStateManager {
      * 检查是否允许发送命令
      */
     fun canSendCommands(): Boolean {
-        return isInitialized() && currentState != TargetState.FINISHED
+        return isInitialized() && currentState != TargetState.Terminated
     }
 
     /**
      * 检查是否在暂停状态
      */
     fun isSuspended(): Boolean {
-        return currentState == TargetState.SUSPENDED
+        return currentState == TargetState.Paused
     }
 
     /**
      * 检查是否在运行状态
      */
     fun isRunning(): Boolean {
-        return currentState == TargetState.RUNNING
+        return currentState == TargetState.Running
     }
 
     /**
      * 检查是否已完成
      */
     fun isFinished(): Boolean {
-        return currentState == TargetState.FINISHED
+        return currentState == TargetState.Terminated
     }
 
     /**
      * 重置状态管理器（用于测试）
      */
     fun reset() {
-        currentState = TargetState.NOT_READY
+        currentState = TargetState.Idle
         stoppedThread = null
         capabilities = 0
-        version = null
+
         // 注意：initialized 是 CompletableDeferred，一旦完成就不能重置
     }
 }

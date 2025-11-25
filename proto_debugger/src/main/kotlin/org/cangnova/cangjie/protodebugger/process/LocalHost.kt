@@ -201,7 +201,7 @@ object LocalHost : HostMachine {
     /**
      * Sudo 进程处理器
      *
-     * 处理需要提升权限的进程，支持延迟 sudo kill
+     * 处理需要提升权限的进程，支持延迟 sudo terminate
      */
     private class SudoProcessHandler(
         cmd: GeneralCommandLine
@@ -236,10 +236,10 @@ object LocalHost : HostMachine {
             if (!process.isAlive) return
 
             try {
-                val killCmd = GeneralCommandLine("kill", process.pid().toString())
+                val killCmd = GeneralCommandLine("terminate", process.pid().toString())
               sudo(killCmd, DebuggerBundle.message("sudo.prompt"))
             } catch (e: IOException) {
-                LOG.error("Failed to kill process ${process.pid()}", e)
+                LOG.error("Failed to terminate process ${process.pid()}", e)
             }
         }
     }

@@ -44,7 +44,7 @@ package org.cangnova.cangjie.protodebugger.util
  * @param type 哈希算法类型
  * @param hash 哈希值的字符串表示
  */
-class DebuggerSourceFileHash(
+class SourceFileHash(
     /**
      * 哈希算法类型
      *
@@ -111,7 +111,7 @@ class DebuggerSourceFileHash(
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is DebuggerSourceFileHash) return false
+        if (other !is SourceFileHash) return false
 
         if (type != other.type) return false
         return hash == other.hash

@@ -26,36 +26,14 @@ package org.cangnova.cangjie.protodebugger.data
 
 import com.intellij.util.PathUtil
 import com.intellij.util.containers.ContainerUtil
+import lldbprotobuf.Model
 import org.cangnova.cangjie.protodebugger.breakpoint.AddBreakpointResult
+import org.cangnova.cangjie.protodebugger.location.SourceLocation
 import org.cangnova.cangjie.protodebugger.memory.Address
 import org.jetbrains.annotations.Contract
 import org.jetbrains.annotations.NonNls
-import proto.Model
-import java.util.regex.Matcher
-import java.util.regex.Pattern
-
-private val LOCATION_PATTERN: Pattern = Pattern.compile("^(.*):(\\d+)$")
-
-/**
- * 表示调试目标模块
- *
- * 封装了动态链接库或可执行文件的路径信息，用于模块级别的断点和符号解析。
- *
- * @param path 模块的完整路径
- * @property name 模块文件名（不包含路径）
- *
- * 使用场景：
- * - 模块加载跟踪：监控动态库的加载和卸载
- * - 符号解析：在特定模块中查找函数和变量符号
- * - 模块断点：在模块入口或导出函数设置断点
- * - 调试信息：显示当前加载的模块列表
- */
-data class LLModule(val path: String) {
-    /** 获取模块文件名，去除路径部分 */
-    val name: String = PathUtil.getFileName(path)
 
 
-}
 
 /**
  * 表示符号断点
@@ -73,85 +51,14 @@ data class LLModule(val path: String) {
  * - 库函数调试：在外部库函数中设置断点
  * - 动态调试：在没有源码的情况下调试二进制代码
  */
- data class LLSymbolicBreakpoint(
-    override val id: Int,
+ data class LLDBSymbolicBreakpoint(
+      val id: Long,
     val symbolPattern: String = "",
     val condition: String? = null,
     val enabled: Boolean = true
-) : LLCodepoint(id)
+)
 
 
-/**
- * 表示源码文件位置
- *
- * 封装了文件路径和行号信息，用于精确定位源码中的位置。
- * 行号从0开始计数，与调试器的内部表示一致。
- *
- * @property path 源码文件的完整路径
- * @property line 行号（从0开始）
- *
- * 使用场景：
- * - 断点设置：在源码的特定行设置断点
- * - 错误报告：指示编译错误或运行时错误的位置
- * - 调试导航：在调试过程中跳转到指定源码位置
- * - 代码覆盖：记录代码执行的行号信息
- *
- * 示例用法：
- * ```
- * val location = FileLocation("/path/to/file.cj", 10)
- * val parsed = FileLocation.tryParse("/path/to/file.cj:11")
- * ```
- */
-data class FileLocation(
-    @field:NonNls val path: String,
-    val line: Int
-) {
-    companion object {
-        /**
-         * 从文件路径和行号创建FileLocation
-         *
-         * 行号会自动减1以转换为调试器内部表示（从0开始计数）。
-         *
-         * @param path 源码文件路径
-         * @param lineNumber 行号（从1开始计数）
-         * @return FileLocation实例
-         */
-        @JvmStatic
-        fun fromFileLineNumber(
-            @NonNls path: String,
-            lineNumber: Int
-        ): FileLocation = FileLocation(path, lineNumber - 1)
-
-        /**
-         * 尝试解析位置字符串为FileLocation
-         *
-         * 支持格式"path:line"，例如"/path/to/file.cj:10"。
-         * 如果解析失败，返回默认值。
-         *
-         * @param locationString 位置字符串
-         * @param defaultValue 解析失败时返回的默认值
-         * @return 解析成功的FileLocation或默认值
-         */
-        @JvmStatic
-        @JvmOverloads
-        @Contract
-        fun tryParse(
-            @NonNls locationString: String,
-            defaultValue: FileLocation? = null
-        ): FileLocation? {
-            val matcher: Matcher = LOCATION_PATTERN.matcher(locationString)
-            return if (!matcher.matches()) {
-                defaultValue
-            } else {
-                val path = matcher.group(1)
-                val lineNumber = matcher.group(2).toInt()
-                FileLocation(path!!, lineNumber)
-            }
-        }
-    }
-
-
-}
 
 /**
  * 表示断点的实际位置信息
@@ -171,12 +78,12 @@ data class FileLocation(
 data class LLBreakpointLocation(
     val id: String,
     val address: Address,
-    val fileLocation: FileLocation?
+    val fileLocation: SourceLocation?
 )
 
 fun convertBreakpointLocation(location: Model.BreakpointLocation): LLBreakpointLocation {
-    val fileLocation = if (location.hasLocation() && location.location.filePath.isNotEmpty()) {
-        FileLocation(
+    val sourceLocation = if (location.hasLocation() && location.location.filePath.isNotEmpty()) {
+        SourceLocation(
             location.location.filePath,
             location.location.line - 1
         )
@@ -186,20 +93,12 @@ fun convertBreakpointLocation(location: Model.BreakpointLocation): LLBreakpointL
 
     return LLBreakpointLocation(
         location.id.toString(),
-        Address(location.address),
-        fileLocation
+        Address.Companion.Factory.fromLong(location.address),
+        sourceLocation
     )
 }
 
-/**
- * 代码点基类
- *
- * 表示调试器中各种代码点（断点、监视点等）的抽象基类。
- * 所有代码点都有唯一的标识符。
- *
- * @property id 代码点的唯一标识符
- */
-open class LLCodepoint(open val id: Int)
+
 
 /**
  * 表示源码行断点
@@ -220,12 +119,12 @@ open class LLCodepoint(open val id: Int)
  *
  * 示例用法：
  * ```
- * val breakpoint = LLBreakpoint(1, "/path/to/file.cj", 10, "x > 0")
+ * val breakpoint = LLDBBreakpoint(1, "/path/to/file.cj", 10, "x > 0")
  * println("断点: $breakpoint")
  * // 输出: Breakpoint-1@/path/to/file.cj:10:condition:x > 0
  * ```
  */
-class LLBreakpoint(id: Int, val origFile: String, private val line: Int, val origCondition: String?) : LLCodepoint(id) {
+class LLDBBreakpoint(val id: Long, val origFile: String, private val line: Int, val origCondition: String?)   {
 
 
     override fun toString(): String {
@@ -241,7 +140,7 @@ class LLBreakpoint(id: Int, val origFile: String, private val line: Int, val ori
         if (this === other) return true
         if (other == null || javaClass != other.javaClass || !super.equals(other)) return false
 
-        val that = other as LLBreakpoint
+        val that = other as LLDBBreakpoint
 
         if (line != that.line) return false
         if (origFile != that.origFile) return false
@@ -257,21 +156,20 @@ class LLBreakpoint(id: Int, val origFile: String, private val line: Int, val ori
     }
 }
 
-private fun makeLocation(breakpointId: Int, loc: Model.BreakpointLocation): LLBreakpointLocation? {
-
+private fun makeLocation(breakpointId: Model.Id, loc: Model.BreakpointLocation): LLBreakpointLocation? {
     return if (!loc.isResolved) {
         null
     } else {
         val id: String = makeBreakpointLocationCanonicalName(breakpointId, loc.id)
-        val address = Address.fromUnsignedLong(loc.address)
-        val location = FileLocation(loc.location.filePath, loc.location.line - 1)
+        val address = Address.Companion.Factory.fromLong(loc.address)
+        val location = SourceLocation(loc.location.filePath, loc.location.line - 1)
         LLBreakpointLocation(id, address, location)
     }
 }
 
-private fun makeBreakpointLocationCanonicalName(breakpointId: Int, locationId: Int): String {
+private fun makeBreakpointLocationCanonicalName(breakpointId: Model.Id, locationId: Model.Id): String {
 
-    return "$breakpointId.$locationId"
+    return "$breakpointId.${locationId.id}"
 }
 
 fun makeBreakpoint(
@@ -283,12 +181,12 @@ fun makeBreakpoint(
         if (breakpoint.hasOriginalLocation()) breakpoint.originalLocation.filePath else "<address>"
     val origLine = if (breakpoint.hasOriginalLocation()) breakpoint.originalLocation.line else 0
     val condition: String? = breakpoint.getCondition()
-    val llBreakpoint = LLBreakpoint(breakpoint.id, origFilePath, origLine - 1, condition)
+    val LLDBBreakpoint = LLDBBreakpoint(breakpoint.id.id, origFilePath, origLine - 1, condition)
     val locationList: List<LLBreakpointLocation> = ContainerUtil.mapNotNull(breakpointLocations) { loc ->
         makeLocation(
             breakpoint.id,
             loc
         )
     }
-    return AddBreakpointResult(llBreakpoint, locationList)
+    return AddBreakpointResult(LLDBBreakpoint, locationList)
 }

@@ -4,7 +4,6 @@ import com.intellij.execution.ExecutionException
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.Expirable
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.UserDataHolder
 import com.intellij.openapi.util.UserDataHolderBase
@@ -13,7 +12,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.containers.FactoryMap
 import org.cangnova.cangjie.protodebugger.data.*
 import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
-import org.cangnova.cangjie.protodebugger.output.ResultList
+import org.cangnova.cangjie.protodebugger.result.PagedResult
 import org.jetbrains.annotations.NotNull
 
 /**
@@ -39,8 +38,8 @@ import org.jetbrains.annotations.NotNull
 class EvaluationContext(
     private val facade: DebuggerDriverFacade,
     private val expirable: Expirable?,
-    private val thread: LLThread,
-    private val frame: LLFrame,
+    private val thread: LLDBThread,
+    private val frame: LLDBFrame,
     private val cacheHolder: UserDataHolderEx
 ) : Expirable {
 
@@ -63,13 +62,13 @@ class EvaluationContext(
      * @throws ExecutionException 当执行过程中出现错误时
      */
     @Throws(DebuggerCommandException::class, ExecutionException::class)
-    fun convertToRValue(data: LLValueData, pair: Pair<LLValue, String>): String {
+    fun convertToRValue(data: LLDBValue, pair: Pair<LLDBVariable, String>): String {
         val rValueData = getData(pair.first)
 
         return if (rValueData.isNullPointer()) {
             "((id)0)"
         } else {
-            if (data.isPointer() && pair.first.type == "int" && rValueData.intValue() == 0L) {
+            if (data.isPointer() && pair.first.type.typeName == "int" && rValueData.intValue() == 0L) {
                 "0"
             } else {
                 pair.second ?: throw NullPointerException("rValuePair.second must not be null")
@@ -95,8 +94,8 @@ class EvaluationContext(
      * @throws DebuggerCommandException 当调试命令执行失败时
      */
     @Throws(ExecutionException::class, DebuggerCommandException::class)
-    fun getValueAddress(value: LLValue): Long {
-        return facade.evalService.getValueAddress(value)
+    fun getValueAddress(value: LLDBVariable): Long {
+  TODO()
     }
 
     /**
@@ -153,7 +152,7 @@ class EvaluationContext(
      * @return 表达式的求值结果，以LLValue对象形式返回
      * @throws EvaluationExpiredException 当求值上下文已过期时
      */
-    fun evaluate(expression: String): LLValue {
+    fun evaluate(expression: String): LLDBVariable {
         checkExpiration()
         return kotlinx.coroutines.runBlocking {
             facade.evalService.evaluate(thread, frame, expression)
@@ -174,7 +173,7 @@ class EvaluationContext(
      * @param expression 要求值的表达式字符串
      * @return 包含详细信息的LLValueData对象
      */
-    fun evaluateData(expression: String): LLValueData {
+    fun evaluateData(expression: String): LLDBValue {
         return getData(evaluate(expression))
     }
 
@@ -288,109 +287,9 @@ class EvaluationContext(
         }
     }
 
-    /**
-     * 发送Objective-C消息到对象（重载版本1）
-     *
-     * 该方法用于向指定的对象发送消息（调用方法），这是Objective-C运行时的核心机制。
-     * 该版本接受LLValueData对象作为目标对象。
-     *
-     * 使用场景：
-     * - 在调试过程中调用Objective-C对象的方法
-     * - 执行带有参数的方法调用
-     * - 测试对象的行为和状态
-     *
-     * @param self 目标对象的数据
-     * @param selectorAndArgs 方法选择器和参数字符串
-     * @param returnType 期望的返回值类型
-     * @return 方法调用的结果，以LLValue对象形式返回
-     * @throws ExecutionException 当执行过程中出现错误时
-     * @throws DebuggerCommandException 当调试命令执行失败时
-     */
-    @Throws(ExecutionException::class, DebuggerCommandException::class)
-    fun messageSend(self: LLValueData, selectorAndArgs: String?, returnType: String?): LLValue {
-
-        return evaluate(
-            messageSendExpr(
-                self.getPointer(),
-                selectorAndArgs!!, returnType!!
-            )
-        )
-    }
-
-    /**
-     * 发送Objective-C消息到对象（重载版本2）
-     *
-     * 该方法是messageSend的重载版本，接受LLValue对象作为目标对象。
-     * 内部会将LLValue转换为LLValueData然后调用另一个重载版本。
-     *
-     * 使用场景：
-     * - 当目标对象以LLValue形式提供时调用
-     * - 统一处理不同类型的目标对象
-     *
-     * @param self 目标对象
-     * @param selectorAndArgs 方法选择器和参数字符串
-     * @param returnType 期望的返回值类型
-     * @return 方法调用的结果，以LLValue对象形式返回
-     * @throws ExecutionException 当执行过程中出现错误时
-     * @throws DebuggerCommandException 当调试命令执行失败时
-     */
-    @Throws(ExecutionException::class, DebuggerCommandException::class)
-    fun messageSend(self: LLValue?, selectorAndArgs: String?, returnType: String?): LLValue {
 
 
-        return messageSend(getData(self!!), selectorAndArgs, returnType)
-    }
 
-    /**
-     * 发送Objective-C消息到对象（重载版本3）
-     *
-     * 该方法是messageSend的便捷重载版本，默认返回类型为"id"。
-     * 适用于大多数Objective-C方法调用场景。
-     *
-     * 使用场景：
-     * - 调用返回对象的方法
-     * - 当不需要指定具体返回类型时
-     * - 简化方法调用语法
-     *
-     * @param self 目标对象
-     * @param selectorAndArgs 方法选择器和参数字符串
-     * @return 方法调用的结果，默认返回id类型
-     * @throws ExecutionException 当执行过程中出现错误时
-     * @throws DebuggerCommandException 当调试命令执行失败时
-     */
-    @Throws(ExecutionException::class, DebuggerCommandException::class)
-    fun messageSend(self: LLValue?, selectorAndArgs: String?): LLValue {
-
-        return messageSend(self, selectorAndArgs, "id")
-    }
-
-    /**
-     * 检查对象是否为指定类的实例
-     *
-     * 该方法用于运行时类型检查，判断给定的对象是否是特定类或其子类的实例。
-     * 这是Objective-C运行时反射功能的重要组成部分。
-     *
-     * 使用场景：
-     * - 在调试过程中验证对象的类型
-     * - 进行类型安全检查
-     * - 处理多态类型判断
-     * - 动态类型分析
-     *
-     * @param className 要检查的类名
-     * @param value 要检查的对象
-     * @return 如果对象是指定类或其子类的实例返回true，否则返回false
-     */
-    fun isKindOfClass(className: String, value: LLValue): Boolean {
-        val pointer = getData(value).getPointer()
-        val expression =
-            "(unsigned char)((Class)objc_getClass(\"$className\")?" +
-                    cast(
-                        "[" + cast(pointer, "id") + " isKindOfClass:(Class)objc_lookUpClass(\"$className\")]",
-                        "unsigned char"
-                    ) +
-                    ":0)"
-        return evaluateData(expression).isTrue()
-    }
 
     /**
      * 从NSString对象获取字符串内容
@@ -407,7 +306,7 @@ class EvaluationContext(
      * @param nsstring 要转换的NSString对象
      * @return 字符串内容，已移除引号
      */
-    fun stringFromNSString(nsstring: LLValue): String {
+    fun stringFromNSString(nsstring: LLDBVariable): String {
         return StringUtil.unquoteString(
             evaluateData(
                 stringFromNSStringExpr(getData(nsstring).getPointer()),
@@ -432,35 +331,13 @@ class EvaluationContext(
      * @return 包含详细信息的LLValueData对象
      * @throws EvaluationExpiredException 当求值上下文已过期时
      */
-    fun getData(varValue: LLValue): LLValueData {
+    fun getData(varValue: LLDBVariable): LLDBValue {
         checkExpiration()
         return kotlinx.coroutines.runBlocking {
-            facade.evalService.getData(varValue)
+            facade.evalService.getValue(varValue)
         }
     }
 
-    /**
-     * 获取值的子项数量
-     *
-     * 该方法用于获取复合值（如数组、结构体、对象等）的子项数量。
-     * 这对于理解和导航复杂数据结构非常重要。
-     *
-     * 使用场景：
-     * - 确定数组的长度
-     * - 获取对象的属性数量
-     * - 分析数据结构的规模
-     * - 调试容器类对象
-     *
-     * @param varValue 要分析的LLValue对象
-     * @return 子项数量，如果无法确定则返回null
-     * @throws EvaluationExpiredException 当求值上下文已过期时
-     */
-    fun getChildrenCount(varValue: LLValue): Int {
-        checkExpiration()
-        return kotlinx.coroutines.runBlocking {
-            facade.evalService.getChildrenCount(varValue)
-        }
-    }
 
     /**
      * 获取变量的子项列表
@@ -477,10 +354,10 @@ class EvaluationContext(
      * @param varValue 父值的LLValue对象
      * @param offset 起始偏移量
      * @param size 要获取的子项数量
-     * @return 包含子项的ResultList对象
+     * @return 包含子项的PagedResult对象
      * @throws EvaluationExpiredException 当求值上下文已过期时
      */
-    fun getVariableChildren(varValue: LLValue, offset: Int, size: Int): ResultList<LLValue> {
+    fun getVariableChildren(varValue: LLDBVariable, offset: Int, size: Int): PagedResult<LLDBVariable> {
         checkExpiration()
         return kotlinx.coroutines.runBlocking {
             facade.evalService.getVariableChildren(varValue, offset, size)
@@ -568,6 +445,6 @@ class EvaluationContext(
  * @param expirable 导致过期的可过期对象
  */
 class EvaluationExpiredException(
-    @NotNull context: EvaluationContext,
-    @NotNull expirable: Expirable
+      context: EvaluationContext,
+      expirable: Expirable
 ) : ProcessCanceledException("expired: $expirable evaluation context: $context")

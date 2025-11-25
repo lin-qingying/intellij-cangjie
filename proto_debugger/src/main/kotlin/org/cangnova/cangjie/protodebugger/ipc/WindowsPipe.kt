@@ -12,7 +12,7 @@ import com.pty4j.windows.cygwin.CygwinPTYOutputStream
  * Windows命名管道实现，封装JNA调用，
  * 支持异步连接与双向通信。
  */
-class WinPipe private constructor(
+class WindowsPipe private constructor(
     private val direction: PipeDirection,
     private val nameSuffix: String
 ) : NamedPipe {
@@ -107,12 +107,12 @@ class WinPipe private constructor(
         private val processCounter = AtomicInteger()
 
         @Throws(IOException::class)
-        fun createOutboundPipe(nameSuffix: String): WinPipe =
-            WinPipe(PipeDirection.Outbound, nameSuffix)
+        fun createOutboundPipe(nameSuffix: String): WindowsPipe =
+            WindowsPipe(PipeDirection.Outbound, nameSuffix)
 
         @Throws(IOException::class)
-        fun createInboundPipe(nameSuffix: String): WinPipe =
-            WinPipe(PipeDirection.Inbound, nameSuffix)
+        fun createInboundPipe(nameSuffix: String): WindowsPipe =
+            WindowsPipe(PipeDirection.Inbound, nameSuffix)
     }
 
     enum class PipeDirection(val flag: Int) {

@@ -26,10 +26,11 @@ package org.cangnova.cangjie.resolve.scopes
 
 import org.cangnova.cangjie.descriptors.ClassifierDescriptor
 import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
+import org.cangnova.cangjie.resolve.scopes.MemberScope
 import com.intellij.util.SmartList
 
 fun listOfNonEmptyScopes(scopes: Iterable<MemberScope?>): SmartList<MemberScope> =
-    scopes.filterTo(SmartList<MemberScope>()) { it != null && it !== MemberScope.Empty }
+    scopes.mapNotNull { it }.filterTo(SmartList()) { it !== MemberScope.Empty }
 
 inline fun <Scope, T> getFirstFromAllScopes(scopes: Array<Scope>, callback: (Scope) -> T?): T? =
     when (scopes.size) {

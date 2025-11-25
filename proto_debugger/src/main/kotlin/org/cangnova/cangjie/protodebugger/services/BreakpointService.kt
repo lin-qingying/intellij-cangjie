@@ -2,9 +2,10 @@ package org.cangnova.cangjie.protodebugger.services
 
 import org.cangnova.cangjie.protodebugger.breakpoint.AddBreakpointResult
 import org.cangnova.cangjie.protodebugger.breakpoint.SymbolicBreakpoint
-import org.cangnova.cangjie.protodebugger.data.LLSymbolicBreakpoint
-import org.cangnova.cangjie.protodebugger.data.LLValue
-import org.cangnova.cangjie.protodebugger.data.LLWatchpoint
+import org.cangnova.cangjie.protodebugger.data.LLDBSymbolicBreakpoint
+
+import org.cangnova.cangjie.protodebugger.data.LLDBVariable
+import org.cangnova.cangjie.protodebugger.data.LLDBWatchpoint
 import org.cangnova.cangjie.protodebugger.memory.Address
 
 /**
@@ -12,7 +13,7 @@ import org.cangnova.cangjie.protodebugger.memory.Address
  *
  * 负责管理所有类型的断点：行断点、地址断点、符号断点和观察点
  */
-interface BreakpointService {
+interface BreakpointService:  AutoCloseable {
     /**
      * 添加行断点
      *
@@ -51,7 +52,7 @@ interface BreakpointService {
         symbolPattern: String,
         module: String? = null,
         condition: String? = null
-    ): LLSymbolicBreakpoint?
+    ): LLDBSymbolicBreakpoint?
 
     /**
      * 添加符号断点（使用SymbolicBreakpoint对象）
@@ -59,7 +60,7 @@ interface BreakpointService {
      * @param breakpoint 符号断点配置
      * @return 符号断点对象，失败返回null
      */
-    suspend fun addSymbolicBreakpoint(breakpoint: SymbolicBreakpoint): LLSymbolicBreakpoint?
+    suspend fun addSymbolicBreakpoint(breakpoint: SymbolicBreakpoint): LLDBSymbolicBreakpoint?
 
     /**
      * 添加观察点（内存监视点）
@@ -74,24 +75,18 @@ interface BreakpointService {
     suspend fun addWatchpoint(
         threadId: Long,
         frameIndex: Int,
-        value: LLValue,
+        value: LLDBVariable,
         expr: String,
-        lifetime: LLWatchpoint.Lifetime?,
-        accessType: LLWatchpoint.AccessType
-    ): LLWatchpoint
+        lifetime: LLDBWatchpoint.Lifetime?,
+        accessType: LLDBWatchpoint.AccessType
+    ): LLDBWatchpoint
     /**
      * 移除断点
      *
      * @param ids 断点ID集合
      */
-    suspend fun removeBreakpoints(ids: Collection<Int>)
+    suspend fun removeBreakpoints(ids: Collection<Long>)
 
-    /**
-     * 移除观察点
-     *
-     * @param ids 观察点ID集合
-     */
-    suspend fun removeWatchpoints(ids: List<Int>)
 
     /**
      * 是否支持观察点

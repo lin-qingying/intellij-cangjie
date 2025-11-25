@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.protodebugger.breakpoint
 
-import org.cangnova.cangjie.protodebugger.data.LLBreakpoint
+import org.cangnova.cangjie.protodebugger.data.LLDBBreakpoint
 import org.cangnova.cangjie.protodebugger.data.LLBreakpointLocation
 
 /**
@@ -40,7 +40,7 @@ data class AddBreakpointResult(
     /**
      * 创建的断点对象
      */
-    val breakpoint: LLBreakpoint,
+    val breakpoint: LLDBBreakpoint,
 
     /**
      * 断点位置列表

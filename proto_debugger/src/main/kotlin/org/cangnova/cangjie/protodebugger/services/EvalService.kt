@@ -1,10 +1,11 @@
 package org.cangnova.cangjie.protodebugger.services
 
-import org.cangnova.cangjie.protodebugger.data.LLFrame
-import org.cangnova.cangjie.protodebugger.data.LLThread
-import org.cangnova.cangjie.protodebugger.data.LLValue
-import org.cangnova.cangjie.protodebugger.data.LLValueData
-import org.cangnova.cangjie.protodebugger.output.ResultList
+import lldbprotobuf.Model.DynamicValueType
+import org.cangnova.cangjie.protodebugger.data.LLDBFrame
+import org.cangnova.cangjie.protodebugger.data.LLDBThread
+import org.cangnova.cangjie.protodebugger.data.LLDBVariable
+import org.cangnova.cangjie.protodebugger.data.LLDBValue
+import org.cangnova.cangjie.protodebugger.result.PagedResult
 
 /**
  * 表达式求值服务接口
@@ -21,10 +22,10 @@ interface EvalService {
      * @return 求值结果
      */
     suspend fun evaluate(
-        thread: LLThread,
-        frame: LLFrame,
+        thread: LLDBThread,
+        frame: LLDBFrame,
         expression: String
-    ): LLValue
+    ): LLDBVariable
 
     /**
      * 通过值ID和索引求值
@@ -38,19 +39,26 @@ interface EvalService {
         valueId: Long,
         index: Int,
         expression: String
-    ): LLValue
+    ): LLDBVariable
 
     /**
-     * 获取局部变量
+     * 获取变量列表
      *
      * @param thread 目标线程
      * @param frame 目标栈帧
      * @return 变量列表
      */
     suspend fun getVariables(
-        thread: LLThread,
-        frame: LLFrame
-    ): List<LLValue>
+        thread: LLDBThread,
+        frame: LLDBFrame,
+        includeArgument: Boolean = true,
+        includeStatics: Boolean = true,
+        includeLocals: Boolean = true,
+        inScopeOnly: Boolean = true,
+        includeRuntimeSupportValues: Boolean = true,
+        useDynamic: DynamicValueType = DynamicValueType.DYNAMIC_VALUE_NONE,
+        includeRecognizedArguments: Boolean = true,
+    ): List<LLDBVariable>
 
     /**
      * 获取变量（包含静态和全局变量选项）
@@ -64,9 +72,14 @@ interface EvalService {
     suspend fun getVariables(
         threadId: Long,
         frameIndex: Int,
-        statics: Boolean = false,
-        globals: Boolean = false
-    ): List<LLValue>
+        includeArgument: Boolean = true,
+        includeStatics: Boolean = true,
+        includeLocals: Boolean = true,
+        inScopeOnly: Boolean = true,
+        includeRuntimeSupportValues: Boolean = true,
+        useDynamic: DynamicValueType = DynamicValueType.DYNAMIC_VALUE_NONE,
+        includeRecognizedArguments: Boolean = true,
+    ): List<LLDBVariable>
 
     /**
      * 获取变量的子元素
@@ -77,10 +90,12 @@ interface EvalService {
      * @return 子元素列表
      */
     suspend fun getVariableChildren(
-        value: LLValue,
-        from: Int,
-        count: Int
-    ): ResultList<LLValue>
+        value: LLDBVariable,
+        from: Int = 0,
+        count: Int = 1000
+    ): PagedResult<LLDBVariable>
+
+
 
     /**
      * 获取子元素数量
@@ -88,32 +103,46 @@ interface EvalService {
      * @param value 变量
      * @return 子元素数量
      */
-    suspend fun getChildrenCount(value: LLValue): Int
+    suspend fun getChildrenCount(value: LLDBVariable): Int
+
+    
+
 
     /**
-     * 获取变量数据
+     * 获取值的详细信息
+     *
+     * 获取用于UI展示的值数据，包括字符串表示、描述、类型信息等。
+     * 支持缓存机制，提高重复访问性能。
      *
      * @param value 变量
-     * @return 变量数据
+     * @param useCache 是否使用缓存，默认为true
+     * @return 值的详细信息
      */
-    suspend fun getData(value: LLValue): LLValueData
+    suspend fun getValue(
+        variable: LLDBVariable,
+
+    ): LLDBValue
+
 
     /**
-     * 获取变量描述
+     * 修改变量值
      *
-     * @param value 变量
-     * @param maxLength 最大长度
-     * @return 描述字符串
+     * @param value 要修改的变量
+     * @param newValue 新的值（字符串表示）
+     * @return 修改是否成功
      */
-    suspend fun getDescription(value: LLValue, maxLength: Int): String
+    suspend fun setValue(
+        value: LLDBVariable,
+        newValue: String
+    ): Boolean
 
     /**
-     * 获取值的内存地址
+     * 检查变量是否可修改
      *
      * @param value 变量
-     * @return 内存地址
+     * @return 如果变量可修改返回true，否则返回false
      */
-    fun getValueAddress(value: LLValue): Long
+    suspend fun isMutable(value: LLDBVariable): Boolean
 
     /**
      * 设置值过滤是否启用

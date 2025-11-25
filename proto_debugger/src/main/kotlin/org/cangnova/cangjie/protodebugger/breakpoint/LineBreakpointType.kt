@@ -30,9 +30,12 @@ import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.Tag
+import com.intellij.xdebugger.breakpoints.XLineBreakpoint
+import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.messages.DebuggerBundle
-import org.cangnova.cangjie.protodebugger.breakpoint.CangJieDebuggerLineBreakpointType.ID
+import org.cangnova.cangjie.protodebugger.breakpoint.LineBreakpointType.ID
+import org.cangnova.cangjie.protodebugger.core.CangJieDebuggerEditorsProvider
 
 /**
  * 仓颉语言行断点类型
@@ -40,7 +43,7 @@ import org.cangnova.cangjie.protodebugger.breakpoint.CangJieDebuggerLineBreakpoi
  * 为proto_debugger模块提供IntelliJ调试框架中的行断点支持。
  * 允许用户在仓颉源代码的特定行设置断点。
  */
-object CangJieDebuggerLineBreakpointType : XLineBreakpointType<CangJieDebuggerLineBreakpointType.Properties>(
+object LineBreakpointType : XLineBreakpointType<LineBreakpointType.Properties>(
     ID,
     DebuggerBundle.message("breakpoint.line.title")
 ) {
@@ -57,17 +60,7 @@ object CangJieDebuggerLineBreakpointType : XLineBreakpointType<CangJieDebuggerLi
          */
         @Tag("breakpoint-state")
         class State {
-            @Attribute("enabled")
-            var enabled: Boolean = true
 
-            @Attribute("condition")
-            var condition: String? = null
-
-            @Attribute("log-message")
-            var logMessage: String? = null
-
-            @Attribute("suspend-policy")
-            var suspendPolicy: String = "ALL"  // ALL, THREAD, NONE
         }
 
         private var myState = State()
@@ -78,53 +71,7 @@ object CangJieDebuggerLineBreakpointType : XLineBreakpointType<CangJieDebuggerLi
             myState = state
         }
 
-        /**
-         * 检查断点是否启用
-         */
-        fun isEnabled(): Boolean = myState.enabled
 
-        /**
-         * 设置断点启用状态
-         */
-        fun setEnabled(enabled: Boolean) {
-            myState.enabled = enabled
-        }
-
-        /**
-         * 获取断点条件表达式
-         */
-        fun getCondition(): String? = myState.condition
-
-        /**
-         * 设置断点条件表达式
-         */
-        fun setCondition(condition: String?) {
-            myState.condition = condition
-        }
-
-        /**
-         * 获取日志消息
-         */
-        fun getLogMessage(): String? = myState.logMessage
-
-        /**
-         * 设置日志消息
-         */
-        fun setLogMessage(message: String?) {
-            myState.logMessage = message
-        }
-
-        /**
-         * 获取暂停策略
-         */
-        fun getSuspendPolicy(): String = myState.suspendPolicy
-
-        /**
-         * 设置暂停策略
-         */
-        fun setSuspendPolicy(policy: String) {
-            myState.suspendPolicy = policy
-        }
     }
 
     /**
@@ -134,6 +81,13 @@ object CangJieDebuggerLineBreakpointType : XLineBreakpointType<CangJieDebuggerLi
         return Properties()
     }
 
+
+    override fun getEditorsProvider(
+        breakpoint: XLineBreakpoint<Properties?>,
+        project: Project
+    ): XDebuggerEditorsProvider  {
+        return CangJieDebuggerEditorsProvider()
+    }
     /**
      * 检查是否可以在指定文件的指定行设置断点
      */

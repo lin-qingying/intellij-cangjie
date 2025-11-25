@@ -25,10 +25,11 @@
 package org.cangnova.cangjie.protodebugger.data
 
 import com.intellij.openapi.util.NlsSafe
-import proto.Model
+import lldbprotobuf.Model
+
 
 /**
- * 低级别线程（LLThread）类
+ * 低级别线程（LLDBThread）类
  *
  * 该类表示调试器中的一个线程对象，包含了线程的基本信息如ID、状态、名称等。
  * 它是调试器管理和显示多线程程序状态的基础类。
@@ -46,12 +47,13 @@ import proto.Model
  * @param tid 线程的系统线程ID
  * @param frozen 线程是否被冻结（暂停执行）
  */
-open class LLThread(
+open class LLDBThread(
+    val index: Int,
     val id: Long,
     private val state: String?,
     private val workQueue: String?,
     val name: String?,
-    private val tid: String?,
+
     private val frozen: Boolean
 ) {
     /**
@@ -65,11 +67,12 @@ open class LLThread(
      */
     constructor(
         id: Long,
+        index: Int,
         state: String?,
         workQueue: String?,
         name: String?,
-        tid: String?
-    ) : this(id, state, workQueue, name, tid, false)
+
+        ) : this(index, id, state, workQueue, name, false)
 
     /**
      * 获取线程的显示名称
@@ -91,7 +94,7 @@ open class LLThread(
         builder.append("Thread-").append(id)
         workQueue?.let { builder.append("-<$it>") }
         name?.let { builder.append("-[$it]") }
-        tid?.let { builder.append(" ($it)") }
+
         return builder.toString()
     }
 
@@ -127,12 +130,12 @@ open class LLThread(
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is LLThread) return false
+        if (other !is LLDBThread) return false
 
         if (id != other.id) return false
         if (state != other.state) return false
         if (workQueue != other.workQueue) return false
-        if (tid != other.tid) return false
+
         if (frozen != other.frozen) return false
 
         return true
@@ -150,22 +153,24 @@ open class LLThread(
         var result = id.hashCode()
         result = 31 * result + (state?.hashCode() ?: 0)
         result = 31 * result + (workQueue?.hashCode() ?: 0)
-        result = 31 * result + (tid?.hashCode() ?: 0)
+
         result = 31 * result + frozen.hashCode()
         return result
     }
 }
 
 
-  fun newLLThread(thread: Model.Thread): LLThread {
+fun newLLThread(thread: Model.Thread): LLDBThread {
     val stopReasonInfo: Model.ThreadStopInfo = thread.stopInfo
     val isStopped = stopReasonInfo.reason !== Model.StopReason.STOP_REASON_INVALID
-    return LLThread(
-        thread.index.toLong(),
+    return LLDBThread(
+
+        thread.index,
+        thread.threadId.id,
         if (isStopped) "STOPPED" else null,
-        thread.queueName,
+        /*thread.queueName*/ null,
         thread.getName(),
-        java.lang.String.valueOf(thread.threadId),
+
         thread.isFrozen
     )
 }

@@ -204,8 +204,8 @@ class SymbolicBreakpointXBreakpoint(
     /**
      * 转换为调试器服务的符号断点格式
      */
-    fun toLLSymbolicBreakpoint(): org.cangnova.cangjie.protodebugger.data.LLSymbolicBreakpoint {
-        return org.cangnova.cangjie.protodebugger.data.LLSymbolicBreakpoint(
+    fun toLLDBSymbolicBreakpoint(): org.cangnova.cangjie.protodebugger.data.LLDBSymbolicBreakpoint {
+        return org.cangnova.cangjie.protodebugger.data.LLDBSymbolicBreakpoint(
             id = 0, // ID will be assigned by the debugger service
             symbolPattern = symbolPattern,
             condition = conditionExpressionObj?.expression,

@@ -29,7 +29,6 @@ import com.intellij.xdebugger.impl.ui.tree.XDebuggerTreeState
 import com.intellij.xdebugger.settings.DebuggerSettingsCategory
 import com.intellij.xdebugger.settings.XDebuggerSettings
 import org.cangnova.cangjie.messages.DebuggerBundle
-import org.cangnova.cangjie.protodebugger.symbol.NtSymbolSettings
 import org.jetbrains.annotations.Nls
 import java.util.*
 
@@ -102,10 +101,19 @@ class DebuggerSettings : XDebuggerSettings<DebuggerSettings>("CangJie") {
 
     private var stripCxxAuxiliaryNamespaces = true
     private var sugarizeCxxStlTypes = true
-      var ntSymbolSettings: NtSymbolSettings = NtSymbolSettings()
     private var registerSettings: List<DebuggerRegisterSettings>? = null
     private var showRegisters = false
     private val registersSettingsDispatcher: EventDispatcher<SettingListener> =
+        EventDispatcher.create(SettingListener::class.java)
+
+    // ==================== 调试器行为配置 ====================
+
+    private var emulateTerminal = false
+    private val emulateTerminalDispatcher: EventDispatcher<SettingListener> =
+        EventDispatcher.create(SettingListener::class.java)
+
+    private var disableASLR = false
+    private val disableASLRDispatcher: EventDispatcher<SettingListener> =
         EventDispatcher.create(SettingListener::class.java)
 
     @XCollection(propertyElementName = "register-settings", style = XCollection.Style.v2)
@@ -263,6 +271,180 @@ class DebuggerSettings : XDebuggerSettings<DebuggerSettings>("CangJie") {
         registersSettingsDispatcher.getMulticaster().settingChanged()
     }
 
+    // ==================== 终端模拟配置 ====================
+
+    @OptionTag("EMULATE_TERMINAL")
+    fun isEmulateTerminal(): Boolean {
+        return emulateTerminal
+    }
+
+    fun setEmulateTerminal(value: Boolean) {
+        if (emulateTerminal != value) {
+            emulateTerminal = value
+            fireEmulateTerminalChanged()
+        }
+    }
+
+    private fun fireEmulateTerminalChanged() {
+        emulateTerminalDispatcher.getMulticaster().settingChanged()
+    }
+
+    fun addEmulateTerminalListener(listener: SettingListener, disposable: Disposable) {
+        emulateTerminalDispatcher.addListener(listener, disposable)
+    }
+
+    // ==================== ASLR 配置 ====================
+
+    @OptionTag("DISABLE_ASLR")
+    fun isDisableASLR(): Boolean {
+        return disableASLR
+    }
+
+    fun setDisableASLR(value: Boolean) {
+        if (disableASLR != value) {
+            disableASLR = value
+            fireDisableASLRChanged()
+        }
+    }
+
+    private fun fireDisableASLRChanged() {
+        disableASLRDispatcher.getMulticaster().settingChanged()
+    }
+
+    fun addDisableASLRListener(listener: SettingListener, disposable: Disposable) {
+        disableASLRDispatcher.addListener(listener, disposable)
+    }
+
+    // ==================== 调试模式配置 ====================
+
+    private var debugModeEnabled = false
+    private val debugModeDispatcher: EventDispatcher<SettingListener> =
+        EventDispatcher.create(SettingListener::class.java)
+
+    @OptionTag("DEBUG_MODE_ENABLED")
+    fun isDebugModeEnabled(): Boolean {
+        return debugModeEnabled
+    }
+
+    fun setDebugModeEnabled(value: Boolean) {
+        if (debugModeEnabled != value) {
+            debugModeEnabled = value
+            fireDebugModeChanged()
+        }
+    }
+
+    private fun fireDebugModeChanged() {
+        debugModeDispatcher.getMulticaster().settingChanged()
+    }
+
+    fun addDebugModeListener(listener: SettingListener, disposable: Disposable) {
+        debugModeDispatcher.addListener(listener, disposable)
+    }
+
+    // ==================== 反汇编配置 ====================
+
+    private var disasmFlavor: DisasmFlavor = DisasmFlavor.INTEL
+    private val disasmFlavorDispatcher: EventDispatcher<SettingListener> =
+        EventDispatcher.create(SettingListener::class.java)
+
+    @OptionTag("DISASM_FLAVOR")
+    fun getDisasmFlavor(): DisasmFlavor {
+        return disasmFlavor
+    }
+
+    fun setDisasmFlavor(value: DisasmFlavor) {
+        if (disasmFlavor != value) {
+            disasmFlavor = value
+            fireDisasmFlavorChanged()
+        }
+    }
+
+    private fun fireDisasmFlavorChanged() {
+        disasmFlavorDispatcher.getMulticaster().settingChanged()
+    }
+
+    fun addDisasmFlavorListener(listener: SettingListener, disposable: Disposable) {
+        disasmFlavorDispatcher.addListener(listener, disposable)
+    }
+
+    // ==================== 静态变量加载配置 ====================
+
+    private var staticVarsLoadingEnabled = true
+    private val staticVarsLoadingDispatcher: EventDispatcher<SettingListener> =
+        EventDispatcher.create(SettingListener::class.java)
+
+    @OptionTag("STATIC_VARS_LOADING_ENABLED")
+    fun isStaticVarsLoadingEnabled(): Boolean {
+        return staticVarsLoadingEnabled
+    }
+
+    fun setStaticVarsLoadingEnabled(value: Boolean) {
+        if (staticVarsLoadingEnabled != value) {
+            staticVarsLoadingEnabled = value
+            fireStaticVarsLoadingChanged()
+        }
+    }
+
+    private fun fireStaticVarsLoadingChanged() {
+        staticVarsLoadingDispatcher.getMulticaster().settingChanged()
+    }
+
+    fun addStaticVarsLoadingListener(listener: SettingListener, disposable: Disposable) {
+        staticVarsLoadingDispatcher.addListener(listener, disposable)
+    }
+
+    // ==================== Rich Value Description 配置 ====================
+
+    private var richValueDescriptionEnabled = false
+    private val richValueDescriptionDispatcher: EventDispatcher<SettingListener> =
+        EventDispatcher.create(SettingListener::class.java)
+
+    @OptionTag("RICH_VALUE_DESCRIPTION_ENABLED")
+    fun isRichValueDescriptionEnabled(): Boolean {
+        return richValueDescriptionEnabled
+    }
+
+    fun setRichValueDescriptionEnabled(value: Boolean) {
+        if (richValueDescriptionEnabled != value) {
+            richValueDescriptionEnabled = value
+            fireRichValueDescriptionChanged()
+        }
+    }
+
+    private fun fireRichValueDescriptionChanged() {
+        richValueDescriptionDispatcher.getMulticaster().settingChanged()
+    }
+
+    fun addRichValueDescriptionListener(listener: SettingListener, disposable: Disposable) {
+        richValueDescriptionDispatcher.addListener(listener, disposable)
+    }
+
+    // ==================== 默认架构配置 ====================
+
+    private var defaultArchitecture: ArchitectureType = ArchitectureType.X86_64
+    private val defaultArchitectureDispatcher: EventDispatcher<SettingListener> =
+        EventDispatcher.create(SettingListener::class.java)
+
+    @OptionTag("DEFAULT_ARCHITECTURE")
+    fun getDefaultArchitecture(): ArchitectureType {
+        return defaultArchitecture
+    }
+
+    fun setDefaultArchitecture(value: ArchitectureType) {
+        if (defaultArchitecture != value) {
+            defaultArchitecture = value
+            fireDefaultArchitectureChanged()
+        }
+    }
+
+    private fun fireDefaultArchitectureChanged() {
+        defaultArchitectureDispatcher.getMulticaster().settingChanged()
+    }
+
+    fun addDefaultArchitectureListener(listener: SettingListener, disposable: Disposable) {
+        defaultArchitectureDispatcher.addListener(listener, disposable)
+    }
+
 
     override fun getState(): DebuggerSettings {
         return this
@@ -351,7 +533,7 @@ class DebuggerSettings : XDebuggerSettings<DebuggerSettings>("CangJie") {
     }
 
     fun setShowFrameModuleName(showFrameModuleName: Boolean) {
-        if (showFrameModuleName != showFrameModuleName) {
+        if (showFrameModuleName != this.showFrameModuleName) {
             this.showFrameModuleName = showFrameModuleName
             this.fireFrameDecorationSettingsChanged()
         }
@@ -794,6 +976,90 @@ class DebuggerSettingsConfigurable(val settings: DebuggerSettings) :
                     }
                 ).comment(DebuggerBundle.message("debug.settings.sugarizeCxxStlTypes.checkbox.description"))
             }
+        }
+        group(DebuggerBundle.message("debug.settings.behavior.separator")) {
+            row {
+                checkBox(DebuggerBundle.message("debug.settings.emulateTerminal.checkbox")).bindSelected(
+                    object : MutableProperty<Boolean> {
+                        override fun get(): Boolean = settings.isEmulateTerminal()
+                        override fun set(value: Boolean) {
+                            settings.setEmulateTerminal(value)
+                        }
+                    }
+                ).comment(DebuggerBundle.message("debug.settings.emulateTerminal.checkbox.description"))
+            }
+            row {
+                checkBox(DebuggerBundle.message("debug.settings.disableASLR.checkbox")).bindSelected(
+                    object : MutableProperty<Boolean> {
+                        override fun get(): Boolean = settings.isDisableASLR()
+                        override fun set(value: Boolean) {
+                            settings.setDisableASLR(value)
+                        }
+                    }
+                ).comment(DebuggerBundle.message("debug.settings.disableASLR.checkbox.description"))
+            }
+            row {
+                checkBox(DebuggerBundle.message("debug.settings.debugMode.checkbox")).bindSelected(
+                    object : MutableProperty<Boolean> {
+                        override fun get(): Boolean = settings.isDebugModeEnabled()
+                        override fun set(value: Boolean) {
+                            settings.setDebugModeEnabled(value)
+                        }
+                    }
+                ).comment(DebuggerBundle.message("debug.settings.debugMode.checkbox.description"))
+            }
+            row {
+                checkBox(DebuggerBundle.message("debug.settings.staticVarsLoading.checkbox")).bindSelected(
+                    object : MutableProperty<Boolean> {
+                        override fun get(): Boolean = settings.isStaticVarsLoadingEnabled()
+                        override fun set(value: Boolean) {
+                            settings.setStaticVarsLoadingEnabled(value)
+                        }
+                    }
+                ).comment(DebuggerBundle.message("debug.settings.staticVarsLoading.checkbox.description"))
+            }
+            row {
+                checkBox(DebuggerBundle.message("debug.settings.richValueDescription.checkbox")).bindSelected(
+                    object : MutableProperty<Boolean> {
+                        override fun get(): Boolean = settings.isRichValueDescriptionEnabled()
+                        override fun set(value: Boolean) {
+                            settings.setRichValueDescriptionEnabled(value)
+                        }
+                    }
+                ).comment(DebuggerBundle.message("debug.settings.richValueDescription.checkbox.description"))
+            }
+        }
+        group(DebuggerBundle.message("debug.settings.disassembly.separator")) {
+            row {
+                label(DebuggerBundle.message("debug.settings.disassembly.syntax.label"))
+                comboBox(listOf(DisasmFlavor.INTEL, DisasmFlavor.ATT))
+                    .bindItem(
+                        object : MutableProperty<DisasmFlavor?> {
+                            override fun get(): DisasmFlavor {
+                                return settings.getDisasmFlavor()
+                            }
+                            override fun set(value: DisasmFlavor?) {
+                                value?.let { settings.setDisasmFlavor(it) }
+                            }
+                        }
+                    )
+            }.comment(DebuggerBundle.message("debug.settings.disassembly.syntax.comment"))
+        }
+        group(DebuggerBundle.message("debug.settings.architecture.separator")) {
+            row {
+                label(DebuggerBundle.message("debug.settings.architecture.default.label"))
+                comboBox(EnumComboBoxModel(ArchitectureType::class.java))
+                    .bindItem(
+                        object : MutableProperty<ArchitectureType?> {
+                            override fun get(): ArchitectureType {
+                                return settings.getDefaultArchitecture()
+                            }
+                            override fun set(value: ArchitectureType?) {
+                                value?.let { settings.setDefaultArchitecture(it) }
+                            }
+                        }
+                    )
+            }.comment(DebuggerBundle.message("debug.settings.architecture.default.comment"))
         }
 
     }

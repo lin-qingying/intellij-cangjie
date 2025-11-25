@@ -1,6 +1,5 @@
 package org.cangnova.cangjie.protodebugger.process
 
-
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Platform
 import com.intellij.execution.process.ProcessOutputTypes
@@ -16,7 +15,7 @@ import com.intellij.util.io.BaseOutputReader
 import com.intellij.util.system.OS
 import com.pty4j.unix.Pty
 import org.cangnova.cangjie.protodebugger.ipc.NamedPipe
-import org.cangnova.cangjie.protodebugger.ipc.WinPipe
+import org.cangnova.cangjie.protodebugger.ipc.WindowsPipe
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -26,437 +25,376 @@ import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
+
 /**
  * 操作系统类型枚举
  *
- * 该枚举定义了调试器支持的三种主要操作系统类型：Windows、Linux和macOS。
- * 它提供了操作系统识别和平台转换的功能，用于跨平台的调试器实现。
+ * 定义调试器支持的操作系统类型，提供平台识别和转换功能。
  *
- * 使用场景：
- * - 根据操作系统选择不同的调试器实现
- * - 处理平台特定的文件路径和命令
- * - 选择合适的进程输出读取方式
- * - 配置平台特定的调试选项
- *
- * 主要功能：
- * - 操作系统类型的标准化定义
- * - 提供与IntelliJ平台OS枚举的转换
- * - 支持Platform枚举的转换
- * - 自动检测当前运行环境
- *
- * @param os 对应的IntelliJ平台OS枚举值
+ * @property os 对应的IntelliJ平台OS枚举值
  */
 enum class OSType(val os: OS) {
-    /**
-     * Windows操作系统
-     */
     WIN(OS.Windows),
-
-    /**
-     * Linux操作系统
-     */
     LINUX(OS.Linux),
-
-    /**
-     * macOS操作系统
-     */
     MAC(OS.macOS);
 
     /**
-     * 转换为IntelliJ平台的OS枚举
-     *
-     * @return 对应的IntelliJ OS枚举值
-     */
-    fun toOS(): OS = os
-
-    /**
      * 转换为IntelliJ平台的Platform枚举
-     *
-     * @return 对应的Platform枚举值（WINDOWS或UNIX）
      */
-    fun toPlatform(): Platform = if (this == WIN) Platform.WINDOWS else Platform.UNIX
+    fun toPlatform(): Platform =
+        if (this == WIN) Platform.WINDOWS else Platform.UNIX
 
     companion object {
         /**
          * 当前运行的操作系统类型
-         *
-         * 根据系统信息自动检测当前运行环境。
          */
-        val current = if (SystemInfo.isWindows) WIN else if (SystemInfo.isMac) MAC else LINUX
+        val current: OSType = when {
+            SystemInfo.isWindows -> WIN
+            SystemInfo.isMac -> MAC
+            else -> LINUX
+        }
     }
 }
 
 /**
  * 进程输出读取器抽象类
  *
- * 该抽象类负责管理和读取被调试进程的标准输出和标准错误流。
- * 它支持跨平台的输出读取方式，包括Windows命名管道、Unix PTY和临时文件等。
+ * 负责管理和读取被调试进程的标准输出和标准错误流，支持跨平台的输出读取方式。
  *
- * 使用场景：
- * - 调试器中实时显示被调试程序的输出
- * - 捕获程序的标准输出和错误信息
- * - 支持终端模拟和交互式调试
- * - 处理远程调试的输出传输
- *
- * 主要功能：
- * - 跨平台的进程输出读取
- * - 支持PTY（伪终端）和管道通信
- * - 异步输出读取和文本处理
- * - 资源管理和错误处理
- *
- * 技术特点：
- * - 支持多种读取策略（阻塞、非阻塞）
- * - 自动检测和适配不同的操作系统
- * - 线程安全的输出读取
- * - 灵活的编码和文本格式处理
- *
- * @param host 主机机器信息，用于识别本地或远程环境
- * @param presentableName 可显示的名称，用于日志和调试
- * @param charset 字符编码，用于输出流的文本解码
- * @param usePtyOnUnix 在Unix系统上是否使用PTY
- * @param emulateTerminal 是否模拟终端环境
+ * @property host 主机机器信息
+ * @property presentableName 可显示的名称，用于日志和调试
+ * @property charset 字符编码
+ * @property usePtyOnUnix 在Unix系统上是否使用PTY
+ * @property emulateTerminal 是否模拟终端环境
  */
 abstract class ProcessOutputReaders(
-    /**
-     * 主机机器信息
-     *
-     * 包含目标主机的基本信息，用于判断是否为远程环境
-     * 以及选择合适的输出读取方式。
-     */
     val host: HostMachine,
-
-    /**
-     * 可显示的名称
-     *
-     * 用于日志记录、错误报告和调试信息显示。
-     */
     val presentableName: String,
-
-    /**
-     * 字符编码
-     *
-     * 用于解码进程输出的字节流为文本。
-     * 通常使用系统默认编码或UTF-8编码。
-     */
     val charset: Charset,
-
-    /**
-     * 在Unix系统上使用PTY标志
-     *
-     * 当设置为true时，在Unix/Linux系统上使用伪终端(PTY)，
-     * 可以提供更好的终端模拟和交互支持。
-     */
     val usePtyOnUnix: Boolean,
-
-    /**
-     * 模拟终端标志
-     *
-     * 当设置为true时，模拟终端环境的行为，
-     * 包括控制字符处理和终端特性支持。
-     */
     val emulateTerminal: Boolean = false
 ) {
-    companion object {
-        /**
-         * 日志记录器
-         *
-         * 用于记录输出读取过程中的调试信息和错误。
-         */
-        val LOG = Logger.getInstance(ProcessOutputReaders::class.java)
+    private val readers = AtomicReference<Array<OutputReader?>>(arrayOfNulls(READER_COUNT))
+
+    init {
+        initializeReaders()
     }
-    private val myReaders: AtomicReference<Array<MyOutputReader?>> = AtomicReference(arrayOfNulls(2))
 
     /**
-     * 等待所有输出读取器完成
-     *
-     * 阻塞当前线程直到所有输出读取器（标准输出和标准错误）都完成工作。
-     * 如果任何一个读取器被中断，则立即返回false。
-     *
-     * @return 如果所有读取器都正常完成返回true，否则返回false
+     * 初始化输出读取器
      */
-    fun waitFor(): Boolean {
-        return this.doWaitFor(this.getReaders())
+    private fun initializeReaders() {
+        try {
+            val readerArray = readers.get()
+            createReaders(readerArray)
+            startReaders(readerArray)
+        } catch (ioEx: IOException) {
+            throw ExecutionException("Cannot create output file", ioEx)
+        }
+    }
+
+    /**
+     * 根据平台创建合适的读取器
+     */
+    private fun createReaders(readerArray: Array<OutputReader?>) {
+        when {
+            host.osType == OSType.WIN -> createWindowsReaders(readerArray)
+            usePtyOnUnix && host.isRemote -> createRemoteUnixReaders(readerArray)
+            usePtyOnUnix -> createUnixPtyReaders(readerArray)
+            else -> createFileReaders(readerArray)
+        }
+    }
+
+    /**
+     * 创建Windows管道读取器
+     */
+    private fun createWindowsReaders(readerArray: Array<OutputReader?>) {
+        readerArray[STDOUT_INDEX] = WindowsPipeOutputReader(ProcessOutputTypes.STDOUT)
+        if (!emulateTerminal) {
+            readerArray[STDERR_INDEX] = WindowsPipeOutputReader(ProcessOutputTypes.STDERR)
+        }
+    }
+
+    /**
+     * 创建远程Unix管道读取器
+     */
+    private fun createRemoteUnixReaders(readerArray: Array<OutputReader?>) {
+        readerArray[STDOUT_INDEX] = RemoteUnixPipeOutputReader(host, ProcessOutputTypes.STDOUT)
+        readerArray[STDERR_INDEX] = RemoteUnixPipeOutputReader(host, ProcessOutputTypes.STDERR)
+    }
+
+    /**
+     * 创建Unix PTY读取器
+     */
+    private fun createUnixPtyReaders(readerArray: Array<OutputReader?>) {
+        readerArray[STDOUT_INDEX] = UnixPtyOutputReader(ProcessOutputTypes.STDOUT)
+        readerArray[STDERR_INDEX] = UnixPtyOutputReader(ProcessOutputTypes.STDERR)
+    }
+
+    /**
+     * 创建文件读取器
+     */
+    private fun createFileReaders(readerArray: Array<OutputReader?>) {
+        readerArray[STDOUT_INDEX] = FileOutputReader(ProcessOutputTypes.STDOUT)
+        readerArray[STDERR_INDEX] = FileOutputReader(ProcessOutputTypes.STDERR)
+    }
+
+    /**
+     * 启动所有读取器
+     */
+    private fun startReaders(readerArray: Array<OutputReader?>) {
+        readerArray.forEach { it?.start() }
     }
 
     /**
      * 获取指定编号的输出读取器
-     *
-     * 根据编号获取对应的输出读取器实例。
-     * 编号0通常表示标准输出，编号1通常表示标准错误。
      *
      * @param num 读取器编号（0=STDOUT，1=STDERR）
      * @return 对应的输出读取器实例
      * @throws ExecutionException 当读取器不可用时抛出
      */
     @Throws(ExecutionException::class)
-    protected fun getReader(num: Int): MyOutputReader {
-        val readers = getReaders()
-        return if (ArrayUtil.isEmpty(readers)) {
+    protected fun getReader(num: Int): OutputReader {
+        val currentReaders = readers.get()
+        if (ArrayUtil.isEmpty(currentReaders)) {
             throw ExecutionException("Reader is closed")
-        } else {
-            readers[num]!!
         }
+        return currentReaders[num] ?: throw ExecutionException("Reader at index $num is null")
     }
 
-    init {
-        try {
-            val osType: OSType = host.osType
+    /**
+     * 获取标准输出文件的绝对路径
+     */
+    @Throws(ExecutionException::class)
+    fun getOutFileAbsolutePath(): String = getReader(STDOUT_INDEX).fileAbsolutePath
 
-            val readers = getReaders()
-            if (osType === OSType.WIN) {
-                readers[0] = MyWinPipeOutputReader(
-                    ProcessOutputTypes.STDOUT
-                )
-                if (!emulateTerminal) {
-                    readers[1] = MyWinPipeOutputReader(
+    /**
+     * 获取标准错误文件的绝对路径
+     */
+    @Throws(ExecutionException::class)
+    fun getErrFileAbsolutePath(): String = getReader(STDERR_INDEX).fileAbsolutePath
 
-                        ProcessOutputTypes.STDERR
-                    )
+    /**
+     * 等待所有输出读取器完成
+     *
+     * @return 如果所有读取器都正常完成返回true，否则返回false
+     */
+    fun waitFor(): Boolean = doWaitFor(readers.get())
+
+    /**
+     * 带超时的等待
+     */
+    fun waitFor(timeout: Long, unit: TimeUnit): Boolean =
+        doWaitFor(readers.get(), timeout, unit)
+
+    /**
+     * 等待所有读取器完成（内部实现）
+     */
+    private fun doWaitFor(readerArray: Array<OutputReader?>): Boolean {
+        return readerArray.all { reader ->
+            runCatching {
+                reader?.waitFor()
+                true
+            }.recover { exception ->
+                if (exception is InterruptedException) {
+                    Thread.currentThread().interrupt()
                 }
-            } else if (usePtyOnUnix && host.isRemote) {
-                readers[0] = MyRemoteUnixPipeOutputReader(
-
-                    host,
-                    ProcessOutputTypes.STDOUT
-                )
-                readers[1] = MyRemoteUnixPipeOutputReader(
-
-                    host,
-                    ProcessOutputTypes.STDERR
-                )
-            } else if (usePtyOnUnix) {
-                readers[0] = MyUnixPtyOutputReader(
-
-                    ProcessOutputTypes.STDOUT
-                )
-                readers[1] = MyUnixPtyOutputReader(
-
-                    ProcessOutputTypes.STDERR
-                )
-            } else {
-                readers[0] = MyFileOutputReader(
-
-                    ProcessOutputTypes.STDOUT
-                )
-                readers[1] = MyFileOutputReader(
-
-                    ProcessOutputTypes.STDERR
-                )
-            }
-            readers[0]?.start()
-
-            readers[1]?.start()
-
-
-        } catch (ioEx: IOException) {
-            throw ExecutionException("Cannot create output file", ioEx)
+                false
+            }.getOrDefault(false)
         }
     }
 
-    @Throws(ExecutionException::class)
-    fun getOutFileAbsolutePath(): String {
-        return this.getReader(0).fileAbsolutePath
-    }
-
-    @Throws(ExecutionException::class)
-    fun getErrFileAbsolutePath(): String {
-        return getReader(1).fileAbsolutePath
-    }
-
-    protected fun doWaitFor(readers: Array<MyOutputReader?>): Boolean {
-        for (each in readers) {
-            try {
-                each?.waitFor()
-            } catch (e: InterruptedException) {
-                Thread.interrupted()
-                return false
-            }
+    /**
+     * 带超时的等待（内部实现）
+     */
+    private fun doWaitFor(
+        readerArray: Array<OutputReader?>,
+        timeout: Long,
+        unit: TimeUnit
+    ): Boolean {
+        return readerArray.all { reader ->
+            runCatching {
+                reader?.waitFor(timeout, unit)
+                true
+            }.recover { exception ->
+                when (exception) {
+                    is InterruptedException -> {
+                        Thread.currentThread().interrupt()
+                        false
+                    }
+                    is TimeoutException -> false
+                    else -> throw exception
+                }
+            }.getOrDefault(false)
         }
-        return true
     }
 
+    /**
+     * 关闭所有读取器
+     */
     fun close() {
-        val readers = (myReaders.getAndSet(arrayOfNulls(1))) ?: emptyArray()
-
-        for (each in readers) {
-            each?.stop()
-        }
-
-        doWaitFor(readers)
+        val currentReaders = readers.getAndSet(arrayOfNulls(1)) ?: return
+        currentReaders.forEach { it?.stop() }
+        doWaitFor(currentReaders)
     }
 
-    protected fun getReaders(): Array<MyOutputReader?> {
-        return myReaders.get()
-    }
-
-    fun waitFor(timeout: Long, unit: TimeUnit): Boolean {
-        return this.doWaitFor(this.getReaders(), timeout, unit)
-    }
-
-    protected fun doWaitFor(readers: Array<MyOutputReader?>, timeout: Long, unit: TimeUnit): Boolean {
-        for (each in readers) {
-            try {
-                each?.waitFor(timeout, unit)
-            } catch (e: InterruptedException) {
-                Thread.interrupted()
-                return false
-            } catch (e: TimeoutException) {
-                return false
-            }
-        }
-        return true
-    }
-
-    class ReaderOptions(private val myPolicy: SleepingPolicy) : BaseOutputReader.Options() {
-        override fun policy(): SleepingPolicy {
-            return myPolicy
-        }
-
-        override fun splitToLines(): Boolean {
-            return false
-        }
-
-    }
-
+    /**
+     * 文本可用时的回调
+     */
     protected abstract fun onTextAvailable(text: String, key: Key<*>)
 
-    protected open inner class MyOutputReader(
+    // ==================== 内部类 ====================
 
+    /**
+     * 读取器选项配置
+     */
+    private class ReaderOptions(private val policy: SleepingPolicy) : BaseOutputReader.Options() {
+        override fun policy(): SleepingPolicy = policy
+        override fun splitToLines(): Boolean = false
+    }
+
+    /**
+     * 基础输出读取器
+     */
+    protected open inner class OutputReader(
         val type: Key<*>,
         val fileAbsolutePath: String,
         stream: InputStream,
         sleepingPolicy: SleepingPolicy
-    ) :
-        BaseOutputReader(
-            stream, this@ProcessOutputReaders.charset,
-            ReaderOptions(sleepingPolicy)
-        ) {
-
+    ) : BaseOutputReader(stream, charset, ReaderOptions(sleepingPolicy)) {
 
         fun start() {
-            this.start(this@ProcessOutputReaders.presentableName)
+            start(presentableName)
         }
 
         override fun onTextAvailable(text: String) {
-            var text = text
-
-            if (!this@ProcessOutputReaders.emulateTerminal) {
-                text = StringUtil.trimEnd(text, "\r")
-                text = StringUtil.convertLineSeparators(text)
+            val processedText = when {
+                emulateTerminal -> text
+                else -> text.trimEnd('\r').let(StringUtil::convertLineSeparators)
             }
-            this@ProcessOutputReaders.onTextAvailable(text, type)
+            this@ProcessOutputReaders.onTextAvailable(processedText, type)
         }
 
-        override fun executeOnPooledThread(runnable: Runnable): Future<*> {
-
-            return ApplicationManager.getApplication().executeOnPooledThread(runnable)
-        }
+        override fun executeOnPooledThread(runnable: Runnable): Future<*> =
+            ApplicationManager.getApplication().executeOnPooledThread(runnable)
 
         override fun stop() {
             super.stop()
-            if (mySleepingPolicy === SleepingPolicy.BLOCKING) {
-                try {
-                    this.waitFor(mySleepingPolicy.getTimeToSleep(false).toLong(), TimeUnit.MILLISECONDS)
-                } catch (timeex: TimeoutException) {
-                    try {
-                        close()
-                    } catch (ioex: IOException) {
-                       LOG.error(ioex)
-                    }
-                } catch (iex: InterruptedException) {
-                    try {
-                        close()
-                    } catch (ioex: IOException) {
-                       LOG.error(ioex)
-                    }
+            if (mySleepingPolicy == SleepingPolicy.BLOCKING) {
+                handleBlockingStop()
+            }
+        }
+
+        private fun handleBlockingStop() {
+            runCatching {
+                waitFor(mySleepingPolicy.getTimeToSleep(false).toLong(), TimeUnit.MILLISECONDS)
+            }.onFailure { exception ->
+                when (exception) {
+                    is TimeoutException, is InterruptedException -> closeQuietly()
+                    else -> throw exception
                 }
             }
         }
 
-
+        protected fun closeQuietly() {
+            runCatching { close() }.onFailure { LOG.error(it) }
+        }
     }
 
-
-    protected open inner class MyPipeOutputReader<T : NamedPipe>(
-
+    /**
+     * 管道输出读取器
+     */
+    protected open inner class PipeOutputReader(
         val pipe: NamedPipe,
         type: Key<*>
-    ) : MyOutputReader(type, pipe.name, pipe.inputStream, SleepingPolicy.BLOCKING) {
-
+    ) : OutputReader(type, pipe.name, pipe.inputStream, SleepingPolicy.BLOCKING) {
 
         @Throws(IOException::class)
         override fun close() {
-            try {
-                super.close()
-            } finally {
-                pipe.close()
-            }
+            runCatching { super.close() }
+                .also { pipe.close() }
+                .getOrThrow()
         }
     }
 
-    protected inner class MyWinPipeOutputReader(type: Key<*>) :
-        MyPipeOutputReader<WinPipe>(WinPipe.createInboundPipe(type.toString()), type) {
-
+    /**
+     * Windows管道输出读取器
+     */
+    protected inner class WindowsPipeOutputReader(type: Key<*>) :
+        PipeOutputReader(WindowsPipe.createInboundPipe(type.toString()), type) {
 
         override fun doRun() {
-            try {
-                if (!(this.pipe as WinPipe).waitForConnection()) {
-                  LOG.error(
-                        java.lang.String.format(
-                            "Stream reading can't be initiated: couldn't connect to pipe %s. ",
-                            this.pipe.name
-                        )
-                    )
-                    return
-                }
-            } catch (e: IOException) {
-                LOG.debug(e)
-                try {
-                    this.close()
-                } catch (ioe: IOException) {
-                    LOG.error("Can't close stream", ioe)
-                }
-                return
+            if (connectToPipe()) {
+                super.doRun()
             }
-            super.doRun()
+        }
+
+        private fun connectToPipe(): Boolean = runCatching {
+            pipe.waitForConnection().also { connected ->
+                if (!connected) {
+                    LOG.error("Stream reading can't be initiated: couldn't connect to pipe ${pipe.name}")
+                }
+            }
+        }.onFailure { exception ->
+            LOG.debug(exception)
+            closeQuietly()
+        }.getOrDefault(false)
+    }
+
+    /**
+     * Unix PTY输出读取器
+     */
+    protected inner class UnixPtyOutputReader private constructor(
+        private val pty: Pty,
+        type: Key<*>
+    ) : OutputReader(type, pty.slaveName, pty.inputStream, SleepingPolicy.BLOCKING) {
+
+        constructor(type: Key<*>) : this(Pty(true), type)
+
+        override fun close() {
+            runCatching { super.close() }
+                .also { runCatching { pty.close() } }
+                .getOrThrow()
         }
     }
 
-    protected inner class MyUnixPtyOutputReader(pty: Pty, type: Key<*>) : MyOutputReader(
-        type,
-        pty.slaveName,
-        pty.inputStream,
-        SleepingPolicy.BLOCKING
-    ) {
-        constructor(type: Key<*>) : this(Pty(true), type)
-
-
-    }
-
-    protected inner class MyRemoteUnixPipeOutputReader(
-        pipe: HostMachine,
+    /**
+     * 远程Unix管道输出读取器
+     */
+    protected inner class RemoteUnixPipeOutputReader(
+        host: HostMachine,
         type: Key<*>
-    ) :
-        MyPipeOutputReader<NamedPipe>(pipe.openNamedPipe(), type)
+    ) : PipeOutputReader(host.openNamedPipe(), type)
 
-    protected inner class MyFileOutputReader(val file: File, type: Key<*>) :
-        MyOutputReader(type, file.absolutePath, FileInputStream(file), SleepingPolicy.NON_BLOCKING) {
+    /**
+     * 文件输出读取器
+     */
+    protected inner class FileOutputReader private constructor(
+        private val file: File,
+        type: Key<*>
+    ) : OutputReader(type, file.absolutePath, FileInputStream(file), SleepingPolicy.NON_BLOCKING) {
 
         constructor(type: Key<*>) : this(
-            FileUtil.createTempFile(this@ProcessOutputReaders.javaClass.getSimpleName(), type.toString(), true),
+            FileUtil.createTempFile(
+                ProcessOutputReaders::class.java.simpleName,
+                type.toString(),
+                true
+            ),
             type
         )
 
-
         @Throws(IOException::class)
         override fun close() {
-            try {
-                super.close()
-            } finally {
-                FileUtil.delete(file)
-            }
+            runCatching { super.close() }
+                .also { FileUtil.delete(file) }
+                .getOrThrow()
         }
     }
 
-
+    companion object {
+        private val LOG = Logger.getInstance(ProcessOutputReaders::class.java)
+        private const val READER_COUNT = 2
+        private const val STDOUT_INDEX = 0
+        private const val STDERR_INDEX = 1
+    }
 }

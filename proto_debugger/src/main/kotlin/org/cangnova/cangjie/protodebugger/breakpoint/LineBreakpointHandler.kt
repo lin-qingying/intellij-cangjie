@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.protodebugger.breakpoint
 
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint
 import org.cangnova.cangjie.protodebugger.core.CangJieDebugProcess
 
@@ -36,32 +37,32 @@ import org.cangnova.cangjie.protodebugger.core.CangJieDebugProcess
  *
  * @param debugProcess 调试进程实例，用于访问调试器服务
  */
-class CangJieDebuggerLineBreakpointHandler(
+class LineBreakpointHandler(
     debugProcess: CangJieDebugProcess
-) : BaseBreakpointHandler<XLineBreakpoint<CangJieDebuggerLineBreakpointType.Properties>, CangJieDebuggerLineBreakpointType, CangJieDebuggerLineBreakpointType.Properties>(
-    CangJieDebuggerLineBreakpointType::class.java,
+) : BaseBreakpointHandler<XLineBreakpoint<LineBreakpointType.Properties>, LineBreakpointType, LineBreakpointType.Properties>(
+    LineBreakpointType::class.java,
     debugProcess
 ) {
 
     companion object {
-        private val LOG = Logger.getInstance(CangJieDebuggerLineBreakpointHandler::class.java)
+        private val LOG = Logger.getInstance(LineBreakpointHandler::class.java)
     }
 
-    override fun getBreakpointIdentifier(breakpoint: XLineBreakpoint<CangJieDebuggerLineBreakpointType.Properties>): String {
+    override fun getBreakpointIdentifier(breakpoint: XLineBreakpoint<LineBreakpointType.Properties>): String {
         val file = breakpoint.sourcePosition?.file ?: return "unknown"
         return "${file.path}:${breakpoint.line}"
     }
 
-    override fun isValidBreakpoint(breakpoint: XLineBreakpoint<CangJieDebuggerLineBreakpointType.Properties>): Boolean {
+    override fun isValidBreakpoint(breakpoint: XLineBreakpoint<LineBreakpointType.Properties>): Boolean {
         return breakpoint.sourcePosition?.file?.path?.isNotBlank() == true
     }
 
-    override fun sendBreakpointToDebugger(breakpoint: XLineBreakpoint<CangJieDebuggerLineBreakpointType.Properties>): Long {
+    override fun sendBreakpointToDebugger(breakpoint: XLineBreakpoint<LineBreakpointType.Properties>): Long {
         val file = breakpoint.sourcePosition?.file
             ?: throw IllegalArgumentException("Invalid breakpoint: no source file")
         val filePath = file.path
         val line = breakpoint.line
-        val condition = breakpoint.properties?.getCondition()
+        val condition = breakpoint.conditionExpression?.expression
 
         LOG.debug("Sending line breakpoint to debugger: $filePath:$line, condition: $condition")
 
@@ -91,4 +92,35 @@ class CangJieDebuggerLineBreakpointHandler(
     }
 
     override fun getBreakpointTypeName(): String = "Line Breakpoint"
+    override fun shouldBreakpointBeRemoved(breakpoint: XLineBreakpoint<LineBreakpointType.Properties>): Boolean {
+        val file = breakpoint.sourcePosition?.file
+        val line = breakpoint.line
+
+        // 移除文件不存在或行号无效的断点
+        if (file == null || !file.exists()) {
+            return true
+        }
+
+        if (line <= 0) {
+            return true
+        }
+
+        // 可以添加更多清理逻辑，比如：
+        // - 移除超出文件行数范围的断点
+        try {
+            val document =  FileDocumentManager.getInstance().getDocument(file)
+            if (document != null) {
+                val lineCount = document.lineCount
+                if (line > lineCount) {
+                    return true
+                }
+            }
+        } catch (e: Exception) {
+            LOG.debug("Error checking line count for file ${file.path}: ${e.message}")
+            // 如果无法检查行数，保留断点
+        }
+
+ 
+        return false
+    }
 }

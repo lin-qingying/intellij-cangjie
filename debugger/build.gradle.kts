@@ -36,8 +36,8 @@ dependencies {
     implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.21.0")
 
     // Kotlin Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.7.3")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.7.3")
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")

@@ -28,9 +28,15 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.xdebugger.XSourcePosition
+import com.intellij.xdebugger.XAlternativeSourceHandler
 import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
+import com.intellij.xdebugger.frame.XStackFrame
+import com.intellij.xdebugger.frame.XSuspendContext
+import kotlinx.coroutines.flow.StateFlow
+import org.cangnova.cangjie.lang.CangJieFileType
 
 /**
  * 仓颉调试器编辑器提供者
@@ -53,4 +59,6 @@ class CangJieDebuggerEditorsProvider : XDebuggerEditorsProvider() {
     ): Document {
         return EditorFactory.getInstance().createDocument(expression.expression)
     }
+
+
 }

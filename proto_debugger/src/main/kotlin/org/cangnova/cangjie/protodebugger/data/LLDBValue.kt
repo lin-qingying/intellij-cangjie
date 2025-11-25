@@ -32,10 +32,10 @@ import org.cangnova.cangjie.protodebugger.memory.Address
 import java.math.BigInteger
 
 /**
- * 低级别值数据（LLValueData）类
+ * 调试器值数据类
  *
- * 该类表示调试器中值的详细数据信息，包含了值的实际内容、描述、
- * 结构信息等。与LLValue不同，LLValueData专注于存储和处理值的实际数据。
+ * 该类表示调试器中值的详细数据信息，包含值的实际内容、描述、
+ * 结构信息等，专门用于UI展示和值操作。
  *
  * 使用场景：
  * - 存储表达式求值的结果数据
@@ -44,18 +44,18 @@ import java.math.BigInteger
  * - 判断值的布尔值和数值
  * - 在调试器UI中显示值的详细信息
  *
- * @param value 值的原始字符串表示
- * @param description 值的可读描述，可能为null
- * @param hasLongerDescription 是否有更长的描述信息
- * @param mayHaveChildren 是否可能有子项（如数组元素、结构体字段等）
- * @param isSynthetic 是否为合成值（由调试器生成的值，非实际的程序变量）
+ * @param variableId 关联的变量ID
+ * @param value 值的字符串表示（对应 SBValue::GetValue()）
+ * @param summary 值的摘要（对应 SBValue::GetSummary()，适用于复杂对象）
+ * @param valueDidChange 值是否发生了变化（对应 SBValue::GetValueDidChange()）
+ * @param error 错误信息（对应 SBValue::GetError()）
  */
-class LLDBValueData(
+class LLDBValue(
+    val variableId: Long,
     val value: String,
-  val description: String?,
-    private val hasLongerDescription: Boolean,
-    private val mayHaveChildren: Boolean,
-    private val isSynthetic: Boolean
+    val summary: String? = null,
+    val valueDidChange: Boolean = false,
+    val error: String? = null
 ) {
     companion object {
         /**
@@ -149,53 +149,24 @@ class LLDBValueData(
     }
 
     /**
-     * 检查是否有更长的描述信息
+     * 检查是否有错误信息
      *
-     * 某些值可能有额外的详细信息需要显示。该标志表示
-     * 是否可以向调试器请求更多的描述信息。
-     *
-     * @return 如果有更长的描述返回true，否则返回false
+     * @return 如果有错误信息返回true，否则返回false
      */
-    fun hasLongerDescription(): Boolean {
-        return hasLongerDescription
-    }
+    fun hasError(): Boolean = !error.isNullOrEmpty()
 
     /**
      * 获取可显示的值
      *
-     * 返回值的可读表示。优先使用description字段，
-     * 如果description为null则使用原始value。
+     * 返回用于UI显示的值字符串。优先使用summary，如果没有则使用value。
      *
      * @return 可显示的值字符串
      */
     fun getPresentableValue(): String {
-        return description ?: value
+        return summary ?: value
     }
 
-    /**
-     * 检查值是否可能有子项
-     *
-     * 用于判断该值是否为复合类型（如数组、结构体、对象等），
-     * 这些类型可能包含子元素需要在调试器中展开显示。
-     *
-     * @return 如果值可能有子项返回true，否则返回false
-     */
-    fun mayHaveChildren(): Boolean {
-        return mayHaveChildren
-    }
-
-    /**
-     * 检查值是否为合成值
-     *
-     * 合成值是由调试器生成的值，不是程序中的实际变量。
-     * 例如：表达式求值的结果、临时计算值等。
-     *
-     * @return 如果是合成值返回true，否则返回false
-     */
-    fun isSynthetic(): Boolean {
-        return isSynthetic
-    }
-
+    
     /**
      * 检查值是否为指针类型
      *
@@ -283,7 +254,7 @@ class LLDBValueData(
     fun getPointerAddress(): Address? {
         val pointer = getPointerOrNull()
         return if (pointer == null) null else if (isNullPointer(pointer)) Address.NULL else try {
-            Address.parseHexString(pointer)
+            Address.Companion.Parser.hex(pointer)
         } catch (e: NumberFormatException) {
             null
         }
@@ -293,7 +264,7 @@ class LLDBValueData(
      * 分离数值和描述信息
      *
      * 将值的描述字符串分离为数值部分和描述部分。
-         * 常用于处理"数值 描述"格式的字符串。
+     * 常用于处理"数值 描述"格式的字符串。
      *
      * 使用场景：
      * - 解析枚举值的显示
@@ -303,13 +274,13 @@ class LLDBValueData(
      * @return Pair对象，第一个元素为数值部分（可能为null），第二个元素为描述部分
      */
     fun splitNumberAndData(): Pair<String?, String> {
-        val description = description ?: value
-        val spaceIndex = description.indexOf(' ')
+        val displayText = summary ?: value
+        val spaceIndex = displayText.indexOf(' ')
         return if (spaceIndex >= 0) {
-            val numPart = description.take(spaceIndex)
-            if (isNum(numPart)) Pair(numPart, description.substring(spaceIndex + 1).trim()) else Pair(null, description)
+            val numPart = displayText.take(spaceIndex)
+            if (isNum(numPart)) Pair(numPart, displayText.substring(spaceIndex + 1).trim()) else Pair(null, displayText)
         } else {
-            if (isNum(description)) Pair(description, "") else Pair(null, description)
+            if (isNum(displayText)) Pair(displayText, "") else Pair(null, displayText)
         }
     }
 
@@ -355,7 +326,7 @@ class LLDBValueData(
     fun intValue(): Long {
         return try {
             val pointer = getPointerOrNull()
-            if (pointer != null)  parseAddressSafe(pointer).unsignedLongValue else BigInteger(
+            if (pointer != null)  parseAddressSafe(pointer).value.toLong() else BigInteger(
                 value
             )
                 .toLong()
@@ -365,32 +336,48 @@ class LLDBValueData(
     }
 
     override fun toString(): String {
-        val synthetic = if (isSynthetic) "[synthetic]" else ""
-        return "$synthetic$value($description)" + if (mayHaveChildren) ",has children" else ""
+        val errorInfo = error?.let { " [error: $it]" } ?: ""
+        val changeInfo = if (valueDidChange) " [changed]" else ""
+        val summaryInfo = summary?.let { " (summary: $it)" } ?: ""
+        return "Value($value)$summaryInfo$changeInfo$errorInfo"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
 
-        val valueData = other as LLDBValueData
-        if (mayHaveChildren != valueData.mayHaveChildren) return false
-        if (isSynthetic != valueData.isSynthetic) return false
+        val valueData = other as LLDBValue
+        if (variableId != valueData.variableId) return false
         if (value != valueData.value) return false
-        if (description != null) {
-            if (description != valueData.description) return false
-        } else if (valueData.description != null) {
-            return false
-        }
+        if (summary != valueData.summary) return false
+        if (valueDidChange != valueData.valueDidChange) return false
+        if (error != valueData.error) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = value.hashCode()
-        result = 31 * result + (description?.hashCode() ?: 0)
-        result = 31 * result + if (mayHaveChildren) 1 else 0
-        result = 31 * result + if (isSynthetic) 1 else 0
+        var result = variableId.hashCode()
+        result = 31 * result + value.hashCode()
+        result = 31 * result + (summary?.hashCode() ?: 0)
+        result = 31 * result + valueDidChange.hashCode()
+        result = 31 * result + (error?.hashCode() ?: 0)
         return result
     }
+}
+
+/**
+ * Creates an LLDBValue from a protobuf Model.Value
+ *
+ * @param value The protobuf value from LLDB
+ * @return Configured LLDBValue instance
+ */
+fun createLLDBValue(value: lldbprotobuf.Model.Value): LLDBValue {
+    return LLDBValue(
+        variableId = value.variableId.id,
+        value = value.value,
+        summary = value.summary.takeIf { it.isNotEmpty() },
+        valueDidChange = value.valueDidChange,
+        error = value.error.takeIf { it.isNotEmpty() }
+    )
 }

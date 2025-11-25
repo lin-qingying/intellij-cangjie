@@ -173,7 +173,7 @@ class WatchpointBreakpoint(
     /**
      * 转换为LLWatchpoint.AccessType
      */
-    fun toLLAccessType(): org.cangnova.cangjie.protodebugger.data.LLWatchpoint.AccessType = properties.toLLAccessType()
+    fun toLLAccessType(): org.cangnova.cangjie.protodebugger.data.LLDBWatchpoint.AccessType = properties.toLLAccessType()
 
     /**
      * 获取日志消息

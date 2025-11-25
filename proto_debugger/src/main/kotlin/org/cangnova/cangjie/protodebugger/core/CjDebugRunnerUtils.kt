@@ -58,25 +58,25 @@ data class RunParameters(
      * 包含启动调试器所需的所有命令行参数和环境配置
      */
     val command: GeneralCommandLine,
-    
+
     /**
      * 调试器监听的端口号
      * 用于与被调试程序建立通信连接
      */
     val port: Int,
-    
+
     /**
      * 要调试的程序路径或名称
      * 标识需要调试的目标程序
      */
     val program: String,
-    
+
     /**
      * 可运行的可执行文件命令行配置
      * 如果需要直接运行可执行文件而不是通过调试器，则使用此参数
      */
     val runExecutable: GeneralCommandLine? = null,
-    
+
     /**
      * 运行状态对象
      * 包含当前运行会话的状态信息和配置
@@ -94,7 +94,7 @@ object CjDebugRunnerUtils {
 
     /**
      * 错误消息标题
-     * 
+     *
      * 当调试器无法启动时显示的错误消息标题，从资源文件中获取本地化文本。
      */
     val ERROR_MESSAGE_TITLE: String = CangJieBundle.message("unable.to.run.debugger")
@@ -138,7 +138,9 @@ object CjDebugRunnerUtils {
                         consoleBuilder = state.consoleBuilder
                     ).apply {
                         ProcessTerminatedListener.attach(processHandler, environment.project)
-                        start()
+
+                            start()
+
                     }
             }
         ).runContentDescriptor

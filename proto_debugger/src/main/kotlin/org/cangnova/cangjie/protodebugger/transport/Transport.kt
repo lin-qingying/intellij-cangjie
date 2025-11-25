@@ -3,6 +3,7 @@ package org.cangnova.cangjie.protodebugger.transport
 import com.google.protobuf.Message
 import kotlinx.coroutines.flow.Flow
 
+
 /**
  * 传输层抽象接口
  *

@@ -26,15 +26,16 @@ package org.cangnova.cangjie.protodebugger.breakpoint
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XBreakpointType
 import com.intellij.xdebugger.breakpoints.ui.XBreakpointCustomPropertiesPanel
+import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 import org.cangnova.cangjie.messages.DebuggerBundle
 import org.cangnova.cangjie.protodebugger.breakpoint.WatchpointBreakpointType.ID
-import org.cangnova.cangjie.protodebugger.data.LLWatchpoint
+import org.cangnova.cangjie.protodebugger.core.CangJieDebuggerEditorsProvider
+import org.cangnova.cangjie.protodebugger.data.LLDBWatchpoint
 import org.jetbrains.annotations.Nls
 import javax.swing.Icon
 
@@ -48,7 +49,9 @@ object WatchpointBreakpointType : XBreakpointType<WatchpointBreakpoint, Watchpoi
     ID,
     DebuggerBundle.message("breakpoint.watchpoint.title")
 ) {
-
+    override fun getEditorsProvider(breakpoint: WatchpointBreakpoint, project: Project): XDebuggerEditorsProvider? {
+        return CangJieDebuggerEditorsProvider()
+    }
     /**
      * 观察点属性类
      *
@@ -180,12 +183,12 @@ object WatchpointBreakpointType : XBreakpointType<WatchpointBreakpoint, Watchpoi
         /**
          * 转换为LLWatchpoint.AccessType
          */
-        fun toLLAccessType(): LLWatchpoint.AccessType {
+        fun toLLAccessType(): LLDBWatchpoint.AccessType {
             return when (myState.accessType) {
-                ACCESS_TYPE_READ -> LLWatchpoint.AccessType.READ
-                ACCESS_TYPE_WRITE -> LLWatchpoint.AccessType.WRITE
-                ACCESS_TYPE_READ_WRITE -> LLWatchpoint.AccessType.ANY
-                else -> LLWatchpoint.AccessType.WRITE
+                ACCESS_TYPE_READ -> LLDBWatchpoint.AccessType.READ
+                ACCESS_TYPE_WRITE -> LLDBWatchpoint.AccessType.WRITE
+                ACCESS_TYPE_READ_WRITE -> LLDBWatchpoint.AccessType.ANY
+                else -> LLDBWatchpoint.AccessType.WRITE
             }
         }
 

@@ -27,9 +27,9 @@ package org.cangnova.cangjie.protodebugger.data
  * debuggerDriver.addWatchpoint(watchpoint, AccessType.WRITE)
  * ```
  *
- * @see LLCodepoint 代码点基类
+
  */
-class LLWatchpoint(id: Int,  private val expression: String) : LLCodepoint(id) {
+class LLDBWatchpoint(val id: Long, private val expression: String)   {
 
 
     /**
@@ -47,7 +47,7 @@ class LLWatchpoint(id: Int,  private val expression: String) : LLCodepoint(id) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is LLWatchpoint || !super.equals(other)) return false
+        if (other !is LLDBWatchpoint || !super.equals(other)) return false
 
         return expression == other.expression
     }
