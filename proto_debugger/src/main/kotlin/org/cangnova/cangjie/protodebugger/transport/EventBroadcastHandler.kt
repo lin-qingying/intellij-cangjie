@@ -1,3 +1,27 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.transport
 
 import com.google.protobuf.Message
@@ -9,9 +33,9 @@ import kotlinx.coroutines.launch
 import lldbprotobuf.EventOuterClass
 import lldbprotobuf.Model
 import org.cangnova.cangjie.protodebugger.breakpoint.DebugPausePoint
-import org.cangnova.cangjie.protodebugger.core.DebuggerStateManager
 import org.cangnova.cangjie.protodebugger.core.DebuggerHandler
-import org.cangnova.cangjie.protodebugger.data.newLLDBFrame
+import org.cangnova.cangjie.protodebugger.core.DebuggerStateManager
+import org.cangnova.cangjie.protodebugger.data.createLLDBFrame
 import org.cangnova.cangjie.protodebugger.data.newLLThread
 import org.cangnova.cangjie.protodebugger.execution.exit.ExitStatus
 import org.cangnova.cangjie.protodebugger.execution.state.TargetState
@@ -51,36 +75,24 @@ class EventBroadcastHandler(
             when (message) {
                 // 系统事件
                 is EventOuterClass.Initialized -> handleInitialized(message)
-//                is EventOuterClass.ReadyForCommandsEvent -> handleReadyForCommands(message)
-//                is EventOuterClass.PromptChangedEvent -> handlePromptChanged(message)
-//                is EventOuterClass.CommandInterpreterMessageEvent -> handleInterpreterMessage(message)
-//                is EventOuterClass.LogMessageEvent -> handleLogMessage(message)
 
                 // 进程事件
                 is EventOuterClass.ProcessStopped -> handleProcessStopped(message)
-//                is EventOuterClass.ProcessRunningEvent -> handleProcessRunning(message)
+                is EventOuterClass.ProcessRunning -> handleProcessRunning(message)
                 is EventOuterClass.ProcessExited -> handleProcessExited(message)
-//                is EventOuterClass.OutputEvent -> handleProcessOutput(message)
-
-                // 断点事件
-//                is EventOuterClass.BreakpointAddedEvent -> handleBreakpointAdded(message)
-//                is EventOuterClass.BreakpointRemovedEvent -> handleBreakpointRemoved(message)
-//                is EventOuterClass.BreakpointChangedEvent -> handleBreakpointChanged(message)
-//                is EventOuterClass.BreakpointLocationsAddedEvent -> handleBreakpointLocationsAdded(message)
-//                is EventOuterClass.BreakpointLocationsRemovedEvent -> handleBreakpointLocationsRemoved(message)
-//                is EventOuterClass.BreakpointLocationsResolvedEvent -> handleBreakpointLocationsResolved(message)
-
-                // 帧选择事件
-//                is EventOuterClass.SelectedFrameChangedEvent -> handleSelectedFrameChanged(message)
+                is EventOuterClass.ProcessOutput -> handleProcessOutput(message)
 
                 // 模块事件
-//                is EventOuterClass.ModulesLoadedEvent -> handleModulesLoaded(message)
-//                is EventOuterClass.ModulesUnloadedEvent -> handleModulesUnloaded(message)
+                is EventOuterClass.ModuleEvent -> handleModuleEvent(message)
 
-                // 符号下载事件
-//                is EventOuterClass.SymbolsDownloadStartedEvent -> handleSymbolsDownloadStarted(message)
-//                is EventOuterClass.SymbolsDownloadProgressEvent -> handleSymbolsDownloadProgress(message)
-//                is EventOuterClass.SymbolsDownloadFinishedEvent -> handleSymbolsDownloadFinished(message)
+                // 断点事件
+                is EventOuterClass.BreakpointChangedEvent -> handleBreakpointChanged(message)
+
+                // 线程事件
+                is EventOuterClass.ThreadStateChangedEvent -> handleThreadStateChanged(message)
+
+                // 符号事件
+                is EventOuterClass.SymbolsLoadedEvent -> handleSymbolsLoaded(message)
 
                 else -> {
                     LOG.debug("Unhandled broadcast message: ${message.javaClass.simpleName}")
@@ -131,7 +143,7 @@ class EventBroadcastHandler(
         val thread = stoppedThread.let { newLLThread(it) }
         stateManager.updateStoppedThread(thread)
         LOG.info("Process interrupted on thread: ${thread.id}")
-        val frame = newLLDBFrame(event.currentFrame)
+        val frame = createLLDBFrame(event.currentFrame)
         val debugPausePoint = DebugPausePoint(thread, frame, stoppedThread.stopInfo).also {
             stateManager.updateStopPlace(it)
         }
@@ -302,12 +314,12 @@ class EventBroadcastHandler(
 
     }
 //
-//    private fun handleProcessRunning(event: Broadcasts.ProcessRunningEvent) {
-//        stateManager.updateState(TargetState.RUNNING)
-//        stateManager.updateStoppedThread(null)
-//        LOG.debug("Process running")
-//        debuggerHandler.handleRunning()
-//    }
+private fun handleProcessRunning(event: EventOuterClass.ProcessRunning) {
+    stateManager.updateState(TargetState.Running)
+    stateManager.updateStoppedThread(null)
+    LOG.debug("Process running")
+    debuggerHandler.handleRunning()
+}
 
     private fun handleProcessExited(event: EventOuterClass.ProcessExited) {
         stateManager.updateState(TargetState.Terminated)
@@ -327,100 +339,90 @@ class EventBroadcastHandler(
         debuggerHandler.handleTargetTerminated(exitStatus)
     }
 
-//    private fun handleProcessOutput(event:EventOuterClass.OutputEvent ) {
-//        val outputKey = when (event.outputType) {
-//            proto.Model.OutputType.OUTPUT_TYPE_STDOUT -> com.intellij.execution.process.ProcessOutputTypes.STDOUT
-//            proto.Model.OutputType.OUTPUT_TYPE_STDERR -> com.intellij.execution.process.ProcessOutputTypes.STDERR
-//            else -> com.intellij.execution.process.ProcessOutputTypes.SYSTEM
-//        }
-//        debuggerHandler.handleTargetOutput(event.text, outputKey)
-//    }
+    /**
+     * 处理进程输出事件
+     *
+     * 当被调试进程产生标准输出或标准错误时调��。
+     */
+    private fun handleProcessOutput(event: EventOuterClass.ProcessOutput) {
+        val outputKey = when (event.outputType) {
+            Model.OutputType.OutputTypeStdout -> com.intellij.execution.process.ProcessOutputTypes.STDOUT
+            Model.OutputType.OutputTypeStderr -> com.intellij.execution.process.ProcessOutputTypes.STDERR
+            Model.OutputType.UNRECOGNIZED -> com.intellij.execution.process.ProcessOutputTypes.SYSTEM
+            else -> com.intellij.execution.process.ProcessOutputTypes.SYSTEM
+        }
 
-    // 断点事件处理
-//    private fun handleBreakpointAdded(event: Broadcasts.BreakpointAddedEvent) {
-//        LOG.debug("Breakpoint added: id=${event.breakpoint.id}")
-//        // 从locations中获取第一个位置信息
-//        val bRes = makeBreakpoint(event.breakpoint, event.locationsList)
-//
-//
-//        debuggerHandler.handleBreakpointAdded(bRes.breakpoint)
-//        debuggerHandler.handleBreakpointLocationsUpdated(bRes.breakpoint.id, bRes.breakpointLocations)
-//
-//    }
-//
-//    private fun handleBreakpointRemoved(event: Broadcasts.BreakpointRemovedEvent) {
-//        LOG.debug("Breakpoint removed: id=${event.breakpointId}")
-//        debuggerHandler.handleBreakpointRemoved(event.breakpointId)
-//    }
-//
-//    private fun handleBreakpointChanged(event: Broadcasts.BreakpointChangedEvent) {
-//        LOG.debug("Breakpoint changed: id=${event.breakpoint.id}, type=${event.eventType}")
-//
-//        val bRes = makeBreakpoint(event.breakpoint, event.locationsList)
-//
-//
-//
-//
-//        debuggerHandler.handleBreakpointUpdated(bRes.breakpoint)
-//        debuggerHandler.handleBreakpointLocationsReplaced(bRes.breakpoint.id, bRes.breakpointLocations)
-//
-//    }
-//
-//    private fun handleBreakpointLocationsAdded(event: Broadcasts.BreakpointLocationsAddedEvent) {
-//        LOG.debug("Breakpoint locations added: id=${event.breakpointId}, count=${event.locationsList.size}")
-//        val locations = event.locationsList.map { convertBreakpointLocation(it) }
-//        debuggerHandler.handleBreakpointLocationsUpdated(event.breakpointId, locations)
-//    }
-//
-//    private fun handleBreakpointLocationsRemoved(event: Broadcasts.BreakpointLocationsRemovedEvent) {
-//        LOG.debug("Breakpoint locations removed: id=${event.breakpointId}, count=${event.locationIdsList.size}")
-//        debuggerHandler.handleBreakpointLocationsRemoved(event.breakpointId, event.locationIdsList.map { it.toString() })
-//    }
-//
-//    private fun handleBreakpointLocationsResolved(event: Broadcasts.BreakpointLocationsResolvedEvent) {
-//        LOG.debug("Breakpoint locations resolved: id=${event.breakpointId}, count=${event.locationsList.size}")
-//        val locations = event.locationsList.map { convertBreakpointLocation(it) }
-//        debuggerHandler.handleBreakpointLocationsReplaced(event.breakpointId, locations)
-//    }
-//
-//    // 帧选择事件处理
-//    private fun handleSelectedFrameChanged(event: Broadcasts.SelectedFrameChangedEvent) {
-//        LOG.debug("Selected frame changed: thread=${event.thread?.index}, frame=${event.frame?.index}")
-//        event.thread?.let { thread ->
-//            event.frame?.let { frame ->
-//                debuggerHandler.handleSelectedFrameChanged(newLLThread(thread), newLLDBFrame(frame))
-//            }
-//        }
-//    }
-//
-//    // 模块事件处理
-//    private fun handleModulesLoaded(event: Broadcasts.ModulesLoadedEvent) {
-//        LOG.debug("Modules loaded: ${event.moduleNamesList.joinToString()}")
-//        // Handler接口期望LLModule列表，但proto只提供名称
-//        // 暂时不调用handler方法
-//    }
-//
-//    private fun handleModulesUnloaded(event: Broadcasts.ModulesUnloadedEvent) {
-//        LOG.debug("Modules unloaded: ${event.moduleNamesList.joinToString()}")
-//        // Handler接口期望LLModule列表，但proto只提供名称
-//        // 暂时不调用handler方法
-//    }
-//
-//    // 符号下载事件处理
-//    private fun handleSymbolsDownloadStarted(event: Broadcasts.SymbolsDownloadStartedEvent) {
-//        LOG.debug("Symbols download started: ${event.title}")
-//        debuggerHandler.handleSymbolsDownloadStarted(event.title, event.details)
-//    }
-//
-//    private fun handleSymbolsDownloadProgress(event: Broadcasts.SymbolsDownloadProgressEvent) {
-//        LOG.debug("Symbols download progress: ${event.progressPercent}%")
-//        debuggerHandler.handleSymbolsDownloadProgress(event.progressPercent.toInt())
-//    }
-//
-//    private fun handleSymbolsDownloadFinished(event: Broadcasts.SymbolsDownloadFinishedEvent) {
-//        LOG.debug("Symbols download finished")
-//        debuggerHandler.handleSymbolsDownloadFinished()
-//    }
+        LOG.debug("Process output (${event.outputType}): ${event.text}")
+        debuggerHandler.handleTargetOutput(event.text, outputKey)
+    }
+
+    /**
+     * 处理模块事件
+     *
+     * 当模块（可执行文件或共享库）被加载或卸载时调用。
+     */
+    private fun handleModuleEvent(event: EventOuterClass.ModuleEvent) {
+        val eventType = event.eventType
+        val modules = event.modulesList
+
+        when (eventType) {
+            Model.EventType.MODULE_LOADED -> {
+                LOG.info("Modules loaded: ${modules.joinToString { it.name }}")
+                debuggerHandler.handleModulesLoaded(modules)
+            }
+
+            Model.EventType.MODULE_UNLOADED -> {
+                LOG.info("Modules unloaded: ${modules.joinToString { it.name }}")
+                debuggerHandler.handleModulesUnloaded(modules)
+            }
+
+            else -> {
+                LOG.warn("Unknown module event type: $eventType")
+            }
+        }
+    }
+
+    /**
+     * 处理断点变更事件
+     *
+     * 当断点状态发生变化时调用。
+     */
+    private fun handleBreakpointChanged(event: EventOuterClass.BreakpointChangedEvent) {
+        val breakpoint = event.breakpoint
+        val changeType = event.changeType
+        val description = if (event.hasDescription()) event.description else null
+
+        LOG.debug("Breakpoint changed: id=${breakpoint.id.id}, type=$changeType${description?.let { ", desc=$it" } ?: ""}")
+        debuggerHandler.handleBreakpointChanged(breakpoint, changeType, description)
+    }
+
+    /**
+     * 处理线程状态变更事件
+     *
+     * 当线程被创建、销毁或状态改变时调用。
+     */
+    private fun handleThreadStateChanged(event: EventOuterClass.ThreadStateChangedEvent) {
+        val thread = event.thread
+        val changeType = event.changeType
+        val description = if (event.hasDescription()) event.description else null
+
+        LOG.debug("Thread state changed: id=${thread.threadId}, type=$changeType${description?.let { ", desc=$it" } ?: ""}")
+        debuggerHandler.handleThreadStateChanged(thread, changeType, description)
+    }
+
+    /**
+     * 处理符号加载事件
+     *
+     * 当调试符号被加载时调用。
+     */
+    private fun handleSymbolsLoaded(event: EventOuterClass.SymbolsLoadedEvent) {
+        val module = event.module
+        val symbolCount = event.symbolCount.toInt()
+        val symbolFilePath = if (event.hasSymbolFilePath()) event.symbolFilePath else null
+
+        LOG.info("Symbols loaded for module: ${module.name}, count=$symbolCount${symbolFilePath?.let { ", path=$it" } ?: ""}")
+        debuggerHandler.handleSymbolsLoaded(module, symbolCount, symbolFilePath)
+    }
 
     suspend fun waitForInitialization() {
         stateManager.waitForInitialization()

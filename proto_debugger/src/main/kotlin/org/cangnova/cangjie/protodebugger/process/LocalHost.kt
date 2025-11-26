@@ -1,3 +1,27 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.process
 
 import com.intellij.execution.ExecutionException
@@ -8,14 +32,14 @@ import com.intellij.execution.process.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.util.Alarm
 import com.intellij.util.io.BaseOutputReader.Options
+import com.intellij.util.system.OS
 import org.cangnova.cangjie.messages.DebuggerBundle
-import org.cangnova.cangjie.protodebugger.ipc.NamedPipe
+import org.cangnova.cangjie.protodebugger.transport.NamedPipe
 import org.cangnova.cangjie.protodebugger.util.sudo
 import org.cangnova.cangjie.protodebugger.util.sudoCommand
 
@@ -24,6 +48,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.Paths
+
 
 /**
  * 本地主机实现
@@ -39,8 +64,8 @@ object LocalHost : HostMachine {
 
     override val isRemote: Boolean = false
     override val hasRemoteFS: Boolean = false
-    override val osType: OSType = OSType.current
-    override val hostId: String = "__localhost_machine__"
+    override val os: OS = currentOS
+    override val hostId: String = "__localhost__"
 
     // ==================== 进程管理 ====================
 
@@ -113,7 +138,7 @@ object LocalHost : HostMachine {
         OSProcessUtil.getProcessList().toList()
 
     override fun sendSignal(signal: Int, message: String): Int {
-        require(osType != OSType.WIN) {
+        require(os != OS.Windows) {
             "Not supported for Windows OS, use winbreak instead"
         }
         return UnixProcessManager.sendSignal(signal, message)

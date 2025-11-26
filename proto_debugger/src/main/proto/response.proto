@@ -633,6 +633,59 @@ message ExecuteCommandResponse {
   int32 return_status = 4;
 }
 
+/**
+ * 命令补全响应
+ *
+ * LLDB 命令补全的结果。
+ *
+ * LLDB API 对应：
+ *   - SBCommandInterpreter::HandleCompletion() - 命令补全
+ *   - SBStringList - 补全结果列表
+ *
+ * 补全结果说明：
+ *   - completions: 所有可能的补全选项列表
+ *   - common_prefix: 所有补全选项的公共前缀
+ *   - 如果只有一个补全选项，客户端可以直接插入该选项
+ *   - 如果有多个选项，客户端可以显示补全列表供用户选择
+ *
+ * 使用示例：
+ *   输入 "bre"，cursor_position = 3
+ *   返回：
+ *     completions = ["break", "breakpoint"]
+ *     common_prefix = "bre"
+ *
+ *   输入 "thread "，cursor_position = 7
+ *   返回：
+ *     completions = ["backtrace", "continue", "info", "list", "select", "step-in", ...]
+ *     common_prefix = ""
+ */
+message CommandCompletionResponse {
+  // 操作状态
+  // success: 补全成功
+  // error_message: 执行失败的错误信息
+  Status status = 1;
+
+  // 补全选项列表
+  // 所有可能的补全候选项
+  // 可能为空（无匹配项）
+  repeated string completions = 2;
+
+  // 所有补全选项的公共前缀
+  // 用于自动填充用户输入
+  // 可能为空字符串（补全选项无公共部分）
+  string common_prefix = 3;
+
+  // 补全的起始位置
+  // 补全文本应该插入的位置（相对于原始命令字符串）
+  // 通常与 cursor_position 相同，但某些情况下可能不同
+  uint32 completion_start = 4;
+
+  // 是否有更多补全结果
+  // true: 因为 max_results 限制，还有更多结果未返回
+  // false: 已返回所有匹配结果
+  bool has_more = 5;
+}
+
 
 /* =========================================================================
  * 顶层响应消息
@@ -704,5 +757,6 @@ message Response {
 
     // ===== 控制台命令响应 =====
     ExecuteCommandResponse execute_command = 34;  // 执行 LLDB 命令响应
+    CommandCompletionResponse command_completion = 35;  // LLDB 命令补全响应
   }
 }

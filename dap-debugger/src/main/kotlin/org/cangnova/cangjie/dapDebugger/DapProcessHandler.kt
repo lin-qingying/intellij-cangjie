@@ -22,18 +22,24 @@
  *
  */
 
-package org.cangnova.cangjie.protodebugger.data
+package org.cangnova.cangjie.dapDebugger
 
-/**
- * 寄存器组信息数据类
- *
- * 表示寄存器组的元数据信息，基于 proto 定义中的 RegisterGroup 消息。
- * 用于描述寄存器的组织结构，不包含具体的寄存器值。
- *
- * @param name 寄存器组名称（例如："General Purpose Registers", "Floating Point Registers"）
- * @param registerCount 该组中的寄存器数量
- */
-data class LLDBRegisterGroup(
-    val name: String,
-    val registerCount: Int
-)
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.process.OSProcessHandler
+import com.intellij.util.io.BaseOutputReader
+import com.pty4j.PtyProcess
+
+
+class DapProcessHandler : OSProcessHandler {
+    override fun readerOptions(): BaseOutputReader.Options {
+        return BaseOutputReader.Options.forMostlySilentProcess()
+    }
+
+
+    constructor(generalCommandLine: GeneralCommandLine) : super(generalCommandLine)
+
+    constructor(process: Process, commandLine: String) : super(process, commandLine, Charsets.UTF_8)
+
+
+    val press: PtyProcess get() = process as PtyProcess
+}

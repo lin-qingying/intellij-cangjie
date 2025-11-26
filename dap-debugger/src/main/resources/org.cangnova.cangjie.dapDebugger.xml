@@ -27,14 +27,11 @@
     <module value="org.cangnova.cangjie.dapDebugger"/>
 
     <extensions defaultExtensionNs="com.intellij">
-                <programRunner id="CjDAPDebugRunner"
-                               implementation="org.cangnova.cangjie.dapDebugger.CjDAPDebugRunner"/>
+        <!--                <programRunner id="CjDAPDebugRunner"-->
+        <!--                               implementation="org.cangnova.cangjie.dapDebugger.CjDAPDebugRunner"/>-->
 
 
 
-                <xdebugger.breakpointType
-                        implementation="org.cangnova.cangjie.dapDebugger.breakpoint.CangJieLineBreakpointType"
-                        order="first"/>
 
 
 

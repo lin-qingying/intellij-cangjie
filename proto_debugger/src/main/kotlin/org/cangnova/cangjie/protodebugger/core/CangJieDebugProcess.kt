@@ -12,6 +12,14 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.protodebugger.core
@@ -28,44 +36,31 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.ExecutionConsole
 import com.intellij.execution.ui.RunnerLayoutUi
 import com.intellij.execution.ui.layout.PlaceInGrid
-import com.intellij.lang.Language
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.editor.Document
-import com.intellij.openapi.editor.EditorFactory
-import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.terminal.ProcessHandlerTtyConnector
 import com.intellij.terminal.TerminalExecutionConsole
 import com.intellij.ui.content.Content
 import com.intellij.util.ModalityUiUtil
-import com.intellij.xdebugger.*
+import com.intellij.xdebugger.XAlternativeSourceHandler
+import com.intellij.xdebugger.XDebugProcess
+import com.intellij.xdebugger.XDebugSession
+import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.breakpoints.SuspendPolicy
 import com.intellij.xdebugger.breakpoints.XBreakpoint
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler
-import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
-import com.intellij.xdebugger.evaluation.XDebuggerEditorsProviderBase
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
 import com.intellij.xdebugger.frame.*
 import com.intellij.xdebugger.frame.presentation.XValuePresentation
-import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodePresentationConfigurator
 import com.intellij.xdebugger.ui.XDebugTabLayouter
 import com.jediterm.core.util.TermSize
-import org.cangnova.cangjie.ide.debugger.CodeFragmentContextTuner
-import org.cangnova.cangjie.lang.CangJieFileType
-import org.cangnova.cangjie.lang.CangJieLanguage
 import org.cangnova.cangjie.protodebugger.breakpoint.*
 import org.cangnova.cangjie.protodebugger.console.CJDB_EXECUTOR_KEY
 import org.cangnova.cangjie.protodebugger.console.CangJieDebugLLDBLanguage
@@ -76,9 +71,7 @@ import org.cangnova.cangjie.protodebugger.settings.ArchitectureType
 import org.cangnova.cangjie.protodebugger.settings.DebuggerSettings
 import org.cangnova.cangjie.protodebugger.transport.isTest
 import org.cangnova.cangjie.protodebugger.util.InstallerImpl
-import org.cangnova.cangjie.psi.CjPsiFactory
 import org.jetbrains.annotations.NonNls
-import org.jetbrains.debugger.SuspendContext
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
@@ -299,6 +292,154 @@ class CangJieDebugProcess(
             session.positionReached(
                 debugPausePoint.toCangJieSuspendContext(facade)
             )
+        }
+
+        /** 处理模块加载事件 */
+        override fun handleModulesLoaded(modules: List<lldbprotobuf.Model.Module>) {
+            LOG.info("Modules loaded: ${modules.size} modules")
+            modules.forEach { module ->
+                LOG.debug("  - ${module.name} at 0x${module.baseAddress.toString(16)}")
+            }
+            // 模块加载后可能需要重新解析断点
+            // 这里可以触发断点管理器的更新逻辑
+        }
+
+        /** 处理模块卸载事件 */
+        override fun handleModulesUnloaded(modules: List<lldbprotobuf.Model.Module>) {
+            LOG.info("Modules unloaded: ${modules.size} modules")
+            modules.forEach { module ->
+                LOG.debug("  - ${module.name}")
+            }
+        }
+
+        /** 处理断点状态变更事件 */
+        override fun handleBreakpointChanged(
+            breakpoint: lldbprotobuf.Model.Breakpoint,
+            changeType: lldbprotobuf.Model.BreakpointEventType,
+            description: String?
+        ) {
+            LOG.debug("Breakpoint changed: id=${breakpoint.id.id}, type=$changeType${description?.let { ", $it" } ?: ""}")
+
+            // 根据变更类型执行相应操作
+            when (changeType) {
+                lldbprotobuf.Model.BreakpointEventType.BREAKPOINT_EVENT_TYPE_ADDED -> {
+                    LOG.info("Breakpoint added: ${breakpoint.id.id}")
+                }
+
+                lldbprotobuf.Model.BreakpointEventType.BREAKPOINT_EVENT_TYPE_REMOVED -> {
+                    LOG.info("Breakpoint removed: ${breakpoint.id.id}")
+                }
+
+                lldbprotobuf.Model.BreakpointEventType.BREAKPOINT_EVENT_TYPE_ENABLED -> {
+                    LOG.info("Breakpoint enabled: ${breakpoint.id.id}")
+                }
+
+                lldbprotobuf.Model.BreakpointEventType.BREAKPOINT_EVENT_TYPE_DISABLED -> {
+                    LOG.info("Breakpoint disabled: ${breakpoint.id.id}")
+                }
+
+                lldbprotobuf.Model.BreakpointEventType.BREAKPOINT_EVENT_TYPE_LOCATIONS_RESOLVED -> {
+                    LOG.info("Breakpoint resolved: ${breakpoint.id.id}")
+                    // 断点解析后更新 IDE 中的断点验证状态
+                    updateBreakpointVerificationStatus(breakpoint.id.id, true)
+                }
+
+                lldbprotobuf.Model.BreakpointEventType.BREAKPOINT_EVENT_TYPE_LOCATIONS_ADDED -> {
+                    LOG.info("Breakpoint locations added: ${breakpoint.id.id}")
+                    // 新增位置时也标记为已验证
+                    updateBreakpointVerificationStatus(breakpoint.id.id, true)
+                }
+
+                lldbprotobuf.Model.BreakpointEventType.BREAKPOINT_EVENT_TYPE_LOCATIONS_REMOVED -> {
+                    LOG.info("Breakpoint locations removed: ${breakpoint.id.id}")
+                    // 如果所有位置都被移除，可能需要标记为未验证
+                    // 这里暂时不处理，因为需要检查是否还有其他位置
+                }
+
+                else -> {
+                    LOG.debug("Unknown breakpoint change type: $changeType")
+                }
+            }
+        }
+
+        /**
+         * 更新断点验证状态
+         *
+         * @param breakpointId 后端断点 ID
+         * @param verified 是否已验证
+         */
+        private fun updateBreakpointVerificationStatus(breakpointId: Long, verified: Boolean) {
+            // 根据断点 ID 查找对应的 IDE 断点
+            val ideBreakpoint = breakpointManager.findBreakpointById(breakpointId)
+
+            if (ideBreakpoint == null) {
+                LOG.warn("Cannot update breakpoint verification status: breakpoint not found for ID $breakpointId")
+                return
+            }
+
+            // 委托给对应的 Handler 更新断点验证状态
+            breakpointManager.getAllHandlers().forEach { handler ->
+                if (handler is BaseBreakpointHandler<*, *, *>) {
+                    handler.updateVerificationStatus(breakpointId, verified)
+                }
+            }
+        }
+
+        /** 处理线程状态变更事件 */
+        override fun handleThreadStateChanged(
+            thread: lldbprotobuf.Model.Thread,
+            changeType: lldbprotobuf.Model.ThreadStateChangeType,
+            description: String?
+        ) {
+            LOG.debug("Thread state changed: id=${thread.threadId}, type=$changeType${description?.let { ", $it" } ?: ""}")
+
+            when (changeType) {
+                lldbprotobuf.Model.ThreadStateChangeType.THREAD_STATE_CHANGE_TYPE_THREAD_SUSPENDED -> {
+                    LOG.debug("Thread suspended: ${thread.threadId}")
+                }
+
+                lldbprotobuf.Model.ThreadStateChangeType.THREAD_STATE_CHANGE_TYPE_THREAD_RESUMED -> {
+                    LOG.debug("Thread resumed: ${thread.threadId}")
+                }
+
+                lldbprotobuf.Model.ThreadStateChangeType.THREAD_STATE_CHANGE_TYPE_THREAD_SELECTED -> {
+                    LOG.debug("Thread selected: ${thread.threadId}")
+                }
+
+                lldbprotobuf.Model.ThreadStateChangeType.THREAD_STATE_CHANGE_TYPE_STACK_CHANGED -> {
+                    LOG.debug("Thread stack changed: ${thread.threadId}")
+                }
+
+                lldbprotobuf.Model.ThreadStateChangeType.THREAD_STATE_CHANGE_TYPE_SELECTED_FRAME_CHANGED -> {
+                    LOG.debug("Thread selected frame changed: ${thread.threadId}")
+                }
+
+                else -> {
+                    LOG.debug("Unknown thread state change type: $changeType")
+                }
+            }
+        }
+
+        /** 处理符号加载事件 */
+        override fun handleSymbolsLoaded(
+            module: lldbprotobuf.Model.Module,
+            symbolCount: Int,
+            symbolFilePath: String?
+        ) {
+            val pathInfo = symbolFilePath?.let { " from $it" } ?: ""
+            LOG.info("Symbols loaded for ${module.name}: $symbolCount symbols$pathInfo")
+
+            // 符号加载后可以：
+            // 1. 通知用户（可选，通常只在手动加载符号时）
+            // 2. 触发断点重新解析
+            // 3. 刷新调用栈视图（现在可能有更多符号信息）
+
+            if (symbolCount > 0) {
+                session.reportMessage(
+                    "Loaded $symbolCount symbols for ${module.name}",
+                    MessageType.INFO
+                )
+            }
         }
     }
 
@@ -701,7 +842,7 @@ class CangJieDebugProcess(
          * 清理所有断点
          */
         fun cleanup() {
-            handlers.forEach { it.cleanup() }
+            handlers.forEach { it.clear() }
         }
 
         /**
@@ -813,7 +954,7 @@ class ConsoleManager(
             CangJieDebugLLDBLanguage
         ).apply {
             // 设置提示符
-           prompt = "cjdb> "
+            prompt = "cjdb> "
         }
 
 
@@ -821,7 +962,7 @@ class ConsoleManager(
         val executor = CjdbConsoleExecutor(debuggerProcess, console)
 
         // 将 executor 存储到 PsiFile 的 UserData 中,供补全使用
-        console.file .putUserData(CJDB_EXECUTOR_KEY, executor)
+        console.file.putUserData(CJDB_EXECUTOR_KEY, executor)
 
         // 注册执行 Action
         LanguageConsoleBuilder.registerExecuteAction(

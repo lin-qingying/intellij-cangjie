@@ -27,6 +27,20 @@ package org.cangnova.cangjie.protodebugger.data
 import lldbprotobuf.Model
 
 /**
+ * 寄存器组信息数据类
+ *
+ * 表示寄存器组的元数据信息，基于 proto 定义中的 RegisterGroup 消息。
+ * 用于描述寄存器的组织结构，不包含具体的寄存器值。
+ *
+ * @param name 寄存器组名称（例如："General Purpose Registers", "Floating Point Registers"）
+ * @param registerCount 该组中的寄存器数量
+ */
+data class LLDBRegisterGroup(
+    val name: String,
+    val registerCount: Int
+)
+
+/**
  * 寄存器数据类
  *
  * 表示调试器中的一个寄存器，包含寄存器的基本信息和值。

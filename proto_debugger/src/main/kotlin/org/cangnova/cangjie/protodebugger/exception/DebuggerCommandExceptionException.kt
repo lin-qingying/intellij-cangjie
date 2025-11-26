@@ -24,21 +24,33 @@
 
 package org.cangnova.cangjie.protodebugger.exception
 
-import org.cangnova.cangjie.protodebugger.ipc.DebuggerCommandTimedOutException
-
 /**
- * 调试器表达式求值超时异常类
+ * 调试器命令异常类
  *
- * 该异常类用于表示调试器表达式求值操作超时的情况。
- * 当表达式过于复杂或执行时间过长时，调试器会抛出此异常以防止无限等待。
+ * 该异常类用于表示调试器命令执行过程中发生的错误。
+ * 它是所有调试器相关异常的基类，提供了统一的错误处理机制。
  *
  * 使用场景：
- * - 复杂表达式求值超时
- * - 死循环或无限递归的检测
- * - 调试器响应时间控制
- * - 防止调试器阻塞
+ * - 调试器命令执行失败
+ * - 与调试器通信时发生错误
+ * - 调试器状态异常或不可用
+ * - 调试器操作超时或中断
  *
- * @param expression 导致超时的表达式字符串
+ * @param s 错误消息，描述异常的具体原因
+ * @param throwable 导致异常的根本原因，可能为null
  */
-class DebuggerEvaluationTimedOutException(val expression: String) :
-    DebuggerCommandTimedOutException("Evaluation timed out: $expression")
+open class DebuggerCommandExceptionException @JvmOverloads constructor(
+    s: String,
+    throwable: Throwable? = null
+) : Exception(s, throwable) {
+
+    /**
+     * 基于另一个异常创建调试器命令异常
+     *
+     * 当捕获到其他异常时，可以将其包装为DebuggerCommandException。
+     * 如果原始异常没有消息，则使用空字符串。
+     *
+     * @param throwable 原始异常对象
+     */
+    constructor(throwable: Throwable) : this(throwable.message ?: "", throwable)
+}

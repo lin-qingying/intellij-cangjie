@@ -25,11 +25,11 @@
 package org.cangnova.cangjie.protodebugger.core
 
 import com.intellij.openapi.diagnostic.Logger
-import java.util.EventListener
 import com.intellij.openapi.util.Key
 import org.cangnova.cangjie.protodebugger.breakpoint.DebugPausePoint
 import org.cangnova.cangjie.protodebugger.execution.exit.ExitStatus
 import org.cangnova.cangjie.protodebugger.memory.Address
+import java.util.*
 
 /**
  * 调试器事件处理器接口
@@ -129,10 +129,73 @@ interface DebuggerHandler : EventListener {
     fun handleExited(code: Int) {
     }
 
-    fun handleAttached(pid: Int) {
+
+    /**
+     * 处理模块加载事件
+     *
+     * 当新的模块（可执行文件或共享库）被加载到进程中时调用。
+     *
+     * @param modules 加载的模块列表
+     */
+    fun handleModulesLoaded(modules: List<lldbprotobuf.Model.Module>) {
     }
 
-    fun handleDetached() {
+    /**
+     * 处理模块卸载事件
+     *
+     * 当模块（共享库）被卸载时调用。
+     *
+     * @param modules 卸载的模块列表
+     */
+    fun handleModulesUnloaded(modules: List<lldbprotobuf.Model.Module>) {
+    }
+
+    /**
+     * 处理断点状态变更事件
+     *
+     * 当断点被添加、删除、启用、禁用或解析时调用。
+     *
+     * @param breakpoint 变更的断点信息
+     * @param changeType 变更类型
+     * @param description 变更描述
+     */
+    fun handleBreakpointChanged(
+        breakpoint: lldbprotobuf.Model.Breakpoint,
+        changeType: lldbprotobuf.Model.BreakpointEventType,
+        description: String?
+    ) {
+    }
+
+    /**
+     * 处理线程状态变更事件
+     *
+     * 当线程被创建、销毁或状态改变时调用。
+     *
+     * @param thread 变更的线程信息
+     * @param changeType 变更类型
+     * @param description 变更描述
+     */
+    fun handleThreadStateChanged(
+        thread: lldbprotobuf.Model.Thread,
+        changeType: lldbprotobuf.Model.ThreadStateChangeType,
+        description: String?
+    ) {
+    }
+
+    /**
+     * 处理符号加载事件
+     *
+     * 当调试符号被加载时调用。
+     *
+     * @param module 加载符号的模块
+     * @param symbolCount 加载的符号数量
+     * @param symbolFilePath 符号文件路径（可选）
+     */
+    fun handleSymbolsLoaded(
+        module: lldbprotobuf.Model.Module,
+        symbolCount: Int,
+        symbolFilePath: String?
+    ) {
     }
 
 

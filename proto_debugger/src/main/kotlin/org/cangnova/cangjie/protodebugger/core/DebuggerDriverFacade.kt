@@ -1,59 +1,68 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.core
 
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.execution.process.*
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ReadAction
+import com.intellij.execution.process.BaseProcessHandler
+import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessOutputType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootUtil
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.PathUtil
-import com.intellij.util.SlowOperations
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.io.DigestUtil
-import com.intellij.util.system.CpuArch
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerUtil
 import com.intellij.xdebugger.XSourcePosition
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.asCompletableFuture
-import org.cangnova.cangjie.messages.DebuggerBundle
-import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
+import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandExceptionException
 import org.cangnova.cangjie.protodebugger.execution.state.TargetState
 import org.cangnova.cangjie.protodebugger.memory.Address
 import org.cangnova.cangjie.protodebugger.memory.MemoryViewFacade
-import org.cangnova.cangjie.protodebugger.path.getBinFile
 import org.cangnova.cangjie.protodebugger.process.DebuggerProcessFactory
 import org.cangnova.cangjie.protodebugger.process.HostMachine
 import org.cangnova.cangjie.protodebugger.process.LocalHost
 import org.cangnova.cangjie.protodebugger.services.*
 import org.cangnova.cangjie.protodebugger.services.impl.*
 import org.cangnova.cangjie.protodebugger.settings.ArchitectureType
-import org.cangnova.cangjie.protodebugger.settings.ArchitectureType.*
 import org.cangnova.cangjie.protodebugger.settings.DebuggerSettings
 import org.cangnova.cangjie.protodebugger.transport.EventBroadcastHandler
 import org.cangnova.cangjie.protodebugger.transport.MessageBus
 import org.cangnova.cangjie.protodebugger.transport.ServerSocketTransport
 import org.cangnova.cangjie.protodebugger.transport.isTest
 import org.cangnova.cangjie.protodebugger.util.SourceFileHash
-import org.cangnova.cangjie.protodebugger.util.ToolVersion
-import org.cangnova.cangjie.protodebugger.util.appendSearchPath
-import java.io.File
 import java.io.IOException
-import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
-import java.util.regex.Pattern
 
 /**
  * 调试器驱动门面
@@ -72,12 +81,12 @@ class DebuggerDriverFacade(
     companion object {
         private val LOG = Logger.getInstance(DebuggerDriverFacade::class.java)
 
-        @Throws(DebuggerCommandException::class)
+        @Throws(DebuggerCommandExceptionException::class)
         fun parseAddressSafe(str: String): Address {
             return try {
                 Address.Companion.Parser.hex(str)
             } catch (numberFormatException: NumberFormatException) {
-                throw DebuggerCommandException(numberFormatException)
+                throw DebuggerCommandExceptionException(numberFormatException)
             }
         }
     }
@@ -111,7 +120,6 @@ class DebuggerDriverFacade(
     val emulateTerminal: Boolean get() = DebuggerSettings.getInstance().isEmulateTerminal()
     val isContinueAfterAttachNeeded: Boolean get() = true
     val hostMachine: HostMachine get() = LocalHost
-    val useSTLRenderers: Boolean get() = DebuggerSettings.getInstance().isStlRenderersEnabled()
     val disableASLR: Boolean get() = DebuggerSettings.getInstance().isDisableASLR()
 
     fun isStaticVarsLoadingEnabled() = Registry.`is`("cangjie.debugger.lldb.statics")

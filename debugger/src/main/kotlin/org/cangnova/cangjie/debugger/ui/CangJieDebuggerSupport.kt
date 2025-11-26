@@ -22,23 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.protodebugger.exception
+package org.cangnova.cangjie.debugger.ui
 
-import com.intellij.openapi.util.NlsContexts
-import com.intellij.execution.ExecutionException
-
-/**
- * 调试器驱动异常类
- *
- * 该异常类用于表示调试器驱动程序在执行过程中发生的错误。
- * 它继承自IntelliJ平台的ExecutionException，与平台的执行框架集成。
- *
- * 使用场景：
- * - 调试器驱动程序初始化失败
- * - 调试器与目标程序通信失败
- * - 调试器内部错误或状态异常
- * - 驱动程序配置或环境问题
- *
- * @param s 错误消息，描述异常的具体原因，使用@NlsContexts.DialogMessage注解支持本地化
- */
-class DriverException(s: @NlsContexts.DialogMessage String?) : ExecutionException(s)
+// This file is deprecated and will be removed.
+// The debugger support is now provided through direct extension point registration.

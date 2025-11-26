@@ -1,3 +1,27 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.services.impl
 
 import com.intellij.execution.CommandLineUtil
@@ -13,15 +37,17 @@ import kotlinx.coroutines.sync.Mutex
 import lldbprotobuf.Model
 import lldbprotobuf.RequestOuterClass
 import lldbprotobuf.ResponseOuterClass
+import lldbprotobuf.ResponseOuterClass.*
 import org.cangnova.cangjie.messages.DebuggerBundle
+import org.cangnova.cangjie.protodebugger.core.DebuggerDriverFacade
+import org.cangnova.cangjie.protodebugger.core.DebuggerHandler
 import org.cangnova.cangjie.protodebugger.data.LLDBFrame
 import org.cangnova.cangjie.protodebugger.data.LLDBThread
-import org.cangnova.cangjie.protodebugger.data.newLLDBFrame
+import org.cangnova.cangjie.protodebugger.data.createLLDBFrame
 import org.cangnova.cangjie.protodebugger.data.newLLThread
-import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
+import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandExceptionException
 import org.cangnova.cangjie.protodebugger.execution.async.AsyncResult
 import org.cangnova.cangjie.protodebugger.execution.state.TargetState
-import org.cangnova.cangjie.protodebugger.ipc.WindowsPipe
 import org.cangnova.cangjie.protodebugger.path.PathMapping
 import org.cangnova.cangjie.protodebugger.process.HostMachine
 import org.cangnova.cangjie.protodebugger.process.LocalHost
@@ -29,12 +55,8 @@ import org.cangnova.cangjie.protodebugger.process.ProcessOutputReaders
 import org.cangnova.cangjie.protodebugger.protocol.ProtobufFactory
 import org.cangnova.cangjie.protodebugger.services.SessionService
 import org.cangnova.cangjie.protodebugger.transport.MessageBus
-import org.cangnova.cangjie.protodebugger.util.SourceFileHash
+import org.cangnova.cangjie.protodebugger.transport.WindowsPipe
 import org.cangnova.cangjie.protodebugger.util.Installer
-import org.cangnova.cangjie.protodebugger.core.DebuggerHandler
-
-import lldbprotobuf.ResponseOuterClass.*
-import org.cangnova.cangjie.protodebugger.core.DebuggerDriverFacade
 import java.io.File
 import java.io.OutputStream
 
@@ -158,7 +180,7 @@ class SessionServiceImpl(
         )
 
         response.status.ensureSuccess()
-        return response.framesList.map(::newLLDBFrame)
+        return response.framesList.map(::createLLDBFrame)
     }
 
 
@@ -340,13 +362,13 @@ class SessionServiceImpl(
 //        )
 //
 //        if (!response.status.success) {
-//            throw DebuggerCommandException(response.status.errorMessage)
+//            throw DebuggerCommandExceptionException(response.status.errorMessage)
 //        }
     }
 
     private fun Model.Status.ensureSuccess() {
         if (!success) {
-            throw DebuggerCommandException(message)
+            throw DebuggerCommandExceptionException(message)
         }
     }
 
@@ -484,7 +506,7 @@ class IOResourceManager(
             input = null
 
         } catch (e: Exception) {
-            LOG.warn("Error during process exit cleanup: ${e.message}")
+            LOG.warn("Error during process exit clear: ${e.message}")
         }
     }
 

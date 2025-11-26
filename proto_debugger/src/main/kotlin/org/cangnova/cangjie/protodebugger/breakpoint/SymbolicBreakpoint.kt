@@ -44,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap
  * @param module 模块过滤（可选）
  * @param condition 断点条件表达式（可选）
  * @param threadId 线程ID过滤
- * @param enabled 断点是否启用
+
  */
 data class SymbolicBreakpoint(
     val pattern: String,
@@ -52,8 +52,8 @@ data class SymbolicBreakpoint(
     val module: String? = null,
     val condition: String? = null,
     val threadId: Long = SymbolicBreakpointType.INVALID_THREAD_ID,
-    val enabled: Boolean = true
-)
+
+    )
 
 /**
  * 仓颉语言符号断点
@@ -201,17 +201,6 @@ class SymbolicBreakpointXBreakpoint(
         }
     }
 
-    /**
-     * 转换为调试器服务的符号断点格式
-     */
-    fun toLLDBSymbolicBreakpoint(): org.cangnova.cangjie.protodebugger.data.LLDBSymbolicBreakpoint {
-        return org.cangnova.cangjie.protodebugger.data.LLDBSymbolicBreakpoint(
-            id = 0, // ID will be assigned by the debugger service
-            symbolPattern = symbolPattern,
-            condition = conditionExpressionObj?.expression,
-            enabled = enabled
-        )
-    }
 
     // ==================== 辅助方法 ====================
 

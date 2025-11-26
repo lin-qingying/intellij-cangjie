@@ -1,17 +1,55 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.process
 
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.Platform
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.BaseProcessHandler
 import com.intellij.execution.process.ProcessInfo
 import com.intellij.execution.process.ProcessOutput
 import com.intellij.openapi.progress.ProgressIndicator
-import org.cangnova.cangjie.protodebugger.ipc.NamedPipe
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.system.OS
+import org.cangnova.cangjie.protodebugger.transport.NamedPipe
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
+
+val currentOS: OS
+    get() =
+        when {
+            SystemInfo.isWindows -> OS.Windows
+            SystemInfo.isMac -> OS.macOS
+            else -> OS.Linux
+        }
+
+fun OS.toPlatform(): Platform =
+    if (this == OS.Windows) Platform.WINDOWS else Platform.UNIX
+
 
 /**
  * 主机机器抽象接口
@@ -38,13 +76,13 @@ interface HostMachine {
     val hasRemoteFS: Boolean
 
     /** 操作系统类型 */
-    val osType: OSType
+    val os: OS
 
     /** 主机唯一标识 */
     val hostId: String
 
     /** 主机名称（用于显示） */
-    val name: String get() = "${if (isRemote) "Remote" else "Local"} $osType"
+    val name: String get() = "${if (isRemote) "Remote" else "Local"} $os"
 
     // ==================== 进程管理 ====================
 

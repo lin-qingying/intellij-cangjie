@@ -1,3 +1,27 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.services.impl
 
 import com.intellij.openapi.util.Ref
@@ -6,12 +30,11 @@ import org.cangnova.cangjie.messages.DebuggerBundle
 import org.cangnova.cangjie.protodebugger.breakpoint.AddBreakpointResult
 import org.cangnova.cangjie.protodebugger.breakpoint.SymbolicBreakpoint
 import org.cangnova.cangjie.protodebugger.core.DebuggerDriverFacade
-import org.cangnova.cangjie.protodebugger.data.LLDBSymbolicBreakpoint
 import org.cangnova.cangjie.protodebugger.data.LLDBVariable
 import org.cangnova.cangjie.protodebugger.data.LLDBWatchpoint
 import org.cangnova.cangjie.protodebugger.data.getValueId
 import org.cangnova.cangjie.protodebugger.data.makeBreakpoint
-import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
+import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandExceptionException
 import org.cangnova.cangjie.protodebugger.memory.Address
 import org.cangnova.cangjie.protodebugger.protocol.ProtobufFactory
 import org.cangnova.cangjie.protodebugger.services.BreakpointService
@@ -86,7 +109,7 @@ class BreakpointServiceImpl(
         symbolPattern: String,
         module: String?,
         condition: String?
-    ): LLDBSymbolicBreakpoint {
+    ): AddBreakpointResult {
         // 等待目标创建完成
         waitForTargetCreation()
 
@@ -100,7 +123,7 @@ class BreakpointServiceImpl(
 
     override suspend fun addSymbolicBreakpoint(
         breakpoint: SymbolicBreakpoint
-    ): LLDBSymbolicBreakpoint {
+    ): AddBreakpointResult {
         // 等待目标创建完成
         waitForTargetCreation()
 
@@ -116,13 +139,9 @@ class BreakpointServiceImpl(
             request,
             ResponseOuterClass.AddBreakpointResponse::class.java
         )
+        return makeBreakpoint(response.addressBreakpoint.breakpoint, response.addressBreakpoint.locationsList)
 
-        return LLDBSymbolicBreakpoint(
-            id = response.symbolBreakpoint.breakpoint.id.id,
-            symbolPattern = breakpoint.pattern,
-            condition = breakpoint.condition,
-            enabled = true
-        )
+
     }
 
     override suspend fun addWatchpoint(
@@ -146,7 +165,7 @@ class BreakpointServiceImpl(
             true
         )
         val result = Ref<LLDBWatchpoint>()
-        val error = Ref<DebuggerCommandException>()
+        val error = Ref<DebuggerCommandExceptionException>()
 
         val response = messageBus.request(
             request,
@@ -154,7 +173,7 @@ class BreakpointServiceImpl(
         )
 
         if (!response.status.success) {
-            throw DebuggerCommandException(response.status.message)
+            throw DebuggerCommandExceptionException(response.status.message)
         }
 
         return LLDBWatchpoint(response.breakPointId.id, expression)
@@ -172,7 +191,7 @@ class BreakpointServiceImpl(
             )
 
             if (!response.status.success) {
-                throw DebuggerCommandException(
+                throw DebuggerCommandExceptionException(
                     DebuggerBundle.message("error.cannot.remove.breakpoint")
                 )
             }

@@ -45,7 +45,7 @@ package org.cangnova.cangjie.protodebugger.exception
  * @param s 异常的详细消息，描述具体的错误情况
  * @param throwable 导致异常的根本原因，可能为null
  */
-class JumpToLineOutsideCurrentFunctionException : DebuggerCommandException {
+class JumpToLineOutsideCurrentFunctionException : DebuggerCommandExceptionException {
     /**
      * 构造函数 - 仅包含错误消息
      *

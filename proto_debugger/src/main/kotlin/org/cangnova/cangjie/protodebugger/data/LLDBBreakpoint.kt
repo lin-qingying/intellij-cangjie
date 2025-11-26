@@ -24,40 +24,11 @@
 
 package org.cangnova.cangjie.protodebugger.data
 
-import com.intellij.util.PathUtil
 import com.intellij.util.containers.ContainerUtil
 import lldbprotobuf.Model
 import org.cangnova.cangjie.protodebugger.breakpoint.AddBreakpointResult
 import org.cangnova.cangjie.protodebugger.location.SourceLocation
 import org.cangnova.cangjie.protodebugger.memory.Address
-import org.jetbrains.annotations.Contract
-import org.jetbrains.annotations.NonNls
-
-
-
-/**
- * 表示符号断点
- *
- * 符号断点基于函数名或符号名称设置，而不是特定的代码行。当函数被调用或符号被访问时触发。
- *
- * @param id 断点的唯一标识符
- * @param symbolPattern 符号模式（函数名、方法名等）
- * @param condition 断点条件表达式
- * @param enabled 断点是否启用
- *
- * 使用场景：
- * - 函数入口断点：在函数开始执行时暂停
- * - 系统调用跟踪：监控特定系统API的调用
- * - 库函数调试：在外部库函数中设置断点
- * - 动态调试：在没有源码的情况下调试二进制代码
- */
- data class LLDBSymbolicBreakpoint(
-      val id: Long,
-    val symbolPattern: String = "",
-    val condition: String? = null,
-    val enabled: Boolean = true
-)
-
 
 
 /**
@@ -75,13 +46,13 @@ import org.jetbrains.annotations.NonNls
  * - 调试信息：显示所有断点的详细位置信息
  * - 地址导航：在内存视图中显示断点位置
  */
-data class LLBreakpointLocation(
+data class LLDBBreakpointLocation(
     val id: String,
     val address: Address,
     val fileLocation: SourceLocation?
 )
 
-fun convertBreakpointLocation(location: Model.BreakpointLocation): LLBreakpointLocation {
+fun createBreakpointLocation(location: Model.BreakpointLocation): LLDBBreakpointLocation {
     val sourceLocation = if (location.hasLocation() && location.location.filePath.isNotEmpty()) {
         SourceLocation(
             location.location.filePath,
@@ -91,13 +62,12 @@ fun convertBreakpointLocation(location: Model.BreakpointLocation): LLBreakpointL
         null
     }
 
-    return LLBreakpointLocation(
+    return LLDBBreakpointLocation(
         location.id.toString(),
         Address.Companion.Factory.fromLong(location.address),
         sourceLocation
     )
 }
-
 
 
 /**
@@ -124,7 +94,7 @@ fun convertBreakpointLocation(location: Model.BreakpointLocation): LLBreakpointL
  * // 输出: Breakpoint-1@/path/to/file.cj:10:condition:x > 0
  * ```
  */
-class LLDBBreakpoint(val id: Long, val origFile: String, private val line: Int, val origCondition: String?)   {
+class LLDBBreakpoint(val id: Long, val origFile: String, private val line: Int, val origCondition: String?) {
 
 
     override fun toString(): String {
@@ -156,14 +126,14 @@ class LLDBBreakpoint(val id: Long, val origFile: String, private val line: Int, 
     }
 }
 
-private fun makeLocation(breakpointId: Model.Id, loc: Model.BreakpointLocation): LLBreakpointLocation? {
+private fun makeBreakpointLocation(breakpointId: Model.Id, loc: Model.BreakpointLocation): LLDBBreakpointLocation? {
     return if (!loc.isResolved) {
         null
     } else {
         val id: String = makeBreakpointLocationCanonicalName(breakpointId, loc.id)
         val address = Address.Companion.Factory.fromLong(loc.address)
         val location = SourceLocation(loc.location.filePath, loc.location.line - 1)
-        LLBreakpointLocation(id, address, location)
+        LLDBBreakpointLocation(id, address, location)
     }
 }
 
@@ -182,8 +152,8 @@ fun makeBreakpoint(
     val origLine = if (breakpoint.hasOriginalLocation()) breakpoint.originalLocation.line else 0
     val condition: String? = breakpoint.getCondition()
     val LLDBBreakpoint = LLDBBreakpoint(breakpoint.id.id, origFilePath, origLine - 1, condition)
-    val locationList: List<LLBreakpointLocation> = ContainerUtil.mapNotNull(breakpointLocations) { loc ->
-        makeLocation(
+    val locationList: List<LLDBBreakpointLocation> = ContainerUtil.mapNotNull(breakpointLocations) { loc ->
+        makeBreakpointLocation(
             breakpoint.id,
             loc
         )

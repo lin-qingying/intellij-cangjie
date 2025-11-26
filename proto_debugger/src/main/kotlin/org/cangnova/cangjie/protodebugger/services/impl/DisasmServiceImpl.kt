@@ -1,24 +1,38 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.services.impl
 
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.xdebugger.XDebugSession
-import com.intellij.xdebugger.XSourcePosition
-import kotlinx.coroutines.runBlocking
 import lldbprotobuf.ResponseOuterClass
-import org.cangnova.cangjie.protodebugger.data.LLDBDisasmInstruction
-import org.cangnova.cangjie.protodebugger.data.LLDBFrame
-import org.cangnova.cangjie.protodebugger.data.LLDBRegister
-import org.cangnova.cangjie.protodebugger.data.LLDBThread
-import org.cangnova.cangjie.protodebugger.data.LLDBRegisterGroup
-import org.cangnova.cangjie.protodebugger.data.createLLDBRegister
-import org.cangnova.cangjie.protodebugger.data.toLLDBInstruction
-import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
+import org.cangnova.cangjie.protodebugger.data.*
+import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandExceptionException
 import org.cangnova.cangjie.protodebugger.memory.Address
 import org.cangnova.cangjie.protodebugger.memory.AddressRange
-import org.cangnova.cangjie.protodebugger.memory.rangeTo
 import org.cangnova.cangjie.protodebugger.protocol.ProtobufFactory
 import org.cangnova.cangjie.protodebugger.services.DisasmService
-import org.cangnova.cangjie.protodebugger.settings.DisasmFlavor
 import org.cangnova.cangjie.protodebugger.transport.MessageBus
 
 /**
@@ -35,9 +49,6 @@ class DisasmServiceImpl(
 
         private val LOG = Logger.getInstance(DisasmServiceImpl::class.java)
     }
-
-    @Volatile
-    private var disasmFlavor: DisasmFlavor? = null
 
     override suspend fun disassembleFunction(
         address: Address,
@@ -201,7 +212,7 @@ class DisasmServiceImpl(
         )
 
         if (!response.status.success) {
-            throw DebuggerCommandException("Anchor-based disassembly failed: ${response.status.message}")
+            throw DebuggerCommandExceptionException("Anchor-based disassembly failed: ${response.status.message}")
         }
 
         LOG.debug("Disassembled ${response.instructionsCount} instructions using anchor mode")
@@ -233,7 +244,7 @@ class DisasmServiceImpl(
         )
 
         if (!response.status.success) {
-            throw DebuggerCommandException("Range-based disassembly failed: ${response.status.message}")
+            throw DebuggerCommandExceptionException("Range-based disassembly failed: ${response.status.message}")
         }
 
         LOG.debug("Disassembled ${response.instructionsCount} instructions")
@@ -328,7 +339,7 @@ class DisasmServiceImpl(
         )
 
         if (!response.status.success) {
-            throw DebuggerCommandException(
+            throw DebuggerCommandExceptionException(
                 "Backward disassembly to aligned instruction failed: ${response.status.message}"
             )
         }
@@ -380,7 +391,7 @@ class DisasmServiceImpl(
         )
 
         if (!response.status.success) {
-            throw DebuggerCommandException(response.status.message)
+            throw DebuggerCommandExceptionException(response.status.message)
         }
 
         return response.registersList.map { reg ->
@@ -401,7 +412,7 @@ class DisasmServiceImpl(
         )
 
         if (!response.status.success) {
-            throw DebuggerCommandException(response.status.message)
+            throw DebuggerCommandExceptionException(response.status.message)
         }
 
         return response.groupsList.map { group ->
@@ -412,23 +423,7 @@ class DisasmServiceImpl(
         }
     }
 
-
-
-
-
-    override fun getDisasmFlavor(): DisasmFlavor? {
-        return disasmFlavor
-    }
-
-    override suspend fun setDisasmFlavor(flavor: DisasmFlavor) {
-        disasmFlavor = flavor
-        // TODO: 协议中暂时没有 setDisasmFlavor 方法
-        // 当前只在本地缓存 flavor 设置
-    }
-
     override fun supportsRegisters(): Boolean {
         return (capabilities and CAPABILITY_REGISTERS) != 0L
     }
-
-
 }

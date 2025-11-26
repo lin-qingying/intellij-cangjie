@@ -933,6 +933,49 @@ message ExecuteCommandRequest {
   uint32 frame_index = 5;
 }
 
+/**
+ * LLDB 命令补全请求
+ *
+ * 为部分输入的 LLDB 命令提供自动补全建议。
+ * 这用于实现 IDE 控制台窗口的命令补全功能。
+ *
+ * LLDB API 对应：
+ *   - SBCommandInterpreter::HandleCompletion() - 命令补全
+ *   - SBStringList - 补全结果列表
+ *
+ * 补全示例：
+ *   - 输入: "bre" -> 补全: ["break", "breakpoint"]
+ *   - 输入: "breakpoint set -n " -> 补全: [函数名列表]
+ *   - 输入: "thread " -> 补全: ["backtrace", "continue", "info", "list", ...]
+ *   - 输入: "settings set " -> 补全: [设置项列表]
+ *
+ * 使用场景：
+ *   - IDE 控制台窗口的智能提示
+ *   - 命令行交互式调试界面
+ *   - 提高用户输入效率
+ *
+ * 工作原理：
+ *   - cursor_position 指定光标位置，用于确定补全上下文
+ *   - LLDB 会分析命令上下文，返回所有可能的补全选项
+ *   - 返回结果包括补全后的完整字符串和公共前缀
+ */
+message CommandCompletionRequest {
+  // 部分输入的命令字符串
+  // 示例: "bre", "breakpoint set -n mai", "thread "
+  string partial_command = 1;
+
+  // 光标在命令字符串中的位置（字符索引）
+  // 用于确定补全的上下文和位置
+  // 示例：对于 "breakpoint set -n mai|n"，光标在 'i' 后面，cursor_position = 23
+  // 如果为 0 或省略，默认为字符串末尾
+  uint32 cursor_position = 2;
+
+  // 最大返回结果数量（可选）
+  // 限制返回的补全选项数量，避免过多结果
+  // 0 或不设置表示返回所有结果
+  uint32 max_results = 3;
+}
+
 
 /* =========================================================================
  * 函数信息请求
@@ -1033,5 +1076,6 @@ message Request {
 
     // ===== 控制台命令 =====
     ExecuteCommandRequest execute_command = 32;  // 执行 LLDB 命令
+    CommandCompletionRequest command_completion = 33;  // LLDB 命令补全
   }
 }

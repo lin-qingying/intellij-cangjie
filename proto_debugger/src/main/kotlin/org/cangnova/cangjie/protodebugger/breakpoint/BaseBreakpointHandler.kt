@@ -28,7 +28,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.ReadAction.nonBlocking
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.breakpoints.XBreakpoint
@@ -63,7 +62,7 @@ abstract class BaseBreakpointHandler<B : XBreakpoint<P>, T : XBreakpointType<B, 
 
     /** 断点ID映射，用于跟踪调试器返回的断点ID */
     protected val breakpointIds = ConcurrentHashMap<B, Any>()
-
+    protected val session get() = debugProcess.session
     /**
      * 获取断点的标识符（用于分组管理）
      *
@@ -269,7 +268,7 @@ abstract class BaseBreakpointHandler<B : XBreakpoint<P>, T : XBreakpointType<B, 
      * 2. 在UI线程中移除断点（需要写操作）
      * 3. 提供可扩展的断点过滤逻辑
      */
-    fun cleanup() {
+    fun clear() {
         val manager = XDebuggerManager.getInstance(debugProcess.project).breakpointManager
         nonBlocking<List<B>> {
             manager.getBreakpoints(this.breakpointTypeClass).filter {
@@ -348,6 +347,28 @@ abstract class BaseBreakpointHandler<B : XBreakpoint<P>, T : XBreakpointType<B, 
      * @return true 如果断点应该被移除，false 否则
      */
     protected abstract fun shouldBreakpointBeRemoved(breakpoint: B): Boolean
+
+    /**
+     * 更新断点验证状态
+     *
+     * 子类需要实现此方法来根据调试器后端的事件更新断点的验证状态。
+     * 不同类型的断点可能有不同的更新机制：
+     * - 行断点：使用 session.setBreakpointVerified() / setBreakpointInvalid()
+     * - 其他类型断点：可能有自己的状态管理机制
+     *
+     * @param breakpointId 后端返回的断点ID
+     * @param verified 是否已验证
+     */
+    open fun updateVerificationStatus(breakpointId: Long, verified: Boolean) {
+        // 查找对应的断点
+        val breakpoint = findBreakpointById(breakpointId) as? B ?: run {
+            LOG.warn("Cannot update verification status: breakpoint not found for ID $breakpointId")
+            return
+        }
+
+        // 子类可以重写此方法来实现特定的更新逻辑
+        LOG.debug("Breakpoint verification status updated: ID=$breakpointId, verified=$verified")
+    }
 
     /**
      * 断点统计信息

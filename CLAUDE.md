@@ -105,15 +105,6 @@ plugin (入口)
 
 ## 开发注意事项
 
-### 代码迁移
-
-在处理deserialization相关代码时:
-
-1. 移除所有nameResolver的使用
-2. 将proto相关命名改为对应的flatbuffer命名
-3. 使用`org.cangnova.cangjie.metadata.model`包中的类型
-4. 更新注释,移除proto字样
-
 ### 平台版本特定代码
 
 部分代码根据IDE版本有不同实现,位于`src/main/{platformVersion}/`目录下。构建系统会自动包含对应版本的源码。

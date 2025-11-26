@@ -1,12 +1,34 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.process
 
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.Platform
 import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ArrayUtil
@@ -14,8 +36,8 @@ import com.intellij.util.io.BaseDataReader.SleepingPolicy
 import com.intellij.util.io.BaseOutputReader
 import com.intellij.util.system.OS
 import com.pty4j.unix.Pty
-import org.cangnova.cangjie.protodebugger.ipc.NamedPipe
-import org.cangnova.cangjie.protodebugger.ipc.WindowsPipe
+import org.cangnova.cangjie.protodebugger.transport.NamedPipe
+import org.cangnova.cangjie.protodebugger.transport.WindowsPipe
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -26,35 +48,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
-/**
- * 操作系统类型枚举
- *
- * 定义调试器支持的操作系统类型，提供平台识别和转换功能。
- *
- * @property os 对应的IntelliJ平台OS枚举值
- */
-enum class OSType(val os: OS) {
-    WIN(OS.Windows),
-    LINUX(OS.Linux),
-    MAC(OS.macOS);
-
-    /**
-     * 转换为IntelliJ平台的Platform枚举
-     */
-    fun toPlatform(): Platform =
-        if (this == WIN) Platform.WINDOWS else Platform.UNIX
-
-    companion object {
-        /**
-         * 当前运行的操作系统类型
-         */
-        val current: OSType = when {
-            SystemInfo.isWindows -> WIN
-            SystemInfo.isMac -> MAC
-            else -> LINUX
-        }
-    }
-}
 
 /**
  * 进程输出读取器抽象类
@@ -98,7 +91,7 @@ abstract class ProcessOutputReaders(
      */
     private fun createReaders(readerArray: Array<OutputReader?>) {
         when {
-            host.osType == OSType.WIN -> createWindowsReaders(readerArray)
+            host.os == OS.Windows -> createWindowsReaders(readerArray)
             usePtyOnUnix && host.isRemote -> createRemoteUnixReaders(readerArray)
             usePtyOnUnix -> createUnixPtyReaders(readerArray)
             else -> createFileReaders(readerArray)

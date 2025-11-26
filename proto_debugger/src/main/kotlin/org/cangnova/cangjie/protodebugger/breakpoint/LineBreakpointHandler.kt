@@ -72,6 +72,7 @@ class LineBreakpointHandler(
                 line = line,
                 condition = condition
             )
+
             result.breakpoint.id
         }.get() // 等待异步结果
     }
@@ -108,7 +109,7 @@ class LineBreakpointHandler(
         // 可以添加更多清理逻辑，比如：
         // - 移除超出文件行数范围的断点
         try {
-            val document =  FileDocumentManager.getInstance().getDocument(file)
+            val document = FileDocumentManager.getInstance().getDocument(file)
             if (document != null) {
                 val lineCount = document.lineCount
                 if (line > lineCount) {
@@ -120,7 +121,27 @@ class LineBreakpointHandler(
             // 如果无法检查行数，保留断点
         }
 
- 
+
         return false
+    }
+
+    /**
+     * 更新行断点的验证状态
+     *
+     * 当调试器后端报告断点解析状态时，更新 IDE 中的断点图标
+     */
+    override fun updateVerificationStatus(breakpointId: Long, verified: Boolean) {
+        val breakpoint = findBreakpointById(breakpointId) as? XLineBreakpoint<LineBreakpointType.Properties> ?: run {
+            LOG.warn("Cannot update line breakpoint verification status: breakpoint not found for ID $breakpointId")
+            return
+        }
+
+        if (verified) {
+            session.setBreakpointVerified(breakpoint)
+            LOG.debug("Line breakpoint verified: ID=$breakpointId at ${breakpoint.sourcePosition?.file?.path}:${breakpoint.line}")
+        } else {
+            session.setBreakpointInvalid(breakpoint, "Breakpoint locations lost")
+            LOG.debug("Line breakpoint marked as invalid: ID=$breakpointId")
+        }
     }
 }

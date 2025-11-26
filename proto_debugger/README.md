@@ -11,7 +11,7 @@ proto_debugger 模块为仓颉语言实现了基于协议的调试系统,通过 
 
 - **core/**: CangJieDebugProcess、DebuggerDriverFacade、状态管理、表达式求值器
 - **breakpoint/**: 4种断点类型(行、地址、符号、观察点) + 通用基类
-- **services/**: 6个服务(会话、断点、单步、求值、反汇编、内存)
+- **services/**: 7个服务(会话、断点、单步、求值、反汇编、内存、命令)
 - **transport/**: 协议通信(socket、命名管道)
 - **data/**: 领域模型(LLDBFrame、LLDBThread、LLDBVariable 等)
 - **execution/**: 状态管理和生命周期(async、exit、state)
@@ -47,7 +47,7 @@ proto_debugger 模块为仓颉语言实现了基于协议的调试系统,通过 
 
 ### DebuggerDriverFacade
 
-- 中央编排器,聚合所有 6 个服务
+- 中央编排器,聚合所有 7 个服务
 - 提供统一的调试接口
 - 管理源文件验证
 - 处理命令执行
@@ -66,7 +66,7 @@ proto_debugger 模块为仓颉语言实现了基于协议的调试系统,通过 
 - **MessageBus**: 通过哈希处理请求-响应路由
 - **EventBroadcastHandler**: 路由异步事件
 
-## 服务(6个主要服务)
+## 服务(7个主要服务)
 
 1. **SessionService**: 进程生命周期(启动、附加、线程、栈帧)
 2. **BreakpointService**: 行/地址/符号/观察点断点
@@ -74,6 +74,7 @@ proto_debugger 模块为仓颉语言实现了基于协议的调试系统,通过 
 4. **EvalService**: 表达式求值、变量访问/修改
 5. **DisasmService**: 反汇编(4种模式)、寄存器
 6. **MemoryService**: 内存读写操作
+7. **CommandService**: LLDB命令执行、命令补全
 
 所有服务使用 `suspend fun` 实现异步操作。
 
@@ -196,15 +197,16 @@ proto_debugger 模块为仓颉语言实现了基于协议的调试系统,通过 
 Proto_debugger 提供:
 
 1. 基于协议的 LLDB 后端通信
-2. 6 个专业化服务
+2. 7 个专业化服务
 3. 完整的 IntelliJ 集成
 4. 4 种断点类型
 5. 表达式求值
 6. 底层调试(反汇编、寄存器、内存)
-7. 异步/协程操作
-8. 健壮的状态管理
-9. 多种传输方式
-10. 全面的错误处理
+7. LLDB命令控制台和智能补全
+8. 异步/协程操作
+9. 健壮的状态管理
+10. 多种传输方式
+11. 全面的错误处理
 
 **优势**: 清晰的架构、关注点分离、可扩展性、可维护性。
 
@@ -298,7 +300,7 @@ Paused -> stepOver() -> Running -> (自动停止) -> Paused
 - **LLDBRegister**: 寄存器信息(name、value、size、type)
 - **LLDBRegisterGroup**: 寄存器组(name、registers)
 
-### 6. 内存操作(MemoryService)
+### 6. 内���操作(MemoryService)
 
 **核心操作**:
 
@@ -309,6 +311,33 @@ Paused -> stepOver() -> Running -> (自动停止) -> Paused
 **数据模型**:
 
 - **LLDBMemoryHunk**: 内存块(address、data、size)
+
+### 7. 命令执行(CommandService)
+
+**核心操作**:
+
+- `executeCommand(command, echoCommand, asyncExecution, threadId, frameIndex)`: 执行LLDB命令
+- `executeCommandInContext(threadId, frameIndex, command)`: 在指定线程/栈帧上下文中执行命令
+- `getCommandCompletions(partialCommand, cursorPosition, maxResults)`: 获取命令补全建议
+
+**数据模型**:
+
+- **CommandResult**: 命令执行结果(success、output、error、errorMessage)
+- **CommandCompletionResult**: 补全结果(success、completions、commonPrefix、completionStart、errorMessage)
+
+**集成**:
+
+- **CjdbConsole**: 基于 LanguageConsoleImpl 的 LLDB 命令控制台
+- **CangJieDebugLLDBLanguage**: 自定义语言定义,支持 LLDB 命令语法
+- **CjdbConsoleExecutor**: 控制台命令执行器,自动检测线程上下文
+- **CjdbConsoleCompletionContributor**: 命令补全贡献者,提供智能补全
+
+**特性**:
+
+- 上下文感知: 自动检测当前停止的线程并在其上下文中执行
+- 智能补全: 基于 CommandCompletionRequest 实现实时命令补全
+- 超时保护: 补全请求设置 500ms 超时,避免阻塞 UI
+- IntelliJ 集成: 使用 UserData 模式传递执行器上下文
 
 ## 协议消息详解
 

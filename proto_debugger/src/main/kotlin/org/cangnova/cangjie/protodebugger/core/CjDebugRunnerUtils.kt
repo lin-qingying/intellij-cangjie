@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.protodebugger.core
 
-import org.cangnova.cangjie.messages.CangJieBundle
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.process.ProcessTerminatedListener
@@ -34,11 +33,9 @@ import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
-import org.cangnova.cangjie.protodebugger.CangJieDebuggerServerManager
-import org.cangnova.cangjie.run.CangJieProgramRunState
+import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.run.CangJieRunConfigurationBase
 import org.cangnova.cangjie.run.CangJieRunState
-import org.jetbrains.annotations.Nls
 
 /**
  * 运行参数数据类
@@ -53,17 +50,7 @@ import org.jetbrains.annotations.Nls
  * @property state 运行状态对象，可选
  */
 data class RunParameters(
-    /**
-     * 调试器命令行配置
-     * 包含启动调试器所需的所有命令行参数和环境配置
-     */
-    val command: GeneralCommandLine,
 
-    /**
-     * 调试器监听的端口号
-     * 用于与被调试程序建立通信连接
-     */
-    val port: Int,
 
     /**
      * 要调试的程序路径或名称
@@ -117,8 +104,7 @@ object CjDebugRunnerUtils {
         runExecutable: GeneralCommandLine
     ): RunContentDescriptor {
         val runParameters = RunParameters(
-            CangJieDebuggerServerManager.getCommandLine(state.project),
-            CangJieDebuggerServerManager.DEBUGPORT,
+
             runExecutable.commandLineString,
             runExecutable
         )

@@ -25,15 +25,11 @@
 package org.cangnova.cangjie.protodebugger.core
 
 import com.intellij.icons.AllIcons
-import com.intellij.xdebugger.frame.XCompositeNode
-import com.intellij.xdebugger.frame.XNamedValue
-import com.intellij.xdebugger.frame.XValueChildrenList
-import com.intellij.xdebugger.frame.XValueModifier
-import com.intellij.xdebugger.frame.XValueNode
-import com.intellij.xdebugger.frame.XValuePlace
+import com.intellij.xdebugger.frame.*
 import com.intellij.xdebugger.frame.presentation.XValuePresentation
-import org.cangnova.cangjie.protodebugger.data.LLDBVariable
 import org.cangnova.cangjie.protodebugger.data.LLDBRegister
+import org.cangnova.cangjie.protodebugger.data.LLDBVariable
+import org.cangnova.cangjie.protodebugger.data.ValueFormatter
 
 /**
  * 仓颉调试器值抽象基类
@@ -221,11 +217,15 @@ class CangJieRegisterValue(
      */
     override fun computePresentation(node: XValueNode, place: XValuePlace) {
         // 寄存器值通常不需要异步获取，直接使用 register 中的信息
-        val displayValue = if (lldbRegister.summary.isNotEmpty()) {
+        // 应用十六进制格式化设置
+        val rawDisplayValue = if (lldbRegister.summary.isNotEmpty()) {
             lldbRegister.summary
         } else {
             lldbRegister.value
         }
+
+        // 寄存器值使用专门的格式化器
+        val displayValue = ValueFormatter.formatRegisterValue(rawDisplayValue)
 
         val typeDisplay = if (lldbRegister.typeName.isNotEmpty()) {
             lldbRegister.typeName

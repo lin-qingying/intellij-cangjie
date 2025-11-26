@@ -208,7 +208,7 @@ private fun createSourceFileHash(type: Model.HashAlgorithm?, hash: String?): Sou
     }
 }
 
-fun newLLDBFrame(frame: Model.Frame): LLDBFrame {
+fun createLLDBFrame(frame: Model.Frame): LLDBFrame {
     return LLDBFrame(
         frame.index,
         frame.id.id,

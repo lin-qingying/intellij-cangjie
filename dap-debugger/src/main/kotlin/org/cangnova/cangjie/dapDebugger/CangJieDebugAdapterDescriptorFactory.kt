@@ -28,6 +28,8 @@ import com.intellij.execution.configurations.RunConfigurationOptions
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.redhat.devtools.lsp4ij.dap.definitions.DebugAdapterServerDefinition
 import com.redhat.devtools.lsp4ij.dap.descriptors.DebugAdapterDescriptor
 import com.redhat.devtools.lsp4ij.dap.descriptors.DebugAdapterDescriptorFactory
@@ -39,8 +41,11 @@ class CangJieDebugAdapterDescriptorFactory : DebugAdapterDescriptorFactory() {
         options: RunConfigurationOptions,
         environment: ExecutionEnvironment
     ): DebugAdapterDescriptor {
-
         return CangJieDebugAdapterDescriptor(options, environment, getServerDefinition());
+    }
+
+    override fun isDebuggableFile(file: VirtualFile, project: Project): Boolean {
+        return file.fileType is CangJieFileType
     }
 }
 

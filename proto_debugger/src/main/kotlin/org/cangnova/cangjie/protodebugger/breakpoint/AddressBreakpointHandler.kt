@@ -27,7 +27,6 @@ package org.cangnova.cangjie.protodebugger.breakpoint
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.xdebugger.breakpoints.XBreakpoint
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint
 import org.cangnova.cangjie.protodebugger.core.CangJieDebugProcess
 import org.cangnova.cangjie.protodebugger.memory.vfs.MemoryViewFile
@@ -73,6 +72,7 @@ class AddressBreakpointHandler(
                 address = address,
                 condition = condition
             )
+
             result.breakpoint.id
         }.get() // 等待异步结果
     }
@@ -93,6 +93,26 @@ class AddressBreakpointHandler(
     }
 
     override fun getBreakpointTypeName(): String = "Address Breakpoint"
+
+    /**
+     * 更新行断点的验证状态
+     *
+     * 当调试器后端报告断点解析状态时，更新 IDE 中的断点图标
+     */
+    override fun updateVerificationStatus(breakpointId: Long, verified: Boolean) {
+        val breakpoint = findBreakpointById(breakpointId) as? XLineBreakpoint<LineBreakpointType.Properties> ?: run {
+            LOG.warn("Cannot update line breakpoint verification status: breakpoint not found for ID $breakpointId")
+            return
+        }
+
+        if (verified) {
+            session.setBreakpointVerified(breakpoint)
+            LOG.debug("Line breakpoint verified: ID=$breakpointId at ${breakpoint.sourcePosition?.file?.path}:${breakpoint.line}")
+        } else {
+            session.setBreakpointInvalid(breakpoint, "Breakpoint locations lost")
+            LOG.debug("Line breakpoint marked as invalid: ID=$breakpointId")
+        }
+    }
 
     override fun shouldBreakpointBeRemoved(breakpoint: XLineBreakpoint<AddressBreakpointType.Properties>): Boolean {
         val file = getFileFromBreakpoint(breakpoint)
@@ -121,7 +141,7 @@ class AddressBreakpointHandler(
      * 使用 fileUrl 和 VirtualFileManager 获取文件，
      * 因为地址断点的 sourcePosition 始终为 null
      */
-    private fun getFileFromBreakpoint(breakpoint: XLineBreakpoint<AddressBreakpointType.Properties>):  VirtualFile? {
+    private fun getFileFromBreakpoint(breakpoint: XLineBreakpoint<AddressBreakpointType.Properties>): VirtualFile? {
         val fileUrl = breakpoint.fileUrl ?: return null
         return VirtualFileManager.getInstance().findFileByUrl(fileUrl)
     }
@@ -141,8 +161,9 @@ class AddressBreakpointHandler(
         }
 
         @Suppress("UNCHECKED_CAST")
-        val store = file.store as? org.cangnova.cangjie.protodebugger.memory.state.MemoryStore<org.cangnova.cangjie.protodebugger.memory.MemoryCell.InstructionCell>
-            ?: return null
+        val store =
+            file.store as? org.cangnova.cangjie.protodebugger.memory.state.MemoryStore<org.cangnova.cangjie.protodebugger.memory.MemoryCell.InstructionCell>
+                ?: return null
 
         // 通过 store 的行号映射获取地址
         return store.getAddressForLine(line)

@@ -29,8 +29,6 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
 import lldbprotobuf.Model
 
-import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
-
 class LLDBType(
     val typeName: String,
     val displayTypeName: String,

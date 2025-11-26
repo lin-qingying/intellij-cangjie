@@ -1,19 +1,40 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.core
 
 import com.intellij.execution.ExecutionException
 import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.util.Expirable
-import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.Pair
-import com.intellij.openapi.util.UserDataHolder
-import com.intellij.openapi.util.UserDataHolderBase
-import com.intellij.openapi.util.UserDataHolderEx
+import com.intellij.openapi.util.*
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.containers.FactoryMap
-import org.cangnova.cangjie.protodebugger.data.*
-import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
+import org.cangnova.cangjie.protodebugger.data.LLDBFrame
+import org.cangnova.cangjie.protodebugger.data.LLDBThread
+import org.cangnova.cangjie.protodebugger.data.LLDBValue
+import org.cangnova.cangjie.protodebugger.data.LLDBVariable
+import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandExceptionException
 import org.cangnova.cangjie.protodebugger.result.PagedResult
-import org.jetbrains.annotations.NotNull
 
 /**
  * 调试器表达式求值上下文类
@@ -58,12 +79,12 @@ class EvaluationContext(
      * @param data 包含值类型信息的LLValueData对象
      * @param pair 包含LLValue对象和对应表达式字符串的Pair
      * @return 可用于表达式求值的右值字符串
-     * @throws DebuggerCommandException 当调试命令执行失败时
+     * @throws DebuggerCommandExceptionException 当调试命令执行失败时
      * @throws ExecutionException 当执行过程中出现错误时
      */
-    @Throws(DebuggerCommandException::class, ExecutionException::class)
+    @Throws(DebuggerCommandExceptionException::class, ExecutionException::class)
     fun convertToRValue(data: LLDBValue, pair: Pair<LLDBVariable, String>): String {
-        val rValueData = getData(pair.first)
+        val rValueData = getValue(pair.first)
 
         return if (rValueData.isNullPointer()) {
             "((id)0)"
@@ -91,9 +112,9 @@ class EvaluationContext(
      * @param value 要获取地址的LLValue对象
      * @return 值在内存中的地址（以字节为单位）
      * @throws ExecutionException 当执行过程中出现错误时
-     * @throws DebuggerCommandException 当调试命令执行失败时
+     * @throws DebuggerCommandExceptionException 当调试命令执行失败时
      */
-    @Throws(ExecutionException::class, DebuggerCommandException::class)
+    @Throws(ExecutionException::class, DebuggerCommandExceptionException::class)
     fun getValueAddress(value: LLDBVariable): Long {
   TODO()
     }
@@ -174,7 +195,7 @@ class EvaluationContext(
      * @return 包含详细信息的LLValueData对象
      */
     fun evaluateData(expression: String): LLDBValue {
-        return getData(evaluate(expression))
+        return getValue(evaluate(expression))
     }
 
     /**
@@ -309,7 +330,7 @@ class EvaluationContext(
     fun stringFromNSString(nsstring: LLDBVariable): String {
         return StringUtil.unquoteString(
             evaluateData(
-                stringFromNSStringExpr(getData(nsstring).getPointer()),
+                stringFromNSStringExpr(getValue(nsstring).getPointer()),
 
                 ).getPresentableValue()
         )
@@ -331,7 +352,7 @@ class EvaluationContext(
      * @return 包含详细信息的LLValueData对象
      * @throws EvaluationExpiredException 当求值上下文已过期时
      */
-    fun getData(varValue: LLDBVariable): LLDBValue {
+    fun getValue(varValue: LLDBVariable): LLDBValue {
         checkExpiration()
         return kotlinx.coroutines.runBlocking {
             facade.evalService.getValue(varValue)

@@ -24,12 +24,12 @@
 
 package org.cangnova.cangjie.protodebugger.data
 
-import java.util.regex.Pattern
 import com.intellij.openapi.util.text.StringUtil
 import org.cangnova.cangjie.protodebugger.core.DebuggerDriverFacade.Companion.parseAddressSafe
-import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandException
+import org.cangnova.cangjie.protodebugger.exception.DebuggerCommandExceptionException
 import org.cangnova.cangjie.protodebugger.memory.Address
 import java.math.BigInteger
+import java.util.regex.Pattern
 
 /**
  * 调试器值数据类
@@ -159,11 +159,12 @@ class LLDBValue(
      * 获取可显示的值
      *
      * 返回用于UI显示的值字符串。优先使用summary，如果没有则使用value。
+     * 根据调试器设置自动应用十六进制格式化。
      *
      * @return 可显示的值字符串
      */
     fun getPresentableValue(): String {
-        return summary ?: value
+        return ValueFormatter.formatValue(value, summary)
     }
 
     
@@ -211,11 +212,11 @@ class LLDBValue(
      * 该方法用于确保调用方能够处理非指针值的情况。
      *
      * @return 指针字符串
-     * @throws DebuggerCommandException 当值不是有效指针时
+     * @throws DebuggerCommandExceptionException 当值不是有效指针时
      */
     fun getPointer(): String {
         val result = getPointerOrNull()
-        return result ?: throw DebuggerCommandException("Value is not a valid pointer: $value")
+        return result ?: throw DebuggerCommandExceptionException("Value is not a valid pointer: $value")
     }
 
     /**
@@ -321,7 +322,7 @@ class LLDBValue(
      * 如果值是指针，则解析为地址；否则直接解析数值。
      *
      * @return 长整型数值
-     * @throws DebuggerCommandException 当值不能转换为有效整数时
+     * @throws DebuggerCommandExceptionException 当值不能转换为有效整数时
      */
     fun intValue(): Long {
         return try {
@@ -331,7 +332,7 @@ class LLDBValue(
             )
                 .toLong()
         } catch (numberException:  NumberFormatException) {
-            throw DebuggerCommandException("Value is not a valid integer: $value")
+            throw DebuggerCommandExceptionException("Value is not a valid integer: $value")
         }
     }
 

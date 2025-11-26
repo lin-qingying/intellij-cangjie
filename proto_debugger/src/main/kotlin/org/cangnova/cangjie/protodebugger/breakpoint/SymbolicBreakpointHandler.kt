@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.protodebugger.breakpoint
 
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.xdebugger.breakpoints.XBreakpoint
 import org.cangnova.cangjie.protodebugger.core.CangJieDebugProcess
 
 /**
@@ -74,8 +73,9 @@ class SymbolicBreakpointHandler(
                 symbolPattern = symbolPattern,
                 module = module,
                 condition = condition
-            )
-            result ?: throw RuntimeException("Failed to create symbolic breakpoint")
+            ).breakpoint
+
+            result
         }.get() // 等待异步结果
     }
 
@@ -86,7 +86,7 @@ class SymbolicBreakpointHandler(
             // 符号断点的移除可能需要特殊处理，这里暂时使用通用的移除断点方法
             // 实际实现可能需要根据调试器后端的能力进行调整
             LOG.debug("Symbolic breakpoint removal completed")
-            Unit
+
         }.get() // 等待异步结果
     }
 
