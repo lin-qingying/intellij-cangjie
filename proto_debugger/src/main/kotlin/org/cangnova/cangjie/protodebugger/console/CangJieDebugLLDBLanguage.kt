@@ -12,17 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The use of this source code is governed by the Apache License 2.0,
- * which allows users to freely use, modify, and distribute the code,
- * provided they adhere to the terms of the license.
- *
- * The software is provided "as-is", and the authors are not responsible for
- * any damages or issues arising from its use.
- *
  */
 
-package org.cangnova.cangjie.dapDebugger
+package org.cangnova.cangjie.protodebugger.console
 
-class CjpmTestDebugRunner {
+import com.intellij.lang.Language
+
+/**
+ * LLDB 命令语言定义
+ *
+ * 用于 Cjdb 控制台的语言支持,提供语法高亮和命令补全
+ */
+object CangJieDebugLLDBLanguage : Language("CangJieDebugLLDB") {
+
+
+
+    override fun getDisplayName(): String = "LLDB Commands"
+
+    override fun isCaseSensitive(): Boolean = true
 }

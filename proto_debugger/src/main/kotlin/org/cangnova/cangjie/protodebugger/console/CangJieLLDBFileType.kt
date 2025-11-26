@@ -12,15 +12,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * The use of this source code is governed by the Apache License 2.0,
- * which allows users to freely use, modify, and distribute the code,
- * provided they adhere to the terms of the license.
- *
- * The software is provided "as-is", and the authors are not responsible for
- * any damages or issues arising from its use.
- *
  */
 
-package org.cangnova.cangjie.dapDebugger
+package org.cangnova.cangjie.protodebugger.console
 
+import com.intellij.openapi.fileTypes.LanguageFileType
+import javax.swing.Icon
+
+/**
+ * LLDB 命令文件类型
+ *
+ * 用于 Cjdb 控制台的文件类型定义
+ */
+object CangJieLLDBFileType : LanguageFileType(CangJieDebugLLDBLanguage) {
+
+    override fun getName(): String = "CangJieLLDB"
+
+    override fun getDescription(): String = "LLDB Command Console"
+
+    override fun getDefaultExtension(): String = "lldb"
+
+    override fun getIcon(): Icon? = null
+}

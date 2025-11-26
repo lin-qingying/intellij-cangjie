@@ -17,6 +17,7 @@
 package org.cangnova.cangjie.protodebugger.core
 
 import com.intellij.execution.console.ConsoleViewWrapperBase
+import com.intellij.execution.console.LanguageConsoleBuilder
 import com.intellij.execution.console.LanguageConsoleImpl
 import com.intellij.execution.console.LanguageConsoleView
 import com.intellij.execution.filters.TextConsoleBuilder
@@ -66,6 +67,9 @@ import org.cangnova.cangjie.ide.debugger.CodeFragmentContextTuner
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.lang.CangJieLanguage
 import org.cangnova.cangjie.protodebugger.breakpoint.*
+import org.cangnova.cangjie.protodebugger.console.CJDB_EXECUTOR_KEY
+import org.cangnova.cangjie.protodebugger.console.CangJieDebugLLDBLanguage
+import org.cangnova.cangjie.protodebugger.console.CjdbConsoleExecutor
 import org.cangnova.cangjie.protodebugger.execution.exit.ExitStatus
 import org.cangnova.cangjie.protodebugger.services.DisasmService
 import org.cangnova.cangjie.protodebugger.settings.ArchitectureType
@@ -802,13 +806,33 @@ class ConsoleManager(
         )
     }
     val cjdbConsole: LanguageConsoleView by lazy {
-        LanguageConsoleImpl(
+        // 使用 LLDB 语言,支持命令补全
+        val console = LanguageConsoleImpl(
             debuggerProcess.project,
-            "CangJie Debug Cjdb Console",
-            CangJieLanguage
+            "Cjdb",
+            CangJieDebugLLDBLanguage
         ).apply {
-            prompt = "cjdb> "
+            // 设置提示符
+           prompt = "cjdb> "
         }
+
+
+        // 创建执行器
+        val executor = CjdbConsoleExecutor(debuggerProcess, console)
+
+        // 将 executor 存储到 PsiFile 的 UserData 中,供补全使用
+        console.file .putUserData(CJDB_EXECUTOR_KEY, executor)
+
+        // 注册执行 Action
+        LanguageConsoleBuilder.registerExecuteAction(
+            console,
+            { text -> executor.execute(text) },
+            "CjdbConsole",           // historyType: 历史记录类型
+            "CjdbConsole",           // historyPersistenceId: 历史记录持久化ID
+            null                     // enabledCondition: 启用条件(null表示总是启用)
+        )
+
+        console
     }
 
     /**

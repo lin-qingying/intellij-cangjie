@@ -980,6 +980,70 @@ object ProtobufFactory {
     // ==================== 控制台和命令执行 ====================
 
     /**
+     * 执行 LLDB 命令请求
+     *
+     * 执行任意 LLDB 控制台命令，支持所有内置命令。
+     * 这提供了对 LLDB 功能的完全访问。
+     *
+     * 支持的命令示例：
+     *   - "thread list" - 列出所有线程
+     *   - "bt" - 显示调用栈
+     *   - "expr myVar" - 求值表达式
+     *   - "p *ptr" - 打印指针指向的内容
+     *   - "memory read 0x1234" - 读取内存
+     *   - "disassemble -n main" - 反汇编函数
+     *
+     * @param command LLDB 命令字符串
+     * @param echoCommand 是否在命令执行时回显命令
+     * @param asyncExecution 是否立即返回(异步执行)
+     * @param threadId 可选：执行上下文的线程 ID
+     * @param frameIndex 可选：执行上下文的栈帧索引
+     * @return 执行命令请求消息
+     */
+    fun executeCommand(
+        command: String,
+        echoCommand: Boolean = false,
+        asyncExecution: Boolean = false,
+        threadId: Long? = null,
+        frameIndex: Int? = null
+    ): Request = buildComposite {
+        executeCommand = ExecuteCommandRequest.newBuilder()
+            .setCommand(command)
+            .setEchoCommand(echoCommand)
+            .setAsyncExecution(asyncExecution)
+            .applyIfNotNull(threadId) { setThreadId(buildId(it)) }
+            .applyIfNotNull(frameIndex) { setFrameIndex(it) }
+            .build()
+    }
+
+    /**
+     * LLDB 命令补全请求
+     *
+     * 获取 LLDB 命令的自动补全建议。支持命令、参数、选项等的补全。
+     *
+     * 补全示例：
+     *   - "bre" -> ["break", "breakpoint"]
+     *   - "breakpoint set -n mai" -> ["main"]
+     *   - "thread " -> ["list", "select", "backtrace", ...]
+     *
+     * @param partialCommand 部分输入的命令字符串
+     * @param cursorPosition 光标在命令字符串中的位置（字符索引），0 表示末尾
+     * @param maxResults 最大返回结果数量，0 表示返回所有结果
+     * @return 命令补全请求消息
+     */
+    fun commandCompletion(
+        partialCommand: String,
+        cursorPosition: Int = 0,
+        maxResults: Int = 0
+    ): Request = buildComposite {
+        commandCompletion = CommandCompletionRequest.newBuilder()
+            .setPartialCommand(partialCommand)
+            .setCursorPosition(cursorPosition)
+            .setMaxResults(maxResults)
+            .build()
+    }
+
+    /**
      * 执行控制台命令
      *
      * 在调试器上下文中执行命令（类似于 LLDB 或 GDB 命令）

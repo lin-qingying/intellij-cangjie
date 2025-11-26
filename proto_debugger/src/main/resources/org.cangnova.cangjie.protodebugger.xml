@@ -104,6 +104,21 @@
 
         <editorTabTitleProvider implementation="org.cangnova.cangjie.protodebugger.memory.editor.MemoryViewTabTitleProvider"/>
 
+        <!-- LLDB 命令语言支持 -->
+        <fileType
+                name="CangJieLLDB"
+                implementationClass="org.cangnova.cangjie.protodebugger.console.CangJieLLDBFileType"
+                language="CangJieDebugLLDB"
+                extensions="lldb"/>
+
+        <lang.parserDefinition
+                language="CangJieDebugLLDB"
+                implementationClass="org.cangnova.cangjie.protodebugger.console.CangJieLLDBParserDefinition"/>
+
+        <completion.contributor
+                language="CangJieDebugLLDB"
+                implementationClass="org.cangnova.cangjie.protodebugger.console.CjdbConsoleCompletionContributor"/>
+
     </extensions>
 
     <actions>

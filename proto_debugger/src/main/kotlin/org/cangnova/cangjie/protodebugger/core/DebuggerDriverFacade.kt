@@ -127,6 +127,7 @@ class DebuggerDriverFacade(
     val memoryService: MemoryService
     val disasmService: DisasmService
     val sessionService: SessionService
+    val commandService: CommandService
 
     // 内存视图门面
     val memoryViewFacade: MemoryViewFacade
@@ -156,6 +157,7 @@ class DebuggerDriverFacade(
         evalService = EvalServiceImpl(messageBus, this)
         memoryService = MemoryServiceImpl(messageBus, 0L)
         disasmService = DisasmServiceImpl(messageBus, 0L, session)
+        commandService = CommandServiceImpl(messageBus)
 
         // 创建内存视图门面
         memoryViewFacade = MemoryViewFacade(this)
