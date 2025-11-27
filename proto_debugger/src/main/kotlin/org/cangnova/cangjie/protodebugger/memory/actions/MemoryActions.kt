@@ -24,9 +24,12 @@
 
 package org.cangnova.cangjie.protodebugger.memory.actions
 
+import ai.grazie.utils.mpp.number.of
 import com.intellij.openapi.actionSystem.ActionPromoter
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -34,6 +37,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.fileEditor.impl.EditorWindow
 import com.intellij.openapi.fileEditor.impl.EditorWindowHolder
+import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.ComponentUtil
@@ -43,80 +47,151 @@ import com.intellij.xdebugger.impl.ui.DebuggerUIUtil
 import com.intellij.xdebugger.impl.ui.tree.actions.XDebuggerTreeActionBase
 import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodeImpl
 import kotlinx.coroutines.launch
+import org.cangnova.cangjie.messages.DebuggerBundle
 import org.cangnova.cangjie.protodebugger.core.CangJieDebugProcess
 import org.cangnova.cangjie.protodebugger.core.CangJieStackFrame
 import org.cangnova.cangjie.protodebugger.memory.Address
 import org.cangnova.cangjie.protodebugger.memory.AddressRange
+import org.cangnova.cangjie.protodebugger.memory.MemoryCell
+import org.cangnova.cangjie.protodebugger.memory.state.MemoryStore
 import org.cangnova.cangjie.protodebugger.memory.toOpenFileDescriptor
+import org.cangnova.cangjie.protodebugger.memory.vfs.DisasmFileType
+import java.awt.datatransfer.StringSelection
 import javax.swing.JSplitPane.HORIZONTAL_SPLIT
 
 /**
  * 跳转到地址 Action
+ *
+ * 允许用户输入一个十六进制地址并在当前内存视图中跳转到该地址。
+ * - 如果在十六进制视图中，跳转到该地址的十六进制表示
+ * - 如果在反汇编视图中，跳转到该地址的反汇编代码
+ * - 只在 MemoryViewFile 中显示和启用
  */
-class GoToAddressAction : AnAction("Go to Address..."), DumbAware {
+class GoToAddressAction : AnAction(DebuggerBundle.message("action.goToAddress")), DumbAware {
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
-        // TODO: 使用 e.getDebuggerDriverFacade() 获取 facade
-        // 然后使用 facade.scope 来启动协程
-//        val project = e.project ?: return
-//        val facade = e.getDebuggerDriverFacade() ?: return
-//
-//        // 弹出输入对话框
-//        val addressText = Messages.showInputDialog(
-//            project,
-//            "Enter memory address (hex):",
-//            "Go to Address",
-//            null,
-//            "0x0000000000000000",
-//            null
-//        ) ?: return
-//
-//        try {
-//            // 解析地址
-//            val address = parseAddress(addressText)
-//
-//            // 使用 facade 的 scope 来加载并跳转
-//            facade.executeCommandAsync {
-//                val range = address.minus(256).rangeTo(address.plus(255))
-//                facade.memoryViewFacade.loadRange(range)
-//                facade.memoryViewFacade.scrollTo(address)
-//            }
-//        } catch (ex: Exception) {
-//            Messages.showErrorDialog(
-//                project,
-//                "Invalid address format: ${ex.message}",
-//                "Error"
-//            )
-//        }
+        val project = e.project ?: return
+
+        // 获取当前的 MemoryViewFile
+        val memoryFile = e.getMemoryViewFile() ?: return
+        val store = memoryFile.store
+
+        // 获取调试进程和 facade
+        val debugProcess = e.getCangJieDebugProcess() ?: return
+        val memoryFacade = debugProcess.facade.memoryViewFacade
+
+        // 弹出输入对话框
+        val addressText = Messages.showInputDialog(
+            project,
+            DebuggerBundle.message("action.goToAddress.prompt"),
+            DebuggerBundle.message("action.goToAddress"),
+            null,
+            "0x0000000000000000",
+            null
+        ) ?: return
+
+        // 解析地址
+        val address = try {
+            parseAddress(addressText)
+        } catch (e: NumberFormatException) {
+            Messages.showErrorDialog(
+                project,
+                DebuggerBundle.message("action.goToAddress.invalidFormat", addressText),
+                DebuggerBundle.message("action.goToAddress")
+            )
+            return
+        }
+
+        // 判断是否为十六进制视图（需要对齐）还是反汇编视图（不需要对齐）
+        val isHexView = store.fileType !is DisasmFileType
+
+        // 十六进制视图需要对齐到512字节边界，反汇编视图直接使用原始地址
+        val targetAddress = if (isHexView) {
+            address.alignDown(0x200UL)
+        } else {
+            address
+        }
+
+        val position = store.createAddressPosition(targetAddress)
+
+        // 打开/跳转到该地址（在当前类型的视图中）
+        val fileEditorManager = FileEditorManager.getInstance(project)
+        fileEditorManager.openEditor(position.toOpenFileDescriptor(project), true)
+
+        // 只有十六进制内存视图需要加载数据范围
+        // 反汇编视图会自动按需加载指令
+        if (isHexView) {
+            memoryFacade.debuggerFacade.executeCommand {
+                store.loadRange(
+                    AddressRange.of(
+                        targetAddress, targetAddress + 512
+                    )
+
+                )
+                store.scrollTo(address)
+
+            }
+        }
+    }
+
+    override fun update(e: AnActionEvent) {
+        // 只在内存视图文件中显示和启用
+        val isMemoryView = e.isMemoryView()
+        e.presentation.isEnabled = isMemoryView
+        e.presentation.isVisible = isMemoryView
     }
 
     private fun parseAddress(text: String): Address {
         val cleaned = text.trim().removePrefix("0x").removePrefix("0X")
-        val value = cleaned.toLong(16)
-        return Address.Companion.Factory.fromLong(value)
+        val value = cleaned.toULong(16)
+        return Address.Companion.Factory.fromULong(value)
     }
 }
 
 
 /**
  * 复制地址 Action
+ *
+ * 从内存视图编辑器中复制当前上下文的地址到剪贴板。
+ * 支持两种场景：
+ * 1. 在编辑器内容区域右键：复制光标处的地址
+ * 2. 在行号区域右键：复制点击行号对应的地址
  */
-class CopyAddressAction : XDebuggerTreeActionBase(), ActionPromoter {
-    override fun perform(
-        node: XValueNodeImpl?,
-        nodeName: String,
-        e: AnActionEvent?
-    ) {
+class CopyAddressAction : AnAction(DebuggerBundle.message("action.memory.copyAddress")), DumbAware {
 
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+    override fun actionPerformed(e: AnActionEvent) {
+        // 获取当前上下文的地址（支持编辑器内容区域和行号区域）
+        val address = e.getAddressFromContext() ?: return
+
+
+        // 格式化地址为十六进制字符串（带 0x 前缀）
+        val addressText = "0x%016X".format(address.asLong)
+
+        // 复制到剪贴板
+        val stringSelection = StringSelection(addressText)
+        CopyPasteManager.getInstance().setContents(stringSelection)
     }
 
+    override fun update(e: AnActionEvent) {
+        // 只检查是否在内存视图中
+        val isMemoryView = e.isMemoryView()
+
+        e.presentation.isEnabled = isMemoryView
+        e.presentation.isVisible = isMemoryView
+    }
 }
 
 
 /**
  * 反汇编函数 Action
  */
-class DisassembleFunctionAction : AnAction("Disassemble Function"), DumbAware {
+class DisassembleFunctionAction : AnAction(DebuggerBundle.message("action.disassembleFunction")), DumbAware {
+
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
         val session: XDebugSession = DebuggerUIUtil.getSession(e) ?: return
@@ -172,8 +247,17 @@ class DisassembleFunctionAction : AnAction("Disassemble Function"), DumbAware {
     }
 
     override fun update(e: AnActionEvent) {
+        // 如果当前是在内存视图文件中，隐藏此 Action
+        if (e.isMemoryView()) {
+            e.presentation.isEnabledAndVisible = false
+            return
+        }
+
         // 获取当前调试会话
         val session = DebuggerUIUtil.getSession(e)
+        if(session == null){
+            e.presentation.isEnabledAndVisible = false
+        }
         val frame = session?.currentStackFrame as? CangJieStackFrame
 
         // 只有在调试会话中且有栈帧且有反汇编位置时才启用此 Action
@@ -183,11 +267,11 @@ class DisassembleFunctionAction : AnAction("Disassemble Function"), DumbAware {
 
         // 可选：根据是否有源码位置动态更新 Action 的描述文本
         if (frame?.sourcePosition != null && hasDisassembly) {
-            e.presentation.description = "Open source and disassembly in split view"
+            e.presentation.description = DebuggerBundle.message("action.disassembleFunction.description.splitView")
         } else if (hasDisassembly) {
-            e.presentation.description = "Open disassembly view"
+            e.presentation.description = DebuggerBundle.message("action.disassembleFunction.description.disasmOnly")
         } else {
-            e.presentation.description = "No disassembly available"
+            e.presentation.description = DebuggerBundle.message("action.disassembleFunction.description.noDisasm")
         }
     }
 }
@@ -197,7 +281,8 @@ class DisassembleFunctionAction : AnAction("Disassemble Function"), DumbAware {
  *
  * 从栈帧的程序计数器地址打开内存视图
  */
-class ViewMemoryAction : AnAction("View Memory"), DumbAware {
+class ViewMemoryAction : AnAction(DebuggerBundle.message("action.viewMemory")), DumbAware {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun actionPerformed(e: AnActionEvent) {
         val session: XDebugSession = DebuggerUIUtil.getSession(e) ?: return
@@ -238,12 +323,21 @@ class ViewMemoryAction : AnAction("View Memory"), DumbAware {
                     alignedAddress, alignedAddress + 512
                 )
             )
-//            hexStore.scrollTo(alignedAddress)
+            hexStore.scrollTo(alignedAddress)
         }
     }
 
     override fun update(e: AnActionEvent) {
+        // 如果当前是在内存视图文件中，隐藏此 Action
+        if (e.isMemoryView()) {
+            e.presentation.isEnabledAndVisible = false
+            return
+        }
+
         val session = DebuggerUIUtil.getSession(e)
+        if(session == null){
+            e.presentation.isEnabledAndVisible = false
+        }
         val debugProcess = session?.debugProcess as? org.cangnova.cangjie.protodebugger.core.CangJieDebugProcess
         val frame = session?.currentStackFrame as? CangJieStackFrame
 

@@ -27,14 +27,16 @@ package org.cangnova.cangjie.protodebugger.memory.actions
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.ex.EditorGutterComponentEx
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.TextRange
 import com.intellij.xdebugger.XDebuggerManager
 import org.cangnova.cangjie.protodebugger.core.CangJieDebugProcess
 import org.cangnova.cangjie.protodebugger.core.DebuggerDriverFacade
 import org.cangnova.cangjie.protodebugger.memory.Address
 import org.cangnova.cangjie.protodebugger.memory.MemoryViewFacade
+import org.cangnova.cangjie.protodebugger.memory.vfs.HexdumpFileType
 import org.cangnova.cangjie.protodebugger.memory.vfs.MemoryViewFile
+import java.awt.Point
 
 /**
  * AnActionEvent 扩展方法
@@ -65,18 +67,18 @@ import org.cangnova.cangjie.protodebugger.memory.vfs.MemoryViewFile
  * ```
  */
 fun AnActionEvent.getMemoryViewFile(): MemoryViewFile<*>? {
-    // 尝试从 VirtualFile 获取
-    getData(CommonDataKeys.VIRTUAL_FILE)?.let { file ->
-        if (file is MemoryViewFile<*>) return file
-    }
-
-    // 尝试从 Editor 获取
+    // 尝试从 Editor 获取 (优先使用此方法，因为它在 BGT 和 EDT 上都是安全的)
     getData(CommonDataKeys.EDITOR)?.let { editor ->
         val file = FileDocumentManager.getInstance().getFile(editor.document)
         if (file is MemoryViewFile<*>) return file
     }
 
-    // 尝试从 PSI File 获取
+    // 尝试从 VirtualFile 获取 (在 BGT 模式下可能受限)
+    getData(CommonDataKeys.VIRTUAL_FILE)?.let { file ->
+        if (file is MemoryViewFile<*>) return file
+    }
+
+    // 尝试从 PSI File 获取 (在 BGT 模式下可能受限)
     getData(CommonDataKeys.PSI_FILE)?.let { psiFile ->
         if (psiFile.virtualFile is MemoryViewFile<*>) {
             return psiFile.virtualFile as MemoryViewFile<*>
@@ -108,13 +110,10 @@ fun AnActionEvent.isMemoryView(): Boolean {
 /**
  * 从 AnActionEvent 获取当前编辑器中光标处的地址
  *
- * 需要配合 Editor 使用，从当前行文本中解析地址。
- * 支持的地址格式：
- * - `0000000000401000:` (16位十六进制)
- * - `401000:` (8位十六进制)
- * - `DEADBEEF:` (大小写不敏感)
+ * 使用 MemoryStore 的偏移映射功能将光标位置映射到内存地址。
+ * 支持十六进制视图和反汇编视图。
  *
- * @return 光标处的地址，如果无法解析或不在内存视图中返回 null
+ * @return 光���处的地址，如果无法解析或不在内存视图中返回 null
  *
  * @sample
  * ```kotlin
@@ -135,6 +134,40 @@ fun AnActionEvent.getAddressAtCaret(): Address? {
 }
 
 /**
+ * 从 AnActionEvent 获取当前上下文中的地址
+ *
+ * 支持两种场景：
+ * 1. 在编辑器内容区域右键：使用光标位置
+ * 2. 在行号区域右键：使用鼠标点击的行号
+ *
+ * @return 当前上下文的地址，如果无法解析或不在内存视图中返回 null
+ *
+ * @sample
+ * ```kotlin
+ * class CopyAddressAction : AnAction() {
+ *     override fun actionPerformed(e: AnActionEvent) {
+ *         val address = e.getAddressFromContext() ?: return
+ *         println("Address: 0x${address.asLong.toString(16)}")
+ *     }
+ * }
+ * ```
+ */
+fun AnActionEvent.getAddressFromContext(): Address? {
+    val editor = getData(CommonDataKeys.EDITOR) ?: return null
+    val file = getMemoryViewFile() ?: return null
+
+
+        EditorGutterComponentEx.LOGICAL_LINE_AT_CURSOR.getData(dataContext)?.let {
+            return file.store.getAddressForLine(it)
+        }
+
+
+
+    // 如果不是在行号区域右键，则使用光标位置
+    return getAddressFromEditor(editor)
+}
+
+/**
  * 从编辑器中提取光标处的地址
  *
  * @param editor 编辑器实例
@@ -142,21 +175,10 @@ fun AnActionEvent.getAddressAtCaret(): Address? {
  */
 private fun getAddressFromEditor(editor: Editor): Address? {
     val offset = editor.caretModel.offset
-    val lineNumber = editor.document.getLineNumber(offset)
-    val lineStart = editor.document.getLineStartOffset(lineNumber)
-    val lineEnd = editor.document.getLineEndOffset(lineNumber)
-    val lineText = editor.document.getText(TextRange(lineStart, lineEnd))
+    val file = FileDocumentManager.getInstance().getFile(editor.document) as? MemoryViewFile<*> ?: return null
 
-    // 匹配地址格式：8-16位十六进制数字 + 冒号
-    // 例如：0000000000401000:  48 8B 45 F8    mov rax, [rbp-8]
-    val match = Regex("""([0-9A-Fa-f]{8,16}):""").find(lineText)
-    return match?.let {
-        try {
-            Address.Companion.Factory.fromLong(it.groupValues[1].toLong(16))
-        } catch (e: NumberFormatException) {
-            null
-        }
-    }
+    // 使用 MemoryStore 的 mapOffsetToAddress 方法来获取地址
+    return file.store.mapOffsetToAddress(offset)
 }
 
 // ==================== 调试器相关 ====================

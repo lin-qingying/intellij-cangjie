@@ -56,6 +56,9 @@ abstract class CangJieValue(
      */
     protected abstract val facade: DebuggerDriverFacade
 
+
+
+
     /**
      * 获取值的字符串表示
      *
@@ -77,6 +80,48 @@ abstract class CangJieValue(
      * @return 支持修改返回对应的修改器，不支持返回 null
      */
     abstract override fun getModifier(): XValueModifier?
+
+
+    /**
+     * 计算变量声明的源代码位置
+     *
+     * 当用户在调试器变量视图中对变量使用"跳转到声明"功能时调用。
+     *
+     * 注意：LLDB 通常不提供局部变量的声明位置信息，
+     * 这个功能需要通过静态分析当前文件的 PSI 来实现。
+     *
+     * 当前实现：使用默认行为（不跳转），子类可以根据需要重写此方法。
+     *
+     * @param navigatable 导航回调接口，用于设置源代码位置
+     */
+    override fun computeSourcePosition(navigatable: XNavigatable) {
+        // 默认不提供跳转功能
+        // TODO: 可以通过 PSI 分析在当前栈帧的源文件中查找变量声明
+        navigatable.setSourcePosition(null)
+    }
+
+    /**
+     * 计算类型定义的源代码位置
+     *
+     * 当用户在调试器变量视图中对变量使用"跳转到类型定义"功能时调用。
+     *
+     * 注意：需要根据类型名在项目中查找类型定义，这需要：
+     * 1. 解析类型名（可能包含泛型参数、命名空间等）
+     * 2. 在项目索引中查找对应的类型定义
+     * 3. 返回类型定义的源代码位置
+     *
+     * 当前实现：使用默认行为（不跳转），子类可以根据需要重写此方法。
+     *
+     * @param navigatable 导航回调接口，用于设置类型定义位置
+     */
+    override fun computeTypeSourcePosition(navigatable: XNavigatable) {
+        // 默认不提供跳转功能
+        // TODO: 可以通过类型名在项目中查找类型定义
+        // 1. 获取类型名（去除泛型参数等）
+        // 2. 使用项目索引查找类型定义
+        // 3. 创建 XSourcePosition 并调用 navigatable.setSourcePosition()
+        navigatable.setSourcePosition(null)
+    }
 }
 fun LLDBVariable.toCangJieValue(
     threadId: Long,
