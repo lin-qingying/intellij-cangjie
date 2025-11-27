@@ -122,59 +122,55 @@
     </extensions>
 
     <actions>
-        <!-- 内存视图 Actions -->
-        <group id="MemoryView.Actions" text="Memory View" popup="true">
-            <!-- 导航 Actions -->
-            <action id="MemoryView.GoToAddress"
-                    class="org.cangnova.cangjie.protodebugger.memory.actions.GoToAddressAction"
-                    text="Go to Address..."
-                    description="Navigate to a specific memory address"
-                    icon="AllIcons.General.Locate">
-                <keyboard-shortcut first-keystroke="ctrl G" keymap="$default"/>
-            </action>
+        <!-- 内存视图导航 Action -->
+        <action id="MemoryView.GoToAddress"
+                class="org.cangnova.cangjie.protodebugger.memory.actions.GoToAddressAction"
+                text="Go to Address..."
+                description="Navigate to a specific memory address"
+                icon="AllIcons.General.Locate">
+            <!-- 快捷键：弹出地址输入对话框 -->
+<!--            <keyboard-shortcut first-keystroke="ctrl G" keymap="$default"/>-->
+            <!-- 添加到内存视图编辑器的右键菜单 -->
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
 
+        <!-- 复制地址 Action -->
+        <action id="MemoryView.CopyAddress"
+                class="org.cangnova.cangjie.protodebugger.memory.actions.CopyAddressAction"
+                text="Copy Address"
+                description="Copy current address to clipboard"
+                icon="AllIcons.Actions.Copy">
+            <!-- 使用 Ctrl+Shift+C 避免与默认复制冲突 -->
+<!--            <keyboard-shortcut first-keystroke="ctrl shift C" keymap="$default"/>-->
+            <!-- 添加到编辑器右键菜单 -->
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="MemoryView.GoToAddress"/>
+            <!-- 添加到行号区域的右键菜单 -->
+            <add-to-group group-id="EditorGutterPopupMenu" anchor="first"/>
+        </action>
 
+        <!-- 反汇编函数 Action -->
+        <action id="MemoryView.DisassembleFunction"
+                class="org.cangnova.cangjie.protodebugger.memory.actions.DisassembleFunctionAction"
+                text="Disassemble Function"
+                description="Disassemble function at selected address"
+                icon="AllIcons.Debugger.Console">
+            <!-- 添加到调试器栈帧上下文菜单 -->
+            <add-to-group group-id="XDebugger.Frames.TopToolbar" anchor="after" relative-to-action="XDebugger.Frames.TopToolbar"/>
+            <!-- 添加到编辑器右键菜单（调试时可用） -->
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="MemoryView.CopyAddress"/>
+        </action>
 
-
-
-
-            <separator/>
-
-            <!-- 实用工具 Actions -->
-            <action id="MemoryView.CopyAddress"
-                    class="org.cangnova.cangjie.protodebugger.memory.actions.CopyAddressAction"
-                    text="Copy Address"
-                    description="Copy current address to clipboard"
-                    icon="AllIcons.Actions.Copy">
-                <keyboard-shortcut first-keystroke="ctrl C" keymap="$default"/>
-            </action>
-
-
-
-
-
-            <action id="MemoryView.DisassembleFunction"
-                    class="org.cangnova.cangjie.protodebugger.memory.actions.DisassembleFunctionAction"
-                    text="Disassemble Function"
-                    description="Disassemble function at selected address"
-                    icon="AllIcons.Debugger.Console"/>
-
-
-        </group>
-
-        <!-- 添加到主菜单 -->
-        <group id="MemoryView.MainMenu">
-            <reference ref="MemoryView.Actions"/>
-            <add-to-group group-id="ToolsMenu" anchor="last"/>
-        </group>
-
-        <!-- 添加到工具窗口工具栏 -->
-        <group id="MemoryView.Toolbar">
-            <reference ref="MemoryView.GoToAddress"/>
-
-
-
-        </group>
+        <!-- 查看内存 Action -->
+        <action id="MemoryView.ViewMemory"
+                class="org.cangnova.cangjie.protodebugger.memory.actions.ViewMemoryAction"
+                text="View Memory"
+                description="View memory at current frame address"
+                icon="AllIcons.Debugger.Db_watch">
+            <!-- 添加到调试器栈帧工具栏 -->
+            <add-to-group group-id="XDebugger.Frames.TopToolbar" anchor="last"/>
+            <!-- 添加到编辑器右键菜单 -->
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="MemoryView.DisassembleFunction"/>
+        </action>
 
         <!-- 调试器栈帧上下文菜单 -->
         <action id="CangJie.Debugger.DisassembleFrame"
