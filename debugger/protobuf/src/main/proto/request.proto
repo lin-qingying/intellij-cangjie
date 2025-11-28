@@ -1,0 +1,1081 @@
+syntax = "proto3";
+
+package lldbprotobuf;
+import "model.proto";
+
+/*
+ * ========================================================================
+ * LLDB 定制调试协议 - 请求消息定义（Proto3）
+ *
+ * 文件说明：
+ *   本文件定义了从客户端（IDE/前端）发送到调试后端的所有请求消息。
+ *   请求消息用于：
+ *   - 调试会话管理（创建目标、启动、附加、终止）
+ *   - 执行控制（继续、单步、暂停）
+ *   - 断点管理（添加、删除断点）
+ *   - 数据检查（变量、寄存器、内存、反汇编）
+ *   - 表达式求值
+ *
+ * 设计说明：
+ *   - 每个请求都通过顶层 Request 消息的 oneof 封装
+ *   - 请求必须携带 hash 字段用于匹配响应
+ *   - 所有对象引用使用 Id 类型
+ *
+ * LLDB API 映射：
+ *   每个请求消息的注释中标注了对应的 LLDB SB* API
+ * ========================================================================
+ */
+
+
+/* =========================================================================
+ * 目标和会话管理请求
+ * ========================================================================= */
+
+/**
+ * 创建目标请求
+ *
+ * 创建一个调试目标，加载可执行文件但不启动进程。
+ * 这是调试会话的第一步。
+ *
+ * LLDB API 对应：
+ *   - SBDebugger::CreateTarget() - 创建目标
+ *   - SBTarget - 目标对象
+ *
+ * 使用流程：
+ *   1. CreateTarget 创建目标
+ *   2. AddBreakpoint 设置断点
+ *   3. Launch 或 Attach 启动/附加进程
+ */
+message CreateTargetRequest {
+  // 可执行文件路径
+  // 可以是绝对路径或相对路径
+  // 若为空，可以创建空目标用于后续 attach 或远程调试
+  string file_path = 1;
+
+  // 可选的目标三元组
+  // 格式: "<arch>-<vendor>-<os>"
+  // 示例: "x86_64-unknown-linux-gnu", "arm64-apple-darwin"
+  // 用于交叉调试或指定目标架构
+  string target_triple = 2;
+
+  // 可扩展选项（键值对）
+  // 支持的选项（示例）：
+  //   - "platform": "remote-linux" - 指定调试平台
+  //   - "arch": "arm64" - 指定架构
+  //   - "sysroot": "/path/to/sysroot" - 系统根目录
+  map<string, string> options = 3;
+}
+
+
+/* =========================================================================
+ * 进程启动和附加请求
+ * ========================================================================= */
+
+/**
+ * 启动进程请求
+ *
+ * 启动被调试进程。需要先通过 CreateTarget 创建目标。
+ *
+ * LLDB API 对应：
+ *   - SBTarget::Launch() - 启动进程
+ *   - SBLaunchInfo - 启动配置
+ *
+ * 注意：
+ *   - 进程启动后会立即暂停在入口点或第一个断点
+ *   - 需要发送 Continue 请求开始执行
+ */
+message LaunchRequest {
+  // 启动配置信息
+  // 包含可执行文件路径、参数、环境变量、工作目录等
+  ProcessLaunchInfo launch_info = 1;
+
+  // 控制台模式
+  // 控制进程如何与终端交互
+  ConsoleMode console_mode = 8;
+}
+
+/**
+ * 附加进程请求
+ *
+ * 附加到一个已运行的进程进行调试。
+ *
+ * LLDB API 对应：
+ *   - SBTarget::AttachToProcessWithID() - 按 PID 附加
+ *   - SBTarget::Attach() - 通用附加
+ *   - SBAttachInfo - 附加配置
+ *
+ * 注意：
+ *   - 附加后进程会暂停
+ *   - 某些系统可能需要 root 权限
+ */
+message AttachRequest {
+  // 可选：指定目标（某些后端允许多目标管理）
+  Id process_id = 1;
+
+  // 系统进程 ID（PID）
+  // 要附加的目标进程的 PID
+  uint64 pid = 2;
+
+  // 可扩展选项
+  // 支持的选项（示例）：
+  //   - "wait_for": "true" - 等待进程启动后附加
+  //   - "process_name": "myapp" - 按进程名附加
+  map<string, string> options = 3;
+}
+
+
+/* =========================================================================
+ * 执行控制请求
+ * ========================================================================= */
+
+/**
+ * 继续执行请求
+ *
+ * 恢复进程执行，直到遇到断点、信号或进程退出。
+ *
+ * LLDB API 对应：
+ *   - SBProcess::Continue() - 继续执行
+ *   - SBThread::Resume() - 恢复特定线程
+ */
+message ContinueRequest {
+  // 可选：指定要恢复的线程
+  // 如果为空，恢复所有线程
+  Id thread = 1;
+}
+
+/**
+ * 暂停执行请求
+ *
+ * 立即中断所有线程的执行。
+ * 类似于发送 SIGINT 信号（Ctrl+C）。
+ *
+ * LLDB API 对应：
+ *   - SBProcess::Stop() - 停止进程
+ *
+ * 使用场景：
+ *   - 调试无限循环
+ *   - 中断长时间运行的操作
+ */
+message SuspendRequest {}
+
+/**
+ * 单步进入请求
+ *
+ * 执行一行源代码或一条机器指令。
+ * 如果当前行包含函数调用，则进入函数内部。
+ *
+ * LLDB API 对应：
+ *   - SBThread::StepInto() - 源码级单步进入
+ *   - SBThread::StepInstruction(false) - 指令级单步
+ */
+message StepIntoRequest {
+  // 目标线程 ID
+  // 指定要单步执行的线程
+  Id thread_id = 1;
+
+  // 是否按机器指令单步
+  // true: 单步一条机器指令（汇编级别）
+  // false: 单步一行源代码（默认）
+  bool step_by_instruction = 2;
+}
+
+/**
+ * 单步跳过请求
+ *
+ * 执行一行源代码或一条机器指令。
+ * 遇到函数调用时不进入，直接执行完整个调用。
+ *
+ * LLDB API 对应：
+ *   - SBThread::StepOver() - 源码级单步跳过
+ *   - SBThread::StepInstruction(true) - 指令级单步跳过
+ */
+message StepOverRequest {
+  // 目标线程 ID
+  Id thread_id = 1;
+
+  // 是否按机器指令单步
+  // true: 单步一条机器指令
+  // false: 单步一行源代码（默认）
+  bool step_by_instruction = 2;
+}
+
+/**
+ * 单步跳出请求
+ *
+ * 执行当前函数的剩余部分，直到返回到调用者。
+ *
+ * LLDB API 对应：
+ *   - SBThread::StepOut() - 单步跳出
+ */
+message StepOutRequest {
+  // 目标线程 ID
+  Id thread_id = 1;
+}
+
+/**
+ * 运行到光标处请求
+ *
+ * 执行程序直到到达指定的源代码位置或地址。
+ * 这是一个常用的调试功能，允许快速运行到用户感兴趣的位置。
+ *
+ * LLDB API 对应：
+ *   - SBThread::RunToAddress() - 运行到指定地址
+ *   - 临时断点方式：SBTarget::BreakpointCreateByLocation() + Continue
+ *
+ * 实现方式：
+ *   - 地址模式：直接使用 SBThread::RunToAddress()
+ *   - 源代码位置模式：可选择使用临时断点或解析地址后使用 RunToAddress
+ *
+ * 使用场景：
+ *   - 快速跳过不关心的代码
+ *   - 运行到循环的特定迭代
+ *   - 跳到函数的特定位置
+ */
+message RunToCursorRequest {
+  // 目标线程 ID
+  // 指定要执行的线程
+  Id thread_id = 1;
+
+  // 目标位置（二选一）
+  oneof target {
+    // 源代码位置：文件和行号
+    // 使用临时断点方式实现
+    SourceLocation source_location = 2;
+
+    // 内存地址
+    // 使用 SBThread::RunToAddress() 实现
+    uint64 address = 3;
+  }
+
+  // 是否强制使用临时断点方式
+  // true: 即使是地址模式也使用临时断点
+  // false: 地址模式使用 RunToAddress，源代码位置模式使用临时断点（默认）
+  // 注意：临时断点在命中后会自动删除
+  bool force_temp_breakpoint = 4;
+}
+
+/**
+ * 终止进程请求
+ *
+ * 强制终止被调试进程。
+ *
+ * LLDB API 对应：
+ *   - SBProcess::Kill() - 终止进程
+ *   - SBProcess::Destroy() - 销毁进程
+ */
+message TerminateRequest {}
+
+/**
+ * 分离调试器请求
+ *
+ * 分离调试器但让被调试进程继续运行。
+ * 进程将脱离调试器控制，继续正常执行。
+ *
+ * LLDB API 对应：
+ *   - SBProcess::Detach() - 分离进程
+ */
+message DetachRequest {}
+
+/**
+ * 退出调试器请求
+ *
+ * 完全退出调试会话，清理所有资源。
+ * 这会终止进程（如果还在运行）并关闭调试器。
+ *
+ * LLDB API 对应：
+ *   - SBDebugger::Terminate() - 终止调试器
+ */
+message ExitRequest {}
+
+
+/* =========================================================================
+ * 线程和栈帧请求
+ * ========================================================================= */
+
+/**
+ * 获取线程列表请求
+ *
+ * 获取被调试进程中所有线程的信息。
+ *
+ * LLDB API 对应：
+ *   - SBProcess::GetNumThreads() - 线程数量
+ *   - SBProcess::GetThreadAtIndex() - 获取线程
+ *   - SBThread - 线程对象
+ */
+message ThreadsRequest {}
+
+/**
+ * 获取栈帧请求
+ *
+ * 获取指定线程的调用栈信息，支持分页。
+ *
+ * LLDB API 对应：
+ *   - SBThread::GetNumFrames() - 栈帧数量
+ *   - SBThread::GetFrameAtIndex() - 获取栈帧
+ *   - SBFrame - 栈帧对象
+ */
+message FramesRequest {
+  // 线程 Id
+  // 指定要获取栈帧的线程
+  Id thread_id = 1;
+
+  // 分页起始帧索引
+  // 0 表示从栈顶开始
+  uint32 start_index = 2;
+
+  // 请求返回的帧数量
+  // 用于分页，避免一次返回过多数据
+  uint32 count = 3;
+
+  // 是否只获取第一个有效的源码行
+  // true: 跳过无调试信息的栈帧
+  // 用于快速定位到有源码的位置
+  bool first_valid_source_only = 4;
+}
+
+
+/* =========================================================================
+ * 断点请求
+ * ========================================================================= */
+
+/**
+ * 添加断点请求
+ *
+ * 添加一个新断点。支持多种断点类型：
+ * - 行断点：在源代码行设置
+ * - 地址断点：在内存地址设置
+ * - 函数断点：在函数入口设置
+ * - 符号断点：按符号名/模式匹配
+ * - 观察点：监视内存读写
+ *
+ * LLDB API 对应：
+ *   - SBTarget::BreakpointCreateByLocation() - 行断点
+ *   - SBTarget::BreakpointCreateByAddress() - 地址断点
+ *   - SBTarget::BreakpointCreateByName() - 函数断点
+ *   - SBTarget::BreakpointCreateByRegex() - 正则断点
+ *   - SBTarget::WatchAddress() - 观察点
+ */
+message AddBreakpointRequest {
+  // 限定线程 Id（可选）
+  // 0 或空表示所有线程都会触发此断点
+  // 指定线程 Id 则只有该线程会触发
+  Id thread_id = 1;
+
+  // 断点规格（多种形式，互斥选择）
+  oneof spec {
+    // 行断点：指定文件和行号
+    LineBreakpoint line = 10;
+
+    // 地址断点：指定内存地址
+    AddressBreakpoint address = 11;
+
+    // 函数断点：指定函数名
+    FunctionBreakpoint function = 12;
+
+    // 观察点：监视内存地址的读写
+    WatchBreakpoint watchpoint = 13;
+
+    // 符号断点：按符号名或模式匹配
+    SymbolBreakpoint symbol = 14;
+  }
+
+  // 条件表达式（可选）
+  // 断点命中时评估此表达式，仅当结果为真（非零）时才暂停
+  // 示例: "i > 100", "ptr != nullptr"
+  string condition = 20;
+
+  // 是否启用断点
+  // true: 断点生效（默认）
+  // false: 断点禁用，不会触发
+  bool enabled = 21;
+
+  // 忽略计数
+  // 断点在前 n 次命中时不暂停
+  // 用于跳过循环的前几次迭代
+  uint32 ignore_count = 22;
+}
+
+/**
+ * 行断点规格
+ *
+ * 在指定源文件的指定行设置断点。
+ */
+message LineBreakpoint {
+  // 源文件路径
+  // 可以是绝对路径或相对路径
+  string file = 1;
+
+  // 行号（从 1 开始）
+  uint32 line = 2;
+
+  // 是否忽略源文件哈希校验
+  // true: 即使源文件已修改也设置断点
+  // false: 源文件修改后断点可能失效（默认）
+  bool ignore_source_hash = 9;
+}
+
+/**
+ * 地址断点规格
+ *
+ * 在指定内存地址设置断点。
+ * 用于调试无源码的代码或精确控制断点位置。
+ */
+message AddressBreakpoint {
+  // 虚拟内存地址
+  uint64 address = 1;
+}
+
+/**
+ * 函数断点规格
+ *
+ * 在函数入口设置断点。
+ */
+message FunctionBreakpoint {
+  // 函数名（去修饰后的名称）
+  // 示例: "main", "MyClass::MyMethod"
+  string function_name = 1;
+
+  // 修饰名（可选）
+  // 用于精确匹配 C++ 重载函数
+  // 示例: "_ZN7MyClass8MyMethodEv"
+  string mangled_name = 2;
+}
+
+/**
+ * 符号断点规格
+ *
+ * 按符号名或模式设置断点。
+ * 可以匹配多个符号。
+ */
+message SymbolBreakpoint {
+  // 符号名称或模式
+  // 示例: "main", "MyClass::*", "test_.*"
+  string pattern = 4;
+
+  // 是否按正则表达式匹配
+  // true: pattern 作为正则表达式
+  // false: pattern 作为精确名称或通配符（默认）
+  bool is_regex = 7;
+
+  // 可选：限定模块名
+  // 只在指定模块中查找符号
+  string module = 5;
+}
+
+/**
+ * 观察点规格
+ *
+ * 监视内存地址的读写操作。
+ * 当指定地址被读取或写入时触发。
+ *
+ * LLDB API 对应：
+ *   - SBTarget::WatchAddress() - 创建观察点
+ *   - SBWatchpoint - 观察点对象
+ *
+ * 注意：
+ *   - 观察点数量受硬件限制（通常 4 个）
+ *   - 某些平台可能不支持读观察点
+ */
+message WatchBreakpoint {
+  // 要观察的变量值 ID
+  // 通过表达式求值获得
+  Id value_id = 1;
+
+  // 是否解析内存位置到源代码
+  bool resolve_location = 2;
+
+  // 观察的字节长度
+  // 平台相关，部分平台要求对齐（如 1、2、4、8 字节）
+  uint64 size = 3;
+
+  // 在读时触发
+  // true: 内存被读取时暂停
+  bool watch_read = 4;
+
+  // 在写时触发
+  // true: 内存被写入时暂停
+  bool watch_write = 5;
+}
+
+/**
+ * 删除断点请求
+ *
+ * 删除指定的断点或观察点。
+ *
+ * LLDB API 对应：
+ *   - SBTarget::BreakpointDelete() - 删除断点
+ *   - SBTarget::DeleteWatchpoint() - 删除观察点
+ */
+message RemoveBreakpointRequest {
+  // 要删除的断点 ID
+  Id breakpoint_id = 1;
+}
+
+
+/* =========================================================================
+ * 变量和表达式请求
+ * ========================================================================= */
+
+/**
+ * 获取变量列表请求
+ *
+ * 获取指定栈帧中的变量列表。
+ *
+ * LLDB API 对应：
+ *   - SBFrame::GetVariables() - 获取变量
+ *   - SBValueList - 变量列表
+ */
+message VariablesRequest {
+  // 目标线程 ID
+  Id thread_id = 1;
+
+  // 栈帧索引
+  // 0 表示当前帧（栈顶）
+  uint32 frame_index = 2;
+
+  // 是否包含函数参数
+  bool include_arguments = 3;
+
+  // 是否包含局部变量
+  bool include_locals = 4;
+
+  // 是否包含静态变量
+  bool include_statics = 5;
+
+  // 是否只包含当前作用域内的变量
+  // true: 只返回当前代码位置可见的变量
+  // false: 返回整个函数作用域的变量
+  bool in_scope_only = 6;
+
+  // 是否包含运行时支持的变量
+  // 如 this 指针、返回值等
+  bool include_runtime_support_values = 7;
+
+  // 动态值获取选项
+  // 控制如何获取多态对象的动态类型
+  DynamicValueType use_dynamic = 8;
+
+  // 是否包含已识别的参数
+  // 类型推断出的隐式参数
+  bool include_recognized_arguments = 9;
+}
+
+/**
+ * 获取变量值请求
+ *
+ * 获取指定变量的当前值。
+ *
+ * LLDB API 对应：
+ *   - SBValue::GetValue() - 获取值
+ *   - SBValue::GetSummary() - 获取摘要
+ */
+message GetValueRequest {
+  // 变量 ID
+  Id variable_id = 1;
+
+  // 字符串的最大长度
+  // 防止获取过长的字符串导致性能问题
+  uint32 max_string_length = 7;
+}
+
+/**
+ * 设置变量值请求
+ *
+ * 修改变量的值。
+ *
+ * LLDB API 对应：
+ *   - SBValue::SetValueFromCString() - 从字符串设置值
+ *   - SBFrame::SetValueForVariablePath() - 按路径设置值
+ */
+message SetVariableValueRequest {
+  // 要修改的变量 ID
+  Id variable_id = 1;
+
+  // 新的值（字符串形式）
+  // 示例: "42", "\"hello\"", "0x1234"
+  string value = 2;
+}
+
+/**
+ * 获取子变量请求
+ *
+ * 获取复合类型变量的成员或子元素。
+ * 用于展开数组、结构体、类等。
+ *
+ * LLDB API 对应：
+ *   - SBValue::GetNumChildren() - 子元素数量
+ *   - SBValue::GetChildAtIndex() - 获取子元素
+ */
+message VariablesChildrenRequest {
+  // 父变量的 ID
+  Id variable_id = 1;
+
+  // 表达式（可选）
+  // 用于动态获取子元素，如数组索引
+  string expression = 4;
+
+  // 起始偏移量（用于分页）
+  uint32 offset = 5;
+
+  // 获取数量（用于分页）
+  uint32 count = 6;
+
+  // 子变量获取的最大深度
+  // 防止无限递归（循环引用）
+  uint32 max_depth = 7;
+
+  // 数组/容器的最大子元素数量
+  // 防止获取过多元素导致性能问题
+  uint32 max_children = 8;
+}
+
+/**
+ * 表达式求值请求
+ *
+ * 在指定上下文中评估表达式。
+ *
+ * LLDB API 对应：
+ *   - SBFrame::EvaluateExpression() - 在栈帧上下文求值
+ *   - SBTarget::EvaluateExpression() - 在目标上下文求值
+ *   - SBExpressionOptions - 求值选项
+ *
+ * 支持的表达式：
+ *   - 变量访问: "myVar", "this->field"
+ *   - 算术运算: "a + b * c"
+ *   - 函数调用: "strlen(str)"（可能有副作用）
+ *   - 类型转换: "(int*)ptr"
+ */
+message EvaluateRequest {
+  // 表达式文本
+  // 示例: "myVar + 1", "this->field", "func(arg)"
+  string expression = 1;
+
+  // 可选：指定线程
+  Id thread_id = 4;
+
+  // 可选：栈帧索引
+  // 指定表达式求值的上下文
+  // 0 表示当前帧
+  uint32 frame_index = 2;
+
+  // 是否禁用 summary provider
+  // true: 不使用格式化摘要，返回原始值
+  bool disable_summaries = 3;
+}
+
+
+/* =========================================================================
+ * 寄存器请求
+ * ========================================================================= */
+
+/**
+ * 获取寄存器请求
+ *
+ * 获取 CPU 寄存器的值。
+ *
+ * LLDB API 对应：
+ *   - SBFrame::GetRegisters() - 获取寄存器组
+ *   - SBValue - 寄存器值
+ */
+message RegistersRequest {
+  // 可选：指定线程（默认当前线程）
+  Id thread_id = 1;
+
+  // 可选：栈帧索引（默认当前帧）
+  uint32 frame_index = 2;
+
+  // 寄存器组名过滤
+  // 为空则返回所有组的寄存器
+  // 示例: ["General Purpose Registers"]
+  repeated string group_names = 3;
+
+  // 寄存器名过滤
+  // 为空则返回组内所有寄存器
+  // 示例: ["rax", "rbx", "rip"]
+  repeated string register_names = 4;
+
+  // 是否展开子元素
+  // 用于向量寄存器（XMM、YMM 等）
+  bool expand_children = 5;
+}
+
+/**
+ * 获取寄存器组列表请求
+ *
+ * 获取所有寄存器组的信息。
+ */
+message RegisterGroupsRequest {
+  // 可选：指定线程（默认当前线程）
+  Id thread_id = 1;
+
+  // 可选：栈帧索引（默认当前帧）
+  uint32 frame_index = 2;
+}
+
+
+/* =========================================================================
+ * 内存请求
+ * ========================================================================= */
+
+/**
+ * 读取内存请求
+ *
+ * 从进程地址空间读取原始内存数据。
+ *
+ * LLDB API 对应：
+ *   - SBProcess::ReadMemory() - 读取内存
+ */
+message ReadMemoryRequest {
+  // 要读取的起始地址（虚拟地址）
+  uint64 address = 2;
+
+  // 要读取的字节数
+  uint32 size = 3;
+}
+
+/**
+ * 写入内存请求
+ *
+ * 向进程地址空间写入原始数据。
+ *
+ * LLDB API 对应：
+ *   - SBProcess::WriteMemory() - 写入内存
+ *
+ * 警告：
+ *   - 写入错误的地址可能导致进程崩溃
+ *   - 某些内存区域可能是只读的
+ */
+message WriteMemoryRequest {
+  // 要写入的起始地址（虚拟地址）
+  uint64 address = 2;
+
+  // 要写入的数据
+  // 可以是二进制数据或 base64 编码
+  string data = 3;
+}
+
+
+/* =========================================================================
+ * 反汇编请求
+ * ========================================================================= */
+
+/**
+ * 反汇编请求
+ *
+ * 对指定地址范围的机器码进行反汇编。
+ * 支持多种反汇编模式以满足不同场景。
+ *
+ * LLDB API 对应：
+ *   - SBTarget::ReadInstructions() - 读取指令
+ *   - SBFunction::GetInstructions() - 函数指令
+ *   - SBInstructionList - 指令列表
+ */
+message DisassembleRequest {
+  // 反汇编模式（四选一）
+  oneof mode {
+    // 模式1：地址范围反汇编
+    // 从起始地址反汇编到结束地址
+    DisassembleRangeMode range = 1;
+
+    // 模式2：指令数量反汇编
+    // 从起始地址向前反汇编指定数量的指令
+    DisassembleCountMode count = 2;
+
+    // 模式3：锚点模式反汇编
+    // 以锚点为中心，向前向后反汇编
+    DisassembleAnchorMode anchor = 3;
+
+    // 模式4：反汇编到锚点
+    // 从起始地址反汇编到指定锚点
+    DisassembleUntilPivotMode until_pivot = 6;
+  }
+
+  // 可选：目标线程 ID
+  // 用于获取特定线程的上下文
+  Id thread_id = 4;
+
+  // 反汇编选项
+  // 控制输出格式
+  DisassembleOptions options = 5;
+}
+
+/**
+ * 地址范围反汇编模式
+ *
+ * 从起始地址反汇编到结束地址。
+ * 适用于反汇编已知范围的代码。
+ */
+message DisassembleRangeMode {
+  // 起始地址
+  uint64 start_address = 1;
+
+  // 结束地址
+  uint64 end_address = 2;
+}
+
+/**
+ * 指令数量反汇编模式
+ *
+ * 从起始地址向前反汇编指定数量的指令。
+ * 适用于查看当前位置附近的代码。
+ */
+message DisassembleCountMode {
+  // 起始地址
+  uint64 start_address = 1;
+
+  // 要反汇编的指令数量
+  uint32 instruction_count = 2;
+}
+
+/**
+ * 锚点模式反汇编
+ *
+ * 以锚点地址为中心，向前后两个方向反汇编。
+ * 适用于查看当前 PC 附近的代码上下文。
+ *
+ * 示例：
+ *   anchor_address = 当前 PC
+ *   backward_count = 10（显示 PC 之前 10 条指令）
+ *   forward_count = 20（显示 PC 之后 20 条指令）
+ */
+message DisassembleAnchorMode {
+  // 锚点地址（通常是当前 PC 或用户关注的地址）
+  uint64 anchor_address = 1;
+
+  // 从锚点向后（低地址方向）反汇编的指令数量
+  uint32 backward_count = 2;
+
+  // 从锚点向前（高地址方向）反汇编的指令数量
+  uint32 forward_count = 3;
+}
+
+/**
+ * 反汇编到锚点模式
+ *
+ * 从起始地址反汇编到锚点地址。
+ * 用于确保反汇编结果与锚点正确对齐。
+ *
+ * 实现说明：
+ *   服务端从 start_address 向前反汇编，
+ *   验证最后一条指令恰好在 pivot_address 结束。
+ *   如果对齐失败，返回 alignment_verified=false。
+ */
+message DisassembleUntilPivotMode {
+  // 反汇编起始地址（通常是函数起始地址）
+  uint64 start_address = 1;
+
+  // 锚点地址（当前 PC，反汇编到此地址停止）
+  uint64 pivot_address = 2;
+
+  // 是否包含锚点处的指令
+  // true: 返回包含 pivot_address 处的指令
+  // false: 只返回锚点之前的指令（默认）
+  bool include_pivot = 3;
+}
+
+
+/* =========================================================================
+ * 控制台命令请求
+ * ========================================================================= */
+
+/**
+ * 执行 LLDB 命令请求
+ *
+ * 执行任意 LLDB 控制台命令，支持所有内置命令。
+ * 这提供了对 LLDB 功能的完全访问。
+ *
+ * LLDB API 对应：
+ *   - SBCommandInterpreter::HandleCommand() - 执行命令
+ *   - SBCommandReturnObject - 命令执行结果
+ *
+ * 支持的命令示例：
+ *   - "thread list" - 列出所有线程
+ *   - "bt" - 显示调用栈
+ *   - "expr myVar" - 求值表达式
+ *   - "p *ptr" - 打印指针指向的内容
+ *   - "memory read 0x1234" - 读取内存
+ *   - "disassemble -n main" - 反汇编函数
+ *   - "settings set target.x86-disassembly-flavor intel" - 设置选项
+ *
+ * 使用场景：
+ *   - 调试高级功能
+ *   - 访问专用的 LLDB 命令
+ *   - 脚本自动化
+ *   - IDE 控制台窗口
+ *
+ * 注意：
+ *   - 某些命令可能需要进程处于特定状态
+ *   - 命令执行可能有副作用（如修改进程状态）
+ *   - 命令输出通过标准输出/错误返回
+ */
+message ExecuteCommandRequest {
+  // LLDB 命令字符串
+  // 示例: "thread list", "expr myVar", "p *ptr"
+  // 支持完整的 LLDB 命令语法
+  string command = 1;
+
+  // 是否在命令执行时回显命令
+  // true: 在输出中包含命令本身（类似控制台）
+  // false: 只返回命令结果（默认）
+  bool echo_command = 2;
+
+  // 是否立即返回
+  // true: 异步执行，立即返回（适用于长时间运行的命令）
+  // false: 等待命令完成后返回（默认）
+  bool async_execution = 3;
+
+  // 可选：执行上下文的线程 ID
+  // 某些命令需要线程上下文（如 "frame variable"）
+  Id thread_id = 4;
+
+  // 可选：执行上下文的栈帧索引
+  // 某些命令需要栈帧上下文
+  uint32 frame_index = 5;
+}
+
+/**
+ * LLDB 命令补全请求
+ *
+ * 为部分输入的 LLDB 命令提供自动补全建议。
+ * 这用于实现 IDE 控制台窗口的命令补全功能。
+ *
+ * LLDB API 对应：
+ *   - SBCommandInterpreter::HandleCompletion() - 命令补全
+ *   - SBStringList - 补全结果列表
+ *
+ * 补全示例：
+ *   - 输入: "bre" -> 补全: ["break", "breakpoint"]
+ *   - 输入: "breakpoint set -n " -> 补全: [函数名列表]
+ *   - 输入: "thread " -> 补全: ["backtrace", "continue", "info", "list", ...]
+ *   - 输入: "settings set " -> 补全: [设置项列表]
+ *
+ * 使用场景：
+ *   - IDE 控制台窗口的智能提示
+ *   - 命令行交互式调试界面
+ *   - 提高用户输入效率
+ *
+ * 工作原理：
+ *   - cursor_position 指定光标位置，用于确定补全上下文
+ *   - LLDB 会分析命令上下文，返回所有可能的补全选项
+ *   - 返回结果包括补全后的完整字符串和公共前缀
+ */
+message CommandCompletionRequest {
+  // 部分输入的命令字符串
+  // 示例: "bre", "breakpoint set -n mai", "thread "
+  string partial_command = 1;
+
+  // 光标在命令字符串中的位置（字符索引）
+  // 用于确定补全的上下文和位置
+  // 示例：对于 "breakpoint set -n mai|n"，光标在 'i' 后面，cursor_position = 23
+  // 如果为 0 或省略，默认为字符串末尾
+  uint32 cursor_position = 2;
+
+  // 最大返回结果数量（可选）
+  // 限制返回的补全选项数量，避免过多结果
+  // 0 或不设置表示返回所有结果
+  uint32 max_results = 3;
+}
+
+
+/* =========================================================================
+ * 函数信息请求
+ * ========================================================================= */
+
+/**
+ * 获取函数信息请求
+ *
+ * 根据地址或名称查询函数/符号的详细信息。
+ *
+ * LLDB API 对应：
+ *   - SBAddress::GetFunction() - 获取函数
+ *   - SBAddress::GetSymbol() - 获取符号
+ *   - SBModule::FindFunctions() - 按名称查找函数
+ */
+message GetFunctionInfoRequest {
+  // 查询方式（二选一）
+  oneof query {
+    // 按地址查询
+    // 查找该地址所属的函数
+    uint64 address = 1;
+
+    // 按名称查询
+    // 支持函数名或修饰名
+    string name = 2;
+  }
+
+  // 可选：限定模块名
+  // 缩小查询范围，提高查询效率
+  string module_name = 3;
+}
+
+
+/* =========================================================================
+ * 顶层请求消息
+ *
+ * 所有请求都通过此消息封装发送。
+ * ========================================================================= */
+
+/**
+ * 顶层请求消息
+ *
+ * 客户端发送给调试后端的所有请求都封装在此消息中。
+ *
+ * 协议说明：
+ *   - 每条请求必须携带唯一的 hash 字段
+ *   - 后端在响应中返回相同的 hash，用于匹配请求和响应
+ *   - hash 由 IDE 生成，确保在会话内唯一
+ */
+message Request {
+  // 请求的唯一哈希值
+  // 用于匹配请求和响应
+  // IDE 在发送请求时生成，调试器在对应响应中必须返回相同的 hash
+  uint64 hash = 1;
+
+  // 具体请求类型（互斥选择）
+  oneof request {
+    // ===== 目标和会话管理 =====
+    CreateTargetRequest create_target = 2;   // 创建调试目标
+    LaunchRequest launch = 3;                 // 启动进程
+    AttachRequest attach = 4;                 // 附加进程
+
+    // ===== 线程和栈帧 =====
+    ThreadsRequest threads = 5;               // 获取线程列表
+    FramesRequest frames = 6;                 // 获取栈帧
+
+    // ===== 变量和表达式 =====
+    VariablesRequest variables = 10;          // 获取变量列表
+    RegistersRequest registers = 28;          // 获取寄存器
+    RegisterGroupsRequest register_groups = 29; // 获取寄存器组列表
+    GetValueRequest get_value = 22;           // 获取变量值
+    SetVariableValueRequest set_variable_value = 24; // 设置变量值
+    VariablesChildrenRequest get_variables_children = 23; // 获取子变量
+    EvaluateRequest evaluate = 11;            // 表达式求值
+
+    // ===== 断点管理 =====
+    AddBreakpointRequest add_breakpoint = 7;  // 添加断点
+    RemoveBreakpointRequest remove_breakpoint = 8; // 删除断点
+
+    // ===== 内存和反汇编 =====
+    ReadMemoryRequest read_memory = 13;       // 读取内存
+    WriteMemoryRequest write_memory = 14;     // 写入内存
+    DisassembleRequest disassemble = 15;      // 反汇编
+
+    // ===== 执行控制 =====
+    ContinueRequest continue = 16;            // 继续执行
+    SuspendRequest suspend = 17;              // 暂停执行
+    StepIntoRequest step_into = 18;           // 单步进入
+    StepOverRequest step_over = 19;           // 单步跳过
+    StepOutRequest step_out = 26;             // 单步跳出
+    RunToCursorRequest run_to_cursor = 31;    // 运行到光标处
+    TerminateRequest terminate = 20;          // 终止进程
+    DetachRequest detach = 21;                // 分离调试器
+    ExitRequest exit = 27;                    // 退出调试器
+
+    // ===== 符号信息 =====
+    GetFunctionInfoRequest get_function_info = 30; // 获取函数信息
+
+    // ===== 控制台命令 =====
+    ExecuteCommandRequest execute_command = 32;  // 执行 LLDB 命令
+    CommandCompletionRequest command_completion = 33;  // LLDB 命令补全
+  }
+}

@@ -1,0 +1,762 @@
+syntax = "proto3";
+
+package lldbprotobuf;
+import "model.proto";
+import "event.proto";
+
+/*
+ * ========================================================================
+ * LLDB 定制调试协议 - 响应消息定义（Proto3）
+ *
+ * 文件说明：
+ *   本文件定义了调试后端发送给客户端（IDE/前端）的所有响应消息。
+ *   每个响应消息对应一个请求消息。
+ *
+ * 设计说明：
+ *   - 每个响应都包含 Status 字段表示操作结果
+ *   - 响应通过顶层 Response 消息的 oneof 封装
+ *   - 响应必须携带与请求相同的 hash 用于匹配
+ *
+ * 响应匹配：
+ *   前端发送请求时生成唯一 hash，后端在响应中返回相同 hash，
+ *   前端据此将响应与请求匹配。
+ * ========================================================================
+ */
+
+
+/* =========================================================================
+ * 变量和表达式响应
+ * ========================================================================= */
+
+/**
+ * 变量列表响应
+ *
+ * 返回请求的变量列表。
+ * 对应 VariablesRequest。
+ */
+message VariablesResponse {
+  // 操作状态
+  Status status = 2;
+
+  // 变量列表
+  // 包含变量的元信息（名称、类型、地址等）
+  // 需要获取值时使用 GetValueRequest
+  repeated Variable variables = 1;
+}
+
+/**
+ * 获取变量值响应
+ *
+ * 返回指定变量的当前值。
+ * 对应 GetValueRequest。
+ */
+message GetValueResponse {
+  // 操作状态
+  Status status = 1;
+
+  // 变量值
+  // 包含字符串表示、摘要、是否变化等信息
+  Value value = 2;
+
+  // 关联的变量信息（可选）
+  // 提供完整的变量上下文
+  Variable variable = 3;
+}
+
+/**
+ * 设置变量值响应
+ *
+ * 返回设置变量值操作的结果。
+ * 对应 SetVariableValueRequest。
+ */
+message SetVariableValueResponse {
+  // 操作状态
+  // 失败时 message 包含错误原因（如类型不匹配、只读变量等）
+  Status status = 1;
+
+  // 设置后的变量值（可选）
+  // 用于确认设置结果
+  Value value = 2;
+
+  // 关联的变量信息（可选）
+  Variable variable = 3;
+}
+
+/**
+ * 获取子变量响应
+ *
+ * 返回复合类型变量的子元素。
+ * 对应 VariablesChildrenRequest。
+ */
+message VariablesChildrenResponse {
+  // 操作状态
+  Status status = 1;
+
+  // 子变量列表
+  repeated Variable children = 2;
+
+  // 总子元素数量
+  // 用于分页，可能大于 children 列表长度
+  uint32 total_children = 3;
+
+  // 当前返回数据的起始偏移量
+  uint32 offset = 4;
+
+  // 是否还有更多子元素
+  // true: 可以继续请求更多数据
+  bool has_more = 5;
+}
+
+/**
+ * 表达式求值响应
+ *
+ * 返回表达式求值的结果。
+ * 对应 EvaluateRequest。
+ */
+message EvaluateResponse {
+  // 操作状态
+  // 失败时 message 包含错误原因（语法错误、未定义变量等）
+  Status status = 2;
+
+  // 求值结果
+  // 作为 Variable 返回，包含 id，便于后续展开查看子元素
+  Variable result = 1;
+}
+
+
+/* =========================================================================
+ * 寄存器响应
+ * ========================================================================= */
+
+/**
+ * 获取寄存器组列表响应
+ *
+ * 返回所有寄存器组的信息。
+ * 对应 RegisterGroupsRequest。
+ */
+message RegisterGroupsResponse {
+  // 操作状态
+  Status status = 1;
+
+  // 寄存器组列表
+  // 包含组名和组内寄存器数量
+  repeated RegisterGroup groups = 2;
+}
+
+/**
+ * 获取寄存器响应
+ *
+ * 返回请求的寄存器值。
+ * 对应 RegistersRequest。
+ */
+message RegistersResponse {
+  // 操作状态
+  Status status = 1;
+
+  // 寄存器列表
+  // 包含名称、值、大小等完整信息
+  repeated Register registers = 2;
+}
+
+
+/* =========================================================================
+ * 目标和会话响应
+ * ========================================================================= */
+
+/**
+ * 创建目标响应
+ *
+ * 返回创建调试目标的结果。
+ * 对应 CreateTargetRequest。
+ */
+message CreateTargetResponse {
+  // 操作状态
+  // 失败时 message 包含错误原因（文件不存在、格式不支持等）
+  Status status = 2;
+
+  // 创建的目标 Id
+  // 后端分配的唯一标识，映射到 SBTarget 实例
+  Id target = 1;
+}
+
+/**
+ * 启动进程响应
+ *
+ * 返回启动进程的结果。
+ * 对应 LaunchRequest。
+ */
+message LaunchResponse {
+  // 操作状态
+  // 失败时 message 包含错误原因（权限不足、文件损坏等）
+  Status status = 2;
+
+  // 创建的进程 Id
+  // 映射到 LLDB 的 SBProcess
+  Id process = 1;
+}
+
+/**
+ * 附加进程响应
+ *
+ * 返回附加到进程的结果。
+ * 对应 AttachRequest。
+ */
+message AttachResponse {
+  // 操作状态
+  // 失败时 message 包含错误原因（进程不存在、权限不足等）
+  Status status = 2;
+
+  // 附加的进程 Id
+  Id process = 1;
+}
+
+
+/* =========================================================================
+ * 线程和栈帧响应
+ * ========================================================================= */
+
+/**
+ * 线程列表响应
+ *
+ * 返回进程中所有线程的信息。
+ * 对应 ThreadsRequest。
+ */
+message ThreadsResponse {
+  // 操作状态
+  Status status = 2;
+
+  // 线程列表
+  // 包含线程 ID、名称、停止原因等信息
+  repeated Thread threads = 1;
+}
+
+/**
+ * 栈帧列表响应
+ *
+ * 返回指定线程的调用栈。
+ * 对应 FramesRequest。
+ */
+message FramesResponse {
+  // 操作状态
+  Status status = 2;
+
+  // 栈帧列表
+  // 索引 0 为栈顶（当前执行位置）
+  repeated Frame frames = 1;
+
+  // 该线程的总帧数量
+  // 可能大于 frames 列表长度（当使用分页时）
+  uint32 total_frames = 3;
+}
+
+
+/* =========================================================================
+ * 断点响应
+ * ========================================================================= */
+
+/**
+ * 添加断点响应
+ *
+ * 返回添加断点的结果。
+ * 使用 oneof 根据断点类型返回不同的详细信息。
+ * 对应 AddBreakpointRequest。
+ */
+message AddBreakpointResponse {
+  // 操作状态
+  // 失败时 message 包含错误原因（无效地址、符号未找到等）
+  Status status = 6;
+
+  // 创建的断点 Id
+  // 用于后续删除、启用/禁用等操作
+  Id break_point_id = 1;
+
+  // 断点详细信息（根据类型返回不同结构）
+  oneof breakpoint {
+    // 行断点结果
+    LineBreakpointResult line_breakpoint = 2;
+
+    // 地址断点结果
+    AddressBreakpointResult address_breakpoint = 3;
+
+    // 函数断点结果
+    FunctionBreakpointResult function_breakpoint = 4;
+
+    // 观察点结果
+    WatchBreakpointResult watchpoint = 5;
+
+    // 符号断点结果
+    SymbolBreakpointResult symbol_breakpoint = 7;
+  }
+}
+
+/**
+ * 行断点结果
+ *
+ * 行断点设置成功后返回的详细信息。
+ */
+message LineBreakpointResult {
+  // 创建的断点信息
+  Breakpoint breakpoint = 1;
+
+  // 断点解析到的实际内存位置列表
+  // 一个行断点可能对应多个位置（内联函数等）
+  repeated BreakpointLocation locations = 2;
+}
+
+/**
+ * 地址断点结果
+ *
+ * 地址断点设置成功后返回的详细信息。
+ */
+message AddressBreakpointResult {
+  // 创建的断点信息
+  Breakpoint breakpoint = 1;
+
+  // 断点位置列表
+  repeated BreakpointLocation locations = 2;
+}
+
+/**
+ * 函数断点结果
+ *
+ * 函数断点设置成功后返回的详细信息。
+ */
+message FunctionBreakpointResult {
+  // 创建的断点信息
+  Breakpoint breakpoint = 1;
+
+  // 断点位置列表
+  // 函数可能有多个入口点（重载、模板实例化等）
+  repeated BreakpointLocation locations = 2;
+}
+
+/**
+ * 符号断点结果
+ *
+ * 符号断点设置成功后返回的详细信息。
+ */
+message SymbolBreakpointResult {
+  // 创建的断点信息
+  Breakpoint breakpoint = 2;
+
+  // 断点位置列表
+  // 符号模式可能匹配多个位置
+  repeated BreakpointLocation locations = 3;
+}
+
+/**
+ * 观察点结果
+ *
+ * 观察点设置成功后返回的详细信息。
+ */
+message WatchBreakpointResult {
+  // 创建的观察点 Id
+  Id break_point_id = 1;
+}
+
+/**
+ * 删除断点响应
+ *
+ * 返回删除断点的结果。
+ * 对应 RemoveBreakpointRequest。
+ */
+message RemoveBreakpointResponse {
+  // 操作状态
+  // 失败时 message 包含错误原因（断点不存在等）
+  Status status = 2;
+}
+
+
+/* =========================================================================
+ * 内存响应
+ * ========================================================================= */
+
+/**
+ * 读取内存响应
+ *
+ * 返回从进程地址空间读取的数据。
+ * 对应 ReadMemoryRequest。
+ */
+message ReadMemoryResponse {
+  // 操作状态
+  Status status = 2;
+
+  // 读取到的字节数据
+  // 长度可能小于请求的 size（如果到达可读区域边界）
+  bytes data = 1;
+
+  // 错误描述（失败时）
+  // 人类可读的错误信息
+  string error = 3;
+}
+
+/**
+ * 写入内存响应
+ *
+ * 返回向进程地址空间写入数据的结果。
+ * 对应 WriteMemoryRequest。
+ */
+message WriteMemoryResponse {
+  // 操作状态
+  Status status = 2;
+
+  // 成功写入的字节数
+  // 可能小于请求写入的数据长度
+  uint32 bytes_written = 1;
+
+  // 错误描述（失败时）
+  string error = 3;
+}
+
+
+/* =========================================================================
+ * 反汇编响应
+ * ========================================================================= */
+
+/**
+ * 反汇编响应
+ *
+ * 返回指定地址范围的汇编指令列表。
+ * 对应 DisassembleRequest。
+ */
+message DisassembleResponse {
+  // 操作状态
+  Status status = 1;
+
+  // 反汇编结果列表
+  // 按地址顺序排列的指令列表
+  repeated DisassembleInstruction instructions = 2;
+
+  // 实际反汇编的字节数
+  uint32 bytes_disassembled = 3;
+
+  // 对齐验证结果（仅 until_pivot 模式使用）
+  // true: 反汇编正确对齐到 pivot 地址
+  // false: 对齐失败，可能是指令边界不对
+  bool alignment_verified = 4;
+
+  // 实际到达的结束地址
+  // 如果对齐失败，此字段显示实际反汇编到达的地址
+  uint64 actual_end_address = 5;
+}
+
+
+/* =========================================================================
+ * 函数信息响应
+ * ========================================================================= */
+
+/**
+ * 获取函数信息响应
+ *
+ * 返回查询到的函数/符号信息。
+ * 对应 GetFunctionInfoRequest。
+ */
+message GetFunctionInfoResponse {
+  // 操作状态
+  Status status = 1;
+
+  // 函数信息（按地址查询时返回）
+  // 如果找到匹配的函数，此字段包含详细信息
+  FunctionInfo function = 2;
+
+  // 函数列表（按名称查询时可能返回多个）
+  // 当名称匹配多个函数时（如重载函数），返回所有匹配结果
+  repeated FunctionInfo functions = 3;
+}
+
+
+/* =========================================================================
+ * 执行控制响应
+ * ========================================================================= */
+
+/**
+ * 继续执行响应
+ *
+ * 返回继续执行命令的结果。
+ * 对应 ContinueRequest。
+ *
+ * 注意：此响应表示命令已接受，进程开始执行。
+ * 进程实际停止时会通过 ProcessStopped 事件通知。
+ */
+message ContinueResponse {
+  // 操作状态
+  Status status = 2;
+}
+
+/**
+ * 暂停执行响应
+ *
+ * 返回暂停命令的结果。
+ * 对应 SuspendRequest。
+ *
+ * 注意：此响应表示暂停命令已发送。
+ * 成功后，进程会尽快暂停，后续会收到 ProcessStopped 事件。
+ */
+message SuspendResponse {
+  // 操作状态
+  Status status = 1;
+}
+
+/**
+ * 单步进入响应
+ *
+ * 返回单步进入命令的结果。
+ * 对应 StepIntoRequest。
+ */
+message StepIntoResponse {
+  // 操作状态
+  Status status = 1;
+}
+
+/**
+ * 单步跳过响应
+ *
+ * 返回单步跳过命令的结果。
+ * 对应 StepOverRequest。
+ */
+message StepOverResponse {
+  // 操作状态
+  Status status = 1;
+}
+
+/**
+ * 单步跳出响应
+ *
+ * 返回单步跳出命令的结果。
+ * 对应 StepOutRequest。
+ */
+message StepOutResponse {
+  // 操作状态
+  Status status = 1;
+}
+
+/**
+ * 运行到光标处响应
+ *
+ * 返回运行到光标处命令的结果。
+ * 对应 RunToCursorRequest。
+ *
+ * 注意：
+ *   - 此响应表示命令已接受，程序开始执行
+ *   - 程序到达目标位置或中途停止时会通过 ProcessStopped 事件通知
+ *   - 如果使用临时断点方式，断点会在命中后自动删除
+ */
+message RunToCursorResponse {
+  // 操作状态
+  Status status = 1;
+
+  // 如果使用了临时断点方式，返回临时断点的 ID
+  // 客户端可以用此 ID 在需要时手动删除断点
+  // 如果使用 SBThread::RunToAddress() 方式，此字段为空
+  Id temp_breakpoint_id = 2;
+
+  // 实际使用的实现方式
+  // "run_to_address": 使用 SBThread::RunToAddress()
+  // "temp_breakpoint": 使用临时断点 + Continue
+  string method_used = 3;
+}
+
+/**
+ * 终止进程响应
+ *
+ * 返回终止进程命令的结果。
+ * 对应 TerminateRequest。
+ */
+message TerminateResponse {
+  // 操作状态
+  Status status = 2;
+}
+
+/**
+ * 分离调试器响应
+ *
+ * 返回分离命令的结果。
+ * 对应 DetachRequest。
+ */
+message DetachResponse {
+  // 操作状态
+  Status status = 2;
+}
+
+/**
+ * 退出调试器响应
+ *
+ * 返回退出命令的结果。
+ * 对应 ExitRequest。
+ */
+message ExitResponse {
+  // 操作状态
+  Status status = 2;
+}
+
+/**
+ * 执行命令响应
+ *
+ * LLDB 命令执行的结果。
+ *
+ * LLDB API 对应：
+ *   - SBCommandReturnObject::GetOutput() - 标准输出
+ *   - SBCommandReturnObject::GetError() - 标准错误
+ *   - SBCommandReturnObject::Succeeded() - 命令是否成功
+ *   - SBCommandReturnObject::GetStatus() - 命令执行状态
+ *
+ * 输出格式：
+ *   - output: 命令的标准输出内容（如果有）
+ *   - error_output: 命令的错误输出内容（如果有）
+ *   - status: 命令执行状态（成功/失败）
+ *   - return_status: LLDB 的 ReturnStatus 枚举值
+ */
+message ExecuteCommandResponse {
+  // 操作状态
+  // success: 命令执行成功
+  // error_message: 执行失败的错误信息
+  Status status = 1;
+
+  // 命令的标准输出
+  // 包含命令的正常输出内容
+  string output = 2;
+
+  // 命令的错误输出
+  // 包含命令的错误信息或警告
+  string error_output = 3;
+
+  // LLDB 返回状态
+  // 对应 lldb::ReturnStatus 枚举
+  // 0: eReturnStatusSuccessFinishNoResult
+  // 1: eReturnStatusSuccessFinishResult
+  // 2: eReturnStatusSuccessContinuingNoResult
+  // 3: eReturnStatusSuccessContinuingResult
+  // 4: eReturnStatusStarted
+  // 5: eReturnStatusFailed
+  // 6: eReturnStatusQuit
+  // 7: eReturnStatusInvalid
+  int32 return_status = 4;
+}
+
+/**
+ * 命令补全响应
+ *
+ * LLDB 命令补全的结果。
+ *
+ * LLDB API 对应：
+ *   - SBCommandInterpreter::HandleCompletion() - 命令补全
+ *   - SBStringList - 补全结果列表
+ *
+ * 补全结果说明：
+ *   - completions: 所有可能的补全选项列表
+ *   - common_prefix: 所有补全选项的公共前缀
+ *   - 如果只有一个补全选项，客户端可以直接插入该选项
+ *   - 如果有多个选项，客户端可以显示补全列表供用户选择
+ *
+ * 使用示例：
+ *   输入 "bre"，cursor_position = 3
+ *   返回：
+ *     completions = ["break", "breakpoint"]
+ *     common_prefix = "bre"
+ *
+ *   输入 "thread "，cursor_position = 7
+ *   返回：
+ *     completions = ["backtrace", "continue", "info", "list", "select", "step-in", ...]
+ *     common_prefix = ""
+ */
+message CommandCompletionResponse {
+  // 操作状态
+  // success: 补全成功
+  // error_message: 执行失败的错误信息
+  Status status = 1;
+
+  // 补全选项列表
+  // 所有可能的补全候选项
+  // 可能为空（无匹配项）
+  repeated string completions = 2;
+
+  // 所有补全选项的公共前缀
+  // 用于自动填充用户输入
+  // 可能为空字符串（补全选项无公共部分）
+  string common_prefix = 3;
+
+  // 补全的起始位置
+  // 补全文本应该插入的位置（相对于原始命令字符串）
+  // 通常与 cursor_position 相同，但某些情况下可能不同
+  uint32 completion_start = 4;
+
+  // 是否有更多补全结果
+  // true: 因为 max_results 限制，还有更多结果未返回
+  // false: 已返回所有匹配结果
+  bool has_more = 5;
+}
+
+
+/* =========================================================================
+ * 顶层响应消息
+ *
+ * 所有响应都通过此消息封装发送。
+ * ========================================================================= */
+
+/**
+ * 顶层响应消息
+ *
+ * 调试后端发送给客户端的所有响应都封装在此消息中。
+ *
+ * 协议说明：
+ *   - 每条响应必须携带与对应请求相同的 hash 字段
+ *   - 客户端通过 hash 匹配请求和响应
+ *   - Event 消息也通过此响应封装发送（无需匹配 hash）
+ */
+message Response {
+  // 对应请求的哈希值
+  // 调试器必须返回与请求相同的 hash 值
+  // Event 消息的 hash 可以为空或任意值
+  HashId hash = 1;
+
+  // 具体响应类型（互斥选择）
+  oneof response {
+    // ===== 目标和会话管理响应 =====
+    CreateTargetResponse create_target = 3;   // 创建目标响应
+    LaunchResponse launch = 4;                 // 启动进程响应
+    AttachResponse attach = 5;                 // 附加进程响应
+
+    // ===== 线程和栈帧响应 =====
+    ThreadsResponse threads = 6;               // 线程列表响应
+    FramesResponse frames = 7;                 // 栈帧列表响应
+
+    // ===== 断点响应 =====
+    AddBreakpointResponse add_breakpoint = 8;  // 添加断点响应
+    RemoveBreakpointResponse remove_breakpoint = 9; // 删除断点响应
+
+    // ===== 变量和表达式响应 =====
+    VariablesResponse variables = 12;          // 变量列表响应
+    RegistersResponse registers = 30;          // 寄存器响应
+    RegisterGroupsResponse register_groups = 31; // 寄存器组列表响应
+    GetValueResponse get_value = 27;           // 获取变量值响应
+    SetVariableValueResponse set_variable_value = 29; // 设置变量值响应
+    VariablesChildrenResponse get_variables_children = 28; // 子变量响应
+    EvaluateResponse evaluate = 13;            // 表达式求值响应
+
+    // ===== 内存和反汇编响应 =====
+    ReadMemoryResponse read_memory = 15;       // 读取内存响应
+    WriteMemoryResponse write_memory = 16;     // 写入内存响应
+    DisassembleResponse disassemble = 17;      // 反汇编响应
+
+    // ===== 异步事件 =====
+    Event event = 18;                          // 异步事件（进程停止、输出等）
+
+    // ===== 执行控制响应 =====
+    TerminateResponse kill = 19;               // 终止进程响应
+    DetachResponse detach = 20;                // 分离调试器响应
+    ExitResponse exit = 21;                    // 退出调试器响应
+    StepIntoResponse step_into = 22;           // 单步进入响应
+    StepOverResponse step_over = 23;           // 单步跳过响应
+    StepOutResponse step_out = 24;             // 单步跳出响应
+    RunToCursorResponse run_to_cursor = 33;    // 运行到光标处响应
+    ContinueResponse continue = 25;            // 继续执行响应
+    SuspendResponse suspend = 26;              // 暂停执行响应
+
+    // ===== 符号信息响应 =====
+    GetFunctionInfoResponse get_function_info = 32; // 获取函数信息响应
+
+    // ===== 控制台命令响应 =====
+    ExecuteCommandResponse execute_command = 34;  // 执行 LLDB 命令响应
+    CommandCompletionResponse command_completion = 35;  // LLDB 命令补全响应
+  }
+}
