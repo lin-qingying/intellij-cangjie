@@ -70,8 +70,8 @@ class DefaultServerLifecycleManager(
                 LOG.info("Starting server $serverId with config: $config")
 
                 // 分配端口
-                val port = allocatePort(config.portStrategy).getOrThrow()
-                LOG.info("Allocated port $port for server $serverId")
+                val portLease = allocatePort(config.portStrategy).getOrThrow()
+                LOG.info("Allocated port ${portLease.port} for server $serverId")
 
                 // 获取服务器可执行文件路径
                 val executablePath = if (config.executablePath.isNotEmpty()) {
@@ -84,7 +84,7 @@ class DefaultServerLifecycleManager(
                 // 创建命令行
                 val commandLine = createCommandLine(
                     executablePath = executablePath,
-                    port = port.port,
+                    port = portLease.port,
                     config = config
                 )
 
@@ -98,7 +98,7 @@ class DefaultServerLifecycleManager(
                     process = processHandler.process,
                     pid = processHandler.process.pid(),
                     metadata = mapOf(
-                        "port" to port.port,
+                        "port" to portLease.port,
                         "config" to config
                     )
                 )
@@ -107,9 +107,9 @@ class DefaultServerLifecycleManager(
                 val serverProcess = DefaultServerProcess(
                     id = serverId,
                     config = config,
-                    port = port.port,
+                    port = portLease.port,
                     processHandler = processHandler,
-                    portLease = port
+                    portLease = portLease
                 )
 
                 // 等待服务器就绪
@@ -123,7 +123,7 @@ class DefaultServerLifecycleManager(
                 // 注册到服务器列表
                 servers[serverId] = serverProcess
 
-                LOG.info("Server $serverId started successfully on port ${port.port}")
+                LOG.info("Server $serverId started successfully on port ${portLease.port}")
                 Result.success(serverProcess)
             } catch (e: Exception) {
                 LOG.error("Failed to start server", e)
@@ -205,7 +205,7 @@ class DefaultServerLifecycleManager(
         config: ServerConfig
     ): GeneralCommandLine {
         val cangjieSettings = project.cangjieSettings
-        val toolchain = cangjieSettings.toolchain
+        val toolchain = cangjieSettings.state.toolchain
         val logPath = Paths.get(project.basePath ?: ".", ".idea", "log", "dap-server")
 
         // 确保日志目录存在
@@ -236,7 +236,7 @@ class DefaultServerLifecycleManager(
             environment.putAll(config.environment)
 
             // 添加LLDB库路径（参考 CangJieDebuggerServerManager）
-            toolchain?.location?.let { toolchainPath ->
+            toolchain?.homePath?.let { toolchainPath ->
                 val lldbLibPath = toolchainPath.systemIndependentPath + "/third_party/llvm/lldb/lib/"
                 when {
                     SystemInfo.isLinux || SystemInfo.isMac -> {

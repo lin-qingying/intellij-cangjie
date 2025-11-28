@@ -25,8 +25,9 @@
 dependencies {
     implementation(project(":toolchain"))
     implementation(project(":"))
-    implementation(project(":cangjie-project"))
     implementation(project(":messages"))
+    implementation(project(":cangjie-project"))
+
 
 
     implementation(project(":debugger:common"))

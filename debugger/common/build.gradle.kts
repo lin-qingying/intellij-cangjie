@@ -22,3 +22,7 @@
  *
  */
 
+dependencies {
+    implementation(project(":"))
+    implementation(project(":messages"))
+}

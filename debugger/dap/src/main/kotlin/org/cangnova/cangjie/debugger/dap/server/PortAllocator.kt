@@ -192,6 +192,8 @@ data class PortLease(
      * 剩余时间（毫秒）
      */
     fun remainingTimeMs(): Long = (expiresAt - System.currentTimeMillis()).coerceAtLeast(0)
+
+    override fun toString(): String = "PortLease(port=$port, allocatedAt=$allocatedAt, expiresAt=$expiresAt)"
 }
 
 /**

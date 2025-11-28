@@ -35,7 +35,7 @@ import org.cangnova.cangjie.debugger.dap.core.ThreadInfo
  * 表示调试器暂停时的状态
  */
 class CangJieSuspendContext(
-    private val debugProcess: CangJieDebugProcess,
+    private val debugProcess: DapDebugProcess,
     val activeThreadId: Long,
     private val threads: List<ThreadInfo> = emptyList(),
     private val frames: List<StackFrameInfo> = emptyList()

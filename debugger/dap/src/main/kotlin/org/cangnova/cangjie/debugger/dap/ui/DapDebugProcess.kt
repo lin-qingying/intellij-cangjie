@@ -34,6 +34,7 @@ import com.intellij.xdebugger.breakpoints.XBreakpointHandler
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 import com.intellij.xdebugger.frame.XSuspendContext
 import kotlinx.coroutines.*
+import org.cangnova.cangjie.debugger.RunParameters
 import org.cangnova.cangjie.debugger.dap.core.AdapterConfig
 import org.cangnova.cangjie.debugger.dap.core.AdapterEvent
 import org.cangnova.cangjie.debugger.dap.core.ConnectionConfig
@@ -43,19 +44,20 @@ import org.cangnova.cangjie.debugger.dap.server.PortStrategy
 import org.cangnova.cangjie.debugger.dap.server.ServerConfig
 import org.cangnova.cangjie.debugger.dap.session.*
 import kotlin.coroutines.CoroutineContext
+import kotlin.io.path.absolutePathString
 
 /**
  * 仓颉调试进程（重构版）
  *
  * 完全异步，无阻塞调用
  */
-class CangJieDebugProcess(
-    private val runConfig: CangJieRunConfiguration,
+class DapDebugProcess(
+    private val runConfig: RunParameters,
     session: XDebugSession
 ) : XDebugProcess(session) {
 
     companion object {
-        private val LOG = Logger.getInstance(CangJieDebugProcess::class.java)
+        private val LOG = Logger.getInstance(DapDebugProcess::class.java)
     }
 
     // 协程作用域 - 绑定到进程生命周期
@@ -136,7 +138,7 @@ class CangJieDebugProcess(
 
             // 创建断点处理器（在EDT上）
             withContext(Dispatchers.EDT) {
-                breakpointHandler = CangJieBreakpointHandler(this@CangJieDebugProcess)
+                breakpointHandler = CangJieBreakpointHandler(this@DapDebugProcess)
             }
 
             // 标记为已初始化
@@ -173,10 +175,10 @@ class CangJieDebugProcess(
                 startupTimeoutMs = 10000
             ),
             launchArguments = LaunchArguments(
-                program = runConfig.programPath,
-                arguments = runConfig.programArguments,
-                workingDirectory = runConfig.workingDirectory,
-                environment = runConfig.environmentVariables
+                program = runConfig.runExecutable.exePath,
+                arguments = runConfig.runExecutable.parametersList.parameters,
+                workingDirectory = runConfig.runExecutable.workingDirectory?.absolutePathString() ?: "",
+                environment = runConfig.runExecutable.environment
             ),
             adapterConfig = AdapterConfig(
                 host = "localhost",
@@ -204,7 +206,7 @@ class CangJieDebugProcess(
 
                         withContext(Dispatchers.EDT) {
                             val suspendContext = CangJieSuspendContext(
-                                debugProcess = this@CangJieDebugProcess,
+                                debugProcess = this@DapDebugProcess,
                                 activeThreadId = event.threadId
                             )
                             session.positionReached(suspendContext)
@@ -401,15 +403,6 @@ class CangJieDebugProcess(
     fun isInitialized(): Boolean = initialized
 }
 
-/**
- * 仓颉运行配置
- */
-data class CangJieRunConfiguration(
-    val programPath: String,
-    val programArguments: List<String> = emptyList(),
-    val workingDirectory: String,
-    val environmentVariables: Map<String, String> = emptyMap()
-)
 
 /**
  * EDT Dispatcher

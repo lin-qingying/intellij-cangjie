@@ -92,7 +92,7 @@ object LineBreakpointType : XLineBreakpointType<LineBreakpointType.Properties>(
      * 检查是否可以在指定文件的指定行设置断点
      */
     override fun canPutAt(file: VirtualFile, line: Int, project: Project): Boolean {
-        return file.fileType == CangJieFileType.INSTANCE
+        return project.isProtoDebuggerEngine && file.fileType == CangJieFileType.INSTANCE
     }
 
 

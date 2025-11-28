@@ -32,11 +32,18 @@ import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType
+import org.cangnova.cangjie.debugger.configurable.CangJieDebuggerEngineServices
+import org.cangnova.cangjie.debugger.configurable.DebuggerEngine
 import org.cangnova.cangjie.debugger.protobuf.breakpoint.AddressBreakpointType.ID
 import org.cangnova.cangjie.debugger.protobuf.core.ProtoDebugProcess
 import org.cangnova.cangjie.debugger.protobuf.memory.vfs.DisasmFileType
 import org.cangnova.cangjie.debugger.protobuf.messages.ProtoDebuggerBundle
 import javax.swing.Icon
+
+val Project.isProtoDebuggerEngine
+    get() =
+        CangJieDebuggerEngineServices.getInstance(this).debuggerEngine == DebuggerEngine.PROTOBUF
+
 
 /**
  * 仓颉语言地址断点类型
@@ -128,7 +135,7 @@ object AddressBreakpointType : XLineBreakpointType<AddressBreakpointType.Propert
         val currentDebugProcess = currentSession.debugProcess
         if (currentDebugProcess !is ProtoDebugProcess) return false
 
-        return file.fileType == DisasmFileType && currentDebugProcess.facade.memoryViewFacade.getDisasmStore().virtualFile == file
+        return project.isProtoDebuggerEngine && file.fileType == DisasmFileType && currentDebugProcess.facade.memoryViewFacade.getDisasmStore().virtualFile == file
     }
 
     // ==================== 常量定义 ====================

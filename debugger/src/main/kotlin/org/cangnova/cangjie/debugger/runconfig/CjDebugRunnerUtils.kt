@@ -34,7 +34,8 @@ import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
 import org.cangnova.cangjie.debugger.RunParameters
 import org.cangnova.cangjie.debugger.configurable.CangJieDebuggerEngineServices
-import org.cangnova.cangjie.debugger.configurable.DebuggerEngine.*
+import org.cangnova.cangjie.debugger.configurable.DebuggerEngine.DAP
+import org.cangnova.cangjie.debugger.configurable.DebuggerEngine.PROTOBUF
 import org.cangnova.cangjie.debugger.dap.ui.DapDebugProcess
 import org.cangnova.cangjie.debugger.protobuf.core.ProtoDebugProcess
 import org.cangnova.cangjie.messages.CangJieBundle

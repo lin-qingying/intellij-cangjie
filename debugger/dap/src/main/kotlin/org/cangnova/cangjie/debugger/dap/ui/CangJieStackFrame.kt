@@ -46,7 +46,7 @@ import org.cangnova.cangjie.debugger.dap.core.Variable
  * 仓颉执行栈
  */
 class CangJieExecutionStack(
-    private val debugProcess: CangJieDebugProcess,
+    private val debugProcess: DapDebugProcess,
     private val thread: ThreadInfo,
     private val frames: List<StackFrameInfo>
 ) : XExecutionStack(thread.name) {
@@ -70,7 +70,7 @@ class CangJieExecutionStack(
  * 仓颉栈帧
  */
 class CangJieStackFrame(
-    private val debugProcess: CangJieDebugProcess,
+    private val debugProcess: DapDebugProcess,
     private val threadId: Long,
     private val frameInfo: StackFrameInfo
 ) : XStackFrame() {
@@ -160,7 +160,7 @@ class CangJieStackFrame(
 class CangJieScopeGroup(
     private val scopeName: String,
     private val variables: List<Variable>,
-    private val debugProcess: CangJieDebugProcess
+    private val debugProcess: DapDebugProcess
 ) : XValueGroup(scopeName) {
 
     override fun computeChildren(node: XCompositeNode) {
@@ -181,7 +181,7 @@ class CangJieScopeGroup(
  * 仓颉变量
  */
 class CangJieVariable(
-    private val debugProcess: CangJieDebugProcess,
+    private val debugProcess: DapDebugProcess,
     private val variable: Variable
 ) : XNamedValue(variable.name) {
 

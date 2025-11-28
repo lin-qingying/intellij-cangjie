@@ -39,7 +39,7 @@ import kotlinx.coroutines.launch
  * 处理断点的注册和注销（完全异步）
  */
 class CangJieBreakpointHandler(
-    private val debugProcess: CangJieDebugProcess
+    private val debugProcess: DapDebugProcess
 ) : XBreakpointHandler<XLineBreakpoint<CangJieLineBreakpointProperties>>(
     CangJieLineBreakpointType::class.java
 ) {

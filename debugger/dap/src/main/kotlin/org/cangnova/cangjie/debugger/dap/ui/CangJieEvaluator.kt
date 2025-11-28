@@ -42,7 +42,7 @@ import org.cangnova.cangjie.debugger.dap.core.Variable
  * 处理调试器中的表达式求值（完全异步）
  */
 class CangJieEvaluator(
-    private val debugProcess: CangJieDebugProcess,
+    private val debugProcess: DapDebugProcess,
     private val frameId: Long,
     private val threadId: Long
 ) : XDebuggerEvaluator() {
