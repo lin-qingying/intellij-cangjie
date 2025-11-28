@@ -115,6 +115,8 @@ object DebuggerProcessFactory {
         // ASLR 配置
         if (DebuggerSettings.getInstance().isDisableASLR()) {
             environment["LLDB_LAUNCH_FLAG_DISABLE_ASLR"] = "1"
+
+            environment["LLDB_LAUNCH_INFERIORS_WITHOUT_CONSOLE"] = "1"
         }
     }
 
@@ -149,6 +151,7 @@ object DebuggerProcessFactory {
             override fun readerOptions() = BaseOutputReader.Options.BLOCKING
         }.apply {
             setShouldDestroyProcessRecursively(false)
+
         }
 
     private fun validateFiles(framework: File, frontend: File) {

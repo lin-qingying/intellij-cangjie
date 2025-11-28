@@ -234,7 +234,10 @@ class CangJieVariableValue(
             variable = lldbVariable,
             facade = facade
         )
-    }}
+    }
+
+
+}
 
 /**
  * 寄存器变量值
@@ -331,3 +334,4 @@ class CangJieRegisterValue(
      */
     override fun getModifier(): XValueModifier? = null
 }
+

@@ -12,16 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
  */
 
 package org.cangnova.cangjie.protodebugger.core
 
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -29,28 +35,20 @@ import com.intellij.ui.ColoredText
 import com.intellij.ui.ColoredTextContainer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.TextTransferable
-import com.intellij.xdebugger.XDebuggerUtil
 import com.intellij.xdebugger.XExpression
 import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.evaluation.EvaluationMode
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
-import com.intellij.xdebugger.frame.*
-import com.intellij.xdebugger.frame.presentation.XValuePresentation
-import com.intellij.xdebugger.impl.XSourcePositionImpl
+import com.intellij.xdebugger.frame.XCompositeNode
+import com.intellij.xdebugger.frame.XStackFrame
+import com.intellij.xdebugger.frame.XValueChildrenList
+import com.intellij.xdebugger.frame.XValueModifier
 import org.cangnova.cangjie.messages.DebuggerBundle
 import org.cangnova.cangjie.protodebugger.data.LLDBFrame
 import org.cangnova.cangjie.protodebugger.data.LLDBThread
 import org.cangnova.cangjie.protodebugger.data.LLDBVariable
-import org.cangnova.cangjie.protodebugger.memory.Address
 import org.cangnova.cangjie.protodebugger.settings.DebuggerSettings
-import org.cangnova.cangjie.psi.CjArrayAccessExpression
-import org.cangnova.cangjie.psi.CjBinaryExpression
-import org.cangnova.cangjie.psi.CjBlockExpression
-import org.cangnova.cangjie.psi.CjCallExpression
-import org.cangnova.cangjie.psi.CjConstantExpression
-import org.cangnova.cangjie.psi.CjDeclaration
-import org.cangnova.cangjie.psi.CjReferenceExpression
-import org.cangnova.cangjie.psi.CjSimpleNameExpression
+import org.cangnova.cangjie.psi.*
 
 fun LLDBFrame.toCangJieStackFrame(
     thread: LLDBThread,
@@ -143,10 +141,20 @@ class CangJieStackFrame(
             try {
                 val children = XValueChildrenList()
 
-                // 获取栈帧的变量
+                // 从 DebuggerSettings 获取变量过滤配置
+                val settings = org.cangnova.cangjie.protodebugger.settings.DebuggerSettings.getInstance()
+
+                // 获取栈帧的变量，使用用户配置的过滤选项
                 val variables = facade.evalService.getVariables(
                     thread,
-                    frame
+                    frame,
+                    includeArgument = settings.isIncludeArguments(),
+                    includeStatics = settings.isIncludeStatics(),
+                    includeLocals = settings.isIncludeLocals(),
+                    inScopeOnly = settings.isInScopeOnly(),
+                    includeRuntimeSupportValues = settings.isIncludeRuntimeSupportValues(),
+                    useDynamic = settings.getUseDynamic(),
+                    includeRecognizedArguments = settings.isIncludeRecognizedArguments()
                 )
 
                 // 将变量转换为 XValue 并添加到列表

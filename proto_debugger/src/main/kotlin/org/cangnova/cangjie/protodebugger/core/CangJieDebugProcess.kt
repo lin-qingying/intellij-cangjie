@@ -70,7 +70,6 @@ import org.cangnova.cangjie.protodebugger.services.DisasmService
 import org.cangnova.cangjie.protodebugger.settings.ArchitectureType
 import org.cangnova.cangjie.protodebugger.settings.DebuggerSettings
 import org.cangnova.cangjie.protodebugger.transport.isTest
-import org.cangnova.cangjie.protodebugger.util.InstallerImpl
 import org.jetbrains.annotations.NonNls
 import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
@@ -758,7 +757,7 @@ class CangJieDebugProcess(
 
             val future = executeCommand {
                 facade.sessionService.loadForLaunch(
-                    InstallerImpl(executable),
+                    executable,
                     ArchitectureType.X86_64.getId()
                 )
             }.thenApply {

@@ -21,9 +21,7 @@ import "model.proto";
  *   - 客户端应准备随时接收事件
  *
  * 事件触发时机：
- *   - ProcessStopped: 进程暂停时（断点、单步、信号等）
- *   - ProcessRunning: 进程恢复执行时
- *   - ProcessExited: 进程退出时
+ *   - ProcessStateChanged: 进程状态变化时（停止、运行、退出等）
  *   - ProcessOutput: 进程输出时（stdout/stderr）
  *   - ModuleEvent: 模块加载/卸载时
  *   - BreakpointChangedEvent: 断点状态变化时
@@ -50,77 +48,73 @@ message Initialized {
 
 
 /* =========================================================================
- * 进程生命周期事件
+ * 统一进程状态变更事件
  * ========================================================================= */
 
 /**
- * 进程停止事件
- *
- * 当被调试进程因任何原因暂停执行时发送。
- * 这是最重要的事件之一，前端需要据此更新所有调试视图。
- *
- * 触发条件：
- *   - 命中断点
- *   - 单步执行完成
- *   - 收到信号（如 SIGINT）
- *   - 发生异常
- *   - 用户请求暂停
- *
- * 前端处理：
- *   - 更新线程列表和状态
- *   - 更新当前栈帧
- *   - 刷新变量视图
- *   - 定位到停止位置的源代码
+ * 进程停止详情
+ * 用于 STOPPED/CRASHED/SUSPENDED 状态
  */
-message ProcessStopped {
-  // 触发暂停的线程信息
-  // 包含线程 ID、停止原因等详细信息
+message ProcessStoppedDetails {
+  // 触发停止的线程信息
   Thread stopped_thread = 1;
 
-  // 当前栈帧
-  // 被中断线程的顶层栈帧，包含函数名、源码位置等
+  // 当前栈帧（停止线程的顶层栈帧）
   Frame current_frame = 2;
 }
 
 /**
- * 进程恢复执行事件
- *
- * 当进程从暂停状态恢复执行时发送。
- * 通常在执行 continue、step 命令后触发。
- *
- * 前端处理：
- *   - 禁用变量查看（运行中无法查看）
- *   - 更新 UI 状态为"运行中"
- *   - 可能需要禁用某些调试操作
+ * 进程运行详情
+ * 用于 RUNNING/STEPPING/ATTACHING/LAUNCHING 状态
  */
-message ProcessRunning {
-  // 恢复执行的线程（可选）
-  // 如果是特定线程恢复，此字段包含线程 ID
-  // 如果是所有线程恢复，此字段可能为空
-  Id thread = 2;
+message ProcessRunningDetails {
+  // 恢复执行的线程 ID（0 表示所有线程）
+  int64 thread_id = 1;
 }
 
 /**
- * 进程退出事件
+ * 进程退出详情
+ * 用于 EXITED/DETACHED 状态
+ */
+message ProcessExitedDetails {
+  // 退出码（仅 EXITED 状态有效）
+  int32 exit_code = 1;
+
+  // 退出描述
+  string description = 2;
+}
+
+/**
+ * 进程状态变更事件
  *
- * 当被调试进程退出时发送。
- * 无论是正常退出还是异常终止都会触发此事件。
+ * 统一的进程状态变更事件，当进程状态发生任何变化时发送此事件。
+ * 对应 LLDB 的 lldb::StateType 状态变化。
  *
  * 前端处理：
- *   - 显示退出信息
- *   - 清理调试状态
- *   - 可能提示用户是否重新启动
+ *   - 根据 state 字段判断进程当前状态
+ *   - STOPPED/CRASHED/SUSPENDED: 更新所有调试视图（线程、变量、栈帧等）
+ *   - RUNNING/STEPPING: 禁用调试视图，显示"运行中"状态
+ *   - EXITED/DETACHED: 清理调试状态，提示用户
+ *   - ATTACHING/LAUNCHING: 显示"正在启动"状态
  */
-message ProcessExited {
-  // 进程退出码
-  // 0 通常表示正常退出
-  // 非 0 表示异常退出或返回错误
-  int32 exit_code = 2;
+message ProcessStateChanged {
+  // 进程当前状态
+  ProcessState state = 1;
 
-  // 退出描述（可选）
-  // 提供额外的退出信息
-  // 示例: "被信号 SIGSEGV 终止", "正常退出"
-  optional string exit_description = 3;
+  // 状态描述（人类可读）
+  string description = 2;
+
+  // 根据状态类型选择性填充详情
+  oneof details {
+    // STOPPED/CRASHED/SUSPENDED 状态的详情
+    ProcessStoppedDetails stopped_details = 3;
+
+    // RUNNING/STEPPING/ATTACHING/LAUNCHING 状态的详情
+    ProcessRunningDetails running_details = 4;
+
+    // EXITED/DETACHED 状态的详情
+    ProcessExitedDetails exited_details = 5;
+  }
 }
 
 
@@ -311,33 +305,27 @@ message Event {
     Initialized initialized = 1;
 
     // ===== 进程生命周期事件 =====
-    // 进程暂停（断点、单步、信号等）
-    ProcessStopped process_stopped = 2;
-
-    // 进程恢复执行
-    ProcessRunning process_running = 3;
-
-    // 进程退出
-    ProcessExited process_exited = 4;
+    // 统一进程状态变更事件
+    ProcessStateChanged process_state_changed = 2;
 
     // ===== 输出事件 =====
     // 进程输出（stdout/stderr）
-    ProcessOutput process_output = 7;
+    ProcessOutput process_output = 3;
 
     // ===== 模块事件 =====
     // 模块加载/卸载
-    ModuleEvent module_event = 8;
+    ModuleEvent module_event = 4;
 
     // ===== 断点事件 =====
     // 断点状态变更
-    BreakpointChangedEvent breakpoint_changed_event = 9;
+    BreakpointChangedEvent breakpoint_changed_event = 5;
 
     // ===== 线程事件 =====
     // 线程状态变更
-    ThreadStateChangedEvent thread_state_changed_event = 10;
+    ThreadStateChangedEvent thread_state_changed_event = 6;
 
     // ===== 符号事件 =====
     // 符号加载
-    SymbolsLoadedEvent symbols_loaded_event = 11;
+    SymbolsLoadedEvent symbols_loaded_event = 7;
   }
 }

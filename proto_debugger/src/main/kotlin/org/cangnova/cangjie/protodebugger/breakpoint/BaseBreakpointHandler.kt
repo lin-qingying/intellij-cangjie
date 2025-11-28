@@ -30,6 +30,7 @@ import com.intellij.openapi.application.ReadAction.nonBlocking
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.xdebugger.XDebuggerManager
+import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.breakpoints.XBreakpoint
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties
@@ -314,7 +315,7 @@ abstract class BaseBreakpointHandler<B : XBreakpoint<P>, T : XBreakpointType<B, 
      * @param filePosition 文件位置信息
      * @return 找到的断点，如果没有找到则返回 null
      */
-    fun findBreakpointAt(filePosition: com.intellij.xdebugger.XSourcePosition?): XBreakpoint<*>? {
+    fun findBreakpointAt(filePosition: XSourcePosition?): XBreakpoint<*>? {
         if (filePosition == null) return null
 
         val file = filePosition.file

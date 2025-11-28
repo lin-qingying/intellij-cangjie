@@ -1318,6 +1318,51 @@ enum ThreadStateChangeType {
 }
 
 
+/**
+ * 进程状态枚举
+ *
+ * 对应 LLDB 的 lldb::StateType 枚举。
+ * 描述进程在调试过程中的各种状态。
+ */
+enum ProcessState {
+  // 无效状态
+  PROCESS_STATE_INVALID = 0;
+
+  // 进程对象有效但未加载
+  PROCESS_STATE_UNLOADED = 1;
+
+  // 已连接到远程调试服务（但未启动或附加）
+  PROCESS_STATE_CONNECTED = 2;
+
+  // 正在附加到进程
+  PROCESS_STATE_ATTACHING = 3;
+
+  // 正在启动进程
+  PROCESS_STATE_LAUNCHING = 4;
+
+  // 进程已停止（可检查状态）
+  PROCESS_STATE_STOPPED = 5;
+
+  // 进程正在运行（无法检查状态）
+  PROCESS_STATE_RUNNING = 6;
+
+  // 进程正在单步执行
+  PROCESS_STATE_STEPPING = 7;
+
+  // 进程已崩溃（可检查状态）
+  PROCESS_STATE_CRASHED = 8;
+
+  // 进程已分离（无法再检查）
+  PROCESS_STATE_DETACHED = 9;
+
+  // 进程已退出（无法再检查）
+  PROCESS_STATE_EXITED = 10;
+
+  // 进程已挂起
+  PROCESS_STATE_SUSPENDED = 11;
+}
+
+
 /* =========================================================================
  * 函数/符号信息
  *

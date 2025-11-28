@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.protodebugger.transport
 
 import com.google.protobuf.Message
+import com.intellij.execution.process.ProcessOutputTypes
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.text.StringUtil
@@ -77,9 +78,7 @@ class EventBroadcastHandler(
                 is EventOuterClass.Initialized -> handleInitialized(message)
 
                 // 进程事件
-                is EventOuterClass.ProcessStopped -> handleProcessStopped(message)
-                is EventOuterClass.ProcessRunning -> handleProcessRunning(message)
-                is EventOuterClass.ProcessExited -> handleProcessExited(message)
+                is EventOuterClass.ProcessStateChanged -> handleProcessStateChanged(message)
                 is EventOuterClass.ProcessOutput -> handleProcessOutput(message)
 
                 // 模块事件
@@ -110,40 +109,78 @@ class EventBroadcastHandler(
 
     }
 
-    //    private fun handleReadyForCommands(event: Broadcasts.ReadyForCommandsEvent) {
-//        val newState = if (event.isReady) TargetState.SUSPENDED else TargetState.NOT_READY
-//        stateManager.updateState(newState)
-//        LOG.debug("Ready for commands: ${event.isReady}, state: $newState")
-//    }
-//
-//    private fun handlePromptChanged(event: Broadcasts.PromptChangedEvent) {
-//        LOG.debug("Prompt changed: ${event.newPrompt}")
-//        debuggerHandler.handlePrompt(event.newPrompt)
-//    }
-//
-//    private fun handleInterpreterMessage(event: Broadcasts.CommandInterpreterMessageEvent) {
-//        LOG.debug("Interpreter message: ${event.message}")
-//    }
-//
-//    private fun handleLogMessage(event: Broadcasts.LogMessageEvent) {
-//        val level = event.level
-//        val message = event.message
-//        when (level) {
-//            proto.Model.LogLevel.LOG_LEVEL_ERROR -> LOG.error(message)
-//            proto.Model.LogLevel.LOG_LEVEL_INFO -> LOG.info(message)
-//            proto.Model.LogLevel.LOG_LEVEL_DEBUG -> LOG.debug(message)
-//            else -> LOG.trace(message)
-//        }
-//    }
-//
-//    // 进程事件处理
-    private fun handleProcessStopped(event: EventOuterClass.ProcessStopped) {
+    // 进程状态变更事件处理
+    /**
+     * 处理进程状态变更事件
+     *
+     * 统一处理进程的所有状态变化，包括停止、运行、退出等。
+     * 根据状态类型和details字段分发到具体的处理逻辑。
+     */
+    private fun handleProcessStateChanged(event: EventOuterClass.ProcessStateChanged) {
+        val state = event.state
+        val description = event.description
+
+        LOG.debug("Process state changed: $state${description.takeIf { it.isNotBlank() }?.let { ", desc=$it" } ?: ""}")
+
+        when (state) {
+            // 停止状态 - 进程暂停，可以检查调试状态
+            Model.ProcessState.PROCESS_STATE_STOPPED,
+            Model.ProcessState.PROCESS_STATE_CRASHED,
+            Model.ProcessState.PROCESS_STATE_SUSPENDED -> {
+                if (event.hasStoppedDetails()) {
+                    handleProcessStoppedState(event.stoppedDetails)
+                } else {
+                    LOG.warn("Process stopped but missing stopped_details")
+                }
+            }
+
+            // 运行状态 - 进程正在执行
+            Model.ProcessState.PROCESS_STATE_RUNNING,
+            Model.ProcessState.PROCESS_STATE_STEPPING,
+            Model.ProcessState.PROCESS_STATE_ATTACHING,
+            Model.ProcessState.PROCESS_STATE_LAUNCHING -> {
+                if (event.hasRunningDetails()) {
+                    handleProcessRunningState(event.runningDetails)
+                } else {
+                    handleProcessRunningState(null)
+                }
+            }
+
+            // 退出状态 - 进程已终止
+            Model.ProcessState.PROCESS_STATE_EXITED,
+            Model.ProcessState.PROCESS_STATE_DETACHED -> {
+                if (event.hasExitedDetails()) {
+                    handleProcessExitedState(event.exitedDetails, state)
+                } else {
+                    LOG.warn("Process exited but missing exited_details")
+                }
+            }
+
+            // 其他状态
+            Model.ProcessState.PROCESS_STATE_INVALID,
+            Model.ProcessState.PROCESS_STATE_UNLOADED,
+            Model.ProcessState.PROCESS_STATE_CONNECTED -> {
+                LOG.debug("Process in transitional state: $state")
+            }
+
+            else -> {
+                LOG.warn("Unrecognized process state: $state")
+            }
+        }
+    }
+
+    /**
+     * 处理进程停止状态
+     *
+     * 从旧的handleProcessStopped迁移而来的逻辑。
+     */
+    private fun handleProcessStoppedState(stoppedDetails: EventOuterClass.ProcessStoppedDetails) {
         stateManager.updateState(TargetState.Paused)
-        val stoppedThread = event.stoppedThread ?: return
+        val stoppedThread = stoppedDetails.stoppedThread ?: return
         val thread = stoppedThread.let { newLLThread(it) }
         stateManager.updateStoppedThread(thread)
         LOG.info("Process interrupted on thread: ${thread.id}")
-        val frame = createLLDBFrame(event.currentFrame)
+        val frame = createLLDBFrame(stoppedDetails.currentFrame)
         val debugPausePoint = DebugPausePoint(thread, frame, stoppedThread.stopInfo).also {
             stateManager.updateStopPlace(it)
         }
@@ -310,23 +347,35 @@ class EventBroadcastHandler(
                 debuggerHandler.handleStopped(debugPausePoint)
             }
         }
-
-
     }
-//
-private fun handleProcessRunning(event: EventOuterClass.ProcessRunning) {
-    stateManager.updateState(TargetState.Running)
-    stateManager.updateStoppedThread(null)
-    LOG.debug("Process running")
-    debuggerHandler.handleRunning()
-}
 
-    private fun handleProcessExited(event: EventOuterClass.ProcessExited) {
+    /**
+     * 处理进程运行状态
+     *
+     * 从旧的handleProcessRunning迁移而来的逻辑。
+     */
+    private fun handleProcessRunningState(runningDetails: EventOuterClass.ProcessRunningDetails?) {
+        stateManager.updateState(TargetState.Running)
+        stateManager.updateStoppedThread(null)
+        runningDetails?.threadId?.let { threadId ->
+            LOG.debug("Process running on thread: $threadId")
+        } ?: LOG.debug("Process running")
+        debuggerHandler.handleRunning()
+    }
+
+    /**
+     * 处理进程退出状态
+     *
+     * 从旧的handleProcessExited迁移而来的逻辑。
+     */
+    private fun handleProcessExitedState(
+        exitedDetails: EventOuterClass.ProcessExitedDetails,
+        state: Model.ProcessState
+    ) {
         stateManager.updateState(TargetState.Terminated)
-        LOG.info("Process exited with code: ${event.exitCode}")
-        val exitCode: Int = event.exitCode
-        val exitDescription: String? =
-            if (event.hasExitDescription()) event.getExitDescription() else null
+        LOG.info("Process $state with code: ${exitedDetails.exitCode}")
+        val exitCode: Int = exitedDetails.exitCode
+        val exitDescription: String? = exitedDetails.description.takeIf { it.isNotBlank() }
         var exitStatus: ExitStatus = ExitStatus.normal(exitCode, exitDescription)
         if (SystemInfo.isMac && exitCode == 0 && exitDescription != null && exitDescription.startsWith("Terminated due to signal ")) {
             val signal = StringUtil.parseInt(
@@ -339,6 +388,7 @@ private fun handleProcessRunning(event: EventOuterClass.ProcessRunning) {
         debuggerHandler.handleTargetTerminated(exitStatus)
     }
 
+
     /**
      * 处理进程输出事件
      *
@@ -346,10 +396,10 @@ private fun handleProcessRunning(event: EventOuterClass.ProcessRunning) {
      */
     private fun handleProcessOutput(event: EventOuterClass.ProcessOutput) {
         val outputKey = when (event.outputType) {
-            Model.OutputType.OutputTypeStdout -> com.intellij.execution.process.ProcessOutputTypes.STDOUT
-            Model.OutputType.OutputTypeStderr -> com.intellij.execution.process.ProcessOutputTypes.STDERR
-            Model.OutputType.UNRECOGNIZED -> com.intellij.execution.process.ProcessOutputTypes.SYSTEM
-            else -> com.intellij.execution.process.ProcessOutputTypes.SYSTEM
+            Model.OutputType.OutputTypeStdout -> ProcessOutputTypes.STDOUT
+            Model.OutputType.OutputTypeStderr -> ProcessOutputTypes.STDERR
+            Model.OutputType.UNRECOGNIZED -> ProcessOutputTypes.SYSTEM
+            else -> ProcessOutputTypes.SYSTEM
         }
 
         LOG.debug("Process output (${event.outputType}): ${event.text}")

@@ -78,13 +78,6 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
     }
 
 
-    /**
-     * Overwriting it causes openDocuments to miss the files in the editor,
-     */
-//    override fun getFileUri(file: VirtualFile): URI? {
-//        val uri = lowercaseWindowsDriveAndEscapeColon( DEFAULT.getFileUri(file).toString())
-//        return URI.create(uri)
-//    }
 
 
     fun getCapabilities(): ClientCapabilities {

@@ -36,8 +36,8 @@ import com.intellij.util.io.BaseDataReader.SleepingPolicy
 import com.intellij.util.io.BaseOutputReader
 import com.intellij.util.system.OS
 import com.pty4j.unix.Pty
-import org.cangnova.cangjie.protodebugger.transport.NamedPipe
-import org.cangnova.cangjie.protodebugger.transport.WindowsPipe
+import org.cangnova.cangjie.protodebugger.pty.NamedPipe
+import org.cangnova.cangjie.protodebugger.pty.WindowsPipe
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException

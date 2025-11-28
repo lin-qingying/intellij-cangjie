@@ -39,7 +39,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.io.BaseOutputReader.Options
 import com.intellij.util.system.OS
 import org.cangnova.cangjie.messages.DebuggerBundle
-import org.cangnova.cangjie.protodebugger.transport.NamedPipe
+import org.cangnova.cangjie.protodebugger.pty.NamedPipe
 import org.cangnova.cangjie.protodebugger.util.sudo
 import org.cangnova.cangjie.protodebugger.util.sudoCommand
 

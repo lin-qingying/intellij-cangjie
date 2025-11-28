@@ -33,7 +33,7 @@ import com.intellij.execution.process.ProcessOutput
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.system.OS
-import org.cangnova.cangjie.protodebugger.transport.NamedPipe
+import org.cangnova.cangjie.protodebugger.pty.NamedPipe
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files

@@ -22,47 +22,32 @@
  *
  */
 
-
-
 dependencies {
-    intellijPlatform {
-        plugins("com.redhat.devtools.lsp4ij:0.18.0")
-    }
+    // IntelliJ Platform modules
     implementation(project(":"))
     implementation(project(":psi"))
-
-    implementation(project(":telemetry"))
-    implementation(project(":toolchain"))
-    implementation(project(":messages"))
+    implementation(project(":common"))
     implementation(project(":util"))
-
+    implementation(project(":toolchain"))
     implementation(project(":cangjie-project"))
+    implementation(project(":messages"))
 
+    // LSP4J for DAP (Debug Adapter Protocol)
+    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.debug:0.21.0")
 
-}
-project(":") {
-    dependencies {
+    // Kotlin Coroutines
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    compileOnly("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.7.3")
 
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-        }
-    }
-}
-project(":cangjie-project") {
-    dependencies {
-
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-        }
-    }
+    // Testing
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
 
-
+// 配置插件依赖
 project(":plugin") {
     dependencies {
         implementation(project(":dap-debugger"))
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.18.0")
-        }
     }
 }

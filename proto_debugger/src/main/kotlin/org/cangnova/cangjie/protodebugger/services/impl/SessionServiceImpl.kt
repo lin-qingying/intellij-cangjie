@@ -53,10 +53,9 @@ import org.cangnova.cangjie.protodebugger.process.HostMachine
 import org.cangnova.cangjie.protodebugger.process.LocalHost
 import org.cangnova.cangjie.protodebugger.process.ProcessOutputReaders
 import org.cangnova.cangjie.protodebugger.protocol.ProtobufFactory
+import org.cangnova.cangjie.protodebugger.pty.WindowsPipe
 import org.cangnova.cangjie.protodebugger.services.SessionService
 import org.cangnova.cangjie.protodebugger.transport.MessageBus
-import org.cangnova.cangjie.protodebugger.transport.WindowsPipe
-import org.cangnova.cangjie.protodebugger.util.Installer
 import java.io.File
 import java.io.OutputStream
 
@@ -76,7 +75,7 @@ class SessionServiceImpl(
 ) : SessionService, AutoCloseable {
 
     private val socketLock = Mutex()
-    private val inferiorResult = AsyncResult.create<SessionService.Inferior>()
+    private val inferiorResult = AsyncResult.create<SessionService.DebugTarget>()
 
     // I/O 资源管理
     private val ioResources = IOResourceManager(
@@ -87,9 +86,9 @@ class SessionServiceImpl(
 
     // ==================== 目标加载 ====================
 
-    override suspend fun loadForLaunch(installer: Installer, architecture: String?) {
+    override suspend fun loadForLaunch(commandLine: GeneralCommandLine, architecture: String?) {
         runCatching {
-            val inferior = createLaunchInferior(installer, architecture)
+            val inferior = createLaunchInferior(commandLine, architecture)
             inferiorResult.complete(inferior)
         }.onFailure { ex ->
             when (ex) {
@@ -103,22 +102,22 @@ class SessionServiceImpl(
         }
     }
 
-    override suspend fun loadForAttach(processId: Int): SessionService.Inferior {
-        createEmptyTarget()
-        return AttachInferior(processId,  messageBus, this,)
+    override suspend fun loadForAttach(processId: Long) {
+        val inferior = AttachDebugTarget(processId, messageBus, this)
+        inferiorResult.complete(inferior)
+
     }
 
 
     override suspend fun loadForRemote(
-        installer: Installer,
+        commandLine: GeneralCommandLine,
         architecture: String?,
         platform: String,
         url: String
-    ): SessionService.Inferior {
-        val targetCommandLine = installer.install()
-        createRemoteTarget(installer, architecture, platform, targetCommandLine)
+    ): SessionService.DebugTarget {
+        createRemoteTarget(commandLine, architecture, platform)
         connectToRemotePlatform(platform, url)
-        return LaunchInferior(targetCommandLine, installer,   messageBus, this, ioResources,facade.emulateTerminal)
+        return LaunchDebugTarget(commandLine, messageBus, this, ioResources, facade.emulateTerminal)
     }
 
     // ==================== 目标控制 ====================
@@ -188,9 +187,6 @@ class SessionServiceImpl(
     override fun getState(): TargetState = stateProvider()
 
 
-
-
-
     // ==================== 控制台命令 ====================
 
     override suspend fun executeInterpreterCommand(
@@ -240,13 +236,12 @@ class SessionServiceImpl(
     // ==================== 私有辅助方法 ====================
 
     private suspend fun createLaunchInferior(
-        installer: Installer,
+        commandLine: GeneralCommandLine,
         architecture: String?
-    ): SessionService.Inferior {
-        val targetCommandLine = installer.install()
-        createTarget(installer.executableFile.path, architecture)
+    ): SessionService.DebugTarget {
+        createTarget(commandLine.exePath, architecture)
         configureTarget()
-        return LaunchInferior(targetCommandLine, installer,  messageBus, this, ioResources,facade.emulateTerminal)
+        return LaunchDebugTarget(commandLine, messageBus, this, ioResources, facade.emulateTerminal)
     }
 
     private suspend fun createTarget(executablePath: String, architecture: String?) {
@@ -264,15 +259,14 @@ class SessionServiceImpl(
     }
 
     private suspend fun createRemoteTarget(
-        installer: Installer,
+        commandLine: GeneralCommandLine,
         architecture: String?,
-        platform: String,
-        targetCommandLine: GeneralCommandLine
+        platform: String
     ) {
         val request = ProtobufFactory.createRemoteTarget(
-            installer.executableFile.path,
+            commandLine.exePath,
             platform,
-            targetCommandLine.exePath,
+            commandLine.exePath,
             architecture.orEmpty(),
             null
         )
@@ -518,21 +512,20 @@ class IOResourceManager(
     }
 }
 
-// ==================== Inferior 实现 ====================
+// ==================== DebugTarget 实现 ====================
 
 /**
  * 启动类型的调试目标
  */
-private class LaunchInferior(
+private class LaunchDebugTarget(
     private val commandLine: GeneralCommandLine,
-    private val installer: Installer,
     private val messageBus: MessageBus,
     private val sessionService: SessionServiceImpl,
     private val ioResources: IOResourceManager,
     private val emulateTerminal: Boolean
-) : SessionService.Inferior {
+) : SessionService.DebugTarget {
 
-    override fun getId(): Int = -1
+    override fun getId(): Long = -1
 
     override suspend fun start(): Long {
 
@@ -579,17 +572,17 @@ private class LaunchInferior(
 /**
  * 附加类型的调试目标
  */
-private class AttachInferior(
-    private val processId: Int,
+private class AttachDebugTarget(
+    private val processId: Long,
     private val messageBus: MessageBus,
     private val sessionService: SessionServiceImpl
-) : SessionService.Inferior {
+) : SessionService.DebugTarget {
 
-    override fun getId(): Int = processId
+    override fun getId(): Long = processId
 
     override suspend fun start(): Long {
         // 构建附加选项
-        val options =  emptyMap<String,String>()
+        val options = emptyMap<String, String>()
 
         val response = messageBus.request(
             ProtobufFactory.attach(processId.toLong(), options),
@@ -629,7 +622,7 @@ private data class StreamConfiguration(
         fun from(commandLine: GeneralCommandLine, emulateTerminal: Boolean) =
             StreamConfiguration(
                 useExternalConsole = commandLine.getUserData(SessionServiceImpl.USE_EXTERNAL_CONSOLE_KEY) == true,
-                emulateTerminal =  emulateTerminal,
+                emulateTerminal = emulateTerminal,
                 inputFile = commandLine.inputFile,
                 commandLine = commandLine
             )

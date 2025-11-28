@@ -151,12 +151,12 @@ fun makeBreakpoint(
         if (breakpoint.hasOriginalLocation()) breakpoint.originalLocation.filePath else "<address>"
     val origLine = if (breakpoint.hasOriginalLocation()) breakpoint.originalLocation.line else 0
     val condition: String? = breakpoint.getCondition()
-    val LLDBBreakpoint = LLDBBreakpoint(breakpoint.id.id, origFilePath, origLine - 1, condition)
+    val lldbBreakpoint = LLDBBreakpoint(breakpoint.id.id, origFilePath, origLine - 1, condition)
     val locationList: List<LLDBBreakpointLocation> = ContainerUtil.mapNotNull(breakpointLocations) { loc ->
         makeBreakpointLocation(
             breakpoint.id,
             loc
         )
     }
-    return AddBreakpointResult(LLDBBreakpoint, locationList)
+    return AddBreakpointResult(lldbBreakpoint, locationList)
 }

@@ -63,6 +63,7 @@ import org.cangnova.cangjie.protodebugger.util.SourceFileHash
 import java.io.IOException
 import java.security.MessageDigest
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 /**
  * 调试器驱动门面
@@ -136,6 +137,7 @@ class DebuggerDriverFacade(
     val disasmService: DisasmService
     val sessionService: SessionService
     val commandService: CommandService
+    val attachService: AttachService = AttachServiceImpl()
 
     // 内存视图门面
     val memoryViewFacade: MemoryViewFacade
@@ -176,6 +178,24 @@ class DebuggerDriverFacade(
             frontendHandler.addProcessListener(
                 object : ProcessAdapter() {
 
+                    override fun processWillTerminate(event: ProcessEvent, willBeDestroyed: Boolean) {
+
+                        if (frontendHandler.process.isAlive && willBeDestroyed) {
+                            try {
+                                if (!exit()) {
+                                    return
+                                }
+                            } catch (e: ExecutionException) {
+                                LOG.warn(e)
+                                return
+                            }
+
+                            try {
+                                frontendHandler.process.waitFor(1500L, TimeUnit.MILLISECONDS)
+                            } catch (e: InterruptedException) {
+                            }
+                        }
+                    }
 
                     override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
 

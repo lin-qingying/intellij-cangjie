@@ -82,7 +82,7 @@ include("cangjie-project")
 include("cjpm")
 
 
-include("debugger")
 include("dap-debugger")
+
 
 include("proto_debugger")

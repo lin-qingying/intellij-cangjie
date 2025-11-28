@@ -1,10 +1,34 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.protodebugger.services
 
 import lldbprotobuf.Model.DynamicValueType
 import org.cangnova.cangjie.protodebugger.data.LLDBFrame
 import org.cangnova.cangjie.protodebugger.data.LLDBThread
-import org.cangnova.cangjie.protodebugger.data.LLDBVariable
 import org.cangnova.cangjie.protodebugger.data.LLDBValue
+import org.cangnova.cangjie.protodebugger.data.LLDBVariable
 import org.cangnova.cangjie.protodebugger.result.PagedResult
 
 /**
@@ -46,6 +70,13 @@ interface EvalService {
      *
      * @param thread 目标线程
      * @param frame 目标栈帧
+     * @param includeArgument 是否包含参数
+     * @param includeStatics 是否包含静态变量
+     * @param includeLocals 是否包含本地变量
+     * @param inScopeOnly 是否只包含当前作用域内的变量
+     * @param includeRuntimeSupportValues 是否包含运行时支持的变量（如 this 指针、返回值等）
+     * @param useDynamic 动态值获取选项
+     * @param includeRecognizedArguments 是否包含已识别的参数（类型推断的参数）
      * @return 变量列表
      */
     suspend fun getVariables(
@@ -65,8 +96,13 @@ interface EvalService {
      *
      * @param threadId 线程ID
      * @param frameIndex 栈帧索引
-     * @param statics 是否包含静态变量
-     * @param globals 是否包含全局变量
+     * @param includeArgument 是否包含参数
+     * @param includeStatics 是否包含静态变量
+     * @param includeLocals 是否包含本地变量
+     * @param inScopeOnly 是否只包含当前作用域内的变量
+     * @param includeRuntimeSupportValues 是否包含运行时支持的变量（如 this 指针、返回值等）
+     * @param useDynamic 动态值获取选项
+     * @param includeRecognizedArguments 是否包含已识别的参数（类型推断的参数）
      * @return 变量列表
      */
     suspend fun getVariables(
