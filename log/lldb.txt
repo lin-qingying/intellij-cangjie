@@ -7054,3 +7054,8052 @@ exit {
   }
 }
 
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  initialized {
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:37
+hash: 1
+create_target {
+  file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+hash {
+  hash: 1
+}
+create_target {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:37
+hash: 2
+launch {
+  launch_info {
+    executable_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+    env {
+      name: "CommonProgramFiles"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "PNPM_HOME"
+      value: "C:\\Users\\lin17\\AppData\\Local\\pnpm"
+    }
+    env {
+      name: "=::"
+      value: "::\\"
+    }
+    env {
+      name: "ProgramData"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "COMPUTERNAME"
+      value: "LIN"
+    }
+    env {
+      name: "SystemDrive"
+      value: "C:"
+    }
+    env {
+      name: "USERDOMAIN"
+      value: "LIN"
+    }
+    env {
+      name: "OneDriveConsumer"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "OneDrive"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "CommonProgramFiles(x86)"
+      value: "C:\\Program Files (x86)\\Common Files"
+    }
+    env {
+      name: "TEMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "TMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "CANGJIE_HOME"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18"
+    }
+    env {
+      name: "ProgramFiles"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "USERDOMAIN_ROAMINGPROFILE"
+      value: "LIN"
+    }
+    env {
+      name: "windir"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "JAVA_HOME"
+      value: "C:\\Users\\lin17\\.jdks\\corretto-21.0.8"
+    }
+    env {
+      name: "PROCESSOR_LEVEL"
+      value: "25"
+    }
+    env {
+      name: "PROCESS_OPTIONS"
+      value: "-javaagent:C:\\Users\\lin17\\AppData\\Local\\JetBrains\\IntelliJIdea2025.2\\captureAgent\\debugger-agent.jar=file:///C:/Users/lin17/AppData/Local/Temp/capture12883225535262652631.props, -Dkotlinx.coroutines.debug.enable.creation.stack.trace=false, -Ddebugger.agent.enable.coroutines=true, -Dkotlinx.coroutines.debug.enable.flows.stack.trace=true, -Dkotlinx.coroutines.debug.enable.mutable.state.flows.stack.trace=true"
+    }
+    env {
+      name: "ComSpec"
+      value: "C:\\WINDOWS\\system32\\cmd.exe"
+    }
+    env {
+      name: "NUMBER_OF_PROCESSORS"
+      value: "16"
+    }
+    env {
+      name: "PROCESSOR_ARCHITECTURE"
+      value: "AMD64"
+    }
+    env {
+      name: "OS"
+      value: "Windows_NT"
+    }
+    env {
+      name: "DEBUGGER_ID"
+      value: "Gradle JVM"
+    }
+    env {
+      name: "ProgramFiles(x86)"
+      value: "C:\\Program Files (x86)"
+    }
+    env {
+      name: "PSModulePath"
+      value: "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules"
+    }
+    env {
+      name: "PATHEXT"
+      value: ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC"
+    }
+    env {
+      name: "PROCESSOR_IDENTIFIER"
+      value: "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD"
+    }
+    env {
+      name: "APPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Roaming"
+    }
+    env {
+      name: "ACSetupSvcPort"
+      value: "23210"
+    }
+    env {
+      name: "LOCALAPPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Local"
+    }
+    env {
+      name: "RlsSvcPort"
+      value: "22112"
+    }
+    env {
+      name: "DEBUGGER_ENABLED"
+      value: "true"
+    }
+    env {
+      name: "HOMEPATH"
+      value: "\\Users\\lin17"
+    }
+    env {
+      name: "SystemRoot"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "LOGONSERVER"
+      value: "\\\\LIN"
+    }
+    env {
+      name: "SESSIONNAME"
+      value: "Console"
+    }
+    env {
+      name: "HOMEDRIVE"
+      value: "C:"
+    }
+    env {
+      name: "DriverData"
+      value: "C:\\Windows\\System32\\Drivers\\DriverData"
+    }
+    env {
+      name: "PUBLIC"
+      value: "C:\\Users\\Public"
+    }
+    env {
+      name: "Path"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\lib;C:\\Users\\lin17\\.cjpm\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\nodejs\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Tencent\\\345\276\256\344\277\241web\345\274\200\345\217\221\350\200\205\345\267\245\345\205\267\\dll;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\cursor\\resources\\app\\bin;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Users\\lin17\\.cargo\\bin;C:\\Users\\lin17\\.local\\bin;C:\\Users\\lin17\\AppData\\Local\\pnpm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\lin17\\AppData\\Local\\JetBrains\\Toolbox\\scripts;C:\\Users\\lin17\\AppData\\Roaming\\npm;C:\\Users\\lin17\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\lin17\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\lin17\\.bun\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.13\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Google.Protobuf_Microsoft.Winget.Source_8wekyb3d8bbwe\\bin;"
+    }
+    env {
+      name: "PROCESSOR_REVISION"
+      value: "4401"
+    }
+    env {
+      name: "ALLUSERSPROFILE"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "USERPROFILE"
+      value: "C:\\Users\\lin17"
+    }
+    env {
+      name: "USERNAME"
+      value: "lin17"
+    }
+    env {
+      name: "ProgramW6432"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "CommonProgramW6432"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "EFC_34876_1592913036"
+      value: "1"
+    }
+    env {
+      name: "PROCESS_PARAMETERS"
+    }
+    working_directory: "C:\\Users\\lin17\\IdeaProjects\\untitled36"
+    stdin_path: "\\\\.\\pipe\\cangjie-debugger-21688-0-stdin"
+    stdout_path: "\\\\.\\pipe\\cangjie-debugger-21688-1-stdout"
+  }
+  console_mode: CONSOLE_MODE_PSEUDO
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "F4186E79"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140700132835328
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140709630377984
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140709630377984
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710498861056
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710498861056
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+      base_address: 140711511654400
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "F4186E79"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140700132835328
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+hash {
+  hash: 2
+}
+launch {
+  process {
+    id: 24068
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  process_state_changed {
+    state: PROCESS_STATE_RUNNING
+    description: "Process running"
+    running_details {
+      thread_id: 7744
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "F4186E79"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+event {
+  process_state_changed {
+    state: PROCESS_STATE_EXITED
+    description: "Process exited"
+    exited_details {
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:37
+hash: 3
+exit {
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:37
+hash {
+  hash: 3
+}
+exit {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:49
+event {
+  initialized {
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:49
+hash: 4
+create_target {
+  file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:49
+hash: 5
+add_breakpoint {
+  thread_id {
+  }
+  line {
+    file: "C:/Users/lin17/IdeaProjects/untitled36/src/main.cj"
+    line: 6
+  }
+  enabled: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:49
+hash {
+  hash: 4
+}
+create_target {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  breakpoint_changed_event {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+        line: 6
+        hash {
+        }
+      }
+    }
+    change_type: BREAKPOINT_EVENT_TYPE_ADDED
+    description: "Breakpoint added"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+hash {
+  hash: 5
+}
+add_breakpoint {
+  line_breakpoint {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        file_path: "C:/Users/lin17/IdeaProjects/untitled36/src/main.cj"
+        line: 6
+        hash {
+        }
+      }
+    }
+    locations {
+      id {
+        id: 1
+      }
+      address: 18446744073709551615
+      location {
+        file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+        line: 6
+        hash {
+        }
+      }
+    }
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:50
+hash: 6
+launch {
+  launch_info {
+    executable_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+    env {
+      name: "CommonProgramFiles"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "PNPM_HOME"
+      value: "C:\\Users\\lin17\\AppData\\Local\\pnpm"
+    }
+    env {
+      name: "=::"
+      value: "::\\"
+    }
+    env {
+      name: "ProgramData"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "COMPUTERNAME"
+      value: "LIN"
+    }
+    env {
+      name: "SystemDrive"
+      value: "C:"
+    }
+    env {
+      name: "USERDOMAIN"
+      value: "LIN"
+    }
+    env {
+      name: "OneDriveConsumer"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "OneDrive"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "CommonProgramFiles(x86)"
+      value: "C:\\Program Files (x86)\\Common Files"
+    }
+    env {
+      name: "TEMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "TMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "CANGJIE_HOME"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18"
+    }
+    env {
+      name: "ProgramFiles"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "USERDOMAIN_ROAMINGPROFILE"
+      value: "LIN"
+    }
+    env {
+      name: "windir"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "JAVA_HOME"
+      value: "C:\\Users\\lin17\\.jdks\\corretto-21.0.8"
+    }
+    env {
+      name: "PROCESSOR_LEVEL"
+      value: "25"
+    }
+    env {
+      name: "PROCESS_OPTIONS"
+      value: "-javaagent:C:\\Users\\lin17\\AppData\\Local\\JetBrains\\IntelliJIdea2025.2\\captureAgent\\debugger-agent.jar=file:///C:/Users/lin17/AppData/Local/Temp/capture12883225535262652631.props, -Dkotlinx.coroutines.debug.enable.creation.stack.trace=false, -Ddebugger.agent.enable.coroutines=true, -Dkotlinx.coroutines.debug.enable.flows.stack.trace=true, -Dkotlinx.coroutines.debug.enable.mutable.state.flows.stack.trace=true"
+    }
+    env {
+      name: "ComSpec"
+      value: "C:\\WINDOWS\\system32\\cmd.exe"
+    }
+    env {
+      name: "NUMBER_OF_PROCESSORS"
+      value: "16"
+    }
+    env {
+      name: "PROCESSOR_ARCHITECTURE"
+      value: "AMD64"
+    }
+    env {
+      name: "OS"
+      value: "Windows_NT"
+    }
+    env {
+      name: "DEBUGGER_ID"
+      value: "Gradle JVM"
+    }
+    env {
+      name: "ProgramFiles(x86)"
+      value: "C:\\Program Files (x86)"
+    }
+    env {
+      name: "PSModulePath"
+      value: "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules"
+    }
+    env {
+      name: "PATHEXT"
+      value: ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC"
+    }
+    env {
+      name: "PROCESSOR_IDENTIFIER"
+      value: "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD"
+    }
+    env {
+      name: "APPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Roaming"
+    }
+    env {
+      name: "ACSetupSvcPort"
+      value: "23210"
+    }
+    env {
+      name: "LOCALAPPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Local"
+    }
+    env {
+      name: "RlsSvcPort"
+      value: "22112"
+    }
+    env {
+      name: "DEBUGGER_ENABLED"
+      value: "true"
+    }
+    env {
+      name: "HOMEPATH"
+      value: "\\Users\\lin17"
+    }
+    env {
+      name: "SystemRoot"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "LOGONSERVER"
+      value: "\\\\LIN"
+    }
+    env {
+      name: "SESSIONNAME"
+      value: "Console"
+    }
+    env {
+      name: "HOMEDRIVE"
+      value: "C:"
+    }
+    env {
+      name: "DriverData"
+      value: "C:\\Windows\\System32\\Drivers\\DriverData"
+    }
+    env {
+      name: "PUBLIC"
+      value: "C:\\Users\\Public"
+    }
+    env {
+      name: "Path"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\lib;C:\\Users\\lin17\\.cjpm\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\nodejs\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Tencent\\\345\276\256\344\277\241web\345\274\200\345\217\221\350\200\205\345\267\245\345\205\267\\dll;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\cursor\\resources\\app\\bin;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Users\\lin17\\.cargo\\bin;C:\\Users\\lin17\\.local\\bin;C:\\Users\\lin17\\AppData\\Local\\pnpm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\lin17\\AppData\\Local\\JetBrains\\Toolbox\\scripts;C:\\Users\\lin17\\AppData\\Roaming\\npm;C:\\Users\\lin17\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\lin17\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\lin17\\.bun\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.13\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Google.Protobuf_Microsoft.Winget.Source_8wekyb3d8bbwe\\bin;"
+    }
+    env {
+      name: "PROCESSOR_REVISION"
+      value: "4401"
+    }
+    env {
+      name: "ALLUSERSPROFILE"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "USERPROFILE"
+      value: "C:\\Users\\lin17"
+    }
+    env {
+      name: "USERNAME"
+      value: "lin17"
+    }
+    env {
+      name: "ProgramW6432"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "CommonProgramW6432"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "EFC_34876_1592913036"
+      value: "1"
+    }
+    env {
+      name: "PROCESS_PARAMETERS"
+    }
+    working_directory: "C:\\Users\\lin17\\IdeaProjects\\untitled36"
+    stdin_path: "\\\\.\\pipe\\cangjie-debugger-21688-2-stdin"
+    stdout_path: "\\\\.\\pipe\\cangjie-debugger-21688-3-stdout"
+  }
+  console_mode: CONSOLE_MODE_PSEUDO
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  breakpoint_changed_event {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+        line: 6
+        hash {
+        }
+      }
+    }
+    change_type: BREAKPOINT_EVENT_TYPE_LOCATIONS_RESOLVED
+    description: "Breakpoint locations resolved"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+hash {
+  hash: 6
+}
+launch {
+  process {
+    id: 27384
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "09CF8277"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140695604428800
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140709630377984
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140709630377984
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710537854976
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710537854976
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  breakpoint_changed_event {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+        line: 6
+        hash {
+        }
+      }
+    }
+    change_type: BREAKPOINT_EVENT_TYPE_LOCATIONS_REMOVED
+    description: "Breakpoint locations removed"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "09CF8277"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140695604428800
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  process_state_changed {
+    state: PROCESS_STATE_RUNNING
+    description: "Process running"
+    running_details {
+      thread_id: 34744
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+event {
+  process_state_changed {
+    state: PROCESS_STATE_STOPPED
+    description: "Breakpoint hit"
+    stopped_details {
+      stopped_thread {
+        thread_id {
+          id: 34744
+        }
+        stop_info {
+          reason: STOP_REASON_BREAKPOINT
+          description: "breakpoint 1.1\000"
+          breakpoint_info {
+            breakpoint_id: 1
+            type: BREAKPOINT_TYPE_LINE
+            address: 140695604680448
+            hit_count: 1
+          }
+        }
+        index: 1
+      }
+      current_frame {
+        id {
+        }
+        function_name: "_ZN10untitled366<main>Ev"
+        module: "main.exe"
+        location {
+          file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+          line: 6
+          hash {
+          }
+        }
+        program_counter: 140695604680448
+      }
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:50
+hash: 7
+frames {
+  thread_id {
+    id: 34744
+  }
+  count: 100
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:50
+hash {
+  hash: 7
+}
+frames {
+  frames {
+    id {
+    }
+    function_name: "_ZN10untitled366<main>Ev"
+    module: "main.exe"
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 6
+      hash {
+      }
+    }
+    program_counter: 140695604680448
+  }
+  frames {
+    id {
+      id: 1
+    }
+    function_name: "user.main"
+    module: "main.exe"
+    location {
+      file_path: "<stdin>"
+      hash {
+      }
+    }
+    program_counter: 140695604680603
+    index: 1
+  }
+  frames {
+    id {
+      id: 2
+    }
+    function_name: "cj_entry$"
+    module: "main.exe"
+    location {
+    }
+    program_counter: 140695604680925
+    index: 2
+  }
+  frames {
+    id {
+      id: 3
+    }
+    function_name: "CJ_MCC_N2CStub"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709630383631
+    index: 3
+  }
+  frames {
+    id {
+      id: 4
+    }
+    function_name: "SetCJCommandLineArgs"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709630554228
+    index: 4
+  }
+  frames {
+    id {
+      id: 5
+    }
+    function_name: "CJ_CJThreadEntry"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709630391267
+    index: 5
+  }
+  status {
+    success: true
+  }
+  total_frames: 6
+}
+
+hash: 8
+variables {
+  thread_id {
+    id: 34744
+  }
+  include_arguments: true
+  include_locals: true
+  include_statics: true
+  in_scope_only: true
+  include_runtime_support_values: true
+  include_recognized_arguments: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:50
+hash {
+  hash: 8
+}
+variables {
+  variables {
+    id {
+      id: -7259118981214577897
+    }
+    name: "_ZN10untitled361bE"
+    address: 140695604895744
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:51
+hash: 9
+get_value {
+  variable_id {
+    id: -7259118981214577897
+  }
+  max_string_length: 1000
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:51
+hash: 10
+get_function_info {
+  address: 140695604680448
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:51
+hash {
+  hash: 9
+}
+get_value {
+  status {
+    success: true
+  }
+  value {
+    variable_id {
+      id: -7259118981214577897
+    }
+    value: "1"
+  }
+  variable {
+    id {
+      id: -7259118981214577897
+    }
+    name: "_ZN10untitled361bE"
+    address: 140695604895744
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:51
+hash {
+  hash: 10
+}
+get_function_info {
+  status {
+    success: true
+  }
+  function {
+    name: "_ZN10untitled366<main>Ev"
+    mangled_name: "_ZN10untitled366<main>Ev"
+    start_address: 140695604680356
+    end_address: 140695604680528
+    size: 172
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+      hash {
+      }
+    }
+    module_name: "main.exe"
+    language: "c++14"
+  }
+  functions {
+    name: "_ZN10untitled366<main>Ev"
+    mangled_name: "_ZN10untitled366<main>Ev"
+    start_address: 140695604680356
+    end_address: 140695604680528
+    size: 172
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+      hash {
+      }
+    }
+    module_name: "main.exe"
+    language: "c++14"
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:51
+hash: 11
+disassemble {
+  range {
+    start_address: 140695604680448
+    end_address: 140695604680527
+  }
+  options {
+    show_machine_code: true
+    symbolize_addresses: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:51
+hash {
+  hash: 11
+}
+disassemble {
+  status {
+    success: true
+  }
+  instructions {
+    address: 140695604680448
+    machine_code: "\350\177,\376\377"
+    instruction: "callq 0x7ff63f880384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 6
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680453
+    machine_code: "H\213U\300"
+    instruction: "movq -0x40(%rbp), %rdx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 6
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680457
+    machine_code: "H\215M\340"
+    instruction: "leaq -0x20(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 6
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680461
+    machine_code: "\350r,\376\377"
+    instruction: "callq 0x7ff63f880384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 7
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680466
+    machine_code: "H\213U\300"
+    instruction: "movq -0x40(%rbp), %rdx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 7
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680470
+    machine_code: "H\215M\350"
+    instruction: "leaq -0x18(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 7
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680474
+    machine_code: "\350e,\376\377"
+    instruction: "callq 0x7ff63f880384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 8
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680479
+    machine_code: "H\213U\300"
+    instruction: "movq -0x40(%rbp), %rdx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 8
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680483
+    machine_code: "H\307E\360\001\000\000\000"
+    instruction: "movq $0x1, -0x10(%rbp)"
+    size: 8
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 9
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680491
+    machine_code: "H\215M\370"
+    instruction: "leaq -0x8(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 9
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680495
+    machine_code: "\350P,\376\377"
+    instruction: "callq 0x7ff63f880384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 10
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680500
+    machine_code: "H\307E\310\000\000\000\000"
+    instruction: "movq $0x0, -0x38(%rbp)"
+    size: 8
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680508
+    machine_code: "H\213E\310"
+    instruction: "movq -0x38(%rbp), %rax"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680512
+    machine_code: "H\211\354"
+    instruction: "movq %rbp, %rsp"
+    size: 3
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680515
+    machine_code: "H\201\354`\000\000\000"
+    instruction: "subq $0x60, %rsp"
+    size: 7
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680522
+    machine_code: "H\203\304`"
+    instruction: "addq $0x60, %rsp"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680526
+    machine_code: "]"
+    instruction: "popq %rbp"
+    size: 1
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  bytes_disassembled: 79
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:56:51
+hash: 12
+disassemble {
+  options {
+    show_machine_code: true
+    symbolize_addresses: true
+  }
+  until_pivot {
+    start_address: 140695604680356
+    pivot_address: 140695604680448
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:56:51
+hash {
+  hash: 12
+}
+disassemble {
+  status {
+    success: true
+  }
+  instructions {
+    address: 140695604680356
+    machine_code: "U"
+    instruction: "pushq %rbp"
+    size: 1
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680357
+    machine_code: "H\203\354`"
+    instruction: "subq $0x60, %rsp"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680361
+    machine_code: "I\213G("
+    instruction: "movq 0x28(%r15), %rax"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680365
+    machine_code: "H9\304"
+    instruction: "cmpq %rax, %rsp"
+    size: 3
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680368
+    machine_code: "\177\035"
+    instruction: "jg 0x7ff63f89d6cf"
+    comment: "<+43> at main.cj:4"
+    size: 2
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680370
+    machine_code: "H\201\304`\000\000\000"
+    instruction: "addq $0x60, %rsp"
+    size: 7
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680377
+    machine_code: "H\270\020\000\000\000\000\000\000\000"
+    instruction: "movabsq $0x10, %rax"
+    size: 10
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680387
+    machine_code: "\350\230\375\377\377"
+    instruction: "callq 0x7ff63f89d460"
+    comment: ".text"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680392
+    machine_code: "H\201\354`\000\000\000"
+    instruction: "subq $0x60, %rsp"
+    size: 7
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680399
+    machine_code: "H\215l$`"
+    instruction: "leaq 0x60(%rsp), %rbp"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680404
+    machine_code: "I\213G0"
+    instruction: "movq 0x30(%r15), %rax"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680408
+    machine_code: "H\201\370\000\000\000\000"
+    instruction: "cmpq $0x0, %rax"
+    size: 7
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680415
+    machine_code: "t\005"
+    instruction: "je 0x7ff63f89d6e6"
+    comment: "<+66> at main.cj:4"
+    size: 2
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680417
+    machine_code: "\350r\375\377\377"
+    instruction: "callq 0x7ff63f89d458"
+    comment: ".text"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680422
+    machine_code: "H\215M\320"
+    instruction: "leaq -0x30(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680426
+    machine_code: "\272\001\000\000\000"
+    instruction: "movl $0x1, %edx"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680431
+    machine_code: "H\211U\300"
+    instruction: "movq %rdx, -0x40(%rbp)"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680435
+    machine_code: "\350\214,\376\377"
+    instruction: "callq 0x7ff63f880384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 5
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680440
+    machine_code: "H\213U\300"
+    instruction: "movq -0x40(%rbp), %rdx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 5
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140695604680444
+    machine_code: "H\215M\330"
+    instruction: "leaq -0x28(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 5
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  bytes_disassembled: 92
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:57:05
+hash: 13
+variables {
+  thread_id {
+    id: 34744
+  }
+  frame_index: 1
+  include_arguments: true
+  include_locals: true
+  include_statics: true
+  in_scope_only: true
+  include_runtime_support_values: true
+  include_recognized_arguments: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:57:05
+hash {
+  hash: 13
+}
+variables {
+  variables {
+    id {
+      id: -7259118902574280565
+    }
+    name: "_ZN10untitled361bE"
+    address: 140695604895744
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:57:05
+hash: 14
+get_value {
+  variable_id {
+    id: -7259118902574280565
+  }
+  max_string_length: 1000
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:57:05
+hash {
+  hash: 14
+}
+get_value {
+  status {
+    success: true
+  }
+  value {
+    variable_id {
+      id: -7259118902574280565
+    }
+    value: "1"
+  }
+  variable {
+    id {
+      id: -7259118902574280565
+    }
+    name: "_ZN10untitled361bE"
+    address: 140695604895744
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:57:05
+hash: 15
+get_function_info {
+  address: 140695604680603
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:57:05
+hash {
+  hash: 15
+}
+get_function_info {
+  status {
+    success: true
+  }
+  function {
+    name: "user.main"
+    mangled_name: "user.main"
+    start_address: 140695604680532
+    end_address: 140695604680635
+    size: 103
+    location {
+      file_path: "<stdin>"
+      hash {
+      }
+    }
+    module_name: "main.exe"
+    language: "c++14"
+  }
+  functions {
+    name: "user.main"
+    mangled_name: "user.main"
+    start_address: 140695604680532
+    end_address: 140695604680635
+    size: 103
+    location {
+      file_path: "<stdin>"
+      hash {
+      }
+    }
+    module_name: "main.exe"
+    language: "c++14"
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:57:05
+hash: 16
+disassemble {
+  range {
+    start_address: 140695604680603
+    end_address: 140695604680634
+  }
+  options {
+    show_machine_code: true
+    symbolize_addresses: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:57:05
+hash {
+  hash: 16
+}
+disassemble {
+  status {
+    success: true
+  }
+  instructions {
+    address: 140695604680603
+    machine_code: "H\211E\370"
+    instruction: "movq %rax, -0x8(%rbp)"
+    size: 4
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680607
+    machine_code: "H\213E\370"
+    instruction: "movq -0x8(%rbp), %rax"
+    size: 4
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680611
+    machine_code: "H\211E\360"
+    instruction: "movq %rax, -0x10(%rbp)"
+    size: 4
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680615
+    machine_code: "H\213E\360"
+    instruction: "movq -0x10(%rbp), %rax"
+    size: 4
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680619
+    machine_code: "H\211\354"
+    instruction: "movq %rbp, %rsp"
+    size: 3
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680622
+    machine_code: "H\201\3540\000\000\000"
+    instruction: "subq $0x30, %rsp"
+    size: 7
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680629
+    machine_code: "H\203\3040"
+    instruction: "addq $0x30, %rsp"
+    size: 4
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680633
+    machine_code: "]"
+    instruction: "popq %rbp"
+    size: 1
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  bytes_disassembled: 31
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:57:05
+hash: 17
+disassemble {
+  options {
+    show_machine_code: true
+    symbolize_addresses: true
+  }
+  until_pivot {
+    start_address: 140695604680532
+    pivot_address: 140695604680603
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:57:05
+hash {
+  hash: 17
+}
+disassemble {
+  status {
+    success: true
+  }
+  instructions {
+    address: 140695604680532
+    machine_code: "U"
+    instruction: "pushq %rbp"
+    size: 1
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680533
+    machine_code: "H\203\3540"
+    instruction: "subq $0x30, %rsp"
+    size: 4
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680537
+    machine_code: "I\213G("
+    instruction: "movq 0x28(%r15), %rax"
+    size: 4
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680541
+    machine_code: "H9\304"
+    instruction: "cmpq %rax, %rsp"
+    size: 3
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680544
+    machine_code: "\177\035"
+    instruction: "jg 0x7ff63f89d77f"
+    comment: "<+43> at <stdin>"
+    size: 2
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680546
+    machine_code: "H\201\3040\000\000\000"
+    instruction: "addq $0x30, %rsp"
+    size: 7
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680553
+    machine_code: "H\270\020\000\000\000\000\000\000\000"
+    instruction: "movabsq $0x10, %rax"
+    size: 10
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680563
+    machine_code: "\350\350\374\377\377"
+    instruction: "callq 0x7ff63f89d460"
+    comment: ".text"
+    size: 5
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680568
+    machine_code: "H\201\3540\000\000\000"
+    instruction: "subq $0x30, %rsp"
+    size: 7
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680575
+    machine_code: "H\215l$0"
+    instruction: "leaq 0x30(%rsp), %rbp"
+    size: 5
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680580
+    machine_code: "I\213G0"
+    instruction: "movq 0x30(%r15), %rax"
+    size: 4
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680584
+    machine_code: "H\201\370\000\000\000\000"
+    instruction: "cmpq $0x0, %rax"
+    size: 7
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680591
+    machine_code: "t\005"
+    instruction: "je 0x7ff63f89d796"
+    comment: "<+66> at <stdin>"
+    size: 2
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680593
+    machine_code: "\350\302\374\377\377"
+    instruction: "callq 0x7ff63f89d458"
+    comment: ".text"
+    size: 5
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  instructions {
+    address: 140695604680598
+    machine_code: "\350\t\377\377\377"
+    instruction: "callq 0x7ff63f89d6a4"
+    comment: "_ZN10untitled366<main>Ev at main.cj:4"
+    size: 5
+    source_location {
+      file_path: "<stdin>"
+    }
+    symbol: "user.main"
+  }
+  bytes_disassembled: 71
+}
+
+
+Direction: 发送消息
+Time: 2025-11-28 23:57:08
+hash: 18
+exit {
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:57:08
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "09CF8277"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:57:08
+hash {
+  hash: 18
+}
+exit {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:57:08
+event {
+  breakpoint_changed_event {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        hash {
+        }
+      }
+    }
+    change_type: BREAKPOINT_EVENT_TYPE_LOCATIONS_REMOVED
+    description: "Breakpoint locations removed"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-28 23:57:08
+event {
+  process_state_changed {
+    state: PROCESS_STATE_EXITED
+    description: "Process exited"
+    exited_details {
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  initialized {
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:25
+hash: 1
+create_target {
+  file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+hash {
+  hash: 1
+}
+create_target {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:25
+hash: 2
+launch {
+  launch_info {
+    executable_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+    env {
+      name: "CommonProgramFiles"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "PNPM_HOME"
+      value: "C:\\Users\\lin17\\AppData\\Local\\pnpm"
+    }
+    env {
+      name: "=::"
+      value: "::\\"
+    }
+    env {
+      name: "ProgramData"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "COMPUTERNAME"
+      value: "LIN"
+    }
+    env {
+      name: "SystemDrive"
+      value: "C:"
+    }
+    env {
+      name: "USERDOMAIN"
+      value: "LIN"
+    }
+    env {
+      name: "OneDriveConsumer"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "OneDrive"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "CommonProgramFiles(x86)"
+      value: "C:\\Program Files (x86)\\Common Files"
+    }
+    env {
+      name: "TEMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "TMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "CANGJIE_HOME"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18"
+    }
+    env {
+      name: "ProgramFiles"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "USERDOMAIN_ROAMINGPROFILE"
+      value: "LIN"
+    }
+    env {
+      name: "windir"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "JAVA_HOME"
+      value: "C:\\Users\\lin17\\.jdks\\corretto-21.0.8"
+    }
+    env {
+      name: "PROCESSOR_LEVEL"
+      value: "25"
+    }
+    env {
+      name: "PROCESS_OPTIONS"
+      value: "-javaagent:C:\\Users\\lin17\\AppData\\Local\\JetBrains\\IntelliJIdea2025.2\\captureAgent\\debugger-agent.jar=file:///C:/Users/lin17/AppData/Local/Temp/capture12272050617271145659.props, -Dkotlinx.coroutines.debug.enable.creation.stack.trace=false, -Ddebugger.agent.enable.coroutines=true, -Dkotlinx.coroutines.debug.enable.flows.stack.trace=true, -Dkotlinx.coroutines.debug.enable.mutable.state.flows.stack.trace=true"
+    }
+    env {
+      name: "ComSpec"
+      value: "C:\\WINDOWS\\system32\\cmd.exe"
+    }
+    env {
+      name: "NUMBER_OF_PROCESSORS"
+      value: "16"
+    }
+    env {
+      name: "PROCESSOR_ARCHITECTURE"
+      value: "AMD64"
+    }
+    env {
+      name: "OS"
+      value: "Windows_NT"
+    }
+    env {
+      name: "DEBUGGER_ID"
+      value: "Gradle JVM"
+    }
+    env {
+      name: "ProgramFiles(x86)"
+      value: "C:\\Program Files (x86)"
+    }
+    env {
+      name: "PSModulePath"
+      value: "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules"
+    }
+    env {
+      name: "PATHEXT"
+      value: ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC"
+    }
+    env {
+      name: "PROCESSOR_IDENTIFIER"
+      value: "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD"
+    }
+    env {
+      name: "APPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Roaming"
+    }
+    env {
+      name: "ACSetupSvcPort"
+      value: "23210"
+    }
+    env {
+      name: "LOCALAPPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Local"
+    }
+    env {
+      name: "RlsSvcPort"
+      value: "22112"
+    }
+    env {
+      name: "DEBUGGER_ENABLED"
+      value: "true"
+    }
+    env {
+      name: "HOMEPATH"
+      value: "\\Users\\lin17"
+    }
+    env {
+      name: "SystemRoot"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "LOGONSERVER"
+      value: "\\\\LIN"
+    }
+    env {
+      name: "SESSIONNAME"
+      value: "Console"
+    }
+    env {
+      name: "HOMEDRIVE"
+      value: "C:"
+    }
+    env {
+      name: "DriverData"
+      value: "C:\\Windows\\System32\\Drivers\\DriverData"
+    }
+    env {
+      name: "PUBLIC"
+      value: "C:\\Users\\Public"
+    }
+    env {
+      name: "Path"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\lib;C:\\Users\\lin17\\.cjpm\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\nodejs\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Tencent\\\345\276\256\344\277\241web\345\274\200\345\217\221\350\200\205\345\267\245\345\205\267\\dll;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\cursor\\resources\\app\\bin;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Users\\lin17\\.cargo\\bin;C:\\Users\\lin17\\.local\\bin;C:\\Users\\lin17\\AppData\\Local\\pnpm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\lin17\\AppData\\Local\\JetBrains\\Toolbox\\scripts;C:\\Users\\lin17\\AppData\\Roaming\\npm;C:\\Users\\lin17\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\lin17\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\lin17\\.bun\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.13\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Google.Protobuf_Microsoft.Winget.Source_8wekyb3d8bbwe\\bin;"
+    }
+    env {
+      name: "PROCESSOR_REVISION"
+      value: "4401"
+    }
+    env {
+      name: "ALLUSERSPROFILE"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "USERPROFILE"
+      value: "C:\\Users\\lin17"
+    }
+    env {
+      name: "USERNAME"
+      value: "lin17"
+    }
+    env {
+      name: "ProgramW6432"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "CommonProgramW6432"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "EFC_34876_1592913036"
+      value: "1"
+    }
+    env {
+      name: "PROCESS_PARAMETERS"
+    }
+    working_directory: "C:\\Users\\lin17\\IdeaProjects\\untitled36"
+    stdin_path: "\\\\.\\pipe\\cangjie-debugger-37132-0-stdin"
+    stdout_path: "\\\\.\\pipe\\cangjie-debugger-37132-1-stdout"
+  }
+  console_mode: CONSOLE_MODE_PSEUDO
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "08702553"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140701792337920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710491914240
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710491914240
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140709627494400
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140709627494400
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+      base_address: 2473665626112
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "08702553"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140701792337920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+hash {
+  hash: 2
+}
+launch {
+  process {
+    id: 25724
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  process_state_changed {
+    state: PROCESS_STATE_RUNNING
+    description: "Process running"
+    running_details {
+      thread_id: 15748
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "08702553"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+event {
+  process_state_changed {
+    state: PROCESS_STATE_EXITED
+    description: "Process exited"
+    exited_details {
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:25
+hash: 3
+exit {
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:25
+hash {
+  hash: 3
+}
+exit {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  initialized {
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:39
+hash: 4
+create_target {
+  file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:39
+hash: 5
+add_breakpoint {
+  thread_id {
+  }
+  line {
+    file: "C:/Users/lin17/IdeaProjects/untitled36/src/main.cj"
+    line: 5
+  }
+  enabled: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+hash {
+  hash: 4
+}
+create_target {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  breakpoint_changed_event {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+        line: 5
+        hash {
+        }
+      }
+    }
+    change_type: BREAKPOINT_EVENT_TYPE_ADDED
+    description: "Breakpoint added"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+hash {
+  hash: 5
+}
+add_breakpoint {
+  line_breakpoint {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        file_path: "C:/Users/lin17/IdeaProjects/untitled36/src/main.cj"
+        line: 5
+        hash {
+        }
+      }
+    }
+    locations {
+      id {
+        id: 1
+      }
+      address: 18446744073709551615
+      location {
+        file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+        line: 5
+        hash {
+        }
+      }
+    }
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:39
+hash: 6
+launch {
+  launch_info {
+    executable_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+    env {
+      name: "CommonProgramFiles"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "PNPM_HOME"
+      value: "C:\\Users\\lin17\\AppData\\Local\\pnpm"
+    }
+    env {
+      name: "=::"
+      value: "::\\"
+    }
+    env {
+      name: "ProgramData"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "COMPUTERNAME"
+      value: "LIN"
+    }
+    env {
+      name: "SystemDrive"
+      value: "C:"
+    }
+    env {
+      name: "USERDOMAIN"
+      value: "LIN"
+    }
+    env {
+      name: "OneDriveConsumer"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "OneDrive"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "CommonProgramFiles(x86)"
+      value: "C:\\Program Files (x86)\\Common Files"
+    }
+    env {
+      name: "TEMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "TMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "CANGJIE_HOME"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18"
+    }
+    env {
+      name: "ProgramFiles"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "USERDOMAIN_ROAMINGPROFILE"
+      value: "LIN"
+    }
+    env {
+      name: "windir"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "JAVA_HOME"
+      value: "C:\\Users\\lin17\\.jdks\\corretto-21.0.8"
+    }
+    env {
+      name: "PROCESSOR_LEVEL"
+      value: "25"
+    }
+    env {
+      name: "PROCESS_OPTIONS"
+      value: "-javaagent:C:\\Users\\lin17\\AppData\\Local\\JetBrains\\IntelliJIdea2025.2\\captureAgent\\debugger-agent.jar=file:///C:/Users/lin17/AppData/Local/Temp/capture12272050617271145659.props, -Dkotlinx.coroutines.debug.enable.creation.stack.trace=false, -Ddebugger.agent.enable.coroutines=true, -Dkotlinx.coroutines.debug.enable.flows.stack.trace=true, -Dkotlinx.coroutines.debug.enable.mutable.state.flows.stack.trace=true"
+    }
+    env {
+      name: "ComSpec"
+      value: "C:\\WINDOWS\\system32\\cmd.exe"
+    }
+    env {
+      name: "NUMBER_OF_PROCESSORS"
+      value: "16"
+    }
+    env {
+      name: "PROCESSOR_ARCHITECTURE"
+      value: "AMD64"
+    }
+    env {
+      name: "OS"
+      value: "Windows_NT"
+    }
+    env {
+      name: "DEBUGGER_ID"
+      value: "Gradle JVM"
+    }
+    env {
+      name: "ProgramFiles(x86)"
+      value: "C:\\Program Files (x86)"
+    }
+    env {
+      name: "PSModulePath"
+      value: "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules"
+    }
+    env {
+      name: "PATHEXT"
+      value: ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC"
+    }
+    env {
+      name: "PROCESSOR_IDENTIFIER"
+      value: "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD"
+    }
+    env {
+      name: "APPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Roaming"
+    }
+    env {
+      name: "ACSetupSvcPort"
+      value: "23210"
+    }
+    env {
+      name: "LOCALAPPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Local"
+    }
+    env {
+      name: "RlsSvcPort"
+      value: "22112"
+    }
+    env {
+      name: "DEBUGGER_ENABLED"
+      value: "true"
+    }
+    env {
+      name: "HOMEPATH"
+      value: "\\Users\\lin17"
+    }
+    env {
+      name: "SystemRoot"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "LOGONSERVER"
+      value: "\\\\LIN"
+    }
+    env {
+      name: "SESSIONNAME"
+      value: "Console"
+    }
+    env {
+      name: "HOMEDRIVE"
+      value: "C:"
+    }
+    env {
+      name: "DriverData"
+      value: "C:\\Windows\\System32\\Drivers\\DriverData"
+    }
+    env {
+      name: "PUBLIC"
+      value: "C:\\Users\\Public"
+    }
+    env {
+      name: "Path"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\lib;C:\\Users\\lin17\\.cjpm\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\nodejs\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Tencent\\\345\276\256\344\277\241web\345\274\200\345\217\221\350\200\205\345\267\245\345\205\267\\dll;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\cursor\\resources\\app\\bin;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Users\\lin17\\.cargo\\bin;C:\\Users\\lin17\\.local\\bin;C:\\Users\\lin17\\AppData\\Local\\pnpm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\lin17\\AppData\\Local\\JetBrains\\Toolbox\\scripts;C:\\Users\\lin17\\AppData\\Roaming\\npm;C:\\Users\\lin17\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\lin17\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\lin17\\.bun\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.13\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Google.Protobuf_Microsoft.Winget.Source_8wekyb3d8bbwe\\bin;"
+    }
+    env {
+      name: "PROCESSOR_REVISION"
+      value: "4401"
+    }
+    env {
+      name: "ALLUSERSPROFILE"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "USERPROFILE"
+      value: "C:\\Users\\lin17"
+    }
+    env {
+      name: "USERNAME"
+      value: "lin17"
+    }
+    env {
+      name: "ProgramW6432"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "CommonProgramW6432"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "EFC_34876_1592913036"
+      value: "1"
+    }
+    env {
+      name: "PROCESS_PARAMETERS"
+    }
+    working_directory: "C:\\Users\\lin17\\IdeaProjects\\untitled36"
+    stdin_path: "\\\\.\\pipe\\cangjie-debugger-37132-2-stdin"
+    stdout_path: "\\\\.\\pipe\\cangjie-debugger-37132-3-stdout"
+  }
+  console_mode: CONSOLE_MODE_PSEUDO
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  breakpoint_changed_event {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+        line: 5
+        hash {
+        }
+      }
+    }
+    change_type: BREAKPOINT_EVENT_TYPE_LOCATIONS_RESOLVED
+    description: "Breakpoint locations resolved"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+hash {
+  hash: 6
+}
+launch {
+  process {
+    id: 13064
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "09AD722C"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140700744548352
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710492045312
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710492045312
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140709627494400
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140709627494400
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  breakpoint_changed_event {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+        line: 5
+        hash {
+        }
+      }
+    }
+    change_type: BREAKPOINT_EVENT_TYPE_LOCATIONS_REMOVED
+    description: "Breakpoint locations removed"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "09AD722C"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140700744548352
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  process_state_changed {
+    state: PROCESS_STATE_RUNNING
+    description: "Process running"
+    running_details {
+      thread_id: 29636
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:39
+event {
+  process_state_changed {
+    state: PROCESS_STATE_STOPPED
+    description: "Breakpoint hit"
+    stopped_details {
+      stopped_thread {
+        thread_id {
+          id: 29636
+        }
+        stop_info {
+          reason: STOP_REASON_BREAKPOINT
+          description: "breakpoint 1.1\000"
+          breakpoint_info {
+            breakpoint_id: 1
+            type: BREAKPOINT_TYPE_LINE
+            address: 140700744799987
+            hit_count: 1
+          }
+        }
+        index: 1
+      }
+      current_frame {
+        id {
+        }
+        function_name: "_ZN10untitled366<main>Ev"
+        module: "main.exe"
+        location {
+          file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+          line: 5
+          hash {
+          }
+        }
+        program_counter: 140700744799987
+      }
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:40
+hash: 7
+frames {
+  thread_id {
+    id: 29636
+  }
+  count: 100
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:40
+hash {
+  hash: 7
+}
+frames {
+  frames {
+    id {
+    }
+    function_name: "_ZN10untitled366<main>Ev"
+    module: "main.exe"
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 5
+      hash {
+      }
+    }
+    program_counter: 140700744799987
+  }
+  frames {
+    id {
+      id: 1
+    }
+    function_name: "user.main"
+    module: "main.exe"
+    location {
+      file_path: "<stdin>"
+      hash {
+      }
+    }
+    program_counter: 140700744800155
+    index: 1
+  }
+  frames {
+    id {
+      id: 2
+    }
+    function_name: "cj_entry$"
+    module: "main.exe"
+    location {
+    }
+    program_counter: 140700744800477
+    index: 2
+  }
+  frames {
+    id {
+      id: 3
+    }
+    function_name: "CJ_MCC_N2CStub"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627500047
+    index: 3
+  }
+  frames {
+    id {
+      id: 4
+    }
+    function_name: "SetCJCommandLineArgs"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627670644
+    index: 4
+  }
+  frames {
+    id {
+      id: 5
+    }
+    function_name: "CJ_CJThreadEntry"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627507683
+    index: 5
+  }
+  status {
+    success: true
+  }
+  total_frames: 6
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:40
+hash: 8
+variables {
+  thread_id {
+    id: 29636
+  }
+  include_arguments: true
+  include_locals: true
+  include_statics: true
+  in_scope_only: true
+  include_runtime_support_values: true
+  include_recognized_arguments: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:40
+hash {
+  hash: 8
+}
+variables {
+  variables {
+    id {
+      id: -7259116971424111569
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:40
+hash: 9
+get_function_info {
+  address: 140700744799987
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:40
+hash {
+  hash: 9
+}
+get_function_info {
+  status {
+    success: true
+  }
+  function {
+    name: "_ZN10untitled366<main>Ev"
+    mangled_name: "_ZN10untitled366<main>Ev"
+    start_address: 140700744799908
+    end_address: 140700744800080
+    size: 172
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+      hash {
+      }
+    }
+    module_name: "main.exe"
+    language: "c++14"
+  }
+  functions {
+    name: "_ZN10untitled366<main>Ev"
+    mangled_name: "_ZN10untitled366<main>Ev"
+    start_address: 140700744799908
+    end_address: 140700744800080
+    size: 172
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+      hash {
+      }
+    }
+    module_name: "main.exe"
+    language: "c++14"
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:40
+hash: 10
+get_value {
+  variable_id {
+    id: -7259116971424111569
+  }
+  max_string_length: 1000
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:40
+hash {
+  hash: 10
+}
+get_value {
+  status {
+    success: true
+  }
+  value {
+    variable_id {
+      id: -7259116971424111569
+    }
+    value: "1"
+  }
+  variable {
+    id {
+      id: -7259116971424111569
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:40
+hash: 11
+disassemble {
+  range {
+    start_address: 140700744799987
+    end_address: 140700744800079
+  }
+  options {
+    show_machine_code: true
+    symbolize_addresses: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:40
+hash {
+  hash: 11
+}
+disassemble {
+  status {
+    success: true
+  }
+  instructions {
+    address: 140700744799987
+    machine_code: "\350\214,\376\377"
+    instruction: "callq 0x7ff771e80384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 5
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799992
+    machine_code: "H\213U\300"
+    instruction: "movq -0x40(%rbp), %rdx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 5
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799996
+    machine_code: "H\215M\330"
+    instruction: "leaq -0x28(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 5
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800000
+    machine_code: "\350\177,\376\377"
+    instruction: "callq 0x7ff771e80384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 6
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800005
+    machine_code: "H\213U\300"
+    instruction: "movq -0x40(%rbp), %rdx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 6
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800009
+    machine_code: "H\215M\340"
+    instruction: "leaq -0x20(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 6
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800013
+    machine_code: "\350r,\376\377"
+    instruction: "callq 0x7ff771e80384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 7
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800018
+    machine_code: "H\213U\300"
+    instruction: "movq -0x40(%rbp), %rdx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 7
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800022
+    machine_code: "H\215M\350"
+    instruction: "leaq -0x18(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 7
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800026
+    machine_code: "\350e,\376\377"
+    instruction: "callq 0x7ff771e80384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 8
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800031
+    machine_code: "H\213U\300"
+    instruction: "movq -0x40(%rbp), %rdx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 8
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800035
+    machine_code: "H\307E\360\001\000\000\000"
+    instruction: "movq $0x1, -0x10(%rbp)"
+    size: 8
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 9
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800043
+    machine_code: "H\215M\370"
+    instruction: "leaq -0x8(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 9
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800047
+    machine_code: "\350P,\376\377"
+    instruction: "callq 0x7ff771e80384"
+    comment: "_ZN8std.core7printlnEl"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 10
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800052
+    machine_code: "H\307E\310\000\000\000\000"
+    instruction: "movq $0x0, -0x38(%rbp)"
+    size: 8
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800060
+    machine_code: "H\213E\310"
+    instruction: "movq -0x38(%rbp), %rax"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800064
+    machine_code: "H\211\354"
+    instruction: "movq %rbp, %rsp"
+    size: 3
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800067
+    machine_code: "H\201\354`\000\000\000"
+    instruction: "subq $0x60, %rsp"
+    size: 7
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800074
+    machine_code: "H\203\304`"
+    instruction: "addq $0x60, %rsp"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744800078
+    machine_code: "]"
+    instruction: "popq %rbp"
+    size: 1
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 11
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  bytes_disassembled: 92
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:40
+hash: 12
+disassemble {
+  options {
+    show_machine_code: true
+    symbolize_addresses: true
+  }
+  until_pivot {
+    start_address: 140700744799908
+    pivot_address: 140700744799987
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:40
+hash {
+  hash: 12
+}
+disassemble {
+  status {
+    success: true
+  }
+  instructions {
+    address: 140700744799908
+    machine_code: "U"
+    instruction: "pushq %rbp"
+    size: 1
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799909
+    machine_code: "H\203\354`"
+    instruction: "subq $0x60, %rsp"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799913
+    machine_code: "I\213G("
+    instruction: "movq 0x28(%r15), %rax"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799917
+    machine_code: "H9\304"
+    instruction: "cmpq %rax, %rsp"
+    size: 3
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799920
+    machine_code: "\177\035"
+    instruction: "jg 0x7ff771e9d6cf"
+    comment: "<+43> at main.cj:4"
+    size: 2
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799922
+    machine_code: "H\201\304`\000\000\000"
+    instruction: "addq $0x60, %rsp"
+    size: 7
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799929
+    machine_code: "H\270\020\000\000\000\000\000\000\000"
+    instruction: "movabsq $0x10, %rax"
+    size: 10
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799939
+    machine_code: "\350\230\375\377\377"
+    instruction: "callq 0x7ff771e9d460"
+    comment: ".text"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799944
+    machine_code: "H\201\354`\000\000\000"
+    instruction: "subq $0x60, %rsp"
+    size: 7
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799951
+    machine_code: "H\215l$`"
+    instruction: "leaq 0x60(%rsp), %rbp"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799956
+    machine_code: "I\213G0"
+    instruction: "movq 0x30(%r15), %rax"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799960
+    machine_code: "H\201\370\000\000\000\000"
+    instruction: "cmpq $0x0, %rax"
+    size: 7
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799967
+    machine_code: "t\005"
+    instruction: "je 0x7ff771e9d6e6"
+    comment: "<+66> at main.cj:4"
+    size: 2
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799969
+    machine_code: "\350r\375\377\377"
+    instruction: "callq 0x7ff771e9d458"
+    comment: ".text"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799974
+    machine_code: "H\215M\320"
+    instruction: "leaq -0x30(%rbp), %rcx"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799978
+    machine_code: "\272\001\000\000\000"
+    instruction: "movl $0x1, %edx"
+    size: 5
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  instructions {
+    address: 140700744799983
+    machine_code: "H\211U\300"
+    instruction: "movq %rdx, -0x40(%rbp)"
+    size: 4
+    source_location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 4
+    }
+    symbol: "_ZN10untitled366<main>Ev"
+  }
+  bytes_disassembled: 79
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:44
+hash: 13
+read_memory {
+  address: 140700744799744
+  size: 513
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:44
+hash {
+  hash: 13
+}
+read_memory {
+  data: "H\203\354HH\203=t\v\004\000\000t\005H\203\304H\303E1\3001\322H\215L$8A\271\001\000\000\000H\307D$8\000\000\000\000\307D$ @\000\000\360\377\025\366\035\004\000\205\300u\022f\307\005?\v\004\000\n\377\306\0052\v\004\000\000\353\276H\213L$8\272\b\000\000\000L\215\005\037\v\004\000\377\025\321\035\004\000H\213L$81\322\205\300t\nH\203=\006\v\004\000\000u\b\377\025\276\035\004\000\353\272\377\025\266\035\004\000\353\202\220\220\220\220\351\233=\374\377\220\220\220\220\220\220\220\220\220\220\220\204\272\000\000UH\203\354`I\213G(H9\304\177\035H\201\304`\000\000\000H\270\020\000\000\000\000\000\000\000\350\230\375\377\377H\201\354`\000\000\000H\215l$`I\213G0H\201\370\000\000\000\000t\005\350r\375\377\377H\215M\320\272\001\000\000\000H\211U\300\350\214,\376\377H\213U\300H\215M\330\350\177,\376\377H\213U\300H\215M\340\350r,\376\377H\213U\300H\215M\350\350e,\376\377H\213U\300H\307E\360\001\000\000\000H\215M\370\350P,\376\377H\307E\310\000\000\000\000H\213E\310H\211\354H\201\354`\000\000\000H\203\304`]\303\360\271\000\000UH\203\3540I\213G(H9\304\177\035H\201\3040\000\000\000H\270\020\000\000\000\000\000\000\000\350\350\374\377\377H\201\3540\000\000\000H\215l$0I\213G0H\201\370\000\000\000\000t\005\350\302\374\377\377\350\t\377\377\377H\211E\370H\213E\370H\211E\360H\213E\360H\211\354H\201\3540\000\000\000H\203\3040]\303\017\037D\000\000\234\271\000\000UH\203\3540I\213G(H9\304\177\035H\201\3040\000\000\000H\270\020\000\000\000\000\000\000\000\350x\374\377\377H\201\3540\000\000\000H\215l$0\212\0056\b\004\000\210E\377I\213G0"
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:48
+hash: 14
+step_over {
+  thread_id {
+    id: 29636
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+hash {
+  hash: 14
+}
+step_over {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+event {
+  process_state_changed {
+    state: PROCESS_STATE_RUNNING
+    description: "Process running"
+    running_details {
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+event {
+  process_state_changed {
+    state: PROCESS_STATE_STOPPED
+    description: "Plan completed"
+    stopped_details {
+      stopped_thread {
+        thread_id {
+          id: 29636
+        }
+        stop_info {
+          reason: STOP_REASON_PLAN_COMPLETE
+          description: "step over\000"
+          plan_complete_info {
+            plan_type: "step_plan"
+            status: COMPLETION_STATUS_SUCCESS
+            result_description: "step over\000"
+          }
+        }
+        index: 1
+      }
+      current_frame {
+        id {
+        }
+        function_name: "_ZN10untitled366<main>Ev"
+        module: "main.exe"
+        location {
+          file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+          line: 6
+          hash {
+          }
+        }
+        program_counter: 140700744800000
+      }
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:48
+hash: 15
+frames {
+  thread_id {
+    id: 29636
+  }
+  count: 100
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+hash {
+  hash: 15
+}
+frames {
+  frames {
+    id {
+    }
+    function_name: "_ZN10untitled366<main>Ev"
+    module: "main.exe"
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 6
+      hash {
+      }
+    }
+    program_counter: 140700744800000
+  }
+  frames {
+    id {
+      id: 1
+    }
+    function_name: "user.main"
+    module: "main.exe"
+    location {
+      file_path: "<stdin>"
+      hash {
+      }
+    }
+    program_counter: 140700744800155
+    index: 1
+  }
+  frames {
+    id {
+      id: 2
+    }
+    function_name: "cj_entry$"
+    module: "main.exe"
+    location {
+    }
+    program_counter: 140700744800477
+    index: 2
+  }
+  frames {
+    id {
+      id: 3
+    }
+    function_name: "CJ_MCC_N2CStub"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627500047
+    index: 3
+  }
+  frames {
+    id {
+      id: 4
+    }
+    function_name: "SetCJCommandLineArgs"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627670644
+    index: 4
+  }
+  frames {
+    id {
+      id: 5
+    }
+    function_name: "CJ_CJThreadEntry"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627507683
+    index: 5
+  }
+  status {
+    success: true
+  }
+  total_frames: 6
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:48
+hash: 16
+variables {
+  thread_id {
+    id: 29636
+  }
+  include_arguments: true
+  include_locals: true
+  include_statics: true
+  in_scope_only: true
+  include_runtime_support_values: true
+  include_recognized_arguments: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+hash {
+  hash: 16
+}
+variables {
+  variables {
+    id {
+      id: -7259116962606651809
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:48
+hash: 17
+get_value {
+  variable_id {
+    id: -7259116962606651809
+  }
+  max_string_length: 1000
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+hash {
+  hash: 17
+}
+get_value {
+  status {
+    success: true
+  }
+  value {
+    variable_id {
+      id: -7259116962606651809
+    }
+    value: "1"
+  }
+  variable {
+    id {
+      id: -7259116962606651809
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:48
+hash: 18
+step_over {
+  thread_id {
+    id: 29636
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+hash {
+  hash: 18
+}
+step_over {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+event {
+  process_state_changed {
+    state: PROCESS_STATE_RUNNING
+    description: "Process running"
+    running_details {
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+event {
+  process_state_changed {
+    state: PROCESS_STATE_STOPPED
+    description: "Plan completed"
+    stopped_details {
+      stopped_thread {
+        thread_id {
+          id: 29636
+        }
+        stop_info {
+          reason: STOP_REASON_PLAN_COMPLETE
+          description: "step over\000"
+          plan_complete_info {
+            plan_type: "step_plan"
+            status: COMPLETION_STATUS_SUCCESS
+            result_description: "step over\000"
+          }
+        }
+        index: 1
+      }
+      current_frame {
+        id {
+        }
+        function_name: "_ZN10untitled366<main>Ev"
+        module: "main.exe"
+        location {
+          file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+          line: 7
+          hash {
+          }
+        }
+        program_counter: 140700744800013
+      }
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:48
+hash: 19
+frames {
+  thread_id {
+    id: 29636
+  }
+  count: 100
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:48
+hash: 20
+variables {
+  thread_id {
+    id: 29636
+  }
+  include_arguments: true
+  include_locals: true
+  include_statics: true
+  in_scope_only: true
+  include_runtime_support_values: true
+  include_recognized_arguments: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+hash {
+  hash: 19
+}
+frames {
+  frames {
+    id {
+    }
+    function_name: "_ZN10untitled366<main>Ev"
+    module: "main.exe"
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 7
+      hash {
+      }
+    }
+    program_counter: 140700744800013
+  }
+  frames {
+    id {
+      id: 1
+    }
+    function_name: "user.main"
+    module: "main.exe"
+    location {
+      file_path: "<stdin>"
+      hash {
+      }
+    }
+    program_counter: 140700744800155
+    index: 1
+  }
+  frames {
+    id {
+      id: 2
+    }
+    function_name: "cj_entry$"
+    module: "main.exe"
+    location {
+    }
+    program_counter: 140700744800477
+    index: 2
+  }
+  frames {
+    id {
+      id: 3
+    }
+    function_name: "CJ_MCC_N2CStub"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627500047
+    index: 3
+  }
+  frames {
+    id {
+      id: 4
+    }
+    function_name: "SetCJCommandLineArgs"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627670644
+    index: 4
+  }
+  frames {
+    id {
+      id: 5
+    }
+    function_name: "CJ_CJThreadEntry"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627507683
+    index: 5
+  }
+  status {
+    success: true
+  }
+  total_frames: 6
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+hash {
+  hash: 20
+}
+variables {
+  variables {
+    id {
+      id: -7259116968528284425
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:48
+hash: 21
+get_value {
+  variable_id {
+    id: -7259116968528284425
+  }
+  max_string_length: 1000
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:48
+hash {
+  hash: 21
+}
+get_value {
+  status {
+    success: true
+  }
+  value {
+    variable_id {
+      id: -7259116968528284425
+    }
+    value: "1"
+  }
+  variable {
+    id {
+      id: -7259116968528284425
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:49
+hash: 22
+step_over {
+  thread_id {
+    id: 29636
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+hash {
+  hash: 22
+}
+step_over {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+event {
+  process_state_changed {
+    state: PROCESS_STATE_RUNNING
+    description: "Process running"
+    running_details {
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+event {
+  process_state_changed {
+    state: PROCESS_STATE_STOPPED
+    description: "Plan completed"
+    stopped_details {
+      stopped_thread {
+        thread_id {
+          id: 29636
+        }
+        stop_info {
+          reason: STOP_REASON_PLAN_COMPLETE
+          description: "step over\000"
+          plan_complete_info {
+            plan_type: "step_plan"
+            status: COMPLETION_STATUS_SUCCESS
+            result_description: "step over\000"
+          }
+        }
+        index: 1
+      }
+      current_frame {
+        id {
+        }
+        function_name: "_ZN10untitled366<main>Ev"
+        module: "main.exe"
+        location {
+          file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+          line: 8
+          hash {
+          }
+        }
+        program_counter: 140700744800026
+      }
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:49
+hash: 23
+frames {
+  thread_id {
+    id: 29636
+  }
+  count: 100
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:49
+hash: 24
+variables {
+  thread_id {
+    id: 29636
+  }
+  include_arguments: true
+  include_locals: true
+  include_statics: true
+  in_scope_only: true
+  include_runtime_support_values: true
+  include_recognized_arguments: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+hash {
+  hash: 23
+}
+frames {
+  frames {
+    id {
+    }
+    function_name: "_ZN10untitled366<main>Ev"
+    module: "main.exe"
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 8
+      hash {
+      }
+    }
+    program_counter: 140700744800026
+  }
+  frames {
+    id {
+      id: 1
+    }
+    function_name: "user.main"
+    module: "main.exe"
+    location {
+      file_path: "<stdin>"
+      hash {
+      }
+    }
+    program_counter: 140700744800155
+    index: 1
+  }
+  frames {
+    id {
+      id: 2
+    }
+    function_name: "cj_entry$"
+    module: "main.exe"
+    location {
+    }
+    program_counter: 140700744800477
+    index: 2
+  }
+  frames {
+    id {
+      id: 3
+    }
+    function_name: "CJ_MCC_N2CStub"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627500047
+    index: 3
+  }
+  frames {
+    id {
+      id: 4
+    }
+    function_name: "SetCJCommandLineArgs"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627670644
+    index: 4
+  }
+  frames {
+    id {
+      id: 5
+    }
+    function_name: "CJ_CJThreadEntry"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627507683
+    index: 5
+  }
+  status {
+    success: true
+  }
+  total_frames: 6
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+hash {
+  hash: 24
+}
+variables {
+  variables {
+    id {
+      id: -7259116968914797585
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:49
+hash: 25
+get_value {
+  variable_id {
+    id: -7259116968914797585
+  }
+  max_string_length: 1000
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+hash {
+  hash: 25
+}
+get_value {
+  status {
+    success: true
+  }
+  value {
+    variable_id {
+      id: -7259116968914797585
+    }
+    value: "1"
+  }
+  variable {
+    id {
+      id: -7259116968914797585
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:49
+hash: 26
+step_over {
+  thread_id {
+    id: 29636
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+hash {
+  hash: 26
+}
+step_over {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+event {
+  process_state_changed {
+    state: PROCESS_STATE_RUNNING
+    description: "Process running"
+    running_details {
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+event {
+  process_state_changed {
+    state: PROCESS_STATE_STOPPED
+    description: "Plan completed"
+    stopped_details {
+      stopped_thread {
+        thread_id {
+          id: 29636
+        }
+        stop_info {
+          reason: STOP_REASON_PLAN_COMPLETE
+          description: "step over\000"
+          plan_complete_info {
+            plan_type: "step_plan"
+            status: COMPLETION_STATUS_SUCCESS
+            result_description: "step over\000"
+          }
+        }
+        index: 1
+      }
+      current_frame {
+        id {
+        }
+        function_name: "_ZN10untitled366<main>Ev"
+        module: "main.exe"
+        location {
+          file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+          line: 9
+          hash {
+          }
+        }
+        program_counter: 140700744800035
+      }
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:49
+hash: 27
+frames {
+  thread_id {
+    id: 29636
+  }
+  count: 100
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:49
+hash: 28
+variables {
+  thread_id {
+    id: 29636
+  }
+  include_arguments: true
+  include_locals: true
+  include_statics: true
+  in_scope_only: true
+  include_runtime_support_values: true
+  include_recognized_arguments: true
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+hash {
+  hash: 27
+}
+frames {
+  frames {
+    id {
+    }
+    function_name: "_ZN10untitled366<main>Ev"
+    module: "main.exe"
+    location {
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\src\\main.cj"
+      line: 9
+      hash {
+      }
+    }
+    program_counter: 140700744800035
+  }
+  frames {
+    id {
+      id: 1
+    }
+    function_name: "user.main"
+    module: "main.exe"
+    location {
+      file_path: "<stdin>"
+      hash {
+      }
+    }
+    program_counter: 140700744800155
+    index: 1
+  }
+  frames {
+    id {
+      id: 2
+    }
+    function_name: "cj_entry$"
+    module: "main.exe"
+    location {
+    }
+    program_counter: 140700744800477
+    index: 2
+  }
+  frames {
+    id {
+      id: 3
+    }
+    function_name: "CJ_MCC_N2CStub"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627500047
+    index: 3
+  }
+  frames {
+    id {
+      id: 4
+    }
+    function_name: "SetCJCommandLineArgs"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627670644
+    index: 4
+  }
+  frames {
+    id {
+      id: 5
+    }
+    function_name: "CJ_CJThreadEntry"
+    module: "libcangjie-runtime.dll"
+    location {
+    }
+    program_counter: 140709627507683
+    index: 5
+  }
+  status {
+    success: true
+  }
+  total_frames: 6
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+hash {
+  hash: 28
+}
+variables {
+  variables {
+    id {
+      id: 4409773702355923086
+    }
+    name: "b"
+    address: 3025151872464
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_LOCAL
+  }
+  variables {
+    id {
+      id: -7259116968091694541
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:49
+hash: 29
+get_value {
+  variable_id {
+    id: 4409773702355923086
+  }
+  max_string_length: 1000
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:49
+hash: 30
+get_value {
+  variable_id {
+    id: -7259116968091694541
+  }
+  max_string_length: 1000
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+hash {
+  hash: 29
+}
+get_value {
+  status {
+    success: true
+  }
+  value {
+    variable_id {
+      id: 4409773702355923086
+    }
+    value: "1"
+  }
+  variable {
+    id {
+      id: 4409773702355923086
+    }
+    name: "b"
+    address: 3025151872464
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_LOCAL
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:49
+hash {
+  hash: 30
+}
+get_value {
+  status {
+    success: true
+  }
+  value {
+    variable_id {
+      id: -7259116968091694541
+    }
+    value: "1"
+  }
+  variable {
+    id {
+      id: -7259116968091694541
+    }
+    name: "_ZN10untitled361bE"
+    address: 140700745015296
+    type {
+      type_name: "Int64"
+      type_kind: TYPE_TYPEDEF
+      display_type: "Int64"
+    }
+    value_kind: VALUE_GLOBAL
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 00:01:50
+hash: 31
+exit {
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:50
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "09AD722C"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled36\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:50
+hash {
+  hash: 31
+}
+exit {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:50
+event {
+  breakpoint_changed_event {
+    breakpoint {
+      id {
+        id: 1
+      }
+      original_location {
+        hash {
+        }
+      }
+    }
+    change_type: BREAKPOINT_EVENT_TYPE_LOCATIONS_REMOVED
+    description: "Breakpoint locations removed"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 00:01:50
+event {
+  process_state_changed {
+    state: PROCESS_STATE_EXITED
+    description: "Process exited"
+    exited_details {
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:05
+event {
+  initialized {
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 02:09:05
+hash: 1
+create_target {
+  file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled41\\target\\debug\\bin\\main.exe"
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:05
+hash {
+  hash: 1
+}
+create_target {
+  status {
+    success: true
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 02:09:05
+hash: 2
+launch {
+  launch_info {
+    executable_path: "C:\\Users\\lin17\\IdeaProjects\\untitled41\\target\\debug\\bin\\main.exe"
+    env {
+      name: "CommonProgramFiles"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "PNPM_HOME"
+      value: "C:\\Users\\lin17\\AppData\\Local\\pnpm"
+    }
+    env {
+      name: "=::"
+      value: "::\\"
+    }
+    env {
+      name: "ProgramData"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "COMPUTERNAME"
+      value: "LIN"
+    }
+    env {
+      name: "SystemDrive"
+      value: "C:"
+    }
+    env {
+      name: "USERDOMAIN"
+      value: "LIN"
+    }
+    env {
+      name: "OneDriveConsumer"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "OneDrive"
+      value: "C:\\Users\\lin17\\OneDrive"
+    }
+    env {
+      name: "CommonProgramFiles(x86)"
+      value: "C:\\Program Files (x86)\\Common Files"
+    }
+    env {
+      name: "TEMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "TMP"
+      value: "C:\\Users\\lin17\\AppData\\Local\\Temp"
+    }
+    env {
+      name: "CANGJIE_HOME"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18"
+    }
+    env {
+      name: "ProgramFiles"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "USERDOMAIN_ROAMINGPROFILE"
+      value: "LIN"
+    }
+    env {
+      name: "windir"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "JAVA_HOME"
+      value: "C:\\Users\\lin17\\.jdks\\corretto-21.0.8"
+    }
+    env {
+      name: "PROCESSOR_LEVEL"
+      value: "25"
+    }
+    env {
+      name: "PROCESS_OPTIONS"
+      value: "-javaagent:C:\\Users\\lin17\\AppData\\Local\\JetBrains\\IntelliJIdea2025.2\\captureAgent\\debugger-agent.jar=file:///C:/Users/lin17/AppData/Local/Temp/capture11539374452150177444.props, -Dkotlinx.coroutines.debug.enable.creation.stack.trace=false, -Ddebugger.agent.enable.coroutines=true, -Dkotlinx.coroutines.debug.enable.flows.stack.trace=true, -Dkotlinx.coroutines.debug.enable.mutable.state.flows.stack.trace=true"
+    }
+    env {
+      name: "ComSpec"
+      value: "C:\\WINDOWS\\system32\\cmd.exe"
+    }
+    env {
+      name: "NUMBER_OF_PROCESSORS"
+      value: "16"
+    }
+    env {
+      name: "PROCESSOR_ARCHITECTURE"
+      value: "AMD64"
+    }
+    env {
+      name: "OS"
+      value: "Windows_NT"
+    }
+    env {
+      name: "DEBUGGER_ID"
+      value: "Gradle JVM"
+    }
+    env {
+      name: "ProgramFiles(x86)"
+      value: "C:\\Program Files (x86)"
+    }
+    env {
+      name: "PSModulePath"
+      value: "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules"
+    }
+    env {
+      name: "PATHEXT"
+      value: ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC"
+    }
+    env {
+      name: "PROCESSOR_IDENTIFIER"
+      value: "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD"
+    }
+    env {
+      name: "APPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Roaming"
+    }
+    env {
+      name: "ACSetupSvcPort"
+      value: "23210"
+    }
+    env {
+      name: "LOCALAPPDATA"
+      value: "C:\\Users\\lin17\\AppData\\Local"
+    }
+    env {
+      name: "RlsSvcPort"
+      value: "22112"
+    }
+    env {
+      name: "DEBUGGER_ENABLED"
+      value: "true"
+    }
+    env {
+      name: "HOMEPATH"
+      value: "\\Users\\lin17"
+    }
+    env {
+      name: "SystemRoot"
+      value: "C:\\WINDOWS"
+    }
+    env {
+      name: "LOGONSERVER"
+      value: "\\\\LIN"
+    }
+    env {
+      name: "SESSIONNAME"
+      value: "Console"
+    }
+    env {
+      name: "HOMEDRIVE"
+      value: "C:"
+    }
+    env {
+      name: "DriverData"
+      value: "C:\\Windows\\System32\\Drivers\\DriverData"
+    }
+    env {
+      name: "PUBLIC"
+      value: "C:\\Users\\Public"
+    }
+    env {
+      name: "Path"
+      value: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\tools\\lib;C:\\Users\\lin17\\.cjpm\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\nodejs\\;C:\\Program Files\\Git\\cmd;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Tencent\\\345\276\256\344\277\241web\345\274\200\345\217\221\350\200\205\345\267\245\345\205\267\\dll;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\cursor\\resources\\app\\bin;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Users\\lin17\\.cargo\\bin;C:\\Users\\lin17\\.local\\bin;C:\\Users\\lin17\\AppData\\Local\\pnpm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\lin17\\AppData\\Local\\JetBrains\\Toolbox\\scripts;C:\\Users\\lin17\\AppData\\Roaming\\npm;C:\\Users\\lin17\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\lin17\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\lin17\\.bun\\bin;C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.13\\runtime\\lib\\windows_x86_64_llvm;C:\\Users\\lin17\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Google.Protobuf_Microsoft.Winget.Source_8wekyb3d8bbwe\\bin;"
+    }
+    env {
+      name: "PROCESSOR_REVISION"
+      value: "4401"
+    }
+    env {
+      name: "ALLUSERSPROFILE"
+      value: "C:\\ProgramData"
+    }
+    env {
+      name: "USERPROFILE"
+      value: "C:\\Users\\lin17"
+    }
+    env {
+      name: "USERNAME"
+      value: "lin17"
+    }
+    env {
+      name: "ProgramW6432"
+      value: "C:\\Program Files"
+    }
+    env {
+      name: "CommonProgramW6432"
+      value: "C:\\Program Files\\Common Files"
+    }
+    env {
+      name: "EFC_34876_1592913036"
+      value: "1"
+    }
+    env {
+      name: "PROCESS_PARAMETERS"
+    }
+    working_directory: "C:\\Users\\lin17\\IdeaProjects\\untitled41"
+    stdin_path: "\\\\.\\pipe\\cangjie-debugger-18612-0-stdin"
+    stdout_path: "\\\\.\\pipe\\cangjie-debugger-18612-1-stdout"
+    stderr_path: "\\\\.\\pipe\\cangjie-debugger-18612-2-stderr"
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:05
+event {
+  module_event {
+    modules {
+      id: "6C976816"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled41\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140696242749440
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:05
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:05
+event {
+  module_event {
+    modules {
+      id: "52E797D9-694B-BE7D-8F38-19BB7A7C075B-00000001"
+      file_path: "C:\\Windows\\System32\\ntdll.dll"
+      name: "ntdll.dll"
+      is_loaded: true
+      base_address: 140711559036928
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:05
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:05
+event {
+  module_event {
+    modules {
+      id: "6EAAA181-60DC-C833-30B2-17F7F60FF2BE-00000001"
+      file_path: "C:\\Windows\\System32\\kernel32.dll"
+      name: "kernel32.dll"
+      is_loaded: true
+      base_address: 140711531905024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:05
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:05
+event {
+  module_event {
+    modules {
+      id: "8314490F-9967-05E2-CF4A-8DF59DF277DB-00000001"
+      file_path: "C:\\Windows\\System32\\KernelBase.dll"
+      name: "KernelBase.dll"
+      is_loaded: true
+      base_address: 140711518797824
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "3F600CE3-F2E0-2B1C-3467-876FDEF5C1E4-00000001"
+      file_path: "C:\\Windows\\System32\\apphelp.dll"
+      name: "apphelp.dll"
+      is_loaded: true
+      base_address: 140711445331968
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "3F600CE3-F2E0-2B1C-3467-876FDEF5C1E4-00000001"
+      file_path: "C:\\Windows\\System32\\apphelp.dll"
+      name: "apphelp.dll"
+      is_loaded: true
+      base_address: 140711445331968
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "54D0B8F7-63D2-EB6D-EDC9-F2F7AA367748-00000001"
+      file_path: "C:\\Windows\\System32\\advapi32.dll"
+      name: "advapi32.dll"
+      is_loaded: true
+      base_address: 140711556939776
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "A025B3CE-DD23-6477-5041-C93A7FAB0521-00000001"
+      file_path: "C:\\Windows\\System32\\msvcrt.dll"
+      name: "msvcrt.dll"
+      is_loaded: true
+      base_address: 140711540817920
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "7C8C7E8D-D73D-74DF-A8AE-772CA8D1D000-00000001"
+      file_path: "C:\\Windows\\System32\\sechost.dll"
+      name: "sechost.dll"
+      is_loaded: true
+      base_address: 140711544881152
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "E655D929-9B2A-B121-784B-2CC408BA67BC-00000001"
+      file_path: "C:\\Windows\\System32\\rpcrt4.dll"
+      name: "rpcrt4.dll"
+      is_loaded: true
+      base_address: 140711524368384
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710701957120
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "3A39CF30"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libsecurec.dll"
+      name: "libsecurec.dll"
+      is_loaded: true
+      base_address: 140710701957120
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140710466945024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "762D10CA"
+      file_path: "C:\\Users\\lin17\\.cangjie\\sdks\\cangjie-0.53.18\\runtime\\lib\\windows_x86_64_llvm\\libcangjie-runtime.dll"
+      name: "libcangjie-runtime.dll"
+      is_loaded: true
+      base_address: 140710466945024
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "78B6ECA3-17FC-7FBA-1CD4-E7A35D2E6073-00000001"
+      file_path: "C:\\Windows\\System32\\ws2_32.dll"
+      name: "ws2_32.dll"
+      is_loaded: true
+      base_address: 140711544356864
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "E758EC7B-BB8A-BB3A-471F-5FABB0422728-00000001"
+      file_path: "C:\\Windows\\System32\\dbghelp.dll"
+      name: "dbghelp.dll"
+      is_loaded: true
+      base_address: 140711465648128
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+      base_address: 1900620939264
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "0FDA0611-5D4A-54AF-25F2-48644D33D702-00000001"
+      file_path: "C:\\Windows\\System32\\ucrtbase.dll"
+      name: "ucrtbase.dll"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "2326D2F3-EA0A-A2B8-102B-94E8C77B9999-00000001"
+      file_path: "C:\\Windows\\System32\\combase.dll"
+      name: "combase.dll"
+      is_loaded: true
+      base_address: 140711527120896
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "9EE23EE1-45D3-8370-F87B-55E8CF68D70B-00000001"
+      file_path: "C:\\Windows\\System32\\oleaut32.dll"
+      name: "oleaut32.dll"
+      is_loaded: true
+      base_address: 140711545602048
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "2EFE9D89-469B-86EE-AB32-6111DC6A41EF-00000001"
+      file_path: "C:\\Windows\\System32\\msvcp_win.dll"
+      name: "msvcp_win.dll"
+      is_loaded: true
+      base_address: 140711513817088
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "6C976816"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled41\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+      base_address: 140696242749440
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+hash {
+  hash: 2
+}
+launch {
+  process {
+    id: 14288
+  }
+  status {
+    success: true
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  process_state_changed {
+    state: PROCESS_STATE_RUNNING
+    description: "Process running"
+    running_details {
+      thread_id: 23184
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "54F95754-18E2-1B68-2675-7D0E69B11122-00000001"
+      file_path: "C:\\Windows\\System32\\cryptsp.dll"
+      name: "cryptsp.dll"
+      is_loaded: true
+      base_address: 140711500382208
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "BD45678C-956B-C210-A711-E7E98967FB7D-00000001"
+      file_path: "C:\\Windows\\System32\\rsaenh.dll"
+      name: "rsaenh.dll"
+      is_loaded: true
+      base_address: 140711490027520
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "7ABEF740-7D99-5564-73C6-8077DDBDBC3D-00000001"
+      file_path: "C:\\Windows\\System32\\cryptbase.dll"
+      name: "cryptbase.dll"
+      is_loaded: true
+      base_address: 140711498678272
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    modules {
+      id: "ADD5B9BE-FE34-7833-5646-860A7726FA6E-00000001"
+      file_path: "C:\\Windows\\System32\\bcryptprimitives.dll"
+      name: "bcryptprimitives.dll"
+      is_loaded: true
+      base_address: 140711516635136
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  module_event {
+    event_type: MODULE_UNLOADED
+    modules {
+      id: "6C976816"
+      file_path: "C:\\Users\\lin17\\IdeaProjects\\untitled41\\target\\debug\\bin\\main.exe"
+      name: "main.exe"
+      is_loaded: true
+    }
+  }
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+event {
+  process_state_changed {
+    state: PROCESS_STATE_EXITED
+    description: "Process exited"
+    exited_details {
+    }
+  }
+}
+
+
+Direction: 发送消息
+Time: 2025-11-29 02:09:06
+hash: 3
+exit {
+}
+
+
+Direction: 接收到的消息
+Time: 2025-11-29 02:09:06
+hash {
+  hash: 3
+}
+exit {
+  status {
+    success: true
+  }
+}
+

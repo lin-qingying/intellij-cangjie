@@ -82,7 +82,7 @@ class CangJieConfigurable(override val project: Project) :
                     onApply {
 
 
-                    settings.modify {
+                        settings.modify {
                             it.toolchain = cangjieProjectSettings.data.toolchain
                         }
 

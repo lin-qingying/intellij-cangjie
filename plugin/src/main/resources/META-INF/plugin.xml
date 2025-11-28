@@ -55,10 +55,9 @@
 
     <content>
 
-        <!--        <module name="org.cangnova.cangjie.dapDebugger"/>-->
-        <!--                <module name="org.cangnova.cangjie.dapdebugger"/>-->
+        <module name="org.cangnova.cangjie.dapDebugger"/>
 
-        <module name="org.cangnova.cangjie.protodebugger"/>
+        <!--        <module name="org.cangnova.cangjie.debugger"/>-->
 
         <module name="org.cangnova.cangjie.lsp4ij"/>
         <module name="org.cangnova.cangjie.cjpm"/>

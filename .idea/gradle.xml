@@ -14,7 +14,10 @@
             <option value="$PROJECT_DIR$/cangjie-project" />
             <option value="$PROJECT_DIR$/cjpm" />
             <option value="$PROJECT_DIR$/common" />
-            <option value="$PROJECT_DIR$/dap-debugger" />
+            <option value="$PROJECT_DIR$/debugger" />
+            <option value="$PROJECT_DIR$/debugger/common" />
+            <option value="$PROJECT_DIR$/debugger/dap" />
+            <option value="$PROJECT_DIR$/debugger/protobuf" />
             <option value="$PROJECT_DIR$/descriptors" />
             <option value="$PROJECT_DIR$/descriptors/deserialization" />
             <option value="$PROJECT_DIR$/deserialization" />
@@ -24,7 +27,6 @@
             <option value="$PROJECT_DIR$/metadata" />
             <option value="$PROJECT_DIR$/notifications" />
             <option value="$PROJECT_DIR$/plugin" />
-            <option value="$PROJECT_DIR$/proto_debugger" />
             <option value="$PROJECT_DIR$/psi" />
             <option value="$PROJECT_DIR$/telemetry" />
             <option value="$PROJECT_DIR$/test-common" />

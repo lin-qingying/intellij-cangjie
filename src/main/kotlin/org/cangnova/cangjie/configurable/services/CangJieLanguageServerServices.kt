@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@
 
 package org.cangnova.cangjie.configurable.services
 
-import org.cangnova.cangjie.configurable.services.Feature.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
+import org.cangnova.cangjie.configurable.services.Feature.*
 
 enum class Feature {
     SEMANTIC_TOKENS, // 语义标记
@@ -268,7 +268,6 @@ class CangJieLanguageServerServices : PersistentStateComponent<CangJieLanguageSe
 
     override fun loadState(state: CangJieLanguageServerServices) {
         XmlSerializerUtil.copyBean(state, this)
-
     }
 
 }

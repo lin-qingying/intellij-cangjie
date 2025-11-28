@@ -63,7 +63,7 @@ include("notifications")
 include("descriptors")
 include("common")
 include("test-common")
-//include("gradle-util")
+
 include("descriptors:deserialization")
 include("metadata")
 include("analysis")
@@ -82,7 +82,9 @@ include("cangjie-project")
 include("cjpm")
 
 
-include("dap-debugger")
 
 
-include("proto_debugger")
+include("debugger")
+include("debugger:protobuf")
+include("debugger:dap")
+include("debugger:common")
