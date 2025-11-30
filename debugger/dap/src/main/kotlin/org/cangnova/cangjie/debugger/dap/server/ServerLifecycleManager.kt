@@ -38,9 +38,13 @@ interface ServerLifecycleManager : Disposable {
      * 启动DAP服务器
      *
      * @param config 服务器配置
+     * @param debuggerProvider 调试器提供者
      * @return 服务器进程，失败返回错误
      */
-    suspend fun startServer(config: ServerConfig): Result<ServerProcess>
+    suspend fun startServer(
+        config: ServerConfig,
+        debuggerProvider: org.cangnova.cangjie.debugger.DebuggerProvider
+    ): Result<ServerProcess>
 
     /**
      * 停止服务器

@@ -218,6 +218,11 @@ data class DebugSessionConfig(
     val project: Project,
 
     /**
+     * 调试器提供者
+     */
+    val debuggerProvider: org.cangnova.cangjie.debugger.DebuggerProvider,
+
+    /**
      * 服务器配置
      */
     val serverConfig: org.cangnova.cangjie.debugger.dap.server.ServerConfig,

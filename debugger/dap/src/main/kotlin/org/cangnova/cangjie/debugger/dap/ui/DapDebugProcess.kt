@@ -24,13 +24,7 @@
 
 package org.cangnova.cangjie.debugger.dap.ui
 
-import com.intellij.execution.ExecutionResult
-import com.intellij.execution.configurations.RunConfigurationOptions
-import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleViewContentType
-import com.intellij.execution.ui.ExecutionConsole
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.xdebugger.XDebugProcess
@@ -43,14 +37,10 @@ import kotlinx.coroutines.*
 import org.cangnova.cangjie.debugger.RunParameters
 import org.cangnova.cangjie.debugger.dap.core.AdapterEvent
 import org.cangnova.cangjie.debugger.dap.core.LaunchArguments
-import org.cangnova.cangjie.debugger.dap.provider.LocalDebuggerProvider
+import org.cangnova.cangjie.debugger.dap.provider.DapDebuggerProvider
 import org.cangnova.cangjie.debugger.dap.server.PortStrategy
 import org.cangnova.cangjie.debugger.dap.server.ServerConfig
 import org.cangnova.cangjie.debugger.dap.session.*
-import org.cangnova.cangjie.run.CangJieProgramRunConfiguration
-import org.cangnova.cangjie.run.CangJieRunConfigurationBase
-import org.cangnova.cangjie.run.CangJieRunState
-import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.absolutePathString
 
 /**
@@ -315,13 +305,14 @@ class DapDebugProcess(
      * 创建会话配置
      */
     private fun createSessionConfig(): DebugSessionConfig {
-        // 使用 LocalDebuggerProvider 获取服务器路径（executablePath 留空，由 ServerLifecycleManager 处理）
-        val debuggerProvider = LocalDebuggerProvider.getInstance()
+        // 使用从 RunParameters 传递的 DebuggerProvider
+        val debuggerProvider = runConfig.debuggerProvider
 
         return DebugSessionConfig(
             project = session.project,
+            debuggerProvider = debuggerProvider,
             serverConfig = ServerConfig(
-                executablePath = "", // 留空，DefaultServerLifecycleManager 会使用 LocalDebuggerProvider
+                executablePath = "", // 留空，DefaultServerLifecycleManager 会使用 debuggerProvider
                 debuggerType = debuggerProvider.debuggerType,
                 portStrategy = PortStrategy.AutoAllocate,
                 startupTimeoutMs = 10000

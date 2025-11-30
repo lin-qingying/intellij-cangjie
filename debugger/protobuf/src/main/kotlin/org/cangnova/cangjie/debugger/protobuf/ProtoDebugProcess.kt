@@ -466,7 +466,7 @@ class ProtoDebugProcess(
             debuggerHandler = debuggerHandler,
 
             architectureType = ArchitectureType.X86_64,
-
+            debuggerProvider = parameters.debuggerProvider
             )
     }
 

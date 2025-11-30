@@ -77,7 +77,7 @@ class DebuggerDriverFacade(
     val session: XDebugSession,
     private val debuggerHandler: DebuggerHandler,
     private val architectureType: ArchitectureType,
-
+    private val debuggerProvider: org.cangnova.cangjie.debugger.DebuggerProvider,
 
     ) : AutoCloseable {
     companion object {
@@ -142,7 +142,7 @@ class DebuggerDriverFacade(
 
     // 内存视图门面
     val memoryViewFacade: MemoryViewFacade
-    val debuggerProcessFactory: DebuggerProcessFactory = DebuggerProcessFactory(project)
+    val debuggerProcessFactory: DebuggerProcessFactory = DebuggerProcessFactory(project, debuggerProvider)
 
     // 进程处理器
     private val commandLine = debuggerProcessFactory.createDriverCommandLine(port, architectureType)

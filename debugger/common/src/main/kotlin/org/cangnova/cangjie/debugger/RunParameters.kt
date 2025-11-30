@@ -58,5 +58,7 @@ data class RunParameters(
      * 运行状态对象
      * 包含当前运行会话的状态信息和配置
      */
-    val state: RunProfileState? = null
+    val state: RunProfileState,
+
+    val debuggerProvider:DebuggerProvider
 )

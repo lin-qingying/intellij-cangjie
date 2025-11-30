@@ -93,7 +93,7 @@ class DefaultDebugSessionCoordinator(
                 // 步骤1: 启动服务器
                 val serverProcess = withTimeoutOrNull(config.serverConfig.startupTimeoutMs) {
                     LOG.info("[$sessionId] Starting debug server")
-                    serverManager.startServer(config.serverConfig).getOrThrow()
+                    serverManager.startServer(config.serverConfig, config.debuggerProvider).getOrThrow()
                 } ?: throw TimeoutException("Server startup timeout")
 
                 LOG.info("[$sessionId] Server started on port ${serverProcess.port} (pid=${serverProcess.pid})")

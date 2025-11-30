@@ -28,21 +28,28 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.project.Project
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugProcessStarter
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
+import org.cangnova.cangjie.debugger.DebuggerProvider
 import org.cangnova.cangjie.debugger.RunParameters
 import org.cangnova.cangjie.debugger.configurable.CangJieDebuggerEngineServices
 import org.cangnova.cangjie.debugger.configurable.DebuggerEngine.DAP
 import org.cangnova.cangjie.debugger.configurable.DebuggerEngine.PROTOBUF
+import org.cangnova.cangjie.debugger.dap.provider.DapDebuggerProvider
 import org.cangnova.cangjie.debugger.dap.ui.DapDebugProcess
+import org.cangnova.cangjie.debugger.messages.DebuggerBundle
+import org.cangnova.cangjie.debugger.protobuf.ProtoDebuggerProvider
 import org.cangnova.cangjie.debugger.protobuf.core.ProtoDebugProcess
-import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.run.CangJieRunConfigurationBase
 import org.cangnova.cangjie.run.CangJieRunState
 
-
+fun Project.getDebuggerProvider():DebuggerProvider = when(CangJieDebuggerEngineServices.getInstance(this).debuggerEngine){
+    DAP -> DapDebuggerProvider
+    PROTOBUF -> ProtoDebuggerProvider
+}
 /**
  * 仓颉调试运行器工具类
  *
@@ -56,7 +63,7 @@ object CjDebugRunnerUtils {
      *
      * 当调试器无法启动时显示的错误消息标题，从资源文件中获取本地化文本。
      */
-    val ERROR_MESSAGE_TITLE: String = CangJieBundle.message("unable.to.run.debugger")
+    val ERROR_MESSAGE_TITLE: String = DebuggerBundle.message("unable.to.run.debugger")
 
     /**
      * 显示运行内容并启动调试会话
@@ -76,9 +83,10 @@ object CjDebugRunnerUtils {
         runExecutable: GeneralCommandLine
     ): RunContentDescriptor {
         val runParameters = RunParameters(
-
             runExecutable.commandLineString,
-            runExecutable
+            runExecutable,
+            state,
+            state.project.getDebuggerProvider()
         )
 
         // 启动调试会话并返回运行内容描述符

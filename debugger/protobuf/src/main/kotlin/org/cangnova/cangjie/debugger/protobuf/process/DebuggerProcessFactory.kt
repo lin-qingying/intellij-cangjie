@@ -1,27 +1,3 @@
-/*
- * Copyright 2025 LinQingYing. and contributors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *
- * The use of this source code is governed by the Apache License 2.0,
- * which allows users to freely use, modify, and distribute the code,
- * provided they adhere to the terms of the license.
- *
- * The software is provided "as-is", and the authors are not responsible for
- * any damages or issues arising from its use.
- *
- */
-
 package org.cangnova.cangjie.debugger.protobuf.process
 
 import com.intellij.execution.ExecutionException
@@ -29,19 +5,13 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.BaseProcessHandler
 import com.intellij.execution.process.OSProcessHandler
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.io.BaseOutputReader
-import com.intellij.util.system.CpuArch
-import org.cangnova.cangjie.debugger.protobuf.messages.ProtoDebuggerBundle
-import org.cangnova.cangjie.debugger.protobuf.path.getBinFile
+import kotlinx.coroutines.runBlocking
+import org.cangnova.cangjie.debugger.DebuggerProvider
 import org.cangnova.cangjie.debugger.protobuf.settings.ArchitectureType
 import org.cangnova.cangjie.debugger.protobuf.settings.ArchitectureType.*
 import org.cangnova.cangjie.debugger.protobuf.settings.ProtoDebuggerService
-import org.cangnova.cangjie.debugger.protobuf.util.appendSearchPath
-import java.io.File
 import java.nio.charset.StandardCharsets
-import java.util.regex.Pattern
 
 /**
  * 调试器进程工厂
@@ -51,32 +21,30 @@ import java.util.regex.Pattern
  * - 构建命令行参数
  * - 配置跨平台环境变量
  */
-class DebuggerProcessFactory(val project: Project) {
+class DebuggerProcessFactory(
+    val project: Project,
+    private val debuggerProvider: DebuggerProvider
+) {
     private var debugModeEnabled = false
-    private val VERSION_PATTERN = Pattern.compile("^(\\d+\\.\\d+(?:\\.\\d+)*).*")
-
-    val defaultArchitecture: ArchitectureType
-        get() = if (CpuArch.isArm64()) ARM64 else X86_64
 
     // ==================== 公共 API ====================
-
 
     /**
      * 创建调试器命令行
      * @param port 调试器监听端口
      * @param arch 架构类型
      */
-    fun createDriverCommandLine(port: Int, arch: ArchitectureType = defaultArchitecture): GeneralCommandLine {
-        val frameworkFile = getFrameworkFile(arch)
-        val frontendFile = getFrontendFile(arch)
-
-        validateFiles(frameworkFile, frontendFile)
+    fun createDriverCommandLine(port: Int, arch: ArchitectureType = ARM64): GeneralCommandLine {
+        // 使用 debuggerProvider 获取服务器路径
+        val serverPath = runBlocking {
+            debuggerProvider.getServerPath()
+        }
 
         return GeneralCommandLine().apply {
-            exePath = frontendFile.absolutePath
-            workDirectory = frontendFile.parentFile
+            exePath = serverPath.toString()
+            workDirectory = serverPath.parent.toFile()
 
-            setupEnvironment(frameworkFile, frontendFile)
+            setupEnvironment()
             setupCommonParameters()
 
             // 添加端口参数
@@ -104,41 +72,23 @@ class DebuggerProcessFactory(val project: Project) {
 
     // ==================== 内部实现 ====================
 
-    private fun GeneralCommandLine.setupEnvironment(framework: File, frontend: File) {
-        when {
-            SystemInfo.isLinux -> environment["LD_LIBRARY_PATH"] = framework.parent
-            SystemInfo.isMac -> setupMacEnvironment(framework)
-            SystemInfo.isWindows -> setupWindowsEnvironment(framework, frontend)
-        }
+    /**
+     * 设置环境变量
+     *
+     * 从 debuggerProvider 获取通用环境变量（如 LD_LIBRARY_PATH, DYLD_FRAMEWORK_PATH）
+     * 以及特定于 Proto 调试器的环境变量
+     */
+    private fun GeneralCommandLine.setupEnvironment() {
+        // 添加 DebuggerProvider 提供的通用环境变量
+        environment.putAll(debuggerProvider.getEnvironmentVariables(project))
+
+        // 添加 Proto 调试器特定的环境变量
         environment["LLDB_LAUNCH_INFERIORS_WITHOUT_CONSOLE"] = "1"
+
         // ASLR 配置
         if (ProtoDebuggerService.getInstance().disableASLR) {
             environment["LLDB_LAUNCH_FLAG_DISABLE_ASLR"] = "1"
-
-
         }
-    }
-
-    private fun GeneralCommandLine.setupMacEnvironment(framework: File) {
-        environment["DYLD_FRAMEWORK_PATH"] = framework.parent
-        environment["NSUnbufferedIO"] = "YES"
-    }
-
-    private fun GeneralCommandLine.setupWindowsEnvironment(framework: File, frontend: File) {
-        val frameworkDir = framework.parentFile
-        val frontendDir = frontend.parentFile
-
-        appendSearchPath(environment, "PATH", frameworkDir.path)
-
-        if (!FileUtil.filesEqual(frontendDir, frameworkDir)) {
-            appendSearchPath(environment, "PATH", frontendDir.path)
-        }
-
-        parentEnvironment["PATH"]?.let {
-            appendSearchPath(environment, "PATH", it)
-        }
-
-
     }
 
     private fun GeneralCommandLine.setupCommonParameters() {
@@ -150,81 +100,5 @@ class DebuggerProcessFactory(val project: Project) {
             override fun readerOptions() = BaseOutputReader.Options.BLOCKING
         }.apply {
             setShouldDestroyProcessRecursively(false)
-
         }
-
-    private fun validateFiles(framework: File, frontend: File) {
-        if (!framework.exists()) {
-            throw ExecutionException(
-                ProtoDebuggerBundle.message("proto.error.lldb.library.not.found", arrayOf(framework))
-            )
-        }
-        if (!frontend.exists()) {
-            throw ExecutionException(
-                ProtoDebuggerBundle.message("proto.error.lldbfrontend.not.found", arrayOf(frontend.absolutePath))
-            )
-        }
-    }
-
-    // ==================== 文件路径解析 ====================
-
-    private fun getBundledFrameworkFile(arch: ArchitectureType): File {
-        val relativePath = getPathForArch(
-            arch, when {
-                SystemInfo.isMac -> "LLDB.framework"
-                SystemInfo.isWindows -> "bin/liblldb.dll"
-                else -> "lib/liblldb.so"
-            }
-        )
-
-        val resourcePath = if (SystemInfo.isMac) {
-            getPathForArch(arch, "LLDB.framework/Resources")
-        } else {
-            getPathForArch(arch, "bin")
-        }
-
-        return getBinFile(relativePath, resourcePath)
-    }
-
-    private fun getFrontendFile(arch: ArchitectureType): File {
-        // TODO: 移除硬编码，从配置获取
-        return File("D:\\code\\cangjie\\workspace\\cangjie_debugger\\output\\CangJieLLDBFrontend.exe")
-
-        /*
-        val relativePath = getPathForArch(
-            arch, when {
-                SystemInfo.isMac -> "CangJieLLDBFrontend"
-                SystemInfo.isWindows -> "bin/CangJieLLDBFrontend.exe"
-                else -> "bin/CangJieLLDBFrontend"
-            }
-        )
-        return getBinFile(relativePath, null)
-        */
-    }
-
-    private fun getFrameworkFile(arch: ArchitectureType): File {
-        // TODO: 移除硬编码，从配置获取
-        return File("D:\\code\\cangjie\\workspace\\cangjie_debugger\\output\\liblldb.dll")
-
-        // return getBundledFrameworkFile(arch)
-    }
-
-    // ==================== 架构处理 ====================
-
-    private fun getArchDirName(arch: ArchitectureType) = when (arch) {
-        I386 -> "x86"
-        X86_64 -> "x64"
-        ARM64 -> "aarch64"
-        else -> null
-    }
-
-    private fun getPathForArch(arch: ArchitectureType, path: String): String {
-        val archDir = getArchDirName(arch)
-            ?: getArchDirName(ArchitectureType.forVmCpuArch(CpuArch.CURRENT))
-            ?: throw UnsupportedOperationException(
-                "Unable to locate bundled LLDB for architecture $arch"
-            )
-        return "$archDir/$path"
-    }
-
 }

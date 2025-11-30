@@ -33,7 +33,7 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
 import kotlinx.coroutines.*
 import org.cangnova.cangjie.debugger.dap.exception.ServerException
-import org.cangnova.cangjie.debugger.dap.provider.LocalDebuggerProvider
+import org.cangnova.cangjie.debugger.dap.provider.DapDebuggerProvider
 import org.cangnova.cangjie.ide.project.cangjieSettings
 import org.cangnova.cangjie.process.CjProcessHandler
 import java.nio.file.Files
@@ -63,7 +63,10 @@ class DefaultServerLifecycleManager(
     private val portAllocator = PortAllocator.getInstance()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    override suspend fun startServer(config: ServerConfig): Result<ServerProcess> {
+    override suspend fun startServer(
+        config: ServerConfig,
+        debuggerProvider: org.cangnova.cangjie.debugger.DebuggerProvider
+    ): Result<ServerProcess> {
         return withContext(Dispatchers.IO) {
             try {
                 val serverId = UUID.randomUUID().toString()
@@ -77,15 +80,16 @@ class DefaultServerLifecycleManager(
                 val executablePath = if (config.executablePath.isNotEmpty()) {
                     config.executablePath
                 } else {
-                    // 使用 LocalDebuggerProvider 获取默认路径
-                    LocalDebuggerProvider.getInstance().getServerPath().toString()
+                    // 使用传入的 DebuggerProvider 获取路径
+                    debuggerProvider.getServerPath().toString()
                 }
 
                 // 创建命令行
                 val commandLine = createCommandLine(
                     executablePath = executablePath,
                     port = portLease.port,
-                    config = config
+                    config = config,
+                    debuggerProvider = debuggerProvider
                 )
 
                 // 启动进程
@@ -202,7 +206,8 @@ class DefaultServerLifecycleManager(
     private fun createCommandLine(
         executablePath: String,
         port: Int,
-        config: ServerConfig
+        config: ServerConfig,
+        debuggerProvider: org.cangnova.cangjie.debugger.DebuggerProvider
     ): GeneralCommandLine {
         val cangjieSettings = project.cangjieSettings
         val toolchain = cangjieSettings.state.toolchain
@@ -229,31 +234,12 @@ class DefaultServerLifecycleManager(
             // 添加自定义参数
             config.arguments.forEach { addParameter(it) }
 
-            // 添加工具链环境变量
-            toolchain?.getEnvironment()?.let { environment.putAll(it) }
+            // 添加 DebuggerProvider 提供的环境变量
+            // 注意：DebuggerProvider.getEnvironmentVariables() 的默认实现已经包含了工具链环境变量
+            environment.putAll(debuggerProvider.getEnvironmentVariables(project))
 
-            // 添加自定义环境变量
+            // 添加自定义环境变量（可以覆盖 Provider 提供的默认值）
             environment.putAll(config.environment)
-
-            // 添加LLDB库路径（参考 CangJieDebuggerServerManager）
-            toolchain?.homePath?.let { toolchainPath ->
-                val lldbLibPath = toolchainPath.systemIndependentPath + "/third_party/llvm/lldb/lib/"
-                when {
-                    SystemInfo.isLinux || SystemInfo.isMac -> {
-                        val existing = environment["LD_LIBRARY_PATH"] ?: ""
-                        environment["LD_LIBRARY_PATH"] = if (existing.isEmpty()) {
-                            lldbLibPath
-                        } else {
-                            "$lldbLibPath:$existing"
-                        }
-                    }
-
-                    SystemInfo.isWindows -> {
-                        val existing = environment["PATH"] ?: ""
-                        environment["PATH"] = "$lldbLibPath;$existing"
-                    }
-                }
-            }
 
             LOG.debug("Server command: $commandLineString")
         }
