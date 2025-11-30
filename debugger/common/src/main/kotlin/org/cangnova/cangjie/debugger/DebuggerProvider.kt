@@ -22,9 +22,13 @@
  *
  */
 
-package org.cangnova.cangjie.debugger.dap.provider
+package org.cangnova.cangjie.debugger
 
+import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.debugger.toolchain.DebuggerDownloadInfo
+import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import java.nio.file.Path
+
 
 /**
  * 调试器提供者接口
@@ -33,6 +37,7 @@ import java.nio.file.Path
  * 后期可扩展实现从网络下载、从SDK获取等方式。
  */
 interface DebuggerProvider {
+    val name: String
 
     /**
      * 调试器类型标识
@@ -57,13 +62,35 @@ interface DebuggerProvider {
     /**
      * 确保调试器已准备就绪
      *
-     * 可能包括下载、解压、权限设置等操作
+     * 此方法不包括下载，只负责设置权限、验证文件等操作
      *
      * @return Result.success 如果准备成功
      */
     suspend fun ensureReady(): Result<Path>
 
+    /**
+     * 获取调试器环境变量
+     *
+     * 默认实现返回工具链的环境变量。
+     * 子类可以重写此方法以添加额外的环境变量配置。
+     *
+     * @param project 当前项目
+     * @return 环境变量Map，键为变量名，值为变量值
+     */
+    fun getEnvironmentVariables(project: Project): Map<String, String> {
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk() ?: return emptyMap()
+        return sdk.getEnvironment()
+    }
 
+    /**
+     * 获取下载信息
+     *
+     * 每个 Provider 实现此方法以提供特定的下载链接和配置
+     * 链接格式: https://downloads.sourceforge.net/project/intellij-cangjie-debugger/[文件路径]
+     *
+     * @return 下载信息，如果不支持下载则返回 null
+     */
+    fun getDownloadInfo(): DebuggerDownloadInfo
 }
 
 /**
