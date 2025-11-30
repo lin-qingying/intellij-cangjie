@@ -34,15 +34,12 @@ import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType
 import org.cangnova.cangjie.debugger.configurable.CangJieDebuggerEngineServices
 import org.cangnova.cangjie.debugger.configurable.DebuggerEngine
+import org.cangnova.cangjie.debugger.configurable.isProtoDebuggerEngine
 import org.cangnova.cangjie.debugger.protobuf.breakpoint.AddressBreakpointType.ID
 import org.cangnova.cangjie.debugger.protobuf.core.ProtoDebugProcess
 import org.cangnova.cangjie.debugger.protobuf.memory.vfs.DisasmFileType
 import org.cangnova.cangjie.debugger.protobuf.messages.ProtoDebuggerBundle
 import javax.swing.Icon
-
-val Project.isProtoDebuggerEngine
-    get() =
-        CangJieDebuggerEngineServices.getInstance(this).debuggerEngine == DebuggerEngine.PROTOBUF
 
 
 /**

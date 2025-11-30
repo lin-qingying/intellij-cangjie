@@ -110,6 +110,7 @@ class CangJieProgramRunConfiguration(
 
     override fun suggestedName(): String {
         val module = getCjModule()
+
         return module?.name ?: project.name
     }
 

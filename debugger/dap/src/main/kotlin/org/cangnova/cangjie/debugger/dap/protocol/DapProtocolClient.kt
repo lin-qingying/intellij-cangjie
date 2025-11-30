@@ -22,91 +22,74 @@
  *
  */
 
-package org.cangnova.cangjie.debugger.dap.dap
+package org.cangnova.cangjie.debugger.dap.protocol
 
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.cangnova.cangjie.debugger.dap.core.*
-import org.cangnova.cangjie.debugger.dap.core.Capabilities
-import org.cangnova.cangjie.debugger.dap.core.Variable
 import org.cangnova.cangjie.debugger.dap.exception.DapAdapterException
-import org.eclipse.lsp4j.debug.*
 import org.eclipse.lsp4j.debug.services.IDebugProtocolServer
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
-import org.eclipse.lsp4j.debug.Scope as DapScope
 
 /**
- * DAP协议适配器实现
+ * DAP 协议客户端
  *
- * 实现Debug Adapter Protocol，提供统一的调试接口
+ * 职责：
+ * - 封装 DAP 协议操作
+ * - 使用已建立的 IDebugProtocolServer
+ * - 不负责创建连接
+ * - 事件订阅与分发
  */
-class DapAdapter(
-    private val project: Project
+class DapProtocolClient(
+    private val server: IDebugProtocolServer
 ) : DebugAdapter {
 
     companion object {
-        private val LOG = Logger.getInstance(DapAdapter::class.java)
+        private val LOG = Logger.getInstance(DapProtocolClient::class.java)
     }
 
     override val type = AdapterType.DAP
 
-    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
+    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Connected)
     override val connectionState: StateFlow<ConnectionState> = _connectionState.asStateFlow()
-
-    private lateinit var connection: DapConnection
-    private lateinit var client: DapClient
-    private lateinit var server: IDebugProtocolServer
 
     private val eventHandlers = CopyOnWriteArrayList<(AdapterEvent) -> Unit>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    override suspend fun initialize(config: AdapterConfig): Result<Capabilities> {
+    /**
+     * 初始化适配器
+     *
+     * 注意：此方法不再创建连接，只发送初始化请求
+     */
+    override suspend fun initialize( ): Result<Capabilities> {
         return withContext(Dispatchers.IO) {
             try {
-                LOG.info("Initializing DAP adapter")
-                _connectionState.value = ConnectionState.Connecting
+                LOG.info("Initializing DAP protocol client")
 
-                // 创建连接
-                connection = DapConnection(
-                    host = config.host,
-                    port = config.port,
-                    config = config.connectionConfig
-                )
-
-                // 创建客户端
-                client = DapClient(
-                    eventDispatcher = ::dispatchEvent
-                )
-
-                // 连接到服务器
-                server = connection.connect(client).getOrThrow()
-
-                // 发送初始化请求
+                // 直接发送初始化请求，不再创建连接
                 val capabilities = sendInitializeRequest().getOrThrow()
 
-
-
-                _connectionState.value = ConnectionState.Connected
-                LOG.info("DAP adapter initialized successfully")
-
+                LOG.info("DAP protocol client initialized successfully")
                 Result.success(capabilities)
             } catch (e: Exception) {
-                LOG.error("Failed to initialize DAP adapter", e)
+//                LOG.error("Failed to initialize DAP protocol client", e)
                 _connectionState.value = ConnectionState.Failed(e)
                 Result.failure(DapAdapterException("Initialization failed", e))
             }
         }
     }
 
+    /**
+     * 发送初始化请求
+     */
     private suspend fun sendInitializeRequest(): Result<Capabilities> {
         return withContext(Dispatchers.IO) {
             try {
-                val initializeRequest = InitializeRequestArguments().apply {
+                val initializeRequest = org.eclipse.lsp4j.debug.InitializeRequestArguments().apply {
                     clientID = "intellij-cangjie-dap"
                     clientName = "IntelliJ CangJie Debugger"
                     adapterID = "cangjie-debug"
@@ -157,7 +140,7 @@ class DapAdapter(
 
                 Result.success(capabilities)
             } catch (e: Exception) {
-                LOG.error("Failed to send initialize request", e)
+//                LOG.error("Failed to send initialize request", e)
                 Result.failure(DapAdapterException("Initialize request failed", e))
             }
         }
@@ -167,14 +150,12 @@ class DapAdapter(
         return withContext(Dispatchers.IO) {
             try {
                 LOG.info("Sending configuration done request")
-
-                val args = ConfigurationDoneArguments()
+                val args = org.eclipse.lsp4j.debug.ConfigurationDoneArguments()
                 server.configurationDone(args).await()
-
                 LOG.info("Configuration done successfully")
                 Result.success(Unit)
             } catch (e: Exception) {
-                LOG.error("Failed to send configuration done", e)
+//                LOG.error("Failed to send configuration done", e)
                 Result.failure(DapAdapterException("Configuration done failed", e))
             }
         }
@@ -199,7 +180,7 @@ class DapAdapter(
                 LOG.info("Debug target launched successfully")
                 Result.success(Unit)
             } catch (e: Exception) {
-                LOG.error("Failed to launch debug target", e)
+//                LOG.error("Failed to launch debug target", e)
                 Result.failure(DapAdapterException("Launch failed", e))
             }
         }
@@ -221,7 +202,7 @@ class DapAdapter(
                 LOG.info("Attached to process successfully")
                 Result.success(Unit)
             } catch (e: Exception) {
-                LOG.error("Failed to attach to process", e)
+//                LOG.error("Failed to attach to process", e)
                 Result.failure(DapAdapterException("Attach failed", e))
             }
         }
@@ -232,7 +213,7 @@ class DapAdapter(
             try {
                 LOG.info("Disconnecting from DAP server")
 
-                server.disconnect(DisconnectArguments().apply {
+                server.disconnect(org.eclipse.lsp4j.debug.DisconnectArguments().apply {
                     terminateDebuggee = true
                 }).await()
 
@@ -241,8 +222,29 @@ class DapAdapter(
 
                 Result.success(Unit)
             } catch (e: Exception) {
-                LOG.error("Failed to disconnect", e)
+//                LOG.error("Failed to disconnect", e)
                 Result.failure(DapAdapterException("Disconnect failed", e))
+            }
+        }
+    }
+
+    override suspend fun terminate(): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                LOG.debug("Sending terminate request to DAP server")
+
+                val args = org.eclipse.lsp4j.debug.TerminateArguments().apply {
+                    restart = false
+                }
+
+                server.terminate(args).await()
+
+                LOG.debug("Terminate request sent successfully")
+                Result.success(Unit)
+            } catch (e: Exception) {
+                LOG.warn("Failed to send terminate request: ${e.message}")
+                // terminate 请求失败不是致命错误
+                Result.success(Unit)
             }
         }
     }
@@ -253,13 +255,13 @@ class DapAdapter(
     ): Result<List<BreakpointResult>> {
         return withContext(Dispatchers.IO) {
             try {
-                val args = SetBreakpointsArguments().apply {
-                    this.source = Source().apply {
+                val args = org.eclipse.lsp4j.debug.SetBreakpointsArguments().apply {
+                    this.source = org.eclipse.lsp4j.debug.Source().apply {
                         path = source.path
                         name = source.name
                     }
                     this.breakpoints = breakpoints.map { spec ->
-                        SourceBreakpoint().apply {
+                        org.eclipse.lsp4j.debug.SourceBreakpoint().apply {
                             line = spec.line
                             column = spec.column
                             condition = spec.condition
@@ -282,77 +284,108 @@ class DapAdapter(
                 LOG.debug("Set ${results.size} breakpoints in ${source.path}")
                 Result.success(results)
             } catch (e: Exception) {
-                LOG.error("Failed to set breakpoints", e)
+//                LOG.error("Failed to set breakpoints", e)
                 Result.failure(DapAdapterException("Set breakpoints failed", e))
             }
         }
     }
 
-    override suspend fun evaluate(
-        expression: String,
-        frameId: Long,
-        context: EvaluationType
-    ): Result<EvaluationResult> {
+    override suspend fun continueExecution(threadId: Long): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val args = EvaluateArguments().apply {
-                    this.expression = expression
-                    this.frameId = frameId.toInt()
-                    this.context = when (context) {
-                        EvaluationType.WATCH -> EvaluateArgumentsContext.WATCH
-                        EvaluationType.REPL -> EvaluateArgumentsContext.REPL
-                        EvaluationType.HOVER -> EvaluateArgumentsContext.HOVER
-                        EvaluationType.CONDITIONAL -> EvaluateArgumentsContext.CLIPBOARD
-                    }
+                LOG.debug("Continuing execution for thread $threadId")
+
+                val args = org.eclipse.lsp4j.debug.ContinueArguments().apply {
+                    this.threadId = threadId.toInt()
                 }
 
-                val response = server.evaluate(args).await()
+                server.continue_(args).await()
 
-                val result = EvaluationResult(
-                    value = response.result,
-                    type = response.type,
-                    variablesReference = response.variablesReference.toLong(),
-                    presentationHint = response.presentationHint?.let {
-                        PresentationHint(
-                            kind = it.kind,
-                            attributes = it.attributes?.toList()
-                        )
-                    }
-                )
-
-                LOG.debug("Evaluated expression: $expression = ${result.value}")
-                Result.success(result)
+                LOG.debug("Continue command sent for thread $threadId")
+                Result.success(Unit)
             } catch (e: Exception) {
-                LOG.error("Failed to evaluate expression: $expression", e)
-                Result.failure(DapAdapterException("Evaluation failed", e))
+//                LOG.error("Failed to continue execution for thread $threadId", e)
+                Result.failure(DapAdapterException("Continue execution failed", e))
             }
         }
     }
 
-    override suspend fun getVariables(variablesReference: Long): Result<List<Variable>> {
+    override suspend fun pause(threadId: Long): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val args = VariablesArguments().apply {
-                    this.variablesReference = variablesReference.toInt()
+                LOG.debug("Pausing execution for thread $threadId")
+
+                val args = org.eclipse.lsp4j.debug.PauseArguments().apply {
+                    this.threadId = threadId.toInt()
                 }
 
-                val response = server.variables(args).await()
+                server.pause(args).await()
 
-                val variables = response.variables.map { v ->
-                    Variable(
-                        name = v.name,
-                        value = v.value,
-                        type = v.type ?: "",
-                        variablesReference = v.variablesReference.toLong(),
-                        presentationHint = v.presentationHint?.kind
-                    )
-                }
-
-                LOG.debug("Got ${variables.size} variables for reference $variablesReference")
-                Result.success(variables)
+                LOG.debug("Pause command sent for thread $threadId")
+                Result.success(Unit)
             } catch (e: Exception) {
-                LOG.error("Failed to get variables", e)
-                Result.failure(DapAdapterException("Get variables failed", e))
+//                LOG.error("Failed to pause execution for thread $threadId", e)
+                Result.failure(DapAdapterException("Pause execution failed", e))
+            }
+        }
+    }
+
+    override suspend fun next(threadId: Long): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                LOG.debug("Step over for thread $threadId")
+
+                val args = org.eclipse.lsp4j.debug.NextArguments().apply {
+                    this.threadId = threadId.toInt()
+                }
+
+                server.next(args).await()
+
+                LOG.debug("Step over command sent for thread $threadId")
+                Result.success(Unit)
+            } catch (e: Exception) {
+//                LOG.error("Failed to step over for thread $threadId", e)
+                Result.failure(DapAdapterException("Step over failed", e))
+            }
+        }
+    }
+
+    override suspend fun stepIn(threadId: Long): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                LOG.debug("Step in for thread $threadId")
+
+                val args = org.eclipse.lsp4j.debug.StepInArguments().apply {
+                    this.threadId = threadId.toInt()
+                }
+
+                server.stepIn(args).await()
+
+                LOG.debug("Step in command sent for thread $threadId")
+                Result.success(Unit)
+            } catch (e: Exception) {
+//                LOG.error("Failed to step in for thread $threadId", e)
+                Result.failure(DapAdapterException("Step in failed", e))
+            }
+        }
+    }
+
+    override suspend fun stepOut(threadId: Long): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                LOG.debug("Step out for thread $threadId")
+
+                val args = org.eclipse.lsp4j.debug.StepOutArguments().apply {
+                    this.threadId = threadId.toInt()
+                }
+
+                server.stepOut(args).await()
+
+                LOG.debug("Step out command sent for thread $threadId")
+                Result.success(Unit)
+            } catch (e: Exception) {
+//                LOG.error("Failed to step out for thread $threadId", e)
+                Result.failure(DapAdapterException("Step out failed", e))
             }
         }
     }
@@ -362,16 +395,15 @@ class DapAdapter(
             try {
                 LOG.debug("Getting stack trace for thread $threadId")
 
-                val args = StackTraceArguments().apply {
+                val args = org.eclipse.lsp4j.debug.StackTraceArguments().apply {
                     this.threadId = threadId.toInt()
-                    // 获取所有堆栈帧
                     startFrame = 0
                     levels = 0 // 0表示获取所有帧
                 }
 
                 val response = server.stackTrace(args).await()
 
-                val frames = response.stackFrames.mapIndexed { index, frame ->
+                val frames = response.stackFrames.map { frame ->
                     StackFrameInfo(
                         id = frame.id.toLong(),
                         name = frame.name,
@@ -382,14 +414,14 @@ class DapAdapter(
                             )
                         },
                         line = frame.line,
-                        column = frame.column ?: 0
+                        column = frame.column
                     )
                 }
 
                 LOG.debug("Retrieved ${frames.size} stack frames for thread $threadId")
                 Result.success(frames)
             } catch (e: Exception) {
-                LOG.error("Failed to get stack trace for thread $threadId", e)
+//                LOG.error("Failed to get stack trace for thread $threadId", e)
                 Result.failure(DapAdapterException("Get stack trace failed", e))
             }
         }
@@ -412,138 +444,65 @@ class DapAdapter(
                 LOG.debug("Retrieved ${threads.size} threads")
                 Result.success(threads)
             } catch (e: Exception) {
-                LOG.error("Failed to get threads", e)
+//                LOG.error("Failed to get threads", e)
                 Result.failure(DapAdapterException("Get threads failed", e))
             }
         }
     }
 
-    override suspend fun continueExecution(threadId: Long): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                LOG.debug("Continuing execution for thread $threadId")
-
-                val args = ContinueArguments().apply {
-                    this.threadId = threadId.toInt()
-                }
-
-                server.continue_(args).await()
-
-                LOG.debug("Continue command sent for thread $threadId")
-                Result.success(Unit)
-            } catch (e: Exception) {
-                LOG.error("Failed to continue execution for thread $threadId", e)
-                Result.failure(DapAdapterException("Continue execution failed", e))
-            }
-        }
-    }
-
-    override suspend fun pause(threadId: Long): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                LOG.debug("Pausing execution for thread $threadId")
-
-                val args = PauseArguments().apply {
-                    this.threadId = threadId.toInt()
-                }
-
-                server.pause(args).await()
-
-                LOG.debug("Pause command sent for thread $threadId")
-                Result.success(Unit)
-            } catch (e: Exception) {
-                LOG.error("Failed to pause execution for thread $threadId", e)
-                Result.failure(DapAdapterException("Pause execution failed", e))
-            }
-        }
-    }
-
-    override suspend fun next(threadId: Long): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                LOG.debug("Step over for thread $threadId")
-
-                val args = NextArguments().apply {
-                    this.threadId = threadId.toInt()
-                }
-
-                server.next(args).await()
-
-                LOG.debug("Step over command sent for thread $threadId")
-                Result.success(Unit)
-            } catch (e: Exception) {
-                LOG.error("Failed to step over for thread $threadId", e)
-                Result.failure(DapAdapterException("Step over failed", e))
-            }
-        }
-    }
-
-    override suspend fun stepIn(threadId: Long): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                LOG.debug("Step in for thread $threadId")
-
-                val args = StepInArguments().apply {
-                    this.threadId = threadId.toInt()
-                }
-
-                server.stepIn(args).await()
-
-                LOG.debug("Step in command sent for thread $threadId")
-                Result.success(Unit)
-            } catch (e: Exception) {
-                LOG.error("Failed to step in for thread $threadId", e)
-                Result.failure(DapAdapterException("Step in failed", e))
-            }
-        }
-    }
-
-    override suspend fun stepOut(threadId: Long): Result<Unit> {
-        return withContext(Dispatchers.IO) {
-            try {
-                LOG.debug("Step out for thread $threadId")
-
-                val args = StepOutArguments().apply {
-                    this.threadId = threadId.toInt()
-                }
-
-                server.stepOut(args).await()
-
-                LOG.debug("Step out command sent for thread $threadId")
-                Result.success(Unit)
-            } catch (e: Exception) {
-                LOG.error("Failed to step out for thread $threadId", e)
-                Result.failure(DapAdapterException("Step out failed", e))
-            }
-        }
-    }
-
-    override suspend fun getScopes(frameId: Long): Result<List<org.cangnova.cangjie.debugger.dap.core.Scope>> {
+    override suspend fun getScopes(frameId: Long): Result<List<Scope>> {
         return withContext(Dispatchers.IO) {
             try {
                 LOG.debug("Getting scopes for frame $frameId")
 
-                val args = ScopesArguments().apply {
+                val args = org.eclipse.lsp4j.debug.ScopesArguments().apply {
                     this.frameId = frameId.toInt()
                 }
 
                 val response = server.scopes(args).await()
 
-                val scopes: List<org.cangnova.cangjie.debugger.dap.core.Scope> =
-                    response.scopes.map { dapScope: DapScope ->
-                        org.cangnova.cangjie.debugger.dap.core.Scope(
-                            name = dapScope.name,
-                            variablesReference = dapScope.variablesReference.toLong(),
-                            expensive = false, // DAP 的 expensive 字段可能不可用，默认为 false
-                            presentationHint = dapScope.presentationHint
-                        )
-                    }
+                val scopes = response.scopes.map { dapScope ->
+                    Scope(
+                        name = dapScope.name,
+                        variablesReference = dapScope.variablesReference.toLong(),
+                        expensive = false,
+                        presentationHint = dapScope.presentationHint
+                    )
+                }
 
                 LOG.debug("Retrieved ${scopes.size} scopes for frame $frameId")
                 Result.success(scopes)
             } catch (e: Exception) {
-                LOG.error("Failed to get scopes for frame $frameId", e)
+//                LOG.error("Failed to get scopes for frame $frameId", e)
                 Result.failure(DapAdapterException("Get scopes failed", e))
+            }
+        }
+    }
+
+    override suspend fun getVariables(variablesReference: Long): Result<List<Variable>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val args = org.eclipse.lsp4j.debug.VariablesArguments().apply {
+                    this.variablesReference = variablesReference.toInt()
+                }
+
+                val response = server.variables(args).await()
+
+                val variables = response.variables.map { v ->
+                    Variable(
+                        name = v.name,
+                        value = v.value,
+                        type = v.type ?: "",
+                        variablesReference = v.variablesReference.toLong(),
+                        presentationHint = v.presentationHint?.kind
+                    )
+                }
+
+                LOG.debug("Got ${variables.size} variables for reference $variablesReference")
+                Result.success(variables)
+            } catch (e: Exception) {
+//                LOG.error("Failed to get variables", e)
+                Result.failure(DapAdapterException("Get variables failed", e))
             }
         }
     }
@@ -557,7 +516,7 @@ class DapAdapter(
             try {
                 LOG.debug("Setting variable: $name = $value (reference: $variablesReference)")
 
-                val args = SetVariableArguments().apply {
+                val args = org.eclipse.lsp4j.debug.SetVariableArguments().apply {
                     this.variablesReference = variablesReference.toInt()
                     this.name = name
                     this.value = value
@@ -566,39 +525,59 @@ class DapAdapter(
                 val response = server.setVariable(args).await()
 
                 val variable = Variable(
-                    name = name, // 使用输入的 name
+                    name = name,
                     value = response.value,
                     type = response.type ?: "",
                     variablesReference = response.variablesReference.toLong(),
-                    presentationHint = null // 暂时设为 null，后续可以扩展
+                    presentationHint = null
                 )
 
                 LOG.debug("Variable set successfully: $variable")
                 Result.success(variable)
             } catch (e: Exception) {
-                LOG.error("Failed to set variable: $name = $value", e)
+//                LOG.error("Failed to set variable: $name = $value", e)
                 Result.failure(DapAdapterException("Set variable failed", e))
             }
         }
     }
 
-    override suspend fun terminate(): Result<Unit> {
+    override suspend fun evaluate(
+        expression: String,
+        frameId: Long,
+        context: EvaluationType
+    ): Result<EvaluationResult> {
         return withContext(Dispatchers.IO) {
             try {
-                LOG.debug("Sending terminate request to DAP server")
-
-                val args = TerminateArguments().apply {
-                    restart = false // 不重启，只是终止
+                val args = org.eclipse.lsp4j.debug.EvaluateArguments().apply {
+                    this.expression = expression
+                    this.frameId = frameId.toInt()
+//                    this.context = when (context) {
+//                        EvaluationType.WATCH -> org.eclipse.lsp4j.debug.EvaluateArgumentsContext.WATCH
+//                        EvaluationType.REPL -> org.eclipse.lsp4j.debug.EvaluateArgumentsContext.REPL
+//                        EvaluationType.HOVER -> org.eclipse.lsp4j.debug.EvaluateArgumentsContext.HOVER
+//                        EvaluationType.CONDITIONAL -> org.eclipse.lsp4j.debug.EvaluateArgumentsContext.CLIPBOARD
+//                    }
                 }
 
-                server.terminate(args).await()
+                val response = server.evaluate(args).await()
 
-                LOG.debug("Terminate request sent successfully")
-                Result.success(Unit)
+                val result = EvaluationResult(
+                    value = response.result,
+                    type = response.type,
+                    variablesReference = response.variablesReference.toLong(),
+                    presentationHint = response.presentationHint?.let {
+                        PresentationHint(
+                            kind = it.kind,
+                            attributes = it.attributes?.toList()
+                        )
+                    }
+                )
+
+                LOG.debug("Evaluated expression: $expression = ${result.value}")
+                Result.success(result)
             } catch (e: Exception) {
-                LOG.warn("Failed to send terminate request: ${e.message}")
-                // terminate 请求失败不是致命错误，继续执行断开连接
-                Result.success(Unit)
+//                LOG.error("Failed to evaluate expression: $expression", e)
+                Result.failure(DapAdapterException("Evaluation failed", e))
             }
         }
     }
@@ -612,7 +591,10 @@ class DapAdapter(
         }
     }
 
-    private fun dispatchEvent(event: AdapterEvent) {
+    /**
+     * 分发事件
+     */
+    fun dispatchEvent(event: AdapterEvent) {
         eventHandlers.forEach { handler ->
             try {
                 handler(event)
@@ -624,12 +606,7 @@ class DapAdapter(
 
     override fun dispose() {
         scope.cancel()
-        if (::client.isInitialized) {
-            client.dispose()
-        }
-        if (::connection.isInitialized) {
-            connection.dispose()
-        }
+        eventHandlers.clear()
     }
 }
 

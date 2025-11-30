@@ -30,6 +30,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.ui.ColoredTextContainer
 import com.intellij.ui.SimpleTextAttributes
+import com.intellij.xdebugger.XExpression
 import com.intellij.xdebugger.XSourcePosition
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
 import com.intellij.xdebugger.frame.*
@@ -198,6 +199,33 @@ class CangJieVariable(
             variable.value,
             variable.variablesReference > 0
         )
+    }
+
+    override fun getModifier(): XValueModifier {
+        return object : XValueModifier() {
+            override fun setValue(expression: XExpression, callback: XModificationCallback) {
+
+                ApplicationManager.getApplication().executeOnPooledThread {
+                    scope.launch {
+                        val session = debugProcess.getManagedSession()
+                        if (session == null) {
+
+                            return@launch
+                        }
+                      val result =  session.setVariable(
+                            variable.variablesReference, variable.name, expression.expression
+                        )
+                        if(result.isSuccess) {
+                            callback.valueModified()
+                        }else{
+                            callback.errorOccurred(result.exceptionOrNull()?.message ?:  "Failed to set variable ${variable.name}")
+                        }
+
+                    }
+                }
+
+            }
+        }
     }
 
     override fun computeChildren(node: XCompositeNode) {

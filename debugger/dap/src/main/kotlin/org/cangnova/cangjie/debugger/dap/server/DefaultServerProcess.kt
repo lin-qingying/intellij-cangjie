@@ -178,6 +178,9 @@ class DefaultServerProcess(
             }
 
             cleanup()
+        } catch (e: CancellationException) {
+            LOG.debug("Process monitoring cancelled for server $id")
+            throw e // Rethrow control-flow exceptions
         } catch (e: InterruptedException) {
             LOG.debug("Process monitoring interrupted for server $id")
         } catch (e: Exception) {
@@ -200,6 +203,9 @@ class DefaultServerProcess(
             scope.cancel()
 
             LOG.debug("Server $id cleanup completed")
+        } catch (e: CancellationException) {
+            // Rethrow control-flow exceptions
+            throw e
         } catch (e: Exception) {
             LOG.error("Error during server cleanup", e)
         }

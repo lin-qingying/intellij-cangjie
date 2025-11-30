@@ -94,3 +94,13 @@ class DebuggerConfigurable(override val project: Project) : CjConfigurableBase(
 
     }
 }
+
+val Project.isDapDebuggerEngine
+    get() =
+        CangJieDebuggerEngineServices.getInstance(this).debuggerEngine == DebuggerEngine.DAP
+
+
+val Project.isProtoDebuggerEngine
+    get() =
+        CangJieDebuggerEngineServices.getInstance(this).debuggerEngine == DebuggerEngine.PROTOBUF
+

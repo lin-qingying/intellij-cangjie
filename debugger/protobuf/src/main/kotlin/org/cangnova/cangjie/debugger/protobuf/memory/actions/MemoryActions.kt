@@ -37,6 +37,7 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.ui.ComponentUtil
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.impl.ui.DebuggerUIUtil
+import org.cangnova.cangjie.debugger.configurable.isProtoDebuggerEngine
 import org.cangnova.cangjie.debugger.protobuf.core.CangJieStackFrame
 import org.cangnova.cangjie.debugger.protobuf.core.ProtoDebugProcess
 import org.cangnova.cangjie.debugger.protobuf.memory.Address
@@ -127,6 +128,10 @@ class GoToAddressAction : AnAction(ProtoDebuggerBundle.message("proto.action.goT
     override fun update(e: AnActionEvent) {
         // 只在内存视图文件中显示和启用
         val isMemoryView = e.isMemoryView()
+        if (e.project?.isProtoDebuggerEngine == false) {
+            e.presentation.isEnabledAndVisible = false
+            return
+        }
         e.presentation.isEnabled = isMemoryView
         e.presentation.isVisible = isMemoryView
     }
@@ -167,7 +172,10 @@ class CopyAddressAction : AnAction(ProtoDebuggerBundle.message("proto.action.mem
     override fun update(e: AnActionEvent) {
         // 只检查是否在内存视图中
         val isMemoryView = e.isMemoryView()
-
+        if (e.project?.isProtoDebuggerEngine == false) {
+            e.presentation.isEnabledAndVisible = false
+            return
+        }
         e.presentation.isEnabled = isMemoryView
         e.presentation.isVisible = isMemoryView
     }
@@ -240,7 +248,10 @@ class DisassembleFunctionAction : AnAction(ProtoDebuggerBundle.message("proto.ac
             e.presentation.isEnabledAndVisible = false
             return
         }
-
+        if (e.project?.isProtoDebuggerEngine == false) {
+            e.presentation.isEnabledAndVisible = false
+            return
+        }
         // 获取当前调试会话
         val session = DebuggerUIUtil.getSession(e)
         if (session == null) {
@@ -321,6 +332,10 @@ class ViewMemoryAction : AnAction(ProtoDebuggerBundle.message("proto.action.view
     override fun update(e: AnActionEvent) {
         // 如果当前是在内存视图文件中，隐藏此 Action
         if (e.isMemoryView()) {
+            e.presentation.isEnabledAndVisible = false
+            return
+        }
+        if (e.project?.isProtoDebuggerEngine == false) {
             e.presentation.isEnabledAndVisible = false
             return
         }

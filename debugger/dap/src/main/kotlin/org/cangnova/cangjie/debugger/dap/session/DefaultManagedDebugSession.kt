@@ -29,9 +29,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.cangnova.cangjie.debugger.dap.connection.ConnectionConfig
 import org.cangnova.cangjie.debugger.dap.connection.ManagedConnection
 import org.cangnova.cangjie.debugger.dap.core.*
-import org.cangnova.cangjie.debugger.dap.dap.DapAdapter
+import org.cangnova.cangjie.debugger.dap.protocol.DapProtocolClient
 import org.cangnova.cangjie.debugger.dap.server.ServerProcess
 import org.cangnova.cangjie.debugger.dap.service.BreakpointService
 import org.cangnova.cangjie.debugger.dap.service.EvaluationService
@@ -70,53 +71,75 @@ class DefaultManagedDebugSession(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val eventHandlers = mutableListOf<(AdapterEvent) -> Unit>()
 
+    /**
+     * 初始化adapter（在创建会话后立即调用，但不发送DAP协议请求）
+     */
+    fun initializeAdapter() {
+        LOG.info("Initializing adapter for session $id")
+
+        // 使用已建立的 IDebugProtocolServer 创建协议客户端
+        adapter = DapProtocolClient(connection.server)
+
+        // 初始化服务
+        _breakpointManager = BreakpointService(config.project, adapter)
+        _evaluationEngine = EvaluationService(adapter)
+        LOG.info("Services initialized for session $id")
+
+        // 订阅适配器事件
+        adapter.subscribeEvents { event ->
+            handleAdapterEvent(event)
+        }
+
+        _state.value = SessionState.Idle
+        LOG.info("Adapter initialized for session $id")
+    }
+
+    /**
+     * 启动DAP协议（发送initialize和launch）
+     * 注意：adapter必须已经通过initializeAdapter()初始化
+     */
     override suspend fun start(): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                LOG.info("Starting debug session $id")
-                _state.value = SessionState.Initializing
-
-                // 初始化适配器
-                adapter = DapAdapter(config.project)
-
-                // 初始化服务
-                _breakpointManager = BreakpointService(config.project, adapter)
-                _evaluationEngine = EvaluationService(adapter)
-                LOG.info("Services initialized for session $id")
-
-                // 订阅适配器事件
-                adapter.subscribeEvents { event ->
-                    handleAdapterEvent(event)
+                if (!::adapter.isInitialized) {
+                    return@withContext Result.failure(
+                        IllegalStateException("Adapter not initialized, call initializeAdapter() first")
+                    )
                 }
 
-                // 初始化适配器
+                LOG.info("Starting DAP protocol for session $id")
+                _state.value = SessionState.Initializing
+
+                // 发送initialize请求
                 val capabilities = withTimeout(config.timeouts.initializationTimeoutMs) {
-                    adapter.initialize(config.adapterConfig).getOrThrow()
+                    adapter.initialize().getOrThrow()
                 }
 
                 LOG.info("Adapter initialized with capabilities: $capabilities")
-                _state.value = SessionState.Configuring
-
-                // 发送configurationDone
-                adapter.configurationDone().getOrThrow()
-
                 _state.value = SessionState.Launching
 
-                // 启动调试目标
+                // 发送launch请求
                 withTimeout(config.timeouts.launchTimeoutMs) {
                     adapter.launch(config.launchArguments).getOrThrow()
                 }
 
-                LOG.info("Debug session $id started successfully")
+                LOG.info("Launch request sent, waiting for initialized event...")
+
+                // 等待initialized事件（DAP协议要求）
+                // initialized事件会在AdapterEvent中触发，此时程序已加载
+                // 为了简化，我们在这里等待一小段时间让initialized事件到达
+                delay(100)
+
+                LOG.info("DAP protocol started for session $id")
                 _state.value = SessionState.Running()
 
                 Result.success(Unit)
             } catch (e: TimeoutCancellationException) {
-                LOG.error("Session start timeout", e)
+                LOG.error("DAP protocol start timeout", e)
                 _state.value = SessionState.Error(e, recoverable = false)
                 Result.failure(e)
             } catch (e: Exception) {
-                LOG.error("Failed to start session", e)
+                LOG.error("Failed to start DAP protocol", e)
                 _state.value = SessionState.Error(e, recoverable = false)
                 Result.failure(e)
             }
@@ -134,11 +157,17 @@ class DefaultManagedDebugSession(
                 LOG.info("Stopping debug session $id")
                 _state.value = SessionState.Terminating
 
-                // 终止调试目标
-                withTimeoutOrNull(config.timeouts.stopTimeoutMs) {
-                    if (::adapter.isInitialized) {
-                        adapter.terminate()
-                        adapter.disconnect()
+                // 按照DAP协议正确关闭：
+                // 1. 发送disconnect请求 (terminateDebuggee=true)
+                // 2. 等待响应
+                // 3. 清理资源
+                if (::adapter.isInitialized) {
+//                    比预设超时多2秒
+                    withTimeoutOrNull(config.timeouts.stopTimeoutMs + 1000) {
+                        // disconnect会自动终止被调试进程（terminateDebuggee=true）
+                        adapter.disconnect().onFailure { error ->
+                            LOG.warn("Disconnect failed: ${error.message}")
+                        }
                     }
                 }
 
@@ -147,7 +176,7 @@ class DefaultManagedDebugSession(
 
                 Result.success(Unit)
             } catch (e: Exception) {
-                LOG.error("Error stopping session $id", e)
+//                LOG.error("Error stopping session $id", e)
                 _state.value = SessionState.Error(e, recoverable = false)
                 Result.failure(e)
             }
@@ -263,10 +292,10 @@ class DefaultManagedDebugSession(
                     adapter.setVariable(variablesReference, name, value)
                 }
             } catch (e: TimeoutCancellationException) {
-                LOG.error("Set variable timeout", e)
+//                LOG.error("Set variable timeout", e)
                 Result.failure(e)
             } catch (e: Exception) {
-                LOG.error("Set variable failed", e)
+//                LOG.error("Set variable failed", e)
                 Result.failure(e)
             }
         }

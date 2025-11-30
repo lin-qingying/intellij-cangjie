@@ -29,8 +29,10 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import org.cangnova.cangjie.process.CjProcessHandler
 import org.cangnova.cangjie.run.target.startProcess
 
@@ -50,8 +52,8 @@ class CangJieProgramRunState(
     fun startProcess(processColors: Boolean): ProcessHandler {
         // Save all documents before executing program to ensure we're running the latest code
         // Must be done on EDT (Event Dispatch Thread)
-        com.intellij.openapi.application.ApplicationManager.getApplication().invokeAndWait {
-            com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().saveAllDocuments()
+        ApplicationManager.getApplication().invokeAndWait {
+          FileDocumentManager.getInstance().saveAllDocuments()
         }
 
         val commandLine = createCommandLine()

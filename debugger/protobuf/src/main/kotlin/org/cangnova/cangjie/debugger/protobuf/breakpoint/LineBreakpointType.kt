@@ -31,6 +31,7 @@ import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
+import org.cangnova.cangjie.debugger.configurable.isProtoDebuggerEngine
 import org.cangnova.cangjie.debugger.protobuf.breakpoint.LineBreakpointType.ID
 import org.cangnova.cangjie.debugger.protobuf.core.CangJieDebuggerEditorsProvider
 import org.cangnova.cangjie.debugger.protobuf.messages.ProtoDebuggerBundle

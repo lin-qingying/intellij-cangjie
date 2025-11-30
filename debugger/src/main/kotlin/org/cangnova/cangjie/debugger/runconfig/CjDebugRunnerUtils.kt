@@ -94,7 +94,9 @@ object CjDebugRunnerUtils {
                     when (CangJieDebuggerEngineServices.getInstance(state.project).debuggerEngine) {
                         DAP -> DapDebugProcess(
                             runParameters, session,
-                        )
+                        ).apply {
+                            startInitialization()
+                        }
 
                         PROTOBUF -> ProtoDebugProcess(
                             runParameters, session,

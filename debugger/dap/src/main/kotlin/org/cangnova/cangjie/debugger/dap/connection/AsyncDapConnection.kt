@@ -29,6 +29,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.cangnova.cangjie.debugger.dap.protocol.DapTraceWriter
 import org.eclipse.lsp4j.debug.launch.DSPLauncher
 import org.eclipse.lsp4j.debug.services.IDebugProtocolClient
 import org.eclipse.lsp4j.debug.services.IDebugProtocolServer
@@ -88,11 +89,17 @@ class AsyncDapConnection(
                 inputStream = sock.getInputStream()
                 outputStream = sock.getOutputStream()
 
-                // 启动LSP4J launcher
+                // 创建消息跟踪PrintWriter
+                val traceWriter = DapTraceWriter()
+                val tracePrintWriter = java.io.PrintWriter(traceWriter, true)
+
+                // 启动LSP4J launcher with tracing
                 val launcher = DSPLauncher.createClientLauncher(
                     client,
                     inputStream,
-                    outputStream
+                    outputStream,
+                    true, // validate messages
+                    tracePrintWriter // trace output
                 )
 
                 _server = launcher.remoteProxy

@@ -23,6 +23,9 @@
  */
 
 dependencies {
+//    intellijPlatform {
+//        plugins("com.redhat.devtools.lsp4ij:0.18.0")
+//    }
     // IntelliJ Platform modules
     implementation(project(":"))
     implementation(project(":psi"))
@@ -47,3 +50,11 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 }
 
+//project(":plugin") {
+//    dependencies {
+//
+//        intellijPlatform {
+//            plugins("com.redhat.devtools.lsp4ij:0.18.0")
+//        }
+//    }
+//}

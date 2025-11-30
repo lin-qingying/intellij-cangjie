@@ -27,7 +27,7 @@
 
 
     <xi:include href="/META-INF/protodebugger.xml" xpointer="xpointer(/idea-plugin/*)"/>
-    <!--    <xi:include href="/META-INF/dapdebugger.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
+    <xi:include href="/META-INF/dapdebugger.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
     <extensions defaultExtensionNs="com.intellij">

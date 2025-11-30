@@ -29,6 +29,7 @@ import com.intellij.execution.ExternalizablePath
 import com.intellij.execution.configuration.EnvironmentVariablesData
 import com.intellij.execution.configurations.*
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.target.LanguageRuntimeType
 import com.intellij.execution.target.RunTargetsEnabled
 import com.intellij.execution.target.TargetEnvironmentAwareRunProfile
 import com.intellij.execution.target.TargetEnvironmentConfiguration
@@ -37,6 +38,7 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.CjProjectBundle
 import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
+import org.cangnova.cangjie.run.target.CjLanguageRuntimeType
 import org.jdom.Element
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -68,6 +70,8 @@ abstract class CangJieRunConfigurationBase(
     } else {
         null
     }
+    val runConfigurationOptions get() =  options
+
 
     override fun getDefaultTargetName(): String? = options.remoteTarget
 
@@ -80,8 +84,8 @@ abstract class CangJieRunConfigurationBase(
         return true
     }
 
-    override fun getDefaultLanguageRuntimeType(): com.intellij.execution.target.LanguageRuntimeType<*>? {
-        return org.cangnova.cangjie.run.target.CjLanguageRuntimeType()
+    override fun getDefaultLanguageRuntimeType():  LanguageRuntimeType<*>? {
+        return CjLanguageRuntimeType()
     }
 
     /**

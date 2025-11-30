@@ -26,6 +26,9 @@
 
 
     <extensions defaultExtensionNs="com.intellij">
+        <xdebugger.breakpointType
+                implementation="org.cangnova.cangjie.debugger.dap.ui.CangJieLineBreakpointType"
+        />
 
     </extensions>
 

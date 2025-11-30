@@ -26,7 +26,12 @@ package org.cangnova.cangjie.debugger.dap.ui
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.xdebugger.XSourcePosition
+import com.intellij.xdebugger.evaluation.ExpressionInfo
 import com.intellij.xdebugger.evaluation.XDebuggerEvaluator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +40,7 @@ import kotlinx.coroutines.launch
 import org.cangnova.cangjie.debugger.dap.core.EvaluationContext
 import org.cangnova.cangjie.debugger.dap.core.EvaluationType
 import org.cangnova.cangjie.debugger.dap.core.Variable
+import org.cangnova.cangjie.psi.psiUtil.findEvaluatableExpression
 
 /**
  * 仓颉表达式求值器
@@ -91,5 +97,38 @@ class CangJieEvaluator(
                 }
             }
         }
+    }
+
+    /**
+     * 获取在指定位置可以被求值的表达式范围
+     *
+     * 这个方法对于实现鼠标悬浮显示变量值的功能至关重要。
+     * 当用户将鼠标悬浮在代码上时，IDE会调用此方法来确定哪个表达式应该被求值。
+     *
+     * @param project 当前项目
+     * @param document 文档对象
+     * @param offset 光标在文档中的偏移量
+     * @param sideEffectsAllowed 是否允许有副作用的表达式（如函数调用）
+     * @return 可以被求值的表达式的文本范围，如果没有有效表达式则返回null
+     */
+    override fun getExpressionRangeAtOffset(
+        project: Project,
+        document: Document,
+        offset: Int,
+        sideEffectsAllowed: Boolean
+    ): TextRange? {
+        // 获取PSI文件
+        val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document) ?: return null
+
+        // 查找偏移量处的元素
+        val element = psiFile.findElementAt(offset) ?: return null
+
+        // 查找包含该元素的表达式
+        val expression = element.findEvaluatableExpression( sideEffectsAllowed)
+        if (expression != null) {
+            return expression.textRange
+        }
+
+        return null
     }
 }

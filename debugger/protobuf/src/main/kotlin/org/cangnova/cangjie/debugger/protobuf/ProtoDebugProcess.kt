@@ -751,11 +751,7 @@ class ProtoDebugProcess(
                 return
             }
 
-            val executable = parameters.runExecutable ?: run {
-                LOG.warn("No executable specified")
-                stateManager.transitionTo(DebugStateManager.State.TERMINATED)
-                return
-            }
+            val executable = parameters.runExecutable
 
             val future = executeCommand {
                 facade.sessionService.loadForLaunch(

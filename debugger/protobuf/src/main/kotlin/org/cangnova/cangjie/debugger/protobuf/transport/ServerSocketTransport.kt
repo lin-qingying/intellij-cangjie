@@ -37,7 +37,7 @@ import lldbprotobuf.EventOuterClass
 import lldbprotobuf.RequestOuterClass
 import lldbprotobuf.ResponseOuterClass
 import org.cangnova.cangjie.debugger.protobuf.protocol.ProtobufUtils
-import org.cangnova.cangjie.debugger.protobuf.util.writeStringToFile
+import org.cangnova.cangjie.debugger.util.writeStringToFile
 import org.jetbrains.annotations.TestOnly
 import java.io.IOException
 import java.net.InetAddress

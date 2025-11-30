@@ -46,8 +46,11 @@ interface DebugAdapter : Disposable {
 
     /**
      * 初始化适配器
+     *
+     * 在新架构中，连接已由 DebugSessionCoordinator 建立，
+     * 此方法只发送初始化请求，不需要额外配置
      */
-    suspend fun initialize(config: AdapterConfig): Result<Capabilities>
+    suspend fun initialize(): Result<Capabilities>
 
     /**
      * 配置完成

@@ -24,132 +24,17 @@
 
 package org.cangnova.cangjie.debugger.dap.core
 
-import com.intellij.openapi.Disposable
-import kotlinx.coroutines.flow.StateFlow
-
-/**
- * 调试会话接口
- *
- * 管理调试会话的完整生命周期，包括启动、暂停、继续、停止等操作。
- */
-interface DebugSession : Disposable {
-
-    /**
-     * 会话唯一标识
-     */
-    val sessionId: String
-
-    /**
-     * 会话状态
-     */
-    val state: StateFlow<SessionState>
-
-    /**
-     * 调试适配器
-     */
-    val adapter: DebugAdapter
-
-    /**
-     * 启动调试会话
-     *
-     * @param config 启动配置
-     * @return 启动结果
-     */
-    suspend fun start(config: LaunchConfig): Result<Unit>
-
-    /**
-     * 继续执行
-     *
-     * @param threadId 线程ID，null表示所有线程
-     */
-    suspend fun resume(threadId: Long? = null): Result<Unit>
-
-    /**
-     * 暂停执行
-     *
-     * @param threadId 线程ID，null表示所有线程
-     */
-    suspend fun pause(threadId: Long? = null): Result<Unit>
-
-    /**
-     * 单步执行
-     */
-    suspend fun stepOver(threadId: Long): Result<Unit>
-    suspend fun stepInto(threadId: Long): Result<Unit>
-    suspend fun stepOut(threadId: Long): Result<Unit>
-
-    /**
-     * 停止调试会话
-     */
-    suspend fun stop(): Result<Unit>
-
-    /**
-     * 获取当前线程列表
-     */
-    suspend fun getThreads(): Result<List<ThreadInfo>>
-
-    /**
-     * 获取堆栈帧
-     */
-    suspend fun getStackTrace(threadId: Long): Result<List<StackFrameInfo>>
-
-    /**
-     * 订阅会话事件
-     */
-    fun subscribeEvents(handler: (DebugEvent) -> Unit): Subscription
-}
-
-/**
- * 会话状态
- */
-sealed class SessionState {
-    object Idle : SessionState()
-    object Starting : SessionState()
-    object Running : SessionState()
-    data class Paused(val threadId: Long, val reason: PauseReason) : SessionState()
-    object Stopping : SessionState()
-    object Stopped : SessionState()
-    data class Error(val error: Throwable) : SessionState()
-}
-
-/**
- * 暂停原因
- */
-enum class PauseReason {
-    BREAKPOINT,
-    STEP,
-    PAUSE,
-    EXCEPTION,
-    ENTRY
-}
-
-/**
- * 启动配置
- */
-data class LaunchConfig(
-    val program: String,
-    val arguments: List<String> = emptyList(),
-    val workingDirectory: String,
-    val environment: Map<String, String> = emptyMap(),
-    val adapterConfig: AdapterConfig
-)
+import org.cangnova.cangjie.debugger.dap.connection.ConnectionConfig
 
 /**
  * 适配器配置
+ *
+ * 注意：在新架构中，此配置已不再实际使用，保留仅为接口兼容
  */
 data class AdapterConfig(
     val host: String = "localhost",
     val port: Int,
     val connectionConfig: ConnectionConfig
-)
-
-/**
- * 连接配置
- */
-data class ConnectionConfig(
-    val maxRetries: Int = 10,
-    val retryDelayMs: Long = 500,
-    val connectionTimeoutMs: Long = 5000
 )
 
 /**

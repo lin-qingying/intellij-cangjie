@@ -30,6 +30,7 @@ import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties
 import com.intellij.xdebugger.breakpoints.XLineBreakpointType
+import org.cangnova.cangjie.debugger.configurable.isDapDebuggerEngine
 import org.cangnova.cangjie.lang.CangJieFileType
 
 /**
@@ -49,29 +50,7 @@ class CangJieLineBreakpointType : XLineBreakpointType<CangJieLineBreakpointType.
 
         @Tag("breakpoint-state")
         class State {
-            @Attribute("enabled")
-            var enabled: Boolean = true
 
-            @Attribute("valid")
-            var valid: Boolean = false
-
-            @Attribute("condition")
-            var condition: String? = null
-
-            @Attribute("suspend-policy")
-            var suspendPolicy: String = "ALL"  // ALL, THREAD, NONE
-
-            @Attribute("log-enabled")
-            var logEnabled: Boolean = false
-
-            @Attribute("log-expression")
-            var logExpression: String? = null
-
-            @Attribute("message")
-            var message: String? = null
-
-            @Attribute("reason")
-            var reason: String? = null
         }
 
         private var myState = State()
@@ -82,47 +61,7 @@ class CangJieLineBreakpointType : XLineBreakpointType<CangJieLineBreakpointType.
             myState = state
         }
 
-        fun isEnabled(): Boolean = myState.enabled
-        fun setEnabled(enabled: Boolean) {
-            myState.enabled = enabled
-        }
 
-        fun isValid(): Boolean = myState.valid
-        fun setValid(valid: Boolean) {
-            myState.valid = valid
-        }
-
-        fun getCondition(): String? = myState.condition
-        fun setCondition(condition: String?) {
-            myState.condition = condition
-        }
-
-        fun getSuspendPolicy(): String = myState.suspendPolicy
-        fun setSuspendPolicy(policy: String) {
-            myState.suspendPolicy = policy
-        }
-
-        fun isLogEnabled(): Boolean = myState.logEnabled
-        fun setLogEnabled(enabled: Boolean) {
-            myState.logEnabled = enabled
-        }
-
-        fun getLogExpression(): String? = myState.logExpression
-        fun setLogExpression(expression: String?) {
-            myState.logExpression = expression
-        }
-
-        fun setMessage(message: String?) {
-            myState.message = message
-        }
-
-        fun getMessage(): String? = myState.message
-
-        fun setReason(reason: String?) {
-            myState.reason = reason
-        }
-
-        fun getReason(): String? = myState.reason
     }
 
     override fun createBreakpointProperties(file: VirtualFile, line: Int): Properties {
@@ -130,11 +69,11 @@ class CangJieLineBreakpointType : XLineBreakpointType<CangJieLineBreakpointType.
     }
 
     override fun canPutAt(file: VirtualFile, line: Int, project: Project): Boolean {
-        return file.fileType == CangJieFileType.INSTANCE
+        return file.fileType == CangJieFileType.INSTANCE && project.isDapDebuggerEngine
     }
 
     companion object {
-        const val ID = "cangjie-line"
+        const val ID = "dap-cangjie-debugger-line"
     }
 }
 

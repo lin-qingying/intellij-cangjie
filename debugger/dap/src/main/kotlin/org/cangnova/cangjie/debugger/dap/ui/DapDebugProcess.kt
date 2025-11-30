@@ -24,7 +24,13 @@
 
 package org.cangnova.cangjie.debugger.dap.ui
 
+import com.intellij.execution.ExecutionResult
+import com.intellij.execution.configurations.RunConfigurationOptions
+import com.intellij.execution.process.ProcessHandler
+import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleViewContentType
+import com.intellij.execution.ui.ExecutionConsole
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.xdebugger.XDebugProcess
@@ -35,21 +41,28 @@ import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider
 import com.intellij.xdebugger.frame.XSuspendContext
 import kotlinx.coroutines.*
 import org.cangnova.cangjie.debugger.RunParameters
-import org.cangnova.cangjie.debugger.dap.core.AdapterConfig
 import org.cangnova.cangjie.debugger.dap.core.AdapterEvent
-import org.cangnova.cangjie.debugger.dap.core.ConnectionConfig
 import org.cangnova.cangjie.debugger.dap.core.LaunchArguments
 import org.cangnova.cangjie.debugger.dap.provider.LocalDebuggerProvider
 import org.cangnova.cangjie.debugger.dap.server.PortStrategy
 import org.cangnova.cangjie.debugger.dap.server.ServerConfig
 import org.cangnova.cangjie.debugger.dap.session.*
+import org.cangnova.cangjie.run.CangJieProgramRunConfiguration
+import org.cangnova.cangjie.run.CangJieRunConfigurationBase
+import org.cangnova.cangjie.run.CangJieRunState
 import kotlin.coroutines.CoroutineContext
 import kotlin.io.path.absolutePathString
 
 /**
- * 仓颉调试进程（重构版）
+ * 仓颉调试进程（单服务器模式）
  *
- * 完全异步，无阻塞调用
+ * 每个调试进程维护一个调试会话，通过DebugSessionCoordinator管理。
+ * 由于协调器采用单服务器模式，同一项目下只能有一个活跃的调试会话。
+ *
+ * 正确的DAP启动流程:
+ * 1. 构造函数: 启动服务器、建立连接、发送initialize、接收initialized响应
+ * 2. startInitialization(): 发送launch命令
+ * 3. sessionInitialized(): 发送configurationDone（此时断点已通过BreakpointHandler注册）
  */
 class DapDebugProcess(
     private val runConfig: RunParameters,
@@ -74,50 +87,56 @@ class DapDebugProcess(
 
     // UI组件
     private val editorsProvider = CangJieDebuggerEditorsProvider()
-    private lateinit var breakpointHandler: CangJieBreakpointHandler
+    private val breakpointHandler: CangJieBreakpointHandler = CangJieBreakpointHandler(this@DapDebugProcess)
 
     // 初始化状态
     @Volatile
-    private var initialized = false
+    private var initialized = false // initialize 已完成
+
+    @Volatile
+    private var launched = false // launch 已完成
+
+    // initialize完成的 Deferred
+    private val initializeDeferred = CompletableDeferred<Unit>()
+
+    // launch完成的 Deferred
+    private val launchDeferred = CompletableDeferred<Unit>()
 
     init {
-        // 异步初始化，不阻塞构造函数
-        startInitialization()
-    }
+        // 在构造函数中同步执行服务器连接和initialize
+        runBlocking {
+            try {
+                // 第一步：启动服务器和建立连接
+                createServerAndConnection()
 
-    /**
-     * 启动异步初始化
-     */
-    private fun startInitialization() {
-        LOG.info("Starting asynchronous initialization of CangJie debug process")
+                // 第二步：发送 initialize 并等待响应
+                sendInitialize()
 
-        // 在后台线程执行初始化
-        ApplicationManager.getApplication().executeOnPooledThread {
-            scope.launch {
-                try {
-                    initializeAsync()
-                } catch (e: CancellationException) {
-                    LOG.info("Initialization cancelled")
-                } catch (e: Exception) {
-                    LOG.error("Failed to initialize debug process", e)
+                initializeDeferred.complete(Unit)
+            } catch (e: Exception) {
+                LOG.error("Failed to initialize in constructor", e)
+                initializeDeferred.completeExceptionally(e)
+                // 在EDT上报告错误
+                ApplicationManager.getApplication().invokeLater {
                     session.reportError("Failed to start debugger: ${e.message}")
                     session.stop()
                 }
+                throw e
             }
         }
     }
 
     /**
-     * 异步初始化（完全非阻塞）
+     * 第一步：创建服务器和连接
      */
-    private suspend fun initializeAsync() = withContext(Dispatchers.IO) {
+    private suspend fun createServerAndConnection() = withContext(Dispatchers.IO) {
         try {
-            LOG.info("Initializing debug session")
+            LOG.info("Creating server and connection")
 
             // 创建会话配置
             val sessionConfig = createSessionConfig()
 
-            // 使用协调器创建会话
+            // 使用协调器创建会话（启动服务器、建立连接、初始化adapter）
             val result = coordinator.createSession(sessionConfig)
 
             if (result.isFailure) {
@@ -136,26 +155,159 @@ class DapDebugProcess(
                 handleDebugEvent(event)
             }
 
-            // 创建断点处理器（在EDT上）
-            withContext(Dispatchers.EDT) {
-                breakpointHandler = CangJieBreakpointHandler(this@DapDebugProcess)
+            run {
+            session.consoleView?.print(
+                "Debug server started and connected\n",
+                ConsoleViewContentType.SYSTEM_OUTPUT
+            )
             }
 
-            // 标记为已初始化
-            initialized = true
+            LOG.info("Server and connection created successfully")
+        } catch (e: Exception) {
+            LOG.error("Failed to create server and connection", e)
+            throw e
+        }
+    }
 
-            // 在EDT上更新UI
-            withContext(Dispatchers.EDT) {
+    /**
+     * 第二步：发送 initialize 命令并等待 initialized 响应
+     */
+    private suspend fun sendInitialize() = withContext(Dispatchers.IO) {
+        try {
+            LOG.info("Sending initialize request")
+
+            val debugSession = requireSession()
+
+            // 发送initialize请求
+            val capabilities = debugSession.adapter.initialize()
+                .getOrElse { error ->
+                    LOG.error("Initialize request failed", error)
+                    run{
+                        session.reportError("Failed to initialize: ${error.message}")
+                        session.stop()
+                    }
+
+                    throw error
+                }
+
+            LOG.info("Initialize request sent, capabilities: $capabilities")
+
+
+
+
+
+           run {
                 session.consoleView?.print(
-                    "Debugger attached successfully\n",
+                    "Debugger initialized\n",
                     ConsoleViewContentType.SYSTEM_OUTPUT
                 )
             }
 
-            LOG.info("CangJie debug process initialized successfully")
-        } catch (e: Exception) {
-            LOG.error("Async initialization failed", e)
+        } catch (e: TimeoutCancellationException) {
+            LOG.error("Initialize timeout", e)
+            run {
+                session.reportError("Debugger initialization timeout")
+                session.stop()
+            }
             throw e
+        } catch (e: Exception) {
+            LOG.error("Initialize failed", e)
+            throw e
+        }
+    }
+
+    /**
+     * 发送 launch 命令（在构造完成后调用）
+     */
+    fun startInitialization() {
+        LOG.info("Starting launch phase")
+
+        ApplicationManager.getApplication().executeOnPooledThread {
+            scope.launch {
+                try {
+                    // 等待 initialize 完成
+                    initializeDeferred.await()
+
+                    LOG.info("Sending launch request")
+
+                    val debugSession = requireSession()
+
+                    // 发送launch请求
+                    debugSession.adapter.launch(createSessionConfig().launchArguments).getOrElse { error ->
+                        LOG.error("Launch request failed", error)
+                        run {
+                            session.reportError("Failed to launch: ${error.message}")
+                            session.stop()
+                        }
+                        throw error
+                    }
+
+                    LOG.info("Launch request sent, waiting for program to start")
+
+                    launched = true
+                    launchDeferred.complete(Unit)
+
+                    run {
+                        session.consoleView?.print(
+                            "Program launched\n",
+                            ConsoleViewContentType.SYSTEM_OUTPUT
+                        )
+                    }
+
+                } catch (e: Exception) {
+                    LOG.error("Launch failed", e)
+                    launchDeferred.completeExceptionally(e)
+                    run {
+                        session.reportError("Failed to launch program: ${e.message}")
+                        session.stop()
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 会话初始化完成（由IntelliJ框架调用）
+     * 此时断点已通过BreakpointHandler注册，发送configurationDone
+     */
+    override fun sessionInitialized() {
+        LOG.info("sessionInitialized called - sending configurationDone")
+
+        ApplicationManager.getApplication().executeOnPooledThread {
+            scope.launch {
+                try {
+                    // 等待 launch 完成
+                    launchDeferred.await()
+
+                    LOG.info("Launch completed, sending configurationDone")
+
+                    val debugSession = requireSession()
+
+                    // 发送configurationDone（此时断点已通过BreakpointHandler注册）
+                    debugSession.adapter.configurationDone()
+                        .onSuccess {
+                            LOG.info("configurationDone sent successfully, debugging started")
+                            run  {
+                                this@DapDebugProcess.session.consoleView?.print(
+                                    "Debugging session ready\n",
+                                    ConsoleViewContentType.SYSTEM_OUTPUT
+                                )
+                            }
+                        }
+                        .onFailure { error ->
+                            LOG.error("Failed to send configurationDone", error)
+                            run {
+                                this@DapDebugProcess.session.reportError("Failed to complete debugger configuration: ${error.message}")
+                            }
+                        }
+                } catch (e: Exception) {
+                    LOG.error("Error in sessionInitialized", e)
+                    run{
+                        this@DapDebugProcess.session.reportError("Debugger initialization failed: ${e.message}")
+                        this@DapDebugProcess.session.stop()
+                    }
+                }
+            }
         }
     }
 
@@ -180,11 +332,6 @@ class DapDebugProcess(
                 workingDirectory = runConfig.runExecutable.workingDirectory?.absolutePathString() ?: "",
                 environment = runConfig.runExecutable.environment
             ),
-            adapterConfig = AdapterConfig(
-                host = "localhost",
-                port = 0, // 会被服务器端口覆盖
-                connectionConfig = ConnectionConfig()
-            ),
             timeouts = SessionTimeouts(
                 initializationTimeoutMs = 10000,
                 launchTimeoutMs = 30000,
@@ -201,15 +348,28 @@ class DapDebugProcess(
         scope.launch {
             try {
                 when (event) {
+                    is AdapterEvent.Initialized -> {
+                        LOG.info("Received initialized event from DAP server")
+                        initialized = true
+                    }
+
                     is AdapterEvent.Stopped -> {
                         LOG.info("Program stopped: ${event.reason}")
 
-                        withContext(Dispatchers.EDT) {
+                        // 获取线程列表和调用堆栈
+                        val debugSession = managedSession ?: return@launch
+
+                        val threads = debugSession.adapter.getThreads().getOrNull() ?: emptyList()
+                        val frames = debugSession.adapter.getStackTrace(event.threadId).getOrNull() ?: emptyList()
+
+                        run{
                             val suspendContext = CangJieSuspendContext(
                                 debugProcess = this@DapDebugProcess,
-                                activeThreadId = event.threadId
+                                activeThreadId = event.threadId,
+                                threads = threads,
+                                frames = frames
                             )
-                            session.positionReached(suspendContext)
+                            this@DapDebugProcess.session.positionReached(suspendContext)
                         }
                     }
 
@@ -219,14 +379,14 @@ class DapDebugProcess(
 
                     is AdapterEvent.Terminated -> {
                         LOG.info("Program terminated")
-                        withContext(Dispatchers.EDT) {
+                        run {
                             session.stop()
                         }
                     }
 
                     is AdapterEvent.Exited -> {
                         LOG.info("Program exited with code ${event.exitCode}")
-                        withContext(Dispatchers.EDT) {
+                        run {
                             session.consoleView?.print(
                                 "\nProcess exited with code ${event.exitCode}\n",
                                 ConsoleViewContentType.SYSTEM_OUTPUT
@@ -236,7 +396,7 @@ class DapDebugProcess(
                     }
 
                     is AdapterEvent.Output -> {
-                        withContext(Dispatchers.EDT) {
+                        run{
                             val contentType = when (event.category) {
                                 "stderr" -> ConsoleViewContentType.ERROR_OUTPUT
                                 "console" -> ConsoleViewContentType.NORMAL_OUTPUT
@@ -267,11 +427,8 @@ class DapDebugProcess(
     }
 
     override fun getBreakpointHandlers(): Array<XBreakpointHandler<*>> {
-        return if (::breakpointHandler.isInitialized) {
-            arrayOf(breakpointHandler)
-        } else {
-            emptyArray()
-        }
+
+        return arrayOf(breakpointHandler)
     }
 
     override fun resume(context: XSuspendContext?) {
@@ -324,7 +481,7 @@ class DapDebugProcess(
     override fun stop() {
         LOG.info("Stopping debug process")
 
-        // 异步停止，不阻塞EDT
+        // 异步停止,不阻塞EDT
         ApplicationManager.getApplication().executeOnPooledThread {
             scope.launch {
                 try {
@@ -354,8 +511,8 @@ class DapDebugProcess(
      * 执行异步操作（不阻塞EDT）
      */
     private fun executeAsync(operationName: String, operation: suspend () -> Unit) {
-        if (!initialized) {
-            LOG.warn("Cannot $operationName: debug process not initialized")
+        if (!initialized || !launched) {
+            LOG.warn("Cannot $operationName: debug process not fully initialized")
             return
         }
 
@@ -400,16 +557,7 @@ class DapDebugProcess(
     /**
      * 检查是否已初始化
      */
-    fun isInitialized(): Boolean = initialized
+    fun isInitialized(): Boolean = initialized && launched
 }
 
 
-/**
- * EDT Dispatcher
- */
-private val Dispatchers.EDT: CoroutineDispatcher
-    get() = object : CoroutineDispatcher() {
-        override fun dispatch(context: CoroutineContext, block: Runnable) {
-            ApplicationManager.getApplication().invokeLater(block)
-        }
-    }

@@ -61,11 +61,18 @@ class BreakpointService(
     // 断点映射: IDE断点 -> 托管断点
     private val breakpointMap = ConcurrentHashMap<XLineBreakpoint<*>, ManagedBreakpoint>()
 
-    // 文件断点分组: 文件路径 -> 断点列表
-    private val fileBreakpoints = ConcurrentHashMap<String, MutableSet<ManagedBreakpoint>>()
-
     override suspend fun registerBreakpoint(
         breakpoint: XLineBreakpoint<*>
+    ): Result<ManagedBreakpoint> {
+        return registerBreakpoint(breakpoint, syncImmediately = true)
+    }
+
+    /**
+     * 注册断点（内部方法，支持延迟同步）
+     */
+    private suspend fun registerBreakpoint(
+        breakpoint: XLineBreakpoint<*>,
+        syncImmediately: Boolean
     ): Result<ManagedBreakpoint> {
         return withContext(Dispatchers.IO) {
             try {
@@ -83,17 +90,14 @@ class BreakpointService(
                 )
 
                 breakpointMap[breakpoint] = managedBp
-
-                val filePath = file.path
-                fileBreakpoints.computeIfAbsent(filePath) { ConcurrentHashMap.newKeySet() }
-                    .add(managedBp)
-
                 updateBreakpointsList()
 
-                LOG.info("Registered breakpoint: ${managedBp.id} at $filePath:${breakpoint.line}")
+                LOG.info("Registered breakpoint: ${managedBp.id} at ${file.path}:${breakpoint.line}")
 
-                // 同步到服务器
-                synchronizeFile(filePath)
+                // 仅在需要时立即同步到服务器
+                if (syncImmediately) {
+                    synchronizeFile(file.path)
+                }
 
                 Result.success(managedBp)
             } catch (e: Exception) {
@@ -108,13 +112,13 @@ class BreakpointService(
     ): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                val managedBp = breakpointMap.remove(breakpoint) ?: run {
-                    return@withContext Result.success(Unit)
-                }
+                val managedBp = breakpointMap.remove(breakpoint)
+                    ?: run {
+                        return@withContext Result.success(Unit)
+                    }
 
                 val file = breakpoint.sourcePosition?.file
                 if (file != null) {
-                    fileBreakpoints[file.path]?.remove(managedBp)
                     synchronizeFile(file.path)
                 }
 
@@ -134,7 +138,29 @@ class BreakpointService(
             try {
                 LOG.info("Synchronizing all breakpoints")
 
-                fileBreakpoints.keys.forEach { filePath ->
+                // 首先从XDebuggerManager获取所有仓颉断点
+                val allBreakpoints = ApplicationManager.getApplication().runReadAction<List<XLineBreakpoint<*>>> {
+                    val breakpointManager = XDebuggerManager.getInstance(project).breakpointManager
+                    breakpointManager.allBreakpoints
+                        .filterIsInstance<XLineBreakpoint<*>>()
+                        .filter { it.type is org.cangnova.cangjie.debugger.dap.ui.CangJieLineBreakpointType }
+                        .toList()
+                }
+
+                LOG.info("Found ${allBreakpoints.size} CangJie breakpoints in IDE")
+
+                // 注册所有未注册的断点（批量注册，延迟同步）
+                allBreakpoints.forEach { breakpoint ->
+                    if (!breakpointMap.containsKey(breakpoint)) {
+                        registerBreakpoint(breakpoint, syncImmediately = false).onFailure { error ->
+                            LOG.warn("Failed to register breakpoint during sync", error)
+                        }
+                    }
+                }
+
+                // 按文件分组并同步所有文件的断点
+                val fileGroups = getBreakpointsByFile()
+                fileGroups.keys.forEach { filePath ->
                     synchronizeFile(filePath).getOrThrow()
                 }
 
@@ -178,9 +204,31 @@ class BreakpointService(
         }
     }
 
+    /**
+     * 从 breakpointMap 中按文件路径分组断点
+     */
+    private fun getBreakpointsByFile(): Map<String, List<ManagedBreakpoint>> {
+        return breakpointMap.values
+            .mapNotNull { bp ->
+                bp.ideBreakpoint.sourcePosition?.file?.path?.let { path ->
+                    path to bp
+                }
+            }
+            .groupBy({ it.first }, { it.second })
+    }
+
+    /**
+     * 获取指定文件的所有断点
+     */
+    private fun getBreakpointsForFile(filePath: String): List<ManagedBreakpoint> {
+        return breakpointMap.values.filter { bp ->
+            bp.ideBreakpoint.sourcePosition?.file?.path == filePath
+        }
+    }
+
     private suspend fun synchronizeFile(filePath: String): Result<Unit> {
         return try {
-            val breakpoints = fileBreakpoints[filePath] ?: emptySet()
+            val breakpoints = getBreakpointsForFile(filePath)
 
             val specs = breakpoints
                 .filter { it.ideBreakpoint.isEnabled }
@@ -219,7 +267,7 @@ class BreakpointService(
                     state = newState,
                     serverBreakpoint = serverBp
                 )
-
+                updateBreakpointState(managedBp.id,newState)
                 breakpointMap[managedBp.ideBreakpoint] = updated
             }
 

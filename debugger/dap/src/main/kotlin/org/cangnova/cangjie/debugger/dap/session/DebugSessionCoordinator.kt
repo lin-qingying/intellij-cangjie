@@ -228,11 +228,6 @@ data class DebugSessionConfig(
     val launchArguments: LaunchArguments,
 
     /**
-     * 适配器配置
-     */
-    val adapterConfig: AdapterConfig,
-
-    /**
      * 会话超时配置
      */
     val timeouts: SessionTimeouts = SessionTimeouts()

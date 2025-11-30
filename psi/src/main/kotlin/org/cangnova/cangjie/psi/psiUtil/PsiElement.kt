@@ -369,3 +369,65 @@ val CjReturnExpression.returnTarget: CjDeclaration?
     }
 
 val CjBlockExpression.returnTarget get() = parentOfType<CjFunctionLiteral>() ?: parentOfType<CjFunction>()
+
+
+/**
+ * 查找可以被求值的表达式
+ *
+ * 从给定的PSI元素开始，向上遍历PSI树，查找第一个可以被求值的表达式。
+ * 支持：
+ * - 简单变量引用（如 `x`）
+ * - 属性访问（如 `obj.field`）
+ * - 数组访问（如 `arr[0]`）
+ * - 函数调用（如 `func()`）- 仅在 sideEffectsAllowed 为 true 时
+ *
+ * @param element PSI元素
+ * @param sideEffectsAllowed 是否允许有副作用的表达式（如函数调用）
+ * @return 可求值的表达式，如果没有则返回null
+ */
+  fun PsiElement.findEvaluatableExpression(
+
+    sideEffectsAllowed: Boolean
+): PsiElement? {
+    var current: PsiElement? = this
+
+    while (current != null) {
+        // 检查是否是可以求值的表达式类型
+        when (current) {
+            // 简单变量名 - 总是允许
+            is CjSimpleNameExpression -> return current
+
+            // 引用表达式（属性访问）- 总是允许
+            is CjReferenceExpression -> {
+                // 排除函数调用（函数调用也是引用表达式）
+                if (current !is CjCallExpression) {
+                    return current
+                }
+            }
+
+            // 函数调用 - 仅在允许副作用时
+            is CjCallExpression -> {
+                if (sideEffectsAllowed) {
+                    return current
+                }
+            }
+
+            // 数组访问 - 总是允许
+            is CjArrayAccessExpression -> return current
+
+            // 二元表达式（加减乘除等）- 总是允许
+            is CjBinaryExpression -> return current
+
+            // 常量表达式（字面量）- 总是允许
+            is CjConstantExpression -> return current
+
+            // 如果遇到语句级别的元素，停止向上查找
+            is CjBlockExpression,
+            is CjDeclaration -> return null
+        }
+
+        current = current.parent
+    }
+
+    return null
+}
