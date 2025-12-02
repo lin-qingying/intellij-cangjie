@@ -175,18 +175,7 @@ allprojects {
     intellijPlatform {
 
 
-        pluginVerification {
 
-            ides {
-                recommended()
-                select {
-                    types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
-                    channels = listOf(ProductRelease.Channel.RELEASE)
-                    sinceBuild = "241"
-//                    untilBuild = "253.*"
-                }
-            }
-        }
     }
     sourceSets {
         main {
@@ -300,14 +289,6 @@ allprojects {
             include("**/*Spec.class")
         }
 
-//        processTestResources {
-//
-//            // 保持现有的配置
-//            from("$rootDir/bin") {
-//                into("bin")
-//                include("**")
-//            }
-//        }
 
 
     }
@@ -343,6 +324,18 @@ project(":plugin") {
             channels.set(props("channel").map { listOf(it) })
 
         }
+        pluginVerification {
+
+            ides {
+                recommended()
+                select {
+                    types = listOf(IntelliJPlatformType.IntellijIdeaCommunity)
+                    channels = listOf(ProductRelease.Channel.RELEASE)
+                    sinceBuild = "242"
+//                    untilBuild = "253.*"
+                }
+            }
+        }
     }
 
     version = cangjiePluginVersion
@@ -353,7 +346,7 @@ project(":plugin") {
 
                     psiViewerPlugin,
                     indexViewPlugin,
-                    chinesePlugin/*, nativeDebugPlugin*/
+                    chinesePlugin
                 )
 
                 bundledPlugins(tomlPlugin, copyright, jsonPlugin)

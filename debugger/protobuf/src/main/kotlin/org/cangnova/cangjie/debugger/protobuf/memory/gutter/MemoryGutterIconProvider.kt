@@ -24,151 +24,21 @@
 
 package org.cangnova.cangjie.debugger.protobuf.memory.gutter
 
-import com.intellij.codeInsight.daemon.LineMarkerInfo
-import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
-import com.intellij.xdebugger.XDebuggerManager
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties
-
 import org.cangnova.cangjie.debugger.protobuf.memory.Address
-import org.cangnova.cangjie.debugger.protobuf.memory.MemoryViewFacade
-import org.cangnova.cangjie.debugger.protobuf.memory.vfs.MemoryViewFile
 import java.awt.datatransfer.StringSelection
 import javax.swing.Icon
 
-/**
- * 内存视图Gutter图标提供者
- *
- * 在内存视图的Gutter（行号旁边的区域）显示图标：
- * 1. 断点图标（可点击切换）
- * 2. PC（程序计数器）指示器
- * 3. 书签标记
- * 4. 修改标记
- * 5. 监视点（Watchpoint）
- * 6. 栈帧位置
- */
-class MemoryGutterIconProvider : LineMarkerProvider {
-
-    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-//        // 只处理内存视图文件
-//        val virtualFile = element.containingFile?.virtualFile
-//        if (virtualFile !is MemoryViewFile) {
-//            return null
-//        }
-//
-//        // 解析地址
-//        val address = extractAddress(element.text) ?: return null
-//        val project = element.project
-//
-//        // 获取内存视图服务和调试器状态
-//        val memoryService = project.getService(MemoryViewService::class.java)
-//        val facade = memoryService.getFacade()
-//        val debuggerManager = XDebuggerManager.getInstance(project)
-//
-//        // 检查各种标记状态
-//        val debugState = DebuggerStateManager.getInstance(project)
-//
-//        // 优先级: PC > 断点 > 监视点 > 书签 > 修改标记
-//
-//        // 1. 检查是否是当前执行点（PC）
-//        if (debugState.isProgramCounter(address)) {
-//            return createLineMarkerInfo(
-//                element,
-//                ProgramCounterGutterIconRenderer(address, 0)
-//            )
-//        }
-//
-//        // 2. 检查栈帧位置
-//        val frameIndex = debugState.getFrameIndex(address)
-//        if (frameIndex > 0) {
-//            return createLineMarkerInfo(
-//                element,
-//                ProgramCounterGutterIconRenderer(address, frameIndex)
-//            )
-//        }
-//
-//        // 3. 检查断点
-//        if (debugState.hasBreakpoint(address)) {
-//            val editor = FileEditorManager.getInstance(project).selectedTextEditor
-//            return createLineMarkerInfo(
-//                element,
-//                BreakpointGutterIconRenderer(address, editor, element)
-//            )
-//        }
-//
-//        // 4. 检查监视点
-//        if (debugState.hasWatchpoint(address)) {
-//            return createLineMarkerInfo(
-//                element,
-//                WatchpointGutterIconRenderer(address, element)
-//            )
-//        }
-//
-//        // 5. 检查书签
-//        val bookmark = debugState.getBookmark(address)
-//        if (bookmark != null) {
-//            return createLineMarkerInfo(
-//                element,
-//                BookmarkGutterIconRenderer(address, bookmark.description)
-//            )
-//        }
-//
-//        // 6. 检查修改标记
-//        if (facade.isAddressModified(address)) {
-//            return createLineMarkerInfo(
-//                element,
-//                ModifiedGutterIconRenderer(address)
-//            )
-//        }
-
-        return null
-    }
-
-    private fun extractAddress(text: String): Address? {
-        val match = Regex("""([0-9A-Fa-f]{8,16}):""").find(text) ?: return null
-        val addressStr = match.groupValues[1]
-        return try {
-            Address.Companion.Factory.fromLong(addressStr.toLong(16))
-        } catch (e: NumberFormatException) {
-            null
-        }
-    }
-
-    private fun createLineMarkerInfo(
-        element: PsiElement,
-        renderer: MemoryGutterIconRenderer
-    ): LineMarkerInfo<PsiElement> {
-        return LineMarkerInfo(
-            element,
-            element.textRange,
-            renderer.icon,
-            { renderer.tooltipText },
-            { mouseEvent, _ ->
-                renderer.clickAction?.let { action ->
-                    val dataContext = com.intellij.ide.DataManager.getInstance().getDataContext(mouseEvent.component)
-                    val event = AnActionEvent.createFromDataContext(
-                        ActionPlaces.EDITOR_GUTTER,
-                        null,
-                        dataContext
-                    )
-                    action.actionPerformed(event)
-                }
-            },
-            renderer.alignment,
-            { renderer.tooltipText ?: "" }
-        )
-    }
-}
 
 /**
  * 内存Gutter图标渲染器基类

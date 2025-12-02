@@ -25,13 +25,12 @@
 package org.cangnova.cangjie.serialization.deserialization.builtins
 
 import org.cangnova.cangjie.builtins.BuiltInsPackageFragment
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
 import org.cangnova.cangjie.metadata.builtins.readBuiltinsPackageFragment
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
 import org.cangnova.cangjie.name.FqName
-import org.cangnova.cangjie.resolve.DescriptorUtils
+import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.serialization.deserialization.DeserializedPackageFragmentImpl
 import org.cangnova.cangjie.storage.StorageManager
 import java.io.InputStream
@@ -73,5 +72,3 @@ class BuiltInsPackageFragmentImpl private constructor(
     override fun toString(): String = "builtins package fragment for $fqName from $module"
 }
 
-val DeclarationDescriptor.module: ModuleDescriptor
-    get() = DescriptorUtils.getContainingModule(this)

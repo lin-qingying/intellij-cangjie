@@ -315,15 +315,7 @@ data class DebuggerDownloadInfo(
      */
     val needExtract: Boolean = false,
 
-    /**
-     * 版本号
-     */
-    val version: String,
 
-    /**
-     * 文件大小（字节，可选）
-     */
-    val fileSize: Long? = null,
 
     /**
      * 文件校验和（可选）

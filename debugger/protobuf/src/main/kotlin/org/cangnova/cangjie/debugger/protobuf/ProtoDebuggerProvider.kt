@@ -25,14 +25,12 @@
 package org.cangnova.cangjie.debugger.protobuf
 
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.cangnova.cangjie.debugger.DebuggerNotFoundException
 import org.cangnova.cangjie.debugger.DebuggerProvider
 import org.cangnova.cangjie.debugger.toolchain.DebuggerDownloadInfo
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -50,24 +48,15 @@ object ProtoDebuggerProvider : DebuggerProvider {
     override val name: String = "Proto LLDB Debugger"
     override val debuggerType: String = "lldbproto"
 
+    /**
+     * 获取调试器可执行文件名
+     */
+    private val executableName: String
+        get() = DebuggerExe.getFileName()
+
     /** 调试器目录 */
     private const val DEBUGGER_DIR = ".cangjie/debugger"
 
-    /** LLDB 前端文件名 */
-    private const val FRONTEND_NAME_BASE = "CangJieLLDBFrontend"
-
-    /** LLDB 框架文件名 */
-    private val FRAMEWORK_NAME = when {
-        SystemInfo.isWindows -> "liblldb.dll"
-        SystemInfo.isMac -> "LLDB.framework"
-        else -> "liblldb.so"
-    }
-
-    /**
-     * 获取前端可执行文件名
-     */
-    private val frontendExecutableName: String
-        get() = FRONTEND_NAME_BASE + if (SystemInfo.isWindows) ".exe" else ""
 
     /**
      * 获取调试器目录路径
@@ -76,20 +65,15 @@ object ProtoDebuggerProvider : DebuggerProvider {
         get() = Paths.get(System.getProperty("user.home"), DEBUGGER_DIR)
 
     /**
-     * 获取前端可执行文件路径
+     * 获取调试器可执行文件路径
      */
-    val frontendPath: Path
-        get() = debuggerDirectory.resolve(frontendExecutableName)
+    val executablePath: Path
+        get() = debuggerDirectory.resolve(executableName)
 
-    /**
-     * 获取框架文件路径
-     */
-    val frameworkPath: Path
-        get() = debuggerDirectory.resolve(FRAMEWORK_NAME)
 
     override suspend fun getServerPath(): Path {
         return withContext(Dispatchers.IO) {
-            val path = frontendPath
+            val path = executablePath
 
             if (!Files.exists(path)) {
                 throw DebuggerNotFoundException(
@@ -114,11 +98,8 @@ object ProtoDebuggerProvider : DebuggerProvider {
 
     override suspend fun isAvailable(): Boolean {
         return withContext(Dispatchers.IO) {
-            val frontendExists = Files.exists(frontendPath) &&
-                                (SystemInfo.isWindows || Files.isExecutable(frontendPath))
-            val frameworkExists = Files.exists(frameworkPath)
-
-            frontendExists && frameworkExists
+            val path = executablePath
+            Files.exists(path) && (SystemInfo.isWindows || Files.isExecutable(path))
         }
     }
 
@@ -133,7 +114,7 @@ object ProtoDebuggerProvider : DebuggerProvider {
                 }
 
                 // 检查前端是否存在
-                val frontend = frontendPath
+                val frontend = executablePath
                 if (!Files.exists(frontend)) {
                     return@withContext Result.failure(
                         DebuggerNotFoundException(
@@ -143,16 +124,6 @@ object ProtoDebuggerProvider : DebuggerProvider {
                     )
                 }
 
-                // 检查框架是否存在
-                val framework = frameworkPath
-                if (!Files.exists(framework)) {
-                    return@withContext Result.failure(
-                        DebuggerNotFoundException(
-                            "LLDB framework not found at: $framework. " +
-                                    "Please copy the LLDB framework to this location."
-                        )
-                    )
-                }
 
                 // 设置可执行权限（非Windows）
                 if (!SystemInfo.isWindows && !Files.isExecutable(frontend)) {
@@ -160,7 +131,7 @@ object ProtoDebuggerProvider : DebuggerProvider {
                     LOG.info("Set executable permission for: $frontend")
                 }
 
-                LOG.info("Proto debugger ready - frontend: $frontend, framework: $framework")
+                LOG.info("Proto debugger ready - frontend: $frontend")
                 Result.success(frontend)
             } catch (e: Exception) {
                 LOG.error("Failed to ensure proto debugger ready", e)
@@ -170,7 +141,94 @@ object ProtoDebuggerProvider : DebuggerProvider {
     }
 
     override fun getDownloadInfo(): DebuggerDownloadInfo {
-        TODO("Not yet implemented")
+        // 根据平台选择对应的文件名和校验信息
+        val (fileName, sha1) = when {
+            SystemInfo.isWindows -> {
+                Pair(
+                    DebuggerExe.Windows.fileName,
+                    "6a56664ae0c55b6720b174af514bf4a16517fc56",
+                )
+            }
+
+            SystemInfo.isMac && SystemInfo.isAarch64 -> {
+                Pair(
+                    DebuggerExe.MacOS_aarch64.fileName,
+                    "0b1536e692de85bccc8db195b7c8f3851ed0225a",
+                )
+            }
+
+            SystemInfo.isMac -> {
+                Pair(
+                    DebuggerExe.MacOS_x64.fileName,
+                    "b0b8b45611d9a3468580380cd7c66fc8ac4811ef",
+                )
+            }
+
+            SystemInfo.isLinux && SystemInfo.isAarch64 -> {
+                Pair(
+                    DebuggerExe.Linux_aarch64.fileName,
+                    "f099734893e58cc7e2dcb5d10ccdea1e086fff40",
+                )
+            }
+
+            SystemInfo.isLinux -> {
+                Pair(
+                    DebuggerExe.Linux_x64.fileName,
+                    "8165794c6b4f2f939157dc2fbdf031dfe6ab3cb0",
+                )
+            }
+
+            else -> {
+                throw UnsupportedOperationException(
+                    "Unsupported platform: ${SystemInfo.OS_NAME} ${SystemInfo.OS_ARCH}"
+                )
+            }
+        }
+
+
+        // SourceForge 下载链接格式
+        val downloadUrl = "https://downloads.sourceforge.net/project/intellij-cangjie-debugger/lldb-adapter/$fileName"
+
+        return DebuggerDownloadInfo(
+            downloadUrl = downloadUrl,
+            targetPath = executablePath,
+            needExtract = false, // 直接下载可执行文件，不需要解压
+
+            checksum = sha1,
+            checksumType = "SHA1"
+        )
     }
 
+}
+
+
+private enum class DebuggerExe(val fileName: String) {
+    Windows("CangJieLLDBAdapter_windows_amd64.exe"),
+    MacOS_x64("CangJieLLDBAdapter_macos_amd64"),
+    MacOS_aarch64("CangJieLLDBAdapter_macos_arm64"),
+    Linux_x64("CangJieLLDBAdapter_linux_amd64"),
+    Linux_aarch64("CangJieLLDBAdapter_linux_arm64");
+
+
+    companion object {
+        /**
+         * 根据当前系统返回
+         */
+        fun getFileName(): String {
+            return when {
+                SystemInfo.isWindows -> DebuggerExe.Windows.fileName
+                SystemInfo.isMac && SystemInfo.isAarch64 -> DebuggerExe.MacOS_aarch64.fileName
+                SystemInfo.isMac -> DebuggerExe.MacOS_x64.fileName
+                SystemInfo.isLinux && SystemInfo.isAarch64 -> DebuggerExe.Linux_aarch64.fileName
+                SystemInfo.isLinux -> DebuggerExe.Linux_x64.fileName
+                else -> {
+                    throw UnsupportedOperationException(
+                        "Unsupported platform: ${SystemInfo.OS_NAME} ${SystemInfo.OS_ARCH}"
+                    )
+                }
+            }
+        }
+
+
+    }
 }

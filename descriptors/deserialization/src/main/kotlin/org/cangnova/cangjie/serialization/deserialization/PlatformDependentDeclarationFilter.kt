@@ -53,4 +53,4 @@ interface PlatformDependentDeclarationFilter {
     }
 }
 
-val PLATFORM_DEPENDENT_ANNOTATION_FQ_NAME: FqName = StandardNames.FqNames.platformDependent
+val PLATFORM_DEPENDENT_ANNOTATION_FQ_NAME: FqName get() = StandardNames.FqNames.platformDependent

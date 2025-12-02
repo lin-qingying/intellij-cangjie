@@ -24,8 +24,6 @@
 
 package org.cangnova.cangjie.debugger.dap.provider
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.Dispatchers
@@ -52,8 +50,6 @@ object DapDebuggerProvider : DebuggerProvider {
     /** 调试器目录 */
     private const val DEBUGGER_DIR = ".cangjie/debugger"
 
-    /** 调试器文件名（不含扩展名） */
-    private const val DEBUGGER_NAME = "dap_server"
 
     /** 调试器类型 */
     const val DEBUGGER_TYPE = "lldbapi"
@@ -68,7 +64,7 @@ object DapDebuggerProvider : DebuggerProvider {
      * 获取调试器可执行文件名
      */
     private val executableName: String
-        get() = DEBUGGER_NAME + if (SystemInfo.isWindows) ".exe" else ""
+        get() = DebuggerExe.getFileName()
 
     /**
      * 获取调试器目录路径
@@ -158,47 +154,44 @@ object DapDebuggerProvider : DebuggerProvider {
 
     override fun getDownloadInfo(): DebuggerDownloadInfo {
         // 根据平台选择对应的文件名和校验信息
-        val (fileName, fileSize, sha1, md5) = when {
+        val (fileName, sha1) = when {
             SystemInfo.isWindows -> {
-                Tuple4(
-                    "dap_server.exe",
-                    5_242_880L, // 5.0 MB
+                Pair(
+                    DebuggerExe.Windows.fileName,
+
                     "b0dea3677f78c8889711a978380bab6d3785fee7",
-                    "44a03b53c35913e09672a40f40b4b407"
                 )
             }
+
             SystemInfo.isMac && SystemInfo.isAarch64 -> {
-                Tuple4(
-                    "dap_server-macos_aarch64",
-                    3_250_585L, // 3.1 MB
+                Pair(
+                    DebuggerExe.MacOS_aarch64.fileName,
+
                     "c5a89af7a866fa352580065d68301c8f147c5e70",
-                    "3ec3a0349babfa803902343975e9abc1"
                 )
             }
+
             SystemInfo.isMac -> {
-                Tuple4(
-                    "dap_server-macos_x64",
-                    2_936_012L, // 2.8 MB
+                Pair(
+                    DebuggerExe.MacOS_x64.fileName,
                     "2cf7913481b35a92b214d97080cd12541c332a8a",
-                    "dda52cd0984e16e8b1d2d2b9b8fc84a7"
                 )
             }
+
             SystemInfo.isLinux && SystemInfo.isAarch64 -> {
-                Tuple4(
-                    "dap_server-linux_aarch64",
-                    2_726_297L, // 2.6 MB
+                Pair(
+                    DebuggerExe.Linux_aarch64.fileName,
                     "bead73df71633e74c6cd15e1517eaff274c60ff6",
-                    "b7d5b4b366df193fef4546954017cecd"
                 )
             }
+
             SystemInfo.isLinux -> {
-                Tuple4(
-                    "dap_server-linux_x64",
-                    2_621_440L, // 2.5 MB
+                Pair(
+                    DebuggerExe.Linux_x64.fileName,
                     "ad355226ef007298ff26ce28f55f14dc5b965012",
-                    "372964a196a0965e93707d76c02a0db4"
                 )
             }
+
             else -> {
                 throw UnsupportedOperationException(
                     "Unsupported platform: ${SystemInfo.OS_NAME} ${SystemInfo.OS_ARCH}"
@@ -206,8 +199,6 @@ object DapDebuggerProvider : DebuggerProvider {
             }
         }
 
-        // 版本号（可以根据实际版本更新）
-        val version = "1.0.0"
 
         // SourceForge 下载链接格式
         val downloadUrl = "https://downloads.sourceforge.net/project/intellij-cangjie-debugger/dap-server/$fileName"
@@ -216,23 +207,11 @@ object DapDebuggerProvider : DebuggerProvider {
             downloadUrl = downloadUrl,
             targetPath = executablePath,
             needExtract = false, // 直接下载可执行文件，不需要解压
-            version = version,
-            fileSize = fileSize,
+
             checksum = sha1,
             checksumType = "SHA1"
         )
     }
-
-    /**
-     * 辅助数据类，用于存储平台特定的下载信息
-     */
-    private data class Tuple4<A, B, C, D>(
-        val first: A,
-        val second: B,
-        val third: C,
-        val fourth: D
-    )
-
 
     /**
      * 清理日志文件
@@ -255,5 +234,37 @@ object DapDebuggerProvider : DebuggerProvider {
                 LOG.error("Failed to clear log files", e)
             }
         }
+    }
+
+}
+
+
+private enum class DebuggerExe(val fileName: String) {
+    Windows("dap_server.exe"),
+    MacOS_x64("dap_server-macos_x64"),
+    MacOS_aarch64("dap_server-macos_aarch64"),
+    Linux_x64("dap_server-linux_x64"),
+    Linux_aarch64("dap_server-linux_aarch64");
+
+    companion object {
+        /**
+         * 根据当前系统返回
+         */
+        fun getFileName(): String {
+            return when {
+                SystemInfo.isWindows -> Windows.fileName
+                SystemInfo.isMac && SystemInfo.isAarch64 -> MacOS_aarch64.fileName
+                SystemInfo.isMac -> MacOS_x64.fileName
+                SystemInfo.isLinux && SystemInfo.isAarch64 -> Linux_aarch64.fileName
+                SystemInfo.isLinux -> Linux_x64.fileName
+                else -> {
+                    throw UnsupportedOperationException(
+                        "Unsupported platform: ${SystemInfo.OS_NAME} ${SystemInfo.OS_ARCH}"
+                    )
+                }
+            }
+        }
+
+
     }
 }

@@ -24,14 +24,9 @@
 
 package org.cangnova.cangjie.debugger.protobuf.services.impl
 
-import com.intellij.openapi.util.Ref
 import lldbprotobuf.ResponseOuterClass
 import org.cangnova.cangjie.debugger.protobuf.breakpoint.AddBreakpointResult
-import org.cangnova.cangjie.debugger.protobuf.breakpoint.SymbolicBreakpoint
 import org.cangnova.cangjie.debugger.protobuf.core.DebuggerDriverFacade
-import org.cangnova.cangjie.debugger.protobuf.data.LLDBVariable
-import org.cangnova.cangjie.debugger.protobuf.data.LLDBWatchpoint
-import org.cangnova.cangjie.debugger.protobuf.data.getValueId
 import org.cangnova.cangjie.debugger.protobuf.data.makeBreakpoint
 import org.cangnova.cangjie.debugger.protobuf.exception.DebuggerCommandExceptionException
 import org.cangnova.cangjie.debugger.protobuf.memory.Address
@@ -103,80 +98,6 @@ class BreakpointServiceImpl(
         )
 
         return makeBreakpoint(response.addressBreakpoint.breakpoint, response.addressBreakpoint.locationsList)
-    }
-
-    override suspend fun addSymbolicBreakpoint(
-        symbolPattern: String,
-        module: String?,
-        condition: String?
-    ): AddBreakpointResult {
-        // 等待目标创建完成
-        waitForTargetCreation()
-
-        val breakpoint = SymbolicBreakpoint(
-            pattern = symbolPattern,
-            module = module,
-            condition = condition
-        )
-        return addSymbolicBreakpoint(breakpoint)
-    }
-
-    override suspend fun addSymbolicBreakpoint(
-        breakpoint: SymbolicBreakpoint
-    ): AddBreakpointResult {
-        // 等待目标创建完成
-        waitForTargetCreation()
-
-        val request = ProtobufFactory.addSymbolBreakpoint(
-            breakpoint.pattern,
-            breakpoint.isRegexpPattern,
-            breakpoint.module,
-            breakpoint.condition,
-            breakpoint.threadId
-        )
-
-        val response = messageBus.request(
-            request,
-            ResponseOuterClass.AddBreakpointResponse::class.java
-        )
-        return makeBreakpoint(response.addressBreakpoint.breakpoint, response.addressBreakpoint.locationsList)
-
-
-    }
-
-    override suspend fun addWatchpoint(
-        threadId: Long,
-        frameIndex: Int,
-        value: LLDBVariable,
-        expr: String,
-        lifetime: LLDBWatchpoint.Lifetime?,
-        accessType: LLDBWatchpoint.AccessType
-    ): LLDBWatchpoint {
-        // 等待目标创建完成
-        waitForTargetCreation()
-
-        val expression: String = value.referenceExpression
-
-        val request = ProtobufFactory.addWatchpoint(
-            getValueId(value),
-
-            accessType === LLDBWatchpoint.AccessType.ANY || accessType === LLDBWatchpoint.AccessType.READ,
-            accessType === LLDBWatchpoint.AccessType.ANY || accessType === LLDBWatchpoint.AccessType.WRITE,
-            true
-        )
-        val result = Ref<LLDBWatchpoint>()
-        val error = Ref<DebuggerCommandExceptionException>()
-
-        val response = messageBus.request(
-            request,
-            ResponseOuterClass.AddBreakpointResponse::class.java
-        )
-
-        if (!response.status.success) {
-            throw DebuggerCommandExceptionException(response.status.message)
-        }
-
-        return LLDBWatchpoint(response.breakPointId.id, expression)
     }
 
     override suspend fun removeBreakpoints(ids: Collection<Long>) {

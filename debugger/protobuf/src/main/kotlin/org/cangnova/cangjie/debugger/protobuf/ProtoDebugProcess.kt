@@ -830,9 +830,7 @@ class ProtoDebugProcess(
 
         private val handlers = listOf(
             LineBreakpointHandler(this@ProtoDebugProcess),
-            SymbolicBreakpointHandler(this@ProtoDebugProcess),
             AddressBreakpointHandler(this@ProtoDebugProcess),
-            WatchpointBreakpointHandler(this@ProtoDebugProcess)
         )
 
         /**
@@ -857,9 +855,7 @@ class ProtoDebugProcess(
             return handlers.firstNotNullOfOrNull { handler ->
                 when (handler) {
                     is LineBreakpointHandler -> handler.findBreakpointAt(filePosition)
-                    is SymbolicBreakpointHandler -> handler.findBreakpointAt(filePosition)
                     is AddressBreakpointHandler -> handler.findBreakpointAt(filePosition)
-                    is WatchpointBreakpointHandler -> handler.findBreakpointAt(filePosition)
                     else -> null
                 }
             }
@@ -878,14 +874,10 @@ class ProtoDebugProcess(
                     lldbprotobuf.Model.BreakpointType.BREAKPOINT_TYPE_LINE ->
                         if (handler is LineBreakpointHandler) handler.findBreakpointById(breakpointId) else null
 
-                    lldbprotobuf.Model.BreakpointType.BREAKPOINT_TYPE_SYMBOLIC ->
-                        if (handler is SymbolicBreakpointHandler) handler.findBreakpointById(breakpointId) else null
 
                     lldbprotobuf.Model.BreakpointType.BREAKPOINT_TYPE_ADDRESS ->
                         if (handler is AddressBreakpointHandler) handler.findBreakpointById(breakpointId) else null
 
-                    lldbprotobuf.Model.BreakpointType.BREAKPOINT_TYPE_WATCHPOINT ->
-                        if (handler is WatchpointBreakpointHandler) handler.findBreakpointById(breakpointId) else null
 
                     else -> null
                 }
@@ -902,9 +894,7 @@ class ProtoDebugProcess(
             return handlers.firstNotNullOfOrNull { handler ->
                 when (handler) {
                     is LineBreakpointHandler -> handler.findBreakpointById(breakpointId)
-                    is SymbolicBreakpointHandler -> handler.findBreakpointById(breakpointId)
                     is AddressBreakpointHandler -> handler.findBreakpointById(breakpointId)
-                    is WatchpointBreakpointHandler -> handler.findBreakpointById(breakpointId)
                     else -> null
                 }
             }

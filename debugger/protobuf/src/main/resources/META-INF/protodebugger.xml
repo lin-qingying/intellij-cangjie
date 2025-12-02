@@ -35,13 +35,6 @@
                 implementation="org.cangnova.cangjie.debugger.protobuf.breakpoint.AddressBreakpointType"
         />
 
-        <xdebugger.breakpointType
-                implementation="org.cangnova.cangjie.debugger.protobuf.breakpoint.SymbolicBreakpointType"
-        />
-
-        <xdebugger.breakpointType
-                implementation="org.cangnova.cangjie.debugger.protobuf.breakpoint.WatchpointBreakpointType"
-        />
 
         <!--        <xdebugger.settings implementation="org.cangnova.cangjie.debugger.protobuf.settings.DebuggerSettings"/>-->
 
@@ -82,10 +75,6 @@
         <typedHandler
                 implementation="org.cangnova.cangjie.debugger.protobuf.memory.input.MemoryFileRawTypedHandler"/>
 
-        <!-- Gutter标记 -->
-        <codeInsight.lineMarkerProvider
-                language="CangJieDebugProtoHexdump"
-                implementationClass="org.cangnova.cangjie.debugger.protobuf.memory.gutter.MemoryGutterIconProvider"/>
 
         <!-- 写入访问控制 -->
         <writingAccessProvider

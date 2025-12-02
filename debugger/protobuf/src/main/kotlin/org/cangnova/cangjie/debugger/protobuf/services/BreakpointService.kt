@@ -25,10 +25,6 @@
 package org.cangnova.cangjie.debugger.protobuf.services
 
 import org.cangnova.cangjie.debugger.protobuf.breakpoint.AddBreakpointResult
-import org.cangnova.cangjie.debugger.protobuf.breakpoint.SymbolicBreakpoint
-
-import org.cangnova.cangjie.debugger.protobuf.data.LLDBVariable
-import org.cangnova.cangjie.debugger.protobuf.data.LLDBWatchpoint
 import org.cangnova.cangjie.debugger.protobuf.memory.Address
 
 /**
@@ -63,46 +59,8 @@ interface BreakpointService : AutoCloseable {
         condition: String? = null
     ): AddBreakpointResult
 
-    /**
-     * 添加符号断点
-     *
-     * @param symbolPattern 符号模式（函数名等）
-     * @param module 模块名（可选）
-     * @param condition 条件表达式（可选）
-     * @return 符号断点对象，失败返回null
-     */
-    suspend fun addSymbolicBreakpoint(
-        symbolPattern: String,
-        module: String? = null,
-        condition: String? = null
-    ): AddBreakpointResult
 
-    /**
-     * 添加符号断点（使用SymbolicBreakpoint对象）
-     *
-     * @param breakpoint 符号断点配置
-     * @return 符号断点对象，失败返回null
-     */
-    suspend fun addSymbolicBreakpoint(breakpoint: SymbolicBreakpoint): AddBreakpointResult?
 
-    /**
-     * 添加观察点（内存监视点）
-     *
-     * @param address 监视的内存地址
-     * @param size 监视的字节数
-     * @param read 是否监视读操作
-     * @param write 是否监视写操作
-     * @param condition 条件表达式（可选）
-     * @return 观察点对象
-     */
-    suspend fun addWatchpoint(
-        threadId: Long,
-        frameIndex: Int,
-        value: LLDBVariable,
-        expr: String,
-        lifetime: LLDBWatchpoint.Lifetime?,
-        accessType: LLDBWatchpoint.AccessType
-    ): LLDBWatchpoint
 
     /**
      * 移除断点
