@@ -326,6 +326,11 @@ project(":plugin") {
         }
         pluginVerification {
 
+
+            verificationReportsDirectory.set(layout.buildDirectory.dir("verification-reports"))
+
+
+
             ides {
                 recommended()
                 select {

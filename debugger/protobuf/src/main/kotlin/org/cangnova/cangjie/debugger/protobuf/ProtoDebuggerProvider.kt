@@ -146,7 +146,7 @@ object ProtoDebuggerProvider : DebuggerProvider {
             SystemInfo.isWindows -> {
                 Pair(
                     DebuggerExe.Windows.fileName,
-                    "6a56664ae0c55b6720b174af514bf4a16517fc56",
+                    "a1858c5c4c4869e0858eeac359c484b987dd6cb6",
                 )
             }
 
