@@ -1,5 +1,5 @@
 <component name="CopyrightManager">
-  <settings>
+  <settings default="cangjie">
     <module2copyright>
       <element module="Project Files" copyright="cangjie" />
     </module2copyright>
