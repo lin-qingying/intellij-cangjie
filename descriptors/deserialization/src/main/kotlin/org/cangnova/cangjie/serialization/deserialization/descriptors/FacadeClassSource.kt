@@ -22,17 +22,11 @@
  *
  */
 
+package org.cangnova.cangjie.serialization.deserialization.descriptors
 
-dependencies {
-    testImplementation(kotlin("test"))
-    implementation(kotlin("stdlib"))
-    implementation(project(":common"))
-    implementation(project(":psi"))
-    implementation(project(":metadata"))
-    implementation(project(":telemetry"))
-    implementation(project(":toolchain"))
-    implementation(project(":util"))
-    implementation(project(":descriptors"))
-    implementation(project(":descriptors:deserialization"))
+import org.cangnova.cangjie.name.CangJieClassName
+
+interface FacadeClassSource {
+    val className: CangJieClassName
+    val facadeClassName: CangJieClassName?
 }
-

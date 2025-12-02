@@ -22,17 +22,29 @@
  *
  */
 
+package org.cangnova.cangjie.serialization.deserialization
 
-dependencies {
-    testImplementation(kotlin("test"))
-    implementation(kotlin("stdlib"))
-    implementation(project(":common"))
-    implementation(project(":psi"))
-    implementation(project(":metadata"))
-    implementation(project(":telemetry"))
-    implementation(project(":toolchain"))
-    implementation(project(":util"))
-    implementation(project(":descriptors"))
-    implementation(project(":descriptors:deserialization"))
+import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
+import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeConstructor
+
+interface ErrorReporter {
+    fun reportIncompleteHierarchy(
+        descriptor: ClassifierDescriptorWithTypeConstructor,
+        unresolvedSuperClasses: List<String>
+    )
+
+    fun reportCannotInferVisibility(descriptor: CallableMemberDescriptor)
+
+    companion object {
+        val DO_NOTHING: ErrorReporter = object : ErrorReporter {
+            override fun reportIncompleteHierarchy(
+                descriptor: ClassifierDescriptorWithTypeConstructor,
+                unresolvedSuperClasses: List<String>
+            ) {
+            }
+
+            override fun reportCannotInferVisibility(descriptor: CallableMemberDescriptor) {
+            }
+        }
+    }
 }
-

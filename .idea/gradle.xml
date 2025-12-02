@@ -20,7 +20,6 @@
             <option value="$PROJECT_DIR$/debugger/protobuf" />
             <option value="$PROJECT_DIR$/descriptors" />
             <option value="$PROJECT_DIR$/descriptors/deserialization" />
-            <option value="$PROJECT_DIR$/deserialization" />
             <option value="$PROJECT_DIR$/icon" />
             <option value="$PROJECT_DIR$/lsp4ij" />
             <option value="$PROJECT_DIR$/messages" />

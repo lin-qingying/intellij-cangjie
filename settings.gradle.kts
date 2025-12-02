@@ -64,11 +64,12 @@ include("descriptors")
 include("common")
 include("test-common")
 
+
 include("descriptors:deserialization")
 include("metadata")
 include("analysis")
 include("analysis:decompiler-to-psi")
-include("deserialization")
+
 
 
 
