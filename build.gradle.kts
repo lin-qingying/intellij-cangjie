@@ -469,7 +469,7 @@ project(":plugin") {
             channels.set(props("channel").map { listOf(it) })
 
             archiveFile.set(
-                /*  project(":plugin").*/
+                project(":plugin").
                 layout.buildDirectory.file(
                     "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
                 ),
@@ -478,8 +478,10 @@ project(":plugin") {
             token = environment("PUBLISH_TOKEN")
         }
         verifyPlugin {
+            //           先构建
+            dependsOn(":plugin:buildPlugin")
             archiveFile.set(
-                /*  project(":plugin").*/
+                project(":plugin").
                 layout.buildDirectory.file(
                     "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
                 ),

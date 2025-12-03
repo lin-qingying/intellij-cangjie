@@ -81,7 +81,7 @@ internal class CangJieGeneratorNewProjectWizard : LanguageGeneratorNewProjectWiz
             builder.configurationData = peer.settings
 
             // 提交模块创建
-            val module = builder.commit(project).firstOrNull() ?: return
+            val module = builder.commit(project)?.firstOrNull() ?: return
 
             // 如果启用了 Git，创建 .gitignore 文件
             if (gitData?.git == true) {
