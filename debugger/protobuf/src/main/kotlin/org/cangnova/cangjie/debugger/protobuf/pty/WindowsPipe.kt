@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Windows 命名管道实现
  *
- * 基于 JNA (Java Native Access) 封装 Windows 命名���道 API，
+ * 基于 JNA (Java Native Access) 封装 Windows 命名管道 API，
  * 提供异步连接和双向通信功能。
  *
  * 主要特性：

@@ -49,3 +49,7 @@ bin/
 /metadata/gen
 /external/
 /sources/
+
+
+
+psi/src/gen/org/cangnova/cangjie/lexer/cdoc/lexer/_CDocLexer.java

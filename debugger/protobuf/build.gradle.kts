@@ -31,7 +31,8 @@ dependencies {
     implementation(project(":"))
     implementation(project(":psi"))
     implementation(project(":common"))
-
+// https://mvnrepository.com/artifact/org.jetbrains.pty4j/pty4j
+    api("org.jetbrains.pty4j:pty4j:0.13.11")
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
     implementation(project(":messages"))

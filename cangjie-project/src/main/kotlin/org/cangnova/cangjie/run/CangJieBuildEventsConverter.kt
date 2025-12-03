@@ -77,9 +77,7 @@ class CangJieBuildEventsConverter(private val context: CangJieBuildContext) : Bu
         // Delegate to build system specific parser if available
         val parser = buildSystemParser
         if (parser != null) {
-            val result = parser.parseLine(line, context, messageConsumer)
-
-            when (result) {
+            when (val result = parser.parseLine(line, context, messageConsumer)) {
                 is ParseResult.ErrorStart -> {
                     // If we're already recording an error, emit it first
                     if (isRecordError && strBuffer.isNotEmpty()) {
