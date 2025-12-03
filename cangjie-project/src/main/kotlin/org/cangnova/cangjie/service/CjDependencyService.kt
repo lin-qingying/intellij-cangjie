@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.service
 
-import com.intellij.openapi.components.Service
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.model.CjDependency
 import org.cangnova.cangjie.model.CjResolvedDependency
@@ -34,14 +34,14 @@ import org.cangnova.cangjie.model.CjResolvedDependency
  *
  * 提供依赖解析和管理功能
  */
-@Service(Service.Level.APP)
+
 interface CjDependencyService {
     companion object {
         /**
          * 获取服务实例
          */
         fun getInstance(): CjDependencyService {
-            return com.intellij.openapi.application.ApplicationManager.getApplication()
+            return ApplicationManager.getApplication()
                 .getService(CjDependencyService::class.java)
         }
     }

@@ -1,140 +1,44 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.metadata.model.fb.parser
 
-import org.cangnova.cangjie.metadata.PackageFormat.AliasInfo
-import org.cangnova.cangjie.metadata.PackageFormat.Anno
-import org.cangnova.cangjie.metadata.PackageFormat.AnnoArg
-import org.cangnova.cangjie.metadata.PackageFormat.ArrayInfo
-import org.cangnova.cangjie.metadata.PackageFormat.ArrayTyInfo
-import org.cangnova.cangjie.metadata.PackageFormat.ArrayValue
-import org.cangnova.cangjie.metadata.PackageFormat.AssignInfo
-import org.cangnova.cangjie.metadata.PackageFormat.AutoDiffInfo
-import org.cangnova.cangjie.metadata.PackageFormat.BinaryInfo
-import org.cangnova.cangjie.metadata.PackageFormat.BlockInfo
-import org.cangnova.cangjie.metadata.PackageFormat.BuiltInInfo
-import org.cangnova.cangjie.metadata.PackageFormat.CallInfo
-import org.cangnova.cangjie.metadata.PackageFormat.CjoVersion
-import org.cangnova.cangjie.metadata.PackageFormat.ClassInfo
-import org.cangnova.cangjie.metadata.PackageFormat.CompositeTyInfo
-import org.cangnova.cangjie.metadata.PackageFormat.CompositeValue
-import org.cangnova.cangjie.metadata.PackageFormat.CompositeValueIndex
-import org.cangnova.cangjie.metadata.PackageFormat.ConstValue
-import org.cangnova.cangjie.metadata.PackageFormat.Constraint
-import org.cangnova.cangjie.metadata.PackageFormat.Decl
-import org.cangnova.cangjie.metadata.PackageFormat.DeclHash
-import org.cangnova.cangjie.metadata.PackageFormat.DeclInfo
-import org.cangnova.cangjie.metadata.PackageFormat.EnumInfo
-import org.cangnova.cangjie.metadata.PackageFormat.Expr
-import org.cangnova.cangjie.metadata.PackageFormat.ExprInfo
-import org.cangnova.cangjie.metadata.PackageFormat.ExtendInfo
-import org.cangnova.cangjie.metadata.PackageFormat.Float32Value
-import org.cangnova.cangjie.metadata.PackageFormat.Float64Value
-import org.cangnova.cangjie.metadata.PackageFormat.ForInInfo
-import org.cangnova.cangjie.metadata.PackageFormat.FullId
-import org.cangnova.cangjie.metadata.PackageFormat.FuncArgInfo
-import org.cangnova.cangjie.metadata.PackageFormat.FuncBody
-import org.cangnova.cangjie.metadata.PackageFormat.FuncInfo
-import org.cangnova.cangjie.metadata.PackageFormat.FuncParamList
-import org.cangnova.cangjie.metadata.PackageFormat.FuncTyInfo
-import org.cangnova.cangjie.metadata.PackageFormat.Generic
-import org.cangnova.cangjie.metadata.PackageFormat.GenericTyInfo
-import org.cangnova.cangjie.metadata.PackageFormat.ImportSpec
-import org.cangnova.cangjie.metadata.PackageFormat.Imports
-import org.cangnova.cangjie.metadata.PackageFormat.IncOrDecInfo
-import org.cangnova.cangjie.metadata.PackageFormat.Int16Value
-import org.cangnova.cangjie.metadata.PackageFormat.Int32Value
-import org.cangnova.cangjie.metadata.PackageFormat.Int64Value
-import org.cangnova.cangjie.metadata.PackageFormat.Int8Value
-import org.cangnova.cangjie.metadata.PackageFormat.InterfaceInfo
-import org.cangnova.cangjie.metadata.PackageFormat.JumpInfo
-import org.cangnova.cangjie.metadata.PackageFormat.LambdaInfo
-import org.cangnova.cangjie.metadata.PackageFormat.LetPatternDestructorInfo
-import org.cangnova.cangjie.metadata.PackageFormat.LitConstInfo
-import org.cangnova.cangjie.metadata.PackageFormat.MatchCaseInfo
-import org.cangnova.cangjie.metadata.PackageFormat.MatchInfo
-import org.cangnova.cangjie.metadata.PackageFormat.MemberValue
-import org.cangnova.cangjie.metadata.PackageFormat.Package
-import org.cangnova.cangjie.metadata.PackageFormat.ParamInfo
-import org.cangnova.cangjie.metadata.PackageFormat.Pattern
-import org.cangnova.cangjie.metadata.PackageFormat.Position
-import org.cangnova.cangjie.metadata.PackageFormat.PropInfo
-import org.cangnova.cangjie.metadata.PackageFormat.ReferenceInfo
-import org.cangnova.cangjie.metadata.PackageFormat.SemaTy
-import org.cangnova.cangjie.metadata.PackageFormat.SemaTyInfo
-import org.cangnova.cangjie.metadata.PackageFormat.SpawnInfo
-import org.cangnova.cangjie.metadata.PackageFormat.StructInfo
-import org.cangnova.cangjie.metadata.PackageFormat.SubscriptInfo
-import org.cangnova.cangjie.metadata.PackageFormat.TryInfo
-import org.cangnova.cangjie.metadata.PackageFormat.UInt16Value
-import org.cangnova.cangjie.metadata.PackageFormat.UInt32Value
-import org.cangnova.cangjie.metadata.PackageFormat.UInt64Value
-import org.cangnova.cangjie.metadata.PackageFormat.UInt8Value
-import org.cangnova.cangjie.metadata.PackageFormat.UnaryInfo
-import org.cangnova.cangjie.metadata.PackageFormat.VarInfo
-import org.cangnova.cangjie.metadata.PackageFormat.VarWithPatternInfo
+
+import com.intellij.util.text.SemVer
+import org.cangnova.cangjie.metadata.PackageFormat.*
 import org.cangnova.cangjie.metadata.builtins.BuiltInsBinaryVersion
-import org.cangnova.cangjie.metadata.model.fb.FbAccessModifier
-import org.cangnova.cangjie.metadata.model.fb.FbAnno
-import org.cangnova.cangjie.metadata.model.fb.FbAnnoArg
-import org.cangnova.cangjie.metadata.model.fb.FbAnnoKind
-import org.cangnova.cangjie.metadata.model.fb.FbArrayInfo
-import org.cangnova.cangjie.metadata.model.fb.FbAssignInfo
-import org.cangnova.cangjie.metadata.model.fb.FbAutoDiffInfo
-import org.cangnova.cangjie.metadata.model.fb.FbBinaryInfo
-import org.cangnova.cangjie.metadata.model.fb.FbBlockInfo
-import org.cangnova.cangjie.metadata.model.fb.FbBuiltInType
-import org.cangnova.cangjie.metadata.model.fb.FbCallInfo
-import org.cangnova.cangjie.metadata.model.fb.FbCallKind
-import org.cangnova.cangjie.metadata.model.fb.FbCompositeValue
-import org.cangnova.cangjie.metadata.model.fb.FbCompositeValueIndex
-import org.cangnova.cangjie.metadata.model.fb.FbConstValue
-import org.cangnova.cangjie.metadata.model.fb.FbConstraint
-import org.cangnova.cangjie.metadata.model.fb.FbDecl
-import org.cangnova.cangjie.metadata.model.fb.FbDeclHash
-import org.cangnova.cangjie.metadata.model.fb.FbDeclInfo
-import org.cangnova.cangjie.metadata.model.fb.FbDeclKind
-import org.cangnova.cangjie.metadata.model.fb.FbExpr
-import org.cangnova.cangjie.metadata.model.fb.FbExprInfo
-import org.cangnova.cangjie.metadata.model.fb.FbExprKind
-import org.cangnova.cangjie.metadata.model.fb.FbForInInfo
-import org.cangnova.cangjie.metadata.model.fb.FbForInKind
-import org.cangnova.cangjie.metadata.model.fb.FbFullId
-import org.cangnova.cangjie.metadata.model.fb.FbFuncArgInfo
-import org.cangnova.cangjie.metadata.model.fb.FbFuncBody
-import org.cangnova.cangjie.metadata.model.fb.FbFuncParamList
-import org.cangnova.cangjie.metadata.model.fb.FbGeneric
-import org.cangnova.cangjie.metadata.model.fb.FbImportSpec
-import org.cangnova.cangjie.metadata.model.fb.FbImports
-import org.cangnova.cangjie.metadata.model.fb.FbIncOrDecInfo
-import org.cangnova.cangjie.metadata.model.fb.FbJumpInfo
-import org.cangnova.cangjie.metadata.model.fb.FbLambdaInfo
-import org.cangnova.cangjie.metadata.model.fb.FbLetPatternDestructorInfo
-import org.cangnova.cangjie.metadata.model.fb.FbLitConstInfo
-import org.cangnova.cangjie.metadata.model.fb.FbLitConstKind
-import org.cangnova.cangjie.metadata.model.fb.FbMatchCaseInfo
-import org.cangnova.cangjie.metadata.model.fb.FbMatchInfo
-import org.cangnova.cangjie.metadata.model.fb.FbMemberValue
-import org.cangnova.cangjie.metadata.model.fb.FbOperatorKind
-import org.cangnova.cangjie.metadata.model.fb.FbOverflowPolicy
-import org.cangnova.cangjie.metadata.model.fb.FbPackage
-import org.cangnova.cangjie.metadata.model.fb.FbPattern
-import org.cangnova.cangjie.metadata.model.fb.FbPatternKind
-import org.cangnova.cangjie.metadata.model.fb.FbPosition
-import org.cangnova.cangjie.metadata.model.fb.FbReferenceInfo
-import org.cangnova.cangjie.metadata.model.fb.FbSemaTy
-import org.cangnova.cangjie.metadata.model.fb.FbSemaTyInfo
-import org.cangnova.cangjie.metadata.model.fb.FbSpawnInfo
-import org.cangnova.cangjie.metadata.model.fb.FbStringKind
-import org.cangnova.cangjie.metadata.model.fb.FbSubscriptInfo
-import org.cangnova.cangjie.metadata.model.fb.FbTryInfo
-import org.cangnova.cangjie.metadata.model.fb.FbTypeKind
-import org.cangnova.cangjie.metadata.model.fb.FbUnaryInfo
+import org.cangnova.cangjie.metadata.model.fb.*
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.nio.ByteBuffer
 
 fun ByteBuffer.toFbPackage(): FbPackage {
+
     val packageFb = Package.getRootAsPackage(this)
     return packageFb.parser()
+
+
 }
 
 fun InputStream.toFbPackage(): FbPackage {
@@ -146,13 +50,47 @@ fun ByteArrayInputStream.toFbPackage(): FbPackage {
     return ByteBuffer.wrap(this.readAllBytes()).toFbPackage()
 }
 
+fun Package.getFullPkgName(): String {
+    return fullPkgName ?: ""
+
+}
+
+fun Package.getpkgDepInfo(): String {
+    return try {
+        return this.pkgDepInfo ?: ""
+    } catch (e: Exception) {
+        ""
+    }
+}
+
 fun Package.parser(): FbPackage {
-//TODO 低版本可能没有fullPkgName
+//由于Package最低支持1.0.0 ，所以少于1.0.0的不解析
+
+    val version = SemVer.parseFromText(this.version ?: "0.0.0")
+
+
+    if (version == null || version < SemVer.parseFromText("1.0.0")) {
+        return FbPackage(
+            cjcVersion = "0.0.0",
+            cjoVersion = BuiltInsBinaryVersion.INSTANCE,
+            fullPkgName = "",
+            pkgDepInfo = "",
+            imports = emptyList(),
+            files = emptyList(),
+            fileImports = emptyList(),
+            types = emptyList(),
+            exprs = emptyList(),
+            decls = emptyList(),
+            values = emptyList(),
+            moduleName = ""
+        )
+    }
+
     return FbPackage(
         cjcVersion = this.version ?: "0.0.0",
         cjoVersion = this.cjoVersion?.toBinaryVersion() ?: BuiltInsBinaryVersion.INSTANCE,
-        fullPkgName = this.fullPkgName ?: "",
-        pkgDepInfo = this.pkgDepInfo ?: "",
+        fullPkgName = this.getFullPkgName(),
+        pkgDepInfo = this.getpkgDepInfo(),
         imports = this.imports,
         files = this.files,
         fileImports = this.fileImports,
@@ -161,11 +99,7 @@ fun Package.parser(): FbPackage {
         decls = this.decls,
         values = this.values,
         moduleName = this.moduleName ?: "",
-
-
-        )
-
-
+    )
 }
 
 val Package.fileImports: List<FbImports>
@@ -198,8 +132,8 @@ val ImportSpec.prefixPaths: List<String>
 fun Position.parser(): FbPosition {
     return FbPosition(
         file = this.file.toInt(),
-        line = this.line.toInt(),
-        column = this.column.toInt(),
+        line = this.line,
+        column = this.column,
         pkgId = this.pkgId.toInt(),
         ignore = this.ignore,
 
@@ -754,7 +688,7 @@ fun Generic.parser(): FbGeneric {
     )
 }
 
-fun Constraint.parser(): FbConstraint? {
+fun Constraint.parser(): FbConstraint {
     return FbConstraint(
         begin = this.begin?.parser(),
         end = this.end?.parser(),
@@ -781,7 +715,6 @@ fun FullId.parser(): FbFullId {
         decl = try {
             this.decl ?: ""
         } catch (e: IndexOutOfBoundsException) {
-            println("Warning: Failed to read decl field from FullId: ${e.message}")
             ""
         },
         index = this.index.toInt()
@@ -837,7 +770,13 @@ fun CompositeValue.parser(): FbCompositeValue {
 }
 
 val Package.files: List<String>
-    get() = (0 until this.allFilesLength).mapNotNull { this.allFiles(it) }
+    get() {
+        return try {
+            (0 until this.allFilesLength).mapNotNull { this.allFiles(it) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
 
 val Package.imports: List<String>
     get() = (0 until this.importsLength).mapNotNull { this.imports(it) }
@@ -903,7 +842,7 @@ val ReferenceInfo.instTys: List<UInt>
 fun LambdaInfo.parser(): FbExprInfo.Lambda {
     return FbExprInfo.Lambda(
         FbLambdaInfo(
-            funcBody = this.funcBody?.parser() ?: FbFuncBody(emptyList(), 0, 0, false, 0u),
+            funcBody = this.funcBody.parser(),
             supportMock = this.supportMock
         )
     )

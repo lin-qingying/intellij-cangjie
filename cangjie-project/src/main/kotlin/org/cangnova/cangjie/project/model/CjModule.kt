@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.project.model
 
 import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.model.CjDependency
 
 /**
  * 模块抽象
@@ -52,50 +53,51 @@ interface CjModule {
      */
     val configFile: VirtualFile?
 
-
-
     /**
      * 源码集列表
      */
     val sourceSets: List<CjSourceSet>
 
     /**
-     * 模块依赖列表
+     * 所有依赖列表（推荐使用）
      *
-     * 返回此模块直接依赖的其他模块列表。
-     * 这用于在 Project Model 和 Workspace Model 中建立模块间的依赖关系。
+     * 返回此模块的所有依赖，包括：
+     * - 外部库依赖 (CjDependency.Library)
+     * - 路径依赖/模块依赖 (CjDependency.Path)
+     * - Git 依赖 (CjDependency.Git)
+     * - 系统依赖 (CjDependency.System)
      *
      * 默认返回空列表，具体实现需要根据项目配置(如 cjpm.toml)解析依赖关系。
      */
-    val dependencies: List<CjModuleDependency>
+    val allDependencies: List<CjDependency>
         get() = emptyList()
+
 }
 
-/**
- * 模块依赖信息
- *
- * 描述一个模块对另一个模块的依赖关系
- *
- * @property moduleName 依赖的模块名称
- * @property scope 依赖作用域(编译时/测试时等)
- * @property exported 是否导出此依赖(传递依赖)
- */
-data class CjModuleDependency(
-    val moduleName: String,
-    val scope: CjDependencyScope = CjDependencyScope.COMPILE,
-    val exported: Boolean = false
-)
+
 
 /**
- * 依赖作用域
+ * 便捷扩展属性：获取所有库依赖
  */
-enum class CjDependencyScope {
-    /** 编译时依赖 */
-    COMPILE,
-    /** 测试时依赖 */
-    TEST,
-    /** 运行时依赖 */
-    RUNTIME,
-    /** 仅提供(编译时可见，运行时不包含) */
-    PROVIDED
-}
+val CjModule.libraryDependencies: List<CjDependency.Library>
+    get() = allDependencies.filterIsInstance<CjDependency.Library>()
+
+/**
+ * 便捷扩展属性：获取所有路径依赖（模块依赖）
+ */
+val CjModule.pathDependencies: List<CjDependency.Path>
+    get() = allDependencies.filterIsInstance<CjDependency.Path>()
+
+/**
+ * 便捷扩展属性：获取所有 Git 依赖
+ */
+val CjModule.gitDependencies: List<CjDependency.Git>
+    get() = allDependencies.filterIsInstance<CjDependency.Git>()
+
+/**
+ * 便捷扩展属性：获取所有系统依赖
+ */
+val CjModule.systemDependencies: List<CjDependency.System>
+    get() = allDependencies.filterIsInstance<CjDependency.System>()
+
+

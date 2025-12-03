@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,15 @@
 
 package org.cangnova.cangjie.psi.compiled
 
+import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileTypes.BinaryFileDecompiler
-import com.intellij.openapi.project.DefaultProjectFactory
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 
 class ClassFileDecompiler : BinaryFileDecompiler {
     override fun decompile(file: VirtualFile): CharSequence {
+        val project = ProjectUtil.getActiveProject() ?: return ""
         val decompiler: ClassFileDecompilers.Decompiler = ClassFileDecompilers.instance.find(
             file,
             ClassFileDecompilers.Decompiler::class.java,
@@ -41,7 +42,8 @@ class ClassFileDecompiler : BinaryFileDecompiler {
 //        }
 
         if (decompiler is ClassFileDecompilers.Full) {
-            val manager = PsiManager.getInstance(DefaultProjectFactory.getInstance().defaultProject)
+
+            val manager = PsiManager.getInstance(project)
             return decompiler.createFileViewProvider(file, manager, true).contents
         }
 
@@ -56,15 +58,15 @@ class ClassFileDecompiler : BinaryFileDecompiler {
 
         throw IllegalStateException(
             decompiler::class.java.name +
-                " should be on of " +
-                ClassFileDecompilers.Full::class.java.name +
-                " or " +
-                ClassFileDecompilers.Light::class.java.name,
+                    " should be on of " +
+                    ClassFileDecompilers.Full::class.java.name +
+                    " or " +
+                    ClassFileDecompilers.Light::class.java.name,
         )
     }
 
     companion object {
-        private val LOG = Logger.getInstance(
+        private val LOG: Logger = Logger.getInstance(
             ClassFileDecompiler::class.java,
         )
     }

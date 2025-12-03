@@ -24,23 +24,25 @@
 
 package org.cangnova.cangjie.service.impl
 
-import com.intellij.openapi.components.Service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.extension.CjDependencyResolver
 import org.cangnova.cangjie.model.CjDependency
 import org.cangnova.cangjie.model.CjResolvedDependency
-import org.cangnova.cangjie.service.CjDependencyService
 import org.cangnova.cangjie.project.service.CjProjectBuildSystemService
+import org.cangnova.cangjie.service.CjDependencyService
 
 /**
  * 依赖服务实现
  */
-@Service(Service.Level.APP)
+
 class CjDependencyServiceImpl : CjDependencyService {
 
-    private val log = logger<CjDependencyServiceImpl>()
+    companion object {
+        private val LOG: Logger = logger<CjDependencyServiceImpl>()
 
+    }
 
     //获取解析器
     private fun getDependencyResolver(): CjDependencyResolver? {
@@ -60,15 +62,15 @@ class CjDependencyServiceImpl : CjDependencyService {
         // 尝试使用每个解析器解析依赖
 
         if (resolver.canResolve(dependency)) {
-                log.info("Using resolver: ${resolver.resolverName} for dependency: ${dependency.name}")
-                val resolved = resolver.resolve(dependency, project)
-                if (resolved != null && resolved.isResolved) {
-                    return resolved
-                }
+            LOG.info("Using resolver: ${resolver.resolverName} for dependency: ${dependency.name}")
+            val resolved = resolver.resolve(dependency, project)
+            if (resolved != null && resolved.isResolved) {
+                return resolved
             }
+        }
 
 
-        log.warn("Failed to resolve dependency: ${dependency.name}")
+        LOG.warn("Failed to resolve dependency: ${dependency.name}")
         return null
     }
 

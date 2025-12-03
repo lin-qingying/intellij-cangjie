@@ -30,6 +30,8 @@ package org.cangnova.cangjie.model
  * 包含依赖的完整解析信息
  */
 interface CjResolvedDependency {
+    fun buildLibraryName(dependency: CjDependency): String
+
     /**
      * 原始依赖
      */

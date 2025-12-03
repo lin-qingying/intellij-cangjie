@@ -31,7 +31,6 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
 import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
 import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.project.model.CjModule
@@ -114,8 +113,7 @@ class CjpmProjectImpl(
     }
 
     private val config = resettableLazy {
-        val fullConfig = CjpmTomlParser.parse(manifestFile)
-        fullConfig?.let { CjpmConfigConverter.convertToSimpleConfig(it) }
+        CjpmTomlParser.parse(manifestFile)
     }
 
     override val name: String

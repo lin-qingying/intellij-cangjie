@@ -33,7 +33,7 @@ data class CjVersion(
     /**
      * 版本字符串
      */
-    val versionString: String
+    val versionString: String? = null
 ) : Comparable<CjVersion> {
 
     /**
@@ -62,7 +62,7 @@ data class CjVersion(
     val buildMetadata: String?
 
     init {
-        val parts = parseVersion(versionString)
+        val parts = parseVersion(versionString ?: "0.0.0")
         major = parts.major
         minor = parts.minor
         patch = parts.patch
@@ -87,7 +87,7 @@ data class CjVersion(
         return comparePreRelease(preRelease, other.preRelease)
     }
 
-    override fun toString(): String = versionString
+    override fun toString(): String = versionString ?: ""
 
     companion object {
         /**
@@ -122,6 +122,7 @@ data class CjVersion(
             }
         }
     }
+
 
     private data class VersionParts(
         val major: Int,

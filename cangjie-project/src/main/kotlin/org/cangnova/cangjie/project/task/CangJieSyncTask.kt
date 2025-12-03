@@ -165,7 +165,7 @@ class CangJieSyncTask(
 
                             // 使用 runBlocking 而非 runBlockingCancellable,因为我们在后台线程池中
                             kotlinx.coroutines.runBlocking {
-                                workspaceSync.syncProjects(cjProject)
+                                workspaceSync.syncProject(cjProject)
                             }
 
                             LOG.info("Successfully synced workspace model for project: ${cjProject.name}")

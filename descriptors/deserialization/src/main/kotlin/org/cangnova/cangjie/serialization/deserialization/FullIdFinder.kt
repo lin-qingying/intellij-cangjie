@@ -32,8 +32,8 @@ import org.cangnova.cangjie.metadata.PackageIndex
 import org.cangnova.cangjie.metadata.PackageIndex.CURRENT_PKG_INDEX
 import org.cangnova.cangjie.metadata.PackageIndex.INVALID_PACKAGE_INDEX
 import org.cangnova.cangjie.metadata.model.fb.FbFullId
-import org.cangnova.cangjie.metadata.model.wrapper.ClassWrapper
 import org.cangnova.cangjie.metadata.model.wrapper.PackageWrapper
+import org.cangnova.cangjie.metadata.model.wrapper.toClassDeclWrapper
 import org.cangnova.cangjie.name.FqName
 
 /**
@@ -62,7 +62,10 @@ class FullIdFinderImpl(
 //                尝试在本包查找
                 context.declDeserializer.loadClass(
                     context.declTable.get(fullId.index)
-                        .let { ClassWrapper(it, `package`.declTable, `package`.typeTable) }
+                        .let {
+                            it.toClassDeclWrapper(`package`.declTable, `package`.typeTable) ?: return null
+
+                        }
 
                 )
             }

@@ -362,6 +362,17 @@ class StructWrapper(
     override val superTypes = typeTable.get(original.info.inheritedTypes).map { TypeWrapper(it, declTable, typeTable) }
 }
 
+fun FbDecl.toClassDeclWrapper(declTable: DeclTable, typeTable: TypeTable): ClassDeclWrapper? {
+    return when (this.info) {
+        is FbDeclInfo.ClassInfo -> ClassWrapper(this, declTable, typeTable)
+        is FbDeclInfo.EnumInfo -> EnumWrapper(this, declTable, typeTable)
+        is FbDeclInfo.InterfaceInfo -> InterfaceWrapper(this, declTable, typeTable)
+
+        is FbDeclInfo.StructInfo -> StructWrapper(this, declTable, typeTable)
+        else -> null
+    }
+}
+
 class ClassWrapper(
     val original: FbDecl,
     val declTable: DeclTable,

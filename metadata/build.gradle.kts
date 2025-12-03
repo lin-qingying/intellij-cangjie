@@ -26,8 +26,6 @@
  * @author <a href="mailto:yms_hi@Outlook.com" rel="nofollow">yms</a>
  */
 import org.apache.tools.ant.taskdefs.condition.Os
-import org.gradle.kotlin.dsl.register
-import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.nio.file.Files
 
@@ -42,7 +40,7 @@ dependencies {
 }
 
 val flatcVersion = "25.2.10"
-val flatcExeName = "flatc" + (if (Os.isFamily(Os.FAMILY_WINDOWS)) ".exe" else "")
+val flatcExeName: String = "flatc" + (if (Os.isFamily(Os.FAMILY_WINDOWS)) ".exe" else "")
 val cacheDir = layout.buildDirectory.dir("flatc").get().asFile
 
 // 根据操作系统和架构确定文件名

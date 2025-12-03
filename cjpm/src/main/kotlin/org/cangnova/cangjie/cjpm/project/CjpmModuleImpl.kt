@@ -25,17 +25,16 @@
 package org.cangnova.cangjie.cjpm.project
 
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
-import org.cangnova.cangjie.cjpm.model.DependencyConfig
-import org.cangnova.cangjie.cjpm.model.PackageConfig
 import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
+import org.cangnova.cangjie.cjpm.project.model.toml.DependencyConfig
+import org.cangnova.cangjie.cjpm.project.model.toml.PackageConfig
 import org.cangnova.cangjie.model.CjDependency
 import org.cangnova.cangjie.model.CjDependencyScope
-import org.cangnova.cangjie.model.CjDependencyType
+import org.cangnova.cangjie.model.CjVersion
 import org.cangnova.cangjie.project.model.CjModule
-import org.cangnova.cangjie.project.model.CjModuleDependency
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.CjSourceSet
+import org.cangnova.cangjie.project.model.cjSdk
 
 /**
  * CJPM 模块实现
@@ -56,104 +55,95 @@ class CjpmModuleImpl(
         buildSourceSets()
     }
 
-
-
     /**
-     * 模块依赖列表
+     * 所有依赖列表
      *
-     * 从 cjpm.toml 中解析路径依赖(path dependencies)，
-     * 将它们转换为模块依赖关系
+     * 从 cjpm.toml 中解析所有依赖，包括：
+     * - 外部库依赖 (Library)
+     * - 路径依赖/模块依赖 (Path)
+     * - Git 依赖 (Git)
      */
-    override val dependencies: List<CjModuleDependency> by lazy {
-        buildModuleDependencies()
+    override val allDependencies: List<CjDependency> by lazy {
+        buildAllDependencies()
     }
 
-    /**
-     * 构建模块依赖列表
-     *
-     * 从 cjpm.toml 配置中提取路径依赖(path dependencies)，
-     * 这些依赖通常指向同一工作空间中的其他模块。
-     */
-    private fun buildModuleDependencies(): List<CjModuleDependency> {
-        val manifestFile = configFile ?: return emptyList()
-        val fullConfig = CjpmTomlParser.parse(manifestFile) ?: return emptyList()
-        val config = CjpmConfigConverter.convertToSimpleConfig(fullConfig)
 
-        val result = mutableListOf<CjModuleDependency>()
+    /**
+     * 构建所有依赖列表
+     *
+     * 从 cjpm.toml 配置中解析所有类型的依赖
+     */
+    private fun buildAllDependencies(): List<CjDependency> {
+        val manifestFile = configFile ?: return emptyList()
+        val config = CjpmTomlParser.parse(manifestFile) ?: return emptyList()
+
+        val result = mutableListOf<CjDependency>()
 
         // 解析编译时依赖
         config.dependencies.forEach { (name, depConfig) ->
-            // 只处理路径依赖(path dependencies)，这些通常是模块依赖
-            if (depConfig.path != null) {
-                result.add(
-                    CjModuleDependency(
-                        moduleName = name,
-                        scope = org.cangnova.cangjie.project.model.CjDependencyScope.COMPILE,
-                        exported = false
-                    )
-                )
-            }
+            result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.COMPILE))
         }
 
         // 解析测试时依赖
         config.testDependencies.forEach { (name, depConfig) ->
-            if (depConfig.path != null) {
-                result.add(
-                    CjModuleDependency(
-                        moduleName = name,
-                        scope = org.cangnova.cangjie.project.model.CjDependencyScope.TEST,
-                        exported = false
-                    )
+            result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.TEST))
+        }
+
+
+//        增加stdlib
+        project.intellijProject.cjSdk?.let { sdk ->
+            result.add(
+                CjDependency.Stdlib(
+
+                    version = CjVersion(sdk.version.toString()),
+                    scope = CjDependencyScope.COMPILE
                 )
-            }
+            )
+
         }
 
         return result
     }
 
-
-
-    private fun buildDependencies(): List<CjDependency> {
-        val manifestFile = configFile ?: return emptyList()
-        val fullConfig = CjpmTomlParser.parse(manifestFile) ?: return emptyList()
-        val config = CjpmConfigConverter.convertToSimpleConfig(fullConfig)
-
-        val result = mutableListOf<CjDependency>()
-
-        // Parse compile dependencies
-        config.dependencies.forEach { (name, depConfig) ->
-            result.add(createDependency(name, depConfig, CjDependencyScope.COMPILE))
-        }
-
-        // Parse test dependencies
-        config.testDependencies.forEach { (name, depConfig) ->
-            result.add(createDependency(name, depConfig, CjDependencyScope.TEST))
-        }
-
-        return result
-    }
-
-    private fun createDependency(
+    /**
+     * 从配置创建依赖对象（新实现，使用 sealed class）
+     */
+    private fun createDependencyFromConfig(
         name: String,
         config: DependencyConfig,
         scope: CjDependencyScope
     ): CjDependency {
-        return CjpmDependency(
-            name = name,
-            versionString = config.version ?: "latest",
-            scope = scope,
-            type = when {
-                config.path != null -> CjDependencyType.MODULE
-                config.git != null -> CjDependencyType.LIBRARY
-                else -> CjDependencyType.LIBRARY
-            },
-            path = config.path,
-            git = config.git,
-            branch = config.branch,
-            tag = config.tag,
-            rev = config.rev
-        )
+        val version = CjVersion(config.version)
+
+        return when {
+            // 路径依赖
+            config.path != null -> CjDependency.Path(
+                name = name,
+                path = config.path,
+                version = version,
+                scope = scope
+            )
+
+            // Git 依赖
+            config.git != null -> CjDependency.Git(
+                name = name,
+                url = config.git,
+                branch = config.branch,
+                tag = config.tag,
+                rev = config.rev,
+                version = version,
+                scope = scope
+            )
+
+            // 库依赖（默认）
+            else -> CjDependency.Library(
+                name = name,
+                version = version,
+                scope = scope
+            )
+        }
     }
+
 
     private fun buildSourceSets(): List<CjSourceSet> {
         val srcDir = packageConfig.srcDir

@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.cjpm.build
 
 import com.intellij.openapi.vfs.VirtualFile
+import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlConfig
 import org.cangnova.cangjie.model.CjBuildConfiguration
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -33,7 +34,7 @@ import kotlin.io.path.Path
  * CJPM 构建配置实现
  */
 class CjpmBuildConfigurationImpl(
-    private val config: org.cangnova.cangjie.cjpm.model.CjpmTomlConfig?,
+    private val config: CjpmTomlConfig?,
     private val projectDir: VirtualFile
 ) : CjBuildConfiguration {
 

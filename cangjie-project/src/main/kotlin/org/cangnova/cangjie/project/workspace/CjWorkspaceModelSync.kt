@@ -24,22 +24,25 @@
 
 package org.cangnova.cangjie.project.workspace
 
-import com.intellij.openapi.application.writeAction
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
 import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.*
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.url.VirtualFileUrl
+import org.cangnova.cangjie.model.CjDependency
+import org.cangnova.cangjie.model.CjDependencyScope
+import org.cangnova.cangjie.model.CjResolvedDependency
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
+import org.cangnova.cangjie.project.model.pathDependencies
 import org.cangnova.cangjie.project.model.roots
+import org.cangnova.cangjie.service.CjDependencyService
+import java.io.File
 
 /**
  * 仓颉项目的 EntitySource 实现
@@ -77,12 +80,12 @@ data class CangJieEntitySource(
 class CjWorkspaceModelSync(private val intellijProject: Project) {
 
     companion object {
-        private val LOG = logger<CjWorkspaceModelSync>()
+        private val LOG: Logger = logger<CjWorkspaceModelSync>()
 
         /**
          * 模块名称前缀，用于避免与其他插件的模块名称冲突
          */
-        private const val MODULE_NAME_PREFIX = ""
+        private const val MODULE_NAME_PREFIX: String = ""
     }
 
     /**
@@ -93,9 +96,9 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
      * 2. 为每个 CjModule 创建对应的 ModuleEntity
      * 3. 配置模块的源码根、内容根和排除目录
      *
-     * @param projects 需要同步的仓颉项目列表
+     * @param project 需要同步的仓颉项目列表
      */
-    suspend fun syncProjects(project: CjProject) {
+    suspend fun syncProject(project: CjProject) {
 
         val workspaceModel = intellijProject.workspaceModel
 
@@ -113,7 +116,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
             // 工作空间项目：创建主模块，然后为每个子模块创建带父模块的模块实体
             val mainModule = createMainModule(storage, project)
 
-            for (module in project.workspace!!.modules) {
+            for (module in (project.workspace ?: return).modules) {
                 try {
                     syncModule(storage, module, mainModule)
                     LOG.info("Synced module: ${module.name} from project ${project.name}")
@@ -220,7 +223,9 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
         val urlManager = WorkspaceModel.getInstance(intellijProject).getVirtualFileUrlManager()
         val moduleName = "${MODULE_NAME_PREFIX}${cjModule.name}"
         val contentRootUrl = urlManager.getOrCreateFromUrl(cjModule.rootDir.url)
-        val moduleDependencies = buildModuleDependencies(builder, cjModule)
+
+        // 构建依赖（分别获取模块依赖和库依赖）
+        val (moduleDeps, libraryDeps) = buildAllDependencies(builder, cjModule)
 
         builder.addEntity(
             ModuleEntity(
@@ -228,7 +233,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                 dependencies = listOf(
                     ModuleSourceDependency,
                     InheritedSdkDependency
-                ) + moduleDependencies,
+                ) + moduleDeps + libraryDeps,  // ModuleDependency 和 LibraryDependency 都可以放在这里
                 entitySource = entitySource
             ) {
                 val contentRootEntity = ContentRootEntity(
@@ -331,8 +336,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
         // 准备 ContentRoot URL
         val contentRootUrl = urlManager.getOrCreateFromUrl(cjModule.rootDir.url)
 
-        // 构建模块依赖列表（使用工作空间前缀）
-        val moduleDependencies = buildModuleDependencies(builder, cjModule, "${parentModule.name}.")
+        // 构建依赖（分别获取模块依赖和库依赖）
+        val (moduleDeps, libraryDeps) = buildAllDependencies(builder, cjModule, "${parentModule.name}.")
 
         // 创建 ModuleEntity（包含所有子实体）
         builder.addEntity(
@@ -341,7 +346,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                 dependencies = listOf(
                     ModuleSourceDependency,
                     InheritedSdkDependency
-                ) + moduleDependencies,  // 添加模块依赖
+                ) + moduleDeps + libraryDeps,  // 添加模块依赖和库依赖
                 entitySource = entitySource
             ) {
                 // 创建 ContentRootEntity
@@ -402,52 +407,310 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
     }
 
     /**
-     * 构建模块依赖列表
+     * 构建所有依赖
      *
-     * 将 CjModule 的依赖信息转换为 Workspace Model 的 ModuleDependency。
-     * 这是 Workspace Model 的补充功能，为 IDE 提供更详细的依赖元数据。
+     * 将 CjModule 的依赖信息转换为 Workspace Model 的 ModuleDependency 和 LibraryDependency。
+     * 包括：
+     * - Path 依赖 → ModuleDependency
+     * - Library/Git/System 依赖 → LibraryDependency
      *
      * @param builder 可变的实体存储构建器
      * @param cjModule 仓颉模块
      * @param moduleNamePrefix 模块名称前缀（用于工作空间项目）
-     * @return ModuleDependency 列表
+     * @return Pair<ModuleDependency列表, LibraryDependency列表>
      */
-    private fun buildModuleDependencies(
+    private fun buildAllDependencies(
         builder: MutableEntityStorage,
         cjModule: CjModule,
         moduleNamePrefix: String = MODULE_NAME_PREFIX
-    ): List<ModuleDependency> {
-        val dependencies = mutableListOf<ModuleDependency>()
+    ): Pair<List<ModuleDependency>, List<LibraryDependency>> {
+        val moduleDeps = mutableListOf<ModuleDependency>()
+        val libraryDeps = mutableListOf<LibraryDependency>()
 
-        for (dependency in cjModule.dependencies) {
+        val entitySource = CangJieEntitySource(
+            moduleName = cjModule.name,
+            projectPath = cjModule.project.rootDir.path
+        )
+
+        // 1. 处理 Path 依赖（模块间依赖）
+        for (pathDep in cjModule.pathDependencies) {
             // 查找依赖的模块
-            val dependencyModule = cjModule.project.findModule(dependency.moduleName)
+            val dependencyModule = cjModule.project.findModule(pathDep.name)
             if (dependencyModule != null) {
                 // 构建依赖模块的完整名称（带前缀）
-                val dependencyModuleName = "$moduleNamePrefix${dependency.moduleName}"
+                val dependencyModuleName = "$moduleNamePrefix${pathDep.name}"
 
                 // 创建模块依赖
-                dependencies.add(
+                moduleDeps.add(
                     ModuleDependency(
                         module = ModuleId(dependencyModuleName),
-                        exported = dependency.exported,
-                        scope = when (dependency.scope) {
-                            org.cangnova.cangjie.project.model.CjDependencyScope.COMPILE -> DependencyScope.COMPILE
-                            org.cangnova.cangjie.project.model.CjDependencyScope.TEST -> DependencyScope.TEST
-                            org.cangnova.cangjie.project.model.CjDependencyScope.RUNTIME -> DependencyScope.RUNTIME
-                            org.cangnova.cangjie.project.model.CjDependencyScope.PROVIDED -> DependencyScope.PROVIDED
-                        },
+                        exported = false, // Path 依赖默认不导出
+                        scope = mapDependencyScope(pathDep.scope),
                         productionOnTest = false
                     )
                 )
 
-                LOG.debug("Added module dependency: ${cjModule.name} -> ${dependency.moduleName} (scope=${dependency.scope})")
+                LOG.debug("Added module dependency: ${cjModule.name} -> ${pathDep.name} (scope=${pathDep.scope})")
             } else {
-                LOG.warn("Dependency module not found: ${dependency.moduleName} for module ${cjModule.name}")
+                LOG.warn("Dependency module not found: ${pathDep.name} for module ${cjModule.name}")
+            }
+        }
+
+        // 2. 处理外部库依赖（Library, Git, System）
+        val externalLibs = buildLibraryDependencies(builder, cjModule, entitySource)
+        libraryDeps.addAll(externalLibs)
+
+        return Pair(moduleDeps, libraryDeps)
+    }
+
+    /**
+     * 构建外部库依赖列表
+     *
+     * 为 Library、Git 和 System 依赖创建 LibraryEntity 和 LibraryDependency。
+     *
+     * @param builder 可变的实体存储构建器
+     * @param cjModule 仓颉模块
+     * @param entitySource 实体源
+     * @return LibraryDependency 列表
+     */
+    private fun buildLibraryDependencies(
+        builder: MutableEntityStorage,
+        cjModule: CjModule,
+        entitySource: EntitySource
+    ): List<LibraryDependency> {
+        val dependencies = mutableListOf<LibraryDependency>()
+        val dependencyService = CjDependencyService.getInstance()
+
+        // 获取所有非 Path 类型的依赖
+        val externalDependencies = cjModule.allDependencies.filter { dep ->
+            dep !is CjDependency.Path
+        }
+
+        for (dependency in externalDependencies) {
+            try {
+                // 解析依赖以获取路径信息
+                val resolved = dependencyService.resolveDependency(dependency, intellijProject)
+
+                if (resolved != null && resolved.isResolved) {
+                    // 创建 LibraryEntity 和 LibraryDependency
+                    val libraryDependency = createLibraryDependency(
+                        builder,
+                        dependency,
+                        resolved,
+                        entitySource
+                    )
+
+                    if (libraryDependency != null) {
+                        dependencies.add(libraryDependency)
+                        LOG.debug("Added library dependency: ${cjModule.name} -> ${dependency.name}:${dependency.version}")
+                    }
+                } else {
+                    LOG.warn("Failed to resolve dependency: ${dependency.name}:${dependency.version} - ${resolved?.errorMessage ?: "Unknown error"}")
+                }
+            } catch (e: Exception) {
+                LOG.error("Error resolving dependency ${dependency.name}:${dependency.version}", e)
             }
         }
 
         return dependencies
+    }
+
+    /**
+     * 创建单个库依赖
+     *
+     * 根据已解析的依赖信息创建 LibraryEntity 和 LibraryDependency。
+     *
+     * @param builder 可变的实体存储构建器
+     * @param dependency 原始依赖
+     * @param resolved 已解析的依赖
+     * @param entitySource 实体源
+     * @return LibraryDependency 或 null（如果创建失败）
+     */
+    private fun createLibraryDependency(
+        builder: MutableEntityStorage,
+        dependency: CjDependency,
+        resolved: CjResolvedDependency,
+        entitySource: EntitySource
+    ): LibraryDependency? {
+        val urlManager = WorkspaceModel.getInstance(intellijProject).getVirtualFileUrlManager()
+
+        // 生成库的唯一名称
+        val libraryName = resolved.buildLibraryName(dependency)
+
+        // 检查库是否已存在
+        val existingLibrary = builder.entities(LibraryEntity::class.java)
+            .firstOrNull { it.name == libraryName }
+
+        if (existingLibrary != null) {
+            // 库已存在，直接创建依赖引用
+            return LibraryDependency(
+                library = LibraryId(libraryName, LibraryTableId.ProjectLibraryTableId),
+                exported = false,
+                scope = mapDependencyScope(dependency.scope)
+            )
+        }
+
+        // 收集库的根目录（classes, sources, documentation）
+        val classesRoots = mutableListOf<LibraryRoot>()
+        val sourcesRoots = mutableListOf<LibraryRoot>()
+        val javadocRoots = mutableListOf<LibraryRoot>()
+
+        // 根据解析结果类型提取路径
+        when {
+            resolved.resolvedLibrary != null -> {
+                val library = resolved.resolvedLibrary ?: return null
+
+                // 添加库文件路径（classes）
+                val libraryFile = library.libraryPath.toFile()
+                if (libraryFile.exists()) {
+                    val libraryUrl = urlManager.getOrCreateFromUrl("file://${libraryFile.absolutePath}")
+                    classesRoots.add(LibraryRoot(libraryUrl, LibraryRootTypeId.COMPILED))
+                    LOG.debug("Added library classes root: ${libraryFile.absolutePath}")
+                }
+
+                // 添加源码路径
+                library.sourcePath?.toFile()?.let { sourceFile ->
+                    if (sourceFile.exists()) {
+                        val sourceUrl = urlManager.getOrCreateFromUrl("file://${sourceFile.absolutePath}")
+                        sourcesRoots.add(LibraryRoot(sourceUrl, LibraryRootTypeId.SOURCES))
+                        LOG.debug("Added library sources root: ${sourceFile.absolutePath}")
+                    }
+                }
+
+                // 添加文档路径
+                library.documentationPath?.toFile()?.let { docFile ->
+                    if (docFile.exists()) {
+                        val docUrl = urlManager.getOrCreateFromUrl("file://${docFile.absolutePath}")
+                        javadocRoots.add(LibraryRoot(docUrl, LibraryRootTypeId("JAVADOC")))
+                        LOG.debug("Added library documentation root: ${docFile.absolutePath}")
+                    }
+                }
+            }
+
+            resolved.resolvedPackage != null -> {
+                val pkg = resolved.resolvedPackage!!
+
+                // 包通常有本地路径，作为 classes root
+                pkg.localPath?.toFile()?.let { pkgDir ->
+                    if (pkgDir.exists()) {
+                        // 查找包中的编译产物
+                        val compiledFiles = findCompiledFiles(pkgDir)
+
+                        if (compiledFiles.isNotEmpty()) {
+                            // 有编译产物：添加编译产物作为 classes roots
+                            for (compiledFile in compiledFiles) {
+                                val url = urlManager.getOrCreateFromUrl("file://${compiledFile.absolutePath}")
+                                classesRoots.add(LibraryRoot(url, LibraryRootTypeId.COMPILED))
+                                LOG.debug("Added package compiled root: ${compiledFile.absolutePath}")
+                            }
+                        } else {
+                            // 没有编译产物（纯源码包）：将整个包目录作为 classes root
+                            val pkgUrl = urlManager.getOrCreateFromUrl("file://${pkgDir.absolutePath}")
+                            classesRoots.add(LibraryRoot(pkgUrl, LibraryRootTypeId.COMPILED))
+                            LOG.debug("Added package directory as classes root (pure source package): ${pkgDir.absolutePath}")
+                        }
+
+                        // 查找包中的源码目录
+                        val sourceDirs = findSourceDirectories(pkgDir)
+                        for (sourceDir in sourceDirs) {
+                            val url = urlManager.getOrCreateFromUrl("file://${sourceDir.absolutePath}")
+                            sourcesRoots.add(LibraryRoot(url, LibraryRootTypeId.SOURCES))
+                            LOG.debug("Added package sources root: ${sourceDir.absolutePath}")
+                        }
+                    }
+                }
+            }
+        }
+
+        // 如果没有找到任何根目录，无法创建库实体
+        if (classesRoots.isEmpty()) {
+            LOG.warn("No classes roots found for library: $libraryName")
+            return null
+        }
+
+        // 创建 LibraryEntity
+        builder.addEntity(
+            LibraryEntity(
+                name = libraryName,
+                tableId = LibraryTableId.ProjectLibraryTableId,
+                roots = classesRoots + sourcesRoots + javadocRoots,
+                entitySource = entitySource
+            )
+        )
+
+        LOG.info("Created library entity: $libraryName with ${classesRoots.size} classes, ${sourcesRoots.size} sources, ${javadocRoots.size} docs")
+
+        // 返回库依赖
+        return LibraryDependency(
+            library = LibraryId(libraryName, LibraryTableId.ProjectLibraryTableId),
+            exported = false,
+            scope = mapDependencyScope(dependency.scope)
+        )
+    }
+
+
+    /**
+     * 映射依赖范围
+     */
+    private fun mapDependencyScope(scope: CjDependencyScope): DependencyScope {
+        return when (scope) {
+            CjDependencyScope.COMPILE -> DependencyScope.COMPILE
+            CjDependencyScope.TEST -> DependencyScope.TEST
+            CjDependencyScope.RUNTIME -> DependencyScope.RUNTIME
+            CjDependencyScope.PROVIDED -> DependencyScope.PROVIDED
+        }
+    }
+
+    /**
+     * 查找目录中的编译产物文件
+     *
+     * 查找 .cjo, .a, .so, .dll, .dylib 等文件
+     */
+    private fun findCompiledFiles(directory: File): List<File> {
+        val compiledExtensions = setOf(".cjo", ".a", ".so", ".dll", ".dylib", ".lib")
+        val result = mutableListOf<File>()
+
+        if (!directory.isDirectory) {
+            return result
+        }
+
+        directory.walk().maxDepth(3).forEach { file ->
+            if (file.isFile) {
+                val extension = file.extension.let { if (it.isEmpty()) "" else ".$it" }
+                if (extension in compiledExtensions) {
+                    result.add(file)
+                }
+            }
+        }
+
+        return result
+    }
+
+    /**
+     * 查找包中的源码目录
+     *
+     * 查找常见的源码目录：src, source, sources 等
+     */
+    private fun findSourceDirectories(packageDir: File): List<File> {
+        val sourceDirectoryNames = setOf("src", "source", "sources", "lib")
+        val result = mutableListOf<File>()
+
+        if (!packageDir.isDirectory) {
+            return result
+        }
+
+        packageDir.listFiles()?.forEach { file ->
+            if (file.isDirectory && file.name in sourceDirectoryNames) {
+                result.add(file.parentFile)
+            }
+        }
+
+        // 如果没有找到标准源码目录，将包目录本身作为源码根
+        if (result.isEmpty() && packageDir.listFiles()?.any { it.extension == "cj" } == true) {
+            result.add(packageDir)
+        }
+
+        return result
     }
 
 

@@ -22,30 +22,34 @@
  *
  */
 
-package org.cangnova.cangjie.cjpm.project
+package org.cangnova.cangjie.cjpm.dependency
 
-import org.cangnova.cangjie.model.CjDependency
-import org.cangnova.cangjie.model.CjDependencyScope
-import org.cangnova.cangjie.model.CjDependencyType
-import org.cangnova.cangjie.model.CjVersion
+import org.cangnova.cangjie.model.*
+import java.nio.file.Path
 
 /**
- * CJPM 依赖实现
+ * CJPM 包实现
  */
-data class CjpmDependency(
+data class CjpmPackage(
     override val name: String,
-    val versionString: String,
-    override val scope: CjDependencyScope,
-    override val type: CjDependencyType,
-    val path: String? = null,
-    val git: String? = null,
-    val branch: String? = null,
-    val tag: String? = null,
-    val rev: String? = null
-) : CjDependency {
+    override val group: String? = null,
+    override val version: CjVersion,
+    override val description: String? = null,
+    override val authors: List<String> = emptyList(),
+    override val license: String? = null,
+    override val repositoryUrl: String? = null,
+    override val dependencies: List<CjDependency> = emptyList(),
+    override val localPath: Path? = null
+) : CjPackage
 
-    override val group: String? = null
-
-    override val version: CjVersion
-        get() = CjVersion(versionString)
-}
+/**
+ * CJPM 库实现
+ */
+data class CjpmLibrary(
+    override val name: String,
+    override val version: CjVersion,
+    override val libraryPath: Path,
+    override val libraryType: CjLibraryType = CjLibraryType.COMPILED,
+    override val sourcePath: Path? = null,
+    override val documentationPath: Path? = null
+) : CjLibrary

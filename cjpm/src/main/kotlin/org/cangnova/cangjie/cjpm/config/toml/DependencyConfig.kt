@@ -43,9 +43,9 @@ data class DependencyConfig(
     
     /** git 标签名 */
     val tag: String? = null,
-    
-    /** git commit ID */
-    val commitId: String? = null,
+
+    /** git commit ID / revision */
+    val rev: String? = null,
     
     /** 依赖版本号，用于检查依赖项是否具有正确的版本 */
     val version: String? = null,

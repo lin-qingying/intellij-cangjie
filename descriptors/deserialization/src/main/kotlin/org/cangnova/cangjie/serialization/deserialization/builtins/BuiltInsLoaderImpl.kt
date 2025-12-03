@@ -92,7 +92,8 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         module: ModuleDescriptor,
         packageFqNames: Set<FqName>,
         isFallback: Boolean,
-        loadResource: (String) -> InputStream?, sdk: CjSdk?
+        loadResource: (String) -> InputStream?,
+        sdk: CjSdk?
     ): PackageFragmentProvider {
 
         val packageFragments = packageFqNames.mapNotNull { fqName ->

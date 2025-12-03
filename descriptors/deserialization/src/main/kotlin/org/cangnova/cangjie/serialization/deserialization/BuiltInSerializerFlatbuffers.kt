@@ -28,9 +28,8 @@ import org.cangnova.cangjie.metadata.SerializerExtensionFlatbuffers
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
-import org.cangnova.cangjie.utils.getArchName
-import org.cangnova.cangjie.utils.getOsName
 import java.io.File
+import kotlin.io.path.absolutePathString
 
 /**
  * 内置序列化器（Flatbuffers格式）
@@ -52,10 +51,8 @@ object BuiltInSerializerFlatbuffers : SerializerExtensionFlatbuffers() {
             sdk?.stdlibPath ?: CjSdkRegistry.getInstance().getAllSdks().firstOrNull()?.stdlibPath ?: return null
 
 
-        // 根据系统类型获取不同的路径
-        val arch = getArchName()
-        val osName = getOsName()
-        return modulePath.resolve("${osName}_${arch}_llvm").toString() + File.separator
+
+        return modulePath.absolutePathString() + File.separator
     }
 
     /**
@@ -66,7 +63,11 @@ object BuiltInSerializerFlatbuffers : SerializerExtensionFlatbuffers() {
      */
     fun getBuiltInsFilePath(fqName: FqName, sdk: CjSdk?): String? {
         val prefix = getPrefix(sdk) ?: return null
-        return prefix + fqName.parent().asString() + File.separator + getBuiltInsFileName(fqName)
+        return prefix + fqName.parent().asString() + if (fqName.parent().asString().isEmpty()) {
+            ""
+        } else {
+            File.separator
+        } + getBuiltInsFileName(fqName)
     }
 
     /**

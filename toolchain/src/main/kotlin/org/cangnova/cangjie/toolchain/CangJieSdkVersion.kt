@@ -37,4 +37,8 @@ data class CangJieSdkVersion(
     val semver: SemVer,
     val target: String,
     val type: String? = null
-)
+) {
+    override fun toString(): String {
+        return semver.parsedVersion
+    }
+}

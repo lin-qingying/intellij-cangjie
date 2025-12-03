@@ -83,11 +83,10 @@ class CangJieProgramRunConfiguration(
 //            println("Debug: Module '$moduleName' not found")
             // List available modules for debugging
             val availableModules = if (cjProject.isWorkspace && cjProject.workspace != null) {
-                cjProject.workspace!!.modules
+                (cjProject.workspace ?: return null).modules
             } else {
                 cjProject.module?.let { listOf(it) } ?: emptyList()
             }
-            println("Debug: Available modules: ${availableModules.map { it.name }}")
         }
 
         return module

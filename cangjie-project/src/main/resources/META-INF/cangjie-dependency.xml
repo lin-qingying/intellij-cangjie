@@ -26,12 +26,12 @@
     <extensions defaultExtensionNs="com.intellij">
         <!-- Application-level services -->
         <applicationService
-                serviceInterface="org.cangnova.cangjie.dependency.service.CjDependencyService"
+                serviceInterface="org.cangnova.cangjie.service.CjDependencyService"
                 serviceImplementation="org.cangnova.cangjie.service.impl.CjDependencyServiceImpl"/>
 
         <!-- Project-level services -->
         <projectService
-                serviceInterface="org.cangnova.cangjie.dependency.registry.CjPackageRegistry"
+                serviceInterface="org.cangnova.cangjie.registry.CjPackageRegistry"
                 serviceImplementation="org.cangnova.cangjie.registry.impl.CjPackageRegistryImpl"/>
 
         <!-- External Library Roots Provider: Display dependencies in project view -->

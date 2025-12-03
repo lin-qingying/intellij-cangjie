@@ -25,9 +25,9 @@
 package org.cangnova.cangjie.cjpm.project
 
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.cjpm.config.CjpmConfigConverter
-import org.cangnova.cangjie.cjpm.model.WorkspaceConfig
+
 import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
+import org.cangnova.cangjie.cjpm.project.model.toml.WorkspaceConfig
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.CjSourceSet
@@ -59,8 +59,7 @@ class CjpmWorkspaceImpl(
                 val memberManifest = memberDir?.findChild("cjpm.toml")
 
                 if (memberDir != null && memberManifest != null) {
-                    val fullMemberConfig = CjpmTomlParser.parse(memberManifest)
-                    val memberConfig = fullMemberConfig?.let { CjpmConfigConverter.convertToSimpleConfig(it) }
+                    val memberConfig = CjpmTomlParser.parse(memberManifest)
                     memberConfig?.`package`?.let { packageConfig ->
 
                         result.add(
