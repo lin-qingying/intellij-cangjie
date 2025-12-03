@@ -28,9 +28,11 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.cangnova.cangjie.debugger.DebuggerDownloadException
 import org.cangnova.cangjie.debugger.DebuggerNotFoundException
 import org.cangnova.cangjie.debugger.DebuggerProvider
 import org.cangnova.cangjie.debugger.toolchain.DebuggerDownloadInfo
+import org.cangnova.cangjie.debugger.toolchain.DebuggerIndexFetcher
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -141,60 +143,23 @@ object ProtoDebuggerProvider : DebuggerProvider {
     }
 
     override fun getDownloadInfo(): DebuggerDownloadInfo {
-        // 根据平台选择对应的文件名和校验信息
-        val (fileName, sha1) = when {
-            SystemInfo.isWindows -> {
-                Pair(
-                    DebuggerExe.Windows.fileName,
-                    "a1858c5c4c4869e0858eeac359c484b987dd6cb6",
-                )
-            }
+        // 获取当前平台的文件名
+        val fileName = executableName
 
-            SystemInfo.isMac && SystemInfo.isAarch64 -> {
-                Pair(
-                    DebuggerExe.MacOS_aarch64.fileName,
-                    "0b1536e692de85bccc8db195b7c8f3851ed0225a",
-                )
-            }
+        // 从远程索引获取下载信息
+        val fileInfo = DebuggerIndexFetcher.getFileInfo(fileName)
+            ?: throw DebuggerDownloadException(
+                "Failed to get download info for $fileName from remote index"
+            )
 
-            SystemInfo.isMac -> {
-                Pair(
-                    DebuggerExe.MacOS_x64.fileName,
-                    "b0b8b45611d9a3468580380cd7c66fc8ac4811ef",
-                )
-            }
-
-            SystemInfo.isLinux && SystemInfo.isAarch64 -> {
-                Pair(
-                    DebuggerExe.Linux_aarch64.fileName,
-                    "f099734893e58cc7e2dcb5d10ccdea1e086fff40",
-                )
-            }
-
-            SystemInfo.isLinux -> {
-                Pair(
-                    DebuggerExe.Linux_x64.fileName,
-                    "8165794c6b4f2f939157dc2fbdf031dfe6ab3cb0",
-                )
-            }
-
-            else -> {
-                throw UnsupportedOperationException(
-                    "Unsupported platform: ${SystemInfo.OS_NAME} ${SystemInfo.OS_ARCH}"
-                )
-            }
-        }
-
-
-        // SourceForge 下载链接格式
-        val downloadUrl = "https://downloads.sourceforge.net/project/intellij-cangjie-debugger/lldb-adapter/$fileName"
+        LOG.info("Using download URL from index: ${fileInfo.download}")
 
         return DebuggerDownloadInfo(
-            downloadUrl = downloadUrl,
+            downloadUrl = fileInfo.download,
             targetPath = executablePath,
             needExtract = false, // 直接下载可执行文件，不需要解压
-
-            checksum = sha1,
+            version = fileInfo.version,
+            checksum = fileInfo.sha1,
             checksumType = "SHA1"
         )
     }

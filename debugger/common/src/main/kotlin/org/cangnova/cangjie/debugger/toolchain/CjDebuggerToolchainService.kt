@@ -27,6 +27,7 @@ package org.cangnova.cangjie.debugger.toolchain
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -71,10 +72,84 @@ class CjDebuggerToolchainService {
             val isAvailable = debuggerProvider.isAvailable()
 
             when {
-                isAvailable -> DebuggerAvailability.Available
-                else -> DebuggerAvailability.NeedToDownload
+                !isAvailable -> DebuggerAvailability.NeedToDownload
+                else -> {
+                    // 调试器存在，检查版本
+                    val needsUpdate = checkVersionUpdate(debuggerProvider)
+                    if (needsUpdate) {
+                        DebuggerAvailability.NeedToUpdate
+                    } else {
+                        DebuggerAvailability.Available
+                    }
+                }
             }
         }
+    }
+
+    /**
+     * 检查调试器是否需要更新
+     *
+     * @param debuggerProvider 调试器提供者
+     * @return true 如果需要更新，否则 false
+     */
+    private fun checkVersionUpdate(debuggerProvider: DebuggerProvider): Boolean {
+        try {
+            // 获取下载信息（包含远程最新版本）
+            val downloadInfo = debuggerProvider.getDownloadInfo()
+            val remoteVersion = downloadInfo.version
+
+            // 读取本地版本文件
+            val executablePath = downloadInfo.targetPath
+            val versionFilePath = executablePath.resolveSibling("${executablePath.fileName}.txt")
+
+            if (!Files.exists(versionFilePath)) {
+                // 版本文件不存在，认为需要更新
+                LOG.info("Version file not found, update needed")
+                return true
+            }
+
+            val localVersion = Files.readString(versionFilePath).trim()
+
+            // 比较版本
+            val needsUpdate = compareVersions(localVersion, remoteVersion) < 0
+
+            if (needsUpdate) {
+                LOG.info("Version update available: local=$localVersion, remote=$remoteVersion")
+            } else {
+                LOG.info("Version is up to date: $localVersion")
+            }
+
+            return needsUpdate
+        } catch (e: Exception) {
+            LOG.warn("Failed to check version update", e)
+            // 出错时认为不需要更新，避免频繁提示
+            return false
+        }
+    }
+
+    /**
+     * 比较版本号
+     *
+     * @param v1 版本1
+     * @param v2 版本2
+     * @return 负数表示 v1 < v2，0 表示相等，正数表示 v1 > v2
+     */
+    private fun compareVersions(v1: String, v2: String): Int {
+        val parts1 = v1.split('.').map { it.toIntOrNull() ?: 0 }
+        val parts2 = v2.split('.').map { it.toIntOrNull() ?: 0 }
+
+        val maxLength = maxOf(parts1.size, parts2.size)
+
+        for (i in 0 until maxLength) {
+            val part1 = parts1.getOrElse(i) { 0 }
+            val part2 = parts2.getOrElse(i) { 0 }
+
+            if (part1 != part2) {
+                return part1.compareTo(part2)
+            }
+        }
+
+        return 0
     }
 
     /**
@@ -115,6 +190,9 @@ class CjDebuggerToolchainService {
             // 下载并提取文件
             val targetPath = downloadAndExtract(downloadInfo, indicator)
 
+            // 写入版本信息到 .txt 文件
+            writeVersionInfo(targetPath, downloadInfo.version)
+
             // 调用 ensureReady 设置权限等
             val ensureResult = runBlocking {
                 debuggerProvider.ensureReady()
@@ -128,6 +206,9 @@ class CjDebuggerToolchainService {
                         ?: DebuggerDownloadException("Failed to prepare debugger")
                 )
             }
+        } catch (e: ProcessCanceledException) {
+            // 用户取消操作，直接返回 Cancelled 状态，不记录日志
+            return DownloadResult.Cancelled
         } catch (e: Exception) {
             LOG.error("Failed to download debugger", e)
             return DownloadResult.Failed(e)
@@ -245,6 +326,26 @@ class CjDebuggerToolchainService {
     }
 
     /**
+     * 写入版本信息到 .txt 文件
+     *
+     * @param executablePath 调试器可执行文件路径
+     * @param version 版本号
+     */
+    private fun writeVersionInfo(executablePath: Path, version: String) {
+        try {
+            // 生成版本文件路径（调试器文件名 + .txt）
+            val versionFilePath = executablePath.resolveSibling("${executablePath.fileName}.txt")
+
+            // 写入版本号
+            Files.writeString(versionFilePath, version)
+
+            LOG.info("Version info written to: ${versionFilePath.absolutePathString()}, version: $version")
+        } catch (e: Exception) {
+            LOG.warn("Failed to write version info", e)
+        }
+    }
+
+    /**
      * 下载结果
      */
     sealed class DownloadResult {
@@ -315,7 +416,7 @@ data class DebuggerDownloadInfo(
      */
     val needExtract: Boolean = false,
 
-
+    val version: String,
 
     /**
      * 文件校验和（可选）

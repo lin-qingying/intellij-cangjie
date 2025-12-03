@@ -28,9 +28,11 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.SystemInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.cangnova.cangjie.debugger.DebuggerDownloadException
 import org.cangnova.cangjie.debugger.DebuggerNotFoundException
 import org.cangnova.cangjie.debugger.DebuggerProvider
 import org.cangnova.cangjie.debugger.toolchain.DebuggerDownloadInfo
+import org.cangnova.cangjie.debugger.toolchain.DebuggerIndexFetcher
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -90,8 +92,7 @@ object DapDebuggerProvider : DebuggerProvider {
 
             if (!Files.exists(path)) {
                 throw DebuggerNotFoundException(
-                    "Debugger not found at: $path. " +
-                            "Please ensure the debugger is installed in ~/.cangjie/debugger/"
+                    "Debugger not found at: $path. " + "Please ensure the debugger is installed in ~/.cangjie/debugger/"
                 )
             }
 
@@ -131,8 +132,7 @@ object DapDebuggerProvider : DebuggerProvider {
                 if (!Files.exists(path)) {
                     return@withContext Result.failure(
                         DebuggerNotFoundException(
-                            "Debugger not found at: $path. " +
-                                    "Please copy the debugger executable to this location."
+                            "Debugger not found at: $path. " + "Please copy the debugger executable to this location."
                         )
                     )
                 }
@@ -153,63 +153,20 @@ object DapDebuggerProvider : DebuggerProvider {
     }
 
     override fun getDownloadInfo(): DebuggerDownloadInfo {
-        // 根据平台选择对应的文件名和校验信息
-        val (fileName, sha1) = when {
-            SystemInfo.isWindows -> {
-                Pair(
-                    DebuggerExe.Windows.fileName,
+        // 获取当前平台的文件名
+        val fileName = executableName
 
-                    "b0dea3677f78c8889711a978380bab6d3785fee7",
-                )
-            }
+        // 从远程索引获取下载信息
+        val fileInfo = DebuggerIndexFetcher.getFileInfo(fileName)
+            ?: throw DebuggerDownloadException(
+                "Failed to get download info for $fileName from remote index"
+            )
 
-            SystemInfo.isMac && SystemInfo.isAarch64 -> {
-                Pair(
-                    DebuggerExe.MacOS_aarch64.fileName,
-
-                    "c5a89af7a866fa352580065d68301c8f147c5e70",
-                )
-            }
-
-            SystemInfo.isMac -> {
-                Pair(
-                    DebuggerExe.MacOS_x64.fileName,
-                    "2cf7913481b35a92b214d97080cd12541c332a8a",
-                )
-            }
-
-            SystemInfo.isLinux && SystemInfo.isAarch64 -> {
-                Pair(
-                    DebuggerExe.Linux_aarch64.fileName,
-                    "bead73df71633e74c6cd15e1517eaff274c60ff6",
-                )
-            }
-
-            SystemInfo.isLinux -> {
-                Pair(
-                    DebuggerExe.Linux_x64.fileName,
-                    "ad355226ef007298ff26ce28f55f14dc5b965012",
-                )
-            }
-
-            else -> {
-                throw UnsupportedOperationException(
-                    "Unsupported platform: ${SystemInfo.OS_NAME} ${SystemInfo.OS_ARCH}"
-                )
-            }
-        }
-
-
-        // SourceForge 下载链接格式
-        val downloadUrl = "https://downloads.sourceforge.net/project/intellij-cangjie-debugger/dap-server/$fileName"
+        LOG.info("Using download URL from index: ${fileInfo.download}")
 
         return DebuggerDownloadInfo(
-            downloadUrl = downloadUrl,
-            targetPath = executablePath,
-            needExtract = false, // 直接下载可执行文件，不需要解压
-
-            checksum = sha1,
-            checksumType = "SHA1"
+            downloadUrl = fileInfo.download, targetPath = executablePath, needExtract = false, // 直接下载可执行文件，不需要解压
+            version = fileInfo.version, checksum = fileInfo.sha1, checksumType = "SHA1"
         )
     }
 
@@ -240,11 +197,9 @@ object DapDebuggerProvider : DebuggerProvider {
 
 
 private enum class DebuggerExe(val fileName: String) {
-    Windows("dap_server.exe"),
-    MacOS_x64("dap_server-macos_x64"),
-    MacOS_aarch64("dap_server-macos_aarch64"),
-    Linux_x64("dap_server-linux_x64"),
-    Linux_aarch64("dap_server-linux_aarch64");
+    Windows("dap_server.exe"), MacOS_x64("dap_server-macos_x64"), MacOS_aarch64("dap_server-macos_aarch64"), Linux_x64("dap_server-linux_x64"), Linux_aarch64(
+        "dap_server-linux_aarch64"
+    );
 
     companion object {
         /**
