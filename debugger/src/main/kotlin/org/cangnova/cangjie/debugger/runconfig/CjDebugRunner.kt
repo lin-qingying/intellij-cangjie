@@ -1,3 +1,27 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.debugger.runconfig
 
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -98,9 +122,21 @@ class CjDebugRunner : CjExecutableRunner(DefaultDebugExecutor.EXECUTOR_ID, CjDeb
 
 
         if (downloadDebugger) {
-            val result = CjDebuggerToolchainService.getInstance().downloadDebugger(project, debuggerProvider)
-            if (result is CjDebuggerToolchainService.DownloadResult.Ok) {
-                return true
+            when (val result = CjDebuggerToolchainService.getInstance().downloadDebugger(project, debuggerProvider)) {
+                is CjDebuggerToolchainService.DownloadResult.Ok -> return true
+                is CjDebuggerToolchainService.DownloadResult.Failed -> {
+                    Messages.showErrorDialog(
+                        project,
+                        DebuggerBundle.message("debugger.download.failed", result.error.message ?: "Unknown error"),
+                        DebuggerBundle.message("debugger.setup.required")
+                    )
+                    return false
+                }
+
+                is CjDebuggerToolchainService.DownloadResult.Cancelled -> {
+                    // 用户取消下载，直接返回 false，不显示错误对话框
+                    return false
+                }
             }
         }
         return false

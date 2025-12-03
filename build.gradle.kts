@@ -88,7 +88,7 @@ plugins {
     idea
     id("net.saliman.properties") version "1.5.2"
     kotlin("jvm") version "2.2.0"
-    id("org.jetbrains.intellij.platform") version "2.10.2"
+    id("org.jetbrains.intellij.platform") version "2.10.5"
     id("org.jetbrains.changelog") version "2.2.1"
     id("java-test-fixtures")
     kotlin("plugin.serialization") version "2.2.0"
@@ -233,22 +233,7 @@ allprojects {
         }
 
 
-//        插件上传推送配置
 
-        publishPlugin {
-            //           先构建
-            dependsOn(":plugin:buildPlugin")
-
-            channels.set(props("channel").map { listOf(it) })
-
-            archiveFile.set(
-                project(":plugin").layout.buildDirectory.file(
-                    "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
-                ),
-            )
-
-            token = environment("PUBLISH_TOKEN")
-        }
 
 
         runIde { enabled = false }
@@ -325,12 +310,7 @@ project(":plugin") {
 
         }
         pluginVerification {
-
-
             verificationReportsDirectory.set(layout.buildDirectory.dir("verification-reports"))
-
-
-
             ides {
                 recommended()
                 select {
@@ -480,14 +460,31 @@ project(":plugin") {
             dependsOn(mergePluginJarTask)
             enabled = prop("enableBuildSearchableOptions").toBoolean()
         }
+        //        插件上传推送配置
 
-//        withType<RunIdeTask> {
-//            dependsOn(mergePluginJarTask)
-//            jvmArgs("-Xmx768m", "-XX:+UseG1GC", "-XX:SoftRefLRUPolicyMSPerMB=50")
-//            jvmArgs("-Didea.auto.reload.plugins=false")
-//
-//            jvmArgs("-Dide.show.tips.on.startup.default.value=false")
-//        }
+        publishPlugin {
+            //           先构建
+            dependsOn(":plugin:buildPlugin")
+
+            channels.set(props("channel").map { listOf(it) })
+
+            archiveFile.set(
+                /*  project(":plugin").*/
+                layout.buildDirectory.file(
+                    "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
+                ),
+            )
+
+            token = environment("PUBLISH_TOKEN")
+        }
+        verifyPlugin {
+            archiveFile.set(
+                /*  project(":plugin").*/
+                layout.buildDirectory.file(
+                    "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
+                ),
+            )
+        }
 
 
     }
