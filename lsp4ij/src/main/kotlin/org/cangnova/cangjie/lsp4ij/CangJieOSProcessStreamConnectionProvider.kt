@@ -24,15 +24,15 @@
 
 package org.cangnova.cangjie.lsp4ij
 
-import org.cangnova.cangjie.lsp.CangJieLspServerManager
 import com.intellij.openapi.project.Project
 import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider
+import org.cangnova.cangjie.lsp.CangJieLspServerManager
 import java.io.*
 
 class CangJieOSProcessStreamConnectionProvider(
     val project: Project
 ) : OSProcessStreamConnectionProvider(
-    CangJieLspServerManager.getCommandLine(project)
+    CangJieLspServerManager.getInstance(project).getCommandLine()
 ) {
     private val modifiedInputStream = PipedInputStream()
     private val pipedOutputStream = PipedOutputStream(modifiedInputStream)

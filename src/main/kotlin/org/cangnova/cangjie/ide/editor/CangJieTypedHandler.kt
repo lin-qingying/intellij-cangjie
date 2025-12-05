@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,6 @@
 
 package org.cangnova.cangjie.ide.editor
 
-import org.cangnova.cangjie.ide.formatter.adjustLineIndent
-import org.cangnova.cangjie.ide.project.tools.projectWizard.core.safeAs
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens
-import org.cangnova.cangjie.psi.psiUtil.startOffset
 import com.intellij.codeInsight.AutoPopupController
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.editorActions.TypedHandler
@@ -45,6 +39,12 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.DocumentUtil
+import org.cangnova.cangjie.ide.formatter.adjustLineIndent
+import org.cangnova.cangjie.ide.project.tools.projectWizard.core.safeAs
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.lexer.cdoc.lexer.CDocTokens
+import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.psiUtil.startOffset
 
 
 internal object CangJieTypedHandlerHelper {
@@ -117,7 +117,7 @@ internal object CangJieTypedHandlerHelper {
         }
 
     /**
-     * Check whether the [element] is `:` in annotation with specified use-site target. For example, `:` in `@file:`.
+     * Check whether the [element] is `:` in annotation with specified use-site targetPlatform. For example, `:` in `@file:`.
      */
     private fun isAnnotationAfterUseSiteTargetCompletion(element: PsiElement): Boolean {
         val colonElement = element.takeIf { it.node.elementType == CjTokens.COLON }

@@ -30,12 +30,12 @@ import com.intellij.util.text.SemVer
  * 仓颉 SDK 版本信息
  *
  * @property semver 语义化版本号
- * @property target 目标平台（如 x86_64-w64-mingw32）
+ * @property targetPlatform 目标平台（如 x86_64-w64-mingw32）
  * @property type SDK 类型（如 cjnative），可选
  */
 data class CangJieSdkVersion(
     val semver: SemVer,
-    val target: String,
+    val targetPlatform: String,
     val type: String? = null
 ) {
     override fun toString(): String {

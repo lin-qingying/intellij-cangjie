@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 2.0.0
+
+### Fixed
+
 ## 1.2.0
 
 ### Fixed

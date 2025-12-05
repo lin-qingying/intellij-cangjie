@@ -41,6 +41,7 @@ import org.cangnova.cangjie.result.CjProcessResult
 import org.cangnova.cangjie.result.CjResult
 import org.cangnova.cangjie.result.unwrapOrElse
 import org.cangnova.cangjie.toolchain.command.ToolchainCommandLine
+import org.cangnova.cangjie.utils.invokeAndWaitIfNeeded
 import org.cangnova.cangjie.utils.pathAsPath
 
 /**
@@ -145,55 +146,58 @@ class CjpmProjectProvider : CjProjectProvider {
         val cjcVersion = sdk?.version?.semver?.toString() ?: "0.25.1"
 
         return try {
-            val holder = runWriteAction {
-                // 创建 cjpm.toml 文件
-                val tomlContent = """
-                    [package]
-                      cjc-version = "$cjcVersion"
-                      name = "$projectName"
-                      description = "nothing here"
-                      version = "1.0.0"
-                      target-dir = "target"
-                      src-dir = "src"
-                      output-type = "$projectType"
-                      compile-option = ""
-                      override-compile-option = ""
-                      link-option = ""
-                      package-configuration = {}
+            // 使用 invokeAndWait 确保在 EDT 线程上执行 VFS 操作
+            val holder: GeneratedFilesHolder = invokeAndWaitIfNeeded {
+                runWriteAction {
+                    // 创建 cjpm.toml 文件
+                    val tomlContent = """
+                        [package]
+                          cjc-version = "$cjcVersion"
+                          name = "$projectName"
+                          description = "nothing here"
+                          version = "1.0.0"
+                          targetPlatform-dir = "targetPlatform"
+                          src-dir = "src"
+                          output-type = "$projectType"
+                          compile-option = ""
+                          override-compile-option = ""
+                          link-option = ""
+                          package-configuration = {}
 
-                    [dependencies]
-
-                """.trimIndent()
-
-                val manifestFile = directory.findOrCreateChildData(this, CjpmConstants.MANIFEST_FILE)
-                manifestFile.setBinaryContent(tomlContent.toByteArray(Charsets.UTF_8))
-
-                // 创建 src 目录
-                val srcDir = directory.findChild("src") ?: directory.createChildDirectory(this, "src")
-
-                // 如果是可执行项目，创建 main.cj
-                val sourceFiles = if (projectType == "executable") {
-                    val mainContent = """
-                        package $projectName
-
-                        main(): Int64 {
-                            println("hello world")
-                            return 0
-                        }
+                        [dependencies]
 
                     """.trimIndent()
 
-                    val mainFile = srcDir.findOrCreateChildData(this, "main.cj")
-                    mainFile.setBinaryContent(mainContent.toByteArray(Charsets.UTF_8))
-                    listOf(mainFile)
-                } else {
-                    emptyList()
+                    val manifestFile = directory.findOrCreateChildData(this, CjpmConstants.MANIFEST_FILE)
+                    manifestFile.setBinaryContent(tomlContent.toByteArray(Charsets.UTF_8))
+
+                    // 创建 src 目录
+                    val srcDir = directory.findChild("src") ?: directory.createChildDirectory(this, "src")
+
+                    // 如果是可执行项目，创建 main.cj
+                    val sourceFiles = if (projectType == "executable") {
+                        val mainContent = """
+                            package $projectName
+
+                            main(): Int64 {
+                                println("hello world")
+                                return 0
+                            }
+
+                        """.trimIndent()
+
+                        val mainFile = srcDir.findOrCreateChildData(this, "main.cj")
+                        mainFile.setBinaryContent(mainContent.toByteArray(Charsets.UTF_8))
+                        listOf(mainFile)
+                    } else {
+                        emptyList()
+                    }
+
+                    // 刷新目录
+                    directory.refresh(false, true)
+
+                    GeneratedFilesHolder(manifestFile, sourceFiles)
                 }
-
-                // 刷新目录
-                directory.refresh(false, true)
-
-                GeneratedFilesHolder(manifestFile, sourceFiles)
             }
             CjResult.Ok(holder)
         } catch (e: Exception) {
@@ -207,22 +211,22 @@ class CjpmProjectProvider : CjProjectProvider {
         // 添加项目根目录
         directories.add(project.rootDir)
 
+        // 先获取到局部变量，避免多次访问属性导致的竞态条件
+        val workspace = project.workspace
+        val module = project.module
 
-
-        if (project.isWorkspace) {
-            // 添加所有模块的源码目录和输出目录
-            for (module in project.workspace!!.modules) {
-                for (sourceSet in module.sourceSets) {
+        if (workspace != null) {
+            // 添加所有工作空间模块的源码目录
+            for (workspaceModule in workspace.modules) {
+                for (sourceSet in workspaceModule.sourceSets) {
                     directories.addAll(sourceSet.roots)
                 }
-
             }
-
-        } else {
-            for (sourceSet in project.module!!.sourceSets) {
+        } else if (module != null) {
+            // 添加单模块的源码目录
+            for (sourceSet in module.sourceSets) {
                 directories.addAll(sourceSet.roots)
             }
-
         }
 
         return directories

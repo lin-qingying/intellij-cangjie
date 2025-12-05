@@ -181,7 +181,7 @@ fun isFeatureEnabled(featureId: String): Boolean {
     // Hack to pass values of experimental features in headless IDE run
     // Should help to configure IDE-based tools like Qodana
 //    if (isHeadlessEnvironment) {
-//        val value = System.getProperty(featureId)?.toBooleanStrictOrNull()
+//        val value = Stdlib.getProperty(featureId)?.toBooleanStrictOrNull()
 //        if (value != null) return value
 //    }
 

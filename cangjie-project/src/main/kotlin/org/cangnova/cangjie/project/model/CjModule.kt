@@ -25,7 +25,7 @@
 package org.cangnova.cangjie.project.model
 
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.model.CjDependency
+
 
 /**
  * 模块抽象
@@ -65,39 +65,48 @@ interface CjModule {
      * - 外部库依赖 (CjDependency.Library)
      * - 路径依赖/模块依赖 (CjDependency.Path)
      * - Git 依赖 (CjDependency.Git)
-     * - 系统依赖 (CjDependency.System)
+     * - 系统依赖 (CjDependency.Stdlib)
      *
      * 默认返回空列表，具体实现需要根据项目配置(如 cjpm.toml)解析依赖关系。
      */
-    val allDependencies: List<CjDependency>
+    val dependencies: List<CjDependency>
         get() = emptyList()
 
-}
 
+    val buildDependencies: List<CjDependency>
+        get() = emptyList()
+
+    val testDependencies: List<CjDependency>
+        get() = emptyList()
+
+    /**
+     * 模块元数据
+     *
+     * 包含版本、描述、作者等信息，通常从配置文件（如 cjpm.toml）解析。
+     * 提供统一的包元数据接口，便于在依赖解析和包管理中使用。
+     */
+    val metadata: CjPackageMetadata
+
+}
 
 
 /**
  * 便捷扩展属性：获取所有库依赖
  */
 val CjModule.libraryDependencies: List<CjDependency.Library>
-    get() = allDependencies.filterIsInstance<CjDependency.Library>()
+    get() = dependencies.filterIsInstance<CjDependency.Library>()
 
 /**
  * 便捷扩展属性：获取所有路径依赖（模块依赖）
  */
 val CjModule.pathDependencies: List<CjDependency.Path>
-    get() = allDependencies.filterIsInstance<CjDependency.Path>()
+    get() = dependencies.filterIsInstance<CjDependency.Path>()
 
 /**
  * 便捷扩展属性：获取所有 Git 依赖
  */
 val CjModule.gitDependencies: List<CjDependency.Git>
-    get() = allDependencies.filterIsInstance<CjDependency.Git>()
+    get() = dependencies.filterIsInstance<CjDependency.Git>()
 
-/**
- * 便捷扩展属性：获取所有系统依赖
- */
-val CjModule.systemDependencies: List<CjDependency.System>
-    get() = allDependencies.filterIsInstance<CjDependency.System>()
 
 

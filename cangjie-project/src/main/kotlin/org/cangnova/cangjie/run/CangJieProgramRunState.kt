@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.run
 
-import com.intellij.execution.configurations.CommandLineState
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessTerminatedListener
@@ -61,7 +60,7 @@ class CangJieProgramRunState(
 
         LOG.debug("Executing program: `${commandLine.commandLineString}`")
 
-        // Support for remote target environments
+        // Support for remote targetPlatform environments
         val processHandler = if (configuration.targetEnvironment != null) {
             commandLine.startProcess(
                 project = environment.project,

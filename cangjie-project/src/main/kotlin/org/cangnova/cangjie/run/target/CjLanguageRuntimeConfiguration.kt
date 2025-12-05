@@ -31,7 +31,7 @@ import com.intellij.openapi.components.BaseState
 import com.intellij.openapi.components.PersistentStateComponent
 
 /**
- * CangJie language runtime configuration for target environments
+ * CangJie language runtime configuration for targetPlatform environments
  */
 class CjLanguageRuntimeConfiguration :
     LanguageRuntimeConfiguration(CjLanguageRuntimeType.TYPE_ID),
@@ -72,7 +72,7 @@ class CjLanguageRuntimeConfiguration :
 }
 
 /**
- * Extension property to get CangJie language runtime from target configuration
+ * Extension property to get CangJie language runtime from targetPlatform configuration
  */
 val com.intellij.execution.target.TargetEnvironmentConfiguration.languageRuntime: CjLanguageRuntimeConfiguration?
     get() = runtimes.findByType()

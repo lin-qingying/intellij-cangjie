@@ -30,15 +30,15 @@ import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.target.LanguageRuntimeType
 import com.intellij.execution.target.TargetEnvironmentConfiguration
 import com.intellij.execution.target.TargetEnvironmentType
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.project.Project
-import com.intellij.icons.AllIcons
 import java.util.function.Supplier
 import javax.swing.Icon
 
 /**
- * CangJie language runtime type for target environments
+ * CangJie language runtime type for targetPlatform environments
  */
 class CjLanguageRuntimeType : LanguageRuntimeType<CjLanguageRuntimeConfiguration>(TYPE_ID) {
 

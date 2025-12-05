@@ -52,6 +52,24 @@ data class CjpmTomlConfig(
     /** 构建脚本依赖配置项 */
     @field:JsonProperty("script-dependencies") val scriptDependencies: Map<String, DependencyConfig> = mapOf(),
 
+    /**
+     * 依赖替换配置
+     *
+     * 用于替换间接依赖（传递依赖）的同名模块。
+     * 格式与 dependencies 字段完全相同。
+     *
+     * 注意：只有入口模块（根模块）的 replace 字段会生效，
+     * 子依赖的 replace 配置会被忽略。
+     *
+     * 示例：
+     * ```toml
+     * [replace]
+     *   bbb = { path = "new/path/to/bbb" }
+     * ```
+     */
+    @field:JsonProperty("replace")
+    val replace: Map<String, DependencyConfig> = mapOf(),
+
     /** FFI配置项 */
     @field:JsonDeserialize(using = EmptyStringToFfiConfigDeserializer::class) val ffi: FfiConfig? = null,
 
@@ -105,7 +123,7 @@ class EmptyStringToSrcDirDeserializer : JsonDeserializer<String>() {
 }
 
 /**
- * 自定义反序列化器，将空字符串转换为默认值 "target"
+ * 自定义反序列化器，将空字符串转换为默认值 "targetPlatform"
  */
 class EmptyStringToTargetDirDeserializer : JsonDeserializer<String>() {
     override fun deserialize(p: JsonParser, ctxt: DeserializationContext): String {
@@ -131,6 +149,15 @@ data class PackageConfig(
     /** 模块版本信息 */
     val version: String,
 
+    /** 作者列表 */
+    val authors: List<String>? = null,
+
+    /** 许可证 */
+    val license: String? = null,
+
+    /** 仓库 URL */
+    @field:JsonProperty("repository-url") val repositoryUrl: String? = null,
+
     /** 额外编译命令选项 */
     @field:JsonProperty("compile-option") val compileOption: String? = null,
 
@@ -149,7 +176,7 @@ data class PackageConfig(
     val srcDir: String = "src",
 
     /** 指定产物存放路径 */
-    @field:JsonProperty("target-dir")
+    @field:JsonProperty("targetPlatform-dir")
     @field:JsonDeserialize(using = EmptyStringToTargetDirDeserializer::class)
     val targetDir: String = "target",
 
@@ -241,7 +268,7 @@ data class WorkspaceConfig(
     @field:JsonProperty("link-option") val linkOption: String? = null,
 
     /** 指定产物存放路径 */
-    @field:JsonProperty("target-dir") val targetDir: String? = null
+    @field:JsonProperty("targetPlatform-dir") val targetDir: String? = null
 )
 
 /**

@@ -26,9 +26,9 @@ package org.cangnova.cangjie.cjpm.dependency
 
 import org.cangnova.cangjie.cjpm.project.CjpmBuildSystemId
 import org.cangnova.cangjie.extension.CjRepositoryProvider
-import org.cangnova.cangjie.model.CjPackage
-import org.cangnova.cangjie.model.CjVersion
 import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
+import org.cangnova.cangjie.project.model.CjPackageMetadata
+import org.cangnova.cangjie.project.model.CjVersion
 import java.nio.file.Path
 
 /**
@@ -42,7 +42,7 @@ class CjpmRepositoryProvider : CjRepositoryProvider {
     override val repositoryUrl: String = "https://repo.cangjie.org"
 
 
-    override fun searchPackage(name: String): List<CjPackage> {
+    override fun searchPackage(name: String): List<CjPackageMetadata> {
         // TODO: 实现包搜索逻辑
         // 1. 连接到 CJPM 仓库
         // 2. 搜索包
@@ -50,12 +50,12 @@ class CjpmRepositoryProvider : CjRepositoryProvider {
         return emptyList()
     }
 
-    override fun getPackageInfo(name: String, version: CjVersion): CjPackage? {
+    override fun getPackageInfo(name: String, version: CjVersion): CjPackageMetadata? {
         // TODO: 获取包信息
         return null
     }
 
-    override fun downloadPackage(pkg: CjPackage, targetDir: Path): Boolean {
+    override fun downloadPackage(pkg: CjPackageMetadata, targetDir: Path): Boolean {
         // TODO: 下载包
         // 1. 从仓库下载包
         // 2. 保存到目标目录

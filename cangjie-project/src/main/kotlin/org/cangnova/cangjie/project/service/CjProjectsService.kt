@@ -30,10 +30,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.messages.Topic
-import org.cangnova.cangjie.project.model.CjModule
-import org.cangnova.cangjie.project.model.CjProject
-import org.cangnova.cangjie.project.model.CjSourceSet
-import org.cangnova.cangjie.project.model.CjWorkspace
+import org.cangnova.cangjie.project.model.*
 import org.cangnova.cangjie.result.CjProcessResult
 
 
@@ -97,6 +94,9 @@ interface CjProjectsService {
 
                     override val sourceSets: List<CjSourceSet>
                         get() = emptyList()
+
+                    override val metadata: CjPackageMetadata
+                        get() = CjPackageMetadata.EMPTY
 
                 }
 

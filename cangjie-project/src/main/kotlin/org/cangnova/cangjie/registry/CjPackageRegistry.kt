@@ -26,8 +26,8 @@ package org.cangnova.cangjie.registry
 
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
-import org.cangnova.cangjie.model.CjPackage
-import org.cangnova.cangjie.model.CjVersion
+import org.cangnova.cangjie.project.model.CjPackageMetadata
+import org.cangnova.cangjie.project.model.CjVersion
 
 /**
  * 包注册表接口
@@ -50,7 +50,7 @@ interface CjPackageRegistry {
      *
      * @param pkg 要注册的包
      */
-    fun registerPackage(pkg: CjPackage)
+    fun registerPackage(pkg: CjPackageMetadata)
 
     /**
      * 取消注册包
@@ -67,12 +67,12 @@ interface CjPackageRegistry {
      * @param version 包版本
      * @return 找到的包，如果不存在返回 null
      */
-    fun findPackage(name: String, version: CjVersion): CjPackage?
+    fun findPackage(name: String, version: CjVersion): CjPackageMetadata?
 
     /**
      * 获取所有已注册的包
      */
-    fun getAllPackages(): List<CjPackage>
+    fun getAllPackages(): List<CjPackageMetadata>
 
     /**
      * 检查包是否已注册

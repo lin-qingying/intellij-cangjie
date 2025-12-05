@@ -28,7 +28,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.cjpm.project.model.toml.TOML_MAPPER
+import org.cangnova.cangjie.cjpm.config.toml.TOML_MAPPER
 import java.io.InputStream
 import java.nio.file.Path
 

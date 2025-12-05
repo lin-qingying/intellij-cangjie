@@ -24,183 +24,152 @@
 
 package org.cangnova.cangjie.lsp
 
-
 import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.ide.plugins.PluginManagerCore
-import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.io.systemIndependentPath
-import okio.Path.Companion.toPath
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
-
-import org.cangnova.cangjie.utils.getSavePluginVersion
-import org.cangnova.cangjie.utils.savePluginVersion
-import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
-object CangJieLspServerManager {
+/**
+ * 仓颉语言 LSP 服务器管理器
+ * 负责配置和启动 LSP 服务器进程
+ */
+@Service(Service.Level.PROJECT)
+class CangJieLspServerManager(private val project: Project) {
 
-    //user  .cangjielspserver
-    private val LSPSERVERPATH =
-        System.getProperty("user.home") + "/.cangjie/lsp"
+    companion object {
+        private const val LSP_DIR: String = ".cangjie/lsp"
+        private const val LSP_SERVER_NAME: String = "LSPServer"
+        private const val LOG_DIR: String = ".idea/log"
+        private const val SDK_LSP_PATH: String = "tools/bin/LSPServer"
 
-    private val LSPSERVERFILENAME = "LSPServer" + (if (SystemInfo.isWindows) ".exe" else "")
-
-    //    override fun createCommandLine() = GeneralCommandLine("D:\\Code\\idea\\intellij-cangjie\\lsp\\LSPServer.exe", "src")
-    val binaryPath: Path = Paths.get("$LSPSERVERPATH/$LSPSERVERFILENAME")
-
+        fun getInstance(project: Project): CangJieLspServerManager {
+            return project.getService(CangJieLspServerManager::class.java)
+        }
+    }
 
     /**
-     * 复制lspserver到目录
+     * 获取 LSP 服务器的完整路径
+     * 优先使用项目 SDK 中的 LSP 服务器
+     *
+     * @return LSP 服务器可执行文件的路径
+     * @throws IllegalStateException 如果未配置项目 SDK 或找不到 LSP 服务器
      */
-    fun copyLspServerToPath() {
+    private fun getLspServerPath(): String {
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
+            ?: throw IllegalStateException("项目未配置 SDK,请先配置仓颉 SDK")
 
+        val sdkLspPath = Paths.get(sdk.homePath.systemIndependentPath, SDK_LSP_PATH)
+        val systemSpecificPath = sdkLspPath.toSystemSpecificPath()
 
-        val classLoader = this::class.java.classLoader
-
-        val lspserverPath = if (SystemInfo.isWindows) {
-            "lsp/LSPServer.exe"
+        return if (Files.exists(systemSpecificPath)) {
+            systemSpecificPath.toString()
         } else {
-            "lsp/LSPServer"
-        }
-
-        val resource = classLoader.getResource(lspserverPath)
-
-
-//创建目录
-        if (Files.notExists(Paths.get(LSPSERVERPATH))) {
-            Files.createDirectories(Paths.get(LSPSERVERPATH))
-        }
-        resource?.openStream()?.use { input ->
-            FileOutputStream(binaryPath.toFile()).use { output ->
-                input.copyTo(output)
+            // 回退到用户目录下的 LSP 服务器
+            val fallbackPath = getUserHomeLspPath()
+            if (Files.exists(fallbackPath)) {
+                fallbackPath.toString()
+            } else {
+                throw IllegalStateException(
+                    "找不到 LSP 服务器。已检查:\n" +
+                            "1. SDK 路径: $systemSpecificPath\n" +
+                            "2. 用户目录: $fallbackPath"
+                )
             }
         }
-
-
     }
 
     /**
-     * 重新复制lspserver到目录
+     * 获取用户目录下的 LSP 服务器路径
      */
-    fun reCopyLspServerToPath() {
-        if (Files.exists(binaryPath)) {
-            Files.delete(binaryPath)
-        }
-        copyLspServerToPath()
+    private fun getUserHomeLspPath(): Path {
+        val fileName = if (SystemInfo.isWindows) "$LSP_SERVER_NAME.exe" else LSP_SERVER_NAME
+        return Paths.get(System.getProperty("user.home"), LSP_DIR, fileName)
     }
-
 
     /**
-     * 重新启动lspserver
+     * 创建日志目录
      */
-    fun restartLspServer(project: Project) {
-
-//        LspServerManagerImpl.getInstanceImpl(project)
-//            .stopAndRestartIfNeeded(CangJieLspServerSupportProvider::class.java)
+    private fun ensureLogDirectory(): Path {
+        val logPath = Paths.get(project.basePath, LOG_DIR)
+        if (!Files.exists(logPath)) {
+            Files.createDirectories(logPath)
+        }
+        return logPath
     }
 
-
-//    /**
-//     * 关闭所有的LSP服务
-//     */
-//    fun shutdownAllServers(project: Project) {
-//
-//        LspServerManagerImpl.getInstanceImpl(project).stopServers(CangJieLspServerSupportProvider::class.java)
-//    }
-
-
-    fun getCommandLine(project: Project): GeneralCommandLine {
-
-
-//        关闭现有的lspserver
-//        CangJieLspServerManager.shutdownAllServers()
-
-
-        val path = "${project.basePath}/.idea/log".toPath()
-        if (!path.toFile().exists()) {
-            path.toFile().mkdirs()
-        }
-
+    /**
+     * 获取工作目录
+     * 优先使用 SDK 主目录,否则使用 LSP 服务器所在目录
+     */
+    private fun getWorkingDirectory(): String {
         val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
-        val homePath = sdk?.homePath
+        return sdk?.homePath?.systemIndependentPath
+            ?: getUserHomeLspPath().parent.toAbsolutePath().toString()
+    }
+
+    /**
+     * 构建 LSP 服务器命令行
+     *
+     * @return 配置好的命令行对象
+     */
+    fun getCommandLine(): GeneralCommandLine {
+        val logPath = ensureLogDirectory()
+        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
+
         return GeneralCommandLine().apply {
             withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
             withCharset(Charsets.UTF_8)
-            exePath = getLspServerPath(project)
-            if (homePath != null) {
-                setWorkDirectory(homePath.systemIndependentPath)
-                withEnvironment(sdk.getEnvironment())
-//                setWorkDirectory(binaryPath.parent.toAbsolutePath().toString())
 
-            } else {
-                setWorkDirectory(binaryPath.parent.toAbsolutePath().toString())
-            }
+            // 设置可执行文件路径
+            exePath = getLspServerPath()
+
+            // 设置工作目录
+            setWorkDirectory(this@CangJieLspServerManager.getWorkingDirectory())
+
+            // 添加 SDK 环境变量
+            sdk?.let { withEnvironment(it.getEnvironment()) }
+
+            // 配置参数
             addParameter("src")
             addParameter("--enable-log=true")
-            addParameter("--log-path=${project.basePath}/.idea/log")
-//            addParameter("--log-path=${binaryPath.parent.toAbsolutePath().toString()}")
-//            withEnvironment(getWindowsPath())
+            addParameter("--log-path=${logPath.toAbsolutePath()}")
         }
     }
-
-
-    /**
-     * 获取lspserver路径
-     */
-    private fun getLspServerPath(project: Project): String {
-
-
-        val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
-
-        if (sdk != null) {
-            if (Files.exists(Paths.get("${sdk.homePath.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()))) {
-                return "${sdk.homePath.systemIndependentPath}/tools/bin/LSPServer".toSystemPath()
-            }
-        }
-
-        throw Exception("LSPServer not found")
-
-//        如果插件版本更新，则复制一份新的
-        // 获取当前插件的版本
-        val currentVersion = PluginManagerCore.getPlugin(PluginId.getId("org.cangnova.cangjie"))?.version
-        // 获取保存的插件版本
-        val savedVersion = getSavePluginVersion()
-        // 如果当前版本和保存的版本不一致，则重新复制一份
-        if (currentVersion != savedVersion) {
-            reCopyLspServerToPath()
-            savePluginVersion()
-        }
-
-
-// 如果二进制文件不存在，则将其复制到固定位置
-        if (Files.notExists(binaryPath)) {
-            copyLspServerToPath()
-        }
-
-
-        return binaryPath.toAbsolutePath().toString()
-//        return tempFile.absolutePath
-    }
-
-
 }
 
-
-fun String.replacePathBySystem(): String {
+/**
+ * 扩展函数:将路径转换为系统特定格式
+ */
+private fun Path.toSystemSpecificPath(): Path {
     return if (SystemInfo.isWindows) {
-        this.replace("/", "\\")
+        Paths.get(this.toString().replace("/", "\\") + ".exe")
     } else {
         this
     }
 }
 
+/**
+ * 扩展函数:将字符串路径转换为系统特定格式
+ */
 fun String.toSystemPath(): String {
     return if (SystemInfo.isWindows) {
         this.replace("/", "\\") + ".exe"
+    } else {
+        this
+    }
+}
+
+/**
+ * 扩展函数:替换路径分隔符为系统特定格式
+ */
+fun String.replacePathBySystem(): String {
+    return if (SystemInfo.isWindows) {
+        this.replace("/", "\\")
     } else {
         this
     }

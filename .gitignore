@@ -47,9 +47,11 @@ bin/
 /.cache/
 
 /metadata/gen
-/external/
+/external/**
 /sources/
 
+jflex-*.jar
 
 
-psi/src/gen/org/cangnova/cangjie/lexer/cdoc/lexer/_CDocLexer.java
+psi/src/gen
+/cangjie_docs/

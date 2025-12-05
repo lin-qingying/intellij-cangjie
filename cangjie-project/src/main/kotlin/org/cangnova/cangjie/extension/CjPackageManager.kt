@@ -25,8 +25,9 @@
 package org.cangnova.cangjie.extension
 
 import com.intellij.openapi.extensions.ExtensionPointName
-import org.cangnova.cangjie.model.CjDependency
+
 import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
+import org.cangnova.cangjie.project.model.CjDependency
 import java.nio.file.Path
 
 /**

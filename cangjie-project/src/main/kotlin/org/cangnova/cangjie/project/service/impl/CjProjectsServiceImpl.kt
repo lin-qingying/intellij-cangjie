@@ -771,16 +771,20 @@ class CangJieModuleIndex(
         // 构建模块索引
         val cjProject = service.cjProject
         moduleIndex = LightDirectoryIndex(disposable, Optional.empty()) { index ->
-            if (cjProject.isWorkspace) {
-                // 遍历项目中的所有模块
-                for (module in cjProject.workspace!!.modules) {
-                    val moduleInfo = Optional.of(module)
+            // 先获取到局部变量，避免多次访问属性导致的竞态条件
+            val workspace = cjProject.workspace
+            val module = cjProject.module
+
+            if (workspace != null) {
+                // 遍历工作空间中的所有模块
+                for (workspaceModule in workspace.modules) {
+                    val moduleInfo = Optional.of(workspaceModule)
 
                     // 索引模块根目录
-                    index.putInfo(module.rootDir, moduleInfo)
+                    index.putInfo(workspaceModule.rootDir, moduleInfo)
 
                     // 索引所有源码集的根目录
-                    for (sourceSet in module.sourceSets) {
+                    for (sourceSet in workspaceModule.sourceSets) {
                         for (root in sourceSet.roots) {
                             index.putInfo(root, moduleInfo)
                         }
@@ -789,14 +793,14 @@ class CangJieModuleIndex(
                     // 索引所有目标的输出目录
 
                 }
-            } else {
-                val moduleInfo = Optional.of(cjProject.module!!)
+            } else if (module != null) {
+                val moduleInfo = Optional.of(module)
 
                 // 索引模块根目录
-                index.putInfo(cjProject.module!!.rootDir, moduleInfo)
+                index.putInfo(module.rootDir, moduleInfo)
 
                 // 索引所有源码集的根目录
-                for (sourceSet in cjProject.module!!.sourceSets) {
+                for (sourceSet in module.sourceSets) {
                     for (root in sourceSet.roots) {
                         index.putInfo(root, moduleInfo)
                     }

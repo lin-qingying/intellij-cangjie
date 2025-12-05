@@ -46,7 +46,7 @@ class CjpmTomlParserTest : CangJieTestBase() {
             name = "yaml4cj"
             output-type = "dynamic"
             src-dir = "src"
-            target-dir = ""
+            targetPlatform-dir = ""
             version = "0.0.1"
             package-configuration = {}
         """.trimIndent()
@@ -94,10 +94,10 @@ class CjpmTomlParserTest : CangJieTestBase() {
 
     fun `test parse target config`() {
         val content = """
-            [target.aarch64-linux-ohos]
+            [targetPlatform.aarch64-linux-ohos]
             compile-option = "-B\"${"\$"}{DEVECO_CANGJIE_HOME}/compiler/third_party/llvm/bin\""
             
-            [target.aarch64-linux-ohos.bin-dependencies]
+            [targetPlatform.aarch64-linux-ohos.bin-dependencies]
             path-option = ["${"\$"}{DEVECO_CANGJIE_HOME}/build/linux_ohos_aarch64_llvm/ohos"]
             package-option = {}
             
@@ -273,26 +273,26 @@ class CjpmTomlParserTest : CangJieTestBase() {
 
     fun `test parse complex target config`() {
         val content = """
-            [target.x86_64-unknown-linux-gnu]
+            [targetPlatform.x86_64-unknown-linux-gnu]
             compile-option = "-O2"
             override-compile-option = "--fast-math"
             link-option = "-static"
             
-            [target.x86_64-unknown-linux-gnu.dependencies]
+            [targetPlatform.x86_64-unknown-linux-gnu.dependencies]
             dep1 = { path = "./dep1" }
             dep2 = { git = "https://example.com/dep2.git", branch = "main" }
             
-            [target.x86_64-unknown-linux-gnu.test-dependencies]
+            [targetPlatform.x86_64-unknown-linux-gnu.test-dependencies]
             test-dep = { path = "./test-dep" }
             
-            [target.x86_64-unknown-linux-gnu.bin-dependencies]
+            [targetPlatform.x86_64-unknown-linux-gnu.bin-dependencies]
             path-option = ["/usr/local/lib", "/opt/lib"]
             package-option = { "pkg1" = "/path/to/pkg1", "pkg2" = "/path/to/pkg2" }
             
-            [target.x86_64-unknown-linux-gnu.debug]
+            [targetPlatform.x86_64-unknown-linux-gnu.debug]
             compile-option = "-g"
             
-            [target.x86_64-unknown-linux-gnu.release]
+            [targetPlatform.x86_64-unknown-linux-gnu.release]
             compile-option = "-O3"
             
             [package]
@@ -363,7 +363,7 @@ class CjpmTomlParserTest : CangJieTestBase() {
             compile-option = "-O2"
             override-compile-option = "--fast-math"
             link-option = "-static"
-            target-dir = "./target"
+            targetPlatform-dir = "./targetPlatform"
             
             [package]
             name = "test"
@@ -397,7 +397,7 @@ class CjpmTomlParserTest : CangJieTestBase() {
             assertEquals("-O2", compileOption)
             assertEquals("--fast-math", overrideCompileOption)
             assertEquals("-static", linkOption)
-            assertEquals("./target", targetDir)
+            assertEquals("./targetPlatform", targetDir)
         }
     }
 } 

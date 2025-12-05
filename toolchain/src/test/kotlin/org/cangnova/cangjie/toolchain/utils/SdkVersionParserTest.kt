@@ -26,7 +26,6 @@ package org.cangnova.cangjie.toolchain.utils
 
 import org.cangnova.cangjie.CangJieNoPlatformTestBase
 import org.cangnova.cangjie.toolchain.CangJieSdkVersion
-import org.junit.Assert.*
 import org.junit.Test
 
 class SdkVersionParserTest : CangJieNoPlatformTestBase() {
@@ -42,7 +41,7 @@ class SdkVersionParserTest : CangJieNoPlatformTestBase() {
 
         assertNotNull(version)
         assertEquals("1.0.1", version!!.semver.toString())
-        assertEquals("x86_64-w64-mingw32", version.target)
+        assertEquals("x86_64-w64-mingw32", version.targetPlatform)
         assertEquals("cjnative", version.type)
     }
 
@@ -57,7 +56,7 @@ class SdkVersionParserTest : CangJieNoPlatformTestBase() {
 
         assertNotNull(version)
         assertEquals("0.53.13", version!!.semver.toString())
-        assertEquals("aarch64-linux-ohos", version.target)
+        assertEquals("aarch64-linux-ohos", version.targetPlatform)
         assertNull(version.type)
     }
 
@@ -97,7 +96,7 @@ class SdkVersionParserTest : CangJieNoPlatformTestBase() {
     fun `test generateSdkId with type`() {
         val version = CangJieSdkVersion(
             semver = com.intellij.util.text.SemVer.parseFromText("1.0.1")!!,
-            target = "x86_64-w64-mingw32",
+            targetPlatform = "x86_64-w64-mingw32",
             type = "cjnative"
         )
 
@@ -110,7 +109,7 @@ class SdkVersionParserTest : CangJieNoPlatformTestBase() {
     fun `test generateSdkId without type`() {
         val version = CangJieSdkVersion(
             semver = com.intellij.util.text.SemVer.parseFromText("0.53.13")!!,
-            target = "aarch64-linux-ohos",
+            targetPlatform = "aarch64-linux-ohos",
             type = null
         )
 
@@ -130,7 +129,7 @@ class SdkVersionParserTest : CangJieNoPlatformTestBase() {
     fun `test generateSdkName with type`() {
         val version = CangJieSdkVersion(
             semver = com.intellij.util.text.SemVer.parseFromText("1.0.1")!!,
-            target = "x86_64-w64-mingw32",
+            targetPlatform = "x86_64-w64-mingw32",
             type = "cjnative"
         )
 
@@ -143,7 +142,7 @@ class SdkVersionParserTest : CangJieNoPlatformTestBase() {
     fun `test generateSdkName without type`() {
         val version = CangJieSdkVersion(
             semver = com.intellij.util.text.SemVer.parseFromText("0.53.13")!!,
-            target = "aarch64-linux-ohos",
+            targetPlatform = "aarch64-linux-ohos",
             type = null
         )
 

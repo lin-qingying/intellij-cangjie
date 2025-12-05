@@ -30,7 +30,6 @@ import org.cangnova.cangjie.CangJieTestBase
 import org.cangnova.cangjie.toolchain.CangJieSdkVersion
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.cangnova.cangjie.toolchain.api.CjSdkRegistry
-import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -73,7 +72,7 @@ class CjSdkRegistryImplTest : CangJieTestBase() {
     fun `test registerSdk rejects duplicate ID`() {
         val version = CangJieSdkVersion(
             semver = SemVer.parseFromText("0.53.13")!!,
-            target = "aarch64-linux-ohos"
+            targetPlatform = "aarch64-linux-ohos"
         )
 
         val sdk1 = CjSdk(
@@ -224,7 +223,7 @@ class CjSdkRegistryImplTest : CangJieTestBase() {
     private fun createTestSdk(id: String): CjSdk {
         val version = CangJieSdkVersion(
             semver = SemVer.parseFromText("0.53.13")!!,
-            target = "aarch64-linux-ohos"
+            targetPlatform = "aarch64-linux-ohos"
         )
 
         return CjSdk(

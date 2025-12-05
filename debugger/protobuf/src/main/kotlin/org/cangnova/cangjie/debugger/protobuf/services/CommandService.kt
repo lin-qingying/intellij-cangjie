@@ -43,7 +43,7 @@ interface CommandService {
      *   - "p *ptr" - 打印指针指向的内容
      *   - "memory read 0x1234" - 读取内存
      *   - "disassemble -n main" - 反汇编函数
-     *   - "settings set target.x86-disassembly-flavor intel" - 设置选项
+     *   - "settings set targetPlatform.x86-disassembly-flavor intel" - 设置选项
      *
      * @param command LLDB 命令字符串
      * @param echoCommand 是否在命令执行时回显命令（类似控制台）

@@ -1108,11 +1108,11 @@ object ProtobufFactory {
      * @param target 输入目标（进程或调试器）
      * @return 分发输入请求消息
      */
-//    fun dispatchInput(input: String, target:  DispatchTarget): Request =
+//    fun dispatchInput(input: String, targetPlatform:  DispatchTarget): Request =
 //        buildComposite {
 //            dispatchInput = DispatchInputRequest.newBuilder()
 //                .setInput(input)
-//                .setTarget(target)
+//                .setTarget(targetPlatform)
 //                .build()
 //        }
 

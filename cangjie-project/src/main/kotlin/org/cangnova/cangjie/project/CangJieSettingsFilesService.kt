@@ -29,7 +29,6 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.cjProject
-import org.cangnova.cangjie.project.service.CjProjectsService
 
 @Service
 class CangJieSettingsFilesService(private val project: Project) {
@@ -53,28 +52,24 @@ class CangJieSettingsFilesService(private val project: Project) {
     private fun CjProject.collectSettingsFiles(out: MutableMap<String, SettingFileType>) {
         val rootPath = rootDir.path
 
+        // 先获取到局部变量，避免多次访问属性导致的竞态条件
+        val currentWorkspace = workspace
+        val currentModule = module
 
-        if (this.isWorkspace) {
-            workspace!!.configFile?.let{
-                out[it.path] =
-                    SettingFileType.CONFIG
+        if (currentWorkspace != null) {
+            currentWorkspace.configFile?.let {
+                out[it.path] = SettingFileType.CONFIG
             }
-            workspace!!.modules.forEach {
+            currentWorkspace.modules.forEach {
                 it.configFile?.let {
-                    out[it.path] =
-                        SettingFileType.CONFIG
+                    out[it.path] = SettingFileType.CONFIG
                 }
             }
-
-        } else {
-            this.module!!.configFile?.let {
-                out[it.path] =
-                    SettingFileType.CONFIG
+        } else if (currentModule != null) {
+            currentModule.configFile?.let {
+                out[it.path] = SettingFileType.CONFIG
             }
-
         }
-
-
     }
 
     fun collectSettingsFiles(useCache: Boolean): Map<String, SettingFileType> {

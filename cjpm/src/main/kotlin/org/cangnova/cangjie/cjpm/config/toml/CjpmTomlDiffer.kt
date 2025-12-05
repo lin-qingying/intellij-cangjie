@@ -1,3 +1,27 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
 package org.cangnova.cangjie.cjpm.project.model.toml
 
 /**
@@ -207,7 +231,7 @@ object CjpmTomlDiffer {
         if (base.targetDir != other.targetDir) {
             differences.add(
                 Difference(
-                    "workspace.target-dir",
+                    "workspace.targetPlatform-dir",
                     base.targetDir,
                     other.targetDir,
                     DiffType.MODIFIED
@@ -465,12 +489,12 @@ object CjpmTomlDiffer {
 
         // 检查移除的目标配置
         base.keys.filter { it !in other.keys }.forEach { target ->
-            differences.add(Difference("target.$target", base[target], null, DiffType.REMOVED))
+            differences.add(Difference("targetPlatform.$target", base[target], null, DiffType.REMOVED))
         }
 
         // 检查新增的目标配置
         other.keys.filter { it !in base.keys }.forEach { target ->
-            differences.add(Difference("target.$target", null, other[target], DiffType.ADDED))
+            differences.add(Difference("targetPlatform.$target", null, other[target], DiffType.ADDED))
         }
 
         // 检查修改的目标配置
@@ -482,7 +506,7 @@ object CjpmTomlDiffer {
             if (baseCfg.compileOption != otherCfg.compileOption) {
                 differences.add(
                     Difference(
-                        "target.$target.compile-option",
+                        "targetPlatform.$target.compile-option",
                         baseCfg.compileOption,
                         otherCfg.compileOption,
                         DiffType.MODIFIED
@@ -494,7 +518,7 @@ object CjpmTomlDiffer {
             if (baseCfg.overrideCompileOption != otherCfg.overrideCompileOption) {
                 differences.add(
                     Difference(
-                        "target.$target.override-compile-option",
+                        "targetPlatform.$target.override-compile-option",
                         baseCfg.overrideCompileOption,
                         otherCfg.overrideCompileOption,
                         DiffType.MODIFIED
@@ -506,7 +530,7 @@ object CjpmTomlDiffer {
             if (baseCfg.linkOption != otherCfg.linkOption) {
                 differences.add(
                     Difference(
-                        "target.$target.link-option",
+                        "targetPlatform.$target.link-option",
                         baseCfg.linkOption,
                         otherCfg.linkOption,
                         DiffType.MODIFIED
@@ -517,7 +541,7 @@ object CjpmTomlDiffer {
             // 比较依赖配置
             differences.addAll(
                 diffDependencies(
-                    "target.$target.dependencies",
+                    "targetPlatform.$target.dependencies",
                     baseCfg.dependencies.orEmpty(),
                     otherCfg.dependencies.orEmpty()
                 )
@@ -525,14 +549,14 @@ object CjpmTomlDiffer {
 
             // 比较测试依赖配置
             diffDependencies(
-                "target.$target.test-dependencies",
+                "targetPlatform.$target.test-dependencies",
                 baseCfg.testDependencies.orEmpty(),
                 otherCfg.testDependencies.orEmpty()
             ).let { differences.addAll(it) }
 
             // 比较二进制依赖配置
             diffBinDependencies(
-                "target.$target.bin-dependencies",
+                "targetPlatform.$target.bin-dependencies",
                 baseCfg.binDependencies,
                 otherCfg.binDependencies
             )?.let { differences.addAll(it) }
@@ -541,7 +565,7 @@ object CjpmTomlDiffer {
             if (baseCfg.compileMacrosForTarget != otherCfg.compileMacrosForTarget) {
                 differences.add(
                     Difference(
-                        "target.$target.compile-macros",
+                        "targetPlatform.$target.compile-macros",
                         baseCfg.compileMacrosForTarget,
                         otherCfg.compileMacrosForTarget,
                         DiffType.MODIFIED
@@ -553,7 +577,7 @@ object CjpmTomlDiffer {
             if (baseCfg.debug != null || otherCfg.debug != null) {
                 differences.addAll(
                     diffTargetConfig(
-                        "target.$target.debug",
+                        "targetPlatform.$target.debug",
                         baseCfg.debug,
                         otherCfg.debug
                     )
@@ -564,7 +588,7 @@ object CjpmTomlDiffer {
             if (baseCfg.release != null || otherCfg.release != null) {
                 differences.addAll(
                     diffTargetConfig(
-                        "target.$target.release",
+                        "targetPlatform.$target.release",
                         baseCfg.release,
                         otherCfg.release
                     )

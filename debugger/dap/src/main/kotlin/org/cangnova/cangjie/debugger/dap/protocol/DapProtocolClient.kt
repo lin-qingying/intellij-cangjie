@@ -164,7 +164,7 @@ class DapProtocolClient(
     override suspend fun launch(args: LaunchArguments): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
-                LOG.info("Launching debug target: ${args.program}")
+                LOG.info("Launching debug targetPlatform: ${args.program}")
 
                 val launchArgs = mapOf(
                     "type" to "cangjie",
@@ -177,10 +177,10 @@ class DapProtocolClient(
 
                 server.launch(launchArgs).await()
 
-                LOG.info("Debug target launched successfully")
+                LOG.info("Debug targetPlatform launched successfully")
                 Result.success(Unit)
             } catch (e: Exception) {
-//                LOG.error("Failed to launch debug target", e)
+//                LOG.error("Failed to launch debug targetPlatform", e)
                 Result.failure(DapAdapterException("Launch failed", e))
             }
         }

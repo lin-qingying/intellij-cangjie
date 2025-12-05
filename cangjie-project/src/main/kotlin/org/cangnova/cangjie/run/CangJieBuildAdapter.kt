@@ -143,7 +143,7 @@ class CangJieBuildAdapter(
         context.finished(isSuccess)
         context.environment.notifyProcessTerminated(event.processHandler, event.exitCode)
 
-        // Refresh target directory
+        // Refresh targetPlatform directory
         refreshTargetDirectory()
     }
 

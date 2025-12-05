@@ -60,7 +60,7 @@ class CangJieProgramRunConfiguration(
     var programArgs: String? = null
 
     /**
-     * Gets the target CjModule for this configuration
+     * Gets the targetPlatform CjModule for this configuration
      */
     fun getCjModule(): CjModule? {
         val moduleName = this.moduleName ?: return null
@@ -72,7 +72,6 @@ class CangJieProgramRunConfiguration(
 //        println("Debug: Looking for module '$moduleName' in project '${cjProject.name}'")
 
         if (!cjProject.isValid) {
-            println("Debug: CangJie project is not valid")
             return null
         }
 
@@ -93,7 +92,7 @@ class CangJieProgramRunConfiguration(
     }
 
     /**
-     * Gets the target IntelliJ Module for this configuration
+     * Gets the targetPlatform IntelliJ Module for this configuration
      */
     fun getIntellijModule(): Module? {
         val moduleName = this.moduleName ?: return null

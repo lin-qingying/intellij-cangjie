@@ -26,15 +26,9 @@ package org.cangnova.cangjie.cjpm.toml.inspection
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import org.cangnova.cangjie.cjpm.CJPMConfigInspectionBundle
-import org.jetbrains.annotations.NonNls
-import org.toml.lang.psi.TomlFile
-import org.toml.lang.psi.TomlKeyValue
-import org.toml.lang.psi.TomlLiteral
-import org.toml.lang.psi.TomlTable
-import org.toml.lang.psi.TomlVisitor
+import org.toml.lang.psi.*
 
 val versionRegex by lazy{
     Regex("^\\d+.\\d+.\\d+\$")
@@ -54,9 +48,9 @@ val semverRegex by lazy{
  * @author <a href="mailto:yms_hi@Outlook.com" rel="nofollow">yms</a>
  */
 class ProjectVersionInspection : LocalInspectionTool() {
-    override fun isAvailableForFile(file: PsiFile) = StringUtil.equalsIgnoreCase("cjpm.toml",file.name)
+    override fun isAvailableForFile(file: PsiFile): Boolean = StringUtil.equalsIgnoreCase("cjpm.toml", file.name)
 
-    override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean) = object:TomlVisitor(){
+    override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): TomlVisitor = object : TomlVisitor() {
         override fun visitLiteral(element: TomlLiteral) {
             val kv = element.parent as? TomlKeyValue ?: return
             val key = kv.key
@@ -80,5 +74,5 @@ class ProjectVersionInspection : LocalInspectionTool() {
         }
     }
 
-    override fun getShortName() = "CJPMProjectConfigVersionValueCheck"
+    override fun getShortName(): String = "CJPMProjectConfigVersionValueCheck"
 }

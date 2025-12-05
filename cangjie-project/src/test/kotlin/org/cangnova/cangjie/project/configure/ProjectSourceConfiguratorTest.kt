@@ -82,7 +82,7 @@ class ProjectSourceConfiguratorTest : BasePlatformTestCase() {
 
         `when`(mockSourceRoot.url).thenReturn("file://test/src")
         `when`(mockResourceRoot.url).thenReturn("file://test/resources")
-        `when`(mockOutputDir.url).thenReturn("file://test/target")
+        `when`(mockOutputDir.url).thenReturn("file://test/targetPlatform")
 
         `when`(mockCjProject.modules).thenReturn(listOf(mockCjModule))
         `when`(mockCjModule.sourceSets).thenReturn(listOf(mockCjSourceSet))
@@ -101,7 +101,7 @@ class ProjectSourceConfiguratorTest : BasePlatformTestCase() {
         // 验证资源根目录被添加
         verify(mockContentEntry).addSourceFolder("file://test/resources", false)
         // 验证输出目录被排除
-        verify(mockContentEntry).addExcludeFolder("file://test/target")
+        verify(mockContentEntry).addExcludeFolder("file://test/targetPlatform")
     }
 
     fun testSetupWithTestSourceSet() {

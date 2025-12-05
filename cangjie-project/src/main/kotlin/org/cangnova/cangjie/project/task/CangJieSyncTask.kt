@@ -132,12 +132,13 @@ class CangJieSyncTask(
         // 获取当前仓颉项目
         val cjProject = projectService.cjProject
 
-        if (!cjProject.isValid) {
-            LOG.info("No CangJie project found to sync")
-            indicator.text = CjProjectBundle.message("progress.text.no.projects.found")
-            syncProgress.output(CjProjectBundle.message("progress.text.no.projects.found"), true)
-            return
-        }
+//        TODO 这应该是错误的
+//        if (!cjProject.isValid) {
+//            LOG.info("No CangJie project found to sync")
+//            indicator.text = CjProjectBundle.message("progress.text.no.projects.found")
+//            syncProgress.output(CjProjectBundle.message("progress.text.no.projects.found"), true)
+//            return
+//        }
 
         // 检查是否被取消
         indicator.checkCanceled()

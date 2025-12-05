@@ -98,7 +98,7 @@ class SessionServiceImpl(
                     throw ex
                 }
 
-                else -> throw ExecutionException("Failed to load target", ex)
+                else -> throw ExecutionException("Failed to load targetPlatform", ex)
             }
         }
     }
@@ -329,10 +329,10 @@ class SessionServiceImpl(
         useTargetSourceMap: Boolean
     ): String = buildString {
         val prefix = when {
-            useTargetSourceMap && index >= 0 -> "settings insert-before target.source-map "
-            useTargetSourceMap -> "settings append target.source-map "
-            index >= 0 -> "target modules search-paths insert "
-            else -> "target modules search-paths add "
+            useTargetSourceMap && index >= 0 -> "settings insert-before targetPlatform.source-map "
+            useTargetSourceMap -> "settings append targetPlatform.source-map "
+            index >= 0 -> "targetPlatform modules search-paths insert "
+            else -> "targetPlatform modules search-paths add "
         }
 
         append(prefix)
@@ -345,9 +345,9 @@ class SessionServiceImpl(
 
     private fun buildSymbolCommand(symbols: File, module: File?): String =
         if (module != null) {
-            "target module add \"${module.absolutePath}\" -s \"${symbols.absolutePath}\""
+            "targetPlatform module add \"${module.absolutePath}\" -s \"${symbols.absolutePath}\""
         } else {
-            "target symbols add \"${symbols.absolutePath}\""
+            "targetPlatform symbols add \"${symbols.absolutePath}\""
         }
 
     private suspend fun executeConsoleCommand(command: String) {

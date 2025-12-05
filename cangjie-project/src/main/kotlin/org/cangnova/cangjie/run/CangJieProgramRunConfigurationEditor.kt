@@ -99,23 +99,30 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
         moduleComboBox.removeAllItems()
 
         if (!cjProject.isValid) {
-            println("Debug: CangJie project is not valid or not initialized")
             moduleComboBox.addItem(CjProjectBundle.message("run.configuration.editor.no.valid.project"))
             return
         }
 
         val modules = when {
-            cjProject.isWorkspace && cjProject.workspace != null -> {
-                println("Debug: Using workspace modules, count = ${cjProject.workspace!!.modules.size}")
-                cjProject.workspace!!.modules
-            }
-            cjProject.module != null -> {
-                println("Debug: Using single module: ${cjProject.module!!.name}")
-                listOf(cjProject.module!!)
+            cjProject.isWorkspace -> {
+                val workspace = cjProject.workspace
+                if (workspace != null) {
+                    println("Debug: Using workspace modules, count = ${workspace.modules.size}")
+                    workspace.modules
+                } else {
+                    println("Debug: No workspace found")
+                    emptyList()
+                }
             }
             else -> {
-                println("Debug: No modules found in project")
-                emptyList()
+                val module = cjProject.module
+                if (module != null) {
+                    println("Debug: Using single module: ${module.name}")
+                    listOf(module)
+                } else {
+                    println("Debug: No modules found in project")
+                    emptyList()
+                }
             }
         }
 

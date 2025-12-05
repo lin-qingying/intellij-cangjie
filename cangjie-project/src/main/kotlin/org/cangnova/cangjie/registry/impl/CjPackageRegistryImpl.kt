@@ -27,8 +27,8 @@ package org.cangnova.cangjie.registry.impl
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
-import org.cangnova.cangjie.model.CjPackage
-import org.cangnova.cangjie.model.CjVersion
+import org.cangnova.cangjie.project.model.CjPackageMetadata
+import org.cangnova.cangjie.project.model.CjVersion
 import org.cangnova.cangjie.registry.CjPackageRegistry
 import java.util.concurrent.ConcurrentHashMap
 
@@ -43,11 +43,11 @@ class CjPackageRegistryImpl(
     private val log = logger<CjPackageRegistryImpl>()
 
     /**
-     * 包缓存: "name:version" -> CjPackage
+     * 包缓存: "name:version" -> CjPackageMetadata
      */
-    private val packageCache = ConcurrentHashMap<String, CjPackage>()
+    private val packageCache = ConcurrentHashMap<String, CjPackageMetadata>()
 
-    override fun registerPackage(pkg: CjPackage) {
+    override fun registerPackage(pkg: CjPackageMetadata) {
         val key = makeKey(pkg.name, pkg.version)
         packageCache[key] = pkg
         log.info("Package registered: ${pkg.name}:${pkg.version}")
@@ -61,12 +61,12 @@ class CjPackageRegistryImpl(
         }
     }
 
-    override fun findPackage(name: String, version: CjVersion): CjPackage? {
+    override fun findPackage(name: String, version: CjVersion): CjPackageMetadata? {
         val key = makeKey(name, version)
         return packageCache[key]
     }
 
-    override fun getAllPackages(): List<CjPackage> {
+    override fun getAllPackages(): List<CjPackageMetadata> {
         return packageCache.values.toList()
     }
 

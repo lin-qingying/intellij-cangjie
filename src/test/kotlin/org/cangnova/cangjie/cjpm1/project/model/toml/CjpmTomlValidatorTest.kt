@@ -122,7 +122,7 @@ class CjpmTomlValidatorTest : CangJieNoPlatformTestBase(){
                 outputType = OutputType.DYNAMIC
             ),
             target = mapOf(
-                "invalid-target" to TargetConfig()  // Invalid target triple format
+                "invalid-targetPlatform" to TargetConfig()  // Invalid targetPlatform triple format
             )
         )
         

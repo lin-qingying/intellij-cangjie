@@ -39,12 +39,6 @@
                 interface="org.cangnova.cangjie.project.extension.CjProjectConfigParser"
                 dynamic="true"/>
 
-        <!-- 项目打开处理器:处理项目打开逻辑 -->
-        <extensionPoint
-                name="projectOpenProcessor"
-                qualifiedName="org.cangnova.cangjie.project.projectOpenProcessor"
-                interface="org.cangnova.cangjie.project.extension.CjProjectOpenProcessor"
-                dynamic="true"/>
 
         <!-- 命令提供者:提供仓颉项目相关的命令执行功能 -->
         <extensionPoint

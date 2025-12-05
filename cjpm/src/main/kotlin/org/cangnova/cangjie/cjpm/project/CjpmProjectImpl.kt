@@ -29,19 +29,22 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
+import org.cangnova.cangjie.cjpm.config.toml.CjpmTomlParser
 import org.cangnova.cangjie.messages.CangJieBundle
 import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.CjWorkspace
 import org.cangnova.cangjie.project.model.roots
+import org.cangnova.cangjie.project.service.CjDependencyService
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.cangnova.cangjie.result.CjResult
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.command.ToolchainCommandLine
 import org.cangnova.cangjie.utils.pathAsPath
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * CJPM 更新异常
@@ -140,7 +143,7 @@ class CjpmProjectImpl(
     override val isValid: Boolean
         get() = config.value != null
 
-    private val indexableDirectoriesCache = resettableLazy {
+    private val indexableDirectoriesCache: ResettableLazy<List<VirtualFile>> = resettableLazy {
         buildIndexableDirectories()
     }
 
@@ -151,6 +154,8 @@ class CjpmProjectImpl(
     override fun refresh(onComplete: (() -> Unit)?) {
         LOG.info("Refreshing CJPM project: $name")
 
+        // 清除依赖解析缓存
+        CjDependencyService.getInstance(intellijProject).clearCache()
 
         // 清除配置缓存，强制重新解析 TOML
         config.reset()
@@ -233,7 +238,7 @@ class CjpmProjectImpl(
                     stdIn = null,
                     runner = {
                         // 使用当前的 progress indicator 而非全局 indicator
-                        val indicator = com.intellij.openapi.progress.ProgressManager.getInstance().progressIndicator
+                        val indicator = ProgressManager.getInstance().progressIndicator
                         runProcess(indicator, null)
                     },
                     listener = null
@@ -313,7 +318,7 @@ class CjpmProjectImpl(
         LOG.info("Found ${modulesToCreate.size} modules to create")
 
         // 使用计数器跟踪完成的任务数
-        val remainingTasks = java.util.concurrent.atomic.AtomicInteger(modulesToCreate.size)
+        val remainingTasks = AtomicInteger(modulesToCreate.size)
 
         modulesToCreate.forEach { (moduleName, parentDir) ->
             val projectType = "static"
@@ -323,7 +328,7 @@ class CjpmProjectImpl(
             // 分两步: 先在EDT创建目录,然后在后台线程执行cjpm init
             invokeLater {
                 val targetDir = try {
-                    runWriteAction<VirtualFile> {
+                    runWriteAction {
                         if (parentDir.findChild(moduleName) == null) {
                             parentDir.createChildDirectory(this, moduleName)
                         } else {
@@ -413,22 +418,22 @@ class CjpmProjectImpl(
         // 添加项目根目录
         directories.add(rootDir)
 
+        // 先获取到局部变量，避免多次访问属性导致的竞态条件
+        val currentWorkspace = workspace
+        val currentModule = module
 
-        if (isWorkspace) {
-
-            // 添加所有模块的源码目录和输出目录
-            for (module in workspace!!.modules) {
-                for (sourceSet in module.sourceSets) {
+        if (currentWorkspace != null) {
+            // 添加所有工作空间模块的源码目录
+            for (workspaceModule in currentWorkspace.modules) {
+                for (sourceSet in workspaceModule.sourceSets) {
                     directories.addAll(sourceSet.roots)
                 }
-
             }
-
-        } else {
-            for (sourceSet in module!!.sourceSets) {
+        } else if (currentModule != null) {
+            // 添加单模块的源码目录
+            for (sourceSet in currentModule.sourceSets) {
                 directories.addAll(sourceSet.roots)
             }
-
         }
 
         return directories

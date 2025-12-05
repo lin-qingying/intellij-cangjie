@@ -172,7 +172,7 @@ class DisasmServiceImpl(
             return range
         }
 
-        LOG.debug("Range too large (${range.size} bytes), limiting to $maxSize bytes around target address")
+        LOG.debug("Range too large (${range.size} bytes), limiting to $maxSize bytes around targetPlatform address")
 
         // 以目标地址为中心，取 maxSize 大小的窗口
         val halfSize = (maxSize / 2UL).toLong()
@@ -327,7 +327,7 @@ class DisasmServiceImpl(
 
         LOG.debug(
             "Backward disassembly to aligned instruction: " +
-                    "start=0x${startAddr.toString(16)}, target=0x${targetAddr.toString(16)}"
+                    "start=0x${startAddr.toString(16)}, targetPlatform=0x${targetAddr.toString(16)}"
         )
 
         val options = buildDisassembleOptions()

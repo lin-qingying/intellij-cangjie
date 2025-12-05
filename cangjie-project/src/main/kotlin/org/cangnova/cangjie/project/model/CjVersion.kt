@@ -22,46 +22,106 @@
  *
  */
 
-package org.cangnova.cangjie.model
+package org.cangnova.cangjie.project.model
 
 /**
  * 版本要求
+ *
+ * 支持多种版本约束格式：
+ * - 精确版本: =1.0.0
+ * - Caret 版本: ^1.0.0 (语义化版本兼容)
+ * - Tilde 版本: ~1.0.0 (补丁级别兼容)
+ * - 范围版本: >=1.0.0, <2.0.0
+ * - 通配符: 1.* 或 1.2.*
  */
 sealed class VersionRequirement {
     /**
      * 精确版本：=1.0.0
+     * 只匹配指定的确切版本
      */
-    data class Exact(val version: CjVersion) : VersionRequirement()
+    data class Exact(val version: CjVersion) : VersionRequirement() {
+        override fun toString(): String {
+            return super.toString()
+        }
+    }
 
     /**
      * Caret 版本：^1.0.0
-     * 最常用，符合语义化版本
+     * 最常用，符合语义化版本规范
+     * - ^1.2.3 → >=1.2.3, <2.0.0
+     * - ^0.2.3 → >=0.2.3, <0.3.0
+     * - ^0.0.3 → >=0.0.3, <0.0.4
      */
-    data class Caret(val version: CjVersion) : VersionRequirement()
+    data class Caret(val version: CjVersion) : VersionRequirement() {
+        override fun toString(): String {
+            return super.toString()
+        }
+    }
 
     /**
      * Tilde 版本：~1.0.0
      * 补丁级别兼容
+     * - ~1.2.3 → >=1.2.3, <1.3.0
      */
-    data class Tilde(val version: CjVersion) : VersionRequirement()
+    data class Tilde(val version: CjVersion) : VersionRequirement() {
+        override fun toString(): String {
+            return super.toString()
+        }
+    }
 
     /**
-     * 范围版本：>=1.0, <2.0
+     * 范围版本：>=1.0.0, <2.0.0
+     * 支持灵活的版本范围定义
      */
     data class Range(
         val min: CjVersion?,
         val minInclusive: Boolean = true,
         val max: CjVersion?,
         val maxInclusive: Boolean = false
-    ) : VersionRequirement()
+    ) : VersionRequirement() {
+        override fun toString(): String {
+            return super.toString()
+        }
+
+        init {
+            require(min != null || max != null) {
+                "Range must have at least one bound (min or max)"
+            }
+        }
+    }
 
     /**
-     * 通配符：1.*
+     * 通配符：1.* 或 1.2.*
+     * 匹配指定前缀的所有版本
      */
-    data class Wildcard(val major: Int, val minor: Int?) : VersionRequirement()
+    data class Wildcard(val major: Int, val minor: Int? = null) : VersionRequirement() {
+        init {
+            require(major >= 0) { "Major version must be non-negative" }
+            require(minor == null || minor >= 0) { "Minor version must be non-negative" }
+        }
+
+        override fun toString(): String {
+            return super.toString()
+        }
+    }
+
+    /**
+     * 转换为字符串表示
+     */
+    override fun toString(): String {
+        return when (this) {
+            is Exact -> version.parsedVersion
+            is Caret -> "^${version.parsedVersion}"
+            is Tilde -> "~${version.parsedVersion}"
+            is Range -> buildRangeString()
+            is Wildcard -> if (minor == null) "$major.*" else "$major.$minor.*"
+        }
+    }
 
     /**
      * 版本匹配算法
+     * @param version 待匹配的版本
+     * @return true 如果版本满足要求
      */
     fun matches(version: CjVersion): Boolean = when (this) {
         is Exact -> version.versionString == this.version.versionString
@@ -71,6 +131,9 @@ sealed class VersionRequirement {
         is Wildcard -> matchesWildcard(version)
     }
 
+    /**
+     * Caret 版本匹配规则
+     */
     private fun matchesCaret(version: CjVersion): Boolean {
         val caretVersion = (this as Caret).version
         return when {
@@ -78,11 +141,15 @@ sealed class VersionRequirement {
                 when {
                     caretVersion.minor == 0 -> {
                         // ^0.0.3 → >= 0.0.3, < 0.0.4
-                        version.major == 0 && version.minor == 0 && version.patch == caretVersion.patch
+                        version.major == 0 &&
+                                version.minor == 0 &&
+                                version.patch == caretVersion.patch
                     }
                     else -> {
                         // ^0.2.3 → >= 0.2.3, < 0.3.0
-                        version.major == 0 && version.minor == caretVersion.minor && version.patch >= caretVersion.patch
+                        version.major == 0 &&
+                                version.minor == caretVersion.minor &&
+                                version.patch >= caretVersion.patch
                     }
                 }
             }
@@ -95,6 +162,9 @@ sealed class VersionRequirement {
         }
     }
 
+    /**
+     * Tilde 版本匹配规则
+     */
     private fun matchesTilde(version: CjVersion): Boolean {
         val tildeVersion = (this as Tilde).version
         // ~1.2.3 → >= 1.2.3, < 1.3.0
@@ -103,8 +173,12 @@ sealed class VersionRequirement {
                 version.patch >= tildeVersion.patch
     }
 
+    /**
+     * 范围版本匹配规则
+     */
     private fun matchesRange(version: CjVersion): Boolean {
         val range = this as Range
+
         val minMatch = range.min?.let {
             if (range.minInclusive) {
                 version.compareTo(it) >= 0
@@ -124,55 +198,117 @@ sealed class VersionRequirement {
         return minMatch && maxMatch
     }
 
+    /**
+     * 通配符版本匹配规则
+     */
     private fun matchesWildcard(version: CjVersion): Boolean {
         val wildcard = this as Wildcard
         return version.major == wildcard.major &&
                 (wildcard.minor == null || version.minor == wildcard.minor)
     }
 
+
+    /**
+     * 构建范围版本的字符串表示
+     */
+    private fun Range.buildRangeString(): String {
+        val parts = mutableListOf<String>()
+
+        min?.let {
+            parts.add(if (minInclusive) ">=${it.parsedVersion}" else ">${it.parsedVersion}")
+        }
+
+        max?.let {
+            parts.add(if (maxInclusive) "<=${it.parsedVersion}" else "<${it.parsedVersion}")
+        }
+
+        return parts.joinToString(", ")
+    }
+
     companion object {
         /**
          * 从字符串解析版本要求
-         * 支持：^1.0.0, ~1.0.0, =1.0.0, >=1.0,<2.0, 1.*
+         *
+         * 支持格式：
+         * - ^1.0.0 (Caret)
+         * - ~1.0.0 (Tilde)
+         * - =1.0.0 (Exact)
+         * - >=1.0.0, <2.0.0 (Range)
+         * - 1.* 或 1.2.* (Wildcard)
+         * - 1.0.0 (默认为 Caret)
+         *
+         * @param requirement 版本要求字符串
+         * @return 解析后的版本要求对象
+         * @throws IllegalArgumentException 如果格式无效
          */
         fun parse(requirement: String): VersionRequirement {
+            val trimmed = requirement.trim()
+            require(trimmed.isNotEmpty()) { "Version requirement cannot be empty" }
+
             return when {
-                requirement.startsWith("^") -> Caret(CjVersion.parse(requirement.substring(1)))
-                requirement.startsWith("~") -> Tilde(CjVersion.parse(requirement.substring(1)))
-                requirement.startsWith("=") -> Exact(CjVersion.parse(requirement.substring(1)))
-                requirement.contains(">=") || requirement.contains("<") -> parseRange(requirement)
-                requirement.contains("*") -> parseWildcard(requirement)
-                else -> Caret(CjVersion.parse(requirement))  // 默认 Caret
+                trimmed.startsWith("^") -> {
+                    Caret(CjVersion.parse(trimmed.substring(1)))
+                }
+
+                trimmed.startsWith("~") -> {
+                    Tilde(CjVersion.parse(trimmed.substring(1)))
+                }
+
+                trimmed.startsWith("=") -> {
+                    Exact(CjVersion.parse(trimmed.substring(1)))
+                }
+
+                trimmed.contains(">=") || trimmed.contains("<=") ||
+                        trimmed.contains(">") || trimmed.contains("<") -> {
+                    parseRange(trimmed)
+                }
+
+                trimmed.contains("*") -> {
+                    parseWildcard(trimmed)
+                }
+
+                else -> {
+                    // 默认使用 Caret 语义
+                    Caret(CjVersion.parse(trimmed))
+                }
             }
         }
 
+        /**
+         * 解析范围版本
+         * 支持格式：>=1.0.0, <2.0.0 或 >1.0.0, <=2.0.0
+         */
         private fun parseRange(requirement: String): Range {
-            // 简化实现，实际应该使用正则表达式
-            // TODO: 完整实现范围解析
-            val parts = requirement.split(",")
+            val parts = requirement.split(",").map { it.trim() }
             var min: CjVersion? = null
             var minInclusive = true
             var max: CjVersion? = null
             var maxInclusive = false
 
             for (part in parts) {
-                val trimmed = part.trim()
                 when {
-                    trimmed.startsWith(">=") -> {
-                        min = CjVersion.parse(trimmed.substring(2).trim())
+                    part.startsWith(">=") -> {
+                        min = CjVersion.parse(part.substring(2).trim())
                         minInclusive = true
                     }
-                    trimmed.startsWith(">") -> {
-                        min = CjVersion.parse(trimmed.substring(1).trim())
+
+                    part.startsWith(">") -> {
+                        min = CjVersion.parse(part.substring(1).trim())
                         minInclusive = false
                     }
-                    trimmed.startsWith("<=") -> {
-                        max = CjVersion.parse(trimmed.substring(2).trim())
+
+                    part.startsWith("<=") -> {
+                        max = CjVersion.parse(part.substring(2).trim())
                         maxInclusive = true
                     }
-                    trimmed.startsWith("<") -> {
-                        max = CjVersion.parse(trimmed.substring(1).trim())
+
+                    part.startsWith("<") -> {
+                        max = CjVersion.parse(part.substring(1).trim())
                         maxInclusive = false
+                    }
+
+                    else -> {
+                        throw IllegalArgumentException("Invalid range part: $part")
                     }
                 }
             }
@@ -180,51 +316,67 @@ sealed class VersionRequirement {
             return Range(min, minInclusive, max, maxInclusive)
         }
 
+        /**
+         * 解析通配符版本
+         * 支持格式：1.* 或 1.2.*
+         */
         private fun parseWildcard(requirement: String): Wildcard {
-            // 简化实现：1.* 或 1.2.*
             val parts = requirement.split(".")
+
             return when (parts.size) {
-                2 -> Wildcard(parts[0].toInt(), null)
-                3 -> Wildcard(parts[0].toInt(), parts[1].toInt())
-                else -> throw IllegalArgumentException("Invalid wildcard version: $requirement")
+                2 -> {
+                    require(parts[1] == "*") { "Invalid wildcard format: $requirement" }
+                    Wildcard(parts[0].toInt(), null)
+                }
+
+                3 -> {
+                    require(parts[2] == "*") { "Invalid wildcard format: $requirement" }
+                    Wildcard(parts[0].toInt(), parts[1].toInt())
+                }
+
+                else -> {
+                    throw IllegalArgumentException("Invalid wildcard version: $requirement")
+                }
             }
         }
     }
 }
+
 /**
  * 版本模型
  *
- * 表示依赖包的版本信息
+ * 表示符合语义化版本规范 (Semantic Versioning 2.0.0) 的版本号
+ * 格式：major.minor.patch[-preRelease][+buildMetadata]
  */
 data class CjVersion(
     /**
-     * 版本字符串
+     * 原始版本字符串
      */
     val versionString: String? = null
 ) : Comparable<CjVersion> {
 
     /**
-     * 主版本号
+     * 主版本号（不兼容的 API 修改）
      */
     val major: Int
 
     /**
-     * 次版本号
+     * 次版本号（向下兼容的功能性新增）
      */
     val minor: Int
 
     /**
-     * 修订版本号
+     * 修订版本号（向下兼容的问题修正）
      */
     val patch: Int
 
     /**
-     * 预发布标识 (如 alpha, beta, rc)
+     * 预发布标识 (如 alpha, beta, rc.1)
      */
     val preRelease: String?
 
     /**
-     * 构建元数据
+     * 构建元数据 (如 build.123, 20130313144700)
      */
     val buildMetadata: String?
 
@@ -237,6 +389,38 @@ data class CjVersion(
         buildMetadata = parts.buildMetadata
     }
 
+    /**
+     * 获取格式化的版本字符串（不含预发布和构建元数据）
+     */
+    val parsedVersion: String
+        get() = "$major.$minor.$patch"
+
+    /**
+     * 获取完整的版本字符串（含预发布和构建元数据）
+     */
+    val fullVersion: String
+        get() = buildString {
+            append(parsedVersion)
+            preRelease?.let { append("-$it") }
+            buildMetadata?.let { append("+$it") }
+        }
+
+    /**
+     * 是否为预发布版本
+     */
+    val isPreRelease: Boolean
+        get() = preRelease != null
+
+    /**
+     * 是否为稳定版本
+     */
+    val isStable: Boolean
+        get() = major > 0 && !isPreRelease
+
+    /**
+     * 比较版本大小
+     * 按照语义化版本规范进行比较
+     */
     override fun compareTo(other: CjVersion): Int {
         // 比较主版本号
         var result = major.compareTo(other.major)
@@ -254,22 +438,57 @@ data class CjVersion(
         return comparePreRelease(preRelease, other.preRelease)
     }
 
-    override fun toString(): String = versionString ?: ""
+    override fun toString(): String = versionString ?: fullVersion
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is CjVersion) return false
+        return compareTo(other) == 0
+    }
+
+    override fun hashCode(): Int {
+        var result = major
+        result = 31 * result + minor
+        result = 31 * result + patch
+        result = 31 * result + (preRelease?.hashCode() ?: 0)
+        return result
+    }
 
     companion object {
+        val EMPTY = CjVersion("")
+        val ZERO = CjVersion("0.0.0")
+
         /**
          * 从字符串解析版本
+         * @param versionString 版本字符串
+         * @return 解析后的版本对象
+         * @throws IllegalArgumentException 如果格式无效
          */
         fun parse(versionString: String): CjVersion {
             return CjVersion(versionString)
         }
 
         /**
+         * 尝试解析版本字符串，失败返回 null
+         */
+        fun parseOrNull(versionString: String?): CjVersion? {
+            return try {
+                versionString?.let { parse(it) }
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        /**
          * 解析版本字符串
+         * 支持格式：major.minor.patch[-preRelease][+buildMetadata]
          */
         private fun parseVersion(version: String): VersionParts {
-            // 简化的版本解析，支持 major.minor.patch[-preRelease][+buildMetadata]
-            val regex = Regex("""^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([^+]+))?(?:\+(.+))?${'$'}""")
+            // 语义化版本正则表达式
+            val regex = Regex(
+                """^(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:-([0-9A-Za-z\-\.]+))?(?:\+([0-9A-Za-z\-\.]+))?$"""
+            )
+
             val match = regex.matchEntire(version)
                 ?: return VersionParts(0, 0, 0, null, null)
 
@@ -286,18 +505,49 @@ data class CjVersion(
 
         /**
          * 比较预发布版本
+         * 根据语义化版本规范：
+         * 1. 正式版本优先级高于预发布版本
+         * 2. 预发布版本按字典序比较
          */
         private fun comparePreRelease(a: String?, b: String?): Int {
             return when {
                 a == null && b == null -> 0
                 a == null -> 1  // 正式版本大于预发布版本
                 b == null -> -1 // 预发布版本小于正式版本
-                else -> a.compareTo(b)
+                else -> comparePreReleaseIdentifiers(a, b)
             }
+        }
+
+        /**
+         * 比较预发布标识符
+         * 按照语义化版本规范的详细规则
+         */
+        private fun comparePreReleaseIdentifiers(a: String, b: String): Int {
+            val aParts = a.split(".")
+            val bParts = b.split(".")
+            val minLength = minOf(aParts.size, bParts.size)
+
+            for (i in 0 until minLength) {
+                val aNum = aParts[i].toIntOrNull()
+                val bNum = bParts[i].toIntOrNull()
+
+                val result = when {
+                    aNum != null && bNum != null -> aNum.compareTo(bNum)
+                    aNum != null -> -1 // 数字标识符优先级低于文本
+                    bNum != null -> 1
+                    else -> aParts[i].compareTo(bParts[i])
+                }
+
+                if (result != 0) return result
+            }
+
+            return aParts.size.compareTo(bParts.size)
         }
     }
 
-
+    /**
+     * 版本解析结果
+     */
     private data class VersionParts(
         val major: Int,
         val minor: Int,

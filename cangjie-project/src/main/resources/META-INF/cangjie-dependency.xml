@@ -25,9 +25,9 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
         <!-- Application-level services -->
-        <applicationService
-                serviceInterface="org.cangnova.cangjie.service.CjDependencyService"
-                serviceImplementation="org.cangnova.cangjie.service.impl.CjDependencyServiceImpl"/>
+        <projectService
+                serviceInterface="org.cangnova.cangjie.project.service.CjDependencyService"
+                serviceImplementation="org.cangnova.cangjie.project.service.impl.CjDependencyServiceImpl"/>
 
         <!-- Project-level services -->
         <projectService

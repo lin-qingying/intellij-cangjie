@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 fun writeStringToFileDap(content: String, direction: String) {
+    return
     val filePath = "D:\\code\\intellij\\intellij-cangjie\\log\\dap.txt"
     val file = File(filePath)
 
@@ -57,6 +58,7 @@ fun writeStringToFileDap(content: String, direction: String) {
 }
 
 fun writeStringToFile(content: String, direction: String) {
+    return
     val filePath = "D:\\code\\intellij\\intellij-cangjie\\log\\lldb.txt"
     val file = File(filePath)
 

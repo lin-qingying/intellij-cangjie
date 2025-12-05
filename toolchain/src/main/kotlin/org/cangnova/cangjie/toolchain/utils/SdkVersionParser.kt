@@ -91,7 +91,7 @@ object SdkVersionParser {
 
         return CangJieSdkVersion(
             semver = semVer,
-            target = target!!,
+            targetPlatform = target!!,
             type = type
         )
     }
@@ -117,15 +117,15 @@ object SdkVersionParser {
      * 生成 SDK 的默认名称
      *
      * @param version SDK 版本信息
-     * @return SDK 名称,格式为 "CangJie x.y.z (target)" 或 "CangJie x.y.z (type) - target"
+     * @return SDK 名称,格式为 "CangJie x.y.z (targetPlatform)" 或 "CangJie x.y.z (type) - targetPlatform"
      */
     fun generateSdkName(version: CangJieSdkVersion?): String {
         if (version == null) return "CangJie SDK (Unknown)"
 
         val baseName = "CangJie ${version.semver}"
         return when {
-            version.type != null -> "$baseName (${version.type}) - ${version.target}"
-            else -> "$baseName - ${version.target}"
+            version.type != null -> "$baseName (${version.type}) - ${version.targetPlatform}"
+            else -> "$baseName - ${version.targetPlatform}"
         }
     }
 }

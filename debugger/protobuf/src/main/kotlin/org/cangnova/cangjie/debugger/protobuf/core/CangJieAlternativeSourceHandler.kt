@@ -146,12 +146,12 @@ class CangJieAlternativeSourceHandler(
         val filePath = sourcePosition.file.path
 
         // 检查是否为系统库路径
-        val systemPaths = listOf(
-            "/usr/", "/lib/", "/System/", "/Windows/",
+        val stdlibPaths = listOf(
+            "/usr/", "/lib/", "/Stdlib/", "/Windows/",
             "/Program Files/", "/Program Files (x86)/"
         )
 
-        return systemPaths.any { systemPath ->
+        return stdlibPaths.any { systemPath ->
             filePath.contains(systemPath)
         }
     }

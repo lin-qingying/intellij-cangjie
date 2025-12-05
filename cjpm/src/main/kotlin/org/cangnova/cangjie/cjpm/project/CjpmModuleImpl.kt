@@ -25,16 +25,13 @@
 package org.cangnova.cangjie.cjpm.project
 
 import com.intellij.openapi.vfs.VirtualFile
-import org.cangnova.cangjie.cjpm.project.model.toml.CjpmTomlParser
+import org.cangnova.cangjie.cjpm.config.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.project.model.toml.DependencyConfig
 import org.cangnova.cangjie.cjpm.project.model.toml.PackageConfig
-import org.cangnova.cangjie.model.CjDependency
-import org.cangnova.cangjie.model.CjDependencyScope
-import org.cangnova.cangjie.model.CjVersion
-import org.cangnova.cangjie.project.model.CjModule
-import org.cangnova.cangjie.project.model.CjProject
-import org.cangnova.cangjie.project.model.CjSourceSet
-import org.cangnova.cangjie.project.model.cjSdk
+
+import org.cangnova.cangjie.project.model.*
+import kotlin.io.path.exists
+import kotlin.io.path.isDirectory
 
 /**
  * CJPM 模块实现
@@ -56,53 +53,216 @@ class CjpmModuleImpl(
     }
 
     /**
-     * 所有依赖列表
+     * 编译时依赖（源码依赖和二进制依赖）
      *
-     * 从 cjpm.toml 中解析所有依赖，包括：
+     * 从 cjpm.toml 中解析编译时依赖，包括：
      * - 外部库依赖 (Library)
      * - 路径依赖/模块依赖 (Path)
      * - Git 依赖 (Git)
+     * - 二进制依赖 (Binary)
+     * - 标准库依赖 (Stdlib)
      */
-    override val allDependencies: List<CjDependency> by lazy {
-        buildAllDependencies()
+    override val dependencies: List<CjDependency> by lazy {
+        buildCompileDependencies()
+    }
+
+    /**
+     * 测试依赖
+     *
+     * 从 cjpm.toml 的 [test-dependencies] 中解析测试依赖
+     */
+    override val testDependencies: List<CjDependency> by lazy {
+        buildTestDependencies()
+    }
+
+    /**
+     * 模块元数据
+     *
+     * 从 cjpm.toml 的 [package] 配置中读取元数据信息
+     */
+    override val metadata: CjPackageMetadata by lazy {
+        object : CjPackageMetadata {
+            override val name: String = this@CjpmModuleImpl.name
+            override val group: String? = null
+            override val version: CjVersion = CjVersion(packageConfig.version)
+            override val description: String? = packageConfig.description
+            override val authors: List<String> = packageConfig.authors ?: emptyList()
+            override val license: String? = packageConfig.license
+            override val repositoryUrl: String? = packageConfig.repositoryUrl
+            override val dependencies: List<CjDependency> = this@CjpmModuleImpl.dependencies
+            override val localPath: java.nio.file.Path = rootDir.toNioPath()
+        }
     }
 
 
     /**
-     * 构建所有依赖列表
+     * 构建编译时依赖（源码依赖和二进制依赖）
      *
-     * 从 cjpm.toml 配置中解析所有类型的依赖
+     * 从 cjpm.toml 的 [dependencies] 和当前目标平台的 [targetPlatform.<platform>.dependencies] 及 [targetPlatform.<platform>.bin-dependencies] 中解析编译时依赖
      */
-    private fun buildAllDependencies(): List<CjDependency> {
+    private fun buildCompileDependencies(): List<CjDependency> {
         val manifestFile = configFile ?: return emptyList()
         val config = CjpmTomlParser.parse(manifestFile) ?: return emptyList()
 
         val result = mutableListOf<CjDependency>()
 
-        // 解析编译时依赖
+        // 1. 解析全局编译时依赖
         config.dependencies.forEach { (name, depConfig) ->
             result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.COMPILE))
         }
 
-        // 解析测试时依赖
+        // 2. 获取当前目标平台，解析平台特定的依赖
+        val sdk = project.intellijProject.cjSdk
+        val targetPlatform = sdk?.version?.targetPlatform
+
+        if (targetPlatform != null) {
+            val targetConfig = config.target[targetPlatform]
+            if (targetConfig != null) {
+                // 解析平台特定的源码依赖
+                targetConfig.dependencies?.forEach { (name, depConfig) ->
+                    result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.COMPILE))
+                }
+
+                // 解析平台特定的二进制依赖
+                targetConfig.binDependencies?.let { binDepsConfig ->
+                    // 处理 package-option（明确指定的二进制依赖）
+                    binDepsConfig.packageOption?.forEach { (packageName, cjoPath) ->
+                        val resolvedCjoPath = rootDir.toNioPath().resolve(cjoPath)
+                        result.add(
+                            CjDependency.Binary(
+                                name = packageName,
+                                cjoPath = resolvedCjoPath,
+                                libPath = null,  // 自动查找
+                                target = targetPlatform,
+                                scope = CjDependencyScope.COMPILE
+                            )
+                        )
+                    }
+
+                    // 处理 path-option（自动扫描的二进制依赖）
+                    binDepsConfig.pathOption?.forEach { pathStr ->
+                        val scanDir = rootDir.toNioPath().resolve(pathStr)
+                        if (scanDir.exists() && scanDir.isDirectory()) {
+                            val scannedDeps = scanDirectoryForBinaryDependencies(scanDir, targetPlatform)
+                            result.addAll(scannedDeps)
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. 增加 stdlib
+        sdk?.let {
+            result.add(
+                CjDependency.Stdlib(
+                    name = "stdlib",
+                    versionReq = VersionRequirement.Exact(CjVersion(it.version.toString())),
+                    scope = CjDependencyScope.COMPILE
+                )
+            )
+        }
+
+        return result
+    }
+
+    /**
+     * 构建测试依赖
+     *
+     * 从 cjpm.toml 的 [test-dependencies] 和当前目标平台的 [targetPlatform.<platform>.test-dependencies] 中解析测试依赖
+     */
+    private fun buildTestDependencies(): List<CjDependency> {
+        val manifestFile = configFile ?: return emptyList()
+        val config = CjpmTomlParser.parse(manifestFile) ?: return emptyList()
+
+        val result = mutableListOf<CjDependency>()
+
+        // 1. 解析全局测试依赖
         config.testDependencies.forEach { (name, depConfig) ->
             result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.TEST))
         }
 
+        // 2. 获取当前目标平台，解析平台特定的测试依赖
+        val sdk = project.intellijProject.cjSdk
+        val targetPlatform = sdk?.version?.targetPlatform
 
-//        增加stdlib
-        project.intellijProject.cjSdk?.let { sdk ->
-            result.add(
-                CjDependency.Stdlib(
-
-                    version = CjVersion(sdk.version.toString()),
-                    scope = CjDependencyScope.COMPILE
-                )
-            )
-
+        if (targetPlatform != null) {
+            val targetConfig = config.target[targetPlatform]
+            targetConfig?.testDependencies?.forEach { (name, depConfig) ->
+                result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.TEST))
+            }
         }
 
         return result
+    }
+
+    /**
+     * 扫描目录查找所有符合规则的二进制依赖
+     *
+     * 规则：查找所有 .cjo 文件，包名从文件名提取（去除 .cjo 后缀）
+     * 对应的库文件必须为 lib<包名>.so 或 lib<包名>.a
+     */
+    private fun scanDirectoryForBinaryDependencies(
+        directory: java.nio.file.Path,
+        targetPlatform: String
+    ): List<CjDependency.Binary> {
+        val result = mutableListOf<CjDependency.Binary>()
+
+        try {
+            java.nio.file.Files.walk(directory, 1).use { paths ->
+                paths.filter { it.toString().endsWith(".cjo") }
+                    .forEach { cjoPath ->
+                        val cjoFileName = cjoPath.fileName.toString()
+                        val packageName = cjoFileName.substringBeforeLast(".cjo")
+
+                        // 检查是否存在对应的库文件
+                        val libPath = findLibraryFile(cjoPath)
+                        if (libPath != null) {
+                            result.add(
+                                CjDependency.Binary(
+                                    name = packageName,
+                                    cjoPath = cjoPath,
+                                    libPath = libPath,
+                                    target = targetPlatform,
+                                    scope = CjDependencyScope.COMPILE
+                                )
+                            )
+                        }
+                    }
+            }
+        } catch (e: Exception) {
+            // 忽略扫描错误
+        }
+
+        return result
+    }
+
+    /**
+     * 查找与 .cjo 文件对应的库文件
+     *
+     * 根据文档，库文件名称规则为：lib<完整包名>.so 或 lib<完整包名>.a
+     */
+    private fun findLibraryFile(cjoPath: java.nio.file.Path): java.nio.file.Path? {
+        val cjoFileName = cjoPath.fileName.toString()
+        if (!cjoFileName.endsWith(".cjo")) {
+            return null
+        }
+
+        val packageName = cjoFileName.substringBeforeLast(".cjo")
+        val cjoDir = cjoPath.parent ?: return null
+
+        // 优先查找 .so 文件
+        val soPath = cjoDir.resolve("lib$packageName.so")
+        if (java.nio.file.Files.exists(soPath)) {
+            return soPath
+        }
+
+        // 然后查找 .a 文件
+        val aPath = cjoDir.resolve("lib$packageName.a")
+        if (java.nio.file.Files.exists(aPath)) {
+            return aPath
+        }
+
+        return null
     }
 
     /**
@@ -114,31 +274,39 @@ class CjpmModuleImpl(
         scope: CjDependencyScope
     ): CjDependency {
         val version = CjVersion(config.version)
+        val versionReq = VersionRequirement.Exact(version)
 
         return when {
             // 路径依赖
             config.path != null -> CjDependency.Path(
                 name = name,
-                path = config.path,
-                version = version,
+                path = java.nio.file.Paths.get(config.path),
+                versionReq = versionReq,
                 scope = scope
             )
 
             // Git 依赖
-            config.git != null -> CjDependency.Git(
-                name = name,
-                url = config.git,
-                branch = config.branch,
-                tag = config.tag,
-                rev = config.rev,
-                version = version,
-                scope = scope
-            )
+            config.git != null -> {
+                val ref = when {
+                    config.branch != null -> GitRef.Branch(config.branch)
+                    config.tag != null -> GitRef.Tag(config.tag)
+                    config.rev != null -> GitRef.Rev(config.rev)
+                    else -> GitRef.Branch("main")  // 默认分支
+                }
+
+                CjDependency.Git(
+                    name = name,
+                    url = config.git,
+                    ref = ref,
+                    versionReq = versionReq,
+                    scope = scope
+                )
+            }
 
             // 库依赖（默认）
             else -> CjDependency.Library(
                 name = name,
-                version = version,
+                versionReq = versionReq,
                 scope = scope
             )
         }

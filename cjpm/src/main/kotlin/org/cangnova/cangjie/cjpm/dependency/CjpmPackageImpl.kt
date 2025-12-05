@@ -24,32 +24,24 @@
 
 package org.cangnova.cangjie.cjpm.dependency
 
-import org.cangnova.cangjie.model.*
+import org.cangnova.cangjie.project.model.CjDependency
+import org.cangnova.cangjie.project.model.CjPackageMetadata
+import org.cangnova.cangjie.project.model.CjVersion
 import java.nio.file.Path
 
 /**
  * CJPM 包实现
  */
-data class CjpmPackage(
+data class CjpmPackageMetadata(
     override val name: String,
-    override val group: String? = null,
     override val version: CjVersion,
+    override val group: String? = null,
+
     override val description: String? = null,
     override val authors: List<String> = emptyList(),
     override val license: String? = null,
     override val repositoryUrl: String? = null,
     override val dependencies: List<CjDependency> = emptyList(),
     override val localPath: Path? = null
-) : CjPackage
+) : CjPackageMetadata
 
-/**
- * CJPM 库实现
- */
-data class CjpmLibrary(
-    override val name: String,
-    override val version: CjVersion,
-    override val libraryPath: Path,
-    override val libraryType: CjLibraryType = CjLibraryType.COMPILED,
-    override val sourcePath: Path? = null,
-    override val documentationPath: Path? = null
-) : CjLibrary

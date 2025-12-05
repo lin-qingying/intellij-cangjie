@@ -72,7 +72,7 @@ class CangJieCommandRunState(
 
         LOG.debug("Executing command: `${commandLine.commandLineString}`")
 
-        // Support for remote target environments
+        // Support for remote targetPlatform environments
         val processHandler = if (configuration.targetEnvironment != null) {
             commandLine.startProcess(
                 project = environment.project,

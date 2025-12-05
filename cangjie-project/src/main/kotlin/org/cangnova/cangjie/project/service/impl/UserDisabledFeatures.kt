@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,10 @@ package org.cangnova.cangjie.project.service.impl
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.project.model.FeatureState
 import org.cangnova.cangjie.project.model.PackageFeature
-import java.nio.file.Path
-import kotlin.collections.all
-import kotlin.collections.getOrPut
-import kotlin.collections.mapValues
-import kotlin.collections.toMutableMap
-import kotlin.collections.toMutableSet
 
 typealias FeatureName = String
-typealias PackageId = String
-typealias PackageRoot = Path
+
+
 abstract class UserDisabledFeatures {
 
     abstract val pkgRootToDisabledFeatures: Map<VirtualFile, Set<FeatureName>>
@@ -58,13 +52,7 @@ abstract class UserDisabledFeatures {
             .mapValues { (_, v) -> v.toMutableSet() }
             .toMutableMap()
     )
-//    fun retain(packages: Iterable<CjpmWorkspace.Package>): UserDisabledFeatures {
-//        val newMap = EMPTY.toMutable()
-//        for (disabledFeature in getDisabledFeatures(packages)) {
-//            newMap.setFeatureState(disabledFeature, FeatureState.Disabled)
-//        }
-//        return newMap
-//    }
+
 
     companion object {
         val EMPTY: UserDisabledFeatures = ImmutableUserDisabledFeatures(emptyMap())

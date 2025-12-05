@@ -26,9 +26,10 @@ package org.cangnova.cangjie.extension
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
-import org.cangnova.cangjie.model.CjDependency
-import org.cangnova.cangjie.model.CjResolvedDependency
+
 import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
+import org.cangnova.cangjie.project.model.CjDependency
+import org.cangnova.cangjie.project.model.CjPackage
 
 /**
  * 依赖解析器扩展点
@@ -66,18 +67,26 @@ interface CjDependencyResolver {
      * @param project IntelliJ 项目实例
      * @return 解析后的依赖，如果解析失败返回 null
      */
-    fun resolve(dependency: CjDependency, project: Project): CjResolvedDependency?
+    fun resolve(dependency: CjDependency, project: Project): CjPackage?
 
     /**
-     * 解析传递依赖
+     * 提取依赖替换规则（replace）
      *
-     * @param dependency 待解析的依赖
+     * 从根包的配置文件中提取依赖替换规则。
+     * 只有根模块的 replace 字段会生效。
+     *
+     * 注意：不同构建系统有不同的 replace 配置格式，
+     * 由各自的 DependencyResolver 实现负责解析。
+     *
+     * @param rootPackage 根包（通常是项目的入口模块）
      * @param project IntelliJ 项目实例
-     * @return 传递依赖列表
+     * @return 依赖名称到替换依赖的映射，如果不支持或没有 replace 规则返回空映射
      */
-    fun resolveTransitive(dependency: CjDependency, project: Project): List<CjDependency> {
-        return emptyList()
+    open fun extractReplaceRules(rootPackage: CjPackage, project: Project): Map<String, CjDependency> {
+        // 默认实现：不支持 replace
+        return emptyMap()
     }
+
 
     /**
      * 解析器名称

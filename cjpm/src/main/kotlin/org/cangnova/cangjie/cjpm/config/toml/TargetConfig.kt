@@ -25,12 +25,16 @@
 package org.cangnova.cangjie.cjpm.project.model.toml
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonPrimitive
 
 /**
  * 多后端、多平台隔离配置类
@@ -61,7 +65,7 @@ data class TargetConfig(
     val binDependencies: BinDependenciesConfig? = null,
 
     /** 交叉编译时的宏包控制项 */
-    @field:JsonProperty("compile-macros-for-target")
+    @field:JsonProperty("compile-macros-for-targetPlatform")
     @Serializable(with = CompileMacrosSerializer::class)
     val compileMacrosForTarget: CompileMacros? = null,
 

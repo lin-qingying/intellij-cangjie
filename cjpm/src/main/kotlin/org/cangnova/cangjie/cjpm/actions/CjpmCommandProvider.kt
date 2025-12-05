@@ -99,7 +99,7 @@ enum class CjpmCommands(override val description: String, val options: List<Cjpm
             CjpmOption("build-dir ", """"指定输出产物的存放路径"""),
             CjpmOption("output ", """"指定输出可执行文件的名称"""),
             CjpmOption(
-                "target ",
+                "targetPlatform ",
                 """"交叉编译代码到目标平台，cjpm.toml 中的配置可参考 cross_compile_configuration 部分"""
             ),
             CjpmOption("help", """帮助"""),

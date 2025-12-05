@@ -25,9 +25,9 @@
 package org.cangnova.cangjie.extension
 
 import com.intellij.openapi.extensions.ExtensionPointName
-import org.cangnova.cangjie.model.CjPackage
-import org.cangnova.cangjie.model.CjVersion
 import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
+import org.cangnova.cangjie.project.model.CjPackageMetadata
+import org.cangnova.cangjie.project.model.CjVersion
 import java.nio.file.Path
 
 /**
@@ -66,7 +66,7 @@ interface CjRepositoryProvider {
      * @param name 包名称
      * @return 搜索到的包列表
      */
-    fun searchPackage(name: String): List<CjPackage>
+    fun searchPackage(name: String): List<CjPackageMetadata>
 
     /**
      * 获取包信息
@@ -75,7 +75,7 @@ interface CjRepositoryProvider {
      * @param version 包版本
      * @return 包信息，如果不存在返回 null
      */
-    fun getPackageInfo(name: String, version: CjVersion): CjPackage?
+    fun getPackageInfo(name: String, version: CjVersion): CjPackageMetadata?
 
     /**
      * 下载包
@@ -84,7 +84,7 @@ interface CjRepositoryProvider {
      * @param targetDir 目标目录
      * @return 下载是否成功
      */
-    fun downloadPackage(pkg: CjPackage, targetDir: Path): Boolean
+    fun downloadPackage(pkg: CjPackageMetadata, targetDir: Path): Boolean
 
     /**
      * 获取包的所有可用版本

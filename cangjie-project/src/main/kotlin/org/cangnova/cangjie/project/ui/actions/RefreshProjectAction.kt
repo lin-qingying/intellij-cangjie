@@ -30,8 +30,6 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.service.cangjieProjectService
-import org.cangnova.cangjie.project.ui.toolwindow.CjProjectToolWindow
-import org.cangnova.cangjie.task.taskQueue
 
 /**
  * 刷新仓颉项目的动作
@@ -60,6 +58,8 @@ project.cangjieProjectService.refreshProject()
 
     override fun updatePresentation(e: AnActionEvent, presentation: Presentation) {
         val project = e.project
-        presentation.isEnabled = project != null && project.cangjieProjectService.cjProject.isValid
+        // 始终启用刷新按钮，即使项目无效
+        // 因为当项目无效时，用户更需要刷新来修复问题
+        presentation.isEnabled = project != null
     }
 }

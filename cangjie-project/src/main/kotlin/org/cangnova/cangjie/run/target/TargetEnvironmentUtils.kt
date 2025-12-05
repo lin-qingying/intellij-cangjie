@@ -78,12 +78,12 @@ fun <T> Project.computeWithCancelableProgress(
 }
 
 /**
- * Start a process with support for remote target environments
+ * Start a process with support for remote targetPlatform environments
  *
  * @param project Current project
  * @param config Target environment configuration (null for local execution)
  * @param processColors Whether to enable colored output
- * @param uploadExecutable Whether to upload the executable to the target
+ * @param uploadExecutable Whether to upload the executable to the targetPlatform
  * @return Process handler
  */
 fun GeneralCommandLine.startProcess(
@@ -165,7 +165,7 @@ private fun GeneralCommandLine.toTargeted(
 }
 
 /**
- * Prepare the target environment
+ * Prepare the targetPlatform environment
  */
 private fun TargetEnvironmentRequest.prepareEnvironment(
     setup: CjCommandLineSetup,
@@ -198,7 +198,7 @@ private fun TargetEnvironmentRequest.prepareEnvironment(
 }
 
 /**
- * Helper class for setting up command line execution in target environments
+ * Helper class for setting up command line execution in targetPlatform environments
  */
 class CjCommandLineSetup(val request: TargetEnvironmentRequest) {
     private val environmentPromise =
@@ -226,7 +226,7 @@ class CjCommandLineSetup(val request: TargetEnvironmentRequest) {
         segments.joinToString(request.targetPlatform.platform.fileSeparator.toString())
 
     /**
-     * Request to upload a local path to the target environment
+     * Request to upload a local path to the targetPlatform environment
      */
     fun requestUploadIntoTarget(uploadPathString: String): TargetValue<String> {
         val uploadPath = java.io.File(uploadPathString).toPath()
