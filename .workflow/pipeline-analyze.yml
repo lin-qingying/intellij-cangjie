@@ -25,3 +25,29 @@ stages:
         notify: []
         strategy:
           retry: '0'
+      - step: build@gradle
+        name: build_gradle
+        displayName: Gradle 构建
+        jdkVersion: '17'
+        gradleVersion: '8.8'
+        commands:
+          - '# Gradle默认构建命令'
+          - chmod +x ./gradlew
+          - ./gradlew build
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./target
+        caches:
+          - ~/.gradle/caches
+        notify: []
+        strategy:
+          retry: '0'
+      - step: sc@sbom
+        name: sbom
+        displayName: SBOM 扫描
+        scan: code
+        codePath: ./
+        notify: []
+        strategy:
+          retry: '0'
