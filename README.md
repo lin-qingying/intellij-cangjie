@@ -32,17 +32,17 @@ To create a project, use the **CangJie** template.
 
 ## Features
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Syntax Parsing | ✓ | Full syntax support including classes, functions, variable declarations, etc. |
-| Syntax Highlighting | ✓ | Basic lexical highlighting |
-| Code Completion | ± | Partially supported, continuously improving |
-| Code Formatting | ✓ | Supported |
-| Debugging | ✓ | DAP debugging and Protobuf protocol debugging |
-| Run Targets | ± | Partially supported |
-| LSP | ✓ | Implemented via LSP4IJ |
-| Project Management | ✓ | CJPM project parsing and dependency management |
-| Workspace Support | ✓ | Multi-module workspace projects |
+| Feature             | Status | Description                                                                   |
+|---------------------|--------|-------------------------------------------------------------------------------|
+| Syntax Parsing      | ✓      | Full syntax support including classes, functions, variable declarations, etc. |
+| Syntax Highlighting | ✓      | Basic lexical highlighting                                                    |
+| Code Completion     | ±      | Partially supported, continuously improving                                   |
+| Code Formatting     | ✓      | Supported                                                                     |
+| Debugging           | ✓      | DAP debugging and lldb debugging                                              |
+| Run Targets         | ±      | Partially supported                                                           |
+| LSP                 | ✓      | Implemented via LSP4IJ                                                        |
+| Project Management  | ✓      | CJPM project parsing and dependency management                                |
+| Workspace Support   | ✓      | Multi-module workspace projects                                               |
 
 Legend:
 - ✓ Implemented
