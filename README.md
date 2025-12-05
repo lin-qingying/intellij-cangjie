@@ -1,52 +1,137 @@
-# Cangjie language plugin for intellij platform
+# Cangjie Language Plugin for IntelliJ Platform
 
-## 适用于intellij平台的仓颉语言插件
-从最新版本向下支持4个版本
+[中文文档](README_zh.md)
 
-[从 Jetbrains Marketplace 获取](https://plugins.jetbrains.com/plugin/26907-cangjie)
+A comprehensive language plugin for the Cangjie programming language on IntelliJ-based IDEs.
 
-### 仓库
+Supports the latest 4 IDE versions .
 
-[码云 ![star](https://gitee.com/Lin_Qing_Ying/intellij-cangjie/badge/star.svg?theme=dark)](https://gitee.com/Lin_Qing_Ying/intellij-cangjie)
+[Get it from JetBrains Marketplace](https://plugins.jetbrains.com/plugin/26907-cangjie)
+
+### Repositories
+
+[Gitee ![star](https://gitee.com/Lin_Qing_Ying/intellij-cangjie/badge/star.svg?theme=dark)](https://gitee.com/Lin_Qing_Ying/intellij-cangjie)
 
 [GitCode Cangjie-SIG ![star](https://gitcode.com/Cangjie-SIG/intellij-cangjie/star/badge.svg)](https://gitcode.com/Cangjie-SIG/intellij-cangjie)
 
-[GitCode 开源仓颉第三方开发者社区 ![star](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
+[GitCode Open Cangjie Community ![star](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/intellij-cangjie)
 
-[CangNova  基于Intellij集成的 IDE ![star](https://gitcode.com/OpenCangjieCommunity/CangNova/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/CangNova)
+[CangNova - IntelliJ-based IDE ![star](https://gitcode.com/OpenCangjieCommunity/CangNova/star/badge.svg)](https://gitcode.com/OpenCangjieCommunity/CangNova)
 
-### 安装和使用
+---
 
-```
-在intellij平台的插件界面， 搜索CangJie 安装即可
-```
+## Installation
+
+Search for **CangJie** in the Plugins marketplace of your IntelliJ-based IDE and install it.
 
 ![img_2.png](https://gitee.com/Lin_Qing_Ying/intellij-cangjie/raw/analyze/img/img_2.png)
-要创建项目，请使用 **CangJie** 模板。
 
-### 支持的功能
+To create a project, use the **CangJie** template.
 
-| 功能   | 状态 | 说明                                            |
-|------|------|-----------------------------------------------|
-| 语法解析 | ✓    | 支持基本语法解析，包括类、函数、变量声明等                         |
-| 语法高亮 | ✓    | 支持两级语法高亮：<br>- 基本词法高亮<br>- 语义分析后的智能高亮         |
-| 代码补全 | ±    | 部分支持，计划完善                                     |
-| 代码格式化 | ✓    | 支持                                            |
-| 调试支持 | ✓    | 支持DAP调试，计划支持lldb调试                            |
-| 运行目标 | ±    | 部分支持                                          |
-| LSP  | ✓    | 支持                                            |
+---
 
-说明：
-- ✓ 表示已实现
-- ± 表示部分支持
-- \- 表示计划支持
+## Features
 
-### 贡献
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Syntax Parsing | ✓ | Full syntax support including classes, functions, variable declarations, etc. |
+| Syntax Highlighting | ✓ | Basic lexical highlighting |
+| Code Completion | ± | Partially supported, continuously improving |
+| Code Formatting | ✓ | Supported |
+| Debugging | ✓ | DAP debugging and Protobuf protocol debugging |
+| Run Targets | ± | Partially supported |
+| LSP | ✓ | Implemented via LSP4IJ |
+| Project Management | ✓ | CJPM project parsing and dependency management |
+| Workspace Support | ✓ | Multi-module workspace projects |
 
-如果您发现任何问题或缺少功能，欢迎您为插件做出贡献。
+Legend:
+- ✓ Implemented
+- ± Partially supported
+- \- Planned
 
+---
+
+## Project Architecture
+
+For detailed project structure, see [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md).
+
+**Tech Stack:**
+- [Kotlin](https://kotlinlang.org/) 2.2.0 + [Gradle](https://gradle.org/) Kotlin DSL
+- [IntelliJ Platform SDK](https://plugins.jetbrains.com/docs/intellij/welcome.html) 
+
+---
+
+## Development Guide
+
+### Building the Project
+
+```bash
+# Full build
+./gradlew build
+
+# Run plugin in IDE sandbox
+./gradlew :plugin:runIde
+
+# Build plugin distribution
+./gradlew :plugin:buildPlugin
+```
+
+### Generating Lexer
+
+After modifying `.flex` files, regenerate the lexer:
+
+```bash
+./gradlew :psi:generateLexers
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+./gradlew test
+
+# Run specific module tests
+./gradlew :psi:test
+```
+
+### Multi-Version Support
+
+```bash
+# Build for specific IDE version
+./gradlew build -PplatformVersion=242
+./gradlew build -PplatformVersion=253
+```
+
+---
+
+## Contributing
+
+If you find any issues or missing features, contributions are welcome!
+
+### How to Contribute
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
+
+You are free to use, modify, and distribute this software under the terms of the license. The license permits:
+- Commercial use
+- Modification
+- Distribution
+- Patent use
+- Private use
+
+For full license details, see the [LICENSE](LICENSE) file or visit [Apache License 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+
+---
 
 <br>
-感谢您的支持
-
- 
+Thank you for your support!
