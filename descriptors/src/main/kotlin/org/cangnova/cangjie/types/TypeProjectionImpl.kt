@@ -29,7 +29,7 @@ class TypeProjectionImpl(override val projectionKind: Variance, override val typ
     constructor(type: CangJieType) : this(Variance.INVARIANT, type)
 
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeProjection {
         return TypeProjectionImpl(this.projectionKind, cangjieTypeRefiner.refineType(type))
     }

@@ -50,7 +50,7 @@ class CangJieParsing private constructor(
 ) {
 
     companion object {
-        public val PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR)
+          val PARAMETER_NAME_RECOVERY_SET = TokenSet.create(COLON, EQ, COMMA, RPAR)
         private val GT_COMMA_COLON_SET = TokenSet.create(GT, COMMA, COLON)
         private val LOG = Logger.getInstance(CangJieParsing::class.java)
         private val TOP_LEVEL_DECLARATION_FIRST = TokenSet.create(
@@ -2284,7 +2284,10 @@ class CangJieParsing private constructor(
             val plist = mark()
             val value = mark()
 
-            expect(IDENTIFIER, "Expecting identifier")
+            if (!expect(UNDERLINE)) {
+                expect(IDENTIFIER, "Expecting identifier")
+            }
+
             value.done(VALUE_PARAMETER)
             plist.done(VALUE_PARAMETER_LIST)
 

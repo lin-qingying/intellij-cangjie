@@ -89,7 +89,7 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<CangJieType>) : T
         return intersectedTypes == other.intersectedTypes
     }
 
-    @OptIn(TypeRefinement::class)
+    
     fun createType(): SimpleType =
         CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope(
             TypeAttributes.Empty, this, listOf(), false, this.createScopeForCangJieType()
@@ -99,7 +99,7 @@ class IntersectionTypeConstructor(typesToIntersect: Collection<CangJieType>) : T
 
     override fun hashCode(): Int = hashCode
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
         transformComponents { it.refine(cangjieTypeRefiner) } ?: this
 

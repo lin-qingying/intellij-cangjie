@@ -69,6 +69,6 @@ class FunctionPlaceholderTypeConstructor(
 
     override val builtIns: CangJieBuiltIns
         get() = cangjieBuiltIns
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 }

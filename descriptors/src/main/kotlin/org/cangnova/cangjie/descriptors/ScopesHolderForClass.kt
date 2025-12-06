@@ -114,7 +114,7 @@ class ScopesHolderForClass<T : MemberScope> private constructor(
      * @param cangjieTypeRefiner 用于类型细化的类型细化器实例
      * @return T 对应的作用域实例，可能是缓存的所有者模块作用域，也可能是新创建的细化作用域
      */
-    @OptIn(TypeRefinement::class)
+    
     fun getScope(cangjieTypeRefiner: CangJieTypeRefiner): T {
         // 第一层保护：模块级别检查
         // 如果当前模块不需要进行类型细化，直接返回所有者模块的作用域

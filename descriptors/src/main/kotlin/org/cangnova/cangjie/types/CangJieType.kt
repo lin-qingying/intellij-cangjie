@@ -232,7 +232,7 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
      * @param cangjieTypeRefiner 类型精化器
      * @return 精化后的类型
      */
-    @TypeRefinement
+    
     abstract fun refine(cangjieTypeRefiner: CangJieTypeRefiner): CangJieType
 }
 
@@ -299,7 +299,7 @@ sealed class UnwrappedType : CangJieType() {
      * @param cangjieTypeRefiner 类型精化器
      * @return 精化后的未包装类型
      */
-    @TypeRefinement
+    
     abstract override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType
 
     /**
@@ -468,7 +468,7 @@ class BasicType(
      * @param cangjieTypeRefiner 类型精化器
      * @return 精化后的类型（自身）
      */
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType = this
 
     /**
@@ -736,7 +736,7 @@ class OptionType(val innerType: CangJieType) : SimpleType() {
      * @param cangjieTypeRefiner 类型精化器
      * @return 精化后的Option类型
      */
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
         val refinedInnerType = innerType.refine(cangjieTypeRefiner)
         return OptionType(refinedInnerType)
@@ -929,7 +929,7 @@ class FunctionType(
     /**
      * 类型精化（函数类型）
      */
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
         val refinedParameterTypes = parameterTypes.map { it.refine(cangjieTypeRefiner) }
         val refinedReturnType = returnType.refine(cangjieTypeRefiner)
@@ -1060,7 +1060,7 @@ class TupleType(
     /**
      * 类型精化（元组类型）
      */
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
         val refinedElementTypes = elementTypes.map { it.refine(cangjieTypeRefiner) }
         
@@ -1371,7 +1371,7 @@ abstract class FlexibleType(val lowerBound: SimpleType, val upperBound: SimpleTy
      */
     override fun toString(): String = DescriptorRenderer.DEBUG_TEXT.renderType(this)
 
-//    @TypeRefinement
+//    
 //    abstract override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): FlexibleType
 }
 

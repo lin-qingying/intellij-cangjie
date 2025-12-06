@@ -88,7 +88,7 @@ class DeserializedClassDescriptor(
             )
         }
         private val refinedSupertypes = c.storageManager.createLazyValue {
-            @OptIn(TypeRefinement::class)
+
             cangjieTypeRefiner.refineSupertypes(classDescriptor)
         }
 

@@ -67,6 +67,6 @@ class DynamicType(
 
     override fun render(renderer: DescriptorRenderer, options: DescriptorRendererOptions): String = "dynamic"
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) = this
 }

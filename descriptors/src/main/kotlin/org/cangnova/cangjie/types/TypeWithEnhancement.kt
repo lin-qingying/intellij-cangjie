@@ -75,8 +75,8 @@ class FlexibleTypeWithEnhancement(
 
     override val delegate: SimpleType get() = origin.delegate
 
-    @TypeRefinement
-    @OptIn(TypeRefinement::class)
+    
+    
     override fun refine(cangjieTypeRefiner:CangJieTypeRefiner) =
         FlexibleTypeWithEnhancement(
             cangjieTypeRefiner.refineType(origin) as FlexibleType,
@@ -100,11 +100,11 @@ class SimpleTypeWithEnhancement(
     override fun makeOptionAsSpecified(isOption: Boolean): SimpleType = origin.makeOptionAsSpecified(isOption)
         .wrapEnhancement(enhancement.unwrap().makeOptionAsSpecified(isOption)) as SimpleType
 
-    @TypeRefinement
+    
     override fun replaceDelegate(delegate: SimpleType) = SimpleTypeWithEnhancement(delegate, enhancement)
 //
-//    @TypeRefinement
-//    @OptIn(TypeRefinement::class)
+//    
+//    
 //    override fun refine(cangnjieTypeRefiner: CangJieTypeRefiner): SimpleTypeWithEnhancement =
 //        SimpleTypeWithEnhancement(
 //            cangnjieTypeRefiner.refineType(delegate) as SimpleType,

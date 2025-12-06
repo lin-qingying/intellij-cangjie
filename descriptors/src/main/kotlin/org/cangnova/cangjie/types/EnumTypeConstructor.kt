@@ -73,7 +73,7 @@ class EnumTypeConstructorImpl(
     override val builtIns: CangJieBuiltIns
         get() = enumDescriptor.builtIns
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
         return this
     }

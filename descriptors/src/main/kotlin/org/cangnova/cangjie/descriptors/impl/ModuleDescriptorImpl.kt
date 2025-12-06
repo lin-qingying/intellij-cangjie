@@ -40,7 +40,7 @@ class ModuleDescriptorImpl(
     moduleName: Name,
     private val storageManager: StorageManager,
 
-    private val  capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
+    private val capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
     override val stableName: Name? = null,
 
     isBuiltInsModule: Boolean = false,
@@ -56,7 +56,6 @@ class ModuleDescriptorImpl(
     private val packageViewDescriptorFactory: PackageViewDescriptorFactory
 
     init {
-
 
 
         packageViewDescriptorFactory =
@@ -108,20 +107,80 @@ class ModuleDescriptorImpl(
     }
 
     private val packageFragmentProviderForWholeModuleWithDependencies by lazy {
-        test()
+        getProvider()
     }
 
-    fun test(): CompositePackageFragmentProvider {
+    /**
+     * 获取模块及其所有依赖的复合包片段提供者
+     *
+     * 该方法是模块依赖解析的核心，负责聚合当前模块及其所有依赖模块的包片段提供者，
+     * 使得在查找类型时可以跨模块搜索。
+     *
+     * ## 工作流程
+     *
+     * 1. **验证依赖已设置**: 确保模块的依赖关系已通过 [setDependencies] 配置
+     * 2. **获取所有依赖描述符**: 从 [ModuleDependencies.allDependencies] 获取完整依赖列表
+     * 3. **自包含验证**: 确保当前模块自身在依赖列表中（模块应该能看到自己的内容）
+     * 4. **初始化验证**: 确保所有依赖模块都已通过 [initialize] 初始化
+     * 5. **组合提供者**: 将所有依赖的 [packageFragmentProviderForModuleContent] 组合成复合提供者
+     *
+     * ## 使用场景
+     *
+     * 当调用 [findClassifierAcrossModuleDependencies] 查找类型时：
+     * ```
+     * module.getPackage(fqName)
+     *   → packages(fqName)
+     *   → packageViewDescriptorFactory.compute(...)
+     *   → packageFragmentProvider.getPackageFragments(fqName)
+     *   → CompositePackageFragmentProvider 聚合所有依赖的包片段
+     * ```
+     *
+     * ## 重要说明
+     *
+     * - **builtInsModule 依赖**: 如果需要访问基本类型（Int8, Bool 等），
+     *   必须确保 builtInsModule 在 [allDependencies] 中
+     * - **初始化顺序**: 所有依赖模块必须在查询内容前完成初始化
+     * - **延迟计算**: 通过 [packageFragmentProviderForWholeModuleWithDependencies] 延迟初始化，
+     *   仅在首次访问时构建
+     *
+     * ## 断言说明
+     *
+     * - `dependencies.sure`: 依赖必须已设置，否则无法确定搜索范围
+     * - `this in dependenciesDescriptors`: 模块必须能看到自己的内容
+     * - `dependency.isInitialized`: 依赖模块必须已初始化，否则无法获取其包内容
+     *
+     * @return 聚合了当前模块及所有依赖模块包片段的复合提供者
+     * @throws IllegalStateException 如果依赖未设置或存在未初始化的依赖
+     *
+     * @see ModuleDependencies.allDependencies 所有依赖模块列表
+     * @see CompositePackageFragmentProvider 复合包片段提供者
+     * @see packageFragmentProviderForModuleContent 单个模块的包片段提供者
+     */
+    private fun getProvider(): CompositePackageFragmentProvider {
+        // 1. 确保依赖关系已配置，否则无法确定类型查找的搜索范围
         val moduleDependencies =
             dependencies.sure { "Dependencies of module $id were not set before querying module content" }
+
+        // 2. 获取所有依赖模块（包括当前模块自身、直接依赖和传递依赖）
         val dependenciesDescriptors = moduleDependencies.allDependencies
+
+        // 3. 验证模块状态
         assertValid()
+
+        // 4. 自包含验证：模块必须在自己的依赖列表中，这样才能查找到自身定义的类型
+        //    如果模块不在依赖列表中，说明 setDependencies 调用时遗漏了自身
         assert(this in dependenciesDescriptors) { "Module $id is not contained in its own dependencies, this is probably a misconfiguration" }
+
+        // 5. 初始化验证：所有依赖模块必须已完成初始化（调用过 initialize 方法）
+        //    未初始化的模块没有 packageFragmentProviderForModuleContent，无法提供包内容
         dependenciesDescriptors.forEach { dependency ->
             assert(dependency.isInitialized) {
                 "Dependency module ${dependency.id} was not initialized by the time contents of dependent module ${this.id} were queried"
             }
         }
+
+        // 6. 构建复合提供者：聚合所有依赖模块的包片段提供者
+        //    查找类型时会遍历所有这些提供者，实现跨模块的类型解析
         return CompositePackageFragmentProvider(
             dependenciesDescriptors.map {
                 it.packageFragmentProviderForModuleContent!!

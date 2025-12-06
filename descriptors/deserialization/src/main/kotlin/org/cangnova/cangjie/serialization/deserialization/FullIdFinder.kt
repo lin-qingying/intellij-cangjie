@@ -61,7 +61,7 @@ class FullIdFinderImpl(
                 getClassifierByIndex(`package`.packageName, fullId.index) ?:
 //                尝试在本包查找
                 context.declDeserializer.loadClass(
-                    context.declTable.get(fullId.index)
+                    context.declTable[fullId.index]
                         .let {
                             it.toClassDeclWrapper(`package`.declTable, `package`.typeTable) ?: return null
 
@@ -98,10 +98,11 @@ class FullIdFinderImpl(
     private fun getClassifierByExportId(packageName: FqName, exportId: String): ClassifierDescriptor? =
         moduleDescriptor.withResolutionAnchor {
             val packageViewDescriptor = moduleDescriptor.getPackage(packageName)
-            return@withResolutionAnchor packageViewDescriptor.memberScope.getContributedClassifierByExportId(
+            val decl = packageViewDescriptor.memberScope.getContributedClassifierByExportId(
                 exportId
-
             )
+
+            return@withResolutionAnchor decl
         }
 
     private fun getClassifierByIndex(packageName: FqName, index: Int): ClassifierDescriptor? =
@@ -109,7 +110,6 @@ class FullIdFinderImpl(
             val packageViewDescriptor = moduleDescriptor.getPackage(packageName)
             return@withResolutionAnchor packageViewDescriptor.memberScope.getContributedClassifierByIndex(
                 index
-
             )
         }
 

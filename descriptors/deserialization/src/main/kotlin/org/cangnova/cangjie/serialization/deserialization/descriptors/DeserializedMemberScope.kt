@@ -557,49 +557,8 @@ abstract class DeserializedMemberScope protected constructor(
     protected open fun computeNonDeclaredVariables(name: Name, descriptors: MutableList<VariableDescriptor>) {
     }
 
-    /**
-     * Take a note that [NoReorderImplementation] still adds non-declared members together with directly declared in class.
-     * This is not a problem for ordering, since during decompilation from descriptors those non-declared members are just ignored,
-     * and the declared members will be added to decompiled text in the proper (i.e. original) order.
-     */
-    /**
-     * 无重排序实现类
-     *
-     * 这个实现保留了声明的原始顺序，主要用于反编译场景。
-     * 与OptimizedImplementation不同，它不会对声明进行分组或优化，而是保持原始序列化顺序。
-     * 这对于生成与原始源代码结构相似的反编译结果非常重要。
-     *
-     * @param functionList 函数声明列表，保持原始顺序
-     * @param variableList 变量声明列表，保持原始顺序
-     * @param propertyList 属性声明列表，保持原始顺序
-     * @param typeAliasList 类型别名声明列表，保持原始顺序
-     */
-    /**
-     * 无重排序实现类
-     *
-     * 这个实现保留了声明的原始顺序，主要用于反编译场景。
-     * 与OptimizedImplementation不同，它不会对声明进行分组或优化，而是保持原始序列化顺序。
-     * 这对于生成与原始源代码结构相似的反编译结果非常重要。
-     *
-     * @param functionList 函数声明列表，保持原始顺序
-     * @param variableList 变量声明列表，保持原始顺序
-     * @param propertyList 属性声明列表，保持原始顺序
-     * @param typeAliasList 类型别名声明列表，保持原始顺序
-     * @param classList 类声明列表，保持原始顺序
-     */
-    /**
-     * 无重排序实现类
-     *
-     * 这个实现保留了声明的原始顺序，主要用于反编译场景。
-     * 与OptimizedImplementation不同，它不会对声明进行分组或优化，而是保持原始序列化顺序。
-     * 这对于生成与原始源代码结构相似的反编译结果非常重要。
-     *
-     * @param functionList 函数声明列表，保持原始顺序
-     * @param variableList 变量声明列表，保持原始顺序
-     * @param propertyList 属性声明列表，保持原始顺序
-     * @param typeAliasList 类型别名声明列表，保持原始顺序
-     * @param classList 类声明列表，保持原始顺序
-     */
+
+
     /**
      * 无重排序实现类
      *

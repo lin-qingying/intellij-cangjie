@@ -216,7 +216,7 @@ object CangJieTypeFactory {
         return FlexibleTypeImpl(lowerBound, upperBound)
     }
 
-    @OptIn(TypeRefinement::class)
+    
     private fun computeMemberScope(
         constructor: TypeConstructor,
         arguments: List<TypeProjection>,
@@ -251,8 +251,6 @@ object CangJieTypeFactory {
     }
 
     @JvmStatic
-    @JvmOverloads
-    @OptIn(TypeRefinement::class)
     fun optionType(
         type: SimpleType,
     ): SimpleType {
@@ -270,7 +268,7 @@ object CangJieTypeFactory {
 
     @JvmStatic
     @JvmOverloads
-    @OptIn(TypeRefinement::class)
+    
     fun simpleType(
         attributes: TypeAttributes,
         constructor: TypeConstructor,
@@ -279,7 +277,10 @@ object CangJieTypeFactory {
         cangjieTypeRefiner: CangJieTypeRefiner? = null
     ): SimpleType {
         if (attributes.isEmpty() && arguments.isEmpty() && !option && constructor.declarationDescriptor != null) {
-            return constructor.declarationDescriptor!!.defaultType
+            constructor.declarationDescriptor?.defaultType ?.let {
+                return it
+            }
+
         }
 
         return simpleTypeWithNonTrivialMemberScope(
@@ -306,7 +307,7 @@ object CangJieTypeFactory {
         )
     }
 
-    @TypeRefinement
+    
     private fun refineConstructor(
         constructor: TypeConstructor,
         cangjieTypeRefiner: CangJieTypeRefiner,
@@ -341,7 +342,7 @@ object CangJieTypeFactory {
             }
 
     @JvmStatic
-    @OptIn(TypeRefinement::class)
+    
     fun simpleTypeWithNonTrivialMemberScope(
         attributes: TypeAttributes,
         constructor: TypeConstructor,
@@ -369,7 +370,7 @@ object CangJieTypeFactory {
         }
 
     @JvmStatic
-    @OptIn(TypeRefinement::class)
+    
     fun enumTypeWithNonTrivialMemberScope(
         attributes: TypeAttributes,
         constructor: EnumTypeConstructor,
@@ -417,7 +418,7 @@ private class SimpleTypeWithAttributes(
     delegate: SimpleType,
     override val attributes: TypeAttributes
 ) : DelegatingSimpleTypeImpl(delegate) {
-    @TypeRefinement
+    
     override fun replaceDelegate(delegate: SimpleType) = SimpleTypeWithAttributes(delegate, attributes)
 
 }
@@ -437,7 +438,7 @@ class VArrayType(
 
     val typeName = "VArray"
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType {
         return refinedTypeFactory(cangjieTypeRefiner) ?: this
 
@@ -469,7 +470,7 @@ open class SimpleTypeImpl(
 
     override val attributes: TypeAttributes get() = TypeAttributes.Empty
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType {
         return refinedTypeFactory(cangjieTypeRefiner) ?: this
     }
@@ -480,7 +481,7 @@ class OptionalSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delega
     override val isOption: Boolean
         get() = true
 
-    @TypeRefinement
+    
     override fun replaceDelegate(delegate: SimpleType) = OptionalSimpleType(delegate)
 }
 
@@ -488,6 +489,6 @@ class NotNullSimpleType(delegate: SimpleType) : DelegatingSimpleTypeImpl(delegat
     override val isOption: Boolean
         get() = false
 
-    @TypeRefinement
+    
     override fun replaceDelegate(delegate: SimpleType) = NotNullSimpleType(delegate)
 }

@@ -35,10 +35,8 @@ interface BuiltInsLoader {
     fun createPackageFragmentProvider(
         storageManager: StorageManager,
         builtInsModule: ModuleDescriptor,
-
         isFallback: Boolean,
         sdk: CjSdk?
-
     ): PackageFragmentProvider
 
     companion object {

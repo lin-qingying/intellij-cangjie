@@ -46,7 +46,7 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 //   return  this
 //    }
 //
-//    @TypeRefinement
+//    
 //    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
 //        return  this
 //    }
@@ -112,6 +112,6 @@ open class ErrorType @JvmOverloads internal constructor(
     override fun makeOptionAsSpecified(isOption: Boolean): SimpleType =
         ErrorType(constructor, memberScope, kind, arguments, isOption, *formatParams)
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) = this
 }

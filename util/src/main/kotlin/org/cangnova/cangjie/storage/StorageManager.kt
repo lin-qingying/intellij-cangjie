@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.storage
 
 
-import com.intellij.openapi.project.Project
 import java.util.concurrent.ConcurrentMap
 
 /**

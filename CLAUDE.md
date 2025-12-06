@@ -138,7 +138,7 @@ util, common, icon, messages, notifications (基础设施层)
 
 - LSP 服务器管理: `CangJieLspServerManager`
 - 进程连接: `CangJieOSProcessStreamConnectionProvider`
-- 依赖 RedHat LSP4IJ 插件 (版本 0.18.0)
+- 依赖 RedHat LSP4IJ 插件 (版本 0.19.0)
 
 **analysis 模块** - 代码分析
 
@@ -435,7 +435,7 @@ src/main/resources/
 - **IntelliJ Platform**: 通过 `intellijPlatform` 配置块
 - **Kotlin**: 2.2.0
 - **LSP4J**: 0.21.0 (Debug Adapter Protocol)
-- **RedHat LSP4IJ**: 0.18.0 (LSP 客户端插件)
+- **RedHat LSP4IJ**: 0.19.0 (LSP 客户端插件)
 - **Jackson**: 2.15.2 (TOML/JSON 解析)
 
 ### 添加依赖
@@ -446,7 +446,7 @@ src/main/resources/
 dependencies {
     implementation(project(":moduleName"))
     intellijPlatform {
-        plugins("com.redhat.devtools.lsp4ij:0.18.0")
+        plugins("com.redhat.devtools.lsp4ij:0.19.0")
     }
 }
 ```

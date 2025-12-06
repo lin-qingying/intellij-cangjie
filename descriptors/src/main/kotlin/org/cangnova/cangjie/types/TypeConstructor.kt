@@ -83,7 +83,7 @@ interface TypeConstructor : TypeConstructorMarker {
      * @param cangjieTypeRefiner 类型精炼器，不能为空
      * @return 经过精炼的类型构造器，不能为空
      */
-    @TypeRefinement
+    
     fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor
 
     /**

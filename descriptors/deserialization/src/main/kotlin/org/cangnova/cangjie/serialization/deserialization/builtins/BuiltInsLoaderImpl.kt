@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.serialization.deserialization.builtins
 
-import cn.cangnova.cangjie.serialization.deserialization.DeserializedPackageFragment
 import org.cangnova.cangjie.builtins.BuiltInsLoader
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.builtins.StandardNames.BASIC_PACKAGE_FQ_NAME
@@ -33,6 +32,7 @@ import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.NotFoundClasses
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
 import org.cangnova.cangjie.descriptors.PackageFragmentProviderImpl
+import org.cangnova.cangjie.descriptors.impl.CompositePackageFragmentProvider
 import org.cangnova.cangjie.incremental.components.LookupTracker
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.serialization.deserialization.*
@@ -43,7 +43,7 @@ import java.io.FileNotFoundException
 import java.io.InputStream
 
 class BuiltInsResourceLoader {
-    fun getInputStreamFromFile(path: String): InputStream? {
+    private fun getInputStreamFromFile(path: String): InputStream? {
         return try {
             FileInputStream(path)
         } catch (e: Exception) {
@@ -67,7 +67,11 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         isFallback: Boolean,
         sdk: CjSdk?
     ): PackageFragmentProvider {
-        return createBuiltInPackageFragmentProvider(
+
+        // 1. 基本类型提供者（单独处理）
+        val basicTypesProvider = createBasicPackageFragmentDescriptor(storageManager, builtInsModule)
+
+        val builtProvider = createBuiltInPackageFragmentProvider(
             storageManager,
             builtInsModule,
             StandardNames.ALL_NAMES,
@@ -75,6 +79,14 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
             resourceLoader::loadResource,
             sdk
         )
+
+        // 3. 组合基本类型和其他包
+        return CompositePackageFragmentProvider(
+            listOf(basicTypesProvider, builtProvider),
+            "BuiltInsProvider"
+        )
+
+
     }
 
     private fun createBasicPackageFragmentDescriptor(
@@ -87,7 +99,7 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
     }
 
 
-    fun createBuiltInPackageFragmentProvider(
+    private fun createBuiltInPackageFragmentProvider(
         storageManager: StorageManager,
         module: ModuleDescriptor,
         packageFqNames: Set<FqName>,
@@ -96,12 +108,11 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         sdk: CjSdk?
     ): PackageFragmentProvider {
 
-        val packageFragments = packageFqNames.mapNotNull { fqName ->
+        val packageFragments = packageFqNames
+            .filter { it != BASIC_PACKAGE_FQ_NAME }
+            .mapNotNull { fqName ->
 
-            if (fqName == BASIC_PACKAGE_FQ_NAME) {
-                createBasicPackageFragmentDescriptor(storageManager, module)
-                null
-            } else {
+
                 // 如果有 project，使用新的服务；否则返回 null（跳过此包）
                 val resourcePath =
                     BuiltInSerializerFlatbuffers.getBuiltInsFilePath(fqName, sdk)
@@ -114,12 +125,11 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
                         val inputStream = loadResource(resourcePath)
                             ?: throw IllegalStateException("Resource not found in classpath: $resourcePath")
                         BuiltInsPackageFragmentImpl.create(fqName, storageManager, module, inputStream, isFallback)
-                    } catch (e: FileNotFoundException) {
+                    } catch (_: FileNotFoundException) {
                         null
                     }
                 }
             }
-        }
 
 
         val provider = PackageFragmentProviderImpl(packageFragments)
@@ -140,9 +150,7 @@ class BuiltInsLoaderImpl : BuiltInsLoader {
         )
 
         for (packageFragment in packageFragments) {
-            if (packageFragment is DeserializedPackageFragment) {
-                packageFragment.initialize(components)
-            }
+            packageFragment.initialize(components)
         }
 
         return provider

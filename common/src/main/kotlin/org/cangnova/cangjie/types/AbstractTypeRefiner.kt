@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import org.cangnova.cangjie.types.model.CangJieTypeMarker
  * - improve readability of classes by separating API
  *
  * If you're using related API outside of MPP context, it's a nice idea to consider
- * either finding some other API or removing @TypeRefinement (and thus "publishing"
+ * either finding some other API or removing  (and thus "publishing"
  * API for broader use)
  */
 @RequiresOptIn(level = RequiresOptIn.Level.ERROR)
@@ -47,11 +47,11 @@ annotation class TypeRefinement
 abstract class AbstractTypeRefiner {
 
 
-    @TypeRefinement
+
     abstract fun refineType(type: CangJieTypeMarker): CangJieTypeMarker
 
     object Default : AbstractTypeRefiner() {
-        @TypeRefinement
+
         override fun refineType(type: CangJieTypeMarker): CangJieTypeMarker {
             return type
         }

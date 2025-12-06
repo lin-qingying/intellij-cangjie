@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import com.intellij.util.PlatformIcons
+import org.cangnova.cangjie.analysis.decompiler.psi.file.CjDecompiledFile
 
 import javax.swing.Icon
 
@@ -76,6 +77,9 @@ abstract class AbstractCangJieIconProvider : IconProvider(), DumbAware {
 
 
     override fun getIcon(psiElement: PsiElement, flags: Int): Icon? {
+        if(psiElement is CjDecompiledFile){
+            return FILE
+        }
         if (psiElement is CjFile) {
 
             val mainClass = getSingleClass(psiElement)

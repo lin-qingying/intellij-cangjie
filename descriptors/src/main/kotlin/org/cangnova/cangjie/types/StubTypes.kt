@@ -54,7 +54,7 @@ abstract class AbstractStubType(
 
     }
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) = this
 
     abstract fun materialize(newOption: Boolean): AbstractStubType

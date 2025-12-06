@@ -637,7 +637,7 @@ val DeclarationDescriptor.parentsWithSelf: Sequence<DeclarationDescriptor>
 val AnnotationDescriptor.annotationClass: ClassDescriptor?
     get() = type.constructor.declarationDescriptor as? ClassDescriptor
 
-@TypeRefinement
+
 fun ModuleDescriptor.getCangJieTypeRefiner(): CangJieTypeRefiner =
     when (val refinerCapability = getCapability(REFINER_CAPABILITY)?.value) {
         is TypeRefinementSupport.Enabled -> refinerCapability.typeRefiner

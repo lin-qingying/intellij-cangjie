@@ -46,7 +46,7 @@ class ErrorTypeConstructor(val kind: ErrorTypeKind, vararg val formatParams: Str
     override val declarationDescriptor: ClassifierDescriptor?
         get() = ErrorUtils.errorClass
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
         Intrinsics.checkNotNullParameter(cangjieTypeRefiner, "cangjieTypeRefiner")
         return this

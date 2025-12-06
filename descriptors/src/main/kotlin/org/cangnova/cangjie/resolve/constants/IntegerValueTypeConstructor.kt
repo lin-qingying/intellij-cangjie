@@ -86,7 +86,7 @@ class FloatValueTypeConstructor(
 
     override val builtIns: CangJieBuiltIns
         get() = module.builtIns
-    @TypeRefinement
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 
     override fun toString() = "IntegerValueType($value)"
@@ -157,7 +157,7 @@ class IntegerValueTypeConstructor(
     override val builtIns: CangJieBuiltIns
         get() = module.builtIns
 
-    @TypeRefinement
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 
     override fun toString() = "IntegerValueType($value)"

@@ -74,7 +74,7 @@ class NewCapturedTypeConstructor(
     override val builtIns: CangJieBuiltIns
         get() = projection.type.builtIns
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
         NewCapturedTypeConstructor(
             projection.refine(cangjieTypeRefiner),
@@ -136,7 +136,7 @@ class NewCapturedType(
     override fun makeOptionAsSpecified(isOption: Boolean): SimpleType =
         NewCapturedType(captureStatus, constructor, lowerType, attributes, isOption, isProjectionNotNull)
 
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
         NewCapturedType(
             captureStatus,

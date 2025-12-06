@@ -108,7 +108,7 @@ class FloatLiteralTypeConstructor : TypeConstructor {
     override val isDenotable: Boolean = false
     override val declarationDescriptor: ClassifierDescriptor? = null
 
-    @TypeRefinement
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
     override val isFinal: Boolean = true
     override val parameters: List<TypeParameterDescriptor> = emptyList()
@@ -319,7 +319,7 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
     override val declarationDescriptor: ClassifierDescriptor? = null
 
 
-    @TypeRefinement
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
     override val isFinal: Boolean = true
 

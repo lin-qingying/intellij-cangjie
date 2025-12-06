@@ -144,7 +144,7 @@ class EnumType(
      * @param cangjieTypeRefiner 类型精化器
      * @return 精化后的枚举类型
      */
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): EnumType {
         return cangjieTypeRefiner.refineEnumType(this)
     }

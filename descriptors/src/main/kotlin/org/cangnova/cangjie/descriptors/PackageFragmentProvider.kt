@@ -38,7 +38,6 @@ interface PackageFragmentProvider {
      * @param fqName 完全限定名
      * @return 包片段列表
      */
-    @Deprecated("for usages use #packageFragments(FqName) at final point, for impl use #collectPackageFragments(FqName, MutableCollection<PackageFragmentDescriptor>)")
     fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor>
 
     /**
@@ -54,9 +53,7 @@ interface PackageFragmentProvider {
      * 空实现的包片段提供者，用于表示不包含任何包片段或子包的提供者。
      */
     object Empty : PackageFragmentProvider {
-        @Deprecated("for usages use #packageFragments(FqName) at final point, for impl use #collectPackageFragments(FqName, MutableCollection<PackageFragmentDescriptor>)",
-            ReplaceWith("emptyList<PackageFragmentDescriptor>()")
-        )
+
         override fun getPackageFragments(fqName: FqName) = emptyList<PackageFragmentDescriptor>()
 
         override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean) = emptySet<FqName>()
@@ -75,7 +72,7 @@ fun PackageFragmentProvider.collectPackageFragmentsOptimizedIfPossible(
 ) {
     when (this) {
         is PackageFragmentProviderOptimized -> collectPackageFragments(fqName, packageFragments)
-        else -> packageFragments.addAll(@Suppress("DEPRECATION") getPackageFragments(fqName))
+        else -> packageFragments.addAll(  getPackageFragments(fqName))
     }
 }
 

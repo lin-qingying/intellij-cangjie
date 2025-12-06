@@ -98,7 +98,7 @@ class AbbreviatedType(override val delegate: SimpleType, val abbreviation: Simpl
     /**
      * 替换委托类型
      */
-    @TypeRefinement
+    
     override fun replaceDelegate(delegate: SimpleType) = AbbreviatedType(delegate, abbreviation)
 }
 
@@ -117,13 +117,13 @@ abstract class DelegatingSimpleType : SimpleType() {
     /**
      * 替换委托类型
      */
-    @TypeRefinement
+    
     abstract fun replaceDelegate(delegate: SimpleType): DelegatingSimpleType
 
     /**
      * 类型精化，返回新的委托类型
      */
-    @TypeRefinement
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType =
         replaceDelegate(cangjieTypeRefiner.refineType(delegate) as SimpleType)
 }
@@ -175,8 +175,8 @@ class LazyWrappedType(
     /**
      * 类型精化，返回新的延迟包装类型
      */
-    @TypeRefinement
-    @OptIn(TypeRefinement::class)
+    
+    
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) = LazyWrappedType(storageManager) {
         cangjieTypeRefiner.refineType(computation())
     }
@@ -277,7 +277,7 @@ class DefinitelyNonOptionType private constructor(
     /**
      * 替换委托类型
      */
-    @TypeRefinement
+    
     override fun replaceDelegate(delegate: SimpleType) =
         DefinitelyNonOptionType(delegate, useCorrectedOptionForTypeParameters)
 }

@@ -31,13 +31,13 @@ import org.cangnova.cangjie.types.error.*
 
 object ErrorUtils {
 
-    val errorModule: ModuleDescriptor = ErrorModuleDescriptor
+    val errorModule: ModuleDescriptor get() = ErrorModuleDescriptor
 
-    private val errorProperty: PropertyDescriptor = ErrorPropertyDescriptor()
-    val errorPropertyGroup: Set<PropertyDescriptor> = setOf(errorProperty)
+    private val errorProperty: PropertyDescriptor get() = ErrorPropertyDescriptor()
+    val errorPropertyGroup: Set<PropertyDescriptor> get() = setOf(errorProperty)
 
-      val errorVariable: VariableDescriptor = ErrorVariableDescriptor()
-    val errorVariableGroup: Set<VariableDescriptor> = setOf(errorVariable)
+    val errorVariable: VariableDescriptor get() = ErrorVariableDescriptor()
+    val errorVariableGroup: Set<VariableDescriptor> get() = setOf(errorVariable)
 
     val errorPropertyType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_PROPERTY_TYPE)
     val errorVariableType: CangJieType get() = createErrorType(ErrorTypeKind.ERROR_VARIABLE_TYPE)
@@ -46,7 +46,7 @@ object ErrorUtils {
     val invalidType: ErrorType get() = createErrorType(ErrorTypeKind.INVALID_TYPE)
     fun containsUninferredTypeVariable(type: CangJieType): Boolean = type.contains(::isUninferredTypeVariable)
 
-    val errorTypeForLoopInSupertypes: CangJieType = createErrorType(ErrorTypeKind.CYCLIC_SUPERTYPES)
+    val errorTypeForLoopInSupertypes: CangJieType get() = createErrorType(ErrorTypeKind.CYCLIC_SUPERTYPES)
 
     val errorClass: ErrorClassDescriptor
         get() =
@@ -78,7 +78,7 @@ object ErrorUtils {
         // 遍历类型的参数，检查是否包含错误类型
         for (projection in type.arguments) {
             // 只要发现第一个错误类型，就立即返回true
-            if ( containsErrorType(projection.type))
+            if (containsErrorType(projection.type))
                 return true
         }
         // 如果所有参数都没有错误类型，则返回false

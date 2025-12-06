@@ -34,7 +34,7 @@ interface TypeProjection : TypeArgumentMarker {
     val type: CangJieType
 
     //    boolean isStarProjection();
-    @TypeRefinement
+    
     fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeProjection
 
     fun replaceType(type: CangJieType): TypeProjection

@@ -34,9 +34,20 @@ import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.CangJieTypePreparator
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import org.cangnova.cangjie.utils.DFS
 import org.cangnova.cangjie.utils.SmartSet
 import java.util.*
 
+// ========================================
+// 扩展属性：提供便捷访问
+// ========================================
+
+/**
+ * 获取可继承描述符的类型种类
+ * - ClassDescriptor: 返回类的 kind
+ * - EnumDescriptor: 返回枚举的 kind
+ * - ExtendDescriptor: 返回 EXTEND
+ */
 val InheritableDescriptor.kind
     get() = when (this) {
         is ClassDescriptor -> this.kind
@@ -45,18 +56,31 @@ val InheritableDescriptor.kind
         else -> error("$this is not a class")
     }
 
+/**
+ * 获取可继承描述符的模态性（modality）
+ * - ClassDescriptor/EnumDescriptor: 返回其模态性
+ * - 其他类型: 返回 FINAL
+ */
 val InheritableDescriptor.modality
     get() = when (this) {
         is ClassDescriptor -> this.modality
         is EnumDescriptor -> this.modality
-
         else -> Modality.FINAL
     }
+
+// ========================================
+// 核心工具类：OverridingUtil
+// ========================================
 
 /**
  * 覆盖工具类
  *
- * 处理方法覆盖、可见性检查和假覆盖创建等功能
+ * 负责处理方法覆盖、可见性检查和假覆盖（fake override）的创建
+ *
+ * @property equalityAxioms 类型构造器相等性判断逻辑
+ * @property cangjieTypeRefiner 类型精炼器
+ * @property cangjieTypePreparator 类型准备器
+ * @property customSubtype 自定义子类型判断函数
  */
 class OverridingUtil private constructor(
     private val equalityAxioms: CangJieTypeChecker.TypeConstructorEquality,
@@ -67,7 +91,7 @@ class OverridingUtil private constructor(
 
     companion object {
         /**
-         * 默认实例
+         * 默认实例：使用标准的类型检查规则
          */
         val DEFAULT: OverridingUtil by lazy {
             OverridingUtil(
@@ -79,7 +103,7 @@ class OverridingUtil private constructor(
         }
 
         /**
-         * 外部覆盖条件
+         * 外部覆盖条件：通过 SPI 加载的扩展点
          */
         private val EXTERNAL_CONDITIONS: List<ExternalOverridabilityCondition> by lazy {
             ServiceLoader.load(
@@ -88,8 +112,17 @@ class OverridingUtil private constructor(
             ).toList()
         }
 
+        // ========================================
+        // 可见性检查
+        // ========================================
+
         /**
          * 检查成员是否对覆盖可见
+         *
+         * @param overriding 覆盖方的成员
+         * @param fromSuper 父类的成员
+         * @param useSpecialRulesForPrivateSealedConstructors 是否使用 private sealed 构造函数的特殊规则
+         * @return 如果 fromSuper 对 overriding 可见则返回 true
          */
         fun isVisibleForOverride(
             overriding: MemberDescriptor,
@@ -101,6 +134,21 @@ class OverridingUtil private constructor(
                     overriding,
                     useSpecialRulesForPrivateSealedConstructors
                 )
+
+        /**
+         * 过滤出对当前类可见的假覆盖
+         */
+        fun filterVisibleFakeOverrides(
+            current: InheritableDescriptor,
+            toFilter: Collection<CallableMemberDescriptor>
+        ): Collection<CallableMemberDescriptor> = toFilter.filter { descriptor ->
+            !DescriptorVisibilities.isPrivate(descriptor.visibility) &&
+                    DescriptorVisibilities.isVisibleIgnoringReceiver(descriptor, current, false)
+        }
+
+        // ========================================
+        // 工厂方法
+        // ========================================
 
         /**
          * 创建覆盖工具实例
@@ -126,29 +174,14 @@ class OverridingUtil private constructor(
                 null
             )
 
-        /**
-         * 检查所有描述符是否有相同的包含声明
-         */
-        private fun allHasSameContainingDeclaration(notOverridden: Collection<CallableMemberDescriptor>): Boolean {
-            if (notOverridden.size < 2) return true
-
-            val containingDeclaration = notOverridden.first().containingDeclaration
-            return notOverridden.all { it.containingDeclaration == containingDeclaration }
-        }
+        // ========================================
+        // 覆盖关系查询
+        // ========================================
 
         /**
-         * 过滤可见的假覆盖
-         */
-        fun filterVisibleFakeOverrides(
-            current: InheritableDescriptor,
-            toFilter: Collection<CallableMemberDescriptor>
-        ): Collection<CallableMemberDescriptor> = toFilter.filter { descriptor ->
-            !DescriptorVisibilities.isPrivate(descriptor.visibility) &&
-                    DescriptorVisibilities.isVisibleIgnoringReceiver(descriptor, current, false)
-        }
-
-        /**
-         * 获取覆盖的声明
+         * 获取一个描述符所有被覆盖的声明
+         *
+         * 递归遍历覆盖链，返回所有真实的（非假覆盖的）声明
          */
         fun getOverriddenDeclarations(descriptor: CallableMemberDescriptor): Set<CallableMemberDescriptor> =
             mutableSetOf<CallableMemberDescriptor>().apply {
@@ -157,6 +190,9 @@ class OverridingUtil private constructor(
 
         /**
          * 递归收集覆盖的声明
+         *
+         * - 如果是真实声明（非假覆盖），直接添加
+         * - 如果是假覆盖，递归处理其覆盖的描述符
          */
         private fun collectOverriddenDeclarations(
             descriptor: CallableMemberDescriptor,
@@ -174,7 +210,10 @@ class OverridingUtil private constructor(
         }
 
         /**
-         * 检查函数是否覆盖另一个函数
+         * 检查函数 f 是否覆盖函数 g
+         *
+         * @param allowDeclarationCopies 是否允许声明副本
+         * @param distinguishExpectsAndNonExpects 是否区分 expect 和非 expect 声明
          */
         fun <D : CallableDescriptor> overrides(
             f: D,
@@ -193,6 +232,7 @@ class OverridingUtil private constructor(
                 return true
             }
 
+            // 检查 f 是否覆盖了 g 的任何覆盖版本
             val originalG = g.original
             return DescriptorUtils.getAllOverriddenDescriptors(f).any { overriddenFunction ->
                 DescriptorEquivalenceForOverrides.areEquivalent(
@@ -204,8 +244,19 @@ class OverridingUtil private constructor(
             }
         }
 
+        // ========================================
+        // 覆盖关系过滤
+        // ========================================
+
         /**
-         * 过滤覆盖关系
+         * 过滤覆盖关系，移除被其他成员覆盖的成员
+         *
+         * 例如：如果 A 覆盖 B，B 覆盖 C，则结果中只保留 A
+         *
+         * @param candidateSet 候选集合
+         * @param allowDescriptorCopies 是否允许描述符副本
+         * @param cancellationCallback 取消回调（用于长时间操作的中断）
+         * @param transformFirst 转换函数，将候选类型转换为 CallableDescriptor
          */
         fun <D> filterOverrides(
             candidateSet: Set<D>,
@@ -226,7 +277,9 @@ class OverridingUtil private constructor(
                     val (me, other) = transformFirst(meD, otherD)
 
                     when {
+                        // 如果 me 覆盖 other，移除 other
                         overrides(me, other, allowDescriptorCopies, true) -> iterator.remove()
+                        // 如果 other 覆盖 me，跳过 me
                         overrides(other, me, allowDescriptorCopies, true) -> continue@candidateSet
                     }
                 }
@@ -238,18 +291,25 @@ class OverridingUtil private constructor(
         }
 
         /**
-         * 过滤掉被覆盖的描述符
+         * 过滤掉被覆盖的描述符（占位符实现）
          */
         fun <D : CallableDescriptor> filterOutOverridden(candidateSet: Set<D>): Set<D> = candidateSet
 
+        // ========================================
+        // 可见性处理
+        // ========================================
+
         /**
          * 查找最大可见性
+         *
+         * 返回所有描述符中最大的可见性，如果存在不兼容的可见性则返回 null
          */
         fun findMaxVisibility(descriptors: Collection<CallableMemberDescriptor>): DescriptorVisibility? {
             if (descriptors.isEmpty()) return DescriptorVisibilities.DEFAULT_VISIBILITY
 
             var maxVisibility: DescriptorVisibility? = null
 
+            // 第一遍：找到最大可见性
             for (descriptor in descriptors) {
                 val visibility = descriptor.visibility
                 require(visibility != DescriptorVisibilities.INHERITED) {
@@ -268,6 +328,7 @@ class OverridingUtil private constructor(
                 }
             }
 
+            // 第二遍：验证所有描述符都不比最大可见性更可见
             maxVisibility?.let { max ->
                 for (descriptor in descriptors) {
                     val compareResult = DescriptorVisibilities.compare(max, descriptor.visibility)
@@ -281,7 +342,12 @@ class OverridingUtil private constructor(
         }
 
         /**
-         * 解析未知可见性
+         * 解析未知可见性（INHERITED）
+         *
+         * 递归地为成员及其访问器推断合适的可见性
+         *
+         * @param memberDescriptor 需要解析可见性的成员
+         * @param cannotInferVisibility 无法推断时的回调
          */
         fun resolveUnknownVisibilityForMember(
             memberDescriptor: CallableMemberDescriptor,
@@ -296,16 +362,18 @@ class OverridingUtil private constructor(
 
             if (memberDescriptor.visibility != DescriptorVisibilities.INHERITED) return
 
+            // 计算要继承的可见性
             val maxVisibility = computeVisibilityToInherit(memberDescriptor)
             val visibilityToInherit = maxVisibility ?: run {
                 cannotInferVisibility?.invoke(memberDescriptor)
                 DescriptorVisibilities.PUBLIC
             }
 
+            // 根据成员类型设置可见性
             when (memberDescriptor) {
                 is PropertyDescriptorImpl -> {
-
                     memberDescriptor.visibility = visibilityToInherit
+                    // 递归解析属性访问器的可见性
                     (memberDescriptor as PropertyDescriptor).accessors.forEach { accessor ->
                         resolveUnknownVisibilityForMember(
                             accessor,
@@ -315,23 +383,22 @@ class OverridingUtil private constructor(
                 }
 
                 is FunctionDescriptorImpl -> memberDescriptor.visibility = visibilityToInherit
-                is PropertyAccessorDescriptorImpl -> {
-                    memberDescriptor.visibility = visibilityToInherit
-//                    if (visibilityToInherit != memberDescriptor.correspondingProperty.visibility) {
-//                        memberDescriptor.isDefault = false
-//                    }
-                }
+                is PropertyAccessorDescriptorImpl -> memberDescriptor.visibility = visibilityToInherit
             }
         }
 
         /**
          * 计算要继承的可见性
+         *
+         * 对于假覆盖：要求所有非抽象的被覆盖成员具有相同的可见性
+         * 对于真实覆盖：直接使用最大可见性
          */
         private fun computeVisibilityToInherit(memberDescriptor: CallableMemberDescriptor): DescriptorVisibility? {
             val overriddenDescriptors = memberDescriptor.overriddenDescriptors
             val maxVisibility = findMaxVisibility(overriddenDescriptors) ?: return null
 
             if (memberDescriptor.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
+                // 假覆盖：检查所有非抽象成员是否具有一致的可见性
                 for (overridden in overriddenDescriptors) {
                     if (overridden.modality != Modality.ABSTRACT && overridden.visibility != maxVisibility) {
                         return null
@@ -342,8 +409,17 @@ class OverridingUtil private constructor(
             return maxVisibility.normalize()
         }
 
+        // ========================================
+        // 特异性（Specificity）检查
+        // ========================================
+
         /**
-         * 检查是否更具体
+         * 检查描述符 a 是否比 b 更具体
+         *
+         * 更具体的定义：
+         * 1. 可见性更严格或相等
+         * 2. 返回类型是子类型（对于函数）
+         * 3. 对于 var 属性，类型必须完全相等；对于 val，返回类型是子类型
          */
         fun isMoreSpecific(a: CallableDescriptor, b: CallableDescriptor): Boolean {
             val aReturnType = requireNotNull(a.returnType) { "Return type of $a is null" }
@@ -362,17 +438,14 @@ class OverridingUtil private constructor(
                 a is VariableDescriptor -> {
                     require(b is VariableDescriptor) { "b is ${b::class}" }
                     when {
+                        // 两个都是 var：类型必须相等
                         a.isVar && b.isVar ->
                             AbstractTypeChecker.equalTypes(checkerState, aReturnType.unwrap(), bReturnType.unwrap())
-
-                        else ->
-                            !(!a.isVar && b.isVar) && isReturnTypeMoreSpecific(
-                                a,
-                                aReturnType,
-                                b,
-                                bReturnType,
-                                checkerState
-                            )
+                        // a 是 val，b 是 var：不允许
+                        // 其他情况：返回类型检查
+                        else -> !(!a.isVar && b.isVar) && isReturnTypeMoreSpecific(
+                            a, aReturnType, b, bReturnType, checkerState
+                        )
                     }
                 }
 
@@ -381,7 +454,7 @@ class OverridingUtil private constructor(
         }
 
         /**
-         * 检查可见性是否更具体
+         * 检查可见性是否更具体（更严格或相等）
          */
         private fun isVisibilityMoreSpecific(
             a: DeclarationDescriptorWithVisibility,
@@ -392,7 +465,7 @@ class OverridingUtil private constructor(
         }
 
         /**
-         * 检查返回类型是否更具体
+         * 检查返回类型是否更具体（是否为子类型）
          */
         private fun isReturnTypeMoreSpecific(
             a: CallableDescriptor,
@@ -400,10 +473,14 @@ class OverridingUtil private constructor(
             b: CallableDescriptor,
             bReturnType: CangJieType,
             typeCheckerState: TypeCheckerState
-        ): Boolean = AbstractTypeChecker.isSubtypeOf(typeCheckerState, aReturnType.unwrap(), bReturnType.unwrap())
+        ): Boolean = AbstractTypeChecker.isSubtypeOf(
+            typeCheckerState,
+            aReturnType.unwrap(),
+            bReturnType.unwrap()
+        )
 
         /**
-         * 检查是否比所有都更具体
+         * 检查候选者是否比集合中所有描述符都更具体
          */
         private fun isMoreSpecificThenAllOf(
             candidate: CallableDescriptor,
@@ -411,14 +488,18 @@ class OverridingUtil private constructor(
         ): Boolean = descriptors.all { isMoreSpecific(candidate, it) }
 
         /**
-         * 选择最具体的成员
+         * 从可覆盖的集合中选择最具体的成员
+         *
+         * 算法：
+         * 1. 找到比所有其他成员都更具体的成员（真正的最具体）
+         * 2. 如果没有，找到传递性最具体的成员
+         * 3. 如果有多个候选，优先选择非 flexible 类型的
          */
         fun <H> selectMostSpecificMember(
             overridables: Collection<H>,
             descriptorByHandle: (H) -> CallableDescriptor
         ): H {
             require(overridables.isNotEmpty()) { "Should have at least one overridable descriptor" }
-
             if (overridables.size == 1) return overridables.first()
 
             val candidates = mutableListOf<H>()
@@ -427,11 +508,16 @@ class OverridingUtil private constructor(
             var transitivelyMostSpecific = overridables.first()
             var transitivelyMostSpecificDescriptor = descriptorByHandle(transitivelyMostSpecific)
 
+            // 查找真正的最具体成员和传递性最具体成员
             for (overridable in overridables) {
                 val descriptor = descriptorByHandle(overridable)
+
+                // 如果比所有成员都更具体，加入候选
                 if (isMoreSpecificThenAllOf(descriptor, callableMemberDescriptors)) {
                     candidates.add(overridable)
                 }
+
+                // 更新传递性最具体成员
                 if (isMoreSpecific(descriptor, transitivelyMostSpecificDescriptor) &&
                     !isMoreSpecific(transitivelyMostSpecificDescriptor, descriptor)
                 ) {
@@ -444,7 +530,7 @@ class OverridingUtil private constructor(
                 candidates.isEmpty() -> transitivelyMostSpecific
                 candidates.size == 1 -> candidates.first()
                 else -> {
-                    // 寻找第一个非flexible类型的候选
+                    // 优先选择非 flexible 类型的候选
                     candidates.find { candidate ->
                         descriptorByHandle(candidate).returnType?.isFlexible() == false
                     } ?: candidates.first()
@@ -452,8 +538,14 @@ class OverridingUtil private constructor(
             }
         }
 
+        // ========================================
+        // 双向覆盖能力检查
+        // ========================================
+
         /**
          * 获取双向覆盖能力
+         *
+         * 检查两个描述符是否可以互相覆盖
          */
         fun getBothWaysOverridability(
             overriderDescriptor: CallableDescriptor,
@@ -475,31 +567,22 @@ class OverridingUtil private constructor(
             }
         }
 
+        // ========================================
+        // 基本覆盖检查
+        // ========================================
+
         /**
          * 获取基本覆盖问题
+         *
+         * 执行基础检查（不涉及类型兼容性）：
+         * - 成员种类是否匹配（函数 vs 属性）
+         * - 名称是否匹配
+         * - 参数数量是否匹配
          */
         fun getBasicOverridabilityProblem(
             superDescriptor: CallableDescriptor,
             subDescriptor: CallableDescriptor
         ): OverrideCompatibilityInfo? {
-            // 检查静态覆盖
-//            if (superDescriptor.isStatic() != subDescriptor.isStatic()) {
-//                return if (subDescriptor.isStatic()) {
-//                    OverrideCompatibilityInfo.staticConflict(
-//                        CangJieDiagnosisBundle.message("CONFLICTING_STATIC_BY_STATIC_TO_NON_STATIC", subDescriptor.name)
-//                    )
-//                } else {
-//                    OverrideCompatibilityInfo.staticConflict(
-//                        CangJieDiagnosisBundle.message("CONFLICTING_STATIC_BY_NON_STATIC_TO_STATIC", subDescriptor.name)
-//                    )
-//                }
-//            }
-
-            // 检查枚举类描述符
-//            if (subDescriptor is EnumClassCallableDescriptor || superDescriptor is EnumClassCallableDescriptor) {
-//                return OverrideCompatibilityInfo.incompatible("Enum member cannot override non-enum member")
-//            }
-
             // 检查成员种类匹配
             if ((superDescriptor is FunctionDescriptor && subDescriptor !is FunctionDescriptor) ||
                 (superDescriptor is VariableDescriptor && subDescriptor !is VariableDescriptor)
@@ -527,15 +610,27 @@ class OverridingUtil private constructor(
             superDescriptor: CallableDescriptor,
             subDescriptor: CallableDescriptor
         ): OverrideCompatibilityInfo? {
-            // 检查参数数量匹配
+            // 检查值参数数量匹配
             if (superDescriptor.valueParameters.size != subDescriptor.valueParameters.size) {
                 return OverrideCompatibilityInfo.incompatible("Value parameter number mismatch")
             }
             return null
         }
 
+        // ========================================
+        // 双向可覆盖成员提取
+        // ========================================
+
         /**
          * 提取双向可覆盖的成员
+         *
+         * 从集合中提取所有与 overrider 双向可覆盖的成员
+         *
+         * @param overrider 覆盖者
+         * @param extractFrom 待提取的集合（会被修改）
+         * @param descriptorByHandle 句柄到描述符的转换函数
+         * @param onConflict 冲突处理回调
+         * @return 所有双向可覆盖的成员（包括 overrider）
          */
         fun <H> extractMembersOverridableInBothWays(
             overrider: H,
@@ -570,7 +665,7 @@ class OverridingUtil private constructor(
                     }
 
                     else -> {
-                        // INCOMPATIBLE - do nothing
+                        // INCOMPATIBLE - 不做处理
                     }
                 }
             }
@@ -578,13 +673,31 @@ class OverridingUtil private constructor(
         }
 
         /**
-         * 编译值参数
+         * 提取双向可覆盖的成员（CallableMemberDescriptor 版本）
+         */
+        private fun extractMembersOverridableInBothWays(
+            overrider: CallableMemberDescriptor,
+            extractFrom: Queue<CallableMemberDescriptor>,
+            onConflict: (CallableMemberDescriptor) -> Unit
+        ): Collection<CallableMemberDescriptor> = extractMembersOverridableInBothWays(
+            overrider,
+            extractFrom,
+            { it },
+            onConflict
+        )
+
+        // ========================================
+        // 类型相关辅助方法
+        // ========================================
+
+        /**
+         * 编译值参数类型列表
          */
         private fun compiledValueParameters(callableDescriptor: CallableDescriptor): List<CangJieType> =
             callableDescriptor.valueParameters.map { it.type }
 
         /**
-         * 检查类型是否等价
+         * 检查两个类型是否等价
          */
         private fun areTypesEquivalent(
             typeInSuper: CangJieType,
@@ -601,6 +714,10 @@ class OverridingUtil private constructor(
 
         /**
          * 检查类型参数是否等价
+         *
+         * 要求：
+         * 1. 上界数量相同
+         * 2. 每个上界类型等价
          */
         private fun areTypeParametersEquivalent(
             superTypeParameter: TypeParameterDescriptor,
@@ -628,14 +745,34 @@ class OverridingUtil private constructor(
             return true
         }
 
+        // ========================================
+        // 假覆盖创建
+        // ========================================
+
+        /**
+         * 检查所有描述符是否有相同的包含声明
+         */
+        private fun allHasSameContainingDeclaration(notOverridden: Collection<CallableMemberDescriptor>): Boolean {
+            if (notOverridden.size < 2) return true
+            val containingDeclaration = notOverridden.first().containingDeclaration
+            return notOverridden.all { it.containingDeclaration == containingDeclaration }
+        }
+
         /**
          * 创建并绑定假覆盖
+         *
+         * 将未被覆盖的父类成员创建为假覆盖（fake override）
+         *
+         * @param current 当前类
+         * @param notOverridden 未被覆盖的成员集合
+         * @param strategy 覆盖策略
          */
         private fun createAndBindFakeOverrides(
             current: InheritableDescriptor,
             notOverridden: Collection<CallableMemberDescriptor>,
             strategy: OverridingStrategy
         ) {
+            // 优化：如果所有成员来自同一个父类，直接创建假覆盖
             if (allHasSameContainingDeclaration(notOverridden)) {
                 notOverridden.forEach { descriptor ->
                     createAndBindFakeOverride(setOf(descriptor), current, strategy)
@@ -643,21 +780,29 @@ class OverridingUtil private constructor(
                 return
             }
 
+            // 否则，需要处理多个父类的情况
             val fromSuperQueue = LinkedList(notOverridden)
             while (fromSuperQueue.isNotEmpty()) {
+                // 选择最大可见性的成员
                 val notOverriddenFromSuper = findMemberWithMaxVisibility(fromSuperQueue)
+                // 提取所有双向可覆盖的成员
                 val overridables = extractMembersOverridableInBothWays(
                     notOverriddenFromSuper,
                     fromSuperQueue
                 ) { descriptor ->
                     strategy.inheritanceConflict(notOverriddenFromSuper, descriptor)
                 }
+                // 为这组成员创建假覆盖
                 createAndBindFakeOverride(overridables, current, strategy)
             }
         }
 
         /**
          * 创建并绑定单个假覆盖
+         *
+         * @param overridables 可覆盖的成员集合（可能来自多个父类）
+         * @param current 当前类
+         * @param strategy 覆盖策略
          */
         private fun createAndBindFakeOverride(
             overridables: Collection<CallableMemberDescriptor>,
@@ -668,11 +813,18 @@ class OverridingUtil private constructor(
             val allInvisible = visibleOverridables.isEmpty()
             val effectiveOverridden = if (allInvisible) overridables else visibleOverridables
 
+            // 确定假覆盖的模态性和可见性
             val modality = determineModalityForFakeOverride(effectiveOverridden, current)
-            val visibility =
-                if (allInvisible) DescriptorVisibilities.INVISIBLE_FAKE else DescriptorVisibilities.INHERITED
+            val visibility = if (allInvisible) {
+                DescriptorVisibilities.INVISIBLE_FAKE
+            } else {
+                DescriptorVisibilities.INHERITED
+            }
 
+            // 选择最具体的成员作为基础
             val mostSpecific = selectMostSpecificMember(effectiveOverridden) { it }
+
+            // 复制并创建假覆盖
             val fakeOverride = mostSpecific.copy(
                 current,
                 modality,
@@ -681,21 +833,29 @@ class OverridingUtil private constructor(
                 false
             )
 
+            // 设置覆盖关系
             strategy.setOverriddenDescriptors(fakeOverride, effectiveOverridden)
+
             require(fakeOverride.overriddenDescriptors.isNotEmpty()) {
                 "Overridden descriptors should be set for ${CallableMemberDescriptor.Kind.FAKE_OVERRIDE}"
             }
+
             strategy.addFakeOverride(fakeOverride)
         }
 
         /**
          * 确定假覆盖的模态性
+         *
+         * 规则：
+         * - 如果任何父类成员是 FINAL，返回 FINAL
+         * - 如果全是 OPEN，返回 OPEN
+         * - 如果全是 ABSTRACT，根据当前类的模态性决定
+         * - 混合情况：取最小模态性
          */
         private fun determineModalityForFakeOverride(
             descriptors: Collection<CallableMemberDescriptor>,
             current: InheritableDescriptor
         ): Modality {
-            // 优化：在常见情况下避免创建哈希集合
             var hasOpen = false
             var hasAbstract = false
 
@@ -713,9 +873,14 @@ class OverridingUtil private constructor(
 
             return when {
                 hasOpen && !hasAbstract -> Modality.OPEN
-                !hasOpen && hasAbstract -> if (transformAbstractToClassModality) current.modality else Modality.ABSTRACT
+                !hasOpen && hasAbstract -> {
+                    if (transformAbstractToClassModality) current.modality else Modality.ABSTRACT
+                }
+
                 else -> {
-                    val allOverriddenDeclarations = descriptors.flatMap { getOverriddenDeclarations(it) }.toSet()
+                    val allOverriddenDeclarations = descriptors
+                        .flatMap { getOverriddenDeclarations(it) }
+                        .toSet()
                     getMinimalModality(
                         filterOutOverridden(allOverriddenDeclarations),
                         transformAbstractToClassModality,
@@ -735,39 +900,38 @@ class OverridingUtil private constructor(
         ): Modality {
             var result = Modality.ABSTRACT
             for (descriptor in descriptors) {
-                val effectiveModality =
-                    if (transformAbstractToClassModality && descriptor.modality == Modality.ABSTRACT) {
-                        classModality
-                    } else {
-                        descriptor.modality
-                    }
+                val effectiveModality = if (transformAbstractToClassModality &&
+                    descriptor.modality == Modality.ABSTRACT
+                ) {
+                    classModality
+                } else {
+                    descriptor.modality
+                }
                 if (effectiveModality < result) {
                     result = effectiveModality
                 }
             }
             return result
         }
-
-        /**
-         * 提取双向可覆盖的成员（带处理器）
-         */
-        private fun extractMembersOverridableInBothWays(
-            overrider: CallableMemberDescriptor,
-            extractFrom: Queue<CallableMemberDescriptor>,
-            onConflict: (CallableMemberDescriptor) -> Unit
-        ): Collection<CallableMemberDescriptor> = extractMembersOverridableInBothWays(
-            overrider,
-            extractFrom,
-            { it },
-            onConflict
-        )
     }
 
+    // ========================================
+    // 实例方法
+    // ========================================
+
     /**
-     * 生成函数组中的覆盖
+     * 为函数组生成覆盖关系
+     *
+     * 处理当前类中的成员和父类成员之间的覆盖关系，并创建必要的假覆盖
+     *
+     * @param name 函数名（确保所有描述符有相同名称）
+     * @param membersFromSupertypes 来自父类的成员
+     * @param membersFromCurrent 当前类的成员
+     * @param current 当前类
+     * @param strategy 覆盖策略
      */
     fun <T : CallableMemberDescriptor> generateOverridesInFunctionGroup(
-        name: Name, // 确保所有描述符有相同名称
+        name: Name,
         membersFromSupertypes: Collection<T>,
         membersFromCurrent: Collection<T>,
         current: InheritableDescriptor,
@@ -775,18 +939,25 @@ class OverridingUtil private constructor(
     ) {
         val notOverridden = LinkedHashSet(membersFromSupertypes)
 
-
-
+        // 为当前类的每个成员提取并绑定覆盖关系
         for (fromCurrent in membersFromCurrent) {
-            val bound = extractAndBindOverridesForMember(fromCurrent, membersFromSupertypes, current, strategy)
+            val bound = extractAndBindOverridesForMember(
+                fromCurrent,
+                membersFromSupertypes,
+                current,
+                strategy
+            )
             notOverridden.removeAll(bound.toSet())
         }
 
+        // 为未被覆盖的父类成员创建假覆盖
         createAndBindFakeOverrides(current, notOverridden, strategy)
     }
 
     /**
      * 创建类型检查器状态
+     *
+     * 用于在类型参数之间建立对应关系
      */
     private fun createTypeCheckerState(
         firstParameters: List<TypeParameterDescriptor>,
@@ -813,6 +984,12 @@ class OverridingUtil private constructor(
 
     /**
      * 检查是否可以在不考虑外部条件的情况下覆盖
+     *
+     * 执行内部一致性检查：
+     * - 基本兼容性（名称、参数数量等）
+     * - 类型参数兼容性
+     * - 值参数类型兼容性
+     * - 返回类型兼容性（可选）
      */
     fun isOverridableByWithoutExternalConditions(
         superDescriptor: CallableDescriptor,
@@ -863,7 +1040,7 @@ class OverridingUtil private constructor(
             }
         }
 
-        // 检查返回类型
+        // 检查返回类型（如果需要）
         if (checkReturnType) {
             val superReturnType = superDescriptor.returnType
             val subReturnType = subDescriptor.returnType
@@ -886,6 +1063,13 @@ class OverridingUtil private constructor(
 
     /**
      * 检查是否可以覆盖（包含外部条件）
+     *
+     * 先执行内部检查，然后运行所有外部覆盖条件
+     *
+     * @param superDescriptor 父类描述符
+     * @param subDescriptor 子类描述符
+     * @param subClassDescriptor 子类描述符（可选）
+     * @param checkReturnType 是否检查返回类型
      */
     fun isOverridableBy(
         superDescriptor: CallableDescriptor,
@@ -893,13 +1077,23 @@ class OverridingUtil private constructor(
         subClassDescriptor: InheritableDescriptor?,
         checkReturnType: Boolean = false
     ): OverrideCompatibilityInfo {
-        val basicResult = isOverridableByWithoutExternalConditions(superDescriptor, subDescriptor, checkReturnType)
+        val basicResult = isOverridableByWithoutExternalConditions(
+            superDescriptor,
+            subDescriptor,
+            checkReturnType
+        )
         var wasSuccess = basicResult.result == OverrideCompatibilityInfo.Result.OVERRIDABLE
 
-        // 第一轮：运行非CONFLICTS_ONLY条件
+        // 第一轮：运行非 CONFLICTS_ONLY 条件
         for (externalCondition in EXTERNAL_CONDITIONS) {
-            if (externalCondition.contract == ExternalOverridabilityCondition.Contract.CONFLICTS_ONLY) continue
-            if (wasSuccess && externalCondition.contract == ExternalOverridabilityCondition.Contract.SUCCESS_ONLY) continue
+            if (externalCondition.contract == ExternalOverridabilityCondition.Contract.CONFLICTS_ONLY) {
+                continue
+            }
+            if (wasSuccess &&
+                externalCondition.contract == ExternalOverridabilityCondition.Contract.SUCCESS_ONLY
+            ) {
+                continue
+            }
 
             when (externalCondition.isOverridable(superDescriptor, subDescriptor, subClassDescriptor)) {
                 ExternalOverridabilityCondition.Result.OVERRIDABLE -> wasSuccess = true
@@ -914,16 +1108,18 @@ class OverridingUtil private constructor(
 
         if (!wasSuccess) return basicResult
 
-        // 第二轮：运行CONFLICTS_ONLY条件
+        // 第二轮：运行 CONFLICTS_ONLY 条件
         for (externalCondition in EXTERNAL_CONDITIONS) {
-            if (externalCondition.contract != ExternalOverridabilityCondition.Contract.CONFLICTS_ONLY) continue
+            if (externalCondition.contract != ExternalOverridabilityCondition.Contract.CONFLICTS_ONLY) {
+                continue
+            }
 
             when (externalCondition.isOverridable(superDescriptor, subDescriptor, subClassDescriptor)) {
                 ExternalOverridabilityCondition.Result.INCOMPATIBLE ->
                     return OverrideCompatibilityInfo.incompatible("External condition")
 
                 ExternalOverridabilityCondition.Result.OVERRIDABLE ->
-                    error("Contract violation in ${externalCondition::class.java.name} condition. It's not supposed to end with success")
+                    error("Contract violation in ${externalCondition::class.java.name}")
 
                 ExternalOverridabilityCondition.Result.UNKNOWN -> {
                     // 继续下一个条件
@@ -941,10 +1137,19 @@ class OverridingUtil private constructor(
         superDescriptor: CallableDescriptor,
         subDescriptor: CallableDescriptor,
         subClassDescriptor: InheritableDescriptor?
-    ): OverrideCompatibilityInfo = isOverridableBy(superDescriptor, subDescriptor, subClassDescriptor, false)
+    ): OverrideCompatibilityInfo = isOverridableBy(
+        superDescriptor,
+        subDescriptor,
+        subClassDescriptor,
+        false
+    )
 
     /**
      * 提取并绑定成员的覆盖信息
+     *
+     * 处理当前类成员与父类成员的覆盖关系
+     *
+     * @return 被绑定的父类成员集合
      */
     private fun extractAndBindOverridesForMember(
         fromCurrent: CallableMemberDescriptor,
@@ -983,7 +1188,7 @@ class OverridingUtil private constructor(
                 }
 
                 OverrideCompatibilityInfo.Result.INCOMPATIBLE -> {
-                    // 不进行任何操作
+                    // 不兼容，不进行任何操作
                 }
             }
         }
@@ -992,8 +1197,14 @@ class OverridingUtil private constructor(
         return bound
     }
 
+    // ========================================
+    // 覆盖兼容性信息
+    // ========================================
+
     /**
      * 覆盖兼容性信息
+     *
+     * 表示两个描述符之间的覆盖关系检查结果
      */
     data class OverrideCompatibilityInfo(
         val result: Result,
@@ -1003,6 +1214,7 @@ class OverridingUtil private constructor(
             private val SUCCESS = OverrideCompatibilityInfo(Result.OVERRIDABLE, "SUCCESS")
 
             fun success(): OverrideCompatibilityInfo = SUCCESS
+
             fun incompatible(debugMessage: String): OverrideCompatibilityInfo =
                 OverrideCompatibilityInfo(Result.INCOMPATIBLE, debugMessage)
 
@@ -1022,14 +1234,105 @@ class OverridingUtil private constructor(
             /** 可以被覆盖 */
             OVERRIDABLE,
 
-            /** 不兼容 */
+            /** 不兼容，无法覆盖 */
             INCOMPATIBLE,
 
-            /** 冲突 */
+            /** 冲突，需要显式解决 */
             CONFLICT,
 
             /** 静态冲突 */
             STATIC_CONFLICT
         }
+    }
+}
+
+// ========================================
+// 扩展函数
+// ========================================
+
+/**
+ * 从集合中选择每个可覆盖组中最具体的成员
+ *
+ * @param H 句柄类型，包装 CallableDescriptor
+ * @param descriptorByHandle 句柄到描述符的转换函数
+ */
+fun <H : Any> Collection<H>.selectMostSpecificInEachOverridableGroup(
+    descriptorByHandle: H.() -> CallableDescriptor
+): Collection<H> {
+    if (size <= 1) return this
+
+    val queue = LinkedList<H>(this)
+    val result = SmartSet.create<H>()
+
+    while (queue.isNotEmpty()) {
+        val nextHandle: H = queue.first()
+        val conflictedHandles = SmartSet.create<H>()
+
+        // 提取双向可覆盖的组
+        val overridableGroup = OverridingUtil.extractMembersOverridableInBothWays(
+            nextHandle,
+            queue,
+            descriptorByHandle
+        ) { conflictedHandles.add(it) }
+
+        // 如果只有一个成员且没有冲突，直接添加
+        if (overridableGroup.size == 1 && conflictedHandles.isEmpty()) {
+            result.add(overridableGroup.single())
+            continue
+        }
+
+        // 选择最具体的成员
+        val mostSpecific = OverridingUtil.selectMostSpecificMember(
+            overridableGroup,
+            descriptorByHandle
+        )
+        val mostSpecificDescriptor = mostSpecific.descriptorByHandle()
+
+        // 过滤出不够具体的成员
+        overridableGroup.filterNotTo(conflictedHandles) {
+            OverridingUtil.isMoreSpecific(mostSpecificDescriptor, it.descriptorByHandle())
+        }
+
+        // 添加冲突和最具体的成员
+        if (conflictedHandles.isNotEmpty()) {
+            result.addAll(conflictedHandles)
+        }
+        result.add(mostSpecific)
+    }
+
+    return result
+}
+
+/**
+ * 查找最顶层的被覆盖描述符
+ *
+ * 使用 DFS 遍历覆盖链，找到所有没有被进一步覆盖的描述符
+ */
+fun <D : CallableDescriptor> D.findTopMostOverriddenDescriptors(): List<D> {
+    return DFS.dfs(
+        listOf(this),
+        { current -> current.overriddenDescriptors },
+        object : DFS.CollectingNodeHandler<CallableDescriptor, CallableDescriptor, ArrayList<D>>(
+            ArrayList<D>()
+        ) {
+            override fun afterChildren(current: CallableDescriptor) {
+                if (current.overriddenDescriptors.isEmpty()) {
+                    @Suppress("UNCHECKED_CAST")
+                    result.add(current as D)
+                }
+            }
+        }
+    )
+}
+
+/**
+ * 查找原始的最顶层被覆盖描述符
+ *
+ * 返回所有最顶层描述符的原始版本（去重）
+ */
+fun <D : CallableDescriptor> D.findOriginalTopMostOverriddenDescriptors(): Set<D> {
+    return findTopMostOverriddenDescriptors().mapTo(LinkedHashSet<D>()) {
+        @Suppress("UNCHECKED_CAST")
+        (it.original as D)
     }
 }

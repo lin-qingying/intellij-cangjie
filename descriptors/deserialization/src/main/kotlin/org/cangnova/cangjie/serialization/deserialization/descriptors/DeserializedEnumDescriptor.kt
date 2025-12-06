@@ -113,7 +113,7 @@ class DeserializedEnumDescriptor(
             )
         }
         private val refinedSupertypes = c.storageManager.createLazyValue {
-            @OptIn(TypeRefinement::class)
+
             cangjieTypeRefiner.refineSupertypes(enumDescriptor)
         }
 

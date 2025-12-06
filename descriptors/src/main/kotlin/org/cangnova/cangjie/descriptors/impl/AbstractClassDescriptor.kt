@@ -45,15 +45,15 @@ import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 abstract class AbstractClassDescriptor(
     private val storageManager: StorageManager,
     override val name: Name
-) : ModuleAwareClassDescriptor() ,ClassDescriptor{
+) : ModuleAwareClassDescriptor(), ClassDescriptor {
 
-    @OptIn(TypeRefinement::class)
+    
     protected val _defaultType: NotNullLazyValue<SimpleType> = storageManager.createLazyValue {
-        TypeUtils.makeUnsubstitutedType(
+        makeUnsubstitutedType(
             this, unsubstitutedMemberScope,
 
             object : (CangJieTypeRefiner) -> SimpleType? {
-                override fun invoke(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType? {
+                override fun invoke(cangjieTypeRefiner: CangJieTypeRefiner): SimpleType {
                     val descriptor = cangjieTypeRefiner.refineDescriptor(this@AbstractClassDescriptor)
                     // If we've refined descriptor
                     if (descriptor == null) return _defaultType.invoke()
@@ -102,7 +102,7 @@ abstract class AbstractClassDescriptor(
         get() = DescriptorVisibilities.PUBLIC
 
 
-    @OptIn(TypeRefinement::class)
+    
     override val unsubstitutedMemberScope: MemberScope
         get() = getUnsubstitutedMemberScope(DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
 
@@ -131,14 +131,14 @@ abstract class AbstractClassDescriptor(
     }
 
 
-    @OptIn(TypeRefinement::class)
+    
     override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
         return getMemberScope(typeArguments.toList(), DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
 
     }
 
 
-    @OptIn(TypeRefinement::class)
+    
     override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
         return getMemberScope(typeSubstitution, DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
     }
@@ -173,7 +173,6 @@ abstract class AbstractClassDescriptor(
 
     override val defaultFunctionTypeForSamInterface: SimpleType?
         get() = null
-
 
 
     override val isDefinitelyNotSamInterface: Boolean

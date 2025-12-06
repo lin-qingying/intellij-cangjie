@@ -114,7 +114,7 @@ object TypeUtils {
      * 表示"不关心"的特殊类型
      * 用于类型推断中表示不需要特定类型的情况
      */
-    val DONT_CARE: SimpleType = ErrorUtils.createErrorType(ErrorTypeKind.DONT_CARE)
+    val DONT_CARE: SimpleType get() = ErrorUtils.createErrorType(ErrorTypeKind.DONT_CARE)
 
     /**
      * 检查类型是否为非具体化的类型参数
@@ -1136,8 +1136,9 @@ object TypeUtils {
     /**
      * 无法推断函数参数类型的错误类型
      */
-    val CANNOT_INFER_FUNCTION_PARAM_TYPE: SimpleType =
+    val CANNOT_INFER_FUNCTION_PARAM_TYPE: SimpleType   by lazy{
         ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_LAMBDA_PARAMETER_TYPE)
+    }
 
     /**
      * 单元期望类型
@@ -1264,7 +1265,7 @@ object TypeUtils {
             return name
         }
 
-        @TypeRefinement
+        
         override fun replaceDelegate(delegate: SimpleType): DelegatingSimpleType {
             throw IllegalStateException(name)
         }
@@ -1280,7 +1281,7 @@ object TypeUtils {
 //        override val attributes: TypeAttributes
 //            get() = TODO("Not yet implemented")
 
-//        @TypeRefinement
+//        
 //        override fun refine(CangJieTypeRefiner:  checker.CangJieTypeRefiner): SpecialType {
 //            return this
 //        }
@@ -1308,7 +1309,7 @@ object TypeUtils {
  * @param predicate 判断条件函数
  * @return true 如果类型包含满足条件的类型
  */
-fun CangJieType.contains(predicate: (UnwrappedType) -> Boolean) = TypeUtils.contains(this, predicate)
+fun CangJieType.contains(predicate: (UnwrappedType) -> Boolean) = contains(this, predicate)
 
 /**
  * 检查类型是否需要更新

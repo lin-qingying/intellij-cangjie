@@ -37,28 +37,28 @@ sealed class TypeRefinementSupport(val isEnabled: Boolean) {
     class Enabled(val typeRefiner: CangJieTypeRefiner) : TypeRefinementSupport(isEnabled = true)
 }
 
-@TypeRefinement
+
 val REFINER_CAPABILITY = ModuleCapability<Ref<TypeRefinementSupport>>("CangJieTypeRefiner")
 class Ref<T : Any>(var value: T)
 
-@TypeRefinement
+
 fun CangJieTypeRefiner.refineTypes(types: Iterable<CangJieType>): List<CangJieType> = types.map { refineType(it) }
 
 @DefaultImplementation(impl = AbstractTypeRefiner.Default::class)
 abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
-    @TypeRefinement
+    
     abstract override fun refineType(type: CangJieTypeMarker): CangJieType
 
-    @TypeRefinement
+    
     abstract fun refineSupertypes(classDescriptor: ClassifierDescriptorWithTypeConstructor): Collection<CangJieType>
 
-    @TypeRefinement
+    
     abstract fun refineDescriptor(descriptor: DeclarationDescriptor): ClassifierDescriptor?
-    @TypeRefinement
+    
     abstract fun isRefinementNeededForModule(moduleDescriptor: ModuleDescriptor): Boolean
-    @TypeRefinement
+    
     abstract fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean
-    @TypeRefinement
+    
     abstract fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassifierDescriptor, compute: () -> S): S
     
     /**
@@ -67,50 +67,50 @@ abstract class CangJieTypeRefiner : AbstractTypeRefiner(){
      * @param enumType 要精化的枚举类型
      * @return 精化后的枚举类型
      */
-    @TypeRefinement
+    
     abstract fun refineEnumType(enumType: EnumType): EnumType
 
     object Default : CangJieTypeRefiner() {
-        @TypeRefinement
+        
         override fun refineType(type: CangJieTypeMarker): CangJieType = type as CangJieType
 
-        @TypeRefinement
+        
         override fun refineDescriptor(descriptor: DeclarationDescriptor): ClassifierDescriptor? {
             return null
 
         }
 //
-        @TypeRefinement
+        
         override fun refineSupertypes(classDescriptor: ClassifierDescriptorWithTypeConstructor): Collection<CangJieType> {
             return classDescriptor.typeConstructor.supertypes
         }
 //
-//        @TypeRefinement
+//        
 //        override fun refineDescriptor(descriptor: DeclarationDescriptor): ClassDescriptor? {
 //            return null
 //        }
 //
-//        @TypeRefinement
+//        
 //        override fun findClassAcrossModuleDependencies(classId: ClassId): ClassDescriptor? {
 //            return null
 //        }
 //
-        @TypeRefinement
+        
         override fun isRefinementNeededForModule(moduleDescriptor: ModuleDescriptor): Boolean {
             return false
         }
 
-        @TypeRefinement
+        
         override fun isRefinementNeededForTypeConstructor(typeConstructor: TypeConstructor): Boolean {
             return false
         }
 
-        @TypeRefinement
+        
         override fun <S : MemberScope> getOrPutScopeForClass(classDescriptor: ClassifierDescriptor, compute: () -> S): S {
             return compute()
         }
         
-        @TypeRefinement
+        
         override fun refineEnumType(enumType: EnumType): EnumType {
             return enumType
         }

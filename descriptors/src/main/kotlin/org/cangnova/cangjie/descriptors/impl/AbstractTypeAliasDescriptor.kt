@@ -100,7 +100,7 @@ abstract class AbstractTypeAliasDescriptor(
 
     protected abstract fun getTypeConstructorTypeParameters(): List<TypeParameterDescriptor>
 
-    @OptIn(TypeRefinement::class)
+    
     protected fun computeDefaultType(): SimpleType =
         TypeUtils.makeUnsubstitutedType(
             this,
@@ -133,9 +133,9 @@ abstract class AbstractTypeAliasDescriptor(
 
         override fun toString(): String = "[typealias ${declarationDescriptor.name.asString()}]"
 
-        // There must be @TypeRefinement, but there is a bug with anonymous objects and experimental annotations
+        // There must be , but there is a bug with anonymous objects and experimental annotations
 
-        @OptIn(TypeRefinement::class)
+        
         override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
     }
 }

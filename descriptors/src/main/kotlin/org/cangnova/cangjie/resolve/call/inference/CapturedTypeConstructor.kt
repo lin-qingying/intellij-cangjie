@@ -108,7 +108,7 @@ class CapturedTypeConstructorImpl(
 
     override val builtIns: CangJieBuiltIns
         get() =  projection.type.constructor.builtIns
-    @TypeRefinement
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
         CapturedTypeConstructorImpl(projection.refine(cangjieTypeRefiner))
 }
@@ -130,7 +130,7 @@ class CapturedType(
             throwExceptions = true
         )
 
-    @TypeRefinement
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner) =
         CapturedType(typeProjection.refine(cangjieTypeRefiner), constructor, isOption, attributes)
 

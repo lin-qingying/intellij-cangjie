@@ -175,7 +175,6 @@ allprojects {
     intellijPlatform {
 
 
-
     }
     sourceSets {
         main {
@@ -273,7 +272,6 @@ allprojects {
             include("**/*Tests.class")
             include("**/*Spec.class")
         }
-
 
 
     }
@@ -389,11 +387,6 @@ project(":plugin") {
     tasks {
         patchPluginXml {
 
-
-//            sinceBuild.set(ideVersion)
-//            untilBuild.set("$ideVersion.*")
-//            pluginVersion.set(cangjiePluginVersion)
-//
             sinceBuild.set(prop("sinceBuild"))
             val untilBuildValue = prop("untilBuild")
             if (untilBuildValue.isNotEmpty()) {
@@ -427,26 +420,83 @@ project(":plugin") {
             dependsOn(mergePluginJarTask)
 
             jvmArgs(
-                // 内存配置（确保-Xmx参数不被后续覆盖）
-                "-Xms512m",  // 初始堆内存
-                "-Xmx2048m", // 最大堆内存（根据物理内存调整）
+                // ===== 内存配置 =====
+                "-Xms512m",
+                "-Xmx2048m",
+                "-XX:ReservedCodeCacheSize=512m",
+                "-XX:MaxMetaspaceSize=512m",
 
-                // G1垃圾收集器优化（合并重复参数）
+                // ===== G1 垃圾收集器 =====
                 "-XX:+UseG1GC",
                 "-XX:G1HeapRegionSize=16m",
                 "-XX:G1ReservePercent=20",
                 "-XX:InitiatingHeapOccupancyPercent=35",
-                "-XX:SoftRefLRUPolicyMSPerMB=50", // Soft引用缓存策略
+                "-XX:SoftRefLRUPolicyMSPerMB=50",
 
-                // IDE性能参数（合并重复项）
-                "-Didea.auto.reload.plugins=false", // 禁用插件自动重载
-                "-Dide.show.tips.on.startup.default.value=false", // 禁用启动提示
+                // ===== 远程调试（添加这个！）=====
+                "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005",
 
-                // 内存溢出处理
-//                "-XX:+HeapDumpOnOutOfMemoryError", // 启用堆转储
-//                "-XX:HeapDumpPath=${buildDir}/heapDumps.hprof" // 转储文件路径
+                // ===== 禁用优化（关键 - 解决"非原生帧"问题）=====
+                "-Xint",                              // 解释模式（完全禁用JIT）
+                "-XX:TieredStopAtLevel=1",           // 只使用 C1 编译器
+                "-XX:-Inline",                        // 禁用方法内联
+                "-XX:MaxInlineLevel=0",              //  内联深度为 0
+                "-XX:InlineSmallCode=0",             //  不内联小方法
+                "-XX:CompileThreshold=100000",       //  提高 JIT 编译阈值（改为更大的值）
+
+                // ===== 完整堆栈跟踪=====
+                "-XX:-OmitStackTraceInFastThrow",    //  不省略快速抛出的堆栈
+
+                // ===== 调试信息保留 =====
+                "-XX:+UnlockDiagnosticVMOptions",    //  解锁诊断选项
+                "-XX:+DebugNonSafepoints",           //  在非安全点也生成调试信息
+
+                // ===== 断言 =====
+                "-ea",
+                "-esa",
+
+                // ===== 类加载调试 =====
+//                "-verbose:class",
+//                "-XX:+TraceClassLoading",
+//                "-XX:+TraceClassUnloading",
+
+                // ===== JNI 检查 =====
+//                "-Xcheck:jni",                       //  JNI 调用检查
+
+                // ===== Kotlin 协程调试 =====
+                "-Dkotlinx.coroutines.debug=on",
+                "-Dkotlinx.coroutines.stacktrace.recovery=true",
+                "-Dkotlinx.coroutines.scheduler.core.pool.size=4",
+
+                // ===== Kotlin 反射 =====
+                "-Dkotlin.reflect.full.enabled=true",
+
+                // ===== Kotlin 编译器 =====
+                "-Dkotlin.compiler.incremental=false",
+
+                // ===== IntelliJ IDEA 调试模式 =====
+                "-Didea.is.internal=true",           //  启用内部模式
+                "-Didea.debug.mode=true",            //  调试模式
+                "-Didea.ProcessCanceledException=disabled",  //  禁用 PCE
+                "-Didea.fatal.error.notification=disabled",  //  禁用致命错误通知
+
+                // ===== 日志和诊断 =====
+                "-Didea.log.debug.categories=#org.cangnova.cangjie",
+                "-Didea.log.startup.performance=true",  //  启动性能日志
+
+                // ===== IDE 性能参数 =====
+                "-Didea.auto.reload.plugins=false",
+                "-Dide.show.tips.on.startup.default.value=false",
+
+                // ===== 内存溢出处理（可选，根据需要取消注释）=====
+                // "-XX:+HeapDumpOnOutOfMemoryError",
+                // "-XX:HeapDumpPath=${buildDir}/heapDumps/",
+
+                // ===== 其他辅助参数 =====
+                "-Dfile.encoding=UTF-8",             //  文件编码
+                "-Djdk.attach.allowAttachSelf=true", //  允许自附加
+                "-Dsun.io.useCanonCaches=false",     //  禁用文件缓存
             )
-//            jvmArgs("-Xmx768m", "-XX:+UseG1GC", "-XX:SoftRefLRUPolicyMSPerMB=50")
         }
         prepareSandbox {
             finalizedBy(mergePluginJarTask)
@@ -468,8 +518,7 @@ project(":plugin") {
             channels.set(props("channel").map { listOf(it) })
 
             archiveFile.set(
-                project(":plugin").
-                layout.buildDirectory.file(
+                project(":plugin").layout.buildDirectory.file(
                     "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
                 ),
             )
@@ -480,8 +529,7 @@ project(":plugin") {
             //           先构建
             dependsOn(":plugin:buildPlugin")
             archiveFile.set(
-                project(":plugin").
-                layout.buildDirectory.file(
+                project(":plugin").layout.buildDirectory.file(
                     "distributions/$basePluginArchiveName-$cangjiePluginVersion.zip",
                 ),
             )
@@ -497,7 +545,7 @@ project(":") {
 
     dependencies {
 
-        intellijPlatform{
+        intellijPlatform {
             bundledPlugins(tomlPlugin, copyright, jsonPlugin)
         }
         implementation(project(":common"))

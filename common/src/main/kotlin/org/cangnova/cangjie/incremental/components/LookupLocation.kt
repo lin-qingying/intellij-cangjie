@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ data class Position(val line: Int, val column: Int) : Serializable {
 
 enum class NoLookupLocation : LookupLocation {
     FROM_PACKAGE,
-                                             FROM_LIBRARY,
+    FROM_LIBRARY,
     FROM_IDE,
     FROM_BACKEND,
     FROM_TEST,
@@ -61,6 +61,7 @@ enum class NoLookupLocation : LookupLocation {
     MATCH_GET_DECLARATION_SCOPE,
     MATCH_RESOLVING_DEFAULT_TYPE_ARGUMENTS,
     FOR_ALREADY_TRACKED,
+
     // TODO replace with real location (e.g. FROM_IDE) where it possible
     MATCH_GET_ALL_DESCRIPTORS,
     MATCH_TYPING,

@@ -29,6 +29,7 @@ import org.cangnova.cangjie.descriptors.SupertypeLoopChecker
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.builtIns
+import org.cangnova.cangjie.resolve.extend.ExtendManager
 import org.cangnova.cangjie.storage.StorageManager
 
 class ClassTypeConstructorImpl(
@@ -53,7 +54,7 @@ class ClassTypeConstructorImpl(
         // Note: current TypeConstructor API doesn't provide concrete type arguments here;
         // pass parameter default types as a conservative approximation.
         val module = declarationDescriptor.builtIns.builtInsModule
-        val mgr = module.getCapability(org.cangnova.cangjie.resolve.extend.ExtendManager.CAPABILITY)
+        val mgr = module.getCapability( ExtendManager.CAPABILITY)
             ?: return emptyList()
         val args = parameters.map { it.defaultType }
         return mgr.getExtendSupertypes(this, args, extendId)

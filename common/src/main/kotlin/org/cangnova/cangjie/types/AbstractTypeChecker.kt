@@ -887,7 +887,7 @@ open class TypeCheckerState(
         supertypesLocked = false
     }
 
-    @OptIn(TypeRefinement::class)
+
     fun refineType(type: CangJieTypeMarker): CangJieTypeMarker {
         return cangjieTypeRefiner.refineType(type)
     }

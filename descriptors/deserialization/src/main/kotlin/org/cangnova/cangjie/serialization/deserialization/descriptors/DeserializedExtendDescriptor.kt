@@ -78,7 +78,7 @@ class DeserializedExtendDescriptor(
             )
         }
         private val refinedSupertypes = c.storageManager.createLazyValue {
-            @OptIn(TypeRefinement::class)
+
             this@DeserializedExtendDescriptor.superTypes
         }
 

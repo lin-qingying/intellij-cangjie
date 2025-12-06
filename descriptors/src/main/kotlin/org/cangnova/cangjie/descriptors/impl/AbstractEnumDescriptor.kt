@@ -85,7 +85,7 @@ abstract class AbstractEnumDescriptor(
         _defaultType()
     }
 
-    @OptIn(TypeRefinement::class)
+    
     protected val _defaultType: NotNullLazyValue<SimpleType> = storageManager.createLazyValue {
         makeUnsubstitutedType(
             this, unsubstitutedMemberScope,
@@ -112,7 +112,7 @@ abstract class AbstractEnumDescriptor(
         )
     }
 
-    @OptIn(TypeRefinement::class)
+    
     override val unsubstitutedMemberScope: MemberScope
         get() = getUnsubstitutedMemberScope(DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
 

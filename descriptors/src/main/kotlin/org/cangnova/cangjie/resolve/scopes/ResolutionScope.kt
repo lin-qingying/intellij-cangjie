@@ -32,6 +32,116 @@ import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
 
+/**
+ * 解析作用域接口 - 仓颉语言符号解析系统的核心抽象
+ *
+ * 该接口定义了符号解析的基础能力，是仓颉语言类型系统和名称解析机制的关键组件。
+ * 作用域（Scope）表示一个可以查找声明符号（如类、函数、变量等）的命名空间环境。
+ *
+ * ## 核心职责
+ *
+ * 1. **符号查找**: 根据名称查找各类符号描述符（分类器、函数、变量、属性等）
+ * 2. **包管理**: 支持包视图和完全限定名的查找
+ * 3. **序列化支持**: 提供基于索引和导出ID的反序列化查找
+ * 4. **弃用处理**: 区分普通符号和弃用符号的查找
+ * 5. **查找记录**: 支持增量编译的查找位置记录
+ *
+ * ## 架构层次
+ *
+ * ```
+ * ResolutionScope (基础接口)
+ *   ↓
+ * MemberScope (成员作用域 - 添加名称集合属性)
+ *   ↓
+ * MemberScopeImpl (抽象基类 - 提供默认实现)
+ *   ↓
+ * 各种具体作用域实现:
+ *   - ChainedMemberScope (链式组合作用域)
+ *   - SubstitutingScope (类型替换作用域)
+ *   - StaticMemberScope (静态成员作用域)
+ *   - InstanceMemberScope (实例成员作用域)
+ *   - BuiltInsMemberScope (内置类型作用域)
+ *   - ErrorScope (错误恢复作用域)
+ *   等等...
+ * ```
+ *
+ * ## 使用场景
+ *
+ * 1. **类型解析**: 在类型检查时解析类型引用
+ * 2. **名称解析**: 在代码分析时解析标识符引用
+ * 3. **代码补全**: 在IDE中提供符号补全建议
+ * 4. **重构支持**: 在重命名等重构操作中查找符号使用
+ * 5. **导航功能**: 在跳转定义、查找引用等功能中定位符号
+ *
+ * ## 设计原则
+ *
+ * - **懒加载**: 查找操作应尽可能延迟计算，避免不必要的性能开销
+ * - **缓存友好**: 实现应考虑与 IntelliJ 的缓存系统（如 CachedValuesManager）集成
+ * - **不可变性**: 作用域应是不可变的，其内容由其包含的描述符决定
+ * - **增量支持**: 通过 [recordLookup] 支持增量编译的依赖追踪
+ *
+ * ## 查找语义
+ *
+ * ### 单一符号查找
+ * - [getContributedClassifier]: 返回第一个匹配的非弃用分类器
+ * - [getContributedPackageView]: 返回第一个匹配的包视图
+ *
+ * ### 多符号收集
+ * - [getContributedFunctions]: 收集所有同名函数（支持重载）
+ * - [getContributedVariables]: 收集所有同名变量
+ * - [getContributedPropertys]: 收集所有同名属性
+ * - [getContributedDescriptors]: 根据类型和名称过滤器收集所有符号
+ *
+ * ### 弃用处理
+ * - 默认查找方法返回非弃用符号
+ * - `IncludeDeprecated` 后缀的方法返回包括弃用符号的结果
+ * - 弃用信息通过 [DescriptorWithDeprecation] 包装
+ *
+ * ## 反序列化支持
+ *
+ * 编译后的元数据通过索引或导出ID引用符号，相关方法支持从元数据反序列化：
+ * - [getContributedClassifierByIndex]: 通过数字索引查找（用于紧凑的二进制格式）
+ * - [getContributedClassifierByExportId]: 通过导出ID查找（用于跨模块引用）
+ *
+ * ## 增量编译支持
+ *
+ * - [recordLookup]: 记录查找操作，用于增量编译的依赖分析
+ * - [LookupLocation]: 标记查找发生的代码位置，用于精确的失效检测
+ *
+ * ## 性能优化建议
+ *
+ * 1. **使用 Stub 索引**: 对于文件级符号，通过 Stub 索引加速查找
+ * 2. **惰性计算**: 延迟构建作用域内容，直到真正需要时
+ * 3. **避免全量遍历**: 实现 [definitelyDoesNotContainName] 快速排除不存在的名称
+ * 4. **缓存策略**: 对于重复查找，使用 CachedValuesManager 缓存结果
+ *
+ * ## 示例
+ *
+ * ```kotlin
+ * // 在作用域中查找类
+ * val classDescriptor = scope.getContributedClassifier(
+ *     Name.identifier("MyClass"),
+ *     location
+ * )
+ *
+ * // 查找所有同名函数（支持重载）
+ * val functions = scope.getContributedFunctions(
+ *     Name.identifier("processData"),
+ *     location
+ * )
+ *
+ * // 过滤查找所有可调用符号
+ * val callables = scope.getContributedDescriptors(
+ *     kindFilter = DescriptorKindFilter.CALLABLES,
+ *     nameFilter = { it.asString().startsWith("get") }
+ * )
+ * ```
+ *
+ * @see MemberScope 扩展接口，添加名称集合访问能力
+ * @see LookupLocation 查找位置标记，用于增量编译
+ * @see DescriptorKindFilter 描述符类型过滤器
+ * @see DescriptorWithDeprecation 包含弃用信息的描述符包装
+ */
 interface ResolutionScope {
     /**
      * 获取非弃用的分类器

@@ -96,7 +96,7 @@ class LazySubstitutingEnumDescriptor(
     }
 
 
-    @OptIn(TypeRefinement::class)
+    
     override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
         return getMemberScope(
             typeArguments, DescriptorUtils.getContainingModule(
@@ -108,7 +108,7 @@ class LazySubstitutingEnumDescriptor(
 
     }
 
-    @OptIn(TypeRefinement::class)
+    
     override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
         return getMemberScope(
             typeSubstitution, DescriptorUtils.getContainingModule(
@@ -130,7 +130,7 @@ class LazySubstitutingEnumDescriptor(
         return SubstitutingScope(memberScope, getSubstitutor())
     }
 
-    @OptIn(TypeRefinement::class)
+    
 
 
     override val unsubstitutedMemberScope: MemberScope
