@@ -28,6 +28,16 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+
+/**
+ * 根据类名查找指定类型的父元素
+ *
+ * 从当前元素向上遍历父元素链，查找第一个类名匹配的元素。
+ * 支持通过类名字符串匹配，会检查类本身、父类和接口。
+ *
+ * @param psiClassNames 要匹配的 PSI 类名列表（简单类名，非全限定名）
+ * @return 找到的父元素，如果未找到或到达文件根节点则返回 null
+ */
 private fun PsiElement.parentOfType(vararg psiClassNames: String): PsiElement? {
     fun acceptsClass(javaClass: Class<*>): Boolean {
         if (javaClass.simpleName in psiClassNames) return true
@@ -41,17 +51,39 @@ private fun PsiElement.parentOfType(vararg psiClassNames: String): PsiElement? {
         .filter { it !is PsiFile }
         .firstOrNull { acceptsClass(it::class.java) }
 }
+
+/**
+ * 获取元素的文本内容及其上下文信息
+ *
+ * 用于调试和日志输出，将 PSI 元素以带标签的形式嵌入其上下文中显示。
+ * 上下文优先级：导入项 > 包声明 > 声明体 > 属性 > 文件
+ *
+ * 输出格式示例：
+ * ```
+ * <File name: example.cj, Physical: true>
+ * func foo() {
+ *     <ELEMENT>bar</ELEMENT>
+ * }
+ * ```
+ *
+ * @param psiElement 要获取上下文的 PSI 元素
+ * @return 包含文件信息和带标记元素的上下文文本，如果元素无效则返回错误提示
+ */
 fun getElementTextWithContext(psiElement: PsiElement): String {
     if (!psiElement.isValid) return "<invalid element $psiElement>"
 
     @Suppress("LocalVariableName")
     val ELEMENT_TAG = "ELEMENT"
     val containingFile = psiElement.containingFile
+
+    // 按优先级查找最近的上下文容器
     val context = psiElement.parentOfType("CjImportDirectiveItem")
         ?: psiElement.parentOfType("CjPackageDirective")
         ?: psiElement.parentOfType("CjDeclarationWithBody")
         ?: psiElement.parentOfType("CjProperty")
         ?: containingFile
+
+    // 遍历上下文，用标签包裹目标元素
     val elementTextInContext = buildString {
         context.accept(object : PsiElementVisitor() {
             override fun visitElement(element: PsiElement) {
