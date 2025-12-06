@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 LinQingYing. and contributors.
+ * Copyright 2025 LinQingYing. and contributors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,46 @@ object StandardNames {
     val AST_PACKAGE_NAME = Name.identifier("ast")
 
     val SYNC_PACKAGE_NAME = Name.identifier("sync")
+    val ARGOPT_PACKAGE_NAME = Name.identifier("argopt")
+    val BINARY_PACKAGE_NAME = Name.identifier("binary")
+    val COLLECTION_PACKAGE_NAME = Name.identifier("collection")
+    val CONCURRENT_PACKAGE_NAME = Name.identifier("concurrent")
+    val CONSOLE_PACKAGE_NAME = Name.identifier("console")
+    val CONVERT_PACKAGE_NAME = Name.identifier("convert")
+    val DATABASE_PACKAGE_NAME = Name.identifier("database")
+    val SQL_PACKAGE_NAME = Name.identifier("sql")
+    val DERIVING_PACKAGE_NAME = Name.identifier("deriving")
+    val API_PACKAGE_NAME = Name.identifier("api")
+    val BUILTINS_PACKAGE_NAME = Name.identifier("builtins")
+    val IMPL_PACKAGE_NAME = Name.identifier("impl")
+    val RESOLVE_PACKAGE_NAME = Name.identifier("resolve")
+    val ENV_PACKAGE_NAME = Name.identifier("env")
+    val FS_PACKAGE_NAME = Name.identifier("fs")
+    val IO_PACKAGE_NAME = Name.identifier("io")
+    val MATH_PACKAGE_NAME = Name.identifier("math")
+    val NUMERIC_PACKAGE_NAME = Name.identifier("numeric")
+    val OBJECTPOOL_PACKAGE_NAME = Name.identifier("objectpool")
+    val OVERFLOW_PACKAGE_NAME = Name.identifier("overflow")
+    val POSIX_PACKAGE_NAME = Name.identifier("posix")
+    val PROCESS_PACKAGE_NAME = Name.identifier("process")
+    val RANDOM_PACKAGE_NAME = Name.identifier("random")
+    val REF_PACKAGE_NAME = Name.identifier("ref")
+    val REFLECT_PACKAGE_NAME = Name.identifier("reflect")
+    val REGEX_PACKAGE_NAME = Name.identifier("regex")
+    val RUNTIME_PACKAGE_NAME = Name.identifier("runtime")
+    val SORT_PACKAGE_NAME = Name.identifier("sort")
+    val TIME_PACKAGE_NAME = Name.identifier("time")
+    val UNICODE_PACKAGE_NAME = Name.identifier("unicode")
+    val UNITTEST_PACKAGE_NAME = Name.identifier("unittest")
+    val COMMON_PACKAGE_NAME = Name.identifier("common")
+    val DIFF_PACKAGE_NAME = Name.identifier("diff")
+    val MOCK_PACKAGE_NAME = Name.identifier("mock")
+    val INTERNAL_PACKAGE_NAME = Name.identifier("internal")
+    val MOCKMACRO_PACKAGE_NAME = Name.identifier("mockmacro")
+    val PROP_TEST_PACKAGE_NAME = Name.identifier("prop_test")
+    val TESTMACRO_PACKAGE_NAME = Name.identifier("testmacro")
+    val CIPHER_PACKAGE_NAME = Name.identifier("cipher")
+    val DIGEST_PACKAGE_NAME = Name.identifier("digest")
 
     val COMPRESS_PACKAGE_NAME = Name.identifier("compress")
 
@@ -98,17 +138,141 @@ object StandardNames {
     @JvmField
     val SERIALIZATION_PACKAGE_FQ_NAME = FqName.topLevel(SERIALIZATION_PACKAGE_NAME)
 
+    // std.* 子包 FqNames
     @JvmField
-    val STD_SYNC_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("sync"))
+    val STD_ARGOPT_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(ARGOPT_PACKAGE_NAME)
 
     @JvmField
-    val STD_AST_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("ast"))
+    val STD_AST_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(AST_PACKAGE_NAME)
 
     @JvmField
-    val STD_CORE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("core"))
+    val STD_BINARY_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(BINARY_PACKAGE_NAME)
 
     @JvmField
-    val STD_COLLECTION_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(Name.identifier("collection"))
+    val STD_COLLECTION_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(COLLECTION_PACKAGE_NAME)
+
+    @JvmField
+    val STD_COLLECTION_CONCURRENT_PACKAGE_FQ_NAME = STD_COLLECTION_PACKAGE_FQ_NAME.child(CONCURRENT_PACKAGE_NAME)
+
+    @JvmField
+    val STD_CONSOLE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(CONSOLE_PACKAGE_NAME)
+
+    @JvmField
+    val STD_CONVERT_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(CONVERT_PACKAGE_NAME)
+
+    @JvmField
+    val STD_CORE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(CORE_PACKAGE_NAME)
+
+    @JvmField
+    val STD_CRYPTO_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(CRYPTO_PACKAGE_NAME)
+
+    @JvmField
+    val STD_CRYPTO_CIPHER_PACKAGE_FQ_NAME = STD_CRYPTO_PACKAGE_FQ_NAME.child(CIPHER_PACKAGE_NAME)
+
+    @JvmField
+    val STD_CRYPTO_DIGEST_PACKAGE_FQ_NAME = STD_CRYPTO_PACKAGE_FQ_NAME.child(DIGEST_PACKAGE_NAME)
+
+    @JvmField
+    val STD_DATABASE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(DATABASE_PACKAGE_NAME)
+
+    @JvmField
+    val STD_DATABASE_SQL_PACKAGE_FQ_NAME = STD_DATABASE_PACKAGE_FQ_NAME.child(SQL_PACKAGE_NAME)
+
+    @JvmField
+    val STD_DERIVING_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(DERIVING_PACKAGE_NAME)
+
+    @JvmField
+    val STD_DERIVING_API_PACKAGE_FQ_NAME = STD_DERIVING_PACKAGE_FQ_NAME.child(API_PACKAGE_NAME)
+
+    @JvmField
+    val STD_DERIVING_BUILTINS_PACKAGE_FQ_NAME = STD_DERIVING_PACKAGE_FQ_NAME.child(BUILTINS_PACKAGE_NAME)
+
+    @JvmField
+    val STD_DERIVING_IMPL_PACKAGE_FQ_NAME = STD_DERIVING_PACKAGE_FQ_NAME.child(IMPL_PACKAGE_NAME)
+
+    @JvmField
+    val STD_DERIVING_RESOLVE_PACKAGE_FQ_NAME = STD_DERIVING_PACKAGE_FQ_NAME.child(RESOLVE_PACKAGE_NAME)
+
+    @JvmField
+    val STD_ENV_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(ENV_PACKAGE_NAME)
+
+    @JvmField
+    val STD_FS_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(FS_PACKAGE_NAME)
+
+    @JvmField
+    val STD_IO_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(IO_PACKAGE_NAME)
+
+    @JvmField
+    val STD_MATH_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(MATH_PACKAGE_NAME)
+
+    @JvmField
+    val STD_MATH_NUMERIC_PACKAGE_FQ_NAME = STD_MATH_PACKAGE_FQ_NAME.child(NUMERIC_PACKAGE_NAME)
+
+    @JvmField
+    val STD_NET_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(NET_PACKAGE_NAME)
+
+    @JvmField
+    val STD_OBJECTPOOL_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(OBJECTPOOL_PACKAGE_NAME)
+
+    @JvmField
+    val STD_OVERFLOW_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(OVERFLOW_PACKAGE_NAME)
+
+    @JvmField
+    val STD_POSIX_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(POSIX_PACKAGE_NAME)
+
+    @JvmField
+    val STD_PROCESS_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(PROCESS_PACKAGE_NAME)
+
+    @JvmField
+    val STD_RANDOM_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(RANDOM_PACKAGE_NAME)
+
+    @JvmField
+    val STD_REF_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(REF_PACKAGE_NAME)
+
+    @JvmField
+    val STD_REFLECT_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(REFLECT_PACKAGE_NAME)
+
+    @JvmField
+    val STD_REGEX_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(REGEX_PACKAGE_NAME)
+
+    @JvmField
+    val STD_RUNTIME_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(RUNTIME_PACKAGE_NAME)
+
+    @JvmField
+    val STD_SORT_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(SORT_PACKAGE_NAME)
+
+    @JvmField
+    val STD_SYNC_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(SYNC_PACKAGE_NAME)
+
+    @JvmField
+    val STD_TIME_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(TIME_PACKAGE_NAME)
+
+    @JvmField
+    val STD_UNICODE_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(UNICODE_PACKAGE_NAME)
+
+    @JvmField
+    val STD_UNITTEST_PACKAGE_FQ_NAME = STD_PACKAGE_FQ_NAME.child(UNITTEST_PACKAGE_NAME)
+
+    @JvmField
+    val STD_UNITTEST_COMMON_PACKAGE_FQ_NAME = STD_UNITTEST_PACKAGE_FQ_NAME.child(COMMON_PACKAGE_NAME)
+
+    @JvmField
+    val STD_UNITTEST_DIFF_PACKAGE_FQ_NAME = STD_UNITTEST_PACKAGE_FQ_NAME.child(DIFF_PACKAGE_NAME)
+
+    @JvmField
+    val STD_UNITTEST_MOCK_PACKAGE_FQ_NAME = STD_UNITTEST_PACKAGE_FQ_NAME.child(MOCK_PACKAGE_NAME)
+
+    @JvmField
+    val STD_UNITTEST_MOCK_INTERNAL_PACKAGE_FQ_NAME = STD_UNITTEST_MOCK_PACKAGE_FQ_NAME.child(INTERNAL_PACKAGE_NAME)
+
+    @JvmField
+    val STD_UNITTEST_MOCK_MOCKMACRO_PACKAGE_FQ_NAME = STD_UNITTEST_MOCK_PACKAGE_FQ_NAME.child(MOCKMACRO_PACKAGE_NAME)
+
+    @JvmField
+    val STD_UNITTEST_PROP_TEST_PACKAGE_FQ_NAME = STD_UNITTEST_PACKAGE_FQ_NAME.child(PROP_TEST_PACKAGE_NAME)
+
+    @JvmField
+    val STD_UNITTEST_TESTMACRO_PACKAGE_FQ_NAME = STD_UNITTEST_PACKAGE_FQ_NAME.child(TESTMACRO_PACKAGE_NAME)
 
     @JvmField
     val NOTHING = Name.identifier("Nothing")
@@ -557,20 +721,71 @@ object StandardNames {
     private fun namesToSetOf(): Set<FqName> {
         val set = mutableSetOf<FqName>()
         set.add(BASIC_PACKAGE_FQ_NAME)
+
+        // std 主包
         set.add(STD_PACKAGE_FQ_NAME)
 
-        set.add(STD_CORE_PACKAGE_FQ_NAME)
-        set.add(STD_COLLECTION_PACKAGE_FQ_NAME)
+        // std.* 一级子包
+        set.add(STD_ARGOPT_PACKAGE_FQ_NAME)
         set.add(STD_AST_PACKAGE_FQ_NAME)
+        set.add(STD_BINARY_PACKAGE_FQ_NAME)
+        set.add(STD_COLLECTION_PACKAGE_FQ_NAME)
+        set.add(STD_CONSOLE_PACKAGE_FQ_NAME)
+        set.add(STD_CONVERT_PACKAGE_FQ_NAME)
+        set.add(STD_CORE_PACKAGE_FQ_NAME)
+        set.add(STD_CRYPTO_PACKAGE_FQ_NAME)
+        set.add(STD_DATABASE_PACKAGE_FQ_NAME)
+        set.add(STD_DERIVING_PACKAGE_FQ_NAME)
+        set.add(STD_ENV_PACKAGE_FQ_NAME)
+        set.add(STD_FS_PACKAGE_FQ_NAME)
+        set.add(STD_IO_PACKAGE_FQ_NAME)
+        set.add(STD_MATH_PACKAGE_FQ_NAME)
+        set.add(STD_NET_PACKAGE_FQ_NAME)
+        set.add(STD_OBJECTPOOL_PACKAGE_FQ_NAME)
+        set.add(STD_OVERFLOW_PACKAGE_FQ_NAME)
+        set.add(STD_POSIX_PACKAGE_FQ_NAME)
+        set.add(STD_PROCESS_PACKAGE_FQ_NAME)
+        set.add(STD_RANDOM_PACKAGE_FQ_NAME)
+        set.add(STD_REF_PACKAGE_FQ_NAME)
+        set.add(STD_REFLECT_PACKAGE_FQ_NAME)
+        set.add(STD_REGEX_PACKAGE_FQ_NAME)
+        set.add(STD_RUNTIME_PACKAGE_FQ_NAME)
+        set.add(STD_SORT_PACKAGE_FQ_NAME)
         set.add(STD_SYNC_PACKAGE_FQ_NAME)
+        set.add(STD_TIME_PACKAGE_FQ_NAME)
+        set.add(STD_UNICODE_PACKAGE_FQ_NAME)
+        set.add(STD_UNITTEST_PACKAGE_FQ_NAME)
 
-//        set.add(STD_CORE_PACKAGE_FQ_NAME)
+        // std.collection.* 子包
+        set.add(STD_COLLECTION_CONCURRENT_PACKAGE_FQ_NAME)
 
-//        STDLIB_PACKAGE_FQ_NAMES.map {
-//            set.add(it)
-//
-//
-//        }
+        // std.crypto.* 子包
+        set.add(STD_CRYPTO_CIPHER_PACKAGE_FQ_NAME)
+        set.add(STD_CRYPTO_DIGEST_PACKAGE_FQ_NAME)
+
+        // std.database.* 子包
+        set.add(STD_DATABASE_SQL_PACKAGE_FQ_NAME)
+
+        // std.deriving.* 子包
+        set.add(STD_DERIVING_API_PACKAGE_FQ_NAME)
+        set.add(STD_DERIVING_BUILTINS_PACKAGE_FQ_NAME)
+        set.add(STD_DERIVING_IMPL_PACKAGE_FQ_NAME)
+        set.add(STD_DERIVING_RESOLVE_PACKAGE_FQ_NAME)
+
+        // std.math.* 子包
+        set.add(STD_MATH_NUMERIC_PACKAGE_FQ_NAME)
+
+        // std.unittest.* 子包
+        set.add(STD_UNITTEST_COMMON_PACKAGE_FQ_NAME)
+        set.add(STD_UNITTEST_DIFF_PACKAGE_FQ_NAME)
+        set.add(STD_UNITTEST_MOCK_PACKAGE_FQ_NAME)
+        set.add(STD_UNITTEST_PROP_TEST_PACKAGE_FQ_NAME)
+        set.add(STD_UNITTEST_TESTMACRO_PACKAGE_FQ_NAME)
+
+        // std.unittest.mock.* 子包
+        set.add(STD_UNITTEST_MOCK_INTERNAL_PACKAGE_FQ_NAME)
+        set.add(STD_UNITTEST_MOCK_MOCKMACRO_PACKAGE_FQ_NAME)
+
         return set
     }
 
