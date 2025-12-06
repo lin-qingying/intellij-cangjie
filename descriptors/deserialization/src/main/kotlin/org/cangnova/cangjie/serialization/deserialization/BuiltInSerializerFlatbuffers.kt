@@ -58,16 +58,77 @@ object BuiltInSerializerFlatbuffers : SerializerExtensionFlatbuffers() {
     /**
      * 获取内置类型的序列化文件路径
      *
+     * 尝试多种可能的路径：
+     * 1. 使用父包作为目录: std/collection/std.collection.concurrent.cjo
+     * 2. 使用顶级包作为目录: std/std.collection.concurrent.cjo
+     * 3. 在SDK目录下搜索文件名
+     *
      * @param fqName 完全限定名
-     * @return 序列化文件路径，如果SDK未配置则返回null
+     * @param sdk SDK实例
+     * @return 序列化文件路径，如果SDK未配置或文件不存在则返回null
      */
     fun getBuiltInsFilePath(fqName: FqName, sdk: CjSdk?): String? {
         val prefix = getPrefix(sdk) ?: return null
-        return prefix + fqName.parent().asString() + if (fqName.parent().asString().isEmpty()) {
-            ""
+        val fileName = getBuiltInsFileName(fqName)
+
+        // 尝试路径1: 使用父包作为目录 (例如: std/collection/std.collection.concurrent.cjo)
+        val parentPath = fqName.parent().asString()
+        val path1 = if (parentPath.isEmpty()) {
+            prefix + fileName
         } else {
-            File.separator
-        } + getBuiltInsFileName(fqName)
+            prefix + parentPath.replace('.', File.separatorChar) + File.separator + fileName
+        }
+
+        if (File(path1).exists()) {
+            return path1
+        }
+
+        // 尝试路径2: 使用顶级包作为目录 (例如: std/std.collection.concurrent.cjo)
+        val segments = fqName.pathSegments()
+        if (segments.isNotEmpty()) {
+            val topLevelPackage = segments.first().asString()
+            val path2 = prefix + topLevelPackage + File.separator + fileName
+
+            if (File(path2).exists()) {
+                return path2
+            }
+        }
+
+        // 尝试路径3: 在SDK目录下搜索文件名
+        val prefixDir = File(prefix)
+        if (prefixDir.exists() && prefixDir.isDirectory) {
+            val foundFile = searchFileRecursively(prefixDir, fileName)
+            if (foundFile != null) {
+                return foundFile.absolutePath
+            }
+        }
+
+        // 都找不到，返回null
+        return null
+    }
+
+    /**
+     * 递归搜索文件
+     *
+     * @param directory 搜索的目录
+     * @param fileName 要搜索的文件名
+     * @return 找到的文件，如果未找到则返回null
+     */
+    private fun searchFileRecursively(directory: File, fileName: String): File? {
+        val files = directory.listFiles() ?: return null
+
+        for (file in files) {
+            if (file.isFile && file.name == fileName) {
+                return file
+            }
+            if (file.isDirectory) {
+                val found = searchFileRecursively(file, fileName)
+                if (found != null) {
+                    return found
+                }
+            }
+        }
+        return null
     }
 
     /**
@@ -76,12 +137,12 @@ object BuiltInSerializerFlatbuffers : SerializerExtensionFlatbuffers() {
      * @param fqName 完全限定名
      * @return 序列化文件名
      */
-    fun getBuiltInsFileName(fqName: FqName): String =
+    private fun getBuiltInsFileName(fqName: FqName): String =
         fqName.asString() + DOT_DEFAULT_EXTENSION
 
 
-    const val BUILTINS_FILE_EXTENSION = "cjo"
-    const val DOT_DEFAULT_EXTENSION = ".$BUILTINS_FILE_EXTENSION"
+    private const val BUILTINS_FILE_EXTENSION = "cjo"
+    private const val DOT_DEFAULT_EXTENSION = ".$BUILTINS_FILE_EXTENSION"
 
 
 }
