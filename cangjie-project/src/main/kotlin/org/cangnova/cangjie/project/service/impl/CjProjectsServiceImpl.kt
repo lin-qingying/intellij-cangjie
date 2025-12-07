@@ -32,7 +32,6 @@ import com.intellij.openapi.components.*
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker
 import com.intellij.openapi.fileTypes.FileTypeManager
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
@@ -44,7 +43,6 @@ import com.intellij.openapi.util.EmptyRunnable
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.util.Function
 import com.intellij.util.indexing.LightDirectoryIndex
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.project.*
@@ -204,28 +202,8 @@ class CjProjectsServiceImpl(
     /**
      * 当前仓颉项目的异步值持有者
      */
-    private val project = AsyncValue<CjProject>(noProjectMarker)
+    private val project = AsyncValue(noProjectMarker)
 
-    /**
-     * 目录索引，用于快速从VirtualFile映射到CjProject
-     * 这是一个轻量级的索引实现，支持快速查找文件所属的项目
-     */
-    private val directoryIndex: LightDirectoryIndex<CjProject> =
-        LightDirectoryIndex(intellijProject, noProjectMarker) { index ->
-            // 遍历所有项目，为每个项目的可索引目录建立映射
-
-            // 获取该项目对应的提供者
-            val provider = providerCache
-
-            // 使用提供者获取需要索引的目录列表
-            val directories = provider.getIndexableDirectories(cjProject)
-
-            // 为每个目录建立到项目的映射
-            directories.forEach { dir ->
-                index.putInfo(dir, cjProject)
-            }
-
-        }
 
 
     /**
@@ -278,17 +256,7 @@ class CjProjectsServiceImpl(
             subscribe(
                 ModuleListener.TOPIC,
                 object : ModuleListener {
-                    override fun moduleRemoved(project: Project, module: Module) {
-                        super.moduleRemoved(project, module)
-                    }
 
-                    override fun modulesRenamed(
-                        project: Project,
-                        modules: List<Module>,
-                        oldNameProvider: Function<in Module, String?>
-                    ) {
-                        super.modulesRenamed(project, modules, oldNameProvider)
-                    }
                 })
 
         }
@@ -393,7 +361,7 @@ class CjProjectsServiceImpl(
      * @param updater 更新函数，接收当前项目，返回包含更新后项目的 CompletableFuture
      * @return CompletableFuture，包含更新后的项目
      */
-    protected fun modifyProjectAsync(
+    private fun modifyProjectAsync(
         options: ModifyProjectsOptions = ModifyProjectsOptions.DEFAULT,
         updater: (CjProject) -> CompletableFuture<CjProject>
     ): CompletableFuture<CjProject> {
@@ -424,9 +392,9 @@ class CjProjectsServiceImpl(
                             }
 
                             // 重置索引
-                            if (options.resetIndices) {
-                                directoryIndex.resetIndex()
-                            }
+//                            if (options.resetIndices) {
+//                                directoryIndex.resetIndex()
+//                            }
 
                             // 更新项目根目录
                             if (options.updateRoots) {
@@ -443,10 +411,6 @@ class CjProjectsServiceImpl(
                             intellijProject.messageBus.syncPublisher(CANGJIE_PROJECTS_TOPIC)
                                 .cangjieProjectsUpdated(this, listOf(proj))
 
-                            // 发布项目更新事件（用于 UI 组件如 CjProjectToolWindow）
-//                            if (!options.lightweight) {
-//                                publishEvent(CjProjectEvent(proj, CjProjectEventType.UPDATED))
-//                            }
 
                             initialized = true
                         }
@@ -475,7 +439,7 @@ class CjProjectsServiceImpl(
      * @param updater 更新函数，接收当前项目，返回更新后的项目
      * @return 更新后的项目
      */
-    protected fun modifyProjectSync(
+    private fun modifyProjectSync(
         options: ModifyProjectsOptions = ModifyProjectsOptions.DEFAULT,
         updater: (CjProject) -> CjProject
     ): CjProject {
@@ -489,11 +453,10 @@ class CjProjectsServiceImpl(
      * 将异常转换为刷新状态
      */
     private fun Throwable.toRefreshStatus(): CjProjectsService.RefreshStatus {
-        return when {
-            this is ProcessCanceledException -> CjProjectsService.RefreshStatus.CANCEL
-            this is CompletionException && cause is ProcessCanceledException -> CjProjectsService.RefreshStatus.CANCEL
-            else ->
-                CjProjectsService.RefreshStatus.FAILURE
+        return when (this) {
+            is ProcessCanceledException -> CjProjectsService.RefreshStatus.CANCEL
+            is CompletionException if cause is ProcessCanceledException -> CjProjectsService.RefreshStatus.CANCEL
+            else -> CjProjectsService.RefreshStatus.FAILURE
         }
     }
 
@@ -507,23 +470,27 @@ class CjProjectsServiceImpl(
      * 3. 通过 modifyProjectSync 确保正确的事件发布和索引更新
      */
     override fun refreshProject() {
-
+        val startTime = System.currentTimeMillis()
         log.info("Refreshing project: ${cjProject.name}")
 
-        // 使用 modifyProjectSync 确保正确的事件发布和索引更新
-        modifyProjectSync(ModifyProjectsOptions.DEFAULT) { currentProject ->
-            // 使用 CangJieSyncTask 进行项目刷新，提供更好的进度显示和错误处理
-            val syncTask = CangJieSyncTask(intellijProject, {
-                publishEvent(CjProjectEvent(it, CjProjectEventType.CONFIG_CHANGED))
-            }
-            )
-            intellijProject.taskQueue.run(syncTask)
+        try {
+            // 使用 modifyProjectSync 确保正确的事件发布和索引更新
+            modifyProjectSync(ModifyProjectsOptions.DEFAULT) { currentProject ->
+                // 使用 CangJieSyncTask 进行项目刷新，提供更好的进度显示和错误处理
+                val syncTask = CangJieSyncTask(intellijProject) { syncedProject ->
+                    // 发布配置变更事件
+                    publishEvent(CjProjectEvent(syncedProject, CjProjectEventType.CONFIG_CHANGED))
 
-//            TODO 这里不在依赖lsp4ij插件，而是通过增加一个全局事件监听器，由lsp4ij模块监听重启
-//            val options: LanguageServerManager.StartOptions = LanguageServerManager.StartOptions()
-//            options.setForceRestart(true)
-//            LanguageServerManager.getInstance(intellijProject).start("CangJie", options);
-            currentProject
+                    // 发布同步完成事件，供 LSP 等服务监听并重启
+                    publishEvent(CjProjectEvent(syncedProject, CjProjectEventType.SYNCED))
+                }
+                intellijProject.taskQueue.run(syncTask)
+
+                currentProject
+            }
+        } finally {
+            val duration = System.currentTimeMillis() - startTime
+            log.info("Project refresh completed in ${duration}ms for project: ${cjProject.name}")
         }
     }
 
@@ -562,6 +529,7 @@ class CjProjectsServiceImpl(
             CjProjectEventType.UPDATED -> publisher.projectUpdated(event)
             CjProjectEventType.REMOVED -> publisher.projectRemoved(event)
             CjProjectEventType.CONFIG_CHANGED -> publisher.projectConfigChanged(event)
+            CjProjectEventType.SYNCED -> publisher.projectSynced(event)
         }
     }
 
@@ -629,13 +597,17 @@ class CjProjectsServiceImpl(
         val disableRefresh =
             System.getProperty(CANGJIE_DISABLE_PROJECT_REFRESH_ON_CREATION, "false").toBooleanStrictOrNull()
         if (disableRefresh != true && loadedProject != null) {
-            // 在后台线程执行项目刷新，避免阻塞 EDT
+            // 如果启用了新的项目模型导入，由 ExternalSystemProjectTracker 负责刷新
+            // 避免与 CangJieExternalSystemProjectAware 的自动刷新重复
+//            if (isNewProjectModelImportEnabled) {
+//                return
+//            }
 
+            // 在后台线程执行项目刷新，避免阻塞 EDT
             if (intellijProject.isDisposed) return
             // 再次检查，避免重复刷新
             if (loadedProject.isValid) {
                 refreshProject()
-
             }
         }
     }
