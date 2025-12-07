@@ -65,7 +65,7 @@ class CangJieSyncTask(
     project: Project,
 
 //    刷新完成回调
-    val onFinished: ((CjProject) -> Unit)  =   {
+    private val onFinished: ((CjProject) -> Unit)  =   {
 
     }
 ) : Task.Backgroundable(project, CjProjectBundle.message("progress.title.reloading.cangjie.project"), true),
@@ -132,13 +132,7 @@ class CangJieSyncTask(
         // 获取当前仓颉项目
         val cjProject = projectService.cjProject
 
-//        TODO 这应该是错误的
-//        if (!cjProject.isValid) {
-//            LOG.info("No CangJie project found to sync")
-//            indicator.text = CjProjectBundle.message("progress.text.no.projects.found")
-//            syncProgress.output(CjProjectBundle.message("progress.text.no.projects.found"), true)
-//            return
-//        }
+
 
         // 检查是否被取消
         indicator.checkCanceled()

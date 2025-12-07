@@ -54,7 +54,12 @@ enum class CjProjectEventType {
     /**
      * 项目配置变更
      */
-    CONFIG_CHANGED
+    CONFIG_CHANGED,
+
+    /**
+     * 项目同步完成（刷新成功）
+     */
+    SYNCED
 }
 
 /**

@@ -67,4 +67,12 @@ interface CjProjectListener : EventListener {
      * 项目配置变更时调用
      */
     fun projectConfigChanged(event: CjProjectEvent) {}
+
+    /**
+     * 项目同步完成时调用（刷新成功后）
+     *
+     * 该事件在项目刷新完成后触发，此时项目模型已更新，
+     * 依赖已解析，可以安全地重启依赖项目状态的服务（如 LSP）
+     */
+    fun projectSynced(event: CjProjectEvent) {}
 }
