@@ -25,6 +25,7 @@
 <idea-plugin allow-bundled-update="true">
     <!-- IntelliJ 平台扩展点配置 -->
     <extensions defaultExtensionNs="com.intellij">
+
         <!-- 1. 启动配置 -->
         <!-- 插件启动后执行的活动 -->
         <postStartupActivity implementation="org.cangnova.cangjie.CangJieStartupActivity"/>

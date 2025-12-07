@@ -44,7 +44,7 @@
 
         <plugin id="com.intellij.copyright"/>
 
-        <plugin id="com.redhat.devtools.lsp4ij"/>
+
     </dependencies>
 
 

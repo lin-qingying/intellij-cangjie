@@ -29,33 +29,17 @@ dependencies {
     implementation(project(":"))
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
-
     implementation(project(":cangjie-project"))
-
-
-}
-project(":") {
-    dependencies {
-
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.19.0")
-        }
-    }
-}
-project(":cangjie-project") {
-    dependencies {
-
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.19.0")
-        }
-    }
 }
 
-project(":plugin") {
-    dependencies {
-        implementation(project(":lsp4ij"))
-        intellijPlatform {
-            plugins("com.redhat.devtools.lsp4ij:0.19.0")
-        }
-    }
-}
+
+
+
+//project(":plugin") {
+//    dependencies {
+//        implementation(project(":lsp4ij"))
+//        intellijPlatform {
+//            plugins("com.redhat.devtools.lsp4ij:0.19.0")
+//        }
+//    }
+//}

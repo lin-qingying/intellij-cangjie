@@ -46,7 +46,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.util.Function
 import com.intellij.util.indexing.LightDirectoryIndex
-import com.redhat.devtools.lsp4ij.LanguageServerManager
 import org.cangnova.cangjie.lang.CangJieFileType
 import org.cangnova.cangjie.project.*
 import org.cangnova.cangjie.project.event.CjProjectEvent
@@ -520,9 +519,10 @@ class CjProjectsServiceImpl(
             )
             intellijProject.taskQueue.run(syncTask)
 
-            val options: LanguageServerManager.StartOptions = LanguageServerManager.StartOptions()
-            options.setForceRestart(true)
-            LanguageServerManager.getInstance(intellijProject).start("CangJie", options);
+//            TODO 这里不在依赖lsp4ij插件，而是通过增加一个全局事件监听器，由lsp4ij模块监听重启
+//            val options: LanguageServerManager.StartOptions = LanguageServerManager.StartOptions()
+//            options.setForceRestart(true)
+//            LanguageServerManager.getInstance(intellijProject).start("CangJie", options);
             currentProject
         }
     }

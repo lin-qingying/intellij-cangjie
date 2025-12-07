@@ -38,11 +38,15 @@ class CangJieLSPDiagnosticFeature : LSPDiagnosticFeature() {
     private val logger = Logger.getInstance(CangJieLSPDiagnosticFeature::class.java)
 
     override fun isEnabled(file: PsiFile): Boolean {
-        return super.isEnabled(file)
+        val enabled = super.isEnabled(file)
+        logger.info("Diagnostic feature isEnabled for file ${file.name}: $enabled")
+        return enabled
     }
 
     override fun getHighlightSeverity(diagnostic: Diagnostic): HighlightSeverity? {
-        return super.getHighlightSeverity(diagnostic)
+        val severity = super.getHighlightSeverity(diagnostic)
+        logger.info("Diagnostic severity for message '${diagnostic.message}': $severity (LSP severity: ${diagnostic.severity})")
+        return severity
     }
 
     override fun createAnnotation(
@@ -51,6 +55,10 @@ class CangJieLSPDiagnosticFeature : LSPDiagnosticFeature() {
         fixes: List<IntentionAction?>,
         holder: AnnotationHolder
     ) {
+        logger.info("Creating annotation for diagnostic: ${diagnostic.message} at ${diagnostic.range}")
+        logger.info("  Severity: ${diagnostic.severity}, Code: ${diagnostic.code}, Source: ${diagnostic.source}")
+        logger.info("  File: ${holder.currentAnnotationSession.file.virtualFile.url}")
+
         // 收集错误码和错误信息用于遥测
         try {
             // 获取文件信息
@@ -71,7 +79,13 @@ class CangJieLSPDiagnosticFeature : LSPDiagnosticFeature() {
         }
 
         // 调用父类方法创建注解
-        super.createAnnotation(diagnostic, document, fixes, holder)
+        try {
+            super.createAnnotation(diagnostic, document, fixes, holder)
+            logger.info("Successfully created annotation for diagnostic")
+        } catch (e: Exception) {
+            logger.error("Failed to create annotation for diagnostic", e)
+            throw e
+        }
     }
 
     /**

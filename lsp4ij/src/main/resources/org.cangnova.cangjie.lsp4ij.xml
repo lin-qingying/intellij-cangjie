@@ -24,11 +24,13 @@
 
 <idea-plugin package="org.cangnova.cangjie.lsp4ij">
 
-
+    <dependencies>
+        <plugin id="com.redhat.devtools.lsp4ij"/>
+    </dependencies>
     <actions>
-        <action class="org.cangnova.cangjie.lsp4ij.CangJieDebugLSPCommandAction" id ="cangjie.test.debug"/>
+        <action class="org.cangnova.cangjie.lsp4ij.CangJieDebugLSPCommandAction" id="cangjie.test.debug"/>
 
-        <action class="org.cangnova.cangjie.lsp4ij.CangJieRunLSPCommandAction" id ="cangjie.test.run"/>
+        <action class="org.cangnova.cangjie.lsp4ij.CangJieRunLSPCommandAction" id="cangjie.test.run"/>
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
@@ -45,7 +47,7 @@
 
         <semanticTokensColorsProvider
                 serverId="CangJie"
-                class="org.cangnova.cangjie.lsp4ij.CangJieSemanticTokensColorsProvider" />
+                class="org.cangnova.cangjie.lsp4ij.CangJieSemanticTokensColorsProvider"/>
         <server
                 name="CangJie Language Server" factoryClass="org.cangnova.cangjie.lsp4ij.CangJieLanguageServerFactory"
                 id="CangJie">

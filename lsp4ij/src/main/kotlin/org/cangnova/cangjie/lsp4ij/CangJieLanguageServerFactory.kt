@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.lsp4ij
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.toNioPathOrNull
@@ -35,13 +34,14 @@ import com.redhat.devtools.lsp4ij.client.features.FileUriSupport
 import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
 import org.cangnova.cangjie.lsp.replacePathBySystem
+import org.cangnova.cangjie.project.model.CjDependency
+import org.cangnova.cangjie.project.model.CjModule
 import org.cangnova.cangjie.project.model.CjProject
 import org.cangnova.cangjie.project.model.cjProject
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.eclipse.lsp4j.*
 import java.net.URI
-import kotlin.io.path.exists
 
 class CangJieLanguageServerFactory : LanguageServerFactory {
     override fun createConnectionProvider(project: Project): StreamConnectionProvider {
@@ -72,15 +72,13 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
     init {
         setFileUriSupport(FileUriSupport.ENCODED)
-        setDiagnosticFeature(CangJieLSPDiagnosticFeature())
-        setHoverFeature(CangJieLSPHoverFeature())
-        setCodeLensFeature(CangJieLSPCodeLensFeature)
+        diagnosticFeature = CangJieLSPDiagnosticFeature()
+        hoverFeature = CangJieLSPHoverFeature()
+        codeLensFeature = CangJieLSPCodeLensFeature
     }
 
 
-
-
-    fun getCapabilities(): ClientCapabilities {
+    private fun getCapabilities(): ClientCapabilities {
         val capabilities = ClientCapabilities()
         val workspace = WorkspaceClientCapabilities()
         workspace.applyEdit = true
@@ -435,31 +433,42 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
     }
 
     /**
-     * 查找项目中可能的path_option
-     *
-     * @return 编码后的路径集合
+     * 创建 WorkspaceFolders 信息
+     * 根据项目类型（单模块/工作空间）返回适当的工作空间文件夹列表
      */
-    fun Project.findPathOptions(): List<String> {
-        val projectName = name
-        val cacheLsp = this.guessProjectDir()?.toNioPathOrNull()?.resolve(".cache")?.resolve("lsp") ?: return listOf()
-        val pathOptions = mutableListOf<String>()
+    private fun createWorkspaceFolders(): List<WorkspaceFolder> {
+        val cjProject = project.cjProject
+        val folders = mutableListOf<WorkspaceFolder>()
 
-        if (!cacheLsp.exists()) return pathOptions
-
-        //如果不是文件夹，或者名称为bin，项目名，.build-logs，那么则不是可能的path_option
-        for (file in cacheLsp.toFile().listFiles()) {
-            if (file.isDirectory && file.name != "bin" && file.name != projectName && file.name != ".build-logs") {
-                pathOptions.add(
-                    toString(
-                        VirtualFileManager.getInstance().findFileByNioPath(file.toPath())!!
-                    ).toString()
-                )
+        if (cjProject.isWorkspace) {
+            // 工作空间项目：为每个模块创建一个 WorkspaceFolder
+            cjProject.workspace?.modules?.forEach { module ->
+                folders.add(WorkspaceFolder().apply {
+                    uri = toString(module.rootDir)
+                    name = module.name
+                })
             }
-
+        } else {
+            // 单模块项目：为项目根目录创建一个 WorkspaceFolder
+            cjProject.module?.let { module ->
+                folders.add(WorkspaceFolder().apply {
+                    uri = toString(module.rootDir)
+                    name = module.name
+                })
+            }
         }
-        return pathOptions
 
+        // 如果没有找到任何模块，至少添加项目根目录
+        if (folders.isEmpty()) {
+            folders.add(WorkspaceFolder().apply {
+                uri = toString(project.baseDir)
+                name = project.name
+            })
+        }
+
+        return folders
     }
+
 
     override fun initializeParams(initializeParams: InitializeParams) {
         val sdk = CjProjectSdkConfig.getInstance(project).getProjectSdk()
@@ -481,6 +490,9 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
 
         }
+
+        // 添加 WorkspaceFolders 信息
+        initializeParams.workspaceFolders = createWorkspaceFolders()
 
         if (sdk != null) {
             // 使用cangjie-project模型创建initializationOptions
@@ -513,7 +525,8 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
             // 多模块配置 - 基于当前项目的模块
             put(
                 "multiModuleOption",
-                currentProject.let { createMultiModuleOption(it) })
+                createMultiModuleOption(currentProject)
+            )
 //
             // 条件编译配置
             put("conditionCompileOption", mutableMapOf<String, String>())
@@ -552,17 +565,110 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
             cjProject.module?.let { listOf(it) } ?: emptyList()
         }
 
-        if (modules.isEmpty()) return mutableMapOf<String, Any>()
+        if (modules.isEmpty()) return mutableMapOf()
 
         return mutableMapOf<String, Any>().apply {
             for (module in modules) {
                 val moduleUri = toString(module.rootDir)
                 put(moduleUri, mutableMapOf<String, Any>().apply {
                     put("name", module.name)
-                    put("package_requires", mutableMapOf<String, Any>().apply {
-                        put("path_option", project.findPathOptions())
-                        put("package_option", mutableMapOf<String, String>())
-                    })
+                    put("package_requires", createPackageRequires(module))
+                    put("source_sets", createSourceSetsInfo(module))
+                })
+            }
+        }
+    }
+
+    /**
+     * 创建模块的依赖配置
+     * 将所有类型的依赖转换为 LSP 服务器期望的格式
+     */
+    private fun createPackageRequires(module: CjModule): Map<String, Any> {
+        return mutableMapOf<String, Any>().apply {
+            // 收集所有路径依赖
+            val pathOptions = mutableListOf<String>()
+            val packageOptions = mutableMapOf<String, String>()
+
+            // 处理编译依赖
+            processDependencies(module.dependencies, pathOptions, packageOptions)
+
+            // 处理构建依赖
+            processDependencies(module.buildDependencies, pathOptions, packageOptions)
+
+            // 处理测试依赖
+            processDependencies(module.testDependencies, pathOptions, packageOptions)
+
+
+
+            put("path_option", pathOptions)
+            put("package_option", packageOptions)
+        }
+    }
+
+    /**
+     * 处理依赖列表，将其转换为 LSP 格式
+     */
+    private fun processDependencies(
+        dependencies: List<CjDependency>,
+        pathOptions: MutableList<String>,
+        packageOptions: MutableMap<String, String>
+    ) {
+        dependencies.forEach { dependency ->
+            when (dependency) {
+                is CjDependency.Library -> {
+                    // 库依赖：添加到 package_option
+                    val depId = if (dependency.group != null) {
+                        "${dependency.group}:${dependency.name}"
+                    } else {
+                        dependency.name
+                    }
+                    packageOptions[depId] = dependency.versionReq.toString()
+                }
+
+                is CjDependency.Path -> {
+                    // 路径依赖：添加到 path_option
+                    val virtualFile = VirtualFileManager.getInstance()
+                        .findFileByNioPath(dependency.path)
+                    virtualFile?.let {
+                        pathOptions.add(toString(it))
+                    }
+                }
+
+                is CjDependency.Git -> {
+                    // Git 依赖：LSP 可能需要先克隆到本地，这里暂时跳过
+                    // TODO: 实现 Git 依赖的处理
+                }
+
+                is CjDependency.Binary -> {
+                    // 二进制依赖：添加 .cjo 文件路径
+                    val virtualFile = VirtualFileManager.getInstance()
+                        .findFileByNioPath(dependency.cjoPath)
+                    virtualFile?.let {
+                        val parent = it.parent
+                        if (parent != null) {
+                            pathOptions.add(toString(parent))
+                        }
+                    }
+                }
+
+                is  CjDependency.Stdlib -> {
+                    // 标准库依赖：通常由 SDK 处理，这里不需要额外配置
+                }
+            }
+        }
+    }
+
+    /**
+     * 创建源码集信息
+     */
+    private fun createSourceSetsInfo(module: CjModule): Map<String, Any> {
+        return mutableMapOf<String, Any>().apply {
+            module.sourceSets.forEach { sourceSet ->
+                put(sourceSet.name, mutableMapOf<String, Any>().apply {
+                    put("source_roots", sourceSet.sourceRoots.map { toString(it) })
+                    put("resource_roots", sourceSet.resourceRoots.map { toString(it) })
+                    put("output_directory", sourceSet.outputDirectory.map { toString(it) })
+                    put("is_test", sourceSet.isTest)
                 })
             }
         }
