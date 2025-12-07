@@ -38,11 +38,13 @@ import org.cangnova.cangjie.project.service.CjProjectsService
 import javax.swing.JComponent
 
 /**
- * Settings editor for CangJie program run configurations.
- * Provides UI for selecting modules and configuring program execution.
+ * 仓颉程序运行配置编辑器
+ *
+ * 提供选择模块和配置程序执行的用户界面
  */
 class CangJieProgramRunConfigurationEditor(private val project: Project) : SettingsEditor<CangJieProgramRunConfiguration>() {
 
+    // UI 组件
     private val moduleComboBox = ComboBox<String>()
     private val programArgsField = JBTextField()
     private val workingDirectoryField = com.intellij.openapi.ui.TextFieldWithBrowseButton()
@@ -55,11 +57,14 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
         refreshModules()
     }
 
+    /**
+     * 初始化 UI 组件
+     */
     private fun setupUI() {
-        // Module selection
+        // 模块选择监听器 - 自动更新工作目录
         moduleComboBox.addActionListener { refreshWorkingDirectory() }
 
-        // Working directory browser
+        // 工作目录浏览器配置
         workingDirectoryField.addBrowseFolderListener(
             CjProjectBundle.message("run.configuration.editor.select.working.directory.title"),
             CjProjectBundle.message("run.configuration.editor.select.working.directory.description"),
@@ -68,28 +73,42 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
         )
     }
 
+    /**
+     * 创建主面板
+     *
+     * @return 包含所有配置项的主面板组件
+     */
     private fun createMainPanel(): JComponent = panel {
+        // 模块选择下拉框
         row(CjProjectBundle.message("run.configuration.editor.module.label")) {
             cell(moduleComboBox)
                 .align(AlignX.FILL)
         }
 
+        // 程序参数输入框
         row(CjProjectBundle.message("run.configuration.editor.program.arguments.label")) {
             cell(programArgsField)
                 .align(AlignX.FILL)
         }
 
+        // 工作目录选择器
         row(CjProjectBundle.message("run.configuration.editor.working.directory.label")) {
             cell(workingDirectoryField)
                 .align(AlignX.FILL)
         }
 
-        row (envVarsComponent.label) {
+        // 环境变量配置
+        row(envVarsComponent.label) {
             cell(envVarsComponent.component)
                 .align(AlignX.FILL)
         }
-    }/*.withPreferredWidth(600).withPreferredHeight(400)*/
+    }
 
+    /**
+     * 刷新可用模块列表
+     *
+     * 从项目服务中获取所有可用的仓颉模块，并更新下拉框
+     */
     private fun refreshModules() {
         val projectsService = CjProjectsService.getInstance(project)
         val cjProject = projectsService.cjProject
@@ -98,52 +117,65 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
 
         moduleComboBox.removeAllItems()
 
+        // 检查项目有效性
         if (!cjProject.isValid) {
             moduleComboBox.addItem(CjProjectBundle.message("run.configuration.editor.no.valid.project"))
             return
         }
 
+        // 获取模块列表
         val modules = when {
             cjProject.isWorkspace -> {
+                // 工作区模式：获取所有子模块
                 val workspace = cjProject.workspace
                 if (workspace != null) {
-                    println("Debug: Using workspace modules, count = ${workspace.modules.size}")
+                    println("Debug: 使用工作区模块，数量 = ${workspace.modules.size}")
                     workspace.modules
                 } else {
-                    println("Debug: No workspace found")
+                    println("Debug: 未找到工作区")
                     emptyList()
                 }
             }
             else -> {
+                // 单模块模式
                 val module = cjProject.module
                 if (module != null) {
-                    println("Debug: Using single module: ${module.name}")
+                    println("Debug: 使用单模块: ${module.name}")
                     listOf(module)
                 } else {
-                    println("Debug: No modules found in project")
+                    println("Debug: 项目中未找到模块")
                     emptyList()
                 }
             }
         }
 
+        // 填充下拉框
         if (modules.isEmpty()) {
-            println("Debug: No modules found, adding placeholder")
+            println("Debug: 未找到模块，添加占位符")
             moduleComboBox.addItem(CjProjectBundle.message("run.configuration.editor.no.modules.found"))
         } else {
             modules.forEach { module ->
-                println("Debug: Adding module: ${module.name} at ${module.rootDir.path}")
+                println("Debug: 添加模块: ${module.name} 位于 ${module.rootDir.path}")
                 moduleComboBox.addItem(module.name)
             }
         }
     }
 
+    /**
+     * 输出调试信息
+     *
+     * @param cjProject 仓颉项目实例
+     */
     private fun logDebugInfo(cjProject: org.cangnova.cangjie.project.model.CjProject) {
-        println("Debug: cjProject.name = ${cjProject.name}")
-        println("Debug: cjProject.isValid = ${cjProject.isValid}")
-        println("Debug: cjProject.isWorkspace = ${cjProject.isWorkspace}")
-        println("Debug: cjProject.rootDir = ${cjProject.rootDir.path}")
+        println("Debug: 项目名称 = ${cjProject.name}")
+        println("Debug: 项目是否有效 = ${cjProject.isValid}")
+        println("Debug: 是否为工作区 = ${cjProject.isWorkspace}")
+        println("Debug: 根目录 = ${cjProject.rootDir.path}")
     }
 
+    /**
+     * 根据选中的模块刷新工作目录
+     */
     private fun refreshWorkingDirectory() {
         val selectedModule = getSelectedModule()
         if (selectedModule != null) {
@@ -151,10 +183,15 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
         }
     }
 
+    /**
+     * 获取当前选中的模块
+     *
+     * @return 选中的模块实例，如果未选中或选中无效项则返回 null
+     */
     private fun getSelectedModule(): CjModule? {
         val selectedModuleName = moduleComboBox.selectedItem as? String ?: return null
 
-        // Ignore placeholder items (both English and Chinese)
+        // 忽略占位符项（支持中英文）
         val invalidProjectText = CjProjectBundle.message("run.configuration.editor.no.valid.project")
         val noModulesText = CjProjectBundle.message("run.configuration.editor.no.modules.found")
 
@@ -162,7 +199,7 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
             return null
         }
 
-        // Also ignore old-style placeholder items for backward compatibility
+        // 向后兼容：忽略旧式占位符项
         if (selectedModuleName.startsWith("<") && selectedModuleName.endsWith(">")) {
             return null
         }
@@ -171,10 +208,15 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
         return projectsService.cjProject.findModule(selectedModuleName)
     }
 
+    /**
+     * 从配置重置编辑器状态
+     *
+     * @param configuration 运行配置实例
+     */
     override fun resetEditorFrom(configuration: CangJieProgramRunConfiguration) {
         refreshModules()
 
-        // Set selected module
+        // 设置选中的模块
         configuration.moduleName?.let { moduleName ->
             val index = (0 until moduleComboBox.itemCount)
                 .find { moduleComboBox.getItemAt(it) == moduleName }
@@ -183,31 +225,42 @@ class CangJieProgramRunConfigurationEditor(private val project: Project) : Setti
             }
         }
 
+        // 恢复其他配置项
         programArgsField.text = configuration.programArgs.orEmpty()
         workingDirectoryField.text = configuration.workingDirectory?.toString().orEmpty()
         envVarsComponent.envData = configuration.env
-
     }
 
+    /**
+     * 将编辑器状态应用到配置
+     *
+     * @param configuration 运行配置实例
+     */
     override fun applyEditorTo(configuration: CangJieProgramRunConfiguration) {
         val selectedModuleName = moduleComboBox.selectedItem as? String
 
-        // Only save module name if it's not a placeholder
+        // 只有在非占位符项时才保存模块名
         val invalidProjectText = CjProjectBundle.message("run.configuration.editor.no.valid.project")
         val noModulesText = CjProjectBundle.message("run.configuration.editor.no.modules.found")
 
         configuration.moduleName = when {
             selectedModuleName == invalidProjectText || selectedModuleName == noModulesText -> null
-            selectedModuleName?.startsWith("<") == true -> null // Backward compatibility
+            selectedModuleName?.startsWith("<") == true -> null // 向后兼容
             else -> selectedModuleName
         }
 
+        // 保存其他配置项
         configuration.programArgs = programArgsField.text.takeIf { it.isNotBlank() }
         configuration.workingDirectory = workingDirectoryField.text
             .takeIf { it.isNotBlank() }?.let { java.nio.file.Paths.get(it) }
         configuration.env = envVarsComponent.envData
     }
 
+    /**
+     * 创建编辑器组件
+     *
+     * @return 编辑器的主面板组件
+     */
     override fun createEditor(): JComponent {
         return mainPanel ?: createMainPanel().also {
             mainPanel = it

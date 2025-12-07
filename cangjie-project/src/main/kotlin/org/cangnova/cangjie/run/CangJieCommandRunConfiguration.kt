@@ -34,8 +34,9 @@ import org.cangnova.cangjie.project.CjProjectBundle
 import org.jdom.Element
 
 /**
- * Run configuration for executing CangJie build commands.
- * Used for running commands like build, test, clean, etc.
+ * 仓颉命令运行配置
+ *
+ * 用于执行仓颉构建命令，如 build、test、clean 等
  */
 class CangJieCommandRunConfiguration(
     project: Project,
@@ -44,36 +45,63 @@ class CangJieCommandRunConfiguration(
 ) : CangJieRunConfigurationBase(project, factory, name) {
 
     /**
-     * The command to execute (e.g., "run", "build", "test")
+     * 要执行的命令（例如："run"、"build"、"test"）
      */
     var command: String = "run"
 
     /**
-     * Additional arguments for the command
+     * 命令的附加参数
      */
-    var args: String  = ""
+    var args: String = ""
 
+    /**
+     * 创建运行状态
+     *
+     * @param environment 执行环境
+     * @param commandExecutor 命令执行器
+     * @return 仓颉命令运行状态实例
+     */
     override fun createRunState(
         environment: ExecutionEnvironment,
         commandExecutor: CangJieCommandExecutor
     ) = CangJieCommandRunState(environment, this, commandExecutor)
 
+    /**
+     * 获取配置编辑器
+     *
+     * @return 仓颉运行配置编辑器实例
+     */
     override fun getConfigurationEditor() = CangJieRunConfigurationEditor(project)
 
+    /**
+     * 生成建议的配置名称
+     *
+     * @return 格式为 "命令 项目名" 的配置名称
+     */
     override fun suggestedName(): String {
         return "$command ${project.name}"
     }
 
+    /**
+     * 检查配置的有效性
+     *
+     * 验证命令是否为空，构建系统是否可用，以及配置是否有效
+     *
+     * @throws RuntimeConfigurationError 当配置无效时抛出异常
+     */
     override fun checkConfiguration() {
         super.checkConfiguration()
 
+        // 检查命令是否为空
         if (command.isBlank()) {
             throw RuntimeConfigurationError(CjProjectBundle.message("run.configuration.error.command.empty"))
         }
 
+        // 检测构建系统
         val systemId = org.cangnova.cangjie.project.service.CjProjectBuildSystemService.getInstance().getBuildSystem()
             ?: throw RuntimeConfigurationError(CjProjectBundle.message("run.configuration.error.cannot.detect.build.system"))
 
+        // 查找命令执行器
         val executor = CangJieCommandExecutor.findExecutor()
             ?: throw RuntimeConfigurationError(
                 CjProjectBundle.message(
@@ -82,19 +110,29 @@ class CangJieCommandRunConfiguration(
                 )
             )
 
-        // Validate using subsystem executor
+        // 使用子系统执行器验证配置
         val error = executor.validateConfiguration(this)
         if (error != null) {
             throw RuntimeConfigurationError(error)
         }
     }
 
+    /**
+     * 将配置序列化到 XML 元素
+     *
+     * @param element 用于保存配置的 XML 元素
+     */
     override fun writeExternal(element: Element) {
         super.writeExternal(element)
         element.writeString("command", command)
         args.let { element.writeString("args", it) }
     }
 
+    /**
+     * 从 XML 元素反序列化配置
+     *
+     * @param element 包含配置数据的 XML 元素
+     */
     override fun readExternal(element: Element) {
         super.readExternal(element)
         element.readString("command")?.let { command = it }

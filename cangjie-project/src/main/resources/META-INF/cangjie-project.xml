@@ -107,8 +107,8 @@
 
         <!-- 运行配置生成器 -->
         <runConfigurationProducer
-                implementation="org.cangnova.cangjie.run.CangJieRunConfigurationProducer"
-                id="CangJieRunConfigurationProducer"/>
+                implementation="org.cangnova.cangjie.run.CangJieCommandRunConfigurationProducer"
+                id="CangJieCommandRunConfigurationProducer"/>
 
         <!-- 程序运行配置生成器 -->
         <runConfigurationProducer
@@ -120,7 +120,7 @@
                 implementation="org.cangnova.cangjie.run.CangJieProgramRunner"
                 id="CangJieProgramRunner"/>
         <programRunner
-                implementation="org.cangnova.cangjie.run.CangJieCommondRunner"
+                implementation="org.cangnova.cangjie.run.CangJieCommandRunner"
                 id="CangJieProgramRunner"/>
 
         <!--    行配置之前执行的步骤   -->

@@ -36,19 +36,28 @@ import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.process.CjProcessHandler
 import org.cangnova.cangjie.run.target.startProcess
 
+/**
+ * 仓颉运行状态基类
+ *
+ * 提供运行配置执行的基础功能
+ *
+ * @param T 运行配置类型
+ * @property configuration 运行配置实例
+ * @property project 当前项目
+ */
 abstract class CangJieRunState<T : CangJieRunConfigurationBase>(
     environment: ExecutionEnvironment,
-
     val configuration: T,
 ) : CommandLineState(environment) {
     val project: Project = environment.project
-
-
 }
 
 /**
- * Run state for executing CangJie commands.
- * Handles the execution of build commands like build, test, clean, etc.
+ * 仓颉命令运行状态
+ *
+ * 处理仓颉命令的执行，如 build、test、clean 等
+ *
+ * @property commandExecutor 命令执行器，负责创建和执行具体的命令
  */
 class CangJieCommandRunState(
     environment: ExecutionEnvironment,
@@ -56,24 +65,37 @@ class CangJieCommandRunState(
     private val commandExecutor: CangJieCommandExecutor
 ) : CangJieRunState<CangJieCommandRunConfiguration>(environment, configuration) {
 
+    /**
+     * 启动进程
+     *
+     * @return 进程处理器实例
+     */
     override fun startProcess(): ProcessHandler {
         return startProcess(processColors = true)
     }
 
+    /**
+     * 启动进程（支持配置是否启用颜色输出）
+     *
+     * @param processColors 是否启用颜色输出
+     * @return 进程处理器实例
+     */
     fun startProcess(processColors: Boolean): ProcessHandler {
-        // Save all documents before executing command to ensure we're running the latest code
-        // Must be done on EDT (Event Dispatch Thread)
+        // 在执行命令之前保存所有文档，确保运行的是最新代码
+        // 必须在 EDT（事件调度线程）上执行
         com.intellij.openapi.application.ApplicationManager.getApplication().invokeAndWait {
             com.intellij.openapi.fileEditor.FileDocumentManager.getInstance().saveAllDocuments()
         }
 
+        // 创建命令行
         val commandLine = createCommandLine()
             ?: throw IllegalStateException("Failed to create command line for command execution")
 
-        LOG.debug("Executing command: `${commandLine.commandLineString}`")
+        LOG.debug("执行命令: `${commandLine.commandLineString}`")
 
-        // Support for remote targetPlatform environments
+        // 支持远程目标平台环境
         val processHandler = if (configuration.targetEnvironment != null) {
+            // 远程执行
             commandLine.startProcess(
                 project = environment.project,
                 config = configuration.targetEnvironment,
@@ -81,14 +103,14 @@ class CangJieCommandRunState(
                 uploadExecutable = false
             )
         } else {
-            // Local execution
+            // 本地执行
             val handler = CjProcessHandler(commandLine, processColors = processColors)
             ProcessTerminatedListener.attach(handler)
             handler
         }
 
-        // Attach build adapter for Build Tool Window integration
-        // Only attach for commands that produce build artifacts
+        // 为构建工具窗口集成附加构建适配器
+        // 仅为生成构建产物的命令附加
         if (commandExecutor.shouldAttachBuildAdapter(configuration)) {
             CangJieBuildManager.attachBuildAdapter(
                 project = environment.project,
@@ -104,18 +126,25 @@ class CangJieCommandRunState(
         return processHandler
     }
 
+    /**
+     * 创建命令行
+     *
+     * 委托给子系统特定的执行器创建命令行，并设置工作目录和环境变量
+     *
+     * @return 配置好的命令行对象，如果创建失败则返回 null
+     */
     private fun createCommandLine(): GeneralCommandLine? {
-        // Delegate command line creation to the subsystem-specific executor
+        // 委托给子系统特定的执行器创建命令行
         val commandLine = commandExecutor.createCommandLine(configuration) ?: return null
 
-        // Set working directory if not already set
+        // 如果尚未设置工作目录，则设置工作目录
         if (commandLine.workDirectory == null) {
             configuration.workingDirectory?.let {
                 commandLine.workDirectory = it.toFile()
             }
         }
 
-        // Set environment variables
+        // 设置环境变量
         commandLine.environment.putAll(configuration.env.envs)
         if (configuration.env.isPassParentEnvs) {
             commandLine.withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
@@ -126,10 +155,14 @@ class CangJieCommandRunState(
 
     companion object {
         private val LOG: Logger = logger<CangJieCommandRunState>()
-
     }
 }
 
+/**
+ * 判断执行环境是否为调试模式
+ *
+ * @return 如果是调试模式则返回 true
+ */
 val ExecutionEnvironment.isDebug: Boolean
     get() {
         return this.executor.id == DefaultDebugExecutor.EXECUTOR_ID

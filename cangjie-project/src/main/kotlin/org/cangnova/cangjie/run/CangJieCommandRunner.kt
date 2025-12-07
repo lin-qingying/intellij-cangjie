@@ -36,48 +36,75 @@ import com.intellij.execution.ui.RunContentDescriptor
 import org.cangnova.cangjie.project.model.cjSdk
 import java.io.File
 
+/**
+ * 仓颉默认程序运行器基类
+ *
+ * 提供程序运行的基础实现
+ */
 abstract class CjDefaultProgramRunnerBase : GenericProgramRunner<RunnerSettings>() {
 
-
+    /**
+     * 执行运行状态
+     *
+     * @param state 运行配置状态
+     * @param environment 执行环境
+     * @return 运行内容描述符，如果执行失败则返回 null
+     */
     override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
         return executeState(state, environment, this)
     }
 }
 
 /**
- * Program runner for all CangJie run configurations.
- * Handles execution of both command and program configurations.
+ * 仓颉程序运行器
+ *
+ * 处理所有仓颉运行配置的执行，包括命令配置和程序配置
  */
 class CangJieProgramRunner : CjExecutableRunner(
     DefaultRunExecutor.EXECUTOR_ID,
     "CangJie Run Error"
 ) {
+    /**
+     * 执行程序
+     *
+     * 根据构建产物执行程序，如果有可执行文件则直接运行，否则使用默认执行方式
+     *
+     * @param state 运行配置状态
+     * @param environment 执行环境
+     * @return 运行内容描述符，如果执行失败则返回 null
+     */
     override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
+        // 检查状态类型
         if (state !is CangJieProgramRunState) return null
 
-
-        if(state.configuration.buildConfiguration?.runState == null) return null
+        // 检查构建配置是否存在
+        if (state.configuration.buildConfiguration?.runState == null) return null
 
         val buildEnvironment = state.configuration.buildConfiguration?.runState!!.environment
 
+        // 获取构建产物
         val artifacts = buildEnvironment.artifacts.orEmpty()
         if (artifacts.isEmpty()) {
-            // No artifacts available, run the configuration directly
+            // 没有可用的产物，直接运行配置
             return super.doExecute(state, environment)
         }
 
+        // 获取第一个产物
         val artifact = artifacts.firstOrNull() ?: return null
         val binaries = artifact.executables
 
+        // 检查是否有可执行文件
         if (binaries.isEmpty()) {
             return super.doExecute(state, environment)
         }
 
+        // 构建运行命令
         val runExecutable = GeneralCommandLine().apply {
             exePath = binaries.first()
-            workDirectory = state.configuration.workingDirectory?.toFile() ?: File(environment.project.basePath ?: ".")
+            workDirectory = state.configuration.workingDirectory?.toFile()
+                ?: File(environment.project.basePath ?: ".")
 
-            // Add environment variables
+            // 添加环境变量（合并配置的环境变量和 SDK 环境变量）
             val sdkEnv = environment.project.cjSdk?.getEnvironment() ?: emptyMap()
             withEnvironment(state.configuration.env.envs + sdkEnv)
         }
@@ -85,34 +112,70 @@ class CangJieProgramRunner : CjExecutableRunner(
         return showRunContent(state, environment, runExecutable)
     }
 
+    /**
+     * 检查是否可以运行指定的配置
+     *
+     * @param executorId 执行器 ID
+     * @param profile 运行配置
+     * @return 如果可以运行则返回 true
+     */
     override fun canRun(executorId: String, profile: RunProfile): Boolean {
-
         return profile is CangJieProgramRunConfiguration && super.canRun(executorId, profile)
     }
-    companion object {
 
-        val RUNNER_ID: String = "CangJieProgramRunner"
-
-    }
+    /**
+     * 获取运行器 ID
+     *
+     * @return 运行器的唯一标识符
+     */
     override fun getRunnerId(): String = RUNNER_ID
+
+    companion object {
+        /**
+         * 运行器的唯一标识符
+         */
+        val RUNNER_ID: String = "CangJieProgramRunner"
+    }
 }
 
-class CangJieCommondRunner : CjExecutableRunner(
+/**
+ * 仓颉命令运行器
+ *
+ * 专门用于执行仓颉命令配置（如 build、test 等）
+ */
+class CangJieCommandRunner : CjExecutableRunner(
     DefaultRunExecutor.EXECUTOR_ID,
     "CangJie Run Error"
 ) {
+    /**
+     * 检查是否可以运行指定的配置
+     *
+     * @param executorId 执行器 ID
+     * @param profile 运行配置
+     * @return 如果可以运行则返回 true
+     */
     override fun canRun(executorId: String, profile: RunProfile): Boolean {
-
         return profile is CangJieCommandRunConfiguration && super.canRun(executorId, profile)
     }
 
+    /**
+     * 执行命令
+     *
+     * @param state 运行配置状态
+     * @param environment 执行环境
+     * @return 运行内容描述符，如果执行失败则返回 null
+     */
     override fun doExecute(state: RunProfileState, environment: ExecutionEnvironment): RunContentDescriptor? {
-
+        // 检查状态类型
         if (state !is CangJieCommandRunState) return null
-
 
         return super.doExecute(state, environment)
     }
 
-    override fun getRunnerId(): String = "CangJieCommondRunner"
+    /**
+     * 获取运行器 ID
+     *
+     * @return 运行器的唯一标识符
+     */
+    override fun getRunnerId(): String = "CangJieCommandRunner"
 }

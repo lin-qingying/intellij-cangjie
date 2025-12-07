@@ -35,8 +35,9 @@ import org.cangnova.cangjie.project.CjProjectBundle
 
 
 /**
- * Configuration type for CangJie command run configurations.
- * Used for running specific commands like build, test, etc.
+ * 仓颉命令运行配置类型
+ *
+ * 用于运行特定命令，如 build、test 等
  */
 class CangJieCommandRunConfigurationType : ConfigurationTypeBase(
     "CangJieCommandRunConfigurationType",
@@ -44,6 +45,9 @@ class CangJieCommandRunConfigurationType : ConfigurationTypeBase(
     CjProjectBundle.message("run.configuration.type.command.description"),
     NotNullLazyValue.createValue { AllIcons.RunConfigurations.Application }
 ) {
+    /**
+     * 获取配置工厂实例
+     */
     val factory: ConfigurationFactory get() = configurationFactories.single()
 
     init {
@@ -51,23 +55,42 @@ class CangJieCommandRunConfigurationType : ConfigurationTypeBase(
     }
 
     companion object {
+        /**
+         * 获取仓颉命令运行配置类型的单例实例
+         */
         val instance: CangJieCommandRunConfigurationType
             get() = ConfigurationTypeUtil.findConfigurationType(CangJieCommandRunConfigurationType::class.java)
     }
 }
 
 /**
- * Factory for creating CangJie command run configurations
+ * 仓颉命令运行配置工厂
+ *
+ * 负责创建仓颉命令运行配置实例
  */
 class CangJieConfigurationFactory(type: CangJieCommandRunConfigurationType) : ConfigurationFactory(type) {
 
+    /**
+     * 获取工厂 ID
+     *
+     * @return 工厂的唯一标识符
+     */
     override fun getId(): String = ID
 
+    /**
+     * 创建模板配置
+     *
+     * @param project 当前项目
+     * @return 新创建的仓颉命令运行配置实例
+     */
     override fun createTemplateConfiguration(project: Project): RunConfiguration {
         return CangJieCommandRunConfiguration(project, this, "CangJie Command")
     }
 
     companion object {
+        /**
+         * 工厂的唯一标识符
+         */
         const val ID: String = "CangJie Command"
     }
 }

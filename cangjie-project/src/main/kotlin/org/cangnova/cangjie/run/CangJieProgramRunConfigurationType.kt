@@ -34,8 +34,9 @@ import com.intellij.openapi.util.NotNullLazyValue
 import org.cangnova.cangjie.project.CjProjectBundle
 
 /**
- * Configuration type for CangJie program run configurations.
- * Used for running compiled CangJie programs directly.
+ * 仓颉程序运行配置类型
+ *
+ * 用于直接运行编译后的仓颉程序
  */
 class CangJieProgramRunConfigurationType : ConfigurationTypeBase(
     "CangJieProgramRunConfigurationType",
@@ -43,6 +44,9 @@ class CangJieProgramRunConfigurationType : ConfigurationTypeBase(
     CjProjectBundle.message("run.configuration.type.program.description"),
     NotNullLazyValue.createValue { AllIcons.RunConfigurations.Application }
 ) {
+    /**
+     * 获取配置工厂实例
+     */
     val factory: ConfigurationFactory get() = configurationFactories.single()
 
     init {
@@ -50,23 +54,42 @@ class CangJieProgramRunConfigurationType : ConfigurationTypeBase(
     }
 
     companion object {
+        /**
+         * 获取仓颉程序运行配置类型的单例实例
+         */
         val instance: CangJieProgramRunConfigurationType
             get() = ConfigurationTypeUtil.findConfigurationType(CangJieProgramRunConfigurationType::class.java)
     }
 }
 
 /**
- * Factory for creating CangJie program run configurations
+ * 仓颉程序运行配置工厂
+ *
+ * 负责创建仓颉程序运行配置实例
  */
 class CangJieProgramConfigurationFactory(type: CangJieProgramRunConfigurationType) : ConfigurationFactory(type) {
 
+    /**
+     * 获取工厂 ID
+     *
+     * @return 工厂的唯一标识符
+     */
     override fun getId(): String = ID
 
+    /**
+     * 创建模板配置
+     *
+     * @param project 当前项目
+     * @return 新创建的仓颉程序运行配置实例
+     */
     override fun createTemplateConfiguration(project: Project): RunConfiguration {
         return CangJieProgramRunConfiguration(project, this, "CangJie Program")
     }
 
     companion object {
+        /**
+         * 工厂的唯一标识符
+         */
         const val ID: String = "CangJie Program"
     }
 }

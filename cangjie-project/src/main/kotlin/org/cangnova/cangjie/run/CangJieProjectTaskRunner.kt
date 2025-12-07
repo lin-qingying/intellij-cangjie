@@ -23,8 +23,8 @@
  */
 
 package org.cangnova.cangjie.run
-import com.intellij.task.ProjectTaskRunner.Result
 
+import com.intellij.task.ProjectTaskRunner.Result
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.task.ProjectTask
@@ -33,24 +33,33 @@ import org.cangnova.cangjie.project.extension.ProjectBuildSystemId
 import org.jetbrains.concurrency.Promise
 
 /**
- * Extension point for subsystem-specific project task runners.
- * Each build system (CJPM, etc.) should provide its own implementation.
+ * 仓颉项目任务运行器接口
+ *
+ * 为子系统特定的项目任务运行器提供扩展点。
+ * 每个构建系统（CJPM 等）都应提供自己的实现。
  */
 interface CangJieProjectTaskRunner {
 
     companion object {
+        /**
+         * 扩展点名称
+         */
         private val EP_NAME = ExtensionPointName<CangJieProjectTaskRunner>(
             "org.cangnova.cangjie.run.projectTaskRunner"
         )
 
         /**
-         * Find the appropriate task runner for the current build system
+         * 为当前构建系统查找合适的任务运行器
+         *
+         * @return 匹配当前构建系统的任务运行器，如果未找到则返回 null
          */
         fun findRunner(): CangJieProjectTaskRunner? {
+            // 获取当前构建系统
             val buildSystem = org.cangnova.cangjie.project.service.CjProjectBuildSystemService
                 .getInstance()
                 .getBuildSystem() ?: return null
 
+            // 查找匹配的运行器
             return EP_NAME.extensionList.firstOrNull {
                 it.getBuildSystemId().id == buildSystem.id
             }
@@ -58,22 +67,35 @@ interface CangJieProjectTaskRunner {
     }
 
     /**
-     * Get the build system ID this runner handles
+     * 获取此运行器处理的构建系统 ID
+     *
+     * @return 构建系统标识符
      */
     fun getBuildSystemId(): ProjectBuildSystemId
 
     /**
-     * Check if this runner can handle the given task
+     * 检查此运行器是否可以处理给定的任务
+     *
+     * @param projectTask 要检查的项目任务
+     * @return 如果可以处理该任务则返回 true
      */
     fun canRun(projectTask: ProjectTask): Boolean
 
     /**
-     * Expand a task into multiple sub-tasks if needed
+     * 将任务展开为多个子任务（如果需要）
+     *
+     * @param task 要展开的任务
+     * @return 子任务列表，如果不需要展开则返回包含原任务的列表
      */
     fun expandTask(task: ProjectTask): List<ProjectTask>
 
     /**
-     * Execute a single task
+     * 执行单个任务
+     *
+     * @param project 当前项目
+     * @param context 项目任务上下文
+     * @param task 要执行的任务
+     * @return 包含执行结果的 Promise
      */
     fun executeTask(
         project: Project,
@@ -81,4 +103,3 @@ interface CangJieProjectTaskRunner {
         task: ProjectTask
     ): Promise<Result>
 }
-

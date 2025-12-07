@@ -36,7 +36,7 @@ import java.nio.file.Paths
  *
  * 根据项目上下文自动创建运行配置
  */
-class CangJieCommonRunConfigurationProducer : LazyRunConfigurationProducer<CangJieCommandRunConfiguration>() {
+class CangJieCommandRunConfigurationProducer : LazyRunConfigurationProducer<CangJieCommandRunConfiguration>() {
 
     /**
      * 获取配置工厂

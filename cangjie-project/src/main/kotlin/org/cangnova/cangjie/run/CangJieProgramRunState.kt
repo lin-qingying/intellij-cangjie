@@ -36,78 +36,98 @@ import org.cangnova.cangjie.process.CjProcessHandler
 import org.cangnova.cangjie.run.target.startProcess
 
 /**
- * Run state for executing CangJie programs.
- * Handles the execution of compiled CangJie modules.
+ * 仓颉程序运行状态
+ *
+ * 处理编译后的仓颉模块的执行
  */
 class CangJieProgramRunState(
     environment: ExecutionEnvironment,
     configuration: CangJieProgramRunConfiguration
 ) : CangJieRunState<CangJieProgramRunConfiguration>(environment, configuration) {
 
+    /**
+     * 启动进程
+     *
+     * @return 进程处理器实例
+     */
     override fun startProcess(): ProcessHandler {
         return startProcess(processColors = true)
     }
 
+    /**
+     * 启动进程（支持配置是否启用颜色输出）
+     *
+     * @param processColors 是否启用颜色输出
+     * @return 进程处理器实例
+     */
     fun startProcess(processColors: Boolean): ProcessHandler {
-        // Save all documents before executing program to ensure we're running the latest code
-        // Must be done on EDT (Event Dispatch Thread)
+        // 在执行程序之前保存所有文档，确保运行的是最新代码
+        // 必须在 EDT（事件调度线程）上执行
         ApplicationManager.getApplication().invokeAndWait {
-          FileDocumentManager.getInstance().saveAllDocuments()
+            FileDocumentManager.getInstance().saveAllDocuments()
         }
 
+        // 创建命令行
         val commandLine = createCommandLine()
             ?: throw IllegalStateException("Failed to create command line for program execution")
 
-        LOG.debug("Executing program: `${commandLine.commandLineString}`")
+        LOG.debug("执行程序: `${commandLine.commandLineString}`")
 
-        // Support for remote targetPlatform environments
+        // 支持远程目标平台环境
         val processHandler = if (configuration.targetEnvironment != null) {
+            // 远程执行 - 需要上传可执行文件
             commandLine.startProcess(
                 project = environment.project,
                 config = configuration.targetEnvironment,
                 processColors = processColors,
-                uploadExecutable = true  // Upload executable for program runs
+                uploadExecutable = true  // 程序运行时上传可执行文件
             )
         } else {
-            // Local execution
+            // 本地执行
             val handler = CjProcessHandler(commandLine, processColors = processColors)
             ProcessTerminatedListener.attach(handler)
             handler
         }
 
-        // Attach build adapter for Build Tool Window integration
+        // 为构建工具窗口集成附加构建适配器
         CangJieBuildManager.attachBuildAdapter(
             project = environment.project,
-            taskName = "Run ${configuration.name}",
+            taskName = "运行 ${configuration.name}",
             workingDirectory = configuration.workingDirectory ?: java.nio.file.Paths.get(
                 environment.project.basePath ?: "."
             ),
             environment = environment,
             processHandler = processHandler,
             buildProfile = if (environment.isDebug) BuildProfile.DEBUG else BuildProfile.RELEASE
-
         )
 
         return processHandler
     }
 
+    /**
+     * 创建命令行
+     *
+     * 根据配置创建用于执行程序的命令行对象
+     *
+     * @return 配置好的命令行对象，如果创建失败则返回 null
+     */
     private fun createCommandLine(): GeneralCommandLine? {
+        // 获取模块和工作目录
         val module = configuration.getCjModule() ?: return null
         val workingDir = configuration.workingDirectory ?: return null
 
         val commandLine = GeneralCommandLine()
         commandLine.workDirectory = workingDir.toFile()
 
-        // Set environment variables
+        // 设置环境变量
         commandLine.environment.putAll(configuration.env.envs)
         if (configuration.env.isPassParentEnvs) {
             commandLine.withParentEnvironmentType(GeneralCommandLine.ParentEnvironmentType.CONSOLE)
         }
 
-        // TODO: Build the actual command to run the program
-        // This will depend on the build system (cjpm, cjc, etc.)
-        // For now, this is a placeholder that needs to be implemented
-        // based on the specific build system's requirements
+        // TODO: 构建实际运行程序的命令
+        // 这将取决于构建系统（cjpm、cjc 等）
+        // 目前这是一个占位符，需要根据特定构建系统的要求来实现
 
         return commandLine
     }
