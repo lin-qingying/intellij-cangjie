@@ -32,15 +32,31 @@ import com.intellij.psi.PsiElement
 import java.nio.file.Paths
 
 /**
- * Run configuration producer for CangJie projects.
- * Automatically creates run configurations based on project context.
+ * 仓颉运行配置生产者
+ *
+ * 根据项目上下文自动创建运行配置
  */
-class CangJieRunConfigurationProducer : LazyRunConfigurationProducer<CangJieCommandRunConfiguration>() {
+class CangJieCommonRunConfigurationProducer : LazyRunConfigurationProducer<CangJieCommandRunConfiguration>() {
 
+    /**
+     * 获取配置工厂
+     *
+     * @return 仓颉命令运行配置类型的工厂实例
+     */
     override fun getConfigurationFactory(): ConfigurationFactory {
         return CangJieCommandRunConfigurationType.instance.factory
     }
 
+    /**
+     * 从上下文设置运行配置
+     *
+     * 根据项目上下文自动配置运行参数，包括配置名称、运行命令和工作目录
+     *
+     * @param configuration 要配置的运行配置实例
+     * @param context 配置上下文，包含项目信息
+     * @param sourceElement 触发配置创建的源元素引用
+     * @return 始终返回 true，表示配置已成功设置
+     */
     override fun setupConfigurationFromContext(
         configuration: CangJieCommandRunConfiguration,
         context: ConfigurationContext,
@@ -48,13 +64,27 @@ class CangJieRunConfigurationProducer : LazyRunConfigurationProducer<CangJieComm
     ): Boolean {
         val project = context.project
 
-        configuration.name = "Run ${project.name}"
+        // 设置配置名称为 "运行 项目名"
+        configuration.name = "运行 ${project.name}"
+
+        // 设置默认命令为 "run"
         configuration.command = "run"
+
+        // 设置工作目录为项目根目录
         configuration.workingDirectory = project.basePath?.let { Paths.get(it) }
 
         return true
     }
 
+    /**
+     * 检查给定的配置是否与上下文匹配
+     *
+     * 通过比较工作目录与项目根目录来判断配置是否来自当前上下文
+     *
+     * @param configuration 要检查的运行配置
+     * @param context 当前上下文
+     * @return 如果配置的工作目录与项目根目录匹配则返回 true
+     */
     override fun isConfigurationFromContext(
         configuration: CangJieCommandRunConfiguration,
         context: ConfigurationContext

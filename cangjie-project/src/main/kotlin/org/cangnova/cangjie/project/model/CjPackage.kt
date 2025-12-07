@@ -103,7 +103,7 @@ sealed class CjPackage {
         override val dependencies: List<CjDependency>,
         override val features: Map<String, Feature>,
         val registry: String?,
-        val downloadPath: Path?,
+        val downloadPath: JPath?,
         val checksum: String?
     ) : CjPackage()
 
@@ -212,6 +212,20 @@ sealed class CjPackage {
 fun CjModule.toPackage(): CjPackage.LocalModule = CjPackage.fromModule(this)
 
 /**
+ * 编译输出产物类型
+ */
+enum class CjOutputType {
+    /** 可执行程序 */
+    EXECUTABLE,
+
+    /** 静态库 */
+    STATIC,
+
+    /** 动态库 */
+    DYNAMIC
+}
+
+/**
  * 包元数据接口
  *
  * 表示包的元数据信息，包括名称、版本、依赖等
@@ -244,6 +258,9 @@ interface CjPackageMetadata {
     /** 包的本地路径（如果已下载） */
     val localPath: JPath?
 
+    /** 包的输出类型 */
+    val outputType: CjOutputType?
+
     companion object {
         /**
          * 空元数据实例，用于占位或初始化
@@ -258,6 +275,7 @@ interface CjPackageMetadata {
             override val repositoryUrl: String? = null
             override val dependencies: List<CjDependency> = emptyList()
             override val localPath: JPath? = null
+            override val outputType: CjOutputType? = null
         }
     }
 }

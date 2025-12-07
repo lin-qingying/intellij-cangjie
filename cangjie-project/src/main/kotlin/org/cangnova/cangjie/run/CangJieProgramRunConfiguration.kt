@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.run
 
+import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RuntimeConfigurationError
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -32,12 +33,14 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.project.CjProjectBundle
 import org.cangnova.cangjie.project.model.CjModule
+import org.cangnova.cangjie.project.model.CjOutputType
 import org.cangnova.cangjie.project.service.CjProjectsService
 import org.jdom.Element
 
 /**
- * Run configuration for executing CangJie modules.
- * Used for running compiled CangJie modules directly.
+ * 仓颉程序运行配置
+ *
+ * 用于执行已编译的仓颉模块。
  */
 class CangJieProgramRunConfiguration(
     project: Project,
@@ -50,17 +53,17 @@ class CangJieProgramRunConfiguration(
 
 
     /**
-     * Target module to run
+     * 要运行的目标模块名称
      */
     var moduleName: String? = null
 
     /**
-     * Program arguments
+     * 程序运行参数
      */
     var programArgs: String? = null
 
     /**
-     * Gets the targetPlatform CjModule for this configuration
+     * 获取此配置的目标 CjModule
      */
     fun getCjModule(): CjModule? {
         val moduleName = this.moduleName ?: return null
@@ -68,7 +71,7 @@ class CangJieProgramRunConfiguration(
         val projectsService = CjProjectsService.getInstance(project)
         val cjProject = projectsService.cjProject
 
-        // Debug information
+        // 调试信息
 //        println("Debug: Looking for module '$moduleName' in project '${cjProject.name}'")
 
         if (!cjProject.isValid) {
@@ -76,23 +79,30 @@ class CangJieProgramRunConfiguration(
         }
 
         val module = cjProject.findModule(moduleName)
-        if (module != null) {
-//            println("Debug: Found module '${module.name}' at ${module.rootDir.path}")
-        } else {
-//            println("Debug: Module '$moduleName' not found")
-            // List available modules for debugging
-            val availableModules = if (cjProject.isWorkspace && cjProject.workspace != null) {
-                (cjProject.workspace ?: return null).modules
-            } else {
-                cjProject.module?.let { listOf(it) } ?: emptyList()
-            }
-        }
+//        if (module != null) {
+////            println("Debug: Found module '${module.name}' at ${module.rootDir.path}")
+//        } else {
+////            println("Debug: Module '$moduleName' not found")
+//            // 列出可用模块用于调试
+//            val availableModules = if (cjProject.isWorkspace && cjProject.workspace != null) {
+//                (cjProject.workspace ?: return null).modules
+//            } else {
+//                cjProject.module?.let { listOf(it) } ?: emptyList()
+//            }
+//        }
 
         return module
     }
 
+    override fun canRunOn(target: ExecutionTarget): Boolean {
+        // 获取模块并检查是否为可执行类型
+        val module = getCjModule() ?: return false
+        return module.metadata.outputType == CjOutputType.EXECUTABLE
+    }
+
+
     /**
-     * Gets the targetPlatform IntelliJ Module for this configuration
+     * 获取此配置对应的 IntelliJ Module
      */
     fun getIntellijModule(): Module? {
         val moduleName = this.moduleName ?: return null
@@ -131,7 +141,7 @@ class CangJieProgramRunConfiguration(
                 )
             )
 
-        // Validate using subsystem executor
+        // 使用子系统执行器验证配置
         val error = executor.validateConfiguration(this)
         if (error != null) {
             throw RuntimeConfigurationError(error)

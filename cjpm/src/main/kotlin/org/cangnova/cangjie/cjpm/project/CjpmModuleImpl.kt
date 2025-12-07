@@ -27,6 +27,7 @@ package org.cangnova.cangjie.cjpm.project
 import com.intellij.openapi.vfs.VirtualFile
 import org.cangnova.cangjie.cjpm.config.toml.CjpmTomlParser
 import org.cangnova.cangjie.cjpm.project.model.toml.DependencyConfig
+import org.cangnova.cangjie.cjpm.project.model.toml.OutputType
 import org.cangnova.cangjie.cjpm.project.model.toml.PackageConfig
 
 import org.cangnova.cangjie.project.model.*
@@ -91,6 +92,11 @@ class CjpmModuleImpl(
             override val repositoryUrl: String? = packageConfig.repositoryUrl
             override val dependencies: List<CjDependency> = this@CjpmModuleImpl.dependencies
             override val localPath: java.nio.file.Path = rootDir.toNioPath()
+            override val outputType: CjOutputType? = when (packageConfig.outputType) {
+                OutputType.EXECUTABLE -> CjOutputType.EXECUTABLE
+                OutputType.STATIC -> CjOutputType.STATIC
+                OutputType.DYNAMIC -> CjOutputType.DYNAMIC
+            }
         }
     }
 
@@ -134,7 +140,8 @@ class CjpmModuleImpl(
                                 cjoPath = resolvedCjoPath,
                                 libPath = null,  // 自动查找
                                 target = targetPlatform,
-                                scope = CjDependencyScope.COMPILE
+                                scope = CjDependencyScope.COMPILE,
+                                sourceModule = this@CjpmModuleImpl
                             )
                         )
                     }
@@ -157,7 +164,8 @@ class CjpmModuleImpl(
                 CjDependency.Stdlib(
                     name = "stdlib",
                     versionReq = VersionRequirement.Exact(CjVersion(it.version.toString())),
-                    scope = CjDependencyScope.COMPILE
+                    scope = CjDependencyScope.COMPILE,
+                    sourceModule = this@CjpmModuleImpl
                 )
             )
         }
@@ -223,7 +231,8 @@ class CjpmModuleImpl(
                                     cjoPath = cjoPath,
                                     libPath = libPath,
                                     target = targetPlatform,
-                                    scope = CjDependencyScope.COMPILE
+                                    scope = CjDependencyScope.COMPILE,
+                                    sourceModule = this@CjpmModuleImpl
                                 )
                             )
                         }
@@ -277,13 +286,25 @@ class CjpmModuleImpl(
         val versionReq = VersionRequirement.Exact(version)
 
         return when {
-            // 路径依赖
-            config.path != null -> CjDependency.Path(
-                name = name,
-                path = java.nio.file.Paths.get(config.path),
-                versionReq = versionReq,
-                scope = scope
-            )
+            // 路径依赖 - 立即解析相对路径为绝对路径
+            config.path != null -> {
+                val rawPath = java.nio.file.Paths.get(config.path)
+
+                // 将相对路径解析为绝对路径（相对于模块根目录）
+                val resolvedPath = if (rawPath.isAbsolute) {
+                    rawPath
+                } else {
+                    rootDir.toNioPath().resolve(rawPath).normalize()
+                }
+
+                CjDependency.Path(
+                    name = name,
+                    path = resolvedPath,  // 存储绝对路径
+                    versionReq = versionReq,
+                    scope = scope,
+                    sourceModule = this@CjpmModuleImpl
+                )
+            }
 
             // Git 依赖
             config.git != null -> {
@@ -299,7 +320,8 @@ class CjpmModuleImpl(
                     url = config.git,
                     ref = ref,
                     versionReq = versionReq,
-                    scope = scope
+                    scope = scope,
+                    sourceModule = this@CjpmModuleImpl
                 )
             }
 
@@ -307,7 +329,8 @@ class CjpmModuleImpl(
             else -> CjDependency.Library(
                 name = name,
                 versionReq = versionReq,
-                scope = scope
+                scope = scope,
+                sourceModule = this@CjpmModuleImpl
             )
         }
     }
