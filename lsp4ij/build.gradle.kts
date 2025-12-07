@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2025 LinQingYing. and contributors.
  *
@@ -22,8 +23,10 @@
  *
  */
 
+
 dependencies {
     intellijPlatform {
+//        该依赖仅作用于模块编译
         plugins("com.redhat.devtools.lsp4ij:0.19.0")
     }
     implementation(project(":"))
@@ -33,13 +36,12 @@ dependencies {
 }
 
 
-
-
-//project(":plugin") {
-//    dependencies {
-//        implementation(project(":lsp4ij"))
-//        intellijPlatform {
-//            plugins("com.redhat.devtools.lsp4ij:0.19.0")
-//        }
-//    }
-//}
+//将lsp4ij模块依赖注入plugin模块
+project(":plugin") {
+    dependencies {
+        implementation(project(":lsp4ij"))
+        intellijPlatform {
+            plugins("com.redhat.devtools.lsp4ij:0.19.0")
+        }
+    }
+}

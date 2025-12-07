@@ -21,19 +21,11 @@
  * any damages or issues arising from its use.
  *
  */
+import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
 
-pluginManagement {
 
-    repositories {
-
-        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
-        maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
-        maven { url = uri("https://www.jitpack.io") }
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
 plugins {
+    id("org.jetbrains.intellij.platform.settings") version "2.10.5"
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
 }
 buildCache {
@@ -45,6 +37,26 @@ buildCache {
 }
 
 rootProject.name = "intellij-cangjie"
+// 使用依赖解析管理（可选但推荐）
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.PREFER_PROJECT
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/kotlin-dependencies") }
+        maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
+        maven { url = uri("https://jitpack.io") }
+        gradlePluginPortal()
+        intellijPlatform {
+
+            defaultRepositories()
+            intellijDependencies()
+            localPlatformArtifacts()
+            marketplace()
+        }
+    }
+}
+
+
 
 include("plugin")
 

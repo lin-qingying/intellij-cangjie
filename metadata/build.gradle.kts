@@ -29,9 +29,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import java.net.URI
 import java.nio.file.Files
 
-plugins {
-    kotlin("jvm")
-}
+
 
 dependencies {
     implementation("com.google.flatbuffers:flatbuffers-java:25.2.10")

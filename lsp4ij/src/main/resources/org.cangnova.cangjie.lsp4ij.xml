@@ -27,6 +27,14 @@
     <dependencies>
         <plugin id="com.redhat.devtools.lsp4ij"/>
     </dependencies>
+
+    <projectListeners>
+        <!-- 监听项目同步事件，在项目刷新成功后重启 LSP 服务器 -->
+        <listener
+                class="org.cangnova.cangjie.lsp4ij.CjProjectSyncListener"
+                topic="org.cangnova.cangjie.project.event.CjProjectListener"/>
+    </projectListeners>
+
     <actions>
         <action class="org.cangnova.cangjie.lsp4ij.CangJieDebugLSPCommandAction" id="cangjie.test.debug"/>
 

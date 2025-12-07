@@ -26,6 +26,7 @@ import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+
     id("org.jetbrains.grammarkit") version "2022.3.2.2"
 //    `java-test-fixtures`
 }

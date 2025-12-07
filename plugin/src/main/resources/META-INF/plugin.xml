@@ -33,7 +33,7 @@
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor email="lin17624294976@outlook.com" url="https://github.com/lin-qingying">Lin_Qing_Ying</vendor>
 
-    <!--    <version>1.0.0</version>-->
+
 
 
     <dependencies>
@@ -44,6 +44,7 @@
 
         <plugin id="com.intellij.copyright"/>
 
+<!--        <plugin id="com.redhat.devtools.lsp4ij"/>-->
 
     </dependencies>
 
@@ -51,7 +52,6 @@
     <xi:include href="/META-INF/cangjie-all.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
 
-    <!--    <xi:include href="/META-INF/cangjie-lsp4ij.xml" xpointer="xpointer(/idea-plugin/*)"/>-->
 
     <content>
 

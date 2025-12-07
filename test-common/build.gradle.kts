@@ -26,7 +26,6 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 
 plugins {
-    kotlin("jvm")
     `java-test-fixtures`
 }
 sourceSets {

@@ -23,6 +23,7 @@
  */
 
 
+
 dependencies {
     intellijPlatform{
         bundledPlugin("com.intellij.modules.json")
