@@ -429,6 +429,18 @@ class CjpmDependencyResolver : CjDependencyResolver {
 
         LOG.info("Resolved path dependency: ${locked.name} with ${dependencies.size} dependencies")
 
+        // 检查该路径依赖是否指向工作空间内的模块
+        val targetModule = cjProject.findModule(dependency.name)
+        if (targetModule != null) {
+            // 验证路径是否匹配
+            val targetModulePath = targetModule.rootDir.toNioPath().normalize()
+            if (targetModulePath == dependencyPath.normalize()) {
+                LOG.debug("Locked path dependency ${dependency.name} resolves to workspace module, returning LocalModule")
+             return CjPackage.fromModule(targetModule)
+            }
+        }
+
+        // 外部路径依赖，返回 Path 包
         return CjPackage.Path(
             PackageId(
                 name = config.`package`.name,
@@ -547,6 +559,20 @@ class CjpmDependencyResolver : CjDependencyResolver {
 
         LOG.info("Resolved path dependency directly: ${dependency.name} with ${dependencies.size} dependencies")
 
+        // 检查该路径依赖是否指向工作空间内的模块
+        val targetModule = cjProject.findModule(dependency.name)
+        if (targetModule != null) {
+            // 验证路径是否匹配
+            val targetModulePath = targetModule.rootDir.toNioPath().normalize()
+            if (targetModulePath == dependencyPath) {
+                LOG.debug("Path dependency ${dependency.name} resolves to workspace module, returning LocalModule")
+
+                return CjPackage.fromModule(targetModule)
+
+            }
+        }
+
+        // 外部路径依赖，返回 Path 包
         return CjPackage.Path(
             PackageId(
                 name = config.`package`.name,

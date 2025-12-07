@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.cjpm.dependency
 
 import org.cangnova.cangjie.project.model.CjDependency
+import org.cangnova.cangjie.project.model.CjOutputType
 import org.cangnova.cangjie.project.model.CjPackageMetadata
 import org.cangnova.cangjie.project.model.CjVersion
 import java.nio.file.Path
@@ -36,12 +37,15 @@ data class CjpmPackageMetadata(
     override val name: String,
     override val version: CjVersion,
     override val group: String? = null,
-
+    override val outputType: CjOutputType? = null,
     override val description: String? = null,
     override val authors: List<String> = emptyList(),
     override val license: String? = null,
     override val repositoryUrl: String? = null,
     override val dependencies: List<CjDependency> = emptyList(),
     override val localPath: Path? = null
-) : CjPackageMetadata
+) : CjPackageMetadata {
+
+
+}
 

@@ -25,6 +25,19 @@
 package org.cangnova.cangjie.project.model
 
 /**
+ * 依赖声明者接口
+ *
+ * 用于标识声明了某个依赖的实体，可以是模块 ([CjModule]) 或另一个依赖 ([CjDependency])
+ * 这允许我们跟踪依赖的声明来源，以便正确解析相对路径依赖
+ */
+interface CjDependencyDeclarant {
+    /**
+     * 声明者的名称
+     */
+    val name: String
+}
+
+/**
  * 依赖范围
  */
 enum class CjDependencyScope {
@@ -83,13 +96,12 @@ data class DependencyExclusion(
  * - 支持依赖重命名（rename）
  * - 支持条件编译（targetPlatform）
  *
- * 这是 V2 版本的依赖声明，提供更丰富的依赖管理能力。
  */
-sealed class CjDependency {
+sealed class CjDependency : CjDependencyDeclarant {
     /**
      * 依赖名称
      */
-    abstract val name: String
+    abstract override val name: String
 
     /**
      * 依赖组（可选，类似 Maven 的 groupId）
@@ -146,6 +158,15 @@ sealed class CjDependency {
     abstract val excludes: List<DependencyExclusion>
 
     /**
+     * 声明此依赖的源模块或依赖
+     *
+     * 用于解析相对路径依赖时确定基准目录
+     * 可以是模块（直接依赖）或另一个依赖（传递依赖）
+     * 对于 Path 依赖，相对路径应相对于声明它的模块或依赖的根目录
+     */
+    abstract val sourceModule: CjDependencyDeclarant
+
+    /**
      * 依赖的唯一标识符
      */
     val id: String
@@ -169,7 +190,8 @@ sealed class CjDependency {
         override val transitive: Boolean = true,
         override val rename: String? = null,
         override val target: String? = null,
-        override val excludes: List<DependencyExclusion> = emptyList()
+        override val excludes: List<DependencyExclusion> = emptyList(),
+        override val sourceModule: CjDependencyDeclarant
     ) : CjDependency() {
         override fun toString(): String {
             val parts = mutableListOf<String>()
@@ -197,7 +219,8 @@ sealed class CjDependency {
         override val transitive: Boolean = false,
         override val rename: String? = null,
         override val target: String? = null,
-        override val excludes: List<DependencyExclusion> = emptyList()
+        override val excludes: List<DependencyExclusion> = emptyList(),
+        override val sourceModule: CjDependencyDeclarant
     ) : CjDependency() {
         override val group: String? = null
 
@@ -221,7 +244,8 @@ sealed class CjDependency {
         override val transitive: Boolean = true,
         override val rename: String? = null,
         override val target: String? = null,
-        override val excludes: List<DependencyExclusion> = emptyList()
+        override val excludes: List<DependencyExclusion> = emptyList(),
+        override val sourceModule: CjDependencyDeclarant
     ) : CjDependency() {
         override val group: String? = null
 
@@ -236,7 +260,8 @@ sealed class CjDependency {
     data class Stdlib(
         override val name: String,
         override val versionReq: VersionRequirement,
-        override val scope: CjDependencyScope = CjDependencyScope.PROVIDED
+        override val scope: CjDependencyScope = CjDependencyScope.PROVIDED,
+        override val sourceModule: CjDependencyDeclarant
     ) : CjDependency() {
         override val group: String? = null
         override val features: List<String> = emptyList()
@@ -285,7 +310,8 @@ sealed class CjDependency {
          */
         override val target: String,
 
-        override val scope: CjDependencyScope = CjDependencyScope.COMPILE
+        override val scope: CjDependencyScope = CjDependencyScope.COMPILE,
+        override val sourceModule: CjDependencyDeclarant
     ) : CjDependency() {
         override val group: String? = null
         override val versionReq: VersionRequirement = VersionRequirement.Exact(CjVersion())

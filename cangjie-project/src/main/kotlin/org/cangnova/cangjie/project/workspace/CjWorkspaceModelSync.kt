@@ -473,15 +473,14 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
             projectPath = cjModule.project.rootDir.path
         )
 
-        // 1. 处理 Path 依赖（模块间依赖）
+        // 1. 处理 Path 依赖（区分模块间依赖和外部路径依赖）
         for (pathDep in cjModule.pathDependencies) {
             // 查找依赖的模块
             val dependencyModule = cjModule.project.findModule(pathDep.name)
             if (dependencyModule != null) {
-                // 构建依赖模块的完整名称（带前缀）
+                // 情况1: 工作空间内的模块间依赖 → ModuleDependency
                 val dependencyModuleName = "$moduleNamePrefix${pathDep.name}"
 
-                // 创建模块依赖
                 moduleDeps.add(
                     ModuleDependency(
                         module = ModuleId(dependencyModuleName),
@@ -493,7 +492,40 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
 
                 LOG.debug("Added module dependency: ${cjModule.name} -> ${pathDep.name} (scope=${pathDep.scope})")
             } else {
-                LOG.warn("Dependency module not found: ${pathDep.name} for module ${cjModule.name}")
+                // 情况2: 工作空间外的路径依赖 → LibraryDependency
+                LOG.debug("Path dependency ${pathDep.name} is not a workspace module, treating as external library")
+
+                // 从依赖图中获取已解析的 Path 包，或直接解析
+                val resolvedPackage = if (dependencyGraph != null) {
+                    val modulePackageId = PackageId(
+                        name = cjModule.name,
+                        version = cjModule.metadata.version,
+                        sourceId = SourceId.Local(cjModule.rootDir.toNioPath())
+                    )
+                    val directDeps = dependencyGraph.getDirectDependencies(modulePackageId)
+                    val depEdge = directDeps.find { it.declaration.name == pathDep.name }
+                    depEdge?.let { dependencyGraph.packages[it.resolvedTo] }
+                } else {
+                    // 降级：直接解析
+                    val dependencyService = CjDependencyService.getInstance(intellijProject)
+                    dependencyService.resolveSingle(pathDep).getOrNull()
+                }
+
+                if (resolvedPackage is CjPackage.Path) {
+                    // 创建 LibraryEntity 和 LibraryDependency
+                    val libraryDependency = createLibraryDependency(
+                        builder,
+                        pathDep,
+                        resolvedPackage,
+                        entitySource
+                    )
+                    if (libraryDependency != null) {
+                        libraryDeps.add(libraryDependency)
+                        LOG.debug("Added external path dependency as library: ${cjModule.name} -> ${pathDep.name}")
+                    }
+                } else {
+                    LOG.warn("Failed to resolve external path dependency: ${pathDep.name} for module ${cjModule.name}")
+                }
             }
         }
 
@@ -532,7 +564,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
     }
 
     /**
-     * 使用依赖图构建库依赖（新方法）
+     * 使用依赖图构建库依赖
      *
      * 从依赖图中获取模块的所有传递依赖，并为每个依赖创建 LibraryDependency
      */
@@ -572,7 +604,7 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
 
                 val libraryDependency = createLibraryDependency(
                     builder,
-                    directDep?.declaration ?: createDefaultDependency(depPackage),
+                    directDep?.declaration ?: createDefaultDependency(depPackage, cjModule),
                     depPackage,
                     entitySource
                 )
@@ -594,44 +626,53 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
      *
      * 当从依赖图获取传递依赖时，可能没有原始的依赖声明，
      * 此方法根据包信息创建一个默认的依赖声明
+     *
+     * @param pkg 包信息
+     * @param sourceModule 声明此依赖的源模块
      */
-    private fun createDefaultDependency(pkg: CjPackage): CjDependency {
+    private fun createDefaultDependency(pkg: CjPackage, sourceModule: CjDependencyDeclarant): CjDependency {
         return when (pkg) {
             is CjPackage.Library -> CjDependency.Library(
                 name = pkg.id.name,
                 versionReq = VersionRequirement.Exact(pkg.id.version),
-                scope = CjDependencyScope.COMPILE
+                scope = CjDependencyScope.COMPILE,
+                sourceModule = sourceModule
             )
 
             is CjPackage.Git -> CjDependency.Git(
                 name = pkg.id.name,
                 url = pkg.url,
                 ref = GitRef.Rev(pkg.rev),
-                versionReq = VersionRequirement.Exact(pkg.id.version)
+                versionReq = VersionRequirement.Exact(pkg.id.version),
+                sourceModule = sourceModule
             )
 
             is CjPackage.Path -> CjDependency.Path(
                 name = pkg.id.name,
-                path = pkg.path
+                path = pkg.path,
+                sourceModule = sourceModule
             )
 
             is CjPackage.Stdlib -> CjDependency.Stdlib(
                 name = pkg.id.name,
-                versionReq = VersionRequirement.Exact(pkg.id.version)
+                versionReq = VersionRequirement.Exact(pkg.id.version),
+                sourceModule = sourceModule
             )
 
             is CjPackage.Binary -> CjDependency.Binary(
                 name = pkg.id.name,
                 cjoPath = pkg.cjoPath,
                 libPath = pkg.libPath,
-                target = pkg.target
+                target = pkg.target,
+                sourceModule = sourceModule
             )
 
             is CjPackage.LocalModule -> {
                 // 本地模块作为路径依赖
                 CjDependency.Path(
                     name = pkg.id.name,
-                    path = pkg.module.rootDir.toNioPath()
+                    path = pkg.module.rootDir.toNioPath(),
+                    sourceModule = sourceModule
                 )
             }
 
@@ -639,7 +680,8 @@ class CjWorkspaceModelSync(private val intellijProject: Project) {
                 LOG.warn("Creating default dependency for failed package: ${pkg.id.name}")
                 CjDependency.Library(
                     name = pkg.id.name,
-                    versionReq = VersionRequirement.Exact(pkg.id.version)
+                    versionReq = VersionRequirement.Exact(pkg.id.version),
+                    sourceModule = sourceModule
                 )
             }
         }

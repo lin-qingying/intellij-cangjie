@@ -32,11 +32,11 @@ import com.intellij.openapi.vfs.VirtualFile
  *
  * 代表项目中的一个模块/包，每个CjModule应对应一个实际的IntelliJ Module
  */
-interface CjModule {
+interface CjModule : CjDependencyDeclarant {
     /**
      * 模块名称
      */
-    val name: String
+    override val name: String
 
     /**
      * 模块根目录

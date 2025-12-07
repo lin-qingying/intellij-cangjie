@@ -66,11 +66,11 @@ class ProjectVersionInspection : LocalInspectionTool() {
             if(versionWithPrefixRegex.matches(txt)){
                 holder.registerProblem(element, CJPMConfigInspectionBundle.message("problem.project.version.prefix.desc"),
                     RemoveVPrefixQuickFix())
-            }else if(semverRegex.matches(txt)){
+            } else if(semverRegex.matches(txt)){
                 holder.registerProblem(element,CJPMConfigInspectionBundle.message("problem.project.version.suffix.desc"), SemVerQuickFix())
+            } else {
+                holder.registerProblem(element,CJPMConfigInspectionBundle.message("problem.project.version.desc"))
             }
-
-            holder.registerProblem(element,CJPMConfigInspectionBundle.message("problem.project.version.desc"))
         }
     }
 

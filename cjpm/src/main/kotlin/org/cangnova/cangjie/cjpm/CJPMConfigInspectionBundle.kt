@@ -29,7 +29,7 @@ import org.cangnova.cangjie.messages.AbstractCangJieBundle
 import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.annotations.PropertyKey
-
+@NonNls
 private const val BUNDLE: String = "CJPMConfigInspectionBundle"
 
 object CJPMConfigInspectionBundle : AbstractCangJieBundle(BUNDLE) {
