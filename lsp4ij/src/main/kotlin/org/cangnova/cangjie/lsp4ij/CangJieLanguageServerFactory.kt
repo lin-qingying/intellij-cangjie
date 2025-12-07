@@ -30,14 +30,12 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.toNioPathOrNull
 import com.intellij.util.io.systemIndependentPath
 import com.redhat.devtools.lsp4ij.LanguageServerFactory
-import com.redhat.devtools.lsp4ij.client.features.FileUriSupport
 import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
+import kotlinx.coroutines.runBlocking
 import org.cangnova.cangjie.lsp.replacePathBySystem
-import org.cangnova.cangjie.project.model.CjDependency
-import org.cangnova.cangjie.project.model.CjModule
-import org.cangnova.cangjie.project.model.CjProject
-import org.cangnova.cangjie.project.model.cjProject
+import org.cangnova.cangjie.project.model.*
+import org.cangnova.cangjie.project.service.CjDependencyService
 import org.cangnova.cangjie.toolchain.api.CjProjectSdkConfig
 import org.cangnova.cangjie.toolchain.api.CjSdk
 import org.eclipse.lsp4j.*
@@ -71,7 +69,7 @@ fun toString(virtualFile: VirtualFile): String {
 class CangJieLSPClientFeatures : LSPClientFeatures() {
 
     init {
-        setFileUriSupport(FileUriSupport.ENCODED)
+        setFileUriSupport(ENCODED)
         diagnosticFeature = CangJieLSPDiagnosticFeature()
         hoverFeature = CangJieLSPHoverFeature()
         codeLensFeature = CangJieLSPCodeLensFeature
@@ -567,16 +565,329 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
         if (modules.isEmpty()) return mutableMapOf()
 
-        return mutableMapOf<String, Any>().apply {
-            for (module in modules) {
-                val moduleUri = toString(module.rootDir)
-                put(moduleUri, mutableMapOf<String, Any>().apply {
-                    put("name", module.name)
-                    put("package_requires", createPackageRequires(module))
-                    put("source_sets", createSourceSetsInfo(module))
-                })
+        // 收集所有需要配置的模块信息（主模块 + 依赖模块）
+        val allModuleInfos = mutableMapOf<String, ModuleConfigInfo>()
+
+        // 首先收集主模块（优先级最高）
+        for (module in modules) {
+            val moduleUri = toString(module.rootDir)
+            allModuleInfos[moduleUri] = ModuleConfigInfo.Main(module)
+        }
+
+        // 然后收集依赖模块（仅源码依赖：Git、Path）
+        val externalDependencies = mutableMapOf<String, DependencyModuleInfo>()
+        for (module in modules) {
+            collectSourceDependencies(module, externalDependencies)
+        }
+
+        // 将依赖模块添加到 allModuleInfos（跳过已存在的主模块）
+        for ((depUri, depInfo) in externalDependencies) {
+            if (!allModuleInfos.containsKey(depUri)) {
+                allModuleInfos[depUri] = ModuleConfigInfo.Dependency(depInfo)
             }
         }
+
+        // 统一生成配置
+        return allModuleInfos.mapValues { (_, moduleInfo) ->
+            when (moduleInfo) {
+                is ModuleConfigInfo.Main -> createModuleConfig(moduleInfo.module, externalDependencies)
+                is ModuleConfigInfo.Dependency -> createDependencyModuleConfig(moduleInfo.info)
+            }
+        }
+    }
+
+    /**
+     * 模块配置信息的密封类
+     *
+     * 用于统一表示主模块和依赖模块，便于统一处理
+     */
+    private sealed class ModuleConfigInfo {
+        /**
+         * 主模块（工作空间中的模块或单模块项目）
+         */
+        data class Main(val module: CjModule) : ModuleConfigInfo()
+
+        /**
+         * 依赖模块（Git/Path 源码依赖）
+         */
+        data class Dependency(val info: DependencyModuleInfo) : ModuleConfigInfo()
+    }
+
+    /**
+     * 依赖模块信息
+     */
+    private data class DependencyModuleInfo(
+        val name: String,
+        val rootPath: VirtualFile,
+        val dependency: CjDependency,
+        val resolvedPackage: CjPackage? = null  // 已解析的包信息（用于获取传递依赖）
+    )
+
+    /**
+     * 收集模块的所有源码依赖（Git、Path 依赖），包括传递依赖
+     */
+    private fun collectSourceDependencies(
+        module: CjModule,
+        dependencyModules: MutableMap<String, DependencyModuleInfo>
+    ) {
+        val allDeps = module.dependencies + module.buildDependencies + module.testDependencies
+        collectSourceDependenciesRecursive(allDeps, dependencyModules, mutableSetOf())
+    }
+
+    /**
+     * 递归收集源码依赖，包括传递依赖
+     *
+     * @param dependencies 当前层级的依赖列表
+     * @param dependencyModules 已收集的依赖模块映射
+     * @param visited 已访问的依赖路径集合（用于防止循环依赖）
+     */
+    private fun collectSourceDependenciesRecursive(
+        dependencies: List<CjDependency>,
+        dependencyModules: MutableMap<String, DependencyModuleInfo>,
+        visited: MutableSet<String>
+    ) {
+        for (dep in dependencies) {
+            when (dep) {
+                is CjDependency.Git -> {
+                    // Git 依赖：解析并添加到依赖模块列表
+                    val resolvedPackage = resolveDependency(project, dep)
+                    if (resolvedPackage is CjPackage.Git) {
+                        val virtualFile = VirtualFileManager.getInstance()
+                            .findFileByNioPath(resolvedPackage.checkoutPath)
+                        virtualFile?.let {
+                            val uri = toString(it)
+
+                            // 防止重复处理和循环依赖
+                            if (visited.contains(uri)) return@let
+                            visited.add(uri)
+
+                            if (!dependencyModules.containsKey(uri)) {
+                                val depInfo = DependencyModuleInfo(
+                                    name = dep.name,
+                                    rootPath = it,
+                                    dependency = dep,
+                                    resolvedPackage = resolvedPackage
+                                )
+                                dependencyModules[uri] = depInfo
+
+                                // 递归处理传递依赖
+                                val transitiveDeps = getTransitiveDependencies(resolvedPackage)
+                                if (transitiveDeps.isNotEmpty()) {
+                                    collectSourceDependenciesRecursive(transitiveDeps, dependencyModules, visited)
+                                }
+                            }
+                        }
+                    }
+                }
+                is CjDependency.Path -> {
+                    // Path 依赖：解析并添加到依赖模块列表
+                    // 注意：dep.path 可能是相对路径（如 ../abc），需要先解析为绝对路径
+                    val resolvedPackage = resolveDependency(project, dep)
+                    if (resolvedPackage is CjPackage.Path) {
+                        val virtualFile = VirtualFileManager.getInstance()
+                            .findFileByNioPath(resolvedPackage.path)
+                        virtualFile?.let {
+                            val uri = toString(it)
+
+                            // 防止重复处理和循环依赖
+                            if (visited.contains(uri)) return@let
+                            visited.add(uri)
+
+                            if (!dependencyModules.containsKey(uri)) {
+                                val depInfo = DependencyModuleInfo(
+                                    name = dep.name,
+                                    rootPath = it,
+                                    dependency = dep,
+                                    resolvedPackage = resolvedPackage
+                                )
+                                dependencyModules[uri] = depInfo
+
+                                // 递归处理传递依赖
+                                val transitiveDeps = getTransitiveDependencies(resolvedPackage)
+                                if (transitiveDeps.isNotEmpty()) {
+                                    collectSourceDependenciesRecursive(transitiveDeps, dependencyModules, visited)
+                                }
+                            }
+                        }
+                    }
+                }
+                else -> {
+                    // Library 和 Binary 依赖不需要在这里处理
+                }
+            }
+        }
+    }
+
+    /**
+     * 获取已解析包的传递依赖
+     */
+    private fun getTransitiveDependencies(pkg: CjPackage): List<CjDependency> {
+        return when (pkg) {
+            is CjPackage.Git -> {
+                // 从 Git 包中获取依赖信息
+                // Git 包解析后应该包含依赖信息
+                pkg.dependencies
+            }
+            is CjPackage.Path -> {
+                // Path 包的传递依赖
+                // 依赖解析器已经从 cjpm.toml 中读取并解析了传递依赖
+                pkg.dependencies
+            }
+            is CjPackage.Library -> {
+                // Library 包的传递依赖
+                pkg.dependencies
+            }
+            else -> emptyList()
+        }
+    }
+
+    /**
+     * 创建主模块配置
+     */
+    private fun createModuleConfig(
+        module: CjModule,
+        dependencyModules: Map<String, DependencyModuleInfo>
+    ): Map<String, Any> {
+        return mutableMapOf<String, Any>().apply {
+            put("name", module.name)
+            put("package_requires", createPackageRequires(module))
+            put("source_sets", createSourceSetsInfo(module))
+
+            // 添加 requires 字段，声明源码依赖关系
+            val requires = createRequires(module, dependencyModules)
+            if (requires.isNotEmpty()) {
+                put("requires", requires)
+            }
+        }
+    }
+
+    /**
+     * 创建依赖模块配置
+     */
+    private fun createDependencyModuleConfig(depInfo: DependencyModuleInfo): Map<String, Any> {
+        return mutableMapOf<String, Any>().apply {
+            put("name", depInfo.name)
+
+            // 源码集配置：推断标准目录结构
+            put("source_sets", mutableMapOf<String, Any>().apply {
+                put("main", mutableMapOf<String, Any>().apply {
+                    val srcDir = depInfo.rootPath.findChild("src")
+                    put("source_roots", if (srcDir != null) listOf(toString(srcDir)) else emptyList())
+                    put("resource_roots", emptyList<String>())
+                    put("output_directory", emptyList<String>())
+                    put("is_test", false)
+                })
+            })
+
+            // package_requires：处理依赖模块的 Library 和 Binary 依赖
+            val transitiveDeps = depInfo.resolvedPackage?.let { getTransitiveDependencies(it) } ?: emptyList()
+            put("package_requires", createPackageRequiresForDependency(transitiveDeps))
+
+            // requires：处理依赖模块的 Git/Path 源码依赖
+            val requires = createRequiresForDependency(transitiveDeps)
+            if (requires.isNotEmpty()) {
+                put("requires", requires)
+            }
+        }
+    }
+
+    /**
+     * 为依赖模块创建 package_requires 配置
+     */
+    private fun createPackageRequiresForDependency(dependencies: List<CjDependency>): Map<String, Any> {
+        val pathOptions = mutableSetOf<String>()
+        val packageOptions = mutableMapOf<String, String>()
+
+        processDependencies(dependencies, pathOptions, packageOptions)
+
+        return mutableMapOf<String, Any>().apply {
+            put("path_option", pathOptions.toList())
+            put("package_option", packageOptions)
+        }
+    }
+
+    /**
+     * 为依赖模块创建 requires 字段
+     */
+    private fun createRequiresForDependency(dependencies: List<CjDependency>): Map<String, Map<String, String>> {
+        val requires = mutableMapOf<String, Map<String, String>>()
+
+        for (dep in dependencies) {
+            when (dep) {
+                is CjDependency.Git -> {
+                    val resolvedPackage = resolveDependency(project, dep)
+                    if (resolvedPackage is CjPackage.Git) {
+                        val virtualFile = VirtualFileManager.getInstance()
+                            .findFileByNioPath(resolvedPackage.checkoutPath)
+                        virtualFile?.let {
+                            val uri = toString(it)
+                            requires[dep.name] = mapOf("path" to uri)
+                        }
+                    }
+                }
+                is CjDependency.Path -> {
+                    // 解析 Path 依赖以处理相对路径
+                    val resolvedPackage = resolveDependency(project, dep)
+                    if (resolvedPackage is CjPackage.Path) {
+                        val virtualFile = VirtualFileManager.getInstance()
+                            .findFileByNioPath(resolvedPackage.path)
+                        virtualFile?.let {
+                            val uri = toString(it)
+                            requires[dep.name] = mapOf("path" to uri)
+                        }
+                    }
+                }
+                else -> {
+                    // Library 和 Binary 依赖不在 requires 中
+                }
+            }
+        }
+
+        return requires
+    }
+
+    /**
+     * 创建 requires 字段，声明源码依赖关系
+     */
+    private fun createRequires(
+        module: CjModule,
+        dependencyModules: Map<String, DependencyModuleInfo>
+    ): Map<String, Map<String, String>> {
+        val requires = mutableMapOf<String, Map<String, String>>()
+        val allDeps = module.dependencies + module.buildDependencies + module.testDependencies
+
+        for (dep in allDeps) {
+            when (dep) {
+                is CjDependency.Git -> {
+                    val resolvedPackage = resolveDependency(project, dep)
+                    if (resolvedPackage is CjPackage.Git) {
+                        val virtualFile = VirtualFileManager.getInstance()
+                            .findFileByNioPath(resolvedPackage.checkoutPath)
+                        virtualFile?.let {
+                            val uri = toString(it)
+                            requires[dep.name] = mapOf("path" to uri)
+                        }
+                    }
+                }
+                is CjDependency.Path -> {
+                    // 解析 Path 依赖以处理相对路径
+                    val resolvedPackage = resolveDependency(project, dep)
+                    if (resolvedPackage is CjPackage.Path) {
+                        val virtualFile = VirtualFileManager.getInstance()
+                            .findFileByNioPath(resolvedPackage.path)
+                        virtualFile?.let {
+                            val uri = toString(it)
+                            requires[dep.name] = mapOf("path" to uri)
+                        }
+                    }
+                }
+                else -> {
+                    // Library 和 Binary 依赖不在 requires 中
+                }
+            }
+        }
+
+        return requires
     }
 
     /**
@@ -585,8 +896,8 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
      */
     private fun createPackageRequires(module: CjModule): Map<String, Any> {
         return mutableMapOf<String, Any>().apply {
-            // 收集所有路径依赖
-            val pathOptions = mutableListOf<String>()
+            // 收集所有路径依赖（使用 Set 自动去重）
+            val pathOptions = mutableSetOf<String>()
             val packageOptions = mutableMapOf<String, String>()
 
             // 处理编译依赖
@@ -600,17 +911,22 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
 
 
 
-            put("path_option", pathOptions)
+            put("path_option", pathOptions.toList())
             put("package_option", packageOptions)
         }
     }
 
     /**
      * 处理依赖列表，将其转换为 LSP 格式
+     *
+     * 注意：
+     * - Git/Path 依赖（源码依赖）会在 multiModuleOption 顶层声明，不在 path_option 中
+     * - Binary 依赖放在 path_option 中（LSP 会扫描 .cjo 文件）
+     * - Library 依赖放在 package_option 中
      */
     private fun processDependencies(
         dependencies: List<CjDependency>,
-        pathOptions: MutableList<String>,
+        pathOptions: MutableSet<String>,
         packageOptions: MutableMap<String, String>
     ) {
         dependencies.forEach { dependency ->
@@ -626,21 +942,18 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
                 }
 
                 is CjDependency.Path -> {
-                    // 路径依赖：添加到 path_option
-                    val virtualFile = VirtualFileManager.getInstance()
-                        .findFileByNioPath(dependency.path)
-                    virtualFile?.let {
-                        pathOptions.add(toString(it))
-                    }
+                    // 路径依赖（源码）：已在 multiModuleOption 中声明，这里不处理
+                    // 源码依赖会通过 collectSourceDependencies 和 createRequires 处理
                 }
 
                 is CjDependency.Git -> {
-                    // Git 依赖：LSP 可能需要先克隆到本地，这里暂时跳过
-                    // TODO: 实现 Git 依赖的处理
+                    // Git 依赖（源码）：已在 multiModuleOption 中声明，这里不处理
+                    // 源码依赖会通过 collectSourceDependencies 和 createRequires 处理
                 }
 
                 is CjDependency.Binary -> {
-                    // 二进制依赖：添加 .cjo 文件路径
+                    // 二进制依赖：添加包含 .cjo 文件的目录到 path_option
+                    // LSP 会扫描该目录下的所有 .cjo 文件
                     val virtualFile = VirtualFileManager.getInstance()
                         .findFileByNioPath(dependency.cjoPath)
                     virtualFile?.let {
@@ -652,9 +965,27 @@ class CangJieLSPClientFeatures : LSPClientFeatures() {
                 }
 
                 is  CjDependency.Stdlib -> {
-                    // 标准库依赖：通常由 SDK 处理，这里不需要额外配置
+                    // 标准库依赖：由 SDK 的 stdLibPathOption 处理，这里不需要额外配置
                 }
             }
+        }
+    }
+
+    /**
+     * 解析依赖，获取依赖的详细信息
+     *
+     * 使用 CjDependencyService 来解析依赖
+     */
+    private fun resolveDependency(project: Project, dependency: CjDependency): CjPackage? {
+        val dependencyService = CjDependencyService.getInstance(project)
+        return try {
+            // 使用 runBlocking 在同步上下文中调用挂起函数
+            runBlocking {
+                dependencyService.resolveSingle(dependency).getOrNull()
+            }
+        } catch (e: Exception) {
+            // 解析失败时返回 null，这样 LSP 会跳过这个 Git 依赖
+            null
         }
     }
 

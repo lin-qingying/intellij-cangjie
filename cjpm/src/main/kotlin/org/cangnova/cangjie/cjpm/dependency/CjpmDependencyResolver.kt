@@ -85,10 +85,19 @@ class CjpmDependencyResolver : CjDependencyResolver {
                 return emptyMap()
             }
 
+            // baseDir 是模块的根目录
+            val baseDir = rootPackage.module.rootDir.toNioPath()
+
             // 转换为 CjDependency 映射
             val rules = mutableMapOf<String, CjDependency>()
             replaceConfigs.forEach { (name, depConfig) ->
-                val dependency = createDependencyFromConfig(name, depConfig, CjDependencyScope.COMPILE)
+                val dependency = createDependencyFromConfig(
+                    name = name,
+                    config = depConfig,
+                    scope = CjDependencyScope.COMPILE,
+                    sourceModule = rootPackage.module,
+                    baseDir = baseDir
+                )
                 rules[name] = dependency
                 LOG.info("Loaded replace rule: $name -> ${dependency.toDependencySource()}")
             }
@@ -136,19 +145,52 @@ class CjpmDependencyResolver : CjDependencyResolver {
         return try {
             // 首先尝试从 lock 文件解析
             val lockFile = findLockFile(project)
-            if (lockFile != null) {
-                resolveFromLockFile(dependency, lockFile, project)
-            } else {
-                // 如果没有 lock 文件，回退到传统方式
-                LOG.warn("No cjpm.lock found, falling back to traditional resolution for: ${dependency.name}")
-                return CjPackage.Failed(
-                    PackageId(
-                        dependency.name,
-                        CjVersion.EMPTY,
-                        dependency.sourceId()
-                    ), "No cjpm.lock found"
-                )
-            }
+            val result = lockFile?.let { resolveFromLockFile(dependency, it, project) }
+
+            // 从 lock 文件成功解析
+            result
+                ?: // 没有 lock 文件，或者在 lock 文件中没找到依赖
+                // 对于 Path 依赖，尝试直接解析
+                when (dependency) {
+                    is CjDependency.Path -> {
+                        val reason = if (lockFile != null) {
+                            "not found in cjpm.lock"
+                        } else {
+                            "no cjpm.lock found"
+                        }
+                        LOG.info("Path dependency ${dependency.name} $reason, attempting direct resolution")
+                        resolvePathDependencyDirectly(dependency, project)
+                    }
+
+                    is CjDependency.Library -> {
+                        // 对于 Library（中心仓）依赖，尝试直接从缓存解析
+                        // 当前 CJPM 不会将中心仓依赖写入 lock 文件，所以直接解析
+                        val reason = if (lockFile != null) {
+                            "not found in cjpm.lock (central repository dependencies are not locked)"
+                        } else {
+                            "no cjpm.lock found"
+                        }
+                        LOG.info("Library dependency ${dependency.name} $reason, attempting direct resolution from cache")
+                        resolveLibraryDependencyDirectly(dependency, project)
+                    }
+
+                    else -> {
+                        // 其他类型（Git）需要 lock 文件
+                        val errorMsg = if (lockFile != null) {
+                            "Dependency not found in cjpm.lock. Please run 'cjpm update'."
+                        } else {
+                            "No cjpm.lock found. Please run 'cjpm update' to generate lock file."
+                        }
+                        LOG.warn("Cannot resolve ${dependency::class.simpleName} dependency: ${dependency.name} - $errorMsg")
+                        return CjPackage.Failed(
+                            PackageId(
+                                dependency.name,
+                                CjVersion.EMPTY,
+                                dependency.sourceId()
+                            ), errorMsg
+                        )
+                    }
+                }
         } catch (e: Exception) {
             LOG.warn("Failed to resolve dependency: ${dependency.name}", e)
             CjPackage.Failed(
@@ -197,14 +239,7 @@ class CjpmDependencyResolver : CjDependencyResolver {
         lockFile: CjpmLockFile,
         project: Project
     ): CjPackage? {
-        val lockedDep = lockFile.requires[dependency.name]
-        if (lockedDep == null) {
-            LOG.warn("Dependency ${dependency.name} not found in cjpm.lock")
-            return CjPackage.Failed(
-                PackageId(dependency.name, CjVersion.EMPTY, dependency.sourceId()),
-                "Dependency not found in cjpm.lock. Please run 'cjpm update'."
-            )
-        }
+        val lockedDep = lockFile.requires[dependency.name] ?: return null
 
         return when (lockedDep) {
             is LockedDependency.Git -> resolveLockedGitDependency(dependency, lockedDep, project)
@@ -269,8 +304,12 @@ class CjpmDependencyResolver : CjDependencyResolver {
             localPath = gitCacheDir
         )
 
-        //  解析包的依赖声明
-        val dependencies = parseDependenciesFromConfig(config)
+        //  解析包的依赖声明 - 传递依赖相对路径应相对于此包的根目录
+        val dependencies = parseDependenciesFromConfig(
+            config = config,
+            sourceModule = dependency,
+            baseDir = gitCacheDir
+        )
 
         LOG.info("Resolved git dependency: ${locked.name} with ${dependencies.size} dependencies")
 
@@ -295,18 +334,21 @@ class CjpmDependencyResolver : CjDependencyResolver {
 
     /**
      * 解析锁定的注册表依赖
+     *
+     * 从 lock 文件中获取中心仓依赖信息，然后从缓存读取
+     * 路径: ~/.cjpm/repository/<name>-<version>/
      */
     private fun resolveLockedRegistryDependency(
         dependency: CjDependency,
         locked: LockedDependency.Registry,
         project: Project
     ): CjPackage {
-//    TODO 当前没有中心仓
+        LOG.info("Resolving locked registry dependency: ${locked.name} @ ${locked.version}")
 
-        return CjPackage.Failed(
-            PackageId(dependency.name, CjVersion.EMPTY, dependency.sourceId()),
-            "Registry dependency not supported yet"
-        )
+        // 中心仓缓存路径: ~/.cjpm/repository/<name>-<version>
+        val packageDir = CJPM_CACHE_DIR.resolve("repository").resolve("${locked.name}-${locked.version}")
+
+        return resolveRegistryPackage(dependency, packageDir, locked.name, CjVersion(locked.version))
     }
 
     /**
@@ -378,8 +420,12 @@ class CjpmDependencyResolver : CjDependencyResolver {
             localPath = dependencyPath
         )
 
-        //  解析包的依赖声明
-        val dependencies = parseDependenciesFromConfig(config)
+        //  解析包的依赖声明 - 传递依赖相对路径应相对于此包的根目录
+        val dependencies = parseDependenciesFromConfig(
+            config = config,
+            sourceModule = dependency,
+            baseDir = dependencyPath
+        )
 
         LOG.info("Resolved path dependency: ${locked.name} with ${dependencies.size} dependencies")
 
@@ -396,24 +442,294 @@ class CjpmDependencyResolver : CjDependencyResolver {
         )
     }
 
+    /**
+     * 直接解析路径依赖（不使用 lock 文件）
+     *
+     * 用于在没有 cjpm.lock 文件时解析本地路径依赖
+     * 直接从依赖声明中的路径读取 cjpm.toml 并解析
+     */
+    private fun resolvePathDependencyDirectly(
+        dependency: CjDependency.Path,
+        project: Project
+    ): CjPackage {
+
+        LOG.info("Directly resolving path dependency: ${dependency.name} at ${dependency.path}")
+
+        val cjProject = project.cjProject
+
+        // 使用依赖的 sourceModule 来确定基准目录
+        val baseDir = when (val source = dependency.sourceModule) {
+            is CjModule -> {
+                // 如果源是模块，使用模块的根目录
+                source.rootDir.toNioPath()
+            }
+            is CjDependency -> {
+                // 如果源是另一个依赖（传递依赖），需要先解析该依赖获取其路径
+                // 这种情况较复杂，暂时回退到项目根目录
+                LOG.warn("Source of dependency ${dependency.name} is another dependency, using project root")
+                cjProject.rootDir.toNioPath()
+            }
+            else -> {
+                // 未知类型，使用项目根目录
+                LOG.warn("Unknown source type for dependency ${dependency.name}, using project root")
+                cjProject.rootDir.toNioPath()
+            }
+        }
+
+        // 处理相对路径和绝对路径
+        val dependencyPath = if (dependency.path.isAbsolute) {
+            dependency.path
+        } else {
+            baseDir.resolve(dependency.path).normalize()
+        }
+
+        if (!dependencyPath.exists() || !dependencyPath.isDirectory()) {
+            return CjPackage.Failed(
+                PackageId(
+                    name = dependency.name,
+                    version = CjVersion.EMPTY,
+                    sourceId = dependency.sourceId()
+                ),
+                "Path dependency does not exist: ${dependency.path} (resolved to: $dependencyPath, base: $baseDir)"
+            )
+        }
+
+        val manifestPath = dependencyPath.resolve("cjpm.toml")
+        if (!manifestPath.exists()) {
+            return CjPackage.Failed(
+                PackageId(
+                    name = dependency.name,
+                    version = CjVersion.EMPTY,
+                    sourceId = dependency.sourceId()
+                ),
+                "No cjpm.toml found at: ${dependency.path}"
+            )
+        }
+
+        val vfsManager = VirtualFileManager.getInstance()
+        val manifestVFile = vfsManager.findFileByNioPath(manifestPath)
+        if (manifestVFile == null) {
+            return CjPackage.Failed(
+                PackageId(
+                    name = dependency.name,
+                    version = CjVersion.EMPTY,
+                    sourceId = dependency.sourceId()
+                ),
+                "Cannot access cjpm.toml at: ${dependency.path}"
+            )
+        }
+
+        val config = CjpmTomlParser.parse(manifestVFile)
+        if (config?.`package` == null) {
+            return CjPackage.Failed(
+                PackageId(
+                    name = dependency.name,
+                    version = CjVersion.EMPTY,
+                    sourceId = dependency.sourceId()
+                ),
+                "Invalid cjpm.toml: no package section found"
+            )
+        }
+
+        val pkg = CjpmPackageMetadata(
+            name = config.`package`.name,
+            version = CjVersion(config.`package`.version),
+            description = config.`package`.description,
+            localPath = dependencyPath
+        )
+
+        // 解析包的依赖声明 - 传递依赖相对路径应相对于此包的根目录
+        val dependencies = parseDependenciesFromConfig(
+            config = config,
+            sourceModule = dependency,
+            baseDir = dependencyPath
+        )
+
+        LOG.info("Resolved path dependency directly: ${dependency.name} with ${dependencies.size} dependencies")
+
+        return CjPackage.Path(
+            PackageId(
+                name = config.`package`.name,
+                version = CjVersion(config.`package`.version),
+                sourceId = dependency.sourceId()
+            ),
+            pkg,
+            dependencies,  // 返回解析后的依赖列表
+            emptyMap(),    // TODO: 从配置读取 features
+            dependencyPath
+        )
+    }
+
+
+    /**
+     * 直接解析中心仓依赖（不使用 lock 文件）
+     *
+     * 用于在没有 cjpm.lock 文件或 lock 文件中没有该依赖时解析中心仓依赖
+     * 直接从 ~/.cjpm/repository/<name>-<version>/ 读取 cjpm.toml 并解析
+     *
+     * @param dependency 中心仓依赖
+     * @param project IntelliJ 项目
+     * @return 解析后的包对象
+     */
+    private fun resolveLibraryDependencyDirectly(
+        dependency: CjDependency.Library,
+        project: Project
+    ): CjPackage {
+        LOG.info("Directly resolving library dependency: ${dependency.name} @ ${dependency.versionReq}")
+
+        // 获取版本号（从 versionReq 中提取具体版本）
+        val version = when (val req = dependency.versionReq) {
+            is VersionRequirement.Exact -> req.version
+           else -> {
+                // 对于范围版本，暂时不支持，返回错误
+                return CjPackage.Failed(
+                    PackageId(
+                        name = dependency.name,
+                        version = CjVersion.EMPTY,
+                        sourceId = dependency.sourceId()
+                    ),
+                    "Version range resolution not yet supported for library dependencies. Please specify exact version."
+                )
+            }
+        }
+
+        // 中心仓缓存路径: ~/.cjpm/repository/<name>-<version>
+        val packageDir = CJPM_CACHE_DIR.resolve("repository").resolve("${dependency.name}-${version}")
+
+        return resolveRegistryPackage(dependency, packageDir, dependency.name, version)
+    }
+
+    /**
+     * 从中心仓缓存解析包
+     *
+     * 通用方法，用于从 ~/.cjpm/repository/<name>-<version>/ 解析包信息
+     * 被 resolveLockedRegistryDependency 和 resolveLibraryDependencyDirectly 共同使用
+     *
+     * @param dependency 依赖声明
+     * @param packageDir 包缓存目录
+     * @param name 包名
+     * @param version 包版本
+     * @return 解析后的包对象
+     */
+    private fun resolveRegistryPackage(
+        dependency: CjDependency,
+        packageDir: Path,
+        name: String,
+        version: CjVersion
+    ): CjPackage {
+        // 检查缓存目录是否存在
+        if (!packageDir.exists() || !packageDir.isDirectory()) {
+            return CjPackage.Failed(
+                PackageId(
+                    name = name,
+                    version = CjVersion.EMPTY,
+                    sourceId = dependency.sourceId()
+                ),
+                "Registry package not found at: $packageDir. Please run 'cjpm update' to download dependencies."
+            )
+        }
+
+        // 解析包的 cjpm.toml
+        val manifestPath = packageDir.resolve("cjpm.toml")
+        if (!manifestPath.exists()) {
+            return CjPackage.Failed(
+                PackageId(
+                    name = name,
+                    version = CjVersion.EMPTY,
+                    sourceId = dependency.sourceId()
+                ),
+                "No cjpm.toml found in registry package: $name at $packageDir"
+            )
+        }
+
+        val vfsManager = VirtualFileManager.getInstance()
+        val manifestVFile = vfsManager.findFileByNioPath(manifestPath)
+        if (manifestVFile == null) {
+            return CjPackage.Failed(
+                PackageId(
+                    name = name,
+                    version = CjVersion.EMPTY,
+                    sourceId = dependency.sourceId()
+                ),
+                "Cannot access cjpm.toml in registry package: $name"
+            )
+        }
+
+        val config = CjpmTomlParser.parse(manifestVFile)
+        if (config?.`package` == null) {
+            return CjPackage.Failed(
+                PackageId(
+                    name = name,
+                    version = CjVersion.EMPTY,
+                    sourceId = dependency.sourceId()
+                ),
+                "Invalid cjpm.toml in registry package: $name"
+            )
+        }
+
+        // 创建包元数据
+        val pkg = CjpmPackageMetadata(
+            name = config.`package`.name,
+            version = CjVersion(config.`package`.version),
+            description = config.`package`.description,
+            localPath = packageDir
+        )
+
+        // 解析包的依赖声明 - 传递依赖相对路径应相对于此包的根目录
+        val dependencies = parseDependenciesFromConfig(
+            config = config,
+            sourceModule = dependency,
+            baseDir = packageDir
+        )
+
+        LOG.info("Resolved registry package: $name @ $version with ${dependencies.size} dependencies")
+
+        // 获取 registry URL（如果依赖声明中有指定）
+        val registryUrl = if (dependency is CjDependency.Library) {
+            dependency.registry
+        } else {
+            null
+        }
+
+        // 返回 Library 类型的包
+        return CjPackage.Library(
+            id = PackageId(
+                name = config.`package`.name,
+                version = CjVersion(config.`package`.version),
+                sourceId = dependency.sourceId()
+            ),
+            metadata = pkg,
+            dependencies = dependencies,
+            features = emptyMap(),  // TODO: 从配置读取 features
+            registry = registryUrl,
+            downloadPath = packageDir,  // 缓存目录即为下载路径
+            checksum = null  // TODO: 支持 checksum 验证
+        )
+    }
 
     /**
      * 从 CjpmTomlConfig 解析依赖列表
      *
      * @param config CJPM 配置对象
+     * @param sourceModule 声明这些依赖的源（模块或依赖）
+     * @param baseDir 配置文件所在的目录，用于解析相对路径
      * @return 依赖声明列表
      */
-    private fun parseDependenciesFromConfig(config: CjpmTomlConfig): List<CjDependency> {
+    private fun parseDependenciesFromConfig(
+        config: CjpmTomlConfig,
+        sourceModule: CjDependencyDeclarant,
+        baseDir: Path
+    ): List<CjDependency> {
         val result = mutableListOf<CjDependency>()
 
         // 解析编译时依赖
         config.dependencies.forEach { (name, depConfig) ->
-            result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.COMPILE))
+            result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.COMPILE, sourceModule, baseDir))
         }
 
         // 解析测试时依赖
         config.testDependencies.forEach { (name, depConfig) ->
-            result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.TEST))
+            result.add(createDependencyFromConfig(name, depConfig, CjDependencyScope.TEST, sourceModule, baseDir))
         }
 
         return result
@@ -429,12 +745,14 @@ class CjpmDependencyResolver : CjDependencyResolver {
      * @param config CJPM 配置对象
      * @param targetPlatform 目标平台（如 x86_64-unknown-linux-gnu）
      * @param projectRoot 项目根目录
+     * @param sourceModule 声明这些依赖的源模块
      * @return 二进制依赖列表
      */
     fun parseBinaryDependenciesFromConfig(
         config: CjpmTomlConfig,
         targetPlatform: String,
-        projectRoot: Path
+        projectRoot: Path,
+        sourceModule: CjDependencyDeclarant
     ): List<CjDependency.Binary> {
         val result = mutableListOf<CjDependency.Binary>()
 
@@ -453,7 +771,8 @@ class CjpmDependencyResolver : CjDependencyResolver {
                     cjoPath = resolvedCjoPath,
                     libPath = null,  // 自动查找
                     target = targetPlatform,
-                    scope = CjDependencyScope.COMPILE
+                    scope = CjDependencyScope.COMPILE,
+                    sourceModule = sourceModule
                 )
             )
             LOG.debug("Added binary dependency from package-option: $packageName -> $cjoPath")
@@ -463,7 +782,7 @@ class CjpmDependencyResolver : CjDependencyResolver {
         binDepsConfig.pathOption?.forEach { pathStr ->
             val scanDir = projectRoot.resolve(pathStr)
             if (scanDir.exists() && scanDir.isDirectory()) {
-                val scannedDeps = scanDirectoryForBinaryDependencies(scanDir, targetPlatform)
+                val scannedDeps = scanDirectoryForBinaryDependencies(scanDir, targetPlatform, sourceModule)
                 result.addAll(scannedDeps)
                 LOG.debug("Scanned ${scannedDeps.size} binary dependencies from path-option: $pathStr")
             } else {
@@ -483,11 +802,13 @@ class CjpmDependencyResolver : CjDependencyResolver {
      *
      * @param directory 要扫描的目录
      * @param targetPlatform 目标平台
+     * @param sourceModule 声明这些依赖的源模块
      * @return 扫描到的二进制依赖列表
      */
     private fun scanDirectoryForBinaryDependencies(
         directory: Path,
-        targetPlatform: String
+        targetPlatform: String,
+        sourceModule: CjDependencyDeclarant
     ): List<CjDependency.Binary> {
         val result = mutableListOf<CjDependency.Binary>()
 
@@ -507,7 +828,8 @@ class CjpmDependencyResolver : CjDependencyResolver {
                                     cjoPath = cjoPath,
                                     libPath = libPath,
                                     target = targetPlatform,
-                                    scope = CjDependencyScope.COMPILE
+                                    scope = CjDependencyScope.COMPILE,
+                                    sourceModule = sourceModule
                                 )
                             )
                             LOG.debug("Found binary dependency: $packageName (cjo=$cjoPath, lib=$libPath)")
@@ -529,24 +851,42 @@ class CjpmDependencyResolver : CjDependencyResolver {
      * @param name 依赖名称
      * @param config 依赖配置
      * @param scope 依赖作用域
+     * @param sourceModule 声明此依赖的源（模块或依赖）
+     * @param baseDir 配置文件所在的目录，用于解析相对路径
      * @return CjDependency 对象
      */
     private fun createDependencyFromConfig(
         name: String,
         config: DependencyConfig,
-        scope: CjDependencyScope
+        scope: CjDependencyScope,
+        sourceModule: CjDependencyDeclarant,
+        baseDir: Path
     ): CjDependency {
-        val version = CjVersion(config.version ?: "0.0.0")
+        val version = CjVersion(config.version )
         val versionReq = VersionRequirement.Exact(version)
 
         return when {
-            // 路径依赖
-            config.path != null -> CjDependency.Path(
-                name = name,
-                path = java.nio.file.Paths.get(config.path),
-                versionReq = versionReq,
-                scope = scope
-            )
+            // 路径依赖 - 立即解析相对路径为绝对路径
+            config.path != null -> {
+                val rawPath = Paths.get(config.path)
+
+                // 将相对路径解析为绝对路径
+                val resolvedPath = if (rawPath.isAbsolute) {
+                    rawPath
+                } else {
+                    baseDir.resolve(rawPath).normalize()
+                }
+
+                LOG.debug("Resolved path dependency: $name from ${config.path} to $resolvedPath (base: $baseDir)")
+
+                CjDependency.Path(
+                    name = name,
+                    path = resolvedPath,  // 存储绝对路径
+                    versionReq = versionReq,
+                    scope = scope,
+                    sourceModule = sourceModule
+                )
+            }
 
             // Git 依赖
             config.git != null -> {
@@ -562,7 +902,8 @@ class CjpmDependencyResolver : CjDependencyResolver {
                     url = config.git,
                     ref = ref,
                     versionReq = versionReq,
-                    scope = scope
+                    scope = scope,
+                    sourceModule = sourceModule
                 )
             }
 
@@ -570,7 +911,8 @@ class CjpmDependencyResolver : CjDependencyResolver {
             else -> CjDependency.Library(
                 name = name,
                 versionReq = versionReq,
-                scope = scope
+                scope = scope,
+                sourceModule = sourceModule
             )
         }
     }
