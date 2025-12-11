@@ -30,6 +30,8 @@ import org.cangnova.cangjie.cfg.pseudocodeTraverser.traverse
 import org.cangnova.cangjie.descriptors.PropertyDescriptor
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContextUtils.variableDescriptorForDeclaration
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.Pseudocode
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.PseudocodeUtil
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.Instruction

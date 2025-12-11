@@ -24,17 +24,28 @@
 
 package org.cangnova.cangjie.utils
 
+import com.intellij.util.SmartList
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
+import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.DescriptorToSourceUtils
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
+import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.diagnostics.Diagnostic
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.getSuperClassNotAny
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.DeferredType
 import org.cangnova.cangjie.types.contains
+fun ClassDescriptor.getAllSuperclassesWithoutAny() =
+    generateSequence(
+        getSuperClassNotAny(),
+        ClassDescriptor::getSuperClassNotAny
+    ).toCollection(SmartList<ClassDescriptor>())
+val VariableDescriptor.isUnderscoreNamed
+    get() = !name.isSpecial && name.identifier == "_"
 
 fun CallableMemberDescriptor.firstOverridden(
     useOriginal: Boolean = false,

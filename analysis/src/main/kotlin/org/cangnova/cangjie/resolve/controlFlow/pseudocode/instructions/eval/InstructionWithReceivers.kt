@@ -28,6 +28,7 @@ package org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.eval
 
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.PseudoValue
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.Instruction
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 
 interface InstructionWithReceivers : Instruction {

@@ -146,9 +146,9 @@ class CangJieCallCompleter(
 //            callComponents.languageVersionSettings.supportsFeature(LanguageFeature.SamConversionPerArgument) &&
 //                    !callComponents.languageVersionSettings.supportsFeature(LanguageFeature.ProhibitVarargAsArrayAfterSamArgument)
 
-//        val candidateDescriptor = resolvedCall.candidateDescriptor
-//        if (/*samConversionPerArgumentWithWarningsForVarargAfterSam &&*/ candidateDescriptor is SyntheticMemberDescriptor<*>) {
-//            val declarationDescriptor = candidateDescriptor.baseDescriptorForSynthetic as? FunctionDescriptor ?: return
+//        val descriptor = resolvedCall.descriptor
+//        if (/*samConversionPerArgumentWithWarningsForVarargAfterSam &&*/ descriptor is SyntheticMemberDescriptor<*>) {
+//            val declarationDescriptor = descriptor.baseDescriptorForSynthetic as? FunctionDescriptor ?: return
 //
 //            if (declarationDescriptor.valueParameters.lastOrNull()?.isVararg == true) {
 //                diagnosticHolder.addDiagnostic(

@@ -40,6 +40,7 @@ import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.jumps.*
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.special.*
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.containers.Stack
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import java.util.*
 
 abstract class BlockInfo

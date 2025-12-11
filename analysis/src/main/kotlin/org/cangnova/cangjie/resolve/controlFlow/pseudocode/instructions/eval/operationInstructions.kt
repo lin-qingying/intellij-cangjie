@@ -35,6 +35,7 @@ import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.Instruct
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 
 abstract class OperationInstruction protected constructor(

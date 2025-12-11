@@ -71,24 +71,24 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     // ========== 接收者相关 ==========
 
     /** 调度接收者(dispatch receiver)，即调用的对象实例 */
-    private var dispatchReceiver = resolvedCallAtom.dispatchReceiverArgument?.receiver?.receiverValue
+    private var _dispatchReceiver = resolvedCallAtom.dispatchReceiverArgument?.receiver?.receiverValue
 
     /** 扩展接收者(extension receiver)，用于扩展函数 */
-    private var extensionReceiver = resolvedCallAtom.extensionReceiverArgument?.receiver?.receiverValue
+    private var _extensionReceiver = resolvedCallAtom.extensionReceiverArgument?.receiver?.receiverValue
 
     /** 智能转换后的调度接收者类型 */
     override var smartCastDispatchReceiverType: CangJieType? = null
 
     /** 上下文接收者列表 */
-    private var contextReceivers = resolvedCallAtom.contextReceiversArguments.map { it.receiver.receiverValue }
+    private var _contextReceivers = resolvedCallAtom.contextReceiversArguments.map { it.receiver.receiverValue }
 
     // ========== 描述符相关 ==========
 
     /** 结果描述符，经过类型替换后的最终描述符 */
-    private lateinit var resultingDescriptor: D
+    private lateinit var _resultingDescriptor: D
 
     /** 类型参数列表 */
-    private lateinit var typeArguments: List<UnwrappedType>
+    private lateinit var _typeArguments: List<UnwrappedType>
 
     /**
      * 候选描述符
@@ -134,8 +134,8 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
      * 如果新类型与当前类型相同则不做任何操作
      */
     override fun updateExtensionReceiverType(newType: CangJieType) {
-        if (extensionReceiver?.type == newType) return
-        extensionReceiver = extensionReceiver?.replaceType(newType)
+        if (_extensionReceiver?.type == newType) return
+        _extensionReceiver = _extensionReceiver?.replaceType(newType)
     }
 
     /**
@@ -143,9 +143,9 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
      * 如果扩展接收者是隐式类接收者，则创建一个带有智能转换类型的新接收者
      */
     fun updateExtensionReceiverWithSmartCastIfNeeded(smartCastExtensionReceiverType: CangJieType) {
-        if (extensionReceiver is ImplicitClassReceiver) {
-            extensionReceiver = CastImplicitClassReceiver(
-                (extensionReceiver as ImplicitClassReceiver).classDescriptor,
+        if (_extensionReceiver is ImplicitClassReceiver) {
+            _extensionReceiver = CastImplicitClassReceiver(
+                (_extensionReceiver as ImplicitClassReceiver).classDescriptor,
                 smartCastExtensionReceiverType,
             )
         }
@@ -156,8 +156,8 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
      * 如果新类型与当前类型相同则不做任何操作
      */
     override fun updateDispatchReceiverType(newType: CangJieType) {
-        if (dispatchReceiver?.type == newType) return
-        dispatchReceiver = dispatchReceiver?.replaceType(newType)
+        if (_dispatchReceiver?.type == newType) return
+        _dispatchReceiver = _dispatchReceiver?.replaceType(newType)
     }
 
     /**
@@ -182,21 +182,21 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
      * 返回扩展函数调用中的接收者值
      */
     override val extensionReceiver: ReceiverValue?
-        get() = this.extensionReceiver
+        get() = _extensionReceiver
 
     /**
      * 调度接收者
      * 返回方法调用中的对象实例
      */
     override val dispatchReceiver: ReceiverValue?
-        get() = this.dispatchReceiver
+        get() = _dispatchReceiver
 
     /**
      * 上下文接收者列表
      * 返回所有上下文接收者的列表
      */
     override val contextReceivers: List<ReceiverValue>
-        get() = this.contextReceivers
+        get() = _contextReceivers
 
     /**
      * 解析状态
@@ -210,7 +210,7 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
      * 返回经过类型替换和近似处理后的最终可调用描述符
      */
     override val resultingDescriptor: D
-        get() = this.resultingDescriptor
+        get() = _resultingDescriptor
 
     /**
      * 类型参数映射
@@ -219,7 +219,7 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     override val typeArguments: Map<TypeParameterDescriptor, CangJieType>
         get() {
             val typeParameters = candidateDescriptor.typeParameters.takeIf { it.isNotEmpty() } ?: return emptyMap()
-            return typeParameters.zip(this.typeArguments).toMap()
+            return typeParameters.zip(_typeArguments).toMap()
         }
 
     // ========== 类型转换相关的getter方法 ==========
@@ -408,10 +408,10 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
 
         // 生成结果描述符
         @Suppress("UNCHECKED_CAST")
-        resultingDescriptor = substitutedResultingDescriptor(substitutor) as D
+        _resultingDescriptor = substitutedResultingDescriptor(substitutor) as D
 
         // 计算类型参数
-        typeArguments = freshSubstitutor.freshVariables.map {
+        _typeArguments = freshSubstitutor.freshVariables.map {
             val substituted = (substitutor ?: FreshVariableNewTypeSubstitutor.Empty).safeSubstitute(it.defaultType)
             typeApproximator
                 .approximateToSuperType(substituted, TypeApproximatorConfiguration.IntegerLiteralsTypesApproximation)

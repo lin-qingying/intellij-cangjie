@@ -307,7 +307,7 @@ internal object CheckReceivers : ResolutionPart() {
     ) {
 //        TODO 检查接收器会在使用操作符函数报错，所以注释了
 //        if (this !is CallableReferenceResolutionCandidate && (receiverArgument == null) != (receiverParameter == null)) {
-//            error("Inconsistency receiver state for call $cangjieCall and candidate descriptor: $candidateDescriptor")
+//            error("Inconsistency receiver state for call $cangjieCall and candidate descriptor: $descriptor")
 //        }
         if (receiverArgument == null || receiverParameter == null) return
 
@@ -825,11 +825,11 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
     override fun ResolutionCandidate.process(workIndex: Int) {
         val csBuilder = getSystem().getBuilder()
 //        val toFreshVariables =
-//            if (candidateDescriptor.typeParameters.isEmpty())
+//            if (descriptor.typeParameters.isEmpty())
 //                FreshVariableNewTypeSubstitutor.Empty
 //            else
 //                createToFreshVariableSubstitutorAndAddInitialConstraints(
-//                    candidateDescriptor,
+//                    descriptor,
 //                    resolvedCall.atom,
 //                    csBuilder
 //                )
@@ -852,7 +852,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
         resolvedCall.freshVariablesSubstitutor = toFreshVariables
         resolvedCall.knownParametersSubstitutor = knownTypeParametersSubstitutor
-//        if (candidateDescriptor.typeParameters.isEmpty()) {
+//        if (descriptor.typeParameters.isEmpty()) {
 //            return
 //        }
         if (typeParameters.isEmpty()) {
@@ -867,7 +867,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
             return
         }
 
-//        val typeParameters = candidateDescriptor.original.typeParameters
+//        val typeParameters = descriptor.original.typeParameters
         for (index in typeParameters.indices) {
             val typeParameter = typeParameters[index]
 //            TODO 会不会出现通过索引获取错误的情况，有待验证
@@ -928,12 +928,12 @@ internal object MapArguments : ResolutionPart() {
 //            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjBinaryExpression
 //            && cangjieCall.psiCangJieCall.psiCall.callElement !is CjCollectionLiteralExpression*/
 //            cangjieCall.psiCangJieCall.psiCall.callElement is CjNameReferenceExpression
-//            && !DescriptorUtils.isEnumEntry(this.candidateDescriptor)
+//            && !DescriptorUtils.isEnumEntry(this.descriptor)
 //        ) {
 //            resolvedCall.argumentMappingByOriginal = emptyMap()
 //            return
 //        }
-//        val mapping = callComponents.argumentsToParametersMapper.mapArguments(cangjieCall, candidateDescriptor)
+//        val mapping = callComponents.argumentsToParametersMapper.mapArguments(cangjieCall, descriptor)
 //        mapping.diagnostics.forEach(this::addDiagnostic)
 //
 //        resolvedCall.argumentMappingByOriginal = mapping.parameterToCallArgumentMap

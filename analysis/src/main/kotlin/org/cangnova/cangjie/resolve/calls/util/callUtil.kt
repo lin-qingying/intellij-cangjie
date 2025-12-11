@@ -62,6 +62,7 @@ import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.scopes.getResolutionScope
 import org.cangnova.cangjie.resolve.scopes.receivers.ClassQualifier
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.resolve.scopes.receivers.TypeAliasQualifier
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.FlexibleType

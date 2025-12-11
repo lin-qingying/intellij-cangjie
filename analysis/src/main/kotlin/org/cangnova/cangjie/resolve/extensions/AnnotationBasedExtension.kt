@@ -28,7 +28,8 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import org.cangnova.cangjie.psi.CjModifierListOwner
-import org.cangnova.cangjie.types.util.TypeUtils
+import org.cangnova.cangjie.resolve.annotationClass
+import org.cangnova.cangjie.types.TypeUtils
 
 
 interface AnnotationBasedExtension {

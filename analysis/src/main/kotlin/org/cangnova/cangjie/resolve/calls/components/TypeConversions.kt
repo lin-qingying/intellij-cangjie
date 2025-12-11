@@ -58,7 +58,7 @@ import org.cangnova.cangjie.types.isFunctionTypeOrSubtype
 //
 //        val samConversionOracle = callComponents.samConversionOracle
 //        if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.SamConversionForCangJieFunctions)) {
-//            if (!samConversionOracle.shouldRunSamConversionForFunction(candidate.resolvedCall.candidateDescriptor)) return true
+//            if (!samConversionOracle.shouldRunSamConversionForFunction(candidate.resolvedCall.descriptor)) return true
 //        }
 //
 //        val declarationDescriptor = expectedParameterType.constructor.declarationDescriptor
@@ -158,7 +158,7 @@ import org.cangnova.cangjie.types.isFunctionTypeOrSubtype
 //        if (descriptor is ClassDescriptor && descriptor.isFun) return false
 //
 //        // now conversions for CangJie candidates are possible, so we have to perform compatibility resolve
-//        return !candidate.callComponents.samConversionOracle.isJavaApplicableCandidate(candidate.resolvedCall.candidateDescriptor)
+//        return !candidate.callComponents.samConversionOracle.isJavaApplicableCandidate(candidate.resolvedCall.descriptor)
 //    }
 //
 //    fun isJavaParameterCanBeConverted(
@@ -168,7 +168,7 @@ import org.cangnova.cangjie.types.isFunctionTypeOrSubtype
 //        val callComponents = candidate.callComponents
 //
 //        val samConversionOracle = callComponents.samConversionOracle
-//        if (!samConversionOracle.isJavaApplicableCandidate(candidate.resolvedCall.candidateDescriptor)) return false
+//        if (!samConversionOracle.isJavaApplicableCandidate(candidate.resolvedCall.descriptor)) return false
 //
 //        val declarationDescriptor = expectedParameterType.constructor.declarationDescriptor
 //        if (declarationDescriptor is ClassDescriptor && declarationDescriptor.isDefinitelyNotSamInterface) return false

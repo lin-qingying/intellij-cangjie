@@ -317,7 +317,7 @@ class CangJieCallResolver(
 //                candidates.all { resolutionCallbacks.inferenceSession.shouldRunCompletion(it) }
 //            ) {
 //                val candidatesWithAnnotation = candidates.filter {
-//                    it.resolvedCall.candidateDescriptor.annotations.hasAnnotation(OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION_FQ_NAME)
+//                    it.resolvedCall.descriptor.annotations.hasAnnotation(OVERLOAD_RESOLUTION_BY_LAMBDA_ANNOTATION_FQ_NAME)
 //                }.toSet()
 //                val candidatesWithoutAnnotation = candidates - candidatesWithAnnotation
 //                if (candidatesWithAnnotation.isNotEmpty()) {

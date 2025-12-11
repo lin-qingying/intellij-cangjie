@@ -37,6 +37,7 @@ import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategyForInvoke
 import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 val CangJieCall.psiCangJieCall: PSICangJieCall
     get() {

@@ -29,6 +29,8 @@ import org.cangnova.cangjie.cfg.pseudocodeTraverser.TraversalOrder
 import org.cangnova.cangjie.cfg.pseudocodeTraverser.collectData
 import org.cangnova.cangjie.cfg.pseudocodeTraverser.traverse
 import org.cangnova.cangjie.descriptors.VariableDescriptor
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContextUtils
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.Pseudocode
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.BlockScope
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.Instruction

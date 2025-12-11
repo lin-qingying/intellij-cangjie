@@ -33,6 +33,7 @@ import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.PseudoValue
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.PseudoValueFactory
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.*
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 
 sealed class AccessTarget {

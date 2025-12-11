@@ -41,9 +41,8 @@ interface MutableResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     fun setStatusToSuccess()
 
-    fun getTrace(): DelegatingBindingTrace
-
-    fun getTracingStrategy(): TracingStrategy
+    val trace: DelegatingBindingTrace
+    val tracingStrategy: TracingStrategy
 
     fun markCallAsCompleted()
 
@@ -51,7 +50,7 @@ interface MutableResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     fun performRemainingTasks()
 
-    fun isCompleted(): Boolean
+    val isCompleted: Boolean
 
     fun recordValueArgument(valueParameter: ValueParameterDescriptor, valueArgument: ResolvedValueArgument)
 
@@ -59,16 +58,15 @@ interface MutableResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     override val dataFlowInfoForArguments: DataFlowInfoForArguments
 
-    fun getConstraintSystem(): ConstraintSystem?
+    var constraintSystem: ConstraintSystem?
 
-    fun setConstraintSystem(constraintSystem: ConstraintSystem)
 
     fun setSubstitutor(substitutor: TypeSubstitutor)
 
-    fun getKnownTypeParametersSubstitutor(): TypeSubstitutor?
+    val knownTypeParametersSubstitutor: TypeSubstitutor?
 
     // todo remove: use value to parameter map status
-    fun hasInferredReturnType(): Boolean
+    val hasInferredReturnType: Boolean
 
     fun setSmartCastDispatchReceiverType(smartCastDispatchReceiverType: CangJieType)
 

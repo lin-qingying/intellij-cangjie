@@ -98,7 +98,7 @@ object CompileTimeConstantUtils {
     }
 
 //        fun isArrayFunctionCall(resolvedCall: ResolvedCall<*>): Boolean {
-//            val unsafe = DescriptorUtils.getFqName(resolvedCall.candidateDescriptor)
+//            val unsafe = DescriptorUtils.getFqName(resolvedCall.descriptor)
 //            return unsafe.isSafe && ARRAY_CALL_FQ_NAMES.contains(unsafe.toSafe())
 //        }
 

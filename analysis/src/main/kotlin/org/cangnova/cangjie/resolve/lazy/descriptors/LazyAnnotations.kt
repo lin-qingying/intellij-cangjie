@@ -28,7 +28,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.psi.CjAnnotationEntry
+import org.cangnova.cangjie.psi.CjAnnotation
 import org.cangnova.cangjie.resolve.AnnotationResolver
 import org.cangnova.cangjie.resolve.constants.ConstantValue
 import org.cangnova.cangjie.resolve.lazy.LazyEntity
@@ -37,9 +37,12 @@ import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.AbbreviatedType
 import org.cangnova.cangjie.storage.getValue
 import org.cangnova.cangjie.types.error.ErrorTypeKind
-import org.cangnova.cangjie.types.util.replaceAnnotations
 import org.cangnova.cangjie.descriptors.annotations.FilteredByPredicateAnnotations
-import org.cangnova.cangjie.diagnostics.Errors
+import org.cangnova.cangjie.diagnostics.infos.errors.RECURSIVE_TYPEALIAS_EXPANSION
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.types.ErrorUtils
+import org.cangnova.cangjie.types.replaceAnnotations
 
 abstract class LazyAnnotationsContext(
     val annotationResolver: AnnotationResolver,
@@ -58,9 +61,9 @@ class LazyAnnotationsContextImpl(
 
 class LazyAnnotations(
     val c: LazyAnnotationsContext,
-    val annotationEntries: List<CjAnnotationEntry>
+    private val annotationEntries: List<CjAnnotation>
 ) : Annotations, LazyEntity {
-    private val annotation = c.storageManager.createMemoizedFunction { entry: CjAnnotationEntry ->
+    private val annotation = c.storageManager.createMemoizedFunction { entry: CjAnnotation  ->
         c.trace[BindingContext.ANNOTATION, entry] ?: LazyAnnotationDescriptor(c, entry)
     }
 
@@ -77,7 +80,7 @@ class LazyAnnotations(
 
 class LazyAnnotationDescriptor(
     val c: LazyAnnotationsContext,
-    private val annotationEntry: CjAnnotationEntry
+    private val annotationEntry: CjAnnotation
 ) : AnnotationDescriptor, LazyEntity, ValidateableDescriptor {
     private class FileDescriptorForVisibilityChecks(
         override val source: SourceElement,
@@ -109,7 +112,7 @@ class LazyAnnotationDescriptor(
                 // This is needed to prevent recursion in cases like this: typealias S = @S Ann
                 if (annotationType.annotations.any { it == this }) {
                     annotationType.abbreviation.constructor.declarationDescriptor?.let { typeAliasDescriptor ->
-                        c.trace.report(Errors.RECURSIVE_TYPEALIAS_EXPANSION.on(annotationEntry, typeAliasDescriptor))
+                        c.trace.report(RECURSIVE_TYPEALIAS_EXPANSION.on(annotationEntry, typeAliasDescriptor))
                     }
                     return@lazy annotationType.replaceAnnotations(FilteredByPredicateAnnotations(annotationType.annotations) { it != this })
                 }

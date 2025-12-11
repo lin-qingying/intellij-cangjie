@@ -31,6 +31,7 @@ import org.cangnova.cangjie.extensions.internal.CandidateInterceptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.psiUtil.sure
+import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
 import org.cangnova.cangjie.resolve.calls.CallResolver
 import org.cangnova.cangjie.resolve.calls.CallTransformer
 import org.cangnova.cangjie.resolve.calls.CandidateResolver
@@ -38,6 +39,7 @@ import org.cangnova.cangjie.resolve.calls.context.*
 import org.cangnova.cangjie.resolve.calls.inference.BuilderInferenceSupport
 import org.cangnova.cangjie.resolve.calls.model.CangJieCallDiagnostic
 import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCall
+import org.cangnova.cangjie.resolve.calls.model.ResolvedCallImpl
 import org.cangnova.cangjie.resolve.calls.model.VariableAsFunctionResolvedCallImpl
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResultsImpl
 import org.cangnova.cangjie.resolve.calls.results.ResolutionResultsHandler
@@ -57,7 +59,6 @@ import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.DeferredType
 import org.cangnova.cangjie.types.TypeApproximator
 import org.cangnova.cangjie.types.isDynamic
-import org.cangnova.cangjie.utils.OperatorNameConventions
 import org.cangnova.cangjie.utils.addIfNotNull
 import org.cangnova.cangjie.utils.compactIfPossible
 

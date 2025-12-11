@@ -28,9 +28,9 @@ import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.psi.CjParameter
-import org.cangnova.cangjie.resolve.descriptorUtil.getAllSuperclassesWithoutAny
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.utils.getAllSuperclassesWithoutAny
 
 class ClassResolutionScopesSupport(
     private val classDescriptor: ClassDescriptor,
@@ -94,7 +94,7 @@ class ClassResolutionScopesSupport(
             contextReceiversGroup = emptyList(),
             kind = LexicalScopeKind.CLASS_INHERITANCE,
             classDescriptor.staticScope,
-            classDescriptor.unsubstitutedInnerClassesScope,
+            classDescriptor.unsubstitutedMemberScope,
             null,
             isStaticScope = true
         )
@@ -142,27 +142,3 @@ fun scopeForInitializerResolution(
     }
 }
 
-fun scopeForInitializerResolution(
-    classDescriptor: LazyExtendClassDescriptor,
-    parentDescriptor: DeclarationDescriptor,
-    primaryConstructorParameters: List<CjParameter>
-): LexicalScope {
-    return LexicalScopeImpl(
-        classDescriptor.scopeForMemberDeclarationResolution,
-        parentDescriptor,
-        false,
-        null,
-        emptyList(),
-        LexicalScopeKind.CLASS_INITIALIZER
-    ) {
-        if (primaryConstructorParameters.isNotEmpty()) {
-            val parameterDescriptors = classDescriptor.unsubstitutedPrimaryConstructor!!.valueParameters
-            assert(parameterDescriptors.size == primaryConstructorParameters.size)
-            for ((parameter, descriptor) in primaryConstructorParameters.zip(parameterDescriptors)) {
-                if (!parameter.hasLetOrVar()) {
-                    addVariableDescriptor(descriptor)
-                }
-            }
-        }
-    }
-}

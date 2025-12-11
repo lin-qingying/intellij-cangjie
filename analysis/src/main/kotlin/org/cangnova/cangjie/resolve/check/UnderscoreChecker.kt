@@ -35,6 +35,8 @@ import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.caches.DeclarationChecker
 import org.cangnova.cangjie.resolve.caches.DeclarationCheckerContext
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.diagnostics.infos.errors.UNDERSCORE_IS_RESERVED
+import org.cangnova.cangjie.diagnostics.infos.errors.UNSUPPORTED_FEATURE
 
 
 object UnderscoreChecker : DeclarationChecker {

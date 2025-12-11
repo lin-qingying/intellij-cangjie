@@ -30,21 +30,19 @@ import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
+import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
 import org.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
-import org.cangnova.cangjie.diagnostics.Errors.CYCLIC_INHERITANCE_HIERARCHY
-import org.cangnova.cangjie.diagnostics.Errors.CYCLIC_SCOPES_WITH_COMPANION
+import org.cangnova.cangjie.diagnostics.infos.warnings.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.resolve.BindingContext
-import org.cangnova.cangjie.resolve.BindingContext.TYPE
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.ModifiersChecker.resolveModalityFromModifiers
-import org.cangnova.cangjie.resolve.ModifiersChecker.resolveVisibilityFromModifiers
-import org.cangnova.cangjie.resolve.descriptorUtil.getCangJieTypeRefiner
+import org.cangnova.cangjie.resolve.ModifiersChecker.Companion.resolveModalityFromModifiers
+import org.cangnova.cangjie.resolve.ModifiersChecker.Companion.resolveVisibilityFromModifiers
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.lazy.ForceResolveUtil
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 import org.cangnova.cangjie.resolve.lazy.LazyEntity
-import org.cangnova.cangjie.resolve.lazy.data.CjClassLikeInfo
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticScopeForCangJieEnum
@@ -53,7 +51,6 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.isError
-import org.cangnova.cangjie.types.util.TypeUtils
 
 class LazyClassDescriptor(
     private val c: LazyClassContext,
@@ -96,13 +93,13 @@ class LazyClassDescriptor(
     }
 
     private val isLocal = typeStatement?.let { CjPsiUtil.isLocal(it) } ?: false
-    private val visibility: DescriptorVisibility = when {
+    override val visibility: DescriptorVisibility = when {
         isLocal -> DescriptorVisibilities.LOCAL
         else -> resolveVisibilityFromModifiers(classLikeInfo.modifierList, DescriptorVisibilities.INTERNAL)
     }
 
-    override fun getAnnotations(): Annotations = Annotations.EMPTY
-
+    override val annotations: Annotations
+        get() = Annotations.EMPTY
     private val resolutionScopesSupport = ClassResolutionScopesSupport(
         this,
         c.storageManager,
@@ -170,7 +167,7 @@ class LazyClassDescriptor(
         scopeForMemberDeclarationResolution
         DescriptorUtils.getAllDescriptors(unsubstitutedMemberScope)
         scopeForInitializerResolution
-        unsubstitutedInnerClassesScope
+        unsubstitutedMemberScope
         typeConstructor.supertypes
         typeConstructor.parameters.forEach { it.upperBounds }
         unsubstitutedPrimaryConstructor
@@ -200,7 +197,6 @@ class LazyClassDescriptor(
         )
     }
 
-    override fun getVisibility(): DescriptorVisibility = visibility
 
     override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> =
         typeStatement?.superTypeListEntries ?: emptyList()
@@ -225,7 +221,7 @@ class LazyClassDescriptor(
             override fun createSubstitutedCopy(
                 newOwner: DeclarationDescriptor,
                 original: FunctionDescriptor?,
-                kind: Kind,
+                kind: CallableMemberDescriptor.Kind,
                 newName: Name?,
                 annotations: Annotations,
                 source: SourceElement
@@ -258,10 +254,10 @@ class LazyClassDescriptor(
     override fun getStaticScope(): MemberScope = staticScope
 
     override fun getConstructors(): Collection<ClassConstructorDescriptor> =
-        (unsubstitutedMemberScope as LazyClassMemberScope).constructors
+        (unsubstitutedMemberScope as LazyClassMemberScope).getConstructors()
 
     override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =
-        (unsubstitutedMemberScope as LazyClassMemberScope).endConstructors
+        (unsubstitutedMemberScope as LazyClassMemberScope).getEndConstructors()
 
     override fun getKind(): ClassKind = kind
 
@@ -334,8 +330,6 @@ class LazyClassDescriptor(
         override fun computeSupertypes(): Collection<CangJieType> =
             this@LazyClassDescriptor.computeSupertypes()
 
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> =
-            this@LazyClassDescriptor.computeExtendSuperTypes(extendId ?: "")
 
         override fun reportSupertypeLoopError(type: CangJieType) {
             val supertypeDescriptor = type.constructor.declarationDescriptor

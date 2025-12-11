@@ -26,35 +26,26 @@ package org.cangnova.cangjie.resolve.calls.tasks
 
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.psi.Call
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.TypeSubstitutor
 
 class OldResolutionCandidate<D : CallableDescriptor> private constructor(
-    private val call: Call,
-    private val candidateDescriptor: D,
-    private var dispatchReceiver: ReceiverValue?, // receiver object of a method
-    private var explicitReceiverKind: ExplicitReceiverKind,
-    private val knownTypeParametersResultingSubstitutor: TypeSubstitutor?
+    val call: Call,
+    val descriptor: D,
+    var dispatchReceiver: ReceiverValue?, // receiver object of a method
+    var explicitReceiverKind: ExplicitReceiverKind,
+    val knownTypeParametersResultingSubstitutor: TypeSubstitutor?
 ) {
 
-    fun setDispatchReceiver(dispatchReceiver: ReceiverValue?) {
-        this.dispatchReceiver = dispatchReceiver
-    }
 
-    fun setExplicitReceiverKind(explicitReceiverKind: ExplicitReceiverKind) {
-        this.explicitReceiverKind = explicitReceiverKind
-    }
 
-    fun getCall(): Call = call
 
-    fun getDescriptor(): D = candidateDescriptor
 
-    fun getDispatchReceiver(): ReceiverValue? = dispatchReceiver
 
-    fun getExplicitReceiverKind(): ExplicitReceiverKind = explicitReceiverKind
 
-    fun getKnownTypeParametersResultingSubstitutor(): TypeSubstitutor? = knownTypeParametersResultingSubstitutor
 
-    override fun toString(): String = candidateDescriptor.toString()
+
+    override fun toString(): String = descriptor.toString()
 
     companion object {
         fun <D : CallableDescriptor> create(call: Call, descriptor: D): OldResolutionCandidate<D> =

@@ -24,16 +24,27 @@
 
 package org.cangnova.cangjie.resolve.calls.tower
 
-import org.cangnova.cangjie.builtins.isFunctionType
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.diagnostics.Errors
+import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.extensions.internal.CandidateInterceptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.*
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.CALL
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DELEGATE_EXPRESSION_TO_PROVIDE_DELEGATE_CALL
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.IS_FUNC
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.LEXICAL_SCOPE
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.NEW_INFERENCE_TRY_EXCEPTION_PARAMETER
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.ONLY_RESOLVED_CALL
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.QUALIFIER
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
 import org.cangnova.cangjie.resolve.calls.ArgumentTypeResolver
 import org.cangnova.cangjie.resolve.calls.CallTransformer
 import org.cangnova.cangjie.resolve.calls.CangJieCallResolver
@@ -60,24 +71,24 @@ import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.resolve.calls.util.*
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
-import org.cangnova.cangjie.resolve.descriptorUtil.builtIns
-import org.cangnova.cangjie.resolve.descriptorUtil.isUnderscoreNamed
 import org.cangnova.cangjie.resolve.lazy.ForceResolveUtil
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.DeferredType
 import org.cangnova.cangjie.types.TypeApproximator
+import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
 import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
 import org.cangnova.cangjie.types.isError
+import org.cangnova.cangjie.types.isFunctionType
 import org.cangnova.cangjie.types.model.TypeSystemInferenceExtensionContext
-import org.cangnova.cangjie.types.util.TypeUtils
-import org.cangnova.cangjie.utils.CangJieExceptionWithAttachments
 import org.cangnova.cangjie.utils.compactIfPossible
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import org.cangnova.cangjie.utils.firstIsInstanceOrNull
+import org.cangnova.cangjie.utils.isUnderscoreNamed
 
 class PSICallResolver(
     private val typeResolver: TypeResolver,
@@ -640,9 +651,11 @@ class PSICallResolver(
                         CjPsiUtil.getLastElementDeparenthesized(oldReceiver.expression, context.statementFilter)
 
                     val bindingContext = context.trace.bindingContext
-                    val call =
-                        bindingContext[DELEGATE_EXPRESSION_TO_PROVIDE_DELEGATE_CALL, cjExpression]
-                            ?: cjExpression?.getCall(bindingContext)
+                    val call = cjExpression?.let {
+                        bindingContext[DELEGATE_EXPRESSION_TO_PROVIDE_DELEGATE_CALL, it]
+                    }
+
+                        ?: cjExpression?.getCall(bindingContext)
 
                     val partiallyResolvedCall =
                         call?.let { bindingContext.get(ONLY_RESOLVED_CALL, it)?.result }
@@ -722,7 +735,7 @@ class PSICallResolver(
     ): List<TypeArgument> =
         typeArguments.map { projection ->
             if (projection.projectionKind != CjProjectionKind.NONE) {
-                context.trace.report(Errors.PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(projection))
+                context.trace.report(PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(projection))
             }
             ModifierCheckerCore.check(projection, context.trace, null, languageVersionSettings)
 
@@ -736,7 +749,7 @@ class PSICallResolver(
                 for (annotation in resolvedAnnotations) {
                     val annotationElement = annotation.source.getPsi() ?: continue
                     context.trace.report(
-                        Errors.UNSUPPORTED.on(
+                        UNSUPPORTED.on(
                             annotationElement,
                             "annotations on an underscored type argument"
                         )
@@ -744,7 +757,7 @@ class PSICallResolver(
                 }
 
 //                if (!arePartiallySpecifiedTypeArgumentsEnabled) {
-//                    context.trace.report(Errors.UNSUPPORTED.on(typeReference, "underscored type argument"))
+//                    context.trace.report( UNSUPPORTED.on(typeReference, "underscored type argument"))
 //                }
 
                 return@map TypeArgumentPlaceholder
@@ -814,7 +827,7 @@ class PSICallResolver(
                 "Unexpected lambda parameters for call $oldCall"
             }
             if (allValueArguments.isEmpty()) {
-                throw CangJieExceptionWithAttachments("Can not find an external argument for 'set' method")
+                throw CangJieExceptionWithAttachmentsImpl("Can not find an external argument for 'set' method")
                     .withPsiAttachment("callElement.cj", oldCall.callElement)
                     .withPsiAttachment("file.cj", oldCall.callElement.takeIf { it.isValid }?.containingFile)
             }
@@ -826,9 +839,9 @@ class PSICallResolver(
                     val lambdaExpression = externalLambdaArguments[i].getLambdaExpression() ?: continue
 
                     if (lambdaExpression.isTrailingLambdaOnNewLIne) {
-                        context.trace.report(Errors.UNEXPECTED_TRAILING_LAMBDA_ON_A_NEW_LINE.on(lambdaExpression))
+                        context.trace.report(UNEXPECTED_TRAILING_LAMBDA_ON_A_NEW_LINE.on(lambdaExpression))
                     }
-                    context.trace.report(Errors.MANY_LAMBDA_EXPRESSION_ARGUMENTS.on(lambdaExpression))
+                    context.trace.report(MANY_LAMBDA_EXPRESSION_ARGUMENTS.on(lambdaExpression))
                 }
             }
 
@@ -1060,7 +1073,7 @@ class PSICallResolver(
                 val qualifier = expressionTypingContext.trace.get(QUALIFIER, qualifiedExpression)
                 val classifier = doubleColonLhs.type.constructor.declarationDescriptor
                 if (classifier !is ClassDescriptor) {
-                    expressionTypingContext.trace.report(Errors.CALLABLE_REFERENCE_LHS_NOT_A_CLASS.on(cjExpression))
+                    expressionTypingContext.trace.report(CALLABLE_REFERENCE_LHS_NOT_A_CLASS.on(cjExpression))
                     LHSResult.Error
                 } else {
                     LHSResult.Type(qualifier, doubleColonLhs.type.unwrap())
@@ -1195,7 +1208,7 @@ class PSICallResolver(
             if (candidate is ErrorCandidate.Classifier) {
                 context.trace.record(REFERENCE_TARGET, reference, candidate.descriptor)
                 context.trace.report(
-                    Errors.RESOLUTION_TO_CLASSIFIER.on(
+                    RESOLUTION_TO_CLASSIFIER.on(
                         reference,
                         candidate.descriptor,
                         candidate.kind,

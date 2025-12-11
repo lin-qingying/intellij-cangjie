@@ -29,7 +29,6 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import org.cangnova.cangjie.utils.Printer
 
 
@@ -53,8 +52,6 @@ class ChainedMemberScope private constructor(
     override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
         getListClassifierDiscriminateHeaders(scopes) { it.getContributedEnumEntrys(name, location) }
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> =
-        getListClassifierDiscriminateHeaders(scopes) { it.getExtendClass(name) }
 
     override fun getContributedVariables(
         name: Name,

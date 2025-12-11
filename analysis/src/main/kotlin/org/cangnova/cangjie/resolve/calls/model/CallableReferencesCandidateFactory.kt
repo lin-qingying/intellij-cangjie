@@ -173,12 +173,12 @@ class CallableReferencesCandidateFactory(
                 cangjieCall, expectedType, callComponents, scopeTower, resolutionCallbacks, baseSystem
             ).also { diagnostics.forEach(it::addDiagnostic) }
 
-//        if (callComponents.statelessCallbacks.isHiddenInResolution(candidateDescriptor, cangjieCall.call, resolutionCallbacks)) {
+//        if (callComponents.statelessCallbacks.isHiddenInResolution(descriptor, cangjieCall.call, resolutionCallbacks)) {
 //            diagnostics.add(HiddenDescriptor)
 //            return createCallableReferenceCallCandidate(diagnostics)
 //        }
 //
-//        if (needCompatibilityResolveForCallableReference(callableReferenceAdaptation, candidateDescriptor)) {
+//        if (needCompatibilityResolveForCallableReference(callableReferenceAdaptation, descriptor)) {
 //            markCandidateForCompatibilityResolve(diagnostics)
 //        }
 //
@@ -192,14 +192,14 @@ class CallableReferencesCandidateFactory(
 //            callableReferenceAdaptation.defaults != 0 &&
 //            !callComponents.languageVersionSettings.supportsFeature(LanguageFeature.FunctionReferenceWithDefaultValueAsOtherType)
 //        ) {
-//            diagnostics.add(CallableReferencesDefaultArgumentUsed(cangjieCall, candidateDescriptor, callableReferenceAdaptation.defaults))
+//            diagnostics.add(CallableReferencesDefaultArgumentUsed(cangjieCall, descriptor, callableReferenceAdaptation.defaults))
 //        }
 //
-//        if (candidateDescriptor !is CallableMemberDescriptor) {
-//            return createCallableReferenceCallCandidate(listOf(NotCallableMemberReference(cangjieCall, candidateDescriptor)))
+//        if (descriptor !is CallableMemberDescriptor) {
+//            return createCallableReferenceCallCandidate(listOf(NotCallableMemberReference(cangjieCall, descriptor)))
 //        }
 //
-//        if (candidateDescriptor is PropertyDescriptor && candidateDescriptor.isSyntheticEnumEntries()) {
+//        if (descriptor is PropertyDescriptor && descriptor.isSyntheticEnumEntries()) {
 //            diagnostics.add(LowerPriorityToPreserveCompatibility(needToReportWarning = false).asDiagnostic())
 //        }
 

@@ -400,7 +400,7 @@ class CangJieResolutionCallbacksImpl(
 
     override fun disableContractsIfNecessary(resolvedAtom: ResolvedCallAtom) {
 //        val atom = resolvedAtom.atom as? PSICangJieCall ?: return
-//        disableContractsInsideContractsBlock(atom.psiCall, resolvedAtom.candidateDescriptor, topLevelCallContext.scope, trace)
+//        disableContractsInsideContractsBlock(atom.psiCall, resolvedAtom.descriptor, topLevelCallContext.scope, trace)
 
     }
 

@@ -24,12 +24,13 @@
 
 package org.cangnova.cangjie.resolve.controlFlow.variable
 
+import io.vavr.Tuple2
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.resolve.controlFlow.ControlFlowInfo
 import org.cangnova.cangjie.resolve.controlFlow.ReadOnlyControlFlowInfo
+import org.cangnova.cangjie.resolve.controlFlow.variable.component1
 import org.cangnova.cangjie.utils.ImmutableHashMap
 import org.cangnova.cangjie.utils.ImmutableMap
-import javaslang.Tuple2
 
 typealias VariableUsageReadOnlyControlInfo = ReadOnlyControlFlowInfo<VariableDescriptor, VariableUseState>
 typealias VariableUsageControlFlowInfo<S, D> = ControlFlowInfo<S, VariableDescriptor, D>

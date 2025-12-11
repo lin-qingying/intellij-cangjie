@@ -139,7 +139,7 @@ private fun checkExpressionArgument(
     ): CangJieCallDiagnostic? {
 
 //        if (diagnosticsHolder is ResolutionCandidate) {
-//            if (OperatorConventions.isConventionName(diagnosticsHolder.resolvedCall.candidateDescriptor.name)) {
+//            if (OperatorConventions.isConventionName(diagnosticsHolder.resolvedCall.descriptor.name)) {
 ////              可以为重载的运算符 并且找的了重载函数，但是参数类型不正确 报告可能需要的重载函数
 //                return NoneOperatorCallDiagnostic(actualExpectedType, argumentType)
 //            }
