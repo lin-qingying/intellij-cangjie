@@ -45,9 +45,7 @@ class StaticScopeForCangJieEnum(
 
     override fun getContributedClassifier(name: Name, location: LookupLocation) = null // TODO
 
-    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-        return emptyList()
-    }
+
 
     private val functions: List<SimpleFunctionDescriptor> = emptyList()
     private val properties: List<PropertyDescriptor> = emptyList()

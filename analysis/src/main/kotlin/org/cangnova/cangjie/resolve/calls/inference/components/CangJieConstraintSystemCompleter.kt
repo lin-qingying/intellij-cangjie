@@ -29,6 +29,8 @@ import org.cangnova.cangjie.resolve.calls.components.transformToResolvedLambda
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ErrorUtils
+import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.error.MultipleSupertypeTypeInferenceFailure

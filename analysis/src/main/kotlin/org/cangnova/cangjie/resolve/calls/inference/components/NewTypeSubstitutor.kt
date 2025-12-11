@@ -24,12 +24,13 @@
 
 package org.cangnova.cangjie.resolve.calls.inference.components
 
-import org.cangnova.cangjie.resolve.calls.inference.isCaptured
+import org.cangnova.cangjie.resolve.call.inference.isCaptured
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableFromCallableDescriptor
 import org.cangnova.cangjie.resolve.calls.inference.substitute
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.NewCapturedType
 import org.cangnova.cangjie.types.checker.NewCapturedTypeConstructor
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isMarkedOption
 import org.cangnova.cangjie.types.checker.intersectTypes
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.model.TypeSubstitutorMarker
@@ -71,9 +72,9 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
         if (type is AbbreviatedType) {
             val substitutedExpandedType = substitute(type.expandedType, keepAnnotation, runCapturedChecks)
             val substitutedAbbreviation = substitute(type.abbreviation, keepAnnotation, runCapturedChecks)
-            return when {
-                substitutedExpandedType == null && substitutedAbbreviation == null -> null
-                substitutedExpandedType is SimpleType? && substitutedAbbreviation is SimpleType? ->
+            return when (substitutedExpandedType) {
+                null if substitutedAbbreviation == null -> null
+                is SimpleType? if substitutedAbbreviation is SimpleType? ->
                     AbbreviatedType(
                         substitutedExpandedType ?: type.expandedType,
                         substitutedAbbreviation ?: type.abbreviation
@@ -92,13 +93,13 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
         if (typeConstructor is NewCapturedTypeConstructor) {
             if (!runCapturedChecks) return null
 
-            assert(type is NewCapturedType || (type is DefinitelyNotNullType && type.original is NewCapturedType)) {
+            assert(type is NewCapturedType || (type is DefinitelyNonOptionType && type.original is NewCapturedType)) {
 
                 "Type is inconsistent -- somewhere we create type with typeConstructor = $typeConstructor " +
                         "and class: ${type::class.java.canonicalName}. type.toString() = $type"
             }
             val capturedType =
-                if (type is DefinitelyNotNullType) type.original as NewCapturedType else type as NewCapturedType
+                if (type is DefinitelyNonOptionType) type.original as NewCapturedType else type as NewCapturedType
 
             val innerType = capturedType.lowerType ?: capturedType.constructor.projection.type.unwrap()
             val substitutedInnerType = substitute(innerType, keepAnnotation, runCapturedChecks = false)
@@ -116,7 +117,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
                             typeParameter = typeConstructor.typeParameter
                         ).also { it.initializeSupertypes(substitutedSuperTypes) },
                         lowerType = if (capturedType.lowerType != null) substitutedInnerType else null,
-                        isMarkedOption = type.isMarkedOption
+                        isOption = type.isMarkedOption()
                     )
                 }
             }
@@ -134,7 +135,7 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
 
         if (typeConstructor is IntersectionTypeConstructor) {
             fun updateNullability(substituted: UnwrappedType) =
-                if (type.isMarkedOption) substituted.makeOptionalAsSpecified(true) else substituted
+                if (type.isMarkedOption()) substituted.makeOptionAsSpecified(true) else substituted
 
             substituteNotNullTypeWithConstructor(typeConstructor)?.let { return updateNullability(it) }
             var thereAreChanges = false
@@ -153,11 +154,11 @@ interface NewTypeSubstitutor : TypeSubstitutorMarker {
                 replacement.attributes.add(type.attributes)
             )
         }
-        if (type.isMarkedOption) {
-            replacement = replacement.makeOptionalAsSpecified(true)
+        if (type.isMarkedOption()) {
+            replacement = replacement.makeOptionAsSpecified(true)
         }
-        if (type.isDefinitelyNotNullType) {
-            replacement = replacement.makeDefinitelyNotNullOrNotNull()
+        if (type.isDefinitelyNonOptionType) {
+            replacement = replacement.makeDefinitelyNonOptionOrNonOption()
         }
         if (type is CustomTypeParameter) {
             replacement = type.substitutionResult(replacement).unwrap()

@@ -29,7 +29,6 @@ import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.calls.model.*
-import org.cangnova.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import org.cangnova.cangjie.types.CangJieType
 
 
@@ -77,59 +76,12 @@ class TypeArgumentsToParametersMapper {
 
         val sharedTypeParameter = getSharedTypeParametersByDeclarationDescriptor(topDescriptor, descriptor)
 
-        if (descriptor is EnumClassCallableDescriptor && sharedTypeParameter.isNotEmpty()) {
-            if (call.typeArguments.isNotEmpty() && call.topTypeArguments.isNotEmpty()) {
-                topDescriptor?.let {
-                    typeDiagnostics.add(TypeArgumentsAfterEnumEntry(descriptor.type as ClassDescriptor, it))
-                }
-            }
-        }
+
 
         if (call.typeArguments.size != descriptor.typeParameters.size) {
 
 
-            if (descriptor is EnumClassCallableDescriptor && sharedTypeParameter.isNotEmpty()) {
-                /*   if (call.typeArguments.isNotEmpty() && call.topTypeArguments.isNotEmpty()) {
-   //type arguments cannot appear after 'B' when enum type 'A' is given
-
-   //                    return TypeArgumentsMapping.TypeArgumentsMappingImpl(
-   //                        topDescriptor?.let {
-   //                            listOf(TypeArgumentsAfterEnumEntry(descriptor.type as ClassDescriptor, it))
-   //                        } ?: emptyList(),
-   //
-   //                        emptyMap()
-   //                    )
-                       topDescriptor?.let {
-                           typeDiagnostics.add(TypeArgumentsAfterEnumEntry(descriptor.type as ClassDescriptor, it))
-
-                       }
-                   } else */
-                if (call.topTypeArguments.size != topDescriptor?.declaredTypeParameters?.size) {
-//                    return TypeArgumentsMapping.TypeArgumentsMappingImpl(
-//                        listOf(WrongCountOfTypeArguments(descriptor, call.topTypeArguments.size)), emptyMap()
-//                    )
-                    typeDiagnostics.add(WrongCountOfTypeArguments(descriptor, call.topTypeArguments.size))
-                } else if (call.topTypeArguments.isEmpty() && call.typeArguments.size != descriptor.typeParameters.size) {
-
-                    typeDiagnostics.add(WrongCountOfTypeArguments(descriptor, call.typeArguments.size))
-//                    return TypeArgumentsMapping.TypeArgumentsMappingImpl(
-//                        listOf(WrongCountOfTypeArguments(descriptor, call.typeArguments.size)), emptyMap()
-//                    )
-                } else {
-                    val topTypeParameterToArgumentMap =
-                        topDescriptor.declaredTypeParameters.zip(call.topTypeArguments).associate { it }
-                    typeParameterToArgumentMap =
-                        descriptor.typeParameters.zip(call.typeArguments)
-                            .associate { it } + topTypeParameterToArgumentMap
-//                    return TypeArgumentsMapping.TypeArgumentsMappingImpl(listOf(), typeParameterToArgumentMap)
-                }
-
-            } else {
-                typeDiagnostics.add(WrongCountOfTypeArguments(descriptor, call.typeArguments.size))
-//                return TypeArgumentsMapping.TypeArgumentsMappingImpl(
-//                    listOf(WrongCountOfTypeArguments(descriptor, call.typeArguments.size)), emptyMap()
-//                )
-            }
+            TODO("枚举相关")
 
 
         } else {

@@ -648,20 +648,7 @@ class LazyImportScope(
         secondaryImportResolver?.recordLookup(name, location)
     }
 
-    /**
-     * 获取贡献的包限定部分
-     *
-     * @param name 名称对象
-     * @return 包含限定部分的列表
-     */
-    override fun getContributedPackageQualifierPart(name: Name): List<List<QualifierPart>> {
-        val list = importResolver.indexedImports.importsForName(name).mapNotNull {
-//    it as CjImportDirectiveItem
-            it.importContent?.asQualifierPartList()
-        }
 
-        return list
-    }
 
     /**
      * 获取贡献的包完全限定名

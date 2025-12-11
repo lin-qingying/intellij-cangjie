@@ -484,59 +484,60 @@ open class CangJieBuiltIns(
         }
     private var postponedBuiltInsModule: NotNullLazyValue<ModuleDescriptorImpl>? =
         null
-    val binaryOperatorRules: MutableMap<CjToken, List< BinaryOperatorRule>> = mutableMapOf()
+    val binaryOperatorRules: MutableMap<CjToken, List<BinaryOperatorRule>> = mutableMapOf()
+
     //    填充规则
     private fun fillBinaryOperatorRules() {
 
         binaryOperatorRules[CjTokens.PLUS] = listOf(
-            BinaryOperatorRule(int64Type, int64Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type,  BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
 
 
-            BinaryOperatorRule(float16Type, float16Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type,  BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
         )
         binaryOperatorRules[CjTokens.MINUS] = listOf(
-            BinaryOperatorRule(int64Type, int64Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type,  BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
 
 
-            BinaryOperatorRule(float16Type, float16Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type,  BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
         )
         binaryOperatorRules[CjTokens.MUL] = listOf(
-            BinaryOperatorRule(int64Type, int64Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type,  BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
 
 
-            BinaryOperatorRule(float16Type, float16Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type,  BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
         )
         binaryOperatorRules[CjTokens.DIV] = listOf(
-            BinaryOperatorRule(int64Type, int64Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type,  BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
 
 
-            BinaryOperatorRule(float16Type, float16Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float32Type, float32Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(float64Type, float64Type,  BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float32Type, float32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(float64Type, float64Type, BinaryOperatorRuleResultType.LEFT),
         )
         binaryOperatorRules[CjTokens.MULMUL] = listOf(
-            BinaryOperatorRule(int64Type, int64Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int32Type, int32Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int16Type, int16Type,  BinaryOperatorRuleResultType.LEFT),
-            BinaryOperatorRule(int8Type, int8Type,  BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int32Type, int32Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int16Type, int16Type, BinaryOperatorRuleResultType.LEFT),
+            BinaryOperatorRule(int8Type, int8Type, BinaryOperatorRuleResultType.LEFT),
 
             BinaryOperatorRule(float64Type, int64Type, BinaryOperatorRuleResultType.LEFT),
             BinaryOperatorRule(float16Type, float16Type, BinaryOperatorRuleResultType.LEFT),
@@ -570,9 +571,9 @@ open class CangJieBuiltIns(
     }
 
     //    匹配规则
-    fun matchBinaryOperatorRule(token: CjToken, leftType: CangJieType?, rightType: CangJieType?):  BinaryOperatorRule {
+    fun matchBinaryOperatorRule(token: CjToken, leftType: CangJieType?, rightType: CangJieType?): BinaryOperatorRule {
         if (leftType == null || rightType == null) {
-            return BinaryOperatorRule(leftType, rightType,  BinaryOperatorRuleResultType.ERROR)
+            return BinaryOperatorRule(leftType, rightType, BinaryOperatorRuleResultType.ERROR)
         }
 
         if (binaryOperatorRules.isEmpty()) {
@@ -592,7 +593,7 @@ open class CangJieBuiltIns(
 
 //        查询规则
         val rule = binaryOperatorRules[token]
-            ?: return BinaryOperatorRule(leftType, rightType,  BinaryOperatorRuleResultType.ERROR)
+            ?: return BinaryOperatorRule(leftType, rightType, BinaryOperatorRuleResultType.ERROR)
 //根据类型匹配
         for (r in rule) {
             if (r.leftType == leftType && r.rightType == rightType) {
@@ -600,7 +601,7 @@ open class CangJieBuiltIns(
             }
         }
 
-        return BinaryOperatorRule(leftType, rightType,  BinaryOperatorRuleResultType.ERROR)
+        return BinaryOperatorRule(leftType, rightType, BinaryOperatorRuleResultType.ERROR)
     }
 
     fun getBuiltInClassByFqName(fqName: FqName): ClassDescriptor {
@@ -730,7 +731,7 @@ open class CangJieBuiltIns(
 
     val throwable: ClassDescriptor
         get() {
-      return   getStdCoreClassByName("Throwable")
+            return getStdCoreClassByName("Throwable")
         }
     val throwableType: CangJieType
         get() = throwable.defaultType
@@ -789,11 +790,22 @@ open class CangJieBuiltIns(
             return range.defaultType
         }
 
+    //sync
+    val reentrantMutex: ClassDescriptor
+        get() {
+            return getStdSyncClassByName("ReentrantMutex")
 
+
+        }
+    val reentrantMutexType: SimpleType
+        get() {
+            return reentrantMutex.defaultType
+
+        }
     val resource: ClassDescriptor
         get() {
 
-        return  getStdCoreClassByName(RESOURCE)
+            return getStdCoreClassByName(RESOURCE)
         }
     val future: ClassDescriptor
         get() = getStdSyncClassByName(FUTURE)

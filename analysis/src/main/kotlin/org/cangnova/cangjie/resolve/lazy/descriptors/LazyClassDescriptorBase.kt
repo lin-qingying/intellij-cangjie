@@ -24,29 +24,12 @@
 
 package org.cangnova.cangjie.resolve.lazy.descriptors
 
-import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.isSpecialClassWithNoSupertypes
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.descriptors.ScopesHolderForClass.Companion.create
-import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.ClassDescriptorBase
-import org.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.name.Name.Companion.special
-import org.cangnova.cangjie.psi.CjExtend
-import org.cangnova.cangjie.psi.CjSuperTypeListEntry
-import org.cangnova.cangjie.psi.CjTypeParameterList
-import org.cangnova.cangjie.psi.CjTypeStatement
-import org.cangnova.cangjie.resolve.DescriptorUtils.getAllDescriptors
-import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
-import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.source.toSourceElement
-import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.types.*
-import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
-import org.cangnova.cangjie.storage.NullableLazyValue
 
 abstract class LazyClassDescriptorBase
     (

@@ -237,6 +237,8 @@ interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBui
         firstCandidate: CangJieTypeMarker,
         secondCandidate: CangJieTypeMarker
     ): CangJieTypeMarker
+    fun CangJieTypeMarker.hasFlexibleOption() =
+        lowerBoundIfFlexible().isMarkedOption() != upperBoundIfFlexible().isMarkedOption()
 
     fun CangJieTypeMarker.isSpecial(): Boolean
     fun TypeConstructorMarker.isTypeVariable(): Boolean

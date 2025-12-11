@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":util"))
     implementation(project(":messages"))
     implementation(project(":telemetry"))
+    implementation(project(":descriptors"))
 
 
     implementation(project(":psi"))

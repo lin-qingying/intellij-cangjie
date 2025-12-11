@@ -46,7 +46,69 @@ import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_T
 import org.cangnova.cangjie.resolve.binding.BindingContextUtils
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 
+/**
+ * 标签解析器
+ *
+ * 负责解析仓颉语言中的标签引用，主要用于处理 `this@label` 和 `super@label` 表达式。
+ * 标签用于在嵌套的类、函数或 lambda 表达式中明确指定接收者。
+ *
+ * ## 主要功能
+ *
+ * ### 1. 标签名称收集
+ * 收集 PSI 元素（如函数、lambda、类）可以作为标签引用的名称：
+ * - 函数名称：`fun foo() { ... }` 可以用 `this@foo` 引用
+ * - Lambda 调用者名称：`list.forEach { this@forEach }`
+ * - 类名称：`class Foo { fun bar() { this@Foo } }`
+ *
+ * ### 2. 标签解析
+ * 解析 `this@label` 或 `super@label` 表达式，确定标签指向的接收者：
+ * - 查找作用域中匹配标签名的声明
+ * - 处理标签名冲突和歧义
+ * - 记录标签目标到绑定上下文
+ *
+ * ## 使用示例
+ *
+ * ```cangjie
+ * class Outer {
+ *     fun outer() {
+ *         val inner = object {
+ *             fun inner() {
+ *                 // this@Outer 引用外部类实例
+ *                 // this@outer 引用外部函数的扩展接收者（如果有）
+ *             }
+ *         }
+ *     }
+ * }
+ *
+ * fun example() {
+ *     listOf(1, 2, 3).forEach {
+ *         // return@forEach 返回到 forEach 调用
+ *         // this@example 引用 example 函数的接收者
+ *     }
+ * }
+ * ```
+ *
+ * ## 解析流程
+ *
+ * 1. 从标签表达式开始向上遍历 PSI 树
+ * 2. 收集每个层级可用的标签名称
+ * 3. 在作用域中查找匹配的声明描述符
+ * 4. 验证解析结果并报告诊断信息（如歧义、未解析引用等）
+ *
+ * @see LabeledReceiverResolutionResult 标签解析结果
+ * @see ResolutionContext 解析上下文
+ */
 object LabelResolver {
+    /**
+     * 获取函数表达式的标签名称
+     *
+     * 根据表达式的上下文确定可用的标签名称：
+     * - 二元表达式：使用操作符名称
+     * - 其他情况：使用调用者名称
+     *
+     * @param element 函数表达式（lambda 或匿名函数）
+     * @return 标签名称，如果无法确定则返回 null
+     */
     private fun getLabelForFunctionalExpression(element: CjExpression): Name? {
         return when (val parent = element.parent) {
 //            is CjLabeledExpression -> getLabelNamesIfAny(parent, false).singleOrNull()
@@ -55,6 +117,14 @@ object LabelResolver {
         }
     }
 
+    /**
+     * 获取包含指定表达式的调用表达式
+     *
+     * 查找表达式所在的调用上下文，用于确定 lambda 的调用者名称。
+     *
+     * @param expression 要查找的表达式
+     * @return 包含该表达式的调用表达式，如果不在调用上下文中则返回 null
+     */
     private fun getContainingCallExpression(expression: CjExpression): CjCallExpression? {
         val parent = expression.parent
         if (parent is CjLambdaArgument) {
@@ -76,6 +146,14 @@ object LabelResolver {
         return null
     }
 
+    /**
+     * 获取调用者名称
+     *
+     * 从调用表达式中提取被调用函数的名称，用作 lambda 的隐式标签。
+     *
+     * @param expression 位于调用参数中的表达式
+     * @return 调用者名称，如果无法确定则返回 null
+     */
     private fun getCallerName(expression: CjExpression): Name? {
         val callExpression = getContainingCallExpression(expression) ?: return null
         val calleeExpression = callExpression.calleeExpression as? CjSimpleNameExpression
@@ -155,9 +233,7 @@ object LabelResolver {
         val declarationsByLabel = scope.getDeclarationsByLabel(labelName)
         val (elementsByLabel, typedElement) = getElementsByLabelName(
             labelName, targetLabelExpression,
-            classNameLabelsEnabled = expression is CjThisExpression && context.languageVersionSettings.supportsFeature(
-                ContextReceivers
-            )
+            classNameLabelsEnabled = false
         )
         val trace = context.trace
         when (declarationsByLabel.size) {

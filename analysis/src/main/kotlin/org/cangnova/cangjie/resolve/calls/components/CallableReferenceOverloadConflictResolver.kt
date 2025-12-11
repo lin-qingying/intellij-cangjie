@@ -24,14 +24,14 @@
 
 package org.cangnova.cangjie.resolve.calls.components
 
-import com.intellij.diff.comparison.CancellationChecker
+
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintInjector
 import org.cangnova.cangjie.resolve.calls.results.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-
+import org.cangnova.cangjie.utils.CancellationChecker
 
 
 class CallableReferenceOverloadConflictResolver(

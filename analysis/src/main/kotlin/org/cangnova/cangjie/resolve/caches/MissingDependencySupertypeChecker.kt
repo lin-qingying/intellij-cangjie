@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.resolve.caches
 
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.diagnostics.Errors
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjTypeParameterListOwner
 import org.cangnova.cangjie.resolve.MissingSupertypesResolver
@@ -33,9 +32,12 @@ import org.cangnova.cangjie.resolve.calls.checkers.CallChecker
 import org.cangnova.cangjie.resolve.calls.checkers.CallCheckerContext
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
-import org.cangnova.cangjie.resolve.descriptorUtil.fqNameSafe
 import org.cangnova.cangjie.types.CangJieType
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.diagnostics.infos.errors.MISSING_DEPENDENCY_SUPERCLASS
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.fqNameSafe
 
 object MissingDependencySupertypeChecker {
     object ForDeclarations : DeclarationChecker {
@@ -117,7 +119,7 @@ object MissingDependencySupertypeChecker {
         val missingSupertypes = missingSupertypesResolver.getMissingSuperClassifiers(declaration)
         for (missingClassifier in missingSupertypes) {
             trace.report(
-                Errors.MISSING_DEPENDENCY_SUPERCLASS.on(
+                MISSING_DEPENDENCY_SUPERCLASS.on(
                     reportOn,
                     missingClassifier.fqNameSafe,
                     declaration.fqNameSafe

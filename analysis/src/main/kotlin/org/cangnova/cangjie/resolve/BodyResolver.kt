@@ -476,7 +476,7 @@ class BodyResolver(
 
     private fun getDelegatedConstructor(constructor: ConstructorDescriptor): ConstructorDescriptor? {
         val call = trace[CONSTRUCTOR_RESOLVED_DELEGATION_CALL, constructor]
-        return if (call == null || !call.status.isSuccess()) null else call.resultingDescriptor.original
+        return if (call == null || !call.status.isSuccess) null else call.resultingDescriptor.original
     }
 
     private fun reportEachConstructorOnCycle(startConstructor: ConstructorDescriptor) {

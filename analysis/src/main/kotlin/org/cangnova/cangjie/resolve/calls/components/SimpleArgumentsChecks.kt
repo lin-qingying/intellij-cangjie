@@ -34,6 +34,7 @@ import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintPosition
 import org.cangnova.cangjie.resolve.calls.inference.model.ReceiverConstraintPositionImpl
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.*
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isMarkedOption
 import org.cangnova.cangjie.types.checker.captureFromExpression
 import org.cangnova.cangjie.types.checker.hasSupertypeWithGivenTypeConstructor
 
@@ -79,7 +80,7 @@ private fun checkSubCallArgument(
 
     if (expectedType == null) return subCallResult
 
-    val expectedNullableType = expectedType.makeOptionalAsSpecified(true)
+    val expectedNullableType = expectedType.makeOptionAsSpecified(true)
     val position =
         if (receiverInfo.isReceiver) ReceiverConstraintPositionImpl(
             subCallArgument,
@@ -151,7 +152,7 @@ private fun checkExpressionArgument(
             }
         }
 
-        if (argumentType.isMarkedOption) {
+        if (argumentType.isMarkedOption()) {
             if (csBuilder.addSubtypeConstraintIfCompatible(argumentType, actualExpectedType, position)) return null
             if (csBuilder.addSubtypeConstraintIfCompatible(
                     argumentType.makeNonOption(),
@@ -174,7 +175,7 @@ private fun checkExpressionArgument(
         else ArgumentConstraintPositionImpl(expressionArgument)
 
     // Used only for arguments with @NotNull annotation
-    if (expectedType is NotNullTypeParameter && argumentType.isMarkedOption) {
+    if (expectedType is NonOptionTypeParameter && argumentType.isMarkedOption()) {
         diagnosticsHolder.addDiagnostic(
             ArgumentNullabilityErrorDiagnostic(
                 expectedType,
@@ -185,7 +186,7 @@ private fun checkExpressionArgument(
     }
 
     if (expressionArgument.isSafeCall) {
-        val expectedNullableType = expectedType.makeOptionalAsSpecified(true)
+        val expectedNullableType = expectedType.makeOptionAsSpecified(true)
         if (!csBuilder.addSubtypeConstraintIfCompatible(argumentType, expectedNullableType, position)) {
             diagnosticsHolder.addDiagnosticIfNotNull(
                 unstableSmartCastOrSubtypeError(
@@ -212,7 +213,7 @@ private fun checkExpressionArgument(
         }
 
         val unstableType = expressionArgument.receiver.unstableType
-        val expectedNullableType = expectedType.makeOptionalAsSpecified(true)
+        val expectedNullableType = expectedType.makeOptionAsSpecified(true)
 
         if (unstableType != null && csBuilder.addSubtypeConstraintIfCompatible(unstableType, expectedType, position)) {
             diagnosticsHolder.addDiagnostic(UnstableSmartCast(expressionArgument, unstableType, isReceiver))
@@ -255,8 +256,8 @@ fun captureFromTypeParameterUpperBoundIfNeeded(
         }
         if (chosenSupertype != null) {
             val capturedType = captureFromExpression(chosenSupertype.unwrap())
-            return if (capturedType != null && argumentType.isDefinitelyNotNullType)
-                capturedType.makeDefinitelyNotNullOrNotNull()
+            return if (capturedType != null && argumentType.isDefinitelyNonOptionType)
+                capturedType.makeDefinitelyNonOptionOrNonOption()
             else
                 capturedType ?: argumentType
         }

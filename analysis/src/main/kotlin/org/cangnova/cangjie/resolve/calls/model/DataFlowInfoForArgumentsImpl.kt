@@ -33,7 +33,6 @@ class DataFlowInfoForArgumentsImpl(initialInfo: DataFlowInfo, call: Call) :
     MutableDataFlowInfoForArguments(initialInfo) {
     private var infoMap: MutableMap<ValueArgument, DataFlowInfo>? = null
     private var nextArgument: MutableMap<ValueArgument, ValueArgument>? = null
-    private var resultInfo: DataFlowInfo? = null
 
     init {
         initNextArgMap(call.valueArguments)
@@ -48,7 +47,7 @@ class DataFlowInfoForArgumentsImpl(initialInfo: DataFlowInfo, call: Call) :
                 if (nextArgument == null) {
                     nextArgument = HashMap()
                 }
-                nextArgument!![prev] = argument
+                (nextArgument ?: return)[prev] = argument
             }
             prev = argument
         }
@@ -57,33 +56,39 @@ class DataFlowInfoForArgumentsImpl(initialInfo: DataFlowInfo, call: Call) :
     override fun getInfo(valueArgument: ValueArgument): DataFlowInfo {
         val infoForArgument = if (infoMap == null) null else infoMap!![valueArgument]
         if (infoForArgument == null) {
-            return initialDataFlowInfo
+            return super.resultInfo
         }
-        return initialDataFlowInfo.and(infoForArgument)
+        return super.resultInfo.and(infoForArgument)
     }
 
     override fun updateInfo(valueArgument: ValueArgument, dataFlowInfo: DataFlowInfo) {
-        val next = if (nextArgument == null) null else nextArgument!![valueArgument]
+        val next = if (nextArgument == null) null else (nextArgument ?: return)[valueArgument]
         if (next != null) {
             if (infoMap == null) {
                 infoMap = HashMap()
             }
-            infoMap!![next] = dataFlowInfo
+            (infoMap ?: return)[next] = dataFlowInfo
             return
         }
         //TODO assert resultInfo == null
-        resultInfo = dataFlowInfo
+        _resultInfo = dataFlowInfo
     }
 
-    override fun getResultInfo(): DataFlowInfo {
-        if (resultInfo == null) return initialDataFlowInfo
-        return initialDataFlowInfo.and(resultInfo!!)
-    }
+    private var _resultInfo: DataFlowInfo? = null
+    override var resultInfo: DataFlowInfo
+        get() {
+            if (_resultInfo == null) return super.resultInfo
+            return super.resultInfo.and(_resultInfo!!)
+        }
+        set(value) {
+            _resultInfo = value
+        }
+
 
     override fun updateResultInfo(dataFlowInfo: DataFlowInfo) {
         if (dataFlowInfo == EMPTY) return
 
-        if (resultInfo == null) resultInfo = initialDataFlowInfo
-        resultInfo = resultInfo!!.and(dataFlowInfo)
+        if (_resultInfo == null) _resultInfo = super.resultInfo
+        _resultInfo = (_resultInfo ?: return).and(dataFlowInfo)
     }
 }

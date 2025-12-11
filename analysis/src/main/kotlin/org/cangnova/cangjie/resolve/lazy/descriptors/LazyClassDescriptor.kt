@@ -27,18 +27,22 @@ package org.cangnova.cangjie.resolve.lazy.descriptors
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNameIdentifierOwner
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
 import org.cangnova.cangjie.descriptors.impl.FunctionDescriptorImpl
-import org.cangnova.cangjie.diagnostics.infos.warnings.*
+import org.cangnova.cangjie.diagnostics.infos.errors.CYCLIC_INHERITANCE_HIERARCHY
+import org.cangnova.cangjie.diagnostics.infos.warnings.CYCLIC_SCOPES_WITH_COMPANION
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.CjClass
+import org.cangnova.cangjie.psi.CjPsiUtil
+import org.cangnova.cangjie.psi.CjSuperTypeListEntry
+import org.cangnova.cangjie.psi.CjTypeStatement
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.ModifiersChecker.Companion.resolveModalityFromModifiers
 import org.cangnova.cangjie.resolve.ModifiersChecker.Companion.resolveVisibilityFromModifiers
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.TYPE
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.lazy.ForceResolveUtil
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
@@ -46,11 +50,8 @@ import org.cangnova.cangjie.resolve.lazy.LazyEntity
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticScopeForCangJieEnum
-import org.cangnova.cangjie.types.AbstractClassTypeConstructor
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeConstructor
+import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.types.isError
 
 /**
  * 延迟类描述符
@@ -71,8 +72,8 @@ import org.cangnova.cangjie.types.isError
  * @param classLikeInfo 类的信息数据
  * @param isExternal 是否是外部类
  */
-class LazyClassDescriptor(
-    private val c: LazyClassContext,
+open class LazyClassDescriptor(
+    c: LazyClassContext,
     containingDeclaration: DeclarationDescriptor,
     name: Name,
     classLikeInfo: CjClassLikeInfo,
@@ -86,20 +87,19 @@ class LazyClassDescriptor(
     private val scopesHolderForClass: ScopesHolderForClass<LazyClassMemberScope> =
         createScopesHolderForClass(c, declarationProvider)
 
-    private val _kind: ClassKind = classLikeInfo.classKind
+    /**
+     * 类的种类（CLASS、INTERFACE、ENUM等）
+     */
+    override val kind: ClassKind = classLikeInfo.classKind
 
-    private val staticScope: MemberScope = when (_kind) {
-        ClassKind.ENUM -> StaticScopeForCangJieEnum(c.storageManager, this, enumEntriesCanBeUsed = true)
-        else -> MemberScope.Empty
-    }
-
-    private val _typeConstructor = LazyClassTypeConstructor()
-
-    private val _modality by c.storageManager.createLazyValue {
+    /**
+     * 类的修饰性（FINAL、OPEN、ABSTRACT、SEALED）
+     */
+    private val _modality = c.storageManager.createLazyValue {
         when {
-            _kind.isObject -> Modality.FINAL
+            kind.isObject -> Modality.FINAL
             else -> {
-                val defaultModality = if (_kind == ClassKind.INTERFACE) Modality.ABSTRACT else Modality.FINAL
+                val defaultModality = if (kind == ClassKind.INTERFACE) Modality.ABSTRACT else Modality.FINAL
                 resolveModalityFromModifiers(
                     typeStatement,
                     defaultModality,
@@ -110,6 +110,16 @@ class LazyClassDescriptor(
             }
         }
     }
+    override val modality: Modality
+        get() = _modality.invoke()
+
+    override val staticScope: MemberScope
+        get() = when (kind) {
+            ClassKind.ENUM -> StaticScopeForCangJieEnum(c.storageManager, this, enumEntriesCanBeUsed = true)
+            else -> MemberScope.Empty
+        }
+
+    private val _typeConstructor = LazyClassTypeConstructor()
 
     private val isLocal = typeStatement?.let { CjPsiUtil.isLocal(it) } ?: false
     override val visibility: DescriptorVisibility = when {
@@ -126,32 +136,33 @@ class LazyClassDescriptor(
         ::getOuterScope
     )
 
-    private val _parameters by c.storageManager.createLazyValue {
-        val classInfo = declarationProvider.ownerInfo
-        val typeParameterList =
-            classInfo?.typeParameterList ?: return@createLazyValue emptyList<TypeParameterDescriptor>()
+    /**
+     * 类声明的类型参数列表
+     */
+    private val _declaredTypeParameters = c.storageManager.createLazyValue {
+        val typeParameterList = declarationProvider.ownerInfo?.typeParameterList
+            ?: return@createLazyValue emptyList<TypeParameterDescriptor>()
 
-        val typeParameters = typeParameterList.parameters
-        if (typeParameters.isEmpty()) return@createLazyValue emptyList<TypeParameterDescriptor>()
-
-        typeParameters.mapIndexed { index, parameter ->
+        typeParameterList.parameters.takeIf { it.isNotEmpty() }?.mapIndexed { index, parameter ->
             LazyTypeParameterDescriptor(c, this, parameter, Annotations.EMPTY, index)
-        }
+        } ?: emptyList()
     }
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
+        get() = _declaredTypeParameters.invoke()
 
-    private val scopeForInitializerResolution by c.storageManager.createLazyValue {
-        ClassResolutionScopesSupportKt.scopeForInitializerResolution(
+    private val _scopeForInitializerResolution = c.storageManager.createLazyValue {
+        scopeForInitializerResolution(
             this,
             createInitializerScopeParent(),
             classLikeInfo.primaryConstructorParameters
         )
     }
 
-    private val freedomForSealedInterfacesSupported =
-        c.languageVersionSettings.supportsFeature(LanguageFeature.AllowSealedInheritorsInDifferentFilesOfSamePackage)
+    // TODO: 添加 LanguageFeature.AllowSealedInheritorsInDifferentFilesOfSamePackage 后恢复
+    private val freedomForSealedInterfacesSupported = true
 
-    private val _sealedSubclasses by c.storageManager.createLazyValue {
-        when (_modality) {
+    private val _sealedSubclasses = c.storageManager.createLazyValue {
+        when (modality) {
             Modality.SEALED -> c.sealedClassInheritorsProvider.computeSealedSubclasses(
                 this,
                 freedomForSealedInterfacesSupported
@@ -170,7 +181,7 @@ class LazyClassDescriptor(
     protected open fun init() {}
 
     protected fun getOuterScope(): LexicalScope =
-        c.declarationScopeProvider.getResolutionScopeForDeclaration(declarationProvider.ownerInfo.scopeAnchor)
+        c.declarationScopeProvider.getResolutionScopeForDeclaration(declarationProvider.ownerInfo!!.scopeAnchor)
 
     fun resolveMemberHeaders() {
         ForceResolveUtil.forceResolveAllContents(annotations)
@@ -194,8 +205,8 @@ class LazyClassDescriptor(
         contextReceivers
     }
 
-    override fun getScopeForConstructorHeaderResolution(): LexicalScope =
-        resolutionScopesSupport.scopeForConstructorHeaderResolution()
+    override val scopeForConstructorHeaderResolution: LexicalScope
+        get() = resolutionScopesSupport.scopeForConstructorHeaderResolution()
 
     protected open fun createScopesHolderForClass(
         c: LazyClassContext,
@@ -217,11 +228,8 @@ class LazyClassDescriptor(
     }
 
 
-    override fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> =
+    fun getSuperTypeListEntries(): List<CjSuperTypeListEntry> =
         typeStatement?.superTypeListEntries ?: emptyList()
-
-    override fun getUnsubstitutedInnerClassesScope(): MemberScope =
-        super.getUnsubstitutedInnerClassesScope()
 
     private fun createInitializerScopeParent(): DeclarationDescriptor {
         unsubstitutedPrimaryConstructor?.let { return it }
@@ -251,26 +259,26 @@ class LazyClassDescriptor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun getDeclaredCallableMembers(): Collection<CallableMemberDescriptor> {
-        val list = ArrayList(DescriptorUtils.getAllDescriptors(unsubstitutedMemberScope))
+    override val declaredCallableMembers: MutableCollection<CallableMemberDescriptor>
+        get() {
+            val allDescriptors = DescriptorUtils.getAllDescriptors(unsubstitutedMemberScope)
 
-        // TODO 扩展
-        // extendClassDescriptors.forEach {
-        //     list.addAll(DescriptorUtils.getAllDescriptors(it.unsubstitutedMemberScope))
-        // }
+            // TODO 扩展
+            // extendClassDescriptors.forEach {
+            //     allDescriptors.addAll(DescriptorUtils.getAllDescriptors(it.unsubstitutedMemberScope))
+            // }
 
-        return list.filter { descriptor ->
-            (descriptor is CallableMemberDescriptor && descriptor.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE)
-                    || descriptor is VariableDescriptor
-        } as Collection<CallableMemberDescriptor>
-    }
+            return allDescriptors.filterTo(mutableListOf()) { descriptor ->
+                when (descriptor) {
+                    is CallableMemberDescriptor -> descriptor.kind != CallableMemberDescriptor.Kind.FAKE_OVERRIDE
+                    is VariableDescriptor -> true
+                    else -> false
+                }
+            } as MutableCollection<CallableMemberDescriptor>
+        }
 
-    override fun getScopeForInitializerResolution(): LexicalScope = scopeForInitializerResolution
-
-    override fun getUnsubstitutedMemberScope(): MemberScope =
-        getUnsubstitutedMemberScope(DescriptorUtils.getContainingModule(this).getCangJieTypeRefiner())
-
-    override fun getStaticScope(): MemberScope = staticScope
+    override val scopeForInitializerResolution: LexicalScope
+        get() = _scopeForInitializerResolution.invoke()
 
     /**
      * 类的所有构造函数集合
@@ -287,40 +295,18 @@ class LazyClassDescriptor(
         get() = (unsubstitutedMemberScope as LazyClassMemberScope).getEndConstructors()
 
     /**
-     * 类的种类（CLASS、INTERFACE、ENUM等）
-     */
-    override val kind: ClassKind
-        get() = _kind
-
-    /**
-     * 类的修饰性（FINAL、OPEN、ABSTRACT、SEALED）
-     */
-    override val modality: Modality
-        get() = _modality
-
-    override fun isFun(): Boolean = false
-
-    override fun isValue(): Boolean = false
-
-    /**
      * 未替换的主构造函数
      * 从未替换的成员作用域中获取主构造函数
      */
     override val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
-        get() = (unsubstitutedMemberScope as LazyClassMemberScope).primaryConstructor
-
-    /**
-     * 类声明的类型参数列表
-     */
-    override val declaredTypeParameters: List<TypeParameterDescriptor>
-        get() = _parameters
+        get() = (unsubstitutedMemberScope as LazyClassMemberScope).getPrimaryConstructor()
 
     /**
      * 密封类的子类集合
      * 如果不是密封类则返回空集合
      */
     override val sealedSubclasses: Collection<ClassDescriptor>
-        get() = _sealedSubclasses
+        get() = _sealedSubclasses.invoke()
 
     /**
      * 类的类型构造器
@@ -329,40 +315,29 @@ class LazyClassDescriptor(
     override val typeConstructor: TypeConstructor
         get() = _typeConstructor
 
-    @Deprecated("Use setExtendData with proper parameters")
-    fun setExtendData(typeStatement: CjTypeStatement, extendTrace: BindingTrace, extendScope: LexicalScope) {
-        this.typeStatement = typeStatement
-    }
+
 
     override fun getUnsubstitutedMemberScope(cangjieTypeRefiner: CangJieTypeRefiner): MemberScope =
         scopesHolderForClass.getScope(cangjieTypeRefiner)
 
     override fun forceResolveAllContents() {}
 
-    override fun getScopeForMemberDeclarationResolution(): LexicalScope =
-        resolutionScopesSupport.scopeForMemberDeclarationResolution()
+    override val scopeForMemberDeclarationResolution: LexicalScope
+        get() = resolutionScopesSupport.scopeForMemberDeclarationResolution()
 
-    override fun getScopeForClassHeaderResolution(): LexicalScope =
-        resolutionScopesSupport.scopeForClassHeaderResolution()
+    override val scopeForClassHeaderResolution: LexicalScope
+        get() = resolutionScopesSupport.scopeForClassHeaderResolution()
 
     override fun toString(): String = typeStatement?.toString() ?: super.toString()
 
-    protected fun computeExtendSuperTypes(extendId: String): Collection<CangJieType> =
-        extendClassDescriptors.flatMap { extendDescriptor ->
-            when {
-                extendDescriptor.typeStatement.extendId != extendId ->
-                    extendDescriptor.typeConstructor.supertypes
 
-                else -> emptyList()
-            }
-        }
 
     protected fun computeSupertypes(): Collection<CangJieType> {
         if (CangJieBuiltIns.isSpecialClassWithNoSupertypes(this)) {
             return emptyList()
         }
 
-        val classOrObject = declarationProvider.ownerInfo.correspondingClass
+        val classOrObject = declarationProvider.ownerInfo!!.correspondingClass
             ?: return listOf(c.moduleDescriptor.builtIns.anyType)
 
         val allSupertypes = c.descriptorResolver.resolveSupertypes(
@@ -376,13 +351,12 @@ class LazyClassDescriptor(
     }
 
     private inner class LazyClassTypeConstructor : AbstractClassTypeConstructor(c.storageManager) {
-        private val _parameters by c.storageManager.createLazyValue {
-            TypeParameterUtilsKt.computeConstructorTypeParameters(this@LazyClassDescriptor)
+        private val _parameters = c.storageManager.createLazyValue {
+            this@LazyClassDescriptor.computeConstructorTypeParameters()
         }
 
         override fun computeSupertypes(): Collection<CangJieType> =
             this@LazyClassDescriptor.computeSupertypes()
-
 
         override fun reportSupertypeLoopError(type: CangJieType) {
             val supertypeDescriptor = type.constructor.declarationDescriptor
@@ -391,17 +365,12 @@ class LazyClassDescriptor(
             }
         }
 
-        override fun getShouldReportCyclicScopeWithCompanionWarning(): Boolean =
-            !c.languageVersionSettings.supportsFeature(
-                LanguageFeature.ProhibitVisibilityOfNestedClassifiersFromSupertypes
-            )
+        // TODO: 添加 LanguageFeature.ProhibitVisibilityOfNestedClassifiersFromSupertypes 后恢复
+        override val shouldReportCyclicScopeWithCompanionWarning: Boolean = false
 
         override fun reportScopesLoopError(type: CangJieType) {
-            var reportOn = DescriptorToSourceUtils.getSourceFromDescriptor(type.constructor.declarationDescriptor)
-
-            if (reportOn is CjClass) {
-                reportOn = reportOn.nameIdentifier
-            }
+            val reportOn = type.constructor.declarationDescriptor?.let { DescriptorToSourceUtils.getSourceFromDescriptor(it) }
+                ?.let { if (it is CjClass) it.nameIdentifier else it }
 
             reportOn?.let { c.trace.report(CYCLIC_SCOPES_WITH_COMPANION.on(it)) }
         }
@@ -431,20 +400,23 @@ class LazyClassDescriptor(
             elementToMark?.let { trace.report(CYCLIC_INHERITANCE_HIERARCHY.on(it)) }
         }
 
-        override fun getSupertypeLoopChecker(): SupertypeLoopChecker = c.supertypeLoopChecker
+        override val supertypeLoopChecker: SupertypeLoopChecker
+            get() = c.supertypeLoopChecker
 
-        override fun getParameters(): List<TypeParameterDescriptor> = _parameters
+        override val parameters: List<TypeParameterDescriptor>
+            get() = _parameters.invoke()
 
-        override fun isDenotable(): Boolean = true
+        override val isDenotable: Boolean = true
 
-        override fun getDeclarationDescriptor(): ClassDescriptor = this@LazyClassDescriptor
+        override val declarationDescriptor: ClassDescriptor
+            get() = this@LazyClassDescriptor
 
         override fun toString(): String = this@LazyClassDescriptor.name.toString()
     }
 
     companion object {
         private val VALID_SUPERTYPE: (CangJieType) -> Boolean = { type ->
-            require(!type.isError()) { "Error types must be filtered out in DescriptorResolver" }
+            require(!type.isError) { "Error types must be filtered out in DescriptorResolver" }
             TypeUtils.getClassDescriptor(type) != null
         }
     }

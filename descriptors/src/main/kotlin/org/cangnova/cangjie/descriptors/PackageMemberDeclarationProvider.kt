@@ -22,10 +22,17 @@
  *
  */
 
-package org.cangnova.cangjie.name
+package org.cangnova.cangjie.descriptors
 
+import org.cangnova.cangjie.descriptors.DeclarationProvider
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.psi.CjFile
 
-fun FqName.parentOrNull(): FqName? = if (this.isRoot) null else parent()
+interface PackageMemberDeclarationProvider : DeclarationProvider {
+    fun getAllDeclaredSubPackages(nameFilter: (Name) -> Boolean): Collection<FqName>
 
-fun FqName.isOneSegmentFQN(): Boolean = !isRoot && parent().isRoot
-fun FqName.isChildOf(packageName: FqName): Boolean = parentOrNull() == packageName
+    fun getPackageFiles(): Collection<CjFile>
+
+    fun containsFile(file: CjFile): Boolean
+}

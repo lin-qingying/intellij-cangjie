@@ -1975,6 +1975,8 @@ fun unCaptureProjection(projection: TypeProjection): TypeProjection {
         unCapturedProjection.type.replace(newArguments)
     )
 }
+fun CangJieType.unCapture(): CangJieType = unwrap().unCapture()
+
 fun SimpleType.unCapture(): UnwrappedType {
     if (this is ErrorType) return this
     if (this is NewCapturedType)

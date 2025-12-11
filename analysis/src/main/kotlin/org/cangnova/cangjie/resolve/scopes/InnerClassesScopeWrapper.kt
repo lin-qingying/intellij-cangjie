@@ -55,9 +55,10 @@ class InnerClassesScopeWrapper(val workerScope: MemberScope) : MemberScopeImpl()
         workerScope.printScopeStructure(p)
     }
 
-    override fun getFunctionNames() = workerScope.getFunctionNames()
-    override fun getVariableNames() = workerScope.getVariableNames()
-    override fun getClassifierNames() = workerScope.getClassifierNames()
+    override val functionNames: Set<Name>
+        get() = workerScope.functionNames
+    override val variableNames get() = workerScope.variableNames
+    override val classifierNames get() = workerScope.classifierNames
 
     override fun definitelyDoesNotContainName(name: Name) = workerScope.definitelyDoesNotContainName(name)
 

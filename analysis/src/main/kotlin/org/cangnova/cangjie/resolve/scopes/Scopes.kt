@@ -205,9 +205,6 @@ abstract class BaseImportingScope(parent: ImportingScope?) : BaseHierarchicalSco
 
     override fun getContributedPackage(name: Name): PackageViewDescriptor? = null
 
-    override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> {
-        return emptyList()
-    }
 
 
     override fun getContributedDescriptors(
@@ -315,7 +312,5 @@ class CompositePrioritizedImportingScope(
         )
     }
 
-    override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> {
-        TODO("Not yet implemented")
-    }
+
 }

@@ -71,15 +71,6 @@ class LazyExplicitImportScope(
 //    }
 
 
-    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-
-        return collectEnumEntryDeclarationMemberDescriptors(
-            name,
-            location,
-            MemberScope::getContributedEnumEntrys
-        ).toList()
-    }
-
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<FunctionDescriptor> {
         if (name != aliasName) return emptyList()
 

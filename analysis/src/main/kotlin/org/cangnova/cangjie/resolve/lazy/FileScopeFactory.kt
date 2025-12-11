@@ -41,14 +41,15 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjImportInfo
 import org.cangnova.cangjie.resolve.PlatformDependentAnalyzerServices
 import org.cangnova.cangjie.resolve.extensions.ExtraImportsProviderExtension
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.source.CangJieSourceElement
 import org.cangnova.cangjie.storage.getValue
 import org.cangnova.cangjie.utils.Printer
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import org.cangnova.cangjie.psi.ImportPath
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
+import org.cangnova.cangjie.stubindex.CangJieImportFqNameForPackageNameIndex
 
 data class FileScopes(
     val lexicalScope: LexicalScope,
@@ -287,32 +288,6 @@ class FileScopeFactory(
 
             }
 
-            override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-
-//                val elements = file.declarations.flatMap {
-//                    when(it){
-//                        is CjEnum ->{
-//                            it.entry + listOf(it)
-//                        }
-//                        else -> listOf(it)
-//                    }
-//                }.filter {
-//
-//                    it.name === name.asString()
-//                }
-//                if (elements.isEmpty()) return emptyList()
-                var i = 0
-                var _parent = parent
-                while (_parent !is CurrentPackageScope && i < 15) {
-                    _parent = _parent?.parent
-                    i++
-                }
-//                if (_parent !is CurrentPackageScope) {
-//                    return null
-//                }
-                return _parent?.getContributedEnumEntrys(name, location) ?: emptyList()
-
-            }
 
             override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
 
@@ -356,9 +331,7 @@ class FileScopeFactory(
 
             }
 
-            override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-                return emptyList()
-            }
+
 
             override fun getContributedVariables(
                 name: Name,
@@ -517,11 +490,12 @@ class FileScopeFactory(
 
         //        TODO 没有什么实现思路，导入树结构应该重构
         private val imports: Collection<CjImportDirectiveItem> = runReadAction {
-            CangJieImportFqNameForPackageNameIndex.getReexport(
-                packageFragment.fqName.asString(),
-                project,
-                GlobalSearchScope.allScope(project)
-            )
+//            CangJieImportFqNameForPackageNameIndex.getReexport(
+//                packageFragment.fqName.asString(),
+//                project,
+//                GlobalSearchScope.allScope(project)
+//            )
+            TODO()
         }
 
         private val explicitImportResolver =
@@ -633,9 +607,7 @@ class FileScopeFactory(
             return list + list2
         }
 
-        override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-            return scope.getExtendClass(name)
-        }
+
 
         override fun getContributedVariables(
             name: Name,

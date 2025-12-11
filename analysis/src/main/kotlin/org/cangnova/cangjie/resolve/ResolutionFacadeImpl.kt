@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve
 
+import com.intellij.openapi.progress.impl.CancellationCheck.Companion.runWithCancellationCheck
 import org.cangnova.cangjie.descriptors.ModuleInfo
 import org.cangnova.cangjie.container.get
 import org.cangnova.cangjie.container.getService
@@ -43,6 +44,8 @@ import org.cangnova.cangjie.utils.runWithCancellationCheck
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.FrontendInternals
+import org.cangnova.cangjie.resolve.binding.BindingContext
 
 class ModuleResolutionFacadeImpl(
     private val projectFacade: ProjectResolutionFacade,

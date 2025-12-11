@@ -33,8 +33,10 @@ import org.cangnova.cangjie.types.AbstractTypeChecker
 import org.cangnova.cangjie.types.TypeApproximatorConfiguration
 import org.cangnova.cangjie.types.model.*
 import com.intellij.util.SmartList
+import org.cangnova.cangjie.resolve.checkers.EmptyIntersectionTypeInfo
 import org.cangnova.cangjie.utils.SmartSet
 import org.cangnova.cangjie.utils.trimToSize
+import kotlin.also
 import kotlin.math.max
 
 class NewConstraintSystemImpl(
@@ -624,7 +626,7 @@ class NewConstraintSystemImpl(
         }
     }
 
-    @COnly
+
     override fun <R> withTypeVariablesThatAreCountedAsProperTypes(
         typeVariables: Set<TypeConstructorMarker>,
         block: () -> R

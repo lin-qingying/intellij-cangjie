@@ -29,6 +29,7 @@ import org.cangnova.cangjie.resolve.calls.inference.components.ConstraintSystemC
 import org.cangnova.cangjie.resolve.calls.inference.model.Constraint
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintStorage
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemError
+import org.cangnova.cangjie.resolve.checkers.EmptyIntersectionTypeInfo
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeVariableMarker
 
@@ -37,7 +38,6 @@ enum class EmptyIntersectionTypeKind(val description: String, val isDefinitelyEm
     FINAL_CLASS_AND_INTERFACE("final class and interface", isDefinitelyEmpty = false)
 }
 
-class EmptyIntersectionTypeInfo(val kind: EmptyIntersectionTypeKind, vararg val casingTypes: CangJieTypeMarker)
 
 interface NewConstraintSystem {
     val hasContradiction: Boolean

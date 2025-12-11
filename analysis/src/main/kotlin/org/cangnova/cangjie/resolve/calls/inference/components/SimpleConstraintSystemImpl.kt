@@ -36,9 +36,10 @@ import org.cangnova.cangjie.resolve.calls.inference.substitute
 
 import org.cangnova.cangjie.resolve.calls.results.SimpleConstraintSystem
 import org.cangnova.cangjie.types.TypeConstructorSubstitution
+import org.cangnova.cangjie.types.asTypeProjection
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.model.*
-import org.cangnova.cangjie.types.util.asTypeProjection
+
 
 class SimpleConstraintSystemImpl(
     constraintInjector: ConstraintInjector,

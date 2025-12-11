@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.resolve.calls.results
 
-import com.intellij.diff.comparison.CancellationChecker
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
@@ -41,6 +40,7 @@ import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.resolve.calls.tower.isSynthesized
 import org.cangnova.cangjie.resolve.calls.util.hasUnresolvedArguments
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import org.cangnova.cangjie.utils.CancellationChecker
 
 /**
  * 解析结果处理器

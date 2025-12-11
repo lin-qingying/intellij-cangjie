@@ -7,7 +7,8 @@
       "Bash(done)",
       "Bash(while read f)",
       "Bash(then echo \"$f\" fi done)",
-      "Bash(test:*)"
+      "Bash(test:*)",
+      "Bash(./gradlew :analysis:compileKotlin:*)"
     ],
     "deny": [],
     "ask": []

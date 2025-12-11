@@ -530,3 +530,8 @@ fun CjElement.findElementOfAdditionalResolve(): CjElement? {
         else -> return elementOfAdditionalResolve
     }
 }
+
+
+fun FqName.quoteIfNeeded(): FqName {
+    return FqName(pathSegments().joinToString(".") { it.asString().quoteIfNeeded() })
+}

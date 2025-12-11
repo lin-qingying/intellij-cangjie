@@ -42,6 +42,7 @@ import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.InvalidBinaryData
 import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.infos.warnings.TYPE_ARGUMENTS_REDUNDANT_IN_SUPER_QUALIFIER
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.lexer.CjSingleValueToken
@@ -102,6 +103,7 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ErrorUtils.createErrorType
 import org.cangnova.cangjie.types.ErrorUtils.invalidType
+import org.cangnova.cangjie.types.ErrorUtils.isError
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.TypeUtils.makeNonOption
@@ -123,8 +125,68 @@ import org.cangnova.cangjie.types.isDynamic
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.types.isOptionType
 import java.util.*
+import org.cangnova.cangjie.types.TypeSubstitutor.Companion.create
 
+/**
+ * 基础表达式类型访问器
+ *
+ * 该类是表达式类型检查系统的核心组件，实现了访问者模式来处理各种类型的 PSI 表达式节点。
+ * 它负责为仓颉语言中的所有基本表达式（包括二元表达式、一元表达式、调用表达式、字面量等）
+ * 进行类型推导、类型检查和数据流分析。
+ *
+ * ## 主要职责
+ *
+ * 1. **类型推导**: 为各种表达式推导其类型，如字面量、运算符表达式、函数调用等
+ * 2. **类型检查**: 验证表达式的类型是否符合预期类型和语言规范
+ * 3. **运算符重载解析**: 处理运算符约定（operator conventions），解析重载的运算符
+ * 4. **数据流分析**: 跟踪变量的可空性、智能类型转换等数据流信息
+ * 5. **编译时常量求值**: 对常量表达式进行编译时求值
+ * 6. **错误诊断**: 报告类型不匹配、不支持的操作等错误
+ *
+ * ## 处理的表达式类型
+ *
+ * - **二元表达式**: 算术运算、比较运算、逻辑运算、赋值运算等
+ * - **一元表达式**: 前缀和后缀运算符（如 `++`, `--`, `!` 等）
+ * - **调用表达式**: 函数调用、构造函数调用
+ * - **字面量**: 整数、浮点数、字符串、布尔值等
+ * - **数组访问**: `array[index]` 表达式及元组索引
+ * - **限定表达式**: `a.b` 形式的成员访问
+ * - **特殊表达式**: `this`, `super`, Elvis 运算符, 类型转换等
+ *
+ * ## 设计模式
+ *
+ * 该类使用访问者模式（Visitor Pattern），每个 `visitXXX` 方法对应一种表达式类型。
+ * 这种设计使得类型检查逻辑与 PSI 树结构解耦，便于扩展和维护。
+ *
+ * ## 与其他组件的交互
+ *
+ * - 使用 [ExpressionTypingInternals] facade 来递归处理子表达式
+ * - 通过 [ExpressionTypingComponents] 访问编译器的各种服务
+ * - 使用 [BindingTrace] 记录类型信息和诊断错误
+ * - 与 [CallResolver] 协作解析函数调用和运算符重载
+ * - 与 [DataFlowAnalyzer] 协作进行数据流分析
+ *
+ * @param facade 表达式类型检查的门面接口，提供递归处理子表达式的能力
+ *
+ * @see ExpressionTypingVisitor
+ * @see ExpressionTypingInternals
+ * @see ExpressionTypingContext
+ */
 class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
+
+    /**
+     * 检查 `in` 表达式
+     *
+     * 处理 `x in collection` 形式的包含性检查表达式。该操作符会被解析为
+     * `collection.contains(x)` 方法调用。
+     *
+     * @param callElement 调用元素（整个 in 表达式）
+     * @param operationSign in 操作符引用
+     * @param leftArgument 左操作数（被检查的元素）
+     * @param right 右操作数（集合表达式）
+     * @param context 表达式类型检查上下文
+     * @return 类型信息，通常应该是布尔类型
+     */
     fun checkInExpression(
         callElement: CjElement,
         operationSign: CjSimpleNameExpression,
@@ -169,6 +231,17 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         //        }
     }
 
+    /**
+     * 获取二元调用的类型信息
+     *
+     * 处理二元运算符表达式，将运算符解析为方法调用（运算符重载）。
+     * 例如 `a + b` 会被解析为 `a.plus(b)` 方法调用。
+     *
+     * @param name 运算符对应的方法名（如 `plus`, `minus` 等）
+     * @param context 表达式类型检查上下文
+     * @param binaryExpression 二元表达式
+     * @return 运算符调用的结果类型信息
+     */
     private fun getTypeInfoForBinaryCall(
         name: Name,
         context: ExpressionTypingContext,
@@ -220,6 +293,16 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return typeInfo.replaceType(OverloadResolutionResultsUtil.getResultingType(resolutionResults, context))
     }
 
+    /**
+     * 赋值不能作为表达式错误
+     *
+     * 在仓颉语言中，赋值语句不能作为表达式使用（例如不能写 `if (x = 5)`）。
+     * 该方法检查赋值表达式并报告相应错误。
+     *
+     * @param expression 二元赋值表达式
+     * @param context 表达式类型检查上下文
+     * @return 无类型信息（赋值不产生值）
+     */
     private fun assignmentIsNotAnExpressionError(
         expression: CjBinaryExpression,
         context: ExpressionTypingContext
@@ -231,6 +314,16 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return noTypeInfo(context)
     }
 
+    /**
+     * 访问数组访问表达式
+     *
+     * 处理数组索引操作，如 `array[index]` 或元组索引 `tuple[0]`。
+     * 该操作会被解析为 `get` 方法调用（对于数组）或直接类型提取（对于元组）。
+     *
+     * @param expression 数组访问表达式
+     * @param context 表达式类型检查上下文
+     * @return 数组元素或元组元素的类型信息
+     */
     override fun visitArrayAccessExpression(
         expression: CjArrayAccessExpression,
         context: ExpressionTypingContext
@@ -242,6 +335,25 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         )
     }
 
+    /**
+     * 解析元组的数组访问
+     *
+     * 特殊处理元组类型的索引访问，要求索引必须是整数字面量且在合法范围内。
+     * 元组索引在编译时确定，因此必须是常量。
+     *
+     * 检查内容：
+     * 1. 索引数量必须为 1
+     * 2. 索引必须是整数字面量
+     * 3. 索引不能越界
+     *
+     * @param type 元组类型
+     * @param expression 数组访问表达式
+     * @param oldContext 旧的表达式类型检查上下文
+     * @param traceForResolveResult 用于记录解析结果的绑定跟踪
+     * @param isGet 是否为 get 操作（true）或 set 操作（false）
+     * @param isImplicit 是否为隐式操作
+     * @return 元组对应索引位置的元素类型信息
+     */
     private fun resolveArrayAccessForTuple(
         type: CangJieType,
         expression: CjArrayAccessExpression,
@@ -913,6 +1025,22 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return components.rangeLiteralResolver.resolveRangeLiteral(expression, data)
     }
 
+    /**
+     * 访问二元表达式
+     *
+     * 这是处理所有二元运算符表达式的核心方法，包括：
+     * - 算术运算符: `+`, `-`, `*`, `/`, `%`
+     * - 比较运算符: `<`, `>`, `<=`, `>=`, `==`, `!=`
+     * - 逻辑运算符: `&&`, `||`
+     * - 赋值运算符: `=`, `+=`, `-=` 等
+     * - 特殊运算符: Elvis (`??`), 流操作符等
+     *
+     * 该方法会根据运算符类型分发到相应的处理逻辑。
+     *
+     * @param expression 二元表达式
+     * @param contextWithExpectedType 包含预期类型的表达式类型检查上下文
+     * @return 二元表达式的结果类型信息
+     */
     override fun visitBinaryExpression(
         expression: CjBinaryExpression,
         contextWithExpectedType: ExpressionTypingContext
@@ -1024,6 +1152,19 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         } else isFloat(type) && CjTokens.FLOAT_SUPPORT_OPERATOR.contains(operationType)
     }
 
+    /**
+     * 访问调用表达式
+     *
+     * 处理函数调用表达式，如 `foo()`, `obj.method(args)` 等。
+     * 该方法会解析函数引用、匹配参数类型、进行重载解析等。
+     *
+     * 特殊处理：
+     * - 如果调用名称为 "VArray"，会使用特殊的 VArray 解析器
+     *
+     * @param expression 调用表达式
+     * @param data 表达式类型检查上下文
+     * @return 函数调用的返回类型信息
+     */
     override fun visitCallExpression(
         expression: CjCallExpression,
         data: ExpressionTypingContext
@@ -1042,6 +1183,16 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
     ) {
     }
 
+    /**
+     * 获取常量类型的默认类型
+     *
+     * 根据常量字面量的类型返回对应的默认类型。
+     * 例如整数字面量默认为 Int64，浮点数字面量默认为 Float64。
+     *
+     * @param constantType 常量的元素类型
+     * @return 对应的默认仓颉类型
+     * @throws IllegalArgumentException 如果常量类型不受支持
+     */
     fun getDefaultType(constantType: IElementType): CangJieType {
         val builtIns = components.builtIns
         return if (constantType === INTEGER_CONSTANT) {
@@ -1081,6 +1232,22 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
     }
 
+    /**
+     * 访问字符串模板表达式
+     *
+     * 处理字符串字面量和字符串模板，包括普通字符串和包含嵌入表达式的字符串。
+     * 例如：`"Hello"` 或 `"Hello, ${name}!"`
+     *
+     * 该方法会：
+     * 1. 检查字符串前缀和后缀的合法性
+     * 2. 处理字符串模板中的嵌入表达式
+     * 3. 检查转义序列的正确性
+     * 4. 尝试进行编译时常量求值
+     *
+     * @param expression 字符串模板表达式
+     * @param contextWithExpectedType 包含预期类型的表达式类型检查上下文
+     * @return String 类型的类型信息
+     */
     override fun visitStringTemplateExpression(
         expression: CjStringTemplateExpression,
         contextWithExpectedType: ExpressionTypingContext
@@ -1142,6 +1309,25 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         )
     }
 
+    /**
+     * 访问常量表达式
+     *
+     * 处理所有类型的字面量常量，包括：
+     * - 整数字面量: `42`, `0xFF`, `0b1010`
+     * - 浮点数字面量: `3.14`, `1.0e10`
+     * - 布尔字面量: `true`, `false`
+     * - 字符字面量: `'a'`, `'\n'`
+     *
+     * 该方法会：
+     * 1. 检查字面量的前缀和后缀
+     * 2. 检查数字字面量中下划线的使用
+     * 3. 进行编译时常量求值
+     * 4. 处理类型推导（例如根据预期类型选择 Int8/Int16/Int32/Int64）
+     *
+     * @param expression 常量表达式
+     * @param context 表达式类型检查上下文
+     * @return 常量的类型信息
+     */
     //    根据字面量返回类型信息
     override fun visitConstantExpression(
         expression: CjConstantExpression,
@@ -1192,6 +1378,17 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return components.collectionLiteralResolver.resolveCollectionLiteral(expression, context)
     }
 
+    /**
+     * 访问限定表达式（按枚举 case）
+     *
+     * 处理枚举类型的 case 构造调用，如 `MyEnum.Case(args)`。
+     * 这是枚举类型的特殊处理路径。
+     *
+     * @param expression 限定表达式
+     * @param argument 参数列表
+     * @param context 表达式类型检查上下文
+     * @return 枚举 case 实例的类型信息
+     */
     fun visitQualifiedExpressionByCaseEnum(
         expression: CjQualifiedExpression,
 
@@ -1210,6 +1407,16 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return callExpressionResolver.getQualifiedExpressionTypeInfoByEnum(expression, context)
     }
 
+    /**
+     * 访问限定表达式
+     *
+     * 处理成员访问表达式，如 `obj.property`, `obj.method()`, `Package.Class` 等。
+     * 该方法会解析接收者类型，查找成员，处理扩展函数等。
+     *
+     * @param expression 限定表达式
+     * @param context 表达式类型检查上下文
+     * @return 成员的类型信息
+     */
     override fun visitQualifiedExpression(
         expression: CjQualifiedExpression,
         context: ExpressionTypingContext
@@ -1290,6 +1497,22 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return components.dataFlowAnalyzer.checkType(typeInfo, expression, context) // TODO : Extensions to this
     }
 
+    /**
+     * 访问简单名称表达式
+     *
+     * 处理标识符引用，如变量名、函数名、类名等。该方法会：
+     * 1. 在当前作用域中查找标识符
+     * 2. 解析可能的重载
+     * 3. 处理隐式接收者
+     * 4. 进行编译时常量求值（如果适用）
+     *
+     * 特殊处理：
+     * - 如果名称为 "VArray"，会使用特殊的 VArray 解析器
+     *
+     * @param expression 简单名称表达式
+     * @param context 表达式类型检查上下文
+     * @return 引用目标的类型信息
+     */
     override fun visitSimpleNameExpression(
         expression: CjSimpleNameExpression,
         context: ExpressionTypingContext
@@ -1316,6 +1539,22 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return components.dataFlowAnalyzer.checkType(typeInfo, expression, context) // TODO : Extensions to this
     }
 
+    /**
+     * 访问一元表达式
+     *
+     * 处理所有一元运算符表达式，包括：
+     * - 前缀运算符: `++x`, `--x`, `+x`, `-x`, `!x`
+     * - 后缀运算符: `x++`, `x--`
+     *
+     * 一元运算符会被解析为方法调用（运算符重载），例如：
+     * - `++x` → `x.inc()` 然后赋值回 x
+     * - `x++` → `x.inc()` 但返回原值
+     * - `!x` → `x.not()`
+     *
+     * @param expression 一元表达式
+     * @param contextWithExpectedType 包含预期类型的表达式类型检查上下文
+     * @return 一元表达式的结果类型信息
+     */
     override fun visitUnaryExpression(
         expression: CjUnaryExpression,
         contextWithExpectedType: ExpressionTypingContext
@@ -1711,10 +1950,13 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
                 }
             }
             context.trace.recordType(expression.instanceReference, result)
-            context.trace.record(
-                REFERENCE_TARGET, expression.instanceReference,
-                result.constructor.declarationDescriptor
-            )
+            result.constructor.declarationDescriptor?.let{
+                context.trace.record(
+                    REFERENCE_TARGET, expression.instanceReference,
+                    it
+                )
+            }
+
             context.trace.record(THIS_TYPE_FOR_SUPER_EXPRESSION, expression, thisType)
         }
 
@@ -1739,6 +1981,22 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
     }
 
+    /**
+     * 访问 `this` 表达式
+     *
+     * 处理 `this` 关键字，用于引用当前接收者。可以是：
+     * - 简单的 `this`：引用最近的接收者
+     * - 带标签的 `this@Label`：引用特定标签的接收者
+     *
+     * 该方法会：
+     * 1. 解析 this 引用的接收者
+     * 2. 验证接收者是否存在
+     * 3. 记录引用目标
+     *
+     * @param expression this 表达式
+     * @param context 表达式类型检查上下文
+     * @return this 接收者的类型信息
+     */
     override fun visitThisExpression(expression: CjThisExpression, context: ExpressionTypingContext): CangJieTypeInfo {
         var result: CangJieType? = null
         val resolutionResult = resolveToReceiver(expression, context, false)
@@ -1753,7 +2011,10 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
             LabelResolver.LabeledReceiverResolutionResult.Code.SUCCESS -> {
                 val descriptor = resolutionResult.getReceiverParameterDescriptor()
-                context.trace.record(THIS_REFERENCE_TARGET, expression.instanceReference, descriptor)
+                descriptor?.let{
+                    context.trace.record(THIS_REFERENCE_TARGET, expression.instanceReference, descriptor)
+
+                }
                 result = descriptor!!.type
                 context.trace.recordType(expression.instanceReference, result)
             }
@@ -1761,6 +2022,24 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return components.dataFlowAnalyzer.createCheckedTypeInfo(result, context, expression)
     }
 
+    /**
+     * 访问 `super` 表达式
+     *
+     * 处理 `super` 关键字，用于访问父类成员。可以是：
+     * - 简单的 `super`：引用直接父类
+     * - 限定的 `super<ParentClass>`：引用特定父类（用于多继承）
+     * - 带标签的 `super@Label`：引用特定标签的父类
+     *
+     * 该方法会：
+     * 1. 验证 super 只能在成员访问中使用（如 `super.method()`）
+     * 2. 解析 super 引用的父类类型
+     * 3. 处理可能的歧义（多个父类时）
+     * 4. 记录引用目标
+     *
+     * @param expression super 表达式
+     * @param context 表达式类型检查上下文
+     * @return super 父类的类型信息
+     */
     override fun visitSuperExpression(
         expression: CjSuperExpression,
         context: ExpressionTypingContext
@@ -1807,13 +2086,32 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return declarationInIllegalContext(dcl, context)
     }
 
+    /**
+     * 伴生对象
+     *
+     * 包含用于表达式类型检查的静态工具方法和常量。
+     */
     companion object {
 
+        /**
+         * 允许使用裸类型的操作符集合
+         *
+         * 某些操作符（如 `as` 类型转换）允许在类型参数中使用裸类型。
+         */
         val BARE_TYPES_ALLOWED: TokenSet = TokenSet.create(
             AS_KEYWORD,
 
             )
 
+        /**
+         * 判断表达式是否为左值
+         *
+         * 检查简单名称表达式是否出现在赋值操作的左侧，即是否作为左值使用。
+         *
+         * @param expression 简单名称表达式
+         * @param parent 父 PSI 元素
+         * @return 如果是左值返回 true，否则返回 false
+         */
         fun isLValue(expression: CjSimpleNameExpression, parent: PsiElement?): Boolean {
             if (parent !is CjBinaryExpression) {
                 return false
@@ -1890,7 +2188,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         //    前缀或后缀
         private fun checkLiteralPrefixOrSuffix(prefixOrSuffix: PsiElement?, context: ExpressionTypingContext) {
             if (illegalLiteralPrefixOrSuffix(prefixOrSuffix)) {
-                context.trace.report(UNSUPPORTED.on(prefixOrSuffix, "literal prefixes and suffixes"))
+                prefixOrSuffix?.let { context.trace.report(UNSUPPORTED.on(it, "literal prefixes and suffixes")) }
             }
         }
 

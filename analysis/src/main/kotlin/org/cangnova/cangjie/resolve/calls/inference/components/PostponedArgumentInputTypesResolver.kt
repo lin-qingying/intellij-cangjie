@@ -24,8 +24,6 @@
 
 package org.cangnova.cangjie.resolve.calls.inference.components
 
-import org.cangnova.cangjie.builtins.functions.FunctionTypeKind
-import org.cangnova.cangjie.builtins.functions.isBasicFunction
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
 import org.cangnova.cangjie.resolve.calls.inference.model.Constraint
@@ -35,6 +33,8 @@ import org.cangnova.cangjie.resolve.calls.model.LambdaWithTypeVariableAsExpected
 import org.cangnova.cangjie.resolve.calls.model.PostponedAtomWithRevisableExpectedType
 import org.cangnova.cangjie.resolve.calls.model.PostponedCallableReferenceMarker
 import org.cangnova.cangjie.resolve.calls.model.PostponedResolvedAtomMarker
+import org.cangnova.cangjie.types.functions.FunctionTypeKind
+import org.cangnova.cangjie.types.functions.isBasicFunction
 import org.cangnova.cangjie.types.model.*
 import org.cangnova.cangjie.utils.SmartSet
 
@@ -204,7 +204,7 @@ class PostponedArgumentInputTypesResolver(
                 if (functionTypeKind == null) {
                     funType.type.functionTypeKind()?.takeUnless { it.isBasicFunction }?.let { functionTypeKind = it }
                 }
-                if (isNullable && !funType.type.isMarkedNullable()) isNullable = false
+                if (isNullable && !funType.type.isMarkedOption()) isNullable = false
                 if ((functionTypeKind != null) && !isNullable) break
             }
         }

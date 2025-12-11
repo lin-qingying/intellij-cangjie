@@ -191,32 +191,104 @@ class OverloadResolutionResultsImpl<D : CallableDescriptor> private constructor(
         get() = _resultCode == Code.INCOMPLETE_TYPE_INFERENCE
 
     companion object {
+        /**
+         * 创建类型推断不完整的结果（单个候选者）
+         *
+         * 当重载解析找到了候选者，但无法完全推断出类型参数时使用。
+         *
+         * @param D 可调用描述符的类型
+         * @param candidate 类型推断不完整的候选调用
+         * @return 类型推断不完整的解析结果
+         */
         fun <D : CallableDescriptor> incompleteTypeInference(candidate: MutableResolvedCall<D>): OverloadResolutionResultsImpl<D> =
             incompleteTypeInference(setOf(candidate))
 
+        /**
+         * 创建类型推断不完整的结果（多个候选者）
+         *
+         * 当重载解析找到了多个候选者，但无法完全推断出类型参数时使用。
+         *
+         * @param D 可调用描述符的类型
+         * @param candidates 类型推断不完整的候选调用集合
+         * @return 类型推断不完整的解析结果
+         */
         fun <D : CallableDescriptor> incompleteTypeInference(candidates: Collection<MutableResolvedCall<D>>): OverloadResolutionResultsImpl<D> =
             OverloadResolutionResultsImpl(Code.INCOMPLETE_TYPE_INFERENCE, candidates)
 
+        /**
+         * 创建存在歧义的结果
+         *
+         * 当重载解析找到了多个同样合适的候选者，无法确定选择哪一个时使用。
+         *
+         * @param D 可调用描述符的类型
+         * @param candidates 产生歧义的候选调用集合
+         * @return 存在歧义的解析结果
+         */
         fun <D : CallableDescriptor> ambiguity(candidates: Collection<MutableResolvedCall<D>>): OverloadResolutionResultsImpl<D> =
             OverloadResolutionResultsImpl(Code.AMBIGUITY, candidates)
 
+        /**
+         * 创建接收者错误的结果
+         *
+         * 当重载解析找到了候选者，但候选者的接收者类型不匹配时使用。
+         *
+         * @param D 可调用描述符的类型
+         * @param failedCandidates 接收者类型错误的候选调用集合
+         * @return 接收者错误的解析结果
+         */
         fun <D : CallableDescriptor> candidatesWithWrongReceiver(failedCandidates: Collection<MutableResolvedCall<D>>): OverloadResolutionResultsImpl<D> =
             OverloadResolutionResultsImpl(Code.CANDIDATES_WITH_WRONG_RECEIVER, failedCandidates)
 
+        /**
+         * 创建单个失败候选者的结果
+         *
+         * 当重载解析只找到了一个候选者，但该候选者的参数类型不匹配时使用。
+         *
+         * @param D 可调用描述符的类型
+         * @param candidate 参数不匹配的候选调用
+         * @return 单个候选者参数不匹配的解析结果
+         */
         fun <D : CallableDescriptor> singleFailedCandidate(candidate: MutableResolvedCall<D>): OverloadResolutionResultsImpl<D> =
             OverloadResolutionResultsImpl(
                 OverloadResolutionResults.Code.SINGLE_CANDIDATE_ARGUMENT_MISMATCH,
                 setOf(candidate)
             )
 
+        /**
+         * 创建多个失败候选者的结果
+         *
+         * 当重载解析找到了多个候选者，但它们都不满足条件时使用。
+         *
+         * @param D 可调用描述符的类型
+         * @param failedCandidates 失败的候选调用集合
+         * @return 多个候选者失败的解析结果
+         */
         fun <D : CallableDescriptor> manyFailedCandidates(failedCandidates: Collection<MutableResolvedCall<D>>): OverloadResolutionResultsImpl<D> =
             OverloadResolutionResultsImpl(OverloadResolutionResults.Code.MANY_FAILED_CANDIDATES, failedCandidates)
 
+        /**
+         * 创建未找到名称的结果
+         *
+         * 当重载解析没有找到任何匹配指定名称的函数或操作符时使用。
+         * 该方法会自动设置所有候选者为空集合。
+         *
+         * @param D 可调用描述符的类型
+         * @return 未找到名称的解析结果
+         */
         fun <D : CallableDescriptor> nameNotFound(): OverloadResolutionResultsImpl<D> =
             OverloadResolutionResultsImpl<D>(OverloadResolutionResults.Code.NAME_NOT_FOUND, emptyList()).apply {
                 setAllCandidates(emptyList())
             }
 
+        /**
+         * 创建成功的结果
+         *
+         * 当重载解析成功找到了唯一合适的候选者时使用。
+         *
+         * @param D 可调用描述符的类型
+         * @param candidate 成功解析的候选调用
+         * @return 成功的解析结果
+         */
         fun <D : CallableDescriptor> success(candidate: MutableResolvedCall<D>): OverloadResolutionResultsImpl<D> =
             OverloadResolutionResultsImpl(Code.SUCCESS, setOf(candidate))
     }

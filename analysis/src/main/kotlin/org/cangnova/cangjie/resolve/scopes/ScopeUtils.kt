@@ -405,7 +405,10 @@ fun HierarchicalScope.findPackageQualifierParts(
     name: Name,
 //    location: LookupLocation
 ): List<List<QualifierPart>>? {
-    return findFirstFromMeAndParent { it.getContributedPackageQualifierPart(name/*, location*/) }
+    return findFirstFromMeAndParent {
+    TODO()
+    /*it.getContributedPackageQualifierPart(name*/
+    }/*, location*//*) }*/
 }
 
 fun LexicalScope.addImportingScope(importScope: ImportingScope): LexicalScope = addImportingScopes(listOf(importScope))
@@ -616,7 +619,6 @@ class ErrorLexicalScope : LexicalScope {
 //    }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> = emptyList()
 
     override fun getContributedVariables(
         name: Name,

@@ -47,7 +47,7 @@ import org.cangnova.cangjie.types.model.StubTypeMarker
 import org.cangnova.cangjie.types.model.TypeVariableMarker
 import org.cangnova.cangjie.types.model.defaultType
 import org.cangnova.cangjie.types.model.safeSubstitute
-
+import org.cangnova.cangjie.types.builtIns
 class PostponedArgumentsAnalyzer(
     private val callableReferenceArgumentResolver: CallableReferenceArgumentResolver,
     private val languageVersionSettings: LanguageVersionSettings

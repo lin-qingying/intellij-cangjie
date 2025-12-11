@@ -48,6 +48,7 @@ import com.intellij.psi.*
 import com.intellij.psi.scope.PsiScopeProcessor
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
+import org.cangnova.cangjie.resolve.scopes.ChainedMemberScope
 import org.cangnova.cangjie.utils.classValueType
 import javax.swing.Icon
 

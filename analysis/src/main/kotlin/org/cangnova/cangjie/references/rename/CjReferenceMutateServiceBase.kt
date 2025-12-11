@@ -35,6 +35,8 @@ import org.cangnova.cangjie.utils.isDispatchThread
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
+import org.cangnova.cangjie.utils.addDelayedImportRequest
+import org.cangnova.cangjie.utils.withRootPrefixIfNeeded
 
 /**
  * 重命名重构
@@ -135,15 +137,16 @@ abstract class CjReferenceMutateServiceBase : CjReferenceMutateService {
         element: PsiElement,
         shorteningMode: CjSimpleNameReference.ShorteningMode
     ): PsiElement {
-        return element.cangjieFqName?.let { fqName ->
-            bindToFqName(
-                simpleNameReference,
-                fqName,
-                shorteningMode,
-                element
-            )
-        }
-            ?: simpleNameReference.expression
+        TODO()
+//        return element.cangjieFqName?.let { fqName ->
+//            bindToFqName(
+//                simpleNameReference,
+//                fqName,
+//                shorteningMode,
+//                element
+//            )
+//        }   ?:
+        simpleNameReference.expression
     }
 
 
@@ -170,70 +173,71 @@ class CangJieReferenceMutateService : CjReferenceMutateServiceBase() {
         fqName: FqName,
         targetElement: PsiElement? = null
     ): CjNameReferenceExpression {
-        assert(!fqName.isRoot) { "Can't set empty FqName for element $this" }
-
-        val shortName = fqName.shortName().asString()
-        val psiFactory = CjPsiFactory(project)
-        val parent = parent
-
-        if (parent is CjUserType && !fqName.isOneSegmentFQN()) {
-            val qualifier = parent.qualifier
-            val qualifierReference = qualifier?.referenceExpression as? CjNameReferenceExpression
-            if (qualifierReference != null && qualifier.typeArguments.isNotEmpty()) {
-                qualifierReference.changeQualifiedName(fqName.parent(), targetElement)
-                return this
-            }
-        }
-
-        val targetUnwrapped = targetElement?.unwrapped
-
-        if (targetUnwrapped != null && fqName.isOneSegmentFQN()) {
-            addDelayedImportRequest(targetUnwrapped, getContainingCjFile())
-        }
-
-        var parentDelimiter = "."
-        val fqNameBase = when {
-            parent is CjCallElement -> {
-                val callCopy = parent.copied()
-                callCopy.calleeExpression!!.replace(psiFactory.createSimpleName(shortName)).parent!!.text
-            }
-
-            parent is CjCallableReferenceExpression && parent.callableReference == this -> {
-                parentDelimiter = ""
-                val callableRefCopy = parent.copied()
-                callableRefCopy.receiverExpression?.delete()
-                val newCallableRef = callableRefCopy
-                    .callableReference
-                    .replace(psiFactory.createSimpleName(shortName))
-                    .parent as CjCallableReferenceExpression
-                if (targetUnwrapped != null) {
-                    addDelayedImportRequest(targetUnwrapped, parent.getContainingCjFile())
-                    return parent.replaced(newCallableRef).callableReference as CjNameReferenceExpression
-                }
-                newCallableRef.text
-            }
-
-            else -> shortName
-        }
-
-        val text =
-            if (!fqName.isOneSegmentFQN()) "${fqName.parent().asString()}$parentDelimiter$fqNameBase" else fqNameBase
-
-        val elementToReplace = getQualifiedElementOrCallableRef()
-
-        val newElement = when (elementToReplace) {
-            is CjUserType -> {
-                val typeText = "$text${elementToReplace.typeArgumentList?.text ?: ""}"
-                elementToReplace.replace(psiFactory.createType(typeText).typeElement!!)
-            }
-
-            else -> CjPsiUtil.safeDeparenthesize(elementToReplace.replaced(psiFactory.createExpression(text)))
-        } as CjElement
-
-        val selector = (newElement as? CjCallableReferenceExpression)?.callableReference
-            ?: newElement.getQualifiedElementSelector()
-            ?: error("No selector for $newElement")
-        return selector as CjNameReferenceExpression
+        TODO()
+//        assert(!fqName.isRoot) { "Can't set empty FqName for element $this" }
+//
+//        val shortName = fqName.shortName().asString()
+//        val psiFactory = CjPsiFactory(project)
+//        val parent = parent
+//
+//        if (parent is CjUserType && !fqName.isOneSegmentFQN()) {
+//            val qualifier = parent.qualifier
+//            val qualifierReference = qualifier?.referenceExpression as? CjNameReferenceExpression
+//            if (qualifierReference != null && qualifier.typeArguments.isNotEmpty()) {
+//                qualifierReference.changeQualifiedName(fqName.parent(), targetElement)
+//                return this
+//            }
+//        }
+//
+//        val targetUnwrapped = targetElement?.unwrapped
+//
+//        if (targetUnwrapped != null && fqName.isOneSegmentFQN()) {
+//            addDelayedImportRequest(targetUnwrapped, getContainingCjFile())
+//        }
+//
+//        var parentDelimiter = "."
+//        val fqNameBase = when {
+//            parent is CjCallElement -> {
+//                val callCopy = parent.copied()
+//                callCopy.calleeExpression!!.replace(psiFactory.createSimpleName(shortName)).parent!!.text
+//            }
+//
+//            parent is CjCallableReferenceExpression && parent.callableReference == this -> {
+//                parentDelimiter = ""
+//                val callableRefCopy = parent.copied()
+//                callableRefCopy.receiverExpression?.delete()
+//                val newCallableRef = callableRefCopy
+//                    .callableReference
+//                    .replace(psiFactory.createSimpleName(shortName))
+//                    .parent as CjCallableReferenceExpression
+//                if (targetUnwrapped != null) {
+//                    addDelayedImportRequest(targetUnwrapped, parent.getContainingCjFile())
+//                    return parent.replaced(newCallableRef).callableReference as CjNameReferenceExpression
+//                }
+//                newCallableRef.text
+//            }
+//
+//            else -> shortName
+//        }
+//
+//        val text =
+//            if (!fqName.isOneSegmentFQN()) "${fqName.parent().asString()}$parentDelimiter$fqNameBase" else fqNameBase
+//
+//        val elementToReplace = getQualifiedElementOrCallableRef()
+//
+//        val newElement = when (elementToReplace) {
+//            is CjUserType -> {
+//                val typeText = "$text${elementToReplace.typeArgumentList?.text ?: ""}"
+//                elementToReplace.replace(psiFactory.createType(typeText).typeElement!!)
+//            }
+//
+//            else -> CjPsiUtil.safeDeparenthesize(elementToReplace.replaced(psiFactory.createExpression(text)))
+//        } as CjElement
+//
+//        val selector = (newElement as? CjCallableReferenceExpression)?.callableReference
+//            ?: newElement.getQualifiedElementSelector()
+//            ?: error("No selector for $newElement")
+//        return selector as CjNameReferenceExpression
     }
 
     override fun bindToFqName(
@@ -270,13 +274,14 @@ class CangJieReferenceMutateService : CjReferenceMutateServiceBase() {
         if (!needToShorten) {
             return newExpression
         }
-
-        return if (shorteningMode == CjSimpleNameReference.ShorteningMode.FORCED_SHORTENING || !isDispatchThread()) {
-            ShortenReferences.DEFAULT.process(newQualifiedElement)
-        } else {
-            newQualifiedElement.addToShorteningWaitSet()
-            newExpression
-        }
+        TODO()
+//
+//        return if (shorteningMode == CjSimpleNameReference.ShorteningMode.FORCED_SHORTENING || !isDispatchThread()) {
+//            ShortenReferences.DEFAULT.process(newQualifiedElement)
+//        } else {
+//            newQualifiedElement.addToShorteningWaitSet()
+//            newExpression
+//        }
     }
 
 }

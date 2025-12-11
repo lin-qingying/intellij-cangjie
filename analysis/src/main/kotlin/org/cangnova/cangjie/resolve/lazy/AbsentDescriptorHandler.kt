@@ -30,6 +30,8 @@ import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjTypeStatement
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactory
+import org.cangnova.cangjie.stubindex.resolve.PluginDeclarationProviderFactory
+import org.cangnova.cangjie.stubindex.resolve.StubBasedPackageMemberDeclarationProvider
 import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 import org.cangnova.cangjie.utils.safeAs
 

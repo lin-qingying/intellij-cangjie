@@ -165,7 +165,7 @@ object ValueArgumentsToParametersMapper {
                     checkReservedYield(nameReference, candidateCall.trace)
                 }
 
-                if (candidate!!.hasStableParameterNames() && nameReference != null &&
+                if (candidate.hasStableParameterNames() && nameReference != null &&
                     candidate is CallableMemberDescriptor && (candidate as CallableMemberDescriptor).getKind() === CallableMemberDescriptor.Kind.FAKE_OVERRIDE
                 ) {
                     if (valueParameterDescriptor == null) {

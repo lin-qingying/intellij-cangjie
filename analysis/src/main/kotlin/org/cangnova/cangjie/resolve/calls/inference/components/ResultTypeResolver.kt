@@ -318,9 +318,9 @@ class ResultTypeResolver(
         when (val type = this@makeFlexibleIfNecessary) {
             is SimpleTypeMarker -> {
                 if (constraints.any {
-                        it.type.typeConstructor().isTypeVariable() && it.type.hasFlexibleNullability()
+                        it.type.typeConstructor().isTypeVariable() && it.type.hasFlexibleOption()
                     }) {
-                    createFlexibleType(type.makeSimpleTypeDefinitelyNotNullOrNotNull(), type.withNullability(true))
+                    createFlexibleType(type.makeSimpleTypeDefinitelyNonOptionOrNonOption(), type.withOption(true))
                 } else type
             }
 
@@ -385,7 +385,7 @@ class ResultTypeResolver(
 //        if (isReified(variableWithConstraints.typeVariable)) return false
 
         // It's ok to fix result to non-nullable Nothing and parameter is not reified
-        if (!resultType.isNullableType()) return true
+        if (!resultType.isOptionType()) return true
 
         return isNullableNothingMayBeConsideredAsSuitableResultType(filteredConstraints)
     }
@@ -411,7 +411,7 @@ class ResultTypeResolver(
     }
 
     //    推导类型
-    @OptIn(COnly::class)
+
     private fun Context.findSubType(variableWithConstraints: VariableWithConstraints): CangJieTypeMarker? {
         val lowerConstraintTypes = prepareLowerConstraints(variableWithConstraints.constraints)
 

@@ -25,11 +25,11 @@
 package org.cangnova.cangjie.resolve.calls.context
 
 import org.cangnova.cangjie.config.LanguageVersionSettings
-import org.cangnova.cangjie.descriptors.BindingTrace
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.resolve.StatementFilter
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
 import org.cangnova.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments
 import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCall

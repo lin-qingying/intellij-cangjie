@@ -26,8 +26,9 @@ package org.cangnova.cangjie.resolve.calls.inference.components
 
 import org.cangnova.cangjie.types.AbstractNullabilityChecker
 import org.cangnova.cangjie.types.AbstractTypeChecker
+import org.cangnova.cangjie.types.AbstractTypePreparator
+import org.cangnova.cangjie.types.AbstractTypeRefiner
 import org.cangnova.cangjie.types.TypeCheckerState
-import org.cangnova.cangjie.types.checker.AbstractTypePreparator
 import org.cangnova.cangjie.types.model.*
 
 abstract class TypeCheckerStateForConstraintSystem(
@@ -179,7 +180,7 @@ abstract class TypeCheckerStateForConstraintSystem(
             is SimpleTypeMarker ->
                 when {
                     // Foo? (any type which cannot be used as dispatch receiver because of nullability) <: T & Any => ERROR (for K2 only)
-                    typeVariable.isDefinitelyNotNullType() && !subTypeConstructor.isTypeVariable() &&
+                    typeVariable.isDefinitelyNonOptionType() && !subTypeConstructor.isTypeVariable() &&
                             !AbstractNullabilityChecker.isSubtypeOfAny(extensionTypeContext, subType) -> {
                         return false
                     }
@@ -193,22 +194,22 @@ abstract class TypeCheckerStateForConstraintSystem(
                      *          fun <T> foo(x: T?) {}
                      *          fun <K> main(z: K) { foo(z) }
                     */
-                    typeVariable.isMarkedNullable() -> {
+                    typeVariable.isMarkedOption() -> {
                         val typeVariableTypeConstructor = typeVariable.typeConstructor()
                         val needToMakeDefNotNull = subTypeConstructor.isTypeVariable() ||
                                 typeVariableTypeConstructor !is TypeVariableTypeConstructorMarker ||
                                 !typeVariableTypeConstructor.isContainedInInvariantOrContravariantPositions()
 
                         val resultType = if (needToMakeDefNotNull) {
-                            subType.makeDefinitelyNotNullOrNotNull()
+                            subType.makeDefinitelyNonOptionOrNonOption()
                         } else {
                             if (!isInferenceCompatibilityEnabled && subType is CapturedTypeMarker) {
-                                subType.withNotNullProjection()
+                                subType.withNonOptionProjection()
                             } else {
-                                subType.withNullability(false)
+                                subType.withOption(false)
                             }
                         }
-                        if (isInferenceCompatibilityEnabled && resultType is CapturedTypeMarker) resultType.withNotNullProjection() else resultType
+                        if (isInferenceCompatibilityEnabled && resultType is CapturedTypeMarker) resultType.withNonOptionProjection() else resultType
                     }
                     // Foo <: T => Foo <: T
                     else -> subType
@@ -223,12 +224,12 @@ abstract class TypeCheckerStateForConstraintSystem(
                             useRefinedBoundsForTypeVariableInFlexiblePosition() ->
                                 // Foo <: T! -- (Foo!! .. Foo) <: T
                                 createFlexibleType(
-                                    subType.makeSimpleTypeDefinitelyNotNullOrNotNull(),
-                                    subType.withNullability(true)
+                                    subType.makeSimpleTypeDefinitelyNonOptionOrNonOption(),
+                                    subType.withOption(true)
                                 )
                             // In K1 (FE1.0), there is an obsolete behavior
-                            subType.isMarkedNullable() -> subType
-                            else -> createFlexibleType(subType, subType.withNullability(true))
+                            subType.isMarkedOption() -> subType
+                            else -> createFlexibleType(subType, subType.withOption(true))
                         }
 
                     is FlexibleTypeMarker ->
@@ -237,14 +238,14 @@ abstract class TypeCheckerStateForConstraintSystem(
                             useRefinedBoundsForTypeVariableInFlexiblePosition() ->
                                 // (Foo..Bar) <: T! -- (Foo!! .. Bar?) <: T
                                 createFlexibleType(
-                                    subType.lowerBound().makeSimpleTypeDefinitelyNotNullOrNotNull(),
-                                    subType.upperBound().withNullability(true)
+                                    subType.lowerBound().makeSimpleTypeDefinitelyNonOptionOrNonOption(),
+                                    subType.upperBound().withOption(true)
                                 )
 
                             else ->
                                 // (Foo..Bar) <: T! -- (Foo!! .. Bar) <: T
                                 createFlexibleType(
-                                    subType.lowerBound().makeSimpleTypeDefinitelyNotNullOrNotNull(),
+                                    subType.lowerBound().makeSimpleTypeDefinitelyNonOptionOrNonOption(),
                                     subType.upperBound()
                                 )
                         }
@@ -318,23 +319,23 @@ abstract class TypeCheckerStateForConstraintSystem(
             val simplifiedSuperType = when {
                 typeVariable.isFlexible() && useRefinedBoundsForTypeVariableInFlexiblePosition() ->
                     createFlexibleType(
-                        superType.lowerBoundIfFlexible().makeSimpleTypeDefinitelyNotNullOrNotNull(),
-                        superType.upperBoundIfFlexible().withNullability(true)
+                        superType.lowerBoundIfFlexible().makeSimpleTypeDefinitelyNonOptionOrNonOption(),
+                        superType.upperBoundIfFlexible().withOption(true)
                     )
 
-                typeVariableLowerBound.isDefinitelyNotNullType() -> {
-                    superType.withNullability(true)
+                typeVariableLowerBound.isDefinitelyNonOptionType() -> {
+                    superType.withOption(true)
                 }
 
                 typeVariable.isFlexible() && superType is SimpleTypeMarker ->
-                    createFlexibleType(superType, superType.withNullability(true))
+                    createFlexibleType(superType, superType.withOption(true))
 
                 else -> superType
             }
 
             addUpperConstraint(typeVariableLowerBound.typeConstructor(), simplifiedSuperType)
 
-            if (typeVariableLowerBound.isMarkedNullable()) {
+            if (typeVariableLowerBound.isMarkedOption()) {
                 // here is important that superType is singleClassifierType
                 return simplifiedSuperType.anyBound(::isMyTypeVariable) ||
                         isSubtypeOfByTypeChecker(nothingType(), simplifiedSuperType)
@@ -356,7 +357,7 @@ abstract class TypeCheckerStateForConstraintSystem(
 
             if (!subType.typeConstructor().isIntersection()) return null
 
-            assert(!subType.isMarkedNullable()) { "Intersection type should not be marked nullable!: $subType" }
+            assert(!subType.isMarkedOption()) { "Intersection type should not be marked nullable!: $subType" }
 
             // TODO: may be we lose flexibility here
             val subIntersectionTypes = (subType.typeConstructor().supertypes()).map { it.lowerBoundIfFlexible() }
@@ -397,7 +398,7 @@ abstract class TypeCheckerStateForConstraintSystem(
                         it
                     )
                 }) {
-                return typeVariables.all { simplifyUpperConstraint(it, superType.withNullability(true)) }
+                return typeVariables.all { simplifyUpperConstraint(it, superType.withOption(true)) }
             }
 
             return typeVariables.all { simplifyUpperConstraint(it, superType) }

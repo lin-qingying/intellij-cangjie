@@ -26,12 +26,13 @@ package org.cangnova.cangjie.resolve.calls.smartcasts
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ErrorUtils
+import org.cangnova.cangjie.types.TypeUtils
 
 import org.cangnova.cangjie.types.error.ErrorTypeKind
-import org.cangnova.cangjie.types.util.TypeUtils
 
 private val CangJieType.immanentNullability: Nullability
-    get() = if (TypeUtils.isNullableType(this)) Nullability.UNKNOWN else Nullability.NOT_NULL
+    get() = if (TypeUtils.isOptionType(this)) Nullability.UNKNOWN else Nullability.NOT_NULL
 
 class DataFlowValue(
     val identifierInfo: IdentifierInfo,

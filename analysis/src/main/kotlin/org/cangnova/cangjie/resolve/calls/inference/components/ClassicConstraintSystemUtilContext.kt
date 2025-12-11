@@ -36,7 +36,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeVariableMarker
-import org.cangnova.cangjie.types.util.unCapture as unCaptureCangJieType
+import org.cangnova.cangjie.types.unCapture as unCaptureCangJieType
 
 class ClassicConstraintSystemUtilContext(
     val cangjieTypeRefiner: CangJieTypeRefiner,
