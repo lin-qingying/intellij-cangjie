@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve.calls.model
 
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
+import org.cangnova.cangjie.types.ErrorUtils
 
 
 fun ResolvedCall<*>.isReallySuccess(): Boolean = status.isSuccess && !ErrorUtils.isError(resultingDescriptor)

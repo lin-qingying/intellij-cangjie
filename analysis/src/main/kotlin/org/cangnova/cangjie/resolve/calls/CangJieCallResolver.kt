@@ -178,25 +178,7 @@ class CangJieCallResolver(
 //
 //                )
 //            }
-            ENUM_ENTRY -> {
-                createEnumEntryProcessor(
-                    cangjieCall,
-                    scopeTower,
 
-                    candidateFactory,
-
-                    )
-            }
-
-            CASE_ENUM -> {
-                createEnumAndEntryProcessor(
-                    cangjieCall,
-                    scopeTower,
-
-                    candidateFactory,
-
-                    )
-            }
 
             VARIABLE -> {
                 createVariableAndObjectProcessor(
@@ -235,7 +217,8 @@ class CangJieCallResolver(
             }
 
             UNSUPPORTED -> throw UnsupportedOperationException()
-
+            ENUM_ENTRY -> TODO()
+            CASE_ENUM -> TODO()
         }
 
 //        if (collectAllCandidates) {

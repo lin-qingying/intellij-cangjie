@@ -26,7 +26,6 @@ package org.cangnova.cangjie.resolve.calls.model
 
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.calls.components.DescriptorKind
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintSystemError

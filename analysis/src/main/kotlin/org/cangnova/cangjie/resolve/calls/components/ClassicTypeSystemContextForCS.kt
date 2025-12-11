@@ -100,14 +100,14 @@ class ClassicTypeSystemContextForCS(
     override fun createStubTypeForBuilderInference(typeVariable: TypeVariableMarker): StubTypeMarker {
         return StubTypeForBuilderInference(
             typeVariable.freshTypeConstructor() as NewTypeVariableConstructor,
-            typeVariable.defaultType().isMarkedNullable()
+            typeVariable.defaultType().isMarkedOption()
         )
     }
 
     override fun createStubTypeForTypeVariablesInSubtyping(typeVariable: TypeVariableMarker): StubTypeMarker {
         return StubTypeForTypeVariablesInSubtyping(
             typeVariable.freshTypeConstructor() as NewTypeVariableConstructor,
-            typeVariable.defaultType().isMarkedNullable()
+            typeVariable.defaultType().isMarkedOption()
         )
     }
 

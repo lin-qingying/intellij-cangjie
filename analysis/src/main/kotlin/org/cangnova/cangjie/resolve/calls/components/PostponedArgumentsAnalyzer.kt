@@ -39,11 +39,14 @@ import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.StubTypeForBuilderInference
 import org.cangnova.cangjie.types.UnwrappedType
+import org.cangnova.cangjie.types.getContextReceiverTypesFromFunctionType
+import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
+import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
+import org.cangnova.cangjie.types.isBuiltinFunctionalType
 import org.cangnova.cangjie.types.model.StubTypeMarker
 import org.cangnova.cangjie.types.model.TypeVariableMarker
 import org.cangnova.cangjie.types.model.defaultType
 import org.cangnova.cangjie.types.model.safeSubstitute
-import org.cangnova.cangjie.types.util.builtIns
 
 class PostponedArgumentsAnalyzer(
     private val callableReferenceArgumentResolver: CallableReferenceArgumentResolver,
@@ -129,7 +132,7 @@ class PostponedArgumentsAnalyzer(
             c.canBeProper(rawReturnType) -> substitute(rawReturnType)
 
             // For Unit-coercion
-            !rawReturnType.isMarkedOption && c.hasUpperOrEqualUnitConstraint(rawReturnType) -> builtIns.unitType
+            !rawReturnType.isOption && c.hasUpperOrEqualUnitConstraint(rawReturnType) -> builtIns.unitType
 
             else -> null
         }

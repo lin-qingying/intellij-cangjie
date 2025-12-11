@@ -47,6 +47,9 @@ class SubpackagesImportingScope(
         location: LookupLocation
     ): Collection<@JvmWildcard VariableDescriptor> = super.getContributedVariables(name, location)
 
+
+
+
     override fun getContributedFunctions(name: Name, location: LookupLocation) =
         super.getContributedFunctions(name, location)
 

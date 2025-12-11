@@ -24,90 +24,108 @@
 package org.cangnova.cangjie.config
 
 import com.intellij.openapi.util.Key
+import org.cangnova.cangjie.cli.messages.CompilerMessageLocation
+import org.cangnova.cangjie.cli.messages.CompilerMessageSeverity
+import org.cangnova.cangjie.cli.messages.MessageCollector
 import java.util.*
+
+fun CompilerConfiguration.report(
+    severity: CompilerMessageSeverity,
+    message: String,
+    location: CompilerMessageLocation? = null
+) {
+    messageCollector.report(severity, message, location)
+}
+var CompilerConfiguration.languageVersionSettings: LanguageVersionSettings
+    get() = get(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, LanguageVersionSettingsImpl.DEFAULT)
+    set(value) = put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, value)
+
+var CompilerConfiguration.messageCollector: MessageCollector
+    get() = get(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
+    set(value) = put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, value)
 
 
 class CompilerConfiguration {
-    private val map: MutableMap<Key<*>?, Any?> = LinkedHashMap<Key<*>?, Any?>()
+    private val map: MutableMap<Key<*>, Any> = LinkedHashMap<Key<*>, Any>()
     private var readOnly = false
 
-    fun <T> get(key: CompilerConfigurationKey<T?>): T? {
-        val data = map.get(key.ideaKey) as T?
-        return if (data == null) null else unmodifiable<T?>(data)
+    fun <T> get(key: CompilerConfigurationKey<T>): T? {
+        val data = map[key.ideaKey] as T?
+        return if (data == null) null else unmodifiable<T>(data)
     }
 
-    fun <T> get(key: CompilerConfigurationKey<T?>, defaultValue: T): T {
-        val data = get<T?>(key)
-        return if (data == null) defaultValue else data
+    fun <T> get(key: CompilerConfigurationKey<T>, defaultValue: T): T {
+        val data = get(key)
+        return data ?: defaultValue
     }
 
-    fun <T> getNotNull(key: CompilerConfigurationKey<T?>): T {
-        val data = checkNotNull(get<T?>(key)) { "No value for configuration key: " + key }
+    fun <T> getNotNull(key: CompilerConfigurationKey<T>): T {
+        val data = checkNotNull(get(key)) { "No value for configuration key: $key" }
         return data
     }
 
-    fun getBoolean(key: CompilerConfigurationKey<Boolean?>): Boolean {
-        return get<Boolean?>(key, false)!!
+    fun getBoolean(key: CompilerConfigurationKey<Boolean>): Boolean {
+        return get(key, false)
     }
 
-    fun <T> getList(key: CompilerConfigurationKey<MutableList<T?>?>): MutableList<T?> {
-        val data = get<MutableList<T?>?>(key)
-        return if (data == null) mutableListOf<T?>() else data
+    fun <T> getList(key: CompilerConfigurationKey<MutableList<T>>): MutableList<T> {
+        val data = get(key)
+        return data ?: mutableListOf()
     }
 
-    fun <K, V> getMap(key: CompilerConfigurationKey<MutableMap<K?, V?>?>): MutableMap<K?, V?> {
-        val data = get<MutableMap<K?, V?>?>(key)
-        return if (data == null) mutableMapOf<K?, V?>() else data
+    fun <K, V> getMap(key: CompilerConfigurationKey<MutableMap<K, V>>): MutableMap<K, V> {
+        val data = get(key)
+        return data ?: mutableMapOf()
     }
 
-    fun <T> put(key: CompilerConfigurationKey<T?>, value: T) {
+    fun <T> put(key: CompilerConfigurationKey<T>, value: T) {
         checkReadOnly()
-        map.put(key.ideaKey, value)
+        map[key.ideaKey] = value as Any
     }
 
-    fun <T> putIfAbsent(key: CompilerConfigurationKey<T?>, value: T): T? {
-        val data = get<T?>(key)
+    fun <T> putIfAbsent(key: CompilerConfigurationKey<T>, value: T): T {
+        val data = get(key)
         if (data != null) return data
 
         checkReadOnly()
-        put<T?>(key, value)
+        put(key, value)
         return value
     }
 
-    fun <T> putIfNotNull(key: CompilerConfigurationKey<T?>, value: T?) {
+    fun <T> putIfNotNull(key: CompilerConfigurationKey<T>, value: T?) {
         if (value != null) {
-            put<T?>(key, value)
+            put(key, value)
         }
     }
 
-    fun <T> add(key: CompilerConfigurationKey<MutableList<T?>?>, value: T) {
+    fun <T> add(key: CompilerConfigurationKey<List<T>>, value: T) {
         checkReadOnly()
         val ideaKey = key.ideaKey
-        map.computeIfAbsent(ideaKey) { k: Key<*>? -> ArrayList<T?>() }
-        val list = map.get(ideaKey) as MutableList<T?>
+        map.computeIfAbsent(ideaKey) { k: Key<*>? -> ArrayList<T>() }
+        val list = map[ideaKey] as MutableList<T>
         list.add(value)
     }
 
-    fun <K, V> put(configurationKey: CompilerConfigurationKey<MutableMap<K?, V?>?>, key: K, value: V) {
+    fun <K, V> put(configurationKey: CompilerConfigurationKey<MutableMap<K, V>>, key: K, value: V) {
         checkReadOnly()
         val ideaKey = configurationKey.ideaKey
-        map.computeIfAbsent(ideaKey) { k: Key<*>? -> HashMap<K?, V?>() }
-        val data = map.get(ideaKey) as MutableMap<K?, V?>
-        data.put(key, value)
+        map.computeIfAbsent(ideaKey) { k: Key<*>? -> HashMap<K, V>() }
+        val data = map[ideaKey] as MutableMap<K?, V?>
+        data[key] = value
     }
 
-    fun <T> addAll(key: CompilerConfigurationKey<MutableList<T?>?>, values: MutableCollection<T?>?) {
+    fun <T> addAll(key: CompilerConfigurationKey<MutableList<T>>, values: MutableCollection<T>) {
         if (values != null) {
-            addAll<T?>(key, getList<T?>(key).size, values)
+            addAll(key, getList(key).size, values)
         }
     }
 
-    fun <T> addAll(key: CompilerConfigurationKey<MutableList<T?>?>, index: Int, values: MutableCollection<T?>) {
+    fun <T> addAll(key: CompilerConfigurationKey<MutableList<T>>, index: Int, values: MutableCollection<T>) {
         checkReadOnly()
-        checkForNullElements<T?>(values)
+        checkForNullElements(values)
         val ideaKey = key.ideaKey
-        map.computeIfAbsent(ideaKey) { k: Key<*>? -> ArrayList<T?>() }
-        val list = map.get(ideaKey) as MutableList<T?>
+        map.computeIfAbsent(ideaKey) { k: Key<*>? -> ArrayList<T>() }
+        val list = map[ideaKey] as MutableList<T>
         list.addAll(index, values)
     }
 
@@ -144,20 +162,30 @@ class CompilerConfiguration {
         }
 
         private fun <T> unmodifiable(`object`: T): T {
-            if (`object` is MutableList<*>) {
-                return Collections.unmodifiableList<Any?>(`object` as MutableList<*>) as T
-            } else if (`object` is MutableMap<*, *>) {
-                return Collections.unmodifiableMap<Any?, Any?>(`object` as MutableMap<*, *>) as T
-            } else if (`object` is MutableSet<*>) {
-                return Collections.unmodifiableSet<Any?>(`object` as MutableSet<*>) as T
-            } else if (`object` is MutableCollection<*>) {
-                return Collections.unmodifiableCollection<Any?>(`object` as MutableCollection<*>) as T
-            } else {
-                return `object`
+            return when (`object`) {
+                is MutableList<*> -> {
+                    Collections.unmodifiableList<Any?>(`object` as MutableList<*>) as T
+                }
+
+                is MutableMap<*, *> -> {
+                    Collections.unmodifiableMap<Any?, Any?>(`object` as MutableMap<*, *>) as T
+                }
+
+                is MutableSet<*> -> {
+                    Collections.unmodifiableSet<Any?>(`object` as MutableSet<*>) as T
+                }
+
+                is MutableCollection<*> -> {
+                    Collections.unmodifiableCollection<Any?>(`object` as MutableCollection<*>) as T
+                }
+
+                else -> {
+                    `object`
+                }
             }
         }
 
-        private fun <T> checkForNullElements(values: MutableCollection<T?>) {
+        private fun <T> checkForNullElements(values: MutableCollection<T>) {
             var index = 0
             for (value in values) {
                 requireNotNull(value) {

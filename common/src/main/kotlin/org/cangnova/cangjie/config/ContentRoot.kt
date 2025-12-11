@@ -22,15 +22,28 @@
  *
  */
 
-package org.cangnova.cangjie.resolve.scopes
+package org.cangnova.cangjie.config
 
-import org.cangnova.cangjie.descriptors.FunctionDescriptor
-import org.cangnova.cangjie.descriptors.impl.TupleClassDescriptor
-import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.cli.CLIConfigurationKeys
 
-class TupleClassScope(
-    storageManager: StorageManager,
-    containingClass: TupleClassDescriptor
-) : GivenFunctionsMemberScope(storageManager, containingClass) {
-    override fun computeDeclaredFunctions(): List<FunctionDescriptor> = emptyList()
+interface ContentRoot
+
+/**
+ * @param isCommon whether this source root contains sources of a common module in a multi-platform project
+ */
+data class CangJieSourceRoot(val path: String, val isCommon: Boolean, val hmppModuleName: String?) : ContentRoot
+
+fun CompilerConfiguration.addCangJieSourceRoots(sources: List<String>): Unit =
+    sources.forEach { addCangJieSourceRoot(it) }
+
+@JvmOverloads
+fun CompilerConfiguration.addCangJieSourceRoot(
+    path: String,
+    isCommon: Boolean = false,
+    hmppModuleName: String? = null
+) {
+    add(CLIConfigurationKeys.CONTENT_ROOTS, CangJieSourceRoot(path, isCommon, hmppModuleName))
 }
+
+val CompilerConfiguration.cangjieSourceRoots: List<CangJieSourceRoot>
+    get() = get(CLIConfigurationKeys.CONTENT_ROOTS)?.filterIsInstance<CangJieSourceRoot>().orEmpty()

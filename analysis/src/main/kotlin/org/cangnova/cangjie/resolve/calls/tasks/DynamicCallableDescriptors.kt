@@ -43,6 +43,7 @@ import org.cangnova.cangjie.utils.Printer
 import java.util.*
 import org.cangnova.cangjie.resolve.source.MemberScopeImpl
 import  org.cangnova.cangjie.resolve.calls.util.isConventionCall
+import org.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
 
 class DynamicCallableDescriptors(private val storageManager: StorageManager, builtIns: CangJieBuiltIns) {
 
@@ -52,7 +53,7 @@ class DynamicCallableDescriptors(private val storageManager: StorageManager, bui
 
     fun createDynamicDescriptorScope(call: Call, owner: DeclarationDescriptor) = object : MemberScopeImpl() {
         override fun printScopeStructure(p: Printer) {
-            p.println(this::class.java.simpleName, ": dynamic candidates for " + call)
+            p.println(this::class.java.simpleName, ": dynamic candidates for $call")
         }
 
         override fun getContributedFunctions(

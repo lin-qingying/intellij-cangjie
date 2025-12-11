@@ -64,10 +64,8 @@ import org.cangnova.cangjie.resolve.calls.smartcasts.ConditionalDataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
-import org.cangnova.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
 import org.cangnova.cangjie.resolve.calls.util.CallMaker
 import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
-import org.cangnova.cangjie.resolve.flatten
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
@@ -1033,41 +1031,41 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     PatternKind.Error
                 )
             )
-
-            val enumEntry =
-                data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()!!] as? EnumClassCallableDescriptor
-            val enumEntrySource =
-                enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
-                    ?: return returnResult(
-                        element, data, Pattern(typeInfo.type, PatternKind.Error)
-                    )
-
-            val valueParameters = enumEntry.valueParameters
-
-            return try {
-                returnResult(
-                    element, data, Pattern(
-                        typeInfo.type, PatternKind.Enum(
-                            enumSource, enumEntrySource,
-                            valueParameters.mapIndexedNotNull { index, it ->
-//                        期望类型
-                                val expectedType = it.type
-                                element.patterns[index].accept(
-                                    this, PatternContext(
-                                        Subject.Expression(
-                                            element.patterns[index],
-                                            createTypeInfo(expectedType),
-                                            components.dataFlowValueFactory
-                                        ),
-                                        data.context
-                                    )
-                                )
-                            }
-                        ))
-                )
-            } catch (e: IndexOutOfBoundsException) {
-                returnResult(element, data, Pattern.Error)
-            }
+TODO("")
+//            val enumEntry =
+//                data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()!!]
+//            val enumEntrySource =
+//                enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
+//                    ?: return returnResult(
+//                        element, data, Pattern(typeInfo.type, PatternKind.Error)
+//                    )
+//
+//            val valueParameters = enumEntry.valueParameters
+//
+//            return try {
+//                returnResult(
+//                    element, data, Pattern(
+//                        typeInfo.type, PatternKind.Enum(
+//                            enumSource, enumEntrySource,
+//                            valueParameters.mapIndexedNotNull { index, it ->
+////                        期望类型
+//                                val expectedType = it.type
+//                                element.patterns[index].accept(
+//                                    this, PatternContext(
+//                                        Subject.Expression(
+//                                            element.patterns[index],
+//                                            createTypeInfo(expectedType),
+//                                            components.dataFlowValueFactory
+//                                        ),
+//                                        data.context
+//                                    )
+//                                )
+//                            }
+//                        ))
+//                )
+//            } catch (e: IndexOutOfBoundsException) {
+//                returnResult(element, data, Pattern.Error)
+//            }
 
         }
 
@@ -1205,7 +1203,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                     )
 
                     val enumEntry =
-                        data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()!!] as? EnumClassCallableDescriptor
+                        data.context.trace[REFERENCE_TARGET, expression?.referenceExpression()!!]
                     val enumEntrySource =
                         enumEntry?.toSourceElement?.getPsi() as? CjEnumEntry
                             ?: return returnResult(
@@ -1224,12 +1222,12 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
                         )
                     )
 
-                } else if (expression?.getReferenceTarget(data.context.trace.bindingContext) is EnumClassCallableDescriptor) {
+                } /*else if (expression?.getReferenceTarget(data.context.trace.bindingContext) is EnumClassCallableDescriptor) {
                     element.expression?.let { data.context.trace.report(NOT_ENUM_MATCH.on(it)) }
                     return returnResult(
                         element, data, Pattern.Error
                     )
-                }
+                }*/
 
             }
 

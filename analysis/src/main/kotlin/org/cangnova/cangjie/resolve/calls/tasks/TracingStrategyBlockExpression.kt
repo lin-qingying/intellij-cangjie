@@ -24,10 +24,10 @@
 
 package org.cangnova.cangjie.resolve.calls.tasks
 
-import org.cangnova.cangjie.descriptors.BindingTrace
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.CjBlockExpression
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 
 class TracingStrategyBlockExpression(
@@ -38,11 +38,11 @@ class TracingStrategyBlockExpression(
 
     }
 
-    override fun <D : CallableDescriptor?> bindReference(trace: BindingTrace, resolvedCall: ResolvedCall<D>) {
+    override fun <D : CallableDescriptor> bindReference(trace: BindingTrace, resolvedCall: ResolvedCall<D>) {
 
     }
 
-    override fun <D : CallableDescriptor?> bindResolvedCall(trace: BindingTrace, resolvedCall: ResolvedCall<D>) {
+    override fun <D : CallableDescriptor> bindResolvedCall(trace: BindingTrace, resolvedCall: ResolvedCall<D>) {
 
     }
 
@@ -50,9 +50,9 @@ class TracingStrategyBlockExpression(
 
     }
 
-    override fun <D : CallableDescriptor?> unresolvedReferenceWrongReceiver(
+    override fun <D : CallableDescriptor> unresolvedReferenceWrongReceiver(
         trace: BindingTrace,
-        candidates: MutableCollection<out ResolvedCall<D>>
+        candidates: Collection<ResolvedCall<D>>
     ) {
 
     }

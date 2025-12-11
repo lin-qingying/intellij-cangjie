@@ -31,10 +31,16 @@ import org.cangnova.cangjie.resolve.calls.inference.components.NewTypeSubstituto
 import org.cangnova.cangjie.resolve.calls.inference.model.*
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.UnwrappedType
+import org.cangnova.cangjie.types.createFunctionType
 import org.cangnova.cangjie.types.error.ErrorTypeKind
-import org.cangnova.cangjie.types.util.builtIns
-
+import org.cangnova.cangjie.types.getContextReceiverTypesFromFunctionType
+import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
+import org.cangnova.cangjie.types.getReturnTypeFromFunctionType
+import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
+import org.cangnova.cangjie.types.isBuiltinFunctionalType
+import org.cangnova.cangjie.types.builtIns
 fun LambdaWithTypeVariableAsExpectedTypeAtom.transformToResolvedLambda(
     csBuilder: ConstraintSystemBuilder,
     diagnosticsHolder: CangJieDiagnosticsHolder,

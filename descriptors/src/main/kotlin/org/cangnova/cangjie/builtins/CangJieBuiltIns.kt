@@ -54,6 +54,7 @@ import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint32UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint8UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.unitUFqName
 import org.cangnova.cangjie.builtins.StandardNames.RANGE
+import org.cangnova.cangjie.builtins.StandardNames.RESOURCE
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.*
@@ -786,6 +787,13 @@ open class CangJieBuiltIns(
     val rangeType: SimpleType
         get() {
             return range.defaultType
+        }
+
+
+    val resource: ClassDescriptor
+        get() {
+
+        return  getStdCoreClassByName(RESOURCE)
         }
     val future: ClassDescriptor
         get() = getStdSyncClassByName(FUTURE)

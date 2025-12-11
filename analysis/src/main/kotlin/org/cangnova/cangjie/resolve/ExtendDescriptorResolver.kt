@@ -51,17 +51,9 @@ class ExtendDescriptorResolver(
 ) {
 
     fun getExtendDescriptor(cjExtend: CjExtend): ClassDescriptorWithResolutionScopes {
-        //        val receiverTypeReceiver = cjExtend.receiverTypeReceiver ?: return
-        val scope = lazyDeclarationResolver.getMemberScopeDeclaredIn(cjExtend, NoLookupLocation.FROM_BUILTINS)
-//        val lexicalScope = fileScopeProvider.getFileResolutionScope(cjExtend.getContainingCjFile())
 
 
-        scope as AbstractLazyMemberScope<*, *>
-
-
-        val type = scope.resolveTypeByExtend(cjExtend)
-
-        return type
+        TODO()
     }
 
 

@@ -24,17 +24,23 @@
 
 package org.cangnova.cangjie.config
 
-interface ContentRoot
+import org.cangnova.cangjie.cli.messages.MessageCollector
 
-/**
- * @param isCommon whether this source root contains sources of a common module in a multi-platform project
- */
-data class CangJieSourceRoot(val path: String, val isCommon: Boolean, val hmppModuleName: String?): ContentRoot
-fun CompilerConfiguration.addCangJieSourceRoots(sources: List<String>): Unit =
-    sources.forEach { addCangJieSourceRoot(it) }
-@JvmOverloads
-fun CompilerConfiguration.addCangJieSourceRoot(path: String, isCommon: Boolean = false, hmppModuleName: String? = null) {
-    add(CLIConfigurationKeys.CONTENT_ROOTS, CangJieSourceRoot(path, isCommon, hmppModuleName))
+object CommonConfigurationKeys {
+
+    @JvmField
+    val CONTENT_ROOTS: CompilerConfigurationKey<List<ContentRoot>> = CompilerConfigurationKey.create("content roots")
+
+    @JvmField
+    val USE_LIGHT_TREE = CompilerConfigurationKey.create<Boolean>("light tree")
+
+    @JvmField
+    val MODULE_NAME = CompilerConfigurationKey<String>("module name")
+
+    @JvmField
+    val LANGUAGE_VERSION_SETTINGS = CompilerConfigurationKey<LanguageVersionSettings>("language version settings")
+
+    @JvmField
+    val MESSAGE_COLLECTOR_KEY = CompilerConfigurationKey.create<MessageCollector>("message collector")
+
 }
-val CompilerConfiguration.cangjieSourceRoots: List<CangJieSourceRoot>
-    get() = get(CLIConfigurationKeys.CONTENT_ROOTS)?.filterIsInstance<CangJieSourceRoot>().orEmpty()

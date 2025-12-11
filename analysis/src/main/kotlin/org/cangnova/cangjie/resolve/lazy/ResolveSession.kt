@@ -86,7 +86,7 @@ class ResolveSession @Deprecated("Only calls from injectors expected") construct
     override val storageManager: LazyResolveStorageManager =
         LockBasedLazyResolveStorageManager(globalContext.storageManager)
 
-    private val exceptionTracker: ExceptionTracker = globalContext.exceptionTracker
+      val exceptionTracker: ExceptionTracker = globalContext.exceptionTracker
 
     override val trace: BindingTrace = storageManager.createSafeTrace(delegationTrace)
 

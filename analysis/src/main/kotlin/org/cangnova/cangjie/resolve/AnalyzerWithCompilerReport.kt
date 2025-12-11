@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve
 
 
+import org.cangnova.cangjie.cli.CLIConfigurationKeys
 import org.cangnova.cangjie.cli.messages.MessageCollector
 import org.cangnova.cangjie.config.*
 import org.cangnova.cangjie.psi.CjFile

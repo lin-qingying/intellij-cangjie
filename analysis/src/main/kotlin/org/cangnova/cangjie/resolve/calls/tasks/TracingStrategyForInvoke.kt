@@ -24,10 +24,7 @@
 
 package org.cangnova.cangjie.resolve.calls.tasks
 
-import org.cangnova.cangjie.builtins.isNonExtensionFunctionType
-import org.cangnova.cangjie.descriptors.BindingTrace
 import org.cangnova.cangjie.descriptors.CallableDescriptor
-import org.cangnova.cangjie.diagnostics.Errors
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.psi.CjReferenceExpression
@@ -35,6 +32,11 @@ import org.cangnova.cangjie.psi.CjSimpleNameExpression
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.types.CangJieType
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.diagnostics.infos.errors.FUNCTION_EXPECTED
+import org.cangnova.cangjie.diagnostics.infos.errors.NO_RECEIVER_ALLOWED
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.types.isNonExtensionFunctionType
 
 
 class TracingStrategyForInvoke(
@@ -78,9 +80,9 @@ class TracingStrategyForInvoke(
 
     private fun functionExpectedOrNoReceiverAllowed(trace: BindingTrace) {
         if (calleeType.isNonExtensionFunctionType) {
-            trace.report(Errors.NO_RECEIVER_ALLOWED.on(reference))
+            trace.report(NO_RECEIVER_ALLOWED.on(reference))
         } else {
-            trace.report(Errors.FUNCTION_EXPECTED.on(reference, reference, calleeType))
+            trace.report(FUNCTION_EXPECTED.on(reference, reference, calleeType))
         }
     }
 }

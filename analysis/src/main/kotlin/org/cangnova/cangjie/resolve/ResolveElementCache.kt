@@ -47,6 +47,9 @@ import org.cangnova.cangjie.psi.psiUtil.findElementOfAdditionalResolve
 import org.cangnova.cangjie.psi.psiUtil.forEachDescendantOfType
 import org.cangnova.cangjie.psi.psiUtil.getElementTextWithContext
 import org.cangnova.cangjie.psi.psiUtil.getNonStrictParentOfType
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.binding.BindingTraceFilter
 import org.cangnova.cangjie.resolve.binding.BindingTraceForBodyResolve
 import org.cangnova.cangjie.resolve.binding.BodiesResolveContext
 import org.cangnova.cangjie.resolve.caches.CodeFragmentAnalyzer
@@ -240,7 +243,7 @@ class ResolveElementCache(
         )
 
     private fun findElementOfAdditionalResolve(element: CjElement, bodyResolveMode: BodyResolveMode): CjElement? {
-        if (element is CjAnnotationEntry && bodyResolveMode == PARTIAL_NO_ADDITIONAL)
+        if (element is CjAnnotation && bodyResolveMode == PARTIAL_NO_ADDITIONAL)
             return element
 
         return element.findElementOfAdditionalResolve()
@@ -763,7 +766,7 @@ class ResolveElementCache(
      */
     private fun forceResolveAnnotationsInside(element: CjAnnotated) {
         // 定义一个对注解条目执行强制解析的操作
-        val action: (CjAnnotationEntry) -> Unit = { entry ->
+        val action: (CjAnnotation) -> Unit = { entry ->
             // 尝试从解析会话的绑定上下文中获取注解信息，并执行强制解析
             resolveSession.bindingContext[BindingContext.ANNOTATION, entry]?.let {
                 ForceResolveUtil.forceResolveAllContents(it)
@@ -777,7 +780,7 @@ class ResolveElementCache(
         } else {
             // 如果元素不在编译文件中，使用更复杂的遍历方式来解析注解
             // 这种方式可以深入到元素的后代节点中，但不会进入[CjBlockExpression]类型节点
-            element.forEachDescendantOfType<CjAnnotationEntry>(
+            element.forEachDescendantOfType<CjAnnotation>(
                 canGoInside = { it !is CjBlockExpression },
                 action = action
             )

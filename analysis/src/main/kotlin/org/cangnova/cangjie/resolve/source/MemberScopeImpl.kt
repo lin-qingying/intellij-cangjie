@@ -57,7 +57,6 @@ abstract class MemberScopeImpl : MemberScope {
     }
 
 
-
     abstract override fun printScopeStructure(p: Printer)
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
         emptyList()
@@ -65,22 +64,23 @@ abstract class MemberScopeImpl : MemberScope {
 
     //    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor?  = null
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-    override fun getFunctionNames(): Set<Name> =
+    override val functionNames: Set<Name> =
         getContributedDescriptors(
             DescriptorKindFilter.FUNCTIONS, alwaysTrue()
         ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
 
-    override fun getVariableNames(): Set<Name> =
+    override val variableNames: Set<Name> =
         getContributedDescriptors(
             DescriptorKindFilter.VARIABLES, alwaysTrue()
         ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
 
-    override fun getClassifierNames(): Set<Name>? = null
-    override fun getPropertyNames(): Set<Name> {
-        return getContributedDescriptors(
-            DescriptorKindFilter.PROPERTYS, alwaysTrue()
-        ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
-    }
+    override val classifierNames: Set<Name>? = null
+    override val propertyNames: Set<Name>
+        get() {
+            return getContributedDescriptors(
+                DescriptorKindFilter.PROPERTYS, alwaysTrue()
+            ).filterIsInstanceMapTo<SimpleFunctionDescriptor, Name, MutableSet<Name>>(mutableSetOf()) { it.name }
+        }
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,

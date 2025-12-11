@@ -24,11 +24,11 @@
 
 package org.cangnova.cangjie.resolve
 
-import org.cangnova.cangjie.descriptors.ModuleInfo
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.container.StorageComponentContainer
 import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.psi.ImportPath
 import org.cangnova.cangjie.storage.LockBasedStorageManager
 
 interface PlatformConfigurator {
@@ -44,12 +44,11 @@ abstract class PlatformDependentAnalyzerServices {
     private val defaultImports = LockBasedStorageManager("TargetPlatform").let { storageManager ->
         storageManager.createMemoizedFunction<DefaultImportsKey, List<ImportPath>> { (includeCangJieComparisons, includeLowPriorityImports) ->
             ArrayList<ImportPath>().apply {
-//emptyList<String>()
+/
                 listOf(
 
                     "std.core.*",
-//"<built-ins module>"
-//                    "untitled3.A.*"
+
                 ).forEach { add(ImportPath.fromString(it)) }
 
 

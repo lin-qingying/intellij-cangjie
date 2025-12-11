@@ -31,6 +31,7 @@ import org.cangnova.cangjie.resolve.calls.components.InferenceSession
 import org.cangnova.cangjie.resolve.scopes.receivers.DetailedReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.QualifierReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import org.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
 import org.cangnova.cangjie.types.UnwrappedType
 
 interface ReceiverCangJieCallArgument : CangJieCallArgument {

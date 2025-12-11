@@ -32,7 +32,6 @@ import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.model.CangJieCall
-import org.cangnova.cangjie.resolve.scopes.ChainedMemberScope
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticMemberScope

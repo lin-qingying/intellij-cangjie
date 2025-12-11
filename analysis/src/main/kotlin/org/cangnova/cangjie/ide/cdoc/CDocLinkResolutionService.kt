@@ -121,10 +121,10 @@ private class GlobalSyntheticPackageViewDescriptor(
         override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
             shouldNotBeCalled()
 
-        override fun getFunctionNames(): Set<Name> = shouldNotBeCalled()
-        override fun getVariableNames(): Set<Name> = shouldNotBeCalled()
-        override fun getClassifierNames(): Set<Name> = shouldNotBeCalled()
-        override fun getPropertyNames(): Set<Name> = shouldNotBeCalled()
+        override val functionNames : Set<Name> = shouldNotBeCalled()
+        override val variableNames : Set<Name> = shouldNotBeCalled()
+        override val classifierNames : Set<Name> = shouldNotBeCalled()
+        override val propertyNames : Set<Name> = shouldNotBeCalled()
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor =
             shouldNotBeCalled()
 

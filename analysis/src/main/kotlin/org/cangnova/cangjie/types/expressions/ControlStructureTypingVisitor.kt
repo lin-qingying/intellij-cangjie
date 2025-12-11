@@ -29,13 +29,16 @@ import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.diagnostics.infos.errors.LET_OR_VAR_ON_CATCH_PARAMETER
+import org.cangnova.cangjie.diagnostics.infos.errors.CATCH_PARAMETER_WITH_DEFAULT_VALUE
+import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.infos.warnings.*
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.returnTarget
 import org.cangnova.cangjie.resolve.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingContextUtils
 import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.binding.recordScope
 import org.cangnova.cangjie.resolve.calls.ArgumentTypeResolver
 import org.cangnova.cangjie.resolve.calls.context.ContextDependency
 import org.cangnova.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments
@@ -46,13 +49,17 @@ import org.cangnova.cangjie.resolve.calls.tower.LambdaContextInfo
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
+import org.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.CommonSupertypes
+import org.cangnova.cangjie.types.ErrorUtils.createErrorType
+import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createCallForSpecialConstruction
 import org.cangnova.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createDataFlowInfoForArgumentsOfTryCall
+import org.cangnova.cangjie.types.expressions.ExpressionTypingUtils.checkVariableShadowing
 import org.cangnova.cangjie.types.expressions.ExpressionTypingUtils.getExpressionReceiver
 import org.cangnova.cangjie.types.expressions.ExpressionTypingUtils.newWritableScopeImpl
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
@@ -744,20 +751,19 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
         expression.accept(object : CjTreeVisitor<List<CjLoopExpression>>() {
             override fun visitBreakExpression(
                 breakExpression: CjBreakExpression,
-                outerLoops: List<CjLoopExpression>?
-            ): Void? {
+                outerLoops: List<CjLoopExpression>
+            ) {
 
-                return null
             }
 
 
             override fun visitLoopExpression(
                 loopExpression: CjLoopExpression,
-                outerLoops: List<CjLoopExpression>?
-            ): Void? {
-                val newOuterLoops = outerLoops?.toMutableList() ?: mutableListOf()
+                outerLoops: List<CjLoopExpression>
+            ){
+                val newOuterLoops = outerLoops.toMutableList()
                 newOuterLoops.add(loopExpression)
-                return super.visitLoopExpression(loopExpression, newOuterLoops)
+              super.visitLoopExpression(loopExpression, newOuterLoops)
             }
         }, if (expression is CjLoopExpression) listOf(expression) else listOf())
 
@@ -1130,9 +1136,9 @@ fun CjReturnExpression.addExpression(bindingContext: BindingTrace, target: CjDec
     if (returnedExpression == null) return
     val returnsByTarget = bindingContext[BindingContext.RETURN_TARGET, target]
 
-    val expressions = returnsByTarget ?: mutableSetOf()
+    val expressions = returnsByTarget?.toMutableSet() ?: mutableSetOf()
 
-    expressions.add(returnedExpression)
+    expressions.add(returnedExpression ?: return)
 
     bindingContext.record(BindingContext.RETURN_TARGET, target, expressions)
 

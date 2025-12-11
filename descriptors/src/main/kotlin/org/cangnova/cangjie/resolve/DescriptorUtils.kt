@@ -41,12 +41,14 @@ import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ErrorUtils.isError
+import org.cangnova.cangjie.types.StubTypeForBuilderInference
 import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.REFINER_CAPABILITY
 import org.cangnova.cangjie.types.checker.TypeRefinementSupport
+import org.cangnova.cangjie.types.contains
 import org.cangnova.cangjie.types.isError
 import org.cangnova.cangjie.utils.DFS
 import kotlin.contracts.ExperimentalContracts
@@ -1124,3 +1126,19 @@ fun CallableDescriptor.getOwnerForEffectiveDispatchReceiverParameter(): Declarat
     }
     return dispatchReceiverParameter?.containingDeclaration
 }
+
+fun ModuleDescriptor.isTypeRefinementEnabled(): Boolean =
+    getCapability(REFINER_CAPABILITY)?.value?.isEnabled == true
+
+private fun <D : CallableDescriptor> D.containsStubTypes() =
+    valueParameters.any { parameter -> parameter.type.contains { it is StubTypeForBuilderInference } }
+            || returnType?.contains { it is StubTypeForBuilderInference } == true
+            || dispatchReceiverParameter?.type?.contains { it is StubTypeForBuilderInference } == true
+            || extensionReceiverParameter?.type?.contains { it is StubTypeForBuilderInference } == true
+
+fun <D : CallableDescriptor> D.shouldBeSubstituteWithStubTypes() =
+    valueParameters.none { it.type.isError }
+            && returnType?.isError != true
+            && dispatchReceiverParameter?.type?.isError != true
+            && extensionReceiverParameter?.type?.isError != true
+            && containsStubTypes()

@@ -46,10 +46,7 @@ interface TrackableModuleInfo : ModuleInfo {
     fun createModificationTracker(): ModificationTracker
 }
 
-fun ModuleInfo.flatten(): List<ModuleInfo> = when (this) {
-//    is CombinedModuleInfo -> listOf(this) + containedModules
-    else -> listOf(this)
-}
+
 //interface PackageOracleFactory {
 //    fun createOracle(moduleInfo: ModuleInfo): PackageOracle
 //

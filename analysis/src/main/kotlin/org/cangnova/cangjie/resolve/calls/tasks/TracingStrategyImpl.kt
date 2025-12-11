@@ -24,22 +24,25 @@
 
 package org.cangnova.cangjie.resolve.calls.tasks
 
-import org.cangnova.cangjie.builtins.isFunctionType
-import org.cangnova.cangjie.descriptors.BindingTrace
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.VariableDescriptor
-import org.cangnova.cangjie.diagnostics.Errors
+import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.CjReferenceExpression
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.model.VariableAsFunctionResolvedCall
 import org.cangnova.cangjie.resolve.calls.util.isInvokeCallOnVariable
+import org.cangnova.cangjie.types.ErrorUtils.isError
+import org.cangnova.cangjie.types.isFunctionType
 
 class TracingStrategyImpl private constructor(override val reference: CjReferenceExpression, call: Call) :
     AbstractTracingStrategy(reference, call) {
     override fun bindCall(trace: BindingTrace, call: Call) {
-        trace.record(BindingContext.CALL, call.calleeExpression, call)
+        trace.record(BindingContext.CALL, call.calleeExpression ?: return, call)
     }
 
     override fun <D : CallableDescriptor> bindReference(trace: BindingTrace, resolvedCall: ResolvedCall<D>) {
@@ -68,7 +71,7 @@ class TracingStrategyImpl private constructor(override val reference: CjReferenc
     }
 
     override fun unresolvedReference(trace: BindingTrace) {
-        trace.report(Errors.UNRESOLVED_REFERENCE.on(reference, reference))
+        trace.report(UNRESOLVED_REFERENCE.on(reference, reference))
     }
 
     override fun <D : CallableDescriptor> unresolvedReferenceWrongReceiver(
@@ -78,13 +81,13 @@ class TracingStrategyImpl private constructor(override val reference: CjReferenc
         val variableDescriptor = isFunctionExpectedError(candidates)
         if (variableDescriptor != null) {
             trace.report(
-                Errors.FUNCTION_EXPECTED.on(
+                FUNCTION_EXPECTED.on(
                     reference,
                     reference, variableDescriptor.type
                 )
             )
         } else {
-            trace.report(Errors.UNRESOLVED_REFERENCE_WRONG_RECEIVER.on(reference, candidates))
+            trace.report(UNRESOLVED_REFERENCE_WRONG_RECEIVER.on(reference, candidates))
         }
     } //    @Override
     //    public <D extends CallableDescriptor> void bindReference(@NotNull BindingTrace trace, @NotNull ResolvedCall<D> resolvedCall) {

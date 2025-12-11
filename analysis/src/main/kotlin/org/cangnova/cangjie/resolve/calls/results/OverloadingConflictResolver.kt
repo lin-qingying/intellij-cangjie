@@ -24,31 +24,29 @@
 
 package org.cangnova.cangjie.resolve.calls.results
 
+
+import it.unimi.dsi.fastutil.Hash
+import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames
 import org.cangnova.cangjie.builtins.UnsignedTypes
-import org.cangnova.cangjie.descriptors.CallableDescriptor
-import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
-import org.cangnova.cangjie.descriptors.MemberDescriptor
-import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
-import org.cangnova.cangjie.descriptors.findClassAcrossModuleDependencies
+import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import org.cangnova.cangjie.psi.ValueArgument
 import org.cangnova.cangjie.resolve.DescriptorEquivalenceForOverrides
+import org.cangnova.cangjie.resolve.OverridingUtil
 import org.cangnova.cangjie.resolve.calls.context.CheckArgumentTypesMode
 import org.cangnova.cangjie.resolve.calls.inference.ConstraintSystemBuilderImpl
 import org.cangnova.cangjie.resolve.calls.model.DefaultValueArgument
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.model.VariableAsFunctionResolvedCallImpl
-import org.cangnova.cangjie.resolve.calls.tower.ClassCallableDescriptor
-import org.cangnova.cangjie.resolve.descriptorUtil.isTypeRefinementEnabled
+import org.cangnova.cangjie.resolve.isTypeRefinementEnabled
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.requireOrDescribe
-import it.unimi.dsi.fastutil.Hash
-import it.unimi.dsi.fastutil.objects.ObjectOpenCustomHashSet
+import org.cangnova.cangjie.utils.CancellationChecker
 
 @JvmName("createWithConvertedTypes")
 fun <T> FlatSignature.Companion.create(
@@ -68,7 +66,6 @@ fun <T> FlatSignature.Companion.create(
         contextReceiverCount = contextReceiverTypes.size,
         hasVarargs = descriptor.valueParameters.any { it.varargElementType != null },
         numDefaults = numDefaults,
-        isExpect = descriptor is MemberDescriptor && descriptor.isExpect,
         isSyntheticMember = descriptor is SyntheticMemberDescriptor<*>
     )
 }
@@ -114,7 +111,7 @@ fun createOverloadingConflictResolver(
     specificityComparator,
     platformOverloadsSpecificityComparator,
     cancellationChecker,
-    ResolvedCall<*>::getResultingDescriptor,
+    ResolvedCall<*>::resultingDescriptor,
     ConstraintSystemBuilderImpl.Companion::forSpecificity,
     ResolvedCall<*>::createFlatSignature,
     { (it as? VariableAsFunctionResolvedCallImpl)?.variableCall },
@@ -250,13 +247,13 @@ open class OverloadingConflictResolver<C : Any>(
         }
 
         val maximallySpecific = findMaximallySpecific(noOverrides, checkArgumentsMode, false)
-        if (maximallySpecific != null && maximallySpecific.resultingDescriptor !is ClassCallableDescriptor) {
+        if (maximallySpecific != null ) {
             return setOf(maximallySpecific)
         }
 
         if (discriminateGenerics) {
             val maximallySpecificGenericsDiscriminated = findMaximallySpecific(noOverrides, checkArgumentsMode, true)
-            if (maximallySpecificGenericsDiscriminated != null && maximallySpecificGenericsDiscriminated.resultingDescriptor !is ClassCallableDescriptor) {
+            if (maximallySpecificGenericsDiscriminated != null  ) {
                 return setOf(maximallySpecificGenericsDiscriminated)
             }
         }
@@ -375,8 +372,7 @@ open class OverloadingConflictResolver<C : Any>(
             if (isGeneric1 && isGeneric2) return false
         }
 
-        if (!call1.isExpect && call2.isExpect) return true
-        if (call1.isExpect && !call2.isExpect) return false
+
 
         if (call1.contextReceiverCount > call2.contextReceiverCount) return true
         if (call1.contextReceiverCount < call2.contextReceiverCount) return false

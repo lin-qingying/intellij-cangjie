@@ -45,6 +45,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
+import org.cangnova.cangjie.types.unCapture
 
 import org.cangnova.cangjie.utils.addIfNotNull
 

@@ -29,10 +29,8 @@ import org.cangnova.cangjie.builtins.UnsignedTypes
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.DescriptorVisibilities.PRIVATE
-import org.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
-import org.cangnova.cangjie.descriptors.enumd.LazyEnumDescriptor
-import org.cangnova.cangjie.descriptors.impl.CallableDescriptorForExtend
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.psi.CjCallExpression
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
@@ -44,7 +42,6 @@ import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.tower.*
 import org.cangnova.cangjie.resolve.calls.util.getReceiverValueWithSmartCast
-import org.cangnova.cangjie.resolve.isExtension
 import org.cangnova.cangjie.resolve.isInsideInterface
 import org.cangnova.cangjie.resolve.isStatic
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
@@ -53,11 +50,10 @@ import org.cangnova.cangjie.resolve.scopes.receivers.ClassValueReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.EnumClassQualifier
 import org.cangnova.cangjie.resolve.scopes.receivers.TypeAliasQualifier
 import org.cangnova.cangjie.types.*
+import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
 import org.cangnova.cangjie.types.model.TypeConstructorMarker
-import org.cangnova.cangjie.types.util.TypeUtils.noExpectedType
-import org.cangnova.cangjie.utils.OperatorNameConventions
 import org.cangnova.cangjie.utils.compactIfPossible
 
 /**
@@ -118,31 +114,9 @@ internal object CheckSuperExpressionCallPart : ResolutionPart() {
     }
 }
 
-internal object CheckEnumCall : ResolutionPart() {
-    override fun ResolutionCandidate.process(workIndex: Int) {
-        val descriptor = resolvedCall.candidateDescriptor as? EnumClassCallableDescriptor ?: return
-
-
-        val callExpression = resolvedCall.atom.psiCangJieCall.psiCall.callElement
-        if (DescriptorUtils.isEnum(descriptor) && callExpression is CjCallExpression && callExpression.typeArgumentList != null) {
-            addDiagnostic(EmptyDiagnostic)
-            return
-        }
-        val isCall = callExpression is CjCallExpression && callExpression.typeArgumentList != null
-        if (DescriptorUtils.isEnumEntry(descriptor)) {
-            if (descriptor.hashUnsubstitutedPrimaryConstructor() && isCall) {
-                addDiagnostic(EmptyDiagnostic)
-            } else if (!descriptor.hashUnsubstitutedPrimaryConstructor() && !isCall) {
-                addDiagnostic(EmptyDiagnostic)
-            }
-        }
-
-
-    }
-}
 
 fun LexicalScope.isStaticContext(): Boolean {
-    return ownerDescriptor.isStatic
+    return ownerDescriptor.isStatic()
 }
 
 fun ResolutionCandidate.isStaticContext(): Boolean {
@@ -339,7 +313,7 @@ private fun ResolutionCandidate.checkUnsafeImplicitInvokeAfterSafeCall(argument:
         }
     } ?: error("Receiver kind does not match receiver argument")
 
-    if (receiverArgument.isSafeCall && receiverArgument.receiver.stableType.isNullable() && resolvedCall.candidateDescriptor.typeParameters.isEmpty()) {
+    if (receiverArgument.isSafeCall && receiverArgument.receiver.stableType.isOption && resolvedCall.candidateDescriptor.typeParameters.isEmpty()) {
         addDiagnostic(UnsafeCallError(argument, isForImplicitInvoke = true))
         return ImplicitInvokeCheckStatus.UNSAFE_INVOKE_REPORTED
     }
@@ -652,7 +626,7 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
             )
         val isContainedAnyDependentTypeInReturnType = dependentTypeParameters.any { (typeParameter, _) ->
             returnType.contains {
-                it.typeConstructor(asConstraintSystemCompleterContext()) == getTypeParameterByVariable(typeParameter) && !it.isMarkedOption
+                it.typeConstructor(asConstraintSystemCompleterContext()) == getTypeParameterByVariable(typeParameter) && !it.isOption
             }
         }
 
@@ -803,22 +777,15 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
      */
     fun ResolutionCandidate.getTypeParameters(): List<TypeParameterDescriptor> {
 
-//        来自扩展
-        val receiverTypeParameters = if (candidateDescriptor.isExtension) {
-            if (candidateDescriptor is CallableDescriptorForExtend)
-                (candidateDescriptor as CallableDescriptorForExtend).typeParametersForExtend
-            else emptyList()
-        } else {
-            emptyList()
-        }
+
 
 //        如果接收器是DISPATCH_RECEIVER ，并且它是一个静态调用，可能要分析上一层的类型参数
         if (resolvedCall.dispatchReceiverArgument != null && resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue is ClassValueReceiver) {
 
-            return (resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver).classQualifier.descriptor.declaredTypeParameters + candidateDescriptor.original.typeParameters + receiverTypeParameters
+            return (resolvedCall.dispatchReceiverArgument!!.receiver.receiverValue as ClassValueReceiver).classQualifier.descriptor.declaredTypeParameters + candidateDescriptor.original.typeParameters
         }
 
-        return candidateDescriptor.original.typeParameters + receiverTypeParameters
+        return candidateDescriptor.original.typeParameters
 
     }
 

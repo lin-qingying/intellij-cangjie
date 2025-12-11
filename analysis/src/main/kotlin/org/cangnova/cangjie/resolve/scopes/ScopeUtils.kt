@@ -30,7 +30,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SmartList
 import org.cangnova.cangjie.FrontendInternals
-import org.cangnova.cangjie.descriptors.ModuleSourceInfo
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation

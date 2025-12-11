@@ -24,15 +24,17 @@
 
 package org.cangnova.cangjie.resolve.calls.inference
 
+import org.cangnova.cangjie.resolve.call.inference.isCaptured
 import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariable
 import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstructor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.CommonSupertypes
+import org.cangnova.cangjie.types.ErrorUtils
+import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.TypeIntersector
 import org.cangnova.cangjie.types.singleBestRepresentative
-import org.cangnova.cangjie.types.util.TypeUtils
 import org.cangnova.cangjie.utils.addIfNotNull
 
 class TypeBoundsImpl(override val typeVariable: TypeVariable) : TypeBounds {

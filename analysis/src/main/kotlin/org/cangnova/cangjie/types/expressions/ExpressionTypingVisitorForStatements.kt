@@ -56,7 +56,10 @@ import org.cangnova.cangjie.diagnostics.infos.warnings.*
 import org.cangnova.cangjie.extensions.internal.InternalNonStableExtensionPoints
 import org.cangnova.cangjie.name.OperatorConventions
 import org.cangnova.cangjie.name.OperatorConventions.getNameForOperationSymbol
+import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.AMBIGUOUS_REFERENCE_TARGET
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.VARIABLE_REASSIGNMENT
 import org.cangnova.cangjie.resolve.binding.BindingContextUtils
 import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
@@ -364,13 +367,13 @@ class ExpressionTypingVisitorForStatements(
         if (left is CjArrayAccessExpression) {
             if (right == null) return noTypeInfo(context)
             val typeInfo = basic.resolveArrayAccessSetMethod(left, right, context, context.trace)
-            basic.checkLValue(context.trace, context, left, right, expression, isStatement = true)
+            basic.checkLValue(context.trace, context, left, right, expression,  true)
             return typeInfo.replaceType(checkAssignmentType(typeInfo.type, expression, contextWithExpectedType))
         }
 
         val leftInfo = ExpressionTypingUtils.getTypeInfoOrNullType(
             left,
-            context.replaceCallPosition(CallPosition.VariableAssignment(left, isSet = true)),
+            context.replaceCallPosition(CallPosition.VariableAssignment(left,  true)),
             facade
         )
 
@@ -383,9 +386,11 @@ class ExpressionTypingVisitorForStatements(
         val assignAlterers = AssignResolutionAltererExtension.EP_NAME.extensionList
         if (assignAlterers.isNotEmpty()) {
             val alteredTypeInfo = leftOperand?.let {
-                assignAlterers
-                    .firstOrNull { it.needOverloadAssign(expression, leftType, bindingContext) }
-                    ?.resolveAssign(bindingContext, expression, it, left, leftInfo, context, components, scope)
+                left?.let { it1 ->
+                    assignAlterers
+                        .firstOrNull { it.needOverloadAssign(expression, leftType, bindingContext) }
+                        ?.resolveAssign(bindingContext, expression, it, it1, leftInfo, context, components, scope)
+                }
             }
 
             if (alteredTypeInfo != null) {
@@ -399,7 +404,7 @@ class ExpressionTypingVisitorForStatements(
                 right,
                 context.replaceDataFlowInfo(dataFlowInfo)
                     .replaceExpectedType(expectedType)
-                    .replaceCallPosition(CallPosition.VariableAssignment(leftOperand, isSet = false))
+                    .replaceCallPosition(CallPosition.VariableAssignment(leftOperand,  false))
             )
 
             dataFlowInfo = rightInfo.dataFlowInfo
@@ -425,7 +430,7 @@ class ExpressionTypingVisitorForStatements(
         }
 
         if (expectedType != null && leftOperand != null) {
-            basic.checkLValue(context.trace, context, leftOperand, right, expression, isStatement = false)
+            basic.checkLValue(context.trace, context, leftOperand, right, expression,  false)
 
             val callCheckerContext = CallCheckerContext(
                 context,
@@ -496,7 +501,7 @@ class ExpressionTypingVisitorForStatements(
                 expression,
                 context.replaceExpectedType(expectedTypeByInType)
                     .replaceDataFlowInfo(rhsDataFlowInfo)
-                    .replaceCallPosition(CallPosition.VariableAssignment(lhsOperand, isSet = false)),
+                    .replaceCallPosition(CallPosition.VariableAssignment(lhsOperand, false)),
                 hasErrorsOnTypeChecking,
                 reportErrorForTypeMismatch = false
             )
@@ -640,7 +645,7 @@ class ExpressionTypingVisitorForStatements(
         val ignoreReportsTrace = TemporaryBindingTrace.create(context.trace, "Trace for checking assignability")
         var contextForBinaryOperation: ExpressionTypingContext? = null
 
-        val lhsAssignable = basic.checkLValue(ignoreReportsTrace, context, left, right, expression, isStatement = false)
+        val lhsAssignable = basic.checkLValue(ignoreReportsTrace, context, left, right, expression,  false)
 
         if (assignmentOperationType == null || lhsAssignable) {
             contextForBinaryOperation = context.replaceTraceAndCache(temporaryForBinaryOperation).replaceScope(scope)
@@ -656,7 +661,7 @@ class ExpressionTypingVisitorForStatements(
 
             val counterpartName = getNameForOperationSymbol(
                 OperatorConventions.ASSIGNMENT_OPERATION_COUNTERPARTS[operationType]!!
-            )
+            ) ?: return leftInfo.clearType()
             binaryOperationDescriptors = components.callResolver.resolveBinaryCall(
                 contextForBinaryOperation,
                 receiver,
@@ -804,11 +809,11 @@ class ExpressionTypingVisitorForStatements(
             expression,
             context.replaceExpectedType(expectedType)
                 .replaceDataFlowInfo(rightInfo.dataFlowInfo)
-                .replaceCallPosition(CallPosition.VariableAssignment(leftDeparentized, isSet = false)),
+                .replaceCallPosition(CallPosition.VariableAssignment(leftDeparentized,  false)),
             hasErrorsOnTypeChecking,
             reportErrorForTypeMismatch = true
         )
-        basic.checkLValue(context.trace, context, leftOperand, rightOperand, expression, isStatement = false)
+        basic.checkLValue(context.trace, context, leftOperand, rightOperand, expression,  false)
 
         checkPropertyInTypeWithWarnings(
             context,

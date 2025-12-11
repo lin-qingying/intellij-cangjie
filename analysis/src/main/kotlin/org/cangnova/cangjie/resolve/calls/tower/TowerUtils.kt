@@ -27,7 +27,6 @@ package org.cangnova.cangjie.resolve.calls.tower
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.scopes.ResolutionScope
 import org.cangnova.cangjie.resolve.scopes.receivers.QualifierReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
 import org.cangnova.cangjie.utils.isExtension

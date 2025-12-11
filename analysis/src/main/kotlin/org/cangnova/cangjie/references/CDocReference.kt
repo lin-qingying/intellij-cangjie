@@ -339,7 +339,7 @@ private class ExtensionsScope(
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-    override fun getPropertyNames(): Set<Name> {
+    override val propertyNames : Set<Name> get() {
         return getContributedDescriptors(kindFilter = DescriptorKindFilter.PROPERTYS).map { it.name }.toSet()
 
     }
@@ -366,13 +366,13 @@ private class ExtensionsScope(
         }
     }
 
-    override fun getFunctionNames(): Set<Name> =
+    override val functionNames : Set<Name> get()=
         getContributedDescriptors(kindFilter = DescriptorKindFilter.FUNCTIONS).map { it.name }.toSet()
 
-    override fun getVariableNames(): Set<Name> =
+    override val variableNames : Set<Name> get()=
         getContributedDescriptors(kindFilter = DescriptorKindFilter.VARIABLES).map { it.name }.toSet()
 
-    override fun getClassifierNames() = null
+    override val classifierNames get() = null
 
     override fun printScopeStructure(p: Printer) {
         p.println("Extensions for ${receiverClass.name} in:")

@@ -40,7 +40,6 @@ import org.cangnova.cangjie.resolve.calls.inference.model.ExpectedTypeConstraint
 import org.cangnova.cangjie.resolve.calls.inference.model.NewConstraintSystemImpl
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.tower.CandidateFactory
-import org.cangnova.cangjie.resolve.calls.tower.ClassCallableDescriptor
 import org.cangnova.cangjie.resolve.calls.tower.forceResolution
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeUtils
@@ -334,7 +333,6 @@ class CangJieCallCompleter(
     private fun ResolutionCandidate.addExpectedTypeFromCastConstraint(
         returnType: UnwrappedType?, resolutionCallbacks: CangJieResolutionCallbacks
     ) {
-        if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.ExpectedTypeFromCast)) return
         if (returnType == null) return
 
         val expectedType = resolutionCallbacks.getExpectedTypeFromAsExpressionAndRecordItInTrace(resolvedCall) ?: return
@@ -374,9 +372,7 @@ class CangJieCallCompleter(
             candidates.size > 1 -> diagnosticHolder.addDiagnostic(ManyCandidatesCallDiagnostic(candidates.toList()))
 
         }
-        candidates.removeIf {
-            it.descriptor is ClassCallableDescriptor
-        }
+
 
         val candidate = prepareCandidateForCompletion(factory, candidates, resolutionCallbacks)
         val resultType = when (candidate) {

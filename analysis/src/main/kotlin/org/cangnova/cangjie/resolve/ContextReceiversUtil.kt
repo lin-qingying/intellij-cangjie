@@ -24,7 +24,10 @@
 
 package org.cangnova.cangjie.resolve
 
+import org.cangnova.cangjie.config.LanguageFeature
+import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.diagnostics.infos.errors.SUBTYPING_BETWEEN_CONTEXT_RECEIVERS
+import org.cangnova.cangjie.diagnostics.infos.errors.UNSUPPORTED_FEATURE
 import org.cangnova.cangjie.psi.CjContextReceiverList
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.types.CangJieType
@@ -32,7 +35,21 @@ import org.cangnova.cangjie.types.checker.NewCangJieTypeChecker
 import org.cangnova.cangjie.types.isTypeParameter
 import org.cangnova.cangjie.types.supertypes
 
-
+fun checkContextReceiversAreEnabled(
+    trace: BindingTrace,
+    languageVersionSettings: LanguageVersionSettings,
+    contextReceiverList: CjContextReceiverList
+) {
+    TODO()
+//    if (!languageVersionSettings.supportsFeature(LanguageFeature.ContextReceivers)) {
+//        trace.report(
+//            UNSUPPORTED_FEATURE.on(
+//                contextReceiverList,
+//                LanguageFeature.ContextReceivers to languageVersionSettings
+//            )
+//        )
+//    }
+}
 fun checkSubtypingBetweenContextReceivers(
     trace: BindingTrace,
     contextReceiverList: CjContextReceiverList,

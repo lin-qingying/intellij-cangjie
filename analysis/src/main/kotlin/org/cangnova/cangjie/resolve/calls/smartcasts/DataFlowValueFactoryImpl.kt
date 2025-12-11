@@ -36,6 +36,8 @@ import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
+import org.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.expressions.ExpressionTypingUtils
 import org.cangnova.cangjie.types.isError

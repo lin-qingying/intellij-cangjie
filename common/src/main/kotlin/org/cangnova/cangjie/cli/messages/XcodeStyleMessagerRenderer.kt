@@ -52,6 +52,6 @@ class XcodeStyleMessageRenderer : MessageRenderer {
     override fun renderUsage(usage: String) = usage
 
     override fun renderConclusion() = ""
-
-    override fun getName() = "XcodeStyle"
+    override val name: String
+        get() = "XcodeStyle"
 }

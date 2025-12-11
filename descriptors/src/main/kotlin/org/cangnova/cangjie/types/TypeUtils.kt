@@ -2005,3 +2005,23 @@ fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
     }
 }
 
+fun UnwrappedType.unCapture(): UnwrappedType = when (this) {
+
+    is AbbreviatedType -> unCapture()
+    is SimpleType -> unCapture()
+    is FlexibleType -> unCapture()
+
+}
+fun FlexibleType.unCapture(): FlexibleType {
+    val unCapturedLowerBound = when (val unCaptured = lowerBound.unCapture()) {
+        is SimpleType -> unCaptured
+        is FlexibleType -> unCaptured.lowerBound
+    }
+
+    val unCapturedUpperBound = when (val unCaptured = upperBound.unCapture()) {
+        is SimpleType -> unCaptured
+        is FlexibleType -> unCaptured.upperBound
+    }
+
+    return FlexibleTypeImpl(unCapturedLowerBound, unCapturedUpperBound)
+}

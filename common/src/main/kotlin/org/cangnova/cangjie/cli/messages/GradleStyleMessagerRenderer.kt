@@ -62,6 +62,6 @@ class GradleStyleMessageRenderer : MessageRenderer {
     override fun renderUsage(usage: String) = usage
 
     override fun renderConclusion() = ""
-
-    override fun getName() = "GradleStyle"
+    override val name: String
+        get() ="GradleStyle"
 }

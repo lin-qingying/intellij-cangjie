@@ -49,8 +49,7 @@ enum class ResolutionStatus(private val success: Boolean = false) {
 
     private var severityIndex: Int = -1
 
-    fun isSuccess(): Boolean = success
-
+val isSuccess: Boolean get() = success
     fun possibleTransformToSuccess(): Boolean =
         this == UNKNOWN_STATUS || this == INCOMPLETE_TYPE_INFERENCE || this == SUCCESS
 

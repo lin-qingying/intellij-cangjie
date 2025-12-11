@@ -26,7 +26,6 @@ package org.cangnova.cangjie.resolve
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames
-import org.cangnova.cangjie.builtins.createFunctionType
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.DescriptorVisibilities.PUBLIC
@@ -34,22 +33,22 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
-import org.cangnova.cangjie.diagnostics.Errors.UNSAFE_EXPRESSION_ERROR
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjUnsafeExpression
 import org.cangnova.cangjie.resolve.calls.CallResolver
 import org.cangnova.cangjie.resolve.calls.util.CallMaker
-import org.cangnova.cangjie.resolve.descriptorUtil.builtIns
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeRefinement
+import org.cangnova.cangjie.types.TypeConstructor
+import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
+import org.cangnova.cangjie.types.createFunctionType
+import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.types.expressions.ExpressionTypingInternals
 import org.cangnova.cangjie.types.expressions.ProcessingMode
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import org.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 
 
 class UnsafeExpressionResolver(
@@ -111,7 +110,7 @@ class UnsafeExpressionResolver(
             SupertypeLoopChecker.EMPTY,
 
             ) {
-            private val upperBounds: List<CangJieType> = ArrayList<CangJieType>(1).apply {
+            override val upperBounds: List<CangJieType> = ArrayList<CangJieType>(1).apply {
                 add(containingDeclaration.builtIns.defaultBound)
             }
 
@@ -120,12 +119,11 @@ class UnsafeExpressionResolver(
 
             }
 
-            override fun getTypeConstructor(): TypeConstructor {
+            override val typeConstructor : TypeConstructor get()    {
                 return object : TypeConstructor {
-                    override fun getSupertypes(): List<CangJieType> {
-                        return emptyList()
-                    }
 
+                    override val supertypes: Collection<CangJieType>
+                        get() = emptyList()
                     override fun equals(other: Any?): Boolean {
                         return this.hashCode() == other.hashCode()
                     }
@@ -137,42 +135,33 @@ class UnsafeExpressionResolver(
                         return 1764358125
                     }
 
-                    override fun getBuiltIns(): CangJieBuiltIns {
-                        return containingDeclaration.builtIns
-                    }
 
-                    override fun isDenotable(): Boolean {
-                        return false
-                    }
+                    override val builtIns: CangJieBuiltIns
+                        get() = containingDeclaration.builtIns
 
+                    override val isDenotable: Boolean
+                        get() = false
                     override fun toString(): String {
                         return "T"
                     }
 
-                    override fun getDeclarationDescriptor(): ClassifierDescriptor {
-                        return this@TypeParameterDescriptor
 
-                    }
+                    override val declarationDescriptor: ClassifierDescriptor?
+                        get() = this@TypeParameterDescriptor
 
 
-                    @TypeRefinement
                     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
                         return this
                     }
 
-                    override fun isFinal(): Boolean {
-                        return true
-                    }
+                    override val isFinal: Boolean
+                        get() = true
+                    override val parameters: List<org.cangnova.cangjie.descriptors.TypeParameterDescriptor>
+                        get() = emptyList()
 
-                    override fun getParameters(): List<TypeParameterDescriptor> {
-                        return emptyList()
-                    }
+
 
                 }
-            }
-
-            override fun getUpperBounds(): List<CangJieType> {
-                return upperBounds
             }
 
             override fun resolveUpperBounds(): List<CangJieType> {

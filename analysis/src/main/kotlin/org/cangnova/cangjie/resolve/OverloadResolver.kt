@@ -101,7 +101,7 @@ class OverloadResolver(
                         containingDeclaration is PackageFragmentDescriptor)
             ) {
                 // 如果包含声明不是预期的类型之一，则抛出异常
-                throw IllegalStateException("Illegal class container: " + containingDeclaration)
+                throw IllegalStateException("Illegal class container: $containingDeclaration")
             }
         }
 
@@ -260,6 +260,7 @@ class OverloadResolver(
                     functions
             }
         }
+
 
         // 收集模块中具有相同名称的变量，并根据重载过滤器进行处理
         collectModulePackageMembersWithSameName(

@@ -27,6 +27,7 @@ package org.cangnova.cangjie.resolve.calls.results
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.ClassConstructorDescriptor
 import org.cangnova.cangjie.resolve.calls.context.ContextDependency
+import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import org.cangnova.cangjie.resolve.calls.model.MutableResolvedCall
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.tower.NewAbstractResolvedCall
@@ -41,8 +42,8 @@ object OverloadResolutionResultsUtil {
         results2: OverloadResolutionResults<D>
     ): OverloadResolutionResults<D> {
         val resultingCalls = mutableListOf<MutableResolvedCall<D>>()
-        resultingCalls.addAll(results1.getResultingCalls() as Collection<MutableResolvedCall<D>>)
-        resultingCalls.addAll(results2.getResultingCalls() as Collection<MutableResolvedCall<D>>)
+        resultingCalls.addAll(results1.resultingCalls as Collection<MutableResolvedCall<D>>)
+        resultingCalls.addAll(results2.resultingCalls as Collection<MutableResolvedCall<D>>)
         return OverloadResolutionResultsImpl.ambiguity(resultingCalls)
     }
 
@@ -51,15 +52,15 @@ object OverloadResolutionResultsUtil {
         context: ResolutionContext<*>
     ): CangJieType? {
         val resultingCall = getResultingCall(results, context)
-        return resultingCall?.getResultingDescriptor()?.returnType
+        return resultingCall?.resultingDescriptor?.returnType
     }
 
     fun <D : CallableDescriptor> getResultingCall(
         results: OverloadResolutionResults<D>,
         context: ResolutionContext<*>
     ): ResolvedCall<D>? {
-        if (results.isSingleResult() && context.contextDependency == ContextDependency.INDEPENDENT) {
-            val resultingCall = results.getResultingCall()
+        if (results.isSingleResult && context.contextDependency == ContextDependency.INDEPENDENT) {
+            val resultingCall = results.resultingCall
             val newResolvedCall: NewAbstractResolvedCall<*>? = when (resultingCall) {
                 is NewVariableAsFunctionResolvedCallImpl -> resultingCall.functionCall
                 is NewAbstractResolvedCall<*> -> resultingCall
@@ -69,7 +70,7 @@ object OverloadResolutionResultsUtil {
             if (newResolvedCall != null) {
                 if (!newResolvedCall.hasInferredReturnType()
                     // TODO 这里排除构造函数，是为了对class<T>进行诊断报告
-                    && resultingCall.getResultingDescriptor() !is ClassConstructorDescriptor
+                    && resultingCall.resultingDescriptor !is ClassConstructorDescriptor
                 ) {
                     return null
                 }
@@ -77,6 +78,6 @@ object OverloadResolutionResultsUtil {
                 return null
             }
         }
-        return if (results.isSingleResult()) results.getResultingCall() else null
+        return if (results.isSingleResult) results.resultingCall else null
     }
 }

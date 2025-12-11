@@ -31,6 +31,7 @@ import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.*
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 
 import org.cangnova.cangjie.types.CangJieType
 
@@ -97,9 +98,9 @@ val ASSIGNMENT_IN_EXPRESSION_CONTEXT: DiagnosticFactory0<CjBinaryExpression> =
 /**
  * 赋值运算符模糊
  */
-//@JvmField
-//val ASSIGN_OPERATOR_AMBIGUITY: DiagnosticFactory1<PsiElement, Collection<out ResolvedCall<*>>> =
-//    DiagnosticFactory1.create(Severity.ERROR)
+@JvmField
+val ASSIGN_OPERATOR_AMBIGUITY: DiagnosticFactory1<PsiElement, Collection<ResolvedCall<*>>> =
+    DiagnosticFactory1.create(Severity.ERROR)
 
 /**
  * 接口中的变量初始化器

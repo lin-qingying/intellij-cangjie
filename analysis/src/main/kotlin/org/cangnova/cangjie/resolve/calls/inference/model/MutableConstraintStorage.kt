@@ -84,7 +84,7 @@ class MutableVariableWithConstraints private constructor(
     // Such constraint is applicable for simplification
     private fun Constraint.isLowerAndFlexibleTypeWithDefNotNullLowerBound(): Boolean {
         return with(context) {
-            kind == ConstraintKind.LOWER && type.isFlexible() && type.lowerBoundIfFlexible().isDefinitelyNotNullType()
+            kind == ConstraintKind.LOWER && type.isFlexible() && type.lowerBoundIfFlexible().isDefinitelyNonOptionType()
         }
     }
 
@@ -245,8 +245,8 @@ class MutableVariableWithConstraints private constructor(
         with(context) {
             if (!type.isFlexible() || !other.type.isFlexible()) return false
             val otherLowerBound = other.type.lowerBoundIfFlexible()
-            if (!otherLowerBound.isDefinitelyNotNullType()) return false
-            require(otherLowerBound is DefinitelyNotNullTypeMarker)
+            if (!otherLowerBound.isDefinitelyNonOptionType()) return false
+            require(otherLowerBound is DefinitelyNonOptionTypeMarker)
             val thisLowerBound = type.lowerBoundIfFlexible()
             val thisUpperBound = type.upperBoundIfFlexible()
             val otherUpperBound = other.type.upperBoundIfFlexible()

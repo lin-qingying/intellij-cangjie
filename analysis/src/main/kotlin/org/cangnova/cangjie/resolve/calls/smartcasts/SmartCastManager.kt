@@ -31,6 +31,7 @@ import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.calls.ArgumentTypeResolver
 import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
 
 

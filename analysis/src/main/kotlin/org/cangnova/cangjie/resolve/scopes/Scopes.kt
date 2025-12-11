@@ -95,8 +95,6 @@ abstract class BaseHierarchicalScope(override val parent: HierarchicalScope?) : 
 //        return null
 //    }
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-    override fun getContributedPackages(name: Name, location: LookupLocation): Collection<PackageFragmentDescriptor> =
-        emptyList()
 
 
     override fun getContributedVariables(

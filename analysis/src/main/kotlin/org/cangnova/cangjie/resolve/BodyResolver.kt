@@ -315,7 +315,7 @@ class BodyResolver(
         resolvePropertyAccessors(c, property, propertyDescriptor)
     }
 
-    private fun resolveVariable(c: BodiesResolveContext, variable: CjVariable, variableDescriptor: VariableDescriptor) {
+      fun resolveVariable(c: BodiesResolveContext, variable: CjVariable, variableDescriptor: VariableDescriptor) {
         computeDeferredType(variableDescriptor.returnType)
         PreliminaryDeclarationVisitor.createForDeclaration(variable, trace, languageVersionSettings)
 

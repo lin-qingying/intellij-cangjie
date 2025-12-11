@@ -24,11 +24,15 @@
 
 package org.cangnova.cangjie.resolve.calls.inference
 
+import org.cangnova.cangjie.resolve.call.inference.CapturedType
 import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.CompoundConstraintPosition
 import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.ConstraintPosition
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariable
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.typesApproximation.approximateCapturedTypes
+import org.cangnova.cangjie.types.TypeProjectionImpl
+import org.cangnova.cangjie.types.TypeSubstitutor
+import org.cangnova.cangjie.types.Variance
+import org.cangnova.cangjie.types.approximateCapturedTypes
 
 data class ConstraintContext(
     val position: ConstraintPosition,

@@ -29,6 +29,8 @@ import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.Constrain
 import org.cangnova.cangjie.resolve.calls.inference.constraintPosition.derivedFrom
 import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariable
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.TypeProjectionImpl
 import java.util.*
 
 fun ConstraintSystem.getNestedTypeVariables(type: CangJieType): List<TypeVariable> {

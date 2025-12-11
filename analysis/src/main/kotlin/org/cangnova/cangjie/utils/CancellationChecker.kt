@@ -22,23 +22,15 @@
  *
  */
 
-package org.cangnova.cangjie.resolve.scopes
+package org.cangnova.cangjie.utils
 
-import org.cangnova.cangjie.descriptors.FunctionDescriptor
-import org.cangnova.cangjie.descriptors.impl.FunctionClassDescriptor
-import org.cangnova.cangjie.descriptors.impl.FunctionInvokeDescriptor
-import org.cangnova.cangjie.storage.StorageManager
-import org.cangnova.cangjie.types.functions.FunctionTypeKind
+import com.intellij.openapi.progress.ProgressManager
 
-
-class FunctionClassScope(
-    storageManager: StorageManager,
-    containingClass: FunctionClassDescriptor
-) : GivenFunctionsMemberScope(storageManager, containingClass) {
-    override fun computeDeclaredFunctions(): List<FunctionDescriptor> =
-        when ((containingClass as FunctionClassDescriptor).functionTypeKind) {
-            FunctionTypeKind.Function -> listOf(FunctionInvokeDescriptor.create(containingClass))
-//            FunctionTypeKind.SuspendFunction -> listOf(FunctionInvokeDescriptor.create(containingClass, isSuspend = true))
-            else -> emptyList()
-        }
+interface CancellationChecker {
+    fun check()
+}
+object ProgressManagerBasedCancellationChecker : CancellationChecker {
+    override fun check() {
+        ProgressManager.checkCanceled()
+    }
 }

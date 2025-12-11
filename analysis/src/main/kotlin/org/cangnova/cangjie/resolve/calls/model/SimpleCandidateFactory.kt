@@ -42,6 +42,8 @@ import org.cangnova.cangjie.resolve.calls.tower.CandidateWithBoundDispatchReceiv
 import org.cangnova.cangjie.resolve.calls.tower.ImplicitScopeTower
 import org.cangnova.cangjie.resolve.calls.tower.isSynthesized
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
+import org.cangnova.cangjie.types.ErrorUtils
+import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.error.ErrorScopeKind
 import org.cangnova.cangjie.types.isDynamic
 

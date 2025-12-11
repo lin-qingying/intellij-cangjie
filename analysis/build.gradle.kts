@@ -33,6 +33,8 @@ dependencies {
     implementation(libs.vavr)
     implementation(project(":psi"))
     implementation(project(":descriptors"))
+    implementation(project(":descriptors:deserialization"))
+
     implementation(project(":messages"))
     implementation(project(":common"))
     implementation(project(":util"))
