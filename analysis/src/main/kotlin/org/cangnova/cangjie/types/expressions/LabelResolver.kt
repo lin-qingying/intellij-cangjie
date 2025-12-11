@@ -161,6 +161,20 @@ object LabelResolver {
 
     }
 
+    /**
+     * 获取 PSI 元素的所有可用标签名称
+     *
+     * 根据元素类型收集可以作为标签引用的名称列表：
+     * - 函数字面量：递归获取父元素的标签
+     * - Lambda 表达式：使用调用者名称
+     * - 类：包含上下文接收者名称
+     * - 命名函数：使用函数名，可选包含扩展接收者类型名
+     * - 属性访问器：使用属性名
+     *
+     * @param element 要获取标签名称的 PSI 元素
+     * @param addClassNameLabels 是否添加类名相关的标签（扩展接收者、上下文接收者）
+     * @return 可用标签名称列表
+     */
     fun getLabelNamesIfAny(element: PsiElement, addClassNameLabels: Boolean): List<Name> {
         val result = mutableListOf<Name>()
         when (element) {
@@ -192,6 +206,16 @@ object LabelResolver {
         return result
     }
 
+    /**
+     * 根据标签名称获取匹配的 PSI 元素
+     *
+     * 从标签表达式向上遍历 PSI 树，收集所有匹配指定标签名的元素。
+     *
+     * @param labelName 要查找的标签名称
+     * @param labelExpression 标签表达式
+     * @param classNameLabelsEnabled 是否启用类名标签
+     * @return 匹配元素集合和类型化元素（如果有扩展接收者匹配）
+     */
     private fun getElementsByLabelName(
         labelName: Name,
         labelExpression: CjSimpleNameExpression,
@@ -216,11 +240,39 @@ object LabelResolver {
         return elements to typedElement
     }
 
+    /**
+     * 获取标签下的实际表达式
+     *
+     * 去除括号包装，如果是 lambda 表达式则返回函数字面量。
+     *
+     * @param labeledExpression 带标签的表达式
+     * @return 实际的表达式
+     */
     private fun getExpressionUnderLabel(labeledExpression: CjExpression): CjExpression {
         val expression = CjPsiUtil.safeDeparenthesize(labeledExpression)
         return if (expression is CjLambdaExpression) expression.functionLiteral else expression
     }
 
+    /**
+     * 解析 this@label 或 super@label 表达式
+     *
+     * 这是标签解析的核心方法，负责：
+     * 1. 在作用域中查找匹配标签名的声明
+     * 2. 确定接收者参数描述符
+     * 3. 记录绑定信息到 trace
+     * 4. 报告诊断信息（歧义、未解析引用等）
+     *
+     * ## 解析逻辑
+     *
+     * - **找到唯一匹配**：返回成功结果，记录标签目标和引用目标
+     * - **未找到匹配**：尝试从元素标签中解析，处理上下文接收者
+     * - **找到多个匹配**：报告歧义错误
+     *
+     * @param expression this 或 super 表达式
+     * @param context 解析上下文
+     * @param labelName 标签名称
+     * @return 标签解析结果，包含成功/失败状态和接收者描述符
+     */
     fun resolveThisOrSuperLabel(
         expression: CjInstanceExpressionWithLabel,
         context: ResolutionContext<*>,
@@ -311,6 +363,18 @@ object LabelResolver {
         return LabeledReceiverResolutionResult.labelResolutionFailed()
     }
 
+    /**
+     * 报告标签解析将要改变的警告
+     *
+     * 当标签解析结果可能在未来版本中改变时，报告警告信息。
+     * 这通常发生在存在更近的同名标签时。
+     *
+     * @param trace 绑定追踪器
+     * @param target 标签表达式
+     * @param declarationElement 当前解析到的声明元素
+     * @param closestElement 更近的同名元素
+     * @param isForExtensionReceiver 是否是扩展接收者
+     */
     private fun reportLabelResolveWillChange(
         trace: BindingTrace,
         target: CjSimpleNameExpression,
@@ -336,26 +400,65 @@ object LabelResolver {
         trace.report(LABEL_RESOLVE_WILL_CHANGE.on(target, declarationDescription, closestDescription))
     }
 
+    /**
+     * 标签接收者解析结果
+     *
+     * 封装标签解析的结果，包含解析状态码和可能的接收者参数描述符。
+     *
+     * ## 结果状态
+     *
+     * - [Code.SUCCESS]：解析成功，找到了有效的接收者
+     * - [Code.NO_THIS]：解析成功但没有 this 接收者（如静态上下文）
+     * - [Code.LABEL_RESOLUTION_ERROR]：解析失败（未找到、歧义等）
+     *
+     * @property code 解析结果状态码
+     * @property receiverParameterDescriptor 接收者参数描述符（仅在成功时有效）
+     */
     class LabeledReceiverResolutionResult private constructor(
         val code: Code,
         private val receiverParameterDescriptor: ReceiverParameterDescriptor?
     ) {
+        /**
+         * 解析结果状态码
+         */
         enum class Code {
+            /** 标签解析错误（未找到、歧义等） */
             LABEL_RESOLUTION_ERROR,
+            /** 解析成功但没有 this 接收者 */
             NO_THIS,
+            /** 解析成功，找到有效接收者 */
             SUCCESS
         }
 
+        /**
+         * 检查解析是否成功
+         *
+         * @return 如果解析成功返回 true
+         */
         fun success(): Boolean {
             return code == Code.SUCCESS
         }
 
+        /**
+         * 获取接收者参数描述符
+         *
+         * 仅在解析成功时调用，否则会抛出断言错误。
+         *
+         * @return 接收者参数描述符，如果是 NO_THIS 状态则返回 null
+         * @throws AssertionError 如果解析未成功
+         */
         fun getReceiverParameterDescriptor(): ReceiverParameterDescriptor? {
             assert(success()) { "Don't try to obtain the receiver when resolution failed with $code" }
             return receiverParameterDescriptor
         }
 
         companion object {
+            /**
+             * 创建成功的解析结果
+             *
+             * @param receiverParameterDescriptor 接收者参数描述符，如果为 null 则返回 NO_THIS 状态
+             * @return 解析结果
+             */
             fun labelResolutionSuccess(receiverParameterDescriptor: ReceiverParameterDescriptor?): LabeledReceiverResolutionResult {
                 if (receiverParameterDescriptor == null) {
                     return LabeledReceiverResolutionResult(Code.NO_THIS, null)
@@ -363,6 +466,11 @@ object LabelResolver {
                 return LabeledReceiverResolutionResult(Code.SUCCESS, receiverParameterDescriptor)
             }
 
+            /**
+             * 创建失败的解析结果
+             *
+             * @return 表示解析失败的结果
+             */
             fun labelResolutionFailed(): LabeledReceiverResolutionResult {
                 return LabeledReceiverResolutionResult(Code.LABEL_RESOLUTION_ERROR, null)
             }

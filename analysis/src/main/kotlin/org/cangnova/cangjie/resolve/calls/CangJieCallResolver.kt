@@ -241,14 +241,8 @@ class CangJieCallResolver(
         resolutionCallbacks: CangJieResolutionCallbacks,
         candidates: Collection<ResolutionCandidate>
     ): Set<ResolutionCandidate> {
+        // 默认启用：使用改进的SAM适配器优先级（不再过滤合成描述符）
         var refinedCandidates = candidates
-
-        if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority) && cangjieCall.callKind != CALLABLE_REFERENCE) {
-            val nonSynthesized = candidates.filter { !it.resolvedCall.candidateDescriptor.isSynthesized }
-            if (nonSynthesized.isNotEmpty()) {
-                refinedCandidates = nonSynthesized
-            }
-        }
 
         var maximallySpecificCandidates =
             if (cangjieCall.callKind == CALLABLE_REFERENCE) {

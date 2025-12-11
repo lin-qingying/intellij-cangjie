@@ -238,11 +238,8 @@ internal class DataFlowInfoImpl(
 
         val nullabilityInfo = hashMapOf<DataFlowValue, Nullability>()
 
-        val isTypeNotNull =
-            if (languageVersionSettings.supportsFeature(LanguageFeature.NewInference))
-                !TypeUtils.isOptionType(type)
-            else
-                !type.isFunctionType
+        // 默认使用改进的类型推断系统
+        val isTypeNotNull = !TypeUtils.isOptionType(type)
 
         if (isTypeNotNull) {
             putNullabilityAndTypeInfo(nullabilityInfo, value, Nullability.NOT_NULL, languageVersionSettings)

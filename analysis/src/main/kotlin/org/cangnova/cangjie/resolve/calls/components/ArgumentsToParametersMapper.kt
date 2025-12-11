@@ -302,8 +302,8 @@ class ArgumentsToParametersMapper(
 
     private val EmptyArgumentMapping = ArgumentMapping(emptyMap(), emptyList())
 
-    private val allowMixedNamedAndPositionArguments =
-        languageVersionSettings.supportsFeature(LanguageFeature.MixedNamedArgumentsInTheirOwnPosition)
+    // 默认启用：允许混合命名参数和位置参数
+    private val allowMixedNamedAndPositionArguments = true
 
     fun mapArguments(call: CangJieCall, descriptor: CallableDescriptor): ArgumentMapping =
         mapArguments(call.argumentsInParenthesis, call.externalArgument, descriptor)

@@ -311,11 +311,12 @@ private class ConstantExpressionEvaluatorVisitor(
 
 
         if (TypeUtils.noExpectedType(expectedType) || expectedType.isError) {
+            // 默认使用改进的类型推断系统
             return createFloatValueTypeConstant(
                 value,
                 constantExpressionEvaluator.module,
                 parameters,
-                languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+                true
             )
         }
         val floatValue = ConstantValueFactory.createFloatConstantValue(
@@ -341,11 +342,12 @@ private class ConstantExpressionEvaluatorVisitor(
         }
 
         if (TypeUtils.noExpectedType(expectedType) || expectedType.isError) {
+            // 默认使用改进的类型推断系统
             return createIntegerValueTypeConstant(
                 value,
                 constantExpressionEvaluator.module,
                 parameters,
-                languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+                true
             )
         }
         val integerValue = ConstantValueFactory.createIntegerConstantValue(

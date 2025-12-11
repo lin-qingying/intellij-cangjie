@@ -540,10 +540,9 @@ class PSICallResolver(
 
         override val typeApproximator: TypeApproximator get() = this@PSICallResolver.typeApproximator
 
+        // 默认使用改进的类型推断系统
         override val isNewInferenceEnabled: Boolean
-            get() = context.languageVersionSettings.supportsFeature(
-                LanguageFeature.NewInference
-            )
+            get() = true
 
 
         override fun interceptVariableCandidates(

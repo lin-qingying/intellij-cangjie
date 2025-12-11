@@ -607,12 +607,8 @@ class ExpressionTypingVisitorForStatements(
             context.trace.report(UNRESOLVED_REFERENCE.on(operationSign, operationSign))
             temporary.commit()
             return rightInfo.clearType()
-        } else if (!ArgumentTypeResolver.isFunctionLiteralOrCallableReference(right, context) &&
-            !context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
-        ) {
-            // 缓存右侧的类型信息，避免重复求值
-            facade.getTypeInfo(right, context.replaceContextDependency(ContextDependency.DEPENDENT))
         }
+        // 仓颉语言始终使用新的类型推断系统，不需要缓存右侧的类型信息
 
         val receiver = ExpressionReceiver.create(left, leftType, context.trace.bindingContext)
 

@@ -67,8 +67,8 @@ class ConstraintInjector(
         position: IncorporationConstraintPosition,
         missedConstraints: List<Pair<TypeVariableMarker, Constraint>>
     ) {
-        val properConstraintsProcessingEnabled =
-            languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing)
+        // 默认启用：使用正确的类型推断约束处理
+        val properConstraintsProcessingEnabled = true
 
         // If proper constraints processing is enabled, then we don't have missed constraints
         if (properConstraintsProcessingEnabled) return

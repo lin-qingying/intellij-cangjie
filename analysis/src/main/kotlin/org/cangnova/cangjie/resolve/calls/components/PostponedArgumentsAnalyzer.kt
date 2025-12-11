@@ -213,8 +213,8 @@ class PostponedArgumentsAnalyzer(
 
         lambda.setAnalyzedResults(returnArgumentsInfo, subResolvedKtPrimitives)
 
-        val shouldUseBuilderInference = lambda.atom.hasBuilderInferenceAnnotation
-                || languageVersionSettings.supportsFeature(LanguageFeature.UseBuilderInferenceWithoutAnnotation)
+        // 默认启用：不需要注解就使用构建器推断
+        val shouldUseBuilderInference = lambda.atom.hasBuilderInferenceAnnotation || true
 
         if (inferenceSession != null && shouldUseBuilderInference) {
             val constraintSystemBuilder = c.getBuilder()

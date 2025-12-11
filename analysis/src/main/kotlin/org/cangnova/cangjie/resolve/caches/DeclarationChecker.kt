@@ -47,11 +47,9 @@ class DeclarationCheckerContext(
     val missingSupertypesResolver: MissingSupertypesResolver
 ) : CheckerContext
 
+// 默认启用：在必须初始化检查中考虑有效的 final 修饰符
 fun PropertyDescriptor.getEffectiveModality(languageVersionSettings: LanguageVersionSettings): Modality =
-    when (languageVersionSettings.supportsFeature(LanguageFeature.TakeIntoAccountEffectivelyFinalInMustBeInitializedCheck)) {
-        true -> getEffectiveModality()
-        false -> modality
-    }
+    getEffectiveModality()
 
 private fun PropertyDescriptor.getEffectiveModality(): Modality =
     when (modality == Modality.OPEN && (containingDeclaration as? ClassDescriptor)?.modality == Modality.FINAL) {

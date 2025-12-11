@@ -2161,7 +2161,8 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             facade: ExpressionTypingInternals
         ): CangJieTypeInfo {
             var accumulatedTypeInfo: CangJieTypeInfo? = null
-            val forceResolve = !context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+            // 默认使用改进的类型推断系统
+            val forceResolve = false
 
             // The accumulated data flow info of all index expressions is saved on the last index
             if (indices.isNotEmpty()) {

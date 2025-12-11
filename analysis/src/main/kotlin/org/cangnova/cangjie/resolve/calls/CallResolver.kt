@@ -701,12 +701,8 @@ class CallResolver(
 
         if (constructorDescriptor.constructedClass.kind == ClassKind.ENUM && call.isImplicit) {
             if (currentClassDescriptor.unsubstitutedPrimaryConstructor != null) {
-                val warningOrError =
-                    if (languageVersionSettings.supportsFeature(LanguageFeature.RequiredPrimaryConstructorDelegationCallInEnums)) {
-                        PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED // error
-                    } else {
-                        PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED_IN_ENUM // warning
-                    }
+                // 默认启用严格检查：在枚举中必须有主构造函数委托调用
+                val warningOrError = PRIMARY_CONSTRUCTOR_DELEGATION_CALL_EXPECTED // error
                 val reportOn = calcReportOn(calleeExpression)
                 context.trace.report(warningOrError.on(reportOn))
             }
@@ -824,8 +820,8 @@ class CallResolver(
         val call = context.call
         tracing.bindCall(context.trace, call)
 
-        // 判断是否启用新的推断功能，并根据解析任务的种类选择解析策略
-        val newInferenceEnabled = languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+        // 默认使用改进的类型推断系统
+        val newInferenceEnabled = true
         val resolutionKind = resolutionTask.resolutionKind
 
         // 如果启用新推断功能且解析种类在默认解析种类列表中，则执行新的解析和推断过程

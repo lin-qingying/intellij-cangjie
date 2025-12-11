@@ -221,9 +221,8 @@ internal object CheckReceivers : ResolutionPart() {
                     extensionReceiverArgument = chooseExtensionReceiverCandidate() ?: return
                     resolvedCall.extensionReceiverArgument = extensionReceiverArgument
                 }
-                val checkBuilderInferenceRestriction =
-                    !callComponents.languageVersionSettings
-                        .supportsFeature(LanguageFeature.NoBuilderInferenceWithoutAnnotationRestriction)
+                // 默认不检查构建器推断限制（启用 NoBuilderInferenceWithoutAnnotationRestriction）
+                val checkBuilderInferenceRestriction = false
                 if (checkBuilderInferenceRestriction &&
                     extensionReceiverArgument.receiver.receiverValue.type is StubTypeForBuilderInference
                 ) {

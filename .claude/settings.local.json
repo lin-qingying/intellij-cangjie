@@ -8,7 +8,8 @@
       "Bash(while read f)",
       "Bash(then echo \"$f\" fi done)",
       "Bash(test:*)",
-      "Bash(./gradlew :analysis:compileKotlin:*)"
+      "Bash(./gradlew :analysis:compileKotlin:*)",
+      "Read(//d/**)"
     ],
     "deny": [],
     "ask": []

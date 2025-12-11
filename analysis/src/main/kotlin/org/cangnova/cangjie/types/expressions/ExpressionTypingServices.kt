@@ -309,7 +309,8 @@ class ExpressionTypingServices(
         statementExpression: CjExpression,
         context: ExpressionTypingContext
     ): CangJieTypeInfo? {
-        if (!context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference) || context.inferenceSession is BuilderInferenceSession) {
+        // 默认使用改进的类型推断系统，但如果是 BuilderInferenceSession 则返回 null
+        if (context.inferenceSession is BuilderInferenceSession) {
             return null
         }
 

@@ -66,10 +66,10 @@ class NewOverloadingConflictResolver(
     companion object {
         private fun createFlatSignature(candidate: ResolutionCandidate): FlatSignature<ResolutionCandidate> {
             val resolvedCall = candidate.resolvedCall
-            val isEliminationAmbiguitiesWithExternalTypeParametersEnabled =
-                candidate.callComponents.languageVersionSettings.supportsFeature(LanguageFeature.EliminateAmbiguitiesWithExternalTypeParameters)
-            val isEliminationAmbiguitiesOnInheritedSamInterfacesEnabled =
-                candidate.callComponents.languageVersionSettings.supportsFeature(LanguageFeature.EliminateAmbiguitiesOnInheritedSamInterfaces)
+            // 默认启用：消除外部类型参数的歧义
+            val isEliminationAmbiguitiesWithExternalTypeParametersEnabled = true
+            // 默认启用：消除继承的SAM接口上的歧义
+            val isEliminationAmbiguitiesOnInheritedSamInterfacesEnabled = true
             val descriptor = if (isEliminationAmbiguitiesWithExternalTypeParametersEnabled) {
                 resolvedCall.candidateDescriptor
             } else {

@@ -81,8 +81,9 @@ class DiagnosticReporterByTrackingStrategy(
 
     }
 
+    // 默认报告额外的错误信息（不启用 NoAdditionalErrorsInDiagnosticReporter）
     private val reportAdditionalErrors: Boolean
-        get() = !context.languageVersionSettings.supportsFeature(LanguageFeature.NoAdditionalErrorsInDiagnosticReporter)
+        get() = true
 
     override fun onCall(diagnostic: CangJieCallDiagnostic) {
         when (diagnostic) {
@@ -647,9 +648,8 @@ class DiagnosticReporterByTrackingStrategy(
         val expression = argument.psiExpression ?: run {
             val psiCall = (selectorCall as? PSICangJieCall)?.psiCall ?: psiCangJieCall.psiCall
 
-            if (context.languageVersionSettings.supportsFeature(LanguageFeature.ProperTypeInferenceConstraintsProcessing) &&
-                reportAdditionalErrors
-            ) {
+            // 默认启用：使用正确的类型推断约束处理
+            if (reportAdditionalErrors) {
                 report(
                     RECEIVER_TYPE_MISMATCH.on(
                         psiCall.calleeExpression ?: psiCall.callElement, error.upperCangJieType, error.lowerCangJieType

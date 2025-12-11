@@ -614,8 +614,8 @@ class CallExpressionResolver(
             } else when (resolutionResult.getResultCode()) {
                 OverloadResolutionResults.Code.NAME_NOT_FOUND, OverloadResolutionResults.Code.CANDIDATES_WITH_WRONG_RECEIVER -> false
                 else -> {
-                    val newInferenceEnabled =
-                        context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+                    // 默认使用改进的类型推断系统
+                    val newInferenceEnabled = true
                     val success = !newInferenceEnabled || resolutionResult.isSuccess()
                     if (newInferenceEnabled && success) {
                         temporaryTraceAndCache.commit()
@@ -954,8 +954,8 @@ class CallExpressionResolver(
         val receiverCanBeNull =
             receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue)
                 .canBeNull()
-        val shouldNullifySafeCallType =
-            receiverCanBeNull || context.languageVersionSettings.supportsFeature(LanguageFeature.SafeCallsAreAlwaysNullable)
+        // 默认启用：安全调用总是返回可空类型
+        val shouldNullifySafeCallType = receiverCanBeNull || true
 
         val callOperationNode =
             AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
@@ -1010,8 +1010,8 @@ class CallExpressionResolver(
         val receiverCanBeNull =
             receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue)
                 .canBeNull()
-        val shouldNullifySafeCallType =
-            receiverCanBeNull || context.languageVersionSettings.supportsFeature(LanguageFeature.SafeCallsAreAlwaysNullable)
+        // 默认启用：安全调用总是返回可空类型
+        val shouldNullifySafeCallType = receiverCanBeNull || true
 
         val callOperationNode =
             AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
@@ -1078,8 +1078,8 @@ class CallExpressionResolver(
         val receiverCanBeNull =
             receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue)
                 .canBeNull()
-        val shouldNullifySafeCallType =
-            receiverCanBeNull || context.languageVersionSettings.supportsFeature(LanguageFeature.SafeCallsAreAlwaysNullable)
+        // 默认启用：安全调用总是返回可空类型
+        val shouldNullifySafeCallType = receiverCanBeNull || true
 
         val callOperationNode =
             AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
@@ -1153,8 +1153,8 @@ class CallExpressionResolver(
         val receiverCanBeNull =
             receiverDataFlowValue != null && initialDataFlowInfoForArguments.getStableNullability(receiverDataFlowValue)
                 .canBeNull()
-        val shouldNullifySafeCallType =
-            receiverCanBeNull || context.languageVersionSettings.supportsFeature(LanguageFeature.SafeCallsAreAlwaysNullable)
+        // 默认启用：安全调用总是返回可空类型
+        val shouldNullifySafeCallType = receiverCanBeNull || true
 
         val callOperationNode =
             AstLoadingFilter.forceAllowTreeLoading(element.qualified.containingFile, ThrowableComputable {
@@ -1279,9 +1279,7 @@ class CallExpressionResolver(
                 trace.report(UNEXPECTED_SAFE_CALL.on(callOperationNode.psi))
             } else if (!type.isError) {
                 trace.report(UNNECESSARY_SAFE_CALL.on(callOperationNode.psi, type))
-                if (!languageVersionSettings.supportsFeature(LanguageFeature.SafeCallsAreAlwaysNullable)) {
-                    trace.report(SAFE_CALL_WILL_CHANGE_NULLABILITY.on(callElement))
-                }
+                // 不再报告 SAFE_CALL_WILL_CHANGE_NULLABILITY 警告，因为默认启用了 SafeCallsAreAlwaysNullable
             }
         }
 

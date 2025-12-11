@@ -236,59 +236,8 @@ class ControlStructureTypingVisitor(facade: ExpressionTypingInternals) : Express
 
 //
 
-        if (typingContext.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)) {
-            return resolveTryExpressionWithNewInference(expression, typingContext)
-        }
-        val context = typingContext.replaceContextDependency(ContextDependency.INDEPENDENT)
-        val tryBlock = expression.tryBlock
-        val catchClauses = expression.catchClauses
-        val finallyBlock = expression.finallyBlock
-        val types = mutableListOf<CangJieType>()
-        var nothingInAllCatchBranches = true
-        for (catchClause in catchClauses) {
-            val catchParameter = catchClause.catchParameter
-            val catchBody = catchClause.catchBody
-            var nothingInCatchBranch = false
-            if (catchParameter != null) {
-                val variableDescriptor = resolveAndCheckCatchParameter(catchParameter, context)
-
-                if (catchBody != null) {
-                    val catchScope = newWritableScopeImpl(context, LexicalScopeKind.CATCH, components.overloadChecker)
-                    catchScope.addVariableDescriptor(variableDescriptor)
-                    val type = facade.getTypeInfo(catchBody, context.replaceScope(catchScope)).type
-                    if (type != null) {
-                        types.add(type)
-                        if (CangJieBuiltIns.isNothing(type)) {
-                            nothingInCatchBranch = true
-                        }
-                    }
-                }
-            }
-            if (!nothingInCatchBranch) {
-                nothingInAllCatchBranches = false
-            }
-        }
-
-        val tryResult = facade.getTypeInfo(tryBlock, context)
-        val tryOutputContext =
-            getCleanedContextFromTryWithAssignmentsToVar(expression, nothingInAllCatchBranches, context)
-
-        var result = noTypeInfo(tryOutputContext)
-        if (finallyBlock != null) {
-            result = facade.getTypeInfo(finallyBlock.finalExpression!!, tryOutputContext)
-        } else if (nothingInAllCatchBranches) {
-            result = tryResult
-        }
-
-        val type = tryResult.type
-        if (type != null) {
-            types.add(type)
-        }
-        return if (types.isEmpty()) {
-            result.clearType()
-        } else {
-            result.replaceType(CommonSupertypes.commonSupertype(types))
-        }
+        // 默认使用改进的类型推断系统
+        return resolveTryExpressionWithNewInference(expression, typingContext)
     }
 
     private fun checkCatchParameterDeclaration(

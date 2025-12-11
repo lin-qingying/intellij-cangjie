@@ -39,8 +39,7 @@ class TypeApproximator(
     languageVersionSettings
 ) {
     fun approximateDeclarationType(baseType: CangJieType, local: Boolean): UnwrappedType {
-        if (!languageVersionSettings.supportsFeature(LanguageFeature.NewInference)) return baseType.unwrap()
-
+        // 仓颉语言始终使用新的类型推断系统
         val configuration =
             if (local) TypeApproximatorConfiguration.LocalDeclaration else TypeApproximatorConfiguration.PublicDeclaration.SaveAnonymousTypes
         val preparedType = if (local) baseType.unwrap() else substituteAlternativesInPublicType(baseType)

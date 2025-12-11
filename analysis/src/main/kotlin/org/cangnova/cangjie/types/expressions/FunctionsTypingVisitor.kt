@@ -168,7 +168,7 @@ class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypi
         return if (isDeclaration) {
             createTypeInfo(components.dataFlowAnalyzer.checkStatementType(function, context), context)
         } else {
-            val newInferenceEnabled = components.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)
+            // 仓颉语言始终使用新的类型推断系统
 
             // We forbid anonymous function expressions to suspend type coercion for now, until `suspend fun` syntax is supported
             val resultType = functionDescriptor.createFunctionType(
@@ -176,27 +176,23 @@ class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypi
 
                 )
 
-            if (newInferenceEnabled) {
-                // We should avoid type checking for types containing `NO_EXPECTED_TYPE`, the error will be report later if needed
-                if (!context.expectedType.contains { it === NO_EXPECTED_TYPE }) {
-                    /*
-                     * We do type checking without converted vararg type as the new inference create expected type with raw vararg type (see CangJieResolutionCallbacksImpl.cj)
-                     * Example:
-                     *      fun foo(x: Any?) {}
-                     *      val x = foo(fun(vararg p: Int) {})
-                     *      In NI, context.expectedType = `Function1<Int, Unit>`
-                     */
-                    val typeToTypeCheck = functionDescriptor.createFunctionType(
-                        components.builtIns,
+            // We should avoid type checking for types containing `NO_EXPECTED_TYPE`, the error will be report later if needed
+            if (!context.expectedType.contains { it === NO_EXPECTED_TYPE }) {
+                /*
+                 * We do type checking without converted vararg type as the new inference create expected type with raw vararg type (see CangJieResolutionCallbacksImpl.cj)
+                 * Example:
+                 *      fun foo(x: Any?) {}
+                 *      val x = foo(fun(vararg p: Int) {})
+                 *      In NI, context.expectedType = `Function1<Int, Unit>`
+                 */
+                val typeToTypeCheck = functionDescriptor.createFunctionType(
+                    components.builtIns,
 //                        suspendFunction = false,
 //                        shouldUseVarargType = true
-                    )
-                    components.dataFlowAnalyzer.checkType(typeToTypeCheck, function, context)
-                }
-                createTypeInfo(resultType, context)
-            } else {
-                components.dataFlowAnalyzer.createCheckedTypeInfo(resultType, context, function)
+                )
+                components.dataFlowAnalyzer.checkType(typeToTypeCheck, function, context)
             }
+            createTypeInfo(resultType, context)
         }
     }
 
@@ -337,8 +333,8 @@ class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypi
         // 获取新的推断lambda信息
         val newInferenceLambdaInfo = context.trace[BindingContext.NEW_INFERENCE_LAMBDA_INFO, expression.functionLiteral]
 
-        // 如果lambda不是调用参数，并且支持新推断功能，则更新上下文依赖关系
-        if (newInferenceLambdaInfo == null && context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference)) {
+        // 如果lambda不是调用参数，则更新上下文依赖关系（仓颉语言始终使用新的类型推断系统）
+        if (newInferenceLambdaInfo == null) {
             newContext = newContext.replaceContextDependency(ContextDependency.INDEPENDENT)
         }
 
