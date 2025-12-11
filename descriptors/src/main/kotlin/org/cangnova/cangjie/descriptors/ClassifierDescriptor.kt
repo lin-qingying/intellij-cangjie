@@ -84,10 +84,98 @@ interface ClassifierDescriptor : DeclarationDescriptorNonRoot {
 
 }
 
-interface ClassifierDescriptorWithTypeParameters : ClassifierDescriptor, DeclarationDescriptorWithTypeParameters,
+/**
+ * 带类型参数的分类器描述符接口
+ *
+ * 扩展了 [ClassifierDescriptor]，增加了对类型参数的支持。
+ * 此接口用于描述支持泛型的分类器，如泛型类、泛型接口等。
+ *
+ * ## 继承关系
+ * - [ClassifierDescriptor] - 基础分类器功能
+ * - [DeclarationDescriptorWithTypeParameters] - 提供类型参数声明管理
+ * - [Substitutable] - 支持类型替换操作
+ *
+ * ## 适用场景
+ * 当分类器需要声明和管理类型参数时使用，例如：
+ * ```cangjie
+ * class List<T> { ... }           // T 是类型参数
+ * interface Map<K, V> { ... }     // K 和 V 是类型参数
+ * ```
+ *
+ * ## 类型替换支持
+ * 通过 [Substitutable] 接口，支持创建具体类型实例的描述符。
+ * 例如：从 `List<T>` 创建 `List<String>` 的描述符。
+ *
+ * @see ClassifierDescriptor 分类器基础接口
+ * @see DeclarationDescriptorWithTypeParameters 类型参数管理
+ * @see Substitutable 类型替换支持
+ */
+interface ClassifierDescriptorWithTypeParameters : ClassifierDescriptor, MemberDescriptor,
+    DeclarationDescriptorWithTypeParameters,
     Substitutable<ClassifierDescriptorWithTypeParameters>
 
-
-interface ClassifierDescriptorWithTypeConstructor:ClassifierDescriptorWithTypeParameters,InheritableDescriptor, MemberDescriptor{
+/**
+ * 带类型构造器的分类器描述符接口
+ *
+ * 这是最完整的分类器描述符接口，整合了类型系统、继承关系和成员访问的所有功能。
+ * 用于描述可以被实例化、继承和作为成员的分类器类型。
+ *
+ * ## 继承关系和职责
+ *
+ * ### 1. [ClassifierDescriptorWithTypeParameters]
+ * - 提供类型构造器和类型参数管理
+ * - 支持泛型类型的定义和替换
+ *
+ * ### 2. [InheritableDescriptor]
+ * - 支持继承关系（超类、接口）
+ * - 提供类型层次结构查询
+ * - 管理虚函数和重写关系
+ *
+ * ### 3. [MemberDescriptor]
+ * - 作为包或类的成员
+ * - 提供可见性控制
+ * - 支持成员访问检查
+ *
+ * ## 适用的分类器类型
+ *
+ * 此接口通常用于以下类型：
+ * - **类（Class）** - 可继承、可实例化、有成员
+ * - **接口（Interface）** - 可继承、可实现、有成员
+ * - **结构体（Struct）** - 可实例化、有成员
+ * - **枚举（Enum）** - 可实例化、有成员
+ *
+ * 注意：**类型参数（TypeParameter）** 和 **类型别名（TypeAlias）** 通常不实现此接口，
+ * 因为它们不能被继承或不需要完整的成员描述符功能。
+ *
+ * ## 示例场景
+ *
+ * ```cangjie
+ * // 公开的泛型类，可以被继承
+ * public class ArrayList<T> : List<T> {
+ *     // 类成员...
+ * }
+ * ```
+ *
+ * 对于上述类：
+ * - 类型参数：`T`
+ * - 超类型：`List<T>`
+ * - 可见性：`public`
+ * - 可继承性：是
+ *
+ * ## 核心功能
+ *
+ * 1. **类型构造**：通过 typeConstructor 创建具体类型实例
+ * 2. **继承查询**：检查是否为某类型的子类型
+ * 3. **成员访问**：提供可见性和封装控制
+ * 4. **类型替换**：支持泛型实例化
+ *
+ * @property original 原始的未替换描述符，用于追溯类型替换链
+ *
+ * @see ClassifierDescriptorWithTypeParameters 类型参数支持
+ * @see InheritableDescriptor 继承关系管理
+ * @see MemberDescriptor 成员访问控制
+ */
+interface ClassifierDescriptorWithTypeConstructor : ClassifierDescriptorWithTypeParameters, InheritableDescriptor,
+    MemberDescriptor {
     override val original: ClassifierDescriptorWithTypeConstructor
 }

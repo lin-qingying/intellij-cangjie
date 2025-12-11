@@ -27,11 +27,9 @@ package org.cangnova.cangjie.descriptors.impl
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.psi.CjVariable
 import org.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
-import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.*
 
 
@@ -168,7 +166,7 @@ open class VariableDescriptorImpl(
     }
 
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitVariableDescriptor(this, data)
     }
 
@@ -317,7 +315,7 @@ open class VariableDescriptorImpl(
 
     }
 
-    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptorImpl? {
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor? {
         if (substitutor.isEmpty) {
             return this
         }

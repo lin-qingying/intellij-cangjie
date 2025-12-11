@@ -36,33 +36,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.name.*
 
-/**
- * 来自扩展的方法
- * 携带扩展的类型参数，与本方法类型参数分开
- */
-class CjNamedFunctionForExtend : CjNamedFunction, CjTypeParameterListOwnerForExtend {
-    constructor(node: ASTNode) : super(node)
-
-    constructor(stub: CangJieFunctionStub) : super(stub)
-
-    val extendTypeParameterList get() = this.getStrictParentOfType<CjExtend>()?.typeParameterList
-    override val extendTypeParameters: List<CjTypeParameter>
-        get() = extendTypeParameterList?.parameters ?: emptyList()
-
-    override val extendTypeConstraintList: CjTypeConstraintList? get() = this.getStrictParentOfType<CjExtend>()?.typeConstraintList
-    override val extendTypeConstraints: List<CjTypeConstraint>
-        get() {
-            val typeConstraintList = extendTypeConstraintList ?: return emptyList()
-            return typeConstraintList.constraints
-        }
-}
 
 open class CjNamedFunction : CjFunctionImpl {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieFunctionStub) : super(stub, CjStubElementTypes.FUNCTION)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitNamedFunction(this, data)
     }
 

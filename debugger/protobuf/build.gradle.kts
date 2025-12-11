@@ -43,8 +43,7 @@ dependencies {
     implementation(project(":debugger:common"))
 
 
-    implementation("com.google.protobuf:protobuf-java:3.24.4")
-    implementation("com.google.protobuf:protobuf-kotlin:3.24.4")
+    implementation(libs.bundles.protobuf)
 
     testImplementation(kotlin("test"))
 }

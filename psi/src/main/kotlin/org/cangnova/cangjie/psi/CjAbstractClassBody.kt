@@ -91,7 +91,7 @@ abstract class CjAbstractClassBody :
     val variables: List<CjVariable>
         get() = getStubOrPsiChildrenAsList(VARIABLE)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? = visitor.visitClassBody(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? = visitor.visitClassBody(this, data)
     override val declarations: List<CjDeclaration>
         get() = stub?.getChildrenByType(CjFile.FILE_DECLARATION_TYPES, CjDeclaration.ARRAY_FACTORY)?.toList()
             ?: PsiTreeUtil.getChildrenOfTypeAsList(this, CjDeclaration::class.java)

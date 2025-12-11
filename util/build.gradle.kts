@@ -28,5 +28,8 @@ dependencies {
     intellijPlatform{
         bundledPlugin("com.intellij.modules.json")
     }
+    // 使用 vavr 替代已废弃的 javaslang
+    implementation(libs.vavr)
+
     testImplementation(kotlin("test"))
 }

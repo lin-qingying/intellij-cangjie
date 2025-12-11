@@ -305,6 +305,11 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun FlexibleTypeMarker.asDynamicType(): DynamicTypeMarker?
     fun CangJieTypeMarker.hasCustomAttributes(): Boolean
     fun CangJieTypeMarker.isRawType(): Boolean
+    fun CangJieTypeMarker.isDynamic(): Boolean = asFlexibleType()?.asDynamicType() != null
+    fun CangJieTypeMarker.isFlexibleNothing() =
+        this is FlexibleTypeMarker && lowerBound().isNothing() && upperBound().isOptionNothing()
+
+    fun CangJieTypeMarker.isOptionNothing() = this.typeConstructor().isNothingConstructor() && this.isOptionType()
 
     fun TypeConstructorMarker.isIntegerLiteralConstantTypeConstructor(): Boolean
     fun TypeConstructorMarker.isIntegerConstantOperatorTypeConstructor(): Boolean
@@ -330,6 +335,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun TypeConstructorMarker.isTypeParameterTypeConstructor(): Boolean
     fun CangJieTypeMarker.upperBoundIfFlexible(): SimpleTypeMarker =
         this.asFlexibleType()?.upperBound() ?: this.asSimpleType()!!
+    fun CangJieTypeMarker.isOptionAny() = this.typeConstructor().isAnyConstructor() && this.isOptionType()
 
     fun TypeConstructorMarker.isIntersection(): Boolean
     fun CangJieTypeMarker.isNothing() = this.typeConstructor().isNothingConstructor() && !this.isOptionType()
@@ -400,15 +406,18 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
         return when (this) {
             is SimpleTypeMarker -> getArgument(index)
             is ArgumentList -> get(index)
-            else -> error("未知类型参数列表类型: $this, ${'$'}{this::class}")
+            else -> error($$"未知类型参数列表类型: $$this, ${this::class}")
         }
     }
 
+    fun CangJieTypeMarker.isCapturedDynamic(): Boolean =
+        asSimpleType()?.asCapturedType()?.typeConstructor()?.projection()
+            ?.getType()?.isDynamic() == true
     fun TypeArgumentListMarker.size(): Int {
         return when (this) {
             is SimpleTypeMarker -> argumentsCount()
             is ArgumentList -> size
-            else -> error("未知类型参数列表类型: $this, ${'$'}{this::class}")
+            else -> error($$"未知类型参数列表类型: $$this, ${this::class}")
         }
     }
 

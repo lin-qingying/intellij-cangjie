@@ -37,7 +37,7 @@ class CjTypeArgumentList : CjElementImplStub<CangJiePlaceHolderStub<CjTypeArgume
 
     constructor(stub: CangJiePlaceHolderStub<CjTypeArgumentList>) : super(stub, CjStubElementTypes.TYPE_ARGUMENT_LIST)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitTypeArgumentList(this, data)
     }
 

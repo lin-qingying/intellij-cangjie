@@ -24,12 +24,22 @@
 
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
+    testImplementation(platform(libs.junit.bom))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation(project(":telemetry"))
     implementation(project(":toolchain"))
+    implementation(project(":analysis:diagnostics"))
+    implementation(libs.vavr)
+    implementation(project(":psi"))
+    implementation(project(":descriptors"))
+    implementation(project(":messages"))
+    implementation(project(":common"))
+    implementation(project(":util"))
+    implementation(libs.jakarta.inject.api)
+    implementation(libs.reflections)
 
+    implementation(project(":psi:stubindex"))
 
     api(project(":analysis:decompiler-to-psi"))
 }

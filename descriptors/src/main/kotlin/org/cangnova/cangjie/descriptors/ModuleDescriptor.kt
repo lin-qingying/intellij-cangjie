@@ -135,7 +135,7 @@ interface ModuleDescriptor : DeclarationDescriptor{
      * @param data 传递给访问者的数据
      * @return 访问结果
      */
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitModuleDeclaration(this, data!!)
     }
 

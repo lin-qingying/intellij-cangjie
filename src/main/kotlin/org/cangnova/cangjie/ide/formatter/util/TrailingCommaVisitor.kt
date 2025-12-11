@@ -27,12 +27,12 @@ package org.cangnova.cangjie.ide.formatter.util
 
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFunctionLiteral
-import org.cangnova.cangjie.psi.CjTreeVisitorVoid
+import org.cangnova.cangjie.psi.CjTreeVisitorUnit
 import com.intellij.openapi.progress.ProgressIndicatorProvider
 import com.intellij.psi.PsiElement
 
 
-abstract class TrailingCommaVisitor : CjTreeVisitorVoid() {
+abstract class TrailingCommaVisitor : CjTreeVisitorUnit() {
     override fun visitCjElement(element: CjElement) {
         super.visitCjElement(element)
         // because CjFunctionLiteral contains CjParameterList

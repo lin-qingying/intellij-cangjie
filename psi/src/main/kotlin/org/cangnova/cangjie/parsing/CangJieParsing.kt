@@ -3148,9 +3148,7 @@ class CangJieParsing private constructor(
         advance()
 
         var type: IElementType = FUNC
-        if (topTokenId == EXTEND_KEYWORD_Id) {
-            type = FUNC_EXTEND
-        }
+
 
         if (at(RBRACE)) {
             error(CangJieParsingBundle.message("parsing.error.function.body.expected")) // 应该为函数体

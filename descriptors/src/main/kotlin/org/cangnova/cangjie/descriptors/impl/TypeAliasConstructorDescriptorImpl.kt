@@ -82,7 +82,9 @@ class TypeAliasConstructorDescriptorImpl private constructor(
         val underlyingConstructorSubstitutor = TypeSubstitutor.create(substitutedTypeAliasConstructor.returnType)
         val substitutedUnderlyingConstructor =
             underlyingConstructorDescriptor.original.substitute(underlyingConstructorSubstitutor)
-        substitutedTypeAliasConstructor.underlyingConstructorDescriptor = substitutedUnderlyingConstructor
+        if (substitutedUnderlyingConstructor != null) {
+            substitutedTypeAliasConstructor.underlyingConstructorDescriptor = substitutedUnderlyingConstructor
+        }
         return substitutedTypeAliasConstructor
     }
 

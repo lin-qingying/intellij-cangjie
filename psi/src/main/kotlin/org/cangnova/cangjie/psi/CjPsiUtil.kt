@@ -96,7 +96,7 @@ object CjPsiUtil {
     fun findRootExpressions(unreachableElements: Collection<CjElement>): MutableSet<CjElement> {
         val rootElements: MutableSet<CjElement> = HashSet()
         val shadowedElements: MutableSet<CjElement> = HashSet<CjElement>()
-        val shadowAllChildren: CjVisitorVoid = object : CjVisitorVoid() {
+        val shadowAllChildren: CjVisitorUnit = object : CjVisitorUnit() {
             override fun visitCjElement(element: CjElement) {
                 if (shadowedElements.add(element)) {
                     element.acceptChildren(this)
@@ -254,7 +254,7 @@ object CjPsiUtil {
         return false
     }
 
-    fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Unit, D>, data: D?) {
+    fun <D> visitChildren(element: CjElement, visitor: CjVisitor<Unit, D>, data: D) {
         var child = element.firstChild
         while (child != null) {
             if (child is CjElement) {

@@ -108,7 +108,7 @@ fun getFunctionTypeArgumentProjections(
  * @param returnType 函数的返回类型。
  * @return 返回一个简单的、非空的函数类型。
  */
-@JvmOverloads
+
 fun createFunctionType(
     builtIns: CangJieBuiltIns,
     annotations: Annotations,
@@ -172,10 +172,11 @@ fun Annotations.withExtensionFunctionAnnotation(builtIns: CangJieBuiltIns) =
         )
     }
 
+/**
+ * 扩展属性：获取声明描述符的不安全完全限定名（可能包含错误信息）。
+ */
 val DeclarationDescriptor.fqNameUnsafe: FqNameUnsafe
     get() = DescriptorUtils.getFqName(this)
-//fun getFunctionDescriptor( builtIns: CangJieBuiltIns,parameterCount: Int) =
-// FunctionClassDescriptor.create(builtIns ,parameterCount )
 
 fun getFunctionDescriptor(builtIns: CangJieBuiltIns, parameterCount: Int) =
     /*   if (isSuspendFunction) builtIns.getSuspendFunction(parameterCount) else*/ builtIns.getFunction(parameterCount)

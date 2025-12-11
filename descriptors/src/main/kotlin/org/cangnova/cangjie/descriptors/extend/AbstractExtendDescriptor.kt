@@ -37,12 +37,12 @@ abstract class AbstractExtendDescriptor(
 
     override fun <R, D> accept(
         visitor: DeclarationDescriptorVisitor<R, D>,
-        data: D?
+        data: D
     ): R? {
         return visitor.visitExtendDescriptor(this, data)
     }
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
         visitor.visitExtendDescriptor(this, null)
     }
 

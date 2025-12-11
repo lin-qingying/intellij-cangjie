@@ -133,7 +133,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      * @param data 传递给访问者的附加数据
      * @return 访问者访问的结果
      */
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitCjCommonFile(this)
     }
     
@@ -143,7 +143,7 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      * @param visitor 要接受的访问者
      * @param data 传递给访问者的附加数据
      */
-    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
+    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D) {
         CjPsiUtil.visitChildren(this, visitor, data)
     }
     
@@ -154,7 +154,8 @@ abstract class CjCommonFile(viewProvider: FileViewProvider, val isCompiled: Bool
      */
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
-            accept(visitor, null)
+            @Suppress("UNCHECKED_CAST")
+            accept(visitor as CjVisitor<Any?, Any?>, null as Any?)
         } else {
             visitor.visitFile(this)
         }
@@ -368,7 +369,7 @@ open class CjFile(viewProvider: FileViewProvider, isCompiled: Boolean = false, v
      * @param data 传递给访问者的附加数据
      * @return 访问者访问的结果
      */
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? =
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? =
         visitor.visitCjFile(this, data)
 
     companion object {

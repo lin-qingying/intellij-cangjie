@@ -28,7 +28,7 @@ import com.google.common.collect.Lists
 import com.intellij.lang.ASTNode
 
 open class CjCallExpression(node: ASTNode) : CjExpressionImpl(node), CjCallElement, CjReferenceExpression {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitCallExpression(this, data)
     }
 

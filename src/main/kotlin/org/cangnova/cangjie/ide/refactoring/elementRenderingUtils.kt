@@ -26,7 +26,7 @@ package org.cangnova.cangjie.ide.refactoring
 
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.CjTreeVisitorVoid
+import org.cangnova.cangjie.psi.CjTreeVisitorUnit
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
@@ -48,7 +48,7 @@ fun getExpressionShortText(element: PsiElement): String {
 }
 
 fun CjElement.renderTrimmed(): String {
-    class Renderer : CjTreeVisitorVoid() {
+    class Renderer : CjTreeVisitorUnit() {
         val builder = StringBuilder()
 
         fun render(element: CjElement): String {

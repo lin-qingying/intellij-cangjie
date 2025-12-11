@@ -42,7 +42,6 @@ class LazySubstitutingClassDescriptor(
 ) : ModuleAwareClassDescriptor(), ClassDescriptor {
 
 
-
     private var newSubstitutor: TypeSubstitutor? = null
     private lateinit var typeConstructorParameters: MutableList<TypeParameterDescriptor>
     private lateinit var myDeclaredTypeParameters: MutableList<TypeParameterDescriptor>
@@ -95,7 +94,7 @@ class LazySubstitutingClassDescriptor(
         return SubstitutingScope(memberScope, getSubstitutor())
     }
 
-    
+
     override fun getMemberScope(typeArguments: List<TypeProjection>): MemberScope {
         return getMemberScope(
             typeArguments, DescriptorUtils.getContainingModule(
@@ -107,7 +106,7 @@ class LazySubstitutingClassDescriptor(
 
     }
 
-    
+
     override fun getMemberScope(typeSubstitution: TypeSubstitution): MemberScope {
         return getMemberScope(
             typeSubstitution, DescriptorUtils.getContainingModule(
@@ -129,8 +128,6 @@ class LazySubstitutingClassDescriptor(
         return SubstitutingScope(memberScope, getSubstitutor())
     }
 
-    
-
 
     override val unsubstitutedMemberScope: MemberScope
         get() {
@@ -141,12 +138,12 @@ class LazySubstitutingClassDescriptor(
             )
         }
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
-        return visitor.visitClassDescriptor(this, data!!)
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R {
+        return visitor.visitClassDescriptor(this, data)
 
     }
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
         TODO("Not yet implemented")
     }
 
@@ -205,7 +202,7 @@ class LazySubstitutingClassDescriptor(
         get() = original.modality
 
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters {
+    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) return this
         return LazySubstitutingClassDescriptor(
             this,
@@ -249,7 +246,7 @@ class LazySubstitutingClassDescriptor(
                     .setKind(constructor.kind)
                     .setCopyOverrides(false)
                     .build() as ClassConstructorDescriptor
-                copy.substitute(getSubstitutor()).let { result.add(it) }
+                copy.substitute(getSubstitutor()).let { it?.let { element -> result.add(element) } }
             }
             return result
         }

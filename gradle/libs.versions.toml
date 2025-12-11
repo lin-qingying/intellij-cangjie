@@ -1,0 +1,101 @@
+# ============================================================
+# Gradle 版本目录 (Version Catalog)
+# ============================================================
+# 此文件集中管理所有依赖版本，提高可维护性和一致性
+# 使用方式: libs.{library-alias}
+# 例如: implementation(libs.jackson.dataformat.toml)
+# ============================================================
+
+[versions]
+# Kotlin 相关版本
+kotlin = "2.2.0"
+kotlinx-serialization = "1.8.0"
+kotlinx-coroutines = "1.7.3"
+
+# Gradle 插件版本
+saliman-properties = "1.5.2"
+intellij-changelog = "2.2.1"
+gradle-test-retry = "1.5.3"
+
+# Jackson 系列版本
+jackson = "2.15.2"
+
+# JUnit 测试框架版本
+junit4 = "4.13.2"
+junit-bom = "5.10.0"
+junit-jupiter = "5.12.0"
+
+# LSP4J 版本
+lsp4j = "0.21.0"
+
+# Google 系列
+protobuf = "3.24.4"
+flatbuffers = "25.2.10"
+
+# 其他核心依赖版本
+vavr = "0.10.4"
+jansi = "2.4.1"
+toml4j = "0.7.3"
+jakarta-inject = "2.0.1"
+reflections = "0.10.2"
+mockk = "1.13.8"
+
+# IntelliJ 插件版本
+lsp4ij-plugin = "0.19.0"
+
+[libraries]
+# Kotlin 标准库和测试
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib" }
+
+# Kotlinx 系列
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-jdk8 = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+
+# Jackson 系列
+jackson-dataformat-toml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-toml", version.ref = "jackson" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+
+# JUnit 测试框架
+junit4 = { module = "junit:junit", version.ref = "junit4" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit-bom" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-bom" }
+
+# LSP4J
+lsp4j-debug = { module = "org.eclipse.lsp4j:org.eclipse.lsp4j.debug", version.ref = "lsp4j" }
+
+# Google Protocol Buffers 和 FlatBuffers
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
+flatbuffers-java = { module = "com.google.flatbuffers:flatbuffers-java", version.ref = "flatbuffers" }
+
+# 不可变数据结构
+vavr = { module = "io.vavr:vavr", version.ref = "vavr" }
+
+# 工具库
+jansi = { module = "org.fusesource.jansi:jansi", version.ref = "jansi" }
+toml4j = { module = "io.hotmoka:toml4j", version.ref = "toml4j" }
+jakarta-inject-api = { module = "jakarta.inject:jakarta.inject-api", version.ref = "jakarta-inject" }
+reflections = { module = "org.reflections:reflections", version.ref = "reflections" }
+
+# 测试工具
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+
+[plugins]
+# Gradle 插件
+saliman-properties = { id = "net.saliman.properties", version.ref = "saliman-properties" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+intellij-changelog = { id = "org.jetbrains.changelog", version.ref = "intellij-changelog" }
+gradle-test-retry = { id = "org.gradle.test-retry", version.ref = "gradle-test-retry" }
+
+[bundles]
+# 常用依赖组合
+jackson = ["jackson-dataformat-toml", "jackson-module-kotlin"]
+kotlinx-coroutines = ["kotlinx-coroutines-core", "kotlinx-coroutines-jdk8"]
+protobuf = ["protobuf-java", "protobuf-kotlin"]
+junit = ["junit4", "junit-jupiter-api"]

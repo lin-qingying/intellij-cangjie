@@ -29,7 +29,7 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 
 class CjReturnExpression(node: ASTNode) : CjExpressionWithLabel(node), CjStatementExpression {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitReturnExpression(this, data)
     }
 

@@ -54,7 +54,7 @@ abstract class AbstractReceiverParameterDescriptor(annotations: Annotations, nam
     /**
      * 接受访问者模式的实现，用于把当前接收者描述符派发给访问者处理。
      */
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitReceiverParameterDescriptor(this, data)
 
     }
@@ -107,7 +107,7 @@ abstract class AbstractReceiverParameterDescriptor(annotations: Annotations, nam
      * @param substitutor 类型替换器
      * @return 替换后的 ReceiverParameterDescriptor 或 null
      */
-    override fun substitute(substitutor: TypeSubstitutor): ReceiverParameterDescriptor? {
+    override fun substitute(substitutor: TypeSubstitutor): AbstractReceiverParameterDescriptor? {
         if (substitutor.isEmpty) return this
 
         val substitutedType: CangJieType?

@@ -38,7 +38,7 @@ class CjPrimaryConstructor : CjConstructor<CjPrimaryConstructor> {
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieConstructorStub<CjPrimaryConstructor>) : super(stub, CjStubElementTypes.PRIMARY_CONSTRUCTOR)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? = visitor.visitPrimaryConstructor(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? = visitor.visitPrimaryConstructor(this, data)
 
     override fun getContainingTypeStatement() = parent?.parent as CjTypeStatement
 

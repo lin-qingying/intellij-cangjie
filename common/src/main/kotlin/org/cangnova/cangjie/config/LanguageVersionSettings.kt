@@ -145,6 +145,11 @@ enum class LanguageVersion(val major: Int, val minor: Int, val patch: Int) : Des
     CANGJIE_0_53_18(0, 53, 18),
 
     CANGJIE_0_60_5(0, 60, 4),
+    CANGJIE_1_0_0(1, 0, 0),
+    CANGJIE_1_0_1(1, 0, 1),
+    CANGJIE_1_0_2(1, 0, 2),
+    CANGJIE_1_0_3(1, 0, 3),
+    CANGJIE_1_0_4(1, 0, 4),
 
     ;
 

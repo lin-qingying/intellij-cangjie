@@ -27,7 +27,6 @@ import org.cangnova.cangjie.name.*
 
 import org.cangnova.cangjie.lexer.CjKeywordToken
 import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.name.*
 import org.cangnova.cangjie.name.FqName.Companion.topLevel
 import org.cangnova.cangjie.name.Name.Companion.identifier
 
@@ -52,7 +51,7 @@ class CjImportDirective : CjDeclarationStub<CangJieImportDirectiveStub> {
         CjStubElementTypes.IMPORT_DIRECTIVE,
     )
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitImportDirective(this, data)
     }
 
@@ -156,7 +155,7 @@ class CjMultiImportDirective(node: ASTNode) : CjElementImpl(node)
 //       item*
 //           item*
 class CjImportDirectiveItem : CjDeclarationStub<CangJieImportDirectiveItemStub>, CjImportInfo {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitImportDirectiveItem(this, data)
     }
 

@@ -27,7 +27,7 @@ package org.cangnova.cangjie.psi
 import com.intellij.lang.ASTNode
 
 class CjConstructorDelegationCall(node: ASTNode) : CjElementImpl(node), CjCallElement {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitConstructorDelegationCall(this, data)
     }
 

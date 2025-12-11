@@ -47,9 +47,9 @@ object ErrorModuleDescriptor: ModuleDescriptor {
 
     override val original: DeclarationDescriptor = this
     override val containingDeclaration: DeclarationDescriptor? = null
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R?  = null
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? = null
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
 
     }
     override val stableName: Name = Name.special(ErrorEntity.ERROR_MODULE.debugText)

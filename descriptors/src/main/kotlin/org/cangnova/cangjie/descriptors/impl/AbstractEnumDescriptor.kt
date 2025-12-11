@@ -24,12 +24,7 @@
 
 package org.cangnova.cangjie.descriptors.impl
 
-import org.cangnova.cangjie.descriptors.ClassKind
-import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import org.cangnova.cangjie.descriptors.DeclarationDescriptorVisitor
-import org.cangnova.cangjie.descriptors.EnumConstructorDescriptor
-import org.cangnova.cangjie.descriptors.EnumDescriptor
-import org.cangnova.cangjie.descriptors.TypeAliasDescriptor
+import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.getCangJieTypeRefiner
@@ -37,14 +32,8 @@ import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.SubstitutingScope
 import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.CangJieTypeFactory.computeExpandedType
-import org.cangnova.cangjie.types.SimpleType
-import org.cangnova.cangjie.types.TypeConstructorSubstitution
-import org.cangnova.cangjie.types.TypeProjection
-import org.cangnova.cangjie.types.TypeRefinement
-import org.cangnova.cangjie.types.TypeSubstitution
-import org.cangnova.cangjie.types.TypeSubstitutor
-import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.makeUnsubstitutedType
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
@@ -218,11 +207,11 @@ abstract class AbstractEnumDescriptor(
      * @param data 数据
      * @return 访问结果
      */
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitEnumDescriptor(this, data)
     }
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
         visitor.visitEnumDescriptor(this, null)
     }
 

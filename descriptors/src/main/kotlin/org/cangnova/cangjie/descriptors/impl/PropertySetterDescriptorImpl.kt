@@ -94,7 +94,7 @@ class PropertySetterDescriptorImpl(
     override val returnType: CangJieType?
         get() = builtIns.unitType
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitPropertySetterDescriptor(this, data)
     }
 

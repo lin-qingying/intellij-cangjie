@@ -24,16 +24,16 @@
 
 package org.cangnova.cangjie.psi
 
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
 import com.google.common.collect.Lists
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.psi.psiUtil.getTrailingCommaByClosingElement
 
 class CjArrayAccessExpression(node: ASTNode) : CjExpressionImpl(node), CjReferenceExpression {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitArrayAccessExpression(this, data)
     }
 

@@ -26,20 +26,22 @@ package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.optionUFqName
-import org.cangnova.cangjie.descriptors.ClassDescriptor
-import org.cangnova.cangjie.descriptors.ClassifierDescriptor
-import org.cangnova.cangjie.descriptors.ClassifierDescriptorWithTypeParameters
-import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
+import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
+import org.cangnova.cangjie.descriptors.impl.VArrayTypeDescriptor
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.FqNameUnsafe
+import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstructor
 import org.cangnova.cangjie.resolve.scopes.MemberScope
+import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import org.cangnova.cangjie.types.TypeUtils.contains
+import org.cangnova.cangjie.types.TypeUtils.makeOptionalAsSpecified
 import org.cangnova.cangjie.types.TypeUtils.makeProjection
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker.Companion.DEFAULT
@@ -1136,7 +1138,7 @@ object TypeUtils {
     /**
      * 无法推断函数参数类型的错误类型
      */
-    val CANNOT_INFER_FUNCTION_PARAM_TYPE: SimpleType   by lazy{
+    val CANNOT_INFER_FUNCTION_PARAM_TYPE: SimpleType by lazy {
         ErrorUtils.createErrorType(ErrorTypeKind.UNINFERRED_LAMBDA_PARAMETER_TYPE)
     }
 
@@ -1265,7 +1267,7 @@ object TypeUtils {
             return name
         }
 
-        
+
         override fun replaceDelegate(delegate: SimpleType): DelegatingSimpleType {
             throw IllegalStateException(name)
         }
@@ -1434,6 +1436,9 @@ fun makeOptionType(innerType: CangJieType): CangJieType {
     return OptionType(innerType)
 }
 
+fun CangJieType.makeOptional() = TypeUtils.makeOptional(this)
+fun CangJieType.makeNonOption() = TypeUtils.makeNonOption(this)
+
 /**
  * 创建嵌套的Option类型
  *
@@ -1593,6 +1598,7 @@ fun CangJieType.asTypeProjection(): TypeProjection = TypeProjectionImpl(this)
 
 fun CangJieType.supertypes(): Collection<CangJieType> = TypeUtils.getAllSupertypes(this)
 
+fun CangJieType.isTypeParameter(): Boolean = TypeUtils.isTypeParameter(this)
 
 fun classFqNameEquals(
     descriptor: ClassifierDescriptor, fqName: FqNameUnsafe
@@ -1604,6 +1610,15 @@ fun classFqNameEquals(
 
 }
 
+//获取类型的classkind
+val CangJieType.classKind: ClassKind
+    get() {
+        return when (val descriptor = this.constructor.declarationDescriptor) {
+            is ClassDescriptor -> descriptor.kind
+            else -> error("not a class: $this")
+        }
+
+    }
 fun isSpecialType(type: CangJieType): Boolean {
     return type is TypeUtils.SpecialType
 }
@@ -1690,9 +1705,44 @@ fun CangJieType.isStubTypeForVariableInSubtyping(): Boolean =
 
 fun CangJieType.isSignedOrUnsignedNumberType(): Boolean = isPrimitiveNumberType() /*|| isUnsignedNumberType()*/
 
-fun CangJieType.isPrimitiveNumberType(): Boolean = CangJieBuiltIns.isPrimitiveType(this) && !isBoolean()
-fun CangJieType.isBoolean(): Boolean = CangJieBuiltIns.isBoolean(this)
+/**
+ * 封装了一个类型替换的过程，其中一个 <code>CangJieType</code> 类型被另一个 <code>CangJieType</code> 类型替代。
+ * 该类表示一个映射关系，将特定类型（forType）替换为新的类型（byType）。
+ *
+ * @property forType 被替换的原始类型。
+ * @property byType 用来替代的新的类型。
+ */
+internal class CangJieTypeSubstitution(val forType: CangJieType, val byType: CangJieType)
+
+fun CangJieType.isPrimitiveNumberType(): Boolean = CangJieBuiltIns.isPrimitiveType(this) && !isBoolean
+val CangJieType.isBoolean: Boolean get() = CangJieBuiltIns.isBoolean(this)
 fun CangJieType.replaceArgumentsWithProjections() = replaceArgumentsByParametersWith(::makeProjection)
+val CangJieType.isUnit: Boolean get() = CangJieBuiltIns.isUnit(this)
+fun CangJieType.substitute(byType: CangJieType): CangJieType {
+    return substitute(CangJieTypeSubstitution(this, byType))
+}
+
+internal fun CangJieType.substitute(substitution: CangJieTypeSubstitution): CangJieType {
+    val nullable = isOption
+    val currentType = makeNonOption()
+
+    return if (DEFAULT.equalTypes(currentType, substitution.forType)
+    ) {
+        makeOptionalAsSpecified(substitution.byType, nullable)
+    } else {
+        val newArguments = arguments.zip(constructor.parameters).map { pair ->
+            val (projection, typeParameter) = pair
+            TypeProjectionImpl(Variance.INVARIANT, projection.type.substitute(substitution))
+        }
+        simpleTypeWithNonTrivialMemberScope(
+            annotations.toDefaultAttributes(),
+            constructor,
+            newArguments,
+            isOption,
+            memberScope
+        )
+    }
+}
 
 inline fun SimpleType.replaceArgumentsByExistingArgumentsWith(replacement: (TypeArgumentMarker) -> TypeArgumentMarker): SimpleType {
     if (arguments.isEmpty()) return this
@@ -1757,4 +1807,97 @@ private fun CangJieType.extractTypeParametersFromUpperBounds(
     }
 }
 
+val CangJieType.isEnum: Boolean get() = constructor.declarationDescriptor is EnumDescriptor
+val CangJieType.source: CjElement? get() = constructor.declarationDescriptor?.source?.getPsi() as? CjElement
+val CangJieType.isStruct: Boolean get() = (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.STRUCT
+
 fun CangJieType.containsTypeParameter(): Boolean = contains(this) { t -> TypeUtils.isTypeParameter(t) }
+val CangJieType.deccriptorClass: ClassDescriptor?
+    get() {
+
+        return constructor.declarationDescriptor as? ClassDescriptor
+    }
+
+fun CangJieType.isNothing(): Boolean = CangJieBuiltIns.isNothing(this)
+
+fun CangJieType.isAny(): Boolean = CangJieBuiltIns.isAny(this)
+fun CangJieType.containsError() = ErrorUtils.containsErrorType(this)
+fun CangJieType.isSubtypeOf(superType: CangJieType): Boolean = DEFAULT.isSubtypeOf(this, superType)
+
+fun createProjection(
+    type: CangJieType,
+    projectionKind: Variance,
+    typeParameterDescriptor: TypeParameterDescriptor?
+): TypeProjection =
+    TypeProjectionImpl(
+        if (typeParameterDescriptor?.variance == projectionKind) Variance.INVARIANT else projectionKind,
+        type
+    )
+
+fun List<CangJieType>.defaultProjections(): List<TypeProjection> = map(::TypeProjectionImpl)
+
+fun CangJieType.isDefaultBound(): Boolean = CangJieBuiltIns.isDefaultBound(getSupertypeRepresentative())
+
+fun CangJieTypeChecker.equalTypesOrNulls(type1: CangJieType?, type2: CangJieType?): Boolean {
+    if (type1 === type2) return true
+    if (type1 == null || type2 == null) return false
+    return equalTypes(type1, type2)
+}
+
+fun CangJieType.isInterface(): Boolean =
+    (constructor.declarationDescriptor as? ClassDescriptor)?.kind == ClassKind.INTERFACE
+
+/**
+ * 根据Name获取指定父类型 ，如果获取不到，则返回第一个父类型
+ * @param name Name
+ */
+fun CangJieType.extractSuperType(name: Name): CangJieType {
+    val superTypes = this.supertypes()
+    for (superType in superTypes) {
+        if (superType.constructor.declarationDescriptor?.name == name) {
+            return superType
+        }
+    }
+    return superTypes.firstOrNull() ?: this
+
+}
+
+fun CangJieType?.isArrayOfNothing(): Boolean {
+    if (this == null || !CangJieBuiltIns.isArray(this)) return false
+    val typeArg = arguments.firstOrNull()?.type
+    return typeArg != null && CangJieBuiltIns.isNothingOrNullableNothing(typeArg)
+}
+
+fun CangJieType.constituentTypes(): Collection<CangJieType> =
+    constituentTypes(listOf(this))
+
+private fun constituentTypes(result: MutableSet<CangJieType>, types: Collection<CangJieType>) {
+    result.addAll(types)
+    for (type in types) {
+        if (type.isFlexible()) {
+            with(type.asFlexibleType()) { constituentTypes(result, setOf(lowerBound, upperBound)) }
+        } else {
+            constituentTypes(result, type.arguments.map { it.type })
+        }
+    }
+}
+
+fun constituentTypes(types: Collection<CangJieType>): Collection<CangJieType> {
+    val result = hashSetOf<CangJieType>()
+    constituentTypes(result, types)
+    return result
+}
+
+fun createVArrayType(
+    builtIns: CangJieBuiltIns,
+    argument: CangJieType,
+    size: Int
+): VArrayType {
+    val descriptor = VArrayTypeDescriptor(
+
+        builtIns.builtInsModule, builtIns, builtIns.storageManager
+    )
+    descriptor.init(argument, size)
+    return descriptor.defaultType
+
+}

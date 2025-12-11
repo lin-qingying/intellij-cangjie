@@ -23,25 +23,18 @@
  */
 package org.cangnova.cangjie.descriptors.impl
 
-import com.github.weisj.jsvg.E
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.annotations.composeAnnotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorFactory
-import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.getCangJieTypeRefiner
 import org.cangnova.cangjie.resolve.scopes.InstanceMemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.scopes.StaticMemberScope
-import org.cangnova.cangjie.resolve.scopes.SubstitutingScope
 import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitContextReceiver
-import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.*
-import org.cangnova.cangjie.types.CangJieTypeFactory.computeExpandedType
-import org.cangnova.cangjie.types.TypeUtils.makeUnsubstitutedType
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.jetbrains.annotations.NotNull
 import org.jetbrains.annotations.Nullable
@@ -707,11 +700,11 @@ abstract class AbstractEnumConstructorDescriptor(
      * @param data 数据
      * @return 访问结果
      */
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitEnumConstructorDescriptor(this, data)
     }
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
         visitor.visitEnumConstructorDescriptor(this, null)
     }
 

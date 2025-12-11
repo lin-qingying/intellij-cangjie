@@ -24,12 +24,6 @@
 
 package org.cangnova.cangjie.ide.formatter
 
-import org.cangnova.cangjie.lexer.CjTokens.*
-import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.CjNodeTypes.*
-import org.cangnova.cangjie.psi.psiUtil.children
-import org.cangnova.cangjie.psi.psiUtil.textRangeWithoutComments
-import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_INITIALIZER
 import com.intellij.formatting.ASTBlock
 import com.intellij.formatting.DependentSpacingRule
 import com.intellij.formatting.Spacing
@@ -43,6 +37,12 @@ import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 import com.intellij.util.text.TextRangeUtil
+import org.cangnova.cangjie.lexer.CjTokens.*
+import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.CjNodeTypes.*
+import org.cangnova.cangjie.psi.psiUtil.children
+import org.cangnova.cangjie.psi.psiUtil.textRangeWithoutComments
+import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.CLASS_INITIALIZER
 
 
 val MODIFIERS_LIST_ENTRIES = TokenSet.orSet(MODIFIER_KEYWORDS)
@@ -769,7 +769,7 @@ fun SpacingBuilder.beforeInside(element: IElementType, tokenSet: TokenSet, spaci
 
 private fun excludeLambdas(parent: ASTBlock): List<TextRange> {
     val rangesToExclude = mutableListOf<TextRange>()
-//    parent.requireNode().psi.accept(object : CjTreeVisitorVoid() {
+//    parent.requireNode().psi.accept(object : CjTreeVisitorUnit() {
 //        override fun visitLambdaExpression(lambdaExpression: CjLambdaExpression) {
 //            super.visitLambdaExpression(lambdaExpression)
 //            rangesToExclude.add(lambdaExpression.textRange)

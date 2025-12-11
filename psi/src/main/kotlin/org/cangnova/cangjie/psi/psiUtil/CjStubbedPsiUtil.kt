@@ -43,7 +43,7 @@ object CjStubbedPsiUtil {
      * @param element 要查找其包含声明的PsiElement对象
      * @return 包含给定元素的CjDeclaration对象，如果找不到则返回null
      */
-    @JvmStatic
+
     fun getContainingDeclaration(element: PsiElement): CjDeclaration? {
         // 使用自定义方法getPsiOrStubParent来获取父声明，具体逻辑在该方法中实现
         return getPsiOrStubParent(element, CjDeclaration::class.java, true)
@@ -59,7 +59,7 @@ object CjStubbedPsiUtil {
      * @param <T> 泛型参数，表示声明的类型，限定为CjDeclaration的子类型。
      * @return 返回找到的声明对象，如果未找到则返回null。
      */
-    @JvmStatic
+
     fun <T : CjDeclaration> getContainingDeclaration(element: PsiElement, declarationClass: Class<T>): T? {
         return getPsiOrStubParent(element, declarationClass, true)
     }
@@ -73,7 +73,7 @@ object CjStubbedPsiUtil {
      * @param strict 指定是否严格匹配父元素类型如果为false，且给定元素正是所查找的类型，则返回该元素
      * @return 找到的指定类型的父元素，如果没有找到，则返回null
      */
-    @JvmStatic
+
     fun <T : CjElement> getPsiOrStubParent(
         element: PsiElement,
         declarationClass: Class<T>,
@@ -105,7 +105,7 @@ object CjStubbedPsiUtil {
      * @param factory ArrayFactory，用于创建指定类型数组的工厂
      * @return T? 返回第一个匹配类型的子元素或null，如果未找到匹配的子元素
      */
-    @JvmStatic
+
     fun <T : CjElement> getStubOrPsiChild(
         element: CjElementImplStub<*>,
         types: TokenSet,

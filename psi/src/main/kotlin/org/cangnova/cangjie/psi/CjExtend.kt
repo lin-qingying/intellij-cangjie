@@ -37,7 +37,7 @@ class CjExtend : CjTypeStatement {
     private val _stub: CangJieExtendStub?
         get() = stub as? CangJieExtendStub
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitExtend(this, data)
     }
 

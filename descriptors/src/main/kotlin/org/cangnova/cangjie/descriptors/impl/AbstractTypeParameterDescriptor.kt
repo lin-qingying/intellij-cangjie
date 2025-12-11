@@ -101,7 +101,7 @@ abstract class AbstractTypeParameterDescriptor protected constructor(
         get() = _defaultType.invoke()
 
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitTypeParameterDescriptor(this, data)
     }
 

@@ -627,7 +627,7 @@ abstract class PackageFragmentDescriptorImpl(
     override val containingDeclaration: ModuleDescriptor
         get() = super.containingDeclaration as ModuleDescriptor
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R {
         return visitor.visitPackageFragmentDescriptor(this, data!!)
 
     }

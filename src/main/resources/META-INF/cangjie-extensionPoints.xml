@@ -65,6 +65,10 @@
         <extensionPoint qualifiedName="org.cangnova.cangjie.sdkDownload"
                         interface="org.cangnova.cangjie.ide.project.structure.download.SdkDownloadEp"/>
 
+        <!-- 诊断渲染器提供者 -->
+        <extensionPoint qualifiedName="org.cangnova.cangjie.diagnosticRendererProvider"
+                        interface="org.cangnova.cangjie.diagnostics.rendering.DiagnosticRendererProvider"
+                        dynamic="true"/>
 
     </extensionPoints>
 </idea-plugin>

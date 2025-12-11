@@ -232,7 +232,7 @@ sealed class CangJieType : Annotated, CangJieTypeMarker {
      * @param cangjieTypeRefiner 类型精化器
      * @return 精化后的类型
      */
-    
+
     abstract fun refine(cangjieTypeRefiner: CangJieTypeRefiner): CangJieType
 }
 
@@ -299,7 +299,7 @@ sealed class UnwrappedType : CangJieType() {
      * @param cangjieTypeRefiner 类型精化器
      * @return 精化后的未包装类型
      */
-    
+
     abstract override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType
 
     /**
@@ -468,7 +468,7 @@ class BasicType(
      * @param cangjieTypeRefiner 类型精化器
      * @return 精化后的类型（自身）
      */
-    
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType = this
 
     /**
@@ -736,7 +736,7 @@ class OptionType(val innerType: CangJieType) : SimpleType() {
      * @param cangjieTypeRefiner 类型精化器
      * @return 精化后的Option类型
      */
-    
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
         val refinedInnerType = innerType.refine(cangjieTypeRefiner)
         return OptionType(refinedInnerType)
@@ -929,7 +929,7 @@ class FunctionType(
     /**
      * 类型精化（函数类型）
      */
-    
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
         val refinedParameterTypes = parameterTypes.map { it.refine(cangjieTypeRefiner) }
         val refinedReturnType = returnType.refine(cangjieTypeRefiner)
@@ -1060,10 +1060,10 @@ class TupleType(
     /**
      * 类型精化（元组类型）
      */
-    
+
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
         val refinedElementTypes = elementTypes.map { it.refine(cangjieTypeRefiner) }
-        
+
         return TupleType(
             constructor = constructor,
             attributes = attributes,
@@ -1132,7 +1132,7 @@ class TupleType(
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is TupleType) return false
-        
+
         return constructor == other.constructor &&
                 attributes == other.attributes &&
                 elementTypes == other.elementTypes &&
@@ -1451,3 +1451,36 @@ fun CangJieType.countOptionNestedLevel(): Int {
     }
 }
 
+class ThisType(private val otype: SimpleType) : SimpleType() {
+
+
+    override fun makeOptionAsSpecified(isOption: Boolean): SimpleType {
+        return otype.makeOptionAsSpecified(isOption)
+
+    }
+
+    fun getType(): CangJieType {
+        return otype.arguments[0].type
+    }
+
+    override fun replaceAttributes(newAttributes: TypeAttributes): SimpleType {
+        return otype.replaceAttributes(newAttributes)
+
+    }
+
+
+    override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): UnwrappedType {
+        return otype.refine(cangjieTypeRefiner)
+    }
+
+    override val constructor: TypeConstructor
+        get() = otype.constructor
+    override val arguments: List<TypeProjection>
+        get() = otype.arguments
+    override val attributes: TypeAttributes
+        get() = otype.attributes
+    override val isOption: Boolean
+        get() = false
+    override val memberScope: MemberScope
+        get() = otype.memberScope
+}

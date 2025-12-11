@@ -85,7 +85,7 @@ class CjAnnotations : CjElementImplStub<CangJiePlaceHolderStub<CjAnnotations>> {
 
     constructor(stub: CangJiePlaceHolderStub<CjAnnotations>) : super(stub, CjStubElementTypes.ANNOTATION)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitAnnotation(this, data)
     }
 

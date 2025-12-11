@@ -27,7 +27,7 @@ package org.cangnova.cangjie.psi
 import com.intellij.lang.ASTNode
 
 class CjBinaryExpressionWithTypeRHS(node: ASTNode) : CjExpressionImpl(node), CjOperationExpression {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitBinaryWithTypeRHSExpression(this, data)
     }
 

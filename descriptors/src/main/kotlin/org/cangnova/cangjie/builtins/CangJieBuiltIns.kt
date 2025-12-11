@@ -26,6 +26,10 @@ package org.cangnova.cangjie.builtins
 
 import org.cangnova.cangjie.builtins.StandardNames.BASIC_PACKAGE_FQ_NAME
 import org.cangnova.cangjie.builtins.StandardNames.BUILT_INS_PACKAGE_NAME
+import org.cangnova.cangjie.builtins.StandardNames.COMPARABLE
+import org.cangnova.cangjie.builtins.StandardNames.COUNTABLE
+import org.cangnova.cangjie.builtins.StandardNames.EQUATABLE
+import org.cangnova.cangjie.builtins.StandardNames.FUTURE
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.anyUFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.arrayClassFqNameToPrimitiveType
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.arrayUFqName
@@ -49,6 +53,7 @@ import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint16UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint32UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.uint8UFqName
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.unitUFqName
+import org.cangnova.cangjie.builtins.StandardNames.RANGE
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.*
@@ -67,7 +72,7 @@ import org.cangnova.cangjie.types.functions.FunctionTypeKind
 open class CangJieBuiltIns(
     val projectDescriptor: ProjectDescriptor,
     val storageManager: StorageManager,
-    ) {
+) {
 
 
     companion object {
@@ -522,6 +527,9 @@ open class CangJieBuiltIns(
         return CangJieTypeChecker.DEFAULT.isSubtypeOf(type, boolType)
     }
 
+    private fun getStdCoreClassByName(simpleName: Name): ClassDescriptor {
+        return myStdCoreBuiltInClassesByName.invoke(simpleName)
+    }
 
     private fun getStdCoreClassByName(simpleName: String): ClassDescriptor {
         return myStdCoreBuiltInClassesByName.invoke(Name.identifier(simpleName))
@@ -529,6 +537,10 @@ open class CangJieBuiltIns(
 
     private fun getBasicClassByName(simpleName: Name): ClassDescriptor {
         return myBasicClassesByName.invoke(simpleName)
+    }
+
+    private fun getStdSyncClassByName(simpleName: Name): ClassDescriptor {
+        return myStdSyncBuiltInClassesByName.invoke(simpleName)
     }
 
     private fun getStdSyncClassByName(simpleName: String): ClassDescriptor {
@@ -620,7 +632,58 @@ open class CangJieBuiltIns(
         get() {
             return any.defaultType
         }
+    val `object`: ClassDescriptor
+        get() {
+            return getStdCoreClassByName("Object")
 
+
+        }
+    val objectType: CangJieType
+        get() {
+            return `object`.defaultType
+        }
+    val tokens: ClassDescriptor
+        get() {
+            return getStdAstClassByName("Tokens")
+
+        }
+    val tokensType: SimpleType
+        get() {
+            return tokens.defaultType
+
+        }
+
+    val range: ClassDescriptor
+        get() = getStdCoreClassByName(RANGE)
+    val rangeType: SimpleType
+        get() {
+            return range.defaultType
+        }
+    val future: ClassDescriptor
+        get() = getStdSyncClassByName(FUTURE)
+    val futureType: SimpleType
+        get() {
+            return future.defaultType
+        }
+    val equatable: ClassDescriptor
+        get() = getStdCoreClassByName(EQUATABLE)
+    val equatableType: SimpleType
+        get() {
+            return equatable.defaultType
+        }
+    val comparable: ClassDescriptor
+        get() = getStdCoreClassByName(COMPARABLE)
+    val ccomparableType: SimpleType
+        get() {
+            return comparable.defaultType
+        }
+
+    val countable: ClassDescriptor
+        get() = getStdCoreClassByName(COUNTABLE)
+    val countableType: SimpleType
+        get() {
+            return countable.defaultType
+        }
 }
 
 enum class BinaryOperatorRuleResultType {

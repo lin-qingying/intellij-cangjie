@@ -27,20 +27,14 @@ package org.cangnova.cangjie.descriptors.annotations
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.name.FqName
-import org.cangnova.cangjie.name.FqNameUnsafe
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.annotationClass
 import org.cangnova.cangjie.resolve.constants.ConstantValue
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ErrorUtils
+import org.cangnova.cangjie.types.fqNameUnsafe
 import org.cangnova.cangjie.types.model.AnnotationMarker
 
-/**
- * 扩展属性：获取声明描述符的不安全完全限定名（可能包含错误信息）。
- */
-val DeclarationDescriptor.fqNameUnsafe: FqNameUnsafe
-    get() = DescriptorUtils.getFqName(this)
 
 /**
  * 扩展方法：返回安全的完全限定名或 null（当 fqNameUnsafe 不安全时）。

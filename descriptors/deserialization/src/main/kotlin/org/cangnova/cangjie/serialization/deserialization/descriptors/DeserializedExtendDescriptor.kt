@@ -41,7 +41,6 @@ import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeRefinement
 import org.cangnova.cangjie.utils.flatMapToNullable
 
 class DeserializedExtendDescriptor(

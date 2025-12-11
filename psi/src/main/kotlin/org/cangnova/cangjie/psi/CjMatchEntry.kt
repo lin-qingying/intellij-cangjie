@@ -45,7 +45,7 @@ class CjMatchEntry(node: ASTNode) : CjElementImpl(node), CjPatternEntryBlock {
     val expression: CjCaseBlockExpression?
         get() = findChildByClass(CjCaseBlockExpression::class.java)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitMatchEntry(this, data)
     }
 

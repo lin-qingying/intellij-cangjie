@@ -112,7 +112,7 @@ open class PropertyDescriptorImpl(
             setter?.let { add(it) }
         }
 
-    override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor? {
         if (substitutor.isEmpty) return this
 
         return requireNotNull(
@@ -246,7 +246,7 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
         if (copyConfiguration.copyOverrides) {
             val overridden = SmartSet.create<CallableMemberDescriptor>().apply {
                 overriddenDescriptors.forEach { propertyDescriptor ->
-                    add(propertyDescriptor.substitute(substitutor))
+                    propertyDescriptor.substitute(substitutor)?.let { add(it) }
                 }
             }
             substitutedDescriptor.setOverriddenDescriptors(overridden)
@@ -267,7 +267,7 @@ initialSignatureDescriptor = getSubstitutedInitialSignatureDescriptor(substituto
         newOwner, original, annotations, newModality, newVisibility, isVar, newName, kind, source
     )
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? =
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? =
         visitor.visitPropertyDescriptor(this, data)
 
     override val overriddenDescriptors: Collection<PropertyDescriptor>

@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve
 
 
+import com.intellij.psi.stubs.StubElement
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames.FqNames.fromByName
 import org.cangnova.cangjie.builtins.UnsignedTypes
@@ -32,7 +33,10 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import org.cangnova.cangjie.descriptors.impl.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
+import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.*
+import org.cangnova.cangjie.psi.CjDeclaration
+import org.cangnova.cangjie.psi.CjDeclarationStub
 import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingModule
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
@@ -648,7 +652,10 @@ fun ModuleDescriptor.resolveClassByFqName(fqName: FqName, lookupLocation: Lookup
     if (fqName.isRoot) return null
 
     (getPackage(fqName.parent())
-        .memberScope.getContributedClassifier(fqName.shortName(), lookupLocation) as? ClassDescriptor)?.let { return it }
+        .memberScope.getContributedClassifier(
+            fqName.shortName(),
+            lookupLocation
+        ) as? ClassDescriptor)?.let { return it }
 
     return resolveClassByFqName(fqName.parent(), lookupLocation)
         ?.unsubstitutedMemberScope
@@ -676,6 +683,7 @@ val ClassifierDescriptor?.classId: ClassId?
             }
         }
     }
+
 fun ValueParameterDescriptor.declaresOrInheritsDefaultValue(): Boolean {
     return DFS.ifAny(
         listOf(this),
@@ -684,5 +692,59 @@ fun ValueParameterDescriptor.declaresOrInheritsDefaultValue(): Boolean {
     )
 }
 
+fun DeclarationDescriptor.isAnnotatinoDescriptor(): Boolean {
+    TODO("实现是否是注解声明")
+}
+
 val ClassDescriptor.secondaryConstructors: List<ClassConstructorDescriptor>
     get() = constructors.filterNot { it.isPrimary }
+
+fun DeclarationDescriptor.unwrapIfTypeAlias(): DeclarationDescriptor? =
+    when (this) {
+        is TypeAliasDescriptor -> this.classDescriptor?.unwrapIfTypeAlias()
+        else -> this
+    }
+
+fun ClassDescriptor.getSuperClassOrAny(): ClassDescriptor = getSuperClassNotAny() ?: builtIns.any
+fun ClassDescriptor.getSuperClassNotAny(): ClassDescriptor? {
+    for (supertype in defaultType.constructor.supertypes) {
+        if (!CangJieBuiltIns.isAny(supertype)) {
+            val superClassifier = supertype.constructor.declarationDescriptor
+            if (DescriptorUtils.isClassOrEnum(superClassifier)) {
+                return superClassifier as ClassDescriptor
+            }
+        }
+    }
+    return null
+}
+
+val DeclarationDescriptor.fqNameSafe: FqName
+    get() = DescriptorUtils.getFqNameSafe(this)
+
+val <T : StubElement<*>>CjDeclarationStub<T>.modifierVisibility: DescriptorVisibility
+    get() {
+
+        if (hasModifier(CjTokens.PRIVATE_KEYWORD)) return DescriptorVisibilities.PRIVATE
+        if (hasModifier(CjTokens.INTERNAL_KEYWORD)) return DescriptorVisibilities.INTERNAL
+        if (hasModifier(CjTokens.PROTECTED_KEYWORD)) return DescriptorVisibilities.PROTECTED
+        if (hasModifier(CjTokens.PUBLIC_KEYWORD)) return DescriptorVisibilities.PUBLIC
+        return DescriptorVisibilities.PUBLIC
+    }
+
+val ClassifierDescriptorWithTypeParameters.denotedClassDescriptor: ClassDescriptor?
+    get() = when (this) {
+        is ClassDescriptor -> this
+        is TypeAliasDescriptor -> classDescriptor
+        else -> throw UnsupportedOperationException("Unexpected descriptor kind: $this")
+    }
+
+val ClassifierDescriptorWithTypeParameters.classValueTypeDescriptor: ClassDescriptor?
+    get() = denotedClassDescriptor?.let {
+        when (it.kind) {
+
+
+            else -> it
+//            else -> it.companionObjectDescriptor
+        }
+    }
+

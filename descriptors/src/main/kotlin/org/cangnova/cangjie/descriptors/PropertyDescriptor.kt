@@ -86,7 +86,7 @@ interface PropertyDescriptor :EnumMember, PropertyDescriptorWithAccessors, Calla
      * 类型替换
      * 使用给定的类型替换器创建此属性的新版本
      */
-    override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor
+    override fun substitute(substitutor: TypeSubstitutor): PropertyDescriptor?
 
     /**
      * 创建复制构建器

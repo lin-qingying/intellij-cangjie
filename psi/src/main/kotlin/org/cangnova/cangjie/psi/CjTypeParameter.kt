@@ -32,13 +32,14 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.search.LocalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.PsiTreeUtil
+import org.cangnova.cangjie.types.Variance
 
 class CjTypeParameter : CjNamedDeclarationStub<CangJieTypeParameterStub> {
     constructor(node: ASTNode) : super(node)
 
     constructor(stub: CangJieTypeParameterStub) : super(stub, CjStubElementTypes.TYPE_PARAMETER)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitTypeParameter(this, data)
     }
 
@@ -72,6 +73,8 @@ class CjTypeParameter : CjNamedDeclarationStub<CangJieTypeParameterStub> {
         get() = getStubOrPsiChildrenAsList(
             CjStubElementTypes.TYPE_REFERENCE,
         )
+    val variance: Variance
+        get() = Variance.INVARIANT
 
     override fun getUseScope(): SearchScope {
         val owner = PsiTreeUtil.getParentOfType(

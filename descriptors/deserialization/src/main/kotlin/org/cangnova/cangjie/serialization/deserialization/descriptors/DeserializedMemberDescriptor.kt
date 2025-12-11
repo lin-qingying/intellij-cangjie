@@ -248,7 +248,7 @@ class DeserializedTypeAliasDescriptor(
     override val defaultType: SimpleType
         get() = defaultTypeImpl
 
-    override fun substitute(substitutor: TypeSubstitutor): TypeAliasDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? {
         if (substitutor.isEmpty) return this
         val substituted = DeserializedTypeAliasDescriptor(
             storageManager, containingDeclaration, annotations, name, visibility,

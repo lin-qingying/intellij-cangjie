@@ -35,7 +35,6 @@ public interface CjStubElementTypes {
 
     CjClassElementType CLASS = new CjClassElementType("CLASS");
     CjFunctionElementType FUNCTION = new CjFunctionElementType("FUNC");
-    CjFunctionForExtendElementType FUNCTION_EXTEND = new CjFunctionForExtendElementType("FUNCTION_EXTEND");
 
     CjVariableElementType VARIABLE = new CjVariableElementType("VARIABLE");
     CjPropertyElementType PROPERTY = new CjPropertyElementType("PROPERTY");

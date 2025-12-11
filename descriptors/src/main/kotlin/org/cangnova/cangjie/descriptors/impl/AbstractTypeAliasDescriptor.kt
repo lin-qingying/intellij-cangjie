@@ -32,7 +32,10 @@ import org.cangnova.cangjie.resolve.builtIns
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.storage.getValue
-import org.cangnova.cangjie.types.*
+import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.SimpleType
+import org.cangnova.cangjie.types.TypeConstructor
+import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 abstract class AbstractTypeAliasDescriptor(
@@ -56,7 +59,7 @@ abstract class AbstractTypeAliasDescriptor(
         this.declaredTypeParametersImpl = declaredTypeParameters
     }
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R =
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R =
         visitor.visitTypeAliasDescriptor(this, data)
 
 

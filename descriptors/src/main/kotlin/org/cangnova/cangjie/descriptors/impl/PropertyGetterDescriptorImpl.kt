@@ -59,10 +59,7 @@ class PropertyGetterDescriptorImpl(
         get() =emptyList()
 
 
-
-
-
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitPropertyGetterDescriptor(this, data)
     }
 

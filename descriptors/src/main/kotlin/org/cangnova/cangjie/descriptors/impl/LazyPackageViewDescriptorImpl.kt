@@ -553,7 +553,7 @@ class LazyPackageViewDescriptorImpl(
     override val fqName: FqName,
     val storageManager: StorageManager
 ) : DeclarationDescriptorImpl(Annotations.EMPTY, fqName.shortNameOrSpecial()), PackageViewDescriptor {
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R =
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R =
         visitor.visitPackageViewDescriptor(this, data!!)
 
 

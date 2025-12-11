@@ -63,17 +63,18 @@ class CjLambdaExpression(text: CharSequence?) :
     val rightCurlyBrace: ASTNode?
         get() = functionLiteral.node.findChildByType(RBRACE)
 
-    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
+    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D) {
         CjPsiUtil.visitChildren<D>(this, visitor, data)
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitLambdaExpression(this, data)
     }
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
-            accept(visitor, null)
+            @Suppress("UNCHECKED_CAST")
+            accept(visitor as CjVisitor<Any?, Any?>, null as Any?)
         } else {
             visitor.visitElement(this)
         }

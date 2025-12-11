@@ -31,52 +31,52 @@
         <!--         Stub索引服务 -->
         <applicationService
                 serviceInterface="org.cangnova.cangjie.psi.stubs.elements.StubIndexService"
-                serviceImplementation="org.cangnova.cangjie.ide.stubindex.IdeStubIndexService"/>
+                serviceImplementation="org.cangnova.cangjie.stubindex.IdeStubIndexService"/>
 
 
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelTypeAliasByPackageIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelVariableByPackageIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieMainFunctionFqnNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionByPackageIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelTypeAliasByPackageIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelVariableByPackageIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionFqnNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieMainFunctionFqnNameIndex"/>
 
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieMacroDeclarationByPackageIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieMacroDeclarationFqnNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieMacroDeclarationByPackageIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieMacroDeclarationFqnNameIndex"/>
 
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieMacroDeclarationShortNameIndex"/>
-
-
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieFunctionShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieProbablyNothingFunctionShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJiePrimeSymbolNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieExactPackagesIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieClassShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieEnumEntryShortNameIndex"/>
-
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieSuperClassIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelTypeAliasFqNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelPropertyFqnNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelPropertyByPackageIndex"/>
-
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelVariableFqnNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelClassByPackageIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieFullClassNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJiePropertyShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieVariableShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTopLevelExtensionsByReceiverTypeIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieProbablyNothingPropertyShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieVariableNothingVariableShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTypeAliasShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieTypeAliasByExpansionShortNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieImportFqNameForPackageNameIndex"/>
-        <stubIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieExtendClassNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieMacroDeclarationShortNameIndex"/>
 
 
-        <fileBasedIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJiePackageSourcesMemberNamesIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieFunctionShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieProbablyNothingFunctionShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJiePrimeSymbolNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieOverridableInternalMembersShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieExactPackagesIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieClassShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieEnumEntryShortNameIndex"/>
 
-        <fileBasedIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJiePartialPackageNamesIndex"/>
-        <fileBasedIndex implementation="org.cangnova.cangjie.ide.stubindex.CangJieShortClassNameFileIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieSuperClassIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelTypeAliasFqNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelPropertyFqnNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelPropertyByPackageIndex"/>
+
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelVariableFqnNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelClassByPackageIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieFullClassNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJiePropertyShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieVariableShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTopLevelExtensionsByReceiverTypeIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieProbablyNothingPropertyShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieVariableNothingVariableShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTypeAliasShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieTypeAliasByExpansionShortNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieImportFqNameForPackageNameIndex"/>
+        <stubIndex implementation="org.cangnova.cangjie.stubindex.CangJieExtendClassNameIndex"/>
+
+
+        <fileBasedIndex implementation="org.cangnova.cangjie.stubindex.CangJiePackageSourcesMemberNamesIndex"/>
+
+        <fileBasedIndex implementation="org.cangnova.cangjie.stubindex.CangJiePartialPackageNamesIndex"/>
+        <fileBasedIndex implementation="org.cangnova.cangjie.stubindex.CangJieShortClassNameFileIndex"/>
 
 
         <notificationGroup

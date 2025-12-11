@@ -47,7 +47,6 @@ import org.cangnova.cangjie.serialization.deserialization.DeserializationContext
 import org.cangnova.cangjie.types.AbstractClassTypeConstructor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeRefinement
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.utils.flatMapToNullable
 

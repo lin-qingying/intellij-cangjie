@@ -45,7 +45,7 @@ class CjCallableReferenceExpression(node: ASTNode) : CjExpressionImpl(node), CjD
         //        return findChildByType(CjTokens.COLONCOLON);
     }
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitCallableReferenceExpression(this, data)
     }
 }

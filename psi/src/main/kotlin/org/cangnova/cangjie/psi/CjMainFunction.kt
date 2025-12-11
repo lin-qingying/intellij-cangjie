@@ -34,7 +34,7 @@ class CjMainFunction : CjFunctionImpl {
     constructor(node: ASTNode) : super(node)
     constructor(stub: CangJieFunctionStub, nodeType: IStubElementType<*, *>) : super(stub, nodeType)
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitMainFunction(this, data)
     }
     override fun hasDeclaredReturnType(): Boolean {

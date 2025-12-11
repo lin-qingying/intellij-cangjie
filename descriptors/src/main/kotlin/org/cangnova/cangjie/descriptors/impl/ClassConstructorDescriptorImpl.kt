@@ -134,11 +134,11 @@ open class ClassConstructorDescriptorImpl protected constructor(
     override val original: ClassConstructorDescriptor
         get() = super.original as ClassConstructorDescriptor
 
-    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor {
+    override fun substitute(substitutor: TypeSubstitutor): ClassConstructorDescriptor? {
         return super.substitute(substitutor) as ClassConstructorDescriptor
     }
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitConstructorDescriptor(this, data)
     }
 

@@ -111,7 +111,7 @@ class PrimitiveClassDescriptor(
         // 数值类型之间可以相互转换
         if (primitiveType.isNumeric()) {
             // 获取所有其他数值类型
-            val numericTypes = PrimitiveType.values().filter {
+            val numericTypes = PrimitiveType.entries.filter {
                 it.isNumeric() && it != primitiveType
             }
 

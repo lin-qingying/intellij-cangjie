@@ -31,7 +31,6 @@ import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeConstructor
-import org.cangnova.cangjie.types.TypeRefinement
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 class FloatValueTypeConstructor(
     private val value: Double,

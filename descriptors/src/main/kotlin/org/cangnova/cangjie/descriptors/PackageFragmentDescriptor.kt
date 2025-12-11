@@ -56,6 +56,7 @@ interface PackageFragmentDescriptor : PackageData, ClassOrPackageFragmentDescrip
 
 
     override val containingDeclaration: ModuleDescriptor
+    val declarationProvider: DeclarationProvider get() = DeclarationProvider.EMPTY
 
 }
 /**

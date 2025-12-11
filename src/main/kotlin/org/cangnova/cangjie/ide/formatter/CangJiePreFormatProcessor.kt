@@ -24,19 +24,19 @@
 
 package org.cangnova.cangjie.ide.formatter
 
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.psiUtil.allChildren
-import org.cangnova.cangjie.psi.psiUtil.nextSiblingOfSameType
-import org.cangnova.cangjie.utils.lastIsInstanceOrNull
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.codeStyle.PreFormatProcessor
 import com.intellij.psi.tree.IElementType
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.psiUtil.allChildren
+import org.cangnova.cangjie.psi.psiUtil.nextSiblingOfSameType
+import org.cangnova.cangjie.utils.lastIsInstanceOrNull
 
 
-private class Visitor(var range: TextRange) : CjTreeVisitorVoid() {
+private class Visitor(var range: TextRange) : CjTreeVisitorUnit() {
     override fun visitNamedDeclaration(declaration: CjNamedDeclaration) {
         fun PsiElement.containsToken(type: IElementType) = allChildren.any { it.node.elementType == type }
 

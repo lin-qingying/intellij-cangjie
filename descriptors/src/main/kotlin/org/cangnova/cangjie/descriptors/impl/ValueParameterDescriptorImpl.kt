@@ -165,7 +165,7 @@ open class ValueParameterDescriptorImpl(
         get() = isDefaultValue && (containingDeclaration as CallableMemberDescriptor).kind.isReal
 
 
-    override fun substitute(substitutor: TypeSubstitutor): ValueParameterDescriptorImpl {
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor? {
         if (substitutor.isEmpty) return this
         throw UnsupportedOperationException() // TODO
     }
@@ -179,7 +179,7 @@ open class ValueParameterDescriptorImpl(
     override val containingDeclaration
         get() = super.containingDeclaration as CallableDescriptor
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R {
 
         return visitor.visitValueParameterDescriptor(this, data!!)
 

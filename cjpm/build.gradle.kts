@@ -47,8 +47,7 @@ dependencies {
 
     implementation(project(":"))
     // TOML 解析
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-toml:2.15.2")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.2")
+    implementation(libs.bundles.jackson)
 
     testImplementation(kotlin("test"))
 }

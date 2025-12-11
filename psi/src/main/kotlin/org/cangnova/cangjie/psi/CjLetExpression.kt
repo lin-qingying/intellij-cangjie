@@ -27,7 +27,7 @@ package org.cangnova.cangjie.psi
 import com.intellij.lang.ASTNode
 
 class CjLetExpression(node: ASTNode) : CjElementImpl(node) {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitLetExpression(this, data)
     }
 

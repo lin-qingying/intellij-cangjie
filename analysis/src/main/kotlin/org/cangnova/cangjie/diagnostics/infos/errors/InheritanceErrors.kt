@@ -1,0 +1,389 @@
+/*
+ * Copyright 2025 LinQingYing. and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * The use of this source code is governed by the Apache License 2.0,
+ * which allows users to freely use, modify, and distribute the code,
+ * provided they adhere to the terms of the license.
+ *
+ * The software is provided "as-is", and the authors are not responsible for
+ * any damages or issues arising from its use.
+ *
+ */
+
+@file:Suppress("unused")
+@file:DiagnosticHolder
+
+package org.cangnova.cangjie.diagnostics.infos.errors
+
+import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.diagnostics.*
+import org.cangnova.cangjie.diagnostics.PositioningStrategies.DECLARATION_NAME
+import org.cangnova.cangjie.diagnostics.rendering.DeclarationWithDiagnosticComponents
+import org.cangnova.cangjie.name.FqName
+import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.types.CangJieType
+
+// ========================================
+// 继承和重写相关错误
+// ========================================
+
+
+/**
+ * 抽象成员未实现
+ */
+@JvmField
+val ABSTRACT_MEMBER_NOT_IMPLEMENTED: DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 抽象类成员未实现
+ */
+@JvmField
+val ABSTRACT_CLASS_MEMBER_NOT_IMPLEMENTED: DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 多个实现成员未实现
+ */
+@JvmField
+val MANY_IMPL_MEMBER_NOT_IMPLEMENTED: DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 多个接口成员未实现
+ */
+@JvmField
+val MANY_INTERFACES_MEMBER_NOT_IMPLEMENTED: DiagnosticFactory2<CjTypeStatement, CjTypeStatement, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 重写 final 成员
+ */
+@JvmField
+val OVERRIDING_FINAL_MEMBER: DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, DeclarationDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.OVERRIDE_MODIFIER)
+
+/**
+ * 委托重写 final 成员
+ */
+@JvmField
+val OVERRIDING_FINAL_MEMBER_BY_DELEGATION: DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 没有可重写的内容
+ */
+@JvmField
+val NOTHING_TO_OVERRIDE: DiagnosticFactory1<CjModifierListOwner, CallableMemberDescriptor> =
+    DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.OVERRIDE_MODIFIER)
+
+/**
+ * redef 没有可重写的内容
+ */
+@JvmField
+val REDEF_NOTHING_TO_OVERRIDE: DiagnosticFactory1<CjModifierListOwner, CallableMemberDescriptor> =
+    DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.OVERRIDE_MODIFIER)
+
+/**
+ * 无法重写不可见的成员
+ */
+@JvmField
+val CANNOT_OVERRIDE_INVISIBLE_MEMBER: DiagnosticFactory2<CjModifierListOwner, CallableMemberDescriptor, CallableDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.OVERRIDE_MODIFIER)
+
+/**
+ * 无法更改访问权限
+ */
+@JvmField
+val CANNOT_CHANGE_ACCESS_PRIVILEGE: DiagnosticFactory3<CjModifierListOwner, DescriptorVisibility, CallableMemberDescriptor, DeclarationDescriptor> =
+    DiagnosticFactory3.create(Severity.ERROR, PositioningStrategies.VISIBILITY_MODIFIER)
+
+/**
+ * 无法削弱访问权限
+ */
+@JvmField
+val CANNOT_WEAKEN_ACCESS_PRIVILEGE: DiagnosticFactory3<CjModifierListOwner, DescriptorVisibility, CallableMemberDescriptor, DeclarationDescriptor> =
+    DiagnosticFactory3.create(Severity.ERROR, PositioningStrategies.VISIBILITY_MODIFIER)
+
+/**
+ * 重写时返回类型不匹配
+ */
+@JvmField
+val RETURN_TYPE_MISMATCH_ON_OVERRIDE: DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, DeclarationWithDiagnosticComponents> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_RETURN_TYPE)
+
+/**
+ * 继承时返回类型不匹配
+ */
+@JvmField
+val RETURN_TYPE_MISMATCH_ON_INHERITANCE: DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 委托时返回类型不匹配
+ */
+@JvmField
+val RETURN_TYPE_MISMATCH_BY_DELEGATION: DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 重写时属性类型不匹配
+ */
+@JvmField
+val PROPERTY_TYPE_MISMATCH_ON_OVERRIDE: DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_RETURN_TYPE)
+
+/**
+ * 继承时属性类型不匹配
+ */
+@JvmField
+val PROPERTY_TYPE_MISMATCH_ON_INHERITANCE: DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 委托时属性类型不匹配
+ */
+@JvmField
+val PROPERTY_TYPE_MISMATCH_BY_DELEGATION: DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 重写时 var 类型不匹配
+ */
+@JvmField
+val VAR_TYPE_MISMATCH_ON_OVERRIDE: DiagnosticFactory2<CjNamedDeclaration, CallableMemberDescriptor, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_RETURN_TYPE)
+
+/**
+ * 继承时 var 类型不匹配
+ */
+@JvmField
+val VAR_TYPE_MISMATCH_ON_INHERITANCE: DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * let 被 var 重写
+ */
+@JvmField
+val LET_OVERRIDDEN_BY_VAR: DiagnosticFactory2<CjNamedDeclaration, PropertyDescriptor, PropertyDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.LET_OR_VAR_NODE)
+
+/**
+ * var 被 let 重写
+ */
+@JvmField
+val VAR_OVERRIDDEN_BY_LET: DiagnosticFactory2<CjNamedDeclaration, PropertyDescriptor, PropertyDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.LET_OR_VAR_NODE)
+
+/**
+ * 委托时 var 被 let 重写
+ */
+@JvmField
+val VAR_OVERRIDDEN_BY_LET_BY_DELEGATION: DiagnosticFactory2<CjTypeStatement, CallableMemberDescriptor, CallableMemberDescriptor> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 重写静态成员错误
+ */
+@JvmField
+val OVERRIDE_STATIC_ERROR: DiagnosticFactory1<PsiElement, CjNamedDeclaration> =
+    DiagnosticFactory1.create(Severity.ERROR)
+
+/**
+ * redef 实例成员错误
+ */
+@JvmField
+val REDEF_INSTANCE_ERROR: DiagnosticFactory1<PsiElement, CjNamedDeclaration> =
+    DiagnosticFactory1.create(Severity.ERROR)
+
+/**
+ * 重写时默认值不允许
+ */
+@JvmField
+val DEFAULT_VALUE_NOT_ALLOWED_IN_OVERRIDE: DiagnosticFactory0<CjParameter> =
+    DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.PARAMETER_DEFAULT_VALUE)
+
+/**
+ * 从超类型继承的多个默认值
+ */
+@JvmField
+val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES: DiagnosticFactory1<CjParameter, ValueParameterDescriptor> =
+    DiagnosticFactory1.create(Severity.ERROR)
+
+/**
+ * 从超类型继承的多个默认值（无显式重写）
+ */
+@JvmField
+val MULTIPLE_DEFAULTS_INHERITED_FROM_SUPERTYPES_MATCH_NO_EXPLICIT_OVERRIDE: DiagnosticFactory1<CjTypeStatement, ValueParameterDescriptor> =
+    DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 冲突的继承成员
+ */
+@JvmField
+val CONFLICTING_INHERITED_MEMBERS: DiagnosticFactory2<CjTypeStatement, ClassDescriptor, Collection<CallableMemberDescriptor>> =
+    DiagnosticFactory2.create(Severity.ERROR, PositioningStrategies.DECLARATION_NAME)
+
+/**
+ * 扩展被成员遮蔽
+ */
+@JvmField
+val EXTENSION_SHADOWED_BY_MEMBER: DiagnosticFactory1<CjDeclaration, CallableMemberDescriptor> =
+    DiagnosticFactory1.create(Severity.ERROR, PositioningStrategies.FOR_REDECLARATION)
+
+// ========================================
+// 超类型相关错误
+// ========================================
+
+/**
+ * 超类型出现两次
+ */
+@JvmField
+val SUPERTYPE_APPEARS_TWICE: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 超类型不是类或接口
+ */
+@JvmField
+val SUPERTYPE_NOT_A_CLASS_OR_INTERFACE: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 超类型列表中有多个类
+ */
+@JvmField
+val MANY_CLASSES_IN_SUPERTYPE_LIST: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 超类型中的结构体
+ */
+@JvmField
+val STRUCT_IN_SUPERTYPE: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 超类型中的枚举
+ */
+@JvmField
+val ENUM_IN_SUPERTYPE: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 枚举的超类型中的类
+ */
+@JvmField
+val CLASS_IN_SUPERTYPE_FOR_ENUM: DiagnosticFactory0<PsiElement> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 接口有超类
+ */
+@JvmField
+val INTERFACE_WITH_SUPERCLASS: DiagnosticFactory0<PsiElement> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 结构体有超类
+ */
+@JvmField
+val STRUCT_WITH_SUPERCLASS: DiagnosticFactory0<PsiElement> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 扩展有超类
+ */
+@JvmField
+val EXTEND_WITH_SUPERCLASS: DiagnosticFactory0<PsiElement> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * final 超类型
+ */
+@JvmField
+val FINAL_SUPERTYPE: DiagnosticFactory1<CjTypeReference, CangJieType> =
+    DiagnosticFactory1.create(Severity.ERROR)
+
+/**
+ * 扩展不能接口
+ */
+@JvmField
+val EXTEND_CANNOT_INTERFACE: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 动态超类型
+ */
+@JvmField
+val DYNAMIC_SUPERTYPE: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 动态类型不允许
+ */
+@JvmField
+val DYNAMIC_NOT_ALLOWED: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 超类型未初始化
+ */
+@JvmField
+val SUPERTYPE_NOT_INITIALIZED: DiagnosticFactory1<CjSuperTypeEntry, CangJieType> =
+    DiagnosticFactory1.create(Severity.ERROR)
+
+/**
+ * 循环继承层次
+ */
+@JvmField
+val CYCLIC_INHERITANCE_HIERARCHY: DiagnosticFactory0<PsiElement> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 缺少依赖超类
+ */
+@JvmField
+val MISSING_DEPENDENCY_SUPERCLASS: DiagnosticFactory2<PsiElement, FqName, FqName> =
+    DiagnosticFactory2.create(Severity.ERROR)
+
+/**
+ * 密封抽象类
+ */
+@JvmField
+val SEALED_ABSTRACT: DiagnosticFactory0<PsiElement> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 立即超类型参数中的投影
+ */
+@JvmField
+val PROJECTION_IN_IMMEDIATE_ARGUMENT_TO_SUPERTYPE: DiagnosticFactory0<CjTypeProjection> =
+    DiagnosticFactory0.create(Severity.ERROR, PositioningStrategies.VARIANCE_IN_PROJECTION)
+
+/**
+ * 重复边界
+ */
+@JvmField
+val REPEATED_BOUND: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)
+
+/**
+ * 只允许一个类边界
+ */
+@JvmField
+val ONLY_ONE_CLASS_BOUND_ALLOWED: DiagnosticFactory0<CjTypeReference> =
+    DiagnosticFactory0.create(Severity.ERROR)

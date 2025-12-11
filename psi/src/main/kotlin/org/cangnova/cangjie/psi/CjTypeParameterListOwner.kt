@@ -33,9 +33,3 @@ interface CjTypeParameterListOwner : CjNamedDeclaration {
 
     val typeParameters: List<CjTypeParameter>
 }
-interface CjTypeParameterListOwnerForExtend : CjTypeParameterListOwner {
-    val extendTypeParameters: List<CjTypeParameter>
-    val extendTypeConstraintList: CjTypeConstraintList?
-
-    val extendTypeConstraints: List<CjTypeConstraint>
-}

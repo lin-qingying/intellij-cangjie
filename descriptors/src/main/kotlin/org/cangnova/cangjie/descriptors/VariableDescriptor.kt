@@ -56,7 +56,8 @@ interface VariableDescriptor : ValueDescriptor, MemberDescriptor/*,
      * @param substitutor 类型替换器
      * @return 替换后的变量描述符，可能为`null`
      */
-    override fun substitute(substitutor: TypeSubstitutor): VariableDescriptor?
+    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor?
+
     /**
      * 检查是否为`const`变量（与`isVar`互斥）。
      *

@@ -28,7 +28,7 @@ import com.intellij.lang.ASTNode
 
 class CjTryResource(node: ASTNode) : CjElementImpl(node) {
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitTryResource(this, data)
     }
 
@@ -51,7 +51,7 @@ class CjTryResource(node: ASTNode) : CjElementImpl(node) {
 
 class CjTryResourceList(node: ASTNode) : CjElementImpl(node) {
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitTryResourceList(this, data)
     }
 

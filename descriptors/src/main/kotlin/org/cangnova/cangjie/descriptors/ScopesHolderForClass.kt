@@ -28,7 +28,6 @@ import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.storage.getValue
-import org.cangnova.cangjie.types.TypeRefinement
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
 /**

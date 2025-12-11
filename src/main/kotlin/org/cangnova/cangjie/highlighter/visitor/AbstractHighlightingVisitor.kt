@@ -24,14 +24,14 @@
 
 package org.cangnova.cangjie.highlighter.visitor
 
-import org.cangnova.cangjie.highlighter.HighlightingFactory
-import org.cangnova.cangjie.psi.CjNamedDeclaration
-import org.cangnova.cangjie.psi.CjVisitorVoid
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.highlighter.HighlightingFactory
+import org.cangnova.cangjie.psi.CjNamedDeclaration
+import org.cangnova.cangjie.psi.CjVisitorUnit
 
 /**
  * 高亮访问器抽象基类 - 提供语法高亮的通用访问器功能
@@ -52,11 +52,11 @@ import com.intellij.psi.PsiElement
  *    - 维护 HighlightInfoHolder 用于存储高亮信息
  *    - Maintains HighlightInfoHolder for storing highlighting information
  *
- * 该类继承自 CjVisitorVoid，是仓颉语言语法高亮系统的核心组件之一。
- * This class extends CjVisitorVoid and is one of the core components of the CangJie language highlighting system.
+ * 该类继承自 CjVisitorUnit，是仓颉语言语法高亮系统的核心组件之一。
+ * This class extends CjVisitorUnit and is one of the core components of the CangJie language highlighting system.
  */
 
-abstract class AbstractHighlightingVisitor(protected val holder: HighlightInfoHolder) : CjVisitorVoid() {
+abstract class AbstractHighlightingVisitor(protected val holder: HighlightInfoHolder) : CjVisitorUnit() {
     protected fun highlightName(element: PsiElement, highlightInfoType: HighlightInfoType, message: String? = null) {
         holder.add(HighlightingFactory.highlightName(element, highlightInfoType, message)?.create())
     }

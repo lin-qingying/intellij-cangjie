@@ -161,12 +161,12 @@ class ProjectDescriptorImpl(
 
     override fun <R, D> accept(
         visitor: DeclarationDescriptorVisitor<R, D>,
-        data: D?
+        data: D
     ): R? {
  return null
     }
 
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>) {
+    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
 
     }
 }

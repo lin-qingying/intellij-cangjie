@@ -293,7 +293,7 @@ class CjPsiFactory private constructor(
 
     fun creareDelegatedSuperTypeEntry(@NonNls text: String): CjConstructorDelegationCall {
         return createClass("class A { init() { $text}").secondaryConstructors.first()
-            .getDelegationCall()!!
+            .delegationCall!!
     }
     fun createStruct(@NonNls text: String): CjStruct {
         return createDeclaration(text)

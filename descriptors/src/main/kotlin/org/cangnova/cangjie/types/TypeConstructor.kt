@@ -55,7 +55,7 @@ interface TypeConstructor : TypeConstructorMarker {
      * @return 如果类型可表示则返回 true，否则返回 false
      */
 
-    val isDenotable: Boolean
+    val isDenotable: Boolean get() = false
 
     /**
      * 获取分类描述符。
@@ -92,7 +92,7 @@ interface TypeConstructor : TypeConstructorMarker {
      * @return 如果是最终类型则返回 true，否则返回 false
      */
 
-    val isFinal: Boolean
+    val isFinal: Boolean get() = true
 
 
     val parameters: List<TypeParameterDescriptor>

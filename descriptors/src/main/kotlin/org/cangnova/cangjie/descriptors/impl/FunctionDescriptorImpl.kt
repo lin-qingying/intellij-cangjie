@@ -596,7 +596,7 @@ abstract class FunctionDescriptorImpl(
     }
 
 
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
         return visitor.visitFunctionDescriptor(this, data)
     }
 

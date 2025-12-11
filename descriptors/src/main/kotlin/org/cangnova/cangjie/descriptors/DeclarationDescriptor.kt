@@ -56,11 +56,11 @@ interface DeclarationDescriptor : Annotated,
      * @param data 传递给访问者的数据
      * @return 访问结果
      */
-    fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D?): R?
+    fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R?
 
     /**
      * 接受无返回值访问者模式的访问
      * @param visitor 无返回值的访问者对象
      */
-    fun acceptVoid(visitor: DeclarationDescriptorVisitor<Void, Void>)
+    fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>)
 }

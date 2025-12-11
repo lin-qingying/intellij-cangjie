@@ -36,7 +36,7 @@ class CjSuperTypeCallEntry : CjSuperTypeListEntry, CjCallElement {
         CjStubElementTypes.SUPER_TYPE_CALL_ENTRY,
     )
 
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         return visitor.visitSuperTypeCallEntry(this, data)
     }
 

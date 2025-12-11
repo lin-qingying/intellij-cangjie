@@ -68,11 +68,11 @@ abstract class CjConstructor<T : CjConstructor<T>> : CjDeclarationStub<CangJieCo
         get() = valueParameterList?.parameters ?: emptyList()
     override val typeReference: CjTypeReference? = null
     override val valueParameterList: CjParameterList? get() = getStubOrPsiChild(CjStubElementTypes.VALUE_PARAMETER_LIST)
-    fun getDelegationCall(): CjConstructorDelegationCall? = bodyExpression?.getDelegationCall()
 
+    val delegationCall: CjConstructorDelegationCall? get() = bodyExpression?.getDelegationCall()
     fun getDelegationCallOrNull(): CjConstructorDelegationCall? = bodyExpression?.getDelegationCallOrNull()
 
-    fun hasImplicitDelegationCall(): Boolean = getDelegationCall()?.isImplicit == true
+    fun hasImplicitDelegationCall(): Boolean = delegationCall?.isImplicit == true
 
     fun replaceImplicitDelegationCallWithExplicit(isThis: Boolean): CjConstructorDelegationCall {
         return bodyExpression!!.replaceImplicitDelegationCallWithExplicit(isThis)

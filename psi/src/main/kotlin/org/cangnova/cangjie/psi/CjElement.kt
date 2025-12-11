@@ -35,9 +35,11 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiReference
 
+val Null: Any? = null
+
 /**
  * 基础CangJie语言PSI元素接口
- * 
+ *
  * 所有CangJie语言的PSI元素都应该实现这个接口，它提供了访问者模式支持
  * 和基本的导航功能。
  */
@@ -45,27 +47,27 @@ interface CjElement : NavigatablePsiElement, CjPureElement {
 
     /**
      * 让所有子元素接受访问者的访问
-     * 
+     *
      * @param visitor 要接受的访问者
      * @param data 传递给访问者的数据
      */
-    fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?)
+    fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D)
 
     /**
      * 接受访问者的访问
-     * 
+     *
      * @param visitor 要接受的访问者
      * @param data 传递给访问者的数据
      * @return 访问者返回的结果
      */
-    fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R?
+    fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R?
 
     /**
      * 获取引用
-     * 
+     *
      * 不建议在CjElement上直接使用getReference()，因为选择是不可预测的。
      * 应该使用getReferences()获取所有引用，或者使用更具体的方法。
-     * 
+     *
      * @return 此元素的引用，如果有多个引用则返回第一个，如果没有则返回null
      */
     @Deprecated("Don't use getReference() on CjElement for the choice is unpredictable")
@@ -74,43 +76,44 @@ interface CjElement : NavigatablePsiElement, CjPureElement {
 
 /**
  * CjElement接口的基本实现
- * 
+ *
  * 这个类提供了CjElement接口的标准实现，包括访问者模式支持、
  * 引用处理和父元素解析等功能。大多数CangJie语言的具体PSI元素
  * 都应该继承这个类。
- * 
+ *
  * @param node AST节点
  */
 open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement {
 
     /**
      * 返回元素的字符串表示
-     * 
+     *
      * @return 元素类型的字符串表示
      */
     override fun toString(): String = node.elementType.toString()
 
     /**
      * 让所有子元素接受访问者的访问
-     * 
+     *
      * @param visitor 要接受的访问者
      * @param data 传递给访问者的数据
      */
-    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
-        CjPsiUtil.visitChildren<D>(this, visitor, data)
+    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D) {
+        CjPsiUtil.visitChildren(this, visitor, data)
     }
 
     /**
      * 接受PSI元素访问者的访问
-     * 
+     *
      * 如果访问者是CjVisitor，则调用专门的accept方法，
      * 否则调用通用的visitElement方法。
-     * 
+     *
      * @param visitor PSI元素访问者
      */
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is CjVisitor<*, *>) {
-            accept(visitor, null)
+            @Suppress("UNCHECKED_CAST")
+            accept(visitor as CjVisitor<Any?, Any?>, null as Any?)
         } else {
             visitor.visitElement(this)
         }
@@ -118,23 +121,23 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 
     /**
      * 接受CjVisitor的访问
-     * 
+     *
      * @param visitor 要接受的访问者
      * @param data 传递给访问者的数据
      * @return 访问者返回的结果
      */
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? = visitor.visitCjElement(this, data)
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? = visitor.visitCjElement(this, data)
 
     /**
      * 获取PSI元素或其父元素
-     * 
+     *
      * @return 当前元素
      */
     override fun getPsiOrParent(): CjElement = this
 
     /**
      * 获取包含此元素的CjFile
-     * 
+     *
      * @return 包含此元素的CjFile
      * @throws IllegalStateException 如果元素不在CjFile内
      */
@@ -144,7 +147,7 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
             val fileString = if (file != null && file.isValid) " " + file.text else ""
             throw IllegalStateException(
                 "CjElement not inside CjFile: " + file + fileString +
-                    " for element " + this + " of type " + this.javaClass + " node = " + node,
+                        " for element " + this + " of type " + this.javaClass + " node = " + node,
             )
         }
         return file
@@ -152,7 +155,7 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 
     /**
      * 删除此元素
-     * 
+     *
      * 在删除元素之前，尝试删除与之关联的分号
      */
     override fun delete() {
@@ -162,9 +165,9 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 
     /**
      * 获取此元素的引用
-     * 
+     *
      * 如果元素有多个引用，返回第一个；如果没有引用，返回null
-     * 
+     *
      * @return 此元素的引用
      */
     override fun getReference(): PsiReference? {
@@ -174,7 +177,7 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 
     /**
      * 获取此元素的所有引用
-     * 
+     *
      * @return 此元素的所有引用数组
      */
     override fun getReferences(): Array<PsiReference> {
@@ -185,10 +188,10 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 
     /**
      * 获取此元素的父元素
-     * 
+     *
      * 首先检查是否有父元素替代品，如果有则返回替代品，
      * 否则返回默认的父元素
-     * 
+     *
      * @return 父元素
      */
     override fun getParent(): PsiElement? {
@@ -198,7 +201,7 @@ open class CjElementImpl(node: ASTNode) : ASTWrapperPsiElement(node), CjElement 
 
     /**
      * 获取此元素的语言
-     * 
+     *
      * @return CangJie语言实例
      */
     override fun getLanguage(): Language = CangJieLanguage

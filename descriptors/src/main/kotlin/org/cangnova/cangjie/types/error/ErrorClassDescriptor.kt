@@ -71,8 +71,7 @@ class ErrorClassDescriptor(name: Name = Name.ERROR_NAME) : ClassDescriptorImpl(
     }
 
 
-
-    override fun substitute(substitutor: TypeSubstitutor): ClassDescriptor = this
+    override fun substitute(substitutor: TypeSubstitutor): ClassifierDescriptorWithTypeParameters? = this
     override fun toString(): String = name.asString()
 
 }

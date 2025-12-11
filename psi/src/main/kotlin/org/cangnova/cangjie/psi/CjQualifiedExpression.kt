@@ -70,7 +70,7 @@ class CjSynthesisQualifiedExpression(
     override val selectorExpression: CjExpression?,
 
 ) : CjQualifiedExpression {
-    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D?): R? {
+    override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
         TODO("Not yet implemented")
     }
 
@@ -78,7 +78,7 @@ class CjSynthesisQualifiedExpression(
         TODO("Not yet implemented")
     }
 
-    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D?) {
+    override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D) {
         TODO("Not yet implemented")
     }
 
