@@ -132,7 +132,6 @@ object UnstableSmartCastDiagnostic : ResolutionDiagnostic(CandidateApplicability
 
 interface ImplicitScopeTower {
     val lexicalScope: LexicalScope
-    val areContextReceiversEnabled: Boolean
     val syntheticScopes: SyntheticScopes
     val dynamicScope: MemberScope
 

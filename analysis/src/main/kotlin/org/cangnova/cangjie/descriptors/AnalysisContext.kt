@@ -120,8 +120,6 @@ import com.intellij.psi.search.GlobalSearchScope
  *     override val isSourceContext = true
  * }
  * ```
- *
- * @see ModuleInfo ModuleInfo 接口继承此接口以保持兼容性
  */
 interface AnalysisContext {
 

@@ -49,6 +49,7 @@ import org.cangnova.cangjie.ide.vfilefinder.VirtualFileFinderFactory
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.platform.TargetPlatform
 import org.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.caches.ModuleContent
 import org.cangnova.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import org.cangnova.cangjie.resolve.extensions.AnalysisHandlerExtension
@@ -75,7 +76,7 @@ class CommonAnalysisParameters(
 class CommonResolverForModuleFactory(
     private val platformParameters: CommonAnalysisParameters,
     private val targetEnvironment: TargetEnvironment,
-    private val targetPlatform: TargetPlatform,
+
     private val shouldCheckExpectActual: Boolean,
     private val commonDependenciesContainer: CommonDependenciesContainer? = null
 ) : ResolverForModuleFactory() {
@@ -108,7 +109,7 @@ class CommonResolverForModuleFactory(
             targetEnvironment,
             metadataPartProvider,
             languageVersionSettings,
-            targetPlatform,
+
             CommonPlatformAnalyzerServices,
             shouldCheckExpectActual,
             absentDescriptorHandlerClass
@@ -154,7 +155,7 @@ private fun createContainerToResolveCommonCode(
     targetEnvironment: TargetEnvironment,
     metadataPartProvider: MetadataPartProvider,
     languageVersionSettings: LanguageVersionSettings,
-    platform: TargetPlatform,
+
     analyzerServices: PlatformDependentAnalyzerServices,
     shouldCheckExpectActual: Boolean,
     absentDescriptorHandlerClass: Class<out AbsentDescriptorHandler>?
@@ -171,7 +172,7 @@ private fun createContainerToResolveCommonCode(
 //        )
         configureModule(
             moduleContext,
-            platform,
+
             analyzerServices,
             bindingTrace,
             languageVersionSettings,

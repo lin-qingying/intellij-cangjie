@@ -35,6 +35,7 @@ import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.FrontendInternals
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.resolve.binding.BindingContext
 
 inline fun <reified T : Any> ResolutionFacade.ideService(): T = this.getIdeService(T::class.java)

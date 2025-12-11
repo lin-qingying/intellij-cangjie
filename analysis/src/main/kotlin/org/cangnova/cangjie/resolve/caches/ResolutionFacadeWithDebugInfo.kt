@@ -25,21 +25,6 @@
 package org.cangnova.cangjie.resolve.caches
 
 
-import org.cangnova.cangjie.resolve.AnalysisResult
-import org.cangnova.cangjie.descriptors.AnalysisContext
-import org.cangnova.cangjie.resolve.ResolverForProject
-import org.cangnova.cangjie.descriptors.DeclarationDescriptor
-import org.cangnova.cangjie.diagnostics.DiagnosticSink
-import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.ide.FrontendInternals
-import org.cangnova.cangjie.psi.CjDeclaration
-import org.cangnova.cangjie.psi.CjElement
-import org.cangnova.cangjie.psi.CjFile
-
-import org.cangnova.cangjie.resolve.ResolutionFacade
-import org.cangnova.cangjie.resolve.findModuleDescriptor
-import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
-import org.cangnova.cangjie.utils.CangJieExceptionWithAttachments
 import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.IndexNotReadyException
@@ -47,6 +32,21 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
+import org.cangnova.cangjie.FrontendInternals
+import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.descriptors.DeclarationDescriptor
+import org.cangnova.cangjie.descriptors.ModuleDescriptor
+import org.cangnova.cangjie.diagnostics.DiagnosticSink
+import org.cangnova.cangjie.psi.CjDeclaration
+import org.cangnova.cangjie.psi.CjElement
+import org.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.resolve.AnalysisResult
+import org.cangnova.cangjie.resolve.ResolutionFacade
+import org.cangnova.cangjie.resolve.ResolverForProject
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.findModuleDescriptor
+import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 
 private class ResolutionFacadeWithDebugInfo(
     private val delegate: ResolutionFacade,
@@ -183,7 +183,7 @@ private class CangJieIdeaResolutionException(
     cause: Throwable,
     resolvingWhat: ResolvingWhat,
     creationPlace: CreationPlace
-) : CangJieExceptionWithAttachments(
+) : CangJieExceptionWithAttachmentsImpl(
     "CangJie resolution encountered a problem while ${resolvingWhat.shortDescription()}${cause.message?.let { ":\n$it" } ?: ""}",
     cause
 ) {
@@ -214,8 +214,8 @@ private class CreationPlace(
         for (element in elements) {
             appendElement(element)
         }
-        if (moduleInfo != null) {
-            appendLine("Provided module info: $moduleInfo")
+        if (context != null) {
+            appendLine("Provided module info: $context")
         }
 //        if (settings != null) {
 //            appendLine("Provided settings: $settings")
@@ -305,5 +305,5 @@ internal fun ResolutionFacade.createdFor(
     context: AnalysisContext?,
 //    settings: PlatformAnalysisSettings
 ): ResolutionFacade {
-    return ResolutionFacadeWithDebugInfo(this, CreationPlace(files, moduleInfo/*, settings*/))
+    return ResolutionFacadeWithDebugInfo(this, CreationPlace(files, context/*, settings*/))
 }

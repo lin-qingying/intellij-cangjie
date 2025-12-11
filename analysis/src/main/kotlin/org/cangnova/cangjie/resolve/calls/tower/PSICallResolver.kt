@@ -527,10 +527,7 @@ class PSICallResolver(
         private val cache = HashMap<ReceiverParameterDescriptor, ReceiverValueWithSmartCastInfo>()
 
         override val lexicalScope: LexicalScope get() = context.scope
-        override val areContextReceiversEnabled: Boolean
-            get() = context.languageVersionSettings.supportsFeature(
-                LanguageFeature.ContextReceivers
-            )
+
         override val syntheticScopes: SyntheticScopes get() = this@PSICallResolver.syntheticScopes
         override val dynamicScope: MemberScope =
             dynamicCallableDescriptors.createDynamicDescriptorScope(context.call, context.scope.ownerDescriptor)
