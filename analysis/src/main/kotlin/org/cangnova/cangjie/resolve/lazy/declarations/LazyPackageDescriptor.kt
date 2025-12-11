@@ -25,11 +25,11 @@
 package org.cangnova.cangjie.resolve.lazy.declarations
 
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
+import org.cangnova.cangjie.descriptors.impl.PackageFragmentDescriptorImpl
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.resolve.lazy.ForceResolveUtil
 import org.cangnova.cangjie.resolve.lazy.LazyEntity
 import org.cangnova.cangjie.resolve.lazy.ResolveSession
-import org.cangnova.cangjie.resolve.lazy.declarations.impl.PackageFragmentDescriptorImpl
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 
 class LazyPackageDescriptor(

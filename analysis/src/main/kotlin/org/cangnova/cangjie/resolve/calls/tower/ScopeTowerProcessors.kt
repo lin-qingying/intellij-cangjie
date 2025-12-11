@@ -279,28 +279,8 @@ fun <C : Candidate> createPropertyProcessor(
     context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
 
-fun <C : Candidate> createEnumEntryProcessor(
-    scopeTower: ImplicitScopeTower, name: Name,
-    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
-) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) {
-    getEnumEntrys(
-        name,
 
-        it
-    )
-}
 
-fun <C : Candidate> createEnumProcessor(
-    scopeTower: ImplicitScopeTower, name: Name,
-    context: CandidateFactory<C>, explicitReceiver: DetailedReceiver?, classValueReceiver: Boolean = true
-) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) {
-//    getEnumTypeByKind(
-//        name,
-//        ClassKind.ENUM,
-//        it
-//    )
-    emptyList()
-}
 
 fun <C : Candidate> createVariableProcessor(
     scopeTower: ImplicitScopeTower, name: Name,
@@ -308,30 +288,9 @@ fun <C : Candidate> createVariableProcessor(
 ) = createSimpleProcessor(scopeTower, context, explicitReceiver, classValueReceiver) { getVariables(name, it) }
 
 
-fun <C : Candidate> createEnumEntryProcessor(
-    cangjieCall: CangJieCall,
-    scopeTower: ImplicitScopeTower,
-    context: CandidateFactory<C>, classValueReceiver: Boolean = true
-) = EnumEntryTowerProcessor(
-    cangjieCall,
-
-    createEnumEntryProcessor(scopeTower, cangjieCall.name, context, cangjieCall.explicitReceiver?.receiver),
 
 
-    )
 
-fun <C : Candidate> createEnumAndEntryProcessor(
-    cangjieCall: CangJieCall,
-    scopeTower: ImplicitScopeTower,
-    context: CandidateFactory<C>, classValueReceiver: Boolean = true
-) = EnumAndEntryTowerProcessor(
-    cangjieCall,
-    createEnumProcessor(scopeTower, cangjieCall.name, context, cangjieCall.explicitReceiver?.receiver),
-
-    createEnumEntryProcessor(scopeTower, cangjieCall.name, context, cangjieCall.explicitReceiver?.receiver),
-
-
-    )
 
 fun <C : Candidate> createVariableAndObjectProcessor(
     scopeTower: ImplicitScopeTower, name: Name,

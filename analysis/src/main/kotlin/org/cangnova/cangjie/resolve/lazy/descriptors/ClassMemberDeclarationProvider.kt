@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.lazy.descriptors
 
+import org.cangnova.cangjie.descriptors.DeclarationProvider
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
 import org.cangnova.cangjie.psi.CjParameter
 import org.cangnova.cangjie.psi.CjPureTypeStatement

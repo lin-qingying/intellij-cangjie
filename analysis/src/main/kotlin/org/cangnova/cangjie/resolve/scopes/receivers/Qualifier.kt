@@ -49,6 +49,7 @@ import com.intellij.psi.*
 import com.intellij.psi.scope.PsiScopeProcessor
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
+import org.cangnova.cangjie.utils.classValueType
 import javax.swing.Icon
 
 interface Qualifier : QualifierReceiver {
@@ -112,7 +113,7 @@ class EnumClassQualifier(
         override val typeArgumentList: CjTypeArgumentList?
             get() = null
 
-        override fun <D> acceptChildren(visitor: CjVisitor<Void, D>, data: D) {
+        override fun <D> acceptChildren(visitor: CjVisitor<Unit, D>, data: D) {
 
         }
 
@@ -120,7 +121,7 @@ class EnumClassQualifier(
 
         }
 
-        override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R {
+        override fun <R, D> accept(visitor: CjVisitor<R, D>, data: D): R? {
             return referenceExpression.accept(visitor, data)
         }
 
@@ -373,7 +374,7 @@ class EnumClassQualifier(
                 ChainedMemberScope.create(
                     "Static scope for ${descriptor.name} as class or object",
                     descriptor.staticScope,
-                    descriptor.unsubstitutedInnerClassesScope
+                    descriptor.unsubstitutedMemberScope
                 )
             )
 
@@ -400,7 +401,7 @@ class ClassQualifier(
                 ChainedMemberScope.create(
                     "Static scope for ${descriptor.name} as class or object",
                     descriptor.staticScope,
-                    descriptor.unsubstitutedInnerClassesScope
+                    descriptor.unsubstitutedMemberScope
                 )
             )
 
@@ -410,36 +411,32 @@ class ClassQualifier(
 
 class EnumClassValueReceiver @JvmOverloads constructor(
     val classQualifier: EnumClassQualifierByCall,
-    private val type: CangJieType,
+    override val type: CangJieType,
     original: EnumClassValueReceiver? = null
 ) : ExpressionReceiver {
-    private val original = original ?: this
+    override val original = original ?: this
 
-    override fun getType() = type
 
     override val expression: CjExpression
         get() = classQualifier.referenceExpression.calleeExpression!!
 
     override fun replaceType(newType: CangJieType) = EnumClassValueReceiver(classQualifier, newType, original)
 
-    override fun getOriginal() = original
 }
 
 class ClassValueReceiver @JvmOverloads constructor(
     val classQualifier: ClassifierQualifier,
-    private val type: CangJieType,
+    override val type: CangJieType,
     original: ClassValueReceiver? = null
 ) : ExpressionReceiver {
-    private val original = original ?: this
+    override val original = original ?: this
 
-    override fun getType() = type
 
     override val expression: CjExpression
         get() = classQualifier.expression
 
     override fun replaceType(newType: CangJieType) = ClassValueReceiver(classQualifier, newType, original)
 
-    override fun getOriginal() = original
 }
 
 class TypeParameterQualifier(
@@ -488,12 +485,12 @@ class TypeAliasQualifier(
             kindFilter: DescriptorKindFilter,
             nameFilter: (Name) -> Boolean
         ): Collection<DeclarationDescriptor> =
-            classDescriptor.unsubstitutedInnerClassesScope
+            classDescriptor.unsubstitutedMemberScope
                 .getContributedDescriptors(kindFilter, nameFilter)
                 .filter { DescriptorUtils.isEnumEntry(it) }
 
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
-            classDescriptor.unsubstitutedInnerClassesScope
+            classDescriptor.unsubstitutedMemberScope
                 .getContributedClassifier(name, location)
                 ?.takeIf { DescriptorUtils.isEnumEntry(it) }
 

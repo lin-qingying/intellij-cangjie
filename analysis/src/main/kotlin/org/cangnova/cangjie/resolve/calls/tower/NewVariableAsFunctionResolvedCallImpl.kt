@@ -103,11 +103,8 @@ class NewVariableAsFunctionResolvedCallImpl(
      * 智能转换调度接收者类型
      * 委托给函数调用的智能转换类型
      */
-    override var smartCastDispatchReceiverType
+    override val smartCastDispatchReceiverType
         get() = functionCall.smartCastDispatchReceiverType
-        set(value) {
-            functionCall.smartCastDispatchReceiverType = value
-        }
 
     /**
      * 显式接收者类型

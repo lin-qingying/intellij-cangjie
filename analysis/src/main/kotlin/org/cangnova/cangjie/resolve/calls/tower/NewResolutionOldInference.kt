@@ -31,6 +31,7 @@ import org.cangnova.cangjie.extensions.internal.CandidateInterceptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.psiUtil.sure
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
 import org.cangnova.cangjie.resolve.calls.CallResolver
 import org.cangnova.cangjie.resolve.calls.CallTransformer

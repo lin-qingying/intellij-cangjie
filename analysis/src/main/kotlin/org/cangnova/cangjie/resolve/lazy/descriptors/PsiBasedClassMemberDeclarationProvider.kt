@@ -26,6 +26,7 @@ package org.cangnova.cangjie.resolve.lazy.descriptors
 
 import com.google.common.collect.ArrayListMultimap
 import org.cangnova.cangjie.builtins.StandardNames.MAIN
+import org.cangnova.cangjie.descriptors.DeclarationProvider
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.safeNameForLazyResolve
@@ -184,12 +185,7 @@ abstract class AbstractPsiBasedDeclarationProvider(storageManager: StorageManage
     override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> =
         index().classesAndObjects[name.safeNameForLazyResolve()]
 
-    override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> {
-        return emptyList()
-    }
 
-    override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> =
-        index().extends[name.safeNameForLazyResolve()]
 
     override fun getAliasTypeStatementDeclarations(name: Name): Collection<CjTypeAlias> =
         index().originalTypeAliases[name.safeNameForLazyResolve()]

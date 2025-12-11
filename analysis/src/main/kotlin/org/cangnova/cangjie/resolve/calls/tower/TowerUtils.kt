@@ -96,48 +96,6 @@ internal class QualifierScopeTowerLevel(scopeTower: ImplicitScopeTower, val qual
             createCandidateDescriptor(it, dispatchReceiver = null)
         }
 
-    override fun getEnumTypeByKind(
-        name: Name,
-        kind: ClassKind,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> {
-        return qualifier.staticScope
-            .getContributedClassifiers(name, location).filter {
-                (it as? ClassDescriptor)?.kind == kind
-            }.map {
-                createCandidateDescriptor(
-
-                    EnumClassCallableDescriptor(it), dispatchReceiver = null
-                )
-            }
-    }
-
-    override fun getClassType(
-        name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> {
-        return qualifier.staticScope
-            .getContributedClassifiers(name, location).map {
-                createCandidateDescriptor(
-                    ClassCallableDescriptor(it), dispatchReceiver = null
-                )
-            }
-
-    }
-
-    override fun getEnumEntrys(
-        name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> {
-        return qualifier.staticScope
-            .getContributedEnumEntrys(name, location).map {
-                createCandidateDescriptor(
-
-                    EnumClassCallableDescriptor(it), dispatchReceiver = null
-                )
-            }
-    }
-
     override fun recordLookup(name: Name) {
 
     }

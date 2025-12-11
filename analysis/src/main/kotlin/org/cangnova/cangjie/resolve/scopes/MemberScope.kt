@@ -165,12 +165,7 @@ class StaticMemberScope(val memberScope: MemberScope) : MemberScope {
             ?.takeIf { it.isStatic() || DescriptorUtils.isEnumEntry(it) } // 过滤非静态分类器
     }
 
-    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-        return memberScope.getContributedEnumEntrys(name, location).filter {
-            it.isStatic() || DescriptorUtils.isEnumEntry(it)
-        }
 
-    }
 
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
         return memberScope.getContributedClassifiers(name, location).filter {

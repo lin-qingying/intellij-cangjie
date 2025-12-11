@@ -374,16 +374,6 @@ class LazyImportScope(
         return importResolver.getClassifier(name, location) ?: secondaryImportResolver?.getClassifier(name, location)
     }
 
-    /**
-     * 获取贡献的枚举条目
-     *
-     * @param name 枚举名称
-     * @param location 查找位置
-     * @return 枚举描述符列表
-     */
-    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-        return importResolver.getEnumEntrys(name, location)
-    }
 
     /**
      * 获取贡献的分类器
@@ -396,38 +386,6 @@ class LazyImportScope(
         return importResolver.getClassifiers(name, location)
     }
 
-    /**
-     * 获取枚举条目
-     *
-     * @param name 枚举名称
-     * @param location 查找位置
-     * @return 枚举描述符列表
-     */
-    private fun LazyImportResolver<*>.getEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
-        components.storageManager.compute {
-            val names = packageFragment?.declarationProvider?.getEnumEntryDeclarations(name)?.map {
-                it.enumTypeName
-            } ?: emptyList()
-            val imports = if (names.isNotEmpty()) {
-                names.flatMap {
-                    indexedImports.importsForName(it)
-                }
-
-            } else {
-                indexedImports.importsForName(name)
-            }
-
-
-            val target: MutableList<ClassifierDescriptor> = mutableListOf()
-            for (directive in imports) {
-
-                val importScope = getImportScope(directive)
-                val descriptors = importScope.getContributedEnumEntrys(name, location)
-                target.addAll(descriptors)
-            }
-
-            target
-        }
 
     /**
      * 获取分类器
