@@ -24,51 +24,29 @@
 
 package org.cangnova.cangjie.types.expressions.match
 
+import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.StandardNames.ITERABLE
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.MatchMissingCase
-
-import org.cangnova.cangjie.lexer.CjTokens
-import org.cangnova.cangjie.name.*
-import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.psiUtil.elementType
-import org.cangnova.cangjie.psi.psiUtil.referenceExpression
-import org.cangnova.cangjie.resolve.*
-import org.cangnova.cangjie.resolve.DescriptorUtils.isEnum
-import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
-import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
-import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
-import org.cangnova.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
-import org.cangnova.cangjie.resolve.calls.util.CallMaker
-import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
-import org.cangnova.cangjie.resolve.scopes.LexicalScope
-import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
-import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
-import org.cangnova.cangjie.resolve.source.getPsi
-import org.cangnova.cangjie.types.*
-import org.cangnova.cangjie.types.checker.CangJieTypeChecker
-import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
-import org.cangnova.cangjie.types.error.ErrorTypeKind
-import org.cangnova.cangjie.types.expressions.*
-import org.cangnova.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createCallForSpecialConstruction
-import org.cangnova.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createDataFlowInfoForArgumentsOfMatchCall
-import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
-import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import org.cangnova.cangjie.types.util.*
-import org.cangnova.cangjie.utils.addIfNotNull
-import org.cangnova.cangjie.utils.runIf
-import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.diagnostics.infos.warnings.SENSELESS_NULL_IN_MATCH
 import org.cangnova.cangjie.diagnostics.infos.warnings.USELESS_IS_CHECK
 import org.cangnova.cangjie.diagnostics.infos.warnings.USELESS_NULLABLE_CHECK
+import org.cangnova.cangjie.lexer.CjTokens
+import org.cangnova.cangjie.name.CallableId
+import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.psi.psiUtil.elementType
+import org.cangnova.cangjie.psi.psiUtil.referenceExpression
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.BOOLEAN_CONSTANT
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes.UNIT_CONSTANT
 import org.cangnova.cangjie.resolve.DescriptorResolver.Companion.getDefaultVisibility
+import org.cangnova.cangjie.resolve.DescriptorUtils
+import org.cangnova.cangjie.resolve.DescriptorUtils.isEnum
 import org.cangnova.cangjie.resolve.ModifiersChecker.Companion.resolveVisibilityFromModifiers
-import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.TypeResolutionContext
+import org.cangnova.cangjie.resolve.binding.*
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.COMPILE_TIME_VALUE
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DATAFLOW_INFO_AFTER_CONDITION
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.IMPLICIT_EXHAUSTIVE_WHEN
@@ -76,19 +54,37 @@ import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.PATTERN
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.SMARTCAST
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.TYPE
-import org.cangnova.cangjie.resolve.binding.BindingContextUtils
-import org.cangnova.cangjie.resolve.binding.BindingTrace
-import org.cangnova.cangjie.resolve.binding.getReferenceTarget
-import org.cangnova.cangjie.resolve.binding.isUsedAsExpression
-import org.cangnova.cangjie.resolve.binding.recordScope
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.VARIABLE
 import org.cangnova.cangjie.resolve.caches.ConfusingMatchBranchSyntaxChecker
 import org.cangnova.cangjie.resolve.caches.PrimitiveNumericComparisonCallChecker
 import org.cangnova.cangjie.resolve.calls.checkers.RttiExpressionInformation
 import org.cangnova.cangjie.resolve.calls.checkers.RttiOperation
 import org.cangnova.cangjie.resolve.calls.context.ContextDependency
 import org.cangnova.cangjie.resolve.calls.smartcasts.ConditionalDataFlowInfo
+import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
+import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
+import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
+import org.cangnova.cangjie.resolve.calls.tower.EnumClassCallableDescriptor
+import org.cangnova.cangjie.resolve.calls.util.CallMaker
+import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import org.cangnova.cangjie.resolve.flatten
+import org.cangnova.cangjie.resolve.scopes.LexicalScope
+import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
+import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
+import org.cangnova.cangjie.resolve.source.getPsi
+import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
+import org.cangnova.cangjie.types.checker.CangJieTypeChecker
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
 import org.cangnova.cangjie.types.checker.TypeIntersector
+import org.cangnova.cangjie.types.error.ErrorTypeKind
+import org.cangnova.cangjie.types.expressions.*
+import org.cangnova.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createCallForSpecialConstruction
+import org.cangnova.cangjie.types.expressions.ControlStructureTypingUtils.Companion.createDataFlowInfoForArgumentsOfMatchCall
+import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
+import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
+import org.cangnova.cangjie.utils.addIfNotNull
 import java.util.*
 
 sealed class Subject(
@@ -1595,14 +1591,14 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
             else -> null
         }
 
-    val ClassDescriptor.enumEntriesConstructor: Set<ClassAndEnumConstructorDescriptor>
+    val ClassDescriptor.enumEntriesConstructor: Set<ClassifierDescriptorWithTypeParameters>
         get() {
             val enumEntryList = enumEntries
-            val _enumEntryList = mutableListOf<ClassAndEnumConstructorDescriptor>()
+            val _enumEntryList = mutableListOf<ClassifierDescriptorWithTypeParameters>()
 
             enumEntryList.forEach {
-                it as EnumEntryDescriptor
-                _enumEntryList.add(it.unsubstitutedPrimaryConstructor as ClassAndEnumConstructorDescriptor)
+//                it as EnumEntryDescriptor
+                _enumEntryList.add(it.unsubstitutedPrimaryConstructor as ClassifierDescriptorWithTypeParameters)
 
 //                _enumEntryList.addAll(it.getEnumEntryConstructorDescriptors())
             }
@@ -1618,12 +1614,12 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
             .toSet()
 
 
-    protected val ClassDescriptor.deepSealedSubclasses: Set<ClassAndEnumConstructorDescriptor>
+    protected val ClassDescriptor.deepSealedSubclasses: Set<ClassifierDescriptorWithTypeParameters>
         get() = this.sealedSubclasses.flatMapTo(mutableSetOf()) {
             it.subclasses
         }
 
-    private val ClassDescriptor.subclasses: Set<ClassAndEnumConstructorDescriptor>
+    private val ClassDescriptor.subclasses: Set<ClassifierDescriptorWithTypeParameters>
         get() = when {
             this.modality == Modality.SEALED -> this.deepSealedSubclasses
             this.kind == ClassKind.ENUM -> this.enumEntries
@@ -1633,16 +1629,16 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
     private val CjCasePattern.negated
         get() =/* (this as? CjMatchConditionIsPattern)?.isNegated ?:*/ false
 
-    private fun CjCasePattern.isRelevant(checkedDescriptor: ClassAndEnumConstructorDescriptor) =
+    private fun CjCasePattern.isRelevant(checkedDescriptor: ClassifierDescriptorWithTypeParameters) =
         this !is CjMatchConditionWithExpression ||
 //                DescriptorUtils.isObject(checkedDescriptor) ||
                 when (checkedDescriptor) {
                     is ClassDescriptor -> DescriptorUtils.isEnumEntry(checkedDescriptor)
-                    is EnumEntryConstructorDescriptor -> true
+
                     else -> false
                 }
 
-    private fun CjCasePattern.getCheckedDescriptor(context: BindingContext): ClassAndEnumConstructorDescriptor? {
+    private fun CjCasePattern.getCheckedDescriptor(context: BindingContext): ClassifierDescriptorWithTypeParameters? {
         return when (this) {
 //            is CjMatchConditionIsPattern -> {
 //                val checkedType = context.get(BindingContext.TYPE, typeReference) ?: return null
@@ -1668,17 +1664,18 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 
                         is ClassDescriptor -> it
                         is FakeCallableDescriptorForObject -> it.classDescriptor
-                        is EnumEntryConstructorDescriptor -> it
+//                        is EnumEntryConstructorDescriptor -> it
                         is ClassConstructorDescriptor -> {
                             var constructor = it
-                            while (constructor != null) {
-                                if (constructor is EnumEntryConstructorDescriptor) {
-                                    break
-                                }
-
-                                constructor = constructor.original
-                            }
-                            constructor as EnumEntryConstructorDescriptor
+//                            while (constructor != null) {
+////                                if (constructor is EnumEntryConstructorDescriptor) {
+////                                    break
+////                                }
+//
+//                                constructor = constructor.original
+//                            }
+                            TODO()
+//                            constructor as EnumEntryConstructorDescriptor
                         }
 
                         else -> null
@@ -1787,7 +1784,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 
     protected fun getMissingClassCasesByTuple(
         matchExpression: CjMatchExpression,
-        subclasses: Set<ClassAndEnumConstructorDescriptor>,
+        subclasses: Set<ClassifierDescriptorWithTypeParameters>,
         context: BindingContext
     ): List<MatchMissingCase> {
         if (subclasses.isEmpty()) return listOf(MatchMissingCase.Unknown)
@@ -1829,7 +1826,7 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
     fun isOverwrite(
         pattern: CjCasePattern,
         context: BindingContext,
-        subclasses: Set<ClassAndEnumConstructorDescriptor> = emptySet()
+        subclasses: Set<ClassifierDescriptorWithTypeParameters> = emptySet()
     ): Boolean {
         if (pattern is CjBindingPattern || pattern is CjWildcardPattern) {
             return true
@@ -1840,9 +1837,10 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
         if (checkedDescriptor == null && pattern !is CjTuplePattern) {
             return false
         }
+//        TODO("枚举模式")
         val types = when (checkedDescriptor) {
-            is EnumEntryConstructorDescriptor -> checkedDescriptor.getConstructorTypes()
-            else -> emptyList()
+//            is EnumEntryConstructorDescriptor -> checkedDescriptor.getConstructorTypes()
+            else -> emptyList<CangJieType>()
         }
 
         if (subclasses.size > 1) return false
@@ -1857,26 +1855,26 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
 
     protected fun getMissingClassCases(
         matchExpression: CjMatchExpression,
-        subclasses: Set<ClassAndEnumConstructorDescriptor>,
+        subclasses: Set<ClassifierDescriptorWithTypeParameters>,
         context: BindingContext
     ): List<MatchMissingCase> {
 
         // when on empty enum / sealed is considered non-exhaustive, see test whenOnEmptySealed
         if (subclasses.isEmpty()) return listOf(MatchMissingCase.Unknown)
 
-        val checkedDescriptors = linkedSetOf<ClassAndEnumConstructorDescriptor>()
+        val checkedDescriptors = linkedSetOf<ClassifierDescriptorWithTypeParameters>()
         for (matchEntry in matchExpression.entries) {
             for (condition in matchEntry.conditions) {
                 val negated = condition.negated
                 val checkedDescriptor = condition.getCheckedDescriptor(context) ?: continue
                 val checkedDescriptorSubclasses = when (checkedDescriptor) {
                     is ClassDescriptor -> checkedDescriptor.subclasses
-                    is EnumEntryConstructorDescriptor -> setOf(checkedDescriptor)
+//                    is EnumEntryConstructorDescriptor -> setOf(checkedDescriptor)
                     else -> error("Unexpected class descriptor")
                 }
                 val types = when (checkedDescriptor) {
-                    is EnumEntryConstructorDescriptor -> checkedDescriptor.getConstructorTypes()
-                    else -> emptyList()
+//                    is EnumEntryConstructorDescriptor -> checkedDescriptor.getConstructorTypes()
+                    else -> emptyList<CangJieType>()
                 }
 
                 // Checks are important only for nested subclasses of the sealed class
@@ -1905,24 +1903,24 @@ internal abstract class MatchOnClassExhaustivenessChecker : MatchExhaustivenessC
     }
 
 
-    private fun createMatchMissingCaseForClassOrEnum(classDescriptor: ClassAndEnumConstructorDescriptor): MatchMissingCase {
+    private fun createMatchMissingCaseForClassOrEnum(classDescriptor: ClassifierDescriptorWithTypeParameters): MatchMissingCase {
         val classId = when (classDescriptor) {
             is ClassDescriptor -> DescriptorUtils.getClassIdForNonLocalClass(classDescriptor)
-            is EnumEntryConstructorDescriptor -> ClassIdByConstructor(
-                classDescriptor.constructedClass.classId!!,
-                classDescriptor.getConstructorTypes()
-            )
+//            is EnumEntryConstructorDescriptor -> ClassIdByConstructor(
+//                classDescriptor.constructedClass.classId!!,
+//                classDescriptor.getConstructorTypes()
+//            )
 
-            is TupleConstructor -> ClassIdByConstructor(
-                ClassId(FqName.topLevel(Name.identifier("Tuple")), Name.identifier("Tuple")),
-                classDescriptor.types
-            )
+//            is TupleConstructor -> ClassIdByConstructor(
+//                ClassId(FqName.topLevel(Name.identifier("Tuple")), Name.identifier("Tuple")),
+//                classDescriptor.types
+//            )
 
             else -> error("Unexpected class descriptor")
         }
         val kind = when (classDescriptor) {
             is ClassDescriptor -> classDescriptor.kind
-            is EnumEntryConstructorDescriptor -> ClassKind.ENUM_ENTRY
+//            is EnumEntryConstructorDescriptor -> ClassKind.ENUM_ENTRY
             is TupleConstructor -> ClassKind.TUPLE
             else -> {
                 error("Unexpected class descriptor")
@@ -1998,7 +1996,8 @@ private object MatchOnTupleExhaustivenessChecker : MatchOnClassExhaustivenessChe
             addAll(
                 getMissingClassCasesByTuple(
                     expression,
-                    setOf(TupleConstructor(type.arguments.map { it.type })),
+                    emptySet() ,
+//                    setOf(TupleConstructor(type.arguments.map { it.type })),
                     context
                 )
             )
@@ -2069,7 +2068,7 @@ private object MatchOnNullableExhaustivenessChecker /* : WhenExhaustivenessCheck
                 if (condition is CjMatchConditionWithExpression) {
                     condition.expression?.let {
                         val type = context.getType(it)
-                        if (type != null && CangJieBuiltIns.isNullableNothing(type)) {
+                        if (type != null && CangJieBuiltIns.isNothing(type)) {
                             return listOf()
                         }
                     }
@@ -2083,14 +2082,15 @@ private object MatchOnNullableExhaustivenessChecker /* : WhenExhaustivenessCheck
 // It's not a regular exhaustiveness checker, invoke it only inside other checkers
 private object MatchOnExpectExhaustivenessChecker {
     fun getMissingCase(subjectDescriptor: ClassDescriptor?): MatchMissingCase? {
-        return runIf(subjectDescriptor?.isExpect == true) {
-            when (subjectDescriptor!!.kind) {
-                ClassKind.CLASS -> MatchMissingCase.ConditionTypeIsExpect.SealedClass
-                ClassKind.INTERFACE -> MatchMissingCase.ConditionTypeIsExpect.SealedInterface
-                ClassKind.ENUM -> MatchMissingCase.ConditionTypeIsExpect.Enum
-                else -> MatchMissingCase.Unknown
-            }
-        }
+//        return runIf(subjectDescriptor?.isExpect == true) {
+//            when (subjectDescriptor!!.kind) {
+//                ClassKind.CLASS -> MatchMissingCase.ConditionTypeIsExpect.SealedClass
+//                ClassKind.INTERFACE -> MatchMissingCase.ConditionTypeIsExpect.SealedInterface
+//                ClassKind.ENUM -> MatchMissingCase.ConditionTypeIsExpect.Enum
+//                else -> MatchMissingCase.Unknown
+//            }
+//        }
+        TODO()
     }
 }
 

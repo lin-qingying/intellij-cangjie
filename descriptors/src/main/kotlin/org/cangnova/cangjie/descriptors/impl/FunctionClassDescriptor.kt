@@ -162,10 +162,7 @@ open class FunctionClassDescriptor(
         get() = parameters
 
     inner class FunctionTypeConstructor : AbstractClassTypeConstructor(storageManager) {
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
 
-            return emptyList()
-        }
 
         override fun computeSupertypes(): Collection<CangJieType> {
 //                 val supertypes = when (functionTypeKind) {

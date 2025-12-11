@@ -37,51 +37,133 @@ import org.cangnova.cangjie.resolve.calls.model.VariableAsFunctionResolvedCall
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeApproximator
 
-
+/**
+ * 变量作为函数的已解析调用实现
+ *
+ * 这个类处理将变量当作函数调用的特殊情况，例如调用重载了 invoke 操作符的对象。
+ * 它包含两个调用：
+ * 1. variableCall - 解析变量本身的调用
+ * 2. functionCall - 解析 invoke 函数的调用
+ *
+ * 这个类使用委托模式，将大部分调用委托给 functionCall。
+ *
+ * @property variableCall 变量调用，解析变量本身
+ * @property functionCall 函数调用，解析 invoke 操作符
+ */
 class NewVariableAsFunctionResolvedCallImpl(
     override val variableCall: NewAbstractResolvedCall<VariableDescriptor>,
     override val functionCall: NewAbstractResolvedCall<FunctionDescriptor>,
 ) : VariableAsFunctionResolvedCall, NewAbstractResolvedCall<FunctionDescriptor>() {
+
+    /** 基础调用，从 invoke 调用中提取的原始 PSI 调用 */
     val baseCall: PSICangJieCallImpl = (functionCall.psiCangJieCall as PSICangJieCallForInvoke).baseCall
+
+    // ========== 从父类实现的属性（委托给 functionCall）==========
 
     override val resolvedCallAtom: ResolvedCallAtom? = functionCall.resolvedCallAtom
     override val psiCangJieCall: PSICangJieCall = functionCall.psiCangJieCall
     override val typeApproximator: TypeApproximator = functionCall.typeApproximator
     override val freshSubstitutor: FreshVariableNewTypeSubstitutor? = functionCall.freshSubstitutor
-
     override val cangjieCall = functionCall.cangjieCall
     override val languageVersionSettings = functionCall.languageVersionSettings
     override val argumentMappingByOriginal = functionCall.argumentMappingByOriginal
-
     override val diagnostics: Collection<CangJieCallDiagnostic> = functionCall.diagnostics
 
-    override fun getStatus() = functionCall.status
-    override fun getContextReceivers() = functionCall.contextReceivers
+    // ========== 从接口实现的属性（委托给 functionCall）==========
 
-    override fun getTypeArguments() = functionCall.typeArguments
+    /**
+     * 解析状态
+     * 委托给函数调用的状态
+     */
+    override val status
+        get() = functionCall.status
 
+    /**
+     * 上下文接收者列表
+     * 委托给函数调用的上下文接收者
+     */
+    override val contextReceivers
+        get() = functionCall.contextReceivers
 
-    override fun getCandidateDescriptor() = functionCall.candidateDescriptor
-    override fun getSmartCastDispatchReceiverType() = functionCall.smartCastDispatchReceiverType
+    /**
+     * 类型参数映射
+     * 委托给函数调用的类型参数
+     */
+    override val typeArguments
+        get() = functionCall.typeArguments
 
-    override fun getExplicitReceiverKind() = functionCall.explicitReceiverKind
+    /**
+     * 候选描述符
+     * 委托给函数调用的候选描述符
+     */
+    override val candidateDescriptor
+        get() = functionCall.candidateDescriptor
 
+    /**
+     * 智能转换调度接收者类型
+     * 委托给函数调用的智能转换类型
+     */
+    override var smartCastDispatchReceiverType
+        get() = functionCall.smartCastDispatchReceiverType
+        set(value) {
+            functionCall.smartCastDispatchReceiverType = value
+        }
 
-    override fun getExtensionReceiver() = functionCall.extensionReceiver
+    /**
+     * 显式接收者类型
+     * 委托给函数调用的显式接收者类型
+     */
+    override val explicitReceiverKind
+        get() = functionCall.explicitReceiverKind
 
+    /**
+     * 扩展接收者
+     * 委托给函数调用的扩展接收者
+     */
+    override val extensionReceiver
+        get() = functionCall.extensionReceiver
 
-    override fun getResultingDescriptor() = functionCall.resultingDescriptor
+    /**
+     * 结果描述符
+     * 委托给函数调用的结果描述符
+     */
+    override val resultingDescriptor
+        get() = functionCall.resultingDescriptor
 
-    override fun getDispatchReceiver() = functionCall.dispatchReceiver
+    /**
+     * 调度接收者
+     * 委托给函数调用的调度接收者
+     */
+    override val dispatchReceiver
+        get() = functionCall.dispatchReceiver
 
+    // ========== 方法实现（委托给 functionCall）==========
+
+    /**
+     * 更新调度接收者类型
+     * 委托给函数调用
+     */
     override fun updateDispatchReceiverType(newType: CangJieType) = functionCall.updateDispatchReceiverType(newType)
+
+    /**
+     * 构建参数到参数描述符的映射
+     * 委托给函数调用
+     */
     override fun argumentToParameterMap(
         resultingDescriptor: CallableDescriptor,
         valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>
     ) = functionCall.argumentToParameterMap(resultingDescriptor, valueArguments)
 
+    /**
+     * 更新扩展接收者类型
+     * 委托给函数调用
+     */
     override fun updateExtensionReceiverType(newType: CangJieType) = functionCall.updateExtensionReceiverType(newType)
 
+    /**
+     * 设置结果替换器
+     * 同时更新函数调用和变量调用的替换器
+     */
     override fun setResultingSubstitutor(substitutor: NewTypeSubstitutor?) {
         functionCall.setResultingSubstitutor(substitutor)
         variableCall.setResultingSubstitutor(substitutor)

@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.SmartList
+import org.cangnova.cangjie.FrontendInternals
 import org.cangnova.cangjie.descriptors.ModuleSourceInfo
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
@@ -36,6 +37,7 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.projectStructure.CangJieSourceFilterScope
 import org.cangnova.cangjie.psi.CjAbstractClassBody
 import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjElement
@@ -43,14 +45,17 @@ import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.psiUtil.parentsWithSelf
 import org.cangnova.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import org.cangnova.cangjie.resolve.ResolutionFacade
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.caches.getResolutionFacade
 import org.cangnova.cangjie.resolve.frontendService
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.lazy.FileScopeProvider
+import org.cangnova.cangjie.resolve.module
 import org.cangnova.cangjie.resolve.scopes.util.parentsWithSelf
 import org.cangnova.cangjie.types.error.ErrorClassDescriptor
 import org.cangnova.cangjie.types.error.ErrorEntity
 import org.cangnova.cangjie.utils.Printer
+import org.cangnova.cangjie.utils.getImplicitReceiversWithInstance
 
 @JvmOverloads
 fun MemberScope.memberScopeAsImportingScope(parentScope: ImportingScope? = null): ImportingScope =
@@ -150,8 +155,6 @@ private class MemberScopeToImportingScopeAdapter(override val parent: ImportingS
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         memberScope.getContributedClassifier(name, location)
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> =
-        memberScope.getExtendClass(name)
 
     override fun getContributedVariables(
         name: Name,
@@ -390,10 +393,7 @@ fun LexicalScope.findLocalVariable(name: Name): VariableDescriptor? {
     }
 }
 
-fun HierarchicalScope?.getExtendClasss(name: Name, location: LookupLocation): List<LazyExtendClassDescriptor> {
 
-    return this?.getListFromMeAndParent { it.getExtendClass(name) } ?: emptyList()
-}
 
 fun HierarchicalScope.findPackageFqNames(
     name: Name,
@@ -577,7 +577,6 @@ class ErrorLexicalScope : LexicalScope {
         }
 
         override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
-        override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> = emptyList()
 
         override fun getContributedVariables(
             name: Name,

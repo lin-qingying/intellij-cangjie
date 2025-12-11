@@ -37,22 +37,21 @@ import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.constants.FloatLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.constants.IntegerLiteralTypeConstructor
 import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstructor
+import org.cangnova.cangjie.resolve.isAnnotatinoDescriptor
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.types.CangJieTypeFactory.simpleTypeWithNonTrivialMemberScope
 import org.cangnova.cangjie.types.TypeUtils.contains
 import org.cangnova.cangjie.types.TypeUtils.makeOptionalAsSpecified
 import org.cangnova.cangjie.types.TypeUtils.makeProjection
-import org.cangnova.cangjie.types.checker.CangJieTypeChecker
+import org.cangnova.cangjie.types.checker.*
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker.Companion.DEFAULT
-import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
-import org.cangnova.cangjie.types.checker.NewTypeVariableConstructor
+import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isMarkedOption
 import org.cangnova.cangjie.types.error.ErrorType
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.model.TypeArgumentMarker
 import org.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker
 import org.cangnova.cangjie.utils.SmartSet
-import kotlin.collections.get
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -1956,3 +1955,53 @@ val CangJieType.isInt64 get() = CangJieBuiltIns.isInt64(this)
 val CangJieType.isFloat16 get() = CangJieBuiltIns.isFloat16(this)
 val CangJieType.isFloat32 get() = CangJieBuiltIns.isFloat32(this)
 val CangJieType.isFloat64 get() = CangJieBuiltIns.isFloat64(this)
+val TypeParameterDescriptor.representativeUpperBound: CangJieType
+    get() {
+        assert(upperBounds.isNotEmpty()) { "Upper bounds should not be empty: $this" }
+
+        return upperBounds.firstOrNull {
+            val classDescriptor = it.constructor.declarationDescriptor as? ClassDescriptor ?: return@firstOrNull false
+            classDescriptor.kind != ClassKind.INTERFACE && !classDescriptor.isAnnotatinoDescriptor()
+        } ?: upperBounds.first()
+    }
+
+fun unCaptureProjection(projection: TypeProjection): TypeProjection {
+    val unCapturedProjection = (projection.type.constructor as? NewCapturedTypeConstructor)?.projection ?: projection
+    if (unCapturedProjection.type is ErrorType) return unCapturedProjection
+
+    val newArguments = unCapturedProjection.type.arguments.map(::unCaptureProjection)
+    return TypeProjectionImpl(
+        unCapturedProjection.projectionKind,
+        unCapturedProjection.type.replace(newArguments)
+    )
+}
+fun SimpleType.unCapture(): UnwrappedType {
+    if (this is ErrorType) return this
+    if (this is NewCapturedType)
+        return unCaptureTopLevelType()
+
+    val newArguments = arguments.map(::unCaptureProjection)
+    return replace(newArguments).unwrap()
+}
+private fun NewCapturedType.unCaptureTopLevelType(): UnwrappedType {
+    if (lowerType != null) return lowerType
+
+    val supertypes = constructor.supertypes
+    if (supertypes.isNotEmpty()) return intersectTypes(supertypes)
+
+    return constructor.projection.type.unwrap()
+}
+fun AbbreviatedType.unCapture(): SimpleType {
+    val newType = expandedType.unCapture()
+    return AbbreviatedType(newType as? SimpleType ?: expandedType, abbreviation)
+}
+fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
+    if (constructor !is IntersectionTypeConstructor) return listOf(this)
+    val types = constructor.supertypes
+    return if (isMarkedOption()) {
+        types.map { it.makeOptional() }
+    } else {
+        types
+    }
+}
+

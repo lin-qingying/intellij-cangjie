@@ -401,7 +401,7 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
     override fun setResultingSubstitutor(substitutor: NewTypeSubstitutor?) {
         // 清除缓存的值
         updateArgumentsMapping(null)
-        updateValueArguments(null)
+        updateValueArguments(emptyMap())
 
         // 替换接收者类型
         substituteReceivers(substitutor)

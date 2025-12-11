@@ -50,6 +50,7 @@ import org.cangnova.cangjie.resolve.calls.util.isOrOverridesSynthesized
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.checker.NewCangJieTypeCheckerImpl
+import org.cangnova.cangjie.utils.isExtension
 import java.util.*
 
 //覆盖检查分析
@@ -560,7 +561,7 @@ class OverrideResolver(
         for (parameterFromSubclass in declared.valueParameters) {
             var defaultsInSuper = 0
             for (parameterFromSuperclass in parameterFromSubclass.overriddenDescriptors) {
-                if (parameterFromSuperclass.declaresDefaultValue()) {
+                if (parameterFromSuperclass.declaresDefaultValue) {
                     defaultsInSuper++
                 }
             }
@@ -580,7 +581,7 @@ class OverrideResolver(
         val parameter = DescriptorToSourceUtils.descriptorToDeclaration(descriptor) as? CjParameter
             ?: error("Declaration not found for parameter: $descriptor")
 
-        if (descriptor.declaresDefaultValue()) {
+        if (descriptor.declaresDefaultValue) {
             trace.report(DEFAULT_VALUE_NOT_ALLOWED_IN_OVERRIDE.on(parameter))
         }
 
@@ -1126,7 +1127,7 @@ class OverrideResolver(
             cangjieTypeRefiner: CangJieTypeRefiner,
             languageVersionSettings: LanguageVersionSettings
         ): CallableMemberDescriptor? {
-            @OptIn(TypeRefinement::class) for (supertype in cangjieTypeRefiner.refineSupertypes(declaringClass)) {
+              for (supertype in cangjieTypeRefiner.refineSupertypes(declaringClass)) {
                 val all = linkedSetOf<CallableMemberDescriptor>()
                 all.addAll(
                     supertype.memberScope.getContributedFunctions(

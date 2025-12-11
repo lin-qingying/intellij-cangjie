@@ -55,6 +55,8 @@ import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategyImpl
 import org.cangnova.cangjie.resolve.calls.util.CallMaker
 import org.cangnova.cangjie.resolve.calls.util.extractCallableReferenceExpression
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
+import org.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
 import org.cangnova.cangjie.types.expressions.CoercionStrategy

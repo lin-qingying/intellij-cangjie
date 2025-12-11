@@ -28,16 +28,22 @@ import com.intellij.util.SmartList
 import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import org.cangnova.cangjie.descriptors.ClassDescriptor
+import org.cangnova.cangjie.descriptors.ClassKind
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.DescriptorToSourceUtils
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.descriptors.VariableDescriptor
 import org.cangnova.cangjie.diagnostics.Diagnostic
+import org.cangnova.cangjie.psi.CjCallExpression
 import org.cangnova.cangjie.psi.CjDeclaration
+import org.cangnova.cangjie.psi.CjLambdaExpression
+import org.cangnova.cangjie.psi.psiUtil.unpackFunctionLiteral
 import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.classValueTypeDescriptor
 import org.cangnova.cangjie.resolve.getSuperClassNotAny
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.DeferredType
+import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.contains
 fun ClassDescriptor.getAllSuperclassesWithoutAny() =
     generateSequence(
@@ -97,3 +103,20 @@ fun FunctionDescriptor.isFunctionForExpectTypeFromCastFeature(): Boolean {
 
 val DeclarationDescriptor.isExtension: Boolean
     get() = TODO("是否扩展")
+
+
+fun TypeConstructor.supertypesWithAny(): Collection<CangJieType> {
+    val supertypes = supertypes
+    val noSuperClass = supertypes.map { it.constructor.declarationDescriptor as? ClassDescriptor }.all {
+        it == null || it.kind == ClassKind.INTERFACE
+    }
+    return if (noSuperClass) supertypes + builtIns.anyType else supertypes
+}
+/** If a literal of this class can be used as a value, returns the type of this value */
+val ClassDescriptor.classValueType: CangJieType?
+    get() = classValueTypeDescriptor?.defaultType
+
+fun CjCallExpression.getLastLambdaExpression(): CjLambdaExpression? {
+    if (lambdaArguments.isNotEmpty()) return null
+    return valueArguments.lastOrNull()?.getArgumentExpression()?.unpackFunctionLiteral()
+}

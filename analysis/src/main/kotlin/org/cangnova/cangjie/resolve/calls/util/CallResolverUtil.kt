@@ -28,10 +28,12 @@ import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
-import org.cangnova.cangjie.diagnostics.Errors
+import org.cangnova.cangjie.diagnostics.infos.errors.NO_CONSTRUCTOR
+import org.cangnova.cangjie.diagnostics.infos.warnings.NO_CONSTRUCTOR_WARNING
 import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.CallTransformer
 import org.cangnova.cangjie.resolve.calls.context.BasicCallResolutionContext
 import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
@@ -44,8 +46,10 @@ import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.SyntheticScopes
 import org.cangnova.cangjie.resolve.scopes.collectSyntheticConstructors
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.AbbreviatedType
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeSubstitutor
 
 internal fun PsiElement.reportOnElement() =
     (this as? CjConstructorDelegationCall)
@@ -122,8 +126,8 @@ fun checkForConstructorCallOnFunctionalType(
     if (typeReference?.typeElement is CjFunctionType) {
         val factory =
             when (context.languageVersionSettings.supportsFeature(LanguageFeature.ProhibitConstructorCallOnFunctionalSupertype)) {
-                true -> Errors.NO_CONSTRUCTOR
-                false -> Errors.NO_CONSTRUCTOR_WARNING
+                true -> NO_CONSTRUCTOR
+                false -> NO_CONSTRUCTOR_WARNING
             }
         context.trace.report(factory.on(context.call.getValueArgumentListOrElement()))
     }

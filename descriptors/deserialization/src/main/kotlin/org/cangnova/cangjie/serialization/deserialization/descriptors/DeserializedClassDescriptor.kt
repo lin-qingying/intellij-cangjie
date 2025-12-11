@@ -315,9 +315,7 @@ class DeserializedClassDescriptor(
             this@DeserializedClassDescriptor.computeConstructorTypeParameters()
         }
 
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-            return emptyList()
-        }
+
 
         override fun computeSupertypes(): Collection<CangJieType> {
 

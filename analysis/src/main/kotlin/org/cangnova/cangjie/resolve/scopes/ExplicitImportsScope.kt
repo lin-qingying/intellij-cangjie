@@ -28,7 +28,6 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import org.cangnova.cangjie.utils.Printer
 import org.cangnova.cangjie.utils.firstIsInstanceOrNull
 
@@ -56,10 +55,7 @@ class ExplicitImportsScope(private val descriptors: Collection<DeclarationDescri
         return descriptors.filter { it.name == name }.filterIsInstance<MacroDescriptor>()
     }
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-        return descriptors.filter { it.name == name }.filterIsInstance<LazyExtendClassDescriptor>()
 
-    }
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,

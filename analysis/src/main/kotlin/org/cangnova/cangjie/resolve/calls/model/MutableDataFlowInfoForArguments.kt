@@ -28,14 +28,12 @@ import org.cangnova.cangjie.psi.ValueArgument
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 
 abstract class MutableDataFlowInfoForArguments(
-    protected val initialDataFlowInfo: DataFlowInfo
+    override val resultInfo: DataFlowInfo
 ) : DataFlowInfoForArguments {
 
     abstract fun updateInfo(valueArgument: ValueArgument, dataFlowInfo: DataFlowInfo)
 
     abstract fun updateResultInfo(dataFlowInfo: DataFlowInfo)
-
-    override fun getResultInfo(): DataFlowInfo = initialDataFlowInfo
 
     class WithoutArgumentsCheck(dataFlowInfo: DataFlowInfo) : MutableDataFlowInfoForArguments(dataFlowInfo) {
 

@@ -43,7 +43,7 @@ class ResolutionWithStubTypesChecker(private val cangjieCallResolver: CangJieCal
         context: BasicCallResolutionContext
     ) {
         // Don't check builder inference lambdas if the entire builder call itself has resolution ambiguity
-        if (!overloadResolutionResults.isSingleResult()) return
+        if (!overloadResolutionResults.isSingleResult) return
 
 //        val builderResolvedCall = overloadResolutionResults.resultingCall as? NewAbstractResolvedCall<*> ?: return
 

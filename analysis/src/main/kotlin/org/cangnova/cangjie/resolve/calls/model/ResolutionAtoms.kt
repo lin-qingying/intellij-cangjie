@@ -42,9 +42,10 @@ import org.cangnova.cangjie.resolve.calls.inference.model.TypeVariableForLambdaR
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstant
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.model.CangJieTypeMarker
-import org.cangnova.cangjie.types.util.unCapture
+
 import org.cangnova.cangjie.utils.addIfNotNull
 
 

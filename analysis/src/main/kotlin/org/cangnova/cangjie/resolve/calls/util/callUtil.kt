@@ -33,15 +33,18 @@ import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.Diagnostic
 import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.incremental.CangJieLookupLocation
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.firstIsInstanceOrNull
 import org.cangnova.cangjie.psi.psiUtil.getQualifiedExpressionForSelectorOrThis
 import org.cangnova.cangjie.psi.psiUtil.unpackFunctionLiteral
 import org.cangnova.cangjie.resolve.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.CALL
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.RESOLVED_CALL
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.DelegatingBindingTrace
+import org.cangnova.cangjie.resolve.binding.getDataFlowInfoBefore
 import org.cangnova.cangjie.resolve.caches.analyze
 import org.cangnova.cangjie.resolve.calls.ArgumentTypeResolver
 import org.cangnova.cangjie.resolve.calls.CallResolver
@@ -69,6 +72,11 @@ import org.cangnova.cangjie.types.FlexibleType
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.isError
+import org.cangnova.cangjie.utils.classValueType
+import org.cangnova.cangjie.utils.getImplicitReceiversWithInstance
+import org.cangnova.cangjie.utils.getLastLambdaExpression
+import org.cangnova.cangjie.utils.returnIfNoDescriptorForDeclarationException
+import org.cangnova.cangjie.utils.supertypesWithAny
 
 fun CjElement?.getParentResolvedCall(
     context: BindingContext,
@@ -178,7 +186,7 @@ fun Call.resolveCandidates(
 
     val results = callResolver.resolveFunctionCall(callResolutionContext)
 
-    var candidates = results.getAllCandidates()!!
+    var candidates = results.allCandidates!!
 
     if (callElement is CjConstructorDelegationCall) { // for "this(...)" delegation call exclude caller from candidates
         inDescriptor as ConstructorDescriptor
@@ -295,7 +303,7 @@ val CjElement.isFakeElement: Boolean
         return file is CjFile && file.doNotAnalyze != null
     }
 
-fun Call?.getResolvedCall(context: BindingContext): ResolvedCall<out CallableDescriptor>? {
+fun Call.getResolvedCall(context: BindingContext): ResolvedCall< CallableDescriptor>? {
     return context[RESOLVED_CALL, this]
 }
 
@@ -379,7 +387,7 @@ fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
 
     fun extractReceiverTypeFrom(descriptor: ClassDescriptor): CangJieType? = descriptor.classValueType
 
-    fun tryExtractReceiver(context: BindingContext) = context.get(BindingContext.QUALIFIER, receiverExpression)
+    fun tryExtractReceiver(context: BindingContext) =receiverExpression?.let { context.get(BindingContext.QUALIFIER, receiverExpression) }
 
     fun tryExtractClassDescriptor(context: BindingContext): ClassDescriptor? =
         (tryExtractReceiver(context) as? ClassQualifier)?.descriptor

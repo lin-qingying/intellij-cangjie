@@ -47,7 +47,6 @@ import org.cangnova.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.ImportingScope
 import org.cangnova.cangjie.resolve.scopes.concat
@@ -450,45 +449,9 @@ class LazyImportScope(
             target
         }
 
-    /**
-     * 获取扩展类
-     *
-     * @param name 类名称
-     * @return 扩展类描述符列表
-     */
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-        return importResolver.getExtendClassifier(name) + (secondaryImportResolver?.getExtendClassifier(name)
-            ?: emptySet())
-    }
 
-    /**
-     * 根据类名获取扩展分类描述符列表
-     *
-     * 此函数通过解析懒加载导入语句来收集与给定名称对应的扩展分类描述符它首先查找所有与指定名称匹配的导入语句，
-     * 然后遍历这些导入语句，收集每个导入语句中与名称对应的扩展类描述符如果找到一个或多个描述符，则将它们添加到结果列表中
-     *
-     * @param name 要解析的类名
-     * @return 包含扩展分类描述符的列表如果找不到任何描述符，则返回空列表
-     */
-    private fun LazyImportResolver<*>.getExtendClassifier(name: Name): List<LazyExtendClassDescriptor> {
-        // 获取与指定名称相关的所有导入语句
-        val imports = indexedImports.importsForName(name)
 
-        // 初始化一个可变列表来存储扩展分类描述符
-        val target = mutableListOf<LazyExtendClassDescriptor>()
-        // 遍历每个导入指令
-        for (directive in imports) {
-            // 获取当前导入指令的作用域中与名称对应的扩展类描述符
-            val descriptors = getImportScope(directive).getExtendClass(name)
-            // 如果找到了描述符，则全部添加到结果列表中
-            if (descriptors.isNotEmpty()) {
-                target.addAll(descriptors)
-            }
-        }
 
-        // 返回收集到的扩展分类描述符列表
-        return target
-    }
 
     /**
      * 根据名称获取分类描述符

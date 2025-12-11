@@ -759,7 +759,7 @@ internal class MemberScopeTowerLevel(
 
             } ?: topLevelType
         }
-        return substitute(TypeSubstitutor.create(wrappedSubstitution))
+        return substitute(TypeSubstitutor.create(wrappedSubstitution))!!
     }
 
     private fun ReceiverValueWithSmartCastInfo.smartCastReceiver(targetType: CangJieType): ReceiverValueWithSmartCastInfo {

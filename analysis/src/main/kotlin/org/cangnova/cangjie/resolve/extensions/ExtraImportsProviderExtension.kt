@@ -24,14 +24,15 @@
 
 package org.cangnova.cangjie.resolve.extensions
 
+import com.intellij.openapi.extensions.ExtensionPointName
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.psi.CjImportInfo
 import com.intellij.openapi.project.Project
 
 interface ExtraImportsProviderExtension {
-    companion object : ProjectExtensionDescriptor<ExtraImportsProviderExtension>(
-        "org.cangnova.cangjie.extraImportsProviderExtension", ExtraImportsProviderExtension::class.java
-    ) {
+    companion object {
+        val EP_NAME =
+            ExtensionPointName.create<ExtraImportsProviderExtension>("org.cangnova.cangjie.extraImportsProviderExtension")
 
         private class CompoundExtraImportsProviderExtension(val instances: List<ExtraImportsProviderExtension>) :
             ExtraImportsProviderExtension {
@@ -41,7 +42,7 @@ interface ExtraImportsProviderExtension {
         }
 
         fun getInstance(project: Project): ExtraImportsProviderExtension {
-            val instances = getInstances(project)
+            val instances = EP_NAME.extensionList
             return instances.singleOrNull() ?: CompoundExtraImportsProviderExtension(instances)
         }
     }

@@ -27,7 +27,6 @@ package org.cangnova.cangjie.resolve.lazy.descriptors
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
 import org.cangnova.cangjie.psi.CjParameter
 import org.cangnova.cangjie.psi.CjPureTypeStatement
-import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProvider
 
 interface ClassMemberDeclarationProvider : DeclarationProvider {
     val ownerInfo: CjClassLikeInfo? // is null for synthetic classes/object that don't present in the source code

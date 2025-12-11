@@ -62,7 +62,7 @@ object CallTransformer {
     class CallForImplicitInvoke(
         private val explicitExtensionReceiver: Receiver?,
         private val calleeExpressionAsDispatchReceiver: ExpressionReceiver,
-        private val outerCall: Call,
+        val outerCall: Call,
         val itIsVariableAsFunctionCall: Boolean
     ) : DelegatingCall(outerCall) {
         //        private val fakeInvokeExpression: CjSimpleNameExpression =
@@ -81,6 +81,6 @@ object CallTransformer {
         override val callType: Call.CallType
             get() = Call.CallType.INVOKE
 
-        fun getOuterCall(): Call = outerCall
+
     }
 }

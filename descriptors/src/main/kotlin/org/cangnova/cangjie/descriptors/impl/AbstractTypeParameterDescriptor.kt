@@ -134,9 +134,7 @@ abstract class AbstractTypeParameterDescriptor protected constructor(
             return resolveUpperBounds()
         }
 
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-            return listOf()
-        }
+
 
 
 

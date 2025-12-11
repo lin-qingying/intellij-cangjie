@@ -869,7 +869,7 @@ class CallResolver(
         resolutionTask: ResolutionTask<D>,
         tracing: TracingStrategy
     ): OverloadResolutionResultsImpl<D> {
-        val initialInfo = context.dataFlowInfoForArguments.getResultInfo()
+        val initialInfo = context.dataFlowInfoForArguments.resultInfo
         if (context.checkArguments == CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS) {
             argumentTypeResolver.analyzeArgumentsAndRecordTypes(
                 context,

@@ -38,6 +38,7 @@ import org.cangnova.cangjie.psi.psiUtil.isPackageDirectiveExpression
 import org.cangnova.cangjie.resolve.isAnnotatinoDescriptor
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindExclude
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.resolve.unwrapIfTypeAlias
 import org.cangnova.cangjie.types.CangJieType
 

@@ -104,6 +104,7 @@ import org.cangnova.cangjie.types.ErrorUtils.createErrorType
 import org.cangnova.cangjie.types.ErrorUtils.invalidType
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
+import org.cangnova.cangjie.types.TypeUtils.makeNonOption
 import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
@@ -687,7 +688,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         // 如果右侧类型不可空，但结果类型可空，强制将结果类型设为不可空
         if (!isOptionType(rightType) && isOptionType(type)) {
-            type = makeNotNullable(type)
+            type = makeNonOption(type)
         }
 
         // 如果上下文依赖是 "依赖上下文"，返回类型信息
@@ -805,7 +806,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
 
         // 如果右侧类型不可空，但结果类型可空，强制将结果类型设为不可空
         if (!isOptionType(rightType) && isOptionType(type)) {
-            type = makeNotNullable(type)
+            type = makeNonOption(type)
         }
 
         // 如果上下文依赖是 "依赖上下文"，返回类型信息

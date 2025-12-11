@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.resolve.calls.tower
 
 import org.cangnova.cangjie.descriptors.ClassKind
-import org.cangnova.cangjie.descriptors.enumd.EnumEntryDescriptor
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.model.CangJieCall
@@ -397,11 +396,6 @@ class VariableAndObjectScopeTowerProcessor<out C : Candidate>(
         return result
     }
 
-    private fun Candidate.isEnumEntryCandidateByClassType(): Boolean {
-        if (this !is ResolutionCandidate) return false
-        val callableDescriptor = resolvedCall.candidateDescriptor as? ClassCallableDescriptor ?: return false
-        return callableDescriptor.type is EnumEntryDescriptor
-    }
 
     private fun Candidate.isEnumEntryCandidate(): Boolean {
         if (this !is ResolutionCandidate) return false

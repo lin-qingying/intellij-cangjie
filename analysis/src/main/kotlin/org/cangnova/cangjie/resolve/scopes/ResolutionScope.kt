@@ -41,7 +41,6 @@ interface ResolutionScope {
     fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? = null
 
     fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> = emptyList()
-    fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> = emptyList()
 
 
 //    fun getFunctionClassDescriptor(parameterCount:Int):FunctionClassDescriptor?

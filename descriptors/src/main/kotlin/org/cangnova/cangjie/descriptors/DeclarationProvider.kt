@@ -43,15 +43,7 @@ interface DeclarationProvider {
     fun getDestructuringDeclarationsEntries(name: Name): Collection<CjDestructuringDeclarationEntry>
     fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>>
 
-    /**
-     * 获取枚举项
-     */
-    fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry>
 
-    /**
-     * 获取扩展
-     */
-    fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>>
 
     /**
      * 通过原类型名获取别名，需要验证其正确性
@@ -87,10 +79,7 @@ interface DeclarationProvider {
 
             override fun getTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<*>> = emptyList()
 
-            override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> = emptyList()
 
-            override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> =
-                emptyList()
 
             override fun getAliasTypeStatementDeclarations(name: Name): Collection<CjTypeAlias> = emptyList()
 

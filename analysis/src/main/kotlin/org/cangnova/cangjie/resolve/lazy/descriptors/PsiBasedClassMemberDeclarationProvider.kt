@@ -33,7 +33,6 @@ import org.cangnova.cangjie.psi.stubs.elements.getAllBindings
 import org.cangnova.cangjie.descriptors.data.CjClassInfoUtil
 import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
 import org.cangnova.cangjie.descriptors.data.CjTypeStatementInfo
-import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProvider
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.storage.StorageManager
 

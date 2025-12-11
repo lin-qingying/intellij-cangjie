@@ -70,9 +70,7 @@ class BuiltInsTypeConstructor(
         }
     }
 
-    override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-        TODO("Not yet implemented")
-    }
+
 
 
     /**

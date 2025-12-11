@@ -29,6 +29,7 @@ import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.resolve.MissingSupertypesResolver
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.checkers.CheckerContext
 import org.cangnova.cangjie.resolve.deprecation.DeprecationResolver
 

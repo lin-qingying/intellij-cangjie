@@ -30,7 +30,7 @@ import org.cangnova.cangjie.descriptors.ReceiverParameterDescriptor
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
-import org.cangnova.cangjie.types.util.expandIntersectionTypeIfNecessary
+import org.cangnova.cangjie.types.expandIntersectionTypeIfNecessary
 
 
 // very initial state of component
@@ -73,7 +73,7 @@ class AdditionalDiagnosticReporter(
     ): SmartCastDiagnostic? {
         if (receiver == null || parameter == null) return null
         val expectedType =
-            parameter.type.unwrap().let { if (receiver.isSafeCall) it.makeOptionalAsSpecified(true) else it }
+            parameter.type.unwrap().let { if (receiver.isSafeCall) it.makeOptionAsSpecified(true) else it }
 
         val smartCastDiagnostic = createSmartCastDiagnostic(candidate, receiver, expectedType) ?: return null
 

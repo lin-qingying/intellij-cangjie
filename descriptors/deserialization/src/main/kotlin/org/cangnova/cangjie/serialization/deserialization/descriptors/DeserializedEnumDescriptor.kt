@@ -283,9 +283,7 @@ class DeserializedEnumDescriptor(
             this@DeserializedEnumDescriptor.computeConstructorTypeParameters()
         }
 
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-            return emptyList()
-        }
+
 
         override fun computeSupertypes(): Collection<CangJieType> {
 

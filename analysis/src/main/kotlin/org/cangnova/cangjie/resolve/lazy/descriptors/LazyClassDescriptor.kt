@@ -52,6 +52,25 @@ import org.cangnova.cangjie.types.TypeConstructor
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.isError
 
+/**
+ * 延迟类描述符
+ *
+ * 采用延迟计算策略的类描述符实现，仅在需要时才解析类的各种信息。
+ * 这种设计可以提高性能，避免不必要的解析工作。
+ *
+ * 支持的类种类包括：
+ * - 普通类（CLASS）
+ * - 接口（INTERFACE）
+ * - 枚举（ENUM）
+ * - 对象（OBJECT）
+ * - 结构体（STRUCT）等
+ *
+ * @param c 延迟类上下文，提供解析所需的各种服务
+ * @param containingDeclaration 包含该类的声明描述符
+ * @param name 类名
+ * @param classLikeInfo 类的信息数据
+ * @param isExternal 是否是外部类
+ */
 class LazyClassDescriptor(
     private val c: LazyClassContext,
     containingDeclaration: DeclarationDescriptor,
@@ -67,20 +86,20 @@ class LazyClassDescriptor(
     private val scopesHolderForClass: ScopesHolderForClass<LazyClassMemberScope> =
         createScopesHolderForClass(c, declarationProvider)
 
-    private val kind: ClassKind = classLikeInfo.classKind
+    private val _kind: ClassKind = classLikeInfo.classKind
 
-    private val staticScope: MemberScope = when (kind) {
+    private val staticScope: MemberScope = when (_kind) {
         ClassKind.ENUM -> StaticScopeForCangJieEnum(c.storageManager, this, enumEntriesCanBeUsed = true)
         else -> MemberScope.Empty
     }
 
-    private val typeConstructor = LazyClassTypeConstructor()
+    private val _typeConstructor = LazyClassTypeConstructor()
 
-    private val modality by c.storageManager.createLazyValue {
+    private val _modality by c.storageManager.createLazyValue {
         when {
-            kind.isObject -> Modality.FINAL
+            _kind.isObject -> Modality.FINAL
             else -> {
-                val defaultModality = if (kind == ClassKind.INTERFACE) Modality.ABSTRACT else Modality.FINAL
+                val defaultModality = if (_kind == ClassKind.INTERFACE) Modality.ABSTRACT else Modality.FINAL
                 resolveModalityFromModifiers(
                     typeStatement,
                     defaultModality,
@@ -107,7 +126,7 @@ class LazyClassDescriptor(
         ::getOuterScope
     )
 
-    private val parameters by c.storageManager.createLazyValue {
+    private val _parameters by c.storageManager.createLazyValue {
         val classInfo = declarationProvider.ownerInfo
         val typeParameterList =
             classInfo?.typeParameterList ?: return@createLazyValue emptyList<TypeParameterDescriptor>()
@@ -131,8 +150,8 @@ class LazyClassDescriptor(
     private val freedomForSealedInterfacesSupported =
         c.languageVersionSettings.supportsFeature(LanguageFeature.AllowSealedInheritorsInDifferentFilesOfSamePackage)
 
-    private val sealedSubclasses by c.storageManager.createLazyValue {
-        when (modality) {
+    private val _sealedSubclasses by c.storageManager.createLazyValue {
+        when (_modality) {
             Modality.SEALED -> c.sealedClassInheritorsProvider.computeSealedSubclasses(
                 this,
                 freedomForSealedInterfacesSupported
@@ -168,8 +187,8 @@ class LazyClassDescriptor(
         DescriptorUtils.getAllDescriptors(unsubstitutedMemberScope)
         scopeForInitializerResolution
         unsubstitutedMemberScope
-        typeConstructor.supertypes
-        typeConstructor.parameters.forEach { it.upperBounds }
+        _typeConstructor.supertypes
+        _typeConstructor.parameters.forEach { it.upperBounds }
         unsubstitutedPrimaryConstructor
         visibility
         contextReceivers
@@ -253,28 +272,62 @@ class LazyClassDescriptor(
 
     override fun getStaticScope(): MemberScope = staticScope
 
-    override fun getConstructors(): Collection<ClassConstructorDescriptor> =
-        (unsubstitutedMemberScope as LazyClassMemberScope).getConstructors()
+    /**
+     * 类的所有构造函数集合
+     * 从未替换的成员作用域中获取构造函数列表
+     */
+    override val constructors: Collection<ClassConstructorDescriptor>
+        get() = (unsubstitutedMemberScope as LazyClassMemberScope).getConstructors()
 
-    override fun getEndConstructors(): Collection<ClassConstructorDescriptor> =
-        (unsubstitutedMemberScope as LazyClassMemberScope).getEndConstructors()
+    /**
+     * 类结尾的构造函数集合
+     * 从未替换的成员作用域中获取结尾构造函数列表
+     */
+    override val endConstructors: Collection<ClassConstructorDescriptor>
+        get() = (unsubstitutedMemberScope as LazyClassMemberScope).getEndConstructors()
 
-    override fun getKind(): ClassKind = kind
+    /**
+     * 类的种类（CLASS、INTERFACE、ENUM等）
+     */
+    override val kind: ClassKind
+        get() = _kind
 
-    override fun getModality(): Modality = modality
+    /**
+     * 类的修饰性（FINAL、OPEN、ABSTRACT、SEALED）
+     */
+    override val modality: Modality
+        get() = _modality
 
     override fun isFun(): Boolean = false
 
     override fun isValue(): Boolean = false
 
-    override fun getUnsubstitutedPrimaryConstructor(): ClassConstructorDescriptor? =
-        (unsubstitutedMemberScope as LazyClassMemberScope).primaryConstructor
+    /**
+     * 未替换的主构造函数
+     * 从未替换的成员作用域中获取主构造函数
+     */
+    override val unsubstitutedPrimaryConstructor: ClassConstructorDescriptor?
+        get() = (unsubstitutedMemberScope as LazyClassMemberScope).primaryConstructor
 
-    override fun getDeclaredTypeParameters(): List<TypeParameterDescriptor> = parameters
+    /**
+     * 类声明的类型参数列表
+     */
+    override val declaredTypeParameters: List<TypeParameterDescriptor>
+        get() = _parameters
 
-    override fun getSealedSubclasses(): Collection<ClassDescriptor> = sealedSubclasses
+    /**
+     * 密封类的子类集合
+     * 如果不是密封类则返回空集合
+     */
+    override val sealedSubclasses: Collection<ClassDescriptor>
+        get() = _sealedSubclasses
 
-    override fun getTypeConstructor(): TypeConstructor = typeConstructor
+    /**
+     * 类的类型构造器
+     * 负责类型参数和超类型的管理
+     */
+    override val typeConstructor: TypeConstructor
+        get() = _typeConstructor
 
     @Deprecated("Use setExtendData with proper parameters")
     fun setExtendData(typeStatement: CjTypeStatement, extendTrace: BindingTrace, extendScope: LexicalScope) {
@@ -323,7 +376,7 @@ class LazyClassDescriptor(
     }
 
     private inner class LazyClassTypeConstructor : AbstractClassTypeConstructor(c.storageManager) {
-        private val parameters by c.storageManager.createLazyValue {
+        private val _parameters by c.storageManager.createLazyValue {
             TypeParameterUtilsKt.computeConstructorTypeParameters(this@LazyClassDescriptor)
         }
 
@@ -380,7 +433,7 @@ class LazyClassDescriptor(
 
         override fun getSupertypeLoopChecker(): SupertypeLoopChecker = c.supertypeLoopChecker
 
-        override fun getParameters(): List<TypeParameterDescriptor> = parameters
+        override fun getParameters(): List<TypeParameterDescriptor> = _parameters
 
         override fun isDenotable(): Boolean = true
 

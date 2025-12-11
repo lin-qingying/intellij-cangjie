@@ -726,6 +726,14 @@ open class CangJieBuiltIns(
         get() {
             return cpointer.defaultType
         }
+
+    val throwable: ClassDescriptor
+        get() {
+      return   getStdCoreClassByName("Throwable")
+        }
+    val throwableType: CangJieType
+        get() = throwable.defaultType
+
     val cfunc: ClassDescriptor
         get() = getStdCoreClassByName("CFunc")
     val cfuncType: SimpleType

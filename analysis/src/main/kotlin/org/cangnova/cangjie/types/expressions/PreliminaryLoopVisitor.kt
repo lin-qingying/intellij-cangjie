@@ -32,6 +32,7 @@ import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
 import org.cangnova.cangjie.resolve.calls.smartcasts.IdentifierInfo
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import org.cangnova.cangjie.psi.CjVisitor
 import java.util.LinkedHashSet
 
 /**
@@ -71,14 +72,16 @@ class PreliminaryLoopVisitor private constructor() : AssignedVariablesSearcher()
         @JvmStatic
         fun visitLoop(loopExpression: CjLoopExpression): PreliminaryLoopVisitor {
             val visitor = PreliminaryLoopVisitor()
-            loopExpression.accept(visitor, null)
+            @Suppress("UNCHECKED_CAST")
+            loopExpression.accept(visitor as CjVisitor<Any?, Any?>, null as Any?)
             return visitor
         }
 
         @JvmStatic
         fun visitTryBlock(tryExpression: CjTryExpression): PreliminaryLoopVisitor {
             val visitor = PreliminaryLoopVisitor()
-            tryExpression.tryBlock.accept(visitor, null)
+            @Suppress("UNCHECKED_CAST")
+            tryExpression.tryBlock.accept(visitor as CjVisitor<Any?, Any?>, null as Any?)
             return visitor
         }
 
@@ -96,7 +99,9 @@ class PreliminaryLoopVisitor private constructor() : AssignedVariablesSearcher()
             val visitor = PreliminaryLoopVisitor()
             catchClauses.zip(isBlockShouldBeVisited)
                 .filter { (_, shouldBeVisited) -> shouldBeVisited }
-                .forEach { (clause, _) -> clause.catchBody?.accept(visitor, null) }
+
+
+                .forEach { (clause, _) ->@Suppress("UNCHECKED_CAST") clause.catchBody?.accept(visitor as CjVisitor<Any?, Any?>, null as Any?) }
             return visitor
         }
     }

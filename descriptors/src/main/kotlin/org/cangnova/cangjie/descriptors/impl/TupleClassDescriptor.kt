@@ -80,9 +80,7 @@ class TupleClassDescriptor(
     }
 
     inner class TupleTypeConstructor : AbstractClassTypeConstructor(storageManager) {
-        override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> {
-            return emptyList()
-        }
+
 
         override fun computeSupertypes(): Collection<CangJieType> {
             return listOf(builtIns.anyType)

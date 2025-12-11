@@ -28,6 +28,7 @@ import org.cangnova.cangjie.descriptors.ReceiverParameterDescriptor
 import org.cangnova.cangjie.psi.CjExpression
 import org.cangnova.cangjie.resolve.calls.context.CallResolutionContext
 import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
 
 

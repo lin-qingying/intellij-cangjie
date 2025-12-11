@@ -129,12 +129,12 @@ object NewCommonSuperTypeCalculator {
                 it
             )
         }
-        val notNullTypes = if (!allNotNull) types.map { it.withNullability(false) } else types
+        val notNullTypes = if (!allNotNull) types.map { it.withOption(false) } else types
 
         val commonSuperType =
             commonSuperTypeForNotNullTypes(notNullTypes, stateStubTypesEqualToAnything, stateStubTypesNotEqual)
         return if (!allNotNull)
-            refineNullabilityForUndefinedNullability(types, commonSuperType) ?: commonSuperType.withNullability(true)
+            refineNullabilityForUndefinedNullability(types, commonSuperType) ?: commonSuperType.withOption(true)
         else
             commonSuperType
     }
@@ -147,7 +147,7 @@ object NewCommonSuperTypeCalculator {
         types: List<SimpleTypeMarker>,
         commonSuperType: SimpleTypeMarker
     ): SimpleTypeMarker? {
-        if (!commonSuperType.canHaveUndefinedNullability()) return null
+        if (!commonSuperType.canHaveUndefinedOption()) return null
 
         val actuallyNotNull =
             types.all { hasPathByNotMarkedNullableNodes(it, commonSuperType.typeConstructor()) }
@@ -207,11 +207,11 @@ object NewCommonSuperTypeCalculator {
         val typesToUniquify = buildList {
             for (stubType in stubTypes) {
                 when {
-                    stubType is DefinitelyNotNullTypeMarker -> add(stubType.original())
-                    stubType.isMarkedNullable() -> {
+                    stubType is DefinitelyNonOptionTypeMarker -> add(stubType.original())
+                    stubType.isMarkedOption() -> {
                         areThereAnyNullable = true
                         areAllDefNotNull = false
-                        add(stubType.withNullability(false))
+                        add(stubType.withOption(false))
                     }
 
                     else -> {
@@ -224,8 +224,8 @@ object NewCommonSuperTypeCalculator {
 
         return uniquify(typesToUniquify, stateStubTypesNotEqual).singleOrNull()?.let {
             when {
-                areAllDefNotNull -> it.makeSimpleTypeDefinitelyNotNullOrNotNull()
-                areThereAnyNullable -> it.withNullability(true)
+                areAllDefNotNull -> it.makeSimpleTypeDefinitelyNonOptionOrNonOption()
+                areThereAnyNullable -> it.withOption(true)
                 else -> it
             }
         } ?: anyType()
@@ -277,7 +277,7 @@ object NewCommonSuperTypeCalculator {
     }
 
     private fun TypeSystemCommonSuperTypesContext.isNotNullStubTypeForBuilderInference(type: SimpleTypeMarker): Boolean {
-        return type.isStubTypeForBuilderInference() && !type.isMarkedNullable()
+        return type.isStubTypeForBuilderInference() && !type.isMarkedOption()
     }
 
     private fun TypeSystemCommonSuperTypesContext.isCapturedTypeVariable(type: SimpleTypeMarker): Boolean {
@@ -350,7 +350,7 @@ object NewCommonSuperTypeCalculator {
         if (constructor.parametersCount() == 0) return createSimpleType(
             constructor,
             emptyList(),
-            nullable = false
+            isOption = false
         )
 
         val typeCheckerContext = newTypeCheckerState(errorTypesEqualToAnything = false, stubTypesEqualToAnything = true)
@@ -397,7 +397,7 @@ object NewCommonSuperTypeCalculator {
         return createSimpleType(
             constructor,
             arguments,
-            nullable = false,
+            isOption = false,
             isExtensionFunction = types.all { it.isExtensionFunction() })
     }
 

@@ -24,6 +24,8 @@
 
 package org.cangnova.cangjie.resolve.lazy
 
+import org.cangnova.cangjie.resolve.binding.BindingTraceFilter
+
 /**
  * 枚举类BodyResolveMode定义了不同的代码解析模式
  * 每种模式决定了如何处理绑定追踪信息以及是否进行控制流分析

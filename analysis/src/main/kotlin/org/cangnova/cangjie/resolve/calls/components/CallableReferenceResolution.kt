@@ -47,6 +47,8 @@ import org.cangnova.cangjie.types.UnwrappedType
 import org.cangnova.cangjie.types.checker.captureFromExpression
 import org.cangnova.cangjie.types.expressions.CoercionStrategy
 import org.cangnova.cangjie.types.getReceiverTypeFromFunctionType
+import org.cangnova.cangjie.types.getReturnTypeFromFunctionType
+import org.cangnova.cangjie.types.getValueParameterTypesFromFunctionType
 import org.cangnova.cangjie.types.isFunctionType
 import org.cangnova.cangjie.types.model.TypeVariance
 import org.cangnova.cangjie.types.model.convertVariance

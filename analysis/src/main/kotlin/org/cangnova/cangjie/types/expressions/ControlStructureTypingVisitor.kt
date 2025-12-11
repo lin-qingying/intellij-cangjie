@@ -29,6 +29,7 @@ import com.intellij.psi.PsiElement
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.descriptors.*
+import org.cangnova.cangjie.diagnostics.infos.errors.LET_OR_VAR_ON_CATCH_PARAMETER
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.returnTarget
 import org.cangnova.cangjie.resolve.*
@@ -42,7 +43,6 @@ import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl
 import org.cangnova.cangjie.resolve.calls.tower.LambdaContextInfo
-import org.cangnova.cangjie.resolve.descriptorUtil.builtIns
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope

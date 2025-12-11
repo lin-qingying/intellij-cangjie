@@ -79,7 +79,6 @@ class EnumTypeConstructorImpl(
     }
 
     override fun computeSupertypes(): Collection<CangJieType> = supertypes
-    override fun computeExtendSuperTypes(extendId: String?): Collection<CangJieType> = emptyList()
 
 
     override val supertypeLoopChecker: SupertypeLoopChecker = SupertypeLoopChecker.EMPTY

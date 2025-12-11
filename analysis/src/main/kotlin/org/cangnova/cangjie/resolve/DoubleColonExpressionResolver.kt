@@ -158,7 +158,7 @@ class DoubleColonExpressionResolver(
         // Be careful not to call a utility function to get a resolved call by an expression which may accidentally
         // deparenthesize that expression, as this is undesirable here
         val call = c.trace.bindingContext[BindingContext.CALL, expression.getQualifiedElementSelector() ?: return null]
-        val resolvedCall = call.getResolvedCall(c.trace.bindingContext)
+        val resolvedCall = call?.getResolvedCall(c.trace.bindingContext)
 
 //        if (resolvedCall != null) {
 //            val resultingDescriptor = resolvedCall.resultingDescriptor

@@ -92,43 +92,8 @@ interface ScopeTowerLevel {
         extensionReceiver: ReceiverValueWithSmartCastInfo?
     ): Collection<CandidateWithBoundDispatchReceiver>
 
-    /**
-     * 根据名称和扩展接收器获取枚举条目集合默认为空列表
-     *
-     * @param name 枚举条目的名称
-     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
-     * @return 包含候选枚举条目的集合，带有绑定的分发接收器
-     */
-    fun getEnumEntrys(
-        name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> = emptyList()
 
-    /**
-     * 根据名称、类型种类和扩展接收器获取枚举类型集合默认为空列表
-     *
-     * @param name 枚举类型的名称
-     * @param kind 枚举类型的种类
-     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
-     * @return 包含候选枚举类型的集合，带有绑定的分发接收器
-     */
-    fun getEnumTypeByKind(
-        name: Name,
-        kind: ClassKind,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> = emptyList()
 
-    /**
-     * 根据名称和扩展接收器获取类类型集合
-     *
-     * @param name 类类型的名称
-     * @param extensionReceiver 扩展接收器，可能带有智能类型转换信息
-     * @return 包含候选类类型的集合，带有绑定的分发接收器
-     */
-    fun getClassType(
-        name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver>
 
     /**
      * 根据名称和扩展接收器获取对象集合

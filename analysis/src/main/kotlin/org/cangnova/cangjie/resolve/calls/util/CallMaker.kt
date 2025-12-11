@@ -29,6 +29,8 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.debugtext.getDebugText
+import org.cangnova.cangjie.resolve.scopes.receivers.Receiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 object CallMaker {
     fun makeExternalValueArgument(expression: CjExpression): ValueArgument {

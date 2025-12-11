@@ -1216,14 +1216,7 @@ internal object CheckExternalArgument : ResolutionPart() {
     }
 }
 
-enum class DescriptorKind(val kind: String) {
-    PROPERTY("property"),
-    VARIABLE("variable"),
-    FUNCTION("method"),
-    ENUM("enum"),
-    ENUM_ENTRY("enum entry"),
-    UNKNOWN("unknown")
-}
+
 
 // 提取的方法
 fun DeclarationDescriptor.getDescriptorKind(): DescriptorKind {
@@ -1231,7 +1224,6 @@ fun DeclarationDescriptor.getDescriptorKind(): DescriptorKind {
         is PropertyDescriptor -> DescriptorKind.PROPERTY
         is VariableDescriptor -> DescriptorKind.VARIABLE
         is FunctionDescriptor -> DescriptorKind.FUNCTION
-        is EnumClassCallableDescriptor -> this.type.getDescriptorKind()
         else -> DescriptorKind.UNKNOWN
     }
 }

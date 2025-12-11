@@ -63,13 +63,9 @@ protected constructor(
         storageManager.createMemoizedFunction { doGetMainFunctions() }
     private val classDescriptors: MemoizedFunctionToNotNull<Name, List<ClassDescriptor>> =
         storageManager.createMemoizedFunction { doGetClasses(it) }
-    private val enumEntryDescriptors: MemoizedFunctionToNotNull<Name, List<ClassDescriptor>> =
-        storageManager.createMemoizedFunction { doGetEnumEntry(it) }
 
     private val macroDescriptors: MemoizedFunctionToNotNull<Name, Collection<MacroDescriptor>> =
         storageManager.createMemoizedFunction { doGetMacros(it) }
-    private val extendclassDescriptors: MemoizedFunctionToNotNull<Name, List<LazyExtendClassDescriptor>> =
-        storageManager.createMemoizedFunction { doGetExtendClasses(it) }
 
     private val propertyDescriptors: MemoizedFunctionToNotNull<Name, Collection<PropertyDescriptor>> =
         storageManager.createMemoizedFunction { doGetProperties(it) }
@@ -175,21 +171,6 @@ protected constructor(
 
     }
 
-    fun resolveTypeByExtend(declaration: CjExtend, isgetExtend: Boolean = true): ClassDescriptorWithResolutionScopes {
-        val scope = getScopeForMemberDeclarationResolution(declaration)
-
-        val classInfo = CjClassInfoUtil.createClassLikeInfo(declaration)
-
-        val extendDescriptor = LazyExtendClassDescriptor(
-            c, classInfo, thisDescriptor, declaration.nameAsName, isgetExtend, scope
-        )
-
-
-
-        return extendDescriptor
-
-
-    }
 
 
     private fun doGetProperties(name: Name): Collection<PropertyDescriptor> {
@@ -225,13 +206,6 @@ protected constructor(
         return classes + typeAliases
     }
 
-    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
-        recordLookup(name, location)
-        // NB we should resolve type alias descriptors even if a class descriptor with corresponding name is present
-        val entrys = enumEntryDescriptors(name)
-
-        return entrys
-    }
 
     override fun getContributedPackageView(name: Name, location: LookupLocation): PackageViewDescriptor? {
         return null
@@ -424,13 +398,7 @@ protected constructor(
         }
 
         val result = linkedSetOf<SimpleFunctionDescriptor>()
-        val declarations = (declarationProvider.getFunctionDeclarations(name) + if (this is LazyClassMemberScope) {
-            extendClassDescriptors.flatMap {
-                it.declarationProvider.getFunctionDeclarations(name)
-            }
-        } else {
-            emptyList()
-        }).distinct()
+        val declarations = (declarationProvider.getFunctionDeclarations(name)  ).distinct()
         for (functionDeclaration in declarations) {
             result.add(
                 c.functionDescriptorResolver.resolveFunctionDescriptor(
@@ -480,6 +448,7 @@ protected constructor(
     private fun createClassDescriptor(name: Name, types: Collection<CjTypeStatementInfo<*>>): List<ClassDescriptor> {
         val result = mutableListOf<ClassDescriptor>()
 
+        val isExternal =   false
 
 
         types.forEach {
@@ -510,40 +479,6 @@ protected constructor(
         return result.toList()
     }
 
-    private fun doGetEnumEntry(name: Name): List<ClassDescriptor> {
-        mainScope?.enumEntryDescriptors?.invoke(name)?.let { return it }
-        val result = linkedSetOf<ClassDescriptor>()
-        result.addAll(
-            getContributedClassifiers(name, NoLookupLocation.FROM_IDE).mapNotNull {
-
-                if (it !is EnumEntryDescriptor) return@mapNotNull null
-                it
-            }
-        )
-
-        declarationProvider.getEnumEntryDeclarations(name).groupBy {
-            it.findParentOfType<CjEnum>()
-        }.forEach { (cjenum, cjentry) ->
-            val enumName = Name.identifier(cjenum?.name ?: "")
-            createClassDescriptor(
-                enumName,
-                declarationProvider.getTypeStatementDeclarations(enumName)
-            ).forEach { classDescriptor ->
-                result.addAll(
-                    classDescriptor.unsubstitutedMemberScope.getContributedEnumEntrys(
-                        name,
-                        NoLookupLocation.FROM_IDE
-                    )
-                        .mapNotNull {
-                            (it as? ClassDescriptor)
-                        })
-            }
-
-
-        }
-
-        return result.toList()
-    }
 
     private fun doGetClasses(name: Name): List<ClassDescriptor> {
         mainScope?.classDescriptors?.invoke(name)?.let { return it }
@@ -556,51 +491,14 @@ protected constructor(
         getNonDeclaredClasses(name, result)
 
 
-//        为std.core添加内置类型
-        if (this.thisDescriptor.fqNameSafe == core) {
-            try {
-                CangJieBuiltIns.Companion.BuiltCangJieTypeName.entries.filter {
-                    it.typeName == name
-                }.forEach { _ ->
-                    result.add(c.moduleDescriptor.builtIns.getPrimitiveClassBuiltInDescriptor(name))
-
-                }
-
-            } catch (_: AssertionError) {
-
-            }
-        }
 
 
         return result.toList() /*+ result1.toList()*/
     }
 
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-        return extendclassDescriptors(name)
-    }
 
 
-//    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor {
-//
-//        return FunctionClassDescriptor.create(storageManager, thisDescriptor, FunctionTypeKind.Function, parameterCount)
-//    }
-
-    private fun doGetExtendClasses(name: Name): List<LazyExtendClassDescriptor> {
-        mainScope?.extendclassDescriptors?.invoke(name)?.let { return it }
-
-
-        val result = linkedSetOf<LazyExtendClassDescriptor>()
-        declarationProvider.getExtendTypeStatementDeclarations(name).mapTo(result) {
-//            val isExternal = /*it.modifierList?.hasModifier(CjTokens.EXTERNAL_KEYWORD) ?:*/ false
-//            LazyClassDescriptor(c, thisDescriptor, name, it, isExternal)
-
-
-            resolveTypeByExtend(it.scopeAnchor as CjExtend, false) as LazyExtendClassDescriptor
-        }
-
-        return result.toList()
-    }
 
     override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> {
 

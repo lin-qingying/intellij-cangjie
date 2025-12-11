@@ -31,6 +31,7 @@ import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import org.cangnova.cangjie.resolve.argumentValue
 import org.cangnova.cangjie.resolve.constants.ConstantValue
 import org.cangnova.cangjie.resolve.constants.StringValue
+import org.cangnova.cangjie.types.BuiltInAnnotationDescriptor
 import org.cangnova.cangjie.utils.rethrow
 
 internal sealed class DeprecatedByAnnotation(

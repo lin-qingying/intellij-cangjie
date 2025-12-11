@@ -24,20 +24,20 @@
 
 package org.cangnova.cangjie.resolve.extensions
 
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.container.ComponentProvider
 import org.cangnova.cangjie.context.ProjectContext
-import org.cangnova.cangjie.descriptors.BindingTrace
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.AnalysisResult
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 
 interface AnalysisHandlerExtension {
-    companion object : ProjectExtensionDescriptor<AnalysisHandlerExtension>(
-        "org.cangnova.cangjie.analyzeCompleteHandlerExtension",
-        AnalysisHandlerExtension::class.java
-    )
 
+companion object{
+    val EP_NAME = ExtensionPointName.create<AnalysisHandlerExtension>("org.cangnova.cangjie.analyzeComplete")
+}
     fun doAnalysis(
         project: Project,
         module: ModuleDescriptor,

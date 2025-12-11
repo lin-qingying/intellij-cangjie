@@ -302,7 +302,7 @@ class FunctionReturnResolver(
 
 
 //        context.trace.record(COLLECTION_LITERAL_CALL, expression, resolutionResults.resultingCall)
-        return resolutionResults.getResultingDescriptor().returnType
+        return resolutionResults.resultingDescriptor.returnType
 
     }
 }

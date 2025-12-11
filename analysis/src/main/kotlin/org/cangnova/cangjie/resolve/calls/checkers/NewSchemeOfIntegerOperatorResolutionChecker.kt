@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.resolve.calls.checkers
 
-import org.cangnova.cangjie.descriptors.BindingTrace
+
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.CjConstantExpression
@@ -40,9 +40,11 @@ import org.cangnova.cangjie.resolve.constants.TypedCompileTimeConstant
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.SimpleType
 import org.cangnova.cangjie.types.lowerIfFlexible
-import org.cangnova.cangjie.types.util.TypeUtils
-import org.cangnova.cangjie.types.util.isPrimitiveNumber
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.types.TypeUtils
+import org.cangnova.cangjie.types.isPrimitiveNumber
 
 object NewSchemeOfIntegerOperatorResolutionChecker : CallChecker {
 

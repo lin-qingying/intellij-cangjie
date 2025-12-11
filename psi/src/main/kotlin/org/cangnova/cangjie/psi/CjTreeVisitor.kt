@@ -25,12 +25,12 @@
 package org.cangnova.cangjie.psi
 
 open class CjTreeVisitor<D> : CjVisitor<Unit, D>() {
-    override fun visitCjElement(element: CjElement, data: D): Unit {
+    override fun visitCjElement(element: CjElement, data: D) {
         element.acceptChildren(this, data)
 
     }
 
-    override fun visitCjFile(file: CjFile, data: D): Unit {
+    override fun visitCjFile(file: CjFile, data: D) {
         super.visitCjFile(file, data)
         file.acceptChildren<D>(this, data)
 

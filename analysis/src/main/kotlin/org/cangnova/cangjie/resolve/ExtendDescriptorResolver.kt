@@ -64,30 +64,5 @@ class ExtendDescriptorResolver(
         return type
     }
 
-    fun check(c: TopDownAnalysisContext, cjExtend: CjExtend) {
-        val type = getExtendDescriptor(cjExtend)
-        type
-        type as LazyExtendClassDescriptor
-        if (type.getSourceClassKind() == ClassKind.INTERFACE) {
 
-            cjExtend.receiverTypeReceiver?.let { trace.report(Errors.EXTEND_CANNOT_INTERFACE.on(it)) }
-            return
-        }
-
-        c.declaredClasses[cjExtend] = type
-
-//        val classDescriptor = type.constructor.declarationDescriptor as? LazyClassDescriptor ?: return
-
-
-//        classDescriptor.setExtendData(cjExtend,trace,lexicalScope)
-//        classDescriptor as LazyClassDescriptor
-//        c.declaredClasses[cjExtend] = classDescriptor
-
-
-//        第二步，获取被扩展的类型
-
-
-//
-
-    }
 }

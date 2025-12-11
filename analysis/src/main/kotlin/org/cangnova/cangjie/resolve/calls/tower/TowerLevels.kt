@@ -31,6 +31,7 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
+import org.cangnova.cangjie.resolve.hasClassValueDescriptor
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
@@ -115,29 +116,7 @@ internal open class ScopeBasedTowerLevel protected constructor(
         lexicalScope as ResolutionScope
     )
 
-    /**
-     * 获取指定名称的枚举条目。
-     *
-     * @param name 枚举名称
-     * @param extensionReceiver 扩展接收者值及其智能转换信息
-     * @return 包含候选描述符的集合
-     */
-    override fun getEnumEntrys(
-        name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> {
-        return resolutionScope.getContributedEnumEntrys(name, location)
-            .map {
-                createCandidateDescriptor(
-                    EnumClassCallableDescriptor(it),
-                    dispatchReceiver = null,
-                    specialError = ResolvedUsingDeprecatedVisibility(
-                        resolutionScope,
-                        location
-                    )
-                )
-            }
-    }
+
 
     /**
      * 获取指定名称的变量。
@@ -188,57 +167,7 @@ internal open class ScopeBasedTowerLevel protected constructor(
                 )
             }
 
-    /**
-     * 根据指定的名称和种类获取枚举类型。
-     *
-     * @param name 类型名称
-     * @param kind 类的种类
-     * @param extensionReceiver 扩展接收者值及其智能转换信息
-     * @return 包含候选描述符的集合
-     */
-    override fun getEnumTypeByKind(
-        name: Name,
-        kind: ClassKind,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> {
-        return resolutionScope.getContributedClassifiers(name, location).filter {
-            (it as? ClassDescriptor)?.kind == kind
-        }
-            .map {
-                createCandidateDescriptor(
-                    EnumClassCallableDescriptor(it),
-                    dispatchReceiver = null,
-                    specialError = ResolvedUsingDeprecatedVisibility(
-                        resolutionScope,
-                        location
-                    )
-                )
-            }
-    }
 
-    /**
-     * 根据指定的名称获取类类型。
-     *
-     * @param name 类型名称
-     * @param extensionReceiver 扩展接收者值及其智能转换信息
-     * @return 包含候选描述符的集合
-     */
-    override fun getClassType(
-        name: Name,
-        extensionReceiver: ReceiverValueWithSmartCastInfo?
-    ): Collection<CandidateWithBoundDispatchReceiver> {
-        return resolutionScope.getContributedClassifiers(name, location)
-            .map {
-                createCandidateDescriptor(
-                    ClassCallableDescriptor(it),
-                    dispatchReceiver = null,
-                    specialError = ResolvedUsingDeprecatedVisibility(
-                        resolutionScope,
-                        location
-                    )
-                )
-            }
-    }
 
     /**
      * 获取指定名称的函数。
@@ -328,7 +257,7 @@ fun ResolutionScope.getContributedFunctionsAndConstructors(
 
 private fun getConstructorsOfClassifier(classifier: ClassifierDescriptor?): List<ConstructorDescriptor> {
     val callableConstructors = when (classifier) {
-        is EnumEntryDescriptor -> listOf(classifier.unsubstitutedPrimaryConstructor)
+
         is TypeAliasDescriptor -> if (classifier.canHaveCallableConstructors) classifier.constructors else emptyList()
         is ClassDescriptor -> if (classifier.canHaveCallableConstructors) classifier.constructors else emptyList()
         else -> emptyList()
@@ -385,166 +314,4 @@ private fun ResolutionScope.getContributedObjectVariablesIncludeDeprecateds(
 
     }
 
-}
-
-//用于枚举类与枚举项
-class EnumClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDescriptor {
-    val isEnumEntry get() = DescriptorUtils.isEnumEntry(type)
-    private val memberScope = when (type) {
-        is ClassDescriptor -> type.unsubstitutedMemberScope
-        else -> null
-    }
-    private val constructors = when (memberScope) {
-        is LazyClassMemberScope -> memberScope.getConstructors()
-        else -> emptyList()
-    }
-    var constructor = constructors.firstOrNull()
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
-        return visitor.visitEnumClassCallDescriptor(this, data)
-    }
-
-    //    是否具有无参构造
-    fun hashUnsubstitutedPrimaryConstructor(): Boolean {
-
-        if (DescriptorUtils.isEnum(type)) return true
-        if (DescriptorUtils.isEnumEntry(type)) {
-            return (type as EnumEntryDescriptor).hasUnsubstitutedPrimaryConstructor()
-        }
-        return false
-    }
-
-
-    override fun getValueParameters(): List<ValueParameterDescriptor> {
-
-        return constructor?.valueParameters ?: emptyList()
-    }
-
-
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
-
-    }
-
-
-    override val source: SourceElement
-        get() = type.toSourceElement
-
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
-
-        constructor = constructor?.substitute(substitutor)
-        return this
-    }
-
-    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        return emptyList()
-    }
-
-    override fun getReturnType(): CangJieType? {
-
-        return constructor?.returnType
-    }
-
-    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-    }
-
-    override fun getOverriddenDescriptors(): List<CallableDescriptor> {
-        return emptyList()
-    }
-
-    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-
-    }
-
-    override fun hasSynthesizedParameterNames(): Boolean {
-        return false
-    }
-
-    override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        return constructors.firstOrNull()?.typeParameters ?: emptyList()
-    }
-
-    override fun hasStableParameterNames(): Boolean {
-        return false
-    }
-
-    override val isStatic: Boolean
-        get() = type.isStatic
-
-    override val original: CallableDescriptor
-        get() = this
-    override val containingDeclaration: DeclarationDescriptor
-        get() = type.containingDeclaration ?: type
-    override val visibility: DescriptorVisibility
-        get() = type.visibility
-    override val name: Name
-        get() = type.name
-}
-
-//    无其他用处，请勿使用，只作用于重载检查
-class ClassCallableDescriptor(val type: DeclarationDescriptor) : CallableDescriptor {
-    override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
-        return visitor.visitClassCallDescriptor(this, data)
-    }
-
-    override fun getValueParameters(): List<ValueParameterDescriptor> {
-
-        return emptyList()
-    }
-
-
-    override fun acceptVoid(visitor: DeclarationDescriptorVisitor<Unit, Unit>) {
-
-    }
-
-    override val source: SourceElement
-        get() = type.toSourceElement
-
-    override fun substitute(substitutor: TypeSubstitutor): CallableDescriptor {
-        return this
-    }
-
-    override fun getContextReceiverParameters(): List<ReceiverParameterDescriptor> {
-        return emptyList()
-    }
-
-    override fun getReturnType(): CangJieType? {
-        return null
-    }
-
-    override fun getExtensionReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-    }
-
-    override fun getOverriddenDescriptors(): List<CallableDescriptor> {
-        return emptyList()
-    }
-
-    override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? {
-        return null
-
-    }
-
-    override fun hasSynthesizedParameterNames(): Boolean {
-        return false
-    }
-
-    override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        return emptyList()
-    }
-
-    override fun hasStableParameterNames(): Boolean {
-        return false
-    }
-
-    override val isStatic: Boolean
-        get() = type.isStatic
-    override val original: CallableDescriptor
-        get() = this
-    override val containingDeclaration: DeclarationDescriptor
-        get() = type
-    override val visibility: DescriptorVisibility
-        get() = type.visibility
-    override val name: Name
-        get() = type.name
 }

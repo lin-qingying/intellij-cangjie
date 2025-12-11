@@ -38,6 +38,7 @@ import org.cangnova.cangjie.resolve.calls.inference.model.typeForTypeVariable
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
+import org.cangnova.cangjie.types.TypeConstructor
 
 abstract class CallInfo(
     open val callResolutionResult: SingleCallResolutionResult,

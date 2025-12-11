@@ -36,31 +36,63 @@ import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
 import org.cangnova.cangjie.resolve.calls.util.toResolutionStatus
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeApproximator
 import org.cangnova.cangjie.types.TypeApproximatorConfiguration
 import org.cangnova.cangjie.types.UnwrappedType
 
-
+/**
+ * 可调用引用的已解析调用
+ *
+ * 处理可调用引用（如函数引用、属性引用）的解析调用实现。
+ * 可调用引用是指 `::functionName` 或 `::propertyName` 这样的语法。
+ *
+ * @param D 可调用描述符类型
+ * @param resolvedAtom 已解析的可调用引用原子
+ * @param typeApproximator 类型近似器
+ * @param languageVersionSettings 语言版本设置
+ * @param substitutor 类型替换器
+ */
 class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
     val resolvedAtom: ResolvedCallableReferenceAtom,
     override val typeApproximator: TypeApproximator,
     override val languageVersionSettings: LanguageVersionSettings,
     substitutor: NewTypeSubstitutor? = null,
 ) : NewAbstractResolvedCall<D>() {
+
     override val positionDependentApproximation: Boolean = true
     override val argumentMappingByOriginal: Map<ValueParameterDescriptor, ResolvedCallArgument> = emptyMap()
     override val diagnostics: Collection<CangJieCallDiagnostic> = emptyList()
-    override fun updateExtensionReceiverType(newType: CangJieType) {
-        if (extensionReceiver?.type == newType) return
-        extensionReceiver = extensionReceiver?.replaceType(newType)
+
+    // ========== 接收者相关 ==========
+
+    /** 扩展接收者（私有字段，带下划线前缀避免与属性冲突） */
+    private var _extensionReceiver: ReceiverValue? = when (resolvedAtom) {
+        is ResolvedCallableReferenceCallAtom -> resolvedAtom.extensionReceiverArgument?.receiverValue
+        is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.extensionReceiver?.receiver?.receiverValue
     }
+
+    /** 调度接收者（私有字段，带下划线前缀避免与属性冲突） */
+    private var _dispatchReceiver = when (resolvedAtom) {
+        is ResolvedCallableReferenceCallAtom -> resolvedAtom.dispatchReceiverArgument?.receiverValue
+        is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.dispatchReceiver?.receiver?.receiverValue
+    }
+
+    // ========== 描述符相关 ==========
+
+    /** 结果描述符（私有字段） */
+    private lateinit var _resultingDescriptor: D
+
+    /** 类型参数列表（私有字段） */
+    private lateinit var _typeArguments: List<UnwrappedType>
+
+    // ========== 从父类实现的属性 ==========
 
     override val resolvedCallAtom: ResolvedCallableReferenceCallAtom?
         get() = when (resolvedAtom) {
             is ResolvedCallableReferenceCallAtom -> resolvedAtom
             is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.resolvedCall
-
         }
 
     override val psiCangJieCall: PSICangJieCall =
@@ -81,70 +113,124 @@ class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
             is ResolvedCallableReferenceCallAtom -> resolvedAtom.atom
         }
 
-    private lateinit var resultingDescriptor: D
-    private lateinit var typeArguments: List<UnwrappedType>
+    // ========== 从接口实现的属性 ==========
 
-    private var extensionReceiver: ReceiverValue? = when (resolvedAtom) {
-        is ResolvedCallableReferenceCallAtom -> resolvedAtom.extensionReceiverArgument?.receiverValue
-        is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.extensionReceiver?.receiver?.receiverValue
-    }
+    /**
+     * 调度接收者
+     * 返回可调用引用的调度接收者
+     */
+    override val dispatchReceiver: ReceiverValue?
+        get() = _dispatchReceiver
 
-    private var dispatchReceiver = when (resolvedAtom) {
-        is ResolvedCallableReferenceCallAtom -> resolvedAtom.dispatchReceiverArgument?.receiverValue
-        is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.dispatchReceiver?.receiver?.receiverValue
-//        else -> {
-//            error("Unexpected resolved atom: $resolvedAtom")}
-    }
-
-    override fun getDispatchReceiver(): ReceiverValue? = dispatchReceiver
-
-
+    /**
+     * 候选描述符
+     * 返回可调用引用的候选描述符
+     */
     @Suppress("UNCHECKED_CAST")
-    override fun getCandidateDescriptor(): D = when (resolvedAtom) {
-        is ResolvedCallableReferenceCallAtom -> resolvedAtom.candidateDescriptor as D
-        is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.candidate as D
-    }
+    override val candidateDescriptor: D
+        get() = when (resolvedAtom) {
+            is ResolvedCallableReferenceCallAtom -> resolvedAtom.candidateDescriptor as D
+            is ResolvedCallableReferenceArgumentAtom -> resolvedAtom.candidate?.candidate as D
+        }
 
+    /**
+     * 智能转换调度接收者类型
+     * 可调用引用不支持智能转换，总是返回 null
+     */
+    override var smartCastDispatchReceiverType: CangJieType? = null
 
-    override fun getSmartCastDispatchReceiverType(): CangJieType? = null
+    /**
+     * 显式接收者类型
+     * 返回可调用引用的显式接收者类型
+     */
+    override val explicitReceiverKind: ExplicitReceiverKind
+        get() = when (resolvedAtom) {
+            is ResolvedCallableReferenceArgumentAtom ->
+                resolvedAtom.candidate?.explicitReceiverKind ?: ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
+            is ResolvedCallableReferenceCallAtom -> resolvedAtom.explicitReceiverKind
+        }
 
-    override fun getExplicitReceiverKind() = when (resolvedAtom) {
-        is ResolvedCallableReferenceArgumentAtom ->
-            resolvedAtom.candidate?.explicitReceiverKind ?: ExplicitReceiverKind.NO_EXPLICIT_RECEIVER
+    /**
+     * 扩展接收者
+     * 返回可调用引用的扩展接收者
+     */
+    override val extensionReceiver: ReceiverValue?
+        get() = _extensionReceiver
 
-        is ResolvedCallableReferenceCallAtom -> resolvedAtom.explicitReceiverKind
-    }
+    /**
+     * 结果描述符
+     * 返回经过类型替换的最终描述符
+     */
+    override val resultingDescriptor: D
+        get() = _resultingDescriptor
 
+    /**
+     * 解析状态
+     * 可调用引用总是已解析状态
+     */
+    override val status
+        get() = CandidateApplicability.RESOLVED.toResolutionStatus()
+
+    /**
+     * 上下文接收者列表
+     * 可调用引用不支持上下文接收者，总是返回空列表
+     */
+    override val contextReceivers
+        get() = emptyList<ReceiverValue>()
+
+    /**
+     * 参数的数据流信息
+     * 可调用引用没有参数，返回空数据流信息
+     */
+    override val dataFlowInfoForArguments: DataFlowInfoForArguments
+        get() = MutableDataFlowInfoForArguments.WithoutArgumentsCheck(DataFlowInfo.EMPTY)
+
+    /**
+     * 类型参数映射
+     * 返回类型参数到实际类型的映射
+     */
+    override val typeArguments: Map<TypeParameterDescriptor, CangJieType>
+        get() {
+            val typeParameters = candidateDescriptor.typeParameters.takeIf { it.isNotEmpty() } ?: return emptyMap()
+            return typeParameters.zip(_typeArguments).toMap()
+        }
+
+    // ========== 方法实现 ==========
+
+    /**
+     * 获取参数映射
+     * 可调用引用没有值参数，总是返回 ArgumentUnmapped
+     */
     override fun getArgumentMapping(valueArgument: ValueArgument): ArgumentMapping = ArgumentUnmapped
 
-
-    override fun getExtensionReceiver(): ReceiverValue? = extensionReceiver
-
-
-    override fun getResultingDescriptor(): D = resultingDescriptor
-
-
-    override fun getStatus() = CandidateApplicability.RESOLVED.toResolutionStatus()
-    override fun getContextReceivers() = emptyList<ReceiverValue>()
-
-
-    override fun getDataFlowInfoForArguments(): DataFlowInfoForArguments =
-        MutableDataFlowInfoForArguments.WithoutArgumentsCheck(DataFlowInfo.EMPTY)
-
-
-    override fun getTypeArguments(): Map<TypeParameterDescriptor, CangJieType> {
-        val typeParameters = candidateDescriptor.typeParameters.takeIf { it.isNotEmpty() } ?: return emptyMap()
-        return typeParameters.zip(typeArguments).toMap()
+    /**
+     * 更新扩展接收者类型
+     */
+    override fun updateExtensionReceiverType(newType: CangJieType) {
+        if (_extensionReceiver?.type == newType) return
+        _extensionReceiver = _extensionReceiver?.replaceType(newType)
     }
 
+    /**
+     * 更新调度接收者类型
+     */
+    override fun updateDispatchReceiverType(newType: CangJieType) {
+        if (_dispatchReceiver?.type == newType) return
+        _dispatchReceiver = _dispatchReceiver?.replaceType(newType)
+    }
+
+    /**
+     * 设置结果替换器
+     * 应用类型替换器并计算类型参数
+     */
     override fun setResultingSubstitutor(substitutor: NewTypeSubstitutor?) {
         substituteReceivers(substitutor)
 
         @Suppress("UNCHECKED_CAST")
-        resultingDescriptor = substitutedResultingDescriptor(substitutor) as D
+        _resultingDescriptor = substitutedResultingDescriptor(substitutor) as D
 
         freshSubstitutor?.let { freshSubstitutor ->
-            typeArguments = freshSubstitutor.freshVariables.map {
+            _typeArguments = freshSubstitutor.freshVariables.map {
                 val substituted = (substitutor ?: FreshVariableNewTypeSubstitutor.Empty).safeSubstitute(it.defaultType)
                 typeApproximator.approximateToSuperType(
                     substituted,
@@ -155,16 +241,16 @@ class NewCallableReferenceResolvedCall<D : CallableDescriptor>(
         }
     }
 
-    override fun updateDispatchReceiverType(newType: CangJieType) {
-        if (dispatchReceiver?.type == newType) return
-        dispatchReceiver = dispatchReceiver?.replaceType(newType)
-    }
-
+    /**
+     * 构建参数到参数描述符的映射
+     * 可调用引用没有参数，返回空映射
+     */
     override fun argumentToParameterMap(
         resultingDescriptor: CallableDescriptor,
         valueArguments: Map<ValueParameterDescriptor, ResolvedValueArgument>
     ): Map<ValueArgument, ArgumentMatchImpl> = emptyMap()
 
+    // ========== 初始化块 ==========
 
     init {
         setResultingSubstitutor(substitutor)

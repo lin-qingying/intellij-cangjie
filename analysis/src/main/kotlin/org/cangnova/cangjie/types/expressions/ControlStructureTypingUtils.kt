@@ -39,6 +39,9 @@ import org.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContextUtils
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.CallResolver
 import org.cangnova.cangjie.resolve.calls.model.MutableDataFlowInfoForArguments
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
@@ -46,6 +49,8 @@ import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.tasks.OldResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.tasks.TracingStrategy
 import org.cangnova.cangjie.resolve.calls.util.CallMaker
+import org.cangnova.cangjie.resolve.scopes.receivers.Receiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.*
 import java.util.*
@@ -192,7 +197,7 @@ class ControlStructureTypingUtils(
             }
 
             val typeParameterConstructor: TypeConstructor =
-                function.getTypeParameters()[0].getTypeConstructor()
+                function.typeParameters[0].typeConstructor
             val typeProjection: TypeProjection =
                 TypeProjectionImpl(expectedType)
             return TypeSubstitutor.create(
@@ -414,18 +419,18 @@ class ControlStructureTypingUtils(
 
                 fun checkExpressionTypeRecursively(
                     expression: CjExpression?,
-                    c: CheckTypeContext?
+                    c: CheckTypeContext
                 ): Boolean {
                     if (expression == null) return false
-                    return expression.accept(this, c)
+                    return expression.accept(this, c) == true
                 }
 
                 fun checkSubExpressions(
                     firstSub: CjExpression?,
                     secondSub: CjExpression?,
                     expression: CjExpression,
-                    firstContext: CheckTypeContext?,
-                    secondContext: CheckTypeContext?,
+                    firstContext: CheckTypeContext,
+                    secondContext: CheckTypeContext,
                     context: CheckTypeContext
                 ): Boolean {
                     var errorWasReported = checkExpressionTypeRecursively(firstSub, firstContext)
@@ -480,7 +485,7 @@ class ControlStructureTypingUtils(
                     c: CheckTypeContext
                 ): Boolean {
 
-                    return super.visitPostfixExpression(expression, c)
+                    return super.visitPostfixExpression(expression, c) == true
                 }
 
                 override fun visitBinaryExpression(
@@ -499,7 +504,7 @@ class ControlStructureTypingUtils(
                             c
                         )
                     }
-                    return super.visitBinaryExpression(expression, c)
+                    return super.visitBinaryExpression(expression, c) == true
                 }
 
                 override fun visitExpression(
@@ -527,7 +532,7 @@ class ControlStructureTypingUtils(
             ) {
                 trace.record(
                     BindingContext.CALL,
-                    call.calleeExpression,
+                    call.calleeExpression ?: return,
                     call
                 )
             }
@@ -536,7 +541,7 @@ class ControlStructureTypingUtils(
                 trace: BindingTrace,
                 resolvedCall: ResolvedCall<D>
             ) {
-                trace.record<Call, ResolvedCall<*>>(
+                trace.record (
                     BindingContext.RESOLVED_CALL,
                     call,
                     resolvedCall

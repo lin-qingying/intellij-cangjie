@@ -98,7 +98,7 @@ class CjInvokeFunctionReference(expression: CjCallExpression) : CangJieAbstractI
 
     override fun getTargetDescriptors(context: BindingContext): Collection<DeclarationDescriptor> {
         val call = element.getCall(context)
-        val resolvedCall = call.getResolvedCall(context)
+        val resolvedCall = call?.getResolvedCall(context)
         return when {
             resolvedCall is VariableAsFunctionResolvedCall ->
                 setOf<DeclarationDescriptor>((resolvedCall as VariableAsFunctionResolvedCall).functionCall.candidateDescriptor)

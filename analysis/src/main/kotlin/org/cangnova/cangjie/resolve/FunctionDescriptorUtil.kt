@@ -38,17 +38,17 @@ object FunctionDescriptorUtil {
         redeclarationChecker: LocalRedeclarationChecker
     ): LexicalScope = LexicalScopeImpl(
         outerScope, descriptor, true, descriptor.extensionReceiverParameter,
-        descriptor.contextReceiverParameters, LexicalScopeKind.FUNCTION_INNER_SCOPE, redeclarationChecker, { handler ->
+        descriptor.contextReceiverParameters, LexicalScopeKind.FUNCTION_INNER_SCOPE, redeclarationChecker, {
             for (valueParameterDescriptor in descriptor.valueParameters) {
                 when (valueParameterDescriptor) {
                     is ValueParameterDescriptorImpl.WithDestructuringDeclaration -> {
                         val entries: List<VariableDescriptor> = valueParameterDescriptor.destructuringVariables
                         for (entry in entries) {
-                            handler.addVariableDescriptor(entry)
+                            addVariableDescriptor(entry)
                         }
                     }
 
-                    else -> handler.addVariableDescriptor(valueParameterDescriptor)
+                    else -> addVariableDescriptor(valueParameterDescriptor)
                 }
             }
         }

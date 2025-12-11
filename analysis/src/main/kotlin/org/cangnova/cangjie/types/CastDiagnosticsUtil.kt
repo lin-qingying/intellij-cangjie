@@ -172,14 +172,14 @@ object CastDiagnosticsUtil {
         // 这里我们希望限制类似 `x is T` 的情况，其中 x = ?T，而 T 可能有可空的上界
         if (isNonReifiedTypeParameter && !isUpcast) {
             val nullableToDefinitelyNotNull =
-                !TypeUtils.isNullableType(subtype) && supertype.makeNonOption() == subtype
+                !TypeUtils.isOptionType(subtype) && supertype.makeNonOption() == subtype
             if (!nullableToDefinitelyNotNull) {
                 return true
             }
         }
 
         // 在 `is` 语句中这是错误，在 `as` 语句中这是警告
-        if (supertype.isMarkedOption || subtype.isMarkedOption) {
+        if (supertype.isOption || subtype.isOption) {
             return isCastErased(TypeUtils.makeNonOption(supertype), TypeUtils.makeNonOption(subtype), typeChecker)
         }
 
@@ -212,7 +212,7 @@ object CastDiagnosticsUtil {
         supertype: CangJieType,
         subtypeConstructor: TypeConstructor
     ): TypeReconstructionResult {
-        assert(!supertype.isMarkedOption) { "此方法仅适用于非可空类型" }
+        assert(!supertype.isOption) { "此方法仅适用于非可空类型" }
 
         // 假设我们将表达式类型为 Collection<Foo> 的表达式转换为 List<Bar>
         // 首先，让我们创建 List<T>，其中 T 是类型变量
@@ -224,7 +224,7 @@ object CastDiagnosticsUtil {
         val supertypeWithVariables = TypeCheckingProcedure.findCorrespondingSupertype(subtypeWithVariables, supertype)
 
         val variables = subtypeWithVariables.constructor.parameters
-        val variableConstructors = variables.map(TypeParameterDescriptor::getTypeConstructor).toSet()
+        val variableConstructors = variables.map(TypeParameterDescriptor::typeConstructor).toSet()
 
         val substitution: MutableMap<TypeConstructor, TypeProjection> = if (supertypeWithVariables != null) {
             // 现在，让我们尝试统一 Collection<T> 和 Collection<Foo>，解决方案是从 T 到 Foo 的映射

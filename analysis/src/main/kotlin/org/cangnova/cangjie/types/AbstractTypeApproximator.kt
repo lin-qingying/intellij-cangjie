@@ -177,7 +177,7 @@ abstract class AbstractTypeApproximator(
                     val upperResult =
                         if (!type.isRawType() && !shouldApproximateUpperBoundSeparately(lowerBound, upperBound, conf)) {
                             // We skip approximating the upper bound if the type constructors match as an optimization.
-                            lowerResult?.withNullability(upperBound.isMarkedNullable())
+                            lowerResult?.withOption(upperBound.isMarkedOption())
                         } else {
                             approximateTo(upperBound, conf, depth)
                         }
@@ -240,7 +240,7 @@ abstract class AbstractTypeApproximator(
         )
         val result = AbstractTypeChecker.findCorrespondingSupertypes(typeCheckerContext, type, superConstructor)
             .firstOrNull()
-            ?.withNullability(type.isMarkedNullable())
+            ?.withOption(type.isMarkedOption())
             ?: return null
         /*
          * AbstractTypeChecker captures any projections in the super type by default, which may lead to the situation, when some local
@@ -268,7 +268,7 @@ abstract class AbstractTypeApproximator(
         // It's intentional we're not trying to prove population of some type as it was in OI
 
         return constructor.supertypes().any {
-            !it.isMarkedNullable() && it.isSignedOrUnsignedNumberType()
+            !it.isMarkedOption() && it.isSignedOrUnsignedNumberType()
         }
     }
 
@@ -320,7 +320,7 @@ abstract class AbstractTypeApproximator(
             }
         }
 
-        return if (type.isMarkedNullable()) baseResult.withNullability(true) else baseResult
+        return if (type.isMarkedOption()) baseResult.withOption(true) else baseResult
     }
 
     private fun approximateCapturedType(
@@ -386,8 +386,8 @@ abstract class AbstractTypeApproximator(
         // C = in Int, Int <: C => Int? <: C?
         // C = out Number, C <: Number => C? <: Number?
         return when {
-            type.isMarkedNullable() -> baseResult.withNullability(true)
-            type.isProjectionNotNull() -> baseResult.withNullability(false)
+            type.isMarkedOption() -> baseResult.withOption(true)
+
             else -> baseResult
         }.let {
             when {
@@ -420,7 +420,7 @@ abstract class AbstractTypeApproximator(
             return approximateParametrizedType(type, conf, toSuper, depth + 1)
         }
 
-        val definitelyNotNullType = type.asDefinitelyNotNullType()
+        val definitelyNotNullType = type.asDefinitelyNonOptionType()
         if (definitelyNotNullType != null) {
             return approximateDefinitelyNotNullType(definitelyNotNullType, conf, toSuper, depth)
         }
@@ -447,13 +447,13 @@ abstract class AbstractTypeApproximator(
 
         if (typeConstructor.isIntegerLiteralConstantTypeConstructor()) {
             return runIf(conf.integerLiteralConstantType) {
-                typeConstructor.getApproximatedIntegerLiteralType().withNullability(type.isMarkedNullable())
+                typeConstructor.getApproximatedIntegerLiteralType().withOption(type.isMarkedOption())
             }
         }
 
         if (typeConstructor.isIntegerConstantOperatorTypeConstructor()) {
             return runIf(conf.integerConstantOperatorType) {
-                typeConstructor.getApproximatedIntegerLiteralType().withNullability(type.isMarkedNullable())
+                typeConstructor.getApproximatedIntegerLiteralType().withOption(type.isMarkedOption())
             }
         }
 
@@ -461,7 +461,7 @@ abstract class AbstractTypeApproximator(
     }
 
     private fun approximateDefinitelyNotNullType(
-        type: DefinitelyNotNullTypeMarker,
+        type: DefinitelyNonOptionTypeMarker,
         conf: TypeApproximatorConfiguration,
         toSuper: Boolean,
         depth: Int
@@ -473,20 +473,20 @@ abstract class AbstractTypeApproximator(
                 conf,
                 depth
             )
-        val typeWithErasedNullability = originalType.withNullability(false)
+        val typeWithErasedNullability = originalType.withOption(false)
 
         // Approximate T!! into T if T is already not-null (has not-null upper bounds)
         if (originalType.typeConstructor()
-                .isTypeParameterTypeConstructor() && !typeWithErasedNullability.isNullableType()
+                .isTypeParameterTypeConstructor() && !typeWithErasedNullability.isOptionType()
         ) {
             return typeWithErasedNullability
         }
 
         return if (conf.definitelyNotNullType || languageVersionSettings.supportsFeature(LanguageFeature.DefinitelyNonNullableTypes)) {
-            approximatedOriginalType?.makeDefinitelyNotNullOrNotNull()
+            approximatedOriginalType?.makeDefinitelyNonOptionOrNonOption()
         } else {
             if (toSuper)
-                (approximatedOriginalType ?: originalType).withNullability(false)
+                (approximatedOriginalType ?: originalType).withOption(false)
             else
                 type.defaultResult(toSuper)
         }
@@ -521,7 +521,7 @@ abstract class AbstractTypeApproximator(
 
             val argumentType = newArguments[index]?.getType() ?: argument.getType()
 
-            val capturedType = argumentType.lowerBoundIfFlexible().originalIfDefinitelyNotNullable().asCapturedType()
+            val capturedType = argumentType.lowerBoundIfFlexible().originalIfDefinitelyNonOption().asCapturedType()
 
             // When capturing recursive types with self upper bounds, their super types can contain captured types.
             // In approximateCapturedType, we check if the super/subtypes of captured types need approximation even if captured types
@@ -640,10 +640,10 @@ abstract class AbstractTypeApproximator(
 
         // If captured type is not marked as nullable, then nullability of subType came from the lower bound of the captured type.
         // Thus, the lower bound is non-trivial for sure
-        if (!capturedArgumentType.isMarkedNullable()) return true
+        if (!capturedArgumentType.isMarkedOption()) return true
 
         val notMarkedNullableSubType =
-            approximateToSubType(capturedArgumentType.withNullability(false), conf, depth)
+            approximateToSubType(capturedArgumentType.withOption(false), conf, depth)
                 ?: error("Not-marked-nullable version of captured type approximation should also return not-null")
 
         return !notMarkedNullableSubType.isTrivialSub()

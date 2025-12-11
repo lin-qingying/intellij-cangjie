@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.extensions
 
+import com.intellij.openapi.extensions.ExtensionPointName
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
@@ -31,6 +32,7 @@ import org.cangnova.cangjie.resolve.lazy.declarations.PackageMemberDeclarationPr
 import org.cangnova.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
 import org.cangnova.cangjie.types.CangJieType
 import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import java.util.ArrayList
 import org.cangnova.cangjie.utils.flatMapToNullable
 
@@ -38,11 +40,10 @@ import org.cangnova.cangjie.utils.flatMapToNullable
 // extension interface
 
 interface SyntheticResolveExtension {
-    companion object : ProjectExtensionDescriptor<SyntheticResolveExtension>(
-        "org.cangnova.cangjie.syntheticResolveExtension", SyntheticResolveExtension::class.java
-    ) {
+    companion object {
+        val EP_NAME = ExtensionPointName<SyntheticResolveExtension>("org.cangnova.cangjie.syntheticResolveExtension")
         fun getInstance(project: Project): SyntheticResolveExtension {
-            val instances = getInstances(project)
+            val instances = EP_NAME.extensionList
             if (instances.size == 1) return instances.single()
             // return list combiner here
             return object : SyntheticResolveExtension {
@@ -160,7 +161,9 @@ interface SyntheticResolveExtension {
                 }
             }
         }
+
     }
+
 
     fun getSyntheticCompanionObjectNameIfNeeded(thisDescriptor: ClassDescriptor): Name? = null
 

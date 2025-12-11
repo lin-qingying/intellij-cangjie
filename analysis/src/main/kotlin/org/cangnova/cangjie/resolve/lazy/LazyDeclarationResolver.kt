@@ -39,6 +39,8 @@ import org.cangnova.cangjie.resolve.lazy.declarations.AbstractLazyMemberScope
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.storage.LockBasedLazyResolveStorageManager
 import jakarta.inject.Inject
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 
 open class LazyDeclarationResolver(
     globalContext: GlobalContext,
@@ -87,7 +89,7 @@ open class LazyDeclarationResolver(
 
         if (typeStatement is CjExtend) {
             // 如果 typeStatement 是扩展声明，则直接获取其类描述符
-            return getExtendClassDescriptor(typeStatement) as? ClassDescriptor
+            TODO("扩展")
         }
 
         val scope = getMemberScopeDeclaredIn(typeStatement, location)
@@ -102,27 +104,7 @@ open class LazyDeclarationResolver(
     }
 
 
-    private fun getExtendClassDescriptor(cjExtend: CjExtend): DeclarationDescriptor {
 
-        val descriptor = bindingContext.get(BindingContext.DECLARATION_TO_DESCRIPTOR, cjExtend)
-
-        if (descriptor == null) {
-            val scope = getMemberScopeDeclaredIn(cjExtend, NoLookupLocation.FROM_BUILTINS)
-
-
-            scope as AbstractLazyMemberScope<*, *>
-
-//       第一步，检查被扩展类型并获取
-
-            val type = scope.resolveTypeByExtend(cjExtend)
-//                    trace.record(BindingContext.DECLARATION_TO_DESCRIPTOR,cjExtend)
-            return type
-        }
-
-        return descriptor
-
-
-    }
 
     private fun findClassDescriptor(
         classObjectOrScript: CjNamedDeclaration,
@@ -289,7 +271,7 @@ open class LazyDeclarationResolver(
 
             override fun visitExtend(cjExtend: CjExtend, data: Nothing?): DeclarationDescriptor {
 
-                return getExtendClassDescriptor(cjExtend)
+                TODO("扩展")
             }
 
             override fun visitEndSecondaryConstructor(

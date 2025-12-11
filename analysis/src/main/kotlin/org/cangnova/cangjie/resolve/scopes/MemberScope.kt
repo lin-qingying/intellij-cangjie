@@ -30,7 +30,7 @@ import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
+import org.cangnova.cangjie.resolve.isStatic
 import org.cangnova.cangjie.resolve.scopes.MemberScope.Companion.ALL_NAME_FILTER
 import org.cangnova.cangjie.resolve.source.MemberScopeImpl
 import org.cangnova.cangjie.utils.Printer
@@ -103,18 +103,16 @@ class InstanceMemberScope(private val memberScope: MemberScope) : MemberScope {
     }
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
-        return memberScope.getContributedClassifier(name, location)?.takeIf { !it.isStatic } // 过滤非静态分类器
+        return memberScope.getContributedClassifier(name, location)?.takeIf { !it.isStatic() } // 过滤非静态分类器
     }
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-        return memberScope.getExtendClass(name)
-    }
+
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        return memberScope.getContributedDescriptors(kindFilter, nameFilter).filter { !it.isStatic } // 过滤非静态描述符
+        return memberScope.getContributedDescriptors(kindFilter, nameFilter).filter { !it.isStatic() } // 过滤非静态描述符
     }
 }
 
@@ -164,32 +162,29 @@ class StaticMemberScope(val memberScope: MemberScope) : MemberScope {
 
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? {
         return memberScope.getContributedClassifier(name, location)
-            ?.takeIf { it.isStatic || DescriptorUtils.isEnumEntry(it) } // 过滤非静态分类器
+            ?.takeIf { it.isStatic() || DescriptorUtils.isEnumEntry(it) } // 过滤非静态分类器
     }
 
     override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
         return memberScope.getContributedEnumEntrys(name, location).filter {
-            it.isStatic || DescriptorUtils.isEnumEntry(it)
+            it.isStatic() || DescriptorUtils.isEnumEntry(it)
         }
 
     }
 
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> {
         return memberScope.getContributedClassifiers(name, location).filter {
-            it.isStatic || DescriptorUtils.isEnumEntry(it)
+            it.isStatic() || DescriptorUtils.isEnumEntry(it)
         }
 
     }
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-        return memberScope.getExtendClass(name)
-    }
 
     override fun getContributedDescriptors(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ): Collection<DeclarationDescriptor> {
-        return memberScope.getContributedDescriptors(kindFilter, nameFilter).filter { it.isStatic } // 过滤非静态描述符
+        return memberScope.getContributedDescriptors(kindFilter, nameFilter).filter { it.isStatic() } // 过滤非静态描述符
     }
 }
 

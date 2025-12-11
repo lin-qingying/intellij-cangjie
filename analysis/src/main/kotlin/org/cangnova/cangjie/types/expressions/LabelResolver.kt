@@ -35,6 +35,16 @@ import org.cangnova.cangjie.resolve.calls.context.ResolutionContext
 import org.cangnova.cangjie.resolve.scopes.getDeclarationsByLabel
 import org.cangnova.cangjie.utils.addIfNotNull
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.descriptors.DescriptorToSourceUtils
+import org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE
+import org.cangnova.cangjie.diagnostics.infos.warnings.LABEL_NAME_CLASH
+import org.cangnova.cangjie.diagnostics.infos.warnings.LABEL_RESOLVE_WILL_CHANGE
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DECLARATION_TO_DESCRIPTOR
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.LABEL_TARGET
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
+import org.cangnova.cangjie.resolve.binding.BindingContextUtils
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 
 object LabelResolver {
     private fun getLabelForFunctionalExpression(element: CjExpression): Name? {
@@ -194,7 +204,7 @@ object LabelResolver {
                 val element = elementsByLabel.firstOrNull()?.also {
                     trace.record(LABEL_TARGET, targetLabelExpression, it)
                 }
-                val declarationDescriptor = trace.bindingContext[DECLARATION_TO_DESCRIPTOR, element]
+                val declarationDescriptor =  element?.let { trace.bindingContext[DECLARATION_TO_DESCRIPTOR, element] }
                 if (declarationDescriptor is FunctionDescriptor || declarationDescriptor is ClassDescriptor) {
                     val labelNameToReceiverMap = trace.bindingContext[
                         DESCRIPTOR_TO_CONTEXT_RECEIVER_MAP,

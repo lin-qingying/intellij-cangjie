@@ -27,7 +27,6 @@ package org.cangnova.cangjie.resolve.scopes
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import com.intellij.util.SmartList
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 
@@ -57,10 +56,7 @@ abstract class LexicalScopeStorage(
         variableOrClassDescriptorByName(name) as? ClassifierDescriptor
 
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
 
-        return listOfNotNull(variableOrClassDescriptorByName(name) as? LazyExtendClassDescriptor)
-    }
 
 
     override fun getContributedVariables(

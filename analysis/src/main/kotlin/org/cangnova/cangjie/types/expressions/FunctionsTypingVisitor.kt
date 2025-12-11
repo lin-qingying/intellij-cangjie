@@ -23,7 +23,7 @@
  */
 
 package org.cangnova.cangjie.types.expressions
-
+import org.cangnova.cangjie.types.isBuiltinFunctionalType
 import com.google.common.collect.Lists
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageFeature
@@ -37,6 +37,8 @@ import org.cangnova.cangjie.diagnostics.PsiDiagnosticUtils
 import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.FunctionDescriptorUtil
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.EXPECTED_RETURN_TYPE
 import org.cangnova.cangjie.resolve.binding.BindingContextUtils
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.context.ContextDependency
@@ -48,12 +50,16 @@ import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
 import org.cangnova.cangjie.resolve.source.toSourceElement
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.CommonSupertypes
+import org.cangnova.cangjie.types.TypeUtils.CANNOT_INFER_FUNCTION_PARAM_TYPE
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
+import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.isUnit
 import org.cangnova.cangjie.types.checker.TrailingCommaChecker
 import org.cangnova.cangjie.types.contains
+import org.cangnova.cangjie.types.createFunctionType
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
+import org.cangnova.cangjie.types.getReturnTypeFromFunctionType
 import org.cangnova.cangjie.utils.addIfNotNull
 
 class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
@@ -220,8 +226,6 @@ class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypi
         return functionDescriptor
     }
 
-    private fun CangJieType.isBuiltinFunctionalType() =
-        !noExpectedType(this) && isBuiltinFunctionalType
 
     override fun visitLambdaExpression(
         expression: CjLambdaExpression,
@@ -362,25 +366,25 @@ class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypi
         val returns = ArrayList<CjReturnExpression>()
 
         bodyExpression.accept(object : CjTreeVisitor<Boolean>() {
-            override fun visitReturnExpression(expression: CjReturnExpression, insideActualFunction: Boolean): Void? {
+            override fun visitReturnExpression(expression: CjReturnExpression, insideActualFunction: Boolean) {
                 val labelTarget = expression.getTargetLabel()?.let { trace[BindingContext.LABEL_TARGET, it] }
                 if (labelTarget == function || (labelTarget == null && insideActualFunction)) {
                     returns.add(expression)
                 }
 
-                return super.visitReturnExpression(expression, insideActualFunction)
+                super.visitReturnExpression(expression, insideActualFunction)
             }
 
-            override fun visitNamedFunction(function: CjNamedFunction, data: Boolean): Void? {
-                return super.visitNamedFunction(function, false)
+            override fun visitNamedFunction(function: CjNamedFunction, data: Boolean) {
+                super.visitNamedFunction(function, false)
             }
 
-            override fun visitPropertyAccessor(accessor: CjPropertyAccessor, data: Boolean): Void? {
-                return super.visitPropertyAccessor(accessor, false)
+            override fun visitPropertyAccessor(accessor: CjPropertyAccessor, data: Boolean) {
+                super.visitPropertyAccessor(accessor, false)
             }
 
-            override fun visitAnonymousInitializer(initializer: CjAnonymousInitializer, data: Boolean): Void? {
-                return super.visitAnonymousInitializer(initializer, false)
+            override fun visitAnonymousInitializer(initializer: CjAnonymousInitializer, data: Boolean) {
+                super.visitAnonymousInitializer(initializer, false)
             }
         }, true)
 
@@ -397,9 +401,9 @@ class FunctionsTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypi
             override fun visitReturnExpression(
                 expression: CjReturnExpression,
                 insideActualFunction: MutableList<CjReturnExpression>
-            ): Void? {
+            ) {
                 insideActualFunction.add(expression)
-                return null
+
             }
         }, result)
         return result.filter {
@@ -453,6 +457,7 @@ fun SimpleFunctionDescriptor.createFunctionType(
     builtIns: CangJieBuiltIns,
 
     ): CangJieType? {
+
     return createFunctionType(
         builtIns,
         Annotations.EMPTY,
@@ -464,3 +469,5 @@ fun SimpleFunctionDescriptor.createFunctionType(
 //        suspendFunction = suspendFunction
     )
 }
+private fun CangJieType.isBuiltinFunctionalType() =
+    !noExpectedType(this) && isBuiltinFunctionalType

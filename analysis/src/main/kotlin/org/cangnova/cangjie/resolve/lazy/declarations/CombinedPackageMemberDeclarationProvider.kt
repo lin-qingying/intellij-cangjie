@@ -24,9 +24,9 @@
 
 package org.cangnova.cangjie.resolve.lazy.declarations
 
+import org.cangnova.cangjie.descriptors.data.CjTypeStatementInfo
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.resolve.lazy.data.CjTypeStatementInfo
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 
 class CombinedPackageMemberDeclarationProvider(
@@ -51,15 +51,10 @@ class CombinedPackageMemberDeclarationProvider(
         return providers.flatMap { it.getDestructuringDeclarationsEntries(name) }
     }
 
-    override fun getEnumEntryDeclarations(name: Name): Collection<CjEnumEntry> {
-        return providers.flatMap { it.getEnumEntryDeclarations(name) }
 
-    }
 
     override fun getTypeStatementDeclarations(name: Name) = providers.flatMap { it.getTypeStatementDeclarations(name) }
 
-    override fun getExtendTypeStatementDeclarations(name: Name): Collection<CjTypeStatementInfo<CjExtend>> =
-        providers.flatMap { it.getExtendTypeStatementDeclarations(name) }
 
     override fun getAliasTypeStatementDeclarations(name: Name): Collection<CjTypeAlias> = providers.flatMap {
         it.getAliasTypeStatementDeclarations(name)

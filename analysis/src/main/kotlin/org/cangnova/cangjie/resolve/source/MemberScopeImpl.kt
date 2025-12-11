@@ -62,8 +62,6 @@ abstract class MemberScopeImpl : MemberScope {
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
         emptyList()
 
-    override fun getContributedEnumEntrys(name: Name, location: LookupLocation): List<ClassifierDescriptor> =
-        emptyList()
 
     //    override fun getFunctionClassDescriptor(parameterCount: Int): FunctionClassDescriptor?  = null
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? = null
