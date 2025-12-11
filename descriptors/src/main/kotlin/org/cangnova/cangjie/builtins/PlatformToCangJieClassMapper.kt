@@ -22,12 +22,18 @@
  *
  */
 
-package org.cangnova.cangjie.resolve.calls.model
+package org.cangnova.cangjie.builtins
 
-import org.cangnova.cangjie.psi.ValueArgument
-import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
+import org.cangnova.cangjie.container.DefaultImplementation
+import org.cangnova.cangjie.descriptors.ClassDescriptor
 
-interface DataFlowInfoForArguments {
-    fun getInfo(valueArgument: ValueArgument): DataFlowInfo
-val resultInfo: DataFlowInfo
+@DefaultImplementation(impl = PlatformToCangJieClassMapper.Default::class)
+interface PlatformToCangJieClassMapper {
+    fun mapPlatformClass(classDescriptor: ClassDescriptor): Collection<ClassDescriptor>
+
+    class Default : PlatformToCangJieClassMapper {
+        override fun mapPlatformClass(classDescriptor: ClassDescriptor): Collection<ClassDescriptor> {
+            return emptyList()
+        }
+    }
 }

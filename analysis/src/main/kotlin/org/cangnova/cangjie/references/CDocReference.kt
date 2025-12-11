@@ -46,10 +46,13 @@ import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.caches.CangJieCacheService
+import org.cangnova.cangjie.resolve.calls.util.CallType
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.source.PsiSourceElement
 import org.cangnova.cangjie.utils.Printer
 import org.cangnova.cangjie.utils.addIfNotNull
+import org.cangnova.cangjie.utils.isExtension
+import org.cangnova.cangjie.utils.substituteExtensionIfCallable
 
 
 abstract class CDocReference(element: CDocName) : CjMultiReference<CDocName>(element) {

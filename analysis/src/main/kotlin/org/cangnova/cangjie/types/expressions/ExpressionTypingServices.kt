@@ -28,13 +28,15 @@ import com.intellij.openapi.progress.ProgressManager
 import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.isUnit
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
-import org.cangnova.cangjie.descriptors.BindingTrace
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.getNonStrictParentOfType
 import org.cangnova.cangjie.psi.psiUtil.returnTarget
 import org.cangnova.cangjie.resolve.*
 import org.cangnova.cangjie.resolve.binding.AbstractFilteringTrace
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.binding.slicedMap.WritableSlice
 import org.cangnova.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession.Companion.default
@@ -46,15 +48,14 @@ import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo.Companion.EMPT
 import org.cangnova.cangjie.resolve.calls.tower.CangJieResolutionCallbacksImpl
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ErrorUtils.createErrorType
+import org.cangnova.cangjie.types.TypeUtils.DONT_CARE
+import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
+import org.cangnova.cangjie.types.TypeUtils.UNIT_EXPECTED_TYPE
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import org.cangnova.cangjie.types.util.TypeUtils.DONT_CARE
-import org.cangnova.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
-import org.cangnova.cangjie.types.util.TypeUtils.UNIT_EXPECTED_TYPE
-import org.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
-import org.cangnova.cangjie.utils.slicedMap.WritableSlice
 
 class ExpressionTypingServices(
     val expressionTypingComponents: ExpressionTypingComponents,
@@ -614,7 +615,7 @@ class ExpressionTypingServices(
 
     private class EffectsFilteringTrace(parentTrace: BindingTrace) :
         AbstractFilteringTrace(parentTrace, "Effects filtering trace") {
-        override fun <K, V> shouldBeHiddenFromParent(slice: WritableSlice<K, V>, key: K): Boolean {
+        override fun <K : Any, V> shouldBeHiddenFromParent(slice: WritableSlice<K, V>, key: K): Boolean {
             return slice === BindingContext.EXPRESSION_EFFECTS
         }
     }

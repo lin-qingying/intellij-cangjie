@@ -24,15 +24,17 @@
 
 package org.cangnova.cangjie.resolve
 
-import org.cangnova.cangjie.diagnostics.infos.errors.*
 import com.intellij.util.SmartList
-import org.cangnova.cangjie.config.LanguageFeature
+import org.cangnova.cangjie.builtins.StandardNames.OPTION
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.annotations.AnnotationDescriptor
 import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.annotations.composeAnnotations
 import org.cangnova.cangjie.descriptors.impl.AbstractVariableDescriptor
+import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.infos.warnings.NESTING_DOLL_OPTINOTYPE
+import org.cangnova.cangjie.diagnostics.infos.warnings.REDUNDANT_OPTIONAL
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.Name
@@ -42,16 +44,21 @@ import org.cangnova.cangjie.psi.psiUtil.getNextSiblingIgnoringWhitespaceAndComme
 import org.cangnova.cangjie.psi.psiUtil.getPrevSiblingIgnoringWhitespaceAndComments
 import org.cangnova.cangjie.psi.stubs.elements.CjStubElementTypes
 import org.cangnova.cangjie.resolve.PossiblyBareType.Companion.bare
-
+import org.cangnova.cangjie.resolve.PossiblyBareType.Companion.type
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.binding.recordScope
 import org.cangnova.cangjie.resolve.calls.NewCommonSuperTypeCalculator.commonSuperType
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.source.CangJieSourceElement
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.resolve.source.toSourceElement
 import org.cangnova.cangjie.types.*
+import org.cangnova.cangjie.types.ErrorUtils.invalidType
+import org.cangnova.cangjie.types.TypeUtils.addTypeParameterToStub
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext
+import org.cangnova.cangjie.types.checker.TrailingCommaChecker
+import org.cangnova.cangjie.types.checker.TypeIntersector
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.expressions.TypeAttributeTranslators
 import org.cangnova.cangjie.types.util.*
@@ -361,10 +368,10 @@ class TypeResolver(
                     }
 
                     override val isVar: Boolean = false
-                    override fun getOverriddenDescriptors(): List<CallableDescriptor> {
-                        return emptyList()
-                    }
 
+
+                    override val overriddenDescriptors: Collection<CallableDescriptor>
+                        get() = emptyList()
 
                     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R? {
                         return visitor.visitVariableDescriptorBase(this, data)
@@ -385,7 +392,7 @@ class TypeResolver(
                     val parameterType = resolveType(c.noBareTypes(), parameter.typeReference!!)
                     val descriptor = ParameterOfFunctionTypeDescriptor(
                         c.scope.ownerDescriptor,
-                        annotationResolver.resolveAnnotationsWithoutArguments(c.scope, parameter.modifierList, c.trace),
+                        annotationResolver.resolveAnnotationsWithoutArguments(c.scope, parameter.annotations, c.trace),
                         parameter.nameAsSafeName,
                         parameterType,
                         parameter.toSourceElement()
@@ -503,11 +510,11 @@ class TypeResolver(
 
                 val baseType = createTypeFromInner(optionType, optionType.getModifierList(), innerType)
 
-                if (!baseType.isBare && baseType.actualType is DefinitelyNotNullType) {
+                if (!baseType.isBare() && baseType.actualType is DefinitelyNonOptionType) {
                     c.trace.report(NULLABLE_ON_DEFINITELY_NOT_OPTIONAL.on(optionType))
                 }
 
-                if (baseType.isOptional || innerType is CjOptionType/* || innerType is CjDynamicType*/) {
+                if (baseType.isOptional() || innerType is CjOptionType/* || innerType is CjDynamicType*/) {
                     c.trace.report(REDUNDANT_OPTIONAL.on(optionType))
 
                     c.trace.report(NESTING_DOLL_OPTINOTYPE.on(optionType))
@@ -1184,7 +1191,7 @@ class TypeResolver(
             resolveTypeElement(c, annotations, typeReference.modifierList, typeReference.typeElement, isgetExtend)
         c.trace.recordScope(c.scope, typeReference)
 
-        if (!type.isBare) {
+        if (!type.isBare()) {
             for (argument in type.actualType.arguments) {
                 forceResolveTypeContents(argument.type)
             }

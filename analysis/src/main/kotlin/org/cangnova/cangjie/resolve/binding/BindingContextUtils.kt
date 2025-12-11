@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.resolve.binding
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import org.cangnova.cangjie.analysis.MutableDiagnosticsWithSuppression
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
@@ -35,11 +36,13 @@ import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.AMBIGUOUS_LABEL_TARGET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.AMBIGUOUS_REFERENCE_TARGET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DATA_FLOW_INFO_BEFORE
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DECLARATION_TO_DESCRIPTOR
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.EXPRESSION_TYPE_INFO
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.LEXICAL_SCOPE
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.TYPE
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.USED_AS_EXPRESSION
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.USED_AS_RESULT_OF_LAMBDA
 import org.cangnova.cangjie.resolve.binding.slicedMap.MutableSlicedMap
 import org.cangnova.cangjie.resolve.binding.slicedMap.ReadOnlySlice
 import org.cangnova.cangjie.resolve.binding.slicedMap.WritableSlice
@@ -53,6 +56,7 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 
 object BindingContextUtils {
     @JvmStatic
@@ -61,7 +65,7 @@ object BindingContextUtils {
         element: CjElement?
     ): VariableDescriptor? = when (element) {
         is CjSimpleNameExpression ->
-            variableDescriptorForDeclaration(bindingContext[BindingContext.REFERENCE_TARGET, element])
+            variableDescriptorForDeclaration(bindingContext[REFERENCE_TARGET, element])
 
         is CjQualifiedExpression ->
             extractVariableDescriptorFromReference(bindingContext, element.selectorExpression)
@@ -75,7 +79,7 @@ object BindingContextUtils {
         targetLabel: CjSimpleNameExpression,
         declarationsByLabel: Collection<DeclarationDescriptor>
     ) {
-        val targets = declarationsByLabel.mapNotNull { descriptor ->
+        val targets = declarationsByLabel.map { descriptor ->
             val element = DescriptorToSourceUtils.descriptorToDeclaration(descriptor)
             requireNotNull(element) { "Label can only point to something in the same lexical scope" }
             element
@@ -150,7 +154,7 @@ object BindingContextUtils {
     fun getRecordedTypeInfo(expression: CjExpression, context: BindingContext): CangJieTypeInfo? {
         if (context[BindingContext.PROCESSED, expression] != true) return null
         // NB: should never return null if expression is already processed
-        return context[BindingContext.EXPRESSION_TYPE_INFO, expression]
+        return context[EXPRESSION_TYPE_INFO, expression]
             ?: noTypeInfo(DataFlowInfoFactory.EMPTY)
     }
 
@@ -249,7 +253,7 @@ fun BindingTrace.recordScope(scope: LexicalScope, element: CjElement?) {
 fun <C : ResolutionContext<C>> ResolutionContext<C>.recordDataFlowInfo(expression: CjExpression?) {
     if (expression == null) return
 
-    val typeInfo = trace.get(EXPRESSION_TYPE_INFO, expression)
+    val typeInfo = trace[EXPRESSION_TYPE_INFO, expression]
     if (typeInfo != null) {
         trace.record(EXPRESSION_TYPE_INFO, expression, typeInfo.replaceDataFlowInfo(dataFlowInfo))
     } else if (dataFlowInfo != DataFlowInfo.EMPTY) {
@@ -297,4 +301,37 @@ fun BindingContext.getDataFlowInfoBefore(position: PsiElement): DataFlowInfo {
 }
 
 fun CjExpression.isUsedAsStatement(context: BindingContext): Boolean = !isUsedAsExpression(context)
+fun CjExpression.isUsedAsResultOfLambda(context: BindingContext): Boolean = context[USED_AS_RESULT_OF_LAMBDA, this]!!
 
+fun <T : PsiElement> CjElement.getParentOfTypeCodeFragmentAware(vararg parentClasses: Class<out T>): T? {
+    PsiTreeUtil.getParentOfType(this, *parentClasses)?.let { return it }
+
+    val containingFile = this.containingFile
+    if (containingFile is CjCodeFragment) {
+        val context = containingFile.context
+        if (context != null) {
+            return PsiTreeUtil.getParentOfType(context, *parentClasses)
+        }
+    }
+
+    return null
+}
+
+fun getEnclosingDescriptor(context: BindingContext, element: CjElement): DeclarationDescriptor {
+    val declaration =
+        element.getParentOfTypeCodeFragmentAware(CjNamedDeclaration::class.java)
+            ?: throw CangJieExceptionWithAttachmentsImpl("No parent CjNamedDeclaration for of type ${element.javaClass}")
+                .withPsiAttachment("element.cj", element)
+    return if (declaration is CjFunctionLiteral) {
+        getEnclosingDescriptor(context, declaration)
+    } else {
+        context[DECLARATION_TO_DESCRIPTOR, declaration]
+            ?: throw CangJieExceptionWithAttachmentsImpl("No descriptor for named declaration of type ${declaration.javaClass}")
+                .withPsiAttachment("declaration.cj", declaration)
+    }
+}
+
+fun CjElement.recordUsedAsExpression(trace: BindingTrace, value: Boolean) {
+    if (isUsedAsExpression(trace.bindingContext)) return
+    trace.record(USED_AS_EXPRESSION, this, value)
+}

@@ -32,9 +32,9 @@ import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.psiUtil.sure
-import org.cangnova.cangjie.resolve.calls.inference.wrapWithCapturingSubstitution
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
+import org.cangnova.cangjie.resolve.call.inference.wrapWithCapturingSubstitution
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeSubstitutor
 import org.cangnova.cangjie.types.checker.SimpleClassicTypeSystemContext.safeSubstitute
 import org.cangnova.cangjie.utils.Printer
 import org.cangnova.cangjie.utils.newLinkedHashSetWithExpectedSize
@@ -108,9 +108,6 @@ class SubstitutingScope(private val workerScope: MemberScope, givenSubstitutor: 
     override fun getContributedClassifier(name: Name, location: LookupLocation) =
         workerScope.getContributedClassifier(name, location)?.let { substitute(it) }
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-        return substitute(workerScope.getExtendClass(name)).toList()
-    }
 
     override fun getContributedMacros(name: Name, location: LookupLocation): Collection<MacroDescriptor> =
         substitute(workerScope.getContributedMacros(name, location))

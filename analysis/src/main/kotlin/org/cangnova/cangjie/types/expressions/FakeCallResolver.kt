@@ -45,6 +45,7 @@ import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
 import org.cangnova.cangjie.resolve.binding.TraceEntryFilter
 import org.cangnova.cangjie.resolve.binding.slicedMap.WritableSlice
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 enum class FakeCallKind {
     ITERATOR,

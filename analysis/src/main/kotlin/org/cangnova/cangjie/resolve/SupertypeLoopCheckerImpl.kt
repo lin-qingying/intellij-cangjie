@@ -28,6 +28,7 @@ import org.cangnova.cangjie.descriptors.SupertypeLoopChecker
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.utils.DFS
 import com.intellij.util.SmartList
+import org.cangnova.cangjie.types.TypeConstructor
 
 
 class SupertypeLoopCheckerImpl : SupertypeLoopChecker {

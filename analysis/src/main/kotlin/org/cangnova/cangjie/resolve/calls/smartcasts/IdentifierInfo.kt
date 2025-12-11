@@ -32,7 +32,9 @@ import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.calls.util.isSafeCall
+import org.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
 
 

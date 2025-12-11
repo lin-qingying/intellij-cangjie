@@ -174,13 +174,13 @@ class FlowOperatorResolver(
         val call = CallMaker.makeCallForBinaryExpression(expression)
         val resolutionResults =
             callResolver.resolveBinaryCall(context, call, expression, listOf(func))
-        if (!resolutionResults.isSingleResult()) {
+        if (!resolutionResults.isSingleResult) {
             return noTypeInfo(context)
         }
 
 //
 //        context.trace.record(COLLECTION_LITERAL_CALL, expression, resolutionResults.resultingCall)
-        return createTypeInfo(resolutionResults.getResultingDescriptor().returnType, context)
+        return createTypeInfo(resolutionResults.resultingDescriptor.returnType, context)
 
 
     }

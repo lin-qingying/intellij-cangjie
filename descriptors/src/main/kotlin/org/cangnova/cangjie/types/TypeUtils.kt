@@ -52,6 +52,7 @@ import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.model.TypeArgumentMarker
 import org.cangnova.cangjie.types.model.TypeVariableTypeConstructorMarker
 import org.cangnova.cangjie.utils.SmartSet
+import kotlin.collections.get
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -1619,6 +1620,7 @@ val CangJieType.classKind: ClassKind
         }
 
     }
+
 fun isSpecialType(type: CangJieType): Boolean {
     return type is TypeUtils.SpecialType
 }
@@ -1901,3 +1903,56 @@ fun createVArrayType(
     return descriptor.defaultType
 
 }
+fun CangJieType.replaceArgument(vararg newType: CangJieType): CangJieType {
+
+    val arguments = newType.map {
+        TypeProjectionImpl(it)
+    }
+    return simpleTypeWithNonTrivialMemberScope(
+        attributes,
+        constructor,
+        arguments,
+        isOption,
+        memberScope
+    )
+}
+
+val CangJieType.isVArray: Boolean
+    get() {
+        return this is VArrayType
+    }
+fun CangJieType.containsTypeAliases(): Boolean =
+    contains {
+        it.constructor.declarationDescriptor is TypeAliasDescriptor
+    }
+fun ClassifierDescriptor.isTypeAliasParameter(): Boolean =
+    this is TypeParameterDescriptor && containingDeclaration is TypeAliasDescriptor
+
+fun CangJieType.containsTypeAliasParameters(): Boolean =
+    contains {
+        it.constructor.declarationDescriptor?.isTypeAliasParameter() ?: false
+    }
+fun CangJieType.isPrimitiveNumber(): Boolean =
+    CangJieBuiltIns.isPrimitiveType(this) &&
+            !CangJieBuiltIns.isBoolean(this) &&
+            !CangJieBuiltIns.isRune(this)
+
+fun CangJieType.immediateSupertypes(): Collection<CangJieType> =  TypeUtils.getImmediateSupertypes(this)
+
+fun CangJieType.isGenericArrayOfTypeParameter(): Boolean {
+    if (!CangJieBuiltIns.isArray(this)) return false
+    val argument0 = arguments[0]
+
+    val argument0type = argument0.type
+    return argument0type.isTypeParameter() ||
+            argument0type.isGenericArrayOfTypeParameter()
+}
+
+val CangJieType.isInt8 get() = CangJieBuiltIns.isInt8(this)
+val CangJieType.isRune get() = CangJieBuiltIns.isRune(this)
+val CangJieType.isInt16 get() = CangJieBuiltIns.isInt16(this)
+val CangJieType.isInt32 get() = CangJieBuiltIns.isInt32(this)
+val CangJieType.isInt64 get() = CangJieBuiltIns.isInt64(this)
+val CangJieType.isFloat16 get() = CangJieBuiltIns.isFloat16(this)
+val CangJieType.isFloat32 get() = CangJieBuiltIns.isFloat32(this)
+val CangJieType.isFloat64 get() = CangJieBuiltIns.isFloat64(this)

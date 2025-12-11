@@ -30,6 +30,9 @@ import org.cangnova.cangjie.descriptors.impl.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.NameUtils
 import org.cangnova.cangjie.resolve.DescriptorUtils.getDefaultConstructorVisibility
+import org.cangnova.cangjie.resolve.scopes.receivers.ContextClassReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ExtensionReceiver
 import org.cangnova.cangjie.types.CangJieType
 
 object DescriptorFactory {

@@ -24,8 +24,6 @@
 
 package org.cangnova.cangjie.resolve.calls.util
 
-import org.cangnova.cangjie.builtins.isBuiltinExtensionFunctionalType
-import org.cangnova.cangjie.builtins.isBuiltinFunctionalType
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.descriptors.SourceElement
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
@@ -33,6 +31,9 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeProjection
+import org.cangnova.cangjie.types.isBuiltinExtensionFunctionalType
+import org.cangnova.cangjie.types.isBuiltinFunctionalType
 
 
 fun createValueParametersForInvokeInFunctionType(

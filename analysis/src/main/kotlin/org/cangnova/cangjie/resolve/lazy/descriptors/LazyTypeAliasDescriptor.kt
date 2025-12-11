@@ -113,8 +113,6 @@ class LazyTypeAliasDescriptor(
         return substituted
     }
 
-    override val kind: ClassKind
-        get() = TODO("Not yet implemented")
 
     companion object {
         @JvmStatic

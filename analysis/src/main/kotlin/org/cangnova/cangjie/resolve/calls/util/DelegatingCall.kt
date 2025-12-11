@@ -25,8 +25,11 @@
 package org.cangnova.cangjie.resolve.calls.util
 
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.utils.ReadOnly
+
 import com.intellij.lang.ASTNode
+import org.cangnova.cangjie.ReadOnly
+import org.cangnova.cangjie.resolve.scopes.receivers.Receiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 open class DelegatingCall(private val delegate: Call) : Call {
 

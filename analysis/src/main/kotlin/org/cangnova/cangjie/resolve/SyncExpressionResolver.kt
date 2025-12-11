@@ -28,9 +28,9 @@ import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.psi.CjSynchronizedExpression
 import org.cangnova.cangjie.resolve.calls.CallResolver
+import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import org.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 
 class SyncExpressionResolver(
     val module: ModuleDescriptor,

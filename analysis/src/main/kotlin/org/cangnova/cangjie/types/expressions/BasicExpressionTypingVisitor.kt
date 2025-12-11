@@ -49,18 +49,29 @@ import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.lexer.CjTokens.AS_KEYWORD
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.name.OperatorConventions
 import org.cangnova.cangjie.name.OperatorConventions.isConventionType
+import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.CjNodeTypes.INTEGER_CONSTANT
 import org.cangnova.cangjie.resolve.*
 import org.cangnova.cangjie.resolve.DescriptorUtils.isClass
 import org.cangnova.cangjie.resolve.DescriptorUtils.isInterface
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.CALL
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.CAST_TYPE_USED_AS_EXPECTED_TYPE
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.COMPILE_TIME_VALUE
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.INDEXED_LVALUE_GET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.INDEXED_LVALUE_SET
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.RESOLVED_CALL
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.SUPER_EXPRESSION_FROM_ANY_MIGRATION
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.THIS_REFERENCE_TARGET
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.THIS_TYPE_FOR_SUPER_EXPRESSION
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.VARIABLE_REASSIGNMENT
 import org.cangnova.cangjie.resolve.binding.BindingContextUtils
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
+import org.cangnova.cangjie.resolve.binding.recordScope
 import org.cangnova.cangjie.resolve.calls.ArgumentTypeResolver.Companion.isCallableReferenceArgument
 import org.cangnova.cangjie.resolve.calls.ArgumentTypeResolver.Companion.isCollectionLiteralArgument
 import org.cangnova.cangjie.resolve.calls.ArgumentTypeResolver.Companion.isFunctionLiteralArgument
@@ -70,6 +81,7 @@ import org.cangnova.cangjie.resolve.calls.checkers.RttiExpressionInformation
 import org.cangnova.cangjie.resolve.calls.checkers.RttiOperation
 import org.cangnova.cangjie.resolve.calls.context.ContextDependency
 import org.cangnova.cangjie.resolve.calls.model.DataFlowInfoForArgumentsImpl
+import org.cangnova.cangjie.resolve.calls.model.ResolvedCallImpl
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResultsImpl
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResultsUtil
@@ -84,10 +96,16 @@ import org.cangnova.cangjie.resolve.constants.*
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.findFirstClassifierWithDeprecationStatus
 import org.cangnova.cangjie.resolve.scopes.getImplicitReceiversHierarchy
+import org.cangnova.cangjie.resolve.scopes.receivers.ContextReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver.Companion.create
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.ErrorUtils.createErrorType
 import org.cangnova.cangjie.types.ErrorUtils.invalidType
+import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
+import org.cangnova.cangjie.types.TypeUtils.noExpectedType
+import org.cangnova.cangjie.types.Variance
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
 import org.cangnova.cangjie.types.error.ErrorType
 import org.cangnova.cangjie.types.error.ErrorTypeKind
@@ -99,8 +117,10 @@ import org.cangnova.cangjie.types.expressions.typeInfoFactory.errorTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 import org.cangnova.cangjie.types.expressions.unqualifiedSuper.isPossiblyAmbiguousUnqualifiedSuper
 import org.cangnova.cangjie.types.expressions.unqualifiedSuper.resolveUnqualifiedSuperFromExpressionContext
+import org.cangnova.cangjie.types.isBuiltinTupleType
 import org.cangnova.cangjie.types.isDynamic
 import org.cangnova.cangjie.types.isError
+import org.cangnova.cangjie.types.isOptionType
 import java.util.*
 
 class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : ExpressionTypingVisitor(facade) {
@@ -179,9 +199,9 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
             resolutionResults = OverloadResolutionResultsImpl.nameNotFound()
         }
 
-        if (resolutionResults.isSingleResult()) {
+        if (resolutionResults.isSingleResult) {
             typeInfo =
-                typeInfo.replaceDataFlowInfo(resolutionResults.getResultingCall().dataFlowInfoForArguments.resultInfo)
+                typeInfo.replaceDataFlowInfo(resolutionResults.resultingCall.dataFlowInfoForArguments.resultInfo)
         }
 
         //        if (OverloadResolutionResultsUtil.getResultingType(resolutionResults, context) == null) {
@@ -666,7 +686,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
 
         // 如果右侧类型不可空，但结果类型可空，强制将结果类型设为不可空
-        if (!isNullableType(rightType) && isNullableType(type)) {
+        if (!isOptionType(rightType) && isOptionType(type)) {
             type = makeNotNullable(type)
         }
 
@@ -784,7 +804,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
 
         // 如果右侧类型不可空，但结果类型可空，强制将结果类型设为不可空
-        if (!isNullableType(rightType) && isNullableType(type)) {
+        if (!isOptionType(rightType) && isOptionType(type)) {
             type = makeNotNullable(type)
         }
 

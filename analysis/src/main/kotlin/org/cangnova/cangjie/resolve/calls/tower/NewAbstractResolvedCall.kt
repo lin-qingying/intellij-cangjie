@@ -90,7 +90,7 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     override val dataFlowInfoForArguments: DataFlowInfoForArguments
         get() = object : DataFlowInfoForArguments {
-            override fun getResultInfo(): DataFlowInfo =
+            override val resultInfo : DataFlowInfo get() =
                 nonTrivialUpdatedResultInfo ?: psiCangJieCall.resultDataFlowInfo
 
             override fun getInfo(valueArgument: ValueArgument): DataFlowInfo {

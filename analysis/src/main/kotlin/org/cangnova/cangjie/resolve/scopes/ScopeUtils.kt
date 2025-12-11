@@ -32,10 +32,6 @@ import com.intellij.util.SmartList
 import org.cangnova.cangjie.descriptors.ModuleSourceInfo
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
-import org.cangnova.cangjie.ide.FrontendInternals
-import org.cangnova.cangjie.ide.base.projectStructure.CangJieSourceFilterScope
-import org.cangnova.cangjie.ide.projectStructure.CangJieResolveScopeEnlarger
-import org.cangnova.cangjie.ide.projectStructure.moduleInfo
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.incremental.components.NoLookupLocation
 import org.cangnova.cangjie.name.FqName
@@ -48,16 +44,13 @@ import org.cangnova.cangjie.psi.psiUtil.parentsWithSelf
 import org.cangnova.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import org.cangnova.cangjie.resolve.ResolutionFacade
 import org.cangnova.cangjie.resolve.caches.getResolutionFacade
-import org.cangnova.cangjie.resolve.descriptorUtil.module
 import org.cangnova.cangjie.resolve.frontendService
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.lazy.FileScopeProvider
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import org.cangnova.cangjie.resolve.scopes.util.parentsWithSelf
 import org.cangnova.cangjie.types.error.ErrorClassDescriptor
 import org.cangnova.cangjie.types.error.ErrorEntity
 import org.cangnova.cangjie.utils.Printer
-import org.cangnova.cangjie.utils.getImplicitReceiversWithInstance
 
 @JvmOverloads
 fun MemberScope.memberScopeAsImportingScope(parentScope: ImportingScope? = null): ImportingScope =

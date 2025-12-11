@@ -25,6 +25,7 @@
 package org.cangnova.cangjie.utils
 
 import org.cangnova.cangjie.descriptors.CallableDescriptor
+import org.cangnova.cangjie.descriptors.CallableMemberDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.DescriptorToSourceUtils
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
@@ -35,6 +36,28 @@ import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.DeferredType
 import org.cangnova.cangjie.types.contains
 
+fun CallableMemberDescriptor.firstOverridden(
+    useOriginal: Boolean = false,
+    predicate: (CallableMemberDescriptor) -> Boolean
+): CallableMemberDescriptor? {
+    var result: CallableMemberDescriptor? = null
+    return DFS.dfs(listOf(this),
+        { current ->
+            val descriptor = if (useOriginal) current?.original else current
+            (descriptor?.overriddenDescriptors ?: emptyList()) as MutableIterable<CallableMemberDescriptor>
+        },
+        object : DFS.AbstractNodeHandler<CallableMemberDescriptor, CallableMemberDescriptor?>() {
+            override fun beforeChildren(current: CallableMemberDescriptor) = result == null
+            override fun afterChildren(current: CallableMemberDescriptor) {
+                if (result == null && predicate(current)) {
+                    result = current
+                }
+            }
+
+            override fun result(): CallableMemberDescriptor? = result
+        }
+    )
+}
 inline fun <reified T : CjDeclaration> reportOnDeclarationAs(
     trace: BindingTrace,
     descriptor: DeclarationDescriptor,

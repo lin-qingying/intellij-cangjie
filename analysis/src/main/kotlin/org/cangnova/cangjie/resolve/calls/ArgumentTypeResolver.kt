@@ -27,12 +27,13 @@ package org.cangnova.cangjie.resolve.calls
 import jakarta.inject.Inject
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.ReflectionTypes
-import org.cangnova.cangjie.descriptors.BindingTrace
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.diagnostics.Errors
+import org.cangnova.cangjie.diagnostics.infos.errors.PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.StatementFilter
 import org.cangnova.cangjie.resolve.TypeResolver
+import org.cangnova.cangjie.resolve.binding.BindingContextUtils
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.context.CallResolutionContext
 import org.cangnova.cangjie.resolve.calls.context.CheckArgumentTypesMode
 import org.cangnova.cangjie.resolve.calls.context.ContextDependency
@@ -43,12 +44,12 @@ import org.cangnova.cangjie.resolve.constants.IntegerValueTypeConstructor
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
+import org.cangnova.cangjie.types.TypeUtils.getPrimitiveNumberType
 import org.cangnova.cangjie.types.checker.CangJieTypeChecker
+import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import org.cangnova.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
-import org.cangnova.cangjie.types.util.TypeUtils.getPrimitiveNumberType
-import org.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 
 class ArgumentTypeResolver //        this.functionPlaceholders = functionPlaceholders;
     (
@@ -153,7 +154,7 @@ class ArgumentTypeResolver //        this.functionPlaceholders = functionPlaceho
         for (typeProjection in context.call.typeArguments) {
             val typeReference = typeProjection.typeReference
             if (typeReference == null) {
-                context.trace.report(Errors.PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(typeProjection))
+                context.trace.report(PROJECTION_ON_NON_CLASS_TYPE_ARGUMENT.on(typeProjection))
             } else {
                 typeResolver.resolveType(context.scope, typeReference, context.trace, true)
             }
@@ -257,7 +258,7 @@ class ArgumentTypeResolver //        this.functionPlaceholders = functionPlaceho
             expression: CjExpression,
             context: CallResolutionContext<*>
         ): Boolean {
-            return expression is CjCollectionLiteralExpression && context.call.callElement is CjAnnotationEntry
+            return expression is CjCollectionLiteralExpression && context.call.callElement is CjAnnotation
         }
 
         @JvmStatic

@@ -53,6 +53,7 @@ import org.cangnova.cangjie.types.isError
 import com.intellij.openapi.util.Ref
 import org.cangnova.cangjie.diagnostics.infos.errors.*
 import org.cangnova.cangjie.diagnostics.infos.warnings.*
+import org.cangnova.cangjie.extensions.internal.InternalNonStableExtensionPoints
 import org.cangnova.cangjie.name.OperatorConventions
 import org.cangnova.cangjie.name.OperatorConventions.getNameForOperationSymbol
 import org.cangnova.cangjie.resolve.binding.BindingContext
@@ -60,6 +61,8 @@ import org.cangnova.cangjie.resolve.binding.BindingContextUtils
 import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
 import org.cangnova.cangjie.resolve.calls.results.OverloadResolutionResults
 import org.cangnova.cangjie.types.TypeUtils
+import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
+import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.expressions.match.PatternMatchingTypingVisitor
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
@@ -312,7 +315,7 @@ class ExpressionTypingVisitorForStatements(
         context: ExpressionTypingContext
     ): CangJieType? {
         if (assignmentType != null && !CangJieBuiltIns.isUnit(assignmentType) && !noExpectedType(context.expectedType) &&
-            !context.expectedType.isError() && TypeUtils.equalTypes(context.expectedType, assignmentType)
+            !context.expectedType.isError && TypeUtils.equalTypes(context.expectedType, assignmentType)
         ) {
             context.trace.report(ASSIGNMENT_TYPE_MISMATCH.on(expression, context.expectedType))
             return null
@@ -343,6 +346,7 @@ class ExpressionTypingVisitorForStatements(
      * @param contextWithExpectedType 包含期望类型的上下文
      * @return 类型信息
      */
+    @OptIn(InternalNonStableExtensionPoints::class)
     protected fun visitAssignment(
         expression: CjBinaryExpression,
         contextWithExpectedType: ExpressionTypingContext
@@ -376,11 +380,13 @@ class ExpressionTypingVisitorForStatements(
         val expectedType = refineTypeFromPropertySetterIfPossible(bindingContext, leftOperand, leftType)
 
         // 处理赋值扩展
-        val assignAlterers = AssignResolutionAltererExtension.getInstances(expression.project)
+        val assignAlterers = AssignResolutionAltererExtension.EP_NAME.extensionList
         if (assignAlterers.isNotEmpty()) {
-            val alteredTypeInfo = assignAlterers
-                .firstOrNull { it.needOverloadAssign(expression, leftType, bindingContext) }
-                ?.resolveAssign(bindingContext, expression, leftOperand, left, leftInfo, context, components, scope)
+            val alteredTypeInfo = leftOperand?.let {
+                assignAlterers
+                    .firstOrNull { it.needOverloadAssign(expression, leftType, bindingContext) }
+                    ?.resolveAssign(bindingContext, expression, it, left, leftInfo, context, components, scope)
+            }
 
             if (alteredTypeInfo != null) {
                 return alteredTypeInfo

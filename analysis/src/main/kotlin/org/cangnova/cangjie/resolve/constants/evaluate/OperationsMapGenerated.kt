@@ -24,7 +24,8 @@
 
 package org.cangnova.cangjie.resolve.constants.evaluate
 
-import org.cangnova.cangjie.parsing.Float16
+
+import org.cangnova.cangjie.resolve.constants.Float16
 import java.math.BigInteger
 
 fun evalBinaryOp(name: String, leftType: CompileTimeType, left: Any, rightType: CompileTimeType, right: Any): Any? {

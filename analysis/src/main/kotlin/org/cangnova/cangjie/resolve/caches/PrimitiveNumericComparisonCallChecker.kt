@@ -24,7 +24,6 @@
 
 package org.cangnova.cangjie.resolve.caches
 
-import org.cangnova.cangjie.descriptors.BindingTrace
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.CjBinaryExpression
@@ -35,6 +34,20 @@ import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.util.*
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.isInt16
+import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.isInt8
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.types.builtIns
+import org.cangnova.cangjie.types.immediateSupertypes
+import org.cangnova.cangjie.types.isFloat16
+import org.cangnova.cangjie.types.isFloat32
+import org.cangnova.cangjie.types.isFloat64
+import org.cangnova.cangjie.types.isInt32
+import org.cangnova.cangjie.types.isInt64
+import org.cangnova.cangjie.types.isPrimitiveNumber
+import org.cangnova.cangjie.types.isPrimitiveNumberType
+import org.cangnova.cangjie.types.makeNonOption
 
 class PrimitiveNumericComparisonInfo(
     val comparisonType: CangJieType,
@@ -48,7 +61,7 @@ object PrimitiveNumericComparisonCallChecker : CallChecker {
     private fun CangJieType.promoteIntegerTypeToIntIfRequired() =
         when {
             !isPrimitiveNumberType() -> throw AssertionError("Primitive number type expected: $this")
-            isInt8() || isInt16() -> builtIns.int32Type
+            isInt8(this) || isInt16(this) -> builtIns.int32Type
             else -> this
         }
 
@@ -57,12 +70,12 @@ object PrimitiveNumericComparisonCallChecker : CallChecker {
         val pt2 = t2.promoteIntegerTypeToIntIfRequired()
 
         return when {
-            pt1.isFloat64() || pt2.isFloat64() -> t1.builtIns.float64Type
-            pt1.isFloat32() || pt2.isFloat32() -> t1.builtIns.float32Type
-            pt1.isFloat16() || pt2.isFloat16() -> t1.builtIns.float16Type
+            pt1.isFloat64 || pt2.isFloat64 -> t1.builtIns.float64Type
+            pt1.isFloat32 || pt2.isFloat32 -> t1.builtIns.float32Type
+            pt1.isFloat16 || pt2.isFloat16 -> t1.builtIns.float16Type
 
-            pt1.isInt64() || pt2.isInt64() -> t1.builtIns.int64Type
-            pt1.isInt32() || pt2.isInt32() -> t1.builtIns.int32Type
+            pt1.isInt64 || pt2.isInt64 -> t1.builtIns.int64Type
+            pt1.isInt32 || pt2.isInt32 -> t1.builtIns.int32Type
             else -> throw AssertionError("Unexpected types: t1=$t1, t2=$t2")
         }
     }
@@ -92,8 +105,8 @@ object PrimitiveNumericComparisonCallChecker : CallChecker {
     ) {
         val leftPrimitiveOrNullableType = leftTypes.findPrimitiveOrNullablePrimitiveType() ?: return
         val rightPrimitiveOrNullableType = rightTypes.findPrimitiveOrNullablePrimitiveType() ?: return
-        val leftPrimitiveType = leftPrimitiveOrNullableType.makeNotNullable()
-        val rightPrimitiveType = rightPrimitiveOrNullableType.makeNotNullable()
+        val leftPrimitiveType = leftPrimitiveOrNullableType.makeNonOption()
+        val rightPrimitiveType = rightPrimitiveOrNullableType.makeNonOption()
         val leastCommonType = leastCommonPrimitiveNumericType(leftPrimitiveType, rightPrimitiveType)
 
         trace.record(

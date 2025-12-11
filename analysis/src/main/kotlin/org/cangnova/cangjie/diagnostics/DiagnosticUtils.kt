@@ -36,6 +36,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.cangnova.cangjie.diagnostics.PsiDiagnosticUtils.Companion.offsetToLineAndColumn
 import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.resolve.DescriptorUtils.getContainingClass
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.call.inference.isCaptured
 import org.cangnova.cangjie.resolve.call.inference.wrapWithCapturingSubstitution
@@ -234,3 +235,20 @@ class InvalidBinaryData(
     val leftType: CangJieType,
     val rightType: CangJieType
 )
+fun MemberDescriptor.isEffectivelyExternal(): Boolean {
+//    if (isExternal) return true
+//
+//    if (this is PropertyAccessorDescriptor) {
+//        val variableDescriptor = correspondingProperty
+//        if (variableDescriptor.isEffectivelyExternal()) return true
+//    }
+
+//    if (this is PropertyDescriptor) {
+//        if (getter?.isExternal == true &&
+//            (!isVar || setter?.isExternal == true)
+//        ) return true
+//    }
+
+    val containingClass = getContainingClass(this)
+    return containingClass != null && containingClass.isEffectivelyExternal()
+}

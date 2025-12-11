@@ -25,11 +25,6 @@
 package org.cangnova.cangjie.references.rename
 
 
-import org.cangnova.cangjie.utils.withRootPrefixIfNeeded
-import org.cangnova.cangjie.ide.ShortenReferences
-import org.cangnova.cangjie.ide.codeinsight.shorten.addDelayedImportRequest
-import org.cangnova.cangjie.ide.codeinsight.shorten.addToShorteningWaitSet
-import org.cangnova.cangjie.highlighter.unwrapped
 
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.*

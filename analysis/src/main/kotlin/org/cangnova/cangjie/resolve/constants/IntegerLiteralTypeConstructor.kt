@@ -31,8 +31,6 @@ import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 
-private val CangJieType.extendSupertypes: Collection<CangJieType>
-    get() = constructor.getExtendSupertypes(null)
 
 class FloatLiteralTypeConstructor : TypeConstructor {
 
@@ -94,9 +92,10 @@ class FloatLiteralTypeConstructor : TypeConstructor {
 
     private fun isContainsOnlyUnsignedTypes(): Boolean = module.allSignedLiteralTypes.all { it !in possibleTypes }
 
-    override fun getSupertypes(): List<CangJieType> = emptyList()
-
-    override fun getBuiltIns(): CangJieBuiltIns = module.builtIns
+    override val supertypes: Collection<CangJieType>
+        get() = emptyList()
+    override val builtIns: CangJieBuiltIns
+        get() = module.builtIns
     fun getApproximatedType(): CangJieType = when {
         builtIns.float16Type in possibleTypes -> builtIns.float16Type
         builtIns.float32Type in possibleTypes -> builtIns.float32Type
@@ -105,19 +104,16 @@ class FloatLiteralTypeConstructor : TypeConstructor {
         else -> throw IllegalStateException()
     }
 
-    override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> {
-        return getApproximatedType().extendSupertypes
-    }
-
-    override fun isDenotable(): Boolean = false
-    override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
-
-    @TypeRefinement
+    override val isDenotable: Boolean
+        get() = false
+    override val declarationDescriptor: ClassifierDescriptor?
+        get() = null
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 
-    override fun isFinal(): Boolean = true
-
-    override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
+    override val isFinal: Boolean
+        get() = true
+    override val parameters: List<TypeParameterDescriptor>
+        get() = emptyList()
 }
 
 
@@ -130,7 +126,7 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
          * @return 这些类型的公共超类型，如果不存在则返回null
          */
         fun findCommonSuperType(types: Collection<SimpleType>): SimpleType? =
-            findCommonSuperTypeOrIntersectionType(types, Companion.Mode.COMMON_SUPER_TYPE)
+            findCommonSuperTypeOrIntersectionType(types, Mode.COMMON_SUPER_TYPE)
 
         /**
          * 查找给定类型集合的交集类型
@@ -295,7 +291,7 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
 
     private fun isContainsOnlyUnsignedTypes(): Boolean = module.allSignedLiteralTypes.all { it !in possibleTypes }
 
-    private val supertypes: List<CangJieType> by lazy {
+    override val supertypes: List<CangJieType> by lazy {
 //        根据标准库std.core中声明的扩展，所以基本类型一定有Any类型
 //        listOf(builtIns.anyType)
         emptyList()
@@ -316,23 +312,20 @@ class IntegerLiteralTypeConstructor : TypeConstructor {
     }
 
 
-    override fun getParameters(): List<TypeParameterDescriptor> = emptyList()
+    override val parameters: List<TypeParameterDescriptor>
+        get() = emptyList()
 
-    override fun getSupertypes(): Collection<CangJieType> = supertypes
-    override fun getExtendSupertypes(extendId: String?): Collection<CangJieType> {
-        return getApproximatedType().extendSupertypes
-    }
+    override val isFinal: Boolean
+        get() = true
 
 
-    override fun isFinal(): Boolean = true
+    override val isDenotable: Boolean
+        get() = false
+    override val declarationDescriptor: ClassifierDescriptor?
+        get() = null
+    override val builtIns: CangJieBuiltIns
+        get() = module.builtIns
 
-    override fun isDenotable(): Boolean = false
-
-    override fun getDeclarationDescriptor(): ClassifierDescriptor? = null
-
-    override fun getBuiltIns(): CangJieBuiltIns = module.builtIns
-
-    @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor = this
 
     override fun toString(): String {

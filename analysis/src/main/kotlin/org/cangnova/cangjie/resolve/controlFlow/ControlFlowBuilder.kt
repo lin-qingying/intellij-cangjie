@@ -34,6 +34,7 @@ import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.constants.CompileTimeConstant
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.eval.*
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 
 interface GenerationTrigger {

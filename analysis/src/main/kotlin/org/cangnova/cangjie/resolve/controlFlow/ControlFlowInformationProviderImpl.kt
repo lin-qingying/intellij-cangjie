@@ -37,10 +37,29 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.impl.SyntheticFieldDescriptor
 import org.cangnova.cangjie.diagnostics.Diagnostic
 import org.cangnova.cangjie.diagnostics.DiagnosticFactory
-import org.cangnova.cangjie.diagnostics.Errors.*
 import org.cangnova.cangjie.diagnostics.MatchMissingCase
+import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.infos.warnings.IMPLICIT_CAST_TO_ANY
+import org.cangnova.cangjie.diagnostics.infos.warnings.UNREACHABLE_CODE
+import org.cangnova.cangjie.diagnostics.infos.warnings.*
+import org.cangnova.cangjie.diagnostics.isEffectivelyExternal
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.*
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.AMBIGUOUS_REFERENCE_TARGET
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.BACKING_FIELD_REQUIRED
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.DECLARATION_TO_DESCRIPTOR
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.EXPECTED_EXPRESSION_TYPE
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.IMPLICIT_EXHAUSTIVE_MATCH
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.IS_UNINITIALIZED
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.LAMBDA_INVOCATIONS
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.REFERENCE_TARGET
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.USED_AS_RESULT_OF_LAMBDA
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.binding.getEnclosingDescriptor
+import org.cangnova.cangjie.resolve.binding.isUsedAsExpression
+import org.cangnova.cangjie.resolve.binding.isUsedAsResultOfLambda
+import org.cangnova.cangjie.resolve.binding.recordUsedAsExpression
 import org.cangnova.cangjie.resolve.caches.getEffectiveModality
 import org.cangnova.cangjie.resolve.calls.util.FakeCallableDescriptorForObject
 import org.cangnova.cangjie.resolve.calls.util.getDispatchReceiverWithSmartCast
@@ -57,15 +76,15 @@ import org.cangnova.cangjie.resolve.controlFlow.variable.BlockScopeVariableInfo
 import org.cangnova.cangjie.resolve.controlFlow.variable.PseudocodeVariablesData
 import org.cangnova.cangjie.resolve.controlFlow.variable.VariableControlFlowState
 import org.cangnova.cangjie.resolve.controlFlow.variable.VariableInitReadOnlyControlFlowInfo
-import org.cangnova.cangjie.resolve.descriptorUtil.isEffectivelyExternal
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeUtils.DONT_CARE
+import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
+import org.cangnova.cangjie.types.TypeUtils.noExpectedType
 import org.cangnova.cangjie.types.error.MultipleSupertypeTypeInferenceFailure
 import org.cangnova.cangjie.types.expressions.match.MatchChecker
 import org.cangnova.cangjie.types.expressions.match.checkExhaustive
-import org.cangnova.cangjie.types.util.TypeUtils.DONT_CARE
-import org.cangnova.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
-import org.cangnova.cangjie.types.util.TypeUtils.noExpectedType
-import org.cangnova.cangjie.types.util.isBooleanOrNullableBoolean
+import org.cangnova.cangjie.types.isBoolean
+import org.cangnova.cangjie.utils.firstOverridden
 
 interface ControlFlowInformationProvider {
     fun checkForLocalClassOrObjectMode()
@@ -512,7 +531,7 @@ class ControlFlowInformationProviderImpl private constructor(
             MatchChecker.getClassDescriptorOfTypeIfTuple(subjectType) != null -> AlgebraicTypeKind.Tuple
             MatchChecker.getClassDescriptorOfTypeIfSealed(subjectType) != null -> AlgebraicTypeKind.Sealed
             MatchChecker.getClassDescriptorOfTypeIfEnum(subjectType) != null -> AlgebraicTypeKind.Enum
-            subjectType?.isBooleanOrNullableBoolean() == true -> AlgebraicTypeKind.Boolean
+            subjectType?.isBoolean == true -> AlgebraicTypeKind.Boolean
 
             else -> null
         }
@@ -569,12 +588,12 @@ class ControlFlowInformationProviderImpl private constructor(
         if (expectedExpressionType != null && expectedExpressionType !== DONT_CARE) return
 
         val expressionType = trace.getType(expression) ?: return
-        if (CangJieBuiltIns.isAnyOrNullableAny(expressionType)) {
+        if (CangJieBuiltIns.isAny(expressionType)) {
             val isUsedAsResultOfLambda = expression.isUsedAsResultOfLambda(trace.bindingContext)
             for (branchExpression in branchExpressions) {
                 val branchType = trace.getType(branchExpression) ?: return
-                if (CangJieBuiltIns.isAnyOrNullableAny(branchType) ||
-                    isUsedAsResultOfLambda && CangJieBuiltIns.isUnitOrNullableUnit(branchType)
+                if (CangJieBuiltIns.isAny(branchType) ||
+                    isUsedAsResultOfLambda && CangJieBuiltIns.isUnit(branchType)
                 ) {
                     return
                 }
@@ -938,7 +957,8 @@ class ControlFlowInformationProviderImpl private constructor(
         variableDescriptor: VariableDescriptor,
         ctxt: VariableInitContext
     ) {
-        report(LET_REASSIGNMENT_VIA_BACKING_FIELD.on(languageVersionSettings, expression, variableDescriptor), ctxt)
+        TODO()
+//        report(LET_REASSIGNMENT_VIA_BACKING_FIELD.on(languageVersionSettings, expression, variableDescriptor), ctxt)
     }
 
     private fun reportVisibilityWarningForInternalFakeSetterOverride(
@@ -1140,7 +1160,9 @@ fun CjElement.getElementParentDeclaration(): CjDeclaration? =
 
 fun CjDeclaration?.getDeclarationDescriptorIncludingConstructors(context: BindingContext): DeclarationDescriptor? {
     val descriptor =
-        context.get(DECLARATION_TO_DESCRIPTOR, (this as? CjClassInitializer)?.containingDeclaration ?: this)
+        context.get(DECLARATION_TO_DESCRIPTOR,
+            ((this as? CjClassInitializer)?.containingDeclaration ?: this) ?: return null
+        )
     return if (descriptor is ClassDescriptor && this is CjClassInitializer) {
         // For a class primary constructor, we cannot directly get ConstructorDescriptor by CjClassInitializer,
         // so we have to do additional conversion: CjClassInitializer -> CjClassOrObject -> ClassDescriptor -> ConstructorDescriptor

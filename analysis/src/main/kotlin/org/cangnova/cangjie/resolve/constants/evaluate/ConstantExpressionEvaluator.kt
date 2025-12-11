@@ -31,16 +31,23 @@ import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.builtins.UnsignedTypes
 import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
-import org.cangnova.cangjie.descriptors.BindingTrace
+
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.ValueParameterDescriptor
-import org.cangnova.cangjie.diagnostics.Errors
+import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.infos.warnings.*
+import org.cangnova.cangjie.diagnostics.infos.warnings.FLOAT_LITERAL_CONFORMS_ZERO
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.name.OperatorConventions
+import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.parsing.*
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.StatementFilter
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContextUtils
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.inference.model.ResolvedValueArgument
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.tasks.ExplicitReceiverKind
@@ -48,12 +55,10 @@ import org.cangnova.cangjie.resolve.calls.util.getResolvedCall
 import org.cangnova.cangjie.resolve.constants.*
 import org.cangnova.cangjie.types.BasicType
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.TypeUtils
 import org.cangnova.cangjie.types.isError
-import org.cangnova.cangjie.types.util.TypeUtils
-import org.cangnova.cangjie.types.util.isGenericArrayOfTypeParameter
-import org.cangnova.cangjie.types.util.isSubtypeOf
-import org.cangnova.cangjie.utils.OperatorNameConventions
-import org.cangnova.cangjie.utils.exceptions.OperatorConventions
+import org.cangnova.cangjie.types.isGenericArrayOfTypeParameter
+import org.cangnova.cangjie.types.isSubtypeOf
 import java.math.BigInteger
 
 
@@ -167,7 +172,7 @@ class ConstantExpressionEvaluator(
 private class ConstantExpressionEvaluatorVisitor(
     private val constantExpressionEvaluator: ConstantExpressionEvaluator,
     private val trace: BindingTrace
-) : CjVisitor<CompileTimeConstant<*>?, CangJieType>() {
+) : CjVisitor<CompileTimeConstant<*>, CangJieType?>() {
     private val languageVersionSettings = constantExpressionEvaluator.languageVersionSettings
     private val builtIns = constantExpressionEvaluator.module.builtIns
 
@@ -237,28 +242,28 @@ private class ConstantExpressionEvaluatorVisitor(
 //        }
         if (result is Double) {
             if (result.isInfinite()) {
-                trace.report(Errors.FLOAT_LITERAL_CONFORMS_INFINITY.on(expression))
+                trace.report(FLOAT_LITERAL_CONFORMS_INFINITY.on(expression))
             }
             if (result == 0.0 && !TypeConversionUtil.isFPZero(text)) {
-                trace.report(Errors.FLOAT_LITERAL_CONFORMS_ZERO.on(expression))
+                trace.report( FLOAT_LITERAL_CONFORMS_ZERO.on(expression))
             }
         }
 //
         if (result is Float) {
             if (result.isInfinite()) {
-                trace.report(Errors.FLOAT_LITERAL_CONFORMS_INFINITY.on(expression))
+                trace.report( FLOAT_LITERAL_CONFORMS_INFINITY.on(expression))
             }
             if (result == 0.0f && !TypeConversionUtil.isFPZero(text)) {
-                trace.report(Errors.FLOAT_LITERAL_CONFORMS_ZERO.on(expression))
+                trace.report( FLOAT_LITERAL_CONFORMS_ZERO.on(expression))
             }
         }
 
         if (result is Float16) {
             if (result.isInfinite()) {
-                trace.report(Errors.FLOAT_LITERAL_CONFORMS_INFINITY.on(expression))
+                trace.report( FLOAT_LITERAL_CONFORMS_INFINITY.on(expression))
             }
             if (result.toFloat() == 0.0f && !TypeConversionUtil.isFPZero(text)) {
-                trace.report(Errors.FLOAT_LITERAL_CONFORMS_ZERO.on(expression))
+                trace.report( FLOAT_LITERAL_CONFORMS_ZERO.on(expression))
             }
         }
 
@@ -391,7 +396,7 @@ private class ConstantExpressionEvaluatorVisitor(
     private class OperationArgument(val value: Any, val ctcType: CompileTimeType, val expression: CjExpression)
 
     private fun getCompileTimeType(c: CangJieType): CompileTimeType? =
-        when (TypeUtils.makeNotNullable(c)) {
+        when (TypeUtils.makeNonOption(c)) {
             builtIns.int32Type -> CompileTimeType.Int32
             builtIns.int8Type -> CompileTimeType.Int8
             builtIns.int16Type -> CompileTimeType.Int16
@@ -447,7 +452,7 @@ private class ConstantExpressionEvaluatorVisitor(
 
     private fun evaluateUnaryAndCheck(receiver: OperationArgument, name: String, callExpression: CjExpression): Any? {
         return evaluateUnaryAndCheck(name, receiver.ctcType, receiver.value) {
-            trace.report(Errors.INTEGER_OVERFLOW.on(callExpression.getStrictParentOfType() ?: callExpression))
+            trace.report( INTEGER_OVERFLOW.on(callExpression.getStrictParentOfType() ?: callExpression))
         }
     }
 
@@ -462,7 +467,7 @@ private class ConstantExpressionEvaluatorVisitor(
         callExpression: CjExpression
     ): Any? {
         return evaluateBinaryAndCheck(name, receiver.ctcType, receiver.value, parameter.ctcType, parameter.value) {
-            trace.report(Errors.INTEGER_OVERFLOW.on(callExpression.getStrictParentOfType() ?: callExpression))
+            trace.report( INTEGER_OVERFLOW.on(callExpression.getStrictParentOfType() ?: callExpression))
         }
     }
 
@@ -530,7 +535,7 @@ private class ConstantExpressionEvaluatorVisitor(
             if (isDivisionByZero(resultingDescriptorName.asString(), argumentForParameter.value)) {
                 val parentExpression: CjExpression =
                     PsiTreeUtil.getParentOfType(receiverExpression, CjExpression::class.java)!!
-                trace.report(Errors.DIVISION_BY_ZERO.on(parentExpression))
+                trace.report( DIVISION_BY_ZERO.on(parentExpression))
 
                 if ((isIntegerType(argumentForReceiver.value) && isIntegerType(argumentForParameter.value)) /*||
                     !languageVersionSettings.supportsFeature(LanguageFeature.DivisionByZeroInConstantExpressions)*/
@@ -706,17 +711,17 @@ private class ConstantExpressionEvaluatorVisitor(
         if (expression.isMultiLine) {
             if (!expression.stringContent.startsWith("\n")) {
                 expression.findElementAt(3)?.let {
-                    trace.report(Errors.NO_MULTILINE_NEWLINE.on(it))
+                    trace.report( NO_MULTILINE_NEWLINE.on(it))
                 }
             }
 
             when (expression.isDoubleQuote) {
                 true -> if (expression.stringContent.endsWith("\"")) {
-                    trace.report(Errors.COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
+                    trace.report( COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
                 }
 
                 false -> if (expression.stringContent.endsWith("'")) {
-                    trace.report(Errors.COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
+                    trace.report( COMPILER_AFFECTED_SYNTAX_ERROR.on(expression.lastChild.prevSibling))
                 }
             }
 

@@ -28,6 +28,7 @@ import org.cangnova.cangjie.descriptors.CallableDescriptor
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.psi.CjPsiUtil
 import org.cangnova.cangjie.psi.CjThisExpression
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus
 import org.cangnova.cangjie.resolve.calls.tower.CandidateApplicability
@@ -37,10 +38,13 @@ import org.cangnova.cangjie.resolve.getOwnerForEffectiveDispatchReceiverParamete
 import org.cangnova.cangjie.resolve.scopes.receivers.ClassValueReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.resolve.scopes.receivers.ImplicitReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.DefinitelyNotNullType
+import org.cangnova.cangjie.types.DefinitelyNonOptionType
+import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.StubTypeForBuilderInference
 import org.cangnova.cangjie.types.checker.NewCapturedType
+import org.cangnova.cangjie.types.contains
 
 fun ResolvedCall<*>.getDispatchReceiverWithSmartCast(): ReceiverValue? =
     getReceiverValueWithSmartCast(dispatchReceiver, smartCastDispatchReceiverType)
@@ -50,12 +54,10 @@ fun getReceiverValueWithSmartCast(
     smartCastType: CangJieType?
 ) = smartCastType?.let { type -> SmartCastReceiverValue(type, original = null) } ?: receiverArgument
 
-private class SmartCastReceiverValue(private val type: CangJieType, original: SmartCastReceiverValue?) : ReceiverValue {
-    private val original = original ?: this
+private class SmartCastReceiverValue(override val type: CangJieType, original: SmartCastReceiverValue?) : ReceiverValue {
+    override val original = original ?: this
 
-    override fun getType() = type
     override fun replaceType(newType: CangJieType) = SmartCastReceiverValue(newType, original)
-    override fun getOriginal() = original
 }
 
 // it returns true if call has no dispatch receiver (e.g. resulting descriptor is top-level function or local variable)
@@ -84,7 +86,7 @@ fun ResolvedCall<*>.hasThisOrNoDispatchReceiver(
             val expression = CjPsiUtil.deparenthesize(dispatchReceiverValue.expression)
             if (expression is CjThisExpression) {
                 // this.foo() -- explicit receiver
-                dispatchReceiverDescriptor = context.get(BindingContext.REFERENCE_TARGET, expression.instanceReference)
+                dispatchReceiverDescriptor = context[BindingContext.REFERENCE_TARGET, expression.instanceReference]
             }
         }
     }
@@ -99,7 +101,7 @@ fun CallableDescriptor.isNotSimpleCall(): Boolean =
                 type.contains {
                     it is NewCapturedType ||
                             it.constructor is IntegerLiteralTypeConstructor ||
-                            it is DefinitelyNotNullType ||
+                            it is DefinitelyNonOptionType ||
                             it is StubTypeForBuilderInference
                 }
             } ?: false)

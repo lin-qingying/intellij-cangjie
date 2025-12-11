@@ -47,7 +47,6 @@ import org.cangnova.cangjie.resolve.constants.CompileTimeConstantChecker
 import org.cangnova.cangjie.resolve.constants.TypedCompileTimeConstant
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.cangnova.cangjie.resolve.controlFlow.multiParentElementReports
-import org.cangnova.cangjie.resolve.descriptorUtil.module
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.types.AbstractTypeChecker
 import org.cangnova.cangjie.types.CangJieType

@@ -34,8 +34,8 @@ import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 
 class TopDownAnalysisContext(
-    private val topDownAnalysisMode: TopDownAnalysisMode,
-    private val outerDataFlowInfo: DataFlowInfo,
+    override val topDownAnalysisMode: TopDownAnalysisMode,
+    override val outerDataFlowInfo: DataFlowInfo,
     private val declarationScopeProvider: DeclarationScopeProvider,
     override val localContext: ExpressionTypingContext? = null
 ) : BodiesResolveContext {
@@ -65,11 +65,6 @@ class TopDownAnalysisContext(
     override fun getDeclaringScope(declaration: CjDeclaration): LexicalScope =
         declarationScopeProvider.getResolutionScopeForDeclaration(declaration)
 
-
-    override fun getTopDownAnalysisMode(): TopDownAnalysisMode = topDownAnalysisMode
-
-
-    override fun getOuterDataFlowInfo(): DataFlowInfo = outerDataFlowInfo
 
 
 }

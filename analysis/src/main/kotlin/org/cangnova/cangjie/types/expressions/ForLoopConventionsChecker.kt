@@ -35,6 +35,7 @@ import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.LOOP_RANGE_
 import org.cangnova.cangjie.resolve.binding.slicedMap.WritableSlice
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.TransientReceiver
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.ErrorUtils.isError
 import org.cangnova.cangjie.types.isDynamic
@@ -96,14 +97,14 @@ class ForLoopConventionsChecker(
             FakeCallKind.OTHER,
             emptyList()
         )
-        if (nextResolutionResults.isAmbiguity()) {
+        if (nextResolutionResults.isAmbiguity) {
             context.trace.report(ambiguity.on(loopRangeExpression, iteratorType))
-        } else if (nextResolutionResults.isNothing()) {
+        } else if (nextResolutionResults.isNothing) {
             context.trace.report(missing.on(loopRangeExpression, iteratorType))
-        } else if (!nextResolutionResults.isSuccess()) {
+        } else if (!nextResolutionResults.isSuccess) {
             context.trace.report(noneApplicable.on(loopRangeExpression, iteratorType))
         } else {
-            assert(nextResolutionResults.isSuccess())
+            assert(nextResolutionResults.isSuccess)
             val resolvedCall = nextResolutionResults.resultingCall
             context.trace.record(resolvedCallKey, loopRangeExpression, resolvedCall)
 

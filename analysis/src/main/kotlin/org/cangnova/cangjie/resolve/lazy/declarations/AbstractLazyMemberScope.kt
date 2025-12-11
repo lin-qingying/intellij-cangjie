@@ -38,11 +38,9 @@ import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.findParentOfType
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession
-import org.cangnova.cangjie.resolve.descriptorUtil.fqNameSafe
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassDescriptor
 import org.cangnova.cangjie.resolve.lazy.descriptors.LazyClassMemberScope
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.source.MemberScopeImpl

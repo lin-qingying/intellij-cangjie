@@ -24,21 +24,24 @@
 
 package org.cangnova.cangjie.resolve.extensions
 
+import com.intellij.openapi.extensions.ExtensionPointName
 import org.cangnova.cangjie.extensions.internal.InternalNonStableExtensionPoints
 import org.cangnova.cangjie.psi.CjBinaryExpression
 import org.cangnova.cangjie.psi.CjExpression
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
 import org.cangnova.cangjie.types.CangJieType
+import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 import org.cangnova.cangjie.types.expressions.ExpressionTypingComponents
 import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
-import org.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 
 @InternalNonStableExtensionPoints
 interface AssignResolutionAltererExtension : AnnotationBasedExtension {
-    companion object : ProjectExtensionDescriptor<AssignResolutionAltererExtension>(
-        "org.cangnova.cangjie.assignResolutionAltererExtension",
-        AssignResolutionAltererExtension::class.java
-    )
+
+    companion object {
+        val EP_NAME =
+            ExtensionPointName.create<AssignResolutionAltererExtension>("org.cangnova.cangjie.assignResolutionAltererExtension")
+    }
 
     fun needOverloadAssign(
         expression: CjBinaryExpression,

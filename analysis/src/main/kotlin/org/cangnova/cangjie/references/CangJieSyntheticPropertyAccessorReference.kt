@@ -28,7 +28,7 @@ import com.intellij.util.SmartList
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.descriptors.FunctionDescriptor
 import org.cangnova.cangjie.psi.CjNameReferenceExpression
-import org.cangnova.cangjie.resolve.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingContext
 
 
 internal class CangJieSyntheticPropertyAccessorReference(

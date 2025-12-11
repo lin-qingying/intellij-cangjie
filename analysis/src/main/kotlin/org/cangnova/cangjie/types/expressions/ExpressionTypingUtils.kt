@@ -27,18 +27,17 @@ package org.cangnova.cangjie.types.expressions
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.impl.AnonymousFunctionDescriptor
 import org.cangnova.cangjie.descriptors.impl.FunctionExpressionDescriptor
-import org.cangnova.cangjie.diagnostics.Errors
 import org.cangnova.cangjie.lexer.CjTokens
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.resolve.BindingContext.PROCESSED
-import org.cangnova.cangjie.resolve.BindingTrace
 import org.cangnova.cangjie.resolve.OverloadChecker
 import org.cangnova.cangjie.resolve.scopes.*
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
 import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.CangJieTypeInfo
-import org.cangnova.cangjie.utils.exceptions.OperatorConventions
 import com.intellij.openapi.project.Project
+import org.cangnova.cangjie.diagnostics.infos.warnings.NAME_SHADOWING
+import org.cangnova.cangjie.name.OperatorConventions
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.PROCESSED
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
 
 /**
@@ -602,7 +601,7 @@ object ExpressionTypingUtils {
         variableDescriptor: VariableDescriptor
     ) {
         // 查找外层作用域中的同名变量
-        val oldDescriptor = findLocalVariable(scope, variableDescriptor.name) ?: return
+        val oldDescriptor = scope.findLocalVariable( variableDescriptor.name) ?: return
 
         // 检查外层变量是否为局部变量
         val variableContainingDeclaration = variableDescriptor.containingDeclaration
@@ -626,19 +625,19 @@ object ExpressionTypingUtils {
 
         // 特殊处理解构声明
         if (declaration is CjDestructuringDeclarationEntry &&
-            declaration.parent.parent is CjParameter
+            declaration.parent?.parent is CjParameter
         ) {
             // 解构参数中的重复名称：foo { a, (a, b) -> }
             // 对第二个 'a' 不报告 NAME_SHADOWING，因为应该报告 REDECLARATION
             val oldElement = DescriptorToSourceUtils.descriptorToDeclaration(oldDescriptor)
 
-            if (oldElement != null && oldElement.parent == declaration.parent.parent.parent) {
+            if (oldElement != null && oldElement.parent == declaration.parent?.parent?.parent) {
                 return
             }
         }
 
         // 报告变量遮蔽警告
-        trace.report(Errors.NAME_SHADOWING.on(declaration, variableDescriptor.name.asString()))
+        trace.report( NAME_SHADOWING.on(declaration, variableDescriptor.name.asString()))
     }
 
     /**

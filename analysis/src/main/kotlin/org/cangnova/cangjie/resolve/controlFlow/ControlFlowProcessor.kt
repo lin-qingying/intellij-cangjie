@@ -31,7 +31,6 @@ import org.cangnova.cangjie.contracts.description.canBeRevisited
 import org.cangnova.cangjie.contracts.description.isDefinitelyVisited
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.impl.AnonymousFunctionDescriptor
-import org.cangnova.cangjie.diagnostics.Errors.*
 import org.cangnova.cangjie.lexer.CjToken
 import org.cangnova.cangjie.lexer.CjTokens.*
 import org.cangnova.cangjie.psi.*
@@ -50,13 +49,18 @@ import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.eval.Ins
 import org.cangnova.cangjie.resolve.controlFlow.pseudocode.instructions.eval.MagicKind
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.expressions.match.MatchChecker
-import org.cangnova.cangjie.utils.exceptions.OperatorConventions
-import org.cangnova.cangjie.utils.slicedMap.ReadOnlySlice
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.SmartFMap
 import com.intellij.util.containers.ContainerUtil
+import org.cangnova.cangjie.diagnostics.infos.errors.BREAK_OR_CONTINUE_IN_WHEN
+import org.cangnova.cangjie.diagnostics.infos.errors.BREAK_OR_CONTINUE_OUTSIDE_A_LOOP
+import org.cangnova.cangjie.diagnostics.infos.warnings.ELSE_MISPLACED_IN_MATCH
+import org.cangnova.cangjie.name.OperatorConventions
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
+import org.cangnova.cangjie.resolve.binding.slicedMap.ReadOnlySlice
 import java.util.*
 
 class ControlFlowProcessor(
@@ -1498,9 +1502,9 @@ class ControlFlowProcessor(
                     ?: error("Guaranteed by parsing contract")
 
             processParameters(constructor.valueParameters)
-            constructor.getDelegationCall()?.let { generateCallOrMarkUnresolved(it) }
+            constructor.delegationCall?.let { generateCallOrMarkUnresolved(it) }
 
-            if (!(constructor.getDelegationCall()?.isCallToThis == true)) {
+            if (constructor.delegationCall?.isCallToThis != true) {
                 generateInitializersForClassOrObject(classOrObject)
             }
 

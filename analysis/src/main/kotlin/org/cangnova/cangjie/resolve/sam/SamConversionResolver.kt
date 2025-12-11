@@ -32,8 +32,8 @@ import org.cangnova.cangjie.descriptors.annotations.Annotations
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.SpecialNames
 import org.cangnova.cangjie.resolve.DescriptorUtils
-import org.cangnova.cangjie.resolve.descriptorUtil.builtIns
-import org.cangnova.cangjie.resolve.descriptorUtil.fqNameSafe
+import org.cangnova.cangjie.resolve.builtIns
+import org.cangnova.cangjie.resolve.fqNameSafe
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.SimpleType

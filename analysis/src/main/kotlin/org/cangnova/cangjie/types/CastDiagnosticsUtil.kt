@@ -26,6 +26,7 @@ package org.cangnova.cangjie.types
 
 import com.google.common.collect.Maps
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
+import org.cangnova.cangjie.builtins.PlatformToCangJieClassMapper
 import org.cangnova.cangjie.descriptors.ClassDescriptor
 import org.cangnova.cangjie.descriptors.TypeParameterDescriptor
 import org.cangnova.cangjie.resolve.DescriptorUtils
@@ -101,12 +102,12 @@ object CastDiagnosticsUtil {
         if (typeConstructor is IntersectionTypeConstructor) {
             return typeConstructor.supertypes.any { isCastPossible(it, rhsType, platformToCangJieClassMapper) }
         }
-        val rhsNullable = TypeUtils.isNullableType(rhsType)
-        val lhsNullable = TypeUtils.isNullableType(lhsType)
+        val rhsNullable = TypeUtils.isOptionType(rhsType)
+        val lhsNullable = TypeUtils.isOptionType(lhsType)
         if (CangJieBuiltIns.isNothing(lhsType)) return true
-        if (CangJieBuiltIns.isNullableNothing(lhsType) && !rhsNullable) return false
+        if (CangJieBuiltIns.isNothing(lhsType) && !rhsNullable) return false
         if (CangJieBuiltIns.isNothing(rhsType)) return false
-        if (CangJieBuiltIns.isNullableNothing(rhsType)) return lhsNullable
+        if (CangJieBuiltIns.isNothing(rhsType)) return lhsNullable
         if (lhsNullable && rhsNullable) return true
         if (lhsType.isError) return true
         if (isRelated(lhsType, rhsType, platformToCangJieClassMapper)) return true

@@ -36,6 +36,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.utils.importableFqName
 
 // Navigation element of the resolved reference
 // For property accessor return enclosing property

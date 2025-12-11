@@ -28,7 +28,6 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.macro.MacroDescriptor
 import org.cangnova.cangjie.incremental.components.LookupLocation
 import org.cangnova.cangjie.name.Name
-import org.cangnova.cangjie.resolve.lazy.descriptors.LazyExtendClassDescriptor
 import org.cangnova.cangjie.resolve.scopes.DescriptorKindFilter
 import org.cangnova.cangjie.resolve.scopes.MemberScope
 import org.cangnova.cangjie.utils.Printer
@@ -57,9 +56,7 @@ abstract class MemberScopeImpl : MemberScope {
         return emptyList()
     }
 
-    override fun getExtendClass(name: Name): List<LazyExtendClassDescriptor> {
-        return emptyList()
-    }
+
 
     abstract override fun printScopeStructure(p: Printer)
     override fun getContributedClassifiers(name: Name, location: LookupLocation): List<ClassifierDescriptor> =

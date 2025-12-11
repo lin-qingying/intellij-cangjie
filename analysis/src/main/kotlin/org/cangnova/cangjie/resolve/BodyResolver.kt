@@ -126,10 +126,10 @@ class BodyResolver(
                 descriptor, constructor.delegationCall, inferenceSession
             )
 
-            if (results?.isSingleResult() == true) {
-                val resolvedCall = results.getResultingCall()
+            if (results?.isSingleResult == true) {
+                val resolvedCall = results.resultingCall
                 recordConstructorDelegationCall(trace, descriptor, resolvedCall)
-                resolvedCall.dataFlowInfoForArguments.getResultInfo()
+                resolvedCall.dataFlowInfoForArguments.resultInfo
             } else null
         } catch (e: NullPointerException) {
             null

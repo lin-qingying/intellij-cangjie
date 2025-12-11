@@ -29,6 +29,8 @@ import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.resolve.calls.util.DelegatingCall
 import org.cangnova.cangjie.resolve.scopes.receivers.ExpressionReceiver
+import org.cangnova.cangjie.resolve.scopes.receivers.Receiver
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 object CallTransformer {
     fun stripCallArguments(call: Call): Call = object : DelegatingCall(call) {

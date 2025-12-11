@@ -35,13 +35,11 @@ import org.cangnova.cangjie.descriptors.impl.AbstractTypeParameterDescriptor
 import org.cangnova.cangjie.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.cangnova.cangjie.descriptors.impl.ValueParameterDescriptorImpl
 import org.cangnova.cangjie.diagnostics.DiagnosticFactory1
-import org.cangnova.cangjie.diagnostics.Errors.VARRAY_SIZE_MISMATCH
 import org.cangnova.cangjie.incremental.CangJieLookupLocation
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjCollectionLiteralExpression
 import org.cangnova.cangjie.resolve.calls.CallResolver
 import org.cangnova.cangjie.resolve.calls.util.CallMaker
-import org.cangnova.cangjie.resolve.descriptorUtil.builtIns
 import org.cangnova.cangjie.storage.StorageManager
 import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
@@ -49,10 +47,10 @@ import org.cangnova.cangjie.types.expressions.ExpressionTypingContext
 import org.cangnova.cangjie.types.expressions.ExpressionTypingServices
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-import org.cangnova.cangjie.types.util.isVArray
-import org.cangnova.cangjie.types.util.replaceArgument
-import org.cangnova.cangjie.utils.exceptions.CangJieTypeInfo
 import jakarta.inject.Inject
+import org.cangnova.cangjie.diagnostics.infos.errors.VARRAY_SIZE_MISMATCH
+import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.COLLECTION_LITERAL_CALL
+import org.cangnova.cangjie.types.expressions.CangJieTypeInfo
 
 class CollectionLiteralResolver(
     val module: ModuleDescriptor,
@@ -175,14 +173,14 @@ class CollectionLiteralResolver(
         SupertypeLoopChecker.EMPTY,
 
         ) {
-        private val upperBounds: List<CangJieType> = ArrayList<CangJieType>(1).apply {
+        override val upperBounds: List<CangJieType> = ArrayList<CangJieType>(1).apply {
             add(containingDeclaration.builtIns.defaultBound)
         }
         private val constructor = object : TypeConstructor {
-            override fun getSupertypes(): List<CangJieType> {
-                return emptyList()
-            }
 
+
+            override val supertypes: Collection<CangJieType>
+                get() = emptyList()
             override fun equals(other: Any?): Boolean {
                 return this.hashCode() == other.hashCode()
             }
@@ -191,38 +189,31 @@ class CollectionLiteralResolver(
                 return -728150917
             }
 
-            override fun getBuiltIns(): CangJieBuiltIns {
-                return containingDeclaration.builtIns
-            }
 
-            override fun isDenotable(): Boolean {
-                return false
-            }
 
+            override val builtIns: CangJieBuiltIns
+                get() = containingDeclaration.builtIns
+
+
+            override val isDenotable: Boolean
+                get() = false
             override fun toString(): String {
                 return "arrayOf"
             }
 
-            override fun getDeclarationDescriptor(): ClassifierDescriptor? {
-                return null
-            }
+            override val declarationDescriptor: ClassifierDescriptor?
+                get() = null
 
-//                override fun isSameClassifier(classifier: ClassifierDescriptor): Boolean {
-//                    return false
-//                }
 
-            @TypeRefinement
             override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): TypeConstructor {
                 return this
             }
 
-            override fun isFinal(): Boolean {
-                return true
-            }
+            override val isFinal: Boolean
+                get() = true
+            override val parameters: List<TypeParameterDescriptor>
+                get() = emptyList()
 
-            override fun getParameters(): List<TypeParameterDescriptor> {
-                return emptyList()
-            }
 
         }
 
@@ -234,9 +225,7 @@ class CollectionLiteralResolver(
 //            return constructor
 //        }
 
-        override fun getUpperBounds(): List<CangJieType> {
-            return upperBounds
-        }
+
 
         override fun resolveUpperBounds(): List<CangJieType> {
             return upperBounds
@@ -275,7 +264,7 @@ class CollectionLiteralResolver(
     //        使用调用函数的方式解析数组字面量
 //        func arrayOf<T>(elements:Array<T>):VArray<T>
     private inner class VArrayOfFunctionDescriptor(
-        val returnType: VArrayType
+        override val returnType: VArrayType
     ) : SimpleFunctionDescriptorImpl(
         module, null, Annotations.EMPTY, StandardNames.arrayOfName,
         CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE
@@ -300,9 +289,8 @@ class CollectionLiteralResolver(
                         false,
                         arrayType,
                         false,
-                        SourceElement.NO_SOURCE,
-                        { emptyList() }
-                    )), returnType,
+                        SourceElement.NO_SOURCE
+                    ) { emptyList() }), returnType,
                 Modality.FINAL,
                 PUBLIC
 
@@ -343,9 +331,8 @@ class CollectionLiteralResolver(
                         false,
                         arrayType,
                         false,
-                        SourceElement.NO_SOURCE,
-                        { emptyList() }
-                    )), arrayType,
+                        SourceElement.NO_SOURCE
+                    ) { emptyList() }), arrayType,
                 Modality.FINAL,
                 PUBLIC
 
@@ -365,7 +352,7 @@ class CollectionLiteralResolver(
         callName: Name
     ): Collection<SimpleFunctionDescriptor> {
 
-        val memberScopeOfCangJiePackage = module.getPackage(StandardNames.BUILT_INS_PACKAGE_FQ_NAME).memberScope
+        val memberScopeOfCangJiePackage = module.getPackage(StandardNames.BASIC_PACKAGE_FQ_NAME).memberScope
         return memberScopeOfCangJiePackage.getContributedFunctions(callName, CangJieLookupLocation(expression))
     }
 

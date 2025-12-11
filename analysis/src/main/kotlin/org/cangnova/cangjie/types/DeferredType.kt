@@ -25,9 +25,11 @@ package org.cangnova.cangjie.types
 
 import org.cangnova.cangjie.Box
 import org.cangnova.cangjie.ReenteringLazyValueComputationException
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.storage.NotNullLazyValue
 import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.types.ErrorUtils.createErrorType
 import org.cangnova.cangjie.types.checker.CangJieTypeRefiner
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 
@@ -53,7 +55,6 @@ class DeferredType
      * @param cangjieTypeRefiner 类型细化器。
      * @return 返回细化后的 DeferredType。
      */
-    @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): CangJieType {
         return DeferredType(object : NotNullLazyValue<CangJieType> {
             override fun renderDebugInformation(): String {
@@ -68,7 +69,6 @@ class DeferredType
                 return lazyValue.isComputing()
             }
 
-            @TypeRefinement
             override fun invoke(): CangJieType {
                 return cangjieTypeRefiner.refineType(lazyValue.invoke())
             }
@@ -188,7 +188,6 @@ class DeferredTypeNoCache
      * @param cangjieTypeRefiner 类型细化器。
      * @return 返回细化后的 DeferredType。
      */
-    @TypeRefinement
     override fun refine(cangjieTypeRefiner: CangJieTypeRefiner): CangJieType {
         return this
     }

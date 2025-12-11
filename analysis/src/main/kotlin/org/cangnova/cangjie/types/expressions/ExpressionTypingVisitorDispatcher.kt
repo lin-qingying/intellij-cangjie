@@ -28,36 +28,35 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.IndexNotReadyException
-import org.cangnova.cangjie.descriptors.BindingTrace
-import org.cangnova.cangjie.descriptors.PsiDiagnosticUtils.Companion.atLocation
-import org.cangnova.cangjie.diagnostics.Errors
-import org.cangnova.cangjie.diagnostics.Errors.TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM
+import org.cangnova.cangjie.ReenteringLazyValueComputationException
+import org.cangnova.cangjie.diagnostics.PsiDiagnosticUtils.Companion.atLocation
+import org.cangnova.cangjie.diagnostics.infos.errors.EXCEPTION_FROM_ANALYZER
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.codeFragmentUtil.suppressDiagnosticsInDebugMode
-import org.cangnova.cangjie.resolve.*
+import org.cangnova.cangjie.resolve.AnnotationChecker
+import org.cangnova.cangjie.resolve.binding.*
 import org.cangnova.cangjie.resolve.calls.components.InferenceSession.Companion.default
 import org.cangnova.cangjie.resolve.calls.context.CallPosition
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.scopes.LexicalScope
 import org.cangnova.cangjie.resolve.scopes.LexicalScopeKind
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
-import org.cangnova.cangjie.storage.ReenteringLazyValueComputationException
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.types.DeferredType
-import org.cangnova.cangjie.types.TypeRefinement
+import org.cangnova.cangjie.types.ErrorUtils.createErrorType
+import org.cangnova.cangjie.types.TypeUtils.NO_EXPECTED_TYPE
 import org.cangnova.cangjie.types.error.ErrorTypeKind
 import org.cangnova.cangjie.types.expressions.match.PatternMatchingTypingVisitor
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.createTypeInfo
 import org.cangnova.cangjie.types.expressions.typeInfoFactory.noTypeInfo
-
-import org.cangnova.cangjie.types.util.TypeUtils.NO_EXPECTED_TYPE
-import org.cangnova.cangjie.utils.CangJieExceptionWithAttachments
 import org.cangnova.cangjie.utils.CangJieFrontEndException
 import org.cangnova.cangjie.utils.PerformanceCounter
 import org.cangnova.cangjie.utils.PerformanceCounter.Companion.create
+import org.cangnova.cangjie.utils.exceptions.CangJieExceptionWithAttachmentsImpl
 
 abstract class ExpressionTypingVisitorDispatcher private constructor(
-    private val components: ExpressionTypingComponents,
+    override val components: ExpressionTypingComponents,
     private val annotationChecker: AnnotationChecker
 ) : CjVisitor<CangJieTypeInfo, ExpressionTypingContext>(), ExpressionTypingInternals {
     @Suppress("LeakingThis")
@@ -145,7 +144,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
     }
 
     override fun getTypeInfoByEnum(expression: CjExpression, context: ExpressionTypingContext): CangJieTypeInfo {
-        var context = context
+        val context = context
 
         val result: CangJieTypeInfo = getTypeInfo(expression, context, ForGetEnum(components, annotationChecker))
         //        annotationChecker.checkExpression(expression, context.trace);
@@ -157,7 +156,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
         expression: CjExpression, argument: List<ValueArgument>, context: ExpressionTypingContext,
         isReportError: Boolean
     ): CangJieTypeInfo {
-        var context = context
+        val context = context
 
 
         val result: CangJieTypeInfo = getTypeInfo(
@@ -171,7 +170,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
     }
 
     override fun getTypeInfo(expression: CjExpression, context: ExpressionTypingContext): CangJieTypeInfo {
-        var context = context
+        val context = context
 //        if (context.expectedType === EXPRESSION_TYPE) {
 //            context = context.replaceExpectedType(components.builtIns.anyType)
 //        }
@@ -186,7 +185,6 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
         return basic.visitVariable(variable, data)
     }
 
-    @OptIn(TypeRefinement::class)
     private fun getTypeInfoByEnum(
         expression: CjExpression,
         context: ExpressionTypingContext,
@@ -204,12 +202,12 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
                 var result: CangJieTypeInfo
                 try {
-                    result = expression.accept(visitor, context)
+                    result = expression.accept(visitor, context) ?: return@time noTypeInfo(context.dataFlowInfo)
 
-                    if (context.trace.get<CjExpression, Boolean>(
+                    if (context.trace.get (
                             BindingContext.PROCESSED,
                             expression
-                        ) === java.lang.Boolean.TRUE
+                        ) == true
                     ) {
                         val type = context.trace.bindingContext.getType(expression)
                         return@time result.replaceType(type)
@@ -259,7 +257,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
             } catch (e: IndexNotReadyException) {
                 throw e
             } catch (e: Throwable) {
-                context.trace.report(Errors.EXCEPTION_FROM_ANALYZER.on(expression, e))
+                context.trace.report(EXCEPTION_FROM_ANALYZER.on(expression, e))
                 logOrThrowException(expression, e)
                 return@time createTypeInfo(
                     createErrorType(ErrorTypeKind.TYPE_FOR_COMPILER_EXCEPTION, e.javaClass.simpleName),
@@ -269,7 +267,6 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
         }
     }
 
-    @OptIn(TypeRefinement::class)
     private fun getTypeInfo(
         expression: CjExpression,
         context: ExpressionTypingContext,
@@ -287,12 +284,12 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
                 var result: CangJieTypeInfo
                 try {
-                    result = expression.accept(visitor, context)
+                    result = expression.accept(visitor, context) ?: return@time noTypeInfo(context.dataFlowInfo)
 
                     if (context.trace.get<CjExpression, Boolean>(
                             BindingContext.PROCESSED,
                             expression
-                        ) === java.lang.Boolean.TRUE
+                        ) == true
                     ) {
                         val type = context.trace.bindingContext.getType(expression)
                         return@time result.replaceType(type)
@@ -314,7 +311,8 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
 
                     context.trace.record(BindingContext.EXPRESSION_TYPE_INFO, expression, result)
                 } catch (e: ReenteringLazyValueComputationException) {
-                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression))
+                    TODO()
+//                    context.trace.report(TYPECHECKER_HAS_RUN_INTO_RECURSIVE_PROBLEM.onError(expression))
                     result = noTypeInfo(context)
                 }
                 if (context.isSaveTypeInfo) {
@@ -342,7 +340,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
             } catch (e: IndexNotReadyException) {
                 throw e
             } catch (e: Throwable) {
-                context.trace.report(Errors.EXCEPTION_FROM_ANALYZER.on(expression, e))
+                context.trace.report( EXCEPTION_FROM_ANALYZER.on(expression, e))
                 logOrThrowException(expression, e)
                 return@time createTypeInfo(
                     createErrorType(ErrorTypeKind.TYPE_FOR_COMPILER_EXCEPTION, e.javaClass.simpleName),
@@ -378,9 +376,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
     override fun checkStatementType(expression: CjExpression, context: ExpressionTypingContext) {
     }
 
-    override fun getComponents(): ExpressionTypingComponents {
-        return components
-    }
+
 
     override fun visitSimpleNameExpression(
         expression: CjSimpleNameExpression,
@@ -429,7 +425,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
         return components.unsafeExpressionResolver.resolveUnsafeExpression(expression, data)
     }
 
-    override fun visitNamedFunction(function: CjNamedFunction, data: ExpressionTypingContext): CangJieTypeInfo {
+    override fun visitNamedFunction(function: CjNamedFunction, data: ExpressionTypingContext): CangJieTypeInfo? {
         return functions.visitNamedFunction(function, data)
     }
 
@@ -567,7 +563,7 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
         return basic.visitSynchronizedExpression(expression, data)
     }
 
-    override fun visitCjElement(element: CjElement, data: ExpressionTypingContext?): CangJieTypeInfo {
+    override fun visitCjElement(element: CjElement, data: ExpressionTypingContext): CangJieTypeInfo? {
         return element.accept(basic, data)
     }
 
@@ -661,13 +657,13 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
                 }
                 // This trows AssertionError in CLI and reports the error in the IDE
                 LOG.error(
-                    CangJieExceptionWithAttachments("Exception while analyzing expression$location", e)
+                    CangJieExceptionWithAttachmentsImpl("Exception while analyzing expression$location", e)
                         .withPsiAttachment("expression.cj", expression)
                 )
             } catch (errorFromLogger: AssertionError) {
                 // If we ended up here, we are in CLI, and the initial exception needs to be rethrown,
                 // simply throwing AssertionError causes its being wrapped over and over again
-                throw CangJieFrontEndException(errorFromLogger.message!!, e)
+                throw CangJieFrontEndException(errorFromLogger.message ?: return, e)
             }
         }
     }

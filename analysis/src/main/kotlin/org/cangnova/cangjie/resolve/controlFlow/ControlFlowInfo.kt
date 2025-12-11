@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.controlFlow
 
+import org.cangnova.cangjie.utils.ImmutableHashMap
 import org.cangnova.cangjie.utils.ImmutableMap
 
 

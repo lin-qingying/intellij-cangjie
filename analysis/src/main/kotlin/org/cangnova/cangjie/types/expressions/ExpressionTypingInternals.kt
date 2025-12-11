@@ -26,6 +26,7 @@ package org.cangnova.cangjie.types.expressions
 
 import org.cangnova.cangjie.resolve.scopes.LexicalWritableScope
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.resolve.scopes.receivers.ReceiverValue
 
 /**
  * 表达式类型检查内部接口

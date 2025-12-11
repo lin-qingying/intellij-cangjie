@@ -27,10 +27,10 @@ package org.cangnova.cangjie.references
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.CjConstructorDelegationReferenceExpression
 import org.cangnova.cangjie.psi.CjImportAlias
-import org.cangnova.cangjie.resolve.BindingContext
-import org.cangnova.cangjie.resolve.getReferenceTargets
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.getReferenceTargets
 
 
 class CjConstructorDelegationReference(

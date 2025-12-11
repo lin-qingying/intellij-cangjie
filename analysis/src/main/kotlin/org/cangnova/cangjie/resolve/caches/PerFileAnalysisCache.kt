@@ -40,25 +40,26 @@ import com.intellij.psi.util.parents
 import org.cangnova.cangjie.resolve.AnalysisResult
 import org.cangnova.cangjie.resolve.DelegateAnalysisResult
 import org.cangnova.cangjie.container.ComponentProvider
+import org.cangnova.cangjie.container.get
 import org.cangnova.cangjie.context.GlobalContext
 import org.cangnova.cangjie.context.ModuleContext
 import org.cangnova.cangjie.context.withModule
 import org.cangnova.cangjie.context.withProject
-import org.cangnova.cangjie.descriptors.BindingTrace
 import org.cangnova.cangjie.descriptors.DeclarationDescriptorWithSource
 import org.cangnova.cangjie.descriptors.InvalidModuleException
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.descriptors.PositioningStrategies.DECLARATION_WITH_BODY
 import org.cangnova.cangjie.diagnostics.*
-import org.cangnova.cangjie.frontend.createContainerForLazyBodyResolve
-import org.cangnova.cangjie.ide.cache.trackers.clearInBlockModifications
-import org.cangnova.cangjie.ide.cache.trackers.inBlockModifications
-import org.cangnova.cangjie.ide.cache.trackers.removeInBlockModifications
-import org.cangnova.cangjie.ide.stubindex.resolve.PluginDeclarationProviderFactory
+import org.cangnova.cangjie.diagnostics.PositioningStrategies.DECLARATION_WITH_BODY
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.psi.psiUtil.parentsWithSelf
 import org.cangnova.cangjie.resolve.*
+import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.BindingTraceForBodyResolve
+import org.cangnova.cangjie.resolve.binding.DelegatingBindingTrace
+import org.cangnova.cangjie.resolve.binding.slicedMap.ReadOnlySlice
+import org.cangnova.cangjie.resolve.binding.slicedMap.WritableSlice
+import org.cangnova.cangjie.resolve.calls.util.languageVersionSettings
 import org.cangnova.cangjie.resolve.controlFlow.ControlFlowInformationProviderImpl
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.lazy.IdeaAbsentDescriptorHandler
@@ -68,10 +69,8 @@ import org.cangnova.cangjie.storage.CancellableSimpleLock
 import org.cangnova.cangjie.storage.guarded
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.utils.CodeFragmentUtils
-import org.cangnova.cangjie.utils.checkWithAttachment
+import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 import org.cangnova.cangjie.utils.safeAs
-import org.cangnova.cangjie.utils.slicedMap.ReadOnlySlice
-import org.cangnova.cangjie.utils.slicedMap.WritableSlice
 import java.util.concurrent.locks.ReentrantLock
 
 /**
@@ -537,7 +536,7 @@ object CangJieResolveDataProvider {
                     it is CjPackageDirective ||
                     it is CjCodeFragment ||
                     // TODO: Non-analyzable so far, add more granular analysis
-                    it is CjAnnotationEntry ||
+                    it is CjAnnotation  ||
                     it is CjTypeConstraint ||
                     it is CjSuperTypeList ||
                     it is CjTypeParameter ||
@@ -548,7 +547,7 @@ object CangJieResolveDataProvider {
         // parameters and supertype lists are not analyzable by themselves, but if we don't count them as topmost, we'll stop inside, say,
         // object expressions inside arguments of super constructors of classes (note that classes themselves are not topmost elements)
         val analyzableElement = when (topmostElement) {
-            is CjAnnotationEntry,
+            is CjAnnotation ,
             is CjTypeConstraint,
             is CjSuperTypeList,
             is CjTypeParameter,
@@ -708,7 +707,7 @@ private class StackedCompositeBindingContextTrace(
     /**
      * 绑定上下文的内部实现，用于在上下文中存储和访问诊断和绑定信息。
      */
-    inner class StackedCompositeBindingContext {
+    inner class StackedCompositeBindingContext : BindingContext {
         var cachedDiagnostics: Diagnostics? = null // 缓存的诊断信息
 
         /**
@@ -761,7 +760,7 @@ private class StackedCompositeBindingContextTrace(
         /**
          * 获取诊断信息，若缓存不存在则合并生成。
          */
-        override fun getDiagnostics(): Diagnostics {
+        override val diagnostics : Diagnostics get()   {
             if (cachedDiagnostics == null) {
                 val mergedDiagnostics = mutableSetOf<Diagnostic>()
                 mergedDiagnostics.addAll(parentDiagnosticsApartElement)
@@ -787,7 +786,7 @@ private class StackedCompositeBindingContextTrace(
         /**
          * 获取绑定切片中的值。
          */
-        override fun <K : Any?, V : Any?> get(slice: ReadOnlySlice<K, V>, key: K): V? {
+        override fun <K : Any, V> get(slice: ReadOnlySlice<K, V>, key: K): V? {
             selfGet(slice, key)?.let { return it }
             if (!key.containedInReanalyzedElement()) {
                 return parentContext.get(slice, key)?.takeIf {
@@ -808,7 +807,7 @@ private class StackedCompositeBindingContextTrace(
         /**
          * 获取切片的所有键。
          */
-        override fun <K, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
+        override fun <K : Any, V> getKeys(slice: WritableSlice<K, V>): Collection<K> {
             val keys = map.getKeys(slice)
             val fromParent = parentContext.getKeys(slice).filter {
                 !it.containedInReanalyzedElement()
@@ -822,7 +821,7 @@ private class StackedCompositeBindingContextTrace(
         /**
          * 获取切片的内容。
          */
-        override fun <K : Any?, V : Any?> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
+        override fun <K : Any, V> getSliceContents(slice: ReadOnlySlice<K, V>): ImmutableMap<K, V> {
             val parentSliceContents = parentContext.getSliceContents(slice).filter {
                 !it.key.containedInReanalyzedElement()
             }
@@ -840,7 +839,7 @@ private class StackedCompositeBindingContextTrace(
     /**
      * 从当前上下文或父上下文中获取绑定数据。
      */
-    override fun <K : Any?, V : Any?> get(slice: ReadOnlySlice<K, V>, key: K): V? =
+    override fun <K : Any, V > get(slice: ReadOnlySlice<K, V>, key: K): V? =
         if (slice == BindingContext.ANNOTATION) {
             selfGet(slice, key) ?: parentContext.get(slice, key)
         } else {
