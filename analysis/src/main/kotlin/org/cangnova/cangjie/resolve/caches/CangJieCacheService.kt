@@ -26,14 +26,14 @@ package org.cangnova.cangjie.resolve.caches
 
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
-import org.cangnova.cangjie.descriptors.ModuleInfo
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.resolve.ResolutionFacade
 
 interface CangJieCacheService {
     fun getResolutionFacade(element: CjElement): ResolutionFacade
     fun getResolutionFacade(elements: List<CjElement>): ResolutionFacade
-    fun getResolutionFacadeByModuleInfo(moduleInfo: ModuleInfo): ResolutionFacade
+    fun getResolutionFacadeByModuleInfo(context: AnalysisContext): ResolutionFacade
 
     companion object {
         fun getInstance(project: Project): CangJieCacheService = project.service()

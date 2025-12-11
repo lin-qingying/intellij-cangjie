@@ -77,8 +77,11 @@ class OverloadResolutionResultsImpl<D : CallableDescriptor> private constructor(
      *
      * @return 所有候选调用的集合，如果未收集则返回 null
      */
-    override val allCandidates: Collection<ResolvedCall<D>>?
+    override var allCandidates: Collection<ResolvedCall<D>>?
         get() = _allCandidates
+        set(value) {
+            _allCandidates = value
+        }
 
     /**
      * 设置所有候选者

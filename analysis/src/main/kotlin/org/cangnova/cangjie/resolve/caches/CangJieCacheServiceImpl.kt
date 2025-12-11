@@ -37,6 +37,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import org.cangnova.cangjie.context.GlobalContext
 import org.cangnova.cangjie.context.GlobalContextImpl
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjElement
@@ -174,7 +175,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
     }
 
 
-    override fun getResolutionFacadeByModuleInfo(moduleInfo: ModuleInfo): ResolutionFacade {
+    override fun getResolutionFacadeByModuleInfo(context: AnalysisContext): ResolutionFacade {
 //        val settings = moduleInfo.platformSettings(platform)
         val projectFacade = facadeForModules(/*settings*/)
 
@@ -198,10 +199,10 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         return if (contextFile is CjCodeFragment) contextFile.getContextFile() else contextFile
     }
 
-    private fun Collection<CjFile>.filterNotInProjectSource(moduleInfo: ModuleInfo): Set<CjFile> =
+    private fun Collection<CjFile>.filterNotInProjectSource(context: AnalysisContext): Set<CjFile> =
         mapNotNullTo(mutableSetOf()) { filterNotInProjectSource(it, moduleInfo) }
 
-    private fun filterNotInProjectSource(file: CjFile, moduleInfo: ModuleInfo): CjFile? {
+    private fun filterNotInProjectSource(file: CjFile, context: AnalysisContext): CjFile? {
         val fileToAnalyze = when (file) {
             is CjCodeFragment -> file.getContextFile()
             else -> file
@@ -281,8 +282,8 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
             debugName: String,
             globalContext: GlobalContextImpl,
             reuseDataFrom: ProjectResolutionFacade? = null,
-            moduleFilter: (ModuleInfo) -> Boolean = { true },
-            allModules: Collection<ModuleInfo>? = null
+            moduleFilter: (AnalysisContext) -> Boolean = { true },
+            allModules: Collection<AnalysisContext>? = null
         ): ProjectResolutionFacade {
             return ProjectResolutionFacade(
                 debugName,
@@ -380,9 +381,9 @@ private fun GlobalContextImpl.contextWithCompositeExceptionTracker(debugName: St
 }
 
 internal interface ModuleFilters {
-    fun sdkFacadeFilter(module: ModuleInfo): Boolean
-    fun libraryFacadeFilter(module: ModuleInfo): Boolean
-    fun moduleFacadeFilter(module: ModuleInfo): Boolean
+    fun sdkFacadeFilter(module: AnalysisContext): Boolean
+    fun libraryFacadeFilter(module: AnalysisContext): Boolean
+    fun moduleFacadeFilter(module: AnalysisContext): Boolean
 }
 
 //internal class GlobalFacadeModuleFilters(project: Project) : ModuleFilters {
@@ -391,9 +392,9 @@ internal interface ModuleFilters {
 //        IdeBuiltInsLoadingState.IdeBuiltInsLoading.FROM_DEPENDENCIES_JVM -> DependencyBuiltinsModuleFilters(project)
 //    }
 //
-//    override fun sdkFacadeFilter(module: ModuleInfo): Boolean = impl.sdkFacadeFilter(module)
-//    override fun libraryFacadeFilter(module: ModuleInfo): Boolean = impl.libraryFacadeFilter(module)
-//    override fun moduleFacadeFilter(module: ModuleInfo): Boolean = impl.moduleFacadeFilter(module)
+//    override fun sdkFacadeFilter(module: AnalysisContext): Boolean = impl.sdkFacadeFilter(module)
+//    override fun libraryFacadeFilter(module: AnalysisContext): Boolean = impl.libraryFacadeFilter(module)
+//    override fun moduleFacadeFilter(module: AnalysisContext): Boolean = impl.moduleFacadeFilter(module)
 //}
 internal fun GlobalContextImpl.contextWithCompositeExceptionTracker(
     project: Project,

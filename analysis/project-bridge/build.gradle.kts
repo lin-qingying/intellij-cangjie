@@ -22,22 +22,24 @@
  *
  */
 
-package org.cangnova.cangjie.resolve.caches
+/**
+ * Analysis Project Bridge 模块
+ *
+ * 此模块作为 analysis 和 cangjie-project 之间的桥接层，
+ * 负责将项目模型（CjModule、CjProject 等）适配为分析上下文（AnalysisContext）。
+ *
+ * 依赖关系：
+ * - analysis：提供 AnalysisContext 接口
+ * - cangjie-project：提供 CjModule、CjProject 等项目模型
+ */
 
-import org.cangnova.cangjie.descriptors.AnalysisContext
+dependencies {
+    // 核心依赖：分析接口和项目模型
+    api(project(":analysis"))
+    api(project(":cangjie-project"))
 
-interface BuiltInsCacheKey {
-    object DefaultBuiltInsKey : BuiltInsCacheKey
-}
-
-class CangJieModuleBuiltInsKey(context: AnalysisContext) : BuiltInsCacheKey
-
-private var _builtinsKey: CangJieModuleBuiltInsKey? = null
-fun AnalysisContext.getKeyForBuiltIns(): BuiltInsCacheKey {
-//    if (_builtinsKey == null) {
-//        _builtinsKey = CangJieModuleBuiltInsKey(this)
-//    }
-//    return _builtinsKey!!
-
-    return CangJieModuleBuiltInsKey(this)
+    // 基础设施依赖
+    implementation(project(":util"))
+    implementation(project(":common"))
+    implementation(project(":psi"))
 }

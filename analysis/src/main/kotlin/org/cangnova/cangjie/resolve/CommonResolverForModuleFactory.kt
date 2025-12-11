@@ -25,7 +25,8 @@
 package org.cangnova.cangjie.resolve
 
 
-import org.cangnova.cangjie.descriptors.ModuleInfo
+import org.cangnova.cangjie.descriptors.DependencyOnBuiltIns
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.ModuleOrigin
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
@@ -78,34 +79,8 @@ class CommonResolverForModuleFactory(
     private val shouldCheckExpectActual: Boolean,
     private val commonDependenciesContainer: CommonDependenciesContainer? = null
 ) : ResolverForModuleFactory() {
-    private class SourceModuleInfo(
-        override val name: Name,
-//        override val capabilities: Map<ModuleCapability<*>, Any?>,
-        private val dependencies: Iterable<ModuleInfo>,
-//        override val expectedBy: List<ModuleInfo>,
-//        override val platform: TargetPlatform,
-        private val modulesWhoseInternalsAreVisible: Collection<ModuleInfo>,
-        private val dependOnOldBuiltIns: Boolean
-    ) : ModuleInfo {
-        override val project: Project
-            get() = TODO("Not yet implemented")
-        override val contentScope: GlobalSearchScope
-            get() = TODO("Not yet implemented")
-        override val moduleOrigin: ModuleOrigin
-            get() = ModuleOrigin.MODULE
 
-        override fun dependencies() = listOf(this, *dependencies.toList().toTypedArray())
-
-//        override fun modulesWhoseInternalsAreVisible(): Collection<ModuleInfo> = modulesWhoseInternalsAreVisible
-
-        override fun dependencyOnBuiltIns(): ModuleInfo.DependencyOnBuiltIns =
-            if (dependOnOldBuiltIns) ModuleInfo.DependencyOnBuiltIns.LAST else ModuleInfo.DependencyOnBuiltIns.NONE
-
-        override val analyzerServices: PlatformDependentAnalyzerServices
-            get() = CommonPlatformAnalyzerServices
-    }
-
-    override fun <M : ModuleInfo> createResolverForModule(
+    override fun <M : AnalysisContext> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
         moduleContent: ModuleContent<M>,
@@ -156,88 +131,6 @@ class CommonResolverForModuleFactory(
             container
         )
     }
-
-    companion object {
-        fun analyzeFiles(
-            files: Collection<CjFile>,
-            moduleName: Name,
-            dependOnBuiltIns: Boolean,
-            languageVersionSettings: LanguageVersionSettings,
-            targetPlatform: TargetPlatform,
-            targetEnvironment: TargetEnvironment,
-            capabilities: Map<ModuleCapability<*>, Any?> = emptyMap(),
-            dependenciesContainer: CommonDependenciesContainer? = null,
-            explicitProjectContext: ProjectContext? = null,
-            metadataPartProviderFactory: (ModuleContent<ModuleInfo>) -> MetadataPartProvider
-        ): AnalysisResult {
-            val moduleInfo = SourceModuleInfo(
-                moduleName,
-//                capabilities,
-                dependenciesContainer?.moduleInfos?.toList().orEmpty(),
-                dependenciesContainer?.refinesModuleInfos.orEmpty(),
-//                targetPlatform,
-//                dependenciesContainer?.friendModuleInfos.orEmpty(),
-                dependOnBuiltIns
-            )
-            val project = files.firstOrNull()?.project ?: throw AssertionError("No files to analyze")
-
-            val multiplatformLanguageSettings = object : LanguageVersionSettings by languageVersionSettings {
-                override fun getFeatureSupport(feature: LanguageFeature): LanguageFeature.State =
-                    /* if (feature == LanguageFeature.MultiPlatformProjects) LanguageFeature.State.ENABLED
-                     else */languageVersionSettings.getFeatureSupport(feature)
-            }
-
-            val resolverForModuleFactory = CommonResolverForModuleFactory(
-                CommonAnalysisParameters(metadataPartProviderFactory),
-                targetEnvironment,
-                targetPlatform,
-                shouldCheckExpectActual = false,
-                dependenciesContainer
-            )
-
-            val projectContext = explicitProjectContext ?: ProjectContext(project, "metadata serializer")
-//            val resolver = CangJieResolverForModuleFactory(
-//
-//            )
-            val resolver = ResolverForSingleModuleProject(
-                "sources for metadata serializer",
-                projectContext,
-                moduleInfo,
-                resolverForModuleFactory,
-                GlobalSearchScope.allScope(project),
-                builtIns = createBuiltIns(projectContext),
-                languageVersionSettings = multiplatformLanguageSettings,
-                syntheticFiles = files,
-                knownDependencyModuleDescriptors = dependenciesContainer?.moduleInfos
-                    ?.associateWith(dependenciesContainer::moduleDescriptorForModuleInfo).orEmpty()
-            )
-
-            val moduleDescriptor = resolver.descriptorForModule(moduleInfo)
-
-
-            dependenciesContainer?.registerDependencyForAllModules(moduleInfo, moduleDescriptor)
-
-            val container = resolver.resolverForModule(moduleInfo).componentProvider
-
-            val analysisHandlerExtensions = AnalysisHandlerExtension.getInstances(project)
-            val trace = container.get<BindingTrace>()
-
-
-            var result = analysisHandlerExtensions.firstNotNullOfOrNull { extension ->
-                extension.doAnalysis(project, moduleDescriptor, projectContext, files, trace, container)
-            } ?: run {
-                container.get<LazyTopDownAnalyzer>()
-                    .analyzeDeclarations(TopDownAnalysisMode.TopLevelDeclarations, files)
-                AnalysisResult.Companion.success(trace.bindingContext, moduleDescriptor)
-            }
-
-            result = analysisHandlerExtensions.firstNotNullOfOrNull { extension ->
-                extension.analysisCompleted(project, moduleDescriptor, trace, files)
-            } ?: result
-
-            return result
-        }
-    }
 }
 
 object CommonPlatformAnalyzerServices : PlatformDependentAnalyzerServices() {
@@ -245,7 +138,7 @@ object CommonPlatformAnalyzerServices : PlatformDependentAnalyzerServices() {
 
     override val platformConfigurator: PlatformConfigurator = CommonPlatformConfigurator
 
-    override fun dependencyOnBuiltIns(): ModuleInfo.DependencyOnBuiltIns = ModuleInfo.DependencyOnBuiltIns.AFTER_SDK
+    override fun dependencyOnBuiltIns(): DependencyOnBuiltIns = DependencyOnBuiltIns.AFTER_SDK
 }
 
 private object CommonPlatformConfigurator : PlatformConfiguratorBase() {

@@ -26,7 +26,7 @@ package org.cangnova.cangjie.resolve.caches
 
 
 import org.cangnova.cangjie.resolve.AnalysisResult
-import org.cangnova.cangjie.descriptors.ModuleInfo
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.resolve.ResolverForProject
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.diagnostics.DiagnosticSink
@@ -52,7 +52,7 @@ private class ResolutionFacadeWithDebugInfo(
     private val delegate: ResolutionFacade,
     private val creationPlace: CreationPlace
 ) : ResolutionFacade, ResolutionFacadeModuleDescriptorProvider {
-    override fun findModuleDescriptor(ideaModuleInfo: ModuleInfo): ModuleDescriptor {
+    override fun findModuleDescriptor(ideaModuleInfo: AnalysisContext): ModuleDescriptor {
         return delegate.findModuleDescriptor(ideaModuleInfo)
     }
 
@@ -156,7 +156,7 @@ private class ResolutionFacadeWithDebugInfo(
 //        }
 //    }
 
-    override fun getResolverForProject(): ResolverForProject<out ModuleInfo> {
+    override fun getResolverForProject(): ResolverForProject<out AnalysisContext> {
         return delegate.getResolverForProject()
     }
 //
@@ -206,7 +206,7 @@ private class CangJieIdeaResolutionException(
 
 private class CreationPlace(
     private val elements: Collection<CjElement>,
-    private val moduleInfo: ModuleInfo?,
+    private val context: AnalysisContext?,
 //    private val settings: PlatformAnalysisSettings?
 ) {
     fun description() = buildString {
@@ -251,7 +251,7 @@ private class ResolvingWhat(
                 appendElement(element)
             }
 //            if (moduleDescriptor != null) {
-//                appendLine("Provided module descriptor for module ${moduleDescriptor.getCapability(ModuleInfo.Capability)}")
+//                appendLine("Provided module descriptor for module ${moduleDescriptor.getCapability(AnalysisContext.Capability)}")
 //            }
         }
     }
@@ -302,7 +302,7 @@ private fun <T> ifIndexReady(body: () -> T): IndexResult<T>? = try {
 
 internal fun ResolutionFacade.createdFor(
     files: Collection<CjFile>,
-    moduleInfo: ModuleInfo?,
+    context: AnalysisContext?,
 //    settings: PlatformAnalysisSettings
 ): ResolutionFacade {
     return ResolutionFacadeWithDebugInfo(this, CreationPlace(files, moduleInfo/*, settings*/))

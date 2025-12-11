@@ -45,7 +45,7 @@ fun createModuleDescriptor(projectContext: ProjectContext, project: Project): Mo
     )
 }
 
-abstract class AbstractResolverForProject<M : ModuleInfo>(
+abstract class AbstractResolverForProject<M : AnalysisContext>(
 
     private val debugName: String,
     protected val projectContext: ProjectContext,
@@ -66,12 +66,12 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
         projectContext.storageManager.compute {
             disposed = true
             descriptorByModule.values.forEach {
-                moduleInfoByDescriptor.remove(it.moduleDescriptor)
+                contextByDescriptor.remove(it.moduleDescriptor)
                 it.moduleDescriptor.isValid = false
             }
             descriptorByModule.clear()
-            moduleInfoByDescriptor.keys.forEach { it.isValid = false }
-            moduleInfoByDescriptor.clear()
+            contextByDescriptor.keys.forEach { it.isValid = false }
+            contextByDescriptor.clear()
         }
     }
 
@@ -93,24 +93,24 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
         }
 
     // Protected by ("projectContext.storageManager.lock")
-    private val moduleInfoByDescriptor = hashMapOf<ModuleDescriptorImpl, M>()
+    private val contextByDescriptor = hashMapOf<ModuleDescriptorImpl, M>()
 
     // Protected by ("projectContext.storageManager.lock")
     private val resolverByModuleDescriptor = hashMapOf<ModuleDescriptor, ResolverForModule>()
 
     @Suppress("UNCHECKED_CAST")
-    private val moduleInfoToResolvableInfo: Map<M, M> =
+    private val contextToResolvableInfo: Map<M, M> =
         modules.flatMap { module -> module.flatten().map { modulePart -> modulePart to module } }.toMap() as Map<M, M>
 
     override val allModules: Collection<M> by lazy {
-        this.moduleInfoToResolvableInfo.keys + delegateResolver.allModules
+        this.contextToResolvableInfo.keys + delegateResolver.allModules
     }
 
-    abstract fun createResolverForModule(descriptor: ModuleDescriptor, moduleInfo: M): ResolverForModule
+    abstract fun createResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule
     abstract fun builtInsForModule(module: M): CangJieBuiltIns
 
-    override fun diagnoseUnknownModuleInfo(infos: List<ModuleInfo>): Nothing {
-        DiagnoseUnknownModuleInfoReporter.report(name, infos, allModules)
+    override fun diagnoseUnknownContext(contexts: List<AnalysisContext>): Nothing {
+        DiagnoseUnknownContextReporter.report(name, contexts, allModules)
 
     }
 
@@ -126,23 +126,23 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
         throw InvalidResolverException("$name is invalidated")
     }
 
-    override fun tryGetResolverForModule(moduleInfo: M): ResolverForModule? {
+    override fun tryGetResolverForModule(context: M): ResolverForModule? {
         checkValid()
-        if (!isCorrectModuleInfo(moduleInfo)) {
+        if (!isCorrectContext(context)) {
             return null
         }
-        return resolverForModuleDescriptor(doGetDescriptorForModule(moduleInfo))
+        return resolverForModuleDescriptor(doGetDescriptorForModule(context))
     }
 
 
-    private fun isCorrectModuleInfo(moduleInfo: M): Boolean =
-        ((moduleInfo as? DerivedModuleInfo)?.originalModule ?: moduleInfo) in allModules
+    private fun isCorrectContext(context: M): Boolean =
+        ((context as? DerivedAnalysisContext)?.originalContext ?: context) in allModules
 
     private fun recreateModuleDescriptor(module: M): ModuleData {
         val oldDescriptor = descriptorByModule[module]?.moduleDescriptor
         if (oldDescriptor != null) {
             oldDescriptor.isValid = false
-            moduleInfoByDescriptor.remove(oldDescriptor)
+            contextByDescriptor.remove(oldDescriptor)
             resolverByModuleDescriptor.remove(oldDescriptor)
             projectContext.project.messageBus.syncPublisher(ModuleDescriptorListener.Companion.TOPIC)
                 .moduleDescriptorInvalidated(oldDescriptor)
@@ -157,17 +157,17 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
     private fun createModuleDescriptor(module: M): ModuleData {
         val moduleDescriptor = ModuleDescriptorImpl(
             projectContext.project,
-            module.name,
+            Name.identifier(module.contextId),
             projectContext.storageManager,
             builtInsForModule(module),
 //            module.platform,
 //            module.capabilities + getAdditionalCapabilities(),
 //            module.stableName,
         )
-        moduleInfoByDescriptor[moduleDescriptor] = module
+        contextByDescriptor[moduleDescriptor] = module
         setupModuleDescriptor(module, moduleDescriptor)
         val modificationTracker =
-            (module as? TrackableModuleInfo)?.createModificationTracker() ?: fallbackModificationTracker
+            (module as? TrackableAnalysisContext)?.createModificationTracker() ?: fallbackModificationTracker
         return ModuleData(moduleDescriptor, modificationTracker)
     }
 
@@ -191,22 +191,22 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
         )
     }
 
-    private fun checkModuleIsCorrect(moduleInfo: M) {
-        if (!isCorrectModuleInfo(moduleInfo)) {
-            diagnoseUnknownModuleInfo(listOf(moduleInfo))
+    private fun checkModuleIsCorrect(context: M) {
+        if (!isCorrectContext(context)) {
+            diagnoseUnknownContext(listOf(context))
         }
     }
 
-    override fun descriptorForModule(moduleInfo: M): ModuleDescriptorImpl {
+    override fun descriptorForModule(context: M): ModuleDescriptorImpl {
         checkValid()
-        checkModuleIsCorrect(moduleInfo)
-        return doGetDescriptorForModule(moduleInfo)
+        checkModuleIsCorrect(context)
+        return doGetDescriptorForModule(context)
     }
 
     private fun doGetDescriptorForModule(module: M): ModuleDescriptorImpl {
         val moduleFromThisResolver =
-            module.takeIf { it is DerivedModuleInfo && it.originalModule in moduleInfoToResolvableInfo }
-                ?: moduleInfoToResolvableInfo[module]
+            module.takeIf { it is DerivedAnalysisContext && it.originalContext in contextToResolvableInfo }
+                ?: contextToResolvableInfo[module]
                 ?: return delegateResolver.descriptorForModule(module) as ModuleDescriptorImpl
 
         return projectContext.storageManager.compute {
@@ -224,16 +224,16 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
         val resolversChain = generateSequence(this) { it.delegateResolver as? AbstractResolverForProject<M> }
 
         return resolversChain.joinToString("\n\n") { resolver ->
-            "Resolver: ${resolver.name}\n'moduleInfoByDescriptor' content:\n[${resolver.renderResolverModuleInfos()}]"
+            "Resolver: ${resolver.name}\n'contextByDescriptor' content:\n[${resolver.renderResolverContexts()}]"
         }
     }
 
-    private fun renderResolverModuleInfos(): String = projectContext.storageManager.compute {
-        moduleInfoByDescriptor.entries.joinToString(",\n") { (descriptor, moduleInfo) ->
+    private fun renderResolverContexts(): String = projectContext.storageManager.compute {
+        contextByDescriptor.entries.joinToString(",\n") { (descriptor, context) ->
             """
             {
                 moduleDescriptor: $descriptor
-                moduleInfo: $moduleInfo
+                context: $context
             }
             """.trimIndent()
         }
@@ -244,7 +244,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
             checkValid()
             descriptor.assertValid()
 
-            val module = moduleInfoByDescriptor[descriptor]
+            val module = contextByDescriptor[descriptor]
             if (module == null) {
                 if (delegateResolver is EmptyResolverForProject<*>) {
                     return@compute null
@@ -284,23 +284,23 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
 }
 
 class InvalidResolverException(message: String) : IllegalStateException(message)
-private object DiagnoseUnknownModuleInfoReporter {
-    fun report(name: String, infos: List<ModuleInfo>, allModules: Collection<ModuleInfo>): Nothing {
+private object DiagnoseUnknownContextReporter {
+    fun report(name: String, contexts: List<AnalysisContext>, allModules: Collection<AnalysisContext>): Nothing {
         val message = "$name does not know how to resolve"
         val error = when {
 
             name.contains(ResolverForProject.Companion.resolverForLibrariesName) -> errorInLibrariesResolver(message)
             name.contains(ResolverForProject.Companion.resolverForModulesName) -> {
                 when {
-                    infos.isEmpty() -> errorInModulesResolverWithEmptyInfos(message)
-                    infos.size == 1 -> {
-                        val infoAsString = infos.single().toString()
+                    contexts.isEmpty() -> errorInModulesResolverWithEmptyInfos(message)
+                    contexts.size == 1 -> {
+                        val contextAsString = contexts.single().toString()
                         when {
-                            infoAsString.contains("ScriptDependencies") -> errorInModulesResolverWithScriptDependencies(
+                            contextAsString.contains("ScriptDependencies") -> errorInModulesResolverWithScriptDependencies(
                                 message
                             )
 
-                            infoAsString.contains("Library") -> errorInModulesResolverWithLibraryInfo(message)
+                            contextAsString.contains("Library") -> errorInModulesResolverWithLibraryInfo(message)
                             else -> errorInModulesResolver(message)
                         }
                     }
@@ -320,7 +320,7 @@ private object DiagnoseUnknownModuleInfoReporter {
             else -> otherError(message)
         }
 
-        throw error.withAttachment("infos.txt", infos).withAttachment("allModules.txt", allModules)
+        throw error.withAttachment("contexts.txt", contexts).withAttachment("allModules.txt", allModules)
     }
 
     // Do not inline 'error*'-methods, they are needed to avoid Exception Analyzer merging those AssertionErrors
@@ -340,7 +340,7 @@ private object DiagnoseUnknownModuleInfoReporter {
     private fun otherError(message: String) = CangJieExceptionWithAttachments(message)
 }
 
-private class DelegatingPackageFragmentProvider<M : ModuleInfo>(
+private class DelegatingPackageFragmentProvider<M : AnalysisContext>(
     private val resolverForProject: AbstractResolverForProject<M>,
     private val module: ModuleDescriptor,
     moduleContent: ModuleContent<M>,

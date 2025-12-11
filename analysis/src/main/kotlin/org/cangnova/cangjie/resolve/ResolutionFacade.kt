@@ -71,7 +71,7 @@ interface ResolutionFacade {
     // get service for the module defined by PsiElement/ModuleDescriptor passed as parameter
     @FrontendInternals
     fun <T : Any> getFrontendService(element: PsiElement, serviceClass: Class<T>): T
-    fun getResolverForProject(): ResolverForProject<out ModuleInfo>
+    fun getResolverForProject(): ResolverForProject<out AnalysisContext>
 
 }
 

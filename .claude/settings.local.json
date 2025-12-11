@@ -9,7 +9,20 @@
       "Bash(then echo \"$f\" fi done)",
       "Bash(test:*)",
       "Bash(./gradlew :analysis:compileKotlin:*)",
-      "Read(//d/**)"
+      "Read(//d/**)",
+      "Bash(cat:*)",
+      "Bash(for file in caches/*.kt *.kt lazy/declarations/*.kt)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then sed -i 's/import org\\.cangnova\\.cangjie\\.descriptors\\.ModuleInfo/import org.cangnova.cangjie.descriptors.AnalysisContext/g' \"$file\")",
+      "Bash(fi)",
+      "Bash(for file in caches/*.kt *.kt lazy/declarations/*.kt scopes/*.kt)",
+      "Bash(then sed -i 's/moduleInfo: ModuleInfo/context: AnalysisContext/g' \"$file\")",
+      "Bash(for file in caches/*.kt *.kt)",
+      "Bash(then sed -i 's/<M : ModuleInfo>/<M : AnalysisContext>/g' \"$file\")",
+      "Bash(do echo \"=== $f ===\")",
+      "Bash(for file in ResolutionFacadeImpl.kt ResolveElementCache.kt caches/*.kt scopes/*.kt)",
+      "Bash(then sed -i 's/\\bModuleInfo\\b/AnalysisContext/g' \"$file\")",
+      "Bash(awk:*)"
     ],
     "deny": [],
     "ask": []

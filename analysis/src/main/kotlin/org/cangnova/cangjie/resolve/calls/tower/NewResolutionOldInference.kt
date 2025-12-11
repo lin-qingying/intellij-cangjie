@@ -29,9 +29,11 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
 import org.cangnova.cangjie.extensions.internal.CandidateInterceptor
 import org.cangnova.cangjie.name.Name
+import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.psi.Call
 import org.cangnova.cangjie.psi.psiUtil.sure
 import org.cangnova.cangjie.resolve.binding.BindingContext
+import org.cangnova.cangjie.resolve.binding.BindingTrace
 import org.cangnova.cangjie.resolve.binding.TemporaryBindingTrace
 import org.cangnova.cangjie.resolve.calls.CallResolver
 import org.cangnova.cangjie.resolve.calls.CallTransformer
@@ -58,6 +60,7 @@ import org.cangnova.cangjie.resolve.hasDynamicExtensionAnnotation
 import org.cangnova.cangjie.resolve.scopes.SyntheticScopes
 import org.cangnova.cangjie.resolve.scopes.receivers.*
 import org.cangnova.cangjie.types.DeferredType
+import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeApproximator
 import org.cangnova.cangjie.types.isDynamic
 import org.cangnova.cangjie.utils.addIfNotNull
@@ -610,16 +613,18 @@ internal fun reportResolvedUsingDeprecatedVisibility(
     diagnostic: ResolvedUsingDeprecatedVisibility,
     trace: BindingTrace
 ) {
-    trace.record(
-        BindingContext.DEPRECATED_SHORT_NAME_ACCESS, call.calleeExpression
-    )
+    call.calleeExpression?.let{
+        trace.record(
+            BindingContext.DEPRECATED_SHORT_NAME_ACCESS, it
+        )
+    }
+
 
     val descriptorToLookup: DeclarationDescriptor = when (candidateDescriptor) {
         is ClassConstructorDescriptor -> candidateDescriptor.containingDeclaration
         is FakeCallableDescriptorForObject -> candidateDescriptor.classDescriptor
         is SyntheticMemberDescriptor<*> -> candidateDescriptor.baseDescriptorForSynthetic
         is PropertyDescriptor, is FunctionDescriptor -> candidateDescriptor
-        is EnumClassCallableDescriptor -> candidateDescriptor.type
         else -> error(
             "Unexpected candidate descriptor of resolved call with " + "ResolvedUsingDeprecatedVisibility-diagnostic: $candidateDescriptor\n" + "Call context: ${call.callElement.parent?.text}"
         )

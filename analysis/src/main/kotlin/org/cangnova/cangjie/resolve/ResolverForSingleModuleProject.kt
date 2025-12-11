@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.resolve
 
-import org.cangnova.cangjie.descriptors.ModuleInfo
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.config.LanguageVersionSettingsImpl
@@ -37,7 +37,7 @@ import org.cangnova.cangjie.resolve.caches.ModuleContent
 import org.cangnova.cangjie.types.DefaultBuiltIns
 import com.intellij.psi.search.GlobalSearchScope
 
-class ResolverForSingleModuleProject<M : ModuleInfo>(
+class ResolverForSingleModuleProject<M : AnalysisContext>(
     debugName: String,
     projectContext: ProjectContext,
     private val module: M,
@@ -62,7 +62,7 @@ class ResolverForSingleModuleProject<M : ModuleInfo>(
         knownDependencyModuleDescriptors.forEach { (module, descriptor) ->
             descriptorByModule[module] = ModuleData(
                 descriptor as ModuleDescriptorImpl,
-                (module as? TrackableModuleInfo)?.createModificationTracker() ?: fallbackModificationTracker
+                (module as? TrackableAnalysisContext)?.createModificationTracker() ?: fallbackModificationTracker
             )
         }
     }
@@ -74,11 +74,11 @@ class ResolverForSingleModuleProject<M : ModuleInfo>(
 
     override fun builtInsForModule(module: M): CangJieBuiltIns = builtIns
 
-    override fun createResolverForModule(descriptor: ModuleDescriptor, moduleInfo: M): ResolverForModule =
+    override fun createResolverForModule(descriptor: ModuleDescriptor, context: M): ResolverForModule =
         resolverForModuleFactory.createResolverForModule(
             descriptor as ModuleDescriptorImpl,
             projectContext.withModule(descriptor),
-            modulesContent(moduleInfo),
+            modulesContent(context),
             this,
             languageVersionSettings,
             CliSealedClassInheritorsProvider,

@@ -26,6 +26,23 @@ package org.cangnova.cangjie.psi
 
 import org.cangnova.cangjie.name.Name
 
+/**
+ * 仓颉语言中具有名称的 PSI 元素基础接口
+ *
+ * 该接口用于标识所有具有名称的 PSI 元素,如类、函数、变量等。
+ * 通过 [nameAsName] 属性提供统一的名称访问方式。
+ *
+ * 实现该接口的典型 PSI 元素包括:
+ * - 命名声明 (CjNamedDeclaration)
+ * - 类声明 (CjClass)
+ * - 函数声明 (CjFunction)
+ * - 变量声明 (CjProperty)
+ */
 interface CjNamed {
+    /**
+     * 获取该元素的名称
+     *
+     * @return 元素的名称对象,如果元素没有名称则返回 null
+     */
     val nameAsName: Name?
 }

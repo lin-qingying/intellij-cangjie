@@ -24,9 +24,9 @@
 
 package org.cangnova.cangjie.resolve.caches
 
-import org.cangnova.cangjie.descriptors.ModuleInfo
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 
 interface ResolutionFacadeModuleDescriptorProvider {
-    fun findModuleDescriptor(ideaModuleInfo: ModuleInfo): ModuleDescriptor
+    fun findModuleDescriptor(ideaModuleInfo: AnalysisContext): ModuleDescriptor
 }

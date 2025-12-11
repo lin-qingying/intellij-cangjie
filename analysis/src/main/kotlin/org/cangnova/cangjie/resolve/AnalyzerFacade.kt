@@ -31,37 +31,39 @@ import org.cangnova.cangjie.config.LanguageVersionSettingsImpl
 import org.cangnova.cangjie.container.ComponentProvider
 import org.cangnova.cangjie.container.get
 import org.cangnova.cangjie.context.ModuleContext
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.PackageFragmentProvider
+import org.cangnova.cangjie.descriptors.impl.CompositePackageFragmentProvider
 import org.cangnova.cangjie.descriptors.impl.ModuleDependencies
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
+import org.cangnova.cangjie.frontend.createContainerForLazyResolve
 import org.cangnova.cangjie.resolve.LazyModuleDependencies.Companion.assertModuleDependencyIsCorrect
 import org.cangnova.cangjie.resolve.caches.ModuleContent
 import org.cangnova.cangjie.resolve.lazy.AbsentDescriptorHandler
+import org.cangnova.cangjie.resolve.lazy.ResolveSession
 import org.cangnova.cangjie.resolve.lazy.declarations.DeclarationProviderFactoryService
 import org.cangnova.cangjie.resolve.scopes.optimization.OptimizingOptions
 import org.cangnova.cangjie.storage.StorageManager
 
-interface TrackableModuleInfo : ModuleInfo {
+/**
+ * 可追踪的分析上下文
+ *
+ * 扩展 AnalysisContext，添加修改追踪能力。
+ * 用于增量分析和缓存失效。
+ */
+interface TrackableAnalysisContext : AnalysisContext {
     fun createModificationTracker(): ModificationTracker
 }
 
-
-//interface PackageOracleFactory {
-//    fun createOracle(moduleInfo: ModuleInfo): PackageOracle
-//
-//    object OptimisticFactory : PackageOracleFactory {
-//        override fun createOracle(moduleInfo: ModuleInfo) = PackageOracle.Optimistic
-//    }
-//}
 /**
- * Special-purpose module info that allows implementors to provide different behavior compared to the [originalModule]'s.
- * E.g. may be used to resolve common code as if it were target-specific, or to change the dependencies visible to the code.
+ * 派生的分析上下文
  *
- * Resolvers should accept a derived module info, iff the [originalModule] is accepted.
+ * 允许实现者提供与原始上下文不同的行为。
+ * 例如：将通用代码解析为特定平台代码，或改变可见的依赖关系。
  */
-interface DerivedModuleInfo : ModuleInfo {
-    val originalModule: ModuleInfo
+interface DerivedAnalysisContext : AnalysisContext {
+    val originalContext: AnalysisContext
 }
 
 class ResolverForModule(
@@ -69,52 +71,45 @@ class ResolverForModule(
     val componentProvider: ComponentProvider
 )
 
-class EmptyResolverForProject<M : ModuleInfo> : ResolverForProject<M>() {
+class EmptyResolverForProject<M : AnalysisContext> : ResolverForProject<M>() {
     override val name: String
         get() = "Empty resolver"
 
-    override fun tryGetResolverForModule(moduleInfo: M): ResolverForModule? = null
+    override fun tryGetResolverForModule(context: M): ResolverForModule? = null
     override fun resolverForModuleDescriptor(descriptor: ModuleDescriptor): ResolverForModule =
         throw IllegalStateException("$descriptor is not contained in this resolver")
 
-    override fun descriptorForModule(moduleInfo: M) = diagnoseUnknownModuleInfo(listOf(moduleInfo))
+    override fun descriptorForModule(context: M) = diagnoseUnknownContext(listOf(context))
     override val allModules: Collection<M> = listOf()
-    override fun diagnoseUnknownModuleInfo(infos: List<ModuleInfo>) =
-        throw IllegalStateException("Should not be called for $infos")
-
-
-//    override fun moduleInfoForModuleDescriptor(moduleDescriptor: ModuleDescriptor): M {
-//        throw IllegalStateException("$moduleDescriptor is not contained in this resolver")
-//    }
+    override fun diagnoseUnknownContext(contexts: List<AnalysisContext>) =
+        throw IllegalStateException("Should not be called for $contexts")
 }
 
-abstract class ResolverForProject<M : ModuleInfo> {
+abstract class ResolverForProject<M : AnalysisContext> {
     abstract val allModules: Collection<M>
-    fun resolverForModule(moduleInfo: M): ResolverForModule =
-        resolverForModuleDescriptor(descriptorForModule(moduleInfo))
+    fun resolverForModule(context: M): ResolverForModule =
+        resolverForModuleDescriptor(descriptorForModule(context))
 
     abstract val name: String
-    abstract fun descriptorForModule(moduleInfo: M): ModuleDescriptor
+    abstract fun descriptorForModule(context: M): ModuleDescriptor
     abstract fun resolverForModuleDescriptor(descriptor: ModuleDescriptor): ResolverForModule
 
-    abstract fun diagnoseUnknownModuleInfo(infos: List<ModuleInfo>): Nothing
+    abstract fun diagnoseUnknownContext(contexts: List<AnalysisContext>): Nothing
     override fun toString() = name
 
-    abstract fun tryGetResolverForModule(moduleInfo: M): ResolverForModule?
-
+    abstract fun tryGetResolverForModule(context: M): ResolverForModule?
 
     companion object {
         const val resolverForLibrariesName = "project libraries"
         const val resolverForModulesName = "project source roots and libraries"
         const val resolverForSpecialInfoName = "completion/highlighting in "
         const val resolverForSdkName = "sdk"
-
     }
 }
 
 interface ResolverForModuleComputationTracker {
 
-    fun onResolverComputed(moduleInfo: ModuleInfo)
+    fun onResolverComputed(context: AnalysisContext)
 
     companion object {
         fun getInstance(project: Project): ResolverForModuleComputationTracker? =
@@ -123,7 +118,7 @@ interface ResolverForModuleComputationTracker {
 }
 
 abstract class ResolverForModuleFactory {
-    open fun <M : ModuleInfo> createResolverForModule(
+    open fun <M : AnalysisContext> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
         moduleContent: ModuleContent<M>,
@@ -149,7 +144,7 @@ abstract class ResolverForModuleFactory {
         "Left only for compatibility, please use full version",
         ReplaceWith("createResolverForModule(moduleDescriptor, moduleContext, moduleContent, resolverForProject, languageVersionSettings, sealedInheritorsProvider, null, null)")
     )
-    open fun <M : ModuleInfo> createResolverForModule(
+    open fun <M : AnalysisContext> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
         moduleContent: ModuleContent<M>,
@@ -173,7 +168,7 @@ abstract class ResolverForModuleFactory {
         "Left only for compatibility, please use full version",
         ReplaceWith("createResolverForModule(moduleDescriptor, moduleContext, moduleContent, resolverForProject, languageVersionSettings, sealedInheritorsProvider, null, null)")
     )
-    open fun <M : ModuleInfo> createResolverForModule(
+    open fun <M : AnalysisContext> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
         moduleContent: ModuleContent<M>,
@@ -196,7 +191,7 @@ abstract class ResolverForModuleFactory {
 
 
 class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
-    override fun <M : ModuleInfo> createResolverForModule(
+    override fun <M : AnalysisContext> createResolverForModule(
         moduleDescriptor: ModuleDescriptorImpl,
         moduleContext: ModuleContext,
         moduleContent: ModuleContent<M>,
@@ -208,12 +203,12 @@ class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
     ): ResolverForModule {
 
         val project = moduleContext.project
-        val (moduleInfo, syntheticFiles, moduleContentScope) = moduleContent
+        val (context, syntheticFiles, moduleContentScope) = moduleContent
 
         val declarationProviderFactory = DeclarationProviderFactoryService.createDeclarationProviderFactory(
             project, moduleContext.storageManager, syntheticFiles,
             moduleContentScope,
-            moduleInfo
+            context
         )
         val trace = CodeAnalyzerInitializer.getInstance(project).createTrace()
 
@@ -224,17 +219,7 @@ class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
             trace,
             declarationProviderFactory,
             moduleContentScope,
-//            moduleClassResolver,
-//            targetEnvironment,
-//            lookupTracker,
-//            ExpectActualTracker.DoNothing,
-//            InlineConstTracker.DoNothing,
-//            EnumWhenTracker.DoNothing,
-//            packagePartProvider,
             languageVersionSettings,
-//            sealedInheritorsProvider = sealedInheritorsProvider,
-//            useBuiltInsProvider = platformParameters.useBuiltinsProviderForModule(moduleInfo),
-//            optimizingOptions = resolveOptimizingOptions,
             absentDescriptorHandlerClass = absentDescriptorHandlerClass
         )
         val providersForModule = arrayListOf(
@@ -251,14 +236,14 @@ class CangJieResolverForModuleFactory : ResolverForModuleFactory() {
 
 interface LanguageSettingsProvider {
     fun getLanguageVersionSettings(
-        moduleInfo: ModuleInfo,
+        context: AnalysisContext,
         project: Project
     ): LanguageVersionSettings
 
 
     object Default : LanguageSettingsProvider {
         override fun getLanguageVersionSettings(
-            moduleInfo: ModuleInfo,
+            context: AnalysisContext,
             project: Project
         ) = LanguageVersionSettingsImpl.DEFAULT
 
@@ -266,20 +251,20 @@ interface LanguageSettingsProvider {
 }
 
 
-class LazyModuleDependencies<M : ModuleInfo>(
+class LazyModuleDependencies<M : AnalysisContext>(
     storageManager: StorageManager,
     private val module: M,
     firstDependency: M?,
     private val resolverForProject: AbstractResolverForProject<M>
 ) : ModuleDependencies {
     companion object {
-        private fun ModuleInfo.assertModuleDependencyIsCorrect(dependency: ModuleDescriptor) {
-            assertModuleDependencyIsCorrect(dependency.getCapability(ModuleInfo.Capability) ?: return)
+        private fun AnalysisContext.assertModuleDependencyIsCorrect(dependency: ModuleDescriptor) {
+            assertModuleDependencyIsCorrect(dependency.getCapability(AnalysisContextCapability) ?: return)
         }
 
-        private fun ModuleInfo.assertModuleDependencyIsCorrect(dependency: ModuleInfo) {
-            assert(dependency !is DerivedModuleInfo || this is DerivedModuleInfo) {
-                "Derived module infos may not be referenced from regular ones"
+        private fun AnalysisContext.assertModuleDependencyIsCorrect(dependency: AnalysisContext) {
+            assert(dependency !is DerivedAnalysisContext || this is DerivedAnalysisContext) {
+                "Derived analysis contexts may not be referenced from regular ones"
             }
         }
     }
@@ -290,25 +275,16 @@ class LazyModuleDependencies<M : ModuleInfo>(
             module.assertModuleDependencyIsCorrect(it)
             moduleDescriptors.add(resolverForProject.descriptorForModule(it))
         }
-        val moduleDescriptor = resolverForProject.descriptorForModule(module)
-        val dependencyOnBuiltIns = module.dependencyOnBuiltIns()
-        if (dependencyOnBuiltIns == ModuleInfo.DependencyOnBuiltIns.AFTER_SDK) {
-            val builtInsModule = moduleDescriptor.builtIns.builtInsModule
-            module.assertModuleDependencyIsCorrect(builtInsModule)
-            moduleDescriptors.add(builtInsModule)
-        }
-        for (dependency in module.dependencies()) {
+
+        // 处理所有依赖
+        for (dependency in module.dependencies) {
             if (dependency == firstDependency) continue
             module.assertModuleDependencyIsCorrect(dependency)
 
             @Suppress("UNCHECKED_CAST")
             moduleDescriptors.add(resolverForProject.descriptorForModule(dependency as M))
         }
-        if (dependencyOnBuiltIns == ModuleInfo.DependencyOnBuiltIns.LAST) {
-            val builtInsModule = moduleDescriptor.builtIns.builtInsModule
-            module.assertModuleDependencyIsCorrect(builtInsModule)
-            moduleDescriptors.add(builtInsModule)
-        }
+
         moduleDescriptors.toList()
     }
 
@@ -321,3 +297,10 @@ class LazyModuleDependencies<M : ModuleInfo>(
     override val allExpectedByDependencies: Set<ModuleDescriptorImpl>
         get() = emptySet()
 }
+
+/**
+ * AnalysisContext 的 ModuleDescriptor 能力键
+ *
+ * 用于在 ModuleDescriptor 中存储和检索关联的 AnalysisContext。
+ */
+val AnalysisContextCapability = ModuleCapability<AnalysisContext>("AnalysisContext")

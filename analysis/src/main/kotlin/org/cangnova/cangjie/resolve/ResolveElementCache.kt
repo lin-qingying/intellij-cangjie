@@ -90,7 +90,7 @@ class ResolveElementCache(
     private val cacheDependencies = listOfNotNull(
         resolveSession.exceptionTracker,
         ProjectRootModificationTracker.getInstance(project),
-        if (resolveSession.moduleDescriptor.getCapability(ModuleInfo.Capability) !is CjpmLibraryInfo) {
+        if (resolveSession.moduleDescriptor.getCapability(AnalysisContext.Capability) !is CjpmLibraryInfo) {
             CangJieCodeBlockModificationListener.getInstance(project).cangjieOutOfCodeBlockTracker
         } else null
     ).toTypedArray()

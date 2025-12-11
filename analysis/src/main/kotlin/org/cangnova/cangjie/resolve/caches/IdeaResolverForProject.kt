@@ -25,11 +25,10 @@
 package org.cangnova.cangjie.resolve.caches
 
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.builtins.createBuiltIns
 import org.cangnova.cangjie.context.ProjectContext
 import org.cangnova.cangjie.context.withModule
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.descriptors.ModuleInfo
 import org.cangnova.cangjie.descriptors.impl.ModuleDescriptorImpl
 
 import org.cangnova.cangjie.psi.CjFile
@@ -47,8 +46,8 @@ import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.search.GlobalSearchScope
 import java.util.*
 
-data class ModuleContent<out M : ModuleInfo>(
-    val moduleInfo: M,
+data class ModuleContent<out M : AnalysisContext>(
+    val context: M,
     val syntheticFiles: Collection<CjFile>,
     val moduleContentScope: GlobalSearchScope
 )
@@ -57,12 +56,12 @@ data class ModuleContent<out M : ModuleInfo>(
 class IdeaResolverForProject(
     debugName: String,
     projectContext: ProjectContext,
-    modules: Collection<ModuleInfo>,
-    private val syntheticFilesByModule: Map<ModuleInfo, Collection<CjFile>>,
-    delegateResolver: ResolverForProject<ModuleInfo>,
+    modules: Collection<AnalysisContext>,
+    private val syntheticFilesByModule: Map<AnalysisContext, Collection<CjFile>>,
+    delegateResolver: ResolverForProject<AnalysisContext>,
     fallbackModificationTracker: ModificationTracker? = null,
 
-    ) : AbstractResolverForProject<ModuleInfo>(
+    ) : AbstractResolverForProject<AnalysisContext>(
 
     debugName,
     projectContext,
@@ -77,25 +76,25 @@ class IdeaResolverForProject(
     private val created = Date().toString()
 
 
-    private fun getResolverForModuleFactory(moduleInfo: ModuleInfo): ResolverForModuleFactory {
+    private fun getResolverForModuleFactory(context: AnalysisContext): ResolverForModuleFactory {
 
 
         return CangJieResolverForModuleFactory()
     }
 
-    override fun modulesContent(module: ModuleInfo): ModuleContent<ModuleInfo> =
-        ModuleContent(module, syntheticFilesByModule[module] ?: emptyList(), module.moduleContentScope)
+    override fun modulesContent(module: AnalysisContext): ModuleContent<AnalysisContext> =
+        ModuleContent(module, syntheticFilesByModule[module] ?: emptyList(), module.scope)
 
-    override fun createResolverForModule(descriptor: ModuleDescriptor, moduleInfo: ModuleInfo): ResolverForModule {
+    override fun createResolverForModule(descriptor: ModuleDescriptor, context: AnalysisContext): ResolverForModule {
         val moduleContent =
-            ModuleContent(moduleInfo, syntheticFilesByModule[moduleInfo] ?: listOf(), moduleInfo.moduleContentScope)
+            ModuleContent(context, syntheticFilesByModule[context] ?: listOf(), context.scope)
 
         val project = projectContext.project
         val languageVersionSettings =
-            project.service<LanguageSettingsProvider>().getLanguageVersionSettings(moduleInfo, project)
+            project.service<LanguageSettingsProvider>().getLanguageVersionSettings(context, project)
 
-        val resolverForModuleFactory = getResolverForModuleFactory(moduleInfo)
-        val optimizingOptions = ResolveOptimizingOptionsProvider.getOptimizingOptions(project, descriptor, moduleInfo)
+        val resolverForModuleFactory = getResolverForModuleFactory(context)
+        val optimizingOptions = ResolveOptimizingOptionsProvider.getOptimizingOptions(project, descriptor, context)
 
         val resolverForModule = resolverForModuleFactory.createResolverForModule(
             descriptor as ModuleDescriptorImpl,
@@ -107,11 +106,11 @@ class IdeaResolverForProject(
             resolveOptimizingOptions = optimizingOptions,
             absentDescriptorHandlerClass = IdeaAbsentDescriptorHandler::class.java
         )
-//        ResolverForModuleComputationTrackerEx.getInstance(project)?.onCreateResolverForModule(descriptor, moduleInfo)
+//        ResolverForModuleComputationTrackerEx.getInstance(project)?.onCreateResolverForModule(descriptor, context)
         return resolverForModule
     }
 
-    override fun builtInsForModule(module: ModuleInfo): CangJieBuiltIns {
+    override fun builtInsForModule(module: AnalysisContext): CangJieBuiltIns {
 
 
         return builtInsCache.getOrCreateIfNeeded(module)
@@ -120,7 +119,7 @@ class IdeaResolverForProject(
     class BuiltInsCache(private val projectContext: ProjectContext, private val resolver: IdeaResolverForProject) {
         private val cache = mutableMapOf<BuiltInsCacheKey, CangJieBuiltIns>()
 
-        fun getOrCreateIfNeeded(module: ModuleInfo): CangJieBuiltIns = projectContext.storageManager.compute {
+        fun getOrCreateIfNeeded(module: AnalysisContext): CangJieBuiltIns = projectContext.storageManager.compute {
             ProgressManager.checkCanceled()
 
 //            val sdk = resolverForSdk.sdkDependency(module)

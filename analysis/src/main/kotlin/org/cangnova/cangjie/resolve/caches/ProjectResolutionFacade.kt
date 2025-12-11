@@ -34,13 +34,8 @@ import com.intellij.psi.util.CachedValuesManager
 import org.cangnova.cangjie.context.GlobalContextImpl
 import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.descriptors.ModuleInfo
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.diagnostics.DiagnosticSink
-import org.cangnova.cangjie.ide.cache.project.getModuleInfosFromIdeaModel
-import org.cangnova.cangjie.ide.cache.trackers.CangJieCodeBlockModificationListener
-import org.cangnova.cangjie.ide.projectStructure.ModuleInfoProvider
-import org.cangnova.cangjie.ide.projectStructure.moduleInfo
-import org.cangnova.cangjie.ide.projectStructure.moduleInfo.NotUnderContentRootModuleInfo
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.resolve.AnalysisResult
@@ -62,11 +57,11 @@ class ProjectResolutionFacade(
     val globalContext: GlobalContextImpl,
 //    val settings: PlatformAnalysisSettings,
     val reuseDataFrom: ProjectResolutionFacade?,
-    val moduleFilter: (ModuleInfo) -> Boolean,
+    val moduleFilter: (AnalysisContext) -> Boolean,
     dependencies: List<Any>,
     private val invalidateOnOOCB: Boolean,
     val syntheticFiles: Collection<CjFile> = listOf(),
-    val allModules: Collection<ModuleInfo>? = null//空意味着从想法模型为模块创建解析器
+    val allModules: Collection<AnalysisContext>? = null//空意味着从想法模型为模块创建解析器
 ) {
 
     // 创建并缓存一个值，该值用于存储项目解析器提供者
@@ -91,7 +86,7 @@ class ProjectResolutionFacade(
     )
     private val analysisResultsLock = ReentrantLock()
     private val resolverForProjectDependencies = dependencies + globalContext.exceptionTracker
-    private val cachedResolverForProject: ResolverForProject<ModuleInfo>
+    private val cachedResolverForProject: ResolverForProject<AnalysisContext>
         get() = globalContext.storageManager.compute { cachedValue.value }
 
     private val analysisResultsSimpleLock = CancellableSimpleLock(
@@ -107,11 +102,11 @@ class ProjectResolutionFacade(
      * 此函数负责构建一个解析器实例，用于解析项目中的模块信息它通过聚合所有模块信息，
      * 过滤和解析这些模块，并考虑合成文件和模块依赖关系来完成这项任务
      *
-     * @return ResolverForProject<ModuleInfo> 实例，用于解析模块信息
+     * @return ResolverForProject<AnalysisContext> 实例，用于解析模块信息
      */
-    private fun computeModuleResolverProvider(): ResolverForProject<ModuleInfo> {
+    private fun computeModuleResolverProvider(): ResolverForProject<AnalysisContext> {
         // 初始化代理解析器，如果没有重用的数据，则使用空解析器
-        val delegateResolverForProject: ResolverForProject<ModuleInfo> =
+        val delegateResolverForProject: ResolverForProject<AnalysisContext> =
             reuseDataFrom?.cachedResolverForProject ?: EmptyResolverForProject()
 
         // 获取所有模块信息，如果allModules为空，则从Idea模型中获取
@@ -148,8 +143,8 @@ class ProjectResolutionFacade(
     }
 
 
-    internal fun getResolverForProject(): ResolverForProject<ModuleInfo> = cachedResolverForProject
-    internal fun resolverForModuleInfo(moduleInfo: ModuleInfo) = cachedResolverForProject.resolverForModule(moduleInfo)
+    internal fun getResolverForProject(): ResolverForProject<AnalysisContext> = cachedResolverForProject
+    internal fun resolverForModuleInfo(context: AnalysisContext) = cachedResolverForProject.resolverForModule(moduleInfo)
 
 
     private val analysisResults = CachedValuesManager.getManager(project).createCachedValue(
@@ -201,7 +196,7 @@ class ProjectResolutionFacade(
         }, false
     )
 
-    internal fun findModuleDescriptor(ideaModuleInfo: ModuleInfo): ModuleDescriptor {
+    internal fun findModuleDescriptor(ideaModuleInfo: AnalysisContext): ModuleDescriptor {
         return cachedResolverForProject.descriptorForModule(ideaModuleInfo)
     }
 
@@ -281,7 +276,7 @@ class ProjectResolutionFacade(
     internal fun resolverForElement(element: PsiElement): ResolverForModule {
 
 
-        val moduleInfos = mutableSetOf<ModuleInfo>()
+        val moduleInfos = mutableSetOf<AnalysisContext>()
 
 
         val elementModuleInfos = ModuleInfoProvider.getInstance(element.project).collect(

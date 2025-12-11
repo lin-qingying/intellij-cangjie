@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.resolve.lazy.declarations
 
-import org.cangnova.cangjie.descriptors.ModuleInfo
+import org.cangnova.cangjie.descriptors.AnalysisContext
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.storage.StorageManager
 import com.intellij.openapi.project.Project
@@ -42,7 +42,7 @@ class CliDeclarationProviderFactoryService(private val sourceFiles: Collection<C
         storageManager: StorageManager,
         syntheticFiles: Collection<CjFile>,
         filesScope: GlobalSearchScope,
-        moduleInfo: ModuleInfo
+        context: AnalysisContext
     ): DeclarationProviderFactory {
         val allFiles = ArrayList<CjFile>()
         sourceFiles.filterTo(allFiles) {
@@ -60,7 +60,7 @@ abstract class DeclarationProviderFactoryService {
         storageManager: StorageManager,
         syntheticFiles: Collection<CjFile>,
         filesScope: GlobalSearchScope,
-        moduleInfo: ModuleInfo
+        context: AnalysisContext
 
     ): DeclarationProviderFactory
 
@@ -71,7 +71,7 @@ abstract class DeclarationProviderFactoryService {
             storageManager: StorageManager,
             syntheticFiles: Collection<CjFile>,
             moduleContentScope: GlobalSearchScope,
-            moduleInfo: ModuleInfo
+            context: AnalysisContext
 
         ): DeclarationProviderFactory {
             return project.getService(DeclarationProviderFactoryService::class.java)!!

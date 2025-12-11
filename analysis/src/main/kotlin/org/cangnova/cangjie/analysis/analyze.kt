@@ -22,22 +22,7 @@
  *
  */
 
-package org.cangnova.cangjie.resolve.caches
+package org.cangnova.cangjie.analysis
 
-import org.cangnova.cangjie.descriptors.AnalysisContext
-
-interface BuiltInsCacheKey {
-    object DefaultBuiltInsKey : BuiltInsCacheKey
-}
-
-class CangJieModuleBuiltInsKey(context: AnalysisContext) : BuiltInsCacheKey
-
-private var _builtinsKey: CangJieModuleBuiltInsKey? = null
-fun AnalysisContext.getKeyForBuiltIns(): BuiltInsCacheKey {
-//    if (_builtinsKey == null) {
-//        _builtinsKey = CangJieModuleBuiltInsKey(this)
-//    }
-//    return _builtinsKey!!
-
-    return CangJieModuleBuiltInsKey(this)
-}
+import com.intellij.psi.PsiFile
+import org.cangnova.cangjie.psi.CjElement

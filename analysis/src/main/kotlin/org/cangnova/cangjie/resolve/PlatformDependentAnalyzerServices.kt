@@ -24,9 +24,9 @@
 
 package org.cangnova.cangjie.resolve
 
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.container.StorageComponentContainer
+import org.cangnova.cangjie.descriptors.DependencyOnBuiltIns
 import org.cangnova.cangjie.name.FqName
 import org.cangnova.cangjie.psi.ImportPath
 import org.cangnova.cangjie.storage.LockBasedStorageManager
@@ -44,7 +44,7 @@ abstract class PlatformDependentAnalyzerServices {
     private val defaultImports = LockBasedStorageManager("TargetPlatform").let { storageManager ->
         storageManager.createMemoizedFunction<DefaultImportsKey, List<ImportPath>> { (includeCangJieComparisons, includeLowPriorityImports) ->
             ArrayList<ImportPath>().apply {
-/
+
                 listOf(
 
                     "std.core.*",
@@ -73,7 +73,7 @@ abstract class PlatformDependentAnalyzerServices {
     ): List<ImportPath> =
         defaultImports(
             DefaultImportsKey(
-                languageVersionSettings.supportsFeature(LanguageFeature.DefaultImportOfPackageCangJieComparisons),
+                true,
                 includeLowPriorityImports
             )
         )
@@ -84,8 +84,8 @@ abstract class PlatformDependentAnalyzerServices {
     open val excludedImports: List<FqName> get() = emptyList()
 
     //
-    open fun dependencyOnBuiltIns(): ModuleInfo.DependencyOnBuiltIns =
-        ModuleInfo.DependencyOnBuiltIns.LAST
+    open fun dependencyOnBuiltIns(): DependencyOnBuiltIns =
+        DependencyOnBuiltIns.LAST
 }
 
 

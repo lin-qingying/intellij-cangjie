@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/analysis" />
             <option value="$PROJECT_DIR$/analysis/decompiler-to-psi" />
             <option value="$PROJECT_DIR$/analysis/diagnostics" />
+            <option value="$PROJECT_DIR$/analysis/project-bridge" />
             <option value="$PROJECT_DIR$/cangjie-project" />
             <option value="$PROJECT_DIR$/cjpm" />
             <option value="$PROJECT_DIR$/common" />

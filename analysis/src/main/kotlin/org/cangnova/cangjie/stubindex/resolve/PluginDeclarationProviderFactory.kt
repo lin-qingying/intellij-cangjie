@@ -39,7 +39,7 @@ class PluginDeclarationProviderFactory(
     private val indexedFilesScope: GlobalSearchScope,
     private val storageManager: StorageManager,
     private val nonIndexedFiles: Collection<CjFile>,
-    private val moduleInfo: ModuleInfo
+    private val context: AnalysisContext
 
 ) : AbstractDeclarationProviderFactory(storageManager) {
 
