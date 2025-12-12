@@ -32,6 +32,7 @@ import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.resolve.calls.inference.model.ConstraintPosition
 import org.cangnova.cangjie.types.CangJieType
 
 // ========================================
@@ -139,9 +140,9 @@ val INCOMPATIBLE_ENUM_COMPARISON_ERROR: DiagnosticFactory2<CjElement, CangJieTyp
 /**
  * 约束中的类型不匹配
  */
-//@JvmField
-//val TYPE_MISMATCH_IN_CONSTRAINT: DiagnosticFactory3<CjTypeReference, CangJieType, CangJieType, ConstraintPosition> =
-//    DiagnosticFactory3.create(Severity.ERROR)
+@JvmField
+val TYPE_MISMATCH_IN_CONSTRAINT: DiagnosticFactory3<PsiElement, CangJieType, CangJieType, ConstraintPosition> =
+    DiagnosticFactory3.create(Severity.ERROR)
 
 /**
  * 约束中的上界违反
@@ -179,7 +180,7 @@ val VALUE_PARAMETER_WITH_NO_TYPE_ANNOTATION: DiagnosticFactory0<CjParameter> =
  * 新推导：参数信息不足
  */
 @JvmField
-val NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER: DiagnosticFactory2<PsiElement, String, DeclarationDescriptor> =
+val NEW_INFERENCE_NO_INFORMATION_FOR_PARAMETER: DiagnosticFactory2<PsiElement, String, DeclarationDescriptor?> =
     DiagnosticFactory2.create(Severity.ERROR)
 
 /**

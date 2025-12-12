@@ -298,3 +298,46 @@ val AnalysisContext.scopeWithAllDependencies: GlobalSearchScope
  */
 val AnalysisContext.isLibraryContext: Boolean
     get() = !isSourceContext
+
+/**
+ * 不在内容根下的文件的分析上下文
+ *
+ * 用于表示那些不属于任何正常模块的文件，例如：
+ * - Scratch 文件
+ * - 临时文件
+ * - 从外部打开的独立文件
+ *
+ * 这些文件没有正常的模块结构，因此提供一个空的依赖列表和空作用域。
+ *
+ * @property project IntelliJ 项目实例
+ * @property file 可选的 CjFile 实例（可能为 null）
+ */
+class NotUnderContentRootModuleInfo(
+    override val project: Project,
+    val file: org.cangnova.cangjie.psi.CjFile? = null
+) : AnalysisContext {
+    override val contextId: String = "NotUnderContentRoot"
+
+    override val scope: GlobalSearchScope = file?.let {
+        GlobalSearchScope.fileScope(project, it.virtualFile)
+    } ?: GlobalSearchScope.EMPTY_SCOPE
+
+    override val dependencies: List<AnalysisContext> = emptyList()
+
+    override val isSourceContext: Boolean = false
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is NotUnderContentRootModuleInfo) return false
+        return project == other.project && file == other.file
+    }
+
+    override fun hashCode(): Int {
+        var result = project.hashCode()
+        result = 31 * result + (file?.hashCode() ?: 0)
+        return result
+    }
+
+    override fun toString(): String = "NotUnderContentRootModuleInfo(file=$file)"
+}
+

@@ -392,7 +392,7 @@ class CangJieResolutionCallbacksImpl(
         } ?: return null
 
         val leftType = trace.get(BindingContext.TYPE, binaryParent.right ?: return null) ?: return null
-        val expectedType = /*if (operationType == CjTokens.AS_SAFE) leftType.makeOptional() else*/ leftType
+        val expectedType = /*if (operationType == CjTokens.AS_SAFE) leftType.makeOption() else*/ leftType
         val resultType = expectedType.unwrap()
         trace.record(BindingContext.CAST_TYPE_USED_AS_EXPECTED_TYPE, binaryParent)
         return resultType

@@ -244,7 +244,7 @@ class DoubleColonExpressionResolver(
             )
         } else {
             val actualType = possiblyBareType.actualType
-            /*            if (doubleColonExpression.hasQuestionMarks) actualType.makeOptional() else */actualType
+            /*            if (doubleColonExpression.hasQuestionMarks) actualType.makeOption() else */actualType
         }
 
         return DoubleColonLHS.Type(type, possiblyBareType)

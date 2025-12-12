@@ -24,9 +24,9 @@
 
 package org.cangnova.cangjie.resolve.calls
 
+import org.cangnova.cangjie.types.contains
 
 import org.cangnova.cangjie.builtins.UnsignedTypes
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.diagnostics.Diagnostic
 import org.cangnova.cangjie.diagnostics.DiagnosticFactory2
 import org.cangnova.cangjie.diagnostics.reportDiagnosticOnce
@@ -59,8 +59,12 @@ import org.cangnova.cangjie.types.model.freshTypeConstructor
 import org.cangnova.cangjie.utils.shouldNotBeCalled
 import io.github.classgraph.TypeArgument
 import org.cangnova.cangjie.diagnostics.infos.errors.*
+import org.cangnova.cangjie.diagnostics.infos.warnings.*
+import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.types.ErrorUtils
 import org.cangnova.cangjie.types.TypeUtils
+import org.cangnova.cangjie.types.isExtensionFunctionType
+import org.cangnova.cangjie.types.makeOption
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -379,7 +383,7 @@ class DiagnosticReporterByTrackingStrategy(
                 resolvedCall.updateExtensionReceiverWithSmartCastIfNeeded(smartCastResult.resultType)
             }
             if (resolvedCall.dispatchReceiver == expressionArgument.receiver.receiverValue) {
-                resolvedCall.setSmartCastDispatchReceiverType(smartCastResult.resultType)
+                resolvedCall.smartCastDispatchReceiverType = smartCastResult.resultType
             }
         }
     }
@@ -737,7 +741,7 @@ class DiagnosticReporterByTrackingStrategy(
 //            is BuilderInferenceExpectedTypeConstraintPosition -> {
 //                val inferredType =
 //                    if (!error.lowerCangJieType.isOptionNothing()) error.lowerCangJieType
-//                    else error.upperCangJieType.makeOptional()
+//                    else error.upperCangJieType.makeOption()
 //                trace.report(TYPE_MISMATCH.on(position.topLevelCall, error.upperCangJieType, inferredType))
 //            }
             is ExpectedTypeConstraintPosition<*> -> {
@@ -745,7 +749,7 @@ class DiagnosticReporterByTrackingStrategy(
                     (position.topLevelCall as? CangJieCall)?.psiCangJieCall?.psiCall?.callElement as? CjExpression
                 val inferredType =
                     if (!error.lowerCangJieType.isNothing()) error.lowerCangJieType
-                    else error.upperCangJieType.makeOptional()
+                    else error.upperCangJieType.makeOption()
                 if (call != null) {
                     report(typeMismatchDiagnostic.on(call, error.upperCangJieType, inferredType))
                 }
@@ -816,6 +820,7 @@ class DiagnosticReporterByTrackingStrategy(
                 if (AbstractTypeChecker.RUN_SLOW_ASSERTIONS) {
                     throw AssertionError("Constraint error in unexpected position: $position")
                 } else if (reportAdditionalErrors) {
+
                     report(
                         TYPE_MISMATCH_IN_CONSTRAINT.on(
                             psiCangJieCall.psiCall.callElement,
@@ -1043,13 +1048,14 @@ class DiagnosticReporterByTrackingStrategy(
             is OnlyInputTypesDiagnostic -> {
                 val typeVariable = error.typeVariable as? TypeVariableFromCallableDescriptor ?: return
                 psiCangJieCall.psiCall.calleeExpression?.let {
-                    trace.report(
-                        TYPE_INFERENCE_ONLY_INPUT_TYPES.on(
-                            context.languageVersionSettings,
-                            it,
-                            typeVariable.originalTypeParameter
-                        )
-                    )
+                    TODO()
+//                    trace.report(
+//                        TYPE_INFERENCE_ONLY_INPUT_TYPES.on(
+//                            context.languageVersionSettings,
+//                            it,
+//                            typeVariable.originalTypeParameter
+//                        )
+//                    )
                 }
             }
 //
@@ -1068,10 +1074,11 @@ class DiagnosticReporterByTrackingStrategy(
                     val causingTypesText =
                         if (incompatibleTypes == causingTypes) "" else ": ${causingTypes.joinToString()}"
                     val diagnostic = if (error.kind.isDefinitelyEmpty) {
-                        INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION.on(
-                            context.languageVersionSettings, expression, typeVariableText,
-                            incompatibleTypes, error.kind.description, causingTypesText
-                        )
+//                        INFERRED_TYPE_VARIABLE_INTO_EMPTY_INTERSECTION.on(
+//                            context.languageVersionSettings, expression, typeVariableText,
+//                            incompatibleTypes, error.kind.description, causingTypesText
+//                        )
+                        TODO()
                     } else {
                         INFERRED_TYPE_VARIABLE_INTO_POSSIBLE_EMPTY_INTERSECTION.on(
                             expression, typeVariableText,

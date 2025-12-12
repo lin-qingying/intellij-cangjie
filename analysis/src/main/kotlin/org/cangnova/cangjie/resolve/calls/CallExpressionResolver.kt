@@ -25,19 +25,15 @@
 package org.cangnova.cangjie.resolve.calls
 
 import com.intellij.lang.ASTNode
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.util.AstLoadingFilter
 import jakarta.inject.Inject
 import org.cangnova.cangjie.builtins.CangJieBuiltIns
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.infos.errors.*
-import org.cangnova.cangjie.diagnostics.infos.warnings.SAFE_CALL_WILL_CHANGE_NULLABILITY
 import org.cangnova.cangjie.diagnostics.infos.warnings.UNNECESSARY_SAFE_CALL
 import org.cangnova.cangjie.psi.*
-import org.cangnova.cangjie.psi.psiUtil.getStrictParentOfType
 import org.cangnova.cangjie.resolve.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.binding.BindingContext.Companion.IS_FUNC
@@ -54,7 +50,6 @@ import org.cangnova.cangjie.resolve.calls.results.ResolutionStatus
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValue
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowValueFactory
-import org.cangnova.cangjie.resolve.calls.tower.NewResolutionOldInference
 import org.cangnova.cangjie.resolve.calls.util.*
 import org.cangnova.cangjie.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.cangnova.cangjie.resolve.scopes.receivers.*
@@ -553,7 +548,7 @@ class CallExpressionResolver(
         val selectorType = selectorTypeInfo.type
         if (selectorType != null) {
             if (element.safe && shouldNullifySafeCallType) {
-                selectorTypeInfo = selectorTypeInfo.replaceType(TypeUtils.makeOptional(selectorType))
+                selectorTypeInfo = selectorTypeInfo.replaceType(TypeUtils.makeOption(selectorType))
             }
             // TODO : this is suspicious: remove this code?
             if (selector != null) {

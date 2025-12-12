@@ -62,7 +62,7 @@ abstract class CangJiePreparator : AbstractTypePreparator() {
 //            }
 //
 //            is IntersectionTypeConstructor -> if (type.isMarkedOption) {
-//                val newConstructor = constructor.transformComponents(transform = { it.makeOptional() }) ?: constructor
+//                val newConstructor = constructor.transformComponents(transform = { it.makeOption() }) ?: constructor
 //                return newConstructor.createType()
 //
 //            }
@@ -129,7 +129,7 @@ abstract class CangJieTypePreparator : AbstractTypePreparator() {
 //            }
 //
 //            is IntersectionTypeConstructor -> if (type.isMarkedOption) {
-//                val newConstructor = constructor.transformComponents(transform = { it.makeOptional() }) ?: constructor
+//                val newConstructor = constructor.transformComponents(transform = { it.makeOption() }) ?: constructor
 //                return newConstructor.createType()
 //
 //            }

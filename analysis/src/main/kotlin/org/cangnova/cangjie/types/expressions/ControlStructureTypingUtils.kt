@@ -228,7 +228,7 @@ class ControlStructureTypingUtils(
             )
 
             val type = typeParameter.defaultType
-            val nullableType = TypeUtils.makeOptional(type)
+            val nullableType = TypeUtils.makeOption(type)
 
             val valueParameters = ArrayList<ValueParameterDescriptor>(argumentNames.size)
             for (i in argumentNames.indices) {
@@ -386,7 +386,7 @@ class ControlStructureTypingUtils(
 
             fun makeTypeNullable(): CheckTypeContext {
                 if (TypeUtils.noExpectedType(expectedType)) return this
-                return CheckTypeContext(trace, TypeUtils.makeOptional(expectedType))
+                return CheckTypeContext(trace, TypeUtils.makeOption(expectedType))
             }
         }
 

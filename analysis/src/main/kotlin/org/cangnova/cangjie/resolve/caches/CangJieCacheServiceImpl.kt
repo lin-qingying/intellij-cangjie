@@ -299,9 +299,9 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         }
 
         return when {
-            specialContext is LibraryInfo || specialContext is NotUnderContentRootModuleInfo -> {
+            !specialContext.isSourceContext || specialContext is NotUnderContentRootModuleInfo -> {
                 val librariesFacade = librariesFacade()
-                val debugName = "facadeForSpecialContext (LibraryInfo or NotUnderContentRootModuleInfo)"
+                val debugName = "facadeForSpecialContext (Library or NotUnderContentRoot)"
                 val globalContext =
                     librariesFacade.globalContext.contextWithCompositeExceptionTracker(project, debugName)
                 makeProjectResolutionFacade(

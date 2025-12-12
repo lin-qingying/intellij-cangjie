@@ -113,7 +113,7 @@ object BindingContextUtils {
     ): CangJieType? {
         if (type == null) return null
 
-        val updatedType = if (shouldBeMadeNullable) TypeUtils.makeOptional(type) else type
+        val updatedType = if (shouldBeMadeNullable) TypeUtils.makeOption(type) else type
         trace.recordType(expression, updatedType)
         return updatedType
     }

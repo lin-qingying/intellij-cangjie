@@ -37,7 +37,6 @@ import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.isNothing
 import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.isNumber
 import org.cangnova.cangjie.builtins.CangJieBuiltIns.Companion.isUnit
 import org.cangnova.cangjie.builtins.StandardNames
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.diagnostics.InvalidBinaryData
@@ -630,7 +629,7 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         }
 
         val result =
-            TypeUtils.makeOptional(
+            TypeUtils.makeOption(
                 targetType
             )
         val resultTypeInfo: CangJieTypeInfo =

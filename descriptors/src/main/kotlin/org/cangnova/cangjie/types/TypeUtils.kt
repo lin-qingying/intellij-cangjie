@@ -814,7 +814,7 @@ object TypeUtils {
      * 示例：
      * ```kotlin
      * val intType: CangJieType = BasicType(...)
-     * val optionIntType = makeOptional(intType) // 返回 OptionType(intType)
+     * val optionIntType = makeOption(intType) // 返回 OptionType(intType)
      * optionIntType.isOption // true
      * ```
      *
@@ -822,7 +822,7 @@ object TypeUtils {
      * @return Option类型
      */
     @JvmStatic
-    fun makeOptional(type: CangJieType): CangJieType {
+    fun makeOption(type: CangJieType): CangJieType {
         return makeOptionalAsSpecified(type, true)
     }
 
@@ -920,7 +920,7 @@ object TypeUtils {
         optional: Boolean
     ): CangJieType {
         if (optional) {
-            return makeOptional(type)
+            return makeOption(type)
         }
         return type
     }
@@ -1436,7 +1436,7 @@ fun makeOptionType(innerType: CangJieType): CangJieType {
     return OptionType(innerType)
 }
 
-fun CangJieType.makeOptional() = TypeUtils.makeOptional(this)
+fun CangJieType.makeOption() = TypeUtils.makeOption(this)
 fun CangJieType.makeNonOption() = TypeUtils.makeNonOption(this)
 
 /**
@@ -2001,7 +2001,7 @@ fun CangJieType.expandIntersectionTypeIfNecessary(): Collection<CangJieType> {
     if (constructor !is IntersectionTypeConstructor) return listOf(this)
     val types = constructor.supertypes
     return if (isMarkedOption()) {
-        types.map { it.makeOptional() }
+        types.map { it.makeOption() }
     } else {
         types
     }

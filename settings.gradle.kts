@@ -112,3 +112,4 @@ include("analysis:project-bridge")
 include("analysis:diagnostics")
 
 include("psi:stubindex")
+include("highlighter")

@@ -346,9 +346,6 @@ class ConstraintInjector(
         private var stackForConstraintSetFromCurrentForkPointBranch: Stack<MutableList<Pair<TypeVariableMarker, Constraint>>>? =
             null
 
-//        override val isInferenceCompatibilityEnabled =
-//            languageVersionSettings.supportsFeature(LanguageFeature.InferenceCompatibility)
-
         private val allowForking: Boolean
             get() = constraintIncorporator.utilContext.isForcedAllowForkingInferenceSystem
 
@@ -386,9 +383,6 @@ class ConstraintInjector(
 
         override fun addEqualityConstraint(typeVariable: TypeConstructorMarker, type: CangJieTypeMarker) =
             addConstraint(typeVariable, type, ConstraintKind.EQUALITY, false)
-
-        override val isInferenceCompatibilityEnabled =
-            languageVersionSettings.supportsFeature(LanguageFeature.InferenceCompatibility)
 
         override fun addUpperConstraint(typeVariable: TypeConstructorMarker, superType: CangJieTypeMarker) =
             addConstraint(typeVariable, superType, ConstraintKind.UPPER)

@@ -111,7 +111,7 @@ class PossiblyBareType private constructor(
             return if (isBareTypeNullable()) this else bare(bareTypeConstructor, true)
         }
 
-        return type(TypeUtils.makeOptional(actualType))
+        return type(TypeUtils.makeOption(actualType))
     }
 
 

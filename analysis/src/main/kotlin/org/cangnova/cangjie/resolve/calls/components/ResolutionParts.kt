@@ -26,13 +26,11 @@ package org.cangnova.cangjie.resolve.calls.components
 
 import com.intellij.util.SmartList
 import org.cangnova.cangjie.builtins.UnsignedTypes
-import org.cangnova.cangjie.config.LanguageFeature
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.DescriptorVisibilities.PRIVATE
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.name.OperatorNameConventions
 import org.cangnova.cangjie.psi.CjCallExpression
-import org.cangnova.cangjie.resolve.DescriptorUtils
 import org.cangnova.cangjie.resolve.calls.components.candidate.CallableReferenceResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.components.candidate.ResolutionCandidate
 import org.cangnova.cangjie.resolve.calls.inference.*
@@ -734,7 +732,7 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
         fun createFlexibleType() =
             CangJieTypeFactory.flexibleType(
                 type.makeNonOption().lowerIfFlexible(),
-                type.makeOptional().upperIfFlexible()
+                type.makeOption().upperIfFlexible()
             )
 
         return when {

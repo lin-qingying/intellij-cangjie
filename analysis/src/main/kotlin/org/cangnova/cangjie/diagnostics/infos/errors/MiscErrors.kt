@@ -37,6 +37,7 @@ import org.cangnova.cangjie.diagnostics.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
+import org.cangnova.cangjie.resolve.calls.tower.CandidateApplicability
 import org.cangnova.cangjie.types.CangJieType
 
 // ========================================
@@ -540,8 +541,8 @@ val NEW_INFERENCE_ERROR: DiagnosticFactory1<PsiElement, String> =
  * 新推导未知错误
  */
 //@JvmField
-//val NEW_INFERENCE_UNKNOWN_ERROR: DiagnosticFactory2<PsiElement, CandidateApplicability, String> =
-//    DiagnosticFactory2.create(Severity.ERROR)
+val NEW_INFERENCE_UNKNOWN_ERROR: DiagnosticFactory2<PsiElement, CandidateApplicability, String> =
+    DiagnosticFactory2.create(Severity.ERROR)
 
 // ========================================
 // Main 函数相关错误
