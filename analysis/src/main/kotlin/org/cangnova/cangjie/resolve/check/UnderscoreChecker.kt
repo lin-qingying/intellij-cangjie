@@ -40,6 +40,45 @@ import org.cangnova.cangjie.diagnostics.infos.errors.UNSUPPORTED_FEATURE
 
 
 object UnderscoreChecker : DeclarationChecker {
+    /**
+     * 检查标识符中的下划线使用是否合法
+     *
+     * 下划线命名规则：
+     * 1. **多个下划线**（如 `__`, `___`）始终是错误的，在任何上下文中都保留
+     * 2. **单个下划线** `_` 只在特定上下文中允许：
+     *    - Lambda/匿名函数参数中可以使用（需要语言特性支持）
+     *    - 其他位置（类名、函数名、变量名等）不允许
+     *
+     * @param identifier 要检查的标识符 PSI 元素
+     * @param diagnosticHolder 诊断信息收集器，用于报告错误
+     * @param languageVersionSettings 语言版本设置，用于检查特性是否启用
+     * @param allowSingleUnderscore 是否允许单个下划线（仅在 Lambda 参数等特殊上下文中为 true）
+     *
+     * ## 检查逻辑：
+     * 1. 如果标识符为空，跳过检查
+     * 2. 判断是否为"有效的单下划线"：必须同时满足
+     *    - `allowSingleUnderscore = true`（在允许的上下文中）
+     *    - 标识符文本恰好是 `"_"`
+     * 3. 如果不是有效的单下划线，且所有字符都是下划线
+     *    → 报告 **UNDERSCORE_IS_RESERVED** 错误
+     * 4. 如果是有效的单下划线，但语言版本不支持 SingleUnderscoreForParameterName 特性
+     *    → 报告 **UNSUPPORTED_FEATURE** 错误
+     *
+     * ## 示例：
+     * ```
+     * // ✅ 允许（Lambda 中，且特性已启用）
+     * list.forEach { _ -> println("处理") }
+     *
+     * // ❌ 错误：多个下划线始终保留
+     * val __ = 10  // Error: UNDERSCORE_IS_RESERVED
+     *
+     * // ❌ 错误：在非 Lambda 上下文中使用单下划线
+     * val _ = 10  // Error: UNDERSCORE_IS_RESERVED
+     *
+     * // ❌ 错误：Lambda 中使用，但语言版本不支持
+     * list.forEach { _ -> ... }  // Error: UNSUPPORTED_FEATURE
+     * ```
+     */
     @JvmOverloads
     fun checkIdentifier(
         identifier: PsiElement?,
@@ -47,11 +86,23 @@ object UnderscoreChecker : DeclarationChecker {
         languageVersionSettings: LanguageVersionSettings,
         allowSingleUnderscore: Boolean = false
     ) {
+        // 1. 空检查：标识符为 null 或空字符串则跳过
         if (identifier == null || identifier.text.isEmpty()) return
+
+        // 2. 判断是否为有效的单下划线
+        //    条件：允许单下划线（Lambda 参数等）且标识符恰好是 "_"
         val isValidSingleUnderscore = allowSingleUnderscore && identifier.text == "_"
+
+        // 3. 检查规则 1：禁止多个下划线或非法的单下划线
+        //    如果不是有效的单下划线，且所有字符都是下划线（_, __, ___, ...）
+        //    则报告错误：下划线是保留的
         if (!isValidSingleUnderscore && identifier.text.all { it == '_' }) {
             diagnosticHolder.report(UNDERSCORE_IS_RESERVED.on(identifier))
-        } else if (isValidSingleUnderscore && !languageVersionSettings.supportsFeature(LanguageFeature.SingleUnderscoreForParameterName)) {
+        }
+        // 4. 检查规则 2：单下划线需要语言特性支持
+        //    如果是有效的单下划线，但当前语言版本不支持该特性
+        //    则报告错误：不支持的特性
+        else if (isValidSingleUnderscore && !languageVersionSettings.supportsFeature(LanguageFeature.SingleUnderscoreForParameterName)) {
             diagnosticHolder.report(
                 UNSUPPORTED_FEATURE.on(
                     identifier,

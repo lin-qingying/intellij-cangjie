@@ -80,7 +80,7 @@ abstract class DeclarationProviderFactoryService {
                     storageManager,
                     syntheticFiles,
                     filteringScope(syntheticFiles, moduleContentScope),
-                    moduleInfo
+                    context
                 )
         }
 

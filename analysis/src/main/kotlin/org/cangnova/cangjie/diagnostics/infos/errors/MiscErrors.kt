@@ -36,6 +36,7 @@ import org.cangnova.cangjie.diagnostics.*
 
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*
+import org.cangnova.cangjie.resolve.calls.model.ResolvedCall
 import org.cangnova.cangjie.types.CangJieType
 
 // ========================================
@@ -208,9 +209,9 @@ val TUPLE_INDEX_OUT_OF_RANGE: DiagnosticFactory0<PsiElement> =
 /**
  * 委托特殊函数无适用候选
  */
-//@JvmField
-//val DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE: DiagnosticFactory2<CjExpression, String, Collection<out ResolvedCall<*>>> =
-//    DiagnosticFactory2.create(Severity.ERROR)
+@JvmField
+val DELEGATE_SPECIAL_FUNCTION_NONE_APPLICABLE: DiagnosticFactory2<CjExpression, String, Collection<  ResolvedCall<*>>> =
+    DiagnosticFactory2.create(Severity.ERROR)
 
 /**
  * 缺少委托特殊函数

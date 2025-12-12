@@ -41,6 +41,7 @@ import org.cangnova.cangjie.psi.CjAbstractClassBody
 import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
+import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.psi.psiUtil.parentsWithSelf
 import org.cangnova.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import org.cangnova.cangjie.resolve.ResolutionFacade
@@ -666,22 +667,22 @@ inline fun <Scope, R> flatMapScopes(
 
 fun getResolveScope(file: CjFile): GlobalSearchScope {
     if (file is CjCodeFragment) {
-
         val contextScope = file.getContextContainingFile()?.resolveScope
         if (contextScope != null) {
-            return when (file.moduleInfo) {
-//                is SourceForBinaryModuleInfo -> CangJieSourceFilterScope.libraryClasses(contextScope, file.project)
-                else -> CangJieSourceFilterScope.projectSourcesAndLibraryClasses(contextScope, file.project)
+            return when {
+                file.analysisContext != null && !file.analysisContext!!.isSourceContext ->
+                    CangJieSourceFilterScope.libraryClasses(contextScope, file.project)
+                else ->
+                    CangJieSourceFilterScope.projectSourcesAndLibraryClasses(contextScope, file.project)
             }
         }
     }
 
-    return when (file.moduleInfo) {
-        is ModuleSourceInfo -> {
+    return when {
+        file.analysisContext?.isSourceContext == true -> {
             val projectScope = CangJieSourceFilterScope.projectFiles(file.resolveScope, file.project)
             CangJieResolveScopeEnlarger.enlargeScope(projectScope, file)
         }
-
         else -> GlobalSearchScope.EMPTY_SCOPE
     }
 }

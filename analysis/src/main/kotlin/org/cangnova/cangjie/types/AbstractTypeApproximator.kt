@@ -482,7 +482,7 @@ abstract class AbstractTypeApproximator(
             return typeWithErasedNullability
         }
 
-        return if (conf.definitelyNotNullType || languageVersionSettings.supportsFeature(LanguageFeature.DefinitelyNonNullableTypes)) {
+        return if (conf.definitelyNonOptionType || languageVersionSettings.supportsFeature(LanguageFeature.DefinitelyNonNullableTypes)) {
             approximatedOriginalType?.makeDefinitelyNonOptionOrNonOption()
         } else {
             if (toSuper)

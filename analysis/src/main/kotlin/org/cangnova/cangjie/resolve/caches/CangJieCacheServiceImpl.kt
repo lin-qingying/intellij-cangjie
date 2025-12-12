@@ -155,21 +155,17 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
 
 
     private fun getFacadeToAnalyzeFile(file: CjFile, settings: PlatformAnalysisSettings): ResolutionFacade {
+        val analysisContext = file.analysisContext
+        val specialFile = filterNotInProjectSource(file, analysisContext)
 
-        val moduleInfo = file.moduleInfo
-        val specialFile = filterNotInProjectSource(file, moduleInfo)
-
-//        val projectFacade = facadeForModules(settings)
-//
-//        return ResolutionFacadeImpl(projectFacade).createdFor(emptyList(),/* moduleInfo,*/ settings)
         if (specialFile != null) {
             val specialFiles = setOf(specialFile)
             val projectFacade = getFacadeForSpecialFiles(specialFiles, settings)
-            return ModuleResolutionFacadeImpl(projectFacade, moduleInfo).createdFor(specialFiles, moduleInfo)
+            return ModuleResolutionFacadeImpl(projectFacade, analysisContext).createdFor(specialFiles, analysisContext)
         }
-        return getResolutionFacadeByModuleInfo(moduleInfo /*, settings*/).createdFor(
+        return getResolutionFacadeByModuleInfo(analysisContext /*, settings*/).createdFor(
             emptyList(),
-            moduleInfo/*, settings*/
+            analysisContext/*, settings*/
         )
 
     }
@@ -266,9 +262,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         explicitSettings: PlatformAnalysisSettings? = null
     ): ProjectResolutionFacade {
         // we assume that all files come from the same module
-
-        val specialModuleInfo = files.map { it.moduleInfo }.toSet().single()
-//        val settings = explicitSettings ?: specialModuleInfo.platformSettings(specialModuleInfo.platform)
+        val specialContext = files.map { it.analysisContext }.toSet().single()
 
         // Dummy files created e.g. by J2K do not receive events.
         val dependencyTrackerForSyntheticFileCache = if (files.all { it.originalFile != it }) {
@@ -276,7 +270,7 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         } else ModificationTracker { files.sumByLong { it.modificationStamp } }
 
         val resolverDebugName =
-            "$resolverForSpecialInfoName $specialModuleInfo for files ${files.joinToString { it.name }} "
+            "$resolverForSpecialInfoName $specialContext for files ${files.joinToString { it.name }} "
 
         fun makeProjectResolutionFacade(
             debugName: String,
@@ -304,51 +298,49 @@ class CangJieCacheServiceImpl(val project: Project) : CangJieCacheService {
         }
 
         return when {
-
-
-            specialModuleInfo is LibraryInfo || specialModuleInfo is NotUnderContentRootModuleInfo -> {
+            specialContext is LibraryInfo || specialContext is NotUnderContentRootModuleInfo -> {
                 val librariesFacade = librariesFacade()
-                val debugName = "facadeForSpecialModuleInfo (LibrarySourceInfo or NotUnderContentRootModuleInfo)"
+                val debugName = "facadeForSpecialContext (LibraryInfo or NotUnderContentRootModuleInfo)"
                 val globalContext =
                     librariesFacade.globalContext.contextWithCompositeExceptionTracker(project, debugName)
                 makeProjectResolutionFacade(
                     debugName,
                     globalContext,
                     reuseDataFrom = librariesFacade,
-                    moduleFilter = { it == specialModuleInfo }
+                    moduleFilter = { it == specialContext }
                 )
             }
 
-            specialModuleInfo is ModuleSourceInfo -> {
-                val dependentModules = specialModuleInfo.getDependentModules()
+            specialContext?.isSourceContext == true -> {
+                val dependentModules = (specialContext as? IdeaModuleInfo)?.getDependentModules() ?: listOf(specialContext)
                 val modulesFacade = facadeForModules()
                 val globalContext =
                     modulesFacade.globalContext.contextWithCompositeExceptionTracker(
                         project,
-                        "facadeForSpecialModuleInfo (ModuleSourceInfo)"
+                        "facadeForSpecialContext (SourceContext)"
                     )
                 makeProjectResolutionFacade(
-                    "facadeForSpecialModuleInfo (ModuleSourceInfo)",
+                    "facadeForSpecialContext (SourceContext)",
                     globalContext,
                     reuseDataFrom = modulesFacade,
                     moduleFilter = { it in dependentModules }
                 )
             }
 
-            specialModuleInfo.isLibraryClasses() -> {
+            specialContext?.isLibraryClasses() == true -> {
                 //NOTE: this code should not be called for sdk or library classes
                 // currently the only known scenario is when we cannot determine that file is a library source
                 // (file under both classes and sources root)
-                LOG.warn("Creating cache with synthetic files ($files) in classes of library $specialModuleInfo")
+                LOG.warn("Creating cache with synthetic files ($files) in classes of library $specialContext")
                 val globalContext =
-                    GlobalContext("facadeForSpecialModuleInfo for file under both classes and root", project)
+                    GlobalContext("facadeForSpecialContext for file under both classes and root", project)
                 makeProjectResolutionFacade(
-                    "facadeForSpecialModuleInfo for file under both classes and root",
+                    "facadeForSpecialContext for file under both classes and root",
                     globalContext
                 )
             }
 
-            else -> throw IllegalStateException("Unknown IdeaModuleInfo ${specialModuleInfo::class.java}")
+            else -> throw IllegalStateException("Unknown AnalysisContext ${specialContext?.javaClass}")
         }
     }
 

@@ -49,6 +49,7 @@ import org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionByPackageIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelFunctionFqnNameIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelTypeAliasByPackageIndex
 import org.cangnova.cangjie.stubindex.CangJieTopLevelVariableByPackageIndex
+import org.cangnova.cangjie.utils.isApplicationInternalMode
 
 private val isShortNameFilteringEnabled: Boolean by lazy { Registry.`is`("cangjie.indices.short.names.filtering.enabled") }
 
@@ -228,8 +229,4 @@ class StubBasedPackageMemberDeclarationProvider(
     }
 }
 
-@Suppress("NOTHING_TO_INLINE")
-inline fun isUnitTestMode(): Boolean = ApplicationManager.getApplication().isUnitTestMode
 
-@Suppress("NOTHING_TO_INLINE")
-inline fun isApplicationInternalMode(): Boolean = ApplicationManager.getApplication().isInternal

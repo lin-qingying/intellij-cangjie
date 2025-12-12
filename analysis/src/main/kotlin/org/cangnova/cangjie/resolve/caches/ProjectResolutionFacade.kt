@@ -114,12 +114,12 @@ class ProjectResolutionFacade(
             ?: getModuleInfosFromIdeaModel(project/*, (settings as? PlatformAnalysisSettingsImpl)?.platform*/))
             .toMutableSet()
 
-        // 将合成文件按模块信息分组，以便后续处理
-        val syntheticFilesByModule = syntheticFiles.groupBy { it.moduleInfo }
-        // 获取合成文件对应的模块信息
-        val syntheticFilesModules = syntheticFilesByModule.keys
-        // 将合成文件对应的模块信息添加到所有模块信息中
-        allModuleInfos.addAll(syntheticFilesModules)
+        // 将合成文件按分析上下文分组，以便后续处理
+        val syntheticFilesByContext = syntheticFiles.groupBy { it.analysisContext }
+        // 获取合成文件对应的分析上下文
+        val syntheticFilesContexts = syntheticFilesByContext.keys.filterNotNull()
+        // 将合成文件对应的分析上下文添加到所有模块信息中
+        allModuleInfos.addAll(syntheticFilesContexts)
 
         // 根据模块过滤条件过滤解析的模块
         val resolvedModules = allModuleInfos.filter(moduleFilter)
@@ -132,7 +132,7 @@ class ProjectResolutionFacade(
             resolverDebugName,
             globalContext.withProject(project),
             resolvedModulesWithDependencies,
-            syntheticFilesByModule,
+            syntheticFilesByContext,
             delegateResolverForProject,
             /*      if (invalidateOnOOCB)*/
             CangJieModificationTrackerService.getInstance(project).outOfBlockModificationTracker /*else JavaLibraryModificationTracker.getInstance(
@@ -155,11 +155,13 @@ class ProjectResolutionFacade(
                 private val lock = ReentrantLock()
 
                 override fun createValue(file: CjFile): PerFileAnalysisCache {
-                    return PerFileAnalysisCache(
-                        file,
-                        resolverForProject.resolverForModule(file.moduleInfo).componentProvider
-                    )
-
+                    val fileContext = file.analysisContext
+                    val componentProvider = if (fileContext != null) {
+                        resolverForProject.resolverForModule(fileContext).componentProvider
+                    } else {
+                        throw IllegalStateException("No AnalysisContext for file: ${file.name}")
+                    }
+                    return PerFileAnalysisCache(file, componentProvider)
                 }
 
                 override fun getIfCached(key: CjFile): PerFileAnalysisCache? {
@@ -214,8 +216,12 @@ class ProjectResolutionFacade(
         }
 
         //TODO: (module refactoring) several elements are passed here in debugger
-//        return AnalysisResult.success(bindingContext, moduleDescriptor)
-        return AnalysisResult.success(bindingContext, findModuleDescriptor(elements.first().moduleInfo))
+        val firstElementContext = elements.first().analysisContext
+        return if (firstElementContext != null) {
+            AnalysisResult.success(bindingContext, findModuleDescriptor(firstElementContext))
+        } else {
+            AnalysisResult.internalError(bindingContext, IllegalStateException("No AnalysisContext for elements"))
+        }
 
     }
 
@@ -233,9 +239,12 @@ class ProjectResolutionFacade(
         }
 
         //TODO: (module refactoring) several elements are passed here in debugger
-        return AnalysisResult.success(bindingContext, findModuleDescriptor(element.moduleInfo))
-
-//        return AnalysisResult.success(bindingContext, moduleDescriptor)
+        val elementContext = element.analysisContext
+        return if (elementContext != null) {
+            AnalysisResult.success(bindingContext, findModuleDescriptor(elementContext))
+        } else {
+            AnalysisResult.internalError(bindingContext, IllegalStateException("No AnalysisContext for element"))
+        }
     }
 
     private fun analysisResultForElement(
@@ -274,36 +283,31 @@ class ProjectResolutionFacade(
     }
 
     internal fun resolverForElement(element: PsiElement): ResolverForModule {
-
-
         val moduleInfos = mutableSetOf<AnalysisContext>()
 
-
-        val elementModuleInfos = ModuleInfoProvider.getInstance(element.project).collect(
-            element,
-            config =/* config ?:*/ ModuleInfoProvider.Configuration.Default,
-        )
-
-        for (result in elementModuleInfos) {
-            val moduleInfo = result.getOrNull()
-            if (moduleInfo != null) {
-                val resolver = cachedResolverForProject.tryGetResolverForModule(moduleInfo)
-                if (resolver != null) {
-                    return resolver
-                } else {
-                    moduleInfos += moduleInfo
-                }
-            }
-
-            val error = result.exceptionOrNull()
-            if (error != null) {
-                LOG.warn("Could not find correct module information", error)
-            }
+        // 尝试从文件获取上下文
+        val containingFile = element.containingFile
+        val elementContext = if (containingFile != null) {
+            element.project.analysisContextProvider.getContextForFile(containingFile)
+        } else {
+            null
         }
 
-        val containingFile = element.containingFile as? CjFile
-        return cachedResolverForProject.tryGetResolverForModule(NotUnderContentRootModuleInfo(project, containingFile))
-            ?: cachedResolverForProject.diagnoseUnknownModuleInfo(moduleInfos.toList())
+        // 如果找到上下文，尝试获取对应的 resolver
+        if (elementContext != null) {
+            val resolver = cachedResolverForProject.tryGetResolverForModule(elementContext)
+            if (resolver != null) {
+                return resolver
+            } else {
+                moduleInfos += elementContext
+            }
+        } else {
+            LOG.warn("Could not find AnalysisContext for element: ${element::class.java}")
+        }
+
+        val cjFile = containingFile as? CjFile
+        return cachedResolverForProject.tryGetResolverForModule(NotUnderContentRootModuleInfo(project, cjFile))
+            ?: cachedResolverForProject.diagnoseUnknownContext(moduleInfos.toList())
     }
 
 }

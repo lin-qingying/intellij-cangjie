@@ -124,11 +124,7 @@ fun checkForConstructorCallOnFunctionalType(
     context: BasicCallResolutionContext
 ) {
     if (typeReference?.typeElement is CjFunctionType) {
-        val factory =
-            when (context.languageVersionSettings.supportsFeature(LanguageFeature.ProhibitConstructorCallOnFunctionalSupertype)) {
-                true -> NO_CONSTRUCTOR
-                false -> NO_CONSTRUCTOR_WARNING
-            }
+        val factory = NO_CONSTRUCTOR
         context.trace.report(factory.on(context.call.getValueArgumentListOrElement()))
     }
 }

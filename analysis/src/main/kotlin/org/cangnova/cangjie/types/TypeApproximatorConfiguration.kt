@@ -41,7 +41,7 @@ open class TypeApproximatorConfiguration {
     open val errorType: Boolean get() = false
     open val integerLiteralConstantType: Boolean get() = false // IntegerLiteralTypeConstructor
     open val integerConstantOperatorType: Boolean get() = false
-    open val definitelyNotNullType: Boolean get() = true
+    open val definitelyNonOptionType: Boolean get() = true
     open val intersection: IntersectionStrategy = IntersectionStrategy.TO_COMMON_SUPERTYPE
     open val intersectionTypesInContravariantPositions = false
     open val localTypes = false
@@ -103,7 +103,7 @@ open class TypeApproximatorConfiguration {
         AllFlexibleSameValue() {
         override val allFlexible: Boolean get() = true
         override val errorType: Boolean get() = true
-        override val definitelyNotNullType: Boolean get() = false
+        override val definitelyNonOptionType: Boolean get() = false
         override val integerLiteralConstantType: Boolean get() = true
         override val intersectionTypesInContravariantPositions: Boolean get() = true
 

@@ -40,7 +40,7 @@ import org.cangnova.cangjie.utils.exceptions.checkWithAttachment
 import org.jetbrains.annotations.NonNls
 
 var CjFile.doNotAnalyze: String? by UserDataProperty(Key.create("DO_NOT_ANALYZE"))
-var CjFile.analysisContext: PsiElement? by UserDataProperty(Key.create("ANALYSIS_CONTEXT"))
+var CjFile.elementContext: PsiElement? by UserDataProperty(Key.create("ELEMENT_CONTEXT"))
 
 private const val DO_NOT_ANALYZE_NOTIFICATION = "This file was created by CjPsiFactory and should not be analyzed\n" +
     "Use createAnalyzableFile to create file that can be analyzed\n"
@@ -167,7 +167,7 @@ class CjPsiFactory private constructor(
             ?: error("Failed to create ${E::class.simpleName} from `$text`")
 
     fun createSimpleNameStringTemplateEntry(@NonNls name: String): CjSimpleNameStringTemplateEntry {
-        val stringTemplateExpression = createExpression("\"\$$name\"") as CjStringTemplateExpression
+        val stringTemplateExpression = createExpression($$"\"$$$name\"") as CjStringTemplateExpression
         return stringTemplateExpression.entries[0] as CjSimpleNameStringTemplateEntry
     }
 
@@ -365,9 +365,9 @@ class CjPsiFactory private constructor(
     fun createFile(@NonNls fileName: String, @NonNls text: String): CjFile {
         val file = doCreateFile(fileName, text)
 
-        val analysisContext = this@CjPsiFactory.context
-        if (analysisContext != null) {
-            file.analysisContext = analysisContext
+        val elementContext = this@CjPsiFactory.context
+        if (elementContext != null) {
+            file.elementContext = elementContext
         } else {
             file.doNotAnalyze = DO_NOT_ANALYZE_NOTIFICATION
         }

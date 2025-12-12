@@ -30,6 +30,8 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import java.lang.Exception
+@Suppress("NOTHING_TO_INLINE")
+inline fun isApplicationInternalMode(): Boolean = ApplicationManager.getApplication().isInternal
 
 val isUnitTestMode: Boolean get() = ApplicationManager.getApplication().isUnitTestMode
 val isDispatchThread: Boolean get() = ApplicationManager.getApplication().isDispatchThread
