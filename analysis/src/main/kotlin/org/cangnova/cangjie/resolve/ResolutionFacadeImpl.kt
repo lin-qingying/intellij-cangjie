@@ -31,7 +31,6 @@ import org.cangnova.cangjie.container.getService
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
 import org.cangnova.cangjie.diagnostics.DiagnosticSink
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
-import org.cangnova.cangjie.ide.FrontendInternals
 import org.cangnova.cangjie.psi.CjDeclaration
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjPsiUtil
@@ -40,7 +39,6 @@ import org.cangnova.cangjie.resolve.caches.ResolutionFacadeModuleDescriptorProvi
 import org.cangnova.cangjie.resolve.lazy.AbsentDescriptorHandler
 import org.cangnova.cangjie.resolve.lazy.BodyResolveMode
 import org.cangnova.cangjie.resolve.lazy.ResolveSession
-import org.cangnova.cangjie.utils.runWithCancellationCheck
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
@@ -52,19 +50,19 @@ class ModuleResolutionFacadeImpl(
     private val context: AnalysisContext
 ) : ResolutionFacade, ResolutionFacadeModuleDescriptorProvider {
     override val moduleDescriptor: ModuleDescriptor
-        get() = findModuleDescriptor(moduleInfo)
+        get() = findModuleDescriptor(context)
     override val project: Project
         get() = projectFacade.project
 
     @FrontendInternals
-    override fun <T : Any> getFrontendService(serviceClass: Class<T>): T = getFrontendService(moduleInfo, serviceClass)
+    override fun <T : Any> getFrontendService(serviceClass: Class<T>): T = getFrontendService(context, serviceClass)
 
     private fun <T : Any> getFrontendService(ideaModuleInfo: AnalysisContext, serviceClass: Class<T>): T {
         return projectFacade.resolverForModuleInfo(ideaModuleInfo).componentProvider.getService(serviceClass)
     }
 
     override fun <T : Any> getIdeService(serviceClass: Class<T>): T {
-        return projectFacade.resolverForModuleInfo(moduleInfo).componentProvider.create(serviceClass)
+        return projectFacade.resolverForModuleInfo(context).componentProvider.create(serviceClass)
     }
 
     override fun findModuleDescriptor(ideaModuleInfo: AnalysisContext) = projectFacade.findModuleDescriptor(ideaModuleInfo)
@@ -103,7 +101,7 @@ class ModuleResolutionFacadeImpl(
             if (CjPsiUtil.isLocal(declaration)) {
                 val bindingContext = analyze(declaration, bodyResolveMode)
                 bindingContext[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
-                    ?: getFrontendService(moduleInfo, AbsentDescriptorHandler::class.java).diagnoseDescriptorNotFound(
+                    ?: getFrontendService(context, AbsentDescriptorHandler::class.java).diagnoseDescriptorNotFound(
                         declaration
                     )
             } else {

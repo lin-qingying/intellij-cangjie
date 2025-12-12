@@ -25,7 +25,6 @@
 package org.cangnova.cangjie.highlighter.suspender
 
 
-import org.cangnova.cangjie.CangJiePluginDisposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
@@ -33,6 +32,7 @@ import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.Alarm
+import org.cangnova.cangjie.CangJiePluginDisposable
 import java.util.concurrent.TimeUnit
 
 /**

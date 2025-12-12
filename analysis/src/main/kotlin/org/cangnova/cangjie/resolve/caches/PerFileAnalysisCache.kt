@@ -67,6 +67,7 @@ import org.cangnova.cangjie.resolve.lazy.ResolveSession
 import org.cangnova.cangjie.resolve.source.getPsi
 import org.cangnova.cangjie.storage.CancellableSimpleLock
 import org.cangnova.cangjie.storage.guarded
+import org.cangnova.cangjie.stubindex.resolve.PluginDeclarationProviderFactory
 import org.cangnova.cangjie.types.CangJieType
 import org.cangnova.cangjie.utils.CodeFragmentUtils
 import org.cangnova.cangjie.utils.exceptions.checkWithAttachment

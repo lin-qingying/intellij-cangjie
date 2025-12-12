@@ -49,8 +49,6 @@ abstract class TypeCheckerStateForConstraintSystem(
         isFromNullabilityConstraint: Boolean = false
     )
 
-    abstract val isInferenceCompatibilityEnabled: Boolean
-
     // super and sub type isSingleClassifierType
     abstract fun addUpperConstraint(typeVariable: TypeConstructorMarker, superType: CangJieTypeMarker)
     abstract fun addEqualityConstraint(typeVariable: TypeConstructorMarker, type: CangJieTypeMarker)
@@ -200,16 +198,11 @@ abstract class TypeCheckerStateForConstraintSystem(
                                 typeVariableTypeConstructor !is TypeVariableTypeConstructorMarker ||
                                 !typeVariableTypeConstructor.isContainedInInvariantOrContravariantPositions()
 
-                        val resultType = if (needToMakeDefNotNull) {
+                        if (needToMakeDefNotNull) {
                             subType.makeDefinitelyNonOptionOrNonOption()
                         } else {
-                            if (!isInferenceCompatibilityEnabled && subType is CapturedTypeMarker) {
-                                subType.withNonOptionProjection()
-                            } else {
-                                subType.withOption(false)
-                            }
+                            subType.withOption(false)
                         }
-                        if (isInferenceCompatibilityEnabled && resultType is CapturedTypeMarker) resultType.withNonOptionProjection() else resultType
                     }
                     // Foo <: T => Foo <: T
                     else -> subType

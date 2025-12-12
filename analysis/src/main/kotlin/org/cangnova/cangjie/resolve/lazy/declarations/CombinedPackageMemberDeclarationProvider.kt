@@ -24,6 +24,7 @@
 
 package org.cangnova.cangjie.resolve.lazy.declarations
 
+import org.cangnova.cangjie.descriptors.PackageMemberDeclarationProvider
 import org.cangnova.cangjie.descriptors.data.CjTypeStatementInfo
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.psi.*

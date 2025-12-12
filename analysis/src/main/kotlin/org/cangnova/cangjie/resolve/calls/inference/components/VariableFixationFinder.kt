@@ -153,38 +153,6 @@ class VariableFixationFinder(
                 && c.position.initialConstraint.position !is DeclaredUpperBoundConstraintPosition<*>
                 && !c.isNullabilityConstraint
 
-    private val inferenceCompatibilityModeEnabled: Boolean
-        get() = languageVersionSettings.supportsFeature(LanguageFeature.InferenceCompatibility)
-    private val isTypeInferenceForSelfTypesSupported: Boolean
-        get() = languageVersionSettings.supportsFeature(LanguageFeature.TypeInferenceOnCallsWithSelfTypes)
-
-    private fun Context.isSelfTypeConstraint(constraint: Constraint): Boolean {
-        val typeConstructor = constraint.type.typeConstructor()
-        return constraint.position.from is DeclaredUpperBoundConstraintPosition<*>
-                && (hasRecursiveTypeParametersWithGivenSelfType(typeConstructor) || isRecursiveTypeParameter(
-            typeConstructor
-        ))
-    }
-
-    private fun Context.areAllProperConstraintsSelfTypeBased(variable: TypeConstructorMarker): Boolean {
-        val constraints = notFixedTypeVariables[variable]?.constraints?.takeIf { it.isNotEmpty() } ?: return false
-
-        var hasSelfTypeConstraint = false
-        var hasOtherProperConstraint = false
-
-        for (constraint in constraints) {
-            if (isSelfTypeConstraint(constraint)) {
-                hasSelfTypeConstraint = true
-            }
-            if (isProperArgumentConstraint(constraint)) {
-                hasOtherProperConstraint = true
-            }
-            if (hasSelfTypeConstraint && hasOtherProperConstraint) break
-        }
-
-        return hasSelfTypeConstraint && !hasOtherProperConstraint
-    }
-
     private fun Context.getTypeVariableReadiness(
         variable: TypeConstructorMarker,
         dependencyProvider: TypeVariableDependencyInformationProvider,
@@ -192,9 +160,6 @@ class VariableFixationFinder(
         !notFixedTypeVariables.contains(variable) || dependencyProvider.isVariableRelatedToTopLevelType(variable) ||
                 variableHasUnprocessedConstraintsInForks(variable) ->
             TypeVariableFixationReadiness.FORBIDDEN
-
-        isTypeInferenceForSelfTypesSupported && areAllProperConstraintsSelfTypeBased(variable) ->
-            TypeVariableFixationReadiness.READY_FOR_FIXATION_DECLARED_UPPER_BOUND_WITH_SELF_TYPES
 
         !variableHasProperArgumentConstraints(variable) -> TypeVariableFixationReadiness.WITHOUT_PROPER_ARGUMENT_CONSTRAINT
         dependencyProvider.isRelatedToOuterTypeVariable(variable) -> TypeVariableFixationReadiness.OUTER_TYPE_VARIABLE_DEPENDENCY
@@ -205,13 +170,6 @@ class VariableFixationFinder(
         variableHasOnlyIncorporatedConstraintsFromDeclaredUpperBound(variable) ->
             TypeVariableFixationReadiness.FROM_INCORPORATION_OF_DECLARED_UPPER_BOUND
 //        isReified(variable) -> TypeVariableFixationReadiness.READY_FOR_FIXATION_REIFIED
-        inferenceCompatibilityModeEnabled -> {
-            when {
-                variableHasLowerNonNothingProperConstraint(variable) -> TypeVariableFixationReadiness.READY_FOR_FIXATION_LOWER
-                else -> TypeVariableFixationReadiness.READY_FOR_FIXATION_UPPER
-            }
-        }
-
         else -> TypeVariableFixationReadiness.READY_FOR_FIXATION
     }
 

@@ -591,14 +591,16 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
             expression: CjSimpleNameExpression,
             data: ExpressionTypingContext
         ): CangJieTypeInfo {
-            return basic.visitSimpleNameExpressionByEnum(expression, data)
+            TODO()
+//            return basic.visitSimpleNameExpressionByEnum(expression, data)
         }
 
         override fun visitDotQualifiedExpression(
             expression: CjDotQualifiedExpression,
             data: ExpressionTypingContext
         ): CangJieTypeInfo {
-            return basic.visitQualifiedExpressionByEnum(expression, data)
+            TODO()
+//            return basic.visitQualifiedExpressionByEnum(expression, data)
         }
 
         override fun getStatementVisitor(context: ExpressionTypingContext): ExpressionTypingVisitorForStatements {
@@ -622,14 +624,16 @@ abstract class ExpressionTypingVisitorDispatcher private constructor(
             expression: CjSimpleNameExpression,
             data: ExpressionTypingContext
         ): CangJieTypeInfo {
-            return basic.visitSimpleNameExpressionByCaseEnum(expression, argument, data, isReportError)
+            TODO()
+//            return basic.visitSimpleNameExpressionByCaseEnum(expression, argument, data, isReportError)
         }
 
         override fun visitDotQualifiedExpression(
             expression: CjDotQualifiedExpression,
             data: ExpressionTypingContext
         ): CangJieTypeInfo {
-            return basic.visitQualifiedExpressionByCaseEnum(expression, argument, data)
+            TODO()
+//            return basic.visitQualifiedExpressionByCaseEnum(expression, argument, data)
         }
 
         override fun getStatementVisitor(context: ExpressionTypingContext): ExpressionTypingVisitorForStatements {

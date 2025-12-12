@@ -28,7 +28,6 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.name.Name
 import org.cangnova.cangjie.resolve.lazy.LazyClassContext
-import org.cangnova.cangjie.resolve.lazy.declarations.PackageMemberDeclarationProvider
 import org.cangnova.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
 import org.cangnova.cangjie.types.CangJieType
 import com.intellij.openapi.project.Project

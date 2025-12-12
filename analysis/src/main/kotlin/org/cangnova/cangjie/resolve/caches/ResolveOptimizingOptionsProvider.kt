@@ -44,7 +44,7 @@ interface ResolveOptimizingOptionsProvider {
             context: AnalysisContext
         ): OptimizingOptions? {
             return EP_NAME.extensions.firstNotNullOfOrNull { extension ->
-                extension.getOptimizingOptions(project, descriptor, moduleInfo)
+                extension.getOptimizingOptions(project, descriptor, context)
             }
         }
     }

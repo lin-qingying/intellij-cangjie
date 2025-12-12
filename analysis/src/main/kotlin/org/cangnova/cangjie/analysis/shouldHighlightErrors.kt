@@ -25,8 +25,10 @@
 package org.cangnova.cangjie.analysis
 
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import org.cangnova.cangjie.projectStructure.RootKindFilter
+import org.cangnova.cangjie.projectStructure.matches
 import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjFile
 
@@ -39,16 +41,13 @@ fun CjFile.shouldHighlightErrors(): Boolean {
         return true
     }
 
-    val indexingInProgress = isIndexingInProgress(project)
+//    val indexingInProgress = isIndexingInProgress(project)
 //    if (!indexingInProgress && isScript()) { /* isScript() is based on stub index */
 //        return calculateShouldHighlightScript()
 //    }
-    if (CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.LIBRARY_DIAGNOSTICS)) {
-        return RootKindFilter.projectSources.copy(includeLibraryClassFiles = true).matches(this)
 
-    }
+    return RootKindFilter.projectSources.copy(includeLibraryClassFiles = true).matches(this)
 
-    return RootKindFilter.projectSources.copy().matches(this)
 }
 
 private fun isIndexingInProgress(project: Project) = runReadAction { DumbService.getInstance(project).isDumb }

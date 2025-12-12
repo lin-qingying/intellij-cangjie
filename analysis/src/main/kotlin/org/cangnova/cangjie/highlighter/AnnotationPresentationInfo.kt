@@ -145,7 +145,7 @@ class AnnotationPresentationInfo(
     @NlsContexts.Tooltip
     private fun getMessage(diagnostic: Diagnostic): String {
         var message = IdeErrorMessages.render(diagnostic)
-        if (isApplicationInternalMode() || isUnitTestMode()) {
+        if (isApplicationInternalMode() || isUnitTestMode) {
             val factoryName = diagnostic.factory.name
             message = if (message.startsWith("<html>")) {
                 @Suppress("HardCodedStringLiteral")
@@ -173,7 +173,7 @@ class AnnotationPresentationInfo(
         val element = diagnostic.psiElement
 
         val fixes = quickFixes[diagnostic].takeIf { it.isNotEmpty() }
-            ?: if (isWarning) listOf(CompilerWarningIntentionAction(diagnostic.factory.name)) else emptyList()
+            ?: if (isWarning) listOf( TODO()/*CompilerWarningIntentionAction(diagnostic.factory.name)*/) else emptyList()
 
         val keyForSuppressOptions = if (isWarning) {
             HighlightDisplayKey.findOrRegister(

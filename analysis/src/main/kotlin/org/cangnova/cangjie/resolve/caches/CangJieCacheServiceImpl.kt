@@ -38,6 +38,7 @@ import com.intellij.psi.util.CachedValuesManager
 import org.cangnova.cangjie.context.GlobalContext
 import org.cangnova.cangjie.context.GlobalContextImpl
 import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.cangnova.cangjie.psi.CjCodeFragment
 import org.cangnova.cangjie.psi.CjElement

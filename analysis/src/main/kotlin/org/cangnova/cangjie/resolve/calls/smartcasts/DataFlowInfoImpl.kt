@@ -100,8 +100,7 @@ internal class DataFlowInfoImpl(
                 is IdentifierInfo.SafeCast -> {
                     val targetType = identifierInfo.targetType
                     val subjectType = identifierInfo.subjectType
-                    if (targetType != null && subjectType != null &&
-                        languageVersionSettings.supportsFeature(LanguageFeature.SafeCastCheckBoundSmartCasts)
+                    if (targetType != null && subjectType != null
                     ) {
 
                         val subjectValue = DataFlowValue(identifierInfo.subjectInfo, subjectType)

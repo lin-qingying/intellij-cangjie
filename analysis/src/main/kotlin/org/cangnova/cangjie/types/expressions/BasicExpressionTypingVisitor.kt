@@ -1378,34 +1378,9 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return components.collectionLiteralResolver.resolveCollectionLiteral(expression, context)
     }
 
-    /**
-     * 访问限定表达式（按枚举 case）
-     *
-     * 处理枚举类型的 case 构造调用，如 `MyEnum.Case(args)`。
-     * 这是枚举类型的特殊处理路径。
-     *
-     * @param expression 限定表达式
-     * @param argument 参数列表
-     * @param context 表达式类型检查上下文
-     * @return 枚举 case 实例的类型信息
-     */
-    fun visitQualifiedExpressionByCaseEnum(
-        expression: CjQualifiedExpression,
 
-        argument: List<ValueArgument>,
-        context: ExpressionTypingContext
-    ): CangJieTypeInfo {
-        val callExpressionResolver = components.callExpressionResolver
-        return callExpressionResolver.getQualifiedExpressionTypeInfoByCaseEnum(expression, argument, context)
-    }
 
-    fun visitQualifiedExpressionByEnum(
-        expression: CjQualifiedExpression,
-        context: ExpressionTypingContext
-    ): CangJieTypeInfo {
-        val callExpressionResolver = components.callExpressionResolver
-        return callExpressionResolver.getQualifiedExpressionTypeInfoByEnum(expression, context)
-    }
+
 
     /**
      * 访问限定表达式
@@ -1449,53 +1424,9 @@ class BasicExpressionTypingVisitor(facade: ExpressionTypingInternals) : Expressi
         return result
     }
 
-    fun visitSimpleNameExpressionByCaseEnum(
-        expression: CjSimpleNameExpression,
-        argument: List<ValueArgument>,
-        context: ExpressionTypingContext,
-        isReportError: Boolean = true
-    ): CangJieTypeInfo {
-
-        val callExpressionResolver = components.callExpressionResolver
-        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfoByCaseEnum(
-            expression,
-            null,
-            null,
-            context,
-            argument,
-            isReportError
-        )
 
 
-        checkNull(expression, context, typeInfo.type)
 
-        components.constantExpressionEvaluator.evaluateExpression(
-            expression, context.trace, context.expectedType
-        )
-        return components.dataFlowAnalyzer.checkType(typeInfo, expression, context) // TODO : Extensions to this
-    }
-
-    fun visitSimpleNameExpressionByEnum(
-        expression: CjSimpleNameExpression,
-        context: ExpressionTypingContext
-    ): CangJieTypeInfo {
-//        if (!components.languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
-//            ReservedCheckingCj.checkReservedYield(expression, context.trace);
-//        }
-//
-//        // TODO : other members
-//        // TODO : type substitutions???
-        val callExpressionResolver = components.callExpressionResolver
-        val typeInfo = callExpressionResolver.getSimpleNameExpressionTypeInfoByEnum(expression, null, null, context)
-
-
-        checkNull(expression, context, typeInfo.type)
-
-        components.constantExpressionEvaluator.evaluateExpression(
-            expression, context.trace, context.expectedType
-        )
-        return components.dataFlowAnalyzer.checkType(typeInfo, expression, context) // TODO : Extensions to this
-    }
 
     /**
      * 访问简单名称表达式

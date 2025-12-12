@@ -35,6 +35,7 @@ import org.cangnova.cangjie.context.GlobalContextImpl
 import org.cangnova.cangjie.context.withProject
 import org.cangnova.cangjie.descriptors.ModuleDescriptor
 import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.diagnostics.DiagnosticSink
 import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile

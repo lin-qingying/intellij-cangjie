@@ -22,6 +22,7 @@
  *
  */
 package org.cangnova.cangjie.analysis
+
 import com.intellij.codeInsight.daemon.impl.CollectHighlightsUtil
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.HighlightVisitor
@@ -36,10 +37,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.resolve.FileContextUtil
 import org.cangnova.cangjie.descriptors.DeclarationDescriptor
+import org.cangnova.cangjie.descriptors.InvalidModuleException
 import org.cangnova.cangjie.diagnostics.Diagnostic
 import org.cangnova.cangjie.diagnostics.infos.errors.UNRESOLVED_REFERENCE
 import org.cangnova.cangjie.diagnostics.rendering.RenderingContext
 import org.cangnova.cangjie.diagnostics.rendering.parameters
+import org.cangnova.cangjie.highlighter.ElementAnnotator
+import org.cangnova.cangjie.highlighter.suspender.CangJieHighlightingSuspender
 import org.cangnova.cangjie.psi.*
 import org.cangnova.cangjie.resolve.binding.BindingContext
 import org.cangnova.cangjie.resolve.caches.analyzeWithAllCompilerChecks
@@ -72,11 +76,9 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
 
         try {
 
-//          TODO  静态分析
-            if (CangJieLanguageServerServices.getInstance().astConfig.isFeatureEnabled(Feature.DIAGNOSTICS)) {
-                analyze(file, holder)
 
-            }
+            analyze(file, holder)
+
 
             action.run()
 
@@ -159,7 +161,6 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
                 },
                 { BindingContext.EMPTY }
             )
-
         afterAnalysisVisitor = getAfterAnalysisVisitor(holder, bindingContext)
 
         //cleanUpCalculatingAnnotations(highlightInfoByTextRange)
@@ -261,13 +262,14 @@ abstract class AbstractCangJieHighlightVisitor : HighlightVisitor {
 
         fun wasUnresolved(element: CjNameReferenceExpression) = element.getUserData(UNRESOLVED_KEY) != null
 
-        fun getAfterAnalysisVisitor(holder: HighlightInfoHolder, bindingContext: BindingContext) =
+        fun getAfterAnalysisVisitor(holder: HighlightInfoHolder, bindingContext: BindingContext): Array<AfterAnalysisHighlightingVisitor> =
             arrayOf(
                 AfterAnalysisVisitor(holder, bindingContext),
-                PropertiesHighlightingVisitor(holder, bindingContext),
-                FunctionsHighlightingVisitor(holder, bindingContext),
-                VariablesHighlightingVisitor(holder, bindingContext),
-                TypeKindHighlightingVisitor(holder, bindingContext)
+//                TODO 其他高亮
+//                PropertiesHighlightingVisitor(holder, bindingContext),
+//                FunctionsHighlightingVisitor(holder, bindingContext),
+//                VariablesHighlightingVisitor(holder, bindingContext),
+//                TypeKindHighlightingVisitor(holder, bindingContext)
             )
 
         private const val ATTEMPT_THRESHOLD = 10

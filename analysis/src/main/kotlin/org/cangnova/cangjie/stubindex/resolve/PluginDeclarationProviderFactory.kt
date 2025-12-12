@@ -30,9 +30,17 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
+import org.cangnova.cangjie.descriptors.AnalysisContext
+import org.cangnova.cangjie.descriptors.PackageMemberDeclarationProvider
+import org.cangnova.cangjie.descriptors.data.CjClassLikeInfo
+import org.cangnova.cangjie.resolve.caches.PerModulePackageCacheService
 import org.cangnova.cangjie.resolve.lazy.declarations.AbstractDeclarationProviderFactory
+import org.cangnova.cangjie.resolve.lazy.declarations.CombinedPackageMemberDeclarationProvider
 import org.cangnova.cangjie.resolve.lazy.declarations.FileBasedDeclarationProviderFactory
+import org.cangnova.cangjie.resolve.lazy.descriptors.ClassMemberDeclarationProvider
+import org.cangnova.cangjie.resolve.lazy.descriptors.PsiBasedClassMemberDeclarationProvider
 import org.cangnova.cangjie.storage.StorageManager
+import org.cangnova.cangjie.stubindex.CangJiePackageIndexUtils
 
 class PluginDeclarationProviderFactory(
     private val project: Project,
@@ -52,7 +60,7 @@ class PluginDeclarationProviderFactory(
     private fun stubBasedPackageExists(name: FqName): Boolean {
 //return PerModulePackageCacheService.getInstance(project).packageExists(name, moduleInfo)
 
-        return moduleInfo.projectSourceModules()
+        return context.projectSourceModules()
             .any { PerModulePackageCacheService.getInstance(project).packageExists(name, it) }
 
     }

@@ -24,7 +24,7 @@
 
 package org.cangnova.cangjie.resolve.calls.tower
 
-import org.cangnova.cangjie.config.LanguageFeature
+import com.intellij.util.SmartList
 import org.cangnova.cangjie.config.LanguageVersionSettings
 import org.cangnova.cangjie.descriptors.*
 import org.cangnova.cangjie.descriptors.synthetic.SyntheticMemberDescriptor
@@ -40,13 +40,8 @@ import org.cangnova.cangjie.resolve.calls.inference.substituteAndApproximateType
 import org.cangnova.cangjie.resolve.calls.model.*
 import org.cangnova.cangjie.resolve.calls.smartcasts.DataFlowInfo
 import org.cangnova.cangjie.resolve.calls.util.isNotSimpleCall
-import org.cangnova.cangjie.types.CangJieType
-import org.cangnova.cangjie.types.TypeApproximator
-import org.cangnova.cangjie.types.isFlexible
+import org.cangnova.cangjie.types.*
 import org.cangnova.cangjie.utils.compactIfPossible
-import com.intellij.util.SmartList
-import org.cangnova.cangjie.types.makeNonOption
-import org.cangnova.cangjie.types.makeOptional
 
 
 sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
@@ -142,8 +137,7 @@ sealed class NewAbstractResolvedCall<D : CallableDescriptor> : ResolvedCall<D> {
 
     private fun createValueArguments(): Map<ValueParameterDescriptor, ResolvedValueArgument> =
         LinkedHashMap<ValueParameterDescriptor, ResolvedValueArgument>().also { result ->
-            val needToUseCorrectExecutionOrderForVarargArguments =
-                languageVersionSettings.supportsFeature(LanguageFeature.UseCorrectExecutionOrderForVarargArguments)
+            val needToUseCorrectExecutionOrderForVarargArguments = true
             var varargMappings: MutableList<Pair<ValueParameterDescriptor, ResolvedValueArgument>>? = null
             for ((originalParameter, resolvedCallArgument) in argumentMappingByOriginal) {
                 val resultingParameter = resultingDescriptor.valueParameters[originalParameter.index]

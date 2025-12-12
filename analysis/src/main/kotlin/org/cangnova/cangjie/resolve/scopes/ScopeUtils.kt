@@ -43,6 +43,7 @@ import org.cangnova.cangjie.psi.CjElement
 import org.cangnova.cangjie.psi.CjFile
 import org.cangnova.cangjie.descriptors.analysisContext
 import org.cangnova.cangjie.psi.psiUtil.parentsWithSelf
+import org.cangnova.cangjie.resolve.CangJieResolveScopeEnlarger
 import org.cangnova.cangjie.resolve.QualifiedExpressionResolver.QualifierPart
 import org.cangnova.cangjie.resolve.ResolutionFacade
 import org.cangnova.cangjie.resolve.binding.BindingContext
@@ -118,7 +119,7 @@ private inline fun <T : Any> HierarchicalScope.collectFromMeAndParent(
             if (result == null) {
                 result = SmartList()
             }
-            result!!.add(element)
+            result.add(element)
         }
     }
     return result ?: emptyList()
@@ -670,7 +671,7 @@ fun getResolveScope(file: CjFile): GlobalSearchScope {
         val contextScope = file.getContextContainingFile()?.resolveScope
         if (contextScope != null) {
             return when {
-                file.analysisContext != null && !file.analysisContext!!.isSourceContext ->
+               !file.analysisContext.isSourceContext ->
                     CangJieSourceFilterScope.libraryClasses(contextScope, file.project)
                 else ->
                     CangJieSourceFilterScope.projectSourcesAndLibraryClasses(contextScope, file.project)
@@ -679,7 +680,7 @@ fun getResolveScope(file: CjFile): GlobalSearchScope {
     }
 
     return when {
-        file.analysisContext?.isSourceContext == true -> {
+        file.analysisContext.isSourceContext -> {
             val projectScope = CangJieSourceFilterScope.projectFiles(file.resolveScope, file.project)
             CangJieResolveScopeEnlarger.enlargeScope(projectScope, file)
         }

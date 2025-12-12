@@ -161,12 +161,9 @@ object ValueArgumentsToParametersMapper {
                 var valueParameterDescriptor = parameterByName[argumentName.asName]
                 val nameReference = argumentName.referenceExpression
 
-                if (!languageVersionSettings.supportsFeature(LanguageFeature.YieldIsNoMoreReserved)) {
-                    checkReservedYield(nameReference, candidateCall.trace)
-                }
 
                 if (candidate.hasStableParameterNames() && nameReference != null &&
-                    candidate is CallableMemberDescriptor && (candidate as CallableMemberDescriptor).getKind() === CallableMemberDescriptor.Kind.FAKE_OVERRIDE
+                    candidate is CallableMemberDescriptor && (candidate as CallableMemberDescriptor).kind === CallableMemberDescriptor.Kind.FAKE_OVERRIDE
                 ) {
                     if (valueParameterDescriptor == null) {
                         valueParameterDescriptor = getParameterByNameInOverriddenMethods(argumentName.asName)

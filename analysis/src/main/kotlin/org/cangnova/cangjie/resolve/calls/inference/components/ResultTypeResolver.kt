@@ -48,10 +48,7 @@ class ResultTypeResolver(
         fun buildNotFixedVariablesToStubTypesSubstitutor(): TypeSubstitutorMarker
 //        fun isReified(variable: TypeVariableMarker): Boolean
     }
-
-    private val isTypeInferenceForSelfTypesSupported: Boolean
-        get() = languageVersionSettings.supportsFeature(LanguageFeature.TypeInferenceOnCallsWithSelfTypes)
-//
+ //
 //    private fun Context.getDefaultTypeForSelfType(
 //        constraints: List<Constraint>,
 //        typeVariable: TypeVariableMarker
